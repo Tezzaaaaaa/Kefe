@@ -223,7 +223,7 @@ function measureAppleLineBlock(ctx, w, line, settings, nextLine = null) {
     if (!line || !line.text) return { rows: [], rowHeight: 0, totalHeight: 0 };
     const fontSize = settings.fontSize;
     ctx.save();
-    ctx.font = `650 ${fontSize}px system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif`;
+    ctx.font = `700 ${fontSize}px "Open Sans",Arial,sans-serif`;
     const margin = Math.max(40, w * 0.075);
     const rows = buildAppleRows(ctx, line, nextLine, w - margin * 2);
     const rowHeight = fontSize * 1.25;
@@ -280,7 +280,7 @@ function drawAppleLineBlock(ctx, w, centreY, line, time, settings, options = {})
     const measurement = options.measurement || measureAppleLineBlock(ctx, w, line, settings, nextLine);
     ctx.save();
     ctx.filter = Number(options.blur) > 0 ? `blur(${Number(options.blur)}px)` : "none";
-    ctx.font = `650 ${fontSize}px system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif`;
+    ctx.font = `700 ${fontSize}px "Open Sans",Arial,sans-serif`;
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     const margin = Math.max(40, w * 0.075);
@@ -481,7 +481,7 @@ function buildBratWords(lines) {
     return output;
 }
 function setBratFont(ctx, fontSize) {
-    ctx.font = `400 ${fontSize}px "Arial Narrow","Helvetica Neue Condensed","Roboto Condensed",Arial,sans-serif`;
+    ctx.font = `700 ${fontSize}px "Archivo Narrow",Arial,sans-serif`;
     ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
 }
 function buildBratRows(ctx, words, w, h, style) {
@@ -809,12 +809,13 @@ function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
     ctx.restore();
 }
 
-function fitCentredEffectText(ctx, text, baseSize, maxWidth, weight) {
+function fitCentredEffectText(ctx, text, baseSize, maxWidth, weight, family) {
+    const face = family || '"Open Sans"';
     let size = Number(baseSize) || 76;
-    ctx.font = `${weight} ${size}px "Open Sans",Arial,sans-serif`;
+    ctx.font = `${weight} ${size}px ${face},Arial,sans-serif`;
     while (size > 30 && ctx.measureText(text).width > maxWidth) {
         size -= 2;
-        ctx.font = `${weight} ${size}px "Open Sans",Arial,sans-serif`;
+        ctx.font = `${weight} ${size}px ${face},Arial,sans-serif`;
     }
     return size;
 }
@@ -834,7 +835,7 @@ function drawAuroraEffect(ctx, w, h, style, lines, time) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const maxWidth = w * 0.84;
-    const size = fitCentredEffectText(ctx, text, style.fontSize, maxWidth, 700);
+    const size = fitCentredEffectText(ctx, text, style.fontSize, maxWidth, 500, '"Bricolage Grotesque"');
     const speed = Number(style.auroraSpeed) || 1.2;
     const intensity = Number(style.auroraIntensity) || 0.7;
     const saturation = linaClamp(Number(style.auroraSaturation) || 1, 0.2, 1.8);

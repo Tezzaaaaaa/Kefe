@@ -7,7 +7,7 @@ These typography assignments are the locked design specification for the current
 | Apple Music | Open Sans | Premium lyric typography with smooth focus/highlight movement |
 | Brat | Archivo Narrow | Compact, edge-to-edge album-cover typography |
 | Eternal Sunshine | Homemade Apple | Handwritten lyric reveal with smooth organic word-level ink resolution |
-| Aurora | Homemade Apple | Atmospheric handwritten typography with cinematic colour flow |
+| Aurora | Bricolage Grotesque | Atmospheric colour-flowing gradient typography with a soft aurora glow |
 | Typewriter | Courier Prime | Restrained character-by-character reveal |
 | Instagram Lyrics | **Inter Tight ExtraBold** | Bold uppercase Story composition with dominant active lyric, restrained surrounding lines and smooth stacked handoff |
 | Fade Up | Momo Trust Display | Clean word-by-word rise, settle and restrained glow |
@@ -18,7 +18,7 @@ Brat uses Archivo Narrow as its production face. The typography is lowercase, ti
 
 ## Aurora
 
-Aurora uses Homemade Apple as its production face. The treatment uses atmospheric colour, restrained glow and cinematic movement while keeping the handwritten typography intact.
+Aurora uses Bricolage Grotesque as its production face. The treatment uses atmospheric colour, restrained glow and cinematic movement over a modern, flowing grotesque — one effect, one font. It does not share a face with any other effect.
 
 ## Eternal Sunshine
 
@@ -34,7 +34,8 @@ The following font families are canonical for production rendering:
 
 - Open Sans — Apple Music and UI
 - Archivo Narrow — Brat
-- Homemade Apple — Eternal Sunshine and Aurora
+- Homemade Apple — Eternal Sunshine
+- Bricolage Grotesque — Aurora
 - Courier Prime — Typewriter
 - Inter Tight — Instagram Lyrics
 - Momo Trust Display — Fade Up

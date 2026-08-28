@@ -140,6 +140,7 @@ Kefe/
 │
 ├── fonts/
 │   ├── archivo-narrow/
+│   ├── bricolage-grotesque/
 │   ├── courier-prime/
 │   ├── homemade-apple/
 │   ├── inter-tight/
@@ -151,7 +152,6 @@ Kefe/
 ├── image-enhancer.html
 ├── image-enhancer.js
 ├── image-enhancer.css
-├── Bricolage_Grotesque/
 │
 ├── .env.example
 ├── package.json
@@ -255,12 +255,13 @@ More detailed information is available in:
 
 ## Typography
 
-KEFE includes **Bricolage Grotesque** as part of its visual typography system.
+KEFE includes **Bricolage Grotesque** — the production face for the Aurora
+effect — as part of its visual typography system.
 
 Font files and licensing information are included in:
 
 ```text
-Bricolage_Grotesque/
+fonts/bricolage-grotesque/
 ```
 
 See [`THIRD-PARTY-LICENSES.md`](THIRD-PARTY-LICENSES.md) and the included font licence files for licensing information.

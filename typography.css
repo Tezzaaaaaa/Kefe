@@ -31,6 +31,7 @@
 @font-face { font-family: 'Courier Prime'; font-style: italic; font-weight: 700; font-display: swap; src: url('./fonts/courier-prime/CourierPrime-BoldItalic.woff2') format('woff2'); }
 @font-face { font-family: 'Inter Tight'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('./fonts/inter-tight/InterTight-VariableFont_wght.woff2') format('woff2'); }
 @font-face { font-family: 'Momo Trust Display'; font-style: normal; font-weight: 400; font-display: swap; src: url('./fonts/momo-trust-display/MomoTrustDisplay-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 200 800; font-display: swap; src: url('./fonts/bricolage-grotesque/BricolageGrotesque-VariableFont_opsz,wdth,wght.woff2') format('woff2'); }
 
 .type-display { font-size: var(--type-display); line-height: var(--leading-display); letter-spacing: var(--tracking-display); font-weight: 700; }
 .type-title { font-size: var(--type-title); line-height: var(--leading-heading); letter-spacing: var(--tracking-heading); font-weight: 700; }

@@ -105,6 +105,17 @@ for (const m of ['clamp','smooth','smoother','activeLine','lineProgress','wordsF
   if (typeof U?.[m] !== 'function') failures.push(`missing util: ${m}`);
 }
 
+// 1 effect = 1 font: every production effect must resolve to a distinct family,
+// so no effect silently shares a face with another.
+const famSet = new Set();
+for (const key of ['apple', 'brat', 'eternal', 'aurora', 'typewriter', 'instagram', 'fadeup']) {
+  const c = contracts[key];
+  if (!c || !c.family) continue;
+  if (famSet.has(c.family)) failures.push(`font collision: "${c.family}" is shared by ${key} with another effect`);
+  famSet.add(c.family);
+}
+console.log('Distinct effect font assignments:', [...famSet].join(', '));
+
 // exercise each renderer with mock lines
 const lines = [
   { time: 0.0, text: 'i got it bad' },

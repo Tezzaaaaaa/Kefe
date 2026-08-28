@@ -1,11 +1,4 @@
-@font-face {
-        font-family: "Homemade Apple";
-        src: url("./fonts/homemade-apple/HomemadeApple-Regular.woff2") format("woff2");
-        font-style: normal;
-        font-weight: 400;
-        font-display: block;
-    }
-    :root {
+:root {
         --bg: #000000;
         --surface: #1c1c1e;
         --surface-2: #232325;
