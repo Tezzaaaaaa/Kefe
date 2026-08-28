@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 const path = require('path');
 const express = require('express');
 const cookieParser = require('cookie-parser');
@@ -7,8 +8,15 @@ const { router: authRouter, attachUser } = require('./auth');
 const buildBillingRouter = require('./billing');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+// The frontend lives in the repository root, one level above this file.
+const ROOT_DIR = path.join(__dirname, '..');
+const PORT = Number(process.env.PORT) || 3000;
 
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET must be configured in production.');
+}
+
+app.disable('x-powered-by');
 app.use(cookieParser());
 app.use(attachUser); // populates req.user from the session cookie on every route
 
@@ -23,9 +31,11 @@ app.use(express.json());
 app.use('/api/auth', authRouter);
 
 // Everything else (frontend) is static.
-app.use(express.static(path.join(__dirname, '..'), { extensions: ['html'] }));
+app.use(express.static(ROOT_DIR, { extensions: ['html'] }));
 
-app.get('/api/health', (req, res) => res.json({ ok: true }));
+app.get('/api/health', (_req, res) => {
+  res.json({ ok: true, service: 'kefe-visualiser' });
+});
 
 app.listen(PORT, () => {
   console.log(`KEFE Visualiser running on http://localhost:${PORT}`);
