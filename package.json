@@ -1,21 +1,23 @@
 {
   "name": "kefe-visualiser",
   "version": "1.0.0",
-  "description": "KEFE Visualiser with membership tiers",
-  "main": "server/index.js",
+  "private": true,
+  "description": "KEFE Visualiser — browser-based lyric video creation and local MP4 export.",
+  "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "node server/index.js"
+    "start": "node index.js",
+    "dev": "node index.js",
+    "check": "node --check index.js && node --check auth.js && node --check billing.js && node --check db.js && node --check entitlements.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.3.0",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
-    "stripe": "^16.12.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "stripe": "^16.12.0"
   },
   "engines": {
     "node": ">=18"

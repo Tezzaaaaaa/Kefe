@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime data
+/data/
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS/editor metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+.vscode/
+.idea/
+
+# Build and coverage output
+dist/
+build/
+coverage/
+
+# Temporary archives and exports
+*.zip
+*.tar
+*.gz
+*.mp4
+*.mov
+*.webm
