@@ -1,0 +1,142 @@
+/* KEFE effect selector — each effect has its own visual identity. */
+.effect-buttons {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.effect-buttons button {
+  position: relative;
+  isolation: isolate;
+  min-height: 82px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 12px 13px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  background: #111113;
+  color: #f2f2ef;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: -.01em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 8px 20px rgba(0,0,0,.12);
+  transition: transform .34s cubic-bezier(.2,.72,.2,1), border-color .34s ease, box-shadow .34s ease, color .25s ease;
+}
+
+.effect-buttons button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  opacity: .9;
+  transition: transform .5s cubic-bezier(.2,.72,.2,1), filter .5s ease, opacity .35s ease;
+}
+
+.effect-buttons button::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  right: 13px;
+  top: 13px;
+  height: 28px;
+  z-index: -1;
+  border-radius: 7px;
+  opacity: .78;
+  transition: transform .45s cubic-bezier(.2,.72,.2,1), opacity .35s ease;
+}
+
+.effect-buttons button:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,255,255,.25);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 14px 30px rgba(0,0,0,.28);
+}
+.effect-buttons button:hover::before { transform: scale(1.08); filter: saturate(1.18); }
+.effect-buttons button:hover::after { transform: translateY(-2px) scaleX(1.04); opacity: 1; }
+
+/* Individual visual signatures. */
+.effect-buttons button[data-effect="apple"]::before {
+  background: radial-gradient(circle at 25% 30%, rgba(255,255,255,.24), transparent 26%), linear-gradient(135deg,#f5f5f2 0%,#8f8f94 48%,#242427 100%);
+}
+.effect-buttons button[data-effect="apple"]::after {
+  background: linear-gradient(90deg,transparent 0%,rgba(255,255,255,.92) 38%,rgba(255,255,255,.18) 62%,transparent 100%);
+  filter: blur(4px);
+}
+
+.effect-buttons button[data-effect="brat"]::before {
+  background: #c8ff00;
+}
+.effect-buttons button[data-effect="brat"]::after {
+  background: repeating-linear-gradient(0deg,rgba(0,0,0,.72) 0 1px,transparent 1px 5px), linear-gradient(90deg,transparent 0 12%,rgba(0,0,0,.8) 12% 13%,transparent 13% 58%,rgba(0,0,0,.8) 58% 59%,transparent 59%);
+}
+
+.effect-buttons button[data-effect="eternal"]::before {
+  background: radial-gradient(circle at 50% 65%,rgba(255,214,152,.6),transparent 24%), linear-gradient(145deg,#111a22,#493f55 55%,#e6a86c);
+}
+.effect-buttons button[data-effect="eternal"]::after {
+  background: radial-gradient(ellipse at 50% 100%,rgba(255,210,150,.75),transparent 62%);
+  filter: blur(6px);
+}
+
+.effect-buttons button[data-effect="aurora"]::before {
+  background: linear-gradient(120deg,#071b20,#113f48 28%,#6b2d82 54%,#164f69 76%,#071319);
+}
+.effect-buttons button[data-effect="aurora"]::after {
+  background: linear-gradient(110deg,transparent 5%,rgba(83,255,190,.7) 32%,rgba(185,88,255,.72) 55%,rgba(65,209,255,.52) 72%,transparent 94%);
+  filter: blur(7px);
+  transform: skewX(-16deg) scale(1.1);
+}
+
+.effect-buttons button[data-effect="typewriter"]::before {
+  background: #eee8da;
+}
+.effect-buttons button[data-effect="typewriter"]::after {
+  background: repeating-linear-gradient(90deg,#1b1b1b 0 2px,transparent 2px 8px);
+  opacity: .7;
+}
+
+.effect-buttons button[data-effect="instagram"]::before {
+  background: linear-gradient(135deg,#3a165f,#b52e78 46%,#f08b35 75%,#f6c94c);
+}
+.effect-buttons button[data-effect="instagram"]::after {
+  background: linear-gradient(90deg,transparent 0 14%,rgba(255,255,255,.9) 14% 16%,transparent 16% 43%,rgba(255,255,255,.9) 43% 45%,transparent 45% 78%,rgba(255,255,255,.9) 78% 80%,transparent 80%);
+}
+
+.effect-buttons button[data-effect="fadeup"]::before {
+  background: linear-gradient(180deg,#2a2a2e 0%,#151518 58%,#050506 100%);
+}
+.effect-buttons button[data-effect="fadeup"]::after {
+  background: linear-gradient(180deg,transparent,#fff);
+  opacity: .35;
+  filter: blur(9px);
+  transform: translateY(8px);
+}
+
+.effect-buttons button.active-effect {
+  color: #fff;
+  border-color: rgba(255,255,255,.72);
+  background: #171719;
+  box-shadow: 0 16px 34px rgba(0,0,0,.38), inset 0 0 0 1px rgba(255,255,255,.07);
+  transform: translateY(-2px);
+}
+.effect-buttons button.active-effect::before { opacity: 1; }
+.effect-buttons button.active-effect::after { opacity: 1; }
+
+.effect-label {
+  min-height: 38px;
+  margin-top: 14px;
+  padding: 0 2px;
+  color: #aaaab0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 560px) {
+  .effect-buttons { grid-template-columns: 1fr; }
+  .effect-buttons button { min-height: 76px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .effect-buttons button,
+  .effect-buttons button::before,
+  .effect-buttons button::after { transition: none; }
+}

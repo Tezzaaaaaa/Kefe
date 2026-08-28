@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="KEFE — a browser-based lyric video visualiser.">
+    <title>KEFE Visualiser</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./typography.css">
+    <link rel="stylesheet" href="./ui-polish.css">
+    <link rel="stylesheet" href="./effects/effect-selector.css">
+    <link rel="stylesheet" href="./background-presets.css">
+    <link rel="stylesheet" href="./design-refresh.css">
+    <link rel="stylesheet" href="./auth-ui.css">
+</head>
+<body>
+<div class="app">
+    <header>
+        <a class="brand" href="./" aria-label="KEFE Visualiser home" title="Return home"><img src="./kefe-logo.svg" alt="KEFE"><span class="brand-descriptor" aria-hidden="true"><span>V</span><span>I</span><span>S</span><span>U</span><span>A</span><span>L</span><span>I</span><span>S</span><span>E</span><span>R</span></span></a>
+        <div class="header-actions">
+            <button id="resetBtn" type="button" class="icon-button" aria-label="Reset project" title="Reset project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7v5h5M5.4 12a7.5 7.5 0 1 0 2.1-5.2L4 10"/></svg></button>
+            <button id="stopBtn" type="button" class="icon-button" aria-label="Stop playback and return to start" title="Stop and return to start"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></button>
+            <button id="exportBtn" type="button" class="primary export-action"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M8 11l4 4 4-4M5 20h14"/></svg><span>Export</span></button>
+        </div>
+    </header>
+    <main>
+        <aside class="sidebar">
+            <nav class="section-nav" aria-label="Editor sections">
+                <a href="#audioSection" class="section-nav-link active"><span>01</span><strong>Audio</strong></a>
+                <a href="#lyricsSection" class="section-nav-link"><span>02</span><strong>Lyrics</strong></a>
+                <a href="#backgroundSection" class="section-nav-link"><span>03</span><strong>Background</strong></a>
+                <a href="#effectSection" class="section-nav-link"><span>04</span><strong>Effect</strong></a>
+                <a href="#exportSection" class="section-nav-link"><span>05</span><strong>Export</strong></a>
+            </nav>
+            <div class="section" id="audioSection"><h3><span class="section-index">01</span>Audio</h3><div class="drop-zone" id="audioDrop"><button type="button" id="audioChooseBtn" class="file-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M8 8l4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg><span>Choose Audio File</span></button><input type="file" id="audioInput" accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.oga,.opus,.webm"><div id="audioStatus" class="status">No audio loaded</div></div><div class="metadata-grid"><input id="metaTitle" type="text" placeholder="Song title" autocomplete="off"><input id="metaArtist" type="text" placeholder="Artist" autocomplete="off"><input id="metaAlbum" type="text" placeholder="Album (optional)" autocomplete="off"></div></div>
+            <div class="section" id="lyricsSection"><h3><span class="section-index">02</span>Lyrics</h3><div class="lyrics-actions"><button id="findLyricsBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>Find Synced Lyrics</span></button><button id="uploadLrcMain" title="Upload an LRC file"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M8 8l4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg><span>Upload LRC</span></button><button id="editLyricsBtn" title="Edit lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17.5V20h2.5L18.8 7.7a2 2 0 0 0-2.5-2.5L4 17.5Z"/><path d="m14.8 6.2 3 3"/></svg><span>Edit Lyrics</span></button><input id="lrcFileInput" type="file" accept=".lrc,.txt,text/plain" hidden></div><div id="lyricsStatus" class="status">No lyrics loaded</div></div>
+            <div class="section" id="backgroundSection"><h3><span class="section-index">03</span>Background</h3><div class="background-choice-grid" role="group" aria-label="Background styles">
+                <button type="button" class="background-choice active-background" data-background-preset="solid" aria-label="Colour background"><span class="background-choice-preview"></span><span class="background-choice-label">Colour</span></button>
+                <button type="button" class="background-choice" data-background-preset="gradient" aria-label="Soft gradient background"><span class="background-choice-preview"></span><span class="background-choice-label">Soft Gradient</span></button>
+                <button type="button" class="background-choice" data-background-preset="spotlight" aria-label="Spotlight background"><span class="background-choice-preview"></span><span class="background-choice-label">Spotlight</span></button>
+                <button type="button" class="background-choice" data-background-preset="aurora" aria-label="Aurora wash background"><span class="background-choice-preview"></span><span class="background-choice-label">Aurora Wash</span></button>
+                <button type="button" class="background-choice" data-background-preset="grid" aria-label="Fine grid background"><span class="background-choice-preview"></span><span class="background-choice-label">Fine Grid</span></button>
+                <button type="button" class="background-choice" data-background-preset="grain" aria-label="Film grain background"><span class="background-choice-preview"></span><span class="background-choice-label">Film Grain</span></button>
+            </div><div class="background-colour-control"><label for="backgroundColor">Colour <span id="backgroundColorValue">#0A0A0A</span></label><input id="backgroundColor" type="color" value="#0A0A0A" aria-label="Background colour"></div><div class="drop-zone" id="bgDrop"><label class="file-button" for="backgroundInput"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m5 17 4.5-4.5 3 3 2-2L19 17"/></svg><span>Choose Image or Video</span></label><input id="backgroundInput" type="file" accept="image/*,video/*" aria-label="Choose background image or video" hidden><div id="backgroundStatus" class="status">Colour background · #0A0A0A</div></div></div>
+            <div class="section" id="effectSection"><h3><span class="section-index">04</span>Effect</h3><div class="effect-buttons"><button data-effect="apple" class="active-effect">Apple</button><button data-effect="brat">Brat</button><button data-effect="eternal">Eternal</button><button data-effect="aurora">Aurora</button><button data-effect="typewriter">Typewriter</button><button data-effect="instagram">Instagram Lyrics</button><button data-effect="fadeup">Fade Up</button></div><div class="effect-label" id="effectLabel">Smooth line transitions + flowing light through words</div><div id="effectControls"></div></div>
+            <div class="section" id="exportSection"><h3><span class="section-index">05</span>Export</h3><select id="exportPreset"><option value="1080p">1080p (High)</option><option value="720p" selected>720p (Medium)</option><option value="480p">480p (Low)</option><option value="instagram">Instagram Reel</option><option value="tiktok">TikTok</option></select><div class="aspect-info" id="offlineExportInfo">Frame-accurate MP4 export runs locally in your browser.</div><button id="exportBottom" class="primary full-width"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M8 11l4 4 4-4M5 20h14"/></svg><span>Export Video</span></button><div class="compact-actions"><button id="saveProject" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v6h8V4M8 20v-5h8v5"/></svg><span>Save Project</span></button><button id="loadProject" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h6l2 2h8v11H4z"/><path d="M12 12v5M9.5 14.5 12 17l2.5-2.5"/></svg><span>Open Project</span></button><input id="projectFileInput" type="file" accept=".kefe,application/json" hidden></div></div>
+        </aside>
+        <section class="preview">
+            <div class="preview-toolbar">
+                <div class="preview-heading"><strong>Preview</strong><span>Live canvas · title card and lyrics</span></div>
+                <div class="preview-aspect"><span class="preview-aspect-label">Canvas</span><div class="aspect-buttons"><button data-aspect="9:16" class="active-aspect">9:16</button><button data-aspect="1:1">1:1</button><button data-aspect="16:9">16:9</button></div><div class="aspect-info" id="aspectInfo">1080 × 1920 (Vertical)</div></div>
+            </div>
+            <div class="canvas-wrapper"><canvas id="stageCanvas" width="1080" height="1920"></canvas></div>
+            <div class="transport"><button id="playBtn" title="Play/Pause (Space)" aria-label="Play or pause"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M8 5.2v13.6a1 1 0 0 0 1.52.86l10.2-6.8a1 1 0 0 0 0-1.66l-10.2-6.8A1 1 0 0 0 8 5.2Z" fill="currentColor"/></svg></button><input type="range" id="seek" min="0" max="0" value="0" step="0.01"><span id="clock">0:00 / 0:00</span></div>
+        </section>
+    </main>
+</div>
+<div id="exportOverlay" class="overlay hidden"><div><strong id="exportPct">0%</strong><p id="exportStatus">Rendering...</p><progress id="exportProgress" max="100" value="0"></progress><button id="exportDiagnostic" type="button" hidden>Download Diagnostics</button><button id="cancelExport">Cancel</button></div></div>
+<div id="exportPreflight" class="modal hidden"><div class="modal-content"><div class="modal-header"><h3>Export Check</h3><button class="close-btn" id="closePreflight" aria-label="Close export check">×</button></div><div class="modal-body"><div id="preflightSummary" class="preflight-list"></div><div id="preflightWarning" class="preflight-warning hidden"></div></div><div class="modal-footer"><button id="confirmExport" class="primary">Export MP4</button><button id="cancelPreflight">Cancel</button></div></div></div>
+<div id="lyricsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><h3>Edit Lyrics</h3><button class="close-btn" id="closeEditor" aria-label="Close lyrics editor">×</button></div><div class="modal-body"><textarea id="lyricsText" placeholder="Paste your lyrics here...&#10;&#10;Example:&#10;[00:00.00]First line&#10;[00:05.00]Second line"></textarea><div class="modal-actions"><button id="pasteLyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h6M9 4a2 2 0 0 0 4 0M8 5H6a2 2 0 0 0-2 2v12h16V7a2 2 0 0 0-2-2h-2"/><path d="M8 11h8M8 15h6"/></svg><span>Paste</span></button><button id="uploadLrc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M8 8l4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg><span>Upload .LRC</span></button></div><div id="editorStatus" class="status"></div></div><div class="modal-footer"><button id="saveLyrics" class="primary">Save</button><button id="cancelEditor">Cancel</button></div></div></div>
+<div id="toast" class="toast"></div>
+<script src="./app.js"></script>
+<script src="./typography.js"></script>
+<script src="./effects/core.js"></script>
+<script src="./effects/brat.js"></script>
+<script src="./effects/aurora.js"></script>
+<script src="./effects/eternal-sunshine.js"></script>
+<script src="./effects/typewriter.js"></script>
+<script src="./effects/instagram-lyrics.js"></script>
+<script src="./effects/story-fade.js"></script>
+<script src="./auth-ui.js"></script>
+<script>window.state = state; window.canvas = canvas; window.kefeMedia = media; window.redrawCurrentPreviewFrame = redrawCurrentPreviewFrame; window.kefeRenderFrame = (targetCtx, width, height, time) => { state.playback.currentTime = time; render(targetCtx, width, height, state, media); }; window.isExporting = false;</script>
+<script src="./effects/effect-app-fx.js"></script>
+<script src="./background-presets.js"></script>
+<script type="module" src="./export/ui.js?v=cb49deca"></script>
+<script>
+(() => {
+  const links = [...document.querySelectorAll('.section-nav-link')];
+  const sections = links.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+  const sidebar = document.querySelector('.sidebar');
+  const setActive = (id) => links.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${id}`));
+  links.forEach(link => link.addEventListener('click', () => setActive(link.getAttribute('href').slice(1))));
+  if ('IntersectionObserver' in window && sidebar) {
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) setActive(visible.target.id);
+    }, { root: sidebar, threshold: [0.25, 0.55, 0.8] });
+    sections.forEach(section => observer.observe(section));
+  }
+})();
+</script>
+</body>
+</html>
