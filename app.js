@@ -1231,7 +1231,10 @@ const EFFECT_LABELS = {
     brat: "5-line album-cover typewriter (edge-to-edge justified)",
     eternal: "Three-line handwritten cycle (Homemade Apple only)",
     aurora: "Flowing colour-gradient lyrics with a soft aurora glow",
-    pulse: "Bold lyrics with a rhythmic scale and glow pulse"
+    pulse: "Bold lyrics with a rhythmic scale and glow pulse",
+    typewriter: "Character-by-character typewriter reveal with a blinking caret",
+    instagram: "Bold uppercase Instagram-style stack with a dominant active line",
+    fadeup: "Word-by-word fade-up reveal with a soft glow"
 };
 
 function renderEffectControls() {
