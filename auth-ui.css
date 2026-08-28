@@ -32,3 +32,5 @@
 .upgrade-list li::before { content: "✓ "; opacity: 0.7; }
 
 .full-width { width: 100%; }
+
+@import url("./preview-layout.css");
