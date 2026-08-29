@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const scale = { ratio: 1.25, micro: 10, caption: 12.5, label: 15.625, body: 19.53125, bodyLarge: 24.414, title: 30.518, display: 38.147, displayXL: 47.684 };
-  const families = { ui: 'Open Sans', apple: 'Open Sans', brat: 'Archivo Narrow', eternal: 'Homemade Apple', aurora: 'Bricolage Grotesque', typewriter: 'Courier Prime', instagram: 'Inter Tight', fadeup: 'Momo Trust Display', mixedmedia: 'Open Sans' };
+  const families = { ui: 'Open Sans', apple: 'Open Sans', brat: 'Archivo Narrow', eternal: 'Homemade Apple', aurora: 'Bricolage Grotesque', typewriter: 'Courier Prime', instagram: 'Inter Tight', fadeup: 'Momo Trust Display', kinetic: 'Open Sans', liquid: 'Bricolage Grotesque', lightfield: 'Open Sans', mixedmedia: 'Open Sans' };
   const effects = {
     apple: { family: families.apple, weight: 700, min: 42, max: 150, lineHeight: 1.08, tracking: -.020, align: 'center', case: 'none', opticalScale: 1.00 },
     brat: { family: families.brat, weight: 700, min: 36, max: 150, lineHeight: .94, tracking: -.055, align: 'center', case: 'none', opticalScale: 1.04 },
@@ -11,6 +11,9 @@
     typewriter: { family: families.typewriter, weight: 400, min: 32, max: 140, lineHeight: 1.02, tracking: .020, align: 'center', case: 'none', opticalScale: .98 },
     instagram: { family: families.instagram, weight: 800, min: 48, max: 150, lineHeight: .78, tracking: -.035, align: 'center', case: 'upper', opticalScale: 1.00 },
     fadeup: { family: families.fadeup, weight: 400, min: 34, max: 150, lineHeight: 1.08, tracking: -.006, align: 'center', case: 'none', opticalScale: .98 },
+    kinetic: { family: families.kinetic, weight: 800, min: 38, max: 156, lineHeight: 1.0, tracking: -.018, align: 'center', case: 'none', opticalScale: 1.00 },
+    liquid: { family: families.liquid, weight: 500, min: 38, max: 150, lineHeight: 1.0, tracking: -.010, align: 'center', case: 'none', opticalScale: 1.00 },
+    lightfield: { family: families.lightfield, weight: 700, min: 42, max: 150, lineHeight: 1.0, tracking: -.020, align: 'center', case: 'none', opticalScale: 1.00 },
     mixedmedia: { family: families.mixedmedia, weight: 800, min: 34, max: 150, lineHeight: 1.0, tracking: .012, align: 'center', case: 'none', opticalScale: 1.00 }
   };
   const fontFaces = [
@@ -52,14 +55,52 @@
     ['exportBtn', 'exportBottom', 'confirmExport'].forEach(id => guard(document.getElementById(id)));
   }
 
-  const redraw = () => {
-    try { window.redrawCurrentPreviewFrame?.(); } catch (_) { /* preview may not be initialised yet */ }
-  };
-
+  const redraw = () => { try { window.redrawCurrentPreviewFrame?.(); } catch (_) {} };
   window.addEventListener('kefe:fonts-ready', redraw);
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installGuards, { once: true });
-  else installGuards();
+  // Premium lyric systems are loaded from independent modules so they remain isolated
+  // from the established production effects and can be evaluated without touching main.
+  function installPremiumEffects() {
+    const section = document.getElementById('effectSection');
+    const controls = document.getElementById('effectControls');
+    if (!section || !controls) return;
+    const buttons = section.querySelector('.effect-buttons');
+    if (!buttons) return;
+    const premium = [
+      ['kinetic','Kinetic','Intelligent cinematic typography'],
+      ['liquid','Liquid','Fluid, morphing letterform motion'],
+      ['lightfield','Lightfield','Typography integrated with light and depth']
+    ];
+    premium.forEach(([name,label,description]) => {
+      if (buttons.querySelector(`[data-effect="${name}"]`)) return;
+      const b=document.createElement('button');b.type='button';b.dataset.effect=name;b.textContent=label;b.title=description;buttons.appendChild(b);
+    });
+    const existing = document.getElementById('premiumEffectNote');
+    if (!existing) {
+      const note=document.createElement('div');note.id='premiumEffectNote';note.className='effect-label';note.textContent='Premium systems · Kinetic, Liquid and Lightfield';controls.before(note);
+    }
+    const setActive=(name) => {
+      window.state.style.effect=name;
+      buttons.querySelectorAll('[data-effect]').forEach(b=>b.classList.toggle('active-effect',b.dataset.effect===name));
+      const label=document.getElementById('effectLabel');
+      if(label) label.textContent=premium.find(x=>x[0]===name)?.[2] || label.textContent;
+      redraw();
+    };
+    buttons.querySelectorAll('[data-effect]').forEach(b=>{
+      if(b.dataset.kefePremiumBound==='1')return;
+      b.dataset.kefePremiumBound='1';
+      b.addEventListener('click',()=>setActive(b.dataset.effect));
+    });
+    if(!window.KEFE_PREMIUM_EFFECTS_LOADING){
+      window.KEFE_PREMIUM_EFFECTS_LOADING=true;
+      ['kinetic','liquid','lightfield'].forEach(name=>{
+        const script=document.createElement('script');script.src=`./effects/${name}.js`;script.async=false;document.body.appendChild(script);
+      });
+    }
+  }
 
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { installGuards(); installPremiumEffects(); }, { once: true });
+  } else { installGuards(); installPremiumEffects(); }
   ready.then(() => window.dispatchEvent(new CustomEvent('kefe:fonts-ready')));
 })();
