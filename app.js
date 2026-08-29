@@ -1733,6 +1733,19 @@ function handleBackgroundFile(file) {
             $('backgroundStatus').textContent = file.name + (media.videoHasAudio ? ' · has audio' : '');
             $('backgroundStatus').className = 'status success';
             toast('Background video loaded' + (media.videoHasAudio ? '' : ' (no audio track)'), 'success');
+            // If no title/artist has been set yet (no uploaded-audio ID3 tags, no
+            // manual entry), take a best guess from the video filename so users
+            // relying on the video's own audio as master still get a usable
+            // starting point for Find Synced Lyrics instead of a dead end.
+            if (!state.audio.metadata.title && !state.audio.metadata.artist) {
+                const guess = songFromFilename(file.name);
+                if (guess.track || guess.artist) {
+                    state.audio.metadata.title = guess.track;
+                    state.audio.metadata.artist = guess.artist;
+                    state.audio.metadataSource = 'filename-guess';
+                    updateMetadataInputs();
+                }
+            }
             // Default master selection (only when the user has not explicitly chosen):
             // - no uploaded audio + video has audio  -> video audio becomes master
             // - no uploaded audio + video has no audio -> virtual timeline (muted) driven by video duration
@@ -2127,6 +2140,7 @@ function syncMasterSourceUI() {
     parts.push(`Uploaded: ${uploadedDur}`);
     parts.push(`Video audio: ${media?.videoHasAudio ? videoDur + ' (available)' : '—'}`);
     if (mode === 'video') parts.push('The background video audio is authoritative. Timed text must be interpreted against it.');
+    if (mode === 'video' && !state.audio.metadata.title) parts.push('Add a song title above to search for synced lyrics.');
     if (mode === 'none') parts.push('No audio will be heard or exported.');
     status.innerHTML = parts.join(' · ');
 }
@@ -2272,7 +2286,6 @@ async function requestSyncedLyrics(artist, track, duration, signal) {
 
 $('findLyricsBtn').addEventListener('click', async function() {
     if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
-    if (!state.audio.file) { toast('Load audio first', 'error'); return; }
     const resolved = resolveAudioLabels(state.audio);
     const artist = resolved.artist;
     const track = resolved.title;
@@ -2285,7 +2298,7 @@ $('findLyricsBtn').addEventListener('click', async function() {
         const timeoutId = setTimeout(() => controller.abort(), 18000);
         let match;
         try {
-            match = await requestSyncedLyrics(artist, track, state.audio.duration || audio.duration, controller.signal);
+            match = await requestSyncedLyrics(artist, track, getMasterDuration() || state.audio.duration || audio.duration, controller.signal);
         } catch (fetchErr) {
             throw new Error(fetchErr.name === 'AbortError' ? 'Lyrics search timed out' : (fetchErr.message || 'Lyrics search failed (network error)'));
         } finally {
