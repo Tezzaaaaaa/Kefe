@@ -34,7 +34,7 @@
                 <a href="#exportSection" class="section-nav-link"><span>05</span><strong>Export</strong></a>
             </nav>
             <div class="section" id="audioSection"><h3><span class="section-index">01</span>Audio</h3><div class="drop-zone" id="audioDrop"><button type="button" id="audioChooseBtn" class="file-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M8 8l4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg><span>Choose Audio File</span></button><input type="file" id="audioInput" accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.oga,.opus,.webm"><div id="audioStatus" class="status">No audio loaded</div></div><div class="metadata-grid"><input id="metaTitle" type="text" placeholder="Song title" autocomplete="off"><input id="metaArtist" type="text" placeholder="Artist" autocomplete="off"><input id="metaAlbum" type="text" placeholder="Album (optional)" autocomplete="off"></div></div>
-            <div class="section" id="lyricsSection"><h3><span class="section-index">02</span>Lyrics</h3><div class="lyrics-actions"><button id="findLyricsBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>Find Synced Lyrics</span></button><button id="uploadLrcMain" title="Upload an LRC file"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M8 8l4-4 4 4M5 14v4a2 2 0 0 0 2 2v-4"/></svg><span>Upload LRC</span></button><button id="editLyricsBtn" title="Edit lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17.5V20h2.5L18.8 7.7a2 2 0 0 0-2.5-2.5L4 17.5Z"/><path d="m14.8 6.2 3 3"/></svg><span>Edit Lyrics</span></button><input id="lrcFileInput" type="file" accept=".lrc,.txt,text/plain" hidden></div><div id="lyricsStatus" class="status">No lyrics loaded</div></div>
+            <div class="section" id="lyricsSection"><h3><span class="section-index">02</span>Lyrics</h3><div class="lyrics-actions"><button id="findLyricsBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span>Find Synced Lyrics</span></button><button id="uploadLrcMain" title="Upload an LRC file"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M8 8l4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg><span>Upload LRC</span></button><button id="editLyricsBtn" title="Edit lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17.5V20h2.5L18.8 7.7a2 2 0 0 0-2.5-2.5L4 17.5Z"/><path d="m14.8 6.2 3 3"/></svg><span>Edit Lyrics</span></button><input id="lrcFileInput" type="file" accept=".lrc,.txt,text/plain" hidden></div><div id="lyricsStatus" class="status">No lyrics loaded</div></div>
             <div class="section" id="backgroundSection"><h3><span class="section-index">03</span>Background</h3><div class="background-choice-grid" role="group" aria-label="Background styles">
                 <div class="background-choice-colour-wrap"><button type="button" class="background-choice active-background" data-background-preset="solid" aria-label="Use a solid colour background"><span class="background-choice-preview"></span><span class="background-choice-label">Colour</span><span class="background-choice-hex" id="backgroundColorValue">#0A0A0A</span></button><input id="backgroundColor" type="color" value="#0A0A0A" class="background-choice-swatch" aria-label="Pick background colour" title="Pick background colour"></div>
                 <button type="button" class="background-choice" data-background-preset="gradient" aria-label="Soft gradient background"><span class="background-choice-preview"></span><span class="background-choice-label">Soft Gradient</span></button>
@@ -58,7 +58,7 @@
 </div>
 <div id="exportOverlay" class="overlay hidden"><div><strong id="exportPct">0%</strong><p id="exportStatus">Rendering...</p><progress id="exportProgress" max="100" value="0"></progress><button id="exportDiagnostic" type="button" hidden>Download Diagnostics</button><button id="cancelExport">Cancel</button></div></div>
 <div id="exportPreflight" class="modal hidden"><div class="modal-content"><div class="modal-header"><h3>Export Check</h3><button class="close-btn" id="closePreflight" aria-label="Close export check">×</button></div><div class="modal-body"><div id="preflightSummary" class="preflight-list"></div><div id="preflightWarning" class="preflight-warning hidden"></div></div><div class="modal-footer"><button id="confirmExport" class="primary">Export MP4</button><button id="cancelPreflight">Cancel</button></div></div></div>
-<div id="lyricsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><h3>Edit Lyrics</h3><button class="close-btn" id="closeEditor" aria-label="Close lyrics editor">×</button></div><div class="modal-body"><textarea id="lyricsText" placeholder="Paste your lyrics here...&#10;&#10;Example:&#10;[00:00.00]First line&#10;[00:05.00]Second line"></textarea><div class="modal-actions"><button id="pasteLyrics"><span>Paste</span></button><button id="uploadLrc"><span>Upload .LRC</span></button></div><div id="editorStatus" class="status"></div></div><div class="modal-footer"><button id="saveLyrics" class="primary">Save</button><button id="cancelEditor">Cancel</button></div></div></div>
+<div id="lyricsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><h3>Edit Lyrics</h3><button class="close-btn" id="closeEditor" aria-label="Close lyrics editor">×</button></div><div class="modal-body"><textarea id="lyricsText" placeholder="Paste your lyrics here...&#10;&#10;Example:&#10;[00:00.00]First line&#10;[00:05.00]Second line"></textarea><div class="modal-actions"><button id="pasteLyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h6M9 4a2 2 0 0 0 4 0M8 5H6a2 2 0 0 0-2 2v12h16V7a2 2 0 0 0-2-2h-2"/><path d="M8 11h8M8 15h6"/></svg><span>Paste</span></button><button id="uploadLrc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M8 8l4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg><span>Upload .LRC</span></button></div><div id="editorStatus" class="status"></div></div><div class="modal-footer"><button id="saveLyrics" class="primary">Save</button><button id="cancelEditor">Cancel</button></div></div></div>
 <div id="toast" class="toast"></div>
 <script src="./app.js"></script>
 <script src="./typography.js"></script>
@@ -77,5 +77,21 @@
 <script src="./effects/effect-app-fx.js"></script>
 <script src="./background-presets.js"></script>
 <script type="module" src="./export/ui.js?v=cb49deca"></script>
+<script>
+(() => {
+  const links = [...document.querySelectorAll('.section-nav-link')];
+  const sections = links.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+  const sidebar = document.querySelector('.sidebar');
+  const setActive = (id) => links.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${id}`));
+  links.forEach(link => link.addEventListener('click', () => setActive(link.getAttribute('href').slice(1))));
+  if ('IntersectionObserver' in window && sidebar) {
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) setActive(visible.target.id);
+    }, { root: sidebar, threshold: [0.25, 0.55, 0.8] });
+    sections.forEach(section => observer.observe(section));
+  }
+})();
+</script>
 </body>
 </html>
