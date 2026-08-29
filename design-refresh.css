@@ -21,7 +21,6 @@ header {
   -webkit-backdrop-filter: none !important;
 }
 .brand { width: 104px !important; color: var(--kefe-ink) !important; }
-.brand img { filter: invert(1) !important; }
 .brand-descriptor { color: var(--kefe-muted) !important; }
 .header-actions { gap: 8px !important; }
 
