@@ -11,6 +11,13 @@ These typography assignments are the locked design specification for the current
 | Typewriter | Courier Prime | Restrained character-by-character reveal |
 | Instagram Lyrics | **Inter Tight ExtraBold** | Bold uppercase Story composition with dominant active lyric, restrained surrounding lines and smooth stacked handoff |
 | Fade Up | Momo Trust Display | Clean word-by-word rise, settle and restrained glow |
+| Karaoke *(experimental)* | Inter Tight ExtraBold | Word-synchronised active-word highlight with restrained glow |
+| Slide *(experimental)* | Bricolage Grotesque | Cinematic horizontal lyric handoff |
+| Bounce *(experimental)* | Archivo Narrow | Word-by-word rise with a restrained bounce |
+
+## Experimental effects
+
+Karaoke, Slide and Bounce are isolated on the experimental lyric-effects branch. They reuse existing bundled production font families so the branch introduces no new remote font dependency or font assets. They are not being promoted to the locked production specification until their visual quality and interaction are reviewed.
 
 ## Brat
 
@@ -33,11 +40,11 @@ Instagram Lyrics uses **Inter Tight ExtraBold** as the locked production face. T
 The following font families are canonical for production rendering:
 
 - Open Sans — Apple Music and UI
-- Archivo Narrow — Brat
+- Archivo Narrow — Brat and experimental Bounce
 - Homemade Apple — Eternal Sunshine
-- Bricolage Grotesque — Aurora
+- Bricolage Grotesque — Aurora and experimental Slide
 - Courier Prime — Typewriter
-- Inter Tight — Instagram Lyrics
+- Inter Tight — Instagram Lyrics and experimental Karaoke
 - Momo Trust Display — Fade Up
 
 Do not substitute a different effect font without an explicit design decision.
