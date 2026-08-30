@@ -7,16 +7,13 @@ body.wizard-mode .sidebar > .section { display: none; }
 body.wizard-mode .sidebar > .section.wizard-current { display: block; }
 body.wizard-mode .sidebar > .section h3:not(.wizard-panel-title) { display: none; }
 
-/* ---------- Scoped reveals for the Source / Title & Text steps ---------- */
-/* Source → "Audio file": show the existing upload zone + song details, hide the redundant source chips. */
+/* ---------- Scoped reveals for the Source step ---------- */
+/* Source → "Uploaded audio": show the existing upload zone + song details, hide the redundant source chips. */
 body.wizard-mode.wizard-src-audio #audioSection .sub-block { display: none; }
-/* Source → "Image or video" (Title Intro): show the existing media upload zone only. */
+/* Source → "Background video": show the existing media upload zone only. */
 body.wizard-mode.wizard-src-media #backgroundSection .background-choice-grid,
 body.wizard-mode.wizard-src-media #backgroundSection .bg-controls,
 body.wizard-mode.wizard-src-media #backgroundSection .background-upload-divider { display: none; }
-/* Title Intro → "Title & Text": show the existing song title/artist fields with the audio upload hidden. */
-body.wizard-mode.wizard-titletext #audioSection .drop-zone,
-body.wizard-mode.wizard-titletext #audioSection .sub-block { display: none; }
 
 /* ---------- Fast, polished fade between steps ---------- */
 body.wizard-mode .sidebar { transition: opacity .15s ease; }
@@ -49,8 +46,16 @@ body.wizard-mode .sidebar > .section.wizard-current:focus { outline: none; } /* 
 }
 
 /* ---------- Wizard panel (intro / source decision / preview) ---------- */
-.wizard-panel-title { font-size: 16px; font-weight: 700; letter-spacing: -.02em; margin: 2px 0 4px; }
-.wizard-panel-hint { color: var(--text-3); font-size: 12px; margin: 0 0 8px; }
+.wizard-panel-kicker {
+    margin: 2px 0 6px;
+    color: var(--red);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+.wizard-panel-title { font-size: 21px; font-weight: 700; letter-spacing: -.03em; margin: 0 0 6px; }
+.wizard-panel-hint { color: var(--text-3); font-size: 12.5px; line-height: 1.5; margin: 0 0 6px; }
 .wizard-panel-note {
     color: var(--text-2);
     font-size: 12.5px;
@@ -62,20 +67,57 @@ body.wizard-mode .sidebar > .section.wizard-current:focus { outline: none; } /* 
     background: var(--surface-2);
 }
 
-.wizard-choices { display: grid; gap: 10px; margin-top: 12px; }
+.wizard-choices { display: grid; gap: 10px; margin-top: 14px; }
 .wizard-choice {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
     text-align: left;
-    padding: 13px 16px;
+    padding: 13px 15px;
+    transition: transform .18s var(--ease), border-color .18s var(--ease),
+                background .18s var(--ease), box-shadow .18s var(--ease);
 }
-.wizard-choice svg { width: 17px; height: 17px; margin-bottom: 3px; }
+.wizard-choice-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--surface-3);
+    color: var(--text-2);
+    transition: background .18s var(--ease), color .18s var(--ease), transform .18s var(--ease);
+}
+.wizard-choice-icon svg { width: 20px; height: 20px; }
+.wizard-choice-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .wizard-choice strong { font-size: 13.5px; font-weight: 700; letter-spacing: -.01em; }
 .wizard-choice span { color: var(--text-3); font-size: 11.5px; line-height: 1.45; }
-.wizard-choice.selected { border-color: var(--red); background: var(--red-soft); }
+.wizard-choice:hover {
+    transform: translateY(-2px);
+    border-color: var(--line-strong);
+    background: var(--surface-3);
+    box-shadow: var(--shadow-card);
+}
+.wizard-choice:hover .wizard-choice-icon { transform: scale(1.06); color: var(--text); }
+.wizard-choice:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.wizard-choice.selected {
+    border-color: var(--red);
+    background: var(--red-soft);
+    box-shadow: 0 0 0 1px var(--red), 0 8px 22px rgba(239,63,56,.16);
+}
+.wizard-choice.selected .wizard-choice-icon {
+    background: var(--red);
+    color: #fff;
+    transform: scale(1.06);
+}
 .wizard-choice.selected strong { color: var(--red); }
 .wizard-choice.selected:hover { background: var(--red-soft); border-color: var(--red); }
+/* A touch of extra presence for the flagship Lyric Video card (all four stay equal). */
+.wizard-choice[data-choice="lyric"] { padding-block: 15px; }
+.wizard-choice[data-choice="lyric"] .wizard-choice-icon { border-radius: 14px; }
+.wizard-choice[data-choice="lyric"]:hover .wizard-choice-icon { transform: scale(1.06) rotate(-3deg); }
 
 /* ---------- Preview summary ---------- */
 .wizard-summary { display: grid; gap: 6px; margin: 12px 0 14px; }
@@ -136,4 +178,7 @@ body.wizard-mode .sidebar > .section.wizard-current:focus { outline: none; } /* 
 @media (prefers-reduced-motion: reduce) {
     body.wizard-mode .sidebar { transition: none; }
     body.wizard-mode .sidebar > .section.wizard-current { animation: none; }
+    .wizard-choice, .wizard-choice-icon { transition: none; }
+    .wizard-choice:hover, .wizard-choice:hover .wizard-choice-icon,
+    .wizard-choice.selected .wizard-choice-icon { transform: none; }
 }

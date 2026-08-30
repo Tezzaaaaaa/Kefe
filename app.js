@@ -45,6 +45,10 @@ const state = {
     playback: { isPlaying: false, currentTime: 0, isSeeking: false },
     audioSource: { master: 'uploaded', userChosen: false },
     captions: { mode: 'lyrics', lines: [] },
+    // Dedicated caption/subtitle styling — deliberately separate from lyric effects.
+    captionStyle: { position: 'bottom', opacity: 1, color: '#FFFFFF', shadow: true },
+    // Final selected video type from the guided workflow — determines what content renders.
+    projectType: 'lyric',
     lyricsOffset: 0,
     touched: { fx: false, background: false, title: false },
     aspect: '9:16'
@@ -112,7 +116,17 @@ function initTheme() {
 
 /* ---------- Timed text resolution (Lyrics vs Captions) ---------- */
 function activeTextMode() { return state.captions.mode === 'captions' ? 'captions' : 'lyrics'; }
+const PROJECT_TYPES = ['lyric', 'visualiser', 'captioned', 'custom'];
+function timedTextRequired() {
+    // Visualiser and Custom compositions are valid without timed text —
+    // a Visualiser must never inherit lyric/caption content as active visuals.
+    return state.projectType !== 'visualiser' && state.projectType !== 'custom';
+}
 function activeTimedLines() {
+    // State-level gate: the final selected video type decides whether timed text
+    // exists at all. Lyric configuration cached in memory from an earlier
+    // workflow never becomes active content in a Visualiser.
+    if (state.projectType === 'visualiser') return [];
     if (state.captions.mode === 'captions' && state.captions.lines.length) return state.captions.lines;
     return state.lyrics.lines;
 }
@@ -950,6 +964,74 @@ function renderLyricsEffect(ctx, w, h, style, lines, time) {
     ctx.restore();
 }
 
+/* ---------- Dedicated caption/subtitle style (Captioned Video) ----------
+   Conventional caption presentation — deliberately separate from the lyric
+   effects: centred, high-contrast, positioned in the caption-safe area. */
+function captionActiveLine(lines, time) {
+    let active = null;
+    for (const line of lines) {
+        const start = Number(line?.time);
+        if (!Number.isFinite(start) || start > time) continue;
+        if (!String(line?.text || '').trim()) continue;
+        const end = Number(line?.endTime);
+        const finish = Number.isFinite(end) && end > start ? end : start + 3;
+        if (time < finish) active = { line, start, finish };
+    }
+    return active;
+}
+function wrapCaptionText(ctx, text, maxWidth) {
+    const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+    const rows = [];
+    let row = '';
+    for (const word of words) {
+        const proposed = row ? row + ' ' + word : word;
+        if (row && ctx.measureText(proposed).width > maxWidth) { rows.push(row); row = word; }
+        else row = proposed;
+    }
+    if (row) rows.push(row);
+    return rows.slice(0, 3); // conventional captions never run past three lines
+}
+function renderCaptionStyle(ctx, w, h, lines, time) {
+    const cs = state.captionStyle || {};
+    const active = captionActiveLine(lines, time);
+    if (!active) return;
+    const unit = Math.min(w, h);
+    const fontSize = Math.max(26, Math.round(unit * 0.037));
+    ctx.save();
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none'; ctx.shadowBlur = 0;
+    ctx.font = `600 ${fontSize}px "Open Sans", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    const rows = wrapCaptionText(ctx, active.line.text, w * 0.82);
+    if (!rows.length) { ctx.restore(); return; }
+    const lineHeight = fontSize * 1.32;
+    const safe = unit * 0.085; // caption-safe area — never against the frame edge
+    const isTop = cs.position === 'top';
+    const lastBaseline = isTop ? safe + fontSize + (rows.length - 1) * lineHeight : h - safe;
+    const firstBaseline = lastBaseline - (rows.length - 1) * lineHeight;
+    // Gentle fade in/out at the edges of each caption segment.
+    const fade = linaClamp((time - active.start) / 0.15) * linaClamp((active.finish - time) / 0.25);
+    const opacity = linaClamp(Number(cs.opacity) || 1, 0.1, 1);
+    ctx.globalAlpha = opacity * fade;
+    ctx.fillStyle = /^#[0-9a-f]{6}$/i.test(cs.color || '') ? cs.color : '#FFFFFF';
+    if (cs.shadow !== false) {
+        // Simple, professional readability treatment: dark outline + soft drop shadow.
+        ctx.strokeStyle = 'rgba(0,0,0,0.88)';
+        ctx.lineWidth = Math.max(2, fontSize * 0.085);
+        ctx.lineJoin = 'round';
+        ctx.miterLimit = 2;
+        ctx.shadowColor = 'rgba(0,0,0,0.85)';
+        ctx.shadowBlur = fontSize * 0.22;
+        ctx.shadowOffsetY = Math.max(1.5, fontSize * 0.055);
+    }
+    rows.forEach((row, i) => {
+        const y = firstBaseline + i * lineHeight;
+        if (cs.shadow !== false) ctx.strokeText(row, w / 2, y);
+        ctx.fillText(row, w / 2, y);
+    });
+    ctx.restore();
+}
+
 function drawCover(ctx, media, w, h, blur) {
     const mw = media.videoWidth || media.width, mh = media.videoHeight || media.height;
     if (!mw || !mh) return;
@@ -1344,9 +1426,15 @@ function render(ctx, w, h, appState, mediaCache) {
         const tcActive = renderTitleCard(ctx, w, h, time, appState);
         if (!tcActive) {
             const timedLines = activeTimedLines();
-            const lyricTime = Math.max(0, time - (Number(appState.lyricsOffset) || 0));
-            try { renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime); }
-            catch(e) { console.error(`${style.effect} render error:`, e); }
+            if (timedLines.length) {
+                const lyricTime = Math.max(0, time - (Number(appState.lyricsOffset) || 0));
+                try {
+                    // Captions use the dedicated caption/subtitle style — never a lyric effect.
+                    if (activeTextMode() === 'captions') renderCaptionStyle(ctx, w, h, timedLines, lyricTime);
+                    else renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime);
+                }
+                catch(e) { console.error(`${style.effect} render error:`, e); }
+            }
         }
     } finally { ctx.restore(); }
 }
@@ -1371,7 +1459,7 @@ function getMasterDuration() {
         const ad = Number.isFinite(state.audio.duration) && state.audio.duration > 0 ? state.audio.duration : 0;
         // For a muted composition, the timeline should at least cover the timed text.
         let textEnd = 0;
-        const lastLine = state.lyrics.lines[state.lyrics.lines.length - 1];
+        const lastLine = state.projectType === 'visualiser' ? null : state.lyrics.lines[state.lyrics.lines.length - 1];
         if (lastLine) {
             const t = Number(lastLine.time);
             const e = Number(lastLine.endTime);
@@ -1648,7 +1736,8 @@ function readiness() {
     const timedLines = activeTimedLines();
     const timingValid = timedLines.length > 0 && validateLyricTiming(timedLines, masterDur).errors.length === 0;
     const masterReady = hasMasterSource() && masterDur > 0;
-    const ready = masterReady && timingValid;
+    // Visualiser / Custom exports are valid without timed text.
+    const ready = masterReady && (timedTextRequired() ? timingValid : true);
     $('exportBtn').disabled = $('exportBottom').disabled = !ready;
     refreshLyricsTimingStatus();
     updateSectionNav();
@@ -1689,8 +1778,8 @@ function projectValidationIssues() {
     const timedLines = activeTimedLines();
     if (!hasMasterSource()) issues.push('an audio or video source');
     else if (masterDur <= 0) issues.push('a source with a readable duration');
-    if (!timedLines.length) issues.push(activeTextMode() === 'captions' ? 'captions' : 'synced lyrics');
-    else if (validateLyricTiming(timedLines, masterDur).errors.length) issues.push('valid lyric timing');
+    if (timedTextRequired() && !timedLines.length) issues.push(activeTextMode() === 'captions' ? 'captions' : 'synced lyrics');
+    else if (timedLines.length && validateLyricTiming(timedLines, masterDur).errors.length) issues.push('valid lyric timing');
     return issues;
 }
 function validateLyricTiming(lines, duration = 0) {
@@ -2101,6 +2190,11 @@ function handleBackgroundFile(file) {
             // - uploaded audio exists                 -> uploaded stays/master takes priority (left as-is)
             if (!state.audio.file) {
                 applyMasterSelection(media.videoHasAudio ? 'video' : 'none', { userInitiated: false, silent: true });
+            } else if (window.kefeWizardSource === 'media' && media.videoHasAudio && getMasterMode() !== 'video') {
+                // Wizard "Background Video" audio source: the video's own track takes
+                // over as master, even when uploaded audio is already loaded.
+                state.audioSource.userChosen = false;
+                applyMasterSelection('video', { userInitiated: false, silent: true });
             }
             readiness();
             hasLastVideoFrame = false;
@@ -2182,7 +2276,9 @@ function serialiseProject() {
         textMode: state.captions.mode,
         captions: sanitiseProjectLyrics(state.captions.lines),
         lyricsOffset: Number(state.lyricsOffset) || 0,
-        aspect: state.aspect
+        aspect: state.aspect,
+        projectType: state.projectType,
+        captionStyle: { ...state.captionStyle }
     };
 }
 function sanitiseProjectLyrics(lines) {
@@ -2230,6 +2326,16 @@ async function loadProjectFile(file) {
         state.lyrics.lines = sanitiseProjectLyrics(project.lyrics);
         state.captions.lines = sanitiseProjectLyrics(project.captions);
         state.captions.mode = project.textMode === 'captions' ? 'captions' : 'lyrics';
+        if (PROJECT_TYPES.includes(project.projectType)) state.projectType = project.projectType;
+        if (project.captionStyle && typeof project.captionStyle === 'object') {
+            const cs = project.captionStyle;
+            state.captionStyle = {
+                position: CAPTION_POSITIONS.includes(cs.position) ? cs.position : 'bottom',
+                opacity: linaClamp(Number(cs.opacity) || 1, 0.3, 1),
+                color: /^#[0-9a-f]{6}$/i.test(cs.color || '') ? cs.color : '#FFFFFF',
+                shadow: cs.shadow !== false
+            };
+        }
         state.lyricsOffset = Number.isFinite(Number(project.lyricsOffset)) ? linaClamp(Number(project.lyricsOffset), -2, 2) : 0;
         applyProjectStyle(project.style);
         if (project.background && typeof project.background === 'object') {
@@ -2246,6 +2352,7 @@ async function loadProjectFile(file) {
         $('lyricsText').value = String(project.lyricsSource || '').slice(0, 1000000);
         updateMetadataInputs();
         applyTextMode(state.captions.mode);
+        syncCaptionStyleUI();
         updateSyncStatusUI();
         $('backgroundColor').value = state.background.solid;
         $('backgroundColorValue').textContent = state.background.solid.toUpperCase();
@@ -2839,7 +2946,9 @@ async function startExport() {
         ['Output', `${config.width} × ${config.height}`], ['Frame rate', `${config.fps} fps`],
         ['Duration', fmt(duration)], ['Frames', totalFrames.toLocaleString()],
         ['Master audio', masterLabel + (getMasterMode() === 'none' ? ' (muted)' : '')],
-        ['Text', `${activeTextMode() === 'captions' ? 'Captions' : 'Lyrics'} · ${activeTimedLines().length} lines`],
+        ['Text', activeTimedLines().length
+            ? `${activeTextMode() === 'captions' ? 'Captions' : 'Lyrics'} · ${activeTimedLines().length} lines`
+            : 'None — visual only'],
         ['Background', media.image ? 'Image background' : media.video ? 'Video background' : `Solid ${state.background.solid}`],
         ['Device demand', demandLabel]
     ];
@@ -2954,11 +3063,69 @@ function applyTextMode(mode) {
     });
     $('lyricsPanel')?.classList.toggle('hidden', state.captions.mode !== 'lyrics');
     $('captionsPanel')?.classList.toggle('hidden', state.captions.mode !== 'captions');
+    // Architecture separation: lyric effects belong to lyrics, caption style to captions.
+    $('lyricStyleBlock')?.classList.toggle('hidden', state.captions.mode === 'captions');
     const badge = $('previewModeBadge');
     if (badge) badge.textContent = state.captions.mode === 'captions' ? 'Captions' : 'Lyrics';
     refreshLyricsTimingStatus();
     redrawCurrentPreviewFrame();
 }
+
+/* =========================================================================
+ * CAPTION STYLE (dedicated subtitle styling — separate from lyric effects)
+ * ========================================================================= */
+const CAPTION_POSITIONS = ['bottom', 'top'];
+function applyCaptionPosition(pos) {
+    state.captionStyle.position = CAPTION_POSITIONS.includes(pos) ? pos : 'bottom';
+    qsa('[data-caption-pos]').forEach(b => b.classList.toggle('active-effect', b.dataset.captionPos === state.captionStyle.position));
+    redrawCurrentPreviewFrame();
+}
+function syncCaptionStyleUI() {
+    const cs = state.captionStyle || {};
+    qsa('[data-caption-pos]').forEach(b => b.classList.toggle('active-effect', b.dataset.captionPos === (cs.position || 'bottom')));
+    const opacityPct = Math.round(linaClamp(Number(cs.opacity) || 1, 0.3, 1) * 100);
+    const op = $('captionOpacity');
+    if (op) op.value = String(opacityPct);
+    const opVal = $('captionOpacityVal');
+    if (opVal) opVal.textContent = `${opacityPct}%`;
+    const colour = $('captionColor');
+    if (colour && /^#[0-9a-f]{6}$/i.test(cs.color || '')) colour.value = cs.color;
+    const shadow = $('captionShadow');
+    if (shadow) shadow.checked = cs.shadow !== false;
+}
+function wireCaptionStyleControls() {
+    qsa('[data-caption-pos]').forEach(btn => btn.addEventListener('click', () => {
+        if (isExporting) { syncCaptionStyleUI(); return; }
+        applyCaptionPosition(btn.dataset.captionPos);
+    }));
+    $('captionOpacity')?.addEventListener('input', function() {
+        if (isExporting) { this.value = String(Math.round((Number(state.captionStyle.opacity) || 1) * 100)); return; }
+        state.captionStyle.opacity = linaClamp(Number(this.value) / 100, 0.3, 1);
+        const opVal = $('captionOpacityVal');
+        if (opVal) opVal.textContent = `${Math.round(state.captionStyle.opacity * 100)}%`;
+        redrawCurrentPreviewFrame();
+    });
+    $('captionColor')?.addEventListener('input', function() {
+        if (isExporting) { this.value = state.captionStyle.color || '#FFFFFF'; return; }
+        if (/^#[0-9a-f]{6}$/i.test(this.value)) state.captionStyle.color = this.value;
+        redrawCurrentPreviewFrame();
+    });
+    $('captionShadow')?.addEventListener('change', function() {
+        if (isExporting) { this.checked = state.captionStyle.shadow !== false; return; }
+        state.captionStyle.shadow = this.checked;
+        redrawCurrentPreviewFrame();
+    });
+}
+
+/* ---------- Guided-workflow bridge: the final selected video type decides
+   what content is rendered (see activeTimedLines / timedTextRequired). ---------- */
+window.kefeSetProjectType = function(type) {
+    if (!PROJECT_TYPES.includes(type)) return;
+    if (state.projectType === type) return;
+    state.projectType = type;
+    readiness();
+    redrawCurrentPreviewFrame();
+};
 
 /* =========================================================================
  * CAPTIONS — automatic timed-block generation from the master audio.
@@ -3216,6 +3383,8 @@ function init() {
         syncBackgroundControls();
         qsa('[data-text-mode]').forEach(b => b.addEventListener('click', () => applyTextMode(b.dataset.textMode)));
         applyTextMode(state.captions.mode);
+        wireCaptionStyleControls();
+        syncCaptionStyleUI();
         readiness();
         setEffect(prefs?.effect && EFFECT_LABELS[prefs.effect] ? prefs.effect : (state.style.effect || 'apple'));
         redrawCurrentPreviewFrame();

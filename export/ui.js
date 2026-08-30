@@ -61,7 +61,12 @@ async function runExport() {
     const media = window.kefeMedia || {};
     const master = resolveMasterInfo(state, media);
     if (!Number.isFinite(master.duration) || master.duration <= 0) throw new Error('Master duration is unavailable (load an audio file or a video with audio)');
-    if (!Array.isArray(state.lyrics?.lines) || !state.lyrics.lines.length) throw new Error('No synced lyrics loaded');
+    // Visualiser / Custom compositions are valid without any timed text.
+    const textRequired = !state.projectType || state.projectType === 'lyric' || state.projectType === 'captioned';
+    const timedLines = state.captions?.mode === 'captions'
+        ? (Array.isArray(state.captions?.lines) ? state.captions.lines : [])
+        : (Array.isArray(state.lyrics?.lines) ? state.lyrics.lines : []);
+    if (textRequired && !timedLines.length) throw new Error('No timed text loaded — add synced lyrics or captions');
     if (typeof window.kefeRenderFrame !== 'function') throw new Error('KEFE export renderer is not connected');
     const preset = $('exportPreset')?.value || '720p';
     const config = getExportConfig(preset, state.aspect || '9:16');

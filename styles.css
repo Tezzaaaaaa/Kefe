@@ -93,6 +93,16 @@ header {
 }
 .brand { display: flex; width: 96px; flex-direction: column; gap: 1px; color: var(--text); text-decoration: none; cursor: pointer; }
 .brand img { display: block; width: 100%; height: auto; }
+/* Theme-aware brand mark: dark letterforms on light surfaces, light letterforms on dark. */
+.brand-logo-night { display: none; }
+[data-theme="night"] .brand-logo-day { display: none; }
+[data-theme="night"] .brand-logo-night { display: block; }
+[data-theme="day"] .brand-logo-day { display: block; }
+[data-theme="day"] .brand-logo-night { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="day"]) .brand-logo-day { display: none; }
+  :root:not([data-theme="day"]) .brand-logo-night { display: block; }
+}
 .brand-descriptor { display: flex; width: 100%; justify-content: space-between; padding: 0 1px; color: var(--text-3); font-size: 8px; font-weight: 700; line-height: 1; text-transform: uppercase; }
 .header-actions { display: flex; align-items: center; gap: 8px; }
 .theme-control {
@@ -569,3 +579,49 @@ canvas {
   button, input, select, textarea, .section, .transport, canvas { border: 1px solid CanvasText; }
   button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid Highlight; }
 }
+
+/* ---------- Title Intro controls (live in the preview area, beside the transport) ---------- */
+.preview-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 10px;
+  padding: 10px 15px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.preview-titlebar-group { display: flex; align-items: center; gap: 14px; min-width: 0; flex-wrap: wrap; }
+.preview-titlebar-label {
+  display: inline-flex; align-items: center; gap: 7px;
+  color: var(--text); font-size: 12.5px; font-weight: 700; letter-spacing: -.01em;
+  white-space: nowrap;
+}
+.preview-titlebar-label svg { width: 15px; height: 15px; color: var(--text-2); }
+.preview-titlebar .toggle-row { min-height: 0; }
+.preview-titlebar-field {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--text-3); font-size: 11.5px; font-weight: 600;
+  min-width: 0; white-space: nowrap;
+}
+.preview-titlebar-field select { min-height: 32px; height: 32px; font-size: 12px; max-width: 190px; }
+.preview-titlebar-field input[type="range"] { width: 110px; }
+.preview-titlebar-field span { color: var(--text-2); font-variant-numeric: tabular-nums; min-width: 24px; }
+@media (max-width: 900px) {
+  .preview-titlebar { padding: 9px 12px; gap: 8px 12px; }
+  .preview-titlebar-field input[type="range"] { width: 84px; }
+  .preview-titlebar-field select { max-width: 150px; }
+}
+
+/* ---------- Caption style controls (dedicated subtitle styling) ---------- */
+.caption-style-grid { display: grid; gap: 4px; margin-top: 2px; }
+.caption-pos-row { display: flex; gap: 6px; }
+.caption-pos-row button { min-height: 32px; padding: 6px 14px; font-size: 12px; font-weight: 600; }
+.caption-color-input {
+  width: 46px; height: 32px; padding: 2px 3px;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface-2); cursor: pointer;
+}
+#captionStyleBlock.hidden { display: none; }

@@ -16,21 +16,35 @@
 
     // ----- Locked paths per project type -----
     const PATHS = {
-        lyric: ['intro', 'source', 'text', 'fx', 'background', 'title', 'preview', 'review'],
-        visualiser: ['intro', 'source', 'fx', 'background', 'title', 'preview', 'review'],
-        title: ['intro', 'source', 'titletext', 'background', 'animation', 'preview', 'review']
+        lyric: ['intro', 'source', 'text', 'fx', 'background', 'preview', 'review'],
+        visualiser: ['intro', 'source', 'fx', 'background', 'preview', 'review'],
+        captioned: ['intro', 'source', 'captionsgen', 'captionsreview', 'fx', 'background', 'preview', 'review'],
+        custom: ['intro', 'source', 'text', 'fx', 'background', 'preview', 'review']
     };
-    const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', title: 'Title Intro' };
+    const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', custom: 'Custom' };
     const PATH_HINTS = {
         lyric: 'Timed lyrics synced to your own audio, styled with KEFE effects.',
         visualiser: 'Audio-reactive visuals for your track — no timed text.',
-        title: 'A short animated title card for intros, reels and promos.'
+        captioned: 'Transcribe speech from your audio or video into styled, timed captions.',
+        custom: 'Full control — start blank and combine any audio, text and effects.'
     };
     const STEP_TITLES = {
         intro: 'What are you making?', source: 'Source', text: 'Lyrics & Captions',
-        fx: 'Visual FX', background: 'Background', title: 'Title Card',
-        titletext: 'Title & Text', animation: 'Animation', preview: 'Preview', review: 'Export Review'
+        fx: 'Visual FX', background: 'Background',
+        preview: 'Preview', review: 'Export Review',
+        captionsgen: 'Generate Captions', captionsreview: 'Caption Review'
     };
+
+    // The Caption Generator sections are created by caption-generator.js; skip
+    // its steps defensively if that module did not boot.
+    function stepsFor() {
+        const base = PATHS[wizard.path] || PATHS.lyric;
+        return base.filter(step => {
+            if (step === 'captionsgen') return Boolean($('captionGenSection'));
+            if (step === 'captionsreview') return Boolean($('captionReviewSection'));
+            return true;
+        });
+    }
 
     const wizard = { path: 'lyric', index: 0, choice: null, source: null };
 
@@ -52,8 +66,8 @@
             case 'fx':
             case 'animation': return [fxSectionId()].filter(Boolean);
             case 'background': return ['backgroundSection'];
-            case 'title': return ['titleSection'];
-            case 'titletext': return ['audioSection', 'titleSection'];
+            case 'captionsgen': return ['captionGenSection'];
+            case 'captionsreview': return ['captionReviewSection'];
             default: return [];
         }
     }
@@ -82,15 +96,73 @@
 
     let fadeTimer = null;
 
+    // ----- Step gating -----
+    // Next is enabled only when the current step has the required selection or
+    // input. Optional styling steps (Visual FX, Background, Title, Animation)
+    // and Preview are always passable — "Off"/defaults are valid choices there.
+    function hasLoadedAudio() {
+        const audio = window.state?.audio;
+        return Boolean(audio && (audio.file || audio.ready || audio.duration > 0));
+    }
+
+    function sourceReady() {
+        if (!wizard.source) return false;
+        if (wizard.source === 'none') return true;
+        const media = window.kefeMedia || {};
+        if (wizard.source === 'uploaded') return hasLoadedAudio() || Boolean(media.videoFile);
+        if (wizard.source === 'media') return Boolean(media.image || media.video || media.videoFile);
+        return true;
+    }
+
+    function lyricsReady() {
+        if (window.state?.lyrics?.lines?.length) return true;
+        const textarea = $('lyricsText'); // unsaved text in the lyrics editor also counts
+        return Boolean(textarea && textarea.value.trim());
+    }
+
+    function captionsReady() {
+        if (window.kefeCaptionGen?.isBusy?.()) return false; // wait while transcribing
+        return Boolean(window.state?.captions?.lines?.length);
+    }
+
+    function nextEnabled(step) {
+        switch (step) {
+            case 'intro': return Boolean(wizard.choice);
+            case 'source': return sourceReady();
+            case 'text': return lyricsReady();
+            case 'captionsgen':
+            case 'captionsreview': return captionsReady();
+            default: return true; // fx / animation / background / title / titletext / preview
+        }
+    }
+
+    // Keep the Next button in sync while the user works inside a step (file
+    // uploads, lyric edits, async caption generation, source re-choice…).
+    // The sidebar is observed because caption generation finishes without any
+    // event wizard.js can listen to — it only mutates the DOM.
+    let nextRefreshQueued = false;
+    function refreshNextState() {
+        if (nextRefreshQueued) return;
+        nextRefreshQueued = true;
+        setTimeout(() => {
+            nextRefreshQueued = false;
+            const step = stepsFor()[wizard.index];
+            const btn = $('wizardNextBtn');
+            if (!step || !btn) return;
+            btn.disabled = !nextEnabled(step);
+        }, 0);
+    }
+
     function applyStep() {
-        const steps = PATHS[wizard.path];
+        const steps = stepsFor();
         const step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
+        if (step === 'captionsreview' && window.kefeCaptionGen) window.kefeCaptionGen.refreshReview();
+        if (step === 'captionsgen' && window.kefeCaptionGen) window.kefeCaptionGen.syncGenerateButton();
 
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
         body.classList.toggle('wizard-src-audio', step === 'source' && wizard.source === 'uploaded');
         body.classList.toggle('wizard-src-media', step === 'source' && wizard.source === 'media');
-        body.classList.toggle('wizard-titletext', step === 'titletext');
 
         const targetIds = targetsForStep(step);
         let firstTarget = null;
@@ -137,9 +209,10 @@
 
     // ----- Panel renderers (intro / source decision / preview) -----
     const CHOICE_ICONS = {
-        lyric: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10"/></svg>',
+        lyric: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10"/><circle cx="18.2" cy="17.4" r="2.6"/><path d="M20.8 17.4V8.2l-2.6.9"/></svg>',
         visualiser: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>',
-        title: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M8 10h8M10 14h4"/></svg>'
+        captioned: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10.5 10.5a2.5 2.5 0 1 0 0 3M17 10.5a2.5 2.5 0 1 0 0 3"/></svg>',
+        custom: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h9M5 17h12"/><circle cx="18.6" cy="12" r="2.1"/></svg>'
     };
 
     function renderPanel(step) {
@@ -151,14 +224,17 @@
 
     function renderIntro() {
         panel.innerHTML = [
+            '<p class="wizard-panel-kicker">Getting started</p>',
             '<h3 class="wizard-panel-title">What are you making?</h3>',
             '<p class="wizard-panel-hint">Pick a starting point — you can fine-tune everything before export.</p>',
             '<div class="wizard-choices">',
-            ['lyric', 'visualiser', 'title'].map(key => [
+            ['lyric', 'visualiser', 'captioned', 'custom'].map(key => [
                 `<button type="button" class="wizard-choice${wizard.choice === key ? ' selected' : ''}" data-choice="${key}">`,
-                CHOICE_ICONS[key],
+                `<span class="wizard-choice-icon">${CHOICE_ICONS[key]}</span>`,
+                '<span class="wizard-choice-copy">',
                 `<strong>${PATH_LABELS[key]}</strong>`,
                 `<span>${PATH_HINTS[key]}</span>`,
+                '</span>',
                 '</button>'
             ].join('')),
             '</div>'
@@ -169,36 +245,40 @@
             wizard.choice = choice;
             wizard.path = choice;
             wizard.index = Math.min(wizard.index, PATHS[choice].length - 1);
+            // The final selected type decides what actually renders (lyrics,
+            // captions or a clean text-free visualiser).
+            if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(choice);
             panel.querySelectorAll('.wizard-choice').forEach(c => c.classList.toggle('selected', c.dataset.choice === choice));
             $('wizardNextBtn').disabled = false;
         }));
     }
 
     function renderSource() {
-        if (wizard.source === 'none' || wizard.source === 'colour') {
+        if (wizard.source === 'none') {
             panel.innerHTML = [
                 '<h3 class="wizard-panel-title">Source</h3>',
-                `<p class="wizard-panel-note">${wizard.source === 'none'
-                    ? 'Muted visuals — no audio will be heard or exported. The timeline follows your timed text.'
-                    : 'A clean colour background — no upload needed. You can add media later in the editor.'}</p>`,
+                '<p class="wizard-panel-note">Muted visuals — no audio will be heard or exported. The timeline follows your timed text.</p>',
                 '<button type="button" id="wizardChangeSource">Choose a different source</button>'
             ].join('');
             $('wizardChangeSource').addEventListener('click', () => { wizard.source = null; applyStep(); });
             return;
         }
-        const isTitle = wizard.choice === 'title';
-        const options = isTitle
-            ? [['media', 'Image or video', 'Upload a backdrop from this device.'],
-               ['colour', 'Plain colour', 'No upload needed — start from a colour.']]
-            : [['uploaded', 'Audio file', 'I have an audio track on this device.'],
+        const isCaptioned = wizard.choice === 'captioned';
+        const options = isCaptioned
+            ? [['uploaded', 'Audio file', 'I have a voice recording or audio track on this device.'],
+               ['media', 'Video file', 'Upload a video — its sound gets transcribed.']]
+            : [['uploaded', 'Uploaded audio', 'I have an audio track on this device.'],
+               ['media', 'Background video', 'Use a video file — its own audio track becomes the soundtrack.'],
                ['none', 'No audio', 'Silent visuals — the timeline runs muted.']];
         panel.innerHTML = [
-            '<h3 class="wizard-panel-title">Source</h3>',
-            `<p class="wizard-panel-hint">${isTitle ? 'Where does your intro backdrop come from?' : 'Where does your audio come from?'}</p>`,
+            '<h3 class="wizard-panel-title">Audio source</h3>',
+            `<p class="wizard-panel-hint">${isCaptioned ? 'Where does your recording come from? Its speech becomes the captions.' : 'Where does the audio come from?'}</p>`,
             '<div class="wizard-choices">',
             options.map(([value, label, hint]) => [
                 `<button type="button" class="wizard-choice${wizard.source === value ? ' selected' : ''}" data-source="${value}">`,
-                `<strong>${label}</strong><span>${hint}</span></button>`
+                `<strong>${label}</strong>`,
+                `<span>${hint}</span>`,
+                '</button>'
             ].join('')),
             '</div>'
         ].join('');
@@ -211,10 +291,23 @@
     // the master source is applied through the app's own selection logic.
     function applySourceChoice(source) {
         wizard.source = source;
+        window.kefeWizardSource = source;
+        const st = window.state;
         if (typeof window.applyMasterSelection === 'function') {
             try {
                 if (source === 'none') window.applyMasterSelection('none', { userInitiated: true, silent: true });
                 if (source === 'uploaded') window.applyMasterSelection('uploaded', { userInitiated: false, silent: true });
+                if (source === 'media') {
+                    // Background Video as the AUDIO source: once a video with an
+                    // audio track is uploaded, its audio becomes the master. Allow
+                    // the automatic selection to take over, and apply immediately
+                    // if a suitable video is already loaded.
+                    if (st?.audioSource) st.audioSource.userChosen = false;
+                    const m = window.kefeMedia || {};
+                    if (m.video && m.videoFile && m.videoHasAudio) {
+                        window.applyMasterSelection('video', { userInitiated: false, silent: true });
+                    }
+                }
             } catch (e) { /* non-fatal: source can still be changed in the editor */ }
         }
         applyStep();
@@ -229,12 +322,21 @@
         const fx = st.style?.visualFx && st.style.visualFx !== 'none' ? st.style.visualFx : 'Off';
         const rows = [
             ['Project', PATH_LABELS[wizard.choice] || '—'],
-            ['Audio source', master],
-            ['Lyric effect', st.style?.effect || 'apple'],
+            ['Audio source', master]
+        ];
+        if (wizard.choice === 'visualiser') {
+            rows.push(['Timed text', 'None — clean visuals']);
+        } else {
+            rows.push(['Lyric effect', st.style?.effect || 'apple']);
+        }
+        rows.push(
             ['Visual FX', fx],
             ['Background', bg],
-            ['Title card', st.style?.titleCardEnabled === false ? 'Off' : 'On']
-        ];
+            ['Title intro', st.style?.titleCardEnabled === false ? 'Off' : 'On']
+        );
+        if (wizard.choice === 'captioned') {
+            rows.splice(3, 0, ['Captions', st.captions?.lines?.length ? `${st.captions.lines.length} generated segments` : 'Not generated yet']);
+        }
         panel.innerHTML = [
             '<h3 class="wizard-panel-title">Preview</h3>',
             '<p class="wizard-panel-hint">Watch it in the live canvas — then continue to Export Review, where everything stays editable.</p>',
@@ -254,7 +356,7 @@
         nav.remove();
         panel.remove();
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        body.classList.remove('wizard-mode', 'wizard-src-audio', 'wizard-src-media', 'wizard-titletext');
+        body.classList.remove('wizard-mode', 'wizard-src-audio', 'wizard-src-media');
         delete body.dataset.wizardStep;
         // Highlight Export in the section nav, matching the in-app nav behaviour.
         document.querySelectorAll('.section-nav-link').forEach(link => {
@@ -272,7 +374,7 @@
 
     // ----- Navigation wiring -----
     function goTo(index) {
-        const steps = PATHS[wizard.path];
+        const steps = stepsFor();
         if (index < 0 || index >= steps.length) return;
         if (index === wizard.index) { applyStep(); return; }
         wizard.index = index;
@@ -288,12 +390,19 @@
 
     $('wizardBackBtn').addEventListener('click', () => goTo(wizard.index - 1));
     $('wizardNextBtn').addEventListener('click', () => {
-        const step = PATHS[wizard.path][wizard.index];
+        const step = stepsFor()[wizard.index];
         if (!nextEnabled(step)) return;
         if (step === 'preview') { finishWizard(); return; }
         goTo(wizard.index + 1);
     });
     $('wizardSkipBtn').addEventListener('click', finishWizard);
+
+    // Live re-evaluation of the Next button as the user completes the current
+    // step's requirement (upload, lyrics, generated captions, choice clicks).
+    new MutationObserver(refreshNextState).observe(sidebar, { childList: true, subtree: true, characterData: true });
+    sidebar.addEventListener('input', refreshNextState);
+    sidebar.addEventListener('change', refreshNextState);
+    sidebar.addEventListener('click', refreshNextState);
 
     applyStep();
 })();

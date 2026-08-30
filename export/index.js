@@ -70,8 +70,9 @@ export function resolveMasterInfo(state, media) {
         const vd = Number(media?.video?.duration) || 0;
         const ad = Number(state?.audio?.duration) || 0;
         // For a muted composition, the timeline should at least cover the timed text (mirrors preview logic).
+        // A Visualiser never carries timed text, so it contributes nothing here.
         let textEnd = 0;
-        const lines = state?.lyrics?.lines || [];
+        const lines = state?.projectType === 'visualiser' ? [] : (state?.lyrics?.lines || []);
         const lastLine = lines[lines.length - 1];
         if (lastLine) {
             const t = Number(lastLine.time);

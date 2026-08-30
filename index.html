@@ -10,13 +10,14 @@
     <link rel="stylesheet" href="./typography.css">
     <link rel="stylesheet" href="./effects/effect-selector.css">
     <link rel="stylesheet" href="./background-presets.css">
+    <link rel="stylesheet" href="./caption-generator.css">
     <link rel="stylesheet" href="./wizard.css">
     <link rel="stylesheet" href="./auth-ui.css">
 </head>
 <body>
 <div class="app">
     <header>
-        <a class="brand" href="./" aria-label="KEFE Visualiser home" title="Return home"><img src="./kefe-logo.svg" alt="KEFE"><span class="brand-descriptor" aria-hidden="true"><span>V</span><span>I</span><span>S</span><span>U</span><span>A</span><span>L</span><span>I</span><span>S</span><span>E</span><span>R</span></span></a>
+        <a class="brand" href="./" aria-label="KEFE Visualiser home" title="Return home"><img class="brand-logo brand-logo-day" src="./kefe-logo.svg" alt="KEFE"><img class="brand-logo brand-logo-night" src="./kefe-logo-light.svg" alt="" aria-hidden="true"><span class="brand-descriptor" aria-hidden="true"><span>V</span><span>I</span><span>S</span><span>U</span><span>A</span><span>L</span><span>I</span><span>S</span><span>E</span><span>R</span></span></a>
         <div class="header-actions">
             <label class="theme-control" for="themeSelect">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg>
@@ -37,8 +38,7 @@
                 <a href="#textSection" class="section-nav-link" data-nav="text"><span>02</span><strong>Lyrics &amp; Captions</strong></a>
                 <a href="#fxSection" class="section-nav-link" data-nav="fx"><span>03</span><strong>Visual FX</strong></a>
                 <a href="#backgroundSection" class="section-nav-link" data-nav="background"><span>04</span><strong>Background</strong></a>
-                <a href="#titleSection" class="section-nav-link" data-nav="title"><span>05</span><strong>Title Card</strong></a>
-                <a href="#exportSection" class="section-nav-link" data-nav="export"><span>06</span><strong>Export</strong></a>
+                <a href="#exportSection" class="section-nav-link" data-nav="export"><span>05</span><strong>Export</strong></a>
             </nav>
             <div class="section" id="audioSection">
                 <h3><span class="section-index">01</span>Audio</h3>
@@ -92,8 +92,22 @@
                         <button id="editCaptionsBtn" title="Edit captions"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17.5V20h2.5L18.8 7.7a2 2 0 0 0-2.5-2.5L4 17.5Z"/><path d="m14.8 6.2 3 3"/></svg><span>Edit Captions</span></button>
                     </div>
                     <div id="captionsStatus" class="status">Captions analyse the audio and generate timed blocks for live performances, videos and songs without lyrics. Generate timing, then type what you hear.</div>
+                    <div class="sub-block" id="captionStyleBlock">
+                        <div class="sub-heading">Caption style<span class="sub-hint">Conventional subtitle presentation — separate from lyric effects</span></div>
+                        <div class="caption-style-grid">
+                            <div class="control-row compact"><label>Position</label>
+                                <div class="caption-pos-row" role="group" aria-label="Caption position">
+                                    <button type="button" data-caption-pos="bottom" class="active-effect">Bottom</button>
+                                    <button type="button" data-caption-pos="top">Top</button>
+                                </div>
+                            </div>
+                            <div class="control-row compact"><label for="captionOpacity">Opacity <span id="captionOpacityVal">100%</span></label><input type="range" id="captionOpacity" min="30" max="100" step="5" value="100"></div>
+                            <div class="control-row compact"><label for="captionColor">Text colour</label><input type="color" id="captionColor" value="#FFFFFF" class="caption-color-input" aria-label="Caption text colour"></div>
+                            <div class="toggle-row"><label for="captionShadow">Drop shadow</label><label class="toggle-switch"><input type="checkbox" id="captionShadow" checked><span class="slider"></span></label></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="sub-block">
+                <div class="sub-block" id="lyricStyleBlock">
                     <div class="sub-heading">Lyric style<span class="sub-hint">How your timed text is rendered</span></div>
                     <div class="effect-buttons" role="group" aria-label="Lyric effect">
                         <button data-effect="apple" class="active-effect">Apple</button>
@@ -138,30 +152,8 @@
                     <div class="control-row compact"><label for="bgBlur">Blur <span id="bgBlurVal">0px</span></label><input type="range" id="bgBlur" min="0" max="40" step="1" value="0"></div>
                 </div>
             </div>
-            <div class="section" id="titleSection">
-                <h3><span class="section-index">05</span>Title Card</h3>
-                <div class="toggle-row">
-                    <label for="titleCardEnabled">Show title card</label>
-                    <label class="toggle-switch"><input type="checkbox" id="titleCardEnabled" checked><span class="slider"></span></label>
-                </div>
-                <div class="control-row compact">
-                    <label for="titleCardStyle">Design <span class="control-hint" id="titleCardStyleHint"></span></label>
-                    <select id="titleCardStyle">
-                        <option value="auto">Auto (matches effect)</option>
-                        <option value="minimal">Minimal</option>
-                        <option value="spotlight">Spotlight</option>
-                        <option value="editorial">Editorial</option>
-                        <option value="statement">Statement</option>
-                    </select>
-                </div>
-                <div class="control-row compact">
-                    <label for="titleCardDuration">Duration <span id="titleCardDurationVal">3s</span></label>
-                    <input type="range" id="titleCardDuration" min="1" max="15" step="1" value="3">
-                </div>
-                <div class="status" id="titleCardStatus">Shown at the start of the video, plus a short outro at the end.</div>
-            </div>
             <div class="section" id="exportSection">
-                <h3><span class="section-index">06</span>Export</h3>
+                <h3><span class="section-index">05</span>Export</h3>
                 <div class="control-row compact">
                     <label for="exportPreset">Quality</label>
                     <select id="exportPreset"><option value="1080p">1080p (High)</option><option value="720p" selected>720p (Medium)</option><option value="480p">480p (Low)</option><option value="instagram">Instagram Reel</option><option value="tiktok">TikTok</option></select>
@@ -192,6 +184,28 @@
                     <option value="16:9">16:9 · Wide</option>
                 </select>
             </div>
+            <div class="preview-titlebar" id="titleSection" title="Title intro — shown at the start of the video, plus a short outro at the end.">
+                <div class="preview-titlebar-group">
+                    <strong class="preview-titlebar-label"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M8 10h8M10 14h4"/></svg>Title Intro</strong>
+                    <label class="toggle-switch" title="Show or hide the title intro"><input type="checkbox" id="titleCardEnabled" checked><span class="slider"></span></label>
+                </div>
+                <div class="preview-titlebar-group">
+                    <label class="preview-titlebar-field" for="titleCardStyle">Design
+                        <select id="titleCardStyle">
+                            <option value="auto">Auto (matches effect)</option>
+                            <option value="minimal">Minimal</option>
+                            <option value="spotlight">Spotlight</option>
+                            <option value="editorial">Editorial</option>
+                            <option value="statement">Statement</option>
+                        </select>
+                        <span class="control-hint" id="titleCardStyleHint"></span>
+                    </label>
+                    <label class="preview-titlebar-field" for="titleCardDuration">Duration
+                        <input type="range" id="titleCardDuration" min="1" max="15" step="1" value="3" aria-label="Title intro duration">
+                        <span id="titleCardDurationVal">3s</span>
+                    </label>
+                </div>
+            </div>
         </section>
     </main>
 </div>
@@ -213,6 +227,7 @@
 <script>window.state = state; window.canvas = canvas; window.kefeMedia = media; window.redrawCurrentPreviewFrame = redrawCurrentPreviewFrame; window.kefeRenderFrame = (targetCtx, width, height, time) => { state.playback.currentTime = time; render(targetCtx, width, height, state, media); }; window.isExporting = false;</script>
 <script src="./effects/effect-app-fx.js"></script>
 <script src="./background-presets.js"></script>
+<script src="./caption-generator.js"></script>
 <script src="./wizard.js"></script>
 <script type="module" src="./export/ui.js?v=cb49deca"></script>
 <script>
