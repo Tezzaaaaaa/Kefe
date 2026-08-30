@@ -1493,7 +1493,8 @@ function setMasterTime(target) {
     const mode = getMasterMode();
     if (mode === 'video') {
         const v = media?.video;
-        if (v && Number.isFinite(v.duration) && v.duration > 0 && !v.seeking) v.currentTime = wrappedVideoTime(t, v.duration);
+        // A new seek supersedes an in-flight seek; do not silently drop rapid scrubs.
+        if (v && Number.isFinite(v.duration) && v.duration > 0) v.currentTime = wrappedVideoTime(t, v.duration);
     } else if (mode === 'none') {
         // Rebase the virtual clock at the new position; if it was running it keeps running from here.
         noneClockBase = t; noneClockWall = performance.now();
@@ -2127,6 +2128,30 @@ function handleAudioFile(file) {
     readEmbeddedAudioMetadata(file, token);
 }
 
+async function detectVideoHasAudio(file, vid) {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx && file) {
+            const ctx = new AudioCtx();
+            try {
+                const bytes = await file.arrayBuffer();
+                const decoded = await new Promise((resolve, reject) => {
+                    const maybePromise = ctx.decodeAudioData(bytes.slice(0), resolve, reject);
+                    if (maybePromise && typeof maybePromise.then === 'function') maybePromise.then(resolve, reject);
+                });
+                return Boolean(decoded && decoded.numberOfChannels > 0 && decoded.length > 0);
+            } finally {
+                try { await ctx.close(); } catch (e) {}
+            }
+        }
+    } catch (e) {}
+    try {
+        if (vid.audioTracks && vid.audioTracks.length) return true;
+        if (vid.mozHasAudio) return true;
+        if (vid.webkitAudioDecodedByteCount && vid.webkitAudioDecodedByteCount > 0) return true;
+    } catch (e) {}
+    return false;
+}
 function handleBackgroundFile(file) {
     if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
     if (!file) return;
@@ -2145,7 +2170,9 @@ function handleBackgroundFile(file) {
         vid.muted = true; vid.loop = true; vid.playsInline = true;
         vid.src = candidateURL;
         vid.load();
-        vid.addEventListener('loadeddata', function() {
+        vid.addEventListener('loadeddata', async function() {
+            if (isExporting || token !== backgroundLoadToken) { vid.pause(); vid.src = ''; URL.revokeObjectURL(candidateURL); return; }
+            const videoHasAudio = await detectVideoHasAudio(file, vid);
             if (isExporting || token !== backgroundLoadToken) { vid.pause(); vid.src = ''; URL.revokeObjectURL(candidateURL); return; }
             if (media.video && media.video !== vid) { media.video.pause(); media.video.src = ''; }
             if (backgroundURL) URL.revokeObjectURL(backgroundURL);
@@ -2160,13 +2187,8 @@ function handleBackgroundFile(file) {
             media.video = vid;
             media.videoFile = file;
             media.image = null;
-            // Detect whether the video has an embedded audio track (used to decide if it can act as master).
-            media.videoHasAudio = false;
-            try {
-                if (vid.audioTracks && vid.audioTracks.length) media.videoHasAudio = true;
-                else if (vid.mozHasAudio) media.videoHasAudio = true;
-                else if (vid.webkitAudioDecodedByteCount && vid.webkitAudioDecodedByteCount > 0) media.videoHasAudio = true;
-            } catch (e) { media.videoHasAudio = false; }
+            // Detection completed before master-source selection.
+            media.videoHasAudio = videoHasAudio;
             state.background.type = 'video';
             $('backgroundStatus').textContent = file.name + (media.videoHasAudio ? ' · has audio' : '');
             $('backgroundStatus').className = 'status success';
