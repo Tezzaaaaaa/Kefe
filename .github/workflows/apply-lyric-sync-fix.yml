@@ -1,0 +1,82 @@
+name: Apply lyric sync fix
+
+on:
+  push:
+    branches: [lyric-sync-fix]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply app.js sync fix
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app.js')
+          s = p.read_text()
+
+          old = """        const v = media?.video;\n        if (v && Number.isFinite(v.duration) && v.duration > 0 && !v.seeking) v.currentTime = wrappedVideoTime(t, v.duration);"""
+          new = """        const v = media?.video;\n        // A new seek supersedes an in-flight seek; do not silently drop rapid scrubs.\n        if (v && Number.isFinite(v.duration) && v.duration > 0) v.currentTime = wrappedVideoTime(t, v.duration);"""
+          if old not in s:
+              raise SystemExit('setMasterTime target not found')
+          s = s.replace(old, new, 1)
+
+          marker = """function handleBackgroundFile(file) {"""
+          helper = r'''async function detectVideoHasAudio(file, vid) {
+              try {
+                  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                  if (AudioCtx && file) {
+                      const ctx = new AudioCtx();
+                      try {
+                          const bytes = await file.arrayBuffer();
+                          const decoded = await new Promise((resolve, reject) => {
+                              const maybePromise = ctx.decodeAudioData(bytes.slice(0), resolve, reject);
+                              if (maybePromise && typeof maybePromise.then === 'function') maybePromise.then(resolve, reject);
+                          });
+                          return Boolean(decoded && decoded.numberOfChannels > 0 && decoded.length > 0);
+                      } finally {
+                          try { await ctx.close(); } catch (e) {}
+                      }
+                  }
+              } catch (e) {}
+              try {
+                  if (vid.audioTracks && vid.audioTracks.length) return true;
+                  if (vid.mozHasAudio) return true;
+                  if (vid.webkitAudioDecodedByteCount && vid.webkitAudioDecodedByteCount > 0) return true;
+              } catch (e) {}
+              return false;
+          }
+          '''
+          if 'async function detectVideoHasAudio(file, vid)' not in s:
+              if marker not in s:
+                  raise SystemExit('handleBackgroundFile marker not found')
+              s = s.replace(marker, helper + marker, 1)
+
+          old = """        vid.addEventListener('loadeddata', function() {\n            if (isExporting || token !== backgroundLoadToken) { vid.pause(); vid.src = ''; URL.revokeObjectURL(candidateURL); return; }"""
+          new = """        vid.addEventListener('loadeddata', async function() {\n            if (isExporting || token !== backgroundLoadToken) { vid.pause(); vid.src = ''; URL.revokeObjectURL(candidateURL); return; }\n            const videoHasAudio = await detectVideoHasAudio(file, vid);\n            if (isExporting || token !== backgroundLoadToken) { vid.pause(); vid.src = ''; URL.revokeObjectURL(candidateURL); return; }"""
+          if old not in s:
+              raise SystemExit('loadeddata target not found')
+          s = s.replace(old, new, 1)
+
+          old = """            // Detect whether the video has an embedded audio track (used to decide if it can act as master).\n            media.videoHasAudio = false;\n            try {\n                if (vid.audioTracks && vid.audioTracks.length) media.videoHasAudio = true;\n                else if (vid.mozHasAudio) media.videoHasAudio = true;\n                else if (vid.webkitAudioDecodedByteCount && vid.webkitAudioDecodedByteCount > 0) media.videoHasAudio = true;\n            } catch (e) { media.videoHasAudio = false; }"""
+          new = """            // Detection completed before master-source selection.\n            media.videoHasAudio = videoHasAudio;"""
+          if old not in s:
+              raise SystemExit('audio heuristic block not found')
+          s = s.replace(old, new, 1)
+
+          p.write_text(s)
+          PY
+          npm run check
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js
+          git commit -m "fix: sync lyric video to background video audio"
+          git push
