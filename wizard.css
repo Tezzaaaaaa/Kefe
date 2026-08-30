@@ -1,0 +1,139 @@
+/* KEFE guided creation workflow — one decision at a time, full editor at Export Review. */
+
+/* ---------- Wizard mode: hide the full editor chrome ---------- */
+body.wizard-mode .section-nav { display: none; }
+body.wizard-mode .header-actions .export-action { display: none; }
+body.wizard-mode .sidebar > .section { display: none; }
+body.wizard-mode .sidebar > .section.wizard-current { display: block; }
+body.wizard-mode .sidebar > .section h3:not(.wizard-panel-title) { display: none; }
+
+/* ---------- Scoped reveals for the Source / Title & Text steps ---------- */
+/* Source → "Audio file": show the existing upload zone + song details, hide the redundant source chips. */
+body.wizard-mode.wizard-src-audio #audioSection .sub-block { display: none; }
+/* Source → "Image or video" (Title Intro): show the existing media upload zone only. */
+body.wizard-mode.wizard-src-media #backgroundSection .background-choice-grid,
+body.wizard-mode.wizard-src-media #backgroundSection .bg-controls,
+body.wizard-mode.wizard-src-media #backgroundSection .background-upload-divider { display: none; }
+/* Title Intro → "Title & Text": show the existing song title/artist fields with the audio upload hidden. */
+body.wizard-mode.wizard-titletext #audioSection .drop-zone,
+body.wizard-mode.wizard-titletext #audioSection .sub-block { display: none; }
+
+/* ---------- Fast, polished fade between steps ---------- */
+body.wizard-mode .sidebar { transition: opacity .15s ease; }
+body.wizard-mode .sidebar.wizard-fading { opacity: 0; pointer-events: none; }
+body.wizard-mode .sidebar > .section.wizard-current { animation: wizardStepIn .2s ease both; }
+body.wizard-mode .sidebar > .section.wizard-current:focus { outline: none; } /* focus is moved deliberately to each step */
+@keyframes wizardStepIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* ---------- Step heading injected into existing sections ---------- */
+.wizard-step-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 2px 0 12px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    color: var(--red);
+}
+.wizard-change-source {
+    min-height: 0;
+    padding: 3px 10px;
+    font-size: 11px;
+    color: var(--text-3);
+    background: transparent;
+}
+
+/* ---------- Wizard panel (intro / source decision / preview) ---------- */
+.wizard-panel-title { font-size: 16px; font-weight: 700; letter-spacing: -.02em; margin: 2px 0 4px; }
+.wizard-panel-hint { color: var(--text-3); font-size: 12px; margin: 0 0 8px; }
+.wizard-panel-note {
+    color: var(--text-2);
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin: 8px 0 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+}
+
+.wizard-choices { display: grid; gap: 10px; margin-top: 12px; }
+.wizard-choice {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    text-align: left;
+    padding: 13px 16px;
+}
+.wizard-choice svg { width: 17px; height: 17px; margin-bottom: 3px; }
+.wizard-choice strong { font-size: 13.5px; font-weight: 700; letter-spacing: -.01em; }
+.wizard-choice span { color: var(--text-3); font-size: 11.5px; line-height: 1.45; }
+.wizard-choice.selected { border-color: var(--red); background: var(--red-soft); }
+.wizard-choice.selected strong { color: var(--red); }
+.wizard-choice.selected:hover { background: var(--red-soft); border-color: var(--red); }
+
+/* ---------- Preview summary ---------- */
+.wizard-summary { display: grid; gap: 6px; margin: 12px 0 14px; }
+.wizard-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 7px 11px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+    font-size: 12px;
+}
+.wizard-summary-row span { color: var(--text-3); }
+.wizard-summary-row strong { font-weight: 650; text-align: right; overflow-wrap: anywhere; }
+
+/* ---------- Wizard navigation (Back / progress / Next) ---------- */
+.wizard-nav {
+    position: sticky;
+    bottom: 0;
+    z-index: 9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 22px calc(14px + env(safe-area-inset-bottom, 0px));
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+}
+.wizard-nav button:not(.wizard-skip) { min-width: 104px; }
+.wizard-progress-wrap { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; }
+.wizard-progress {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-3);
+}
+.wizard-skip {
+    min-height: 0;
+    padding: 2px 6px;
+    border: 0;
+    background: transparent;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-3);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.wizard-skip:hover { background: transparent; border: 0; color: var(--text); }
+
+@media (max-width: 900px) {
+    .wizard-nav { padding-left: 14px; padding-right: 14px; }
+    .wizard-nav button:not(.wizard-skip) { min-width: 84px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.wizard-mode .sidebar { transition: none; }
+    body.wizard-mode .sidebar > .section.wizard-current { animation: none; }
+}
