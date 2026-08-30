@@ -38,11 +38,15 @@ const state = {
         pulseFrequency: 1.2,
         pulseGlowSize: 1.0,
         titleCardEnabled: true,
-        titleCardDuration: 3
+        titleCardDuration: 3,
+        titleCardStyle: 'auto'
     },
     background: { type: 'solid', image: null, video: null, dim: 0.35, solid: '#0A0A0A', blur: 0 },
     playback: { isPlaying: false, currentTime: 0, isSeeking: false },
     audioSource: { master: 'uploaded', userChosen: false },
+    captions: { mode: 'lyrics', lines: [] },
+    lyricsOffset: 0,
+    touched: { fx: false, background: false, title: false },
     aspect: '9:16'
 };
 
@@ -86,6 +90,44 @@ function loadLinaPrefs() {
         const parsed = JSON.parse(raw);
         return parsed && typeof parsed === 'object' ? parsed : null;
     } catch (e) { return null; }
+}
+
+/* ---------- Theme (Day / Night / System) ---------- */
+const THEME_KEY = 'kefe-theme-v1';
+function applyTheme(mode) {
+    try {
+        if (mode === 'day' || mode === 'night') document.documentElement.dataset.theme = mode;
+        else delete document.documentElement.dataset.theme;
+        localStorage.setItem(THEME_KEY, mode);
+    } catch (e) { /* storage unavailable — theme simply won't persist */ }
+    const select = $('themeSelect');
+    if (select) select.value = mode || 'system';
+}
+function initTheme() {
+    let saved = 'system';
+    try { saved = localStorage.getItem(THEME_KEY) || 'system'; } catch (e) { /* storage unavailable */ }
+    applyTheme(['day', 'night'].includes(saved) ? saved : 'system');
+    $('themeSelect')?.addEventListener('change', function() { applyTheme(this.value); });
+}
+
+/* ---------- Timed text resolution (Lyrics vs Captions) ---------- */
+function activeTextMode() { return state.captions.mode === 'captions' ? 'captions' : 'lyrics'; }
+function activeTimedLines() {
+    if (state.captions.mode === 'captions' && state.captions.lines.length) return state.captions.lines;
+    return state.lyrics.lines;
+}
+function markSectionTouched(key) {
+    if (!(key in state.touched) || state.touched[key]) return;
+    state.touched[key] = true;
+    updateSectionNav();
+}
+
+/* ---------- Play button icons (never overwrite the SVG with text) ---------- */
+const PLAY_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M8 5.2v13.6a1 1 0 0 0 1.52.86l10.2-6.8a1 1 0 0 0 0-1.66l-10.2-6.8A1 1 0 0 0 8 5.2Z" fill="currentColor"/></svg>';
+const PAUSE_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><rect x="6.4" y="5" width="4" height="14" rx="1.2" fill="currentColor" stroke="none"/><rect x="13.6" y="5" width="4" height="14" rx="1.2" fill="currentColor" stroke="none"/></svg>';
+function setPlayIcon(playing) {
+    const btn = $('playBtn');
+    if (btn) btn.innerHTML = playing ? PAUSE_ICON : PLAY_ICON;
 }
 
 const linaClamp = (value, min = 0, max = 1) => Math.max(min, Math.min(max, value));
@@ -944,33 +986,95 @@ function drawBackground(ctx, w, h, bg, media) {
     ctx.restore();
 }
 
-function renderTitleCard(ctx, w, h, time, appState) {
-    if (!appState.style.titleCardEnabled) return false;
-
-    const introDuration = linaClamp(Number(appState.style.titleCardDuration) || 3, 1, 5);
+const TITLECARD_DESIGN_LABELS = { auto: 'Auto (matches effect)', minimal: 'Minimal', spotlight: 'Spotlight', editorial: 'Editorial', statement: 'Statement' };
+const TITLECARD_DESIGN_FOR_EFFECT = { apple: 'minimal', brat: 'statement', eternal: 'editorial', aurora: 'spotlight', pulse: 'spotlight', typewriter: 'editorial', instagram: 'statement', fadeup: 'minimal' };
+function resolveTitleCardDesign(appState) {
+    const chosen = appState.style.titleCardStyle || 'auto';
+    if (chosen !== 'auto' && TITLECARD_DESIGN_LABELS[chosen] && chosen !== 'auto') return chosen;
+    return TITLECARD_DESIGN_FOR_EFFECT[appState.style.effect] || 'minimal';
+}
+function titleCardPhase(appState, time) {
+    const introDuration = linaClamp(Number(appState.style.titleCardDuration) || 3, 1, 15);
     const totalDuration = Number(appState.audio?.duration) || 0;
     const outroDuration = 1.6;
     const isIntro = time >= 0 && time < introDuration;
     const outroStart = totalDuration > outroDuration ? totalDuration - outroDuration : Infinity;
     const isOutro = time >= outroStart && time <= totalDuration + 0.05;
-    if (!isIntro && !isOutro) return false;
-
-    const metadata = resolveAudioLabels(appState.audio);
-    const title = metadata.title || 'UNTITLED';
-    const artist = metadata.artist;
-    const album = metadata.album;
-    const artwork = appState.audio?.hasArtwork && albumArtworkImage ? albumArtworkImage : null;
+    if (!isIntro && !isOutro) return null;
     const phaseTime = isOutro ? time - outroStart : time;
     const phaseDuration = isOutro ? outroDuration : introDuration;
     const enter = linaSmoother(linaClamp(phaseTime / 0.5));
     const exit = isIntro
         ? 1 - linaSmoother(linaClamp((phaseTime - (phaseDuration - 0.45)) / 0.45))
         : 1;
-    const alpha = linaClamp(enter * exit);
+    return { intro: isIntro, alpha: linaClamp(enter * exit), enter };
+}
+function renderTitleCard(ctx, w, h, time, appState) {
+    if (!appState.style.titleCardEnabled) return false;
+    const phase = titleCardPhase(appState, time);
+    if (!phase) return false;
+    const metadata = resolveAudioLabels(appState.audio);
+    const info = {
+        title: metadata.title || 'UNTITLED',
+        artist: metadata.artist,
+        album: metadata.album,
+        artwork: appState.audio?.hasArtwork && albumArtworkImage ? albumArtworkImage : null
+    };
+    const design = resolveTitleCardDesign(appState);
+    if (design === 'spotlight') return renderTitleCardSpotlight(ctx, w, h, phase, info);
+    if (design === 'editorial') return renderTitleCardEditorial(ctx, w, h, phase, info);
+    if (design === 'statement') return renderTitleCardStatement(ctx, w, h, appState, phase, info);
+    return renderTitleCardMinimal(ctx, w, h, phase, info);
+}
+
+function drawTitleArtwork(ctx, artwork, cx, cy, size, radius) {
+    if (!artwork) return false;
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(cx - size / 2, cy - size / 2, size, size, radius);
+    ctx.clip();
+    const sw = artwork.naturalWidth || artwork.videoWidth || artwork.width;
+    const sh = artwork.naturalHeight || artwork.videoHeight || artwork.height;
+    if (sw && sh) {
+        const side = Math.min(sw, sh);
+        ctx.drawImage(artwork, (sw - side) / 2, (sh - side) / 2, side, side, cx - size / 2, cy - size / 2, size, size);
+    }
+    ctx.restore();
+    return true;
+}
+function fitTitleText(ctx, text, weight, family, startSize, maxWidth, minSize = 24) {
+    let size = Math.max(20, startSize);
+    ctx.font = `${weight} ${size}px ${family}, Arial, sans-serif`;
+    while (size > minSize && ctx.measureText(text).width > maxWidth) {
+        size -= 2;
+        ctx.font = `${weight} ${size}px ${family}, Arial, sans-serif`;
+    }
+    return size;
+}
+function wrapTitleText(ctx, text, maxWidth) {
+    const words = String(text || '').split(/\s+/).filter(Boolean);
+    const rows = [];
+    let row = '';
+    for (const word of words) {
+        const proposed = row ? row + ' ' + word : word;
+        if (row && ctx.measureText(proposed).width > maxWidth) { rows.push(row); row = word; }
+        else row = row ? row + ' ' + word : word;
+    }
+    if (row) rows.push(row);
+    return rows.length ? rows : [''];
+}
+
+/* Design: Minimal — restrained wash, centred artwork + title (KEFE classic). */
+function renderTitleCardMinimal(ctx, w, h, phase, info) {
+    const { alpha, enter } = phase;
     const unit = Math.min(w, h);
     const lift = (1 - enter) * unit * 0.022;
     const contentY = h * 0.52 + lift;
     const maxTextWidth = w * 0.78;
+    const title = info.title;
+    const artist = info.artist;
+    const album = info.album;
+    const artwork = info.artwork;
 
     ctx.save();
 
@@ -1052,6 +1156,168 @@ function renderTitleCard(ctx, w, h, time, appState) {
     return true;
 }
 
+/* Design: Spotlight — cinematic radial glow, large artwork, title beneath. */
+function renderTitleCardSpotlight(ctx, w, h, phase, info) {
+    const { alpha, enter } = phase;
+    const unit = Math.min(w, h);
+    const glow = ctx.createRadialGradient(w / 2, h * 0.42, unit * 0.08, w / 2, h * 0.42, unit * 0.85);
+    glow.addColorStop(0, 'rgba(255,255,255,0.16)');
+    glow.addColorStop(0.45, 'rgba(0,0,0,0.18)');
+    glow.addColorStop(1, 'rgba(0,0,0,0.62)');
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, w, h);
+    const lift = (1 - enter) * unit * 0.03;
+    const cy = h * 0.5 + lift;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let cursorY = cy;
+    const artSize = linaClamp(unit * 0.34, 180, 460);
+    if (drawTitleArtwork(ctx, info.artwork, w / 2, cy - unit * 0.10, artSize, Math.max(14, artSize * 0.06))) {
+        cursorY = cy - unit * 0.10 + artSize / 2 + unit * 0.075;
+    }
+    const titleSize = fitTitleText(ctx, info.title, 800, '"Open Sans"', Math.max(40, Math.round(unit * 0.062)), w * 0.80);
+    ctx.font = `800 ${titleSize}px "Open Sans", Arial, sans-serif`;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = Math.max(8, unit * 0.016);
+    ctx.fillText(info.title, w / 2, cursorY);
+    let below = cursorY + titleSize * 0.72;
+    if (info.artist) {
+        const artistSize = fitTitleText(ctx, info.artist, 600, '"Open Sans"', Math.max(20, Math.round(unit * 0.028)), w * 0.7);
+        ctx.font = `600 ${artistSize}px "Open Sans", Arial, sans-serif`;
+        ctx.fillStyle = 'rgba(255,255,255,0.78)';
+        ctx.shadowBlur = Math.max(4, unit * 0.008);
+        ctx.fillText(info.artist, w / 2, below + artistSize);
+        below += artistSize * 2.1;
+    }
+    if (info.album) {
+        const albumSize = fitTitleText(ctx, info.album, 500, '"Open Sans"', Math.max(15, Math.round(unit * 0.019)), w * 0.6);
+        ctx.font = `500 ${albumSize}px "Open Sans", Arial, sans-serif`;
+        ctx.fillStyle = 'rgba(255,255,255,0.52)';
+        ctx.fillText(info.album, w / 2, below + albumSize);
+    }
+    ctx.restore();
+    return true;
+}
+
+/* Design: Editorial — print-inspired rules, Courier caps kicker, Bricolage title. */
+function renderTitleCardEditorial(ctx, w, h, phase, info) {
+    const { alpha, enter } = phase;
+    const unit = Math.min(w, h);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const lift = (1 - enter) * unit * 0.016;
+    const marginX = w * 0.12;
+    const maxTextWidth = w - marginX * 2;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const centreY = h * 0.5 + lift;
+    const kicker = info.artist ? 'NOW PLAYING' : 'A SONG';
+    const kickerSize = Math.max(13, Math.round(unit * 0.016));
+    ctx.font = `700 ${kickerSize}px "Courier Prime", monospace`;
+    ctx.fillStyle = 'rgba(255,255,255,0.62)';
+    ctx.fillText(kicker, w / 2, centreY - unit * 0.085);
+    const ruleWidth = unit * 0.05;
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = Math.max(1.5, unit * 0.0022);
+    ctx.beginPath();
+    ctx.moveTo(w / 2 - ruleWidth, centreY - unit * 0.055);
+    ctx.lineTo(w / 2 + ruleWidth, centreY - unit * 0.055);
+    ctx.stroke();
+    let titleSize = Math.max(44, Math.round(unit * 0.078));
+    ctx.font = `600 ${titleSize}px "Bricolage Grotesque", "Open Sans", Arial, sans-serif`;
+    let rows = wrapTitleText(ctx, info.title, maxTextWidth);
+    while (titleSize > 34 && rows.length > 3) {
+        titleSize -= 2;
+        ctx.font = `600 ${titleSize}px "Bricolage Grotesque", "Open Sans", Arial, sans-serif`;
+        rows = wrapTitleText(ctx, info.title, maxTextWidth);
+    }
+    const lineHeight = titleSize * 1.12;
+    const blockTop = centreY - ((rows.length - 1) * lineHeight) / 2 - unit * 0.004;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.shadowColor = 'rgba(0,0,0,0.42)';
+    ctx.shadowBlur = Math.max(6, unit * 0.012);
+    rows.forEach((row, i) => ctx.fillText(row, w / 2, blockTop + i * lineHeight));
+    ctx.shadowBlur = 0;
+    const metaY = blockTop + (rows.length - 1) * lineHeight + titleSize * 0.85;
+    if (info.artist) {
+        const artistSize = fitTitleText(ctx, info.artist, 500, '"Courier Prime"', Math.max(16, Math.round(unit * 0.021)), maxTextWidth * 0.8);
+        ctx.font = `500 ${artistSize}px "Courier Prime", monospace`;
+        ctx.fillStyle = 'rgba(255,255,255,0.66)';
+        ctx.fillText(info.artist.toUpperCase(), w / 2, metaY);
+    }
+    // Corner registration marks give the print feel without a card.
+    const corner = unit * 0.045;
+    const inset = unit * 0.055;
+    ctx.strokeStyle = 'rgba(255,255,255,0.34)';
+    ctx.lineWidth = Math.max(1.5, unit * 0.0018);
+    for (const mark of [[inset, inset, 1, 1], [w - inset, inset, -1, 1], [inset, h - inset, 1, -1], [w - inset, h - inset, -1, -1]]) {
+        ctx.beginPath();
+        ctx.moveTo(mark[0], mark[1] + mark[3] * corner);
+        ctx.lineTo(mark[0], mark[1]);
+        ctx.lineTo(mark[0] + mark[2] * corner, mark[1]);
+        ctx.stroke();
+    }
+    ctx.restore();
+    return true;
+}
+
+/* Design: Statement — bold flat panel, oversized condensed type, per-effect accent. */
+const STATEMENT_THEMES = {
+    brat: { bg: '#C8FF00', ink: '#111111', muted: 'rgba(17,17,17,0.62)', family: '"Archivo Narrow"' },
+    instagram: { bg: '#F08B35', ink: '#FFFFFF', muted: 'rgba(255,255,255,0.66)', family: '"Inter Tight"' },
+    default: { bg: 'rgba(12,12,14,0.94)', ink: '#FFFFFF', muted: 'rgba(255,255,255,0.55)', family: '"Archivo Narrow"' }
+};
+function renderTitleCardStatement(ctx, w, h, appState, phase, info) {
+    const { alpha, enter } = phase;
+    const unit = Math.min(w, h);
+    const themeKey = STATEMENT_THEMES[appState.style.effect] ? appState.style.effect : 'default';
+    const theme = STATEMENT_THEMES[themeKey];
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = theme.bg;
+    ctx.fillRect(0, 0, w, h);
+    const slide = (1 - enter) * unit * 0.05;
+    const marginX = w * (themeKey === 'brat' ? 0.055 : 0.09);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    // Top: artist kicker.
+    if (info.artist) {
+        const kickerSize = Math.max(18, Math.round(unit * 0.026));
+        ctx.font = `700 ${kickerSize}px ${theme.family}, Arial, sans-serif`;
+        ctx.fillStyle = theme.muted;
+        ctx.fillText(info.artist.toUpperCase(), marginX, unit * 0.13 + slide * 0.4);
+    }
+    // Bottom: huge wrapped title.
+    const maxTextWidth = w - marginX * 2;
+    let titleSize = Math.max(64, Math.round(unit * 0.135));
+    ctx.font = `700 ${titleSize}px ${theme.family}, Arial, sans-serif`;
+    let rows = wrapTitleText(ctx, info.title, maxTextWidth);
+    while (titleSize > 40 && rows.length > 3) {
+        titleSize -= 2;
+        ctx.font = `700 ${titleSize}px ${theme.family}, Arial, sans-serif`;
+        rows = wrapTitleText(ctx, info.title, maxTextWidth);
+    }
+    const lineHeight = titleSize * 0.96;
+    const baselineStart = h * 0.86 - (rows.length - 1) * lineHeight;
+    ctx.fillStyle = theme.ink;
+    rows.forEach((row, i) => ctx.fillText(row, marginX, baselineStart + i * lineHeight));
+    // Thin blue rule — the KEFE logo accent.
+    ctx.fillStyle = '#3070D0';
+    ctx.fillRect(marginX, h * 0.86 + unit * 0.022, Math.min(w - marginX * 2, unit * 0.16), Math.max(3, unit * 0.005));
+    if (info.album) {
+        const albumSize = Math.max(14, Math.round(unit * 0.018));
+        ctx.font = `600 ${albumSize}px "Open Sans", Arial, sans-serif`;
+        ctx.fillStyle = theme.muted;
+        ctx.textAlign = 'right';
+        ctx.fillText(info.album.toUpperCase(), w - marginX, unit * 0.13 + slide * 0.4);
+    }
+    ctx.restore();
+    return true;
+}
+
 function render(ctx, w, h, appState, mediaCache) {
     if (!ctx || !w || !h) return;
     ctx.save();
@@ -1070,14 +1336,16 @@ function render(ctx, w, h, appState, mediaCache) {
             ctx.fillText('KEFE', w / 2, h / 2 - unit * 0.035);
             ctx.fillStyle = 'rgba(255,255,255,0.38)';
             ctx.font = `600 ${Math.max(12, unit * 0.022)}px "Open Sans", Arial, sans-serif`;
-            ctx.fillText('ADD AUDIO OR VIDEO + SYNCED LYRICS', w / 2, h / 2 + unit * 0.055);
+            ctx.fillText('ADD AUDIO, THEN LYRICS OR CAPTIONS', w / 2, h / 2 + unit * 0.055);
             return;
         }
         const time = Number.isFinite(appState.playback.currentTime) ? appState.playback.currentTime : 0;
         const style = { ...appState.style };
         const tcActive = renderTitleCard(ctx, w, h, time, appState);
         if (!tcActive) {
-            try { renderLyricsEffect(ctx, w, h, style, appState.lyrics.lines, time); }
+            const timedLines = activeTimedLines();
+            const lyricTime = Math.max(0, time - (Number(appState.lyricsOffset) || 0));
+            try { renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime); }
             catch(e) { console.error(`${style.effect} render error:`, e); }
         }
     } finally { ctx.restore(); }
@@ -1201,6 +1469,7 @@ function redrawCurrentPreviewFrame() {
     const t = getMasterTime();
     state.playback.currentTime = t;
     maintainBackgroundVideoSync(t);
+    updateSyncLive(t);
     try { render(ctx, canvas.width, canvas.height, state, media); }
     catch(e) { console.error("Preview redraw error:", e); }
     syncPreviewTransportUI(t);
@@ -1217,6 +1486,7 @@ function tick() {
             clock.textContent = `${fmt(t)} / ${fmt(total)}`;
         }
         maintainBackgroundVideoSync(t);
+        updateSyncLive(t);
         try { render(ctx, canvas.width, canvas.height, state, media); }
         catch(e) { console.error("Preview render error:", e); }
     }
@@ -1287,49 +1557,7 @@ function renderEffectControls() {
             { key: "accentColor", label: "Glow colour", type: "color" }
         ];
     }
-    const tr = document.createElement("div");
-    tr.className = "toggle-row";
-    const tl = document.createElement("label");
-    tl.textContent = "Title Card";
-    tr.appendChild(tl);
-    const ts = document.createElement("label");
-    ts.className = "toggle-switch";
-    const ti = document.createElement("input");
-    ti.type = "checkbox";
-    ti.checked = state.style.titleCardEnabled !== false;
-    ti.addEventListener("change", () => {
-        if (isExporting) { toast('Finish or cancel the current export first', 'error'); ti.checked = state.style.titleCardEnabled; return; }
-        state.style.titleCardEnabled = ti.checked;
-        redrawCurrentPreviewFrame();
-    });
-    const tsl = document.createElement("span");
-    tsl.className = "slider";
-    ts.appendChild(ti); ts.appendChild(tsl);
-    tr.appendChild(ts);
-    container.appendChild(tr);
-
-    const durRow = document.createElement("div");
-    durRow.className = "control-row";
-    const durLabel = document.createElement("label");
-    durLabel.textContent = "Title Card Duration";
-    const durVal = document.createElement("span");
-    durVal.style.marginLeft = "6px";
-    durVal.textContent = `${state.style.titleCardDuration || 3}s`;
-    durLabel.appendChild(durVal);
-    durRow.appendChild(durLabel);
-    const durInput = document.createElement("input");
-    durInput.type = "range";
-    durInput.min = 1; durInput.max = 5; durInput.step = 1;
-    durInput.value = state.style.titleCardDuration || 3;
-    durInput.addEventListener("input", () => {
-        if (isExporting) { toast('Finish or cancel the current export first', 'error'); durInput.value = state.style.titleCardDuration || 3; return; }
-        state.style.titleCardDuration = linaClamp(Number(durInput.value) || 3, 1, 5);
-        durVal.textContent = `${state.style.titleCardDuration}s`;
-        redrawCurrentPreviewFrame();
-    });
-    durRow.appendChild(durInput);
-    container.appendChild(durRow);
-
+    // Title Card controls live in their own section (05) — see wireTitleCardControls().
     const allControls = [...controls, ...extraControls];
     for (const control of allControls) {
         const row = document.createElement("div");
@@ -1391,6 +1619,7 @@ function setEffect(name) {
     qsa("[data-effect]").forEach(b => b.classList.toggle("active-effect", b.dataset.effect === name));
     const label = $('effectLabel');
     if (label) label.textContent = EFFECT_LABELS[name] || "";
+    if (typeof updateTitleCardHint === 'function') updateTitleCardHint();
     renderEffectControls();
     redrawCurrentPreviewFrame();
     saveLinaPrefs();
@@ -1416,11 +1645,13 @@ function toast(msg, type = '') {
 }
 function readiness() {
     const masterDur = getMasterDuration();
-    const timingValid = state.lyrics.lines.length > 0 && validateLyricTiming(state.lyrics.lines, masterDur).errors.length === 0;
+    const timedLines = activeTimedLines();
+    const timingValid = timedLines.length > 0 && validateLyricTiming(timedLines, masterDur).errors.length === 0;
     const masterReady = hasMasterSource() && masterDur > 0;
     const ready = masterReady && timingValid;
     $('exportBtn').disabled = $('exportBottom').disabled = !ready;
-    if (state.lyrics.lines.length) refreshLyricsTimingStatus();
+    refreshLyricsTimingStatus();
+    updateSectionNav();
 }
 function ensureDefaultBackground() {
     if (media.image || media.video) return;
@@ -1435,13 +1666,31 @@ function hasMasterSource() {
     if (mode === 'none') return getMasterDuration() > 0; // virtual timeline is a valid master
     return Boolean(state.audio.file) && state.audio.ready;
 }
+function updateSectionNav() {
+    const masterDur = getMasterDuration();
+    const timed = activeTimedLines();
+    const timingOk = timed.length > 0 && validateLyricTiming(timed, masterDur).errors.length === 0;
+    const done = {
+        audio: hasMasterSource() && masterDur > 0,
+        text: timingOk,
+        fx: state.touched.fx,
+        background: state.touched.background || Boolean(media.image) || Boolean(media.video),
+        title: state.touched.title,
+        export: hasMasterSource() && masterDur > 0 && timingOk
+    };
+    qsa('.section-nav-link').forEach(link => {
+        const key = link.dataset.nav;
+        if (key) link.classList.toggle('done', Boolean(done[key]));
+    });
+}
 function projectValidationIssues() {
     const issues = [];
     const masterDur = getMasterDuration();
+    const timedLines = activeTimedLines();
     if (!hasMasterSource()) issues.push('an audio or video source');
     else if (masterDur <= 0) issues.push('a source with a readable duration');
-    if (!state.lyrics.lines.length) issues.push('synced lyrics');
-    else if (validateLyricTiming(state.lyrics.lines, masterDur).errors.length) issues.push('valid lyric timing');
+    if (!timedLines.length) issues.push(activeTextMode() === 'captions' ? 'captions' : 'synced lyrics');
+    else if (validateLyricTiming(timedLines, masterDur).errors.length) issues.push('valid lyric timing');
     return issues;
 }
 function validateLyricTiming(lines, duration = 0) {
@@ -1463,20 +1712,118 @@ function validateLyricTiming(lines, duration = 0) {
     if (Number.isFinite(duration) && duration > 0 && Number.isFinite(last) && duration - last > 30) warnings.push('Lyrics finish more than 30 seconds before the audio');
     return { errors: [...new Set(errors)], warnings: [...new Set(warnings)] };
 }
+const LYRIC_FIX_HINTS = [
+    { test: m => /invalid timestamp/i.test(m), hint: 'Open Edit Lyrics and correct the [mm:ss.xx] tag on that line.' },
+    { test: m => /earlier than the previous line/i.test(m), hint: 'Lines must be in chronological order — reorder or fix the timestamps in Edit Lyrics.' },
+    { test: m => /starts after the audio ends/i.test(m), hint: 'That line plays after your audio finishes. Remove it in Edit Lyrics, or use audio that covers it.' },
+    { test: m => /ends before it starts/i.test(m), hint: 'Fix that line so its end time is later than its start (Edit Lyrics).' },
+    { test: m => /share a timestamp/i.test(m), hint: 'Two lines start at the same moment — stagger them slightly unless they really overlap.' },
+    { test: m => /gap before line/i.test(m), hint: 'Long silence before that line. Use the Sync controls to nudge timing, or leave the pause as intended.' },
+    { test: m => /finish more than 30 seconds/i.test(m), hint: 'The tail of the audio has no text — that is fine; the title-card outro covers the ending.' }
+];
+function adviceForMessage(message) {
+    const found = LYRIC_FIX_HINTS.find(h => h.test(message));
+    return found ? found.hint : '';
+}
 function refreshLyricsTimingStatus() {
-    const status = $('lyricsStatus');
-    if (!status || !state.lyrics.lines.length) return;
-    const report = validateLyricTiming(state.lyrics.lines, getMasterDuration());
+    const status = activeTextMode() === 'captions' ? $('captionsStatus') : $('lyricsStatus');
+    if (!status) return;
+    const timedLines = activeTimedLines();
+    if (!timedLines.length) {
+        status.textContent = activeTextMode() === 'captions'
+            ? 'No captions yet — use Auto-generate Timing, or switch to Lyrics.'
+            : 'No lyrics yet — search, upload an LRC, or paste your own.';
+        status.className = 'status';
+        updateSyncStatusUI();
+        return;
+    }
+    const report = validateLyricTiming(timedLines, getMasterDuration());
     if (report.errors.length) {
-        status.textContent = `${state.lyrics.lines.length} lines · ${report.errors[0]}`;
+        const advice = adviceForMessage(report.errors[0]);
+        status.textContent = `${timedLines.length} lines · ${report.errors[0]}${advice ? ' — How to fix: ' + advice : ''}`;
         status.className = 'status error';
     } else if (report.warnings.length) {
-        status.textContent = `${state.lyrics.lines.length} synced lines · ${report.warnings[0]}`;
+        const advice = adviceForMessage(report.warnings[0]);
+        status.textContent = `${timedLines.length} timed lines · ${report.warnings[0]}${advice ? ' — ' + advice : ''}`;
         status.className = 'status';
     } else {
-        status.textContent = `${state.lyrics.lines.length} synced lines · timing valid`;
+        status.textContent = `${timedLines.length} timed lines · timing valid`;
         status.className = 'status success';
     }
+    updateSyncStatusUI();
+}
+
+/* ---------- Sync diagnostics & repair ---------- */
+function shiftedLines(delta, lines) {
+    return lines.map(line => {
+        const copy = { ...line, time: Math.max(0, Number(line.time) + delta) };
+        if (Number.isFinite(Number(line.endTime))) copy.endTime = Math.max(copy.time, Number(line.endTime) + delta);
+        if (Array.isArray(line.words)) copy.words = line.words.map(w => ({
+            ...w,
+            time: Math.max(0, Number(w.time) + delta),
+            endTime: Number.isFinite(Number(w.endTime)) ? Math.max(0, Number(w.endTime) + delta) : null
+        }));
+        return copy;
+    });
+}
+function nudgeLyricTiming(delta) {
+    if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
+    const mode = activeTextMode();
+    const store = mode === 'captions' ? state.captions : state.lyrics;
+    if (!store.lines.length) { toast(mode === 'captions' ? 'Generate captions first' : 'Load lyrics first', 'error'); return; }
+    store.lines = shiftedLines(delta, store.lines);
+    refreshLyricsTimingStatus();
+    redrawCurrentPreviewFrame();
+    toast(`Shifted all ${mode} by ${delta > 0 ? '+' : ''}${delta}s`, 'success');
+}
+function updateSyncStatusUI() {
+    const slider = $('lyricsOffset');
+    const value = $('offsetVal');
+    if (slider && document.activeElement !== slider) slider.value = String(state.lyricsOffset || 0);
+    if (value) value.textContent = `${(state.lyricsOffset || 0) > 0 ? '+' : ''}${Number(state.lyricsOffset || 0).toFixed(2)}s`;
+}
+let lastSyncLiveUpdate = 0;
+function updateSyncLive(t) {
+    const el = $('syncLive');
+    if (!el) return;
+    const now = performance.now();
+    if (now - lastSyncLiveUpdate < 180) return;
+    lastSyncLiveUpdate = now;
+    const lines = activeTimedLines();
+    if (!lines.length) {
+        el.textContent = activeTextMode() === 'captions'
+            ? 'No captions yet — generate timing to see live sync.'
+            : 'No lyrics yet — load lyrics to see live sync.';
+        return;
+    }
+    const idx = linaFindActiveLine(lines, t);
+    const total = lines.length;
+    const label = activeTextMode() === 'captions' ? 'Caption' : 'Line';
+    if (idx < 0) {
+        const first = Number(lines[0].time) || 0;
+        el.textContent = `First line starts in ${Math.max(0, first - t).toFixed(1)}s · 1/${total}.`;
+        return;
+    }
+    const line = linaNormaliseLine(lines, idx);
+    const next = Number(lines[idx + 1]?.time);
+    const text = String(line.text || '').slice(0, 42);
+    if (Number.isFinite(next) && t < next) el.textContent = `${label} ${idx + 1}/${total} · next in ${(next - t).toFixed(1)}s — “${text}”`;
+    else el.textContent = `${label} ${idx + 1}/${total} (last) — “${text}”`;
+}
+function wireSyncControls() {
+    $('lyricsOffset')?.addEventListener('input', function() {
+        if (isExporting) { this.value = String(state.lyricsOffset || 0); return; }
+        state.lyricsOffset = Number(this.value) || 0;
+        updateSyncStatusUI();
+        redrawCurrentPreviewFrame();
+    });
+    $('resetOffset')?.addEventListener('click', () => {
+        if (isExporting) return;
+        state.lyricsOffset = 0;
+        updateSyncStatusUI();
+        redrawCurrentPreviewFrame();
+    });
+    qsa('[data-nudge]').forEach(b => b.addEventListener('click', () => nudgeLyricTiming(Number(b.dataset.nudge))));
 }
 function songFromFilename(name) {
     if (!name) return { artist: '', track: '' };
@@ -1496,8 +1843,10 @@ function setAspectRatio(key) {
     state.aspect = key;
     canvas.width = aspect.w;
     canvas.height = aspect.h;
-    qsa('[data-aspect]').forEach(b => b.classList.toggle('active-aspect', b.dataset.aspect === key));
-    $('aspectInfo').textContent = aspect.label;
+    const select = $('aspectSelect');
+    if (select && select.value !== key) select.value = key;
+    const info = $('aspectInfo');
+    if (info) info.textContent = aspect.label;
     saveLinaPrefs();
     redrawCurrentPreviewFrame();
 }
@@ -1715,7 +2064,7 @@ function handleBackgroundFile(file) {
             // When the video acts as the master clock it must stop at its end (no loop).
             vid.addEventListener('ended', function() {
                 if (getMasterMode() !== 'video') return;
-                $('playBtn').textContent = 'Play';
+                setPlayIcon(false);
                 state.playback.isPlaying = false;
                 if (!isExporting) redrawCurrentPreviewFrame();
             });
@@ -1830,6 +2179,9 @@ function serialiseProject() {
         lyricsSource: $('lyricsText').value || '', style: { ...state.style },
         background: { solid: state.background.solid, dim: state.background.dim, blur: state.background.blur },
         masterAudio: state.audioSource.master,
+        textMode: state.captions.mode,
+        captions: sanitiseProjectLyrics(state.captions.lines),
+        lyricsOffset: Number(state.lyricsOffset) || 0,
         aspect: state.aspect
     };
 }
@@ -1876,6 +2228,9 @@ async function loadProjectFile(file) {
         state.audio.metadata = { title: String(project.metadata?.title || ''), artist: String(project.metadata?.artist || ''), album: String(project.metadata?.album || '') };
         pendingProjectMetadata = { ...state.audio.metadata };
         state.lyrics.lines = sanitiseProjectLyrics(project.lyrics);
+        state.captions.lines = sanitiseProjectLyrics(project.captions);
+        state.captions.mode = project.textMode === 'captions' ? 'captions' : 'lyrics';
+        state.lyricsOffset = Number.isFinite(Number(project.lyricsOffset)) ? linaClamp(Number(project.lyricsOffset), -2, 2) : 0;
         applyProjectStyle(project.style);
         if (project.background && typeof project.background === 'object') {
             if (/^#[0-9a-f]{6}$/i.test(project.background.solid || '')) state.background.solid = project.background.solid;
@@ -1890,6 +2245,8 @@ async function loadProjectFile(file) {
         state.aspect = ASPECTS[project.aspect] ? project.aspect : state.aspect;
         $('lyricsText').value = String(project.lyricsSource || '').slice(0, 1000000);
         updateMetadataInputs();
+        applyTextMode(state.captions.mode);
+        updateSyncStatusUI();
         $('backgroundColor').value = state.background.solid;
         $('backgroundColorValue').textContent = state.background.solid.toUpperCase();
         setAspectRatio(state.aspect);
@@ -1939,7 +2296,7 @@ audio.addEventListener('error', function() {
 audio.addEventListener('timeupdate', function() { if (getMasterMode() === 'uploaded') state.playback.currentTime = this.currentTime || 0; });
 audio.addEventListener('play', function() {
     if (getMasterMode() !== 'uploaded') return; // only the selected master source drives preview
-    $('playBtn').textContent = 'Pause';
+    setPlayIcon(true);
     state.playback.isPlaying = true;
     if (isExporting) return;
     const video = media?.video;
@@ -1952,7 +2309,7 @@ audio.addEventListener('play', function() {
 });
 audio.addEventListener('pause', function() {
     if (getMasterMode() !== 'uploaded') return;
-    $('playBtn').textContent = 'Play';
+    setPlayIcon(false);
     state.playback.isPlaying = false;
     if (isExporting) return;
     const video = media?.video;
@@ -1963,7 +2320,7 @@ audio.addEventListener('pause', function() {
     }
     redrawCurrentPreviewFrame();
 });
-audio.addEventListener('ended', function() { if (getMasterMode() === 'none') return; $('playBtn').textContent = 'Play'; state.playback.isPlaying = false; if (!isExporting) redrawCurrentPreviewFrame(); });
+audio.addEventListener('ended', function() { if (getMasterMode() === 'none') return; setPlayIcon(false); state.playback.isPlaying = false; if (!isExporting) redrawCurrentPreviewFrame(); });
 audio.addEventListener('seeked', function() { if (!isExporting) redrawCurrentPreviewFrame(); });
 
 async function togglePlayback() {
@@ -1975,17 +2332,17 @@ async function togglePlayback() {
             if (v.paused) {
                 v.muted = false;
                 try { await v.play(); } catch(e) { toast('Playback error', 'error'); }
-                $('playBtn').textContent = 'Pause'; state.playback.isPlaying = true;
+                setPlayIcon(true); state.playback.isPlaying = true;
             } else {
-                v.pause(); $('playBtn').textContent = 'Play'; state.playback.isPlaying = false;
+                v.pause(); setPlayIcon(false); state.playback.isPlaying = false;
             }
         }
         redrawCurrentPreviewFrame();
         return;
     }
     if (mode === 'none') {
-        if (noneClockRunning) { stopNoneClock(); $('playBtn').textContent = 'Play'; state.playback.isPlaying = false; }
-        else { startNoneClock(getMasterTime()); $('playBtn').textContent = 'Pause'; state.playback.isPlaying = true; }
+        if (noneClockRunning) { stopNoneClock(); setPlayIcon(false); state.playback.isPlaying = false; }
+        else { startNoneClock(getMasterTime()); setPlayIcon(true); state.playback.isPlaying = true; }
         redrawCurrentPreviewFrame();
         return;
     }
@@ -2102,44 +2459,40 @@ function pauseMasterPlayback() {
     else if (mode === 'none' && noneClockRunning) stopNoneClock();
 }
 function renderMasterSourceUI() {
-    if ($('masterSourceSection')) return;
-    const audioSection = $('audioSection');
-    if (!audioSection) return;
-    const section = document.createElement('div');
-    section.className = 'section';
-    section.id = 'masterSourceSection';
-    section.innerHTML = `<h3><span class="section-index">+</span>Master Audio</h3>
-        <p class="status" id="masterSourceHint">Decides what you hear and what the timeline follows.</p>
-        <div class="effect-buttons" id="masterSourceButtons" role="group" aria-label="Master audio source"></div>
-        <div id="masterSourceStatus" class="status"></div>`;
-    audioSection.appendChild(section);
-    const box = $('masterSourceButtons');
-    for (const mode of MASTER_MODES) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.dataset.master = mode;
-        btn.textContent = MASTER_MODE_LABELS[mode];
-        btn.addEventListener('click', () => {
-            const ok = applyMasterSelection(mode, { userInitiated: true, silent: false });
-            if (ok) toast(MASTER_MODE_LABELS[mode] + ' is now the master audio source', 'success');
-        });
-        box.appendChild(btn);
+    const box = $('audioSourceButtons');
+    if (!box) return;
+    if (box.dataset.wired !== '1') {
+        box.dataset.wired = '1';
+        for (const mode of MASTER_MODES) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.dataset.master = mode;
+            btn.textContent = MASTER_MODE_LABELS[mode];
+            btn.addEventListener('click', () => {
+                const ok = applyMasterSelection(mode, { userInitiated: true, silent: false });
+                if (ok) toast(MASTER_MODE_LABELS[mode] + ' is now the audio source', 'success');
+            });
+            box.appendChild(btn);
+        }
     }
     syncMasterSourceUI();
 }
 function syncMasterSourceUI() {
     const mode = getMasterMode();
-    const buttons = qsa('#masterSourceButtons button');
-    buttons.forEach(b => b.classList.toggle('active-effect', b.dataset.master === mode));
-    const status = $('masterSourceStatus');
+    const buttons = qsa('#audioSourceButtons button');
+    buttons.forEach(b => {
+        b.classList.toggle('active-effect', b.dataset.master === mode);
+        b.disabled = !masterModeAvailable(b.dataset.master) && b.dataset.master !== mode;
+    });
+    const status = $('audioSourceStatus');
     if (!status) return;
     const uploadedDur = Number.isFinite(state.audio.duration) && state.audio.duration > 0 ? fmt(state.audio.duration) : '—';
     const videoDur = media?.video && Number.isFinite(media.video.duration) && media.video.duration > 0 ? fmt(media.video.duration) : '—';
     const parts = [];
-    parts.push(`Master: <strong>${MASTER_MODE_LABELS[mode] || mode}</strong>`);
+    parts.push(`<strong>${MASTER_MODE_LABELS[mode] || mode}</strong>`);
     parts.push(`Uploaded: ${uploadedDur}`);
     parts.push(`Video audio: ${media?.videoHasAudio ? videoDur + ' (available)' : '—'}`);
-    if (mode === 'video') parts.push('The background video audio is authoritative. Timed text must be interpreted against it.');
+    if (mode === 'video') parts.push('The background video audio drives the timeline.');
     if (mode === 'video' && !state.audio.metadata.title) parts.push('Add a song title above to search for synced lyrics.');
     if (mode === 'none') parts.push('No audio will be heard or exported.');
     status.innerHTML = parts.join(' · ');
@@ -2328,7 +2681,7 @@ $('findLyricsBtn').addEventListener('click', async function() {
     this.disabled = false;
 });
 
-qsa('[data-aspect]').forEach(b => b.addEventListener('click', function() { setAspectRatio(this.dataset.aspect); }));
+$('aspectSelect')?.addEventListener('change', function() { setAspectRatio(this.value); });
 
 $('editLyricsBtn').addEventListener('click', function() {
     if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
@@ -2486,7 +2839,8 @@ async function startExport() {
         ['Output', `${config.width} × ${config.height}`], ['Frame rate', `${config.fps} fps`],
         ['Duration', fmt(duration)], ['Frames', totalFrames.toLocaleString()],
         ['Master audio', masterLabel + (getMasterMode() === 'none' ? ' (muted)' : '')],
-        ['Background', media.image ? 'Uploaded image' : media.video ? 'Uploaded video' : `Solid ${state.background.solid}`],
+        ['Text', `${activeTextMode() === 'captions' ? 'Captions' : 'Lyrics'} · ${activeTimedLines().length} lines`],
+        ['Background', media.image ? 'Image background' : media.video ? 'Video background' : `Solid ${state.background.solid}`],
         ['Device demand', demandLabel]
     ];
     $('preflightSummary').replaceChildren(...rows.map(([label, value]) => {
@@ -2544,9 +2898,302 @@ function setupDropZone(zone, inputId) {
 setupDropZone($('audioDrop'), 'audioInput');
 setupDropZone($('bgDrop'), 'backgroundInput');
 
+/* =========================================================================
+ * TITLE CARD SECTION (05) — dedicated controls, per-effect default designs.
+ * ========================================================================= */
+function syncTitleCardUI() {
+    const toggle = $('titleCardEnabled');
+    if (toggle) toggle.checked = state.style.titleCardEnabled !== false;
+    const dur = $('titleCardDuration');
+    if (dur) dur.value = String(linaClamp(Number(state.style.titleCardDuration) || 3, 1, 15));
+    const durVal = $('titleCardDurationVal');
+    if (durVal) durVal.textContent = `${linaClamp(Number(state.style.titleCardDuration) || 3, 1, 15)}s`;
+    const styleSel = $('titleCardStyle');
+    if (styleSel) styleSel.value = state.style.titleCardStyle || 'auto';
+    updateTitleCardHint();
+}
+function updateTitleCardHint() {
+    const hint = $('titleCardStyleHint');
+    if (!hint) return;
+    const chosen = state.style.titleCardStyle || 'auto';
+    const resolved = resolveTitleCardDesign(state);
+    hint.textContent = chosen === 'auto' ? `Auto → ${TITLECARD_DESIGN_LABELS[resolved]}` : TITLECARD_DESIGN_LABELS[chosen] || '';
+}
+function wireTitleCardControls() {
+    $('titleCardEnabled')?.addEventListener('change', function() {
+        if (isExporting) { this.checked = state.style.titleCardEnabled; toast('Finish or cancel the current export first', 'error'); return; }
+        state.style.titleCardEnabled = this.checked;
+        markSectionTouched('title');
+        redrawCurrentPreviewFrame();
+    });
+    $('titleCardStyle')?.addEventListener('change', function() {
+        if (isExporting) { this.value = state.style.titleCardStyle || 'auto'; toast('Finish or cancel the current export first', 'error'); return; }
+        state.style.titleCardStyle = this.value;
+        markSectionTouched('title');
+        updateTitleCardHint();
+        redrawCurrentPreviewFrame();
+    });
+    $('titleCardDuration')?.addEventListener('input', function() {
+        if (isExporting) { this.value = String(state.style.titleCardDuration || 3); return; }
+        state.style.titleCardDuration = linaClamp(Number(this.value) || 3, 1, 15);
+        $('titleCardDurationVal').textContent = `${state.style.titleCardDuration}s`;
+        markSectionTouched('title');
+        redrawCurrentPreviewFrame();
+    });
+}
+
+/* =========================================================================
+ * TEXT MODE (Lyrics ⇄ Captions)
+ * ========================================================================= */
+function applyTextMode(mode) {
+    state.captions.mode = mode === 'captions' ? 'captions' : 'lyrics';
+    qsa('[data-text-mode]').forEach(b => {
+        const active = b.dataset.textMode === state.captions.mode;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    $('lyricsPanel')?.classList.toggle('hidden', state.captions.mode !== 'lyrics');
+    $('captionsPanel')?.classList.toggle('hidden', state.captions.mode !== 'captions');
+    const badge = $('previewModeBadge');
+    if (badge) badge.textContent = state.captions.mode === 'captions' ? 'Captions' : 'Lyrics';
+    refreshLyricsTimingStatus();
+    redrawCurrentPreviewFrame();
+}
+
+/* =========================================================================
+ * CAPTIONS — automatic timed-block generation from the master audio.
+ * Analyses loudness (energy voice-activity detection) entirely in-browser.
+ * ========================================================================= */
+const CAPTION_MIN_SEGMENT = 0.5;
+const CAPTION_MERGE_GAP = 0.35;
+const CAPTION_PAD_HEAD = 0.10;
+const CAPTION_PAD_TAIL = 0.28;
+const CAPTION_MAX_BLOCKS = 2000;
+async function autoGenerateCaptions() {
+    if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
+    const mode = getMasterMode();
+    const file = mode === 'video' ? media?.videoFile : state.audio.file;
+    if (!file) {
+        $('captionsStatus').textContent = 'Add an audio file (or a video with sound) in Step 01 first — captions are generated from its sound.';
+        $('captionsStatus').className = 'status error';
+        toast('Add audio first — captions are generated from sound', 'error');
+        return;
+    }
+    const button = $('autoCaptionsBtn');
+    if (button) button.disabled = true;
+    $('captionsStatus').textContent = 'Analysing audio for speech and vocals…';
+    $('captionsStatus').className = 'status loading';
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) throw new Error('This browser cannot analyse audio');
+        const buffer = await file.arrayBuffer();
+        const actx = new AudioCtx();
+        const decoded = await actx.decodeAudioData(buffer);
+        const sampleRate = decoded.sampleRate;
+        const data = decoded.getChannelData(0);
+        const win = Math.max(1, Math.round(sampleRate * 0.05)); // 50ms windows
+        const rms = [];
+        for (let i = 0; i + win <= data.length; i += win) {
+            let sum = 0;
+            for (let j = i; j < i + win; j += 4) sum += data[j] * data[j];
+            rms.push(Math.sqrt(sum / (win / 4)));
+        }
+        actx.close?.();
+        if (!rms.length) throw new Error('Audio is too short to analyse');
+        const sorted = rms.slice().sort((a, b) => a - b);
+        const floor = sorted[Math.floor(sorted.length * 0.10)] || 0;
+        const peak = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.98))] || 1;
+        const threshold = Math.max(0.012, floor + (peak - floor) * 0.14);
+        const minWindows = Math.max(1, Math.round(CAPTION_MIN_SEGMENT / 0.05));
+        const mergeWindows = Math.max(1, Math.round(CAPTION_MERGE_GAP / 0.05));
+        const segments = [];
+        let start = -1, silence = 0;
+        for (let i = 0; i < rms.length; i++) {
+            const loud = rms[i] >= threshold;
+            if (loud) {
+                if (start < 0) start = i;
+                silence = 0;
+            } else if (start >= 0) {
+                silence++;
+                if (silence >= mergeWindows) {
+                    const end = i - silence + 1;
+                    if (end - start >= minWindows) segments.push([start, end]);
+                    start = -1; silence = 0;
+                }
+            }
+        }
+        if (start >= 0 && rms.length - start >= minWindows) segments.push([start, rms.length]);
+        if (!segments.length) {
+            $('captionsStatus').textContent = 'No clear speech or vocals found — the audio may be too quiet. Try louder source material, or add caption blocks manually.';
+            $('captionsStatus').className = 'status error';
+            return;
+        }
+        const total = decoded.duration;
+        state.captions.lines = segments.slice(0, CAPTION_MAX_BLOCKS).map(([a, b]) => ({
+            time: Math.max(0, a * 0.05 - CAPTION_PAD_HEAD),
+            endTime: Math.min(total, b * 0.05 + CAPTION_PAD_TAIL),
+            text: ''
+        }));
+        markSectionTouched('text');
+        $('captionsStatus').textContent = `Generated ${state.captions.lines.length} timed caption blocks — open Edit Captions and type what you hear for each block.`;
+        $('captionsStatus').className = 'status success';
+        toast(`Generated ${state.captions.lines.length} caption blocks`, 'success');
+        readiness();
+        redrawCurrentPreviewFrame();
+        openCaptionsEditor();
+    } catch (error) {
+        const reason = error?.name === 'EncodingError'
+            ? 'this audio format could not be decoded in the browser — try MP3, M4A or WAV, or add caption blocks manually'
+            : (error?.message || 'analysis failed');
+        $('captionsStatus').textContent = `Caption generation failed: ${reason}`;
+        $('captionsStatus').className = 'status error';
+        toast('Caption generation failed', 'error');
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
+/* ---------- Captions editor ---------- */
+function openCaptionsEditor() {
+    if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
+    renderCaptionRows();
+    $('captionsEditor').classList.remove('hidden');
+}
+function renderCaptionRows() {
+    const box = $('captionsRows');
+    if (!box) return;
+    const lines = state.captions.lines;
+    if (!lines.length) {
+        box.innerHTML = '<div class="caption-hint">No blocks yet — use Auto-generate Timing first, or add blocks below.</div>';
+        return;
+    }
+    box.replaceChildren(...lines.map((line, i) => {
+        const row = document.createElement('div');
+        row.className = 'caption-row';
+        const time = document.createElement('span');
+        time.className = 'caption-time';
+        time.textContent = `${formatTime(Number(line.time) || 0)} → ${formatTime(Number(line.endTime) || 0)}`;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.dataset.idx = String(i);
+        input.value = String(line.text || '');
+        input.placeholder = 'What is said in this block…';
+        input.addEventListener('input', () => { if (lines[i]) lines[i].text = input.value; });
+        row.append(time, input);
+        return row;
+    }));
+}
+function splitCaptionText(raw) {
+    const parts = [];
+    for (const chunk of String(raw || '').split(/\r?\n+/)) {
+        const trimmed = chunk.trim();
+        if (!trimmed) continue;
+        const sentences = trimmed.match(/[^.!?…]+[.!?…]*/g) || [trimmed];
+        for (const s of sentences) { if (s.trim()) parts.push(s.trim()); }
+    }
+    return parts;
+}
+
+function wireCaptions() {
+    $('autoCaptionsBtn')?.addEventListener('click', autoGenerateCaptions);
+    $('editCaptionsBtn')?.addEventListener('click', openCaptionsEditor);
+    $('closeCaptions')?.addEventListener('click', () => $('captionsEditor').classList.add('hidden'));
+    $('cancelCaptions')?.addEventListener('click', () => $('captionsEditor').classList.add('hidden'));
+    $('addCaptionRow')?.addEventListener('click', () => {
+        const lines = state.captions.lines;
+        const last = lines[lines.length - 1];
+        const start = last ? (Number(last.endTime) || (Number(last.time) + 3)) : 0;
+        lines.push({ time: start, endTime: start + 3, text: '' });
+        renderCaptionRows();
+    });
+    $('clearCaptionText')?.addEventListener('click', () => {
+        state.captions.lines.forEach(l => { l.text = ''; });
+        renderCaptionRows();
+    });
+    $('pasteCaptions')?.addEventListener('click', async function() {
+        const status = $('captionsEditorStatus');
+        if (!navigator.clipboard || !navigator.clipboard.readText) {
+            status.textContent = 'Clipboard paste is not supported here — paste manually with Ctrl/Cmd+V into the text box instead.';
+            status.className = 'status error';
+            return;
+        }
+        try {
+            const text = await navigator.clipboard.readText();
+            if (!text) { status.textContent = 'Clipboard is empty'; status.className = 'status error'; return; }
+            $('captionsBulkText').value = text;
+            status.textContent = 'Pasted — now use “Fit Text to Blocks”.';
+            status.className = 'status success';
+        } catch (err) {
+            status.textContent = 'Could not read the clipboard — paste manually with Ctrl/Cmd+V instead.';
+            status.className = 'status error';
+        }
+    });
+    $('distributeCaptions')?.addEventListener('click', () => {
+        const status = $('captionsEditorStatus');
+        const parts = splitCaptionText($('captionsBulkText').value);
+        const lines = state.captions.lines;
+        if (!lines.length) { status.textContent = 'Generate timing first, then fit text to the blocks.'; status.className = 'status error'; return; }
+        if (!parts.length) { status.textContent = 'Add or paste some text first.'; status.className = 'status error'; return; }
+        lines.forEach((line, i) => { line.text = parts[i] || line.text || ''; });
+        if (parts.length > lines.length) {
+            status.textContent = `Fitted ${lines.length} of ${parts.length} text parts — add ${parts.length - lines.length} more block(s) for the rest.`;
+            status.className = 'status';
+        } else {
+            status.textContent = 'Text fitted across all blocks.';
+            status.className = 'status success';
+        }
+        renderCaptionRows();
+    });
+    $('saveCaptions')?.addEventListener('click', function() {
+        if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
+        const lines = state.captions.lines;
+        const withText = lines.filter(l => String(l.text || '').trim());
+        if (!lines.length || !withText.length) {
+            $('captionsEditorStatus').textContent = 'Add at least one caption block with text.';
+            $('captionsEditorStatus').className = 'status error';
+            return;
+        }
+        state.captions.lines = withText.sort((a, b) => a.time - b.time);
+        markSectionTouched('text');
+        readiness();
+        redrawCurrentPreviewFrame();
+        $('captionsEditorStatus').textContent = `Saved ${withText.length} caption blocks.`;
+        $('captionsEditorStatus').className = 'status success';
+        toast(`Captions saved · ${withText.length} blocks`, 'success');
+        setTimeout(() => $('captionsEditor').classList.add('hidden'), 700);
+    });
+}
+
+/* ---------- Background customisation ---------- */
+function wireBackgroundControls() {
+    $('bgDim')?.addEventListener('input', function() {
+        if (isExporting) { this.value = String(Math.round((state.background.dim || 0) * 100)); return; }
+        state.background.dim = Number(this.value) / 100;
+        $('bgDimVal').textContent = `${this.value}%`;
+        redrawCurrentPreviewFrame();
+    });
+    $('bgBlur')?.addEventListener('input', function() {
+        if (isExporting) { this.value = String(state.background.blur || 0); return; }
+        state.background.blur = Number(this.value) || 0;
+        $('bgBlurVal').textContent = `${this.value}px`;
+        redrawCurrentPreviewFrame();
+    });
+}
+function syncBackgroundControls() {
+    const dim = $('bgDim');
+    if (dim) dim.value = String(Math.round((state.background.dim ?? 0.35) * 100));
+    const dimVal = $('bgDimVal');
+    if (dimVal) dimVal.textContent = `${Math.round((state.background.dim ?? 0.35) * 100)}%`;
+    const blur = $('bgBlur');
+    if (blur) blur.value = String(state.background.blur || 0);
+    const blurVal = $('bgBlurVal');
+    if (blurVal) blurVal.textContent = `${state.background.blur || 0}px`;
+}
+
 function init() {
     try {
         ensureDefaultBackground();
+        initTheme();
         $('backgroundColor').value = state.background.solid;
         $('backgroundColorValue').textContent = state.background.solid.toUpperCase();
         const prefs = loadLinaPrefs();
@@ -2561,6 +3208,14 @@ function init() {
         }
         setAspectRatio(prefs?.aspect && ASPECTS[prefs.aspect] ? prefs.aspect : '9:16');
         renderMasterSourceUI();
+        wireTitleCardControls();
+        syncTitleCardUI();
+        wireSyncControls();
+        wireCaptions();
+        wireBackgroundControls();
+        syncBackgroundControls();
+        qsa('[data-text-mode]').forEach(b => b.addEventListener('click', () => applyTextMode(b.dataset.textMode)));
+        applyTextMode(state.captions.mode);
         readiness();
         setEffect(prefs?.effect && EFFECT_LABELS[prefs.effect] ? prefs.effect : (state.style.effect || 'apple'));
         redrawCurrentPreviewFrame();
