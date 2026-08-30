@@ -25,7 +25,7 @@ jobs:
           if old not in s: raise SystemExit('setMasterTime target not found')
           s = s.replace(old, new, 1)
           marker = "function handleBackgroundFile(file) {"
-          helper = r'''async function detectVideoHasAudio(file, vid) {
+          helper = '''async function detectVideoHasAudio(file, vid) {
               try {
                   const AudioCtx = window.AudioContext || window.webkitAudioContext;
                   if (AudioCtx && file) {
@@ -37,16 +37,16 @@ jobs:
                               if (maybePromise && typeof maybePromise.then === 'function') maybePromise.then(resolve, reject);
                           });
                           return Boolean(decoded && decoded.numberOfChannels > 0 && decoded.length > 0);
-                      } finally:
-                          try: pass
-                          except Exception: pass
+                      } finally {
+                          try { await ctx.close(); } catch (e) {}
+                      }
                   }
-              except Exception: pass
-              try:
+              } catch (e) {}
+              try {
                   if (vid.audioTracks && vid.audioTracks.length) return true;
                   if (vid.mozHasAudio) return true;
                   if (vid.webkitAudioDecodedByteCount && vid.webkitAudioDecodedByteCount > 0) return true;
-              except Exception: pass
+              } catch (e) {}
               return false;
           }
           '''
