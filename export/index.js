@@ -84,6 +84,33 @@ export function resolveMasterInfo(state, media) {
     return { mode, file: state?.audio?.file || null, duration: Number.isFinite(duration) && duration > 0 ? duration : 0, filename: state?.audio?.file?.name || 'audio' };
 }
 
+// How many 4-second segments to encode per FFmpeg engine boot before we
+// tear it down and start a fresh one. FFmpeg-wasm's heap doesn't get fully
+// reclaimed between operations within one instance, so long exports still
+// need a periodic reset to avoid running out of memory (especially on
+// mobile Safari) — but resetting *every* segment was the dominant cost in
+// every export: each boot re-instantiates/compiles the ~25MB wasm binary,
+// which typically costs 1-5+ seconds on its own, before a single frame is
+// encoded. Batching several segments per boot cuts that overhead by 5-12x
+// while keeping the same memory safety valve, tuned tighter for higher
+// resolutions since those hold more decoded frame data in memory per segment.
+function segmentsPerEncoderBoot(width, height) {
+    const pixels = width * height;
+    if (pixels <= 480 * 854) return 12;
+    if (pixels <= 720 * 1280) return 8;
+    return 5;
+}
+
+async function loadEncoderResilient(onStatus) {
+    try { return await loadEncoder(onStatus); }
+    catch (firstError) {
+        // A single failed boot (e.g. a transient CDN hiccup) used to kill the
+        // whole export. Give it one more try before treating it as fatal.
+        try { return await loadEncoder(onStatus); }
+        catch { throw firstError; }
+    }
+}
+
 export async function exportVideo({ state, media, config, renderFrame, buildFilename, signal, onProgress }) {
     const master = resolveMasterInfo(state, media);
     const duration = master.duration;
@@ -107,48 +134,78 @@ export async function exportVideo({ state, media, config, renderFrame, buildFile
 
     try {
         const segmentCount = Math.ceil(totalFrames / framesPerSegment);
+        const bootBatchSize = segmentsPerEncoderBoot(config.width, config.height);
+
         for (let segment = 0; segment < segmentCount; segment++) {
             checkAbort(signal);
-            progress(4 + (segment / segmentCount) * 66, `Loading encoder for segment ${segment + 1} of ${segmentCount}…`);
-            ffmpeg = await loadEncoder(message => progress(4 + (segment / segmentCount) * 66, message));
+
+            const startingNewBatch = segment % bootBatchSize === 0;
+            if (startingNewBatch) {
+                if (ffmpeg) { releaseEncoder(ffmpeg); ffmpeg = null; }
+                progress(4 + (segment / segmentCount) * 66, `Loading encoder for segment ${segment + 1} of ${segmentCount}…`);
+                ffmpeg = await loadEncoderResilient(message => progress(4 + (segment / segmentCount) * 66, message));
+            }
 
             const firstFrame = segment * framesPerSegment;
             const frameCount = Math.min(framesPerSegment, totalFrames - firstFrame);
             const frameNames = [];
-            try {
-                for (let local = 0; local < frameCount; local++) {
-                    checkAbort(signal);
-                    const frameIndex = firstFrame + local;
-                    const time = frameIndex / config.fps;
-                    await seekVideo(media?.video, time, signal);
-                    await renderFrame(ctx, config.width, config.height, time);
-                    const frameName = `kefe-frame-${String(local).padStart(5, '0')}.jpg`;
-                    await ffmpeg.writeFile(frameName, await canvasToJpeg(target));
-                    frameNames.push(frameName);
-                    progress(5 + ((frameIndex + 1) / totalFrames) * 65, `Rendering frame ${frameIndex + 1} of ${totalFrames}`);
-                }
+            let segmentAttempt = 0;
+            for (;;) {
+                try {
+                    for (let local = 0; local < frameCount; local++) {
+                        checkAbort(signal);
+                        const frameIndex = firstFrame + local;
+                        const time = frameIndex / config.fps;
+                        await seekVideo(media?.video, time, signal);
+                        await renderFrame(ctx, config.width, config.height, time);
+                        const frameName = `kefe-frame-${String(local).padStart(5, '0')}.jpg`;
+                        await ffmpeg.writeFile(frameName, await canvasToJpeg(target));
+                        frameNames.push(frameName);
+                        progress(5 + ((frameIndex + 1) / totalFrames) * 65, `Rendering frame ${frameIndex + 1} of ${totalFrames}`);
+                    }
 
-                const segmentName = `kefe-segment-${String(segment).padStart(4, '0')}.ts`;
-                progress(5 + ((firstFrame + frameCount) / totalFrames) * 65, `Encoding segment ${segment + 1} of ${segmentCount}…`);
-                await execChecked(ffmpeg, ['-framerate', String(config.fps), '-start_number', '0', '-i', 'kefe-frame-%05d.jpg', '-frames:v', String(frameCount), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', '-r', String(config.fps), '-g', String(config.fps * 2), '-keyint_min', String(config.fps * 2), '-sc_threshold', '0', '-f', 'mpegts', '-y', segmentName], `segment ${segment + 1}`);
-                const segmentData = new Uint8Array(await ffmpeg.readFile(segmentName));
-                if (!segmentData.byteLength) throw new Error(`FFmpeg produced an empty segment ${segment + 1}`);
-                segmentChunks.push(segmentData);
-                combinedSegmentBytes += segmentData.byteLength;
-                progress(5 + ((firstFrame + frameCount) / totalFrames) * 65, `Encoded segment ${segment + 1} of ${segmentCount}`);
-            } finally {
-                for (const frameName of frameNames) { try { await ffmpeg.deleteFile(frameName); } catch {} }
-                try { await ffmpeg.deleteFile(`kefe-segment-${String(segment).padStart(4, '0')}.ts`); } catch {}
-                releaseEncoder(ffmpeg);
-                ffmpeg = null;
+                    const segmentName = `kefe-segment-${String(segment).padStart(4, '0')}.ts`;
+                    progress(5 + ((firstFrame + frameCount) / totalFrames) * 65, `Encoding segment ${segment + 1} of ${segmentCount}…`);
+                    await execChecked(ffmpeg, ['-framerate', String(config.fps), '-start_number', '0', '-i', 'kefe-frame-%05d.jpg', '-frames:v', String(frameCount), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', '-r', String(config.fps), '-g', String(config.fps * 2), '-keyint_min', String(config.fps * 2), '-sc_threshold', '0', '-f', 'mpegts', '-y', segmentName], `segment ${segment + 1}`);
+                    const segmentData = new Uint8Array(await ffmpeg.readFile(segmentName));
+                    if (!segmentData.byteLength) throw new Error(`FFmpeg produced an empty segment ${segment + 1}`);
+                    segmentChunks.push(segmentData);
+                    combinedSegmentBytes += segmentData.byteLength;
+                    progress(5 + ((firstFrame + frameCount) / totalFrames) * 65, `Encoded segment ${segment + 1} of ${segmentCount}`);
+                    for (const frameName of frameNames) { try { await ffmpeg.deleteFile(frameName); } catch {} }
+                    try { await ffmpeg.deleteFile(segmentName); } catch {}
+                    break;
+                } catch (error) {
+                    if (error?.name === 'AbortError') throw error;
+                    for (const frameName of frameNames) { try { await ffmpeg.deleteFile(frameName); } catch {} }
+                    frameNames.length = 0;
+                    segmentAttempt++;
+                    // A segment can fail because the shared engine instance picked up
+                    // bad wasm state (rare, but happens on long exports). One retry
+                    // with a freshly booted engine recovers from that instead of
+                    // failing the whole export over a single flaky segment.
+                    if (segmentAttempt > 1) throw error;
+                    checkAbort(signal);
+                    progress(4 + (segment / segmentCount) * 66, `Segment ${segment + 1} hit an error, retrying with a fresh encoder…`);
+                    if (ffmpeg) { releaseEncoder(ffmpeg); ffmpeg = null; }
+                    ffmpeg = await loadEncoderResilient(message => progress(4 + (segment / segmentCount) * 66, message));
+                }
             }
         }
 
         checkAbort(signal);
         if (!combinedSegmentBytes) throw new Error('No video segments were produced');
 
-        progress(81, 'Loading final muxer…');
-        ffmpeg = await loadEncoder(message => progress(81, message));
+        // Reuse whichever engine instance is still alive from the last
+        // segment batch instead of releasing it and booting yet another one —
+        // muxing doesn't need a clean heap, and this saves one more full
+        // wasm boot on every export.
+        if (!ffmpeg) {
+            progress(81, 'Loading final muxer…');
+            ffmpeg = await loadEncoderResilient(message => progress(81, message));
+        } else {
+            progress(81, 'Joining segments…');
+        }
 
         const combinedTs = new Uint8Array(combinedSegmentBytes);
 

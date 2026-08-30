@@ -1,6 +1,7 @@
 const FF_VERSION = '0.12.15';
 const CORE_VERSION = '0.12.10';
-const LOAD_TIMEOUT_MS = 30000;
+const LOAD_TIMEOUT_MS = 45000;
+const ASSET_FETCH_RETRIES = 2;
 
 const FFMPEG_MODULE_URL = `https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@${FF_VERSION}/dist/esm/index.js`;
 const LOCAL_WORKER_URL = new URL('../vendor/ffmpeg/worker.js', import.meta.url).href;
@@ -29,11 +30,23 @@ function withTimeout(promise, ms, details, operation) {
     const timeoutPromise = new Promise((_, reject) => { timer = setTimeout(() => reject(encoderFailure('ENCODER_TIMEOUT', operation, new Error(`FFmpeg ${operation} timed out after ${ms / 1000}s`), details)), ms); });
     return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
 }
-async function fetchBlobURL(url, mime, label) {
+function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+async function fetchBlobURLOnce(url, mime, label) {
     const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), LOAD_TIMEOUT_MS);
     try { const response = await fetch(url, { signal: controller.signal }); if (!response.ok) throw new Error(`HTTP ${response.status}`); const blob = await response.blob(); if (!blob.size) throw new Error('empty response'); return URL.createObjectURL(new Blob([blob], { type: mime })); }
     catch (error) { if (error?.name === 'AbortError') throw encoderFailure('ENCODER_TIMEOUT', label, new Error(`Timed out loading ${label}`), { url }); throw encoderFailure('ENCODER_ASSET', label, error, { url }); }
     finally { clearTimeout(timer); }
+}
+// A single dropped connection (common on mobile/flaky wifi) used to kill the
+// whole export permanently, since a failed asset fetch had no retry. Retry a
+// couple of times with a short backoff before giving up for real.
+async function fetchBlobURL(url, mime, label) {
+    let lastError;
+    for (let attempt = 0; attempt <= ASSET_FETCH_RETRIES; attempt++) {
+        try { return await fetchBlobURLOnce(url, mime, label); }
+        catch (error) { lastError = error; if (attempt < ASSET_FETCH_RETRIES) await delay(500 * (attempt + 1)); }
+    }
+    throw lastError;
 }
 function getFFmpegModule() {
     if (moduleCache) return Promise.resolve(moduleCache);
