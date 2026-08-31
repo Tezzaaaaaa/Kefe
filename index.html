@@ -18,11 +18,7 @@
 <div class="app">
     <header>
         <a class="brand" href="./" aria-label="KEFE Visualiser home" title="Return home"><img class="brand-logo brand-logo-day" src="./kefe-logo.svg" alt="KEFE"><img class="brand-logo brand-logo-night" src="./kefe-logo-light.svg" alt="" aria-hidden="true"><span class="brand-descriptor" aria-hidden="true"><span>V</span><span>I</span><span>S</span><span>U</span><span>A</span><span>L</span><span>I</span><span>S</span><span>E</span><span>R</span></span></a>
-        <div class="header-actions">
-            <label class="theme-control" for="themeSelect"><select id="themeSelect" aria-label="Theme"><option value="system">System</option><option value="day">Day</option><option value="night">Night</option></select></label>
-            <button id="resetBtn" type="button" class="icon-button" aria-label="Reset project" title="Reset project"></button>
-            <button id="exportBtn" type="button" class="primary export-action">Export</button>
-        </div>
+        <div class="header-actions"><label class="theme-control" for="themeSelect"><select id="themeSelect" aria-label="Theme"><option value="system">System</option><option value="day">Day</option><option value="night">Night</option></select></label><button id="resetBtn" type="button" class="icon-button" aria-label="Reset project" title="Reset project"></button><button id="exportBtn" type="button" class="primary export-action">Export</button></div>
     </header>
     <main><aside class="sidebar"><nav class="section-nav" aria-label="Editor sections"><a href="#audioSection" class="section-nav-link active" data-nav="audio"><span>01</span><strong>Audio</strong></a><a href="#textSection" class="section-nav-link" data-nav="text"><span>02</span><strong>Lyrics &amp; Captions</strong></a><a href="#fxSection" class="section-nav-link" data-nav="fx"><span>03</span><strong>Visual FX</strong></a><a href="#backgroundSection" class="section-nav-link" data-nav="background"><span>04</span><strong>Background</strong></a><a href="#exportSection" class="section-nav-link" data-nav="export"><span>05</span><strong>Export</strong></a></nav></aside><section class="preview"><canvas id="visualizerCanvas"></canvas></section></main>
 </div>
