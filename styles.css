@@ -162,7 +162,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 }
 /* ---------- Wizard layout ---------- */
 /* The preview canvas is completely removed during setup —
-   the questions should fill the entire screen. */
+   the questions should fill the entire screen vertically. */
 body.wizard-mode .preview { display: none !important; }
 body.wizard-mode main { flex-direction: row; }
 body.wizard-mode .sidebar {
@@ -170,40 +170,35 @@ body.wizard-mode .sidebar {
   width: 100% !important;
   max-width: none !important;
   min-height: 0;
-  height: 100dvh;
   overflow-y: visible;
 }
 body.wizard-mode #wizardSection {
   margin: 0 auto;
   max-width: 520px;
   width: 100%;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 /* ---------- Wizard panel ---------- */
-.wizard-panel { padding: 20px 16px 24px; }
+.wizard-panel { padding: 16px 16px 20px; }
 .wizard-panel-kicker { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin: 0 0 4px; }
 .wizard-panel-title { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
-.wizard-panel-hint { font-size: 12px; color: var(--text-2); margin: 0 0 16px; line-height: 1.5; }
-.wizard-panel-note { font-size: 12px; color: var(--text-2); margin: 0 0 12px; line-height: 1.5; }
-.wizard-choices { display: flex; flex-direction: column; gap: 8px; }
-.wizard-choice { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-size: 13px; cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
+.wizard-panel-hint { font-size: 12px; color: var(--text-2); margin: 0 0 14px; line-height: 1.5; }
+.wizard-panel-note { font-size: 12px; color: var(--text-2); margin: 0 0 10px; line-height: 1.5; }
+.wizard-choices { display: flex; flex-direction: column; gap: 6px; }
+.wizard-choice { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-size: 13px; cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
 .wizard-choice:hover { border-color: var(--red); background: var(--surface-2); }
 .wizard-choice.selected { border-color: var(--red); background: rgba(255,50,50,.1); }
-.wizard-choice-icon { flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--red); }
-.wizard-choice-icon svg { width: 20px; height: 20px; }
-.wizard-choice-copy { display: flex; flex-direction: column; gap: 2px; }
+.wizard-choice-icon { flex-shrink: 0; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: var(--red); }
+.wizard-choice-icon svg { width: 18px; height: 18px; }
+.wizard-choice-copy { display: flex; flex-direction: column; gap: 1px; }
 .wizard-choice-copy strong { font-size: 13px; font-weight: 600; }
 .wizard-choice-copy span { font-size: 11px; color: var(--text-2); line-height: 1.4; }
-.wizard-nav { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); background: var(--surface); position: sticky; bottom: 0; z-index: 2; }
-.wizard-back, .wizard-next, .wizard-skip { padding: 8px 14px; border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--text); }
+.wizard-nav { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--line); background: var(--surface); position: sticky; bottom: 0; z-index: 2; }
+.wizard-back, .wizard-next, .wizard-skip { padding: 6px 12px; border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--text); }
 .wizard-back:disabled { opacity: .4; cursor: default; }
 .wizard-next { background: var(--red); color: #fff; border-color: var(--red); font-weight: 600; }
 .wizard-next:disabled { opacity: .5; }
 .wizard-skip { margin-left: auto; color: var(--text-3); border: none; background: none; }
-.wizard-change-source { margin-top: 10px; padding: 6px 12px; font-size: 11px; color: var(--red); border: 1px solid var(--red); border-radius: var(--radius-sm); background: transparent; cursor: pointer; }
+.wizard-change-source { margin-top: 8px; padding: 5px 10px; font-size: 11px; color: var(--red); border: 1px solid var(--red); border-radius: var(--radius-sm); background: transparent; cursor: pointer; }
 .sidebar::-webkit-scrollbar { width: 6px; }
 .sidebar::-webkit-scrollbar-track { background: transparent; }
 .sidebar::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
