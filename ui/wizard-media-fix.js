@@ -2,6 +2,13 @@
  * Loaded after app.js so it can replace the legacy background file input handler.
  * The wizard must be able to accept a local background video as soon as the browser
  * has created a usable video element; audio-track detection must never block upload.
+ *
+ * Timing rule:
+ *   - uploaded audio exists -> uploaded audio is the lyric/timeline master
+ *   - no uploaded audio + background video exists -> the video timeline is the master
+ *
+ * This deliberately does NOT require a separately loaded Audio element for a video
+ * source. The video's own currentTime is the authoritative clock in that path.
  */
 (() => {
     'use strict';
@@ -13,6 +20,7 @@
 
     const MAX_BACKGROUND_BYTES = 500 * 1024 * 1024;
     let loadToken = 0;
+    let masterGuardTimer = null;
 
     const status = text => {
         const el = $('backgroundStatus');
@@ -26,18 +34,59 @@
         if (typeof window.toast === 'function') window.toast(msg, type);
     };
 
+    function isVideoSource() {
+        return document.body.classList.contains('wizard-src-media') || window.kefeWizardSource === 'media';
+    }
+
     function refreshWizardNext() {
         const btn = $('wizardNextBtn');
         if (!btn) return;
         const step = document.body.dataset.wizardStep;
         if (step !== 'source') return;
 
-        // For the Background Video source, the uploaded video itself is the
-        // required source. Audio-track detection is deliberately not part of
-        // this gate because Safari/iOS cannot reliably expose audio tracks on
-        // local <video> elements.
+        // Background Video is valid as soon as the video itself is readable.
+        // Do not make the wizard depend on Safari exposing an audio track.
         const hasVideo = Boolean(media.video && media.videoFile);
-        if (document.body.classList.contains('wizard-src-media')) btn.disabled = !hasVideo;
+        if (isVideoSource()) btn.disabled = !hasVideo;
+    }
+
+    function ensureCorrectTimingMaster() {
+        if (!media.video || !media.videoFile || !isVideoSource()) return;
+
+        // An explicitly uploaded audio file always wins. Otherwise the uploaded
+        // video is the authoritative timing source, regardless of whether the
+        // browser can inspect its embedded audio track.
+        if (state.audio?.file) {
+            if (state.audioSource?.master !== 'uploaded' && typeof window.applyMasterSelection === 'function') {
+                state.audioSource.userChosen = true;
+                window.applyMasterSelection('uploaded', { userInitiated: false, silent: true });
+            }
+            return;
+        }
+
+        // app.js historically used videoHasAudio as a gate for video-master mode.
+        // For wizard video sources that gate is wrong: video currentTime is still
+        // the correct lyric clock even when the video is silent or Safari cannot
+        // expose the embedded track. Mark it as an available master temporarily;
+        // this flag means "video can be the timing source", not "audio detected".
+        media.videoHasAudio = true;
+        if (state.audioSource?.master !== 'video' && typeof window.applyMasterSelection === 'function') {
+            state.audioSource.userChosen = false;
+            window.applyMasterSelection('video', { userInitiated: false, silent: true });
+        } else if (state.audioSource) {
+            state.audioSource.master = 'video';
+        }
+    }
+
+    function startMasterGuard() {
+        if (masterGuardTimer) clearInterval(masterGuardTimer);
+        // Audio can finish loading after the background video. The guard keeps
+        // the rule deterministic without fighting an explicitly uploaded audio
+        // file, which is allowed to take over as master.
+        masterGuardTimer = setInterval(() => {
+            if (!media.video || !media.videoFile || !isVideoSource()) return;
+            ensureCorrectTimingMaster();
+        }, 250);
     }
 
     function clearExistingMedia() {
@@ -57,7 +106,8 @@
     }
 
     async function bestEffortAudioDetection(file, video) {
-        // Prefer the app detector if it is exposed. It is still best-effort.
+        // Detection is informational only. It must never decide whether the
+        // video can be the timeline master.
         if (typeof window.detectVideoHasAudio === 'function') {
             try {
                 const detected = await window.detectVideoHasAudio(file, video);
@@ -69,7 +119,7 @@
             if (video.mozHasAudio === true) return true;
             if (video.webkitAudioDecodedByteCount > 0) return true;
         } catch (e) {}
-        return null; // unknown on browsers such as iOS Safari
+        return null;
     }
 
     function setVideoAsBackground(file, url, video, token) {
@@ -91,48 +141,36 @@
         state.background.video = video;
         state.background.image = null;
 
-        // Unknown audio state must not block the wizard. When the user selected
-        // Background Video as the source, treat the video as the master source
-        // and let playback itself determine whether it produces sound.
+        // Keep video available as a timing master. Do not infer lyric timing
+        // from a detached Audio element when the user chose Video as source.
         media.videoHasAudio = true;
         status(`${file.name} · video ready`);
         statusClass('success');
+        ensureCorrectTimingMaster();
         refreshWizardNext();
-
-        if (typeof window.applyMasterSelection === 'function') {
-            if (document.body.classList.contains('wizard-src-media')) {
-                state.audioSource.userChosen = false;
-                window.applyMasterSelection('video', { userInitiated: false, silent: true });
-            } else if (!state.audio.file) {
-                window.applyMasterSelection('video', { userInitiated: false, silent: true });
-            }
-        }
-
-        // Refine the status asynchronously when the browser can actually tell us.
-        bestEffortAudioDetection(file, video).then(detected => {
-            if (token !== loadToken || media.video !== video) return;
-            if (detected === true) {
-                media.videoHasAudio = true;
-                status(`${file.name} · has audio`);
-            } else if (detected === false) {
-                // Keep the visual video valid even if it is silent. The wizard
-                // source requirement is the video, not a proprietary audio API.
-                media.videoHasAudio = false;
-                status(`${file.name} · no audio track detected`);
-                if (document.body.classList.contains('wizard-src-media') && !state.audio.file && typeof window.applyMasterSelection === 'function') {
-                    window.applyMasterSelection('none', { userInitiated: false, silent: true });
-                }
-            }
-            statusClass('success');
-            if (typeof window.readiness === 'function') window.readiness();
-            if (typeof window.redrawCurrentPreviewFrame === 'function') window.redrawCurrentPreviewFrame();
-            refreshWizardNext();
-        });
 
         try { video.currentTime = 0; } catch (e) {}
         if (typeof window.readiness === 'function') window.readiness();
         if (typeof window.redrawCurrentPreviewFrame === 'function') window.redrawCurrentPreviewFrame();
         refreshWizardNext();
+
+        // Refine audio-track information asynchronously for display/debugging,
+        // but NEVER switch the timing master away from the uploaded video.
+        bestEffortAudioDetection(file, video).then(detected => {
+            if (token !== loadToken || media.video !== video) return;
+            if (detected === true) status(`${file.name} · has audio`);
+            else if (detected === false) status(`${file.name} · no audio track detected`);
+            else status(`${file.name} · video ready`);
+            statusClass('success');
+
+            // Preserve the timing rule after detection resolves. In particular,
+            // never fall back to the virtual/muted clock merely because Safari
+            // reported no audio track.
+            ensureCorrectTimingMaster();
+            if (typeof window.readiness === 'function') window.readiness();
+            if (typeof window.redrawCurrentPreviewFrame === 'function') window.redrawCurrentPreviewFrame();
+            refreshWizardNext();
+        });
     }
 
     function handleBackgroundVideo(file) {
@@ -233,11 +271,15 @@
         });
 
         refreshWizardNext();
+        startMasterGuard();
     }
 
     install();
 
-    new MutationObserver(refreshWizardNext).observe(document.body, {
+    new MutationObserver(() => {
+        refreshWizardNext();
+        ensureCorrectTimingMaster();
+    }).observe(document.body, {
         attributes: true,
         attributeFilter: ['class', 'data-wizard-step']
     });
