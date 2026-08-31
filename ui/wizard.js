@@ -18,6 +18,7 @@
     // Replace the preview with a slim toggle bar so the setup
     // questions fill the screen. Tap the bar to expand the preview
     // as a half-screen overlay; tap again to collapse it.
+    const previewEl = document.getElementById('previewSection');
     if (previewEl) {
         previewEl.classList.add('preview-collapsed');
         const toggleBar = document.createElement('button');
