@@ -14,10 +14,24 @@
 
     body.classList.add('wizard-mode');
 
-    // Hide the live preview canvas so the setup questions fill the screen.
-    // Direct style manipulation avoids CSS specificity/caching issues.
-    const previewEl = document.getElementById('previewSection');
-    if (previewEl) previewEl.style.display = 'none';
+    // ----- Preview toggle -----
+    // Replace the preview with a slim toggle bar so the setup
+    // questions fill the screen. Tap the bar to expand the preview
+    // as a half-screen overlay; tap again to collapse it.
+    if (previewEl) {
+        previewEl.classList.add('preview-collapsed');
+        const toggleBar = document.createElement('button');
+        toggleBar.type = 'button';
+        toggleBar.className = 'preview-toggle';
+        toggleBar.setAttribute('aria-label', 'Toggle preview');
+        toggleBar.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20" stroke="currentColor" stroke-width="1.5" fill="none"/></svg> Preview';
+        toggleBar.addEventListener('click', () => {
+            const isExpanded = previewEl.classList.toggle('preview-expanded');
+            previewEl.classList.toggle('preview-collapsed', !isExpanded);
+            toggleBar.setAttribute('aria-pressed', String(isExpanded));
+        });
+        sidebar.appendChild(toggleBar);
+    }
 
     // ----- Locked paths per project type -----
     const PATHS = {
@@ -174,7 +188,8 @@
         // Restore the preview canvas once the user reaches the
         // Preview / Export Review step so they can see the result.
         if ((step === 'preview' || step === 'review') && previewEl) {
-            previewEl.style.display = '';
+            previewEl.classList.remove('preview-collapsed');
+            previewEl.classList.add('preview-expanded');
         }
         if (step === 'captionsreview' && window.kefeCaptionGen) window.kefeCaptionGen.refreshReview();
         if (step === 'captionsgen' && window.kefeCaptionGen) window.kefeCaptionGen.syncGenerateButton();

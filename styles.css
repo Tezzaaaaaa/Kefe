@@ -161,11 +161,50 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   scroll-behavior: smooth;
 }
 /* ---------- Wizard layout ---------- */
-/* When the guided wizard is active, the live preview canvas
-   is removed from the layout so the questions fill the screen. */
-body.wizard-mode .preview { display: none; }
-body.wizard-mode .sidebar { flex: 1 1 auto; width: 100%; max-width: none; }
-body.wizard-mode #wizardSection { margin: 0 auto; max-width: 520px; width: 100%; }
+/* Preview is collapsed to a toggle bar during setup;
+   tap it to expand the preview as a half-screen overlay. */
+body.wizard-mode .preview {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: auto;
+  z-index: 10;
+  max-height: 50vh;
+  border-radius: 16px 16px 0 0;
+  transform: translateY(calc(100% - 48px));
+  transition: transform .25s var(--ease);
+  overflow-y: auto;
+  box-shadow: 0 -4px 24px rgba(0,0,0,.4);
+}
+body.wizard-mode .preview.preview-expanded {
+  transform: translateY(0);
+}
+body.wizard-mode .preview-toggle {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 12px 12px 0 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-bottom: none;
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 -2px 12px rgba(0,0,0,.3);
+  transition: background .15s, color .15s;
+}
+body.wizard-mode .preview-toggle:hover,
+body.wizard-mode .preview-toggle[aria-pressed="true"] {
+  background: var(--surface-2);
+  color: var(--text);
+}
 /* ---------- Wizard panel ---------- */
 .wizard-panel { padding: 16px 16px 20px; }
 .wizard-panel-kicker { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin: 0 0 4px; }
