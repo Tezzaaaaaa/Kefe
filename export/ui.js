@@ -53,7 +53,9 @@ async function seekAndRender(ctx, width, height, time, signal) {
     }
     if (signal?.aborted) throw new DOMException('Export cancelled', 'AbortError');
     state.playback.currentTime = time;
-    renderExportFrame(ctx, width, height, time);
+    const cappedTime = (state.playback.trimTo != null && time > state.playback.trimTo)
+        ? state.playback.trimTo : time;
+    renderExportFrame(ctx, width, height, cappedTime);
 }
 
 async function runExport() {

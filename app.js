@@ -1422,12 +1422,14 @@ function render(ctx, w, h, appState, mediaCache) {
             return;
         }
         const time = Number.isFinite(appState.playback.currentTime) ? appState.playback.currentTime : 0;
+        const cappedTime = (appState.playback.trimTo != null && time > appState.playback.trimTo)
+            ? appState.playback.trimTo : time;
         const style = { ...appState.style };
-        const tcActive = renderTitleCard(ctx, w, h, time, appState);
+        const tcActive = renderTitleCard(ctx, w, h, cappedTime, appState);
         if (!tcActive) {
             const timedLines = activeTimedLines();
             if (timedLines.length) {
-                const lyricTime = Math.max(0, time - (Number(appState.lyricsOffset) || 0));
+                const lyricTime = Math.max(0, cappedTime - (Number(appState.lyricsOffset) || 0));
                 try {
                     // Captions use the dedicated caption/subtitle style — never a lyric effect.
                     if (activeTextMode() === 'captions') renderCaptionStyle(ctx, w, h, timedLines, lyricTime);
@@ -2982,9 +2984,113 @@ async function startExport() {
     }));
     const warnings = [...report.warnings];
     if (demandLabel === 'High' || demandLabel === 'Very high') warnings.unshift('This export may take a long time on a phone. The finished MP4 timing will remain frame-accurate.');
-    $('preflightWarning').textContent = warnings.join(' ');
-    $('preflightWarning').classList.toggle('hidden', warnings.length === 0);
+
+    // --- Sync repair: offer solutions when timed text is out of sync with the
+    //     chosen master source (uploaded audio or background video audio) ---
+    const syncReport = assessSyncQuality();
+    const preflightRepair = $('preflightRepair');
+    if (syncReport.problems.length) {
+        $('preflightWarning').textContent = '⚠ ' + syncReport.problems.join(' · ');
+        $('preflightWarning').classList.remove('hidden');
+        preflightRepair.innerHTML = '';
+        syncReport.solutions.forEach((sol, i) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'primary';
+            btn.textContent = sol.label;
+            btn.addEventListener('click', () => {
+                sol.apply();
+                startExport(); // re-run preflight after repair
+            });
+            preflightRepair.appendChild(btn);
+        });
+    } else {
+        $('preflightWarning').textContent = warnings.join(' ');
+        $('preflightWarning').classList.toggle('hidden', warnings.length === 0);
+        preflightRepair.innerHTML = '';
+    }
     $('exportPreflight').classList.remove('hidden');
+}
+
+/* ---------- Sync quality assessment + repair ---------- */
+function assessSyncQuality() {
+    const lines = activeTimedLines();
+    const duration = getMasterDuration();
+    const report = validateLyricTiming(lines, duration);
+    const problems = [];
+    const solutions = [];
+
+    if (report.errors.length) {
+        problems.push(report.errors[0]);
+    }
+    // Out-of-sync detection: lyrics finishing well before the audio ends,
+    // or starting late — the classic "timed against the wrong source" symptom.
+    if (lines.length && Number.isFinite(duration) && duration > 0) {
+        const first = Number(lines[0]?.time);
+        const last = Number(lines[lines.length - 1]?.time);
+        if (Number.isFinite(last) && duration - last > 30) {
+            problems.push(`Lyrics end ${Math.round(duration - last)}s before the audio finishes`);
+            solutions.push({
+                label: '1. Stretch lyrics to fill the track',
+                apply: () => stretchLyricsToDuration(duration)
+            });
+            solutions.push({
+                label: '2. Trim audio to the lyrics',
+                apply: () => trimMasterToLyrics(duration, last)
+            });
+        }
+        if (Number.isFinite(first) && first > 3 && duration > 3) {
+            problems.push(`First lyric starts ${Math.round(first)}s in — likely a sync offset`);
+            solutions.push({
+                label: '3. Shift all lyrics earlier',
+                apply: () => nudgeLyricTiming(-first)
+            });
+        }
+    }
+    // Deduplicate solutions (a single problem can trigger multiple repairs)
+    const seen = new Set();
+    return {
+        problems: problems.length ? problems : ['Sync check passed'],
+        solutions: solutions.filter(s => { if (seen.has(s.label)) return false; seen.add(s.label); return true; })
+    };
+}
+
+function stretchLyricsToDuration(duration) {
+    const mode = activeTextMode();
+    const store = mode === 'captions' ? state.captions : state.lyrics;
+    if (!store.lines.length) { toast('Load lyrics first', 'error'); return; }
+    const last = Number(store.lines[store.lines.length - 1]?.time);
+    if (!Number.isFinite(last) || last <= 0) { toast('Cannot stretch: last line has no time', 'error'); return; }
+    const scale = duration / last;
+    if (!Number.isFinite(scale) || scale <= 0) { toast('Invalid duration', 'error'); return; }
+    store.lines = store.lines.map(line => {
+        const copy = { ...line, time: Math.max(0, Number(line.time) * scale) };
+        if (Number.isFinite(Number(line.endTime))) copy.endTime = Math.max(copy.time, Number(line.endTime) * scale);
+        if (Array.isArray(line.words)) copy.words = line.words.map(w => ({
+            ...w,
+            time: Math.max(0, Number(w.time) * scale),
+            endTime: Number.isFinite(Number(w.endTime)) ? Math.max(0, Number(w.endTime) * scale) : null
+        }));
+        return copy;
+    });
+    refreshLyricsTimingStatus();
+    redrawCurrentPreviewFrame();
+    toast(`Lyrics stretched to fit ${fmt(duration)} track`, 'success');
+}
+
+function trimMasterToLyrics(duration, lastLyricTime) {
+    // Trims the master source to end where the lyrics do, so the exported
+    // video stops with the last line instead of running on into silence.
+    const mode = getMasterMode();
+    if (mode === 'video' && media?.video) {
+        try { media.video.currentTime = 0; } catch (e) {}
+        toast(`Video will export up to ${fmt(lastLyricTime)} — the tail is silent`, 'info');
+    } else if (mode === 'uploaded' && state.audio?.file) {
+        toast(`Audio will export up to ${fmt(lastLyricTime)} — the tail is silent`, 'info');
+    } else {
+        toast('Trim applies to the master source on export', 'info');
+    }
+    state.playback.trimTo = lastLyricTime;
 }
 
 function closeExportPreflight() { $('exportPreflight').classList.add('hidden'); }

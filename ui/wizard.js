@@ -23,16 +23,25 @@
     };
     const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', custom: 'Custom' };
     const PATH_HINTS = {
-        lyric: 'Timed lyrics synced to your own audio, styled with KEFE effects.',
-        visualiser: 'Audio-reactive visuals for your track — no timed text.',
-        captioned: 'Transcribe speech from your audio or video into styled, timed captions.',
-        custom: 'Full control — start blank and combine any audio, text and effects.'
+        lyric: 'Words on screen, synced to your song — the classic lyric video.',
+        visualiser: 'Music-driven motion, no lyrics — pure audio-reactive visuals.',
+        captioned: 'Spoken words turned into timed captions — podcasts, speeches, voice notes.',
+        custom: 'Start blank and combine audio, text, and effects however you like.'
     };
     const STEP_TITLES = {
         intro: 'What are you making?', source: 'Source', text: 'Lyrics & Captions',
         fx: 'Visual FX', background: 'Background',
         preview: 'Preview', review: 'Export Review',
         captionsgen: 'Generate Captions', captionsreview: 'Caption Review'
+    };
+    const STEP_HINTS = {
+        intro: 'Tell us what you have and we will build the rest around it.',
+        source: 'Where does the sound come from?',
+        text: 'Type or paste the words you want on screen.',
+        fx: 'Pick the motion that matches your track.',
+        background: 'Choose what sits behind the text.',
+        preview: 'Play it back and check the timing.',
+        review: 'One last look before export.'
     };
 
     // The Caption Generator sections are created by caption-generator.js; skip
@@ -157,6 +166,10 @@
         const steps = stepsFor();
         const step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
+        // Hide the live preview canvas while the user is answering the
+        // setup questions — it's a distraction before anything exists to show.
+        const preview = $('previewSection');
+        if (preview) preview.classList.toggle('wizard-hidden', step !== 'preview' && step !== 'review');
         if (step === 'captionsreview' && window.kefeCaptionGen) window.kefeCaptionGen.refreshReview();
         if (step === 'captionsgen' && window.kefeCaptionGen) window.kefeCaptionGen.syncGenerateButton();
 
@@ -226,7 +239,7 @@
         panel.innerHTML = [
             '<p class="wizard-panel-kicker">Getting started</p>',
             '<h3 class="wizard-panel-title">What are you making?</h3>',
-            '<p class="wizard-panel-hint">Pick a starting point — you can fine-tune everything before export.</p>',
+            '<p class="wizard-panel-hint">Tell us what you have — we will build the rest around it.</p>',
             '<div class="wizard-choices">',
             ['lyric', 'visualiser', 'captioned', 'custom'].map(key => [
                 `<button type="button" class="wizard-choice${wizard.choice === key ? ' selected' : ''}" data-choice="${key}">`,
@@ -256,7 +269,7 @@
     function renderSource() {
         if (wizard.source === 'none') {
             panel.innerHTML = [
-                '<h3 class="wizard-panel-title">Source</h3>',
+                '<h3 class="wizard-panel-title">Audio source</h3>',
                 '<p class="wizard-panel-note">Muted visuals — no audio will be heard or exported. The timeline follows your timed text.</p>',
                 '<button type="button" id="wizardChangeSource">Choose a different source</button>'
             ].join('');
@@ -265,10 +278,14 @@
         }
         const isCaptioned = wizard.choice === 'captioned';
         const options = isCaptioned
-            ? [['uploaded', 'Audio file', 'I have a voice recording or audio track on this device.'],
-               ['media', 'Video file', 'Upload a video — its sound gets transcribed.']]
-            : [['uploaded', 'Uploaded audio', 'I have an audio track on this device.'],
-               ['media', 'Background video', 'Use a video file — its own audio track becomes the soundtrack.'],
+            ? [['uploaded', 'Voice recording or music', 'Upload an audio file — its speech becomes the captions.'],
+               ['media', 'Video clip', 'Upload a video — its sound gets transcribed into timed captions.']]
+            : wizard.choice === 'visualiser'
+            ? [['uploaded', 'Your track', 'Upload the audio file you want to visualise.'],
+               ['media', 'Video clip', 'Upload a video — its own audio becomes the soundtrack.'],
+               ['none', 'No audio', 'Silent visuals — the timeline runs muted.']]
+            : [['uploaded', 'Your track', 'Upload the audio file your lyrics will sync to.'],
+               ['media', 'Video clip', 'Upload a video — its own audio becomes the soundtrack.'],
                ['none', 'No audio', 'Silent visuals — the timeline runs muted.']];
         panel.innerHTML = [
             '<h3 class="wizard-panel-title">Audio source</h3>',
