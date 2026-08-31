@@ -55,6 +55,7 @@ const state = {
 };
 
 let media = { image: null, video: null, videoFile: null, videoHasAudio: false };
+window.kefeMedia = media; // wizard.js reads background/video state via window.kefeMedia
 let audioURL = null;
 let backgroundURL = null;
 let albumArtworkImage = null;
