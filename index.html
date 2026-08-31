@@ -1,15 +1,36 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>KEFE Visualiser</title>
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="ui/design-refresh.css">
-  <link rel="stylesheet" href="ui/ui-polish.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="KEFE — a browser-based lyric video visualiser.">
+    <title>KEFE Visualiser</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./typography.css">
+    <link rel="stylesheet" href="./effects/effect-selector.css">
+    <link rel="stylesheet" href="./background-presets.css">
+    <link rel="stylesheet" href="./caption-generator.css">
+    <link rel="stylesheet" href="./wizard.css">
+    <link rel="stylesheet" href="./auth-ui.css">
 </head>
 <body>
-  <!-- KEFE application markup remains unchanged; styles are organised under ui/. -->
+<div class="app">
+    <header>
+        <a class="brand" href="./" aria-label="KEFE Visualiser home" title="Return home"><img class="brand-logo brand-logo-day" src="./kefe-logo.svg" alt="KEFE"><img class="brand-logo brand-logo-night" src="./kefe-logo-light.svg" alt="" aria-hidden="true"><span class="brand-descriptor" aria-hidden="true"><span>V</span><span>I</span><span>S</span><span>U</span><span>A</span><span>L</span><span>I</span><span>S</span><span>E</span><span>R</span></span></a>
+        <div class="header-actions">
+            <label class="theme-control" for="themeSelect"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg><select id="themeSelect" aria-label="Theme"><option value="system">System</option><option value="day">Day</option><option value="night">Night</option></select></label>
+            <button id="resetBtn" type="button" class="icon-button" aria-label="Reset project" title="Reset project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7v5h5M5.4 12a7.5 7.5 0 1 0 2.1-5.2L4 10"/></svg></button>
+            <button id="exportBtn" type="button" class="primary export-action"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M8 11l4 4 4-4M5 20h14"/></svg><span>Export</span></button>
+        </div>
+    </header>
+    <main><aside class="sidebar"><nav class="section-nav" aria-label="Editor sections"><a href="#audioSection" class="section-nav-link active" data-nav="audio"><span>01</span><strong>Audio</strong></a><a href="#textSection" class="section-nav-link" data-nav="text"><span>02</span><strong>Lyrics &amp; Captions</strong></a><a href="#fxSection" class="section-nav-link" data-nav="fx"><span>03</span><strong>Visual FX</strong></a><a href="#backgroundSection" class="section-nav-link" data-nav="background"><span>04</span><strong>Background</strong></a><a href="#exportSection" class="section-nav-link" data-nav="export"><span>05</span><strong>Export</strong></a></nav><div class="section" id="audioSection"><h3><span class="section-index">01</span>Audio</h3><div class="drop-zone" id="audioDrop"><button type="button" id="audioChooseBtn" class="file-button">Choose Audio File</button><input type="file" id="audioInput" accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.oga,.opus,.webm"><div id="audioStatus" class="status">No audio loaded — MP3, WAV, M4A, FLAC, OGG</div></div><div class="metadata-grid"><input id="metaTitle" type="text" placeholder="Song title" autocomplete="off"><input id="metaArtist" type="text" placeholder="Artist" autocomplete="off"><input id="metaAlbum" type="text" placeholder="Album (optional)" autocomplete="off"></div><div class="sub-block"><div class="sub-heading">Audio source<span class="sub-hint">What you hear · what the timeline follows</span></div><div class="chip-row" id="audioSourceButtons" role="group" aria-label="Audio source"></div><div id="audioSourceStatus" class="status"></div></div></div><div class="section" id="textSection"><h3><span class="section-index">02</span>Lyrics &amp; Captions</h3><div class="segmented" role="tablist" aria-label="Timed text mode"><button type="button" class="segmented-btn active" data-text-mode="lyrics" role="tab" aria-selected="true">Lyrics</button><button type="button" class="segmented-btn" data-text-mode="captions" role="tab" aria-selected="false">Captions</button></div><div id="lyricsPanel" class="text-panel"><div class="lyrics-actions"><button id="findLyricsBtn">Find Synced Lyrics</button><button id="uploadLrcMain" title="Upload an LRC file">Upload LRC</button><button id="editLyricsBtn" title="Edit lyrics">Edit Lyrics</button><input id="lrcFileInput" type="file" accept=".lrc,.txt,text/plain" hidden></div><div id="lyricsStatus" class="status">No lyrics yet — search, upload an LRC, or paste your own.</div><div class="sync-panel" id="syncPanel"><div class="sub-heading">Sync<span class="sub-hint">Fix lyrics that run ahead or behind</span></div><div class="sync-live" id="syncLive">Load audio and lyrics to see live sync.</div><div class="control-row compact"><label for="lyricsOffset">Sync offset <span id="offsetVal">0.00s</span></label><input type="range" id="lyricsOffset" min="-2" max="2" step="0.05" value="0"></div></div></div><div id="captionsPanel" class="text-panel hidden"><div class="lyrics-actions"><button id="autoCaptionsBtn">Auto-generate Timing</button><button id="editCaptionsBtn" title="Edit captions">Edit Captions</button></div><div id="captionsStatus" class="status">Captions analyse the audio and generate timed blocks.</div></div><div class="sub-block" id="lyricStyleBlock"><div class="sub-heading">Lyric style<span class="sub-hint">How your timed text is rendered</span></div><div class="effect-buttons" role="group" aria-label="Lyric effect"><button data-effect="apple" class="active-effect">Apple</button><button data-effect="brat">Brat</button><button data-effect="eternal">Eternal</button><button data-effect="aurora">Aurora</button><button data-effect="typewriter">Typewriter</button><button data-effect="instagram">Instagram Lyrics</button><button data-effect="fadeup">Fade Up</button></div><div class="effect-label" id="effectLabel">Smooth line transitions + flowing light through words</div><div id="effectControls"></div></div></div><div class="section" id="fxSection"><h3><span class="section-index">03</span>Visual FX</h3><div class="fx-grid" id="visualFxGrid" role="group" aria-label="Visual FX"></div><div class="effect-label" id="visualFxLabel">Off — clean KEFE rendering</div><div id="visualFxControls"></div></div><div class="section" id="backgroundSection"><h3><span class="section-index">04</span>Background</h3><div class="background-choice-grid" role="group" aria-label="Background styles"></div><div class="background-upload-divider"><span>or upload your own image / video</span></div><div class="drop-zone" id="bgDrop"><label class="file-button" for="backgroundInput">Choose Background</label><input id="backgroundInput" type="file" accept="image/*,video/*"></div></div><div class="section" id="exportSection"><h3><span class="section-index">05</span>Export</h3><div id="exportPanel"></div></div></aside><section class="preview"><div class="preview-toolbar"><div class="preview-heading"><strong>Preview</strong><span id="previewStatus">Ready</span></div><div class="preview-aspect"><span class="preview-aspect-label">Aspect</span><div class="aspect-buttons"><button type="button" data-aspect="16:9" class="active-aspect">16:9</button><button type="button" data-aspect="9:16">9:16</button><button type="button" data-aspect="1:1">1:1</button></div><div class="aspect-info" id="aspectInfo">1920 × 1080</div></div></div><div class="canvas-wrapper"><canvas id="visualizerCanvas"></canvas></div><div class="transport"><button id="playBtn" type="button" aria-label="Play">▶</button><button id="stopBtn" type="button" aria-label="Stop">■</button><span id="timeDisplay">0:00 / 0:00</span></div></section></main>
+</div>
+<script src="./ui/typography.js"></script>
+<script src="./ui/background-presets.js"></script>
+<script src="./ui/caption-generator.js"></script>
+<script src="./ui/wizard.js"></script>
+<script src="./ui/auth-ui.js"></script>
+<script src="./app.js"></script>
 </body>
 </html>
