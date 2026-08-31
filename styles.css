@@ -160,13 +160,21 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   flex-shrink: 0; min-height: 0;
   scroll-behavior: smooth;
 }
-/* During the guided setup flow the live preview canvas is hidden until the
- * user reaches the Preview / Export Review step — the sidebar then expands
- * to fill the space and centers the wizard panel vertically. */
-body.wizard-mode .preview.wizard-hidden { display: none; }
+/* ---------- Wizard layout ---------- */
+/* Hide the preview canvas during setup — the questions are the whole screen. */
+body.wizard-mode .preview { display: none !important; }
 body.wizard-mode main { flex-direction: row; }
-body.wizard-mode .sidebar { flex: 1 1 auto; width: 100%; max-width: 560px; display: flex; flex-direction: column; justify-content: center; }
-body.wizard-mode #wizardSection { margin: 0 auto; max-width: 480px; width: 100%; }
+body.wizard-mode .sidebar {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 560px;
+  min-height: 0;
+}
+body.wizard-mode #wizardSection {
+  margin: 0 auto;
+  max-width: 480px;
+  width: 100%;
+}
 /* ---------- Wizard panel ---------- */
 .wizard-panel { padding: 20px 16px 24px; }
 .wizard-panel-kicker { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin: 0 0 4px; }

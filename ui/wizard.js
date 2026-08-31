@@ -166,10 +166,6 @@
         const steps = stepsFor();
         const step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
-        // Hide the live preview canvas while the user is answering the
-        // setup questions — it's a distraction before anything exists to show.
-        const preview = $('previewSection');
-        if (preview) preview.classList.toggle('wizard-hidden', step !== 'preview' && step !== 'review');
         if (step === 'captionsreview' && window.kefeCaptionGen) window.kefeCaptionGen.refreshReview();
         if (step === 'captionsgen' && window.kefeCaptionGen) window.kefeCaptionGen.syncGenerateButton();
 
