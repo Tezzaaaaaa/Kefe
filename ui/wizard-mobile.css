@@ -1,0 +1,38 @@
+/* KEFE wizard layout corrections — mobile-first overrides. */
+body.wizard-mode .sidebar > .section.wizard-current,
+body.wizard-mode .sidebar > .wizard-panel.wizard-current {
+  width: min(760px, calc(100% - 32px));
+  margin-inline: auto;
+}
+body.wizard-mode .sidebar > .section.wizard-current { padding-bottom: 100px; }
+body.wizard-mode .wizard-panel { padding-bottom: 100px; }
+body.wizard-mode .wizard-choices {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+body.wizard-mode .wizard-choice { min-height: 92px; }
+/* Title Intro is standard, not a setup decision/control. */
+body.wizard-mode .preview-titlebar { display: none; }
+/* Keep the preview handle above the sticky wizard navigation. */
+body.wizard-mode .preview-toggle { bottom: 68px; }
+body.wizard-mode[data-wizard-step="preview"] .preview-toggle,
+body.wizard-mode[data-wizard-step="review"] .preview-toggle { display: none; }
+
+@media (max-width: 700px) {
+  body.wizard-mode .sidebar > .section.wizard-current,
+  body.wizard-mode .sidebar > .wizard-panel.wizard-current {
+    width: calc(100% - 24px);
+  }
+  body.wizard-mode .wizard-choices {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+  body.wizard-mode .wizard-choice {
+    min-height: 78px;
+    padding: 12px;
+  }
+  body.wizard-mode .wizard-nav {
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+  }
+}
