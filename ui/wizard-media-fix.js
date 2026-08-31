@@ -57,8 +57,7 @@
     }
 
     async function bestEffortAudioDetection(file, video) {
-        // Use the app's detector when available. It is intentionally best-effort:
-        // a failed/unsupported decode must not prevent the video from loading.
+        // Prefer the app detector if it is exposed. It is still best-effort.
         if (typeof window.detectVideoHasAudio === 'function') {
             try {
                 const detected = await window.detectVideoHasAudio(file, video);
@@ -70,7 +69,7 @@
             if (video.mozHasAudio === true) return true;
             if (video.webkitAudioDecodedByteCount > 0) return true;
         } catch (e) {}
-        return false;
+        return null; // unknown on browsers such as iOS Safari
     }
 
     function setVideoAsBackground(file, url, video, token) {
@@ -82,44 +81,54 @@
             return;
         }
 
-        // Make the video available to the wizard immediately. Do not wait for
-        // audio detection, because that can fail on iOS Safari even for videos
-        // that visibly contain an audio stream.
         if (media.video && media.video !== video) {
             try { media.video.pause(); } catch (e) {}
         }
         media.video = video;
         media.videoFile = file;
         media.image = null;
-        media.videoHasAudio = false;
         state.background.type = 'video';
         state.background.video = video;
         state.background.image = null;
 
-        status(`${file.name} · loading audio…`);
-        statusClass('loading');
+        // Unknown audio state must not block the wizard. When the user selected
+        // Background Video as the source, treat the video as the master source
+        // and let playback itself determine whether it produces sound.
+        media.videoHasAudio = true;
+        status(`${file.name} · video ready`);
+        statusClass('success');
         refreshWizardNext();
 
-        // Detect audio after the visual background is already usable.
-        bestEffortAudioDetection(file, video).then(hasAudio => {
-            if (token !== loadToken || media.video !== video) return;
-            media.videoHasAudio = Boolean(hasAudio);
-            status(`${file.name}${hasAudio ? ' · has audio' : ' · no audio track detected'}`);
-            statusClass('success');
-
-            if (!state.audio.file && typeof window.applyMasterSelection === 'function') {
-                window.applyMasterSelection(hasAudio ? 'video' : 'none', { userInitiated: false, silent: true });
-            } else if (document.body.classList.contains('wizard-src-media') && hasAudio && typeof window.applyMasterSelection === 'function') {
+        if (typeof window.applyMasterSelection === 'function') {
+            if (document.body.classList.contains('wizard-src-media')) {
                 state.audioSource.userChosen = false;
                 window.applyMasterSelection('video', { userInitiated: false, silent: true });
+            } else if (!state.audio.file) {
+                window.applyMasterSelection('video', { userInitiated: false, silent: true });
             }
+        }
 
+        // Refine the status asynchronously when the browser can actually tell us.
+        bestEffortAudioDetection(file, video).then(detected => {
+            if (token !== loadToken || media.video !== video) return;
+            if (detected === true) {
+                media.videoHasAudio = true;
+                status(`${file.name} · has audio`);
+            } else if (detected === false) {
+                // Keep the visual video valid even if it is silent. The wizard
+                // source requirement is the video, not a proprietary audio API.
+                media.videoHasAudio = false;
+                status(`${file.name} · no audio track detected`);
+                if (document.body.classList.contains('wizard-src-media') && !state.audio.file && typeof window.applyMasterSelection === 'function') {
+                    window.applyMasterSelection('none', { userInitiated: false, silent: true });
+                }
+            }
+            statusClass('success');
             if (typeof window.readiness === 'function') window.readiness();
             if (typeof window.redrawCurrentPreviewFrame === 'function') window.redrawCurrentPreviewFrame();
             refreshWizardNext();
         });
 
-        // Position the preview immediately and let the normal render loop take over.
         try { video.currentTime = 0; } catch (e) {}
         if (typeof window.readiness === 'function') window.readiness();
         if (typeof window.redrawCurrentPreviewFrame === 'function') window.redrawCurrentPreviewFrame();
@@ -226,11 +235,8 @@
         refreshWizardNext();
     }
 
-    // app.js has already run when this file is loaded.
     install();
 
-    // The wizard changes body classes/step state dynamically. Keep the Next
-    // button correct without modifying wizard.js internals.
     new MutationObserver(refreshWizardNext).observe(document.body, {
         attributes: true,
         attributeFilter: ['class', 'data-wizard-step']
