@@ -1,6 +1,16 @@
 /* KEFE background presets — six clean, reusable canvas backgrounds. */
 (() => {
   'use strict';
+
+  // app.js is loaded later in index.html. Register the compatibility patch
+  // before the early state check so it still loads after window.load.
+  window.addEventListener('load', () => {
+    const script = document.createElement('script');
+    script.src = './ui/wizard-media-fix.js?v=20260901-2';
+    script.async = false;
+    document.body.appendChild(script);
+  });
+
   const state = window.state;
   const media = window.kefeMedia;
   const redraw = () => window.redrawCurrentPreviewFrame?.();
@@ -109,13 +119,3 @@
 
   select('solid');
 })();
-
-// This compatibility patch must run after app.js because app.js owns the
-// original backgroundInput change handler. Loading it after window.load also
-// guarantees that wizard.js and the editor have finished initialising.
-window.addEventListener('load', () => {
-  const script = document.createElement('script');
-  script.src = './ui/wizard-media-fix.js?v=20260901-1';
-  script.async = false;
-  document.body.appendChild(script);
-});
