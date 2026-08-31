@@ -161,22 +161,11 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   scroll-behavior: smooth;
 }
 /* ---------- Wizard layout ---------- */
-/* The preview canvas is completely removed during setup —
-   the questions should fill the entire screen vertically. */
-body.wizard-mode .preview { display: none !important; }
-body.wizard-mode main { flex-direction: row; }
-body.wizard-mode .sidebar {
-  flex: 1 1 auto !important;
-  width: 100% !important;
-  max-width: none !important;
-  min-height: 0;
-  overflow-y: visible;
-}
-body.wizard-mode #wizardSection {
-  margin: 0 auto;
-  max-width: 520px;
-  width: 100%;
-}
+/* When the guided wizard is active, the live preview canvas
+   is removed from the layout so the questions fill the screen. */
+body.wizard-mode .preview { display: none; }
+body.wizard-mode .sidebar { flex: 1 1 auto; width: 100%; max-width: none; }
+body.wizard-mode #wizardSection { margin: 0 auto; max-width: 520px; width: 100%; }
 /* ---------- Wizard panel ---------- */
 .wizard-panel { padding: 16px 16px 20px; }
 .wizard-panel-kicker { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin: 0 0 4px; }

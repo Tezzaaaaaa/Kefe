@@ -14,6 +14,11 @@
 
     body.classList.add('wizard-mode');
 
+    // Hide the live preview canvas so the setup questions fill the screen.
+    // Direct style manipulation avoids CSS specificity/caching issues.
+    const previewEl = document.getElementById('previewSection');
+    if (previewEl) previewEl.style.display = 'none';
+
     // ----- Locked paths per project type -----
     const PATHS = {
         lyric: ['intro', 'source', 'text', 'fx', 'background', 'preview', 'review'],
@@ -166,6 +171,11 @@
         const steps = stepsFor();
         const step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
+        // Restore the preview canvas once the user reaches the
+        // Preview / Export Review step so they can see the result.
+        if ((step === 'preview' || step === 'review') && previewEl) {
+            previewEl.style.display = '';
+        }
         if (step === 'captionsreview' && window.kefeCaptionGen) window.kefeCaptionGen.refreshReview();
         if (step === 'captionsgen' && window.kefeCaptionGen) window.kefeCaptionGen.syncGenerateButton();
 
