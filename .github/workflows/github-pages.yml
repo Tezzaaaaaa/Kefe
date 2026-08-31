@@ -24,11 +24,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
+      - name: Cache-bust application assets
+        run: |
+          sed -i "s#\(src=\"\./ui/wizard.js\)\"#\1?v=${GITHUB_SHA}\"#" index.html
+          sed -i "s#\(href=\"\./ui/wizard.css\)\"#\1?v=${GITHUB_SHA}\"#" index.html
+          sed -i "s#\(src=\"\./app.js\)\"#\1?v=${GITHUB_SHA}\"#" index.html
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
