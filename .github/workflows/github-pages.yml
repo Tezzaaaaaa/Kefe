@@ -25,11 +25,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v6
-      - name: Cache-bust application assets
+      - name: Cache-bust and inject wizard mobile layout
         run: |
           sed -i "s#\(src=\"\./ui/wizard.js\)\"#\1?v=${GITHUB_SHA}\"#" index.html
           sed -i "s#\(href=\"\./ui/wizard.css\)\"#\1?v=${GITHUB_SHA}\"#" index.html
           sed -i "s#\(src=\"\./app.js\)\"#\1?v=${GITHUB_SHA}\"#" index.html
+          sed -i "s#</head>#<link rel=\"stylesheet\" href=\"./ui/wizard-mobile.css?v=${GITHUB_SHA}\"></head>#" index.html
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
