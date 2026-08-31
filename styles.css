@@ -161,19 +161,26 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   scroll-behavior: smooth;
 }
 /* ---------- Wizard layout ---------- */
-/* Hide the preview canvas during setup — the questions are the whole screen. */
+/* The preview canvas is completely removed during setup —
+   the questions should fill the entire screen. */
 body.wizard-mode .preview { display: none !important; }
 body.wizard-mode main { flex-direction: row; }
 body.wizard-mode .sidebar {
-  flex: 1 1 auto;
-  width: 100%;
-  max-width: 560px;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  max-width: none !important;
   min-height: 0;
+  height: 100dvh;
+  overflow-y: visible;
 }
 body.wizard-mode #wizardSection {
   margin: 0 auto;
-  max-width: 480px;
+  max-width: 520px;
   width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 /* ---------- Wizard panel ---------- */
 .wizard-panel { padding: 20px 16px 24px; }
