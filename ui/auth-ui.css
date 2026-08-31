@@ -1,0 +1,36 @@
+.account-widget { display: flex; align-items: center; gap: 8px; margin-right: 6px; }
+.plan-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.06);
+  color: inherit;
+  cursor: pointer;
+}
+.plan-badge.is-pro { background: #ffd230; border-color: #ffd230; color: #111; }
+
+[data-effect].locked-premium { position: relative; opacity: 0.55; cursor: pointer; }
+[data-effect] .lock-badge { margin-left: 6px; font-size: 11px; }
+
+.auth-form { display: flex; flex-direction: column; gap: 10px; }
+.auth-form input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.04);
+  color: inherit;
+  font-size: 14px;
+}
+.auth-error { color: #ff6b6b; font-size: 13px; }
+.auth-subtext { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+.auth-switch { font-size: 13px; margin-top: 10px; }
+.auth-switch a { color: inherit; text-decoration: underline; }
+
+.upgrade-list { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.upgrade-list li::before { content: "✓ "; opacity: 0.7; }
+
+.full-width { width: 100%; }
+
+@import url("./preview-layout.css");
