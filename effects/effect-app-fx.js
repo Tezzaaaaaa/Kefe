@@ -1,7 +1,9 @@
 /* KEFE Visual FX — independent Canvas effects inspired by modern browser effect editors. */
 (() => {
     'use strict';
+    function init() {
     if (typeof window === 'undefined' || typeof window.render !== 'function' || !window.state || !window.canvas) return;
+    const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
     const FX_KEY = 'kefe-visual-fx-v1';
     const originalRender = window.render;
     const fxInput = document.createElement('canvas');
@@ -46,4 +48,7 @@
     function range(parent,key,text,min,max,step,suffix=''){const row=document.createElement('div');row.className='control-row';const label=document.createElement('label'),value=document.createElement('span'),input=document.createElement('input');value.style.marginLeft='6px';label.textContent=text;input.type='range';input.min=min;input.max=max;input.step=step;input.value=window.state.style[key];const show=()=>value.textContent=`${Number(input.value).toFixed(step<.1?2:1)}${suffix}`;label.appendChild(value);show();input.addEventListener('input',()=>{window.state.style[key]=Number(input.value);show();save();window.redrawCurrentPreviewFrame?.();});row.append(label,input);parent.appendChild(row);}
     function ui(){const anchor=document.querySelector('.sidebar .section:has(#effectControls)');if(!anchor||document.getElementById('visualFxSection'))return;const sec=document.createElement('div');sec.className='section';sec.id='visualFxSection';const h=document.createElement('h3');h.textContent='Visual FX';sec.appendChild(h);const buttons=document.createElement('div');buttons.className='effect-buttons';['none','vhs','crt','rgb','bloom','motion','shake','glitch','halftone','vignette','mixedmedia'].forEach(n=>{const b=document.createElement('button');b.type='button';b.dataset.fx=n;b.className='kefe-fx-button';b.textContent=n==='none'?'Off':n==='rgb'?'RGB':n==='mixedmedia'?'Mixed Media':n[0].toUpperCase()+n.slice(1);b.addEventListener('click',()=>setFx(n));buttons.appendChild(b);});sec.appendChild(buttons);const d=document.createElement('div');d.className='effect-label';d.id='visualFxLabel';d.textContent=labels[window.state.style.visualFx]||labels.none;sec.appendChild(d);const controls=document.createElement('div');range(controls,'fxIntensity','Intensity',0,1,.05);range(controls,'fxSpeed','Animation speed',.25,2.5,.05,'×');sec.appendChild(controls);anchor.insertAdjacentElement('afterend',sec);qsa('.kefe-fx-button').forEach(b=>b.classList.toggle('active-effect',b.dataset.fx===window.state.style.visualFx));}
     ui();
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
 })();
