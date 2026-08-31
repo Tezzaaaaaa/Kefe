@@ -163,6 +163,15 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 /* ---------- Wizard layout ---------- */
 /* Preview is collapsed to a toggle bar during setup;
    tap it to expand the preview as a half-screen overlay. */
+/* Sidebar/preview share height on narrow screens normally, but in
+   wizard mode the preview is a fixed overlay (see above) — so the
+   sidebar (which holds the setup questions) should get full height,
+   not the ~36dvh cap meant for the split layout. */
+body.wizard-mode .sidebar {
+  max-height: none !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+}
 body.wizard-mode .preview {
   position: fixed;
   bottom: 0;
