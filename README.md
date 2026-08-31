@@ -134,30 +134,21 @@ Kefe/
 ├── app.js
 ├── styles.css
 ├── typography.css
-├── typography.js
-├── ui-polish.css
-├── design-refresh.css
-├── auth-ui.css
-├── auth-ui.js
-├── background-presets.js
-├── background-presets.css
-├── caption-generator.css
-├── caption-generator.js
-├── preview-layout.css
-├── wizard.css
-├── wizard.js
-├── kefe-icon.svg
 ├── kefe-logo.svg
-├── kefe-logo-full.svg
 ├── kefe-logo-light.svg
 ├── favicon.svg
 │
-├── effects/
-├── export/
-├── fonts/
-├── scripts/
-├── server/
-├── vendor/
+├── assets/branding/   (full logo kit)
+├── effects/           (lyric effect modules + selector UI)
+├── export/            (MP4 export pipeline, loaded as ES module)
+├── fonts/             (local woff2 font library)
+├── scripts/           (headless integrity checks)
+├── server/            (Node backend: auth, billing, transcription)
+├── ui/                (frontend modules: auth, wizard, captions,
+│    │                   background presets, typography, preview)
+│   └── preview-layout.css (imported by auth-ui.css)
+└── vendor/ffmpeg/     (same-origin export worker)
+```
 ├── docs/
 │
 ├── .env.example

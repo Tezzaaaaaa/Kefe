@@ -68,7 +68,7 @@ function load(file) {
 
 // ---- load order from index.html ----
 const scripts = [
-  'typography.js',
+  'ui/typography.js',
   'effects/core.js',
   'effects/brat.js',
   'effects/aurora.js',
