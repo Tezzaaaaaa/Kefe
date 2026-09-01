@@ -1,3 +1,0 @@
-/* Compatibility entry point: the wizard stylesheet lives under ui/. */
-@import url('./ui/wizard.css');
-@import url('./ui/wizard-mobile.css');
