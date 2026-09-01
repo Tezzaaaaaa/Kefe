@@ -2,28 +2,43 @@
 (() => {
   'use strict';
 
-  // app.js is loaded later in index.html. The guided workflow and media fix need
-  // the app's lexical `state`, which classic scripts do not expose as window.state.
-  // Bridge it only after app.js has finished loading, then load the media fix.
-  window.addEventListener('load', () => {
+  // app.js is loaded later in index.html. The first execution therefore defers
+  // itself until the application state exists. The deferred execution bridges
+  // the classic-script lexical state to window.state, then loads the media fix.
+  const presetState = window.state;
+  const media = window.kefeMedia;
+  const presets = [...document.querySelectorAll('[data-background-preset]')];
+
+  function loadMediaFix() {
     const bridge = document.createElement('script');
     bridge.textContent = 'window.state = state;';
     document.body.appendChild(bridge);
 
     const script = document.createElement('script');
-    script.src = './ui/wizard-media-fix.js?v=20260901-3';
+    script.src = './ui/wizard-media-fix.js?v=20260901-4';
     script.async = false;
     document.body.appendChild(script);
-  });
+  }
 
-  const presetState = window.state;
-  const media = window.kefeMedia;
+  if (!presetState || !media || !presets.length) {
+    window.addEventListener('load', () => {
+      const script = document.createElement('script');
+      script.src = './ui/background-presets.js?v=20260901-4';
+      script.async = false;
+      document.body.appendChild(script);
+      loadMediaFix();
+    }, { once: true });
+    return;
+  }
+
+  if (document.readyState === 'complete') loadMediaFix();
+  else window.addEventListener('load', loadMediaFix, { once: true });
+
+  const state = presetState;
   const redraw = () => window.redrawCurrentPreviewFrame?.();
   const status = document.getElementById('backgroundStatus');
   const colorInput = document.getElementById('backgroundColor');
   const colorValue = document.getElementById('backgroundColorValue');
-  const presets = [...document.querySelectorAll('[data-background-preset]')];
-  if (!presetState || !media || !presets.length) return;
 
   const defs = {
     gradient: {
@@ -56,12 +71,12 @@
     }
     media.videoFile = null;
     media.videoHasAudio = false;
-    if (presetState.audioSource?.master === 'video') {
-      if (presetState.audio?.file) {
-        presetState.audioSource.master = 'uploaded';
+    if (state.audioSource?.master === 'video') {
+      if (state.audio?.file) {
+        state.audioSource.master = 'uploaded';
         if (typeof window.applyMasterSelection === 'function') window.applyMasterSelection('uploaded', { userInitiated: false, silent: true });
       } else {
-        presetState.audioSource.master = 'none';
+        state.audioSource.master = 'none';
         if (typeof window.applyMasterSelection === 'function') window.applyMasterSelection('none', { userInitiated: false, silent: true });
       }
     }
@@ -85,9 +100,9 @@
     if (window.isExporting) return;
     if (key === 'solid') {
       clearMedia();
-      presetState.background.type = 'solid';
+      state.background.type = 'solid';
       select('solid');
-      setStatus(`Colour background · ${presetState.background.solid.toUpperCase()}`);
+      setStatus(`Colour background · ${state.background.solid.toUpperCase()}`);
       redraw();
       return;
     }
@@ -98,7 +113,7 @@
     img.onload = () => {
       if (window.isExporting) return;
       media.image = img;
-      presetState.background.type = 'image';
+      state.background.type = 'image';
       select(key);
       setStatus(`${def.label} · ready`);
       redraw();
@@ -113,8 +128,8 @@
   colorInput?.addEventListener('input', () => {
     if (window.isExporting) return;
     clearMedia();
-    presetState.background.type = 'solid';
-    presetState.background.solid = colorInput.value;
+    state.background.type = 'solid';
+    state.background.solid = colorInput.value;
     if (colorValue) colorValue.textContent = colorInput.value.toUpperCase();
     setSolidPreview(colorInput.value);
     select('solid');
