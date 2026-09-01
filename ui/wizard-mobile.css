@@ -1,4 +1,4 @@
-/* KEFE wizard layout corrections — mobile-first overrides. */
+/* KEFE wizard responsive layout. Keep the preview as a controlled drawer rather than a full-screen panel. */
 body.wizard-mode .sidebar > .section.wizard-current,
 body.wizard-mode .sidebar > .wizard-panel.wizard-current {
   width: min(760px, calc(100% - 32px));
@@ -11,12 +11,123 @@ body.wizard-mode .wizard-choices {
   gap: 12px;
 }
 body.wizard-mode .wizard-choice { min-height: 92px; }
-/* Title Intro is standard, not a setup decision/control. */
-body.wizard-mode .preview-titlebar { display: none; }
-/* Keep the preview handle above the sticky wizard navigation. */
-body.wizard-mode .preview-toggle { bottom: 68px; }
-body.wizard-mode[data-wizard-step="preview"] .preview-toggle,
-body.wizard-mode[data-wizard-step="review"] .preview-toggle { display: none; }
+
+/* Preview drawer — collapsed to a slim bar, expanded only when requested. */
+body.wizard-mode .preview {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: 0;
+  top: auto;
+  width: min(920px, calc(100vw - 32px));
+  height: min(68dvh, 760px);
+  max-height: min(68dvh, 760px);
+  padding: 14px 16px 16px;
+  transform: translate(-50%, 100%);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  background: var(--bg);
+  box-shadow: 0 -12px 40px rgba(0,0,0,.42);
+  z-index: 20;
+  transition: transform .25s var(--ease);
+}
+body.wizard-mode .preview.preview-expanded {
+  transform: translate(-50%, 0);
+}
+body.wizard-mode .preview.preview-collapsed {
+  transform: translate(-50%, 100%);
+}
+
+/* Compact transport: fixed controls + flexible seek middle + fixed clock. */
+body.wizard-mode .preview .preview-toolbar {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+body.wizard-mode .preview .preview-heading {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+body.wizard-mode .preview .transport {
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  height: 50px;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 10px;
+  overflow: hidden;
+}
+body.wizard-mode .preview .transport .play-button,
+body.wizard-mode .preview .transport .icon-button {
+  flex: 0 0 auto;
+}
+body.wizard-mode .preview .transport #seek {
+  display: block;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 80px;
+  max-width: none;
+  height: 22px;
+  margin: 0;
+}
+body.wizard-mode .preview .transport #clock {
+  flex: 0 0 92px;
+  width: 92px;
+  min-width: 92px;
+  text-align: right;
+  white-space: nowrap;
+}
+body.wizard-mode .preview .canvas-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+body.wizard-mode .preview .canvas-wrapper canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Preview handle stays above the wizard navigation. */
+body.wizard-mode .preview-toggle {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 132px;
+  min-height: 36px;
+  padding: 7px 18px;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  background: var(--surface);
+  color: var(--text-2);
+  box-shadow: 0 -2px 12px rgba(0,0,0,.28);
+}
+body.wizard-mode .preview-toggle:hover,
+body.wizard-mode .preview-toggle[aria-pressed="true"] {
+  background: var(--surface-2);
+  color: var(--text);
+}
 
 @media (max-width: 700px) {
   body.wizard-mode .sidebar > .section.wizard-current,
@@ -35,4 +146,34 @@ body.wizard-mode[data-wizard-step="review"] .preview-toggle { display: none; }
     grid-template-columns: auto 1fr auto;
     gap: 8px;
   }
+  body.wizard-mode .preview {
+    width: calc(100vw - 16px);
+    height: min(72dvh, 680px);
+    max-height: min(72dvh, 680px);
+    padding: 10px;
+    border-radius: 14px 14px 0 0;
+  }
+  body.wizard-mode .preview .preview-toolbar {
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+  body.wizard-mode .preview .transport {
+    gap: 6px;
+    min-height: 46px;
+    height: 46px;
+    padding: 5px 7px;
+  }
+  body.wizard-mode .preview .transport #seek {
+    min-width: 50px;
+  }
+  body.wizard-mode .preview .transport #clock {
+    flex-basis: 76px;
+    width: 76px;
+    min-width: 76px;
+    font-size: 10.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.wizard-mode .preview { transition: none; }
 }
