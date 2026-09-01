@@ -1,60 +1,156 @@
-/* Preview layout: keep the existing KEFE visual system intact while placing the section heading above both the preview and canvas controls. */
-.preview-toolbar {
-  width: min(860px, 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-.preview-heading {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  width: 100%;
-}
-.preview-aspect {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-  width: 100%;
-}
-.preview-aspect .aspect-buttons {
-  width: auto;
-  max-width: 100%;
-}
-.preview-aspect .aspect-info {
-  text-align: left;
+/* KEFE Preview — collapsible drawer and stable transport layout.
+   Deliberately scoped to the wizard preview so the existing visual system stays intact. */
+
+body.wizard-mode .preview {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: 0 !important;
+  top: auto !important;
+  width: min(1120px, calc(100vw - 24px)) !important;
+  height: min(68dvh, 760px) !important;
+  max-height: 68dvh !important;
+  min-height: 0 !important;
+  padding: 12px 14px 14px !important;
+  z-index: 30 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border: 1px solid var(--line) !important;
+  border-bottom: 0 !important;
+  border-radius: 16px 16px 0 0 !important;
+  box-shadow: 0 -10px 40px rgba(0,0,0,.34) !important;
+  transform: translate(-50%, calc(100% - 48px)) !important;
+  transition: transform .25s var(--ease) !important;
 }
 
-@media (max-width: 900px) {
-  .preview {
-    padding: 12px 12px 12px;
+body.wizard-mode .preview.preview-expanded {
+  transform: translate(-50%, 0) !important;
+}
+
+/* The handle remains visible while collapsed and stays attached to the drawer. */
+body.wizard-mode .preview-toggle {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: 0 !important;
+  transform: translateX(-50%) !important;
+  z-index: 31 !important;
+  min-height: 40px !important;
+  width: min(180px, 50vw) !important;
+  padding: 7px 16px !important;
+  border: 1px solid var(--line) !important;
+  border-bottom: 0 !important;
+  border-radius: 12px 12px 0 0 !important;
+  background: var(--surface) !important;
+  color: var(--text-2) !important;
+  box-shadow: 0 -4px 18px rgba(0,0,0,.22) !important;
+}
+
+body.wizard-mode .preview-toggle:hover,
+body.wizard-mode .preview-toggle[aria-pressed="true"] {
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
+}
+
+/* Keep the preview header compact. */
+body.wizard-mode .preview .preview-toolbar {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  margin: 0 0 10px !important;
+}
+
+/* Canvas gets all remaining preview space. */
+body.wizard-mode .preview .canvas-wrapper {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+body.wizard-mode .preview canvas {
+  display: block !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+/* Transport is always one stable row; the seek control gets the flexible space. */
+body.wizard-mode .preview .transport {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 54px !important;
+  margin: 10px 0 0 !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+body.wizard-mode .preview .transport .play-button {
+  flex: 0 0 42px !important;
+}
+
+body.wizard-mode .preview .transport .icon-button {
+  flex: 0 0 36px !important;
+}
+
+body.wizard-mode .preview .transport #seek {
+  flex: 1 1 0 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+body.wizard-mode .preview .transport #clock {
+  flex: 0 0 86px !important;
+  min-width: 86px !important;
+  width: 86px !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+
+/* The preview should remain manually expandable at every wizard step. */
+body.wizard-mode[data-wizard-step="preview"] .preview-toggle,
+body.wizard-mode[data-wizard-step="review"] .preview-toggle {
+  display: flex !important;
+}
+
+@media (max-width: 700px) {
+  body.wizard-mode .preview {
+    width: calc(100vw - 12px) !important;
+    height: min(72dvh, 680px) !important;
+    max-height: 72dvh !important;
+    padding: 8px 9px 10px !important;
   }
-  .preview-toolbar {
-    gap: 7px;
-    margin-bottom: 8px;
+
+  body.wizard-mode .preview .preview-toolbar {
+    gap: 8px !important;
+    margin-bottom: 7px !important;
+    padding: 7px 10px !important;
   }
-  .preview-heading strong {
-    font-size: 14px;
+
+  body.wizard-mode .preview .transport {
+    gap: 7px !important;
+    padding: 6px 8px !important;
+    min-height: 52px !important;
   }
-  .preview-heading span {
-    display: block;
-    font-size: 10px;
+
+  body.wizard-mode .preview .transport .play-button {
+    flex-basis: 42px !important;
   }
-  .preview-aspect {
-    align-items: flex-start;
+
+  body.wizard-mode .preview .transport .icon-button {
+    flex-basis: 38px !important;
+    width: 38px !important;
   }
-  .preview-aspect .aspect-buttons {
-    width: 100%;
-  }
-  .preview-aspect .aspect-buttons button {
-    min-height: 32px;
-  }
-  .preview-aspect .aspect-info {
-    text-align: left;
-    margin-top: 4px;
+
+  body.wizard-mode .preview .transport #clock {
+    flex-basis: 72px !important;
+    min-width: 72px !important;
+    width: 72px !important;
+    font-size: 10.5px !important;
   }
 }
