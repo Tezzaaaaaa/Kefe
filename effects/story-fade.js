@@ -106,133 +106,110 @@
     ctx.restore();
   };
 
-  /* ---------- KEFE motion lyric effects: Rise / Slide / Drop / Drift ---------- */
+  /* ---------- KEFE basic motion lyric effects: Rise / Slide / Drop / Drift ---------- */
   const MOTION = {
     rise: {
-      label: 'Rise — each word lifts smoothly from below into place',
-      font: 'fadeup',
+      label: 'Rise — one lyric line rises smoothly into position',
       tracking: -.006
     },
     slide: {
-      label: 'Slide — each word glides horizontally into position',
-      font: 'fadeup',
+      label: 'Slide — one lyric line slides smoothly into position',
       tracking: -.006
     },
     drop: {
-      label: 'Drop — each word falls into place with a restrained settle',
-      font: 'fadeup',
+      label: 'Drop — one lyric line drops smoothly into position',
       tracking: -.006
     },
     drift: {
-      label: 'Drift — words float in from alternating directions with soft motion',
-      font: 'fadeup',
+      label: 'Drift — one lyric line gently drifts into position',
       tracking: -.006
     }
   };
 
-  function motionWords(ctx, w, style, active) {
-    const words = u.wordsFor(active.line, active.next);
-    if (!words.length) return null;
-    const requested = Number(style.fontSize) || 76;
-    const tracking = Number(MOTION[style.effect]?.tracking) || -.006;
-    let size = Math.max(34, Math.min(150, requested));
-    let rows;
-    while (size > 34) {
-      u.setContractFont(ctx, 'fadeup', size);
-      rows = wrapWords(ctx, words, size, tracking * size, w * .80);
-      if (rows.length <= 2) break;
-      size -= 2;
-    }
+  function motionLine(ctx, w, h, style, active, time, mode) {
+    const line = String(active?.line?.text || '').trim();
+    if (!line) return;
+
+    const contract = u.contract('fadeup');
+    const tracking = Number(MOTION[mode]?.tracking ?? contract.tracking) || 0;
+    const requested = Math.max(34, Math.min(150, Number(style.fontSize) || 76));
+    const maxWidth = w * .88;
+
+    /* These four effects are deliberately line-level. The whole lyric line
+       enters once, settles once, holds, then exits before the next line. */
+    let size = requested;
     u.setContractFont(ctx, 'fadeup', size);
-    rows = wrapWords(ctx, words, size, tracking * size, w * .80);
-    return { words, rows, size, trackingPx: tracking * size, gap: Math.max(12, size * .16) };
-  }
+    while (size > 34 && trackedWidth(ctx, line, tracking * size) > maxWidth) {
+      size -= 1;
+      u.setContractFont(ctx, 'fadeup', size);
+    }
 
-  function drawMotionBase(ctx, w, h, style, lines, time, mode) {
-    const active = u.activeLine(lines, time);
-    if (!active) return;
-    const prepared = motionWords(ctx, w, style, active);
-    if (!prepared) return;
+    const start = Number(active.line.time) || 0;
+    const end = Math.max(start + .35, Number(active.line.endTime) || start + 3);
+    const duration = end - start;
+    const p = clamp((time - start) / duration);
+    const enter = smoother((time - start) / Math.min(.42, Math.max(.22, duration * .20)));
+    const exit = smoother((end - time) / Math.min(.30, Math.max(.20, duration * .16)));
+    const opacity = enter * exit;
+    const settle = smoother((time - start - .10) / .38);
 
-    const { rows, size, trackingPx, gap } = prepared;
-    const rowHeight = size * 1.12;
-    const top = h * .50 - ((rows.length - 1) * rowHeight) / 2;
-    const colour = style.textColor || '#FFFFFF';
-    const accent = style.accentColor || colour;
+    const centreX = w / 2;
+    const centreY = h * .76;
+    const distance = Math.min(w * .18, size * .70);
+    let dx = 0;
+    let dy = 0;
+    let rotation = 0;
+    let scale = 1;
+
+    if (mode === 'rise') {
+      dy = (1 - enter) * distance;
+    } else if (mode === 'slide') {
+      dx = (1 - enter) * distance;
+    } else if (mode === 'drop') {
+      dy = -(1 - enter) * distance;
+    } else if (mode === 'drift') {
+      dx = (1 - enter) * distance * .72;
+      dy = (1 - enter) * distance * .24;
+      rotation = (1 - enter) * .018;
+    }
+
+    scale = .985 + .015 * settle;
 
     ctx.save();
-    ctx.textAlign = 'left';
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.globalCompositeOperation = 'source-over';
-    ctx.filter = 'none';
-
-    rows.forEach((row, rowIndex) => {
-      let x = (w - row.width) / 2;
-      const y = top + rowIndex * rowHeight;
-
-      row.words.forEach((word, index) => {
-        const wp = u.wordProgress(word, time);
-        const p = clamp(wp.raw);
-        if (p <= 0) {
-          x += word.width + gap;
-          return;
-        }
-
-        const stagger = index * .025;
-        const enter = smoother((p - stagger) / .30);
-        const settle = smoother((p - stagger - .16) / .42);
-        const elapsed = Math.max(0, time - Number(word.time || 0));
-        const direction = index % 2 === 0 ? -1 : 1;
-        let dx = 0, dy = 0, scale = 1, alpha = enter, rotation = 0;
-
-        if (mode === 'rise') {
-          dy = (1 - enter) * size * .34;
-          scale = .97 + .03 * settle;
-        } else if (mode === 'slide') {
-          dx = direction * (1 - enter) * w * .16;
-          scale = .985 + .015 * settle;
-        } else if (mode === 'drop') {
-          dy = -(1 - enter) * size * .42;
-          const bounce = Math.sin(Math.min(1, Math.max(0, (p - .22) / .50)) * Math.PI) * size * .035;
-          dy += bounce * (1 - settle);
-          scale = .98 + .02 * settle;
-        } else if (mode === 'drift') {
-          const seed = (active.index + 1) * 17 + index * 31;
-          const angle = (seed % 8) * Math.PI / 4;
-          const distance = size * .28;
-          dx = Math.cos(angle) * (1 - enter) * distance;
-          dy = Math.sin(angle) * (1 - enter) * distance;
-          rotation = Math.sin(angle) * (1 - enter) * .035;
-          const float = Math.sin(elapsed * 2.4 + seed) * size * .012 * settle;
-          dx += Math.cos(angle + Math.PI / 2) * float;
-          dy += Math.sin(angle + Math.PI / 2) * float;
-        }
-
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = colour;
-        ctx.shadowColor = accent;
-        ctx.shadowBlur = mode === 'drift' ? size * .025 * settle : size * .018 * settle;
-        ctx.translate(x + word.width / 2 + dx, y + dy);
-        ctx.rotate(rotation);
-        ctx.scale(scale, scale);
-        u.drawTrackedText(ctx, word.text, 0, 0, trackingPx, 'fillText');
-        ctx.restore();
-
-        x += word.width + gap;
-      });
-    });
-
+    ctx.globalAlpha = opacity;
+    ctx.fillStyle = style.textColor || '#FFFFFF';
+    ctx.shadowColor = style.accentColor || style.textColor || '#FFFFFF';
+    ctx.shadowBlur = size * .012 * settle;
+    ctx.translate(centreX + dx, centreY + dy);
+    ctx.rotate(rotation);
+    ctx.scale(scale, scale);
+    u.drawTrackedText(ctx, line, 0, 0, tracking * size, 'fillText');
     ctx.restore();
   }
 
-  window.kefeEffects.rise = (ctx, w, h, style, lines, time) => drawMotionBase(ctx, w, h, style, lines, time, 'rise');
-  window.kefeEffects.slide = (ctx, w, h, style, lines, time) => drawMotionBase(ctx, w, h, style, lines, time, 'slide');
-  window.kefeEffects.drop = (ctx, w, h, style, lines, time) => drawMotionBase(ctx, w, h, style, lines, time, 'drop');
-  window.kefeEffects.drift = (ctx, w, h, style, lines, time) => drawMotionBase(ctx, w, h, style, lines, time, 'drift');
+  window.kefeEffects.rise = (ctx, w, h, style, lines, time) => {
+    const active = u.activeLine(lines, time);
+    if (active) motionLine(ctx, w, h, style, active, time, 'rise');
+  };
+  window.kefeEffects.slide = (ctx, w, h, style, lines, time) => {
+    const active = u.activeLine(lines, time);
+    if (active) motionLine(ctx, w, h, style, active, time, 'slide');
+  };
+  window.kefeEffects.drop = (ctx, w, h, style, lines, time) => {
+    const active = u.activeLine(lines, time);
+    if (active) motionLine(ctx, w, h, style, active, time, 'drop');
+  };
+  window.kefeEffects.drift = (ctx, w, h, style, lines, time) => {
+    const active = u.activeLine(lines, time);
+    if (active) motionLine(ctx, w, h, style, active, time, 'drift');
+  };
 
-  /* The main renderer is defined by app.js after this file loads. Patch it after
-     DOM ready so the new effects work in both preview and frame-accurate export. */
+  /* Register the four effects after app.js creates the renderer. The wrapper
+     preserves the existing background/media/title-card pipeline and replaces
+     only the lyric layer for these four effect IDs. */
   function installMotionEffects() {
     if (window.__kefeMotionEffectsInstalled) return true;
     if (typeof window.render !== 'function') return false;
@@ -250,9 +227,6 @@
         : (Array.isArray(appState.lyrics?.lines) ? appState.lyrics.lines : []);
       const time = Number(appState.playback?.currentTime) || 0;
 
-      // Let KEFE draw the complete background/media/title-card stack first,
-      // while suppressing the built-in lyric renderer. Then place the motion
-      // effect over that exact frame.
       const originalEffect = style.effect;
       const originalText = style.textColor;
       const originalAccent = style.accentColor;
