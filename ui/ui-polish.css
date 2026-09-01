@@ -1,0 +1,177 @@
+/* KEFE UI polish: restore the intended editor hierarchy and eliminate cramped/stacked controls. */
+
+/* Main editor split */
+main { min-width: 0; }
+.sidebar { width: 390px; }
+.preview {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  background: var(--bg);
+  padding: 18px 24px 22px;
+}
+
+/* Sidebar section rhythm */
+.section { padding: 22px 20px; border-bottom: 1px solid var(--line); }
+.section h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 16px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.section-index { color: var(--red); font-variant-numeric: tabular-nums; }
+.sub-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.sub-heading { margin-bottom: 9px; color: var(--text-2); font-size: 10px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+.sub-hint, .control-hint { color: var(--text-3); font-size: 11px; line-height: 1.45; }
+.status { margin-top: 8px; color: var(--text-2); font-size: 11px; }
+
+/* Navigation: five real sections, not six phantom columns */
+.section-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.section-nav-link { padding-inline: 10px; }
+.section-nav-link strong { font-size: 10.5px; }
+
+/* Inputs */
+.metadata-grid { display: grid; gap: 10px; margin-top: 16px; }
+.metadata-grid label,
+.section > label,
+.sub-block > label { display: grid; gap: 6px; color: var(--text-2); font-size: 11px; font-weight: 650; }
+input[type="text"], input[type="number"], select, textarea {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  padding: 9px 11px;
+  color: var(--text);
+}
+select { cursor: pointer; }
+
+/* Upload areas */
+.drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 118px;
+  padding: 16px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  text-align: center;
+  transition: border-color .18s var(--ease), background .18s var(--ease), transform .18s var(--ease);
+}
+.drop-zone:hover, .drop-zone.dragover { border-color: var(--red); background: var(--red-soft); }
+.drop-zone .file-button { width: auto; min-width: 180px; }
+
+/* Action groups */
+.lyrics-actions { display: grid; gap: 7px; }
+.effect-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.effect-buttons button { min-width: 0; min-height: 38px; padding-inline: 8px; }
+.segmented { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
+.segmented .segmented-btn { border-radius: 0; }
+.segmented .segmented-btn:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.segmented .segmented-btn:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+
+/* Background tiles */
+.background-choice-grid { gap: 8px; }
+.background-choice { min-height: 86px; padding: 7px; flex-direction: column; gap: 7px; }
+.background-choice-preview { position: relative; display: block; width: 100%; height: 48px; border-radius: 7px; overflow: hidden; }
+.background-choice-label { font-size: 10px; line-height: 1.15; color: var(--text-2); }
+.background-choice.active, .background-choice.selected { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); }
+.background-upload-divider { margin: 16px 0 10px; color: var(--text-3); font-size: 10px; text-align: center; text-transform: uppercase; letter-spacing: .08em; }
+.bg-controls { display: grid; gap: 14px; margin-top: 16px; }
+
+/* Sliders / toggles */
+.control-row { display: grid; gap: 7px; }
+.control-row label { display: flex; align-items: center; justify-content: space-between; color: var(--text-2); font-size: 11px; }
+input[type="range"] { width: 100%; accent-color: var(--red); }
+.nudge-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 8px; }
+.nudge-row button { min-width: 0; padding-inline: 3px; font-size: 10px; }
+.toggle-row { display: flex !important; grid-template-columns: none !important; align-items: center; gap: 9px; margin-top: 12px; cursor: pointer; }
+.toggle-row input { position: absolute; opacity: 0; pointer-events: none; }
+.toggle-switch { position: relative; flex: 0 0 auto; width: 34px; height: 20px; border-radius: 999px; background: var(--surface-3); border: 1px solid var(--line-strong); transition: background .18s, border-color .18s; }
+.toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--text-3); transition: transform .18s var(--ease), background .18s; }
+.toggle-row input:checked + .toggle-switch { background: var(--red); border-color: var(--red); }
+.toggle-row input:checked + .toggle-switch::after { transform: translateX(14px); background: #fff; }
+
+/* Preview: clean focal area with transport below */
+.preview-toolbar { width: min(980px, 100%); flex: 0 0 auto; }
+.preview-heading { flex-direction: row !important; align-items: center; gap: 10px !important; }
+.preview-heading strong { font-size: 15px; letter-spacing: -.02em; }
+.preview-heading #previewStatus { color: var(--text-3); }
+.mode-badge { display: inline-flex !important; width: auto !important; padding: 3px 7px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); color: var(--text-2); font-size: 9px !important; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.transport { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.transport .slider { flex: 1 1 auto; min-width: 80px; }
+#clock { flex: 0 0 auto; min-width: 82px; text-align: right; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.play-button { width: 40px; min-height: 40px; border-radius: 50%; background: var(--text); color: var(--bg); border-color: var(--text); }
+.play-button:hover { background: var(--text); border-color: var(--text); opacity: .9; }
+.canvas-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: min(980px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 0 4px;
+  overflow: hidden;
+}
+#stageCanvas {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.35);
+  background: #000;
+}
+
+/* Header */
+header { padding-inline: 20px; }
+.brand { width: 92px; }
+.header-actions { gap: 7px; }
+.export-action { min-width: 104px; }
+
+/* Modals */
+.modal-content { border: 1px solid var(--line-strong); border-radius: var(--radius-lg); box-shadow: 0 24px 80px rgba(0,0,0,.45); }
+
+@media (max-width: 1100px) {
+  .sidebar { width: 350px; }
+  .preview { padding-inline: 16px; }
+  .section-nav-link strong { font-size: 9.5px; }
+}
+
+@media (max-width: 760px) {
+  html, body { overflow: auto; }
+  .app { min-height: 100dvh; height: auto; overflow: visible; }
+  header { position: sticky; top: 0; min-height: 58px; padding: 9px 12px; }
+  main { flex-direction: column; overflow: visible; }
+  .sidebar { width: 100%; border-right: 0; overflow: visible; }
+  .section-nav { position: sticky; top: 58px; z-index: 7; }
+  .section-nav-link { min-height: 48px; padding: 7px 6px; }
+  .section-nav-link strong { font-size: 9px; }
+  .section { padding: 18px 14px; }
+  .preview { min-height: 70vh; padding: 14px; overflow: visible; }
+  .preview-toolbar, .canvas-wrapper { width: 100%; }
+  .transport { flex-wrap: wrap; }
+  #clock { margin-left: auto; }
+  .canvas-wrapper { min-height: 48vh; }
+  .effect-buttons { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 420px) {
+  .section-nav-link span { display: none; }
+  .section-nav-link strong { font-size: 8.5px; }
+  .header-actions .theme-control { display: none; }
+  .export-action { min-width: 88px; }
+  .effect-buttons { grid-template-columns: 1fr; }
+}
