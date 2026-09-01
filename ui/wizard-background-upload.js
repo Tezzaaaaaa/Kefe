@@ -1,35 +1,42 @@
-/* KEFE background picker bridge.
- * The file input/change event belongs to app.js. This file only replaces the
- * label trigger with a real button so wizard navigation cannot treat the
- * upload control as navigation.
- */
 (() => {
-    'use strict';
+  'use strict';
+  // Background video is one combined media choice. The uploaded video's own
+  // audio is the soundtrack; do not present a separate background-video-audio
+  // choice in the guided workflow.
+  if (window.kefeBackgroundVideoUpload) return;
 
-    function install() {
-        const drop = document.getElementById('bgDrop');
-        const input = document.getElementById('backgroundInput');
-        if (!drop || !input || drop.dataset.kefeUploadButtonReady === '1') return;
-        drop.dataset.kefeUploadButtonReady = '1';
+  const input = document.getElementById('backgroundInput');
+  if (!input) return;
 
-        const label = drop.querySelector('label.file-button[for="backgroundInput"]');
-        if (!label) return;
-
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = label.className;
-        button.textContent = 'Choose image or video…';
-        button.addEventListener('click', event => {
-            event.preventDefault();
-            event.stopPropagation();
-            input.click();
-        });
-        label.replaceWith(button);
+  const setMedia = file => {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    window.kefeMedia = window.kefeMedia || {};
+    const media = window.kefeMedia;
+    if (media.video && media.video.src) {
+      try { media.video.pause(); } catch (_) {}
+      try { URL.revokeObjectURL(media.video.src); } catch (_) {}
     }
+    const video = document.createElement('video');
+    video.src = url;
+    video.preload = 'metadata';
+    video.playsInline = true;
+    video.muted = false;
+    video.addEventListener('loadedmetadata', () => {
+      media.video = video;
+      media.videoFile = file;
+      media.videoHasAudio = true;
+      media.image = null;
+      media.imageFile = null;
+      window.dispatchEvent(new CustomEvent('kefe:background-video-ready', { detail: { file, video } }));
+    }, { once: true });
+    video.addEventListener('error', () => {
+      try { URL.revokeObjectURL(url); } catch (_) {}
+      window.dispatchEvent(new CustomEvent('kefe:background-video-error', { detail: { file } }));
+    }, { once: true });
+    video.load();
+  };
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', install, { once: true });
-    } else {
-        install();
-    }
+  input.addEventListener('change', () => setMedia(input.files && input.files[0]));
+  window.kefeBackgroundVideoUpload = { setMedia };
 })();
