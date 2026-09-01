@@ -1,176 +1,143 @@
 /* KEFE guided creation workflow — one decision at a time, full editor at Export Review. */
 
-/* ---------- Wizard mode: hide the full editor chrome ---------- */
 body.wizard-mode .section-nav { display: none; }
 body.wizard-mode .header-actions .export-action { display: none; }
 body.wizard-mode .sidebar > .section { display: none; }
 body.wizard-mode .sidebar > .section.wizard-current { display: block; }
 body.wizard-mode .sidebar > .section h3:not(.wizard-panel-title) { display: none; }
 
-/* ---------- Scoped reveals for the Source step ---------- */
-/* Source → "Uploaded audio": show the existing upload zone + song details, hide the redundant source chips. */
 body.wizard-mode.wizard-src-audio #audioSection .sub-block { display: none; }
-/* Source → "Background video": show the existing media upload zone only. */
 body.wizard-mode.wizard-src-media #backgroundSection .background-choice-grid,
 body.wizard-mode.wizard-src-media #backgroundSection .bg-controls,
 body.wizard-mode.wizard-src-media #backgroundSection .background-upload-divider { display: none; }
 
-/* ---------- Fast, polished fade between steps ---------- */
 body.wizard-mode .sidebar { transition: opacity .15s ease; }
 body.wizard-mode .sidebar.wizard-fading { opacity: 0; pointer-events: none; }
 body.wizard-mode .sidebar > .section.wizard-current { animation: wizardStepIn .2s ease both; }
-body.wizard-mode .sidebar > .section.wizard-current:focus { outline: none; } /* focus is moved deliberately to each step */
-@keyframes wizardStepIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: none; }
-}
+body.wizard-mode .sidebar > .section.wizard-current:focus { outline: none; }
+@keyframes wizardStepIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-/* ---------- Step heading injected into existing sections ---------- */
 .wizard-step-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin: 2px 0 12px;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: -.02em;
-    color: var(--red);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    margin: 2px 0 12px; font-size: 15px; font-weight: 700; letter-spacing: -.02em; color: var(--red);
 }
-.wizard-change-source {
-    min-height: 0;
-    padding: 3px 10px;
-    font-size: 11px;
-    color: var(--text-3);
-    background: transparent;
-}
+.wizard-change-source { min-height: 0; padding: 3px 10px; font-size: 11px; color: var(--text-3); background: transparent; }
 
-/* ---------- Wizard panel (intro / source decision / preview) ---------- */
-.wizard-panel-kicker {
-    margin: 2px 0 6px;
-    color: var(--red);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-}
-.wizard-panel-title { font-size: 21px; font-weight: 700; letter-spacing: -.03em; margin: 0 0 6px; }
-.wizard-panel-hint { color: var(--text-3); font-size: 12.5px; line-height: 1.5; margin: 0 0 6px; }
-.wizard-panel-note {
-    color: var(--text-2);
-    font-size: 12.5px;
-    line-height: 1.5;
-    margin: 8px 0 14px;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md);
-    background: var(--surface-2);
-}
+.wizard-panel-kicker { margin: 2px 0 7px; color: var(--red); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.wizard-panel-title { font-size: 24px; font-weight: 750; letter-spacing: -.04em; margin: 0 0 6px; }
+.wizard-panel-hint { color: var(--text-3); font-size: 12px; line-height: 1.5; margin: 0; max-width: 44rem; }
+.wizard-panel-note { color: var(--text-2); font-size: 12px; line-height: 1.5; margin: 12px 0 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-2); }
 
-.wizard-choices { display: grid; gap: 10px; margin-top: 14px; }
-.wizard-choice {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+/* Focal decision cards: visual first, explanation second. */
+.wizard-choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
+    margin-top: 18px;
+}
+.wizard-choice {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+    min-height: 178px;
+    padding: 0;
+    overflow: hidden;
     text-align: left;
-    padding: 13px 15px;
-    transition: transform .18s var(--ease), border-color .18s var(--ease),
-                background .18s var(--ease), box-shadow .18s var(--ease);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface-2);
+    transition: transform .18s var(--ease), border-color .18s var(--ease), box-shadow .18s var(--ease);
+}
+.wizard-choice::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 72px;
+    background:
+        radial-gradient(circle at 28% 30%, rgba(239,63,56,.28), transparent 34%),
+        linear-gradient(135deg, var(--surface-3), var(--surface-2));
+    opacity: .95;
+}
+.wizard-choice::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 82px;
+    background: linear-gradient(to top, var(--surface-2) 65%, transparent);
+    pointer-events: none;
 }
 .wizard-choice-icon {
+    position: absolute;
+    z-index: 1;
+    top: 24px;
+    left: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 auto;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: var(--surface-3);
-    color: var(--text-2);
-    transition: background .18s var(--ease), color .18s var(--ease), transform .18s var(--ease);
+    width: 76px;
+    height: 76px;
+    border-radius: 22px;
+    background: rgba(255,255,255,.06);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 16px 36px rgba(0,0,0,.18);
+    backdrop-filter: blur(10px);
+    transition: transform .18s var(--ease), background .18s var(--ease), color .18s var(--ease);
 }
-.wizard-choice-icon svg { width: 20px; height: 20px; }
-.wizard-choice-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.wizard-choice strong { font-size: 13.5px; font-weight: 700; letter-spacing: -.01em; }
-.wizard-choice span { color: var(--text-3); font-size: 11.5px; line-height: 1.45; }
-.wizard-choice:hover {
-    transform: translateY(-2px);
-    border-color: var(--line-strong);
-    background: var(--surface-3);
-    box-shadow: var(--shadow-card);
+.wizard-choice-icon svg { width: 38px; height: 38px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.wizard-choice-copy {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    padding: 0 17px 17px;
 }
-.wizard-choice:hover .wizard-choice-icon { transform: scale(1.06); color: var(--text); }
+.wizard-choice strong { font-size: 14px; font-weight: 750; letter-spacing: -.02em; }
+.wizard-choice-copy > span { color: var(--text-3); font-size: 10.5px; line-height: 1.35; max-width: 32rem; }
+.wizard-choice:hover { transform: translateY(-3px); border-color: var(--line-strong); box-shadow: var(--shadow-card); }
+.wizard-choice:hover .wizard-choice-icon { transform: scale(1.06); }
 .wizard-choice:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.wizard-choice.selected {
-    border-color: var(--red);
-    background: var(--red-soft);
-    box-shadow: 0 0 0 1px var(--red), 0 8px 22px rgba(239,63,56,.16);
-}
-.wizard-choice.selected .wizard-choice-icon {
-    background: var(--red);
-    color: #fff;
-    transform: scale(1.06);
-}
+.wizard-choice.selected { border-color: var(--red); background: var(--red-soft); box-shadow: 0 0 0 1px var(--red), 0 14px 34px rgba(239,63,56,.16); }
+.wizard-choice.selected .wizard-choice-icon { background: var(--red); color: #fff; border-color: var(--red); transform: scale(1.04); }
 .wizard-choice.selected strong { color: var(--red); }
 .wizard-choice.selected:hover { background: var(--red-soft); border-color: var(--red); }
-/* A touch of extra presence for the flagship Lyric Video card (all four stay equal). */
-.wizard-choice[data-choice="lyric"] { padding-block: 15px; }
-.wizard-choice[data-choice="lyric"] .wizard-choice-icon { border-radius: 14px; }
-.wizard-choice[data-choice="lyric"]:hover .wizard-choice-icon { transform: scale(1.06) rotate(-3deg); }
 
-/* ---------- Preview summary ---------- */
+/* Different visual language for the four creation modes. */
+.wizard-choice[data-choice="visualiser"]::before { background: radial-gradient(circle at 60% 35%, rgba(80,150,255,.25), transparent 35%), linear-gradient(135deg, var(--surface-3), var(--surface-2)); }
+.wizard-choice[data-choice="captioned"]::before { background: radial-gradient(circle at 38% 32%, rgba(170,100,255,.22), transparent 35%), linear-gradient(135deg, var(--surface-3), var(--surface-2)); }
+.wizard-choice[data-choice="custom"]::before { background: radial-gradient(circle at 62% 28%, rgba(80,200,160,.20), transparent 35%), linear-gradient(135deg, var(--surface-3), var(--surface-2)); }
+
+/* Source cards use the same focal-card treatment, with compact imagery made from CSS. */
+.wizard-choice[data-source] { min-height: 160px; }
+.wizard-choice[data-source]::before { inset: 0 0 68px; }
+.wizard-choice[data-source="uploaded"]::before { background: radial-gradient(circle at 30% 30%, rgba(239,63,56,.25), transparent 35%), linear-gradient(135deg, var(--surface-3), var(--surface-2)); }
+.wizard-choice[data-source="media"]::before { background: radial-gradient(circle at 65% 30%, rgba(80,150,255,.24), transparent 35%), linear-gradient(135deg, var(--surface-3), var(--surface-2)); }
+.wizard-choice[data-source="none"]::before { background: radial-gradient(circle at 50% 35%, rgba(160,160,160,.14), transparent 35%), linear-gradient(135deg, var(--surface-3), var(--surface-2)); }
+.wizard-choice[data-source="uploaded"]::after,
+.wizard-choice[data-source="media"]::after,
+.wizard-choice[data-source="none"]::after { content: ''; }
+
 .wizard-summary { display: grid; gap: 6px; margin: 12px 0 14px; }
-.wizard-summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
-    padding: 7px 11px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md);
-    background: var(--surface-2);
-    font-size: 12px;
-}
+.wizard-summary-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 7px 11px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-2); font-size: 12px; }
 .wizard-summary-row span { color: var(--text-3); }
 .wizard-summary-row strong { font-weight: 650; text-align: right; overflow-wrap: anywhere; }
 
-/* ---------- Wizard navigation (Back / progress / Next) ---------- */
-.wizard-nav {
-    position: sticky;
-    bottom: 0;
-    z-index: 9;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 12px 22px calc(14px + env(safe-area-inset-bottom, 0px));
-    background: var(--surface);
-    border-top: 1px solid var(--line);
-}
+.wizard-nav { position: sticky; bottom: 0; z-index: 9; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 22px calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); }
 .wizard-nav button:not(.wizard-skip) { min-width: 104px; }
 .wizard-progress-wrap { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; }
-.wizard-progress {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .08em;
-    font-variant-numeric: tabular-nums;
-    color: var(--text-3);
-}
-.wizard-skip {
-    min-height: 0;
-    padding: 2px 6px;
-    border: 0;
-    background: transparent;
-    font-size: 10.5px;
-    font-weight: 600;
-    color: var(--text-3);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-}
+.wizard-progress { font-size: 11px; font-weight: 700; letter-spacing: .08em; font-variant-numeric: tabular-nums; color: var(--text-3); }
+.wizard-skip { min-height: 0; padding: 2px 6px; border: 0; background: transparent; font-size: 10.5px; font-weight: 600; color: var(--text-3); text-decoration: underline; text-underline-offset: 2px; }
 .wizard-skip:hover { background: transparent; border: 0; color: var(--text); }
 
 @media (max-width: 900px) {
+    .wizard-choices { grid-template-columns: 1fr; gap: 10px; }
+    .wizard-choice { min-height: 148px; }
+    .wizard-choice-icon { width: 62px; height: 62px; top: 18px; left: 18px; border-radius: 18px; }
+    .wizard-choice-icon svg { width: 32px; height: 32px; }
+    .wizard-choice-copy { padding: 0 15px 15px; }
     .wizard-nav { padding-left: 14px; padding-right: 14px; }
     .wizard-nav button:not(.wizard-skip) { min-width: 84px; }
 }
