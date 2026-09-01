@@ -9,19 +9,6 @@
     const pad = n => String(n).padStart(2, '0');
     body.classList.add('wizard-mode');
 
-    /* Background media picker: in wizard mode the editor drop-zone must not
-       double-activate its <label> and the drop-zone click handler. */
-    const backgroundDrop = $('bgDrop');
-    const backgroundInput = $('backgroundInput');
-    if (backgroundDrop && backgroundInput) {
-        backgroundDrop.addEventListener('click', event => {
-            if (!body.classList.contains('wizard-mode') || event.target === backgroundInput) return;
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            backgroundInput.click();
-        }, true);
-    }
-
     const previewEl = document.querySelector('.preview');
     if (previewEl) {
         previewEl.id = 'previewSection';
