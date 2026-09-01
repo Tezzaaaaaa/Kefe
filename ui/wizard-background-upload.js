@@ -1,4 +1,4 @@
-/* Keep background-video selection stable inside the guided wizard. */
+/* Stable background image/video picker for the guided wizard. */
 (() => {
     'use strict';
 
@@ -9,25 +9,41 @@
 
         drop.dataset.kefeWizardUploadWired = 'true';
 
-        // The editor's drop-zone wiring and the <label for="backgroundInput">
-        // both respond to the same click. In the wizard this can cause the
-        // control to be activated twice and the page to jump when the media
-        // section is re-rendered. Let the input own activation explicitly.
+        // The label is intentionally not used for activation in wizard mode.
+        // A single delegated handler opens the native picker and prevents the
+        // wizard/navigation handlers from treating the click as a page action.
         drop.addEventListener('click', event => {
             if (!document.body.classList.contains('wizard-mode')) return;
             if (event.target === input) return;
+            const trigger = event.target.closest('.file-button');
+            if (!trigger) return;
             event.preventDefault();
-            event.stopPropagation();
+            event.stopImmediatePropagation();
             input.click();
         }, true);
 
         input.addEventListener('click', event => {
             if (document.body.classList.contains('wizard-mode')) {
-                event.stopPropagation();
+                event.stopImmediatePropagation();
+            }
+        }, true);
+
+        // Prevent the native file input from being cleared or interpreted as
+        // a wizard navigation event after selection. app.js remains the sole
+        // owner of the change event and calls handleBackgroundFile().
+        input.addEventListener('change', event => {
+            if (!document.body.classList.contains('wizard-mode')) return;
+            event.stopImmediatePropagation();
+            const file = input.files && input.files[0];
+            if (file && typeof window.handleBackgroundFile === 'function') {
+                window.handleBackgroundFile(file);
             }
         }, true);
     }
 
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire, { once: true });
-    else wire();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', wire, { once: true });
+    } else {
+        wire();
+    }
 })();
