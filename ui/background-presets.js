@@ -2,23 +2,28 @@
 (() => {
   'use strict';
 
-  // app.js is loaded later in index.html. Register the compatibility patch
-  // before the early state check so it still loads after window.load.
+  // app.js is loaded later in index.html. The guided workflow and media fix need
+  // the app's lexical `state`, which classic scripts do not expose as window.state.
+  // Bridge it only after app.js has finished loading, then load the media fix.
   window.addEventListener('load', () => {
+    const bridge = document.createElement('script');
+    bridge.textContent = 'window.state = state;';
+    document.body.appendChild(bridge);
+
     const script = document.createElement('script');
-    script.src = './ui/wizard-media-fix.js?v=20260901-2';
+    script.src = './ui/wizard-media-fix.js?v=20260901-3';
     script.async = false;
     document.body.appendChild(script);
   });
 
-  const state = window.state;
+  const presetState = window.state;
   const media = window.kefeMedia;
   const redraw = () => window.redrawCurrentPreviewFrame?.();
   const status = document.getElementById('backgroundStatus');
   const colorInput = document.getElementById('backgroundColor');
   const colorValue = document.getElementById('backgroundColorValue');
   const presets = [...document.querySelectorAll('[data-background-preset]')];
-  if (!state || !media || !presets.length) return;
+  if (!presetState || !media || !presets.length) return;
 
   const defs = {
     gradient: {
@@ -51,12 +56,12 @@
     }
     media.videoFile = null;
     media.videoHasAudio = false;
-    if (window.state?.audioSource?.master === 'video') {
-      if (window.state?.audio?.file) {
-        window.state.audioSource.master = 'uploaded';
+    if (presetState.audioSource?.master === 'video') {
+      if (presetState.audio?.file) {
+        presetState.audioSource.master = 'uploaded';
         if (typeof window.applyMasterSelection === 'function') window.applyMasterSelection('uploaded', { userInitiated: false, silent: true });
       } else {
-        window.state.audioSource.master = 'none';
+        presetState.audioSource.master = 'none';
         if (typeof window.applyMasterSelection === 'function') window.applyMasterSelection('none', { userInitiated: false, silent: true });
       }
     }
@@ -80,9 +85,9 @@
     if (window.isExporting) return;
     if (key === 'solid') {
       clearMedia();
-      state.background.type = 'solid';
+      presetState.background.type = 'solid';
       select('solid');
-      setStatus(`Colour background · ${state.background.solid.toUpperCase()}`);
+      setStatus(`Colour background · ${presetState.background.solid.toUpperCase()}`);
       redraw();
       return;
     }
@@ -93,7 +98,7 @@
     img.onload = () => {
       if (window.isExporting) return;
       media.image = img;
-      state.background.type = 'image';
+      presetState.background.type = 'image';
       select(key);
       setStatus(`${def.label} · ready`);
       redraw();
@@ -108,8 +113,8 @@
   colorInput?.addEventListener('input', () => {
     if (window.isExporting) return;
     clearMedia();
-    state.background.type = 'solid';
-    state.background.solid = colorInput.value;
+    presetState.background.type = 'solid';
+    presetState.background.solid = colorInput.value;
     if (colorValue) colorValue.textContent = colorInput.value.toUpperCase();
     setSolidPreview(colorInput.value);
     select('solid');
