@@ -24,6 +24,15 @@
     confirmationScript.async = false;
     document.body.appendChild(confirmationScript);
 
+    // Wire the background image/video picker after the editor DOM exists.
+    // The picker owns the click/change interaction; app.js remains responsible
+    // for actually loading the selected media into the preview/export state.
+    const backgroundUploadScript = document.createElement('script');
+    backgroundUploadScript.src = './ui/wizard-background-upload.js?v=20260901';
+    backgroundUploadScript.async = false;
+    backgroundUploadScript.dataset.kefeBackgroundUpload = 'true';
+    document.body.appendChild(backgroundUploadScript);
+
     const script = document.createElement('script');
     script.src = './ui/wizard.js';
     script.async = false;
