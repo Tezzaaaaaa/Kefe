@@ -5,7 +5,6 @@
     const body = document.body;
     const sidebar = document.querySelector('.sidebar');
     if (!sidebar || $('wizardSection')) return;
-
     const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const pad = n => String(n).padStart(2, '0');
     body.classList.add('wizard-mode');
@@ -97,11 +96,7 @@
     function targetsForStep(step) {
         if (step === 'content') return ['textSection'];
         if (step === 'captions') return [$('captionGenSection')?.id].filter(Boolean);
-        if (step === 'style') {
-            const ids = [fxSectionId()];
-            if (wizard.choice !== 'visualiser') ids.unshift('textSection');
-            return ids.filter(Boolean);
-        }
+        if (step === 'style') return [fxSectionId()].filter(Boolean);
         if (step === 'background') return ['backgroundSection'];
         return [];
     }
@@ -131,7 +126,7 @@
                     const m = window.kefeMedia || {};
                     if (m.video && m.videoFile && m.videoHasAudio) window.applyMasterSelection('video', { userInitiated: false, silent: true });
                 }
-            } catch (e) { /* keep wizard usable if an optional integration is absent */ }
+            } catch (e) { /* optional integration */ }
         }
         renderSource();
         refreshNextState();
@@ -162,6 +157,21 @@
         }));
     }
 
+    function renderStyle() {
+        const effectButtons = [...document.querySelectorAll('#lyricStyleBlock [data-effect]')];
+        const current = window.state?.style?.effect || 'apple';
+        const effectMarkup = wizard.choice === 'visualiser' ? '' :
+            '<div class="wizard-style-group"><div class="wizard-style-heading">Lyric effect</div><div class="wizard-effect-grid">' +
+            effectButtons.map(btn => `<button type="button" class="wizard-effect-choice${(btn.dataset.effect === current || btn.classList.contains('active')) ? ' selected' : ''}" data-forward-effect="${btn.dataset.effect}">${btn.textContent}</button>`).join('') +
+            '</div></div>';
+        panel.innerHTML = '<p class="wizard-panel-kicker">04 · Style</p><h3 class="wizard-panel-title">Choose your look</h3><p class="wizard-panel-hint">Set the main visual language first. Fine FX controls are underneath.</p>' + effectMarkup;
+        panel.querySelectorAll('[data-forward-effect]').forEach(btn => btn.addEventListener('click', () => {
+            const target = document.querySelector(`#lyricStyleBlock [data-effect="${CSS.escape(btn.dataset.forwardEffect)}"]`);
+            target?.click();
+            panel.querySelectorAll('[data-forward-effect]').forEach(x => x.classList.toggle('selected', x === btn));
+        }));
+    }
+
     function renderPreview() {
         const st = window.state || {};
         const media = window.kefeMedia || {};
@@ -177,7 +187,7 @@
         rows.push(['Visual FX', st.style?.visualFx && st.style.visualFx !== 'none' ? st.style.visualFx : 'Off']);
         rows.push(['Background', media.video ? 'Video' : media.image ? 'Image' : `Solid ${st.background?.solid || '#0A0A0A'}`]);
         rows.push(['Title intro', st.style?.titleCardEnabled === false ? 'Off' : 'On']);
-        panel.innerHTML = '<p class="wizard-panel-kicker">06 · Preview</p><h3 class="wizard-panel-title">Review your video</h3><p class="wizard-panel-hint">Play it once. Everything is already applied and ready for export.</p><div class="wizard-summary">' + rows.map(([k, v]) => `<div class="wizard-summary-row"><span>${k}</span><strong>${v}</strong></div>`).join('') + '</div><button type="button" id="wizardPlayBtn" class="primary full-width">Play full preview</button>';
+        panel.innerHTML = '<p class="wizard-panel-kicker">Preview</p><h3 class="wizard-panel-title">Review your video</h3><p class="wizard-panel-hint">Play it once. Everything is already applied and ready for export.</p><div class="wizard-summary">' + rows.map(([k, v]) => `<div class="wizard-summary-row"><span>${k}</span><strong>${v}</strong></div>`).join('') + '</div><button type="button" id="wizardPlayBtn" class="primary full-width">Play full preview</button>';
         $('wizardPlayBtn').addEventListener('click', () => $('playBtn')?.click());
     }
 
@@ -185,7 +195,6 @@
         const steps = stepsFor();
         const step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
-        body.classList.toggle('wizard-style-mode', step === 'style');
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
         if (step === 'preview' && previewEl) {
             previewEl.classList.remove('preview-collapsed');
@@ -195,6 +204,7 @@
             window.kefeCaptionGen.refreshReview?.();
             window.kefeCaptionGen.syncGenerateButton?.();
         }
+        if (step === 'style') renderStyle();
 
         const targetIds = targetsForStep(step);
         let firstTarget = null;
@@ -211,7 +221,6 @@
             if (step === 'intro') renderIntro();
             else if (step === 'source') renderSource();
             else if (step === 'preview') renderPreview();
-            else panel.innerHTML = '';
             firstTarget = panel;
         }
 
@@ -244,7 +253,7 @@
         nav.remove();
         panel.remove();
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        body.classList.remove('wizard-mode', 'wizard-style-mode');
+        body.classList.remove('wizard-mode');
         delete body.dataset.wizardStep;
         document.querySelectorAll('.section-nav-link').forEach(link => link.classList.toggle('active', link.dataset.nav === 'export'));
         document.querySelectorAll('.sidebar .section').forEach(s => s.classList.toggle('active', s.id === 'exportSection'));
