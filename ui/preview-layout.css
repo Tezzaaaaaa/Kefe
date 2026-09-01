@@ -1,5 +1,4 @@
-/* KEFE Preview layout — keep the existing visual design, but make the preview a
-   controlled drawer and keep transport completely separate from the canvas. */
+/* KEFE Preview layout — controlled preview drawer; never obstruct wizard controls. */
 
 body.wizard-mode .preview {
   position: fixed !important;
@@ -24,190 +23,62 @@ body.wizard-mode .preview {
   transform: translate(-50%, calc(100% - 48px)) !important;
   transition: transform .25s var(--ease) !important;
 }
+body.wizard-mode .preview.preview-expanded { transform: translate(-50%, 0) !important; }
+body.wizard-mode .preview.preview-collapsed { transform: translate(-50%, calc(100% - 48px)) !important; }
 
-body.wizard-mode .preview.preview-expanded {
-  transform: translate(-50%, 0) !important;
-}
-
-body.wizard-mode .preview.preview-collapsed {
-  transform: translate(-50%, calc(100% - 48px)) !important;
-}
-
-/* Header owns its height. Nothing inside it may become an overlay. */
 body.wizard-mode .preview .preview-toolbar {
-  position: static !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  min-height: 48px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-  overflow: visible !important;
+  position: static !important; width: 100% !important; min-width: 0 !important; min-height: 48px !important;
+  margin: 0 !important; padding: 0 !important; display: flex !important; flex-direction: row !important;
+  align-items: center !important; justify-content: space-between !important; gap: 12px !important; overflow: visible !important;
 }
+body.wizard-mode .preview .preview-heading { position: static !important; flex: 0 0 auto !important; min-width: 0 !important; display:flex !important; align-items:center !important; gap:8px !important; white-space:nowrap !important; }
+body.wizard-mode .preview .transport { position:static !important; inset:auto !important; flex:1 1 auto !important; width:min(620px,55%) !important; min-width:220px !important; min-height:40px !important; height:40px !important; margin:0 !important; padding:0 !important; display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; align-items:center !important; gap:8px !important; overflow:visible !important; }
+body.wizard-mode .preview .transport .play-button { flex:0 0 40px !important; width:40px !important; height:40px !important; }
+body.wizard-mode .preview .transport .icon-button { flex:0 0 36px !important; width:36px !important; height:36px !important; min-height:36px !important; }
+body.wizard-mode .preview .transport #seek { position:static !important; flex:1 1 auto !important; width:auto !important; min-width:60px !important; max-width:none !important; height:22px !important; margin:0 !important; padding:0 !important; }
+body.wizard-mode .preview .transport #clock { flex:0 0 86px !important; width:86px !important; min-width:86px !important; text-align:right !important; white-space:nowrap !important; }
 
-body.wizard-mode .preview .preview-heading {
-  position: static !important;
-  flex: 0 0 auto !important;
-  min-width: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  white-space: nowrap !important;
-}
+body.wizard-mode .preview .canvas-wrapper { position:relative !important; grid-row:2 !important; width:100% !important; min-width:0 !important; min-height:0 !important; height:auto !important; flex:none !important; overflow:hidden !important; display:flex !important; align-items:center !important; justify-content:center !important; }
+body.wizard-mode .preview .canvas-wrapper canvas { position:static !important; display:block !important; width:auto !important; height:auto !important; max-width:100% !important; max-height:100% !important; }
 
-/* Transport is a normal flex child of the toolbar, never positioned over canvas. */
-body.wizard-mode .preview .transport {
-  position: static !important;
-  inset: auto !important;
-  flex: 1 1 auto !important;
-  width: min(620px, 55%) !important;
-  min-width: 220px !important;
-  min-height: 40px !important;
-  height: 40px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  align-items: center !important;
-  gap: 8px !important;
-  overflow: visible !important;
-}
-
-body.wizard-mode .preview .transport .play-button {
-  flex: 0 0 40px !important;
-  width: 40px !important;
-  height: 40px !important;
-}
-
-body.wizard-mode .preview .transport .icon-button {
-  flex: 0 0 36px !important;
-  width: 36px !important;
-  height: 36px !important;
-  min-height: 36px !important;
-}
-
-body.wizard-mode .preview .transport #seek {
-  position: static !important;
-  flex: 1 1 auto !important;
-  width: auto !important;
-  min-width: 60px !important;
-  max-width: none !important;
-  height: 22px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-body.wizard-mode .preview .transport #clock {
-  flex: 0 0 86px !important;
-  width: 86px !important;
-  min-width: 86px !important;
-  text-align: right !important;
-  white-space: nowrap !important;
-}
-
-/* Canvas is its own grid row and can never overlap the transport row. */
-body.wizard-mode .preview .canvas-wrapper {
-  position: relative !important;
-  grid-row: 2 !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  height: auto !important;
-  flex: none !important;
-  overflow: hidden !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-body.wizard-mode .preview .canvas-wrapper canvas {
-  position: static !important;
-  display: block !important;
-  width: auto !important;
-  height: auto !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-}
-
-/* Toggle bar remains visible while the drawer is collapsed. */
+/* The toggle is deliberately above the sticky wizard navigation. It must never cover Back/Next/Skip. */
 body.wizard-mode .preview-toggle {
-  position: fixed !important;
-  left: 50% !important;
-  bottom: 0 !important;
-  transform: translateX(-50%) !important;
-  z-index: 31 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-height: 40px !important;
-  width: min(180px, 50vw) !important;
-  padding: 7px 16px !important;
-  border: 1px solid var(--line) !important;
-  border-bottom: 0 !important;
-  border-radius: 12px 12px 0 0 !important;
-  background: var(--surface) !important;
-  color: var(--text-2) !important;
-  box-shadow: 0 -4px 18px rgba(0,0,0,.22) !important;
+  position:fixed !important;
+  left:50% !important;
+  bottom:calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  transform:translateX(-50%) !important;
+  z-index:29 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  min-height:40px !important;
+  width:min(180px,50vw) !important;
+  padding:7px 16px !important;
+  border:1px solid var(--line) !important;
+  border-radius:12px 12px 0 0 !important;
+  background:var(--surface) !important;
+  color:var(--text-2) !important;
+  box-shadow:0 -4px 18px rgba(0,0,0,.22) !important;
 }
-
 body.wizard-mode .preview-toggle:hover,
-body.wizard-mode .preview-toggle[aria-pressed="true"] {
-  background: var(--surface-2) !important;
-  color: var(--text) !important;
+body.wizard-mode .preview-toggle[aria-pressed="true"] { background:var(--surface-2) !important; color:var(--text) !important; }
+
+/* When the preview is open, the toggle belongs visually to the drawer instead of floating over the wizard controls. */
+body.wizard-mode:has(.preview.preview-expanded) .preview-toggle {
+  bottom:min(68dvh,760px) !important;
+  z-index:31 !important;
+  border-radius:10px 10px 0 0 !important;
 }
 
-@media (max-width: 700px) {
-  body.wizard-mode .preview {
-    width: calc(100vw - 12px) !important;
-    height: min(72dvh, 680px) !important;
-    max-height: 72dvh !important;
-    padding: 8px 9px 10px !important;
-    grid-template-rows: auto minmax(0, 1fr) !important;
-  }
-
-  body.wizard-mode .preview .preview-toolbar {
-    min-height: 86px !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    justify-content: center !important;
-    gap: 6px !important;
-  }
-
-  body.wizard-mode .preview .transport {
-    width: 100% !important;
-    min-width: 0 !important;
-    height: 42px !important;
-    min-height: 42px !important;
-    gap: 6px !important;
-  }
-
-  body.wizard-mode .preview .transport .play-button {
-    flex-basis: 40px !important;
-    width: 40px !important;
-  }
-
-  body.wizard-mode .preview .transport .icon-button {
-    flex-basis: 36px !important;
-    width: 36px !important;
-  }
-
-  body.wizard-mode .preview .transport #seek {
-    min-width: 40px !important;
-  }
-
-  body.wizard-mode .preview .transport #clock {
-    flex-basis: 72px !important;
-    width: 72px !important;
-    min-width: 72px !important;
-    font-size: 10.5px !important;
-  }
+@media (max-width:700px) {
+  body.wizard-mode .preview { width:calc(100vw - 12px) !important; height:min(72dvh,680px) !important; max-height:72dvh !important; padding:8px 9px 10px !important; grid-template-rows:auto minmax(0,1fr) !important; }
+  body.wizard-mode .preview .preview-toolbar { min-height:86px !important; flex-direction:column !important; align-items:stretch !important; justify-content:center !important; gap:6px !important; }
+  body.wizard-mode .preview .transport { width:100% !important; min-width:0 !important; height:42px !important; min-height:42px !important; gap:6px !important; }
+  body.wizard-mode .preview .transport .play-button { flex-basis:40px !important; width:40px !important; }
+  body.wizard-mode .preview .transport .icon-button { flex-basis:36px !important; width:36px !important; }
+  body.wizard-mode .preview .transport #seek { min-width:40px !important; }
+  body.wizard-mode .preview .transport #clock { flex-basis:72px !important; width:72px !important; min-width:72px !important; font-size:10.5px !important; }
+  body.wizard-mode .preview-toggle { bottom:calc(76px + env(safe-area-inset-bottom,0px)) !important; }
+  body.wizard-mode:has(.preview.preview-expanded) .preview-toggle { bottom:min(72dvh,680px) !important; }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  body.wizard-mode .preview { transition: none !important; }
-}
+@media (prefers-reduced-motion:reduce) { body.wizard-mode .preview { transition:none !important; } }
