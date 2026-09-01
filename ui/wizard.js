@@ -11,24 +11,15 @@
     body.classList.add('wizard-mode');
 
     const previewEl = document.querySelector('.preview');
-    if (previewEl) {
-        previewEl.id = 'previewSection';
-        previewEl.classList.add('preview-collapsed');
-    }
+    if (previewEl) previewEl.id = 'previewSection';
 
-    /* One linear workflow. Do not make the user revisit earlier sections. */
     const PATHS = {
-        lyric: ['intro', 'source', 'content', 'style', 'background', 'preview', 'review'],
-        visualiser: ['intro', 'source', 'style', 'background', 'preview', 'review'],
-        captioned: ['intro', 'source', 'captions', 'style', 'background', 'preview', 'review'],
-        custom: ['intro', 'source', 'content', 'style', 'background', 'preview', 'review']
+        lyric: ['intro', 'source', 'content', 'style', 'background', 'preview'],
+        visualiser: ['intro', 'source', 'style', 'background', 'preview'],
+        captioned: ['intro', 'source', 'captions', 'style', 'background', 'preview'],
+        custom: ['intro', 'source', 'content', 'style', 'background', 'preview']
     };
-    const PATH_LABELS = {
-        lyric: 'Lyric Video',
-        visualiser: 'Visualiser',
-        captioned: 'Captioned Video',
-        custom: 'Custom'
-    };
+    const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', custom: 'Custom' };
     const PATH_HINTS = {
         lyric: 'Synced lyrics with expressive motion.',
         visualiser: 'Audio-reactive visuals with no lyrics.',
@@ -36,20 +27,10 @@
         custom: 'Build the video your way.'
     };
     const STEP_TITLES = {
-        content: 'Add your content',
-        style: 'Choose your look',
-        background: 'Choose your background',
-        captions: 'Create your captions'
+        content: 'Add your content', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background'
     };
     const STEP_LABELS = {
-        intro: 'Format',
-        source: 'Media',
-        content: 'Content',
-        captions: 'Captions',
-        style: 'Style',
-        background: 'Background',
-        preview: 'Preview',
-        review: 'Export'
+        intro: 'Format', source: 'Media', content: 'Content', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview'
     };
     const CHOICE_ICONS = {
         lyric: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10"/><circle cx="18.2" cy="17.4" r="2.6"/><path d="M20.8 17.4V8.2l-2.6.9"/></svg>',
@@ -79,7 +60,7 @@
     nav.className = 'wizard-nav';
     nav.id = 'wizardNav';
     nav.innerHTML = '<button type="button" id="wizardBackBtn" class="wizard-back" disabled>Back</button>' +
-        '<div class="wizard-progress-wrap"><div id="wizardProgress" class="wizard-progress">01 / 07</div><span id="wizardStepLabel" class="wizard-step-label">Format</span><button type="button" id="wizardSkipBtn" class="wizard-skip">Skip setup</button></div>' +
+        '<div class="wizard-progress-wrap"><div id="wizardProgress" class="wizard-progress">01 / 06</div><span id="wizardStepLabel" class="wizard-step-label">Format</span><button type="button" id="wizardSkipBtn" class="wizard-skip">Skip setup</button></div>' +
         '<button type="button" id="wizardNextBtn" class="primary wizard-next">Next</button>';
     sidebar.appendChild(nav);
 
@@ -95,8 +76,7 @@
         if (!wizard.source) return false;
         if (wizard.source === 'none') return true;
         const m = window.kefeMedia || {};
-        if (wizard.source === 'uploaded') return hasLoadedAudio();
-        return Boolean(m.image || m.video || m.videoFile);
+        return wizard.source === 'uploaded' ? hasLoadedAudio() : Boolean(m.image || m.video || m.videoFile);
     }
     function lyricsReady() {
         if (window.state?.lyrics?.lines?.length) return true;
@@ -114,29 +94,30 @@
         if (step === 'captions') return captionsReady();
         return true;
     }
-
     function targetsForStep(step) {
         if (step === 'content') return ['textSection'];
         if (step === 'captions') return [$('captionGenSection')?.id].filter(Boolean);
-        if (step === 'style') return [fxSectionId()].filter(Boolean);
+        if (step === 'style') {
+            const ids = [fxSectionId()];
+            if (wizard.choice !== 'visualiser') ids.unshift('textSection');
+            return ids.filter(Boolean);
+        }
         if (step === 'background') return ['backgroundSection'];
         return [];
     }
 
-    function statusTextForSource() {
-        if (wizard.source === 'uploaded') return hasLoadedAudio() ? 'Audio loaded' : 'Choose an audio file below.';
+    function sourceStatus() {
+        if (wizard.source === 'uploaded') return hasLoadedAudio() ? 'Audio loaded' : 'Choose your audio file.';
         if (wizard.source === 'media') {
             const m = window.kefeMedia || {};
-            return m.videoFile ? 'Background video loaded' : (m.image ? 'Background image loaded' : 'Choose an image or video below.');
+            return m.videoFile ? 'Background video loaded' : m.image ? 'Background image loaded' : 'Choose an image or video.';
         }
         return 'Silent project — no audio will be exported.';
     }
-
-    function sourceAction() {
+    function chooseSourceMedia() {
         if (wizard.source === 'uploaded') $('audioChooseBtn')?.click();
         if (wizard.source === 'media') $('backgroundInput')?.click();
     }
-
     function applySourceChoice(source) {
         wizard.source = source;
         window.kefeWizardSource = source;
@@ -150,20 +131,25 @@
                     const m = window.kefeMedia || {};
                     if (m.video && m.videoFile && m.videoHasAudio) window.applyMasterSelection('video', { userInitiated: false, silent: true });
                 }
-            } catch (e) { /* preserve existing app behaviour */ }
+            } catch (e) { /* keep wizard usable if an optional integration is absent */ }
         }
         renderSource();
         refreshNextState();
     }
+    function renderSource() {
+        const options = wizard.choice === 'captioned'
+            ? [['uploaded', 'Audio file', 'Use a music track or voice recording.'], ['media', 'Background video', 'Use a video and its soundtrack.']]
+            : [['uploaded', 'Audio file', 'Use an MP3, WAV or M4A track.'], ['media', 'Background video', 'Use a video as the visual background and its soundtrack.'], ['none', 'No audio', 'Create silent visuals.']];
+        panel.innerHTML = '<p class="wizard-panel-kicker">02 · Media</p><h3 class="wizard-panel-title">What are you starting with?</h3><p class="wizard-panel-hint">Pick your source. KEFE will carry it through the rest of the project.</p>' +
+            '<div class="wizard-choices wizard-source-choices">' + options.map(([v, l, h]) => `<button type="button" class="wizard-choice${wizard.source === v ? ' selected' : ''}" data-source="${v}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${SOURCE_ICONS[v]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${l}</strong><span>${h}</span></span></button>`).join('') + '</div>' +
+            (wizard.source ? `<div class="wizard-source-action"><strong>${sourceStatus()}</strong><button type="button" id="wizardSourceAction" class="file-button">${sourceReady() ? 'Replace media' : 'Choose media'}</button></div>` : '');
+        panel.querySelectorAll('[data-source]').forEach(btn => btn.addEventListener('click', () => applySourceChoice(btn.dataset.source)));
+        $('wizardSourceAction')?.addEventListener('click', chooseSourceMedia);
+    }
 
     function renderIntro() {
-        panel.innerHTML = '<p class="wizard-panel-kicker">01 · Start</p>' +
-            '<h3 class="wizard-panel-title">What are you making?</h3>' +
-            '<p class="wizard-panel-hint">Choose once. KEFE will build the right editing path for you.</p>' +
-            '<div class="wizard-choices">' +
-            ['lyric', 'visualiser', 'captioned', 'custom'].map(k =>
-                `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`
-            ).join('') + '</div>';
+        panel.innerHTML = '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">What are you making?</h3><p class="wizard-panel-hint">Choose once. KEFE will build the right editing path for you.</p><div class="wizard-choices">' +
+            ['lyric', 'visualiser', 'captioned', 'custom'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div>';
         panel.querySelectorAll('[data-choice]').forEach(btn => btn.addEventListener('click', () => {
             const c = btn.dataset.choice;
             if (wizard.choice !== c) wizard.source = null;
@@ -176,22 +162,6 @@
         }));
     }
 
-    function renderSource() {
-        const isCaptioned = wizard.choice === 'captioned';
-        const options = isCaptioned
-            ? [['uploaded', 'Audio file', 'Use a music track or voice recording.'], ['media', 'Background video', 'Use a video and its soundtrack.']]
-            : [['uploaded', 'Audio file', 'Use an MP3, WAV or M4A track.'], ['media', 'Background video', 'Use a video as the visual background and its soundtrack.'], ['none', 'No audio', 'Create silent visuals.']];
-        panel.innerHTML = '<p class="wizard-panel-kicker">02 · Media</p>' +
-            '<h3 class="wizard-panel-title">What are you starting with?</h3>' +
-            '<p class="wizard-panel-hint">Pick your source. You will not need to come back here later.</p>' +
-            '<div class="wizard-choices wizard-source-choices">' +
-            options.map(([v, l, h]) => `<button type="button" class="wizard-choice${wizard.source === v ? ' selected' : ''}" data-source="${v}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${SOURCE_ICONS[v]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${l}</strong><span>${h}</span></span></button>`).join('') +
-            '</div>' +
-            (wizard.source ? `<div class="wizard-source-action"><strong>${statusTextForSource()}</strong><button type="button" id="wizardSourceAction" class="file-button">${sourceReady() ? 'Replace media' : 'Choose media'}</button></div>` : '');
-        panel.querySelectorAll('[data-source]').forEach(btn => btn.addEventListener('click', () => applySourceChoice(btn.dataset.source)));
-        $('wizardSourceAction')?.addEventListener('click', sourceAction);
-    }
-
     function renderPreview() {
         const st = window.state || {};
         const media = window.kefeMedia || {};
@@ -201,17 +171,13 @@
             ['Source', labels[st.audioSource?.master] || (wizard.source === 'media' ? 'Background video' : wizard.source === 'none' ? 'No audio' : 'Audio file')]
         ];
         if (wizard.choice === 'visualiser') rows.push(['Text', 'None — clean visuals']);
-        else if (wizard.choice === 'captioned') rows.push(['Captions', st.captions?.lines?.length ? `${st.captions.lines.length} segments` : 'Not generated']);
+        else if (wizard.choice === 'captioned') rows.push(['Captions', st.captions?.lines?.length ? `${st.captions.lines.length} segments` : 'Generated']);
         else rows.push(['Lyrics', st.lyrics?.lines?.length ? `${st.lyrics.lines.length} lines` : 'Loaded']);
         rows.push(['Effect', st.style?.effect || 'Apple']);
         rows.push(['Visual FX', st.style?.visualFx && st.style.visualFx !== 'none' ? st.style.visualFx : 'Off']);
         rows.push(['Background', media.video ? 'Video' : media.image ? 'Image' : `Solid ${st.background?.solid || '#0A0A0A'}`]);
         rows.push(['Title intro', st.style?.titleCardEnabled === false ? 'Off' : 'On']);
-        panel.innerHTML = '<p class="wizard-panel-kicker">Preview</p>' +
-            '<h3 class="wizard-panel-title">Your video is ready to review</h3>' +
-            '<p class="wizard-panel-hint">Play it once. If everything looks right, continue to export.</p>' +
-            '<div class="wizard-summary">' + rows.map(([k, v]) => `<div class="wizard-summary-row"><span>${k}</span><strong>${v}</strong></div>`).join('') + '</div>' +
-            '<button type="button" id="wizardPlayBtn" class="primary full-width">Play full preview</button>';
+        panel.innerHTML = '<p class="wizard-panel-kicker">06 · Preview</p><h3 class="wizard-panel-title">Review your video</h3><p class="wizard-panel-hint">Play it once. Everything is already applied and ready for export.</p><div class="wizard-summary">' + rows.map(([k, v]) => `<div class="wizard-summary-row"><span>${k}</span><strong>${v}</strong></div>`).join('') + '</div><button type="button" id="wizardPlayBtn" class="primary full-width">Play full preview</button>';
         $('wizardPlayBtn').addEventListener('click', () => $('playBtn')?.click());
     }
 
@@ -219,8 +185,9 @@
         const steps = stepsFor();
         const step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
+        body.classList.toggle('wizard-style-mode', step === 'style');
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        if ((step === 'preview' || step === 'review') && previewEl) {
+        if (step === 'preview' && previewEl) {
             previewEl.classList.remove('preview-collapsed');
             previewEl.classList.add('preview-expanded');
         }
@@ -251,15 +218,13 @@
         if (firstTarget && firstTarget !== panel) {
             stepHeading.textContent = STEP_TITLES[step] || step;
             firstTarget.prepend(stepHeading);
-        } else {
-            stepHeading.remove();
-        }
+        } else stepHeading.remove();
 
         $('wizardProgress').textContent = `${pad(wizard.index + 1)} / ${pad(steps.length)}`;
         $('wizardStepLabel').textContent = STEP_LABELS[step] || '';
         $('wizardBackBtn').disabled = wizard.index === 0;
         const next = $('wizardNextBtn');
-        next.textContent = step === 'preview' ? 'Continue to export' : step === 'review' ? 'Export' : 'Next';
+        next.textContent = step === 'preview' ? 'Go to export' : 'Next';
         next.disabled = !nextEnabled(step);
         if (firstTarget) {
             firstTarget.setAttribute('tabindex', '-1');
@@ -272,7 +237,6 @@
         const b = $('wizardNextBtn');
         if (step && b) b.disabled = !nextEnabled(step);
     }
-
     function finishWizard() {
         clearTimeout(fadeTimer);
         sidebar.classList.remove('wizard-fading');
@@ -280,13 +244,12 @@
         nav.remove();
         panel.remove();
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        body.classList.remove('wizard-mode', 'wizard-src-audio', 'wizard-src-media');
+        body.classList.remove('wizard-mode', 'wizard-style-mode');
         delete body.dataset.wizardStep;
         document.querySelectorAll('.section-nav-link').forEach(link => link.classList.toggle('active', link.dataset.nav === 'export'));
         document.querySelectorAll('.sidebar .section').forEach(s => s.classList.toggle('active', s.id === 'exportSection'));
         $('exportSection')?.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
     }
-
     function goTo(index) {
         const steps = stepsFor();
         if (index < 0 || index >= steps.length) return;
@@ -294,23 +257,19 @@
         if (reducedMotion) return applyStep();
         sidebar.classList.add('wizard-fading');
         clearTimeout(fadeTimer);
-        fadeTimer = setTimeout(() => {
-            applyStep();
-            sidebar.classList.remove('wizard-fading');
-        }, 150);
+        fadeTimer = setTimeout(() => { applyStep(); sidebar.classList.remove('wizard-fading'); }, 150);
     }
 
     $('wizardBackBtn').addEventListener('click', () => goTo(wizard.index - 1));
     $('wizardNextBtn').addEventListener('click', () => {
         const step = stepsFor()[wizard.index];
         if (!nextEnabled(step)) return;
-        if (step === 'review') return finishWizard();
+        if (step === 'preview') return finishWizard();
         goTo(wizard.index + 1);
     });
     $('wizardSkipBtn').addEventListener('click', finishWizard);
-
-    sidebar.addEventListener('input', refreshNextState);
-    sidebar.addEventListener('change', refreshNextState);
+    sidebar.addEventListener('input', () => setTimeout(refreshNextState, 0));
+    sidebar.addEventListener('change', () => setTimeout(refreshNextState, 0));
     sidebar.addEventListener('click', () => setTimeout(refreshNextState, 0));
     applyStep();
 })();
