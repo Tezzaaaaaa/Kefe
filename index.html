@@ -11,20 +11,16 @@
     <link rel="stylesheet" href="./effects/effect-selector.css">
     <link rel="stylesheet" href="./ui/background-presets.css">
     <link rel="stylesheet" href="./ui/caption-generator.css">
-    <link rel="stylesheet" href="./ui/preview-layout.css">
-    <link rel="stylesheet" href="./ui/ui-polish.css">
-    <link rel="stylesheet" href="./wizard.css">
     <link rel="stylesheet" href="./ui/auth-ui.css">
+    <link rel="stylesheet" href="./ui/wizard.css">
+    <link rel="stylesheet" href="./ui/wizard-mobile.css">
 </head>
 <body>
 <div class="app">
     <header>
         <a class="brand" href="./" aria-label="KEFE Visualiser home" title="Return home"><img class="brand-logo brand-logo-day" src="./assets/branding/kefe-logo.svg" alt="KEFE"><img class="brand-logo brand-logo-night" src="./assets/branding/kefe-logo-light.svg" alt="" aria-hidden="true"><span class="brand-descriptor" aria-hidden="true"><span>V</span><span>I</span><span>S</span><span>U</span><span>A</span><span>L</span><span>I</span><span>S</span><span>E</span><span>R</span></span></a>
         <div class="header-actions">
-            <label class="theme-control" for="themeSelect">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg>
-                <select id="themeSelect" aria-label="Theme"><option value="system">System</option><option value="day">Day</option><option value="night">Night</option></select>
-            </label>
+            <label class="theme-control" for="themeSelect"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg><select id="themeSelect" aria-label="Theme"><option value="system">System</option><option value="day">Day</option><option value="night">Night</option></select></label>
             <button id="resetBtn" type="button" class="icon-button" aria-label="Reset project" title="Reset project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7v5h5M5.4 12a7.5 7.5 0 1 0 2.1-5.2L4 10"/></svg></button>
             <button id="exportBtn" type="button" class="primary export-action"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M8 11l4 4 4-4M5 20h14"/></svg><span>Export</span></button>
         </div>
@@ -38,306 +34,31 @@
                 <a href="#backgroundSection" class="section-nav-link" data-nav="background"><span>04</span><strong>Background</strong></a>
                 <a href="#exportSection" class="section-nav-link" data-nav="export"><span>05</span><strong>Export</strong></a>
             </nav>
-
-            <!-- 01 AUDIO -->
             <div class="section" id="audioSection">
                 <h3><span class="section-index">01</span> Audio</h3>
-                <div class="drop-zone" id="audioDrop">
-                    <button type="button" id="audioChooseBtn" class="file-button">Choose audio file…</button>
-                    <p class="control-hint">or drag &amp; drop an MP3 / WAV / M4A here</p>
-                    <input type="file" id="audioInput" accept="audio/*" class="hidden">
-                </div>
+                <div class="drop-zone" id="audioDrop"><button type="button" id="audioChooseBtn" class="file-button">Choose audio file…</button><p class="control-hint">or drag &amp; drop an MP3 / WAV / M4A here</p><input type="file" id="audioInput" accept="audio/*" class="hidden"></div>
                 <div id="audioStatus" class="status">No audio loaded</div>
-
-                <div class="sub-block">
-                    <div class="sub-heading">Master audio source</div>
-                    <div id="audioSourceButtons" class="segmented"></div>
-                    <div id="audioSourceStatus" class="sub-hint"></div>
-                </div>
-
-                <div class="metadata-grid">
-                    <label>Title<input type="text" id="metaTitle" placeholder="Song title"></label>
-                    <label>Artist<input type="text" id="metaArtist" placeholder="Artist"></label>
-                    <label>Album<input type="text" id="metaAlbum" placeholder="Album"></label>
-                </div>
+                <div class="sub-block"><div class="sub-heading">Master audio source</div><div id="audioSourceButtons" class="segmented"></div><div id="audioSourceStatus" class="sub-hint"></div></div>
+                <div class="metadata-grid"><label>Title<input type="text" id="metaTitle" placeholder="Song title"></label><label>Artist<input type="text" id="metaArtist" placeholder="Artist"></label><label>Album<input type="text" id="metaAlbum" placeholder="Album"></label></div>
             </div>
-
-            <!-- 02 LYRICS & CAPTIONS -->
             <div class="section" id="textSection">
                 <h3><span class="section-index">02</span> Lyrics &amp; Captions</h3>
-                <div class="segmented" role="tablist" aria-label="Text mode">
-                    <button type="button" class="segmented-btn active" data-text-mode="lyrics">Lyrics</button>
-                    <button type="button" class="segmented-btn" data-text-mode="captions">Captions</button>
-                </div>
-
-                <div id="lyricsPanel" class="text-panel">
-                    <div id="lyricsStatus" class="status">No lyrics loaded</div>
-                    <div class="lyrics-actions">
-                        <button type="button" id="findLyricsBtn" class="file-button">Find lyrics automatically</button>
-                        <button type="button" id="editLyricsBtn" class="file-button">Edit / paste lyrics</button>
-                        <button type="button" id="uploadLrcMain" class="file-button">Upload .lrc file</button>
-                    </div>
-
-                    <div id="lyricStyleBlock" class="sub-block">
-                        <div class="sub-heading">Style</div>
-                        <div class="effect-buttons">
-                            <button type="button" class="segmented-btn" data-effect="apple">Apple</button>
-                            <button type="button" class="segmented-btn" data-effect="brat">Brat</button>
-                            <button type="button" class="segmented-btn" data-effect="eternal">Eternal Sunshine</button>
-                            <button type="button" class="segmented-btn" data-effect="aurora">Aurora</button>
-                            <button type="button" class="segmented-btn" data-effect="pulse">Pulse</button>
-                            <button type="button" class="segmented-btn" data-effect="typewriter">Typewriter</button>
-                            <button type="button" class="segmented-btn" data-effect="instagram">Instagram</button>
-                            <button type="button" class="segmented-btn" data-effect="fadeup">Fade Up</button>
-                        </div>
-                        <div id="effectLabel" class="effect-label"></div>
-                    </div>
-
-                    <div class="sub-block">
-                        <div class="sub-heading">Sync</div>
-                        <div class="control-row">
-                            <label for="lyricsOffset">Offset <span id="offsetVal">0.00s</span></label>
-                            <input type="range" id="lyricsOffset" min="-10" max="10" step="0.01" value="0">
-                        </div>
-                        <div class="nudge-row">
-                            <button type="button" data-nudge="-0.5">-0.5s</button>
-                            <button type="button" data-nudge="-0.1">-0.1s</button>
-                            <button type="button" id="resetOffset">Reset</button>
-                            <button type="button" data-nudge="0.1">+0.1s</button>
-                            <button type="button" data-nudge="0.5">+0.5s</button>
-                        </div>
-                        <label class="toggle-row"><input type="checkbox" id="syncLive"><span class="toggle-switch"></span> Live-adjust while playing</label>
-                    </div>
-                </div>
-
-                <div id="captionsPanel" class="text-panel hidden">
-                    <div id="captionsStatus" class="status">No captions generated</div>
-                    <div class="lyrics-actions">
-                        <button type="button" id="autoCaptionsBtn" class="file-button">Auto-generate timing</button>
-                        <button type="button" id="editCaptionsBtn" class="file-button">Edit caption blocks</button>
-                    </div>
-
-                    <div class="sub-block">
-                        <div class="sub-heading">Caption style</div>
-                        <div class="caption-pos-row">
-                            <button type="button" class="segmented-btn" data-caption-pos="bottom">Bottom</button>
-                            <button type="button" class="segmented-btn" data-caption-pos="top">Top</button>
-                        </div>
-                        <div class="caption-style-grid">
-                            <label>Colour<input type="color" id="captionColor" value="#FFFFFF" class="caption-color-input"></label>
-                            <div class="control-row">
-                                <label for="captionOpacity">Opacity <span id="captionOpacityVal">100%</span></label>
-                                <input type="range" id="captionOpacity" min="30" max="100" step="1" value="100">
-                            </div>
-                            <label class="toggle-row"><input type="checkbox" id="captionShadow" checked><span class="toggle-switch"></span> Drop shadow</label>
-                        </div>
-                    </div>
-                </div>
+                <div class="segmented" role="tablist" aria-label="Text mode"><button type="button" class="segmented-btn active" data-text-mode="lyrics">Lyrics</button><button type="button" class="segmented-btn" data-text-mode="captions">Captions</button></div>
+                <div id="lyricsPanel" class="text-panel"><div id="lyricsStatus" class="status">No lyrics loaded</div><div class="lyrics-actions"><button type="button" id="findLyricsBtn" class="file-button">Find lyrics automatically</button><button type="button" id="editLyricsBtn" class="file-button">Edit / paste lyrics</button><button type="button" id="uploadLrcMain" class="file-button">Upload .lrc file</button></div><div id="lyricStyleBlock" class="sub-block"><div class="sub-heading">Style</div><div class="effect-buttons"><button type="button" class="segmented-btn" data-effect="apple">Apple</button><button type="button" class="segmented-btn" data-effect="brat">Brat</button><button type="button" class="segmented-btn" data-effect="eternal">Eternal Sunshine</button><button type="button" class="segmented-btn" data-effect="aurora">Aurora</button><button type="button" class="segmented-btn" data-effect="pulse">Pulse</button><button type="button" class="segmented-btn" data-effect="typewriter">Typewriter</button><button type="button" class="segmented-btn" data-effect="instagram">Instagram</button><button type="button" class="segmented-btn" data-effect="fadeup">Fade Up</button></div><div id="effectLabel" class="effect-label"></div></div><div class="sub-block"><div class="sub-heading">Sync</div><div class="control-row"><label for="lyricsOffset">Offset <span id="offsetVal">0.00s</span></label><input type="range" id="lyricsOffset" min="-10" max="10" step="0.01" value="0"></div><div class="nudge-row"><button type="button" data-nudge="-0.5">-0.5s</button><button type="button" data-nudge="-0.1">-0.1s</button><button type="button" id="resetOffset">Reset</button><button type="button" data-nudge="0.1">+0.1s</button><button type="button" data-nudge="0.5">+0.5s</button></div><label class="toggle-row"><input type="checkbox" id="syncLive"><span class="toggle-switch"></span> Live-adjust while playing</label></div></div>
+                <div id="captionsPanel" class="text-panel hidden"><div id="captionsStatus" class="status">No captions generated</div><div class="lyrics-actions"><button type="button" id="autoCaptionsBtn" class="file-button">Auto-generate timing</button><button type="button" id="editCaptionsBtn" class="file-button">Edit caption blocks</button></div><div class="sub-block"><div class="sub-heading">Caption style</div><div class="caption-pos-row"><button type="button" class="segmented-btn" data-caption-pos="bottom">Bottom</button><button type="button" class="segmented-btn" data-caption-pos="top">Top</button></div><div class="caption-style-grid"><label>Colour<input type="color" id="captionColor" value="#FFFFFF" class="caption-color-input"></label><div class="control-row"><label for="captionOpacity">Opacity <span id="captionOpacityVal">100%</span></label><input type="range" id="captionOpacity" min="30" max="100" step="1" value="100"></div><label class="toggle-row"><input type="checkbox" id="captionShadow" checked><span class="toggle-switch"></span> Drop shadow</label></div></div></div>
             </div>
-
-            <!-- 03 VISUAL FX (container only — populated by app.js / effect-app-fx.js) -->
-            <div class="section" id="fxSection">
-                <h3><span class="section-index">03</span> Visual FX</h3>
-                <div id="effectControls"></div>
-            </div>
-
-            <!-- 04 BACKGROUND -->
-            <div class="section" id="backgroundSection">
-                <h3><span class="section-index">04</span> Background</h3>
-                <div class="background-choice-grid">
-                    <button type="button" class="background-choice" data-background-preset="solid" style="--kefe-bg-solid-preview:#0A0A0A">
-                        <span class="background-choice-preview background-choice-swatch"></span>
-                        <span class="background-choice-label">Solid colour</span>
-                    </button>
-                    <button type="button" class="background-choice" data-background-preset="gradient">
-                        <span class="background-choice-preview"></span>
-                        <span class="background-choice-label">Soft gradient</span>
-                    </button>
-                    <button type="button" class="background-choice" data-background-preset="spotlight">
-                        <span class="background-choice-preview"></span>
-                        <span class="background-choice-label">Spotlight</span>
-                    </button>
-                    <button type="button" class="background-choice" data-background-preset="aurora">
-                        <span class="background-choice-preview"></span>
-                        <span class="background-choice-label">Aurora wash</span>
-                    </button>
-                    <button type="button" class="background-choice" data-background-preset="grid">
-                        <span class="background-choice-preview"></span>
-                        <span class="background-choice-label">Fine grid</span>
-                    </button>
-                    <button type="button" class="background-choice" data-background-preset="grain">
-                        <span class="background-choice-preview"></span>
-                        <span class="background-choice-label">Film grain</span>
-                    </button>
-                </div>
-                <label>Colour <input type="color" id="backgroundColor" value="#0A0A0A"> <span id="backgroundColorValue">#0A0A0A</span></label>
-                <div class="background-upload-divider">or use your own image / video</div>
-                <div class="drop-zone" id="bgDrop">
-                    <label class="file-button" for="backgroundInput">Choose image or video…</label>
-                    <p class="control-hint">or drag &amp; drop here</p>
-                    <input type="file" id="backgroundInput" accept="image/*,video/*" class="hidden">
-                </div>
-                <div id="backgroundStatus" class="status"></div>
-                <div class="bg-controls">
-                    <div class="control-row">
-                        <label for="bgDim">Dim <span id="bgDimVal">35%</span></label>
-                        <input type="range" id="bgDim" min="0" max="90" step="1" value="35">
-                    </div>
-                    <div class="control-row">
-                        <label for="bgBlur">Blur <span id="bgBlurVal">0px</span></label>
-                        <input type="range" id="bgBlur" min="0" max="30" step="1" value="0">
-                    </div>
-                </div>
-
-                <div class="sub-block">
-                    <div class="sub-heading">Title card</div>
-                    <label class="toggle-row"><input type="checkbox" id="titleCardEnabled" checked><span class="toggle-switch"></span> Show title card</label>
-                    <div class="control-row">
-                        <label for="titleCardDuration">Duration <span id="titleCardDurationVal">3s</span></label>
-                        <input type="range" id="titleCardDuration" min="1" max="15" step="1" value="3">
-                    </div>
-                    <label>Style
-                        <select id="titleCardStyle">
-                            <option value="auto">Auto (matches effect)</option>
-                            <option value="minimal">Minimal</option>
-                            <option value="spotlight">Spotlight</option>
-                            <option value="editorial">Editorial</option>
-                            <option value="statement">Statement</option>
-                        </select>
-                    </label>
-                    <div id="titleCardStyleHint" class="sub-hint"></div>
-                </div>
-            </div>
-
-            <!-- 05 EXPORT -->
-            <div class="section" id="exportSection">
-                <h3><span class="section-index">05</span> Export</h3>
-                <label>Quality / preset
-                    <select id="exportPreset">
-                        <option value="720p" selected>720p (recommended)</option>
-                        <option value="1080p">1080p</option>
-                        <option value="480p">480p (fastest)</option>
-                        <option value="instagram">Instagram (1080×1920)</option>
-                        <option value="tiktok">TikTok (1080×1920)</option>
-                    </select>
-                </label>
-                <label>Aspect ratio
-                    <select id="aspectSelect">
-                        <option value="9:16">1080 × 1920 (Vertical)</option>
-                        <option value="1:1">1080 × 1080 (Square)</option>
-                        <option value="16:9">1920 × 1080 (Horizontal)</option>
-                    </select>
-                </label>
-                <div id="aspectInfo" class="aspect-info"></div>
-                <button type="button" id="exportBottom" class="primary export-action">Export video</button>
-
-                <div class="sub-block">
-                    <div class="sub-heading">Project file</div>
-                    <div class="lyrics-actions">
-                        <button type="button" id="saveProject" class="file-button">Save project</button>
-                        <button type="button" id="loadProject" class="file-button">Open project</button>
-                    </div>
-                    <input type="file" id="projectFileInput" accept="application/json,.kefe,.json" class="hidden">
-                </div>
-            </div>
+            <div class="section" id="fxSection"><h3><span class="section-index">03</span> Visual FX</h3><div id="effectControls"></div></div>
+            <div class="section" id="backgroundSection"><h3><span class="section-index">04</span> Background</h3><div class="background-choice-grid"><button type="button" class="background-choice" data-background-preset="solid" style="--kefe-bg-solid-preview:#0A0A0A"><span class="background-choice-preview background-choice-swatch"></span><span class="background-choice-label">Solid colour</span></button><button type="button" class="background-choice" data-background-preset="gradient"><span class="background-choice-preview"></span><span class="background-choice-label">Soft gradient</span></button><button type="button" class="background-choice" data-background-preset="spotlight"><span class="background-choice-preview"></span><span class="background-choice-label">Spotlight</span></button><button type="button" class="background-choice" data-background-preset="aurora"><span class="background-choice-preview"></span><span class="background-choice-label">Aurora wash</span></button><button type="button" class="background-choice" data-background-preset="grid"><span class="background-choice-preview"></span><span class="background-choice-label">Fine grid</span></button><button type="button" class="background-choice" data-background-preset="grain"><span class="background-choice-preview"></span><span class="background-choice-label">Film grain</span></button></div><label>Colour <input type="color" id="backgroundColor" value="#0A0A0A"> <span id="backgroundColorValue">#0A0A0A</span></label><div class="background-upload-divider">or use your own image / video</div><div class="drop-zone" id="bgDrop"><label class="file-button" for="backgroundInput">Choose image or video…</label><p class="control-hint">or drag &amp; drop here</p><input type="file" id="backgroundInput" accept="image/*,video/*" class="hidden"></div><div id="backgroundStatus" class="status"></div><div class="bg-controls"><div class="control-row"><label for="bgDim">Dim <span id="bgDimVal">35%</span></label><input type="range" id="bgDim" min="0" max="90" step="1" value="35"></div><div class="control-row"><label for="bgBlur">Blur <span id="bgBlurVal">0px</span></label><input type="range" id="bgBlur" min="0" max="30" step="1" value="0"></div></div><div class="sub-block"><div class="sub-heading">Title card</div><label class="toggle-row"><input type="checkbox" id="titleCardEnabled" checked><span class="toggle-switch"></span> Show title card</label><div class="control-row"><label for="titleCardDuration">Duration <span id="titleCardDurationVal">3s</span></label><input type="range" id="titleCardDuration" min="1" max="15" step="1" value="3"></div><label>Style<select id="titleCardStyle"><option value="auto">Auto (matches effect)</option><option value="minimal">Minimal</option><option value="spotlight">Spotlight</option><option value="editorial">Editorial</option><option value="statement">Statement</option></select></label><div id="titleCardStyleHint" class="sub-hint"></div></div></div>
+            <div class="section" id="exportSection"><h3><span class="section-index">05</span> Export</h3><label>Quality / preset<select id="exportPreset"><option value="720p" selected>720p (recommended)</option><option value="1080p">1080p</option><option value="480p">480p (fastest)</option><option value="instagram">Instagram (1080×1920)</option><option value="tiktok">TikTok (1080×1920)</option></select></label><label>Aspect ratio<select id="aspectSelect"><option value="9:16">1080 × 1920 (Vertical)</option><option value="1:1">1080 × 1080 (Square)</option><option value="16:9">1920 × 1080 (Horizontal)</option></select></label><div id="aspectInfo" class="aspect-info"></div><button type="button" id="exportBottom" class="primary export-action">Export video</button><div class="sub-block"><div class="sub-heading">Project file</div><div class="lyrics-actions"><button type="button" id="saveProject" class="file-button">Save project</button><button type="button" id="loadProject" class="file-button">Open project</button></div><input type="file" id="projectFileInput" accept="application/json,.kefe,.json" class="hidden"></div></div>
         </aside>
-        <section class="preview">
-            <div class="preview-toolbar">
-                <div class="preview-heading"><strong>Preview</strong><span id="previewStatus">Ready</span><span id="previewModeBadge" class="mode-badge">Lyrics</span></div>
-                <div class="transport">
-                    <button type="button" id="playBtn" class="play-button" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg></button>
-                    <button type="button" id="stopBtn" class="icon-button" aria-label="Stop"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/></svg></button>
-                    <input type="range" id="seek" class="slider" min="0" max="0" step="0.01" value="0">
-                    <span id="clock">0:00 / 0:00</span>
-                </div>
-            </div>
-            <div class="canvas-wrapper"><canvas id="stageCanvas"></canvas></div>
-        </section>
+        <section class="preview"><div class="preview-toolbar"><div class="preview-heading"><strong>Preview</strong><span id="previewStatus">Ready</span><span id="previewModeBadge" class="mode-badge">Lyrics</span></div><div class="transport"><button type="button" id="playBtn" class="play-button" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg></button><button type="button" id="stopBtn" class="icon-button" aria-label="Stop"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/></svg></button><input type="range" id="seek" class="slider" min="0" max="0" step="0.01" value="0"><span id="clock">0:00 / 0:00</span></div></div><div class="canvas-wrapper"><canvas id="stageCanvas"></canvas></div></section>
     </main>
 </div>
-
-<!-- Lyrics editor modal -->
-<div id="lyricsEditor" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header"><strong>Edit lyrics (LRC)</strong><button type="button" id="closeEditor" class="close-btn" aria-label="Close">&times;</button></div>
-        <div class="modal-body">
-            <textarea id="lyricsText" rows="14" placeholder="[00:12.34]First line of lyrics&#10;[00:15.80]Next line…"></textarea>
-            <div id="editorStatus" class="status"></div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" id="pasteLyrics" class="file-button">Paste from clipboard</button>
-            <button type="button" id="uploadLrc" class="file-button">Upload .lrc file</button>
-            <input type="file" id="lrcFileInput" accept=".lrc,.txt" class="hidden">
-            <button type="button" id="cancelEditor" class="ghost">Cancel</button>
-            <button type="button" id="saveLyrics" class="primary">Save</button>
-        </div>
-    </div>
-</div>
-
-<!-- Captions editor modal -->
-<div id="captionsEditor" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header"><strong>Edit caption blocks</strong><button type="button" id="closeCaptions" class="close-btn" aria-label="Close">&times;</button></div>
-        <div class="modal-body">
-            <div class="lyrics-actions">
-                <button type="button" id="addCaptionRow" class="file-button">Add block</button>
-                <button type="button" id="clearCaptionText" class="file-button">Clear all text</button>
-                <button type="button" id="pasteCaptions" class="file-button">Paste text from clipboard</button>
-            </div>
-            <textarea id="captionsBulkText" rows="4" placeholder="Paste the full transcript here, then Fit Text to Blocks"></textarea>
-            <button type="button" id="distributeCaptions" class="file-button">Fit text to blocks</button>
-            <div id="captionsRows" class="caption-rows"></div>
-            <div id="captionsEditorStatus" class="status"></div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" id="cancelCaptions" class="ghost">Cancel</button>
-            <button type="button" id="saveCaptions" class="primary">Save</button>
-        </div>
-    </div>
-</div>
-
-<!-- Export preflight modal -->
-<div id="exportPreflight" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header"><strong>Ready to export</strong></div>
-        <div class="modal-body">
-            <div id="preflightSummary" class="preflight-list"></div>
-            <div id="preflightWarning" class="preflight-warning hidden"></div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" id="closePreflight" class="close-btn" aria-label="Close">&times;</button>
-            <button type="button" id="cancelPreflight" class="ghost">Cancel</button>
-            <button type="button" id="confirmExport" class="primary">Start export</button>
-        </div>
-    </div>
-</div>
-
-<!-- Export progress overlay -->
-<div id="exportOverlay" class="overlay hidden">
-    <div class="modal-content">
-        <div id="exportStatus" class="status">Exporting…</div>
-        <progress id="exportProgress" value="0" max="100"></progress>
-        <span id="exportPct">0%</span>
-        <button type="button" id="cancelExport" class="ghost">Cancel</button>
-    </div>
-</div>
-
+<div id="lyricsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Edit lyrics (LRC)</strong><button type="button" id="closeEditor" class="close-btn" aria-label="Close">&times;</button></div><div class="modal-body"><textarea id="lyricsText" rows="14" placeholder="[00:12.34]First line of lyrics&#10;[00:15.80]Next line…"></textarea><div id="editorStatus" class="status"></div></div><div class="modal-footer"><button type="button" id="pasteLyrics" class="file-button">Paste from clipboard</button><button type="button" id="uploadLrc" class="file-button">Upload .lrc file</button><input type="file" id="lrcFileInput" accept=".lrc,.txt" class="hidden"><button type="button" id="cancelEditor" class="ghost">Cancel</button><button type="button" id="saveLyrics" class="primary">Save</button></div></div></div>
+<div id="captionsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Edit caption blocks</strong><button type="button" id="closeCaptions" class="close-btn" aria-label="Close">&times;</button></div><div class="modal-body"><div class="lyrics-actions"><button type="button" id="addCaptionRow" class="file-button">Add block</button><button type="button" id="clearCaptionText" class="file-button">Clear all text</button><button type="button" id="pasteCaptions" class="file-button">Paste text from clipboard</button></div><textarea id="captionsBulkText" rows="4" placeholder="Paste the full transcript here, then Fit Text to Blocks"></textarea><button type="button" id="distributeCaptions" class="file-button">Fit text to blocks</button><div id="captionsRows" class="caption-rows"></div><div id="captionsEditorStatus" class="status"></div></div><div class="modal-footer"><button type="button" id="cancelCaptions" class="ghost">Cancel</button><button type="button" id="saveCaptions" class="primary">Save</button></div></div></div>
+<div id="exportPreflight" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Ready to export</strong></div><div class="modal-body"><div id="preflightSummary" class="preflight-list"></div><div id="preflightWarning" class="preflight-warning hidden"></div></div><div class="modal-footer"><button type="button" id="closePreflight" class="close-btn" aria-label="Close">&times;</button><button type="button" id="cancelPreflight" class="ghost">Cancel</button><button type="button" id="confirmExport" class="primary">Start export</button></div></div></div>
+<div id="exportOverlay" class="overlay hidden"><div class="modal-content"><div id="exportStatus" class="status">Exporting…</div><progress id="exportProgress" value="0" max="100"></progress><span id="exportPct">0%</span><button type="button" id="cancelExport" class="ghost">Cancel</button></div></div>
 <div id="toast" class="toast"></div>
-
-<script src="./effects/core.js"></script>
-<script src="./effects/typewriter.js"></script>
-<script src="./effects/instagram-lyrics.js"></script>
-<script src="./effects/story-fade.js"></script>
-<script src="./effects/brat.js"></script>
-<script src="./effects/aurora.js"></script>
-<script src="./effects/eternal-sunshine.js"></script>
-<script src="./app.js"></script>
-<script src="./ui/typography.js"></script>
-<script src="./ui/background-presets.js"></script>
-<script src="./ui/caption-generator.js"></script>
-<script src="./wizard.js"></script>
-<script src="./ui/auth-ui.js"></script>
-<script src="./effects/effect-app-fx.js"></script>
-<script type="module" src="./export/ui.js"></script>
+<script src="./effects/core.js"></script><script src="./effects/typewriter.js"></script><script src="./effects/instagram-lyrics.js"></script><script src="./effects/story-fade.js"></script><script src="./effects/brat.js"></script><script src="./effects/aurora.js"></script><script src="./effects/eternal-sunshine.js"></script><script src="./app.js"></script><script src="./ui/typography.js"></script><script src="./ui/background-presets.js"></script><script src="./ui/caption-generator.js"></script><script src="./wizard.js"></script><script src="./ui/auth-ui.js"></script><script src="./effects/effect-app-fx.js"></script><script type="module" src="./export/ui.js"></script>
 </body>
 </html>
