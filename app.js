@@ -1442,6 +1442,15 @@ function render(ctx, w, h, appState, mediaCache) {
     } finally { ctx.restore(); }
 }
 
+// export/ui.js (a module, so it can't see this script's lexical `state`/`media`/
+// `render`) drives frame-accurate export by calling window.kefeRenderFrame for
+// each output frame. Without this bridge, export always fails immediately with
+// "KEFE export renderer is not connected".
+window.kefeRenderFrame = function(ctx, w, h, time) {
+    state.playback.currentTime = time;
+    render(ctx, w, h, state, media);
+};
+
 function getMasterMode() {
     return (state.audioSource && state.audioSource.master) || 'uploaded';
 }
