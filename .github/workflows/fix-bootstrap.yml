@@ -25,18 +25,19 @@ jobs:
           text = path.read_text(encoding='utf-8')
 
           bridge = '<script>window.state = state; window.canvas = canvas; window.kefeMedia = media; window.redrawCurrentPreviewFrame = redrawCurrentPreviewFrame; window.kefeRenderFrame = (targetCtx, width, height, time) => { state.playback.currentTime = time; render(targetCtx, width, height, state, media); }; window.isExporting = false;</script>'
+          media_fix = '<script src="./ui/wizard-media-fix.js?v=20260901-6"></script>'
 
           if bridge not in text:
-              raise SystemExit('Expected broken bootstrap bridge was not found; refusing to modify index.html')
+              raise SystemExit('Expected runtime bridge was not found; refusing to modify index.html')
 
+          # The bridge must run after app.js, where the lexical app state exists.
+          # The media handler must then run immediately after that bridge so it
+          # never depends on the background-presets runtime loader.
           text = text.replace(bridge, '', 1)
-
-          marker = '<script src="./app.js"></script>'
-          if marker not in text:
-              raise SystemExit('app.js script tag not found; refusing to modify index.html')
-
-          replacement = marker + '\n' + bridge
-          text = text.replace(marker, replacement, 1)
+          replacement = bridge
+          if media_fix not in text:
+              replacement += '\n' + media_fix
+          text = text.replace('<script src="./app.js"></script>', '<script src="./app.js"></script>\n' + replacement, 1)
 
           path.write_text(text, encoding='utf-8')
           PY
@@ -47,5 +48,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           git diff --cached --quiet && exit 0
-          git commit -m 'fix: initialise runtime bridge after app bootstrap'
+          git commit -m 'fix: load wizard media handler after app bootstrap'
           git push
