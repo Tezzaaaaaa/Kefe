@@ -1,0 +1,51 @@
+name: Fix KEFE bootstrap
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-bootstrap.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Repair script bootstrap order
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          bridge = '<script>window.state = state; window.canvas = canvas; window.kefeMedia = media; window.redrawCurrentPreviewFrame = redrawCurrentPreviewFrame; window.kefeRenderFrame = (targetCtx, width, height, time) => { state.playback.currentTime = time; render(targetCtx, width, height, state, media); }; window.isExporting = false;</script>'
+
+          if bridge not in text:
+              raise SystemExit('Expected broken bootstrap bridge was not found; refusing to modify index.html')
+
+          text = text.replace(bridge, '', 1)
+
+          marker = '<script src="./app.js"></script>'
+          if marker not in text:
+              raise SystemExit('app.js script tag not found; refusing to modify index.html')
+
+          replacement = marker + '\n' + bridge
+          text = text.replace(marker, replacement, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit repair
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix: initialise runtime bridge after app bootstrap'
+          git push
