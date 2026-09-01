@@ -1,15 +1,17 @@
 import { exportVideo, getExportConfig, resolveMasterInfo } from './index.js';
 
 const $ = id => document.getElementById(id);
-function replaceButton(id) { const current = $(id); if (!current) return null; const replacement = current.cloneNode(true); current.replaceWith(replacement); return replacement; }
-const exportTop = replaceButton('exportBtn');
-const exportBottom = replaceButton('exportBottom');
-const cancelButton = replaceButton('cancelExport');
-const confirmExport = replaceButton('confirmExport');
-const closePreflight = replaceButton('closePreflight');
-const cancelPreflight = replaceButton('cancelPreflight');
+// IMPORTANT: do not replace these DOM nodes. app.js attaches the authoritative
+// preflight click handlers to #exportBtn and #exportBottom before this module
+// loads. Cloning them silently removes those listeners and makes Export appear dead.
+const exportTop = $('exportBtn');
+const exportBottom = $('exportBottom');
+const cancelButton = $('cancelExport');
+const confirmExport = $('confirmExport');
+const closePreflight = $('closePreflight');
+const cancelPreflight = $('cancelPreflight');
 
-function cleanPart(value) { return String(value || '').replace(/[<>:"/\\|?*\u0000-\u001F]/g, ' ').replace(/\s+/g, ' ').replace(/[. ]+$/g, '').trim(); }
+function cleanPart(value) { return String(value || '').replace(/[<>:\"/\\|?*\u0000-\u001F]/g, ' ').replace(/\s+/g, ' ').replace(/[. ]+$/g, '').trim(); }
 function buildFilename() {
     const audio = window.state?.audio || {};
     const metadata = audio.metadata || {};
@@ -19,7 +21,6 @@ function buildFilename() {
     const artistInput = cleanPart($('metaArtist')?.value);
     let title = titleInput || cleanPart(metadata.title) || fallback || 'Lyric Video';
     let artist = artistInput || cleanPart(metadata.artist);
-    // For a video-as-master export there may be no uploaded audio file to name from.
     if (!filename) {
         const videoFile = window.kefeMedia?.videoFile;
         if (videoFile?.name) { const base = String(videoFile.name).replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim(); if (base) title = cleanPart(base); }
@@ -53,8 +54,7 @@ async function seekAndRender(ctx, width, height, time, signal) {
     }
     if (signal?.aborted) throw new DOMException('Export cancelled', 'AbortError');
     state.playback.currentTime = time;
-    const cappedTime = (state.playback.trimTo != null && time > state.playback.trimTo)
-        ? state.playback.trimTo : time;
+    const cappedTime = (state.playback.trimTo != null && time > state.playback.trimTo) ? state.playback.trimTo : time;
     renderExportFrame(ctx, width, height, cappedTime);
 }
 
@@ -63,11 +63,8 @@ async function runExport() {
     const media = window.kefeMedia || {};
     const master = resolveMasterInfo(state, media);
     if (!Number.isFinite(master.duration) || master.duration <= 0) throw new Error('Master duration is unavailable (load an audio file or a video with audio)');
-    // Visualiser / Custom compositions are valid without any timed text.
     const textRequired = !state.projectType || state.projectType === 'lyric' || state.projectType === 'captioned';
-    const timedLines = state.captions?.mode === 'captions'
-        ? (Array.isArray(state.captions?.lines) ? state.captions.lines : [])
-        : (Array.isArray(state.lyrics?.lines) ? state.lyrics.lines : []);
+    const timedLines = state.captions?.mode === 'captions' ? (Array.isArray(state.captions?.lines) ? state.captions.lines : []) : (Array.isArray(state.lyrics?.lines) ? state.lyrics.lines : []);
     if (textRequired && !timedLines.length) throw new Error('No timed text loaded — add synced lyrics or captions');
     if (typeof window.kefeRenderFrame !== 'function') throw new Error('KEFE export renderer is not connected');
     const preset = $('exportPreset')?.value || '720p';
@@ -109,20 +106,15 @@ async function startExport() {
 }
 
 function closePreflightModal() { $('exportPreflight')?.classList.add('hidden'); }
-// The Export buttons should open app.js's pre-export check first (project
-// validation, plus a summary of resolution/frame count/duration and a
-// "this may take a while on a phone" warning for demanding exports) — the
-// user confirms from there via #confirmExport, which is wired below to run
-// the actual export. Falls back to exporting directly only if that
-// preflight function is unexpectedly unavailable, so the button never goes
-// dead.
-exportTop?.addEventListener('click', () => (window.startExport ? window.startExport() : startExport()));
-exportBottom?.addEventListener('click', () => (window.startExport ? window.startExport() : startExport()));
+
+// app.js owns the two Export-button click handlers and opens preflight. Do NOT
+// add another click handler here: doing so would bypass preflight or start two
+// exports. This module only owns the actual confirmed export and overlay.
 cancelButton?.addEventListener('click', () => { if (window.isExporting) window.kefeExportAbort?.abort(); else $('exportOverlay')?.classList.add('hidden'); });
 confirmExport?.addEventListener('click', () => { closePreflightModal(); startExport(); });
 closePreflight?.addEventListener('click', closePreflightModal);
 cancelPreflight?.addEventListener('click', closePreflightModal);
-document.addEventListener('keydown', event => { if ((event.key === 'e' || event.key === 'E') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName)) { event.preventDefault(); event.stopImmediatePropagation(); startExport(); } }, true);
+document.addEventListener('keydown', event => { if ((event.key === 'e' || event.key === 'E') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName)) { event.preventDefault(); event.stopImmediatePropagation(); if ($('exportPreflight')?.classList.contains('hidden')) { exportTop?.click(); } } }, true);
 window.startOfflineExport = startExport;
 window.kefeCancelExport = () => window.kefeExportAbort?.abort();
 console.info('[KEFE] Integrated FFmpeg exporter loaded');
