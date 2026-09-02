@@ -1,5 +1,5 @@
 /* KEFE Music Intelligence UI
- * Visualises the local analysis and exposes beat snapping without taking over the renderer.
+ * Visualises local analysis and exposes beat snapping without taking over the renderer.
  */
 (() => {
   'use strict';
@@ -7,6 +7,25 @@
   function install() {
     const audioSection = document.getElementById('audioSection');
     if (!audioSection || document.getElementById('kefeMusicTimeline')) return;
+
+    if (!document.getElementById('kefeMusicIntelligenceCSS')) {
+      const style = document.createElement('style');
+      style.id = 'kefeMusicIntelligenceCSS';
+      style.textContent = `
+        .kefe-intelligence-panel .kefe-intel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+        .kefe-intelligence-panel .kefe-intel-grid>div{padding:8px;border:1px solid color-mix(in srgb,currentColor 14%,transparent);border-radius:8px}
+        .kefe-intelligence-panel .kefe-intel-grid span{display:block;font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:.08em}
+        .kefe-intelligence-panel .kefe-intel-grid strong{font-size:15px}
+        .kefe-intel-progress{height:3px;border-radius:3px;overflow:hidden;background:color-mix(in srgb,currentColor 10%,transparent);margin:7px 0}
+        .kefe-intel-progress span{display:block;height:100%;width:0;background:currentColor;transition:width .15s ease}
+        .kefe-waveform{display:block;width:100%;height:72px;border-radius:8px;background:color-mix(in srgb,currentColor 5%,transparent);margin:7px 0}
+        .kefe-timeline-legend{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:10px;opacity:.72}
+        .kefe-timeline-legend span::before{content:'';display:inline-block;width:10px;height:2px;background:currentColor;margin-right:4px;vertical-align:middle}
+        .kefe-timeline-legend button{margin-left:auto}
+        @media(max-width:700px){.kefe-timeline-legend button{width:100%;margin-left:0}}
+      `;
+      document.head.appendChild(style);
+    }
 
     const panel = document.createElement('div');
     panel.id = 'kefeMusicTimeline';
