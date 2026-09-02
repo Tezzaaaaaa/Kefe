@@ -1,3 +1,4 @@
+import { getQualityPreset } from './config.js';
 import { loadEncoder, releaseEncoder } from './encoder.js';
 
 function abortError() { return new DOMException('Export cancelled', 'AbortError'); }
@@ -125,6 +126,7 @@ export async function exportVideo({ state, media, config, renderFrame, buildFile
     const ctx = target.getContext('2d', { alpha: false });
     if (!ctx) throw new Error('Could not create export canvas');
 
+    const quality = getQualityPreset(window.kefeExportQuality || 'medium');
     const totalFrames = Math.max(1, Math.ceil(duration * config.fps));
     const framesPerSegment = Math.max(config.fps * 2, Math.round(config.fps * 4));
     const segmentChunks = [];
@@ -167,7 +169,7 @@ export async function exportVideo({ state, media, config, renderFrame, buildFile
 
                     const segmentName = `kefe-segment-${String(segment).padStart(4, '0')}.ts`;
                     progress(5 + ((firstFrame + frameCount) / totalFrames) * 65, `Encoding segment ${segment + 1} of ${segmentCount}…`);
-                    await execChecked(ffmpeg, ['-framerate', String(config.fps), '-start_number', '0', '-i', 'kefe-frame-%05d.jpg', '-frames:v', String(frameCount), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', '-r', String(config.fps), '-g', String(config.fps * 2), '-keyint_min', String(config.fps * 2), '-sc_threshold', '0', '-f', 'mpegts', '-y', segmentName], `segment ${segment + 1}`);
+                    await execChecked(ffmpeg, ['-framerate', String(config.fps), '-start_number', '0', '-i', 'kefe-frame-%05d.jpg', '-frames:v', String(frameCount), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', String(quality.crf), '-pix_fmt', 'yuv420p', '-r', String(config.fps), '-g', String(config.fps * 2), '-keyint_min', String(config.fps * 2), '-sc_threshold', '0', '-f', 'mpegts', '-y', segmentName], `segment ${segment + 1}`);
                     const segmentData = new Uint8Array(await ffmpeg.readFile(segmentName));
                     if (!segmentData.byteLength) throw new Error(`FFmpeg produced an empty segment ${segment + 1}`);
                     segmentChunks.push(segmentData);
@@ -235,7 +237,7 @@ export async function exportVideo({ state, media, config, renderFrame, buildFile
             if (audioName) muxArgs.push('-i', audioName);
             muxArgs.push('-map', '0:v:0');
             if (audioName) {
-                muxArgs.push('-map', '1:a:0', '-c:a', 'aac', '-b:a', '192k', '-af', 'aresample=async=1:first_pts=0');
+                muxArgs.push('-map', '1:a:0', '-c:a', 'aac', '-b:a', quality.audioBitrate, '-af', 'aresample=async=1:first_pts=0');
             } else {
                 muxArgs.push('-an');
             }
