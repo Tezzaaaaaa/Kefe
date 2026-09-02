@@ -1,0 +1,78 @@
+name: KEFE repository quality gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: kefe-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Format, syntax, static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Check JavaScript syntax and project checks
+        run: npm run check
+
+  megalinter:
+    name: Full repository sweep
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: MegaLinter
+        uses: oxsecurity/megalinter/flavors/javascript@v8.8.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_WORKSPACE: ${{ github.workspace }}
+          VALIDATE_ALL_CODEBASE: true
+          REPORT_OUTPUT_FOLDER: megalinter-reports
+          DISABLE_LINTERS: COPYPASTE_JSCPD,REPOSITORY_GITLEAKS
+          FIX: none
+
+  browser:
+    name: Browser functional verification
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run KEFE smoke test
+        run: npm run test:smoke
