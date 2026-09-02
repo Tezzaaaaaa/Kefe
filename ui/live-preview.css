@@ -1,0 +1,19 @@
+/* KEFE Live Preview — cinematic stage, restrained controls. */
+.preview{position:relative}
+.preview-live-meta{display:inline-flex;align-items:center;gap:9px;margin-left:auto;min-width:0}
+.preview-live-indicator{display:inline-flex;align-items:center;gap:6px;color:var(--text-3);font-size:9px;font-weight:750;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.preview-live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px var(--red-soft);animation:kefeLivePulse 1.8s ease-in-out infinite}
+.preview-live-effect{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-3);font-size:10px;font-weight:650}
+.preview-focus-button{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--text-2);cursor:pointer}
+.preview-focus-button:hover{border-color:var(--line-strong);color:var(--text);background:var(--surface-3)}
+.preview-focus-button:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.preview-focus-button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.preview-live-stage{position:absolute;left:18px;bottom:18px;z-index:2;display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid rgba(255,255,255,.12);border-radius:7px;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);color:rgba(255,255,255,.8);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .2s ease,transform .2s ease}
+.canvas-wrapper:hover .preview-live-stage,.preview:focus-within .preview-live-stage{opacity:1;transform:none}
+.preview:fullscreen{background:var(--bg);padding:0}
+.preview:fullscreen .preview-toolbar{padding:14px 20px}
+.preview:fullscreen .canvas-wrapper{padding:28px}
+.preview:fullscreen .preview-live-stage{opacity:1}
+@keyframes kefeLivePulse{0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:1;transform:scale(1)}}
+@media(max-width:700px){.preview-live-effect{display:none}.preview-live-meta{gap:6px}.preview-live-stage{left:10px;bottom:10px}}
+@media(prefers-reduced-motion:reduce){.preview-live-dot{animation:none}.preview-live-stage{transition:none}}
