@@ -70,13 +70,43 @@
     });
   }
 
+  /* Live preview chrome: keep the canvas itself as the rendering source of truth,
+     while exposing playback state and the selected lyric effect in the toolbar. */
+  function enhanceLivePreview() {
+    const heading = document.querySelector('.preview-heading');
+    const preview = document.querySelector('.preview');
+    if (!heading || !preview) return;
+    if (!heading.querySelector('.preview-live-badge')) {
+      const live = document.createElement('span');
+      live.className = 'preview-live-badge';
+      live.textContent = 'Live';
+      heading.appendChild(live);
+    }
+    if (!heading.querySelector('.preview-effect-badge')) {
+      const effect = document.createElement('span');
+      effect.className = 'preview-effect-badge';
+      heading.appendChild(effect);
+    }
+    const state = window.state;
+    const effectName = state?.style?.effect || document.querySelector('#lyricStyleBlock [data-effect].active-effect')?.dataset.effect || 'apple';
+    const effectBadge = heading.querySelector('.preview-effect-badge');
+    if (effectBadge) effectBadge.textContent = effectName.replace(/[-_]/g, ' ');
+    const liveBadge = heading.querySelector('.preview-live-badge');
+    const playing = Boolean(state?.playback?.isPlaying);
+    if (liveBadge) liveBadge.classList.toggle('is-playing', playing);
+    preview.classList.toggle('is-playing', playing);
+  }
+
   const observer = new MutationObserver(() => {
     enhanceChoiceAnimation();
     enhanceStylePanel();
     enhanceEffectButtons();
+    enhanceLivePreview();
   });
   observer.observe(body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-wizard-step', 'class'] });
   enhanceChoiceAnimation();
   enhanceStylePanel();
   enhanceEffectButtons();
+  enhanceLivePreview();
+  window.setInterval(enhanceLivePreview, 250);
 })();
