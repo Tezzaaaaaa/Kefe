@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const port = 4173;
-const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json' };
+const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json' };
 
 const server = createServer(async (req, res) => {
   try {
@@ -14,10 +14,16 @@ const server = createServer(async (req, res) => {
     const relative = url === '/' ? 'index.html' : url.replace(/^\/+/, '');
     const file = join(root, relative);
     const body = await readFile(file);
-    res.writeHead(200, { 'content-type': mime[extname(file)] || 'application/octet-stream', 'cache-control': 'no-store' });
+    res.writeHead(200, {
+      'content-type': mime[extname(file)] || 'application/octet-stream',
+      'content-length': body.byteLength,
+      'cache-control': 'no-store',
+      connection: 'close'
+    });
     res.end(body);
   } catch {
-    res.writeHead(404); res.end('Not found');
+    res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', connection: 'close' });
+    res.end('Not found');
   }
 });
 
@@ -31,7 +37,11 @@ function makeWav(seconds = 2, sampleRate = 16000) {
   return buffer;
 }
 
-await new Promise(resolve => server.listen(port, '127.0.0.1', resolve));
+await new Promise((resolve, reject) => {
+  server.once('error', reject);
+  server.listen(port, '127.0.0.1', resolve);
+});
+
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const errors = [];
@@ -39,7 +49,9 @@ page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
 page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
 
 try {
-  await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'domcontentloaded' });
+  const response = await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'commit', timeout: 10000 });
+  if (!response || !response.ok()) throw new Error(`Smoke server returned ${response?.status() ?? 'no response'} for index.html`);
+
   await page.waitForFunction(() => window.kefeRuntime?.ready === true, null, { timeout: 15000 });
   await page.waitForFunction(() => window.kefeCaptionGen && window.kefeAnalysis && window.kefeAutoCreate && window.kefeSmartRender, null, { timeout: 15000 });
 
