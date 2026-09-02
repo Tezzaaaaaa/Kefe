@@ -4,19 +4,20 @@
     display: inline-grid;
     place-items: center;
     padding: 0;
-    border: 1px solid var(--border, rgba(127, 127, 127, 0.25));
+    border: 1px solid var(--line-strong);
     border-radius: 10px;
-    background: transparent;
-    color: inherit;
+    background: var(--surface-2);
+    color: var(--text);
     cursor: pointer;
 }
 
 .theme-cycle-button:hover {
-    background: var(--surface-hover, rgba(127, 127, 127, 0.10));
+    background: var(--surface-3);
+    border-color: var(--line-strong);
 }
 
 .theme-cycle-button:focus-visible {
-    outline: 2px solid currentColor;
+    outline: 2px solid var(--red);
     outline-offset: 2px;
 }
 
@@ -28,4 +29,65 @@
     stroke-width: 1.7;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+/* Keep the editor's existing geometry and typography; adapt only presentation. */
+:root,
+[data-theme="day"],
+[data-theme="night"] {
+    color-scheme: light dark;
+}
+
+[data-theme="day"] {
+    color-scheme: light;
+}
+
+[data-theme="night"] {
+    color-scheme: dark;
+}
+
+[data-theme="day"] .theme-cycle-button {
+    border-color: rgba(10, 10, 8, 0.18);
+}
+
+[data-theme="night"] .theme-cycle-button {
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Explicitly keep common native controls legible in both themes. */
+[data-theme="day"] input,
+[data-theme="day"] select,
+[data-theme="day"] textarea {
+    background-color: var(--surface);
+    color: var(--text);
+    border-color: var(--line-strong);
+}
+
+[data-theme="night"] input,
+[data-theme="night"] select,
+[data-theme="night"] textarea {
+    background-color: var(--surface);
+    color: var(--text);
+    border-color: var(--line);
+}
+
+/* Day mode is a true light canvas; Night mode remains the existing dark canvas. */
+[data-theme="day"] body,
+[data-theme="day"] .app {
+    background: #ffffff;
+    color: #0a0a0a;
+}
+
+[data-theme="day"] header,
+[data-theme="day"] .sidebar,
+[data-theme="day"] .preview,
+[data-theme="day"] .section-nav {
+    background: var(--surface);
+    color: var(--text);
+}
+
+[data-theme="night"] body,
+[data-theme="night"] .app {
+    background: var(--bg);
+    color: var(--text);
 }
