@@ -9,7 +9,6 @@ permissions:
 
 jobs:
   apply:
-    if: hashFiles('Kefe-runway-redesign.zip') != ''
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,7 +16,17 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Check for redesign archive
+        id: archive
+        run: |
+          if [ -f Kefe-runway-redesign.zip ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Extract redesign
+        if: steps.archive.outputs.present == 'true'
         run: |
           set -euo pipefail
           rm -rf /tmp/runway
@@ -32,12 +41,15 @@ jobs:
           find "$src" -name '__MACOSX' -type d -prune -exec rm -rf {} +
           cp -a "$src"/. .
           rm -f Kefe-runway-redesign.zip
+          rm -f RUNWAY-EXTRACT-TRIGGER.txt
 
       - name: Commit extracted redesign
+        if: steps.archive.outputs.present == 'true'
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
+          git diff --cached --quiet && exit 0
           git commit -m 'Apply Runway redesign and clean source archive'
           git push
