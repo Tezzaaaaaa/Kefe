@@ -1,64 +1,50 @@
 /* KEFE — background video upload compatibility
  *
- * Background video detection previously attempted to decode the ENTIRE video
- * file through Web Audio before accepting it. On iOS/Safari and with large
- * MP4/MOV files this can stall the upload for a long time or never resolve.
+ * IMPORTANT: app.js must never decode an entire background video through
+ * Web Audio just to decide whether the video has an audio track. Large
+ * MP4/MOV files can make that operation extremely slow or hang on iOS/Safari.
  *
- * During a video upload we temporarily make that optional audio-track probe
- * fail fast, allowing the existing HTMLVideoElement loader to accept and
- * display the video immediately. The original AudioContext is restored after
- * the probe window so normal audio analysis remains untouched.
+ * This file is loaded before app.js, so it waits for the global
+ * detectVideoHasAudio function to exist and then replaces only that optional
+ * probe. The actual HTMLVideoElement loading/rendering path in app.js remains
+ * unchanged.
  */
 (() => {
   'use strict';
 
-  const input = document.getElementById('backgroundInput');
-  if (!input) return;
+  const FAST_PROBE_MARK = '__kefeFastVideoAudioProbeV2';
 
-  const NativeAudioContext = window.AudioContext;
-  const NativeWebkitAudioContext = window.webkitAudioContext;
-  let restoreTimer = null;
+  function fastDetectVideoHasAudio(file, vid) {
+    // Never read/decode the complete File. Browser track metadata is cheap
+    // when exposed; otherwise we treat the track as available rather than
+    // blocking the upload. Playback itself remains the authoritative test.
+    try {
+      if (vid?.audioTracks?.length) return Promise.resolve(true);
+      if (vid?.mozHasAudio) return Promise.resolve(true);
+      if (vid?.webkitAudioDecodedByteCount > 0) return Promise.resolve(true);
+    } catch (_) {}
 
-  function restoreAudioContext() {
-    if (restoreTimer) clearTimeout(restoreTimer);
-    restoreTimer = null;
-    if (NativeAudioContext) window.AudioContext = NativeAudioContext;
-    if (NativeWebkitAudioContext) window.webkitAudioContext = NativeWebkitAudioContext;
+    // Safari/iOS commonly exposes none of the above. Returning true keeps the
+    // video immediately usable and allows the existing master-source logic to
+    // play the video's own audio. No Web Audio context or ArrayBuffer is used.
+    return Promise.resolve(true);
   }
 
-  function installFastVideoProbe() {
-    restoreAudioContext();
+  function install() {
+    if (typeof window.detectVideoHasAudio !== 'function') return false;
+    if (window.detectVideoHasAudio[FAST_PROBE_MARK]) return true;
 
-    function FastProbeAudioContext(...args) {
-      const Native = NativeAudioContext || NativeWebkitAudioContext;
-      if (!Native) throw new Error('AudioContext unavailable');
-      const instance = new Native(...args);
-      const originalDecode = instance.decodeAudioData.bind(instance);
-      instance.decodeAudioData = function () {
-        return Promise.reject(new Error('Skip full-video audio decode during background upload'));
-      };
-      // Keep the native context API intact for the remainder of the call.
-      instance.__kefeOriginalDecodeAudioData = originalDecode;
-      return instance;
-    }
-
-    FastProbeAudioContext.prototype = (NativeAudioContext || NativeWebkitAudioContext)?.prototype || {};
-    window.AudioContext = FastProbeAudioContext;
-    window.webkitAudioContext = FastProbeAudioContext;
-
-    // The upload handler reaches its optional audio probe after loadeddata.
-    // Ten seconds is deliberately generous for slower devices, then restore
-    // the native constructor for captions and all other audio processing.
-    restoreTimer = setTimeout(restoreAudioContext, 10000);
+    fastDetectVideoHasAudio[FAST_PROBE_MARK] = true;
+    window.detectVideoHasAudio = fastDetectVideoHasAudio;
+    return true;
   }
 
-  // Capture phase runs before app.js's normal change listener.
-  input.addEventListener('change', (event) => {
-    const file = event.target?.files?.[0];
-    if (file && String(file.type || '').toLowerCase().startsWith('video/')) {
-      installFastVideoProbe();
-    } else {
-      restoreAudioContext();
-    }
-  }, true);
+  // app.js is loaded immediately after this file. Poll briefly until its
+  // global function declaration has been installed, then replace the probe.
+  if (!install()) {
+    let attempts = 0;
+    const timer = setInterval(() => {
+      if (install() || ++attempts >= 200) clearInterval(timer);
+    }, 25);
+  }
 })();
