@@ -16,7 +16,7 @@
   const scriptPromises = new Map();
   function loadScript(src, marker) { if (window[marker] || document.querySelector(`script[data-${marker}]`)) return Promise.resolve(); if (scriptPromises.has(src)) return scriptPromises.get(src); const promise = new Promise((resolve, reject) => { const script = document.createElement('script'); script.src = src; script.dataset[marker] = '1'; script.onload = () => resolve(); script.onerror = () => reject(new Error(`Failed to load ${src}`)); document.head.appendChild(script); }); scriptPromises.set(src, promise); return promise; }
   let runtimeReady = false;
-  async function bootstrapRuntimeModules() { if (runtimeReady) return; try { await loadScript('../core/runtime-bridge.js', 'kefe-runtime-bridge'); runtimeReady = Boolean(window.kefeRuntime?.ready); if (!runtimeReady) return; await loadScript('./caption-generator.js', 'kefe-caption-generator'); await Promise.allSettled([loadScript('../core/analysis-engine.js', 'kefe-analysis'), loadScript('../core/auto-create.js', 'kefe-auto-create'), loadScript('../core/smart-render.js', 'kefe-smart-render'), loadScript('./editing-flow.js', 'kefe-editing-flow-script')]); window.dispatchEvent(new CustomEvent('kefe:runtime-bootstrapped')); } catch (error) { console.error('[KEFE Bootstrap]', error); } }
+  async function bootstrapRuntimeModules() { if (runtimeReady) return; try { await loadScript('./app/core/runtime-bridge.js', 'kefe-runtime-bridge'); runtimeReady = Boolean(window.kefeRuntime?.ready); if (!runtimeReady) return; await loadScript('./app/ui/caption-generator.js', 'kefe-caption-generator'); await Promise.allSettled([loadScript('./app/core/analysis-engine.js', 'kefe-analysis'), loadScript('./app/core/auto-create.js', 'kefe-auto-create'), loadScript('./app/core/smart-render.js', 'kefe-smart-render'), loadScript('./app/ui/editing-flow.js', 'kefe-editing-flow-script')]); window.dispatchEvent(new CustomEvent('kefe:runtime-bootstrapped')); } catch (error) { console.error('[KEFE Bootstrap]', error); } }
   let analysisTimer = 0; let analysisRequest = 0;
   async function analyzeCurrentLyrics() { if (!window.kefeAnalysis?.analyzeLyrics) return; const input = $('lyricsText'); const text = input?.value || ''; if (!text.trim()) return; const duration = Number(window.state?.audio?.duration || 0); const request = ++analysisRequest; try { const result = await window.kefeAnalysis.analyzeLyrics(text, duration); if (request !== analysisRequest) return; window.kefeAnalysis.lastResult = result; window.dispatchEvent(new CustomEvent('kefe:lyrics-analyzed', { detail: result })); const status = $('lyricsStatus'); if (status && result.validation) { const count = result.validation.count; const problems = result.validation.gaps.length + result.validation.overlaps.length + result.validation.lateLines; status.textContent = problems ? `${count} lines • ${problems} timing issue${problems === 1 ? '' : 's'}` : `${count} lines • timing checked`; status.dataset.analysisRecommendation = result.recommendation || ''; } } catch (error) { console.warn('[KEFE Analysis] lyrics analysis failed', error); } }
   function scheduleAnalysis() { clearTimeout(analysisTimer); analysisTimer = setTimeout(analyzeCurrentLyrics, 350); }
@@ -33,7 +33,7 @@
 (() => {
   if (window.kefe || document.querySelector('script[data-kefe-architecture]')) return;
   const script = document.createElement('script');
-  script.src = '../core/architecture.js';
+  script.src = './app/core/architecture.js';
   script.dataset.kefeArchitecture = '1';
   document.head.appendChild(script);
 })();
