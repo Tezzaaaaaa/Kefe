@@ -10,6 +10,7 @@
     body.classList.add('wizard-mode');
     const previewEl = document.querySelector('.preview');
     if (previewEl) previewEl.id = 'previewSection';
+    if (!document.querySelector('link[data-kefe-wizard-style-preview]')) { const styleLink = document.createElement('link'); styleLink.rel = 'stylesheet'; styleLink.href = './ui/wizard-style-preview.css'; styleLink.dataset.kefeWizardStylePreview = 'true'; document.head.appendChild(styleLink); }
 
     const PATHS = {
         lyric: ['intro', 'source', 'content', 'style', 'background', 'preview'],
