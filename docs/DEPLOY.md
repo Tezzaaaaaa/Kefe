@@ -22,7 +22,23 @@ coding — it's account setup and one deploy.
    `customer.subscription.updated`, `customer.subscription.deleted` → copy
    the **Signing secret** (starts `whsec_`).
 
-## 2. Pick a host and deploy
+## 2. Configure background removal
+
+KEFE now includes a server-side foreground cutout powered by the remove.bg
+Background Removal API. The API key is deliberately kept on the Node server;
+it is never placed in frontend JavaScript.
+
+Add this environment variable to the same Railway/Render service:
+
+`REMOVE_BG_API_KEY=...`
+
+The first 50 remove.bg API calls per month are currently free. The remove.bg
+documentation also states that background removal moves to Leonardo.Ai on
+December 1, 2026, so the KEFE provider boundary is isolated in
+`server/remove-background.js` for future migration. See the official API docs:
+https://www.remove.bg/api
+
+## 3. Pick a host and deploy
 
 Simplest options for a small Node app like this: **Railway** or **Render**
 (both have a free/cheap tier, auto-deploy from GitHub, persistent disk for
@@ -37,17 +53,20 @@ the SQLite file). Steps are the same shape on either:
 5. Set the environment variables (see `.env.example`): `JWT_SECRET`,
    `APP_URL` (your real domain, e.g. `https://kefe.app`), `STRIPE_SECRET_KEY`,
    `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`, `TRIAL_DAYS` (optional,
-   defaults to 7).
+   defaults to 7), and `REMOVE_BG_API_KEY`.
 6. Deploy. Point your domain's DNS at the host.
 
-## 3. Test it before telling anyone it's live
+## 4. Test it before telling anyone it's live
 
 - Sign up on the live site with a real email.
-- Use Stripe's test card `4242 4242 4242 4242`, any future date/CVC, to run
-  a full checkout in test mode first if your Stripe account is still in test
+- Use Stripe's test card `4242 4242 4242 4242`, any future date/CVC, to run a
+  full checkout in test mode first if your Stripe account is still in test
   mode.
 - Confirm the plan badge in the header flips to "Pro" within a few seconds
   (webhook-driven).
+- In the Background section, choose a JPG/PNG/WebP foreground image and click
+  **Remove background**. Confirm the transparent subject appears over the
+  preview and remains present in the exported video.
 - Switch Stripe to live mode and repeat with a real card once you're happy.
 
 ## Running it locally to check things first
@@ -60,4 +79,5 @@ npm start
 
 Open http://localhost:3000 — sign-up/login/trial works immediately even
 without Stripe configured. Checkout will return a friendly "billing not
-configured" message until you add the three Stripe values.
+configured" message until you add the three Stripe values. Background removal
+will return a clear configuration error until `REMOVE_BG_API_KEY` is set.
