@@ -161,7 +161,7 @@
         const steps = stepsFor(), step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        if (step === 'preview' && previewEl) { previewEl.classList.remove('preview-collapsed'); previewEl.classList.add('preview-expanded'); }
+        if (previewEl) { const showLivePreview = ['content','captions','style','background','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
         const targetIds = targetsForStep(step);
         let firstTarget = null;
 
