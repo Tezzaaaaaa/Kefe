@@ -1,3 +1,5 @@
+@import url('./editor-layout.css');
+
 /* KEFE Live Preview — cinematic stage, restrained controls. */
 .preview{position:relative}
 .preview-live-meta{display:inline-flex;align-items:center;gap:9px;margin-left:auto;min-width:0}
