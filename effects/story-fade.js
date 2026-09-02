@@ -45,8 +45,7 @@
   function updateMotionFontVisibility(){const control=document.getElementById('kefeMotionFontControl');if(!control)return;const selected=window.state?.style?.effect;control.style.display=Object.prototype.hasOwnProperty.call(MOTION,selected)?'grid':'none';}
   function initExtras(){installMotionEffects();addMotionButtons();updateMotionFontVisibility();if(!window.__kefeMotionEffectsInstalled||!document.querySelector('[data-effect="rise"]'))setTimeout(initExtras,50);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(initExtras,0),{once:true});else setTimeout(initExtras,0);
-  // Load the optional Scroll Lines renderer after the core motion renderer.
-  // Keeping it as a separate module avoids coupling the existing four effects.
   const loadScrollLines=()=>{if(document.querySelector('script[data-kefe-scroll-lines]'))return;const s=document.createElement('script');s.src='./effects/scroll-lines.js';s.dataset.kefeScrollLines='true';document.head.appendChild(s);};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadScrollLines,{once:true});else loadScrollLines();
+  const loadUnifiedWizardEffects=()=>{if(document.querySelector('script[data-kefe-wizard-all-effects]'))return;const s=document.createElement('script');s.src='./ui/wizard-all-effects.js';s.dataset.kefeWizardAllEffects='true';document.head.appendChild(s);};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{loadScrollLines();loadUnifiedWizardEffects();},{once:true});else{loadScrollLines();loadUnifiedWizardEffects();}
 })();
