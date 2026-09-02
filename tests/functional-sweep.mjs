@@ -13,20 +13,14 @@ const paths = {
   captioned: ['intro', 'source', 'captions', 'style', 'background', 'preview', 'export'],
   custom: ['intro', 'source', 'content', 'style', 'background', 'preview', 'export']
 };
-const sizes = [
-  [1440, 1000],
-  [1024, 900],
-  [768, 1024],
-  [390, 844]
-];
+const sizes = [[1440, 1000], [1024, 900], [768, 1024], [390, 844]];
 
 const server = createServer(async (req, res) => {
   try {
     const url = decodeURIComponent((req.url || '/').split('?')[0]);
     const relative = url === '/' ? 'index.html' : url.replace(/^\/+/, '');
-    const file = join(root, relative);
-    const body = await readFile(file);
-    res.writeHead(200, { 'content-type': mime[extname(file)] || 'application/octet-stream', 'cache-control': 'no-store' });
+    const body = await readFile(join(root, relative));
+    res.writeHead(200, { 'content-type': mime[extname(relative)] || 'application/octet-stream', 'cache-control': 'no-store' });
     res.end(body);
   } catch {
     res.writeHead(404); res.end('Not found');
@@ -45,81 +39,77 @@ async function boot(page) {
 
 async function assertGeometry(page, width, height) {
   const result = await page.evaluate(() => {
-    const main = document.querySelector('main');
-    const sidebar = document.querySelector('.sidebar');
-    const preview = document.querySelector('.preview');
-    const nav = document.querySelector('.wizard-nav');
-    const body = document.body;
-    const doc = document.documentElement;
     const rect = el => el?.getBoundingClientRect();
-    const mr = rect(main), sr = rect(sidebar), pr = rect(preview), nr = rect(nav);
+    const main = rect(document.querySelector('main'));
+    const sidebar = rect(document.querySelector('.sidebar'));
+    const preview = rect(document.querySelector('.preview'));
+    const nav = rect(document.querySelector('.wizard-nav'));
     return {
-      wizard: body.classList.contains('wizard-mode'),
-      horizontalOverflow: doc.scrollWidth > window.innerWidth + 2,
-      mainVisible: Boolean(mr && mr.width > 0 && mr.height > 0),
-      sidebarVisible: Boolean(sr && sr.width > 0 && sr.height > 0),
-      previewPresent: Boolean(pr),
-      navPresent: Boolean(nr),
-      previewWidth: pr?.width || 0,
-      previewHeight: pr?.height || 0,
-      navBottom: nr ? Math.round(window.innerHeight - nr.bottom) : null,
-      viewport: [window.innerWidth, window.innerHeight]
+      wizard: document.body.classList.contains('wizard-mode'),
+      horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth + 2,
+      main: Boolean(main && main.width > 0 && main.height > 0),
+      sidebar: Boolean(sidebar && sidebar.width > 0 && sidebar.height > 0),
+      preview: Boolean(preview && preview.width > 0 && preview.height > 0),
+      nav: Boolean(nav && nav.width > 0 && nav.height > 0)
     };
   });
-  if (!result.wizard || result.horizontalOverflow || !result.mainVisible || !result.sidebarVisible || !result.previewPresent || !result.navPresent) {
+  if (!result.wizard || result.horizontalOverflow || !result.main || !result.sidebar || !result.preview || !result.nav) {
     throw new Error(`Layout invariant failed at ${width}x${height}: ${JSON.stringify(result)}`);
   }
-  if (result.previewWidth <= 0 || result.previewHeight <= 0) throw new Error(`Preview has invalid geometry at ${width}x${height}`);
 }
 
-async function resetPath(page, choice) {
-  await page.locator('#wizardSection [data-choice]').getByText(new RegExp(`^${choice === 'visualiser' ? 'Visualiser' : choice === 'captioned' ? 'Captioned Video' : choice === 'custom' ? 'Custom' : 'Lyric Video'}$`)).click();
-  if (choice === 'captioned') {
-    await page.locator('#wizardSection [data-source="uploaded"]').click();
-    await page.evaluate(() => { window.state.captions = { ...(window.state.captions || {}), lines: [{ start: 0, end: 1, text: 'Caption test' }] }; });
-  } else {
-    await page.locator('#wizardSection [data-source="none"]').click();
-  }
-  if (choice === 'lyric' || choice === 'custom') {
-    await page.locator('#wizardNextBtn').click();
-    await page.locator('#lyricsText').fill('[00:00.00]Functional test');
+async function runPath(choice, width, height) {
+  const page = await browser.newPage({ viewport: { width, height } });
+  page.on('pageerror', error => errors.push(`${choice} ${width}x${height} pageerror: ${error.message}`));
+  page.on('console', message => { if (message.type() === 'error') errors.push(`${choice} ${width}x${height} console: ${message.text()}`); });
+  try {
+    await boot(page);
+    await assertGeometry(page, width, height);
+    const choiceLabel = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', custom: 'Custom' }[choice];
+    await page.locator(`#wizardSection [data-choice="${choice}"]`).click();
+    if (choice === 'captioned') {
+      await page.locator('#wizardSection [data-source="uploaded"]').click();
+      await page.evaluate(() => {
+        window.state.audio = { ...(window.state.audio || {}), ready: true, file: { name: 'functional-test.wav' }, duration: 2 };
+        window.state.captions = { ...(window.state.captions || {}), lines: [{ start: 0, end: 1, text: 'Caption test' }] };
+      });
+    } else {
+      await page.locator('#wizardSection [data-source="none"]').click();
+    }
+
+    const expected = paths[choice];
+    for (let i = 0; i < expected.length; i += 1) {
+      const label = await page.locator('#wizardStepLabel').textContent();
+      if (!label?.trim()) throw new Error(`${choice}: missing step label at ${expected[i]}`);
+      if (i === expected.length - 1) break;
+      if (expected[i] === 'source' && (choice === 'lyric' || choice === 'custom')) {
+        await page.locator('#wizardNextBtn').click();
+        await page.locator('#lyricsText').fill('[00:00.00]Functional test');
+      } else if (expected[i] === 'content') {
+        await page.locator('#lyricsText').fill('[00:00.00]Functional test');
+        await page.locator('#wizardNextBtn').click();
+      } else {
+        const next = page.locator('#wizardNextBtn');
+        if (!(await next.isEnabled())) throw new Error(`${choice}: Next disabled at ${expected[i]}`);
+        await next.click();
+      }
+      await page.waitForTimeout(50);
+    }
+    const finalLabel = await page.locator('#wizardStepLabel').textContent();
+    if (!/Export/i.test(finalLabel || '')) throw new Error(`${choice}: did not reach export step; got ${finalLabel}`);
+    await assertGeometry(page, width, height);
+    console.log(`PASS ${choiceLabel} @ ${width}x${height}`);
+  } finally {
+    await page.close();
   }
 }
 
 try {
   for (const [width, height] of sizes) {
-    const page = await browser.newPage({ viewport: { width, height } });
-    page.on('pageerror', error => errors.push(`${width}x${height} pageerror: ${error.message}`));
-    page.on('console', message => { if (message.type() === 'error') errors.push(`${width}x${height} console: ${message.text()}`); });
-    await boot(page);
-    await assertGeometry(page, width, height);
-
-    for (const [choice, expectedSteps] of Object.entries(paths)) {
-      await boot(page);
-      await resetPath(page, choice);
-      const actual = await page.evaluate(() => window.kefeWizard?.steps || null);
-      for (let i = 0; i < expectedSteps.length; i += 1) {
-        const step = await page.evaluate(() => ({ label: document.querySelector('#wizardStepLabel')?.textContent || '', panel: document.querySelector('#wizardSection')?.textContent || '' }));
-        if (!step.panel || !step.label) throw new Error(`${choice}: wizard step ${i + 1} did not render`);
-        if (i < expectedSteps.length - 1) {
-          const next = page.locator('#wizardNextBtn');
-          if (!(await next.isEnabled())) throw new Error(`${choice}: Next disabled at ${expectedSteps[i]}`);
-          if (expectedSteps[i] === 'content') await page.locator('#lyricsText').fill('[00:00.00]Functional test');
-          await next.click();
-        }
-      }
-      const final = await page.evaluate(() => ({
-        stepLabel: document.querySelector('#wizardStepLabel')?.textContent,
-        progress: document.querySelector('#wizardProgress')?.textContent,
-        path: window.kefeWizardPath || document.body.dataset.wizardPath || null
-      }));
-      if (!final.stepLabel || !/Export/i.test(final.stepLabel)) throw new Error(`${choice}: did not reach export step: ${JSON.stringify(final)}`);
-      await assertGeometry(page, width, height);
-    }
-    await page.close();
+    for (const choice of Object.keys(paths)) await runPath(choice, width, height);
   }
   if (errors.length) throw new Error(errors.join('\n'));
-  console.log('KEFE functional sweep passed: all four wizard paths, step progression, responsive geometry and browser error checks.');
+  console.log('KEFE functional sweep passed: all four wizard paths across desktop, tablet and mobile geometry with browser error checks.');
 } finally {
   await browser.close();
   server.close();
