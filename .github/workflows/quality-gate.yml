@@ -21,19 +21,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
-
       - name: Install dependencies
         run: npm ci
-
       - name: Check formatting
         run: npm run format:check
-
       - name: Check JavaScript syntax and project checks
         run: npm run check
 
@@ -43,7 +39,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: MegaLinter
         uses: oxsecurity/megalinter/flavors/javascript@v8.8.0
         env:
@@ -52,7 +47,7 @@ jobs:
           VALIDATE_ALL_CODEBASE: true
           REPORT_OUTPUT_FOLDER: megalinter-reports
           DISABLE_LINTERS: COPYPASTE_JSCPD,REPOSITORY_GITLEAKS
-          APPLY_FIXES: none
+          FIX: none
 
   browser:
     name: Browser functional verification
@@ -61,21 +56,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
-
       - name: Install dependencies
         run: npm ci
-
-      - name: Install Playwright
-        run: npm install --no-save playwright@1.55.0
-
-      - name: Install Playwright Chromium
+      - name: Install Playwright test runner
+        run: npm install --no-save playwright@1.62.1
+      - name: Install Chromium
         run: npx playwright install --with-deps chromium
-
       - name: Run KEFE smoke test
         run: npm run test:smoke
+      - name: Run KEFE functional sweep
+        run: npm run test:functional
