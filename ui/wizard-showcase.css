@@ -1,26 +1,21 @@
-/* Wizard step choices — cascade entrance + spotlight hover.
-   Purely presentational, layered over the existing choice cards in
-   wizard.css. No new options/features — same buttons, just animated. */
+/* KEFE wizard polish — unified typography, palette and interaction language. */
+.wizard-choices .wizard-choice{font-family:"Open Sans",Arial,sans-serif;animation:wizardChoiceIn .32s ease both;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease!important}
+.wizard-choices .wizard-choice:nth-child(1){animation-delay:.02s}.wizard-choices .wizard-choice:nth-child(2){animation-delay:.06s}.wizard-choices .wizard-choice:nth-child(3){animation-delay:.10s}.wizard-choices .wizard-choice:nth-child(4){animation-delay:.14s}.wizard-choices .wizard-choice:nth-child(5){animation-delay:.18s}.wizard-choices .wizard-choice:nth-child(6){animation-delay:.22s}
+@keyframes wizardChoiceIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.wizard-choices:hover .wizard-choice{opacity:1;filter:none}
+.wizard-choices .wizard-choice:hover{transform:translateY(-2px)!important;box-shadow:0 10px 26px rgba(0,0,0,.09);z-index:2}
+.wizard-choices .wizard-choice:focus-visible{opacity:1;filter:none}
+.wizard-choices .wizard-choice.selected{transform:none!important}
 
-.wizard-choices .wizard-choice{animation:wizardChoiceIn .45s var(--ease) both}
-.wizard-choices .wizard-choice:nth-child(1){animation-delay:.02s}
-.wizard-choices .wizard-choice:nth-child(2){animation-delay:.08s}
-.wizard-choices .wizard-choice:nth-child(3){animation-delay:.14s}
-.wizard-choices .wizard-choice:nth-child(4){animation-delay:.20s}
-.wizard-choices .wizard-choice:nth-child(5){animation-delay:.26s}
-.wizard-choices .wizard-choice:nth-child(6){animation-delay:.32s}
-@keyframes wizardChoiceIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
-
-/* Spotlight: hovering one choice gently dims and desaturates the rest,
-   the hovered card lifts and enlarges. Selection state is unaffected
-   once the mouse leaves the group. */
-.wizard-choices .wizard-choice{transition:transform .3s var(--ease),box-shadow .3s var(--ease),opacity .3s var(--ease),filter .3s var(--ease)!important}
-.wizard-choices:hover .wizard-choice{opacity:.55;filter:saturate(.5)}
-.wizard-choices .wizard-choice:hover{opacity:1!important;filter:none!important;transform:translateY(-4px) scale(1.045);box-shadow:0 18px 40px rgba(0,0,0,.18);z-index:2}
-.wizard-choices .wizard-choice:focus-visible{opacity:1!important;filter:none!important}
+/* Keep every wizard text element on the same KEFE type and colour tokens. */
+.wizard-panel,.wizard-panel *,.wizard-nav,.wizard-nav *{font-family:"Open Sans",Arial,sans-serif}
+.wizard-panel-kicker{color:var(--text-3)!important}
+.wizard-panel-title{color:var(--text)!important}
+.wizard-panel-hint{color:var(--text-3)!important}
+.wizard-nav{color:var(--text)}
+.wizard-nav button{font-family:"Open Sans",Arial,sans-serif}
 
 @media(prefers-reduced-motion:reduce){
   .wizard-choices .wizard-choice{animation:none;transition:none!important}
-  .wizard-choices:hover .wizard-choice{opacity:1;filter:none}
-  .wizard-choices .wizard-choice:hover{transform:none;box-shadow:none}
+  .wizard-choices .wizard-choice:hover{transform:none!important;box-shadow:none}
 }
