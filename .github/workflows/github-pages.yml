@@ -25,13 +25,11 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v6
-      - name: Cache-bust and inject KEFE product polish
+      - name: Cache-bust current KEFE assets
         run: |
-          sed -i "s#\(src=\"\./ui/wizard.js\)\"#\1?v=${GITHUB_SHA}\"#" index.html
-          sed -i "s#\(href=\"\./ui/wizard.css\)\"#\1?v=${GITHUB_SHA}\"#" index.html
-          sed -i "s#\(src=\"\./app.js\)\"#\1?v=${GITHUB_SHA}\"#" index.html
-          sed -i "s#</head>#<link rel=\"stylesheet\" href=\"./ui/wizard-mobile.css?v=${GITHUB_SHA}\"><link rel=\"stylesheet\" href=\"./ui/kefe-product-polish.css?v=${GITHUB_SHA}\"></head>#" index.html
-          sed -i "s#</body>#<script src=\"./ui/kefe-product-polish.js?v=${GITHUB_SHA}\" defer></script></body>#" index.html
+          sed -i "s#\(src=\"\./app/app.js\)\"#\1?v=${GITHUB_SHA}\"#" index.html
+          sed -i "s#\(href=\"\./app/ui/kefe-product-polish.css\)\"#\1?v=${GITHUB_SHA}\"#" index.html
+          sed -i "s#\(src=\"\./app/ui/kefe-product-polish.js\)\"#\1?v=${GITHUB_SHA}\"#" index.html
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
