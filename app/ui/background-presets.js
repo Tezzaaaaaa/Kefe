@@ -14,7 +14,7 @@
       document.body.appendChild(bridge);
 
       const script = document.createElement('script');
-      script.src = './app/ui/background-presets.js?v=20260901-5&runtime=1';
+      script.src = './app/ui/background-presets.js?v=20260901-6&runtime=1';
       script.async = false;
       document.body.appendChild(script);
     }, { once: true });
@@ -25,17 +25,6 @@
   const media = window.kefeMedia;
   const presets = [...document.querySelectorAll('[data-background-preset]')];
   if (!state || !media || !presets.length) return;
-
-  function loadMediaFix() {
-    if (window.__kefeWizardMediaFixLoaded) return;
-    window.__kefeWizardMediaFixLoaded = true;
-    const script = document.createElement('script');
-    script.src = './app/ui/wizard-media-fix.js?v=20260901-5';
-    script.async = false;
-    document.body.appendChild(script);
-  }
-
-  loadMediaFix();
 
   function loadRemoveBackground() {
     if (window.__kefeRemoveBgLoaderLoaded) return;
