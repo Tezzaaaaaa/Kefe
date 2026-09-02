@@ -1,0 +1,43 @@
+name: Apply Runway redesign ZIP
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: hashFiles('Kefe-runway-redesign.zip') != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Extract redesign
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/runway
+          mkdir -p /tmp/runway
+          unzip -q Kefe-runway-redesign.zip -d /tmp/runway
+          if [ -d /tmp/runway/Kefe ]; then
+            src=/tmp/runway/Kefe
+          else
+            src=/tmp/runway
+          fi
+          find "$src" -name '.DS_Store' -delete
+          find "$src" -name '__MACOSX' -type d -prune -exec rm -rf {} +
+          cp -a "$src"/. .
+          rm -f Kefe-runway-redesign.zip
+
+      - name: Commit extracted redesign
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Apply Runway redesign and clean source archive'
+          git push
