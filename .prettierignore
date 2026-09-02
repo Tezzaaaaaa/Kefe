@@ -1,0 +1,38 @@
+# Dependencies / generated output
+node_modules/
+coverage/
+dist/
+build/
+.tmp/
+tmp/
+
+# Runtime/user data
+*.db
+*.sqlite
+*.sqlite3
+
+# Media and binary assets
+*.mp3
+*.wav
+*.mp4
+*.webm
+*.mov
+*.m4a
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.otf
+
+# Third-party/vendor code
+vendor/
+
+# Generated or intentionally packaged files
+*.min.js
+*.min.css
+*.map
