@@ -70,8 +70,6 @@
     });
   }
 
-  /* Live preview chrome: keep the canvas itself as the rendering source of truth,
-     while exposing playback state and the selected lyric effect in the toolbar. */
   function enhanceLivePreview() {
     const heading = document.querySelector('.preview-heading');
     const preview = document.querySelector('.preview');
@@ -97,6 +95,48 @@
     preview.classList.toggle('is-playing', playing);
   }
 
+  // Load the worker bridge after the existing application scripts have initialised.
+  // This keeps analysis isolated from the renderer and requires no bundler.
+  function loadAnalysisEngine() {
+    if (window.kefeAnalysis || document.querySelector('script[data-kefe-analysis]')) return;
+    const script = document.createElement('script');
+    script.src = './core/analysis-engine.js';
+    script.dataset.kefeAnalysis = '1';
+    script.async = true;
+    document.head.appendChild(script);
+  }
+
+  let analysisTimer = 0;
+  let analysisRequest = 0;
+  async function analyzeCurrentLyrics() {
+    if (!window.kefeAnalysis?.analyzeLyrics) return;
+    const input = $('lyricsText');
+    const text = input?.value || '';
+    if (!text.trim()) return;
+    const duration = Number(window.state?.audio?.duration || 0);
+    const request = ++analysisRequest;
+    try {
+      const result = await window.kefeAnalysis.analyzeLyrics(text, duration);
+      if (request !== analysisRequest) return;
+      window.kefeAnalysis.lastResult = result;
+      window.dispatchEvent(new CustomEvent('kefe:lyrics-analyzed', { detail: result }));
+      const status = $('lyricsStatus');
+      if (status && result.validation) {
+        const count = result.validation.count;
+        const problems = result.validation.gaps.length + result.validation.overlaps.length + result.validation.lateLines;
+        status.textContent = problems ? `${count} lines • ${problems} timing issue${problems === 1 ? '' : 's'}` : `${count} lines • timing checked`;
+        status.dataset.analysisRecommendation = result.recommendation || '';
+      }
+    } catch (error) {
+      console.warn('[KEFE Analysis] lyrics analysis failed', error);
+    }
+  }
+
+  function scheduleAnalysis() {
+    clearTimeout(analysisTimer);
+    analysisTimer = setTimeout(analyzeCurrentLyrics, 350);
+  }
+
   const observer = new MutationObserver(() => {
     enhanceChoiceAnimation();
     enhanceStylePanel();
@@ -108,5 +148,13 @@
   enhanceStylePanel();
   enhanceEffectButtons();
   enhanceLivePreview();
+  loadAnalysisEngine();
+  document.addEventListener('input', event => {
+    if (event.target?.id === 'lyricsText') scheduleAnalysis();
+  }, true);
+  document.addEventListener('change', event => {
+    if (event.target?.id === 'lrcFileInput') scheduleAnalysis();
+  }, true);
+  window.addEventListener('kefe:analysis-ready', analyzeCurrentLyrics);
   window.setInterval(enhanceLivePreview, 250);
 })();
