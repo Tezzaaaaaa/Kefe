@@ -112,6 +112,10 @@
     loadScript('./core/auto-create.js', 'kefe-auto-create');
   }
 
+  function loadSmartRender() {
+    loadScript('./core/smart-render.js', 'kefe-smart-render');
+  }
+
   let analysisTimer = 0;
   let analysisRequest = 0;
   async function analyzeCurrentLyrics() {
@@ -149,6 +153,7 @@
     enhanceEffectButtons();
     enhanceLivePreview();
     loadAutoCreate();
+    loadSmartRender();
   });
   observer.observe(body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-wizard-step', 'class'] });
   enhanceChoiceAnimation();
@@ -157,6 +162,7 @@
   enhanceLivePreview();
   loadAnalysisEngine();
   loadAutoCreate();
+  loadSmartRender();
   document.addEventListener('input', event => {
     if (event.target?.id === 'lyricsText') scheduleAnalysis();
   }, true);
