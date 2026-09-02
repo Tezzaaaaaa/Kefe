@@ -25,6 +25,23 @@
       void preview.offsetWidth;
       preview.classList.add('is-animating');
     }
+    window.redrawCurrentPreviewFrame?.();
+  }
+
+  function buildDemo(name) {
+    const demo = document.createElement('span');
+    demo.className = 'wizard-effect-demo';
+    demo.setAttribute('aria-hidden', 'true');
+    demo.dataset.effect = name;
+    const line = document.createElement('span');
+    line.className = 'wizard-effect-demo-line';
+    line.textContent = 'LYRICS';
+    demo.appendChild(line);
+    return demo;
+  }
+
+  function familyLabel(name) {
+    return motion.has(name) ? 'Motion' : 'Classic';
   }
 
   function rebuild() {
@@ -57,7 +74,16 @@
       button.className = 'wizard-effect-choice';
       button.dataset.wizardEffect = name;
       button.dataset.effectFamily = motion.has(name) ? 'motion' : 'classic';
-      button.textContent = sourceButton.textContent.trim();
+      button.appendChild(buildDemo(name));
+      const copy = document.createElement('span');
+      copy.className = 'wizard-effect-copy';
+      const title = document.createElement('strong');
+      title.textContent = sourceButton.textContent.trim();
+      const family = document.createElement('small');
+      family.textContent = familyLabel(name);
+      copy.append(title, family);
+      button.appendChild(copy);
+      button.setAttribute('aria-label', `Use ${sourceButton.textContent.trim()} lyric effect`);
       button.setAttribute('aria-pressed', name === current ? 'true' : 'false');
       button.classList.toggle('selected', name === current);
       button.addEventListener('click', () => applyEffect(name, button, grid));
