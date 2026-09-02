@@ -1,0 +1,88 @@
+/* ==========================================================================
+   KEFE — motion layer
+   1) Section rail: simple, quiet indicator + icon pop (cohesive, low-key).
+   2) Choice stacks (Style / Background): collapsed dock that expands the
+      hovered/selected card — Apple-style, futuristic but restrained.
+   ========================================================================== */
+
+/* ---------- 1. Section rail (01–05 steps) ---------- */
+body:not(.wizard-mode) .section-nav-link{overflow:hidden}
+body:not(.wizard-mode) .section-nav-link::before{
+  content:''; position:absolute; left:2px; top:9px; bottom:9px; width:2px;
+  border-radius:2px; background:var(--red); transform:scaleY(0); opacity:0;
+  transition:transform .22s var(--ease), opacity .22s var(--ease);
+}
+body:not(.wizard-mode) .section-nav-link.active::before{ transform:scaleY(1); opacity:1; }
+body:not(.wizard-mode) .section-nav-link .rail-icon{ transition:transform .25s var(--ease); }
+body:not(.wizard-mode) .section-nav-link.active .rail-icon{ transform:scale(1.12); }
+body:not(.wizard-mode) .section-nav-link strong{ transition:opacity .2s var(--ease); }
+@keyframes railPanelIn{ from{ opacity:0; transform:translateY(4px); } to{ opacity:1; transform:translateY(0); } }
+
+/* Wizard step panels: same quiet fade-in for cohesion with the rail. */
+.wizard-panel{ animation:railPanelIn .18s var(--ease) both; }
+
+@media (prefers-reduced-motion:reduce){
+  body:not(.wizard-mode) .section-nav-link::before,
+  body:not(.wizard-mode) .section-nav-link .rail-icon{ transition:none; }
+  .wizard-panel{ animation:none; }
+}
+
+/* ---------- 2. Choice stacks: Style (lyric effect) + Background preset ---------- */
+/* Collapsed dock on rest; the hovered card claims the space; the selected
+   card stays visually promoted even when nothing is hovered. Apple-style
+   glass surface, KEFE orange as the only accent — no blue, no heavy fill. */
+
+.effect-buttons, .background-choice-grid{
+  display:flex; align-items:stretch; gap:8px; flex-wrap:nowrap;
+}
+.effect-buttons button, .background-choice{
+  position:relative; flex:1 1 0; min-width:0; overflow:hidden;
+  border-radius:var(--radius-lg); border:1px solid var(--line);
+  background:rgba(255,255,255,.02);
+  -webkit-backdrop-filter:blur(18px) saturate(160%); backdrop-filter:blur(18px) saturate(160%);
+  transition:flex-grow .45s var(--ease), border-color .3s var(--ease), box-shadow .35s var(--ease), transform .35s var(--ease);
+}
+.effect-buttons button{ flex-direction:column; align-items:flex-start; justify-content:flex-end; min-height:64px; padding:9px 10px 8px; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.7), 0 1px 1px rgba(0,0,0,.5); }
+/* The two light/flat swatches need dark text instead of the default white. */
+.effect-buttons button[data-effect="brat"],
+.effect-buttons button[data-effect="typewriter"]{ color:#141414; text-shadow:0 1px 2px rgba(255,255,255,.55); }
+.background-choice{ display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:0; padding:0; min-height:96px; }
+
+/* Labels: single line while collapsed, breathe open when the card expands. */
+.effect-buttons button{ white-space:nowrap; text-overflow:ellipsis; text-align:left; font-weight:650; }
+.background-choice-label{
+  display:block; padding:8px 10px 9px; font-size:11px; font-weight:650;
+  color:var(--text-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  transition:color .25s var(--ease);
+}
+.background-choice-preview{
+  position:relative; display:block; width:100%; aspect-ratio:16/11; overflow:hidden;
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .effect-buttons:hover button{ flex-grow:1; }
+  .effect-buttons button:hover{ flex-grow:3.4; box-shadow:0 14px 34px rgba(0,0,0,.35), 0 0 0 1px var(--red-soft); z-index:2; }
+  .effect-buttons button:hover{ white-space:normal; }
+
+  .background-choice-grid:hover .background-choice{ flex-grow:1; }
+  .background-choice:hover{ flex-grow:2.6; box-shadow:0 14px 34px rgba(0,0,0,.35), 0 0 0 1px var(--red-soft); z-index:2; }
+  .background-choice:hover .background-choice-label{ color:var(--text); }
+}
+
+/* Selected card stays promoted at rest, so the pick reads at a glance. */
+.effect-buttons button.active-effect,
+.background-choice.active-background{ flex-grow:1.5; border-color:var(--red); }
+.background-choice.active-background .background-choice-label{ color:var(--red); }
+
+/* Small screens / touch: no hover to key off — fall back to a calm wrap grid. */
+@media (hover:none), (max-width:560px){
+  .effect-buttons, .background-choice-grid{ flex-wrap:wrap; }
+  .effect-buttons button{ flex:1 1 108px; white-space:normal; }
+  .background-choice{ flex:1 1 calc(50% - 8px); }
+  .effect-buttons button:hover, .background-choice:hover{ flex-grow:0; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .effect-buttons button, .background-choice{ transition:border-color .2s ease; }
+}

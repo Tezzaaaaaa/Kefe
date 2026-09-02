@@ -8,15 +8,15 @@
   --type-title: clamp(18px, 1.35vw, 24px);
   --type-display: clamp(28px, 2.6vw, 44px);
   --type-display-xl: clamp(40px, 4.2vw, 72px);
-  --leading-display: 1.10;
-  --leading-heading: 1.20;
+  --leading-display: 1.0;
+  --leading-heading: 1.10;
   --leading-body: 1.50;
   --leading-label: 1.25;
-  --tracking-display: -0.025em;
-  --tracking-heading: -0.015em;
-  --tracking-body: 0;
+  --tracking-display: -0.03em;
+  --tracking-heading: -0.02em;
+  --tracking-body: -0.006em;
   --tracking-label: 0.01em;
-  --tracking-caps: 0.04em;
+  --tracking-caps: 0.05em;
   --kefe-min-ui-size: 11px;
   --kefe-touch-target: 44px;
 }
@@ -40,15 +40,15 @@
 .type-label { font-size: var(--type-label); line-height: var(--leading-label); letter-spacing: var(--tracking-label); font-weight: 600; }
 .type-caption { font-size: var(--type-caption); line-height: var(--leading-label); letter-spacing: var(--tracking-body); font-weight: 400; }
 .type-micro { font-size: var(--type-micro); line-height: var(--leading-label); letter-spacing: var(--tracking-caps); font-weight: 600; }
-body { font-family: 'Open Sans', sans-serif; font-size: var(--type-body); line-height: var(--leading-body); }
-button { font-family: 'Open Sans', sans-serif; font-size: var(--type-label); line-height: var(--leading-label); }
-.section h3 { font-family: 'Open Sans', sans-serif; font-size: var(--type-micro); line-height: var(--leading-label); letter-spacing: var(--tracking-caps); }
-.status { font-family: 'Open Sans', sans-serif; font-size: var(--type-caption); line-height: var(--leading-body); }
-.metadata-grid input { font-family: 'Open Sans', sans-serif; font-size: var(--type-label); line-height: var(--leading-label); }
-.lyrics-actions button, .effect-buttons button, .aspect-buttons button { font-family: 'Open Sans', sans-serif; font-size: var(--type-caption); line-height: var(--leading-label); }
-.control-row label, #effectControls .control-row label { font-family: 'Open Sans', sans-serif; font-size: var(--type-caption); line-height: var(--leading-label); }
-select { font-family: 'Open Sans', sans-serif; font-size: var(--type-label); line-height: var(--leading-label); }
-.transport span { font-family: 'Open Sans', sans-serif; font-size: var(--type-caption); line-height: 1.2; }
+body { font-family: 'Inter Tight', 'Open Sans', sans-serif; font-size: var(--type-body); line-height: var(--leading-body); }
+button { font-family: 'Inter Tight', 'Open Sans', sans-serif; font-size: var(--type-label); line-height: var(--leading-label); }
+.section h3 { font-family: 'Inter Tight', 'Open Sans', sans-serif; font-size: var(--type-micro); line-height: var(--leading-label); letter-spacing: var(--tracking-caps); }
+.status { font-family: 'Inter Tight', 'Open Sans', sans-serif; font-size: var(--type-caption); line-height: var(--leading-body); }
+.metadata-grid input { font-family: 'Inter Tight', 'Open Sans', sans-serif; font-size: var(--type-label); line-height: var(--leading-label); }
+.lyrics-actions button, .effect-buttons button, .aspect-buttons button { font-family: 'Inter Tight', 'Open Sans', sans-serif; font-size: var(--type-caption); line-height: var(--leading-label); }
+.control-row label, #effectControls .control-row label { font-family: 'Inter Tight', 'Open Sans', sans-serif; font-size: var(--type-caption); line-height: var(--leading-label); }
+select { font-family: 'Inter Tight', 'Open Sans', sans-serif; font-size: var(--type-label); line-height: var(--leading-label); }
+.transport span { font-family: 'Inter Tight', 'Open Sans', sans-serif; font-size: var(--type-caption); line-height: 1.2; }
 button, input, select, textarea, .status, .section h3, .transport span { min-height: var(--kefe-min-ui-size); }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 button.active-effect, button.active-aspect { box-shadow: inset 0 -2px 0 rgba(255,255,255,.85); }

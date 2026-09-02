@@ -1388,7 +1388,7 @@ function renderTitleCardStatement(ctx, w, h, appState, phase, info) {
     ctx.fillStyle = theme.ink;
     rows.forEach((row, i) => ctx.fillText(row, marginX, baselineStart + i * lineHeight));
     // Thin blue rule — the KEFE logo accent.
-    ctx.fillStyle = '#3070D0';
+    ctx.fillStyle = '#ef3f38';
     ctx.fillRect(marginX, h * 0.86 + unit * 0.022, Math.min(w - marginX * 2, unit * 0.16), Math.max(3, unit * 0.005));
     if (info.album) {
         const albumSize = Math.max(14, Math.round(unit * 0.018));
