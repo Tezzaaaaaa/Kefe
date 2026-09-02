@@ -36,11 +36,16 @@
     const buttons = effectButtons();
     if (!buttons.length) return;
 
-    source.querySelector('.wizard-style-heading')?.replaceChildren(document.createTextNode('Lyric effects'));
+    const names = buttons.map(button => button.dataset.effect).join('|');
+    const existing = source.querySelector('.wizard-all-effect-grid');
+    if (existing?.dataset.effectNames === names) return;
+
+    source.querySelector('.wizard-style-heading')?.replaceChildren(document.createTextNode('Choose your style'));
     source.querySelector('.wizard-effect-grid')?.remove();
 
     const grid = document.createElement('div');
     grid.className = 'wizard-effect-grid wizard-all-effect-grid';
+    grid.dataset.effectNames = names;
     grid.setAttribute('role', 'group');
     grid.setAttribute('aria-label', 'Lyric effects');
 
@@ -74,9 +79,18 @@
 
   const observer = new MutationObserver(schedule);
 
+  function loadStyleSections() {
+    if (document.querySelector('script[data-kefe-wizard-style-sections]')) return;
+    const script = document.createElement('script');
+    script.src = './ui/wizard-style-sections.js';
+    script.dataset.kefeWizardStyleSections = 'true';
+    document.head.appendChild(script);
+  }
+
   function init() {
     rebuild();
     observer.observe(document.body, { childList: true, subtree: true });
+    loadStyleSections();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
