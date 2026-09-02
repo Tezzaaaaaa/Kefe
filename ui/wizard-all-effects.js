@@ -87,10 +87,19 @@
     document.head.appendChild(script);
   }
 
+  function loadPreviewAspect() {
+    if (document.querySelector('script[data-kefe-preview-aspect]')) return;
+    const script = document.createElement('script');
+    script.src = './ui/preview-aspect.js';
+    script.dataset.kefePreviewAspect = 'true';
+    document.head.appendChild(script);
+  }
+
   function init() {
     rebuild();
     observer.observe(document.body, { childList: true, subtree: true });
     loadStyleSections();
+    loadPreviewAspect();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
