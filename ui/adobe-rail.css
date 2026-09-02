@@ -5,41 +5,44 @@
 body:not(.wizard-mode) main{align-items:stretch}
 
 /* --- Rail + panel shell --- */
-body:not(.wizard-mode) .sidebar{display:flex;flex-direction:row;width:388px}
-body:not(.wizard-mode) .section-nav{position:static;display:flex;flex-direction:column;flex:0 0 76px;grid-template-columns:none;gap:2px;padding:10px 8px;background:var(--surface);border-right:1px solid var(--line);border-bottom:0;overflow-y:auto}
+body:not(.wizard-mode) .sidebar{display:flex;flex-direction:row;width:392px}
+body:not(.wizard-mode) .section-nav{position:relative;z-index:3;display:flex;flex-direction:column;flex:0 0 80px;grid-template-columns:none;gap:4px;padding:14px 10px;background:linear-gradient(180deg,var(--surface),color-mix(in srgb,var(--surface) 92%,var(--bg)));border-right:1px solid var(--line);border-bottom:0;box-shadow:2px 0 10px rgba(0,0,0,.05);overflow-y:auto}
 
-/* --- Rail items: icon + label, soft tinted selection instead of a flat block --- */
-body:not(.wizard-mode) .section-nav-link{position:relative;flex-direction:column;justify-content:center;align-items:center;gap:6px;min-height:64px;border:1px solid transparent;border-radius:var(--radius-md);padding:10px 4px;text-align:center;color:var(--text-3);transition:background .16s var(--ease),border-color .16s var(--ease),color .16s var(--ease),transform .12s var(--ease)}
-body:not(.wizard-mode) .section-nav-link .rail-icon{width:19px;height:19px;flex:0 0 auto;transition:transform .16s var(--ease)}
-body:not(.wizard-mode) .section-nav-link strong{font-size:8.5px;font-weight:700;white-space:normal;line-height:1.25;letter-spacing:.02em;text-transform:uppercase;max-width:60px;opacity:.9}
-body:not(.wizard-mode) .section-nav-link:hover{color:var(--text);background:var(--surface-3);border-color:var(--line)}
-body:not(.wizard-mode) .section-nav-link:hover .rail-icon{transform:translateY(-1px)}
-body:not(.wizard-mode) .section-nav-link.active{background:var(--red-soft);border-color:rgba(239,63,56,.28);color:var(--red)}
-body:not(.wizard-mode) .section-nav-link.active::before{content:"";position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:3px;height:22px;border-radius:0 3px 3px 0;background:var(--red)}
-body:not(.wizard-mode) .section-nav-link.active strong{color:var(--red);opacity:1}
-body:not(.wizard-mode) .section-nav-link.done:not(.active)::after{content:"";position:absolute;top:8px;right:8px;width:5px;height:5px;border-radius:50%;background:var(--success)}
+/* --- Rail items: a real tactile tool button (icon chip) + label, not a flat rectangle --- */
+body:not(.wizard-mode) .section-nav-link{position:relative;flex-direction:column;justify-content:flex-start;align-items:center;gap:7px;min-height:66px;border:0;border-radius:var(--radius-md);padding:0;background:transparent;text-align:center;color:var(--text-3)}
+body:not(.wizard-mode) .section-nav-link .rail-icon-chip{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);box-shadow:0 1px 2px rgba(0,0,0,.08);transition:background .16s var(--ease),border-color .16s var(--ease),box-shadow .18s var(--ease),transform .16s var(--ease)}
+body:not(.wizard-mode) .section-nav-link .rail-icon{width:19px;height:19px;flex:0 0 auto;color:inherit;transition:color .16s var(--ease)}
+body:not(.wizard-mode) .section-nav-link strong{font-size:8.5px;font-weight:700;white-space:normal;line-height:1.2;letter-spacing:.02em;text-transform:uppercase;max-width:64px;color:inherit;opacity:.85;transition:opacity .16s var(--ease),color .16s var(--ease)}
+body:not(.wizard-mode) .section-nav-link:hover{color:var(--text)}
+body:not(.wizard-mode) .section-nav-link:hover .rail-icon-chip{background:var(--surface-3);border-color:var(--line-strong);box-shadow:0 4px 12px rgba(0,0,0,.16);transform:translateY(-1.5px)}
+body:not(.wizard-mode) .section-nav-link.active{color:var(--red)}
+body:not(.wizard-mode) .section-nav-link.active .rail-icon-chip{background:linear-gradient(155deg,var(--red),var(--red-press));border-color:var(--red-press);box-shadow:0 6px 16px rgba(239,63,56,.38),inset 0 1px 0 rgba(255,255,255,.18)}
+body:not(.wizard-mode) .section-nav-link.active .rail-icon{color:#fff}
+body:not(.wizard-mode) .section-nav-link.active strong{opacity:1}
+body:not(.wizard-mode) .section-nav-link.done:not(.active) .rail-icon-chip::after{content:"";position:absolute;top:-2px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 0 2px var(--surface)}
 
 /* --- Panel: breathing room + a real header instead of a cramped inline h3 --- */
 body:not(.wizard-mode) .sidebar>.section{display:none;flex:1 1 auto;min-width:0;overflow-y:auto;background:var(--surface)}
-body:not(.wizard-mode) .sidebar>.section.active{display:block;animation:railPanelIn .18s var(--ease) both}
-body:not(.wizard-mode) .sidebar>.section h3{display:flex;align-items:baseline;gap:8px;position:sticky;top:0;margin:0;padding:20px 20px 14px;font-size:15px;font-weight:750;letter-spacing:-.02em;background:var(--surface);border-bottom:1px solid var(--line);z-index:2}
-body:not(.wizard-mode) .sidebar>.section h3 .section-index{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text-3)}
+body:not(.wizard-mode) .sidebar>.section.active{display:block;animation:railPanelIn .2s var(--ease) both}
+body:not(.wizard-mode) .sidebar>.section h3{display:flex;align-items:baseline;gap:8px;position:sticky;top:0;margin:0;padding:20px 20px 14px;font-size:15px;font-weight:750;letter-spacing:-.02em;background:linear-gradient(180deg,var(--surface) 80%,transparent);border-bottom:1px solid var(--line);z-index:2}
+body:not(.wizard-mode) .sidebar>.section h3 .section-index{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--red)}
 body:not(.wizard-mode) .sidebar>.section>*:not(h3){padding-left:20px;padding-right:20px}
 body:not(.wizard-mode) .sidebar>.section>*:first-child{margin-top:16px}
 body:not(.wizard-mode) .sidebar>.section>*:last-child{margin-bottom:20px}
+body:not(.wizard-mode) .sidebar>.section button:not(.primary){box-shadow:0 1px 2px rgba(0,0,0,.05)}
+body:not(.wizard-mode) .sidebar>.section button.primary{box-shadow:0 4px 12px rgba(239,63,56,.28)}
 @keyframes railPanelIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
 
 /* --- Canvas: dominant workspace, floated stage instead of edge-to-edge --- */
 body:not(.wizard-mode) .preview{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;background:var(--bg)}
 body:not(.wizard-mode) .preview-toolbar{padding:14px 20px;border-bottom:1px solid var(--line);background:var(--surface)}
-body:not(.wizard-mode) .canvas-wrapper{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:28px;background:radial-gradient(ellipse at 50% 0%,var(--surface-3),var(--surface-2) 70%)}
-body:not(.wizard-mode) .canvas-wrapper canvas{border-radius:var(--radius-md);box-shadow:var(--shadow-card)}
+body:not(.wizard-mode) .canvas-wrapper{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:32px;background:radial-gradient(ellipse 90% 70% at 50% 0%,var(--surface-3),var(--surface-2) 65%,var(--bg) 100%)}
+body:not(.wizard-mode) .canvas-wrapper canvas{border-radius:var(--radius-md);box-shadow:0 1px 3px rgba(0,0,0,.3),0 24px 48px -12px rgba(0,0,0,.45);outline:1px solid var(--line-strong);outline-offset:0}
 
 @media(max-width:900px){
   body:not(.wizard-mode) .sidebar{width:100%;max-height:52vh;flex-direction:column}
-  body:not(.wizard-mode) .section-nav{flex-direction:row;flex:0 0 auto;gap:6px;border-right:0;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden}
+  body:not(.wizard-mode) .section-nav{flex-direction:row;flex:0 0 auto;gap:8px;padding:10px 12px;box-shadow:0 2px 10px rgba(0,0,0,.05);border-right:0;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden}
   body:not(.wizard-mode) .section-nav-link{flex:1 0 auto;min-height:56px}
-  body:not(.wizard-mode) .section-nav-link.active::before{left:50%;top:-2px;transform:translateX(-50%);width:22px;height:3px;border-radius:0 0 3px 3px}
   body:not(.wizard-mode) main{flex-direction:column}
   body:not(.wizard-mode) .canvas-wrapper{padding:16px}
 }
