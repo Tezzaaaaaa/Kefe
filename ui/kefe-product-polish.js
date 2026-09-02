@@ -13,7 +13,7 @@
     ['Eternal Sunshine','Soft focus, warm feeling','eternal','aurora','minimal'],
     ['Chromatic','Bright motion, vivid background','pulse','aurora','statement'],
     ['Y2K','Fast type, graphic backdrop','typewriter','grid','statement'],
-    ['Midnight','Dark, understated, cinematic','drift','solid','editorial']
+    ['Midnight','Dark, understated, cinematic','fadeup','solid','editorial']
   ];
 
   function clickEffect(name) {
