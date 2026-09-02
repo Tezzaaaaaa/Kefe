@@ -1,5 +1,4 @@
-/* KEFE editor shell — single source of truth for page geometry.
-   Component styling belongs in the feature stylesheets. */
+/* KEFE editor shell — single source of truth for page geometry. */
 :root {
   --editor-rail: 360px;
   --header-h: 64px;
@@ -72,174 +71,17 @@ main {
   border-radius: var(--panel-radius);
 }
 
-/* Guided creation mode: one scrollable creation surface plus a preview sheet. */
-body.wizard-mode main {
-  display: block;
-  position: relative;
-  min-width: 0;
-  min-height: calc(100dvh - var(--header-h));
-  overflow: hidden;
-}
-
-body.wizard-mode .sidebar {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: none;
-  height: calc(100dvh - var(--header-h));
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  border-right: 0;
-}
-
-body.wizard-mode .sidebar > .section-nav,
-body.wizard-mode .sidebar > .section {
-  display: none;
-}
-
-body.wizard-mode .sidebar > .section.wizard-current,
-body.wizard-mode .sidebar > .wizard-panel.wizard-current,
-body.wizard-mode .sidebar > .wizard-panel {
-  display: block;
-  width: min(900px, calc(100% - 32px));
-  margin-inline: auto;
-}
-
-body.wizard-mode .sidebar > .wizard-panel {
-  flex: 1 0 auto;
-}
-
-body.wizard-mode .sidebar > .section h3:not(.wizard-panel-title) {
-  display: none;
-}
-
-body.wizard-mode .sidebar {
-  padding-bottom: 96px;
-}
-
-body.wizard-mode[data-wizard-step="content"] .sidebar,
-body.wizard-mode[data-wizard-step="captions"] .sidebar,
-body.wizard-mode[data-wizard-step="style"] .sidebar,
-body.wizard-mode[data-wizard-step="background"] .sidebar,
-body.wizard-mode[data-wizard-step="preview"] .sidebar {
-  padding-bottom: calc(min(72dvh, 760px) + 96px);
-}
-
-/* Guided preview sheet. The step rules auto-open it; explicit state always wins. */
-body.wizard-mode .preview {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: auto;
-  bottom: 0;
-  z-index: 30;
-  width: 100%;
-  height: min(72dvh, 760px);
-  max-height: min(72dvh, 760px);
-  min-height: 0;
-  padding: 12px 16px 14px;
-  border: 1px solid var(--line);
-  border-bottom: 0;
-  border-radius: 16px 16px 0 0;
-  background: var(--surface);
-  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.32);
-  transform: translateY(100%);
-  transition: transform 0.25s var(--ease);
-}
-
-body.wizard-mode .preview.preview-expanded,
-body.wizard-mode[data-wizard-step="content"] .preview,
-body.wizard-mode[data-wizard-step="captions"] .preview,
-body.wizard-mode[data-wizard-step="style"] .preview,
-body.wizard-mode[data-wizard-step="background"] .preview,
-body.wizard-mode[data-wizard-step="preview"] .preview {
-  transform: translateY(0);
-}
-
-/* These come after the step rules so the user's explicit collapse/expand state wins. */
-body.wizard-mode .preview.preview-collapsed {
-  transform: translateY(100%);
-}
-
-body.wizard-mode .preview.preview-expanded {
-  transform: translateY(0);
-}
-
-body.wizard-mode .preview > .preview-toolbar {
-  flex: 0 0 auto;
-}
-
-body.wizard-mode .preview > .canvas-wrapper {
-  min-height: 0;
-  padding-top: 10px;
-}
-
-/* Navigation follows the actual preview state when the toggle is used. */
-body.wizard-mode .wizard-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 50;
-}
-
-body.wizard-mode[data-wizard-step="content"] .wizard-nav,
-body.wizard-mode[data-wizard-step="captions"] .wizard-nav,
-body.wizard-mode[data-wizard-step="style"] .wizard-nav,
-body.wizard-mode[data-wizard-step="background"] .wizard-nav,
-body.wizard-mode[data-wizard-step="preview"] .wizard-nav {
-  bottom: min(72dvh, 760px);
-}
-
-/* A collapsed preview must never leave the navigation floating halfway up the page. */
-body.wizard-mode:has(.preview.preview-collapsed) .wizard-nav {
-  bottom: 0;
-}
-
-.preview-toggle {
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  z-index: 55;
-  display: none;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 18px;
-  border: 1px solid var(--line);
-  border-bottom: 0;
-  border-radius: 12px 12px 0 0;
-  background: var(--surface);
-  color: var(--text-2);
-  transform: translateX(-50%);
-}
-
-body.wizard-mode .preview-toggle {
-  display: inline-flex;
-}
-
-body.wizard-mode:has(.preview:not(.preview-collapsed)) .preview-toggle {
-  bottom: min(72dvh, 760px);
-}
-
-/* Classic editor: desktop two-pane; tablet/mobile stacked with an always-visible preview. */
 @media (max-width: 900px) {
   main {
     grid-template-columns: 1fr;
     grid-template-rows: minmax(240px, 48dvh) minmax(0, 1fr);
   }
 
-  body:not(.wizard-mode) .sidebar {
+  .sidebar {
     width: 100%;
     min-height: 0;
     border-right: 0;
     border-bottom: 1px solid var(--line);
-  }
-
-  body.wizard-mode .sidebar > .section.wizard-current,
-  body.wizard-mode .sidebar > .wizard-panel,
-  body.wizard-mode .sidebar > .wizard-panel.wizard-current {
-    width: min(760px, calc(100% - 32px));
   }
 }
 
@@ -251,56 +93,10 @@ body.wizard-mode:has(.preview:not(.preview-collapsed)) .preview-toggle {
   .preview {
     padding: 12px;
   }
-
-  body.wizard-mode .sidebar > .section.wizard-current,
-  body.wizard-mode .sidebar > .wizard-panel,
-  body.wizard-mode .sidebar > .wizard-panel.wizard-current {
-    width: calc(100% - 24px);
-  }
-
-  body.wizard-mode .preview {
-    height: min(68dvh, 620px);
-    max-height: min(68dvh, 620px);
-    padding: 10px;
-  }
-
-  body.wizard-mode[data-wizard-step="content"] .sidebar,
-  body.wizard-mode[data-wizard-step="captions"] .sidebar,
-  body.wizard-mode[data-wizard-step="style"] .sidebar,
-  body.wizard-mode[data-wizard-step="background"] .sidebar,
-  body.wizard-mode[data-wizard-step="preview"] .sidebar {
-    padding-bottom: calc(min(68dvh, 620px) + 88px);
-  }
-
-  body.wizard-mode[data-wizard-step="content"] .wizard-nav,
-  body.wizard-mode[data-wizard-step="captions"] .wizard-nav,
-  body.wizard-mode[data-wizard-step="style"] .wizard-nav,
-  body.wizard-mode[data-wizard-step="background"] .wizard-nav,
-  body.wizard-mode[data-wizard-step="preview"] .wizard-nav {
-    bottom: min(68dvh, 620px);
-  }
-
-  body.wizard-mode:has(.preview.preview-collapsed) .wizard-nav {
-    bottom: 0;
-  }
-
-  body.wizard-mode:has(.preview:not(.preview-collapsed)) .preview-toggle {
-    bottom: min(68dvh, 620px);
-  }
 }
 
 @media (max-width: 480px) {
   :root {
     --preview-pad: 12px;
-  }
-
-  body.wizard-mode .preview {
-    border-radius: 14px 14px 0 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body.wizard-mode .preview {
-    transition: none;
   }
 }
