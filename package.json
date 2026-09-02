@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "better-sqlite3": "^11.3.0",
-    "bcryptjs": "^9.0.2",
+    "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "stripe": "^16.12.0",
     "cookie-parser": "^1.4.6",
