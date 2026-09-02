@@ -1,4 +1,4 @@
-/* KEFE upload confirmations: visible success state + media thumbnail. */
+/* KEFE upload confirmations: explicit success state for audio and background media. */
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -26,11 +26,15 @@
     name.textContent = file?.name || (kind === 'audio' ? 'Audio loaded' : 'Background loaded');
     info.textContent = meta || (file ? `${(file.size / 1048576).toFixed(1)} MB` : 'Ready');
     thumb.replaceChildren();
+    thumb.style.backgroundImage = '';
     if (visual instanceof HTMLVideoElement) {
       const poster = document.createElement('canvas');
       poster.width = 320; poster.height = 180;
       const ctx = poster.getContext('2d');
-      try { ctx.drawImage(visual, 0, 0, poster.width, poster.height); thumb.style.backgroundImage = `url(${poster.toDataURL('image/jpeg', .82)})`; } catch (_) {}
+      try {
+        ctx.drawImage(visual, 0, 0, poster.width, poster.height);
+        thumb.style.backgroundImage = `url(${poster.toDataURL('image/jpeg', .82)})`;
+      } catch (_) {}
       thumb.classList.add('video-thumb');
     } else if (visual instanceof HTMLImageElement) {
       thumb.style.backgroundImage = `url(${visual.src})`;
@@ -45,10 +49,29 @@
     if (card) card.classList.remove('is-visible');
   }
 
+  function updateWizardMediaConfirmation(media) {
+    const action = $('wizardSourceAction');
+    if (!action) return;
+
+    const readyVideo = Boolean(media?.video && media?.videoFile);
+    const readyImage = Boolean(media?.image && !readyVideo);
+    const ready = readyVideo || readyImage;
+    const strong = action.querySelector('strong') || action.previousElementSibling;
+    if (!strong) return;
+
+    action.classList.toggle('is-ready', ready);
+    strong.classList.toggle('wizard-upload-success', ready);
+
+    if (readyVideo) {
+      strong.innerHTML = '<span class="wizard-upload-check">✓</span> Video uploaded';
+    } else if (readyImage) {
+      strong.innerHTML = '<span class="wizard-upload-check">✓</span> Image uploaded';
+    }
+  }
+
   function refresh() {
-    const state = window.state;
-    const media = window.kefeMedia;
-    if (!state || !media) return;
+    const state = window.state || {};
+    const media = window.kefeMedia || {};
 
     if (state.audio?.file && (state.audio.ready || state.audio.duration > 0)) {
       setCard('audioDrop', 'audioStatus', 'audio', state.audio.file, null,
@@ -60,6 +83,8 @@
     } else if (media.image) {
       setCard('bgDrop', 'backgroundStatus', 'image', null, media.image, `${media.image.naturalWidth || 0} × ${media.image.naturalHeight || 0} · Image ready`);
     } else hide('bgDrop');
+
+    updateWizardMediaConfirmation(media);
   }
 
   function injectStyle() {
@@ -77,6 +102,9 @@
       .kefe-upload-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:245px}
       .kefe-upload-meta{font-size:10.5px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:245px}
       #audioDrop:has(.kefe-upload-confirmation.is-visible),#bgDrop:has(.kefe-upload-confirmation.is-visible){border-color:rgba(48,209,88,.65);background:rgba(48,209,88,.055)}
+      .wizard-source-action.is-ready{border-color:rgba(48,209,88,.58);background:rgba(48,209,88,.055)}
+      .wizard-upload-success{display:inline-flex;align-items:center;gap:7px;color:#30d158!important;font-weight:700}
+      .wizard-upload-check{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#30d158;color:#07140a;font-size:12px;font-weight:800;line-height:1}
     `;
     document.head.appendChild(style);
   }
@@ -84,7 +112,7 @@
   function start() {
     injectStyle();
     refresh();
-    setInterval(refresh, 350);
+    setInterval(refresh, 200);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true}); else start();
 })();
