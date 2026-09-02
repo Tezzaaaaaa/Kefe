@@ -1,4 +1,4 @@
-/* KEFE product polish interactions. Safe additive layer over the existing wizard. */
+/* KEFE product polish interactions. Safe additive layer over the existing editor. */
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -13,17 +13,74 @@
   function enhanceEffectButtons() { document.querySelectorAll('.wizard-effect-choice').forEach(button => { if (!button.dataset.effectName) button.dataset.effectName = button.dataset.forwardEffect || button.textContent.trim(); button.setAttribute('aria-label', `Use ${button.dataset.effectName} lyric effect`); }); }
   function enhanceChoiceAnimation() { document.querySelectorAll('.wizard-choice').forEach((button, index) => button.style.setProperty('--kefe-card-index', index)); }
   function enhanceLivePreview() { const heading = document.querySelector('.preview-heading'); const preview = document.querySelector('.preview'); if (!heading || !preview) return; if (!heading.querySelector('.preview-live-badge')) { const live = document.createElement('span'); live.className = 'preview-live-badge'; live.textContent = 'Live'; heading.appendChild(live); } if (!heading.querySelector('.preview-effect-badge')) { const effect = document.createElement('span'); effect.className = 'preview-effect-badge'; heading.appendChild(effect); } const state = window.state; const effectName = state?.style?.effect || document.querySelector('#lyricStyleBlock [data-effect].active-effect')?.dataset.effect || 'apple'; const effectBadge = heading.querySelector('.preview-effect-badge'); if (effectBadge) effectBadge.textContent = effectName.replace(/[-_]/g, ' '); const liveBadge = heading.querySelector('.preview-live-badge'); const playing = Boolean(state?.playback?.isPlaying); if (liveBadge) liveBadge.classList.toggle('is-playing', playing); preview.classList.toggle('is-playing', playing); }
-  function loadScript(src, marker) { if (window[marker] || document.querySelector(`script[data-${marker}]`)) return; const script = document.createElement('script'); script.src = src; script.dataset[marker] = '1'; script.async = true; document.head.appendChild(script); }
-  function loadAnalysisEngine() { loadScript('./core/analysis-engine.js', 'kefe-analysis'); }
-  function loadAutoCreate() { loadScript('./core/auto-create.js', 'kefe-auto-create'); }
-  function loadSmartRender() { loadScript('./core/smart-render.js', 'kefe-smart-render'); }
-  function loadEditingFlow() { loadScript('./ui/editing-flow.js', 'kefe-editing-flow-script'); }
+
+  const scriptPromises = new Map();
+  function loadScript(src, marker) {
+    if (window[marker] || document.querySelector(`script[data-${marker}]`)) return Promise.resolve();
+    if (scriptPromises.has(src)) return scriptPromises.get(src);
+    const promise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.dataset[marker] = '1';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load ${src}`));
+      document.head.appendChild(script);
+    });
+    scriptPromises.set(src, promise);
+    return promise;
+  }
+
+  let runtimeReady = false;
+  async function bootstrapRuntimeModules() {
+    if (runtimeReady) return;
+    try {
+      await loadScript('./core/runtime-bridge.js', 'kefe-runtime-bridge');
+      runtimeReady = Boolean(window.kefeRuntime?.ready);
+      if (!runtimeReady) return;
+      // caption-generator.js is also listed in index.html, but it intentionally
+      // waits for window.state. Loading it again after the bridge is safe because
+      // it self-guards once its runtime has successfully initialised.
+      await loadScript('./ui/caption-generator.js', 'kefe-caption-generator');
+      await Promise.allSettled([
+        loadScript('./core/analysis-engine.js', 'kefe-analysis'),
+        loadScript('./core/auto-create.js', 'kefe-auto-create'),
+        loadScript('./core/smart-render.js', 'kefe-smart-render'),
+        loadScript('./ui/editing-flow.js', 'kefe-editing-flow-script')
+      ]);
+      window.dispatchEvent(new CustomEvent('kefe:runtime-bootstrapped'));
+    } catch (error) {
+      console.error('[KEFE Bootstrap]', error);
+    }
+  }
+
   let analysisTimer = 0; let analysisRequest = 0;
-  async function analyzeCurrentLyrics() { if (!window.kefeAnalysis?.analyzeLyrics) return; const input = $('lyricsText'); const text = input?.value || ''; if (!text.trim()) return; const duration = Number(window.state?.audio?.duration || 0); const request = ++analysisRequest; try { const result = await window.kefeAnalysis.analyzeLyrics(text, duration); if (request !== analysisRequest) return; window.kefeAnalysis.lastResult = result; window.dispatchEvent(new CustomEvent('kefe:lyrics-analyzed', { detail: result })); const status = $('lyricsStatus'); if (status && result.validation) { const count = result.validation.count; const problems = result.validation.gaps.length + result.validation.overlaps.length + result.validation.lateLines; status.textContent = problems ? `${count} lines • ${problems} timing issue${problems === 1 ? '' : 's'}` : `${count} lines • timing checked`; status.dataset.analysisRecommendation = result.recommendation || ''; } } catch (error) { console.warn('[KEFE Analysis] lyrics analysis failed', error); } }
+  async function analyzeCurrentLyrics() {
+    if (!window.kefeAnalysis?.analyzeLyrics) return;
+    const input = $('lyricsText'); const text = input?.value || ''; if (!text.trim()) return;
+    const duration = Number(window.state?.audio?.duration || 0); const request = ++analysisRequest;
+    try {
+      const result = await window.kefeAnalysis.analyzeLyrics(text, duration);
+      if (request !== analysisRequest) return;
+      window.kefeAnalysis.lastResult = result;
+      window.dispatchEvent(new CustomEvent('kefe:lyrics-analyzed', { detail: result }));
+      const status = $('lyricsStatus');
+      if (status && result.validation) {
+        const count = result.validation.count;
+        const problems = result.validation.gaps.length + result.validation.overlaps.length + result.validation.lateLines;
+        status.textContent = problems ? `${count} lines • ${problems} timing issue${problems === 1 ? '' : 's'}` : `${count} lines • timing checked`;
+        status.dataset.analysisRecommendation = result.recommendation || '';
+      }
+    } catch (error) { console.warn('[KEFE Analysis] lyrics analysis failed', error); }
+  }
   function scheduleAnalysis() { clearTimeout(analysisTimer); analysisTimer = setTimeout(analyzeCurrentLyrics, 350); }
-  const observer = new MutationObserver(() => { enhanceChoiceAnimation(); enhanceStylePanel(); enhanceEffectButtons(); enhanceLivePreview(); loadAutoCreate(); loadSmartRender(); loadEditingFlow(); });
+
+  const observer = new MutationObserver(() => {
+    enhanceChoiceAnimation(); enhanceStylePanel(); enhanceEffectButtons(); enhanceLivePreview();
+    bootstrapRuntimeModules();
+  });
   observer.observe(body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-wizard-step', 'class'] });
-  enhanceChoiceAnimation(); enhanceStylePanel(); enhanceEffectButtons(); enhanceLivePreview(); loadAnalysisEngine(); loadAutoCreate(); loadSmartRender(); loadEditingFlow();
+  enhanceChoiceAnimation(); enhanceStylePanel(); enhanceEffectButtons(); enhanceLivePreview();
+  bootstrapRuntimeModules();
   document.addEventListener('input', event => { if (event.target?.id === 'lyricsText') scheduleAnalysis(); }, true);
   document.addEventListener('change', event => { if (event.target?.id === 'lrcFileInput') scheduleAnalysis(); }, true);
   window.addEventListener('kefe:analysis-ready', analyzeCurrentLyrics);
