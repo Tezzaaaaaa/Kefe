@@ -184,14 +184,30 @@
         }
     });
 
+    function audioToWavBlob(audio) {
+        const samples = audio?.float32;
+        if (!samples || !samples.length) throw new Error('Could not prepare the audio track for transcription.');
+        const rate = 16000;
+        const buffer = new ArrayBuffer(44 + samples.length * 2);
+        const view = new DataView(buffer);
+        const write = (offset, text) => { for (let i = 0; i < text.length; i++) view.setUint8(offset + i, text.charCodeAt(i)); };
+        write(0, 'RIFF'); view.setUint32(4, 36 + samples.length * 2, true); write(8, 'WAVE');
+        write(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+        view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+        write(36, 'data'); view.setUint32(40, samples.length * 2, true);
+        for (let i = 0; i < samples.length; i++) { const v = Math.max(-1, Math.min(1, samples[i])); view.setInt16(44 + i * 2, v < 0 ? v * 0x8000 : v * 0x7fff, true); }
+        return new Blob([buffer], { type: 'audio/wav' });
+    }
+
     registry.register({
         id: 'server',
         label: 'KEFE server API',
         async transcribe(ctx) {
-            const { file, onStatus, onProgress } = ctx;
-            onStatus('Sending audio to the transcription server…');
+            const { onStatus, onProgress, audio } = ctx;
+            const file = audioToWavBlob(audio);
+            onStatus('Sending the extracted audio track to the transcription server…');
             onProgress(25);
-            const res = await fetch('/api/transcribe', { method: 'POST', headers: { 'Content-Type': file.type || 'application/octet-stream' }, body: file });
+            const res = await fetch('/api/transcribe', { method: 'POST', headers: { 'Content-Type': 'audio/wav' }, body: file });
             let data = null;
             try { data = await res.json(); } catch (e) {}
             if (!res.ok) throw new Error(data?.error || `Transcription server error (${res.status}).`);
