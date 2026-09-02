@@ -10,3 +10,5 @@ export const QUALITY_PRESETS = Object.freeze({
 export function getQualityPreset(name = 'medium') {
   return QUALITY_PRESETS[name] || QUALITY_PRESETS.medium;
 }
+
+// Trigger the export-upgrade wiring workflow after initial module creation.
