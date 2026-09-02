@@ -1,0 +1,35 @@
+# KEFE repository-wide lint policy.
+# Formatting is gated separately by Prettier; MegaLinter is the broad safety sweep.
+APPLY_FIXES: none
+
+# Keep generated, dependency and media content out of the sweep.
+FILTER_REGEX_EXCLUDE: '(^|/)(node_modules|vendor|dist|build|coverage|\.git|megalinter-reports)(/|$)|\.(mp3|wav|mp4|webm|mov|m4a|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|otf|map)$'
+
+# KEFE is JavaScript/HTML/CSS/JSON/YAML/Markdown; avoid unrelated language stacks.
+DISABLE:
+  - C
+  - CSHARP
+  - GO
+  - JAVA
+  - KOTLIN
+  - PHP
+  - POWERSHELL
+  - PYTHON
+  - RUST
+  - SWIFT
+  - TERRAFORM
+  - DOCKERFILE
+  - SQL
+  - LUA
+  - GROOVY
+  - PERL
+  - R
+  - DART
+  - ELIXIR
+  - JULIA
+  - SCALA
+  - SALESFORCE
+  - CLOJURE
+  - CFAMILY
+
+PRINT_ALL_FILES: false
