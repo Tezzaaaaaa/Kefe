@@ -30,6 +30,7 @@ app.use('/api/billing', buildBillingRouter());
 app.use(express.json());
 app.use('/api/auth', authRouter);
 app.use('/api', require('./transcribe'));
+app.use('/api', require('./remove-background'));
 
 // Everything else (frontend) is static.
 app.use(express.static(ROOT_DIR, { extensions: ['html'] }));
