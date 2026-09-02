@@ -24,8 +24,8 @@ jobs:
         with:
           node-version: 24
 
-      - name: Install browser test dependencies
-        run: npm ci
+      - name: Install browser test dependency
+        run: npm install --no-save playwright@1.55.0
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
