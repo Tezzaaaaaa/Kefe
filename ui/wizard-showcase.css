@@ -1,13 +1,4 @@
-/* KEFE wizard polish — unified typography, palette and interaction language. */
-.wizard-choices .wizard-choice{font-family:"Open Sans",Arial,sans-serif;animation:wizardChoiceIn .32s ease both;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease!important}
-.wizard-choices .wizard-choice:nth-child(1){animation-delay:.02s}.wizard-choices .wizard-choice:nth-child(2){animation-delay:.06s}.wizard-choices .wizard-choice:nth-child(3){animation-delay:.10s}.wizard-choices .wizard-choice:nth-child(4){animation-delay:.14s}.wizard-choices .wizard-choice:nth-child(5){animation-delay:.18s}.wizard-choices .wizard-choice:nth-child(6){animation-delay:.22s}
-@keyframes wizardChoiceIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.wizard-choices:hover .wizard-choice{opacity:1;filter:none}
-.wizard-choices .wizard-choice:hover{transform:translateY(-2px)!important;box-shadow:0 10px 26px rgba(0,0,0,.09);z-index:2}
-.wizard-choices .wizard-choice:focus-visible{opacity:1;filter:none}
-.wizard-choices .wizard-choice.selected{transform:none!important}
-
-/* Keep every wizard text element on the same KEFE type and colour tokens. */
+/* KEFE wizard — clean coverflow-inspired option rails. */
 .wizard-panel,.wizard-panel *,.wizard-nav,.wizard-nav *{font-family:"Open Sans",Arial,sans-serif}
 .wizard-panel-kicker{color:var(--text-3)!important}
 .wizard-panel-title{color:var(--text)!important}
@@ -15,7 +6,114 @@
 .wizard-nav{color:var(--text)}
 .wizard-nav button{font-family:"Open Sans",Arial,sans-serif}
 
+/* Option rails: one clear focal choice, quiet depth around it. */
+.wizard-choices{
+  position:relative;
+  display:flex!important;
+  align-items:stretch;
+  justify-content:center;
+  gap:10px!important;
+  width:min(100%,900px)!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  padding:18px 22px 24px;
+  box-sizing:border-box;
+  perspective:1100px;
+  overflow:visible;
+}
+.wizard-choices .wizard-choice{
+  position:relative;
+  flex:0 0 min(190px,23vw);
+  min-height:142px;
+  box-sizing:border-box;
+  font-family:"Open Sans",Arial,sans-serif;
+  animation:wizardChoiceIn .3s ease both;
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .22s ease,filter .22s ease,border-color .22s ease,background .22s ease,box-shadow .22s ease!important;
+  transform-style:preserve-3d;
+  transform:translateZ(0) scale(.93);
+  opacity:.58;
+  filter:saturate(.72);
+  z-index:1;
+}
+.wizard-choices .wizard-choice:nth-child(1){animation-delay:.02s}
+.wizard-choices .wizard-choice:nth-child(2){animation-delay:.06s}
+.wizard-choices .wizard-choice:nth-child(3){animation-delay:.10s}
+.wizard-choices .wizard-choice:nth-child(4){animation-delay:.14s}
+.wizard-choices .wizard-choice:nth-child(5){animation-delay:.18s}
+.wizard-choices .wizard-choice:nth-child(6){animation-delay:.22s}
+
+@keyframes wizardChoiceIn{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:.58;transform:translateY(0) scale(.93)}}
+
+/* The selected card is the visual anchor. */
+.wizard-choices .wizard-choice.selected{
+  opacity:1;
+  filter:none;
+  transform:translateZ(42px) scale(1.035)!important;
+  border-color:var(--red)!important;
+  box-shadow:0 18px 38px rgba(0,0,0,.14),0 0 0 1px color-mix(in srgb,var(--red) 55%,transparent)!important;
+  z-index:5;
+}
+
+/* Coverflow-like neighbouring cards. */
+.wizard-choices .wizard-choice:has(+ .wizard-choice.selected){
+  opacity:.78;
+  filter:saturate(.82);
+  transform:translateX(10px) rotateY(18deg) scale(.94)!important;
+  transform-origin:right center;
+  z-index:3;
+}
+.wizard-choices .wizard-choice.selected + .wizard-choice{
+  opacity:.78;
+  filter:saturate(.82);
+  transform:translateX(-10px) rotateY(-18deg) scale(.94)!important;
+  transform-origin:left center;
+  z-index:3;
+}
+
+/* Keep distant cards quiet rather than dimming the whole interface. */
+.wizard-choices .wizard-choice.selected ~ .wizard-choice ~ .wizard-choice,
+.wizard-choices .wizard-choice:has(~ .wizard-choice.selected) ~ .wizard-choice{
+  opacity:.46;
+}
+
+.wizard-choices .wizard-choice:hover{
+  opacity:1;
+  filter:none;
+  transform:translateZ(28px) scale(.98)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.11);
+  z-index:6;
+}
+.wizard-choices .wizard-choice.selected:hover{transform:translateZ(48px) scale(1.045)!important}
+.wizard-choices .wizard-choice:focus-visible{opacity:1;filter:none;outline:2px solid var(--red);outline-offset:3px}
+
+/* Keep the icon treatment restrained so the cards feel like one system. */
+.wizard-choices .wizard-choice-icon{transition:transform .25s ease,background .2s ease,color .2s ease!important}
+.wizard-choices .wizard-choice.selected .wizard-choice-icon{transform:scale(1.04)}
+
+/* Source cards use the same rail but remain slightly shorter. */
+.wizard-source-choices .wizard-choice{flex-basis:min(230px,28vw);min-height:118px}
+
+/* Small screens become a deliberate horizontal picker rather than a cramped grid. */
+@media(max-width:700px){
+  .wizard-choices{
+    justify-content:flex-start;
+    overflow-x:auto;
+    overflow-y:visible;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+    padding:18px max(18px,calc((100vw - 190px)/2)) 24px;
+    margin-left:calc(-1 * max(0px,var(--wizard-mobile-gutter,0px)))!important;
+    margin-right:calc(-1 * max(0px,var(--wizard-mobile-gutter,0px)))!important;
+  }
+  .wizard-choices::-webkit-scrollbar{display:none}
+  .wizard-choices .wizard-choice{flex-basis:190px;min-width:190px;scroll-snap-align:center}
+  .wizard-source-choices .wizard-choice{flex-basis:230px;min-width:230px}
+  .wizard-choices .wizard-choice:has(+ .wizard-choice.selected),
+  .wizard-choices .wizard-choice.selected + .wizard-choice{transform:translateZ(0) scale(.94)!important}
+  .wizard-choices .wizard-choice.selected{transform:translateZ(22px) scale(1.02)!important}
+}
+
 @media(prefers-reduced-motion:reduce){
-  .wizard-choices .wizard-choice{animation:none;transition:none!important}
-  .wizard-choices .wizard-choice:hover{transform:none!important;box-shadow:none}
+  .wizard-choices .wizard-choice{animation:none;transition:none!important;transform:none!important}
+  .wizard-choices .wizard-choice.selected{transform:none!important}
 }
