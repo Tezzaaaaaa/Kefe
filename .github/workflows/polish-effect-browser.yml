@@ -1,0 +1,34 @@
+name: Polish KEFE effect browser
+on:
+  push:
+    branches: [main]
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix CSS syntax and load product polish
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('ui/wizard-showcase.css')
+          s=p.read_text()
+          s=s.replace('@keyframes wizardEffectRise{0%,100%{opacity:0;transform:translateY(12px)}35%,75%{opacity:1;transform:translateY(0)}@keyframes wizardEffectSlide','@keyframes wizardEffectRise{0%,100%{opacity:0;transform:translateY(12px)}35%,75%{opacity:1;transform:translateY(0)}}@keyframes wizardEffectSlide')
+          s=s.replace('.wizard-motion-effect-choice[data-motion-effect="slide"]','.wizard-motion-effect-grid .wizard-effect-choice[data-motion-effect="slide"]')
+          p.write_text(s)
+          p=Path('index.html')
+          s=p.read_text()
+          marker='<script src="./ui/kefe-product-polish.js"></script>'
+          if marker not in s:
+              s=s.replace('</body>', marker+'\n</body>', 1)
+          p.write_text(s)
+          PY
+      - name: Commit and remove workflow
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ui/wizard-showcase.css index.html
+          git diff --cached --quiet || git commit -m "Polish KEFE live effect browser"
+          git rm .github/workflows/polish-effect-browser.yml
+          git commit -m "Remove temporary effect browser workflow"
+          git push
