@@ -4,7 +4,6 @@
 
   // app.js owns the lexical `state`. This file is loaded before app.js, so the
   // first pass only bootstraps a second pass after the page has finished loading.
-  // The second pass gets a bridge to the app state and then installs the media fix.
   const params = new URLSearchParams(document.currentScript?.src?.split('?')[1] || '');
   const runtime = params.get('runtime') === '1';
 
@@ -15,7 +14,7 @@
       document.body.appendChild(bridge);
 
       const script = document.createElement('script');
-      script.src = './ui/background-presets.js?v=20260901-5&runtime=1';
+      script.src = './app/ui/background-presets.js?v=20260901-5&runtime=1';
       script.async = false;
       document.body.appendChild(script);
     }, { once: true });
@@ -31,7 +30,7 @@
     if (window.__kefeWizardMediaFixLoaded) return;
     window.__kefeWizardMediaFixLoaded = true;
     const script = document.createElement('script');
-    script.src = './ui/wizard-media-fix.js?v=20260901-5';
+    script.src = './app/ui/wizard-media-fix.js?v=20260901-5';
     script.async = false;
     document.body.appendChild(script);
   }
@@ -42,7 +41,7 @@
     if (window.__kefeRemoveBgLoaderLoaded) return;
     window.__kefeRemoveBgLoaderLoaded = true;
     const script = document.createElement('script');
-    script.src = './ui/remove-background.js?v=20260902-1';
+    script.src = './app/ui/remove-background.js?v=20260902-1';
     script.async = false;
     document.body.appendChild(script);
   }
