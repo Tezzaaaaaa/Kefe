@@ -1,20 +1,50 @@
-/* KEFE Preview — collapsed as a small bottom bar; expanded only on demand. */
-body.wizard-mode .preview{position:fixed!important;left:50%!important;right:auto!important;top:auto!important;bottom:0!important;width:min(1120px,calc(100vw - 32px))!important;height:min(68dvh,760px)!important;max-height:min(68dvh,760px)!important;min-height:0!important;padding:12px 14px 14px!important;display:grid!important;grid-template-rows:auto minmax(0,1fr)!important;gap:10px!important;overflow:hidden!important;z-index:30!important;border:1px solid var(--line)!important;border-bottom:0!important;border-radius:16px 16px 0 0!important;box-shadow:0 -10px 40px rgba(0,0,0,.34)!important;transform:translate(-50%,100%)!important;transition:transform .25s var(--ease)!important}
-body.wizard-mode .preview.preview-expanded{transform:translate(-50%,0)!important}
-body.wizard-mode .preview.preview-collapsed{transform:translate(-50%,100%)!important}
-body.wizard-mode .preview .preview-toolbar{position:static!important;width:100%!important;min-width:0!important;min-height:48px!important;margin:0!important;padding:0!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;overflow:visible!important}
-body.wizard-mode .preview .preview-heading{position:static!important;flex:0 0 auto!important;min-width:0!important;display:flex!important;align-items:center!important;gap:8px!important;white-space:nowrap!important}
-body.wizard-mode .preview .transport{position:static!important;inset:auto!important;flex:1 1 auto!important;width:min(620px,55%)!important;min-width:220px!important;min-height:40px!important;height:40px!important;margin:0!important;padding:0!important;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;gap:8px!important;overflow:visible!important}
+/* KEFE preview layout — single source of truth for the editor stage. */
+
+/* Desktop: preview stays in the main editor column. */
+.preview{position:relative;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+body.wizard-mode .preview{
+  position:fixed!important;
+  left:0!important;right:0!important;top:auto!important;bottom:0!important;
+  width:100%!important;height:min(72dvh,760px)!important;max-height:min(72dvh,760px)!important;
+  min-height:0!important;padding:12px 16px 14px!important;
+  display:grid!important;grid-template-rows:auto minmax(0,1fr)!important;gap:10px!important;
+  overflow:hidden!important;z-index:30!important;
+  border:1px solid var(--line)!important;border-bottom:0!important;
+  border-radius:16px 16px 0 0!important;background:var(--surface)!important;
+  box-shadow:0 -12px 40px rgba(0,0,0,.32)!important;
+  transform:translateY(100%)!important;transition:transform .25s var(--ease)!important;
+}
+body.wizard-mode .preview.preview-expanded{transform:translateY(0)!important}
+body.wizard-mode .preview.preview-collapsed{transform:translateY(100%)!important}
+
+body.wizard-mode .preview .preview-toolbar{
+  position:static!important;width:100%!important;min-width:0!important;height:auto!important;min-height:48px!important;
+  margin:0!important;padding:0!important;display:flex!important;flex-direction:row!important;
+  align-items:center!important;justify-content:space-between!important;gap:12px!important;overflow:visible!important;
+}
+body.wizard-mode .preview .preview-heading{position:static!important;flex:0 1 auto!important;min-width:0!important;display:flex!important;align-items:center!important;gap:8px!important;white-space:nowrap!important}
+body.wizard-mode .preview .transport{position:static!important;inset:auto!important;flex:1 1 620px!important;width:auto!important;max-width:620px!important;min-width:220px!important;height:40px!important;min-height:40px!important;margin:0!important;padding:0 6px!important;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;gap:8px!important;overflow:visible!important}
 body.wizard-mode .preview .transport .play-button{flex:0 0 40px!important;width:40px!important;height:40px!important}
 body.wizard-mode .preview .transport .icon-button{flex:0 0 36px!important;width:36px!important;height:36px!important;min-height:36px!important}
 body.wizard-mode .preview .transport #seek{position:static!important;flex:1 1 auto!important;width:auto!important;min-width:60px!important;max-width:none!important;height:22px!important;margin:0!important;padding:0!important}
 body.wizard-mode .preview .transport #clock{flex:0 0 86px!important;width:86px!important;min-width:86px!important;text-align:right!important;white-space:nowrap!important}
-body.wizard-mode .preview .canvas-wrapper{position:relative!important;grid-row:2!important;width:100%!important;min-width:0!important;min-height:0!important;height:auto!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important}
-body.wizard-mode .preview .canvas-wrapper canvas{position:static!important;display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important}
+body.wizard-mode .preview .canvas-wrapper{position:relative!important;grid-row:2!important;width:100%!important;min-width:0!important;min-height:0!important;height:auto!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important}
+body.wizard-mode .preview .canvas-wrapper canvas{position:static!important;display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important;border-radius:var(--panel-radius)!important}
 
-/* Toggle is a sibling control, never an overlay on the wizard navigation. */
 body.wizard-mode .preview-toggle{position:fixed!important;left:50%!important;bottom:0!important;transform:translateX(-50%)!important;z-index:40!important;display:flex!important;align-items:center!important;justify-content:center!important;width:150px!important;min-height:36px!important;margin:0!important;padding:7px 16px!important;border:1px solid var(--line)!important;border-bottom:0!important;border-radius:10px 10px 0 0!important;background:var(--surface)!important;color:var(--text-2)!important;box-shadow:0 -2px 10px rgba(0,0,0,.18)!important}
 body.wizard-mode .preview-toggle:hover,body.wizard-mode .preview-toggle[aria-pressed="true"]{background:var(--surface-2)!important;color:var(--text)!important}
 body.wizard-mode .wizard-nav{position:relative!important;z-index:50!important;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}
-@media(max-width:700px){body.wizard-mode .preview{width:calc(100vw - 12px)!important;height:min(72dvh,680px)!important;max-height:min(72dvh,680px)!important;padding:8px 9px 10px!important}body.wizard-mode .preview .preview-toolbar{min-height:86px!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;gap:6px!important}body.wizard-mode .preview .transport{width:100%!important;min-width:0!important;height:42px!important;min-height:42px!important;gap:6px!important}body.wizard-mode .preview .transport #seek{min-width:40px!important}body.wizard-mode .preview .transport #clock{flex-basis:72px!important;width:72px!important;min-width:72px!important;font-size:10.5px!important}body.wizard-mode .preview-toggle{width:132px!important;min-height:34px!important}}
+
+@media(max-width:700px){
+  body.wizard-mode .preview{width:100%!important;height:min(64dvh,620px)!important;max-height:min(64dvh,620px)!important;padding:8px 10px 10px!important}
+  body.wizard-mode .preview .preview-toolbar{min-height:78px!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;gap:5px!important}
+  body.wizard-mode .preview .preview-heading{justify-content:space-between!important;width:100%!important}
+  body.wizard-mode .preview .transport{width:100%!important;max-width:none!important;min-width:0!important;height:42px!important;min-height:42px!important;gap:6px!important}
+  body.wizard-mode .preview .transport #seek{min-width:40px!important}
+  body.wizard-mode .preview .transport #clock{flex-basis:72px!important;width:72px!important;min-width:72px!important;font-size:10.5px!important}
+  body.wizard-mode .preview .canvas-wrapper{padding:0!important}
+  body.wizard-mode .preview-toggle{width:132px!important;min-height:34px!important}
+}
+
 @media(prefers-reduced-motion:reduce){body.wizard-mode .preview{transition:none!important}}
