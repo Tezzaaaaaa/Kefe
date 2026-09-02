@@ -1,7 +1,6 @@
 @import url('./editor-layout.css');
 
 /* KEFE Live Preview — cinematic stage, restrained controls. */
-.preview{position:relative}
 .preview-live-meta{display:inline-flex;align-items:center;gap:9px;margin-left:auto;min-width:0}
 .preview-live-indicator{display:inline-flex;align-items:center;gap:6px;color:var(--text-3);font-size:9px;font-weight:750;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
 .preview-live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px var(--red-soft);animation:kefeLivePulse 1.8s ease-in-out infinite}
