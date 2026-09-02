@@ -9,7 +9,9 @@
     "start": "node server/index.js",
     "dev": "node server/index.js",
     "check": "node --check server/index.js && node --check server/auth.js && node --check server/billing.js && node --check server/db.js && node --check server/entitlements.js && node --check server/transcribe.js && node --check server/remove-background.js && node --check app.js && node --check ui/typography.js && node --check ui/background-presets.js && node --check ui/auth-ui.js && node --check ui/wizard.js && node --check ui/caption-generator.js && node --check effects/core.js && node --check effects/brat.js && node --check effects/aurora.js && node --check effects/eternal-sunshine.js && node --check effects/typewriter.js && node --check effects/instagram-lyrics.js && node --check effects/story-fade.js && node --check effects/effect-app-fx.js && node scripts/smoke-effects.js && node scripts/verify-effect-ui.js",
-    "test:smoke": "node tests/smoke.mjs"
+    "test:smoke": "node tests/smoke.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "better-sqlite3": "^11.3.0",
@@ -19,6 +21,9 @@
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.4.5",
     "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
   },
   "engines": {
     "node": ">=18"
