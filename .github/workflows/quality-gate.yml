@@ -52,7 +52,7 @@ jobs:
           VALIDATE_ALL_CODEBASE: true
           REPORT_OUTPUT_FOLDER: megalinter-reports
           DISABLE_LINTERS: COPYPASTE_JSCPD,REPOSITORY_GITLEAKS
-          FIX: none
+          APPLY_FIXES: none
 
   browser:
     name: Browser functional verification
@@ -70,6 +70,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
