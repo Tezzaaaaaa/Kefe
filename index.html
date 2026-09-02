@@ -8,16 +8,16 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./styles.css">
     <link rel="stylesheet" href="./typography.css">
-    <link rel="stylesheet" href="./effects/effect-selector.css">
-    <link rel="stylesheet" href="./ui/background-presets.css">
-    <link rel="stylesheet" href="./ui/caption-generator.css">
-    <link rel="stylesheet" href="./ui/auth-ui.css">
-    <link rel="stylesheet" href="./ui/wizard.css">
-    <link rel="stylesheet" href="./ui/wizard-mobile.css">
-    <link rel="stylesheet" href="./ui/wizard-showcase.css">
-    <link rel="stylesheet" href="./ui/adobe-rail.css">
-    <link rel="stylesheet" href="./ui/dynamic-motion.css">
-    <link rel="stylesheet" href="./ui/live-preview.css">
+    <link rel="stylesheet" href="./app/effects/effect-selector.css">
+    <link rel="stylesheet" href="./app/ui/background-presets.css">
+    <link rel="stylesheet" href="./app/ui/caption-generator.css">
+    <link rel="stylesheet" href="./app/ui/auth-ui.css">
+    <link rel="stylesheet" href="./app/ui/wizard.css">
+    <link rel="stylesheet" href="./app/ui/wizard-mobile.css">
+    <link rel="stylesheet" href="./app/ui/wizard-showcase.css">
+    <link rel="stylesheet" href="./app/ui/adobe-rail.css">
+    <link rel="stylesheet" href="./app/ui/dynamic-motion.css">
+    <link rel="stylesheet" href="./app/ui/live-preview.css">
 </head>
 <body>
 <div class="app">
@@ -63,10 +63,10 @@
 <div id="exportPreflight" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Ready to export</strong></div><div class="modal-body"><div id="preflightSummary" class="preflight-list"></div><div id="preflightWarning" class="preflight-warning hidden"></div><div id="preflightRepair" class="preflight-repair"></div></div><div class="modal-footer"><button type="button" id="closePreflight" class="close-btn" aria-label="Close">&times;</button><button type="button" id="cancelPreflight" class="ghost">Cancel</button><button type="button" id="confirmExport" class="primary">Start export</button></div></div></div>
 <div id="exportOverlay" class="overlay hidden"><div class="modal-content"><div id="exportStatus" class="status">Exporting…</div><progress id="exportProgress" value="0" max="100"></progress><span id="exportPct">0%</span><button type="button" id="cancelExport" class="ghost">Cancel</button></div></div>
 <div id="toast" class="toast"></div>
-<script src="./effects/core.js"></script><script src="./effects/typewriter.js"></script><script src="./effects/instagram-lyrics.js"></script><script src="./effects/story-fade.js"></script><script src="./effects/brat.js"></script><script src="./effects/aurora.js"></script><script src="./effects/eternal-sunshine.js"></script><script src="./ui/background-video-compat.js"></script><script src="./app.js"></script><script src="./core/analysis-engine.js"></script><script src="./core/frame-renderer.js"></script><script src="./core/project-engine.js"></script><script src="./ui/typography.js"></script><script src="./ui/background-presets.js"></script><script src="./ui/caption-generator.js"></script><script src="./wizard.js"></script><script src="./ui/adobe-rail.js"></script><script src="./ui/auth-ui.js"></script><script src="./effects/effect-app-fx.js"></script><script type="module" src="./export/ui.js"></script>
-    <script type="module" src="./export/export-enhancements.js"></script>
-    <script src="./ui/live-preview.js"></script>
-    <script src="./ui/music-intelligence.js"></script>
-    <script src="./ui/kefe-product-polish.js"></script>
+<script src="./app/effects/core.js"></script><script src="./app/effects/typewriter.js"></script><script src="./app/effects/instagram-lyrics.js"></script><script src="./app/effects/story-fade.js"></script><script src="./app/effects/brat.js"></script><script src="./app/effects/aurora.js"></script><script src="./app/effects/eternal-sunshine.js"></script><script src="./app/ui/background-video-compat.js"></script><script src="./app/app.js"></script><script src="./app/core/analysis-engine.js"></script><script src="./app/core/frame-renderer.js"></script><script src="./app/core/project-engine.js"></script><script src="./app/ui/typography.js"></script><script src="./app/ui/background-presets.js"></script><script src="./app/ui/caption-generator.js"></script><script src="./wizard.js"></script><script src="./app/ui/adobe-rail.js"></script><script src="./app/ui/auth-ui.js"></script><script src="./app/effects/effect-app-fx.js"></script><script type="module" src="./app/export/ui.js"></script>
+    <script type="module" src="./app/export/export-enhancements.js"></script>
+    <script src="./app/ui/live-preview.js"></script>
+    <script src="./app/ui/music-intelligence.js"></script>
+    <script src="./app/ui/kefe-product-polish.js"></script>
 </body>
 </html>
