@@ -12,8 +12,8 @@
     "test:smoke": "node tests/smoke.mjs",
     "test:functional": "node tests/functional-sweep.mjs",
     "test:repair-governor": "node scripts/repair-governor.mjs",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "npx --yes prettier@3.6.2 --write .",
+    "format:check": "npx --yes prettier@3.6.2 --check ."
   },
   "dependencies": {
     "better-sqlite3": "^11.3.0",
