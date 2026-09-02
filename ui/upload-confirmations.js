@@ -7,6 +7,7 @@
   let lastMediaVisual = null;
   let lastWizardAction = null;
   let lastWizardState = '';
+  let lastWizardNextDisabled = null;
 
   function ensureCard(dropId, statusId, kind) {
     const drop = $(dropId), status = $(statusId);
@@ -31,7 +32,6 @@
     name.textContent = file?.name || (kind === 'audio' ? 'Audio loaded' : 'Background loaded');
     info.textContent = meta || (file ? `${(file.size / 1048576).toFixed(1)} MB` : 'Ready');
 
-    // Only rebuild the thumbnail when the actual uploaded media changes.
     if (visual === lastMediaVisual && file === lastMediaFile && kind !== 'audio') return;
     thumb.replaceChildren();
     thumb.style.backgroundImage = '';
@@ -75,17 +75,55 @@
     const key = `${type}:${ready ? 'ready' : 'empty'}`;
     const strong = action.querySelector('strong') || action.previousElementSibling;
     if (!strong) return;
-
-    // Wizard re-renders can replace the action node. Update only that new node
-    // or when the underlying media state actually changes.
     if (action === lastWizardAction && key === lastWizardState) return;
     lastWizardAction = action;
     lastWizardState = key;
-
     action.classList.toggle('is-ready', ready);
     strong.classList.toggle('wizard-upload-success', ready);
     if (readyVideo) strong.innerHTML = '<span class="wizard-upload-check">✓</span> Video uploaded';
     else if (readyImage) strong.innerHTML = '<span class="wizard-upload-check">✓</span> Image uploaded';
+  }
+
+  function hasAudio() {
+    const state = window.state || {};
+    const audio = state.audio || {};
+    return Boolean(audio.file || audio.ready || audio.duration > 0 || $('audioChooseBtn')?.dataset?.loaded === 'true');
+  }
+
+  function hasLyrics() {
+    const state = window.state || {};
+    if (state.lyrics?.lines?.length) return true;
+    const input = $('lyricsText');
+    return Boolean(input?.value?.trim());
+  }
+
+  function hasCaptions() {
+    const state = window.state || {};
+    if (state.captions?.lines?.length) return true;
+    return Boolean(document.querySelector('#captionGenSection [data-caption-ready], #captionGenSection .caption-row, #captionGenSection .caption-line'));
+  }
+
+  function syncWizardNext() {
+    const next = $('wizardNextBtn');
+    if (!next) return;
+    const step = document.body.dataset.wizardStep || '';
+    const media = window.kefeMedia || {};
+    let ready = true;
+
+    if (step === 'intro') ready = Boolean(document.querySelector('[data-choice].selected'));
+    else if (step === 'source') {
+      const selected = document.querySelector('[data-source].selected')?.dataset.source;
+      ready = selected === 'none' || (selected === 'uploaded' ? hasAudio() : Boolean(media.image || media.video || media.videoFile));
+    } else if (step === 'content') ready = hasLyrics();
+    else if (step === 'captions') ready = hasCaptions() && !window.kefeCaptionGen?.isBusy?.();
+    else if (step === 'style') ready = Boolean(document.querySelector('#lyricStyleBlock [data-effect].active, .wizard-effect-choice.selected'));
+    else if (step === 'background') ready = Boolean(media.image || media.video || media.videoFile || document.querySelector('#backgroundSection'));
+    else if (step === 'preview') ready = true;
+
+    if (lastWizardNextDisabled !== !ready) {
+      next.disabled = !ready;
+      lastWizardNextDisabled = !ready;
+    }
   }
 
   function refresh() {
@@ -104,8 +142,7 @@
       if (media.videoFile !== lastMediaFile || media.video !== lastMediaVisual) {
         setCard('bgDrop', 'backgroundStatus', 'video', media.videoFile, media.video, 'Video ready');
       } else {
-        const card = ensureCard('bgDrop', 'backgroundStatus', 'video');
-        card?.classList.add('is-visible');
+        ensureCard('bgDrop', 'backgroundStatus', 'video')?.classList.add('is-visible');
       }
     } else if (media.image) {
       if (media.image !== lastMediaVisual) setCard('bgDrop', 'backgroundStatus', 'image', null, media.image, 'Image ready');
@@ -113,6 +150,7 @@
     } else hide('bgDrop');
 
     updateWizardMediaConfirmation(media);
+    syncWizardNext();
   }
 
   function injectStyle() {
@@ -140,7 +178,6 @@
   function start() {
     injectStyle();
     refresh();
-    // Keep a lightweight readiness watcher, but never rebuild stable UI every tick.
     setInterval(refresh, 500);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true}); else start();
