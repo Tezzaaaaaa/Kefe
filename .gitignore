@@ -35,3 +35,8 @@ coverage/
 *.mp4
 *.mov
 *.webm
+
+# iFixAi local configuration and reports
+ifixai.yaml
+ifixai-results/
+*.ifixai-checkpoint
