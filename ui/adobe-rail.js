@@ -21,7 +21,7 @@
             const path = RAIL_ICONS[link.dataset.nav];
             const numEl = link.querySelector('span');
             if (!path || !numEl) return;
-            numEl.outerHTML = `<span class="rail-icon-chip"><svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true">${path}</svg></span>`;
+            numEl.outerHTML = `<svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true">${path}</svg>`;
         });
     }
 
