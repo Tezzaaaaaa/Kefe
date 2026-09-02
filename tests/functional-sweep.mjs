@@ -27,14 +27,21 @@ const server = createServer(async (req, res) => {
   }
 });
 
-await new Promise(resolve => server.listen(port, '127.0.0.1', resolve));
+await new Promise((resolve, reject) => {
+  const onError = error => { server.off('listening', onListening); reject(error); };
+  const onListening = () => { server.off('error', onError); resolve(); };
+  server.once('error', onError);
+  server.once('listening', onListening);
+  server.listen(port, '127.0.0.1');
+});
+
 const browser = await chromium.launch({ headless: true });
 const errors = [];
 
 async function boot(page) {
-  await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'domcontentloaded', timeout: 10000 });
   await page.waitForFunction(() => window.kefeRuntime?.ready === true, null, { timeout: 15000 });
-  await page.waitForFunction(() => window.kefeCaptionGen && window.kefeAnalysis && window.kefeAutoCreate && window.kefeSmartRender, null, { timeout: 15000 });
+  await page.waitForFunction(() => window.kefeCaptionGen && window.kefeAnalysis && window.kefeAutoCreate && window.kefeSmartRender && window.kefeWizard, null, { timeout: 15000 });
 }
 
 async function assertGeometry(page, width, height) {
@@ -58,6 +65,61 @@ async function assertGeometry(page, width, height) {
   }
 }
 
+async function state(page) {
+  return page.evaluate(() => window.kefeWizard.getState());
+}
+
+async function assertStep(page, expected, choice) {
+  await page.waitForFunction(step => window.kefeWizard?.getState()?.step === step, expected, { timeout: 3000 });
+  const current = await state(page);
+  if (current.step !== expected || current.path !== choice || current.index !== paths[choice].indexOf(expected)) {
+    throw new Error(`${choice}: expected ${expected}, got ${JSON.stringify(current)}`);
+  }
+  const label = await page.locator('#wizardStepLabel').textContent();
+  if ((label || '').trim().toLowerCase() !== ({ intro: 'format', source: 'media', content: 'content', captions: 'captions', style: 'style', background: 'background', preview: 'preview', export: 'export' }[expected])) {
+    throw new Error(`${choice}: step label mismatch at ${expected}: ${label}`);
+  }
+}
+
+async function next(page, choice, expectedNext) {
+  const button = page.locator('#wizardNextBtn');
+  if (!(await button.isEnabled())) throw new Error(`${choice}: Next disabled before ${expectedNext}`);
+  await button.click();
+  await assertStep(page, expectedNext, choice);
+}
+
+async function prepareContent(page, choice) {
+  if (choice === 'captioned') {
+    await page.evaluate(() => {
+      window.state.audio = { ...(window.state.audio || {}), ready: true, file: { name: 'functional-test.wav' }, duration: 2 };
+      window.state.captions = { ...(window.state.captions || {}), lines: [{ start: 0, end: 1, text: 'Caption test' }] };
+    });
+    return;
+  }
+  await page.locator('#lyricsText').fill('[00:00.00]Functional test');
+}
+
+async function verifyStyleAndBackground(page, choice) {
+  if (choice !== 'visualiser') {
+    const effect = page.locator('#wizardSection [data-forward-effect="brat"]');
+    if (await effect.count()) {
+      await effect.click();
+      await page.waitForFunction(() => window.state?.style?.effect === 'brat', null, { timeout: 3000 });
+      const current = await page.evaluate(() => window.state.style.effect);
+      if (current !== 'brat') throw new Error(`${choice}: selected lyric effect did not persist`);
+    }
+  }
+
+  await page.locator('#wizardSection').locator('[data-background-preset="gradient"]').count().catch(() => 0);
+  await next(page, choice, 'background');
+  const background = page.locator('#backgroundSection [data-background-preset="gradient"]');
+  if (await background.count()) {
+    await background.click();
+    await page.waitForFunction(() => window.state?.background?.type === 'image', null, { timeout: 3000 });
+    await page.waitForFunction(() => document.querySelector('#backgroundSection [data-background-preset="gradient"]')?.classList.contains('active-background'), null, { timeout: 3000 });
+  }
+}
+
 async function runPath(choice, width, height) {
   const page = await browser.newPage({ viewport: { width, height } });
   page.on('pageerror', error => errors.push(`${choice} ${width}x${height} pageerror: ${error.message}`));
@@ -65,40 +127,56 @@ async function runPath(choice, width, height) {
   try {
     await boot(page);
     await assertGeometry(page, width, height);
-    const choiceLabel = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', custom: 'Custom' }[choice];
+    await assertStep(page, 'intro', choice);
+
     await page.locator(`#wizardSection [data-choice="${choice}"]`).click();
+    await assertStep(page, 'intro', choice);
+    await next(page, choice, 'source');
+
     if (choice === 'captioned') {
       await page.locator('#wizardSection [data-source="uploaded"]').click();
       await page.evaluate(() => {
         window.state.audio = { ...(window.state.audio || {}), ready: true, file: { name: 'functional-test.wav' }, duration: 2 };
-        window.state.captions = { ...(window.state.captions || {}), lines: [{ start: 0, end: 1, text: 'Caption test' }] };
       });
+      await page.waitForFunction(() => window.kefeWizard.getState().source === 'uploaded', null, { timeout: 3000 });
+      await page.waitForFunction(() => !document.querySelector('#wizardNextBtn')?.disabled, null, { timeout: 3000 });
+      await next(page, choice, 'captions');
+      await prepareContent(page, choice);
+      await page.waitForFunction(() => window.state?.captions?.lines?.length > 0, null, { timeout: 3000 });
+      await page.waitForFunction(() => !document.querySelector('#wizardNextBtn')?.disabled, null, { timeout: 3000 });
+      await next(page, choice, 'style');
     } else {
       await page.locator('#wizardSection [data-source="none"]').click();
+      await next(page, choice, 'content');
+      await prepareContent(page, choice);
+      await page.waitForFunction(() => !document.querySelector('#wizardNextBtn')?.disabled, null, { timeout: 3000 });
+      await next(page, choice, 'style');
     }
 
-    const expected = paths[choice];
-    for (let i = 0; i < expected.length; i += 1) {
-      const label = await page.locator('#wizardStepLabel').textContent();
-      if (!label?.trim()) throw new Error(`${choice}: missing step label at ${expected[i]}`);
-      if (i === expected.length - 1) break;
-      if (expected[i] === 'source' && (choice === 'lyric' || choice === 'custom')) {
-        await page.locator('#wizardNextBtn').click();
-        await page.locator('#lyricsText').fill('[00:00.00]Functional test');
-      } else if (expected[i] === 'content') {
-        await page.locator('#lyricsText').fill('[00:00.00]Functional test');
-        await page.locator('#wizardNextBtn').click();
-      } else {
-        const next = page.locator('#wizardNextBtn');
-        if (!(await next.isEnabled())) throw new Error(`${choice}: Next disabled at ${expected[i]}`);
-        await next.click();
-      }
-      await page.waitForTimeout(50);
+    await verifyStyleAndBackground(page, choice);
+    await next(page, choice, 'preview');
+
+    const previewState = await page.evaluate(() => ({
+      step: window.kefeWizard.getState().step,
+      expanded: document.querySelector('.preview')?.classList.contains('preview-expanded'),
+      summary: document.querySelectorAll('#wizardSection .wizard-summary-row').length,
+      playButton: Boolean(document.querySelector('#wizardPlayBtn'))
+    }));
+    if (previewState.step !== 'preview' || !previewState.expanded || previewState.summary < 2 || !previewState.playButton) {
+      throw new Error(`${choice}: preview invariant failed: ${JSON.stringify(previewState)}`);
     }
-    const finalLabel = await page.locator('#wizardStepLabel').textContent();
-    if (!/Export/i.test(finalLabel || '')) throw new Error(`${choice}: did not reach export step; got ${finalLabel}`);
+
+    await next(page, choice, 'export');
+    const exportState = await state(page);
+    if (exportState.step !== 'export' || exportState.index !== paths[choice].length - 1) {
+      throw new Error(`${choice}: export step invariant failed: ${JSON.stringify(exportState)}`);
+    }
+    if (!(await page.locator('#exportSection').isVisible())) throw new Error(`${choice}: export section not visible`);
+
+    await page.locator('#wizardBackBtn').click();
+    await assertStep(page, 'preview', choice);
     await assertGeometry(page, width, height);
-    console.log(`PASS ${choiceLabel} @ ${width}x${height}`);
+    console.log(`PASS ${choice} @ ${width}x${height}`);
   } finally {
     await page.close();
   }
@@ -109,7 +187,7 @@ try {
     for (const choice of Object.keys(paths)) await runPath(choice, width, height);
   }
   if (errors.length) throw new Error(errors.join('\n'));
-  console.log('KEFE functional sweep passed: all four wizard paths across desktop, tablet and mobile geometry with browser error checks.');
+  console.log('KEFE functional sweep passed: exact wizard paths, gated readiness, style/background persistence, usable preview, export handoff, back navigation, responsive geometry and browser error checks.');
 } finally {
   await browser.close();
   server.close();
