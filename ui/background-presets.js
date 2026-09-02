@@ -38,6 +38,17 @@
 
   loadMediaFix();
 
+  function loadRemoveBackground() {
+    if (window.__kefeRemoveBgLoaderLoaded) return;
+    window.__kefeRemoveBgLoaderLoaded = true;
+    const script = document.createElement('script');
+    script.src = './ui/remove-background.js?v=20260902-1';
+    script.async = false;
+    document.body.appendChild(script);
+  }
+
+  loadRemoveBackground();
+
   const redraw = () => window.redrawCurrentPreviewFrame?.();
   const status = document.getElementById('backgroundStatus');
   const colorInput = document.getElementById('backgroundColor');
