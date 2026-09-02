@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   fix:
-    if: ${{ !contains(github.event.head_commit.message, 'run caption audio fix') && !contains(github.event.head_commit.message, 'normalize video audio for caption transcription') }}
+    if: ${{ !contains(github.event.head_commit.message, 'normalize video audio for caption transcription') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
