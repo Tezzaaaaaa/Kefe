@@ -32,7 +32,6 @@ jobs:
           sed -i "s#\(src=\"\./app/ui/kefe-product-polish.js\)\"#\1?v=${GITHUB_SHA}\"#" index.html
           sed -i "s#</head>#<link rel=\"stylesheet\" href=\"./app/ui/theme-cycle.css?v=${GITHUB_SHA}\">\n</head>#" index.html
           sed -i "s#</body>#<script src=\"./app/ui/theme-cycle.js?v=${GITHUB_SHA}\"></script>\n</body>#" index.html
-          sed -i "s#<label class=\"theme-control\" for=\"themeSelect\">\(.*\)<\/label>#<button id=\"themeSelect\" type=\"button\" class=\"theme-cycle-button\" aria-label=\"Theme\" title=\"Theme\">\1<\/button>#" index.html
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
