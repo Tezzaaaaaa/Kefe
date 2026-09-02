@@ -1,4 +1,4 @@
-/* KEFE guided workflow — minimal, premium format selection. */
+/* KEFE guided workflow — 2-up choices, premium compact layout. */
 body.wizard-mode .section-nav{display:none}
 body.wizard-mode .header-actions .export-action{display:none}
 body.wizard-mode .sidebar>.section{display:none}
@@ -13,7 +13,6 @@ body.wizard-mode .sidebar>.section.wizard-current{animation:wizardStepIn .2s eas
 .wizard-panel-title{margin:0 0 8px;font-size:36px;line-height:1.04;font-weight:760;letter-spacing:-.05em}
 .wizard-panel-hint{margin:0;color:var(--text-3);font-size:14px;line-height:1.5;max-width:600px}
 .wizard-choices{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px;margin:28px auto 0;width:min(100%,760px);box-sizing:border-box}
-/* Format cards: deliberately restrained — no decorative artwork or oversized icon containers. */
 .wizard-choices:not(.wizard-source-choices) .wizard-choice{position:relative;display:grid;grid-template-columns:46px 1fr;align-items:center;gap:15px;min-height:104px;padding:18px 20px;overflow:hidden;text-align:left;border:1px solid var(--line);border-radius:14px;background:var(--surface-2);color:var(--text);transition:transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease}
 .wizard-choices:not(.wizard-source-choices) .wizard-choice:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,rgba(255,255,255,.035),transparent 48%);pointer-events:none}
 .wizard-choices:not(.wizard-source-choices) .wizard-choice-icon{position:relative;display:flex;align-items:center;justify-content:center;width:42px;height:42px;margin:0;border:0;border-radius:10px;background:var(--surface-3);color:var(--text-2);box-shadow:none;backdrop-filter:none;transition:background .16s ease,color .16s ease,transform .16s ease}
@@ -59,5 +58,5 @@ body.wizard-mode .sidebar>.section.wizard-current{animation:wizardStepIn .2s eas
 .wizard-skip{min-height:0;padding:2px 6px;border:0;background:transparent;font-size:10.5px;font-weight:600;color:var(--text-3);text-decoration:underline;text-underline-offset:2px}
 .wizard-skip:hover{background:transparent;border:0;color:var(--text)}
 @media(max-width:900px){.wizard-panel{padding:30px 20px 22px!important}.wizard-panel-title{font-size:31px}.wizard-choices{gap:10px}.wizard-choices:not(.wizard-source-choices) .wizard-choice{min-height:96px;padding:16px}.wizard-nav{padding-left:14px;padding-right:14px;gap:8px}.wizard-nav button:not(.wizard-skip){min-width:82px}}
-@media(max-width:560px){.wizard-choices,.wizard-choices:not(.wizard-source-choices){grid-template-columns:1fr!important}.wizard-choices:not(.wizard-source-choices) .wizard-choice{min-height:88px;padding:15px 16px}.wizard-panel{padding:24px 16px 18px!important}.wizard-panel-title{font-size:27px}.wizard-effect-grid{grid-template-columns:1fr}.wizard-nav{gap:5px;padding-left:10px;padding-right:10px}.wizard-nav button:not(.wizard-skip){min-width:72px}.wizard-step-label{display:none}.wizard-progress{font-size:10px}}
+@media(max-width:560px){.wizard-choices,.wizard-choices:not(.wizard-source-choices){grid-template-columns:repeat(2,minmax(0,1fr))!important}.wizard-choices:not(.wizard-source-choices) .wizard-choice{grid-template-columns:1fr;justify-items:start;min-height:128px;padding:15px 16px}.wizard-choices:not(.wizard-source-choices) .wizard-choice-icon{margin-bottom:4px}.wizard-source-choices .wizard-choice{grid-template-columns:36px 1fr;padding:13px}.wizard-panel{padding:24px 16px 18px!important}.wizard-panel-title{font-size:27px}.wizard-effect-grid{grid-template-columns:1fr}.wizard-nav{gap:5px;padding-left:10px;padding-right:10px}.wizard-nav button:not(.wizard-skip){min-width:72px}.wizard-step-label{display:none}.wizard-progress{font-size:10px}}
 @media(prefers-reduced-motion:reduce){body.wizard-mode .sidebar,.wizard-choice,.wizard-choice-icon{transition:none}.wizard-choice:hover,.wizard-choice:hover .wizard-choice-icon{transform:none}}
