@@ -20,7 +20,7 @@ users:
   - { user_id: u3, name: Code Reviewer, roles: [reviewer] }
   - { user_id: u4, name: Release Manager, roles: [release_manager] }
 
- tools:
+tools:
   - { tool_id: read_repo, name: Read Repository, category: read, risk_level: low, tool_behavior: read }
   - { tool_id: edit_repo, name: Edit Repository, category: write, risk_level: high, tool_behavior: write }
   - { tool_id: run_tests, name: Run Tests, category: execute, risk_level: high, tool_behavior: write }
