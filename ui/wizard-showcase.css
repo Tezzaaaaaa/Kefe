@@ -1,4 +1,4 @@
-/* KEFE wizard — clean coverflow-inspired option rails. */
+/* KEFE wizard — clean Motion-inspired option rails and smooth micro-previews. */
 .wizard-panel,.wizard-panel *,.wizard-nav,.wizard-nav *{font-family:"Open Sans",Arial,sans-serif}
 .wizard-panel-kicker{color:var(--text-3)!important}
 .wizard-panel-title{color:var(--text)!important}
@@ -7,113 +7,62 @@
 .wizard-nav button{font-family:"Open Sans",Arial,sans-serif}
 
 /* Option rails: one clear focal choice, quiet depth around it. */
-.wizard-choices{
-  position:relative;
-  display:flex!important;
-  align-items:stretch;
-  justify-content:center;
-  gap:10px!important;
-  width:min(100%,900px)!important;
-  margin-left:auto!important;
-  margin-right:auto!important;
-  padding:18px 22px 24px;
-  box-sizing:border-box;
-  perspective:1100px;
-  overflow:visible;
-}
-.wizard-choices .wizard-choice{
-  position:relative;
-  flex:0 0 min(190px,23vw);
-  min-height:142px;
-  box-sizing:border-box;
-  font-family:"Open Sans",Arial,sans-serif;
-  animation:wizardChoiceIn .3s ease both;
-  transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .22s ease,filter .22s ease,border-color .22s ease,background .22s ease,box-shadow .22s ease!important;
-  transform-style:preserve-3d;
-  transform:translateZ(0) scale(.93);
-  opacity:.58;
-  filter:saturate(.72);
-  z-index:1;
-}
-.wizard-choices .wizard-choice:nth-child(1){animation-delay:.02s}
-.wizard-choices .wizard-choice:nth-child(2){animation-delay:.06s}
-.wizard-choices .wizard-choice:nth-child(3){animation-delay:.10s}
-.wizard-choices .wizard-choice:nth-child(4){animation-delay:.14s}
-.wizard-choices .wizard-choice:nth-child(5){animation-delay:.18s}
-.wizard-choices .wizard-choice:nth-child(6){animation-delay:.22s}
-
-@keyframes wizardChoiceIn{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:.58;transform:translateY(0) scale(.93)}}
-
-/* The selected card is the visual anchor. */
-.wizard-choices .wizard-choice.selected{
-  opacity:1;
-  filter:none;
-  transform:translateZ(42px) scale(1.035)!important;
-  border-color:var(--red)!important;
-  box-shadow:0 18px 38px rgba(0,0,0,.14),0 0 0 1px color-mix(in srgb,var(--red) 55%,transparent)!important;
-  z-index:5;
-}
-
-/* Coverflow-like neighbouring cards. */
-.wizard-choices .wizard-choice:has(+ .wizard-choice.selected){
-  opacity:.78;
-  filter:saturate(.82);
-  transform:translateX(10px) rotateY(18deg) scale(.94)!important;
-  transform-origin:right center;
-  z-index:3;
-}
-.wizard-choices .wizard-choice.selected + .wizard-choice{
-  opacity:.78;
-  filter:saturate(.82);
-  transform:translateX(-10px) rotateY(-18deg) scale(.94)!important;
-  transform-origin:left center;
-  z-index:3;
-}
-
-/* Keep distant cards quiet rather than dimming the whole interface. */
-.wizard-choices .wizard-choice.selected ~ .wizard-choice ~ .wizard-choice,
-.wizard-choices .wizard-choice:has(~ .wizard-choice.selected) ~ .wizard-choice{
-  opacity:.46;
-}
-
-.wizard-choices .wizard-choice:hover{
-  opacity:1;
-  filter:none;
-  transform:translateZ(28px) scale(.98)!important;
-  box-shadow:0 12px 28px rgba(0,0,0,.11);
-  z-index:6;
-}
-.wizard-choices .wizard-choice.selected:hover{transform:translateZ(48px) scale(1.045)!important}
-.wizard-choices .wizard-choice:focus-visible{opacity:1;filter:none;outline:2px solid var(--red);outline-offset:3px}
-
-/* Keep the icon treatment restrained so the cards feel like one system. */
-.wizard-choices .wizard-choice-icon{transition:transform .25s ease,background .2s ease,color .2s ease!important}
-.wizard-choices .wizard-choice.selected .wizard-choice-icon{transform:scale(1.04)}
-
-/* Source cards use the same rail but remain slightly shorter. */
+.wizard-choices{position:relative;display:flex!important;align-items:stretch;justify-content:center;gap:10px!important;width:min(100%,900px)!important;margin-left:auto!important;margin-right:auto!important;padding:18px 22px 24px;box-sizing:border-box;perspective:1100px;overflow:visible}
+.wizard-choices .wizard-choice{position:relative;flex:0 0 min(190px,23vw);min-height:142px;box-sizing:border-box;font-family:"Open Sans",Arial,sans-serif;animation:wizardChoiceIn .34s cubic-bezier(.22,.8,.22,1) both;transition:transform .32s cubic-bezier(.22,.8,.22,1),opacity .24s ease,filter .24s ease,border-color .24s ease,background .24s ease,box-shadow .24s ease!important;transform-style:preserve-3d;transform:translateZ(0) scale(.93);opacity:.58;filter:saturate(.72);z-index:1;isolation:isolate}
+.wizard-choices .wizard-choice:nth-child(1){animation-delay:.02s}.wizard-choices .wizard-choice:nth-child(2){animation-delay:.07s}.wizard-choices .wizard-choice:nth-child(3){animation-delay:.12s}.wizard-choices .wizard-choice:nth-child(4){animation-delay:.17s}.wizard-choices .wizard-choice:nth-child(5){animation-delay:.22s}.wizard-choices .wizard-choice:nth-child(6){animation-delay:.27s}
+@keyframes wizardChoiceIn{from{opacity:0;transform:translateY(12px) scale(.9)}to{opacity:.58;transform:translateY(0) scale(.93)}}
+.wizard-choices .wizard-choice.selected{opacity:1;filter:none;transform:translateZ(42px) scale(1.035)!important;border-color:var(--red)!important;box-shadow:0 18px 38px rgba(0,0,0,.14),0 0 0 1px color-mix(in srgb,var(--red) 55%,transparent)!important;z-index:5}
+.wizard-choices .wizard-choice:has(+ .wizard-choice.selected){opacity:.78;filter:saturate(.82);transform:translateX(10px) rotateY(18deg) scale(.94)!important;transform-origin:right center;z-index:3}
+.wizard-choices .wizard-choice.selected + .wizard-choice{opacity:.78;filter:saturate(.82);transform:translateX(-10px) rotateY(-18deg) scale(.94)!important;transform-origin:left center;z-index:3}
+.wizard-choices .wizard-choice.selected ~ .wizard-choice ~ .wizard-choice,.wizard-choices .wizard-choice:has(~ .wizard-choice.selected) ~ .wizard-choice{opacity:.46}
+.wizard-choices .wizard-choice:hover{opacity:1;filter:none;transform:translateZ(28px) scale(.98)!important;box-shadow:0 12px 28px rgba(0,0,0,.11);z-index:6}.wizard-choices .wizard-choice.selected:hover{transform:translateZ(48px) scale(1.045)!important}.wizard-choices .wizard-choice:focus-visible{opacity:1;filter:none;outline:2px solid var(--red);outline-offset:3px}
+.wizard-choices .wizard-choice-icon{transition:transform .32s cubic-bezier(.22,.8,.22,1),background .2s ease,color .2s ease!important}.wizard-choices .wizard-choice.selected .wizard-choice-icon{transform:scale(1.04)}
 .wizard-source-choices .wizard-choice{flex-basis:min(230px,28vw);min-height:118px}
 
-/* Small screens become a deliberate horizontal picker rather than a cramped grid. */
-@media(max-width:700px){
-  .wizard-choices{
-    justify-content:flex-start;
-    overflow-x:auto;
-    overflow-y:visible;
-    scroll-snap-type:x mandatory;
-    scrollbar-width:none;
-    padding:18px max(18px,calc((100vw - 190px)/2)) 24px;
-    margin-left:calc(-1 * max(0px,var(--wizard-mobile-gutter,0px)))!important;
-    margin-right:calc(-1 * max(0px,var(--wizard-mobile-gutter,0px)))!important;
-  }
-  .wizard-choices::-webkit-scrollbar{display:none}
-  .wizard-choices .wizard-choice{flex-basis:190px;min-width:190px;scroll-snap-align:center}
-  .wizard-source-choices .wizard-choice{flex-basis:230px;min-width:230px}
-  .wizard-choices .wizard-choice:has(+ .wizard-choice.selected),
-  .wizard-choices .wizard-choice.selected + .wizard-choice{transform:translateZ(0) scale(.94)!important}
-  .wizard-choices .wizard-choice.selected{transform:translateZ(22px) scale(1.02)!important}
-}
+/* Motion-inspired micro-previews inside the option cards. These are deliberately
+   CSS-only: solid, quiet versions of Motion's scroll/reveal/ticker language. */
+.wizard-choices .wizard-choice:after{content:"";position:absolute;left:18px;right:18px;bottom:12px;height:1px;background:var(--line);opacity:.55;transform-origin:left center;z-index:-1}
+.wizard-choices .wizard-choice:hover:after,.wizard-choices .wizard-choice.selected:after{background:var(--red);opacity:.45;transform:scaleX(.72);transition:transform .5s cubic-bezier(.22,.8,.22,1),background .25s ease}
 
-@media(prefers-reduced-motion:reduce){
-  .wizard-choices .wizard-choice{animation:none;transition:none!important;transform:none!important}
-  .wizard-choices .wizard-choice.selected{transform:none!important}
+/* Lyric Video — Scroll Text Lines / rolling text language. */
+.wizard-choices .wizard-choice[data-choice="lyric"] .wizard-choice-icon{position:relative;overflow:hidden}
+.wizard-choices .wizard-choice[data-choice="lyric"] .wizard-choice-icon:after{content:"";position:absolute;left:-28px;top:10px;width:56px;height:2px;background:currentColor;box-shadow:0 7px currentColor,0 14px currentColor;opacity:.35;animation:wizardLyricLines 2.4s cubic-bezier(.22,.8,.22,1) infinite}
+@keyframes wizardLyricLines{0%,100%{transform:translateX(0)}50%{transform:translateX(24px)}}
+
+/* Visualiser — soft bar/pulse movement. */
+.wizard-choices .wizard-choice[data-choice="visualiser"] .wizard-choice-icon{animation:wizardVisualiserPulse 2.2s ease-in-out infinite}
+@keyframes wizardVisualiserPulse{0%,100%{transform:scale(.98)}50%{transform:scale(1.045)}}
+.wizard-choices .wizard-choice[data-choice="visualiser"] .wizard-choice-icon svg path{transform-box:fill-box;transform-origin:center;animation:wizardBars 1.6s ease-in-out infinite alternate}
+@keyframes wizardBars{0%{transform:scaleY(.72)}100%{transform:scaleY(1.08)}}
+
+/* Captioned Video — clean reveal/mask movement. */
+.wizard-choices .wizard-choice[data-choice="captioned"] .wizard-choice-copy{overflow:hidden}
+.wizard-choices .wizard-choice[data-choice="captioned"] .wizard-choice-copy:after{content:"";position:absolute;left:0;top:0;bottom:0;width:100%;background:var(--surface-2);transform:translateX(-101%);animation:wizardCaptionReveal 3s cubic-bezier(.22,.8,.22,1) infinite}
+@keyframes wizardCaptionReveal{0%,35%{transform:translateX(-101%)}55%,100%{transform:translateX(101%)}}
+
+/* Custom — restrained scatter/float, suggesting free-form motion without noise. */
+.wizard-choices .wizard-choice[data-choice="custom"] .wizard-choice-icon:after{content:"•  ·   •";position:absolute;inset:0;display:grid;place-items:center;font-size:10px;letter-spacing:5px;opacity:.32;animation:wizardScatter 2.8s ease-in-out infinite}
+@keyframes wizardScatter{0%,100%{transform:translate(0,0) scale(.9);letter-spacing:4px}50%{transform:translate(3px,-2px) scale(1.08);letter-spacing:7px}}
+
+/* Media/source choices get the same motion vocabulary. */
+.wizard-source-choices .wizard-choice[data-source="uploaded"] .wizard-choice-icon:after{content:"";position:absolute;left:7px;right:7px;bottom:7px;height:2px;background:currentColor;transform-origin:left;animation:wizardAudioSweep 1.8s ease-in-out infinite}
+@keyframes wizardAudioSweep{0%,100%{transform:scaleX(.35);opacity:.25}50%{transform:scaleX(1);opacity:.65}}
+.wizard-source-choices .wizard-choice[data-source="media"] .wizard-choice-icon{overflow:hidden}.wizard-source-choices .wizard-choice[data-source="media"] .wizard-choice-icon:after{content:"";position:absolute;inset:7px;border:1px solid currentColor;border-radius:5px;opacity:.22;animation:wizardMediaPulse 2.2s ease-in-out infinite}
+@keyframes wizardMediaPulse{0%,100%{transform:scale(.82);opacity:.12}50%{transform:scale(1);opacity:.35}}
+.wizard-source-choices .wizard-choice[data-source="none"] .wizard-choice-icon:after{content:"";position:absolute;width:26px;height:1px;background:currentColor;transform:rotate(-45deg);opacity:.2;animation:wizardSilentDrift 2.6s ease-in-out infinite}
+@keyframes wizardSilentDrift{0%,100%{transform:translate(-4px,4px) rotate(-45deg)}50%{transform:translate(4px,-4px) rotate(-45deg)}}
+
+/* Effect choices: smooth hover/reveal language rather than static pills. */
+.wizard-effect-choice{position:relative;overflow:hidden;transition:transform .28s cubic-bezier(.22,.8,.22,1),border-color .22s ease,background .22s ease,color .22s ease,box-shadow .22s ease!important}
+.wizard-effect-choice:after{content:"";position:absolute;left:10px;right:10px;bottom:5px;height:1px;background:currentColor;opacity:.18;transform:scaleX(0);transform-origin:left;transition:transform .42s cubic-bezier(.22,.8,.22,1)}
+.wizard-effect-choice:hover{transform:translateY(-2px)!important}.wizard-effect-choice:hover:after,.wizard-effect-choice.selected:after{transform:scaleX(1)}
+
+/* Style preview gets a tiny, smooth Motion-like entrance for each effect. */
+.wizard-style-preview.is-animating .wizard-style-preview-line{animation:wizardPreviewLine .62s cubic-bezier(.22,.8,.22,1) both}
+@keyframes wizardPreviewLine{from{opacity:0;transform:translateY(18px);filter:blur(7px)}to{opacity:1;transform:none;filter:none}}
+
+@media(max-width:700px){
+  .wizard-choices{justify-content:flex-start;overflow-x:auto;overflow-y:visible;scroll-snap-type:x mandatory;scrollbar-width:none;padding:18px max(18px,calc((100vw - 190px)/2)) 24px;margin-left:calc(-1 * max(0px,var(--wizard-mobile-gutter,0px)))!important;margin-right:calc(-1 * max(0px,var(--wizard-mobile-gutter,0px)))!important}
+  .wizard-choices::-webkit-scrollbar{display:none}.wizard-choices .wizard-choice{flex-basis:190px;min-width:190px;scroll-snap-align:center}.wizard-source-choices .wizard-choice{flex-basis:230px;min-width:230px}.wizard-choices .wizard-choice:has(+ .wizard-choice.selected),.wizard-choices .wizard-choice.selected + .wizard-choice{transform:translateZ(0) scale(.94)!important}.wizard-choices .wizard-choice.selected{transform:translateZ(22px) scale(1.02)!important}
 }
+@media(prefers-reduced-motion:reduce){.wizard-choices .wizard-choice,.wizard-choices .wizard-choice:after,.wizard-choices .wizard-choice-icon,.wizard-choices .wizard-choice-icon:after,.wizard-choices .wizard-choice-copy:after,.wizard-effect-choice,.wizard-style-preview-line{animation:none!important;transition:none!important;transform:none!important}.wizard-choices .wizard-choice.selected{transform:none!important}.wizard-choices .wizard-choice:after{transform:none!important}}
