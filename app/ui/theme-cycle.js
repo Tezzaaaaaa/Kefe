@@ -6,8 +6,34 @@
     const LABELS = { system: 'System', day: 'Day', night: 'Night' };
     const ICONS = {
         system: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>',
-        day: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2M12 19.2v2M2.8 12h2M19.2 12h2M5.5 5.5l1.4 1.4M17.1 17.1l1.4 1.4M18.5 5.5l-1.4 1.4M6.9 17.1l-1.4 1.4"/></svg>',
+        day: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2M12 19.2v2M2.8 12h2M19.2 12h2M5.5 5.5l1.4 1.4M17.1 17.1l1.4 1.4M18.5 5.5l-1.4 1.4M6.9 17.1l1.4-1.4"/></svg>',
         night: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.4A8.7 8.7 0 0 1 8.6 4a8.8 8.8 0 1 0 11.4 11.4Z"/></svg>'
+    };
+
+    const DAY_VARS = {
+        '--bg': '#ffffff',
+        '--surface': '#fefefe',
+        '--surface-2': '#f7f7f5',
+        '--surface-3': '#ececea',
+        '--line': 'rgba(10,10,8,.10)',
+        '--line-strong': 'rgba(10,10,8,.22)',
+        '--text': '#0a0a0a',
+        '--text-2': '#5c5c58',
+        '--text-3': '#8a8a85',
+        '--shadow-card': 'none'
+    };
+
+    const NIGHT_VARS = {
+        '--bg': '#030303',
+        '--surface': '#0a0a0a',
+        '--surface-2': '#141414',
+        '--surface-3': '#1e1e1e',
+        '--line': 'rgba(255,255,255,.07)',
+        '--line-strong': 'rgba(255,255,255,.14)',
+        '--text': '#ffffff',
+        '--text-2': '#9a9a9a',
+        '--text-3': '#6b6b6b',
+        '--shadow-card': 'none'
     };
 
     function getMode() {
@@ -15,8 +41,22 @@
             const saved = localStorage.getItem(THEME_KEY);
             return MODES.includes(saved) ? saved : 'system';
         } catch (e) {
-            return document.documentElement.dataset.theme === 'day' ? 'day' : document.documentElement.dataset.theme === 'night' ? 'night' : 'system';
+            return document.documentElement.dataset.theme === 'day'
+                ? 'day'
+                : document.documentElement.dataset.theme === 'night'
+                  ? 'night'
+                  : 'system';
         }
+    }
+
+    function applyVariables(mode) {
+        const root = document.documentElement;
+        const vars = mode === 'day' ? DAY_VARS : mode === 'night' ? NIGHT_VARS : null;
+        [...new Set([...Object.keys(DAY_VARS), ...Object.keys(NIGHT_VARS)])].forEach((name) => {
+            if (vars) root.style.setProperty(name, vars[name]);
+            else root.style.removeProperty(name);
+        });
+        root.style.colorScheme = mode === 'day' ? 'light' : mode === 'night' ? 'dark' : 'light dark';
     }
 
     function updateButton(button, mode) {
@@ -31,8 +71,14 @@
         if (!MODES.includes(mode)) mode = 'system';
         if (mode === 'system') delete document.documentElement.dataset.theme;
         else document.documentElement.dataset.theme = mode;
-        try { localStorage.setItem(THEME_KEY, mode); } catch (e) { /* non-critical */ }
+        applyVariables(mode);
+        try {
+            localStorage.setItem(THEME_KEY, mode);
+        } catch (e) {
+            /* non-critical */
+        }
         updateButton(button, mode);
+        window.dispatchEvent(new CustomEvent('kefe:theme-change', { detail: { mode } }));
     }
 
     function init() {
@@ -41,17 +87,21 @@
 
         const button = document.createElement('button');
         button.type = 'button';
-        button.id = 'themeSelect';
+        button.id = 'themeCycleButton';
         button.className = 'theme-cycle-button';
 
         control.replaceWith(button);
         setMode(button, getMode());
         button.addEventListener('click', () => {
             const current = getMode();
-            setMode(button, MODES[(MODES.indexOf(current) + 1) % MODES.length]);
+            const next = MODES[(MODES.indexOf(current) + 1) % MODES.length];
+            setMode(button, next);
         });
     }
 
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
-    else init();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init, { once: true });
+    } else {
+        init();
+    }
 })();
