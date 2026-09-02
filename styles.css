@@ -21,7 +21,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .status,.effect-label,.aspect-info,label,h1,h2,h3,p{user-select:text;-webkit-user-select:text} textarea,input,select{user-select:text;-webkit-user-select:text}
 .app{display:flex;flex-direction:column;height:100dvh;overflow:hidden;background:var(--bg)}
 header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 22px;min-height:62px;background:var(--surface);border-bottom:1px solid var(--line);flex-shrink:0;z-index:10}
-.brand{display:flex;width:96px;flex-direction:column;gap:1px;color:var(--text);text-decoration:none;cursor:pointer}.brand img{display:block;width:100%;height:auto}
+.brand{display:flex;width:96px;flex-direction:column;gap:1px;color:var(--text);text-decoration:none;cursor:pointer}.brand img{width:100%;height:auto}
 /* Theme-aware KEFE logo. Dedicated white artwork is used in Night mode. */
 .brand-logo-day{display:block}.brand-logo-night{display:none}
 [data-theme="night"] .brand-logo-day{display:none}[data-theme="night"] .brand-logo-night{display:block}
