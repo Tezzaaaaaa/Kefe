@@ -95,15 +95,21 @@
     preview.classList.toggle('is-playing', playing);
   }
 
-  // Load the worker bridge after the existing application scripts have initialised.
-  // This keeps analysis isolated from the renderer and requires no bundler.
-  function loadAnalysisEngine() {
-    if (window.kefeAnalysis || document.querySelector('script[data-kefe-analysis]')) return;
+  function loadScript(src, marker) {
+    if (window[marker] || document.querySelector(`script[data-${marker}]`)) return;
     const script = document.createElement('script');
-    script.src = './core/analysis-engine.js';
-    script.dataset.kefeAnalysis = '1';
+    script.src = src;
+    script.dataset[marker] = '1';
     script.async = true;
     document.head.appendChild(script);
+  }
+
+  function loadAnalysisEngine() {
+    loadScript('./core/analysis-engine.js', 'kefe-analysis');
+  }
+
+  function loadAutoCreate() {
+    loadScript('./core/auto-create.js', 'kefe-auto-create');
   }
 
   let analysisTimer = 0;
@@ -142,6 +148,7 @@
     enhanceStylePanel();
     enhanceEffectButtons();
     enhanceLivePreview();
+    loadAutoCreate();
   });
   observer.observe(body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-wizard-step', 'class'] });
   enhanceChoiceAnimation();
@@ -149,6 +156,7 @@
   enhanceEffectButtons();
   enhanceLivePreview();
   loadAnalysisEngine();
+  loadAutoCreate();
   document.addEventListener('input', event => {
     if (event.target?.id === 'lyricsText') scheduleAnalysis();
   }, true);
