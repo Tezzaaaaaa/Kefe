@@ -70,7 +70,7 @@
     function targetsForStep(step) {
         if (step === 'content') return ['textSection'];
         if (step === 'captions') return [$('captionGenSection')?.id].filter(Boolean);
-        if (step === 'style') return [fxSectionId()].filter(Boolean);
+        if (step === 'style') return [];
         if (step === 'background') return ['backgroundSection'];
         return [];
     }
@@ -103,12 +103,46 @@
         panel.innerHTML = '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">What are you making?</h3><p class="wizard-panel-hint">Choose once. KEFE will build the right editing path for you.</p><div class="wizard-choices">' + ['lyric','visualiser','captioned','custom'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div>';
         panel.querySelectorAll('[data-choice]').forEach(btn => btn.addEventListener('click', () => { const c = btn.dataset.choice; if (wizard.choice !== c) wizard.source = null; wizard.choice = c; wizard.path = c; wizard.index = 0; if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(c); panel.querySelectorAll('.wizard-choice').forEach(x => x.classList.toggle('selected', x.dataset.choice === c)); refreshNextState(); }));
     }
+    function previewLineText() {
+        const st = window.state || {};
+        if (wizard.choice === 'visualiser') return 'FEEL THE MUSIC';
+        const lines = st.lyrics?.lines || st.captions?.lines || [];
+        const line = lines.find(x => x?.text)?.text || lines.find(x => x?.line)?.line || lines.find(x => x?.content)?.content;
+        return String(line || 'This is your lyric preview');
+    }
+    function previewBackgroundMarkup() {
+        const m = window.kefeMedia || {};
+        if (m.video?.src) return `<video class="wizard-style-preview-media" src="${m.video.src}" muted loop autoplay playsinline aria-hidden="true"></video>`;
+        if (m.image?.src) return `<img class="wizard-style-preview-media" src="${m.image.src}" alt="" aria-hidden="true">`;
+        const solid = window.state?.background?.solid || '#0A0A0A';
+        return `<div class="wizard-style-preview-solid" style="--wizard-preview-solid:${solid}"></div>`;
+    }
+    function renderStylePreview(effect) {
+        const existing = panel.querySelector('.wizard-style-preview');
+        if (!existing) return;
+        const safeEffect = effect || 'apple';
+        existing.dataset.effect = safeEffect;
+        const line = existing.querySelector('.wizard-style-preview-line');
+        if (line) line.textContent = previewLineText();
+        existing.querySelector('.wizard-style-preview-media-wrap')?.replaceChildren(document.createRange().createContextualFragment(previewBackgroundMarkup()));
+        if (!reducedMotion) {
+            existing.classList.remove('is-animating');
+            void existing.offsetWidth;
+            existing.classList.add('is-animating');
+        }
+    }
     function renderStylePanel() {
         const effectButtons = [...document.querySelectorAll('#lyricStyleBlock [data-effect]')];
         const current = window.state?.style?.effect || 'apple';
         const effectMarkup = wizard.choice === 'visualiser' ? '' : '<div class="wizard-style-group"><div class="wizard-style-heading">Lyric effect</div><div class="wizard-effect-grid">' + effectButtons.map(btn => `<button type="button" class="wizard-effect-choice${(btn.dataset.effect === current || btn.classList.contains('active')) ? ' selected' : ''}" data-forward-effect="${btn.dataset.effect}">${btn.textContent}</button>`).join('') + '</div></div>';
-        panel.innerHTML = '<p class="wizard-panel-kicker">04 · Style</p><h3 class="wizard-panel-title">Choose your look</h3><p class="wizard-panel-hint">Set the main visual language first. Fine visual FX are shown below.</p>' + effectMarkup;
-        panel.querySelectorAll('[data-forward-effect]').forEach(btn => btn.addEventListener('click', () => { const target = [...document.querySelectorAll('#lyricStyleBlock [data-effect]')].find(x => x.dataset.effect === btn.dataset.forwardEffect); target?.click(); panel.querySelectorAll('[data-forward-effect]').forEach(x => x.classList.toggle('selected', x === btn)); }));
+        panel.innerHTML = '<p class="wizard-panel-kicker">04 · Style</p><h3 class="wizard-panel-title">Choose your look</h3><p class="wizard-panel-hint">Configure the style here and see the result immediately.</p><div class="wizard-style-preview" data-effect="' + current + '"><div class="wizard-style-preview-media-wrap">' + previewBackgroundMarkup() + '</div><div class="wizard-style-preview-shade"></div><div class="wizard-style-preview-content"><span class="wizard-style-preview-eyebrow">KEFE · LIVE PREVIEW</span><div class="wizard-style-preview-line">' + previewLineText() + '</div><span class="wizard-style-preview-effect">' + current + '</span></div></div>' + effectMarkup;
+        panel.querySelectorAll('[data-forward-effect]').forEach(btn => btn.addEventListener('click', () => {
+            const target = [...document.querySelectorAll('#lyricStyleBlock [data-effect]')].find(x => x.dataset.effect === btn.dataset.forwardEffect);
+            target?.click();
+            panel.querySelectorAll('[data-forward-effect]').forEach(x => x.classList.toggle('selected', x === btn));
+            renderStylePreview(btn.dataset.forwardEffect);
+        }));
+        renderStylePreview(current);
     }
     function renderPreview() {
         const st = window.state || {}, media = window.kefeMedia || {}, labels = { uploaded: 'Audio file', video: 'Background video', none: 'No audio' };
@@ -132,7 +166,7 @@
         if (step === 'style') {
             renderStylePanel();
             panel.classList.add('wizard-current');
-            targetIds.forEach(id => { const el = $(id); if (el) { el.classList.add('wizard-current'); if (!firstTarget) firstTarget = el; } });
+            firstTarget = panel;
         } else if (targetIds.length) {
             panel.innerHTML = '';
             targetIds.forEach(id => { const el = $(id); if (el) { el.classList.add('wizard-current'); if (!firstTarget) firstTarget = el; } });
