@@ -65,7 +65,7 @@
     const nav = document.createElement('div');
     nav.className = 'wizard-nav';
     nav.id = 'wizardNav';
-    nav.innerHTML = '<button type="button" id="wizardBackBtn" class="wizard-back" disabled>Back</button><div class="wizard-progress-wrap"><div id="wizardProgress" class="wizard-progress">01 / 06</div><span id="wizardStepLabel" class="wizard-step-label">Format</span><button type="button" id="wizardSkipBtn" class="wizard-skip">Skip setup</button></div><button type="button" id="wizardNextBtn" class="primary wizard-next">Next</button>';
+    nav.innerHTML = '<button type="button" id="wizardBackBtn" class="wizard-back" disabled>Back</button><div class="wizard-progress-wrap"><div id="wizardProgress" class="wizard-progress">01 / 07</div><span id="wizardStepLabel" class="wizard-step-label">Format</span><button type="button" id="wizardSkipBtn" class="wizard-skip">Skip setup</button></div><button type="button" id="wizardNextBtn" class="primary wizard-next">Next</button>';
     sidebar.appendChild(nav);
     const stepHeading = document.createElement('div');
     stepHeading.className = 'wizard-step-heading';
@@ -215,8 +215,21 @@
     }
     function goTo(index) { const steps = stepsFor(); if (index < 0 || index >= steps.length) return; wizard.index = index; if (reducedMotion) return applyStep(); sidebar.classList.add('wizard-fading'); clearTimeout(fadeTimer); fadeTimer = setTimeout(() => { applyStep(); sidebar.classList.remove('wizard-fading'); }, 150); }
 
+    window.kefeWizard = {
+        version: 1,
+        getState: () => ({ path: wizard.path, index: wizard.index, step: stepsFor()[wizard.index] || null, choice: wizard.choice, source: wizard.source, steps: [...stepsFor()] })
+    };
+
     $('wizardBackBtn').addEventListener('click', () => goTo(wizard.index - 1));
-    $('wizardNextBtn').addEventListener('click', () => { const step = stepsFor()[wizard.index]; if (!nextEnabled(step)) return; if (step === 'preview') return finishWizard(); goTo(wizard.index + 1); });
+    $('wizardNextBtn').addEventListener('click', () => {
+        const step = stepsFor()[wizard.index];
+        if (!nextEnabled(step)) return;
+        if (step === 'export') {
+            $('exportBottom')?.click();
+            return;
+        }
+        goTo(wizard.index + 1);
+    });
     $('wizardSkipBtn').addEventListener('click', finishWizard);
     sidebar.addEventListener('input', () => setTimeout(refreshNextState, 0));
     sidebar.addEventListener('change', () => setTimeout(refreshNextState, 0));
