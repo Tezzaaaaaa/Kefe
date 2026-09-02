@@ -13,15 +13,15 @@
     if (!document.querySelector('link[data-kefe-wizard-style-preview]')) { const styleLink = document.createElement('link'); styleLink.rel = 'stylesheet'; styleLink.href = './ui/wizard-style-preview.css'; styleLink.dataset.kefeWizardStylePreview = 'true'; document.head.appendChild(styleLink); }
 
     const PATHS = {
-        lyric: ['intro', 'source', 'content', 'style', 'background', 'preview'],
-        visualiser: ['intro', 'source', 'style', 'background', 'preview'],
-        captioned: ['intro', 'source', 'captions', 'style', 'background', 'preview'],
-        custom: ['intro', 'source', 'content', 'style', 'background', 'preview']
+        lyric: ['intro', 'source', 'content', 'style', 'background', 'preview', 'export'],
+        visualiser: ['intro', 'source', 'style', 'background', 'preview', 'export'],
+        captioned: ['intro', 'source', 'captions', 'style', 'background', 'preview', 'export'],
+        custom: ['intro', 'source', 'content', 'style', 'background', 'preview', 'export']
     };
     const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', custom: 'Custom' };
     const PATH_HINTS = { lyric: 'Synced lyrics with expressive motion.', visualiser: 'Audio-reactive visuals with no lyrics.', captioned: 'Timed captions for spoken audio or video.', custom: 'Build the video your way.' };
-    const STEP_TITLES = { content: 'Add your content', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background' };
-    const STEP_LABELS = { intro: 'Format', source: 'Media', content: 'Content', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview' };
+    const STEP_TITLES = { content: 'Add your content', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background', export: 'Export your video' };
+    const STEP_LABELS = { intro: 'Format', source: 'Media', content: 'Content', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview', export: 'Export' };
     const CHOICE_ICONS = {
         lyric: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10"/><circle cx="18.2" cy="17.4" r="2.6"/><path d="M20.8 17.4V8.2l-2.6.9"/></svg>',
         visualiser: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>',
@@ -73,6 +73,7 @@
         if (step === 'captions') return [$('captionGenSection')?.id].filter(Boolean);
         if (step === 'style') return [];
         if (step === 'background') return ['backgroundSection'];
+        if (step === 'export') return ['exportSection'];
         return [];
     }
     function sourceStatus() {
@@ -183,7 +184,7 @@
         $('wizardProgress').textContent = `${pad(wizard.index + 1)} / ${pad(steps.length)}`;
         $('wizardStepLabel').textContent = STEP_LABELS[step] || '';
         $('wizardBackBtn').disabled = wizard.index === 0;
-        const next = $('wizardNextBtn'); next.textContent = step === 'preview' ? 'Go to export' : 'Next'; next.disabled = !nextEnabled(step);
+        const next = $('wizardNextBtn'); next.textContent = step === 'export' ? 'Export' : 'Next'; next.disabled = !nextEnabled(step);
         if (firstTarget) { firstTarget.setAttribute('tabindex', '-1'); firstTarget.focus({ preventScroll: true }); }
     }
     function refreshNextState() { const step = stepsFor()[wizard.index], b = $('wizardNextBtn'); if (step && b) b.disabled = !nextEnabled(step); }
