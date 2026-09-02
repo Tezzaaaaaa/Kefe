@@ -12,9 +12,7 @@
     <link rel="stylesheet" href="./app/ui/background-presets.css">
     <link rel="stylesheet" href="./app/ui/caption-generator.css">
     <link rel="stylesheet" href="./app/ui/auth-ui.css">
-    <link rel="stylesheet" href="./app/ui/wizard.css">
-    <link rel="stylesheet" href="./app/ui/wizard-mobile.css">
-    <link rel="stylesheet" href="./app/ui/wizard-showcase.css">
+    <link rel="stylesheet" href="./app/ui/wizard/wizard.css">
     <link rel="stylesheet" href="./app/ui/adobe-rail.css">
     <link rel="stylesheet" href="./app/ui/dynamic-motion.css">
     <link rel="stylesheet" href="./app/ui/live-preview.css">
@@ -24,7 +22,7 @@
     <header>
         <a class="brand" href="./" aria-label="KEFE Visualiser home" title="Return home"><img class="brand-logo brand-logo-day" src="./assets/branding/kefe-logo.svg" alt="KEFE"><img class="brand-logo brand-logo-night" src="./assets/branding/kefe-logo-light.svg" alt="" aria-hidden="true"><span class="brand-descriptor" aria-hidden="true"><span>V</span><span>I</span><span>S</span><span>U</span><span>A</span><span>L</span><span>I</span><span>S</span><span>E</span><span>R</span></span></a>
         <div class="header-actions">
-            <label class="theme-control" for="themeSelect"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg><select id="themeSelect" aria-label="Theme"><option value="system">System</option><option value="day">Day</option><option value="night">Night</option></select></label>
+            <label class="theme-control" for="themeSelect"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6-1.6"/></svg><select id="themeSelect" aria-label="Theme"><option value="system">System</option><option value="day">Day</option><option value="night">Night</option></select></label>
             <button id="resetBtn" type="button" class="icon-button" aria-label="Reset project" title="Reset project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7v5h5M5.4 12a7.5 7.5 0 1 0 2.1-5.2L4 10"/></svg></button>
             <button id="exportBtn" type="button" class="primary export-action"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M8 11l4 4 4-4M5 20h14"/></svg><span>Export</span></button>
         </div>
@@ -59,14 +57,8 @@
     </main>
 </div>
 <div id="lyricsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Edit lyrics (LRC)</strong><button type="button" id="closeEditor" class="close-btn" aria-label="Close">&times;</button></div><div class="modal-body"><textarea id="lyricsText" rows="14" placeholder="[00:12.34]First line of lyrics&#10;[00:15.80]Next line…"></textarea><div id="editorStatus" class="status"></div></div><div class="modal-footer"><button type="button" id="pasteLyrics" class="file-button">Paste from clipboard</button><button type="button" id="uploadLrc" class="file-button">Upload .lrc file</button><input type="file" id="lrcFileInput" accept=".lrc,.txt" class="hidden"><button type="button" id="cancelEditor" class="ghost">Cancel</button><button type="button" id="saveLyrics" class="primary">Save</button></div></div></div>
-<div id="captionsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Edit caption blocks</strong><button type="button" id="closeCaptions" class="close-btn" aria-label="Close">&times;</button></div><div class="modal-body"><div class="lyrics-actions"><button type="button" id="addCaptionRow" class="file-button">Add block</button><button type="button" id="clearCaptionText" class="file-button">Clear all text</button><button type="button" id="pasteCaptions" class="file-button">Paste text from clipboard</button></div><textarea id="captionsBulkText" rows="4" placeholder="Paste the full transcript here, then Fit Text to Blocks"></textarea><button type="button" id="distributeCaptions" class="file-button">Fit text to blocks</button><div id="captionsRows" class="caption-rows"></div><div id="captionsEditorStatus" class="status"></div></div><div class="modal-footer"><button type="button" id="cancelCaptions" class="ghost">Cancel</button><button type="button" id="saveCaptions" class="primary">Save</button></div></div></div>
-<div id="exportPreflight" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Ready to export</strong></div><div class="modal-body"><div id="preflightSummary" class="preflight-list"></div><div id="preflightWarning" class="preflight-warning hidden"></div><div id="preflightRepair" class="preflight-repair"></div></div><div class="modal-footer"><button type="button" id="closePreflight" class="close-btn" aria-label="Close">&times;</button><button type="button" id="cancelPreflight" class="ghost">Cancel</button><button type="button" id="confirmExport" class="primary">Start export</button></div></div></div>
-<div id="exportOverlay" class="overlay hidden"><div class="modal-content"><div id="exportStatus" class="status">Exporting…</div><progress id="exportProgress" value="0" max="100"></progress><span id="exportPct">0%</span><button type="button" id="cancelExport" class="ghost">Cancel</button></div></div>
-<div id="toast" class="toast"></div>
-<script src="./app/effects/core.js"></script><script src="./app/effects/typewriter.js"></script><script src="./app/effects/instagram-lyrics.js"></script><script src="./app/effects/story-fade.js"></script><script src="./app/effects/brat.js"></script><script src="./app/effects/aurora.js"></script><script src="./app/effects/eternal-sunshine.js"></script><script src="./app/ui/background-video-compat.js"></script><script src="./app/app.js"></script><script src="./app/core/analysis-engine.js"></script><script src="./app/core/frame-renderer.js"></script><script src="./app/core/project-engine.js"></script><script src="./app/ui/typography.js"></script><script src="./app/ui/background-presets.js"></script><script src="./app/ui/caption-generator.js"></script><script src="./wizard.js"></script><script src="./app/ui/adobe-rail.js"></script><script src="./app/ui/auth-ui.js"></script><script src="./app/effects/effect-app-fx.js"></script><script type="module" src="./app/export/ui.js"></script>
-    <script type="module" src="./app/export/export-enhancements.js"></script>
-    <script src="./app/ui/live-preview.js"></script>
-    <script src="./app/ui/music-intelligence.js"></script>
-    <script src="./app/ui/kefe-product-polish.js"></script>
+<div id="captionsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Edit caption blocks</strong><button type="button" id="closeCaptions" class="close-btn" aria-label="Close">&times;</button></div><div class="modal-body"><div class="lyrics-actions"><button type="button" id="addCaptionRow" class="file-button">Add caption</button></div><div id="captionRows"></div></div><div class="modal-footer"><button type="button" id="cancelCaptions" class="ghost">Cancel</button><button type="button" id="saveCaptions" class="primary">Save captions</button></div></div></div>
+<script src="./app/app.js"></script>
+<script src="./app/ui/wizard/wizard.js"></script>
 </body>
 </html>
