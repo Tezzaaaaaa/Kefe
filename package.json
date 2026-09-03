@@ -12,7 +12,12 @@
     "test:smoke": "node tests/smoke.mjs",
     "test:functional": "node tests/functional-sweep.mjs",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "lint:slop": "slop-scan scan . --lint",
+    "check:overengineer": "slop-scan scan . --lint",
+    "check:ai-change": "node scripts/ai-change-guard.mjs",
+    "fix:slop": "agentsys --help"
   },
   "dependencies": {
     "better-sqlite3": "^11.3.0",
@@ -24,7 +29,9 @@
     "express": "^4.19.2"
   },
   "devDependencies": {
-    "prettier": "^3.6.2"
+    "husky": "^9.1.7",
+    "prettier": "^3.6.2",
+    "slop-scan": "^0.3.0"
   },
   "engines": {
     "node": ">=18"
