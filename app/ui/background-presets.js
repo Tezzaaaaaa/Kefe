@@ -2,7 +2,7 @@
 (() => {
 'use strict';
 const p=new URLSearchParams(document.currentScript?.src?.split('?')[1]||''),runtime=p.get('runtime')==='1';
-if(!runtime){window.addEventListener('load',()=>{const s=document.createElement('script');s.src='./app/ui/web-threads.js?v=20260903-9';s.async=false;document.body.appendChild(s);const bridge=document.createElement('script');bridge.textContent='window.state = state;';document.body.appendChild(bridge);const runtimeScript=document.createElement('script');runtimeScript.src='./app/ui/background-presets.js?v=20260903-9&runtime=1';runtimeScript.async=false;document.body.appendChild(runtimeScript)},{once:true});return}
+if(!runtime){window.addEventListener('load',()=>{const s=document.createElement('script');s.src='./app/ui/web-threads.js?v=20260903-10';s.async=false;document.body.appendChild(s);const bridge=document.createElement('script');bridge.textContent='window.state = state;';document.body.appendChild(bridge);const runtimeScript=document.createElement('script');runtimeScript.src='./app/ui/background-presets.js?v=20260903-10&runtime=1';runtimeScript.async=false;document.body.appendChild(runtimeScript)},{once:true});return}
 
 /* Landing home: Web Threads is page-only. Use the existing official KEFE light logo. */
 if(!document.querySelector('.kefe-landing-home')&&window.KefeWebThreads){
