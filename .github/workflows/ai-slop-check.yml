@@ -1,15 +1,18 @@
 name: AI Slop & Change Guard
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ai-slop-${{ github.event.pull_request.number }}
+  group: ai-slop-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -42,18 +45,30 @@ jobs:
         run: npm run test:functional
 
       - name: Change blast-radius guard
+        if: ${{ github.event_name == 'pull_request' }}
         env:
           KEFE_GUARD_BASE: ${{ github.event.pull_request.base.sha }}
         run: npm run check:ai-change
 
-      - name: Deterministic AI-slop delta scan
+      - name: Change blast-radius guard (push/manual)
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          KEFE_GUARD_BASE: ${{ github.event.before }}
+        run: npm run check:ai-change
+
+      - name: Deterministic AI-slop delta scan (pull request)
+        if: ${{ github.event_name == 'pull_request' }}
         run: npx --no-install slop-scan delta --base "${{ github.event.pull_request.base.sha }}" --head HEAD --fail-on added,worsened
+
+      - name: Deterministic AI-slop delta scan (push/manual)
+        if: ${{ github.event_name != 'pull_request' && github.event_name == 'push' }}
+        run: npx --no-install slop-scan delta --base "${{ github.event.before }}" --head HEAD --fail-on added,worsened
 
       - name: Semantic AI-code gate
         if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: npx --yes @schava09/slopgate --base "${{ github.event.pull_request.base.sha }}" --fail-on high
+        run: npx --yes @schava09/slopgate --base "${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}" --fail-on high
 
       - name: Semantic gate status
         if: ${{ secrets.ANTHROPIC_API_KEY == '' }}
