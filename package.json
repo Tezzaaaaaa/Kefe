@@ -13,7 +13,7 @@
     "test:functional": "node tests/functional-sweep.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky",
+    "prepare": "husky && chmod +x .husky/pre-commit",
     "lint:slop": "slop-scan scan . --lint",
     "check:overengineer": "slop-scan scan . --lint",
     "check:ai-change": "node scripts/ai-change-guard.mjs"
