@@ -1,6 +1,6 @@
 # KEFE agent operating contract
 
-This repository is maintained with a layered engineering guardrail stack: Ponytail-style agent discipline, static analysis, browser verification, code review, and optional independent AI-agent auditing.
+This repository is maintained with a layered engineering guardrail stack: Ponytail-style agent discipline, static analysis, AI-slop detection, browser verification, code review, and optional independent AI-agent auditing.
 
 ## Agent discipline
 
@@ -31,6 +31,28 @@ Useful Ponytail reviews when the host supports them:
 5. Do not expose or commit credentials, tokens, generated media, databases, or local runtime state.
 6. Treat deployment as a release operation, not a normal editing operation.
 7. Keep changes within the requested scope; unrelated cleanup belongs in a separate change unless it is required to make the requested change safe.
+8. Do not run automatic repository-wide AI cleanup/fix commands and commit their output without reviewing the complete diff.
+9. Do not add duplicate implementations, speculative compatibility layers, placeholder abstractions, or broad refactors merely because an AI tool suggests them.
+
+## Change-size protection
+
+KEFE has a hard change blast-radius guard in `scripts/ai-change-guard.mjs`.
+
+- Default limit: 20 changed files.
+- Default limit: 1,000 changed lines.
+- A deliberate broad change must explicitly use `KEFE_ALLOW_BROAD_CHANGE=1` and explain why.
+- The guard is enforced locally by Husky and in pull-request CI.
+
+## AI-slop protection
+
+`slop-scan` is the deterministic source-level slop detector. Its configuration is committed in `slop-scan.config.json`.
+
+- `npm run lint:slop` — inspect the repository for AI-associated code patterns.
+- `npm run check:overengineer` — inspect structural over-fragmentation, duplication, fan-out, wrappers, and related patterns.
+- Pull requests to `main` run a delta scan that blocks newly added or worsened slop findings.
+- The pre-commit hook never auto-fixes source code.
+
+An optional semantic gate is enabled automatically when `ANTHROPIC_API_KEY` is present. It uses `@schava09/slopgate` and blocks high-severity findings. This gate is deliberately optional locally so contributors are not forced to expose or configure an AI provider key.
 
 ## Verification baseline
 
@@ -40,6 +62,8 @@ Run these when the change applies:
 - `npm run format:check`
 - `npm run test:smoke`
 - `npm run test:functional`
+- `npm run check:ai-change`
+- `npm run lint:slop`
 
 Browser-facing changes must cover desktop and mobile widths and every applicable wizard path.
 
@@ -48,10 +72,13 @@ Browser-facing changes must cover desktop and mobile widths and every applicable
 Use the tools in this order rather than asking one tool to do everything:
 
 1. **Ponytail** — agent discipline, comprehension-first behavior, and over-engineering control.
-2. **RoboRev** — code review/refinement and structural quality.
-3. **MegaLinter** — broad repository lint/static checks.
-4. **Playwright** — browser and responsive functional verification.
-5. **iFixAi** — independent audit of the engineering agent itself, when a real agent endpoint is available.
+2. **AI change guard** — deterministic limits on change blast radius.
+3. **slop-scan** — deterministic detection of AI-associated code patterns and structural over-engineering.
+4. **RoboRev** — code review/refinement and structural quality.
+5. **MegaLinter** — broad repository lint/static checks.
+6. **Playwright** — browser and responsive functional verification.
+7. **slopgate** — optional semantic review for hallucinated APIs, silent logic drift, missing tests, and other high-severity AI-code failures.
+8. **iFixAi** — independent audit of the engineering agent itself, when a real agent endpoint is available.
 
 A green static check does not prove browser behavior, and an iFixAi fixture does not prove that an agent passed an audit.
 
