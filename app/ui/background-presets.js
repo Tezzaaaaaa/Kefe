@@ -1,20 +1,23 @@
-/* KEFE background presets — six clean, reusable canvas backgrounds. */
+/* KEFE background presets — clean, reusable canvas backgrounds. */
 (() => {
   'use strict';
 
-  // app.js owns the lexical `state`. This file is loaded before app.js, so the
-  // first pass only bootstraps a second pass after the page has finished loading.
   const params = new URLSearchParams(document.currentScript?.src?.split('?')[1] || '');
   const runtime = params.get('runtime') === '1';
 
   if (!runtime) {
     window.addEventListener('load', () => {
+      const gradient = document.createElement('script');
+      gradient.src = './app/ui/gradient-waves.js?v=20260903-1';
+      gradient.async = false;
+      document.body.appendChild(gradient);
+
       const bridge = document.createElement('script');
       bridge.textContent = 'window.state = state;';
       document.body.appendChild(bridge);
 
       const script = document.createElement('script');
-      script.src = './app/ui/background-presets.js?v=20260901-6&runtime=1';
+      script.src = './app/ui/background-presets.js?v=20260903-1&runtime=1';
       script.async = false;
       document.body.appendChild(script);
     }, { once: true });
@@ -23,8 +26,20 @@
 
   const state = window.state;
   const media = window.kefeMedia;
-  const presets = [...document.querySelectorAll('[data-background-preset]')];
-  if (!state || !media || !presets.length) return;
+  const grid = document.querySelector('.background-choice-grid');
+  if (!state || !media || !grid) return;
+
+  const waveButton = (() => {
+    let button = grid.querySelector('[data-background-preset="gradient-waves"]');
+    if (button) return button;
+    button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'background-choice';
+    button.dataset.backgroundPreset = 'gradient-waves';
+    button.innerHTML = '<span class="background-choice-preview"></span><span class="background-choice-label">Gradient Waves</span>';
+    grid.appendChild(button);
+    return button;
+  })();
 
   function loadRemoveBackground() {
     if (window.__kefeRemoveBgLoaderLoaded) return;
@@ -34,13 +49,14 @@
     script.async = false;
     document.body.appendChild(script);
   }
-
   loadRemoveBackground();
 
   const redraw = () => window.redrawCurrentPreviewFrame?.();
   const status = document.getElementById('backgroundStatus');
   const colorInput = document.getElementById('backgroundColor');
   const colorValue = document.getElementById('backgroundColorValue');
+  const presets = [...grid.querySelectorAll('[data-background-preset]')];
+  let waves = null;
 
   const defs = {
     gradient: { label: 'Soft Gradient', svg: `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#241242"/><stop offset=".48" stop-color="#3a1f6b"/><stop offset="1" stop-color="#0b0518"/></linearGradient></defs><rect width="1080" height="1920" fill="url(#g)"/></svg>` },
@@ -51,20 +67,19 @@
   };
 
   const clearMedia = () => {
+    if (waves) { waves.stop(); waves.destroy(); waves = null; }
     if (media.video) {
-      media.video.pause();
-      media.video.src = '';
-      media.video = null;
+      media.video.pause(); media.video.src = ''; media.video = null;
     }
     media.videoFile = null;
     media.videoHasAudio = false;
     if (state.audioSource?.master === 'video') {
       if (state.audio?.file) {
         state.audioSource.master = 'uploaded';
-        if (typeof window.applyMasterSelection === 'function') window.applyMasterSelection('uploaded', { userInitiated: false, silent: true });
+        window.applyMasterSelection?.('uploaded', { userInitiated: false, silent: true });
       } else {
         state.audioSource.master = 'none';
-        if (typeof window.applyMasterSelection === 'function') window.applyMasterSelection('none', { userInitiated: false, silent: true });
+        window.applyMasterSelection?.('none', { userInitiated: false, silent: true });
       }
     }
     media.image = null;
@@ -76,17 +91,23 @@
 
   const choosePreset = key => {
     if (window.isExporting) return;
+    clearMedia();
     if (key === 'solid') {
-      clearMedia();
-      state.background.type = 'solid';
-      select('solid');
-      setStatus(`Colour background · ${state.background.solid.toUpperCase()}`);
+      state.background.type = 'solid'; select('solid');
+      setStatus(`Colour background · ${state.background.solid.toUpperCase()}`); redraw(); return;
+    }
+    if (key === 'gradient-waves') {
+      if (!window.KefeGradientWaves) { setStatus('Gradient Waves is loading…'); return; }
+      waves = window.KefeGradientWaves.create({ ...window.KefeGradientWaves.defaults });
+      media.image = waves.canvas;
+      state.background.type = 'image';
+      select(key);
+      setStatus('Gradient Waves · live');
       redraw();
       return;
     }
     const def = defs[key];
     if (!def) return;
-    clearMedia();
     const img = makeImage(def.svg);
     img.onload = () => {
       if (window.isExporting) return;
@@ -99,21 +120,30 @@
   };
 
   presets.forEach(button => button.addEventListener('click', () => choosePreset(button.dataset.backgroundPreset)));
-  const solidTile = document.querySelector('.background-choice[data-background-preset="solid"]');
+  const solidTile = grid.querySelector('[data-background-preset="solid"]');
   const setSolidPreview = hex => { if (solidTile) solidTile.style.setProperty('--kefe-bg-solid-preview', hex); };
   setSolidPreview(colorInput?.value || '#0A0A0A');
 
   colorInput?.addEventListener('input', () => {
     if (window.isExporting) return;
-    clearMedia();
-    state.background.type = 'solid';
-    state.background.solid = colorInput.value;
+    clearMedia(); state.background.type = 'solid'; state.background.solid = colorInput.value;
     if (colorValue) colorValue.textContent = colorInput.value.toUpperCase();
-    setSolidPreview(colorInput.value);
-    select('solid');
-    setStatus(`Colour background · ${colorInput.value.toUpperCase()}`);
-    redraw();
+    setSolidPreview(colorInput.value); select('solid');
+    setStatus(`Colour background · ${colorInput.value.toUpperCase()}`); redraw();
   });
 
   select('solid');
+
+  // KEFE landing backdrop: the same visual language as the new editor preset.
+  // It sits behind the app chrome and is intentionally non-interactive.
+  if (!document.querySelector('.kefe-gradient-landing') && window.KefeGradientWaves) {
+    const landing = window.KefeGradientWaves.create({ ...window.KefeGradientWaves.defaults });
+    landing.canvas.classList.add('kefe-gradient-landing');
+    document.body.prepend(landing.canvas);
+    const glass = document.createElement('div');
+    glass.className = 'kefe-gradient-landing-glass';
+    document.body.insertBefore(glass, document.body.children[1] || null);
+    document.body.classList.add('kefe-gradient-landing-active');
+    window.kefeLandingWaves = landing;
+  }
 })();
