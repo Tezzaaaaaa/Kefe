@@ -30,7 +30,14 @@
 
         const order = ['audio', 'text', 'background', 'fx', 'export'];
         links.sort((a, b) => order.indexOf(a.dataset.nav) - order.indexOf(b.dataset.nav));
-        links.forEach(link => document.querySelector('.section-nav')?.appendChild(link));
+        links.forEach((link, index) => {
+            document.querySelector('.section-nav')?.appendChild(link);
+            const label = link.querySelector('strong');
+            if (label && link.dataset.nav === 'export') label.textContent = 'Export';
+            const section = document.getElementById(`${link.dataset.nav}Section`);
+            const sectionIndex = section?.querySelector('.section-index');
+            if (sectionIndex) sectionIndex.textContent = String(index + 1).padStart(2, '0');
+        });
 
         function showByKey(key) {
             links.forEach(link => link.classList.toggle('active', link.dataset.nav === key));
