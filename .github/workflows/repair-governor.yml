@@ -1,0 +1,39 @@
+name: KEFE repair governor
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kefe-repair-governor-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repair-governor:
+    name: Detect patch stacking and patch sprawl
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Run repair governor
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/repair-governor.mjs
+
+      - name: Explain guardrail
+        if: failure()
+        run: |
+          echo 'The repair governor rejected this change because it looks like patch sprawl or repeated repair of the same files.'
+          echo 'Split the change, revert the ineffective patch, or diagnose the underlying cause before adding another fix.'
