@@ -60,12 +60,12 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         run: npx --no-install slop-scan delta --base "${{ github.event.pull_request.base.sha }}" --head HEAD --fail-on added,worsened
 
-      - name: Deterministic AI-slop delta scan (push/manual)
-        if: ${{ github.event_name != 'pull_request' && github.event_name == 'push' }}
+      - name: Deterministic AI-slop delta scan (push)
+        if: ${{ github.event_name == 'push' }}
         run: npx --no-install slop-scan delta --base "${{ github.event.before }}" --head HEAD --fail-on added,worsened
 
       - name: Semantic AI-code gate
-        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        if: ${{ github.event_name != 'workflow_dispatch' && secrets.ANTHROPIC_API_KEY != '' }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: npx --yes @schava09/slopgate --base "${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}" --fail-on high
