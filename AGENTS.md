@@ -22,6 +22,18 @@ Useful Ponytail reviews when the host supports them:
 - `/ponytail-debt` — record actionable technical debt rather than expanding scope opportunistically.
 - `/ponytail-gain` — review measured engineering impact when benchmark data exists.
 
+## KEFE Agent Control Layer
+
+`AGENT_CONTROL.md` is the project-specific supervisory contract for AI agents. It adapts the lifecycle discipline of addyosmani/agent-skills to KEFE rather than copying a generic skill set into the product.
+
+For non-trivial work, follow:
+
+**DEFINE → PLAN → CHANGE → VERIFY → REVIEW → REPORT**
+
+The companion `CONSTRAINTS.md` is the project's quality bar. The reusable meta-skill is `.agents/skills/kefe-agent-control/SKILL.md`.
+
+The agent is an implementer, not the product owner. User intent and repository decisions take precedence over agent preference. When evidence is incomplete, disclose uncertainty and use the HIGH / MEDIUM / LOW confidence gate defined in `AGENT_CONTROL.md`.
+
 ## Required repository behavior
 
 1. Inspect the relevant repository files before changing code.
@@ -33,6 +45,7 @@ Useful Ponytail reviews when the host supports them:
 7. Keep changes within the requested scope; unrelated cleanup belongs in a separate change unless it is required to make the requested change safe.
 8. Do not run automatic repository-wide AI cleanup/fix commands and commit their output without reviewing the complete diff.
 9. Do not add duplicate implementations, speculative compatibility layers, placeholder abstractions, or broad refactors merely because an AI tool suggests them.
+10. Do not bypass a quality gate, change budget, or protected product decision merely to make an implementation easier to complete.
 
 ## Change-size protection
 
@@ -72,13 +85,14 @@ Browser-facing changes must cover desktop and mobile widths and every applicable
 Use the tools in this order rather than asking one tool to do everything:
 
 1. **Ponytail** — agent discipline, comprehension-first behavior, and over-engineering control.
-2. **AI change guard** — deterministic limits on change blast radius.
-3. **slop-scan** — deterministic detection of AI-associated code patterns and structural over-engineering.
-4. **RoboRev** — code review/refinement and structural quality.
-5. **MegaLinter** — broad repository lint/static checks.
-6. **Playwright** — browser and responsive functional verification.
-7. **slopgate** — optional semantic review for hallucinated APIs, silent logic drift, missing tests, and other high-severity AI-code failures.
-8. **iFixAi** — independent audit of the engineering agent itself, when a real agent endpoint is available.
+2. **KEFE Agent Control** — task definition, scope, product constraints, confidence, escalation, and auditable reporting.
+3. **AI change guard** — deterministic limits on change blast radius.
+4. **slop-scan** — deterministic detection of AI-associated code patterns and structural over-engineering.
+5. **RoboRev** — code review/refinement and structural quality.
+6. **MegaLinter** — broad repository lint/static checks.
+7. **Playwright** — browser and responsive functional verification.
+8. **slopgate** — optional semantic review for hallucinated APIs, silent logic drift, missing tests, and other high-severity AI-code failures.
+9. **iFixAi** — independent audit of the engineering agent itself, when a real agent endpoint is available.
 
 A green static check does not prove browser behavior, and an iFixAi fixture does not prove that an agent passed an audit.
 
