@@ -21,7 +21,10 @@ router.post('/remove-background', express.raw({ type: ['image/jpeg', 'image/png'
   if (!ALLOWED_TYPES.has(contentType)) {
     return res.status(415).json({ error: 'Use a JPG, PNG, or WebP image.' });
   }
-  if (!req.body || !req.body.length) {
+  if (!Buffer.isBuffer(req.body)) {
+    return res.status(400).json({ error: 'Invalid image payload.' });
+  }
+  if (!req.body.length) {
     return res.status(400).json({ error: 'No image data received.' });
   }
   if (req.body.length > MAX_IMAGE_BYTES) {
