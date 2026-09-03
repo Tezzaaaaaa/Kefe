@@ -1,0 +1,48 @@
+/* KEFE — Flowing Menu interaction
+   Reusable marquee treatment for navigation, option cards and feature choices. */
+
+.kefe-flowing-menu{position:relative;overflow:hidden;isolation:isolate}
+.kefe-flowing-menu .kefe-flowing-label{position:relative;z-index:2;display:block;overflow:hidden;white-space:nowrap}
+.kefe-flowing-menu .kefe-flowing-track{display:inline-flex;align-items:center;min-width:max-content;will-change:transform}
+.kefe-flowing-menu .kefe-flowing-copy{display:inline-flex;align-items:center;gap:1.4em;padding-right:1.4em}
+.kefe-flowing-menu .kefe-flowing-copy::after{content:"";display:inline-block;width:.34em;height:.34em;border-radius:50%;background:currentColor;opacity:.38}
+.kefe-flowing-menu .kefe-flowing-label:not(.kefe-flowing-ready){overflow:visible}
+
+/* The rail uses a compact vertical treatment: the label glides just enough to
+   make the interaction obvious without disturbing the fixed icon. */
+body:not(.wizard-mode) .section-nav-link.kefe-flowing-menu .kefe-flowing-label{max-width:60px}
+body:not(.wizard-mode) .section-nav-link.kefe-flowing-menu .kefe-flowing-track{transform:translate3d(0,0,0)}
+
+@media (hover:hover) and (pointer:fine){
+  .kefe-flowing-menu:hover .kefe-flowing-track,
+  .kefe-flowing-menu:focus-visible .kefe-flowing-track{animation:kefeFlow 4.8s linear infinite}
+
+  body:not(.wizard-mode) .section-nav-link.kefe-flowing-menu:hover .kefe-flowing-track,
+  body:not(.wizard-mode) .section-nav-link.kefe-flowing-menu:focus-visible .kefe-flowing-track{animation-duration:3.2s}
+
+  .kefe-flowing-menu:hover::after,
+  .kefe-flowing-menu:focus-visible::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,var(--surface,transparent) 0%,transparent 16%,transparent 84%,var(--surface,transparent) 100%);z-index:3;opacity:.75}
+}
+
+@keyframes kefeFlow{
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(-50%,0,0)}
+}
+
+/* Option cards get a slightly more expressive lift while retaining their
+   existing selection/expansion behavior. */
+.effect-buttons button.kefe-flowing-menu,
+.background-choice.kefe-flowing-menu{transition:flex-grow .45s var(--ease),border-color .3s var(--ease),box-shadow .35s var(--ease),transform .35s var(--ease)}
+.effect-buttons button.kefe-flowing-menu:hover,
+.background-choice.kefe-flowing-menu:hover{transform:translateY(-2px)}
+
+@media (prefers-reduced-motion:reduce){
+  .kefe-flowing-menu:hover .kefe-flowing-track,
+  .kefe-flowing-menu:focus-visible .kefe-flowing-track{animation:none}
+  .effect-buttons button.kefe-flowing-menu:hover,
+  .background-choice.kefe-flowing-menu:hover{transform:none}
+}
+
+@media (hover:none), (max-width:560px){
+  .kefe-flowing-menu .kefe-flowing-track{animation:none!important}
+}
