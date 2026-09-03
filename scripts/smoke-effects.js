@@ -68,14 +68,14 @@ function load(file) {
 
 // ---- load order from index.html ----
 const scripts = [
-  'ui/typography.js',
-  'effects/core.js',
-  'effects/brat.js',
-  'effects/aurora.js',
-  'effects/eternal-sunshine.js',
-  'effects/typewriter.js',
-  'effects/instagram-lyrics.js',
-  'effects/story-fade.js',
+  'app/ui/typography.js',
+  'app/effects/core.js',
+  'app/effects/brat.js',
+  'app/effects/aurora.js',
+  'app/effects/eternal-sunshine.js',
+  'app/effects/typewriter.js',
+  'app/effects/instagram-lyrics.js',
+  'app/effects/story-fade.js',
 ];
 for (const s of scripts) load(s);
 // ---- verification ----
