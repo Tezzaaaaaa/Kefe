@@ -1,6 +1,6 @@
 /* KEFE editor shell — single source of truth for page geometry. */
 :root {
-  --editor-rail: 360px;
+  --editor-rail: 380px;
   --header-h: 64px;
   --preview-pad: clamp(18px, 3vw, 44px);
   --panel-radius: 14px;
