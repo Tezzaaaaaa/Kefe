@@ -4,23 +4,14 @@
 
   const motion = new Set(['rise', 'slide', 'drop', 'drift']);
   const freeMotionOrder = ['rise', 'slide', 'drop', 'drift'];
-  const motionLabels = {
-    rise: 'Rise',
-    slide: 'Slide',
-    drop: 'Drop',
-    drift: 'Drift'
-  };
+  const motionLabels = { rise: 'Rise', slide: 'Slide', drop: 'Drop', drift: 'Drift' };
 
   const MOTION_CSS = `
-    /* Free motion effects — polished visual identity for both selector surfaces. */
     #lyricStyleBlock .effect-buttons button[data-effect="rise"],
     #lyricStyleBlock .effect-buttons button[data-effect="slide"],
     #lyricStyleBlock .effect-buttons button[data-effect="drop"],
     #lyricStyleBlock .effect-buttons button[data-effect="drift"] {
-      position: relative;
-      isolation: isolate;
-      overflow: hidden;
-      color: #fff;
+      position: relative; isolation: isolate; overflow: hidden; color: #fff;
       border-color: rgba(255,255,255,.10);
     }
     #lyricStyleBlock .effect-buttons button[data-effect="rise"]::before,
@@ -50,31 +41,15 @@
     #lyricStyleBlock .effect-buttons button[data-effect="drop"]:hover::after { transform: translateY(5px); }
     #lyricStyleBlock .effect-buttons button[data-effect="drift"]:hover::after { transform: translate(-5px,-5px) rotate(-7deg); }
     #lyricStyleBlock .effect-buttons button[data-tier="free"] .effect-tier-badge {
-      position: absolute;
-      right: 7px;
-      top: 6px;
-      z-index: 2;
-      padding: 2px 5px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.16);
-      color: rgba(255,255,255,.92);
-      font-size: 8px;
-      font-weight: 800;
-      letter-spacing: .08em;
-      line-height: 1.1;
-      text-transform: uppercase;
-      pointer-events: none;
+      position: absolute; right: 7px; top: 6px; z-index: 2;
+      padding: 2px 5px; border-radius: 999px; background: rgba(255,255,255,.16);
+      color: rgba(255,255,255,.92); font-size: 8px; font-weight: 800;
+      letter-spacing: .08em; line-height: 1.1; text-transform: uppercase; pointer-events: none;
     }
     .wizard-all-effect-grid .wizard-effect-choice { position: relative; overflow: hidden; }
     .wizard-all-effect-grid .wizard-effect-choice[data-effect-family="motion"] .wizard-effect-demo { position: relative; overflow: hidden; }
     .wizard-all-effect-grid .wizard-effect-choice[data-effect-family="motion"] .wizard-effect-demo::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      opacity: .55;
-      filter: blur(8px);
-      transform-origin: center;
+      content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .55; filter: blur(8px); transform-origin: center;
     }
     .wizard-all-effect-grid .wizard-effect-choice[data-wizard-effect="rise"] .wizard-effect-demo { background: linear-gradient(150deg,#111827,#315f88 52%,#9bd8ff); }
     .wizard-all-effect-grid .wizard-effect-choice[data-wizard-effect="rise"] .wizard-effect-demo::after { background: linear-gradient(180deg,transparent,rgba(255,255,255,.9),transparent); transform: translateY(12px); }
@@ -92,9 +67,7 @@
     @keyframes kefeFreeSlide { 0%,100% { transform: translateX(-9px); opacity:.45; } 35%,70% { transform: translateX(0); opacity:1; } }
     @keyframes kefeFreeDrop { 0%,100% { transform: translateY(-7px); opacity:.45; } 35%,70% { transform: translateY(0); opacity:1; } }
     @keyframes kefeFreeDrift { 0%,100% { transform: translate(6px,-3px) rotate(-1deg); opacity:.45; } 35%,70% { transform: translate(0) rotate(0); opacity:1; } }
-    @media (prefers-reduced-motion: reduce) {
-      .wizard-all-effect-grid .wizard-effect-choice[data-effect-family="motion"] .wizard-effect-demo-line { animation: none !important; }
-    }
+    @media (prefers-reduced-motion: reduce) { .wizard-all-effect-grid .wizard-effect-choice[data-effect-family="motion"] .wizard-effect-demo-line { animation: none !important; } }
   `;
 
   function installMotionStyles() {
