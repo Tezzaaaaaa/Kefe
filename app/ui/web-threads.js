@@ -3,12 +3,12 @@
   'use strict';
 
   const DEFAULTS = {
-    color1:'#5227FF', color2:'#FF9FFC', color3:'#FFFFFF',
-    speed:0.2, threadCount:6, frequency:5.0, spread:0.18, taper:1.0,
-    position:0.5, fanMode:'center', glow:0.02, falloff:0.6,
-    thickness:1.1, brightness:0.6, opacity:1.0, mirror:true,
-    shimmer:false, grain:true, grainIntensity:0.05,
-    mouseInteraction:true, mouseStrength:0.3
+    color1:'#EF4444', color2:'#9b0707', color3:'#ff2626',
+    speed:0.1, threadCount:2, frequency:2.5, spread:0.14, taper:0.3,
+    position:0.5, fanMode:'right', glow:0.06, falloff:1.2,
+    thickness:0.3, brightness:2.5, opacity:0.02, mirror:true,
+    shimmer:true, grain:true, grainIntensity:0,
+    mouseInteraction:true, mouseStrength:0.61
   };
 
   const FAN_MODE = {center:0,left:1,right:2};
