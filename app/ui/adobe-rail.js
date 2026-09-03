@@ -28,7 +28,7 @@
 
         injectIcons(links);
 
-        const order = ['audio', 'export', 'text', 'background', 'fx'];
+        const order = ['audio', 'text', 'background', 'fx', 'export'];
         links.sort((a, b) => order.indexOf(a.dataset.nav) - order.indexOf(b.dataset.nav));
         links.forEach(link => document.querySelector('.section-nav')?.appendChild(link));
 
