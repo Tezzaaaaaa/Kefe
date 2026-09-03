@@ -1,0 +1,60 @@
+name: AI Slop & Change Guard
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-slop-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    name: Protect KEFE from AI slop and oversized changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Syntax and repository checks
+        run: npm run check
+
+      - name: Smoke tests
+        run: npm run test:smoke
+
+      - name: Functional sweep
+        run: npm run test:functional
+
+      - name: Change blast-radius guard
+        env:
+          KEFE_GUARD_BASE: ${{ github.event.pull_request.base.sha }}
+        run: npm run check:ai-change
+
+      - name: Deterministic AI-slop delta scan
+        run: npx --no-install slop-scan delta --base "${{ github.event.pull_request.base.sha }}" --head HEAD --fail-on added,worsened
+
+      - name: Semantic AI-code gate
+        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: npx --yes @schava09/slopgate --base "${{ github.event.pull_request.base.sha }}" --fail-on high
+
+      - name: Semantic gate status
+        if: ${{ secrets.ANTHROPIC_API_KEY == '' }}
+        run: echo 'ANTHROPIC_API_KEY is not configured; deterministic gates remain enforced, semantic slopgate is skipped.'
