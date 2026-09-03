@@ -1,13 +1,10 @@
 # Getting KEFE live with memberships
 
-The app now has a real backend: email/password accounts, a 7-day free trial
+The app has a real backend: email/password accounts, a 7-day free trial
 with full access, and a Stripe-powered Pro subscription. Free accounts (after
 trial) are locked out of: Eternal, Aurora, Instagram Lyrics and Fade Up
 effects, plus 1080p/Instagram/TikTok export presets. Everything else stays
 free forever.
-
-You need to do three things before it's genuinely live. Nothing below needs
-coding — it's account setup and one deploy.
 
 ## 1. Create your Stripe product + get three values
 
@@ -22,39 +19,56 @@ coding — it's account setup and one deploy.
    `customer.subscription.updated`, `customer.subscription.deleted` → copy
    the **Signing secret** (starts `whsec_`).
 
-## 2. Configure background removal
+## 2. Configure the self-hosted background remover
 
-KEFE now includes a server-side foreground cutout powered by the remove.bg
-Background Removal API. The API key is deliberately kept on the Node server;
-it is never placed in frontend JavaScript.
+KEFE's Background section uses one model only: **Lucida** (`egeorcun/lucida`).
+The Node server proxies the browser request to a separate Lucida inference
+service. No remove.bg API key is required and image data is not sent to
+remove.bg.
 
-Add this environment variable to the same Railway/Render service:
+Build the service from `background-remover/Dockerfile` and expose port `8756`.
+Set the Node service's `LUCIDA_URL` to the internal/private URL of that
+service, for example:
 
-`REMOVE_BG_API_KEY=...`
+`LUCIDA_URL=http://lucida:8756`
 
-The first 50 remove.bg API calls per month are currently free. The remove.bg
-documentation also states that background removal moves to Leonardo.Ai on
-December 1, 2026, so the KEFE provider boundary is isolated in
-`server/remove-background.js` for future migration. See the official API docs:
-https://www.remove.bg/api
+For local development:
+
+```bash
+cd background-remover
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app:app --host 127.0.0.1 --port 8756
+```
+
+Then run KEFE in another terminal with `LUCIDA_URL=http://127.0.0.1:8756`.
+The first inference downloads the Lucida model weights; subsequent requests
+reuse the loaded model. GPU hosts are recommended for production throughput.
+
+Lucida's released v7 weights are the selected KEFE model. Its upstream
+benchmark reports the lowest overall MAE among the tested models in its
+203-image comparison, while documenting that other models can still win on
+specific cases such as some hair, thin-structure, or complex-scene inputs.
 
 ## 3. Pick a host and deploy
 
-Simplest options for a small Node app like this: **Railway** or **Render**
-(both have a free/cheap tier, auto-deploy from GitHub, persistent disk for
-the SQLite file). Steps are the same shape on either:
+KEFE now has two runtime services when server-side background removal is
+enabled: the existing Node application and the Lucida inference service.
+They can run as two services on Railway/Render or equivalent infrastructure.
+Keep the Lucida service private; only the Node application needs public HTTP.
 
-1. Push this folder to a GitHub repo.
-2. Create a new Web Service on Railway/Render pointed at that repo.
-3. Build command: `npm install`. Start command: `npm start`.
-4. Add a persistent volume/disk mounted at `/app/data` (or wherever the app
-   lives) — this is where the SQLite database file lives. Without it your
-   users get wiped on every redeploy.
-5. Set the environment variables (see `.env.example`): `JWT_SECRET`,
-   `APP_URL` (your real domain, e.g. `https://kefe.app`), `STRIPE_SECRET_KEY`,
-   `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`, `TRIAL_DAYS` (optional,
-   defaults to 7), and `REMOVE_BG_API_KEY`.
-6. Deploy. Point your domain's DNS at the host.
+1. Push this repository to GitHub.
+2. Deploy the Node application with build command `npm install` and start
+   command `npm start`.
+3. Deploy `background-remover/` using its Dockerfile and expose port `8756`
+   internally.
+4. Set `LUCIDA_URL` on the Node service to the private Lucida service URL.
+5. Add the existing application variables from `.env.example`, including
+   `JWT_SECRET`, `APP_URL`, Stripe settings, and `TRIAL_DAYS`.
+6. Add persistent storage for the SQLite database as before.
+7. Deploy both services and verify `/api/remove-background/health` from the
+   Node service before testing the editor.
 
 ## 4. Test it before telling anyone it's live
 
@@ -67,17 +81,28 @@ the SQLite file). Steps are the same shape on either:
 - In the Background section, choose a JPG/PNG/WebP foreground image and click
   **Remove background**. Confirm the transparent subject appears over the
   preview and remains present in the exported video.
+- Confirm the health endpoint reports `provider: lucida` and `ok: true`.
 - Switch Stripe to live mode and repeat with a real card once you're happy.
 
 ## Running it locally to check things first
 
+Terminal 1:
+
+```bash
+cd background-remover
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app:app --host 127.0.0.1 --port 8756
 ```
-cp .env.example .env      # fill in JWT_SECRET at minimum
+
+Terminal 2:
+
+```bash
+cp .env.example .env
 npm install
 npm start
 ```
 
-Open http://localhost:3000 — sign-up/login/trial works immediately even
-without Stripe configured. Checkout will return a friendly "billing not
-configured" message until you add the three Stripe values. Background removal
-will return a clear configuration error until `REMOVE_BG_API_KEY` is set.
+Open http://localhost:3000. Background removal is available once the Lucida
+service is running. No third-party background-removal API key is needed.
