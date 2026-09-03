@@ -1,22 +1,22 @@
 /* KEFE background tiles — modern, cohesive, theme-aware. */
-.background-choice-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
-.background-choice { transition: transform .2s var(--ease, ease), border-color .2s ease, box-shadow .2s ease; }
-.background-choice[data-background-preset=solid] .background-choice-preview { background: var(--kefe-bg-solid-preview, #0a0a0a); }
-.background-choice[data-background-preset=gradient] .background-choice-preview { background: linear-gradient(135deg, #241242, #3a1f6b 48%, #0b0518); }
-.background-choice[data-background-preset=spotlight] .background-choice-preview { background: radial-gradient(circle at 50% 40%, #9a5a1e 0, #2c1608 45%, #080402 100%); }
-.background-choice[data-background-preset=aurora] .background-choice-preview { background: radial-gradient(circle at 18% 22%, #2f7bdc 0, transparent 42%), radial-gradient(circle at 82% 38%, #c23fd0 0, transparent 46%), radial-gradient(circle at 42% 82%, #12d6a0 0, transparent 44%), #04060d; }
-.background-choice[data-background-preset=mesh] .background-choice-preview { background: radial-gradient(circle at 20% 30%, #6d3bd7 0, transparent 44%), radial-gradient(circle at 78% 30%, #d04a86 0, transparent 46%), radial-gradient(circle at 55% 85%, #3d6be0 0, transparent 48%), #12060f; }
-.background-choice[data-background-preset=duotone] .background-choice-preview { background: linear-gradient(112deg, #0e2a4a 0 52%, #ef3f38 52% 100%); }
-.background-choice[data-background-preset=sunset] .background-choice-preview { background: linear-gradient(180deg, #2c1a4d 0%, #a03a54 42%, #e8703a 72%, #f2b04a 100%); }
-.background-choice[data-background-preset=grid] .background-choice-preview { background-color: #050a0d; background-image: linear-gradient(rgba(56,224,255,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(56,224,255,.22) 1px, transparent 1px); background-size: 16px 16px; }
-.background-choice[data-background-preset=grain] .background-choice-preview { background: radial-gradient(circle at 50% 40%, #4a331c, #160e06 78%); }
-.background-choice[data-background-preset=grain] .background-choice-preview:after { content: ""; position: absolute; inset: 0; opacity: .11; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.35' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-.background-choice[data-background-preset=gradient-waves] .background-choice-preview { background: #05020f; position: relative; overflow: hidden; }
-.background-choice[data-background-preset=gradient-waves] .background-choice-preview:before { content:""; position:absolute; inset:0; background: radial-gradient(ellipse at 50% 40%, rgba(55,14,225,.95), rgba(53,54,91,.6) 38%, #000 82%); transform: skewY(-8deg) scale(1.2); }
-.kefe-gradient-waves { display:block; width:100%; height:100%; pointer-events:none; }
-.kefe-gradient-landing { position:fixed; inset:0; z-index:0; width:100%; height:100%; pointer-events:none; opacity:1; }
-.kefe-gradient-landing-glass { position:fixed; inset:0; z-index:1; pointer-events:none; background:linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.34)); }
-body.kefe-gradient-landing-active .app { position:relative; z-index:2; }
-body.kefe-gradient-landing-active { background:#030006; }
-@media(max-width:560px){ .background-choice-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-@media(prefers-reduced-motion:reduce){ .kefe-gradient-landing { opacity:.95; } }
+.background-choice-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.background-choice { transition:transform .2s var(--ease,ease),border-color .2s ease,box-shadow .2s ease; }
+.background-choice[data-background-preset=solid] .background-choice-preview { background:var(--kefe-bg-solid-preview,#0a0a0a); }
+.background-choice[data-background-preset=gradient] .background-choice-preview { background:linear-gradient(135deg,#241242,#3a1f6b 48%,#0b0518); }
+.background-choice[data-background-preset=spotlight] .background-choice-preview { background:radial-gradient(circle at 50% 40%,#9a5a1e 0,#2c1608 45%,#080402 100%); }
+.background-choice[data-background-preset=aurora] .background-choice-preview { background:radial-gradient(circle at 18% 22%,#2f7bdc 0,transparent 42%),radial-gradient(circle at 82% 38%,#c23fd0 0,transparent 46%),radial-gradient(circle at 42% 82%,#12d6a0 0,transparent 44%),#04060d; }
+.background-choice[data-background-preset=mesh] .background-choice-preview { background:radial-gradient(circle at 20% 30%,#6d3bd7 0,transparent 44%),radial-gradient(circle at 78% 30%,#d04a86 0,transparent 46%),radial-gradient(circle at 55% 85%,#3d6be0 0,transparent 48%),#12060f; }
+.background-choice[data-background-preset=duotone] .background-choice-preview { background:linear-gradient(112deg,#0e2a4a 0 52%,#ef3f38 52% 100%); }
+.background-choice[data-background-preset=sunset] .background-choice-preview { background:linear-gradient(180deg,#2c1a4d 0%,#a03a54 42%,#e8703a 72%,#f2b04a 100%); }
+.background-choice[data-background-preset=grid] .background-choice-preview { background-color:#050a0d; background-image:linear-gradient(rgba(56,224,255,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(56,224,255,.22) 1px,transparent 1px); background-size:16px 16px; }
+.background-choice[data-background-preset=grain] .background-choice-preview { background:radial-gradient(circle at 50% 40%,#4a331c,#160e06 78%); }
+.background-choice[data-background-preset=grain] .background-choice-preview:after { content:""; position:absolute; inset:0; opacity:.11; mix-blend-mode:overlay; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.35' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.background-choice[data-background-preset=web-threads] .background-choice-preview { background:linear-gradient(135deg,#3e326d,#1d0d85 55%,#0a0c24); position:relative; overflow:hidden; }
+.background-choice[data-background-preset=web-threads] .background-choice-preview:before,.background-choice[data-background-preset=web-threads] .background-choice-preview:after { content:""; position:absolute; top:-20%; height:140%; width:2px; background:rgba(220,215,255,.55); box-shadow:0 0 10px rgba(80,50,220,.65); }
+.background-choice[data-background-preset=web-threads] .background-choice-preview:before { left:36%; transform:rotate(9deg); }.background-choice[data-background-preset=web-threads] .background-choice-preview:after { left:49%; transform:rotate(-7deg); }
+.kefe-web-threads { display:block; width:100%; height:100%; pointer-events:none; }
+.kefe-gradient-landing,.kefe-gradient-landing-glass { display:none!important; }
+.kefe-web-threads-landing { position:fixed; inset:0; z-index:0; width:100%; height:100%; pointer-events:auto; }
+.kefe-web-threads-glass { position:fixed; inset:0; z-index:1; pointer-events:none; background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.32)); }
+body.kefe-web-threads-landing-active .app { position:relative; z-index:2; } body.kefe-web-threads-landing-active { background:#070719; }
+@media(max-width:560px){ .background-choice-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
