@@ -1,16 +1,120 @@
-/* KEFE — Web Threads landing background */
+/* KEFE — Web Threads (React Bits-compatible vanilla WebGL port) */
 (() => {
   'use strict';
-  const D={color1:'#3e326d',color2:'#1d0d85',color3:'#0a0c24',speed:.1,threadCount:3,frequency:4,spread:.08,taper:2.55,fanMode:'right',thickness:3,brightness:.5,opacity:1,mirror:true,mouseInteraction:true,mouseStrength:1};
-  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  const rgb=h=>{h=String(h).replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255]};
-  function create(options={}){const s={...D,...options},c=document.createElement('canvas');c.className='kefe-web-threads';c.setAttribute('aria-hidden','true');const x=c.getContext('2d');let w=1,h=1,d=1,raf=0,run=true,start=performance.now(),mx=.5,my=.5,tx=.5,ty=.5;
-    const resize=()=>{const r=c.getBoundingClientRect();w=Math.max(1,Math.round(r.width));h=Math.max(1,Math.round(r.height));d=Math.min(devicePixelRatio||1,1.5);c.width=Math.max(1,Math.round(w*d));c.height=Math.max(1,Math.round(h*d));x.setTransform(d,0,0,d,0,0)};
-    const move=e=>{if(!s.mouseInteraction)return;const r=c.getBoundingClientRect();if(!r.width||!r.height)return;tx=clamp((e.clientX-r.left)/r.width,0,1);ty=clamp((e.clientY-r.top)/r.height,0,1)};
-    const draw=now=>{if(!run)return;const t=(now-start)/1000*s.speed;mx+=(tx-mx)*.045*s.mouseStrength;my+=(ty-my)*.045*s.mouseStrength;x.clearRect(0,0,w,h);const g=x.createLinearGradient(0,0,w,h);g.addColorStop(0,`rgb(${a})`);g.addColorStop(.52,`rgb(${b})`);g.addColorStop(1,`rgb(${z})`);x.strokeStyle=g;x.lineCap='round';const base=s.fanMode==='left'?w*.72:w*.28,dir=s.fanMode==='left'?-1:1,count=Math.max(1,s.threadCount);for(let j=0;j<count;j++){const q=count===1?.5:j/(count-1);x.beginPath();for(let i=0;i<=90;i++){const p=i/90,y=h*(.04+p*.96),fan=p**s.taper*w*s.spread*(q-.5)*dir,wave=Math.sin(p*s.frequency*3.2+t*(1+j*.08)+q*5.4)*w*.018*(1-p*.45),mouse=(mx-.5)*w*.08*s.mouseStrength*(1-p)+(my-.5)*h*.025*(1-p),px=base+fan+wave+mouse;i?x.lineTo(px,y):x.moveTo(px,y)}x.lineWidth=s.thickness;x.globalAlpha=clamp(s.brightness*(.55+.45*Math.sin(Math.PI*q)),0,1);x.stroke();if(s.mirror){x.save();x.translate(w,0);x.scale(-1,1);x.stroke();x.restore()}}x.globalAlpha=1;raf=requestAnimationFrame(draw)};
-    const a=rgb(s.color1),b=rgb(s.color2),z=rgb(s.color3);
-    resize();const ro='ResizeObserver'in window?new ResizeObserver(resize):null;ro?.observe(c);window.addEventListener('resize',resize,{passive:true});window.addEventListener('pointermove',move,{passive:true});raf=requestAnimationFrame(draw);
-    return{canvas:c,refresh:resize,start(){if(!run){run=true;start=performance.now();raf=requestAnimationFrame(draw)}},stop(){run=false;cancelAnimationFrame(raf)},destroy(){run=false;cancelAnimationFrame(raf);ro?.disconnect();window.removeEventListener('resize',resize);window.removeEventListener('pointermove',move);c.remove()}};
+
+  const DEFAULTS = {
+    color1:'#5227FF', color2:'#FF9FFC', color3:'#FFFFFF',
+    speed:0.2, threadCount:6, frequency:5.0, spread:0.18, taper:1.0,
+    position:0.5, fanMode:'center', glow:0.02, falloff:0.6,
+    thickness:1.1, brightness:0.6, opacity:1.0, mirror:true,
+    shimmer:false, grain:true, grainIntensity:0.05,
+    mouseInteraction:true, mouseStrength:0.3
+  };
+
+  const FAN_MODE = {center:0,left:1,right:2};
+  const hexToRgb = hex => {
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex));
+    return m ? [parseInt(m[1],16)/255,parseInt(m[2],16)/255,parseInt(m[3],16)/255] : [1,1,1];
+  };
+
+  const vertex = `#version 300 es
+in vec2 position;
+void main(){gl_Position=vec4(position,0.0,1.0);}`;
+
+  const fragment = `#version 300 es
+precision highp float;
+uniform vec2 iResolution;
+uniform float iTime,uSpeed,uThreadCount,uFrequency,uSpread,uTaper,uPosition,uFanMode,uGlow,uFalloff,uThickness,uBrightness,uOpacity,uMirror,uShimmer,uGrain,uGrainIntensity;
+uniform vec3 uColor1,uColor2,uColor3;
+uniform vec2 uMouse;
+uniform float uMouseStrength,uEnableMouse,uMouseActive;
+out vec4 fragColor;
+#define TAU 6.28318530718
+#define MAX_THREADS 10
+float glow(float x,float str,float dist){return dist/pow(max(x,1e-4),str);}
+void main(){
+  vec2 uv=gl_FragCoord.xy/iResolution.xy;
+  float n=max(uThreadCount,1.0);
+  float pinchX=uFanMode<0.5?0.5:(uFanMode<1.5?0.0:1.0);
+  if(uEnableMouse>0.5) pinchX=mix(pinchX,uMouse.x,clamp(uMouseStrength,0.0,1.0)*uMouseActive);
+  float spreadDx=uSpread*abs(uv.x-pinchX);
+  float baseT=iTime*uSpeed;
+  float tauOverN=TAU/n;
+  float mirror=uMirror>0.5?sign(pinchX-uv.x):1.0;
+  bool doShimmer=uShimmer>0.5;
+  float shimmerT=iTime*1.7;
+  float invThickness=1.0/max(uThickness,0.01);
+  float xFreq=uv.x*uFrequency;
+  float yOff=uv.y-uPosition;
+  float ciScale=n>1.0?1.0/(n-1.0):0.0;
+  vec3 col=vec3(0.0); float gsum=0.0;
+  for(int idx=0;idx<MAX_THREADS;idx++){
+    float i=float(idx); if(i>=n) break;
+    float amplitude=spreadDx*(1.0+i*uTaper);
+    float shimmer=doShimmer?sin(shimmerT+i*1.3)*0.35:0.0;
+    float phase=(baseT+i*tauOverN)*mirror+shimmer;
+    float sdf=abs(yOff+sin(xFreq+phase)*amplitude)*invThickness;
+    float g=glow(sdf,uFalloff,uGlow);
+    float ci=i*ciScale;
+    vec3 threadCol=mix(uColor1,uColor2,ci);
+    col+=g*threadCol; gsum+=g;
   }
-  window.KefeWebThreads={create,defaults:{...D}};
+  float coreAmt=smoothstep(0.5,2.2,gsum);
+  col=mix(col,uColor3*gsum,coreAmt*0.5);
+  float bright=uBrightness;
+  if(uEnableMouse>0.5){vec2 md=uv-uMouse;float d2=dot(md,md);bright+=clamp(uMouseStrength,0.0,1.0)*uMouseActive*exp(-d2*6.0)*0.6;}
+  col*=bright;
+  float alpha=clamp(gsum,0.0,1.0)*uOpacity;
+  vec3 outRgb=col*alpha;
+  if(uGrain>0.5){float gv=(fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233))+iTime)*43758.5453)-0.5)*uGrainIntensity;outRgb=clamp(outRgb+gv,0.0,1.0);alpha=clamp(alpha+gv,0.0,1.0);}
+  fragColor=vec4(outRgb,alpha);
+}`;
+
+  const create = (options={}) => {
+    const s={...DEFAULTS,...options};
+    const canvas=document.createElement('canvas');
+    canvas.className='kefe-web-threads';
+    canvas.setAttribute('aria-hidden','true');
+    const gl=canvas.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:false});
+    if(!gl){canvas.style.display='none';return {canvas,refresh(){},start(){},stop(){},destroy(){canvas.remove()}};}
+
+    const compile=(type,source)=>{const sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));return sh};
+    const program=gl.createProgram();
+    gl.attachShader(program,compile(gl.VERTEX_SHADER,vertex));
+    gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));
+    gl.linkProgram(program);
+    if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));
+    gl.useProgram(program);
+
+    const positions=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,positions);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+    const pos=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+
+    const names=['iResolution','iTime','uSpeed','uThreadCount','uFrequency','uSpread','uTaper','uPosition','uFanMode','uGlow','uFalloff','uThickness','uBrightness','uOpacity','uMirror','uShimmer','uGrain','uGrainIntensity','uColor1','uColor2','uColor3','uMouse','uMouseStrength','uEnableMouse','uMouseActive'];
+    const u={};names.forEach(n=>u[n]=gl.getUniformLocation(program,n));
+    const set3=(n,c)=>{const v=hexToRgb(c);gl.uniform3f(u[n],v[0],v[1],v[2]);};
+    const apply=()=>{
+      gl.useProgram(program);
+      gl.uniform1f(u.uSpeed,s.speed);gl.uniform1f(u.uThreadCount,Math.min(10,Math.max(1,Math.round(s.threadCount))));
+      gl.uniform1f(u.uFrequency,s.frequency);gl.uniform1f(u.uSpread,s.spread);gl.uniform1f(u.uTaper,s.taper);gl.uniform1f(u.uPosition,s.position);
+      gl.uniform1f(u.uFanMode,FAN_MODE[s.fanMode]??0);gl.uniform1f(u.uGlow,s.glow);gl.uniform1f(u.uFalloff,s.falloff);gl.uniform1f(u.uThickness,s.thickness);
+      gl.uniform1f(u.uBrightness,s.brightness);gl.uniform1f(u.uOpacity,s.opacity);gl.uniform1f(u.uMirror,s.mirror?1:0);gl.uniform1f(u.uShimmer,s.shimmer?1:0);
+      gl.uniform1f(u.uGrain,s.grain?1:0);gl.uniform1f(u.uGrainIntensity,s.grainIntensity);gl.uniform1f(u.uMouseStrength,s.mouseStrength);gl.uniform1f(u.uEnableMouse,s.mouseInteraction?1:0);
+      set3('uColor1',s.color1);set3('uColor2',s.color2);set3('uColor3',s.color3);
+    };
+    apply();
+
+    let w=1,h=1,raf=0,running=true,start=performance.now();
+    let mx=.5,my=.5,tx=.5,ty=.5,active=0;
+    const resize=()=>{const r=canvas.getBoundingClientRect();w=Math.max(1,Math.floor(r.width));h=Math.max(1,Math.floor(r.height));const d=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.floor(w*d));canvas.height=Math.max(1,Math.floor(h*d));gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(u.iResolution,canvas.width,canvas.height);};
+    const move=e=>{if(!s.mouseInteraction)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;tx=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));ty=Math.max(0,Math.min(1,1-(e.clientY-r.top)/r.height));active=1;};
+    const enter=()=>{active=1;};const leave=()=>{active=0;};
+    canvas.addEventListener('mousemove',move);canvas.addEventListener('mouseenter',enter);canvas.addEventListener('mouseleave',leave);
+    const ro='ResizeObserver'in window?new ResizeObserver(resize):null;ro?.observe(canvas);window.addEventListener('resize',resize,{passive:true});resize();
+    const frame=now=>{if(!running)return;mx+=.05*(tx-mx);my+=.05*(ty-my);gl.useProgram(program);gl.uniform1f(u.iTime,(now-start)*.001);gl.uniform2f(u.uMouse,mx,my);gl.uniform1f(u.uMouseActive,active);gl.drawArrays(gl.TRIANGLES,0,3);raf=requestAnimationFrame(frame);};
+    raf=requestAnimationFrame(frame);
+    return {canvas,refresh:resize,start(){if(!running){running=true;start=performance.now();raf=requestAnimationFrame(frame);}},stop(){running=false;cancelAnimationFrame(raf);raf=0;},destroy(){running=false;cancelAnimationFrame(raf);ro?.disconnect();window.removeEventListener('resize',resize);canvas.removeEventListener('mousemove',move);canvas.removeEventListener('mouseenter',enter);canvas.removeEventListener('mouseleave',leave);canvas.remove();}};
+  };
+
+  window.KefeWebThreads={create,defaults:{...DEFAULTS}};
 })();
