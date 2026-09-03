@@ -2,7 +2,7 @@
 (() => {
 'use strict';
 const p=new URLSearchParams(document.currentScript?.src?.split('?')[1]||''),runtime=p.get('runtime')==='1';
-if(!runtime){window.addEventListener('load',()=>{const s=document.createElement('script');s.src='./app/ui/web-threads.js?v=20260903-8';s.async=false;document.body.appendChild(s);const bridge=document.createElement('script');bridge.textContent='window.state = state;';document.body.appendChild(bridge);const runtimeScript=document.createElement('script');runtimeScript.src='./app/ui/background-presets.js?v=20260903-8&runtime=1';runtimeScript.async=false;document.body.appendChild(runtimeScript)},{once:true});return}
+if(!runtime){window.addEventListener('load',()=>{const s=document.createElement('script');s.src='./app/ui/web-threads.js?v=20260903-9';s.async=false;document.body.appendChild(s);const bridge=document.createElement('script');bridge.textContent='window.state = state;';document.body.appendChild(bridge);const runtimeScript=document.createElement('script');runtimeScript.src='./app/ui/background-presets.js?v=20260903-9&runtime=1';runtimeScript.async=false;document.body.appendChild(runtimeScript)},{once:true});return}
 
 /* Landing home: Web Threads is page-only. Use the existing official KEFE light logo. */
 if(!document.querySelector('.kefe-landing-home')&&window.KefeWebThreads){
@@ -17,7 +17,7 @@ if(!document.querySelector('.kefe-landing-home')&&window.KefeWebThreads){
   threads.refresh();
   const shade=document.createElement('div');shade.className='kefe-landing-shade';landing.appendChild(shade);
   const nav=document.createElement('div');nav.className='kefe-landing-nav';nav.innerHTML='<span>KEFE</span><button type="button" class="kefe-landing-signin">Sign in</button>';landing.appendChild(nav);
-  const hero=document.createElement('div');hero.className='kefe-landing-hero';hero.innerHTML='<img src="./assets/branding/kefe-logo-light.svg" class="kefe-landing-logo" alt="KEFE"><p>Create lyric videos that move with your music.</p><button type="button" class="kefe-landing-start">Get started</button>';landing.appendChild(hero);
+  const hero=document.createElement('div');hero.className='kefe-landing-hero';hero.innerHTML='<img src="./assets/branding/kefe-logo-light.svg" class="kefe-landing-logo" alt="KEFE Visualiser"><p>Bring your content to life with lyrics, captions, and visualisers.</p><button type="button" class="kefe-landing-start">Get started</button>';landing.appendChild(hero);
   requestAnimationFrame(()=>threads.refresh());
   const enter=()=>{document.body.classList.add('kefe-editor-entered');landing.classList.add('is-leaving');setTimeout(()=>{threads.destroy();landing.remove()},450)};
   landing.querySelector('.kefe-landing-start').addEventListener('click',enter);
