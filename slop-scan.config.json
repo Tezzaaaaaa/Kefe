@@ -1,0 +1,22 @@
+{
+  "ignores": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    "coverage/**",
+    "data/**",
+    "*.db",
+    "*.db-shm",
+    "*.db-wal",
+    "*.zip",
+    "*.mp4",
+    "*.mov",
+    "*.webm"
+  ],
+  "rules": {
+    "comments.placeholder-comments": { "enabled": true },
+    "structure.over-fragmentation": { "enabled": true },
+    "structure.directory-fanout-hotspot": { "enabled": true },
+    "structure.duplicate-function-signatures": { "enabled": true }
+  }
+}
