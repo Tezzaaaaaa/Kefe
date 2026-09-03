@@ -38,11 +38,11 @@ void main(){
   float pinchX=uFanMode<0.5?0.5:(uFanMode<1.5?0.0:1.0);
   if(uEnableMouse>0.5) pinchX=mix(pinchX,uMouse.x,clamp(uMouseStrength,0.0,1.0)*uMouseActive);
   float spreadDx=uSpread*abs(uv.x-pinchX);
-  float baseT=iTime*uSpeed;
+  float baseT=iTime*uSpeed*uMouseActive;
   float tauOverN=TAU/n;
   float mirror=uMirror>0.5?sign(pinchX-uv.x):1.0;
   bool doShimmer=uShimmer>0.5;
-  float shimmerT=iTime*1.7;
+  float shimmerT=uMouseActive>0.5?iTime*1.7:0.0;
   float invThickness=1.0/max(uThickness,0.01);
   float xFreq=uv.x*uFrequency;
   float yOff=uv.y-uPosition;
