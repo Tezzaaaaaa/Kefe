@@ -33,7 +33,8 @@
       await Promise.allSettled([
         loadScript('./app/core/analysis-engine.js', 'kefe-analysis'),
         loadScript('./app/core/auto-create.js', 'kefe-auto-create'),
-        loadScript('./app/core/smart-render.js', 'kefe-smart-render')
+        loadScript('./app/core/smart-render.js', 'kefe-smart-render'),
+        loadScript('./app/core/smart-lyric-placement.js', 'kefe-smart-lyric-placement')
       ]);
       runtimeBootstrapped = true;
       window.dispatchEvent(new CustomEvent('kefe:runtime-bootstrapped'));
