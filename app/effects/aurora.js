@@ -60,8 +60,6 @@
     u.drawTrackedText(ctx, item.text, 0, 0, item.size * tracking, 'fillText');
     ctx.restore();
 
-    // Keep the transition cinematic without introducing a second lyric block
-    // that can collide with the active lyric.
     if (active.next && progress.exit < 0.35) {
       const nextText = String(active.next.text || '').trim();
       if (nextText) {
@@ -80,4 +78,16 @@
       }
     }
   };
+
+  // The lyric effect file is already loaded by index.html. Load the separate
+  // WebGL background FX after the rest of KEFE has initialised so it can wrap
+  // the final render pipeline and add its own Visual FX control.
+  window.addEventListener('load', () => {
+    if (document.querySelector('script[data-kefe-aurora-fx]')) return;
+    const script = document.createElement('script');
+    script.src = './app/effects/aurora-fx.js';
+    script.async = false;
+    script.dataset.kefeAuroraFx = 'true';
+    document.body.appendChild(script);
+  }, { once: true });
 })();
