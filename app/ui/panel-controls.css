@@ -1,0 +1,217 @@
+/* KEFE — panel control layout.
+   Single source of truth for spacing inside a sidebar section panel.
+   Nothing in the repo previously defined layout for these classes
+   (only font-size rules existed in typography.css), so every block
+   fell back to default flow with no gap — hence the cramped look.
+   One spacing scale, applied consistently, fixes it. */
+
+:root {
+  --panel-gap: 18px;   /* space between blocks inside a section */
+  --stack-gap: 10px;   /* space between rows inside a block */
+  --tight-gap: 6px;    /* space between small inline items */
+}
+
+/* Every direct child block in a section panel gets consistent breathing room. */
+.sidebar > .section > .status,
+.sidebar > .section > .drop-zone,
+.sidebar > .section > .sub-block,
+.sidebar > .section > .metadata-grid,
+.sidebar > .section > .segmented,
+.sidebar > .section > .text-panel,
+.sidebar > .section > .lyrics-actions,
+.sidebar > .section > .background-choice-grid,
+.sidebar > .section > label,
+.sidebar > .section > .bg-controls,
+.sidebar > .section > .background-upload-divider {
+  margin-bottom: var(--panel-gap);
+}
+.sidebar > .section > *:last-child { margin-bottom: 0; }
+
+/* ---------- Drop zone ---------- */
+.drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 22px 16px;
+  text-align: center;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.drop-zone.is-dragover { border-color: var(--red); background: var(--red-soft); }
+.control-hint { font-size: var(--type-caption); color: var(--text-3); }
+
+/* ---------- Sub-block: a labelled group within a section ---------- */
+.sub-block {
+  padding-top: var(--panel-gap);
+  border-top: 1px solid var(--line);
+}
+.sub-heading {
+  margin-bottom: var(--stack-gap);
+  font-size: var(--type-micro);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.sub-hint { margin-top: 6px; font-size: var(--type-caption); color: var(--text-3); }
+
+/* ---------- Metadata / labelled inputs ---------- */
+.metadata-grid, .sidebar label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.metadata-grid { gap: var(--stack-gap); }
+.metadata-grid label { display: flex; flex-direction: column; gap: 6px; font-size: var(--type-caption); color: var(--text-2); }
+.sidebar input[type="text"],
+.sidebar select,
+.metadata-grid input {
+  height: var(--control-h);
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  width: 100%;
+}
+
+/* ---------- Control row: a single slider with its label/value ---------- */
+.control-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.control-row + .control-row { margin-top: var(--stack-gap); }
+.control-row label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: var(--text-2);
+}
+.control-row input[type="range"] { width: 100%; }
+
+/* ---------- Segmented control (tabs, mode toggles) ---------- */
+.segmented, [role="tablist"].segmented {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.segmented-btn {
+  min-height: 32px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-2);
+  font-size: var(--type-caption);
+}
+.segmented-btn.active { background: var(--surface-3); color: var(--text); }
+
+/* ---------- Nudge row (offset stepper) ---------- */
+.nudge-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tight-gap);
+}
+.nudge-row button { padding: 6px 4px; font-size: var(--type-caption); }
+
+/* ---------- Toggle row ---------- */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--stack-gap);
+  font-size: var(--type-caption);
+  color: var(--text-2);
+  cursor: pointer;
+}
+.toggle-switch {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.toggle-switch::before {
+  content: "";
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--text-2);
+  transition: transform .18s var(--ease), background .18s var(--ease);
+}
+input:checked + .toggle-switch { background: var(--red-soft); border-color: var(--red); }
+input:checked + .toggle-switch::before { background: var(--red); transform: translateX(14px); }
+input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
+
+/* ---------- Lyrics / captions action buttons ---------- */
+.lyrics-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tight-gap);
+}
+
+/* ---------- Style choice grids (effect picker, background picker) ----------
+   Overrides dynamic-motion.css's nowrap hover-expand row, which only works
+   at wide widths — inside a 380px rail it just crams everything together.
+   A calm wrap grid reads correctly at every width. */
+.effect-buttons, .background-choice-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  flex-wrap: unset;
+}
+.effect-buttons button {
+  flex-grow: 0 !important;
+  white-space: normal !important;
+  min-height: 56px;
+}
+.effect-buttons button:hover { flex-grow: 0 !important; }
+.background-choice { flex-grow: 0 !important; }
+.background-choice:hover { flex-grow: 0 !important; }
+
+/* ---------- Caption controls ---------- */
+.caption-pos-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-bottom: var(--stack-gap);
+}
+.caption-style-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+}
+.caption-style-grid > label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.caption-color-input { width: 44px; height: 32px; padding: 0; border-radius: var(--radius-sm); }
+
+/* ---------- Background image/video sub-controls ---------- */
+.bg-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+}
+.background-upload-divider {
+  text-align: center;
+  font-size: var(--type-caption);
+  color: var(--text-3);
+}
+
+/* ---------- Text panel wrapper (lyrics / captions) ---------- */
+.text-panel { display: block; }
+.text-panel.hidden { display: none; }
