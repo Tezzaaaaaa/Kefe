@@ -1,14 +1,14 @@
-/* KEFE — Web Threads (React Bits-compatible vanilla WebGL port) */
+/* KEFE — Web Threads (vanilla WebGL adaptation of supplied base source) */
 (() => {
   'use strict';
 
   const DEFAULTS = {
-    color1:'#ffffff', color2:'#650d0d', color3:'#EF4444',
-    speed:0, threadCount:2, frequency:1.5, spread:0.03, taper:3,
-    position:0.51, fanMode:'left', glow:0.007, falloff:1.2,
-    thickness:3, brightness:0.1, opacity:1, mirror:true,
-    shimmer:true, grain:false, grainIntensity:0,
-    mouseInteraction:true, mouseStrength:0.61
+    color1:'#1d047d', color2:'#000000', color3:'#101446',
+    speed:0.05, threadCount:2, frequency:13, spread:0.12, taper:2.55,
+    position:0.55, fanMode:'right', glow:0.005, falloff:1.2,
+    thickness:3, brightness:1.15, opacity:0.53, mirror:true,
+    shimmer:false, grain:true, grainIntensity:0.07,
+    mouseInteraction:true, mouseStrength:1
   };
 
   const FAN_MODE = {center:0,left:1,right:2};
@@ -38,11 +38,11 @@ void main(){
   float pinchX=uFanMode<0.5?0.5:(uFanMode<1.5?0.0:1.0);
   if(uEnableMouse>0.5) pinchX=mix(pinchX,uMouse.x,clamp(uMouseStrength,0.0,1.0)*uMouseActive);
   float spreadDx=uSpread*abs(uv.x-pinchX);
-  float baseT=iTime*uSpeed*uMouseActive;
+  float baseT=iTime*uSpeed;
   float tauOverN=TAU/n;
   float mirror=uMirror>0.5?sign(pinchX-uv.x):1.0;
   bool doShimmer=uShimmer>0.5;
-  float shimmerT=uMouseActive>0.5?iTime*1.7:0.0;
+  float shimmerT=iTime*1.7;
   float invThickness=1.0/max(uThickness,0.01);
   float xFreq=uv.x*uFrequency;
   float yOff=uv.y-uPosition;
@@ -78,7 +78,7 @@ void main(){
     const gl=canvas.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:false});
     if(!gl){canvas.style.display='none';return {canvas,refresh(){},start(){},stop(){},destroy(){canvas.remove()}};}
 
-    const compile=(type,source)=>{const sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));return sh};
+    const compile=(type,source)=>{const sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));return sh;};
     const program=gl.createProgram();
     gl.attachShader(program,compile(gl.VERTEX_SHADER,vertex));
     gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));
@@ -86,9 +86,11 @@ void main(){
     if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));
     gl.useProgram(program);
 
-    const positions=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,positions);
+    const positions=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,positions);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
-    const pos=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+    const pos=gl.getAttribLocation(program,'position');
+    gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
 
     const names=['iResolution','iTime','uSpeed','uThreadCount','uFrequency','uSpread','uTaper','uPosition','uFanMode','uGlow','uFalloff','uThickness','uBrightness','uOpacity','uMirror','uShimmer','uGrain','uGrainIntensity','uColor1','uColor2','uColor3','uMouse','uMouseStrength','uEnableMouse','uMouseActive'];
     const u={};names.forEach(n=>u[n]=gl.getUniformLocation(program,n));
@@ -104,16 +106,25 @@ void main(){
     };
     apply();
 
-    let w=1,h=1,raf=0,running=true,start=performance.now();
+    let raf=0,running=true,start=performance.now();
     let mx=.5,my=.5,tx=.5,ty=.5,active=0;
-    const resize=()=>{const r=canvas.getBoundingClientRect();w=Math.max(1,Math.floor(r.width));h=Math.max(1,Math.floor(r.height));const d=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.floor(w*d));canvas.height=Math.max(1,Math.floor(h*d));gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(u.iResolution,canvas.width,canvas.height);};
+    const resize=()=>{
+      const r=canvas.getBoundingClientRect();
+      const w=Math.max(1,Math.floor(r.width||canvas.clientWidth||1));
+      const h=Math.max(1,Math.floor(r.height||canvas.clientHeight||1));
+      const d=Math.min(devicePixelRatio||1,2);
+      canvas.width=Math.max(1,Math.floor(w*d));canvas.height=Math.max(1,Math.floor(h*d));
+      gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(u.iResolution,canvas.width,canvas.height);
+    };
     const move=e=>{if(!s.mouseInteraction)return;const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;tx=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));ty=Math.max(0,Math.min(1,1-(e.clientY-r.top)/r.height));active=1;};
-    const enter=()=>{active=1;};const leave=()=>{active=0;};
+    const enter=()=>{active=1;};
+    const leave=()=>{active=0;};
     canvas.addEventListener('mousemove',move);canvas.addEventListener('mouseenter',enter);canvas.addEventListener('mouseleave',leave);
-    const ro='ResizeObserver'in window?new ResizeObserver(resize):null;ro?.observe(canvas);window.addEventListener('resize',resize,{passive:true});resize();
+    const ro='ResizeObserver'in window?new ResizeObserver(resize):null;
+    ro?.observe(canvas);window.addEventListener('resize',resize,{passive:true});resize();
     const frame=now=>{if(!running)return;mx+=.05*(tx-mx);my+=.05*(ty-my);gl.useProgram(program);gl.uniform1f(u.iTime,(now-start)*.001);gl.uniform2f(u.uMouse,mx,my);gl.uniform1f(u.uMouseActive,active);gl.drawArrays(gl.TRIANGLES,0,3);raf=requestAnimationFrame(frame);};
     raf=requestAnimationFrame(frame);
-    return {canvas,refresh:resize,start(){if(!running){running=true;start=performance.now();raf=requestAnimationFrame(frame);}},stop(){running=false;cancelAnimationFrame(raf);raf=0;},destroy(){running=false;cancelAnimationFrame(raf);ro?.disconnect();window.removeEventListener('resize',resize);canvas.removeEventListener('mousemove',move);canvas.removeEventListener('mouseenter',enter);canvas.removeEventListener('mouseleave',leave);canvas.remove();}};
+    return {canvas,refresh:resize,start(){if(!running){running=true;start=performance.now();raf=requestAnimationFrame(frame);}},stop(){running=false;cancelAnimationFrame(raf);raf=0;},destroy(){running=false;cancelAnimationFrame(raf);ro?.disconnect();window.removeEventListener('resize',resize);canvas.removeEventListener('mousemove',move);canvas.removeEventListener('mouseenter',enter);canvas.removeEventListener('mouseleave',leave);gl.deleteBuffer(positions);gl.deleteProgram(program);canvas.remove();}};
   };
 
   window.KefeWebThreads={create,defaults:{...DEFAULTS}};
