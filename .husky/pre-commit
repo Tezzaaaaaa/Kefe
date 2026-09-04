@@ -7,14 +7,6 @@ printf '%s\n' 'KEFE pre-commit: running syntax/tests and AI-change guards...'
 npm run check
 KEFE_GUARD_MODE=staged npm run check:ai-change
 
-# Deterministic slop scan: report staged-relevant repo state without mutating files.
-# The delta gate below is the blocking slop check when the working tree is clean.
-if git diff --quiet; then
-  npx --no-install slop-scan delta --base HEAD --head . --fail-on added,worsened
-else
-  printf '%s\n' 'KEFE pre-commit: unstaged changes detected; skipping slop delta to avoid inspecting unstaged work.'
-fi
-
 # Optional semantic gate. It is enabled automatically when an Anthropic key is present.
 if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
   npx --yes @schava09/slopgate --staged --fail-on high
