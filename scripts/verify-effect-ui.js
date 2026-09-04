@@ -4,7 +4,7 @@
 const fs = require('fs');
 
 const html = fs.readFileSync(__dirname + '/../index.html', 'utf8');
-const app = fs.readFileSync(__dirname + '/../app.js', 'utf8');
+const app = fs.readFileSync(__dirname + '/../app/app.js', 'utf8');
 
 const buttons = [...html.matchAll(/data-effect="([^"]+)"/g)].map(m => m[1]);
 const labels = [...app.matchAll(/([a-z]+): "[^"]+"/g)].map(m => m[1]);

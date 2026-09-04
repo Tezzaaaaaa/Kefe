@@ -19,6 +19,7 @@ const document = {
   getElementById: () => null,
   querySelector: () => null,
   querySelectorAll: () => [],
+  head: { appendChild() {} },
   createElement: () => ({
     className: '', id: '', textContent: '', dataset: {},
     addEventListener() {}, appendChild() {}, setAttribute() {},
