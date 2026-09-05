@@ -19,7 +19,6 @@ KEFE is organised by responsibility. Runtime application code lives under `app/`
 - `tests/` — smoke and browser functional regression tests.
 - `scripts/` — repository/effect verification utilities.
 - `docs/` — deployment, design, architecture, licensing, and development documentation.
-- `ifixai/` — independent AI-agent audit fixture.
 - `.github/workflows/` — CI/CD and quality gates.
 
 ## Dependency direction

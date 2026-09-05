@@ -145,20 +145,14 @@ Kefe/
 ├── vendor/         # locally hosted third-party runtime assets
 ├── .github/        # CI/CD and repository quality workflows
 ├── .husky/         # local Git hooks
-├── .agents/        # KEFE agent skill configuration
 ├── index.html      # editor document
-├── styles.css      # main application styling
-├── typography.css  # typography rules
 ├── package.json    # scripts and dependencies
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
-├── CONSTRAINTS.md
-├── AGENTS.md
-├── AGENT_CONTROL.md
 └── README.md
 ```
 
-Repository-level configuration files such as `.gitignore`, `.prettierrc.json`, `.prettierignore`, `.mega-linter.yml`, `.roborev.toml`, and `.env.example` remain at the root because they are consumed directly by development, CI, formatting, environment, or tooling workflows.
+Repository-level configuration files such as `.gitignore`, `.prettierrc.json`, `.prettierignore`, `.mega-linter.yml`, and `.env.example` remain at the root because they are consumed directly by development, CI, formatting, environment, or tooling workflows.
 
 ## Running locally
 
@@ -241,9 +235,6 @@ See `docs/DEPLOY.md` for deployment details.
 |---|---|
 | `CHANGELOG.md` | Project changes and release history |
 | `CONTRIBUTING.md` | Contribution guidance |
-| `CONSTRAINTS.md` | Project constraints |
-| `AGENTS.md` | Repository development instructions |
-| `AGENT_CONTROL.md` | AI-agent change controls |
 | `docs/DEPLOY.md` | Deployment information |
 | `docs/DESIGN-SYSTEM-CHECKLIST.md` | Design-system and QA checks |
 | `docs/EFFECT_TYPOGRAPHY.md` | Effect typography rules |

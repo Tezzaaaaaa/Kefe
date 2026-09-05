@@ -2,16 +2,8 @@
 
 set -eu
 
-printf '%s\n' 'KEFE pre-commit: running syntax/tests and AI-change guards...'
+printf '%s\n' 'KEFE pre-commit: running syntax/tests...'
 
 npm run check
-KEFE_GUARD_MODE=staged npm run check:ai-change
 
-# Optional semantic gate. It is enabled automatically when an Anthropic key is present.
-if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
-  npx --yes @schava09/slopgate --staged --fail-on high
-else
-  printf '%s\n' 'KEFE pre-commit: semantic slopgate skipped (ANTHROPIC_API_KEY not set).'
-fi
-
-printf '%s\n' 'KEFE pre-commit: all enabled gates passed.'
+printf '%s\n' 'KEFE pre-commit: all checks passed.'

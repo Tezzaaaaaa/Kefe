@@ -16,7 +16,6 @@ KEFE uses a small number of responsibility-first areas. If a change belongs to o
 | `tests/` | Browser and functional verification |
 | `scripts/` | Developer verification utilities |
 | `docs/` | Architecture, deployment and contributor documentation |
-| `ifixai/` | Independent AI-agent audit fixture and configuration |
 | `.github/` | CI/CD, security and repository automation |
 
 ## Root policy
