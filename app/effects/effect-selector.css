@@ -1,5 +1,5 @@
 /* KEFE lyric-effect selector — each effect keeps its own visual identity,
-   rendered with theme-aware tokens from styles.css. */
+   rendered with theme-aware tokens from app/ui/styles.css. */
 
 .effect-buttons button { isolation: isolate; overflow: hidden; }
 .effect-buttons button::before {

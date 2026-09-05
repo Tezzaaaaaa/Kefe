@@ -1,7 +1,7 @@
 /* KEFE — panel control layout.
    Single source of truth for spacing inside a sidebar section panel.
    Nothing in the repo previously defined layout for these classes
-   (only font-size rules existed in typography.css), so every block
+   (only font-size rules existed in app/ui/typography.css), so every block
    fell back to default flow with no gap — hence the cramped look.
    One spacing scale, applied consistently, fixes it. */
 
