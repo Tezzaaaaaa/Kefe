@@ -2272,6 +2272,18 @@ function handleBackgroundFile(file) {
 const audioInput = $('audioInput'), audioStatus = $('audioStatus');
 const audioChooseBtn = document.getElementById('audioChooseBtn');
 
+// The Media step accepts either an audio file or a video file. A video
+// uploaded here becomes both the background video AND (when it has an
+// audio track) the master audio source — so the user doesn't have to
+// upload the same file again later in the Background step just to get
+// at its audio.
+function handleMediaSourceFile(file) {
+    if (!file) return;
+    const isVideo = (file.type && file.type.startsWith('video/')) || /\.(mp4|mov|webm|m4v|avi|mkv)$/i.test(file.name);
+    if (isVideo) handleBackgroundFile(file);
+    else handleAudioFile(file);
+}
+
 audioChooseBtn.addEventListener('click', function () {
     if (isExporting) {
         toast('Finish or cancel the current export first', 'error');
@@ -2284,7 +2296,7 @@ audioChooseBtn.addEventListener('click', function () {
 audioInput.addEventListener('change', function () {
     const file = this.files && this.files[0];
     if (!file) return;
-    handleAudioFile(file);
+    handleMediaSourceFile(file);
 });
 
 const backgroundInput = $('backgroundInput');
@@ -3138,7 +3150,7 @@ function setupDropZone(zone, inputId) {
         zone.classList.remove('dragover');
         const file = e.dataTransfer?.files?.[0];
         if (!file) return;
-        if (inputId === 'audioInput') handleAudioFile(file);
+        if (inputId === 'audioInput') handleMediaSourceFile(file);
         if (inputId === 'backgroundInput') handleBackgroundFile(file);
     });
 }
