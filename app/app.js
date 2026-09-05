@@ -2221,14 +2221,22 @@ function handleBackgroundFile(file) {
             // Default master selection (only when the user has not explicitly chosen):
             // - no uploaded audio + video has audio  -> video audio becomes master
             // - no uploaded audio + video has no audio -> virtual timeline (muted) driven by video duration
-            // - uploaded audio exists                 -> uploaded stays/master takes priority (left as-is)
+            // - uploaded audio exists + lyrics already synced to it -> ask the user
+            //   which source should be master rather than silently deciding for them
+            // - uploaded audio exists, no lyrics synced yet -> uploaded stays master
+            //   (classic flow), except the wizard's dedicated "Background Video" audio
+            //   source step, which still switches automatically as before
             if (!state.audio.file) {
                 applyMasterSelection(media.videoHasAudio ? 'video' : 'none', { userInitiated: false, silent: true });
-            } else if (window.kefeWizardSource === 'media' && media.videoHasAudio && getMasterMode() !== 'video') {
-                // Wizard "Background Video" audio source: the video's own track takes
-                // over as master, even when uploaded audio is already loaded.
-                state.audioSource.userChosen = false;
-                applyMasterSelection('video', { userInitiated: false, silent: true });
+            } else if (media.videoHasAudio && getMasterMode() !== 'video') {
+                if (state.lyrics.lines.length) {
+                    promptMasterAudioChoice();
+                } else if (window.kefeWizardSource === 'media') {
+                    // Wizard "Background Video" audio source: the video's own track takes
+                    // over as master, even when uploaded audio is already loaded.
+                    state.audioSource.userChosen = false;
+                    applyMasterSelection('video', { userInitiated: false, silent: true });
+                }
             }
             readiness();
             hasLastVideoFrame = false;
@@ -2649,6 +2657,32 @@ function syncMasterSourceUI() {
     if (mode === 'video' && !state.audio.metadata.title) parts.push('Add a song title above to search for synced lyrics.');
     if (mode === 'none') parts.push('No audio will be heard or exported.');
     status.innerHTML = parts.join(' · ');
+}
+
+// Shown when the user already has uploaded audio with lyrics synced to it,
+// and then adds a video that also has its own audio track. Rather than
+// silently pick one, ask which source the lyrics should stay synced to.
+const masterAudioChoiceModal = $('masterAudioChoice');
+function promptMasterAudioChoice() {
+    if (!masterAudioChoiceModal) return;
+    const info = $('masterAudioChoiceInfo');
+    if (info) {
+        const uploadedDur = Number.isFinite(state.audio.duration) && state.audio.duration > 0 ? fmt(state.audio.duration) : '—';
+        const videoDur = media?.video && Number.isFinite(media.video.duration) && media.video.duration > 0 ? fmt(media.video.duration) : '—';
+        info.innerHTML = `Uploaded audio: ${uploadedDur} &middot; Video audio: ${videoDur}`;
+    }
+    masterAudioChoiceModal.classList.remove('hidden');
+}
+function closeMasterAudioChoice() { masterAudioChoiceModal?.classList.add('hidden'); }
+if (masterAudioChoiceModal) {
+    qsa('#masterAudioChoice [data-master]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mode = btn.dataset.master;
+            state.audioSource.userChosen = false; // let this explicit pick set the record, not block itself
+            applyMasterSelection(mode, { userInitiated: true, silent: mode === getMasterMode() });
+            closeMasterAudioChoice();
+        });
+    });
 }
 
 let resetConfirmTimer = null;
