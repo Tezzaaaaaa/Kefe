@@ -52,6 +52,10 @@ try {
   const response = await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'commit', timeout: 10000 });
   if (!response || !response.ok()) throw new Error(`Smoke server returned ${response?.status() ?? 'no response'} for index.html`);
 
+  // The runtime bridge is a shared production module, but index.html does not
+  // currently load it directly. Load the existing module here so the smoke test
+  // exercises the same runtime contract used by the modular UI/export layers.
+  await page.addScriptTag({ path: join(root, 'app/core/runtime-bridge.js') });
   await page.waitForFunction(() => window.kefeRuntime?.ready === true, null, { timeout: 15000 });
   await page.waitForFunction(() => window.kefeCaptionGen && window.kefeAnalysis && window.kefeAutoCreate && window.kefeSmartRender, null, { timeout: 15000 });
 
