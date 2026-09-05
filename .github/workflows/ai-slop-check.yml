@@ -20,6 +20,8 @@ jobs:
     name: Protect KEFE from AI slop and oversized changes
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - name: Checkout full history
         uses: actions/checkout@v5
@@ -65,11 +67,9 @@ jobs:
         run: npx --no-install slop-scan delta --base "${{ github.event.before }}" --head HEAD --fail-on added,worsened
 
       - name: Semantic AI-code gate
-        if: ${{ github.event_name != 'workflow_dispatch' && secrets.ANTHROPIC_API_KEY != '' }}
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        if: ${{ env.ANTHROPIC_API_KEY != '' && github.event_name != 'workflow_dispatch' }}
         run: npx --yes @schava09/slopgate --base "${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}" --fail-on high
 
       - name: Semantic gate status
-        if: ${{ secrets.ANTHROPIC_API_KEY == '' }}
+        if: ${{ env.ANTHROPIC_API_KEY == '' }}
         run: echo 'ANTHROPIC_API_KEY is not configured; deterministic gates remain enforced, semantic slopgate is skipped.'
