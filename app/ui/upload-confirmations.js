@@ -18,13 +18,33 @@
       card.className = 'kefe-upload-confirmation';
       card.innerHTML = '<div class="kefe-upload-thumb"></div><div class="kefe-upload-info"><div class="kefe-upload-check"><span>✓</span><b>Uploaded</b></div><div class="kefe-upload-name"></div><div class="kefe-upload-meta"></div></div>';
       drop.appendChild(card);
+      const input = drop.querySelector('input[type="file"]');
+      if (input) {
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.title = 'Replace file';
+        const reopen = e => { e.preventDefault(); input.click(); };
+        card.addEventListener('click', reopen);
+        card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') reopen(e); });
+      }
     }
     return card;
+  }
+
+  // A drop-zone should show exactly one control at a time: the picker/hint
+  // before upload, or the confirmation card after. Never both.
+  function setOriginalControlsHidden(dropId, hidden) {
+    const drop = $(dropId);
+    if (!drop) return;
+    drop.querySelectorAll(':scope > .file-button, :scope > .control-hint').forEach(el => {
+      el.classList.toggle('kefe-upload-hidden', hidden);
+    });
   }
 
   function setCard(dropId, statusId, kind, file, visual, meta) {
     const card = ensureCard(dropId, statusId, kind);
     if (!card) return;
+    setOriginalControlsHidden(dropId, true);
     const thumb = card.querySelector('.kefe-upload-thumb');
     const name = card.querySelector('.kefe-upload-name');
     const info = card.querySelector('.kefe-upload-meta');
@@ -63,6 +83,7 @@
   function hide(dropId) {
     const card = document.querySelector(`#${dropId} .kefe-upload-confirmation`);
     if (card) card.classList.remove('is-visible');
+    setOriginalControlsHidden(dropId, false);
   }
 
   function updateWizardMediaConfirmation(media) {
@@ -158,8 +179,9 @@
     const style = document.createElement('style');
     style.id = 'kefe-upload-confirmation-style';
     style.textContent = `
-      .kefe-upload-confirmation{display:none;align-items:center;gap:12px;margin-top:10px;padding:10px;border:1px solid rgba(48,209,88,.72);border-radius:12px;background:linear-gradient(135deg,rgba(48,209,88,.16),rgba(48,209,88,.06));box-shadow:0 0 0 1px rgba(48,209,88,.08),0 8px 22px rgba(0,0,0,.18);text-align:left}
+      .kefe-upload-confirmation{display:none;align-items:center;gap:12px;margin-top:10px;padding:10px;border:1px solid rgba(48,209,88,.72);border-radius:12px;background:linear-gradient(135deg,rgba(48,209,88,.16),rgba(48,209,88,.06));box-shadow:0 0 0 1px rgba(48,209,88,.08),0 8px 22px rgba(0,0,0,.18);text-align:left;cursor:pointer}
       .kefe-upload-confirmation.is-visible{display:flex}
+      .kefe-upload-hidden{display:none!important}
       .kefe-upload-thumb{width:58px;height:58px;flex:0 0 58px;border-radius:9px;background:var(--surface-3);background-position:center;background-size:cover;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:700;overflow:hidden}
       .kefe-upload-thumb.audio-thumb{background:linear-gradient(135deg,var(--red),#a8241d)}
       .kefe-upload-info{min-width:0;display:flex;flex-direction:column;gap:2px}
