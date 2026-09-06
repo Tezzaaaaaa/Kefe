@@ -25,6 +25,25 @@ main {
   background: var(--surface);
 }
 
+/* Guided creation mode: the step content scrolls in place while the
+   Back/Next/Skip bar stays pinned in view — never pushed off by
+   .sidebar's overflow:hidden. */
+body.wizard-mode .sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+body.wizard-mode .sidebar > .wizard-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+body.wizard-mode .wizard-nav {
+  flex: 0 0 auto;
+}
+
 .preview {
   position: relative;
   min-width: 0;
