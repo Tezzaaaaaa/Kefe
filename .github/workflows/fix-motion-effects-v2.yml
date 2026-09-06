@@ -1,0 +1,154 @@
+name: KEFE motion effects integration v2
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: "!contains(github.event.head_commit.message, '[motion-fix-v2]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Apply standalone motion effects
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          root = Path('.')
+          app = root / 'app/app.js'
+          index = root / 'index.html'
+          wizard = root / 'app/ui/wizard/wizard-all-effects.js'
+          auto = root / 'app/core/auto-create.js'
+
+          s = app.read_text()
+          nl = chr(10)
+          if 'MOTION_LYRIC_EFFECTS_INTEGRATED' not in s:
+              s = s.replace(
+                  '        pulseGlowSize: 1.0,' + nl + '        titleCardEnabled: true,',
+                  '        pulseGlowSize: 1.0,' + nl + '        // MOTION_LYRIC_EFFECTS_INTEGRATED — standalone lyric effects.' + nl + '        motionDistance: 0.12,' + nl + '        titleCardEnabled: true,'
+              )
+              funcs = r'''
+
+/* ---------- Standalone motion lyric effects ---------- */
+function motionEffectLine(lines, time) {
+    const index = linaFindActiveLine(lines, time);
+    return index >= 0 ? linaNormaliseLine(lines, index) : null;
+}
+function motionEffectProgress(line, time) {
+    if (!line) return 0;
+    const duration = Math.max(0.24, Number(line.endTime) - Number(line.time));
+    return linaSmoother(linaClamp((time - Number(line.time)) / Math.min(0.42, duration * 0.42)));
+}
+function drawMotionText(ctx, text, x, y, size, alpha, style, angle = 0) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.font = `800 ${size}px "Open Sans",Arial,sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = style.textColor || '#FFFFFF';
+    ctx.shadowColor = 'rgba(0,0,0,0.48)';
+    ctx.shadowBlur = Math.max(2, size * 0.08);
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+}
+function drawMotionGhost(ctx, text, x, y, size, alpha, style, blur) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.filter = `blur(${blur}px)`;
+    ctx.font = `800 ${size}px "Open Sans",Arial,sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = style.textColor || '#FFFFFF';
+    ctx.fillText(text, x, y);
+    ctx.restore();
+}
+function drawRiseEffect(ctx, w, h, style, lines, time) {
+    const line = motionEffectLine(lines, time); if (!line) return;
+    const text = String(line.text || '').trim(); if (!text) return;
+    const size = fitCentredEffectText(ctx, text, style.fontSize, w * 0.84, 800);
+    const p = motionEffectProgress(line, time), d = Math.max(14, size * (Number(style.motionDistance) || 0.12));
+    const y = h * 0.47 + d * (1 - p);
+    drawMotionGhost(ctx, text, w / 2, y + d * 0.55, size, 0.13 * (1 - p), style, Math.max(2, size * 0.07));
+    drawMotionText(ctx, text, w / 2, y, size, 0.22 + 0.78 * p, style);
+}
+function drawSlideEffect(ctx, w, h, style, lines, time) {
+    const line = motionEffectLine(lines, time); if (!line) return;
+    const text = String(line.text || '').trim(); if (!text) return;
+    const size = fitCentredEffectText(ctx, text, style.fontSize, w * 0.84, 800);
+    const p = motionEffectProgress(line, time), d = Math.max(18, size * (Number(style.motionDistance) || 0.12) * 1.35);
+    const x = w / 2 - d * (1 - p);
+    drawMotionGhost(ctx, text, x - d * 0.55, h * 0.47, size, 0.11 * (1 - p), style, Math.max(2, size * 0.055));
+    drawMotionText(ctx, text, x, h * 0.47, size, 0.22 + 0.78 * p, style);
+}
+function drawDropEffect(ctx, w, h, style, lines, time) {
+    const line = motionEffectLine(lines, time); if (!line) return;
+    const text = String(line.text || '').trim(); if (!text) return;
+    const size = fitCentredEffectText(ctx, text, style.fontSize, w * 0.84, 800);
+    const p = motionEffectProgress(line, time), d = Math.max(16, size * (Number(style.motionDistance) || 0.12) * 1.15);
+    const y = h * 0.47 - d * (1 - p);
+    drawMotionGhost(ctx, text, w / 2, y - d * 0.50, size, 0.12 * (1 - p), style, Math.max(2, size * 0.065));
+    drawMotionText(ctx, text, w / 2, y, size, 0.22 + 0.78 * p, style);
+}
+function drawDriftEffect(ctx, w, h, style, lines, time) {
+    const line = motionEffectLine(lines, time); if (!line) return;
+    const text = String(line.text || '').trim(); if (!text) return;
+    const size = fitCentredEffectText(ctx, text, style.fontSize, w * 0.84, 800);
+    const p = motionEffectProgress(line, time), d = Math.max(16, size * (Number(style.motionDistance) || 0.12));
+    const x = w / 2 + d * (1 - p), y = h * 0.47 - d * 0.34 * (1 - p), angle = -0.035 * (1 - p);
+    drawMotionGhost(ctx, text, x + d * 0.55, y, size, 0.10 * (1 - p), style, Math.max(2, size * 0.06));
+    drawMotionText(ctx, text, x, y, size, 0.22 + 0.78 * p, style, angle);
+}
+'''
+              s = s.replace(nl + 'function renderLyricsEffect(ctx, w, h, style, lines, time) {', funcs + nl + 'function renderLyricsEffect(ctx, w, h, style, lines, time) {')
+              pulse_case = '        case "pulse": drawPulseEffect(ctx, w, h, style, lines, time); break;' + nl
+              motion_cases = pulse_case + '        case "rise": drawRiseEffect(ctx, w, h, style, lines, time); break;' + nl + '        case "slide": drawSlideEffect(ctx, w, h, style, lines, time); break;' + nl + '        case "drop": drawDropEffect(ctx, w, h, style, lines, time); break;' + nl + '        case "drift": drawDriftEffect(ctx, w, h, style, lines, time); break;' + nl
+              s = s.replace(pulse_case, motion_cases)
+              s = s.replace('const EFFECT_LABELS = {' + nl, 'const EFFECT_LABELS = {' + nl + '    rise: "Rise — lyrics rise smoothly into focus",' + nl + '    slide: "Slide — lyrics glide in horizontally",' + nl + '    drop: "Drop — lyrics descend smoothly into focus",' + nl + '    drift: "Drift — lyrics float in with a subtle diagonal drift",' + nl)
+              s = s.replace('const TITLECARD_DESIGN_FOR_EFFECT = { apple:', "const TITLECARD_DESIGN_FOR_EFFECT = { rise: 'minimal', slide: 'minimal', drop: 'minimal', drift: 'minimal', apple:")
+              app.write_text(s)
+
+          a = auto.read_text()
+          a = a.replace("const EFFECTS = new Set(['apple','brat','eternal','aurora','pulse','typewriter','instagram','fadeup']);", "const EFFECTS = new Set(['rise','slide','drop','drift','apple','brat','eternal','aurora','pulse','typewriter','instagram','fadeup']);")
+          auto.write_text(a)
+
+          h = index.read_text()
+          if 'data-effect="rise"' not in h:
+              buttons = ''.join(f'<button type="button" class="segmented-btn" data-effect="{n}">{n.title()}</button>' for n in ['rise','slide','drop','drift'])
+              h = h.replace('<div class="effect-buttons"><button type="button" class="segmented-btn" data-effect="apple">Apple</button>', '<div class="effect-buttons">' + buttons + '<button type="button" class="segmented-btn" data-effect="apple">Apple</button>')
+          index.write_text(h)
+
+          w = wizard.read_text()
+          old = "    const line = document.createElement('span');" + nl + "    line.className = 'wizard-effect-demo-line';" + nl + "    line.textContent = 'LYRICS';" + nl + "    demo.appendChild(line);"
+          new = "    if (motion.has(name)) {" + nl + "      const image = document.createElement('img');" + nl + "      image.className = 'wizard-effect-thumbnail';" + nl + "      image.src = `./assets/effects/${name}.svg`;" + nl + "      image.alt = '';" + nl + "      image.setAttribute('aria-hidden', 'true');" + nl + "      demo.appendChild(image);" + nl + "    } else {" + nl + "      const line = document.createElement('span');" + nl + "      line.className = 'wizard-effect-demo-line';" + nl + "      line.textContent = 'LYRICS';" + nl + "      demo.appendChild(line);" + nl + "    }"
+          w = w.replace(old, new)
+          thumb = "    .wizard-all-effect-grid .wizard-effect-thumbnail { width:100%; height:100%; display:block; object-fit:cover; position:relative; z-index:1; }" + nl
+          marker = '    .wizard-all-effect-grid .wizard-effect-choice[data-wizard-effect="rise"] .wizard-effect-demo {'
+          if '.wizard-effect-thumbnail {' not in w: w = w.replace(marker, thumb + marker)
+          wizard.write_text(w)
+
+          paths = {'rise':'M50 78 C50 62 50 44 50 22','slide':'M18 50 C38 50 62 50 82 50','drop':'M50 22 C50 40 50 60 50 78','drift':'M20 78 C38 66 60 42 80 22'}
+          for name, path in paths.items():
+              p = root / f'assets/effects/{name}.svg'
+              p.parent.mkdir(parents=True, exist_ok=True)
+              p.write_text(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#151515"/><stop offset=".5" stop-color="#666"/><stop offset="1" stop-color="#eee"/></linearGradient></defs><rect width="100" height="100" fill="url(#g)"/><path d="{path}" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="{path}" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" opacity=".16"/></svg>')
+
+          assert 'MOTION_LYRIC_EFFECTS_INTEGRATED' in s
+          assert all(f'case "{n}": draw{n.title()}Effect' in s for n in ['rise','slide','drop','drift'])
+          assert h.index('data-effect="rise"') < h.index('data-effect="apple"')
+          assert all(f'./assets/effects/{n}.svg' in w for n in ['rise','slide','drop','drift'])
+
+          # Remove both one-off patch workflows after the integration commit.
+          for wf in [root/'.github/workflows/fix-motion-effects.yml', root/'.github/workflows/fix-motion-effects-v2.yml']:
+              if wf.exists(): wf.unlink()
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/app.js app/core/auto-create.js app/ui/wizard/wizard-all-effects.js index.html assets/effects .github/workflows/fix-motion-effects.yml .github/workflows/fix-motion-effects-v2.yml
+          git commit -m "Fix Rise Slide Drop Drift lyric effects [motion-fix-v2]"
+          git push
