@@ -16,4 +16,3 @@
 - Added the public Effect.app effect catalog and preset catalog under `effects/effect-app-public-catalog.json`.
 - Added Effect.app integration architecture documentation under `effects/EFFECT-APP-IMPLEMENTATION.md`.
 - Kept Effect.app renderer implementations independent and native to KEFE rather than copying proprietary source code.
-- Added standalone native Rise, Slide, Drop and Drift lyric renderers as the first four effects in the 12-effect picker.
