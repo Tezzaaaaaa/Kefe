@@ -215,7 +215,7 @@
     return canvas;
   };
 
-  function addButton(){const buttons=document.querySelector('.kefe-fx-button')?.parentElement;if(!buttons||buttons.querySelector('[data-fx="liquidether"]'))return;const b=document.createElement('button');b.type='button';b.dataset.fx='liquidether';b.className='kefe-fx-button';b.textContent='Liquid Ether';b.addEventListener('click',()=>{window.state.style.visualFx='liquidether';document.querySelectorAll('.kefe-fx-button').forEach(x=>x.classList.toggle('active-effect',x.dataset.fx==='liquidether'));const l=document.getElementById('visualFxLabel');if(l)l.textContent='Liquid Ether — WebGL fluid simulation';window.redrawCurrentPreviewFrame?.();});buttons.appendChild(b);}
+  function addButton(){const buttons=document.getElementById('visualFxBackgroundButtons')||document.querySelector('.kefe-fx-button')?.parentElement;if(!buttons||buttons.querySelector('[data-fx="liquidether"]'))return;const b=document.createElement('button');b.type='button';b.dataset.fx='liquidether';b.className='kefe-fx-button';b.textContent='Liquid Ether';b.addEventListener('click',()=>{window.state.style.visualFx='liquidether';document.querySelectorAll('.kefe-fx-button').forEach(x=>x.classList.toggle('active-effect',x.dataset.fx==='liquidether'));const l=document.getElementById('visualFxLabel');if(l)l.textContent='Liquid Ether — WebGL fluid simulation';window.redrawCurrentPreviewFrame?.();});buttons.appendChild(b);}
 
   function boot(){
     if(!window.state||typeof window.render!=='function')return;
