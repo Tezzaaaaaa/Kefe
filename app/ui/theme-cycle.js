@@ -5,8 +5,8 @@
     const MODES = ['system', 'day', 'night'];
     const LABELS = { system: 'System', day: 'Day', night: 'Night' };
     const ICONS = {
-        system: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>',
-        day: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2M12 19.2v2M2.8 12h2M19.2 12h2M5.5 5.5l1.4 1.4M17.1 17.1l1.4 1.4M18.5 5.5l-1.4 1.4M6.9 17.1l1.4-1.4"/></svg>',
+        system: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12" rx="1.6"/><path d="M9 20h6M12 16.5V20"/></svg>',
+        day: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2M12 19.2v2M2.8 12h2M19.2 12h2M5.5 5.5l1.4 1.4M17.1 17.1l1.4 1.4M18.5 5.5l-1.4 1.4M6.9 17.1l-1.4-1.4"/></svg>',
         night: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.4A8.7 8.7 0 0 1 8.6 4a8.8 8.8 0 1 0 11.4 11.4Z"/></svg>'
     };
 
@@ -97,6 +97,13 @@
             const next = MODES[(MODES.indexOf(current) + 1) % MODES.length];
             setMode(button, next);
         });
+
+        if (!document.querySelector('script[data-kefe-wizard-entry]')) {
+            const script = document.createElement('script');
+            script.src = './app/ui/wizard/wizard.js';
+            script.dataset.kefeWizardEntry = 'true';
+            document.body.appendChild(script);
+        }
     }
 
     if (document.readyState === 'loading') {
