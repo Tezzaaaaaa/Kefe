@@ -11,29 +11,14 @@
     };
 
     const DAY_VARS = {
-        '--bg': '#ffffff',
-        '--surface': '#fefefe',
-        '--surface-2': '#f7f7f5',
-        '--surface-3': '#ececea',
-        '--line': 'rgba(10,10,8,.10)',
-        '--line-strong': 'rgba(10,10,8,.22)',
-        '--text': '#0a0a0a',
-        '--text-2': '#5c5c58',
-        '--text-3': '#8a8a85',
-        '--shadow-card': 'none'
+        '--bg': '#ffffff', '--surface': '#fefefe', '--surface-2': '#f7f7f5', '--surface-3': '#ececea',
+        '--line': 'rgba(10,10,8,.10)', '--line-strong': 'rgba(10,10,8,.22)', '--text': '#0a0a0a',
+        '--text-2': '#5c5c58', '--text-3': '#8a8a85', '--shadow-card': 'none'
     };
-
     const NIGHT_VARS = {
-        '--bg': '#030303',
-        '--surface': '#0a0a0a',
-        '--surface-2': '#141414',
-        '--surface-3': '#1e1e1e',
-        '--line': 'rgba(255,255,255,.07)',
-        '--line-strong': 'rgba(255,255,255,.14)',
-        '--text': '#ffffff',
-        '--text-2': '#9a9a9a',
-        '--text-3': '#6b6b6b',
-        '--shadow-card': 'none'
+        '--bg': '#030303', '--surface': '#0a0a0a', '--surface-2': '#141414', '--surface-3': '#1e1e1e',
+        '--line': 'rgba(255,255,255,.07)', '--line-strong': 'rgba(255,255,255,.14)', '--text': '#ffffff',
+        '--text-2': '#9a9a9a', '--text-3': '#6b6b6b', '--shadow-card': 'none'
     };
 
     function getMode() {
@@ -41,24 +26,15 @@
             const saved = localStorage.getItem(THEME_KEY);
             return MODES.includes(saved) ? saved : 'system';
         } catch (e) {
-            return document.documentElement.dataset.theme === 'day'
-                ? 'day'
-                : document.documentElement.dataset.theme === 'night'
-                  ? 'night'
-                  : 'system';
+            return document.documentElement.dataset.theme === 'day' ? 'day' : document.documentElement.dataset.theme === 'night' ? 'night' : 'system';
         }
     }
-
     function applyVariables(mode) {
         const root = document.documentElement;
         const vars = mode === 'day' ? DAY_VARS : mode === 'night' ? NIGHT_VARS : null;
-        [...new Set([...Object.keys(DAY_VARS), ...Object.keys(NIGHT_VARS)])].forEach((name) => {
-            if (vars) root.style.setProperty(name, vars[name]);
-            else root.style.removeProperty(name);
-        });
+        [...new Set([...Object.keys(DAY_VARS), ...Object.keys(NIGHT_VARS)])].forEach(name => vars ? root.style.setProperty(name, vars[name]) : root.style.removeProperty(name));
         root.style.colorScheme = mode === 'day' ? 'light' : mode === 'night' ? 'dark' : 'light dark';
     }
-
     function updateButton(button, mode) {
         const next = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
         button.innerHTML = ICONS[mode];
@@ -66,49 +42,51 @@
         button.setAttribute('aria-label', `Theme: ${LABELS[mode]}. Click to switch to ${LABELS[next]}`);
         button.title = `Theme: ${LABELS[mode]} — click for ${LABELS[next]}`;
     }
-
     function setMode(button, mode) {
         if (!MODES.includes(mode)) mode = 'system';
         if (mode === 'system') delete document.documentElement.dataset.theme;
         else document.documentElement.dataset.theme = mode;
         applyVariables(mode);
-        try {
-            localStorage.setItem(THEME_KEY, mode);
-        } catch (e) {
-            /* non-critical */
-        }
+        try { localStorage.setItem(THEME_KEY, mode); } catch (e) { /* non-critical */ }
         updateButton(button, mode);
         window.dispatchEvent(new CustomEvent('kefe:theme-change', { detail: { mode } }));
+    }
+
+    function loadScriptOnce(src, marker, onload) {
+        if (document.querySelector(`script[data-${marker}]`)) return;
+        const script = document.createElement('script');
+        script.src = src;
+        script.dataset[marker.replace(/^kefe-/, '')] = 'true';
+        if (onload) script.addEventListener('load', onload, { once: true });
+        document.body.appendChild(script);
     }
 
     function init() {
         const control = document.querySelector('.theme-control');
         if (!control) return;
-
         const button = document.createElement('button');
         button.type = 'button';
         button.id = 'themeCycleButton';
         button.className = 'theme-cycle-button';
-
         control.replaceWith(button);
         setMode(button, getMode());
         button.addEventListener('click', () => {
             const current = getMode();
-            const next = MODES[(MODES.indexOf(current) + 1) % MODES.length];
-            setMode(button, next);
+            setMode(button, MODES[(MODES.indexOf(current) + 1) % MODES.length]);
         });
 
         if (!document.querySelector('script[data-kefe-wizard-entry]')) {
-            const script = document.createElement('script');
-            script.src = './app/ui/wizard/wizard.js';
-            script.dataset.kefeWizardEntry = 'true';
-            document.body.appendChild(script);
+            const wizard = document.createElement('script');
+            wizard.src = './app/ui/wizard/wizard.js';
+            wizard.dataset.kefeWizardEntry = 'true';
+            wizard.addEventListener('load', () => {
+                loadScriptOnce('./app/effects/scroll-lines.js', 'kefe-scroll-lines');
+                loadScriptOnce('./app/ui/wizard/wizard-all-effects.js', 'kefe-wizard-all-effects');
+            }, { once: true });
+            document.body.appendChild(wizard);
         }
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init, { once: true });
-    } else {
-        init();
-    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+    else init();
 })();
