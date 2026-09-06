@@ -18,8 +18,10 @@ body.wizard-mode .wizard-style-preview,body.wizard-mode .wizard-style-group,body
 body.wizard-mode .wizard-style-preview{margin-top:18px;border-radius:12px}
 body.wizard-mode .wizard-effect-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 body.wizard-mode .wizard-effect-choice{min-height:88px}
-.preview{position:relative;min-width:0;min-height:0;display:grid;grid-template-rows:minmax(0,1fr);overflow:hidden;padding:0;background:var(--bg)}
-.preview-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;min-width:0;min-height:58px;padding:10px 22px;border-bottom:1px solid var(--line);background:var(--surface)}
+
+/* The preview DOM is: toolbar, then canvas wrapper. Keep those as two deliberate rows. */
+.preview{position:relative;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);overflow:hidden;padding:0;background:var(--bg)}
+.preview-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;min-width:0;min-height:58px;padding:10px 22px;border-bottom:1px solid var(--line);background:var(--surface);z-index:2}
 .preview-heading{display:flex;align-items:center;min-width:0;gap:9px;overflow:hidden}.preview-heading>*{flex:0 0 auto}.preview-heading strong{flex:0 0 auto}
 .preview-format{min-width:0;overflow:hidden}
 .canvas-wrapper{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;padding:clamp(20px,4vw,48px);background:var(--surface-2);overflow:hidden;isolation:isolate}
@@ -29,6 +31,6 @@ body.wizard-mode .wizard-effect-choice{min-height:88px}
 .transport .slider{flex:1 1 auto;min-width:120px;width:min(360px,32vw)}.transport #clock{flex:0 0 auto;min-width:76px;text-align:right;white-space:nowrap}
 @media (max-width:1100px){:root{--editor-rail:340px}}
 @media (max-width:900px){main{grid-template-columns:1fr;grid-template-rows:minmax(280px,46dvh) minmax(0,1fr)}.sidebar{width:100%;min-height:0;border-right:0;border-bottom:1px solid var(--line)}.preview-toolbar{padding:9px 14px}.transport{padding:0}.canvas-wrapper{padding:14px}}
-@media (max-width:700px){.preview-toolbar{grid-template-columns:1fr;align-items:stretch;gap:7px;min-height:0;padding:8px 10px}.preview-heading{gap:6px}.transport{display:grid;grid-template-columns:44px 44px minmax(0,1fr) auto;gap:6px;width:100%;padding:0}.transport>button,.transport>.icon-button{min-width:44px;min-height:44px}.transport .slider{min-width:0;width:100%}.canvas-wrapper{padding:10px}body.wizard-mode .sidebar>.wizard-panel{padding:14px 12px 16px}body.wizard-mode .wizard-effect-grid{grid-template-columns:1fr}}
+@media (max-width:700px){.preview-toolbar{grid-template-columns:1fr;align-items:stretch;gap:7px;min-height:0;padding:8px 10px}.preview-heading{gap:6px}.transport{display:grid;grid-template-columns:44px 44px minmax(0,1fr) auto;gap:6px;width:100%}.transport>button,.transport>.icon-button{min-width:44px;min-height:44px}.transport .slider{min-width:0;width:100%}.canvas-wrapper{padding:10px}body.wizard-mode .sidebar>.wizard-panel{padding:14px 12px 16px}body.wizard-mode .wizard-effect-grid{grid-template-columns:1fr}}
 @media (max-width:480px){.preview-heading #previewStatus{display:none}.transport{grid-template-columns:42px 42px minmax(0,1fr) auto;gap:5px}.transport>button,.transport>.icon-button{min-width:42px;min-height:42px}.transport #clock{min-width:62px;font-size:10px}}
 @media (pointer:coarse){.preview-toolbar button,.preview-toolbar select,.preview-toolbar input[type=range],.transport button,.transport input[type=range]{min-height:44px}}
