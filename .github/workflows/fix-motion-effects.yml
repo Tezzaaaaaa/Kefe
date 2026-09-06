@@ -7,4 +7,4 @@ jobs:
   disabled:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Disabled — retained only for history; use the canonical effect integration."
+      - run: echo "Disabled obsolete patch workflow."
