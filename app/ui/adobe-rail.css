@@ -1,10 +1,8 @@
 @import url("./editor-layout.css");
 
 /* KEFE classic editor — Adobe Express-style shell.
-   Left icon rail + single expanded panel + dominant canvas.
-   Minimalist: flat neutral surfaces, one accent color, restrained depth
-   used only on the canvas itself. Scoped to the classic (non-wizard) editor. */
-
+   Layout geometry belongs to editor-layout.css. This file owns only the
+   classic sidebar/rail treatment and preview chrome styling. */
 body:not(.wizard-mode) main{align-items:stretch}
 body:not(.wizard-mode) .sidebar{display:flex;flex-direction:row;width:380px}
 body:not(.wizard-mode) .section-nav{position:relative;z-index:3;display:flex;flex-direction:column;flex:0 0 76px;grid-template-columns:none;gap:2px;padding:12px 8px;background:var(--surface);border-right:1px solid var(--line);border-bottom:0;overflow-y:auto}
@@ -24,10 +22,8 @@ body:not(.wizard-mode) .sidebar>.section>*:first-child{margin-top:16px}
 body:not(.wizard-mode) .sidebar>.section>*:last-child{margin-bottom:20px}
 @keyframes railPanelIn{from{opacity:0}to{opacity:1}}
 
-/* --- Cinematic live stage --- */
-body:not(.wizard-mode) .preview{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;background:var(--bg)}
-body:not(.wizard-mode) .preview-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:64px;padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--line)}
-body:not(.wizard-mode) .preview-heading{display:flex;align-items:center;gap:9px;min-width:0}
+/* Preview chrome only. Shell geometry is intentionally inherited from
+   editor-layout.css so toolbar/canvas rows cannot fight each other. */
 body:not(.wizard-mode) .preview-heading strong{font-size:14px;letter-spacing:-.02em}
 body:not(.wizard-mode) .preview-heading #previewStatus{color:var(--text-2);font-size:11px}
 body:not(.wizard-mode) .preview-heading .mode-badge{display:inline-flex;align-items:center;min-height:22px;padding:3px 7px;border:1px solid var(--line);border-radius:999px;color:var(--text-2);font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
@@ -37,26 +33,12 @@ body:not(.wizard-mode) .preview-live-badge.is-playing{color:var(--text);border-c
 body:not(.wizard-mode) .preview-live-badge.is-playing::before{background:var(--red);transform:scale(1.2);animation:kefeLivePulse 1.2s ease-in-out infinite}
 @keyframes kefeLivePulse{50%{opacity:.45;transform:scale(.8)}}
 body:not(.wizard-mode) .preview-effect-badge{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2);font-size:10px}
-body:not(.wizard-mode) .transport{display:flex;align-items:center;gap:8px;min-width:0}
-body:not(.wizard-mode) .transport .slider{min-width:100px;width:min(240px,24vw)}
-body:not(.wizard-mode) .canvas-wrapper{position:relative;flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:clamp(20px,4vw,48px);background:var(--surface-2);overflow:hidden;isolation:isolate}
-body:not(.wizard-mode) .canvas-wrapper::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 46%,rgba(255,255,255,.045),transparent 52%);z-index:-1}
-body:not(.wizard-mode) .canvas-wrapper canvas{position:relative;z-index:1;border-radius:10px;box-shadow:0 22px 70px rgba(0,0,0,.22),0 2px 10px rgba(0,0,0,.14);outline:1px solid rgba(255,255,255,.08);outline-offset:-1px;transition:box-shadow .35s var(--ease),transform .35s var(--ease)}
-body:not(.wizard-mode) .canvas-wrapper:hover canvas{box-shadow:0 28px 84px rgba(0,0,0,.26),0 3px 14px rgba(0,0,0,.16)}
-body:not(.wizard-mode) .preview.is-fullscreen .canvas-wrapper{padding:24px;background:#000}
-body:not(.wizard-mode) .preview.is-fullscreen .canvas-wrapper canvas{max-width:calc(100vw - 48px);max-height:calc(100vh - 112px)}
 
 @media(max-width:900px){
   body:not(.wizard-mode) .sidebar{width:100%;max-height:52vh;flex-direction:column}
   body:not(.wizard-mode) .section-nav{flex-direction:row;flex:0 0 auto;gap:4px;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden}
   body:not(.wizard-mode) .section-nav-link{flex:1 0 auto;min-height:52px}
-  body:not(.wizard-mode) main{flex-direction:column}
-  body:not(.wizard-mode) .preview-toolbar{min-height:58px;padding:8px 12px;gap:10px}
   body:not(.wizard-mode) .preview-heading{gap:6px}
   body:not(.wizard-mode) .preview-heading #previewStatus{display:none}
   body:not(.wizard-mode) .preview-effect-badge{display:none}
-  body:not(.wizard-mode) .transport{gap:5px}
-  body:not(.wizard-mode) .transport .slider{min-width:72px;width:22vw}
-  body:not(.wizard-mode) .transport #clock{font-size:10px;white-space:nowrap}
-  body:not(.wizard-mode) .canvas-wrapper{padding:14px}
 }
