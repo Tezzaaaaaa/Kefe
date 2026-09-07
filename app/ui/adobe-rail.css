@@ -1,19 +1,18 @@
 @import url("./editor-layout.css");
 
-/* KEFE classic editor — Adobe Express-style shell.
-   Layout geometry belongs to editor-layout.css. This file owns only the
-   classic sidebar/rail treatment and preview chrome styling. */
+/* KEFE classic editor — rail treatment only. Page geometry lives in
+   editor-layout.css. */
 body:not(.wizard-mode) main{align-items:stretch}
-body:not(.wizard-mode) .sidebar{display:flex;flex-direction:row;width:380px}
-body:not(.wizard-mode) .section-nav{position:relative;z-index:3;display:flex;flex-direction:column;flex:0 0 76px;grid-template-columns:none;gap:2px;padding:12px 8px;background:var(--surface);border-right:1px solid var(--line);border-bottom:0;overflow-y:auto}
-body:not(.wizard-mode) .section-nav-link{position:relative;flex-direction:column;justify-content:center;align-items:center;gap:6px;min-height:60px;border:0;border-radius:var(--radius-sm);padding:9px 4px;background:transparent;text-align:center;color:var(--text-3);transition:background .14s var(--ease),color .14s var(--ease)}
+body:not(.wizard-mode) .sidebar{display:grid;grid-template-columns:76px minmax(0,1fr);width:auto}
+body:not(.wizard-mode) .section-nav{position:relative;z-index:3;display:flex;flex-direction:column;flex:0 0 76px;min-width:0;min-height:0;grid-template-columns:none;gap:2px;padding:12px 8px;background:var(--surface);border-right:1px solid var(--line);border-bottom:0;overflow-y:auto}
+body:not(.wizard-mode) .section-nav-link{position:relative;flex:0 0 auto;flex-direction:column;justify-content:center;align-items:center;gap:6px;min-height:60px;border:0;border-radius:var(--radius-sm);padding:9px 4px;background:transparent;text-align:center;color:var(--text-3);transition:background .14s var(--ease),color .14s var(--ease)}
 body:not(.wizard-mode) .section-nav-link .rail-icon{width:19px;height:19px;flex:0 0 auto;color:inherit}
 body:not(.wizard-mode) .section-nav-link strong{font-size:8.5px;font-weight:650;white-space:normal;line-height:1.2;letter-spacing:.02em;text-transform:uppercase;max-width:60px;color:inherit;opacity:.85}
 body:not(.wizard-mode) .section-nav-link:hover{background:var(--surface-2);color:var(--text)}
 body:not(.wizard-mode) .section-nav-link.active{background:var(--red-soft);color:var(--red)}
 body:not(.wizard-mode) .section-nav-link.active strong{opacity:1}
 body:not(.wizard-mode) .section-nav-link.done:not(.active)::after{content:"";position:absolute;top:6px;right:14px;width:4px;height:4px;border-radius:50%;background:var(--success)}
-body:not(.wizard-mode) .sidebar>.section{display:none;flex:1 1 auto;min-width:0;overflow-y:auto;background:var(--surface)}
+body:not(.wizard-mode) .sidebar>.section{display:none;min-width:0;min-height:0;overflow-y:auto;background:var(--surface)}
 body:not(.wizard-mode) .sidebar>.section.active{display:block;animation:railPanelIn .16s var(--ease) both}
 body:not(.wizard-mode) .sidebar>.section h3{display:flex;align-items:baseline;gap:8px;position:sticky;top:0;margin:0;padding:20px 20px 14px;font-size:15px;font-weight:700;letter-spacing:-.02em;background:var(--surface);border-bottom:1px solid var(--line);z-index:2}
 body:not(.wizard-mode) .sidebar>.section h3 .section-index{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text-3)}
@@ -22,8 +21,6 @@ body:not(.wizard-mode) .sidebar>.section>*:first-child{margin-top:16px}
 body:not(.wizard-mode) .sidebar>.section>*:last-child{margin-bottom:20px}
 @keyframes railPanelIn{from{opacity:0}to{opacity:1}}
 
-/* Preview chrome only. Shell geometry is intentionally inherited from
-   editor-layout.css so toolbar/canvas rows cannot fight each other. */
 body:not(.wizard-mode) .preview-heading strong{font-size:14px;letter-spacing:-.02em}
 body:not(.wizard-mode) .preview-heading #previewStatus{color:var(--text-2);font-size:11px}
 body:not(.wizard-mode) .preview-heading .mode-badge{display:inline-flex;align-items:center;min-height:22px;padding:3px 7px;border:1px solid var(--line);border-radius:999px;color:var(--text-2);font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
@@ -35,7 +32,7 @@ body:not(.wizard-mode) .preview-live-badge.is-playing::before{background:var(--r
 body:not(.wizard-mode) .preview-effect-badge{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2);font-size:10px}
 
 @media(max-width:900px){
-  body:not(.wizard-mode) .sidebar{width:100%;max-height:52vh;flex-direction:column}
+  body:not(.wizard-mode) .sidebar{display:flex;width:100%;max-height:52vh;flex-direction:column}
   body:not(.wizard-mode) .section-nav{flex-direction:row;flex:0 0 auto;gap:4px;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden}
   body:not(.wizard-mode) .section-nav-link{flex:1 0 auto;min-height:52px}
   body:not(.wizard-mode) .preview-heading{gap:6px}
