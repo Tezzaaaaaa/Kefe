@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Node
         uses: actions/setup-node@v5
@@ -32,15 +32,6 @@ jobs:
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-
-      - name: Start KEFE backend server
-        run: npm start &
-        env:
-          NODE_ENV: test
-
-      - name: Wait for server to be ready
-        run: |
-          timeout 30 bash -c 'until curl -f http://127.0.0.1:3000/ > /dev/null 2>&1; do sleep 1; done'
 
       - name: Run end-to-end smoke test
         run: npm run test:smoke
