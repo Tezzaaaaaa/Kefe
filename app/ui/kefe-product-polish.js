@@ -14,7 +14,7 @@
     const promise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = src;
-      script.dataset[marker] = '1';
+    script.setAttribute(`data-${marker}`, '1');
       script.onload = resolve;
       script.onerror = () => reject(new Error(`Failed to load ${src}`));
       document.head.appendChild(script);

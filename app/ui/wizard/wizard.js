@@ -54,6 +54,7 @@
     };
 
     const wizard = { path: 'lyric', index: 0, choice: null, source: null };
+    const destroyIntroVeil = () => window.KefeDarkVeil?.destroy?.();
     const stepsFor = () => PATHS[wizard.path] || PATHS.lyric;
 
     const panel = document.createElement('div');
@@ -130,7 +131,20 @@
         }));
     }
     function renderIntro() {
-        panel.innerHTML = '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">What are you making?</h3><p class="wizard-panel-hint">Choose once. KEFE will build the right editing path for you.</p><div class="wizard-start-indicator" aria-label="KEFE start"><img class="wizard-start-logo wizard-start-logo-day" src="./assets/branding/kefe-logo.svg" alt="KEFE"><img class="wizard-start-logo wizard-start-logo-night" src="./assets/branding/kefe-logo-light.svg" alt="" aria-hidden="true"></div><div class="wizard-choices">' + ['lyric','visualiser','captioned','custom'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div>';
+        destroyIntroVeil();
+        panel.innerHTML = '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">What are you making?</h3><p class="wizard-panel-hint">Choose once. KEFE will build the right editing path for you.</p><div class="wizard-start-indicator" aria-label="KEFE start"><img class="wizard-start-logo wizard-start-logo-day" src="./assets/branding/kefe-logo.svg" alt="KEFE"><img class="wizard-start-logo wizard-start-logo-night" src="./assets/branding/kefe-logo-light.svg" alt="" aria-hidden="true"></div><div class="wizard-choices-wrap"><div class="wizard-dark-veil" aria-hidden="true"></div><div class="wizard-choices">' + ['lyric','visualiser','captioned','custom'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div></div>';
+        const veilTarget = panel.querySelector('.wizard-dark-veil');
+        if (veilTarget && window.KefeDarkVeil?.mount) {
+            requestAnimationFrame(() => window.KefeDarkVeil.mount(veilTarget, {
+                hueShift: 0,
+                speed: reducedMotion ? 0 : 0.5,
+                noiseIntensity: 0,
+                scanlineIntensity: 0,
+                scanlineFrequency: 0,
+                warpAmount: 0,
+                resolutionScale: 1
+            }));
+        }
         panel.querySelectorAll('[data-choice]').forEach(btn => btn.addEventListener('click', () => { const c = btn.dataset.choice; if (wizard.choice !== c) wizard.source = null; wizard.choice = c; wizard.path = c; wizard.index = 0; if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(c); panel.querySelectorAll('.wizard-choice').forEach(x => x.classList.toggle('selected', x.dataset.choice === c)); refreshNextState(); }));
     }
     function previewLineText() {
@@ -235,6 +249,7 @@
         });
     });
     function finishWizard() {
+        destroyIntroVeil();
         clearTimeout(fadeTimer); sidebar.classList.remove('wizard-fading'); stepHeading.remove(); nav.remove(); panel.remove(); document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current')); body.classList.remove('wizard-mode'); delete body.dataset.wizardStep;
         document.querySelectorAll('.section-nav-link').forEach(link => link.classList.toggle('active', link.dataset.nav === 'export'));
         document.querySelectorAll('.sidebar .section').forEach(s => s.classList.toggle('active', s.id === 'exportSection'));
