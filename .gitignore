@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Graft local codebase graph/cache
+graft/
+
 # Environment and secrets
 .env
 .env.*
