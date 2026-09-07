@@ -21,7 +21,7 @@ body.wizard-mode .wizard-style-preview{margin-top:18px;border-radius:12px}
 body.wizard-mode .wizard-effect-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 body.wizard-mode .wizard-effect-choice{min-height:88px}
 
-/* The preview DOM is: toolbar, then canvas wrapper. Keep those as two deliberate rows. */
+/* Classic editor preview: toolbar and canvas are the only two rows. */
 .preview{position:relative;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);overflow:hidden;padding:0;background:var(--bg)}
 .preview-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;min-width:0;min-height:58px;padding:10px 22px;border-bottom:1px solid var(--line);background:var(--surface);z-index:2}
 .preview-heading{display:flex;align-items:center;min-width:0;gap:9px;overflow:hidden}.preview-heading>*{flex:0 0 auto}.preview-heading strong{flex:0 0 auto}
