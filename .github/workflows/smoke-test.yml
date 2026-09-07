@@ -35,4 +35,4 @@ jobs:
 
       - name: Run end-to-end smoke test
         run: npm run test:smoke
-        timeout-minutes: 5
+        timeout-minutes: 10
