@@ -12,7 +12,7 @@
     const DAY_VARS = {
         '--bg': '#ffffff', '--surface': '#fefefe', '--surface-2': '#f7f7f5', '--surface-3': '#ececea',
         '--line': 'rgba(10,10,8,.10)', '--line-strong': 'rgba(10,10,8,.22)', '--text': '#0a0a0a',
-        '--text-2': '#5c5c58', '--text-3': '#8a8a85', '--shadow-card': 'none'
+        '--text-2': '#5c5c58', '--text-3': '#6f6f6a', '--shadow-card': 'none'
     };
     const NIGHT_VARS = {
         '--bg': '#030303', '--surface': '#0a0a0a', '--surface-2': '#141414', '--surface-3': '#1e1e1e',

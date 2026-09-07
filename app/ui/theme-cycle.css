@@ -74,8 +74,8 @@
 /* Day mode is a true light canvas; Night mode remains the existing dark canvas. */
 [data-theme="day"] body,
 [data-theme="day"] .app {
-    background: #ffffff;
-    color: #0a0a0a;
+    background: var(--bg);
+    color: var(--text);
 }
 
 [data-theme="day"] header,
