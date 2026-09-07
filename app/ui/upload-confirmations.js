@@ -198,6 +198,11 @@
   }
 
   function start() {
+    // iOS/iPadOS file pickers can apply inconsistent filtering to a wildcard
+    // MIME accept list. Use explicit audio/video extensions so audio files are
+    // always offered alongside video files in the Media picker.
+    const audioInput = $('audioInput');
+    if (audioInput) audioInput.setAttribute('accept', '.mp3,.wav,.m4a,.aac,.flac,.ogg,.oga,.opus,.mp4,.m4v,.mov,.webm');
     injectStyle();
     refresh();
     setInterval(refresh, 500);
