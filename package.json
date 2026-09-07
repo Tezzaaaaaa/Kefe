@@ -13,6 +13,11 @@
     "test:functional": "node tests/functional-sweep.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "graft:init": "npx -y @nanonets/graft init --agents codex --no-global",
+    "graft:build": "npx -y @nanonets/graft build",
+    "graft:check": "npx -y @nanonets/graft check",
+    "graft:map": "npx -y @nanonets/graft map",
+    "graft:viz": "npx -y @nanonets/graft viz",
     "prepare": "husky && chmod +x .husky/pre-commit"
   },
   "dependencies": {
