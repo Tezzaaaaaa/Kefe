@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const scale = { ratio: 1.25, micro: 10, caption: 12.5, label: 15.625, body: 19.53125, bodyLarge: 24.414, title: 30.518, display: 38.147, displayXL: 47.684 };
-  const families = { ui: 'Open Sans', apple: 'Open Sans', brat: 'Archivo Narrow', eternal: 'Homemade Apple', aurora: 'Bricolage Grotesque', typewriter: 'Courier Prime', instagram: 'Inter Tight', fadeup: 'Momo Trust Display', mixedmedia: 'Open Sans' };
+  const families = { ui: 'Open Sans', apple: 'Open Sans', brat: 'Archivo Narrow', eternal: 'Homemade Apple', aurora: 'Bricolage Grotesque', typewriter: 'Courier Prime', instagram: 'Inter Tight', fadeup: 'Momo Trust Display', mixedmedia: 'Open Sans', decrypt: 'Courier Prime', blur: 'Bricolage Grotesque', shiny: 'Inter Tight' };
   const effects = {
     apple: { family: families.apple, weight: 700, min: 42, max: 150, lineHeight: 1.08, tracking: -.020, align: 'center', case: 'none', opticalScale: 1.00 },
     brat: { family: families.brat, weight: 700, min: 36, max: 150, lineHeight: .94, tracking: -.055, align: 'center', case: 'none', opticalScale: 1.04 },
@@ -11,7 +11,10 @@
     typewriter: { family: families.typewriter, weight: 400, min: 32, max: 140, lineHeight: 1.02, tracking: .020, align: 'center', case: 'none', opticalScale: .98 },
     instagram: { family: families.instagram, weight: 800, min: 48, max: 150, lineHeight: .78, tracking: -.035, align: 'center', case: 'upper', opticalScale: 1.00 },
     fadeup: { family: families.fadeup, weight: 400, min: 34, max: 150, lineHeight: 1.08, tracking: -.006, align: 'center', case: 'none', opticalScale: .98 },
-    mixedmedia: { family: families.mixedmedia, weight: 800, min: 34, max: 150, lineHeight: 1.0, tracking: .012, align: 'center', case: 'none', opticalScale: 1.00 }
+    mixedmedia: { family: families.mixedmedia, weight: 800, min: 34, max: 150, lineHeight: 1.0, tracking: .012, align: 'center', case: 'none', opticalScale: 1.00 },
+    decrypt: { family: families.decrypt, weight: 700, min: 30, max: 140, lineHeight: 1.10, tracking: .010, align: 'center', case: 'none', opticalScale: .98 },
+    blur: { family: families.blur, weight: 600, min: 30, max: 140, lineHeight: 1.14, tracking: -.010, align: 'center', case: 'none', opticalScale: 1.00 },
+    shiny: { family: families.shiny, weight: 800, min: 30, max: 150, lineHeight: 1.10, tracking: -.020, align: 'center', case: 'none', opticalScale: 1.00 }
   };
   const fontFaces = [
     '400 1em "Open Sans"', '700 1em "Open Sans"', '800 1em "Open Sans"',

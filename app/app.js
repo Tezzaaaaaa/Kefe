@@ -954,13 +954,12 @@ function renderLyricsEffect(ctx, w, h, style, lines, time) {
         case "pulse": drawPulseEffect(ctx, w, h, style, lines, time); break;
         case "typewriter":
         case "instagram":
-        case "fadeup": {
+        case "fadeup":
+        default: {
             const fn = window.kefeEffects && window.kefeEffects[style.effect];
             if (typeof fn === "function") fn(ctx, w, h, style, lines, time);
             else drawAppleEffect(ctx, w, h, style, lines, time);
-            break;
         }
-        default: drawAppleEffect(ctx, w, h, style, lines, time);
     }
     ctx.restore();
 }
@@ -1606,7 +1605,10 @@ const EFFECT_LABELS = {
     pulse: "Bold lyrics with a rhythmic scale and glow pulse",
     typewriter: "Character-by-character typewriter reveal with a blinking caret",
     instagram: "Bold uppercase Instagram-style stack with a dominant active line",
-    fadeup: "Word-by-word fade-up reveal with a soft glow"
+    fadeup: "Word-by-word fade-up reveal with a soft glow",
+    decrypt: "Characters scramble through random glyphs before locking in, left to right",
+    blur: "Words drift up from a blur into sharp focus, staggered word by word",
+    shiny: "Solid lyric text with a bright diagonal shine sweeping across it"
 };
 
 function renderEffectControls() {
