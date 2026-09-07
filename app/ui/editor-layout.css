@@ -1,38 +1,32 @@
 /* KEFE editor shell — single source of truth for page geometry. */
-:root{--editor-rail:380px;--header-h:64px;--preview-pad:clamp(18px,3vw,44px);--panel-radius:14px}
-main{display:grid;grid-template-columns:var(--editor-rail) minmax(0,1fr);flex:1;min-width:0;min-height:0;overflow:hidden;background:var(--bg)}
-.sidebar{width:auto;min-width:0;min-height:0;overflow:hidden;border-right:1px solid var(--line);background:var(--surface)}
+:root{--editor-rail:380px;--header-h:64px;--panel-radius:14px}
+
+main{display:grid;grid-template-columns:var(--editor-rail) minmax(0,1fr);flex:1 1 auto;width:100%;min-width:0;min-height:0;overflow:hidden;background:var(--bg)}
+
+.sidebar{display:grid;grid-template-columns:76px minmax(0,1fr);width:auto;min-width:0;min-height:0;overflow:hidden;border-right:1px solid var(--line);background:var(--surface)}
+
+.section-nav{min-width:0;min-height:0}
+.sidebar>.section{min-width:0;min-height:0;overflow-x:hidden;overflow-y:auto}
+
+.preview{position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);width:auto;min-width:0;min-height:0;overflow:hidden;padding:0;background:var(--bg)}
+.preview-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;min-width:0;min-height:58px;padding:10px 22px;border-bottom:1px solid var(--line);background:var(--surface);z-index:2}
+.preview-heading{display:flex;align-items:center;min-width:0;gap:9px;overflow:hidden}.preview-heading>*{flex:0 0 auto}.preview-heading strong{flex:0 0 auto}
+.preview-format{min-width:0;overflow:hidden}
+.canvas-wrapper{position:relative;display:flex;align-items:center;justify-content:center;width:auto;min-width:0;min-height:0;padding:clamp(20px,4vw,48px);background:var(--surface-2);overflow:hidden;isolation:isolate}
+.canvas-wrapper::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 46%,rgba(255,255,255,.045),transparent 52%);z-index:-1}
+.canvas-wrapper canvas{position:relative;z-index:1;display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;border-radius:var(--panel-radius);box-shadow:0 22px 70px rgba(0,0,0,.22),0 2px 10px rgba(0,0,0,.14);outline:1px solid rgba(255,255,255,.08);outline-offset:-1px}
+.transport{display:flex;align-items:center;gap:8px;min-width:0;padding:0;background:transparent;border:0;flex-shrink:0}.transport .slider{flex:1 1 auto;min-width:120px;width:min(360px,32vw)}.transport #clock{flex:0 0 auto;min-width:76px;text-align:right;white-space:nowrap}
+
+/* Wizard geometry is isolated from the classic editor shell. */
 body.wizard-mode .sidebar{display:flex;flex-direction:column;min-height:0}
 body.wizard-mode .sidebar>.section-nav,body.wizard-mode .sidebar>.section:not(#wizardSection):not(.wizard-current){display:none!important}
 body.wizard-mode .sidebar>.wizard-panel{order:1;display:block;flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable}
 body.wizard-mode .sidebar>.wizard-panel:empty{display:none}
 body.wizard-mode .sidebar>.section.wizard-current{order:1;display:block;flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable}
 body.wizard-mode .wizard-nav{order:2;flex:0 0 auto}
-body.wizard-mode .wizard-panel-title{font-size:24px;line-height:1.08;letter-spacing:-.035em}
-body.wizard-mode .wizard-panel-hint{font-size:12px;line-height:1.45}
-body.wizard-mode .wizard-choices{grid-template-columns:1fr;gap:8px;margin-top:18px;width:100%}
-body.wizard-mode .wizard-choices:not(.wizard-source-choices) .wizard-choice{min-height:76px;padding:13px 14px;grid-template-columns:38px minmax(0,1fr);gap:12px;border-radius:11px}
-body.wizard-mode .wizard-choices:not(.wizard-source-choices) .wizard-choice-icon{width:36px;height:36px;border-radius:9px}
-body.wizard-mode .wizard-choices:not(.wizard-source-choices) .wizard-choice strong{font-size:13px}
-body.wizard-mode .wizard-choices:not(.wizard-source-choices) .wizard-choice-copy>span{font-size:10.5px}
-body.wizard-mode .wizard-source-choices{grid-template-columns:1fr}
-body.wizard-mode .wizard-style-preview,body.wizard-mode .wizard-style-group,body.wizard-mode .wizard-summary,body.wizard-mode .wizard-source-action{width:100%;max-width:none}
-body.wizard-mode .wizard-style-preview{margin-top:18px;border-radius:12px}
-body.wizard-mode .wizard-effect-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-body.wizard-mode .wizard-effect-choice{min-height:88px}
 
-/* Classic editor preview: toolbar and canvas are the only two rows. */
-.preview{position:relative;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);overflow:hidden;padding:0;background:var(--bg)}
-.preview-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;min-width:0;min-height:58px;padding:10px 22px;border-bottom:1px solid var(--line);background:var(--surface);z-index:2}
-.preview-heading{display:flex;align-items:center;min-width:0;gap:9px;overflow:hidden}.preview-heading>*{flex:0 0 auto}.preview-heading strong{flex:0 0 auto}
-.preview-format{min-width:0;overflow:hidden}
-.canvas-wrapper{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;padding:clamp(20px,4vw,48px);background:var(--surface-2);overflow:hidden;isolation:isolate}
-.canvas-wrapper::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 46%,rgba(255,255,255,.045),transparent 52%);z-index:-1}
-.canvas-wrapper canvas{position:relative;z-index:1;display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;border-radius:var(--panel-radius);box-shadow:0 22px 70px rgba(0,0,0,.22),0 2px 10px rgba(0,0,0,.14);outline:1px solid rgba(255,255,255,.08);outline-offset:-1px}
-.transport{display:flex;align-items:center;gap:8px;min-width:0;padding:0;background:transparent;border:0;flex-shrink:0}
-.transport .slider{flex:1 1 auto;min-width:120px;width:min(360px,32vw)}.transport #clock{flex:0 0 auto;min-width:76px;text-align:right;white-space:nowrap}
-@media (max-width:1100px){:root{--editor-rail:340px}}
-@media (max-width:900px){main{grid-template-columns:1fr;grid-template-rows:minmax(280px,46dvh) minmax(0,1fr)}.sidebar{width:100%;min-height:0;border-right:0;border-bottom:1px solid var(--line)}.preview-toolbar{padding:9px 14px}.transport{padding:0}.canvas-wrapper{padding:14px}}
-@media (max-width:700px){.preview-toolbar{grid-template-columns:1fr;align-items:stretch;gap:7px;min-height:0;padding:8px 10px}.preview-heading{gap:6px}.transport{display:grid;grid-template-columns:44px 44px minmax(0,1fr) auto;gap:6px;width:100%}.transport>button,.transport>.icon-button{min-width:44px;min-height:44px}.transport .slider{min-width:0;width:100%}.canvas-wrapper{padding:10px}body.wizard-mode .sidebar>.wizard-panel{padding:14px 12px 16px}body.wizard-mode .wizard-effect-grid{grid-template-columns:1fr}}
-@media (max-width:480px){.preview-heading #previewStatus{display:none}.transport{grid-template-columns:42px 42px minmax(0,1fr) auto;gap:5px}.transport>button,.transport>.icon-button{min-width:42px;min-height:42px}.transport #clock{min-width:62px;font-size:10px}}
-@media (pointer:coarse){.preview-toolbar button,.preview-toolbar select,.preview-toolbar input[type=range],.transport button,.transport input[type=range]{min-height:44px}}
+@media(max-width:1100px){:root{--editor-rail:340px}}
+@media(max-width:900px){main{grid-template-columns:1fr;grid-template-rows:minmax(280px,46dvh) minmax(0,1fr)}.sidebar{width:100%;grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);border-right:0;border-bottom:1px solid var(--line)}.preview-toolbar{padding:9px 14px}.canvas-wrapper{padding:14px}}
+@media(max-width:700px){.preview-toolbar{grid-template-columns:1fr;align-items:stretch;gap:7px;min-height:0;padding:8px 10px}.preview-heading{gap:6px}.transport{display:grid;grid-template-columns:44px 44px minmax(0,1fr) auto;gap:6px;width:100%}.transport>button,.transport>.icon-button{min-width:44px;min-height:44px}.transport .slider{min-width:0;width:100%}.canvas-wrapper{padding:10px}body.wizard-mode .sidebar>.wizard-panel{padding:14px 12px 16px}}
+@media(max-width:480px){.preview-heading #previewStatus{display:none}.transport{grid-template-columns:42px 42px minmax(0,1fr) auto;gap:5px}.transport>button,.transport>.icon-button{min-width:42px;min-height:42px}.transport #clock{min-width:62px;font-size:10px}}
+@media(pointer:coarse){.preview-toolbar button,.preview-toolbar select,.preview-toolbar input[type=range],.transport button,.transport input[type=range]{min-height:44px}}
