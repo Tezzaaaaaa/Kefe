@@ -215,3 +215,52 @@ input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
 /* ---------- Text panel wrapper (lyrics / captions) ---------- */
 .text-panel { display: block; }
 .text-panel.hidden { display: none; }
+
+
+/* ---------- Music metadata / lyric sync connection ---------- */
+.music-details {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+  margin-top: 14px;
+}
+
+.music-slot {
+  display: flex !important;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.music-slot > span {
+  display: block !important;
+  font-size: var(--type-caption);
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.music-slot input {
+  display: block !important;
+  width: 100% !important;
+  min-height: 42px !important;
+  box-sizing: border-box;
+}
+
+.music-sync-hint {
+  display: block !important;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.music-sync-hint.is-video-source,
+.music-sync-hint.is-audio-source {
+  color: var(--text-2);
+}
+
+  color: var(--text-2);
+}

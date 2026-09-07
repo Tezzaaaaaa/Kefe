@@ -85,14 +85,14 @@
         return state.audio.file || media.videoFile || null;
     }
 
-    async function decodeToMono16k(file) {
+    async function decodeAudioBufferToMono16k(bufferData) {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
         if (!AudioCtx || !OfflineCtx) throw new Error('This browser cannot decode audio.');
         let decoded;
         try {
             const ctx = new AudioCtx();
-            decoded = await ctx.decodeAudioData(await file.arrayBuffer());
+            decoded = await ctx.decodeAudioData(bufferData);
             await ctx.close().catch(() => {});
         } catch (e) {
             throw new Error("Could not decode this file's audio track — try MP3/WAV/M4A, or a video with a standard audio track.");
@@ -104,6 +104,55 @@
         src.buffer = decoded; src.connect(offline.destination); src.start();
         const rendered = await offline.startRendering();
         return { float32: rendered.getChannelData(0), duration: decoded.duration };
+    }
+
+    async function captureVideoAudio(file) {
+        const video = document.createElement('video');
+        const url = URL.createObjectURL(file);
+        const capture = video.captureStream?.bind(video) || video.mozCaptureStream?.bind(video);
+        if (!capture || typeof MediaRecorder === 'undefined') {
+            URL.revokeObjectURL(url);
+            throw new Error('This browser cannot extract audio from video for lyric alignment.');
+        }
+        video.preload = 'auto'; video.muted = true; video.playsInline = true; video.src = url;
+        try {
+            await new Promise((resolve, reject) => {
+                video.addEventListener('loadedmetadata', resolve, { once: true });
+                video.addEventListener('error', () => reject(new Error('Could not load the video audio track.')), { once: true });
+                video.load();
+            });
+            const sourceStream = capture();
+            const audioTracks = sourceStream.getAudioTracks();
+            if (!audioTracks.length) throw new Error('The video does not contain an audio track.');
+            const stream = new MediaStream(audioTracks);
+            const mimeTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
+            const mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported?.(type));
+            const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+            const chunks = [];
+            const stopped = new Promise((resolve, reject) => {
+                recorder.addEventListener('dataavailable', event => { if (event.data.size) chunks.push(event.data); });
+                recorder.addEventListener('stop', () => resolve(new Blob(chunks, { type: recorder.mimeType || 'audio/webm' })), { once: true });
+                recorder.addEventListener('error', () => reject(new Error('Could not capture the video audio track.')), { once: true });
+            });
+            recorder.start(250);
+            await video.play();
+            await new Promise(resolve => {
+                const finish = () => resolve();
+                video.addEventListener('ended', finish, { once: true });
+                setTimeout(finish, Math.min(1800, Math.max(1, Number(video.duration) || 1)) * 1000 + 500);
+            });
+            if (recorder.state !== 'inactive') recorder.stop();
+            return (await stopped).arrayBuffer();
+        } finally {
+            video.pause(); video.removeAttribute('src'); video.load();
+            URL.revokeObjectURL(url);
+        }
+    }
+
+    async function decodeToMono16k(file) {
+        const isVideo = String(file?.type || '').startsWith('video/') || /\.(mp4|mov|webm|m4v|avi|mkv)$/i.test(file?.name || '');
+        const bufferData = isVideo ? await captureVideoAudio(file) : await file.arrayBuffer();
+        return decodeAudioBufferToMono16k(bufferData);
     }
 
     const registry = {
@@ -331,6 +380,37 @@
         });
     }
 
+    async function transcribeSource(options = {}) {
+        const file = resolveSourceFile();
+        if (!file) throw new Error('Load an audio or video source first.');
+
+        const providerId = options.provider || providerSelect.value || registry.defaultId;
+        const provider = registry.get(providerId);
+        if (!provider) throw new Error('No transcription engine is available.');
+
+        const audio = await decodeToMono16k(file);
+        const result = await provider.transcribe({
+            file,
+            audio,
+            options: { model: $('captionGenModel')?.value },
+            onStatus: options.onStatus || (() => {}),
+            onProgress: options.onProgress || (() => {})
+        });
+
+        const check = validateTranscript(result, audio.duration);
+        if (!check.ok) {
+            throw new Error(`Transcript validation failed: ${check.issues.join(', ')}.`);
+        }
+
+        return {
+            file,
+            audio,
+            result,
+            words: check.words,
+            engine: result.engine || provider.label
+        };
+    }
+
     async function generate() {
         if (window.isExporting) return;
         const file = resolveSourceFile();
@@ -362,5 +442,12 @@
     $('captionRegenBtn')?.addEventListener('click', generate);
     $('captionOpenEditorBtn')?.addEventListener('click', () => $('textSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     renderReview();
-    window.kefeCaptionGen = { generate, renderReview, registry, validateTranscript };
+    window.kefeCaptionGen = {
+        generate,
+        renderReview,
+        registry,
+        validateTranscript,
+        transcribeSource,
+        isBusy: () => Boolean(document.getElementById('captionGenBtn')?.disabled)
+    };
 })();

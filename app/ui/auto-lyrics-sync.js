@@ -33,12 +33,16 @@
     let inFlight = false;
 
     function resolvedKey() {
-        const audio = window.state?.audio;
-        if (!audio || !audio.file) return null;
-        const meta = audio.metadata || {};
-        const title = String(meta.title || '').trim();
+        const state = window.state;
+        const audio = state?.audio;
+        const media = window.kefeMedia || {};
+        const hasAudioFile = Boolean(audio?.file);
+        const hasVideoAudio = Boolean(media.videoFile && media.videoHasAudio);
+        if (!hasAudioFile && !hasVideoAudio) return null;
+        const meta = audio?.metadata || {};
+        const title = String($('metaTitle')?.value || $('wizardMetaTitle')?.value || meta.title || '').trim();
         if (!title) return null;
-        const artist = String(meta.artist || '').trim();
+        const artist = String($('metaArtist')?.value || $('wizardMetaArtist')?.value || meta.artist || '').trim();
         const source = audio.metadataSource || '';
         // Filename-derived titles are only trustworthy once they carried an
         // artist too (i.e. the filename actually looked like "Artist - Title").
@@ -60,16 +64,77 @@
     function tick() {
         if (inFlight || window.isExporting) return;
         const state = window.state;
-        if (!state || state.lyrics?.lines?.length) return; // never clobber existing lyrics
+        if (!state || state.lyrics?.lines?.length) return;
         const btn = $('findLyricsBtn');
         if (!btn || btn.disabled) return;
+
         const key = resolvedKey();
         if (!key || attempted.has(key)) return;
+
         attempted.add(key);
         inFlight = true;
         releaseWhenDone(btn);
         btn.click();
     }
+
+    async function alignResolvedLyrics() {
+        const st = window.state;
+        const aligner = window.kefeLyricAligner;
+        const captionGen = window.kefeCaptionGen;
+
+        if (!st || !aligner || !captionGen?.transcribeSource) return;
+        if (st.lyrics?.alignment?.method === 'media-audio') return;
+
+        const deadline = Date.now() + 15000;
+
+        while (!st.lyrics?.lines?.length && Date.now() < deadline) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        if (!st.lyrics?.lines?.length) return;
+
+        try {
+            const transcription = await captionGen.transcribeSource({
+                onStatus: message => {
+                    const status = document.getElementById('lyricsStatus');
+                    if (status) status.textContent = `Aligning lyrics to media audio… ${message}`;
+                }
+            });
+
+            const result = aligner.align(
+                st.lyrics.lines,
+                transcription.words,
+                Number(st.audio?.duration || transcription.audio?.duration || 0)
+            );
+
+            if (!result.aligned) return;
+
+            st.lyrics.lines = result.lines;
+            st.lyrics.alignment = {
+                method: 'media-audio',
+                confidence: result.confidence,
+                offset: result.offset,
+                anchors: result.anchors,
+                error: result.error
+            };
+
+            if (typeof window.redrawCurrentPreviewFrame === 'function') {
+                window.redrawCurrentPreviewFrame();
+            }
+
+            const status = document.getElementById('lyricsStatus');
+            if (status) {
+                status.textContent =
+                    `Lyrics synced to media audio — ${result.anchors} timing anchors matched.`;
+            }
+        } catch (error) {
+            console.warn('[KEFE] Automatic lyric alignment unavailable:', error);
+        }
+    }
+
+    document.addEventListener('kefe:lyrics-resolved', () => {
+        alignResolvedLyrics();
+    });
 
     function start() {
         tick();

@@ -115,9 +115,19 @@
         const options = wizard.choice === 'captioned'
             ? [['uploaded', 'Audio file', 'Use a music track or voice recording.'], ['media', 'Background video', 'Use a video and its soundtrack.']]
             : [['uploaded', 'Audio file', 'Use an MP3, WAV or M4A track.'], ['media', 'Background video', 'Use a video as the visual background and its soundtrack.'], ['none', 'No audio', 'Create silent visuals.']];
-        panel.innerHTML = '<p class="wizard-panel-kicker">02 · Media</p><h3 class="wizard-panel-title">What are you starting with?</h3><p class="wizard-panel-hint">Pick your source. KEFE will carry it through the rest of the project.</p><div class="wizard-choices wizard-source-choices">' + options.map(([v,l,h]) => `<button type="button" class="wizard-choice${wizard.source === v ? ' selected' : ''}" data-source="${v}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${SOURCE_ICONS[v]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${l}</strong><span>${h}</span></span></button>`).join('') + '</div>' + (wizard.source ? `<div class="wizard-source-action"><strong>${sourceStatus()}</strong><button type="button" id="wizardSourceAction" class="file-button">${sourceReady() ? 'Replace media' : 'Choose media'}</button></div>` : '');
+        const metadata = window.state?.audio?.metadata || {};
+        panel.innerHTML = '<p class="wizard-panel-kicker">02 · Media</p><h3 class="wizard-panel-title">What are you starting with?</h3><p class="wizard-panel-hint">Pick your source. KEFE will carry it through the rest of the project.</p><div class="wizard-choices wizard-source-choices">' + options.map(([v,l,h]) => `<button type="button" class="wizard-choice${wizard.source === v ? ' selected' : ''}" data-source="${v}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${SOURCE_ICONS[v]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${l}</strong><span>${h}</span></span></button>`).join('') + '</div>' + (wizard.source ? `<div class="wizard-source-action"><strong>${sourceStatus()}</strong><button type="button" id="wizardSourceAction" class="file-button">${sourceReady() ? 'Replace media' : 'Choose media'}</button></div>` : '') + '<div class="sub-heading music-details-heading">Song details</div><div class="metadata-grid music-details" aria-label="Song details"><label class="music-slot" for="wizardMetaArtist"><span>Artist</span><input type="text" id="wizardMetaArtist" placeholder="Enter artist"></label><label class="music-slot" for="wizardMetaTitle"><span>Title</span><input type="text" id="wizardMetaTitle" placeholder="Enter song title"></label><label class="music-slot" for="wizardMetaAlbum"><span>Album</span><input type="text" id="wizardMetaAlbum" placeholder="Enter album"></label></div><p class="music-sync-hint">Enter the artist and title to find synced lyrics when the file has no metadata.</p>';
+        $('wizardMetaArtist').value = metadata.artist || '';
+        $('wizardMetaTitle').value = metadata.title || '';
+        $('wizardMetaAlbum').value = metadata.album || '';
         panel.querySelectorAll('[data-source]').forEach(btn => btn.addEventListener('click', () => applySourceChoice(btn.dataset.source)));
         $('wizardSourceAction')?.addEventListener('click', chooseSourceMedia);
+        [['wizardMetaArtist', 'artist'], ['wizardMetaTitle', 'title'], ['wizardMetaAlbum', 'album']].forEach(([id, key]) => $(id)?.addEventListener('input', event => {
+            if (window.state?.audio?.metadata) window.state.audio.metadata[key] = event.target.value.trim();
+            const mainInput = $(`meta${key[0].toUpperCase()}${key.slice(1)}`);
+            if (mainInput) mainInput.value = event.target.value;
+            if (window.state?.audio) window.state.audio.metadataSource = 'manual';
+        }));
     }
     function renderIntro() {
         panel.innerHTML = '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">What are you making?</h3><p class="wizard-panel-hint">Choose once. KEFE will build the right editing path for you.</p><div class="wizard-choices">' + ['lyric','visualiser','captioned','custom'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div>';
@@ -178,6 +188,8 @@
     function applyStep() {
         const steps = stepsFor(), step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
+        const navKey = step === 'source' ? 'audio' : step === 'content' || step === 'captions' ? 'text' : step === 'style' ? 'fx' : step === 'background' ? 'background' : step === 'export' || step === 'intro' ? 'export' : null;
+        document.querySelectorAll('.section-nav-link').forEach(link => link.classList.toggle('active', link.dataset.nav === navKey));
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
         if (previewEl) { const showLivePreview = ['content','captions','style','background','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
         const targetIds = targetsForStep(step);
@@ -206,6 +218,22 @@
         if (firstTarget) { firstTarget.setAttribute('tabindex', '-1'); firstTarget.focus({ preventScroll: true }); }
     }
     function refreshNextState() { const step = stepsFor()[wizard.index], b = $('wizardNextBtn'); if (step && b) b.disabled = !nextEnabled(step); }
+    function stepIndexForNav(key) {
+        const target = key === 'audio' ? 'source'
+            : key === 'text' ? (stepsFor().includes('content') ? 'content' : 'captions')
+            : key === 'background' ? 'background'
+            : key === 'fx' ? 'style'
+            : key === 'export' ? 'export'
+            : null;
+        return target ? stepsFor().indexOf(target) : -1;
+    }
+    document.querySelectorAll('.section-nav-link').forEach(link => {
+        link.addEventListener('click', event => {
+            event.preventDefault();
+            const index = stepIndexForNav(link.dataset.nav);
+            if (index >= 0) goTo(index);
+        });
+    });
     function finishWizard() {
         clearTimeout(fadeTimer); sidebar.classList.remove('wizard-fading'); stepHeading.remove(); nav.remove(); panel.remove(); document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current')); body.classList.remove('wizard-mode'); delete body.dataset.wizardStep;
         document.querySelectorAll('.section-nav-link').forEach(link => link.classList.toggle('active', link.dataset.nav === 'export'));

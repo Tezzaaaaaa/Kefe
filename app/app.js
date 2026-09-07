@@ -53,6 +53,7 @@ const state = {
     touched: { fx: false, background: false, title: false },
     aspect: '9:16'
 };
+window.state = state;
 
 let media = { image: null, video: null, videoFile: null, videoHasAudio: false };
 window.kefeMedia = media; // wizard.js reads background/video state via window.kefeMedia
@@ -1574,6 +1575,7 @@ function redrawCurrentPreviewFrame() {
     catch(e) { console.error("Preview redraw error:", e); }
     syncPreviewTransportUI(t);
 }
+window.redrawCurrentPreviewFrame = redrawCurrentPreviewFrame;
 function tick() {
     if (!isExporting) {
         const t = getMasterTime();
@@ -1933,7 +1935,7 @@ function songFromFilename(name) {
     if (!name) return { artist: '', track: '' };
     const base = name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim();
     const parts = base.split(/\s+-\s+/);
-    return parts.length > 1 ? { track: parts[0].trim(), artist: parts.slice(1).join(' - ').trim() } : { artist: '', track: base };
+    return parts.length > 1 ? { artist: parts[0].trim(), track: parts.slice(1).join(' - ').trim() } : { artist: '', track: base };
 }
 const ASPECTS = {
     '9:16': { w: 1080, h: 1920, label: '1080 × 1920 (Vertical)' },
@@ -2057,6 +2059,65 @@ async function setAlbumArtworkReference(reference) {
     catch (error) { return false; }
 }
 
+function loadMediaInfoLibrary() {
+    if (window.MediaInfo) return Promise.resolve(window.MediaInfo);
+    if (!window.kefeMediaInfoLoadPromise) {
+        window.kefeMediaInfoLoadPromise = import('https://cdn.jsdelivr.net/npm/mediainfo.js@0.3.7/dist/MediaInfo.js')
+            .then(module => module.default || module.MediaInfo || module)
+            .catch(error => {
+                window.kefeMediaInfoLoadPromise = null;
+                throw error;
+            });
+    }
+    return window.kefeMediaInfoLoadPromise;
+}
+
+async function readEmbeddedVideoMetadata(file, token) {
+    try {
+        const MediaInfo = await loadMediaInfoLibrary();
+        const mediaInfo = await MediaInfo({
+            locateFile: () => 'https://cdn.jsdelivr.net/npm/mediainfo.js@0.3.7/dist/MediaInfoModule.wasm'
+        });
+
+        const result = await mediaInfo.analyzeData(
+            file.size,
+            async (chunkSize, offset) => {
+                const buffer = await file.slice(offset, offset + chunkSize).arrayBuffer();
+                return new Uint8Array(buffer);
+            }
+        );
+
+        mediaInfo.close();
+
+        if (token !== backgroundLoadToken || media.videoFile !== file) return;
+
+        const general = Array.isArray(result?.media?.track)
+            ? result.media.track.find(track => track?.['@type'] === 'General')
+            : null;
+
+        if (!general || state.audio.metadataSource === 'project') return;
+
+        const title = String(general.Title || '').trim();
+        const artist = String(general.Performer || general.Album_Performer || '').trim();
+        const album = String(general.Album || '').trim();
+
+        if (title) state.audio.metadata.title = title;
+        if (artist) state.audio.metadata.artist = artist;
+        if (album) state.audio.metadata.album = album;
+
+        if (title || artist || album) {
+            state.audio.metadataSource = 'embedded';
+            updateMetadataInputs();
+            saveLinaPrefs();
+            redrawCurrentPreviewFrame();
+            audioStatus.textContent = file.name + ' · embedded metadata';
+        }
+        readEmbeddedAudioMetadata(file, token, 'video');
+    } catch (error) {
+        console.info('No readable embedded video metadata:', error?.message || error);
+    }
+}
+
 function loadMediaTagsLibrary() {
     if (window.jsmediatags) return Promise.resolve(window.jsmediatags);
     if (!mediaTagsLoadPromise) {
@@ -2071,11 +2132,14 @@ function loadMediaTagsLibrary() {
     return mediaTagsLoadPromise;
 }
 
-async function readEmbeddedAudioMetadata(file, token) {
+async function readEmbeddedAudioMetadata(file, token, source = 'audio') {
     try {
         const tagsLibrary = await loadMediaTagsLibrary();
         const result = await new Promise((resolve, reject) => tagsLibrary.read(file, { onSuccess: resolve, onError: reject }));
-        if (token !== audioLoadToken || state.audio.file !== file) return;
+        const sourceStillCurrent = source === 'video'
+            ? token === backgroundLoadToken && media.videoFile === file
+            : token === audioLoadToken && state.audio.file === file;
+        if (!sourceStillCurrent) return;
         const tags = result?.tags || {};
         if (state.audio.metadataSource !== 'project') {
             if (tags.title) state.audio.metadata.title = String(tags.title).trim();
@@ -2220,6 +2284,11 @@ function handleBackgroundFile(file) {
                     updateMetadataInputs();
                 }
             }
+
+            // Video media uses the same metadata pipeline as uploaded audio.
+            // The video remains the master media source; its metadata only
+            // populates the shared song metadata fields used by lyric lookup.
+            readEmbeddedVideoMetadata(file, token);
             // Default master selection (only when the user has not explicitly chosen):
             // - no uploaded audio + video has audio  -> video audio becomes master
             // - no uploaded audio + video has no audio -> virtual timeline (muted) driven by video duration
@@ -2831,7 +2900,15 @@ $('findLyricsBtn').addEventListener('click', async function() {
     const resolved = resolveAudioLabels(state.audio);
     const artist = resolved.artist;
     const track = resolved.title;
-    if (!track) { toast('Enter the song title first', 'error'); return; }
+    if (!track || !artist) {
+        const missing = !track && !artist
+            ? 'Enter the song title and artist first'
+            : (!track ? 'Enter the song title first' : 'Enter the artist first');
+        $('lyricsStatus').textContent = missing;
+        $('lyricsStatus').className = 'status error';
+        toast(missing, 'error');
+        return;
+    }
     $('lyricsStatus').textContent = 'Searching...';
     $('lyricsStatus').className = 'status loading';
     this.disabled = true;
@@ -2856,6 +2933,16 @@ $('findLyricsBtn').addEventListener('click', async function() {
         if (match.albumName) state.audio.metadata.album = String(match.albumName).trim();
         if (match.trackName || match.artistName || match.albumName) state.audio.metadataSource = 'lyrics-service';
         updateMetadataInputs();
+
+        document.dispatchEvent(new CustomEvent('kefe:lyrics-resolved', {
+            detail: {
+                source: 'lrclib',
+                artist,
+                track,
+                lines: state.lyrics.lines
+            }
+        }));
+
         $('lyricsStatus').textContent = parsed.lines.length + ' lines loaded' + (parsed.skippedCount ? ' (' + parsed.skippedCount + ' unparsable line' + (parsed.skippedCount === 1 ? '' : 's') + ' skipped)' : '');
         $('lyricsStatus').className = 'status success';
         toast('Lyrics loaded' + (parsed.skippedCount ? ', ' + parsed.skippedCount + ' line(s) could not be parsed' : ''), 'success');

@@ -9,7 +9,7 @@ const app = fs.readFileSync(__dirname + '/../app/app.js', 'utf8');
 const buttons = [...html.matchAll(/data-effect="([^"]+)"/g)].map(m => m[1]);
 const labels = [...app.matchAll(/([a-z]+): "[^"]+"/g)].map(m => m[1]);
 // renderer keys: modular (window.kefeEffects) + canonical native (apple, pulse)
-const registered = ['brat', 'aurora', 'eternal', 'typewriter', 'instagram', 'fadeup', 'apple', 'pulse'];
+const registered = ['brat', 'aurora', 'eternal', 'typewriter', 'instagram', 'fadeup', 'decrypt', 'blur', 'shiny', 'apple', 'pulse'];
 
 const missingLabels = buttons.filter(b => !labels.includes(b));
 const missingRenders = buttons.filter(b => !registered.includes(b));
