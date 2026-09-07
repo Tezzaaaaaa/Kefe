@@ -38,11 +38,11 @@ The editor currently provides six built-in background choices:
 - Solid colour
 - Soft Gradient
 - Spotlight
-- Aurora Wash
+- Aura Wash
 - Fine Grid
 - Film Grain
 
-Users can also supply their own image or video background. Aurora Wash includes the current native WebGL Aurora FX implementation.
+Users can also supply their own image or video background. Aura Wash is a static gradient wash — it is unrelated to the separate WebGL Aurora FX layer under Visual FX.
 
 ## Visual FX
 

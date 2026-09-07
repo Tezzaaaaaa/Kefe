@@ -5,6 +5,7 @@ main{display:grid;grid-template-columns:var(--editor-rail) minmax(0,1fr);flex:1;
 body.wizard-mode .sidebar{display:flex;flex-direction:column;min-height:0}
 body.wizard-mode .sidebar>.section-nav,body.wizard-mode .sidebar>.section:not(#wizardSection):not(.wizard-current){display:none!important}
 body.wizard-mode .sidebar>.wizard-panel{order:1;display:block;flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable}
+body.wizard-mode .sidebar>.wizard-panel:empty{display:none}
 body.wizard-mode .sidebar>.section.wizard-current{order:1;display:block;flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable}
 body.wizard-mode .wizard-nav{order:2;flex:0 0 auto}
 body.wizard-mode .wizard-panel-title{font-size:24px;line-height:1.08;letter-spacing:-.035em}
