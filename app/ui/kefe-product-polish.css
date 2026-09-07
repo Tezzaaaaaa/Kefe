@@ -30,7 +30,11 @@ body.wizard-mode .preview{border-color:var(--line);}
 body.wizard-mode .preview .preview-heading strong{letter-spacing:-.03em;}
 body.wizard-mode[data-wizard-step="export"] .wizard-panel{min-height:420px;}
 body.wizard-mode[data-wizard-step="export"] #exportSection:before{content:"07 · FINISH";display:block;margin:0 0 9px;color:var(--red);font-size:9px;font-weight:800;letter-spacing:.2em;}
-body.wizard-mode[data-wizard-step="export"] #exportSection h3{display:none;}
+/* Every static section (content/captions/background/export) already gets its
+   own step heading prepended by wizard.js. Without this, the section's own
+   original <h3> ("03 Lyrics & Captions", "04 Background"...) shows right
+   underneath it as a redundant second heading. */
+body.wizard-mode .sidebar>.section.wizard-current>h3{display:none;}
 body.wizard-mode[data-wizard-step="export"] #exportSection:after{content:"Your visualiser is ready. Choose a format, then export the finished video.";display:block;max-width:560px;margin:-2px 0 22px;color:var(--text-3);font-size:14px;line-height:1.5;}
 body.wizard-mode #exportSection>label{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:end;}
 body.wizard-mode #exportSection>label+label{margin-top:8px;}
