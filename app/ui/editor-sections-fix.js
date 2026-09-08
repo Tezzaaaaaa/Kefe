@@ -37,8 +37,6 @@
       fxLink.dataset.target = 'visualFxSection';
     }
 
-    // The old FX container renders the lyric-effect controls again. The real
-    // independent Visual FX panel is created by effect-app-fx.js as #visualFxSection.
     const legacyFx = $('fxSection');
     if (legacyFx) legacyFx.hidden = true;
   }
@@ -63,6 +61,23 @@
       @media(max-width:720px){.export-top-controls{grid-template-columns:1fr}}
     `;
     document.head.appendChild(style);
+  }
+
+  function loadBitsVisuals() {
+    if (!$('kefe-bits-visuals-css')) {
+      const link = document.createElement('link');
+      link.id = 'kefe-bits-visuals-css';
+      link.rel = 'stylesheet';
+      link.href = './app/ui/bits-visuals.css';
+      document.head.appendChild(link);
+    }
+    if (!$('kefe-bits-visuals-script')) {
+      const script = document.createElement('script');
+      script.id = 'kefe-bits-visuals-script';
+      script.src = './app/ui/bits-visuals.js';
+      script.defer = true;
+      document.body.appendChild(script);
+    }
   }
 
   const bgCanvas = document.createElement('canvas');
@@ -146,8 +161,6 @@
       const image=mediaCache?.image;
       const video=mediaCache?.video;
       const type=appState.background.type;
-      // Animated background effects intentionally own the background layer.
-      // Uploaded media remains available as a separate background mode.
       const frame=drawBackgroundEffect(w,h,Number(appState.playback?.currentTime)||0,appState.background);
       if(mediaCache) mediaCache.image=frame;
       appState.background.type='image';
@@ -215,11 +228,10 @@
     addBackgroundEffects();
     keepBackgroundMediaStable();
     installBackgroundRenderer();
-    // effect-app-fx.js creates the real independent Visual FX panel. Re-run the
-    // nav fix after it inserts that panel so the nav can never land on the legacy lyric controls.
+    loadBitsVisuals();
     const observer=new MutationObserver(()=>{fixNavigation();if($('visualFxSection')){const link=q('.section-nav-link[data-nav="fx"]');if(link)link.href='#visualFxSection';}});
     observer.observe(document.querySelector('.sidebar')||document.body,{childList:true,subtree:true});
-    setTimeout(()=>{fixNavigation();moveTitleCardIntoExport();addBackgroundEffects();installBackgroundRenderer();},50);
+    setTimeout(()=>{fixNavigation();moveTitleCardIntoExport();addBackgroundEffects();installBackgroundRenderer();loadBitsVisuals();},50);
   }
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
