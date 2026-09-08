@@ -87,7 +87,9 @@ try {
   // resources that are irrelevant to the editor runtime. Wait for the DOM and
   // then for app.js to publish its authoritative state before installing the
   // runtime bridge.
-  await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 10000 });
+  await page
+    .locator('#audioInput')
+    .waitFor({ state: 'attached', timeout: 10000 });
   await page.waitForFunction(
     () =>
       typeof state !== 'undefined' &&
@@ -178,7 +180,9 @@ try {
   if (autoPlan.effect !== 'pulse') {
     throw new Error('Auto Create planning failed');
   }
-  const renderPlan = await page.evaluate(() => window.kefeSmartRender.prepare());
+  const renderPlan = await page.evaluate(
+    () => window.kefeSmartRender.prepare(),
+  );
   if (!renderPlan?.recommended || !renderPlan.info?.width) {
     throw new Error('Smart render preparation failed');
   }
