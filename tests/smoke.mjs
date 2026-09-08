@@ -74,18 +74,28 @@ try {
   });
 
   const response = await page.goto(`http://127.0.0.1:${port}/`, {
-    waitUntil: 'domcontentloaded',
+    waitUntil: 'commit',
     timeout: 10000,
   });
-  if (!response || !response.ok())
+  if (!response || !response.ok()) {
     throw new Error(
       `Smoke server returned ${response?.status() ?? 'no response'} for index.html`,
     );
+  }
 
-  // index.html loads the legacy editor runtime as classic scripts. Waiting for
-  // DOMContentLoaded lets those local scripts execute without waiting on
-  // unrelated external resources that can keep the browser load event open.
-  await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 5000 });
+  // Do not wait for the browser load event: index.html may include external
+  // resources that are irrelevant to the editor runtime. Wait for the DOM and
+  // then for app.js to publish its authoritative state before installing the
+  // runtime bridge.
+  await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 10000 });
+  await page.waitForFunction(
+    () =>
+      typeof state !== 'undefined' &&
+      typeof canvas !== 'undefined' &&
+      typeof media !== 'undefined',
+    null,
+    { timeout: 10000 },
+  );
   await page.addScriptTag({ path: join(root, 'app/core/runtime-bridge.js') });
   await page.waitForFunction(
     () => window.kefeRuntime?.ready === true,
@@ -103,7 +113,9 @@ try {
   );
 
   await page.locator('#lyricStyleBlock [data-effect="pulse"]').click();
-  await page.locator('#backgroundSection [data-background-preset="aurora"]').click();
+  await page
+    .locator('#backgroundSection [data-background-preset="aurora"]')
+    .click();
   await page.locator('#titleCardStyle').selectOption('statement');
   const visualState = await page.evaluate(() => ({
     effect: window.state.style.effect,
@@ -114,10 +126,11 @@ try {
     visualState.effect !== 'pulse' ||
     visualState.background !== 'aurora' ||
     visualState.title !== 'statement'
-  )
+  ) {
     throw new Error(
       `Style controls did not update state: ${JSON.stringify(visualState)}`,
     );
+  }
 
   const analysis = await page.evaluate(() =>
     window.kefeAnalysis.analyzeLyrics(
@@ -125,8 +138,9 @@ try {
       2,
     ),
   );
-  if (!analysis?.validation?.count || analysis.validation.count !== 2)
+  if (!analysis?.validation?.count || analysis.validation.count !== 2) {
     throw new Error('Lyrics analysis did not return the expected timed lines');
+  }
 
   const wav = makeWav();
   await page.locator('#audioInput').setInputFiles({
@@ -146,7 +160,9 @@ try {
   const playing = await page.evaluate(
     () => Boolean(window.state.playback.isPlaying),
   );
-  if (!playing) throw new Error('Preview playback did not enter the playing state');
+  if (!playing) {
+    throw new Error('Preview playback did not enter the playing state');
+  }
   await page.locator('#stopBtn').click();
 
   const autoPlan = await page.evaluate(() =>
@@ -159,17 +175,22 @@ try {
       false,
     ),
   );
-  if (autoPlan.effect !== 'pulse') throw new Error('Auto Create planning failed');
+  if (autoPlan.effect !== 'pulse') {
+    throw new Error('Auto Create planning failed');
+  }
   const renderPlan = await page.evaluate(() => window.kefeSmartRender.prepare());
-  if (!renderPlan?.recommended || !renderPlan.info?.width)
+  if (!renderPlan?.recommended || !renderPlan.info?.width) {
     throw new Error('Smart render preparation failed');
+  }
 
   await page.locator('#exportBtn').click();
   await page.waitForTimeout(250);
   const preflightVisible = await page
     .locator('#exportPreflight')
     .evaluate((el) => !el.classList.contains('hidden'));
-  if (!preflightVisible) throw new Error('Export preflight did not open');
+  if (!preflightVisible) {
+    throw new Error('Export preflight did not open');
+  }
   await page.locator('#cancelPreflight').click();
 
   if (errors.length) throw new Error(errors.join('\n'));
