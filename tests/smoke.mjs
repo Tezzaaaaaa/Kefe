@@ -60,17 +60,21 @@ await new Promise((resolve, reject) => {
   server.listen(port, '127.0.0.1', resolve);
 });
 
-const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-const errors = [];
-page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
-page.on('console', (message) => {
-  if (message.type() === 'error') errors.push(`console: ${message.text()}`);
-});
-
+let browser;
 try {
+  browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  page.setDefaultTimeout(5000);
+  page.setDefaultNavigationTimeout(10000);
+
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
+  });
+
   const response = await page.goto(`http://127.0.0.1:${port}/`, {
-    waitUntil: 'commit',
+    waitUntil: 'load',
     timeout: 10000,
   });
   if (!response || !response.ok())
@@ -78,14 +82,15 @@ try {
       `Smoke server returned ${response?.status() ?? 'no response'} for index.html`,
     );
 
-  // The runtime bridge is a shared production module, but index.html does not
-  // currently load it directly. Load the existing module here so the smoke test
-  // exercises the same runtime contract used by the modular UI/export layers.
+  // index.html loads the legacy editor runtime as a classic script. Wait for
+  // the DOM/runtime to finish loading before injecting the shared bridge so it
+  // can see the authoritative global state and render functions.
+  await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 5000 });
   await page.addScriptTag({ path: join(root, 'app/core/runtime-bridge.js') });
   await page.waitForFunction(
     () => window.kefeRuntime?.ready === true,
     null,
-    { timeout: 15000 },
+    { timeout: 5000 },
   );
   await page.waitForFunction(
     () =>
@@ -94,7 +99,7 @@ try {
       window.kefeAutoCreate &&
       window.kefeSmartRender,
     null,
-    { timeout: 15000 },
+    { timeout: 5000 },
   );
 
   await page.locator('#lyricStyleBlock [data-effect="pulse"]').click();
@@ -121,9 +126,7 @@ try {
     ),
   );
   if (!analysis?.validation?.count || analysis.validation.count !== 2)
-    throw new Error(
-      'Lyrics analysis did not return the expected timed lines',
-    );
+    throw new Error('Lyrics analysis did not return the expected timed lines');
 
   const wav = makeWav();
   await page.locator('#audioInput').setInputFiles({
@@ -136,7 +139,7 @@ try {
       window.state?.audio?.ready === true &&
       Number(window.state.audio.duration) > 0,
     null,
-    { timeout: 10000 },
+    { timeout: 5000 },
   );
   await page.locator('#playBtn').click();
   await page.waitForTimeout(250);
@@ -156,11 +159,8 @@ try {
       false,
     ),
   );
-  if (autoPlan.effect !== 'pulse')
-    throw new Error('Auto Create planning failed');
-  const renderPlan = await page.evaluate(() =>
-    window.kefeSmartRender.prepare(),
-  );
+  if (autoPlan.effect !== 'pulse') throw new Error('Auto Create planning failed');
+  const renderPlan = await page.evaluate(() => window.kefeSmartRender.prepare());
   if (!renderPlan?.recommended || !renderPlan.info?.width)
     throw new Error('Smart render preparation failed');
 
@@ -177,6 +177,6 @@ try {
     'KEFE smoke test passed: boot → runtime → style/background → lyrics analysis → audio load → playback → auto-create → smart render → export preflight.',
   );
 } finally {
-  await browser.close();
-  server.close();
+  if (browser) await browser.close().catch(() => {});
+  await new Promise((resolve) => server.close(resolve));
 }
