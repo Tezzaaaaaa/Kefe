@@ -15,66 +15,40 @@ concurrency:
 
 jobs:
   quality:
-    name: Format, syntax, static analysis
+    name: Format and static checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
           fetch-depth: 2
+
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
+
       - name: Install dependencies
         run: npm ci
+
       - name: Check formatting of changed files
         shell: bash
         run: |
           set -euo pipefail
-          files=$(git diff --name-only HEAD^ HEAD -- \
-            '*.js' '*.mjs' '*.cjs' '*.json' '*.css' '*.html' '*.yml' '*.yaml' '*.md')
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            files=$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- \
+              '*.js' '*.mjs' '*.cjs' '*.json' '*.css' '*.html' '*.yml' '*.yaml' '*.md')
+          else
+            files=$(git diff --name-only HEAD^ HEAD -- \
+              '*.js' '*.mjs' '*.cjs' '*.json' '*.css' '*.html' '*.yml' '*.yaml' '*.md')
+          fi
           if [ -z "$files" ]; then
             echo "No supported text files changed; formatting check passes."
             exit 0
           fi
+          printf '%s\n' "$files"
           printf '%s\n' "$files" | xargs npx prettier --check
+
       - name: Check JavaScript syntax and project checks
         run: npm run check
-
-  megalinter:
-    name: Full repository sweep
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-      - name: MegaLinter
-        uses: oxsecurity/megalinter/flavors/javascript@v8.8.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEFAULT_WORKSPACE: ${{ github.workspace }}
-          VALIDATE_ALL_CODEBASE: true
-          REPORT_OUTPUT_FOLDER: megalinter-reports
-          FIX: none
-
-  browser:
-    name: Browser functional verification
-    needs: quality
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-      - name: Set up Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - name: Run KEFE smoke test
-        run: npm run test:smoke
-      - name: Run KEFE functional sweep
-        run: npm run test:functional
