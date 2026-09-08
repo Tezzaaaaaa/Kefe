@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 concurrency:
   group: kefe-quality-${{ github.ref }}
@@ -21,12 +20,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
           node-version: 24
+          cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Check formatting of changed files
         shell: bash
         run: |
@@ -54,7 +56,6 @@ jobs:
           DEFAULT_WORKSPACE: ${{ github.workspace }}
           VALIDATE_ALL_CODEBASE: true
           REPORT_OUTPUT_FOLDER: megalinter-reports
-          DISABLE_LINTERS: COPYPASTE_JSCPD,REPOSITORY_GITLEAKS
           FIX: none
 
   browser:
@@ -68,10 +69,9 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 24
+          cache: npm
       - name: Install dependencies
-        run: npm install
-      - name: Install Playwright test runner
-        run: npm install --no-save playwright@1.62.1
+        run: npm ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run KEFE smoke test
