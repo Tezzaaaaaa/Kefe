@@ -74,7 +74,7 @@ try {
   });
 
   const response = await page.goto(`http://127.0.0.1:${port}/`, {
-    waitUntil: 'load',
+    waitUntil: 'domcontentloaded',
     timeout: 10000,
   });
   if (!response || !response.ok())
@@ -82,9 +82,9 @@ try {
       `Smoke server returned ${response?.status() ?? 'no response'} for index.html`,
     );
 
-  // index.html loads the legacy editor runtime as a classic script. Wait for
-  // the DOM/runtime to finish loading before injecting the shared bridge so it
-  // can see the authoritative global state and render functions.
+  // index.html loads the legacy editor runtime as classic scripts. Waiting for
+  // DOMContentLoaded lets those local scripts execute without waiting on
+  // unrelated external resources that can keep the browser load event open.
   await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 5000 });
   await page.addScriptTag({ path: join(root, 'app/core/runtime-bridge.js') });
   await page.waitForFunction(
