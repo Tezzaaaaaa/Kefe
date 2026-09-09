@@ -24,7 +24,7 @@
   background: var(--surface-2);
 }
 
-.kefe-aid-card[data-state="complete"] {
+.kefe-aid-card[data-state='complete'] {
   border-color: rgba(48, 209, 88, 0.32);
 }
 
@@ -97,7 +97,7 @@
   transition: width 0.3s var(--ease);
 }
 
-.kefe-aid-card[data-state="complete"] .kefe-aid-bar > span {
+.kefe-aid-card[data-state='complete'] .kefe-aid-bar > span {
   background: var(--success);
 }
 
@@ -114,11 +114,11 @@
   transition: background 0.2s var(--ease);
 }
 
-.kefe-aid-flow span[data-active="true"] {
+.kefe-aid-flow span[data-active='true'] {
   background: var(--red);
 }
 
-.kefe-aid-flow span[data-complete="true"] {
+.kefe-aid-flow span[data-complete='true'] {
   background: var(--success);
 }
 
@@ -155,7 +155,7 @@
 }
 
 .kefe-aid-switch:after {
-  content: "";
+  content: '';
   position: absolute;
   top: 2px;
   left: 2px;
@@ -193,7 +193,7 @@
   line-height: 1.45;
 }
 
-.kefe-aid-details[data-open="true"] {
+.kefe-aid-details[data-open='true'] {
   display: block;
 }
 
