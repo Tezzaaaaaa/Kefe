@@ -75,6 +75,10 @@
             wizard.src = './app/ui/wizard/wizard.js';
             wizard.setAttribute('data-kefe-wizard-entry', 'true');
             wizard.addEventListener('load', () => {
+                // The guided wizard owns navigation. Remove the legacy section
+                // navigation after the wizard has initialized so no second
+                // navigation system can compete for the same editor state.
+                document.querySelector('.section-nav')?.remove();
                 loadScriptOnce('./app/effects/scroll-lines.js', 'kefe-scroll-lines');
                 loadScriptOnce('./app/ui/wizard/wizard-all-effects.js', 'kefe-wizard-all-effects');
             }, { once: true });
