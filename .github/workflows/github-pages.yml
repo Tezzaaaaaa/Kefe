@@ -30,11 +30,22 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import re
-          p = Path('index.html')
-          s = p.read_text()
+
           sha = '${GITHUB_SHA}'
-          s = re.sub(r'((?:src|href)="\./[^"?#]+)(")', rf'\1?v={sha}\2', s)
-          p.write_text(s)
+          pattern = re.compile(r'((?:src|href)\s*=\s*[\"\']\./[^\"\'?#]+)([\"\'])')
+
+          for path in Path('.').rglob('*'):
+              if not path.is_file() or '.git' in path.parts:
+                  continue
+              if path.suffix not in {'.html', '.js', '.mjs'}:
+                  continue
+              try:
+                  s = path.read_text()
+              except UnicodeDecodeError:
+                  continue
+              updated = pattern.sub(rf'\1?v={sha}\2', s)
+              if updated != s:
+                  path.write_text(updated)
           PY
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
