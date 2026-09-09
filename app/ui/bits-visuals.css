@@ -1,0 +1,243 @@
+/* Bits-inspired visual primitives for KEFE's vanilla UI.
+   Mirrors the headless, composable spirit of Bits UI without introducing a
+   Svelte runtime into the existing browser application. */
+.kefe-visual-aids {
+  display: grid;
+  gap: 8px;
+  margin: 0 8px 8px;
+}
+
+.kefe-aid-card {
+  position: relative;
+  overflow: hidden;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  transition:
+    border-color 0.18s var(--ease),
+    background 0.18s var(--ease);
+}
+
+.kefe-aid-card:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+}
+
+.kefe-aid-card[data-state='complete'] {
+  border-color: rgba(48, 209, 88, 0.32);
+}
+
+.kefe-aid-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.kefe-aid-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.kefe-aid-value {
+  font-size: 10px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.kefe-aid-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.kefe-aid-stat {
+  min-width: 0;
+  padding: 7px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  text-align: center;
+}
+
+.kefe-aid-stat strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.1;
+}
+
+.kefe-aid-stat span {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-3);
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kefe-aid-bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--surface-3);
+}
+
+.kefe-aid-bar > span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--red);
+  transition: width 0.3s var(--ease);
+}
+
+.kefe-aid-card[data-state='complete'] .kefe-aid-bar > span {
+  background: var(--success);
+}
+
+.kefe-aid-flow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+}
+
+.kefe-aid-flow span {
+  height: 3px;
+  border-radius: 99px;
+  background: var(--surface-3);
+  transition: background 0.2s var(--ease);
+}
+
+.kefe-aid-flow span[data-active='true'] {
+  background: var(--red);
+}
+
+.kefe-aid-flow span[data-complete='true'] {
+  background: var(--success);
+}
+
+.kefe-aid-caption {
+  margin-top: 6px;
+  color: var(--text-3);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.kefe-aid-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.kefe-aid-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.kefe-aid-switch {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  flex: 0 0 auto;
+  border-radius: 99px;
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  transition: background 0.18s var(--ease);
+}
+
+.kefe-aid-switch:after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-2);
+  transition:
+    transform 0.18s var(--ease),
+    background 0.18s var(--ease);
+}
+
+.kefe-aid-toggle input:checked + .kefe-aid-switch {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.kefe-aid-toggle input:checked + .kefe-aid-switch:after {
+  transform: translateX(14px);
+  background: #fff;
+}
+
+.kefe-aid-toggle input:focus-visible + .kefe-aid-switch {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.kefe-aid-details {
+  display: none;
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px solid var(--line);
+  color: var(--text-2);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.kefe-aid-details[data-open='true'] {
+  display: block;
+}
+
+.kefe-aid-detail-list {
+  display: grid;
+  gap: 5px;
+}
+
+.kefe-aid-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kefe-aid-detail-row b {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.kefe-aid-detail-row em {
+  font-style: normal;
+  color: var(--text-3);
+}
+
+@media (max-width: 600px) {
+  .kefe-visual-aids {
+    margin-left: 6px;
+    margin-right: 6px;
+  }
+
+  .kefe-aid-grid {
+    gap: 4px;
+  }
+
+  .kefe-aid-stat {
+    padding: 6px 3px;
+  }
+
+  .kefe-aid-stat strong {
+    font-size: 12px;
+  }
+
+  .kefe-aid-stat span {
+    font-size: 7px;
+  }
+}
