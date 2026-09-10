@@ -18,7 +18,7 @@ concurrency:
 jobs:
   repair-qs:
     name: Repair qs security dependency
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'repair: qs security dependency')
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'repair: qs security dependency') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -33,8 +33,6 @@ jobs:
       - name: Update qs lockfile
         run: npm install qs@6.16.0 --package-lock-only --ignore-scripts
       - name: Commit lockfile
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -48,7 +46,7 @@ jobs:
 
   dependencies:
     name: Dependency security audit
-    if: github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'repair: qs security dependency')
+    if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'repair: qs security dependency') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -65,7 +63,7 @@ jobs:
 
   dependency-review:
     name: Review dependency changes
-    if: github.event_name == 'pull_request'
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
