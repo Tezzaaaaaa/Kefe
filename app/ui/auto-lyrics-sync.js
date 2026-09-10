@@ -23,6 +23,10 @@
  * - Reuses #findLyricsBtn's own click handler rather than reimplementing the
  *   search, so status text, error toasts, and metadata write-back all stay
  *   in sync with the manual flow.
+ * - Reuses the existing Song details fields rather than creating a second
+ *   metadata system. The existing Song details block is placed directly in
+ *   the Lyrics panel so the information used for automatic lyric matching is
+ *   visible at the point where lyric sync happens.
  */
 (() => {
     'use strict';
@@ -31,6 +35,22 @@
     const CONFIDENT_SOURCES = new Set(['embedded', 'project', 'lrc', 'lyrics-service']);
     const attempted = new Set();
     let inFlight = false;
+
+    function moveSongDetailsIntoLyrics() {
+        const lyricsPanel = $('lyricsPanel');
+        const heading = document.querySelector('.music-details-heading');
+        const details = document.querySelector('.music-details');
+        const hint = $('musicSyncHint');
+        if (!lyricsPanel || !heading || !details || !hint) return;
+        if (lyricsPanel.contains(heading)) return;
+
+        const anchor = $('lyricsStatus');
+        if (!anchor) return;
+
+        const fragment = document.createDocumentFragment();
+        fragment.append(heading, details, hint);
+        lyricsPanel.insertBefore(fragment, anchor);
+    }
 
     function resolvedKey() {
         const state = window.state;
@@ -137,6 +157,7 @@
     });
 
     function start() {
+        moveSongDetailsIntoLyrics();
         tick();
         setInterval(tick, 1200);
     }
