@@ -85,8 +85,8 @@ try {
 
   // Do not wait for the browser load event: index.html may include external
   // resources that are irrelevant to the editor runtime. Wait for the DOM and
-  // then for app.js to publish its authoritative state before installing the
-  // runtime bridge.
+  // then for app.js to publish its authoritative state before the modular
+  // runtime bootstrap is expected to finish.
   await page
     .locator('#audioInput')
     .waitFor({ state: 'attached', timeout: 10000 });
@@ -98,11 +98,10 @@ try {
     null,
     { timeout: 10000 },
   );
-  await page.addScriptTag({ path: join(root, 'app/core/runtime-bridge.js') });
   await page.waitForFunction(
     () => window.kefeRuntime?.ready === true,
     null,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
   await page.waitForFunction(
     () =>
@@ -111,7 +110,7 @@ try {
       window.kefeAutoCreate &&
       window.kefeSmartRender,
     null,
-    { timeout: 5000 },
+    { timeout: 15000 },
   );
 
   await page.locator('#lyricStyleBlock [data-effect="pulse"]').click();
@@ -167,6 +166,13 @@ try {
   }
   await page.locator('#stopBtn').click();
 
+  const confirmationVisible = await page
+    .locator('#audioDrop .kefe-upload-confirmation')
+    .evaluate((el) => el.classList.contains('is-visible'));
+  if (!confirmationVisible) {
+    throw new Error('Audio upload confirmation did not appear');
+  }
+
   const autoPlan = await page.evaluate(() =>
     window.kefeAutoCreate.getPlan(
       {
@@ -199,7 +205,7 @@ try {
 
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(
-    'KEFE smoke test passed: boot → runtime → style/background → lyrics analysis → audio load → playback → auto-create → smart render → export preflight.',
+    'KEFE smoke test passed: boot → runtime → style/background → lyrics analysis → audio load → playback → upload confirmation → auto-create → smart render → export preflight.',
   );
 } finally {
   if (browser) await browser.close().catch(() => {});
