@@ -83,10 +83,6 @@ try {
     );
   }
 
-  // Do not wait for the browser load event: index.html may include external
-  // resources that are irrelevant to the editor runtime. Wait for the DOM and
-  // then for app.js to publish its authoritative state before the modular
-  // runtime bootstrap is expected to finish.
   await page
     .locator('#audioInput')
     .waitFor({ state: 'attached', timeout: 10000 });
@@ -113,10 +109,29 @@ try {
     { timeout: 15000 },
   );
 
-  // The editor is intentionally behind the guided wizard. Enter the real
-  // editor surface before exercising controls that are hidden by wizard mode.
-  const skipWizard = page.locator('#wizardSkipBtn');
-  if (await skipWizard.isVisible()) await skipWizard.click();
+  // Follow the real guided lyric-video path instead of bypassing it.
+  await page.locator('#wizardSection [data-choice="lyric"]').click();
+  await page.locator('#wizardNextBtn').click();
+  await page.locator('#wizardSection [data-source="uploaded"]').click();
+
+  const wav = makeWav();
+  await page.locator('#audioInput').setInputFiles({
+    name: 'smoke-test.wav',
+    mimeType: 'audio/wav',
+    buffer: wav,
+  });
+  await page.waitForFunction(
+    () =>
+      window.state?.audio?.ready === true &&
+      Number(window.state.audio.duration) > 0,
+    null,
+    { timeout: 5000 },
+  );
+  await page.locator('#wizardNextBtn').click();
+
+  const lyricsText = page.locator('#lyricsText');
+  await lyricsText.fill('[00:00.00]Hello world\n[00:00.80]Second line');
+  await page.locator('#wizardNextBtn').click();
   await page.locator('#lyricStyleBlock').waitFor({ state: 'visible' });
 
   await page.locator('#lyricStyleBlock [data-effect="pulse"]').click();
@@ -149,19 +164,6 @@ try {
     throw new Error('Lyrics analysis did not return the expected timed lines');
   }
 
-  const wav = makeWav();
-  await page.locator('#audioInput').setInputFiles({
-    name: 'smoke-test.wav',
-    mimeType: 'audio/wav',
-    buffer: wav,
-  });
-  await page.waitForFunction(
-    () =>
-      window.state?.audio?.ready === true &&
-      Number(window.state.audio.duration) > 0,
-    null,
-    { timeout: 5000 },
-  );
   await page.locator('#playBtn').click();
   await page.waitForTimeout(250);
   const playing = await page.evaluate(
@@ -211,7 +213,7 @@ try {
 
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(
-    'KEFE smoke test passed: boot → runtime → wizard exit → style/background → lyrics analysis → audio load → playback → upload confirmation → auto-create → smart render → export preflight.',
+    'KEFE smoke test passed: boot → runtime → guided lyric path → style/background → lyrics analysis → audio load → playback → upload confirmation → auto-create → smart render → export preflight.',
   );
 } finally {
   if (browser) await browser.close().catch(() => {});
