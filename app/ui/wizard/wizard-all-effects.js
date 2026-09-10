@@ -107,7 +107,8 @@
   function applyEffect(name, button, group) {
     const target = effectButtons().find(item => item.dataset.effect === name);
     if (!target) return;
-    target.click();
+    if (typeof window.setEffect === 'function') window.setEffect(name);
+    else target.click();
     group.querySelectorAll('[data-wizard-effect]').forEach(item => {
       item.classList.toggle('selected', item === button);
       item.setAttribute('aria-pressed', item === button ? 'true' : 'false');
