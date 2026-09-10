@@ -44,7 +44,6 @@
         const heading = block?.querySelector('.sub-heading');
         if (heading) heading.textContent = 'Manual lyric timing';
         const value = $('offsetVal');
-        if (value) value.textContent = `${Number(slider.value || 0).toFixed(1)}s — no shift`;
 
         const describe = () => {
             const amount = Number(slider.value || 0);
@@ -226,17 +225,11 @@
         return `${title.toLowerCase()}::${artist.toLowerCase()}`;
     }
 
-    function setRetryStatus(message, kind = '') {
+    function setRetryStatus(message) {
         const status = $('lyricsStatus');
         if (!status) return;
         status.textContent = message;
-        status.className = `status${kind ? ` ${kind}` : ''}`;
-    }
-
-    function scheduleRetry(key, delay = 4000) {
-        const current = retryState.get(key) || { attempts: 0, nextAt: 0 };
-        current.nextAt = Date.now() + delay;
-        retryState.set(key, current);
+        status.className = 'status';
     }
 
     function finishRequest(key, succeeded) {
@@ -246,8 +239,7 @@
             retryState.delete(key);
             return;
         }
-        current.attempts += 1;
-        const delay = current.attempts <= 3 ? 2500 * current.attempts : 15000;
+        const delay = current.attempts <= 3 ? 2500 * Math.max(1, current.attempts) : 15000;
         current.nextAt = Date.now() + delay;
         retryState.set(key, current);
         setRetryStatus(`Still trying to find synced lyrics… retry ${current.attempts + 1} in ${Math.ceil(delay / 1000)}s.`);
@@ -256,8 +248,7 @@
     function tick() {
         if (inFlight || window.isExporting) return;
         const state = window.state;
-        if (!state) return;
-        if (state.lyrics?.lines?.length) return;
+        if (!state || state.lyrics?.lines?.length) return;
         const btn = $('findLyricsBtn');
         if (!btn || btn.disabled) return;
         const key = resolvedKey();
@@ -307,7 +298,7 @@
             }
             if (attempt < maxAttempts) await new Promise(resolve => setTimeout(resolve, 1800 * attempt));
         }
-        setRetryStatus('Automatic alignment could not lock on yet. KEFE will keep the lyrics available for another sync attempt.');
+        setRetryStatus('Automatic alignment could not lock on yet. The lyrics remain available for another sync attempt.');
     }
 
     document.addEventListener('kefe:lyrics-resolved', event => {
