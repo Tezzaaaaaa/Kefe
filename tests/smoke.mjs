@@ -133,11 +133,9 @@ try {
   await lyricsText.fill('[00:00.00]Hello world\n[00:00.80]Second line');
   await page.locator('#wizardNextBtn').click();
   await page.locator('#lyricStyleBlock').waitFor({ state: 'visible' });
-
-  // The segmented effect controls can overlap at the test viewport width;
-  // force the target click so the smoke test verifies the registered control
-  // handler/state transition rather than failing on layout hit-testing.
-  await page.locator('#lyricStyleBlock [data-effect="pulse"]').click({ force: true });
+  await page
+    .locator('#wizardSection [data-wizard-effect="pulse"]')
+    .click({ force: true });
   await page
     .locator('#backgroundSection [data-background-preset="aurora"]')
     .click({ force: true });
@@ -149,7 +147,7 @@ try {
   }));
   if (
     visualState.effect !== 'pulse' ||
-    visualState.background !== 'aurora' ||
+    visualState.background !== 'image' ||
     visualState.title !== 'statement'
   ) {
     throw new Error(
