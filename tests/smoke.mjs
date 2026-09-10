@@ -123,3 +123,85 @@ try {
     effect: window.state.style.effect,
     background: window.state.background.type,
     title: window.state.style.titleCardStyle,
+  }));
+  if (
+    visualState.effect !== 'pulse' ||
+    visualState.background !== 'aurora' ||
+    visualState.title !== 'statement'
+  ) {
+    throw new Error(
+      `Style controls did not update state: ${JSON.stringify(visualState)}`,
+    );
+  }
+
+  const analysis = await page.evaluate(() =>
+    window.kefeAnalysis.analyzeLyrics(
+      '[00:00.00]Hello world\n[00:00.80]Second line',
+      2,
+    ),
+  );
+  if (!analysis?.validation?.count || analysis.validation.count !== 2) {
+    throw new Error('Lyrics analysis did not return the expected timed lines');
+  }
+
+  const wav = makeWav();
+  await page.locator('#audioInput').setInputFiles({
+    name: 'smoke-test.wav',
+    mimeType: 'audio/wav',
+    buffer: wav,
+  });
+  await page.waitForFunction(
+    () =>
+      window.state?.audio?.ready === true &&
+      Number(window.state.audio.duration) > 0,
+    null,
+    { timeout: 5000 },
+  );
+  await page.locator('#playBtn').click();
+  await page.waitForTimeout(250);
+  const playing = await page.evaluate(
+    () => Boolean(window.state.playback.isPlaying),
+  );
+  if (!playing) {
+    throw new Error('Preview playback did not enter the playing state');
+  }
+  await page.locator('#stopBtn').click();
+
+  const autoPlan = await page.evaluate(() =>
+    window.kefeAutoCreate.getPlan(
+      {
+        recommendation: 'pulse',
+        validation: { count: 2 },
+        metrics: { averageCharacters: 12, linesPerMinute: 8 },
+      },
+      false,
+    ),
+  );
+  if (autoPlan.effect !== 'pulse') {
+    throw new Error('Auto Create planning failed');
+  }
+  const renderPlan = await page.evaluate(
+    () => window.kefeSmartRender.prepare(),
+  );
+  if (!renderPlan?.recommended || !renderPlan.info?.width) {
+    throw new Error('Smart render preparation failed');
+  }
+
+  await page.locator('#exportBtn').click();
+  await page.waitForTimeout(250);
+  const preflightVisible = await page
+    .locator('#exportPreflight')
+    .evaluate((el) => !el.classList.contains('hidden'));
+  if (!preflightVisible) {
+    throw new Error('Export preflight did not open');
+  }
+  await page.locator('#cancelPreflight').click();
+
+  if (errors.length) throw new Error(errors.join('\n'));
+  console.log(
+    'KEFE smoke test passed: boot → runtime → style/background → lyrics analysis → audio load → playback → auto-create → smart render → export preflight.',
+  );
+} finally {
+  if (browser) await browser.close().catch(() => {});
+  await new Promise((resolve) => server.close(resolve));
+}
