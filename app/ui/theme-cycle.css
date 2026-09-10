@@ -80,8 +80,7 @@
 
 [data-theme="day"] header,
 [data-theme="day"] .sidebar,
-[data-theme="day"] .preview,
-[data-theme="day"] .section-nav {
+[data-theme="day"] .preview {
     background: var(--surface);
     color: var(--text);
 }

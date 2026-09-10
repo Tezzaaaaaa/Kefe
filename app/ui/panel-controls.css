@@ -261,6 +261,3 @@ input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
 .music-sync-hint.is-audio-source {
   color: var(--text-2);
 }
-
-  color: var(--text-2);
-}

@@ -81,9 +81,7 @@ async function assertDirectEditor(page, width, height) {
     const main = rect(document.querySelector('main'));
     const sidebar = rect(document.querySelector('.sidebar'));
     const preview = rect(document.querySelector('.preview'));
-    const links = [...document.querySelectorAll('.section-nav-link')].map(
-      (link) => link.dataset.nav,
-    );
+
     return {
       wizardMode: document.body.classList.contains('wizard-mode'),
       wizardPanel: Boolean(
@@ -97,10 +95,9 @@ async function assertDirectEditor(page, width, height) {
       main: Boolean(main && main.width > 0 && main.height > 0),
       sidebar: Boolean(sidebar && sidebar.width > 0 && sidebar.height > 0),
       preview: Boolean(preview && preview.width > 0 && preview.height > 0),
-      nav: links,
     };
   });
-  const expected = ['audio', 'export', 'text', 'background', 'fx'];
+
   if (
     result.wizardMode ||
     result.wizardPanel ||
@@ -108,8 +105,7 @@ async function assertDirectEditor(page, width, height) {
     result.horizontalOverflow ||
     !result.main ||
     !result.sidebar ||
-    !result.preview ||
-    JSON.stringify(result.nav) !== JSON.stringify(expected)
+    !result.preview
   ) {
     throw new Error(
       `Direct editor invariant failed at ${width}x${height}: ${JSON.stringify(result)}`,
@@ -151,28 +147,27 @@ async function assertSections(page) {
   }
 }
 
-async function clickNav(page, key, sectionId) {
-  await page.locator(`.section-nav-link[data-nav="${key}"]`).click();
+async function clickWizardStep(page, index, expectedStep) {
+  await page.evaluate((targetIndex) => {
+    if (!window.kefeWizard) throw new Error('KEFE wizard is not available');
+    const steps = window.kefeWizard.getState().steps;
+    if (targetIndex < 0 || targetIndex >= steps.length) {
+      throw new Error(`Invalid wizard step index: ${targetIndex}`);
+    }
+    window.kefeWizard.goTo?.(targetIndex);
+  }, index);
+
   await page.waitForFunction(
-    (id) => document.getElementById(id)?.classList.contains('active'),
-    sectionId,
+    ({ index, expectedStep }) => {
+      const state = window.kefeWizard?.getState?.();
+      return (
+        state?.index === index &&
+        state?.step === expectedStep
+      );
+    },
+    { index, expectedStep },
     { timeout: 3000 },
   );
-  const result = await page.evaluate(
-    ({ key, sectionId }) => ({
-      linkActive: document
-        .querySelector(`.section-nav-link[data-nav="${key}"]`)
-        ?.classList.contains('active'),
-      sectionActive: document
-        .getElementById(sectionId)
-        ?.classList.contains('active'),
-    }),
-    { key, sectionId },
-  );
-  if (!result.linkActive || !result.sectionActive)
-    throw new Error(
-      `Navigation failed for ${key}: ${JSON.stringify(result)}`,
-    );
 }
 
 async function seedLyrics(page) {
