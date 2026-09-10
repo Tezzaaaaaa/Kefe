@@ -2,7 +2,9 @@
 main{display:grid;grid-template-columns:var(--editor-rail) minmax(0,1fr);flex:1;min-width:0;min-height:0;overflow:hidden;background:var(--bg)}
 .sidebar{width:auto;min-width:0;min-height:0;overflow:hidden;border-right:1px solid var(--line);background:var(--surface)}
 body.wizard-mode .sidebar{display:flex;flex-direction:column;min-height:0}
-/* The guided wizard is the only editor chrome. Keep the legacy Visual FX section out of the active UI. */
+/* The guided wizard is the only editor chrome. Keep the legacy section
+   navigation and legacy Visual FX section out of the active UI. */
+body.wizard-mode .section-nav{display:none!important}
 body.wizard-mode #fxSection{display:none!important}
 body.wizard-mode .wizard-skip{display:none!important}
 body.wizard-mode main{padding-top:0!important}
