@@ -3,8 +3,8 @@
  * KEFE already knows how to identify a song and fetch time-synced lyrics for
  * it: ID3 tags are read off the uploaded file (or guessed from its filename),
  * and "Find lyrics automatically" (#findLyricsBtn, app.js) searches lrclib.net
- * for a synced match. This module triggers that existing search automatically
- * once KEFE has a usable song title/artist pair.
+ * for a synced match. This module keeps that existing search retrying when a
+ * usable song is present instead of treating one failed lookup as final.
  *
  * The lyric-sync panel also owns the existing Song details fields. The fields
  * use an accessible, shadcn-style Command/Combobox interaction: typing gives
@@ -16,10 +16,10 @@
     const $ = id => document.getElementById(id);
 
     const CONFIDENT_SOURCES = new Set(['embedded', 'project', 'lrc', 'lyrics-service']);
-    const attempted = new Set();
     let inFlight = false;
     let suggestionRequest = 0;
     let suggestionTimer = null;
+    const retryState = new Map();
 
     function moveSongDetailsIntoLyrics() {
         const lyricsPanel = $('lyricsPanel');
@@ -33,6 +33,34 @@
         const fragment = document.createDocumentFragment();
         fragment.append(heading, details, hint);
         lyricsPanel.insertBefore(fragment, anchor);
+    }
+
+    function clarifySyncControl() {
+        const slider = $('lyricsOffset');
+        if (!slider || slider.dataset.kefeClarified === 'true') return;
+        slider.dataset.kefeClarified = 'true';
+        slider.setAttribute('aria-label', 'Manual lyric timing adjustment');
+        const block = slider.closest('.sub-block');
+        const heading = block?.querySelector('.sub-heading');
+        if (heading) heading.textContent = 'Manual lyric timing';
+        const value = $('offsetVal');
+        if (value) value.textContent = `${Number(slider.value || 0).toFixed(1)}s — no shift`;
+
+        const describe = () => {
+            const amount = Number(slider.value || 0);
+            if (value) {
+                if (Math.abs(amount) < 0.05) value.textContent = '0.0s — no shift';
+                else if (amount < 0) value.textContent = `${amount.toFixed(1)}s — lyrics earlier`;
+                else value.textContent = `+${amount.toFixed(1)}s — lyrics later`;
+            }
+            slider.title = amount < 0
+                ? 'Move left when the lyrics appear too late.'
+                : amount > 0
+                    ? 'Move right when the lyrics appear too early.'
+                    : 'No manual timing shift.';
+        };
+        slider.addEventListener('input', describe);
+        describe();
     }
 
     function installComboboxStyles() {
@@ -198,26 +226,53 @@
         return `${title.toLowerCase()}::${artist.toLowerCase()}`;
     }
 
-    function releaseWhenDone(btn) {
-        if (!btn) { inFlight = false; return; }
-        const finish = () => { inFlight = false; observer.disconnect(); };
-        const observer = new MutationObserver(() => { if (!btn.disabled) finish(); });
-        observer.observe(btn, { attributes: true, attributeFilter: ['disabled'] });
-        setTimeout(finish, 25000);
+    function setRetryStatus(message, kind = '') {
+        const status = $('lyricsStatus');
+        if (!status) return;
+        status.textContent = message;
+        status.className = `status${kind ? ` ${kind}` : ''}`;
+    }
+
+    function scheduleRetry(key, delay = 4000) {
+        const current = retryState.get(key) || { attempts: 0, nextAt: 0 };
+        current.nextAt = Date.now() + delay;
+        retryState.set(key, current);
+    }
+
+    function finishRequest(key, succeeded) {
+        inFlight = false;
+        const current = retryState.get(key) || { attempts: 0, nextAt: 0 };
+        if (succeeded) {
+            retryState.delete(key);
+            return;
+        }
+        current.attempts += 1;
+        const delay = current.attempts <= 3 ? 2500 * current.attempts : 15000;
+        current.nextAt = Date.now() + delay;
+        retryState.set(key, current);
+        setRetryStatus(`Still trying to find synced lyrics… retry ${current.attempts + 1} in ${Math.ceil(delay / 1000)}s.`);
     }
 
     function tick() {
         if (inFlight || window.isExporting) return;
         const state = window.state;
-        if (!state || state.lyrics?.lines?.length) return;
+        if (!state) return;
+        if (state.lyrics?.lines?.length) return;
         const btn = $('findLyricsBtn');
         if (!btn || btn.disabled) return;
         const key = resolvedKey();
-        if (!key || attempted.has(key)) return;
-        attempted.add(key);
+        if (!key) return;
+        const current = retryState.get(key) || { attempts: 0, nextAt: 0 };
+        if (Date.now() < current.nextAt) return;
+
         inFlight = true;
-        releaseWhenDone(btn);
+        current.attempts += 1;
+        retryState.set(key, current);
+        setRetryStatus(current.attempts === 1 ? 'Finding synced lyrics…' : `Trying another synced-lyrics lookup… attempt ${current.attempts}`);
         btn.click();
+        window.setTimeout(() => {
+            if (inFlight) finishRequest(key, false);
+        }, 14000);
     }
 
     async function alignResolvedLyrics() {
@@ -226,33 +281,57 @@
         const captionGen = window.kefeCaptionGen;
         if (!st || !aligner || !captionGen?.transcribeSource) return;
         if (st.lyrics?.alignment?.method === 'media-audio') return;
-        const deadline = Date.now() + 15000;
-        while (!st.lyrics?.lines?.length && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 100));
-        if (!st.lyrics?.lines?.length) return;
-        try {
-            const transcription = await captionGen.transcribeSource({ onStatus: message => {
-                const status = document.getElementById('lyricsStatus');
-                if (status) status.textContent = `Aligning lyrics to media audio… ${message}`;
-            }});
-            const result = aligner.align(st.lyrics.lines, transcription.words, Number(st.audio?.duration || transcription.audio?.duration || 0));
-            if (!result.aligned) return;
-            st.lyrics.lines = result.lines;
-            st.lyrics.alignment = { method: 'media-audio', confidence: result.confidence, offset: result.offset, anchors: result.anchors, error: result.error };
-            if (typeof window.redrawCurrentPreviewFrame === 'function') window.redrawCurrentPreviewFrame();
-            const status = document.getElementById('lyricsStatus');
-            if (status) status.textContent = `Lyrics synced to media audio — ${result.anchors} timing anchors matched.`;
-        } catch (error) {
-            console.warn('[KEFE] Automatic lyric alignment unavailable:', error);
+
+        const maxAttempts = 4;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            if (st.lyrics?.alignment?.method === 'media-audio') return;
+            setRetryStatus(attempt === 1 ? 'Aligning lyrics to the actual audio…' : `Trying lyric alignment again… attempt ${attempt}`);
+            try {
+                const transcription = await captionGen.transcribeSource({ onStatus: message => {
+                    const status = $('lyricsStatus');
+                    if (status) status.textContent = `Aligning lyrics to media audio… ${message}`;
+                }});
+                const result = aligner.align(st.lyrics?.lines || [], transcription.words, Number(st.audio?.duration || transcription.audio?.duration || 0));
+                if (result.aligned) {
+                    st.lyrics.lines = result.lines;
+                    st.lyrics.alignment = { method: 'media-audio', confidence: result.confidence, offset: result.offset, anchors: result.anchors, error: result.error };
+                    if (typeof window.redrawCurrentPreviewFrame === 'function') window.redrawCurrentPreviewFrame();
+                    const status = $('lyricsStatus');
+                    if (status) status.textContent = `Lyrics synced to media audio — ${result.anchors} timing anchors matched.`;
+                    return;
+                }
+                setRetryStatus(`Alignment needs another pass — ${result.anchors || 0} timing anchors matched.`);
+            } catch (error) {
+                console.warn('[KEFE] Automatic lyric alignment attempt failed:', error);
+                setRetryStatus(`Alignment attempt ${attempt} failed — trying again…`);
+            }
+            if (attempt < maxAttempts) await new Promise(resolve => setTimeout(resolve, 1800 * attempt));
         }
+        setRetryStatus('Automatic alignment could not lock on yet. KEFE will keep the lyrics available for another sync attempt.');
     }
 
-    document.addEventListener('kefe:lyrics-resolved', alignResolvedLyrics);
+    document.addEventListener('kefe:lyrics-resolved', event => {
+        const key = resolvedKey();
+        if (key) finishRequest(key, true);
+        alignResolvedLyrics(event);
+    });
+
+    document.addEventListener('kefe:lyrics-error', () => {
+        const key = resolvedKey();
+        if (!key) { inFlight = false; return; }
+        finishRequest(key, false);
+    });
 
     function start() {
         moveSongDetailsIntoLyrics();
         initSongComboboxes();
+        clarifySyncControl();
         tick();
-        setInterval(tick, 1200);
+        setInterval(() => {
+            moveSongDetailsIntoLyrics();
+            clarifySyncControl();
+            tick();
+        }, 1200);
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
