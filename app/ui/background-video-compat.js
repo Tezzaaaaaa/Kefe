@@ -5,6 +5,19 @@
   const videoFiles = new WeakSet();
   const input = document.getElementById('backgroundInput');
 
+  function loadUploadConfirmations() {
+    if (window.__kefeUploadConfirmationsLoaded) return;
+    window.__kefeUploadConfirmationsLoaded = true;
+    const script = document.createElement('script');
+    script.src = './app/ui/upload-confirmations.js';
+    script.async = false;
+    document.body.appendChild(script);
+  }
+
+  // Confirmation is a separate UI module and must load independently of the
+  // optional background input compatibility hook.
+  loadUploadConfirmations();
+
   function setStatus(text, kind = '') {
     const status = document.getElementById('backgroundStatus');
     if (!status) return;
@@ -62,17 +75,4 @@
       if (install() || ++attempts >= 200) clearInterval(timer);
     }, 25);
   }
-
-  // Keep upload confirmation as one dedicated implementation. This compatibility
-  // module only loads it because index.html already loads this module; it does not
-  // duplicate or replace the upload handlers.
-  function loadUploadConfirmations() {
-    if (window.__kefeUploadConfirmationsLoaded) return;
-    window.__kefeUploadConfirmationsLoaded = true;
-    const script = document.createElement('script');
-    script.src = './app/ui/upload-confirmations.js';
-    script.async = false;
-    document.body.appendChild(script);
-  }
-  loadUploadConfirmations();
 })();
