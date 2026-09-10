@@ -113,6 +113,12 @@ try {
     { timeout: 15000 },
   );
 
+  // The editor is intentionally behind the guided wizard. Enter the real
+  // editor surface before exercising controls that are hidden by wizard mode.
+  const skipWizard = page.locator('#wizardSkipBtn');
+  if (await skipWizard.isVisible()) await skipWizard.click();
+  await page.locator('#lyricStyleBlock').waitFor({ state: 'visible' });
+
   await page.locator('#lyricStyleBlock [data-effect="pulse"]').click();
   await page
     .locator('#backgroundSection [data-background-preset="aurora"]')
@@ -205,7 +211,7 @@ try {
 
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(
-    'KEFE smoke test passed: boot → runtime → style/background → lyrics analysis → audio load → playback → upload confirmation → auto-create → smart render → export preflight.',
+    'KEFE smoke test passed: boot → runtime → wizard exit → style/background → lyrics analysis → audio load → playback → upload confirmation → auto-create → smart render → export preflight.',
   );
 } finally {
   if (browser) await browser.close().catch(() => {});
