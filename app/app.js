@@ -1773,18 +1773,21 @@ function hasMasterSource() {
     return Boolean(state.audio.file) && state.audio.ready;
 }
 document.addEventListener('click', (event) => {
-  const link = event.target.closest('.section-nav-link[data-nav]');
-  if (!link) return;
-  const section = document.getElementById(link.getAttribute('aria-controls'));
-  if (!section) return;
-  document.querySelectorAll('.sidebar > .section').forEach((el) => el.classList.remove('active'));
-  section.classList.add('active');
-  document.querySelectorAll('.section-nav-link').forEach((el) => {
-    const active = el === link;
-    el.classList.toggle('active', active);
-    el.setAttribute('aria-current', active ? 'page' : 'false');
-  });
-}, { passive: true });
+    const link = event.target.closest('.section-nav-link[data-nav]');
+    if (!link) return;
+    const targetId = link.getAttribute('aria-controls');
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    document.querySelectorAll('.sidebar > .section').forEach(section => {
+        section.classList.toggle('active', section === target);
+    });
+    document.querySelectorAll('.section-nav-link').forEach(item => {
+        const active = item === link;
+        item.classList.toggle('active', active);
+        if (active) item.setAttribute('aria-current', 'page');
+        else item.removeAttribute('aria-current');
+    });
+});
 
 function updateSectionNav() {
     const masterDur = getMasterDuration();
