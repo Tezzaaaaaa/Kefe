@@ -14,7 +14,7 @@
     const promise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = src;
-    script.setAttribute(`data-${marker}`, '1');
+      script.setAttribute(`data-${marker}`, '1');
       script.onload = resolve;
       script.onerror = () => reject(new Error(`Failed to load ${src}`));
       document.head.appendChild(script);
@@ -24,6 +24,7 @@
   }
 
   let runtimeBootstrapped = false;
+  let runtimeBootstrapTimer = 0;
   async function bootstrapRuntimeModules() {
     if (runtimeBootstrapped) return;
     try {
@@ -36,10 +37,19 @@
         loadScript('./app/core/smart-render.js', 'kefe-smart-render')
       ]);
       runtimeBootstrapped = true;
+      if (runtimeBootstrapTimer) {
+        clearInterval(runtimeBootstrapTimer);
+        runtimeBootstrapTimer = 0;
+      }
       window.dispatchEvent(new CustomEvent('kefe:runtime-bootstrapped'));
     } catch (error) {
       console.error('[KEFE Bootstrap]', error);
     }
+  }
+
+  function keepRuntimeBootstrapAlive() {
+    if (runtimeBootstrapped) return;
+    void bootstrapRuntimeModules();
   }
 
   function enhanceLivePreview() {
@@ -107,7 +117,8 @@
 
   window.addEventListener('kefe:analysis-ready', analyzeCurrentLyrics);
   enhanceLivePreview();
-  bootstrapRuntimeModules();
+  keepRuntimeBootstrapAlive();
+  runtimeBootstrapTimer = window.setInterval(keepRuntimeBootstrapAlive, 250);
   window.setInterval(enhanceLivePreview, 500);
 })();
 
