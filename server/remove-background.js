@@ -30,6 +30,9 @@ router.post(
     if (!ALLOWED_TYPES.has(contentType)) {
       return res.status(415).json({ error: 'Use a JPG, PNG, or WebP image.' });
     }
+    if (typeof req.body === 'string' || Array.isArray(req.body)) {
+      return res.status(400).json({ error: 'Invalid image payload.' });
+    }
     if (!Buffer.isBuffer(req.body)) {
       return res.status(400).json({ error: 'Invalid image payload.' });
     }
