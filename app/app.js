@@ -135,6 +135,7 @@ function activeTimedLines() {
 function markSectionTouched(key) {
     if (!(key in state.touched) || state.touched[key]) return;
     state.touched[key] = true;
+    updateSectionNav();
 }
 
 /* ---------- Play button icons (never overwrite the SVG with text) ---------- */
@@ -1756,6 +1757,7 @@ function readiness() {
     const ready = masterReady && (timedTextRequired() ? timingValid : true);
     $('exportBtn').disabled = $('exportBottom').disabled = !ready;
     refreshLyricsTimingStatus();
+    updateSectionNav();
 }
 function ensureDefaultBackground() {
     if (media.image || media.video) return;
@@ -1769,6 +1771,23 @@ function hasMasterSource() {
     if (mode === 'video') return Boolean(media.video && media.videoFile);
     if (mode === 'none') return getMasterDuration() > 0; // virtual timeline is a valid master
     return Boolean(state.audio.file) && state.audio.ready;
+}
+function updateSectionNav() {
+    const masterDur = getMasterDuration();
+    const timed = activeTimedLines();
+    const timingOk = timed.length > 0 && validateLyricTiming(timed, masterDur).errors.length === 0;
+    const done = {
+        audio: hasMasterSource() && masterDur > 0,
+        text: timingOk,
+        fx: state.touched.fx,
+        background: state.touched.background || Boolean(media.image) || Boolean(media.video),
+        title: state.touched.title,
+        export: hasMasterSource() && masterDur > 0 && timingOk
+    };
+    qsa('.section-nav-link').forEach(link => {
+        const key = link.dataset.nav;
+        if (key) link.classList.toggle('done', Boolean(done[key]));
+    });
 }
 function projectValidationIssues() {
     const issues = [];

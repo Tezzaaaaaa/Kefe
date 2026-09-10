@@ -29,9 +29,16 @@
   }
 
   function fixNavigation() {
+    const exportLink = q('.section-nav-link[data-nav="export"]');
+    if (exportLink) exportLink.textContent = 'Export';
     const exportHeading = $('exportSection')?.querySelector('h3');
     if (exportHeading) exportHeading.textContent = 'Export';
 
+    const fxLink = q('.section-nav-link[data-nav="fx"]');
+    if (fxLink) {
+      fxLink.href = '#visualFxSection';
+      fxLink.dataset.target = 'visualFxSection';
+    }
 
     const legacyFx = $('fxSection');
     if (legacyFx) legacyFx.hidden = true;
@@ -298,6 +305,8 @@
     const observer = new MutationObserver(() => {
       fixNavigation();
       if ($('visualFxSection')) {
+        const link = q('.section-nav-link[data-nav="fx"]');
+        if (link) link.href = '#visualFxSection';
       }
     });
     observer.observe(document.querySelector('.sidebar') || document.body, {
