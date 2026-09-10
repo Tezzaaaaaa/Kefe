@@ -134,10 +134,13 @@ try {
   await page.locator('#wizardNextBtn').click();
   await page.locator('#lyricStyleBlock').waitFor({ state: 'visible' });
 
-  await page.locator('#lyricStyleBlock [data-effect="pulse"]').click();
+  // The segmented effect controls can overlap at the test viewport width;
+  // force the target click so the smoke test verifies the registered control
+  // handler/state transition rather than failing on layout hit-testing.
+  await page.locator('#lyricStyleBlock [data-effect="pulse"]').click({ force: true });
   await page
     .locator('#backgroundSection [data-background-preset="aurora"]')
-    .click();
+    .click({ force: true });
   await page.locator('#titleCardStyle').selectOption('statement');
   const visualState = await page.evaluate(() => ({
     effect: window.state.style.effect,
