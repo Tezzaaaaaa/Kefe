@@ -1,50 +1,23 @@
-/* KEFE — background image/video upload compatibility. */
+/* KEFE — background video upload compatibility.
+ *
+ * app.js owns the background input and the actual media lifecycle. This file
+ * only replaces the optional video-audio probe so a large video is never
+ * decoded in full just to decide whether it has an audio track.
+ */
 (() => {
   'use strict';
 
-  const videoFiles = new WeakSet();
-  const input = document.getElementById('backgroundInput');
-
-  function setStatus(text, kind = '') {
-    const status = document.getElementById('backgroundStatus');
-    if (!status) return;
-    status.textContent = text;
-    status.className = `status${kind ? ` ${kind}` : ''}`;
-  }
-
-  if (!input) return;
-
-  // Selecting the same file twice must still fire change so replacement is reliable.
-  input.addEventListener('click', () => { input.value = ''; }, true);
-  input.addEventListener('change', () => {
-    const file = input.files?.[0];
-    if (!file) return;
-    const type = String(file.type || '').toLowerCase();
-    if (type.startsWith('video/')) {
-      videoFiles.add(file);
-      setStatus('Loading video…', 'loading');
-    } else if (type.startsWith('image/')) {
-      setStatus('Loading image…', 'loading');
-    }
-  }, true);
-
-  // The optional video-audio probe must never read an entire movie into memory.
-  const nativeArrayBuffer = File.prototype.arrayBuffer;
-  if (typeof nativeArrayBuffer === 'function') {
-    File.prototype.arrayBuffer = function () {
-      if (videoFiles.has(this)) return Promise.resolve(new ArrayBuffer(0));
-      return nativeArrayBuffer.call(this);
-    };
-  }
-
   const FAST_PROBE_MARK = '__kefeFastVideoAudioProbeV6';
+
   function fastDetectVideoHasAudio(_file, video) {
     try {
       if (video?.audioTracks?.length) return Promise.resolve(true);
       if (video?.mozHasAudio) return Promise.resolve(true);
       if (video?.webkitAudioDecodedByteCount > 0) return Promise.resolve(true);
     } catch (_) {}
-    // Audio detection is advisory. A valid background video must not be blocked by it.
+
+    // Audio detection is advisory. The loaded video remains authoritative;
+    // never block a valid upload on browser-specific track metadata.
     return Promise.resolve(true);
   }
 
@@ -56,6 +29,8 @@
     return true;
   }
 
+  // app.js defines detectVideoHasAudio immediately after this compatibility
+  // file in the page. Keep this tiny bridge only until that function exists.
   if (!install()) {
     let attempts = 0;
     const timer = setInterval(() => {
