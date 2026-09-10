@@ -70,8 +70,8 @@
         return true;
     }
     function targetsForStep(step) {
-        if (step === 'lyrics') return ['lyricsPanel'];
-        if (step === 'captions') return ['captionsPanel'];
+        if (step === 'lyrics') return ['textSection'];
+        if (step === 'captions') return ['textSection'];
         if (step === 'style') return [];
         if (step === 'background') return ['backgroundSection'];
         if (step === 'export') return ['exportSection'];
@@ -154,9 +154,10 @@
     function renderStylePanel() {
         const styleBlock = document.querySelector('#lyricStyleBlock');
         const current = window.state?.style?.effect || 'apple';
+        const stepNumber = stepsFor().indexOf('style') + 1;
 
         panel.innerHTML =
-            '<p class="wizard-panel-kicker">04 · Style</p>' +
+            '<p class="wizard-panel-kicker">' + pad(stepNumber) + ' · Style</p>' +
             '<h3 class="wizard-panel-title">Choose your look</h3>' +
             '<p class="wizard-panel-hint">Choose a lyric style and see the result immediately.</p>' +
             '<div class="wizard-style-preview" data-effect="' + current + '">' +
@@ -201,7 +202,6 @@
         const steps = stepsFor(), step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        if (step === 'lyrics') restoreStyleBlock();
         if (previewEl) { const showLivePreview = ['lyrics','captions','style','background','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
         const targetIds = targetsForStep(step);
         let firstTarget = null;
