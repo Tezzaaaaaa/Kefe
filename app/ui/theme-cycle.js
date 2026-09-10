@@ -49,14 +49,6 @@
         updateButton(button, mode);
         window.dispatchEvent(new CustomEvent('kefe:theme-change', { detail: { mode } }));
     }
-    function loadScriptOnce(src, marker, onload) {
-        if (document.querySelector(`script[data-${marker}]`)) return;
-        const script = document.createElement('script');
-        script.src = src;
-        script.setAttribute(`data-${marker}`, 'true');
-        if (onload) script.addEventListener('load', onload, { once: true });
-        document.body.appendChild(script);
-    }
     function init() {
         const control = document.querySelector('.theme-control');
         if (!control) return;
@@ -70,20 +62,6 @@
             const current = getMode();
             setMode(button, MODES[(MODES.indexOf(current) + 1) % MODES.length]);
         });
-        if (!document.querySelector('script[data-kefe-wizard-entry]')) {
-            const wizard = document.createElement('script');
-            wizard.src = './app/ui/wizard/wizard.js';
-            wizard.setAttribute('data-kefe-wizard-entry', 'true');
-            wizard.addEventListener('load', () => {
-                // The guided wizard owns navigation. Remove the legacy section
-                // navigation after the wizard has initialized so no second
-                // navigation system can compete for the same editor state.
-                document.querySelector('.section-nav')?.remove();
-                loadScriptOnce('./app/effects/scroll-lines.js', 'kefe-scroll-lines');
-                loadScriptOnce('./app/ui/wizard/wizard-all-effects.js', 'kefe-wizard-all-effects');
-            }, { once: true });
-            document.body.appendChild(wizard);
-        }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
     else init();
