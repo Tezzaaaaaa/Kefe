@@ -13,15 +13,15 @@
     if (previewEl) previewEl.id = 'previewSection';
 
     const PATHS = {
-        lyric: ['intro', 'source', 'content', 'style', 'background', 'preview', 'export'],
+        lyric: ['intro', 'source', 'lyrics', 'style', 'background', 'preview', 'export'],
         visualiser: ['intro', 'source', 'style', 'background', 'preview', 'export'],
         captioned: ['intro', 'source', 'captions', 'style', 'background', 'preview', 'export'],
-        custom: ['intro', 'source', 'content', 'style', 'background', 'preview', 'export']
+        custom: ['intro', 'source', 'lyrics', 'style', 'background', 'preview', 'export']
     };
     const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', custom: 'Custom' };
     const PATH_HINTS = { lyric: 'Synced lyrics with expressive motion.', visualiser: 'Audio-reactive visuals with no lyrics.', captioned: 'Timed captions for spoken audio or video.', custom: 'Build the video your way.' };
-    const STEP_TITLES = { content: 'Add your content', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background', export: 'Export your video' };
-    const STEP_LABELS = { intro: 'Format', source: 'Media', content: 'Content', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview', export: 'Export' };
+    const STEP_TITLES = { lyrics: 'Add your lyrics', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background', export: 'Export your video' };
+    const STEP_LABELS = { intro: 'Format', source: 'Media', lyrics: 'Lyrics', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview', export: 'Export' };
     const CHOICE_ICONS = {
         lyric: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10"/><circle cx="18.2" cy="17.4" r="2.6"/><path d="M20.8 17.4V8.2l-2.6.9"/></svg>',
         visualiser: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>',
@@ -65,12 +65,12 @@
     function nextEnabled(step) {
         if (step === 'intro') return Boolean(wizard.choice);
         if (step === 'source') return sourceReady();
-        if (step === 'content') return lyricsReady();
+        if (step === 'lyrics') return lyricsReady();
         if (step === 'captions') return captionsReady();
         return true;
     }
     function targetsForStep(step) {
-        if (step === 'content') return ['textSection'];
+        if (step === 'lyrics') return ['lyricsPanel'];
         if (step === 'captions') return ['captionsPanel'];
         if (step === 'style') return [];
         if (step === 'background') return ['backgroundSection'];
@@ -178,6 +178,14 @@
         renderStylePreview(current);
     }
 
+    function restoreStyleBlock() {
+        const styleBlock = document.querySelector('#wizardStyleMount #lyricStyleBlock');
+        const lyricsPanel = $('lyricsPanel');
+        if (!styleBlock || !lyricsPanel) return;
+        const syncBlock = $('lyricsOffset')?.closest('.sub-block');
+        lyricsPanel.insertBefore(styleBlock, syncBlock || null);
+    }
+
     function renderPreview() {
         const st = window.state || {}, media = window.kefeMedia || {}, labels = { uploaded: 'Audio file', video: 'Background video', none: 'No audio' };
         const rows = [['Format', PATH_LABELS[wizard.choice] || '—'], ['Source', labels[st.audioSource?.master] || (wizard.source === 'media' ? 'Background video' : wizard.source === 'none' ? 'No audio' : 'Audio file')]];
@@ -193,7 +201,8 @@
         const steps = stepsFor(), step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        if (previewEl) { const showLivePreview = ['content','captions','style','background','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
+        if (step === 'lyrics') restoreStyleBlock();
+        if (previewEl) { const showLivePreview = ['lyrics','captions','style','background','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
         const targetIds = targetsForStep(step);
         let firstTarget = null;
 
@@ -226,8 +235,7 @@
         const metadataBlock = document.querySelector('#wizardMetadataMount .music-details');
         if (metadataBlock) $('audioSection')?.appendChild(metadataBlock);
 
-        const styleBlock = document.querySelector('#wizardStyleMount #lyricStyleBlock');
-        if (styleBlock) $('lyricsPanel')?.appendChild(styleBlock);
+        restoreStyleBlock();
 
         clearTimeout(fadeTimer); sidebar.classList.remove('wizard-fading'); stepHeading.remove(); nav.remove(); panel.remove(); document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current')); body.classList.remove('wizard-mode'); delete body.dataset.wizardStep;
         document.querySelectorAll('.sidebar .section').forEach(s => s.classList.toggle('active', s.id === 'exportSection'));
