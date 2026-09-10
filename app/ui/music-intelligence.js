@@ -1,5 +1,6 @@
 /* KEFE Music Intelligence UI
  * Visualises local analysis and exposes beat snapping without taking over the renderer.
+ * No external chart library; the existing analysis data drives a compact animated card.
  */
 (() => {
   'use strict';
@@ -12,17 +13,28 @@
       const style = document.createElement('style');
       style.id = 'kefeMusicIntelligenceCSS';
       style.textContent = `
-        .kefe-intelligence-panel .kefe-intel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
-        .kefe-intelligence-panel .kefe-intel-grid>div{padding:8px;border:1px solid color-mix(in srgb,currentColor 14%,transparent);border-radius:8px}
-        .kefe-intelligence-panel .kefe-intel-grid span{display:block;font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:.08em}
-        .kefe-intelligence-panel .kefe-intel-grid strong{font-size:15px}
-        .kefe-intel-progress{height:3px;border-radius:3px;overflow:hidden;background:color-mix(in srgb,currentColor 10%,transparent);margin:7px 0}
-        .kefe-intel-progress span{display:block;height:100%;width:0;background:currentColor;transition:width .15s ease}
-        .kefe-waveform{display:block;width:100%;height:72px;border-radius:8px;background:color-mix(in srgb,currentColor 5%,transparent);margin:7px 0}
-        .kefe-timeline-legend{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:10px;opacity:.72}
-        .kefe-timeline-legend span::before{content:'';display:inline-block;width:10px;height:2px;background:currentColor;margin-right:4px;vertical-align:middle}
-        .kefe-timeline-legend button{margin-left:auto}
-        @media(max-width:700px){.kefe-timeline-legend button{width:100%;margin-left:0}}
+        .kefe-music-timeline{margin-top:10px}
+        .kefe-intelligence-card{position:relative;overflow:hidden;padding:14px;border:1px solid color-mix(in srgb,currentColor 12%,transparent);border-radius:16px;background:color-mix(in srgb,currentColor 4%,transparent)}
+        .kefe-intelligence-card::after{content:'';position:absolute;inset:auto -15% -70% 30%;height:120px;border-radius:50%;background:color-mix(in srgb,currentColor 7%,transparent);pointer-events:none}
+        .kefe-intelligence-head{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+        .kefe-intelligence-copy{min-width:0}
+        .kefe-intelligence-title{font-size:13px;font-weight:750;letter-spacing:-.01em}
+        .kefe-intelligence-subtitle{margin-top:2px;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;opacity:.58}
+        .kefe-intelligence-metric{display:grid;justify-items:end;flex:0 0 auto}
+        .kefe-intelligence-metric strong{font-size:22px;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+        .kefe-intelligence-metric span{margin-top:3px;font-size:9px;text-transform:uppercase;letter-spacing:.1em;opacity:.55}
+        .kefe-intelligence-chart{position:relative;z-index:1;display:flex;align-items:flex-end;gap:3px;height:72px;margin:13px 0 9px;padding:0 1px}
+        .kefe-intelligence-bar{position:relative;flex:1 1 0;min-width:2px;height:var(--bar-height);border-radius:999px 999px 3px 3px;background:currentColor;opacity:.52;transform-origin:bottom;animation:kefeIntelBarIn .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--bar-delay)}
+        .kefe-intelligence-bar[data-beat="true"]{opacity:.9}
+        .kefe-intelligence-bar[data-beat="true"]::before{content:'';position:absolute;left:50%;top:-3px;width:3px;height:3px;border-radius:50%;background:currentColor;transform:translateX(-50%)}
+        .kefe-intelligence-foot{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:9px;opacity:.56}
+        .kefe-intelligence-legend{display:flex;gap:8px;min-width:0}
+        .kefe-intelligence-legend span{white-space:nowrap}
+        .kefe-intelligence-actions{display:flex;justify-content:flex-end;margin-top:9px}
+        .kefe-intelligence-actions button{font-size:10px}
+        @keyframes kefeIntelBarIn{from{opacity:0;transform:scaleY(.2)}to{transform:scaleY(1)}}
+        @media(prefers-reduced-motion:reduce){.kefe-intelligence-bar{animation:none}}
+        @media(max-width:700px){.kefe-intelligence-card{padding:12px}.kefe-intelligence-chart{height:62px;gap:2px}.kefe-intelligence-metric strong{font-size:19px}}
       `;
       document.head.appendChild(style);
     }
@@ -31,51 +43,88 @@
     panel.id = 'kefeMusicTimeline';
     panel.className = 'sub-block kefe-music-timeline';
     panel.innerHTML = `
-      <div class="sub-heading">Beat map</div>
-      <canvas id="kefeWaveform" class="kefe-waveform" height="72" aria-label="Audio waveform and detected beats"></canvas>
-      <div class="kefe-timeline-legend"><span>Energy</span><span>Beat markers</span><button type="button" id="kefeSnapBeat" class="file-button">Snap offset to nearest beat</button></div>`;
+      <div class="kefe-intelligence-card" aria-label="Audio analysis">
+        <div class="kefe-intelligence-head">
+          <div class="kefe-intelligence-copy">
+            <div class="kefe-intelligence-title">Beat map</div>
+            <div class="kefe-intelligence-subtitle" id="kefeIntelSubtitle">Load audio to analyse rhythm</div>
+          </div>
+          <div class="kefe-intelligence-metric">
+            <strong id="kefeIntelMetric">—</strong>
+            <span>BPM</span>
+          </div>
+        </div>
+        <div id="kefeIntelChart" class="kefe-intelligence-chart" role="img" aria-label="Audio energy chart"></div>
+        <div class="kefe-intelligence-foot">
+          <div class="kefe-intelligence-legend"><span id="kefeIntelDuration">—</span><span id="kefeIntelBeats">— beats</span></div>
+          <span>Energy</span>
+        </div>
+        <div class="kefe-intelligence-actions"><button type="button" id="kefeSnapBeat" class="file-button">Snap offset to nearest beat</button></div>
+      </div>`;
     audioSection.appendChild(panel);
 
-    const canvas = document.getElementById('kefeWaveform');
-    const ctx = canvas?.getContext('2d');
+    const chart = document.getElementById('kefeIntelChart');
+    const subtitle = document.getElementById('kefeIntelSubtitle');
+    const metric = document.getElementById('kefeIntelMetric');
+    const durationLabel = document.getElementById('kefeIntelDuration');
+    const beatsLabel = document.getElementById('kefeIntelBeats');
     let analysis = null;
 
-    function draw() {
-      if (!ctx || !canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      const width = Math.max(320, Math.floor(rect.width || 520));
-      const height = 72;
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, width, height);
-      if (!analysis?.energy?.length) {
-        ctx.globalAlpha = 0.45;
-        ctx.font = '12px system-ui, sans-serif';
-        ctx.fillText('Load audio to analyse rhythm', 10, 40);
-        ctx.globalAlpha = 1;
+    function formatDuration(seconds) {
+      const total = Math.max(0, Math.round(Number(seconds) || 0));
+      const minutes = Math.floor(total / 60);
+      return `${minutes}:${String(total % 60).padStart(2, '0')}`;
+    }
+
+    function renderChart() {
+      if (!chart) return;
+      chart.replaceChildren();
+      const energy = Array.isArray(analysis?.energy) ? analysis.energy : [];
+      if (!energy.length) {
+        const empty = document.createElement('span');
+        empty.textContent = 'Load audio to analyse rhythm';
+        empty.style.cssText = 'align-self:center;font-size:11px;opacity:.5';
+        chart.appendChild(empty);
         return;
       }
-      const energy = analysis.energy;
+
+      const barCount = Math.min(48, Math.max(18, Math.round(chart.clientWidth / 7)));
       const max = Math.max(0.001, ...energy);
-      const step = Math.max(1, Math.ceil(energy.length / width));
-      for (let x = 0; x < width; x++) {
-        const start = x * step;
-        const end = Math.min(energy.length, start + step);
+      const beatTimes = Array.isArray(analysis?.beats) ? analysis.beats : [];
+      const duration = Math.max(0.001, Number(analysis?.duration) || 1);
+      for (let i = 0; i < barCount; i++) {
+        const start = Math.floor(i * energy.length / barCount);
+        const end = Math.max(start + 1, Math.floor((i + 1) * energy.length / barCount));
         let value = 0;
-        for (let i = start; i < end; i++) value = Math.max(value, energy[i]);
-        const h = Math.max(1, (value / max) * (height - 14));
-        ctx.globalAlpha = 0.68;
-        ctx.fillRect(x, (height - h) / 2, 1, h);
+        for (let j = start; j < Math.min(end, energy.length); j++) value = Math.max(value, Number(energy[j]) || 0);
+        const time = (start / Math.max(1, energy.length - 1)) * duration;
+        const isBeat = beatTimes.some(beat => Math.abs(Number(beat) - time) < duration / barCount / 2);
+        const bar = document.createElement('span');
+        bar.className = 'kefe-intelligence-bar';
+        bar.dataset.beat = String(isBeat);
+        bar.style.setProperty('--bar-height', `${Math.max(10, (value / max) * 100)}%`);
+        bar.style.setProperty('--bar-delay', `${Math.min(i * 12, 420)}ms`);
+        bar.setAttribute('aria-hidden', 'true');
+        chart.appendChild(bar);
       }
-      const duration = Math.max(0.001, Number(analysis.duration) || 1);
-      ctx.globalAlpha = 0.8;
-      for (const beat of analysis.beats || []) {
-        const x = beat / duration * width;
-        ctx.fillRect(Math.round(x), 4, 1, height - 8);
+    }
+
+    function updateCard() {
+      if (!analysis) {
+        subtitle.textContent = 'Load audio to analyse rhythm';
+        metric.textContent = '—';
+        durationLabel.textContent = '—';
+        beatsLabel.textContent = '— beats';
+        renderChart();
+        return;
       }
-      ctx.globalAlpha = 1;
+      const title = document.getElementById('metaTitle')?.value.trim() || '';
+      const artist = document.getElementById('metaArtist')?.value.trim() || '';
+      subtitle.textContent = title && artist ? `${title} — ${artist}` : title || artist || analysis.fileName || 'Local audio analysis';
+      metric.textContent = Number.isFinite(Number(analysis.bpm)) && Number(analysis.bpm) > 0 ? String(Math.round(Number(analysis.bpm))) : '—';
+      durationLabel.textContent = formatDuration(analysis.duration);
+      beatsLabel.textContent = `${Array.isArray(analysis.beats) ? analysis.beats.length : 0} beats`;
+      renderChart();
     }
 
     function nearestBeat(time) {
@@ -108,15 +157,18 @@
 
     window.addEventListener('kefe:audio-analysis-ready', event => {
       analysis = event.detail || null;
-      draw();
+      updateCard();
     });
-    window.addEventListener('resize', draw);
+    window.addEventListener('resize', renderChart);
+    window.addEventListener('input', event => {
+      if (event.target?.id === 'metaTitle' || event.target?.id === 'metaArtist') updateCard();
+    });
     window.kefeMusicUI = {
       nearestBeat,
       get analysis() { return analysis; },
       snapTime(time) { return nearestBeat(time); }
     };
-    draw();
+    updateCard();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });
