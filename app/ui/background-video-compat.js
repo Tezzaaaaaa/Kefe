@@ -62,4 +62,17 @@
       if (install() || ++attempts >= 200) clearInterval(timer);
     }, 25);
   }
+
+  // Keep upload confirmation as one dedicated implementation. This compatibility
+  // module only loads it because index.html already loads this module; it does not
+  // duplicate or replace the upload handlers.
+  function loadUploadConfirmations() {
+    if (window.__kefeUploadConfirmationsLoaded) return;
+    window.__kefeUploadConfirmationsLoaded = true;
+    const script = document.createElement('script');
+    script.src = './app/ui/upload-confirmations.js';
+    script.async = false;
+    document.body.appendChild(script);
+  }
+  loadUploadConfirmations();
 })();
