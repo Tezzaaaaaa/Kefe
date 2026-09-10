@@ -231,6 +231,12 @@
   function init() {
     installMotionStyles();
     rebuild();
+    document.addEventListener('click', (event) => {
+      const button = event.target.closest('#lyricStyleBlock [data-effect]');
+      if (!button || typeof window.setEffect !== 'function') return;
+      if (button.dataset.kefeEffectDelegated === 'true') return;
+      window.setEffect(button.dataset.effect);
+    });
     observer.observe(document.body, { childList: true, subtree: true });
     loadStyleSections();
     loadPreviewAspect();
