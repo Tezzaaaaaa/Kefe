@@ -16,37 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  repair-qs:
-    name: Repair qs security dependency
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'repair: qs security dependency') }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-      - name: Set up Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: npm
-      - name: Update qs lockfile
-        run: npm install qs@6.16.0 --package-lock-only --ignore-scripts
-      - name: Commit lockfile
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add package-lock.json
-          if git diff --cached --quiet; then
-            echo 'qs lockfile is already current.'
-            exit 0
-          fi
-          git commit -m 'fix(security): update qs to 6.16.0'
-          git push origin HEAD:main
-
   dependencies:
     name: Dependency security audit
-    if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'repair: qs security dependency') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
