@@ -3722,3 +3722,19 @@ window.addEventListener('beforeunload', function() {
     audio.src = '';
     try { window.kefeExportAbort?.abort(); } catch (e) {}
 });
+
+// KEFE section navigation: single native owner.
+if (!window.__kefeSectionNavBound) {
+  window.__kefeSectionNavBound = true;
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('.section-nav-link[data-nav]');
+    if (!link) return;
+    const id = link.getAttribute('aria-controls');
+    const section = id && document.getElementById(id);
+    if (!section) return;
+    event.preventDefault();
+    document.querySelectorAll('.section-nav-link').forEach(x => x.classList.toggle('active', x === link));
+    document.querySelectorAll('.sidebar > .section').forEach(x => x.classList.toggle('active', x === section));
+    section.scrollIntoView({block:'nearest'});
+  });
+}

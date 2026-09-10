@@ -34,4 +34,3 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
 .section-nav-link:hover{background:rgba(255,255,255,.05)}
 .section-nav-link.active{font-weight:700;border-bottom-color:currentColor}
 .section-nav-link:focus-visible{outline:2px solid currentColor;outline-offset:-2px}
-body.wizard-mode .section-nav{display:none!important}
