@@ -97,11 +97,9 @@
                 option.setAttribute('role', 'option');
                 option.setAttribute('aria-selected', 'false');
                 const title = document.createElement('strong');
-                title.textContent = item.trackName || item.title || '';
+                title.textContent = item.trackName || item.title || item.artistName || '';
                 const detail = document.createElement('span');
-                detail.textContent = kind === 'artist'
-                    ? `${item.artistName || ''}${item.albumName ? ` · ${item.albumName}` : ''}`
-                    : `${item.artistName || ''}${item.albumName ? ` · ${item.albumName}` : ''}`;
+                detail.textContent = `${item.artistName || ''}${item.albumName ? ` · ${item.albumName}` : ''}`;
                 option.append(title, detail);
                 option.addEventListener('mousedown', event => {
                     event.preventDefault();
@@ -157,7 +155,9 @@
                         headers: { Accept: 'application/json', 'X-User-Agent': 'kefe-visualiser/2.0' }
                     });
                     if (!response.ok || request !== suggestionRequest) return;
-                    const results = Array.isArray(await response.json()) ? await response.clone().json() : [];
+                    const payload = await response.json();
+                    if (request !== suggestionRequest) return;
+                    const results = Array.isArray(payload) ? payload : [];
                     render(results.filter(item => item?.trackName || item?.artistName).slice(0, 8));
                 } catch (error) {
                     if (request === suggestionRequest) close();
