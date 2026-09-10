@@ -13,15 +13,15 @@
     if (previewEl) previewEl.id = 'previewSection';
 
     const PATHS = {
-        lyric: ['intro', 'source', 'content', 'style', 'background', 'preview', 'export'],
+        lyric: ['intro', 'source', 'lyrics', 'style', 'background', 'preview', 'export'],
         visualiser: ['intro', 'source', 'style', 'background', 'preview', 'export'],
         captioned: ['intro', 'source', 'captions', 'style', 'background', 'preview', 'export'],
-        custom: ['intro', 'source', 'content', 'style', 'background', 'preview', 'export']
+        custom: ['intro', 'source', 'lyrics', 'style', 'background', 'preview', 'export']
     };
     const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', custom: 'Custom' };
     const PATH_HINTS = { lyric: 'Synced lyrics with expressive motion.', visualiser: 'Audio-reactive visuals with no lyrics.', captioned: 'Timed captions for spoken audio or video.', custom: 'Build the video your way.' };
-    const STEP_TITLES = { content: 'Add your content', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background', export: 'Export your video' };
-    const STEP_LABELS = { intro: 'Format', source: 'Media', content: 'Content', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview', export: 'Export' };
+    const STEP_TITLES = { lyrics: 'Add your lyrics', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background', export: 'Export your video' };
+    const STEP_LABELS = { intro: 'Format', source: 'Media', lyrics: 'Lyrics', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview', export: 'Export' };
     const CHOICE_ICONS = {
         lyric: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10"/><circle cx="18.2" cy="17.4" r="2.6"/><path d="M20.8 17.4V8.2l-2.6.9"/></svg>',
         visualiser: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>',
@@ -36,6 +36,7 @@
 
     const wizard = { path: 'lyric', index: 0, choice: null, source: null };
     const destroyIntroVeil = () => window.KefeDarkVeil?.destroy?.();
+    const isNightTheme = () => document.documentElement.dataset.theme === 'night' || (!document.documentElement.dataset.theme && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
     const stepsFor = () => PATHS[wizard.path] || PATHS.lyric;
 
     const panel = document.createElement('div');
@@ -64,13 +65,13 @@
     function nextEnabled(step) {
         if (step === 'intro') return Boolean(wizard.choice);
         if (step === 'source') return sourceReady();
-        if (step === 'content') return lyricsReady();
+        if (step === 'lyrics') return lyricsReady();
         if (step === 'captions') return captionsReady();
         return true;
     }
     function targetsForStep(step) {
-        if (step === 'content') return ['textSection'];
-        if (step === 'captions') return ['captionsPanel'];
+        if (step === 'lyrics') return ['textSection'];
+        if (step === 'captions') return ['textSection'];
         if (step === 'style') return [];
         if (step === 'background') return ['backgroundSection'];
         if (step === 'export') return ['exportSection'];
@@ -106,7 +107,8 @@
     }
     function renderIntro() {
         destroyIntroVeil();
-        panel.innerHTML = '<div class="wizard-dark-veil" aria-hidden="true"></div><p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">What are you making?</h3><p class="wizard-panel-hint">Choose once. KEFE will build the right editing path for you.</p><div class="wizard-start-indicator" aria-label="KEFE start"><img class="wizard-start-logo wizard-start-logo-day" src="./assets/branding/kefe-logo.svg" alt="KEFE"><img class="wizard-start-logo wizard-start-logo-night" src="./assets/branding/kefe-logo-light.svg" alt="" aria-hidden="true"></div><div class="wizard-choices-wrap"><div class="wizard-choices">' + ['lyric','visualiser','captioned','custom'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div></div>';
+        const veil = isNightTheme() ? '<div class="wizard-dark-veil" aria-hidden="true"></div>' : '';
+        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">What are you making?</h3><p class="wizard-panel-hint">Choose once. KEFE will build the right editing path for you.</p><div class="wizard-choices-wrap"><div class="wizard-choices">' + ['lyric','visualiser','captioned','custom'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div></div>';
         const veilTarget = panel.querySelector('.wizard-dark-veil');
         if (veilTarget && window.KefeDarkVeil?.mount) {
             requestAnimationFrame(() => window.KefeDarkVeil.mount(veilTarget, {
@@ -152,9 +154,10 @@
     function renderStylePanel() {
         const styleBlock = document.querySelector('#lyricStyleBlock');
         const current = window.state?.style?.effect || 'apple';
+        const stepNumber = stepsFor().indexOf('style') + 1;
 
         panel.innerHTML =
-            '<p class="wizard-panel-kicker">04 · Style</p>' +
+            '<p class="wizard-panel-kicker">' + pad(stepNumber) + ' · Style</p>' +
             '<h3 class="wizard-panel-title">Choose your look</h3>' +
             '<p class="wizard-panel-hint">Choose a lyric style and see the result immediately.</p>' +
             '<div class="wizard-style-preview" data-effect="' + current + '">' +
@@ -176,6 +179,14 @@
         renderStylePreview(current);
     }
 
+    function restoreStyleBlock() {
+        const styleBlock = document.querySelector('#wizardStyleMount #lyricStyleBlock');
+        const lyricsPanel = $('lyricsPanel');
+        if (!styleBlock || !lyricsPanel) return;
+        const syncBlock = $('lyricsOffset')?.closest('.sub-block');
+        lyricsPanel.insertBefore(styleBlock, syncBlock || null);
+    }
+
     function renderPreview() {
         const st = window.state || {}, media = window.kefeMedia || {}, labels = { uploaded: 'Audio file', video: 'Background video', none: 'No audio' };
         const rows = [['Format', PATH_LABELS[wizard.choice] || '—'], ['Source', labels[st.audioSource?.master] || (wizard.source === 'media' ? 'Background video' : wizard.source === 'none' ? 'No audio' : 'Audio file')]];
@@ -191,7 +202,7 @@
         const steps = stepsFor(), step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        if (previewEl) { const showLivePreview = ['content','captions','style','background','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
+        if (previewEl) { const showLivePreview = ['lyrics','captions','style','background','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
         const targetIds = targetsForStep(step);
         let firstTarget = null;
 
@@ -224,8 +235,7 @@
         const metadataBlock = document.querySelector('#wizardMetadataMount .music-details');
         if (metadataBlock) $('audioSection')?.appendChild(metadataBlock);
 
-        const styleBlock = document.querySelector('#wizardStyleMount #lyricStyleBlock');
-        if (styleBlock) $('lyricsPanel')?.appendChild(styleBlock);
+        restoreStyleBlock();
 
         clearTimeout(fadeTimer); sidebar.classList.remove('wizard-fading'); stepHeading.remove(); nav.remove(); panel.remove(); document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current')); body.classList.remove('wizard-mode'); delete body.dataset.wizardStep;
         document.querySelectorAll('.sidebar .section').forEach(s => s.classList.toggle('active', s.id === 'exportSection'));
@@ -252,5 +262,6 @@
     sidebar.addEventListener('input', () => setTimeout(refreshNextState, 0));
     sidebar.addEventListener('change', () => setTimeout(refreshNextState, 0));
     sidebar.addEventListener('click', () => setTimeout(refreshNextState, 0));
+    window.addEventListener('kefe:theme-change', () => { if (stepsFor()[wizard.index] === 'intro') renderIntro(); });
     applyStep();
 })();
