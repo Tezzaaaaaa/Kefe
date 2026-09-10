@@ -5,6 +5,9 @@
   let lastAudioFile = null;
   let lastMediaFile = null;
   let lastMediaVisual = null;
+  let lastWizardAction = null;
+  let lastWizardState = '';
+  let lastWizardNextDisabled = null;
 
   function ensureCard(dropId, statusId, kind) {
     const drop = $(dropId), status = $(statusId);
@@ -28,6 +31,8 @@
     return card;
   }
 
+  // A drop-zone should show exactly one control at a time: the picker/hint
+  // before upload, or the confirmation card after. Never both.
   function setOriginalControlsHidden(dropId, hidden) {
     const drop = $(dropId);
     if (!drop) return;
@@ -88,14 +93,58 @@
     const readyImage = Boolean(media?.image && !readyVideo);
     const ready = readyVideo || readyImage;
     const type = readyVideo ? 'video' : readyImage ? 'image' : 'none';
+    const key = `${type}:${ready ? 'ready' : 'empty'}`;
     const strong = action.querySelector('strong') || action.previousElementSibling;
     if (!strong) return;
+    if (action === lastWizardAction && key === lastWizardState) return;
+    lastWizardAction = action;
+    lastWizardState = key;
     action.classList.toggle('is-ready', ready);
     strong.classList.toggle('wizard-upload-success', ready);
     if (readyVideo) strong.innerHTML = '<span class="wizard-upload-check">✓</span> Video uploaded';
     else if (readyImage) strong.innerHTML = '<span class="wizard-upload-check">✓</span> Image uploaded';
-    else strong.textContent = 'Choose an image or video.';
-    action.dataset.mediaState = `${type}:${ready ? 'ready' : 'empty'}`;
+  }
+
+  function hasAudio() {
+    const state = window.state || {};
+    const audio = state.audio || {};
+    return Boolean(audio.file || audio.ready || audio.duration > 0 || $('audioChooseBtn')?.dataset?.loaded === 'true');
+  }
+
+  function hasLyrics() {
+    const state = window.state || {};
+    if (state.lyrics?.lines?.length) return true;
+    const input = $('lyricsText');
+    return Boolean(input?.value?.trim());
+  }
+
+  function hasCaptions() {
+    const state = window.state || {};
+    if (state.captions?.lines?.length) return true;
+    return Boolean(document.querySelector('#captionGenSection [data-caption-ready], #captionGenSection .caption-row, #captionGenSection .caption-line'));
+  }
+
+  function syncWizardNext() {
+    const next = $('wizardNextBtn');
+    if (!next) return;
+    const step = document.body.dataset.wizardStep || '';
+    const media = window.kefeMedia || {};
+    let ready = true;
+
+    if (step === 'intro') ready = Boolean(document.querySelector('[data-choice].selected'));
+    else if (step === 'source') {
+      const selected = document.querySelector('[data-source].selected')?.dataset.source;
+      ready = selected === 'none' || (selected === 'uploaded' ? hasAudio() : Boolean(media.image || media.video || media.videoFile));
+    } else if (step === 'content') ready = hasLyrics();
+    else if (step === 'captions') ready = hasCaptions() && !window.kefeCaptionGen?.isBusy?.();
+    else if (step === 'style') ready = Boolean(document.querySelector('#lyricStyleBlock [data-effect].active, .wizard-effect-choice.selected'));
+    else if (step === 'background') ready = Boolean(media.image || media.video || media.videoFile || document.querySelector('#backgroundSection'));
+    else if (step === 'preview') ready = true;
+
+    if (lastWizardNextDisabled !== !ready) {
+      next.disabled = !ready;
+      lastWizardNextDisabled = !ready;
+    }
   }
 
   function refresh() {
@@ -122,6 +171,7 @@
     } else hide('bgDrop');
 
     updateWizardMediaConfirmation(media);
+    syncWizardNext();
   }
 
   function injectStyle() {
@@ -148,6 +198,9 @@
   }
 
   function start() {
+    // iOS/iPadOS file pickers can apply inconsistent filtering to a wildcard
+    // MIME accept list. Use explicit audio/video extensions so audio files are
+    // always offered alongside video files in the Media picker.
     const audioInput = $('audioInput');
     if (audioInput) audioInput.setAttribute('accept', '.mp3,.wav,.m4a,.aac,.flac,.ogg,.oga,.opus,.mp4,.m4v,.mov,.webm');
     injectStyle();
