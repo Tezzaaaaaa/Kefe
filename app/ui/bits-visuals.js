@@ -6,9 +6,6 @@
   function installMarkup() {
     const sidebar = document.querySelector('.sidebar');
     if (!sidebar || $('kefeProjectAid')) return;
-    const nav = sidebar.querySelector('.section-nav');
-    if (!nav) return;
-
     const card = document.createElement('section');
     card.id = 'kefeProjectAid';
     card.className = 'kefe-visual-aids';
@@ -28,7 +25,9 @@
                 <label class="kefe-aid-toggle"><span>Show production details</span><input id="kefeAidDetailsToggle" type="checkbox" aria-controls="kefeAidDetails"><span class="kefe-aid-switch" aria-hidden="true"></span></label>
                 <div class="kefe-aid-details" id="kefeAidDetails" data-open="false"><div class="kefe-aid-detail-list"><div class="kefe-aid-detail-row"><b>Media</b><em>Master audio + source</em></div><div class="kefe-aid-detail-row"><b>Lyrics</b><em>Timed lines / captions</em></div><div class="kefe-aid-detail-row"><b>Background</b><em>Preset or uploaded media</em></div><div class="kefe-aid-detail-row"><b>Export</b><em>Aspect ratio + quality</em></div></div></div>
             </div>`;
-    nav.insertAdjacentElement('afterend', card);
+    const wizard = sidebar.querySelector('#wizardSection');
+    if (wizard) wizard.insertAdjacentElement('afterend', card);
+    else sidebar.insertBefore(card, sidebar.firstChild);
   }
 
   function update() {
