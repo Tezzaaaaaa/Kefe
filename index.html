@@ -31,13 +31,15 @@
         </div>
     </header>
     <main>
-        <nav class="section-nav" aria-label="Editor sections">
-        <button type="button" class="section-nav-link" data-nav="audio" aria-controls="audioSection">Audio</button>
-        <button type="button" class="section-nav-link" data-nav="text" aria-controls="textSection">Text</button>
-        <button type="button" class="section-nav-link" data-nav="fx" aria-controls="fxSection">Effects</button>
-        <button type="button" class="section-nav-link" data-nav="background" aria-controls="backgroundSection">Background</button>
-        <button type="button" class="section-nav-link" data-nav="export" aria-controls="exportSection">Export</button>
-    </nav>
+        <nav class="section-nav" aria-label="Editor navigation">
+  <div class="section-nav-list" role="menubar">
+    <button class="section-nav-link" data-nav="audio" type="button" role="menuitem" aria-controls="audioSection">Audio</button>
+    <button class="section-nav-link" data-nav="text" type="button" role="menuitem" aria-controls="textSection">Text</button>
+    <button class="section-nav-link" data-nav="fx" type="button" role="menuitem" aria-controls="fxSection">Effects</button>
+    <button class="section-nav-link" data-nav="background" type="button" role="menuitem" aria-controls="backgroundSection">Background</button>
+    <button class="section-nav-link" data-nav="export" type="button" role="menuitem" aria-controls="exportSection">Export</button>
+  </div>
+</nav>
 
     <aside class="sidebar">
             <div class="section" id="audioSection">

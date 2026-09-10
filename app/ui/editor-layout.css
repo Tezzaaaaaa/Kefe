@@ -21,3 +21,9 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
 @media(max-width:700px){.preview-toolbar{min-height:52px;gap:8px;padding:8px 10px}.preview-heading{gap:6px}.transport{display:grid;grid-template-columns:44px 44px minmax(0,1fr) auto;gap:6px}.transport>button,.transport>.icon-button{min-width:44px;min-height:44px}.transport .slider{min-width:0;width:100%}.canvas-wrapper{padding:10px}body.wizard-mode .sidebar>.section.wizard-current{padding:14px 12px 16px}}
 @media(max-width:480px){.preview-heading #previewStatus{display:none}.transport{grid-template-columns:42px 42px minmax(0,1fr) auto;gap:5px}.transport>button,.transport>.icon-button{min-width:42px;min-height:42px}.transport #clock{min-width:62px;font-size:10px}}
 @media(pointer:coarse){.preview-toolbar button,.preview-toolbar select,.preview-toolbar input[type=range],.transport button,.transport input[type=range]{min-height:44px}}
+.section-nav{display:flex;align-items:center;width:100%;padding:0 16px;border-bottom:1px solid var(--border-color,#2a2a2a);overflow-x:auto}
+.section-nav-list{display:flex;align-items:center;gap:2px;min-width:max-content;width:100%}
+.section-nav-link{appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;padding:12px 14px;font:inherit;font-weight:500;white-space:nowrap;border-bottom:2px solid transparent}
+.section-nav-link:hover{background:rgba(255,255,255,.05)}
+.section-nav-link.active,[aria-current="page"].section-nav-link{font-weight:700;border-bottom-color:currentColor}
+.section-nav-link:focus-visible{outline:2px solid currentColor;outline-offset:-2px}
