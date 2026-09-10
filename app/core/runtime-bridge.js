@@ -3,26 +3,32 @@
   'use strict';
   if (window.kefeRuntime?.ready) return;
 
-  // app.js is a classic script, so these top-level bindings are available here.
-  if (typeof state === 'undefined' || typeof canvas === 'undefined' || typeof media === 'undefined') {
+  // app.js publishes the authoritative editor state and media cache on window.
+  // Use that public compatibility surface rather than depending on classic-script
+  // lexical bindings, which makes the bridge reliable in smoke tests and when
+  // modules are loaded dynamically.
+  const runtimeState = window.state;
+  const runtimeCanvas = window.canvas || document.getElementById('stageCanvas');
+  const runtimeMedia = window.kefeMedia;
+  if (!runtimeState || !runtimeCanvas || !runtimeMedia) {
     console.error('[KEFE Runtime] Core editor state is not available. Runtime bridge not installed.');
     return;
   }
 
-  window.state = state;
-  window.canvas = canvas;
-  window.kefeMedia = media;
-  window.isExporting = Boolean(typeof isExporting !== 'undefined' ? isExporting : false);
+  window.state = runtimeState;
+  window.canvas = runtimeCanvas;
+  window.kefeMedia = runtimeMedia;
+  window.isExporting = Boolean(window.isExporting);
 
-  if (typeof redrawCurrentPreviewFrame === 'function') {
-    window.redrawCurrentPreviewFrame = redrawCurrentPreviewFrame;
+  if (typeof window.redrawCurrentPreviewFrame === 'function') {
+    window.redrawCurrentPreviewFrame = window.redrawCurrentPreviewFrame;
   }
 
-  if (typeof render === 'function') {
+  if (typeof window.render === 'function') {
     window.kefeRenderFrame = (targetCtx, width, height, time) => {
       if (!targetCtx || !width || !height) return false;
-      state.playback.currentTime = Math.max(0, Number(time) || 0);
-      render(targetCtx, width, height, state, media);
+      runtimeState.playback.currentTime = Math.max(0, Number(time) || 0);
+      window.render(targetCtx, width, height, runtimeState, runtimeMedia);
       return true;
     };
   }
@@ -30,9 +36,9 @@
   window.kefeRuntime = {
     version: 1,
     ready: true,
-    state,
-    canvas,
-    media,
+    state: runtimeState,
+    canvas: runtimeCanvas,
+    media: runtimeMedia,
     redraw: window.redrawCurrentPreviewFrame || null,
     renderFrame: window.kefeRenderFrame || null
   };
