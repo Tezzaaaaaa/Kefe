@@ -49,6 +49,14 @@
         updateButton(button, mode);
         window.dispatchEvent(new CustomEvent('kefe:theme-change', { detail: { mode } }));
     }
+    function loadScriptOnce(src, marker, onload) {
+        if (document.querySelector(`script[data-${marker}]`)) return;
+        const script = document.createElement('script');
+        script.src = src;
+        script.setAttribute(`data-${marker}`, 'true');
+        if (onload) script.addEventListener('load', onload, { once: true });
+        document.body.appendChild(script);
+    }
     function init() {
         const control = document.querySelector('.theme-control');
         if (!control) return;
@@ -61,8 +69,7 @@
         button.addEventListener('click', () => {
             const current = getMode();
             setMode(button, MODES[(MODES.indexOf(current) + 1) % MODES.length]);
-        });
-    }
+        });    }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
     else init();
 })();

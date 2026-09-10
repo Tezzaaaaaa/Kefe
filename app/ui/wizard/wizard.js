@@ -2,25 +2,6 @@
 (() => {
     'use strict';
 
-    const loadOnce = (selector, tagName, attrs) => {
-        if (document.querySelector(selector)) return;
-        const node = document.createElement(tagName);
-        Object.entries(attrs).forEach(([key, value]) => { node[key] = value; });
-        document.head.appendChild(node);
-    };
-
-    loadOnce('link[data-kefe-preview-layout]', 'link', { rel: 'stylesheet', href: './app/ui/preview-layout.css' });
-    loadOnce('link[data-kefe-wizard-css]', 'link', { rel: 'stylesheet', href: './app/ui/wizard/wizard.css' });
-    loadOnce('link[data-kefe-product-polish]', 'link', { rel: 'stylesheet', href: './app/ui/kefe-product-polish.css' });
-
-    if (!document.querySelector('script[data-kefe-upload-confirmations]')) {
-        const script = document.createElement('script');
-        script.src = './app/ui/upload-confirmations.js?v=20260901';
-        script.dataset.kefeUploadConfirmations = 'true';
-        script.async = false;
-        document.body.appendChild(script);
-    }
-
     const $ = id => document.getElementById(id);
     const body = document.body;
     const sidebar = document.querySelector('.sidebar');
