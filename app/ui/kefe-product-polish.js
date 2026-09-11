@@ -144,4 +144,5 @@
   load('./app/ui/wizard/lyric-pathway-hardening.js', 'kefe-lyric-pathway-hardening');
   load('./app/ui/wizard/lyric-pathway-style.js', 'kefe-lyric-pathway-style');
   load('./app/ui/wizard/lyric-pathway-save-bridge.js', 'kefe-lyric-pathway-save-bridge');
+  load('./app/ui/wizard/lyric-pathway-complete.js', 'kefe-lyric-pathway-complete');
 })();
