@@ -191,77 +191,99 @@
         const st = window.state || {}, media = window.kefeMedia || {}, labels = { uploaded: 'Audio file', video: 'Background video', none: 'No audio' };
         const rows = [['Format', PATH_LABELS[wizard.choice] || '—'], ['Source', labels[st.audioSource?.master] || (wizard.source === 'media' ? 'Background video' : wizard.source === 'none' ? 'No audio' : 'Audio file')]];
         if (wizard.choice === 'visualiser') rows.push(['Text', 'None — clean visuals']);
-        else if (wizard.choice === 'captioned') rows.push(['Captions', st.captions?.lines?.length ? `${st.captions.lines.length} segments` : 'Generated']);
-        else rows.push(['Lyrics', st.lyrics?.lines?.length ? `${st.lyrics.lines.length} lines` : 'Loaded']);
-        rows.push(['Effect', st.style?.effect || 'Apple'], ['Visual FX', st.style?.visualFx && st.style.visualFx !== 'none' ? st.style.visualFx : 'Off'], ['Background', media.video ? 'Video' : media.image ? 'Image' : `Solid ${st.background?.solid || '#0A0A0A'}`], ['Title intro', st.style?.titleCardEnabled === false ? 'Off' : 'On']);
-        panel.innerHTML = '<p class="wizard-panel-kicker">Preview</p><h3 class="wizard-panel-title">Review your video</h3><p class="wizard-panel-hint">Play it once. Everything is already applied and ready for export.</p><div class="wizard-summary">' + rows.map(([k,v]) => `<div class="wizard-summary-row"><span>${k}</span><strong>${v}</strong></div>`).join('') + '</div><button type="button" id="wizardPlayBtn" class="primary full-width">Play full preview</button>';
-        $('wizardPlayBtn').addEventListener('click', () => $('playBtn')?.click());
+        else if (wizard.choice === 'captioned') rows.push(['Captions', st.captions?.lines?.length ? `${st.captions.lines.length} blocks` : 'Not added']);
+        else rows.push(['Lyrics', st.lyrics?.lines?.length ? `${st.lyrics.lines.length} lines` : 'Not added']);
+        rows.push(['Style', st.style?.effect || 'Apple']);
+        rows.push(['Background', media.videoFile ? 'Uploaded video' : media.image ? 'Uploaded image' : st.background?.preset || 'Solid colour']);
+        panel.innerHTML = '<p class="wizard-panel-kicker">' + pad(stepsFor().indexOf('preview') + 1) + ' · Preview</p><h3 class="wizard-panel-title">Review your video</h3><p class="wizard-panel-hint">Everything here is live. Go back to any step to change it.</p><div class="wizard-review-grid">' + rows.map(([k,v]) => `<div class="wizard-review-row"><span>${k}</span><strong>${v}</strong></div>`).join('') + '</div>';
+        const preview = $('previewSection');
+        if (preview) preview.classList.add('wizard-preview-active');
+    }
+
+    function renderExport() {
+        const stepNumber = stepsFor().indexOf('export') + 1;
+        panel.innerHTML = '<p class="wizard-panel-kicker">' + pad(stepNumber) + ' · Export</p><h3 class="wizard-panel-title">Export your video</h3><p class="wizard-panel-hint">Choose the format and quality below, then export when you are ready.</p><div class="wizard-export-summary"><strong>' + (PATH_LABELS[wizard.choice] || 'Video') + '</strong><span>Your project is ready for final export.</span></div>';
+        const exportSection = $('exportSection');
+        if (exportSection) exportSection.classList.add('wizard-export-active');
+    }
+
+    function syncTargets(step) {
+        document.querySelectorAll('.sidebar > .section').forEach(section => section.classList.remove('wizard-current'));
+        targetsForStep(step).forEach(id => $(id)?.classList.add('wizard-current'));
+        const preview = $('previewSection');
+        preview?.classList.toggle('wizard-current', step === 'preview');
+    }
+
+    function refreshNextState() {
+        const step = stepsFor()[wizard.index];
+        const next = $('wizardNextBtn');
+        const back = $('wizardBackBtn');
+        if (!next || !back) return;
+        next.disabled = !nextEnabled(step);
+        next.textContent = wizard.index === stepsFor().length - 1 ? 'Finish' : 'Next';
+        back.disabled = wizard.index === 0;
+        const progress = $('wizardProgress');
+        const label = $('wizardStepLabel');
+        if (progress) progress.textContent = `${pad(wizard.index + 1)} / ${pad(stepsFor().length)}`;
+        if (label) label.textContent = STEP_LABELS[step] || step;
     }
 
     function applyStep() {
-        const steps = stepsFor(), step = steps[wizard.index] || 'preview';
+        const steps = stepsFor();
+        const step = steps[wizard.index] || 'intro';
         body.dataset.wizardStep = step;
-        document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        if (previewEl) { const showLivePreview = ['lyrics','captions','style','background','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
-        const targetIds = targetsForStep(step);
-        let firstTarget = null;
-
-        if (step === 'style') {
-            renderStylePanel();
-            panel.classList.add('wizard-current');
-            firstTarget = panel;
-        } else if (targetIds.length) {
-            panel.innerHTML = '';
-            targetIds.forEach(id => { const el = $(id); if (el) { el.classList.add('wizard-current'); if (!firstTarget) firstTarget = el; } });
-        } else {
-            if (step === 'intro') renderIntro();
-            else if (step === 'source') renderSource();
-            else if (step === 'preview') renderPreview();
-            panel.classList.add('wizard-current');
-            firstTarget = panel;
-        }
-
-        if (firstTarget && firstTarget !== panel) { stepHeading.textContent = STEP_TITLES[step] || step; firstTarget.prepend(stepHeading); } else stepHeading.remove();
-        $('wizardProgress').textContent = `${pad(wizard.index + 1)} / ${pad(steps.length)}`;
-        $('wizardStepLabel').textContent = STEP_LABELS[step] || '';
-        $('wizardBackBtn').disabled = wizard.index === 0;
-        const next = $('wizardNextBtn'); next.textContent = step === 'export' ? 'Export' : 'Next'; next.disabled = !nextEnabled(step);
-        if (firstTarget) { firstTarget.setAttribute('tabindex', '-1'); firstTarget.focus({ preventScroll: true }); }
+        syncTargets(step);
+        if (step === 'intro') renderIntro();
+        else if (step === 'source') renderSource();
+        else if (step === 'lyrics' || step === 'captions') {
+            const textSection = $('textSection');
+            if (textSection) textSection.classList.add('wizard-current');
+            if (step === 'lyrics') document.querySelector('[data-text-mode="lyrics"]')?.click();
+            if (step === 'captions') document.querySelector('[data-text-mode="captions"]')?.click();
+            panel.innerHTML = `<p class="wizard-panel-kicker">${pad(wizard.index + 1)} · ${STEP_LABELS[step]}</p><h3 class="wizard-panel-title">${STEP_TITLES[step]}</h3><p class="wizard-panel-hint">Use the editor below, then continue when your ${step === 'lyrics' ? 'lyrics' : 'captions'} are ready.</p>`;
+        } else if (step === 'style') renderStylePanel();
+        else if (step === 'background') {
+            const backgroundSection = $('backgroundSection');
+            if (backgroundSection) backgroundSection.classList.add('wizard-current');
+            panel.innerHTML = `<p class="wizard-panel-kicker">${pad(wizard.index + 1)} · Background</p><h3 class="wizard-panel-title">${STEP_TITLES.background}</h3><p class="wizard-panel-hint">Choose a built-in background or upload your own image or video.</p>`;
+        } else if (step === 'preview') renderPreview();
+        else if (step === 'export') renderExport();
+        refreshNextState();
+        window.dispatchEvent(new CustomEvent('kefe:wizard-step', { detail: { step, index: wizard.index, path: wizard.path } }));
     }
-    function refreshNextState() { const step = stepsFor()[wizard.index], b = $('wizardNextBtn'); if (step && b) b.disabled = !nextEnabled(step); }
+
     function finishWizard() {
+        body.classList.remove('wizard-mode');
+        body.removeAttribute('data-wizard-step');
         destroyIntroVeil();
-
-        const metadataBlock = document.querySelector('#wizardMetadataMount .music-details');
-        if (metadataBlock) $('audioSection')?.appendChild(metadataBlock);
-
         restoreStyleBlock();
-
-        clearTimeout(fadeTimer); sidebar.classList.remove('wizard-fading'); stepHeading.remove(); nav.remove(); panel.remove(); document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current')); body.classList.remove('wizard-mode'); delete body.dataset.wizardStep;
-        document.querySelectorAll('.sidebar .section').forEach(s => s.classList.toggle('active', s.id === 'exportSection'));
-        $('exportSection')?.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
+        document.querySelectorAll('.sidebar > .section').forEach(section => section.classList.remove('wizard-current'));
+        $('wizardSection')?.classList.add('wizard-finished');
+        window.dispatchEvent(new CustomEvent('kefe:wizard-finished', { detail: { path: wizard.path } }));
     }
-    function goTo(index) { const steps = stepsFor(); if (index < 0 || index >= steps.length) return; wizard.index = index; if (reducedMotion) return applyStep(); sidebar.classList.add('wizard-fading'); clearTimeout(fadeTimer); fadeTimer = setTimeout(() => { applyStep(); sidebar.classList.remove('wizard-fading'); }, 150); }
 
-    window.kefeWizard = {
-        version: 1,
-        getState: () => ({ path: wizard.path, index: wizard.index, step: stepsFor()[wizard.index] || null, choice: wizard.choice, source: wizard.source, steps: [...stepsFor()] })
-    };
-
-    $('wizardBackBtn').addEventListener('click', () => goTo(wizard.index - 1));
-    $('wizardNextBtn').addEventListener('click', () => {
-        const step = stepsFor()[wizard.index];
-        if (!nextEnabled(step)) return;
-        if (step === 'export') {
-            $('exportBottom')?.click();
-            return;
-        }
-        goTo(wizard.index + 1);
-    });
+    $('wizardBackBtn').addEventListener('click', () => { if (wizard.index > 0) { wizard.index -= 1; applyStep(); } });
+    $('wizardNextBtn').addEventListener('click', () => { if (!nextEnabled(stepsFor()[wizard.index])) return; if (wizard.index >= stepsFor().length - 1) finishWizard(); else { wizard.index += 1; applyStep(); } });
     $('wizardSkipBtn').addEventListener('click', finishWizard);
     sidebar.addEventListener('input', () => setTimeout(refreshNextState, 0));
     sidebar.addEventListener('change', () => setTimeout(refreshNextState, 0));
     sidebar.addEventListener('click', () => setTimeout(refreshNextState, 0));
     window.addEventListener('kefe:theme-change', () => { if (stepsFor()[wizard.index] === 'intro') renderIntro(); });
+
+    /* The wizard is the only page-level flow owner. Lyric helpers are loaded here
+       once, rather than by the product-polish enhancement layer. */
+    function loadWizardSupport(src, marker) {
+        if (document.querySelector(`script[data-${marker}]`)) return;
+        const script = document.createElement('script');
+        script.src = src;
+        script.dataset[marker] = '1';
+        document.head.appendChild(script);
+    }
+    loadWizardSupport('./app/ui/wizard/lyric-pathway.js', 'kefe-lyric-pathway');
+    loadWizardSupport('./app/ui/wizard/lyric-pathway-hardening.js', 'kefe-lyric-pathway-hardening');
+    loadWizardSupport('./app/ui/wizard/lyric-pathway-style.js', 'kefe-lyric-pathway-style');
+    loadWizardSupport('./app/ui/wizard/lyric-pathway-save-bridge.js', 'kefe-lyric-pathway-save-bridge');
+    loadWizardSupport('./app/ui/wizard/lyric-pathway-complete.js', 'kefe-lyric-pathway-complete');
+
     applyStep();
 })();
