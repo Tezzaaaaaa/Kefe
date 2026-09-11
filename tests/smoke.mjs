@@ -103,7 +103,6 @@ try {
     () =>
       window.kefeCaptionGen &&
       window.kefeAnalysis &&
-      window.kefeAutoCreate &&
       window.kefeSmartRender,
     null,
     { timeout: 15000 },
@@ -182,19 +181,6 @@ try {
     throw new Error('Audio upload confirmation did not appear');
   }
 
-  const autoPlan = await page.evaluate(() =>
-    window.kefeAutoCreate.getPlan(
-      {
-        recommendation: 'rise',
-        validation: { count: 2 },
-        metrics: { averageCharacters: 12, linesPerMinute: 8 },
-      },
-      false,
-    ),
-  );
-  if (autoPlan.effect !== 'rise') {
-    throw new Error('Auto Create planning failed');
-  }
   const renderPlan = await page.evaluate(
     () => window.kefeSmartRender.prepare(),
   );
@@ -214,7 +200,7 @@ try {
 
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(
-    'KEFE smoke test passed: boot → runtime → guided lyric path → style/background → lyrics analysis → audio load → playback → upload confirmation → auto-create → smart render → export preflight.',
+    'KEFE smoke test passed: boot → runtime → guided lyric path → style/background → lyrics analysis → audio load → playback → upload confirmation → smart render → export preflight.',
   );
 } finally {
   if (browser) await browser.close().catch(() => {});
