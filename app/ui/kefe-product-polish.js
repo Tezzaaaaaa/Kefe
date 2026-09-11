@@ -33,7 +33,6 @@
       await loadScript('./app/ui/caption-generator.js', 'kefe-caption-generator');
       await Promise.allSettled([
         loadScript('./app/core/analysis-engine.js', 'kefe-analysis'),
-        loadScript('./app/core/auto-create.js', 'kefe-auto-create'),
         loadScript('./app/core/smart-render.js', 'kefe-smart-render')
       ]);
       runtimeBootstrapped = true;
