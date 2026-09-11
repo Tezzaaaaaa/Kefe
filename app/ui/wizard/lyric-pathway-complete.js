@@ -27,9 +27,7 @@
   let styleBuiltFor = '';
   let previewBuilt = false;
 
-  function metadataBlock() {
-    return document.querySelector('.music-details');
-  }
+  function metadataBlock() { return document.querySelector('.music-details'); }
 
   function moveMetadataToLyrics() {
     const panel = $('lyricsPanel');
@@ -37,7 +35,6 @@
     const heading = document.querySelector('.music-details-heading');
     const hint = $('musicSyncHint');
     if (!panel || !details) return;
-
     if (!panel.contains(details)) {
       const anchor = $('lyricsStatus') || panel.firstChild;
       const fragment = document.createDocumentFragment();
@@ -46,24 +43,14 @@
       if (hint && !panel.contains(hint)) fragment.appendChild(hint);
       panel.insertBefore(fragment, anchor || null);
     }
-
-    const artist = $('metaArtist');
-    const title = $('metaTitle');
-    const album = $('metaAlbum');
-    [artist, title, album].forEach(input => {
-      if (!input) return;
-      input.setAttribute('autocomplete', 'off');
-    });
+    [$('metaArtist'), $('metaTitle'), $('metaAlbum')].forEach(input => input?.setAttribute('autocomplete', 'off'));
   }
 
   function removeMetadataFromSource() {
     const source = $('wizardSection');
     const details = metadataBlock();
-    if (!source || !details) return;
-    if (source.contains(details)) {
-      const lyrics = $('lyricsPanel');
-      if (lyrics) moveMetadataToLyrics();
-    }
+    if (!source || !details || !source.contains(details)) return;
+    moveMetadataToLyrics();
   }
 
   function syncLrcSource() {
@@ -92,6 +79,10 @@
     const source = $('lyricStyleBlock');
     if (!host || !source) return;
 
+    source.querySelector('.effect-buttons')?.setAttribute('hidden', '');
+    source.querySelector('.effect-label')?.setAttribute('hidden', '');
+    source.querySelector('.sub-heading')?.setAttribute('hidden', '');
+
     let grid = $('kefeFinalStyleGrid');
     if (!grid) {
       grid = document.createElement('div');
@@ -119,11 +110,9 @@
       card.className = 'kefe-final-style-card';
       card.dataset.effect = key;
       card.setAttribute('aria-pressed', 'false');
-
       const demo = document.createElement('span');
       demo.className = `kefe-final-style-demo effect-${key}`;
       demo.textContent = 'LYRICS';
-
       const copy = document.createElement('span');
       copy.className = 'kefe-final-style-copy';
       const title = document.createElement('strong');
@@ -132,7 +121,6 @@
       hint.textContent = description;
       copy.append(title, hint);
       card.append(demo, copy);
-
       card.addEventListener('click', () => {
         sourceButton.click();
         syncStyleSelection(grid);
@@ -157,12 +145,8 @@
     const styleHost = $('wizardStyleMount');
     const background = $('backgroundSection');
     if (!styleHost || !background) return;
-
-    const titleBlock = [...background.querySelectorAll('.sub-block')].find(block =>
-      /title card/i.test(block.querySelector('.sub-heading')?.textContent || '')
-    );
+    const titleBlock = [...background.querySelectorAll('.sub-block')].find(block => /title card/i.test(block.querySelector('.sub-heading')?.textContent || ''));
     if (!titleBlock) return;
-
     if (document.body.dataset.wizardStep === 'style') {
       if (!styleHost.contains(titleBlock)) styleHost.appendChild(titleBlock);
     } else if (document.body.dataset.wizardStep === 'background') {
@@ -176,18 +160,14 @@
     if (!preview) return;
     const media = q('.wizard-style-preview-media-wrap', preview);
     const shade = q('.wizard-style-preview-shade', preview);
-    if (media) {
-      media.replaceChildren();
-      media.setAttribute('aria-hidden', 'true');
-    }
+    if (media) { media.replaceChildren(); media.setAttribute('aria-hidden', 'true'); }
     if (shade) shade.style.display = 'none';
     preview.style.background = 'var(--surface-3)';
     preview.style.backgroundImage = 'none';
     const content = q('.wizard-style-preview-content', preview);
     if (content) {
       content.style.color = 'var(--text)';
-      const eyebrow = q('.wizard-style-preview-eyebrow', content);
-      if (eyebrow) eyebrow.textContent = 'LYRIC STYLE';
+      q('.wizard-style-preview-eyebrow', content)?.replaceChildren(document.createTextNode('LYRIC STYLE'));
       const effect = q('.wizard-style-preview-effect', content);
       if (effect) effect.style.borderColor = 'var(--line-strong)';
     }
@@ -198,8 +178,7 @@
     const section = $('backgroundSection');
     if (!section) return;
     section.classList.add('kefe-background-step');
-    const grid = q('.background-choice-grid', section);
-    if (grid) grid.setAttribute('aria-label', 'Background choices');
+    q('.background-choice-grid', section)?.setAttribute('aria-label', 'Background choices');
     const upload = $('backgroundInput');
     const status = $('backgroundStatus');
     if (upload && !upload.dataset.kefeBackgroundHint) {
@@ -213,22 +192,15 @@
     const panel = $('wizardSection');
     if (!panel || previewBuilt) return;
     previewBuilt = true;
-
     const checks = document.createElement('div');
     checks.id = 'kefeFinalPreviewChecks';
     checks.className = 'kefe-final-preview-checks';
-
     const refresh = () => {
       const state = window.state || {};
       const audio = Boolean(state.audio?.file && state.audio?.ready && Number(state.audio?.duration) > 0);
       const metadata = Boolean($('metaArtist')?.value.trim() && $('metaTitle')?.value.trim());
       const lyrics = Array.isArray(state.lyrics?.lines) && state.lyrics.lines.length > 0;
-      const rows = [
-        ['Audio', audio, audio ? 'Ready' : 'Missing'],
-        ['Song details', metadata, metadata ? 'Ready' : 'Artist + Title required'],
-        ['Synced lyrics', lyrics, lyrics ? `${state.lyrics.lines.length} lines` : 'Missing'],
-        ['Background', true, 'Ready to review']
-      ];
+      const rows = [['Audio', audio, audio ? 'Ready' : 'Missing'], ['Song details', metadata, metadata ? 'Ready' : 'Artist + Title required'], ['Synced lyrics', lyrics, lyrics ? `${state.lyrics.lines.length} lines` : 'Missing'], ['Background', true, 'Ready to review']];
       checks.replaceChildren(...rows.map(([label, ok, text]) => {
         const row = document.createElement('div');
         row.className = `kefe-final-preview-check ${ok ? 'ok' : 'warn'}`;
@@ -248,10 +220,7 @@
     const step = document.body.dataset.wizardStep || '';
     if (step === lastStep) return;
     lastStep = step;
-    if (step === 'lyrics') {
-      moveMetadataToLyrics();
-      wireSaveBridge();
-    }
+    if (step === 'lyrics') { moveMetadataToLyrics(); wireSaveBridge(); }
     if (step === 'source') removeMetadataFromSource();
     if (step === 'style') {
       previewBuilt = false;
@@ -267,11 +236,7 @@
     stepChanged();
     wireSaveBridge();
     if (document.body.dataset.wizardStep === 'lyrics') moveMetadataToLyrics();
-    if (document.body.dataset.wizardStep === 'style') {
-      cleanStylePreview();
-      buildStyleControls();
-      separateStyleFromBackground();
-    }
+    if (document.body.dataset.wizardStep === 'style') { cleanStylePreview(); buildStyleControls(); separateStyleFromBackground(); }
     if (document.body.dataset.wizardStep === 'background') improveBackgroundStep();
   }
 
@@ -294,30 +259,16 @@
       .kefe-final-style-demo.effect-decrypt{letter-spacing:.2em}
       .kefe-final-style-demo.effect-blur{filter:blur(2px);animation:kefeStyleBlur 1.6s ease-in-out infinite}
       .kefe-final-style-demo.effect-shiny{background:linear-gradient(110deg,var(--surface-3) 35%,var(--surface) 50%,var(--surface-3) 65%);background-size:220% 100%;animation:kefeStyleShine 1.8s linear infinite}
-      .kefe-final-style-copy{display:grid;gap:3px}
-      .kefe-final-style-copy strong{font-size:13px}
-      .kefe-final-style-copy small{font-size:11px;color:var(--text-3);line-height:1.35}
-      .kefe-final-preview-checks{display:grid;gap:7px;margin-top:16px}
-      .kefe-final-preview-check{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:12px}
-      .kefe-final-preview-check.ok strong{color:#2f9e5b}.kefe-final-preview-check.warn strong{color:#b36b00}
+      .kefe-final-style-copy{display:grid;gap:3px}.kefe-final-style-copy strong{font-size:13px}.kefe-final-style-copy small{font-size:11px;color:var(--text-3);line-height:1.35}
+      .kefe-final-preview-checks{display:grid;gap:7px;margin-top:16px}.kefe-final-preview-check{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:12px}.kefe-final-preview-check.ok strong{color:#2f9e5b}.kefe-final-preview-check.warn strong{color:#b36b00}
       .kefe-background-step{padding-bottom:24px}
       body.wizard-mode[data-wizard-step="style"] .wizard-style-preview-media-wrap,body.wizard-mode[data-wizard-step="style"] .wizard-style-preview-shade{display:none!important}
-      @keyframes kefeStylePulse{50%{transform:scale(1.06)}}
-      @keyframes kefeStyleRise{50%{transform:translateY(-5px)}}
-      @keyframes kefeStyleType{from{max-width:0}to{max-width:100%}}
-      @keyframes kefeStyleBlur{50%{filter:blur(0)}}
-      @keyframes kefeStyleShine{to{background-position:-220% 0}}
+      @keyframes kefeStylePulse{50%{transform:scale(1.06)}}@keyframes kefeStyleRise{50%{transform:translateY(-5px)}}@keyframes kefeStyleType{from{max-width:0}to{max-width:100%}}@keyframes kefeStyleBlur{50%{filter:blur(0)}}@keyframes kefeStyleShine{to{background-position:-220% 0}}
       @media(max-width:700px){.kefe-final-style-grid{grid-template-columns:1fr}}
     `;
     document.head.appendChild(style);
-
     const observer = new MutationObserver(refresh);
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['data-wizard-step', 'class']
-    });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-wizard-step', 'class'] });
     refresh();
   }
 
