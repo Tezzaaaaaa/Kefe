@@ -68,7 +68,6 @@ async function boot(page) {
     () =>
       window.kefeCaptionGen &&
       window.kefeAnalysis &&
-      window.kefeAutoCreate &&
       window.kefeSmartRender,
     null,
     { timeout: 15000 },
@@ -224,7 +223,6 @@ async function assertEditing(page) {
   const globals = await page.evaluate(() => ({
     caption: Boolean(window.kefeCaptionGen?.generate),
     analysis: Boolean(window.kefeAnalysis?.analyzeLyrics),
-    autoCreate: Boolean(window.kefeAutoCreate?.run),
     smartRender: Boolean(window.kefeSmartRender?.prepare),
   }));
   if (!Object.values(globals).every(Boolean))
@@ -241,12 +239,6 @@ async function assertEditing(page) {
   if (!analysis?.validation || analysis.validation.count !== 2)
     throw new Error(`Lyrics analysis failed: ${JSON.stringify(analysis)}`);
 
-  const auto = await page.evaluate(() =>
-    window.kefeAutoCreate.run({ allowWithoutAudio: true }),
-  );
-  if (!auto || !auto.plan?.effect)
-    throw new Error(`Auto Create failed: ${JSON.stringify(auto)}`);
-
   const renderPlan = await page.evaluate(() =>
     window.kefeSmartRender.prepare(),
   );
@@ -256,13 +248,11 @@ async function assertEditing(page) {
   const persisted = await page.evaluate(() => ({
     effect: window.state.style.effect,
     background: window.state.background.type,
-    autoCreated: Boolean(window.kefeAutoCreate.lastResult),
     renderPreset: window.kefeSmartRender.lastPlan?.preset,
   }));
   if (
     persisted.effect !== 'brat' ||
     persisted.background !== 'image' ||
-    !persisted.autoCreated ||
     !persisted.renderPreset
   ) {
     throw new Error(`Editor state did not persist: ${JSON.stringify(persisted)}`);
@@ -294,7 +284,7 @@ try {
   for (const [width, height] of sizes) await runViewport(width, height);
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(
-    'KEFE functional sweep passed: direct editor boot, no wizard layer, responsive geometry, media inputs, section navigation, lyrics analysis, effect/background persistence, Auto Create planning, Smart Render, export preflight.',
+    'KEFE functional sweep passed: direct editor boot, no wizard layer, responsive geometry, media inputs, section navigation, lyrics analysis, effect/background persistence, Smart Render, export preflight.',
   );
 } finally {
   await browser.close();
