@@ -137,4 +137,5 @@
   };
   load('./app/ui/wizard/lyric-pathway.js', 'kefe-lyric-pathway');
   load('./app/ui/wizard/lyric-pathway-hardening.js', 'kefe-lyric-pathway-hardening');
+  load('./app/ui/wizard/lyric-pathway-style.js', 'kefe-lyric-pathway-style');
 })();
