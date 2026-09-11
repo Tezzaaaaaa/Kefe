@@ -1,16 +1,10 @@
 # KEFE Wizard
 
-Wizard-specific helper modules live here so the editor's guided-creation code has one obvious home.
+This directory contains the single guided-creation controller and the small pathway-specific helpers it directly coordinates.
 
 - `wizard.js` is the single wizard controller and browser entry point.
-- The files in this directory are supporting adapters only; they should not become parallel wizard controllers.
+- `wizard.css` is the wizard presentation layer.
+- `lyric-pathway.js`, `lyric-pathway-hardening.js`, `lyric-pathway-style.js`, `lyric-pathway-save-bridge.js`, and `lyric-pathway-complete.js` are lyric-pathway feature helpers.
 - General-purpose preview, background, caption, effect, and export logic belongs to its owning subsystem.
 
-## Structure
-
-- `wizard.js` — canonical controller and guided-creation state machine.
-- `wizard.css` — wizard presentation and responsive wizard layout.
-- `wizard-all-effects.js` — effect/style integration adapter.
-- `wizard-style-sections.js` — style-section rendering helpers.
-
-Do not add another `wizard-*` module unless it owns a distinct responsibility that cannot live in an existing subsystem.
+There must not be another wizard controller, wizard bootstrapper, or dynamic loader for these helpers.
