@@ -4,7 +4,10 @@ const LOAD_TIMEOUT_MS = 45000;
 const ASSET_FETCH_RETRIES = 2;
 
 const FFMPEG_MODULE_URL = `https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@${FF_VERSION}/dist/esm/index.js`;
-const LOCAL_WORKER_URL = new URL('../vendor/ffmpeg/worker.js', import.meta.url).href;
+// The encoder previously pointed at app/vendor/ffmpeg/worker.js, but that file
+// does not exist in the repository. Use the worker shipped by the same
+// @ffmpeg/ffmpeg release as the imported module instead.
+const FFMPEG_WORKER_URL = `https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@${FF_VERSION}/dist/esm/worker.js`;
 const CORE_JS_URL = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm/ffmpeg-core.js`;
 const CORE_WASM_URL = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm/ffmpeg-core.wasm`;
 
@@ -72,7 +75,7 @@ export async function loadEncoder(onStatus) {
     if (encoderPromise) return encoderPromise;
     encoderPromise = (async () => {
         let ffmpeg = null;
-        const details = { source: 'jsdelivr-ffmpeg', ffmpeg: FF_VERSION, core: CORE_VERSION, workerURL: LOCAL_WORKER_URL, coreURL: CORE_JS_URL, wasmURL: CORE_WASM_URL };
+        const details = { source: 'jsdelivr-ffmpeg', ffmpeg: FF_VERSION, core: CORE_VERSION, workerURL: FFMPEG_WORKER_URL, coreURL: CORE_JS_URL, wasmURL: CORE_WASM_URL };
         try {
             onStatus?.('Loading FFmpeg engine…');
             const module = await withTimeout(getFFmpegModule(), LOAD_TIMEOUT_MS, details, 'module-load');
@@ -81,15 +84,12 @@ export async function loadEncoder(onStatus) {
             const { coreURL, wasmURL } = await withTimeout(getCoreAssets(), LOAD_TIMEOUT_MS, details, 'core-assets');
             ffmpeg = new FFmpeg(); ffmpeg.on('log', data => console.debug('[KEFE FFmpeg]', data?.message || data)); ffmpeg.on('error', error => console.error('[KEFE FFmpeg error]', error));
             onStatus?.('Starting FFmpeg…');
-            await withTimeout(ffmpeg.load({ classWorkerURL: LOCAL_WORKER_URL, coreURL, wasmURL }), LOAD_TIMEOUT_MS, details, 'load');
+            await withTimeout(ffmpeg.load({ classWorkerURL: FFMPEG_WORKER_URL, coreURL, wasmURL }), LOAD_TIMEOUT_MS, details, 'load');
             console.info('[KEFE] FFmpeg runtime loaded', details);
             return ffmpeg;
         } catch (error) {
             encoderPromise = null;
             try { ffmpeg?.terminate?.(); } catch {}
-            // Only the module/core-asset fetch itself failing means the cached
-            // bytes might be bad; a downstream ffmpeg.load()/runtime error
-            // doesn't implicate the cache, so leave it intact for the retry.
             if (error?.stage === 'ENCODER_ASSET' || error?.operation === 'core-assets' || error?.operation === 'module-load') invalidateCoreAssets();
             throw error?.name === 'ExportDiagnosticError' ? error : encoderFailure('ENCODER_LOAD', 'load', error, details);
         }
@@ -98,9 +98,6 @@ export async function loadEncoder(onStatus) {
 }
 export function releaseEncoder(encoder) {
     if (encoderPromise) encoderPromise = null;
-    // Only tear down this FFmpeg instance's worker/WASM memory. The cached
-    // module + core/wasm blob URLs are intentionally kept alive so the next
-    // segment (or the next export) can reuse them instead of re-downloading.
     try { encoder?.terminate?.(); } catch {}
 }
 export const ENCODER_VERSIONS = Object.freeze({ ffmpeg: FF_VERSION, core: CORE_VERSION });
