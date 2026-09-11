@@ -134,7 +134,7 @@ try {
   await page.locator('#wizardNextBtn').click();
   await page.locator('#lyricStyleBlock').waitFor({ state: 'visible' });
   await page
-    .locator('#wizardSection [data-wizard-effect="pulse"]')
+    .locator('#wizardSection [data-wizard-effect="rise"]')
     .click({ force: true });
   await page
     .locator('#backgroundSection [data-background-preset="aurora"]')
@@ -146,7 +146,7 @@ try {
     title: window.state.style.titleCardStyle,
   }));
   if (
-    visualState.effect !== 'pulse' ||
+    visualState.effect !== 'rise' ||
     visualState.background !== 'image' ||
     visualState.title !== 'statement'
   ) {
@@ -185,14 +185,14 @@ try {
   const autoPlan = await page.evaluate(() =>
     window.kefeAutoCreate.getPlan(
       {
-        recommendation: 'pulse',
+        recommendation: 'rise',
         validation: { count: 2 },
         metrics: { averageCharacters: 12, linesPerMinute: 8 },
       },
       false,
     ),
   );
-  if (autoPlan.effect !== 'pulse') {
+  if (autoPlan.effect !== 'rise') {
     throw new Error('Auto Create planning failed');
   }
   const renderPlan = await page.evaluate(
