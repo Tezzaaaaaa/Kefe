@@ -144,7 +144,7 @@
   function rebuild() {
     const wizard = document.getElementById('wizardSection');
     if (!wizard) return;
-    const source = wizard.querySelector('.wizard-style-group');
+    const source = wizard.querySelector('#wizardStyleMount') || wizard.querySelector('.wizard-style-group');
     if (!source) return;
 
     installMotionStyles();
