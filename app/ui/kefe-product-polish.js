@@ -30,11 +30,7 @@
     try {
       await loadScript('./app/core/runtime-bridge.js', 'kefe-runtime-bridge');
       if (!window.kefeRuntime?.ready) return;
-      await loadScript('./app/ui/caption-generator.js', 'kefe-caption-generator');
-      await Promise.allSettled([
-        loadScript('./app/core/analysis-engine.js', 'kefe-analysis'),
-        loadScript('./app/core/smart-render.js', 'kefe-smart-render')
-      ]);
+      await loadScript('./app/core/smart-render.js', 'kefe-smart-render');
       runtimeBootstrapped = true;
       if (runtimeBootstrapTimer) {
         clearInterval(runtimeBootstrapTimer);
@@ -42,7 +38,7 @@
       }
       window.dispatchEvent(new CustomEvent('kefe:runtime-bootstrapped'));
     } catch (error) {
-      console.error('[KEFE Bootstrap]', error);
+      console.error('[KEFE Runtime]', error);
     }
   }
 
@@ -119,13 +115,4 @@
   keepRuntimeBootstrapAlive();
   runtimeBootstrapTimer = window.setInterval(keepRuntimeBootstrapAlive, 250);
   window.setInterval(enhanceLivePreview, 500);
-})();
-
-/* Architecture layer remains available as infrastructure; it does not alter the editing flow. */
-(() => {
-  if (window.kefe || document.querySelector('script[data-kefe-architecture]')) return;
-  const script = document.createElement('script');
-  script.src = './app/core/architecture.js';
-  script.dataset.kefeArchitecture = '1';
-  document.head.appendChild(script);
 })();
