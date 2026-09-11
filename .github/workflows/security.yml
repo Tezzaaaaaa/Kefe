@@ -2,7 +2,7 @@ name: KEFE security
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
   schedule:
     - cron: '27 2 * * 1'
