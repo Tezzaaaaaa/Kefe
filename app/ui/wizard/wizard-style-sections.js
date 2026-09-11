@@ -12,6 +12,7 @@
 
   function init() {
     load('./app/ui/wizard/lyric-pathway.js', 'lyric-pathway');
+    load('./app/ui/wizard/lyric-pathway-hardening.js', 'lyric-pathway-hardening');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
