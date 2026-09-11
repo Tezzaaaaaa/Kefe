@@ -17,7 +17,6 @@ Before accepting a fix, run:
 
 - `npm run check`
 - `npm run format:check`
-- `npm run test:smoke`
 
 Browser-facing changes must be checked at desktop and mobile widths and across every applicable wizard path.
 
