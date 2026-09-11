@@ -3,6 +3,8 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const q = (sel, root = document) => root.querySelector(sel);
+  let liveAudio = null;
+  let liveAudioUrl = '';
 
   function metadataSourceIsFilename() {
     const source = window.state?.audio?.metadataSource;
@@ -19,6 +21,98 @@
       const input = $(id);
       if (input && document.activeElement !== input) input.value = '';
     });
+  }
+
+  function liveAudioSource() {
+    const state = window.state;
+    return state?.audio?.url || state?.audio?.file ? (state.audio.url || '') : '';
+  }
+
+  function ensureLiveAudio() {
+    const url = liveAudioSource();
+    if (!url) return null;
+    if (!liveAudio || liveAudioUrl !== url) {
+      liveAudio?.pause();
+      liveAudio = new Audio(url);
+      liveAudio.preload = 'auto';
+      liveAudioUrl = url;
+      liveAudio.addEventListener('timeupdate', () => {
+        if (!window.state?.playback) return;
+        window.state.playback.currentTime = Number.isFinite(liveAudio.currentTime) ? liveAudio.currentTime : 0;
+        window.state.playback.isPlaying = !liveAudio.paused;
+        window.redrawCurrentPreviewFrame?.();
+      });
+      liveAudio.addEventListener('play', () => {
+        if (window.state?.playback) window.state.playback.isPlaying = true;
+      });
+      liveAudio.addEventListener('pause', () => {
+        if (window.state?.playback) window.state.playback.isPlaying = false;
+      });
+      liveAudio.addEventListener('ended', () => {
+        if (!window.state?.playback) return;
+        window.state.playback.isPlaying = false;
+        window.state.playback.currentTime = Number.isFinite(liveAudio.currentTime) ? liveAudio.currentTime : 0;
+        window.redrawCurrentPreviewFrame?.();
+      });
+    }
+    return liveAudio;
+  }
+
+  function seekLiveAudio(time) {
+    const player = ensureLiveAudio();
+    const target = Math.max(0, Number(time) || 0);
+    if (!player) {
+      if (window.state?.playback) window.state.playback.currentTime = target;
+      return false;
+    }
+    try {
+      if (Number.isFinite(player.duration) && player.duration > 0) player.currentTime = Math.min(target, player.duration);
+      else player.currentTime = target;
+    } catch (_) { return false; }
+    if (window.state?.playback) window.state.playback.currentTime = player.currentTime;
+    window.redrawCurrentPreviewFrame?.();
+    return true;
+  }
+
+  async function playFromLine(line) {
+    const player = ensureLiveAudio();
+    const target = Number(line?.time) || 0;
+    if (!player) return;
+    seekLiveAudio(target);
+    try { await player.play(); }
+    catch (error) { console.error('[KEFE Lyric Playback]', error); }
+  }
+
+  async function toggleLivePlayback() {
+    const player = ensureLiveAudio();
+    if (!player) return;
+    if (player.paused) {
+      try { await player.play(); }
+      catch (error) { console.error('[KEFE Lyric Playback]', error); }
+    } else player.pause();
+  }
+
+  function wireEditorPlayback() {
+    if (document.body.dataset.kefeLyricPlaybackWired === 'true') return;
+    document.body.dataset.kefeLyricPlaybackWired = 'true';
+    document.addEventListener('click', event => {
+      const play = event.target.closest('.kefe-lyric-actions button');
+      if (play && play.title === 'Play from this line') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const row = play.closest('.kefe-lyric-row');
+        const index = Number(row?.dataset.index);
+        const line = window.state?.lyrics?.lines?.[index];
+        if (line) playFromLine(line);
+        return;
+      }
+      if (event.target.closest('#kefePlayPause')) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        toggleLivePlayback();
+        return;
+      }
+    }, true);
   }
 
   function installLiveControl() {
@@ -48,13 +142,15 @@
       let index = -1;
       for (let i = 0; i < lines.length; i++) { if (Number(lines[i].time) <= t) index = i; else break; }
       if (index < 0) index = 0;
-      lines[index].time = t;
-      lines.sort((a, b) => (Number(a.time) || 0) - (Number(b.time) || 0));
-      for (let i = 0; i < lines.length; i++) lines[i].endTime = i < lines.length - 1 ? Number(lines[i + 1].time) : Math.max(Number(lines[i].time) + .5, Number(lines[i].endTime) || Number(lines[i].time) + 5);
-      $('lyricsText').value = lines.map(line => `[${formatLrcTime(line.time)}]${line.text || ''}`).join('\n');
-      $('lyricsStatus').textContent = `Adjusted line ${index + 1} to ${formatLrcTime(t)}.`;
-      $('lyricsStatus').className = 'status success';
-      window.redrawCurrentPreviewFrame?.();
+      if (lines[index]) {
+        lines[index].time = t;
+        lines.sort((a, b) => (Number(a.time) || 0) - (Number(b.time) || 0));
+        for (let i = 0; i < lines.length; i++) lines[i].endTime = i < lines.length - 1 ? Number(lines[i + 1].time) : Math.max(Number(lines[i].time) + .5, Number(lines[i].endTime) || Number(lines[i].time) + 5);
+        $('lyricsText').value = lines.map(line => `[${formatLrcTime(line.time)}]${line.text || ''}`).join('\n');
+        $('lyricsStatus').textContent = `Adjusted line ${index + 1} to ${formatLrcTime(t)}.`;
+        $('lyricsStatus').className = 'status success';
+        window.redrawCurrentPreviewFrame?.();
+      }
     });
     refresh();
   }
@@ -85,6 +181,7 @@
     enforceMetadataTruth();
     installLiveControl();
     separateBackgroundStep();
+    wireEditorPlayback();
   }
 
   function init() {
