@@ -46,11 +46,6 @@
     }
   }
 
-  function keepRuntimeBootstrapAlive() {
-    if (runtimeBootstrapped) return;
-    void bootstrapRuntimeModules();
-  }
-
   function enhanceLivePreview() {
     const heading = document.querySelector('.preview-heading');
     const preview = document.querySelector('.preview');
@@ -128,4 +123,18 @@
   script.src = './app/core/architecture.js';
   script.dataset.kefeArchitecture = '1';
   document.head.appendChild(script);
+})();
+
+/* Guided Lyric Video pathway helpers. Loaded here because the wizard controller
+   and product polish are already the canonical page-level bootstrappers. */
+(() => {
+  const load = (src, marker) => {
+    if (document.querySelector(`script[data-${marker}]`)) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.dataset[marker] = '1';
+    document.head.appendChild(script);
+  };
+  load('./app/ui/wizard/lyric-pathway.js', 'kefe-lyric-pathway');
+  load('./app/ui/wizard/lyric-pathway-hardening.js', 'kefe-lyric-pathway-hardening');
 })();
