@@ -46,6 +46,11 @@
     }
   }
 
+  function keepRuntimeBootstrapAlive() {
+    if (runtimeBootstrapped) return;
+    void bootstrapRuntimeModules();
+  }
+
   function enhanceLivePreview() {
     const heading = document.querySelector('.preview-heading');
     const preview = document.querySelector('.preview');
