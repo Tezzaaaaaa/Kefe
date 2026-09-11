@@ -9,8 +9,10 @@
     apple: ['Apple', 'Clean, restrained lyric presentation'], brat: ['Brat', 'Bold, oversized kinetic type'], eternal: ['Eternal Sunshine', 'Soft handwritten movement'],
     aurora: ['Aurora', 'Glowing colour movement'], pulse: ['Pulse', 'Rhythmic scale and emphasis'], typewriter: ['Typewriter', 'Character-by-character reveal'],
     instagram: ['Instagram', 'Bold social lyric treatment'], fadeup: ['Fade Up', 'Soft upward lyric entrance'], decrypt: ['Decrypt', 'Characters resolve into lyrics'],
-    blur: ['Blur In', 'Lyrics sharpen into focus'], shiny: ['Shiny', 'Moving highlight across text']
+    blur: ['Blur In', 'Lyrics sharpen into focus'], shiny: ['Shiny', 'Moving highlight across text'], rise: ['Rise', 'Lyrics rise into place'], slide: ['Slide', 'Lyrics move smoothly into place'],
+    drop: ['Drop', 'Lyrics fall into position'], drift: ['Drift', 'Gentle horizontal lyric movement'], scrolllines: ['Scroll Lines', 'Lyrics travel through the frame']
   };
+  const FALLBACK_DESCRIPTIONS = 'Animated lyric treatment';
 
   let lastStep = '';
   let styleBuiltFor = '';
@@ -52,6 +54,12 @@
     save.addEventListener('click', syncLrcSource, true);
   }
 
+  function styleName(key) {
+    const button = q(`[data-effect="${CSS.escape(key)}"]`, $('lyricStyleBlock') || document);
+    const text = button?.textContent?.replace(/\s+/g, ' ').trim();
+    return STYLE_COPY[key]?.[0] || text || key.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
   function buildStyleControls() {
     if (document.body.dataset.wizardStep !== 'style') return;
     const host = $('wizardStyleMount'), source = $('lyricStyleBlock');
@@ -69,13 +77,17 @@
       grid.setAttribute('aria-label', 'Lyric styles');
       host.appendChild(grid);
     }
-    const buttons = qa('[data-effect]', source).filter(button => STYLE_COPY[button.dataset.effect]);
+
+    const buttons = qa('[data-effect]', source).filter(button => !button.closest('.kefe-final-style-grid'));
     const signature = buttons.map(button => button.dataset.effect).join('|');
     if (styleBuiltFor === signature && grid.children.length === buttons.length) { syncStyleSelection(grid); return; }
     styleBuiltFor = signature;
     grid.replaceChildren();
+
     buttons.forEach(sourceButton => {
-      const key = sourceButton.dataset.effect, [name, description] = STYLE_COPY[key];
+      const key = sourceButton.dataset.effect;
+      const name = styleName(key);
+      const description = STYLE_COPY[key]?.[1] || FALLBACK_DESCRIPTIONS;
       const card = document.createElement('button');
       card.type = 'button'; card.className = 'kefe-final-style-card'; card.dataset.effect = key; card.setAttribute('aria-pressed', 'false');
       const demo = document.createElement('span'); demo.className = `kefe-final-style-demo effect-${key}`; demo.textContent = 'LYRICS';
@@ -83,7 +95,12 @@
       const title = document.createElement('strong'); title.textContent = name;
       const hint = document.createElement('small'); hint.textContent = description;
       copy.append(title, hint); card.append(demo, copy);
-      card.addEventListener('click', () => { sourceButton.click(); syncStyleSelection(grid); window.redrawCurrentPreviewFrame?.(); });
+      card.addEventListener('click', () => {
+        sourceButton.click();
+        syncStyleSelection(grid);
+        renderStylePreview(key);
+        window.redrawCurrentPreviewFrame?.();
+      });
       grid.appendChild(card);
     });
     syncStyleSelection(grid);
@@ -154,7 +171,7 @@
     const step = document.body.dataset.wizardStep || ''; if (step === lastStep) return; lastStep = step;
     if (step === 'lyrics') { moveMetadataToLyrics(); wireSaveBridge(); }
     if (step === 'source') removeMetadataFromSource();
-    if (step === 'style') { previewBuilt = false; cleanStylePreview(); buildStyleControls(); separateStyleFromBackground(); }
+    if (step === 'style') { previewBuilt = false; styleBuiltFor = ''; cleanStylePreview(); buildStyleControls(); separateStyleFromBackground(); }
     if (step === 'background') improveBackgroundStep();
     if (step === 'preview') improvePreviewStep();
   }
@@ -162,21 +179,22 @@
   function refresh() {
     stepChanged(); wireSaveBridge();
     if (document.body.dataset.wizardStep === 'lyrics') moveMetadataToLyrics();
-    if (document.body.dataset.wizardStep === 'style') { cleanStylePreview(); buildStyleControls(); separateStyleFromBackground(); }
+    if (document.body.dataset.wizardStep === 'style') { cleanStylePreview(); buildStyleControls(); separateStyleFromBackground(); syncStyleSelection(); }
     if (document.body.dataset.wizardStep === 'background') improveBackgroundStep();
   }
 
   function start() {
     const style = document.createElement('style'); style.id = 'kefeFinalLyricPathwayCSS'; style.textContent = `
-      .kefe-final-style-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
-      .kefe-final-style-card{display:grid;gap:9px;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text);text-align:left;cursor:pointer;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
-      .kefe-final-style-card:hover{transform:translateY(-1px);border-color:var(--line-strong)}.kefe-final-style-card.selected{border-color:var(--red);box-shadow:0 0 0 1px var(--red);background:var(--surface-2)}
-      .kefe-final-style-demo{display:grid;place-items:center;min-height:86px;border-radius:10px;border:1px solid var(--line);background:var(--surface-3);color:var(--text);font-size:18px;font-weight:800;letter-spacing:.08em;overflow:hidden}
-      .kefe-final-style-demo.effect-brat{font-size:25px;letter-spacing:-.08em;transform:rotate(-1deg)}.kefe-final-style-demo.effect-eternal{font-style:italic;filter:blur(.25px)}.kefe-final-style-demo.effect-aurora{letter-spacing:.18em;text-shadow:0 0 16px currentColor}.kefe-final-style-demo.effect-pulse{animation:kefeStylePulse 1.1s ease-in-out infinite}.kefe-final-style-demo.effect-typewriter{overflow:hidden;justify-content:flex-start;padding-left:16px;white-space:nowrap;animation:kefeStyleType 1.7s steps(7,end) infinite}.kefe-final-style-demo.effect-instagram{font-style:italic;font-weight:900}.kefe-final-style-demo.effect-fadeup{animation:kefeStyleRise 1s ease-in-out infinite}.kefe-final-style-demo.effect-decrypt{letter-spacing:.2em}.kefe-final-style-demo.effect-blur{filter:blur(2px);animation:kefeStyleBlur 1.6s ease-in-out infinite}.kefe-final-style-demo.effect-shiny{background:linear-gradient(110deg,var(--surface-3) 35%,var(--surface) 50%,var(--surface-3) 65%);background-size:220% 100%;animation:kefeStyleShine 1.8s linear infinite}
-      .kefe-final-style-copy{display:grid;gap:3px}.kefe-final-style-copy strong{font-size:13px}.kefe-final-style-copy small{font-size:11px;color:var(--text-3);line-height:1.35}.kefe-final-preview-checks{display:grid;gap:7px;margin-top:16px}.kefe-final-preview-check{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:12px}.kefe-final-preview-check.ok strong{color:#2f9e5b}.kefe-final-preview-check.warn strong{color:#b36b00}.kefe-background-step{padding-bottom:24px}
+      .kefe-final-style-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+      .kefe-final-style-card{display:grid;grid-template-rows:auto 1fr;gap:10px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text);text-align:left;cursor:pointer;transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
+      .kefe-final-style-card:hover{transform:translateY(-1px);border-color:var(--line-strong)}.kefe-final-style-card:focus-visible{outline:2px solid var(--red);outline-offset:2px}.kefe-final-style-card.selected{border-color:var(--red);box-shadow:0 0 0 1px var(--red);background:var(--surface-2)}
+      .kefe-final-style-demo{display:grid;place-items:center;min-height:92px;border-radius:10px;border:1px solid var(--line);background:var(--surface-3);color:var(--text);font-size:18px;font-weight:800;letter-spacing:.08em;overflow:hidden}
+      .kefe-final-style-demo.effect-brat{font-size:25px;letter-spacing:-.08em;transform:rotate(-1deg)}.kefe-final-style-demo.effect-eternal{font-style:italic;filter:blur(.25px)}.kefe-final-style-demo.effect-aurora{letter-spacing:.18em;text-shadow:0 0 16px currentColor}.kefe-final-style-demo.effect-pulse{animation:kefeStylePulse 1.1s ease-in-out infinite}.kefe-final-style-demo.effect-typewriter{overflow:hidden;justify-content:flex-start;padding-left:16px;white-space:nowrap;animation:kefeStyleType 1.7s steps(7,end) infinite}.kefe-final-style-demo.effect-instagram{font-style:italic;font-weight:900}.kefe-final-style-demo.effect-fadeup{animation:kefeStyleRise 1s ease-in-out infinite}.kefe-final-style-demo.effect-decrypt{letter-spacing:.2em}.kefe-final-style-demo.effect-blur{filter:blur(2px);animation:kefeStyleBlur 1.6s ease-in-out infinite}.kefe-final-style-demo.effect-shiny{background:linear-gradient(110deg,var(--surface-3) 35%,var(--surface) 50%,var(--surface-3) 65%);background-size:220% 100%;animation:kefeStyleShine 1.8s linear infinite}.kefe-final-style-demo.effect-rise{animation:kefeStyleRise 1.2s ease-in-out infinite}.kefe-final-style-demo.effect-slide{animation:kefeStyleSlide 1.2s ease-in-out infinite}.kefe-final-style-demo.effect-drop{animation:kefeStyleDrop 1.2s ease-in-out infinite}.kefe-final-style-demo.effect-drift{animation:kefeStyleDrift 1.8s ease-in-out infinite}.kefe-final-style-demo.effect-scrolllines{animation:kefeStyleScroll 1.5s linear infinite}
+      .kefe-final-style-copy{display:grid;gap:3px}.kefe-final-style-copy strong{font-size:13px}.kefe-final-style-copy small{font-size:11px;color:var(--text-3);line-height:1.35}
+      .kefe-final-preview-checks{display:grid;gap:7px;margin-top:16px}.kefe-final-preview-check{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:12px}.kefe-final-preview-check.ok strong{color:#2f9e5b}.kefe-final-preview-check.warn strong{color:#b36b00}.kefe-background-step{padding-bottom:24px}
       body.wizard-mode[data-wizard-step="style"] .wizard-style-preview-media-wrap,body.wizard-mode[data-wizard-step="style"] .wizard-style-preview-shade{display:none!important}
-      @keyframes kefeStylePulse{50%{transform:scale(1.06)}}@keyframes kefeStyleRise{50%{transform:translateY(-5px)}}@keyframes kefeStyleType{from{max-width:0}to{max-width:100%}}@keyframes kefeStyleBlur{50%{filter:blur(0)}}@keyframes kefeStyleShine{to{background-position:-220% 0}}
-      @media(max-width:700px){.kefe-final-style-grid{grid-template-columns:1fr}}
+      @keyframes kefeStylePulse{50%{transform:scale(1.06)}}@keyframes kefeStyleRise{50%{transform:translateY(-5px)}}@keyframes kefeStyleType{from{max-width:0}to{max-width:100%}}@keyframes kefeStyleBlur{50%{filter:blur(0)}}@keyframes kefeStyleShine{to{background-position:-220% 0}}@keyframes kefeStyleSlide{50%{transform:translateX(6px)}}@keyframes kefeStyleDrop{50%{transform:translateY(6px)}}@keyframes kefeStyleDrift{50%{transform:translateX(8px)}}@keyframes kefeStyleScroll{50%{transform:translateY(-7px)}}
+      @media(max-width:900px){.kefe-final-style-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.kefe-final-style-grid{grid-template-columns:1fr}}
     `; document.head.appendChild(style);
     const observer = new MutationObserver(refresh); observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-wizard-step', 'class'] }); refresh();
   }
