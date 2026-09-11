@@ -11,6 +11,16 @@ KEFE is wired for Graft, a local codebase context graph for coding agents.
 - Prefer inspecting existing architecture and dependencies before creating new abstractions.
 - Keep changes minimal and preserve existing behaviour unless the task explicitly requires otherwise.
 
+## Architecture guardrails
+
+- Inspect the existing implementation before changing it.
+- Reuse existing capabilities before creating new ones; extend existing modules before duplicating them.
+- Keep one authoritative implementation for each behaviour. Remove obsolete competing patches instead of layering another workaround on top.
+- Keep renderer wrappers idempotent. A module that replaces `window.render` must protect against repeated installation.
+- Use the repository's existing state/render architecture rather than introducing a parallel state or rendering system.
+- Preserve validation, accessibility, security, reliability, and data integrity when making changes.
+- Run `npm run check` after architectural changes and fix the underlying failure rather than bypassing the guardrail.
+
 For a new checkout, the normal setup is:
 
 ```bash
