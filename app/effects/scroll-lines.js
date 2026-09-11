@@ -1,12 +1,9 @@
-/* KEFE — Scroll Lines lyric effect.
- * Editorial multi-line motion inspired by Motion's Scroll Text Lines pattern:
- * several lyric lines travel horizontally at different rates while the active
- * lyric stays visually dominant. No external animation dependency is needed.
- */
+/* KEFE — Scroll Lines lyric renderer. */
 (() => {
   'use strict';
   const u = window.kefeEffectUtils;
   window.kefeEffects = window.kefeEffects || {};
+  if (!u) return;
 
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, Number(v) || 0));
   const smoother = v => {
@@ -40,7 +37,7 @@
     u.drawTrackedText(ctx, text, x, y, tracking, 'fillText');
   }
 
-  function renderScrollLines(ctx, w, h, style, lines, time) {
+  window.kefeEffects.scrolllines = function renderScrollLines(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
     const active = u.activeLine(lines, time);
     if (!active) return;
@@ -54,7 +51,6 @@
     const rowGap = Math.max(58, Math.min(h * 0.145, requested * 0.98));
     const speedBase = Math.max(20, Math.min(95, w * 0.045));
 
-    // Keep a small local window so long lyric files remain inexpensive.
     const first = Math.max(0, active.index - 2);
     const last = Math.min(lines.length - 1, active.index + 2);
     const visible = [];
@@ -105,7 +101,6 @@
       ctx.restore();
     });
 
-    // A restrained active-line emphasis keeps the effect readable over video.
     const activeText = String(active.line?.text || '').trim();
     if (activeText) {
       const prepared = fitText(ctx, activeText, requested, tracking, w * .90, family);
@@ -124,74 +119,5 @@
       ctx.restore();
     }
     ctx.restore();
-  }
-
-  window.kefeEffects.scrolllines = (ctx, w, h, style, lines, time) => renderScrollLines(ctx, w, h, style, lines, time);
-
-  function install() {
-    if (window.__kefeScrollLinesInstalled) return true;
-    if (typeof window.render !== 'function') return false;
-
-    const originalRender = window.render;
-    window.render = function(ctx, w, h, appState, mediaCache) {
-      const effect = appState?.style?.effect;
-      if (effect !== 'scrolllines') return originalRender(ctx, w, h, appState, mediaCache);
-
-      const style = appState.style || {};
-      const lines = appState.captions?.mode === 'captions' && Array.isArray(appState.captions.lines) && appState.captions.lines.length
-        ? appState.captions.lines
-        : (Array.isArray(appState.lyrics?.lines) ? appState.lyrics.lines : []);
-      const time = Number(appState.playback?.currentTime) || 0;
-
-      const originalEffect = style.effect;
-      const originalText = style.textColor;
-      const originalAccent = style.accentColor;
-      const originalOpacity = style.appleInactiveOpacity;
-      try {
-        // Render the existing background/media pipeline, but suppress the
-        // legacy lyric layer. Scroll Lines draws its own complete lyric field.
-        style.effect = 'apple';
-        style.textColor = 'rgba(0,0,0,0)';
-        style.accentColor = 'rgba(0,0,0,0)';
-        style.appleInactiveOpacity = 0;
-        originalRender(ctx, w, h, appState, mediaCache);
-      } finally {
-        style.effect = originalEffect;
-        style.textColor = originalText;
-        style.accentColor = originalAccent;
-        style.appleInactiveOpacity = originalOpacity;
-      }
-      if (lines.length) renderScrollLines(ctx, w, h, style, lines, time);
-    };
-    window.__kefeScrollLinesInstalled = true;
-    return true;
-  }
-
-  function addButton() {
-    const host = document.querySelector('#lyricStyleBlock .effect-buttons');
-    if (!host || host.querySelector('[data-effect="scrolllines"]')) return;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'segmented-btn';
-    button.dataset.effect = 'scrolllines';
-    button.textContent = 'Scroll Lines';
-    button.title = 'Scroll Lines — editorial multi-line horizontal lyric motion';
-    button.addEventListener('click', () => {
-      if (typeof window.setEffect === 'function') window.setEffect('scrolllines');
-      const label = document.getElementById('effectLabel');
-      if (label) label.textContent = 'Scroll Lines — editorial multi-line horizontal lyric motion';
-      document.querySelectorAll('[data-effect]').forEach(b => b.classList.toggle('active-effect', b.dataset.effect === 'scrolllines'));
-      window.redrawCurrentPreviewFrame?.();
-    });
-    host.appendChild(button);
-  }
-
-  function init() {
-    install();
-    addButton();
-    if (!window.__kefeScrollLinesInstalled || !document.querySelector('[data-effect="scrolllines"]')) setTimeout(init, 50);
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
-  else setTimeout(init, 0);
+  };
 })();
