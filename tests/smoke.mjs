@@ -6,13 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const port = 4173;
-const mime = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.json': 'application/json',
-};
+const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json' };
 
 const server = createServer(async (req, res) => {
   try {
@@ -20,18 +14,10 @@ const server = createServer(async (req, res) => {
     const relative = url === '/' ? 'index.html' : url.replace(/^\/+/, '');
     const file = join(root, relative);
     const body = await readFile(file);
-    res.writeHead(200, {
-      'content-type': mime[extname(file)] || 'application/octet-stream',
-      'content-length': body.byteLength,
-      'cache-control': 'no-store',
-      connection: 'close',
-    });
+    res.writeHead(200, { 'content-type': mime[extname(file)] || 'application/octet-stream', 'content-length': body.byteLength, 'cache-control': 'no-store', connection: 'close' });
     res.end(body);
   } catch {
-    res.writeHead(404, {
-      'content-type': 'text/plain; charset=utf-8',
-      connection: 'close',
-    });
+    res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', connection: 'close' });
     res.end('Not found');
   }
 });
@@ -39,77 +25,34 @@ const server = createServer(async (req, res) => {
 function makeWav(seconds = 2, sampleRate = 16000) {
   const samples = Math.max(1, Math.floor(seconds * sampleRate));
   const buffer = Buffer.alloc(44 + samples * 2);
-  buffer.write('RIFF', 0);
-  buffer.writeUInt32LE(36 + samples * 2, 4);
-  buffer.write('WAVE', 8);
-  buffer.write('fmt ', 12);
-  buffer.writeUInt32LE(16, 16);
-  buffer.writeUInt16LE(1, 20);
-  buffer.writeUInt16LE(1, 22);
-  buffer.writeUInt32LE(sampleRate, 24);
-  buffer.writeUInt32LE(sampleRate * 2, 28);
-  buffer.writeUInt16LE(2, 32);
-  buffer.writeUInt16LE(16, 34);
-  buffer.write('data', 36);
-  buffer.writeUInt32LE(samples * 2, 40);
-  return buffer;
+  buffer.write('RIFF', 0); buffer.writeUInt32LE(36 + samples * 2, 4); buffer.write('WAVE', 8);
+  buffer.write('fmt ', 12); buffer.writeUInt32LE(16, 16); buffer.writeUInt16LE(1, 20); buffer.writeUInt16LE(1, 22);
+  buffer.writeUInt32LE(sampleRate, 24); buffer.writeUInt32LE(sampleRate * 2, 28); buffer.writeUInt16LE(2, 32); buffer.writeUInt16LE(16, 34);
+  buffer.write('data', 36); buffer.writeUInt32LE(samples * 2, 40); return buffer;
 }
 
-await new Promise((resolve, reject) => {
-  server.once('error', reject);
-  server.listen(port, '127.0.0.1', resolve);
-});
-
+await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });
 let browser;
 try {
   browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-  page.setDefaultTimeout(5000);
-  page.setDefaultNavigationTimeout(10000);
-
+  page.setDefaultTimeout(5000); page.setDefaultNavigationTimeout(10000);
   const errors = [];
-  page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
-  });
+  page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
+  page.on('console', message => { if (message.type() === 'error') errors.push(`console: ${message.text()}`); });
 
-  const response = await page.goto(`http://127.0.0.1:${port}/`, {
-    waitUntil: 'commit',
-    timeout: 10000,
-  });
-  if (!response || !response.ok()) {
-    throw new Error(
-      `Smoke server returned ${response?.status() ?? 'no response'} for index.html`,
-    );
-  }
-
+  const response = await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'commit', timeout: 10000 });
+  if (!response || !response.ok()) throw new Error(`Smoke server returned ${response?.status() ?? 'no response'} for index.html`);
   await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 10000 });
-  await page.waitForFunction(
-    () => Boolean(window.state) && Boolean(window.canvas || document.getElementById('stageCanvas')) && Boolean(window.kefeMedia),
-    null,
-    { timeout: 10000 },
-  );
+  await page.waitForFunction(() => Boolean(window.state) && Boolean(window.canvas || document.getElementById('stageCanvas')) && Boolean(window.kefeMedia), null, { timeout: 10000 });
   await page.waitForFunction(() => window.kefeRuntime?.ready === true, null, { timeout: 15000 });
-  await page.waitForFunction(
-    () => window.kefeCaptionGen && window.kefeAnalysis && window.kefeSmartRender,
-    null,
-    { timeout: 15000 },
-  );
+  await page.waitForFunction(() => window.kefeCaptionGen && window.kefeAnalysis && window.kefeSmartRender, null, { timeout: 15000 });
 
   await page.locator('#wizardSection [data-choice="lyric"]').click();
   await page.locator('#wizardNextBtn').click();
   await page.locator('#wizardSection [data-source="uploaded"]').click();
-
-  await page.locator('#audioInput').setInputFiles({
-    name: 'smoke-test.wav',
-    mimeType: 'audio/wav',
-    buffer: makeWav(),
-  });
-  await page.waitForFunction(
-    () => window.state?.audio?.ready === true && Number(window.state.audio.duration) > 0,
-    null,
-    { timeout: 5000 },
-  );
+  await page.locator('#audioInput').setInputFiles({ name: 'smoke-test.wav', mimeType: 'audio/wav', buffer: makeWav() });
+  await page.waitForFunction(() => window.state?.audio?.ready === true && Number(window.state.audio.duration) > 0, null, { timeout: 5000 });
   await page.locator('#wizardNextBtn').click();
 
   const lyricsText = page.locator('#lyricsText');
@@ -121,48 +64,40 @@ try {
   await page.locator('#backgroundSection [data-background-preset="aurora"]').click({ force: true });
   await page.locator('#titleCardStyle').selectOption('statement');
 
-  const visualState = await page.evaluate(() => ({
-    effect: window.state.style.effect,
-    background: window.state.background.type,
-    title: window.state.style.titleCardStyle,
-  }));
-  if (visualState.effect !== 'rise' || visualState.background !== 'image' || visualState.title !== 'statement') {
-    throw new Error(`Style controls did not update state: ${JSON.stringify(visualState)}`);
-  }
+  const visualState = await page.evaluate(() => ({ effect: window.state.style.effect, background: window.state.background.type, title: window.state.style.titleCardStyle }));
+  if (visualState.effect !== 'rise' || visualState.background !== 'image' || visualState.title !== 'statement') throw new Error(`Style controls did not update state: ${JSON.stringify(visualState)}`);
 
   const analysis = await page.evaluate((text) => window.kefeAnalysis.analyzeLyrics(text, 2), rawLyrics);
-  if (!analysis?.validation?.count || analysis.validation.count !== 2) {
-    throw new Error('Lyrics analysis did not return the expected timed lines');
-  }
-  await page.evaluate((lines) => {
-    window.state.lyrics.lines = lines;
-    window.state.captions.lines = [];
-    document.getElementById('lyricsText')?.dispatchEvent(new Event('input', { bubbles: true }));
-  }, analysis.lines);
+  if (!analysis?.validation?.count || analysis.validation.count !== 2) throw new Error('Lyrics analysis did not return the expected timed lines');
+  await page.evaluate(lines => { window.state.lyrics.lines = lines; window.state.captions.lines = []; document.getElementById('lyricsText')?.dispatchEvent(new Event('input', { bubbles: true })); }, analysis.lines);
   await page.waitForFunction(() => window.state.lyrics.lines.length === 2);
 
   await page.locator('#playBtn').click();
   await page.waitForTimeout(250);
-  if (!(await page.evaluate(() => Boolean(window.state.playback.isPlaying)))) {
-    throw new Error('Preview playback did not enter the playing state');
-  }
+  if (!(await page.evaluate(() => Boolean(window.state.playback.isPlaying)))) throw new Error('Preview playback did not enter the playing state');
   await page.locator('#stopBtn').click();
 
-  const confirmationVisible = await page.locator('#audioDrop .kefe-upload-confirmation').evaluate((el) => el.classList.contains('is-visible'));
+  const confirmationVisible = await page.locator('#audioDrop .kefe-upload-confirmation').evaluate(el => el.classList.contains('is-visible'));
   if (!confirmationVisible) throw new Error('Audio upload confirmation did not appear');
 
   const renderPlan = await page.evaluate(() => window.kefeSmartRender.prepare());
   if (!renderPlan?.recommended || !renderPlan.info?.width) throw new Error('Smart render preparation failed');
 
   await page.locator('#exportBtn').click();
-  await page.waitForTimeout(250);
-  const preflightVisible = await page.locator('#exportPreflight').evaluate((el) => !el.classList.contains('hidden'));
-  if (!preflightVisible) throw new Error('Export preflight did not open');
-  await page.locator('#cancelPreflight').click();
+  await page.waitForFunction(() => !document.getElementById('exportPreflight')?.classList.contains('hidden'), null, { timeout: 2000 });
+  const preflight = await page.evaluate(() => ({ hidden: document.getElementById('exportPreflight')?.classList.contains('hidden'), title: document.getElementById('exportPreflight')?.textContent || '' }));
+  if (preflight.hidden) throw new Error('Export preflight did not open');
+
+  await page.locator('#confirmExport').click();
+  await page.waitForFunction(() => window.isExporting === true, null, { timeout: 2000 });
+  await page.waitForFunction(() => window.isExporting === false && !document.getElementById('exportOverlay')?.classList.contains('hidden'), null, { timeout: 30000 });
+  const exportState = await page.evaluate(() => ({ status: document.getElementById('exportStatus')?.textContent || '', exporting: Boolean(window.isExporting) }));
+  if (!/Export (complete|failed|cancelled)/i.test(exportState.status)) throw new Error(`Export did not reach a terminal state: ${exportState.status}`);
+  if (/Export failed/i.test(exportState.status)) throw new Error(`Confirmed export failed: ${exportState.status}`);
 
   if (errors.length) throw new Error(errors.join('\n'));
-  console.log('KEFE smoke test passed: boot → runtime → guided lyric path → style/background → lyrics analysis → audio load → playback → upload confirmation → smart render → export preflight.');
+  console.log('KEFE smoke test passed: boot → runtime → guided lyric path → styles → timed lyrics → playback → upload confirmation → smart render → export preflight → confirmed export.');
 } finally {
   if (browser) await browser.close().catch(() => {});
-  await new Promise((resolve) => server.close(resolve));
+  await new Promise(resolve => server.close(resolve));
 }
