@@ -2,7 +2,8 @@
 (() => {
     'use strict';
     function init() {
-    if (typeof window === 'undefined' || typeof window.render !== 'function' || !window.state || !window.canvas) return;
+    if (typeof window === 'undefined' || typeof window.render !== 'function' || !window.state || !window.canvas || window.__kefeVisualFxInstalled) return;
+    window.__kefeVisualFxInstalled = true;
     const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
     const FX_KEY = 'kefe-visual-fx-v1';
     const originalRender = window.render;
