@@ -25,6 +25,8 @@ jobs:
           cache: npm
       - name: Upgrade Express
         run: npm install express@5.2.1 --save-exact
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
       - name: Validate repository
         run: |
           npm run check
