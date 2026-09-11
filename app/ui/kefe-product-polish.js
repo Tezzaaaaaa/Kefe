@@ -129,20 +129,3 @@
   script.dataset.kefeArchitecture = '1';
   document.head.appendChild(script);
 })();
-
-/* Guided Lyric Video pathway helpers. Loaded here because the wizard controller
-   and product polish are already the canonical page-level bootstrappers. */
-(() => {
-  const load = (src, marker) => {
-    if (document.querySelector(`script[data-${marker}]`)) return;
-    const script = document.createElement('script');
-    script.src = src;
-    script.dataset[marker] = '1';
-    document.head.appendChild(script);
-  };
-  load('./app/ui/wizard/lyric-pathway.js', 'kefe-lyric-pathway');
-  load('./app/ui/wizard/lyric-pathway-hardening.js', 'kefe-lyric-pathway-hardening');
-  load('./app/ui/wizard/lyric-pathway-style.js', 'kefe-lyric-pathway-style');
-  load('./app/ui/wizard/lyric-pathway-save-bridge.js', 'kefe-lyric-pathway-save-bridge');
-  load('./app/ui/wizard/lyric-pathway-complete.js', 'kefe-lyric-pathway-complete');
-})();
