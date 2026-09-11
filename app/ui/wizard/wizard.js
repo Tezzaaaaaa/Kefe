@@ -35,10 +35,11 @@
     fadeup: 'Soft word-by-word rise',
     decrypt: 'Scrambled characters resolve',
     blur: 'Blurred words sharpen into focus',
-    shiny: 'Diagonal light sweep'
+    shiny: 'Diagonal light sweep',
+    scrolllines: 'Editorial multi-line horizontal motion'
   };
 
-  const lyricEffects = ['apple', 'brat', 'eternal', 'aurora', 'pulse', 'typewriter', 'instagram', 'fadeup', 'decrypt', 'blur', 'shiny'];
+  const lyricEffects = ['apple', 'brat', 'eternal', 'aurora', 'pulse', 'typewriter', 'instagram', 'fadeup', 'decrypt', 'blur', 'shiny', 'scrolllines'];
 
   let index = 0;
   const panel = document.createElement('div');
@@ -68,6 +69,20 @@
     if (!block || document.body.dataset.wizardStep !== 'style') return;
     const host = $('wizardStyleMount');
     if (!host) return;
+
+    // Scroll Lines is implemented separately but belongs to the same lyric-style catalogue.
+    // Ensure its source control exists before the unified Style grid is built.
+    const effectButtons = block.querySelector('.effect-buttons');
+    if (effectButtons && !effectButtons.querySelector('[data-effect="scrolllines"]')) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'segmented-btn';
+      button.dataset.effect = 'scrolllines';
+      button.textContent = 'Scroll Lines';
+      button.title = 'Scroll Lines — editorial multi-line horizontal lyric motion';
+      button.addEventListener('click', () => window.setEffect?.('scrolllines'));
+      effectButtons.appendChild(button);
+    }
 
     const source = [...block.querySelectorAll('[data-effect]')]
       .filter(button => lyricEffects.includes(button.dataset.effect));
