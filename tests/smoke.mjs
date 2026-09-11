@@ -83,125 +83,85 @@ try {
     );
   }
 
-  await page
-    .locator('#audioInput')
-    .waitFor({ state: 'attached', timeout: 10000 });
+  await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 10000 });
   await page.waitForFunction(
-    () =>
-      Boolean(window.state) &&
-      Boolean(window.canvas || document.getElementById('stageCanvas')) &&
-      Boolean(window.kefeMedia),
+    () => Boolean(window.state) && Boolean(window.canvas || document.getElementById('stageCanvas')) && Boolean(window.kefeMedia),
     null,
     { timeout: 10000 },
   );
+  await page.waitForFunction(() => window.kefeRuntime?.ready === true, null, { timeout: 15000 });
   await page.waitForFunction(
-    () => window.kefeRuntime?.ready === true,
-    null,
-    { timeout: 15000 },
-  );
-  await page.waitForFunction(
-    () =>
-      window.kefeCaptionGen &&
-      window.kefeAnalysis &&
-      window.kefeSmartRender,
+    () => window.kefeCaptionGen && window.kefeAnalysis && window.kefeSmartRender,
     null,
     { timeout: 15000 },
   );
 
-  // Follow the real guided lyric-video path instead of bypassing it.
   await page.locator('#wizardSection [data-choice="lyric"]').click();
   await page.locator('#wizardNextBtn').click();
   await page.locator('#wizardSection [data-source="uploaded"]').click();
 
-  const wav = makeWav();
   await page.locator('#audioInput').setInputFiles({
     name: 'smoke-test.wav',
     mimeType: 'audio/wav',
-    buffer: wav,
+    buffer: makeWav(),
   });
   await page.waitForFunction(
-    () =>
-      window.state?.audio?.ready === true &&
-      Number(window.state.audio.duration) > 0,
+    () => window.state?.audio?.ready === true && Number(window.state.audio.duration) > 0,
     null,
     { timeout: 5000 },
   );
   await page.locator('#wizardNextBtn').click();
 
   const lyricsText = page.locator('#lyricsText');
-  await lyricsText.fill('[00:00.00]Hello world\n[00:00.80]Second line');
+  const rawLyrics = '[00:00.00]Hello world\n[00:00.80]Second line';
+  await lyricsText.fill(rawLyrics);
   await page.locator('#wizardNextBtn').click();
   await page.locator('#lyricStyleBlock').waitFor({ state: 'visible' });
-  await page
-    .locator('#wizardSection [data-wizard-effect="rise"]')
-    .click({ force: true });
-  await page
-    .locator('#backgroundSection [data-background-preset="aurora"]')
-    .click({ force: true });
+  await page.locator('#wizardSection [data-wizard-effect="rise"]').click({ force: true });
+  await page.locator('#backgroundSection [data-background-preset="aurora"]').click({ force: true });
   await page.locator('#titleCardStyle').selectOption('statement');
+
   const visualState = await page.evaluate(() => ({
     effect: window.state.style.effect,
     background: window.state.background.type,
     title: window.state.style.titleCardStyle,
   }));
-  if (
-    visualState.effect !== 'rise' ||
-    visualState.background !== 'image' ||
-    visualState.title !== 'statement'
-  ) {
-    throw new Error(
-      `Style controls did not update state: ${JSON.stringify(visualState)}`,
-    );
+  if (visualState.effect !== 'rise' || visualState.background !== 'image' || visualState.title !== 'statement') {
+    throw new Error(`Style controls did not update state: ${JSON.stringify(visualState)}`);
   }
 
-  const analysis = await page.evaluate(() =>
-    window.kefeAnalysis.analyzeLyrics(
-      '[00:00.00]Hello world\n[00:00.80]Second line',
-      2,
-    ),
-  );
+  const analysis = await page.evaluate((text) => window.kefeAnalysis.analyzeLyrics(text, 2), rawLyrics);
   if (!analysis?.validation?.count || analysis.validation.count !== 2) {
     throw new Error('Lyrics analysis did not return the expected timed lines');
   }
+  await page.evaluate((lines) => {
+    window.state.lyrics.lines = lines;
+    window.state.captions.lines = [];
+    document.getElementById('lyricsText')?.dispatchEvent(new Event('input', { bubbles: true }));
+  }, analysis.lines);
+  await page.waitForFunction(() => window.state.lyrics.lines.length === 2);
 
   await page.locator('#playBtn').click();
   await page.waitForTimeout(250);
-  const playing = await page.evaluate(
-    () => Boolean(window.state.playback.isPlaying),
-  );
-  if (!playing) {
+  if (!(await page.evaluate(() => Boolean(window.state.playback.isPlaying)))) {
     throw new Error('Preview playback did not enter the playing state');
   }
   await page.locator('#stopBtn').click();
 
-  const confirmationVisible = await page
-    .locator('#audioDrop .kefe-upload-confirmation')
-    .evaluate((el) => el.classList.contains('is-visible'));
-  if (!confirmationVisible) {
-    throw new Error('Audio upload confirmation did not appear');
-  }
+  const confirmationVisible = await page.locator('#audioDrop .kefe-upload-confirmation').evaluate((el) => el.classList.contains('is-visible'));
+  if (!confirmationVisible) throw new Error('Audio upload confirmation did not appear');
 
-  const renderPlan = await page.evaluate(
-    () => window.kefeSmartRender.prepare(),
-  );
-  if (!renderPlan?.recommended || !renderPlan.info?.width) {
-    throw new Error('Smart render preparation failed');
-  }
+  const renderPlan = await page.evaluate(() => window.kefeSmartRender.prepare());
+  if (!renderPlan?.recommended || !renderPlan.info?.width) throw new Error('Smart render preparation failed');
 
   await page.locator('#exportBtn').click();
   await page.waitForTimeout(250);
-  const preflightVisible = await page
-    .locator('#exportPreflight')
-    .evaluate((el) => !el.classList.contains('hidden'));
-  if (!preflightVisible) {
-    throw new Error('Export preflight did not open');
-  }
+  const preflightVisible = await page.locator('#exportPreflight').evaluate((el) => !el.classList.contains('hidden'));
+  if (!preflightVisible) throw new Error('Export preflight did not open');
   await page.locator('#cancelPreflight').click();
 
   if (errors.length) throw new Error(errors.join('\n'));
-  console.log(
-    'KEFE smoke test passed: boot → runtime → guided lyric path → style/background → lyrics analysis → audio load → playback → upload confirmation → smart render → export preflight.',
-  );
+  console.log('KEFE smoke test passed: boot → runtime → guided lyric path → style/background → lyrics analysis → audio load → playback → upload confirmation → smart render → export preflight.');
 } finally {
   if (browser) await browser.close().catch(() => {});
   await new Promise((resolve) => server.close(resolve));
