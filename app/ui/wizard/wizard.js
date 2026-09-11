@@ -8,6 +8,12 @@
   if (!sidebar || sidebar.dataset.kefePathway01 === '1') return;
   sidebar.dataset.kefePathway01 = '1';
 
+  // Remove UI that belonged to retired pathways before the first step renders.
+  document.querySelector('[aria-label="Text mode"]')?.remove();
+  $('captionsPanel')?.remove();
+  document.querySelector('.theme-control')?.remove();
+  document.querySelectorAll('link[href*="auth-ui"], link[href*="caption-generator"], link[href*="theme-cycle"], script[src*="auth-ui"], script[src*="caption-generator"], script[src*="music-intelligence"], script[src*="theme-cycle"]').forEach(node => node.remove());
+
   const steps = [
     { id: 'intro', label: 'Start', target: null },
     { id: 'source', label: 'Media', target: 'audioSection' },
@@ -50,15 +56,14 @@
     if (step.id === 'preview') preview?.removeAttribute('hidden');
     else if (preview) preview.hidden = true;
 
+    const style = $('lyricStyleBlock');
+    const lyrics = $('lyricsPanel');
     if (step.id === 'style') {
-      const style = $('lyricStyleBlock');
       if (style) {
         style.hidden = false;
         panel.appendChild(style);
       }
     } else {
-      const style = $('lyricStyleBlock');
-      const lyrics = $('lyricsPanel');
       if (style && lyrics && !lyrics.contains(style)) lyrics.appendChild(style);
       if (style) style.hidden = step.id !== 'lyrics';
     }
