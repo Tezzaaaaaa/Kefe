@@ -19,7 +19,7 @@
   const lyricEffectCopy = {
     apple: 'Focused, polished lyric stack', brat: 'Bold kinetic typewriter', eternal: 'Handwritten flowing lyric cycle', aurora: 'Colour-shifting glow',
     pulse: 'Rhythmic scale and glow', typewriter: 'Character-by-character reveal', instagram: 'Bold social-style lyric stack', fadeup: 'Soft word-by-word rise',
-    decrypt: 'Scrambled characters resolve', blur: 'Blurred words sharpen into focus', shiny: 'Diagonal light sweep', scrolllines: 'Editorial multi-line horizontal motion',
+    storyfade: 'Cinematic line-by-line fade', decrypt: 'Scrambled characters resolve', blur: 'Blurred words sharpen into focus', shiny: 'Diagonal light sweep', scrolllines: 'Editorial multi-line horizontal motion',
     rise: 'Soft upward lift', slide: 'Smooth lateral glide', drop: 'Controlled downward arrival', drift: 'Gentle diagonal float'
   };
   const lyricEffects = Object.keys(lyricEffectCopy);
@@ -35,11 +35,12 @@
     const block = $('lyricStyleBlock'), host = $('wizardStyleMount'); if (!block || !host) return;
     ensureRenderer('./app/effects/scroll-lines.js', 'scrolllines', 'data-kefe-scroll-lines');
     ensureRenderer('./app/effects/motion.js', 'rise', 'data-kefe-motion-effects');
+    ensureRenderer('./app/effects/story-fade.js', 'storyfade', 'data-kefe-story-fade');
     const effectButtons = block.querySelector('.effect-buttons');
     const source = [...(effectButtons?.querySelectorAll('[data-effect]') || [])];
-    for (const name of ['scrolllines','rise','slide','drop','drift']) {
+    for (const name of ['scrolllines','rise','slide','drop','drift','storyfade']) {
       if (source.some(button => button.dataset.effect === name)) continue;
-      const button = document.createElement('button'); button.type='button'; button.className='segmented-btn'; button.dataset.effect=name; button.textContent=name[0].toUpperCase()+name.slice(1); button.title=lyricEffectCopy[name]; button.addEventListener('click',()=>window.setEffect?.(name)); effectButtons?.appendChild(button);
+      const button = document.createElement('button'); button.type='button'; button.className='segmented-btn'; button.dataset.effect=name; button.textContent=name==='storyfade'?'Story Fade':name[0].toUpperCase()+name.slice(1); button.title=lyricEffectCopy[name]; button.addEventListener('click',()=>window.setEffect?.(name)); effectButtons?.appendChild(button);
     }
     const usable = [...(effectButtons?.querySelectorAll('[data-effect]') || [])].filter(button => lyricEffects.includes(button.dataset.effect));
     if (!usable.length) return;
