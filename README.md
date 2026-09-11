@@ -139,9 +139,9 @@ Kefe/
 ├── assets/         # branding and static assets
 ├── docs/           # deployment, design, licensing and development documentation
 ├── fonts/          # local production font files
-├── scripts/        # integrity, smoke and verification tooling
+├── scripts/        # integrity and effect verification tooling
 ├── server/         # Node backend
-├── tests/          # smoke and functional tests
+├── tests/          # functional browser coverage
 ├── vendor/         # locally hosted third-party runtime assets
 ├── .github/        # CI/CD and repository quality workflows
 ├── .husky/         # local Git hooks
@@ -163,7 +163,7 @@ npm install
 npm start
 ```
 
-The Node server is provided by `server/index.js`. `npm run dev` currently starts the same server.
+The Node server is provided by `server/index.js`. `npm run dev` starts the same server.
 
 For the static frontend, serve the repository through an HTTP server. Do not open `index.html` directly with `file://`; browser modules, media APIs, and export behaviour require an HTTP origin.
 
@@ -173,13 +173,6 @@ Run the repository checks with:
 
 ```bash
 npm run check
-```
-
-Additional test commands are available for smoke and functional coverage:
-
-```bash
-npm run test:smoke
-npm run test:functional
 ```
 
 Formatting checks are available with:
