@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - package.json
+      - .github/workflows/_generate-security-lock.yml
   workflow_dispatch:
 
 permissions:
