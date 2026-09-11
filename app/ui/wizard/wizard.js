@@ -33,6 +33,7 @@
   function buildLyricEffects() {
     if (document.body.dataset.wizardStep !== 'style') return;
     const block = $('lyricStyleBlock'), host = $('wizardStyleMount'); if (!block || !host) return;
+    ensureRenderer('./app/effects/native.js', 'apple', 'data-kefe-native-effects');
     ensureRenderer('./app/effects/scroll-lines.js', 'scrolllines', 'data-kefe-scroll-lines');
     ensureRenderer('./app/effects/motion.js', 'rise', 'data-kefe-motion-effects');
     ensureRenderer('./app/effects/story-fade.js', 'storyfade', 'data-kefe-story-fade');
