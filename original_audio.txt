@@ -1,0 +1,27 @@
+async function readEmbeddedAudioMetadata(file, token, source = 'audio') {
+    try {
+        const tagsLibrary = await loadMediaTagsLibrary();
+        const result = await new Promise((resolve, reject) => tagsLibrary.read(file, { onSuccess: resolve, onError: reject }));
+        const sourceStillCurrent = source === 'video'
+            ? token === backgroundLoadToken && media.videoFile === file
+            : token === audioLoadToken && state.audio.file === file;
+        if (!sourceStillCurrent) return;
+        const tags = result?.tags || {};
+        if (state.audio.metadataSource !== 'project') {
+            if (tags.title) state.audio.metadata.title = String(tags.title).trim();
+            if (tags.artist) state.audio.metadata.artist = String(tags.artist).trim();
+            if (tags.album) state.audio.metadata.album = String(tags.album).trim();
+            if (tags.title || tags.artist || tags.album) state.audio.metadataSource = 'embedded';
+        }
+        updateMetadataInputs();
+        const picture = tags.picture;
+        if (picture?.data?.length) {
+            setAlbumArtworkBlob(new Blob([new Uint8Array(picture.data)], { type: picture.format || 'image/jpeg' }), token);
+            audioStatus.textContent = file.name + ' · embedded artwork';
+        }
+        saveLinaPrefs();
+        redrawCurrentPreviewFrame();
+    } catch (error) {
+        console.info('No readable embedded audio metadata:', error?.message || error);
+    }
+}

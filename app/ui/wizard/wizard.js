@@ -199,6 +199,10 @@
     }
 
     function applyStep() {
+        // Move the shared style block back to its permanent home BEFORE
+        // the wizard panel is rebuilt. Without this, panel.innerHTML=""
+        // destroys #lyricStyleBlock and style/background steps render blank.
+        restoreStyleBlock();
         const steps = stepsFor(), step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));

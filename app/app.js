@@ -2112,7 +2112,7 @@ async function readEmbeddedVideoMetadata(file, token) {
             ? result.media.track.find(track => track?.['@type'] === 'General')
             : null;
 
-        if (!general || state.audio.metadataSource === 'project') return;
+        if (!general || ["project", "manual", "lyrics-service", "lrc"].includes(state.audio.metadataSource)) return;
 
         const title = String(general.Title || '').trim();
         const artist = String(general.Performer || general.Album_Performer || '').trim();
@@ -2158,7 +2158,7 @@ async function readEmbeddedAudioMetadata(file, token, source = 'audio') {
             : token === audioLoadToken && state.audio.file === file;
         if (!sourceStillCurrent) return;
         const tags = result?.tags || {};
-        if (state.audio.metadataSource !== 'project') {
+        if (!["project", "manual", "lyrics-service", "lrc"].includes(state.audio.metadataSource)) {
             if (tags.title) state.audio.metadata.title = String(tags.title).trim();
             if (tags.artist) state.audio.metadata.artist = String(tags.artist).trim();
             if (tags.album) state.audio.metadata.album = String(tags.album).trim();

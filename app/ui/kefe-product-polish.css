@@ -1,5 +1,5 @@
-/* KEFE product polish — mid-century modern / Nordic / contemporary. */
-body.wizard-mode{background:var(--bg);}
+/* KEFE product polish — mid-century modern / Nordic / contemporary.
+   Uses the shared token set from app/ui/styles.css (--text/--surface/--red/etc.) */body.wizard-mode{background:var(--bg);}
 body.wizard-mode .wizard-panel{position:relative;overflow:hidden;background:var(--surface);}
 body.wizard-mode .wizard-panel:after{content:"";position:absolute;right:34px;top:34px;width:34px;height:2px;background:var(--red);opacity:.8;}
 body.wizard-mode .wizard-panel-kicker{font-size:9px;letter-spacing:.2em;font-weight:800;}
