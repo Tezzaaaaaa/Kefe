@@ -23,6 +23,96 @@
     return promise;
   }
 
+  function ensureSectionNav() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar || sidebar.querySelector('.section-nav')) return;
+
+    const sections = [
+      ['audioSection', 'Media', 'audio'],
+      ['textSection', 'Lyrics', 'lyrics'],
+      ['fxSection', 'Visual FX', 'fx'],
+      ['backgroundSection', 'Background', 'background'],
+      ['exportSection', 'Export', 'export']
+    ];
+    const nav = document.createElement('nav');
+    nav.className = 'section-nav';
+    nav.setAttribute('aria-label', 'Editor sections');
+    const list = document.createElement('div');
+    list.className = 'section-nav-list';
+
+    sections.forEach(([id, label, key], index) => {
+      const section = document.getElementById(id);
+      if (!section) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'section-nav-link';
+      button.dataset.nav = key;
+      button.setAttribute('aria-controls', id);
+      button.textContent = label;
+      if (index === 0) {
+        button.classList.add('active');
+        button.setAttribute('aria-current', 'page');
+        section.classList.add('active');
+      }
+      list.appendChild(button);
+    });
+    nav.appendChild(list);
+    sidebar.insertBefore(nav, sidebar.firstChild);
+  }
+
+  function repairMediaLoadingState() {
+    const audioInput = $('audioInput');
+    const audioStatus = $('audioStatus');
+    const backgroundInput = $('backgroundInput');
+    const backgroundStatus = $('backgroundStatus');
+
+    document.addEventListener('change', event => {
+      if (event.target === audioInput && event.target.files?.length) {
+        audioStatus?.classList.remove('success', 'error');
+        if (audioStatus) {
+          audioStatus.textContent = 'Loading media…';
+          audioStatus.className = 'status loading';
+        }
+      }
+      if (event.target === backgroundInput && event.target.files?.length) {
+        backgroundStatus?.classList.remove('success', 'error');
+        if (backgroundStatus) {
+          backgroundStatus.textContent = 'Loading background…';
+          backgroundStatus.className = 'status loading';
+        }
+      }
+    }, true);
+
+    window.addEventListener('kefe:media-loaded', event => {
+      const kind = event.detail?.kind;
+      const status = kind === 'background' ? backgroundStatus : audioStatus;
+      if (!status) return;
+      status.classList.remove('loading');
+      status.classList.add('success');
+    });
+
+    window.addEventListener('kefe:media-error', event => {
+      const kind = event.detail?.kind;
+      const status = kind === 'background' ? backgroundStatus : audioStatus;
+      if (!status) return;
+      status.classList.remove('loading');
+      status.classList.add('error');
+    });
+
+    const audio = window.__kefeAudioElement || document.querySelector('audio');
+    if (audio) {
+      audio.addEventListener('loadstart', () => {
+        if (audioStatus?.textContent && audioStatus.textContent !== 'No audio loaded') audioStatus.className = 'status loading';
+      });
+      audio.addEventListener('loadedmetadata', () => {
+        if (audioStatus?.textContent !== 'Error loading audio') audioStatus.className = 'status success';
+      });
+      audio.addEventListener('error', () => {
+        if (audioStatus) audioStatus.className = 'status error';
+      });
+    }
+  }
+
   let runtimeBootstrapped = false;
   let runtimeBootstrapTimer = 0;
   async function bootstrapRuntimeModules() {
@@ -102,6 +192,9 @@
     clearTimeout(analysisTimer);
     analysisTimer = setTimeout(analyzeCurrentLyrics, 350);
   }
+
+  ensureSectionNav();
+  repairMediaLoadingState();
 
   document.addEventListener('input', event => {
     if (event.target?.id === 'lyricsText') scheduleAnalysis();
