@@ -6,6 +6,7 @@
   const preview = document.querySelector('.preview');
   if (!sidebar || sidebar.dataset.kefeWizard === '1') return;
   sidebar.dataset.kefeWizard = '1';
+  document.body.classList.add('wizard-mode');
 
   // The wizard is the only user-facing navigation system. Remove any legacy
   // section navigation if an older cached/embedded shell still provides it.
