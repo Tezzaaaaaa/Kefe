@@ -27,6 +27,8 @@ const state = {
         bratTopMargin: 4.5,
         bratTypingSpeed: 1,
         eternalInkColor: '#FFFFFF',
+        vhsglitchColor: '#FF2A2A',
+        vhsglitchAccent: '#20E0FF',
         eternalPenWidth: 21,
         eternalWriteSpan: 0.90,
         eternalGlow: 3,
@@ -1610,7 +1612,8 @@ const EFFECT_LABELS = {
     fadeup: "Word-by-word fade-up reveal with a soft glow",
     decrypt: "Characters scramble through random glyphs before locking in, left to right",
     blur: "Words drift up from a blur into sharp focus, staggered word by word",
-    shiny: "Solid lyric text with a bright diagonal shine sweeping across it"
+    shiny: "Solid lyric text with a bright diagonal shine sweeping across it",
+    vhsglitch: "Red-on-blue VHS glitch: chromatic split, torn scanlines, occasional digital tear"
 };
 
 function renderEffectControls() {
@@ -1660,6 +1663,12 @@ function renderEffectControls() {
             { key: "pulseFrequency", label: "Pulse speed", type: "range", min: 0.3, max: 2.5, step: 0.1, suffix: "x", scale: 1 },
             { key: "pulseGlowSize", label: "Glow size", type: "range", min: 0.1, max: 2, step: 0.1, suffix: "", scale: 1 },
             { key: "accentColor", label: "Glow colour", type: "color" }
+        ];
+    }
+    if (effect === "vhsglitch") {
+        extraControls = [
+            { key: "vhsglitchColor", label: "Text colour", type: "color" },
+            { key: "vhsglitchAccent", label: "Channel-split colour", type: "color" }
         ];
     }
     // Title Card controls live in their own section (05) — see wireTitleCardControls().

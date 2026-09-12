@@ -19,7 +19,7 @@
   const lyricEffectCopy = {
     apple: 'Focused, polished lyric stack', brat: 'Bold kinetic typewriter', eternal: 'Handwritten flowing lyric cycle', aurora: 'Colour-shifting glow',
     pulse: 'Rhythmic scale and glow', typewriter: 'Character-by-character reveal', instagram: 'Bold social-style lyric stack', fadeup: 'Soft word-by-word rise',
-    storyfade: 'Cinematic line-by-line fade', decrypt: 'Scrambled characters resolve', blur: 'Blurred words sharpen into focus', shiny: 'Diagonal light sweep', scrolllines: 'Editorial multi-line horizontal motion',
+    storyfade: 'Cinematic line-by-line fade', decrypt: 'Scrambled characters resolve', blur: 'Blurred words sharpen into focus', shiny: 'Diagonal light sweep', scrolllines: 'Editorial multi-line horizontal motion', vhsglitch: 'Red VHS glitch with scanline tears',
     rise: 'Soft upward lift', slide: 'Smooth lateral glide', drop: 'Controlled downward arrival', drift: 'Gentle diagonal float'
   };
   const lyricEffects = Object.keys(lyricEffectCopy);

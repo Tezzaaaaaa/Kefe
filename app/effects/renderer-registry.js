@@ -5,7 +5,7 @@
   const keys = Object.freeze([
     'apple', 'brat', 'eternal', 'aurora', 'pulse', 'typewriter', 'instagram',
     'fadeup', 'storyfade', 'decrypt', 'blur', 'shiny', 'scrolllines',
-    'rise', 'slide', 'drop', 'drift'
+    'rise', 'slide', 'drop', 'drift', 'vhsglitch'
   ]);
 
   // Capture the existing native implementations once. The registry then becomes
@@ -31,7 +31,7 @@
     };
   }
 
-  for (const key of ['typewriter', 'instagram', 'fadeup', 'storyfade', 'decrypt', 'blur', 'shiny', 'scrolllines', 'rise', 'slide', 'drop', 'drift']) {
+  for (const key of ['typewriter', 'instagram', 'fadeup', 'storyfade', 'decrypt', 'blur', 'shiny', 'scrolllines', 'rise', 'slide', 'drop', 'drift', 'vhsglitch']) {
     registry[key] = (ctx, w, h, style, lines, time) => {
       const renderer = window.kefeEffects?.[key];
       if (typeof renderer === 'function') return renderer(ctx, w, h, style, lines, time);
