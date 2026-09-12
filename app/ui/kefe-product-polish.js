@@ -23,43 +23,6 @@
     return promise;
   }
 
-  function ensureSectionNav() {
-    const sidebar = document.querySelector('.sidebar');
-    if (!sidebar || sidebar.querySelector('.section-nav')) return;
-
-    const sections = [
-      ['audioSection', 'Media', 'audio'],
-      ['textSection', 'Lyrics', 'lyrics'],
-      ['fxSection', 'Visual FX', 'fx'],
-      ['backgroundSection', 'Background', 'background'],
-      ['exportSection', 'Export', 'export']
-    ];
-    const nav = document.createElement('nav');
-    nav.className = 'section-nav';
-    nav.setAttribute('aria-label', 'Editor sections');
-    const list = document.createElement('div');
-    list.className = 'section-nav-list';
-
-    sections.forEach(([id, label, key], index) => {
-      const section = document.getElementById(id);
-      if (!section) return;
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'section-nav-link';
-      button.dataset.nav = key;
-      button.setAttribute('aria-controls', id);
-      button.textContent = label;
-      if (index === 0) {
-        button.classList.add('active');
-        button.setAttribute('aria-current', 'page');
-        section.classList.add('active');
-      }
-      list.appendChild(button);
-    });
-    nav.appendChild(list);
-    sidebar.insertBefore(nav, sidebar.firstChild);
-  }
-
   function repairMediaLoadingState() {
     const audioInput = $('audioInput');
     const audioStatus = $('audioStatus');
@@ -193,7 +156,6 @@
     analysisTimer = setTimeout(analyzeCurrentLyrics, 350);
   }
 
-  ensureSectionNav();
   repairMediaLoadingState();
 
   document.addEventListener('input', event => {
