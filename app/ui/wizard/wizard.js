@@ -33,7 +33,7 @@
   const panel = document.createElement('div'); panel.className = 'section wizard-panel'; panel.id = 'wizardSection'; sidebar.insertBefore(panel, sidebar.firstChild);
   const nav = document.createElement('div'); nav.className = 'wizard-nav'; nav.innerHTML = '<button type="button" id="wizardBackBtn" class="wizard-back">Back</button><div class="wizard-progress-wrap"><div id="wizardProgress" class="wizard-progress"></div><span id="wizardStepLabel" class="wizard-step-label"></span></div><button type="button" id="wizardNextBtn" class="primary wizard-next">Next</button>'; sidebar.insertBefore(nav, sidebar.children[1] || null);
   const back = $('wizardBackBtn'), next = $('wizardNextBtn');
-  function audioReady() { const audio = window.state?.audio; return Boolean(audio && (audio.file || audio.ready || audio.duration > 0)); }
+  function audioReady() { const audio = window.state?.audio; const media = window.kefeMedia; return Boolean(audio && (audio.file || audio.ready || audio.duration > 0 || media?.videoFile)); }
   function lyricsReady() { return Boolean(window.state?.lyrics?.lines?.length || $('lyricsText')?.value.trim()); }
   function ensureRenderer(src, key, dataAttr) { if (window.kefeEffects?.[key] || document.querySelector(`script[${dataAttr}]`)) return; const script = document.createElement('script'); script.src = src; script.setAttribute(dataAttr, 'true'); document.head.appendChild(script); }
   function buildLyricEffects() {
