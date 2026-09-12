@@ -8,8 +8,6 @@
   sidebar.dataset.kefeWizard = '1';
   document.body.classList.add('wizard-mode');
 
-  // One user-facing navigation system. Remove only obsolete navigation markup;
-  // the actual editor controls remain owned by app.js and their existing modules.
   document.querySelectorAll('.section-nav, .section-nav-link').forEach(node => node.remove());
 
   const steps = [
@@ -55,25 +53,15 @@
     return Boolean(window.state?.lyrics?.lines?.length || $('lyricsText')?.value.trim());
   }
 
-  function currentStepValid() {
-    return valid(steps[index]);
+  function valid(step) {
+    if (step.id === 'source') return audioReady();
+    if (step.id === 'lyrics') return lyricsReady();
+    return true;
   }
 
   function syncNextButton() {
     if (!next) return;
-    const step = steps[index];
-    next.disabled = step.id === 'intro' || !currentStepValid();
-  }
-
-  // Upload, metadata parsing, automatic lyric lookup and timing all contain
-  // asynchronous work. Re-check the real app state instead of relying on the
-  // original input event firing at exactly the right moment.
-  let readinessTimer = null;
-  function startReadinessWatch() {
-    clearInterval(readinessTimer);
-    readinessTimer = setInterval(() => {
-      if (document.body.dataset.wizardStep === 'source' || document.body.dataset.wizardStep === 'lyrics') syncNextButton();
-    }, 150);
+    next.disabled = index === 0 || !valid(steps[index]);
   }
 
   function ensureRenderer(src, key, dataAttr) {
@@ -85,21 +73,10 @@
   }
 
   function buildLyricEffects() {
-    if (document.body.dataset.wizardStep !== 'style') return;
+    if (steps[index].id !== 'style') return;
     const block = $('lyricStyleBlock');
     const host = $('wizardStyleMount');
     if (!block || !host) return;
-
-    if (!document.querySelector('script[data-kefe-renderer-registry]')) {
-      const registry = document.createElement('script');
-      registry.src = './app/effects/renderer-registry.js';
-      registry.setAttribute('data-kefe-renderer-registry', 'true');
-      document.head.appendChild(registry);
-    }
-
-    ensureRenderer('./app/effects/scroll-lines.js', 'scrolllines', 'data-kefe-scroll-lines');
-    ensureRenderer('./app/effects/motion.js', 'rise', 'data-kefe-motion-effects');
-    ensureRenderer('./app/effects/story-fade.js', 'storyfade', 'data-kefe-story-fade');
 
     const effectButtons = block.querySelector('.effect-buttons');
     const source = [...(effectButtons?.querySelectorAll('[data-effect]') || [])];
@@ -192,12 +169,6 @@
     }
   }
 
-  function valid(step) {
-    if (step.id === 'source') return audioReady();
-    if (step.id === 'lyrics') return lyricsReady();
-    return true;
-  }
-
   function render() {
     const step = steps[index];
     document.body.dataset.wizardStep = step.id;
@@ -239,7 +210,7 @@
   };
 
   next.onclick = () => {
-    if (!currentStepValid()) return;
+    if (!valid(steps[index])) return;
     if (index < steps.length - 1) {
       index += 1;
       render();
@@ -255,5 +226,4 @@
   }, true);
 
   render();
-  startReadinessWatch();
 })();
