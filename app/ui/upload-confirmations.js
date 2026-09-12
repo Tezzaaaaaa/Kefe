@@ -7,7 +7,6 @@
   let lastMediaVisual = null;
   let lastWizardAction = null;
   let lastWizardState = '';
-  let lastWizardNextDisabled = null;
 
   function ensureCard(dropId, statusId, kind) {
     const drop = $(dropId), status = $(statusId);
@@ -105,48 +104,6 @@
     else if (readyImage) strong.innerHTML = '<span class="wizard-upload-check">✓</span> Image uploaded';
   }
 
-  function hasAudio() {
-    const state = window.state || {};
-    const audio = state.audio || {};
-    return Boolean(audio.file || audio.ready || audio.duration > 0 || $('audioChooseBtn')?.dataset?.loaded === 'true');
-  }
-
-  function hasLyrics() {
-    const state = window.state || {};
-    if (state.lyrics?.lines?.length) return true;
-    const input = $('lyricsText');
-    return Boolean(input?.value?.trim());
-  }
-
-  function hasCaptions() {
-    const state = window.state || {};
-    if (state.captions?.lines?.length) return true;
-    return Boolean(document.querySelector('#captionGenSection [data-caption-ready], #captionGenSection .caption-row, #captionGenSection .caption-line'));
-  }
-
-  function syncWizardNext() {
-    const next = $('wizardNextBtn');
-    if (!next) return;
-    const step = document.body.dataset.wizardStep || '';
-    const media = window.kefeMedia || {};
-    let ready = true;
-
-    if (step === 'intro') ready = Boolean(document.querySelector('[data-choice].selected'));
-    else if (step === 'source') {
-      const selected = document.querySelector('[data-source].selected')?.dataset.source;
-      ready = selected === 'none' || (selected === 'uploaded' ? hasAudio() : Boolean(media.image || media.video || media.videoFile));
-    } else if (step === 'content') ready = hasLyrics();
-    else if (step === 'captions') ready = hasCaptions() && !window.kefeCaptionGen?.isBusy?.();
-    else if (step === 'style') ready = Boolean(document.querySelector('#lyricStyleBlock [data-effect].active, .wizard-effect-choice.selected'));
-    else if (step === 'background') ready = Boolean(media.image || media.video || media.videoFile || document.querySelector('#backgroundSection'));
-    else if (step === 'preview') ready = true;
-
-    if (lastWizardNextDisabled !== !ready) {
-      next.disabled = !ready;
-      lastWizardNextDisabled = !ready;
-    }
-  }
-
   function refresh() {
     const state = window.state || {};
     const media = window.kefeMedia || {};
@@ -171,7 +128,6 @@
     } else hide('bgDrop');
 
     updateWizardMediaConfirmation(media);
-    syncWizardNext();
   }
 
   function injectStyle() {
