@@ -6,10 +6,15 @@
   const preview = document.querySelector('.preview');
   if (!sidebar || sidebar.dataset.kefeWizard === '1') return;
   sidebar.dataset.kefeWizard = '1';
+
+  // The wizard is the only user-facing navigation system. Remove any legacy
+  // section navigation if an older cached/embedded shell still provides it.
+  document.querySelectorAll('.section-nav, .section-nav-link').forEach(node => node.remove());
+
   document.querySelector('[aria-label="Text mode"]')?.remove();
   $('captionsPanel')?.remove();
   document.querySelector('.theme-control')?.remove();
-  document.querySelectorAll('link[href*="auth-ui"], link[href*="caption-generator"], link[href*="theme-cycle"], script[src*="auth-ui"], script[src*="caption-generator"], script[src*="music-intelligence"], script[src*="theme-cycle"]').forEach(node => node.remove());
+  document.querySelectorAll('link[href*="auth-ui"], link[href*="caption-generator"], link[href*="music-intelligence"], link[href*="theme-cycle"], script[src*="auth-ui"], script[src*="caption-generator"], script[src*="music-intelligence"], script[src*="theme-cycle"]').forEach(node => node.remove());
   const steps = [
     { id: 'intro', label: 'Start', target: null }, { id: 'source', label: 'Media', target: 'audioSection' },
     { id: 'lyrics', label: 'Lyrics', target: 'textSection' }, { id: 'style', label: 'Style', target: 'textSection' },
@@ -33,8 +38,8 @@
   function buildLyricEffects() {
     if (document.body.dataset.wizardStep !== 'style') return;
     const block = $('lyricStyleBlock'), host = $('wizardStyleMount'); if (!block || !host) return;
-    const registry = document.createElement('script');
     if (!document.querySelector('script[data-kefe-renderer-registry]')) {
+      const registry = document.createElement('script');
       registry.src = './app/effects/renderer-registry.js';
       registry.setAttribute('data-kefe-renderer-registry', 'true');
       document.head.appendChild(registry);
