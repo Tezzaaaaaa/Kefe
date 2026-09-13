@@ -43,3 +43,4 @@ coverage/
 ifixai.yaml
 ifixai-results/
 *.ifixai-checkpoint
+server.log
