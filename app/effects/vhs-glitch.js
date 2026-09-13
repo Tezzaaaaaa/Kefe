@@ -50,7 +50,6 @@
     const elapsed = time - start;
     const endFade = clamp((end - time) / 0.2);
     const settleIn = clamp(elapsed / 0.32);
-    // A few extra unsettled bursts through the hold, not just on entry.
     const seed = Math.floor(time * 9);
     const burst = settleIn >= 1 && rand(1.7, seed) > 0.88;
     const unsettled = settleIn < 1 || burst;
@@ -75,18 +74,14 @@
       const jitterX = unsettled ? (rand(i * 7.7 + 1, seed) - 0.5) * size * 0.16 : 0;
       const split = unsettled ? size * 0.03 : size * 0.008;
 
-      // Cyan channel, offset left — classic VHS colour-bleed.
       ctx.fillStyle = cyanColor;
       ctx.globalCompositeOperation = 'lighter';
       ctx.fillText(row, w / 2 + jitterX - split, y);
 
-      // Red channel on top, slightly right.
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = redColor;
       ctx.fillText(row, w / 2 + jitterX + split, y);
 
-      // Occasional torn slice: a thin band of this row redrawn with its
-      // own horizontal shift, clipped to a strip.
       if (unsettled && rand(i * 5.3 + 2, seed) > 0.45) {
         const bandH = Math.max(3, rowHeight * 0.2);
         const bandY = y - rowHeight / 2 + rand(i * 2.2, seed) * (rowHeight - bandH);
@@ -101,8 +96,6 @@
       }
     });
 
-    // Faint full-width scanline streaks, sparse and low-opacity so they
-    // read as background static rather than obscuring the lyric.
     for (let s = 0; s < 4; s++) {
       if (rand(s * 13.7 + 0.5, seed) > 0.72) {
         const sy = rand(s * 4.4 + 3, seed) * h;
@@ -120,3 +113,10 @@
     ctx.restore();
   };
 })();
+
+// index.html loads this file immediately before app.js. Load the canonical
+// registry synchronously at that parser position so every native effect is
+// captured before app startup, without duplicating registry logic here.
+if (!window.kefeRendererRegistry && document.readyState === 'loading') {
+  document.write('<script src="./app/effects/renderer-registry.js"><\\/script>');
+}
