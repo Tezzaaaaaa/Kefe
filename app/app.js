@@ -119,18 +119,19 @@ function initTheme() {
 
 /* ---------- Timed text resolution (Lyrics vs Captions) ---------- */
 function activeTextMode() { return state.captions.mode === 'captions' ? 'captions' : 'lyrics'; }
-const PROJECT_TYPES = ['lyric', 'visualiser', 'captioned', 'custom'];
+const PROJECT_TYPES = ['lyric', 'visualiser', 'captioned'];
 function timedTextRequired() {
     // Visualiser and Custom compositions are valid without timed text —
     // a Visualiser must never inherit lyric/caption content as active visuals.
     return state.projectType !== 'visualiser' && state.projectType !== 'custom';
 }
 function activeTimedLines() {
-    // State-level gate: the final selected video type decides whether timed text
-    // exists at all. Lyric configuration cached in memory from an earlier
-    // workflow never becomes active content in a Visualiser.
+    // State-level gate: the final selected video type decides which text
+    // source is authoritative. Cached text from another workflow must never
+    // bleed into the current one.
     if (state.projectType === 'visualiser') return [];
-    if (state.captions.mode === 'captions' && state.captions.lines.length) return state.captions.lines;
+    // Captions mode is exclusive: it NEVER falls back to lyrics.
+    if (state.captions.mode === 'captions') return state.captions.lines;
     return state.lyrics.lines;
 }
 function markSectionTouched(key) {
@@ -1429,7 +1430,12 @@ function render(ctx, w, h, appState, mediaCache) {
         const cappedTime = (appState.playback.trimTo != null && time > appState.playback.trimTo)
             ? appState.playback.trimTo : time;
         const style = { ...appState.style };
-        const tcActive = renderTitleCard(ctx, w, h, cappedTime, appState);
+        // The captioned pathway has no title-card step. A title card left
+        // over from a previous lyric session must not bleed into a captioned
+        // video, so we explicitly skip it in this pathway.
+        const tcActive = appState.projectType === 'captioned'
+            ? false
+            : renderTitleCard(ctx, w, h, cappedTime, appState);
         if (!tcActive) {
             const timedLines = activeTimedLines();
             if (timedLines.length) {
@@ -1440,6 +1446,8 @@ function render(ctx, w, h, appState, mediaCache) {
                     else renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime);
                 }
                 catch(e) { console.error(`${style.effect} render error:`, e); }
+            } else if (appState.projectType === 'visualiser' && window.kefeVisualiser) {
+                window.kefeVisualiser.draw(ctx, w, h, cappedTime, appState);
             }
         }
     } finally { ctx.restore(); }
@@ -3421,6 +3429,14 @@ window.kefeSetProjectType = function(type) {
     if (!PROJECT_TYPES.includes(type)) return;
     if (state.projectType === type) return;
     state.projectType = type;
+    // Captioned pathway forces the captions panel; other pathways reset to lyrics.
+    if (type === 'captioned') {
+        if (typeof applyTextMode === 'function') applyTextMode('captions');
+        else state.captions.mode = 'captions';
+    } else if (type === 'lyric' && state.captions.mode === 'captions') {
+        if (typeof applyTextMode === 'function') applyTextMode('lyrics');
+        else state.captions.mode = 'lyrics';
+    }
     readiness();
     redrawCurrentPreviewFrame();
 };

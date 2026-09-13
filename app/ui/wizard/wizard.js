@@ -15,11 +15,10 @@
     const PATHS = {
         lyric: ['intro', 'source', 'lyrics', 'style', 'background', 'preview', 'export'],
         visualiser: ['intro', 'source', 'style', 'background', 'preview', 'export'],
-        captioned: ['intro', 'source', 'captions', 'style', 'background', 'preview', 'export'],
-        custom: ['intro', 'source', 'lyrics', 'style', 'background', 'preview', 'export']
+        captioned: ['intro', 'source', 'captions', 'background', 'preview', 'export']
     };
-    const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', custom: 'Custom' };
-    const PATH_HINTS = { lyric: 'Synced lyrics with expressive motion.', visualiser: 'Audio-reactive visuals with no lyrics.', captioned: 'Timed captions for spoken audio or video.', custom: 'Build the video your way.' };
+    const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video'};
+    const PATH_HINTS = { lyric: 'Synced lyrics with expressive motion.', visualiser: 'Audio-reactive visuals with no lyrics.', captioned: 'Timed captions for spoken audio or video.'};
     const STEP_TITLES = { lyrics: 'Add your lyrics', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background', export: 'Export your video' };
     const STEP_LABELS = { intro: 'Format', source: 'Media', lyrics: 'Lyrics', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview', export: 'Export' };
     const CHOICE_ICONS = {
@@ -37,7 +36,14 @@
     const wizard = { path: 'lyric', index: 0, choice: null, source: null };
     const destroyIntroVeil = () => window.KefeDarkVeil?.destroy?.();
     const isNightTheme = () => document.documentElement.dataset.theme === 'night' || (!document.documentElement.dataset.theme && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
-    const stepsFor = () => PATHS[wizard.path] || PATHS.lyric;
+    const stepsFor = () => {
+        let steps = PATHS[wizard.path] || PATHS.lyric;
+        // Captioned + video source = no background step (the video IS the background)
+        if (wizard.path === 'captioned' && wizard.source === 'media') {
+            steps = steps.filter(s => s !== 'background');
+        }
+        return steps;
+    };
 
     const panel = document.createElement('div');
     panel.className = 'section wizard-panel';
@@ -71,7 +77,7 @@
     }
     function targetsForStep(step) {
         if (step === 'lyrics') return ['textSection'];
-        if (step === 'captions') return ['textSection'];
+        if (step === 'captions') return ['textSection', 'captionGenSection', 'captionReviewSection'];
         if (step === 'style') return [];
         if (step === 'background') return ['backgroundSection'];
         if (step === 'export') return ['exportSection'];
@@ -108,7 +114,7 @@
     function renderIntro() {
         destroyIntroVeil();
         const veil = isNightTheme() ? '<div class="wizard-dark-veil" aria-hidden="true"></div>' : '';
-        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">What are you making?</h3><p class="wizard-panel-hint">Choose once. KEFE will build the right editing path for you.</p><div class="wizard-choices-wrap"><div class="wizard-choices">' + ['lyric','visualiser','captioned','custom'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div></div>';
+        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">What are you making?</h3><p class="wizard-panel-hint">Choose once. KEFE will build the right editing path for you.</p><div class="wizard-choices-wrap"><div class="wizard-choices">' + ['lyric','visualiser','captioned'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div></div>';
         const veilTarget = panel.querySelector('.wizard-dark-veil');
         if (veilTarget && window.KefeDarkVeil?.mount) {
             requestAnimationFrame(() => window.KefeDarkVeil.mount(veilTarget, {

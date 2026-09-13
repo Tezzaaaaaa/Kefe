@@ -76,6 +76,14 @@ const STATE_WRITE_BASELINE = new Set([
   'app/effects/effect-app-fx.js',
   'app/effects/story-fade.js',
   'app/export/ui.js',
+
+  // The visualiser picker only writes one field (style.visualiserStyle) when
+
+  // the user clicks a mode button. Migrate to window.kefe.bus when the wider
+
+  // state-write migration happens.
+
+  'app/ui/visualiser-picker.js',
 ]);
 const stateWriters = new Set();
 for (const file of appFiles) {
