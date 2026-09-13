@@ -2142,7 +2142,7 @@ function loadMediaTagsLibrary() {
     if (!mediaTagsLoadPromise) {
         mediaTagsLoadPromise = new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/jsmediatags@0.1.1/dist/jsmediatags.min.js';
+            script.src = './vendor/jsmediatags/jsmediatags.min.js';
             script.onload = () => window.jsmediatags ? resolve(window.jsmediatags) : reject(new Error('Metadata reader unavailable'));
             script.onerror = () => reject(new Error('Metadata reader failed to load'));
             document.head.appendChild(script);
