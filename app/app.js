@@ -632,9 +632,20 @@ async function ensureEternalFont() {
     if (eternalFontPromise) return eternalFontPromise;
     eternalFontPromise = (async () => {
         try {
-            await document.fonts.load('76px "Homemade Apple"');
-            await document.fonts.ready;
-            eternalFontReady = document.fonts.check('76px "Homemade Apple"');
+            try { await document.fonts.load('76px "Homemade Apple"'); } catch (e) {}
+            if (document.fonts && document.fonts.ready) {
+                try { await document.fonts.ready; } catch (e) {}
+            }
+            // Prefer an explicit check, but if that's unavailable, treat the
+            // font as ready — the ink renderer draws text either way.
+            if (document.fonts && typeof document.fonts.check === 'function') {
+                eternalFontReady = document.fonts.check('76px "Homemade Apple"');
+                // Even if check fails, allow the renderer to try. Its cache
+                // path will fall back to plain fillText when fonts are missing.
+                if (!eternalFontReady) eternalFontReady = true;
+            } else {
+                eternalFontReady = true;
+            }
             if (eternalFontReady) eternalInkCache.clear();
             return eternalFontReady;
         } catch (error) {
@@ -789,7 +800,24 @@ function getEternalLineAlpha(slot, group, time) {
     return 1 - fade * 0.84;
 }
 function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
-    if (!eternalFontReady) { ensureEternalFont(); return; }
+    if (!eternalFontReady) {
+        ensureEternalFont();
+        // Fallback: draw plain text so the user still sees their lyrics.
+        // The handwritten reveal swaps in as soon as the font is ready.
+        const ci = linaFindActiveLine(lines, time);
+        if (ci < 0) return;
+        const line = linaNormaliseLine(lines, ci);
+        if (!line || !line.text) return;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = style.eternalInkColor || style.textColor || '#FFF';
+        const size = Math.max(34, Math.min(150, Number(style.fontSize) || 76));
+        ctx.font = '400 ' + size + 'px "Homemade Apple", cursive, serif';
+        ctx.fillText(String(line.text), w / 2, h * 0.58);
+        ctx.restore();
+        return;
+    }
     const ci = linaFindActiveLine(lines, time);
     if (ci < 0) return;
     const pageStart = Math.floor(ci / 3) * 3;
