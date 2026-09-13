@@ -4,7 +4,7 @@ const LOAD_TIMEOUT_MS = 45000;
 const ASSET_FETCH_RETRIES = 2;
 
 const FFMPEG_MODULE_URL = `https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@${FF_VERSION}/dist/esm/index.js`;
-const LOCAL_WORKER_URL = new URL('../vendor/ffmpeg/worker.js', import.meta.url).href;
+const LOCAL_WORKER_URL = new URL('../../vendor/ffmpeg/worker.js', import.meta.url).href;
 const CORE_JS_URL = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm/ffmpeg-core.js`;
 const CORE_WASM_URL = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm/ffmpeg-core.wasm`;
 
