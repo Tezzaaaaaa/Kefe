@@ -4,6 +4,7 @@ const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 const canvas = $('stageCanvas');
 const ctx = canvas.getContext('2d', { alpha: false });
 const audio = new Audio();
+window.kefeAudioElement = audio;
 
 const state = {
     audio: { file: null, url: null, duration: 0, ready: false, metadata: { title: '', artist: '', album: '' }, metadataSource: 'none', hasArtwork: false },
@@ -2202,6 +2203,8 @@ function handleAudioFile(file) {
     state.audio.url = audioURL;
     state.audio.duration = 0;
     state.audio.ready = false;
+    // Uploading audio is an explicit user action — route master to it.
+    if (state.audioSource) { state.audioSource.master = "uploaded"; state.audioSource.userChosen = false; }
     const parsedMeta = songFromFilename(file.name);
     const usingProjectMetadata = Boolean(pendingProjectMetadata);
     state.audio.metadata = pendingProjectMetadata || { title: parsedMeta.track || '', artist: parsedMeta.artist || '', album: '' };
@@ -2318,14 +2321,17 @@ function handleBackgroundFile(file) {
             //   source step, which still switches automatically as before
             if (!state.audio.file) {
                 applyMasterSelection(media.videoHasAudio ? 'video' : 'none', { userInitiated: false, silent: true });
-            } else if (media.videoHasAudio && getMasterMode() !== 'video') {
-                if (state.lyrics.lines.length) {
-                    promptMasterAudioChoice();
-                } else if (window.kefeWizardSource === 'media') {
+            } else if (media.videoHasAudio && getMasterMode() !== "video") {
+                if (window.kefeWizardSource === "media") {
                     // Wizard "Background Video" audio source: the video's own track takes
                     // over as master, even when uploaded audio is already loaded.
                     state.audioSource.userChosen = false;
                     applyMasterSelection('video', { userInitiated: false, silent: true });
+                } else {
+                    if (media.video) media.video.muted = true;
+                    state.audioSource.master = "uploaded";
+                    state.audioSource.userChosen = true;
+                    if (typeof syncMasterSourceUI === "function") syncMasterSourceUI();
                 }
             }
             readiness();
