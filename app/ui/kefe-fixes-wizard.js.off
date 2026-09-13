@@ -1,0 +1,83 @@
+/* KEFE — direct inline-style wizard section visibility. No CSS rules. */
+(() => {
+  const SECTIONS = ['audioSection','textSection','fxSection','backgroundSection','exportSection','wizardSection'];
+  const STEP_TO_SECTION = {
+    intro: 'wizardSection',
+    source: 'wizardSection',
+    style: 'wizardSection',
+    preview: 'wizardSection',
+    lyrics: 'textSection',
+    captions: 'textSection',
+    background: 'backgroundSection',
+    export: 'exportSection'
+  };
+
+  let lastStepLogged = null;
+
+  function force() {
+    if (!document.body.classList.contains('wizard-mode')) return;
+    const step = document.body.dataset.wizardStep;
+    if (!step) return;
+
+    // Make sure every section is inside the sidebar.
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+    SECTIONS.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.parentElement !== sidebar) {
+        console.log('[KEFE] reparenting', id, 'from', el.parentElement?.id || el.parentElement?.className);
+        sidebar.appendChild(el);
+      }
+    });
+
+    const target = STEP_TO_SECTION[step];
+    if (!target) return;
+
+    // CSS textContent assignment wipes ALL leftover inline styles, then we
+    // set only what we want. No inheritance from previous fixes.
+    SECTIONS.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (id === target) {
+        el.style.cssText =
+          'display:block !important;' +
+          'visibility:visible !important;' +
+          'position:static !important;' +
+          'left:auto !important;top:auto !important;' +
+          'width:auto !important;height:auto !important;' +
+          'flex:1 1 auto !important;' +
+          'min-height:0 !important;' +
+          'overflow-y:auto !important;' +
+          'padding:16px 16px 20px !important';
+      } else {
+        el.style.cssText = 'display:none !important';
+      }
+    });
+
+    if (lastStepLogged !== step) {
+      lastStepLogged = step;
+      const bg = document.getElementById('backgroundSection');
+      const targetEl = document.getElementById(target);
+      console.log(
+        '[KEFE] step=' + step,
+        '| target=' + target,
+        '| target found=' + !!targetEl,
+        '| target children=' + (targetEl ? targetEl.children.length : 'n/a'),
+        '| bg children=' + (bg ? bg.children.length : 'n/a'),
+        '| bg html length=' + (bg ? bg.innerHTML.length : 'n/a')
+      );
+    }
+  }
+
+  setInterval(force, 60);
+  ['click','keydown','change','input'].forEach(ev =>
+    document.addEventListener(ev, () => {
+      setTimeout(force, 10);
+      setTimeout(force, 100);
+      setTimeout(force, 300);
+    }, true)
+  );
+  force();
+  console.log('[KEFE] wizard section visibility installed (inline-style mode)');
+})();

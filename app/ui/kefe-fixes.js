@@ -1,8 +1,9 @@
-/* KEFE — consolidated UI fixes. Loads last so it can correct earlier modules. */
+/* KEFE — consolidated UI fixes. */
 (() => {
   'use strict';
 
-  function ensureConfirmationCss() {
+  /* ---------- 1. Upload confirmation card ---------- */
+  function ensureConfirmCss() {
     if (document.getElementById('kefe-fix-confirm-css')) return;
     const s = document.createElement('style');
     s.id = 'kefe-fix-confirm-css';
@@ -19,8 +20,7 @@
     ].join('\n');
     document.head.appendChild(s);
   }
-
-  function forceConfirmation(dropId) {
+  function forceConfirm(dropId) {
     const drop = document.getElementById(dropId);
     if (!drop) return null;
     let card = drop.querySelector('.kefe-upload-confirmation');
@@ -32,35 +32,33 @@
     }
     return card;
   }
-
-  function refreshUploadConfirmation() {
+  function refreshConfirm() {
     const state = window.state || {};
     const media = window.kefeMedia || {};
-    ensureConfirmationCss();
-
-    const audioFile = state.audio && state.audio.file;
-    const audioReady = Boolean(audioFile && (state.audio.ready || state.audio.duration > 0));
-    const audioCard = audioFile ? forceConfirmation('audioDrop') : null;
-    if (audioCard) {
-      audioCard.classList.toggle('is-visible', audioReady);
-      const name = audioCard.querySelector('.kefe-upload-name');
-      const meta = audioCard.querySelector('.kefe-upload-meta');
-      if (name) name.textContent = audioFile.name || 'Audio loaded';
-      if (meta) meta.textContent = [(state.audio.metadata || {}).title, (state.audio.metadata || {}).artist].filter(Boolean).join(' - ') || 'Audio ready';
+    ensureConfirmCss();
+    const af = state.audio && state.audio.file;
+    const ar = Boolean(af && (state.audio.ready || state.audio.duration > 0));
+    const ac = af ? forceConfirm('audioDrop') : null;
+    if (ac) {
+      ac.classList.toggle('is-visible', ar);
+      const n = ac.querySelector('.kefe-upload-name');
+      const m = ac.querySelector('.kefe-upload-meta');
+      if (n) n.textContent = af.name || 'Audio loaded';
+      if (m) m.textContent = [(state.audio.metadata||{}).title, (state.audio.metadata||{}).artist].filter(Boolean).join(' - ') || 'Audio ready';
     }
-
-    const bgFile = media.videoFile;
+    const bf = media.videoFile;
     const hasBg = Boolean(media.video || media.image);
-    const bgCard = hasBg ? forceConfirmation('bgDrop') : null;
-    if (bgCard) {
-      bgCard.classList.add('is-visible');
-      const name = bgCard.querySelector('.kefe-upload-name');
-      const meta = bgCard.querySelector('.kefe-upload-meta');
-      if (name) name.textContent = (bgFile && bgFile.name) || (media.image ? 'Image loaded' : 'Background loaded');
-      if (meta) meta.textContent = media.video ? 'Video ready' : media.image ? 'Image ready' : 'Ready';
+    const bc = hasBg ? forceConfirm('bgDrop') : null;
+    if (bc) {
+      bc.classList.add('is-visible');
+      const n = bc.querySelector('.kefe-upload-name');
+      const m = bc.querySelector('.kefe-upload-meta');
+      if (n) n.textContent = (bf && bf.name) || (media.image ? 'Image loaded' : 'Background loaded');
+      if (m) m.textContent = media.video ? 'Video ready' : media.image ? 'Image ready' : 'Ready';
     }
   }
 
+  /* ---------- 2. Song combobox clicks ---------- */
   function patchComboboxes() {
     document.querySelectorAll('.kefe-song-combobox-list [role="option"]').forEach(function (opt) {
       if (opt.dataset.kefeFixed === '1') return;
@@ -73,6 +71,7 @@
     });
   }
 
+  /* ---------- 3. Style section effect buttons ---------- */
   function patchEffectButtons() {
     if (document.getElementById('kefe-fix-fx-css')) return;
     const s = document.createElement('style');
@@ -86,6 +85,7 @@
     document.head.appendChild(s);
   }
 
+  /* ---------- 4. Background section swatches ---------- */
   function patchBackgroundSwatches() {
     if (document.getElementById('kefe-fix-bg-css')) return;
     const s = document.createElement('style');
@@ -101,16 +101,114 @@
     document.head.appendChild(s);
   }
 
+  /* ---------- 5. Wizard step -> section visibility ----------
+     Generate one explicit rule per (step, section) pair. No :not(), no
+     reliance on .sidebar > — impossible for wizard CSS or inline styles
+     from previous fixes to override. */
+  function installWizardVisibility() {
+    if (document.getElementById('kefe-wizard-visibility')) return;
+    const STEPS = ['intro','source','lyrics','captions','style','background','preview','export'];
+    const SECTIONS = ['audioSection','textSection','fxSection','backgroundSection','exportSection','wizardSection'];
+    const KEEP = {
+      intro: 'wizardSection', source: 'wizardSection', style: 'wizardSection', preview: 'wizardSection',
+      lyrics: 'textSection', captions: 'textSection',
+      background: 'backgroundSection', export: 'exportSection'
+    };
+    const rules = [];
+    STEPS.forEach(function(step){
+      const keep = KEEP[step];
+      SECTIONS.forEach(function(id){
+        if (id === keep) {
+          rules.push('body.wizard-mode[data-wizard-step="' + step + '"] #' + id + '{display:block !important;flex:1 1 auto !important;min-height:0 !important;overflow-y:auto !important;padding:16px 16px 20px !important}');
+        } else {
+          rules.push('body.wizard-mode[data-wizard-step="' + step + '"] #' + id + '{display:none !important;visibility:hidden !important;position:absolute !important;left:-99999px !important;width:1px !important;height:1px !important;overflow:hidden !important}');
+        }
+      });
+    });
+    const css = document.createElement('style');
+    css.id = 'kefe-wizard-visibility';
+    css.textContent = rules.join('\n');
+    document.head.appendChild(css);
+
+    // Rescue: if a sidebar section got reparented somewhere weird, drag it home
+    // and strip any inline styles previous fixes may have left on it.
+    function rescue() {
+      const sidebar = document.querySelector('.sidebar');
+      if (!sidebar) return;
+      SECTIONS.forEach(function(id){
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.parentElement !== sidebar) {
+          console.log('[KEFE fix] rescuing #' + id + ' from', el.parentElement && (el.parentElement.id || el.parentElement.className));
+          sidebar.appendChild(el);
+        }
+        el.style.removeProperty('display');
+        el.style.removeProperty('visibility');
+        el.style.removeProperty('position');
+        el.style.removeProperty('left');
+        el.style.removeProperty('width');
+        el.style.removeProperty('height');
+        el.style.removeProperty('overflow');
+        el.style.removeProperty('flex');
+        el.style.removeProperty('padding');
+        el.style.removeProperty('min-height');
+      });
+    }
+    rescue();
+    setInterval(rescue, 200);
+    console.log('[KEFE fix] wizard visibility rules installed');
+  }
+
   function boot() {
     patchEffectButtons();
     patchBackgroundSwatches();
-    ensureConfirmationCss();
-    refreshUploadConfirmation();
+    ensureConfirmCss();
+    refreshConfirm();
     patchComboboxes();
-    setInterval(refreshUploadConfirmation, 400);
+    installWizardVisibility();
+    setInterval(refreshConfirm, 400);
     setInterval(patchComboboxes, 800);
   }
-
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
   else boot();
+})();
+
+/* Hide the wizard's mini style-preview card. The main preview canvas on
+   the right already reacts live to effect clicks, so the mini one is
+   redundant. */
+(function(){
+  if (document.getElementById('kefe-hide-mini-preview')) return;
+  var s = document.createElement('style');
+  s.id = 'kefe-hide-mini-preview';
+  s.textContent = '.wizard-style-preview{display:none !important}';
+  document.head.appendChild(s);
+})();
+
+/* Force #backgroundSection to show ONLY on the 'background' wizard step.
+   Inline !important so no other stylesheet can override it. */
+(function(){
+  function enforce() {
+    var step = document.body.dataset.wizardStep;
+    var bg = document.getElementById('backgroundSection');
+    if (!bg || !step) return;
+    var shouldShow = (step === 'background');
+    bg.style.setProperty('display', shouldShow ? 'block' : 'none', 'important');
+    bg.style.setProperty('visibility', shouldShow ? 'visible' : 'hidden', 'important');
+    if (shouldShow) {
+      bg.style.setProperty('flex', '1 1 auto', 'important');
+      bg.style.setProperty('min-height', '0', 'important');
+      bg.style.setProperty('overflow-y', 'auto', 'important');
+      bg.style.setProperty('padding', '16px 16px 20px', 'important');
+    }
+  }
+  setInterval(enforce, 60);
+  ['click','keydown','change','input'].forEach(function(e){
+    document.addEventListener(e, function(){
+      setTimeout(enforce, 20);
+      setTimeout(enforce, 150);
+      setTimeout(enforce, 400);
+    }, true);
+  });
+  enforce();
+  console.log('[KEFE fix] background section visibility enforced');
 })();
