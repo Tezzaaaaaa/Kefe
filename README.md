@@ -1,39 +1,65 @@
 # KEFE Visualiser
 
-KEFE Visualiser is a browser-based music visualiser and lyric/caption video editor. It combines timed text, typography, backgrounds, visual effects, media, live preview, project files, and local MP4 export in one editor.
+KEFE Visualiser is a browser-based music visualiser and lyric/caption video editor. It combines media handling, music-aware analysis, timed lyrics and captions, typography, backgrounds, visual effects, live preview, project files, and local MP4 export in one editor.
 
 **Live application:** https://tezzaaaaaa.github.io/Kefe/
 
-## Current editor
+## Current state
 
-KEFE is the visualiser application itself. There is no separate landing page or home page; the repository's `index.html` loads the editor directly.
+KEFE is a working, functioning browser tool. The `main` branch contains the active editor, production rendering and export pipeline, guided creation pathways, project handling, effect system, automated checks, and the separate Node backend architecture.
+
+The frontend is deployed directly through GitHub Pages. The repository is no longer structured around a separate landing page: `index.html` loads the editor directly.
+
+## Guided creation pathways
+
+KEFE is organised around outcome-based creation pathways rather than a tool-first interface:
+
+1. **Lyrical Videos** — create timed lyric videos from music and lyrics.
+2. **Captioned Videos** — create captions from lyrics first, with Whisper transcription available as a fallback.
+3. **Music Visualisers** — create music-reactive visual content.
+4. **Music Videos** — build visual projects around video media and its audio.
+5. **Social Videos** — create output for common social formats.
+6. **Audio → Video** — turn audio into a complete visual video project.
+
+The workflow begins with **Upload Media**. Audio, video, images, and other supported media are handled through the editor rather than forcing an audio-only starting point.
+
+When a video contains audio, KEFE can use that video as the master audio/timing source unless an alternate audio source is selected.
+
+## Current editor
 
 The editor is organised around five production sections:
 
-1. **Media** — audio input, metadata, and media-source handling.
+1. **Media** — audio/video input, metadata, source selection, and upload status.
 2. **Format** — aspect ratio, output presets, project save/open, and export.
 3. **Lyrics & Captions** — lyrics, captions, timing, and text styling.
 4. **Background** — built-in backgrounds plus custom image/video media.
-5. **Visual FX** — post-render effects applied independently of the lyric renderer.
+5. **Visual FX** — post-render effects applied independently of the primary lyric renderer.
+
+Successful media uploads provide an in-editor upload summary and retry path. Audio metadata can automatically prefill title and artist information when embedded metadata is available.
 
 ## Lyric effects
 
-The current editor exposes eight lyric treatments:
+The current production picker contains **11 registered lyric renderers**:
 
 - **Apple**
 - **Brat**
-- **Eternal Sunshine**
 - **Aurora**
-- **Pulse**
+- **Eternal Sunshine**
 - **Typewriter**
 - **Instagram Lyrics**
 - **Fade Up**
+- **Decrypt**
+- **Blur**
+- **Shiny**
+- **Pulse**
 
-Effects are registered through the shared KEFE rendering architecture. Canonical/native renderers and modular effect implementations share common timing, typography, and canvas utilities rather than maintaining duplicate render pipelines.
+The effect system uses a single registration/dispatch architecture with shared timing, typography, and drawing utilities. Native/canonical renderers and modular renderers are kept in the same production architecture rather than maintaining duplicate rendering pipelines.
+
+All currently registered effects and presets are available in the editor; there is no artificial locked-effect presentation in the current production state.
 
 ## Backgrounds
 
-The editor currently provides six built-in background choices:
+The editor provides built-in background choices including:
 
 - Solid colour
 - Soft Gradient
@@ -42,13 +68,14 @@ The editor currently provides six built-in background choices:
 - Fine Grid
 - Film Grain
 
-Users can also supply their own image or video background. Aura Wash is a static gradient wash — it is unrelated to the separate WebGL Aurora FX layer under Visual FX.
+Users can also supply their own image or video background. Aura Wash is a static gradient wash and is separate from the WebGL Aurora effect in the Visual FX system.
 
 ## Visual FX
 
-Visual FX are applied as a separate post-render layer. The current selector provides:
+Visual FX are applied as a separate post-render layer so lyric rendering and post-processing can evolve independently while sharing the same export pipeline.
 
-- Off
+The current system includes effects such as:
+
 - VHS
 - CRT
 - RGB Shift
@@ -60,20 +87,22 @@ Visual FX are applied as a separate post-render layer. The current selector prov
 - Vignette
 - Mixed Media
 
-This separation allows lyric rendering and post-processing to evolve independently and keeps the export path shared.
-
 ## Lyrics, captions and timing
 
 KEFE supports:
 
 - LRC import
-- Text lyric editing/pasting
+- Text lyric editing and pasting
 - Automatic lyric lookup
 - Manual timing adjustment and offset nudging
 - Caption generation and caption-block editing
+- Whisper-backed caption fallback
+- Tolerant handling of overlapping Whisper segments
 - Word-level timing where available
 - Derived timing and music-aware style recommendations
 - Video-as-master audio/timing workflows
+
+Captioned creation now attempts lyric lookup first and uses Whisper transcription as the fallback path when appropriate.
 
 ## Media and projects
 
@@ -110,10 +139,11 @@ Rendering and encoding are performed locally in the browser. KEFE does not requi
 - Browser media APIs
 - Web Workers
 - FFmpeg.wasm
+- Local `jsmediatags` runtime for audio metadata handling
 
 ### Backend
 
-The repository also contains a separate Node.js backend architecture for functionality that cannot be provided by static GitHub Pages, including authentication, membership/billing, database access, transcription, and related server functionality.
+The repository also contains a separate Node.js backend architecture for functionality that cannot be provided by static GitHub Pages, including authentication, membership/billing, database access, transcription, background removal, and related server functionality.
 
 - Node.js 18+
 - Express
@@ -126,6 +156,12 @@ The repository also contains a separate Node.js backend architecture for functio
 
 The backend is separate from the GitHub Pages frontend and requires a Node-capable deployment environment.
 
+## Security and reliability
+
+Recent repository work includes a server-side query-parser hardening change and a forced `qs` dependency override to keep the audited version in use. The current package configuration pins the `qs` override at `^6.15.4`.
+
+The repository also maintains automated syntax, effect, architecture, smoke, functional, formatting, security, CodeQL, and GitHub Pages checks.
+
 ## Repository structure
 
 ```text
@@ -134,8 +170,7 @@ Kefe/
 │   ├── core/       # analysis, project, rendering, runtime and creation logic
 │   ├── effects/    # lyric renderers, Visual FX and effect data
 │   ├── export/     # browser video export pipeline
-│   ├── ui/         # editor UI modules and controls
-│   └── app.js      # main frontend application module
+│   └── ui/         # editor UI modules and controls
 ├── assets/         # branding and static assets
 ├── docs/           # deployment, design, licensing and development documentation
 ├── fonts/          # local production font files
@@ -180,11 +215,6 @@ Additional test commands are available for smoke and functional coverage:
 ```bash
 npm run test:smoke
 npm run test:functional
-```
-
-Formatting checks are available with:
-
-```bash
 npm run format:check
 ```
 
@@ -202,6 +232,8 @@ The current runtime uses:
 ## Effect architecture
 
 Lyric effects live under `app/effects/` and use the shared KEFE effect architecture. Shared timing, typography, and drawing helpers are kept in `app/effects/core.js`.
+
+The effect registry provides the common dispatch point for modular renderers, while the application retains canonical native renderers where required.
 
 The separate Visual FX layer is implemented in `app/effects/effect-app-fx.js` and is applied after the primary lyric renderer.
 
@@ -233,6 +265,7 @@ See `docs/DEPLOY.md` for deployment details.
 
 | Document | Purpose |
 |---|---|
+| `AGENTS.md` | Repository architecture and development guardrails |
 | `CHANGELOG.md` | Project changes and release history |
 | `CONTRIBUTING.md` | Contribution guidance |
 | `docs/DEPLOY.md` | Deployment information |
@@ -244,8 +277,8 @@ See `docs/DEPLOY.md` for deployment details.
 
 ## Project status
 
-KEFE Visualiser is actively developed. `main` is the current production branch, and the browser frontend is deployed through GitHub Pages.
+KEFE Visualiser is actively developed and the `main` branch is the current production branch for the browser application.
 
-The current codebase includes the editor, lyric/caption workflows, native effect system, background system, post-render Visual FX, project files, local MP4 export pipeline, automated checks, and a separate Node backend architecture.
+The current codebase includes the functioning editor, six guided creation pathways, media and metadata handling, lyric and caption workflows, 11 registered lyric renderers, backgrounds, post-render Visual FX, project files, local MP4 export, automated repository checks, and a separate Node backend architecture.
 
-Export reliability and browser/device compatibility remain ongoing validation areas as the rendering and export pipeline evolves.
+Current development is focused on reliability, cleanup, security hardening, browser/device compatibility, and continued refinement of the functioning tool rather than establishing the basic editor architecture.
