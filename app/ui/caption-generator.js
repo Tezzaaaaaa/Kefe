@@ -184,19 +184,29 @@
     }
 
     function validateTranscript(result, duration) {
-        const words = sanitiseWords(result?.words);
-        const segments = result?.segments || [];
+        // Whisper produces slightly overlapping or out-of-order word
+        // timestamps from music, chorus, and noisy audio. That is normal
+        // and expected — the review pass is where the user corrects text.
+        // This function therefore only rejects genuinely unusable output
+        // (no words at all). Everything else gets sorted and clamped.
+        const rawWords = Array.isArray(result?.words) ? result.words : [];
+        const words = sanitiseWords(rawWords);
         const issues = [];
-        if (words.length < MIN_WORDS_FOR_VALID_TRANSCRIPT && !segments.length) issues.push('no timed speech returned');
-        if (duration > 0 && words.some(w => w.start > duration + 2)) issues.push('timestamps exceed media duration');
-        let suspicious = 0;
-        for (let i = 1; i < words.length; i++) {
-            const gap = words[i].start - words[i - 1].end;
-            if (gap < -0.15) issues.push('overlapping word timestamps');
-            if (gap > 45) suspicious++;
+        if (words.length === 0 && !(result?.segments && result.segments.length)) {
+            issues.push('no timed speech returned');
+            return { ok: false, issues, words: [] };
         }
-        if (suspicious > 2) issues.push('large unexplained timing gaps');
-        return { ok: issues.length === 0, issues, words };
+        // Clamp any remaining overlaps so downstream buildSegmentsFromWords
+        // sees a monotonic timeline.
+        for (let i = 1; i < words.length; i++) {
+            if (words[i].start < words[i - 1].end) {
+                words[i - 1].end = Math.max(words[i - 1].start + 0.05, Math.min(words[i - 1].end, words[i].start));
+            }
+            if (words[i].start < words[i - 1].start) {
+                words[i].start = words[i - 1].start;
+            }
+        }
+        return { ok: true, issues, words };
     }
 
     function buildSegmentsFromWords(words) {
@@ -309,7 +319,7 @@
             const title = String(meta.title || '').trim();
             const artist = String(meta.artist || '').trim();
             const album = String(meta.album || '').trim();
-            if ((title || artist) && window.kefeAnalysis && typeof window.kefeAnalysis.findSyncedLyrics === 'function') {
+            if (title && artist && window.kefeAnalysis && typeof window.kefeAnalysis.findSyncedLyrics === 'function') {
                 try {
                     onStatus('Looking for official synced lyrics...');
                     onProgress(10);
@@ -369,7 +379,8 @@
                     errors.push(`${provider.label}: ${e?.message || 'failed'}`);
                 }
             }
-            throw new Error(`Automatic captioning could not produce a reliable timed transcript. ${errors.length ? errors.join(' · ') : 'No transcription engine is available.'}`);
+            const uniq = Array.from(new Set(errors));
+            throw new Error(`Automatic captioning could not produce a reliable timed transcript. ${uniq.length ? uniq.join(' · ') : 'No transcription engine is available.'}`);
         }
     });
 
