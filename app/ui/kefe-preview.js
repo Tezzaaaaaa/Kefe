@@ -1,0 +1,86 @@
+(function(){
+  'use strict';
+  if (window.__kefePreviewForce) return;
+  window.__kefePreviewForce = true;
+
+  var css = document.createElement('style');
+  css.id = 'kefe-preview-css';
+  css.textContent = [
+    /* 1. Kill the wizard's mini style-preview card. The main canvas is the
+          only preview surface in the editor. */
+    '.wizard-style-preview{display:none !important}',
+
+    /* 2. Force the main preview to stay expanded on every wizard step.
+          wizard.js toggles preview-collapsed on early steps; we override. */
+    'body.wizard-mode .preview.preview-collapsed{display:flex !important;visibility:visible !important}',
+    'body.wizard-mode .preview.preview-collapsed .canvas-wrapper{display:flex !important}',
+    'body.wizard-mode .preview.preview-collapsed canvas{display:block !important}',
+    'body.wizard-mode .preview{min-height:0 !important}',
+
+    /* 3. The intro step (before anything is uploaded) gets a small
+          "Load audio or video to begin" hint rather than an empty black box. */
+    '#kefePreviewEmpty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--text-3);font-size:13px;line-height:1.5;pointer-events:none;z-index:2}',
+    '#kefePreviewEmpty.hidden{display:none !important}'
+  ].join('');
+  document.head.appendChild(css);
+
+  function ensureEmptyHint() {
+    var wrapper = document.querySelector('.preview .canvas-wrapper');
+    if (!wrapper) return null;
+    var hint = document.getElementById('kefePreviewEmpty');
+    if (hint) return hint;
+    hint = document.createElement('div');
+    hint.id = 'kefePreviewEmpty';
+    hint.innerHTML = 'Your preview will appear here.<br>Load audio or video to begin.';
+    wrapper.appendChild(hint);
+    return hint;
+  }
+
+  function hasMedia() {
+    var s = window.state || {}, m = window.kefeMedia || {};
+    return Boolean(
+      (s.audio && s.audio.file) ||
+      m.video || m.image || m.videoFile
+    );
+  }
+
+  function forceExpand() {
+    var preview = document.querySelector('.preview');
+    if (!preview) return;
+    // Never let wizard collapse it.
+    preview.classList.remove('preview-collapsed');
+    preview.classList.add('preview-expanded');
+  }
+
+  function refreshHint() {
+    var hint = ensureEmptyHint();
+    if (!hint) return;
+    hint.classList.toggle('hidden', hasMedia());
+  }
+
+  function tick() {
+    forceExpand();
+    refreshHint();
+  }
+
+  tick();
+  setInterval(tick, 200);
+  ['click','change','input'].forEach(function(ev){
+    document.addEventListener(ev, function(){
+      setTimeout(tick, 40);
+      setTimeout(function(){ try { window.redrawCurrentPreviewFrame?.(); } catch(e){} }, 120);
+    }, true);
+  });
+
+  // Redraw once media is loaded so the preview lights up immediately.
+  var lastHadMedia = false;
+  setInterval(function(){
+    var now = hasMedia();
+    if (now && !lastHadMedia) {
+      try { window.redrawCurrentPreviewFrame?.(); } catch(e){}
+    }
+    lastHadMedia = now;
+  }, 300);
+
+  console.log('[KEFE preview] active — mini preview hidden, main preview always expanded');
+})();
