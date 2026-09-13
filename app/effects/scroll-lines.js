@@ -128,44 +128,7 @@
 
   window.kefeEffects.scrolllines = (ctx, w, h, style, lines, time) => renderScrollLines(ctx, w, h, style, lines, time);
 
-  function install() {
-    if (window.__kefeScrollLinesInstalled) return true;
-    if (typeof window.render !== 'function') return false;
-
-    const originalRender = window.render;
-    window.render = function(ctx, w, h, appState, mediaCache) {
-      const effect = appState?.style?.effect;
-      if (effect !== 'scrolllines') return originalRender(ctx, w, h, appState, mediaCache);
-
-      const style = appState.style || {};
-      const lines = appState.captions?.mode === 'captions' && Array.isArray(appState.captions.lines) && appState.captions.lines.length
-        ? appState.captions.lines
-        : (Array.isArray(appState.lyrics?.lines) ? appState.lyrics.lines : []);
-      const time = Number(appState.playback?.currentTime) || 0;
-
-      const originalEffect = style.effect;
-      const originalText = style.textColor;
-      const originalAccent = style.accentColor;
-      const originalOpacity = style.appleInactiveOpacity;
-      try {
-        // Render the existing background/media pipeline, but suppress the
-        // legacy lyric layer. Scroll Lines draws its own complete lyric field.
-        style.effect = 'apple';
-        style.textColor = 'rgba(0,0,0,0)';
-        style.accentColor = 'rgba(0,0,0,0)';
-        style.appleInactiveOpacity = 0;
-        originalRender(ctx, w, h, appState, mediaCache);
-      } finally {
-        style.effect = originalEffect;
-        style.textColor = originalText;
-        style.accentColor = originalAccent;
-        style.appleInactiveOpacity = originalOpacity;
-      }
-      if (lines.length) renderScrollLines(ctx, w, h, style, lines, time);
-    };
-    window.__kefeScrollLinesInstalled = true;
-    return true;
-  }
+  function install() { window.__kefeScrollLinesInstalled = true; return true; }
 
   function addButton() {
     const host = document.querySelector('#lyricStyleBlock .effect-buttons');
