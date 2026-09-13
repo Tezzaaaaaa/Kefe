@@ -1,21 +1,31 @@
-/* Verify effect UI completeness: every data-effect button must have a
- * EFFECT_LABELS entry in app.js and a registered renderer. */
+/* Verify the production lyric-effect catalogue has a renderer for every entry. */
 'use strict';
 const fs = require('fs');
+const path = require('path');
 
-const html = fs.readFileSync(__dirname + '/../index.html', 'utf8');
+const manifest = fs.readFileSync(__dirname + '/../app/effects/manifest.js', 'utf8');
 const app = fs.readFileSync(__dirname + '/../app/app.js', 'utf8');
+const effectsDir = path.join(__dirname, '../app/effects');
 
-const buttons = [...html.matchAll(/data-effect="([^"]+)"/g)].map(m => m[1]);
-const labels = [...app.matchAll(/([a-z]+): "[^"]+"/g)].map(m => m[1]);
-// renderer keys: modular (window.kefeEffects) + canonical native (apple, pulse)
-const registered = ['brat', 'aurora', 'eternal', 'typewriter', 'instagram', 'fadeup', 'decrypt', 'blur', 'shiny', 'apple', 'pulse'];
+const manifestEntries = [...manifest.matchAll(/\{\s*key:\s*'([^']+)'/g)].map(m => m[1]);
+const effectSources = fs.readdirSync(effectsDir)
+  .filter(name => name.endsWith('.js'))
+  .map(name => fs.readFileSync(path.join(effectsDir, name), 'utf8'))
+  .join('\n');
 
-const missingLabels = buttons.filter(b => !labels.includes(b));
-const missingRenders = buttons.filter(b => !registered.includes(b));
+// Apple and Pulse are canonical native renderers in app.js. Modular renderers
+// register themselves on window.kefeEffects.<key>.
+const canonical = new Set(['apple', 'pulse']);
+const modular = new Set(
+  [...effectSources.matchAll(/window\.kefeEffects\.([a-z][a-z0-9_]*)\s*=/g)].map(m => m[1])
+);
+const registered = new Set([...canonical, ...modular]);
 
-console.log('effect buttons in UI:', buttons.join(', '));
-console.log('buttons missing EFFECT_LABELS entry:', missingLabels.length ? missingLabels.join(', ') : 'NONE');
-console.log('buttons missing registered renderer:', missingRenders.length ? missingRenders.join(', ') : 'NONE');
+const duplicateKeys = manifestEntries.filter((key, i) => manifestEntries.indexOf(key) !== i);
+const missingRenderers = manifestEntries.filter(key => !registered.has(key));
 
-process.exit(missingLabels.length || missingRenders.length ? 1 : 0);
+console.log('production lyric effects:', manifestEntries.join(', '));
+console.log('duplicate manifest keys:', duplicateKeys.length ? duplicateKeys.join(', ') : 'NONE');
+console.log('manifest entries missing renderer:', missingRenderers.length ? missingRenderers.join(', ') : 'NONE');
+
+process.exit(duplicateKeys.length || missingRenderers.length ? 1 : 0);
