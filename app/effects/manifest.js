@@ -14,5 +14,10 @@ window.KEFE_EFFECTS = [
   { key: 'fadeup',      label: 'Fade Up',          description: 'Word-by-word fade-up' },
   { key: 'decrypt',     label: 'Decrypt',          description: 'Scramble-in character reveal' },
   { key: 'blur',        label: 'Blur In',          description: 'Drift from blur into focus' },
-  { key: 'shiny',       label: 'Shiny',            description: 'Diagonal shine sweep' }
+  { key: 'shiny',       label: 'Shiny',            description: 'Diagonal shine sweep' },
+  { key: 'rise',        label: 'Rise',         description: 'Soft upward lift' },
+  { key: 'slide',       label: 'Slide',        description: 'Lateral glide' },
+  { key: 'drop',        label: 'Drop',         description: 'Controlled downward arrival' },
+  { key: 'drift',       label: 'Drift',        description: 'Gentle diagonal float' },
+  { key: 'scrolllines', label: 'Scroll Lines', description: 'Editorial multi-line scroll' }
 ];
