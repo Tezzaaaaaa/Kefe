@@ -21,6 +21,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.disable('x-powered-by');
+app.set('query parser', 'simple');  // avoid qs parsing; KEFE uses no complex query strings
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
