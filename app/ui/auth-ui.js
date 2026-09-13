@@ -2,8 +2,8 @@
 // Additive module — does not modify app.js. Loaded after registry.js and
 // before effect-app-fx.js so gating is in place before effects wire up.
 (() => {
-  const PREMIUM_EFFECTS = ['eternal', 'aurora', 'instagram', 'fadeup'];
-  const PREMIUM_EXPORT_PRESETS = ['1080p', 'instagram', 'tiktok'];
+  const PREMIUM_EFFECTS = [];
+  const PREMIUM_EXPORT_PRESETS = [];
 
   let entitlement = { plan: 'free', isPro: false, trialDaysLeft: null };
   let currentUser = null;
