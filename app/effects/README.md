@@ -1,24 +1,37 @@
 # KEFE Visual Effects
 
-Production lyric effects are maintained as independent modules under this directory. Each renderer receives the common arguments `(ctx, width, height, style, lines, time)` and registers through `window.kefeEffects`.
+KEFE keeps lyric renderers modular. The canonical renderer registry is `renderer-registry.js`; shared timing and typography helpers live in `core.js`.
 
-## Production lyric effects
+## Lyric renderers
+
+### Native/editor renderers
+
+- `apple` — Apple-style lyric treatment (native renderer)
+- `pulse` — Pulse lyric treatment (native renderer)
+
+### Modular renderers
 
 - `brat.js` — Brat typography
 - `eternal-sunshine.js` — Eternal Sunshine handwritten treatment
-- `aurora.js` — Aurora marker/colour treatment
+- `aurora.js` + `aurora-fx.js` — Aurora lyric/background treatment
 - `typewriter.js` — character-by-character reveal
 - `instagram-lyrics.js` — Instagram Stories Music lyric treatment
-- `story-fade.js` — Fade Up lyric treatment
+- `story-fade.js` — Fade Up / story fade treatment
+- `decrypt-text.js` — decrypt-style text reveal
+- `blur-text.js` — blur-in text reveal
+- `shiny-text.js` — moving highlight across text
+- `scroll-lines.js` — scrolling lyric lines
+- `motion.js` — Rise, Slide, Drop and Drift renderers
+- `vhs-glitch.js` — retro VHS/CRT lyric treatment
 
-`core.js` contains shared timing, typography and drawing helpers. `registry.js` is the single dispatch point for modular lyric renderers.
+## Other visual-effect modules
 
-## Instagram Lyrics
+- `dark-veil.js` — WebGL background effect
+- `effect-app-fx.js` — KEFE-native visual FX implementations
+- `presets.json` — reusable effect/preset configuration
+- `effect-app-public-catalog.json` — public effect catalog
+- `effect-selector.css` — effect selector presentation
 
-`instagram-lyrics.js` is the production replacement for the removed Stroke effect. It follows the shared KEFE typography contract and uses synced line timing from the application rather than maintaining a separate lyric-timing implementation.
+`renderer-registry.js` is the single dispatch point for lyric renderers. It must remain the only renderer ownership map; individual effect files provide implementations and do not create competing registries.
 
-The renderer is deliberately restrained: bold uppercase text, a dominant active line, quieter neighbouring lines, compact spacing, automatic width fitting and smooth handoff between lyric states. It does not use a stroke, outline, glow, typewriter cursor or destructive canvas compositing.
-
-The effect-specific controls and defaults are registered through `registry.js`, while reusable preset names are maintained in `presets.json`.
-
-The effect registry is intentionally separate from the DeepSeek development archive.
+The registry may contain renderers that are not part of the static editor button list because the guided lyric pathway can expose additional styles. The visible editor buttons are validated separately by `scripts/verify-effect-ui.js`.
