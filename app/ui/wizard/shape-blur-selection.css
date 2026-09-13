@@ -1,0 +1,27 @@
+/* KEFE — selected card uses the theme text colour (white/night, black/day)
+   instead of red. Stronger visual weight than the hover state. */
+
+body.wizard-mode .wizard-choices .wizard-choice.selected {
+  border-color: var(--text) !important;
+  background: var(--surface-2) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Kill any remaining red glow from earlier polish styles. */
+body.wizard-mode .wizard-choices .wizard-choice.selected,
+body.wizard-mode .wizard-choices .wizard-choice.selected:focus,
+body.wizard-mode .wizard-choices .wizard-choice.selected:focus-visible {
+  outline: none !important;
+}
+
+/* The icon border and glyph go to full contrast when selected. */
+body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-icon {
+  border-color: var(--text) !important;
+  color: var(--text) !important;
+}
+
+/* The bold title stays full-strength on the selected card. */
+body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-copy strong {
+  color: var(--text) !important;
+}

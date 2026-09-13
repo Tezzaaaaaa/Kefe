@@ -205,11 +205,12 @@
       gl.uniform2f(uMouse, dampedX, dampedY);
       gl.uniform2f(uResolution, canvas.width, canvas.height);
       gl.uniform1f(uPixelRatio, dpr);
+      var selected = card.classList.contains("selected");
       gl.uniform2f(uShapeSize, sizeX, sizeY);
       gl.uniform1f(uRoundness, 0.25);
-      gl.uniform1f(uBorderSize, 0.18);
-      gl.uniform1f(uCircleSize, 0.1);
-      gl.uniform1f(uCircleEdge, 0.8);
+      gl.uniform1f(uBorderSize, selected ? 0.30 : 0.18);
+      gl.uniform1f(uCircleSize, selected ? 100.0 : 0.1);
+      gl.uniform1f(uCircleEdge, selected ? 0.6 : 0.8);
 
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
