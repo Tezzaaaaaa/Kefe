@@ -221,9 +221,11 @@
       }
       gl.uniform2f(uShapeSize, sizeX, sizeY);
       gl.uniform1f(uRoundness, 0.25);
-      gl.uniform1f(uBorderSize, 0.18);
-      gl.uniform1f(uCircleSize, selected ? 0.42 : 0.1);
-      gl.uniform1f(uCircleEdge, 0.7);
+      // Selected border is much thicker and much brighter than the
+      // hover reveal — this is the primary visual cue that a card is active.
+      gl.uniform1f(uBorderSize, selected ? 0.62 : 0.18);
+      gl.uniform1f(uCircleSize, selected ? 1.15 : 0.1);
+      gl.uniform1f(uCircleEdge, selected ? 0.35 : 0.7);
 
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
