@@ -1,0 +1,139 @@
+/* KEFE — pathway card icons: brushed titanium with an indented press.
+   Silver gradient, subtle inner shadow, bright highlight along the top edge.
+   Adapts to day/night so it reads correctly in both themes. */
+
+body.wizard-mode .wizard-choices .wizard-choice-icon {
+  position: relative;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.10) 0%,
+      rgba(255,255,255,0.02) 26%,
+      rgba(0,0,0,0.14) 52%,
+      rgba(255,255,255,0.06) 78%,
+      rgba(0,0,0,0.16) 100%
+    ),
+    linear-gradient(
+      180deg,
+      #45454a 0%,
+      #5c5c63 42%,
+      #35353a 100%
+    ) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.28),
+    inset 0 -1px 0 rgba(0,0,0,0.55),
+    inset 0 0 10px rgba(0,0,0,0.45),
+    0 1px 0 rgba(255,255,255,0.04) !important;
+  color: #d8d8dc !important;
+}
+
+/* Rounded corner lighting — the top-left catches light, bottom-right
+   goes darker. Reads as a pressed metal surface. */
+body.wizard-mode .wizard-choices .wizard-choice-icon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    120% 120% at 18% 12%,
+    rgba(255,255,255,0.22) 0%,
+    rgba(255,255,255,0.05) 30%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+body.wizard-mode .wizard-choices .wizard-choice-icon svg {
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,0.55)) drop-shadow(0 -0.5px 0 rgba(255,255,255,0.18));
+  stroke: #d8d8dc;
+}
+
+/* Hover: metals get slightly brighter */
+body.wizard-mode .wizard-choices .wizard-choice:hover .wizard-choice-icon {
+  border-color: rgba(255,255,255,0.18) !important;
+  color: #eaeaee !important;
+}
+body.wizard-mode .wizard-choices .wizard-choice:hover .wizard-choice-icon svg {
+  stroke: #eaeaee;
+}
+
+/* Selected: full titanium strength */
+body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-icon {
+  border-color: rgba(255,255,255,0.24) !important;
+  color: #ffffff !important;
+}
+body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-icon svg {
+  stroke: #ffffff;
+}
+
+/* ---------- Day mode: pale titanium, same feel ---------- */
+html[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice-icon,
+html:not([data-theme="night"]) body.wizard-mode .wizard-choices .wizard-choice-icon:has(+ *) {
+  /* overridden below by media-query variant when system is light */
+}
+html[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice-icon {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.85) 0%,
+      rgba(255,255,255,0.55) 26%,
+      rgba(0,0,0,0.06) 52%,
+      rgba(255,255,255,0.60) 78%,
+      rgba(0,0,0,0.08) 100%
+    ),
+    linear-gradient(180deg, #e8e8ec 0%, #cfcfd4 42%, #b8b8bd 100%) !important;
+  border: 1px solid rgba(10,10,8,0.14) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.90),
+    inset 0 -1px 0 rgba(0,0,0,0.14),
+    inset 0 0 8px rgba(0,0,0,0.08) !important;
+  color: #3a3a3e !important;
+}
+html[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice-icon svg {
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,0.85)) drop-shadow(0 -0.5px 0 rgba(0,0,0,0.10));
+  stroke: #3a3a3e;
+}
+html[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice:hover .wizard-choice-icon {
+  color: #1a1a1e !important;
+  border-color: rgba(10,10,8,0.22) !important;
+}
+html[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice:hover .wizard-choice-icon svg {
+  stroke: #1a1a1e;
+}
+html[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-icon {
+  color: #000000 !important;
+  border-color: rgba(10,10,8,0.35) !important;
+}
+html[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-icon svg {
+  stroke: #000000;
+}
+
+/* System light without explicit day */
+@media (prefers-color-scheme: light) {
+  html:not([data-theme="night"]):not([data-theme="day"]) body.wizard-mode .wizard-choices .wizard-choice-icon {
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255,255,255,0.85) 0%,
+        rgba(255,255,255,0.55) 26%,
+        rgba(0,0,0,0.06) 52%,
+        rgba(255,255,255,0.60) 78%,
+        rgba(0,0,0,0.08) 100%
+      ),
+      linear-gradient(180deg, #e8e8ec 0%, #cfcfd4 42%, #b8b8bd 100%) !important;
+    border: 1px solid rgba(10,10,8,0.14) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.90),
+      inset 0 -1px 0 rgba(0,0,0,0.14),
+      inset 0 0 8px rgba(0,0,0,0.08) !important;
+    color: #3a3a3e !important;
+  }
+  html:not([data-theme="night"]):not([data-theme="day"]) body.wizard-mode .wizard-choices .wizard-choice-icon svg {
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.85));
+    stroke: #3a3a3e;
+  }
+}

@@ -206,11 +206,24 @@
       gl.uniform2f(uResolution, canvas.width, canvas.height);
       gl.uniform1f(uPixelRatio, dpr);
       var selected = card.classList.contains("selected");
+      // When selected, drive the reveal position along a slow orbit so the
+      // border visibly drifts — the user sees the card is active without
+      // the card itself moving.
+      if (selected) {
+        var nowSec = now / 1000;
+        var cssW = canvas.width / dpr;
+        var cssH = canvas.height / dpr;
+        var cx = cssW / 2, cy = cssH / 2;
+        var rx = cssW * 0.42;
+        var ry = cssH * 0.32;
+        dampedX = cx + Math.sin(nowSec * 0.65) * rx;
+        dampedY = cy + Math.cos(nowSec * 1.05) * ry;
+      }
       gl.uniform2f(uShapeSize, sizeX, sizeY);
       gl.uniform1f(uRoundness, 0.25);
-      gl.uniform1f(uBorderSize, selected ? 0.30 : 0.18);
-      gl.uniform1f(uCircleSize, selected ? 100.0 : 0.1);
-      gl.uniform1f(uCircleEdge, selected ? 0.6 : 0.8);
+      gl.uniform1f(uBorderSize, 0.18);
+      gl.uniform1f(uCircleSize, selected ? 0.42 : 0.1);
+      gl.uniform1f(uCircleEdge, 0.7);
 
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
