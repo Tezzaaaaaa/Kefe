@@ -1,4 +1,5 @@
-/* KEFE Visualiser — Typewriter lyric effect */
+/* KEFE Visualiser — Typewriter lyric effect.
+   Mechanical typing: key-press jitter, cursor, carriage return. */
 (() => {
   'use strict';
   const u = window.kefeEffectUtils;
@@ -10,24 +11,25 @@
   function trackedWidth(ctx, text, tracking) {
     const chars = Array.from(String(text));
     if (!chars.length) return 0;
-    return chars.reduce((sum, char) => sum + ctx.measureText(char).width, 0) + Math.max(0, chars.length - 1) * tracking;
+    return chars.reduce((sum, c) => sum + ctx.measureText(c).width, 0)
+      + Math.max(0, chars.length - 1) * tracking;
   }
 
-  function wrap(ctx, text, size, tracking, maxWidth) {
+  function wrap(ctx, text, tracking, maxWidth) {
     const words = String(text || '').trim().split(/\s+/).filter(Boolean);
     const rows = [];
     let row = '';
     let width = 0;
     const space = trackedWidth(ctx, ' ', tracking);
     for (const word of words) {
-      const wordWidth = trackedWidth(ctx, word, tracking);
-      const proposed = row ? width + space + wordWidth : wordWidth;
+      const ww = trackedWidth(ctx, word, tracking);
+      const proposed = row ? width + space + ww : ww;
       if (row && proposed > maxWidth) {
         rows.push({ text: row, width });
         row = word;
-        width = wordWidth;
+        width = ww;
       } else {
-        row = row ? `${row} ${word}` : word;
+        row = row ? row + ' ' + word : word;
         width = proposed;
       }
     }
@@ -39,12 +41,12 @@
     let size = Math.max(32, Math.min(140, Number(requested) || 76));
     while (size > 32) {
       u.setContractFont(ctx, 'typewriter', size);
-      const rows = wrap(ctx, text, size, tracking * size, maxWidth);
-      if (rows.length <= 2) return { size, rows };
+      const rows = wrap(ctx, text, tracking * size, maxWidth);
+      if (rows.length <= 3) return { size, rows };
       size -= 2;
     }
     u.setContractFont(ctx, 'typewriter', size);
-    return { size, rows: wrap(ctx, text, size, tracking * size, maxWidth) };
+    return { size, rows: wrap(ctx, text, tracking * size, maxWidth) };
   }
 
   window.kefeEffects.typewriter = function(ctx, w, h, style, lines, time) {
@@ -59,61 +61,90 @@
     const size = prepared.size;
     const rows = prepared.rows;
     const trackingPx = tracking * size;
-    const rowHeight = size * 1.12;
-    const totalHeight = rows.length * rowHeight;
-    const top = h * 0.50 - totalHeight / 2 + rowHeight / 2;
+    const rowHeight = size * 1.18;
+    const totalH = rows.length * rowHeight;
+    const topY = h * 0.50 - totalH / 2 + rowHeight / 2;
 
     const start = Number(active.line.time) || 0;
     const end = Math.max(start + 0.30, Number(active.line.endTime) || start + 3);
     const duration = end - start;
     const chars = Array.from(text);
-    const revealDuration = Math.min(Math.max(0.72, duration * 0.76), Math.max(0.72, duration - 0.10));
+
+    // Reveal in 60% of the line's duration — the reader gets the rest to read.
+    const revealDuration = Math.max(0.32, Math.min(1.45, duration * 0.60));
     const progress = clamp((time - start) / revealDuration);
     const revealCount = Math.min(chars.length, Math.floor(smooth(progress) * chars.length + 0.999));
+
+    const colour = style.textColor || '#FFFFFF';
+    const msSinceType = ((time - start) * 1000) % 90;
+    const keyJitter = 1.6 * (1 - clamp(msSinceType / 90));
 
     ctx.save();
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = style.textColor || '#FFFFFF';
-    ctx.globalAlpha = 1;
+    ctx.fillStyle = colour;
     u.setContractFont(ctx, 'typewriter', size);
 
     let remaining = revealCount;
-    let caret = null;
+    let cursorPos = null;
 
-    for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-      const row = rows[rowIndex];
+    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+      const row = rows[rowIdx];
       const rowChars = Array.from(row.text);
       const shownCount = Math.max(0, Math.min(rowChars.length, remaining));
       const shown = rowChars.slice(0, shownCount).join('');
       const x = (w - row.width) / 2;
-      const y = top + rowIndex * rowHeight;
+      const y = topY + rowIdx * rowHeight;
+
+      // The whole row's eventual text at very low opacity — the ghost
+      // impression of the paper waiting for the carriage.
+      ctx.globalAlpha = 0.10;
+      u.drawTrackedText(ctx, row.text, x, y, trackingPx, 'fillText');
+
+      // Typed characters, fully opaque.
+      ctx.globalAlpha = 1;
+      const shownWidth = trackedWidth(ctx, shown, trackingPx);
       if (shown) u.drawTrackedText(ctx, shown, x, y, trackingPx, 'fillText');
 
-      if (time >= start && time < end && rowIndex === rows.length - 1) {
-        caret = { x: x + trackedWidth(ctx, shown, trackingPx), y };
+      // Key-press nudge on the character just typed.
+      if (shown.length > 0 && remaining > 0 && remaining <= rowChars.length) {
+        const lastChar = shown[shown.length - 1];
+        const lastCharWidth = ctx.measureText(lastChar).width;
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        ctx.translate(0, -keyJitter);
+        u.drawTrackedText(
+          ctx,
+          lastChar,
+          x + shownWidth - lastCharWidth - trackingPx,
+          y,
+          trackingPx,
+          'fillText'
+        );
+        ctx.restore();
+      }
+
+      // Cursor: follows the typing head, blinks on a slow cycle.
+      if (time >= start && time < end && shownCount < rowChars.length && remaining > 0) {
+        const blinkPhase = ((time - start) % 0.72);
+        const blink = blinkPhase < 0.58 ? 1 : 0.2;
+        cursorPos = { x: x + shownWidth + size * 0.02, y, blink };
       }
 
       remaining = Math.max(0, remaining - rowChars.length);
     }
 
-    if (caret) {
-      const blink = 0.58 + 0.42 * (0.5 + 0.5 * Math.sin((time - start) * Math.PI * 5.0));
+    if (cursorPos) {
       ctx.save();
-      ctx.globalAlpha = blink;
-      ctx.fillRect(Math.round(caret.x + size * 0.025), caret.y - size * 0.42, Math.max(1.5, size * 0.014), size * 0.84);
+      ctx.globalAlpha = cursorPos.blink;
+      ctx.fillStyle = colour;
+      ctx.fillRect(
+        Math.round(cursorPos.x),
+        cursorPos.y - size * 0.44,
+        Math.max(2, size * 0.018),
+        size * 0.88
+      );
       ctx.restore();
-    }
-
-    if (active.next && time >= Number(active.next.time) - 0.12 && time < Number(active.next.time)) {
-      const incoming = smooth((time - (Number(active.next.time) - 0.12)) / 0.12);
-      const nextText = String(active.next.text || '').trim();
-      if (nextText) {
-        const nextFit = fit(ctx, nextText, size * 0.72, tracking, w * 0.72);
-        ctx.globalAlpha = incoming * 0.10;
-        u.setContractFont(ctx, 'typewriter', nextFit.size);
-        u.drawTrackedText(ctx, nextFit.text || nextText, w / 2, h * 0.50 + totalHeight * 0.62, tracking * nextFit.size, 'fillText');
-      }
     }
 
     ctx.restore();

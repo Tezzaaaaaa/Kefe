@@ -1,4 +1,10 @@
-/* KEFE Visualiser — Instagram Lyrics effect */
+/* KEFE Visualiser — Instagram Story lyric sticker.
+   - Heavy condensed uppercase type
+   - Each line's font size adapts to fit the column (short lines go huge)
+   - Left-aligned within a centred rectangular block
+   - Word-by-word colour fade as sung (smooth ~220ms per word)
+   - Block is bounded by a rectangular area so it doesn't fill the frame
+   Supports line-level and word-level LRC timing. */
 (() => {
   'use strict';
   const u = window.kefeEffectUtils;
@@ -6,100 +12,160 @@
 
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, Number(v) || 0));
   const smooth = v => { const t = clamp(v); return t * t * (3 - 2 * t); };
+  const smoother = v => { const t = clamp(v); return t * t * t * (t * (t * 6 - 15) + 10); };
 
-  function trackedWidth(ctx, text, tracking) {
-    const chars = Array.from(String(text));
-    if (!chars.length) return 0;
-    return chars.reduce((sum, char) => sum + ctx.measureText(char).width, 0) + Math.max(0, chars.length - 1) * tracking;
+  // The bounding rectangle of the lyric block, as fractions of the frame.
+  // Anything outside this box is off-limits — the effect never spills over.
+  const BOX = { x: 0.16, y: 0.12, w: 0.68, h: 0.76 };  // narrow vertical column
+
+  function boxRect(w, h) {
+    return {
+      left:   Math.round(w * BOX.x),
+      top:    Math.round(h * BOX.y),
+      width:  Math.round(w * BOX.w),
+      height: Math.round(h * BOX.h)
+    };
   }
 
-  function prepare(ctx, text, requested, tracking, maxWidth) {
-    let size = Math.max(46, Math.min(150, Number(requested) || 88));
+  // Heavy condensed face; user override via style.instagramFontFamily.
+  function setInstagramFont(ctx, size, weight) {
+    const family = '"Inter Tight", "Helvetica Neue Condensed", "Arial Narrow", Impact, sans-serif';
+    ctx.font = `${weight || 900} ${Math.max(20, size)}px ${family}`;
+  }
+
+  // Fit one line so its width fills the column — the signature Instagram move.
+  function sizeForLine(ctx, text, columnW, maxSize, minSize) {
     const upper = String(text || '').trim().toUpperCase();
-    while (size > 46) {
-      u.setContractFont(ctx, 'instagram', size);
-      if (trackedWidth(ctx, upper, tracking * size) <= maxWidth) break;
-      size -= 2;
-    }
-    u.setContractFont(ctx, 'instagram', size);
-    return { text: upper, size, width: trackedWidth(ctx, upper, tracking * size) };
+    if (!upper) return minSize;
+    setInstagramFont(ctx, 100, 900);
+    const baseWidth = ctx.measureText(upper).width;
+    if (!baseWidth) return minSize;
+    let target = Math.floor((columnW / baseWidth) * 100);
+    if (target > maxSize) target = maxSize;
+    if (target < minSize) target = minSize;
+    return target;
   }
 
-  function drawItem(ctx, item, x, y, alpha, scale, tracking, colour) {
-    if (!item || alpha <= 0.001) return;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.fillStyle = colour;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    u.setContractFont(ctx, 'instagram', item.size);
-    ctx.translate(x, y);
-    ctx.scale(scale, scale);
-    u.drawTrackedText(ctx, item.text, 0, 0, tracking * item.size, 'fillText');
-    ctx.restore();
+  function wordTimings(line) {
+    const text = String(line.text || '').trim();
+    const tokens = text.split(/\s+/).filter(Boolean);
+    if (!tokens.length) return [];
+    if (Array.isArray(line.words) && line.words.length === tokens.length) {
+      return line.words.map((w, i) => ({
+        text: tokens[i],
+        start: Number(w.time) || 0,
+        end: Number(w.endTime) || Number(w.time) + 0.5
+      }));
+    }
+    const start = Number(line.time) || 0;
+    const next = Number(line.nextLineTime);
+    const end = Number.isFinite(Number(line.endTime))
+      ? Number(line.endTime)
+      : (Number.isFinite(next) ? next : start + 3);
+    const span = Math.max(0.4, end - start);
+    const per = span / tokens.length;
+    return tokens.map((t, i) => ({
+      text: t,
+      start: start + i * per,
+      end: start + (i + 1) * per
+    }));
   }
 
   window.kefeEffects.instagram = function(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length || !Number.isFinite(time)) return;
     const active = u.activeLine(lines, time);
-    if (!active) return;
+    if (!active || !active.line) return;
 
-    const baseSize = Number(style.instagramFontSize ?? style.fontSize) || 88;
-    const activeScale = Number(style.instagramActiveScale) || 1.14;
-    const inactiveScale = Number(style.instagramInactiveScale) || 0.74;
-    const inactiveOpacity = Number(style.instagramInactiveOpacity) || 0.28;
-    const transition = clamp(Number(style.instagramTransition) || 0.18, 0.10, 0.40);
-    const y = h * clamp(Number(style.instagramY) || 0.50, 0.30, 0.70);
-    const maxWidth = w * clamp(Number(style.instagramMaxWidth) || 0.86, 0.62, 0.92);
-    const tracking = Number.isFinite(Number(style.instagramTracking)) ? Number(style.instagramTracking) : -0.035;
-    const colour = style.instagramTextColor || '#FFFFFF';
+    const rect = boxRect(w, h);
+    const columnW = rect.width;
+    const leftX = rect.left;
 
-    const current = prepare(ctx, active.line.text, baseSize, tracking, maxWidth);
-    if (!current.text) return;
+    const userMax = Number(style.instagramFontSize ?? style.fontSize);
+    const maxSize = (Number.isFinite(userMax) && userMax > 0 ? userMax : 96) * 1.85;
+    const minSize = 30;
+    const gap = 0.02;
 
-    const lineGap = Math.max(14, current.size * 0.16);
-    const previous = [];
-    const next = [];
-    for (let i = 1; i <= 2; i++) {
-      if (active.index - i >= 0) previous.unshift(prepare(ctx, lines[active.index - i]?.text, baseSize * inactiveScale, tracking, maxWidth));
-      if (active.index + i < lines.length) next.push(prepare(ctx, lines[active.index + i]?.text, baseSize * inactiveScale, tracking, maxWidth));
+    // Visible lines: one before, current, and enough after to fill the box.
+    const before = 1;
+    const after = 8;
+    const entries = [];
+    for (let i = Math.max(0, active.index - before); i <= active.index + after && i < lines.length; i++) {
+      if (!lines[i]) continue;
+      entries.push({ line: lines[i], index: i });
+    }
+    if (!entries.length) return;
+
+    // Build rows with per-line size + measured widths.
+    const rows = [];
+    for (const entry of entries) {
+      const upperText = String(entry.line.text || '').trim().toUpperCase();
+      if (!upperText) continue;
+      const size = sizeForLine(ctx, upperText, columnW, maxSize, minSize);
+      const rowHeight = size * (1 + gap);
+      const words = wordTimings(entry.line).map(w => ({ ...w, upper: w.text.toUpperCase() }));
+      setInstagramFont(ctx, size, 900);
+      const widths = words.map(wd => ctx.measureText(wd.upper).width);
+      const space = ctx.measureText(' ').width;
+      const rowWidth = widths.reduce((a, b) => a + b, 0) + space * Math.max(0, widths.length - 1);
+      rows.push({ lineIndex: entry.index, size, rowHeight, words, widths, space, rowWidth });
+    }
+    if (!rows.length) return;
+
+    // If the total height exceeds the box, scroll so the active row is visible
+    // but never draw outside the box. We clip in that case.
+    const totalH = rows.reduce((s, r) => s + r.rowHeight, 0);
+    const activeRowIdx = Math.max(0, rows.findIndex(r => r.lineIndex === active.index));
+    let offsetY;
+    if (totalH <= rect.height) {
+      // Fits — anchor at top of the box.
+      offsetY = rect.top;
+    } else {
+      // Scroll so active row is around 35% down the box.
+      const rowsAbove = rows.slice(0, activeRowIdx).reduce((s, r) => s + r.rowHeight, 0);
+      const desired = rect.top + rect.height * 0.35 - rowsAbove;
+      const minY = rect.top - (totalH - rect.height);
+      offsetY = clamp(desired, minY, rect.top);
     }
 
-    const stack = [
-      ...previous.map((item, i) => ({ item, distance: -(previous.length - i) })),
-      { item: current, distance: 0 },
-      ...next.map((item, i) => ({ item, distance: i + 1 }))
-    ];
-
-    const nextStart = Number(lines[active.index + 1]?.time);
-    const incoming = Number.isFinite(nextStart) ? smooth((time - (nextStart - transition)) / transition) : 0;
+    const primary = style.instagramTextColor || '#FFFFFF';
+    const mutedAlpha = 0.32;
+    // Word fade duration. Instagram uses a soft crossfade rather than a
+    // hard switch — 220ms reads as a smooth glow-in, not a pop.
+    const FADE = 0.22;
 
     ctx.save();
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.shadowBlur = 0;
-    ctx.filter = 'none';
+    // Clip to the box so scrolling rows never spill outside.
+    ctx.beginPath();
+    ctx.rect(rect.left, rect.top, rect.width, rect.height);
+    ctx.clip();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
 
-    const pitch = current.size * 0.72 + lineGap;
-    for (const entry of stack) {
-      const distance = entry.distance;
-      const item = entry.item;
-      if (!item) continue;
+    let y = offsetY;
+    for (const row of rows) {
+      const baseline = y + row.size * 0.86;
+      let x = leftX;
+      setInstagramFont(ctx, row.size, 900);
+      ctx.shadowColor = 'rgba(0,0,0,0.38)';
+      ctx.shadowBlur = row.size * 0.08;
+      ctx.shadowOffsetY = Math.max(1, row.size * 0.01);
 
-      let offsetY = distance * pitch;
-      let alpha = distance === 0 ? 1 : inactiveOpacity / (Math.abs(distance) === 1 ? 1 : 1.18);
-      let scale = distance === 0 ? activeScale : 1;
+      for (let wi = 0; wi < row.words.length; wi++) {
+        const word = row.words[wi];
+        const sinceStart = time - word.start;
+        let t;
+        if (sinceStart <= 0) t = 0;
+        else if (sinceStart >= FADE) t = 1;
+        else t = smoother(sinceStart / FADE);
 
-      if (distance === 0) {
-        offsetY -= incoming * pitch * 0.82;
-        scale = activeScale * (1 - incoming * 0.08);
-        alpha = 1 - incoming * 0.16;
-      } else if (distance === 1) {
-        offsetY -= incoming * pitch;
-        scale = 1 + incoming * (activeScale - 1) * 0.82;
-        alpha = inactiveOpacity + incoming * (0.82 - inactiveOpacity);
+        ctx.globalAlpha = mutedAlpha + (1 - mutedAlpha) * t;
+        ctx.fillStyle = primary;
+        setInstagramFont(ctx, row.size, 900);
+        ctx.fillText(word.upper, x, baseline);
+        x += row.widths[wi] + row.space;
       }
 
-      drawItem(ctx, item, w / 2, y + offsetY, alpha, scale, tracking, colour);
+      y += row.rowHeight;
     }
 
     ctx.restore();
