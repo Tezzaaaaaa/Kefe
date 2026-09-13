@@ -300,8 +300,62 @@
         label: 'KEFE Auto — best available',
         async transcribe(ctx) {
             const { onStatus, onProgress, audio, options } = ctx;
-            const attempts = ['server', 'local-whisper'];
             const errors = [];
+
+            // --- 1. Lyrics lookup for music ---
+            // Whisper garbles sung vocals. For a song, an official lyrics
+            // database is the correct source of timed text.
+            const meta = (window.state && window.state.audio && window.state.audio.metadata) || {};
+            const title = String(meta.title || '').trim();
+            const artist = String(meta.artist || '').trim();
+            const album = String(meta.album || '').trim();
+            if ((title || artist) && window.kefeAnalysis && typeof window.kefeAnalysis.findSyncedLyrics === 'function') {
+                try {
+                    onStatus('Looking for official synced lyrics...');
+                    onProgress(10);
+                    const match = await window.kefeAnalysis.findSyncedLyrics({
+                        artist: artist,
+                        title: title,
+                        album: album,
+                        duration: Number((audio && audio.duration) || 0)
+                    });
+                    if (match && match.syncedLyrics) {
+                        const rows = [];
+                        const TIME = /\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]/g;
+                        String(match.syncedLyrics).split(/\r?\n/).forEach(function(raw){
+                            const tags = Array.from(raw.matchAll(TIME));
+                            const text = raw.replace(/\[[^\]]+\]/g, '').trim();
+                            if (!tags.length || !text) return;
+                            tags.forEach(function(tag){
+                                const frac = tag[3] ? Number('0.' + String(tag[3]).padEnd(3, '0')) : 0;
+                                rows.push({ time: Number(tag[1]) * 60 + Number(tag[2]) + frac, text: text });
+                            });
+                        });
+                        rows.sort(function(a,b){ return a.time - b.time; });
+                        if (rows.length) {
+                            const segments = rows.map(function(row, i){
+                                return {
+                                    text: row.text,
+                                    start: row.time,
+                                    end: rows[i + 1] ? rows[i + 1].time : row.time + 3
+                                };
+                            });
+                            onProgress(95);
+                            return { segments: segments, engine: 'lrclib' };
+                        }
+                    }
+                    errors.push('No synced lyrics found for "' + (artist ? artist + ' - ' : '') + title + '"');
+                } catch (e) {
+                    errors.push('Lyrics lookup: ' + ((e && e.message) || e));
+                }
+            } else {
+                errors.push('No song title or artist to look up');
+            }
+
+            // --- 2. Speech recognition fallback for spoken word ---
+
+            const attempts = ['server', 'local-whisper'];
+
             for (const id of attempts) {
                 const provider = registry.providers.get(id);
                 if (!provider) continue;
