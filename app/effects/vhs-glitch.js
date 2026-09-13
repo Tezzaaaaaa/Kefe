@@ -1,5 +1,5 @@
 /* KEFE Visualiser — VHS Glitch lyric effect.
-   Retro CRT/VHS misтrack look: bold red monospace caps with a cyan/red
+   Retro CRT/VHS mistrack look: bold red monospace caps with a cyan/red
    channel split, occasional horizontal tear bands, and faint scanline
    streaks across the frame. Settles into a clean read within its first
    ~0.3s, then glitches only occasionally so the lyric stays legible. */
@@ -9,9 +9,6 @@
   window.kefeEffects = window.kefeEffects || {};
 
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, Number(v) || 0));
-  // Deterministic per-frame pseudo-random: same (seed, n) always gives the
-  // same value, so glitch pattern is stable within a rendered frame but
-  // still reads as noisy from frame to frame.
   const rand = (n, seed) => { const x = Math.sin(n * 12.9898 + seed * 78.233) * 43758.5453; return x - Math.floor(x); };
 
   function wrap(ctx, text, maxWidth) {
@@ -114,9 +111,11 @@
   };
 })();
 
-// index.html loads this file immediately before app.js. Load the canonical
-// registry synchronously at that parser position so every native effect is
-// captured before app startup, without duplicating registry logic here.
+// This file is the final effect module loaded before app.js. Keep the parser-time
+// bootstrap here so the canonical registry is created only after every modular
+// lyric renderer has registered itself.
 if (!window.kefeRendererRegistry && document.readyState === 'loading') {
+  document.write('<script src="./app/effects/motion.js"><\\/script>');
+  document.write('<script src="./app/effects/scroll-lines.js"><\\/script>');
   document.write('<script src="./app/effects/renderer-registry.js"><\\/script>');
 }
