@@ -26,15 +26,23 @@
     if (!chars.length) return 0;
     return chars.reduce((sum, char) => sum + ctx.measureText(char).width, 0) + Math.max(0, chars.length - 1) * tracking;
   };
+  const __scrollFitCache = new Map();
   const fitText = (ctx, text, requested, tracking, maxWidth, family) => {
+    const key = (text || '') + '|' + (requested || 0) + '|' + (tracking || 0) + '|' + (maxWidth | 0) + '|' + (family || '');
+    const hit = __scrollFitCache.get(key);
+    if (hit) return hit;
     let size = Math.max(28, Math.min(150, Number(requested) || 76));
     setFont(ctx, family, size);
     while (size > 28 && trackedWidth(ctx, text, tracking * size) > maxWidth) {
       size -= 1;
       setFont(ctx, family, size);
     }
-    return { size, width: trackedWidth(ctx, text, tracking * size) };
+    const result = { size, width: trackedWidth(ctx, text, tracking * size) };
+    if (__scrollFitCache.size > 800) __scrollFitCache.clear();
+    __scrollFitCache.set(key, result);
+    return result;
   };
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => __scrollFitCache.clear());;
 
   function drawTracked(ctx, text, x, y, tracking) {
     u.drawTrackedText(ctx, text, x, y, tracking, 'fillText');
@@ -97,7 +105,7 @@
       ctx.globalAlpha = alpha;
       ctx.fillStyle = activeLine ? colour : accent;
       ctx.shadowColor = activeLine ? accent : 'transparent';
-      ctx.shadowBlur = activeLine ? item.size * .018 : 0;
+      ctx.shadowBlur = 0;
       setFont(ctx, family, item.size, 700);
       ctx.translate(x + item.width / 2, y);
       ctx.scale(scale, scale);
@@ -117,7 +125,7 @@
       ctx.save();
       ctx.globalAlpha = opacity * .08;
       ctx.fillStyle = accent;
-      ctx.filter = `blur(${Math.max(2, prepared.size * .035)}px)`;
+      ctx.filter = 'none';
       setFont(ctx, family, prepared.size, 700);
       ctx.textAlign = 'center';
       drawTracked(ctx, activeText, w / 2, centerY, tracking * prepared.size);
@@ -130,24 +138,7 @@
 
   function install() { window.__kefeScrollLinesInstalled = true; return true; }
 
-  function addButton() {
-    const host = document.querySelector('#lyricStyleBlock .effect-buttons');
-    if (!host || host.querySelector('[data-effect="scrolllines"]')) return;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'segmented-btn';
-    button.dataset.effect = 'scrolllines';
-    button.textContent = 'Scroll Lines';
-    button.title = 'Scroll Lines — editorial multi-line horizontal lyric motion';
-    button.addEventListener('click', () => {
-      if (typeof window.setEffect === 'function') window.setEffect('scrolllines');
-      const label = document.getElementById('effectLabel');
-      if (label) label.textContent = 'Scroll Lines — editorial multi-line horizontal lyric motion';
-      document.querySelectorAll('[data-effect]').forEach(b => b.classList.toggle('active-effect', b.dataset.effect === 'scrolllines'));
-      window.redrawCurrentPreviewFrame?.();
-    });
-    host.appendChild(button);
-  }
+  function addButton(){ /* buttons owned by app/effects/effects.js */ }
 
   function init() {
     install();

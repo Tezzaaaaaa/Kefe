@@ -1050,9 +1050,11 @@ function drawVideoBackgroundStable(ctx, video, w, h, blur) {
     const valid = video && video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0 && !video.seeking;
     if (valid) {
         drawCover(ctx, video, w, h, blur);
-        lastVideoFrameCtx.clearRect(0, 0, w, h);
-        drawCover(lastVideoFrameCtx, video, w, h, blur);
-        hasLastVideoFrame = true;
+        if (video.paused || video.seeking || !hasLastVideoFrame) {
+            lastVideoFrameCtx.clearRect(0, 0, w, h);
+            drawCover(lastVideoFrameCtx, video, w, h, blur);
+            hasLastVideoFrame = true;
+        }
         return;
     }
     if (hasLastVideoFrame) { ctx.drawImage(lastVideoFrame, 0, 0, w, h); return; }
