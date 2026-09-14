@@ -1,12 +1,7 @@
 /* KEFE — selected card uses the theme text colour (white/night, black/day)
    instead of red. Stronger visual weight than the hover state. */
 
-body.wizard-mode .wizard-choices .wizard-choice.selected {
-  border-color: var(--text) !important;
-  background: var(--surface-2) !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
+/* superseded by the final fill rule */
 
 /* Kill any remaining red glow from earlier polish styles. */
 body.wizard-mode .wizard-choices .wizard-choice.selected,
@@ -24,4 +19,139 @@ body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-icon {
 /* The bold title stays full-strength on the selected card. */
 body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-copy strong {
   color: var(--text) !important;
+}
+
+
+/* ---------------------------------------------------------------------
+   intro-cleanup: the pathway cards sit on a clean neutral surface.
+   The Dark Veil intro background was bleeding red into the sidebar and
+   tinting every card maroon. Disable it. Also drop the red kicker rule
+   and the red tick so the only red on screen is the brand logo.
+   --------------------------------------------------------------------- */
+
+/* 1. Kill the Dark Veil WebGL canvas entirely. */
+.wizard-dark-veil,
+.kefe-dark-veil {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* 2. Sidebar surface for the intro step is flat and neutral. */
+body.wizard-mode[data-wizard-step="intro"] .sidebar {
+  background: var(--surface) !important;
+}
+
+/* 3. Kicker line under "01 · START" — neutral, not red. */
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel-kicker {
+  color: var(--text-3) !important;
+}
+
+/* 4. Remove the decorative red tick at the top of the panel. */
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* 5. The card surface itself should be the neutral dark surface, not a
+      tinted one — the red glow underneath was making it look maroon. */
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice {
+  background: var(--surface) !important;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice:hover {
+  background: var(--surface-2) !important;
+}
+
+
+/* ---------------------------------------------------------------------
+   selected-card fill: the inside of a selected pathway card goes to full
+   text-colour (white on night, black on day) and the text inverts to the
+   page background colour, so the card reads as a solid block.
+   --------------------------------------------------------------------- */
+
+body.wizard-mode .wizard-choices .wizard-choice.selected {
+  background: var(--text) !important;
+  border-color: var(--text) !important;
+  color: var(--bg) !important;
+}
+
+/* Title: invert against the filled surface */
+body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-copy strong {
+  color: var(--bg) !important;
+}
+
+/* Hint text: slightly muted so it reads as secondary, still on the fill */
+body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-copy span {
+  color: var(--bg) !important;
+  opacity: 0.72;
+}
+
+/* Icon tile inverts too: dark tile, bright glyph */
+body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-icon {
+  background: var(--bg) !important;
+  border-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-icon svg {
+  stroke: var(--text) !important;
+  filter: none !important;
+}
+
+/* Kill the inner radial highlight — we don't want a glossy tile on a
+   filled card, it fights with the solid look. */
+body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-icon::before {
+  display: none !important;
+}
+
+
+/* Final selected card fill. Double .selected gives it enough
+   specificity to beat every earlier rule. */
+body.wizard-mode .wizard-choices .wizard-choice.selected.selected {
+  background-color: var(--text) !important;
+  background-image: none !important;
+  border-color: var(--text) !important;
+  color: var(--bg) !important;
+}
+body.wizard-mode .wizard-choices .wizard-choice.selected.selected .wizard-choice-copy strong {
+  color: var(--bg) !important;
+}
+body.wizard-mode .wizard-choices .wizard-choice.selected.selected .wizard-choice-copy span {
+  color: var(--bg) !important;
+  opacity: 0.72;
+}
+body.wizard-mode .wizard-choices .wizard-choice.selected.selected .wizard-choice-icon {
+  background: var(--bg) !important;
+  border-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+body.wizard-mode .wizard-choices .wizard-choice.selected.selected .wizard-choice-icon svg {
+  stroke: var(--text) !important;
+}
+body.wizard-mode .wizard-choices .wizard-choice.selected.selected .wizard-choice-icon::before {
+  display: none !important;
+}
+
+/* ---------------------------------------------------------------------
+   Remove the decorative red stripe from pathway cards only.
+   Back / Next / other accent elements keep their red.
+   --------------------------------------------------------------------- */
+
+/* Kill the left vertical red stripe that appears on hover / selected */
+body.wizard-mode .wizard-choices .wizard-choice::before,
+body.wizard-mode .wizard-choices .wizard-choice:hover::before,
+body.wizard-mode .wizard-choices .wizard-choice.selected::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+/* Kill the top-right red tick if it exists */
+body.wizard-mode .wizard-choices .wizard-choice::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* The selected card's icon goes dark — but no red outline */
+body.wizard-mode .wizard-choices .wizard-choice.selected.selected .wizard-choice-icon {
+  border-color: var(--bg) !important;
+  outline: none !important;
 }

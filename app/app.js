@@ -1464,12 +1464,23 @@ function render(ctx, w, h, appState, mediaCache) {
             const unit = Math.min(w, h);
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = 'rgba(255,255,255,0.82)';
-            ctx.font = `800 ${Math.max(34, unit * 0.095)}px "Open Sans", Arial, sans-serif`;
-            ctx.fillText('KEFE', w / 2, h / 2 - unit * 0.035);
-            ctx.fillStyle = 'rgba(255,255,255,0.38)';
-            ctx.font = `600 ${Math.max(12, unit * 0.022)}px "Open Sans", Arial, sans-serif`;
-            ctx.fillText('ADD AUDIO, THEN LYRICS OR CAPTIONS', w / 2, h / 2 + unit * 0.055);
+
+            // Restrained placeholder: wordmark and a single line of guidance.
+            const markSize = Math.max(36, unit * 0.088);
+            const tagSize  = Math.max(11, unit * 0.020);
+            const markY = h / 2 - unit * 0.008;
+            const tagY  = markY + markSize * 0.92;
+
+            ctx.fillStyle = 'rgba(255,255,255,0.94)';
+            ctx.font = `800 ${markSize}px "Inter Tight","Open Sans",Arial,sans-serif`;
+            ctx.fillText('KEFE', w / 2, markY);
+
+            ctx.fillStyle = 'rgba(255,255,255,0.42)';
+            ctx.font = `500 ${tagSize}px "Inter Tight","Open Sans",Arial,sans-serif`;
+            // letterSpacing is supported on modern Chrome/FF.
+            if ('letterSpacing' in ctx) ctx.letterSpacing = `${tagSize * 0.18}px`;
+            ctx.fillText('ADD AUDIO, THEN LYRICS OR CAPTIONS', w / 2, tagY);
+            if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
             return;
         }
         const time = Number.isFinite(appState.playback.currentTime) ? appState.playback.currentTime : 0;

@@ -1,0 +1,274 @@
+/* KEFE — one place that sets the sizes, radii, and spacing the whole UI
+   commits to. Buttons, inputs, selects, cards, icons, panels — everything
+   reads from these values so nothing drifts out of scale with anything
+   else. */
+
+:root {
+  /* Heights */
+  --h-control:    40px;   /* standard button, input, select */
+  --h-control-sm: 32px;   /* compact buttons, e.g. effect tiles' compact rows */
+  --h-toolbar:    58px;   /* preview toolbar */
+  --h-header:     62px;   /* page header */
+
+  /* Radii */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 12px;
+  --r-pill: 999px;
+
+  /* Icon sizing */
+  --icon-xs: 14px;
+  --icon-sm: 16px;
+  --icon-md: 18px;
+  --icon-tile: 34px;
+
+  /* Spacing (4px base grid) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+
+  /* Typography — matches typography.css, repeated here so this file is
+     self-contained if loaded alone. */
+  --font-ui: "Inter Tight", "Open Sans", Arial, sans-serif;
+
+  /* Transitions */
+  --ease: cubic-bezier(.2,.72,.2,1);
+  --dur-fast: .14s;
+  --dur: .18s;
+}
+
+/* ---------------------------------------------------------------------
+   Buttons — uniform height, radius, padding, icon size.
+   --------------------------------------------------------------------- */
+button,
+button.primary,
+button.ghost,
+button.file-button,
+.icon-button {
+  height: var(--h-control);
+  min-height: var(--h-control);
+  padding: 0 var(--s-4);
+  border-radius: var(--r-md);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1;
+  transition: background var(--dur) var(--ease),
+              border-color var(--dur) var(--ease),
+              color var(--dur) var(--ease);
+}
+
+button.icon-button {
+  width: var(--h-control);
+  padding: 0;
+}
+
+button svg {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  flex: 0 0 var(--icon-sm);
+}
+
+button.file-button {
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------------
+   Inputs, selects, textareas
+   --------------------------------------------------------------------- */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  height: var(--h-control);
+  padding: 0 var(--s-3);
+  border-radius: var(--r-md);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+textarea {
+  height: auto;
+  padding: var(--s-3);
+  line-height: 1.5;
+}
+
+input[type="color"] {
+  height: var(--h-control);
+  width: var(--h-control);
+  padding: 2px;
+  border-radius: var(--r-sm);
+}
+
+input[type="range"] {
+  height: var(--h-control);
+  accent-color: var(--red);
+}
+
+/* ---------------------------------------------------------------------
+   Header — lock to a consistent height and rhythm.
+   --------------------------------------------------------------------- */
+header {
+  min-height: var(--h-header);
+  padding: var(--s-3) var(--s-6);
+  gap: var(--s-4);
+}
+
+.header-actions {
+  gap: var(--s-2);
+}
+
+/* ---------------------------------------------------------------------
+   Preview toolbar — same height, same gap, same divider.
+   --------------------------------------------------------------------- */
+.preview-toolbar {
+  min-height: var(--h-toolbar);
+  padding: 10px var(--s-6);
+  gap: var(--s-4);
+}
+
+.preview-heading {
+  gap: var(--s-2);
+}
+
+.transport {
+  gap: var(--s-2);
+}
+
+.transport .play-button,
+.transport .icon-button {
+  width: var(--h-control);
+  height: var(--h-control);
+  min-width: var(--h-control);
+  border-radius: var(--r-md);
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------------
+   Sidebar sections — one padding, one gap.
+   --------------------------------------------------------------------- */
+.sidebar > .section {
+  padding: var(--s-4) var(--s-4) var(--s-5);
+}
+
+.sidebar > .section > * {
+  margin-bottom: var(--s-4);
+}
+.sidebar > .section > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Section headings match everywhere. */
+.sidebar > .section > h3 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin: 0 0 var(--s-3);
+}
+
+/* ---------------------------------------------------------------------
+   Section navigation — uniform tab sizes, radii, gap.
+   --------------------------------------------------------------------- */
+.section-nav {
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--r-md);
+}
+
+.section-nav-link {
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: calc(var(--r-md) - 2px);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------
+   Effect tiles and background swatches — one consistent card shape.
+   --------------------------------------------------------------------- */
+#lyricStyleBlock .effect-buttons,
+#backgroundSection .background-choice-grid {
+  gap: var(--s-2);
+}
+
+#lyricStyleBlock .effect-buttons > button,
+#backgroundSection .background-choice {
+  border-radius: var(--r-md);
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 64px;
+}
+
+#backgroundSection .background-choice-preview {
+  height: 52px;
+  border-radius: var(--r-sm);
+}
+
+/* ---------------------------------------------------------------------
+   Preview canvas — one radius, one shadow, one outline.
+   --------------------------------------------------------------------- */
+.canvas-wrapper canvas,
+.canvas-wrapper #stageCanvas {
+  border-radius: var(--r-lg);
+  box-shadow:
+    0 12px 40px rgba(0,0,0,0.28),
+    0 1px 2px rgba(0,0,0,0.16);
+  outline: 1px solid rgba(255,255,255,0.06);
+  outline-offset: -1px;
+}
+
+.canvas-wrapper {
+  padding: clamp(24px, 3.5vw, 44px);
+}
+
+/* ---------------------------------------------------------------------
+   Modal chrome — consistent radii, padding, and headers.
+   --------------------------------------------------------------------- */
+.modal .modal-content {
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.modal .modal-header,
+.modal .modal-footer {
+  padding: var(--s-4) var(--s-5);
+}
+
+.modal .modal-body {
+  padding: var(--s-4) var(--s-5) var(--s-5);
+}
+
+.modal .close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+}
+
+/* ---------------------------------------------------------------------
+   Toast — pinned bottom-right with a consistent radius, shadow, padding.
+   --------------------------------------------------------------------- */
+.toast {
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-md);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------
+   Status pills — same size everywhere.
+   --------------------------------------------------------------------- */
+.status {
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  line-height: 1.45;
+}

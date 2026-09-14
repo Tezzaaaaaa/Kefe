@@ -47,6 +47,9 @@
     '  float sdfCircle=fill(sdCircle(st,posMouse),u_circleSize,u_circleEdge);',
     '  float sdf=sdRoundRect(st,u_shapeSize,u_roundness);',
     '  sdf=strokeAA(sdf,0.,u_borderSize,sdfCircle)*4.;',
+    '  // Only emit colour where the stroke is actually visible;',
+    '  // everywhere else stays fully transparent.',
+    '  if (sdf <= 0.001) discard;',
     '  fragColor=vec4(u_color,sdf);',
     '}'
   ].join('\n');
@@ -223,14 +226,21 @@
       gl.uniform1f(uRoundness, 0.25);
       // Selected border is much thicker and much brighter than the
       // hover reveal — this is the primary visual cue that a card is active.
-      gl.uniform1f(uBorderSize, selected ? 0.62 : 0.18);
-      gl.uniform1f(uCircleSize, selected ? 1.15 : 0.1);
-      gl.uniform1f(uCircleEdge, selected ? 0.35 : 0.7);
+      // Selected: keep the border thin so the CSS fill underneath is
+      // visible. The reveal circle is huge so the WHOLE ring lights up.
+      gl.uniform1f(uBorderSize, selected ? 0.30 : 0.18);
+      gl.uniform1f(uCircleSize, selected ? 5.0 : 0.1);
+      gl.uniform1f(uCircleEdge, selected ? 0.05 : 0.7);
 
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      canvas.style.mixBlendMode = "normal";
+      canvas.style.background = "transparent";
+      // Ensure the shader sits cleanly over the CSS fill underneath
+      canvas.style.mixBlendMode = "normal";
+      canvas.style.background = "transparent";
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
       raf = requestAnimationFrame(frame);
