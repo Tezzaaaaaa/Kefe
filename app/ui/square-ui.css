@@ -280,3 +280,22 @@ body.wizard-mode[data-wizard-step="intro"] .wizard-panel {
   content: none !important;
   animation: none !important;
 }
+
+/* ---------------------------------------------------------------------
+   Pathway rows must grow to fit the accordion panel.
+   The wizard sets a fixed min-height (104px) on .wizard-choice which
+   prevents the row from expanding. Override it.
+   --------------------------------------------------------------------- */
+
+body.wizard-mode .wizard-choices .wizard-choice {
+  min-height: 0 !important;
+  height: auto !important;
+  /* Let the accordion panel take as much vertical space as it needs */
+  max-height: none !important;
+}
+
+/* Also unlock the row's grid template rows if it's using grid */
+body.wizard-mode .wizard-choices .wizard-choice {
+  grid-template-rows: auto auto !important;
+  grid-auto-rows: auto !important;
+}
