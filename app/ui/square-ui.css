@@ -196,3 +196,87 @@ textarea:focus-visible,
   outline: 1px solid var(--line) !important;
   outline-offset: 0 !important;
 }
+
+/* ---------------------------------------------------------------------
+   Intro step: kill the red/coloured backdrop behind the pathway rows.
+   The Dark Veil WebGL background was tinting everything maroon.
+   --------------------------------------------------------------------- */
+
+/* Hide any Dark Veil canvas the wizard mounts on the intro step */
+.wizard-dark-veil,
+.kefe-dark-veil,
+.wizard-dark-veil canvas,
+.kefe-dark-veil canvas {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Ensure the sidebar on intro is flat surface, not tinted */
+body.wizard-mode[data-wizard-step="intro"] .sidebar,
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel {
+  background: var(--surface) !important;
+}
+
+/* Kill the decorative red line under the kicker text */
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel::after,
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* The "01 · START" kicker: neutral instead of red */
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel-kicker {
+  color: var(--text-3) !important;
+}
+
+/* Any leftover red glow or tint on the panel itself */
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* ---------------------------------------------------------------------
+   Kill the decorative horizontal line under the intro kicker (A)
+   and the animated sweeps inside pathway card icons (B).
+   --------------------------------------------------------------------- */
+
+/* A — the red rule under "01 · START" */
+.wizard-panel::after,
+.wizard-panel::before {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+}
+
+/* Also catch any variant rendering it as a child element */
+.wizard-panel > .wizard-panel-rule,
+.wizard-panel > hr {
+  display: none !important;
+}
+
+/* B — the animated line sweep inside the pathway card icons */
+.wizard-choice-icon::before,
+.wizard-choice-icon::after {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+  background: none !important;
+  border: 0 !important;
+}
+
+/* Fallback: any child element inside an icon tile that could be the line */
+.wizard-choice-icon > span::before,
+.wizard-choice-icon > span::after,
+.wizard-choice-icon > i {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+}
+
+/* And the copy-side sweep that animates across the captioned choice */
+.wizard-choice-copy::after {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+}
