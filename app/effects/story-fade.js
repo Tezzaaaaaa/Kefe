@@ -43,7 +43,111 @@ function fitMotionText(ctx,text,requested,tracking,maxWidth,family){
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFitCache.clear());
   function wrapWords(ctx,words,size,tracking,maxWidth,family){setMotionFont(ctx,family,size);const gap=Math.max(12,size*.16),rows=[];let row=[],width=0;for(const word of words){const wordWidth=trackedWidth(ctx,word.text,tracking),proposed=row.length?width+gap+wordWidth:wordWidth;if(row.length&&proposed>maxWidth){rows.push({words:row,width});row=[];width=0;}row.push({...word,width:wordWidth});width=row.length===1?wordWidth:width+gap+wordWidth;}if(row.length)rows.push({words:row,width});return rows;}
   function fit(ctx,words,requested,tracking,maxWidth,family){let size=Math.max(34,Math.min(150,Number(requested)||78));while(size>34){const rows=wrapWords(ctx,words,size,tracking*size,maxWidth,family);if(rows.length<=2)return{size,rows};size-=2;}return{size,rows:wrapWords(ctx,words,size,tracking*size,maxWidth,family)};}
-  window.kefeEffects.fadeup=function(ctx,w,h,style,lines,time){const active=u.activeLine(lines,time);if(!active)return;const words=u.wordsFor(active.line,active.next);if(!words.length)return;const contract=u.contract('fadeup'),tracking=Number(contract.tracking)||0,family=getFont(style.kefeMotionFont).value,prepared=fit(ctx,words,style.fontSize,tracking,w*.80,family),size=prepared.size,rows=prepared.rows,trackingPx=tracking*size,rowHeight=size*1.12,top=h*.50-((rows.length-1)*rowHeight)/2,gap=Math.max(12,size*.16),colour=style.textColor||'#FFFFFF',accent=style.accentColor||colour;ctx.save();ctx.textAlign='left';ctx.textBaseline='middle';ctx.globalCompositeOperation='source-over';ctx.filter='none';setMotionFont(ctx,family,size);rows.forEach((row,rowIndex)=>{let x=(w-row.width)/2;const y=top+rowIndex*rowHeight;for(const word of row.words){const wp=u.wordProgress(word,time),p=clamp(wp.raw);if(p<=0){x+=word.width+gap;continue;}const enter=smoother(p/.28),settle=smoother((p-.18)/.42),rise=(1-enter)*size*.28,scale=.965+.035*settle,alpha=enter,glow=settle*size*.055;ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=colour;ctx.shadowColor=accent;ctx.shadowBlur = 0;ctx.translate(x+word.width/2,y+rise);ctx.scale(scale,scale);u.drawTrackedText(ctx,word.text,0,0,trackingPx,'fillText');ctx.restore();x+=word.width+gap;}});ctx.restore();};
+  window.kefeEffects.fadeup = function(ctx, w, h, style, lines, time) {
+    const active = u.activeLine(lines, time);
+    if (!active) return;
+    const words = u.wordsFor(active.line, active.next);
+    if (!words.length) return;
+
+    const contract = u.contract('fadeup');
+    const tracking = Number(contract.tracking) || 0;
+    const family = getFont(style.kefeMotionFont).value;
+    const line = String(active.line.text || '').trim();
+
+    // ---- Font sizing: fit the whole line to width ----
+    let size = Math.max(34, Math.min(150, Number(style.fontSize) || 78));
+    setMotionFont(ctx, family, size);
+    while (size > 34 && trackedWidth(ctx, line, tracking * size) > w * 0.86) {
+      size -= 2;
+      setMotionFont(ctx, family, size);
+    }
+    const trackingPx = tracking * size;
+
+    // ---- Lay out words on ONE row, evenly spaced ----
+    // Instagram/Apple-style lyric motion works best with a single row of
+    // words centred; wrapping mid-animation reads as bunched-up chaos.
+    // For genuinely long lines we allow a second row, but only at full
+    // word boundaries and only when we have to.
+    const maxRowWidth = w * 0.88;
+    const spaceW = ctx.measureText(' ').width + trackingPx;
+    const measured = words.map(word => ({
+      ...word,
+      width: trackedWidth(ctx, word.text, trackingPx)
+    }));
+
+    const rows = [];
+    let cur = [], curWidth = 0;
+    for (const word of measured) {
+      const proposed = cur.length ? curWidth + spaceW + word.width : word.width;
+      if (cur.length && proposed > maxRowWidth) {
+        rows.push({ words: cur, width: curWidth });
+        cur = [];
+        curWidth = 0;
+      }
+      cur.push(word);
+      curWidth = cur.length === 1 ? word.width : curWidth + spaceW + word.width;
+    }
+    if (cur.length) rows.push({ words: cur, width: curWidth });
+
+    // ---- Vertical layout: two rows maximum, evenly spaced ----
+    const rowHeight = size * 1.24;
+    const blockH = rows.length * rowHeight;
+    const centreY = h * 0.50;
+    const topRow = centreY - blockH / 2 + rowHeight / 2;
+
+    // ---- Per-word animation ----
+    // Each word fades up with a short stagger so the line reads left-to-right.
+    // The stagger is bounded so even a 12-word line finishes within ~45% of
+    // the line's duration. No bouncing, no scaling, just a soft rise.
+    const start = Number(active.line.time) || 0;
+    const end = Math.max(start + 0.4, Number(active.line.endTime) || start + 3);
+    const duration = end - start;
+    const totalWords = rows.reduce((sum, r) => sum + r.words.length, 0);
+    const staggerWindow = Math.min(0.55, duration * 0.35);
+    const perWordDelay = totalWords > 1 ? staggerWindow / (totalWords - 1) : 0;
+    const fadeDur = Math.min(0.42, duration * 0.32);
+
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.filter = 'none';
+
+    for (let r = 0; r < rows.length; r++) {
+      const row = rows[r];
+      const y = topRow + r * rowHeight;
+      const rowLeft = (w - row.width) / 2;
+      let x = rowLeft;
+
+      for (const word of row.words) {
+        const delay = perWordDelay * (r * 1000 + row.words.indexOf(word)); // sequential across rows
+        const elapsed = time - start - delay;
+        let p = elapsed / fadeDur;
+        if (p < 0) p = 0;
+        if (p > 1) p = 1;
+        const eased = smoother(p);
+
+        const alpha = eased;
+        // Small upward rise — 6% of font size, settles cleanly.
+        const rise = (1 - eased) * size * 0.06;
+        // Narrow glow that peaks in the middle of the entrance.
+        const glow = Math.sin(eased * Math.PI) * size * 0.05;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = style.textColor || '#FFFFFF';
+        ctx.shadowColor = style.accentColor || style.textColor || '#FFFFFF';
+        ctx.shadowBlur = glow;
+        setMotionFont(ctx, family, size);
+        ctx.fillText(word.text, x, y + rise);
+        ctx.restore();
+
+        x += word.width + spaceW;
+      }
+    }
+
+    ctx.restore();
+  };
   const MOTION={
     rise:{label:'Rise — soft upward lift with a clean cinematic settle',tracking:-.006,distance:.72,direction:'up',rotation:0,overshoot:.018,ghost:.06},
     slide:{label:'Slide — smooth lateral glide with a precise stop',tracking:-.006,distance:.76,direction:'left',rotation:0,overshoot:.012,ghost:.055},

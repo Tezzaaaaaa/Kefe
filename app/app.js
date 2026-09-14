@@ -1460,29 +1460,7 @@ function render(ctx, w, h, appState, mediaCache) {
         drawBackground(ctx, w, h, appState.background, mediaCache);
         const masterMode = getMasterMode();
         const missingMaster = masterMode === 'uploaded' ? !appState.audio?.file : masterMode === 'video' ? !(mediaCache?.video && mediaCache.videoFile) : false;
-        if (missingMaster) {
-            const unit = Math.min(w, h);
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            // Restrained placeholder: wordmark and a single line of guidance.
-            const markSize = Math.max(36, unit * 0.088);
-            const tagSize  = Math.max(11, unit * 0.020);
-            const markY = h / 2 - unit * 0.008;
-            const tagY  = markY + markSize * 0.92;
-
-            ctx.fillStyle = 'rgba(255,255,255,0.94)';
-            ctx.font = `800 ${markSize}px "Inter Tight","Open Sans",Arial,sans-serif`;
-            ctx.fillText('KEFE', w / 2, markY);
-
-            ctx.fillStyle = 'rgba(255,255,255,0.42)';
-            ctx.font = `500 ${tagSize}px "Inter Tight","Open Sans",Arial,sans-serif`;
-            // letterSpacing is supported on modern Chrome/FF.
-            if ('letterSpacing' in ctx) ctx.letterSpacing = `${tagSize * 0.18}px`;
-            ctx.fillText('ADD AUDIO, THEN LYRICS OR CAPTIONS', w / 2, tagY);
-            if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
-            return;
-        }
+        /* placeholder removed — empty canvas until media is loaded */
         const time = Number.isFinite(appState.playback.currentTime) ? appState.playback.currentTime : 0;
         const cappedTime = (appState.playback.trimTo != null && time > appState.playback.trimTo)
             ? appState.playback.trimTo : time;

@@ -19,18 +19,14 @@
 
     /* 3. The intro step (before anything is uploaded) gets a small
           "Load audio or video to begin" hint rather than an empty black box. */
-    '#kefePreviewEmpty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--text-3);font-size:13px;line-height:1.5;pointer-events:none;z-index:2}',
-    '#kefePreviewEmpty.hidden{display:none !important}'
   ].join('');
   document.head.appendChild(css);
 
   function ensureEmptyHint() {
     var wrapper = document.querySelector('.preview .canvas-wrapper');
     if (!wrapper) return null;
-    var hint = document.getElementById('kefePreviewEmpty');
     if (hint) return hint;
     hint = document.createElement('div');
-    hint.id = 'kefePreviewEmpty';
     hint.innerHTML = 'Your preview will appear here.<br>Load audio or video to begin.';
     wrapper.appendChild(hint);
     return hint;

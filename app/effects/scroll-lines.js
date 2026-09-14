@@ -92,13 +92,13 @@
       const speed = speedBase * (1 + Math.abs(d) * .24);
       const phase = (time - lineStart) * speed * direction;
       const baseX = activeLine ? (w - item.width) / 2 : (w - item.width) / 2;
-      const travel = activeLine ? Math.min(w * .16, item.size * 1.4) : Math.max(w * .18, item.width * .12);
+      const travel = activeLine ? 0 : Math.max(w * 0.18, item.width * 0.12);
       const wrapped = ((phase + travel * 4) % (travel * 4)) - travel * 2;
       const entrance = smoother(Math.min(1, (time - (Number(item.line.time) || 0)) / .34));
       const proximity = activeLine ? 1 : Math.max(.28, 1 - Math.abs(d) * .25);
       const alpha = activeLine ? entrance : .13 + .12 * proximity;
       const y = centerY + d * rowGap;
-      const x = baseX + (activeLine ? wrapped * .34 : wrapped);
+      const x = baseX + (activeLine ? 0 : wrapped);
       const scale = activeLine ? .985 + .015 * smoother(local) : .98;
 
       ctx.save();
