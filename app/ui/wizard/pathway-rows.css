@@ -1,0 +1,154 @@
+/* KEFE — pathway selection as section rows, not cards.
+   Matches the boxy panel layout of the rest of the wizard: full-width
+   rows stacked tightly, separator lines between them, and a highlight
+   bar on the left of the selected row. No rounded boxes, no icon tiles,
+   no cursor-follow glow. */
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--r-md) !important;
+  overflow: hidden !important;
+  background: var(--surface) !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 32px 1fr !important;
+  align-items: center !important;
+  gap: 14px !important;
+
+  min-height: 0 !important;
+  padding: 16px 18px 16px 20px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+
+  background: transparent !important;
+  color: var(--text) !important;
+  text-align: left !important;
+
+  cursor: pointer !important;
+  transition: background var(--dur) var(--ease) !important;
+  animation: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice:last-child {
+  border-bottom: 0 !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice:hover {
+  background: var(--surface-2) !important;
+  transform: none !important;
+  border-color: var(--line) !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice.selected {
+  background: var(--surface-2) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+}
+
+/* Left highlight bar on the selected row */
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 3px !important;
+  background: var(--text) !important;
+  opacity: 0 !important;
+  transition: opacity var(--dur) var(--ease) !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice.selected::before {
+  opacity: 1 !important;
+}
+
+/* Kill any right-edge chevron or tick that other rules added */
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Icon: small inline glyph, no tile */
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice-icon {
+  position: static !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: var(--surface-3) !important;
+  box-shadow: none !important;
+  color: var(--text-2) !important;
+  transform: none !important;
+  overflow: visible !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice-icon::before,
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice-icon::after {
+  display: none !important;
+  content: none !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice-icon svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke-width: 1.7 !important;
+  filter: none !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice:hover .wizard-choice-icon,
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice.selected .wizard-choice-icon {
+  background: var(--surface-3) !important;
+  color: var(--text) !important;
+  transform: none !important;
+}
+
+/* Copy: title / hint, tight and confident */
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice-copy strong {
+  font-size: 14.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.012em !important;
+  line-height: 1.2 !important;
+  color: var(--text) !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice-copy span {
+  font-size: 12.5px !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  color: var(--text-3) !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice.selected .wizard-choice-copy strong {
+  color: var(--text) !important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices .wizard-choice.selected .wizard-choice-copy span {
+  color: var(--text-2) !important;
+}
+
+/* Remove any leftover dimming of unselected siblings */
+body.wizard-mode .wizard-choices:has(.wizard-choice.selected) .wizard-choice:not(.selected) {
+  opacity: 1 !important;
+}

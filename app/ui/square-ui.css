@@ -1,0 +1,198 @@
+/* KEFE — square corners everywhere.
+   Every panel, button, input, tile, modal, and card becomes a straight
+   rectangle. No border-radius anywhere except the pill (--r-pill), which
+   is reserved for genuinely pill-shaped elements like toggle switches
+   and the progress bar. */
+
+:root {
+  --r-xs: 0px;
+  --r-sm: 0px;
+  --r-md: 0px;
+  --r-lg: 0px;
+  /* --r-pill stays 999px, do not touch */
+}
+
+/* ---------- Global default: kill every border-radius ---------- */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+/* ---------- Restore the pill where it actually means something ---------- */
+.toggle-switch,
+.toggle-switch::before,
+input:checked + .toggle-switch,
+input:checked + .toggle-switch::before,
+.kefe-aid-switch,
+.kefe-aid-switch::after,
+.kefe-aid-toggle input:checked + .kefe-aid-switch:after,
+progress,
+progress::-webkit-progress-bar,
+progress::-webkit-progress-value,
+progress::-moz-progress-bar,
+.caption-timer-dot,
+.kefe-intelligence-bar,
+.kefe-aid-bar,
+.kefe-aid-bar > span,
+.kefe-aid-flow span,
+.kefe-success-dot,
+.kefe-upload-thumb[style*="border-radius:50%"] {
+  border-radius: 999px !important;
+}
+
+/* Circular elements stay circular */
+.kefe-upload-check span,
+.wizard-upload-check,
+.caption-timer-dot,
+.status.success::before,
+.kefe-intelligence-bar[data-beat="true"]::before,
+input[type="checkbox"] + .toggle-switch,
+button svg circle,
+svg circle:not([stroke-dasharray]) {
+  border-radius: 50% !important;
+}
+
+/* ---------- Buttons ---------- */
+button,
+button.primary,
+button.ghost,
+button.file-button,
+.icon-button,
+.theme-control,
+.theme-cycle-button,
+.preview-focus-button,
+.kefe-fx-button {
+  border-radius: 0 !important;
+}
+
+/* ---------- Inputs and selects ---------- */
+input,
+select,
+textarea,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="color"],
+input[type="range"] {
+  border-radius: 0 !important;
+}
+
+/* Range track and thumb stay pill-shaped so they read as sliders */
+input[type="range"]::-webkit-slider-runnable-track,
+input[type="range"]::-webkit-slider-thumb,
+input[type="range"]::-moz-range-track,
+input[type="range"]::-moz-range-thumb {
+  border-radius: 999px !important;
+}
+
+/* ---------- Panels, modals, dialogs ---------- */
+.section,
+.sub-block,
+.modal .modal-content,
+.modal-content,
+.canvas-wrapper canvas,
+#stageCanvas,
+.preview-toolbar,
+.section-nav,
+.section-nav-link,
+.wizard-nav,
+.wizard-panel,
+.kefe-upload-confirmation,
+.kefe-upload-thumb,
+#kefeUploadSummary,
+#kefeIntelChart,
+.kefe-intelligence-card,
+.kefe-aid-card,
+.kefe-aid-stat,
+.drop-zone,
+.background-choice,
+.background-choice-preview,
+.effect-buttons button,
+.segmented,
+.segmented-btn,
+.music-sync-hint,
+.preven-title,
+.toggle-row,
+.control-row,
+.wizard-choice,
+.wizard-choice-icon,
+.wizard-source-action,
+.wizard-style-preview,
+.wizard-effect-choice,
+.wizard-effect-demo,
+.wizard-summary-row,
+.wizard-start-indicator,
+.wizard-source-choices .wizard-choice-icon,
+.wizard-choices .wizard-choice-icon,
+.preview-format,
+.preview-format-btn,
+.preview-aspect-control select,
+.preview-aspect-control,
+#kefePreviewConfirm,
+.kefe-export-enhancements,
+.kefe-preview-corner,
+.kefe-preview-corner #previewFocusButton,
+.kefe-preview-corner .preview-focus-button,
+.kefe-preview-corner .preview-format,
+.kefe-wave-wrap,
+.toast,
+.status,
+.kefe-song-combobox-list,
+.kefe-song-combobox-option,
+.kefe-song-combobox,
+.wizard-dark-veil,
+.kefe-dark-veil,
+.kefe-shape-blur,
+.kefe-aurora-fx,
+#kefeVisualiserPicker,
+#kefeVisualiserPicker .kefe-vis-btn,
+#kefeUploadSummary .kefe-summary-thumb,
+.kefe-upload-thumb,
+.kefe-upload-thumb.audio-thumb,
+.caption-review-row,
+.caption-review-time,
+.caption-review-row input[type="text"],
+#captionGenProgress,
+.caption-timer,
+#exportPreflight,
+#exportOverlay,
+#masterAudioChoice,
+#lyricsEditor,
+#captionsEditor {
+  border-radius: 0 !important;
+}
+
+/* ---------- Shadows: strip them too so the block look is consistent ---------- */
+.canvas-wrapper canvas,
+.canvas-wrapper #stageCanvas,
+.kefe-upload-confirmation,
+.kefe-aid-card,
+.wizard-style-preview,
+.kefe-intelligence-card,
+.preview-focus-button,
+button,
+.modal-content,
+.toast,
+#kefeUploadSummary {
+  box-shadow: none !important;
+}
+
+/* ---------- Outlines on focus stay, but square ---------- */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.wizard-choice:focus-visible,
+.effect-buttons button:focus-visible {
+  outline: 2px solid var(--red) !important;
+  outline-offset: -1px !important;
+  border-radius: 0 !important;
+}
+
+/* ---------- Preview canvas: square, keep a 1px outline ---------- */
+.canvas-wrapper canvas {
+  outline: 1px solid var(--line) !important;
+  outline-offset: 0 !important;
+}
