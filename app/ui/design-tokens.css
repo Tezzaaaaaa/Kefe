@@ -272,3 +272,156 @@ header {
   font-size: 12px;
   line-height: 1.45;
 }
+
+/* ---------------------------------------------------------------------
+   Preview toolbar stability.
+   The aspect-ratio pills and mode/effect labels were shifting position
+   when the "Live [effect]" text changed width. Lock every toolbar element
+   to a fixed slot so nothing reflows.
+   --------------------------------------------------------------------- */
+.preview-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-4);
+}
+
+.preview-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+/* Every element in the heading keeps a fixed footprint — no auto-growth */
+.preview-heading > * {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* Live mode badge: fixed width, right-aligned so its text doesn't reflow
+   the elements after it. */
+.preview-heading #previewModeBadge,
+.preview-heading .mode-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  height: 26px;
+  padding: 0 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: var(--r-sm);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* The "Live [effect]" text — pin to a fixed width and truncate */
+.preview-heading .preview-live-effect,
+.preview-heading .preview-effect-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 130px;
+  height: 26px;
+  padding: 0 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Aspect ratio group sits immediately after these and must not move */
+.preview-format,
+.preview-aspect-control {
+  flex: 0 0 auto;
+  margin-left: 0;
+}
+
+/* Right-side transport in its own grid cell, doesn't affect the left */
+.preview-toolbar .transport {
+  justify-self: end;
+  min-width: 0;
+  max-width: none;
+  flex: 0 0 auto;
+}
+
+/* ---------------------------------------------------------------------
+   Preview top-right corner anchors.
+   Aspect-ratio group + fullscreen button live here, absolutely positioned
+   so nothing in the toolbar's left side affects their position.
+   --------------------------------------------------------------------- */
+
+.preview {
+  position: relative; /* ensure absolute children anchor to preview, not page */
+}
+
+/* The transport bar loses the fullscreen / aspect elements that were
+   briefly in it, keeps play / stop / seek / clock. */
+.preview-toolbar .transport {
+  justify-self: end;
+  min-width: 0;
+  max-width: none;
+  flex: 0 0 auto;
+}
+
+/* Top-right pinned group */
+.kefe-preview-corner {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+/* Aspect pills: same look as the existing preview-format, but pinned */
+.kefe-preview-corner .preview-format,
+.kefe-preview-corner .preview-aspect-control {
+  margin-left: 0 !important;
+  flex: 0 0 auto;
+}
+
+/* Fullscreen button: same size as the pills' height for a clean row */
+.kefe-preview-corner .preview-focus-button,
+.kefe-preview-corner #previewFocusButton {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.kefe-preview-corner .preview-focus-button:hover,
+.kefe-preview-corner #previewFocusButton:hover {
+  background: var(--surface-3);
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+.kefe-preview-corner .preview-focus-button:focus-visible,
+.kefe-preview-corner #previewFocusButton:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+.kefe-preview-corner .preview-focus-button svg,
+.kefe-preview-corner #previewFocusButton svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* If a status badge or effect badge sits in the heading, keep them but
+   reserve them their own slot. The corner group is out of the flow, so
+   it will never push anything. */
+.preview-heading #previewModeBadge,
+.preview-heading .preview-effect-badge {
+  margin-right: 0;
+}
