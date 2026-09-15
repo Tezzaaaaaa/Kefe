@@ -84,6 +84,10 @@ const STATE_WRITE_BASELINE = new Set([
   // state-write migration happens.
 
   'app/ui/visualiser-picker.js',
+  // The video strip writes state.songStartTime when the user marks where the
+  // song starts. Migrate to window.kefe.bus when the wider state-write
+  // migration happens.
+  'app/ui/preview-video-strip.js',
 ]);
 const stateWriters = new Set();
 for (const file of appFiles) {

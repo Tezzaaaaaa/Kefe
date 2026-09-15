@@ -2125,7 +2125,7 @@ async function setAlbumArtworkReference(reference) {
 function loadMediaInfoLibrary() {
     if (window.MediaInfo) return Promise.resolve(window.MediaInfo);
     if (!window.kefeMediaInfoLoadPromise) {
-        window.kefeMediaInfoLoadPromise = import('https://cdn.jsdelivr.net/npm/mediainfo.js@0.3.7/dist/MediaInfo.js')
+        window.kefeMediaInfoLoadPromise = import("/vendor/mediainfo/MediaInfo.js")
             .then(module => module.default || module.MediaInfo || module)
             .catch(error => {
                 window.kefeMediaInfoLoadPromise = null;
@@ -2138,9 +2138,8 @@ function loadMediaInfoLibrary() {
 async function readEmbeddedVideoMetadata(file, token) {
     try {
         const MediaInfo = await loadMediaInfoLibrary();
-        const mediaInfo = await MediaInfo({
-            locateFile: () => 'https://cdn.jsdelivr.net/npm/mediainfo.js@0.3.7/dist/MediaInfoModule.wasm'
-        });
+        const mediaInfo = await (function(){ try { return MediaInfo({
+            locateFile: () => "/vendor/mediainfo/MediaInfoModule.wasm" }); } catch (e) { return new MediaInfo({ locateFile: () => "/vendor/mediainfo/MediaInfoModule.wasm" }); } })();
 
         const result = await mediaInfo.analyzeData(
             file.size,
@@ -2886,10 +2885,13 @@ async function fetchWithRetry(url, options, retries = 2, backoffMs = 600) {
 }
 
 function cleanTrackName(value) {
-    return String(value || '')
-        .replace(/\s*[\[(](official\s+)?(music|lyric|lyrics|audio|visuali[sz]er|video).*?[\])]/ig, '')
-        .replace(/\s+(official\s+)?(music|lyric|lyrics|audio|visuali[sz]er|video)\s*$/ig, '')
-        .replace(/\s+/g, ' ')
+    return String(value || "")
+        // Strip any trailing parenthetical or bracketed descriptor:
+        //   (official music video), (Official Video), [Lyric Video], etc.
+        .replace(/\s*[\[\(][^\]\)]*[\]\)]\s*$/g, "")
+        // Strip common suffix keywords without brackets
+        .replace(/\s+(official|lyric|lyrics|audio|visuali[sz]er|video|HD|4K)\s*$/ig, "")
+        .replace(/\s+/g, " ")
         .trim();
 }
 
@@ -2940,27 +2942,104 @@ function resolveAudioLabels(audioState = state.audio) {
 }
 
 async function requestSyncedLyrics(artist, track, duration, signal) {
+    track = String(track || "")
+        .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*$/g, "")
+        .replace(/\s+(official|lyric|lyrics|audio|visuali[sz]er|video|HD|4K)\s*$/ig, "")
+        .trim();
+    artist = String(artist || "").trim();
+
+    // Strip trailing descriptor suffixes from the title before searching.
+    track = String(track || "")
+        .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*$/g, "")
+        .replace(/\s+(official|lyric|lyrics|audio|visuali[sz]er|video|HD|4K)\s*$/ig, "")
+        .trim();
+    artist = String(artist || "").trim();
+
     const candidates = [];
-    const exact = new URLSearchParams({ artist_name: artist, track_name: track });
-    if (Number.isFinite(duration) && duration > 0) exact.set('duration', String(Math.round(duration)));
-    if (artist) {
-        const exactResp = await fetchWithRetry('https://lrclib.net/api/get?' + exact.toString(), { signal }, 1);
-        if (exactResp.ok) candidates.push(await exactResp.json());
-        else if (exactResp.status !== 404) throw new Error(exactResp.status === 429 ? 'Lyrics service is rate-limited, try again shortly' : 'Lyrics service unavailable (' + exactResp.status + ')');
+
+    // Levenshtein distance for spelling correction.
+    function lev(a, b) {
+        if (a === b) return 0;
+        if (!a) return b.length;
+        if (!b) return a.length;
+        let prev = [];
+        for (let j = 0; j <= b.length; j++) prev[j] = j;
+        for (let i = 1; i <= a.length; i++) {
+            const curr = [i];
+            for (let j = 1; j <= b.length; j++) {
+                const cost = a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1;
+                curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+            }
+            prev = curr;
+        }
+        return prev[b.length];
+    }
+    function similar(a, b) {
+        a = String(a || "").toLowerCase().trim();
+        b = String(b || "").toLowerCase().trim();
+        if (!a || !b) return 0;
+        const d = lev(a, b);
+        return 1 - d / Math.max(a.length, b.length);
     }
 
+    // ---- 1. Try the exact match first ----
+    const exact = new URLSearchParams({ artist_name: artist, track_name: track });
+    if (Number.isFinite(duration) && duration > 0) exact.set("duration", String(Math.round(duration)));
+    let exactResp = null;
+    if (artist) {
+        exactResp = await fetchWithRetry("https://lrclib.net/api/get?" + exact.toString(), { signal }, 1);
+        if (exactResp.ok) {
+            const data = await exactResp.json();
+            if (data && data.syncedLyrics) return data;
+            candidates.push(data);
+        }
+    }
+
+    // ---- 2. Search by track name alone — LRCLIB will tell us the correct artist spelling ----
+    const trackOnly = new URLSearchParams({ track_name: track });
+    const trackResp = await fetchWithRetry("https://lrclib.net/api/search?" + trackOnly.toString(), { signal });
+    if (!trackResp.ok && trackResp.status === 429) throw new Error("Lyrics service is rate-limited, try again shortly");
+    const trackResults = trackResp.ok ? (await trackResp.json()) : [];
+    if (Array.isArray(trackResults)) {
+        // Find results whose artist is CLOSE to what the user typed.
+        // That is the correction we want.
+        const scored = trackResults
+            .filter(function(r){ return r && r.syncedLyrics; })
+            .map(function(r){
+                const artistScore = similar(r.artistName || "", artist);
+                const trackScore = similar(r.trackName || "", track);
+                let durScore = 0;
+                if (Number.isFinite(duration) && duration > 0 && Number.isFinite(Number(r.duration))) {
+                    const diff = Math.abs(Number(r.duration) - duration);
+                    durScore = diff <= 5 ? 1 : diff <= 20 ? 0.5 : 0;
+                }
+                return { item: r, score: artistScore * 0.5 + trackScore * 0.35 + durScore * 0.15 };
+            })
+            .sort(function(a, b){ return b.score - a.score; });
+
+        const best = scored[0];
+        if (best && best.score >= 0.55) {
+            // If the matched artist spelling is different, note it so the
+            // caller can update the metadata fields.
+            best.item._correctedArtist = best.item.artistName;
+            best.item._correctedTrack = best.item.trackName;
+            return best.item;
+        }
+    }
+
+    // ---- 3. Fall back to the broader search ----
     const searches = [
         new URLSearchParams({ track_name: track, ...(artist ? { artist_name: artist } : {}) }),
-        new URLSearchParams({ q: [artist, track].filter(Boolean).join(' ') })
+        new URLSearchParams({ q: [artist, track].filter(Boolean).join(" ") })
     ];
     for (const params of searches) {
-        const response = await fetchWithRetry('https://lrclib.net/api/search?' + params.toString(), { signal });
-        if (!response.ok) throw new Error(response.status === 429 ? 'Lyrics service is rate-limited, try again shortly' : 'Lyrics service unavailable (' + response.status + ')');
+        const response = await fetchWithRetry("https://lrclib.net/api/search?" + params.toString(), { signal });
+        if (!response.ok) throw new Error(response.status === 429 ? "Lyrics service is rate-limited, try again shortly" : "Lyrics service unavailable (" + response.status + ")");
         const results = await response.json();
         if (Array.isArray(results)) candidates.push(...results);
-        if (candidates.some(item => item?.syncedLyrics)) break;
+        if (candidates.some(function(item){ return item && item.syncedLyrics; })) break;
     }
-    return candidates.find(item => item?.syncedLyrics) || null;
+    return candidates.find(function(item){ return item && item.syncedLyrics; }) || null;
 }
 
 $('findLyricsBtn').addEventListener('click', async function() {
