@@ -149,7 +149,247 @@
     ctx.restore();
   }
 
-  var MODES = { pulse: drawPulse, spectrum: drawSpectrum, waveform: drawWaveform, radial: drawRadial };
+  
+  /* ============================================================
+     RA — real 3D sphere of glowing metal spikes.
+     Renders into a hidden WebGL canvas via Three.js, then blits
+     the result into the 2D preview canvas. Inner shells are
+     white-hot, outer shells bronze. Bass breathes, vocals fire
+     random rods out, transients fire scattered clusters.
+     Silence is perfect stillness.
+     ============================================================ */
+  var ra = {
+    renderer: null, scene: null, camera: null,
+    meshes: [], rods: [],
+    glCanvas: null,
+    width: 0, height: 0,
+    driftClock: 0, spinClock: 0,
+    lastTime: 0,
+    ready: false,
+    kickEnv: 0, vocalEnv: 0, transientEnv: 0, energyEnv: 0, bassEnv: 0
+  };
+
+  var RA_RAMP = [
+    [1.00, 0.98, 0.78],  // shell 0 (innermost) — white-hot
+    [1.00, 0.92, 0.55],
+    [1.00, 0.84, 0.32],
+    [1.00, 0.72, 0.22],
+    [0.92, 0.56, 0.14],
+    [0.72, 0.38, 0.10],
+    [0.48, 0.24, 0.06]   // shell 6 (outermost) — deep bronze
+  ];
+
+  function raInit(w, h){
+    if (typeof THREE === 'undefined') {
+      console.warn('[KEFE visualiser] Three.js not loaded — Ra disabled');
+      return false;
+    }
+
+    // Hidden WebGL canvas — never appended to the DOM
+    ra.glCanvas = document.createElement('canvas');
+    ra.glCanvas.width = w;
+    ra.glCanvas.height = h;
+
+    ra.renderer = new THREE.WebGLRenderer({
+      canvas: ra.glCanvas,
+      antialias: true, alpha: true, premultipliedAlpha: true,
+      powerPreference: 'high-performance'
+    });
+    ra.renderer.setPixelRatio(1);
+    ra.renderer.setSize(w, h, false);
+    ra.renderer.setClearColor(0x000000, 0);
+
+    ra.scene = new THREE.Scene();
+    ra.camera = new THREE.PerspectiveCamera(35, w/h, 1, 200);
+    ra.camera.position.set(0, 0, 22);
+    ra.camera.lookAt(0, 0, 0);
+
+    // Lights
+    ra.scene.add(new THREE.AmbientLight(0x2a1408, 1.1));
+    var key = new THREE.DirectionalLight(0xffe8b0, 1.35); key.position.set(6, 7, 9); ra.scene.add(key);
+    var rim = new THREE.DirectionalLight(0xff7a28, 0.75); rim.position.set(-7, -5, -8); ra.scene.add(rim);
+    var centre = new THREE.PointLight(0xffffff, 1.6, 26); centre.position.set(0, 0, 0); ra.scene.add(centre);
+    ra.centreLight = centre;
+
+    // Tapered rod geometry — sharp at the tip
+    var rodGeom = new THREE.CylinderGeometry(0.02, 1.0, 1.0, 7, 1, false);
+    rodGeom.rotateZ(-Math.PI/2);   // +X is the outward axis
+
+    // Build 7 concentric shells with Fibonacci distribution
+    var shells = 7;
+    var golden = Math.PI * (3 - Math.sqrt(5));
+    var perShell = [70, 110, 150, 190, 220, 240, 260];
+    var meshes = [];
+
+    // Pre-create an InstancedMesh per shell so we can attach a distinct material
+    for (var sh = 0; sh < shells; sh++){
+      var ramp = RA_RAMP[sh];
+      var mat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(ramp[0], ramp[1], ramp[2]),
+        emissive: new THREE.Color(ramp[0]*0.15, ramp[1]*0.08, ramp[2]*0.03),
+        metalness: 1.0,
+        roughness: 0.22,
+        side: THREE.DoubleSide
+      });
+      var m = new THREE.InstancedMesh(rodGeom, mat, perShell[sh]);
+      m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      m.frustumCulled = false;
+      m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(perShell[sh]*3), 3);
+      m.instanceColor.setUsage(THREE.DynamicDrawUsage);
+      ra.scene.add(m);
+      meshes.push(m);
+    }
+    ra.meshes = meshes;
+
+    // Build per-rod metadata
+    ra.rods.length = 0;
+    for (var sh = 0; sh < shells; sh++){
+      var lT = sh / (shells - 1);
+      var shellR = (0.6 + 2.2 * lT);         // 0.6 inner → 2.8 outer
+      var quietLen = (1.4 - 0.5 * lT);       // inner longer, outer shorter
+      var n = perShell[sh];
+      var phase = sh * golden * 0.5;
+      for (var k = 0; k < n; k++){
+        var y = 1 - (k / (n - 1)) * 2;
+        var rY = Math.sqrt(Math.max(0, 1 - y*y));
+        var theta = golden * k + phase;
+        ra.rods.push({
+          shell: sh,
+          nx: Math.cos(theta) * rY,
+          ny: y,
+          nz: Math.sin(theta) * rY,
+          baseRadius: shellR,
+          quietLen: quietLen,
+          flareLen: quietLen * 0.55,
+          radius: 0.030,
+          flare: 0,
+          shot: 0,
+          spin: Math.random() * Math.PI * 2,
+          spinSpeed: 0.10 + Math.random() * 0.20
+        });
+      }
+    }
+
+    ra.width = w;
+    ra.height = h;
+    ra.ready = true;
+    return true;
+  }
+
+  var _raDummy = new THREE.Object3D ? new THREE.Object3D() : null;
+  var _raXAxis = new THREE.Vector3 ? new THREE.Vector3(1, 0, 0) : null;
+
+  function drawRa(ctx, w, h, time, frame){
+    if (!ra.ready || ra.width !== w || ra.height !== h){
+      if (!raInit(w, h)) return;
+    }
+    if (!frame) return;
+
+    // Envelope followers
+    var dt = ra.lastTime ? Math.min(0.05, time - ra.lastTime) : 0.016;
+    ra.lastTime = time;
+    ra.kickEnv      += (frame.bass   - ra.kickEnv)      * 0.18;
+    ra.vocalEnv     += (frame.mids   - ra.vocalEnv)     * 0.15;
+    ra.transientEnv += (frame.treble - ra.transientEnv) * 0.20;
+    ra.energyEnv    += (frame.energy - ra.energyEnv)    * 0.12;
+    ra.bassEnv      += (frame.bass   - ra.bassEnv)      * 0.10;
+
+    // Only advance clock when audio is alive
+    var alive = Math.min(1, frame.energy * 6 + frame.bass * 4 + frame.mids * 4);
+    ra.driftClock += dt * alive;
+    ra.spinClock  += dt * alive;
+
+    var t0 = performance.now() * 0.001;
+    var halfH = 13.2;
+    var aspect = w / h;
+
+    // Clear per-shell counts
+    var counts = new Array(ra.meshes.length).fill(0);
+
+    for (var i = 0; i < ra.rods.length; i++){
+      var r = ra.rods[i];
+
+      // Per-rod random fire (white noise per frame) — vocals
+      var flareTarget = 0;
+      if (Math.random() < ra.vocalEnv * 0.9) flareTarget = 0.8 + Math.random() * 1.4;
+      r.flare += (flareTarget - r.flare) * 0.22;
+
+      // Per-rod random fire — transients
+      var shotTarget = 0;
+      if (ra.transientEnv > 0.05 && Math.random() < ra.transientEnv * 0.7){
+        shotTarget = 1.2 + Math.random() * 1.6;
+      }
+      r.shot += (shotTarget - r.shot) * 0.28;
+
+      // Direction (unit)
+      var dx = r.nx, dy = r.ny, dz = r.nz;
+
+      // Length
+      var breath = 1 + ra.kickEnv * 0.22 + ra.energyEnv * 0.06;
+      var len = (r.quietLen + (r.flare + r.shot) * r.flareLen) * breath;
+
+      // Base radius
+      var baseR = r.baseRadius * (1 + ra.bassEnv * 0.15);
+
+      var cx = dx * baseR + dx * len * 0.5;
+      var cy = dy * baseR + dy * len * 0.5;
+      var cz = dz * baseR + dz * len * 0.5;
+
+      var ci = r.shell;
+      if (ci < ra.meshes.length && counts[ci] < ra.meshes[ci].count + 10000){
+        _raDummy.position.set(cx, cy, cz);
+        var v = new THREE.Vector3(dx, dy, dz);
+        var qA = new THREE.Quaternion().setFromUnitVectors(_raXAxis, v);
+        var spin = r.spin + ra.spinClock * r.spinSpeed;
+        var qS = new THREE.Quaternion().setFromAxisAngle(_raXAxis, spin);
+        qA.multiply(qS);
+        _raDummy.quaternion.copy(qA);
+        _raDummy.scale.set(len, r.radius, r.radius);
+        _raDummy.updateMatrix();
+
+        var arr = ra.meshes[ci].instanceMatrix.array;
+        var o = counts[ci] * 16;
+        for (var m = 0; m < 16; m++) arr[o + m] = _raDummy.matrix.elements[m];
+
+        var bright = 1 + r.flare * 0.9 + r.shot * 1.4 + ra.energyEnv * 0.6;
+        var col = ra.meshes[ci].instanceColor.array;
+        col[counts[ci]*3] = bright;
+        col[counts[ci]*3+1] = bright;
+        col[counts[ci]*3+2] = bright;
+        counts[ci]++;
+      }
+    }
+
+    // Push counts and flag updates
+    for (var k2 = 0; k2 < ra.meshes.length; k2++){
+      ra.meshes[k2].count = counts[k2];
+      ra.meshes[k2].instanceMatrix.needsUpdate = true;
+      ra.meshes[k2].instanceColor.needsUpdate = true;
+    }
+
+    // Center light pulses with audio
+    if (ra.centreLight){
+      ra.centreLight.intensity = 1.6 + ra.bassEnv * 6 + ra.kickEnv * 8;
+    }
+
+    // Slow camera orbit
+    var t = time * 0.00006;
+    ra.camera.position.set(Math.sin(t)*22, Math.cos(t*0.6)*10, Math.cos(t)*22);
+    ra.camera.lookAt(0, 0, 0);
+    ra.camera.aspect = aspect;
+    ra.camera.updateProjectionMatrix();
+
+    ra.renderer.render(ra.scene, ra.camera);
+
+    // Blit the WebGL canvas into the 2D preview canvas.
+    // globalCompositeOperation = 'lighter' lets it layer over the background.
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.drawImage(ra.glCanvas, 0, 0, w, h);
+    ctx.restore();
+  }
+
+var MODES = { pulse: drawPulse, spectrum: drawSpectrum, waveform: drawWaveform, radial: drawRadial, ra: drawRa };
 
   function draw(ctx, w, h, time, appState) {
     var mode = (appState && appState.style && appState.style.visualiserStyle) || 'pulse';

@@ -23,7 +23,8 @@
     { key: 'pulse',    label: 'Pulse'    },
     { key: 'spectrum', label: 'Spectrum' },
     { key: 'waveform', label: 'Waveform' },
-    { key: 'radial',   label: 'Radial'   }
+    { key: 'radial',   label: 'Radial'   },
+    { key: 'ra',       label: 'Ra'       }
   ];
 
   function current(){
