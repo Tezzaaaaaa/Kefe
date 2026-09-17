@@ -24,5 +24,6 @@ window.KEFE_EFFECTS = [
   { key: 'elasticpop',  label: 'Elastic Pop',      description: 'Spring/overshoot word-by-word punch' },
   { key: 'flipcards',   label: 'Flip Cards',       description: 'Words flip in around a vertical axis' },
   { key: 'karaoke',     label: 'Karaoke',          description: 'Word-by-word colour-fill sweep' },
-  { key: 'trailer',     label: 'Trailer',          description: 'Condensed all-caps movie punch-in' }
+  { key: 'trailer',     label: 'Trailer',          description: 'Condensed all-caps movie punch-in' },
+  { key: 'rain',        label: 'Rain on Glass',    description: 'Cool droplets rolling across the lyric' }
 ];

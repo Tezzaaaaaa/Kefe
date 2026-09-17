@@ -103,7 +103,8 @@
     elasticpop: { family: families.elasticpop,  weight: 900, min: 30, max: 140, lineHeight: 1.24, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     flipcards:  { family: families.flipcards,   weight: 900, min: 30, max: 140, lineHeight: 1.26, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     karaoke:    { family: families.karaoke,     weight: 800, min: 34, max: 150, lineHeight: 1.18, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
-    trailer:    { family: families.trailer,     weight: 900, min: 46, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 }
+    trailer:    { family: families.trailer,     weight: 900, min: 46, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
+    rain:       { family: families.rain,        weight: 200, min: 40, max: 180, lineHeight: 1.40, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 }
   };
 
   /* ---------------------------------------------------------
