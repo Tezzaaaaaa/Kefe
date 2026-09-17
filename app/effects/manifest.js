@@ -19,5 +19,10 @@ window.KEFE_EFFECTS = [
   { key: 'slide',       label: 'Slide',        description: 'Lateral glide' },
   { key: 'drop',        label: 'Drop',         description: 'Controlled downward arrival' },
   { key: 'drift',       label: 'Drift',        description: 'Gentle diagonal float' },
-  { key: 'scrolllines', label: 'Scroll Lines', description: 'Editorial multi-line scroll' }
+  { key: 'scrolllines', label: 'Scroll Lines', description: 'Editorial multi-line scroll' },
+  { key: 'barbie',      label: 'Barbie',           description: 'Pink gradient glow with hero word' },
+  { key: 'elasticpop',  label: 'Elastic Pop',      description: 'Spring/overshoot word-by-word punch' },
+  { key: 'flipcards',   label: 'Flip Cards',       description: 'Words flip in around a vertical axis' },
+  { key: 'karaoke',     label: 'Karaoke',          description: 'Word-by-word colour-fill sweep' },
+  { key: 'trailer',     label: 'Trailer',          description: 'Condensed all-caps movie punch-in' }
 ];
