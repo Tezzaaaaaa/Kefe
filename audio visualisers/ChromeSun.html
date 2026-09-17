@@ -48,8 +48,8 @@
   <button id="play" disabled>Play</button>
   <button id="mic">Mic</button>
   <div class="slider"><label>Speed</label>
-    <input type="range" id="speed" min="0.05" max="6" step="0.05" value="1">
-    <span class="val" id="speedVal">1.00&times;</span></div>
+    <input type="range" id="speed" min="0" max="100" step="1" value="5">
+    <span class="val" id="speedVal">5%</span></div>
   <div class="slider"><label>Spread</label>
     <input type="range" id="spread" min="0.5" max="4" step="0.05" value="2.5">
     <span class="val" id="spreadVal">2.50&times;</span></div>
@@ -116,7 +116,7 @@ var playBtn=document.getElementById('play'),micBtn=document.getElementById('mic'
     breathIn=document.getElementById('breath'),breathVal=document.getElementById('breathVal'),
     focusIn=document.getElementById('focus'),focusVal=document.getElementById('focusVal');
 
-var speedMul=1.0, spreadMul=2.5, reactionMul=1.5, flareMul=1.0, breathMul=1.0, focusMul=1.0;
+var speedMul=0.05, spreadMul=2.5, reactionMul=1.5, flareMul=1.0, breathMul=1.0, focusMul=1.0;
 
 function setStatus(t,k){statusEl.textContent=t;
   statusEl.style.color=k==='err'?'#f88':k==='ok'?'#9fa':'';}
@@ -171,7 +171,29 @@ micBtn.addEventListener('click',async function(){
   }catch(err){setStatus('MIC DENIED','err');}
 });
 
-speedIn.addEventListener('input',function(){speedMul=Number(speedIn.value);speedVal.textContent=speedMul.toFixed(2)+'\u00d7';});
+speedIn.addEventListener('input',function(){
+  // Speed curve:
+  //   0   → frozen
+  //   5   → 1x baseline
+  //   50  → ~1.6x (still slow in the middle — barely above baseline)
+  //   75  → ~3x
+  //   100 → 8x
+  // Quartic ease: the middle of the slider stays near baseline, all the
+  // real speed happens in the top quarter.
+  var pct=Number(speedIn.value);
+  var sm;
+  if(pct<=5){
+    sm=pct/5;
+  }else{
+    var u=(pct-5)/95;
+    var eased=u*u*u*u;      // quartic — slow through mid, fast only at top
+    sm=1 + eased*(8-1);
+  }
+  speedMul=sm;
+  speedVal.textContent=pct+'%';
+});
+// run once at startup so the initial value takes effect
+speedIn.dispatchEvent(new Event('input'));
 spreadIn.addEventListener('input',function(){spreadMul=Number(spreadIn.value);spreadVal.textContent=spreadMul.toFixed(2)+'\u00d7';});
 reactionIn.addEventListener('input',function(){reactionMul=Number(reactionIn.value);reactionVal.textContent=reactionMul.toFixed(2)+'\u00d7';});
 flareIn.addEventListener('input',function(){flareMul=Number(flareIn.value);flareVal.textContent=flareMul.toFixed(2)+'\u00d7';});
@@ -231,13 +253,13 @@ function updateAudio(){
 
   function env(cur,val,att,rel){return val>cur?cur+(val-cur)*att:cur+(val-cur)*rel;}
 
-  sBass=env(sBass,rb,0.55,0.06);
-  sMid=env(sMid,rm,0.35,0.05);
-  sTreb=env(sTreb,rt,0.45,0.06);
-  sVocal=env(sVocal,rv,0.40,0.05);
-  sEnergy=env(sEnergy,re,0.30,0.05);
-  sKick=env(sKick,kickNow,0.90,0.12);
-  sTransient=env(sTransient,transNow,0.90,0.20);
+  sBass=env(sBass,Math.min(1.6,rb*3.0),0.85,0.04);
+  sMid=env(sMid,Math.min(1.6,rm*2.5),0.60,0.03);
+  sTreb=env(sTreb,Math.min(1.6,rt*2.8),0.70,0.04);
+  sVocal=env(sVocal,Math.min(1.6,rv*2.8),0.65,0.03);
+  sEnergy=env(sEnergy,Math.min(1.6,re*2.4),0.55,0.03);
+  sKick=env(sKick,Math.min(1.6,kickNow*4.0),0.98,0.06);
+  sTransient=env(sTransient,Math.min(1.6,transNow*4.0),0.98,0.18);
 }
 
 /* ---- colour ramp: patina bronze base → white-hot tip ---- */
@@ -301,16 +323,22 @@ function buildScene(){
     meshes.push(m);
   }
 
-  /* ---- SEED: uniform surface density per shell, uniform quiet length ---- */
-  var LAYERS=10;
+  /* ---- SEED: shells distributed with an extra one squeezed in near the edge */
+  // The lT list below is not evenly spaced: we place one extra shell close to
+  // the outermost, so the outer shell reads as "doubled up".
+  var LAYER_TS=[
+    0.000, 0.111, 0.222, 0.333, 0.444, 0.556, 0.667, 0.778, 0.880, 0.940, 1.000
+  ];
+  var LAYERS=LAYER_TS.length;
   var BASE_R=1.0, MAX_R=3.2;
   var DENSITY=40;                // rods per unit surface area
   var golden=Math.PI*(3-Math.sqrt(5));
 
   for(var layer=0;layer<LAYERS;layer++){
-    var lT=layer/(LAYERS-1);
+    var lT=LAYER_TS[layer];
     var shellR=BASE_R+(MAX_R-BASE_R)*lT;
-    var quietLen=0.95+1.35*lT;
+    // CONSTANT across layers: every rod on every shell is the same quiet length.
+    var quietLen=1.55;
     // INVERTED: inner shells get the brightest end of the ramp, outer get darkest
     var colourIdx=Math.min(RAMP.length-1,Math.round((1-lT)*(RAMP.length-1)));
 
@@ -334,8 +362,9 @@ function buildScene(){
         radius:0.050,
         colourIdx:colourIdx,
         currentFlare:0,
-        // random transient cluster assignment (which "firing group" this belongs to)
-        clusterGroup:Math.floor(Math.random()*8),
+        // per-rod random values so each rod has its own reaction threshold
+        fireThreshold: 0.15 + Math.random()*0.55,
+        kickOff:       0.15 + Math.random()*0.60,
         currentShot:0,
         // subtle sway
         sway:Math.random()*Math.PI*2,
@@ -396,31 +425,55 @@ function update(dt){
   for(var i=0;i<rods.length;i++){
     var r=rods[i];
 
-    // ---- sway in tangent plane ----
-    var swayAng=r.sway+driftClock*r.swaySpeed;
-    var swayAmt=r.swayAmp*(1+0.20*smoothMid);
+    // ---- per-rod wobble, boosted for inner rods so they visibly dance ----
+    // Compute a radius-based boost: inner rods (small baseRadius) get a
+    // much bigger wobble, outer rods a smaller one. Prevents the inner
+    // shell from looking frozen.
+    var innerBoost = 1.0 + (1.0 - Math.min(1, r.baseRadius/2.2)) * 5.0;
 
-    // ---- vocal flare (rotating wave) ----
-    var fx=driftClock*0.9;
-    var fy=driftClock*0.55+1.7;
-    var ax=Math.sin(fx)*r.nx+Math.cos(fx)*r.nz;
-    var ay=Math.sin(fy)*r.ny+Math.cos(fy)*r.nz;
-    var mask=Math.max(ax,ay);
-    mask=Math.max(0,(mask-0.55)/0.45); mask*=mask;
-    var voiceAmt=smoothVocal*2.0*flareMul;
-    var targetFlare=mask*voiceAmt;
-    r.currentFlare+=(targetFlare-r.currentFlare)*0.20;
+    // Two noise terms: a slow sin (constant life) plus a fresh random
+    // jitter each frame so nothing is ever perfectly still.
+    var wobX = Math.sin(driftClock*2.3 + r.spinPhase*5.1);
+    var wobY = Math.cos(driftClock*1.9 + r.spinPhase*7.7);
+    // Scale random jitter by speedMul so it dies at slider=0
+    var speedGate = Math.min(1, speedMul / 0.5);
+    var jitterX = (Math.random()-0.5) * 0.35 * speedGate;
+    var jitterY = (Math.random()-0.5) * 0.35 * speedGate;
 
-    // ---- transient shot (chaotic, cluster based) ----
-    var shotTarget=0;
-    if(smoothTransient>0.05){
-      // which cluster is active this beat — rotates over time
-      var activeCluster=Math.floor((driftClock*2.3)%8);
-      if(r.clusterGroup===activeCluster){
-        shotTarget=transientStrength*(0.55+0.9*Math.random());
+    var swayAmt = (r.swayAmp*innerBoost*1.6
+                 + 0.025*innerBoost
+                 + smoothBass*0.40*innerBoost)
+                 * (1 + 0.20*smoothMid);
+
+    var t1Push = (wobX + jitterX) * swayAmt;
+    var t2Push = (wobY + jitterY) * swayAmt;
+
+    // ---- per-rod vocal reaction — pure white noise per frame ----
+    // No clock. No phase. Just a random roll every frame. The probability
+    // of firing is proportional to the live vocal energy, so different
+    // rods fire on every vocal hit — neighbours have no relationship to
+    // each other. No wave, no bands, no clusters.
+    var fireRoll = Math.random();
+    var vocalProb = smoothVocal * flareMul * 1.6 * speedGate;
+    var targetFlare = 0;
+    if(fireRoll < vocalProb){
+      targetFlare = 0.6 + Math.random()*1.6;
+    }
+    // very fast lerp — the rod snaps out and back
+    r.currentFlare += (targetFlare - r.currentFlare) * 0.55;
+
+    // ---- per-rod transient reaction — also pure white noise ----
+    // Independent random roll each frame, weighted by transient strength.
+    // Kick / snare / hat produce a fresh random spray of rods every hit.
+    var shotTarget = 0;
+    if(smoothTransient > 0.03){
+      var shotRoll = Math.random();
+      var shotProb = smoothTransient * transientStrength * 0.9 * speedGate;
+      if(shotRoll < shotProb){
+        shotTarget = 1.0 + Math.random()*2.2;
       }
     }
-    r.currentShot+=(shotTarget-r.currentShot)*0.35;
+    r.currentShot += (shotTarget - r.currentShot) * 0.62;
 
     // ---- mouse focus ----
     var dot=r.nx*mx+r.ny*my+r.nz*mz;         // -1..1
@@ -430,9 +483,9 @@ function update(dt){
     var focusFlare=focusMask*(0.35+0.5*smoothVocal)*focusMul;
 
     // ---- direction: base + tangent sway + slight focus lean ----
-    var dx=r.nx*(1+focusPush*0.4)+r.t1x*(swayAmt)+r.t2x*(focusPush*0.25);
-    var dy=r.ny*(1+focusPush*0.4)+r.t1y*(swayAmt)+r.t2y*(focusPush*0.25);
-    var dz=r.nz*(1+focusPush*0.4)+r.t1z*(swayAmt)+r.t2z*(focusPush*0.25);
+    var dx=r.nx*(1+focusPush*0.4)+r.t1x*(t1Push)+r.t2x*(t2Push+focusPush*0.25);
+    var dy=r.ny*(1+focusPush*0.4)+r.t1y*(t1Push)+r.t2y*(t2Push+focusPush*0.25);
+    var dz=r.nz*(1+focusPush*0.4)+r.t1z*(t1Push)+r.t2z*(t2Push+focusPush*0.25);
     var dl=Math.sqrt(dx*dx+dy*dy+dz*dz)||1; dx/=dl;dy/=dl;dz/=dl;
 
     // ---- length: quiet + vocal flare + transient shot + focus flare ----
