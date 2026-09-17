@@ -14,7 +14,12 @@
     mixedmedia: { family: families.mixedmedia, weight: 800, min: 34, max: 150, lineHeight: 1.0, tracking: .012, align: 'center', case: 'none', opticalScale: 1.00 },
     decrypt: { family: families.decrypt, weight: 700, min: 30, max: 140, lineHeight: 1.10, tracking: .010, align: 'center', case: 'none', opticalScale: .98 },
     blur: { family: families.blur, weight: 600, min: 30, max: 140, lineHeight: 1.14, tracking: -.010, align: 'center', case: 'none', opticalScale: 1.00 },
-    shiny: { family: families.shiny, weight: 800, min: 30, max: 150, lineHeight: 1.10, tracking: -.020, align: 'center', case: 'none', opticalScale: 1.00 }
+    shiny: { family: families.shiny, weight: 800, min: 30, max: 150, lineHeight: 1.10, tracking: -.020, align: 'center', case: 'none', opticalScale: 1.00 },
+    barbie:     { family: families.barbie     || families.shiny,     weight: 800, min: 44, max: 220, lineHeight: 1.05, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
+    elasticpop: { family: families.elasticpop || families.shiny,     weight: 900, min: 30, max: 140, lineHeight: 1.24, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
+    flipcards:  { family: families.flipcards  || families.shiny,     weight: 900, min: 30, max: 140, lineHeight: 1.26, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
+    karaoke:    { family: families.karaoke    || families.shiny,     weight: 800, min: 34, max: 150, lineHeight: 1.18, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
+    trailer:    { family: families.trailer    || families.brat,      weight: 900, min: 46, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 }
   };
   const fontFaces = [
     '400 1em "Open Sans"', '700 1em "Open Sans"', '800 1em "Open Sans"',
