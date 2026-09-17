@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kefe — 3D</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height:100%; background:#000; color:#e5e7eb;
+    font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; overflow:hidden; }
+  body { display:flex; flex-direction:column; }
+  #stage { flex:1; position:relative; background:#000; }
+  #stage canvas { display:block; width:100%; height:100%; }
+  #ui { display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+    padding:10px 14px; background:#050505; border-top:1px solid #1a1a1a;
+    font-size:11px; letter-spacing:0.5px; text-transform:uppercase; }
+  #ui select,#ui button,#ui label { background:#0e0e0e; color:#fff;
+    border:1px solid #2a2a2a; padding:8px 12px; border-radius:0;
+    font:inherit; letter-spacing:inherit; text-transform:inherit;
+    cursor:pointer; min-height:34px; display:inline-flex;
+    align-items:center; justify-content:center; transition:border-color .15s; }
+  #ui select { padding-right:24px; }
+  #ui select:hover,#ui button:hover,#ui label:hover { border-color:#555; }
+  #ui button.active { background:#fff; color:#000; border-color:#fff; }
+  #ui button:disabled { opacity:.35; cursor:default; }
+  #ui input[type=file] { display:none; }
+  #ui .status { opacity:.55; padding-left:12px; border-left:1px solid #1a1a1a;
+    margin-left:4px; flex:1; min-width:120px; overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; text-transform:none; letter-spacing:0; }
+  #ui .slider { display:flex; align-items:center; gap:6px; padding:0 10px;
+    border:1px solid #2a2a2a; background:#0e0e0e; min-height:34px; }
+  #ui .slider label { padding:0; min-height:auto; border:0; background:none; }
+  #ui .slider input[type=range] { -webkit-appearance:none; appearance:none;
+    width:90px; height:3px; background:#2a2a2a; border-radius:2px;
+    outline:none; cursor:pointer; }
+  #ui .slider input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;
+    width:12px; height:12px; border-radius:50%; background:#fff; cursor:pointer; border:0; }
+  #ui .slider input[type=range]::-moz-range-thumb { width:12px; height:12px;
+    border:0; border-radius:50%; background:#fff; cursor:pointer; }
+  #ui .slider .val { min-width:34px; text-align:right; color:#fff;
+    font-variant-numeric:tabular-nums; text-transform:none; letter-spacing:0; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="ui">
+  <select id="preset">
+    <option>Bronze Filaments</option>
+    <option>Cool Steel</option>
+    <option>Molten Core</option>
+    <option>Spiral</option>
+    <option>Wavy Spiral</option>
+    <option>Flower</option>
+    <option>Circle</option>
+  </select>
+  <label for="file">Load audio</label>
+  <input type="file" id="file" accept="audio/*">
+  <button id="play" disabled>Play</button>
+  <button id="mic">Mic</button>
+  <button id="animate" class="active">Animate</button>
+  <div class="slider">
+    <label>Intensity</label>
+    <input type="range" id="intensity" min="0.02" max="1" step="0.01" value="0.18">
+    <span class="val" id="intensityVal">0.18</span>
+  </div>
+  <div class="slider">
+    <label>Zoom</label>
+    <input type="range" id="fov" min="5" max="100" step="1" value="35">
+    <span class="val" id="fovVal">35</span>
+  </div>
+  <span class="status" id="status">NO AUDIO</span>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+var stage=document.getElementById('stage');
+var scene=new THREE.Scene();
+scene.background=new THREE.Color(0x000000);
+var camera=new THREE.PerspectiveCamera(35,1,1,20000);
+camera.position.set(0,0,175);
+var renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setClearColor(0x000000,1);
+stage.appendChild(renderer.domElement);
+
+var audioCtx=null,analyser=null,sourceNode=null,micSource=null,micStream=null,decodedBuffer=null;
+var freqBytes=null,timeFloats=null;
+var sBass=0,sEnergy=0,SMOOTH=0.18,BAND_COUNT=128;
+var bands=new Float32Array(BAND_COUNT);
+
+var playBtn=document.getElementById('play'),micBtn=document.getElementById('mic'),
+    fileInput=document.getElementById('file'),statusEl=document.getElementById('status'),
+    presetSel=document.getElementById('preset'),animBtn=document.getElementById('animate'),
+    intensityIn=document.getElementById('intensity'),intensityVal=document.getElementById('intensityVal'),
+    fovIn=document.getElementById('fov'),fovVal=document.getElementById('fovVal');
+
+var animateOn=true,intensity=0.18;
+
+function setStatus(t,k){statusEl.textContent=t;
+  statusEl.style.color=k==='err'?'#f88':k==='ok'?'#9fa':'';}
+
+function initAudio(){
+  if(audioCtx)return;
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  analyser=audioCtx.createAnalyser();
+  analyser.fftSize=2048;analyser.smoothingTimeConstant=0.78;
+  freqBytes=new Uint8Array(analyser.frequencyBinCount);
+  timeFloats=new Float32Array(analyser.fftSize);
+}
+function killSrc(){if(sourceNode){try{sourceNode.stop()}catch(e){}
+  try{sourceNode.disconnect()}catch(e){}sourceNode=null;}}
+function killMic(){if(micSource){try{micSource.disconnect()}catch(e){}micSource=null;}
+  if(micStream){micStream.getTracks().forEach(function(t){t.stop()});micStream=null;}
+  micBtn.classList.remove('active');micBtn.textContent='Mic';}
+
+fileInput.addEventListener('change',async function(e){
+  var f=e.target.files[0];if(!f)return;
+  initAudio();if(audioCtx.state==='suspended')await audioCtx.resume();
+  killSrc();killMic();playBtn.classList.remove('active');playBtn.textContent='Play';
+  setStatus('DECODING');
+  try{var ab=await f.arrayBuffer();
+    decodedBuffer=await audioCtx.decodeAudioData(ab);
+    playBtn.disabled=false;
+    setStatus(f.name.length>24?f.name.slice(0,22)+'…':f.name,'ok');
+  }catch(err){decodedBuffer=null;playBtn.disabled=true;setStatus('DECODE FAIL','err');}
+});
+
+playBtn.addEventListener('click',async function(){
+  if(!decodedBuffer)return;
+  initAudio();if(audioCtx.state==='suspended')await audioCtx.resume();
+  if(sourceNode){killSrc();playBtn.classList.remove('active');
+    playBtn.textContent='Play';setStatus('PAUSED');return;}
+  killMic();
+  sourceNode=audioCtx.createBufferSource();
+  sourceNode.buffer=decodedBuffer;sourceNode.loop=true;
+  sourceNode.connect(analyser);analyser.connect(audioCtx.destination);
+  sourceNode.start(0);
+  playBtn.classList.add('active');playBtn.textContent='Pause';setStatus('PLAYING','ok');
+});
+
+micBtn.addEventListener('click',async function(){
+  initAudio();if(audioCtx.state==='suspended')await audioCtx.resume();
+  if(micStream){killMic();setStatus('MIC OFF');return;}
+  try{
+    micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    killSrc();playBtn.classList.remove('active');playBtn.textContent='Play';
+    micSource=audioCtx.createMediaStreamSource(micStream);micSource.connect(analyser);
+    micBtn.classList.add('active');micBtn.textContent='Stop mic';setStatus('MIC LIVE','ok');
+  }catch(err){setStatus('MIC DENIED','err');}
+});
+
+animBtn.addEventListener('click',function(){
+  animateOn=!animateOn;animBtn.classList.toggle('active',animateOn);
+});
+intensityIn.addEventListener('input',function(){
+  intensity=Number(intensityIn.value);intensityVal.textContent=intensity.toFixed(2);
+});
+fovIn.addEventListener('input',function(){
+  camera.fov=Number(fovIn.value);camera.updateProjectionMatrix();
+  fovVal.textContent=fovIn.value;
+});
+
+function updateAudio(){
+  if(!analyser){
+    var t=performance.now()*0.001;
+    sBass=0.10+Math.sin(t*1.1)*0.05;
+    sEnergy=0.12+Math.sin(t*0.7)*0.04;
+    for(var i=0;i<BAND_COUNT;i++)bands[i]=0.15+Math.sin(i*0.2+t)*0.05;
+    return;
+  }
+  analyser.getByteFrequencyData(freqBytes);
+  analyser.getFloatTimeDomainData(timeFloats);
+  var n=freqBytes.length,be=Math.floor(n*0.12),bs=0,all=0;
+  for(var i=0;i<n;i++){var v=freqBytes[i];all+=v;if(i<be)bs+=v;}
+  var rb=bs/(be*255)||0,re=all/(n*255)||0;
+  sBass+=(rb-sBass)*SMOOTH;sEnergy+=(re-sEnergy)*SMOOTH;
+  var nyq=audioCtx.sampleRate/2,bins=freqBytes.length;
+  var fMin=30,fMax=16000,ratio=fMax/fMin;
+  for(var i=0;i<BAND_COUNT;i++){
+    var f0=fMin*Math.pow(ratio,i/BAND_COUNT);
+    var f1=fMin*Math.pow(ratio,(i+1)/BAND_COUNT);
+    var b0=Math.floor(f0/nyq*bins);
+    var b1=Math.max(b0+1,Math.ceil(f1/nyq*bins));
+    if(b1>bins)b1=bins;
+    var s=0,c=0;
+    for(var b=b0;b<b1;b++){s+=freqBytes[b];c++;}
+    var vv=(c?s/c:0)/255;vv=Math.pow(vv,1.1);bands[i]=Math.min(1,vv);
+  }
+}
+
+var FILAMENT_PRESETS={
+  'Bronze Filaments':{rings:34,innerR:0.42,outerR:2.30,fiberDensity:130,
+    innerLen:0.06,outerLen:1.35,lenPower:1.6,leanAmount:0.62,weaveFreq:5,
+    weaveAmp:0.20,weaveSpeed:5.5,ringPhaseStep:0.42,weaveFalloff:1.55,
+    trebleShimmer:0.22,rotationSpeed:0.03,color:[0.95,0.75,0.35]},
+  'Cool Steel':{rings:34,innerR:0.42,outerR:2.30,fiberDensity:130,
+    innerLen:0.06,outerLen:1.35,lenPower:1.6,leanAmount:0.62,weaveFreq:5,
+    weaveAmp:0.20,weaveSpeed:5.5,ringPhaseStep:0.42,weaveFalloff:1.55,
+    trebleShimmer:0.22,rotationSpeed:0.03,color:[0.55,0.75,1.0]},
+  'Molten Core':{rings:34,innerR:0.42,outerR:2.30,fiberDensity:130,
+    innerLen:0.06,outerLen:1.32,lenPower:1.6,leanAmount:0.62,weaveFreq:5,
+    weaveAmp:0.20,weaveSpeed:5.5,ringPhaseStep:0.42,weaveFalloff:1.55,
+    trebleShimmer:0.22,rotationSpeed:0.05,color:[1.0,0.45,0.15]}
+};
+
+function buildFilaments(preset){
+  var N=preset.rings,density=preset.fiberDensity;
+  var totalFibers=0,tc=[];
+  for(var ri=0;ri<N;ri++){
+    var t=ri/(N-1);
+    var ringR=preset.outerR-t*(preset.outerR-preset.innerR);
+    var count=Math.max(12,Math.round(density*(ringR/preset.outerR)));
+    tc.push(count);totalFibers+=count;
+  }
+  var positions=new Float32Array(totalFibers*6);
+  var colors=new Float32Array(totalFibers*6);
+  var geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(positions,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  var mat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,
+    opacity:0.95,blending:THREE.AdditiveBlending,depthWrite:false});
+  var lines=new THREE.LineSegments(geo,mat);
+  var meta=[];
+  for(var ri=0;ri<N;ri++){
+    var t=ri/(N-1);
+    var ringR=preset.outerR-t*(preset.outerR-preset.innerR);
+    var count=tc[ri];
+    var weaveWeight=Math.pow(t,preset.weaveFalloff);
+    var ringOffset=ri*preset.ringPhaseStep;
+    for(var k=0;k<count;k++){
+      meta.push({t:t,ringR:ringR,weaveWeight:weaveWeight,
+        angle:(k/count)*Math.PI*2+ringOffset,
+        leanDir:((k+ri)%2===0)?1:-1,
+        phase:Math.random()*Math.PI*2,
+        baseLen:preset.innerLen+(preset.outerLen-preset.innerLen)*Math.pow(1-t,preset.lenPower)});
+    }
+  }
+  scene.add(lines);
+  return {lines:lines,state:{angle:0},preset:preset,meta:meta,
+    positions:positions,colors:colors,clock:0};
+}
+
+function updateFilaments(f,dt,tSec){
+  var p=f.preset,pos=f.positions,col=f.colors,meta=f.meta,c=p.color;
+  f.state.angle+=p.rotationSpeed*dt;
+  var sB=sBass,sE=sEnergy;
+  f.clock+=p.weaveSpeed*(1+sE*1.2)*dt;
+  var wavePhase=f.clock;
+  for(var i=0;i<meta.length;i++){
+    var m=meta[i];
+    var ang=m.angle+f.state.angle;
+    var r=m.ringR;
+    var baseLen=m.baseLen*(0.6+0.9*bands[i%128]);
+    var leanBase=p.leanAmount*m.weaveWeight;
+    var wave=Math.sin(ang*p.weaveFreq+wavePhase+m.phase*0.2);
+    var waveLean=wave*p.weaveAmp;
+    var rayness=1-m.weaveWeight;
+    var lean=(leanBase*m.leanDir+waveLean)*(1-rayness*0.6)
+           +Math.sin(tSec*0.02+i)*p.trebleShimmer*sE*m.leanDir*(1-rayness);
+    var ca=Math.cos(ang),sa=Math.sin(ang);
+    var caE=Math.cos(ang+lean),saE=Math.sin(ang+lean);
+    var bx=ca*r,by=sa*r;
+    var tx=caE*(r+baseLen),ty=saE*(r+baseLen);
+    var zAudio=(m.t<0.5?sB:sE)*30*(1-m.t);
+    var zb=zAudio;
+    var zt=zAudio+baseLen*4;
+    var o=i*6;
+    pos[o]=bx;pos[o+1]=by;pos[o+2]=zb;
+    pos[o+3]=tx;pos[o+4]=ty;pos[o+5]=zt;
+    var bright=0.35+0.65*(1-m.t);
+    col[o]=c[0]*bright;col[o+1]=c[1]*bright;col[o+2]=c[2]*bright;
+    col[o+3]=c[0]*bright*1.2;col[o+4]=c[1]*bright*1.2;col[o+5]=c[2]*bright*1.2;
+  }
+  f.lines.geometry.attributes.position.needsUpdate=true;
+  f.lines.geometry.attributes.color.needsUpdate=true;
+}
+
+var SPIRAL_PRESETS={'Spiral':{mode:'spiral'},'Wavy Spiral':{mode:'wavy'},
+  'Flower':{mode:'flower'},'Circle':{mode:'circle'}};
+var PARTICLE_COUNT=2048;
+
+function buildSpiral(presetName){
+  var preset=SPIRAL_PRESETS[presetName];
+  var geo=new THREE.BufferGeometry();
+  var positions=new Float32Array(PARTICLE_COUNT*3);
+  var colors=new Float32Array(PARTICLE_COUNT*3);
+  geo.setAttribute('position',new THREE.BufferAttribute(positions,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  var mat=new THREE.PointsMaterial({vertexColors:true,size:0.7,
+    sizeAttenuation:true,transparent:true,opacity:0.95,
+    blending:THREE.AdditiveBlending,depthWrite:false});
+  var points=new THREE.Points(geo,mat);
+  var params={a:0.15,b:0.20,angle:11,aWavy:1.20,bWavy:0.76,wavyAngle:2.44,
+    aFlower:25,bFlower:0,flowerAngle:2.86,radius:50};
+  var counters={spiral:true,wavy:true,circle:true,flower:false};
+  scene.add(points);
+  return {points:points,positions:positions,colors:colors,preset:preset,
+    params:params,counters:counters,mode:preset.mode};
+}
+
+function updateSpiral(s,dt){
+  var pos=s.positions,col=s.colors,p=s.params,c=s.counters,mode=s.mode;
+  if(animateOn){
+    if(mode==='spiral'){if(c.spiral){p.angle+=0.0008;if(p.angle>=13)c.spiral=false;}
+      else{p.angle-=0.0008;if(p.angle<=9)c.spiral=true;}}
+    else if(mode==='wavy'){if(c.wavy){p.wavyAngle+=0.000004;if(p.wavyAngle>=2.48)c.wavy=false;}
+      else{p.wavyAngle-=0.000006;if(p.wavyAngle<=2.43)c.wavy=true;}}
+    else if(mode==='flower'){if(c.flower){p.flowerAngle+=0.0000004;if(p.flowerAngle>=2.87)c.flower=false;}
+      else{p.flowerAngle-=0.0000004;if(p.flowerAngle<=2.85)c.flower=true;}}
+    else if(mode==='circle'){if(c.circle){p.radius+=0.05;if(p.radius>=65)c.circle=false;}
+      else{p.radius-=0.05;if(p.radius<=35)c.circle=true;}}
+  }
+  for(var j=0;j<PARTICLE_COUNT;j++){
+    var x=0,y=0,z=0;
+    var tf=timeFloats?timeFloats[j%timeFloats.length]:0;
+    var fb=freqBytes?freqBytes[j%freqBytes.length]/255:0;
+    if(mode==='spiral'){
+      var k=(p.angle/100)*j;
+      x=(p.a+p.b*k)*Math.sin(k);
+      y=(p.a+p.b*k)*Math.cos(k);
+      z=tf*fb*intensity*40;
+    }else if(mode==='wavy'){
+      var k=(p.wavyAngle/100)*j;
+      x=(p.aWavy+p.bWavy*k)*Math.sin(k)+Math.sin(j/(p.wavyAngle/100));
+      y=(p.aWavy+p.bWavy*k)*Math.cos(k)+Math.cos(j/(p.wavyAngle/100));
+      z=tf*fb*intensity*40;
+    }else if(mode==='flower'){
+      var k=(p.flowerAngle/100)*j;
+      x=(p.aFlower+p.bFlower*k)*Math.cos(k)+Math.sin(j/(p.flowerAngle/100))*17;
+      y=(p.aFlower+p.bFlower*k)*Math.sin(k)+Math.cos(j/(p.flowerAngle/100))*17;
+      z=tf*fb*intensity*40;
+    }else if(mode==='circle'){
+      var r=j/((j/p.radius)||1);
+      x=Math.sin(j)*r;
+      y=tf*fb*intensity*40;
+      z=Math.cos(j)*r;
+    }
+    pos[j*3]=x;pos[j*3+1]=y;pos[j*3+2]=z;
+    var e=Math.min(1,Math.abs(tf)*3+fb);
+    col[j*3]=0.7+e*0.3;col[j*3+1]=0.7+e*0.3;col[j*3+2]=0.7+e*0.3;
+  }
+  s.points.geometry.attributes.position.needsUpdate=true;
+  s.points.geometry.attributes.color.needsUpdate=true;
+}
+
+var currentPreset='Bronze Filaments',currentKind='filament';
+var currentFilament=null,currentSpiral=null;
+
+function clearScene(){
+  var kill=[];
+  scene.children.forEach(function(o){
+    if(o.type==='LineSegments'||o.type==='Points')kill.push(o);
+  });
+  kill.forEach(function(o){scene.remove(o);
+    if(o.geometry)o.geometry.dispose();
+    if(o.material)o.material.dispose();});
+  currentFilament=null;currentSpiral=null;
+}
+
+function loadPreset(name){
+  currentPreset=name;clearScene();
+  camera.position.set(0,0,175);
+  camera.fov=Number(fovIn.value);
+  camera.lookAt(0,0,0);camera.updateProjectionMatrix();
+
+  if(FILAMENT_PRESETS[name]){
+    currentKind='filament';
+    var scale=55;
+    var f=buildFilaments(FILAMENT_PRESETS[name]);
+    f.lines.scale.setScalar(scale);
+    currentFilament=f;
+    camera.position.set(0,0,260);
+  }else if(SPIRAL_PRESETS[name]){
+    currentKind='spiral';
+    currentSpiral=buildSpiral(name);
+    camera.position.set(0,0,175);
+  }
+}
+
+presetSel.addEventListener('change',function(){loadPreset(presetSel.value);});
+
+function resize(){
+  var r=stage.getBoundingClientRect();
+  var w=Math.max(2,Math.round(r.width));
+  var h=Math.max(2,Math.round(r.height));
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+}
+window.addEventListener('resize',resize);
+
+var lastT=0;
+function frame(now){
+  var dt=lastT?Math.min(0.05,(now-lastT)/1000):0.016;
+  lastT=now;
+  var tSec=now*0.001;
+  updateAudio();
+  if(currentKind==='filament'&&currentFilament){
+    updateFilaments(currentFilament,dt,tSec);
+    currentFilament.lines.rotation.z=tSec*0.05;
+  }else if(currentKind==='spiral'&&currentSpiral){
+    updateSpiral(currentSpiral,dt);
+    currentSpiral.points.rotation.z=tSec*0.03;
+  }
+  renderer.render(scene,camera);
+  requestAnimationFrame(frame);
+}
+
+resize();loadPreset(currentPreset);requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
