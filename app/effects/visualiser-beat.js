@@ -408,13 +408,21 @@
       focus: (st.raFocus !== undefined) ? Number(st.raFocus) : 1.0
     };
   }
-var MODES = { pulse: drawPulse, spectrum: drawSpectrum, waveform: drawWaveform, radial: drawRadial, ra: drawRa };
+  function drawTuffPuff(ctx, w, h, time, frame, appState){
+    if (!window.kefeTuffPuff) return;
+    try { window.kefeTuffPuff.draw(ctx, w, h, time, frame, appState); }
+    catch(e){ console.warn('[KEFE tuffpuff]', e); }
+  }
+
+  // Only Ra and TuffPuff are dispatchable. The four legacy modes remain in
+  // the file (dead code) so nothing that referenced them breaks.
+  var MODES = { ra: drawRa, tuffpuff: drawTuffPuff };
 
   function draw(ctx, w, h, time, appState) {
     var mode = (appState && appState.style && appState.style.visualiserStyle) || 'pulse';
     var fn = MODES[mode] || drawPulse;
     var frame = sample(time);
-    try { fn(ctx, w, h, time, frame); }
+    try { fn(ctx, w, h, time, frame, appState); }
     catch (e) { console.warn('[KEFE visualiser]', e); }
   }
 

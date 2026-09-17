@@ -27,11 +27,8 @@
   }
 
   var MODES = [
-    { key: 'pulse',    label: 'Pulse'    },
-    { key: 'spectrum', label: 'Spectrum' },
-    { key: 'waveform', label: 'Waveform' },
-    { key: 'radial',   label: 'Radial'   },
-    { key: 'ra',       label: 'Ra'       }
+    { key: 'ra',       label: 'Ra'       },
+    { key: 'tuffpuff', label: 'TuffPuff' }
   ];
 
   function current(){
@@ -87,6 +84,50 @@
     grid.querySelectorAll('.kefe-vis-btn').forEach(function(b){
       b.classList.toggle('active-effect', b.dataset.mode === cur);
     });
+
+    // ---- TuffPuff controls: only when TuffPuff is selected ----
+    if (cur === 'tuffpuff') {
+      var tp = document.createElement('div');
+      tp.className = 'kefe-ra-controls';
+      var TP_SLIDERS = [
+        { key: 'tpSpeed',     label: 'Speed',    min: 0.1, max: 3,   step: 0.05, def: 1.0 },
+        { key: 'tpIntensity', label: 'Colour',   min: 0.03, max: 0.5, step: 0.01, def: 0.15 },
+        { key: 'tpCurl',      label: 'Vortex',   min: 0,   max: 3,   step: 0.05, def: 1.0 },
+        { key: 'tpForce',     label: 'Force',    min: 0,   max: 2.5, step: 0.05, def: 1.0 },
+        { key: 'tpViscosity', label: 'Thick',    min: 0.4, max: 3,   step: 0.05, def: 1.0 },
+        { key: 'tpBurst',     label: 'Burst',    min: 0.2, max: 3,   step: 0.05, def: 1.0 }
+      ];
+      TP_SLIDERS.forEach(function(cfg){
+        var existingVal = (window.state.style && window.state.style[cfg.key]);
+        var val = (existingVal === undefined || existingVal === null) ? cfg.def : existingVal;
+        var row = document.createElement('div');
+        row.className = 'kefe-ra-row';
+        var lab = document.createElement('label');
+        lab.textContent = cfg.label;
+        var inp = document.createElement('input');
+        inp.type = 'range';
+        inp.min = cfg.min; inp.max = cfg.max; inp.step = cfg.step;
+        inp.value = val;
+        var valEl = document.createElement('span');
+        valEl.className = 'val';
+        valEl.textContent = (cfg.step < 0.1 ? Number(val).toFixed(2) : Number(val).toFixed(2));
+        inp.addEventListener('input', function(){
+          var v = Number(inp.value);
+          if (!window.state.style) window.state.style = {};
+          window.state.style[cfg.key] = v;
+          valEl.textContent = v.toFixed(2);
+          if (cfg.key === 'tpSpeed' && window.kefeTuffPuff && window.kefeTuffPuff.refresh) {
+            // no-op: speed is read per frame
+          }
+          window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
+        });
+        row.appendChild(lab);
+        row.appendChild(inp);
+        row.appendChild(valEl);
+        tp.appendChild(row);
+      });
+      box.appendChild(tp);
+    }
 
     // ---- Ra controls: only show when Ra is the selected visualiser ----
     if (cur === 'ra') {
