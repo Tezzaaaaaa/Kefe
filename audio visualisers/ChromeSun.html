@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kefe — Rods</title>
+<title>Kefe — Ra</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   html,body { height:100%; background:#000; color:#e5e7eb;
     font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; overflow:hidden; }
   body { display:flex; flex-direction:column; }
   #stage { flex:1; position:relative; background:#000; }
-  #stage canvas { display:block; width:100%; height:100%; }
+  #stage canvas { display:block; width:100%; height:100%; cursor:crosshair; }
   #ui { display:flex; flex-wrap:wrap; gap:8px; align-items:center;
     padding:10px 14px; background:#050505; border-top:1px solid #1a1a1a;
     font-size:11px; letter-spacing:0.5px; text-transform:uppercase; }
@@ -24,49 +24,47 @@
   #ui button:disabled { opacity:.35; cursor:default; }
   #ui input[type=file] { display:none; }
   #ui .status { opacity:.55; padding-left:12px; border-left:1px solid #1a1a1a;
-    margin-left:4px; flex:1; min-width:120px; overflow:hidden;
+    margin-left:4px; flex:1; min-width:100px; overflow:hidden;
     text-overflow:ellipsis; white-space:nowrap; text-transform:none; letter-spacing:0; }
   #ui .slider { display:flex; align-items:center; gap:6px; padding:0 10px;
     border:1px solid #2a2a2a; background:#0e0e0e; min-height:34px; }
   #ui .slider label { padding:0; min-height:auto; border:0; background:none; }
   #ui .slider input[type=range] { -webkit-appearance:none; appearance:none;
-    width:90px; height:3px; background:#2a2a2a; border-radius:2px;
+    width:78px; height:3px; background:#2a2a2a; border-radius:2px;
     outline:none; cursor:pointer; }
   #ui .slider input[type=range]::-webkit-slider-thumb { -webkit-appearance:none;
     width:12px; height:12px; border-radius:50%; background:#fff; cursor:pointer; border:0; }
   #ui .slider input[type=range]::-moz-range-thumb { width:12px; height:12px;
     border:0; border-radius:50%; background:#fff; cursor:pointer; }
-  #ui .slider .val { min-width:38px; text-align:right; color:#fff;
+  #ui .slider .val { min-width:36px; text-align:right; color:#fff;
     font-variant-numeric:tabular-nums; text-transform:none; letter-spacing:0; }
 </style>
 </head>
 <body>
 <div id="stage"></div>
 <div id="ui">
-  <select id="preset">
-    <option>Bronze Filaments</option>
-    <option>Cool Steel</option>
-    <option>Molten Core</option>
-  </select>
   <label for="file">Load audio</label>
   <input type="file" id="file" accept="audio/*">
   <button id="play" disabled>Play</button>
   <button id="mic">Mic</button>
-  <div class="slider">
-    <label>Intensity</label>
-    <input type="range" id="intensity" min="0.02" max="1" step="0.01" value="0.18">
-    <span class="val" id="intensityVal">0.18</span>
-  </div>
-  <div class="slider">
-    <label>Speed</label>
-    <input type="range" id="prongSpeed" min="0.1" max="3" step="0.05" value="1">
-    <span class="val" id="prongSpeedVal">1.00&times;</span>
-  </div>
-  <div class="slider">
-    <label>Spread</label>
-    <input type="range" id="spread" min="0.5" max="3" step="0.05" value="1">
-    <span class="val" id="spreadVal">1.00&times;</span>
-  </div>
+  <div class="slider"><label>Speed</label>
+    <input type="range" id="speed" min="0.05" max="6" step="0.05" value="1">
+    <span class="val" id="speedVal">1.00&times;</span></div>
+  <div class="slider"><label>Spread</label>
+    <input type="range" id="spread" min="0.5" max="4" step="0.05" value="2.5">
+    <span class="val" id="spreadVal">2.50&times;</span></div>
+  <div class="slider"><label>Reaction</label>
+    <input type="range" id="reaction" min="0" max="3" step="0.05" value="1.5">
+    <span class="val" id="reactionVal">1.50&times;</span></div>
+  <div class="slider"><label>Flare</label>
+    <input type="range" id="flare" min="0" max="3" step="0.05" value="1">
+    <span class="val" id="flareVal">1.00&times;</span></div>
+  <div class="slider"><label>Breath</label>
+    <input type="range" id="breath" min="0" max="3" step="0.05" value="1">
+    <span class="val" id="breathVal">1.00&times;</span></div>
+  <div class="slider"><label>Focus</label>
+    <input type="range" id="focus" min="0" max="2" step="0.05" value="1">
+    <span class="val" id="focusVal">1.00&times;</span></div>
   <span class="status" id="status">NO AUDIO</span>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -75,19 +73,20 @@
 'use strict';
 
 /* ============================================================
-   Kefe — Branching metal rods
-   Silver/gold/bronze cylinders radiate outward from a hub.
-   Each rod steps clockwise in a smooth continuous arc, spawning
-   a twin at its tip every cycle, rotated 30deg off the parent.
-   Branch generation cycles gold -> silver -> bronze.
-   Camera is fixed. FOV is fixed. Audio drives speed subtly.
+   Kefe — Ra
+   A perfect sphere of bronze and white-hot spikes at rest.
+   Bass inflates and densifies it. Vocals drive travelling flares.
+   Transients (snares, hats, plucks) fire random clusters of spikes
+   that shoot out and snap back. Mouse hover pulls a cone of focus
+   across the surface — rods near the cursor brighten and lean.
    ============================================================ */
 
 var stage=document.getElementById('stage');
 var scene=new THREE.Scene();
 scene.background=new THREE.Color(0x000000);
+
 var camera=new THREE.PerspectiveCamera(35,1,1,20000);
-camera.position.set(0,0,22);
+camera.position.set(0,0,42);
 camera.lookAt(0,0,0);
 
 var renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
@@ -95,26 +94,29 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
 renderer.setClearColor(0x000000,1);
 stage.appendChild(renderer.domElement);
 
-/* ---------------- lights ---------------- */
-var key=new THREE.DirectionalLight(0xffffff,1.15); key.position.set(4,5,7); scene.add(key);
-var rim=new THREE.DirectionalLight(0xaaccff,0.65); rim.position.set(-5,-3,-6); scene.add(rim);
-var fill=new THREE.PointLight(0xffffff,0.4); fill.position.set(0,0,3); scene.add(fill);
-scene.add(new THREE.AmbientLight(0x506070,0.55));
+/* ---- lights ---- */
+scene.add(new THREE.AmbientLight(0x2a1408,1.1));
+var key=new THREE.DirectionalLight(0xffe8b0,1.35); key.position.set(6,7,9); scene.add(key);
+var rim=new THREE.DirectionalLight(0xff7a28,0.75); rim.position.set(-7,-5,-8); scene.add(rim);
+var centre=new THREE.PointLight(0xffffff,1.6,26); centre.position.set(0,0,0); scene.add(centre);
 
-/* ---------------- audio ---------------- */
+/* ---- audio ---- */
 var audioCtx=null,analyser=null,sourceNode=null,micSource=null,micStream=null,decodedBuffer=null;
 var freqBytes=null,timeFloats=null;
-var sBass=0,sEnergy=0,SMOOTH=0.18,BAND_COUNT=128;
-var bands=new Float32Array(BAND_COUNT);
+var sBass=0,sMid=0,sTreb=0,sVocal=0,sEnergy=0,sKick=0,sTransient=0;
+var bassAvg=0.15,vocalAvg=0.15,trebAvg=0.12;
+var SMOOTH=0.18;
 
 var playBtn=document.getElementById('play'),micBtn=document.getElementById('mic'),
     fileInput=document.getElementById('file'),statusEl=document.getElementById('status'),
-    presetSel=document.getElementById('preset'),
-    intensityIn=document.getElementById('intensity'),intensityVal=document.getElementById('intensityVal'),
-    speedIn=document.getElementById('prongSpeed'),speedVal=document.getElementById('prongSpeedVal'),
-    spreadIn=document.getElementById('spread'),spreadVal=document.getElementById('spreadVal');
+    speedIn=document.getElementById('speed'),speedVal=document.getElementById('speedVal'),
+    spreadIn=document.getElementById('spread'),spreadVal=document.getElementById('spreadVal'),
+    reactionIn=document.getElementById('reaction'),reactionVal=document.getElementById('reactionVal'),
+    flareIn=document.getElementById('flare'),flareVal=document.getElementById('flareVal'),
+    breathIn=document.getElementById('breath'),breathVal=document.getElementById('breathVal'),
+    focusIn=document.getElementById('focus'),focusVal=document.getElementById('focusVal');
 
-var intensity=0.18, prongSpeedMul=1.0, spreadMul=1.0;
+var speedMul=1.0, spreadMul=2.5, reactionMul=1.5, flareMul=1.0, breathMul=1.0, focusMul=1.0;
 
 function setStatus(t,k){statusEl.textContent=t;
   statusEl.style.color=k==='err'?'#f88':k==='ok'?'#9fa':'';}
@@ -169,216 +171,324 @@ micBtn.addEventListener('click',async function(){
   }catch(err){setStatus('MIC DENIED','err');}
 });
 
-intensityIn.addEventListener('input',function(){
-  intensity=Number(intensityIn.value);intensityVal.textContent=intensity.toFixed(2);
-});
-speedIn.addEventListener('input',function(){
-  prongSpeedMul=Number(speedIn.value);speedVal.textContent=prongSpeedMul.toFixed(2)+'\u00d7';
-});
-spreadIn.addEventListener('input',function(){
-  spreadMul=Number(spreadIn.value);spreadVal.textContent=spreadMul.toFixed(2)+'\u00d7';
-});
+speedIn.addEventListener('input',function(){speedMul=Number(speedIn.value);speedVal.textContent=speedMul.toFixed(2)+'\u00d7';});
+spreadIn.addEventListener('input',function(){spreadMul=Number(spreadIn.value);spreadVal.textContent=spreadMul.toFixed(2)+'\u00d7';});
+reactionIn.addEventListener('input',function(){reactionMul=Number(reactionIn.value);reactionVal.textContent=reactionMul.toFixed(2)+'\u00d7';});
+flareIn.addEventListener('input',function(){flareMul=Number(flareIn.value);flareVal.textContent=flareMul.toFixed(2)+'\u00d7';});
+breathIn.addEventListener('input',function(){breathMul=Number(breathIn.value);breathVal.textContent=breathMul.toFixed(2)+'\u00d7';});
+focusIn.addEventListener('input',function(){focusMul=Number(focusIn.value);focusVal.textContent=focusMul.toFixed(2)+'\u00d7';});
 
+/* ---- mouse tracking ---- */
+var mouseNX=0, mouseNY=0;         // normalised -1..1
+var mousePX=0, mousePY=0;         // smoothed position
+addEventListener('mousemove',function(e){
+  var r=stage.getBoundingClientRect();
+  mouseNX=((e.clientX-r.left)/r.width)*2-1;
+  mouseNY=-(((e.clientY-r.top)/r.height)*2-1);
+});
+addEventListener('mouseleave',function(){mouseNX=0;mouseNY=0;});
+
+/* ---- band energy + onsets ---- */
 function updateAudio(){
   if(!analyser){
     var t=performance.now()*0.001;
-    sBass=0.10+Math.sin(t*1.1)*0.05;
-    sEnergy=0.12+Math.sin(t*0.7)*0.04;
-    for(var i=0;i<BAND_COUNT;i++)bands[i]=0.15+Math.sin(i*0.2+t)*0.05;
+    sBass=0.30+Math.sin(t*0.9)*0.12;
+    sMid=0.25+Math.sin(t*0.7)*0.08;
+    sTreb=0.20+Math.sin(t*1.4)*0.10;
+    sVocal=0.25+Math.sin(t*0.5)*0.10;
+    sEnergy=0.28+Math.sin(t*0.6)*0.05;
+    sKick=0.10+Math.sin(t*1.9)*0.06;
+    sTransient=0.08+Math.sin(t*2.6)*0.05;
     return;
   }
   analyser.getByteFrequencyData(freqBytes);
   analyser.getFloatTimeDomainData(timeFloats);
-  var n=freqBytes.length,be=Math.floor(n*0.12),bs=0,all=0;
-  for(var i=0;i<n;i++){var v=freqBytes[i];all+=v;if(i<be)bs+=v;}
-  var rb=bs/(be*255)||0,re=all/(n*255)||0;
-  sBass+=(rb-sBass)*SMOOTH;sEnergy+=(re-sEnergy)*SMOOTH;
-  var nyq=audioCtx.sampleRate/2,bins=freqBytes.length;
-  var fMin=30,fMax=16000,ratio=fMax/fMin;
-  for(var j=0;j<BAND_COUNT;j++){
-    var f0=fMin*Math.pow(ratio,j/BAND_COUNT);
-    var f1=fMin*Math.pow(ratio,(j+1)/BAND_COUNT);
-    var b0=Math.floor(f0/nyq*bins);
-    var b1=Math.max(b0+1,Math.ceil(f1/nyq*bins));
+  var n=freqBytes.length;
+  var nyq=audioCtx.sampleRate/2,bins=n;
+
+  function band(hzLo,hzHi){
+    var b0=Math.floor(hzLo/nyq*bins);
+    var b1=Math.max(b0+1,Math.ceil(hzHi/nyq*bins));
     if(b1>bins)b1=bins;
-    var ss=0,cc=0;
-    for(var b=b0;b<b1;b++){ss+=freqBytes[b];cc++;}
-    var vv=(cc?ss/cc:0)/255;vv=Math.pow(vv,1.1);bands[j]=Math.min(1,vv);
+    var s=0,c=0;
+    for(var b=b0;b<b1;b++){s+=freqBytes[b];c++;}
+    return (c?s/c:0)/255;
   }
+
+  var rb=band(30,140);
+  var rm=band(140,800);
+  var rt=band(800,3500);
+  var rv=band(900,3800);
+  var re=(rb+rm+rt)/3;
+
+  bassAvg+=(rb-bassAvg)*0.05;
+  vocalAvg+=(rv-vocalAvg)*0.05;
+  trebAvg+=(rt-trebAvg)*0.06;
+
+  var kickNow=Math.max(0,rb-bassAvg*1.35);
+  // transient: treble spikes not explained by the running mean
+  var transNow=Math.max(0,rt-trebAvg*1.5);
+
+  function env(cur,val,att,rel){return val>cur?cur+(val-cur)*att:cur+(val-cur)*rel;}
+
+  sBass=env(sBass,rb,0.55,0.06);
+  sMid=env(sMid,rm,0.35,0.05);
+  sTreb=env(sTreb,rt,0.45,0.06);
+  sVocal=env(sVocal,rv,0.40,0.05);
+  sEnergy=env(sEnergy,re,0.30,0.05);
+  sKick=env(sKick,kickNow,0.90,0.12);
+  sTransient=env(sTransient,transNow,0.90,0.20);
 }
 
-/* ---------------- metal colours ---------------- */
-var METAL=[
-  {c:new THREE.Color(1.00,0.85,0.35), e:new THREE.Color(0.30,0.22,0.05)}, // gold
-  {c:new THREE.Color(0.90,0.92,0.96), e:new THREE.Color(0.15,0.17,0.22)}, // silver
-  {c:new THREE.Color(0.80,0.52,0.28), e:new THREE.Color(0.22,0.11,0.04)}  // bronze
+/* ---- colour ramp: patina bronze base → white-hot tip ---- */
+var RAMP=[
+  {c:new THREE.Color(0.28,0.14,0.05), e:new THREE.Color(0.10,0.03,0.00)}, // deep bronze patina
+  {c:new THREE.Color(0.42,0.22,0.07), e:new THREE.Color(0.16,0.06,0.00)},
+  {c:new THREE.Color(0.62,0.34,0.10), e:new THREE.Color(0.26,0.11,0.01)},
+  {c:new THREE.Color(0.88,0.52,0.14), e:new THREE.Color(0.40,0.20,0.02)},
+  {c:new THREE.Color(1.00,0.72,0.24), e:new THREE.Color(0.52,0.34,0.06)},
+  {c:new THREE.Color(1.00,0.88,0.42), e:new THREE.Color(0.62,0.48,0.14)},
+  {c:new THREE.Color(1.00,0.98,0.72), e:new THREE.Color(0.75,0.68,0.32)}  // white-hot
 ];
 
-/* ---------------- rod geometry cache ---------------- */
+/* ---- rod geometry: tapered spike (sharp at tip) ---- */
 var rodGeom=null;
 function getRodGeom(){
   if(!rodGeom){
-    rodGeom=new THREE.CylinderGeometry(1,1,1,8,1,true);
-    rodGeom.rotateZ(Math.PI/2);   // length axis along +X
+    // Bottom radius 1, top radius 0.02 — an obelisk spike.
+    // After rotateZ(-90°) the sharp end faces +X (our outward axis).
+    rodGeom=new THREE.CylinderGeometry(0.02,1.0,1.0,7,1,false);
+    rodGeom.rotateZ(-Math.PI/2);
   }
   return rodGeom;
 }
 
-/* ---------------- preset ---------------- */
+/* ---- state ---- */
 var MAX_PER_COLOR=5000;
-var meshPerColor=[];
-var branches=[];
-var stepClock=0;
-var lastBaseStep=0;
-var smoothBass=0, smoothEnergy=0;
+var meshes=[];
+var rods=[];
+var driftClock=0, spinClock=0;
+var smoothBass=0,smoothMid=0,smoothTreb=0,smoothVocal=0,smoothEnergy=0,smoothKick=0,smoothTransient=0;
 
+var _up=new THREE.Vector3(0,1,0);
+var _xAxis=new THREE.Vector3(1,0,0);
+var _v1=new THREE.Vector3(),_v2=new THREE.Vector3();
+var _qA=new THREE.Quaternion(),_qS=new THREE.Quaternion(),_qF=new THREE.Quaternion();
+var _dummy=new THREE.Object3D();
+
+/* ---- build ---- */
 function buildScene(){
-  // dispose old
-  for(var i=0;i<meshPerColor.length;i++){
-    scene.remove(meshPerColor[i]);
-    meshPerColor[i].geometry=null;
-    meshPerColor[i].material.dispose();
+  for(var i=0;i<meshes.length;i++){
+    scene.remove(meshes[i]);
+    meshes[i].material.dispose();
   }
-  meshPerColor.length=0;
+  meshes.length=0; rods.length=0;
+  driftClock=0; spinClock=0;
+  smoothBass=smoothMid=smoothTreb=smoothVocal=smoothEnergy=smoothKick=smoothTransient=0;
 
-  for(var ci=0;ci<3;ci++){
+  for(var ci=0;ci<RAMP.length;ci++){
     var mat=new THREE.MeshStandardMaterial({
-      color:METAL[ci].c, emissive:METAL[ci].e,
-      metalness:1.0, roughness:0.22, side:THREE.DoubleSide
+      color:RAMP[ci].c, emissive:RAMP[ci].e,
+      metalness:1.0, roughness:0.22,
+      side:THREE.DoubleSide, flatShading:false
     });
     var m=new THREE.InstancedMesh(getRodGeom(),mat,MAX_PER_COLOR);
     m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     m.frustumCulled=false;
-    // per-instance brightness multiplier
     m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(MAX_PER_COLOR*3),3);
     m.instanceColor.setUsage(THREE.DynamicDrawUsage);
     scene.add(m);
-    meshPerColor.push(m);
+    meshes.push(m);
   }
 
-  // Seed initial branches — a wide ring of primary rods
-  branches.length=0;
-  stepClock=0;
-  lastBaseStep=0;
+  /* ---- SEED: uniform surface density per shell, uniform quiet length ---- */
+  var LAYERS=10;
+  var BASE_R=1.0, MAX_R=3.2;
+  var DENSITY=40;                // rods per unit surface area
+  var golden=Math.PI*(3-Math.sqrt(5));
 
-  var N=24;   // rings
-  var R=54;   // rods per ring
-  for(var r=0;r<N;r++){
-    var rT=r/(N-1);
-    for(var k=0;k<R;k++){
-      var ang=(k/R)*Math.PI*2 + rT*0.35;
-      branches.push({
-        baseAngle:ang,
-        baseRadius:2.20*(0.35+0.9*rT)*spreadMul,
-        z:4.5-9.0*rT,
-        length:1.00*(0.75+0.55*(1-rT)),
-        radius:0.024,
-        gen:0,
-        offsetBase:0,
-        rotSpeed:0.04+Math.random()*0.03,
-        spawned:false,
-        phase:Math.random()*Math.PI*2
+  for(var layer=0;layer<LAYERS;layer++){
+    var lT=layer/(LAYERS-1);
+    var shellR=BASE_R+(MAX_R-BASE_R)*lT;
+    var quietLen=0.95+1.35*lT;
+    // INVERTED: inner shells get the brightest end of the ramp, outer get darkest
+    var colourIdx=Math.min(RAMP.length-1,Math.round((1-lT)*(RAMP.length-1)));
+
+    var area=4*Math.PI*shellR*shellR;
+    var count=Math.max(24,Math.round(area*DENSITY));
+    var phase=layer*golden*0.5;
+
+    for(var k=0;k<count;k++){
+      var y=1-(k/(count-1))*2;
+      var rY=Math.sqrt(Math.max(0,1-y*y));
+      var theta=golden*k+phase;
+      var nx=Math.cos(theta)*rY;
+      var ny=y;
+      var nz=Math.sin(theta)*rY;
+
+      rods.push({
+        nx:nx,ny:ny,nz:nz,
+        baseRadius:shellR,
+        quietLen:quietLen,
+        flareLen:quietLen*0.55,
+        radius:0.050,
+        colourIdx:colourIdx,
+        currentFlare:0,
+        // random transient cluster assignment (which "firing group" this belongs to)
+        clusterGroup:Math.floor(Math.random()*8),
+        currentShot:0,
+        // subtle sway
+        sway:Math.random()*Math.PI*2,
+        swaySpeed:0.20+Math.random()*0.20,
+        swayAmp:0.006+Math.random()*0.010,
+        // spin
+        spinPhase:Math.random()*Math.PI*2,
+        spinSpeed:0.12+Math.random()*0.22
       });
     }
   }
+
+  // precompute each rod's tangent frame once
+  for(var i=0;i<rods.length;i++){
+    var r=rods[i];
+    _v1.set(r.nx,r.ny,r.nz);
+    _v2.crossVectors(_up,_v1);
+    if(_v2.lengthSq()<1e-6)_v2.set(1,0,0);
+    _v2.normalize();
+    r.t1x=_v2.x; r.t1y=_v2.y; r.t1z=_v2.z;
+    r.t2x=r.ny*r.t1z-r.nz*r.t1y;
+    r.t2y=r.nz*r.t1x-r.nx*r.t1z;
+    r.t2z=r.nx*r.t1y-r.ny*r.t1x;
+  }
 }
 
-/* ---------- smooth eased step offset ---------- */
-function smoothstep(t){return t*t*(3-2*t);}
-
-/* ---------- main update ---------- */
-var tmpDummy=new THREE.Object3D();
-var CULL_R=18;
-
+/* ---- main update ---- */
 function update(dt){
-  smoothBass+=(sBass-smoothBass)*0.08;
-  smoothEnergy+=(sEnergy-smoothEnergy)*0.08;
+  smoothBass   +=(sBass   -smoothBass   )*0.10;
+  smoothMid    +=(sMid    -smoothMid    )*0.10;
+  smoothTreb   +=(sTreb   -smoothTreb   )*0.10;
+  smoothVocal  +=(sVocal  -smoothVocal  )*0.10;
+  smoothEnergy +=(sEnergy -smoothEnergy )*0.10;
+  smoothKick   +=(sKick   -smoothKick   )*0.15;
+  smoothTransient+=(sTransient-smoothTransient)*0.25;
 
-  // continuous step clock — small base offset (0.5 deg per tick)
-  var baseOffsetDeg=0.5;
-  var stepDur=0.09;   // seconds per sub-step
-  stepClock+=(dt/stepDur)*prongSpeedMul*(1+smoothEnergy*0.15);
-  var baseStep=Math.floor(stepClock);
-  var frac=stepClock-baseStep;
-  var eased=smoothstep(frac);
-  var stepAdvanced=false;
-  if(baseStep!==lastBaseStep){
-    lastBaseStep=baseStep;
-    stepAdvanced=true;
-  }
+  driftClock+=dt*speedMul;
+  spinClock +=dt*speedMul;
 
-  var counts=[0,0,0];
-  var time=performance.now()*0.001;
+  // mouse screen position → 3D direction on the sphere (project cursor onto
+  // a plane in front of camera, then normalise)
+  mousePX+=(mouseNX-mousePX)*0.12;
+  mousePY+=(mouseNY-mousePY)*0.12;
+  // 35° FOV at ~42 units distance → half-height at z=0 ≈ 42*tan(17.5°) ≈ 13.2
+  var halfH=13.2, aspect=camera.aspect||1;
+  var mx=mousePX*halfH*aspect;
+  var my=mousePY*halfH;
+  var mz=6.0;                              // slightly in front of sphere
+  var mlen=Math.sqrt(mx*mx+my*my+mz*mz)||1;
+  mx/=mlen; my/=mlen; mz/=mlen;
 
-  for(var i=0;i<branches.length;i++){
-    var b=branches[i];
+  var counts=new Array(RAMP.length); for(var z=0;z<RAMP.length;z++)counts[z]=0;
 
-    if(stepAdvanced) b.offsetBase+=baseOffsetDeg;
-    var smoothOffset=(b.offsetBase + baseOffsetDeg*eased)*Math.PI/180;
+  // Active transient cluster — rotates each time a transient fires.
+  // Rods in this cluster get a strong outward shot.
+  var transientStrength=smoothTransient*reactionMul*2.5;
 
-    var ang=b.baseAngle + smoothOffset + time*b.rotSpeed*prongSpeedMul;
+  for(var i=0;i<rods.length;i++){
+    var r=rods[i];
 
-    var ca=Math.cos(ang),sa=Math.sin(ang);
-    var cx=ca*(b.baseRadius+b.length*0.5);
-    var cy=sa*(b.baseRadius+b.length*0.5);
+    // ---- sway in tangent plane ----
+    var swayAng=r.sway+driftClock*r.swaySpeed;
+    var swayAmt=r.swayAmp*(1+0.20*smoothMid);
 
-    var ci=b.gen%3;
-    if(counts[ci]<MAX_PER_COLOR){
-      tmpDummy.position.set(cx,cy,b.z);
-      tmpDummy.rotation.set(0,0,ang);
-      tmpDummy.scale.set(b.length,b.radius,b.radius);
-      tmpDummy.updateMatrix();
-      var arr=meshPerColor[ci].instanceMatrix.array;
+    // ---- vocal flare (rotating wave) ----
+    var fx=driftClock*0.9;
+    var fy=driftClock*0.55+1.7;
+    var ax=Math.sin(fx)*r.nx+Math.cos(fx)*r.nz;
+    var ay=Math.sin(fy)*r.ny+Math.cos(fy)*r.nz;
+    var mask=Math.max(ax,ay);
+    mask=Math.max(0,(mask-0.55)/0.45); mask*=mask;
+    var voiceAmt=smoothVocal*2.0*flareMul;
+    var targetFlare=mask*voiceAmt;
+    r.currentFlare+=(targetFlare-r.currentFlare)*0.20;
+
+    // ---- transient shot (chaotic, cluster based) ----
+    var shotTarget=0;
+    if(smoothTransient>0.05){
+      // which cluster is active this beat — rotates over time
+      var activeCluster=Math.floor((driftClock*2.3)%8);
+      if(r.clusterGroup===activeCluster){
+        shotTarget=transientStrength*(0.55+0.9*Math.random());
+      }
+    }
+    r.currentShot+=(shotTarget-r.currentShot)*0.35;
+
+    // ---- mouse focus ----
+    var dot=r.nx*mx+r.ny*my+r.nz*mz;         // -1..1
+    var focusMask=Math.max(0,(dot-0.72)/0.28); // 0 outside cone
+    focusMask*=focusMask;
+    var focusPush=focusMask*smoothBass*0.35*focusMul;
+    var focusFlare=focusMask*(0.35+0.5*smoothVocal)*focusMul;
+
+    // ---- direction: base + tangent sway + slight focus lean ----
+    var dx=r.nx*(1+focusPush*0.4)+r.t1x*(swayAmt)+r.t2x*(focusPush*0.25);
+    var dy=r.ny*(1+focusPush*0.4)+r.t1y*(swayAmt)+r.t2y*(focusPush*0.25);
+    var dz=r.nz*(1+focusPush*0.4)+r.t1z*(swayAmt)+r.t2z*(focusPush*0.25);
+    var dl=Math.sqrt(dx*dx+dy*dy+dz*dz)||1; dx/=dl;dy/=dl;dz/=dl;
+
+    // ---- length: quiet + vocal flare + transient shot + focus flare ----
+    var breath=1+(smoothKick*0.09*breathMul)+(smoothEnergy*0.025*breathMul);
+    var flareLen=r.flareLen*(r.currentFlare+r.currentShot*0.85+focusFlare);
+    var len=(r.quietLen+flareLen)*breath;
+
+    // ---- root on the sphere, tip outward ----
+    var baseR=r.baseRadius*spreadMul*(1+smoothBass*0.06*reactionMul);
+    var rx=dx*baseR, ry=dy*baseR, rz=dz*baseR;
+    var cx=rx+dx*len*0.5;
+    var cy=ry+dy*len*0.5;
+    var cz=rz+dz*len*0.5;
+
+    // ---- colour highlight: rods in the focus cone get one ramp step up ----
+    var ci=r.colourIdx;
+    if(focusMask>0.4 && ci<RAMP.length-1) ci++;
+    if(r.currentShot>0.3 && ci<RAMP.length-1) ci++;
+
+    if(ci>=0 && ci<meshes.length && counts[ci]<MAX_PER_COLOR){
+      _dummy.position.set(cx,cy,cz);
+      _v1.set(dx,dy,dz);
+      _qA.setFromUnitVectors(_xAxis,_v1);
+      var spin=r.spinPhase+spinClock*r.spinSpeed;
+      _qS.setFromAxisAngle(_xAxis,spin);
+      _qF.copy(_qA).multiply(_qS);
+      _dummy.quaternion.copy(_qF);
+      _dummy.scale.set(len,r.radius,r.radius);
+      _dummy.updateMatrix();
+      var arr=meshes[ci].instanceMatrix.array;
       var o=counts[ci]*16;
-      for(var m=0;m<16;m++) arr[o+m]=tmpDummy.matrix.elements[m];
-      var col=meshPerColor[ci].instanceColor.array;
-      var fade=Math.max(0.35,1-b.gen*0.05);
-      col[counts[ci]*3  ]=fade;
-      col[counts[ci]*3+1]=fade;
-      col[counts[ci]*3+2]=fade;
+      for(var m=0;m<16;m++) arr[o+m]=_dummy.matrix.elements[m];
+
+      // per-instance brightness: brighter in focus cone, brighter when shot
+      var bright=1+focusMask*0.5*focusMul+r.currentShot*0.6;
+      var col=meshes[ci].instanceColor.array;
+      col[counts[ci]*3  ]=bright;
+      col[counts[ci]*3+1]=bright;
+      col[counts[ci]*3+2]=bright;
       counts[ci]++;
     }
-
-    // spawn twin at tip after enough offset accumulated
-    if(stepAdvanced && !b.spawned && b.offsetBase>=(b.gen+1)*8){
-      var tipR=b.baseRadius+b.length;
-      branches.push({
-        baseAngle:b.baseAngle + b.offsetBase*Math.PI/180 + 30*Math.PI/180,
-        baseRadius:tipR,
-        z:b.z,
-        length:b.length*0.88,
-        radius:b.radius*0.9,
-        gen:b.gen+1,
-        offsetBase:0,
-        rotSpeed:b.rotSpeed*0.95,
-        spawned:false,
-        phase:Math.random()*Math.PI*2
-      });
-      b.spawned=true;
-    }
   }
 
-  // cull far branches
-  if(branches.length>800){
-    var keep=[];
-    for(var j=0;j<branches.length;j++){
-      var bb=branches[j];
-      if(bb.baseRadius+bb.length<CULL_R*spreadMul) keep.push(bb);
-    }
-    branches=keep;
+  // cull — with fixed shells, nothing needs culling at runtime, but
+  // keep it in case the ball grows
+  if(rods.length>26000){
+    rods=rods.slice(-25000);
   }
 
-  for(var k=0;k<3;k++){
-    meshPerColor[k].count=counts[k];
-    meshPerColor[k].instanceMatrix.needsUpdate=true;
-    meshPerColor[k].instanceColor.needsUpdate=true;
+  for(var k=0;k<meshes.length;k++){
+    meshes[k].count=counts[k];
+    meshes[k].instanceMatrix.needsUpdate=true;
+    meshes[k].instanceColor.needsUpdate=true;
   }
 }
 
-/* ---------- load / preset ---------- */
-presetSel.addEventListener('change',function(){buildScene();});
-
-/* ---------- resize ---------- */
 function resize(){
   var r=stage.getBoundingClientRect();
   var w=Math.max(2,Math.round(r.width));
@@ -386,15 +496,20 @@ function resize(){
   renderer.setSize(w,h,false);
   camera.aspect=w/h;camera.updateProjectionMatrix();
 }
-window.addEventListener('resize',resize);
+addEventListener('resize',resize);
 
-/* ---------- loop ---------- */
 var lastT=0;
 function frame(now){
   var dt=lastT?Math.min(0.033,(now-lastT)/1000):0.016;
   lastT=now;
   updateAudio();
   update(dt);
+
+  // very slow camera orbit — barely perceptible, keeps the 3D readable
+  var t=now*0.00006;
+  camera.position.set(Math.sin(t)*42,Math.cos(t*0.6)*20,Math.cos(t)*42);
+  camera.lookAt(0,0,0);
+
   renderer.render(scene,camera);
   requestAnimationFrame(frame);
 }
