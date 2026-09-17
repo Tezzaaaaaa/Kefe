@@ -14,7 +14,14 @@
       '#kefeVisualiserPicker .kefe-vis-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}',
       '#kefeVisualiserPicker .kefe-vis-btn{position:relative;overflow:hidden;min-height:64px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:600 12px "Open Sans",Arial,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .18s ease,box-shadow .18s ease}',
       '#kefeVisualiserPicker .kefe-vis-btn:hover{border-color:var(--line-strong)}',
-      '#kefeVisualiserPicker .kefe-vis-btn.active-effect{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}'
+      '#kefeVisualiserPicker .kefe-vis-btn.active-effect{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}',
+      '#kefeVisualiserPicker .kefe-ra-controls{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}',
+      '#kefeVisualiserPicker .kefe-ra-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}',
+      '#kefeVisualiserPicker .kefe-ra-row label{flex:0 0 74px;font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em}',
+      '#kefeVisualiserPicker .kefe-ra-row input[type=range]{flex:1 1 auto;-webkit-appearance:none;appearance:none;height:3px;background:var(--line);border-radius:2px;outline:none;cursor:pointer}',
+      '#kefeVisualiserPicker .kefe-ra-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--text);border:0;cursor:pointer}',
+      '#kefeVisualiserPicker .kefe-ra-row input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--text);border:0;cursor:pointer}',
+      '#kefeVisualiserPicker .kefe-ra-row .val{flex:0 0 34px;text-align:right;font-size:11px;color:var(--text);font-variant-numeric:tabular-nums}'
     ].join('\n');
     document.head.appendChild(s);
   }
@@ -80,6 +87,58 @@
     grid.querySelectorAll('.kefe-vis-btn').forEach(function(b){
       b.classList.toggle('active-effect', b.dataset.mode === cur);
     });
+
+    // ---- Ra controls: only show when Ra is the selected visualiser ----
+    if (cur === 'ra') {
+      var ctrl = document.createElement('div');
+      ctrl.className = 'kefe-ra-controls';
+      var RA_SLIDERS = [
+        { key: 'raSpeed',    label: 'Speed',    min: 0,    max: 100, step: 1,    def: 30 },
+        { key: 'raSpread',   label: 'Spread',   min: 0.5,  max: 3,   step: 0.05, def: 1.0 },
+        { key: 'raReaction', label: 'React',    min: 0,    max: 3,   step: 0.05, def: 1.0 },
+        { key: 'raFlare',    label: 'Flare',    min: 0,    max: 3,   step: 0.05, def: 1.0 },
+        { key: 'raBreath',   label: 'Breath',   min: 0,    max: 3,   step: 0.05, def: 1.0 },
+        { key: 'raFocus',    label: 'Focus',    min: 0,    max: 2,   step: 0.05, def: 1.0 }
+      ];
+      RA_SLIDERS.forEach(function(cfg){
+        var existingVal = (window.state.style && window.state.style[cfg.key]);
+        var val = (existingVal === undefined || existingVal === null) ? cfg.def : existingVal;
+
+        var row = document.createElement('div');
+        row.className = 'kefe-ra-row';
+
+        var lab = document.createElement('label');
+        lab.textContent = cfg.label;
+
+        var inp = document.createElement('input');
+        inp.type = 'range';
+        inp.min = cfg.min; inp.max = cfg.max; inp.step = cfg.step;
+        inp.value = val;
+
+        var valEl = document.createElement('span');
+        valEl.className = 'val';
+        valEl.textContent = (cfg.step < 1 ? Number(val).toFixed(2) : String(Math.round(val)));
+
+        inp.addEventListener('input', function(){
+          var v = Number(inp.value);
+          if (!window.state.style) window.state.style = {};
+          window.state.style[cfg.key] = v;
+          valEl.textContent = (cfg.step < 1 ? v.toFixed(2) : String(Math.round(v)));
+          if (cfg.key === 'raSpread') {
+            if (window.kefeVisualiser && window.kefeVisualiser.refreshRa) {
+              window.kefeVisualiser.refreshRa();
+            }
+          }
+          window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
+        });
+
+        row.appendChild(lab);
+        row.appendChild(inp);
+        row.appendChild(valEl);
+        ctrl.appendChild(row);
+      });
+      box.appendChild(ctrl);
+    }
 
     host.appendChild(box);
   }

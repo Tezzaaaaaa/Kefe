@@ -272,6 +272,7 @@
 
     ra.width = w;
     ra.height = h;
+    ra.spread = (ra.spread === undefined ? 1.0 : ra.spread);
     ra.ready = true;
     return true;
   }
@@ -279,8 +280,9 @@
   var _raDummy = new THREE.Object3D ? new THREE.Object3D() : null;
   var _raXAxis = new THREE.Vector3 ? new THREE.Vector3(1, 0, 0) : null;
 
-  function drawRa(ctx, w, h, time, frame){
-    if (!ra.ready || ra.width !== w || ra.height !== h){
+  function drawRa(ctx, w, h, time, frame, appState){
+    var opts = raOpts(appState);
+    if (!ra.ready || ra.width !== w || ra.height !== h || ra.spread !== opts.spread){
       if (!raInit(w, h)) return;
     }
     if (!frame) return;
@@ -296,8 +298,8 @@
 
     // Only advance clock when audio is alive
     var alive = Math.min(1, frame.energy * 6 + frame.bass * 4 + frame.mids * 4);
-    ra.driftClock += dt * alive;
-    ra.spinClock  += dt * alive;
+    ra.driftClock += dt * alive * opts.speed;
+    ra.spinClock  += dt * alive * opts.speed;
 
     var t0 = performance.now() * 0.001;
     var halfH = 13.2;
@@ -311,13 +313,13 @@
 
       // Per-rod random fire (white noise per frame) — vocals
       var flareTarget = 0;
-      if (Math.random() < ra.vocalEnv * 0.9) flareTarget = 0.8 + Math.random() * 1.4;
+      if (Math.random() < ra.vocalEnv * 0.9 * opts.reaction) flareTarget = (0.8 + Math.random() * 1.4) * opts.flare;
       r.flare += (flareTarget - r.flare) * 0.22;
 
       // Per-rod random fire — transients
       var shotTarget = 0;
-      if (ra.transientEnv > 0.05 && Math.random() < ra.transientEnv * 0.7){
-        shotTarget = 1.2 + Math.random() * 1.6;
+      if (ra.transientEnv > 0.05 && Math.random() < ra.transientEnv * 0.7 * opts.reaction){
+        shotTarget = (1.2 + Math.random() * 1.6) * opts.flare;
       }
       r.shot += (shotTarget - r.shot) * 0.28;
 
@@ -325,11 +327,11 @@
       var dx = r.nx, dy = r.ny, dz = r.nz;
 
       // Length
-      var breath = 1 + ra.kickEnv * 0.22 + ra.energyEnv * 0.06;
-      var len = (r.quietLen + (r.flare + r.shot) * r.flareLen) * breath;
+      var breath = 1 + ra.kickEnv * 0.22 * opts.breath + ra.energyEnv * 0.06 * opts.breath;
+      var len = (r.quietLen + (r.flare + r.shot) * r.flareLen) * breath * opts.spread;
 
       // Base radius
-      var baseR = r.baseRadius * (1 + ra.bassEnv * 0.15);
+      var baseR = r.baseRadius * opts.spread * (1 + ra.bassEnv * 0.15);
 
       var cx = dx * baseR + dx * len * 0.5;
       var cy = dy * baseR + dy * len * 0.5;
@@ -374,7 +376,8 @@
 
     // Slow camera orbit
     var t = time * 0.00006;
-    ra.camera.position.set(Math.sin(t)*22, Math.cos(t*0.6)*10, Math.cos(t)*22);
+    var camDist = 22 * Math.max(1, opts.spread);
+    ra.camera.position.set(Math.sin(t)*camDist, Math.cos(t*0.6)*camDist*0.45, Math.cos(t)*camDist);
     ra.camera.lookAt(0, 0, 0);
     ra.camera.aspect = aspect;
     ra.camera.updateProjectionMatrix();
@@ -389,6 +392,22 @@
     ctx.restore();
   }
 
+  function raOpts(appState) {
+    var st = (appState && appState.style) || {};
+    // Speed slider: 0 → frozen, 30 → baseline, 100 → 5x
+    var speedPct = (st.raSpeed !== undefined) ? Number(st.raSpeed) : 30;
+    var speed;
+    if (speedPct <= 30) speed = speedPct / 30;
+    else speed = 1 + ((speedPct - 30) / 70) * 4;  // 1 → 5
+    return {
+      speed: speed,
+      spread: (st.raSpread !== undefined) ? Number(st.raSpread) : 1.0,
+      reaction: (st.raReaction !== undefined) ? Number(st.raReaction) : 1.0,
+      flare: (st.raFlare !== undefined) ? Number(st.raFlare) : 1.0,
+      breath: (st.raBreath !== undefined) ? Number(st.raBreath) : 1.0,
+      focus: (st.raFocus !== undefined) ? Number(st.raFocus) : 1.0
+    };
+  }
 var MODES = { pulse: drawPulse, spectrum: drawSpectrum, waveform: drawWaveform, radial: drawRadial, ra: drawRa };
 
   function draw(ctx, w, h, time, appState) {
@@ -399,8 +418,11 @@ var MODES = { pulse: drawPulse, spectrum: drawSpectrum, waveform: drawWaveform, 
     catch (e) { console.warn('[KEFE visualiser]', e); }
   }
 
+  function refreshRa(){ ra.ready = false; }
+
   window.kefeVisualiser = {
     draw: draw,
+    refreshRa: refreshRa,
     get data() { return analysis; },
     get modes() { return Object.keys(MODES); },
     ingest: ingest
