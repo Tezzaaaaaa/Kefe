@@ -184,10 +184,12 @@ speedIn.addEventListener('input',function(){
   var sm;
   if(pct<=5){
     sm=pct/5;
+  }else if(pct<=90){
+    var u=(pct-5)/85;
+    sm=1.0 - u*0.5;
   }else{
-    var u=(pct-5)/95;
-    var eased=u*u*u*u;      // quartic — slow through mid, fast only at top
-    sm=1 + eased*(8-1);
+    var u=(pct-90)/10;
+    sm=0.5 + u*0.1;
   }
   speedMul=sm;
   speedVal.textContent=pct+'%';
