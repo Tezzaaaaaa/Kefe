@@ -403,8 +403,11 @@ function update(dt){
   smoothKick   +=(sKick   -smoothKick   )*0.15;
   smoothTransient+=(sTransient-smoothTransient)*0.25;
 
-  driftClock+=dt*speedMul;
-  spinClock +=dt*speedMul;
+  // Only advance the animation clock when there's audio energy.
+  // At silence, nothing moves.
+  var audioAlive = Math.min(1, sEnergy*6 + sBass*4 + sVocal*4 + sTransient*3);
+  driftClock+=dt*speedMul*audioAlive;
+  spinClock +=dt*speedMul*audioAlive;
 
   // mouse screen position → 3D direction on the sphere (project cursor onto
   // a plane in front of camera, then normalise)
@@ -437,15 +440,15 @@ function update(dt){
     // jitter each frame so nothing is ever perfectly still.
     var wobX = Math.sin(driftClock*2.3 + r.spinPhase*5.1);
     var wobY = Math.cos(driftClock*1.9 + r.spinPhase*7.7);
-    // Scale random jitter by speedMul so it dies at slider=0
-    var speedGate = Math.min(1, speedMul / 0.5);
-    var jitterX = (Math.random()-0.5) * 0.35 * speedGate;
-    var jitterY = (Math.random()-0.5) * 0.35 * speedGate;
+    // Random jitter removed — silence is perfect stillness.
+    var speedGate = 1.0;
+    var jitterX = 0;
+    var jitterY = 0;
 
-    var swayAmt = (r.swayAmp*innerBoost*1.6
-                 + 0.025*innerBoost
-                 + smoothBass*0.40*innerBoost)
-                 * (1 + 0.20*smoothMid);
+    // At rest, sway is zero. Only audio opens it.
+    var restSway = 0;
+    var audioSway = (smoothBass*0.45 + smoothMid*0.20 + smoothVocal*0.25)*innerBoost;
+    var swayAmt = (restSway + audioSway) * (1 + 0.20*smoothMid);
 
     var t1Push = (wobX + jitterX) * swayAmt;
     var t2Push = (wobY + jitterY) * swayAmt;
