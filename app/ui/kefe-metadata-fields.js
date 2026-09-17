@@ -74,6 +74,96 @@
     return null;
   }
 
+  function ensureSidecarButton(host) {
+    if (!host) return;
+    if (document.getElementById('kefeSidecarBtn')) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'kefeSidecarBtn';
+    btn.className = 'file-button';
+    btn.textContent = 'Load subtitle file (.srt / .vtt / .lrc / .ass)';
+    btn.style.cssText = 'width:100%;margin-top:8px';
+
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.srt,.vtt,.lrc,.ass,.ssa,.txt';
+    inp.style.display = 'none';
+
+    btn.addEventListener('click', function() { inp.click(); });
+
+    inp.addEventListener('change', async function() {
+      var f = inp.files && inp.files[0];
+      if (!f) return;
+      try {
+        var text = await f.text();
+        var lines = window.kefeLyricSources ? window.kefeLyricSources.parseAny(text) : [];
+        if (!lines.length) throw new Error('No timed text found in ' + f.name);
+        window.state.lyrics.lines = lines;
+        window.state.audio.metadataSource = 'sidecar';
+        document.getElementById('lyricsStatus').textContent = lines.length + ' lines loaded from ' + f.name;
+        document.getElementById('lyricsStatus').className = 'status success';
+        if (typeof window.readiness === 'function') window.readiness();
+        if (typeof window.redrawCurrentPreviewFrame === 'function') window.redrawCurrentPreviewFrame();
+        document.dispatchEvent(new CustomEvent('kefe:lyrics-resolved', {
+          detail: { source: 'sidecar', filename: f.name, lines: lines }
+        }));
+      } catch (e) {
+        document.getElementById('lyricsStatus').textContent = e.message || 'Could not load subtitle file';
+        document.getElementById('lyricsStatus').className = 'status error';
+      } finally {
+        inp.value = '';
+      }
+    });
+
+    host.appendChild(btn);
+    host.appendChild(inp);
+  }
+
+  function ensureSidecarButton(host) {
+    if (!host) return;
+    if (document.getElementById('kefeSidecarBtn')) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'kefeSidecarBtn';
+    btn.className = 'file-button';
+    btn.textContent = 'Load subtitle file (.srt / .vtt / .lrc / .ass)';
+    btn.style.cssText = 'width:100%;margin-top:8px';
+
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.srt,.vtt,.lrc,.ass,.ssa,.txt';
+    inp.style.display = 'none';
+
+    btn.addEventListener('click', function() { inp.click(); });
+
+    inp.addEventListener('change', async function() {
+      var f = inp.files && inp.files[0];
+      if (!f) return;
+      try {
+        var text = await f.text();
+        var lines = window.kefeLyricSources ? window.kefeLyricSources.parseAny(text) : [];
+        if (!lines.length) throw new Error('No timed text found in ' + f.name);
+        window.state.lyrics.lines = lines;
+        window.state.audio.metadataSource = 'sidecar';
+        document.getElementById('lyricsStatus').textContent = lines.length + ' lines loaded from ' + f.name;
+        document.getElementById('lyricsStatus').className = 'status success';
+        if (typeof window.readiness === 'function') window.readiness();
+        if (typeof window.redrawCurrentPreviewFrame === 'function') window.redrawCurrentPreviewFrame();
+        document.dispatchEvent(new CustomEvent('kefe:lyrics-resolved', {
+          detail: { source: 'sidecar', filename: f.name, lines: lines }
+        }));
+      } catch (e) {
+        document.getElementById('lyricsStatus').textContent = e.message || 'Could not load subtitle file';
+        document.getElementById('lyricsStatus').className = 'status error';
+      } finally {
+        inp.value = '';
+      }
+    });
+
+    host.appendChild(btn);
+    host.appendChild(inp);
+  }
+
   function inject() {
     var existing = document.getElementById('metaArtist');
     var host = currentHost();
@@ -107,6 +197,10 @@
       if (t) t.value = s.audio.metadata.title || '';
       if (al) al.value = s.audio.metadata.album || '';
     }
+      ensureSidecarButton(host);
+      ensureSidecarButton(host);
+
+
 
     console.log('[KEFE] metadata fields injected into', host.id || host.className);
   }

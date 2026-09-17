@@ -1996,9 +1996,28 @@ function wireSyncControls() {
 }
 function songFromFilename(name) {
     if (!name) return { artist: '', track: '' };
-    const base = name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim();
+    let base = String(name)
+        .replace(/\.[^.]+$/, '')         // strip extension
+        .replace(/_/g, ' ')               // underscores to spaces
+        .trim();
+
+    // Strip any trailing parenthetical / bracketed descriptor first.
+    base = base
+        .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*$/g, '')
+        .replace(/\s+(official|lyric|lyrics|audio|visuali[sz]er|video|HD|4K|MV)\s*$/ig, '')
+        .trim();
+
+    // Strip leading track numbers like "01 - " or "01. " or "01 ".
+    base = base.replace(/^\d{1,3}\s*[-._]?\s*/, '').trim();
+
     const parts = base.split(/\s+-\s+/);
-    return parts.length > 1 ? { artist: parts[0].trim(), track: parts.slice(1).join(' - ').trim() } : { artist: '', track: base };
+    if (parts.length >= 2) {
+        return {
+            artist: parts[0].trim(),
+            track: parts.slice(1).join(' - ').trim()
+        };
+    }
+    return { artist: '', track: base };
 }
 const ASPECTS = {
     '9:16': { w: 1080, h: 1920, label: '1080 × 1920 (Vertical)' },
@@ -3044,9 +3063,35 @@ async function requestSyncedLyrics(artist, track, duration, signal) {
 
 $('findLyricsBtn').addEventListener('click', async function() {
     if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
-    const resolved = resolveAudioLabels(state.audio);
-    const artist = resolved.artist;
-    const track = resolved.title;
+    let resolved = resolveAudioLabels(state.audio);
+    let artist = resolved.artist;
+    let track = resolved.title;
+
+    // If the metadata fields are empty, guess from the media filename.
+    // The video/audio file name is often "Artist - Title (extra words)".
+    if (!track || !artist) {
+        const media = window.kefeMedia || {};
+        const sourceFile = (media.videoFile && media.videoFile.name) ||
+                           (state.audio && state.audio.file && state.audio.file.name) ||
+                           '';
+        if (sourceFile) {
+            const guessed = songFromFilename(sourceFile);
+            if (!track && guessed.track) track = guessed.track;
+            if (!artist && guessed.artist) artist = guessed.artist;
+            // Strip trailing descriptors like "(official music video)".
+            track = String(track || '')
+                .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*$/g, '')
+                .replace(/\s+(official|lyric|lyrics|audio|visuali[sz]er|video|HD|4K)\s*$/ig, '')
+                .trim();
+            artist = String(artist || '').trim();
+            // Mirror the guess into the fields so the user sees what we used.
+            if (track && $('metaTitle') && !$('metaTitle').value.trim()) $('metaTitle').value = track;
+            if (artist && $('metaArtist') && !$('metaArtist').value.trim()) $('metaArtist').value = artist;
+            if (track) state.audio.metadata.title = track;
+            if (artist) state.audio.metadata.artist = artist;
+        }
+    }
+
     if (!track || !artist) {
         const missing = !track && !artist
             ? 'Enter the song title and artist first'

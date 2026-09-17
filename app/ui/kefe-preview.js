@@ -25,8 +25,10 @@
   function ensureEmptyHint() {
     var wrapper = document.querySelector('.preview .canvas-wrapper');
     if (!wrapper) return null;
+    var hint = wrapper.querySelector('.kefe-preview-hint');
     if (hint) return hint;
     hint = document.createElement('div');
+    hint.className = 'kefe-preview-hint';
     hint.innerHTML = 'Your preview will appear here.<br>Load audio or video to begin.';
     wrapper.appendChild(hint);
     return hint;

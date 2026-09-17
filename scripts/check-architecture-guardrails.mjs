@@ -72,6 +72,7 @@ for (const file of appFiles) {
    ------------------------------------------------------------ */
 const STATE_WRITE = /window\.state\.[a-zA-Z]+(\.[a-zA-Z]+)* *=[^=]/;
 const STATE_WRITE_BASELINE = new Set([
+  'app/ui/kefe-metadata-fields.js', // baselined: metadata form writes state directly by design
   'app/effects/aurora-fx.js',
   'app/effects/effect-app-fx.js',
   'app/effects/story-fade.js',
