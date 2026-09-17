@@ -25,5 +25,10 @@ window.KEFE_EFFECTS = [
   { key: 'flipcards',   label: 'Flip Cards',       description: 'Words flip in around a vertical axis' },
   { key: 'karaoke',     label: 'Karaoke',          description: 'Word-by-word colour-fill sweep' },
   { key: 'trailer',     label: 'Trailer',          description: 'Condensed all-caps movie punch-in' },
-  { key: 'rain',        label: 'Rain on Glass',    description: 'Cool droplets rolling across the lyric' }
+  { key: 'rain',        label: 'Rain on Glass',    description: 'Cool droplets rolling across the lyric' },
+  { key: 'fancy',       label: 'Fancy',            description: 'Chunky chromatic RGB-split' },
+  { key: 'glitch',      label: 'Glitch',           description: 'Skew + blur + chromatic damage' },
+  { key: 'analogtv',    label: 'Analog TV',        description: 'VT323 scanlines and rolling tracking' },
+  { key: 'splitflap',   label: 'Split-Flap',       description: 'Mechanical letter roll into place' },
+  { key: 'chromatica',  label: 'Chromatica',       description: 'Memesique poster stack, salmon on green' }
 ];
