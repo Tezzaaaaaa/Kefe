@@ -533,3 +533,34 @@ body.wizard-mode .wizard-choices:has(.wizard-choice.selected) .wizard-choice:not
 body.wizard-mode .wizard-choices:has(.wizard-choice.selected) .wizard-choice:not(.selected) .wizard-choice-copy p {
   color: rgba(255,255,255,0.45) !important;
 }
+
+
+/* ---------------------------------------------------------------------
+   Wizard card text — override .kefe-accordion-inner { color: var(--bg) }
+   which was inheriting the page background color onto card descriptions,
+   making them invisible on dark theme.
+   --------------------------------------------------------------------- */
+
+body.wizard-mode .wizard-choices .wizard-choice,
+body.wizard-mode .wizard-choices .wizard-choice .kefe-accordion-inner,
+body.wizard-mode .wizard-choices .wizard-choice .kefe-accordion-inner > * {
+  color: rgba(255,255,255,0.88) !important;
+}
+
+body.wizard-mode .wizard-choices .wizard-choice .kefe-accordion-inner span,
+body.wizard-mode .wizard-choices .wizard-choice .kefe-accordion-inner p,
+body.wizard-mode .wizard-choices .wizard-choice .kefe-accordion-inner small {
+  color: rgba(255,255,255,0.62) !important;
+}
+
+body.wizard-mode .wizard-choices .wizard-choice.selected .kefe-accordion-inner,
+body.wizard-mode .wizard-choices .wizard-choice.selected .kefe-accordion-inner > * {
+  color: rgba(255,255,255,0.95) !important;
+  opacity: 1 !important;
+}
+
+body.wizard-mode .wizard-choices .wizard-choice.selected .kefe-accordion-inner span,
+body.wizard-mode .wizard-choices .wizard-choice.selected .kefe-accordion-inner p,
+body.wizard-mode .wizard-choices .wizard-choice.selected .kefe-accordion-inner small {
+  color: rgba(255,255,255,0.72) !important;
+}
