@@ -42,3 +42,24 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
 .section-nav-link:hover{background:rgba(255,255,255,.05)}
 .section-nav-link.active{font-weight:700;border-bottom-color:currentColor}
 .section-nav-link:focus-visible{outline:2px solid currentColor;outline-offset:-2px}
+
+/* ---------------------------------------------------------------------
+   Mobile toolbar fixes — allow the heading to shrink and stack when
+   narrow. Overlapping at <700px was caused by .preview-heading > *
+   { flex:0 0 auto } preventing anything from giving.
+   --------------------------------------------------------------------- */
+@media(max-width:700px){
+  .preview-heading{gap:6px;min-width:0;flex-wrap:nowrap}
+  .preview-heading>*{min-width:0}
+  .preview-heading .kefe-sync-toggle span{display:none}
+  .preview-heading .kefe-sync-toggle{padding:0 10px;gap:0}
+  .preview-heading .preview-format button{padding:0 8px;font-size:11px}
+  .preview-heading .preview-format{padding:2px;gap:1px}
+  .preview-heading #previewModeBadge{display:none}
+}
+@media(max-width:480px){
+  .preview-heading .kefe-sync-toggle{display:none}
+  .preview-heading .preview-format button{padding:0 6px;font-size:10px}
+  .preview-heading .preview-focus-button,
+  .preview-heading #previewFocusButton{display:none}
+}
