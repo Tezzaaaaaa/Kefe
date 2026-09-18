@@ -253,7 +253,7 @@
 
       // Back rows are tighter and fainter; foreground rows are broader and
       // carry the strongest audio displacement.
-      var amplitude = h * lerp(0.020, 0.200, Math.pow(r, 1.18)) * depth;
+      var amplitude = h * lerp(0.055, 0.095, Math.pow(r, 0.6)) * depth;
       var rowScale = lerp(0.52, 1.0, Math.pow(r, 1.1));
       amplitude *= rowScale;
 
@@ -280,8 +280,11 @@
       ctx.beginPath();
       ctx.moveTo(pts[0][0], pts[0][1]);
       for (i = 1; i < points; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-      ctx.lineTo(pts[points - 1][0], floor);
-      ctx.lineTo(pts[0][0], floor);
+      // Fill only a modest skirt below the ridge line — enough to occlude
+      // the immediate row behind, not enough to wipe out the whole stack.
+      var skirt = h * 0.045;
+      ctx.lineTo(pts[points - 1][0], baseY + skirt);
+      ctx.lineTo(pts[0][0], baseY + skirt);
       ctx.closePath();
       ctx.globalAlpha = 1;
       ctx.fillStyle = maskFill;
