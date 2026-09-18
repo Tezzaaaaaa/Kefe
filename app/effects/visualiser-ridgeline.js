@@ -10,6 +10,11 @@
   'use strict';
   if (window.kefeRidgeline) return;
 
+  var _analysis = null;
+  window.addEventListener('kefe:audio-analysis-ready', function(e){
+    _analysis = e.detail || null;
+  });
+
   var state = {
     lastTime: -1,
     smoothed: [],
@@ -186,6 +191,7 @@
   }
 
   function draw(ctx, w, h, time, frame, appState, analysis) {
+    if (!analysis && _analysis) analysis = _analysis;
     if (!analysis || !analysis.energy || !analysis.energy.length) return;
 
     var settings = opts(appState);

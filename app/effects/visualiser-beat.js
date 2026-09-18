@@ -448,5 +448,11 @@
     get maxima() { return maxima; },
     get modes() { return Object.keys(MODES); },
     ingest: ingest
+  ,
+    ridgeline: function(ctx, w, h, time, frame, appState) {
+      if (window.kefeRidgeline && typeof window.kefeRidgeline.draw === 'function') {
+        window.kefeRidgeline.draw(ctx, w, h, time, frame, appState, analysis);
+      }
+    }
   };
 })();
