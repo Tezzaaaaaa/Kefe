@@ -143,6 +143,7 @@
       var ridge = document.createElement('div');
       ridge.className = 'kefe-ra-controls';
       var RIDGE_SLIDERS = [
+        { key: 'ridgeFlow',     label: 'Flow',   min: 0,    max: 2.0, step: 0.05, def: 0.35 },
         { key: 'ridgeSpeed',    label: 'Speed',  min: 0.25, max: 2.5, step: 0.05, def: 1.0 },
         { key: 'ridgeDepth',    label: 'Depth',  min: 0.5,  max: 2.0, step: 0.05, def: 1.0 },
         { key: 'ridgeReaction', label: 'React',  min: 0,    max: 2.0, step: 0.05, def: 1.0 },

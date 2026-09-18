@@ -27,6 +27,8 @@
     depth: 1,
     reaction: 1,
     peaks: 1
+  ,
+    ridgeFlow: 0.35
   };
 
   function opts(appState) {
@@ -35,8 +37,9 @@
       speed: Number.isFinite(Number(s.ridgeSpeed)) ? Number(s.ridgeSpeed) : DEFAULTS.speed,
       depth: Number.isFinite(Number(s.ridgeDepth)) ? Number(s.ridgeDepth) : DEFAULTS.depth,
       reaction: Number.isFinite(Number(s.ridgeReaction)) ? Number(s.ridgeReaction) : DEFAULTS.reaction,
-      peaks: Number.isFinite(Number(s.ridgePeaks)) ? Number(s.ridgePeaks) : DEFAULTS.peaks
-    };
+      peaks: Number.isFinite(Number(s.ridgePeaks)) ? Number(s.ridgePeaks) : DEFAULTS.peaks,
+    flow: (appState && appState.style && appState.style.ridgeFlow != null) ? Number(appState.style.ridgeFlow) : 0.35
+  };
   }
 
   function clamp(v, a, b) {
@@ -127,10 +130,20 @@
       // weights below just balance the *shape* of the terrain, not its
       // overall scale — a quiet verse should read as low rolling hills,
       // a loud chorus should spike toward the top of the frame.
-      var broad = a.energy;
-      var punch = a.flux * 0.32 + a.treble * 0.12 + a.mids * 0.06;
-      var bassLift = a.bass * 0.16;
-      var v = broad * 0.55 + punch + bassLift;
+      // Row position: 0 = farthest back, 1 = front-most
+      var rowT = row / Math.max(1, rows - 1);
+      // Front rows: sharp, treble-leaning peaks (plucks, snares)
+      // Back rows: broad, bass-leaning hills (kick, sub)
+      var trebleW = lerp(0.04, 0.34, rowT);
+      var midsW   = lerp(0.10, 0.18, rowT);
+      var fluxW   = lerp(0.22, 0.42, rowT);
+      var bassW   = lerp(0.34, 0.08, rowT);
+      var energyW = lerp(0.60, 0.40, rowT);
+      var v = a.energy * energyW
+            + a.flux   * fluxW
+            + a.bass   * bassW
+            + a.mids   * midsW
+            + a.treble * trebleW;
       v = Math.pow(Math.max(0, v), lerp(1.28, 0.82, clamp(settings.peaks, 0.3, 2.0) / 2.0));
       v *= settings.reaction;
 
@@ -219,12 +232,14 @@
     // chunk of time — together the 25 rows cover roughly the last
     // ROW_SPAN seconds of the track, front row = now.
     var speed = Math.max(0.25, settings.speed);
-    // widthSeconds and rowPeriod both scale with speed, so the ratio
-    // between them is always widthSeconds / rowPeriod = 0.55 / 0.20 = 2.75.
-    // That means each row's window is ~2.75x the stagger — enough overlap
-    // for continuity, not enough for every row to look identical.
+    var flow = Math.max(0, Math.min(2, Number(settings.flow) || 0));
+    // FLOW controls how much each row is shifted in time. At flow = 0 the
+    // whole stack collapses to one instant and each row's shape comes
+    // purely from its frequency-band weighting — a still column where every
+    // line reacts to the current audio with a different curve. At flow > 0
+    // rows spread through history like a waterfall.
     var widthSeconds = 0.55 / speed;
-    var rowPeriod = 0.20 / speed;
+    var rowPeriod = 0.20 / speed * flow;   // flow = 0 → all rows sample the same instant
     var left = w * 0.015;
     var right = w * 0.985;
     var top = h * 0.115;
