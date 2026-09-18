@@ -112,11 +112,14 @@
       }
     });
 
-    // Sync from existing state
-    if (typeof window.state.lyricsOffset === 'number') {
-      slider.value = window.state.lyricsOffset;
-      apply();
+    // Sync from existing state (clamped — stale/undefined state used to pin to -30)
+    var existing = Number(window.state.lyricsOffset);
+    if (Number.isFinite(existing) && existing >= -30 && existing <= 30) {
+      slider.value = existing;
+    } else {
+      slider.value = 0;
     }
+    apply();
   }
 
   function getDuration() {

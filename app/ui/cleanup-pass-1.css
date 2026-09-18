@@ -1,0 +1,136 @@
+
+/* -------- Pass 2: Lyric sync fallback panel -------- */
+/* Hidden by default; revealed via [data-kefe-sync-open="true"] on .preview */
+.preview #kefeSyncRow {
+  display: none !important;
+}
+.preview[data-kefe-sync-open="true"] #kefeSyncRow {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 14px 20px !important;
+  margin: 0 !important;
+  background: rgba(255,255,255,0.025) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-radius: 0 !important;
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+#kefeSyncRow label[for="kefeSyncSlider"] {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: rgba(255,255,255,0.55) !important;
+  flex: 0 0 auto !important;
+}
+
+#kefeSyncRow #kefeSyncSlider {
+  flex: 1 1 200px !important;
+  min-width: 120px !important;
+  height: 20px !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+/* Webkit slider track + thumb */
+#kefeSyncSlider::-webkit-slider-runnable-track {
+  height: 4px !important;
+  border-radius: 2px !important;
+  background: rgba(255,255,255,0.12) !important;
+}
+#kefeSyncSlider::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  background: #EF3F38 !important;
+  border: 2px solid #fff !important;
+  margin-top: -5px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4) !important;
+}
+/* Firefox slider */
+#kefeSyncSlider::-moz-range-track {
+  height: 4px !important;
+  border-radius: 2px !important;
+  background: rgba(255,255,255,0.12) !important;
+}
+#kefeSyncSlider::-moz-range-thumb {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  background: #EF3F38 !important;
+  border: 2px solid #fff !important;
+}
+
+#kefeSyncRow #kefeSyncValue {
+  flex: 0 0 auto !important;
+  min-width: 64px !important;
+  font-variant-numeric: tabular-nums !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: rgba(255,255,255,0.85) !important;
+  text-align: right !important;
+}
+
+#kefeSyncRow .kefe-sync-actions {
+  display: inline-flex !important;
+  gap: 8px !important;
+  flex: 0 0 auto !important;
+}
+#kefeSyncRow .kefe-sync-actions button {
+  height: 32px !important;
+  padding: 0 14px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  background: transparent !important;
+  color: rgba(255,255,255,0.85) !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;      /* <-- kills "Snap to / playhead" wrap */
+  cursor: pointer !important;
+}
+#kefeSyncRow .kefe-sync-actions button:hover {
+  background: rgba(255,255,255,0.06) !important;
+  border-color: rgba(255,255,255,0.22) !important;
+}
+
+#kefeSyncRow .kefe-sync-hint {
+  flex: 0 0 100% !important;
+  margin: 0 !important;
+  font-size: 12px !important;
+  color: rgba(255,255,255,0.45) !important;
+  line-height: 1.5 !important;
+}
+
+/* "Fine-tune sync" toggle button, lives in the preview heading */
+.kefe-sync-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 26px !important;
+  padding: 0 10px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  background: transparent !important;
+  color: rgba(255,255,255,0.65) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  margin-left: 4px !important;
+}
+.kefe-sync-toggle:hover {
+  background: rgba(255,255,255,0.05) !important;
+  color: #fff !important;
+}
+.kefe-sync-toggle[aria-expanded="true"] {
+  background: rgba(239,63,56,0.15) !important;
+  border-color: rgba(239,63,56,0.5) !important;
+  color: #fff !important;
+}
+.kefe-sync-toggle svg { width: 14px; height: 14px; }
