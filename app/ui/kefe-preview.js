@@ -29,7 +29,7 @@
     if (hint) return hint;
     hint = document.createElement('div');
     hint.className = 'kefe-preview-hint';
-    hint.innerHTML = 'Your preview will appear here.<br>Load audio or video to begin.';
+    hint.textContent = 'Your preview will appear here. Load audio or video to begin.';
     wrapper.appendChild(hint);
     return hint;
   }
