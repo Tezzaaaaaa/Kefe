@@ -1,35 +1,60 @@
 .preview-format {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   margin-left: 10px;
   padding: 3px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--r-sm, 8px);
   background: var(--surface-2);
 }
 
-.preview-format-btn {
+.preview-format-btn,
+.preview-format button {
   min-width: 42px;
   height: 28px;
-  padding: 0 8px;
+  padding: 0 10px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 0;
   background: transparent;
   color: var(--text-2);
   font: inherit;
-  font-size: 11px;
-  font-weight: 650;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
+  transition: background var(--dur, .18s) var(--ease, ease),
+              color var(--dur, .18s) var(--ease, ease);
 }
 
-.preview-format-btn:hover { color: var(--text); }
-.preview-format-btn.active {
-  background: var(--surface-3);
+.preview-format-btn:hover,
+.preview-format button:hover {
   color: var(--text);
+  background: rgba(255,255,255,0.05);
+}
+
+.preview-format-btn.active,
+.preview-format button.active,
+.preview-format button[aria-pressed="true"] {
+  background: var(--red, #EF3F38);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Round only the outer corners of the group, so the group keeps its
+   soft outer shape while the chips inside read as sharp rectangles. */
+.preview-format > button:first-of-type,
+.preview-format > .preview-format-btn:first-of-type {
+  border-top-left-radius: calc(var(--r-sm, 8px) - 3px);
+  border-bottom-left-radius: calc(var(--r-sm, 8px) - 3px);
+}
+.preview-format > button:last-of-type,
+.preview-format > .preview-format-btn:last-of-type {
+  border-top-right-radius: calc(var(--r-sm, 8px) - 3px);
+  border-bottom-right-radius: calc(var(--r-sm, 8px) - 3px);
 }
 
 @media (max-width: 700px) {
-  .preview-format { margin-left: 6px; }
-  .preview-format-btn { min-width: 38px; padding: 0 6px; }
+  .preview-format { margin-left: 6px; gap: 1px; }
+  .preview-format-btn,
+  .preview-format button { min-width: 34px; padding: 0 6px; font-size: 11px; }
 }
