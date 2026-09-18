@@ -20,10 +20,7 @@
 }
 
 /* ---------- Restore the pill where it actually means something ---------- */
-.toggle-switch,
-.toggle-switch::before,
-input:checked + .toggle-switch,
-input:checked + .toggle-switch::before,
+
 .kefe-aid-switch,
 .kefe-aid-switch::after,
 .kefe-aid-toggle input:checked + .kefe-aid-switch:after,
@@ -47,7 +44,6 @@ progress::-moz-progress-bar,
 .caption-timer-dot,
 .status.success::before,
 .kefe-intelligence-bar[data-beat="true"]::before,
-input[type="checkbox"] + .toggle-switch,
 button svg circle,
 svg circle:not([stroke-dasharray]) {
   border-radius: 50% !important;
@@ -298,4 +294,17 @@ body.wizard-mode .wizard-choices .wizard-choice {
 body.wizard-mode .wizard-choices .wizard-choice {
   grid-template-rows: auto auto !important;
   grid-auto-rows: auto !important;
+}
+
+
+/* Toggle switches: sharp rectangle track + square thumb */
+.toggle-switch,
+input[type="checkbox"] + .toggle-switch,
+input:checked + .toggle-switch {
+  border-radius: 4px !important;
+}
+.toggle-switch::before,
+input[type="checkbox"] + .toggle-switch::before,
+input:checked + .toggle-switch::before {
+  border-radius: 2px !important;
 }
