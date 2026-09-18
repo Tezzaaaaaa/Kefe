@@ -2256,6 +2256,20 @@ function handleAudioFile(file) {
         toast('Audio file too large (max ' + Math.round(MAX_AUDIO_BYTES / 1024 / 1024) + 'MB)', 'error');
         return;
     }
+    // Apple Music's lossless downloads are ALAC. Safari's <audio> tag can
+    // play them, but decodeAudioData() (which the analysis engine needs for
+    // FFT) doesn't support ALAC at all. Detect it early and give the user a
+    // real reason instead of loading a file that plays but never analyses.
+    (function detectAlac() {
+        var name = (file.name || '').toLowerCase();
+        var type = (file.type || '').toLowerCase();
+        if (/\[alac\]/.test(name) || /\balac\b/.test(name) || type === 'audio/x-alac') {
+            toast('❌ "' + file.name + '" is a lossless ALAC file. Your browser can play it, but can\u2019t analyse it — the visualiser needs PCM/AAC. Export it as MP3 or AAC/M4A first.', 'error');
+            audioStatus.textContent = file.name + ' \u2014 ALAC not supported. Export as MP3 or AAC.';
+            audioStatus.className = 'status error';
+            return;
+        }
+    })();
     const replacingAudio = Boolean(state.audio.file);
     const token = ++audioLoadToken;
     if (audioURL) URL.revokeObjectURL(audioURL);
