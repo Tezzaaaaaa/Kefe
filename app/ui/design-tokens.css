@@ -433,42 +433,43 @@ header {
 
 
 /* ---------------------------------------------------------------------
-   Wizard cards — consolidated. Overrides the scattered rules in
-   styles.css, square-ui.css, kefe-product-polish.css, wizard.css.
-   Source of truth: this file.
+   Wizard cards — centered layout.
+   Icon on top, title below, description below. All horizontally centered.
+   Overrides the scattered rules in styles.css, square-ui.css,
+   kefe-product-polish.css, wizard.css. Source of truth: this file.
    --------------------------------------------------------------------- */
 
 body.wizard-mode .wizard-choices .wizard-choice {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   gap: var(--s-3);
-  padding: var(--s-4);
-  min-height: 96px;
+  padding: var(--s-5) var(--s-4);
+  min-height: 160px;
   border: 1px solid var(--line, rgba(255,255,255,0.10));
   border-radius: var(--r-md);
   background: var(--surface-2, rgba(255,255,255,0.03));
   color: var(--text, rgba(255,255,255,0.88));
   cursor: pointer;
-  text-align: left;
+  text-align: center;
   transition: border-color var(--dur) var(--ease),
               background var(--dur) var(--ease);
 }
-
 body.wizard-mode .wizard-choices .wizard-choice:hover {
   border-color: var(--line-strong, rgba(255,255,255,0.22));
   background: rgba(255,255,255,0.05);
 }
-
 body.wizard-mode .wizard-choices .wizard-choice.selected {
   border-color: var(--red, #EF3F38);
   background: var(--surface-2, rgba(255,255,255,0.03));
 }
 
-/* Icon: consistent square container, always visible */
+/* Icon: centered square, always visible */
 body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-icon {
   flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--r-sm);
   display: inline-flex;
   align-items: center;
@@ -479,8 +480,8 @@ body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-icon {
               color var(--dur) var(--ease);
 }
 body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-icon svg {
-  width: var(--icon-md);
-  height: var(--icon-md);
+  width: 20px;
+  height: 20px;
   color: currentColor;
   stroke: currentColor;
 }
@@ -489,13 +490,15 @@ body.wizard-mode .wizard-choices .wizard-choice.selected .wizard-choice-icon {
   color: #fff;
 }
 
-/* Copy block: title + description */
+/* Copy block: centered under the icon */
 body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-copy {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--s-1);
   flex: 1 1 auto;
   min-width: 0;
+  text-align: center;
 }
 body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-copy strong {
   font-size: 14px;
@@ -503,29 +506,26 @@ body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-copy strong {
   letter-spacing: -0.015em;
   color: rgba(255,255,255,0.95);
   line-height: 1.3;
+  text-align: center;
 }
-
-/* THE FIX: description text was using --text-2 which is too dim on dark cards.
-   Raise it to a legible value. */
 body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-copy span {
   font-size: 12.5px;
   font-weight: 400;
   line-height: 1.5;
   color: rgba(255,255,255,0.62) !important;
   margin-top: 2px;
+  text-align: center;
 }
-
-/* Long descriptions (wizard adds these on the selected card) — keep readable */
 body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-copy p,
 body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-description {
   font-size: 12.5px;
   line-height: 1.55;
   color: rgba(255,255,255,0.62) !important;
   margin: var(--s-2) 0 0;
+  text-align: center;
 }
 
-/* Dim unselected siblings only slightly when one is chosen —
-   keep them legible (0.68 was too dark) */
+/* Dim unselected siblings only slightly, keep them legible */
 body.wizard-mode .wizard-choices:has(.wizard-choice.selected) .wizard-choice:not(.selected) {
   opacity: 1;
 }
