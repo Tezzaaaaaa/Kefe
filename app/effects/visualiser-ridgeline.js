@@ -95,13 +95,18 @@
     };
   }
 
-  function buildCurve(analysis, centerTime, widthSeconds, points, row, settings, maxima) {
+  function buildCurve(analysis, centerTime, widthSeconds, rowPeriod, points, row, rows, settings, maxima) {
     var values = new Float32Array(points);
     if (!state.smoothed[row] || state.smoothed[row].length !== points) {
       state.smoothed[row] = new Float32Array(points);
     }
     var rowSmooth = state.smoothed[row];
-    var rowDelay = row * 0.032 * settings.speed;
+    // The front row (row = rows-1) shows the current instant; each row
+    // further back shows a real, earlier snapshot of the track — a
+    // waterfall, not a copy of the same window nudged by a few ms. That's
+    // what makes each ridge trace its own distinct peaks instead of 25
+    // near-duplicates of the same curve.
+    var rowDelay = (row - (rows - 1)) * rowPeriod;
     var start = centerTime - widthSeconds * 0.5 + rowDelay;
     var step = widthSeconds / Math.max(1, points - 1);
 
@@ -170,7 +175,12 @@
     var maxima = currentMaxima();
     var rows = 25;
     var points = Math.max(96, Math.min(260, Math.round(w / 3)));
-    var widthSeconds = 5.8 / Math.max(0.25, settings.speed);
+    // Each ridge shows its own short slice of the track (not the whole
+    // 5+ second window), and consecutive ridges are staggered by a real
+    // chunk of time — together the 25 rows cover roughly the last
+    // ROW_SPAN seconds of the track, front row = now.
+    var widthSeconds = 2.1 / Math.max(0.25, settings.speed);
+    var rowPeriod = 0.22 * Math.max(0.25, settings.speed);
     var left = w * 0.015;
     var right = w * 0.985;
     var top = h * 0.115;
@@ -203,7 +213,7 @@
       var rowScale = lerp(0.52, 1.0, Math.pow(r, 1.1));
       amplitude *= rowScale;
 
-      var curve = buildCurve(analysis, time, widthSeconds, points, row, settings, maxima);
+      var curve = buildCurve(analysis, time, widthSeconds, rowPeriod, points, row, rows, settings, maxima);
       var pts = new Array(points);
       for (var i = 0; i < points; i++) {
         var xNorm = i / (points - 1);
