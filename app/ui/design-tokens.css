@@ -7,7 +7,7 @@
   /* Heights */
   --h-control:    40px;   /* standard button, input, select */
   --h-control-sm: 32px;   /* compact buttons, e.g. effect tiles' compact rows */
-  --h-toolbar:    58px;   /* preview toolbar */
+  --h-toolbar:    62px;   /* preview toolbar — matches header + wizard nav */
   --h-header:     62px;   /* page header */
 
   /* Radii */
@@ -128,7 +128,7 @@ header {
    Preview toolbar — same height, same gap, same divider.
    --------------------------------------------------------------------- */
 .preview-toolbar {
-  min-height: var(--h-toolbar);
+  min-height: 62px;
   padding: 10px var(--s-6);
   gap: var(--s-4);
 }
