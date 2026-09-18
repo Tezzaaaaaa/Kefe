@@ -564,3 +564,44 @@ body.wizard-mode .wizard-choices .wizard-choice.selected .kefe-accordion-inner p
 body.wizard-mode .wizard-choices .wizard-choice.selected .kefe-accordion-inner small {
   color: rgba(255,255,255,0.72) !important;
 }
+
+
+/* ---------------------------------------------------------------------
+   Ridgeline gradient preset swatches
+   --------------------------------------------------------------------- */
+.kefe-ridge-gradients {
+  margin-top: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line, rgba(255,255,255,0.10));
+}
+.kefe-ridge-gradients-label {
+  font-size: 11px;
+  color: var(--text-2, rgba(255,255,255,0.60));
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--s-2);
+}
+.kefe-ridge-gradients-row {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+.kefe-ridge-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line, rgba(255,255,255,0.12));
+  padding: 0;
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease),
+              box-shadow var(--dur) var(--ease),
+              border-color var(--dur) var(--ease);
+}
+.kefe-ridge-swatch:hover {
+  transform: scale(1.06);
+  border-color: var(--line-strong, rgba(255,255,255,0.28));
+}
+.kefe-ridge-swatch.active {
+  box-shadow: 0 0 0 2px var(--red, #EF3F38);
+  border-color: var(--red, #EF3F38);
+}

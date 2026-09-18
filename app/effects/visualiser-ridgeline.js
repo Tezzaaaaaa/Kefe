@@ -9,6 +9,23 @@
 (function () {
   'use strict';
   if (window.kefeRidgeline) return;
+  // Built-in gradient presets — three stops from back rows (index 0) to
+  // front rows (index 2). Front rows get the brightest / whitest stop.
+  var GRADIENT_PRESETS = {
+    'pulsar-white':  { label: 'Pulsar White',  stops: ['#FFFFFF','#FFFFFF','#FFFFFF'] },
+    'deep-emerald':  { label: 'Deep Emerald',  stops: ['#00FF88','#00CCAA','#FFFFFF'] },
+    'cyber-sunset':  { label: 'Cyber Sunset',  stops: ['#FF00AA','#FF3366','#FFFFFF'] },
+    'tokyo-neon':    { label: 'Tokyo Neon',    stops: ['#FF00FF','#00FFFF','#FFFFFF'] },
+    'golden-hour':   { label: 'Golden Hour',   stops: ['#FFAA00','#FF5500','#FFFFFF'] }
+  };
+
+  function resolveGradientPreset(name) {
+    if (!name) return null;
+    var preset = GRADIENT_PRESETS[name];
+    if (!preset) return null;
+    return preset.stops;
+  }
+
 
   var _analysis = null;
   window.addEventListener('kefe:audio-analysis-ready', function(e){
@@ -216,8 +233,13 @@
     if (!analysis || !analysis.energy || !analysis.energy.length) return;
 
     var settings = opts(appState);
+    // Preset takes priority — read from state.style.ridgeGradientPreset
+    var presetName = appState && appState.style && appState.style.ridgeGradientPreset;
+    var presetStops = resolveGradientPreset(presetName);
     // Normalise gradient setting to RGB triples
-    if (settings.gradient && Array.isArray(settings.gradient)) {
+    if (presetStops) {
+      settings.gradient = presetStops.map(hexToRgb);
+    } else if (settings.gradient && Array.isArray(settings.gradient)) {
       settings.gradient = settings.gradient.map(hexToRgb);
     } else if (typeof settings.gradient === 'string') {
       settings.gradient = settings.gradient.split(',').map(function(x){ return hexToRgb(x.trim()); });
@@ -320,9 +342,14 @@
         ctx.strokeStyle = 'rgba(255,255,255,1)';
       }
       ctx.lineWidth = Math.max(0.9, h * lerp(0.0022, 0.0048, r));
-      // Glow pass: same curve, wider, lower alpha
+      // Glow pass: same curve, wider, lower alpha, tinted by the
+      // mid-stop of the gradient so the halo reads as one hue family.
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha = lineAlpha * 0.35;
+      if (grad && grad.length >= 2) {
+        var mid = grad[Math.floor(grad.length / 2)];
+        ctx.strokeStyle = 'rgb(' + mid[0] + ',' + mid[1] + ',' + mid[2] + ')';
+      }
       ctx.lineWidth = Math.max(2.0, h * lerp(0.006, 0.011, r));
       ctx.beginPath();
       ctx.moveTo(pts[0][0], pts[0][1]);
@@ -345,6 +372,7 @@
   window.kefeRidgeline = {
     version: 1,
     draw: draw,
-    defaults: DEFAULTS
+    defaults: DEFAULTS,
+    presets: GRADIENT_PRESETS
   };
 })();
