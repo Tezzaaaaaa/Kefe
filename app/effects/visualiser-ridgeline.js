@@ -218,8 +218,13 @@
     // 5+ second window), and consecutive ridges are staggered by a real
     // chunk of time — together the 25 rows cover roughly the last
     // ROW_SPAN seconds of the track, front row = now.
-    var widthSeconds = 0.55 / Math.max(0.25, settings.speed);
-    var rowPeriod = 0.20 * Math.max(0.25, settings.speed);
+    var speed = Math.max(0.25, settings.speed);
+    // widthSeconds and rowPeriod both scale with speed, so the ratio
+    // between them is always widthSeconds / rowPeriod = 0.55 / 0.20 = 2.75.
+    // That means each row's window is ~2.75x the stagger — enough overlap
+    // for continuity, not enough for every row to look identical.
+    var widthSeconds = 0.55 * speed;
+    var rowPeriod = 0.20 * speed;
     var left = w * 0.015;
     var right = w * 0.985;
     var top = h * 0.115;
