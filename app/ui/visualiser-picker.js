@@ -169,8 +169,7 @@
           valEl.textContent = v.toFixed(2);
           window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
         });
-
-      // ---- Gradient preset swatches ----
+      // ---- Gradient preset swatches (once, below the sliders) ----
       var presetWrap = document.createElement('div');
       presetWrap.className = 'kefe-ridge-gradients';
       var presetLabel = document.createElement('div');
@@ -189,9 +188,7 @@
         sw.className = 'kefe-ridge-swatch' + (key === currentPreset ? ' active' : '');
         sw.title = preset.label;
         sw.setAttribute('aria-label', preset.label);
-        // Build a small horizontal gradient preview from the stops.
-        var gradCss = 'linear-gradient(90deg,' + preset.stops.join(',') + ')';
-        sw.style.background = gradCss;
+        sw.style.background = 'linear-gradient(90deg,' + preset.stops.join(',') + ')';
         sw.addEventListener('click', function(){
           if (!window.state.style) window.state.style = {};
           window.state.style.ridgeGradientPreset = key;
@@ -203,6 +200,9 @@
       });
       presetWrap.appendChild(presetRow);
       ridge.appendChild(presetWrap);
+
+
+
         row.appendChild(lab);
         row.appendChild(inp);
         row.appendChild(valEl);
