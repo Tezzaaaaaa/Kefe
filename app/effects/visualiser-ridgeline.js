@@ -80,6 +80,10 @@
 
   function buildCurve(analysis, centerTime, widthSeconds, points, row, settings) {
     var values = new Float32Array(points);
+    if (!state.smoothed[row] || state.smoothed[row].length !== points) {
+      state.smoothed[row] = new Float32Array(points);
+    }
+    var rowSmooth = state.smoothed[row];
     var rowDelay = row * 0.032 * settings.speed;
     var start = centerTime - widthSeconds * 0.5 + rowDelay;
     var step = widthSeconds / Math.max(1, points - 1);
@@ -95,6 +99,7 @@
       var detail = a.flux * 7.0 + a.treble * 0.45 + a.mids * 0.18;
       var bassLift = a.bass * 0.20;
       var v = broad * 0.62 + detail * 0.22 + bassLift;
+      v = Math.pow(Math.max(0, v), lerp(1.28, 0.82, clamp(settings.peaks, 0.3, 2.0) / 2.0));
       v *= settings.reaction;
 
       // A soft centre emphasis keeps the characteristic mountain cluster
@@ -109,10 +114,10 @@
       v = clamp(v + texture, 0, 1.4);
 
       // Row-specific smoothing creates the layered depth of the reference.
-      var previous = state.smoothed[row] || v;
+      var previous = rowSmooth[i] || v;
       var smoothing = lerp(0.34, 0.62, row / 24);
       previous += (v - previous) * smoothing;
-      state.smoothed[row] = previous;
+      rowSmooth[i] = previous;
       values[i] = previous;
     }
 
