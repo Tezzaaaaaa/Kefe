@@ -27,8 +27,9 @@
   }
 
   var MODES = [
-    { key: 'ra',       label: 'Ra'       },
-    { key: 'tuffpuff', label: 'TuffPuff' }
+    { key: 'ra',        label: 'Ra'        },
+    { key: 'tuffpuff',  label: 'TuffPuff'  },
+    { key: 'ridgeline', label: 'Ridgeline' }
   ];
 
   function current(){
@@ -127,6 +128,44 @@
         tp.appendChild(row);
       });
       box.appendChild(tp);
+    }
+
+    // ---- Ridgeline controls: only show when Ridgeline is selected ----
+    if (cur === 'ridgeline') {
+      var ridge = document.createElement('div');
+      ridge.className = 'kefe-ra-controls';
+      var RIDGE_SLIDERS = [
+        { key: 'ridgeSpeed',    label: 'Speed',  min: 0.25, max: 2.5, step: 0.05, def: 1.0 },
+        { key: 'ridgeDepth',    label: 'Depth',  min: 0.5,  max: 2.0, step: 0.05, def: 1.0 },
+        { key: 'ridgeReaction', label: 'React',  min: 0,    max: 2.0, step: 0.05, def: 1.0 },
+        { key: 'ridgePeaks',    label: 'Peaks',  min: 0.3,  max: 2.0, step: 0.05, def: 1.0 }
+      ];
+      RIDGE_SLIDERS.forEach(function(cfg){
+        var existingVal = (window.state.style && window.state.style[cfg.key]);
+        var val = (existingVal === undefined || existingVal === null) ? cfg.def : existingVal;
+        var row = document.createElement('div');
+        row.className = 'kefe-ra-row';
+        var lab = document.createElement('label');
+        lab.textContent = cfg.label;
+        var inp = document.createElement('input');
+        inp.type = 'range';
+        inp.min = cfg.min; inp.max = cfg.max; inp.step = cfg.step; inp.value = val;
+        var valEl = document.createElement('span');
+        valEl.className = 'val';
+        valEl.textContent = Number(val).toFixed(2);
+        inp.addEventListener('input', function(){
+          var v = Number(inp.value);
+          if (!window.state.style) window.state.style = {};
+          window.state.style[cfg.key] = v;
+          valEl.textContent = v.toFixed(2);
+          window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
+        });
+        row.appendChild(lab);
+        row.appendChild(inp);
+        row.appendChild(valEl);
+        ridge.appendChild(row);
+      });
+      box.appendChild(ridge);
     }
 
     // ---- Ra controls: only show when Ra is the selected visualiser ----
