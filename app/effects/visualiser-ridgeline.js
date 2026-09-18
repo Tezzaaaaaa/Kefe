@@ -190,11 +190,27 @@
     }
   }
 
+  function hexToRgb(hex) {
+    if (Array.isArray(hex)) return hex;
+    if (typeof hex !== 'string') return [255,255,255];
+    var h = hex.replace('#', '');
+    if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    return [parseInt(h.slice(0,2), 16), parseInt(h.slice(2,4), 16), parseInt(h.slice(4,6), 16)];
+  }
+
   function draw(ctx, w, h, time, frame, appState, analysis) {
     if (!analysis && _analysis) analysis = _analysis;
     if (!analysis || !analysis.energy || !analysis.energy.length) return;
 
     var settings = opts(appState);
+    // Normalise gradient setting to RGB triples
+    if (settings.gradient && Array.isArray(settings.gradient)) {
+      settings.gradient = settings.gradient.map(hexToRgb);
+    } else if (typeof settings.gradient === 'string') {
+      settings.gradient = settings.gradient.split(',').map(function(x){ return hexToRgb(x.trim()); });
+    } else {
+      settings.gradient = null;
+    }
     var maxima = currentMaxima();
     var rows = 25;
     var points = Math.max(96, Math.min(260, Math.round(w / 3)));
@@ -232,7 +248,7 @@
 
       // Back rows are tighter and fainter; foreground rows are broader and
       // carry the strongest audio displacement.
-      var amplitude = h * lerp(0.012, 0.080, Math.pow(r, 1.18)) * depth;
+      var amplitude = h * lerp(0.020, 0.200, Math.pow(r, 1.18)) * depth;
       var rowScale = lerp(0.52, 1.0, Math.pow(r, 1.1));
       amplitude *= rowScale;
 
@@ -248,7 +264,7 @@
 
         // Peaks rise from the baseline. Flux gets a small extra lift so
         // drums/plucks produce the crisp needle-like shapes in the reference.
-        var peak = Math.pow(clamp(curve[i], 0, 1.25), 1.18);
+        var peak = Math.pow(clamp(curve[i] * (0.6 + 0.8 * r), 0, 1.35), 1.05);
         pts[i] = [x, baseY - peak * amplitude];
       }
 
@@ -267,10 +283,33 @@
       ctx.fill();
 
       // 2) The ridge line itself.
-      var lineAlpha = lerp(0.42, 1.0, Math.pow(r, 0.75));
+      var lineAlpha = lerp(0.55, 1.0, Math.pow(r, 0.55));
       ctx.globalAlpha = lineAlpha;
-      ctx.strokeStyle = 'rgba(255,255,255,1)';
-      ctx.lineWidth = Math.max(0.65, h * lerp(0.0017, 0.0034, r));
+      var grad = settings.gradient;
+      if (grad && grad.length) {
+        var t = r;
+        var seg = Math.min(grad.length - 1, Math.floor(t * (grad.length - 1)));
+        var segT = (t * (grad.length - 1)) - seg;
+        var c0 = grad[seg];
+        var c1 = grad[Math.min(grad.length - 1, seg + 1)] || c0;
+        ctx.strokeStyle = 'rgb(' + Math.round(c0[0] + (c1[0] - c0[0]) * segT) + ',' + Math.round(c0[1] + (c1[1] - c0[1]) * segT) + ',' + Math.round(c0[2] + (c1[2] - c0[2]) * segT) + ')';
+      } else {
+        ctx.strokeStyle = 'rgba(255,255,255,1)';
+      }
+      ctx.lineWidth = Math.max(0.9, h * lerp(0.0022, 0.0048, r));
+      // Glow pass: same curve, wider, lower alpha
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = lineAlpha * 0.35;
+      ctx.lineWidth = Math.max(2.0, h * lerp(0.006, 0.011, r));
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      for (i = 1; i < points; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+      ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over';
+
+      // Crisp pass on top
+      ctx.globalAlpha = lineAlpha;
+      ctx.lineWidth = Math.max(0.9, h * lerp(0.0022, 0.0048, r));
       ctx.beginPath();
       ctx.moveTo(pts[0][0], pts[0][1]);
       for (i = 1; i < points; i++) ctx.lineTo(pts[i][0], pts[i][1]);
