@@ -169,7 +169,16 @@
           valEl.textContent = v.toFixed(2);
           window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
         });
-      // ---- Gradient preset swatches (once, below the sliders) ----
+
+
+
+
+        row.appendChild(lab);
+        row.appendChild(inp);
+        row.appendChild(valEl);
+        ridge.appendChild(row);
+      });
+            // ---- Gradient preset swatches (once, below the sliders) ----
       var presetWrap = document.createElement('div');
       presetWrap.className = 'kefe-ridge-gradients';
       var presetLabel = document.createElement('div');
@@ -200,14 +209,6 @@
       });
       presetWrap.appendChild(presetRow);
       ridge.appendChild(presetWrap);
-
-
-
-        row.appendChild(lab);
-        row.appendChild(inp);
-        row.appendChild(valEl);
-        ridge.appendChild(row);
-      });
       box.appendChild(ridge);
     }
 
