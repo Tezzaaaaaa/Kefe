@@ -50,15 +50,23 @@
 
     if (existing && existing.parentElement === host) {
       var cur = current();
-      existing.querySelectorAll('.kefe-vis-btn').forEach(function(b){
-        b.classList.toggle('active-effect', b.dataset.mode === cur);
-      });
-      return;
+      var renderedMode = existing.dataset.renderedMode || '';
+      if (renderedMode === cur) {
+        existing.querySelectorAll('.kefe-vis-btn').forEach(function(b){
+          b.classList.toggle('active-effect', b.dataset.mode === cur);
+        });
+        return;
+      }
+      // Rebuild the panel when the selected mode changes so its mode-specific
+      // controls (including Ridgeline) are actually rendered.
+      existing.remove();
+      existing = null;
     }
     if (existing) existing.remove();
 
     var box = document.createElement('div');
     box.id = 'kefeVisualiserPicker';
+    box.dataset.renderedMode = current();
     box.innerHTML =
       '<div class="kefe-vis-title">Visualiser style</div>' +
       '<div class="kefe-vis-hint">Audio-reactive visuals driven by your track\'s energy and beats.</div>' +
