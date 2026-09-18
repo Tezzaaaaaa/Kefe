@@ -14,12 +14,12 @@
   if (window.kefeVisualiser) return;
 
   var analysis = null;
-  var maxima = { energy: 1, bass: 1, mids: 1, treble: 1 };
+  var maxima = { energy: 1, bass: 1, mids: 1, treble: 1, flux: 1 };
 
   function ingest(data) {
     if (!data || !Array.isArray(data.energy) || !data.energy.length) return;
     analysis = data;
-    var maxE = 0, maxB = 0, maxM = 0, maxT = 0;
+    var maxE = 0, maxB = 0, maxM = 0, maxT = 0, maxF = 0;
     for (var i = 0; i < data.energy.length; i++) {
       var e = data.energy[i];
       if (e > maxE) maxE = e;
@@ -29,11 +29,18 @@
         if (b.mids > maxM) maxM = b.mids;
         if (b.treble > maxT) maxT = b.treble;
       }
+      var f = data.flux && data.flux[i];
+      if (f > maxF) maxF = f;
     }
     maxima.energy = maxE || 1;
     maxima.bass = maxB || 1;
     maxima.mids = maxM || 1;
     maxima.treble = maxT || 1;
+    // Ridgeline needs a per-track flux ceiling too — spectral flux has no
+    // fixed scale, so an un-normalised value is either invisible or clipped
+    // depending on the track. (pulse/spectrum/waveform never used flux, so
+    // this wasn't tracked before.)
+    maxima.flux = maxF || 1;
   }
 
   window.addEventListener('kefe:audio-analysis-ready', function(e){ ingest(e.detail); });
@@ -438,6 +445,7 @@
     draw: draw,
     refreshRa: refreshRa,
     get data() { return analysis; },
+    get maxima() { return maxima; },
     get modes() { return Object.keys(MODES); },
     ingest: ingest
   };
