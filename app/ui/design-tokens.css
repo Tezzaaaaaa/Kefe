@@ -371,12 +371,13 @@ header {
 /* Top-right pinned group */
 .kefe-preview-corner {
   position: absolute;
-  top: 14px;
-  right: 16px;
+  top: calc((var(--h-toolbar) - var(--h-control)) / 2);   /* vertically centered in toolbar */
+  right: var(--s-6);
   z-index: 6;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s-2);
+  height: var(--h-control);
   pointer-events: auto;
 }
 
@@ -385,13 +386,16 @@ header {
 .kefe-preview-corner .preview-aspect-control {
   margin-left: 0 !important;
   flex: 0 0 auto;
+  height: var(--h-control);
+  box-sizing: border-box;
+  align-items: center;
 }
 
 /* Fullscreen button: same size as the pills' height for a clean row */
 .kefe-preview-corner .preview-focus-button,
 .kefe-preview-corner #previewFocusButton {
-  width: 32px;
-  height: 32px;
+  width: var(--h-control);
+  height: var(--h-control);
   border-radius: var(--r-md);
   background: var(--surface-2);
   border: 1px solid var(--line);
@@ -400,6 +404,7 @@ header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
 }
 .kefe-preview-corner .preview-focus-button:hover,
 .kefe-preview-corner #previewFocusButton:hover {
@@ -414,8 +419,8 @@ header {
 }
 .kefe-preview-corner .preview-focus-button svg,
 .kefe-preview-corner #previewFocusButton svg {
-  width: 15px;
-  height: 15px;
+  width: var(--icon-md);
+  height: var(--icon-md);
 }
 
 /* If a status badge or effect badge sits in the heading, keep them but
