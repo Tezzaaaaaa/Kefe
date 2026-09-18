@@ -267,7 +267,7 @@ header {
    Status pills — same size everywhere.
    --------------------------------------------------------------------- */
 .status {
-  padding: 9px 12px;
+  padding: 8px 12px;
   border-radius: var(--r-sm);
   font-size: 12px;
   line-height: 1.45;

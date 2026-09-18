@@ -10,7 +10,7 @@
 .kefe-aid-card {
   position: relative;
   overflow: hidden;
-  padding: 10px 11px;
+  padding: 10px 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: var(--surface);
@@ -56,7 +56,7 @@
 
 .kefe-aid-stat {
   min-width: 0;
-  padding: 7px 6px;
+  padding: 6px 6px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface-2);
@@ -230,7 +230,7 @@
   }
 
   .kefe-aid-stat {
-    padding: 6px 3px;
+    padding: 6px 2px;
   }
 
   .kefe-aid-stat strong {
