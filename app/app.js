@@ -2285,6 +2285,25 @@ function handleAudioFile(file) {
     audioStatus.textContent = file.name;
     audioStatus.className = 'status success';
     toast('Audio loaded: ' + file.name, 'success');
+    // Additive error listener — fires only if the browser can't decode
+    // the file. Does not replace the success path; runs in parallel.
+    (function() {
+      var fileName = file.name;
+      function onLoadError() {
+        var code = audio.error ? audio.error.code : 0;
+        var reason = code === 4 ? 'unsupported format or codec (Opus, AC3, unusual MP4 variants)'
+                   : code === 3 ? 'file is corrupt or truncated'
+                   : code === 2 ? 'network error while loading'
+                   : code === 1 ? 'load was aborted'
+                   : 'unknown error';
+        audioStatus.textContent = fileName + ' — ' + reason;
+        audioStatus.className = 'status error';
+        if (typeof toast === 'function') {
+          toast('❌ Could not play "' + fileName + '" — ' + reason + '. Try MP3 or re-encode to AAC/M4A.', 'error');
+        }
+      }
+      audio.addEventListener('error', onLoadError, { once: true });
+    })();
     readiness();
     readEmbeddedAudioMetadata(file, token);
 }
