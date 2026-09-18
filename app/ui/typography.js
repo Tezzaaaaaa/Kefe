@@ -173,9 +173,14 @@
   const ready = (async () => {
     if (!document.fonts || !document.fonts.ready) return true;
     const results = await Promise.all(checkFaces.map(face => document.fonts.load(face).then(() => true).catch(() => false)));
-    if (results.some(ok => !ok)) {
-      console.warn('KEFE: one or more effect fonts failed to load',
-        checkFaces.filter((_, i) => !results[i]));
+    const failed = checkFaces.filter((_, i) => !results[i]);
+    if (failed.length === checkFaces.length) {
+      console.warn('KEFE: no fonts loaded at all — check /fonts paths');
+    } else if (failed.length) {
+      // Not an error. Safari lazily resolves variable fonts and only
+      // materialises the weights it's asked for. Reporting every deferral
+      // as a failure is noise.
+      console.info('[KEFE] ' + failed.length + ' font variants deferred (normal)');
     }
     return results.every(Boolean);
   })();
