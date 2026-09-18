@@ -101,8 +101,13 @@
         renderSource(); refreshNextState();
     }
     function renderSource() {
+        // Visualiser doesn't take a background video — it's a full-canvas
+        // audio-reactive effect. Only offer audio file or silent.
+        // Lyric video and captioned both keep the 'Background video' option.
         const options = wizard.choice === 'captioned'
             ? [['uploaded', 'Audio file', 'Use a music track or voice recording.'], ['media', 'Background video', 'Use a video and its soundtrack.']]
+            : wizard.choice === 'visualiser'
+            ? [['uploaded', 'Audio file', 'Use an MP3, WAV or M4A track.'], ['none', 'No audio', 'Create silent visuals.']]
             : [['uploaded', 'Audio file', 'Use an MP3, WAV or M4A track.'], ['media', 'Background video', 'Use a video as the visual background and its soundtrack.'], ['none', 'No audio', 'Create silent visuals.']];
         panel.innerHTML = '<p class="wizard-panel-kicker">02 · Media</p><h3 class="wizard-panel-title">What are you starting with?</h3><p class="wizard-panel-hint">Pick your source. KEFE will carry it through the rest of the project.</p><div class="wizard-choices wizard-source-choices">' + options.map(([v,l,h]) => `<button type="button" class="wizard-choice${wizard.source === v ? ' selected' : ''}" data-source="${v}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${SOURCE_ICONS[v]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${l}</strong><span>${h}</span></span></button>`).join('') + '</div>' + (wizard.source ? `<div class="wizard-source-action"><strong>${sourceStatus()}</strong><button type="button" id="wizardSourceAction" class="file-button">${sourceReady() ? 'Replace media' : 'Choose media'}</button></div>` : '') + '<div id="wizardMetadataMount"></div><p class="music-sync-hint">Enter the artist and title to find synced lyrics when the file has no metadata.</p>';
         const metadataMount = $('wizardMetadataMount');
