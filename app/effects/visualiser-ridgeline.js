@@ -109,6 +109,7 @@
     var rowDelay = (row - (rows - 1)) * rowPeriod;
     var start = centerTime - widthSeconds * 0.5 + rowDelay;
     var step = widthSeconds / Math.max(1, points - 1);
+    var raw = new Float32Array(points);
 
     for (var i = 0; i < points; i++) {
       var t = start + i * step;
@@ -137,12 +138,28 @@
       // Deterministic fine texture: no Math.random(), so preview/export
       // produce the same frame for the same timestamp.
       var texture = Math.sin(i * 0.37 + row * 1.91 + centerTime * 1.7) * 0.035;
-      v = clamp(v + texture, 0, 1.4);
+      raw[i] = clamp(v + texture, 0, 1.4);
+    }
 
+    // A single strummed chord or drum hit is one instant of audio — sampled
+    // point-for-point, it's a needle-thin spike surrounded by flat line,
+    // which reads as "only one spot reacts". Real instruments ring out
+    // after the attack, so give each point a decaying tail into the points
+    // ahead of it (later in time) before it can be overtaken by the next
+    // transient. That turns a single strum into a proper rounded mountain
+    // instead of a spike, and fills the ridge with the kind of continuous
+    // terrain the reference has.
+    var decay = lerp(0.975, 0.986, row / (rows - 1));
+    for (i = 1; i < points; i++) {
+      var held = raw[i - 1] * decay;
+      if (held > raw[i]) raw[i] = held;
+    }
+
+    for (i = 0; i < points; i++) {
       // Row-specific smoothing creates the layered depth of the reference.
-      var previous = rowSmooth[i] || v;
+      var previous = rowSmooth[i] || raw[i];
       var smoothing = lerp(0.34, 0.62, row / 24);
-      previous += (v - previous) * smoothing;
+      previous += (raw[i] - previous) * smoothing;
       rowSmooth[i] = previous;
       values[i] = previous;
     }
