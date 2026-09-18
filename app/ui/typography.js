@@ -42,8 +42,8 @@
      --------------------------------------------------------- */
   const FONT_FACES = [
     // Open Sans (400/700/800) — already in fonts/open-sans
-    { family: 'Open Sans',         weight: '300 800', style: 'normal', file: 'fonts/open-sans/OpenSans-VariableFont_wdth,wght.woff2' },
-    { family: 'Open Sans',         weight: '300 800', style: 'italic', file: 'fonts/open-sans/OpenSans-Italic-VariableFont_wdth,wght.woff2' },
+    { family: 'Open Sans',         weight: '300 800', style: 'normal', file: 'fonts/open-sans/OpenSans-VariableFont_wdth-wght.woff2' },
+    { family: 'Open Sans',         weight: '300 800', style: 'italic', file: 'fonts/open-sans/OpenSans-Italic-VariableFont_wdth-wght.woff2' },
     // Archivo Narrow
     { family: 'Archivo Narrow',    weight: '400 900', style: 'normal', file: 'fonts/archivo-narrow/ArchivoNarrow-VariableFont_wght.woff2' },
     { family: 'Archivo Narrow',    weight: '400 900', style: 'italic', file: 'fonts/archivo-narrow/ArchivoNarrow-Italic-VariableFont_wght.woff2' },
@@ -58,7 +58,7 @@
     // Momo Trust Display
     { family: 'Momo Trust Display', weight: 400, style: 'normal', file: 'fonts/momo-trust-display/MomoTrustDisplay-Regular.woff2' },
     // Bricolage Grotesque
-    { family: 'Bricolage Grotesque', weight: '200 800', style: 'normal', file: 'fonts/bricolage-grotesque/BricolageGrotesque-VariableFont_opsz,wdth,wght.woff2' },
+    { family: 'Bricolage Grotesque', weight: '200 800', style: 'normal', file: 'fonts/bricolage-grotesque/BricolageGrotesque-VariableFont_opsz-wdth-wght.woff2' },
     // Baloo 2 — for Barbie effect
     { family: 'Baloo 2',           weight: 800, style: 'normal', file: 'fonts/baloo2/Baloo2-800.woff2' },
     // Memesique — for Chromatica effect (locked Chromatica typeface)

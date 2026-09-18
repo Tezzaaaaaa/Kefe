@@ -35,13 +35,8 @@
       btn.setAttribute('aria-expanded', open ? 'false' : 'true');
     });
 
-    // place just before the status chip so it reads: Preview • Lyrics • Ready • [Fine-tune]
-    var statusChip = heading.querySelector('#previewStatus');
-    if (statusChip && statusChip.parentElement === heading) {
-      heading.insertBefore(btn, statusChip);
-    } else {
-      heading.appendChild(btn);
-    }
+    // Append to the end of the heading, after "Ready"
+    heading.appendChild(btn);
     return true;
   }
 
