@@ -137,8 +137,8 @@
       // A soft centre emphasis keeps the characteristic mountain cluster
       // near the middle of the frame while still allowing the track to move.
       var xn = i / Math.max(1, points - 1);
-      var centre = Math.exp(-Math.pow((xn - 0.5) / 0.34, 2));
-      v *= 0.42 + centre * 0.58;
+      var centre = Math.exp(-Math.pow((xn - 0.5) / 0.55, 2));
+      v *= 0.72 + centre * 0.28;
 
       // Deterministic fine texture: no Math.random(), so preview/export
       // produce the same frame for the same timestamp.
@@ -163,7 +163,7 @@
     for (i = 0; i < points; i++) {
       // Row-specific smoothing creates the layered depth of the reference.
       var previous = rowSmooth[i] || raw[i];
-      var smoothing = lerp(0.34, 0.62, row / 24);
+      var smoothing = lerp(0.78, 0.92, row / Math.max(1, rows - 1));
       previous += (raw[i] - previous) * smoothing;
       rowSmooth[i] = previous;
       values[i] = previous;
@@ -218,8 +218,8 @@
     // 5+ second window), and consecutive ridges are staggered by a real
     // chunk of time — together the 25 rows cover roughly the last
     // ROW_SPAN seconds of the track, front row = now.
-    var widthSeconds = 2.1 / Math.max(0.25, settings.speed);
-    var rowPeriod = 0.22 * Math.max(0.25, settings.speed);
+    var widthSeconds = 0.55 / Math.max(0.25, settings.speed);
+    var rowPeriod = 0.20 * Math.max(0.25, settings.speed);
     var left = w * 0.015;
     var right = w * 0.985;
     var top = h * 0.115;
