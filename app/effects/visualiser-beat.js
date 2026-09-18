@@ -414,9 +414,15 @@
     catch(e){ console.warn('[KEFE tuffpuff]', e); }
   }
 
-  // Only Ra and TuffPuff are dispatchable. The four legacy modes remain in
-  // the file (dead code) so nothing that referenced them breaks.
-  var MODES = { ra: drawRa, tuffpuff: drawTuffPuff };
+  function drawRidgeline(ctx, w, h, time, frame, appState){
+    if (!window.kefeRidgeline || !analysis) return;
+    try { window.kefeRidgeline.draw(ctx, w, h, time, frame, appState, analysis); }
+    catch(e){ console.warn('[KEFE ridgeline]', e); }
+  }
+
+  // Visualiser modes. The legacy pulse/spectrum/waveform/radial renderers
+  // remain available as fallbacks; the picker exposes the production modes.
+  var MODES = { ra: drawRa, tuffpuff: drawTuffPuff, ridgeline: drawRidgeline };
 
   function draw(ctx, w, h, time, appState) {
     var mode = (appState && appState.style && appState.style.visualiserStyle) || 'pulse';
