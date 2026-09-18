@@ -139,6 +139,9 @@ header {
 
 .transport {
   gap: var(--s-2);
+  height: var(--h-control);
+  min-height: var(--h-control);
+  align-items: center;
 }
 
 .transport .play-button,
