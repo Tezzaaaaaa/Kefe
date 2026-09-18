@@ -2282,62 +2282,11 @@ function handleAudioFile(file) {
     updateMetadataInputs();
     audio.src = audioURL;
     audio.load();
-    // Wait for the browser to actually decode the header before celebrating.
-    // A file with an unsupported inner codec (or corrupt data) fires 'error'
-    // here — previously we toasted 'Audio loaded' regardless, so failures
-    // looked like silence with no explanation.
-    audioStatus.textContent = 'Loading ' + file.name + '…';
-    audioStatus.className = 'status';
-    (function waitForAudio() {
-        var settled = false;
-        var timer = setTimeout(function() {
-            if (settled) return;
-            settled = true;
-            cleanup();
-            var msg = '"' + file.name + '" is taking too long to load. It may be very large or in a format the browser can’t decode.';
-            audioStatus.textContent = msg;
-            audioStatus.className = 'status error';
-            toast('❌ ' + msg, 'error');
-        }, 8000);
-        function cleanup() {
-            audio.removeEventListener('loadedmetadata', onOk);
-            audio.removeEventListener('error', onErr);
-            clearTimeout(timer);
-        }
-        function onOk() {
-            if (settled) return;
-            settled = true;
-            cleanup();
-            if (token !== audioLoadToken) return;
-            audioStatus.textContent = file.name;
-            audioStatus.className = 'status success';
-            toast('Audio loaded: ' + file.name, 'success');
-            readiness();
-            readEmbeddedAudioMetadata(file, token);
-        }
-        function onErr() {
-            if (settled) return;
-            settled = true;
-            cleanup();
-            if (token !== audioLoadToken) return;
-            var errCode = audio.error ? audio.error.code : 0;
-            var detail = errCode === 4
-                ? 'The browser can\'t decode this file. It may be corrupt, or use a codec Safari doesn\'t support (Opus, AC3, unusual MP4 variants). Try MP3 or re-encode to AAC/M4A.'
-                : errCode === 3
-                ? 'The file appears to be corrupt or truncated.'
-                : errCode === 2
-                ? 'A network error occurred while loading the file.'
-                : errCode === 1
-                ? 'Loading was aborted.'
-                : 'The audio file couldn\'t be played.';
-            var msg = '"' + file.name + '": ' + detail;
-            audioStatus.textContent = msg;
-            audioStatus.className = 'status error';
-            toast('❌ ' + msg, 'error');
-        }
-        audio.addEventListener('loadedmetadata', onOk, { once: true });
-        audio.addEventListener('error', onErr, { once: true });
-    })();
+    audioStatus.textContent = file.name;
+    audioStatus.className = 'status success';
+    toast('Audio loaded: ' + file.name, 'success');
+    readiness();
+    readEmbeddedAudioMetadata(file, token);
 }
 
 async function detectVideoHasAudio(file, vid) {
