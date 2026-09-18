@@ -285,7 +285,18 @@
         const token = ++activeAnalysis;
         if (!(file instanceof Blob)) throw new Error('Audio file required.');
         const arrayBuffer = await file.arrayBuffer();
-        const buffer = await getAudioContext().decodeAudioData(arrayBuffer.slice(0));
+        let buffer;
+        try {
+            buffer = await getAudioContext().decodeAudioData(arrayBuffer.slice(0));
+        } catch (decodeErr) {
+            const name = file && file.name ? file.name : 'this file';
+            const friendly = new Error(
+                'Couldn’t decode "' + name + '". It may be corrupt, or use a codec your browser doesn’t support ' +
+                '(Opus, AC3, or unusual MP4 variants). Try MP3 or re-encode to AAC/M4A.'
+            );
+            friendly.cause = decodeErr;
+            throw friendly;
+        }
         if (token !== activeAnalysis) throw new Error('Analysis superseded.');
         const result = analyseBuffer(buffer, onProgress);
         result.fileName = file.name;

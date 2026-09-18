@@ -159,6 +159,24 @@
       analysis = event.detail || null;
       updateCard();
     });
+    // Parallel listener for analysis failures — fires only when the audio
+    // can't be decoded (unsupported codec, corrupt file, 0-byte upload).
+    // Without this, failures were completely silent and the UI just sat
+    // there with an "Analysing…" status that never resolved.
+    window.addEventListener('kefe:audio-analysis-error', event => {
+      const err = event && event.detail;
+      const msg = (err && err.message) ? err.message : 'Could not analyse this audio file.';
+      const status = document.getElementById('kefeIntelStatus');
+      if (status) { status.textContent = msg; status.className = 'status error'; }
+      const progress = document.getElementById('kefeIntelProgress');
+      if (progress) progress.style.width = '0%';
+      if (typeof window.toast === 'function') {
+        window.toast('❌ ' + msg, 'error');
+      } else if (typeof toast === 'function') {
+        toast('❌ ' + msg, 'error');
+      }
+      console.warn('[KEFE] audio analysis error:', err);
+    });
     window.addEventListener('resize', renderChart);
     window.addEventListener('input', event => {
       if (event.target?.id === 'metaTitle' || event.target?.id === 'metaArtist') updateCard();
