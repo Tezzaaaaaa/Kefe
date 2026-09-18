@@ -32,7 +32,7 @@
     analogtv:            'VT323',
     fancy:               'Anton',
     glitch:              'Special Elite',
-    splitflap:           'Sirin Stencil',
+    splitflap:           'Big Shoulders Stencil Display',
     rain:                'Frijole'
   };
 
@@ -42,25 +42,23 @@
      --------------------------------------------------------- */
   const FONT_FACES = [
     // Open Sans (400/700/800) — already in fonts/open-sans
-    { family: 'Open Sans',         weight: 400, style: 'normal', file: 'fonts/open-sans/OpenSans-Regular.woff2' },
-    { family: 'Open Sans',         weight: 700, style: 'normal', file: 'fonts/open-sans/OpenSans-Bold.woff2' },
-    { family: 'Open Sans',         weight: 800, style: 'normal', file: 'fonts/open-sans/OpenSans-ExtraBold.woff2' },
+    { family: 'Open Sans',         weight: '300 800', style: 'normal', file: 'fonts/open-sans/OpenSans-VariableFont_wdth,wght.woff2' },
+    { family: 'Open Sans',         weight: '300 800', style: 'italic', file: 'fonts/open-sans/OpenSans-Italic-VariableFont_wdth,wght.woff2' },
     // Archivo Narrow
-    { family: 'Archivo Narrow',    weight: 700, style: 'normal', file: 'fonts/archivo-narrow/ArchivoNarrow-Bold.woff2' },
-    { family: 'Archivo Narrow',    weight: 900, style: 'normal', file: 'fonts/archivo-narrow/ArchivoNarrow-Black.woff2' },
+    { family: 'Archivo Narrow',    weight: '400 900', style: 'normal', file: 'fonts/archivo-narrow/ArchivoNarrow-VariableFont_wght.woff2' },
+    { family: 'Archivo Narrow',    weight: '400 900', style: 'italic', file: 'fonts/archivo-narrow/ArchivoNarrow-Italic-VariableFont_wght.woff2' },
     // Homemade Apple
     { family: 'Homemade Apple',    weight: 400, style: 'normal', file: 'fonts/homemade-apple/HomemadeApple-Regular.woff2' },
     // Courier Prime
     { family: 'Courier Prime',     weight: 400, style: 'normal', file: 'fonts/courier-prime/CourierPrime-Regular.woff2' },
     { family: 'Courier Prime',     weight: 700, style: 'normal', file: 'fonts/courier-prime/CourierPrime-Bold.woff2' },
     // Inter Tight
-    { family: 'Inter Tight',       weight: 400, style: 'normal', file: 'fonts/inter-tight/InterTight-Regular.woff2' },
-    { family: 'Inter Tight',       weight: 800, style: 'normal', file: 'fonts/inter-tight/InterTight-ExtraBold.woff2' },
-    { family: 'Inter Tight',       weight: 900, style: 'normal', file: 'fonts/inter-tight/InterTight-Black.woff2' },
+    { family: 'Inter Tight',       weight: '100 900', style: 'normal', file: 'fonts/inter-tight/InterTight-VariableFont_wght.woff2' },
+    { family: 'Inter Tight',       weight: '100 900', style: 'italic', file: 'fonts/inter-tight/InterTight-Italic-VariableFont_wght.woff2' },
     // Momo Trust Display
     { family: 'Momo Trust Display', weight: 400, style: 'normal', file: 'fonts/momo-trust-display/MomoTrustDisplay-Regular.woff2' },
     // Bricolage Grotesque
-    { family: 'Bricolage Grotesque', weight: 500, style: 'normal', file: 'fonts/bricolage-grotesque/BricolageGrotesque-Medium.woff2' },
+    { family: 'Bricolage Grotesque', weight: '200 800', style: 'normal', file: 'fonts/bricolage-grotesque/BricolageGrotesque-VariableFont_opsz,wdth,wght.woff2' },
     // Baloo 2 — for Barbie effect
     { family: 'Baloo 2',           weight: 800, style: 'normal', file: 'fonts/baloo2/Baloo2-800.woff2' },
     // Memesique — for Chromatica effect (locked Chromatica typeface)
@@ -69,8 +67,8 @@
     { family: 'Bangers',        weight: 400, style: 'normal', file: 'fonts/bangers/Bangers-Regular.woff2' },
     // Monoton — trailer
     { family: 'Monoton',        weight: 400, style: 'normal', file: 'fonts/monoton/Monoton-Regular.woff2' },
-    // Sirin Stencil — splitflap
-    { family: 'Sirin Stencil',  weight: 400, style: 'normal', file: 'fonts/sirin-stencil/SirinStencil-Regular.woff2' },
+    // Big Shoulders Stencil Display — splitflap
+    { family: 'Big Shoulders Stencil Display', weight: 900, style: 'normal', file: 'fonts/big-shoulders-stencil/BigShouldersStencil-Black.woff2' },
     // Frijole — rain
     { family: 'Frijole',        weight: 400, style: 'normal', file: 'fonts/frijole/Frijole-Regular.woff2' },
     // Urbanist — flipcards
@@ -122,7 +120,7 @@
     fancy:      { family: families.fancy,       weight: 900, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     glitch:     { family: families.glitch,      weight: 400, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     analogtv:   { family: families.analogtv,    weight: 400, min: 34, max: 200, lineHeight: 1.12, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
-    splitflap:  { family: families.splitflap,   weight: 400, min: 44, max: 220, lineHeight: 1.02, tracking: 0.06,      align: 'center', case: 'upper', opticalScale: 1.00 },
+    splitflap:  { family: families.splitflap,   weight: 900, min: 44, max: 220, lineHeight: 1.02, tracking: 0.06,      align: 'center', case: 'upper', opticalScale: 1.00 },
     chromatica: { family: families.chromatica,  weight: 400, min: 40, max: 220, lineHeight: 0.92, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 }
   };
 
