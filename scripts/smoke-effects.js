@@ -22,8 +22,10 @@ const document = {
   head: { appendChild() {} },
   createElement: () => ({
     className: '', id: '', textContent: '', dataset: {},
+    width: 0, height: 0,
     addEventListener() {}, appendChild() {}, setAttribute() {},
-  }),
+    getContext() { return global.__kefeMakeCtx ? global.__kefeMakeCtx() : null; },
+    }),
   addEventListener(name, fn) { (listeners[name] ||= []).push(fn); },
   dispatchEvent(e) { (listeners[e.type] || []).forEach(fn => fn(e)); return true; },
 };
@@ -48,18 +50,24 @@ function makeCtx() {
     shadowBlur: 0, shadowColor: '', textAlign: 'left', textBaseline: 'alphabetic',
     globalCompositeOperation: 'source-over', filter: 'none', lineWidth: 1,
     save() {}, restore() {}, translate() {}, scale() {}, rotate() {},
+    moveTo() {}, lineTo() {}, bezierCurveTo() {}, quadraticCurveTo() {},
+    transform() {}, resetTransform() {}, setLineDash() {},
+    createPattern() { return { setTransform() {} }; },
     beginPath() {}, arc() {}, fill() {}, stroke() {}, closePath() {},
     fillText() {}, strokeText() {},
     fillRect() {}, strokeRect() {}, clearRect() {},
-    drawImage() {}, setTransform() {}, clip() {}, rect() {},
+    drawImage() {}, clip() {}, rect() {},
     createRadialGradient() { return gradient; },
     createLinearGradient() { return gradient; },
-    getImageData() { return { data: new Uint8ClampedArray(4) }; },
+    getImageData(w, h) { return { data: new Uint8ClampedArray(4), width: w || 1, height: h || 1 }; },
+    createImageData(w, h) { return { data: new Uint8ClampedArray(Math.max(4, (w||1)*(h||1)*4)), width: w || 1, height: h || 1 }; },
     putImageData() {},
     measureText(text) { return { width: String(text).length * 10 }; },
   };
   return ctx;
 }
+
+global.__kefeMakeCtx = makeCtx;
 
 // ---- eval helpers ----
 function load(file) {
@@ -77,12 +85,35 @@ const scripts = [
   'app/effects/typewriter.js',
   'app/effects/instagram-lyrics.js',
   'app/effects/story-fade.js',
+  'app/effects/lyric-barbie.js',
+  'app/effects/lyric-elasticpop.js',
+  'app/effects/lyric-flipcards.js',
+  'app/effects/lyric-karaoke.js',
+  'app/effects/lyric-trailer.js',
+  'app/effects/lyric-rain.js',
+  'app/effects/lyric-fancy.js',
+  'app/effects/lyric-glitch.js',
+  'app/effects/lyric-analogtv.js',
+  'app/effects/lyric-splitflap.js',
+  'app/effects/lyric-chromatica.js'
 ];
 for (const s of scripts) load(s);
 // ---- verification ----
 const failures = [];
 const registered = Object.keys(windowStub.kefeEffects || {}).sort();
-const expectKeys = ['brat', 'aurora', 'eternal', 'typewriter', 'instagram', 'fadeup'];
+const expectKeys = ['brat', 'aurora', 'eternal', 'typewriter', 'instagram', 'fadeup',
+  'barbie',
+  'elasticpop',
+  'flipcards',
+  'karaoke',
+  'trailer',
+  'rain',
+  'fancy',
+  'glitch',
+  'analogtv',
+  'splitflap',
+  'chromatica'
+];
 console.log('Registered kefeEffects:', registered.join(', '));
 for (const key of expectKeys) {
   if (!windowStub.kefeEffects[key]) failures.push(`missing registration: ${key}`);
@@ -91,7 +122,7 @@ for (const key of expectKeys) {
 // typography contract integrity
 const contracts = windowStub.KEFE_TYPE?.effects || {};
 const fams = windowStub.KEFE_TYPE?.families || {};
-for (const key of ['brat', 'aurora', 'eternal', 'typewriter', 'instagram', 'fadeup', 'apple']) {
+for (const key of ['brat', 'aurora', 'eternal', 'typewriter', 'instagram', 'fadeup', 'apple', 'barbie', 'elasticpop', 'flipcards', 'karaoke', 'trailer', 'rain', 'fancy', 'glitch', 'analogtv', 'splitflap', 'chromatica']) {
   const c = contracts[key];
   if (!c) { failures.push(`missing typography contract: ${key}`); continue; }
   if (!fams[key]) failures.push(`missing declared family for ${key}`);
@@ -109,7 +140,7 @@ for (const m of ['clamp','smooth','smoother','activeLine','lineProgress','wordsF
 // 1 effect = 1 font: every production effect must resolve to a distinct family,
 // so no effect silently shares a face with another.
 const famSet = new Set();
-for (const key of ['apple', 'brat', 'eternal', 'aurora', 'typewriter', 'instagram', 'fadeup']) {
+for (const key of ['apple', 'brat', 'eternal', 'aurora', 'typewriter', 'instagram', 'fadeup', 'barbie', 'elasticpop', 'flipcards', 'karaoke', 'trailer', 'rain', 'fancy', 'glitch', 'analogtv', 'splitflap', 'chromatica']) {
   const c = contracts[key];
   if (!c || !c.family) continue;
   if (famSet.has(c.family)) failures.push(`font collision: "${c.family}" is shared by ${key} with another effect`);

@@ -23,17 +23,17 @@
     shiny:               'Inter Tight',
     // New lyric effects
     barbie:              'Baloo 2',
-    elasticpop:          'Inter Tight',
-    flipcards:           'Inter Tight',
-    karaoke:             'Inter Tight',
-    trailer:             'Archivo Narrow',
+    elasticpop:          'Bangers',
+    flipcards:           'Urbanist',
+    karaoke:             'Boogaloo',
+    trailer:             'Monoton',
     // Next batch (effects coming next)
     chromatica:          'Memesique',
     analogtv:            'VT323',
     fancy:               'Anton',
-    glitch:              'Anton',
-    splitflap:           'Archivo Narrow',
-    rain:                'Inter Tight'
+    glitch:              'Special Elite',
+    splitflap:           'Sirin Stencil',
+    rain:                'Frijole'
   };
 
   /* ---------------------------------------------------------
@@ -64,7 +64,21 @@
     // Baloo 2 — for Barbie effect
     { family: 'Baloo 2',           weight: 800, style: 'normal', file: 'fonts/baloo2/Baloo2-800.woff2' },
     // Memesique — for Chromatica effect (locked Chromatica typeface)
-    { family: 'Memesique',         weight: 400, style: 'normal', file: 'fonts/memesique/Memesique.woff2' }
+    { family: 'Memesique',         weight: 400, style: 'normal', file: 'fonts/memesique/Memesique.woff2' },
+    // Bangers — elasticpop
+    { family: 'Bangers',        weight: 400, style: 'normal', file: 'fonts/bangers/Bangers-Regular.woff2' },
+    // Monoton — trailer
+    { family: 'Monoton',        weight: 400, style: 'normal', file: 'fonts/monoton/Monoton-Regular.woff2' },
+    // Sirin Stencil — splitflap
+    { family: 'Sirin Stencil',  weight: 400, style: 'normal', file: 'fonts/sirin-stencil/SirinStencil-Regular.woff2' },
+    // Frijole — rain
+    { family: 'Frijole',        weight: 400, style: 'normal', file: 'fonts/frijole/Frijole-Regular.woff2' },
+    // Urbanist — flipcards
+    { family: 'Urbanist',       weight: 800, style: 'normal', file: 'fonts/urbanist/Urbanist-VariableFont_wght.woff2' },
+    // Special Elite — glitch
+    { family: 'Special Elite',  weight: 400, style: 'normal', file: 'fonts/special-elite/SpecialElite-Regular.woff2' },
+    // Boogaloo — karaoke
+    { family: 'Boogaloo',       weight: 400, style: 'normal', file: 'fonts/boogaloo/Boogaloo-Regular.woff2' },
   ];
 
   /* ---------------------------------------------------------
@@ -100,15 +114,15 @@
     shiny:      { family: families.shiny,       weight: 800, min: 30, max: 150, lineHeight: 1.10, tracking: -.020, align: 'center', case: 'none',  opticalScale: 1.00 },
     // New lyric effects
     barbie:     { family: families.barbie,      weight: 800, min: 44, max: 220, lineHeight: 1.05, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
-    elasticpop: { family: families.elasticpop,  weight: 900, min: 30, max: 140, lineHeight: 1.24, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
-    flipcards:  { family: families.flipcards,   weight: 900, min: 30, max: 140, lineHeight: 1.26, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
-    karaoke:    { family: families.karaoke,     weight: 800, min: 34, max: 150, lineHeight: 1.18, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
-    trailer:    { family: families.trailer,     weight: 900, min: 46, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
-    rain:       { family: families.rain,        weight: 200, min: 40, max: 180, lineHeight: 1.40, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
+    elasticpop: { family: families.elasticpop,  weight: 400, min: 36, max: 160, lineHeight: 1.1, tracking: 0.01,      align: 'center', case: 'none',  opticalScale: 1.00 },
+    flipcards:  { family: families.flipcards,   weight: 800, min: 30, max: 140, lineHeight: 1.2, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
+    karaoke:    { family: families.karaoke,     weight: 400, min: 40, max: 170, lineHeight: 1.05, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
+    trailer:    { family: families.trailer,     weight: 400, min: 52, max: 220, lineHeight: 1.05, tracking: 0.04,      align: 'center', case: 'upper', opticalScale: 1.00 },
+    rain:       { family: families.rain,        weight: 400, min: 40, max: 180, lineHeight: 1.35, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     fancy:      { family: families.fancy,       weight: 900, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
-    glitch:     { family: families.glitch,      weight: 900, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
+    glitch:     { family: families.glitch,      weight: 400, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     analogtv:   { family: families.analogtv,    weight: 400, min: 34, max: 200, lineHeight: 1.12, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
-    splitflap:  { family: families.splitflap,   weight: 900, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
+    splitflap:  { family: families.splitflap,   weight: 400, min: 44, max: 220, lineHeight: 1.02, tracking: 0.06,      align: 'center', case: 'upper', opticalScale: 1.00 },
     chromatica: { family: families.chromatica,  weight: 400, min: 40, max: 220, lineHeight: 0.92, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 }
   };
 
