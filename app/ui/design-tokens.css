@@ -608,3 +608,27 @@ body.wizard-mode .wizard-choices .wizard-choice.selected .kefe-accordion-inner s
   box-shadow: 0 0 0 2px var(--red, #EF3F38);
   border-color: var(--red, #EF3F38);
 }
+
+
+/* ---------------------------------------------------------------------
+   Visualiser pathway — hide background image/video upload and background
+   preset swatches except the solid colour swatch. The visualiser is a
+   full-canvas effect with no room for user media, so background is
+   reduced to a single colour picker.
+   --------------------------------------------------------------------- */
+body[data-project-type="visualiser"] #backgroundSection .drop-zone,
+body[data-project-type="visualiser"] #backgroundSection #bgDrop,
+body[data-project-type="visualiser"] #backgroundSection #backgroundStatus,
+body[data-project-type="visualiser"] #backgroundSection .background-upload-divider,
+body[data-project-type="visualiser"] #backgroundSection .background-choice:not([data-background-preset="solid"]) {
+  display: none !important;
+}
+
+/* Keep the solid swatch but hide the redundant "Solid colour" label —
+   it's the only option, so the label carries no information. */
+body[data-project-type="visualiser"] #backgroundSection .background-choice[data-background-preset="solid"] .background-choice-label {
+  display: none !important;
+}
+body[data-project-type="visualiser"] #backgroundSection .background-choice[data-background-preset="solid"] {
+  min-height: 52px !important;
+}

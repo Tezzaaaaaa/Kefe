@@ -3,6 +3,22 @@
   if (window.__kefeVisualiserPicker) return;
   window.__kefeVisualiserPicker = true;
 
+  // Keep body[data-project-type] in sync so CSS can scope visualiser-only
+  // rules without fighting the rest of the layout.
+  (function projectTypeMirror() {
+    var last = null;
+    function sync() {
+      var pt = (window.state && window.state.projectType) || '';
+      if (pt !== last) {
+        document.body.setAttribute('data-project-type', pt);
+        last = pt;
+      }
+    }
+    sync();
+    setInterval(sync, 300);
+  })();
+
+
   function injectCss(){
     if (document.getElementById('kefe-visualiser-picker-css')) return;
     var s = document.createElement('style');
