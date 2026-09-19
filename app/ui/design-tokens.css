@@ -632,3 +632,8 @@ body[data-project-type="visualiser"] #backgroundSection .background-choice[data-
 body[data-project-type="visualiser"] #backgroundSection .background-choice[data-background-preset="solid"] {
   min-height: 52px !important;
 }
+
+/* KEFE — Ridgeline swatches disabled */
+#kefeVisualiserPicker .kefe-ridge-gradients,
+#kefeVisualiserPicker .kefe-ridge-gradients-row,
+#kefeVisualiserPicker .kefe-ridge-swatch { display: none !important; }
