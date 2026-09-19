@@ -27,12 +27,14 @@
       e: clamp(frame && frame.energy)
     };
   }
-  function controls(appState, key) {\n    var st = appState && appState.style ? appState.style : {};\n    return {\n      react: clamp(st[key + 'React'] == null ? 1 : st[key + 'React'], 0, 2),\n      motion: clamp(st[key + 'Motion'] == null ? 1 : st[key + 'Motion'], 0, 2),\n      detail: clamp(st[key + 'Detail'] == null ? 1 : st[key + 'Detail'], .4, 1.8),\n      glow: clamp(st[key + 'Glow'] == null ? 1 : st[key + 'Glow'], 0, 2)\n    };\n  }\n  function prep(ctx, w, h) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(0,0,0,0.055)';
-    ctx.fillRect(0, 0, w, h);
-    ctx.globalCompositeOperation = 'lighter';
+  function controls(appState, key) {
+    var st = appState && appState.style ? appState.style : {};
+    return {
+      react: clamp(st[key + 'React'] == null ? 1 : st[key + 'React'], 0, 2),
+      motion: clamp(st[key + 'Motion'] == null ? 1 : st[key + 'Motion'], 0, 2),
+      detail: clamp(st[key + 'Detail'] == null ? 1 : st[key + 'Detail'], .4, 1.8),
+      glow: clamp(st[key + 'Glow'] == null ? 1 : st[key + 'Glow'], 0, 2)
+    };
   }
 
   /* 1 — FERROFLUID SCULPTURE
@@ -56,7 +58,7 @@
       var grad = ctx.createLinearGradient(cx,cy,x,y);
       grad.addColorStop(0,'rgba(245,248,255,.08)');
       grad.addColorStop(.55,'rgba(170,185,205,.22)');
-      grad.addColorStop(.82,'rgba(255,255,255,' + (.18+a.t*.4*s.glow5*s.glow).toFixed(3) + ')');
+      grad.addColorStop(.82,'rgba(255,255,255,' + (.18+a.t*.4*s.glow*s.glow).toFixed(3) + ')');
       grad.addColorStop(1,'rgba(255,255,255,0)');
       ctx.strokeStyle=grad; ctx.lineWidth=Math.max(1,min*(.004+a.t*.006*s.glow));
       ctx.beginPath(); ctx.moveTo(cx+Math.cos(ang)*R*.55,cy+Math.sin(ang)*R*.55); ctx.lineTo(x,y); ctx.stroke();
@@ -74,12 +76,13 @@
   /* 2 — LIQUID GLASS PRISM
      Refraction-like layered caustics. No external assets or DOM dependencies. */
   function liquidGlass(ctx,w,h,time,frame,appState){
+    var s = controls(appState, 'liquidglass');
     var a=audio(frame), cx=w*.5,cy=h*.5,min=Math.min(w,h);
     ctx.save(); ctx.globalCompositeOperation='source-over';
     ctx.fillStyle='rgba(1,2,8,.16)';ctx.fillRect(0,0,w,h);
     ctx.globalCompositeOperation='screen';
     for(var k=0;k<9;k++){
-      var ang=time*(.05+k*.006)*s.motion+k*.71, rx=min*(.18+k*.025+a.b*.04*s.react5*s.react), ry=rx*(.42+.12*Math.sin(time*.3+k));
+      var ang=time*(.05+k*.006)*s.motion+k*.71, rx=min*(.18+k*.025+a.b*.04*s.react*s.react), ry=rx*(.42+.12*Math.sin(time*.3+k));
       ctx.save();ctx.translate(cx,cy);ctx.rotate(ang);
       ctx.strokeStyle='rgba(225,235,255,'+(.08+a.t*.05*s.glow)+')';ctx.lineWidth=min*(.012+a.e*.006*s.react);
       ctx.beginPath();
@@ -163,7 +166,7 @@
     for(var i=0;i<N;i++){
       var q=TAU*i/N+time*.25*s.motion*(.3+a.e*s.react), rr=min*(.11+a.b*.055), x=cx+Math.cos(q*1.7)*min*(.16+a.m*.05*s.react), y=cy+Math.sin(q*1.3)*min*(.16+a.b*.04);
       var g=ctx.createRadialGradient(x-rr*.28,y-rr*.32,0,x,y,rr*1.25);
-      g.addColorStop(0,'rgba(255,255,255,'+(.55+a.t*.3*s.glow5*s.glow)+')');g.addColorStop(.38,'rgba(145,175,205,.28)');g.addColorStop(.78,'rgba(40,50,65,.15)');g.addColorStop(1,'rgba(0,0,0,0)');
+      g.addColorStop(0,'rgba(255,255,255,'+(.55+a.t*.3*s.glow*s.glow)+')');g.addColorStop(.38,'rgba(145,175,205,.28)');g.addColorStop(.78,'rgba(40,50,65,.15)');g.addColorStop(1,'rgba(0,0,0,0)');
       ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,rr*(1+.18*Math.sin(time*1.2+i)+a.b*.12*s.react),0,TAU);ctx.fill();
     }
     ctx.restore();
