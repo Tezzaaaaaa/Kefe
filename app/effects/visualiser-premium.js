@@ -10,6 +10,7 @@
   var state = {};
 
   function clamp(v, a, b) { return Math.max(a, Math.min(b, Number(v) || 0)); }
+  function fin(v, d) { var n = Number(v); return isFinite(n) ? n : (d == null ? 0 : d); }
   function smooth(v) { v = clamp(v); return v * v * (3 - 2 * v); }
   function hash(n) { var x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); }
   function rgb(h, s, v, a) {
@@ -21,19 +22,25 @@
   }
   function audio(frame) {
     return {
-      b: clamp(frame && frame.bass),
-      m: clamp(frame && frame.mids),
-      t: clamp(frame && frame.treble),
-      e: clamp(frame && frame.energy)
+      b: clamp(frame && frame.bass, 0, 1.4),
+      m: clamp(frame && frame.mids, 0, 1.4),
+      t: clamp(frame && frame.treble, 0, 1.4),
+      e: clamp(frame && frame.energy, 0, 1.4)
     };
   }
   function controls(appState, key) {
     var st = appState && appState.style ? appState.style : {};
+    function pick(k, d, lo, hi) {
+      var raw = st[key + k];
+      var n = Number(raw);
+      if (!isFinite(n)) n = d;
+      return clamp(n, lo, hi);
+    }
     return {
-      react: clamp(st[key + 'React'] == null ? 1 : st[key + 'React'], 0, 2),
-      motion: clamp(st[key + 'Motion'] == null ? 1 : st[key + 'Motion'], 0, 2),
-      detail: clamp(st[key + 'Detail'] == null ? 1 : st[key + 'Detail'], .4, 1.8),
-      glow: clamp(st[key + 'Glow'] == null ? 1 : st[key + 'Glow'], 0, 2)
+      react: pick('React', 1, 0, 2),
+      motion: pick('Motion', 1, 0, 2),
+      detail: pick('Detail', 1, .4, 1.8),
+      glow: pick('Glow', 1, 0, 2)
     };
   }
 
@@ -42,20 +49,20 @@
      individual spikes breathe; treble adds fine specular sparks. */
   function ferrofluid(ctx, w, h, time, frame, appState) {
     var s = controls(appState, 'ferrofluid');
-    var a = audio(frame), cx = w * .5, cy = h * .5, min = Math.min(w,h);
+    var a = audio(frame), cx = fin(w) * .5, cy = fin(h) * .5, min = fin(Math.min(fin(w), fin(h)), 1);
     ctx.save();
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = 'rgba(2,2,4,.22)';
     ctx.fillRect(0,0,w,h);
     ctx.globalCompositeOperation = 'lighter';
-    var n = Math.max(48, Math.round(96 * s.detail)), R = min * (.16 + a.b * .055 * s.react), pulse = 1 + a.b * .22 * s.react;
+    var n = Math.max(48, Math.round(96 * fin(s.detail, 1))), R = min * (.16 + fin(a.b) * .055 * fin(s.react, 1)), pulse = 1 + fin(a.b) * .22 * fin(s.react, 1);
     for (var i=0;i<n;i++) {
       var ang = TAU*i/n + time*.08*s.motion;
       var wave = .72 + .28*Math.sin(i*2.37 + time*1.4 + a.m*4*s.react);
       var spike = min * (.035 + .13*a.b + .045*a.m*wave);
       var len = R * pulse + spike;
       var x = cx + Math.cos(ang) * len, y = cy + Math.sin(ang) * len;
-      var grad = ctx.createLinearGradient(cx,cy,x,y);
+      var grad = ctx.createLinearGradient(fin(cx),fin(cy),fin(x,fin(cx)),fin(y,fin(cy)));
       grad.addColorStop(0,'rgba(245,248,255,.08)');
       grad.addColorStop(.55,'rgba(170,185,205,.22)');
       grad.addColorStop(.82,'rgba(255,255,255,' + (.18+a.t*.4*s.glow*s.glow).toFixed(3) + ')');
