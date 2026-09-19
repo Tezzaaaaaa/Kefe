@@ -104,7 +104,7 @@
   /* 3 — CINEMATIC FLUID */
   var fluid = Array.from({length:260},function(_,i){return {x:hash(i)*1,y:hash(i+17)*1,vx:0,vy:0,h:hash(i+91)};});
   function cinematicFluid(ctx,w,h,time,frame,appState){
-    var a=audio(frame);
+    var s=controls(appState,'cinematicfluid'),a=audio(frame);
     ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.075)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
     for(var i=0;i<fluid.length;i++){
       var p=fluid[i], px=p.x*w,py=p.y*h;
@@ -122,7 +122,7 @@
 
   /* 4 — FRACTAL PLANET */
   function fractalPlanet(ctx,w,h,time,frame,appState){
-    var a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h),R=min*.25*(1+a.b*.08);
+    var s=controls(appState,'fractalplanet'),a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h),R=min*.25*(1+a.b*.08);
     ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.15)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
     var g=ctx.createRadialGradient(cx-R*.35,cy-R*.45,R*.02,cx,cy,R*1.3);
     g.addColorStop(0,'rgba(255,255,255,.85)');g.addColorStop(.25,'rgba(130,160,190,.48)');g.addColorStop(.58,'rgba(20,35,55,.95)');g.addColorStop(1,'rgba(0,0,0,0)');
@@ -138,22 +138,22 @@
   /* 5 — COSMIC ATTRACTOR */
   var attract=Array.from({length:700},function(_,i){return {x:Math.cos(i)*.5,y:Math.sin(i*1.7)*.5,z:hash(i)*.5};});
   function cosmicAttractor(ctx,w,h,time,frame,appState){
-    var a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h);
+    var s=controls(appState,'cosmicattractor'),a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h);
     ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.09)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
     var attractCount = Math.min(attract.length, Math.max(250, Math.round(700*s.detail)));
     for(var i=0;i<attractCount;i++){
       var p=attract[i], dx=Math.sin(p.y*2.4+time*.32*s.motion)*.004*(1+a.b*s.react), dy=Math.sin(p.x*1.7-time*.21*s.motion)*.004*(1+a.m*s.react), dz=Math.cos(p.x+p.y+time*.18*s.motion)*.003;
       p.x+=dx;p.y+=dy;p.z+=dz;
       var ang=time*.12, x=p.x*Math.cos(ang)-p.z*Math.sin(ang), y=p.y, z=p.x*Math.sin(ang)+p.z*Math.cos(ang);
-      var s=1/(1+z*.7), px=cx+x*min*.9*s,py=cy+y*min*.9*s;
-      ctx.fillStyle=rgb(.58+p.z*.1,.7,.55+a.t*.4,.18+a.e*.35*s.glow);ctx.beginPath();ctx.arc(px,py,1+s*2.2,0,TAU);ctx.fill();
+      var sc=1/(1+z*.7), px=cx+x*min*.9*sc,py=cy+y*min*.9*sc;
+      ctx.fillStyle=rgb(.58+p.z*.1,.7,.55+a.t*.4,.18+a.e*.35*s.glow);ctx.beginPath();ctx.arc(px,py,1+sc*2.2,0,TAU);ctx.fill();
     }
     ctx.restore();
   }
 
   /* 6 — GYROID CRYSTAL */
   function gyroidCrystal(ctx,w,h,time,frame,appState){
-    var a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h);
+    var s=controls(appState,'gyroidcrystal'),a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h);
     ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.12)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
     for(var layer=0;layer<Math.max(16,Math.round(34*s.detail));layer++){
       var rr=min*(.07+layer*.007)*(1+a.b*.18*s.react), rot=time*.15*s.motion+layer*.17;
@@ -168,7 +168,7 @@
 
   /* 7 — SONIC METABALL ORGANISM */
   function metaball(ctx,w,h,time,frame,appState){
-    var a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h),N=7;
+    var s=controls(appState,'metaball'),a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h),N=7;
     ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.12)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
     for(var i=0;i<N;i++){
       var q=TAU*i/N+time*.25*s.motion*(.3+a.e*s.react), rr=min*(.11+a.b*.055), x=cx+Math.cos(q*1.7)*min*(.16+a.m*.05*s.react), y=cy+Math.sin(q*1.3)*min*(.16+a.b*.04);
@@ -181,7 +181,7 @@
 
   /* 8 — HOLOGRAPHIC RIBBON SCULPTURE */
   function ribbon(ctx,w,h,time,frame,appState){
-    var a=audio(frame),min=Math.min(w,h);
+    var s=controls(appState,'holographicribbon'),a=audio(frame),min=Math.min(w,h);
     ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.1)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
     for(var band=0;band<Math.max(3,Math.round(7*s.detail));band++){
       ctx.beginPath();
@@ -193,7 +193,7 @@
 
   /* 9 — BLACK-HOLE ACCRETION */
   function blackHole(ctx,w,h,time,frame,appState){
-    var a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h);
+    var s=controls(appState,'blackhole'),a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h);
     ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
     var diskCount = Math.min(420, Math.max(180, Math.round(420*s.detail)));
     for(var i=0;i<diskCount;i++){
@@ -210,7 +210,7 @@
   /* 10 — LIVING NEURAL NETWORK */
   var nodes=Array.from({length:75},function(_,i){return{x:hash(i)*1,y:hash(i+300)*1,v:hash(i+600),p:hash(i+900)*TAU};});
   function neural(ctx,w,h,time,frame,appState){
-    var a=audio(frame);
+    var s=controls(appState,'neuralnetwork'),a=audio(frame);
     ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.1)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
     for(var i=0;i<nodes.length;i++){var n=nodes[i];n.p+=.004*s.motion*(1+a.e*4*s.react);n.x+=Math.sin(n.p)*.00035*s.motion*(.4+a.m*s.react);n.y+=Math.cos(n.p*1.17)*.00035*s.motion*(.4+a.b*s.react);n.x=(n.x+1)%1;n.y=(n.y+1)%1;}
     for(var i=0;i<nodes.length;i++)for(var j=i+1;j<nodes.length;j++){var p=nodes[i],q=nodes[j],dx=p.x-q.x,dy=p.y-q.y,d=Math.sqrt(dx*dx+dy*dy);if(d<.19*s.detail){var alpha=(.19-d)/.19*(.06+a.e*.16);ctx.strokeStyle=rgb(.56,.55,.65,alpha);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.x*w,p.y*h);ctx.lineTo(q.x*w,q.y*h);ctx.stroke();}}
