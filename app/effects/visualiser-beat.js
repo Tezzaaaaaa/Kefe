@@ -433,8 +433,9 @@
 
   function draw(ctx, w, h, time, appState) {
     var mode = (appState && appState.style && appState.style.visualiserStyle) || 'pulse';
-    var fn = MODES[mode] || drawPulse;
     var frame = sample(time);
+    var premium = window.kefePremiumVisualisers && window.kefePremiumVisualisers[mode];
+    var fn = premium || MODES[mode] || drawPulse;
     try { fn(ctx, w, h, time, frame, appState); }
     catch (e) { console.warn('[KEFE visualiser]', e); }
   }
