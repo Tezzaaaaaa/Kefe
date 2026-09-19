@@ -43,9 +43,19 @@
   }
 
   var MODES = [
-    { key: 'ra',        label: 'Ra'        },
-    { key: 'tuffpuff',  label: 'TuffPuff'  },
-    { key: 'ridgeline', label: 'Ridgeline' }
+    { key: 'ferrofluid',       label: 'Ferrofluid' },
+    { key: 'liquidglass',      label: 'Liquid Glass' },
+    { key: 'cinematicfluid',   label: 'Cinematic Fluid' },
+    { key: 'fractalplanet',    label: 'Fractal Planet' },
+    { key: 'cosmicattractor',  label: 'Cosmic Attractor' },
+    { key: 'gyroidcrystal',    label: 'Gyroid Crystal' },
+    { key: 'metaball',          label: 'Sonic Metaball' },
+    { key: 'holographicribbon', label: 'Holographic Ribbon' },
+    { key: 'blackhole',         label: 'Black Hole' },
+    { key: 'neuralnetwork',     label: 'Neural Network' },
+    { key: 'ra',                label: 'Ra' },
+    { key: 'tuffpuff',          label: 'TuffPuff' },
+    { key: 'ridgeline',         label: 'Ridgeline' }
   ];
 
   function current(){
