@@ -120,6 +120,59 @@
       b.classList.toggle('active-effect', b.dataset.mode === cur);
     });
 
+    // ---- Premium visualiser controls: four creative controls per mode ----
+    var PREMIUM_CONTROLS = {
+      ferrofluid:       { name: 'Ferrofluid',       key: 'ferrofluid' },
+      liquidglass:      { name: 'Liquid Glass',     key: 'liquidglass' },
+      cinematicfluid:   { name: 'Cinematic Fluid',  key: 'cinematicfluid' },
+      fractalplanet:    { name: 'Fractal Planet',   key: 'fractalplanet' },
+      cosmicattractor:  { name: 'Cosmic Attractor', key: 'cosmicattractor' },
+      gyroidcrystal:    { name: 'Gyroid Crystal',   key: 'gyroidcrystal' },
+      metaball:         { name: 'Sonic Metaball',   key: 'metaball' },
+      holographicribbon:{ name: 'Holographic Ribbon', key: 'holographicribbon' },
+      blackhole:        { name: 'Black Hole',       key: 'blackhole' },
+      neuralnetwork:    { name: 'Neural Network',   key: 'neuralnetwork' }
+    };
+
+    if (PREMIUM_CONTROLS[cur]) {
+      var pc = document.createElement('div');
+      pc.className = 'kefe-ra-controls';
+      var cfgs = [
+        { key: 'React',  label: 'React',  min: 0,   max: 2,   step: .05, def: 1 },
+        { key: 'Motion', label: 'Motion', min: 0,   max: 2,   step: .05, def: 1 },
+        { key: 'Detail', label: 'Detail', min: .4, max: 1.8, step: .05, def: 1 },
+        { key: 'Glow',   label: 'Glow',   min: 0,   max: 2,   step: .05, def: 1 }
+      ];
+      var pk = PREMIUM_CONTROLS[cur].key;
+      cfgs.forEach(function(cfg){
+        var fullKey = pk + cfg.key;
+        var existingVal = (window.state.style && window.state.style[fullKey]);
+        var val = (existingVal === undefined || existingVal === null) ? cfg.def : existingVal;
+        var row = document.createElement('div');
+        row.className = 'kefe-ra-row';
+        var lab = document.createElement('label');
+        lab.textContent = cfg.label;
+        var inp = document.createElement('input');
+        inp.type = 'range';
+        inp.min = cfg.min; inp.max = cfg.max; inp.step = cfg.step; inp.value = val;
+        var valEl = document.createElement('span');
+        valEl.className = 'val';
+        valEl.textContent = Number(val).toFixed(2);
+        inp.addEventListener('input', function(){
+          var v = Number(inp.value);
+          if (!window.state.style) window.state.style = {};
+          window.state.style[fullKey] = v;
+          valEl.textContent = v.toFixed(2);
+          window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
+        });
+        row.appendChild(lab);
+        row.appendChild(inp);
+        row.appendChild(valEl);
+        pc.appendChild(row);
+      });
+      box.appendChild(pc);
+    }
+
     // ---- TuffPuff controls: only when TuffPuff is selected ----
     if (cur === 'tuffpuff') {
       var tp = document.createElement('div');
