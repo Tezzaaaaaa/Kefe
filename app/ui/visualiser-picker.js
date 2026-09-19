@@ -194,37 +194,6 @@
         row.appendChild(valEl);
         ridge.appendChild(row);
       });
-            // ---- Gradient preset swatches (once, below the sliders) ----
-      var presetWrap = document.createElement('div');
-      presetWrap.className = 'kefe-ridge-gradients';
-      var presetLabel = document.createElement('div');
-      presetLabel.className = 'kefe-ridge-gradients-label';
-      presetLabel.textContent = 'Colour';
-      presetWrap.appendChild(presetLabel);
-
-      var presetRow = document.createElement('div');
-      presetRow.className = 'kefe-ridge-gradients-row';
-      var PRESETS = (window.kefeRidgeline && window.kefeRidgeline.presets) || {};
-      var currentPreset = (window.state.style && window.state.style.ridgeGradientPreset) || 'pulsar-white';
-      Object.keys(PRESETS).forEach(function(key){
-        var preset = PRESETS[key];
-        var sw = document.createElement('button');
-        sw.type = 'button';
-        sw.className = 'kefe-ridge-swatch' + (key === currentPreset ? ' active' : '');
-        sw.title = preset.label;
-        sw.setAttribute('aria-label', preset.label);
-        sw.style.background = 'linear-gradient(90deg,' + preset.stops.join(',') + ')';
-        sw.addEventListener('click', function(){
-          if (!window.state.style) window.state.style = {};
-          window.state.style.ridgeGradientPreset = key;
-          presetRow.querySelectorAll('.kefe-ridge-swatch').forEach(function(b){ b.classList.remove('active'); });
-          sw.classList.add('active');
-          window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
-        });
-        presetRow.appendChild(sw);
-      });
-      presetWrap.appendChild(presetRow);
-      ridge.appendChild(presetWrap);
       box.appendChild(ridge);
     }
 
