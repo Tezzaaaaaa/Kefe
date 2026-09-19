@@ -130,7 +130,8 @@
   function cosmicAttractor(ctx,w,h,time,frame,appState){
     var a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h);
     ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.09)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
-    var attractCount = Math.min(attract.length, Math.max(250, Math.round(700*s.detail)));\n    for(var i=0;i<attractCount;i++){
+    var attractCount = Math.min(attract.length, Math.max(250, Math.round(700*s.detail)));
+    for(var i=0;i<attractCount;i++){
       var p=attract[i], dx=Math.sin(p.y*2.4+time*.32*s.motion)*.004*(1+a.b*s.react), dy=Math.sin(p.x*1.7-time*.21*s.motion)*.004*(1+a.m*s.react), dz=Math.cos(p.x+p.y+time*.18*s.motion)*.003;
       p.x+=dx;p.y+=dy;p.z+=dz;
       var ang=time*.12, x=p.x*Math.cos(ang)-p.z*Math.sin(ang), y=p.y, z=p.x*Math.sin(ang)+p.z*Math.cos(ang);
@@ -184,7 +185,8 @@
   function blackHole(ctx,w,h,time,frame,appState){
     var a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h);
     ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
-    var diskCount = Math.min(420, Math.max(180, Math.round(420*s.detail)));\n    for(var i=0;i<diskCount;i++){
+    var diskCount = Math.min(420, Math.max(180, Math.round(420*s.detail)));
+    for(var i=0;i<diskCount;i++){
       var r=min*(.10+hash(i)*.42)*(1+a.b*.1), ang=hash(i+3)*TAU+time*(.12+.5*(1-r/min))*s.motion*(1+a.e*s.react);
       var x=cx+Math.cos(ang)*r,y=cy+Math.sin(ang)*r*.34;
       var z=hash(i+8);ctx.fillStyle=rgb(.55+z*.12,.85,.45+a.t*.4,.12+a.e*.18);
