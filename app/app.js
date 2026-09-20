@@ -261,6 +261,7 @@ function appleWordsForLine(line, nextLine) {
     });
 }
 
+const APPLE_FONT_STACK = '"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
 const APPLE_GLYPH_CACHE = new Map();
 const APPLE_LAYOUT_CACHE = new Map();
 const APPLE_CACHE_LIMIT = 512;
@@ -279,9 +280,9 @@ function appleGlyph(text, fontSize, weight = 700) {
     if (cached) return cached;
     const measureCanvas = document.createElement('canvas');
     const measureCtx = measureCanvas.getContext('2d');
-    measureCtx.font = `${weight} ${fontSize}px "Open Sans",Arial,sans-serif`;
+    measureCtx.font = `${weight} ${fontSize}px ${APPLE_FONT_STACK}`;
     const width = Math.max(1, Math.ceil(measureCtx.measureText(value).width));
-    const scale = Math.min(2, window.devicePixelRatio || 1);
+    const scale = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
     const pad = Math.ceil(fontSize * 0.08);
     const logicalWidth = width + pad * 2;
     const logicalHeight = Math.ceil(fontSize * 1.45);
@@ -290,7 +291,7 @@ function appleGlyph(text, fontSize, weight = 700) {
     canvas.height = Math.ceil(logicalHeight * scale);
     const g = canvas.getContext('2d');
     g.scale(scale, scale);
-    g.font = `${weight} ${fontSize}px "Open Sans",Arial,sans-serif`;
+    g.font = `${weight} ${fontSize}px ${APPLE_FONT_STACK}`;
     g.textBaseline = 'alphabetic';
     g.fillStyle = '#fff';
     g.fillText(value, pad, fontSize * 1.05);
@@ -331,7 +332,7 @@ function measureAppleLineBlock(ctx, w, line, settings, nextLine = null) {
     const cached = APPLE_LAYOUT_CACHE.get(key);
     if (cached) return cached;
     ctx.save();
-    ctx.font = `700 ${fontSize}px "Open Sans",Arial,sans-serif`;
+    ctx.font = `700 ${fontSize}px ${APPLE_FONT_STACK}`;
     const rows = buildAppleRows(ctx, line, nextLine, w - margin * 2);
     ctx.restore();
     return appleCacheSet(APPLE_LAYOUT_CACHE, key, { rows, rowHeight: fontSize * 1.25, totalHeight: rows.length * fontSize * 1.25 });
@@ -443,7 +444,7 @@ function drawAppleLineBlock(ctx, w, centreY, line, time, settings, options = {})
     const measurement = options.measurement || measureAppleLineBlock(ctx, w, line, settings, nextLine);
     ctx.save();
     ctx.filter = Number(options.blur) > 0 ? `blur(${Number(options.blur)}px)` : "none";
-    ctx.font = `700 ${fontSize}px "Open Sans",Arial,sans-serif`;
+    ctx.font = `700 ${fontSize}px ${APPLE_FONT_STACK}`;
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     const margin = Math.max(40, w * 0.075);
@@ -494,7 +495,7 @@ function drawAppleSecondaryText(ctx, w, y, text, settings, options = {}) {
     const margin = Math.max(40, w * 0.075);
     const maxWidth = Math.max(80, w - margin * 2);
     ctx.save();
-    ctx.font = `500 ${size}px "Open Sans",Arial,sans-serif`;
+    ctx.font = `500 ${size}px ${APPLE_FONT_STACK}`;
     ctx.textBaseline = 'middle';
     ctx.textAlign = settings.align === 'center' ? 'center' : settings.align === 'right' ? 'right' : 'left';
     ctx.fillStyle = options.color || 'rgba(255,255,255,0.72)';
@@ -604,11 +605,11 @@ function drawAppleMusicHeader(ctx, w, h) {
     const tx = source ? margin + artSize + Math.max(16, w * 0.018) : margin;
     const maxText = w - tx - margin * 1.8;
     const titleSize = Math.max(18, Math.min(w, h) * 0.025);
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = `700 ${titleSize}px "Open Sans",Arial,sans-serif`;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = `700 ${titleSize}px ${APPLE_FONT_STACK}`;
     let shownTitle = title || 'Untitled';
     while (shownTitle.length > 1 && ctx.measureText(shownTitle).width > maxText) shownTitle = shownTitle.slice(0,-2).trim() + '…';
     ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.96; ctx.fillText(shownTitle, tx, y + artSize * 0.38);
-    ctx.font = `500 ${Math.max(14, titleSize * 0.72)}px "Open Sans",Arial,sans-serif`;
+    ctx.font = `500 ${Math.max(14, titleSize * 0.72)}px ${APPLE_FONT_STACK}`;
     ctx.fillStyle = 'rgba(255,255,255,0.62)'; ctx.fillText(artist, tx, y + artSize * 0.68);
     ctx.fillStyle = 'rgba(255,255,255,0.82)'; ctx.beginPath();
     const dotY = y + artSize * 0.5, dotX = w - margin;
@@ -817,7 +818,7 @@ function appleSafeFontSize(ctx, lines, requested, w) {
     let longest = '';
     for (const l of lines) for (const t of String(l?.text || '').split(/\s+/)) if (t.length > longest.length) longest = t;
     if (!longest) return requested;
-    ctx.save(); ctx.font = '700 100px "Open Sans",Arial,sans-serif';
+    ctx.save(); ctx.font = '700 100px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
     const wide = ctx.measureText(longest).width; ctx.restore();
     const room = w - Math.max(40, w * 0.075) * 2;
     return wide > 0 ? Math.min(requested, Math.floor(room / wide * 100)) : requested;
@@ -1266,9 +1267,9 @@ function drawPulseEffect(ctx, w, h, style, lines, time) {
     ctx.save();
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    const fitted = u.fitRows(ctx, perWord.map(p => p.text), { font: (c, sz) => { c.font = `800 ${Math.max(8, sz)}px "Open Sans",Arial,sans-serif`; }, tag: 'pulse', size: (Number(style.fontSize) || 76), maxW: w * 0.90, maxH: h * 0.80, lineHeight: 1.22 * (style.fxSpacing || 1), gap: 0.26, maxLines: 3 });
+    const fitted = u.fitRows(ctx, perWord.map(p => p.text), { font: (c, sz) => { c.font = `800 ${Math.max(8, sz)}px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`; }, tag: 'pulse', size: (Number(style.fontSize) || 76), maxW: w * 0.90, maxH: h * 0.80, lineHeight: 1.22 * (style.fxSpacing || 1), gap: 0.26, maxLines: 3 });
     const fontSize = fitted.size;
-    ctx.font = `800 ${fontSize}px "Open Sans",Arial,sans-serif`;
+    ctx.font = `800 ${fontSize}px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
     const top = h / 2 - fitted.blockH / 2;
     fitted.rows.forEach((row, ri) => {
         let cursorX = (w - row.width) / 2;
@@ -2009,7 +2010,7 @@ function drawCompactNowPlaying(ctx, w, h, appState, progress = 1) {
     ctx.shadowBlur = 7;
 
     let titleSize = Math.max(15, Math.min(24, artSize * 0.27));
-    ctx.font = `700 ${titleSize}px "Open Sans",Arial,sans-serif`;
+    ctx.font = `700 ${titleSize}px ${APPLE_FONT_STACK}`;
     let shownTitle = title;
     while (shownTitle.length > 1 && ctx.measureText(shownTitle).width > maxText) shownTitle = shownTitle.slice(0, -2).trim() + '…';
     ctx.fillStyle = '#FFFFFF';
@@ -2017,7 +2018,7 @@ function drawCompactNowPlaying(ctx, w, h, appState, progress = 1) {
 
     const secondary = [artist, album].filter(Boolean).join(' • ');
     if (secondary) {
-        ctx.font = `500 ${Math.max(12, titleSize * 0.66)}px "Open Sans",Arial,sans-serif`;
+        ctx.font = `500 ${Math.max(12, titleSize * 0.66)}px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
         let shownSecondary = secondary;
         while (shownSecondary.length > 1 && ctx.measureText(shownSecondary).width > maxText) shownSecondary = shownSecondary.slice(0, -2).trim() + '…';
         ctx.fillStyle = 'rgba(255,255,255,0.68)';
@@ -2114,10 +2115,10 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     }
 
     let titleSize = Math.max(36, Math.round(unit * 0.066));
-    ctx.font = `800 ${titleSize}px "Open Sans",Arial,sans-serif`;
+    ctx.font = `800 ${titleSize}px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
     while (titleSize > 30 && ctx.measureText(title).width > maxTextWidth) {
         titleSize -= 2;
-        ctx.font = `800 ${titleSize}px "Open Sans",Arial,sans-serif`;
+        ctx.font = `800 ${titleSize}px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
     }
 
     const metadataLines = Number(Boolean(artist)) + Number(Boolean(album));
@@ -2130,10 +2131,10 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
 
     if (artist) {
         let artistSize = Math.max(19, Math.round(unit * 0.026));
-        ctx.font = `600 ${artistSize}px "Open Sans",Arial,sans-serif`;
+        ctx.font = `600 ${artistSize}px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
         while (artistSize > 15 && ctx.measureText(artist).width > maxTextWidth) {
             artistSize -= 1;
-            ctx.font = `600 ${artistSize}px "Open Sans",Arial,sans-serif`;
+            ctx.font = `600 ${artistSize}px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
         }
         ctx.fillStyle = 'rgba(255,255,255,0.88)';
         ctx.fillText(artist, 0, cursorY);
@@ -2142,10 +2143,10 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
 
     if (album) {
         let albumSize = Math.max(15, Math.round(unit * 0.019));
-        ctx.font = `500 ${albumSize}px "Open Sans",Arial,sans-serif`;
+        ctx.font = `500 ${albumSize}px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
         while (albumSize > 13 && ctx.measureText(album).width > maxTextWidth) {
             albumSize -= 1;
-            ctx.font = `500 ${albumSize}px "Open Sans",Arial,sans-serif`;
+            ctx.font = `500 ${albumSize}px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
         }
         ctx.fillStyle = 'rgba(255,255,255,0.60)';
         ctx.fillText(album, 0, cursorY);
