@@ -88,11 +88,6 @@
               <button type="button" id="kefeVinylNext" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12M6 6l8 6-8 6z"/></svg></button>
             </div>
           </div>
-          <div class="kefe-vinyl-mode-strip">
-            <button type="button" class="is-active" data-vinyl-mode="neonBars">MEDIA</button>
-            <button type="button" data-vinyl-mode="radialWave">PRESET</button>
-            <button type="button" data-vinyl-mode="oscilloscope">LYRICS</button>
-          </div>
         </section>
     </div>`;
   document.body.appendChild(player);
@@ -632,6 +627,7 @@
     vinylMode = mode;
     const visualizer = mode !== 'neonBars';
     shellEl.classList.toggle('is-visualizer-mode', visualizer);
+    if (visualizer) ensureVinylAudio();
     vinylSkin?.querySelectorAll('[data-vinyl-mode]').forEach(button => button.classList.toggle('is-active', button.dataset.vinylMode === mode));
     if (vinylModeToggle) {
       vinylModeToggle.setAttribute('aria-label', visualizer ? 'Switch to CD mode' : 'Switch to visualizer mode');
@@ -643,12 +639,6 @@
   vinylModeToggle?.addEventListener('click', e => {
     e.stopPropagation();
     setVinylMode(shellEl.classList.contains('is-visualizer-mode') ? 'neonBars' : 'radialWave');
-  });
-  vinylSkin?.querySelectorAll('[data-vinyl-mode]').forEach(button => {
-    button.addEventListener('click', e => {
-      e.stopPropagation();
-      setVinylMode(button.dataset.vinylMode);
-    });
   });
   $('kefeVinylPlay')?.addEventListener('click', e => { e.stopPropagation(); toggle(); });
   $('kefeVinylPrev')?.addEventListener('click', e => { e.stopPropagation(); prev(); });
