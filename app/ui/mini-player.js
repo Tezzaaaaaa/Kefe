@@ -11,7 +11,7 @@
   player.setAttribute('aria-label', 'KEFE Now Playing');
   player.innerHTML = `
     <div class="kefe-mini-shell kefe-mini-3d">
-      <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><div class="kefe-mini-topline-actions"><button type="button" id="kefeMiniFullscreen" class="kefe-mini-icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
       <div class="kefe-mini-grid">
         <div class="kefe-mini-art">
           <canvas id="kefeMiniCanvas" width="720" height="720"></canvas>
@@ -56,6 +56,7 @@
   let dragPointerId = null;
   let dragOffsetX = 0;
   let dragOffsetY = 0;
+  let cssFullscreen = false;
 
   const $ = id => document.getElementById(id);
   const canvas = $('kefeMiniCanvas');
@@ -254,6 +255,43 @@
   $('kefeMiniLyricsToggle').addEventListener('click', toggleLyrics);
   $('kefeMiniLyricsClose').addEventListener('click', toggleLyrics);
 
+  function syncFullscreenUI() {
+    const button = $('kefeMiniFullscreen');
+    const shell = player.querySelector('.kefe-mini-shell');
+    if (!button) return;
+    const active = document.fullscreenElement === shell || cssFullscreen;
+    button.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen');
+    button.setAttribute('title', active ? 'Exit fullscreen' : 'Fullscreen');
+    button.innerHTML = active
+      ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M20 15v5h-5"/></svg>'
+      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg>';
+    player.classList.toggle('kefe-mini-css-fullscreen', cssFullscreen);
+    shell?.classList.toggle('is-fullscreen', active);
+  }
+  async function toggleFullscreen() {
+    const shell = player.querySelector('.kefe-mini-shell');
+    if (!shell) return;
+    if (document.fullscreenElement === shell) {
+      try { await document.exitFullscreen(); } catch (e) {}
+      return;
+    }
+    if (document.fullscreenElement) {
+      try { await document.exitFullscreen(); } catch (e) {}
+    }
+    if (typeof shell.requestFullscreen === 'function') {
+      try {
+        await shell.requestFullscreen({ navigationUI: 'hide' });
+        cssFullscreen = false;
+        syncFullscreenUI();
+        return;
+      } catch (e) {}
+    }
+    cssFullscreen = !cssFullscreen;
+    syncFullscreenUI();
+  }
+  document.addEventListener('fullscreenchange', syncFullscreenUI);
+  $('kefeMiniFullscreen').addEventListener('click', toggleFullscreen);
+
   function open() {
     player.classList.remove('is-hidden');
     loadPresets();
@@ -267,13 +305,18 @@
     if (!raf) raf = requestAnimationFrame(draw);
   }
   function close() {
+    if (document.fullscreenElement === player.querySelector('.kefe-mini-shell')) {
+      document.exitFullscreen?.().catch?.(() => {});
+    }
+    cssFullscreen = false;
+    syncFullscreenUI();
     player.classList.add('is-hidden');
     audio.pause();
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
   }
   window.kefeMiniPlayer = {
-    version: 2,
+    version: 3,
     open,
     close,
     addFiles,
