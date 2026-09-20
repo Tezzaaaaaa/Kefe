@@ -205,7 +205,7 @@
     const panel = $('kefeMiniLyricsPanel');
     const button = $('kefeMiniLyricsToggle');
     if (!panel || !button) return;
-    const arrow = button.querySelector('span:last-child');
+    const arrow = button.querySelector('.lyrics-chevron');
     const open = panel.hidden;
     panel.hidden = !open;
     button.setAttribute('aria-expanded', String(open));
@@ -272,6 +272,13 @@
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
   }
-  window.kefeMiniPlayer = { version: 1, open, close, addFiles, tracks: () => tracks.slice() };
+  window.kefeMiniPlayer = {
+    version: 2,
+    open,
+    close,
+    addFiles,
+    tracks: () => tracks.slice()
+  };
+  window.dispatchEvent(new CustomEvent('kefe:miniplayer-ready'));
   loadPresets();
 })();
