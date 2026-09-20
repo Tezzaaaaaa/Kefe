@@ -35,6 +35,11 @@
           <div class="kefe-mini-preset"><span>Visual</span><select id="kefeMiniPreset" aria-label="Butterchurn preset"></select></div>
         </div>
       </div>
+      <button type="button" id="kefeMiniLyricsToggle" class="kefe-mini-lyrics-toggle" aria-expanded="false" aria-controls="kefeMiniLyricsPanel">Lyrics</button>
+      <section id="kefeMiniLyricsPanel" class="kefe-mini-lyrics-panel" hidden>
+        <div class="kefe-mini-lyrics-head"><span>LYRICS</span><button type="button" id="kefeMiniLyricsClose" aria-label="Close lyrics">×</button></div>
+        <div id="kefeMiniLyricsContent" class="kefe-mini-lyrics-content"><p>No lyrics loaded</p></div>
+      </section>
       <div class="kefe-mini-queue"><div class="kefe-mini-queue-head"><span>QUEUE</span><span id="kefeMiniQueueCount">0 tracks</span></div><ol id="kefeMiniQueueList"></ol></div>
     </div>`;
   document.body.appendChild(player);
@@ -167,6 +172,7 @@
     state.style.visualiserStyle = 'butterchurn';
     if ($('kefeMiniTitle')) $('kefeMiniTitle').textContent = track.title;
     if ($('kefeMiniArtist')) $('kefeMiniArtist').textContent = track.artist;
+    renderLyrics();
     renderQueue();
     window.kefeButterchurn?.prepare?.().catch?.(() => {});
     if (autoplay) audio.play().catch(() => {});
@@ -186,6 +192,27 @@
     if (index < 0) loadTrack(0, false);
     renderQueue();
   }
+  function renderLyrics() {
+    const box = $('kefeMiniLyricsContent');
+    if (!box) return;
+    const lines = Array.isArray(state?.lyrics?.lines) ? state.lyrics.lines : [];
+    box.innerHTML = lines.length
+      ? lines.map(line => {
+          const text = esc(line?.text || line?.words || '');
+          return text ? '<p>' + text + '</p>' : '';
+        }).join('')
+      : '<p>No lyrics loaded</p>';
+  }
+  function toggleLyrics() {
+    const panel = $('kefeMiniLyricsPanel');
+    const button = $('kefeMiniLyricsToggle');
+    if (!panel || !button) return;
+    const open = panel.hidden;
+    panel.hidden = !open;
+    button.setAttribute('aria-expanded', String(open));
+    if (open) renderLyrics();
+  }
+
   function toggle() {
     if (index < 0) return;
     if (audio.paused) audio.play().catch(() => {}); else audio.pause();
@@ -215,6 +242,8 @@
   });
   $('kefeMiniPreset').addEventListener('change', e => choosePreset(e.target.value));
   $('kefeMiniClose').addEventListener('click', () => close());
+  $('kefeMiniLyricsToggle').addEventListener('click', toggleLyrics);
+  $('kefeMiniLyricsClose').addEventListener('click', toggleLyrics);
 
   function open() {
     player.classList.remove('hidden');
