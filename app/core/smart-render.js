@@ -43,7 +43,7 @@
     const duration = masterDuration();
     let dimensions = [720, 1280];
     let fps = 30;
-    if (preset === '1080p' || preset === 'instagram' || preset === 'tiktok') { dimensions = [1080, 1920]; fps = preset === '1080p' ? 60 : 30; }
+    if (preset === '1080p' || preset === 'instagram' || preset === 'tiktok') { dimensions = [1080, 1920]; fps = 30; }
     if (preset === '480p') { dimensions = [480, 854]; fps = 24; }
     const frames = Math.max(0, Math.ceil(duration * fps));
     const pixelFrames = dimensions[0] * dimensions[1] * frames;
