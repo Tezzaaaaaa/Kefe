@@ -172,5 +172,4 @@
   bindAudioHint();
   window.addEventListener('kefe:project-engine-ready', installButton);
   window.addEventListener('kefe:analysis-ready', installButton);
-  new MutationObserver(installButton).observe(document.body, { childList: true, subtree: true });
 })();
