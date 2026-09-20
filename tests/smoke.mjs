@@ -126,6 +126,20 @@ try {
     null,
     { timeout: 5000 },
   );
+
+  // The upload confirmation now lives on the Media/source step as
+  // #kefeUploadSummary. Keep the smoke test aligned with that current UX.
+  const uploadSummary = page.locator('#kefeUploadSummary');
+  await uploadSummary.waitFor({ state: 'visible' });
+  await page.waitForFunction(
+    () => {
+      const box = document.getElementById('kefeUploadSummary');
+      return Boolean(box && !box.classList.contains('hidden') && box.textContent.includes('smoke-test.wav'));
+    },
+    null,
+    { timeout: 5000 },
+  );
+
   await page.locator('#wizardNextBtn').click();
 
   const lyricsText = page.locator('#lyricsText');
@@ -174,13 +188,6 @@ try {
   }
   await page.locator('#stopBtn').click();
 
-  const confirmationVisible = await page
-    .locator('#audioDrop .kefe-upload-confirmation')
-    .evaluate((el) => el.classList.contains('is-visible'));
-  if (!confirmationVisible) {
-    throw new Error('Audio upload confirmation did not appear');
-  }
-
   const renderPlan = await page.evaluate(
     () => window.kefeSmartRender.prepare(),
   );
@@ -200,7 +207,7 @@ try {
 
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(
-    'KEFE smoke test passed: boot → runtime → guided lyric path → style/background → lyrics analysis → audio load → playback → upload confirmation → smart render → export preflight.',
+    'KEFE smoke test passed: boot → runtime → guided lyric path → style/background → lyrics analysis → audio load → playback → upload summary → smart render → export preflight.',
   );
 } finally {
   if (browser) await browser.close().catch(() => {});
