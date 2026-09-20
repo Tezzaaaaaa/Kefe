@@ -35,7 +35,7 @@
           <div class="kefe-mini-preset"><span>Visual</span><select id="kefeMiniPreset" aria-label="Butterchurn preset"></select></div>
         </div>
       </div>
-      <button type="button" id="kefeMiniLyricsToggle" class="kefe-mini-lyrics-toggle" aria-expanded="false" aria-controls="kefeMiniLyricsPanel">Lyrics</button>
+      <button type="button" id="kefeMiniLyricsToggle" class="kefe-mini-lyrics-toggle" aria-expanded="false" aria-controls="kefeMiniLyricsPanel"><span>Lyrics</span><span aria-hidden="true">⌄</span></button>
       <section id="kefeMiniLyricsPanel" class="kefe-mini-lyrics-panel" hidden>
         <div class="kefe-mini-lyrics-head"><span>LYRICS</span><button type="button" id="kefeMiniLyricsClose" aria-label="Close lyrics">×</button></div>
         <div id="kefeMiniLyricsContent" class="kefe-mini-lyrics-content"><p>No lyrics loaded</p></div>
@@ -205,9 +205,11 @@
     const panel = $('kefeMiniLyricsPanel');
     const button = $('kefeMiniLyricsToggle');
     if (!panel || !button) return;
+    const arrow = button.querySelector('span:last-child');
     const open = panel.hidden;
     panel.hidden = !open;
     button.setAttribute('aria-expanded', String(open));
+    if (arrow) arrow.textContent = open ? '⌃' : '⌄';
     if (open) renderLyrics();
   }
 
