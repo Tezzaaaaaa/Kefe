@@ -259,28 +259,19 @@
   });
   async function identifyTrack(track) {
     if (!track || track.identifying || track.identified) return;
+    const shazam = window.kefeShazam;
+    if (!shazam || typeof shazam.identify !== 'function') return;
+
     track.identifying = true;
-    notify(`Identifying “${track.title}”…`);
+    notify(`Identifying “${track.title}” with Shazam…`);
     try {
-      const response = await fetch('/api/music-identify', {
-        method: 'POST',
-        headers: { 'Content-Type': track.file.type || 'application/octet-stream' },
-        body: track.file
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        notify(payload.error || 'Song identification failed.');
-        return;
-      }
-      if (!payload.match) {
-        notify('Song not recognised — using the file metadata.');
-        return;
-      }
-      const match = payload.match;
+      const match = await shazam.identify(track.file);
+      if (!match) return;
       track.title = match.title || track.title;
       track.artist = match.artist || track.artist;
       track.album = match.album || track.album || '';
       track.artwork = match.artwork || track.artwork || '';
+      track.shazamURL = match.shazamURL || '';
       track.identified = true;
       if (index >= 0 && tracks[index] === track) {
         getState().audio.metadata = {
@@ -295,7 +286,7 @@
       renderQueue();
       notify('');
     } catch (error) {
-      notify('Song identification unavailable — using the file metadata.');
+      notify('');
     } finally {
       track.identifying = false;
     }
