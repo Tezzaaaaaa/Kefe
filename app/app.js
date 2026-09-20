@@ -1691,7 +1691,7 @@ function syncPreviewTransportUI(t) {
 }
 function syncVisualiserMiniPlayer(t) {
     const player = $('visualiserMiniPlayer');
-    const seek = $('visualiserMiniSeek');
+    const progress = $('visualiserMiniProgress');
     const current = $('visualiserMiniCurrent');
     const duration = $('visualiserMiniDuration');
     const intro = linaClamp(Number(state.style.titleCardDuration) || 3, 1, 15);
@@ -1699,30 +1699,11 @@ function syncVisualiserMiniPlayer(t) {
     player?.classList.toggle('hidden', !visible);
     if (!visible) return;
     const total = getMasterDuration();
-    if (seek && !userScrubbing) { seek.max = String(total); seek.value = String(Math.min(t, total)); }
+    const ratio = total > 0 ? linaClamp(t / total) : 0;
+    if (progress) progress.style.transform = `scaleX(${ratio})`;
     if (current) current.textContent = fmt(t);
     if (duration) duration.textContent = fmt(total);
 }
-function wireVisualiserMiniPlayer() {
-    const seek = $('visualiserMiniSeek');
-    if (!seek || seek.dataset.bound === 'true') return;
-    seek.dataset.bound = 'true';
-    seek.addEventListener('pointerdown', () => {
-        if (isExporting) return;
-        userScrubbing = true;
-        media?.video?.pause();
-    });
-    seek.addEventListener('input', event => {
-        if (exportClockTime !== null || isExporting) return;
-        const target = Number(event.target.value);
-        if (!Number.isFinite(target)) return;
-        seekPreview(target);
-    });
-    seek.addEventListener('pointerup', finishScrubbing);
-    seek.addEventListener('change', finishScrubbing);
-    seek.addEventListener('pointercancel', finishScrubbing);
-}
-
 function redrawCurrentPreviewFrame() {
     if (isExporting) return;
     const t = getMasterTime();
@@ -4067,7 +4048,6 @@ function init() {
         renderMasterSourceUI();
         wireTitleCardControls();
         syncTitleCardUI();
-        wireVisualiserMiniPlayer();
         wireSyncControls();
         wireCaptions();
         wireBackgroundControls();
