@@ -2823,6 +2823,7 @@ async function togglePreviewFullscreen() {
     const target = $('canvasWrapper');
     const preview = document.querySelector('.preview');
     if (!target || !preview) return;
+
     if (isPreviewFullscreenActive()) {
         if (document.fullscreenElement === target) {
             try { await document.exitFullscreen(); } catch (error) { console.warn('Preview fullscreen exit error:', error); }
@@ -2833,9 +2834,6 @@ async function togglePreviewFullscreen() {
         return;
     }
 
-    // iPhone Safari does not provide reliable element fullscreen for arbitrary
-    // DOM/canvas containers. Use a viewport-locked immersive mode instead so
-    // the visualiser, toolbar, and mini-player remain usable.
     if (isIPhoneSafari()) {
         setMobilePreviewFullscreen(true);
         return;
