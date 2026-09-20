@@ -3488,7 +3488,7 @@ function getExportDimensions(preset) {
     return { width:dims[0], height:dims[1], fps:enc[0], bitrate:enc[1] };
 }
 
-async function startExport() {
+function openExportPreflight() {
     if (isExporting) return;
     const issues = projectValidationIssues();
     if (issues.length) { toast('Before export, add: ' + issues.join(', '), 'error'); return; }
@@ -3534,7 +3534,7 @@ async function startExport() {
             btn.textContent = sol.label;
             btn.addEventListener('click', () => {
                 sol.apply();
-                startExport(); // re-run preflight after repair
+                openExportPreflight(); // refresh the existing preflight after repair
             });
             preflightRepair.appendChild(btn);
         });
