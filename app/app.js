@@ -1895,7 +1895,7 @@ function readiness() {
     const masterReady = hasMasterSource() && masterDur > 0;
     // Visualiser / Custom exports are valid without timed text.
     const ready = masterReady && (timedTextRequired() ? timingValid : true);
-    $('exportBtn').disabled = $('exportBottom').disabled = !ready;
+    // Export remains clickable so the authoritative preflight can explain what is missing.\n    // Do not disable it here; a disabled Export button makes the flow appear broken.\n    $('exportBtn').disabled = false;\n    $('exportBottom').disabled = false;
     refreshLyricsTimingStatus();
     updateSectionNav();
 }
