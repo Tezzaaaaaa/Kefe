@@ -498,8 +498,25 @@ function appleTransitionTiming(fromLine, toLine) {
     const fromTime = Number(fromLine?.time) || 0;
     const toTime = Number(toLine?.time) || fromTime + 1;
     const gap = Math.max(0.35, toTime - fromTime);
-    const duration = Math.min(0.72, Math.max(0.48, gap * 0.30));
+
+    // Apple-style lyric movement is a continuous hand-off, not a short
+    // ease-in/ease-out snap. Keep the hand-off long enough to read as one
+    // uninterrupted scroll while still adapting to tightly packed lyrics.
+    const duration = Math.min(0.82, Math.max(0.58, gap * 0.32));
     return { duration, start: toTime - duration, end: toTime };
+}
+
+function appleSpringProgress(value) {
+    const t = linaClamp(value);
+    if (t <= 0 || t >= 1) return t;
+
+    // Closed-form, seek-safe critically damped motion. This replaces the
+    // previous stacked easing layers rather than adding another animation
+    // system, so preview and export receive the exact same value for a frame.
+    const response = 7.4;
+    const raw = 1 - (1 + response * t) * Math.exp(-response * t);
+    const end = 1 - (1 + response) * Math.exp(-response);
+    return linaClamp(raw / end);
 }
 
 function getAppleFocalMotion(lines, time) {
@@ -509,7 +526,6 @@ function getAppleFocalMotion(lines, time) {
     const active = linaNormaliseLine(lines, activeIndex);
     if (!active) return null;
 
-    // Finish the hand-off into the current line even after its timestamp has passed.
     if (activeIndex > 0) {
         const previous = linaNormaliseLine(lines, activeIndex - 1);
         const incoming = appleTransitionTiming(previous, active);
@@ -517,14 +533,13 @@ function getAppleFocalMotion(lines, time) {
             return {
                 fromIndex: activeIndex - 1,
                 toIndex: activeIndex,
-                progress: linaClamp(appleSpringPosition(time, incoming.start)),
+                progress: appleSpringProgress((time - incoming.start) / incoming.duration),
                 transitionStart: incoming.start,
                 transitionEnd: incoming.end
             };
         }
     }
 
-    // Begin the next hand-off just before the upcoming timestamp so motion never snaps.
     const next = linaNormaliseLine(lines, activeIndex + 1);
     if (next) {
         const outgoing = appleTransitionTiming(active, next);
@@ -532,14 +547,20 @@ function getAppleFocalMotion(lines, time) {
             return {
                 fromIndex: activeIndex,
                 toIndex: activeIndex + 1,
-                progress: linaClamp(appleSpringPosition(time, outgoing.start)),
+                progress: appleSpringProgress((time - outgoing.start) / outgoing.duration),
                 transitionStart: outgoing.start,
                 transitionEnd: outgoing.end
             };
         }
     }
 
-    return { fromIndex: activeIndex, toIndex: activeIndex, progress: 1, transitionStart: active.time, transitionEnd: active.time };
+    return {
+        fromIndex: activeIndex,
+        toIndex: activeIndex,
+        progress: 1,
+        transitionStart: active.time,
+        transitionEnd: active.time
+    };
 }
 
 function drawAppleMusicHeader(ctx, w, h) {
@@ -586,10 +607,9 @@ function buildAppleMusicLayout(ctx, w, h, settings, lines, focusIndex, visibleCo
         output.push(item); return item;
     };
     const focus = add(focusIndex, focusY, 0); if (!focus) return output;
-    // Completed lines are not part of the resting stack. They only exist in
-    // the outgoing layout during an actual line hand-off, where they fade/scroll
-    // away. Keeping the previous line here leaves a stale lyric permanently
-    // visible after its timed content has finished.
+
+    // Completed lyrics leave the resting stack. They are retained only by
+    // the outgoing side of the current hand-off.
     let cursorY = focusY + focus.measurement.totalHeight/2 + gap;
     for (let distance=1; distance<=visibleCount; distance++) {
         const line = linaNormaliseLine(lines, focusIndex + distance); if (!line) break;
@@ -609,14 +629,25 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
     const transitioning = motion.fromIndex !== motion.toIndex;
     const reducedMotion = typeof window.matchMedia === 'function' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const p = transitioning
-        ? (reducedMotion ? 1 : motion.progress)
-        : 1;
+    const p = transitioning ? (reducedMotion ? 1 : linaClamp(motion.progress)) : 1;
+
     const relationOpacity = relation => {
         if (relation === 0) return 1;
         if (relation < 0) return 0;
-        return Math.max(0.035, settings.inactiveOpacity * Math.pow(0.68, relation - 1));
+        return Math.max(0.025, settings.inactiveOpacity * Math.pow(0.68, relation - 1));
     };
+
+    const completionFade = line => {
+        const vocalEnd = Number(line?.vocalEndTime);
+        const lineEnd = Number(line?.endTime);
+        const end = Number.isFinite(vocalEnd) ? vocalEnd : lineEnd;
+        if (!Number.isFinite(end)) return 1;
+        const nextTime = Number(line?.nextLineTime);
+        const available = Number.isFinite(nextTime) ? Math.max(0.08, nextTime - end) : 0.55;
+        const duration = Math.min(0.55, Math.max(0.16, available * 0.55));
+        return linaClamp((end - time) / duration);
+    };
+
     const drawEntry = (entry, options = {}) => {
         if (!entry || !entry.line?.text) return;
         drawAppleLineBlock(ctx, w, options.y ?? entry.centreY, entry.line, time, settings, {
@@ -630,10 +661,10 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
 
         if (options.active !== true || options.alpha <= 0.001 || entry.lineIndex !== motion.toIndex) return;
 
-        // Translation / transliteration belongs to the active primary lyric.
         const secondary = entry.line.translation || entry.line.transliteration || '';
         const secondaryY = (options.y ?? entry.centreY) +
             entry.measurement.totalHeight / 2 + settings.fontSize * 0.42;
+
         if (secondary) {
             drawAppleSecondaryText(ctx, w, secondaryY, secondary, settings, {
                 alpha: options.alpha * 0.68,
@@ -644,8 +675,6 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
             });
         }
 
-        // Background-vocal TTML spans remain secondary timed material and never
-        // become part of the primary scrolling stack.
         const backgroundLines = Array.isArray(entry.line.backgroundLines)
             ? entry.line.backgroundLines : [];
         let bgIndex = 0;
@@ -671,15 +700,15 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
     };
 
     if (!transitioning) {
-        // Resting Apple-style stack: current line plus upcoming lines only.
-        // Completed lines are removed from the layout rather than held as a
-        // permanently faded previous-line row.
         for (const entry of toLayout) {
             const isActive = entry.lineIndex === motion.toIndex;
-            const alpha = isActive ? 1 : relationOpacity(entry.relation);
-            const scale = isActive ? 1 : 0.985;
-            const blur = isActive ? 0 : settings.fontSize *
-                (0.034 + Math.max(0, entry.relation - 1) * 0.014);
+            const completion = isActive ? completionFade(entry.line) : 1;
+            const alpha = isActive ? completion : relationOpacity(entry.relation);
+            const scale = isActive ? 1 - (1 - completion) * 0.018 : 0.985;
+            const blur = isActive
+                ? settings.fontSize * 0.045 * (1 - completion)
+                : settings.fontSize * (0.034 + Math.max(0, entry.relation - 1) * 0.014);
+
             drawEntry(entry, {
                 y: entry.centreY,
                 active: isActive,
@@ -691,37 +720,41 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
         return;
     }
 
-    // During a hand-off Apple moves the old focal line out, brings the new
-    // focal line into the anchor, and shifts the future stack as one unit.
     const fromFocus = fromMap.get(motion.fromIndex);
     const toFocus = toMap.get(motion.toIndex);
     const focusY = h * settings.topOffset;
+
     const outgoingDistance = Math.max(
-        h * 0.085,
-        (fromFocus?.measurement?.totalHeight || settings.fontSize * 1.25) * 0.92
+        h * 0.090,
+        (fromFocus?.measurement?.totalHeight || settings.fontSize * 1.25) * 0.98
     );
-    const incomingDistance = Math.max(h * 0.065, settings.fontSize * 0.95);
+    const incomingDistance = Math.max(h * 0.075, settings.fontSize * 1.05);
 
     if (fromFocus) {
+        const fade = linaClamp(1 - p * 1.05);
         drawEntry(fromFocus, {
             y: focusY - outgoingDistance * p,
             active: true,
-            alpha: linaClamp(1 - p),
-            scale: 1 - 0.055 * p,
-            blur: settings.fontSize * 0.085 * p
+            alpha: fade,
+            scale: 1 - 0.045 * p,
+            blur: settings.fontSize * 0.072 * p
         });
     }
 
     if (toFocus) {
+        const enter = linaClamp(p);
         drawEntry(toFocus, {
-            y: focusY + incomingDistance * (1 - p),
+            y: focusY + incomingDistance * (1 - enter),
             active: true,
-            alpha: linaClamp(p),
-            scale: 0.92 + 0.08 * p,
-            blur: settings.fontSize * 0.085 * (1 - p)
+            alpha: enter,
+            scale: 0.94 + 0.06 * enter,
+            blur: settings.fontSize * 0.065 * (1 - enter)
         });
     }
 
+    // Shared future lines retain their identity and move as a single stack.
+    // This is what prevents the visible lyric field from re-forming/jumping
+    // every time the focal line changes.
     const sharedIndices = [...new Set([...fromMap.keys(), ...toMap.keys()])]
         .filter(index => index !== motion.fromIndex && index !== motion.toIndex)
         .sort((a, b) => a - b);
@@ -731,19 +764,20 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
         const to = toMap.get(index);
         const entry = to || from;
         if (!entry) continue;
+
         const y = from && to
             ? from.centreY + (to.centreY - from.centreY) * p
-            : (to ? to.centreY + incomingDistance * (1 - p) : from.centreY - outgoingDistance * p);
+            : (to
+                ? to.centreY + incomingDistance * (1 - p)
+                : from.centreY - outgoingDistance * p);
+
         const relation = to ? to.relation : Math.max(1, from.relation);
-        const alpha = relationOpacity(relation);
-        const blur = settings.fontSize *
-            (0.034 + Math.max(0, relation - 1) * 0.014);
         drawEntry(entry, {
             y,
             active: false,
-            alpha,
+            alpha: relationOpacity(relation),
             scale: 0.985,
-            blur
+            blur: settings.fontSize * (0.034 + Math.max(0, relation - 1) * 0.014)
         });
     }
 }
