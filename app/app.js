@@ -1249,7 +1249,7 @@ const appleLyricsEngine = (() => {
                     : (Number.isFinite(lineStart) && Number.isFinite(lineDur) ? lineStart + lineDur : NaN);
                 const fragments = [];
 
-                const walk = (node, inheritedStart, inheritedEnd, inheritedRole = '', inheritedAgent = '') => {
+                const walk = (node, inheritedStart, inheritedEnd, inheritedRole = '', inheritedAgent = '', inheritedBackground = false) => {
                     if (node.nodeType === Node.TEXT_NODE) {
                         const text = node.nodeValue || '';
                         if (!text.trim()) return;
@@ -1258,7 +1258,8 @@ const appleLyricsEngine = (() => {
                             time: inheritedStart,
                             endTime: inheritedEnd,
                             role: inheritedRole,
-                            agent: inheritedAgent
+                            agent: inheritedAgent,
+                            background: inheritedBackground
                         });
                         return;
                     }
@@ -1267,19 +1268,35 @@ const appleLyricsEngine = (() => {
                     const ownStart = parseTTMLTime(attr(node, 'begin'));
                     const ownEnd = parseTTMLTime(attr(node, 'end'));
                     const ownDur = parseTTMLTime(attr(node, 'dur'));
+                    const ownRole = attr(node, 'role');
                     const start = Number.isFinite(ownStart) ? ownStart : inheritedStart;
                     const end = Number.isFinite(ownEnd)
                         ? ownEnd
                         : (Number.isFinite(ownDur) && Number.isFinite(start) ? start + ownDur : inheritedEnd);
-                    const role = attr(node, 'role') || inheritedRole;
-                    const agent = attr(node, 'agent') || inheritedAgent;
+                    const role = ownRole || inheritedRole;
+                    const background = inheritedBackground || role.toLowerCase() === 'x-bg';
 
-                    for (const child of node.childNodes) walk(child, start, end, role, agent);
+                    for (const child of node.childNodes) walk(child, start, end, role, attr(node, 'agent') || inheritedAgent, background);
                 };
 
                 for (const child of p.childNodes) walk(child, lineStart, resolvedEnd);
 
-                const timedFragments = fragments
+                const primaryFragments = fragments.filter(f => {
+                    const role = String(f.role || '').toLowerCase();
+                    return !f.background && role !== 'x-translation' && role !== 'x-roman';
+                });
+                const translationFragments = fragments.filter(f =>
+                    !f.background && String(f.role || '').toLowerCase() === 'x-translation'
+                );
+                const romanizedFragments = fragments.filter(f =>
+                    !f.background && String(f.role || '').toLowerCase() === 'x-roman'
+                );
+                const backgroundFragments = fragments.filter(f => {
+                    const role = String(f.role || '').toLowerCase();
+                    return f.background && role !== 'x-translation' && role !== 'x-roman';
+                });
+
+                const timedFragments = primaryFragments
                     .filter(f => f.text.trim() && Number.isFinite(f.time) && Number.isFinite(f.endTime) && f.endTime > f.time)
                     .flatMap(fragment => {
                         const tokens = fragment.text.trim().split(/\s+/).filter(Boolean);
@@ -1303,11 +1320,41 @@ const appleLyricsEngine = (() => {
                         });
                     });
 
+                const backgroundLines = backgroundFragments
+                    .filter(f => Number.isFinite(f.time) && Number.isFinite(f.endTime) && f.endTime > f.time)
+                    .flatMap(fragment => {
+                        const tokens = fragment.text.trim().split(/\s+/).filter(Boolean);
+                        if (!tokens.length) return [];
+                        if (tokens.length === 1) return [{ text: tokens[0], time: fragment.time, endTime: fragment.endTime, agent: fragment.agent, background: true }];
+                        const weights = tokens.map(token => Math.max(1, Array.from(token.replace(/[^\p{L}\p{N}]/gu, '')).length));
+                        const total = weights.reduce((sum, value) => sum + value, 0);
+                        let cursor = fragment.time;
+                        return tokens.map((text, index) => {
+                            const duration = (fragment.endTime - fragment.time) * (weights[index] / total);
+                            const item = {
+                                text,
+                                time: cursor,
+                                endTime: index === tokens.length - 1 ? fragment.endTime : cursor + duration,
+                                agent: fragment.agent,
+                                background: true
+                            };
+                            cursor = item.endTime;
+                            return item;
+                        });
+                    });
+
+                const primaryText = primaryFragments.map(f => f.text).join('').replace(/\s+/g, ' ').trim();
+                const translation = translationFragments.map(f => f.text).join('').replace(/\s+/g, ' ').trim();
+                const transliteration = romanizedFragments.map(f => f.text).join('').replace(/\s+/g, ' ').trim();
+
                 return {
                     time: lineStart,
                     endTime: Number.isFinite(resolvedEnd) ? resolvedEnd : undefined,
-                    text: p.textContent || '',
+                    text: primaryText,
                     words: timedFragments,
+                    translation,
+                    transliteration,
+                    backgroundLines,
                     role: attr(p, 'role'),
                     agent: attr(p, 'agent')
                 };
