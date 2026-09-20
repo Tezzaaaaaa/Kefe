@@ -29,7 +29,7 @@
           <input id="kefeMiniSeek" class="kefe-mini-seek" type="range" min="0" max="0" step="0.01" value="0" aria-label="Track position">
           <div class="kefe-mini-time"><span id="kefeMiniCurrent">0:00</span><span id="kefeMiniDuration">0:00</span></div>
           <div class="kefe-mini-actions">
-            <label class="kefe-mini-add">Add music<input id="kefeMiniFiles" type="file" accept="audio/*" multiple class="hidden"></label>
+            <label class="kefe-mini-add">Upload media<input id="kefeMiniFiles" type="file" accept="audio/*" multiple class="hidden"></label>
             <button type="button" id="kefeMiniShuffle">Shuffle preset</button>
           </div>
           <div class="kefe-mini-preset"><span>Visual</span><select id="kefeMiniPreset" aria-label="Butterchurn preset"></select></div>
