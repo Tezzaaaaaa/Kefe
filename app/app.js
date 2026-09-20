@@ -1745,7 +1745,8 @@ function tick() {
             const total = getMasterDuration();
             clock.textContent = `${fmt(t)} / ${fmt(total)}`;
         }
-        syncVisualiserMiniPlayer(t);\n        maintainBackgroundVideoSync(t);
+        syncVisualiserMiniPlayer(t);
+        maintainBackgroundVideoSync(t);
         updateSyncLive(t);
         try { render(ctx, canvas.width, canvas.height, state, media); }
         catch(e) { console.error("Preview render error:", e); }
