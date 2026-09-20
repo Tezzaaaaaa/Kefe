@@ -1,33 +1,33 @@
 
-/* KEFE Now Playing — compact Pacific/soul editorial player. */
-.kefe-mini-modal{position:fixed;inset:0;z-index:11000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(7,20,22,.76);backdrop-filter:blur(12px)}
+/* KEFE Now Playing — Samoan-inspired Pacific editorial template. Uses geometric tapa/siapo-inspired patterning without reproducing a specific traditional motif. */
+.kefe-mini-modal{position:fixed;inset:0;z-index:11000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(10,12,10,.82);backdrop-filter:blur(12px)}
 .kefe-mini-modal.hidden{display:none}
-.kefe-mini-shell{width:min(920px,94vw);max-height:92dvh;overflow:auto;background:#f1ead9;color:#12363a;border:1px solid rgba(18,54,58,.28);box-shadow:0 24px 70px rgba(0,0,0,.35)}
-.kefe-mini-topline{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid rgba(18,54,58,.18);font:800 10px/1 "Open Sans",sans-serif;letter-spacing:.18em}
-.kefe-mini-close{width:34px;height:34px;border:1px solid rgba(18,54,58,.28);background:transparent;color:inherit;font-size:22px;line-height:1;cursor:pointer}
+.kefe-mini-shell{--siapo:#f0e5cc;--ink:#171b18;--earth:#704536;--red:#a23d32;--leaf:#314c3b;width:min(920px,94vw);max-height:92dvh;overflow:auto;background:var(--siapo);color:var(--ink);border:2px solid var(--ink);box-shadow:0 24px 70px rgba(0,0,0,.4);background-image:linear-gradient(90deg,transparent 49%,rgba(112,69,54,.07) 50%,transparent 51%),linear-gradient(0deg,transparent 49%,rgba(112,69,54,.07) 50%,transparent 51%);background-size:28px 28px}
+.kefe-mini-topline{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:2px solid var(--ink);font:800 10px/1 "Open Sans",sans-serif;letter-spacing:.18em;position:relative}.kefe-mini-topline:after{content:"◆ ◇ ◆ ◇ ◆";position:absolute;left:50%;transform:translateX(-50%);bottom:-7px;padding:0 7px;background:var(--siapo);color:var(--red);font-size:9px;letter-spacing:.16em}
+.kefe-mini-close{width:34px;height:34px;border:1px solid var(--ink);background:var(--siapo);color:inherit;font-size:22px;line-height:1;cursor:pointer}
 .kefe-mini-grid{display:grid;grid-template-columns:minmax(260px,48%) 1fr;gap:28px;padding:28px}
-.kefe-mini-art{position:relative;aspect-ratio:1;background:#0f3738;overflow:hidden}
+.kefe-mini-art{position:relative;aspect-ratio:1;background:var(--leaf);overflow:hidden;border:2px solid var(--ink);background-image:linear-gradient(45deg,transparent 42%,rgba(240,229,204,.12) 43%,rgba(240,229,204,.12) 57%,transparent 58%),linear-gradient(-45deg,transparent 42%,rgba(240,229,204,.12) 43%,rgba(240,229,204,.12) 57%,transparent 58%);background-size:34px 34px}
 .kefe-mini-art canvas{width:100%;height:100%;display:block}
-.kefe-mini-art-mark{position:absolute;left:16px;bottom:12px;color:rgba(241,234,217,.8);font:800 11px/1 "Open Sans",sans-serif;letter-spacing:.18em;pointer-events:none}
+.kefe-mini-art-mark{position:absolute;left:16px;bottom:12px;color:var(--siapo);font:800 11px/1 "Open Sans",sans-serif;letter-spacing:.18em;pointer-events:none}
 .kefe-mini-main{display:flex;flex-direction:column;justify-content:center;min-width:0}
-.kefe-mini-eyebrow{font:800 10px/1 "Open Sans",sans-serif;letter-spacing:.18em;color:#a65342;margin-bottom:10px}
+.kefe-mini-eyebrow{font:800 10px/1 "Open Sans",sans-serif;letter-spacing:.18em;color:var(--red);margin-bottom:10px}
 .kefe-mini-title{font:800 clamp(28px,4vw,52px)/.95 "Open Sans",sans-serif;letter-spacing:-.055em;overflow-wrap:anywhere}
-.kefe-mini-artist{margin-top:10px;font:500 15px/1.3 "Open Sans",sans-serif;color:rgba(18,54,58,.68)}
+.kefe-mini-artist{margin-top:10px;font:500 15px/1.3 "Open Sans",sans-serif;color:rgba(23,27,24,.68)}
 .kefe-mini-controls{display:flex;align-items:center;gap:10px;margin-top:30px}
-.kefe-mini-controls button{width:42px;height:42px;border:1px solid rgba(18,54,58,.25);background:transparent;color:inherit;font-size:22px;cursor:pointer}
-.kefe-mini-controls .kefe-mini-play{width:52px;height:52px;background:#12363a;color:#f1ead9;border-color:#12363a}
-.kefe-mini-seek{width:100%;margin-top:24px;accent-color:#a65342}
+.kefe-mini-controls button{width:42px;height:42px;border:1px solid rgba(23,27,24,.32);background:transparent;color:inherit;font-size:22px;cursor:pointer}
+.kefe-mini-controls .kefe-mini-play{width:52px;height:52px;background:var(--red);color:var(--siapo);border-color:var(--red)}
+.kefe-mini-seek{width:100%;margin-top:24px;accent-color:var(--red)}
 .kefe-mini-time{display:flex;justify-content:space-between;margin-top:5px;font:700 10px/1 "Open Sans",sans-serif;letter-spacing:.06em}
 .kefe-mini-actions{display:flex;gap:8px;align-items:center;margin-top:22px;flex-wrap:wrap}
 .kefe-mini-add,.kefe-mini-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 12px;border:1px solid rgba(18,54,58,.25);background:transparent;color:inherit;font:800 10px/1 "Open Sans",sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
-.kefe-mini-preset{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid rgba(18,54,58,.16);font:800 9px/1 "Open Sans",sans-serif;letter-spacing:.12em;text-transform:uppercase}
-.kefe-mini-preset select{min-width:0;border:1px solid rgba(18,54,58,.22);background:#f1ead9;color:#12363a;padding:8px;font:600 12px/1 "Open Sans",sans-serif}
-.kefe-mini-queue{border-top:1px solid rgba(18,54,58,.18);padding:18px 28px 24px}
+.kefe-mini-preset{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid rgba(23,27,24,.18);font:800 9px/1 "Open Sans",sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.kefe-mini-preset select{min-width:0;border:1px solid rgba(23,27,24,.28);background:var(--siapo);color:var(--ink);padding:8px;font:600 12px/1 "Open Sans",sans-serif}
+.kefe-mini-queue{border-top:2px solid var(--ink);padding:18px 28px 24px;position:relative}.kefe-mini-queue:before{content:"";display:block;height:7px;margin:-18px 0 16px;background:repeating-linear-gradient(90deg,var(--red) 0 9px,var(--siapo) 9px 18px,var(--leaf) 18px 27px,var(--siapo) 27px 36px)}
 .kefe-mini-queue-head{display:flex;justify-content:space-between;font:800 9px/1 "Open Sans",sans-serif;letter-spacing:.16em}
 .kefe-mini-queue ol{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:2px}
-.kefe-mini-queue li button{width:100%;display:grid;grid-template-columns:1fr auto;gap:12px;text-align:left;padding:9px 0;border:0;border-bottom:1px solid rgba(18,54,58,.1);background:transparent;color:inherit;cursor:pointer}
-.kefe-mini-queue li.active button{color:#a65342}
-.kefe-mini-queue small{color:rgba(18,54,58,.58)}
+.kefe-mini-queue li button{width:100%;display:grid;grid-template-columns:1fr auto;gap:12px;text-align:left;padding:9px 0;border:0;border-bottom:1px solid rgba(23,27,24,.12);background:transparent;color:inherit;cursor:pointer}
+.kefe-mini-queue li.active button{color:var(--red)}
+.kefe-mini-queue small{color:rgba(23,27,24,.58)}
 .wizard-mini-player-launch{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px;border:1px solid var(--line);background:var(--surface-2)}
 .wizard-mini-player-launch>div{display:grid;gap:5px}
 .wizard-mini-player-launch span{font-size:12px;color:var(--muted)}
