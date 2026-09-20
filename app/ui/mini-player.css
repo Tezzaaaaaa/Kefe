@@ -59,7 +59,9 @@
   transform:translateY(-54.5%);box-shadow:0 5cqw 8cqw -1cqw rgba(0,0,0,.34);will-change:transform;
   transition:transform .85s var(--mp-ease),border-radius .85s var(--mp-ease),box-shadow .5s ease}
 .kefe-mini-card.is-expanded .kefe-mini-art{transform:none;border-radius:0!important;box-shadow:none;transition-delay:.18s,.18s,0s}
-.kefe-mini-spin{position:absolute;inset:0;will-change:transform}
+.kefe-mini-spin{position:absolute;inset:0;will-change:transform;animation:kefeMiniDiscSpin 8.571s linear infinite;animation-play-state:paused}
+.kefe-mini-shell.is-playing .kefe-mini-card:not(.is-expanded) .kefe-mini-spin{animation-play-state:running}
+@keyframes kefeMiniDiscSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .kefe-mini-art canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .kefe-mini-hub{position:absolute;left:50%;top:50%;width:27%;aspect-ratio:1;box-sizing:border-box;border:.55cqw solid rgba(255,255,255,.97);border-radius:50%!important;
   background:radial-gradient(circle at 50% 40%,#a4a3b1,#93929f 70%);transform:translate(-50%,-50%);
