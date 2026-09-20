@@ -1160,6 +1160,82 @@ function renderTitleCard(ctx, w, h, time, appState) {
     return renderTitleCardMinimal(ctx, w, h, phase, info);
 }
 
+function renderPersistentNowPlaying(ctx, w, h, time, appState) {
+    if (appState.projectType !== 'visualiser' || !appState.style.titleCardEnabled) return;
+    const introDuration = linaClamp(Number(appState.style.titleCardDuration) || 3, 1, 15);
+    if (time < introDuration) {
+        const transition = 0.55;
+        const start = Math.max(0, introDuration - transition);
+        if (time < start) return;
+        const p = linaSmoother(linaClamp((time - start) / transition));
+        drawCompactNowPlaying(ctx, w, h, appState, p);
+        return;
+    }
+    drawCompactNowPlaying(ctx, w, h, appState, 1);
+}
+
+function drawCompactNowPlaying(ctx, w, h, appState, progress = 1) {
+    const metadata = resolveAudioLabels(appState.audio);
+    const title = metadata.title || 'UNTITLED';
+    const artist = metadata.artist || '';
+    const album = metadata.album || '';
+    const artwork = appState.audio?.hasArtwork && albumArtworkImage ? albumArtworkImage : null;
+    const unit = Math.min(w, h);
+    const margin = Math.max(18, unit * 0.035);
+    const artSize = linaClamp(unit * 0.095, 52, 86);
+    const pad = Math.max(10, artSize * 0.18);
+    const width = Math.min(w - margin * 2, Math.max(250, Math.min(unit * 0.78, 560)));
+    const height = artSize + pad * 2;
+    const x = (w - width) / 2;
+    const finalY = h - margin - height;
+    const startY = h * 0.50 - height / 2;
+    const p = linaClamp(progress);
+    const y = startY + (finalY - startY) * p;
+
+    ctx.save();
+    ctx.globalAlpha = 0.98;
+    ctx.translate(x + width / 2, y + height / 2);
+    const scale = 0.86 + 0.14 * p;
+    ctx.scale(scale, scale);
+    ctx.translate(-(x + width / 2), -(y + height / 2));
+
+    ctx.fillStyle = 'rgba(10,10,12,0.82)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.13)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width, height, Math.max(12, artSize * 0.18));
+    ctx.fill();
+    ctx.stroke();
+
+    const artX = x + pad;
+    const artY = y + pad;
+    if (artwork) drawTitleArtwork(ctx, artwork, artX + artSize / 2, artY + artSize / 2, artSize, Math.max(8, artSize * 0.10));
+
+    const textX = artwork ? artX + artSize + pad : artX;
+    const maxText = width - (textX - x) - pad;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur = 7;
+
+    let titleSize = Math.max(15, Math.min(24, artSize * 0.27));
+    ctx.font = `700 ${titleSize}px "Open Sans",Arial,sans-serif`;
+    let shownTitle = title;
+    while (shownTitle.length > 1 && ctx.measureText(shownTitle).width > maxText) shownTitle = shownTitle.slice(0, -2).trim() + '…';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(shownTitle, textX, y + height * 0.36);
+
+    const secondary = [artist, album].filter(Boolean).join(' • ');
+    if (secondary) {
+        ctx.font = `500 ${Math.max(12, titleSize * 0.66)}px "Open Sans",Arial,sans-serif`;
+        let shownSecondary = secondary;
+        while (shownSecondary.length > 1 && ctx.measureText(shownSecondary).width > maxText) shownSecondary = shownSecondary.slice(0, -2).trim() + '…';
+        ctx.fillStyle = 'rgba(255,255,255,0.68)';
+        ctx.fillText(shownSecondary, textX, y + height * 0.67);
+    }
+    ctx.restore();
+}
+
 function drawTitleArtwork(ctx, artwork, cx, cy, size, radius) {
     if (!artwork) return false;
     ctx.save();
@@ -1468,6 +1544,7 @@ function render(ctx, w, h, appState, mediaCache) {
         // The captioned pathway has no title-card step. A title card left
         // over from a previous lyric session must not bleed into a captioned
         // video, so we explicitly skip it in this pathway.
+        const isVisualiser = appState.projectType === 'visualiser';
         const tcActive = appState.projectType === 'captioned'
             ? false
             : renderTitleCard(ctx, w, h, cappedTime, appState);
@@ -1481,10 +1558,11 @@ function render(ctx, w, h, appState, mediaCache) {
                     else renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime);
                 }
                 catch(e) { console.error(`${style.effect} render error:`, e); }
-            } else if (appState.projectType === 'visualiser' && window.kefeVisualiser) {
+            } else if (isVisualiser && window.kefeVisualiser) {
                 window.kefeVisualiser.draw(ctx, w, h, cappedTime, appState);
             }
         }
+        if (isVisualiser && !tcActive) renderPersistentNowPlaying(ctx, w, h, cappedTime, appState);
     } finally { ctx.restore(); }
 }
 
