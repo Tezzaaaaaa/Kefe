@@ -5,7 +5,7 @@
 
   const player = document.createElement('div');
   player.id = 'kefeMiniPlayerModal';
-  player.className = 'kefe-mini-modal hidden';
+  player.className = 'kefe-mini-modal is-hidden';
   player.setAttribute('role', 'dialog');
   player.setAttribute('aria-modal', 'true');
   player.setAttribute('aria-label', 'KEFE Now Playing');
@@ -29,7 +29,7 @@
           <input id="kefeMiniSeek" class="kefe-mini-seek" type="range" min="0" max="0" step="0.01" value="0" aria-label="Track position">
           <div class="kefe-mini-time"><span id="kefeMiniCurrent">0:00</span><span id="kefeMiniDuration">0:00</span></div>
           <div class="kefe-mini-actions">
-            <label class="kefe-mini-add">Upload media<input id="kefeMiniFiles" type="file" accept="audio/*" multiple class="hidden"></label>
+            <button type="button" id="kefeMiniUpload" class="kefe-mini-add">Upload media</button><input id="kefeMiniFiles" type="file" accept="audio/*" multiple hidden>
             <button type="button" id="kefeMiniShuffle">Shuffle preset</button>
           </div>
           <div class="kefe-mini-preset"><span>Visual</span><select id="kefeMiniPreset" aria-label="Butterchurn preset"></select></div>
@@ -89,7 +89,7 @@
     window.kefeButterchurn?.prepare?.().catch?.(() => {});
   }
   function draw() {
-    if (!player.classList.contains('hidden')) {
+    if (!player.classList.contains('is-hidden')) {
       try {
         state.style.visualiserStyle = 'butterchurn';
         window.kefeButterchurn?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || performance.now() / 1000, state);
@@ -232,6 +232,7 @@
   $('kefeMiniPlay').addEventListener('click', toggle);
   $('kefeMiniNext').addEventListener('click', next);
   $('kefeMiniPrev').addEventListener('click', prev);
+  $('kefeMiniUpload').addEventListener('click', () => $('kefeMiniFiles').click());
   $('kefeMiniFiles').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
   $('kefeMiniSeek').addEventListener('input', e => { audio.currentTime = Number(e.target.value) || 0; });
   $('kefeMiniShuffle').addEventListener('click', () => {
@@ -244,7 +245,7 @@
   $('kefeMiniLyricsClose').addEventListener('click', toggleLyrics);
 
   function open() {
-    player.classList.remove('hidden');
+    player.classList.remove('is-hidden');
     loadPresets();
     const shell = player.querySelector('.kefe-mini-shell');
     if (shell && !shell.style.left) {
@@ -256,7 +257,7 @@
     if (!raf) raf = requestAnimationFrame(draw);
   }
   function close() {
-    player.classList.add('hidden');
+    player.classList.add('is-hidden');
     audio.pause();
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
