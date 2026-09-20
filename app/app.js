@@ -327,14 +327,13 @@ function appleBezierEase(x, p1x, p1y, p2x, p2y) {
 function appleEmphasisEase(x) {
     const t = linaClamp(x);
     return t < 0.5
-        ? appleBezierEase(t * 2, 0.2, 0.4, 0.58, 1.0) * 0.5
-        : 1 - appleBezierEase((t - 0.5) * 2, 0.3, 0.0, 0.58, 1.0) * 0.5;
+        ? appleBezierEase(t * 2, 0.2, 0.4, 0.58, 1.0)
+        : 1 - appleBezierEase((t - 0.5) * 2, 0.3, 0.0, 0.58, 1.0);
 }
 
 function drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, overallAlpha = 1, line = null) {
     const rawDuration = Math.max(0.001, Number(word.endTime) - Number(word.time));
     const durationMs = Math.max(1000, rawDuration * 1000);
-    const letters = Math.max(1, Array.from(String(word.text || "")).length);
     let amount = durationMs / 2000;
     amount = amount > 1 ? Math.sqrt(amount) : amount ** 3;
     let blur = durationMs / 3000;
@@ -424,10 +423,19 @@ function drawAppleLineBlock(ctx, w, centreY, line, time, settings, options = {})
                 ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = settings.backgroundColor; ctx.shadowBlur = 0; ctx.fillText(word.text, x, y); ctx.restore();
             } else if (time < word.time) {
                 ctx.save(); ctx.globalAlpha = settings.inactiveOpacity * alpha; ctx.fillStyle = settings.inactiveColor; ctx.shadowBlur = 0; ctx.fillText(word.text, x, y); ctx.restore();
-            } else if (time >= word.endTime) {
-                ctx.save(); ctx.globalAlpha = 0.96 * alpha; ctx.fillStyle = settings.activeColor; ctx.shadowColor = settings.activeColor; ctx.shadowBlur = fontSize * 0.014; ctx.fillText(word.text, x, y); ctx.restore();
             } else {
-                drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, alpha, line);
+                const rawWordDuration = Math.max(0.001, Number(word.endTime) - Number(word.time));
+                const emphasisDuration = Math.max(1, rawWordDuration * 1000);
+                const finalWord = Array.isArray(line.words) && line.words.length
+                    ? word === line.words[line.words.length - 1] || Number(word.endTime) >= Number(line.words[line.words.length - 1]?.endTime)
+                    : false;
+                const animationDuration = emphasisDuration * (finalWord ? 1.2 : 1);
+                const animationEnd = Number(word.time) + Math.max(1, animationDuration) / 1000;
+                if (time < animationEnd) {
+                    drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, alpha, line);
+                } else {
+                    ctx.save(); ctx.globalAlpha = 0.96 * alpha; ctx.fillStyle = settings.activeColor; ctx.shadowColor = settings.activeColor; ctx.shadowBlur = fontSize * 0.014; ctx.fillText(word.text, x, y); ctx.restore();
+                }
             }
             x += word.width;
             if (i < row.words.length - 1) x += spaceWidth;
@@ -602,7 +610,7 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
     const reducedMotion = typeof window.matchMedia === 'function' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const p = transitioning
-        ? (reducedMotion ? 1 : linaClamp(motion.progress))
+        ? (reducedMotion ? 1 : motion.progress)
         : 1;
     const relationOpacity = relation => {
         if (relation === 0) return 1;
@@ -698,7 +706,7 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
         drawEntry(fromFocus, {
             y: focusY - outgoingDistance * p,
             active: true,
-            alpha: 1 - p,
+            alpha: linaClamp(1 - p),
             scale: 1 - 0.055 * p,
             blur: settings.fontSize * 0.085 * p
         });
@@ -708,7 +716,7 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
         drawEntry(toFocus, {
             y: focusY + incomingDistance * (1 - p),
             active: true,
-            alpha: p,
+            alpha: linaClamp(p),
             scale: 0.92 + 0.08 * p,
             blur: settings.fontSize * 0.085 * (1 - p)
         });
