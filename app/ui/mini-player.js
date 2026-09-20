@@ -324,4 +324,7 @@
   };
   window.dispatchEvent(new CustomEvent('kefe:miniplayer-ready'));
   loadPresets();
+
+  const trigger = document.getElementById('miniPlayerBtn');
+  if (trigger) trigger.addEventListener('click', () => open());
 })();
