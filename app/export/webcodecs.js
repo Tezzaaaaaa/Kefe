@@ -247,14 +247,20 @@ export async function exportVideoWebCodecs({
         backgroundReader = await prepareBackgroundVideoReader(Mediabunny, media, state);
         if (backgroundReader) {
             const sourceVideo = document.createElement('canvas');
-            const sourceVideoProps = { readyState: 4, seeking: false, paused: true, duration: Number(media.video?.duration) || 0 };
+            const sourceVideoDuration = Number(media.video?.duration) || 0;
+            const sourceVideoProps = { readyState: 4, seeking: false, paused: true, duration: sourceVideoDuration };
             Object.defineProperties(sourceVideo, {
                 readyState: { value: sourceVideoProps.readyState },
                 seeking: { value: sourceVideoProps.seeking },
                 paused: { value: sourceVideoProps.paused },
                 duration: { value: sourceVideoProps.duration }
             });
-            exportMedia = { ...media, video: sourceVideo };
+            exportMedia = {
+                ...media,
+                video: sourceVideo,
+                __kefeBackgroundCanvas: sourceVideo,
+                __kefeBackgroundContext: sourceVideo.getContext('2d', { alpha: false }),
+            };
         }
 
         audio = await prepareAudioConversion({
@@ -279,10 +285,16 @@ export async function exportVideoWebCodecs({
                 if (backgroundReader && exportMedia?.video) {
                     const frameCanvas = await backgroundReader.frameAt(time);
                     if (frameCanvas) {
-                        exportMedia.video.width = frameCanvas.width;
-                        exportMedia.video.height = frameCanvas.height;
-                        exportMedia.video.getContext('2d').clearRect(0, 0, frameCanvas.width, frameCanvas.height);
-                        exportMedia.video.getContext('2d').drawImage(frameCanvas, 0, 0);
+                        const sourceVideo = exportMedia.__kefeBackgroundCanvas;
+                        const sourceContext = exportMedia.__kefeBackgroundContext;
+                        if (sourceVideo && sourceContext) {
+                            if (sourceVideo.width !== frameCanvas.width || sourceVideo.height !== frameCanvas.height) {
+                                sourceVideo.width = frameCanvas.width;
+                                sourceVideo.height = frameCanvas.height;
+                            }
+                            sourceContext.clearRect(0, 0, sourceVideo.width, sourceVideo.height);
+                            sourceContext.drawImage(frameCanvas, 0, 0);
+                        }
                     }
                 }
                 await renderFrame(ctx, config.width, config.height, time, exportMedia);
