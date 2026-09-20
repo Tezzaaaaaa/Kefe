@@ -83,7 +83,7 @@ async function startExport() {
     window.kefeExportAbort = new AbortController();
     const previewTime = Number(window.state?.playback?.currentTime) || 0;
     showOverlay();
-    setExportUI(0, 'Preparing FFmpeg export…');
+    setExportUI(0, 'Preparing accelerated export…');
     if (cancelButton) cancelButton.textContent = 'Cancel';
     try {
         const result = await runExport();
@@ -94,7 +94,7 @@ async function startExport() {
         hideOverlay();
     } catch (error) {
         if (error?.name === 'AbortError') { setExportUI(0, 'Export cancelled'); hideOverlay(); }
-        else { console.error('[KEFE] FFmpeg export failed:', error); setExportUI(0, `Export failed: ${error?.message || error}`); showOverlay(); }
+        else { console.error('[KEFE] Export failed:', error); setExportUI(0, `Export failed: ${error?.message || error}`); showOverlay(); }
     } finally {
         try {
             const master = resolveMasterInfo(window.state, window.kefeMedia || {});
