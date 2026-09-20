@@ -1005,8 +1005,6 @@ const appleLyricsEngine = (() => {
     let coverURL = null;
     let lyrics = [];
     let destroyed = false;
-    let spring = { current: 0, target: 0, velocity: 0 };
-    let lastSpringTime = 0;
 
     // Apple effect owns one offscreen WebGL renderer. It is deliberately kept
     // separate from KEFE's main 2D export canvas so the existing renderer and
@@ -1257,11 +1255,19 @@ const appleLyricsEngine = (() => {
             const translated = parsed.filter(line => String(line.role || '').toLowerCase() === 'x-translation');
             const romanized = parsed.filter(line => String(line.role || '').toLowerCase() === 'x-roman');
 
+            const background = parsed.filter(line => String(line.role || '').toLowerCase() === 'x-bg');
             return primary.map((line, index) => ({
                 ...line,
                 translation: translated[index]?.text?.trim() || '',
                 transliteration: romanized[index]?.text?.trim() || '',
-                background: line.role === 'x-bg'
+                backgroundLines: background.filter(bg => {
+                    const bgStart = Number(bg.time);
+                    const lineStart = Number(line.time);
+                    const lineEnd = Number(line.endTime);
+                    return Number.isFinite(bgStart) && Number.isFinite(lineStart)
+                        && bgStart >= lineStart
+                        && (!Number.isFinite(lineEnd) || bgStart < lineEnd);
+                })
             })).map(normaliseLine).filter(Boolean);
         } catch (error) {
             console.warn('KEFE Apple lyrics: TTML parse failed', error);
@@ -1330,24 +1336,6 @@ const appleLyricsEngine = (() => {
         updateWebGLTexture();
     }
 
-    function resetSpring() {
-        spring.current = 0;
-        spring.target = 0;
-        spring.velocity = 0;
-        lastSpringTime = 0;
-    }
-
-    function updateSpring(target, now) {
-        spring.target = Number.isFinite(target) ? target : 0;
-        const dt = lastSpringTime ? Math.min((now - lastSpringTime) / 1000, 0.032) : 0;
-        lastSpringTime = now;
-        if (dt <= 0) return spring.current;
-        const force = -120 * (spring.current - spring.target);
-        spring.velocity += (force - 16 * spring.velocity) * dt;
-        spring.current += spring.velocity * dt;
-        return spring.current;
-    }
-
     async function loadTrack(trackData = {}) {
         const data = trackData || {};
         destroyed = false;
@@ -1357,10 +1345,8 @@ const appleLyricsEngine = (() => {
         if (data.title != null) state.audio.metadata.title = String(data.title);
         if (data.artist != null) state.audio.metadata.artist = String(data.artist);
         if (data.coverUrl !== undefined) await setCover(data.coverUrl);
-        resetSpring();
         state.playback.currentTime = 0;
         setMasterTime(0);
-        lastSpringTime = performance.now();
         redrawCurrentPreviewFrame();
         return { ...data, lyrics };
     }
@@ -1428,7 +1414,6 @@ const appleLyricsEngine = (() => {
         if (coverURL) { try { URL.revokeObjectURL(coverURL); } catch (e) {} coverURL = null; }
         coverImage = null;
         albumArtworkImage = null;
-        resetSpring();
         if (gl) {
             if (texture) gl.deleteTexture(texture);
             if (positionBuffer) gl.deleteBuffer(positionBuffer);
@@ -1448,7 +1433,6 @@ const appleLyricsEngine = (() => {
         loadTrack,
         teardown,
         renderBackground,
-        updateSpring,
         get lyrics() { return lyrics; }
     };
 })();
