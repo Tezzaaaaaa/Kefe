@@ -31,11 +31,11 @@ function setExportUI(percent, message) { const status = $('exportStatus'); const
 function showOverlay() { $('exportOverlay')?.classList.remove('hidden'); }
 function hideOverlay(delay = 1200) { setTimeout(() => $('exportOverlay')?.classList.add('hidden'), delay); }
 
-async function seekAndRender(ctx, width, height, time, signal) {
+async function seekAndRender(ctx, width, height, time, signal, mediaOverride = null) {
     if (signal?.aborted) throw new DOMException('Export cancelled', 'AbortError');
     const state = window.state;
     const renderExportFrame = window.kefeRenderFrame;
-    const video = window.kefeMedia?.video;
+    const video = mediaOverride?.video || window.kefeMedia?.video;
     if (typeof renderExportFrame !== 'function') throw new Error('KEFE export renderer is not connected');
     if (video && Number.isFinite(video.duration) && video.duration > 0) {
         const target = ((time % video.duration) + video.duration) % video.duration;
@@ -55,7 +55,7 @@ async function seekAndRender(ctx, width, height, time, signal) {
     if (signal?.aborted) throw new DOMException('Export cancelled', 'AbortError');
     state.playback.currentTime = time;
     const cappedTime = (state.playback.trimTo != null && time > state.playback.trimTo) ? state.playback.trimTo : time;
-    renderExportFrame(ctx, width, height, cappedTime);
+    renderExportFrame(ctx, width, height, cappedTime, mediaOverride);
 }
 
 async function runExport() {
@@ -73,7 +73,7 @@ async function runExport() {
     return await exportVideo({
         state, media, config, signal: window.kefeExportAbort?.signal, buildFilename,
         onProgress: ({ percent, message }) => setExportUI(percent, message),
-        renderFrame: async (ctx, width, height, time) => { await seekAndRender(ctx, width, height, time, window.kefeExportAbort?.signal); }
+        renderFrame: async (ctx, width, height, time, mediaOverride) => { await seekAndRender(ctx, width, height, time, window.kefeExportAbort?.signal, mediaOverride); }
     });
 }
 
