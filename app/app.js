@@ -532,10 +532,10 @@ function appleSpringProgress(value) {
     const t = linaClamp(value);
     if (t <= 0 || t >= 1) return t;
 
-    // Closed-form, seek-safe critically damped motion. This replaces the
-    // previous stacked easing layers rather than adding another animation
-    // system, so preview and export receive the exact same value for a frame.
-    const response = 7.4;
+    // Closed-form, seek-safe critically damped motion. The response is tuned so
+    // the hand-off settles essentially at rest at the lyric timestamp, avoiding
+    // the tiny velocity discontinuity that can otherwise make the next frame pop.
+    const response = 11.5;
     const raw = 1 - (1 + response * t) * Math.exp(-response * t);
     const end = 1 - (1 + response) * Math.exp(-response);
     return linaClamp(raw / end);
