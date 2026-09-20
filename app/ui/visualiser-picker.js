@@ -71,7 +71,7 @@
     { key: 'ra',                label: 'Ra' },
     { key: 'tuffpuff',          label: 'TuffPuff' },
     { key: 'ridgeline',         label: 'Ridgeline' },
-    { key: 'butterchurn',       label: 'Butterchurn' }
+    { key: 'butterchurn',       label: 'Spectrum' }
   ];
 
   function current(){
@@ -102,7 +102,7 @@
     var api = window.kefeButterchurn;
     var presets = api && api.isLoaded() ? api.presetNames() : [];
     if (!presets.length) {
-      bc.innerHTML = '<div class="kefe-vis-hint">' + ((api && api.error()) || 'Butterchurn presets are not available.') + '</div>';
+      bc.innerHTML = '<div class="kefe-vis-hint">' + ((api && api.error()) || 'Spectrum presets are not available.') + '</div>';
       box.appendChild(bc);
       return;
     }
@@ -142,7 +142,7 @@
       'Rovastar - Oozing Resistance',
       'Zylot - Star Ornament',
       'Unchained - Unified Drag 2'
-    ].filter(function(name){ return Object.prototype.hasOwnProperty.call(presetMap, name); });
+    ].filter(function(name){ return presets.indexOf(name) !== -1; });
 
     if (TOP20.length) {
       var picksLabel = document.createElement('div');
@@ -407,7 +407,7 @@
       box.appendChild(ridge);
     }
 
-    // ---- Butterchurn: preset browser, only when Butterchurn is selected ----
+    // ---- Spectrum: preset browser, only when Spectrum is selected ----
     if (cur === 'butterchurn') buildButterchurnControls(box);
 
     // ---- Ra controls: only show when Ra is the selected visualiser ----
