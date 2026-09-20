@@ -531,6 +531,7 @@ function appleSafeFontSize(ctx, lines, requested, w) {
 
 function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
+    appleLyricsEngine.renderBackground(ctx, w, h, time);
     const wash=ctx.createLinearGradient(0,0,0,h); wash.addColorStop(0,'rgba(18,18,20,0.20)'); wash.addColorStop(0.55,'rgba(8,8,10,0.08)'); wash.addColorStop(1,'rgba(0,0,0,0.34)');
     ctx.save(); ctx.fillStyle=wash; ctx.fillRect(0,0,w,h); ctx.restore();
     drawAppleMusicHeader(ctx,w,h);
@@ -1003,16 +1004,161 @@ const appleLyricsEngine = (() => {
     let coverImage = null;
     let coverURL = null;
     let lyrics = [];
-    let rafId = null;
     let destroyed = false;
-    let lastTime = -1;
-    let lastFrame = 0;
     let spring = { current: 0, target: 0, velocity: 0 };
-    const listeners = [];
+    let lastSpringTime = 0;
+
+    // Apple effect owns one offscreen WebGL renderer. It is deliberately kept
+    // separate from KEFE's main 2D export canvas so the existing renderer and
+    // every other effect remain unchanged.
+    const webglCanvas = document.createElement('canvas');
+    const gl = webglCanvas.getContext('webgl', { alpha: false, antialias: false });
+    let program = null;
+    let vertexShader = null;
+    let fragmentShader = null;
+    let positionBuffer = null;
+    let texture = null;
+    let positionLocation = -1;
+    let textureLocation = null;
+    let timeLocation = null;
+    let webglReady = false;
+
+    const vertexSource = `
+        attribute vec2 a_position;
+        varying vec2 v_uv;
+        void main() {
+            v_uv = (a_position + 1.0) * 0.5;
+            v_uv.y = 1.0 - v_uv.y;
+            gl_Position = vec4(a_position, 0.0, 1.0);
+        }
+    `;
+
+    const fragmentSource = `
+        precision mediump float;
+        uniform sampler2D u_texture;
+        uniform float u_time;
+        varying vec2 v_uv;
+
+        vec2 twist(vec2 uv, vec2 center, float radius, float angle) {
+            vec2 d = uv - center;
+            float dist = length(d);
+            if (dist < radius) {
+                float percent = (radius - dist) / radius;
+                float theta = percent * percent * angle;
+                float s = sin(theta);
+                float c = cos(theta);
+                d = vec2(d.x * c - d.y * s, d.x * s + d.y * c);
+            }
+            return center + d;
+        }
+
+        void main() {
+            vec2 center = vec2(
+                0.5 + 0.15 * sin(u_time * 0.4),
+                0.5 + 0.15 * cos(u_time * 0.3)
+            );
+            vec2 uv = twist(v_uv, center, 0.7, 2.0 * sin(u_time * 0.5));
+            vec4 color = texture2D(u_texture, uv);
+            gl_FragColor = vec4(color.rgb * 1.2, 1.0);
+        }
+    `;
+
+    function compileShader(type, source) {
+        if (!gl) return null;
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            console.warn('KEFE Apple lyrics WebGL shader error:', gl.getShaderInfoLog(shader));
+            gl.deleteShader(shader);
+            return null;
+        }
+        return shader;
+    }
+
+    function initWebGL() {
+        if (!gl || webglReady) return webglReady;
+        vertexShader = compileShader(gl.VERTEX_SHADER, vertexSource);
+        fragmentShader = compileShader(gl.FRAGMENT_SHADER, fragmentSource);
+        if (!vertexShader || !fragmentShader) return false;
+
+        program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            console.warn('KEFE Apple lyrics WebGL link error:', gl.getProgramInfoLog(program));
+            gl.deleteProgram(program);
+            program = null;
+            return false;
+        }
+
+        positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            -1,-1, 1,-1, -1,1,
+            -1,1, 1,-1, 1,1
+        ]), gl.STATIC_DRAW);
+
+        positionLocation = gl.getAttribLocation(program, 'a_position');
+        textureLocation = gl.getUniformLocation(program, 'u_texture');
+        timeLocation = gl.getUniformLocation(program, 'u_time');
+        texture = gl.createTexture();
+
+        gl.useProgram(program);
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.uniform1i(textureLocation, 0);
+
+        webglReady = true;
+        return true;
+    }
+
+    function updateWebGLTexture() {
+        if (!initWebGL() || !coverImage || !coverImage.complete || !coverImage.naturalWidth) return;
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        try {
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, coverImage);
+        } catch (error) {
+            console.warn('KEFE Apple lyrics WebGL texture upload failed:', error);
+        }
+    }
+
+    function renderBackground(ctx2d, width, height, time) {
+        if (!webglReady || !texture || !coverImage) return false;
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        const targetW = Math.max(1, Math.floor(width * dpr));
+        const targetH = Math.max(1, Math.floor(height * dpr));
+        if (webglCanvas.width !== targetW || webglCanvas.height !== targetH) {
+            webglCanvas.width = targetW;
+            webglCanvas.height = targetH;
+        }
+        gl.viewport(0, 0, targetW, targetH);
+        gl.useProgram(program);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1f(timeLocation, time);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        ctx2d.save();
+        ctx2d.globalAlpha = 0.9;
+        ctx2d.filter = 'blur(50px) brightness(0.7) contrast(1.2)';
+        ctx2d.drawImage(webglCanvas, -width * 0.10, -height * 0.10, width * 1.20, height * 1.20);
+        ctx2d.restore();
+        return true;
+    }
 
     function on(target, type, handler, options) {
         target?.addEventListener(type, handler, options);
-        if (target) listeners.push(() => target.removeEventListener(type, handler, options));
+        return () => target?.removeEventListener(type, handler, options);
     }
 
     function parseTTML(source) {
@@ -1021,8 +1167,7 @@ const appleLyricsEngine = (() => {
         try {
             const xml = new DOMParser().parseFromString(source, 'application/xml');
             if (xml.querySelector('parsererror')) throw new Error('Invalid TTML');
-            const nodes = Array.from(xml.querySelectorAll('p'));
-            return nodes.map(p => {
+            return Array.from(xml.querySelectorAll('p')).map(p => {
                 const begin = parseTTMLTime(p.getAttribute('begin'));
                 const end = parseTTMLTime(p.getAttribute('end'));
                 const spans = Array.from(p.querySelectorAll('span'));
@@ -1047,8 +1192,8 @@ const appleLyricsEngine = (() => {
     function parseTTMLTime(value) {
         if (value == null || value === '') return NaN;
         const raw = String(value).trim();
-        if (/^\\d+(?:\\.\\d+)?s$/.test(raw)) return Number.parseFloat(raw);
-        if (/^\\d+(?:\\.\\d+)?ms$/.test(raw)) return Number.parseFloat(raw) / 1000;
+        if (/^\d+(?:\.\d+)?s$/.test(raw)) return Number.parseFloat(raw);
+        if (/^\d+(?:\.\d+)?ms$/.test(raw)) return Number.parseFloat(raw) / 1000;
         const parts = raw.split(':').map(Number);
         if (parts.some(Number.isNaN)) return NaN;
         if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
@@ -1071,11 +1216,11 @@ const appleLyricsEngine = (() => {
         return { ...line, text, time, endTime: Number.isFinite(endTime) ? endTime : undefined, words };
     }
 
-    function setCover(source) {
+    async function setCover(source) {
         if (coverURL) { try { URL.revokeObjectURL(coverURL); } catch (e) {} coverURL = null; }
         coverImage = null;
         albumArtworkImage = null;
-        if (!source) return Promise.resolve();
+        if (!source) return;
         if (source instanceof HTMLImageElement) {
             coverImage = source;
         } else if (source instanceof Blob) {
@@ -1087,25 +1232,38 @@ const appleLyricsEngine = (() => {
             coverImage.crossOrigin = 'anonymous';
             coverImage.src = String(source);
         }
-        return new Promise(resolve => {
+        await new Promise(resolve => {
             if (!coverImage) return resolve();
-            if (coverImage.complete && coverImage.naturalWidth) {
-                albumArtworkImage = coverImage;
-                return resolve();
-            }
-            coverImage.onload = () => { if (!destroyed) albumArtworkImage = coverImage; resolve(); };
-            coverImage.onerror = () => resolve();
+            if (coverImage.complete && coverImage.naturalWidth) return resolve();
+            coverImage.onload = resolve;
+            coverImage.onerror = resolve;
         });
+        if (destroyed) return;
+        albumArtworkImage = coverImage;
+        updateWebGLTexture();
     }
 
     function resetSpring() {
         spring.current = 0;
         spring.target = 0;
         spring.velocity = 0;
+        lastSpringTime = 0;
+    }
+
+    function updateSpring(target, now) {
+        spring.target = Number.isFinite(target) ? target : 0;
+        const dt = lastSpringTime ? Math.min((now - lastSpringTime) / 1000, 0.032) : 0;
+        lastSpringTime = now;
+        if (dt <= 0) return spring.current;
+        const force = -120 * (spring.current - spring.target);
+        spring.velocity += (force - 16 * spring.velocity) * dt;
+        spring.current += spring.velocity * dt;
+        return spring.current;
     }
 
     async function loadTrack(trackData = {}) {
         const data = trackData || {};
+        destroyed = false;
         lyrics = parseTTML(data.ttmlLyrics);
         state.lyrics.lines = lyrics;
         state.captions.lines = [];
@@ -1114,9 +1272,8 @@ const appleLyricsEngine = (() => {
         if (data.coverUrl !== undefined) await setCover(data.coverUrl);
         resetSpring();
         state.playback.currentTime = 0;
-        if (Number.isFinite(audioEl.duration)) state.audio.duration = audioEl.duration || state.audio.duration;
         setMasterTime(0);
-        lastTime = -1;
+        lastSpringTime = performance.now();
         redrawCurrentPreviewFrame();
         return { ...data, lyrics };
     }
@@ -1124,12 +1281,11 @@ const appleLyricsEngine = (() => {
     function lineAtCanvasPoint(event) {
         if (!canvas || !lyrics.length) return null;
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const x = (event.clientX - rect.left) * scaleX;
-        const y = (event.clientY - rect.top) * scaleY;
-        const w = canvas.width, h = canvas.height;
-        const style = state.style;
+        const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+        const now = performance.now();
+        const time = getMasterTime();
+        const w = canvas.width, h = canvas.height, style = state.style;
         const settings = {
             fontSize: appleSafeFontSize(ctx, lyrics, Number(style.fontSize) || 76, w),
             align: style.align || 'left',
@@ -1137,26 +1293,29 @@ const appleLyricsEngine = (() => {
             inactiveColor: 'rgba(255,255,255,0.46)',
             backgroundColor: '#FFFFFF',
             inactiveOpacity: Number.isFinite(Number(style.appleInactiveOpacity)) ? Number(style.appleInactiveOpacity) : 0.25,
-            glow: 0.012, depth: 0.008, lift: 0, highlightSpan: 0.96, topOffset: Number(style.appleTopOffset) || 0.245,
+            glow: 0.012, depth: 0.008, lift: 0, highlightSpan: 0.96,
+            topOffset: Number(style.appleTopOffset) || 0.245,
             lineSpacing: (Number(style.appleLineSpacing) || 0.72) * (Number(style.fxSpacing) || 1)
         };
-        const activeIndex = linaFindActiveLine(lyrics, getMasterTime());
+        const activeIndex = linaFindActiveLine(lyrics, time);
         if (activeIndex < 0) return null;
         const visibleCount = Math.max(2, Math.min(6, Math.round(Number(style.appleVisibleLines) || 4)));
-        const layout = buildAppleMusicLayout(ctx, w, h, settings, lyrics, activeIndex, visibleCount);
-        const motion = getAppleFocalMotion(lyrics, getMasterTime());
+        const motion = getAppleFocalMotion(lyrics, time);
+        const fromLayout = buildAppleMusicLayout(ctx, w, h, settings, lyrics, motion?.fromIndex ?? activeIndex, visibleCount);
+        const toLayout = buildAppleMusicLayout(ctx, w, h, settings, lyrics, motion?.toIndex ?? activeIndex, visibleCount);
         const p = motion && motion.fromIndex !== motion.toIndex ? linaClamp(motion.progress) : 1;
-        for (const item of layout) {
-            let yy = item.centreY;
-            if (motion && motion.fromIndex !== motion.toIndex) {
-                const fromLayout = buildAppleMusicLayout(ctx, w, h, settings, lyrics, motion.fromIndex, visibleCount);
-                const toLayout = buildAppleMusicLayout(ctx, w, h, settings, lyrics, motion.toIndex, visibleCount);
-                const from = fromLayout.find(v => v.lineIndex === item.lineIndex);
-                const to = toLayout.find(v => v.lineIndex === item.lineIndex);
-                if (from && to) yy = from.centreY + (to.centreY - from.centreY) * p;
-            }
+        const entries = new Map();
+        for (const item of fromLayout) entries.set(item.lineIndex, item);
+        for (const item of toLayout) {
+            const from = entries.get(item.lineIndex);
+            const centreY = from && motion && motion.fromIndex !== motion.toIndex
+                ? from.centreY + (item.centreY - from.centreY) * p
+                : item.centreY;
+            entries.set(item.lineIndex, { ...item, centreY });
+        }
+        for (const item of entries.values()) {
             const half = item.measurement.totalHeight / 2;
-            if (y >= yy - half && y <= yy + half) return lyrics[item.lineIndex];
+            if (y >= item.centreY - half && y <= item.centreY + half) return lyrics[item.lineIndex];
         }
         return null;
     }
@@ -1169,49 +1328,45 @@ const appleLyricsEngine = (() => {
         redrawCurrentPreviewFrame();
     }
 
-    function frame(now) {
-        if (destroyed) return;
-        const t = getMasterTime();
-        const dt = lastFrame ? Math.min((now - lastFrame) / 1000, 0.032) : 0;
-        lastFrame = now;
-        state.playback.currentTime = t;
-        if (dt > 0) {
-            const force = -120 * (spring.current - spring.target);
-            spring.velocity += (force - 16 * spring.velocity) * dt;
-            spring.current += spring.velocity * dt;
-        }
-        if (t !== lastTime) lastTime = t;
-        rafId = requestAnimationFrame(frame);
-    }
-
-    function start() {
-        if (rafId === null) rafId = requestAnimationFrame(frame);
-    }
-
-    function teardown() {
-        destroyed = true;
-        if (rafId !== null) cancelAnimationFrame(rafId);
-        rafId = null;
-        for (const off of listeners.splice(0)) off();
-        if (coverURL) { try { URL.revokeObjectURL(coverURL); } catch (e) {} coverURL = null; }
-        coverImage = null;
-        albumArtworkImage = null;
-        resetSpring();
-    }
-
-    on(canvas, 'click', seekLine);
-    on(audioEl, 'timeupdate', () => {
-        if (state.style.effect === 'apple') redrawCurrentPreviewFrame();
-    });
-    on(audioEl, 'loadedmetadata', () => {
+    const removeCanvasClick = on(canvas, 'click', seekLine);
+    const removeAudioMetadata = on(audioEl, 'loadedmetadata', () => {
         state.audio.duration = Number.isFinite(audioEl.duration) ? audioEl.duration : state.audio.duration;
         redrawCurrentPreviewFrame();
     });
 
-    start();
-    return { loadTrack, teardown, get lyrics() { return lyrics; } };
+    function teardown() {
+        destroyed = true;
+        removeCanvasClick();
+        removeAudioMetadata();
+        if (coverURL) { try { URL.revokeObjectURL(coverURL); } catch (e) {} coverURL = null; }
+        coverImage = null;
+        albumArtworkImage = null;
+        resetSpring();
+        if (gl) {
+            if (texture) gl.deleteTexture(texture);
+            if (positionBuffer) gl.deleteBuffer(positionBuffer);
+            if (program) gl.deleteProgram(program);
+            if (vertexShader) gl.deleteShader(vertexShader);
+            if (fragmentShader) gl.deleteShader(fragmentShader);
+        }
+        texture = null;
+        positionBuffer = null;
+        program = null;
+        vertexShader = null;
+        fragmentShader = null;
+        webglReady = false;
+    }
+
+    return {
+        loadTrack,
+        teardown,
+        renderBackground,
+        updateSpring,
+        get lyrics() { return lyrics; }
+    };
 })();
 window.kefeAppleLyricsEngine = appleLyricsEngine;
+window.loadTrack = appleLyricsEngine.loadTrack;
 window.loadTrack = appleLyricsEngine.loadTrack;
 
 function renderLyricsEffect(ctx, w, h, style, lines, time) {
