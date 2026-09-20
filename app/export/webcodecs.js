@@ -1,4 +1,4 @@
-const MEDIABUNNY_URL = 'https://cdn.jsdelivr.net/npm/mediabunny@1.58.1/+esm';
+const MEDIABUNNY_URL = 'https://cdn.jsdelivr.net/npm/mediabunny@1.58.0/+esm';
 
 let mediabunnyPromise = null;
 
