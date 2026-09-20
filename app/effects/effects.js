@@ -16,7 +16,8 @@
   css.id = 'kefe-effects-css';
   css.textContent = [
     '#lyricStyleBlock .effect-buttons{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important;flex-wrap:unset !important}',
-    '#lyricStyleBlock .effect-buttons > button{position:relative !important;overflow:hidden;min-height:64px !important;padding:10px 12px !important;border:1px solid var(--line) !important;border-radius:10px !important;background:var(--surface-2) !important;color:var(--text) !important;font-size:12px !important;font-weight:600 !important;white-space:normal !important;text-align:center !important;display:flex !important;align-items:center !important;justify-content:center !important}',
+    '#lyricStyleBlock .effect-buttons > button{position:relative !important;overflow:hidden;min-height:64px !important;padding:10px 12px !important;border:1px solid var(--line) !important;border-radius:10px !important;background:transparent !important;color:var(--kefe-effect-ink,#fff) !important;text-shadow:0 1px 10px rgba(0,0,0,.42);font-size:12px !important;font-weight:600 !important;white-space:normal !important;text-align:center !important;display:flex !important;align-items:center !important;justify-content:center !important}',
+    '#lyricStyleBlock .effect-buttons > button::before{background:var(--kefe-effect-preview,var(--surface-2)) !important}',
     '#lyricStyleBlock .effect-buttons > button.active-effect{border-color:var(--red) !important;box-shadow:0 0 0 1px var(--red) !important}'
   ].join('');
   document.head.appendChild(css);
