@@ -2805,7 +2805,7 @@ function isPreviewFullscreenActive() {
         preview?.classList.contains('kefe-mobile-fullscreen');
 }
 function syncPreviewFullscreenButton() {
-    const btn = $('previewFullscreen');
+    const btn = $('previewFocusButton');
     if (!btn) return;
     const active = isPreviewFullscreenActive();
     btn.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen');
@@ -2855,7 +2855,8 @@ async function togglePreviewFullscreen() {
     }
     syncPreviewFullscreenButton();
 }
-$('previewFullscreen')?.addEventListener('click', togglePreviewFullscreen);
+window.kefeTogglePreviewFullscreen = togglePreviewFullscreen;
+$('previewFocusButton')?.addEventListener('click', togglePreviewFullscreen);
 document.addEventListener('fullscreenchange', syncPreviewFullscreenButton);
 document.addEventListener('webkitfullscreenchange', syncPreviewFullscreenButton);
 document.addEventListener('keydown', event => {
