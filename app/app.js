@@ -1,3 +1,2008 @@
+function drawCompactNowPlaying(ctx, w, h, appState, progress = 1) {
+    const metadata = resolveAudioLabels(appState.audio);
+    const title = String(metadata.title || 'UNTITLED').trim();
+    const artist = String(metadata.artist || '').trim();
+    const album = String(metadata.album || '').trim();
+    const artwork = appState.audio?.hasArtwork && albumArtworkImage ? albumArtworkImage : null;
+
+    const unit = Math.min(w, h);
+    const margin = Math.max(22, unit * 0.045);
+    const artSize = artwork ? linaClamp(unit * 0.070, 42, 64) : 0;
+    const gap = artwork ? Math.max(9, artSize * 0.18) : 0;
+    const maxWidth = Math.min(w - margin * 2, Math.max(180, unit * 0.72));
+    const eased = linaSmoother(linaClamp(progress));
+    const anchorRight = w >= h * 1.15;
+    const titleSize = Math.max(15, Math.min(24, unit * 0.026));
+    const secondarySize = Math.max(11, titleSize * 0.64);
+
+    ctx.save();
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.46)';
+    ctx.shadowBlur = Math.max(5, unit * 0.008);
+
+    const textWidth = Math.max(120, maxWidth - artSize - gap);
+    const titleAlign = anchorRight ? 'right' : 'left';
+    const secondary = [artist, album].filter(Boolean).join(' • ');
+
+    ctx.font = `700 ${titleSize}px ${APPLE_FONT_STACK}`;
+    let shownTitle = title;
+    while (shownTitle.length > 1 && ctx.measureText(shownTitle).width > textWidth) {
+        shownTitle = shownTitle.slice(0, -2).trimEnd() + '…';
+    }
+
+    ctx.font = `500 ${secondarySize}px ${APPLE_FONT_STACK}`;
+    let shownSecondary = secondary;
+    while (shownSecondary.length > 1 && ctx.measureText(shownSecondary).width > textWidth) {
+        shownSecondary = shownSecondary.slice(0, -2).trimEnd() + '…';
+    }
+
+    const lineGap = secondary ? Math.max(4, secondarySize * 0.28) : 0;
+    const blockHeight = secondary ? titleSize + lineGap + secondarySize : titleSize;
+    const contentHeight = Math.max(blockHeight, artSize);
+    const targetX = anchorRight ? w - margin : margin;
+    const targetY = h - margin - contentHeight / 2;
+    const x = (w / 2) + (targetX - w / 2) * eased;
+    const y = (h / 2) + (targetY - h / 2) * eased;
+    const alpha = linaClamp(eased);
+    const textX = anchorRight ? x - artSize - gap : x + artSize + gap;
+    const artX = anchorRight ? x - artSize : x;
+
+    ctx.globalAlpha = alpha;
+
+    if (artwork) {
+        const artY = y - artSize / 2;
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(artX, artY, artSize, artSize, Math.max(7, artSize * 0.12));
+        ctx.clip();
+        const sw = artwork.naturalWidth || artwork.videoWidth || artwork.width;
+        const sh = artwork.naturalHeight || artwork.videoHeight || artwork.height;
+        if (sw && sh) {
+            const side = Math.min(sw, sh);
+            ctx.drawImage(
+                artwork,
+                (sw - side) / 2, (sh - side) / 2, side, side,
+                artX, artY, artSize, artSize
+            );
+        }
+        ctx.restore();
+    }
+
+    const blockTop = y - blockHeight / 2;
+    ctx.textAlign = titleAlign;
+    ctx.font = `700 ${titleSize}px ${APPLE_FONT_STACK}`;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(shownTitle, textX, blockTop + titleSize / 2);
+
+    if (secondary) {
+        ctx.font = `500 ${secondarySize}px ${APPLE_FONT_STACK}`;
+        ctx.fillStyle = 'rgba(255,255,255,0.68)';
+        ctx.fillText(shownSecondary, textX, blockTop + titleSize + lineGap + secondarySize / 2);
+    }
+
+    ctx.restore();
+}
+const $ = id => document.getElementById(id);
+const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+const canvas = $('stageCanvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+const audio = new Audio();
+window.kefeAudioElement = audio;
+
+const state = {
+    audio: { file: null, url: null, duration: 0, ready: false, metadata: { title: '', artist: '', album: '' }, metadataSource: 'none', hasArtwork: false },
+    lyrics: { lines: [] },
+    style: {
+        effect: 'apple',
+        fontSize: 76,
+        align: 'left',
+        accentColor: '#FFFFFF',
+        textColor: '#FFFFFF',
+        bratTextColor: '#FFFFFF',
+        appleInactiveOpacity: 0.25,
+        appleGlow: 0.012,
+        appleDepth: 0.008,
+        appleLift: 0,
+        appleHighlightSpan: 0.92,
+        appleVisibleLines: 4,
+        appleTopOffset: 0.245,
+        appleLineSpacing: 0.72,
+        bratSideMargin: 4.5,
+        bratTopMargin: 4.5,
+        bratTypingSpeed: 1,
+        eternalInkColor: '#FFFFFF',
+        eternalPenWidth: 21,
+        eternalWriteSpan: 0.90,
+        eternalGlow: 3,
+        eternalPresence: 0.65,
+        auroraSpeed: 1.2,
+        auroraIntensity: 0.7,
+        auroraSaturation: 1.0,
+        pulseAmplitude: 0.4,
+        pulseFrequency: 1.2,
+        pulseGlowSize: 1.0,
+        titleCardEnabled: true,
+        titleCardDuration: 3,
+        titleCardStyle: 'auto'
+    },
+    background: { type: 'solid', image: null, video: null, dim: 0.35, solid: '#0A0A0A', blur: 0 },
+    playback: { isPlaying: false, currentTime: 0, isSeeking: false },
+    audioSource: { master: 'uploaded', userChosen: false },
+    captions: { mode: 'lyrics', lines: [] },
+    // Dedicated caption/subtitle styling — deliberately separate from lyric effects.
+    captionStyle: { position: 'bottom', opacity: 1, color: '#FFFFFF', shadow: true },
+    // Final selected video type from the guided workflow — determines what content renders.
+    projectType: 'lyric',
+    lyricsOffset: 0,
+    touched: { fx: false, background: false, title: false },
+    aspect: '9:16'
+};
+window.state = state;
+if (window.kefeLayout) Object.assign(state.style, window.kefeLayout.defaults());
+
+let media = { image: null, video: null, videoFile: null, videoHasAudio: false };
+window.kefeMedia = media; // wizard.js reads background/video state via window.kefeMedia
+let audioURL = null;
+let backgroundURL = null;
+let albumArtworkImage = null;
+let albumArtworkURL = null;
+let mediaTagsLoadPromise = null;
+let audioLoadToken = 0;
+let backgroundLoadToken = 0;
+let pendingProjectMetadata = null;
+let exportClockTime = null;
+let renderLoopId = null;
+var isExporting = false;
+let userScrubbing = false;
+let lastVideoHardSync = -Infinity;
+let noneClockRunning = false; // virtual clock active (sync parity: uses performance.now")
+let noneClockBase = 0;        // master time the virtual clock started at
+let noneClockWall = 0;        // performance.now() when virtual clock started
+
+const MAX_INK_CACHE_SIZE = 50;
+const lastVideoFrame = document.createElement("canvas");
+const lastVideoFrameCtx = lastVideoFrame.getContext("2d");
+let hasLastVideoFrame = false;
+
+const LINA_PREFS_KEY = 'lina-visualiser-prefs-v1';
+function saveLinaPrefs() {
+    try {
+        localStorage.setItem(LINA_PREFS_KEY, JSON.stringify({
+            metadata: state.audio.metadata,
+            aspect: state.aspect,
+            effect: state.style.effect
+        }));
+    } catch (e) { /* storage unavailable (private mode / quota) — not critical, skip silently */ }
+}
+function loadLinaPrefs() {
+    try {
+        const raw = localStorage.getItem(LINA_PREFS_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch (e) { return null; }
+}
+
+/* ---------- Theme (Day / Night / System) ---------- */
+const THEME_KEY = 'kefe-theme-v1';
+function applyTheme(mode) {
+    try {
+        if (mode === 'day' || mode === 'night') document.documentElement.dataset.theme = mode;
+        else delete document.documentElement.dataset.theme;
+        localStorage.setItem(THEME_KEY, mode);
+    } catch (e) { /* storage unavailable — theme simply won't persist */ }
+    const select = $('themeSelect');
+    if (select) select.value = mode || 'system';
+}
+function initTheme() {
+    let saved = 'system';
+    try { saved = localStorage.getItem(THEME_KEY) || 'system'; } catch (e) { /* storage unavailable */ }
+    applyTheme(['day', 'night'].includes(saved) ? saved : 'system');
+    $('themeSelect')?.addEventListener('change', function() { applyTheme(this.value); });
+}
+
+/* ---------- Timed text resolution (Lyrics vs Captions) ---------- */
+function activeTextMode() { return state.captions.mode === 'captions' ? 'captions' : 'lyrics'; }
+const PROJECT_TYPES = ['lyric', 'visualiser', 'captioned'];
+function timedTextRequired() {
+    // Visualiser and Custom compositions are valid without timed text —
+    // a Visualiser must never inherit lyric/caption content as active visuals.
+    return state.projectType !== 'visualiser' && state.projectType !== 'custom';
+}
+function activeTimedLines() {
+    // State-level gate: the final selected video type decides which text
+    // source is authoritative. Cached text from another workflow must never
+    // bleed into the current one.
+    if (state.projectType === 'visualiser') return [];
+    // Captions mode is exclusive: it NEVER falls back to lyrics.
+    if (state.captions.mode === 'captions') return state.captions.lines;
+    return state.lyrics.lines;
+}
+function markSectionTouched(key) {
+    if (!(key in state.touched) || state.touched[key]) return;
+    state.touched[key] = true;
+    updateSectionNav();
+}
+
+/* ---------- Play button icons (never overwrite the SVG with text) ---------- */
+const PLAY_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M8 5.2v13.6a1 1 0 0 0 1.52.86l10.2-6.8a1 1 0 0 0 0-1.66l-10.2-6.8A1 1 0 0 0 8 5.2Z" fill="currentColor"/></svg>';
+const PAUSE_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><rect x="6.4" y="5" width="4" height="14" rx="1.2" fill="currentColor" stroke="none"/><rect x="13.6" y="5" width="4" height="14" rx="1.2" fill="currentColor" stroke="none"/></svg>';
+function setPlayIcon(playing) {
+    const btn = $('playBtn');
+    if (btn) btn.innerHTML = playing ? PAUSE_ICON : PLAY_ICON;
+}
+
+const linaClamp = (value, min = 0, max = 1) => Math.max(min, Math.min(max, value));
+const hasFiniteNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
+function linaSmooth(value) { const t = linaClamp(value); return t * t * (3 - 2 * t); }
+function linaSmoother(value) { const t = linaClamp(value); return t * t * t * (t * (t * 6 - 15) + 10); }
+function linaSeededRandom(seed) { const n = Math.sin(seed * 12.9898 + 78.233) * 43758.5453; return n - Math.floor(n); }
+function median(values) { const valid = values.filter(Number.isFinite).sort((a,b) => a-b); if (!valid.length) return null; const m = Math.floor(valid.length/2); if (valid.length % 2) return valid[m]; return (valid[m-1] + valid[m]) / 2; }
+
+function linaNormaliseLine(lines, index) {
+    if (!Array.isArray(lines) || index < 0 || index >= lines.length) return null;
+    const source = lines[index];
+    const start = Number(source.time) || 0;
+    const nextLineTime = hasFiniteNumber(lines[index+1]?.time) ? Number(lines[index+1].time) : null;
+    const end = hasFiniteNumber(source.endTime) ? Number(source.endTime) : (nextLineTime !== null ? nextLineTime : start + 3);
+    const vocalEnd = hasFiniteNumber(source.vocalEndTime) ? Number(source.vocalEndTime) :
+        (source.words && source.words.length > 0 && hasFiniteNumber(source.words[source.words.length-1]?.endTime) ? Number(source.words[source.words.length-1].endTime) : end);
+    return { ...source, time: start, endTime: end, vocalEndTime: vocalEnd, nextLineTime };
+}
+
+function linaFindActiveLine(lines, time) {
+    let index = -1;
+    for (let i = 0; i < lines.length; i++) {
+        if (hasFiniteNumber(lines[i].time) && time >= Number(lines[i].time)) index = i;
+        else break;
+    }
+    return index;
+}
+
+function estimateFinalVocalWordEnd(words, nextLineTime = Infinity) {
+    if (!Array.isArray(words) || !words.length) return null;
+    const last = words[words.length-1];
+    const start = Number(last.time);
+    if (!Number.isFinite(start)) return null;
+    const gaps = [];
+    for (let i = 0; i < words.length-1; i++) {
+        const a = Number(words[i].time), b = Number(words[i+1].time);
+        const gap = b - a;
+        if (Number.isFinite(gap) && gap >= 0.08 && gap <= 1.8) gaps.push(gap);
+    }
+    const cadence = median(gaps) ?? 0.48;
+    const letters = Array.from(String(last.text || "").replace(/[^\p{L}\p{N}]/gu, "")).length;
+    const textDuration = linaClamp(0.24 + letters * 0.055, 0.28, 1.15);
+    const cadenceDuration = linaClamp(cadence * 1.10, 0.28, 1.25);
+    let duration = Math.max(textDuration, cadenceDuration);
+    duration = linaClamp(duration, 0.28, 1.35);
+    let end = start + duration;
+    if (Number.isFinite(nextLineTime)) end = Math.min(end, Math.max(start + 0.12, nextLineTime - 0.08));
+    return end;
+}
+
+function normaliseEnhancedWordEnds(lines) {
+    for (let li = 0; li < lines.length; li++) {
+        const line = lines[li];
+        if (!Array.isArray(line.words) || !line.words.length) continue;
+        const nextLineTime = Number(lines[li+1]?.time) || null;
+        for (let wi = 0; wi < line.words.length; wi++) {
+            const word = line.words[wi];
+            const nextWord = line.words[wi+1];
+            if (word.explicitEndTime === true && hasFiniteNumber(word.endTime)) continue;
+            if (nextWord && hasFiniteNumber(nextWord.time)) {
+                word.endTime = Math.max(Number(word.time) + 0.04, Number(nextWord.time));
+            } else {
+                word.endTime = estimateFinalVocalWordEnd(line.words, nextLineTime);
+            }
+        }
+        const finalWord = line.words[line.words.length-1];
+        line.vocalEndTime = hasFiniteNumber(finalWord.endTime) ? Number(finalWord.endTime) : Number(line.time) + 0.8;
+    }
+    return lines;
+}
+
+function estimateLineVocalEnd(line, nextLine) {
+    const start = Number(line.time);
+    if (!Number.isFinite(start)) return null;
+    const tokens = String(line.text || "").trim().split(/\s+/).filter(Boolean);
+    if (!tokens.length) return start;
+    const nextStart = Number(nextLine?.time);
+    const estimated = tokens.reduce((total, token) => {
+        const letters = Array.from(token.replace(/[^\p{L}\p{N}]/gu, "")).length || 1;
+        return total + linaClamp(0.16 + letters * 0.045, 0.24, 0.78);
+    }, 0) + Math.max(0, tokens.length - 1) * 0.055;
+    let duration = linaClamp(estimated, 0.65, 5.0);
+    if (Number.isFinite(nextStart)) {
+        const available = Math.max(0.20, nextStart - start - 0.10);
+        duration = Math.min(duration, available);
+    }
+    return start + duration;
+}
+
+function appleWordsForLine(line, nextLine) {
+    if (Array.isArray(line?.words) && line.words.length) {
+        return line.words.map(w => ({ ...w, estimated: false }));
+    }
+    const tokens = String(line?.text || "").trim().split(/\s+/).filter(Boolean);
+    if (!tokens.length || !hasFiniteNumber(line?.time)) return [];
+    const start = Number(line.time);
+    const vocalEnd = estimateLineVocalEnd(line, nextLine);
+    const duration = Math.max(0.15, vocalEnd - start);
+    const weights = tokens.map(token => {
+        const letters = Array.from(token.replace(/[^\p{L}\p{N}]/gu, "")).length || 1;
+        const punctuation = /[,.!?;:]$/.test(token) ? 0.20 : 0;
+        return Math.max(0.75, Math.pow(letters, 0.72)) + punctuation;
+    });
+    const total = weights.reduce((s, v) => s + v, 0) || tokens.length;
+    let cursor = 0;
+    return tokens.map((text, i) => {
+        const ws = start + duration * (cursor / total);
+        cursor += weights[i];
+        const we = start + duration * (cursor / total);
+        return { text, time: ws, endTime: Math.max(ws + 0.05, we), estimated: true };
+    });
+}
+
+const APPLE_FONT_STACK = '"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+const APPLE_GLYPH_CACHE = new Map();
+const APPLE_LAYOUT_CACHE = new Map();
+const APPLE_CACHE_LIMIT = 512;
+
+function appleCacheSet(cache, key, value) {
+    if (cache.has(key)) cache.delete(key);
+    cache.set(key, value);
+    while (cache.size > APPLE_CACHE_LIMIT) cache.delete(cache.keys().next().value);
+    return value;
+}
+
+function appleGlyph(text, fontSize, weight = 700) {
+    const value = String(text ?? '');
+    const key = `${weight}|${fontSize}|${value}`;
+    const cached = APPLE_GLYPH_CACHE.get(key);
+    if (cached) return cached;
+    const measureCanvas = document.createElement('canvas');
+    const measureCtx = measureCanvas.getContext('2d');
+    measureCtx.font = `${weight} ${fontSize}px ${APPLE_FONT_STACK}`;
+    const width = Math.max(1, Math.ceil(measureCtx.measureText(value).width));
+    const scale = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+    const pad = Math.ceil(fontSize * 0.08);
+    const logicalWidth = width + pad * 2;
+    const logicalHeight = Math.ceil(fontSize * 1.45);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(logicalWidth * scale);
+    canvas.height = Math.ceil(logicalHeight * scale);
+    const g = canvas.getContext('2d');
+    g.scale(scale, scale);
+    g.font = `${weight} ${fontSize}px ${APPLE_FONT_STACK}`;
+    g.textBaseline = 'alphabetic';
+    g.fillStyle = '#fff';
+    g.fillText(value, pad, fontSize * 1.05);
+    return appleCacheSet(APPLE_GLYPH_CACHE, key, { canvas, width, pad, baseline: fontSize * 1.05, logicalWidth, logicalHeight });
+}
+
+function drawAppleGlyph(ctx, text, x, baseline, fontSize, alpha = 1, shadowBlur = 0, weight = 700) {
+    const glyph = appleGlyph(text, fontSize, weight);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    if (shadowBlur > 0) { ctx.shadowColor = '#fff'; ctx.shadowBlur = shadowBlur; }
+    ctx.drawImage(glyph.canvas, x - glyph.pad, baseline - glyph.baseline, glyph.logicalWidth, glyph.logicalHeight);
+    ctx.restore();
+    return glyph.width;
+}
+function buildAppleRows(ctx, line, nextLine, maxWidth) {
+    const words = appleWordsForLine(line, nextLine);
+    const fontSize = Number.parseFloat(ctx.font.match(/\d+(?:\.\d+)?px/)?.[0]) || 76;
+    const spaceWidth = appleGlyph(' ', fontSize).width;
+    const rows = [];
+    let current = [], currentWidth = 0;
+    for (const word of words) {
+        const width = appleGlyph(word.text, fontSize).width;
+        const proposed = current.length ? currentWidth + spaceWidth + width : width;
+        if (current.length && proposed > maxWidth) { rows.push({ words: current, width: currentWidth }); current = []; currentWidth = 0; }
+        current.push({ ...word, width });
+        currentWidth = current.length === 1 ? width : currentWidth + spaceWidth + width;
+    }
+    if (current.length) rows.push({ words: current, width: currentWidth });
+    return rows;
+}
+
+function measureAppleLineBlock(ctx, w, line, settings, nextLine = null) {
+    if (!line || !line.text) return { rows: [], rowHeight: 0, totalHeight: 0 };
+    const fontSize = settings.fontSize;
+    const margin = Math.max(40, w * 0.075);
+    const key = `${w}|${fontSize}|${line.text}|${Array.isArray(line.words) ? line.words.map(word => `${word.text}:${word.time}:${word.endTime}`).join('|') : ''}`;
+    const cached = APPLE_LAYOUT_CACHE.get(key);
+    if (cached) return cached;
+    ctx.save();
+    ctx.font = `700 ${fontSize}px ${APPLE_FONT_STACK}`;
+    const rows = buildAppleRows(ctx, line, nextLine, w - margin * 2);
+    ctx.restore();
+    return appleCacheSet(APPLE_LAYOUT_CACHE, key, { rows, rowHeight: fontSize * 1.25, totalHeight: rows.length * fontSize * 1.25 });
+}
+function appleBezierEase(x, p1x, p1y, p2x, p2y) {
+    const t = linaClamp(x);
+    const sample = u => {
+        const inv = 1 - u;
+        return 3 * inv * inv * u * p1x + 3 * inv * u * u * p2x + u * u * u;
+    };
+    const sampleY = u => {
+        const inv = 1 - u;
+        return 3 * inv * inv * u * p1y + 3 * inv * u * u * p2y + u * u * u;
+    };
+    const derivative = u => {
+        const inv = 1 - u;
+        return 3 * inv * inv * p1x + 6 * inv * u * (p2x - p1x) + 3 * u * u * (1 - p2x);
+    };
+    let u = t;
+    for (let i = 0; i < 5; i++) {
+        const dx = sample(u) - t;
+        const slope = derivative(u);
+        if (Math.abs(dx) < 1e-5 || Math.abs(slope) < 1e-5) break;
+        u = linaClamp(u - dx / slope);
+    }
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 8; i++) {
+        const xAt = sample(u);
+        if (Math.abs(xAt - t) < 1e-5) break;
+        if (xAt < t) lo = u; else hi = u;
+        u = (lo + hi) / 2;
+    }
+    return sampleY(u);
+}
+
+function appleEmphasisEase(x) {
+    const t = linaClamp(x);
+    return t < 0.5
+        ? appleBezierEase(t * 2, 0.2, 0.4, 0.58, 1.0)
+        : 1 - appleBezierEase((t - 0.5) * 2, 0.3, 0.0, 0.58, 1.0);
+}
+
+function drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, overallAlpha = 1, line = null) {
+    const rawDuration = Math.max(0.001, Number(word.endTime) - Number(word.time));
+    const durationMs = Math.max(1000, rawDuration * 1000);
+    let amount = durationMs / 2000;
+    amount = amount > 1 ? Math.sqrt(amount) : amount ** 3;
+    let blur = durationMs / 3000;
+    blur = blur > 1 ? Math.sqrt(blur) : blur ** 3;
+    amount *= 0.6;
+    blur *= 0.5;
+    const finalWord = Array.isArray(line?.words) && line.words.length
+        ? word === line.words[line.words.length - 1] || Number(word.endTime) >= Number(line.words[line.words.length - 1]?.endTime)
+        : false;
+    let animateDuration = durationMs;
+    if (finalWord) {
+        amount *= 1.6;
+        blur *= 1.5;
+        animateDuration *= 1.2;
+    }
+    amount = Math.min(1.2, amount);
+    blur = Math.min(0.8, blur);
+
+    const elapsedMs = (time - Number(word.time)) * 1000;
+    const charCount = Math.max(1, Array.from(String(word.text || "")).length);
+    const chars = Array.from(String(word.text || ""));
+    const stagger = animateDuration / 2.5 / charCount;
+    const floatProgress = linaClamp((elapsedMs + 400) / (animateDuration * 1.4));
+    const floatY = -Math.sin(floatProgress * Math.PI) * 0.05 * fontSize;
+
+    const wordWidth = appleGlyph(word.text, fontSize).width;
+    ctx.save();
+    ctx.globalAlpha = settings.inactiveOpacity * overallAlpha;
+    ctx.fillStyle = settings.inactiveColor;
+    ctx.shadowBlur = 0;
+    drawAppleGlyph(ctx, word.text, x, y + floatY, fontSize, settings.inactiveOpacity * overallAlpha);
+    ctx.restore();
+
+    let prefixWidth = 0;
+    for (let i = 0; i < chars.length; i++) {
+        const local = appleEmphasisEase(linaClamp((elapsedMs - stagger * i) / animateDuration));
+        const charX = x + prefixWidth;
+        const charWidth = appleGlyph(chars[i], fontSize).width;
+        prefixWidth += charWidth;
+        if (local <= 0.0001) continue;
+        const offsetX = -local * 0.03 * amount * (chars.length / 2 - i);
+        const offsetY = -local * 0.025 * amount * fontSize;
+        const scale = 1 + local * 0.1 * amount;
+        ctx.save();
+        ctx.translate(charX + charWidth / 2 + offsetX, y + floatY + offsetY);
+        ctx.scale(scale, scale);
+        ctx.translate(-(charX + charWidth / 2), -(y + floatY + offsetY));
+        ctx.globalAlpha = overallAlpha;
+        ctx.fillStyle = settings.activeColor;
+        ctx.shadowColor = settings.activeColor;
+        ctx.shadowBlur = fontSize * Math.min(0.3, blur * 0.3) * local;
+        drawAppleGlyph(ctx, chars[i], charX, y + floatY + offsetY, fontSize, overallAlpha, fontSize * Math.min(0.3, blur * 0.3) * local);
+        ctx.restore();
+    }
+    ctx.restore();
+}
+function drawAppleLineBlock(ctx, w, centreY, line, time, settings, options = {}) {
+    if (!line || !line.text) return;
+    const active = options.active === true;
+    const alpha = Number.isFinite(options.alpha) ? options.alpha : 1;
+    const scale = Number.isFinite(options.scale) ? options.scale : 1;
+    const fontSize = settings.fontSize;
+    const nextLine = options.nextLine || null;
+    const measurement = options.measurement || measureAppleLineBlock(ctx, w, line, settings, nextLine);
+    ctx.save();
+    ctx.filter = Number(options.blur) > 0 ? `blur(${Number(options.blur)}px)` : "none";
+    ctx.font = `700 ${fontSize}px ${APPLE_FONT_STACK}`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    const margin = Math.max(40, w * 0.075);
+    const rows = measurement.rows;
+    const rowHeight = measurement.rowHeight;
+    const totalHeight = measurement.totalHeight;
+    let y = centreY - totalHeight / 2 + rowHeight / 2;
+    ctx.translate(w / 2, centreY);
+    ctx.scale(scale, scale);
+    ctx.translate(-w / 2, -centreY);
+    const spaceWidth = appleGlyph(" ", fontSize).width;
+    for (const row of rows) {
+        let x = settings.align === "center" ? (w - row.width) / 2 : settings.align === "right" ? w - margin - row.width : margin;
+        for (let i = 0; i < row.words.length; i++) {
+            const word = row.words[i];
+            if (!active) {
+                ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = settings.backgroundColor; ctx.shadowBlur = 0; drawAppleGlyph(ctx, word.text, x, y, fontSize, alpha); ctx.restore();
+            } else if (time < word.time) {
+                ctx.save(); ctx.globalAlpha = settings.inactiveOpacity * alpha; ctx.fillStyle = settings.inactiveColor; ctx.shadowBlur = 0; drawAppleGlyph(ctx, word.text, x, y, fontSize, settings.inactiveOpacity * alpha); ctx.restore();
+            } else {
+                const rawWordDuration = Math.max(0.001, Number(word.endTime) - Number(word.time));
+                const emphasisDuration = Math.max(1, rawWordDuration * 1000);
+                const finalWord = Array.isArray(line.words) && line.words.length
+                    ? word === line.words[line.words.length - 1] || Number(word.endTime) >= Number(line.words[line.words.length - 1]?.endTime)
+                    : false;
+                const animationDuration = emphasisDuration * (finalWord ? 1.2 : 1);
+                const animationEnd = Number(word.time) + Math.max(1, animationDuration) / 1000;
+                if (time < animationEnd) {
+                    drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, alpha, line);
+                } else {
+                    ctx.save(); ctx.globalAlpha = 0.96 * alpha; ctx.fillStyle = settings.activeColor; ctx.shadowColor = settings.activeColor; ctx.shadowBlur = fontSize * 0.014; drawAppleGlyph(ctx, word.text, x, y, fontSize, 0.96 * alpha, fontSize * 0.014); ctx.restore();
+                }
+            }
+            x += word.width;
+            if (i < row.words.length - 1) x += spaceWidth;
+        }
+        y += rowHeight;
+    }
+    ctx.restore();
+}
+
+function drawAppleSecondaryText(ctx, w, y, text, settings, options = {}) {
+    const value = String(text || '').trim();
+    if (!value) return;
+    const scale = Number.isFinite(options.scale) ? options.scale : 1;
+    const alpha = Number.isFinite(options.alpha) ? options.alpha : 1;
+    const size = Math.max(12, settings.fontSize * (Number(options.sizeRatio) || 0.38));
+    const margin = Math.max(40, w * 0.075);
+    const maxWidth = Math.max(80, w - margin * 2);
+    ctx.save();
+    ctx.font = `500 ${size}px ${APPLE_FONT_STACK}`;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = settings.align === 'center' ? 'center' : settings.align === 'right' ? 'right' : 'left';
+    ctx.fillStyle = options.color || 'rgba(255,255,255,0.72)';
+    ctx.globalAlpha = alpha;
+    ctx.filter = Number(options.blur) > 0 ? `blur(${Number(options.blur)}px)` : 'none';
+    const shown = value.length > 1 && appleGlyph(value, size, 500).width > maxWidth
+        ? (() => {
+            let text = value;
+            while (text.length > 1 && appleGlyph(text + '…', size, 500).width > maxWidth) text = text.slice(0, -1);
+            return text + '…';
+        })()
+        : value;
+    const x = ctx.textAlign === 'center' ? w / 2 : ctx.textAlign === 'right' ? w - margin : margin;
+    ctx.translate(w / 2, y);
+    ctx.scale(scale, scale);
+    ctx.translate(-w / 2, -y);
+    drawAppleGlyph(ctx, shown, x, y, size, alpha, 0, 500);
+    ctx.restore();
+}
+
+function appleTransitionTiming(fromLine, toLine) {
+    const fromTime = Number(fromLine?.time) || 0;
+    const toTime = Number(toLine?.time) || fromTime + 1;
+    const gap = Math.max(0.35, toTime - fromTime);
+
+    // Apple-style lyric movement is a continuous hand-off, not a short
+    // ease-in/ease-out snap. Keep the hand-off long enough to read as one
+    // uninterrupted scroll while still adapting to tightly packed lyrics.
+    const duration = Math.min(0.82, Math.max(0.58, gap * 0.32));
+    return { duration, start: toTime - duration, end: toTime };
+}
+
+function appleSpringProgress(value) {
+    const t = linaClamp(value);
+    if (t <= 0 || t >= 1) return t;
+
+    // Closed-form, seek-safe critically damped motion. The response is tuned so
+    // the hand-off settles essentially at rest at the lyric timestamp, avoiding
+    // the tiny velocity discontinuity that can otherwise make the next frame pop.
+    const response = 11.5;
+    const raw = 1 - (1 + response * t) * Math.exp(-response * t);
+    const end = 1 - (1 + response) * Math.exp(-response);
+    return linaClamp(raw / end);
+}
+
+function getAppleFocalMotion(lines, time) {
+    const activeIndex = linaFindActiveLine(lines, time);
+    if (activeIndex < 0) return null;
+
+    const active = linaNormaliseLine(lines, activeIndex);
+    if (!active) return null;
+
+    if (activeIndex > 0) {
+        const previous = linaNormaliseLine(lines, activeIndex - 1);
+        const incoming = appleTransitionTiming(previous, active);
+        if (time < incoming.end) {
+            return {
+                fromIndex: activeIndex - 1,
+                toIndex: activeIndex,
+                progress: appleSpringProgress((time - incoming.start) / incoming.duration),
+                transitionStart: incoming.start,
+                transitionEnd: incoming.end
+            };
+        }
+    }
+
+    const next = linaNormaliseLine(lines, activeIndex + 1);
+    if (next) {
+        const outgoing = appleTransitionTiming(active, next);
+        if (time >= outgoing.start) {
+            return {
+                fromIndex: activeIndex,
+                toIndex: activeIndex + 1,
+                progress: appleSpringProgress((time - outgoing.start) / outgoing.duration),
+                transitionStart: outgoing.start,
+                transitionEnd: outgoing.end
+            };
+        }
+    }
+
+    return {
+        fromIndex: activeIndex,
+        toIndex: activeIndex,
+        progress: 1,
+        transitionStart: active.time,
+        transitionEnd: active.time
+    };
+}
+
+
+function buildAppleMusicLayout(ctx, w, h, settings, lines, focusIndex, visibleCount) {
+    const output = [];
+    const focusY = h * settings.topOffset;
+    const gap = Math.max(settings.fontSize * settings.lineSpacing, h * 0.018);
+    const add = (index, centreY, relation, measurement = null) => {
+        const line = linaNormaliseLine(lines, index); if (!line) return null;
+        const nextLine = linaNormaliseLine(lines, index + 1);
+        measurement ||= measureAppleLineBlock(ctx, w, line, settings, nextLine);
+        const item = { lineIndex:index, line, nextLine, measurement, centreY, relation };
+        output.push(item); return item;
+    };
+    const focus = add(focusIndex, focusY, 0); if (!focus) return output;
+
+    // Completed lyrics leave the resting stack. They are retained only by
+    // the outgoing side of the current hand-off.
+    let cursorY = focusY + focus.measurement.totalHeight/2 + gap;
+    for (let distance=1; distance<=visibleCount; distance++) {
+        const line = linaNormaliseLine(lines, focusIndex + distance); if (!line) break;
+        const next = linaNormaliseLine(lines, focusIndex + distance + 1);
+        const measurement = measureAppleLineBlock(ctx, w, line, settings, next);
+        add(focusIndex + distance, cursorY + measurement.totalHeight/2, distance, measurement);
+        cursorY += measurement.totalHeight + gap;
+    }
+    return output;
+}
+
+function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount, motion) {
+    const fromLayout = buildAppleMusicLayout(ctx, w, h, settings, lines, motion.fromIndex, visibleCount);
+    const toLayout = buildAppleMusicLayout(ctx, w, h, settings, lines, motion.toIndex, visibleCount);
+    const fromMap = new Map(fromLayout.map(entry => [entry.lineIndex, entry]));
+    const toMap = new Map(toLayout.map(entry => [entry.lineIndex, entry]));
+    const transitioning = motion.fromIndex !== motion.toIndex;
+    const reducedMotion = typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const p = transitioning ? (reducedMotion ? 1 : linaClamp(motion.progress)) : 1;
+
+    const relationOpacity = relation => {
+        if (relation === 0) return 1;
+        if (relation < 0) return 0;
+        return Math.max(0.025, settings.inactiveOpacity * Math.pow(0.68, relation - 1));
+    };
+
+    const completionFade = line => {
+        const vocalEnd = Number(line?.vocalEndTime);
+        const lineEnd = Number(line?.endTime);
+        const end = Number.isFinite(vocalEnd) ? vocalEnd : lineEnd;
+        if (!Number.isFinite(end)) return 1;
+        const nextTime = Number(line?.nextLineTime);
+        const available = Number.isFinite(nextTime) ? Math.max(0.08, nextTime - end) : 0.55;
+        const duration = Math.min(0.55, Math.max(0.16, available * 0.55));
+        return linaClamp((end - time) / duration);
+    };
+
+    const drawEntry = (entry, options = {}) => {
+        if (!entry || !entry.line?.text) return;
+        drawAppleLineBlock(ctx, w, options.y ?? entry.centreY, entry.line, time, settings, {
+            active: options.active === true,
+            alpha: options.alpha ?? 1,
+            scale: options.scale ?? 1,
+            blur: options.blur ?? 0,
+            nextLine: entry.nextLine,
+            measurement: entry.measurement
+        });
+
+        if (options.active !== true || options.alpha <= 0.001 || entry.lineIndex !== motion.toIndex) return;
+
+        const secondary = entry.line.translation || entry.line.transliteration || '';
+        const secondaryY = (options.y ?? entry.centreY) +
+            entry.measurement.totalHeight / 2 + settings.fontSize * 0.42;
+
+        if (secondary) {
+            drawAppleSecondaryText(ctx, w, secondaryY, secondary, settings, {
+                alpha: options.alpha * 0.68,
+                sizeRatio: 0.34,
+                color: 'rgba(255,255,255,0.70)',
+                scale: options.scale ?? 1,
+                blur: options.blur ?? 0
+            });
+        }
+
+        const backgroundLines = Array.isArray(entry.line.backgroundLines)
+            ? entry.line.backgroundLines : [];
+        let bgIndex = 0;
+        for (const bg of backgroundLines) {
+            const bgStart = Number(bg?.time);
+            const bgEnd = Number(bg?.endTime);
+            if (!Number.isFinite(bgStart) || time < bgStart ||
+                (Number.isFinite(bgEnd) && time > bgEnd)) continue;
+            const bgText = String(bg.text || '').trim();
+            if (!bgText) continue;
+            const bgY = secondaryY +
+                settings.fontSize * (secondary ? 0.36 : 0.48) +
+                bgIndex * settings.fontSize * 0.34;
+            drawAppleSecondaryText(ctx, w, bgY, bgText, settings, {
+                alpha: options.alpha * 0.58,
+                sizeRatio: 0.30,
+                color: 'rgba(255,255,255,0.62)',
+                scale: Math.min(options.scale ?? 1, 1),
+                blur: options.blur ?? 0
+            });
+            bgIndex++;
+        }
+    };
+
+    if (!transitioning) {
+        for (const entry of toLayout) {
+            const isActive = entry.lineIndex === motion.toIndex;
+            const completion = isActive ? completionFade(entry.line) : 1;
+            const alpha = isActive ? completion : relationOpacity(entry.relation);
+            const scale = isActive ? 1 - (1 - completion) * 0.018 : 0.985;
+            const blur = isActive
+                ? settings.fontSize * 0.045 * (1 - completion)
+                : settings.fontSize * (0.034 + Math.max(0, entry.relation - 1) * 0.014);
+
+            drawEntry(entry, {
+                y: entry.centreY,
+                active: isActive,
+                alpha,
+                scale,
+                blur
+            });
+        }
+        return;
+    }
+
+    const fromFocus = fromMap.get(motion.fromIndex);
+    const toFocus = toMap.get(motion.toIndex);
+    const focusY = h * settings.topOffset;
+
+    // The transition is one geometric hand-off between two complete layouts.
+    // The incoming line starts exactly where it sat in the old stack and lands
+    // exactly where the new stack places the focal line. Shared future lines
+    // use the same interpolation, so nothing jumps, compresses, or changes
+    // spacing mid-transition.
+    if (fromFocus && toFocus) {
+        const incomingStartY = fromMap.get(motion.toIndex)?.centreY ?? (
+            focusY +
+            fromFocus.measurement.totalHeight / 2 +
+            Math.max(settings.fontSize * settings.lineSpacing, h * 0.018) +
+            toFocus.measurement.totalHeight / 2
+        );
+        const outgoingEndY = toMap.get(motion.fromIndex)?.centreY ?? (
+            focusY -
+            fromFocus.measurement.totalHeight / 2 -
+            Math.max(settings.fontSize * settings.lineSpacing, h * 0.018) -
+            toFocus.measurement.totalHeight / 2
+        );
+
+        const outgoingY = focusY + (outgoingEndY - focusY) * p;
+        const incomingY = incomingStartY + (focusY - incomingStartY) * p;
+
+        const outgoingAlpha = linaClamp(1 - p);
+        const incomingAlpha = linaClamp(p);
+
+        drawEntry(fromFocus, {
+            y: outgoingY,
+            active: true,
+            alpha: outgoingAlpha,
+            scale: 1 - 0.045 * p,
+            blur: settings.fontSize * 0.072 * p
+        });
+
+        drawEntry(toFocus, {
+            y: incomingY,
+            active: true,
+            alpha: incomingAlpha,
+            scale: 0.94 + 0.06 * p,
+            blur: settings.fontSize * 0.065 * (1 - p)
+        });
+    }
+
+    // Every line that exists in both layouts is interpolated from its exact
+    // old-stack position to its exact new-stack position. This is the only
+    // placement calculation used during the hand-off.
+    const sharedIndices = [...new Set([...fromMap.keys(), ...toMap.keys()])]
+        .filter(index => index !== motion.fromIndex && index !== motion.toIndex)
+        .sort((a, b) => a - b);
+
+    for (const index of sharedIndices) {
+        const from = fromMap.get(index);
+        const to = toMap.get(index);
+        if (!from && !to) continue;
+
+        const y = from && to
+            ? from.centreY + (to.centreY - from.centreY) * p
+            : (to ? to.centreY : from.centreY);
+
+        const relation = to ? to.relation : Math.max(1, from.relation);
+        drawEntry(to || from, {
+            y,
+            active: false,
+            alpha: relationOpacity(relation),
+            scale: 0.985,
+            blur: settings.fontSize * (0.034 + Math.max(0, relation - 1) * 0.014)
+        });
+    }
+}
+function appleSafeFontSize(ctx, lines, requested, w) {
+    let longest = '';
+    for (const l of lines) for (const t of String(l?.text || '').split(/\s+/)) if (t.length > longest.length) longest = t;
+    if (!longest) return requested;
+    ctx.save(); ctx.font = '700 100px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+    const wide = ctx.measureText(longest).width; ctx.restore();
+    const room = w - Math.max(40, w * 0.075) * 2;
+    return wide > 0 ? Math.min(requested, Math.floor(room / wide * 100)) : requested;
+}
+
+function drawAppleEffect(ctx, w, h, style, lines, time) {
+    if (!Array.isArray(lines) || !lines.length) return;
+    appleLyricsEngine.renderBackground(ctx, w, h, time);
+    const wash=ctx.createLinearGradient(0,0,0,h); wash.addColorStop(0,'rgba(18,18,20,0.20)'); wash.addColorStop(0.55,'rgba(8,8,10,0.08)'); wash.addColorStop(1,'rgba(0,0,0,0.34)');
+    ctx.save(); ctx.fillStyle=wash; ctx.fillRect(0,0,w,h); ctx.restore();
+    const settings={fontSize:appleSafeFontSize(ctx,lines,Number(style.fontSize)||76,w),align:style.align||'left',activeColor:'#FFFFFF',inactiveColor:'rgba(255,255,255,0.46)',backgroundColor:'#FFFFFF',inactiveOpacity:Number.isFinite(Number(style.appleInactiveOpacity))?Number(style.appleInactiveOpacity):0.25,glow:0.012,depth:0.008,lift:0,highlightSpan:0.96,topOffset:Number(style.appleTopOffset)||0.245,lineSpacing:(Number(style.appleLineSpacing)||0.72)*(Number(style.fxSpacing)||1)};
+    const visibleCount=Math.max(2,Math.min(6,Math.round(Number(style.appleVisibleLines)||4)));
+    const first=linaNormaliseLine(lines,0); if(!first||time<Math.max(0,first.time-1.2)) return;
+    const motion=getAppleFocalMotion(lines,time)||{fromIndex:0,toIndex:0,progress:1};
+    drawAppleMusicTransition(ctx,w,h,settings,lines,time,visibleCount,motion);
+}
+
+function buildBratWords(lines) {
+    const output = [];
+    for (let i = 0; i < lines.length; i++) {
+        const line = linaNormaliseLine(lines, i);
+        if (!line) continue;
+        const words = appleWordsForLine(line, lines[i+1] || null);
+        for (const w of words) output.push({ ...w, globalIndex: output.length });
+    }
+    return output;
+}
+function setBratFont(ctx, fontSize) {
+    ctx.font = `700 ${fontSize}px "Archivo Narrow",Arial,sans-serif`;
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+}
+function buildBratRows(ctx, words, w, h, style) {
+    const baseSize = Number(style.fontSize) || 76;
+    const side = w * (Number(style.bratSideMargin) || 4.5) / 100;
+    const top = h * (Number(style.bratTopMargin) || 4.5) / 100;
+    const bottom = h * 0.05;
+    const slotHeight = (h - top - bottom) / 5;
+    const sizePattern = [1.16, 0.91, 1.10, 0.96, 1.20];
+    const wordPattern = [3, 3, 2, 2, 3];
+    const rows = [];
+    let cursor = 0, rowNumber = 0;
+    while (cursor < words.length) {
+        const slot = rowNumber % 5;
+        const lineWords = words.slice(cursor, cursor + wordPattern[slot]);
+        cursor += lineWords.length;
+        let fontSize = Math.min(slotHeight * 0.72, baseSize * 1.75 * sizePattern[slot]);
+        fontSize = Math.max(34, fontSize);
+        const usableWidth = w - side * 2;
+        while (fontSize > 32) {
+            setBratFont(ctx, fontSize);
+            let total = 0;
+            for (const w of lineWords) total += ctx.measureText(w.text).width;
+            if (total + fontSize * 0.14 * Math.max(0, lineWords.length - 1) <= usableWidth) break;
+            fontSize -= 2;
+        }
+        setBratFont(ctx, fontSize);
+        let wordWidth = 0;
+        for (const w of lineWords) { w.renderWidth = ctx.measureText(w.text).width; wordWidth += w.renderWidth; }
+        const gap = lineWords.length > 1 ? (usableWidth - wordWidth) / (lineWords.length - 1) : 0;
+        rows.push({ words: lineWords, fontSize, gap, side, top, slot, page: Math.floor(rowNumber / 5) });
+        rowNumber++;
+    }
+    return rows;
+}
+function drawBratEffect(ctx, w, h, style, lines, time) {
+    const typingSpeed = Number(style.bratTypingSpeed) || 1;
+    const words = buildBratWords(lines);
+    if (!words.length) return;
+    let currentIndex = -1;
+    for (let i = 0; i < words.length; i++) {
+        if (time >= words[i].time) currentIndex = i; else break;
+    }
+    if (currentIndex < 0) return;
+    const rows = buildBratRows(ctx, words, w, h, style);
+    let activeRow = -1;
+    for (let i = 0; i < rows.length; i++) {
+        if (rows[i].words.some(w => w.globalIndex === currentIndex)) { activeRow = i; break; }
+    }
+    if (activeRow < 0) return;
+    const page = Math.floor(activeRow / 5);
+    const pageStart = page * 5;
+    const pageEnd = Math.min(rows.length, pageStart + 5);
+    const top = rows[pageStart].top;
+    const rowPitch = (h - top - h * 0.05) / 5;
+    ctx.save();
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0; ctx.filter = "none";
+    for (let ri = pageStart; ri < pageEnd; ri++) {
+        const row = rows[ri];
+        setBratFont(ctx, row.fontSize);
+        ctx.fillStyle = style.bratTextColor || style.textColor || "#FFFFFF";
+        const baseline = top + rowPitch * (ri - pageStart) + rowPitch * 0.70;
+        let x = row.side;
+        for (const word of row.words) {
+            if (word.globalIndex > currentIndex) break;
+            if (word.globalIndex < currentIndex) {
+                ctx.fillText(word.text, x, baseline);
+            } else {
+                const duration = Math.max(0.001, word.endTime - word.time);
+                const progress = linaClamp((time - word.time) / duration);
+                const typingProgress = linaClamp(progress / (0.88 / typingSpeed));
+                const chars = Array.from(word.text);
+                const count = Math.min(chars.length, Math.ceil(chars.length * typingProgress));
+                ctx.fillText(chars.slice(0, count).join(""), x, baseline);
+            }
+            x += word.renderWidth + row.gap;
+        }
+    }
+    ctx.restore();
+}
+
+let eternalFontReady = false;
+let eternalFontPromise = null;
+const eternalInkCache = new Map();
+
+async function ensureEternalFont() {
+    if (eternalFontReady) return true;
+    if (eternalFontPromise) return eternalFontPromise;
+    eternalFontPromise = (async () => {
+        try {
+            try { await document.fonts.load('76px "Homemade Apple"'); } catch (e) {}
+            if (document.fonts && document.fonts.ready) {
+                try { await document.fonts.ready; } catch (e) {}
+            }
+            // Prefer an explicit check, but if that's unavailable, treat the
+            // font as ready — the ink renderer draws text either way.
+            if (document.fonts && typeof document.fonts.check === 'function') {
+                eternalFontReady = document.fonts.check('76px "Homemade Apple"');
+                // Even if check fails, allow the renderer to try. Its cache
+                // path will fall back to plain fillText when fonts are missing.
+                if (!eternalFontReady) eternalFontReady = true;
+            } else {
+                eternalFontReady = true;
+            }
+            if (eternalFontReady) eternalInkCache.clear();
+            return eternalFontReady;
+        } catch (error) {
+            eternalFontReady = false;
+            return false;
+        } finally {
+            eternalFontPromise = null;
+        }
+    })();
+    return eternalFontPromise;
+}
+ensureEternalFont();
+
+function manageInkCacheSize() {
+    if (eternalInkCache.size <= MAX_INK_CACHE_SIZE) return;
+    const entries = Array.from(eternalInkCache.entries());
+    for (let i = 0; i < entries.length - MAX_INK_CACHE_SIZE; i++) eternalInkCache.delete(entries[i][0]);
+}
+function makeInkRowCache(text, fontSize) {
+    if (!eternalFontReady) return null;
+    const key = `${fontSize}:${text}`;
+    if (eternalInkCache.has(key)) return eternalInkCache.get(key);
+    const fontName = '"Homemade Apple"';
+    const mc = document.createElement("canvas");
+    const mctx = mc.getContext("2d");
+    mctx.font = `${fontSize}px ${fontName}`;
+    const metrics = mctx.measureText(text);
+    const ascent = metrics.actualBoundingBoxAscent || fontSize * 1.4;
+    const descent = metrics.actualBoundingBoxDescent || fontSize * 0.65;
+    const padding = fontSize * 0.95;
+    const width = Math.ceil(metrics.width + padding * 2);
+    const height = Math.ceil(ascent + descent + padding * 2);
+    const baseline = padding + ascent;
+    const sc = document.createElement("canvas");
+    sc.width = width; sc.height = height;
+    const sctx = sc.getContext("2d", { willReadFrequently: true });
+    sctx.font = `${fontSize}px ${fontName}`;
+    sctx.textAlign = "left"; sctx.textBaseline = "alphabetic";
+    sctx.fillStyle = "#FFFFFF";
+    sctx.fillText(text, padding, baseline);
+    const data = sctx.getImageData(0, 0, width, height).data;
+    const rawPoints = [];
+    const step = 2;
+    for (let x = 0; x < width; x += step) {
+        let at = 0, wy = 0;
+        for (let y = 0; y < height; y++) {
+            const a = data[(y * width + x) * 4 + 3];
+            if (a > 10) { at += a; wy += y * a; }
+        }
+        if (at > 0) rawPoints.push({ x, y: wy / at });
+    }
+    const points = [];
+    for (let i = 0; i < rawPoints.length; i++) {
+        const p = rawPoints[i];
+        const prev = points[points.length - 1];
+        if (prev) {
+            const gap = p.x - prev.x;
+            if (gap > step * 1.5 && gap < fontSize * 0.52) {
+                const n = Math.ceil(gap / step);
+                for (let j = 1; j < n; j++) {
+                    const t = j / n;
+                    points.push({ x: prev.x + (p.x - prev.x) * t, y: prev.y + (p.y - prev.y) * linaSmoother(t) });
+                }
+            }
+        }
+        points.push(p);
+    }
+    const mask = document.createElement("canvas");
+    mask.width = width; mask.height = height;
+    const reveal = document.createElement("canvas");
+    reveal.width = width; reveal.height = height;
+    const result = { sourceCanvas: sc, maskCanvas: mask, revealCanvas: reveal, points, width, height, padding, ascent, descent, textWidth: metrics.width };
+    eternalInkCache.set(key, result);
+    manageInkCacheSize();
+    return result;
+}
+function renderInkRow(cache, progress, options) {
+    if (!cache) return null;
+    const mctx = cache.maskCanvas.getContext("2d");
+    const rctx = cache.revealCanvas.getContext("2d");
+    mctx.clearRect(0, 0, cache.width, cache.height);
+    const pts = cache.points;
+    if (!pts.length) return cache.revealCanvas;
+    const amount = linaClamp(progress);
+    const index = Math.min(pts.length - 1, Math.floor(amount * pts.length));
+    if (amount >= 1) {
+        mctx.fillStyle = "#FFF"; mctx.fillRect(0, 0, cache.width, cache.height);
+    } else if (amount > 0) {
+        const cur = pts[index];
+        const radius = options.fontSize * (options.penWidth / 100);
+        mctx.fillStyle = "#FFF";
+        mctx.fillRect(0, 0, Math.max(0, cur.x - radius * 0.4), cache.height);
+        const grad = mctx.createRadialGradient(cur.x, cur.y, 0, cur.x, cur.y, radius);
+        grad.addColorStop(0, "rgba(255,255,255,1)");
+        grad.addColorStop(0.55, "rgba(255,255,255,1)");
+        grad.addColorStop(1, "rgba(255,255,255,0)");
+        mctx.fillStyle = grad;
+        mctx.beginPath(); mctx.arc(cur.x, cur.y, radius, 0, Math.PI * 2); mctx.fill();
+        const ps = Math.max(0, index - 18);
+        mctx.beginPath();
+        for (let i = ps; i <= index; i++) {
+            if (i === ps) mctx.moveTo(pts[i].x, pts[i].y);
+            else mctx.lineTo(pts[i].x, pts[i].y);
+        }
+        mctx.strokeStyle = "#FFF"; mctx.lineWidth = radius * 1.2; mctx.lineCap = "round"; mctx.lineJoin = "round"; mctx.stroke();
+    }
+    rctx.clearRect(0, 0, cache.width, cache.height);
+    rctx.drawImage(cache.sourceCanvas, 0, 0);
+    rctx.globalCompositeOperation = "destination-in";
+    rctx.drawImage(cache.maskCanvas, 0, 0);
+    rctx.globalCompositeOperation = "source-in";
+    rctx.fillStyle = options.inkColor;
+    rctx.fillRect(0, 0, cache.width, cache.height);
+    rctx.globalCompositeOperation = "source-over";
+    return cache.revealCanvas;
+}
+const ETERNAL_POSITIONS = ["top-left", "middle-right", "bottom-left"];
+function getEternalPositions(ci) {
+    const pos = [...ETERNAL_POSITIONS];
+    for (let i = pos.length - 1; i > 0; i--) {
+        const j = Math.floor(linaSeededRandom(ci * 37.41 + i * 17.23) * (i + 1));
+        [pos[i], pos[j]] = [pos[j], pos[i]];
+    }
+    return pos;
+}
+function getEternalSizes(ci) {
+    const patterns = [[0.92,1.25,1.00],[1.20,0.94,1.04],[1.00,1.22,0.90],[0.95,1.06,1.24],[1.23,0.91,1.02],[1.04,1.27,0.93],[1.10,0.91,1.28],[0.93,1.19,1.05]];
+    const sel = Math.floor(linaSeededRandom(ci * 91.73 + 14.2) * patterns.length);
+    return [...patterns[linaClamp(sel, 0, patterns.length - 1)]];
+}
+function fitEternalText(text, targetSize, maxWidth) {
+    let size = targetSize;
+    let cache = makeInkRowCache(text, size);
+    if (!cache) return null;
+    while (cache.textWidth > maxWidth && size > 10) { size -= 2; cache = makeInkRowCache(text, size); if (!cache) return null; }
+    return { cache, fontSize: size };
+}
+function getEternalPlacement(pos, w, h, tw, vh, margin) {
+    switch(pos) {
+        case "top-left": return { x: margin, y: linaClamp(h * 0.13, margin, h - margin - vh) };
+        case "middle-right": return { x: Math.max(margin, w - margin - tw), y: linaClamp(h * 0.50 - vh / 2, margin, h - margin - vh) };
+        default: return { x: margin, y: linaClamp(h * 0.79 - vh / 2, margin, h - margin - vh) };
+    }
+}
+function getEternalLineAlpha(slot, group, time) {
+    const line = group[slot];
+    if (!line || time < line.time) return 0;
+    const next = group[slot + 1];
+    if (!next) return 1;
+    if (time < next.time) return 1;
+    const fade = linaSmooth((time - next.time) / Math.max(0.8, Math.min(2.3, (next.endTime - next.time) * 0.90)));
+    return 1 - fade * 0.84;
+}
+function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
+    if (!eternalFontReady) {
+        ensureEternalFont();
+        // Fallback: draw plain text so the user still sees their lyrics.
+        // The handwritten reveal swaps in as soon as the font is ready.
+        const ci = linaFindActiveLine(lines, time);
+        if (ci < 0) return;
+        const line = linaNormaliseLine(lines, ci);
+        if (!line || !line.text) return;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = style.eternalInkColor || style.textColor || '#FFF';
+        const B = window.kefeEffectUtils.textBlock(ctx, String(line.text), { font: (c, sz) => { c.font = '400 ' + Math.max(8, sz) + 'px "Homemade Apple", cursive, serif'; }, tag: 'eternalfb', size: Number(style.fontSize) || 76, w: w * 0.9, h: h * 0.8, lh: 1.25, maxLines: 3 });
+        B.rows.forEach((row, i) => ctx.fillText(row, w / 2, h / 2 - B.blockH / 2 + (i + 0.5) * B.rowH));
+        ctx.restore();
+        return;
+    }
+    const ci = linaFindActiveLine(lines, time);
+    if (ci < 0) return;
+    const pageStart = Math.floor(ci / 3) * 3;
+    const cycleIndex = Math.floor(pageStart / 3);
+    const group = [linaNormaliseLine(lines, pageStart), linaNormaliseLine(lines, pageStart+1), linaNormaliseLine(lines, pageStart+2)];
+    const positions = getEternalPositions(cycleIndex);
+    const sizes = getEternalSizes(cycleIndex);
+    const margin = Math.max(50, Math.min(w, h) * 0.065);
+    const baseSize = Number(style.fontSize) || 76;
+    const inkColor = style.eternalInkColor || style.textColor || "#FFF";
+    const penWidth = Number(style.eternalPenWidth) || 21;
+    const writeSpan = Number(style.eternalWriteSpan) || 0.90;
+    const glow = Number(style.eternalGlow) || 3;
+    const presence = linaClamp(Number(style.eternalPresence) || 0.65, 0, 1);
+    const validLines = group.filter(Boolean);
+    const finalLine = validLines[validLines.length - 1];
+
+    ctx.save();
+    for (let slot = 0; slot < 3; slot++) {
+        const line = group[slot];
+        if (!line || time < line.time) continue;
+        const text = String(line.text || "").trim();
+        if (!text) continue;
+
+        let targetSize = linaClamp(baseSize * sizes[slot], 34, 150);
+        const prepared = fitEternalText(text, targetSize, w - margin * 2);
+        if (!prepared) continue;
+
+        const cache = prepared.cache, fontSize = prepared.fontSize;
+        const duration = Math.max(0.001, line.endTime - line.time);
+        const rawProgress = linaClamp((time - line.time) / (duration * Math.max(0.20, writeSpan)));
+        const progress = linaSmoother(rawProgress);
+        const rendered = renderInkRow(cache, progress, { fontSize, inkColor, penWidth, glow });
+        if (!rendered) continue;
+
+        const vh = cache.ascent + cache.descent;
+        const placement = getEternalPlacement(positions[slot], w, h, cache.textWidth, vh, margin);
+        let alpha = getEternalLineAlpha(slot, group, time);
+
+        if (finalLine) {
+            const fd = Math.max(0.20, finalLine.endTime - finalLine.time);
+            const cs = finalLine.endTime - Math.min(0.65, Math.max(0.30, fd * 0.18));
+            if (time > cs) alpha *= 1 - linaSmooth((time - cs) / Math.min(0.65, Math.max(0.30, fd * 0.18)));
+        }
+
+        const isWriting = rawProgress > 0 && rawProgress < 1;
+        const writeEnergy = isWriting ? Math.sin(rawProgress * Math.PI) : 0;
+        const popScale = 1 + presence * 0.018 * writeEnergy;
+        const bloom = fontSize * (glow / 100 + presence * 0.055 * writeEnergy);
+        const echoAlpha = alpha * presence * 0.13 * writeEnergy;
+
+        const drawX = placement.x - cache.padding;
+        const drawY = placement.y - cache.padding;
+        const centreX = placement.x + cache.textWidth / 2;
+        const centreY = placement.y + vh / 2;
+
+        ctx.save();
+        ctx.translate(centreX, centreY);
+        ctx.scale(popScale, popScale);
+        ctx.translate(-centreX, -centreY);
+
+        if (echoAlpha > 0.001) {
+            ctx.save();
+            ctx.globalAlpha = echoAlpha;
+            ctx.shadowColor = inkColor;
+            ctx.shadowBlur = bloom * 1.7;
+            ctx.drawImage(rendered, drawX + fontSize * 0.012, drawY + fontSize * 0.010);
+            ctx.restore();
+        }
+
+        ctx.globalAlpha = alpha;
+        ctx.shadowColor = inkColor;
+        ctx.shadowBlur = bloom;
+        ctx.drawImage(rendered, drawX, drawY);
+        ctx.restore();
+    }
+    ctx.restore();
+}
+
+function fitCentredEffectText(ctx, text, baseSize, maxWidth, weight, family) {
+    const face = family || '"Open Sans"';
+    let size = Number(baseSize) || 76;
+    ctx.font = `${weight} ${size}px ${face},Arial,sans-serif`;
+    while (size > 30 && ctx.measureText(text).width > maxWidth) {
+        size -= 2;
+        ctx.font = `${weight} ${size}px ${face},Arial,sans-serif`;
+    }
+    return size;
+}
+
+function activeEffectLine(lines, time) {
+    const index = linaFindActiveLine(lines, time);
+    return index >= 0 ? linaNormaliseLine(lines, index) : null;
+}
+
+function drawAuroraEffect(ctx, w, h, style, lines, time) {
+    const line = activeEffectLine(lines, time);
+    if (!line) return;
+    const text = String(line.text || '').trim();
+    if (!text) return;
+    const u = window.kefeEffectUtils;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const B = u.textBlock(ctx, text, { font: (c, sz) => { c.font = `500 ${Math.max(8, sz)}px "Bricolage Grotesque",Arial,sans-serif`; }, tag: 'aurora', size: style.fontSize, w: w * 0.96, h: h * 0.94, lh: 1.08 * (style.fxSpacing || 1), maxLines: 3 });
+    const size = B.size;
+    const speed = Number(style.auroraSpeed) || 1.2;
+    const intensity = Number(style.auroraIntensity) || 0.7;
+    const saturation = linaClamp(Number(style.auroraSaturation) || 1, 0.2, 1.8);
+    const hueBase = (time * speed * 28 + 180) % 360;
+    const gradient = ctx.createLinearGradient(w * 0.04, h / 2 - B.blockH / 2, w * 0.96, h / 2 + B.blockH / 2);
+    for (let i = 0; i <= 6; i++) {
+        const stop = i / 6;
+        const hue = (hueBase + stop * 135) % 360;
+        const light = 63 + 12 * Math.sin(time * speed + i * 0.85);
+        gradient.addColorStop(stop, `hsl(${hue} ${Math.min(100, 76 * saturation)}% ${light}%)`);
+    }
+    ctx.fillStyle = gradient;
+    ctx.shadowColor = `hsl(${(hueBase + 65) % 360} 100% 72%)`;
+    ctx.shadowBlur = size * 0.20 * intensity;
+    B.rows.forEach((row, i) => ctx.fillText(row, w / 2, h / 2 - B.blockH / 2 + (i + 0.5) * B.rowH));
+    ctx.restore();
+}
+
+function drawPulseEffect(ctx, w, h, style, lines, time) {
+    const line = activeEffectLine(lines, time);
+    if (!line) return;
+    const text = String(line.text || '').trim();
+    if (!text) return;
+    const amplitude = linaClamp(Number(style.pulseAmplitude) || 0.4, 0.05, 1);
+    const glowSize = Number(style.pulseGlowSize) || 1;
+    const colour = style.accentColor || '#FFFFFF';
+    const lineStart = Number(line.time) || 0;
+    const lineEnd = Math.max(lineStart + 0.4, Number(line.endTime) || lineStart + 3);
+    const tokens = text.split(/\s+/).filter(Boolean);
+    if (!tokens.length) return;
+    const perWord = Array.isArray(line.words) && line.words.length === tokens.length
+        ? line.words.map((w, i) => ({ text: tokens[i], start: Number(w.time) || lineStart + (i / tokens.length) * (lineEnd - lineStart), end: Number(w.endTime) || lineStart + ((i + 1) / tokens.length) * (lineEnd - lineStart) }))
+        : tokens.map((t, i) => ({ text: t, start: lineStart + (i / tokens.length) * (lineEnd - lineStart), end: lineStart + ((i + 1) / tokens.length) * (lineEnd - lineStart) }));
+    const u = window.kefeEffectUtils;
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    const fitted = u.fitRows(ctx, perWord.map(p => p.text), { font: (c, sz) => { c.font = `800 ${Math.max(8, sz)}px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`; }, tag: 'pulse', size: (Number(style.fontSize) || 76), maxW: w * 0.90, maxH: h * 0.80, lineHeight: 1.22 * (style.fxSpacing || 1), gap: 0.26, maxLines: 3 });
+    const fontSize = fitted.size;
+    ctx.font = `800 ${fontSize}px "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
+    const top = h / 2 - fitted.blockH / 2;
+    fitted.rows.forEach((row, ri) => {
+        let cursorX = (w - row.width) / 2;
+        const y = top + (ri + 0.5) * fitted.rowH;
+        for (let i = row.from; i < row.to; i++) {
+            const word = perWord[i], wd = fitted.widths[i];
+            const duration = Math.max(0.001, word.end - word.start);
+            const local = linaClamp((time - word.start) / duration);
+            const pulse = linaSmoother(Math.sin(local * Math.PI));
+            const scale = 1 + amplitude * 0.28 * pulse;
+            const glow = fontSize * 0.10 * glowSize * pulse;
+            const alpha = time < word.start ? 0.28 : time >= word.end ? 0.88 : 1.0;
+            ctx.save();
+            ctx.globalAlpha = alpha; ctx.fillStyle = colour; ctx.shadowColor = colour; ctx.shadowBlur = glow;
+            ctx.translate(cursorX + wd / 2, y); ctx.scale(scale, scale);
+            ctx.fillText(word.text, -wd / 2, 0);
+            ctx.restore();
+            cursorX += wd + fitted.gap;
+        }
+    });
+    ctx.restore();
+}
+
+/* ---------- Apple Music 1:1 lyrics engine integration ---------- */
+const appleLyricsEngine = (() => {
+    const audioEl = audio;
+    let coverImage = null;
+    let coverURL = null;
+    let lyrics = [];
+    let destroyed = false;
+
+    // Apple effect owns one offscreen WebGL renderer. It is deliberately kept
+    // separate from KEFE's main 2D export canvas so the existing renderer and
+    // every other effect remain unchanged.
+    const webglCanvas = document.createElement('canvas');
+    const gl = webglCanvas.getContext('webgl', { alpha: false, antialias: false });
+    let program = null;
+    let vertexShader = null;
+    let fragmentShader = null;
+    let positionBuffer = null;
+    let texture = null;
+    let positionLocation = -1;
+    let textureLocation = null;
+    let timeLocation = null;
+    let webglReady = false;
+
+    const vertexSource = `
+        attribute vec2 a_position;
+        varying vec2 v_uv;
+        void main() {
+            v_uv = (a_position + 1.0) * 0.5;
+            v_uv.y = 1.0 - v_uv.y;
+            gl_Position = vec4(a_position, 0.0, 1.0);
+        }
+    `;
+
+    const fragmentSource = `
+        precision mediump float;
+        uniform sampler2D u_texture;
+        uniform float u_time;
+        varying vec2 v_uv;
+
+        vec2 twist(vec2 uv, vec2 center, float radius, float angle) {
+            vec2 d = uv - center;
+            float dist = length(d);
+            if (dist < radius) {
+                float percent = (radius - dist) / radius;
+                float theta = percent * percent * angle;
+                float s = sin(theta);
+                float c = cos(theta);
+                d = vec2(d.x * c - d.y * s, d.x * s + d.y * c);
+            }
+            return center + d;
+        }
+
+        void main() {
+            vec2 center = vec2(
+                0.5 + 0.15 * sin(u_time * 0.4),
+                0.5 + 0.15 * cos(u_time * 0.3)
+            );
+            vec2 uv = twist(v_uv, center, 0.7, 2.0 * sin(u_time * 0.5));
+            vec4 color = texture2D(u_texture, uv);
+            gl_FragColor = vec4(color.rgb * 1.2, 1.0);
+        }
+    `;
+
+    function compileShader(type, source) {
+        if (!gl) return null;
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            console.warn('KEFE Apple lyrics WebGL shader error:', gl.getShaderInfoLog(shader));
+            gl.deleteShader(shader);
+            return null;
+        }
+        return shader;
+    }
+
+    function initWebGL() {
+        if (!gl || webglReady) return webglReady;
+        vertexShader = compileShader(gl.VERTEX_SHADER, vertexSource);
+        fragmentShader = compileShader(gl.FRAGMENT_SHADER, fragmentSource);
+        if (!vertexShader || !fragmentShader) return false;
+
+        program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            console.warn('KEFE Apple lyrics WebGL link error:', gl.getProgramInfoLog(program));
+            gl.deleteProgram(program);
+            program = null;
+            return false;
+        }
+
+        positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            -1,-1, 1,-1, -1,1,
+            -1,1, 1,-1, 1,1
+        ]), gl.STATIC_DRAW);
+
+        positionLocation = gl.getAttribLocation(program, 'a_position');
+        textureLocation = gl.getUniformLocation(program, 'u_texture');
+        timeLocation = gl.getUniformLocation(program, 'u_time');
+        texture = gl.createTexture();
+
+        gl.useProgram(program);
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.uniform1i(textureLocation, 0);
+
+        webglReady = true;
+        return true;
+    }
+
+    function updateWebGLTexture() {
+        if (!initWebGL() || !coverImage || !coverImage.complete || !coverImage.naturalWidth) return;
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        try {
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, coverImage);
+        } catch (error) {
+            console.warn('KEFE Apple lyrics WebGL texture upload failed:', error);
+        }
+    }
+
+    function renderBackground(ctx2d, width, height, time) {
+        if (!webglReady || !texture || !coverImage) return false;
+        const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reducedMotion) time = 0;
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        const targetW = Math.max(1, Math.floor(width * dpr));
+        const targetH = Math.max(1, Math.floor(height * dpr));
+        if (webglCanvas.width !== targetW || webglCanvas.height !== targetH) {
+            webglCanvas.width = targetW;
+            webglCanvas.height = targetH;
+        }
+        gl.viewport(0, 0, targetW, targetH);
+        gl.useProgram(program);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1f(timeLocation, time);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        ctx2d.save();
+        ctx2d.globalAlpha = 0.9;
+        ctx2d.filter = 'blur(50px) brightness(0.7) contrast(1.2)';
+        ctx2d.drawImage(webglCanvas, -width * 0.10, -height * 0.10, width * 1.20, height * 1.20);
+        ctx2d.restore();
+        return true;
+    }
+
+    function on(target, type, handler, options) {
+        target?.addEventListener(type, handler, options);
+        return () => target?.removeEventListener(type, handler, options);
+    }
+
+    function parseTTML(source) {
+        if (Array.isArray(source)) return source.map(normaliseLine).filter(Boolean);
+        if (typeof source !== 'string' || !source.trim()) return [];
+        try {
+            const xml = new DOMParser().parseFromString(source, 'application/xml');
+            if (xml.querySelector('parsererror')) throw new Error('Invalid TTML');
+
+            const attr = (node, localName) =>
+                node?.getAttribute(localName) ||
+                Array.from(node?.attributes || []).find(a => a.localName === localName)?.value ||
+                '';
+
+            const parseParagraph = p => {
+                const lineStart = parseTTMLTime(attr(p, 'begin'));
+                const lineEnd = parseTTMLTime(attr(p, 'end'));
+                const lineDur = parseTTMLTime(attr(p, 'dur'));
+                const resolvedEnd = Number.isFinite(lineEnd)
+                    ? lineEnd
+                    : (Number.isFinite(lineStart) && Number.isFinite(lineDur) ? lineStart + lineDur : NaN);
+                const fragments = [];
+
+                const walk = (node, inheritedStart, inheritedEnd, inheritedRole = '', inheritedAgent = '', inheritedBackground = false) => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        const text = node.nodeValue || '';
+                        if (!text.trim()) return;
+                        fragments.push({
+                            text,
+                            time: inheritedStart,
+                            endTime: inheritedEnd,
+                            role: inheritedRole,
+                            agent: inheritedAgent,
+                            background: inheritedBackground
+                        });
+                        return;
+                    }
+                    if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+                    const ownStart = parseTTMLTime(attr(node, 'begin'));
+                    const ownEnd = parseTTMLTime(attr(node, 'end'));
+                    const ownDur = parseTTMLTime(attr(node, 'dur'));
+                    const ownRole = attr(node, 'role');
+                    const start = Number.isFinite(ownStart) ? ownStart : inheritedStart;
+                    const end = Number.isFinite(ownEnd)
+                        ? ownEnd
+                        : (Number.isFinite(ownDur) && Number.isFinite(start) ? start + ownDur : inheritedEnd);
+                    const role = ownRole || inheritedRole;
+                    const background = inheritedBackground || role.toLowerCase() === 'x-bg';
+
+                    for (const child of node.childNodes) walk(child, start, end, role, attr(node, 'agent') || inheritedAgent, background);
+                };
+
+                for (const child of p.childNodes) walk(child, lineStart, resolvedEnd);
+
+                const primaryFragments = fragments.filter(f => {
+                    const role = String(f.role || '').toLowerCase();
+                    return !f.background && role !== 'x-translation' && role !== 'x-roman';
+                });
+                const translationFragments = fragments.filter(f =>
+                    !f.background && String(f.role || '').toLowerCase() === 'x-translation'
+                );
+                const romanizedFragments = fragments.filter(f =>
+                    !f.background && String(f.role || '').toLowerCase() === 'x-roman'
+                );
+                const backgroundFragments = fragments.filter(f => {
+                    const role = String(f.role || '').toLowerCase();
+                    return f.background && role !== 'x-translation' && role !== 'x-roman';
+                });
+
+                const timedFragments = primaryFragments
+                    .filter(f => f.text.trim() && Number.isFinite(f.time) && Number.isFinite(f.endTime) && f.endTime > f.time)
+                    .flatMap(fragment => {
+                        const tokens = fragment.text.trim().split(/\s+/).filter(Boolean);
+                        if (tokens.length <= 1) return [{
+                            ...fragment,
+                            text: fragment.text.trim()
+                        }];
+                        const weights = tokens.map(token => Math.max(1, Array.from(token.replace(/[^\p{L}\p{N}]/gu, '')).length));
+                        const total = weights.reduce((sum, value) => sum + value, 0);
+                        let cursor = fragment.time;
+                        return tokens.map((text, index) => {
+                            const duration = (fragment.endTime - fragment.time) * (weights[index] / total);
+                            const item = {
+                                ...fragment,
+                                text,
+                                time: cursor,
+                                endTime: index === tokens.length - 1 ? fragment.endTime : cursor + duration
+                            };
+                            cursor = item.endTime;
+                            return item;
+                        });
+                    });
+
+                const backgroundLines = backgroundFragments
+                    .filter(f => Number.isFinite(f.time) && Number.isFinite(f.endTime) && f.endTime > f.time)
+                    .flatMap(fragment => {
+                        const tokens = fragment.text.trim().split(/\s+/).filter(Boolean);
+                        if (!tokens.length) return [];
+                        if (tokens.length === 1) return [{ text: tokens[0], time: fragment.time, endTime: fragment.endTime, agent: fragment.agent, background: true }];
+                        const weights = tokens.map(token => Math.max(1, Array.from(token.replace(/[^\p{L}\p{N}]/gu, '')).length));
+                        const total = weights.reduce((sum, value) => sum + value, 0);
+                        let cursor = fragment.time;
+                        return tokens.map((text, index) => {
+                            const duration = (fragment.endTime - fragment.time) * (weights[index] / total);
+                            const item = {
+                                text,
+                                time: cursor,
+                                endTime: index === tokens.length - 1 ? fragment.endTime : cursor + duration,
+                                agent: fragment.agent,
+                                background: true
+                            };
+                            cursor = item.endTime;
+                            return item;
+                        });
+                    });
+
+                const primaryText = primaryFragments.map(f => f.text).join('').replace(/\s+/g, ' ').trim();
+                const translation = translationFragments.map(f => f.text).join('').replace(/\s+/g, ' ').trim();
+                const transliteration = romanizedFragments.map(f => f.text).join('').replace(/\s+/g, ' ').trim();
+
+                return {
+                    time: lineStart,
+                    endTime: Number.isFinite(resolvedEnd) ? resolvedEnd : undefined,
+                    text: primaryText,
+                    words: timedFragments,
+                    translation,
+                    transliteration,
+                    backgroundLines,
+                    role: attr(p, 'role'),
+                    agent: attr(p, 'agent')
+                };
+            };
+
+            const parsed = Array.from(xml.querySelectorAll('p'))
+                .map(parseParagraph)
+                .filter(line => line.text.trim() && Number.isFinite(line.time));
+
+            const primary = parsed.filter(line => {
+                const role = String(line.role || '').toLowerCase();
+                return role !== 'x-translation' && role !== 'x-roman' && role !== 'x-bg';
+            });
+            const translated = parsed.filter(line => String(line.role || '').toLowerCase() === 'x-translation');
+            const romanized = parsed.filter(line => String(line.role || '').toLowerCase() === 'x-roman');
+
+            const background = parsed.filter(line => String(line.role || '').toLowerCase() === 'x-bg');
+            return primary.map((line, index) => ({
+                ...line,
+                translation: translated[index]?.text?.trim() || '',
+                transliteration: romanized[index]?.text?.trim() || '',
+                backgroundLines: background.filter(bg => {
+                    const bgStart = Number(bg.time);
+                    const lineStart = Number(line.time);
+                    const lineEnd = Number(line.endTime);
+                    return Number.isFinite(bgStart) && Number.isFinite(lineStart)
+                        && bgStart >= lineStart
+                        && (!Number.isFinite(lineEnd) || bgStart < lineEnd);
+                })
+            })).map(normaliseLine).filter(Boolean);
+        } catch (error) {
+            console.warn('KEFE Apple lyrics: TTML parse failed', error);
+            return [];
+        }
+    }
+
+    function parseTTMLTime(value) {
+        if (value == null || value === '') return NaN;
+        const raw = String(value).trim();
+        if (/^\d+(?:\.\d+)?s$/.test(raw)) return Number.parseFloat(raw);
+        if (/^\d+(?:\.\d+)?ms$/.test(raw)) return Number.parseFloat(raw) / 1000;
+        const parts = raw.split(':').map(Number);
+        if (parts.some(Number.isNaN)) return NaN;
+        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        return Number(raw);
+    }
+
+    function normaliseLine(line) {
+        if (!line) return null;
+        const time = Number(line.time ?? line.start);
+        if (!Number.isFinite(time)) return null;
+        const text = String(line.text ?? '').trim();
+        if (!text) return null;
+        const endTime = Number(line.endTime ?? line.end);
+        const words = Array.isArray(line.words) ? line.words.map(w => ({
+            ...w,
+            text: String(w?.text ?? ''),
+            time: Number(w?.time ?? w?.start),
+            endTime: Number(w?.endTime ?? w?.end)
+        })).filter(w => w.text && Number.isFinite(w.time) && Number.isFinite(w.endTime)) : null;
+        return {
+            ...line,
+            text,
+            time,
+            endTime: Number.isFinite(endTime) ? endTime : undefined,
+            words
+        };
+    }
+
+    async function setCover(source) {
+        if (coverURL) { try { URL.revokeObjectURL(coverURL); } catch (e) {} coverURL = null; }
+        coverImage = null;
+        albumArtworkImage = null;
+        if (!source) return;
+        if (source instanceof HTMLImageElement) {
+            coverImage = source;
+        } else if (source instanceof Blob) {
+            coverURL = URL.createObjectURL(source);
+            coverImage = new Image();
+            coverImage.src = coverURL;
+        } else {
+            coverImage = new Image();
+            coverImage.crossOrigin = 'anonymous';
+            coverImage.src = String(source);
+        }
+        await new Promise(resolve => {
+            if (!coverImage) return resolve();
+            if (coverImage.complete && coverImage.naturalWidth) return resolve();
+            coverImage.onload = resolve;
+            coverImage.onerror = resolve;
+        });
+        if (destroyed) return;
+        albumArtworkImage = coverImage;
+        updateWebGLTexture();
+    }
+
+    async function loadTrack(trackData = {}) {
+        const data = trackData || {};
+        destroyed = false;
+        lyrics = parseTTML(data.ttmlLyrics);
+        state.lyrics.lines = lyrics;
+        state.captions.lines = [];
+        if (data.title != null) state.audio.metadata.title = String(data.title);
+        if (data.artist != null) state.audio.metadata.artist = String(data.artist);
+        if (data.coverUrl !== undefined) await setCover(data.coverUrl);
+        state.playback.currentTime = 0;
+        setMasterTime(0);
+        redrawCurrentPreviewFrame();
+        return { ...data, lyrics };
+    }
+
+    function lineAtCanvasPoint(event) {
+        if (!canvas || !lyrics.length) return null;
+        const rect = canvas.getBoundingClientRect();
+        const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+        const time = getMasterTime();
+        const w = canvas.width, h = canvas.height, style = state.style;
+        const settings = {
+            fontSize: appleSafeFontSize(ctx, lyrics, Number(style.fontSize) || 76, w),
+            align: style.align || 'left',
+            activeColor: '#FFFFFF',
+            inactiveColor: 'rgba(255,255,255,0.46)',
+            backgroundColor: '#FFFFFF',
+            inactiveOpacity: Number.isFinite(Number(style.appleInactiveOpacity)) ? Number(style.appleInactiveOpacity) : 0.25,
+            glow: 0.012, depth: 0.008, lift: 0, highlightSpan: 0.96,
+            topOffset: Number(style.appleTopOffset) || 0.245,
+            lineSpacing: (Number(style.appleLineSpacing) || 0.72) * (Number(style.fxSpacing) || 1)
+        };
+        const activeIndex = linaFindActiveLine(lyrics, time);
+        if (activeIndex < 0) return null;
+        const visibleCount = Math.max(2, Math.min(6, Math.round(Number(style.appleVisibleLines) || 4)));
+        const motion = getAppleFocalMotion(lyrics, time);
+        const fromLayout = buildAppleMusicLayout(ctx, w, h, settings, lyrics, motion?.fromIndex ?? activeIndex, visibleCount);
+        const toLayout = buildAppleMusicLayout(ctx, w, h, settings, lyrics, motion?.toIndex ?? activeIndex, visibleCount);
+        const p = motion && motion.fromIndex !== motion.toIndex ? linaClamp(motion.progress) : 1;
+        const entries = new Map();
+        for (const item of fromLayout) entries.set(item.lineIndex, item);
+        for (const item of toLayout) {
+            const from = entries.get(item.lineIndex);
+            const centreY = from && motion && motion.fromIndex !== motion.toIndex
+                ? from.centreY + (item.centreY - from.centreY) * p
+                : item.centreY;
+            entries.set(item.lineIndex, { ...item, centreY });
+        }
+        for (const item of entries.values()) {
+            const half = item.measurement.totalHeight / 2;
+            if (y >= item.centreY - half && y <= item.centreY + half) return lyrics[item.lineIndex];
+        }
+        return null;
+    }
+
+    function seekLine(event) {
+        if (destroyed || isExporting || state.style.effect !== 'apple') return;
+        const line = lineAtCanvasPoint(event);
+        if (!line || !Number.isFinite(line.time)) return;
+        setMasterTime(line.time);
+        redrawCurrentPreviewFrame();
+    }
+
+    const removeCanvasClick = on(canvas, 'click', seekLine);
+    const removeAudioMetadata = on(audioEl, 'loadedmetadata', () => {
+        state.audio.duration = Number.isFinite(audioEl.duration) ? audioEl.duration : state.audio.duration;
+        redrawCurrentPreviewFrame();
+    });
+
+    function teardown() {
+        destroyed = true;
+        removeCanvasClick();
+        removeAudioMetadata();
+        if (coverURL) { try { URL.revokeObjectURL(coverURL); } catch (e) {} coverURL = null; }
+        coverImage = null;
+        albumArtworkImage = null;
+        if (gl) {
+            if (texture) gl.deleteTexture(texture);
+            if (positionBuffer) gl.deleteBuffer(positionBuffer);
+            if (program) gl.deleteProgram(program);
+            if (vertexShader) gl.deleteShader(vertexShader);
+            if (fragmentShader) gl.deleteShader(fragmentShader);
+        }
+        texture = null;
+        positionBuffer = null;
+        program = null;
+        vertexShader = null;
+        fragmentShader = null;
+        webglReady = false;
+    }
+
+    return {
+        loadTrack,
+        teardown,
+        renderBackground,
+        get lyrics() { return lyrics; }
+    };
+})();
+window.kefeAppleLyricsEngine = appleLyricsEngine;
+window.loadTrack = appleLyricsEngine.loadTrack;
+
+function renderLyricsEffect(ctx, w, h, style, lines, time) {
+    ctx.save();
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over"; ctx.filter = "none"; ctx.shadowBlur = 0;
+    const draw = (c, bw, bh, s, l, t) => {
+        switch (s.effect) {
+            case "apple": drawAppleEffect(c, bw, bh, s, l, t); break;
+            case "brat": drawBratEffect(c, bw, bh, s, l, t); break;
+            case "eternal": drawEternalSunshineEffect(c, bw, bh, s, l, t); break;
+            case "aurora": drawAuroraEffect(c, bw, bh, s, l, t); break;
+            case "pulse": drawPulseEffect(c, bw, bh, s, l, t); break;
+            default: {
+                const fn = window.kefeEffects && window.kefeEffects[s.effect];
+                if (typeof fn === "function") fn(c, bw, bh, s, l, t);
+                else drawAppleEffect(c, bw, bh, s, l, t);
+            }
+        }
+    };
+    if (window.kefeLayout) window.kefeLayout.render(style.effect, ctx, w, h, style, lines, time, draw);
+    else draw(ctx, w, h, style, lines, time);
+    ctx.restore();
+}
+
+/* ---------- Dedicated caption/subtitle style (Captioned Video) ----------
+   Conventional caption presentation — deliberately separate from the lyric
+   effects: centred, high-contrast, positioned in the caption-safe area. */
+function captionActiveLine(lines, time) {
+    let active = null;
+    for (const line of lines) {
+        const start = Number(line?.time);
+        if (!Number.isFinite(start) || start > time) continue;
+        if (!String(line?.text || '').trim()) continue;
+        const end = Number(line?.endTime);
+        const finish = Number.isFinite(end) && end > start ? end : start + 3;
+        if (time < finish) active = { line, start, finish };
+    }
+    return active;
+}
+function wrapCaptionText(ctx, text, maxWidth) {
+    const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+    const rows = [];
+    let row = '';
+    for (const word of words) {
+        const proposed = row ? row + ' ' + word : word;
+        if (row && ctx.measureText(proposed).width > maxWidth) { rows.push(row); row = word; }
+        else row = proposed;
+    }
+    if (row) rows.push(row);
+    return rows.slice(0, 3); // conventional captions never run past three lines
+}
+function renderCaptionStyle(ctx, w, h, lines, time) {
+    const cs = state.captionStyle || {};
+    const active = captionActiveLine(lines, time);
+    if (!active) return;
+    const unit = Math.min(w, h);
+    const fontSize = Math.max(26, Math.round(unit * 0.037));
+    ctx.save();
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none'; ctx.shadowBlur = 0;
+    ctx.font = `600 ${fontSize}px "Open Sans", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    const rows = wrapCaptionText(ctx, active.line.text, w * 0.82);
+    if (!rows.length) { ctx.restore(); return; }
+    const lineHeight = fontSize * 1.32;
+    const safe = unit * 0.085; // caption-safe area — never against the frame edge
+    const isTop = cs.position === 'top';
+    const lastBaseline = isTop ? safe + fontSize + (rows.length - 1) * lineHeight : h - safe;
+    const firstBaseline = lastBaseline - (rows.length - 1) * lineHeight;
+    // Gentle fade in/out at the edges of each caption segment.
+    const fade = linaClamp((time - active.start) / 0.15) * linaClamp((active.finish - time) / 0.25);
+    const opacity = linaClamp(Number(cs.opacity) || 1, 0.1, 1);
+    ctx.globalAlpha = opacity * fade;
+    ctx.fillStyle = /^#[0-9a-f]{6}$/i.test(cs.color || '') ? cs.color : '#FFFFFF';
+    if (cs.shadow !== false) {
+        // Simple, professional readability treatment: dark outline + soft drop shadow.
+        ctx.strokeStyle = 'rgba(0,0,0,0.88)';
+        ctx.lineWidth = Math.max(2, fontSize * 0.085);
+        ctx.lineJoin = 'round';
+        ctx.miterLimit = 2;
+        ctx.shadowColor = 'rgba(0,0,0,0.85)';
+        ctx.shadowBlur = fontSize * 0.22;
+        ctx.shadowOffsetY = Math.max(1.5, fontSize * 0.055);
+    }
+    rows.forEach((row, i) => {
+        const y = firstBaseline + i * lineHeight;
+        if (cs.shadow !== false) ctx.strokeText(row, w / 2, y);
+        ctx.fillText(row, w / 2, y);
+    });
+    ctx.restore();
+}
+
+function drawCover(ctx, media, w, h, blur) {
+    const mw = media.videoWidth || media.width, mh = media.videoHeight || media.height;
+    if (!mw || !mh) return;
+    const scale = Math.max(w / mw, h / mh);
+    const dw = mw * scale, dh = mh * scale;
+    const dx = (w - dw) / 2, dy = (h - dh) / 2;
+    if (blur > 0) { ctx.filter = `blur(${blur}px)`; ctx.drawImage(media, dx - blur*2, dy - blur*2, dw + blur*4, dh + blur*4); ctx.filter = "none"; }
+    else ctx.drawImage(media, dx, dy, dw, dh);
+}
+function ensureVideoFrameCacheSize(w, h) {
+    if (lastVideoFrame.width !== w || lastVideoFrame.height !== h) { lastVideoFrame.width = w; lastVideoFrame.height = h; hasLastVideoFrame = false; }
+}
+function drawVideoBackgroundStable(ctx, video, w, h, blur) {
+    ensureVideoFrameCacheSize(w, h);
+    const valid = video && video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0 && !video.seeking;
+    if (valid) {
+        drawCover(ctx, video, w, h, blur);
+        if (video.paused || video.seeking || !hasLastVideoFrame) {
+            lastVideoFrameCtx.clearRect(0, 0, w, h);
+            drawCover(lastVideoFrameCtx, video, w, h, blur);
+            hasLastVideoFrame = true;
+        }
+        return;
+    }
+    if (hasLastVideoFrame) { ctx.drawImage(lastVideoFrame, 0, 0, w, h); return; }
+    ctx.fillStyle = state.background.solid || "#0A0A0A";
+    ctx.fillRect(0, 0, w, h);
+}
+function drawBackground(ctx, w, h, bg, media) {
+    ctx.save();
+    ctx.fillStyle = bg.solid || "#0A0A0A";
+    ctx.fillRect(0, 0, w, h);
+    if (bg.type === "image" && media.image) drawCover(ctx, media.image, w, h, bg.blur);
+    else if (bg.type === "video") drawVideoBackgroundStable(ctx, media.video, w, h, bg.blur);
+    if (bg.dim > 0) { ctx.fillStyle = `rgba(0,0,0,${linaClamp(bg.dim)})`; ctx.fillRect(0, 0, w, h); }
+    ctx.restore();
+}
+
+const TITLECARD_DESIGN_LABELS = { auto: 'Auto (matches effect)', minimal: 'Minimal', spotlight: 'Spotlight', editorial: 'Editorial', statement: 'Statement' };
+const TITLECARD_DESIGN_FOR_EFFECT = { apple: 'minimal', brat: 'statement', eternal: 'editorial', aurora: 'spotlight', pulse: 'spotlight', typewriter: 'editorial', instagram: 'statement', fadeup: 'minimal' };
+function resolveTitleCardDesign(appState) {
+    const chosen = appState.style.titleCardStyle || 'auto';
+    if (chosen !== 'auto' && TITLECARD_DESIGN_LABELS[chosen] && chosen !== 'auto') return chosen;
+    return TITLECARD_DESIGN_FOR_EFFECT[appState.style.effect] || 'minimal';
+}
+function titleCardPhase(appState, time) {
+    const introDuration = linaClamp(Number(appState.style.titleCardDuration) || 3, 1, 15);
+    const totalDuration = Number(appState.audio?.duration) || 0;
+    const outroDuration = 1.6;
+    const isIntro = time >= 0 && time < introDuration;
+    const outroStart = totalDuration > outroDuration ? totalDuration - outroDuration : Infinity;
+    const isOutro = time >= outroStart && time <= totalDuration + 0.05;
+    if (!isIntro && !isOutro) return null;
+    const phaseTime = isOutro ? time - outroStart : time;
+    const phaseDuration = isOutro ? outroDuration : introDuration;
+    const enter = linaSmoother(linaClamp(phaseTime / 0.5));
+    const exit = isIntro
+        ? 1 - linaSmoother(linaClamp((phaseTime - (phaseDuration - 0.45)) / 0.45))
+        : 1;
+    return { intro: isIntro, alpha: linaClamp(enter * exit), enter };
+}
+function renderTitleCard(ctx, w, h, time, appState) {
+    if (!appState.style.titleCardEnabled) return false;
+    const phase = titleCardPhase(appState, time);
+    if (!phase) return false;
+    const metadata = resolveAudioLabels(appState.audio);
+    const info = {
+        title: metadata.title || 'UNTITLED',
+        artist: metadata.artist,
+        album: metadata.album,
+        artwork: appState.audio?.hasArtwork && albumArtworkImage ? albumArtworkImage : null
+    };
+    const design = resolveTitleCardDesign(appState);
+    if (design === 'spotlight') return renderTitleCardSpotlight(ctx, w, h, phase, info);
+    if (design === 'editorial') return renderTitleCardEditorial(ctx, w, h, phase, info);
+    if (design === 'statement') return renderTitleCardStatement(ctx, w, h, appState, phase, info);
+    return renderTitleCardMinimal(ctx, w, h, phase, info);
+}
+
 function renderPersistentNowPlaying(ctx, w, h, time, appState) {
     if (appState.style.titleCardEnabled === false) return;
     if (appState.projectType === 'captioned') return;
@@ -8,20 +2013,6 @@ function renderPersistentNowPlaying(ctx, w, h, time, appState) {
     // The full title card owns the intro. Do not render the compact now-playing
     // card on top of it — that created a second copy of the title/artwork and
     // made the handoff appear to jump sideways.
-    const elapsed = time - introDuration;
-    if (elapsed < 0) return;
-
-    const progress = linaSmoother(linaClamp(elapsed / transitionDuration));
-    drawCompactNowPlaying(ctx, w, h, appState, progress);
-}
-
-function renderPersistentNowPlaying(ctx, w, h, time, appState) {
-    if (appState.style.titleCardEnabled === false) return;
-    if (appState.projectType === 'captioned') return;
-    if (titleCardPhase(appState, time)) return;
-
-    const introDuration = linaClamp(Number(appState.style.titleCardDuration) || 3, 1, 15);
-    const transitionDuration = 0.72;
     const elapsed = time - introDuration;
     if (elapsed < 0) return;
 
