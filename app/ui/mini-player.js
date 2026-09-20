@@ -60,6 +60,7 @@
             <canvas id="kefeVinylVisualizer" aria-hidden="true"></canvas>
             <div class="kefe-vinyl-disc-wrap">
               <div class="kefe-vinyl-disc" id="kefeVinylDisc" aria-hidden="true">
+                <img id="kefeVinylArtwork" class="kefe-vinyl-artwork" alt="" hidden>
                 <div class="kefe-vinyl-label">
                   <span class="kefe-vinyl-label-top">KEFE</span>
                   <strong id="kefeVinylLabelTitle">NOW PLAYING</strong>
@@ -79,13 +80,16 @@
             <div class="kefe-vinyl-meta">
               <span id="kefeVinylArtist">Unknown artist</span>
               <strong id="kefeVinylTitle">Nothing queued</strong>
+              <small id="kefeVinylAlbum"></small>
             </div>
             <div class="kefe-vinyl-progress"><span id="kefeVinylProgress"></span></div>
             <div class="kefe-vinyl-time"><span id="kefeVinylCurrent">0:00</span><span id="kefeVinylDuration">0:00</span></div>
             <div class="kefe-vinyl-controls" aria-label="Vinyl playback controls">
+              <button type="button" id="kefeVinylUpload" aria-label="Upload media" title="Upload media"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg></button>
               <button type="button" id="kefeVinylPrev" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg></button>
-              <button type="button" id="kefeVinylPlay" aria-label="Play"><svg class="play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></button>
+              <button type="button" id="kefeVinylPlay" class="play" aria-label="Play"><svg class="play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></button>
               <button type="button" id="kefeVinylNext" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12M6 6l8 6-8 6z"/></svg></button>
+              <button type="button" id="kefeVinylLyrics" aria-label="Show lyrics" title="Lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 11h14M5 16h9"/></svg></button>
             </div>
           </div>
         </section>
@@ -601,6 +605,16 @@
     const title = String(stateMeta.title || $('kefeMiniTitle')?.textContent || 'Nothing queued');
     const artist = String(stateMeta.artist || $('kefeMiniArtist')?.textContent || 'Unknown artist');
     const album = String(stateMeta.album || '');
+    const track = index >= 0 ? tracks[index] : null;
+    const artwork = track?.artwork || track?.artworkURL || '';
+    const artworkEl = $('kefeVinylArtwork');
+    if (artworkEl) {
+      artworkEl.hidden = !artwork;
+      if (artwork) artworkEl.src = artwork;
+      else artworkEl.removeAttribute('src');
+      artworkEl.alt = artwork ? ('Album artwork for ' + (album || title)) : '';
+    }
+    const albumEl = $('kefeVinylAlbum'); if (albumEl) albumEl.textContent = album;
     [['kefeVinylTitle', title], ['kefeVinylArtist', artist], ['kefeVinylLabelTitle', title], ['kefeVinylLabelArtist', album || artist]].forEach(([id, value]) => {
       const el = $(id); if (el) el.textContent = value;
     });
@@ -640,6 +654,8 @@
     e.stopPropagation();
     setVinylMode(shellEl.classList.contains('is-visualizer-mode') ? 'neonBars' : 'radialWave');
   });
+  $('kefeVinylUpload')?.addEventListener('click', e => { e.stopPropagation(); $('kefeMiniFiles')?.click(); });
+  $('kefeVinylLyrics')?.addEventListener('click', e => { e.stopPropagation(); toggleLyrics(); });
   $('kefeVinylPlay')?.addEventListener('click', e => { e.stopPropagation(); toggle(); });
   $('kefeVinylPrev')?.addEventListener('click', e => { e.stopPropagation(); prev(); });
   $('kefeVinylNext')?.addEventListener('click', e => { e.stopPropagation(); next(); });
