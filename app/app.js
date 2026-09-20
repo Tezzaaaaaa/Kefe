@@ -511,88 +511,159 @@ function buildAppleMusicLayout(ctx, w, h, settings, lines, focusIndex, visibleCo
     return output;
 }
 
+function appleSpringProgress(progress) {
+    const t = linaClamp(progress);
+    // Critically damped spring: fast arrival without the elastic overshoot that
+    // would make the lyric stack bounce. This is used for the line hand-off only.
+    const raw = 1 - (1 + 8 * t) * Math.exp(-8 * t);
+    const final = 1 - 9 * Math.exp(-8);
+    return final > 0 ? linaClamp(raw / final) : t;
+}
+
 function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount, motion) {
-    const fromLayout = buildAppleMusicLayout(ctx,w,h,settings,lines,motion.fromIndex,visibleCount);
-    const toLayout = buildAppleMusicLayout(ctx,w,h,settings,lines,motion.toIndex,visibleCount);
-    const fromMap = new Map(fromLayout.map(e=>[e.lineIndex,e]));
-    const toMap = new Map(toLayout.map(e=>[e.lineIndex,e]));
+    const fromLayout = buildAppleMusicLayout(ctx, w, h, settings, lines, motion.fromIndex, visibleCount);
+    const toLayout = buildAppleMusicLayout(ctx, w, h, settings, lines, motion.toIndex, visibleCount);
+    const fromMap = new Map(fromLayout.map(entry => [entry.lineIndex, entry]));
+    const toMap = new Map(toLayout.map(entry => [entry.lineIndex, entry]));
     const transitioning = motion.fromIndex !== motion.toIndex;
-    const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const p = transitioning ? (reducedMotion ? 1 : linaClamp(motion.progress)) : 1;
-    const focusTransfer = transitioning ? 0.5 - 0.5 * Math.cos(Math.PI * p) : 1;
-    const relationOpacity = relation => relation === 0 ? 1 : relation < 0 ? 0.22 : Math.max(0.07,settings.inactiveOpacity*Math.pow(0.72,relation-1));
-    const completionOpacity = line => {
-        const end = Number(line?.endTime);
-        if (!Number.isFinite(end)) return 1;
-        const fade = Math.min(0.22, Math.max(0.12, settings.fontSize / 620));
-        return linaClamp((end - time) / fade);
+    const reducedMotion = typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const p = transitioning
+        ? (reducedMotion ? 1 : appleSpringProgress(motion.progress))
+        : 1;
+    const relationOpacity = relation => {
+        if (relation === 0) return 1;
+        if (relation < 0) return 0;
+        return Math.max(0.035, settings.inactiveOpacity * Math.pow(0.68, relation - 1));
     };
-    for (const index of [...new Set([...fromMap.keys(),...toMap.keys()])]) {
-        const from=fromMap.get(index), to=toMap.get(index), entry=to||from; if(!entry) continue;
-        const relation=to?to.relation:-2;
-        const y=from&&to ? from.centreY+(to.centreY-from.centreY)*p : (to ? to.centreY+h*0.035*(1-p) : from.centreY-h*0.055*p);
-        let backgroundAlpha=from&&to ? relationOpacity(from.relation)+(relationOpacity(to.relation)-relationOpacity(from.relation))*p : relationOpacity(relation);
-        if(!from) backgroundAlpha*=p;
-        if(!to) backgroundAlpha*=1-p;
-        const visibilityFrom = from ? completionOpacity(from.line) : 0;
-        const visibilityTo = to ? completionOpacity(to.line) : 0;
-        backgroundAlpha *= from && to ? visibilityFrom + (visibilityTo - visibilityFrom) * p : (to ? visibilityTo : visibilityFrom);
+    const drawEntry = (entry, options = {}) => {
+        if (!entry || !entry.line?.text) return;
+        drawAppleLineBlock(ctx, w, options.y ?? entry.centreY, entry.line, time, settings, {
+            active: options.active === true,
+            alpha: options.alpha ?? 1,
+            scale: options.scale ?? 1,
+            blur: options.blur ?? 0,
+            nextLine: entry.nextLine,
+            measurement: entry.measurement
+        });
 
-        let focus=0;
-        if (!transitioning && index===motion.toIndex) focus=1;
-        else if (transitioning && index===motion.fromIndex) focus=1-focusTransfer;
-        else if (transitioning && index===motion.toIndex) focus=focusTransfer;
+        if (options.active !== true || options.alpha <= 0.001 || entry.lineIndex !== motion.toIndex) return;
 
-        const completion = entry ? completionOpacity(entry.line) : 0;
-        focus *= completion;
-        const backgroundWeight=1-focus;
-        const depth=Math.max(0,relation);
-        const maxBlur=settings.fontSize*(relation<0?0.070:0.058+Math.max(0,depth-1)*0.012);
-        const blur=maxBlur*backgroundWeight;
-        const scale=0.98+focus*0.02;
-
-        if (backgroundWeight>0.001 && backgroundAlpha>0.001) {
-            drawAppleLineBlock(ctx,w,y,entry.line,time,settings,{active:false,alpha:backgroundAlpha*backgroundWeight,scale,blur,nextLine:entry.nextLine,measurement:entry.measurement});
+        // Translation / transliteration belongs to the active primary lyric.
+        const secondary = entry.line.translation || entry.line.transliteration || '';
+        const secondaryY = (options.y ?? entry.centreY) +
+            entry.measurement.totalHeight / 2 + settings.fontSize * 0.42;
+        if (secondary) {
+            drawAppleSecondaryText(ctx, w, secondaryY, secondary, settings, {
+                alpha: options.alpha * 0.68,
+                sizeRatio: 0.34,
+                color: 'rgba(255,255,255,0.70)',
+                scale: options.scale ?? 1,
+                blur: options.blur ?? 0
+            });
         }
-        if (focus>0.001) {
-            drawAppleLineBlock(ctx,w,y,entry.line,time,settings,{active:true,alpha:focus,scale,blur,nextLine:entry.nextLine,measurement:entry.measurement});
 
-            // Apple-style secondary lyric metadata: show translation when supplied,
-            // otherwise transliteration. Keep it attached to the active lyric only.
-            if (index === motion.toIndex && focus > 0.001) {
-                const secondary = entry.line.translation || entry.line.transliteration || '';
-                const secondaryY = y + entry.measurement.totalHeight / 2 + settings.fontSize * 0.42;
-                if (secondary) {
-                    drawAppleSecondaryText(ctx, w, secondaryY, secondary, settings, {
-                        alpha: focus * 0.68,
-                        sizeRatio: 0.34,
-                        color: 'rgba(255,255,255,0.70)',
-                        scale
-                    });
-                }
-
-                // Background-vocal lines are timed independently in TTML. Render
-                // only the currently active ones, without promoting them to the
-                // primary lyric stream.
-                const backgroundLines = Array.isArray(entry.line.backgroundLines) ? entry.line.backgroundLines : [];
-                let bgIndex = 0;
-                for (const bg of backgroundLines) {
-                    const bgStart = Number(bg?.time);
-                    const bgEnd = Number(bg?.endTime);
-                    if (!Number.isFinite(bgStart) || time < bgStart || (Number.isFinite(bgEnd) && time > bgEnd)) continue;
-                    const bgText = String(bg.text || '').trim();
-                    if (!bgText) continue;
-                    const bgY = secondaryY + settings.fontSize * (secondary ? 0.36 : 0.48) + bgIndex * settings.fontSize * 0.34;
-                    drawAppleSecondaryText(ctx, w, bgY, bgText, settings, {
-                        alpha: focus * 0.58,
-                        sizeRatio: 0.30,
-                        color: 'rgba(255,255,255,0.62)',
-                        scale: Math.min(scale, 1)
-                    });
-                    bgIndex++;
-                }
-            }
+        // Background-vocal TTML spans remain secondary timed material and never
+        // become part of the primary scrolling stack.
+        const backgroundLines = Array.isArray(entry.line.backgroundLines)
+            ? entry.line.backgroundLines : [];
+        let bgIndex = 0;
+        for (const bg of backgroundLines) {
+            const bgStart = Number(bg?.time);
+            const bgEnd = Number(bg?.endTime);
+            if (!Number.isFinite(bgStart) || time < bgStart ||
+                (Number.isFinite(bgEnd) && time > bgEnd)) continue;
+            const bgText = String(bg.text || '').trim();
+            if (!bgText) continue;
+            const bgY = secondaryY +
+                settings.fontSize * (secondary ? 0.36 : 0.48) +
+                bgIndex * settings.fontSize * 0.34;
+            drawAppleSecondaryText(ctx, w, bgY, bgText, settings, {
+                alpha: options.alpha * 0.58,
+                sizeRatio: 0.30,
+                color: 'rgba(255,255,255,0.62)',
+                scale: Math.min(options.scale ?? 1, 1),
+                blur: options.blur ?? 0
+            });
+            bgIndex++;
         }
+    };
+
+    if (!transitioning) {
+        // Resting Apple-style stack: current line plus upcoming lines only.
+        // Completed lines are removed from the layout rather than held as a
+        // permanently faded previous-line row.
+        for (const entry of toLayout) {
+            const isActive = entry.lineIndex === motion.toIndex;
+            const alpha = isActive ? 1 : relationOpacity(entry.relation);
+            const scale = isActive ? 1 : 0.985;
+            const blur = isActive ? 0 : settings.fontSize *
+                (0.034 + Math.max(0, entry.relation - 1) * 0.014);
+            drawEntry(entry, {
+                y: entry.centreY,
+                active: isActive,
+                alpha,
+                scale,
+                blur
+            });
+        }
+        return;
+    }
+
+    // During a hand-off Apple moves the old focal line out, brings the new
+    // focal line into the anchor, and shifts the future stack as one unit.
+    const fromFocus = fromMap.get(motion.fromIndex);
+    const toFocus = toMap.get(motion.toIndex);
+    const focusY = h * settings.topOffset;
+    const outgoingDistance = Math.max(
+        h * 0.085,
+        (fromFocus?.measurement?.totalHeight || settings.fontSize * 1.25) * 0.92
+    );
+    const incomingDistance = Math.max(h * 0.065, settings.fontSize * 0.95);
+
+    if (fromFocus) {
+        drawEntry(fromFocus, {
+            y: focusY - outgoingDistance * p,
+            active: true,
+            alpha: 1 - p,
+            scale: 1 - 0.055 * p,
+            blur: settings.fontSize * 0.085 * p
+        });
+    }
+
+    if (toFocus) {
+        drawEntry(toFocus, {
+            y: focusY + incomingDistance * (1 - p),
+            active: true,
+            alpha: p,
+            scale: 0.92 + 0.08 * p,
+            blur: settings.fontSize * 0.085 * (1 - p)
+        });
+    }
+
+    const sharedIndices = [...new Set([...fromMap.keys(), ...toMap.keys()])]
+        .filter(index => index !== motion.fromIndex && index !== motion.toIndex)
+        .sort((a, b) => a - b);
+
+    for (const index of sharedIndices) {
+        const from = fromMap.get(index);
+        const to = toMap.get(index);
+        const entry = to || from;
+        if (!entry) continue;
+        const y = from && to
+            ? from.centreY + (to.centreY - from.centreY) * p
+            : (to ? to.centreY + incomingDistance * (1 - p) : from.centreY - outgoingDistance * p);
+        const relation = to ? to.relation : Math.max(1, from.relation);
+        const alpha = relationOpacity(relation);
+        const blur = settings.fontSize *
+            (0.034 + Math.max(0, relation - 1) * 0.014);
+        drawEntry(entry, {
+            y,
+            active: false,
+            alpha,
+            scale: 0.985,
+            blur
+        });
     }
 }
 
