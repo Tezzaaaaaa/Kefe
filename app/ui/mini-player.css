@@ -158,3 +158,10 @@
   .kefe-mini-actions{flex-wrap:wrap}
   .kefe-mini-queue{padding:12px 16px 16px}
 }
+
+.kefe-mini-shell svg{width:16px;height:16px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kefe-mini-close svg{width:15px;height:15px}
+.kefe-mini-controls button svg{width:18px;height:18px}
+.kefe-mini-controls .kefe-mini-play svg{width:19px;height:19px}
+.kefe-mini-lyrics-toggle .lyrics-chevron{width:15px;height:15px;flex:0 0 auto}
+.kefe-mini-lyrics-head button svg{width:15px;height:15px}
