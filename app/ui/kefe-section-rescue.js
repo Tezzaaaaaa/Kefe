@@ -1,5 +1,5 @@
 (function(){
-  var REQUIRED = ['audioSection','textSection','fxSection','backgroundSection','exportSection'];
+  var REQUIRED = ['audioSection','textSection','backgroundSection','visualFxSection','exportSection'];
   var originals = {};
 
   function capture() {
