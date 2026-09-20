@@ -57,8 +57,6 @@
   }
 
   refresh();
-  setInterval(refresh, 150);
-
   // Watch every modal for class changes
   MODALS.forEach(function(id){
     var el = document.getElementById(id);
