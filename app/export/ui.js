@@ -37,7 +37,7 @@ async function seekAndRender(ctx, width, height, time, signal, mediaOverride = n
     const renderExportFrame = window.kefeRenderFrame;
     const video = mediaOverride?.video || window.kefeMedia?.video;
     if (typeof renderExportFrame !== 'function') throw new Error('KEFE export renderer is not connected');
-    if (video && Number.isFinite(video.duration) && video.duration > 0) {
+    if (!mediaOverride && video && Number.isFinite(video.duration) && video.duration > 0) {
         const target = ((time % video.duration) + video.duration) % video.duration;
         if (Math.abs(video.currentTime - target) > 0.002 || video.seeking || video.readyState < 2) {
             await new Promise((resolve, reject) => {
