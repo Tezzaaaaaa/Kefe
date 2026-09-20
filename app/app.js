@@ -997,6 +997,223 @@ function drawPulseEffect(ctx, w, h, style, lines, time) {
     ctx.restore();
 }
 
+/* ---------- Apple Music 1:1 lyrics engine integration ---------- */
+const appleLyricsEngine = (() => {
+    const audioEl = audio;
+    let coverImage = null;
+    let coverURL = null;
+    let lyrics = [];
+    let rafId = null;
+    let destroyed = false;
+    let lastTime = -1;
+    let lastFrame = 0;
+    let spring = { current: 0, target: 0, velocity: 0 };
+    const listeners = [];
+
+    function on(target, type, handler, options) {
+        target?.addEventListener(type, handler, options);
+        if (target) listeners.push(() => target.removeEventListener(type, handler, options));
+    }
+
+    function parseTTML(source) {
+        if (Array.isArray(source)) return source.map(normaliseLine).filter(Boolean);
+        if (typeof source !== 'string' || !source.trim()) return [];
+        try {
+            const xml = new DOMParser().parseFromString(source, 'application/xml');
+            if (xml.querySelector('parsererror')) throw new Error('Invalid TTML');
+            const nodes = Array.from(xml.querySelectorAll('p'));
+            return nodes.map(p => {
+                const begin = parseTTMLTime(p.getAttribute('begin'));
+                const end = parseTTMLTime(p.getAttribute('end'));
+                const spans = Array.from(p.querySelectorAll('span'));
+                const words = spans.length ? spans.map(span => ({
+                    text: span.textContent || '',
+                    start: parseTTMLTime(span.getAttribute('begin')),
+                    end: parseTTMLTime(span.getAttribute('end'))
+                })).filter(w => Number.isFinite(w.start) && Number.isFinite(w.end)) : null;
+                return normaliseLine({
+                    time: begin,
+                    endTime: Number.isFinite(end) ? end : undefined,
+                    text: p.textContent || '',
+                    words
+                });
+            }).filter(Boolean);
+        } catch (error) {
+            console.warn('KEFE Apple lyrics: TTML parse failed', error);
+            return [];
+        }
+    }
+
+    function parseTTMLTime(value) {
+        if (value == null || value === '') return NaN;
+        const raw = String(value).trim();
+        if (/^\\d+(?:\\.\\d+)?s$/.test(raw)) return Number.parseFloat(raw);
+        if (/^\\d+(?:\\.\\d+)?ms$/.test(raw)) return Number.parseFloat(raw) / 1000;
+        const parts = raw.split(':').map(Number);
+        if (parts.some(Number.isNaN)) return NaN;
+        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        return Number(raw);
+    }
+
+    function normaliseLine(line) {
+        if (!line) return null;
+        const time = Number(line.time ?? line.start);
+        if (!Number.isFinite(time)) return null;
+        const text = String(line.text ?? '').trim();
+        if (!text) return null;
+        const endTime = Number(line.endTime ?? line.end);
+        const words = Array.isArray(line.words) ? line.words.map(w => ({
+            text: String(w?.text ?? ''),
+            time: Number(w?.time ?? w?.start),
+            endTime: Number(w?.endTime ?? w?.end)
+        })).filter(w => w.text && Number.isFinite(w.time) && Number.isFinite(w.endTime)) : null;
+        return { ...line, text, time, endTime: Number.isFinite(endTime) ? endTime : undefined, words };
+    }
+
+    function setCover(source) {
+        if (coverURL) { try { URL.revokeObjectURL(coverURL); } catch (e) {} coverURL = null; }
+        coverImage = null;
+        albumArtworkImage = null;
+        if (!source) return Promise.resolve();
+        if (source instanceof HTMLImageElement) {
+            coverImage = source;
+        } else if (source instanceof Blob) {
+            coverURL = URL.createObjectURL(source);
+            coverImage = new Image();
+            coverImage.src = coverURL;
+        } else {
+            coverImage = new Image();
+            coverImage.crossOrigin = 'anonymous';
+            coverImage.src = String(source);
+        }
+        return new Promise(resolve => {
+            if (!coverImage) return resolve();
+            if (coverImage.complete && coverImage.naturalWidth) {
+                albumArtworkImage = coverImage;
+                return resolve();
+            }
+            coverImage.onload = () => { if (!destroyed) albumArtworkImage = coverImage; resolve(); };
+            coverImage.onerror = () => resolve();
+        });
+    }
+
+    function resetSpring() {
+        spring.current = 0;
+        spring.target = 0;
+        spring.velocity = 0;
+    }
+
+    async function loadTrack(trackData = {}) {
+        const data = trackData || {};
+        lyrics = parseTTML(data.ttmlLyrics);
+        state.lyrics.lines = lyrics;
+        state.captions.lines = [];
+        if (data.title != null) state.audio.metadata.title = String(data.title);
+        if (data.artist != null) state.audio.metadata.artist = String(data.artist);
+        if (data.coverUrl !== undefined) await setCover(data.coverUrl);
+        resetSpring();
+        state.playback.currentTime = 0;
+        if (Number.isFinite(audioEl.duration)) state.audio.duration = audioEl.duration || state.audio.duration;
+        setMasterTime(0);
+        lastTime = -1;
+        redrawCurrentPreviewFrame();
+        return { ...data, lyrics };
+    }
+
+    function lineAtCanvasPoint(event) {
+        if (!canvas || !lyrics.length) return null;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (event.clientX - rect.left) * scaleX;
+        const y = (event.clientY - rect.top) * scaleY;
+        const w = canvas.width, h = canvas.height;
+        const style = state.style;
+        const settings = {
+            fontSize: appleSafeFontSize(ctx, lyrics, Number(style.fontSize) || 76, w),
+            align: style.align || 'left',
+            activeColor: '#FFFFFF',
+            inactiveColor: 'rgba(255,255,255,0.46)',
+            backgroundColor: '#FFFFFF',
+            inactiveOpacity: Number.isFinite(Number(style.appleInactiveOpacity)) ? Number(style.appleInactiveOpacity) : 0.25,
+            glow: 0.012, depth: 0.008, lift: 0, highlightSpan: 0.96, topOffset: Number(style.appleTopOffset) || 0.245,
+            lineSpacing: (Number(style.appleLineSpacing) || 0.72) * (Number(style.fxSpacing) || 1)
+        };
+        const activeIndex = linaFindActiveLine(lyrics, getMasterTime());
+        if (activeIndex < 0) return null;
+        const visibleCount = Math.max(2, Math.min(6, Math.round(Number(style.appleVisibleLines) || 4)));
+        const layout = buildAppleMusicLayout(ctx, w, h, settings, lyrics, activeIndex, visibleCount);
+        const motion = getAppleFocalMotion(lyrics, getMasterTime());
+        const p = motion && motion.fromIndex !== motion.toIndex ? linaClamp(motion.progress) : 1;
+        for (const item of layout) {
+            let yy = item.centreY;
+            if (motion && motion.fromIndex !== motion.toIndex) {
+                const fromLayout = buildAppleMusicLayout(ctx, w, h, settings, lyrics, motion.fromIndex, visibleCount);
+                const toLayout = buildAppleMusicLayout(ctx, w, h, settings, lyrics, motion.toIndex, visibleCount);
+                const from = fromLayout.find(v => v.lineIndex === item.lineIndex);
+                const to = toLayout.find(v => v.lineIndex === item.lineIndex);
+                if (from && to) yy = from.centreY + (to.centreY - from.centreY) * p;
+            }
+            const half = item.measurement.totalHeight / 2;
+            if (y >= yy - half && y <= yy + half) return lyrics[item.lineIndex];
+        }
+        return null;
+    }
+
+    function seekLine(event) {
+        if (destroyed || isExporting || state.style.effect !== 'apple') return;
+        const line = lineAtCanvasPoint(event);
+        if (!line || !Number.isFinite(line.time)) return;
+        setMasterTime(line.time);
+        redrawCurrentPreviewFrame();
+    }
+
+    function frame(now) {
+        if (destroyed) return;
+        const t = getMasterTime();
+        const dt = lastFrame ? Math.min((now - lastFrame) / 1000, 0.032) : 0;
+        lastFrame = now;
+        state.playback.currentTime = t;
+        if (dt > 0) {
+            const force = -120 * (spring.current - spring.target);
+            spring.velocity += (force - 16 * spring.velocity) * dt;
+            spring.current += spring.velocity * dt;
+        }
+        if (t !== lastTime) lastTime = t;
+        rafId = requestAnimationFrame(frame);
+    }
+
+    function start() {
+        if (rafId === null) rafId = requestAnimationFrame(frame);
+    }
+
+    function teardown() {
+        destroyed = true;
+        if (rafId !== null) cancelAnimationFrame(rafId);
+        rafId = null;
+        for (const off of listeners.splice(0)) off();
+        if (coverURL) { try { URL.revokeObjectURL(coverURL); } catch (e) {} coverURL = null; }
+        coverImage = null;
+        albumArtworkImage = null;
+        resetSpring();
+    }
+
+    on(canvas, 'click', seekLine);
+    on(audioEl, 'timeupdate', () => {
+        if (state.style.effect === 'apple') redrawCurrentPreviewFrame();
+    });
+    on(audioEl, 'loadedmetadata', () => {
+        state.audio.duration = Number.isFinite(audioEl.duration) ? audioEl.duration : state.audio.duration;
+        redrawCurrentPreviewFrame();
+    });
+
+    start();
+    return { loadTrack, teardown, get lyrics() { return lyrics; } };
+})();
+window.kefeAppleLyricsEngine = appleLyricsEngine;
+window.loadTrack = appleLyricsEngine.loadTrack;
+
 function renderLyricsEffect(ctx, w, h, style, lines, time) {
     ctx.save();
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over"; ctx.filter = "none"; ctx.shadowBlur = 0;
