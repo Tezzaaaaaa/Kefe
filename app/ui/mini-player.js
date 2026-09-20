@@ -257,6 +257,66 @@
     const rect = shell.getBoundingClientRect();
     setPosition(rect.left, rect.top);
   });
+  let miniTagsLoadPromise = null;
+  function loadMiniTagsLibrary() {
+    if (window.jsmediatags) return Promise.resolve(window.jsmediatags);
+    if (!miniTagsLoadPromise) {
+      miniTagsLoadPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = './vendor/jsmediatags/jsmediatags.min.js';
+        script.onload = () => window.jsmediatags ? resolve(window.jsmediatags) : reject(new Error('Metadata reader unavailable'));
+        script.onerror = () => reject(new Error('Metadata reader failed to load'));
+        document.head.appendChild(script);
+      }).catch(error => { miniTagsLoadPromise = null; throw error; });
+    }
+    return miniTagsLoadPromise;
+  }
+
+  async function prefillTrackMetadata(track) {
+    if (!track || track.metadataReading) return;
+    track.metadataReading = true;
+    try {
+      const tagsLibrary = await loadMiniTagsLibrary();
+      const result = await new Promise((resolve, reject) => tagsLibrary.read(track.file, {
+        onSuccess: resolve,
+        onError: reject
+      }));
+      if (!tracks.includes(track)) return;
+      const tags = result?.tags || {};
+      const title = String(tags.title || '').trim();
+      const artist = String(tags.artist || '').trim();
+      const album = String(tags.album || '').trim();
+      if (title) track.title = title;
+      if (artist) track.artist = artist;
+      if (album) track.album = album;
+
+      const picture = tags.picture;
+      if (picture?.data?.length) {
+        const blob = new Blob([new Uint8Array(picture.data)], { type: picture.format || 'image/jpeg' });
+        if (track.artworkURL) URL.revokeObjectURL(track.artworkURL);
+        track.artworkURL = URL.createObjectURL(blob);
+        track.artwork = track.artworkURL;
+      }
+
+      if (index >= 0 && tracks[index] === track) {
+        const current = getState().audio.metadata || {};
+        getState().audio.metadata = {
+          ...current,
+          title: track.title,
+          artist: track.artist,
+          album: track.album
+        };
+        setNowPlaying(track.title, track.artist, track.album);
+        setArtwork(track.artwork || '', track.title);
+      }
+      renderQueue();
+    } catch (error) {
+      // Filename metadata remains the intentional fallback.
+    } finally {
+      track.metadataReading = false;
+    }
+  }
+
   async function identifyTrack(track) {
     if (!track || track.identifying || track.identified) return;
     const shazam = window.kefeShazam;
@@ -316,7 +376,7 @@
     renderQueue();
     try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
     if (autoplay) audio.play().catch(() => {});
-    if (!track.identified) identifyTrack(track);
+    prefillTrackMetadata(track);
   }
   const AUDIO_EXT = new Set([
     'aac', 'aif', 'aiff', 'alac', 'amr', 'ape', 'au', 'caf', 'flac', 'm4a', 'm4b', 'm4r', 'mka', 'mp2', 'mp3', 'mpga',
