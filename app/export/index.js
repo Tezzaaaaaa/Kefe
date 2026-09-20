@@ -1,5 +1,6 @@
 import { getQualityPreset } from './config.js';
 import { loadEncoder, releaseEncoder } from './encoder.js';
+import { canUseWebCodecsExport, exportVideoWebCodecs } from './webcodecs.js';
 
 function abortError() { return new DOMException('Export cancelled', 'AbortError'); }
 function checkAbort(signal) { if (signal?.aborted) throw abortError(); }
@@ -113,7 +114,40 @@ async function loadEncoderResilient(onStatus) {
     }
 }
 
-export async function exportVideo({ state, media, config, renderFrame, buildFilename, signal, onProgress }) {
+export async function exportVideo(options) {
+    const {
+        state,
+        media,
+        config,
+        renderFrame,
+        buildFilename,
+        signal,
+        onProgress,
+    } = options;
+    const quality = getQualityPreset(window.kefeExportQuality || 'medium');
+
+    // Prefer the native WebCodecs/Mediabunny path. It removes the per-frame
+    // JPEG intermediary and FFmpeg-WASM H.264 encode from the hot path.
+    // The existing FFmpeg exporter remains the compatibility path for
+    // unsupported browsers, lossless exports, or any native-media failure.
+    try {
+        if (await canUseWebCodecsExport(config, quality)) {
+            onProgress?.({ percent: 1, message: 'Preparing hardware-accelerated export…' });
+            const modern = await exportVideoWebCodecs({
+                ...options,
+                quality,
+            });
+            if (modern?.blob) return {
+                ...modern,
+                filename: buildFilename?.() || 'KEFE Visualiser.mp4',
+            };
+        }
+    } catch (error) {
+        if (error?.name === 'AbortError') throw error;
+        console.warn('[KEFE] WebCodecs export unavailable; falling back to FFmpeg:', error);
+        onProgress?.({ percent: 1, message: 'Using compatibility export engine…' });
+    }
+
     const master = resolveMasterInfo(state, media);
     const duration = master.duration;
     if (!Number.isFinite(duration) || duration <= 0) throw new Error('Master duration is unavailable (load an audio file or a video with audio)');
@@ -126,7 +160,6 @@ export async function exportVideo({ state, media, config, renderFrame, buildFile
     const ctx = target.getContext('2d', { alpha: false });
     if (!ctx) throw new Error('Could not create export canvas');
 
-    const quality = getQualityPreset(window.kefeExportQuality || 'medium');
     const totalFrames = Math.max(1, Math.ceil(duration * config.fps));
     const framesPerSegment = Math.max(config.fps * 2, Math.round(config.fps * 4));
     const segmentChunks = [];
