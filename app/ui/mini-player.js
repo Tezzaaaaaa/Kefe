@@ -630,7 +630,7 @@
   function setVinylMode(mode) {
     if (!vinylModes.includes(mode)) return;
     vinylMode = mode;
-    const visualizer = mode !== 'neonBars' || shellEl.classList.contains('is-visualizer-mode');
+    const visualizer = mode !== 'neonBars';
     shellEl.classList.toggle('is-visualizer-mode', visualizer);
     vinylSkin?.querySelectorAll('[data-vinyl-mode]').forEach(button => button.classList.toggle('is-active', button.dataset.vinylMode === mode));
     if (vinylModeToggle) {
