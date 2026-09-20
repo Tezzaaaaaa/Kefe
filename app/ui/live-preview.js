@@ -56,6 +56,10 @@
   }
 
   function toggleFullscreen() {
+    if (typeof window.kefeTogglePreviewFullscreen === 'function') {
+      window.kefeTogglePreviewFullscreen();
+      return;
+    }
     if (document.fullscreenElement) {
       document.exitFullscreen?.();
       return;
