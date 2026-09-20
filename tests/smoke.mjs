@@ -108,6 +108,25 @@ try {
     { timeout: 15000 },
   );
 
+  const pathwayChoices = await page.locator('#wizardSection [data-choice]').evaluateAll((els) => els.map((el) => el.dataset.choice));
+  if (pathwayChoices.length !== 4 || !pathwayChoices.includes('nowplaying')) {
+    throw new Error(`Expected four start pathways including Now Playing, got: ${pathwayChoices.join(', ')}`);
+  }
+
+  // Verify the fourth pathway opens the real mini player before continuing
+  // through the normal lyric-video regression path.
+  await page.locator('#wizardSection [data-choice="nowplaying"]').click();
+  await page.locator('#wizardNextBtn').click();
+  await page.locator('#kefeMiniPlayerModal').waitFor({ state: 'visible' });
+  if (!(await page.locator('#kefeMiniPreset option').count())) {
+    throw new Error('Now Playing opened without Butterchurn presets');
+  }
+  await page.locator('#kefeMiniClose').click();
+
+  await page.reload({ waitUntil: 'commit' });
+  await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 10000 });
+  await page.waitForFunction(() => window.kefeRuntime?.ready === true, null, { timeout: 15000 });
+
   // Follow the real guided lyric-video path instead of bypassing it.
   await page.locator('#wizardSection [data-choice="lyric"]').click();
   await page.locator('#wizardNextBtn').click();
@@ -203,11 +222,22 @@ try {
   if (!preflightVisible) {
     throw new Error('Export preflight did not open');
   }
-  await page.locator('#cancelPreflight').click();
 
+  // Confirm the actual export path, not just the modal wiring.
+  const downloadPromise = page.waitForEvent('download', { timeout: 180000 });
+  await page.locator('#confirmExport').click();
+  const download = await downloadPromise;
+  const downloadPath = await download.path();
+  if (!downloadPath) throw new Error('Export download has no local file path');
+  const exported = await readFile(downloadPath);
+  if (exported.byteLength < 1024) throw new Error(`Exported MP4 is unexpectedly small: ${exported.byteLength} bytes`);
+  const ascii = exported.toString('latin1');
+  if (!ascii.includes('ftyp') || !ascii.includes('moov')) {
+    throw new Error('Export produced a file without the expected MP4 ftyp/moov boxes');
+  }
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(
-    'KEFE smoke test passed: boot → runtime → guided lyric path → style/background → lyrics analysis → audio load → playback → upload summary → smart render → export preflight.',
+    `KEFE smoke test passed: boot → runtime → four pathways → Now Playing/Butterchurn → guided lyric path → style/background → lyrics analysis → audio load → playback → smart render → preflight → actual MP4 download (${exported.byteLength} bytes).`,
   );
 } finally {
   if (browser) await browser.close().catch(() => {});
