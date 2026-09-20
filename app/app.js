@@ -2812,6 +2812,37 @@ async function togglePlayback() {
     if (audio.paused) { try { await audio.play(); } catch(e) { toast('Playback error', 'error'); } }
     else audio.pause();
 }
+function syncPreviewFullscreenButton() {
+    const btn = $('previewFullscreen');
+    if (!btn) return;
+    const active = document.fullscreenElement === $('canvasWrapper') || document.webkitFullscreenElement === $('canvasWrapper');
+    btn.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen');
+    btn.title = active ? 'Exit fullscreen' : 'Fullscreen';
+}
+async function togglePreviewFullscreen() {
+    const target = $('canvasWrapper');
+    if (!target) return;
+    try {
+        if (document.fullscreenElement === target || document.webkitFullscreenElement === target) {
+            if (document.exitFullscreen) await document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        } else if (target.requestFullscreen) {
+            await target.requestFullscreen({ navigationUI: 'hide' });
+        } else if (target.webkitRequestFullscreen) {
+            target.webkitRequestFullscreen();
+        } else {
+            toast('Fullscreen is not supported by this browser', 'error');
+            return;
+        }
+    } catch (error) {
+        console.warn('Preview fullscreen error:', error);
+        toast('Fullscreen could not be opened', 'error');
+    }
+    syncPreviewFullscreenButton();
+}
+$('previewFullscreen')?.addEventListener('click', togglePreviewFullscreen);
+document.addEventListener('fullscreenchange', syncPreviewFullscreenButton);
+document.addEventListener('webkitfullscreenchange', syncPreviewFullscreenButton);
 $('playBtn').addEventListener('click', togglePlayback);
 
 function seekPreview(target) {
