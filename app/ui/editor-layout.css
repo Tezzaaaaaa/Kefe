@@ -62,3 +62,87 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
   .preview-heading .preview-focus-button,
   .preview-heading #previewFocusButton{display:none}
 }
+
+/* Mobile editor geometry — one deliberate responsive system. */
+@media(max-width:900px){
+  html,body{overflow:hidden}
+  .app{height:100dvh;min-height:0}
+  header{flex:0 0 auto}
+  main{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    height:calc(100dvh - var(--header-h));
+    overflow:hidden;
+  }
+  .preview{
+    order:0;
+    flex:0 0 clamp(260px,42dvh,430px);
+    min-height:260px;
+    width:100%;
+  }
+  .sidebar{
+    order:1;
+    flex:1 1 auto;
+    min-height:0;
+    width:100%;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    border:0;
+  }
+  .section-nav{
+    position:sticky;
+    top:0;
+    z-index:9;
+    margin:0;
+    border-radius:0;
+    flex:0 0 auto;
+  }
+  .section{
+    width:100%;
+    min-width:0;
+  }
+}
+@media(max-width:700px){
+  .preview{flex-basis:clamp(240px,38dvh,340px);min-height:240px}
+  .preview-toolbar{
+    flex-wrap:wrap;
+    align-items:center;
+    row-gap:6px;
+  }
+  .preview-heading{
+    flex:1 1 100%;
+    width:100%;
+    overflow:hidden;
+  }
+  .preview-heading>*{min-width:0;max-width:100%}
+  .transport{
+    width:100%;
+    padding:0;
+    display:grid;
+    grid-template-columns:44px 44px minmax(0,1fr) auto;
+    align-items:center;
+  }
+  .transport .slider{min-width:0;width:100%}
+  .sidebar{
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  .section-nav{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .section-nav::-webkit-scrollbar{display:none}
+  .section-nav-list{min-width:max-content}
+  .section-nav-link{flex:0 0 auto;padding-inline:12px}
+}
+@media(max-width:480px){
+  header{padding-inline:10px}
+  .preview{flex-basis:clamp(220px,34dvh,300px);min-height:220px}
+  .preview-toolbar{padding:7px 9px}
+  .transport{grid-template-columns:42px 42px minmax(0,1fr) auto}
+  .transport #clock{min-width:58px}
+  .canvas-wrapper{padding:8px}
+  .sidebar{font-size:13px}
+}
