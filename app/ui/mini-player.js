@@ -69,6 +69,10 @@
                 <div class="kefe-vinyl-hole"></div>
               </div>
             </div>
+            <section id="kefeVinylLyricsPanel" class="kefe-vinyl-lyrics" hidden aria-label="Lyrics">
+              <div class="kefe-vinyl-lyrics-head"><strong>LYRICS</strong><button type="button" id="kefeVinylLyricsClose" aria-label="Close lyrics">×</button></div>
+              <div id="kefeVinylLyricsContent" class="kefe-vinyl-lyrics-content"><p>No lyrics loaded</p></div>
+            </section>
             <div class="kefe-vinyl-screen-controls">
               <button type="button" id="kefeVinylModeToggle" aria-label="Switch to visualizer mode" title="Switch to visualizer mode">
                 <svg class="vinyl-viz-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17V7m4 13V4m4 16V8m4 12V5m4 15V9"/></svg>
@@ -655,7 +659,21 @@
     setVinylMode(shellEl.classList.contains('is-visualizer-mode') ? 'neonBars' : 'radialWave');
   });
   $('kefeVinylUpload')?.addEventListener('click', e => { e.stopPropagation(); $('kefeMiniFiles')?.click(); });
-  $('kefeVinylLyrics')?.addEventListener('click', e => { e.stopPropagation(); toggleLyrics(); });
+  function toggleVinylLyrics() {
+    const panel = $('kefeVinylLyricsPanel');
+    const box = $('kefeVinylLyricsContent');
+    if (!panel || !box) return;
+    const open = panel.hidden;
+    if (open) {
+      const lines = Array.isArray(getState()?.lyrics?.lines) ? getState().lyrics.lines : [];
+      box.innerHTML = lines.length
+        ? lines.map(line => '<p>' + esc(line?.text || line?.words || '') + '</p>').join('')
+        : '<p>No lyrics loaded</p>';
+    }
+    panel.hidden = !open;
+  }
+  $('kefeVinylLyrics')?.addEventListener('click', e => { e.stopPropagation(); toggleVinylLyrics(); });
+  $('kefeVinylLyricsClose')?.addEventListener('click', e => { e.stopPropagation(); toggleVinylLyrics(); });
   $('kefeVinylPlay')?.addEventListener('click', e => { e.stopPropagation(); toggle(); });
   $('kefeVinylPrev')?.addEventListener('click', e => { e.stopPropagation(); prev(); });
   $('kefeVinylNext')?.addEventListener('click', e => { e.stopPropagation(); next(); });
