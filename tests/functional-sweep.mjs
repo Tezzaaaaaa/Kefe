@@ -123,7 +123,7 @@ async function assertSections(page) {
     format: Boolean(document.querySelector('#exportSection')),
     text: Boolean(document.querySelector('#textSection')),
     background: Boolean(document.querySelector('#backgroundSection')),
-    fx: Boolean(document.querySelector('#fxSection')),
+    fx: Boolean(document.querySelector('#visualFxSection')),
     preview: Boolean(document.querySelector('#stageCanvas')),
     audioAccept: document.querySelector('#audioInput')?.accept || '',
     backgroundAccept:
