@@ -109,8 +109,6 @@
   }, true);
 
   // Safety net: keep state in sync if selection happens some other way.
-  setInterval(refresh, 250);
-
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', refresh, { once: true });
   } else {
