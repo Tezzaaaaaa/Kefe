@@ -36,10 +36,6 @@
     if (meta && meta.children.length === 0) meta.remove();
   }
 
-  // Run on every DOM mutation so the buttons stay pinned even after
-  // wizard rebuilds the preview toolbar.
-  setInterval(moveToCorner, 400);
-
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', moveToCorner, { once: true });
   } else {
