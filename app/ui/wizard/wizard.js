@@ -213,7 +213,9 @@
             '</div>' +
             '<p class="wizard-panel-hint">The player is separate from your video project, so your creator setup stays untouched.</p>';
         $('wizardOpenMiniPlayer')?.addEventListener('click', () => window.kefeMiniPlayer?.open?.());
-        window.kefeMiniPlayer?.open?.();
+        const openMiniPlayer = () => window.kefeMiniPlayer?.open?.();
+    if (window.kefeMiniPlayer?.open) openMiniPlayer();
+    else window.addEventListener('kefe:miniplayer-ready', openMiniPlayer, { once: true });
     }
 
     function renderPreview() {
