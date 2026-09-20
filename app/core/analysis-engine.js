@@ -401,38 +401,7 @@
         const input = document.getElementById('audioInput');
         input?.addEventListener('change', () => handleAudioFile(input.files?.[0]), { passive: true });
 
-        const findButton = document.getElementById('findLyricsBtn');
-        findButton?.addEventListener('click', async event => {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            const title = document.getElementById('metaTitle')?.value.trim() || '';
-            const artist = document.getElementById('metaArtist')?.value.trim() || '';
-            const album = document.getElementById('metaAlbum')?.value.trim() || '';
-            const audioInput = document.getElementById('audioInput');
-            const file = audioInput?.files?.[0];
-            const inferred = !title && !artist && file ? inferMetadataFromFilename(file.name) : null;
-            const query = { title: title || inferred?.title || '', artist: artist || inferred?.artist || '', album: album || inferred?.album || '', duration: 0 };
-            const status = document.getElementById('lyricsStatus');
-            if (status) status.textContent = 'Searching LRCLIB for synced lyrics…';
-            try {
-                const result = await findSyncedLyrics(query);
-                if (!result?.syncedLyrics) throw new Error('No synced lyrics found.');
-                const lines = parseLrcText(result.syncedLyrics);
-                const timeline = canonicalTimeline(lines, Number(result.duration || 0) * 1000);
-                window.kefeLyricsResolverResult = { ...result, timeline };
-                emit('kefe:lyrics-resolved', window.kefeLyricsResolverResult);
-                if (status) status.textContent = `Found synced lyrics via LRCLIB — ${timeline.lines.length} lines.`;
-                // Feed the existing editor so the current renderer/export path stays authoritative.
-                const textarea = document.getElementById('lyricsText');
-                if (textarea) textarea.value = result.syncedLyrics;
-                const saveButton = document.getElementById('saveLyrics');
-                saveButton?.click();
-            } catch (error) {
-                if (status) status.textContent = `Lyrics lookup failed: ${error.message}`;
-                emit('kefe:lyrics-error', error);
-            }
-        }, true);
-    }
+        // Lyrics lookup is owned by app.js. Keep the analysis engine focused on\n        // analysis services so there is only one authoritative lookup action.\n    }
 
     const api = {
         version: 2,
