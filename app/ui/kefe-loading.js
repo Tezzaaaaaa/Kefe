@@ -135,7 +135,7 @@
     if (!box){
       box = document.createElement('div');
       box.id = 'kefeExportEta';
-      box.style.cssText = 'margin-top:8px;text-align:center;font-size:11.5px;color:var(--text-2);font-variant-numeric:tabular-nums';
+      box.className = 'kefe-export-eta';
       var content = ov.querySelector('.modal-content');
       if (content) content.appendChild(box);
     }
