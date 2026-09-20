@@ -56,7 +56,6 @@
     capture();
     check();
     observer.observe(document.body, { childList: true, subtree: true });
-    setInterval(function(){ capture(); check(); }, 300);
     console.log('[KEFE rescue] active');
   });
 })();
