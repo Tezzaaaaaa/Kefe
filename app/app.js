@@ -511,15 +511,6 @@ function buildAppleMusicLayout(ctx, w, h, settings, lines, focusIndex, visibleCo
     return output;
 }
 
-function appleSpringProgress(progress) {
-    const t = linaClamp(progress);
-    // Critically damped spring: fast arrival without the elastic overshoot that
-    // would make the lyric stack bounce. This is used for the line hand-off only.
-    const raw = 1 - (1 + 8 * t) * Math.exp(-8 * t);
-    const final = 1 - 9 * Math.exp(-8);
-    return final > 0 ? linaClamp(raw / final) : t;
-}
-
 function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount, motion) {
     const fromLayout = buildAppleMusicLayout(ctx, w, h, settings, lines, motion.fromIndex, visibleCount);
     const toLayout = buildAppleMusicLayout(ctx, w, h, settings, lines, motion.toIndex, visibleCount);
@@ -529,7 +520,7 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
     const reducedMotion = typeof window.matchMedia === 'function' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const p = transitioning
-        ? (reducedMotion ? 1 : appleSpringProgress(motion.progress))
+        ? (reducedMotion ? 1 : linaSmoother(motion.progress))
         : 1;
     const relationOpacity = relation => {
         if (relation === 0) return 1;
