@@ -401,7 +401,9 @@
         const input = document.getElementById('audioInput');
         input?.addEventListener('change', () => handleAudioFile(input.files?.[0]), { passive: true });
 
-        // Lyrics lookup is owned by app.js. Keep the analysis engine focused on\n        // analysis services so there is only one authoritative lookup action.\n    }
+        // Lyrics lookup is owned by app.js. Keep the analysis engine focused on
+        // analysis services so there is only one authoritative lookup action.
+    }
 
     const api = {
         version: 2,
