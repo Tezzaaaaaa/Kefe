@@ -22,9 +22,9 @@
     function getMode() {
         try {
             const saved = localStorage.getItem(THEME_KEY);
-            return MODES.includes(saved) ? saved : 'system';
+            return MODES.includes(saved) ? saved : 'night';
         } catch (e) {
-            return document.documentElement.dataset.theme === 'day' ? 'day' : document.documentElement.dataset.theme === 'night' ? 'night' : 'system';
+            return document.documentElement.dataset.theme === 'day' ? 'day' : 'night';
         }
     }
     function applyVariables(mode) {
@@ -41,7 +41,7 @@
         button.title = `Theme: ${LABELS[mode]} — click for ${LABELS[next]}`;
     }
     function setMode(button, mode) {
-        if (!MODES.includes(mode)) mode = 'system';
+        if (!MODES.includes(mode)) mode = 'night';
         if (mode === 'system') delete document.documentElement.dataset.theme;
         else document.documentElement.dataset.theme = mode;
         applyVariables(mode);
@@ -69,7 +69,8 @@
         button.addEventListener('click', () => {
             const current = getMode();
             setMode(button, MODES[(MODES.indexOf(current) + 1) % MODES.length]);
-        });    }
+        });
+    }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
     else init();
 })();
