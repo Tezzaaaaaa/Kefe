@@ -337,6 +337,7 @@ export async function exportVideoWebCodecs({
             engine: 'webcodecs',
         };
     } finally {
+        try { await backgroundReader?.dispose?.(); } catch {}
         try { audio?.input?.dispose?.(); } catch {}
         try { canvas.width = 1; canvas.height = 1; } catch {}
     }
