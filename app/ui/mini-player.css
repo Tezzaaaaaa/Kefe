@@ -59,9 +59,7 @@
   transform:translateY(-54.5%);box-shadow:0 5cqw 8cqw -1cqw rgba(0,0,0,.34);will-change:transform;
   transition:transform .85s var(--mp-ease),border-radius .85s var(--mp-ease),box-shadow .5s ease}
 .kefe-mini-card.is-expanded .kefe-mini-art{transform:none;border-radius:0!important;box-shadow:none;transition-delay:.18s,.18s,0s}
-.kefe-mini-spin{position:absolute;inset:0;will-change:transform;animation:kefeMiniDiscSpin 8.571s linear infinite;animation-play-state:paused}
-.kefe-mini-shell.is-playing .kefe-mini-card:not(.is-expanded) .kefe-mini-spin{animation-play-state:running}
-@keyframes kefeMiniDiscSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.kefe-mini-spin{position:absolute;inset:0;will-change:transform}
 .kefe-mini-art canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .kefe-mini-hub{position:absolute;left:50%;top:50%;width:27%;aspect-ratio:1;box-sizing:border-box;border:.55cqw solid rgba(255,255,255,.97);border-radius:50%!important;
   background:radial-gradient(circle at 50% 40%,#a4a3b1,#93929f 70%);transform:translate(-50%,-50%);
@@ -106,9 +104,6 @@
 .kefe-mini-preset{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px;height:40px;margin-top:8px;padding:0 10px 0 16px;border:1px solid var(--mp-line);border-radius:999px!important;background:#fff}
 .kefe-mini-preset>span{color:var(--mp-mute);font:700 9px/1 var(--mp-font);letter-spacing:.14em;text-transform:uppercase}
 .kefe-mini-preset select{width:100%;min-width:0;height:100%;padding:0;border:0;background:transparent;color:var(--mp-ink);font:600 12px/1 var(--mp-font);text-overflow:ellipsis;outline:none;cursor:pointer}
-
-.kefe-mini-notice{margin-top:8px;padding:9px 14px;border-radius:14px!important;background:#fff;border:1px solid var(--mp-line);color:var(--mp-mid);font:600 12px/1.3 var(--mp-font)}
-.kefe-mini-notice[hidden]{display:none}
 
 /* --- lyrics --- */
 .kefe-mini-lyrics-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:8px;padding:0 16px;border:1px solid var(--mp-line);border-radius:18px!important;
@@ -167,11 +162,3 @@
 .wizard-mini-player-launch{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px;border:1px solid var(--line);background:var(--surface-2)}
 .wizard-mini-player-launch>div{display:grid;gap:5px}
 .wizard-mini-player-launch span{font-size:12px;color:var(--muted)}
-
-/* Automatic identification metadata / artwork */
-.kefe-mini-album{min-height:1.1em;margin-top:4px;font-size:11px;line-height:1.25;letter-spacing:.04em;opacity:.62;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kefe-mini-art{position:relative;overflow:hidden}
-.kefe-mini-cover{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;opacity:0;pointer-events:none;transition:opacity .28s ease}
-.kefe-mini-card.is-expanded .kefe-mini-cover{opacity:1}
-.kefe-mini-card.is-expanded .kefe-mini-spin canvas{opacity:.08}
-.kefe-mini-card.is-expanded .kefe-mini-hub{opacity:0}
