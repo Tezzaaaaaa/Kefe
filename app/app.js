@@ -3631,8 +3631,8 @@ function closeExportPreflight() { $('exportPreflight').classList.add('hidden'); 
 $('closePreflight').addEventListener('click', closeExportPreflight);
 $('cancelPreflight').addEventListener('click', closeExportPreflight);
 
-$('exportBtn').addEventListener('click', startExport);
-$('exportBottom').addEventListener('click', startExport);
+$('exportBtn').addEventListener('click', openExportPreflight);
+$('exportBottom').addEventListener('click', openExportPreflight);
 
 document.addEventListener('keydown', function(e) {
     const tag = e.target.tagName;
