@@ -1342,6 +1342,10 @@ const appleLyricsEngine = (() => {
         coverImage = null;
         albumArtworkImage = null;
         resetSpring();
+        if (renderLoopId !== null) {
+            cancelAnimationFrame(renderLoopId);
+            renderLoopId = null;
+        }
         if (gl) {
             if (texture) gl.deleteTexture(texture);
             if (positionBuffer) gl.deleteBuffer(positionBuffer);
