@@ -68,3 +68,23 @@
 #backgroundSection .background-choice[data-background-preset="aurora"] .background-choice-preview { background: radial-gradient(circle at 18% 22%,#2f7bdc 0%,transparent 42%),radial-gradient(circle at 82% 38%,#c23fd0 0%,transparent 46%),radial-gradient(circle at 42% 82%,#12d6a0 0%,transparent 44%),#04060d; }
 #backgroundSection .background-choice[data-background-preset="grid"] .background-choice-preview { background-color:#050a0d;background-image:linear-gradient(rgba(56,224,255,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(56,224,255,.22) 1px,transparent 1px);background-size:12px 12px; }
 #backgroundSection .background-choice[data-background-preset="grain"] .background-choice-preview { background:repeating-conic-gradient(#1a1208 0% 25%,#2a1d0e 25% 50%) 0 0/6px 6px,radial-gradient(circle at 50% 40%,#4a331c 0%,#160e06 78%); }
+
+
+/* ---------- Special FX — rendered directly below Background ---------- */
+#visualFxSection .effect-buttons { gap: var(--s-2, 8px); }
+#visualFxSection .effect-buttons > button { position: relative; min-height: 64px; color: #fff; border: 1px solid rgba(255,255,255,.14); background: #151515; }
+#visualFxSection .effect-buttons > button::before { opacity: 1; }
+#visualFxSection .effect-buttons > button[data-fx="none"] { --kefe-effect-preview: linear-gradient(135deg,#303030,#111); }
+#visualFxSection .effect-buttons > button[data-fx="vhs"] { --kefe-effect-preview: linear-gradient(135deg,#160d20,#7b315e 45%,#173e52); }
+#visualFxSection .effect-buttons > button[data-fx="crt"] { --kefe-effect-preview: radial-gradient(circle,#174d3b 0%,#07150f 55%,#020504 100%); }
+#visualFxSection .effect-buttons > button[data-fx="rgb"] { --kefe-effect-preview: linear-gradient(90deg,#ff164f 0%,#111 46%,#18d7ff 100%); }
+#visualFxSection .effect-buttons > button[data-fx="bloom"] { --kefe-effect-preview: radial-gradient(circle at 50% 50%,#fff 0%,#a6b8ff 16%,#302b66 48%,#0b0b16 100%); }
+#visualFxSection .effect-buttons > button[data-fx="motion"] { --kefe-effect-preview: linear-gradient(110deg,#080b12 5%,#8aa7c8 45%,#1a2534 62%,#080b12 100%); }
+#visualFxSection .effect-buttons > button[data-fx="shake"] { --kefe-effect-preview: repeating-linear-gradient(9deg,#171717 0 7px,#5a5a5a 7px 10px,#101010 10px 17px); }
+#visualFxSection .effect-buttons > button[data-fx="glitch"] { --kefe-effect-preview: repeating-linear-gradient(0deg,#111 0 5px,#d51e54 5px 7px,#121212 7px 11px,#25d8e8 11px 13px); }
+#visualFxSection .effect-buttons > button[data-fx="halftone"] { --kefe-effect-preview: radial-gradient(circle,#111 0 18%,transparent 20%) 0 0/9px 9px,#ddd; --kefe-effect-ink:#111; }
+#visualFxSection .effect-buttons > button[data-fx="vignette"] { --kefe-effect-preview: radial-gradient(circle at 50% 50%,#777 0%,#333 42%,#050505 100%); }
+#visualFxSection .effect-buttons > button[data-fx="mixedmedia"] { --kefe-effect-preview: linear-gradient(135deg,#e6dcc8 0 32%,#141414 32% 64%,#b7c8cf 64% 100%); --kefe-effect-ink:#111; }
+#visualFxSection .effect-buttons > button.active-effect { border-color: var(--red); box-shadow: 0 10px 26px rgba(0,0,0,.25); filter: brightness(1.08); }
+#visualFxSection .effect-label { margin-top: var(--s-2,8px); }
+@media (max-width: 560px) { #visualFxSection .effect-buttons > button { min-height: 56px; } }
