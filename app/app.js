@@ -475,25 +475,6 @@ function drawAppleSecondaryText(ctx, w, y, text, settings, options = {}) {
     ctx.restore();
 }
 
-function appleSpringPosition(time, start, from = 0, to = 1, velocity = 0) {
-    const elapsed = Math.max(0, Number(time) - Number(start));
-    const mass = 1;
-    const stiffness = 100;
-    const damping = 10;
-    const delta = to - from;
-    const critical = damping / (2 * Math.sqrt(stiffness * mass));
-    if (critical >= 1) {
-        const angular = -Math.sqrt(stiffness / mass);
-        const leftover = -angular * delta - velocity;
-        return to - (delta + elapsed * leftover) * Math.exp(elapsed * angular);
-    }
-    const dampingFrequency = Math.sqrt(4 * mass * stiffness - damping * damping);
-    const leftover = (damping * delta - 2 * mass * velocity) / dampingFrequency;
-    const dfm = 0.5 * dampingFrequency / mass;
-    const dm = -0.5 * damping / mass;
-    return to - (Math.cos(elapsed * dfm) * delta + Math.sin(elapsed * dfm) * leftover) * Math.exp(elapsed * dm);
-}
-
 function appleTransitionTiming(fromLine, toLine) {
     const fromTime = Number(fromLine?.time) || 0;
     const toTime = Number(toLine?.time) || fromTime + 1;
