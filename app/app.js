@@ -402,7 +402,7 @@ function drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, overallA
     const floatProgress = linaClamp((elapsedMs + 400) / (animateDuration * 1.4));
     const floatY = -Math.sin(floatProgress * Math.PI) * 0.05 * fontSize;
 
-    const wordWidth = ctx.measureText(word.text).width;
+    const wordWidth = appleGlyph(word.text, fontSize).width;
     ctx.save();
     ctx.globalAlpha = settings.inactiveOpacity * overallAlpha;
     ctx.fillStyle = settings.inactiveColor;
@@ -414,7 +414,7 @@ function drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, overallA
     for (let i = 0; i < chars.length; i++) {
         const local = appleEmphasisEase(linaClamp((elapsedMs - stagger * i) / animateDuration));
         const charX = x + prefixWidth;
-        const charWidth = ctx.measureText(chars[i]).width;
+        const charWidth = appleGlyph(chars[i], fontSize).width;
         prefixWidth += charWidth;
         if (local <= 0.0001) continue;
         const offsetX = -local * 0.03 * amount * (chars.length / 2 - i);
@@ -454,7 +454,7 @@ function drawAppleLineBlock(ctx, w, centreY, line, time, settings, options = {})
     ctx.translate(w / 2, centreY);
     ctx.scale(scale, scale);
     ctx.translate(-w / 2, -centreY);
-    const spaceWidth = ctx.measureText(" ").width;
+    const spaceWidth = appleGlyph(" ", fontSize).width;
     for (const row of rows) {
         let x = settings.align === "center" ? (w - row.width) / 2 : settings.align === "right" ? w - margin - row.width : margin;
         for (let i = 0; i < row.words.length; i++) {
