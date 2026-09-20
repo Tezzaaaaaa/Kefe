@@ -259,17 +259,6 @@
 .kefe-vinyl-controls button:nth-child(2){width:44px;height:44px}
 .kefe-vinyl-controls svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .kefe-vinyl-controls .play{fill:currentColor;stroke:currentColor}
-.kefe-vinyl-mode-strip{
-  position:absolute;left:20px;right:20px;bottom:10px;z-index:8;
-  display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:3px;
-  border:1px solid rgba(255,255,255,.1);border-radius:99px!important;background:rgba(0,0,0,.24);
-}
-.kefe-vinyl-mode-strip button{height:28px;border:0;border-radius:99px!important;background:transparent;color:#85868b;font:700 8px/1 var(--mp-font);letter-spacing:.12em;cursor:pointer}
-.kefe-vinyl-mode-strip button.is-active{background:#fff;color:#111}
-.kefe-mini-shell.skin-vinyl.is-fullscreen{
-  width:100vw!important;height:100vh!important;max-height:none!important;border-radius:0!important;
-}
-.kefe-mini-shell.skin-vinyl.is-fullscreen .kefe-mini-vinyl-skin{height:100vh}
 @media(max-width:420px){
   .kefe-mini-shell.skin-vinyl{width:100vw!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important}
   .kefe-mini-shell.skin-vinyl .kefe-mini-vinyl-skin{height:100dvh}
