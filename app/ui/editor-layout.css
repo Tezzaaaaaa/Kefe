@@ -202,3 +202,37 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
 .preview-fullscreen-button svg{width:17px;height:17px}
 @media(max-width:700px){.preview-fullscreen-button{min-width:42px;min-height:42px}}
 @media(max-width:480px){.preview-fullscreen-button{display:inline-flex}}
+
+/* iPhone Safari fallback: Safari does not expose dependable arbitrary-element
+   fullscreen, so lock the preview to the viewport as an immersive editor mode. */
+body.kefe-preview-fullscreen{overflow:hidden!important}
+.preview.kefe-mobile-fullscreen{
+  position:fixed!important;
+  inset:0!important;
+  z-index:10000!important;
+  width:100vw!important;
+  height:100dvh!important;
+  min-height:100dvh!important;
+  margin:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  background:var(--surface)!important;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.preview.kefe-mobile-fullscreen .preview-toolbar{
+  flex:0 0 auto;
+  padding-top:max(8px,env(safe-area-inset-top,0px));
+}
+.preview.kefe-mobile-fullscreen .canvas-wrapper{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  width:100%!important;
+  height:auto!important;
+}
+.preview.kefe-mobile-fullscreen .canvas-wrapper canvas{
+  max-width:100%!important;
+  max-height:100%!important;
+}
+.preview.kefe-mobile-fullscreen .visualiser-mini-player{
+  bottom:max(16px,calc(16px + env(safe-area-inset-bottom,0px)));
+}
