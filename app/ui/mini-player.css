@@ -165,3 +165,74 @@
 .kefe-mini-controls .kefe-mini-play svg{width:19px;height:19px}
 .kefe-mini-lyrics-toggle .lyrics-chevron{width:15px;height:15px;flex:0 0 auto}
 .kefe-mini-lyrics-head button svg{width:15px;height:15px}
+
+
+/* MiniPlayer 3D presentation + fullscreen control. */
+.kefe-mini-topline-actions{display:flex;align-items:center;gap:6px}
+.kefe-mini-icon-button{
+  width:30px;height:30px;display:grid;place-items:center;padding:0;
+  border:1px solid rgba(23,27,24,.55);background:rgba(240,229,204,.28);
+  color:inherit;cursor:pointer;
+}
+.kefe-mini-topline-actions svg{width:15px;height:15px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.kefe-mini-shell.kefe-mini-3d{
+  transform-style:preserve-3d;
+  transform:perspective(1100px) rotateX(1.5deg) rotateY(-1deg);
+  filter:drop-shadow(18px 28px 0 rgba(23,27,24,.16));
+}
+.kefe-mini-shell.kefe-mini-3d .kefe-mini-topline,
+.kefe-mini-shell.kefe-mini-3d .kefe-mini-grid,
+.kefe-mini-shell.kefe-mini-3d .kefe-mini-lyrics-toggle,
+.kefe-mini-shell.kefe-mini-3d .kefe-mini-queue{
+  transform-style:preserve-3d;
+}
+.kefe-mini-shell.kefe-mini-3d .kefe-mini-topline{
+  transform:translateZ(18px);
+}
+.kefe-mini-shell.kefe-mini-3d .kefe-mini-grid{
+  transform:translateZ(10px) rotateX(1deg);
+}
+.kefe-mini-shell.kefe-mini-3d .kefe-mini-art{
+  transform:translateZ(24px) rotateY(-1.5deg);
+  box-shadow:14px 16px 0 -8px var(--earth),22px 23px 0 -13px var(--leaf);
+}
+.kefe-mini-shell.kefe-mini-3d .kefe-mini-main{
+  transform:translateZ(20px);
+}
+.kefe-mini-shell.kefe-mini-3d .kefe-mini-lyrics-toggle{
+  transform:translateZ(8px);
+}
+.kefe-mini-shell.kefe-mini-3d .kefe-mini-queue{
+  transform:translateZ(4px);
+}
+.kefe-mini-shell.kefe-mini-3d:after{
+  content:"";position:absolute;left:18px;right:8px;bottom:-24px;height:34px;
+  z-index:-3;background:linear-gradient(90deg,var(--leaf),var(--earth));
+  clip-path:polygon(3% 0,100% 12%,94% 100%,0 78%);
+  transform:translateZ(-80px) skewX(-8deg);
+  opacity:.9;pointer-events:none;
+}
+.kefe-mini-shell.is-fullscreen{
+  width:100vw!important;height:100vh!important;max-height:none!important;
+  left:0!important;top:0!important;overflow:auto;transform:none!important;filter:none;
+}
+.kefe-mini-modal.kefe-mini-css-fullscreen{
+  pointer-events:auto;background:rgba(23,27,24,.88);
+}
+.kefe-mini-modal.kefe-mini-css-fullscreen .kefe-mini-shell{
+  width:min(1180px,96vw);max-height:96dvh;
+}
+.kefe-mini-modal.kefe-mini-css-fullscreen .kefe-mini-grid{
+  grid-template-columns:minmax(360px,52%) 1fr;
+}
+@media(max-width:700px){
+  .kefe-mini-shell.kefe-mini-3d{transform:none;filter:none}
+  .kefe-mini-shell.kefe-mini-3d .kefe-mini-topline,
+  .kefe-mini-shell.kefe-mini-3d .kefe-mini-grid,
+  .kefe-mini-shell.kefe-mini-3d .kefe-mini-art,
+  .kefe-mini-shell.kefe-mini-3d .kefe-mini-main,
+  .kefe-mini-shell.kefe-mini-3d .kefe-mini-lyrics-toggle,
+  .kefe-mini-shell.kefe-mini-3d .kefe-mini-queue{transform:none;box-shadow:none}
+  .kefe-mini-shell.kefe-mini-3d:after{display:none}
+}
