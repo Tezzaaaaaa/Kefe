@@ -37,7 +37,18 @@
       '#kefeVisualiserPicker .kefe-ra-row input[type=range]{flex:1 1 auto;-webkit-appearance:none;appearance:none;height:3px;background:var(--line);border-radius:2px;outline:none;cursor:pointer}',
       '#kefeVisualiserPicker .kefe-ra-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--text);border:0;cursor:pointer}',
       '#kefeVisualiserPicker .kefe-ra-row input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--text);border:0;cursor:pointer}',
-      '#kefeVisualiserPicker .kefe-ra-row .val{flex:0 0 34px;text-align:right;font-size:11px;color:var(--text);font-variant-numeric:tabular-nums}'
+      '#kefeVisualiserPicker .kefe-ra-row .val{flex:0 0 34px;text-align:right;font-size:11px;color:var(--text);font-variant-numeric:tabular-nums}',
+      '#kefeVisualiserPicker .kefe-bc-tools{display:flex;gap:8px;margin-bottom:8px}',
+      '#kefeVisualiserPicker .kefe-bc-tools input{flex:1 1 auto;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:12px \"Open Sans\",Arial,sans-serif}',
+      '#kefeVisualiserPicker .kefe-bc-tools button{flex:0 0 auto;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:600 12px \"Open Sans\",Arial,sans-serif;cursor:pointer}',
+      '#kefeVisualiserPicker .kefe-bc-tools button:hover{border-color:var(--line-strong)}',
+      '#kefeVisualiserPicker .kefe-bc-count{font-size:11px;color:var(--text-3);margin-bottom:8px}',
+      '#kefeVisualiserPicker .kefe-bc-list{max-height:240px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}',
+      '#kefeVisualiserPicker .kefe-bc-item{display:block;width:100%;padding:8px 10px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--text);text-align:left;font:12px \"Open Sans\",Arial,sans-serif;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '#kefeVisualiserPicker .kefe-bc-item:last-child{border-bottom:0}',
+      '#kefeVisualiserPicker .kefe-bc-item:hover{background:var(--surface-2)}',
+      '#kefeVisualiserPicker .kefe-bc-item.active{color:var(--red);font-weight:700}',
+      '#kefeVisualiserPicker .kefe-bc-item[hidden]{display:none}'
     ].join('\n');
     document.head.appendChild(s);
   }
@@ -55,11 +66,89 @@
     { key: 'neuralnetwork',     label: 'Neural Network' },
     { key: 'ra',                label: 'Ra' },
     { key: 'tuffpuff',          label: 'TuffPuff' },
-    { key: 'ridgeline',         label: 'Ridgeline' }
+    { key: 'ridgeline',         label: 'Ridgeline' },
+    { key: 'butterchurn',       label: 'Butterchurn' }
   ];
 
   function current(){
     return (window.state && window.state.style && window.state.style.visualiserStyle) || 'pulse';
+  }
+
+  // Butterchurn preset list: keep the highlighted row in step with state
+  // (project load, Random, external changes) without rebuilding the panel.
+  function syncButterchurnList(box){
+    var list = box && box.querySelector('.kefe-bc-list');
+    if (!list || !window.kefeButterchurn) return;
+    var sel = window.kefeButterchurn.effectivePreset(window.state);
+    if (list.dataset.selected === sel) return;
+    list.dataset.selected = sel;
+    list.querySelectorAll('.kefe-bc-item').forEach(function(it){
+      var on = it.dataset.preset === sel;
+      it.classList.toggle('active', on);
+      if (on) it.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  function buildButterchurnControls(box){
+    var bc = document.createElement('div');
+    bc.className = 'kefe-ra-controls';
+    var api = window.kefeButterchurn;
+    var presets = api && api.isLoaded() ? api.presetNames() : [];
+    if (!presets.length) {
+      bc.innerHTML = '<div class="kefe-vis-hint">' + ((api && api.error()) || 'Butterchurn presets are not available.') + '</div>';
+      box.appendChild(bc);
+      return;
+    }
+
+    var tools = document.createElement('div');
+    tools.className = 'kefe-bc-tools';
+    var search = document.createElement('input');
+    search.type = 'search';
+    search.placeholder = 'Search ' + presets.length + ' presets';
+    var prev = document.createElement('button'); prev.type = 'button'; prev.textContent = '\u2039'; prev.title = 'Previous preset';
+    var next = document.createElement('button'); next.type = 'button'; next.textContent = '\u203A'; next.title = 'Next preset';
+    var rnd = document.createElement('button'); rnd.type = 'button'; rnd.textContent = 'Random';
+    tools.appendChild(search); tools.appendChild(prev); tools.appendChild(next); tools.appendChild(rnd);
+    bc.appendChild(tools);
+
+    var list = document.createElement('div');
+    list.className = 'kefe-bc-list';
+    presets.forEach(function(name){
+      var it = document.createElement('button');
+      it.type = 'button';
+      it.className = 'kefe-bc-item';
+      it.dataset.preset = name;
+      it.title = name;
+      it.textContent = name;
+      it.addEventListener('click', function(){ choose(name); });
+      list.appendChild(it);
+    });
+    bc.appendChild(list);
+
+    function choose(name){
+      if (!window.state) return;
+      if (!window.state.style) window.state.style = {};
+      window.state.style.butterchurnPreset = name;
+      syncButterchurnList(box);
+      window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
+    }
+    function step(delta){
+      var cur = api.effectivePreset(window.state);
+      var i = presets.indexOf(cur);
+      choose(presets[(i + delta + presets.length) % presets.length]);
+    }
+    prev.addEventListener('click', function(){ step(-1); });
+    next.addEventListener('click', function(){ step(1); });
+    rnd.addEventListener('click', function(){ choose(presets[Math.floor(Math.random() * presets.length)]); });
+    search.addEventListener('input', function(){
+      var q = search.value.trim().toLowerCase();
+      list.querySelectorAll('.kefe-bc-item').forEach(function(it){
+        it.hidden = !!q && it.dataset.preset.toLowerCase().indexOf(q) === -1;
+      });
+    });
+
+    box.appendChild(bc);
+    syncButterchurnList(box);
   }
 
   function tick(){
@@ -81,6 +170,7 @@
         existing.querySelectorAll('.kefe-vis-btn').forEach(function(b){
           b.classList.toggle('active-effect', b.dataset.mode === cur);
         });
+        if (cur === 'butterchurn') syncButterchurnList(existing);
         return;
       }
       // Rebuild the panel when the selected mode changes so its mode-specific
@@ -259,6 +349,9 @@
       });
       box.appendChild(ridge);
     }
+
+    // ---- Butterchurn: preset browser, only when Butterchurn is selected ----
+    if (cur === 'butterchurn') buildButterchurnControls(box);
 
     // ---- Ra controls: only show when Ra is the selected visualiser ----
     if (cur === 'ra') {

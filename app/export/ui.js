@@ -69,6 +69,7 @@ async function runExport() {
     if (typeof window.kefeRenderFrame !== 'function') throw new Error('KEFE export renderer is not connected');
     const preset = $('exportPreset')?.value || '720p';
     const config = getExportConfig(preset, state.aspect || '9:16');
+    try { await window.kefeButterchurn?.prepare?.(); } catch (error) { console.warn('[KEFE] Butterchurn audio prepare failed', error); }
     return await exportVideo({
         state, media, config, signal: window.kefeExportAbort?.signal, buildFilename,
         onProgress: ({ percent, message }) => setExportUI(percent, message),
