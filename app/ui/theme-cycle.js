@@ -10,9 +10,9 @@
         night: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.4A8.7 8.7 0 0 1 8.6 4a8.8 8.8 0 1 0 11.4 11.4Z"/></svg>'
     };
     const DAY_VARS = {
-        '--bg': '#ffffff', '--surface': '#fefefe', '--surface-2': '#f7f7f5', '--surface-3': '#ececea',
-        '--line': 'rgba(10,10,8,.10)', '--line-strong': 'rgba(10,10,8,.22)', '--text': '#0a0a0a',
-        '--text-2': '#5c5c58', '--text-3': '#6f6f6a', '--shadow-card': 'none'
+        '--bg': '#ffffff', '--surface': '#ffffff', '--surface-2': '#f7f7f5', '--surface-3': '#ececea',
+        '--line': 'rgba(10,10,8,.12)', '--line-strong': 'rgba(10,10,8,.22)', '--text': '#111111',
+        '--text-2': '#4f4f4b', '--text-3': '#666660', '--shadow-card': 'none'
     };
     const NIGHT_VARS = {
         '--bg': '#030303', '--surface': '#0a0a0a', '--surface-2': '#141414', '--surface-3': '#1e1e1e',
