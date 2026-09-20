@@ -187,8 +187,6 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
     padding:0 5px;
     font-size:10px;
   }
-  .kefe-preview-corner .preview-focus-button,
-  .kefe-preview-corner #previewFocusButton{display:none}
   .transport{grid-template-columns:42px 42px minmax(0,1fr) auto}
   .transport #clock{min-width:58px}
   .canvas-wrapper{padding:8px}
@@ -199,10 +197,6 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
 .canvas-wrapper:fullscreen canvas{max-width:100%;max-height:100%;border-radius:0;outline:0}
 .canvas-wrapper:-webkit-full-screen{width:100vw;height:100vh;box-sizing:border-box;padding:clamp(12px,3vw,40px);background:#000}
 .canvas-wrapper:-webkit-full-screen canvas{max-width:100%;max-height:100%;border-radius:0;outline:0}
-.preview-fullscreen-button{flex:0 0 auto;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
-.preview-fullscreen-button svg{width:17px;height:17px}
-@media(max-width:700px){.preview-fullscreen-button{min-width:42px;min-height:42px}}
-@media(max-width:480px){.preview-fullscreen-button{display:inline-flex}}
 
 /* iPhone Safari: make the visualiser itself fill the viewport. The
    browser's own Safari chrome cannot be hidden by page JavaScript. */
@@ -253,7 +247,7 @@ body.kefe-preview-fullscreen{overflow:hidden!important}
 .preview.kefe-mobile-fullscreen .preview-toolbar .transport{
   display:none!important;
 }
-.preview.kefe-mobile-fullscreen .preview-fullscreen-button{
+.preview.kefe-mobile-fullscreen .preview-focus-button{
   position:fixed!important;
   top:max(10px,calc(10px + env(safe-area-inset-top,0px)))!important;
   right:max(10px,calc(10px + env(safe-area-inset-right,0px)))!important;
