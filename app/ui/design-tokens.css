@@ -637,3 +637,50 @@ body[data-project-type="visualiser"] #backgroundSection .background-choice[data-
 #kefeVisualiserPicker .kefe-ridge-gradients,
 #kefeVisualiserPicker .kefe-ridge-gradients-row,
 #kefeVisualiserPicker .kefe-ridge-swatch { display: none !important; }
+
+
+/* ---------------------------------------------------------------------
+   Day mode readability — keep the light UI genuinely light and ensure
+   components that historically used white-on-dark values remain legible.
+   --------------------------------------------------------------------- */
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice,
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice .kefe-accordion-inner,
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice .kefe-accordion-inner > * {
+  color: var(--text) !important;
+  background-color: var(--surface) !important;
+}
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-copy strong {
+  color: var(--text) !important;
+}
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-copy span,
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-copy p,
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-description,
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice .kefe-accordion-inner span,
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice .kefe-accordion-inner p,
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice .kefe-accordion-inner small {
+  color: var(--text-2) !important;
+}
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--line-strong);
+}
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-icon {
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+[data-theme="day"] body.wizard-mode .wizard-choices .wizard-choice.selected {
+  background: var(--red-soft) !important;
+  border-color: var(--red);
+}
+[data-theme="day"] .kefe-preview-hint {
+  color: var(--text-2) !important;
+}
+[data-theme="day"] .preview-heading strong,
+[data-theme="day"] #previewStatus,
+[data-theme="day"] .transport #clock {
+  color: var(--text) !important;
+}
+[data-theme="day"] #previewStatus {
+  background: var(--surface-2) !important;
+  border-color: var(--line) !important;
+}
