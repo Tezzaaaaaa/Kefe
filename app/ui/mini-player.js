@@ -54,6 +54,46 @@
         </section>
         <div class="kefe-mini-queue"><div class="kefe-mini-queue-head"><div><span>UP NEXT</span><small>Playlist</small></div><span id="kefeMiniQueueCount">0 tracks</span></div><ol id="kefeMiniQueueList"></ol></div>
       </div>
+
+        <section class="kefe-mini-vinyl-skin" aria-label="Vinyl CD visualiser skin" hidden>
+          <div class="kefe-vinyl-screen">
+            <canvas id="kefeVinylVisualizer" aria-hidden="true"></canvas>
+            <div class="kefe-vinyl-disc-wrap">
+              <div class="kefe-vinyl-disc" id="kefeVinylDisc" aria-hidden="true">
+                <div class="kefe-vinyl-label">
+                  <span class="kefe-vinyl-label-top">KEFE</span>
+                  <strong id="kefeVinylLabelTitle">NOW PLAYING</strong>
+                  <span id="kefeVinylLabelArtist">KEFE VISUALISER</span>
+                </div>
+                <div class="kefe-vinyl-hole"></div>
+              </div>
+            </div>
+            <div class="kefe-vinyl-screen-controls">
+              <button type="button" id="kefeVinylModeToggle" aria-label="Switch to visualizer mode" title="Switch to visualizer mode">
+                <svg class="vinyl-viz-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17V7m4 13V4m4 16V8m4 12V5m4 15V9"/></svg>
+                <svg class="vinyl-cd-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="kefe-vinyl-info">
+            <div class="kefe-vinyl-meta">
+              <span id="kefeVinylArtist">Unknown artist</span>
+              <strong id="kefeVinylTitle">Nothing queued</strong>
+            </div>
+            <div class="kefe-vinyl-progress"><span id="kefeVinylProgress"></span></div>
+            <div class="kefe-vinyl-time"><span id="kefeVinylCurrent">0:00</span><span id="kefeVinylDuration">0:00</span></div>
+            <div class="kefe-vinyl-controls" aria-label="Vinyl playback controls">
+              <button type="button" id="kefeVinylPrev" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg></button>
+              <button type="button" id="kefeVinylPlay" aria-label="Play"><svg class="play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></button>
+              <button type="button" id="kefeVinylNext" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12M6 6l8 6-8 6z"/></svg></button>
+            </div>
+          </div>
+          <div class="kefe-vinyl-mode-strip">
+            <button type="button" class="is-active" data-vinyl-mode="neonBars">MEDIA</button>
+            <button type="button" data-vinyl-mode="radialWave">PRESET</button>
+            <button type="button" data-vinyl-mode="oscilloscope">LYRICS</button>
+          </div>
+        </section>
     </div>`;
   document.body.appendChild(player);
 
@@ -192,6 +232,7 @@
     if (!player.classList.contains('is-hidden')) {
       stepSpin(now, dt);
       syncProgress();
+      drawVinylVisualizer(now);
       try {
         getState().style.visualiserStyle = 'butterchurn';
         window.kefeButterchurn?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || performance.now() / 1000, getState());
@@ -418,12 +459,16 @@
     syncProgress();
   });
   audio.addEventListener('timeupdate', () => {
+    syncVinylProgress();
+    syncVinylMetadata();
     seekEl.value = String(audio.currentTime || 0);
     $('kefeMiniCurrent').textContent = fmtCur(audio.currentTime);
     syncProgress();
   });
   audio.addEventListener('play', () => {
+    ensureVinylAudio();
     shellEl.classList.add('is-playing');
+    syncVinylPlaying();
     const button = $('kefeMiniPlay');
     button.setAttribute('aria-label', 'Pause');
     button.title = 'Pause';
@@ -431,6 +476,7 @@
   });
   audio.addEventListener('pause', () => {
     shellEl.classList.remove('is-playing');
+    syncVinylPlaying();
     const button = $('kefeMiniPlay');
     button.setAttribute('aria-label', 'Play');
     button.title = 'Play';
@@ -451,12 +497,178 @@
       notify(`Can't play "${track.title}". This browser can't decode the format.`);
     }
   });
+
+  const vinylSkin = player.querySelector('.kefe-mini-vinyl-skin');
+  const vinylCanvas = $('kefeVinylVisualizer');
+  const vinylCtx = vinylCanvas?.getContext('2d');
+  const vinylDisc = $('kefeVinylDisc');
+  const vinylModeToggle = $('kefeVinylModeToggle');
+  const vinylModes = ['neonBars', 'radialWave', 'oscilloscope'];
+  let vinylMode = 'neonBars';
+  let vinylAnalyser = null;
+  let vinylAudioSource = null;
+  let vinylFreq = null;
+  let vinylTime = null;
+
+  function ensureVinylAudio() {
+    if (vinylAnalyser || !window.AudioContext && !window.webkitAudioContext) return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const audioContext = new AudioCtx();
+      vinylAudioSource = audioContext.createMediaElementSource(audio);
+      vinylAnalyser = audioContext.createAnalyser();
+      vinylAnalyser.fftSize = 256;
+      vinylAnalyser.smoothingTimeConstant = 0.78;
+      vinylFreq = new Uint8Array(vinylAnalyser.frequencyBinCount);
+      vinylTime = new Uint8Array(vinylAnalyser.fftSize);
+      vinylAudioSource.connect(vinylAnalyser);
+      vinylAnalyser.connect(audioContext.destination);
+      audioContext.resume?.().catch(() => {});
+    } catch (error) {
+      vinylAnalyser = null;
+    }
+  }
+
+  function resizeVinylCanvas() {
+    if (!vinylCanvas) return;
+    const rect = vinylCanvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    vinylCanvas.width = Math.max(1, Math.round(rect.width * dpr));
+    vinylCanvas.height = Math.max(1, Math.round(rect.height * dpr));
+    vinylCtx?.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function vinylLevel() {
+    if (!vinylAnalyser || !vinylFreq) return 0;
+    vinylAnalyser.getByteFrequencyData(vinylFreq);
+    let sum = 0;
+    for (let i = 0; i < vinylFreq.length; i++) sum += vinylFreq[i];
+    return sum / vinylFreq.length / 255;
+  }
+
+  function drawVinylVisualizer(now) {
+    if (!vinylCanvas || !vinylCtx || vinylSkin?.hidden || !shellEl.classList.contains('is-visualizer-mode')) return;
+    const w = vinylCanvas.clientWidth || 320;
+    const h = vinylCanvas.clientHeight || 200;
+    const level = vinylLevel();
+    vinylCtx.clearRect(0, 0, w, h);
+    vinylCtx.fillStyle = '#07080b';
+    vinylCtx.fillRect(0, 0, w, h);
+
+    if (vinylMode === 'neonBars') {
+      const count = 28;
+      const gap = 3;
+      const bw = Math.max(2, (w - gap * (count - 1)) / count);
+      for (let i = 0; i < count; i++) {
+        const v = vinylFreq ? (vinylFreq[Math.floor(i / count * vinylFreq.length)] || 0) / 255 : 0;
+        const idle = 0.12 + 0.08 * Math.sin(now * 0.002 + i);
+        const bh = Math.max(3, (v || idle) * h * .82);
+        const x = i * (bw + gap);
+        const y = h - bh;
+        const g = vinylCtx.createLinearGradient(0, y, 0, h);
+        g.addColorStop(0, '#ffffff');
+        g.addColorStop(1, 'rgba(255,255,255,.08)');
+        vinylCtx.fillStyle = g;
+        vinylCtx.fillRect(x, y, bw, bh);
+      }
+    } else if (vinylMode === 'radialWave') {
+      const cx = w / 2, cy = h / 2;
+      const radius = Math.min(w, h) * (.23 + level * .12);
+      vinylCtx.strokeStyle = 'rgba(255,255,255,.92)';
+      vinylCtx.lineWidth = 2;
+      vinylCtx.beginPath();
+      for (let i = 0; i <= 160; i++) {
+        const a = i / 160 * Math.PI * 2;
+        const bin = vinylFreq ? vinylFreq[Math.floor(i / 160 * vinylFreq.length)] / 255 : 0;
+        const r = radius + bin * 38 + Math.sin(a * 8 + now * .003) * 4;
+        const x = cx + Math.cos(a) * r;
+        const y = cy + Math.sin(a) * r;
+        if (i === 0) vinylCtx.moveTo(x, y); else vinylCtx.lineTo(x, y);
+      }
+      vinylCtx.stroke();
+    } else {
+      if (vinylAnalyser && vinylTime) vinylAnalyser.getByteTimeDomainData(vinylTime);
+      vinylCtx.strokeStyle = '#fff';
+      vinylCtx.lineWidth = 2;
+      vinylCtx.beginPath();
+      for (let i = 0; i < (vinylTime?.length || 1); i++) {
+        const v = vinylTime ? vinylTime[i] / 128 - 1 : Math.sin(now * .006) * .2;
+        const x = i / Math.max(1, (vinylTime?.length || 1) - 1) * w;
+        const y = h / 2 + v * h * .32;
+        if (i === 0) vinylCtx.moveTo(x, y); else vinylCtx.lineTo(x, y);
+      }
+      vinylCtx.stroke();
+    }
+  }
+
+  function syncVinylMetadata() {
+    const stateMeta = getState().audio?.metadata || {};
+    const title = String(stateMeta.title || $('kefeMiniTitle')?.textContent || 'Nothing queued');
+    const artist = String(stateMeta.artist || $('kefeMiniArtist')?.textContent || 'Unknown artist');
+    const album = String(stateMeta.album || '');
+    [['kefeVinylTitle', title], ['kefeVinylArtist', artist], ['kefeVinylLabelTitle', title], ['kefeVinylLabelArtist', album || artist]].forEach(([id, value]) => {
+      const el = $(id); if (el) el.textContent = value;
+    });
+  }
+
+  function syncVinylProgress() {
+    const duration = Number(audio.duration) || 0;
+    const current = Number(audio.currentTime) || 0;
+    const p = duration > 0 ? Math.min(1, Math.max(0, current / duration)) : 0;
+    const progress = $('kefeVinylProgress');
+    if (progress) progress.style.transform = `scaleX(${p})`;
+    const cur = $('kefeVinylCurrent'); if (cur) cur.textContent = fmt(current);
+    const dur = $('kefeVinylDuration'); if (dur) dur.textContent = fmt(duration);
+  }
+
+  function syncVinylPlaying() {
+    const playing = !audio.paused;
+    vinylDisc?.classList.toggle('is-playing', playing);
+    vinylSkin?.classList.toggle('is-playing', playing);
+  }
+
+  function setVinylMode(mode) {
+    if (!vinylModes.includes(mode)) return;
+    vinylMode = mode;
+    const visualizer = mode !== 'neonBars' || shellEl.classList.contains('is-visualizer-mode');
+    shellEl.classList.toggle('is-visualizer-mode', visualizer);
+    vinylSkin?.querySelectorAll('[data-vinyl-mode]').forEach(button => button.classList.toggle('is-active', button.dataset.vinylMode === mode));
+    if (vinylModeToggle) {
+      vinylModeToggle.setAttribute('aria-label', visualizer ? 'Switch to CD mode' : 'Switch to visualizer mode');
+      vinylModeToggle.title = visualizer ? 'Switch to CD mode' : 'Switch to visualizer mode';
+    }
+    resizeVinylCanvas();
+  }
+
+  vinylModeToggle?.addEventListener('click', e => {
+    e.stopPropagation();
+    setVinylMode(shellEl.classList.contains('is-visualizer-mode') ? 'neonBars' : 'radialWave');
+  });
+  vinylSkin?.querySelectorAll('[data-vinyl-mode]').forEach(button => {
+    button.addEventListener('click', e => {
+      e.stopPropagation();
+      setVinylMode(button.dataset.vinylMode);
+    });
+  });
+  $('kefeVinylPlay')?.addEventListener('click', e => { e.stopPropagation(); toggle(); });
+  $('kefeVinylPrev')?.addEventListener('click', e => { e.stopPropagation(); prev(); });
+  $('kefeVinylNext')?.addEventListener('click', e => { e.stopPropagation(); next(); });
+  vinylSkin?.addEventListener('click', e => {
+    if (e.target.closest('button')) return;
+  });
+  window.addEventListener('resize', resizeVinylCanvas);
+
   const skinToggle = $('kefeMiniSkinToggle');
   const modeToggle = $('kefeMiniModeToggle');
   function syncMiniSkin() {
     const shell = player.querySelector('.kefe-mini-shell');
     if (!shell) return;
     const vinyl = shell.classList.contains('skin-vinyl');
+    if (vinylSkin) vinylSkin.hidden = !vinyl;
+    if (vinyl) resizeVinylCanvas();
+    syncVinylMetadata();
+    syncVinylProgress();
+    syncVinylPlaying();
     skinToggle?.setAttribute('aria-label', vinyl ? 'Switch to standard MiniPlayer skin' : 'Switch to Vinyl CD MiniPlayer skin');
     skinToggle?.setAttribute('title', vinyl ? 'Standard skin' : 'Vinyl CD skin');
     modeToggle?.setAttribute('aria-label', shell.classList.contains('is-visualizer-mode') ? 'Switch to CD mode' : 'Switch to visualizer mode');
