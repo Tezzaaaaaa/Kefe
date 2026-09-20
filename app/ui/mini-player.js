@@ -47,7 +47,12 @@
   const audio = new Audio();
   audio.preload = 'auto';
   audio.playsInline = true;
-  const state = window.state;
+  const fallbackState = {
+    audio: { file: null, url: null, duration: 0, ready: false, metadata: { title: '', artist: '', album: '' } },
+    lyrics: { lines: [] },
+    style: { visualiserStyle: 'butterchurn', butterchurnPreset: '' }
+  };
+  const getState = () => window.state || fallbackState;
   const urls = new Map();
   let tracks = [];
   let index = -1;
@@ -81,19 +86,19 @@
     const select = $('kefeMiniPreset');
     if (!select || !names.length) return;
     select.innerHTML = names.map(n => `<option value="${esc(n)}">${esc(n.replace(/^[^-]+[-+]\\s*/,'').trim())}</option>`).join('');
-    const preferred = window.kefeButterchurn?.effectivePreset?.(state);
+    const preferred = window.kefeButterchurn?.effectivePreset?.(getState());
     if (preferred && names.includes(preferred)) select.value = preferred;
   }
   function choosePreset(name) {
-    state.style.visualiserStyle = 'butterchurn';
-    state.style.butterchurnPreset = name;
-    window.kefeButterchurn?.prepare?.().catch?.(() => {});
+    getState().style.visualiserStyle = 'butterchurn';
+    getState().style.butterchurnPreset = name;
+    try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
   }
   function draw() {
     if (!player.classList.contains('is-hidden')) {
       try {
-        state.style.visualiserStyle = 'butterchurn';
-        window.kefeButterchurn?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || performance.now() / 1000, state);
+        getState().style.visualiserStyle = 'butterchurn';
+        window.kefeButterchurn?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || performance.now() / 1000, getState());
       } catch (e) {}
     }
     raf = requestAnimationFrame(draw);
@@ -164,16 +169,16 @@
     if (!url) { url = URL.createObjectURL(track.file); urls.set(track.file, url); }
     audio.src = url;
     audio.currentTime = 0;
-    state.audio.file = track.file;
-    state.audio.duration = 0;
-    state.audio.ready = true;
-    state.audio.metadata = { ...state.audio.metadata, title: track.title, artist: track.artist };
-    state.style.visualiserStyle = 'butterchurn';
+    getState().audio.file = track.file;
+    getState().audio.duration = 0;
+    getState().audio.ready = true;
+    getState().audio.metadata = { ...getState().audio.metadata, title: track.title, artist: track.artist };
+    getState().style.visualiserStyle = 'butterchurn';
     if ($('kefeMiniTitle')) $('kefeMiniTitle').textContent = track.title;
     if ($('kefeMiniArtist')) $('kefeMiniArtist').textContent = track.artist;
     renderLyrics();
     renderQueue();
-    window.kefeButterchurn?.prepare?.().catch?.(() => {});
+    try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
     if (autoplay) audio.play().catch(() => {});
   }
   function addFiles(fileList) {
@@ -194,7 +199,7 @@
   function renderLyrics() {
     const box = $('kefeMiniLyricsContent');
     if (!box) return;
-    const lines = Array.isArray(state?.lyrics?.lines) ? state.lyrics.lines : [];
+    const lines = Array.isArray(getState()?.lyrics?.lines) ? getState().lyrics.lines : [];
     box.innerHTML = lines.length
       ? lines.map(line => {
           const text = esc(line?.text || line?.words || '');
@@ -301,7 +306,7 @@
       const y = Math.max(12, (window.innerHeight - shell.offsetHeight) / 2);
       setPosition(x, y);
     }
-    window.kefeButterchurn?.prepare?.().catch?.(() => {});
+    try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
     if (!raf) raf = requestAnimationFrame(draw);
   }
   function close() {
