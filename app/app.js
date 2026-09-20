@@ -374,6 +374,36 @@ function drawAppleLineBlock(ctx, w, centreY, line, time, settings, options = {})
     ctx.restore();
 }
 
+function drawAppleSecondaryText(ctx, w, y, text, settings, options = {}) {
+    const value = String(text || '').trim();
+    if (!value) return;
+    const scale = Number.isFinite(options.scale) ? options.scale : 1;
+    const alpha = Number.isFinite(options.alpha) ? options.alpha : 1;
+    const size = Math.max(12, settings.fontSize * (Number(options.sizeRatio) || 0.38));
+    const margin = Math.max(40, w * 0.075);
+    const maxWidth = Math.max(80, w - margin * 2);
+    ctx.save();
+    ctx.font = `500 ${size}px "Open Sans",Arial,sans-serif`;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = settings.align === 'center' ? 'center' : settings.align === 'right' ? 'right' : 'left';
+    ctx.fillStyle = options.color || 'rgba(255,255,255,0.72)';
+    ctx.globalAlpha = alpha;
+    ctx.filter = Number(options.blur) > 0 ? `blur(${Number(options.blur)}px)` : 'none';
+    const shown = value.length > 1 && ctx.measureText(value).width > maxWidth
+        ? (() => {
+            let text = value;
+            while (text.length > 1 && ctx.measureText(text + '…').width > maxWidth) text = text.slice(0, -1);
+            return text + '…';
+        })()
+        : value;
+    const x = ctx.textAlign === 'center' ? w / 2 : ctx.textAlign === 'right' ? w - margin : margin;
+    ctx.translate(w / 2, y);
+    ctx.scale(scale, scale);
+    ctx.translate(-w / 2, -y);
+    ctx.fillText(shown, x, y);
+    ctx.restore();
+}
+
 function appleTransitionTiming(fromLine, toLine) {
     const fromTime = Number(fromLine?.time) || 0;
     const toTime = Number(toLine?.time) || fromTime + 1;
@@ -488,7 +518,8 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
     const fromMap = new Map(fromLayout.map(e=>[e.lineIndex,e]));
     const toMap = new Map(toLayout.map(e=>[e.lineIndex,e]));
     const transitioning = motion.fromIndex !== motion.toIndex;
-    const p = transitioning ? linaClamp(motion.progress) : 1;
+    const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const p = transitioning ? (reducedMotion ? 1 : linaClamp(motion.progress)) : 1;
     const focusTransfer = transitioning ? 0.5 - 0.5 * Math.cos(Math.PI * p) : 1;
     const relationOpacity = relation => relation === 0 ? 1 : relation < 0 ? 0.22 : Math.max(0.07,settings.inactiveOpacity*Math.pow(0.72,relation-1));
     for (const index of [...new Set([...fromMap.keys(),...toMap.keys()])]) {
@@ -515,6 +546,42 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
         }
         if (focus>0.001) {
             drawAppleLineBlock(ctx,w,y,entry.line,time,settings,{active:true,alpha:focus,scale,blur,nextLine:entry.nextLine,measurement:entry.measurement});
+
+            // Apple-style secondary lyric metadata: show translation when supplied,
+            // otherwise transliteration. Keep it attached to the active lyric only.
+            if (index === motion.toIndex && focus > 0.001) {
+                const secondary = entry.line.translation || entry.line.transliteration || '';
+                const secondaryY = y + entry.measurement.totalHeight / 2 + settings.fontSize * 0.42;
+                if (secondary) {
+                    drawAppleSecondaryText(ctx, w, secondaryY, secondary, settings, {
+                        alpha: focus * 0.68,
+                        sizeRatio: 0.34,
+                        color: 'rgba(255,255,255,0.70)',
+                        scale
+                    });
+                }
+
+                // Background-vocal lines are timed independently in TTML. Render
+                // only the currently active ones, without promoting them to the
+                // primary lyric stream.
+                const backgroundLines = Array.isArray(entry.line.backgroundLines) ? entry.line.backgroundLines : [];
+                let bgIndex = 0;
+                for (const bg of backgroundLines) {
+                    const bgStart = Number(bg?.time);
+                    const bgEnd = Number(bg?.endTime);
+                    if (!Number.isFinite(bgStart) || time < bgStart || (Number.isFinite(bgEnd) && time > bgEnd)) continue;
+                    const bgText = String(bg.text || '').trim();
+                    if (!bgText) continue;
+                    const bgY = secondaryY + settings.fontSize * (secondary ? 0.36 : 0.48) + bgIndex * settings.fontSize * 0.34;
+                    drawAppleSecondaryText(ctx, w, bgY, bgText, settings, {
+                        alpha: focus * 0.58,
+                        sizeRatio: 0.30,
+                        color: 'rgba(255,255,255,0.62)',
+                        scale: Math.min(scale, 1)
+                    });
+                    bgIndex++;
+                }
+            }
         }
     }
 }
@@ -1133,6 +1200,8 @@ const appleLyricsEngine = (() => {
 
     function renderBackground(ctx2d, width, height, time) {
         if (!webglReady || !texture || !coverImage) return false;
+        const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reducedMotion) time = 0;
         const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
         const targetW = Math.max(1, Math.floor(width * dpr));
         const targetH = Math.max(1, Math.floor(height * dpr));
@@ -1356,7 +1425,6 @@ const appleLyricsEngine = (() => {
         const rect = canvas.getBoundingClientRect();
         const x = (event.clientX - rect.left) * (canvas.width / rect.width);
         const y = (event.clientY - rect.top) * (canvas.height / rect.height);
-        const now = performance.now();
         const time = getMasterTime();
         const w = canvas.width, h = canvas.height, style = state.style;
         const settings = {
