@@ -166,74 +166,115 @@
 
 /* --- alternate MiniPlayer skin: Vinyl CD / Visualizer --- */
 .kefe-mini-shell.skin-vinyl{
-  width:min(320px,94vw);
-  height:480px;
-  max-height:min(94dvh,480px);
-  padding:0;
-  overflow:hidden;
+  width:min(320px,94vw)!important;
+  height:480px!important;
+  max-height:480px!important;
+  padding:0!important;
+  overflow:hidden!important;
   border-radius:28px!important;
   background:#1c1d21;
   color:#fff;
   box-shadow:0 20px 40px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08);
 }
 .kefe-mini-shell.skin-vinyl .kefe-mini-body{display:none!important}
-.kefe-mini-shell.skin-vinyl .kefe-mini-topline{position:absolute;inset:0 0 auto;z-index:30;margin:0;padding:8px 10px 0 14px;color:rgba(255,255,255,.72);pointer-events:none}
-.kefe-mini-shell.skin-vinyl .kefe-mini-topline-actions{pointer-events:auto}
-.kefe-mini-shell.skin-vinyl .kefe-mini-topline>span{opacity:.65;font-size:8px}
-.kefe-mini-shell.skin-vinyl .kefe-mini-icon-button,.kefe-mini-shell.skin-vinyl .kefe-mini-close{color:#fff;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(8px)}
-.kefe-mini-vinyl-skin{position:relative;display:block;width:100%;height:480px;background:#050508;overflow:hidden;box-sizing:border-box}
-.kefe-mini-vinyl-skin[hidden]{display:none}
-.kefe-vinyl-screen{position:absolute;inset:0 0 auto;height:200px;background:#08090c;overflow:hidden;z-index:1}
-.kefe-vinyl-screen>canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .25s}
-.kefe-mini-shell.skin-vinyl .kefe-vinyl-screen>canvas{display:block}
-.kefe-vinyl-disc-wrap{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:2}
-.kefe-vinyl-disc{position:relative;width:270px;height:270px;border-radius:50%;background:
-  radial-gradient(circle at 50% 50%,#15161a 0 4%,transparent 4.5%),
-  repeating-radial-gradient(circle at 50% 50%,#24262b 0 1px,#111216 2px 3px);
+.kefe-mini-shell.skin-vinyl .kefe-mini-topline{
+  position:absolute;left:0;top:0;right:0;height:0;min-height:0;margin:0;padding:0;
+  z-index:40;pointer-events:none;
+}
+.kefe-mini-shell.skin-vinyl .kefe-mini-topline>span{display:none}
+.kefe-mini-shell.skin-vinyl .kefe-mini-topline-actions{
+  position:absolute;right:8px;top:8px;display:flex;gap:4px;pointer-events:auto;
+}
+.kefe-mini-shell.skin-vinyl .kefe-mini-icon-button,
+.kefe-mini-shell.skin-vinyl .kefe-mini-close{
+  width:28px;height:28px;color:#fff;background:rgba(0,0,0,.34);
+  border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(8px);
+}
+.kefe-mini-vinyl-skin{
+  position:absolute!important;inset:0!important;display:block!important;
+  width:100%;height:480px;box-sizing:border-box;overflow:hidden;background:#050508;
+}
+.kefe-mini-vinyl-skin[hidden]{display:none!important}
+.kefe-vinyl-screen{
+  position:absolute;left:0;right:0;top:0;height:200px;
+  background:#08090c;overflow:hidden;z-index:1;
+}
+.kefe-vinyl-screen>canvas{
+  position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity .25s;
+}
+.kefe-vinyl-disc-wrap{
+  position:absolute;left:0;right:0;top:0;height:200px;
+  display:grid;place-items:center;pointer-events:none;z-index:2;
+}
+.kefe-vinyl-disc{
+  position:relative;width:270px;height:270px;flex:0 0 270px;
+  border-radius:50%!important;
+  background:
+    radial-gradient(circle at 50% 50%,#15161a 0 4%,transparent 4.5%),
+    repeating-radial-gradient(circle at 50% 50%,#24262b 0 1px,#111216 2px 3px);
   box-shadow:0 16px 28px rgba(0,0,0,.65),inset 0 0 0 1px rgba(255,255,255,.08);
   transform:translateY(34px);
 }
-.kefe-vinyl-disc:before{content:"";position:absolute;inset:24%;border-radius:50%;background:
+.kefe-vinyl-disc:before{content:"";position:absolute;inset:24%;border-radius:50%!important;background:
   radial-gradient(circle at 35% 28%,rgba(255,255,255,.22),transparent 18%),
   radial-gradient(circle,#b7b9bd 0 3%,#e7e7e9 3.5% 5%,#1d1f24 5.5% 100%);
   box-shadow:0 0 0 1px rgba(255,255,255,.1)}
-.kefe-vinyl-disc:after{content:"";position:absolute;inset:5%;border-radius:50%;border:1px solid rgba(255,255,255,.08)}
+.kefe-vinyl-disc:after{content:"";position:absolute;inset:5%;border-radius:50%!important;border:1px solid rgba(255,255,255,.08)}
 .kefe-vinyl-disc.is-playing{animation:kefeVinylSpin 8s linear infinite}
 @keyframes kefeVinylSpin{to{transform:translateY(34px) rotate(360deg)}}
-.kefe-vinyl-label{position:absolute;z-index:2;inset:29% 29%;display:grid;place-items:center;align-content:center;gap:2px;border-radius:50%;text-align:center;text-transform:uppercase;color:#111;background:radial-gradient(circle at 50% 35%,#f5f5f5,#c6c7ca);padding:7px}
+.kefe-vinyl-label{
+  position:absolute;z-index:2;inset:29% 29%;display:grid;place-items:center;align-content:center;
+  gap:2px;border-radius:50%!important;text-align:center;text-transform:uppercase;color:#111;
+  background:radial-gradient(circle at 50% 35%,#f5f5f5,#c6c7ca);padding:7px;
+}
 .kefe-vinyl-label-top{font-size:7px;letter-spacing:.18em}
-.kefe-vinyl-label strong{max-width:100%;font-size:8px;line-height:1.05;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.kefe-vinyl-label span:last-child{max-width:100%;font-size:5px;line-height:1.05;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.kefe-vinyl-hole{position:absolute;z-index:3;left:50%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%;background:#111;border:2px solid #d4d4d7}
-.kefe-vinyl-screen-controls{position:absolute;right:12px;bottom:12px;z-index:10}
-.kefe-vinyl-screen-controls button{width:32px;height:32px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.2);border-radius:50%!important;background:rgba(0,0,0,.42);color:#fff;backdrop-filter:blur(8px);cursor:pointer}
+.kefe-vinyl-label strong,.kefe-vinyl-label span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kefe-vinyl-label strong{font-size:8px;line-height:1.05}
+.kefe-vinyl-label span:last-child{font-size:5px;line-height:1.05}
+.kefe-vinyl-hole{position:absolute;z-index:3;left:50%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%!important;background:#111;border:2px solid #d4d4d7}
+.kefe-vinyl-screen-controls{position:absolute;right:10px;bottom:10px;z-index:10}
+.kefe-vinyl-screen-controls button{
+  width:32px;height:32px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.2);
+  border-radius:50%!important;background:rgba(0,0,0,.42);color:#fff;backdrop-filter:blur(8px);cursor:pointer;
+}
 .kefe-vinyl-screen-controls svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .kefe-vinyl-screen-controls .vinyl-cd-icon{display:none}
 .kefe-mini-shell.skin-vinyl.is-visualizer-mode .kefe-vinyl-screen>canvas{opacity:1}
-.kefe-mini-shell.skin-vinyl.is-visualizer-mode .kefe-vinyl-disc-wrap{opacity:0;transform:scale(.9);transition:.25s}
+.kefe-mini-shell.skin-vinyl.is-visualizer-mode .kefe-vinyl-disc-wrap{opacity:0;transform:scale(.92);transition:opacity .25s,transform .25s}
 .kefe-mini-shell.skin-vinyl.is-visualizer-mode .kefe-vinyl-screen-controls .vinyl-viz-icon{display:none}
 .kefe-mini-shell.skin-vinyl.is-visualizer-mode .kefe-vinyl-screen-controls .vinyl-cd-icon{display:block}
-.kefe-vinyl-info{position:absolute;left:0;right:0;bottom:0;height:280px;margin:0;padding:76px 20px 48px;box-sizing:border-box;background:rgba(35,37,41,.96);backdrop-filter:blur(12px);border-radius:40px 40px 0 0!important;z-index:5}
+.kefe-vinyl-info{
+  position:absolute;left:0;right:0;top:200px;height:280px;box-sizing:border-box;
+  margin:0;padding:62px 20px 46px;background:rgba(35,37,41,.97);
+  backdrop-filter:blur(12px);border-radius:40px 40px 0 0!important;z-index:5;
+}
 .kefe-vinyl-meta{display:grid;gap:3px}
 .kefe-vinyl-meta span{font-size:12px;color:#a1a1a6}
 .kefe-vinyl-meta strong{font-size:16px;line-height:1.2;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kefe-vinyl-progress{height:4px;margin-top:15px;background:rgba(255,255,255,.15);border-radius:99px!important;overflow:hidden}
 .kefe-vinyl-progress span{display:block;width:100%;height:100%;background:#fff;transform:scaleX(0);transform-origin:0 50%;border-radius:inherit!important}
 .kefe-vinyl-time{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:#8e8e93;font-variant-numeric:tabular-nums}
-.kefe-vinyl-controls{display:flex;justify-content:center;align-items:center;gap:34px;margin-top:22px}
+.kefe-vinyl-controls{display:flex;justify-content:center;align-items:center;gap:34px;margin-top:18px}
 .kefe-vinyl-controls button{width:34px;height:34px;display:grid;place-items:center;padding:0;border:0;border-radius:50%!important;background:transparent;color:#fff;cursor:pointer}
 .kefe-vinyl-controls button:nth-child(2){width:44px;height:44px}
 .kefe-vinyl-controls svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .kefe-vinyl-controls .play{fill:currentColor;stroke:currentColor}
-.kefe-vinyl-mode-strip{position:absolute;left:20px;right:20px;bottom:10px;z-index:8;display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:3px;border:1px solid rgba(255,255,255,.1);border-radius:99px!important;background:rgba(0,0,0,.24)}
+.kefe-vinyl-mode-strip{
+  position:absolute;left:20px;right:20px;bottom:10px;z-index:8;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:3px;
+  border:1px solid rgba(255,255,255,.1);border-radius:99px!important;background:rgba(0,0,0,.24);
+}
 .kefe-vinyl-mode-strip button{height:28px;border:0;border-radius:99px!important;background:transparent;color:#85868b;font:700 8px/1 var(--mp-font);letter-spacing:.12em;cursor:pointer}
 .kefe-vinyl-mode-strip button.is-active{background:#fff;color:#111}
-.kefe-mini-shell.skin-vinyl .kefe-mini-vinyl-skin{position:absolute;inset:0}
+.kefe-mini-shell.skin-vinyl.is-fullscreen{
+  width:100vw!important;height:100vh!important;max-height:none!important;border-radius:0!important;
+}
 .kefe-mini-shell.skin-vinyl.is-fullscreen .kefe-mini-vinyl-skin{height:100vh}
 @media(max-width:420px){
-  .kefe-mini-shell.skin-vinyl{width:100vw;max-height:100dvh;border-radius:0!important}
-  .kefe-mini-shell.skin-vinyl .kefe-mini-vinyl-skin{height:100dvh;min-height:520px}
+  .kefe-mini-shell.skin-vinyl{width:100vw!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important}
+  .kefe-mini-shell.skin-vinyl .kefe-mini-vinyl-skin{height:100dvh}
   .kefe-mini-shell.skin-vinyl .kefe-vinyl-screen{height:42dvh;min-height:220px}
-  .kefe-mini-shell.skin-vinyl .kefe-vinyl-info{height:58dvh;padding-top:76px}
-  .kefe-vinyl-disc{width:min(270px,78vw);height:min(270px,78vw)}
+  .kefe-mini-shell.skin-vinyl .kefe-vinyl-disc-wrap{height:42dvh;min-height:220px}
+  .kefe-mini-shell.skin-vinyl .kefe-vinyl-info{top:42dvh;height:58dvh;padding-top:62px}
+  .kefe-vinyl-disc{width:min(270px,78vw);height:min(270px,78vw);flex-basis:min(270px,78vw)}
 }
