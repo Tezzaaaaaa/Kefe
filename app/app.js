@@ -3644,7 +3644,7 @@ document.addEventListener('keydown', function(e) {
         case '1': document.querySelector('[data-effect="apple"]')?.click(); break;
         case '2': document.querySelector('[data-effect="brat"]')?.click(); break;
         case '3': document.querySelector('[data-effect="eternal"]')?.click(); break;
-        case 'e': case 'E': startExport(); break;
+        case 'e': case 'E': openExportPreflight(); break;
         case 'f': case 'F':
             if (document.fullscreenElement) document.exitFullscreen();
             else document.querySelector('.preview')?.requestFullscreen().catch(() => {});
