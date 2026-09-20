@@ -49,6 +49,60 @@
       const p=this.clamp((time-start)/(end-start));
       return {raw:p,enter:this.smoother(p/.22),active:this.smoother((p-.08)/.35),exit:this.smoother((p-.72)/.28)};
     },
+    /* ---- Box fitting (shared by every lyric effect) ----------------------
+       fitRows(ctx, tokens, o) wraps word tokens into balanced rows that are
+       guaranteed to fit inside maxW x maxH, shrinking the font as far as
+       needed. Nothing is ever allowed to overflow.
+         o.font(ctx,size)  sets ctx.font for a given px size
+         o.tag             cache tag identifying the font
+         o.size            requested (maximum) size
+         o.maxW, o.maxH    box the text must fit
+         o.lineHeight      row height as a multiple of size (default 1.15)
+         o.gap             word gap as a multiple of size (default .26; 0 = use a space)
+         o.maxLines        preferred max rows (relaxed only if text would get tiny)
+         o.min             smallest size before the line limit is relaxed   */
+    fitRows(ctx,tokens,o){
+      tokens=(tokens||[]).map(String);
+      const maxW=Math.max(20,o.maxW),maxH=Math.max(20,o.maxH),lh=o.lineHeight||1.15,gapR=o.gap==null?.26:o.gap;
+      const key=[o.tag,tokens.join('\u0001'),Math.round(o.size),Math.round(maxW),Math.round(maxH),lh,gapR,o.maxLines||0,o.min||0].join('|');
+      const cache=this._fitCache||(this._fitCache=new Map());
+      const hit=cache.get(key); if(hit) return hit;
+      const measure=(size)=>{o.font(ctx,size);return tokens.map(t=>ctx.measureText(t).width);};
+      const wrap=(widths,gap,limit)=>{
+        const rows=[];let from=0,cur=0;
+        for(let i=0;i<widths.length;i++){
+          const proposed=i>from?cur+gap+widths[i]:widths[i];
+          if(i>from&&proposed>limit){rows.push({from,to:i,width:cur});from=i;cur=widths[i];}else cur=proposed;
+        }
+        if(widths.length) rows.push({from,to:widths.length,width:cur});
+        return rows;
+      };
+      const attempt=(size,lines)=>{
+        const widths=measure(size),gap=gapR>0?size*gapR:(o.font(ctx,size),ctx.measureText(' ').width);
+        if(Math.max(0,...widths)>maxW) return null;
+        const rows=wrap(widths,gap,maxW);
+        if(rows.length*size*lh>maxH) return null;
+        if(lines&&rows.length>lines) return null;
+        return {size,widths,gap,rows};
+      };
+      let size=Math.max(8,Number(o.size)||60),res=null;
+      const floor=Math.max(8,(o.min!=null?o.min:size*.55));
+      if(o.maxLines){for(let s=size;s>=floor;s*=.97){res=attempt(s,o.maxLines);if(res)break;}}
+      if(!res){for(let s=size,n=0;n<120;s*=.95,n++){res=attempt(s,0);if(res)break;}}
+      if(!res){const s=8,widths=measure(s);res={size:s,widths,gap:s*.26,rows:wrap(widths,s*.26,maxW)};}
+      // Balance: narrowest limit that keeps the same number of rows.
+      if(res.rows.length>1){
+        let lo=Math.max(...res.widths),hi=maxW,n=res.rows.length;
+        for(let i=0;i<14;i++){const mid=(lo+hi)/2;if(wrap(res.widths,res.gap,mid).length<=n)hi=mid;else lo=mid;}
+        res.rows=wrap(res.widths,res.gap,hi);
+      }
+      res.rowH=res.size*lh;res.blockH=res.rows.length*res.rowH;
+      res.blockW=Math.max(0,...res.rows.map(r=>r.width));
+      if(cache.size>600) cache.clear();
+      cache.set(key,res);
+      return res;
+    },
+    clearFitCache(){ if(this._fitCache) this._fitCache.clear(); },
     contract(name,fallback={}){ return {...fallback,...(type()[name]||{})}; },
     setFont(ctx,family,size,weight=700){ctx.font=`${weight} ${Math.max(18,size)}px "${family}", Arial, sans-serif`;},
     setContractFont(ctx,name,size){const c=this.contract(name);this.setFont(ctx,c.family,Math.max(c.min,Math.min(c.max,Number(size)||c.max)),c.weight);return c;},
@@ -73,4 +127,5 @@
       this.setFont(ctx,family,lo,weight);return lo;
     }
   };
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => window.kefeEffectUtils.clearFitCache());
 })();

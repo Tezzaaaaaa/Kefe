@@ -55,6 +55,7 @@ const state = {
     aspect: '9:16'
 };
 window.state = state;
+if (window.kefeLayout) Object.assign(state.style, window.kefeLayout.defaults());
 
 let media = { image: null, video: null, videoFile: null, videoHasAudio: false };
 window.kefeMedia = media; // wizard.js reads background/video state via window.kefeMedia
@@ -995,21 +996,22 @@ function drawPulseEffect(ctx, w, h, style, lines, time) {
 function renderLyricsEffect(ctx, w, h, style, lines, time) {
     ctx.save();
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over"; ctx.filter = "none"; ctx.shadowBlur = 0;
-    switch(style.effect) {
-        case "apple": drawAppleEffect(ctx, w, h, style, lines, time); break;
-        case "brat": drawBratEffect(ctx, w, h, style, lines, time); break;
-        case "eternal": drawEternalSunshineEffect(ctx, w, h, style, lines, time); break;
-        case "aurora": drawAuroraEffect(ctx, w, h, style, lines, time); break;
-        case "pulse": drawPulseEffect(ctx, w, h, style, lines, time); break;
-        case "typewriter":
-        case "instagram":
-        case "fadeup":
-        default: {
-            const fn = window.kefeEffects && window.kefeEffects[style.effect];
-            if (typeof fn === "function") fn(ctx, w, h, style, lines, time);
-            else drawAppleEffect(ctx, w, h, style, lines, time);
+    const draw = (c, bw, bh, s, l, t) => {
+        switch (s.effect) {
+            case "apple": drawAppleEffect(c, bw, bh, s, l, t); break;
+            case "brat": drawBratEffect(c, bw, bh, s, l, t); break;
+            case "eternal": drawEternalSunshineEffect(c, bw, bh, s, l, t); break;
+            case "aurora": drawAuroraEffect(c, bw, bh, s, l, t); break;
+            case "pulse": drawPulseEffect(c, bw, bh, s, l, t); break;
+            default: {
+                const fn = window.kefeEffects && window.kefeEffects[s.effect];
+                if (typeof fn === "function") fn(c, bw, bh, s, l, t);
+                else drawAppleEffect(c, bw, bh, s, l, t);
+            }
         }
-    }
+    };
+    if (window.kefeLayout) window.kefeLayout.render(style.effect, ctx, w, h, style, lines, time, draw);
+    else draw(ctx, w, h, style, lines, time);
     ctx.restore();
 }
 
@@ -1752,6 +1754,9 @@ const EFFECT_LABELS = {
     blur: "Words drift up from a blur into sharp focus, staggered word by word",
     shiny: "Solid lyric text with a bright diagonal shine sweeping across it"
 };
+// Every effect in the manifest is a valid effect (project load / prefs restore
+// previously reset the 16 newer effects to Apple).
+for (const def of (window.KEFE_EFFECTS || [])) if (!EFFECT_LABELS[def.key]) EFFECT_LABELS[def.key] = def.description || def.label || def.key;
 
 function renderEffectControls() {
     const effect = state.style.effect;
