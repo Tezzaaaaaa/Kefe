@@ -98,9 +98,6 @@
 
   function tick() { try { buildPicker(); } catch(e){ console.warn(e); } }
   tick();
-  setInterval(tick, 300);
-  document.addEventListener('click', function(){ setTimeout(tick, 60); }, true);
-
   var observer = new MutationObserver(function(){ buildPicker(); });
   var host = document.querySelector('#lyricStyleBlock .effect-buttons');
   if (host) observer.observe(host, { childList: true });
