@@ -101,6 +101,11 @@
     bc.className = 'kefe-ra-controls';
     var api = window.kefeButterchurn;
     var presets = api && api.isLoaded() ? api.presetNames() : [];
+    var displayNames = {};
+    presets.forEach(function(name, index){
+      var clean = name.replace(/^[^\\-]+\\s*[-+]\\s*/i, '').trim();
+      displayNames[name] = 'Spectrum ' + String(index + 1).padStart(2, '0') + (clean ? ' — ' + clean : '');
+    });
     if (!presets.length) {
       bc.innerHTML = '<div class="kefe-vis-hint">' + ((api && api.error()) || 'Spectrum presets are not available.') + '</div>';
       box.appendChild(bc);
@@ -111,16 +116,15 @@
     tools.className = 'kefe-bc-tools';
     var search = document.createElement('input');
     search.type = 'search';
-    search.placeholder = 'Search ' + presets.length + ' presets';
+    search.placeholder = 'Search ' + presets.length + ' Spectrum presets';
     var prev = document.createElement('button'); prev.type = 'button'; prev.textContent = '\u2039'; prev.title = 'Previous preset';
     var next = document.createElement('button'); next.type = 'button'; next.textContent = '\u203A'; next.title = 'Next preset';
     var rnd = document.createElement('button'); rnd.type = 'button'; rnd.textContent = 'Random';
     tools.appendChild(search); tools.appendChild(prev); tools.appendChild(next); tools.appendChild(rnd);
 
-    // Curated shortlist: 20 presets pulled from the exact names in the
-    // vendored butterchurn-presets pack, picked for variety (Geiss / Martin /
-    // Flexi / Rovastar / Zylot / Unchained) so the panel opens on a usable
-    // set instead of an alphabetical wall of 98 names.
+    // Curated shortlist: 20 presets from the bundled preset pack. User-facing
+    // names are KEFE-native Spectrum names; original preset keys remain
+    // internal so the underlying preset data and rendering stay unchanged.
     var TOP20 = [
       'Geiss - Reaction Diffusion 2',
       'Geiss - Spiral Artifact',
@@ -158,8 +162,8 @@
         chip.type = 'button';
         chip.className = 'kefe-bc-pick';
         chip.dataset.preset = name;
-        chip.title = name;
-        chip.textContent = name.replace(/^[A-Za-z._$]+\s*[-+]\s*/, '').replace(/\s*\[.*$/, '').replace(/\s*\(.*$/, '');
+          chip.title = displayNames[name];
+        chip.textContent = displayNames[name];
         chip.addEventListener('click', function(){ choose(name); });
         picks.appendChild(chip);
       });
@@ -175,8 +179,8 @@
       it.type = 'button';
       it.className = 'kefe-bc-item';
       it.dataset.preset = name;
-      it.title = name;
-      it.textContent = name;
+      it.title = displayNames[name];
+      it.textContent = displayNames[name];
       it.addEventListener('click', function(){ choose(name); });
       list.appendChild(it);
     });
@@ -200,7 +204,7 @@
     search.addEventListener('input', function(){
       var q = search.value.trim().toLowerCase();
       list.querySelectorAll('.kefe-bc-item').forEach(function(it){
-        it.hidden = !!q && it.dataset.preset.toLowerCase().indexOf(q) === -1;
+        it.hidden = !!q && (displayNames[it.dataset.preset] || it.dataset.preset).toLowerCase().indexOf(q) === -1;
       });
     });
 
