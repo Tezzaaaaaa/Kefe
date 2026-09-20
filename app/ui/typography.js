@@ -31,7 +31,7 @@
     chromatica:          'Memesique',
     analogtv:            'VT323',
     fancy:               'Anton',
-    glitch:              'Anton',
+    glitch:              'Special Elite',
     splitflap:           'Big Shoulders Stencil Display',
     rain:                'Frijole'
   };
