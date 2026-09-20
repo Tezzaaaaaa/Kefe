@@ -669,37 +669,6 @@ function getAppleFocalMotion(lines, time) {
     };
 }
 
-function drawAppleMusicHeader(ctx, w, h) {
-    const resolved = resolveAudioLabels(state.audio);
-    const title = resolved.title;
-    const artist = resolved.artist;
-    if (!title && !artist) return;
-    const margin = Math.max(40, w * 0.075);
-    const artSize = Math.max(58, Math.min(w, h) * 0.067);
-    const y = Math.max(34, h * 0.052);
-    const source = albumArtworkImage;
-    ctx.save();
-    if (source) {
-        ctx.beginPath(); ctx.roundRect(margin, y, artSize, artSize, artSize * 0.12); ctx.clip();
-        const sw = source.videoWidth || source.naturalWidth || source.width;
-        const sh = source.videoHeight || source.naturalHeight || source.height;
-        if (sw && sh) { const side = Math.min(sw, sh); ctx.drawImage(source, (sw-side)/2, (sh-side)/2, side, side, margin, y, artSize, artSize); }
-        ctx.restore(); ctx.save();
-    }
-    const tx = source ? margin + artSize + Math.max(16, w * 0.018) : margin;
-    const maxText = w - tx - margin * 1.8;
-    const titleSize = Math.max(18, Math.min(w, h) * 0.025);
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = `700 ${titleSize}px ${APPLE_FONT_STACK}`;
-    let shownTitle = title || 'Untitled';
-    while (shownTitle.length > 1 && ctx.measureText(shownTitle).width > maxText) shownTitle = shownTitle.slice(0,-2).trim() + '…';
-    ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.96; ctx.fillText(shownTitle, tx, y + artSize * 0.38);
-    ctx.font = `500 ${Math.max(14, titleSize * 0.72)}px ${APPLE_FONT_STACK}`;
-    ctx.fillStyle = 'rgba(255,255,255,0.62)'; ctx.fillText(artist, tx, y + artSize * 0.68);
-    ctx.fillStyle = 'rgba(255,255,255,0.82)'; ctx.beginPath();
-    const dotY = y + artSize * 0.5, dotX = w - margin;
-    for (let i=-1;i<=1;i++) ctx.arc(dotX + i * 10, dotY, 2.3, 0, Math.PI*2);
-    ctx.fill(); ctx.restore();
-}
 
 function buildAppleMusicLayout(ctx, w, h, settings, lines, focusIndex, visibleCount) {
     const output = [];
@@ -913,7 +882,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     appleLyricsEngine.renderBackground(ctx, w, h, time);
     const wash=ctx.createLinearGradient(0,0,0,h); wash.addColorStop(0,'rgba(18,18,20,0.20)'); wash.addColorStop(0.55,'rgba(8,8,10,0.08)'); wash.addColorStop(1,'rgba(0,0,0,0.34)');
     ctx.save(); ctx.fillStyle=wash; ctx.fillRect(0,0,w,h); ctx.restore();
-    drawAppleMusicHeader(ctx,w,h);
     const settings={fontSize:appleSafeFontSize(ctx,lines,Number(style.fontSize)||76,w),align:style.align||'left',activeColor:'#FFFFFF',inactiveColor:'rgba(255,255,255,0.46)',backgroundColor:'#FFFFFF',inactiveOpacity:Number.isFinite(Number(style.appleInactiveOpacity))?Number(style.appleInactiveOpacity):0.25,glow:0.012,depth:0.008,lift:0,highlightSpan:0.96,topOffset:Number(style.appleTopOffset)||0.245,lineSpacing:(Number(style.appleLineSpacing)||0.72)*(Number(style.fxSpacing)||1)};
     const visibleCount=Math.max(2,Math.min(6,Math.round(Number(style.appleVisibleLines)||4)));
     const first=linaNormaliseLine(lines,0); if(!first||time<Math.max(0,first.time-1.2)) return;
@@ -2041,14 +2009,14 @@ function renderPersistentNowPlaying(ctx, w, h, time, appState) {
 
     const introDuration = linaClamp(Number(appState.style.titleCardDuration) || 3, 1, 15);
     const transitionDuration = 0.72;
-    const transitionStart = Math.max(0, introDuration - transitionDuration);
-    const inTransition = time >= transitionStart && time < introDuration;
-    const progress = inTransition
-        ? linaSmoother(linaClamp((time - transitionStart) / transitionDuration))
-        : time >= introDuration ? 1 : 0;
 
-    if (progress <= 0) return;
+    // The full title card owns the intro. Do not render the compact now-playing
+    // card on top of it — that created a second copy of the title/artwork and
+    // made the handoff appear to jump sideways.
+    const elapsed = time - introDuration;
+    if (elapsed < 0) return;
 
+    const progress = linaSmoother(linaClamp(elapsed / transitionDuration));
     drawCompactNowPlaying(ctx, w, h, appState, progress);
 }
 
