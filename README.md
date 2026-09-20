@@ -76,13 +76,24 @@ The lyric effect system uses a shared catalogue and dispatch architecture so the
 
 ## Music visualisers
 
-KEFE includes multiple audio-reactive visualiser renderers, including:
+KEFE currently provides **14 selectable audio-reactive visualiser styles**, plus the **Spectrum** preset library containing **100 presets**:
 
-- **Beat** — beat/frequency-reactive visualisation.
-- **Ridgeline** — terrain-style audio-reactive rendering.
-- **TuffPuff** — colourful, fluid/smoke-like reactive visuals.
-- **Butterchurn** — MilkDrop-style preset visualisation.
-- **Premium** — additional audio-reactive visualiser rendering.
+1. **Ferrofluid**
+2. **Liquid Glass**
+3. **Cinematic Fluid**
+4. **Fractal Planet**
+5. **Cosmic Attractor**
+6. **Gyroid Crystal**
+7. **Sonic Metaball**
+8. **Holographic Ribbon**
+9. **Black Hole**
+10. **Neural Network**
+11. **Ra**
+12. **TuffPuff**
+13. **Ridgeline**
+14. **Spectrum**
+
+**Spectrum** is the MilkDrop-style visualiser and provides an additional library of **100 selectable presets**.
 
 Visualisers are separate from lyric typography, allowing music-driven visuals to be created without lyric text.
 
