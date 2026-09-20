@@ -18,9 +18,6 @@ function renderPersistentNowPlaying(ctx, w, h, time, appState) {
 function renderPersistentNowPlaying(ctx, w, h, time, appState) {
     if (appState.style.titleCardEnabled === false) return;
     if (appState.projectType === 'captioned') return;
-
-    // The full title card owns the intro and outro. Never render the compact
-    // now-playing card while either title-card phase is visible.
     if (titleCardPhase(appState, time)) return;
 
     const introDuration = linaClamp(Number(appState.style.titleCardDuration) || 3, 1, 15);
