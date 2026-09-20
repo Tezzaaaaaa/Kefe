@@ -2812,37 +2812,78 @@ async function togglePlayback() {
     if (audio.paused) { try { await audio.play(); } catch(e) { toast('Playback error', 'error'); } }
     else audio.pause();
 }
+function isIPhoneSafari() {
+    return /iPhone|iPod/.test(navigator.platform) ||
+        (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+}
+function isPreviewFullscreenActive() {
+    const target = $('canvasWrapper');
+    const preview = document.querySelector('.preview');
+    return document.fullscreenElement === target ||
+        document.webkitFullscreenElement === target ||
+        preview?.classList.contains('kefe-mobile-fullscreen');
+}
 function syncPreviewFullscreenButton() {
     const btn = $('previewFullscreen');
     if (!btn) return;
-    const active = document.fullscreenElement === $('canvasWrapper') || document.webkitFullscreenElement === $('canvasWrapper');
+    const active = isPreviewFullscreenActive();
     btn.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen');
     btn.title = active ? 'Exit fullscreen' : 'Fullscreen';
+    btn.setAttribute('aria-pressed', String(active));
+}
+function setMobilePreviewFullscreen(active) {
+    const preview = document.querySelector('.preview');
+    if (!preview) return;
+    preview.classList.toggle('kefe-mobile-fullscreen', active);
+    document.body.classList.toggle('kefe-preview-fullscreen', active);
+    syncPreviewFullscreenButton();
 }
 async function togglePreviewFullscreen() {
     const target = $('canvasWrapper');
-    if (!target) return;
+    const preview = document.querySelector('.preview');
+    if (!target || !preview) return;
+    if (isPreviewFullscreenActive()) {
+        if (document.fullscreenElement === target) {
+            try { await document.exitFullscreen(); } catch (error) { console.warn('Preview fullscreen exit error:', error); }
+        } else if (document.webkitFullscreenElement === target && document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+        setMobilePreviewFullscreen(false);
+        return;
+    }
+
+    // iPhone Safari does not provide reliable element fullscreen for arbitrary
+    // DOM/canvas containers. Use a viewport-locked immersive mode instead so
+    // the visualiser, toolbar, and mini-player remain usable.
+    if (isIPhoneSafari()) {
+        setMobilePreviewFullscreen(true);
+        return;
+    }
+
     try {
-        if (document.fullscreenElement === target || document.webkitFullscreenElement === target) {
-            if (document.exitFullscreen) await document.exitFullscreen();
-            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        } else if (target.requestFullscreen) {
-            await target.requestFullscreen({ navigationUI: 'hide' });
+        if (target.requestFullscreen) {
+            await target.requestFullscreen();
         } else if (target.webkitRequestFullscreen) {
             target.webkitRequestFullscreen();
         } else {
-            toast('Fullscreen is not supported by this browser', 'error');
+            setMobilePreviewFullscreen(true);
             return;
         }
     } catch (error) {
         console.warn('Preview fullscreen error:', error);
-        toast('Fullscreen could not be opened', 'error');
+        setMobilePreviewFullscreen(true);
+        return;
     }
     syncPreviewFullscreenButton();
 }
 $('previewFullscreen')?.addEventListener('click', togglePreviewFullscreen);
 document.addEventListener('fullscreenchange', syncPreviewFullscreenButton);
 document.addEventListener('webkitfullscreenchange', syncPreviewFullscreenButton);
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && document.querySelector('.preview')?.classList.contains('kefe-mobile-fullscreen')) {
+        setMobilePreviewFullscreen(false);
+    }
+});
 $('playBtn').addEventListener('click', togglePlayback);
 
 function seekPreview(target) {
