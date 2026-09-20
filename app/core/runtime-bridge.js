@@ -25,10 +25,10 @@
   }
 
   if (typeof window.render === 'function') {
-    window.kefeRenderFrame = (targetCtx, width, height, time) => {
+    window.kefeRenderFrame = (targetCtx, width, height, time, mediaOverride = null) => {
       if (!targetCtx || !width || !height) return false;
       runtimeState.playback.currentTime = Math.max(0, Number(time) || 0);
-      window.render(targetCtx, width, height, runtimeState, runtimeMedia);
+      window.render(targetCtx, width, height, runtimeState, mediaOverride || runtimeMedia);
       return true;
     };
   }
