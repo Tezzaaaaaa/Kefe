@@ -102,6 +102,13 @@
       cache.set(key,res);
       return res;
     },
+    /* textBlock: wrap a plain string into balanced rows that fit w x h. Returns {size,rows:[string],rowH,blockH,blockW}. */
+    textBlock(ctx,text,o){
+      const tokens=String(text||'').trim().split(/\s+/).filter(Boolean);
+      const f=this.fitRows(ctx,tokens,{font:o.font,tag:o.tag,size:o.size,maxW:o.w,maxH:o.h,lineHeight:o.lh||1.1,gap:0,maxLines:o.maxLines||3,min:o.min});
+      o.font(ctx,f.size);
+      return {size:f.size,rows:f.rows.map(r=>tokens.slice(r.from,r.to).join(' ')),rowH:f.rowH,blockH:f.blockH,blockW:f.blockW};
+    },
     clearFitCache(){ if(this._fitCache) this._fitCache.clear(); },
     contract(name,fallback={}){ return {...fallback,...(type()[name]||{})}; },
     setFont(ctx,family,size,weight=700){ctx.font=`${weight} ${Math.max(18,size)}px "${family}", Arial, sans-serif`;},

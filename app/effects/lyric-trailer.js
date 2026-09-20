@@ -14,7 +14,7 @@
   function fitHeavy(ctx,text,startSize,maxWidth){
     var size=startSize;
     heavyFont(ctx,size);
-    while(size>28 && ctx.measureText(text.toUpperCase()).width>maxWidth){ size-=2; heavyFont(ctx,size); }
+    while(size>8 && ctx.measureText(text.toUpperCase()).width>maxWidth){ size-=2; heavyFont(ctx,size); }
     return size;
   }
 
@@ -40,11 +40,12 @@
     var alpha=Math.min(fade,exit);
     if(alpha<=0) return;
 
-    var maxWidth=w*0.84;
-    var punchSize=fitHeavy(ctx,punch,Math.max(46,Math.min(220,(Number(style.fontSize)*1.5)||150)),maxWidth);
+    var maxWidth=w*0.94;
+    var punchSize=fitHeavy(ctx,punch,Math.max(20,Math.min(260,(Number(style.fontSize)*1.15)||150)),maxWidth);
     heavyFont(ctx,punchSize);
     var punchHeight=punchSize*1.02;
-    var leadSize=Math.max(16,punchSize*0.22);
+    var leadSize=Math.max(10,punchSize*0.22);
+    if(lead){ leadFont(ctx,leadSize); var lw=ctx.measureText(lead).width+leadSize*0.32*lead.length; if(lw>w*0.94) leadSize=Math.max(8,leadSize*w*0.94/lw); }
     var hasLead=Boolean(lead);
     var gap=hasLead?leadSize*0.9:0;
     var blockHeight=punchHeight+(hasLead?leadSize+gap:0);

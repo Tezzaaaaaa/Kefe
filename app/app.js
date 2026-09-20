@@ -519,12 +519,22 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
     }
 }
 
+function appleSafeFontSize(ctx, lines, requested, w) {
+    let longest = '';
+    for (const l of lines) for (const t of String(l?.text || '').split(/\s+/)) if (t.length > longest.length) longest = t;
+    if (!longest) return requested;
+    ctx.save(); ctx.font = '700 100px "Open Sans",Arial,sans-serif';
+    const wide = ctx.measureText(longest).width; ctx.restore();
+    const room = w - Math.max(40, w * 0.075) * 2;
+    return wide > 0 ? Math.min(requested, Math.floor(room / wide * 100)) : requested;
+}
+
 function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
     const wash=ctx.createLinearGradient(0,0,0,h); wash.addColorStop(0,'rgba(18,18,20,0.20)'); wash.addColorStop(0.55,'rgba(8,8,10,0.08)'); wash.addColorStop(1,'rgba(0,0,0,0.34)');
     ctx.save(); ctx.fillStyle=wash; ctx.fillRect(0,0,w,h); ctx.restore();
     drawAppleMusicHeader(ctx,w,h);
-    const settings={fontSize:Number(style.fontSize)||76,align:style.align||'left',activeColor:'#FFFFFF',inactiveColor:'rgba(255,255,255,0.46)',backgroundColor:'#FFFFFF',inactiveOpacity:Number.isFinite(Number(style.appleInactiveOpacity))?Number(style.appleInactiveOpacity):0.25,glow:0.012,depth:0.008,lift:0,highlightSpan:0.96,topOffset:Number(style.appleTopOffset)||0.245,lineSpacing:Number(style.appleLineSpacing)||0.72};
+    const settings={fontSize:appleSafeFontSize(ctx,lines,Number(style.fontSize)||76,w),align:style.align||'left',activeColor:'#FFFFFF',inactiveColor:'rgba(255,255,255,0.46)',backgroundColor:'#FFFFFF',inactiveOpacity:Number.isFinite(Number(style.appleInactiveOpacity))?Number(style.appleInactiveOpacity):0.25,glow:0.012,depth:0.008,lift:0,highlightSpan:0.96,topOffset:Number(style.appleTopOffset)||0.245,lineSpacing:(Number(style.appleLineSpacing)||0.72)*(Number(style.fxSpacing)||1)};
     const visibleCount=Math.max(2,Math.min(6,Math.round(Number(style.appleVisibleLines)||4)));
     const first=linaNormaliseLine(lines,0); if(!first||time<Math.max(0,first.time-1.2)) return;
     const motion=getAppleFocalMotion(lines,time)||{fromIndex:0,toIndex:0,progress:1};
@@ -781,7 +791,7 @@ function fitEternalText(text, targetSize, maxWidth) {
     let size = targetSize;
     let cache = makeInkRowCache(text, size);
     if (!cache) return null;
-    while (cache.textWidth > maxWidth && size > 30) { size -= 2; cache = makeInkRowCache(text, size); if (!cache) return null; }
+    while (cache.textWidth > maxWidth && size > 10) { size -= 2; cache = makeInkRowCache(text, size); if (!cache) return null; }
     return { cache, fontSize: size };
 }
 function getEternalPlacement(pos, w, h, tw, vh, margin) {
@@ -813,9 +823,8 @@ function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = style.eternalInkColor || style.textColor || '#FFF';
-        const size = Math.max(34, Math.min(150, Number(style.fontSize) || 76));
-        ctx.font = '400 ' + size + 'px "Homemade Apple", cursive, serif';
-        ctx.fillText(String(line.text), w / 2, h * 0.58);
+        const B = window.kefeEffectUtils.textBlock(ctx, String(line.text), { font: (c, sz) => { c.font = '400 ' + Math.max(8, sz) + 'px "Homemade Apple", cursive, serif'; }, tag: 'eternalfb', size: Number(style.fontSize) || 76, w: w * 0.9, h: h * 0.8, lh: 1.25, maxLines: 3 });
+        B.rows.forEach((row, i) => ctx.fillText(row, w / 2, h / 2 - B.blockH / 2 + (i + 0.5) * B.rowH));
         ctx.restore();
         return;
     }
@@ -919,18 +928,17 @@ function drawAuroraEffect(ctx, w, h, style, lines, time) {
     if (!line) return;
     const text = String(line.text || '').trim();
     if (!text) return;
-
+    const u = window.kefeEffectUtils;
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const maxWidth = w * 0.84;
-    const size = fitCentredEffectText(ctx, text, style.fontSize, maxWidth, 500, '"Bricolage Grotesque"');
+    const B = u.textBlock(ctx, text, { font: (c, sz) => { c.font = `500 ${Math.max(8, sz)}px "Bricolage Grotesque",Arial,sans-serif`; }, tag: 'aurora', size: style.fontSize, w: w * 0.96, h: h * 0.94, lh: 1.08 * (style.fxSpacing || 1), maxLines: 3 });
+    const size = B.size;
     const speed = Number(style.auroraSpeed) || 1.2;
     const intensity = Number(style.auroraIntensity) || 0.7;
     const saturation = linaClamp(Number(style.auroraSaturation) || 1, 0.2, 1.8);
     const hueBase = (time * speed * 28 + 180) % 360;
-    const y = h * 0.46;
-    const gradient = ctx.createLinearGradient(w * 0.08, y - size, w * 0.92, y + size);
+    const gradient = ctx.createLinearGradient(w * 0.04, h / 2 - B.blockH / 2, w * 0.96, h / 2 + B.blockH / 2);
     for (let i = 0; i <= 6; i++) {
         const stop = i / 6;
         const hue = (hueBase + stop * 135) % 360;
@@ -940,7 +948,7 @@ function drawAuroraEffect(ctx, w, h, style, lines, time) {
     ctx.fillStyle = gradient;
     ctx.shadowColor = `hsl(${(hueBase + 65) % 360} 100% 72%)`;
     ctx.shadowBlur = size * 0.20 * intensity;
-    ctx.fillText(text, w / 2, y);
+    B.rows.forEach((row, i) => ctx.fillText(row, w / 2, h / 2 - B.blockH / 2 + (i + 0.5) * B.rowH));
     ctx.restore();
 }
 
@@ -952,7 +960,6 @@ function drawPulseEffect(ctx, w, h, style, lines, time) {
     const amplitude = linaClamp(Number(style.pulseAmplitude) || 0.4, 0.05, 1);
     const glowSize = Number(style.pulseGlowSize) || 1;
     const colour = style.accentColor || '#FFFFFF';
-    const fontSize = Number(style.fontSize) || 76;
     const lineStart = Number(line.time) || 0;
     const lineEnd = Math.max(lineStart + 0.4, Number(line.endTime) || lineStart + 3);
     const tokens = text.split(/\s+/).filter(Boolean);
@@ -960,36 +967,33 @@ function drawPulseEffect(ctx, w, h, style, lines, time) {
     const perWord = Array.isArray(line.words) && line.words.length === tokens.length
         ? line.words.map((w, i) => ({ text: tokens[i], start: Number(w.time) || lineStart + (i / tokens.length) * (lineEnd - lineStart), end: Number(w.endTime) || lineStart + ((i + 1) / tokens.length) * (lineEnd - lineStart) }))
         : tokens.map((t, i) => ({ text: t, start: lineStart + (i / tokens.length) * (lineEnd - lineStart), end: lineStart + ((i + 1) / tokens.length) * (lineEnd - lineStart) }));
+    const u = window.kefeEffectUtils;
     ctx.save();
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
+    const fitted = u.fitRows(ctx, perWord.map(p => p.text), { font: (c, sz) => { c.font = `800 ${Math.max(8, sz)}px "Open Sans",Arial,sans-serif`; }, tag: 'pulse', size: (Number(style.fontSize) || 76), maxW: w * 0.90, maxH: h * 0.80, lineHeight: 1.22 * (style.fxSpacing || 1), gap: 0.26, maxLines: 3 });
+    const fontSize = fitted.size;
     ctx.font = `800 ${fontSize}px "Open Sans",Arial,sans-serif`;
-    const spaceW = ctx.measureText(' ').width;
-    const widths = perWord.map(w => ctx.measureText(w.text).width);
-    const totalW = widths.reduce((a, b) => a + b, 0) + spaceW * (perWord.length - 1);
-    const startX = (w - totalW) / 2;
-    const y = h * 0.46;
-    let cursorX = startX;
-    for (let i = 0; i < perWord.length; i++) {
-        const word = perWord[i];
-        const duration = Math.max(0.001, word.end - word.start);
-        const local = linaClamp((time - word.start) / duration);
-        const pulse = linaSmoother(Math.sin(local * Math.PI));
-        const scale = 1 + amplitude * 0.28 * pulse;
-        const glow = fontSize * 0.10 * glowSize * pulse;
-        const alpha = time < word.start ? 0.28 : time >= word.end ? 0.88 : 1.0;
-        const cx = cursorX + widths[i] / 2;
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = colour;
-        ctx.shadowColor = colour;
-        ctx.shadowBlur = glow;
-        ctx.translate(cx, y);
-        ctx.scale(scale, scale);
-        ctx.fillText(word.text, -widths[i] / 2, 0);
-        ctx.restore();
-        cursorX += widths[i] + spaceW;
-    }
+    const top = h / 2 - fitted.blockH / 2;
+    fitted.rows.forEach((row, ri) => {
+        let cursorX = (w - row.width) / 2;
+        const y = top + (ri + 0.5) * fitted.rowH;
+        for (let i = row.from; i < row.to; i++) {
+            const word = perWord[i], wd = fitted.widths[i];
+            const duration = Math.max(0.001, word.end - word.start);
+            const local = linaClamp((time - word.start) / duration);
+            const pulse = linaSmoother(Math.sin(local * Math.PI));
+            const scale = 1 + amplitude * 0.28 * pulse;
+            const glow = fontSize * 0.10 * glowSize * pulse;
+            const alpha = time < word.start ? 0.28 : time >= word.end ? 0.88 : 1.0;
+            ctx.save();
+            ctx.globalAlpha = alpha; ctx.fillStyle = colour; ctx.shadowColor = colour; ctx.shadowBlur = glow;
+            ctx.translate(cursorX + wd / 2, y); ctx.scale(scale, scale);
+            ctx.fillText(word.text, -wd / 2, 0);
+            ctx.restore();
+            cursorX += wd + fitted.gap;
+        }
+    });
     ctx.restore();
 }
 
@@ -1760,18 +1764,24 @@ for (const def of (window.KEFE_EFFECTS || [])) if (!EFFECT_LABELS[def.key]) EFFE
 
 function renderEffectControls() {
     const effect = state.style.effect;
-    const container = $('effectControls');
-    if (!container) return;
+    let container = $('effectControls');
+    if (!container) {
+        const host = document.querySelector('#lyricStyleBlock');
+        if (!host) return;
+        container = document.createElement('div');
+        container.id = 'effectControls';
+        container.className = 'effect-controls';
+        host.appendChild(container);
+    }
     container.innerHTML = "";
-    const controls = [{ key: "fontSize", label: "Size", type: "range", min: 36, max: 150, step: 1, suffix: "px", scale: 1 }];
+    // Every effect gets the same five layout controls (size, position, width, spacing).
+    const controls = window.kefeLayout ? window.kefeLayout.controls(effect).map(c => ({ key: c.key, label: c.label, type: "range", min: c.min, max: c.max, step: c.step, suffix: c.suffix, scale: 1 })) : [{ key: "fontSize", label: "Size", type: "range", min: 36, max: 150, step: 1, suffix: "px", scale: 1 }];
     if (effect === "apple") {
         controls.push({ key: "align", label: "Alignment", type: "select", options: [["left","Left"],["center","Center"],["right","Right"]] });
     }
     let extraControls = [];
     if (effect === "apple") {
         extraControls = [
-            { key: "appleTopOffset", label: "Lyrics position", type: "range", min: 20, max: 38, step: 0.5, suffix: "%", scale: 0.01 },
-            { key: "appleLineSpacing", label: "Line spacing", type: "range", min: 45, max: 110, step: 1, suffix: "%", scale: 0.01 },
             { key: "appleInactiveOpacity", label: "Upcoming opacity", type: "range", min: 10, max: 45, step: 1, suffix: "%", scale: 0.01 },
             { key: "appleVisibleLines", label: "Upcoming lines", type: "range", min: 2, max: 6, step: 1, suffix: "", scale: 1 }
         ];
@@ -1860,6 +1870,16 @@ function renderEffectControls() {
             row.appendChild(input);
         }
         container.appendChild(row);
+    }
+    if (window.kefeLayout) {
+        const reset = document.createElement("button");
+        reset.type = "button"; reset.className = "segmented-btn"; reset.textContent = "Reset layout";
+        reset.addEventListener("click", () => {
+            if (isExporting) return;
+            for (const c of window.kefeLayout.controls(effect)) state.style[c.key] = c.def;
+            renderEffectControls(); redrawCurrentPreviewFrame(); saveLinaPrefs();
+        });
+        container.appendChild(reset);
     }
 }
 
