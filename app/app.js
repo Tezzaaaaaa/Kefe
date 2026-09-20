@@ -745,37 +745,51 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
     const toFocus = toMap.get(motion.toIndex);
     const focusY = h * settings.topOffset;
 
-    const outgoingDistance = Math.max(
-        h * 0.090,
-        (fromFocus?.measurement?.totalHeight || settings.fontSize * 1.25) * 0.98
-    );
-    const incomingDistance = Math.max(h * 0.075, settings.fontSize * 1.05);
+    // The transition is one geometric hand-off between two complete layouts.
+    // The incoming line starts exactly where it sat in the old stack and lands
+    // exactly where the new stack places the focal line. Shared future lines
+    // use the same interpolation, so nothing jumps, compresses, or changes
+    // spacing mid-transition.
+    if (fromFocus && toFocus) {
+        const incomingStartY = fromMap.get(motion.toIndex)?.centreY ?? (
+            focusY +
+            fromFocus.measurement.totalHeight / 2 +
+            Math.max(settings.fontSize * settings.lineSpacing, h * 0.018) +
+            toFocus.measurement.totalHeight / 2
+        );
+        const outgoingEndY = toMap.get(motion.fromIndex)?.centreY ?? (
+            focusY -
+            fromFocus.measurement.totalHeight / 2 -
+            Math.max(settings.fontSize * settings.lineSpacing, h * 0.018) -
+            toFocus.measurement.totalHeight / 2
+        );
 
-    if (fromFocus) {
-        const fade = linaClamp(1 - p * 1.05);
+        const outgoingY = focusY + (outgoingEndY - focusY) * p;
+        const incomingY = incomingStartY + (focusY - incomingStartY) * p;
+
+        const outgoingAlpha = linaClamp(1 - p);
+        const incomingAlpha = linaClamp(p);
+
         drawEntry(fromFocus, {
-            y: focusY - outgoingDistance * p,
+            y: outgoingY,
             active: true,
-            alpha: fade,
+            alpha: outgoingAlpha,
             scale: 1 - 0.045 * p,
             blur: settings.fontSize * 0.072 * p
         });
-    }
 
-    if (toFocus) {
-        const enter = linaClamp(p);
         drawEntry(toFocus, {
-            y: focusY + incomingDistance * (1 - enter),
+            y: incomingY,
             active: true,
-            alpha: enter,
-            scale: 0.94 + 0.06 * enter,
-            blur: settings.fontSize * 0.065 * (1 - enter)
+            alpha: incomingAlpha,
+            scale: 0.94 + 0.06 * p,
+            blur: settings.fontSize * 0.065 * (1 - p)
         });
     }
 
-    // Shared future lines retain their identity and move as a single stack.
-    // This is what prevents the visible lyric field from re-forming/jumping
-    // every time the focal line changes.
+    // Every line that exists in both layouts is interpolated from its exact
+    // old-stack position to its exact new-stack position. This is the only
+    // placement calculation used during the hand-off.
     const sharedIndices = [...new Set([...fromMap.keys(), ...toMap.keys()])]
         .filter(index => index !== motion.fromIndex && index !== motion.toIndex)
         .sort((a, b) => a - b);
@@ -783,17 +797,14 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
     for (const index of sharedIndices) {
         const from = fromMap.get(index);
         const to = toMap.get(index);
-        const entry = to || from;
-        if (!entry) continue;
+        if (!from && !to) continue;
 
         const y = from && to
             ? from.centreY + (to.centreY - from.centreY) * p
-            : (to
-                ? to.centreY + incomingDistance * (1 - p)
-                : from.centreY - outgoingDistance * p);
+            : (to ? to.centreY : from.centreY);
 
         const relation = to ? to.relation : Math.max(1, from.relation);
-        drawEntry(entry, {
+        drawEntry(to || from, {
             y,
             active: false,
             alpha: relationOpacity(relation),
@@ -802,7 +813,6 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
         });
     }
 }
-
 function appleSafeFontSize(ctx, lines, requested, w) {
     let longest = '';
     for (const l of lines) for (const t of String(l?.text || '').split(/\s+/)) if (t.length > longest.length) longest = t;
