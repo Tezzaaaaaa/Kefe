@@ -169,7 +169,7 @@ export async function exportVideo({ state, media, config, renderFrame, buildFile
 
                     const segmentName = `kefe-segment-${String(segment).padStart(4, '0')}.ts`;
                     progress(5 + ((firstFrame + frameCount) / totalFrames) * 65, `Encoding segment ${segment + 1} of ${segmentCount}…`);
-                    await execChecked(ffmpeg, ['-framerate', String(config.fps), '-start_number', '0', '-i', 'kefe-frame-%05d.jpg', '-frames:v', String(frameCount), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', String(quality.crf), '-pix_fmt', 'yuv420p', '-r', String(config.fps), '-g', String(config.fps * 2), '-keyint_min', String(config.fps * 2), '-sc_threshold', '0', '-f', 'mpegts', '-y', segmentName], `segment ${segment + 1}`);
+                    await execChecked(ffmpeg, ['-framerate', String(config.fps), '-start_number', '0', '-i', 'kefe-frame-%05d.jpg', '-frames:v', String(frameCount), '-an', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', String(quality.crf), '-pix_fmt', 'yuv420p', '-r', String(config.fps), '-g', String(config.fps * 2), '-keyint_min', String(config.fps * 2), '-sc_threshold', '0', '-tune', 'zerolatency', '-f', 'mpegts', '-y', segmentName], `segment ${segment + 1}`);
                     const segmentData = new Uint8Array(await ffmpeg.readFile(segmentName));
                     if (!segmentData.byteLength) throw new Error(`FFmpeg produced an empty segment ${segment + 1}`);
                     segmentChunks.push(segmentData);
