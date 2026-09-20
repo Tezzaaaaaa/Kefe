@@ -21,10 +21,10 @@
           <div class="kefe-mini-eyebrow">PACIFIC / SOUL</div>
           <div id="kefeMiniTitle" class="kefe-mini-title">Nothing queued</div>
           <div id="kefeMiniArtist" class="kefe-mini-artist">Add music to begin</div>
-          <div class="kefe-mini-controls">
-            <button type="button" id="kefeMiniPrev" aria-label="Previous track">‹</button>
+          <div class="kefe-mini-controls" aria-label="Playback controls">
+            <button type="button" id="kefeMiniPrev" aria-label="Previous track">⏮</button>
             <button type="button" id="kefeMiniPlay" class="kefe-mini-play" aria-label="Play">▶</button>
-            <button type="button" id="kefeMiniNext" aria-label="Next track">›</button>
+            <button type="button" id="kefeMiniNext" aria-label="Next track">⏭</button>
           </div>
           <input id="kefeMiniSeek" class="kefe-mini-seek" type="range" min="0" max="0" step="0.01" value="0" aria-label="Track position">
           <div class="kefe-mini-time"><span id="kefeMiniCurrent">0:00</span><span id="kefeMiniDuration">0:00</span></div>
