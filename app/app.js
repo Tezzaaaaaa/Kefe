@@ -1167,36 +1167,102 @@ const appleLyricsEngine = (() => {
         try {
             const xml = new DOMParser().parseFromString(source, 'application/xml');
             if (xml.querySelector('parsererror')) throw new Error('Invalid TTML');
-            return Array.from(xml.querySelectorAll('p')).map(p => {
-                const begin = parseTTMLTime(p.getAttribute('begin'));
-                const end = parseTTMLTime(p.getAttribute('end'));
-                const directSpans = Array.from(p.children).filter(node => node.localName === 'span');
-                const spans = directSpans.length ? directSpans : Array.from(p.querySelectorAll('span'));
-                const words = spans.map((span, index) => {
-                    const start = parseTTMLTime(span.getAttribute('begin'));
-                    const nextStart = spans[index + 1] ? parseTTMLTime(spans[index + 1].getAttribute('begin')) : NaN;
-                    const explicitEnd = parseTTMLTime(span.getAttribute('end'));
-                    const endTime = Number.isFinite(explicitEnd)
-                        ? explicitEnd
-                        : (Number.isFinite(nextStart) ? nextStart : (Number.isFinite(end) ? end : NaN));
-                    return {
-                        text: span.textContent || '',
-                        time: start,
-                        endTime,
-                        role: span.getAttribute('ttm:role') || span.getAttribute('role') || '',
-                        agent: span.getAttribute('ttm:agent') || span.getAttribute('agent') || ''
-                    };
-                }).filter(w => w.text.trim() && Number.isFinite(w.time) && Number.isFinite(w.endTime));
-                return normaliseLine({
-                    time: begin,
-                    endTime: Number.isFinite(end) ? end : undefined,
+
+            const attr = (node, localName) =>
+                node?.getAttribute(localName) ||
+                Array.from(node?.attributes || []).find(a => a.localName === localName)?.value ||
+                '';
+
+            const parseParagraph = p => {
+                const lineStart = parseTTMLTime(attr(p, 'begin'));
+                const lineEnd = parseTTMLTime(attr(p, 'end'));
+                const lineDur = parseTTMLTime(attr(p, 'dur'));
+                const resolvedEnd = Number.isFinite(lineEnd)
+                    ? lineEnd
+                    : (Number.isFinite(lineStart) && Number.isFinite(lineDur) ? lineStart + lineDur : NaN);
+                const fragments = [];
+
+                const walk = (node, inheritedStart, inheritedEnd, inheritedRole = '', inheritedAgent = '') => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        const text = node.nodeValue || '';
+                        if (!text.trim()) return;
+                        fragments.push({
+                            text,
+                            time: inheritedStart,
+                            endTime: inheritedEnd,
+                            role: inheritedRole,
+                            agent: inheritedAgent
+                        });
+                        return;
+                    }
+                    if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+                    const ownStart = parseTTMLTime(attr(node, 'begin'));
+                    const ownEnd = parseTTMLTime(attr(node, 'end'));
+                    const ownDur = parseTTMLTime(attr(node, 'dur'));
+                    const start = Number.isFinite(ownStart) ? ownStart : inheritedStart;
+                    const end = Number.isFinite(ownEnd)
+                        ? ownEnd
+                        : (Number.isFinite(ownDur) && Number.isFinite(start) ? start + ownDur : inheritedEnd);
+                    const role = attr(node, 'role') || inheritedRole;
+                    const agent = attr(node, 'agent') || inheritedAgent;
+
+                    for (const child of node.childNodes) walk(child, start, end, role, agent);
+                };
+
+                for (const child of p.childNodes) walk(child, lineStart, resolvedEnd);
+
+                const timedFragments = fragments
+                    .filter(f => f.text.trim() && Number.isFinite(f.time) && Number.isFinite(f.endTime) && f.endTime > f.time)
+                    .flatMap(fragment => {
+                        const tokens = fragment.text.trim().split(/\s+/).filter(Boolean);
+                        if (tokens.length <= 1) return [{
+                            ...fragment,
+                            text: fragment.text.trim()
+                        }];
+                        const weights = tokens.map(token => Math.max(1, Array.from(token.replace(/[^\p{L}\p{N}]/gu, '')).length));
+                        const total = weights.reduce((sum, value) => sum + value, 0);
+                        let cursor = fragment.time;
+                        return tokens.map((text, index) => {
+                            const duration = (fragment.endTime - fragment.time) * (weights[index] / total);
+                            const item = {
+                                ...fragment,
+                                text,
+                                time: cursor,
+                                endTime: index === tokens.length - 1 ? fragment.endTime : cursor + duration
+                            };
+                            cursor = item.endTime;
+                            return item;
+                        });
+                    });
+
+                return {
+                    time: lineStart,
+                    endTime: Number.isFinite(resolvedEnd) ? resolvedEnd : undefined,
                     text: p.textContent || '',
-                    words,
-                    role: p.getAttribute('ttm:role') || p.getAttribute('role') || '',
-                    agent: p.getAttribute('ttm:agent') || p.getAttribute('agent') || '',
-                    translation: p.getAttribute('itunes:translation') || p.getAttribute('translation') || ''
-                });
-            }).filter(Boolean);
+                    words: timedFragments,
+                    role: attr(p, 'role'),
+                    agent: attr(p, 'agent')
+                };
+            };
+
+            const parsed = Array.from(xml.querySelectorAll('p'))
+                .map(parseParagraph)
+                .filter(line => line.text.trim() && Number.isFinite(line.time));
+
+            const primary = parsed.filter(line => {
+                const role = String(line.role || '').toLowerCase();
+                return role !== 'x-translation' && role !== 'x-roman' && role !== 'x-bg';
+            });
+            const translated = parsed.filter(line => String(line.role || '').toLowerCase() === 'x-translation');
+            const romanized = parsed.filter(line => String(line.role || '').toLowerCase() === 'x-roman');
+
+            return primary.map((line, index) => ({
+                ...line,
+                translation: translated[index]?.text?.trim() || '',
+                transliteration: romanized[index]?.text?.trim() || '',
+                background: line.role === 'x-bg'
+            })).map(normaliseLine).filter(Boolean);
         } catch (error) {
             console.warn('KEFE Apple lyrics: TTML parse failed', error);
             return [];
