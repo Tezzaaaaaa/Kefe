@@ -679,6 +679,9 @@
   $('kefeVinylNext')?.addEventListener('click', e => { e.stopPropagation(); next(); });
   vinylSkin?.addEventListener('click', e => {
     if (e.target.closest('button')) return;
+    if (vinylDisc && e.target.closest('#kefeVinylDisc')) {
+      shellEl.classList.toggle('is-vinyl-expanded');
+    }
   });
   window.addEventListener('resize', resizeVinylCanvas);
 
