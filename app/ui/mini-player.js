@@ -172,7 +172,15 @@
     if (autoplay) audio.play().catch(() => {});
   }
   function addFiles(fileList) {
-    const files = [...(fileList || [])].filter(f => f.type?.startsWith('audio/'));
+    const files = [...(fileList || [])].filter(file => {
+      const type = String(file.type || '').toLowerCase();
+      const ext = String(file.name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || '';
+      const audioExtensions = new Set([
+        'aac', 'aif', 'aiff', 'alac', 'flac', 'm4a', 'mp3', 'oga', 'ogg',
+        'opus', 'wav', 'weba', 'webm', 'caf', 'mid', 'midi'
+      ]);
+      return type.startsWith('audio/') || audioExtensions.has(ext) || !type;
+    });
     if (!files.length) return;
     tracks.push(...files.map(file => ({ file, ...metadata(file) })));
     if (index < 0) loadTrack(0, false);
