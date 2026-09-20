@@ -52,6 +52,7 @@ app.use(express.json({ limit: '256kb' }));
 app.use('/api/auth', authRouter);
 app.use('/api', require('./transcribe'));
 app.use('/api', require('./remove-background'));
+app.use('/api', require('./music-identify'));
 
 // Everything else (frontend) is static.
 app.use(express.static(ROOT_DIR, { extensions: ['html'] }));
