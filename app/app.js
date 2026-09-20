@@ -297,8 +297,8 @@ function appleGlyph(text, fontSize, weight = 700) {
     return appleCacheSet(APPLE_GLYPH_CACHE, key, { canvas, width, pad, baseline: fontSize * 1.05, logicalWidth, logicalHeight });
 }
 
-function drawAppleGlyph(ctx, text, x, baseline, fontSize, alpha = 1, shadowBlur = 0) {
-    const glyph = appleGlyph(text, fontSize);
+function drawAppleGlyph(ctx, text, x, baseline, fontSize, alpha = 1, shadowBlur = 0, weight = 700) {
+    const glyph = appleGlyph(text, fontSize, weight);
     ctx.save();
     ctx.globalAlpha = alpha;
     if (shadowBlur > 0) { ctx.shadowColor = '#fff'; ctx.shadowBlur = shadowBlur; }
@@ -500,10 +500,10 @@ function drawAppleSecondaryText(ctx, w, y, text, settings, options = {}) {
     ctx.fillStyle = options.color || 'rgba(255,255,255,0.72)';
     ctx.globalAlpha = alpha;
     ctx.filter = Number(options.blur) > 0 ? `blur(${Number(options.blur)}px)` : 'none';
-    const shown = value.length > 1 && ctx.measureText(value).width > maxWidth
+    const shown = value.length > 1 && appleGlyph(value, size, 500).width > maxWidth
         ? (() => {
             let text = value;
-            while (text.length > 1 && ctx.measureText(text + '…').width > maxWidth) text = text.slice(0, -1);
+            while (text.length > 1 && appleGlyph(text + '…', size, 500).width > maxWidth) text = text.slice(0, -1);
             return text + '…';
         })()
         : value;
@@ -511,7 +511,7 @@ function drawAppleSecondaryText(ctx, w, y, text, settings, options = {}) {
     ctx.translate(w / 2, y);
     ctx.scale(scale, scale);
     ctx.translate(-w / 2, -y);
-    ctx.fillText(shown, x, y);
+    drawAppleGlyph(ctx, shown, x, y, size, alpha, 0, 500);
     ctx.restore();
 }
 
