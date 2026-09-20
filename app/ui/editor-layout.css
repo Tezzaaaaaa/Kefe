@@ -204,8 +204,8 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
 @media(max-width:700px){.preview-fullscreen-button{min-width:42px;min-height:42px}}
 @media(max-width:480px){.preview-fullscreen-button{display:inline-flex}}
 
-/* iPhone Safari fallback: Safari does not expose dependable arbitrary-element
-   fullscreen, so lock the preview to the viewport as an immersive editor mode. */
+/* iPhone Safari: make the visualiser itself fill the viewport. The
+   browser's own Safari chrome cannot be hidden by page JavaScript. */
 body.kefe-preview-fullscreen{overflow:hidden!important}
 .preview.kefe-mobile-fullscreen{
   position:fixed!important;
@@ -215,25 +215,60 @@ body.kefe-preview-fullscreen{overflow:hidden!important}
   height:100dvh!important;
   min-height:100dvh!important;
   margin:0!important;
-  display:flex!important;
-  flex-direction:column!important;
-  background:var(--surface)!important;
-  padding-bottom:env(safe-area-inset-bottom,0px);
-}
-.preview.kefe-mobile-fullscreen .preview-toolbar{
-  flex:0 0 auto;
-  padding-top:max(8px,env(safe-area-inset-top,0px));
+  display:block!important;
+  background:#000!important;
 }
 .preview.kefe-mobile-fullscreen .canvas-wrapper{
-  flex:1 1 auto!important;
-  min-height:0!important;
-  width:100%!important;
-  height:auto!important;
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  min-height:100dvh!important;
+  box-sizing:border-box!important;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)!important;
+  background:#000!important;
 }
 .preview.kefe-mobile-fullscreen .canvas-wrapper canvas{
-  max-width:100%!important;
-  max-height:100%!important;
+  width:auto!important;
+  height:auto!important;
+  max-width:100vw!important;
+  max-height:100dvh!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  outline:0!important;
+}
+.preview.kefe-mobile-fullscreen .preview-toolbar{
+  position:fixed!important;
+  inset:0!important;
+  z-index:10003!important;
+  width:0!important;
+  height:0!important;
+  min-height:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  pointer-events:none!important;
+}
+.preview.kefe-mobile-fullscreen .preview-toolbar .preview-heading,
+.preview.kefe-mobile-fullscreen .preview-toolbar .transport{
+  display:none!important;
+}
+.preview.kefe-mobile-fullscreen .preview-fullscreen-button{
+  position:fixed!important;
+  top:max(10px,calc(10px + env(safe-area-inset-top,0px)))!important;
+  right:max(10px,calc(10px + env(safe-area-inset-right,0px)))!important;
+  z-index:10004!important;
+  width:42px!important;
+  height:42px!important;
+  min-width:42px!important;
+  min-height:42px!important;
+  border-radius:999px!important;
+  background:rgba(0,0,0,.48)!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.2)!important;
+  pointer-events:auto!important;
+  backdrop-filter:blur(10px)!important;
 }
 .preview.kefe-mobile-fullscreen .visualiser-mini-player{
-  bottom:max(16px,calc(16px + env(safe-area-inset-bottom,0px)));
+  bottom:max(16px,calc(16px + env(safe-area-inset-bottom,0px)))!important;
 }
