@@ -222,6 +222,11 @@
 .kefe-vinyl-disc:after{content:"";position:absolute;inset:5%;border-radius:50%!important;border:1px solid rgba(255,255,255,.08)}
 .kefe-vinyl-disc.is-playing{animation:kefeVinylSpin 8s linear infinite}
 @keyframes kefeVinylSpin{to{transform:translateY(34px) rotate(360deg)}}
+.kefe-vinyl-artwork{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%!important;z-index:1;display:block}
+.kefe-vinyl-disc:has(.kefe-vinyl-artwork:not([hidden])):before,.kefe-vinyl-disc:has(.kefe-vinyl-artwork:not([hidden])):after{display:none}
+.kefe-vinyl-disc:has(.kefe-vinyl-artwork:not([hidden])) .kefe-vinyl-label{background:rgba(255,255,255,.78);backdrop-filter:blur(4px)}
+.kefe-vinyl-meta small{font-size:10px;color:#777b83;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kefe-vinyl-controls button.play{width:44px;height:44px;background:#fff;color:#111}
 .kefe-vinyl-label{
   position:absolute;z-index:2;inset:29% 29%;display:grid;place-items:center;align-content:center;
   gap:2px;border-radius:50%!important;text-align:center;text-transform:uppercase;color:#111;
