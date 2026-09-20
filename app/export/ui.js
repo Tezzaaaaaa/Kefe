@@ -4,8 +4,6 @@ const $ = id => document.getElementById(id);
 // IMPORTANT: do not replace these DOM nodes. app.js attaches the authoritative
 // preflight click handlers to #exportBtn and #exportBottom before this module
 // loads. Cloning them silently removes those listeners and makes Export appear dead.
-const exportTop = $('exportBtn');
-const exportBottom = $('exportBottom');
 const cancelButton = $('cancelExport');
 const confirmExport = $('confirmExport');
 const closePreflight = $('closePreflight');
@@ -77,7 +75,7 @@ async function runExport() {
     });
 }
 
-async function startExport() {
+async function runConfirmedExport() {
     if (window.isExporting) return;
     window.isExporting = true;
     window.kefeExportAbort = new AbortController();
@@ -108,14 +106,12 @@ async function startExport() {
 
 function closePreflightModal() { $('exportPreflight')?.classList.add('hidden'); }
 
-// app.js owns the two Export-button click handlers and opens preflight. Do NOT
-// add another click handler here: doing so would bypass preflight or start two
-// exports. This module only owns the actual confirmed export and overlay.
+// Export ownership is deliberately split by stage: app.js owns opening and
+// validating preflight; this module owns only the confirmed export + overlay.
+// Preflight close/cancel and keyboard shortcuts stay in app.js so no action
+// has two independent listeners.
 cancelButton?.addEventListener('click', () => { if (window.isExporting) window.kefeExportAbort?.abort(); else $('exportOverlay')?.classList.add('hidden'); });
-confirmExport?.addEventListener('click', () => { closePreflightModal(); startExport(); });
-closePreflight?.addEventListener('click', closePreflightModal);
-cancelPreflight?.addEventListener('click', closePreflightModal);
-document.addEventListener('keydown', event => { if ((event.key === 'e' || event.key === 'E') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName)) { event.preventDefault(); event.stopImmediatePropagation(); if ($('exportPreflight')?.classList.contains('hidden')) { exportTop?.click(); } } }, true);
-window.startOfflineExport = startExport;
+confirmExport?.addEventListener('click', () => { closePreflightModal(); runConfirmedExport(); });
+window.startOfflineExport = runConfirmedExport;
 window.kefeCancelExport = () => window.kefeExportAbort?.abort();
 console.info('[KEFE] Integrated accelerated exporter loaded (WebCodecs/Mediabunny with FFmpeg fallback)');
