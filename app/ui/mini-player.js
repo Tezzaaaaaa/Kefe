@@ -10,7 +10,7 @@
   player.setAttribute('aria-modal', 'true');
   player.setAttribute('aria-label', 'KEFE Now Playing');
   player.innerHTML = `
-    <div class="kefe-mini-shell">
+    <div class="kefe-mini-shell kefe-mini-3d">
       <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close">×</button></div>
       <div class="kefe-mini-grid">
         <div class="kefe-mini-art">
