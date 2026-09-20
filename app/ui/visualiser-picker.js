@@ -38,6 +38,10 @@
       '#kefeVisualiserPicker .kefe-ra-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--text);border:0;cursor:pointer}',
       '#kefeVisualiserPicker .kefe-ra-row input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--text);border:0;cursor:pointer}',
       '#kefeVisualiserPicker .kefe-ra-row .val{flex:0 0 34px;text-align:right;font-size:11px;color:var(--text);font-variant-numeric:tabular-nums}',
+      '#kefeVisualiserPicker .kefe-bc-picks{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}',
+      '#kefeVisualiserPicker .kefe-bc-pick{padding:5px 9px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--text-2);font:600 11px \\\"Open Sans\\\",Arial,sans-serif;cursor:pointer;white-space:nowrap}',
+      '#kefeVisualiserPicker .kefe-bc-pick:hover{border-color:var(--line-strong);color:var(--text)}',
+      '#kefeVisualiserPicker .kefe-bc-pick.active{border-color:var(--red);color:var(--red)}',
       '#kefeVisualiserPicker .kefe-bc-tools{display:flex;gap:8px;margin-bottom:8px}',
       '#kefeVisualiserPicker .kefe-bc-tools input{flex:1 1 auto;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:12px \"Open Sans\",Arial,sans-serif}',
       '#kefeVisualiserPicker .kefe-bc-tools button{flex:0 0 auto;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:600 12px \"Open Sans\",Arial,sans-serif;cursor:pointer}',
@@ -87,6 +91,9 @@
       it.classList.toggle('active', on);
       if (on) it.scrollIntoView({ block: 'nearest' });
     });
+    (box.querySelectorAll('.kefe-bc-pick') || []).forEach(function(chip){
+      chip.classList.toggle('active', chip.dataset.preset === sel);
+    });
   }
 
   function buildButterchurnControls(box){
@@ -109,6 +116,56 @@
     var next = document.createElement('button'); next.type = 'button'; next.textContent = '\u203A'; next.title = 'Next preset';
     var rnd = document.createElement('button'); rnd.type = 'button'; rnd.textContent = 'Random';
     tools.appendChild(search); tools.appendChild(prev); tools.appendChild(next); tools.appendChild(rnd);
+
+    // Curated shortlist: 20 presets pulled from the exact names in the
+    // vendored butterchurn-presets pack, picked for variety (Geiss / Martin /
+    // Flexi / Rovastar / Zylot / Unchained) so the panel opens on a usable
+    // set instead of an alphabetical wall of 98 names.
+    var TOP20 = [
+      'Geiss - Reaction Diffusion 2',
+      'Geiss - Spiral Artifact',
+      'Geiss - Thumb Drum',
+      'Geiss - Cauldron - painterly 2 (saturation remix)',
+      'Martin - charisma',
+      'martin - ghost city',
+      'martin - glass corridor',
+      'martin - infinity (2010 update)',
+      'Martin - liquid arrows',
+      'martin - stormy sea (2010 update)',
+      'martin - The Bridge of Khazad-Dum',
+      'martin - witchcraft reloaded',
+      'Flexi - alien fish pond',
+      'Flexi - area 51',
+      'Flexi - mindblob mix',
+      'Flexi - predator-prey-spirals',
+      'Flexi - smashing fractals [acid etching mix]',
+      'Rovastar - Oozing Resistance',
+      'Zylot - Star Ornament',
+      'Unchained - Unified Drag 2'
+    ].filter(function(name){ return Object.prototype.hasOwnProperty.call(presetMap, name); });
+
+    if (TOP20.length) {
+      var picksLabel = document.createElement('div');
+      picksLabel.className = 'kefe-vis-hint';
+      picksLabel.style.marginBottom = '6px';
+      picksLabel.textContent = 'Top 20 picks';
+      bc.appendChild(picksLabel);
+
+      var picks = document.createElement('div');
+      picks.className = 'kefe-bc-picks';
+      TOP20.forEach(function(name){
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'kefe-bc-pick';
+        chip.dataset.preset = name;
+        chip.title = name;
+        chip.textContent = name.replace(/^[A-Za-z._$]+\s*[-+]\s*/, '').replace(/\s*\[.*$/, '').replace(/\s*\(.*$/, '');
+        chip.addEventListener('click', function(){ choose(name); });
+        picks.appendChild(chip);
+      });
+      bc.appendChild(picks);
+    }
+
     bc.appendChild(tools);
 
     var list = document.createElement('div');
