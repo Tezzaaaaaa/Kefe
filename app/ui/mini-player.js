@@ -1,4 +1,4 @@
-/* KEFE Now Playing — compact playlist player with Butterchurn visuals. */
+/* KEFE Now Playing — compact disc-and-card player skin with Butterchurn visuals. */
 (() => {
   'use strict';
   if (window.kefeMiniPlayer) return;
@@ -10,40 +10,46 @@
   player.setAttribute('aria-modal', 'true');
   player.setAttribute('aria-label', 'KEFE Now Playing');
   player.innerHTML = `
-    <div class="kefe-mini-shell kefe-mini-3d">
+    <div class="kefe-mini-shell">
       <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><div class="kefe-mini-topline-actions"><button type="button" id="kefeMiniFullscreen" class="kefe-mini-icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
-      <div class="kefe-mini-grid">
-        <div class="kefe-mini-art">
-          <canvas id="kefeMiniCanvas" width="720" height="720"></canvas>
-          <div class="kefe-mini-art-mark">PS</div>
-        </div>
-        <div class="kefe-mini-main">
-          <div class="kefe-mini-eyebrow">PACIFIC / SOUL</div>
-          <div id="kefeMiniTitle" class="kefe-mini-title">Nothing queued</div>
-          <div id="kefeMiniArtist" class="kefe-mini-artist">Add music to begin</div>
-          <div class="kefe-mini-controls" aria-label="Playback controls">
-            <button type="button" id="kefeMiniShuffleTrack" class="kefe-mini-control-icon" aria-label="Shuffle queue" title="Shuffle queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h2c4 0 6 10 10 10h4M16 5h4v4M20 5l-4 4M4 17h2c1.8 0 3-1.5 4-3M16 15h4v4M20 19l-4-4"/></svg></button>
-            <button type="button" id="kefeMiniPrev" class="kefe-mini-control-icon" aria-label="Previous track" title="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg></button>
-            <button type="button" id="kefeMiniPlay" class="kefe-mini-play" aria-label="Play" title="Play"><svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></button>
-            <button type="button" id="kefeMiniNext" class="kefe-mini-control-icon" aria-label="Next track" title="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12M6 6l8 6-8 6z"/></svg></button>
-            <button type="button" id="kefeMiniRepeat" class="kefe-mini-control-icon" aria-label="Repeat off" title="Repeat off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7H7a3 3 0 0 0 0 6h1M7 17h10a3 3 0 0 0 0-6h-1M15 5l2 2-2 2M9 15l-2 2 2 2"/></svg></button>
+      <div class="kefe-mini-body">
+        <div id="kefeMiniCard" class="kefe-mini-card" role="button" tabindex="0" aria-pressed="false" aria-label="Show cover art" title="Tap to show cover art">
+          <div class="kefe-mini-info">
+            <div class="kefe-mini-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <div id="kefeMiniArtist" class="kefe-mini-artist">Add music to begin</div>
+            <div id="kefeMiniTitle" class="kefe-mini-title">Nothing queued</div>
+            <div class="kefe-mini-bar" aria-hidden="true"><span id="kefeMiniProgress"></span></div>
+            <div class="kefe-mini-clock"><span id="kefeMiniCurrent" class="cur">0 : 00</span><span class="sep"> / </span><span id="kefeMiniDuration" class="dur">0:00</span></div>
           </div>
-          <input id="kefeMiniSeek" class="kefe-mini-seek" type="range" min="0" max="0" step="0.01" value="0" aria-label="Track position">
-          <div class="kefe-mini-time"><span id="kefeMiniCurrent">0:00</span><span id="kefeMiniDuration">0:00</span></div>
-          <div class="kefe-mini-actions">
-            <div class="kefe-mini-volume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v4h3l4 3V7L8 10H5zM16 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/></svg><input id="kefeMiniVolume" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"></div>
-            <button type="button" id="kefeMiniUpload" class="kefe-mini-add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload media</span></button><input id="kefeMiniFiles" type="file" accept="audio/*" multiple hidden>
-            <button type="button" id="kefeMiniShuffle">Shuffle preset</button>
+          <div class="kefe-mini-art">
+            <div class="kefe-mini-spin">
+              <canvas id="kefeMiniCanvas" width="720" height="720"></canvas>
+              <div class="kefe-mini-hub"></div>
+            </div>
+            <div class="kefe-mini-art-caption" aria-hidden="true"><strong id="kefeMiniCapArtist"></strong><span id="kefeMiniCapTitle"></span></div>
           </div>
-          <div class="kefe-mini-preset"><span>Visual</span><select id="kefeMiniPreset" aria-label="Butterchurn preset"></select></div>
         </div>
+        <div class="kefe-mini-controls" aria-label="Playback controls">
+          <button type="button" id="kefeMiniShuffleTrack" class="kefe-mini-control-icon" aria-label="Shuffle queue" title="Shuffle queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h2c4 0 6 10 10 10h4M16 5h4v4M20 5l-4 4M4 17h2c1.8 0 3-1.5 4-3M16 15h4v4M20 19l-4-4"/></svg></button>
+          <button type="button" id="kefeMiniPrev" class="kefe-mini-control-icon" aria-label="Previous track" title="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg></button>
+          <button type="button" id="kefeMiniPlay" class="kefe-mini-play" aria-label="Play" title="Play"><svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></button>
+          <button type="button" id="kefeMiniNext" class="kefe-mini-control-icon" aria-label="Next track" title="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12M6 6l8 6-8 6z"/></svg></button>
+          <button type="button" id="kefeMiniRepeat" class="kefe-mini-control-icon" aria-label="Repeat off" title="Repeat off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7H7a3 3 0 0 0 0 6h1M7 17h10a3 3 0 0 0 0-6h-1M15 5l2 2-2 2M9 15l-2 2 2 2"/></svg></button>
+        </div>
+        <input id="kefeMiniSeek" class="kefe-mini-seek" type="range" min="0" max="0" step="0.01" value="0" aria-label="Track position">
+        <div class="kefe-mini-actions">
+          <div class="kefe-mini-volume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v4h3l4 3V7L8 10H5zM16 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/></svg><input id="kefeMiniVolume" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"></div>
+          <button type="button" id="kefeMiniUpload" class="kefe-mini-add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload media</span></button><input id="kefeMiniFiles" type="file" accept="audio/*" multiple hidden>
+          <button type="button" id="kefeMiniShuffle">Shuffle preset</button>
+        </div>
+        <div class="kefe-mini-preset"><span>Visual</span><select id="kefeMiniPreset" aria-label="Butterchurn preset"></select></div>
+        <button type="button" id="kefeMiniLyricsToggle" class="kefe-mini-lyrics-toggle" aria-expanded="false" aria-controls="kefeMiniLyricsPanel"><span>Lyrics</span><svg class="lyrics-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <section id="kefeMiniLyricsPanel" class="kefe-mini-lyrics-panel" hidden>
+          <div class="kefe-mini-lyrics-head"><span>LYRICS</span><button type="button" id="kefeMiniLyricsClose" aria-label="Close lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+          <div id="kefeMiniLyricsContent" class="kefe-mini-lyrics-content"><p>No lyrics loaded</p></div>
+        </section>
+        <div class="kefe-mini-queue"><div class="kefe-mini-queue-head"><div><span>UP NEXT</span><small>Playlist</small></div><span id="kefeMiniQueueCount">0 tracks</span></div><ol id="kefeMiniQueueList"></ol></div>
       </div>
-      <button type="button" id="kefeMiniLyricsToggle" class="kefe-mini-lyrics-toggle" aria-expanded="false" aria-controls="kefeMiniLyricsPanel"><span>Lyrics</span><svg class="lyrics-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-      <section id="kefeMiniLyricsPanel" class="kefe-mini-lyrics-panel" hidden>
-        <div class="kefe-mini-lyrics-head"><span>LYRICS</span><button type="button" id="kefeMiniLyricsClose" aria-label="Close lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-        <div id="kefeMiniLyricsContent" class="kefe-mini-lyrics-content"><p>No lyrics loaded</p></div>
-      </section>
-      <div class="kefe-mini-queue"><div class="kefe-mini-queue-head"><div><span>UP NEXT</span><small>Playlist</small></div><span id="kefeMiniQueueCount">0 tracks</span></div><ol id="kefeMiniQueueList"></ol></div>
     </div>`;
   document.body.appendChild(player);
 
@@ -70,13 +76,70 @@
   const $ = id => document.getElementById(id);
   const canvas = $('kefeMiniCanvas');
   const ctx = canvas.getContext('2d', { alpha: false });
+  const card = $('kefeMiniCard');
+  const spinEl = player.querySelector('.kefe-mini-spin');
+  const shellEl = player.querySelector('.kefe-mini-shell');
+  const seekEl = $('kefeMiniSeek');
+  const progressEl = $('kefeMiniProgress');
+  const reduceMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  const SPIN_DEG_PER_SEC = 42;
+  let expanded = false;
+  let angle = 0;
+  let spinVel = 0;
+  let settle = null;
+  let lastFrame = 0;
+  let lastProgress = -1;
   const fmt = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`; };
+  const fmtCur = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)} : ${String(Math.floor(t % 60)).padStart(2, '0')}`; };
   const esc = value => String(value || '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 
   function metadata(file) {
-    const base = String(file.name || 'Untitled').replace(/\\.[^.]+$/, '');
+    const base = String(file.name || 'Untitled').replace(/\.[^.]+$/, '');
     const parts = base.split(' - ');
     return { title: parts.pop()?.trim() || base || 'Untitled', artist: parts.join(' - ').trim() || 'Unknown artist' };
+  }
+  function setNowPlaying(title, artist) {
+    [['kefeMiniTitle', title], ['kefeMiniCapTitle', title], ['kefeMiniArtist', artist], ['kefeMiniCapArtist', artist]]
+      .forEach(([id, text]) => { const el = $(id); if (el) el.textContent = text; });
+  }
+  function syncProgress() {
+    const dur = Number(audio.duration) || 0;
+    const p = dur > 0 ? Math.min(1, Math.max(0, (audio.currentTime || 0) / dur)) : 0;
+    if (Math.abs(p - lastProgress) < 0.0005) return;
+    lastProgress = p;
+    progressEl.style.transform = `scaleX(${p})`;
+    seekEl.style.setProperty('--p', `${(p * 100).toFixed(2)}%`);
+  }
+  function setExpanded(value) {
+    value = !!value;
+    if (value === expanded) return;
+    expanded = value;
+    card.classList.toggle('is-expanded', expanded);
+    card.setAttribute('aria-pressed', String(expanded));
+    const label = expanded ? 'Show disc' : 'Show cover art';
+    card.setAttribute('aria-label', label);
+    card.title = expanded ? 'Tap to show disc' : 'Tap to show cover art';
+    if (expanded) {
+      // Let the disc coast round to upright before the cover opens up.
+      const to = Math.ceil(angle / 360) * 360;
+      settle = { from: angle, to, start: performance.now(), dur: reduceMotion.matches ? 0 : 650 };
+      spinVel = 0;
+    } else {
+      settle = null;
+    }
+  }
+  function stepSpin(now, dt) {
+    if (settle) {
+      const t = settle.dur ? Math.min(1, (now - settle.start) / settle.dur) : 1;
+      angle = settle.from + (settle.to - settle.from) * (1 - Math.pow(1 - t, 3));
+      if (t >= 1) { angle = 0; settle = null; }
+    } else {
+      const target = !expanded && !audio.paused && !reduceMotion.matches ? SPIN_DEG_PER_SEC : 0;
+      spinVel += (target - spinVel) * Math.min(1, dt * 3);
+      if (Math.abs(spinVel) < 0.01 && !target) spinVel = 0;
+      angle = (angle + spinVel * dt) % 360;
+    }
+    spinEl.style.transform = `rotate(${angle.toFixed(2)}deg)`;
   }
   function renderQueue() {
     $('kefeMiniQueueCount').textContent = `${tracks.length} ${tracks.length === 1 ? 'track' : 'tracks'}`;
@@ -98,8 +161,13 @@
     getState().style.butterchurnPreset = name;
     try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
   }
-  function draw() {
+  function draw(now) {
+    now = now || performance.now();
+    const dt = Math.min(0.1, Math.max(0, (now - (lastFrame || now)) / 1000));
+    lastFrame = now;
     if (!player.classList.contains('is-hidden')) {
+      stepSpin(now, dt);
+      syncProgress();
       try {
         getState().style.visualiserStyle = 'butterchurn';
         window.kefeButterchurn?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || performance.now() / 1000, getState());
@@ -121,6 +189,7 @@
     const shell = player.querySelector('.kefe-mini-shell');
     if (!shell) return;
     const p = clampPosition(x, y);
+    shell.style.transform = 'none';
     shell.style.left = `${p.x}px`;
     shell.style.top = `${p.y}px`;
     shell.style.right = 'auto';
@@ -178,8 +247,12 @@
     getState().audio.ready = true;
     getState().audio.metadata = { ...getState().audio.metadata, title: track.title, artist: track.artist };
     getState().style.visualiserStyle = 'butterchurn';
-    if ($('kefeMiniTitle')) $('kefeMiniTitle').textContent = track.title;
-    if ($('kefeMiniArtist')) $('kefeMiniArtist').textContent = track.artist;
+    setNowPlaying(track.title, track.artist);
+    $('kefeMiniCurrent').textContent = fmtCur(0);
+    $('kefeMiniDuration').textContent = fmt(0);
+    seekEl.max = '0';
+    seekEl.value = '0';
+    lastProgress = -1;
     renderLyrics();
     renderQueue();
     try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
@@ -235,20 +308,24 @@
   function prev() { if (tracks.length) loadTrack((index - 1 + tracks.length) % tracks.length, true); }
 
   audio.addEventListener('loadedmetadata', () => {
-    $('kefeMiniSeek').max = String(audio.duration || 0);
+    seekEl.max = String(audio.duration || 0);
     $('kefeMiniDuration').textContent = fmt(audio.duration);
+    syncProgress();
   });
   audio.addEventListener('timeupdate', () => {
-    $('kefeMiniSeek').value = String(audio.currentTime || 0);
-    $('kefeMiniCurrent').textContent = fmt(audio.currentTime);
+    seekEl.value = String(audio.currentTime || 0);
+    $('kefeMiniCurrent').textContent = fmtCur(audio.currentTime);
+    syncProgress();
   });
   audio.addEventListener('play', () => {
+    shellEl.classList.add('is-playing');
     const button = $('kefeMiniPlay');
     button.setAttribute('aria-label', 'Pause');
     button.title = 'Pause';
     button.innerHTML = '<svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
   });
   audio.addEventListener('pause', () => {
+    shellEl.classList.remove('is-playing');
     const button = $('kefeMiniPlay');
     button.setAttribute('aria-label', 'Play');
     button.title = 'Play';
@@ -260,8 +337,21 @@
   $('kefeMiniPrev').addEventListener('click', prev);
   $('kefeMiniUpload').addEventListener('click', () => $('kefeMiniFiles').click());
   $('kefeMiniFiles').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
-  $('kefeMiniSeek').addEventListener('input', e => { audio.currentTime = Number(e.target.value) || 0; });
-  $('kefeMiniVolume').addEventListener('input', e => { audio.volume = Math.max(0, Math.min(1, Number(e.target.value) || 0)); });
+  seekEl.addEventListener('input', e => {
+    audio.currentTime = Number(e.target.value) || 0;
+    $('kefeMiniCurrent').textContent = fmtCur(audio.currentTime);
+    syncProgress();
+  });
+  const volumeEl = $('kefeMiniVolume');
+  const syncVolumeFill = () => volumeEl.style.setProperty('--p', `${(Number(volumeEl.value) || 0) * 100}%`);
+  volumeEl.addEventListener('input', e => { audio.volume = Math.max(0, Math.min(1, Number(e.target.value) || 0)); syncVolumeFill(); });
+  syncVolumeFill();
+  card.addEventListener('click', () => setExpanded(!expanded));
+  card.addEventListener('keydown', e => {
+    if (e.target !== card || (e.key !== 'Enter' && e.key !== ' ')) return;
+    e.preventDefault();
+    setExpanded(!expanded);
+  });
   $('kefeMiniRepeat').addEventListener('click', () => {
     repeatTrack = !repeatTrack;
     const button = $('kefeMiniRepeat');
@@ -277,7 +367,10 @@
   });
   $('kefeMiniShuffle').addEventListener('click', () => {
     const names = window.kefeButterchurn?.presetNames?.() || [];
-    if (names.length) choosePreset(names[Math.floor(Math.random() * names.length)]);
+    if (!names.length) return;
+    const name = names[Math.floor(Math.random() * names.length)];
+    choosePreset(name);
+    $('kefeMiniPreset').value = name;
   });
   $('kefeMiniPreset').addEventListener('change', e => choosePreset(e.target.value));
   $('kefeMiniClose').addEventListener('click', () => close());
@@ -340,14 +433,16 @@
     cssFullscreen = false;
     syncFullscreenUI();
     player.classList.add('is-hidden');
+    setExpanded(false);
     audio.pause();
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
   }
   window.kefeMiniPlayer = {
-    version: 3,
+    version: 4,
     open,
     close,
+    setExpanded,
     addFiles,
     tracks: () => tracks.slice()
   };
