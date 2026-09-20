@@ -1170,17 +1170,31 @@ const appleLyricsEngine = (() => {
             return Array.from(xml.querySelectorAll('p')).map(p => {
                 const begin = parseTTMLTime(p.getAttribute('begin'));
                 const end = parseTTMLTime(p.getAttribute('end'));
-                const spans = Array.from(p.querySelectorAll('span'));
-                const words = spans.length ? spans.map(span => ({
-                    text: span.textContent || '',
-                    start: parseTTMLTime(span.getAttribute('begin')),
-                    end: parseTTMLTime(span.getAttribute('end'))
-                })).filter(w => Number.isFinite(w.start) && Number.isFinite(w.end)) : null;
+                const directSpans = Array.from(p.children).filter(node => node.localName === 'span');
+                const spans = directSpans.length ? directSpans : Array.from(p.querySelectorAll('span'));
+                const words = spans.map((span, index) => {
+                    const start = parseTTMLTime(span.getAttribute('begin'));
+                    const nextStart = spans[index + 1] ? parseTTMLTime(spans[index + 1].getAttribute('begin')) : NaN;
+                    const explicitEnd = parseTTMLTime(span.getAttribute('end'));
+                    const endTime = Number.isFinite(explicitEnd)
+                        ? explicitEnd
+                        : (Number.isFinite(nextStart) ? nextStart : (Number.isFinite(end) ? end : NaN));
+                    return {
+                        text: span.textContent || '',
+                        time: start,
+                        endTime,
+                        role: span.getAttribute('ttm:role') || span.getAttribute('role') || '',
+                        agent: span.getAttribute('ttm:agent') || span.getAttribute('agent') || ''
+                    };
+                }).filter(w => w.text.trim() && Number.isFinite(w.time) && Number.isFinite(w.endTime));
                 return normaliseLine({
                     time: begin,
                     endTime: Number.isFinite(end) ? end : undefined,
                     text: p.textContent || '',
-                    words
+                    words,
+                    role: p.getAttribute('ttm:role') || p.getAttribute('role') || '',
+                    agent: p.getAttribute('ttm:agent') || p.getAttribute('agent') || '',
+                    translation: p.getAttribute('itunes:translation') || p.getAttribute('translation') || ''
                 });
             }).filter(Boolean);
         } catch (error) {
@@ -1209,11 +1223,18 @@ const appleLyricsEngine = (() => {
         if (!text) return null;
         const endTime = Number(line.endTime ?? line.end);
         const words = Array.isArray(line.words) ? line.words.map(w => ({
+            ...w,
             text: String(w?.text ?? ''),
             time: Number(w?.time ?? w?.start),
             endTime: Number(w?.endTime ?? w?.end)
         })).filter(w => w.text && Number.isFinite(w.time) && Number.isFinite(w.endTime)) : null;
-        return { ...line, text, time, endTime: Number.isFinite(endTime) ? endTime : undefined, words };
+        return {
+            ...line,
+            text,
+            time,
+            endTime: Number.isFinite(endTime) ? endTime : undefined,
+            words
+        };
     }
 
     async function setCover(source) {
@@ -1342,10 +1363,6 @@ const appleLyricsEngine = (() => {
         coverImage = null;
         albumArtworkImage = null;
         resetSpring();
-        if (renderLoopId !== null) {
-            cancelAnimationFrame(renderLoopId);
-            renderLoopId = null;
-        }
         if (gl) {
             if (texture) gl.deleteTexture(texture);
             if (positionBuffer) gl.deleteBuffer(positionBuffer);
@@ -1370,7 +1387,6 @@ const appleLyricsEngine = (() => {
     };
 })();
 window.kefeAppleLyricsEngine = appleLyricsEngine;
-window.loadTrack = appleLyricsEngine.loadTrack;
 window.loadTrack = appleLyricsEngine.loadTrack;
 
 function renderLyricsEffect(ctx, w, h, style, lines, time) {
