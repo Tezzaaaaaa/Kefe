@@ -317,40 +317,7 @@
     }
   }
 
-  async function identifyTrack(track) {
-    if (!track || track.identifying || track.identified) return;
-    const shazam = window.kefeShazam;
-    if (!shazam || typeof shazam.identify !== 'function') return;
 
-    track.identifying = true;
-    notify(`Identifying “${track.title}” with Shazam…`);
-    try {
-      const match = await shazam.identify(track.file);
-      if (!match) return;
-      track.title = match.title || track.title;
-      track.artist = match.artist || track.artist;
-      track.album = match.album || track.album || '';
-      track.artwork = match.artwork || track.artwork || '';
-      track.shazamURL = match.shazamURL || '';
-      track.identified = true;
-      if (index >= 0 && tracks[index] === track) {
-        getState().audio.metadata = {
-          ...getState().audio.metadata,
-          title: track.title,
-          artist: track.artist,
-          album: track.album
-        };
-        setNowPlaying(track.title, track.artist, track.album);
-        setArtwork(track.artwork, track.title);
-      }
-      renderQueue();
-      notify('');
-    } catch (error) {
-      notify('');
-    } finally {
-      track.identifying = false;
-    }
-  }
 
   function loadTrack(nextIndex, autoplay) {
     if (!tracks.length) return;
