@@ -407,7 +407,7 @@ function drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, overallA
     ctx.globalAlpha = settings.inactiveOpacity * overallAlpha;
     ctx.fillStyle = settings.inactiveColor;
     ctx.shadowBlur = 0;
-    ctx.fillText(word.text, x, y + floatY);
+    drawAppleGlyph(ctx, word.text, x, y + floatY, fontSize, settings.inactiveOpacity * overallAlpha);
     ctx.restore();
 
     let prefixWidth = 0;
@@ -428,7 +428,7 @@ function drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, overallA
         ctx.fillStyle = settings.activeColor;
         ctx.shadowColor = settings.activeColor;
         ctx.shadowBlur = fontSize * Math.min(0.3, blur * 0.3) * local;
-        ctx.fillText(chars[i], charX, y + floatY + offsetY);
+        drawAppleGlyph(ctx, chars[i], charX, y + floatY + offsetY, fontSize, overallAlpha, fontSize * Math.min(0.3, blur * 0.3) * local);
         ctx.restore();
     }
     ctx.restore();
@@ -460,9 +460,9 @@ function drawAppleLineBlock(ctx, w, centreY, line, time, settings, options = {})
         for (let i = 0; i < row.words.length; i++) {
             const word = row.words[i];
             if (!active) {
-                ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = settings.backgroundColor; ctx.shadowBlur = 0; ctx.fillText(word.text, x, y); ctx.restore();
+                ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = settings.backgroundColor; ctx.shadowBlur = 0; drawAppleGlyph(ctx, word.text, x, y, fontSize, alpha); ctx.restore();
             } else if (time < word.time) {
-                ctx.save(); ctx.globalAlpha = settings.inactiveOpacity * alpha; ctx.fillStyle = settings.inactiveColor; ctx.shadowBlur = 0; ctx.fillText(word.text, x, y); ctx.restore();
+                ctx.save(); ctx.globalAlpha = settings.inactiveOpacity * alpha; ctx.fillStyle = settings.inactiveColor; ctx.shadowBlur = 0; drawAppleGlyph(ctx, word.text, x, y, fontSize, settings.inactiveOpacity * alpha); ctx.restore();
             } else {
                 const rawWordDuration = Math.max(0.001, Number(word.endTime) - Number(word.time));
                 const emphasisDuration = Math.max(1, rawWordDuration * 1000);
@@ -474,7 +474,7 @@ function drawAppleLineBlock(ctx, w, centreY, line, time, settings, options = {})
                 if (time < animationEnd) {
                     drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, alpha, line);
                 } else {
-                    ctx.save(); ctx.globalAlpha = 0.96 * alpha; ctx.fillStyle = settings.activeColor; ctx.shadowColor = settings.activeColor; ctx.shadowBlur = fontSize * 0.014; ctx.fillText(word.text, x, y); ctx.restore();
+                    ctx.save(); ctx.globalAlpha = 0.96 * alpha; ctx.fillStyle = settings.activeColor; ctx.shadowColor = settings.activeColor; ctx.shadowBlur = fontSize * 0.014; drawAppleGlyph(ctx, word.text, x, y, fontSize, 0.96 * alpha, fontSize * 0.014); ctx.restore();
                 }
             }
             x += word.width;
