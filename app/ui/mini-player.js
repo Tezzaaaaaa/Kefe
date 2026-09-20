@@ -39,9 +39,10 @@
         <input id="kefeMiniSeek" class="kefe-mini-seek" type="range" min="0" max="0" step="0.01" value="0" aria-label="Track position">
         <div class="kefe-mini-actions">
           <div class="kefe-mini-volume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v4h3l4 3V7L8 10H5zM16 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/></svg><input id="kefeMiniVolume" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"></div>
-          <button type="button" id="kefeMiniUpload" class="kefe-mini-add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload media</span></button><input id="kefeMiniFiles" type="file" accept="audio/*" multiple hidden>
+          <button type="button" id="kefeMiniUpload" class="kefe-mini-add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload media</span></button><input id="kefeMiniFiles" type="file" accept="audio/*,.aac,.aif,.aiff,.alac,.amr,.ape,.au,.caf,.flac,.m4a,.m4b,.m4r,.mka,.mp2,.mp3,.mpga,.oga,.ogg,.opus,.ra,.wav,.weba,.wma,.wv,.3ga,.ac3,.eac3,.mid,.midi,.mp4,.m4v,.mov,.webm,.3gp,.mkv,.ogv" multiple hidden>
           <button type="button" id="kefeMiniShuffle">Shuffle preset</button>
         </div>
+        <div id="kefeMiniNotice" class="kefe-mini-notice" role="status" aria-live="polite" hidden></div>
         <div class="kefe-mini-preset"><span>Visual</span><select id="kefeMiniPreset" aria-label="Butterchurn preset"></select></div>
         <button type="button" id="kefeMiniLyricsToggle" class="kefe-mini-lyrics-toggle" aria-expanded="false" aria-controls="kefeMiniLyricsPanel"><span>Lyrics</span><svg class="lyrics-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <section id="kefeMiniLyricsPanel" class="kefe-mini-lyrics-panel" hidden>
@@ -258,20 +259,37 @@
     try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
     if (autoplay) audio.play().catch(() => {});
   }
+  const AUDIO_EXT = new Set([
+    'aac', 'aif', 'aiff', 'alac', 'amr', 'ape', 'au', 'caf', 'flac', 'm4a', 'm4b', 'm4r', 'mka', 'mp2', 'mp3', 'mpga',
+    'oga', 'ogg', 'opus', 'ra', 'wav', 'weba', 'wma', 'wv', '3ga', 'ac3', 'eac3', 'mid', 'midi',
+    // containers that are commonly audio-only
+    'mp4', 'm4v', 'mov', 'webm', '3gp', 'mkv', 'ogv'
+  ]);
+  let noticeTimer = 0;
+  function notify(message) {
+    const el = $('kefeMiniNotice');
+    if (!el) return;
+    clearTimeout(noticeTimer);
+    el.textContent = message;
+    el.hidden = !message;
+    if (message) noticeTimer = setTimeout(() => { el.hidden = true; }, 6000);
+  }
+  function isAudioFile(file) {
+    const type = String(file.type || '').toLowerCase();
+    const ext = String(file.name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || '';
+    return type.startsWith('audio/') || type.startsWith('video/') || AUDIO_EXT.has(ext) || !type;
+  }
   function addFiles(fileList) {
-    const files = [...(fileList || [])].filter(file => {
-      const type = String(file.type || '').toLowerCase();
-      const ext = String(file.name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || '';
-      const audioExtensions = new Set([
-        'aac', 'aif', 'aiff', 'alac', 'flac', 'm4a', 'mp3', 'oga', 'ogg',
-        'opus', 'wav', 'weba', 'webm', 'caf', 'mid', 'midi'
-      ]);
-      return type.startsWith('audio/') || audioExtensions.has(ext) || !type;
-    });
-    if (!files.length) return;
+    const all = [...(fileList || [])];
+    if (!all.length) return;
+    const files = all.filter(isAudioFile);
+    const skipped = all.length - files.length;
+    if (!files.length) { notify(`No audio found. ${skipped} file${skipped === 1 ? '' : 's'} skipped.`); return; }
+    const first = index < 0;
     tracks.push(...files.map(file => ({ file, ...metadata(file) })));
-    if (index < 0) loadTrack(0, false);
+    if (first) loadTrack(0, true);
     renderQueue();
+    notify(skipped ? `Added ${files.length}. Skipped ${skipped} non-audio file${skipped === 1 ? '' : 's'}.` : '');
   }
   function renderLyrics() {
     const box = $('kefeMiniLyricsContent');
@@ -332,6 +350,20 @@
     button.innerHTML = '<svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>';
   });
   audio.addEventListener('ended', next);
+  audio.addEventListener('error', () => {
+    const track = tracks[index];
+    if (!track || !audio.src) return;
+    if (tracks.length > 1) {
+      notify(`Can't play "${track.title}". Skipped.`);
+      const bad = index;
+      tracks.splice(bad, 1);
+      urls.delete(track.file);
+      index = -1;
+      loadTrack(Math.min(bad, tracks.length - 1), true);
+    } else {
+      notify(`Can't play "${track.title}". This browser can't decode the format.`);
+    }
+  });
   $('kefeMiniPlay').addEventListener('click', toggle);
   $('kefeMiniNext').addEventListener('click', next);
   $('kefeMiniPrev').addEventListener('click', prev);
@@ -439,7 +471,7 @@
     raf = 0;
   }
   window.kefeMiniPlayer = {
-    version: 4,
+    version: 5,
     open,
     close,
     setExpanded,
