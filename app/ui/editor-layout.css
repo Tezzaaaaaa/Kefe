@@ -110,13 +110,35 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
     flex-wrap:wrap;
     align-items:center;
     row-gap:6px;
+    position:relative;
   }
   .preview-heading{
     flex:1 1 100%;
     width:100%;
+    min-width:0;
+    padding-right:174px;
     overflow:hidden;
   }
   .preview-heading>*{min-width:0;max-width:100%}
+  .kefe-preview-corner{
+    top:7px;
+    right:10px;
+    height:44px;
+    gap:5px;
+  }
+  .kefe-preview-corner .preview-format{
+    margin:0 !important;
+    height:40px;
+    padding:3px;
+    gap:1px;
+  }
+  .kefe-preview-corner .preview-format-btn,
+  .kefe-preview-corner .preview-format button{
+    min-width:40px;
+    height:34px;
+    padding:0 6px;
+    font-size:11px;
+  }
   .transport{
     width:100%;
     padding:0;
@@ -141,6 +163,25 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
   header{padding-inline:10px}
   .preview{flex-basis:clamp(220px,34dvh,300px);min-height:220px}
   .preview-toolbar{padding:7px 9px}
+  .preview-heading{padding-right:126px}
+  .kefe-preview-corner{
+    top:7px;
+    right:9px;
+    height:40px;
+  }
+  .kefe-preview-corner .preview-format{
+    height:38px;
+    padding:2px;
+  }
+  .kefe-preview-corner .preview-format-btn,
+  .kefe-preview-corner .preview-format button{
+    min-width:36px;
+    height:32px;
+    padding:0 5px;
+    font-size:10px;
+  }
+  .kefe-preview-corner .preview-focus-button,
+  .kefe-preview-corner #previewFocusButton{display:none}
   .transport{grid-template-columns:42px 42px minmax(0,1fr) auto}
   .transport #clock{min-width:58px}
   .canvas-wrapper{padding:8px}
