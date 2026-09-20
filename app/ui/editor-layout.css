@@ -193,3 +193,12 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
   .canvas-wrapper{padding:8px}
   .sidebar{font-size:13px}
 }
+
+.canvas-wrapper:fullscreen{width:100vw;height:100vh;box-sizing:border-box;padding:clamp(12px,3vw,40px);background:#000}
+.canvas-wrapper:fullscreen canvas{max-width:100%;max-height:100%;border-radius:0;outline:0}
+.canvas-wrapper:-webkit-full-screen{width:100vw;height:100vh;box-sizing:border-box;padding:clamp(12px,3vw,40px);background:#000}
+.canvas-wrapper:-webkit-full-screen canvas{max-width:100%;max-height:100%;border-radius:0;outline:0}
+.preview-fullscreen-button{flex:0 0 auto;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.preview-fullscreen-button svg{width:17px;height:17px}
+@media(max-width:700px){.preview-fullscreen-button{min-width:42px;min-height:42px}}
+@media(max-width:480px){.preview-fullscreen-button{display:inline-flex}}
