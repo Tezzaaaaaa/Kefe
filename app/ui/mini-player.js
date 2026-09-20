@@ -47,6 +47,10 @@
   let tracks = [];
   let index = -1;
   let raf = 0;
+  let dragging = false;
+  let dragPointerId = null;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
 
   const $ = id => document.getElementById(id);
   const canvas = $('kefeMiniCanvas');
@@ -81,11 +85,72 @@
     if (window.kefeButterchurn?.draw) draw();
   }
   function draw() {
-    if (!player.classList.contains('hidden') && index >= 0 && tracks[index]) {
-      try { window.kefeButterchurn?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, state); } catch (e) {}
+    if (!player.classList.contains('hidden')) {
+      try {
+        state.style.visualiserStyle = 'butterchurn';
+        window.kefeButterchurn?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || performance.now() / 1000, state);
+      } catch (e) {}
     }
     raf = requestAnimationFrame(draw);
   }
+
+  function clampPosition(x, y) {
+    const shell = player.querySelector('.kefe-mini-shell');
+    if (!shell) return { x, y };
+    const margin = 12;
+    const maxX = Math.max(margin, window.innerWidth - shell.offsetWidth - margin);
+    const maxY = Math.max(margin, window.innerHeight - shell.offsetHeight - margin);
+    return { x: Math.min(Math.max(margin, x), maxX), y: Math.min(Math.max(margin, y), maxY) };
+  }
+
+  function setPosition(x, y) {
+    const shell = player.querySelector('.kefe-mini-shell');
+    if (!shell) return;
+    const p = clampPosition(x, y);
+    shell.style.left = `${p.x}px`;
+    shell.style.top = `${p.y}px`;
+    shell.style.right = 'auto';
+    shell.style.bottom = 'auto';
+  }
+
+  function beginDrag(e) {
+    if (e.button !== undefined && e.button !== 0) return;
+    if (e.target.closest('button, input, select, label, a')) return;
+    const shell = player.querySelector('.kefe-mini-shell');
+    if (!shell) return;
+    const rect = shell.getBoundingClientRect();
+    dragging = true;
+    dragPointerId = e.pointerId;
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+    shell.classList.add('is-dragging');
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  }
+
+  function drag(e) {
+    if (!dragging || e.pointerId !== dragPointerId) return;
+    setPosition(e.clientX - dragOffsetX, e.clientY - dragOffsetY);
+  }
+
+  function endDrag(e) {
+    if (!dragging || e.pointerId !== dragPointerId) return;
+    dragging = false;
+    dragPointerId = null;
+    player.querySelector('.kefe-mini-shell')?.classList.remove('is-dragging');
+  }
+
+  const dragHandle = player.querySelector('.kefe-mini-topline');
+  dragHandle?.addEventListener('pointerdown', beginDrag);
+  dragHandle?.addEventListener('pointermove', drag);
+  dragHandle?.addEventListener('pointerup', endDrag);
+  dragHandle?.addEventListener('pointercancel', endDrag);
+  window.addEventListener('resize', () => {
+    const shell = player.querySelector('.kefe-mini-shell');
+    if (!shell || shell.style.left === '') return;
+    const rect = shell.getBoundingClientRect();
+    setPosition(rect.left, rect.top);
+  });
   function revokeAll() { for (const url of urls.values()) URL.revokeObjectURL(url); urls.clear(); }
   function loadTrack(nextIndex, autoplay) {
     if (!tracks.length) return;
@@ -146,6 +211,13 @@
   function open() {
     player.classList.remove('hidden');
     loadPresets();
+    const shell = player.querySelector('.kefe-mini-shell');
+    if (shell && !shell.style.left) {
+      const x = Math.max(12, (window.innerWidth - shell.offsetWidth) / 2);
+      const y = Math.max(12, (window.innerHeight - shell.offsetHeight) / 2);
+      setPosition(x, y);
+    }
+    window.kefeButterchurn?.prepare?.().catch?.(() => {});
     if (!raf) raf = requestAnimationFrame(draw);
   }
   function close() {
