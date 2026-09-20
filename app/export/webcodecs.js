@@ -45,6 +45,67 @@ function masterFileFor(state, media) {
     return state?.audio?.file || null;
 }
 
+async function prepareBackgroundVideoReader(Mediabunny, media, state) {
+    if (state?.background?.type !== 'video' || !media?.videoFile) return null;
+    const { Input, ALL_FORMATS, BlobSource, CanvasSink } = Mediabunny;
+    const input = new Input({ formats: ALL_FORMATS, source: new BlobSource(media.videoFile) });
+    try {
+        const track = await input.getPrimaryVideoTrack();
+        if (!track || !(await track.canDecode())) {
+            input.dispose();
+            return null;
+        }
+        const duration = Number(media.video?.duration) || Number(await track.computeDuration()) || 0;
+        if (!duration) {
+            input.dispose();
+            return null;
+        }
+        const sink = new CanvasSink(track, { poolSize: 1 });
+        let iterator = sink.canvases(0, duration);
+        let current = null;
+        let next = null;
+        let lastTarget = -Infinity;
+
+        async function reset() {
+            try { await iterator?.return?.(); } catch {}
+            iterator = sink.canvases(0, duration);
+            current = null;
+            next = null;
+        }
+
+        async function frameAt(time) {
+            const target = ((Number(time) % duration) + duration) % duration;
+            if (target + 0.0005 < lastTarget) await reset();
+            lastTarget = target;
+
+            while (!next) {
+                const result = await iterator.next();
+                if (result.done) return current?.canvas || null;
+                next = result.value;
+            }
+            while (next && Number(next.timestamp) <= target + 0.0005) {
+                current = next;
+                next = null;
+                const result = await iterator.next();
+                if (result.done) break;
+                next = result.value;
+            }
+            return current?.canvas || null;
+        }
+
+        return {
+            frameAt,
+            dispose: async () => {
+                try { await iterator?.return?.(); } catch {}
+                input.dispose();
+            }
+        };
+    } catch (error) {
+        input.dispose();
+        throw error;
+    }
+}
+
 async function prepareAudioConversion({ Mediabunny, masterFile, output, quality }) {
     if (!masterFile) return null;
 
@@ -162,7 +223,7 @@ export async function exportVideoWebCodecs({
         quality: new Quality({ bitrate: bitrateForQuality(quality) }),
         latencyMode: 'quality',
         keyFrameInterval: 2,
-        hardwareAcceleration: 'prefer-hardware',
+        hardwareAcceleration: 'no-preference',
         contentHint: 'motion',
     });
 
@@ -179,8 +240,23 @@ export async function exportVideoWebCodecs({
     }
 
     let audio = null;
+    let backgroundReader = null;
+    let exportMedia = null;
 
     try {
+        backgroundReader = await prepareBackgroundVideoReader(Mediabunny, media, state);
+        if (backgroundReader) {
+            const sourceVideo = document.createElement('canvas');
+            const sourceVideoProps = { readyState: 4, seeking: false, paused: true, duration: Number(media.video?.duration) || 0 };
+            Object.defineProperties(sourceVideo, {
+                readyState: { value: sourceVideoProps.readyState },
+                seeking: { value: sourceVideoProps.seeking },
+                paused: { value: sourceVideoProps.paused },
+                duration: { value: sourceVideoProps.duration }
+            });
+            exportMedia = { ...media, video: sourceVideo };
+        }
+
         audio = await prepareAudioConversion({
             Mediabunny,
             masterFile,
@@ -189,7 +265,7 @@ export async function exportVideoWebCodecs({
         });
 
         checkAbort(signal);
-        onProgress?.({ percent: 2, message: 'Starting hardware-accelerated export…' });
+        onProgress?.({ percent: 2, message: 'Starting accelerated export…' });
 
         await output.start();
 
@@ -200,7 +276,16 @@ export async function exportVideoWebCodecs({
                 checkAbort(signal);
 
                 const time = frame / config.fps;
-                await renderFrame(ctx, config.width, config.height, time);
+                if (backgroundReader && exportMedia?.video) {
+                    const frameCanvas = await backgroundReader.frameAt(time);
+                    if (frameCanvas) {
+                        exportMedia.video.width = frameCanvas.width;
+                        exportMedia.video.height = frameCanvas.height;
+                        exportMedia.video.getContext('2d').clearRect(0, 0, frameCanvas.width, frameCanvas.height);
+                        exportMedia.video.getContext('2d').drawImage(frameCanvas, 0, 0);
+                    }
+                }
+                await renderFrame(ctx, config.width, config.height, time, exportMedia);
 
                 await videoSource.add(
                     time,
