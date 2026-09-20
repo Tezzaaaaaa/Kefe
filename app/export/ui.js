@@ -118,4 +118,4 @@ cancelPreflight?.addEventListener('click', closePreflightModal);
 document.addEventListener('keydown', event => { if ((event.key === 'e' || event.key === 'E') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName)) { event.preventDefault(); event.stopImmediatePropagation(); if ($('exportPreflight')?.classList.contains('hidden')) { exportTop?.click(); } } }, true);
 window.startOfflineExport = startExport;
 window.kefeCancelExport = () => window.kefeExportAbort?.abort();
-console.info('[KEFE] Integrated FFmpeg exporter loaded');
+console.info('[KEFE] Integrated accelerated exporter loaded (WebCodecs/Mediabunny with FFmpeg fallback)');
