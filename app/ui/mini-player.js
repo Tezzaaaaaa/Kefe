@@ -87,7 +87,6 @@
     state.style.visualiserStyle = 'butterchurn';
     state.style.butterchurnPreset = name;
     window.kefeButterchurn?.prepare?.().catch?.(() => {});
-    if (window.kefeButterchurn?.draw) draw();
   }
   function draw() {
     if (!player.classList.contains('hidden')) {
@@ -156,7 +155,6 @@
     const rect = shell.getBoundingClientRect();
     setPosition(rect.left, rect.top);
   });
-  function revokeAll() { for (const url of urls.values()) URL.revokeObjectURL(url); urls.clear(); }
   function loadTrack(nextIndex, autoplay) {
     if (!tracks.length) return;
     index = Math.max(0, Math.min(tracks.length - 1, nextIndex));
@@ -260,6 +258,8 @@
   function close() {
     player.classList.add('hidden');
     audio.pause();
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
   }
   window.kefeMiniPlayer = { version: 1, open, close, addFiles, tracks: () => tracks.slice() };
   loadPresets();
