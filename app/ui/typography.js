@@ -31,7 +31,7 @@
     chromatica:          'Memesique',
     analogtv:            'VT323',
     fancy:               'Anton',
-    glitch:              'Special Elite',
+    glitch:              'Anton',
     splitflap:           'Big Shoulders Stencil Display',
     rain:                'Frijole'
   };
@@ -117,6 +117,10 @@
     { family: 'Urbanist',       weight: 800, style: 'normal', file: 'fonts/urbanist/Urbanist-VariableFont_wght.woff2' },
     // Special Elite — glitch
     { family: 'Special Elite',  weight: 400, style: 'normal', file: 'fonts/special-elite/SpecialElite-Regular.woff2' },
+    // Anton — fancy, glitch
+    { family: 'Anton',         weight: 400, style: 'normal', file: 'fonts/anton/Anton-Regular.woff2' },
+    // VT323 — analogtv
+    { family: 'VT323',        weight: 400, style: 'normal', file: 'fonts/vt323/VT323-Regular.woff2' },
     // Boogaloo — karaoke
     { family: 'Boogaloo',       weight: 400, style: 'normal', file: 'fonts/boogaloo/Boogaloo-Regular.woff2' },
   ];
@@ -159,7 +163,7 @@
     karaoke:    { family: families.karaoke,     weight: 400, min: 40, max: 170, lineHeight: 1.05, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     trailer:    { family: families.trailer,     weight: 400, min: 52, max: 220, lineHeight: 1.05, tracking: 0.04,      align: 'center', case: 'upper', opticalScale: 1.00 },
     rain:       { family: families.rain,        weight: 400, min: 40, max: 180, lineHeight: 1.35, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
-    fancy:      { family: families.fancy,       weight: 900, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
+    fancy:      { family: families.fancy,       weight: 400, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     glitch:     { family: families.glitch,      weight: 400, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     analogtv:   { family: families.analogtv,    weight: 400, min: 34, max: 200, lineHeight: 1.12, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     splitflap:  { family: families.splitflap,   weight: 900, min: 44, max: 220, lineHeight: 1.02, tracking: 0.06,      align: 'center', case: 'upper', opticalScale: 1.00 },
