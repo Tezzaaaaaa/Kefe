@@ -11,7 +11,7 @@
   player.setAttribute('aria-label', 'KEFE Now Playing');
   player.innerHTML = `
     <div class="kefe-mini-shell kefe-mini-3d">
-      <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close">×</button></div>
+      <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       <div class="kefe-mini-grid">
         <div class="kefe-mini-art">
           <canvas id="kefeMiniCanvas" width="720" height="720"></canvas>
@@ -22,9 +22,9 @@
           <div id="kefeMiniTitle" class="kefe-mini-title">Nothing queued</div>
           <div id="kefeMiniArtist" class="kefe-mini-artist">Add music to begin</div>
           <div class="kefe-mini-controls" aria-label="Playback controls">
-            <button type="button" id="kefeMiniPrev" aria-label="Previous track">⏮</button>
-            <button type="button" id="kefeMiniPlay" class="kefe-mini-play" aria-label="Play">▶</button>
-            <button type="button" id="kefeMiniNext" aria-label="Next track">⏭</button>
+            <button type="button" id="kefeMiniPrev" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg></button>
+            <button type="button" id="kefeMiniPlay" class="kefe-mini-play" aria-label="Play"><svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></button>
+            <button type="button" id="kefeMiniNext" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12M6 6l8 6-8 6z"/></svg></button>
           </div>
           <input id="kefeMiniSeek" class="kefe-mini-seek" type="range" min="0" max="0" step="0.01" value="0" aria-label="Track position">
           <div class="kefe-mini-time"><span id="kefeMiniCurrent">0:00</span><span id="kefeMiniDuration">0:00</span></div>
@@ -35,9 +35,9 @@
           <div class="kefe-mini-preset"><span>Visual</span><select id="kefeMiniPreset" aria-label="Butterchurn preset"></select></div>
         </div>
       </div>
-      <button type="button" id="kefeMiniLyricsToggle" class="kefe-mini-lyrics-toggle" aria-expanded="false" aria-controls="kefeMiniLyricsPanel"><span>Lyrics</span><span aria-hidden="true">⌄</span></button>
+      <button type="button" id="kefeMiniLyricsToggle" class="kefe-mini-lyrics-toggle" aria-expanded="false" aria-controls="kefeMiniLyricsPanel"><span>Lyrics</span><svg class="lyrics-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
       <section id="kefeMiniLyricsPanel" class="kefe-mini-lyrics-panel" hidden>
-        <div class="kefe-mini-lyrics-head"><span>LYRICS</span><button type="button" id="kefeMiniLyricsClose" aria-label="Close lyrics">×</button></div>
+        <div class="kefe-mini-lyrics-head"><span>LYRICS</span><button type="button" id="kefeMiniLyricsClose" aria-label="Close lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
         <div id="kefeMiniLyricsContent" class="kefe-mini-lyrics-content"><p>No lyrics loaded</p></div>
       </section>
       <div class="kefe-mini-queue"><div class="kefe-mini-queue-head"><span>QUEUE</span><span id="kefeMiniQueueCount">0 tracks</span></div><ol id="kefeMiniQueueList"></ol></div>
@@ -209,7 +209,7 @@
     const open = panel.hidden;
     panel.hidden = !open;
     button.setAttribute('aria-expanded', String(open));
-    if (arrow) arrow.textContent = open ? '⌃' : '⌄';
+    if (arrow) arrow.innerHTML = open ? '<path d="M6 15l6-6 6 6"/>' : '<path d="M6 9l6 6 6-6"/>';
     if (open) renderLyrics();
   }
 
@@ -228,8 +228,16 @@
     $('kefeMiniSeek').value = String(audio.currentTime || 0);
     $('kefeMiniCurrent').textContent = fmt(audio.currentTime);
   });
-  audio.addEventListener('play', () => { $('kefeMiniPlay').textContent = 'Ⅱ'; });
-  audio.addEventListener('pause', () => { $('kefeMiniPlay').textContent = '▶'; });
+  audio.addEventListener('play', () => {
+    const button = $('kefeMiniPlay');
+    button.setAttribute('aria-label', 'Pause');
+    button.innerHTML = '<svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
+  });
+  audio.addEventListener('pause', () => {
+    const button = $('kefeMiniPlay');
+    button.setAttribute('aria-label', 'Play');
+    button.innerHTML = '<svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>';
+  });
   audio.addEventListener('ended', next);
   $('kefeMiniPlay').addEventListener('click', toggle);
   $('kefeMiniNext').addEventListener('click', next);
