@@ -496,11 +496,10 @@ function buildAppleMusicLayout(ctx, w, h, settings, lines, focusIndex, visibleCo
         output.push(item); return item;
     };
     const focus = add(focusIndex, focusY, 0); if (!focus) return output;
-    const previous = linaNormaliseLine(lines, focusIndex - 1);
-    if (previous) {
-        const pm = measureAppleLineBlock(ctx, w, previous, settings, focus.line);
-        add(focusIndex - 1, focusY - focus.measurement.totalHeight/2 - gap - pm.totalHeight/2, -1, pm);
-    }
+    // Completed lines are not part of the resting stack. They only exist in
+    // the outgoing layout during an actual line hand-off, where they fade/scroll
+    // away. Keeping the previous line here leaves a stale lyric permanently
+    // visible after its timed content has finished.
     let cursorY = focusY + focus.measurement.totalHeight/2 + gap;
     for (let distance=1; distance<=visibleCount; distance++) {
         const line = linaNormaliseLine(lines, focusIndex + distance); if (!line) break;
