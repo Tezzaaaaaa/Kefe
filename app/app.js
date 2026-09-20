@@ -522,6 +522,12 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
     const p = transitioning ? (reducedMotion ? 1 : linaClamp(motion.progress)) : 1;
     const focusTransfer = transitioning ? 0.5 - 0.5 * Math.cos(Math.PI * p) : 1;
     const relationOpacity = relation => relation === 0 ? 1 : relation < 0 ? 0.22 : Math.max(0.07,settings.inactiveOpacity*Math.pow(0.72,relation-1));
+    const completionOpacity = line => {
+        const end = Number(line?.endTime);
+        if (!Number.isFinite(end)) return 1;
+        const fade = Math.min(0.22, Math.max(0.12, settings.fontSize / 620));
+        return linaClamp((end - time) / fade);
+    };
     for (const index of [...new Set([...fromMap.keys(),...toMap.keys()])]) {
         const from=fromMap.get(index), to=toMap.get(index), entry=to||from; if(!entry) continue;
         const relation=to?to.relation:-2;
@@ -529,12 +535,17 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
         let backgroundAlpha=from&&to ? relationOpacity(from.relation)+(relationOpacity(to.relation)-relationOpacity(from.relation))*p : relationOpacity(relation);
         if(!from) backgroundAlpha*=p;
         if(!to) backgroundAlpha*=1-p;
+        const visibilityFrom = from ? completionOpacity(from.line) : 0;
+        const visibilityTo = to ? completionOpacity(to.line) : 0;
+        backgroundAlpha *= from && to ? visibilityFrom + (visibilityTo - visibilityFrom) * p : (to ? visibilityTo : visibilityFrom);
 
         let focus=0;
         if (!transitioning && index===motion.toIndex) focus=1;
         else if (transitioning && index===motion.fromIndex) focus=1-focusTransfer;
         else if (transitioning && index===motion.toIndex) focus=focusTransfer;
 
+        const completion = entry ? completionOpacity(entry.line) : 0;
+        focus *= completion;
         const backgroundWeight=1-focus;
         const depth=Math.max(0,relation);
         const maxBlur=settings.fontSize*(relation<0?0.070:0.058+Math.max(0,depth-1)*0.012);
