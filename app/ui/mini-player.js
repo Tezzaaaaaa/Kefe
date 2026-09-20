@@ -18,12 +18,14 @@
             <div class="kefe-mini-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
             <div id="kefeMiniArtist" class="kefe-mini-artist">Add music to begin</div>
             <div id="kefeMiniTitle" class="kefe-mini-title">Nothing queued</div>
+            <div id="kefeMiniAlbum" class="kefe-mini-album"></div>
             <div class="kefe-mini-bar" aria-hidden="true"><span id="kefeMiniProgress"></span></div>
             <div class="kefe-mini-clock"><span id="kefeMiniCurrent" class="cur">0 : 00</span><span class="sep"> / </span><span id="kefeMiniDuration" class="dur">0:00</span></div>
           </div>
           <div class="kefe-mini-art">
             <div class="kefe-mini-spin">
               <canvas id="kefeMiniCanvas" width="720" height="720"></canvas>
+              <img id="kefeMiniArtwork" class="kefe-mini-cover" alt="" hidden>
               <div class="kefe-mini-hub"></div>
             </div>
             <div class="kefe-mini-art-caption" aria-hidden="true"><strong id="kefeMiniCapArtist"></strong><span id="kefeMiniCapTitle"></span></div>
@@ -97,11 +99,31 @@
   function metadata(file) {
     const base = String(file.name || 'Untitled').replace(/\.[^.]+$/, '');
     const parts = base.split(' - ');
-    return { title: parts.pop()?.trim() || base || 'Untitled', artist: parts.join(' - ').trim() || 'Unknown artist' };
+    return {
+      title: parts.pop()?.trim() || base || 'Untitled',
+      artist: parts.join(' - ').trim() || 'Unknown artist',
+      album: '',
+      artwork: ''
+    };
   }
-  function setNowPlaying(title, artist) {
+  function setNowPlaying(title, artist, album = '') {
     [['kefeMiniTitle', title], ['kefeMiniCapTitle', title], ['kefeMiniArtist', artist], ['kefeMiniCapArtist', artist]]
       .forEach(([id, text]) => { const el = $(id); if (el) el.textContent = text; });
+    const albumEl = $('kefeMiniAlbum');
+    if (albumEl) albumEl.textContent = album || '';
+  }
+  function setArtwork(url, title = '') {
+    const img = $('kefeMiniArtwork');
+    if (!img) return;
+    if (!url) {
+      img.hidden = true;
+      img.removeAttribute('src');
+      img.alt = '';
+      return;
+    }
+    img.src = url;
+    img.alt = title ? `Album artwork for ${title}` : 'Album artwork';
+    img.hidden = false;
   }
   function syncProgress() {
     const dur = Number(audio.duration) || 0;
@@ -145,7 +167,7 @@
   function renderQueue() {
     $('kefeMiniQueueCount').textContent = `${tracks.length} ${tracks.length === 1 ? 'track' : 'tracks'}`;
     $('kefeMiniQueueList').innerHTML = tracks.map((t, i) =>
-      `<li class="${i === index ? 'active' : ''}"><button type="button" data-mini-track="${i}"><span>${esc(t.title)}</span><small>${esc(t.artist)}</small></button></li>`
+      `<li class="${i === index ? 'active' : ''}"><button type="button" data-mini-track="${i}"><span>${esc(t.title)}</span><small>${esc(t.artist)}${t.album ? ' · ' + esc(t.album) : ''}</small></button></li>`
     ).join('');
     $('kefeMiniQueueList').querySelectorAll('[data-mini-track]').forEach(b => b.addEventListener('click', () => loadTrack(Number(b.dataset.miniTrack), true)));
   }
@@ -235,6 +257,50 @@
     const rect = shell.getBoundingClientRect();
     setPosition(rect.left, rect.top);
   });
+  async function identifyTrack(track) {
+    if (!track || track.identifying || track.identified) return;
+    track.identifying = true;
+    notify(`Identifying “${track.title}”…`);
+    try {
+      const response = await fetch('/api/music-identify', {
+        method: 'POST',
+        headers: { 'Content-Type': track.file.type || 'application/octet-stream' },
+        body: track.file
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        notify(payload.error || 'Song identification failed.');
+        return;
+      }
+      if (!payload.match) {
+        notify('Song not recognised — using the file metadata.');
+        return;
+      }
+      const match = payload.match;
+      track.title = match.title || track.title;
+      track.artist = match.artist || track.artist;
+      track.album = match.album || track.album || '';
+      track.artwork = match.artwork || track.artwork || '';
+      track.identified = true;
+      if (index >= 0 && tracks[index] === track) {
+        getState().audio.metadata = {
+          ...getState().audio.metadata,
+          title: track.title,
+          artist: track.artist,
+          album: track.album
+        };
+        setNowPlaying(track.title, track.artist, track.album);
+        setArtwork(track.artwork, track.title);
+      }
+      renderQueue();
+      notify('');
+    } catch (error) {
+      notify('Song identification unavailable — using the file metadata.');
+    } finally {
+      track.identifying = false;
+    }
+  }
+
   function loadTrack(nextIndex, autoplay) {
     if (!tracks.length) return;
     index = Math.max(0, Math.min(tracks.length - 1, nextIndex));
@@ -246,9 +312,10 @@
     getState().audio.file = track.file;
     getState().audio.duration = 0;
     getState().audio.ready = true;
-    getState().audio.metadata = { ...getState().audio.metadata, title: track.title, artist: track.artist };
+    getState().audio.metadata = { ...getState().audio.metadata, title: track.title, artist: track.artist, album: track.album || '' };
     getState().style.visualiserStyle = 'butterchurn';
-    setNowPlaying(track.title, track.artist);
+    setNowPlaying(track.title, track.artist, track.album || '');
+    setArtwork(track.artwork || '', track.title);
     $('kefeMiniCurrent').textContent = fmtCur(0);
     $('kefeMiniDuration').textContent = fmt(0);
     seekEl.max = '0';
@@ -258,6 +325,7 @@
     renderQueue();
     try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
     if (autoplay) audio.play().catch(() => {});
+    if (!track.identified) identifyTrack(track);
   }
   const AUDIO_EXT = new Set([
     'aac', 'aif', 'aiff', 'alac', 'amr', 'ape', 'au', 'caf', 'flac', 'm4a', 'm4b', 'm4r', 'mka', 'mp2', 'mp3', 'mpga',
