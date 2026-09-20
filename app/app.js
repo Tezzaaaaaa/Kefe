@@ -360,11 +360,6 @@ function drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, overallA
     const floatY = -Math.sin(floatProgress * Math.PI) * 0.05 * fontSize;
 
     const wordWidth = ctx.measureText(word.text).width;
-    const centreX = x + wordWidth / 2;
-    ctx.save();
-    ctx.translate(centreX, y + floatY);
-    ctx.translate(-centreX, -(y + floatY));
-
     ctx.save();
     ctx.globalAlpha = settings.inactiveOpacity * overallAlpha;
     ctx.fillStyle = settings.inactiveColor;
@@ -372,11 +367,13 @@ function drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, overallA
     ctx.fillText(word.text, x, y + floatY);
     ctx.restore();
 
+    let prefixWidth = 0;
     for (let i = 0; i < chars.length; i++) {
         const local = appleEmphasisEase(linaClamp((elapsedMs - stagger * i) / animateDuration));
-        if (local <= 0.0001) continue;
-        const charX = x + ctx.measureText(chars.slice(0, i).join("")).width;
+        const charX = x + prefixWidth;
         const charWidth = ctx.measureText(chars[i]).width;
+        prefixWidth += charWidth;
+        if (local <= 0.0001) continue;
         const offsetX = -local * 0.03 * amount * (chars.length / 2 - i);
         const offsetY = -local * 0.025 * amount * fontSize;
         const scale = 1 + local * 0.1 * amount;
