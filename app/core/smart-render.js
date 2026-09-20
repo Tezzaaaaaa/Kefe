@@ -74,15 +74,9 @@
   }
 
   function bind() {
-    ['exportBtn', 'exportBottom'].forEach(id => {
-      const button = $(id);
-      if (!button || button.dataset.smartRenderBound) return;
-      button.dataset.smartRenderBound = '1';
-      button.addEventListener('click', () => {
-        if (window.kefeSmartRender.busy) return;
-        window.kefeSmartRender.prepare();
-      }, true);
-    });
+    // Export buttons are owned by the authoritative preflight flow in app.js.
+    // Smart Render is an analysis/preparation service only; binding another
+    // click handler here can intercept or duplicate the export action.
   }
 
   window.kefeSmartRender = {
