@@ -261,18 +261,61 @@ function appleWordsForLine(line, nextLine) {
     });
 }
 
+const APPLE_GLYPH_CACHE = new Map();
+const APPLE_LAYOUT_CACHE = new Map();
+const APPLE_CACHE_LIMIT = 512;
+
+function appleCacheSet(cache, key, value) {
+    if (cache.has(key)) cache.delete(key);
+    cache.set(key, value);
+    while (cache.size > APPLE_CACHE_LIMIT) cache.delete(cache.keys().next().value);
+    return value;
+}
+
+function appleGlyph(text, fontSize, weight = 700) {
+    const value = String(text ?? '');
+    const key = `${weight}|${fontSize}|${value}`;
+    const cached = APPLE_GLYPH_CACHE.get(key);
+    if (cached) return cached;
+    const measureCanvas = document.createElement('canvas');
+    const measureCtx = measureCanvas.getContext('2d');
+    measureCtx.font = `${weight} ${fontSize}px "Open Sans",Arial,sans-serif`;
+    const width = Math.max(1, Math.ceil(measureCtx.measureText(value).width));
+    const scale = Math.min(2, window.devicePixelRatio || 1);
+    const pad = Math.ceil(fontSize * 0.08);
+    const logicalWidth = width + pad * 2;
+    const logicalHeight = Math.ceil(fontSize * 1.45);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(logicalWidth * scale);
+    canvas.height = Math.ceil(logicalHeight * scale);
+    const g = canvas.getContext('2d');
+    g.scale(scale, scale);
+    g.font = `${weight} ${fontSize}px "Open Sans",Arial,sans-serif`;
+    g.textBaseline = 'alphabetic';
+    g.fillStyle = '#fff';
+    g.fillText(value, pad, fontSize * 1.05);
+    return appleCacheSet(APPLE_GLYPH_CACHE, key, { canvas, width, pad, baseline: fontSize * 1.05, logicalWidth, logicalHeight });
+}
+
+function drawAppleGlyph(ctx, text, x, baseline, fontSize, alpha = 1, shadowBlur = 0) {
+    const glyph = appleGlyph(text, fontSize);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    if (shadowBlur > 0) { ctx.shadowColor = '#fff'; ctx.shadowBlur = shadowBlur; }
+    ctx.drawImage(glyph.canvas, x - glyph.pad, baseline - glyph.baseline, glyph.logicalWidth, glyph.logicalHeight);
+    ctx.restore();
+    return glyph.width;
+}
 function buildAppleRows(ctx, line, nextLine, maxWidth) {
     const words = appleWordsForLine(line, nextLine);
-    const spaceWidth = ctx.measureText(" ").width;
+    const fontSize = Number.parseFloat(ctx.font.match(/\d+(?:\.\d+)?px/)?.[0]) || 76;
+    const spaceWidth = appleGlyph(' ', fontSize).width;
     const rows = [];
     let current = [], currentWidth = 0;
     for (const word of words) {
-        const width = ctx.measureText(word.text).width;
+        const width = appleGlyph(word.text, fontSize).width;
         const proposed = current.length ? currentWidth + spaceWidth + width : width;
-        if (current.length && proposed > maxWidth) {
-            rows.push({ words: current, width: currentWidth });
-            current = []; currentWidth = 0;
-        }
+        if (current.length && proposed > maxWidth) { rows.push({ words: current, width: currentWidth }); current = []; currentWidth = 0; }
         current.push({ ...word, width });
         currentWidth = current.length === 1 ? width : currentWidth + spaceWidth + width;
     }
@@ -283,16 +326,16 @@ function buildAppleRows(ctx, line, nextLine, maxWidth) {
 function measureAppleLineBlock(ctx, w, line, settings, nextLine = null) {
     if (!line || !line.text) return { rows: [], rowHeight: 0, totalHeight: 0 };
     const fontSize = settings.fontSize;
+    const margin = Math.max(40, w * 0.075);
+    const key = `${w}|${fontSize}|${line.text}|${Array.isArray(line.words) ? line.words.map(word => `${word.text}:${word.time}:${word.endTime}`).join('|') : ''}`;
+    const cached = APPLE_LAYOUT_CACHE.get(key);
+    if (cached) return cached;
     ctx.save();
     ctx.font = `700 ${fontSize}px "Open Sans",Arial,sans-serif`;
-    const margin = Math.max(40, w * 0.075);
     const rows = buildAppleRows(ctx, line, nextLine, w - margin * 2);
-    const rowHeight = fontSize * 1.25;
-    const totalHeight = rows.length * rowHeight;
     ctx.restore();
-    return { rows, rowHeight, totalHeight };
+    return appleCacheSet(APPLE_LAYOUT_CACHE, key, { rows, rowHeight: fontSize * 1.25, totalHeight: rows.length * fontSize * 1.25 });
 }
-
 function appleBezierEase(x, p1x, p1y, p2x, p2y) {
     const t = linaClamp(x);
     const sample = u => {
