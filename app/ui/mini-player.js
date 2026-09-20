@@ -11,9 +11,10 @@
   player.setAttribute('aria-label', 'KEFE Now Playing');
   player.innerHTML = `
     <div class="kefe-mini-shell">
-      <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><div class="kefe-mini-topline-actions"><button type="button" id="kefeMiniFullscreen" class="kefe-mini-icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
+      <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><div class="kefe-mini-topline-actions"><button type="button" id="kefeMiniSkinToggle" class="kefe-mini-icon-button" aria-label="Switch MiniPlayer skin" title="Switch MiniPlayer skin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9A9 9 0 0 0 12 3z"/><path d="M12 7v10M8 10h8M8 14h8"/></svg></button><button type="button" id="kefeMiniFullscreen" class="kefe-mini-icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
       <div class="kefe-mini-body">
         <div id="kefeMiniCard" class="kefe-mini-card" role="button" tabindex="0" aria-pressed="false" aria-label="Show cover art" title="Tap to show cover art">
+          <button type="button" id="kefeMiniModeToggle" class="kefe-mini-mode-toggle" aria-label="Toggle visualizer mode" title="Toggle visualizer mode"><svg class="viz-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M6 8v8M18 8v8M3 11v2M21 11v2"/></svg><svg class="cd-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M6 12c0-3.31 2.69-6 6-6"/><circle cx="12" cy="12" r="2"/></svg></button>
           <div class="kefe-mini-info">
             <div class="kefe-mini-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
             <div id="kefeMiniArtist" class="kefe-mini-artist">Add music to begin</div>
@@ -450,6 +451,38 @@
       notify(`Can't play "${track.title}". This browser can't decode the format.`);
     }
   });
+  const skinToggle = $('kefeMiniSkinToggle');
+  const modeToggle = $('kefeMiniModeToggle');
+  function syncMiniSkin() {
+    const shell = player.querySelector('.kefe-mini-shell');
+    if (!shell) return;
+    const vinyl = shell.classList.contains('skin-vinyl');
+    skinToggle?.setAttribute('aria-label', vinyl ? 'Switch to standard MiniPlayer skin' : 'Switch to Vinyl CD MiniPlayer skin');
+    skinToggle?.setAttribute('title', vinyl ? 'Standard skin' : 'Vinyl CD skin');
+    modeToggle?.setAttribute('aria-label', shell.classList.contains('is-visualizer-mode') ? 'Switch to CD mode' : 'Switch to visualizer mode');
+  }
+  skinToggle?.addEventListener('click', () => {
+    const shell = player.querySelector('.kefe-mini-shell');
+    if (!shell) return;
+    shell.classList.toggle('skin-vinyl');
+    shell.classList.remove('is-visualizer-mode');
+    try { localStorage.setItem('kefe-mini-skin', shell.classList.contains('skin-vinyl') ? 'vinyl' : 'standard'); } catch (e) {}
+    syncMiniSkin();
+  });
+  modeToggle?.addEventListener('click', e => {
+    e.stopPropagation();
+    const shell = player.querySelector('.kefe-mini-shell');
+    if (!shell?.classList.contains('skin-vinyl')) return;
+    shell.classList.toggle('is-visualizer-mode');
+    syncMiniSkin();
+  });
+  try {
+    if (localStorage.getItem('kefe-mini-skin') === 'vinyl') {
+      player.querySelector('.kefe-mini-shell')?.classList.add('skin-vinyl');
+    }
+  } catch (e) {}
+  syncMiniSkin();
+
   $('kefeMiniPlay').addEventListener('click', toggle);
   $('kefeMiniNext').addEventListener('click', next);
   $('kefeMiniPrev').addEventListener('click', prev);
@@ -557,7 +590,7 @@
     raf = 0;
   }
   window.kefeMiniPlayer = {
-    version: 5,
+    version: 6,
     open,
     close,
     setExpanded,
