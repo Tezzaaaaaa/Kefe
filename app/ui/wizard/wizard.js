@@ -15,16 +15,18 @@
     const PATHS = {
         lyric: ['intro', 'source', 'lyrics', 'style', 'background', 'preview', 'export'],
         visualiser: ['intro', 'source', 'style', 'background', 'preview', 'export'],
+        nowplaying: ['intro', 'mini-player'],
         captioned: ['intro', 'source', 'captions', 'background', 'preview', 'export']
     };
-    const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video'};
-    const PATH_HINTS = { lyric: 'Synced lyrics with expressive motion.', visualiser: 'Audio-reactive visuals with no lyrics.', captioned: 'Timed captions for spoken audio or video.'};
-    const STEP_TITLES = { lyrics: 'Add your lyrics', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background', export: 'Export your video' };
-    const STEP_LABELS = { intro: 'Format', source: 'Media', lyrics: 'Lyrics', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview', export: 'Export' };
+    const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', nowplaying: 'Now Playing' };
+    const PATH_HINTS = { lyric: 'Synced lyrics with expressive motion.', visualiser: 'Audio-reactive visuals with no lyrics.', captioned: 'Timed captions for spoken audio or video.', nowplaying: 'A compact music player with Butterchurn visuals.'};
+    const STEP_TITLES = { lyrics: 'Add your lyrics', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background', 'mini-player': 'Now Playing', export: 'Export your video' };
+    const STEP_LABELS = { intro: 'Format', source: 'Media', lyrics: 'Lyrics', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview', 'mini-player': 'Player', export: 'Export' };
     const CHOICE_ICONS = {
         lyric: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10"/><circle cx="18.2" cy="17.4" r="2.6"/><path d="M20.8 17.4V8.2l-2.6.9"/></svg>',
         visualiser: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>',
         captioned: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10.5 10.5a2.5 2.5 0 1 0 0 3M17 10.5a2.5 2.5 0 1 0 0 3"/></svg>',
+        nowplaying: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.5 10.1v3.8l5-1.9v-3.8z"/></svg>',
         custom: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h9M5 17h12"/><circle cx="18.6" cy="12" r="2.1"/></svg>'
     };
     const SOURCE_ICONS = {
@@ -73,6 +75,7 @@
         if (step === 'source') return sourceReady();
         if (step === 'lyrics') return lyricsReady();
         if (step === 'captions') return captionsReady();
+        if (step === 'mini-player') return true;
         return true;
     }
     function targetsForStep(step) {
@@ -80,6 +83,7 @@
         if (step === 'captions') return ['textSection', 'captionGenSection', 'captionReviewSection'];
         if (step === 'style') return [];
         if (step === 'background') return ['backgroundSection', 'visualFxSection'];
+        if (step === 'mini-player') return [];
         if (step === 'export') return ['exportSection'];
         return [];
     }
@@ -198,6 +202,20 @@
         lyricsPanel.insertBefore(styleBlock, syncBlock || null);
     }
 
+    function renderMiniPlayer() {
+        panel.innerHTML =
+            '<p class="wizard-panel-kicker">02 · Player</p>' +
+            '<h3 class="wizard-panel-title">A little room for the music.</h3>' +
+            '<p class="wizard-panel-hint">Load one track or a playlist, then let Butterchurn turn it into a compact now-playing visual.</p>' +
+            '<div class="wizard-mini-player-launch">' +
+                '<div><strong>Now Playing</strong><span>Butterchurn visualiser · playlist-ready</span></div>' +
+                '<button type="button" id="wizardOpenMiniPlayer" class="primary">Open player</button>' +
+            '</div>' +
+            '<p class="wizard-panel-hint">The player is separate from your video project, so your creator setup stays untouched.</p>';
+        $('wizardOpenMiniPlayer')?.addEventListener('click', () => window.kefeMiniPlayer?.open?.());
+        window.kefeMiniPlayer?.open?.();
+    }
+
     function renderPreview() {
         const st = window.state || {}, media = window.kefeMedia || {}, labels = { uploaded: 'Audio file', video: 'Background video', none: 'No audio' };
         const rows = [['Format', PATH_LABELS[wizard.choice] || '—'], ['Source', labels[st.audioSource?.master] || (wizard.source === 'media' ? 'Background video' : wizard.source === 'none' ? 'No audio' : 'Audio file')]];
@@ -232,6 +250,7 @@
             if (step === 'intro') renderIntro();
             else if (step === 'source') renderSource();
             else if (step === 'preview') renderPreview();
+            else if (step === 'mini-player') renderMiniPlayer();
             panel.classList.add('wizard-current');
             firstTarget = panel;
         }
@@ -240,7 +259,7 @@
         $('wizardProgress').textContent = `${pad(wizard.index + 1)} / ${pad(steps.length)}`;
         $('wizardStepLabel').textContent = STEP_LABELS[step] || '';
         $('wizardBackBtn').disabled = wizard.index === 0;
-        const next = $('wizardNextBtn'); next.textContent = step === 'export' ? 'Export' : 'Next'; next.disabled = !nextEnabled(step);
+        const next = $('wizardNextBtn'); next.textContent = step === 'export' ? 'Export' : step === 'mini-player' ? 'Continue to creator' : 'Next'; next.disabled = !nextEnabled(step);
         if (firstTarget) { firstTarget.setAttribute('tabindex', '-1'); firstTarget.focus({ preventScroll: true }); }
     }
     function refreshNextState() { const step = stepsFor()[wizard.index], b = $('wizardNextBtn'); if (step && b) b.disabled = !nextEnabled(step); }
@@ -269,6 +288,11 @@
         if (!nextEnabled(step)) return;
         if (step === 'export') {
             $('exportBottom')?.click();
+            return;
+        }
+        if (step === 'mini-player') {
+            window.kefeMiniPlayer?.close?.();
+            finishWizard();
             return;
         }
         goTo(wizard.index + 1);
