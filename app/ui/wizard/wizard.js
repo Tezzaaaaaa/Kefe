@@ -18,8 +18,8 @@
         nowplaying: ['intro', 'mini-player'],
         captioned: ['intro', 'source', 'captions', 'background', 'preview', 'export']
     };
-    const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', nowplaying: 'Now Playing' };
-    const PATH_HINTS = { lyric: 'Synced lyrics with expressive motion.', visualiser: 'Audio-reactive visuals with no lyrics.', captioned: 'Timed captions for spoken audio or video.', nowplaying: 'A compact music player with Butterchurn visuals.'};
+    const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video', nowplaying: 'KEFE Mini Visualiser Player' };
+    const PATH_HINTS = { lyric: 'Synced lyrics with expressive motion.', visualiser: 'Audio-reactive visuals with no lyrics.', captioned: 'Timed captions for spoken audio or video.', nowplaying: 'Load music, build a queue, and play it with Butterchurn visuals.'};
     const STEP_TITLES = { lyrics: 'Add your lyrics', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background', 'mini-player': 'Now Playing', export: 'Export your video' };
     const STEP_LABELS = { intro: 'Format', source: 'Media', lyrics: 'Lyrics', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview', 'mini-player': 'Player', export: 'Export' };
     const CHOICE_ICONS = {
