@@ -116,7 +116,6 @@
       status.classList.remove('kefe-complete');
     }
   }
-  setInterval(watchExport, 300);
   new MutationObserver(watchExport).observe(document.body, {
     childList: true, subtree: true, characterData: true
   });
