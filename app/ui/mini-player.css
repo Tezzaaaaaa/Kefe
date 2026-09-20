@@ -237,6 +237,12 @@
 .kefe-vinyl-label strong{font-size:8px;line-height:1.05}
 .kefe-vinyl-label span:last-child{font-size:5px;line-height:1.05}
 .kefe-vinyl-hole{position:absolute;z-index:3;left:50%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%!important;background:#111;border:2px solid #d4d4d7}
+.kefe-vinyl-lyrics{position:absolute;inset:0;z-index:20;background:rgba(9,10,13,.96);color:#fff;padding:18px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
+.kefe-vinyl-lyrics[hidden]{display:none}
+.kefe-vinyl-lyrics-head{display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:.14em}
+.kefe-vinyl-lyrics-head button{border:0;background:none;color:#fff;font-size:24px;line-height:1;cursor:pointer;padding:0}
+.kefe-vinyl-lyrics-content{overflow:auto;min-height:0;font-size:13px;line-height:1.5;text-align:center}
+.kefe-vinyl-lyrics-content p{margin:0 0 10px}
 .kefe-vinyl-screen-controls{position:absolute;right:10px;bottom:10px;z-index:10}
 .kefe-vinyl-screen-controls button{
   width:32px;height:32px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.2);
