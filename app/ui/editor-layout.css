@@ -5,7 +5,6 @@ body.wizard-mode .sidebar{display:flex;flex-direction:column;min-height:0}
 /* The guided wizard owns the active editing flow, while the existing section
    navigation remains available as the persistent editor navigation. */
 body.wizard-mode .section-nav{display:grid!important}
-body.wizard-mode #fxSection{display:none!important}
 body.wizard-mode .wizard-skip{display:none!important}
 body.wizard-mode main{padding-top:0!important}
 body.wizard-mode .sidebar>.section:not(.wizard-current){display:none}
