@@ -3495,20 +3495,19 @@ async function startExport() {
     ensureDefaultBackground();
     const config = getExportDimensions($('exportPreset').value);
     const duration = getMasterDuration();
-    const totalFrames = Math.ceil(duration * config.fps);
     const report = validateLyricTiming(state.lyrics.lines, duration);
-    const demand = config.width * config.height * config.fps * duration;
-    const demandLabel = demand > 1.2e11 ? 'Very high' : demand > 5e10 ? 'High' : demand > 1.8e10 ? 'Moderate' : 'Light';
     const masterLabel = MASTER_MODE_LABELS[getMasterMode()] || getMasterMode();
+    const presetLabel = $('exportPreset')?.selectedOptions?.[0]?.textContent?.trim() || 'Current preset';
     const rows = [
-        ['Output', `${config.width} × ${config.height}`], ['Frame rate', `${config.fps} fps`],
-        ['Duration', fmt(duration)], ['Frames', totalFrames.toLocaleString()],
-        ['Master audio', masterLabel + (getMasterMode() === 'none' ? ' (muted)' : '')],
+        ['Duration', fmt(duration)],
+        ['Output', `${config.width} × ${config.height}`],
+        ['Frame rate', `${config.fps} fps`],
+        ['Preset', presetLabel],
+        ['Audio', masterLabel + (getMasterMode() === 'none' ? ' (muted)' : '')],
         ['Text', activeTimedLines().length
             ? `${activeTextMode() === 'captions' ? 'Captions' : 'Lyrics'} · ${activeTimedLines().length} lines`
             : 'None — visual only'],
-        ['Background', media.image ? 'Image background' : media.video ? 'Video background' : `Solid ${state.background.solid}`],
-        ['Device demand', demandLabel]
+        ['Background', media.image ? 'Image' : media.video ? 'Video' : 'Solid colour']
     ];
     $('preflightSummary').replaceChildren(...rows.map(([label, value]) => {
         const row = document.createElement('div'); row.className = 'preflight-row';
@@ -3517,7 +3516,8 @@ async function startExport() {
         row.append(left, right); return row;
     }));
     const warnings = [...report.warnings];
-    if (demandLabel === 'High' || demandLabel === 'Very high') warnings.unshift('This export may take a long time on a phone. The finished MP4 timing will remain frame-accurate.');
+    const demand = config.width * config.height * config.fps * duration;
+    if (demand > 5e10) warnings.unshift('Higher-resolution exports can take longer on a phone. The finished MP4 timing remains frame-accurate.');
 
     // --- Sync repair: offer solutions when timed text is out of sync with the
     //     chosen master source (uploaded audio or background video audio) ---
