@@ -293,44 +293,107 @@ function measureAppleLineBlock(ctx, w, line, settings, nextLine = null) {
     return { rows, rowHeight, totalHeight };
 }
 
-function drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, overallAlpha = 1) {
-    const duration = Math.max(0.001, word.endTime - word.time);
-    const progress = linaClamp((time - word.time) / duration);
-    const enter = linaSmoother(progress / 0.28);
-    const exit = linaSmoother((progress - 0.72) / 0.28);
-    const foreground = enter * (1 - exit * 0.84);
-    const scale = 1 + foreground * settings.depth;
-    const lift = fontSize * foreground * settings.lift;
+function appleBezierEase(x, p1x, p1y, p2x, p2y) {
+    const t = linaClamp(x);
+    const sample = u => {
+        const inv = 1 - u;
+        return 3 * inv * inv * u * p1x + 3 * inv * u * u * p2x + u * u * u;
+    };
+    const sampleY = u => {
+        const inv = 1 - u;
+        return 3 * inv * inv * u * p1y + 3 * inv * u * u * p2y + u * u * u;
+    };
+    const derivative = u => {
+        const inv = 1 - u;
+        return 3 * inv * inv * p1x + 6 * inv * u * (p2x - p1x) + 3 * u * u * (1 - p2x);
+    };
+    let u = t;
+    for (let i = 0; i < 5; i++) {
+        const dx = sample(u) - t;
+        const slope = derivative(u);
+        if (Math.abs(dx) < 1e-5 || Math.abs(slope) < 1e-5) break;
+        u = linaClamp(u - dx / slope);
+    }
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 8; i++) {
+        const xAt = sample(u);
+        if (Math.abs(xAt - t) < 1e-5) break;
+        if (xAt < t) lo = u; else hi = u;
+        u = (lo + hi) / 2;
+    }
+    return sampleY(u);
+}
+
+function appleEmphasisEase(x) {
+    const t = linaClamp(x);
+    return t < 0.5
+        ? appleBezierEase(t * 2, 0.2, 0.4, 0.58, 1.0) * 0.5
+        : 1 - appleBezierEase((t - 0.5) * 2, 0.3, 0.0, 0.58, 1.0) * 0.5;
+}
+
+function drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, overallAlpha = 1, line = null) {
+    const rawDuration = Math.max(0.001, Number(word.endTime) - Number(word.time));
+    const durationMs = Math.max(1000, rawDuration * 1000);
+    const letters = Math.max(1, Array.from(String(word.text || "")).length);
+    let amount = durationMs / 2000;
+    amount = amount > 1 ? Math.sqrt(amount) : amount ** 3;
+    let blur = durationMs / 3000;
+    blur = blur > 1 ? Math.sqrt(blur) : blur ** 3;
+    amount *= 0.6;
+    blur *= 0.5;
+    const finalWord = Array.isArray(line?.words) && line.words.length
+        ? word === line.words[line.words.length - 1] || Number(word.endTime) >= Number(line.words[line.words.length - 1]?.endTime)
+        : false;
+    let animateDuration = durationMs;
+    if (finalWord) {
+        amount *= 1.6;
+        blur *= 1.5;
+        animateDuration *= 1.2;
+    }
+    amount = Math.min(1.2, amount);
+    blur = Math.min(0.8, blur);
+
+    const elapsedMs = (time - Number(word.time)) * 1000;
+    const charCount = Math.max(1, Array.from(String(word.text || "")).length);
+    const chars = Array.from(String(word.text || ""));
+    const stagger = animateDuration / 2.5 / charCount;
+    const floatProgress = linaClamp((elapsedMs + 400) / (animateDuration * 1.4));
+    const floatY = -Math.sin(floatProgress * Math.PI) * 0.05 * fontSize;
+
     const wordWidth = ctx.measureText(word.text).width;
     const centreX = x + wordWidth / 2;
     ctx.save();
-    ctx.translate(centreX, y - lift);
-    ctx.scale(scale, scale);
-    ctx.translate(-centreX, -y);
+    ctx.translate(centreX, y + floatY);
+    ctx.translate(-centreX, -(y + floatY));
+
     ctx.save();
     ctx.globalAlpha = settings.inactiveOpacity * overallAlpha;
     ctx.fillStyle = settings.inactiveColor;
     ctx.shadowBlur = 0;
-    ctx.fillText(word.text, x, y);
+    ctx.fillText(word.text, x, y + floatY);
     ctx.restore();
-    const chars = Array.from(word.text);
-    const hp = linaSmoother(linaClamp(progress / settings.highlightSpan));
-    const sweep = hp * (chars.length + 1.8);
+
     for (let i = 0; i < chars.length; i++) {
-        const local = linaSmoother(linaClamp((sweep - i + 0.4) / 1.8));
-        if (local <= 0.001) continue;
-        const charX = x + ctx.measureText(word.text.slice(0, i)).width;
+        const local = appleEmphasisEase(linaClamp((elapsedMs - stagger * i) / animateDuration));
+        if (local <= 0.0001) continue;
+        const charX = x + ctx.measureText(chars.slice(0, i).join("")).width;
+        const charWidth = ctx.measureText(chars[i]).width;
+        const offsetX = -local * 0.03 * amount * (chars.length / 2 - i);
+        const offsetY = -local * 0.025 * amount * fontSize;
+        const scale = 1 + local * 0.1 * amount;
         ctx.save();
-        ctx.globalAlpha = (0.25 + local * 0.75) * overallAlpha;
+        ctx.translate(charX + charWidth / 2 + offsetX, y + floatY + offsetY);
+        ctx.scale(scale, scale);
+        ctx.translate(-(charX + charWidth / 2), -(y + floatY + offsetY));
+        ctx.globalAlpha = overallAlpha;
         ctx.fillStyle = settings.activeColor;
         ctx.shadowColor = settings.activeColor;
-        ctx.shadowBlur = fontSize * settings.glow * local;
-        ctx.fillText(chars[i], charX, y);
+        ctx.shadowBlur = fontSize * Math.min(0.3, blur * 0.3) * local;
+        ctx.fillText(chars[i], charX, y + floatY + offsetY);
         ctx.restore();
     }
     ctx.restore();
 }
-
 function drawAppleLineBlock(ctx, w, centreY, line, time, settings, options = {}) {
     if (!line || !line.text) return;
     const active = options.active === true;
@@ -364,7 +427,7 @@ function drawAppleLineBlock(ctx, w, centreY, line, time, settings, options = {})
             } else if (time >= word.endTime) {
                 ctx.save(); ctx.globalAlpha = 0.96 * alpha; ctx.fillStyle = settings.activeColor; ctx.shadowColor = settings.activeColor; ctx.shadowBlur = fontSize * 0.014; ctx.fillText(word.text, x, y); ctx.restore();
             } else {
-                drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, alpha);
+                drawAppleActiveWord(ctx, word, x, y, time, fontSize, settings, alpha, line);
             }
             x += word.width;
             if (i < row.words.length - 1) x += spaceWidth;
@@ -404,11 +467,30 @@ function drawAppleSecondaryText(ctx, w, y, text, settings, options = {}) {
     ctx.restore();
 }
 
+function appleSpringPosition(time, start, from = 0, to = 1, velocity = 0) {
+    const elapsed = Math.max(0, Number(time) - Number(start));
+    const mass = 1;
+    const stiffness = 100;
+    const damping = 10;
+    const delta = to - from;
+    const critical = damping / (2 * Math.sqrt(stiffness * mass));
+    if (critical >= 1) {
+        const angular = -Math.sqrt(stiffness / mass);
+        const leftover = -angular * delta - velocity;
+        return to - (delta + elapsed * leftover) * Math.exp(elapsed * angular);
+    }
+    const dampingFrequency = Math.sqrt(4 * mass * stiffness - damping * damping);
+    const leftover = (damping * delta - 2 * mass * velocity) / dampingFrequency;
+    const dfm = 0.5 * dampingFrequency / mass;
+    const dm = -0.5 * damping / mass;
+    return to - (Math.cos(elapsed * dfm) * delta + Math.sin(elapsed * dfm) * leftover) * Math.exp(elapsed * dm);
+}
+
 function appleTransitionTiming(fromLine, toLine) {
     const fromTime = Number(fromLine?.time) || 0;
     const toTime = Number(toLine?.time) || fromTime + 1;
     const gap = Math.max(0.35, toTime - fromTime);
-    const duration = Math.min(0.46, Math.max(0.38, gap * 0.18));
+    const duration = Math.min(0.72, Math.max(0.48, gap * 0.30));
     return { duration, start: toTime - duration, end: toTime };
 }
 
@@ -427,7 +509,7 @@ function getAppleFocalMotion(lines, time) {
             return {
                 fromIndex: activeIndex - 1,
                 toIndex: activeIndex,
-                progress: linaSmoother((time - incoming.start) / incoming.duration),
+                progress: linaClamp(appleSpringPosition(time, incoming.start)),
                 transitionStart: incoming.start,
                 transitionEnd: incoming.end
             };
@@ -442,7 +524,7 @@ function getAppleFocalMotion(lines, time) {
             return {
                 fromIndex: activeIndex,
                 toIndex: activeIndex + 1,
-                progress: linaSmoother((time - outgoing.start) / outgoing.duration),
+                progress: linaClamp(appleSpringPosition(time, outgoing.start)),
                 transitionStart: outgoing.start,
                 transitionEnd: outgoing.end
             };
@@ -520,7 +602,7 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
     const reducedMotion = typeof window.matchMedia === 'function' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const p = transitioning
-        ? (reducedMotion ? 1 : linaSmoother(motion.progress))
+        ? (reducedMotion ? 1 : linaClamp(motion.progress))
         : 1;
     const relationOpacity = relation => {
         if (relation === 0) return 1;
