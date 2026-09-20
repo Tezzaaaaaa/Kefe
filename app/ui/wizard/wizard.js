@@ -79,7 +79,7 @@
         if (step === 'lyrics') return ['textSection'];
         if (step === 'captions') return ['textSection', 'captionGenSection', 'captionReviewSection'];
         if (step === 'style') return [];
-        if (step === 'background') return ['backgroundSection'];
+        if (step === 'background') return ['backgroundSection', 'visualFxSection'];
         if (step === 'export') return ['exportSection'];
         return [];
     }
