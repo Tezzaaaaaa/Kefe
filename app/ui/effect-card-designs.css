@@ -1,158 +1,70 @@
 /* KEFE — one distinct visual signature per effect and per background.
-   The strip at the top of each card is the "design" of that effect. */
+   The full card is the preview: each effect gets its own visual identity. */
 
 /* ---------- Lyric effects ---------- */
 
-/* Apple — silver gradient with a diagonal light sweep */
 #lyricStyleBlock .effect-buttons > button[data-effect="apple"] {
-  --kefe-effect-preview:
-    linear-gradient(105deg,
-      #f5f5f2 0%, #b8b8bd 30%, #ffffff 48%, #8f8f94 68%, #242427 100%);
+  --kefe-effect-ink: #111;
+  --kefe-effect-preview: linear-gradient(105deg,#f5f5f2 0%,#b8b8bd 30%,#fff 48%,#8f8f94 68%,#242427 100%);
 }
-
-/* Brat — flat lime, single hard black bar (album cover) */
 #lyricStyleBlock .effect-buttons > button[data-effect="brat"] {
+  --kefe-effect-ink: #111;
   --kefe-effect-preview: #c8ff00;
 }
-
-/* Eternal — warm dusk gradient with an inkpool */
 #lyricStyleBlock .effect-buttons > button[data-effect="eternal"] {
-  --kefe-effect-preview:
-    radial-gradient(ellipse at 30% 80%, rgba(255,214,152,.55), transparent 55%),
-    linear-gradient(145deg, #111a22, #493f55 55%, #e6a86c);
+  --kefe-effect-preview: radial-gradient(ellipse at 30% 80%,rgba(255,214,152,.55),transparent 55%),linear-gradient(145deg,#111a22,#493f55 55%,#e6a86c);
 }
-
-/* Aurora — flowing colour bands */
 #lyricStyleBlock .effect-buttons > button[data-effect="aurora"] {
-  --kefe-effect-preview:
-    linear-gradient(115deg,
-      #071b20 0%, #113f48 22%, #6b2d82 46%, #164f69 70%, #071319 100%);
+  --kefe-effect-preview: linear-gradient(115deg,#071b20 0%,#113f48 22%,#6b2d82 46%,#164f69 70%,#071319 100%);
 }
-
-/* Pulse — radial red ring, centre pulse */
 #lyricStyleBlock .effect-buttons > button[data-effect="pulse"] {
-  --kefe-effect-preview:
-    radial-gradient(circle at 50% 55%, #ff3a6e 0%, #7a1330 42%, #1a0510 100%);
+  --kefe-effect-preview: radial-gradient(circle at 50% 55%,#ff3a6e 0%,#7a1330 42%,#1a0510 100%);
 }
-
-/* Typewriter — paper cream with faint typed dots */
 #lyricStyleBlock .effect-buttons > button[data-effect="typewriter"] {
-  --kefe-effect-preview:
-    repeating-linear-gradient(90deg,
-      #eee8da 0 3px, #d8d2c2 3px 4px, #eee8da 4px 20px);
+  --kefe-effect-ink: #111;
+  --kefe-effect-preview: repeating-linear-gradient(90deg,#eee8da 0 3px,#d8d2c2 3px 4px,#eee8da 4px 20px);
 }
-
-/* Instagram — gradient sweep (IG brand colours) */
 #lyricStyleBlock .effect-buttons > button[data-effect="instagram"] {
-  --kefe-effect-preview:
-    linear-gradient(135deg, #3a165f 0%, #b52e78 46%, #f08b35 75%, #f6c94c 100%);
+  --kefe-effect-preview: linear-gradient(135deg,#3a165f 0%,#b52e78 46%,#f08b35 75%,#f6c94c 100%);
 }
-
-/* Fade Up — dark gradient with a white fade at the top */
 #lyricStyleBlock .effect-buttons > button[data-effect="fadeup"] {
-  --kefe-effect-preview:
-    linear-gradient(180deg, rgba(255,255,255,.35) 0%, transparent 40%),
-    linear-gradient(180deg, #2a2a2e 0%, #151518 58%, #050506 100%);
+  --kefe-effect-preview: linear-gradient(180deg,rgba(255,255,255,.35) 0%,transparent 40%),linear-gradient(180deg,#2a2a2e 0%,#151518 58%,#050506 100%);
 }
-
-/* Decrypt — dark green with a grid of random glyphs */
 #lyricStyleBlock .effect-buttons > button[data-effect="decrypt"] {
-  --kefe-effect-preview:
-    repeating-linear-gradient(90deg, transparent 0 3px, rgba(120,255,180,.18) 3px 4px),
-    linear-gradient(135deg, #0a1a0f, #1e5c2a);
+  --kefe-effect-preview: repeating-linear-gradient(90deg,transparent 0 3px,rgba(120,255,180,.18) 3px 4px),linear-gradient(135deg,#0a1a0f,#1e5c2a);
 }
-
-/* Blur In — soft purple with a blur veil */
 #lyricStyleBlock .effect-buttons > button[data-effect="blur"] {
-  --kefe-effect-preview:
-    radial-gradient(circle at 50% 50%, rgba(180,140,255,.55) 0%, transparent 60%),
-    linear-gradient(135deg, #1a1a2e, #3d2f5c);
+  --kefe-effect-preview: radial-gradient(circle at 50% 50%,rgba(180,140,255,.55) 0%,transparent 60%),linear-gradient(135deg,#1a1a2e,#3d2f5c);
 }
-
-/* Shiny — dark with a bright diagonal band */
 #lyricStyleBlock .effect-buttons > button[data-effect="shiny"] {
-  --kefe-effect-preview:
-    linear-gradient(110deg,
-      #0e0e0e 0%, #1a1a1a 22%, #ffffff 46%, #1a1a1a 70%, #0e0e0e 100%);
+  --kefe-effect-preview: linear-gradient(110deg,#0e0e0e 0%,#1a1a1a 22%,#fff 46%,#1a1a1a 70%,#0e0e0e 100%);
 }
-
-/* Rise — vertical gradient with an upward arrow hint */
 #lyricStyleBlock .effect-buttons > button[data-effect="rise"] {
-  --kefe-effect-preview:
-    radial-gradient(ellipse at 50% 90%, rgba(120,160,255,.45) 0%, transparent 55%),
-    linear-gradient(0deg, #0a0a12 0%, #2a2a4a 60%, #4d4d7a 100%);
+  --kefe-effect-preview: radial-gradient(ellipse at 50% 90%,rgba(120,160,255,.45) 0%,transparent 55%),linear-gradient(0deg,#0a0a12 0%,#2a2a4a 60%,#4d4d7a 100%);
 }
-
-/* Slide — horizontal gradient with lateral motion hint */
 #lyricStyleBlock .effect-buttons > button[data-effect="slide"] {
-  --kefe-effect-preview:
-    linear-gradient(90deg,
-      #0a0a12 0%, rgba(120,160,255,.35) 30%, #4d4d7a 70%, #0a0a12 100%);
+  --kefe-effect-preview: linear-gradient(90deg,#0a0a12 0%,rgba(120,160,255,.35) 30%,#4d4d7a 70%,#0a0a12 100%);
 }
-
-/* Drop — downward gradient with a drop shadow */
 #lyricStyleBlock .effect-buttons > button[data-effect="drop"] {
-  --kefe-effect-preview:
-    radial-gradient(ellipse at 50% 10%, rgba(255,160,120,.45) 0%, transparent 55%),
-    linear-gradient(180deg, #4d4d7a 0%, #2a2a4a 40%, #0a0a12 100%);
+  --kefe-effect-preview: radial-gradient(ellipse at 50% 10%,rgba(255,160,120,.45) 0%,transparent 55%),linear-gradient(180deg,#4d4d7a 0%,#2a2a4a 40%,#0a0a12 100%);
 }
-
-/* Drift — diagonal soft purple */
 #lyricStyleBlock .effect-buttons > button[data-effect="drift"] {
-  --kefe-effect-preview:
-    linear-gradient(135deg,
-      #1a1a2e 0%, #3d2f5c 45%, #6b4d8a 70%, #1a1a2e 100%);
+  --kefe-effect-preview: linear-gradient(135deg,#1a1a2e 0%,#3d2f5c 45%,#6b4d8a 70%,#1a1a2e 100%);
 }
-
-/* Scroll Lines — multiple horizontal rules with one bold */
 #lyricStyleBlock .effect-buttons > button[data-effect="scrolllines"] {
-  --kefe-effect-preview:
-    repeating-linear-gradient(180deg,
-      transparent 0 8px,
-      rgba(255,255,255,.25) 8px 9px,
-      transparent 9px 18px),
-    linear-gradient(90deg, #0a0a10 0%, #1a1a22 50%, #0a0a10 100%);
+  --kefe-effect-preview: repeating-linear-gradient(180deg,transparent 0 8px,rgba(255,255,255,.25) 8px 9px,transparent 9px 18px),linear-gradient(90deg,#0a0a10 0%,#1a1a22 50%,#0a0a10 100%);
 }
 
-/* The active-state override for each tile keeps its own design and just
-   darkens/brightens it slightly. */
+/* Keep the individual preview design visible while retaining accessible controls. */
 #lyricStyleBlock .effect-buttons > button.active-effect {
   filter: brightness(1.06);
 }
 
 /* ---------- Background presets ---------- */
 
-#backgroundSection .background-choice[data-background-preset="solid"] .background-choice-preview {
-  background: var(--kefe-bg-solid-preview, #0a0a0a);
-}
-
-#backgroundSection .background-choice[data-background-preset="gradient"] .background-choice-preview {
-  background: linear-gradient(135deg, #241242 0%, #3a1f6b 48%, #0b0518 100%);
-}
-
-#backgroundSection .background-choice[data-background-preset="spotlight"] .background-choice-preview {
-  background:
-    radial-gradient(circle at 50% 40%, #9a5a1e 0%, #2c1608 45%, #080402 100%);
-}
-
-#backgroundSection .background-choice[data-background-preset="aurora"] .background-choice-preview {
-  background:
-    radial-gradient(circle at 18% 22%, #2f7bdc 0%, transparent 42%),
-    radial-gradient(circle at 82% 38%, #c23fd0 0%, transparent 46%),
-    radial-gradient(circle at 42% 82%, #12d6a0 0%, transparent 44%),
-    #04060d;
-}
-
-#backgroundSection .background-choice[data-background-preset="grid"] .background-choice-preview {
-  background-color: #050a0d;
-  background-image:
-    linear-gradient(rgba(56,224,255,.22) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(56,224,255,.22) 1px, transparent 1px);
-  background-size: 12px 12px;
-}
-
-#backgroundSection .background-choice[data-background-preset="grain"] .background-choice-preview {
-  background:
-    repeating-conic-gradient(#1a1208 0% 25%, #2a1d0e 25% 50%) 0 0/6px 6px,
-    radial-gradient(circle at 50% 40%, #4a331c 0%, #160e06 78%);
-}
+#backgroundSection .background-choice[data-background-preset="solid"] .background-choice-preview { background: var(--kefe-bg-solid-preview,#0a0a0a); }
+#backgroundSection .background-choice[data-background-preset="gradient"] .background-choice-preview { background: linear-gradient(135deg,#241242 0%,#3a1f6b 48%,#0b0518 100%); }
+#backgroundSection .background-choice[data-background-preset="spotlight"] .background-choice-preview { background: radial-gradient(circle at 50% 40%,#9a5a1e 0%,#2c1608 45%,#080402 100%); }
+#backgroundSection .background-choice[data-background-preset="aurora"] .background-choice-preview { background: radial-gradient(circle at 18% 22%,#2f7bdc 0%,transparent 42%),radial-gradient(circle at 82% 38%,#c23fd0 0%,transparent 46%),radial-gradient(circle at 42% 82%,#12d6a0 0%,transparent 44%),#04060d; }
+#backgroundSection .background-choice[data-background-preset="grid"] .background-choice-preview { background-color:#050a0d;background-image:linear-gradient(rgba(56,224,255,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(56,224,255,.22) 1px,transparent 1px);background-size:12px 12px; }
+#backgroundSection .background-choice[data-background-preset="grain"] .background-choice-preview { background:repeating-conic-gradient(#1a1208 0% 25%,#2a1d0e 25% 50%) 0 0/6px 6px,radial-gradient(circle at 50% 40%,#4a331c 0%,#160e06 78%); }
