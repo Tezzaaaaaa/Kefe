@@ -20,9 +20,8 @@
 
     // The aspect group currently lives in .preview-heading
     var format = document.getElementById('previewFormat');
-    if (format && format.parentElement !== corner) {
-      corner.appendChild(format);
-    }
+    // Aspect chips stay in the preview heading — CSS locks them there.
+    // (was: moved into .kefe-preview-corner, which made them float)
 
     // The fullscreen button is created by live-preview.js and lives in
     // .preview-live-meta; move just the button into the corner group.
