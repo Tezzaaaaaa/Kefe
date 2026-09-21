@@ -116,7 +116,7 @@ try {
 
     for (const mode of modes) {
       const fn = window.kefePremiumVisualisers?.[mode];
-      if (typeof fn !== 'function') throw new Error(`Missing migrated visualiser: ${mode}; page errors: ${errors.join(' | ')}`);
+      if (typeof fn !== 'function') throw new Error(`Missing migrated visualiser: ${mode}`);
 
       const standalone = document.createElement('canvas');
       standalone.width = standalone.height = 640;
