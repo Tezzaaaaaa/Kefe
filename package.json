@@ -18,8 +18,7 @@
     "graft:check": "npx -y @nanonets/graft check",
     "graft:map": "npx -y @nanonets/graft map",
     "graft:viz": "npx -y @nanonets/graft viz",
-    "prepare": "husky && chmod +x .husky/pre-commit",
-    "test:visualisers": "node tests/visualiser-phase1.mjs"
+    "prepare": "husky && chmod +x .husky/pre-commit"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
