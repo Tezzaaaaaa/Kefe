@@ -113,20 +113,6 @@ try {
     throw new Error(`Expected four start pathways including Now Playing, got: ${pathwayChoices.join(', ')}`);
   }
 
-  // Verify the fourth pathway opens the real mini player before continuing
-  // through the normal lyric-video regression path.
-  await page.locator('#wizardSection [data-choice="nowplaying"]').click();
-  await page.locator('#wizardNextBtn').click();
-  await page.locator('#kefeMiniPlayerModal').waitFor({ state: 'visible' });
-  if (!(await page.locator('#kefeMiniPreset option').count())) {
-    throw new Error('Now Playing opened without Butterchurn presets');
-  }
-  await page.locator('#kefeMiniClose').click();
-
-  await page.reload({ waitUntil: 'commit' });
-  await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 10000 });
-  await page.waitForFunction(() => window.kefeRuntime?.ready === true, null, { timeout: 15000 });
-
   // Phase 1 visualiser verification: migrated renderers must be frame-order independent.
   const visualiserModes = ['cinematicfluid', 'cosmicattractor', 'neuralnetwork'];
   const visualiserVerification = await page.evaluate((modes) => {
@@ -340,6 +326,20 @@ try {
     throw new Error('Preview playback did not enter the playing state');
   }
   await page.locator('#stopBtn').click();
+
+  // Verify the fourth pathway opens the real mini player before continuing
+  // through the normal lyric-video regression path.
+  await page.locator('#wizardSection [data-choice="nowplaying"]').click();
+  await page.locator('#wizardNextBtn').click();
+  await page.locator('#kefeMiniPlayerModal').waitFor({ state: 'visible' });
+  if (!(await page.locator('#kefeMiniPreset option').count())) {
+    throw new Error('Now Playing opened without Butterchurn presets');
+  }
+  await page.locator('#kefeMiniClose').click();
+
+  await page.reload({ waitUntil: 'commit' });
+  await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 10000 });
+  await page.waitForFunction(() => window.kefeRuntime?.ready === true, null, { timeout: 15000 });
 
   const renderPlan = await page.evaluate(
     () => window.kefeSmartRender.prepare(),
