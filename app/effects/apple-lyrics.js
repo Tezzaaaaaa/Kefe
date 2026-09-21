@@ -183,17 +183,16 @@
     var ai=activeIndex(lines,currentTimeMs);
     var focus=ai>=0?ai:Math.max(0,lines.length-1);
     var half=Math.floor(visible/2);
-    var first=Math.max(0,Math.min(focus-half,Math.max(0,lines.length-visible)));
-    var last=Math.min(lines.length-1,first+visible-1);
+    var first=Math.max(0,focus-half);
+    var last=Math.min(lines.length-1,focus+half);
 
-    // The active lyric has a fixed vertical anchor. The stack moves as one
-    // unit; it does not recalculate its top position from each line's size.
+    // The active lyric is the fixed visual anchor. Lines above and below it
+    // are positioned by their integer distance from that anchor, so the active
+    // line never drifts vertically at the beginning or end of a song.
     var centerY=h*0.50;
-    var activeSlot=focus-first;
-    var firstY=centerY-activeSlot*rowH;
 
     for(var li=first;li<=last;li++){
-      var line=lines[li],cy=firstY+(li-first)*rowH,isActive=li===ai,isPast=ai>=0&&li<ai;
+      var line=lines[li],cy=centerY+(li-focus)*rowH,isActive=li===ai,isPast=ai>=0&&li<ai;
       var relation=Math.abs(li-focus);
       var alpha=isActive?activeOpacity:(isPast?pastOpacity:inactiveOpacity)*(1-Math.min(.35,Math.max(0,relation-1)*.08));
       var scale=isActive?num(config.activeScale,1):num(config.inactiveScale,.985);
