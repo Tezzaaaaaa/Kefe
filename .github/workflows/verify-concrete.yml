@@ -1,0 +1,48 @@
+name: Temporary Concrete verification
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Verify Concrete picker renderer determinism and performance
+        run: |
+          node server/index.js >/tmp/kefe-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:3000/ >/dev/null && break || sleep 1; done
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage();
+            await page.goto('http://127.0.0.1:3000/',{waitUntil:'networkidle'});
+            await page.waitForFunction(()=>window.kefeRuntime?.ready===true);
+            if(await page.locator('#lyricStyleBlock button[data-effect="concrete"]').count()!==1) throw new Error('Concrete missing from picker');
+            await page.locator('#lyricStyleBlock button[data-effect="concrete"]').click();
+            await page.evaluate(()=>{window.state.projectType='lyric';window.state.style.effect='concrete';window.state.playback.currentTime=1;window.state.lyrics.lines=[{startTime:0,endTime:1200,text:'Hello world',words:[{startTime:0,endTime:600,word:'Hello'},{startTime:600,endTime:1200,word:'world'}]},{startTime:1200,endTime:2400,text:'Second line',words:[{startTime:1200,endTime:1800,word:'Second'},{startTime:1800,endTime:2400,word:'line'}]},{startTime:2400,endTime:3600,text:'Third line',words:[{startTime:2400,endTime:3000,word:'Third'},{startTime:3000,endTime:3600,word:'line'}]},{startTime:3600,endTime:4800,text:'Fourth line',words:[{startTime:3600,endTime:4200,word:'Fourth'},{startTime:4200,endTime:4800,word:'line'}]},{startTime:4800,endTime:6000,text:'Fifth line',words:[{startTime:4800,endTime:5400,word:'Fifth'},{startTime:5400,endTime:6000,word:'line'}]}];});
+            const r=await page.evaluate(()=>{
+              const make=()=>{const c=document.createElement('canvas');c.width=640;c.height=640;return[c,c.getContext('2d')]};
+              const [a,ac]=make();window.kefeConcreteLyricsEffect.render(ac,640,640,{fontSize:76,visibleLines:5,depthSpacing:.28,fogDensity:.35,bassPush:.08,bass:.8,treble:.7},window.state.lyrics.lines,1);
+              const standalone=ac.getImageData(0,0,640,640).data;
+              const [b,bc]=make();for(let i=0;i<=100;i++){bc.clearRect(0,0,640,640);window.kefeConcreteLyricsEffect.render(bc,640,640,{fontSize:76,visibleLines:5,depthSpacing:.28,fogDensity:.35,bassPush:.08,bass:.8,treble:.7},window.state.lyrics.lines,i/30);}
+              const sequential=bc.getImageData(0,0,640,640).data;
+              let diff=0,max=0;for(let i=0;i<standalone.length;i++){const d=Math.abs(standalone[i]-sequential[i]);if(d){diff++;if(d>max)max=d;}}
+              const p=performance.now();const c=document.createElement('canvas');c.width=1920;c.height=1080;const x=c.getContext('2d');for(let i=0;i<30;i++){x.clearRect(0,0,1920,1080);window.kefeConcreteLyricsEffect.render(x,1920,1080,{fontSize:76,visibleLines:5,depthSpacing:.28,fogDensity:.35,bassPush:.08,bass:.8,treble:.7},window.state.lyrics.lines,i/30);}const elapsed=(performance.now()-p)/30;
+              return{determinism:{differentBytes:diff,maxByteDelta:max,pixelIdentical:diff===0},fontStack:window.kefeConcreteLyricsEffect.defaultConfig.fontFamily,avgMs1080:elapsed};
+            });
+            console.log(JSON.stringify(r));
+            if(!r.determinism.pixelIdentical) throw new Error('Concrete determinism failed');
+            await browser.close();
+          })();
+          NODE
+      - name: Remove temporary verification workflow
+        if: always()
+        run: true
