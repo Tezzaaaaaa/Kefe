@@ -109,3 +109,6 @@ header .theme-control,label.theme-control,.theme-control,#themeSelect,.header-ac
 .preview-heading .preview-format button{padding:0 6px!important;font-size:10.5px!important}
 .preview-heading strong{font-size:12px!important}
 }
+
+/* Hide preview placeholder text */
+.kefe-preview-hint,.canvas-wrapper>.kefe-preview-hint,.preview .kefe-preview-hint{display:none!important;visibility:hidden!important;opacity:0!important}
