@@ -108,11 +108,6 @@ try {
     { timeout: 15000 },
   );
 
-  const pathwayChoices = await page.locator('#wizardSection [data-choice]').evaluateAll((els) => els.map((el) => el.dataset.choice));
-  if (pathwayChoices.length !== 4 || !pathwayChoices.includes('nowplaying')) {
-    throw new Error(`Expected four start pathways including Now Playing, got: ${pathwayChoices.join(', ')}`);
-  }
-
   // Phase 1 visualiser verification: migrated renderers must be frame-order independent.
   const visualiserModes = ['cinematicfluid', 'cosmicattractor', 'neuralnetwork'];
   const visualiserVerification = await page.evaluate((modes) => {
@@ -340,6 +335,11 @@ try {
   await page.reload({ waitUntil: 'commit' });
   await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 10000 });
   await page.waitForFunction(() => window.kefeRuntime?.ready === true, null, { timeout: 15000 });
+
+  const pathwayChoices = await page.locator('#wizardSection [data-choice]').evaluateAll((els) => els.map((el) => el.dataset.choice));
+  if (pathwayChoices.length !== 4 || !pathwayChoices.includes('nowplaying')) {
+    throw new Error(`Expected four start pathways including Now Playing, got: ${pathwayChoices.join(', ')}`);
+  }
 
   const renderPlan = await page.evaluate(
     () => window.kefeSmartRender.prepare(),
