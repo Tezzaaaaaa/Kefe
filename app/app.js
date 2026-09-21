@@ -12,7 +12,7 @@ function drawCompactNowPlaying(ctx, w, h, appState, progress = 1) {
     const gap = artwork ? Math.max(9, artSize * 0.18) : 0;
     const maxWidth = Math.min(w - margin * 2, Math.max(180, unit * 0.72));
     const eased = linaSmoother(linaClamp(progress));
-    const anchorRight = w >= h * 1.15;
+    // Apple-style now-playing card stays anchored on the left.\n    const anchorRight = false;
     const titleSize = Math.max(15, Math.min(24, unit * 0.026));
     const secondarySize = Math.max(11, titleSize * 0.64);
 
