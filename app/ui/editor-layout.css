@@ -87,3 +87,7 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 [data-theme="day"],[data-theme="light"],body.day,body.light{--bg:#F5F2EC!important;--surface:#FFFFFF!important;--surface-2:#FAF7F2!important;--surface-3:#EFEBE3!important;--text:#1A1714!important;--text-2:#4A443D!important;--text-3:#6E675E!important;--line:rgba(0,0,0,0.10)!important;--line-strong:rgba(0,0,0,0.18)!important}
 [data-theme="day"] .sidebar>.section,[data-theme="light"] .sidebar>.section,body.day .sidebar>.section,body.light .sidebar>.section{background:#FFFFFF!important}
 [data-theme="day"] button,[data-theme="light"] button,body.day button,body.light button{color:#1A1714!important}
+
+/* Day mode disabled — dark only */
+.theme-control,.theme-control>*,#themeSelect,label[for="themeSelect"],header .theme-control{display:none!important;visibility:hidden!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important;position:absolute!important;left:-9999px!important}
+html,body{color-scheme:dark!important}
