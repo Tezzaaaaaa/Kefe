@@ -5,6 +5,7 @@
  */
 window.KEFE_EFFECTS = [
   { key: 'apple',       label: 'Apple',            description: 'Apple Music-style focus line' },
+  { key: 'concrete',    label: 'Concrete',         description: 'Diegetic 3D lyrics with physical depth and fog' },
   { key: 'brat',        label: 'Brat',             description: 'Edge-to-edge album-cover typewriter' },
   { key: 'eternal',     label: 'Eternal Sunshine', description: 'Handwritten ink reveal' },
   { key: 'aurora',      label: 'Aurora',           description: 'Atmospheric gradient lyrics' },
