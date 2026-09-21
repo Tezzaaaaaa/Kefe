@@ -158,31 +158,66 @@
     var visible=Math.max(3,Math.min(7,Math.round(num(config.visibleLines,4))));
     var align=config.align==='right'?'right':config.align==='center'?'center':'left';
     var margin=Math.max(36,w*.075);
+
+    // One typography scale for the whole track. Individual lyric lines never
+    // resize themselves, so changing from one line to the next cannot produce
+    // a random-looking jump in type size.
+    var maxWidth=w-margin*2;
+    var longest=0;
+    lines.forEach(function(line){
+      var words=Array.isArray(line.words)&&line.words.length?line.words:[{word:line.text||''}];
+      var text=words.map(function(x){return String(x.word||'');}).join(' ').trim();
+      if(text) longest=Math.max(longest,measure(ctx,text,baseSize,700));
+    });
+    var globalSize=longest>maxWidth ? fitSize(ctx,
+      lines.reduce(function(best,line){
+        var words=Array.isArray(line.words)&&line.words.length?line.words:[{word:line.text||''}];
+        var text=words.map(function(x){return String(x.word||'');}).join(' ').trim();
+        return text.length>best.length?text:best;
+      },''),
+      baseSize,maxWidth) : baseSize;
+    // fitSize is deliberately global: the same size is used for every line.
+    globalSize=clamp(globalSize,18,baseSize);
+
+    var rowH=globalSize*lineHeight+spacing;
     var ai=activeIndex(lines,currentTimeMs);
-    var focus=ai>=0?ai:lines.length-1;
+    var focus=ai>=0?ai:Math.max(0,lines.length-1);
     var half=Math.floor(visible/2);
-    var first=Math.max(0,focus-half), last=Math.min(lines.length-1,first+visible-1);
-    var rowH=baseSize*lineHeight+spacing;
-    var focusRow=Math.min(focus-first,last-first);
-    var firstY=h*top-(focusRow-(last-first)/2)*rowH;
+    var first=Math.max(0,Math.min(focus-half,Math.max(0,lines.length-visible)));
+    var last=Math.min(lines.length-1,first+visible-1);
+
+    // The active lyric has a fixed vertical anchor. The stack moves as one
+    // unit; it does not recalculate its top position from each line's size.
+    var centerY=h*0.50;
+    var activeSlot=focus-first;
+    var firstY=centerY-activeSlot*rowH;
 
     for(var li=first;li<=last;li++){
       var line=lines[li],cy=firstY+(li-first)*rowH,isActive=li===ai,isPast=ai>=0&&li<ai;
       var relation=Math.abs(li-focus);
       var alpha=isActive?activeOpacity:(isPast?pastOpacity:inactiveOpacity)*(1-Math.min(.35,Math.max(0,relation-1)*.08));
       var scale=isActive?num(config.activeScale,1):num(config.inactiveScale,.985);
-      var blur=isActive?0:num(config.blurRadius,blurRadius)+Math.max(0,relation-1)*.35;
+      var blur=isActive?0:blurRadius+Math.max(0,relation-1)*.35;
       var words=Array.isArray(line.words)&&line.words.length?line.words:[{startTime:line.startTime,endTime:line.endTime,word:line.text,isBG:line.isBG}];
-      var full=words.map(function(x){return x.word;}).join(' ');
-      var size=fitSize(ctx,full,baseSize*(line.isBG?.66:1),w-margin*2);
+      var normalWords=words.filter(function(word){return !word.isBG;});
+      var bgWords=words.filter(function(word){return !!word.isBG;});
+      var drawWords=normalWords.length?normalWords:bgWords;
+      var full=drawWords.map(function(x){return String(x.word||'');}).join(' ').trim();
+      if(!full) continue;
+
+      // Background-vocal lines are intentionally smaller, but their size is a
+      // fixed ratio of the same track scale rather than a separate fit.
+      var size=globalSize*(line.isBG?.66:1);
       var total=measure(ctx,full,size,700);
-      var startX=align==='center'?w/2-total/2:align==='right'?w-margin-total:w>0?margin:0;
+      var lineAlign=line.isDuet?'right':align;
+      var startX=lineAlign==='center'?w/2-total/2:lineAlign==='right'?w-margin-total:margin;
+
       ctx.save();
       ctx.globalAlpha=alpha; ctx.filter=blur?'blur('+blur+'px)':'none';
       ctx.translate(w/2,cy);ctx.scale(scale,scale);ctx.translate(-w/2,-cy);
       ctx.font='700 '+size+'px '+FONT_STACK;ctx.textBaseline='middle';ctx.textAlign='left';
       var x=startX;
-      words.forEach(function(word){
+      drawWords.forEach(function(word){
         var ww=measure(ctx,word.word,size,700),p=wordProgress(word,currentTimeMs);
         ctx.globalAlpha=alpha*(word.isBG?.56:1);ctx.fillStyle=inactive;ctx.shadowBlur=0;ctx.fillText(word.word,x,cy);
         if(p>0){
@@ -198,12 +233,11 @@
       ctx.restore();
 
       if(isActive&&line.translatedLyric){
-        ctx.save();ctx.globalAlpha=.58;ctx.font='500 '+Math.max(14,size*.38)+'px '+FONT_STACK;ctx.textAlign=align;ctx.textBaseline='top';ctx.fillStyle='rgba(255,255,255,.82)';
-        ctx.fillText(line.translatedLyric,align==='center'?w/2:align==='right'?w-margin:margin,cy+size*.72);ctx.restore();
+        ctx.save();ctx.globalAlpha=.58;ctx.font='500 '+Math.max(14,size*.38)+'px '+FONT_STACK;ctx.textAlign=lineAlign;ctx.textBaseline='top';ctx.fillStyle='rgba(255,255,255,.82)';
+        ctx.fillText(line.translatedLyric,lineAlign==='center'?w/2:lineAlign==='right'?w-margin:margin,cy+size*.72);ctx.restore();
       }
     }
   }
-
   function hitTest(canvas,lyrics,currentTimeMs,x,y,config) {
     config=config||{};var lines=normaliseLines(lyrics),ai=activeIndex(lines,currentTimeMs);if(ai<0)return null;
     var size=num(config.fontSize,76),visible=Math.max(3,Math.min(7,Math.round(num(config.visibleLines,4)))),top=clamp(num(config.paddingTop,.245),.12,.5),spacing=num(config.lineSpacing,22);
