@@ -521,3 +521,266 @@ header {
     width: 100% !important;
   }
 }
+
+
+/* ============================================================
+   MOBILE COMPACT LAYOUT — keep the editor dense on phones.
+   The previous mobile rules preserved desktop-scale spacing and
+   touch targets, making the whole editor feel oversized.
+   ============================================================ */
+@media (max-width: 700px) {
+  header {
+    min-height: 44px !important;
+    height: 44px !important;
+    padding: 0 10px !important;
+    gap: 8px !important;
+  }
+  .header-actions {
+    gap: 5px !important;
+  }
+  .header-actions .icon-button,
+  .header-actions .theme-control,
+  #exportBtn.export-action {
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+  .header-actions .icon-button {
+    width: 36px !important;
+    min-width: 36px !important;
+  }
+  .header-actions .theme-control {
+    padding: 0 6px 0 7px !important;
+    gap: 4px !important;
+  }
+  #exportBtn.export-action {
+    padding: 0 10px !important;
+    gap: 5px !important;
+    font-size: 11px !important;
+  }
+
+  main {
+    height: calc(100dvh - 44px) !important;
+  }
+  .preview {
+    flex-basis: 31dvh !important;
+    min-height: 200px !important;
+  }
+  .preview-toolbar {
+    min-height: 44px !important;
+    height: 44px !important;
+    padding: 0 9px !important;
+    gap: 7px !important;
+  }
+  .preview-heading {
+    gap: 7px !important;
+  }
+  .preview-heading strong {
+    font-size: 12px !important;
+  }
+  #previewStatus {
+    height: 22px !important;
+    padding: 0 7px !important;
+    font-size: 10px !important;
+  }
+  .transport {
+    height: 44px !important;
+    gap: 5px !important;
+  }
+  .transport .play-button,
+  .transport .icon-button {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+  }
+  .transport #clock {
+    min-width: 58px !important;
+    font-size: 9px !important;
+  }
+  .canvas-wrapper {
+    padding: 7px !important;
+  }
+
+  .sidebar {
+    font-size: 12px !important;
+  }
+  .sidebar > .section {
+    padding: 11px 10px 14px !important;
+  }
+  .sidebar > .section > * {
+    margin-bottom: 10px !important;
+  }
+  .sidebar > .section > h3 {
+    margin-bottom: 8px !important;
+    font-size: 10px !important;
+  }
+
+  button,
+  button.primary,
+  button.ghost,
+  button.file-button,
+  .icon-button,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  select {
+    font-size: 12px !important;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  select {
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 9px !important;
+  }
+  input[type="color"] {
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+  input[type="range"] {
+    height: 28px !important;
+  }
+
+  .drop-zone {
+    padding: 12px !important;
+  }
+  .control-hint,
+  .sub-hint,
+  .music-sync-hint {
+    font-size: 10.5px !important;
+    line-height: 1.4 !important;
+  }
+  .sub-heading {
+    font-size: 10px !important;
+  }
+
+  .lyrics-actions {
+    gap: 6px !important;
+  }
+  .lyrics-actions button,
+  .file-button {
+    min-height: 36px !important;
+  }
+
+  .effect-buttons,
+  .aspect-buttons {
+    gap: 6px !important;
+  }
+  #lyricStyleBlock .effect-buttons > button,
+  #backgroundSection .background-choice {
+    min-height: 54px !important;
+    padding: 7px !important;
+    font-size: 11px !important;
+  }
+
+  body.wizard-mode .wizard-panel {
+    padding: 18px 12px 14px !important;
+  }
+  body.wizard-mode .wizard-panel-title {
+    font-size: 24px !important;
+  }
+  body.wizard-mode .wizard-panel-hint {
+    font-size: 12px !important;
+  }
+  body.wizard-mode .wizard-choices .wizard-choice {
+    min-height: 92px !important;
+    padding: 11px 10px !important;
+    gap: 8px !important;
+  }
+  body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-icon {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-copy strong {
+    font-size: 13px !important;
+  }
+  body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-copy span,
+  body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-copy p {
+    font-size: 10.5px !important;
+    line-height: 1.35 !important;
+  }
+  body.wizard-mode .wizard-nav {
+    padding: 8px 9px calc(9px + env(safe-area-inset-bottom,0px)) !important;
+  }
+  body.wizard-mode .wizard-nav button:not(.wizard-skip) {
+    min-width: 72px !important;
+    min-height: 36px !important;
+  }
+  .wizard-effect-choice {
+    min-height: 82px !important;
+    padding: 6px !important;
+  }
+  .wizard-effect-demo {
+    min-height: 38px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    min-height: 42px !important;
+    height: 42px !important;
+    padding: 0 8px !important;
+  }
+  .header-actions .theme-control {
+    display: none !important;
+  }
+  .header-actions .icon-button,
+  #exportBtn.export-action {
+    height: 34px !important;
+    min-height: 34px !important;
+  }
+  .header-actions .icon-button {
+    width: 34px !important;
+    min-width: 34px !important;
+  }
+  #exportBtn.export-action {
+    padding: 0 9px !important;
+  }
+  main {
+    height: calc(100dvh - 42px) !important;
+  }
+  .preview {
+    flex-basis: 29dvh !important;
+    min-height: 190px !important;
+  }
+  .preview-toolbar {
+    min-height: 42px !important;
+    height: 42px !important;
+    padding: 0 7px !important;
+  }
+  .transport {
+    height: 42px !important;
+  }
+  .transport .play-button,
+  .transport .icon-button {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+  .canvas-wrapper {
+    padding: 6px !important;
+  }
+  .sidebar > .section {
+    padding: 9px 9px 12px !important;
+  }
+  body.wizard-mode .wizard-panel {
+    padding: 15px 10px 12px !important;
+  }
+  body.wizard-mode .wizard-panel-title {
+    font-size: 22px !important;
+  }
+  body.wizard-mode .wizard-choices .wizard-choice {
+    min-height: 82px !important;
+    padding: 9px !important;
+  }
+}
