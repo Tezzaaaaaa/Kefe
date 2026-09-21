@@ -28,7 +28,7 @@
     // .preview-live-meta; move just the button into the corner group.
     var focus = document.getElementById('previewFocusButton');
     if (focus && focus.parentElement !== corner) {
-      corner.appendChild(focus);
+      (document.querySelector('.transport')||corner).appendChild(focus);
     }
 
     // Remove the now-empty .preview-live-meta wrapper if it exists
