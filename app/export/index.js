@@ -159,6 +159,8 @@ export async function exportVideo(options) {
     target.height = config.height;
     const ctx = target.getContext('2d', { alpha: false });
     if (!ctx) throw new Error('Could not create export canvas');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     const totalFrames = Math.max(1, Math.ceil(duration * config.fps));
     const framesPerSegment = Math.max(config.fps * 2, Math.round(config.fps * 4));
