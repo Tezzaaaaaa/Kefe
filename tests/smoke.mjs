@@ -207,6 +207,140 @@ try {
   }
   await page.locator('#stopBtn').click();
 
+  // Phase 1 visualiser verification: migrated renderers must be frame-order independent.
+  const visualiserModes = ['cinematicfluid', 'cosmicattractor', 'neuralnetwork'];
+  const visualiserVerification = await page.evaluate((modes) => {
+    const results = { determinism: {}, parity: {}, performance: {} };
+    const frame = { bass: 0.72, mids: 0.48, treble: 0.61, energy: 0.66, flux: 0.35 };
+
+    for (const mode of modes) {
+      const fn = window.kefePremiumVisualisers?.[mode];
+      if (typeof fn !== 'function') throw new Error(`Missing migrated visualiser: ${mode}`);
+
+      const standalone = document.createElement('canvas');
+      standalone.width = standalone.height = 640;
+      const sctx = standalone.getContext('2d');
+      fn(sctx, 640, 640, 100 / 30, frame, { style: {} });
+      const a = sctx.getImageData(0, 0, 640, 640).data;
+
+      const sequence = document.createElement('canvas');
+      sequence.width = sequence.height = 640;
+      const qctx = sequence.getContext('2d');
+      for (let i = 0; i <= 100; i += 1) {
+        qctx.clearRect(0, 0, 640, 640);
+        fn(qctx, 640, 640, i / 30, {
+          bass: 0.5 + 0.22 * Math.sin(i * 0.11),
+          mids: 0.45 + 0.18 * Math.cos(i * 0.07),
+          treble: 0.55 + 0.14 * Math.sin(i * 0.17),
+          energy: 0.52 + 0.20 * Math.sin(i * 0.05),
+          flux: 0.3,
+        }, { style: {} });
+      }
+      qctx.clearRect(0, 0, 640, 640);
+      fn(qctx, 640, 640, 100 / 30, frame, { style: {} });
+      const b = qctx.getImageData(0, 0, 640, 640).data;
+      let differentBytes = 0;
+      let maxByteDelta = 0;
+      for (let i = 0; i < a.length; i += 1) {
+        const delta = Math.abs(a[i] - b[i]);
+        if (delta) differentBytes += 1;
+        if (delta > maxByteDelta) maxByteDelta = delta;
+      }
+      results.determinism[mode] = {
+        differentBytes,
+        maxByteDelta,
+        pixelIdentical: differentBytes === 0,
+      };
+
+      // Compare the real preview renderer path with the export bridge at the same timestamp.
+      window.state.projectType = 'visualiser';
+      window.state.background = { type: 'solid', solid: '#000000', dim: 0, blur: 0 };
+      window.state.style.titleCardEnabled = false;
+      window.state.style.visualiserStyle = mode;
+      window.state.playback.currentTime = 100 / 30;
+      const analysisLength = 8;
+      window.dispatchEvent(new CustomEvent('kefe:audio-analysis-ready', {
+        detail: {
+          frameHopMs: 1000 / 30,
+          energy: Array.from({ length: analysisLength }, (_, i) => 0.55 + i * 0.01),
+          bands: Array.from({ length: analysisLength }, () => ({ bass: 0.65, mids: 0.45, treble: 0.55 })),
+          flux: Array.from({ length: analysisLength }, () => 0.25),
+        },
+      }));
+      const preview = document.createElement('canvas');
+      preview.width = preview.height = 640;
+      const pctx = preview.getContext('2d');
+      const exported = document.createElement('canvas');
+      exported.width = exported.height = 640;
+      const ectx = exported.getContext('2d');
+      window.render(pctx, 640, 640, window.state, window.media || {});
+      window.kefeRenderFrame(ectx, 640, 640, 100 / 30, window.media || {});
+      const pa = pctx.getImageData(0, 0, 640, 640).data;
+      const ea = ectx.getImageData(0, 0, 640, 640).data;
+      let parityDiff = 0;
+      for (let i = 0; i < pa.length; i += 1) if (pa[i] !== ea[i]) parityDiff += 1;
+      results.parity[mode] = { differentBytes: parityDiff, pixelIdentical: parityDiff === 0 };
+    }
+
+    return results;
+  }, visualiserModes);
+
+  for (const mode of visualiserModes) {
+    if (!visualiserVerification.determinism[mode].pixelIdentical) {
+      throw new Error(`Phase 1 determinism failed for ${mode}: ${JSON.stringify(visualiserVerification.determinism[mode])}`);
+    }
+    if (!visualiserVerification.parity[mode].pixelIdentical) {
+      throw new Error(`Phase 1 preview/export parity failed for ${mode}: ${JSON.stringify(visualiserVerification.parity[mode])}`);
+    }
+  }
+
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  const throttledPerformance = await page.evaluate((modes) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1920;
+    canvas.height = 1080;
+    const ctx = canvas.getContext('2d');
+    const frame = { bass: 0.72, mids: 0.48, treble: 0.61, energy: 0.66, flux: 0.35 };
+    const results = {};
+    for (const mode of modes) {
+      for (let i = 0; i < 10; i += 1) {
+        ctx.clearRect(0, 0, 1920, 1080);
+        window.kefePremiumVisualisers[mode](ctx, 1920, 1080, i / 30, frame, { style: {} });
+      }
+      const samples = [];
+      for (let i = 0; i < 60; i += 1) {
+        ctx.clearRect(0, 0, 1920, 1080);
+        const start = performance.now();
+        window.kefePremiumVisualisers[mode](ctx, 1920, 1080, i / 30, frame, { style: {} });
+        samples.push(performance.now() - start);
+      }
+      samples.sort((a, b) => a - b);
+      results[mode] = {
+        meanMs: samples.reduce((sum, value) => sum + value, 0) / samples.length,
+        medianMs: samples[Math.floor(samples.length / 2)],
+        p95Ms: samples[Math.floor(samples.length * 0.95) - 1],
+        maxMs: samples[samples.length - 1],
+      };
+    }
+    return results;
+  }, visualiserModes);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+
+  console.log(JSON.stringify({
+    phase1VisualiserVerification: visualiserVerification,
+    performanceVerification: 'Chrome/Chromium desktop at 4x CPU throttling; approximation only, not iPhone Safari hardware verification',
+    throttledPerformance,
+  }, null, 2));
+
+  // Restore the real smoke-test lyric state before continuing to export verification.
+  await page.evaluate(() => {
+    window.state.projectType = 'lyric';
+    window.state.style.visualiserStyle = 'pulse';
+    window.state.style.titleCardEnabled = true;
+    window.state.playback.currentTime = 0;
+  });
+
   const renderPlan = await page.evaluate(
     () => window.kefeSmartRender.prepare(),
   );
