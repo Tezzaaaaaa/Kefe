@@ -127,86 +127,6 @@ try {
   await page.locator('#audioInput').waitFor({ state: 'attached', timeout: 10000 });
   await page.waitForFunction(() => window.kefeRuntime?.ready === true, null, { timeout: 15000 });
 
-  // Follow the real guided lyric-video path instead of bypassing it.
-  await page.locator('#wizardSection [data-choice="lyric"]').click();
-  await page.locator('#wizardNextBtn').click();
-  await page.locator('#wizardSection [data-source="uploaded"]').click();
-
-  const wav = makeWav();
-  await page.locator('#audioInput').setInputFiles({
-    name: 'smoke-test.wav',
-    mimeType: 'audio/wav',
-    buffer: wav,
-  });
-  await page.waitForFunction(
-    () =>
-      window.state?.audio?.ready === true &&
-      Number(window.state.audio.duration) > 0,
-    null,
-    { timeout: 5000 },
-  );
-
-  // The upload confirmation now lives on the Media/source step as
-  // #kefeUploadSummary. Keep the smoke test aligned with that current UX.
-  const uploadSummary = page.locator('#kefeUploadSummary');
-  await uploadSummary.waitFor({ state: 'visible' });
-  await page.waitForFunction(
-    () => {
-      const box = document.getElementById('kefeUploadSummary');
-      return Boolean(box && !box.classList.contains('hidden') && box.textContent.includes('smoke-test.wav'));
-    },
-    null,
-    { timeout: 5000 },
-  );
-
-  await page.locator('#wizardNextBtn').click();
-
-  const lyricsText = page.locator('#lyricsText');
-  await lyricsText.fill('[00:00.00]Hello world\n[00:00.80]Second line');
-  await page.locator('#wizardNextBtn').click();
-  await page.locator('#lyricStyleBlock').waitFor({ state: 'visible' });
-  await page
-    .locator('#wizardSection [data-wizard-effect="rise"]')
-    .click({ force: true });
-  await page
-    .locator('#backgroundSection [data-background-preset="aurora"]')
-    .click({ force: true });
-  await page.locator('#titleCardStyle').selectOption('statement');
-  const visualState = await page.evaluate(() => ({
-    effect: window.state.style.effect,
-    background: window.state.background.type,
-    title: window.state.style.titleCardStyle,
-  }));
-  if (
-    visualState.effect !== 'rise' ||
-    visualState.background !== 'image' ||
-    visualState.title !== 'statement'
-  ) {
-    throw new Error(
-      `Style controls did not update state: ${JSON.stringify(visualState)}`,
-    );
-  }
-
-  const analysis = await page.evaluate(() =>
-    window.kefeAnalysis.analyzeLyrics(
-      '[00:00.00]Hello world\n[00:00.80]Second line',
-      2,
-    ),
-  );
-  if (!analysis?.validation?.count || analysis.validation.count !== 2) {
-    throw new Error('Lyrics analysis did not return the expected timed lines');
-  }
-
-  await page.locator('#playBtn').click();
-  await page.waitForTimeout(250);
-  const playing = await page.evaluate(
-    () => Boolean(window.state.playback.isPlaying),
-  );
-  if (!playing) {
-    throw new Error('Preview playback did not enter the playing state');
-  }
-  await page.locator('#stopBtn').click();
-
   // Phase 1 visualiser verification: migrated renderers must be frame-order independent.
   const visualiserModes = ['cinematicfluid', 'cosmicattractor', 'neuralnetwork'];
   const visualiserVerification = await page.evaluate((modes) => {
@@ -340,6 +260,86 @@ try {
     window.state.style.titleCardEnabled = true;
     window.state.playback.currentTime = 0;
   });
+
+  // Follow the real guided lyric-video path instead of bypassing it.
+  await page.locator('#wizardSection [data-choice="lyric"]').click();
+  await page.locator('#wizardNextBtn').click();
+  await page.locator('#wizardSection [data-source="uploaded"]').click();
+
+  const wav = makeWav();
+  await page.locator('#audioInput').setInputFiles({
+    name: 'smoke-test.wav',
+    mimeType: 'audio/wav',
+    buffer: wav,
+  });
+  await page.waitForFunction(
+    () =>
+      window.state?.audio?.ready === true &&
+      Number(window.state.audio.duration) > 0,
+    null,
+    { timeout: 5000 },
+  );
+
+  // The upload confirmation now lives on the Media/source step as
+  // #kefeUploadSummary. Keep the smoke test aligned with that current UX.
+  const uploadSummary = page.locator('#kefeUploadSummary');
+  await uploadSummary.waitFor({ state: 'visible' });
+  await page.waitForFunction(
+    () => {
+      const box = document.getElementById('kefeUploadSummary');
+      return Boolean(box && !box.classList.contains('hidden') && box.textContent.includes('smoke-test.wav'));
+    },
+    null,
+    { timeout: 5000 },
+  );
+
+  await page.locator('#wizardNextBtn').click();
+
+  const lyricsText = page.locator('#lyricsText');
+  await lyricsText.fill('[00:00.00]Hello world\n[00:00.80]Second line');
+  await page.locator('#wizardNextBtn').click();
+  await page.locator('#lyricStyleBlock').waitFor({ state: 'visible' });
+  await page
+    .locator('#wizardSection [data-wizard-effect="rise"]')
+    .click({ force: true });
+  await page
+    .locator('#backgroundSection [data-background-preset="aurora"]')
+    .click({ force: true });
+  await page.locator('#titleCardStyle').selectOption('statement');
+  const visualState = await page.evaluate(() => ({
+    effect: window.state.style.effect,
+    background: window.state.background.type,
+    title: window.state.style.titleCardStyle,
+  }));
+  if (
+    visualState.effect !== 'rise' ||
+    visualState.background !== 'image' ||
+    visualState.title !== 'statement'
+  ) {
+    throw new Error(
+      `Style controls did not update state: ${JSON.stringify(visualState)}`,
+    );
+  }
+
+  const analysis = await page.evaluate(() =>
+    window.kefeAnalysis.analyzeLyrics(
+      '[00:00.00]Hello world\n[00:00.80]Second line',
+      2,
+    ),
+  );
+  if (!analysis?.validation?.count || analysis.validation.count !== 2) {
+    throw new Error('Lyrics analysis did not return the expected timed lines');
+  }
+
+  await page.locator('#playBtn').click();
+  await page.waitForTimeout(250);
+  const playing = await page.evaluate(
+    () => Boolean(window.state.playback.isPlaying),
+  );
+  if (!playing) {
+    throw new Error('Preview playback did not enter the playing state');
+  }
+  await page.locator('#stopBtn').click();
 
   const renderPlan = await page.evaluate(
     () => window.kefeSmartRender.prepare(),
