@@ -928,7 +928,7 @@ function titleCardPhase(appState, time) {
     const phaseDuration = isOutro ? outroDuration : introDuration;
     const enter = linaSmoother(linaClamp(phaseTime / 0.5));
     const exit = isIntro
-        ? 1 - linaSmoother(linaClamp((phaseTime - (phaseDuration - 0.45)) / 0.45))
+        ? 1 - linaSmoother(linaClamp((phaseTime - (phaseDuration - transitionDuration)) / transitionDuration))
         : 1;
     return { intro: isIntro, alpha: linaClamp(enter * exit), enter };
 }
@@ -956,11 +956,13 @@ function renderPersistentNowPlaying(ctx, w, h, time, appState) {
 
     const introDuration = linaClamp(Number(appState.style.titleCardDuration) || 3, 1, 15);
     const transitionDuration = 0.72;
+    const transitionStart = Math.max(0, introDuration - transitionDuration);
 
-    // The full title card owns the intro. Do not render the compact now-playing
-    // card on top of it — that created a second copy of the title/artwork and
-    // made the handoff appear to jump sideways.
-    const elapsed = time - introDuration;
+    // Crossfade the single intro card into the single compact card over the
+    // same interval that the compact card travels to its final bottom-left
+    // position. This prevents a hard handoff, duplicate-looking frame, or
+    // sideways jump at the end of the title card.
+    const elapsed = time - transitionStart;
     if (elapsed < 0) return;
 
     const progress = linaSmoother(linaClamp(elapsed / transitionDuration));
