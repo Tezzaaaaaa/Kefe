@@ -302,3 +302,177 @@
   .kefe-mini-shell.skin-vinyl .kefe-vinyl-disc,
   .kefe-mini-shell.skin-vinyl.is-vinyl-expanded .kefe-vinyl-info{transition:none}
 }
+
+/* ============================================================
+   SECOND SKIN — KEFE MiniPlayer
+   Continuous disc/panel choreography with restrained glass,
+   spring-like motion and reduced-motion fallback.
+   ============================================================ */
+.kefe-mini-modal{
+  background:rgba(7,8,12,.18);
+  backdrop-filter:blur(10px) saturate(115%);
+  -webkit-backdrop-filter:blur(10px) saturate(115%);
+}
+.kefe-mini-shell{
+  --mp-bg:rgba(246,247,250,.88);
+  --mp-card:rgba(214,214,219,.92);
+  --mp-ink:#111113;
+  --mp-mid:#66666d;
+  --mp-mute:#8d8d94;
+  --mp-line:rgba(17,17,19,.1);
+  --mp-fill:rgba(17,17,19,.055);
+  --mp-ease:cubic-bezier(.34,1.28,.64,1);
+  width:min(440px,calc(100vw - 24px));
+  max-height:min(760px,calc(100dvh - 24px));
+  padding:12px;
+  border:1px solid rgba(255,255,255,.42);
+  background:linear-gradient(145deg,rgba(248,249,252,.94),rgba(218,219,224,.88));
+  box-shadow:0 28px 80px rgba(0,0,0,.22),0 8px 30px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.62);
+  overflow:auto;
+}
+.kefe-mini-card{
+  aspect-ratio:1.08;
+  border-radius:30px!important;
+  background:
+    radial-gradient(circle at 22% 14%,rgba(255,255,255,.72),transparent 32%),
+    linear-gradient(145deg,#d8d8dc,#c9c9ce);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
+  transition:transform 420ms var(--mp-ease),filter 420ms ease,box-shadow 420ms ease;
+}
+.kefe-mini-card.is-morphing{
+  transform:scale(.985);
+  filter:blur(.35px);
+}
+.kefe-mini-art{
+  transform:translate3d(0,-54.5%,0) scale(.985);
+  border-radius:50%!important;
+  box-shadow:0 16px 34px rgba(20,20,24,.28);
+  transition:transform 420ms var(--mp-ease),border-radius 420ms var(--mp-ease),box-shadow 420ms ease,filter 420ms ease;
+}
+.kefe-mini-card.is-expanded .kefe-mini-art{
+  transform:translate3d(0,0,0) scale(1);
+  border-radius:26px!important;
+  box-shadow:none;
+  transition-delay:40ms;
+}
+.kefe-mini-card.is-expanded .kefe-mini-art:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.12) 50%,transparent 65%);
+  transform:translateX(-120%);
+  animation:kefeMiniGlassSweep 8s ease-in-out 800ms infinite;
+}
+@keyframes kefeMiniGlassSweep{
+  0%,62%{transform:translateX(-120%);opacity:0}
+  66%{opacity:1}
+  78%,100%{transform:translateX(120%);opacity:0}
+}
+.kefe-mini-info{
+  opacity:1;
+  transform:translateZ(0);
+  transition:opacity 260ms ease 100ms,transform 420ms var(--mp-ease) 70ms;
+}
+.kefe-mini-card:not(.is-expanded) .kefe-mini-info{
+  opacity:.94;
+  transform:translateY(2%);
+}
+.kefe-mini-art-caption{
+  transition:opacity 220ms ease,transform 420ms var(--mp-ease);
+}
+.kefe-mini-card.is-expanded .kefe-mini-art-caption{
+  transition-delay:360ms;
+}
+.kefe-mini-controls,
+.kefe-mini-seek,
+.kefe-mini-actions,
+.kefe-mini-preset,
+.kefe-mini-lyrics-toggle,
+.kefe-mini-queue{
+  transform:translateY(12px);
+  opacity:0;
+  transition:transform 380ms var(--mp-ease),opacity 220ms ease;
+}
+.kefe-mini-card.is-expanded ~ .kefe-mini-controls,
+.kefe-mini-card.is-expanded ~ .kefe-mini-controls + .kefe-mini-seek,
+.kefe-mini-card.is-expanded ~ .kefe-mini-controls + .kefe-mini-seek + .kefe-mini-actions,
+.kefe-mini-card.is-expanded ~ .kefe-mini-controls + .kefe-mini-seek + .kefe-mini-actions + .kefe-mini-notice,
+.kefe-mini-card.is-expanded ~ .kefe-mini-controls + .kefe-mini-seek + .kefe-mini-actions + .kefe-mini-notice + .kefe-mini-preset,
+.kefe-mini-card.is-expanded ~ .kefe-mini-controls + .kefe-mini-seek + .kefe-mini-actions + .kefe-mini-notice + .kefe-mini-preset + .kefe-mini-lyrics-toggle,
+.kefe-mini-card.is-expanded ~ .kefe-mini-controls + .kefe-mini-seek + .kefe-mini-actions + .kefe-mini-notice + .kefe-mini-preset + .kefe-mini-lyrics-toggle + .kefe-mini-lyrics-panel,
+.kefe-mini-card.is-expanded ~ .kefe-mini-controls + .kefe-mini-seek + .kefe-mini-actions + .kefe-mini-notice + .kefe-mini-preset + .kefe-mini-lyrics-toggle + .kefe-mini-lyrics-panel + .kefe-mini-queue{
+  opacity:1;
+  transform:none;
+}
+.kefe-mini-card.is-expanded ~ .kefe-mini-controls{transition-delay:140ms}
+.kefe-mini-card.is-expanded ~ .kefe-mini-seek{transition-delay:190ms}
+.kefe-mini-card.is-expanded ~ .kefe-mini-actions{transition-delay:240ms}
+.kefe-mini-card.is-expanded ~ .kefe-mini-preset{transition-delay:290ms}
+.kefe-mini-card.is-expanded ~ .kefe-mini-lyrics-toggle{transition-delay:340ms}
+.kefe-mini-card.is-expanded ~ .kefe-mini-queue{transition-delay:390ms}
+.kefe-mini-seek{
+  --p:0%;
+  height:24px;
+  margin-top:12px;
+}
+.kefe-mini-seek::-webkit-slider-thumb{
+  width:14px;height:14px;margin-top:-5px;
+  transition:transform 160ms ease,box-shadow 160ms ease;
+}
+.kefe-mini-seek.is-scrubbing::-webkit-slider-thumb{
+  transform:scale(1.32);
+  box-shadow:0 0 0 5px rgba(17,17,19,.08),0 0 14px rgba(17,17,19,.18);
+}
+.kefe-mini-seek:active::-webkit-slider-thumb{
+  transform:scale(1.32);
+}
+.kefe-mini-controls button{
+  transition:transform 160ms var(--mp-ease),background 160ms ease,color 160ms ease;
+}
+.kefe-mini-controls button:active{transform:scale(.94)}
+.kefe-mini-controls .kefe-mini-play:active{transform:scale(.92)}
+.kefe-mini-shell.is-playing .kefe-mini-play{
+  box-shadow:0 8px 20px rgba(17,17,19,.16);
+}
+.kefe-mini-shell:not(.is-playing) .kefe-mini-spin{
+  transition:transform 260ms ease-out;
+}
+@media (max-width:600px){
+  .kefe-mini-shell{
+    width:calc(100vw - 24px);
+    max-height:calc(100dvh - 24px);
+    margin-left:env(safe-area-inset-left,0px);
+    margin-right:env(safe-area-inset-right,0px);
+    margin-bottom:env(safe-area-inset-bottom,0px);
+    border-radius:28px!important;
+    padding:10px;
+  }
+  .kefe-mini-topline{min-height:32px;margin-bottom:6px;padding-left:8px}
+  .kefe-mini-topline-actions{gap:1px}
+  .kefe-mini-icon-button,.kefe-mini-close{width:34px;height:34px}
+  .kefe-mini-card{border-radius:24px!important}
+  .kefe-mini-info{padding-bottom:11cqw}
+  .kefe-mini-controls{margin-top:14px}
+  .kefe-mini-controls .kefe-mini-play{width:54px;height:54px}
+}
+@media (prefers-reduced-motion:reduce){
+  .kefe-mini-modal{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .kefe-mini-card,
+  .kefe-mini-art,
+  .kefe-mini-info,
+  .kefe-mini-art-caption,
+  .kefe-mini-controls,
+  .kefe-mini-seek,
+  .kefe-mini-actions,
+  .kefe-mini-preset,
+  .kefe-mini-lyrics-toggle,
+  .kefe-mini-queue{
+    transition:opacity 150ms ease!important;
+    animation:none!important;
+    transform:none!important;
+    filter:none!important;
+  }
+  .kefe-mini-card.is-expanded .kefe-mini-art{transform:none!important}
+  .kefe-mini-seek::-webkit-slider-thumb{transition:none!important}
+}
