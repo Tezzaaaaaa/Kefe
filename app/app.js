@@ -918,6 +918,7 @@ function resolveTitleCardDesign(appState) {
 }
 function titleCardPhase(appState, time) {
     const introDuration = linaClamp(Number(appState.style.titleCardDuration) || 3, 1, 15);
+    const transitionDuration = 0.72;
     const totalDuration = Number(appState.audio?.duration) || 0;
     const outroDuration = 1.6;
     const isIntro = time >= 0 && time < introDuration;
