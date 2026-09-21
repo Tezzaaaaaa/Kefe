@@ -85,6 +85,7 @@ const scripts = [
   'app/effects/typewriter.js',
   'app/effects/instagram-lyrics.js',
   'app/effects/story-fade.js',
+  'app/effects/apple-lyrics.js',
   'app/effects/lyric-barbie.js',
   'app/effects/lyric-elasticpop.js',
   'app/effects/lyric-flipcards.js',
@@ -115,6 +116,9 @@ const expectKeys = ['brat', 'aurora', 'eternal', 'typewriter', 'instagram', 'fad
   'chromatica'
 ];
 console.log('Registered kefeEffects:', registered.join(', '));
+if (!windowStub.kefeAppleLyricsEffect || typeof windowStub.kefeAppleLyricsEffect.render !== 'function') {
+  failures.push('missing Apple lyrics renderer registration');
+}
 for (const key of expectKeys) {
   if (!windowStub.kefeEffects[key]) failures.push(`missing registration: ${key}`);
 }
@@ -135,6 +139,15 @@ for (const key of ['brat', 'aurora', 'eternal', 'typewriter', 'instagram', 'fade
 const U = windowStub.kefeEffectUtils;
 for (const m of ['clamp','smooth','smoother','activeLine','lineProgress','wordsFor','wordProgress','contract','setFont','setContractFont','fitText','fitContractText','drawTrackedText','fillTrackedText','fitTextBinary']) {
   if (typeof U?.[m] !== 'function') failures.push(`missing util: ${m}`);
+}
+
+// Apple lyrics is a standalone renderer rather than a kefeEffects entry.
+try {
+  const apple = windowStub.kefeAppleLyricsEffect;
+  const appleLines = apple.parse('[00:00.00]First line\n[00:02.00]Second line');
+  apple.render(makeCtx(), { width: 1080, height: 1920 }, appleLines, 500, apple.defaultConfig);
+} catch (err) {
+  failures.push('Apple lyrics renderer threw: ' + err.message);
 }
 
 // 1 effect = 1 font: every production effect must resolve to a distinct family,
