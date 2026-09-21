@@ -163,19 +163,17 @@
     // resize themselves, so changing from one line to the next cannot produce
     // a random-looking jump in type size.
     var maxWidth=w-margin*2;
-    var longest=0;
+    var widestText='';
+    var widestWidth=0;
     lines.forEach(function(line){
       var words=Array.isArray(line.words)&&line.words.length?line.words:[{word:line.text||''}];
       var text=words.map(function(x){return String(x.word||'');}).join(' ').trim();
-      if(text) longest=Math.max(longest,measure(ctx,text,baseSize,700));
+      if(text){
+        var measured=measure(ctx,text,baseSize,700);
+        if(measured>widestWidth){widestWidth=measured;widestText=text;}
+      }
     });
-    var globalSize=longest>maxWidth ? fitSize(ctx,
-      lines.reduce(function(best,line){
-        var words=Array.isArray(line.words)&&line.words.length?line.words:[{word:line.text||''}];
-        var text=words.map(function(x){return String(x.word||'');}).join(' ').trim();
-        return text.length>best.length?text:best;
-      },''),
-      baseSize,maxWidth) : baseSize;
+    var globalSize=widestWidth>maxWidth ? fitSize(ctx,widestText,baseSize,maxWidth) : baseSize;
     // fitSize is deliberately global: the same size is used for every line.
     globalSize=clamp(globalSize,18,baseSize);
 
@@ -238,17 +236,45 @@
     }
   }
   function hitTest(canvas,lyrics,currentTimeMs,x,y,config) {
-    config=config||{};var lines=normaliseLines(lyrics),ai=activeIndex(lines,currentTimeMs);if(ai<0)return null;
-    var size=num(config.fontSize,76),visible=Math.max(3,Math.min(7,Math.round(num(config.visibleLines,4)))),top=clamp(num(config.paddingTop,.245),.12,.5),spacing=num(config.lineSpacing,22);
-    var half=Math.floor(visible/2),first=Math.max(0,ai-half),last=Math.min(lines.length-1,first+visible-1),rowH=size*num(config.lineHeight,1.25)+spacing,focusRow=Math.min(ai-first,last-first),firstY=canvas.height*top-(focusRow-(last-first)/2)*rowH;
-    for(var i=first;i<=last;i++){var cy=firstY+(i-first)*rowH;if(Math.abs(y-cy)<=size*.75)return lines[i];}
+    config=config||{};
+    var lines=normaliseLines(lyrics),ai=activeIndex(lines,currentTimeMs);
+    if(ai<0) return null;
+    var w=canvas.width,h=canvas.height;
+    var baseSize=num(config.fontSize,76);
+    var lineHeight=num(config.lineHeight,1.25);
+    var spacing=num(config.lineSpacing,22);
+    var visible=Math.max(3,Math.min(7,Math.round(num(config.visibleLines,4))));
+    var margin=Math.max(36,w*.075);
+    var maxWidth=w-margin*2;
+    var widestText='',widestWidth=0;
+    lines.forEach(function(line){
+      var words=Array.isArray(line.words)&&line.words.length?line.words:[{word:line.text||''}];
+      var text=words.map(function(x){return String(x.word||'');}).join(' ').trim();
+      if(text){
+        var measured=measure(window.__kefeAppleHitCtx||canvas.getContext('2d'),text,baseSize,700);
+        if(measured>widestWidth){widestWidth=measured;widestText=text;}
+      }
+    });
+    var size=widestWidth>maxWidth ? fitSize(window.__kefeAppleHitCtx||canvas.getContext('2d'),widestText,baseSize,maxWidth) : baseSize;
+    size=clamp(size,18,baseSize);
+    var rowH=size*lineHeight+spacing;
+    var half=Math.floor(visible/2);
+    var focus=Math.max(0,Math.min(lines.length-1,ai));
+    var centerY=h*.50;
+    var first=Math.max(0,focus-half);
+    var last=Math.min(lines.length-1,focus+half);
+    for(var i=first;i<=last;i++){
+      var cy=centerY+(i-focus)*rowH;
+      var hitSize=size*(lines[i].isBG?.66:1);
+      if(Math.abs(y-cy)<=hitSize*.75) return lines[i];
+    }
     return null;
   }
 
   async function loadTrack(data) {
     data=data||{};var source=data.ttmlLyrics!=null?data.ttmlLyrics:data.lyrics||'',lyrics;
     if(Array.isArray(source))lyrics=normaliseLines(source);
-    else if(data.format==='lrc'||(!data.ttmlLyrics&&typeof source==='string'&&/^\s*\[\d+:\d+\.\d+\]/m.test(source)))lyrics=parseAppleLRC(source);
+    else if(data.format==='lrc'||(!data.ttmlLyrics&&typeof source==='string'&&/^\s*\[\d+:\d+(?:\.\d+)?\]/m.test(source)))lyrics=parseAppleLRC(source);
     else lyrics=parseAppleTTML(source);
     if(window.state){
       window.state.lyrics.lines=lyrics.map(function(line){return {...line,time:line.startTime/1000,endTime:line.endTime/1000,words:line.words.map(function(word){return {...word,text:word.word,time:word.startTime/1000,endTime:word.endTime/1000};})};});
@@ -270,6 +296,6 @@
 
   window.kefeAppleLyricsEffect=effect;
   window.kefeAppleLyrics=Object.freeze({...effect,FONT_STACK:FONT_STACK,parseAppleTTML:parseAppleTTML,parseAppleLRC:parseAppleLRC,renderAppleLyrics:renderAppleLyrics,hitTest:hitTest,loadTrack:loadTrack});
-  window.loadTrack=loadTrack;
+  if(typeof window.loadTrack!=='function') window.loadTrack=loadTrack;
   window.KEFE_APPLE_FONT_STACK=FONT_STACK;
 })();
