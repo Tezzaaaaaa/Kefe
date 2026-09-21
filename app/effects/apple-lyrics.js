@@ -246,16 +246,17 @@
     var visible=Math.max(3,Math.min(7,Math.round(num(config.visibleLines,4))));
     var margin=Math.max(36,w*.075);
     var maxWidth=w-margin*2;
+    var ctx=canvas.getContext('2d');
     var widestText='',widestWidth=0;
     lines.forEach(function(line){
       var words=Array.isArray(line.words)&&line.words.length?line.words:[{word:line.text||''}];
       var text=words.map(function(x){return String(x.word||'');}).join(' ').trim();
       if(text){
-        var measured=measure(window.__kefeAppleHitCtx||canvas.getContext('2d'),text,baseSize,700);
+        var measured=measure(ctx,text,baseSize,700);
         if(measured>widestWidth){widestWidth=measured;widestText=text;}
       }
     });
-    var size=widestWidth>maxWidth ? fitSize(window.__kefeAppleHitCtx||canvas.getContext('2d'),widestText,baseSize,maxWidth) : baseSize;
+    var size=widestWidth>maxWidth ? fitSize(ctx,widestText,baseSize,maxWidth) : baseSize;
     size=clamp(size,18,baseSize);
     var rowH=size*lineHeight+spacing;
     var half=Math.floor(visible/2);
