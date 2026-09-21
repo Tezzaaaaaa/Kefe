@@ -74,3 +74,12 @@ body.wizard-mode .wizard-choices.wizard-source-choices {
 .wizard-choices:not(.wizard-source-choices) .wizard-choice-copy strong{font-size:13px!important}
 .wizard-choices:not(.wizard-source-choices) .wizard-choice-copy span{font-size:11px!important}
 }
+
+/* Pathway cards: uppercase titles, description hidden until selected */
+.wizard-choices:not(.wizard-source-choices) .wizard-choice .wizard-choice-copy strong{text-transform:uppercase!important;letter-spacing:0.06em!important;font-weight:700!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice .wizard-choice-copy span{display:none!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice.selected .wizard-choice-copy span{display:block!important;margin-top:6px!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice .kefe-accordion-inner span{display:none!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice.selected .kefe-accordion-inner span{display:block!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice .kefe-accordion-inner p{display:none!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice.selected .kefe-accordion-inner p{display:block!important}
