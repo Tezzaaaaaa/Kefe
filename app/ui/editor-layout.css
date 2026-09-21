@@ -74,3 +74,7 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
 .transport #previewFocusButton svg,.transport .preview-focus-button svg{width:18px;height:18px}
 @media(max-width:700px){.transport{grid-template-columns:44px 44px minmax(0,1fr) auto auto}.transport #previewFocusButton,.transport .preview-focus-button{width:44px;height:44px;min-width:44px}}
 @media(max-width:480px){.transport{grid-template-columns:42px 42px minmax(0,1fr) auto auto}.transport #previewFocusButton,.transport .preview-focus-button{width:42px;height:42px;min-width:42px}}
+
+/* UNIFORM BUTTONS */
+button,.play-button,.transport .play-button,.transport .icon-button,#previewFocusButton,.preview-focus-button,.wizard-nav button,.wizard-back,.wizard-next{height:40px!important;min-height:40px!important;max-height:40px!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important}
+button.icon-button,.play-button,.transport .play-button,.transport .icon-button,#previewFocusButton,.preview-focus-button{width:40px!important;min-width:40px!important;padding:0!important}
