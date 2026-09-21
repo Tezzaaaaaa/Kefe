@@ -160,3 +160,5 @@
 })();
 
 ;(function(){if(window.__kefeLogoBackdrop)return;window.__kefeLogoBackdrop=true;function ensure(){var w=document.querySelector(".preview .canvas-wrapper");if(!w)return null;var e=w.querySelector(".preview-logo-backdrop");if(!e){e=document.createElement("div");e.className="preview-logo-backdrop";w.appendChild(e)}return e}function hasMedia(){var s=window.state||{},m=window.kefeMedia||{};return Boolean((s.audio&&s.audio.file)||m.video||m.image||m.videoFile)}function tick(){var e=ensure();if(!e)return;e.style.display=hasMedia()?"none":"block"}tick();setInterval(tick,400)})();
+
+;(function(){if(window.__kefeHideUntitled)return;window.__kefeHideUntitled=true;function hide(){var p=document.querySelector(".preview");if(!p)return;p.querySelectorAll("*").forEach(function(el){if(el.children.length===0&&el.textContent.trim().toUpperCase()==="UNTITLED"){el.style.display="none"}})}hide();setInterval(hide,400)})();
