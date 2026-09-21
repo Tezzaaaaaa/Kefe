@@ -212,6 +212,8 @@ export async function exportVideoWebCodecs({
     canvas.height = config.height;
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) throw new Error('Could not create WebCodecs export canvas');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     const output = new Output({
         format: new Mp4OutputFormat({ fastStart: 'in-memory' }),
