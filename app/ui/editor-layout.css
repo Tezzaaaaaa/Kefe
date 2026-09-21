@@ -123,3 +123,8 @@ header .theme-control,label.theme-control,.theme-control,#themeSelect,.header-ac
 .transport #seek,.transport .slider,.transport input[type=range]{grid-column:3!important;width:100%!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important}
 .transport #clock{grid-column:4!important;min-width:80px!important;text-align:right!important}
 .transport #previewFocusButton,.transport .preview-focus-button{grid-column:5!important;display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+
+/* Kill UNTITLED text everywhere in preview */
+.preview [class*=untitled],.preview [id*=untitled],.canvas-wrapper [class*=untitled],.canvas-wrapper [id*=untitled]{display:none!important;visibility:hidden!important}
+/* KEFE logo backdrop: no box, no border, pure transparent glyph */
+.preview-logo-backdrop{background-color:transparent!important;border:none!important;box-shadow:none!important;outline:none!important;padding:0!important;opacity:0.55!important;mix-blend-mode:screen!important;filter:drop-shadow(0 0 24px rgba(239,63,56,0.25))!important}
