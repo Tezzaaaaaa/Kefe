@@ -33,7 +33,8 @@
 
   /* Typography — matches typography.css, repeated here so this file is
      self-contained if loaded alone. */
-  --font-ui: "Inter Tight", "Open Sans", Arial, sans-serif;
+  --kefe-font-ui: "Figtree", "SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --font-ui: var(--kefe-font-ui);
 
   /* Transitions */
   --ease: cubic-bezier(.2,.72,.2,1);
@@ -684,3 +685,14 @@ body[data-project-type="visualiser"] #backgroundSection .background-choice[data-
   background: var(--surface-2) !important;
   border-color: var(--line) !important;
 }
+
+@font-face{font-family:"Figtree";font-style:normal;font-weight:400;font-display:swap;src:url("../../fonts/figtree/Figtree-Regular.woff2") format("woff2"),url("../../fonts/figtree/Figtree-Regular.ttf") format("truetype");}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:500;font-display:swap;src:url("../../fonts/figtree/Figtree-Medium.woff2") format("woff2"),url("../../fonts/figtree/Figtree-Medium.ttf") format("truetype");}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:600;font-display:swap;src:url("../../fonts/figtree/Figtree-SemiBold.woff2") format("woff2"),url("../../fonts/figtree/Figtree-SemiBold.ttf") format("truetype");}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:700;font-display:swap;src:url("../../fonts/figtree/Figtree-Bold.woff2") format("woff2"),url("../../fonts/figtree/Figtree-Bold.ttf") format("truetype");}
+@font-face{font-family:"Faustina";font-style:normal;font-weight:400;font-display:swap;src:url("../../fonts/faustina/Faustina-Regular.woff2") format("woff2"),url("../../fonts/faustina/Faustina-Regular.ttf") format("truetype");}
+@font-face{font-family:"Faustina";font-style:italic;font-weight:400;font-display:swap;src:url("../../fonts/faustina/Faustina-Italic.woff2") format("woff2"),url("../../fonts/faustina/Faustina-Italic.ttf") format("truetype");}
+@font-face{font-family:"Faustina";font-style:normal;font-weight:500;font-display:swap;src:url("../../fonts/faustina/Faustina-Medium.woff2") format("woff2"),url("../../fonts/faustina/Faustina-Medium.ttf") format("truetype");}
+@font-face{font-family:"Faustina";font-style:normal;font-weight:600;font-display:swap;src:url("../../fonts/faustina/Faustina-SemiBold.woff2") format("woff2"),url("../../fonts/faustina/Faustina-SemiBold.ttf") format("truetype");}
+@font-face{font-family:"Bagel Fat";font-style:normal;font-weight:400;font-display:swap;src:url("../../fonts/bagelfat/BagelFat-Regular.woff2") format("woff2"),url("../../fonts/bagelfat/BagelFat-Regular.ttf") format("truetype");}
+body,button,input,select,textarea{font-family:var(--kefe-font-ui);}
