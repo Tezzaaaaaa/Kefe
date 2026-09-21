@@ -105,7 +105,7 @@
   /* 3 — CINEMATIC FLUID */
   function cinematicFluid(ctx,w,h,time,frame,appState){
     var s=controls(appState,'cinematicfluid'),a=audio(frame);
-    ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.075)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
+    ctx.save();ctx.globalCompositeOperation='source-over';ctx.globalCompositeOperation='lighter';
     var fluidCount=Math.max(80,Math.round(260*s.detail));
     for(var i=0;i<fluidCount;i++){
       var x0=typeof noise.hash==='function'?noise.hash(i*2+11):hash(i*2+11);
@@ -143,7 +143,7 @@
   /* 5 — COSMIC ATTRACTOR */
   function cosmicAttractor(ctx,w,h,time,frame,appState){
     var s=controls(appState,'cosmicattractor'),a=audio(frame),cx=w*.5,cy=h*.5,min=Math.min(w,h);
-    ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.09)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
+    ctx.save();ctx.globalCompositeOperation='source-over';ctx.globalCompositeOperation='lighter';
     var attractCount=Math.max(250,Math.round(700*s.detail));
     for(var i=0;i<attractCount;i++){
       var sx=typeof noise.hash==='function'?noise.hash(i*3+1):hash(i*3+1);
@@ -194,7 +194,7 @@
   /* 8 — HOLOGRAPHIC RIBBON SCULPTURE */
   function ribbon(ctx,w,h,time,frame,appState){
     var s=controls(appState,'holographicribbon'),a=audio(frame),min=Math.min(w,h);
-    ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(0,0,0,.1)';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='lighter';
+    ctx.save();ctx.globalCompositeOperation='source-over';ctx.globalCompositeOperation='lighter';
     for(var band=0;band<Math.max(3,Math.round(7*s.detail));band++){
       ctx.beginPath();
       for(var i=0;i<=160;i++){var u=i/160, x=u*w, y=h*.5+Math.sin(u*TAU*(1.2+band*.13)+time*(.3+band*.04)*s.motion)*h*(.13+band*.012)+Math.sin(u*TAU*3-time)*h*.035*a.b*s.react; y+=(band-3)*min*.035; i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
