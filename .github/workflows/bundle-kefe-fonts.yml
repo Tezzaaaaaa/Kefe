@@ -1,0 +1,37 @@
+name: Bundle self-hosted KEFE fonts
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fonts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install --disable-pip-version-check fonttools
+      - name: Download and convert requested weights
+        run: |
+          set -euo pipefail
+          if test -f fonts/figtree/Figtree-Regular.ttf && test -f fonts/faustina/Faustina-Regular.ttf && test -f fonts/bagelfat/BagelFat-Regular.ttf; then exit 0; fi
+          mkdir -p fonts/figtree fonts/faustina fonts/bagelfat
+          dl(){ curl -fsSL --retry 3 -o "$2" "$1"; }
+          cv(){ python - "$1" "$2" <<'PY'
+import sys
+from fontTools.ttLib import TTFont
+font=TTFont(sys.argv[1]); font.flavor='woff2'; font.save(sys.argv[2])
+PY
+          }
+          for f in Figtree-Regular Figtree-Medium Figtree-SemiBold Figtree-Bold; do dl "https://raw.githubusercontent.com/erikdkennedy/figtree/master/fonts/ttf/$f.ttf" "fonts/figtree/$f.ttf"; cv "fonts/figtree/$f.ttf" "fonts/figtree/$f.woff2"; done
+          for f in Faustina-Regular Faustina-Italic Faustina-Medium Faustina-SemiBold; do dl "https://raw.githubusercontent.com/Omnibus-Type/Faustina/master/fonts/ttf/$f.ttf" "fonts/faustina/$f.ttf"; cv "fonts/faustina/$f.ttf" "fonts/faustina/$f.woff2"; done
+          dl "https://raw.githubusercontent.com/JAMO-TYPEFACE/BagelFat/main/Fonts/ttf/BagelFatOne-Regular.ttf" "fonts/bagelfat/BagelFat-Regular.ttf"
+          cv "fonts/bagelfat/BagelFat-Regular.ttf" "fonts/bagelfat/BagelFat-Regular.woff2"
+      - name: Commit bundled fonts
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add fonts
+          git diff --cached --quiet || git commit -m "Bundle self-hosted fonts"
+          git push
