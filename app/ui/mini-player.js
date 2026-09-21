@@ -186,27 +186,45 @@
     const label = expanded ? 'Show disc' : 'Show cover art';
     card.setAttribute('aria-label', label);
     card.title = expanded ? 'Tap to show disc' : 'Tap to show cover art';
-    if (expanded) {
-      // Let the disc coast round to upright before the cover opens up.
-      const to = Math.ceil(angle / 360) * 360;
-      settle = { from: angle, to, start: performance.now(), dur: reduceMotion.matches ? 0 : 650 };
-      spinVel = 0;
-    } else {
+    if (reduceMotion.matches) {
       settle = null;
+      spinVel = 0;
+      spinEl.style.transform = 'rotate(0deg)';
+      return;
     }
+    const direction = expanded ? 1 : -1;
+    const target = expanded ? Math.ceil(angle / 360) * 360 : angle;
+    settle = {
+      from: angle,
+      to: target,
+      start: performance.now(),
+      dur: 420,
+      velocity: Math.max(0, Math.abs(spinVel)) * direction
+    };
+    spinVel = 0;
+    card.classList.remove('is-morphing');
+    void card.offsetWidth;
+    card.classList.add('is-morphing');
+    window.setTimeout(() => card.classList.remove('is-morphing'), 460);
   }
+
   function stepSpin(now, dt) {
     if (settle) {
-      const t = settle.dur ? Math.min(1, (now - settle.start) / settle.dur) : 1;
-      angle = settle.from + (settle.to - settle.from) * (1 - Math.pow(1 - t, 3));
-      if (t >= 1) { angle = 0; settle = null; }
+      const t = Math.min(1, (now - settle.start) / settle.dur);
+      const eased = 1 - Math.pow(1 - t, 4);
+      angle = settle.from + (settle.to - settle.from) * eased;
+      if (t >= 1) {
+        angle = settle.to;
+        settle = null;
+      }
     } else {
       const target = !expanded && !audio.paused && !reduceMotion.matches ? SPIN_DEG_PER_SEC : 0;
-      spinVel += (target - spinVel) * Math.min(1, dt * 3);
-      if (Math.abs(spinVel) < 0.01 && !target) spinVel = 0;
+      const stiffness = target ? 7.5 : 4.2;
+      spinVel += (target - spinVel) * Math.min(1, dt * stiffness);
+      if (!target) spinVel *= Math.max(0, 1 - dt * 1.8);
       angle = (angle + spinVel * dt) % 360;
     }
-    spinEl.style.transform = `rotate(${angle.toFixed(2)}deg)`;
+    spinEl.style.transform = `translateZ(0) rotate(${angle.toFixed(2)}deg)`;
   }
   function renderQueue() {
     $('kefeMiniQueueCount').textContent = `${tracks.length} ${tracks.length === 1 ? 'track' : 'tracks'}`;
@@ -727,6 +745,9 @@
   $('kefeMiniPrev').addEventListener('click', prev);
   $('kefeMiniUpload').addEventListener('click', () => $('kefeMiniFiles').click());
   $('kefeMiniFiles').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+  seekEl.addEventListener('pointerdown', () => seekEl.classList.add('is-scrubbing'));
+  seekEl.addEventListener('pointerup', () => seekEl.classList.remove('is-scrubbing'));
+  seekEl.addEventListener('pointercancel', () => seekEl.classList.remove('is-scrubbing'));
   seekEl.addEventListener('input', e => {
     audio.currentTime = Number(e.target.value) || 0;
     $('kefeMiniCurrent').textContent = fmtCur(audio.currentTime);
