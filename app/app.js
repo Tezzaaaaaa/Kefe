@@ -13,8 +13,7 @@ function drawCompactNowPlaying(ctx, w, h, appState, progress = 1) {
     const maxWidth = Math.min(w - margin * 2, Math.max(180, unit * 0.72));
     const eased = linaSmoother(linaClamp(progress));
     // Apple-style now-playing card stays anchored on the left.\n    const anchorRight = false;
-    const titleSize = Math.max(15, Math.min(24, unit * 0.026));
-    const secondarySize = Math.max(11, titleSize * 0.64);
+    // Keep the compact card locked to the same typography scale as Apple lyrics.\n    const lyricSize = linaClamp(Number(appState.style.fontSize) || 76, 36, 120);\n    const titleSize = linaClamp(lyricSize * 0.32, 15, 38);\n    const secondarySize = Math.max(11, titleSize * 0.64);
 
     ctx.save();
     ctx.textBaseline = 'middle';
@@ -1006,7 +1005,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     // never collide with metadata or change their rhythm unexpectedly.
     const artworkSize = artwork ? linaClamp(unit * 0.18, 126, 220) : 0;
     const artworkGap = artwork ? unit * 0.055 : 0;
-    const titleStartSize = linaClamp(unit * 0.066, 36, 88);
+    // The title-card title tracks the lyric scale instead of the viewport alone,\n    // so its relationship to the lyric typography remains stable at every layout size.\n    const lyricSize = linaClamp(Number(appState.style.fontSize) || 76, 36, 120);\n    const titleStartSize = linaClamp(lyricSize * 0.94, 36, 112);
     const titleMinSize = 30;
     let titleSize = titleStartSize;
     let titleRows = [];
