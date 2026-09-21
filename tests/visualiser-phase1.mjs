@@ -29,6 +29,8 @@ await new Promise((resolve, reject) => { server.once('error', reject); server.li
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+const cdp = await page.context().newCDPSession(page);
+await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
 page.setDefaultTimeout(15000);
 
 try {
@@ -81,19 +83,29 @@ try {
   }
 
   const parity = await page.evaluate((modes) => {
-    const frame = { bass: 0.7, mids: 0.5, treble: 0.6, energy: 0.65, flux: 0.32 };
+    const frameCount = 8;
+    const analysis = {
+      frameHopMs: 1000 / 30,
+      energy: Array.from({ length: frameCount }, (_, i) => 0.55 + i * 0.01),
+      bands: Array.from({ length: frameCount }, (_, i) => ({ bass: 0.65 + i * 0.005, mids: 0.45, treble: 0.55 })),
+      flux: Array.from({ length: frameCount }, () => 0.25)
+    };
+    window.dispatchEvent(new CustomEvent('kefe:audio-analysis-ready', { detail: analysis }));
     const results = {};
+    window.state.projectType = 'visualiser';
+    window.state.background = { type: 'solid', solid: '#000000', dim: 0, blur: 0 };
+    window.state.style.titleCardEnabled = false;
+    window.state.playback.currentTime = 100 / 30;
     for (const mode of modes) {
+      window.state.style.visualiserStyle = mode;
       const preview = document.createElement('canvas');
       preview.width = preview.height = 640;
       const pctx = preview.getContext('2d');
       const exportCanvas = document.createElement('canvas');
       exportCanvas.width = exportCanvas.height = 640;
       const ectx = exportCanvas.getContext('2d');
-      pctx.clearRect(0,0,640,640);
-      ectx.clearRect(0,0,640,640);
-      window.kefePremiumVisualisers[mode](pctx,640,640,100/30,frame,{style:{}});
-      window.kefePremiumVisualisers[mode](ectx,640,640,100/30,frame,{style:{}});
+      window.render(pctx, 640, 640, window.state, window.media || {});
+      window.kefeRenderFrame(ectx, 640, 640, 100 / 30, window.media || {});
       const a=pctx.getImageData(0,0,640,640).data, b=ectx.getImageData(0,0,640,640).data;
       let different=0;
       for(let i=0;i<a.length;i++) if(a[i]!==b[i]) different++;
@@ -132,7 +144,7 @@ try {
     return results;
   }, modes);
 
-  console.log(JSON.stringify({ determinism, parity, performance }, null, 2));
+  console.log(JSON.stringify({ verification: 'desktop 4x CPU-throttled approximation', determinism, parity, performance }, null, 2));
   process.stdout.write(JSON.stringify({ determinism, parity, performance }));
 } finally {
   await browser.close();
