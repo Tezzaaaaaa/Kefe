@@ -136,6 +136,8 @@
   let settle = null;
   let lastFrame = 0;
   let lastProgress = -1;
+  let progressTarget = 0;
+  let progressVisual = 0;
   const fmt = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`; };
   const fmtCur = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)} : ${String(Math.floor(t % 60)).padStart(2, '0')}`; };
   const esc = value => String(value || '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
@@ -174,7 +176,7 @@
     const p = dur > 0 ? Math.min(1, Math.max(0, (audio.currentTime || 0) / dur)) : 0;
     if (Math.abs(p - lastProgress) < 0.0005) return;
     lastProgress = p;
-    progressEl.style.transform = `scaleX(${p})`;
+    progressTarget = p;
     seekEl.style.setProperty('--p', `${(p * 100).toFixed(2)}%`);
   }
   function setExpanded(value) {
@@ -208,6 +210,19 @@
     window.setTimeout(() => card.classList.remove('is-morphing'), 460);
   }
 
+  function stepProgress(dt) {
+    const delta = progressTarget - progressVisual;
+    progressVisual += delta * Math.min(1, dt * 12);
+    if (Math.abs(delta) < 0.0005) progressVisual = progressTarget;
+    progressEl.style.transform = `scaleX(${progressVisual.toFixed(4)})`;
+  }
+
+  function spinTargetSpeed() {
+    const bpm = Number(getState()?.audio?.metadata?.bpm || getState()?.audio?.bpm || 0);
+    if (bpm > 20 && bpm < 320) return Math.max(18, Math.min(96, bpm * 0.5));
+    return SPIN_DEG_PER_SEC;
+  }
+
   function stepSpin(now, dt) {
     if (settle) {
       const t = Math.min(1, (now - settle.start) / settle.dur);
@@ -218,7 +233,7 @@
         settle = null;
       }
     } else {
-      const target = !expanded && !audio.paused && !reduceMotion.matches ? SPIN_DEG_PER_SEC : 0;
+      const target = !expanded && !audio.paused && !reduceMotion.matches ? spinTargetSpeed() : 0;
       const stiffness = target ? 7.5 : 4.2;
       spinVel += (target - spinVel) * Math.min(1, dt * stiffness);
       if (!target) spinVel *= Math.max(0, 1 - dt * 1.8);
@@ -253,6 +268,7 @@
     if (!player.classList.contains('is-hidden')) {
       stepSpin(now, dt);
       syncProgress();
+      stepProgress(dt);
       drawVinylVisualizer(now);
       try {
         getState().style.visualiserStyle = 'butterchurn';
