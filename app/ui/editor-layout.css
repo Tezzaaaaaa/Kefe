@@ -82,3 +82,8 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 /* Seek slider fills the transport row */
 .transport #seek,.transport .slider{flex:1 1 auto!important;width:100%!important;min-width:120px!important;max-width:none!important;margin:0!important}
 .transport{gap:10px!important;align-items:center!important}
+
+/* Day mode readability */
+[data-theme="day"],[data-theme="light"],body.day,body.light{--bg:#F5F2EC!important;--surface:#FFFFFF!important;--surface-2:#FAF7F2!important;--surface-3:#EFEBE3!important;--text:#1A1714!important;--text-2:#4A443D!important;--text-3:#6E675E!important;--line:rgba(0,0,0,0.10)!important;--line-strong:rgba(0,0,0,0.18)!important}
+[data-theme="day"] .sidebar>.section,[data-theme="light"] .sidebar>.section,body.day .sidebar>.section,body.light .sidebar>.section{background:#FFFFFF!important}
+[data-theme="day"] button,[data-theme="light"] button,body.day button,body.light button{color:#1A1714!important}
