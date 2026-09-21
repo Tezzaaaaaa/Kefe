@@ -49,6 +49,7 @@
 
   const SPEC = {
     apple:       { font: 1.00, box: fullBox },
+    concrete:    { font: 1.00, box: fullBox },
     brat:        { font: 1.75, box: squareBox },
     eternal:     { font: 1.20, box: (w, h) => ({ cx: .5, cy: .5, w: .90 * w, h: (w > h ? .80 : .70) * h }) },
     aurora:      { font: 1.55, box: stdBox },
