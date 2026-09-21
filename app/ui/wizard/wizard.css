@@ -58,3 +58,19 @@ body.wizard-mode .wizard-choices.wizard-source-choices {
   grid-template-columns: 1fr !important;
   gap: 10px !important;
 }
+
+/* Compact pathway cards — mobile-first */
+@media(max-width:900px){.wizard-choices{gap:8px!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice{padding:12px 14px!important;min-height:auto!important;gap:6px!important;grid-template-columns:1fr!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice .wizard-choice-icon{display:none!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice .wizard-choice-copy{gap:2px!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice-copy strong{font-size:14px!important;line-height:1.2!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice-copy span{font-size:11.5px!important;line-height:1.4!important;margin-top:0!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice .kefe-accordion-inner{padding:0!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice .kefe-accordion-inner span:not(:first-child),.wizard-choices:not(.wizard-source-choices) .wizard-choice .kefe-accordion-inner p{display:none!important}
+}
+@media(max-width:560px){.wizard-choices{gap:6px!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice{padding:10px 12px!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice-copy strong{font-size:13px!important}
+.wizard-choices:not(.wizard-source-choices) .wizard-choice-copy span{font-size:11px!important}
+}
