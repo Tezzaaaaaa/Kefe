@@ -91,3 +91,21 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 /* Day mode disabled — dark only */
 .theme-control,.theme-control>*,#themeSelect,label[for="themeSelect"],header .theme-control{display:none!important;visibility:hidden!important;pointer-events:none!important;width:0!important;height:0!important;overflow:hidden!important;position:absolute!important;left:-9999px!important}
 html,body{color-scheme:dark!important}
+
+/* FORCE HIDE THEME TOGGLE */
+header .theme-control,label.theme-control,.theme-control,#themeSelect,.header-actions>.theme-control{display:none!important;visibility:hidden!important;opacity:0!important;width:0!important;height:0!important;padding:0!important;margin:0!important;border:0!important;overflow:hidden!important;position:absolute!important;left:-99999px!important;pointer-events:none!important}
+/* MOBILE: keep preview heading in one row, aspect chips inline on the right */
+@media(max-width:900px){
+.preview-toolbar{flex-wrap:nowrap!important;gap:8px!important;padding:10px 12px!important}
+.preview-heading{flex-wrap:nowrap!important;gap:6px!important;width:auto!important;flex:1 1 auto!important;min-width:0!important;overflow:hidden!important}
+.preview-heading strong{font-size:13px!important;flex:0 0 auto!important}
+.preview-heading #previewStatus{display:none!important}
+.preview-heading #previewModeBadge,.preview-heading .mode-badge{display:none!important}
+.preview-heading .kefe-sync-toggle{display:none!important}
+.preview-heading .preview-format{margin-left:auto!important;flex:0 0 auto!important;height:36px!important;padding:3px!important;gap:2px!important}
+.preview-heading .preview-format button{height:28px!important;padding:0 8px!important;font-size:11px!important}
+}
+@media(max-width:480px){
+.preview-heading .preview-format button{padding:0 6px!important;font-size:10.5px!important}
+.preview-heading strong{font-size:12px!important}
+}
