@@ -1,0 +1,75 @@
+/* KEFE MiniPlayer — 3 skins: ipod, glass, neum */
+#kefeMiniPlayer{position:fixed;bottom:16px;right:16px;z-index:9998;font-family:-apple-system,"Open Sans",Arial,sans-serif;user-select:none;-webkit-user-select:none;cursor:grab;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+#kefeMiniPlayer.dragging{cursor:grabbing;transition:none}
+.kmp-switch{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10}
+.kmp-switch:hover{background:rgba(255,255,255,.22)}
+.kmp-btn{cursor:pointer;transition:transform .1s ease,opacity .1s ease}
+.kmp-btn:active{transform:scale(.93);opacity:.7}
+
+/* iPOD CLASSIC */
+.kmp-ipod{width:220px;padding:14px 14px 20px;border-radius:26px;background:linear-gradient(160deg,#3a3d47,#2b2d35)}
+.kmp-ipod-screen{position:relative;background:linear-gradient(180deg,#1c2430,#0e1218);border-radius:10px;padding:10px 12px;color:#fff;box-shadow:inset 0 0 8px rgba(0,0,0,.7);overflow:hidden;min-height:120px;background-size:cover;background-position:center}
+.kmp-ipod-screen[data-art]::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 60%,rgba(0,0,0,.9) 100%);pointer-events:none;z-index:0}
+.kmp-ipod-screen>*{position:relative;z-index:1}
+.kmp-ipod-status{font-size:8px;letter-spacing:.08em;opacity:.6;display:flex;justify-content:space-between;margin-bottom:6px}
+.kmp-ipod-title{font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.kmp-ipod-artist{font-size:10px;opacity:.75;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.kmp-ipod-progress{height:3px;background:rgba(255,255,255,.20);border-radius:2px;margin-bottom:4px;overflow:hidden;margin-top:20px}
+.kmp-ipod-progress>i{display:block;height:100%;background:#fff;transition:width .3s ease}
+.kmp-ipod-time{font-size:9px;opacity:.65;display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.kmp-ipod-wheel{width:140px;height:140px;border-radius:50%;background:#141414;margin:14px auto 0;position:relative;box-shadow:inset 0 0 18px rgba(0,0,0,.9),0 2px 6px rgba(0,0,0,.4)}
+.kmp-ipod-wheel>div{position:absolute;color:#8a8a8a;display:flex;align-items:center;justify-content:center;font-size:13px}
+.kmp-ipod-wheel .kmp-menu{top:6px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:.16em;font-weight:700}
+.kmp-ipod-wheel .kmp-prev{left:8px;top:50%;transform:translateY(-50%)}
+.kmp-ipod-wheel .kmp-next{right:8px;top:50%;transform:translateY(-50%)}
+.kmp-ipod-wheel .kmp-play{bottom:6px;left:50%;transform:translateX(-50%)}
+.kmp-ipod-wheel .kmp-center{inset:38px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#222,#0a0a0a);border:1px solid #000;cursor:pointer}
+
+/* GLASS CARD */
+.kmp-glass{width:260px;border-radius:28px;background:rgba(240,240,242,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.7)}
+.kmp-gl-art{height:170px;background:linear-gradient(135deg,#2a3a2a,#1a2020 60%,#3a2a3a);position:relative;overflow:hidden;background-size:cover;background-position:center}
+.kmp-gl-art::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 50% 40%,rgba(240,240,240,.9),rgba(168,168,168,.8) 70%);box-shadow:0 0 20px rgba(0,0,0,.5),inset 0 -2px 4px rgba(0,0,0,.2);z-index:1}
+.kmp-gl-body{padding:14px 16px 18px;color:#1a1a1a;text-align:center}
+.kmp-gl-bars{display:flex;justify-content:center;gap:2px;height:14px;align-items:flex-end;margin-bottom:8px;opacity:.5}
+.kmp-gl-bars>span{width:2px;background:#1a1a1a;height:6px}
+.kmp-gl-bars>span:nth-child(2){height:12px}
+.kmp-gl-bars>span:nth-child(3){height:8px}
+.kmp-gl-bars>span:nth-child(4){height:14px}
+.kmp-gl-bars>span:nth-child(5){height:10px}
+.kmp-gl-artist{font-size:12px;color:#6a6a6a;margin-bottom:2px}
+.kmp-gl-title{font-size:15px;font-weight:700;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kmp-gl-progress{width:60px;height:2px;background:rgba(0,0,0,.12);margin:0 auto 8px;border-radius:2px;overflow:hidden}
+.kmp-gl-progress>i{display:block;height:100%;background:#1a1a1a;transition:width .3s ease}
+.kmp-gl-time{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.kmp-gl-time small{color:#8a8a8a;font-weight:400}
+.kmp-gl-controls{display:flex;justify-content:center;gap:14px;margin-top:12px}
+.kmp-gl-btn{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.08);color:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:12px}
+.kmp-gl-btn:hover{background:rgba(0,0,0,.08)}
+
+/* NEUMORPHIC */
+.kmp-neum{width:280px;padding:20px;border-radius:28px;background:#e8ebee;box-shadow:12px 12px 24px rgba(0,0,0,.12),-12px -12px 24px rgba(255,255,255,.95);color:#2a2d33}
+.kmp-nm-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.kmp-nm-date{font-size:22px;font-weight:300;line-height:1;letter-spacing:-.02em}
+.kmp-nm-date b{font-weight:600}
+.kmp-nm-clock{font-size:11px;color:#8a8d94;letter-spacing:.06em;margin-top:4px}
+.kmp-nm-badge{display:flex;gap:6px}
+.kmp-nm-badge>span{width:22px;height:22px;border-radius:50%;background:#e8ebee;box-shadow:inset 2px 2px 4px rgba(0,0,0,.08),inset -2px -2px 4px rgba(255,255,255,.9);font-size:8px;display:flex;align-items:center;justify-content:center;color:#8a8d94}
+.kmp-nm-track{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:16px;background:#e8ebee;box-shadow:inset 4px 4px 8px rgba(0,0,0,.06),inset -4px -4px 8px rgba(255,255,255,.95);margin-bottom:16px}
+.kmp-nm-track-info{flex:1;min-width:0}
+.kmp-nm-track-label{font-size:8px;color:#8a8d94;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.kmp-nm-track-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kmp-nm-track-tag{font-size:8px;padding:2px 6px;border-radius:4px;background:#d8dce0;color:#5a5d64;font-weight:700}
+.kmp-nm-btn{width:30px;height:30px;border-radius:50%;background:#e8ebee;box-shadow:3px 3px 6px rgba(0,0,0,.10),-3px -3px 6px rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;color:#5a5d64;font-size:11px}
+.kmp-nm-btn:hover{box-shadow:inset 2px 2px 4px rgba(0,0,0,.10),inset -2px -2px 4px rgba(255,255,255,.95)}
+.kmp-nm-bottom{display:flex;gap:14px;align-items:center}
+.kmp-nm-disc{width:90px;height:90px;border-radius:50%;background:radial-gradient(circle at 50% 45%,#f0f2f4,#c8ccd2 70%);box-shadow:6px 6px 12px rgba(0,0,0,.10),-6px -6px 12px rgba(255,255,255,.95),inset 0 0 6px rgba(0,0,0,.04);position:relative;flex:0 0 auto}
+.kmp-nm-disc::after{content:"";position:absolute;inset:28px;border-radius:50%;background:#e8ebee;box-shadow:inset 2px 2px 4px rgba(0,0,0,.10),inset -2px -2px 4px rgba(255,255,255,.95)}
+.kmp-nm-hand{position:absolute;left:50%;top:50%;transform-origin:bottom center;background:#2a2d33;border-radius:1px;transform:translate(-50%,-100%)}
+.kmp-nm-hand-h{width:2px;height:26px}
+.kmp-nm-hand-m{width:1.5px;height:36px;background:#5a5d64}
+.kmp-nm-art{width:70px;height:70px;border-radius:14px;background:linear-gradient(135deg,#3a3a42,#1a1a20);position:relative;flex:0 0 auto;overflow:hidden;background-size:cover;background-position:center}
+.kmp-nm-art::after{content:"";position:absolute;top:4px;right:4px;width:14px;height:14px;background:#e8ebee;border-radius:50%;color:#ef3f38;font-size:8px;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 4px rgba(0,0,0,.10);z-index:1}
+.kmp-nm-transport{display:flex;gap:8px;align-items:center}
+.kmp-nm-pill{padding:6px 12px;border-radius:14px;background:#e8ebee;box-shadow:3px 3px 6px rgba(0,0,0,.10),-3px -3px 6px rgba(255,255,255,.95);display:flex;gap:8px;align-items:center;color:#5a5d64;font-size:11px}
+.kmp-nm-pill:hover{box-shadow:inset 2px 2px 4px rgba(0,0,0,.10),inset -2px -2px 4px rgba(255,255,255,.95)}
+.kmp-nm-time{font-size:9px;color:#8a8d94;font-variant-numeric:tabular-nums;margin-left:auto}
