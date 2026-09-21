@@ -11,7 +11,7 @@
   player.setAttribute('aria-label', 'KEFE Now Playing');
   player.innerHTML = `
     <div class="kefe-mini-shell">
-      <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><div class="kefe-mini-topline-actions"><button type="button" id="kefeMiniSkinToggle" class="kefe-mini-icon-button" aria-label="Switch MiniPlayer skin" title="Switch MiniPlayer skin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9A9 9 0 0 0 12 3z"/><path d="M12 7v10M8 10h8M8 14h8"/></svg></button><button type="button" id="kefeMiniFullscreen" class="kefe-mini-icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
+      <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><div class="kefe-mini-topline-actions"><button type="button" id="kefeMiniSkinToggle" class="kefe-mini-icon-button" aria-label="Switch MiniPlayer skin" title="Switch MiniPlayer skin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9A9 9 0 0 0 12 3z"/><path d="M12 7v10M8 10h8M8 14h8"/></svg></button><button type="button" id="kefeMiniFullscreen" class="kefe-mini-icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><button type="button" id="kefeMiniMore" class="kefe-mini-icon-button" aria-label="More options" aria-expanded="false" aria-controls="kefeMiniMoreMenu" title="More options"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></button><div id="kefeMiniMoreMenu" class="kefe-mini-more-menu" role="menu" aria-label="More options" hidden><section class="kefe-mini-more-section" aria-labelledby="kefeMiniPlaybackHeading"><div id="kefeMiniPlaybackHeading" class="kefe-mini-more-heading">Playback</div><div class="kefe-mini-more-playback"><button type="button" id="kefeMiniShuffleTrack" class="kefe-mini-control-icon" aria-label="Shuffle queue" title="Shuffle queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h2c4 0 6 10 10 10h4M16 5h4v4M20 5l-4 4M4 17h2c1.8 0 3-1.5 4-3M16 15h4v4M20 19l-4-4"/></svg></button><button type="button" id="kefeMiniRepeat" class="kefe-mini-control-icon" aria-label="Repeat off" title="Repeat off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7H7a3 3 0 0 0 0 6h1M7 17h10a3 3 0 0 0-6h-1M15 5l2 2-2 2M9 15l-2 2 2 2"/></svg></button></div></section><section class="kefe-mini-more-section" aria-labelledby="kefeMiniLyricsHeading"><div id="kefeMiniLyricsHeading" class="kefe-mini-more-heading">Lyrics</div><button type="button" id="kefeMiniLyricsToggle" class="kefe-mini-lyrics-toggle" aria-expanded="false" aria-controls="kefeMiniLyricsPanel"><span>Lyrics</span><svg class="lyrics-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><section id="kefeMiniLyricsPanel" class="kefe-mini-lyrics-panel" hidden><div class="kefe-mini-lyrics-head"><span>LYRICS</span><button type="button" id="kefeMiniLyricsClose" aria-label="Close lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div id="kefeMiniLyricsContent" class="kefe-mini-lyrics-content"><p>No lyrics loaded</p></div></section></section><section class="kefe-mini-more-section" aria-labelledby="kefeMiniPresetsHeading"><div id="kefeMiniPresetsHeading" class="kefe-mini-more-heading">Presets</div><div class="kefe-mini-preset"><span>Visual</span><select id="kefeMiniPreset" aria-label="Butterchurn preset"></select></div></section><section class="kefe-mini-more-section" aria-labelledby="kefeMiniQueueHeading"><div id="kefeMiniQueueHeading" class="kefe-mini-more-heading">Queue</div><div class="kefe-mini-queue"><div class="kefe-mini-queue-head"><div><span>UP NEXT</span><small>Playlist</small></div><span id="kefeMiniQueueCount">0 tracks</span></div><ol id="kefeMiniQueueList"></ol></div></section></div><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
       <div class="kefe-mini-body">
         <div id="kefeMiniCard" class="kefe-mini-card" role="button" tabindex="0" aria-pressed="false" aria-label="Show cover art" title="Tap to show cover art">
           <button type="button" id="kefeMiniModeToggle" class="kefe-mini-mode-toggle" aria-label="Toggle visualizer mode" title="Toggle visualizer mode"><svg class="viz-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M6 8v8M18 8v8M3 11v2M21 11v2"/></svg><svg class="cd-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M6 12c0-3.31 2.69-6 6-6"/><circle cx="12" cy="12" r="2"/></svg></button>
@@ -21,7 +21,6 @@
             <div id="kefeMiniTitle" class="kefe-mini-title">Nothing queued</div>
             <div id="kefeMiniAlbum" class="kefe-mini-album"></div>
             <div class="kefe-mini-bar" aria-hidden="true"><span id="kefeMiniProgress"></span></div>
-            <div class="kefe-mini-clock"><span id="kefeMiniCurrent" class="cur">0 : 00</span><span class="sep"> / </span><span id="kefeMiniDuration" class="dur">0:00</span></div>
           </div>
           <div class="kefe-mini-art">
             <div class="kefe-mini-spin">
@@ -33,11 +32,10 @@
           </div>
         </div>
         <div class="kefe-mini-controls" aria-label="Playback controls">
-          <button type="button" id="kefeMiniShuffleTrack" class="kefe-mini-control-icon" aria-label="Shuffle queue" title="Shuffle queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h2c4 0 6 10 10 10h4M16 5h4v4M20 5l-4 4M4 17h2c1.8 0 3-1.5 4-3M16 15h4v4M20 19l-4-4"/></svg></button>
           <button type="button" id="kefeMiniPrev" class="kefe-mini-control-icon" aria-label="Previous track" title="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg></button>
           <button type="button" id="kefeMiniPlay" class="kefe-mini-play" aria-label="Play" title="Play"><svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></button>
           <button type="button" id="kefeMiniNext" class="kefe-mini-control-icon" aria-label="Next track" title="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12M6 6l8 6-8 6z"/></svg></button>
-          <button type="button" id="kefeMiniRepeat" class="kefe-mini-control-icon" aria-label="Repeat off" title="Repeat off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7H7a3 3 0 0 0 0 6h1M7 17h10a3 3 0 0 0 0-6h-1M15 5l2 2-2 2M9 15l-2 2 2 2"/></svg></button>
+          <div class="kefe-mini-transport-time"><span id="kefeMiniCurrent" class="cur">0 : 00</span><span class="sep"> / </span><span id="kefeMiniDuration" class="dur">0:00</span></div>
         </div>
         <input id="kefeMiniSeek" class="kefe-mini-seek" type="range" min="0" max="0" step="0.01" value="0" aria-label="Track position">
         <div class="kefe-mini-actions">
@@ -46,13 +44,6 @@
           <button type="button" id="kefeMiniShuffle">Shuffle preset</button>
         </div>
         <div id="kefeMiniNotice" class="kefe-mini-notice" role="status" aria-live="polite" hidden></div>
-        <div class="kefe-mini-preset"><span>Visual</span><select id="kefeMiniPreset" aria-label="Butterchurn preset"></select></div>
-        <button type="button" id="kefeMiniLyricsToggle" class="kefe-mini-lyrics-toggle" aria-expanded="false" aria-controls="kefeMiniLyricsPanel"><span>Lyrics</span><svg class="lyrics-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-        <section id="kefeMiniLyricsPanel" class="kefe-mini-lyrics-panel" hidden>
-          <div class="kefe-mini-lyrics-head"><span>LYRICS</span><button type="button" id="kefeMiniLyricsClose" aria-label="Close lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-          <div id="kefeMiniLyricsContent" class="kefe-mini-lyrics-content"><p>No lyrics loaded</p></div>
-        </section>
-        <div class="kefe-mini-queue"><div class="kefe-mini-queue-head"><div><span>UP NEXT</span><small>Playlist</small></div><span id="kefeMiniQueueCount">0 tracks</span></div><ol id="kefeMiniQueueList"></ol></div>
       </div>
 
         <section class="kefe-mini-vinyl-skin" aria-label="Vinyl CD visualiser skin" hidden>
@@ -803,6 +794,26 @@
   $('kefeMiniClose').addEventListener('click', () => close());
   $('kefeMiniLyricsToggle').addEventListener('click', toggleLyrics);
   $('kefeMiniLyricsClose').addEventListener('click', toggleLyrics);
+  const moreButton = $('kefeMiniMore');
+  const moreMenu = $('kefeMiniMoreMenu');
+  function closeMoreMenu() {
+    if (!moreMenu || moreMenu.hidden) return;
+    moreMenu.hidden = true;
+    moreButton?.setAttribute('aria-expanded', 'false');
+  }
+  function toggleMoreMenu(e) {
+    e?.stopPropagation();
+    if (!moreMenu || !moreButton) return;
+    const open = moreMenu.hidden;
+    moreMenu.hidden = !open;
+    moreButton.setAttribute('aria-expanded', String(open));
+  }
+  moreButton?.addEventListener('click', toggleMoreMenu);
+  document.addEventListener('pointerdown', e => {
+    if (!moreMenu || moreMenu.hidden) return;
+    if (moreMenu.contains(e.target) || moreButton?.contains(e.target)) return;
+    closeMoreMenu();
+  });
 
   function syncFullscreenUI() {
     const button = $('kefeMiniFullscreen');
@@ -854,6 +865,7 @@
     if (!raf) raf = requestAnimationFrame(draw);
   }
   function close() {
+    closeMoreMenu();
     if (document.fullscreenElement === player.querySelector('.kefe-mini-shell')) {
       document.exitFullscreen?.().catch?.(() => {});
     }
