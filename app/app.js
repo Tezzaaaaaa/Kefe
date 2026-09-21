@@ -87,6 +87,8 @@ const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
 const canvas = $('stageCanvas');
 const ctx = canvas.getContext('2d', { alpha: false });
+ctx.imageSmoothingEnabled = true;
+ctx.imageSmoothingQuality = 'high';
 const audio = new Audio();
 window.kefeAudioElement = audio;
 
