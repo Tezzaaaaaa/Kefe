@@ -28,7 +28,7 @@
 .kefe-mini-icon-button:hover,.kefe-mini-close:hover{background:var(--mp-fill);color:var(--mp-ink)}
 
 /* --- card --- */
-.kefe-mini-card{position:relative;display:flex;flex-direction:column;align-items:stretch;width:100%;min-height:720px;padding:330px 14px 14px;box-sizing:border-box;border-radius:23%!important;overflow:hidden;isolation:isolate;transform:translateZ(0);
+.kefe-mini-card{position:relative;display:flex;flex-direction:column;align-items:stretch;width:100%;min-height:560px;padding:330px 14px 14px;box-sizing:border-box;border-radius:23%!important;overflow:hidden;isolation:isolate;transform:translateZ(0);
   container-type:inline-size;cursor:pointer;outline:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;
   background:linear-gradient(180deg,#d0cfd2 0%,#d5d4d7 100%)}
 .kefe-mini-card:focus-visible{box-shadow:0 0 0 3px rgba(17,17,19,.55)}
@@ -55,10 +55,10 @@
 .kefe-mini-clock .sep,.kefe-mini-clock .dur{color:#9a999f}
 
 /* disc / cover art */
-.kefe-mini-art{position:absolute;inset:0;z-index:2;overflow:hidden;border-radius:50%!important;background:#0d0d0f;
+.kefe-mini-art{position:absolute;left:0;top:0;width:100%;height:auto;aspect-ratio:1 / 1;z-index:2;overflow:hidden;border-radius:50%!important;background:#0d0d0f;
   transform:translateY(-54.5%);box-shadow:0 5cqw 8cqw -1cqw rgba(0,0,0,.34);will-change:transform;
   transition:transform .85s var(--mp-ease),border-radius .85s var(--mp-ease),box-shadow .5s ease}
-.kefe-mini-card.is-expanded .kefe-mini-art{transform:none;border-radius:0!important;box-shadow:none;transition-delay:.18s,.18s,0s}
+.kefe-mini-card.is-expanded .kefe-mini-art{inset:0;width:auto;height:auto;aspect-ratio:auto;transform:none;border-radius:0!important;box-shadow:none;transition-delay:.18s,.18s,0s}
 .kefe-mini-spin{position:absolute;inset:0;will-change:transform}
 .kefe-mini-art canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .kefe-mini-hub{position:absolute;left:50%;top:50%;width:27%;aspect-ratio:1;box-sizing:border-box;border:.55cqw solid rgba(255,255,255,.97);border-radius:50%!important;
@@ -74,6 +74,14 @@
 .kefe-mini-art-caption strong{font-size:16px;font-size:5.2cqw;font-weight:500;line-height:1;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kefe-mini-art-caption span{font-size:9px;font-size:2.7cqw;font-weight:600;line-height:1.1;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kefe-mini-card.is-expanded .kefe-mini-art-caption{opacity:1;transform:none;transition:opacity .4s ease .45s,transform .4s ease .45s}
+
+.kefe-mini-body{position:relative;min-width:0}
+.kefe-mini-control-toggle{position:relative;z-index:3;display:grid;place-items:center;width:28px;height:18px;margin:-9px auto 0;padding:0;border:0;border-radius:999px!important;background:rgba(17,17,19,.035);color:rgba(17,17,19,.28);font:600 9px/1 var(--mp-font);cursor:pointer;transition:opacity .2s,background .2s,color .2s}
+.kefe-mini-control-toggle:hover,.kefe-mini-control-toggle:focus-visible{background:rgba(17,17,19,.08);color:rgba(17,17,19,.55);outline:none}
+.kefe-mini-control-toggle .chevron{display:block;transition:transform .25s var(--mp-ease)}
+.kefe-mini-body.is-controls-open .kefe-mini-control-toggle .chevron{transform:rotate(180deg)}
+.kefe-mini-control-panel{position:relative;z-index:1;max-height:0;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-8px);transition:max-height .38s var(--mp-ease),opacity .22s ease,transform .38s var(--mp-ease)}
+.kefe-mini-body.is-controls-open .kefe-mini-control-panel{max-height:1000px;opacity:1;pointer-events:auto;transform:none}
 
 /* --- transport --- */
 .kefe-mini-controls{position:relative;z-index:1;display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px}
@@ -156,7 +164,7 @@
 
 @media(max-width:420px){
   .kefe-mini-shell{padding:12px 12px 16px;border-radius:38px!important}
-  .kefe-mini-card{min-height:720px;padding-top:330px}
+  .kefe-mini-card{min-height:560px;padding-top:300px}
 }
 @media(prefers-reduced-motion:reduce){
   .kefe-mini-art,.kefe-mini-hub,.kefe-mini-art-caption{transition-duration:.01s!important;transition-delay:0s!important}
