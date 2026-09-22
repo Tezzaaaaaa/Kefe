@@ -10,6 +10,18 @@
 /* -------- Preview placeholder hint — dead-center overlay -------- */
 .canvas-wrapper { position: relative !important; }
 
+/* KEFE — Cleanup Pass 1
+   Loaded last in <head> so it overrides without specificity wars.
+   Revert by deleting this file and its <link> in index.html. */
+
+/* ============================================================
+   PASS 1 — hint centering, header rhythm, button hierarchy,
+            aspect-chip active state
+   ============================================================ */
+
+/* -------- Preview placeholder hint — dead-center overlay -------- */
+.canvas-wrapper { position: relative !important; }
+
 .canvas-wrapper > .kefe-preview-hint:not(.hidden) {
   position: absolute !important;
   top: 50% !important;
