@@ -11,7 +11,7 @@
   player.setAttribute('aria-label', 'KEFE Now Playing');
   player.innerHTML = `
     <div class="kefe-mini-shell">
-      <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><div class="kefe-mini-topline-actions"><button type="button" id="kefeMiniFullscreen" class="kefe-mini-icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
+      <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><div class="kefe-mini-topline-actions"><button type="button" id="kefeMiniSkinToggle" class="kefe-mini-icon-button" aria-label="Switch to Skin 2" title="Skin 2"><span aria-hidden="true">S2</span></button><button type="button" id="kefeMiniFullscreen" class="kefe-mini-icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
       <div class="kefe-mini-body">
         <div id="kefeMiniCard" class="kefe-mini-card" role="button" tabindex="0" aria-pressed="false" aria-label="Show cover art" title="Tap to show cover art">
           <div class="kefe-mini-info">
@@ -496,6 +496,7 @@
     controlsToggle.setAttribute('aria-label', open ? 'Hide player controls' : 'Show player controls');
     controlsToggle.title = open ? 'Hide controls' : 'Show controls';
   });
+  $('kefeMiniSkinToggle').addEventListener('click', event => { event.stopPropagation(); const skin2 = !player.classList.contains('skin-2'); player.classList.toggle('skin-2', skin2); event.currentTarget.setAttribute('aria-label', skin2 ? 'Switch to Skin 1' : 'Switch to Skin 2'); event.currentTarget.title = skin2 ? 'Skin 1' : 'Skin 2'; });
   $('kefeMiniPlay').addEventListener('click', toggle);
   $('kefeMiniNext').addEventListener('click', next);
   $('kefeMiniPrev').addEventListener('click', prev);
