@@ -3243,7 +3243,7 @@ async function loadLrcFile(file, openEditor = false) {
     const isLrc = /\.lrc$/i.test(name);
     const isTxt = /\.txt$/i.test(name);
     const acceptedType = !type || type === 'text/plain' || type === 'application/octet-stream';
-    if ((!isLrc && !isTxt) || !acceptedType) {
+    if (!isLrc && !(isTxt && acceptedType)) {
         toast('Choose an .lrc or .txt file', 'error');
         return;
     }
