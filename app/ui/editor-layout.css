@@ -100,10 +100,7 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 .preview-heading strong{font-size:12px!important}
 }
 
-/* Hide preview placeholder text */
-.kefe-preview-hint,.canvas-wrapper>.kefe-preview-hint,.preview .kefe-preview-hint{display:none!important;visibility:hidden!important;opacity:0!important}
-
-.preview-logo-backdrop{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.6);width:400px;height:400px;background-image:url(../assets/kefe-logo-loop.gif);background-size:contain;background-repeat:no-repeat;background-position:center;pointer-events:none;opacity:0.7;z-index:1}
+.preview-logo-backdrop{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.6);width:400px;height:400px;background-image:url(../assets/kefe-logo-loop.gif);background-size:contain;background-repeat:no-repeat;background-position:center;pointer-events:none;opacity:0.7;z-index:1;mix-blend-mode:screen}
 @media(max-width:700px){.preview-logo-backdrop{transform:translate(-50%,-50%) scale(0.5);width:320px;height:320px}}
 @media(max-width:480px){.preview-logo-backdrop{transform:translate(-50%,-50%) scale(0.4);width:280px;height:280px}}
 
