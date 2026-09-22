@@ -101,6 +101,22 @@ try {
     null,
     { timeout: 15000 },
   );
+  if (!(await page.locator('#miniPlayerBtn').count())) throw new Error('MiniPlayer trigger is missing');
+  if (!(await page.evaluate(() => Boolean(window.kefeMiniPlayer)))) throw new Error('MiniPlayer did not initialise');
+  if (await page.locator('.kefe-preview-hint').count()) throw new Error('Preview text placeholder should not exist');
+  if (!(await page.locator('.preview-logo-backdrop').count())) throw new Error('K logo placeholder is missing');
+  const placeholderStyle = await page.locator('.preview-logo-backdrop').evaluate((el) => getComputedStyle(el).mixBlendMode);
+  if (placeholderStyle !== 'screen') throw new Error('Preview logo backdrop is not using transparent-style blending');
+  const visiblePreviewText = await page.locator('.preview').evaluate((el) => {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const values = [];
+    while (walker.nextNode()) {
+      const text = walker.currentNode.parentElement;
+      if (text && getComputedStyle(text).display !== 'none' && getComputedStyle(text).visibility !== 'hidden') values.push(walker.currentNode.textContent.trim());
+    }
+    return values.join(' ');
+  });
+  if (/UNTITLED/i.test(visiblePreviewText)) throw new Error('UNTITLED is still visible in the preview placeholder');
   await page.waitForFunction(
     () =>
       window.kefeCaptionGen &&
