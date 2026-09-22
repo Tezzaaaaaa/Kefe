@@ -269,7 +269,6 @@
       stepSpin(now, dt);
       syncProgress();
       try {
-        const style = getState().style || {};
         const mode = miniVisualiserStyle || 'butterchurn';
         const playing = !audio.paused && !audio.ended;
         if (currentArtwork) {
