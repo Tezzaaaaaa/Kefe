@@ -102,9 +102,9 @@
   const esc = value => String(value || '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 
   function metadata(file) {
-    const base = String(file.name || 'Untitled').replace(/\.[^.]+$/, '');
+    const base = String(file.name || '').replace(/\.[^.]+$/, '');
     const parts = base.split(' - ');
-    return { title: parts.pop()?.trim() || base || 'Untitled', artist: parts.join(' - ').trim() || 'Unknown artist' };
+    return { title: parts.pop()?.trim() || base || '', artist: parts.join(' - ').trim() || 'Unknown artist' };
   }
 
   function loadMediaTags() {
