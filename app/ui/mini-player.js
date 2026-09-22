@@ -515,7 +515,10 @@
       const y = Math.max(12, (window.innerHeight - shell.offsetHeight) / 2);
       setPosition(x, y);
     }
-    try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
+    try { window.kefeButterchurn?.prepare?.().then?.(loadPresets).catch?.(() => {}); } catch (e) {}
+    try { window.kefeMatrixVisualiser?.load?.().then?.(loadPresets).catch?.(() => {}); } catch (e) {}
+    try { window.kefeAudioReactiveShaders?.load?.().then?.(loadPresets).catch?.(() => {}); } catch (e) {}
+    loadPresets();
     if (!raf) raf = requestAnimationFrame(draw);
   }
   function close() {
