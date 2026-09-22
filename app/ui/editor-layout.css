@@ -134,3 +134,9 @@ header .theme-control,label.theme-control,.theme-control,#themeSelect,.header-ac
 
 .canvas-wrapper>*:not(canvas):not(.preview-logo-backdrop){display:none!important}
 [class*=untitled],[id*=untitled],[class*=Untitled],[id*=Untitled]{display:none!important;visibility:hidden!important}
+
+/* MiniPlayer toggle — same size/shape as the other header icons */
+#kmpHeaderToggle.icon-button{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px!important;max-height:40px!important;padding:0!important;border:1px solid rgba(255,255,255,0.10)!important;border-radius:8px!important;background:transparent!important;color:rgba(255,255,255,0.75)!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;box-sizing:border-box!important}
+#kmpHeaderToggle.icon-button:hover{background:rgba(255,255,255,0.06)!important;color:#fff!important}
+#kmpHeaderToggle.icon-button svg{width:18px!important;height:18px!important;stroke:currentColor!important;fill:none!important;stroke-width:1.8!important}
+#kmpHeaderToggle.icon-button[data-on="true"]{background:rgba(239,63,56,0.18)!important;border-color:rgba(239,63,56,0.55)!important;color:#fff!important}
