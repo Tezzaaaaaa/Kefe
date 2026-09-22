@@ -155,8 +155,7 @@
     button.title = 'Auto Create';
     button.innerHTML = '<span class="auto-create-spark" aria-hidden="true">✦</span><span>Auto Create</span>';
     button.addEventListener('click', () => run());
-    const exportButton = actions.querySelector('#exportBtn');
-    actions.insertBefore(button, exportButton || null);
+    actions.appendChild(button);
   }
 
   function bindAudioHint() {
