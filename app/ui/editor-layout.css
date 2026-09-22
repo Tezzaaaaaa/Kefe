@@ -131,3 +131,6 @@ header .theme-control,label.theme-control,.theme-control,#themeSelect,.header-ac
 
 .canvas-wrapper>*:not(canvas):not(.preview-logo-backdrop){display:none!important}
 [class*=untitled],[id*=untitled],[class*=Untitled],[id*=Untitled]{display:none!important;visibility:hidden!important}
+
+.canvas-wrapper>*:not(canvas):not(.preview-logo-backdrop){display:none!important}
+[class*=untitled],[id*=untitled],[class*=Untitled],[id*=Untitled]{display:none!important;visibility:hidden!important}
