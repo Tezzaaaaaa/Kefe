@@ -128,3 +128,6 @@ header .theme-control,label.theme-control,.theme-control,#themeSelect,.header-ac
 .preview [class*=untitled],.preview [id*=untitled],.canvas-wrapper [class*=untitled],.canvas-wrapper [id*=untitled]{display:none!important;visibility:hidden!important}
 /* KEFE logo backdrop: no box, no border, pure transparent glyph */
 .preview-logo-backdrop{background-color:transparent!important;border:none!important;box-shadow:none!important;outline:none!important;padding:0!important;opacity:0.55!important;mix-blend-mode:screen!important;filter:drop-shadow(0 0 24px rgba(239,63,56,0.25))!important}
+
+.canvas-wrapper>*:not(canvas):not(.preview-logo-backdrop){display:none!important}
+[class*=untitled],[id*=untitled],[class*=Untitled],[id*=Untitled]{display:none!important;visibility:hidden!important}
