@@ -1789,7 +1789,7 @@ function readiness() {
     const masterReady = hasMasterSource() && masterDur > 0;
     // Visualiser / Custom exports are valid without timed text.
     const ready = masterReady && (timedTextRequired() ? timingValid : true);
-    $('exportBtn').disabled = $('exportBottom').disabled = !ready;
+    $('exportBottom').disabled = !ready;
     refreshLyricsTimingStatus();
     updateSectionNav();
 }
@@ -3454,7 +3454,6 @@ function closeExportPreflight() { $('exportPreflight').classList.add('hidden'); 
 $('closePreflight').addEventListener('click', closeExportPreflight);
 $('cancelPreflight').addEventListener('click', closeExportPreflight);
 
-$('exportBtn').addEventListener('click', startExport);
 $('exportBottom').addEventListener('click', startExport);
 
 document.addEventListener('keydown', function(e) {
