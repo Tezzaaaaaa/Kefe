@@ -28,6 +28,8 @@
             </div>
             <div class="kefe-mini-art-caption" aria-hidden="true"><strong id="kefeMiniCapArtist"></strong><span id="kefeMiniCapTitle"></span></div>
           </div>
+        <button type="button" id="kefeMiniControlsToggle" class="kefe-mini-control-toggle" aria-expanded="false" aria-controls="kefeMiniControlPanel" aria-label="Show player controls" title="Show controls"><span class="chevron">⌄</span></button>
+        <div id="kefeMiniControlPanel" class="kefe-mini-control-panel">
         <div class="kefe-mini-controls" aria-label="Playback controls">
           <button type="button" id="kefeMiniShuffleTrack" class="kefe-mini-control-icon" aria-label="Shuffle queue" title="Shuffle queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h2c4 0 6 10 10 10h4M16 5h4v4M20 5l-4 4M4 17h2c1.8 0 3-1.5 4-3M16 15h4v4M20 19l-4-4"/></svg></button>
           <button type="button" id="kefeMiniPrev" class="kefe-mini-control-icon" aria-label="Previous track" title="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg></button>
@@ -49,6 +51,7 @@
           <div id="kefeMiniLyricsContent" class="kefe-mini-lyrics-content"><p>No lyrics loaded</p></div>
         </section>
         <div class="kefe-mini-queue"><div class="kefe-mini-queue-head"><div><span>UP NEXT</span><small>Playlist</small></div><span id="kefeMiniQueueCount">0 tracks</span></div><ol id="kefeMiniQueueList"></ol></div>
+        </div>
         </div>
       </div>
     </div>`;
@@ -476,6 +479,16 @@
     } else {
       notify(`Can't play "${track.title}". This browser can't decode the format.`);
     }
+  });
+  const controlsToggle = $('kefeMiniControlsToggle');
+  const miniBody = player.querySelector('.kefe-mini-body');
+  controlsToggle.addEventListener('click', event => {
+    event.stopPropagation();
+    const open = !miniBody.classList.contains('is-controls-open');
+    miniBody.classList.toggle('is-controls-open', open);
+    controlsToggle.setAttribute('aria-expanded', String(open));
+    controlsToggle.setAttribute('aria-label', open ? 'Hide player controls' : 'Show player controls');
+    controlsToggle.title = open ? 'Hide controls' : 'Show controls';
   });
   $('kefeMiniPlay').addEventListener('click', toggle);
   $('kefeMiniNext').addEventListener('click', next);
