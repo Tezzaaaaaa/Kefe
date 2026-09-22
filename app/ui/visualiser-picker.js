@@ -47,7 +47,8 @@
     { key: 'tuffpuff',  label: 'TuffPuff'  },
     { key: 'ridgeline', label: 'Ridgeline' },
     { key: 'butterchurn', label: 'Butterchurn' },
-    { key: 'matrixmusic', label: 'Matrix Music' }
+    { key: 'matrixmusic', label: 'Matrix Music' },
+    { key: 'audioreactive', label: 'Audio Reactive Shaders' }
   ];
 
   function current(){
@@ -101,6 +102,7 @@
         if (!window.state) return;
         if (!window.state.style) window.state.style = {};
         if (m.key !== 'matrixmusic' && window.kefeMatrixVisualiser) window.kefeMatrixVisualiser.stop();
+        if (m.key !== 'audioreactive' && window.kefeAudioReactiveShaders) window.kefeAudioReactiveShaders.stop();
         window.state.style.visualiserStyle = m.key;
         window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
         tick();
@@ -112,6 +114,51 @@
     grid.querySelectorAll('.kefe-vis-btn').forEach(function(b){
       b.classList.toggle('active-effect', b.dataset.mode === cur);
     });
+
+    // ---- Audio Reactive Shaders controls: 15 upstream shader scenes ----
+    if (cur === 'audioreactive') {
+      var ar = document.createElement('div');
+      ar.className = 'kefe-ra-controls';
+      var arRow = document.createElement('div');
+      arRow.className = 'kefe-ra-row';
+      var arLab = document.createElement('label');
+      arLab.textContent = 'Preset';
+      var arSelect = document.createElement('select');
+      arSelect.setAttribute('aria-label', 'Audio Reactive Shaders preset');
+      arSelect.style.flex='1 1 auto'; arSelect.style.minWidth='0'; arSelect.style.height='34px';
+      arSelect.style.border='1px solid var(--line)'; arSelect.style.borderRadius='8px';
+      arSelect.style.background='var(--surface)'; arSelect.style.color='var(--text)'; arSelect.style.padding='0 8px';
+      function fillAudioReactivePresets(){
+        var api=window.kefeAudioReactiveShaders;
+        var names=api&&api.presetNames?api.presetNames():[];
+        if(!names.length)return false;
+        arSelect.innerHTML='';
+        names.forEach(function(name,i){
+          var o=document.createElement('option');o.value=String(i);o.textContent=name;arSelect.appendChild(o);
+        });
+        var wanted=window.state&&window.state.style&&window.state.style.audioReactiveShaderPreset;
+        if(wanted!==undefined&&Number(wanted)<names.length)arSelect.value=String(wanted);
+        return true;
+      }
+      arSelect.addEventListener('change',function(){
+        var idx=Number(arSelect.value)||0;
+        if(window.state){window.state.style.visualiserStyle='audioreactive';window.state.style.audioReactiveShaderPreset=idx;}
+        window.kefeAudioReactiveShaders&&window.kefeAudioReactiveShaders.selectPreset(idx,1,1).then(function(){
+          window.redrawCurrentPreviewFrame&&window.redrawCurrentPreviewFrame();
+        }).catch(function(e){console.warn('[KEFE Audio Reactive Shaders]',e);});
+      });
+      arRow.appendChild(arLab);arRow.appendChild(arSelect);ar.appendChild(arRow);box.appendChild(ar);
+      if(!fillAudioReactivePresets()){
+        arSelect.innerHTML='<option>Loading 15 shader scenes…</option>';
+        window.kefeAudioReactiveShaders&&window.kefeAudioReactiveShaders.load().then(function(){
+          fillAudioReactivePresets();
+          window.redrawCurrentPreviewFrame&&window.redrawCurrentPreviewFrame();
+        }).catch(function(e){
+          arSelect.innerHTML='<option>Audio Reactive Shaders unavailable</option>';
+          console.warn('[KEFE Audio Reactive Shaders]',e);
+        });
+      }
+    }
 
     // ---- Matrix Music controls: 18 built-in audio-reactive presets ----
     if (cur === 'matrixmusic') {
