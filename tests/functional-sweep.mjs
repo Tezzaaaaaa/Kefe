@@ -98,6 +98,9 @@ async function assertDirectEditor(page, width, height) {
       sidebar: Boolean(sidebar && sidebar.width > 0 && sidebar.height > 0),
       preview: Boolean(preview && preview.width > 0 && preview.height > 0),
       nav: links,
+      themeControl: Boolean(document.querySelector('.theme-control,#themeSelect,#themeCycleButton')),
+      theme: document.documentElement.dataset.theme,
+      colorScheme: document.documentElement.style.colorScheme,
     };
   });
   const expected = ['audio', 'export', 'text', 'background', 'fx'];
@@ -109,7 +112,10 @@ async function assertDirectEditor(page, width, height) {
     !result.main ||
     !result.sidebar ||
     !result.preview ||
-    JSON.stringify(result.nav) !== JSON.stringify(expected)
+    JSON.stringify(result.nav) !== JSON.stringify(expected) ||
+    result.themeControl ||
+    result.theme !== 'night' ||
+    result.colorScheme !== 'dark'
   ) {
     throw new Error(
       `Direct editor invariant failed at ${width}x${height}: ${JSON.stringify(result)}`,
