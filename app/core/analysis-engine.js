@@ -149,13 +149,68 @@
                 if (duration && item.duration) score += Math.max(0, 2 - Math.abs(Number(item.duration) - Number(duration)) / 20);
                 return { item, score };
             }).sort((a, b) => b.score - a.score);
-            const best = scored.find(x => x.item.syncedLyrics)?.item || scored[0]?.item;
-            return best ? { ...best, source: 'LRCLIB', match: 'search' } : null;
+            const best = scored.find(x => x.item.syncedLyrics)?.item;
+            if (best?.syncedLyrics) return { ...best, source: 'LRCLIB', match: 'search' };
+
+            try {
+                const lyrics = await findLyricsifyLyrics({ artist, title, signal: fetchSignal });
+                return lyrics ? { syncedLyrics: lyrics, source: 'Lyricsify', match: 'scrape' } : null;
+            } catch (lyricsifyError) {
+                const error = new Error(lyricsifyError?.message || 'Lyricsify unavailable.');
+                error.code = 'LYRICSIFY_UNAVAILABLE';
+                throw error;
+            }
         } finally {
             if (timeout) clearTimeout(timeout);
         }
     }
 
+    /* ---------- Lyricsify fallback ---------- */
+    const LYRICSIFY_BASE = 'https://www.lyricsify.com';
+    const LYRICSIFY_DELAY_MS = 500;
+    let lyricsifyLastRequestAt = 0;
+
+    function decodeLyricsifyHtml(html) {
+        const parser = new DOMParser();
+        const holder = parser.parseFromString('<div>' + String(html || '') + '</div>', 'text/html').body.firstElementChild;
+        if (!holder) return '';
+        holder.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+        return holder.textContent.replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    }
+
+    async function throttleLyricsify() {
+        const wait = Math.max(0, LYRICSIFY_DELAY_MS - (Date.now() - lyricsifyLastRequestAt));
+        if (wait) await new Promise(resolve => setTimeout(resolve, wait));
+        lyricsifyLastRequestAt = Date.now();
+    }
+
+    async function lyricsifyFetch(url, signal) {
+        await throttleLyricsify();
+        const response = await fetch(url, { signal, headers: { Accept: 'text/html,application/xhtml+xml' } });
+        if (!response.ok) throw new Error('Lyricsify request failed.');
+        return response.text();
+    }
+
+    async function findLyricsifyLyrics({ artist = '', title = '', signal } = {}) {
+        artist = String(artist).trim();
+        title = String(title).trim();
+        if (!artist || !title) return null;
+
+        const query = encodeURIComponent(artist + ' ' + title).replace(/%20/g, '+');
+        const searchHtml = await lyricsifyFetch(LYRICSIFY_BASE + '/search?q=' + query, signal);
+        const searchDoc = new DOMParser().parseFromString(searchHtml, 'text/html');
+        const link = [...searchDoc.querySelectorAll('a[href]')].find(anchor => /^\/lrc\/.*$/i.test(anchor.getAttribute('href') || ''));
+        if (!link) return null;
+
+        const href = link.getAttribute('href');
+        const lyricsHtml = await lyricsifyFetch(new URL(href, LYRICSIFY_BASE).href, signal);
+        const lyricsDoc = new DOMParser().parseFromString(lyricsHtml, 'text/html');
+        const lyrics = [...lyricsDoc.querySelectorAll('div[id]')].find(div => /^lyrics_.*_details$/i.test(div.id));
+        if (!lyrics) throw new Error('Lyricsify page structure changed.');
+
+        const lrc = decodeLyricsifyHtml(lyrics.innerHTML);
+        return lrc || null;
+    }
     /* ---------- Browser-local audio intelligence ---------- */
     function getAudioContext() {
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -416,19 +471,23 @@
             if (status) status.textContent = 'Searching LRCLIB for synced lyrics…';
             try {
                 const result = await findSyncedLyrics(query);
-                if (!result?.syncedLyrics) throw new Error('No synced lyrics found.');
+                if (!result?.syncedLyrics) throw new Error('No lyrics found. Try uploading manually or creating your own.');
                 const lines = parseLrcText(result.syncedLyrics);
                 const timeline = canonicalTimeline(lines, Number(result.duration || 0) * 1000);
                 window.kefeLyricsResolverResult = { ...result, timeline };
                 emit('kefe:lyrics-resolved', window.kefeLyricsResolverResult);
-                if (status) status.textContent = `Found synced lyrics via LRCLIB — ${timeline.lines.length} lines.`;
+                if (status) status.textContent = result.source === 'Lyricsify'
+                    ? `Found synced lyrics via Lyricsify — ${timeline.lines.length} lines.`
+                    : `Found synced lyrics via LRCLIB — ${timeline.lines.length} lines.`;
                 // Feed the existing editor so the current renderer/export path stays authoritative.
                 const textarea = document.getElementById('lyricsText');
                 if (textarea) textarea.value = result.syncedLyrics;
                 const saveButton = document.getElementById('saveLyrics');
                 saveButton?.click();
             } catch (error) {
-                if (status) status.textContent = `Lyrics lookup failed: ${error.message}`;
+                if (status) status.textContent = error?.code === 'LYRICSIFY_UNAVAILABLE'
+                    ? 'Lyricsify unavailable. Try again later.'
+                    : (error?.message || 'No lyrics found. Try uploading manually or creating your own.');
                 emit('kefe:lyrics-error', error);
             }
         }, true);
