@@ -74,7 +74,7 @@
   }
 
   function bind() {
-    ['exportBtn', 'exportBottom'].forEach(id => {
+    ['exportBottom'].forEach(id => {
       const button = $(id);
       if (!button || button.dataset.smartRenderBound) return;
       button.dataset.smartRenderBound = '1';
