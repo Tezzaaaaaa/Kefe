@@ -288,7 +288,7 @@
             window.kefeButterchurn?.drawMini?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
           }).catch?.(() => {});
         } else if (playing) {
-          window.kefeVisualiser?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState());
+          window.kefeVisualiser?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
         }
       } catch (e) {}
     }

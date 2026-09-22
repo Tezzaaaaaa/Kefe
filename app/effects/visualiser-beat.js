@@ -45,16 +45,77 @@
 
   window.addEventListener('kefe:audio-analysis-ready', function(e){ ingest(e.detail); });
 
-  function sample(time) {
-    if (!analysis || !analysis.frameHopMs) return null;
-    var hop = analysis.frameHopMs / 1000;
-    var idx = Math.max(0, Math.min(analysis.energy.length - 1, Math.floor(time / hop)));
+  var live = { audio: null, context: null, source: null, analyser: null, freq: null, wave: null };
+
+  function ensureLiveAudio(audio) {
+    if (!audio) return null;
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    try {
+      if (!live.context) live.context = new AudioCtx();
+      if (!live.source || live.audio !== audio) {
+        if (live.source) { try { live.source.disconnect(); } catch (_) {} }
+        live.source = live.context.createMediaElementSource(audio);
+        live.analyser = live.context.createAnalyser();
+        live.analyser.fftSize = 256;
+        live.analyser.smoothingTimeConstant = 0.72;
+        live.source.connect(live.analyser);
+        live.analyser.connect(live.context.destination);
+        live.freq = new Uint8Array(live.analyser.frequencyBinCount);
+        live.wave = new Uint8Array(live.analyser.fftSize);
+        live.audio = audio;
+      }
+      if (live.context.state === 'suspended') live.context.resume().catch(function(){});
+      return live.analyser;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function sampleLive(audio) {
+    var analyser = ensureLiveAudio(audio);
+    if (!analyser || !live.freq || !live.wave) return null;
+    analyser.getByteFrequencyData(live.freq);
+    analyser.getByteTimeDomainData(live.wave);
+    var n = live.freq.length;
+    if (!n) return null;
+    var bassEnd = Math.max(1, Math.floor(n * 0.18));
+    var midEnd = Math.max(bassEnd + 1, Math.floor(n * 0.62));
+    var bass = 0, mids = 0, treble = 0;
+    for (var i = 0; i < n; i++) {
+      var value = live.freq[i] / 255;
+      if (i < bassEnd) bass += value;
+      else if (i < midEnd) mids += value;
+      else treble += value;
+    }
+    bass /= bassEnd;
+    mids /= Math.max(1, midEnd - bassEnd);
+    treble /= Math.max(1, n - midEnd);
+    var rms = 0;
+    for (var j = 0; j < live.wave.length; j++) {
+      var centered = (live.wave[j] - 128) / 128;
+      rms += centered * centered;
+    }
+    rms = Math.sqrt(rms / live.wave.length);
+    return {
+      energy: Math.min(1, rms * 3.2),
+      bass: Math.min(1, bass * 1.8),
+      mids: Math.min(1, mids * 1.6),
+      treble: Math.min(1, treble * 1.8)
+    };
+  }
+
+  function sample(time, source) {
+    source = source || analysis;
+    if (!source || !source.frameHopMs) return null;
+    var hop = source.frameHopMs / 1000;
+    var idx = Math.max(0, Math.min(source.energy.length - 1, Math.floor(time / hop)));
     var sum = 0, sumB = 0, sumM = 0, sumT = 0, n = 0;
     for (var k = -1; k <= 1; k++) {
       var i2 = idx + k;
       if (i2 < 0 || i2 >= analysis.energy.length) continue;
-      sum += analysis.energy[i2] || 0;
-      var b = analysis.bands && analysis.bands[i2];
+      sum += source.energy[i2] || 0;
+      var b = source.bands && source.bands[i2];
       if (b) {
         sumB += b.bass || 0;
         sumM += b.mids || 0;
@@ -450,10 +511,11 @@
   // remain available as fallbacks; the picker exposes the production modes.
   var MODES = { ra: drawRa, tuffpuff: drawTuffPuff, ridgeline: drawRidgeline, butterchurn: drawButterchurn, matrixmusic: drawMatrixMusic, audioreactive: drawAudioReactiveShaders };
 
-  function draw(ctx, w, h, time, appState) {
+  function draw(ctx, w, h, time, appState, audioOverride, analysisOverride) {
     var mode = (appState && appState.style && appState.style.visualiserStyle) || 'pulse';
     var fn = MODES[mode] || drawPulse;
-    var frame = sample(time);
+    var frame = analysisOverride ? sample(time, analysisOverride) : sample(time);
+    if (!frame && audioOverride && !audioOverride.paused) frame = sampleLive(audioOverride);
     try { fn(ctx, w, h, time, frame, appState); }
     catch (e) { console.warn('[KEFE visualiser]', e); }
   }
@@ -466,7 +528,8 @@
     get data() { return analysis; },
     get maxima() { return maxima; },
     get modes() { return Object.keys(MODES); },
-    ingest: ingest
+    ingest: ingest,
+    liveSample: sampleLive
   ,
     ridgeline: function(ctx, w, h, time, frame, appState) {
       if (window.kefeRidgeline && typeof window.kefeRidgeline.draw === 'function') {

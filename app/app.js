@@ -1482,6 +1482,11 @@ function render(ctx, w, h, appState, mediaCache) {
         const cappedTime = (appState.playback.trimTo != null && time > appState.playback.trimTo)
             ? appState.playback.trimTo : time;
         const style = { ...appState.style };
+        // Audio-reactive visualisers are a visual layer of the selected Visualiser pathway.
+        // Render them before the title card so the title card can still take precedence.
+        if (appState.projectType === 'visualiser' && window.kefeVisualiser) {
+            window.kefeVisualiser.draw(ctx, w, h, cappedTime, appState, window.kefeAudioElement);
+        }
         // The captioned pathway has no title-card step. A title card left
         // over from a previous lyric session must not bleed into a captioned
         // video, so we explicitly skip it in this pathway.
@@ -1500,8 +1505,6 @@ function render(ctx, w, h, appState, mediaCache) {
                 catch(e) { console.error(`${style.effect} render error:`, e); }
             } else if (appState.lyrics.plainText && appState.projectType !== 'visualiser') {
                 drawPlainLyrics(ctx, w, h, appState.lyrics.plainText);
-            } else if (appState.projectType === 'visualiser' && window.kefeVisualiser) {
-                window.kefeVisualiser.draw(ctx, w, h, cappedTime, appState);
             }
         }
     } finally { ctx.restore(); }
