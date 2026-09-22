@@ -4,6 +4,8 @@ KEFE Visualiser is a browser-based music visualiser and lyric/caption video edit
 
 **Live application:** https://tezzaaaaaa.github.io/Kefe/
 
+**KEFE X Downloader:** https://kefe-x-downloader--tereroa.replit.app
+
 ## Current state
 
 KEFE is a working, functioning browser tool. The `main` branch contains the active editor, production rendering and export pipeline, guided creation workflow, project handling, effect system, automated checks, and the separate Node backend architecture.
