@@ -421,6 +421,12 @@
     catch(e){ console.warn('[KEFE tuffpuff]', e); }
   }
 
+  function drawMatrixMusic(ctx, w, h, time, frame, appState){
+    if (!window.kefeMatrixVisualiser) return;
+    try { window.kefeMatrixVisualiser.draw(ctx, w, h); }
+    catch(e){ console.warn('[KEFE Matrix Music]', e); }
+  }
+
   function drawButterchurn(ctx, w, h, time, frame, appState){
     if (!window.kefeButterchurn) return;
     try {
@@ -436,7 +442,7 @@
 
   // Visualiser modes. The legacy pulse/spectrum/waveform/radial renderers
   // remain available as fallbacks; the picker exposes the production modes.
-  var MODES = { ra: drawRa, tuffpuff: drawTuffPuff, ridgeline: drawRidgeline, butterchurn: drawButterchurn };
+  var MODES = { ra: drawRa, tuffpuff: drawTuffPuff, ridgeline: drawRidgeline, butterchurn: drawButterchurn, matrixmusic: drawMatrixMusic };
 
   function draw(ctx, w, h, time, appState) {
     var mode = (appState && appState.style && appState.style.visualiserStyle) || 'pulse';
