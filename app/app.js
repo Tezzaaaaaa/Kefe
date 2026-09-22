@@ -3905,7 +3905,6 @@ function checkExportCapability() {
     if (typeof TextEncoder === 'undefined') missing.push('text encoding');
     if (missing.length) {
         toast('This browser is missing: ' + missing.join(', ') + '. MP4 export is unavailable — try a current Chrome, Edge, Firefox, or Safari release.', 'error');
-        $('exportBtn').disabled = true;
         $('exportBottom').disabled = true;
         return false;
     }
