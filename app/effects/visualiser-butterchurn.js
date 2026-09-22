@@ -28,6 +28,18 @@
     currentPreset: ''
   };
 
+  var miniState = {
+    butterchurn: null,
+    visualizer: null,
+    audioContext: null,
+    sourceNode: null,
+    canvas: null,
+    width: 0,
+    height: 0,
+    connectedAudio: null,
+    currentPreset: ''
+  };
+
   function getAppState() {
     return window.state || { style: {} };
   }
@@ -221,12 +233,71 @@
     }
   }
 
+  function ensureMiniAudio(audio) {
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx || !audio) return null;
+    if (!miniState.audioContext) miniState.audioContext = new AudioCtx();
+    if (!miniState.sourceNode || miniState.connectedAudio !== audio) {
+      if (miniState.sourceNode) { try { miniState.sourceNode.disconnect(); } catch (_) {} }
+      miniState.sourceNode = miniState.audioContext.createMediaElementSource(audio);
+      miniState.sourceNode.connect(miniState.audioContext.destination);
+      miniState.connectedAudio = audio;
+    }
+    if (miniState.audioContext.state === 'suspended') miniState.audioContext.resume().catch(function () {});
+    return miniState.sourceNode;
+  }
+
+  function ensureMiniVisualizer(w, h, audio) {
+    if (!miniState.butterchurn || !ensureMiniAudio(audio)) return null;
+    if (!miniState.canvas) miniState.canvas = document.createElement('canvas');
+    miniState.width = Math.max(1, Math.floor(w));
+    miniState.height = Math.max(1, Math.floor(h));
+    miniState.canvas.width = miniState.width;
+    miniState.canvas.height = miniState.height;
+    if (!miniState.visualizer) {
+      miniState.visualizer = miniState.butterchurn.createVisualizer(miniState.audioContext, miniState.canvas, {
+        width: miniState.width,
+        height: miniState.height,
+        pixelRatio: 1,
+        textureRatio: 1
+      });
+      miniState.visualizer.connectAudio(miniState.sourceNode);
+      miniState.currentPreset = '';
+    } else {
+      miniState.visualizer.setRendererSize(miniState.width, miniState.height);
+    }
+    return miniState.visualizer;
+  }
+
+  function drawMini(ctx, w, h, time, appState, audio) {
+    if (!ctx || !w || !h || !audio) return false;
+    if (!miniState.butterchurn) miniState.butterchurn = state.butterchurn;
+    if (!miniState.butterchurn) return false;
+    try {
+      var visualizer = ensureMiniVisualizer(w, h, audio);
+      if (!visualizer) return false;
+      var name = effectivePreset(appState || getAppState());
+      if (!name) return false;
+      if (miniState.currentPreset !== name) {
+        visualizer.loadPreset(state.presets[name], 1.5);
+        miniState.currentPreset = name;
+      }
+      visualizer.render();
+      ctx.drawImage(miniState.canvas, 0, 0, w, h);
+      return true;
+    } catch (error) {
+      console.warn('[KEFE Butterchurn MiniPlayer]', error);
+      return false;
+    }
+  }
+
   window.kefeButterchurn = {
     version: 1,
     limit: PRESET_LIMIT,
     prepare: prepare,
     selectPreset: selectPreset,
     draw: draw,
+    drawMini: drawMini,
     presetNames: function () { return state.names.slice(); },
     effectivePreset: effectivePreset,
     get ready() { return !!state.butterchurn && state.names.length === PRESET_LIMIT; }
