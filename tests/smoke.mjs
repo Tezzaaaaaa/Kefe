@@ -103,6 +103,39 @@ try {
   );
   if (!(await page.locator('#miniPlayerBtn').count())) throw new Error('MiniPlayer trigger is missing');
   if (!(await page.evaluate(() => Boolean(window.kefeMiniPlayer)))) throw new Error('MiniPlayer did not initialise');
+  await page.evaluate(() => window.kefeMiniPlayer.open());
+  await page.locator('#kefeMiniCard').waitFor({ state: 'visible', timeout: 5000 });
+  const miniInsideBody = await page.evaluate(() => {
+    const ids = [
+      'kefeMiniCanvas',
+      'kefeMiniPlay',
+      'kefeMiniPrev',
+      'kefeMiniNext',
+      'kefeMiniRepeat',
+      'kefeMiniShuffleTrack',
+      'kefeMiniSeek',
+      'kefeMiniVolume',
+      'kefeMiniUpload',
+      'kefeMiniShuffle',
+      'kefeMiniPreset',
+      'kefeMiniLyricsToggle',
+      'kefeMiniLyricsPanel',
+      'kefeMiniQueueList',
+    ];
+    return ids.every(id => document.getElementById(id)?.closest('#kefeMiniCard'));
+  });
+  if (!miniInsideBody) throw new Error('MiniPlayer controls/media are not all inside the grey body');
+  const discOverlay = await page.evaluate(() => {
+    const card = document.getElementById('kefeMiniCard');
+    const art = card?.querySelector('.kefe-mini-art');
+    window.kefeMiniPlayer.setExpanded(true);
+    const expanded = card?.classList.contains('is-expanded');
+    const coversBody = art && getComputedStyle(card).overflow === 'hidden' && getComputedStyle(art).zIndex === '2' && getComputedStyle(art).borderRadius === '0px';
+    window.kefeMiniPlayer.setExpanded(false);
+    return Boolean(expanded && coversBody);
+  });
+  if (!discOverlay) throw new Error('MiniPlayer disc animation no longer covers the body contents');
+  await page.evaluate(() => window.kefeMiniPlayer.close());
   if (await page.locator('.kefe-preview-hint').count()) throw new Error('Preview text placeholder should not exist');
   await page.locator('.preview-logo-backdrop').waitFor({ state: 'attached', timeout: 5000 });
   const placeholderStyle = await page.locator('.preview-logo-backdrop').evaluate((el) => getComputedStyle(el).mixBlendMode);
