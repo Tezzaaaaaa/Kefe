@@ -3238,7 +3238,12 @@ $('pasteLyrics').addEventListener('click', async function() {
 });
 async function loadLrcFile(file, openEditor = false) {
     if (!file) return;
-    if (!/\.(lrc|txt)$/i.test(file.name)) {
+    const name = String(file.name || '');
+    const type = String(file.type || '').toLowerCase();
+    const isLrc = /\.lrc$/i.test(name);
+    const isTxt = /\.txt$/i.test(name);
+    const acceptedType = !type || type === 'text/plain' || type === 'application/octet-stream';
+    if ((!isLrc && !isTxt) || !acceptedType) {
         toast('Choose an .lrc or .txt file', 'error');
         return;
     }
@@ -3247,7 +3252,13 @@ async function loadLrcFile(file, openEditor = false) {
         return;
     }
     try {
-        const raw = await file.text();
+        let raw = await file.text();
+        if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+        if (/\u0000/.test(raw) || /[\uFFFD]/.test(raw)) {
+            const bytes = new Uint8Array(await file.arrayBuffer());
+            raw = new TextDecoder('utf-16').decode(bytes);
+            if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+        }
         const parsed = parseLyrics(raw);
         if (!parsed.lines.length) throw new Error('No valid timed lyrics found in ' + file.name);
         $('lyricsText').value = raw;
