@@ -3086,6 +3086,27 @@ async function requestSyncedLyrics(artist, track, duration, signal) {
     return candidates.find(function(item){ return item && item.syncedLyrics; }) || null;
 }
 
+function updateGoogleLyricsButton() {
+    const button = $('searchGoogleLyricsBtn');
+    if (!button) return;
+    const resolved = resolveAudioLabels(state.audio);
+    button.disabled = !(resolved.title && resolved.artist);
+}
+
+$('searchGoogleLyricsBtn').addEventListener('click', function() {
+    const resolved = resolveAudioLabels(state.audio);
+    if (!resolved.title || !resolved.artist) {
+        updateGoogleLyricsButton();
+        return;
+    }
+    const query = `${resolved.artist} ${resolved.title} lyrics lrc`;
+    const url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+    window.open(url, '_blank', 'noopener,noreferrer');
+});
+
+['metaArtist', 'metaTitle'].forEach(id => $(id)?.addEventListener('input', updateGoogleLyricsButton));
+updateGoogleLyricsButton();
+
 $('findLyricsBtn').addEventListener('click', async function() {
     if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
     let resolved = resolveAudioLabels(state.audio);
