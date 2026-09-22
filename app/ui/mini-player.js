@@ -90,6 +90,9 @@
   let settle = null;
   let lastFrame = 0;
   let lastProgress = -1;
+  let currentArtwork = null;
+  let currentArtworkUrl = '';
+  let metadataReadPromise = null;
   const fmt = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`; };
   const fmtCur = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)} : ${String(Math.floor(t % 60)).padStart(2, '0')}`; };
   const esc = value => String(value || '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
@@ -98,6 +101,48 @@
     const base = String(file.name || 'Untitled').replace(/\.[^.]+$/, '');
     const parts = base.split(' - ');
     return { title: parts.pop()?.trim() || base || 'Untitled', artist: parts.join(' - ').trim() || 'Unknown artist' };
+  }
+
+  function loadMediaTags() {
+    if (window.jsmediatags) return Promise.resolve(window.jsmediatags);
+    if (metadataReadPromise) return metadataReadPromise;
+    metadataReadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = './vendor/jsmediatags/jsmediatags.min.js';
+      script.onload = () => window.jsmediatags ? resolve(window.jsmediatags) : reject(new Error('Metadata reader unavailable'));
+      script.onerror = reject;
+      document.head.appendChild(script);
+    }).catch(error => { metadataReadPromise = null; throw error; });
+    return metadataReadPromise;
+  }
+
+  async function readEmbeddedTrackMetadata(track) {
+    try {
+      const tagsLibrary = await loadMediaTags();
+      const result = await new Promise((resolve, reject) => tagsLibrary.read(track.file, { onSuccess: resolve, onError: reject }));
+      const tags = result?.tags || {};
+      if (tags.title) track.title = String(tags.title).trim();
+      if (tags.artist) track.artist = String(tags.artist).trim();
+      if (tags.album) track.album = String(tags.album).trim();
+      const picture = tags.picture;
+      if (picture?.data?.length) {
+        if (track.artUrl) URL.revokeObjectURL(track.artUrl);
+        track.artUrl = URL.createObjectURL(new Blob([new Uint8Array(picture.data)], { type: picture.format || 'image/jpeg' }));
+      }
+      return track;
+    } catch (_) {
+      return track;
+    }
+  }
+
+  function setCurrentArtwork(url) {
+    if (currentArtworkUrl && currentArtworkUrl !== url && currentArtworkUrl.startsWith('blob:')) URL.revokeObjectURL(currentArtworkUrl);
+    currentArtworkUrl = url || '';
+    currentArtwork = null;
+    if (!url) return;
+    const image = new Image();
+    image.onload = () => { currentArtwork = image; };
+    image.src = url;
   }
   function setNowPlaying(title, artist) {
     [['kefeMiniTitle', title], ['kefeMiniCapTitle', title], ['kefeMiniArtist', artist], ['kefeMiniCapArtist', artist]]
@@ -224,11 +269,16 @@
       syncProgress();
       try {
         const style = getState().style || {};
-        const mode = style.visualiserStyle || 'butterchurn';
-        if (mode === 'butterchurn') {
-          window.kefeButterchurn?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || performance.now() / 1000, getState());
-        } else {
-          window.kefeVisualiser?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || performance.now() / 1000, getState());
+        const playing = !audio.paused && !audio.ended;
+        if (currentArtwork) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(currentArtwork, 0, 0, canvas.width, canvas.height);
+        } else if (playing && style.visualiserStyle === 'butterchurn') {
+          window.kefeButterchurn?.prepare?.().then?.(() => {
+            window.kefeButterchurn?.drawMini?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
+          }).catch?.(() => {});
+        } else if (playing) {
+          window.kefeVisualiser?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState());
         }
       } catch (e) {}
     }
@@ -293,10 +343,11 @@
     const rect = shell.getBoundingClientRect();
     setPosition(rect.left, rect.top);
   });
-  function loadTrack(nextIndex, autoplay) {
+  async function loadTrack(nextIndex, autoplay) {
     if (!tracks.length) return;
     index = Math.max(0, Math.min(tracks.length - 1, nextIndex));
     const track = tracks[index];
+    await readEmbeddedTrackMetadata(track);
     let url = urls.get(track.file);
     if (!url) { url = URL.createObjectURL(track.file); urls.set(track.file, url); }
     audio.src = url;
@@ -304,7 +355,10 @@
     getState().audio.file = track.file;
     getState().audio.duration = 0;
     getState().audio.ready = true;
-    getState().audio.metadata = { ...getState().audio.metadata, title: track.title, artist: track.artist };
+    getState().audio.metadata = { ...getState().audio.metadata, title: track.title, artist: track.artist, album: track.album || getState().audio.metadata?.album || '' };
+    const sameAsEditorAudio = window.state?.audio?.file === track.file;
+    const editorArtwork = sameAsEditorAudio ? window.kefeAlbumArt?.src : '';
+    setCurrentArtwork(track.artUrl || editorArtwork);
     if (!getState().style.visualiserStyle) getState().style.visualiserStyle = 'butterchurn';
     setNowPlaying(track.title, track.artist);
     $('kefeMiniCurrent').textContent = fmtCur(0);
