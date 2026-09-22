@@ -46,7 +46,8 @@
     { key: 'ra',        label: 'Ra'        },
     { key: 'tuffpuff',  label: 'TuffPuff'  },
     { key: 'ridgeline', label: 'Ridgeline' },
-    { key: 'butterchurn', label: 'Butterchurn' }
+    { key: 'butterchurn', label: 'Butterchurn' },
+    { key: 'matrixmusic', label: 'Matrix Music' }
   ];
 
   function current(){
@@ -99,6 +100,7 @@
       b.addEventListener('click', function(){
         if (!window.state) return;
         if (!window.state.style) window.state.style = {};
+        if (m.key !== 'matrixmusic' && window.kefeMatrixVisualiser) window.kefeMatrixVisualiser.stop();
         window.state.style.visualiserStyle = m.key;
         window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
         tick();
@@ -110,6 +112,75 @@
     grid.querySelectorAll('.kefe-vis-btn').forEach(function(b){
       b.classList.toggle('active-effect', b.dataset.mode === cur);
     });
+
+    // ---- Matrix Music controls: 18 built-in audio-reactive presets ----
+    if (cur === 'matrixmusic') {
+      var mm = document.createElement('div');
+      mm.className = 'kefe-ra-controls';
+      var mmRow = document.createElement('div');
+      mmRow.className = 'kefe-ra-row';
+      var mmLab = document.createElement('label');
+      mmLab.textContent = 'Preset';
+      var mmSelect = document.createElement('select');
+      mmSelect.setAttribute('aria-label', 'Matrix Music preset');
+      mmSelect.style.flex = '1 1 auto';
+      mmSelect.style.minWidth = '0';
+      mmSelect.style.height = '34px';
+      mmSelect.style.border = '1px solid var(--line)';
+      mmSelect.style.borderRadius = '8px';
+      mmSelect.style.background = 'var(--surface)';
+      mmSelect.style.color = 'var(--text)';
+      mmSelect.style.padding = '0 8px';
+
+      function fillMatrixPresets() {
+        var api = window.kefeMatrixVisualiser;
+        var records = api && api.presetRecords ? api.presetRecords() : [];
+        if (!records.length) return false;
+        mmSelect.innerHTML = '';
+        records.forEach(function(record) {
+          var option = document.createElement('option');
+          option.value = record.id;
+          option.textContent = record.name;
+          mmSelect.appendChild(option);
+        });
+        var wanted = window.state && window.state.style && window.state.style.matrixMusicPreset;
+        if (wanted && records.some(function(r){ return r.id === wanted; })) mmSelect.value = wanted;
+        return true;
+      }
+
+      mmSelect.addEventListener('change', function() {
+        if (!window.state) return;
+        if (!window.state.style) window.state.style = {};
+        window.state.style.visualiserStyle = 'matrixmusic';
+        window.state.style.matrixMusicPreset = mmSelect.value;
+        var r = window.kefeMatrixVisualiser;
+        if (r) {
+          r.selectPreset(mmSelect.value, 1, 1).then(function() {
+            window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
+          }).catch(function(error) {
+            console.warn('[KEFE Matrix Music]', error);
+          });
+        }
+      });
+
+      mmRow.appendChild(mmLab);
+      mmRow.appendChild(mmSelect);
+      mm.appendChild(mmRow);
+      box.appendChild(mm);
+
+      if (!fillMatrixPresets()) {
+        mmSelect.innerHTML = '<option>Loading Matrix presets…</option>';
+        window.kefeMatrixVisualiser && window.kefeMatrixVisualiser.load()
+          .then(function() {
+            fillMatrixPresets();
+            window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
+          })
+          .catch(function(error) {
+            mmSelect.innerHTML = '<option>Matrix Music unavailable</option>';
+            console.warn('[KEFE Matrix Music]', error);
+          });
+      }
+    }
 
     // ---- Butterchurn controls: 100 official Butterchurn presets ----
     if (cur === 'butterchurn') {
