@@ -156,7 +156,25 @@
 .kefe-mini-lyrics-toggle .lyrics-chevron{width:15px;height:15px}
 .kefe-mini-lyrics-head button svg{width:15px;height:15px}
 
-/* --- fullscreen --- */
+
+/* --- Skin 2: compact soft neumorphism --- */
+.kefe-mini-shell.skin-2{--mp-bg:#e4e5e7;--mp-card:#e1e2e4;--mp-ink:#34363a;--mp-mid:#6e7176;--mp-mute:#8d9095;--mp-line:rgba(255,255,255,.55);--mp-fill:rgba(255,255,255,.35);--mp-track:#cfd1d5;background:#e4e5e7;box-shadow:18px 18px 42px rgba(0,0,0,.12),-14px -14px 34px rgba(255,255,255,.9),0 0 0 1px rgba(0,0,0,.025)}
+.kefe-mini-shell.skin-2 .kefe-mini-topline{color:#777a80}
+.kefe-mini-shell.skin-2 .kefe-mini-icon-button,.kefe-mini-shell.skin-2 .kefe-mini-close{box-shadow:4px 4px 9px rgba(0,0,0,.11),-4px -4px 9px rgba(255,255,255,.85);background:#e4e5e7}
+.kefe-mini-shell.skin-2 .kefe-mini-card{background:#e1e2e4;box-shadow:inset 7px 7px 15px rgba(0,0,0,.08),inset -7px -7px 15px rgba(255,255,255,.8),8px 8px 18px rgba(0,0,0,.08),-8px -8px 18px rgba(255,255,255,.7)}
+.kefe-mini-shell.skin-2 .kefe-mini-info{height:58%;padding-bottom:13.4cqw}
+.kefe-mini-shell.skin-2 .kefe-mini-eq i{background:#777a80}
+.kefe-mini-shell.skin-2 .kefe-mini-bar{background:#c4c6ca;box-shadow:inset 2px 2px 5px rgba(0,0,0,.1),inset -2px -2px 5px rgba(255,255,255,.7)}
+.kefe-mini-shell.skin-2 .kefe-mini-bar span{background:#74777c}
+.kefe-mini-shell.skin-2 .kefe-mini-control-toggle{background:#e4e5e7;color:rgba(52,54,58,.3);box-shadow:3px 3px 7px rgba(0,0,0,.1),-3px -3px 7px rgba(255,255,255,.8)}
+.kefe-mini-shell.skin-2 .kefe-mini-controls button,.kefe-mini-shell.skin-2 .kefe-mini-add,#kefeMiniShuffle.kefe-mini-shell.skin-2{background:#e4e5e7;box-shadow:5px 5px 11px rgba(0,0,0,.11),-5px -5px 11px rgba(255,255,255,.8)}
+.kefe-mini-shell.skin-2 .kefe-mini-controls .kefe-mini-play{background:#e4e5e7;color:#34363a;box-shadow:7px 7px 14px rgba(0,0,0,.13),-7px -7px 14px rgba(255,255,255,.9)}
+.kefe-mini-shell.skin-2 .kefe-mini-preset,.kefe-mini-shell.skin-2 .kefe-mini-lyrics-toggle{background:#e4e5e7;border-color:rgba(255,255,255,.5);box-shadow:inset 3px 3px 7px rgba(0,0,0,.08),inset -3px -3px 7px rgba(255,255,255,.8)}
+.kefe-mini-shell.skin-2 .kefe-mini-seek::-webkit-slider-runnable-track,.kefe-mini-shell.skin-2 .kefe-mini-volume input::-webkit-slider-runnable-track{background:linear-gradient(to right,#64676c var(--p,0%),#c7c9cd var(--p,0%));box-shadow:inset 2px 2px 4px rgba(0,0,0,.1),inset -2px -2px 4px rgba(255,255,255,.75)}
+.kefe-mini-shell.skin-2 .kefe-mini-seek::-moz-range-track,.kefe-mini-shell.skin-2 .kefe-mini-volume input::-moz-range-track{background:linear-gradient(to right,#64676c var(--p,0%),#c7c9cd var(--p,0%))}
+.kefe-mini-shell.skin-2 .kefe-mini-seek::-webkit-slider-thumb,.kefe-mini-shell.skin-2 .kefe-mini-volume input::-webkit-slider-thumb{background:#e4e5e7;border-color:#e4e5e7;box-shadow:3px 3px 7px rgba(0,0,0,.13),-3px -3px 7px rgba(255,255,255,.85)}
+.kefe-mini-shell.skin-2 .kefe-mini-artist{color:#85888d}.kefe-mini-shell.skin-2 .kefe-mini-title{color:#34363a}.kefe-mini-shell.skin-2 .kefe-mini-clock .cur{color:#4b4e53}.kefe-mini-shell.skin-2 .kefe-mini-clock .sep,.kefe-mini-shell.skin-2 .kefe-mini-clock .dur{color:#92959a}
+\n/* --- fullscreen --- */
 .kefe-mini-modal.kefe-mini-css-fullscreen{pointer-events:auto;background:rgba(10,10,10,.9)}
 .kefe-mini-shell.is-fullscreen{width:100vw!important;height:100vh!important;max-height:none!important;left:0!important;top:0!important;transform:none!important;border-radius:0!important;
   display:flex;flex-direction:column;overflow:auto}
