@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
 const canvas = $('stageCanvas');
-const ctx = canvas.getContext('2d', { alpha: false });
+const ctx = canvas.getContext('2d', { alpha: true });
 const audio = new Audio();
 window.kefeAudioElement = audio;
 
@@ -430,7 +430,7 @@ function drawAppleMusicHeader(ctx, w, h) {
     const maxText = w - tx - margin * 1.8;
     const titleSize = Math.max(18, Math.min(w, h) * 0.025);
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = `700 ${titleSize}px "Open Sans",Arial,sans-serif`;
-    let shownTitle = title || 'Untitled';
+    let shownTitle = title || '';
     while (shownTitle.length > 1 && ctx.measureText(shownTitle).width > maxText) shownTitle = shownTitle.slice(0,-2).trim() + '…';
     ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.96; ctx.fillText(shownTitle, tx, y + artSize * 0.38);
     ctx.font = `500 ${Math.max(14, titleSize * 0.72)}px "Open Sans",Arial,sans-serif`;
@@ -1136,7 +1136,7 @@ function renderTitleCard(ctx, w, h, time, appState) {
     if (!phase) return false;
     const metadata = resolveAudioLabels(appState.audio);
     const info = {
-        title: metadata.title || 'UNTITLED',
+        title: metadata.title || '',
         artist: metadata.artist,
         album: metadata.album,
         artwork: appState.audio?.hasArtwork && albumArtworkImage ? albumArtworkImage : null
@@ -1445,7 +1445,10 @@ function render(ctx, w, h, appState, mediaCache) {
     try {
         ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over"; ctx.filter = "none"; ctx.shadowBlur = 0;
         ctx.clearRect(0, 0, w, h);
-        drawBackground(ctx, w, h, appState.background, mediaCache);
+        const hasPreviewMedia = Boolean(
+            appState.audio?.file || mediaCache?.videoFile || mediaCache?.video || mediaCache?.image
+        );
+        if (hasPreviewMedia) drawBackground(ctx, w, h, appState.background, mediaCache);
         const masterMode = getMasterMode();
         const missingMaster = masterMode === 'uploaded' ? !appState.audio?.file : masterMode === 'video' ? !(mediaCache?.video && mediaCache.videoFile) : false;
         /* placeholder removed — empty canvas until media is loaded */
@@ -2542,7 +2545,7 @@ function downloadProject() {
     if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
     const url = URL.createObjectURL(new Blob([JSON.stringify(serialiseProject(), null, 2)], { type: 'application/json' }));
     const link = document.createElement('a');
-    const label = sanitiseExportFilenamePart(resolveAudioLabels(state.audio).title) || 'Untitled';
+    const label = sanitiseExportFilenamePart(resolveAudioLabels(state.audio).title) || '';
     link.href = url; link.download = `${label} - KEFE Project.kefe`;
     document.body.appendChild(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 30000);
@@ -2938,7 +2941,7 @@ function cleanTrackName(value) {
 
 function isUsefulExportLabel(value) {
     const label = String(value || '').trim();
-    return Boolean(label) && !/^(unknown|untitled|audio|track|song|recording|output|new recording|voice memo)(?:\s*\d+)?$/i.test(label);
+    return Boolean(label) && !/^(unknown|audio|track|song|recording|output|new recording|voice memo)(?:\s*\d+)?$/i.test(label);
 }
 function sanitiseExportFilenamePart(value) {
     return String(value || '')
