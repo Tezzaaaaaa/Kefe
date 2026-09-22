@@ -61,23 +61,6 @@ header {
   background: rgba(255,255,255,0.06) !important;
   color: #fff !important;
 }
-#exportBtn.export-action {
-  height: 40px !important;
-  padding: 0 16px !important;
-  border: 1px solid rgba(255,255,255,0.14) !important;
-  border-radius: 8px !important;
-  background: transparent !important;
-  color: rgba(255,255,255,0.85) !important;
-  font-weight: 500 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-#exportBtn.export-action:hover {
-  background: rgba(255,255,255,0.06) !important;
-  color: #fff !important;
-}
-#exportBtn.export-action svg { width: 16px; height: 16px; }
 #exportBottom.primary.export-action {
   background: #EF3F38 !important;
   color: #fff !important;
