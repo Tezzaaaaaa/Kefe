@@ -541,7 +541,7 @@ body.wizard-mode .wizard-choices:has(.wizard-choice.selected) .wizard-choice:not
 /* ---------------------------------------------------------------------
    Wizard card text — override .kefe-accordion-inner { color: var(--bg) }
    which was inheriting the page background color onto card descriptions,
-   making them invisible on dark theme.
+   making them invisible on dark surfaces.
    --------------------------------------------------------------------- */
 
 body.wizard-mode .wizard-choices .wizard-choice,
