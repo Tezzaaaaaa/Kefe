@@ -111,6 +111,9 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 .transport #clock{grid-column:4!important;min-width:80px!important;text-align:right!important}
 .transport #previewFocusButton,.transport .preview-focus-button{grid-column:5!important;display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
 .preview-logo-backdrop{background-color:transparent!important;border:none!important;box-shadow:none!important;outline:none!important;padding:0!important;opacity:0.55!important;mix-blend-mode:screen!important;filter:none!important}
+.preview.is-placeholder .canvas-wrapper{background:transparent!important}
+.preview.is-placeholder .canvas-wrapper::before{display:none!important}
+.preview.is-placeholder .canvas-wrapper canvas{box-shadow:none!important;outline:none!important;border-radius:0!important}
 
 .canvas-wrapper>*:not(canvas):not(.preview-logo-backdrop){display:none!important}
 
