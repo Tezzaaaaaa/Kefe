@@ -149,7 +149,7 @@ try {
     }
     return values.join(' ');
   });
-  if (/untitled/i.test(visiblePreviewText)) throw new Error('Placeholder title text is still visible in the preview');
+  if (/placeholder title/i.test(visiblePreviewText)) throw new Error('Placeholder title text is still visible in the preview');
   await page.waitForFunction(
     () =>
       window.kefeCaptionGen &&
