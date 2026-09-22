@@ -110,17 +110,9 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 .transport #seek,.transport .slider,.transport input[type=range]{grid-column:3!important;width:100%!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important}
 .transport #clock{grid-column:4!important;min-width:80px!important;text-align:right!important}
 .transport #previewFocusButton,.transport .preview-focus-button{grid-column:5!important;display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
-
-/* Kill UNTITLED text everywhere in preview */
-.preview [class*=untitled],.preview [id*=untitled],.canvas-wrapper [class*=untitled],.canvas-wrapper [id*=untitled]{display:none!important;visibility:hidden!important}
-/* KEFE logo backdrop: no box, no border, pure transparent glyph */
-.preview-logo-backdrop{background-color:transparent!important;border:none!important;box-shadow:none!important;outline:none!important;padding:0!important;opacity:0.55!important;mix-blend-mode:screen!important;filter:drop-shadow(0 0 24px rgba(239,63,56,0.25))!important}
+.preview-logo-backdrop{background-color:transparent!important;border:none!important;box-shadow:none!important;outline:none!important;padding:0!important;opacity:0.55!important;mix-blend-mode:screen!important;filter:none!important}
 
 .canvas-wrapper>*:not(canvas):not(.preview-logo-backdrop){display:none!important}
-[class*=untitled],[id*=untitled],[class*=Untitled],[id*=Untitled]{display:none!important;visibility:hidden!important}
-
-.canvas-wrapper>*:not(canvas):not(.preview-logo-backdrop){display:none!important}
-[class*=untitled],[id*=untitled],[class*=Untitled],[id*=Untitled]{display:none!important;visibility:hidden!important}
 
 /* MiniPlayer toggle — same size/shape as the other header icons */
 #kmpHeaderToggle.icon-button{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px!important;max-height:40px!important;padding:0!important;border:1px solid rgba(255,255,255,0.10)!important;border-radius:8px!important;background:transparent!important;color:rgba(255,255,255,0.75)!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;box-sizing:border-box!important}
