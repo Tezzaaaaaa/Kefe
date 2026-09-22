@@ -1,10 +1,7 @@
 import { exportVideo, getExportConfig, resolveMasterInfo } from './index.js';
 
 const $ = id => document.getElementById(id);
-// IMPORTANT: do not replace these DOM nodes. app.js attaches the authoritative
-// preflight click handlers to #exportBtn and #exportBottom before this module
-// loads. Cloning them silently removes those listeners and makes Export appear dead.
-const exportTop = $('exportBtn');
+// app.js attaches the authoritative preflight click handler to #exportBottom.
 const exportBottom = $('exportBottom');
 const cancelButton = $('cancelExport');
 const confirmExport = $('confirmExport');
@@ -114,7 +111,7 @@ cancelButton?.addEventListener('click', () => { if (window.isExporting) window.k
 confirmExport?.addEventListener('click', () => { closePreflightModal(); startExport(); });
 closePreflight?.addEventListener('click', closePreflightModal);
 cancelPreflight?.addEventListener('click', closePreflightModal);
-document.addEventListener('keydown', event => { if ((event.key === 'e' || event.key === 'E') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName)) { event.preventDefault(); event.stopImmediatePropagation(); if ($('exportPreflight')?.classList.contains('hidden')) { exportTop?.click(); } } }, true);
+document.addEventListener('keydown', event => { if ((event.key === 'e' || event.key === 'E') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName)) { event.preventDefault(); event.stopImmediatePropagation(); if ($('exportPreflight')?.classList.contains('hidden')) { exportBottom?.click(); } } }, true);
 window.startOfflineExport = startExport;
 window.kefeCancelExport = () => window.kefeExportAbort?.abort();
 console.info('[KEFE] Integrated FFmpeg exporter loaded');
