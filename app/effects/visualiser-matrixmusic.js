@@ -179,8 +179,11 @@
             if (key !== 'energySlow') state.A.features[key] = f[key];
           });
           state.A.features.energySlow = f.energySlow;
+          for (var si = 0; si < state.A.spectrum.length; si++) {
+            var st = si / Math.max(1, state.A.spectrum.length - 1);
+            state.A.spectrum[si] = st < 0.18 ? f.bass : st < 0.45 ? f.lowMid : st < 0.68 ? f.mid : st < 0.84 ? f.highMid : f.treble;
+          }
         }
-        state.mapping.apply(t, state.A.features.dt);
       };
       return true;
     }).catch(function (error) {
