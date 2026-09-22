@@ -484,3 +484,30 @@
   const trigger = document.getElementById('miniPlayerBtn');
   if (trigger) trigger.addEventListener('click', () => open());
 })();
+/* Header toggle for MiniPlayer */
+(function(){
+  function addBtn(){
+    var ha = document.querySelector('.header-actions');
+    if (!ha) { setTimeout(addBtn, 300); return; }
+    if (document.getElementById('kmpHeaderToggle')) return;
+    var btn = document.createElement('button');
+    btn.id = 'kmpHeaderToggle';
+    btn.type = 'button';
+    btn.className = 'icon-button';
+    btn.title = 'Toggle MiniPlayer';
+    btn.setAttribute('aria-label', 'Toggle MiniPlayer');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>';
+    btn.addEventListener('click', function(){
+      var mp = document.getElementById('kefeMiniPlayer');
+      if (!mp) return;
+      var hidden = mp.style.display === 'none' || getComputedStyle(mp).display === 'none';
+      mp.style.display = hidden ? '' : 'none';
+    });
+    var tc = ha.querySelector('.theme-control');
+    if (tc) tc.parentNode.insertBefore(btn, tc); else ha.insertBefore(btn, ha.firstChild);
+    var mp = document.getElementById('kefeMiniPlayer');
+    if (mp) mp.style.display = 'none';
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addBtn, {once:true});
+  else addBtn();
+})();
