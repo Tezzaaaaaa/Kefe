@@ -27,7 +27,7 @@
     "dotenv": "^16.6.1",
     "express": "^4.22.2",
     "jsonwebtoken": "^9.0.3",
-    "mediainfo.js": "^0.3.7",
+    "mediainfo.js": "^0.3.8",
     "stripe": "^22.6.1"
   },
   "devDependencies": {
