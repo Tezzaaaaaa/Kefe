@@ -13,7 +13,7 @@
   --radius-lg: 12px; --radius-md: 8px; --radius-sm: 6px; --control-h: 40px;
   --shadow-card: none; --font: 'Inter Tight', 'Open Sans', Arial, sans-serif; --ease: cubic-bezier(.2,.72,.2,1);
 }
-@media (prefers-color-scheme: light) { :root:not([data-theme="day"]):not([data-theme="night"]) { --bg: #f4f4f2; --surface: #efefed; --surface-2: #e9e9e6; --surface-3: #dedede; --line:rgba(10,10,8,.10); --line-strong:rgba(10,10,8,.22); --text:#0a0a0a; --text-2:#5c5c58; --text-3:#6f6f6a; --shadow-card:none; } }
+}
 *{margin:0;padding:0;box-sizing:border-box} [hidden]{display:none!important} html,body{height:100%;min-height:100dvh;overflow:hidden} html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13.5px;line-height:1.5;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;user-select:none}
 button,input,select,textarea{font-family:inherit;color:inherit}
@@ -32,6 +32,6 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
 .section-nav{position:sticky;top:0;z-index:8;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;margin:5px 8px;padding:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
 .section-nav-link{position:relative;min-width:0;min-height:28px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:4px;padding:3px 6px;color:var(--text-3);text-decoration:none;border:0;border-radius:9px;transition:color .2s var(--ease),background .2s var(--ease),transform .2s var(--ease)}
 .section-nav-link:last-child{border-right:0}.section-nav-link:hover{color:var(--text);background:var(--surface-3);transform:translateY(-1px)}.section-nav-link.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.10)}
-.wizard-choice-icon svg,.section-nav-link svg,.theme-control svg,.icon-button svg{color:currentColor}
+.wizard-choice-icon svg,.section-nav-link svg,.icon-button svg{color:currentColor}
 @media(max-width:600px){header{gap:6px;padding:10px 12px}.brand{width:72px}.header-actions{gap:5px}button{padding:7px 10px;font-size:11.5px}.icon-button{width:36px;min-height:36px}.icon-button svg{width:15px;height:15px}button.export-action span{display:none}button.export-action{padding:8px}}
 @media(max-width:380px){.brand-descriptor{display:none}}
