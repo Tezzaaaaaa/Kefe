@@ -2392,7 +2392,6 @@ async function readEmbeddedAudioMetadata(file, token, source = 'audio') {
             if (tags.album) state.audio.metadata.album = String(tags.album).trim();
             if (tags.title || tags.artist || tags.album) state.audio.metadataSource = 'embedded';
         }
-        if (source === 'video') return;
         updateMetadataInputs();
         const picture = tags.picture;
         if (picture?.data?.length) {
@@ -2401,10 +2400,10 @@ async function readEmbeddedAudioMetadata(file, token, source = 'audio') {
         }
         saveLinaPrefs();
         redrawCurrentPreviewFrame();
-        void autoFetchLyricsForCurrentTrack(file, token);
+        if (source !== 'video') void autoFetchLyricsForCurrentTrack(file, token);
     } catch (error) {
         console.info('No readable embedded audio metadata:', error?.message || error);
-        void autoFetchLyricsForCurrentTrack(file, token);
+        if (source !== 'video') void autoFetchLyricsForCurrentTrack(file, token);
     }
 }
 
