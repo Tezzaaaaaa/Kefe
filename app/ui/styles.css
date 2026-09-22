@@ -23,7 +23,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 22px;min-height:62px;background:var(--surface);border-bottom:1px solid var(--line);flex-shrink:0;z-index:10}
 .brand{display:flex;width:96px;flex-direction:column;gap:1px;color:var(--text);text-decoration:none;cursor:pointer}.brand img{width:100%;height:auto}
 /* Night-only KEFE logo. */
-.brand-logo-day{display:none}.brand-logo-night{display:block}
+.brand-logo-night{display:block}
 .brand-descriptor{display:flex;width:100%;justify-content:space-between;padding:0 1px;color:var(--text-3);font-size:8px;font-weight:700;line-height:1;text-transform:uppercase}
 .header-actions{display:flex;align-items:center;gap:8px;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}.header-actions::-webkit-scrollbar{display:none}.header-actions>*{flex:0 0 auto}
 button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:var(--control-h);padding:8px 15px;border:1px solid var(--line);border-radius:var(--radius-md);background:transparent;color:var(--text);font-size:12.5px;font-weight:600;letter-spacing:-.01em;cursor:pointer;transition:background .18s var(--ease),border-color .18s var(--ease),color .18s var(--ease),transform .12s var(--ease)}
