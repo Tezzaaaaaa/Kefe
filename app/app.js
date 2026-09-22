@@ -99,22 +99,10 @@ function loadLinaPrefs() {
     } catch (e) { return null; }
 }
 
-/* ---------- Theme (Day / Night / System) ---------- */
-const THEME_KEY = 'kefe-theme-v1';
-function applyTheme(mode) {
-    try {
-        if (mode === 'day' || mode === 'night') document.documentElement.dataset.theme = mode;
-        else delete document.documentElement.dataset.theme;
-        localStorage.setItem(THEME_KEY, mode);
-    } catch (e) { /* storage unavailable — theme simply won't persist */ }
-    const select = $('themeSelect');
-    if (select) select.value = mode || 'system';
-}
-function initTheme() {
-    let saved = 'system';
-    try { saved = localStorage.getItem(THEME_KEY) || 'system'; } catch (e) { /* storage unavailable */ }
-    applyTheme(['day', 'night'].includes(saved) ? saved : 'system');
-    $('themeSelect')?.addEventListener('change', function() { applyTheme(this.value); });
+/* ---------- Night presentation ---------- */
+function applyNightPresentation() {
+    document.documentElement.dataset.theme = 'night';
+    document.documentElement.style.colorScheme = 'dark';
 }
 
 /* ---------- Timed text resolution (Lyrics vs Captions) ---------- */
@@ -3865,7 +3853,7 @@ function syncBackgroundControls() {
 function init() {
     try {
         ensureDefaultBackground();
-        initTheme();
+        applyNightPresentation();
         $('backgroundColor').value = state.background.solid;
         $('backgroundColorValue').textContent = state.background.solid.toUpperCase();
         const prefs = loadLinaPrefs();
