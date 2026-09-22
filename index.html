@@ -36,7 +36,7 @@
         <aside class="sidebar">
             <div class="section" id="audioSection">
                 <h3>Media</h3>
-                <div class="drop-zone" id="audioDrop"><button type="button" id="audioChooseBtn" class="file-button">Upload media…</button><p class="control-hint">Audio (MP3 / WAV / M4A) or a video with the audio you want as master — drag &amp; drop here</p><input type="file" id="audioInput" accept="audio/*,video/*" class="hidden"></div>
+                <div class="drop-zone audio-upload-zone" id="audioDrop"><button type="button" id="audioChooseBtn" class="file-button audio-upload-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload Audio</span></button><p class="control-hint">Drop an audio file here or click to browse</p><input type="file" id="audioInput" accept="audio/*" class="hidden"></div>
                 <div id="audioStatus" class="status">No audio loaded</div>
                 <div class="sub-block"><div class="sub-heading">Master audio source</div><div id="audioSourceButtons" class="segmented"></div><div id="audioSourceStatus" class="sub-hint"></div></div>
                 <div class="sub-heading music-details-heading">Song details</div><div class="metadata-grid music-details" aria-label="Song details">
