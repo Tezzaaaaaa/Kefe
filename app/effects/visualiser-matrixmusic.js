@@ -35,7 +35,8 @@
     presetId: 'pulse-rain',
     mode: 'classic',
     palette: 'mode-default',
-    stopped: true
+    stopped: true,
+    lastTime: 0
   };
 
   function clone(value) {
@@ -113,6 +114,10 @@
     state.A.mixer = clone(record.mixer || {});
     state.A.characterId = record.characterId || record.id;
     state.A.knobs = {};
+    state.A.base = {};
+    ['fallSpeed','cycleSpeed','animationSpeed','raindropLength','brightnessDecay','baseBrightness','baseContrast','cursorIntensity','glintIntensity','bloomStrength'].forEach(function (key) {
+      state.A.base[key] = Number(state._config && state._config[key]);
+    });
     resetShader();
   }
 
@@ -165,9 +170,10 @@
         var analysis = window.kefeVisualiser && window.kefeVisualiser.data;
         var seconds = audio && Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
         var f = frameAt(seconds, analysis);
-        var dt = state.A.features.time ? Math.max(0, t - state.A.features.time) : 1 / 60;
+        var dt = state.lastTime ? Math.max(0, t - state.lastTime) : 1 / 60;
         state.A.features.time = t;
         state.A.features.dt = Math.min(0.25, dt);
+        state.lastTime = t;
         if (f) {
           Object.keys(f).forEach(function (key) {
             if (key !== 'energySlow') state.A.features[key] = f[key];
@@ -220,6 +226,8 @@
     configureActiveRecord(wanted);
 
     var config = buildConfig(mode, palette);
+    state._config = config;
+    configureActiveRecord(wanted);
     state.mode = mode;
     state.palette = palette;
 
