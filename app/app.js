@@ -2108,6 +2108,7 @@ function updateMetadataInputs() {
     if (titleInput) titleInput.value = state.audio.metadata.title || '';
     if (artistInput) artistInput.value = state.audio.metadata.artist || '';
     if (albumInput) albumInput.value = state.audio.metadata.album || '';
+    updateGoogleLyricsButton();
 }
 
 function setAlbumArtworkBlob(blob, token = audioLoadToken) {
