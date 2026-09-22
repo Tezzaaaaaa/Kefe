@@ -19,7 +19,6 @@
         'metaTitle','metaArtist','metaAlbum','lyricsOffset','syncLive','captionColor',
         'captionOpacity','captionShadow','backgroundColor','bgDim','bgBlur',
         'titleCardEnabled','titleCardDuration','titleCardStyle','exportPreset','aspectSelect',
-        'themeSelect'
     ];
 
     const SELECTORS = [
