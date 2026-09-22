@@ -274,10 +274,16 @@
       try {
         const mode = miniVisualiserStyle || 'butterchurn';
         const playing = !audio.paused && !audio.ended;
+
+        // Keep the artwork as the disc base, then render the selected
+        // visualiser over it. The previous branch skipped every visualiser
+        // whenever artwork existed, making preset changes appear inert.
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (currentArtwork) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(currentArtwork, 0, 0, canvas.width, canvas.height);
-        } else if (playing && mode === 'butterchurn') {
+        }
+
+        if (playing && mode === 'butterchurn') {
           window.kefeButterchurn?.prepare?.().then?.(() => {
             window.kefeButterchurn?.drawMini?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
           }).catch?.(() => {});
