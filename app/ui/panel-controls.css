@@ -261,3 +261,21 @@ input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
 .music-sync-hint.is-audio-source {
   color: var(--text-2);
 }
+
+/* Audio upload space: the control owns the full media gap instead of floating inside it. */
+.audio-upload-zone{
+  min-height:clamp(150px,18vh,220px);
+  padding:24px;
+  border:1px dashed var(--line-strong);
+  background:var(--surface-2);
+  transition:min-height .2s var(--ease),border-color .18s var(--ease),background .18s var(--ease);
+}
+.audio-upload-zone .audio-upload-button{
+  width:min(100%,260px);
+  min-height:52px;
+  gap:10px;
+}
+.audio-upload-zone .audio-upload-button svg{width:19px;height:19px}
+.audio-upload-zone .control-hint{max-width:280px;line-height:1.4}
+.audio-upload-zone.dragover{border-color:var(--red);background:var(--red-soft)}
+.audio-upload-zone.dragover .audio-upload-button{border-color:var(--red);background:var(--red);color:#fff}
