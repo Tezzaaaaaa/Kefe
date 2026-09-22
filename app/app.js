@@ -2117,6 +2117,7 @@ function setAlbumArtworkBlob(blob, token = audioLoadToken) {
         if (token !== audioLoadToken) return;
         state.audio.hasArtwork = false;
         albumArtworkImage = null;
+        window.kefeAlbumArt = null;
         if (albumArtworkURL) { URL.revokeObjectURL(albumArtworkURL); albumArtworkURL = null; }
     };
     image.src = albumArtworkURL;
