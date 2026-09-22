@@ -86,6 +86,8 @@ try {
   await page
     .locator('#audioInput')
     .waitFor({ state: 'attached', timeout: 10000 });
+  if (await page.locator('#exportBtn').count()) throw new Error('Top-right #exportBtn should not exist');
+  if (!(await page.locator('#exportBottom').count())) throw new Error('Remaining export button #exportBottom is missing');
   await page.waitForFunction(
     () =>
       Boolean(window.state) &&
@@ -202,7 +204,7 @@ try {
     throw new Error('Smart render preparation failed');
   }
 
-  await page.locator('#exportBtn').click();
+  await page.locator('#exportBottom').click();
   await page.waitForTimeout(250);
   const preflightVisible = await page
     .locator('#exportPreflight')
