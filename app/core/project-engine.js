@@ -151,7 +151,7 @@
             await dbPut(project);
             memory.dirty = false;
             memory.lastSavedAt = project.savedAt;
-            setStatus(reason === 'manual' ? 'Project saved' : 'Saved', 'saved');
+            if (reason === 'manual') setStatus('Project saved', 'saved');
             window.dispatchEvent(new CustomEvent('kefe:project-saved', { detail: project }));
         } catch (error) {
             console.warn('[KEFE Project Engine] save failed', error);
