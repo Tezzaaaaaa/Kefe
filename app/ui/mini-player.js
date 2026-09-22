@@ -136,7 +136,6 @@
   }
 
   function setCurrentArtwork(url) {
-    if (currentArtworkUrl && currentArtworkUrl !== url && currentArtworkUrl.startsWith('blob:')) URL.revokeObjectURL(currentArtworkUrl);
     currentArtworkUrl = url || '';
     currentArtwork = null;
     if (!url) return;
