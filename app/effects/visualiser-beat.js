@@ -421,6 +421,13 @@
     catch(e){ console.warn('[KEFE tuffpuff]', e); }
   }
 
+  function drawButterchurn(ctx, w, h, time, frame, appState){
+    if (!window.kefeButterchurn) return;
+    try {
+      window.kefeButterchurn.draw(ctx, w, h, time, appState);
+    } catch(e){ console.warn('[KEFE butterchurn]', e); }
+  }
+
   function drawRidgeline(ctx, w, h, time, frame, appState){
     if (!window.kefeRidgeline || !analysis) return;
     try { window.kefeRidgeline.draw(ctx, w, h, time, frame, appState, analysis); }
@@ -429,7 +436,7 @@
 
   // Visualiser modes. The legacy pulse/spectrum/waveform/radial renderers
   // remain available as fallbacks; the picker exposes the production modes.
-  var MODES = { ra: drawRa, tuffpuff: drawTuffPuff, ridgeline: drawRidgeline };
+  var MODES = { ra: drawRa, tuffpuff: drawTuffPuff, ridgeline: drawRidgeline, butterchurn: drawButterchurn };
 
   function draw(ctx, w, h, time, appState) {
     var mode = (appState && appState.style && appState.style.visualiserStyle) || 'pulse';
