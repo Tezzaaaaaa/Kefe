@@ -45,7 +45,8 @@
   var MODES = [
     { key: 'ra',        label: 'Ra'        },
     { key: 'tuffpuff',  label: 'TuffPuff'  },
-    { key: 'ridgeline', label: 'Ridgeline' }
+    { key: 'ridgeline', label: 'Ridgeline' },
+    { key: 'butterchurn', label: 'Butterchurn' }
   ];
 
   function current(){
@@ -109,6 +110,70 @@
     grid.querySelectorAll('.kefe-vis-btn').forEach(function(b){
       b.classList.toggle('active-effect', b.dataset.mode === cur);
     });
+
+    // ---- Butterchurn controls: 100 official Butterchurn presets ----
+    if (cur === 'butterchurn') {
+      var bc = document.createElement('div');
+      bc.className = 'kefe-ra-controls';
+      var row = document.createElement('div');
+      row.className = 'kefe-ra-row';
+      var lab = document.createElement('label');
+      lab.textContent = 'Preset';
+      var select = document.createElement('select');
+      select.setAttribute('aria-label', 'Butterchurn preset');
+      select.style.flex = '1 1 auto';
+      select.style.minWidth = '0';
+      select.style.height = '34px';
+      select.style.border = '1px solid var(--line)';
+      select.style.borderRadius = '8px';
+      select.style.background = 'var(--surface)';
+      select.style.color = 'var(--text)';
+      select.style.padding = '0 8px';
+
+      function fillButterchurnPresets() {
+        var names = window.kefeButterchurn && window.kefeButterchurn.presetNames
+          ? window.kefeButterchurn.presetNames()
+          : [];
+        if (!names.length) return false;
+        select.innerHTML = names.map(function(name) {
+          var option = document.createElement('option');
+          option.value = name;
+          option.textContent = name;
+          return option;
+        });
+        var selected = window.kefeButterchurn.effectivePreset(window.state);
+        if (selected) select.value = selected;
+        return true;
+      }
+
+      select.addEventListener('change', function() {
+        if (!window.state) return;
+        if (!window.state.style) window.state.style = {};
+        window.state.style.visualiserStyle = 'butterchurn';
+        window.state.style.butterchurnPreset = select.value;
+        window.kefeButterchurn && window.kefeButterchurn.selectPreset(select.value);
+        window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
+      });
+
+      row.appendChild(lab);
+      row.appendChild(select);
+      bc.appendChild(row);
+
+      if (!fillButterchurnPresets()) {
+        select.innerHTML = '<option>Loading 100 presets…</option>';
+        window.kefeButterchurn && window.kefeButterchurn.prepare()
+          .then(function() {
+            fillButterchurnPresets();
+            window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
+          })
+          .catch(function(error) {
+            select.innerHTML = '<option>Butterchurn unavailable</option>';
+            console.warn('[KEFE Butterchurn]', error);
+          });
+      }
+
+      box.appendChild(bc);
+    }
 
     // ---- TuffPuff controls: only when TuffPuff is selected ----
     if (cur === 'tuffpuff') {
