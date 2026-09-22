@@ -491,7 +491,10 @@
   const syncVolumeFill = () => volumeEl.style.setProperty('--p', `${(Number(volumeEl.value) || 0) * 100}%`);
   volumeEl.addEventListener('input', e => { audio.volume = Math.max(0, Math.min(1, Number(e.target.value) || 0)); syncVolumeFill(); });
   syncVolumeFill();
-  card.addEventListener('click', () => setExpanded(!expanded));
+  card.addEventListener('click', event => {
+    if (event.target.closest('button, input, select, a')) return;
+    setExpanded(!expanded);
+  });
   card.addEventListener('keydown', e => {
     if (e.target !== card || (e.key !== 'Enter' && e.key !== ' ')) return;
     e.preventDefault();
