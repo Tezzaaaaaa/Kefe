@@ -104,7 +104,7 @@ try {
   if (!(await page.locator('#miniPlayerBtn').count())) throw new Error('MiniPlayer trigger is missing');
   if (!(await page.evaluate(() => Boolean(window.kefeMiniPlayer)))) throw new Error('MiniPlayer did not initialise');
   if (await page.locator('.kefe-preview-hint').count()) throw new Error('Preview text placeholder should not exist');
-  if (!(await page.locator('.preview-logo-backdrop').count())) throw new Error('K logo placeholder is missing');
+  await page.locator('.preview-logo-backdrop').waitFor({ state: 'attached', timeout: 5000 });
   const placeholderStyle = await page.locator('.preview-logo-backdrop').evaluate((el) => getComputedStyle(el).mixBlendMode);
   if (placeholderStyle !== 'screen') throw new Error('Preview logo backdrop is not using transparent-style blending');
   const visiblePreviewText = await page.locator('.preview').evaluate((el) => {
