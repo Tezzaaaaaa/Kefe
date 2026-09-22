@@ -35,8 +35,7 @@
 
     const wizard = { path: 'lyric', index: 0, choice: null, source: null };
     const destroyIntroVeil = () => window.KefeDarkVeil?.destroy?.();
-    const isNightTheme = () => document.documentElement.dataset.theme === 'night' || (!document.documentElement.dataset.theme && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
-    const stepsFor = () => {
+        const stepsFor = () => {
         let steps = PATHS[wizard.path] || PATHS.lyric;
         // Captioned + video source = no background step (the video IS the background)
         if (wizard.path === 'captioned' && wizard.source === 'media') {
@@ -118,7 +117,7 @@
     }
     function renderIntro() {
         destroyIntroVeil();
-        const veil = isNightTheme() ? '<div class="wizard-dark-veil" aria-hidden="true"></div>' : '';
+        const veil = '<div class="wizard-dark-veil" aria-hidden="true"></div>';
         panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">Choose your KEFE project</h3><div class="wizard-choices-wrap"><div class="wizard-choices">' + ['lyric','visualiser','captioned'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div></div>';
         const veilTarget = panel.querySelector('.wizard-dark-veil');
         if (veilTarget && window.KefeDarkVeil?.mount) {
@@ -277,6 +276,5 @@
     sidebar.addEventListener('input', () => setTimeout(refreshNextState, 0));
     sidebar.addEventListener('change', () => setTimeout(refreshNextState, 0));
     sidebar.addEventListener('click', () => setTimeout(refreshNextState, 0));
-    window.addEventListener('kefe:theme-change', () => { if (stepsFor()[wizard.index] === 'intro') renderIntro(); });
     applyStep();
 })();
