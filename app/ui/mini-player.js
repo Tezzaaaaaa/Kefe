@@ -93,6 +93,7 @@
   let currentArtwork = null;
   let currentArtworkUrl = '';
   let metadataReadPromise = null;
+  let miniVisualiserStyle = 'butterchurn';
   const fmt = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`; };
   const fmtCur = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)} : ${String(Math.floor(t % 60)).padStart(2, '0')}`; };
   const esc = value => String(value || '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
@@ -247,6 +248,7 @@
     const state = getState();
     if (!state.style) state.style = {};
 
+    miniVisualiserStyle = group;
     state.style.visualiserStyle = group;
     if (group === 'butterchurn') {
       state.style.butterchurnPreset = preset;
@@ -268,11 +270,12 @@
       syncProgress();
       try {
         const style = getState().style || {};
+        const mode = miniVisualiserStyle || 'butterchurn';
         const playing = !audio.paused && !audio.ended;
         if (currentArtwork) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(currentArtwork, 0, 0, canvas.width, canvas.height);
-        } else if (playing && style.visualiserStyle === 'butterchurn') {
+        } else if (playing && mode === 'butterchurn') {
           window.kefeButterchurn?.prepare?.().then?.(() => {
             window.kefeButterchurn?.drawMini?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
           }).catch?.(() => {});
