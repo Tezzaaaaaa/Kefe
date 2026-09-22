@@ -57,7 +57,7 @@ fails the build, it isn't just a style suggestion.
 3. **Don't add a second color-token system.** All color/surface/text
    tokens live in `app/ui/styles.css` under `:root` (`--text`,
    `--surface`, `--line`, `--red`, etc.). Keep the single night presentation
-   consistent and don't reintroduce a parallel light-theme token set.
+   consistent and don't reintroduce a parallel alternate color-token set.
    Don't invent a new prefix (the retired `--kefe-ink`/`--kefe-paper`/
    `--kefe-red`/`--kefe-muted`/`--kefe-line`/`--kefe-radius` convention is
    what this rule exists to prevent a repeat of). Component-scoped
