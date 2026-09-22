@@ -22,19 +22,7 @@
   ].join('');
   document.head.appendChild(css);
 
-  function ensureEmptyHint() {
-    var wrapper = document.querySelector('.preview .canvas-wrapper');
-    if (!wrapper) return null;
-    var hint = wrapper.querySelector('.kefe-preview-hint');
-    if (hint) return hint;
-    hint = document.createElement('div');
-    hint.className = 'kefe-preview-hint';
-    hint.textContent = 'Your preview will appear here. Load audio or video to begin.';
-    wrapper.appendChild(hint);
-    return hint;
-  }
-
-  function hasMedia() {
+    function hasMedia() {
     var s = window.state || {}, m = window.kefeMedia || {};
     return Boolean(
       (s.audio && s.audio.file) ||
@@ -50,15 +38,8 @@
     preview.classList.add('preview-expanded');
   }
 
-  function refreshHint() {
-    var hint = ensureEmptyHint();
-    if (!hint) return;
-    hint.classList.toggle('hidden', hasMedia());
-  }
-
   function tick() {
     forceExpand();
-    refreshHint();
   }
 
   tick();
