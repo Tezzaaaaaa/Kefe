@@ -119,7 +119,7 @@
         return response.json();
     }
 
-    async function findSyncedLyrics({ artist = '', title = '', album = '', duration = 0, signal } = {}) {
+    async function findSyncedLyrics({ artist = '', title = '', album = '', duration = 0, signal, onFallback } = {}) {
         artist = String(artist).trim();
         title = String(title).trim();
         album = String(album).trim();
@@ -153,6 +153,7 @@
             if (best?.syncedLyrics) return { ...best, source: 'LRCLIB', match: 'search' };
 
             try {
+                onFallback?.('Lyricsify');
                 const lyrics = await findLyricsifyLyrics({ artist, title, signal: fetchSignal });
                 return lyrics ? { syncedLyrics: lyrics, source: 'Lyricsify', match: 'scrape' } : null;
             } catch (lyricsifyError) {
@@ -470,7 +471,7 @@
             const status = document.getElementById('lyricsStatus');
             if (status) status.textContent = 'Searching LRCLIB for synced lyrics…';
             try {
-                const result = await findSyncedLyrics(query);
+                const result = await findSyncedLyrics({ ...query, onFallback: provider => { if (status) status.textContent = `Searching ${provider} for synced lyrics…`; } });
                 if (!result?.syncedLyrics) throw new Error('No lyrics found. Try uploading manually or creating your own.');
                 const lines = parseLrcText(result.syncedLyrics);
                 const timeline = canonicalTimeline(lines, Number(result.duration || 0) * 1000);
