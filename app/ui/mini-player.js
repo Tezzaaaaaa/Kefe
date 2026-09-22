@@ -150,17 +150,70 @@
     $('kefeMiniQueueList').querySelectorAll('[data-mini-track]').forEach(b => b.addEventListener('click', () => loadTrack(Number(b.dataset.miniTrack), true)));
   }
   function loadPresets() {
-    const names = window.kefeButterchurn?.presetNames?.() || [];
     const select = $('kefeMiniPreset');
-    if (!select || !names.length) return;
-    select.innerHTML = names.map(n => `<option value="${esc(n)}">${esc(n.replace(/^[^-]+[-+]\\s*/,'').trim())}</option>`).join('');
-    const preferred = window.kefeButterchurn?.effectivePreset?.(getState());
-    if (preferred && names.includes(preferred)) select.value = preferred;
+    if (!select) return;
+
+    const style = getState().style || {};
+    const groups = [
+      { key: 'butterchurn', label: 'Butterchurn', api: window.kefeButterchurn, stateKey: 'butterchurnPreset' },
+      { key: 'matrixmusic', label: 'Matrix Music', api: window.kefeMatrixVisualiser, stateKey: 'matrixMusicPreset' },
+      { key: 'audioreactive', label: 'Audio Reactive Shaders', api: window.kefeAudioReactiveShaders, stateKey: 'audioReactiveShaderPreset' }
+    ];
+
+    const current = style.visualiserStyle || 'butterchurn';
+    const html = [];
+    groups.forEach(group => {
+      let items = [];
+      if (group.key === 'butterchurn') {
+        items = group.api?.presetNames?.() || [];
+      } else if (group.key === 'matrixmusic') {
+        items = (group.api?.presetRecords?.() || []).map(record => ({ value: record.id, label: record.name }));
+      } else if (group.key === 'audioreactive') {
+        items = (group.api?.presetNames?.() || []).map((name, i) => ({ value: String(i), label: name }));
+      }
+      if (!items.length) return;
+      html.push(`<optgroup label="${esc(group.label)}">`);
+      items.forEach(item => {
+        const value = typeof item === 'string' ? item : item.value;
+        const label = typeof item === 'string'
+          ? item.replace(/^[^-]+[-+]\\s*/,'').trim()
+          : item.label;
+        html.push(`<option value="${esc(group.key + '::' + value)}">${esc(label)}</option>`);
+      });
+      html.push('</optgroup>');
+    });
+
+    if (!html.length) {
+      select.innerHTML = '<option>Loading visualiser presets…</option>';
+      return;
+    }
+
+    select.innerHTML = html.join('');
+    let wanted = '';
+    if (current === 'butterchurn') wanted = style.butterchurnPreset ? 'butterchurn::' + style.butterchurnPreset : '';
+    if (current === 'matrixmusic') wanted = style.matrixMusicPreset ? 'matrixmusic::' + style.matrixMusicPreset : '';
+    if (current === 'audioreactive') wanted = style.audioReactiveShaderPreset !== undefined ? 'audioreactive::' + style.audioReactiveShaderPreset : '';
+    if (wanted && [...select.options].some(option => option.value === wanted)) select.value = wanted;
   }
-  function choosePreset(name) {
-    getState().style.visualiserStyle = 'butterchurn';
-    getState().style.butterchurnPreset = name;
-    try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
+
+  function choosePreset(value) {
+    const parts = String(value || '').split('::');
+    const group = parts.shift();
+    const preset = parts.join('::');
+    const state = getState();
+    if (!state.style) state.style = {};
+
+    state.style.visualiserStyle = group;
+    if (group === 'butterchurn') {
+      state.style.butterchurnPreset = preset;
+      try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
+    } else if (group === 'matrixmusic') {
+      state.style.matrixMusicPreset = preset;
+      try { window.kefeMatrixVisualiser?.selectPreset?.(preset, canvas.width, canvas.height); } catch (e) {}
+    } else if (group === 'audioreactive') {
+      state.style.audioReactiveShaderPreset = Number(preset) || 0;
+      try { window.kefeAudioReactiveShaders?.selectPreset?.(Number(preset) || 0, canvas.width, canvas.height); } catch (e) {}
+    }
   }
   function draw(now) {
     now = now || performance.now();
@@ -170,8 +223,13 @@
       stepSpin(now, dt);
       syncProgress();
       try {
-        getState().style.visualiserStyle = 'butterchurn';
-        window.kefeButterchurn?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || performance.now() / 1000, getState());
+        const style = getState().style || {};
+        const mode = style.visualiserStyle || 'butterchurn';
+        if (mode === 'butterchurn') {
+          window.kefeButterchurn?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || performance.now() / 1000, getState());
+        } else {
+          window.kefeVisualiser?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || performance.now() / 1000, getState());
+        }
       } catch (e) {}
     }
     raf = requestAnimationFrame(draw);
@@ -247,7 +305,7 @@
     getState().audio.duration = 0;
     getState().audio.ready = true;
     getState().audio.metadata = { ...getState().audio.metadata, title: track.title, artist: track.artist };
-    getState().style.visualiserStyle = 'butterchurn';
+    if (!getState().style.visualiserStyle) getState().style.visualiserStyle = 'butterchurn';
     setNowPlaying(track.title, track.artist);
     $('kefeMiniCurrent').textContent = fmtCur(0);
     $('kefeMiniDuration').textContent = fmt(0);
@@ -398,11 +456,13 @@
     loadTrack(nextIndex, true);
   });
   $('kefeMiniShuffle').addEventListener('click', () => {
-    const names = window.kefeButterchurn?.presetNames?.() || [];
-    if (!names.length) return;
-    const name = names[Math.floor(Math.random() * names.length)];
-    choosePreset(name);
-    $('kefeMiniPreset').value = name;
+    const select = $('kefeMiniPreset');
+    if (!select || !select.options.length) return;
+    const options = [...select.options].filter(option => option.value && !option.disabled);
+    if (!options.length) return;
+    const option = options[Math.floor(Math.random() * options.length)];
+    choosePreset(option.value);
+    select.value = option.value;
   });
   $('kefeMiniPreset').addEventListener('change', e => choosePreset(e.target.value));
   $('kefeMiniClose').addEventListener('click', () => close());
