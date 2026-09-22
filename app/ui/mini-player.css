@@ -76,9 +76,9 @@
 .kefe-mini-card.is-expanded .kefe-mini-art-caption{opacity:1;transform:none;transition:opacity .4s ease .45s,transform .4s ease .45s}
 
 .kefe-mini-body{position:relative;min-width:0}
-.kefe-mini-control-toggle{position:absolute;right:10px;bottom:7px;z-index:1;display:grid;place-items:center;width:22px;height:14px;margin:0;padding:0;border:0;border-radius:999px!important;background:rgba(17,17,19,.025);color:rgba(17,17,19,.2);font:600 8px/1 var(--mp-font);cursor:pointer;transition:opacity .2s,background .2s,color .2s}
-.kefe-mini-control-toggle:hover,.kefe-mini-control-toggle:focus-visible{background:rgba(17,17,19,.08);color:rgba(17,17,19,.55);outline:none}
-.kefe-mini-control-toggle .chevron{display:block;transition:transform .25s var(--mp-ease)}
+.kefe-mini-control-toggle{position:absolute;right:10px;bottom:10px;z-index:3;display:grid;place-items:center;width:48px;height:48px;min-width:48px;min-height:48px;margin:0;padding:0;border:1px solid rgba(17,17,19,.12);border-radius:50%!important;background:rgba(246,246,248,.92);color:rgba(17,17,19,.72);font:600 8px/1 var(--mp-font);cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:opacity .22s ease,background .22s ease,color .22s ease,transform .38s var(--mp-ease),box-shadow .22s ease}
+.kefe-mini-control-toggle:hover,.kefe-mini-control-toggle:focus-visible{background:rgba(246,246,248,.98);color:rgba(17,17,19,.95);outline:none;box-shadow:0 6px 16px rgba(0,0,0,.18)} .kefe-mini-control-toggle:active{transform:scale(.94)}
+.kefe-mini-control-toggle .chevron{display:grid;place-items:center;transition:transform .38s var(--mp-ease)} .kefe-mini-control-toggle .chevron svg{width:20px;height:20px}
 .kefe-mini-body.is-controls-open .kefe-mini-control-toggle .chevron{transform:rotate(180deg)}
 .kefe-mini-control-panel{position:absolute;left:10px;right:10px;top:calc(100% + 8px);z-index:1;max-height:0;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-8px);transition:max-height .38s var(--mp-ease),opacity .22s ease,transform .38s var(--mp-ease)}
 .kefe-mini-body.is-controls-open .kefe-mini-control-panel{max-height:min(70dvh,560px);opacity:1;pointer-events:auto;transform:none}
@@ -192,3 +192,5 @@
 .wizard-mini-player-launch{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px;border:1px solid var(--line);background:var(--surface-2)}
 .wizard-mini-player-launch>div{display:grid;gap:5px}
 .wizard-mini-player-launch span{font-size:12px;color:var(--muted)}
+
+.kefe-mini-shell .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
