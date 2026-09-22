@@ -8,7 +8,7 @@ window.kefeAudioElement = audio;
 
 const state = {
     audio: { file: null, url: null, duration: 0, ready: false, metadata: { title: '', artist: '', album: '' }, metadataSource: 'none', hasArtwork: false },
-    lyrics: { lines: [] },
+    lyrics: { lines: [], plainText: '', source: '' },
     style: {
         effect: 'apple',
         fontSize: 76,
@@ -1439,6 +1439,32 @@ function renderTitleCardStatement(ctx, w, h, appState, phase, info) {
     return true;
 }
 
+function drawPlainLyrics(ctx, w, h, text) {
+    const rows = String(text || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    if (!rows.length) return;
+    const unit = Math.min(w, h);
+    const fontSize = Math.max(28, Math.min(74, unit * 0.038));
+    const lineHeight = fontSize * 1.35;
+    const maxWidth = w * 0.78;
+    ctx.save();
+    ctx.font = `600 ${fontSize}px "Open Sans", Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+    ctx.shadowBlur = fontSize * 0.12;
+    const visible = rows.slice(0, Math.max(1, Math.floor((h * 0.72) / lineHeight)));
+    const total = visible.length * lineHeight;
+    let y = (h - total) / 2 + lineHeight / 2;
+    for (const row of visible) {
+        let shown = row;
+        while (shown.length > 1 && ctx.measureText(shown).width > maxWidth) shown = shown.slice(0, -2).trim() + '…';
+        ctx.fillText(shown, w / 2, y);
+        y += lineHeight;
+    }
+    ctx.restore();
+}
+
 function render(ctx, w, h, appState, mediaCache) {
     if (!ctx || !w || !h) return;
     ctx.save();
@@ -1472,6 +1498,8 @@ function render(ctx, w, h, appState, mediaCache) {
                     else renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime);
                 }
                 catch(e) { console.error(`${style.effect} render error:`, e); }
+            } else if (appState.lyrics.plainText && appState.projectType !== 'visualiser') {
+                drawPlainLyrics(ctx, w, h, appState.lyrics.plainText);
             } else if (appState.projectType === 'visualiser' && window.kefeVisualiser) {
                 window.kefeVisualiser.draw(ctx, w, h, cappedTime, appState);
             }
@@ -1988,27 +2016,170 @@ function wireSyncControls() {
 function songFromFilename(name) {
     if (!name) return { artist: '', track: '' };
     let base = String(name)
-        .replace(/\.[^.]+$/, '')         // strip extension
-        .replace(/_/g, ' ')               // underscores to spaces
+        .replace(/\.[^.]+$/, '')
+        .replace(/_/g, ' ')
         .trim();
 
-    // Strip any trailing parenthetical / bracketed descriptor first.
-    base = base
-        .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*$/g, '')
-        .replace(/\s+(official|lyric|lyrics|audio|visuali[sz]er|video|HD|4K|MV)\s*$/ig, '')
+    base = cleanLyricsLookupText(base)
+        .replace(/^\d{1,3}\s*[-._]?\s*/, '')
         .trim();
-
-    // Strip leading track numbers like "01 - " or "01. " or "01 ".
-    base = base.replace(/^\d{1,3}\s*[-._]?\s*/, '').trim();
 
     const parts = base.split(/\s+-\s+/);
     if (parts.length >= 2) {
         return {
-            artist: parts[0].trim(),
-            track: parts.slice(1).join(' - ').trim()
+            artist: cleanLyricsLookupText(parts[0]),
+            track: cleanLyricsLookupText(parts.slice(1).join(' - '))
         };
     }
-    return { artist: '', track: base };
+    return { artist: '', track: cleanLyricsLookupText(base) };
+}
+
+function cleanLyricsLookupText(value) {
+    return String(value || '')
+        .replace(/\.(mp3|m4a|aac|wav|flac|ogg|oga|opus|webm)$/i, '')
+        .replace(/\s*[\(\[][^\)\]]*(?:official\s+(?:audio|video)|official|lyrics?|visuali[sz]er|video|audio|HD|4K|MV|remaster(?:ed)?)[^\)\]]*[\)\]]/gi, ' ')
+        .replace(/\s+(?:feat\.?|ft\.?)\s+[^-–—|]+$/i, '')
+        .replace(/\s*[-–—|]\s*(?:official\s+(?:audio|video)|lyrics?|visuali[sz]er|video|audio|HD|4K|MV)\s*$/i, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function resolveLyricsLookupMetadata() {
+    const taggedArtist = cleanLyricsLookupText(state.audio.metadata?.artist);
+    const taggedTitle = cleanLyricsLookupText(state.audio.metadata?.title);
+    if (taggedArtist && taggedTitle) return { artist: taggedArtist, title: taggedTitle };
+
+    const guessed = songFromFilename(state.audio.file?.name || '');
+    return {
+        artist: taggedArtist || cleanLyricsLookupText(guessed.artist),
+        title: taggedTitle || cleanLyricsLookupText(guessed.track)
+    };
+}
+
+const AUTO_LYRICS_CACHE_PREFIX = 'kefe:auto-lyrics:v1:';
+
+function autoLyricsCacheKey(artist, title) {
+    return AUTO_LYRICS_CACHE_PREFIX + encodeURIComponent(
+        cleanLyricsLookupText(artist).toLowerCase() + '::' + cleanLyricsLookupText(title).toLowerCase()
+    );
+}
+
+function readAutoLyricsCache(artist, title) {
+    try {
+        const raw = localStorage.getItem(autoLyricsCacheKey(artist, title));
+        const parsed = raw ? JSON.parse(raw) : null;
+        return parsed && (parsed.syncedLyrics || parsed.plainText) ? parsed : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+function writeAutoLyricsCache(artist, title, result) {
+    try {
+        localStorage.setItem(autoLyricsCacheKey(artist, title), JSON.stringify({
+            artist,
+            title,
+            syncedLyrics: result.syncedLyrics || '',
+            plainText: result.plainText || '',
+            source: result.source || ''
+        }));
+    } catch (error) {}
+}
+
+function parseAutoSyncedLyrics(raw) {
+    if (!raw) return [];
+    try {
+        const parsed = parseLyrics(String(raw));
+        return Array.isArray(parsed.lines) ? parsed.lines : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+async function fetchLrclibLyrics(artist, title) {
+    const getUrl = 'https://lrclib.net/api/get?artist_name=' + encodeURIComponent(artist) + '&track_name=' + encodeURIComponent(title);
+    let response = await fetch(getUrl, { headers: { Accept: 'application/json' } });
+
+    if (response.status === 404) {
+        const searchUrl = 'https://lrclib.net/api/search?q=' + encodeURIComponent(artist + ' ' + title);
+        response = await fetch(searchUrl, { headers: { Accept: 'application/json' } });
+        if (!response.ok) return null;
+        const results = await response.json();
+        const matches = Array.isArray(results) ? results : [];
+        const synced = matches.find(item => String(item?.syncedLyrics || '').trim());
+        const plain = matches.find(item => String(item?.plainLyrics || '').trim());
+        const item = synced || plain;
+        if (!item) return null;
+        return { syncedLyrics: String(item.syncedLyrics || ''), plainText: String(item.plainLyrics || ''), source: 'LRCLIB' };
+    }
+
+    if (!response.ok) return null;
+    const item = await response.json();
+    if (!item || (!String(item.syncedLyrics || '').trim() && !String(item.plainLyrics || '').trim())) return null;
+    return { syncedLyrics: String(item.syncedLyrics || ''), plainText: String(item.plainLyrics || ''), source: 'LRCLIB' };
+}
+
+async function fetchLyricsOvh(artist, title) {
+    const url = 'https://api.lyrics.ovh/v1/' + encodeURIComponent(artist) + '/' + encodeURIComponent(title);
+    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!response.ok) return null;
+    const item = await response.json();
+    const lyrics = String(item?.lyrics || '').trim();
+    return lyrics ? { syncedLyrics: '', plainText: lyrics, source: 'lyrics.ovh' } : null;
+}
+
+async function fetchAutomaticLyrics(artist, title) {
+    try {
+        const lrclib = await fetchLrclibLyrics(artist, title);
+        if (lrclib) return lrclib;
+    } catch (error) {
+        console.info('LRCLIB automatic lyrics unavailable:', error?.message || error);
+    }
+    try {
+        const ovh = await fetchLyricsOvh(artist, title);
+        if (ovh) return ovh;
+    } catch (error) {
+        console.info('lyrics.ovh automatic lyrics unavailable:', error?.message || error);
+    }
+    return null;
+}
+
+function applyAutomaticLyrics(result) {
+    state.lyrics.lines = result.syncedLyrics ? parseAutoSyncedLyrics(result.syncedLyrics) : [];
+    state.lyrics.plainText = result.syncedLyrics ? '' : String(result.plainText || '');
+    state.lyrics.source = result.source || '';
+    redrawCurrentPreviewFrame();
+}
+
+async function autoFetchLyricsForCurrentTrack(file, token) {
+    if (!file || token !== audioLoadToken || state.audio.file !== file) return;
+    const { artist, title } = resolveLyricsLookupMetadata();
+    if (!artist || !title) return;
+    const status = $('lyricsStatus');
+    if (status) { status.textContent = 'Fetching lyrics…'; status.className = 'status'; }
+
+    const cached = readAutoLyricsCache(artist, title);
+    if (cached) {
+        if (token !== audioLoadToken || state.audio.file !== file) return;
+        applyAutomaticLyrics(cached);
+        if (status) { status.textContent = cached.syncedLyrics ? 'Synced lyrics loaded' : 'Lyrics loaded'; status.className = 'status success'; }
+        return;
+    }
+
+    const result = await fetchAutomaticLyrics(artist, title);
+    if (token !== audioLoadToken || state.audio.file !== file) return;
+    if (!result) {
+        state.lyrics.lines = [];
+        state.lyrics.plainText = '';
+        state.lyrics.source = '';
+        if (status) { status.textContent = 'No lyrics loaded'; status.className = 'status'; }
+        redrawCurrentPreviewFrame();
+        return;
+    }
+
+    writeAutoLyricsCache(artist, title, result);
+    applyAutomaticLyrics(result);
+    if (status) { status.textContent = result.syncedLyrics ? 'Synced lyrics loaded' : 'Lyrics loaded'; status.className = 'status success'; }
 }
 const ASPECTS = {
     '9:16': { w: 1080, h: 1920, label: '1080 × 1920 (Vertical)' },
@@ -2229,8 +2400,10 @@ async function readEmbeddedAudioMetadata(file, token, source = 'audio') {
         }
         saveLinaPrefs();
         redrawCurrentPreviewFrame();
+        void autoFetchLyricsForCurrentTrack(file, token);
     } catch (error) {
         console.info('No readable embedded audio metadata:', error?.message || error);
+        void autoFetchLyricsForCurrentTrack(file, token);
     }
 }
 
@@ -2279,6 +2452,8 @@ function handleAudioFile(file) {
     state.audio.metadataSource = usingProjectMetadata ? 'project' : 'filename';
     if (replacingAudio) {
         state.lyrics.lines = [];
+        state.lyrics.plainText = '';
+        state.lyrics.source = '';
         $('lyricsStatus').textContent = 'No lyrics loaded';
         $('lyricsStatus').className = 'status';
     }
@@ -3263,6 +3438,8 @@ async function loadLrcFile(file, openEditor = false) {
         if (!parsed.lines.length) throw new Error('No valid timed lyrics found in ' + file.name);
         $('lyricsText').value = raw;
         state.lyrics.lines = parsed.lines;
+        state.lyrics.plainText = '';
+        state.lyrics.source = 'lrc';
         if (parsed.metadata?.title) state.audio.metadata.title = parsed.metadata.title;
         if (parsed.metadata?.artist) state.audio.metadata.artist = parsed.metadata.artist;
         if (parsed.metadata?.album) state.audio.metadata.album = parsed.metadata.album;
