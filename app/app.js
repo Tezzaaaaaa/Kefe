@@ -2112,7 +2112,7 @@ function setAlbumArtworkBlob(blob, token = audioLoadToken) {
     if (albumArtworkURL) URL.revokeObjectURL(albumArtworkURL);
     albumArtworkURL = URL.createObjectURL(blob);
     const image = new Image();
-    image.onload = () => { if (token !== audioLoadToken) return; albumArtworkImage = image; state.audio.hasArtwork = true; redrawCurrentPreviewFrame(); };
+    image.onload = () => { if (token !== audioLoadToken) return; albumArtworkImage = image; state.audio.hasArtwork = true; window.kefeAlbumArt = image; redrawCurrentPreviewFrame(); };
     image.onerror = () => {
         if (token !== audioLoadToken) return;
         state.audio.hasArtwork = false;
@@ -2279,6 +2279,7 @@ function handleAudioFile(file) {
     }
     albumArtworkImage = null;
     state.audio.hasArtwork = false;
+    window.kefeAlbumArt = null;
     if (albumArtworkURL) { URL.revokeObjectURL(albumArtworkURL); albumArtworkURL = null; }
     updateMetadataInputs();
     audio.src = audioURL;
