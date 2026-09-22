@@ -28,7 +28,7 @@
             </div>
             <div class="kefe-mini-art-caption" aria-hidden="true"><strong id="kefeMiniCapArtist"></strong><span id="kefeMiniCapTitle"></span></div>
           </div>
-        <button type="button" id="kefeMiniControlsToggle" class="kefe-mini-control-toggle" aria-expanded="false" aria-controls="kefeMiniControlPanel" aria-label="Show player controls" title="Show controls"><span class="chevron">⌄</span></button>
+        <button type="button" id="kefeMiniControlsToggle" class="kefe-mini-control-toggle" aria-expanded="false" aria-controls="kefeMiniControlPanel" aria-label="Show player controls" title="Show controls"><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><span class="sr-only">Show player controls</span></button>
         <div id="kefeMiniControlPanel" class="kefe-mini-control-panel">
         <div class="kefe-mini-controls" aria-label="Playback controls">
           <button type="button" id="kefeMiniShuffleTrack" class="kefe-mini-control-icon" aria-label="Shuffle queue" title="Shuffle queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h2c4 0 6 10 10 10h4M16 5h4v4M20 5l-4 4M4 17h2c1.8 0 3-1.5 4-3M16 15h4v4M20 19l-4-4"/></svg></button>
