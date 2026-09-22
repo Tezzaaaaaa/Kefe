@@ -2392,6 +2392,7 @@ async function readEmbeddedAudioMetadata(file, token, source = 'audio') {
             if (tags.album) state.audio.metadata.album = String(tags.album).trim();
             if (tags.title || tags.artist || tags.album) state.audio.metadataSource = 'embedded';
         }
+        if (source === 'video') return;
         updateMetadataInputs();
         const picture = tags.picture;
         if (picture?.data?.length) {
