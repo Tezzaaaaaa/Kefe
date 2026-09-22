@@ -17,8 +17,7 @@
     'body.wizard-mode .preview.preview-collapsed canvas{display:block !important}',
     'body.wizard-mode .preview{min-height:0 !important}',
 
-    /* 3. The intro step (before anything is uploaded) gets a small
-          "Load audio or video to begin" hint rather than an empty black box. */
+    /* 3. The intro step stays logo-only before any media is loaded. */
   ].join('');
   document.head.appendChild(css);
 
