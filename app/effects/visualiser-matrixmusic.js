@@ -223,8 +223,6 @@
     var mode = wanted && wanted.jumpMode ? wanted.jumpMode : state.mode;
     var palette = wanted && wanted.jumpPalette ? wanted.jumpPalette : state.palette;
 
-    configureActiveRecord(wanted);
-
     var config = buildConfig(mode, palette);
     state._config = config;
     configureActiveRecord(wanted);
