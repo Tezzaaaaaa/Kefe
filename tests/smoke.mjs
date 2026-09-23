@@ -109,6 +109,7 @@ try {
     const ids = [
       'kefeMiniCanvas',
       'kefeMiniPlay',
+      'kefeMiniStop',
       'kefeMiniPrev',
       'kefeMiniNext',
       'kefeMiniRepeat',
@@ -125,6 +126,31 @@ try {
     return ids.every(id => document.getElementById(id)?.closest('#kefeMiniCard'));
   });
   if (!miniInsideBody) throw new Error('MiniPlayer controls/media are not all inside the grey body');
+  const miniScrollState = await page.evaluate(() => {
+    const body = document.querySelector('.kefe-mini-body');
+    const ids = ['kefeMiniPlay', 'kefeMiniStop', 'kefeMiniSeek', 'kefeMiniCurrent', 'kefeMiniDuration', 'kefeMiniUpload', 'kefeMiniEmptyUpload'];
+    const insideScroll = ids.every(id => document.getElementById(id)?.closest('.kefe-mini-body') === body);
+    const touchTargets = [...document.querySelectorAll('#kefeMiniPlay,#kefeMiniStop,#kefeMiniSeek,#kefeMiniUpload,#kefeMiniFullscreen')].every(el => {
+      const r = el.getBoundingClientRect();
+      return r.width >= 44 && r.height >= 44;
+    });
+    return { insideScroll, scrollable: Boolean(body && body.scrollHeight > body.clientHeight), overflowY: body ? getComputedStyle(body).overflowY : '', touchTargets };
+  });
+  if (!miniScrollState.insideScroll) throw new Error('Required MiniPlayer controls are not inside the scroll container');
+  if (!miniScrollState.scrollable || !['auto', 'scroll'].includes(miniScrollState.overflowY)) throw new Error('MiniPlayer scroll container is not vertically scrollable');
+  if (!miniScrollState.touchTargets) throw new Error('MiniPlayer touch target is smaller than 44x44');
+
+  const visualToggleState = await page.evaluate(() => {
+    const button = document.getElementById('kefeMiniVisualToggle');
+    if (!button) return null;
+    button.click();
+    const artwork = button.getAttribute('aria-pressed') === 'true';
+    button.click();
+    const visualiser = button.getAttribute('aria-pressed') === 'false';
+    return { artwork, visualiser };
+  });
+  if (!visualToggleState?.artwork || !visualToggleState?.visualiser) throw new Error('MiniPlayer visualizer/artwork toggle did not alternate both directions');
+  if (await page.locator('#kefeMiniControlsToggle,.kefe-mini-control-toggle').count()) throw new Error('MiniPlayer chevron control was not removed');
   const discOverlay = await page.evaluate(() => {
     const card = document.getElementById('kefeMiniCard');
     const art = card?.querySelector('.kefe-mini-art');
