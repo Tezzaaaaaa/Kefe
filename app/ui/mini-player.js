@@ -32,6 +32,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg>
             <span>Upload audio</span><small>Choose a track to start</small>
           </button>
+          <button type="button" id="kefeMiniVisualToggle" class="kefe-mini-visual-toggle" aria-pressed="false" aria-label="Switch to visualizer" title="Show audio visualizer"><span>Visualizer</span></button>
         <button type="button" id="kefeMiniControlsToggle" class="kefe-mini-control-toggle" aria-expanded="false" aria-controls="kefeMiniControlPanel" aria-label="Show player controls" title="Show controls"><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><span class="sr-only">Show player controls</span></button>
         <div id="kefeMiniControlPanel" class="kefe-mini-control-panel">
         <div class="kefe-mini-controls" aria-label="Playback controls">
@@ -101,6 +102,7 @@
   let currentArtworkUrl = '';
   let metadataReadPromise = null;
   let miniVisualiserStyle = 'butterchurn';
+  let discDisplay = 'artwork';
   const fmt = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`; };
   const fmtCur = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)} : ${String(Math.floor(t % 60)).padStart(2, '0')}`; };
   const esc = value => String(value || '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
@@ -217,6 +219,7 @@
     ];
 
     const current = style.visualiserStyle || 'butterchurn';
+    miniVisualiserStyle = current;
     const html = [];
     groups.forEach(group => {
       let items = [];
@@ -272,6 +275,17 @@
       try { window.kefeAudioReactiveShaders?.selectPreset?.(Number(preset) || 0, canvas.width, canvas.height); } catch (e) {}
     }
   }
+  function syncVisualToggle() {
+    const button = $('kefeMiniVisualToggle');
+    if (!button) return;
+    const visualiserOn = discDisplay === 'visualiser';
+    button.setAttribute('aria-pressed', String(visualiserOn));
+    button.setAttribute('aria-label', visualiserOn ? 'Switch to album artwork' : 'Switch to audio visualizer');
+    button.title = visualiserOn ? 'Show album artwork' : 'Show audio visualizer';
+    const label = button.querySelector('span');
+    if (label) label.textContent = visualiserOn ? 'Artwork' : 'Visualizer';
+  }
+
   function draw(now) {
     now = now || performance.now();
     const dt = Math.min(0.1, Math.max(0, (now - (lastFrame || now)) / 1000));
@@ -283,32 +297,29 @@
         const mode = miniVisualiserStyle || 'butterchurn';
         const playing = !audio.paused && !audio.ended;
 
-        // Keep artwork as the disc base and composite the live visualiser
-        // over it, so an embedded album cover does not disappear as soon as
-        // playback starts.
+        // Album artwork is the default disc face. The user can explicitly
+        // switch to the selected audio-reactive visualiser.
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (currentArtwork) {
           ctx.drawImage(currentArtwork, 0, 0, canvas.width, canvas.height);
         }
 
-        if (playing) {
-          const drawVisualiser = () => {
-            const hasArtwork = !!currentArtwork;
-            if (hasArtwork) {
-              ctx.save();
-              ctx.globalAlpha = 0.78;
-              ctx.globalCompositeOperation = 'screen';
+        if (playing && discDisplay === 'visualiser') {
+          const hasArtwork = !!currentArtwork;
+          if (hasArtwork) {
+            ctx.save();
+            ctx.globalAlpha = 0.78;
+            ctx.globalCompositeOperation = 'screen';
+          }
+          try {
+            if (mode === 'butterchurn') {
+              window.kefeButterchurn?.drawMini?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
+            } else {
+              window.kefeVisualiser?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
             }
-            try {
-              if (mode === 'butterchurn') {
-                return window.kefeButterchurn?.drawMini?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
-              }
-              return window.kefeVisualiser?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
-            } finally {
-              if (hasArtwork) ctx.restore();
-            }
-          };
-          drawVisualiser();
+          } finally {
+            if (hasArtwork) ctx.restore();
+          }
         }
       } catch (e) {}
     }
@@ -517,6 +528,15 @@
     controlsToggle.setAttribute('aria-label', open ? 'Hide player controls' : 'Show player controls');
     controlsToggle.title = open ? 'Hide controls' : 'Show controls';
   });
+  $('kefeMiniVisualToggle').addEventListener('click', event => {
+    event.stopPropagation();
+    discDisplay = discDisplay === 'artwork' ? 'visualiser' : 'artwork';
+    syncVisualToggle();
+    if (discDisplay === 'visualiser' && miniVisualiserStyle === 'butterchurn') {
+      try { window.kefeButterchurn?.prepare?.().then?.(loadPresets).catch?.(() => {}); } catch (e) {}
+    }
+  });
+  syncVisualToggle();
   $('kefeMiniSkinToggle').addEventListener('click', event => { event.stopPropagation(); const skin2 = !player.classList.contains('skin-2'); player.classList.toggle('skin-2', skin2); event.currentTarget.setAttribute('aria-label', skin2 ? 'Switch to Skin 1' : 'Switch to Skin 2'); event.currentTarget.title = skin2 ? 'Skin 1' : 'Skin 2'; });
   $('kefeMiniPlay').addEventListener('click', toggle);
   $('kefeMiniNext').addEventListener('click', next);
