@@ -12,7 +12,7 @@
   pointer-events:auto;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
   box-sizing:border-box;width:min(420px,94vw);height:min(560px,88dvh);max-height:min(560px,88dvh);overflow:hidden;overscroll-behavior:contain;display:flex;flex-direction:column;
   touch-action:pan-y;isolation:isolate;
-  padding:14px 14px 18px;border-radius:44px!important;
+  padding:14px 14px 72px;border-radius:44px!important;
   font-family:var(--mp-font);color:var(--mp-ink);
   background:var(--mp-bg);box-shadow:0 34px 90px rgba(0,0,0,.3),0 0 0 1px rgba(0,0,0,.06);
 }
@@ -55,7 +55,7 @@
 .kefe-mini-clock .sep,.kefe-mini-clock .dur{color:#9a999f}
 
 /* disc / cover art */
-.kefe-mini-art{position:relative;display:grid;width:100%;flex:0 0 auto;height:auto;max-height:42dvh;aspect-ratio:1 / 1;margin:0 auto;z-index:2;overflow:hidden;border-radius:50%!important;background:#0d0d0f;
+.kefe-mini-art{position:relative;display:grid;place-items:center;width:100%;max-width:340px;flex:0 0 auto;aspect-ratio:1 / 1;margin:0 auto;z-index:2;overflow:hidden;border-radius:50%!important;background:#0d0d0f;
   transform:none;box-shadow:0 5cqw 8cqw -1cqw rgba(0,0,0,.34);will-change:transform;
   transition:transform .85s var(--mp-ease),border-radius .85s var(--mp-ease),box-shadow .5s ease}
 .kefe-mini-card.is-expanded .kefe-mini-art{width:100%;height:auto;aspect-ratio:1 / 1;transform:none;border-radius:0!important;box-shadow:none;transition-delay:.18s,.18s,0s}
