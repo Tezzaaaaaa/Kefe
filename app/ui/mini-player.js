@@ -238,11 +238,29 @@
   function applyPreset(value) {
     const [group, ...rest] = String(value).split('::');
     const preset = rest.join('::');
-    const state = getState(); if (!state.style) state.style = {};
+    const state = getState();
+    if (!state.style) state.style = {};
     state.style.visualiserStyle = group;
-    if (group === 'butterchurn') { state.style.butterchurnPreset = preset; try { window.kefeButterchurn?.prepare?.(); } catch(e){} }
-    else if (group === 'matrixmusic') { state.style.matrixMusicPreset = preset; try { window.kefeMatrixVisualiser?.selectPreset?.(preset); } catch(e){} }
-    else if (group === 'audioreactive') { state.style.audioReactiveShaderPreset = Number(preset) || 0; try { window.kefeAudioReactiveShaders?.selectPreset?.(Number(preset) || 0); } catch(e){} }
+    if (group === 'butterchurn') {
+      state.style.butterchurnPreset = preset;
+      try { window.kefeButterchurn?.selectPreset?.(preset); } catch(e){}
+      window.redrawCurrentPreviewFrame?.();
+    } else if (group === 'matrixmusic') {
+      state.style.matrixMusicPreset = preset;
+      try {
+        Promise.resolve(window.kefeMatrixVisualiser?.selectPreset?.(preset, 1, 1))
+          .then(() => window.redrawCurrentPreviewFrame?.())
+          .catch(() => {});
+      } catch(e){}
+    } else if (group === 'audioreactive') {
+      const index = Number(preset) || 0;
+      state.style.audioReactiveShaderPreset = index;
+      try {
+        Promise.resolve(window.kefeAudioReactiveShaders?.selectPreset?.(index, 1, 1))
+          .then(() => window.redrawCurrentPreviewFrame?.())
+          .catch(() => {});
+      } catch(e){}
+    }
   }
   $('kipMenu').addEventListener('click', () => { buildPresets(); $('kipPresets').hidden = !$('kipPresets').hidden; });
 
