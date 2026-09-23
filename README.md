@@ -4,7 +4,6 @@ KEFE Visualiser is a browser-based music visualiser and lyric/caption video edit
 
 **Live application:** https://tezzaaaaaa.github.io/Kefe/
 
-**KEFE X Downloader:** https://kefe-x-downloader--tereroa.replit.app
 
 ## Current state
 
