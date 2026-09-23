@@ -300,7 +300,7 @@
         // Album artwork is the default disc face. The user can explicitly
         // switch to the selected audio-reactive visualiser.
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (currentArtwork) {
+        if (discDisplay === 'artwork' && currentArtwork) {
           ctx.drawImage(currentArtwork, 0, 0, canvas.width, canvas.height);
         }
 
