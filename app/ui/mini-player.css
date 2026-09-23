@@ -5,6 +5,7 @@
   --mp-line:rgba(17,17,19,.1);--mp-fill:rgba(17,17,19,.06);--mp-track:#d9d9de;
   --mp-font:Inter,"SF Pro Text",-apple-system,"Open Sans",system-ui,sans-serif;
   --mp-ease:cubic-bezier(.32,.72,0,1);
+  --mp-spin:5s;
   pointer-events:auto;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
   box-sizing:border-box;width:min(420px,94vw);height:min(480px,82dvh);max-height:min(480px,82dvh);overflow:hidden;overscroll-behavior:contain;display:flex;flex-direction:column;
   touch-action:pan-y;isolation:isolate;
@@ -22,14 +23,19 @@
 .kefe-mini-icon-button,.kefe-mini-close{width:44px;height:44px;display:grid;place-items:center;padding:0;border:0;border-radius:50%!important;background:transparent;color:var(--mp-mid);cursor:pointer;transition:background .15s,color .15s}
 .kefe-mini-icon-button:hover,.kefe-mini-close:hover{background:var(--mp-fill);color:var(--mp-ink)}
 
-.kefe-mini-card{position:relative;display:flex;flex-direction:column;width:100%;flex:1 1 auto;min-height:0;border-radius:23%!important;overflow:visible;isolation:isolate;transform:translateZ(0);
+/* CARD: clips the disc to the rounded tile; scrolls so the controls stay reachable */
+.kefe-mini-card{position:relative;display:flex;flex-direction:column;width:100%;flex:1 1 auto;min-height:0;border-radius:23%!important;
+  overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;
+  isolation:isolate;transform:translateZ(0);
   container-type:inline-size;cursor:pointer;outline:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;
   background:linear-gradient(180deg,#d0cfd2 0%,#d5d4d7 100%)}
+.kefe-mini-card::-webkit-scrollbar{display:none}
 .kefe-mini-card:focus-visible{box-shadow:0 0 0 3px rgba(17,17,19,.55)}
 .kefe-mini-card.is-expanded{overflow:hidden}
 
+/* INFO: sits under the visible half of the disc */
 .kefe-mini-info{position:relative;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
-  box-sizing:border-box;padding:0 8cqw 13.4cqw;text-align:center}
+  box-sizing:border-box;padding:52cqw 8cqw 13.4cqw;text-align:center}
 .kefe-mini-eq{display:flex;align-items:flex-end;gap:.9cqw;height:4.4cqw;margin-bottom:4.4cqw}
 .kefe-mini-eq i{display:block;width:.62cqw;min-width:2px;height:100%;border-radius:2px!important;background:#6f6f75;transform-origin:50% 100%;
   animation:kefeMiniEq 1s ease-in-out infinite;animation-play-state:paused}
@@ -41,33 +47,48 @@
 @keyframes kefeMiniEq{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(1)}}
 .kefe-mini-artist,.kefe-mini-title{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kefe-mini-artist{margin-bottom:1.3cqw;color:#8f8f95;font-size:17px;font-size:4.6cqw;font-weight:500;line-height:1.25}
-.kefe-mini-title{margin-bottom:2.4cqw;color:#0b0b0d;font-size:918px;fontcq-size:4.9cqw;font-weight:600;wline-height:1.25;letter-spacing:-;.01emmin}
-.kefe-mini-bar{width:8.8cqw;height:.-height:3px;margin-bottom:2.7cqw;border-radius:99px!important;background:#b7b6bb;overflow:hidden}
+.kefe-mini-title{margin-bottom:2.4cqw;color:#0b0b0d;font-size:18px;font-size:4.9cqw;font-weight:600;line-height:1.25;letter-spacing:-.01em}
+.kefe-mini-bar{width:8.8cqw;height:3px;margin-bottom:2.7cqw;border-radius:99px!important;background:#b7b6bb;overflow:hidden}
 .kefe-mini-bar span{display:block;width:100%;height:100%;border-radius:inherit!important;background:#78777e;transform-origin:0 50%;transform:scaleX(0)}
 .kefe-mini-clock{font-size:17px;font-size:4.8cqw;font-weight:600;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap}
 .kefe-mini-clock .cur{color:#1c1c1e}
 .kefe-mini-clock .sep,.kefe-mini-clock .dur{color:#9a999f}
 
-.kefe-mini-art{position:sticky;top:-150px;display:grid;width:100%;max-width:300px;height:300px;flex:0 0 auto;aspect-ratio:1 / 1;margin:0 auto;z-index:3;overflow:hidden;border-radius:50%!important;background:#0d0d0f;
-  transform:none;box-shadow:0 5cqw 8cqw -1cqw rgba(0,0,0,.34);will-change:transform;
-  transition:transform .85s var(--mp-ease),border-radius .85s var(--mp-ease),box-shadow .5s ease}
-.kefe-mini-card.is-expanded .kefe-mini-art{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;aspect-ratio:auto;margin:0;transform:none;border-radius:0!important;box-shadow:none;transition-delay:.18s,.18s,0s;z-index:5}
+/* DISC: centred on the card's top edge so only the lower half shows, clipped by the card */
+.kefe-mini-art{position:absolute;top:-46cqw;left:4cqw;display:grid;width:92cqw;height:92cqw;max-width:none;flex:none;margin:0;z-index:3;overflow:hidden;border-radius:50%!important;background:#0d0d0f;
+  box-shadow:0 5cqw 8cqw -1cqw rgba(0,0,0,.34);
+  transition:top .85s var(--mp-ease),left .85s var(--mp-ease),width .85s var(--mp-ease),height .85s var(--mp-ease),border-radius .85s var(--mp-ease),box-shadow .5s ease}
+.kefe-mini-card.is-expanded .kefe-mini-art{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;border-radius:0!important;box-shadow:none;
+  transition-delay:.18s,.18s,.18s,.18s,.18s,0s;z-index:5}
 .kefe-mini-card.is-expanded .kefe-mini-body{overflow:hidden}
 .kefe-mini-card.is-expanded .kefe-mini-art-caption{z-index:6}
-.kefe-mini-spin{grid-area:1 / 1;display:grid;width:100%;height:100%;will-change:transform}
+
+/* SPIN: rotates only while playing */
+.kefe-mini-spin{grid-area:1 / 1;display:grid;width:100%;height:100%;will-change:transform;
+  animation:kefeMiniSpin var(--mp-spin) linear infinite;animation-play-state:paused}
+.kefe-mini-shell.is-playing .kefe-mini-spin{animation-play-state:running}
+@keyframes kefeMiniSpin{to{transform:rotate(360deg)}}
+/* vinyl sheen: makes the rotation visible even when the canvas is dark */
+.kefe-mini-spin::after{content:"";grid-area:1 / 1;pointer-events:none;
+  background:conic-gradient(from 0deg,transparent 0 8%,rgba(255,255,255,.1) 14%,transparent 22% 58%,rgba(255,255,255,.1) 64%,transparent 72%)}
+.kefe-mini-card.is-expanded .kefe-mini-spin{animation:none}
+.kefe-mini-card.is-expanded .kefe-mini-spin::after{display:none}
 .kefe-mini-art canvas{grid-area:1 / 1;width:100%;height:100%;display:block}
+
+/* HUB: was double-centred (place-self + translate(-50%,-50%)), which pushed it up-left */
 .kefe-mini-hub{grid-area:1 / 1;place-self:center;width:27%;aspect-ratio:1;box-sizing:border-box;border:.55cqw solid rgba(255,255,255,.97);border-radius:50%!important;
-  background:radial-gradient(circle at 50% 40%,#a4a3b1,#93929f 70%);transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 50% 40%,#a4a3b1,#93929f 70%);
   box-shadow:0 .6cqw 2cqw rgba(0,0,0,.22);transition:opacity .35s ease,transform .6s var(--mp-ease)}
 .kefe-mini-hub{background:radial-gradient(circle at 50% 35%,#cfcfd3 0 20%,#b4b4b9 21% 38%,#f6f6f7 39% 55%,#d4d4d7 56% 70%,transparent 71%)}
-.kefe-mini-card.is-expanded .kefe-mini-hub{opacity:0;transform:translate(-50%,-50%) scale(.35)}
+.kefe-mini-card.is-expanded .kefe-mini-hub{opacity:0;transform:scale(.35)}
 .kefe-mini-art-caption{grid-area:1 / 1;align-self:end;justify-self:start;max-width:82cqw;margin:0 0 5.4cqw 5.6cqw;display:grid;gap:.7cqw;color:#fff;text-transform:uppercase;pointer-events:none;
   text-shadow:0 1px 8px rgba(0,0,0,.55);opacity:0;transform:translateY(1.6cqw);transition:opacity .25s ease,transform .25s ease}
 .kefe-mini-art-caption strong{font-size:16px;font-size:5.2cqw;font-weight:500;line-height:1;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kefe-mini-art-caption span{font-size:9px;font-size:2.7cqw;font-weight:600;line-height:1.1;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kefe-mini-card.is-expanded .kefe-mini-art-caption{opacity:1;transform:none;transition:opacity .4s ease .45s,transform .4s ease .45s}
 
-.kefe-mini-body{position:relative;display:flex;flex-direction:column;gap:12px;flex:1 1 0;min-width:0;min-height:0;max-height:none;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:16px}
+/* BODY: static (not a positioning context) so the disc anchors to the card; card scrolls instead */
+.kefe-mini-body{position:static;display:flex;flex-direction:column;gap:12px;flex:0 0 auto;min-width:0;min-height:0;max-height:none;overflow:visible;padding-bottom:16px}
 .kefe-mini-body::-webkit-scrollbar{display:none}
 .kefe-mini-visual-toggle{position:absolute;bottom:16px;left:16px;z-index:10;display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:0;border:1px solid rgba(17,17,19,.12);border-radius:999px!important;background:rgba(246,246,248,.94);color:rgba(17,17,19,.78);font:700 10px/1 var(--mp-font);letter-spacing:.04em;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .15s,color .15s,transform .15s,box-shadow .15s}
 .kefe-mini-visual-toggle:hover,.kefe-mini-visual-toggle:focus-visible{background:#fff;color:var(--mp-ink);outline:none;box-shadow:0 6px 16px rgba(0,0,0,.18)}
@@ -172,6 +193,7 @@
 @media(prefers-reduced-motion:reduce){
   .kefe-mini-art,.kefe-mini-hub,.kefe-mini-art-caption{transition-duration:.01s!important;transition-delay:0s!important}
   .kefe-mini-eq i{animation:none;transform:scaleY(.7)}
+  .kefe-mini-spin{animation:none}
 }
 
 .wizard-mini-player-launch{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px;border:1px solid var(--line);background:var(--surface-2)}
