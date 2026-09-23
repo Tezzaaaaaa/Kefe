@@ -91,7 +91,7 @@
  .kefe-mini-shell.is-card-expanded .kefe-mini-visual-toggle{opacity:0!important;pointer-events:none!important}
  .kefe-mini-shell.skin-2 .kefe-mini-visual-toggle{background:#e4e5e7;color:#34363a;box-shadow:4px 4px 9px rgba(0,0,0,.11),-4px -4px 9px rgba(255,255,255,.85)}
  .kefe-mini-shell.skin-2 .kefe-mini-visual-toggle[aria-pressed="true"]{background:#34363a;color:#fff}
- .kefe-mini-control-panel{position:relative;z-index:1;margin:8px 10px 14px;opacity:1;pointer-events:auto;transform:none}
+ .kefe-mini-control-panel{position:relative;z-index:1;margin:calc(100cqw + 8px) 10px 14px;opacity:1;pointer-events:auto;transform:none}
 
 /* --- transport --- */
 .kefe-mini-controls{position:relative;z-index:1;display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px}
