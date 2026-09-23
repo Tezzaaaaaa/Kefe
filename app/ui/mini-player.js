@@ -52,8 +52,8 @@
         </section>
         <div class="kefe-mini-queue"><div class="kefe-mini-queue-head"><div><span>UP NEXT</span><small>Playlist</small></div><span id="kefeMiniQueueCount">0 tracks</span></div><ol id="kefeMiniQueueList"></ol></div>
         </div>
+      </div>
       <button type="button" id="kefeMiniVisualToggle" class="kefe-mini-visual-toggle" aria-pressed="false" aria-label="Switch to visualizer" title="Show audio visualizer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14c2.5-8 5.5-8 8 0s5.5 8 8 0M4 10c2.5 8 5.5 8 8 0s5.5-8 8 0"/></svg><span class="sr-only">Visualizer</span></button>
-    </div>
     </div>`;
   document.body.appendChild(player);
 
@@ -267,8 +267,7 @@
       try { window.kefeAudioReactiveShaders?.selectPreset?.(Number(preset) || 0, canvas.width, canvas.height); } catch (e) {}
     }
   }
-  function syncVisualToggle() {
-    const button = $('kefeMiniVisualToggle');
+  function syncVisualToggle(button) {
     if (!button) return;
     const visualiserOn = discDisplay === 'visualiser';
     button.setAttribute('aria-pressed', String(visualiserOn));
@@ -516,7 +515,7 @@
   $('kefeMiniVisualToggle').addEventListener('click', event => {
     event.stopPropagation();
     discDisplay = discDisplay === 'artwork' ? 'visualiser' : 'artwork';
-    syncVisualToggle();
+    syncVisualToggle(event.currentTarget);
     if (discDisplay === 'visualiser' && miniVisualiserStyle === 'butterchurn') {
       try { window.kefeButterchurn?.prepare?.().then?.(loadPresets).catch?.(() => {}); } catch (e) {}
     }
