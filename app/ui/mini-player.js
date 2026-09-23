@@ -28,7 +28,7 @@
             <div class="kefe-mini-bar" aria-hidden="true"><span id="kefeMiniProgress"></span></div>
           </div>
           <div id="kefeMiniControlPanel" class="kefe-mini-control-panel">
-        <button type="button" id="kefeMiniUpload" class="kefe-mini-add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload media</span></button>></button><input id="kefeMiniFiles" type="file" accept="audio/*,.aac,.aif,.aiff,.alac,.amr,.ape,.au,.caf,.flac,.m4a,.m4b,.m4r,.mka,.mp2,.mp3,.mpga,.oga,.ogg,.opus,.ra,.wav,.weba,.wma,.wv,.3ga,.ac3,.eac3,.mid,.midi,.mp4,.m4v,.mov,.webm,.3gp,.mkv,.ogv" multiple hidden>
+        <button type="button" id="kefeMiniUpload" class="kefe-mini-add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload media</span></button><input id="kefeMiniFiles" type="file" accept="audio/*,.aac,.aif,.aiff,.alac,.amr,.ape,.au,.caf,.flac,.m4a,.m4b,.m4r,.mka,.mp2,.mp3,.mpga,.oga,.ogg,.opus,.ra,.wav,.weba,.wma,.wv,.3ga,.ac3,.eac3,.mid,.midi,.mp4,.m4v,.mov,.webm,.3gp,.mkv,.ogv" multiple hidden>
         <div class="kefe-mini-controls" aria-label="Playback controls">
           <button type="button" id="kefeMiniShuffleTrack" class="kefe-mini-control-icon" aria-label="Shuffle queue" title="Shuffle queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h2c4 0 6 10 10 10h4M16 5h4v4M20 5l-4 4M4 17h2c1.8 0 3-1.5 4-3M16 15h4v4M20 19l-4-4"/></svg></button>
           <button type="button" id="kefeMiniPrev" class="kefe-mini-control-icon" aria-label="Previous track" title="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg></button>
@@ -41,7 +41,6 @@
         <div class="kefe-mini-clock"><span id="kefeMiniCurrent" class="cur">0 : 00</span><span class="sep"> / </span><span id="kefeMiniDuration" class="dur">0:00</span></div>
         <div class="kefe-mini-actions">
           <div class="kefe-mini-volume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v4h3l4 3V7L8 10H5zM16 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/></svg><input id="kefeMiniVolume" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"></div>
-></button><input id="kefeMiniFiles" type="file" accept="audio/*,.aac,.aif,.aiff,.alac,.amr,.ape,.au,.caf,.flac,.m4a,.m4b,.m4r,.mka,.mp2,.mp3,.mpga,.oga,.ogg,.opus,.ra,.wav,.weba,.wma,.wv,.3ga,.ac3,.eac3,.mid,.midi,.mp4,.m4v,.mov,.webm,.3gp,.mkv,.ogv" multiple hidden>
           <button type="button" id="kefeMiniShuffle">Shuffle preset</button>
         </div>
         <div id="kefeMiniNotice" class="kefe-mini-notice" role="status" aria-live="polite" hidden></div>
