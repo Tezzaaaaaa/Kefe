@@ -28,6 +28,10 @@
             </div>
             <div class="kefe-mini-art-caption" aria-hidden="true"><strong id="kefeMiniCapArtist"></strong><span id="kefeMiniCapTitle"></span></div>
           </div>
+          <button type="button" id="kefeMiniEmptyUpload" class="kefe-mini-empty-upload" aria-label="Upload audio">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg>
+            <span>Upload audio</span><small>Choose a track to start</small>
+          </button>
         <button type="button" id="kefeMiniControlsToggle" class="kefe-mini-control-toggle" aria-expanded="false" aria-controls="kefeMiniControlPanel" aria-label="Show player controls" title="Show controls"><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><span class="sr-only">Show player controls</span></button>
         <div id="kefeMiniControlPanel" class="kefe-mini-control-panel">
         <div class="kefe-mini-controls" aria-label="Playback controls">
@@ -190,7 +194,11 @@
     }
     spinEl.style.transform = `rotate(${angle.toFixed(2)}deg)`;
   }
+  function syncEmptyUpload() {
+    player.classList.toggle('has-track', index >= 0);
+  }
   function renderQueue() {
+    syncEmptyUpload();
     $('kefeMiniQueueCount').textContent = `${tracks.length} ${tracks.length === 1 ? 'track' : 'tracks'}`;
     $('kefeMiniQueueList').innerHTML = tracks.map((t, i) =>
       `<li class="${i === index ? 'active' : ''}"><button type="button" data-mini-track="${i}"><span>${esc(t.title)}</span><small>${esc(t.artist)}</small></button></li>`
@@ -275,20 +283,32 @@
         const mode = miniVisualiserStyle || 'butterchurn';
         const playing = !audio.paused && !audio.ended;
 
-        // Keep the artwork as the disc base, then render the selected
-        // visualiser over it. The previous branch skipped every visualiser
-        // whenever artwork existed, making preset changes appear inert.
+        // Keep artwork as the disc base and composite the live visualiser
+        // over it, so an embedded album cover does not disappear as soon as
+        // playback starts.
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (currentArtwork) {
           ctx.drawImage(currentArtwork, 0, 0, canvas.width, canvas.height);
         }
 
-        if (playing && mode === 'butterchurn') {
-          window.kefeButterchurn?.prepare?.().then?.(() => {
-            window.kefeButterchurn?.drawMini?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
-          }).catch?.(() => {});
-        } else if (playing) {
-          window.kefeVisualiser?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
+        if (playing) {
+          const drawVisualiser = () => {
+            const hasArtwork = !!currentArtwork;
+            if (hasArtwork) {
+              ctx.save();
+              ctx.globalAlpha = 0.78;
+              ctx.globalCompositeOperation = 'screen';
+            }
+            try {
+              if (mode === 'butterchurn') {
+                return window.kefeButterchurn?.drawMini?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
+              }
+              return window.kefeVisualiser?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
+            } finally {
+              if (hasArtwork) ctx.restore();
+            }
+          };
+          drawVisualiser();
         }
       } catch (e) {}
     }
@@ -356,6 +376,7 @@
   async function loadTrack(nextIndex, autoplay) {
     if (!tracks.length) return;
     index = Math.max(0, Math.min(tracks.length - 1, nextIndex));
+    syncEmptyUpload();
     const track = tracks[index];
     await readEmbeddedTrackMetadata(track);
     let url = urls.get(track.file);
@@ -501,6 +522,10 @@
   $('kefeMiniNext').addEventListener('click', next);
   $('kefeMiniPrev').addEventListener('click', prev);
   $('kefeMiniUpload').addEventListener('click', () => $('kefeMiniFiles').click());
+  $('kefeMiniEmptyUpload').addEventListener('click', event => {
+    event.stopPropagation();
+    $('kefeMiniFiles').click();
+  });
   $('kefeMiniFiles').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
   seekEl.addEventListener('input', e => {
     audio.currentTime = Number(e.target.value) || 0;
