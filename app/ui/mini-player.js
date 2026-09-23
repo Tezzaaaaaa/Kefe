@@ -381,7 +381,6 @@
   async function loadTrack(nextIndex, autoplay) {
     if (!tracks.length) return;
     index = Math.max(0, Math.min(tracks.length - 1, nextIndex));
-    syncEmptyUpload();
     const track = tracks[index];
     await readEmbeddedTrackMetadata(track);
     let url = urls.get(track.file);
