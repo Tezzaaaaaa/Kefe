@@ -55,7 +55,7 @@
 .kefe-mini-clock .sep,.kefe-mini-clock .dur{color:#9a999f}
 
 /* disc / cover art */
-.kefe-mini-art{position:relative;display:grid;width:300px;height:300px;flex:0 0 auto;margin:0 auto;z-index:2;overflow:hidden;border-radius:50%!important;background:#0d0d0f;}
+.kefe-mini-art{position:sticky;top:0;display:grid;width:100%;max-width:300px;height:300px;flex:0 0 auto;margin:0 auto;z-index:3;overflow:hidden;border-radius:50%!important;background:#0d0d0f;}
   transform:none;box-shadow:0 5cqw 8cqw -1cqw rgba(0,0,0,.34);will-change:transform;
   transition:transform .85s var(--mp-ease),border-radius .85s var(--mp-ease),box-shadow .5s ease}
 .kefe-mini-card.is-expanded .kefe-mini-art{width:100%;height:auto;aspect-ratio:1 / 1;transform:none;border-radius:0!important;box-shadow:none;transition-delay:.18s,.18s,0s}
@@ -172,7 +172,8 @@
 .kefe-mini-shell.skin-2 .kefe-mini-seek::-moz-range-track,.kefe-mini-shell.skin-2 .kefe-mini-volume input::-moz-range-track{background:linear-gradient(to right,#64676c var(--p,0%),#c7c9cd var(--p,0%))}
 .kefe-mini-shell.skin-2 .kefe-mini-seek::-webkit-slider-thumb,.kefe-mini-shell.skin-2 .kefe-mini-volume input::-webkit-slider-thumb{background:#e4e5e7;border-color:#e4e5e7;box-shadow:3px 3px 7px rgba(0,0,0,.13),-3px -3px 7px rgba(255,255,255,.85)}
 .kefe-mini-shell.skin-2 .kefe-mini-artist{color:#85888d}.kefe-mini-shell.skin-2 .kefe-mini-title{color:#34363a}.kefe-mini-shell.skin-2 .kefe-mini-clock .cur{color:#4b4e53}.kefe-mini-shell.skin-2 .kefe-mini-clock .sep,.kefe-mini-shell.skin-2 .kefe-mini-clock .dur{color:#92959a}
-\n/* --- fullscreen --- */
+
+\\n/* --- fullscreen --- */
 .kefe-mini-modal.kefe-mini-css-fullscreen{pointer-events:auto;background:rgba(10,10,10,.9)}
 .kefe-mini-shell.is-fullscreen{width:100vw!important;height:100vh!important;max-height:none!important;left:0!important;top:0!important;transform:none!important;border-radius:0!important;
   display:flex;flex-direction:column;overflow:auto}
@@ -192,5 +193,4 @@
 .wizard-mini-player-launch span{font-size:12px;color:var(--muted)}
 
 .kefe-mini-shell .sr-only{position:relative!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-
 
