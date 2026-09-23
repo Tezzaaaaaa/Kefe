@@ -233,15 +233,8 @@
             if (!project || !project.form) return null;
             const age = Date.now() - Number(project.savedAt || 0);
             if (age > 1000 * 60 * 60 * 24 * 30) return null;
-            const shouldRecover = safe(() => sessionStorage.getItem('kefe-recovery-dismissed') !== String(project.revision), true);
-            if (!shouldRecover) return null;
             const hasUsefulData = project.form.lyricsText || project.form.fields?.metaTitle || project.files?.audio || project.files?.background;
             if (!hasUsefulData) return null;
-            const accepted = window.confirm('KEFE found a saved project from your last session. Restore it?');
-            if (!accepted) {
-                safe(() => sessionStorage.setItem('kefe-recovery-dismissed', String(project.revision)));
-                return null;
-            }
             memory.restoring = true;
             applyForm(project.form);
             await restoreFiles(project.files);
