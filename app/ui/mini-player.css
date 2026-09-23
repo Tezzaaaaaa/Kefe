@@ -10,8 +10,8 @@
   --mp-font:Inter,"SF Pro Text",-apple-system,"Open Sans",system-ui,sans-serif;
   --mp-ease:cubic-bezier(.32,.72,0,1);
   pointer-events:auto;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
-  box-sizing:border-box;width:min(420px,94vw);max-height:94dvh;overflow:auto;overscroll-behavior:contain;
-  touch-action:pan-y;isolation:isolate;scrollbar-width:none;
+  box-sizing:border-box;width:min(420px,94vw);max-height:94dvh;overflow:hidden;overscroll-behavior:contain;
+  touch-action:pan-y;isolation:isolate;
   padding:14px 14px 18px;border-radius:44px!important;
   font-family:var(--mp-font);color:var(--mp-ink);
   background:var(--mp-bg);box-shadow:0 34px 90px rgba(0,0,0,.3),0 0 0 1px rgba(0,0,0,.06);
@@ -20,21 +20,21 @@
 .kefe-mini-shell button{font-family:inherit}
 
 /* --- top bar / drag handle --- */
-.kefe-mini-topline{display:flex;align-items:center;justify-content:space-between;min-height:34px;margin-bottom:8px;padding:0 2px 0 12px;
+.kefe-mini-topline{display:flex;align-items:center;justify-content:space-between;min-height:44px;margin-bottom:8px;padding:0 2px 0 12px;
   color:var(--mp-mute);font:700 9px/1 var(--mp-font);letter-spacing:.18em;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}
 .kefe-mini-topline:active,.kefe-mini-shell.is-dragging .kefe-mini-topline{cursor:grabbing}
 .kefe-mini-topline-actions{display:flex;gap:2px;flex:0 0 auto}
-.kefe-mini-icon-button,.kefe-mini-close{width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:50%!important;background:transparent;color:var(--mp-mid);cursor:pointer;transition:background .15s,color .15s}
+.kefe-mini-icon-button,.kefe-mini-close{width:44px;height:44px;display:grid;place-items:center;padding:0;border:0;border-radius:50%!important;background:transparent;color:var(--mp-mid);cursor:pointer;transition:background .15s,color .15s}
 .kefe-mini-icon-button:hover,.kefe-mini-close:hover{background:var(--mp-fill);color:var(--mp-ink)}
 
 /* --- card --- */
-.kefe-mini-card{position:relative;display:block;width:100%;aspect-ratio:1;border-radius:23%!important;overflow:hidden;isolation:isolate;transform:translateZ(0);
+.kefe-mini-card{position:relative;display:block;width:100%;min-height:100cqw;height:min(620px,calc(94dvh - 70px));max-height:calc(94dvh - 70px);border-radius:23%!important;overflow:hidden;isolation:isolate;transform:translateZ(0);
   container-type:inline-size;cursor:pointer;outline:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;
   background:linear-gradient(180deg,#d0cfd2 0%,#d5d4d7 100%)}
 .kefe-mini-card:focus-visible{box-shadow:0 0 0 3px rgba(17,17,19,.55)}
 
 /* info stack (sits under the disc) */
-.kefe-mini-info{position:absolute;left:0;right:0;bottom:0;height:58%;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+.kefe-mini-info{position:absolute;left:0;right:0;top:0;height:100cqw;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
   box-sizing:border-box;padding:0 8cqw 13.4cqw;text-align:center}
 .kefe-mini-eq{display:flex;align-items:flex-end;gap:.9cqw;height:4.4cqw;margin-bottom:4.4cqw}
 .kefe-mini-eq i{display:block;width:.62cqw;min-width:2px;height:100%;border-radius:2px!important;background:#6f6f75;transform-origin:50% 100%;
@@ -75,28 +75,23 @@
 .kefe-mini-art-caption span{font-size:9px;font-size:2.7cqw;font-weight:600;line-height:1.1;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kefe-mini-card.is-expanded .kefe-mini-art-caption{opacity:1;transform:none;transition:opacity .4s ease .45s,transform .4s ease .45s}
 
-.kefe-mini-body{position:relative;min-width:0}
- .kefe-mini-empty-upload{position:absolute;left:50%;bottom:32px;z-index:4;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:156px;height:48px;padding:0 15px;border:1px solid rgba(17,17,19,.14);border-radius:999px!important;background:rgba(246,246,248,.94);color:var(--mp-ink);font:700 12px/1 var(--mp-font);cursor:pointer;transform:translateX(-50%);box-shadow:0 7px 20px rgba(0,0,0,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .15s,transform .15s,box-shadow .15s}
+.kefe-mini-body{position:relative;min-width:0;min-height:0;max-height:calc(94dvh - 66px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.kefe-mini-body::-webkit-scrollbar{display:none}
+ .kefe-mini-empty-upload{position:absolute;left:50%;top:calc(100cqw - 88px);z-index:4;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:156px;height:48px;padding:0 15px;border:1px solid rgba(17,17,19,.14);border-radius:999px!important;background:rgba(246,246,248,.94);color:var(--mp-ink);font:700 12px/1 var(--mp-font);cursor:pointer;transform:translateX(-50%);box-shadow:0 7px 20px rgba(0,0,0,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .15s,transform .15s,box-shadow .15s}
  .kefe-mini-empty-upload:hover,.kefe-mini-empty-upload:focus-visible{background:#fff;box-shadow:0 9px 24px rgba(0,0,0,.22);outline:none;transform:translateX(-50%) scale(1.03)}
  .kefe-mini-empty-upload:active{transform:translateX(-50%) scale(.97)}
  .kefe-mini-empty-upload svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
  .kefe-mini-empty-upload small{position:absolute;top:calc(100% + 8px);left:50%;width:180px;color:rgba(17,17,19,.62);font:600 10px/1.2 var(--mp-font);text-align:center;transform:translateX(-50%)}
  .kefe-mini-shell.has-track .kefe-mini-empty-upload{display:none}
  .kefe-mini-card.is-expanded ~ .kefe-mini-empty-upload{opacity:0;pointer-events:none}
-.kefe-mini-visual-toggle{position:absolute;left:10px;bottom:10px;z-index:3;display:inline-flex;align-items:center;justify-content:center;min-width:92px;height:40px;margin:0;padding:0 13px;border:1px solid rgba(17,17,19,.12);border-radius:999px!important;background:rgba(246,246,248,.94);color:rgba(17,17,19,.78);font:700 10px/1 var(--mp-font);letter-spacing:.04em;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .15s,color .15s,transform .15s,box-shadow .15s}
+.kefe-mini-visual-toggle{position:absolute;left:10px;bottom:10px;z-index:5;display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:0;border:1px solid rgba(17,17,19,.12);border-radius:999px!important;background:rgba(246,246,248,.94);color:rgba(17,17,19,.78);font:700 10px/1 var(--mp-font);letter-spacing:.04em;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .15s,color .15s,transform .15s,box-shadow .15s}
  .kefe-mini-visual-toggle:hover,.kefe-mini-visual-toggle:focus-visible{background:#fff;color:var(--mp-ink);outline:none;box-shadow:0 6px 16px rgba(0,0,0,.18)}
  .kefe-mini-visual-toggle:active{transform:scale(.95)}
  .kefe-mini-visual-toggle[aria-pressed="true"]{background:var(--mp-ink);color:#fff}
+ .kefe-mini-shell.is-card-expanded .kefe-mini-visual-toggle{opacity:0!important;pointer-events:none!important}
  .kefe-mini-shell.skin-2 .kefe-mini-visual-toggle{background:#e4e5e7;color:#34363a;box-shadow:4px 4px 9px rgba(0,0,0,.11),-4px -4px 9px rgba(255,255,255,.85)}
  .kefe-mini-shell.skin-2 .kefe-mini-visual-toggle[aria-pressed="true"]{background:#34363a;color:#fff}
- .kefe-mini-card.is-expanded ~ .kefe-mini-visual-toggle,.kefe-mini-card.is-expanded ~ .kefe-mini-control-toggle{opacity:0!important;pointer-events:none!important}
-.kefe-mini-control-toggle{position:absolute;right:10px;bottom:10px;z-index:3;display:grid;place-items:center;width:48px;height:48px;min-width:48px;min-height:48px;margin:0;padding:0;border:1px solid rgba(17,17,19,.12);border-radius:50%!important;background:rgba(246,246,248,.92);color:rgba(17,17,19,.72);font:600 8px/1 var(--mp-font);cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:opacity .22s ease,background .22s ease,color .22s ease,transform .38s var(--mp-ease),box-shadow .22s ease}
-.kefe-mini-control-toggle:hover,.kefe-mini-control-toggle:focus-visible{background:rgba(246,246,248,.98);color:rgba(17,17,19,.95);outline:none;box-shadow:0 6px 16px rgba(0,0,0,.18)} .kefe-mini-control-toggle:active{transform:scale(.94)}
-.kefe-mini-control-toggle .chevron{display:grid;place-items:center;transition:transform .38s var(--mp-ease)} .kefe-mini-control-toggle .chevron svg{width:20px;height:20px}
-.kefe-mini-body.is-controls-open .kefe-mini-control-toggle .chevron{transform:rotate(180deg)}
-.kefe-mini-control-panel{position:absolute;left:10px;right:10px;top:calc(100% + 8px);z-index:1;max-height:0;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-8px);transition:max-height .38s var(--mp-ease),opacity .22s ease,transform .38s var(--mp-ease)}
-.kefe-mini-body.is-controls-open .kefe-mini-control-panel{max-height:min(70dvh,560px);opacity:1;pointer-events:auto;transform:none}
-.kefe-mini-card.is-expanded ~ .kefe-mini-control-toggle,.kefe-mini-card.is-expanded ~ .kefe-mini-control-panel{opacity:0!important;pointer-events:none!important}
+ .kefe-mini-control-panel{position:relative;z-index:1;margin:8px 10px 14px;opacity:1;pointer-events:auto;transform:none}
 
 /* --- transport --- */
 .kefe-mini-controls{position:relative;z-index:1;display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px}
@@ -109,7 +104,7 @@
 .kefe-mini-controls .kefe-mini-play:active{transform:scale(.96)}
 
 /* --- sliders --- */
-.kefe-mini-seek,.kefe-mini-volume input{-webkit-appearance:none;appearance:none;display:block;width:100%;height:20px;margin:0;padding:0;border:0;background:transparent;cursor:pointer;outline:none}
+.kefe-mini-seek,.kefe-mini-volume input{-webkit-appearance:none;appearance:none;display:block;width:100%;height:44px;margin:0;padding:0;border:0;background:transparent;cursor:pointer;outline:none}
 .kefe-mini-seek{position:relative;z-index:1;margin-top:7px}
 .kefe-mini-seek::-webkit-slider-runnable-track,.kefe-mini-volume input::-webkit-slider-runnable-track{height:4px;border-radius:99px!important;background:linear-gradient(to right,var(--mp-ink) var(--p,0%),var(--mp-track) var(--p,0%))}
 .kefe-mini-seek::-moz-range-track,.kefe-mini-volume input::-moz-range-track{height:4px;border-radius:99px!important;background:linear-gradient(to right,var(--mp-ink) var(--p,0%),var(--mp-track) var(--p,0%))}
