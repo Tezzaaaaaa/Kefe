@@ -55,7 +55,7 @@
 .kefe-mini-clock .sep,.kefe-mini-clock .dur{color:#9a999f}
 
 /* disc / cover art */
-.kefe-mini-art{position:sticky;top:0;display:grid;width:100%;max-width:300px;height:300px;flex:0 0 auto;margin:0 auto;z-index:3;overflow:hidden;border-radius:50%!important;background:#0d0d0f;}
+.kefe-mini-art{position:sticky;top:0;display:grid;width:100%;max-width:300px;height:300px;flex:0 0 auto;margin:0 auto;z-index:3;overflow:hidden;border-radius:50%!important;background:#0d0d0f;
   transform:none;box-shadow:0 5cqw 8cqw -1cqw rgba(0,0,0,.34);will-change:transform;
   transition:transform .85s var(--mp-ease),border-radius .85s var(--mp-ease),box-shadow .5s ease}
 .kefe-mini-card.is-expanded .kefe-mini-art{width:100%;height:auto;aspect-ratio:1 / 1;transform:none;border-radius:0!important;box-shadow:none;transition-delay:.18s,.18s,0s}
@@ -132,6 +132,7 @@
 
 /* --- queue --- */
 .kefe-mini-queue{position:relative;z-index:1;margin-top:10px;padding:0 4px}
+.kefe-mini-queue:has(#kefeMiniQueueList:empty){display:none}
 .kefe-mini-queue-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px}
 .kefe-mini-queue-head div{display:grid;gap:4px}
 .kefe-mini-queue-head span{font:700 9px/1 var(--mp-font);letter-spacing:.16em}
