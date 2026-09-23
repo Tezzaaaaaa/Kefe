@@ -154,7 +154,7 @@
           fillAudioReactivePresets();
           window.redrawCurrentPreviewFrame&&window.redrawCurrentPreviewFrame();
         }).catch(function(e){
-          arSelect.innerHTML='<option>Audio Reactive Shaders unavailable</option>';
+          arSelect.innerHTML='<option>Audio Reactive Shaders failed to load — try again</option>';
           console.warn('[KEFE Audio Reactive Shaders]',e);
         });
       }
@@ -223,7 +223,7 @@
             window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
           })
           .catch(function(error) {
-            mmSelect.innerHTML = '<option>Matrix Music unavailable</option>';
+            mmSelect.innerHTML = '<option>Matrix Music failed to load — try again</option>';
             console.warn('[KEFE Matrix Music]', error);
           });
       }
@@ -285,7 +285,7 @@
             window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
           })
           .catch(function(error) {
-            select.innerHTML = '<option>Butterchurn unavailable</option>';
+            select.innerHTML = '<option>Butterchurn failed to load — try again</option>';
             console.warn('[KEFE Butterchurn]', error);
           });
       }
