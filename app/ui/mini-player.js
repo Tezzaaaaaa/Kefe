@@ -304,7 +304,7 @@
           ctx.drawImage(currentArtwork, 0, 0, canvas.width, canvas.height);
         }
 
-        if (playing && discDisplay === 'visualiser') {
+        if (discDisplay === 'visualiser') {
           const hasArtwork = !!currentArtwork;
           if (hasArtwork) {
             ctx.save();
@@ -313,9 +313,12 @@
           }
           try {
             if (mode === 'butterchurn') {
+              window.kefeButterchurn?.prepare?.().catch?.(() => {});
               window.kefeButterchurn?.drawMini?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
-            } else {
-              window.kefeVisualiser?.draw?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
+            } else if (mode === 'matrixmusic') {
+              window.kefeMatrixVisualiser?.draw?.(ctx, canvas.width, canvas.height);
+            } else if (mode === 'audioreactive') {
+              window.kefeAudioReactiveShaders?.draw?.(ctx, canvas.width, canvas.height);
             }
           } finally {
             if (hasArtwork) ctx.restore();
