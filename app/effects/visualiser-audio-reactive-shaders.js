@@ -7,7 +7,7 @@
   'use strict';
   if (window.kefeAudioReactiveShaders) return;
 
-  var BASE = 'https://raw.githubusercontent.com/TjardoOrtan/audio-reactive-shaders/master/src/shaders/scenes/';
+  var BASE = 'https://cdn.jsdelivr.net/gh/TjardoOrtan/audio-reactive-shaders@master/src/shaders/scenes/';
   var FILES = [
     ['abyssalFractals.js','Abyssal Fractals'],
     ['audioMatrix.js','Audio Matrix'],
