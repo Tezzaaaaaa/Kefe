@@ -102,68 +102,40 @@ try {
     { timeout: 15000 },
   );
   if (!(await page.locator('#miniPlayerBtn').count())) throw new Error('MiniPlayer trigger is missing');
-  if (!(await page.evaluate(() => Boolean(window.kefeMiniPlayer)))) throw new Error('MiniPlayer did not initialise');
-  await page.evaluate(() => window.kefeMiniPlayer.open());
-  await page.locator('#kefeMiniCard').waitFor({ state: 'visible', timeout: 5000 });
-  const miniInsideBody = await page.evaluate(() => {
-    const ids = [
-      'kefeMiniCanvas',
-      'kefeMiniPlay',
-      'kefeMiniStop',
-      'kefeMiniPrev',
-      'kefeMiniNext',
-      'kefeMiniRepeat',
-      'kefeMiniShuffleTrack',
-      'kefeMiniSeek',
-      'kefeMiniVolume',
-      'kefeMiniUpload',
-      'kefeMiniShuffle',
-      'kefeMiniPreset',
-      'kefeMiniLyricsToggle',
-      'kefeMiniLyricsPanel',
-      'kefeMiniQueueList',
-    ];
-    return ids.every(id => document.getElementById(id)?.closest('#kefeMiniCard'));
+  if (!(await page.evaluate(() => Boolean(window.kefeIpodPlayer)))) throw new Error('iPod MiniPlayer did not initialise');
+  await page.evaluate(() => window.kefeIpodPlayer.open());
+  await page.locator('#kefeIpodPlayer').waitFor({ state: 'visible', timeout: 5000 });
+  const miniPlayerState = await page.evaluate(() => {
+    const player = document.getElementById('kefeIpodPlayer');
+    const ids = ['kipClose', 'kipStar', 'kipMore', 'kipMessages', 'kipList', 'kipMenu', 'kipPrev', 'kipNext', 'kipPlay', 'kipCenter', 'kipPresets'];
+    const styles = [...document.querySelectorAll('style#kip-styles')];
+    const scopedStyles = styles.length === 1 && !/\.kefe-mini-|#kefeMini/.test(styles[0].textContent);
+    return {
+      player: Boolean(player),
+      singlePlayer: document.querySelectorAll('#kefeIpodPlayer').length === 1,
+      controls: ids.every(id => document.getElementById(id)?.closest('#kefeIpodPlayer') === player),
+      scopedStyles,
+      launcher: document.getElementById('miniPlayerBtn')?.getAttribute('aria-label') === 'Open MiniPlayer',
+    };
   });
-  if (!miniInsideBody) throw new Error('MiniPlayer controls/media are not all inside the grey body');
-  const miniScrollState = await page.evaluate(() => {
-    const body = document.querySelector('.kefe-mini-body');
-    const ids = ['kefeMiniPlay', 'kefeMiniStop', 'kefeMiniSeek', 'kefeMiniCurrent', 'kefeMiniDuration', 'kefeMiniUpload'];
-    const insideScroll = ids.every(id => document.getElementById(id)?.closest('.kefe-mini-body') === body);
-    const touchTargets = [...document.querySelectorAll('#kefeMiniPlay,#kefeMiniStop,#kefeMiniSeek,#kefeMiniUpload,#kefeMiniFullscreen')].every(el => {
-      const r = el.getBoundingClientRect();
-      return r.width >= 44 && r.height >= 44;
-    });
-    return { insideScroll, scrollable: Boolean(body && body.scrollHeight > body.clientHeight), overflowY: body ? getComputedStyle(body).overflowY : '', touchTargets };
+  if (!miniPlayerState.player || !miniPlayerState.singlePlayer || !miniPlayerState.controls || !miniPlayerState.scopedStyles || !miniPlayerState.launcher) throw new Error('iPod MiniPlayer structure or scoped styles are invalid');
+  const iPodLayout = await page.evaluate(() => {
+    const shell = document.querySelector('.kip-shell');
+    const screen = document.querySelector('.kip-screen');
+    const wheel = document.querySelector('.kip-wheel');
+    const rect = shell?.getBoundingClientRect();
+    const screenRect = screen?.getBoundingClientRect();
+    const wheelRect = wheel?.getBoundingClientRect();
+    return {
+      shellWidth: rect?.width || 0,
+      shellHeight: rect?.height || 0,
+      screenRatio: screenRect?.height ? screenRect.width / screenRect.height : 0,
+      wheelRatio: rect?.width ? wheelRect.width / rect.width : 0,
+      closeHidden: getComputedStyle(document.getElementById('kipClose')).opacity === '0',
+    };
   });
-  if (!miniScrollState.insideScroll) throw new Error('Required MiniPlayer controls are not inside the scroll container');
-  if (!miniScrollState.scrollable || !['auto', 'scroll'].includes(miniScrollState.overflowY)) throw new Error('MiniPlayer scroll container is not vertically scrollable');
-  if (!miniScrollState.touchTargets) throw new Error('MiniPlayer touch target is smaller than 44x44');
-
-  const visualToggleState = await page.evaluate(() => {
-    const button = document.getElementById('kefeMiniVisualToggle');
-    if (!button) return null;
-    button.click();
-    const visualiser1 = button.getAttribute('aria-pressed') === 'true';
-    button.click();
-    const artwork = button.getAttribute('aria-pressed') === 'false';
-    button.click();
-    const visualiser2 = button.getAttribute('aria-pressed') === 'true';
-    return { visualiser1, artwork, visualiser2 };
-  });
-  if (!visualToggleState?.visualiser1 || !visualToggleState?.artwork || !visualToggleState?.visualiser2) throw new Error('MiniPlayer visualizer/artwork toggle did not alternate visualizer -> artwork -> visualizer');
-  if (await page.locator('#kefeMiniControlsToggle,.kefe-mini-control-toggle').count()) throw new Error('MiniPlayer chevron control was not removed');
-  const discOverlay = await page.evaluate(() => {
-    const card = document.getElementById('kefeMiniCard');
-    const art = card?.querySelector('.kefe-mini-art');
-    window.kefeMiniPlayer.setExpanded(true);
-    const expanded = card?.classList.contains('is-expanded');
-    const coversBody = art && getComputedStyle(card).overflow === 'hidden' && getComputedStyle(art).zIndex === '2' && getComputedStyle(art).borderRadius === '0px';
-    window.kefeMiniPlayer.setExpanded(false);
-    return Boolean(expanded && coversBody);
-  });
-  if (!discOverlay) throw new Error('MiniPlayer disc animation no longer covers the body contents');
-  await page.evaluate(() => window.kefeMiniPlayer.close());
+  if (!iPodLayout.shellWidth || iPodLayout.shellWidth > 360 || iPodLayout.screenRatio < 1.35 || iPodLayout.screenRatio > 1.5 || iPodLayout.wheelRatio < 0.74 || iPodLayout.wheelRatio > 0.82) throw new Error('iPod MiniPlayer layout does not match the required proportions');
+  await page.evaluate(() => window.kefeIpodPlayer.close());
   if (await page.locator('.kefe-preview-hint').count()) throw new Error('Preview text placeholder should not exist');
   await page.locator('.preview-logo-backdrop').waitFor({ state: 'attached', timeout: 5000 });
   const placeholderStyle = await page.locator('.preview-logo-backdrop').evaluate((el) => getComputedStyle(el).mixBlendMode);
