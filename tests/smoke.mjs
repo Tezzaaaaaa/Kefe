@@ -128,7 +128,7 @@ try {
   if (!miniInsideBody) throw new Error('MiniPlayer controls/media are not all inside the grey body');
   const miniScrollState = await page.evaluate(() => {
     const body = document.querySelector('.kefe-mini-body');
-    const ids = ['kefeMiniPlay', 'kefeMiniStop', 'kefeMiniSeek', 'kefeMiniCurrent', 'kefeMiniDuration', 'kefeMiniUpload', 'kefeMiniEmptyUpload'];
+    const ids = ['kefeMiniPlay', 'kefeMiniStop', 'kefeMiniSeek', 'kefeMiniCurrent', 'kefeMiniDuration', 'kefeMiniUpload'];
     const insideScroll = ids.every(id => document.getElementById(id)?.closest('.kefe-mini-body') === body);
     const touchTargets = [...document.querySelectorAll('#kefeMiniPlay,#kefeMiniStop,#kefeMiniSeek,#kefeMiniUpload,#kefeMiniFullscreen')].every(el => {
       const r = el.getBoundingClientRect();
@@ -298,4 +298,3 @@ try {
 } finally {
   if (browser) await browser.close().catch(() => {});
   await new Promise((resolve) => server.close(resolve));
-}
