@@ -144,12 +144,14 @@ try {
     const button = document.getElementById('kefeMiniVisualToggle');
     if (!button) return null;
     button.click();
-    const artwork = button.getAttribute('aria-pressed') === 'true';
+    const visualiser1 = button.getAttribute('aria-pressed') === 'true';
     button.click();
-    const visualiser = button.getAttribute('aria-pressed') === 'false';
-    return { artwork, visualiser };
+    const artwork = button.getAttribute('aria-pressed') === 'false';
+    button.click();
+    const visualiser2 = button.getAttribute('aria-pressed') === 'true';
+    return { visualiser1, artwork, visualiser2 };
   });
-  if (!visualToggleState?.artwork || !visualToggleState?.visualiser) throw new Error('MiniPlayer visualizer/artwork toggle did not alternate both directions');
+  if (!visualToggleState?.visualiser1 || !visualToggleState?.artwork || !visualToggleState?.visualiser2) throw new Error('MiniPlayer visualizer/artwork toggle did not alternate visualizer -> artwork -> visualizer');
   if (await page.locator('#kefeMiniControlsToggle,.kefe-mini-control-toggle').count()) throw new Error('MiniPlayer chevron control was not removed');
   const discOverlay = await page.evaluate(() => {
     const card = document.getElementById('kefeMiniCard');
