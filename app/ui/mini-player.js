@@ -122,9 +122,7 @@
   document.body.appendChild(player);
 
   const $ = id => document.getElementById(id);
-  const audio = new Audio();
-  audio.preload = 'auto';
-  audio.playsInline = true;
+  const audio = window.kefeAudioElement || null;
 
   const fallbackState = { audio: { file: null, metadata: { title: '', artist: '', album: '' } }, style: {} };
   const getState = () => window.state || fallbackState;
@@ -168,26 +166,37 @@
   }
 
   function toggle() {
-    const f = getState().audio?.file;
-    if (!audio.src && f) audio.src = URL.createObjectURL(f);
-    if (!audio.src) return;
+    if (!audio) return;
     if (audio.paused) audio.play().catch(()=>{}); else audio.pause();
   }
 
-  function next() {
-    if (window.kefeMiniPlayer?.tracks?.().length) { document.querySelector('#kefeMiniNext')?.click(); return; }
-    audio.currentTime = 0;
+  function delegateQueue(id) {
+    if (!window.kefeMiniPlayer?.tracks?.().length) return false;
+    const control = document.getElementById(id);
+    if (!control) return false;
+    control.click();
+    return true;
   }
-  function prev() {
-    if (window.kefeMiniPlayer?.tracks?.().length) { document.querySelector('#kefeMiniPrev')?.click(); return; }
+
+  function next() {
+    if (!audio) return;
+    if (delegateQueue('kefeMiniNext')) return;
     audio.currentTime = 0;
   }
 
-  audio.addEventListener('timeupdate', syncProgress);
-  audio.addEventListener('loadedmetadata', syncProgress);
-  audio.addEventListener('play', syncPlayIcon);
-  audio.addEventListener('pause', syncPlayIcon);
-  audio.addEventListener('ended', next);
+  function prev() {
+    if (!audio) return;
+    if (delegateQueue('kefeMiniPrev')) return;
+    audio.currentTime = 0;
+  }
+
+  if (audio) {
+    audio.addEventListener('timeupdate', syncProgress);
+    audio.addEventListener('loadedmetadata', syncProgress);
+    audio.addEventListener('play', syncPlayIcon);
+    audio.addEventListener('pause', syncPlayIcon);
+    audio.addEventListener('ended', next);
+  }
 
   $('kipPlay').addEventListener('click', toggle);
   $('kipCenter').addEventListener('click', toggle);
@@ -241,7 +250,7 @@
     player.classList.remove('is-hidden');
     syncMeta(); syncProgress(); syncPlayIcon();
   }
-  function close() { player.classList.add('is-hidden'); audio.pause(); }
+  function close() { player.classList.add('is-hidden'); if (audio) audio.pause(); }
 
   window.kefeIpodPlayer = { version: 1, open, close };
   window.addEventListener('kefe:open-ipod', open);
