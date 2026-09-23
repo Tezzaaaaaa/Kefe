@@ -1,657 +1,253 @@
-/* KEFE Now Playing — compact disc-and-card player skin with Butterchurn visuals. */
 (() => {
   'use strict';
-  if (window.kefeMiniPlayer) return;
+  if (window.kefeIpodPlayer) return;
+
+  const css = `
+.kip-modal{position:fixed;inset:0;z-index:11000;pointer-events:none;background:rgba(10,10,10,.04)}
+.kip-modal.is-hidden{display:none}
+.kip-shell{--kip-body:#3a4456;--kip-body-hi:#4a5466;--kip-body-lo:#2b3341;--kip-ink:#eef1f6;--kip-mute:#8a93a3;--kip-icon:#cdd6e4;--kip-wheel:#0b0d11;--kip-wheel-2:#14171d;pointer-events:auto;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);box-sizing:border-box;width:min(360px,92vw);aspect-ratio:.604;max-height:92dvh;padding:14px 10px 12px;border-radius:42px!important;font-family:"SF Pro Text",Inter,-apple-system,"Open Sans",system-ui,sans-serif;color:var(--kip-ink);background:linear-gradient(180deg,var(--kip-body-hi) 0%,var(--kip-body) 14%,var(--kip-body) 78%,var(--kip-body-lo) 100%);box-shadow:0 40px 90px rgba(0,0,0,.6),0 2px 0 rgba(255,255,255,.1) inset,-1px 0 0 rgba(255,255,255,.05) inset,1px 0 0 rgba(0,0,0,.35) inset,0 -2px 0 rgba(0,0,0,.4) inset;display:flex;flex-direction:column}
+.kip-shell::before,.kip-shell::after{content:"";position:absolute;left:-3px;width:3px;border-radius:3px 0 0 3px;background:linear-gradient(180deg,#4d5766,#2d3542);box-shadow:0 1px 0 rgba(255,255,255,.06) inset}
+.kip-shell::before{top:78px;height:30px}
+.kip-shell::after{top:120px;height:30px}
+.kip-screen{position:relative;box-sizing:border-box;width:100%;aspect-ratio:1.43/1;border-radius:14px!important;padding:10px 12px;background:linear-gradient(180deg,#0b1a2b 0%,#081220 100%);overflow:hidden;display:flex;flex-direction:column;gap:4px;box-shadow:0 0 0 3px #0a0d13,0 0 0 4px rgba(255,255,255,.04),0 6px 12px rgba(0,0,0,.55) inset}
+.kip-screen::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(140% 80% at 82% -10%,rgba(90,130,190,.28) 0%,transparent 55%),radial-gradient(80% 50% at 0% 100%,rgba(90,130,190,.1) 0%,transparent 60%)}
+.kip-statusbar{position:relative;z-index:1;display:flex;align-items:center;gap:5px;font:600 9px/1 inherit;color:#d5dced}
+.kip-statusbar .kip-time{margin-right:2px;font-weight:700}
+.kip-statusbar .kip-mode{font-weight:500;color:#c3cbdb}
+.kip-statusbar .kip-spacer{flex:1}
+.kip-statusbar svg{display:block;color:#d5dced}
+.kip-statusbar .kip-signal{width:15px;height:9px;fill:currentColor}
+.kip-statusbar .kip-battery{width:20px;height:10px;fill:currentColor}
+.kip-statusbar .kip-battery rect:first-child{fill:none;stroke:currentColor;stroke-width:.8;opacity:.7}
+.kip-statusbar .kip-5g{font:700 9px/1 inherit}
+.kip-main{position:relative;z-index:1;display:grid;grid-template-columns:76px minmax(0,1fr);gap:10px;align-items:start;margin-top:2px}
+.kip-art-wrap{width:76px;height:76px;border-radius:5px!important;overflow:hidden;background:#12202f;box-shadow:0 4px 10px rgba(0,0,0,.55)}
+.kip-art{width:100%;height:100%;background-size:cover;background-position:center;background-image:linear-gradient(160deg,#1c3a55,#0e2233)}
+.kip-meta{display:flex;flex-direction:column;gap:1px;min-width:0;padding-top:1px}
+.kip-title-row{display:flex;align-items:center;gap:6px;min-width:0}
+.kip-title{font:700 16px/1.15 inherit;letter-spacing:-.005em;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kip-explicit{flex:0 0 auto;display:inline-grid;place-items:center;width:13px;height:13px;border-radius:3px!important;background:#dfe4ec;color:#0b1420;font:800 8px/1 inherit}
+.kip-artist{font:500 12px/1.25 inherit;color:#d5dced;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kip-album{font:500 12px/1.25 inherit;color:#9aa4b7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kip-dolby-row{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+.kip-dolby{display:inline-flex;align-items:center;gap:5px;font:600 11px/1 inherit;color:#e7ecf4}
+.kip-dolby svg{width:22px;height:9px;color:#e7ecf4}
+.kip-icon-btn{width:20px;height:20px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:var(--kip-icon);cursor:pointer;border-radius:50%!important}
+.kip-icon-btn:hover{color:#fff}
+.kip-icon-btn:active{opacity:.6}
+.kip-icon-btn svg{width:15px;height:15px}
+.kip-time-row{position:relative;z-index:1;display:flex;justify-content:space-between;font:500 9.5px/1 inherit;color:#8a93a3;font-variant-numeric:tabular-nums;margin-top:1px}
+.kip-progress{position:relative;z-index:1;height:2.5px;border-radius:99px!important;background:rgba(255,255,255,.16);overflow:hidden}
+.kip-progress span{display:block;height:100%;width:0%;background:#e7ecf4;border-radius:inherit!important;transition:width .15s linear}
+.kip-bottom-row{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;margin-top:3px;font:500 10px/1 inherit;color:#b4bccb}
+.kip-device{display:inline-flex;align-items:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kip-device svg{width:11px;height:11px;flex:0 0 auto}
+.kip-wheel{position:relative;width:78%;aspect-ratio:1/1;margin:8px auto 0;border-radius:50%!important;background:radial-gradient(circle at 50% 40%,var(--kip-wheel-2) 0%,var(--kip-wheel) 68%,#05070a 100%);box-shadow:0 0 0 1px rgba(255,255,255,.04) inset,0 0 0 2px rgba(0,0,0,.5),0 10px 24px rgba(0,0,0,.65) inset,0 1px 0 rgba(255,255,255,.08),0 -1px 0 rgba(0,0,0,.7);flex:0 0 auto}
+.kip-wheel::after{content:"";position:absolute;inset:25%;border-radius:50%!important;background:radial-gradient(circle at 50% 40%,#1c1f26 0%,#0e1014 78%,#05070a 100%);box-shadow:0 0 0 1px rgba(255,255,255,.05) inset,0 6px 14px rgba(0,0,0,.7) inset;pointer-events:none}
+.kip-wheel-btn{position:absolute;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#b9c0cc;cursor:pointer;width:34px;height:34px;border-radius:50%!important;z-index:2}
+.kip-wheel-btn:hover{color:#fff}
+.kip-wheel-btn:active{transform:scale(.9)}
+.kip-wheel-btn svg{width:22px;height:22px;fill:currentColor}
+.kip-wheel-btn svg[fill="none"]{fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.kip-wheel-menu{top:6px;left:50%;transform:translateX(-50%)}
+.kip-wheel-prev{left:6px;top:50%;transform:translateY(-50%)}
+.kip-wheel-next{right:6px;top:50%;transform:translateY(-50%)}
+.kip-wheel-play{bottom:6px;left:50%;transform:translateX(-50%)}
+.kip-wheel-center{position:absolute;inset:25%;border-radius:50%!important;background:transparent;border:0;cursor:pointer;z-index:3}
+.kip-wheel-center:active{background:rgba(255,255,255,.04)}
+.kip-close{position:absolute;top:14px;right:14px;width:26px;height:26px;display:grid;place-items:center;border:0;border-radius:50%!important;background:rgba(0,0,0,.4);color:#fff;cursor:pointer;z-index:5;opacity:0;transition:opacity .15s}
+.kip-shell:hover .kip-close{opacity:1}
+.kip-close svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.kip-presets{position:absolute;inset:auto 12px 12px;max-height:66%;overflow:auto;background:rgba(8,12,20,.97);border-radius:14px!important;padding:10px;box-shadow:0 20px 50px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06);z-index:6}
+.kip-presets[hidden]{display:none}
+.kip-presets h4{margin:0 0 8px;font:700 10px/1 inherit;letter-spacing:.14em;color:#8a93a3;text-transform:uppercase}
+.kip-presets optgroup{display:block;margin:8px 0 3px;font:700 9px/1 inherit;color:#6f7887;letter-spacing:.12em;text-transform:uppercase}
+.kip-presets button{display:block;width:100%;text-align:left;padding:8px 10px;border:0;background:transparent;color:#e7ecf4;font:600 12px/1 inherit;border-radius:8px!important;cursor:pointer}
+.kip-presets button:hover{background:rgba(255,255,255,.08)}
+.kip-presets button.is-active{background:rgba(91,141,239,.28);color:#fff}
+@media(max-width:400px){.kip-shell{padding:12px 8px 10px;border-radius:36px!important}.kip-screen{padding:8px 10px}.kip-art-wrap,.kip-art{width:66px;height:66px}.kip-title{font-size:15px}}
+`;
+
+  const style = document.createElement('style');
+  style.id = 'kip-styles';
+  style.textContent = css;
+  document.head.appendChild(style);
 
   const player = document.createElement('div');
-  player.id = 'kefeMiniPlayerModal';
-  player.className = 'kefe-mini-modal is-hidden';
+  player.id = 'kefeIpodPlayer';
+  player.className = 'kip-modal is-hidden';
   player.setAttribute('role', 'dialog');
   player.setAttribute('aria-modal', 'true');
-  player.setAttribute('aria-label', 'KEFE Now Playing');
+  player.setAttribute('aria-label', 'KEFE iPod Player');
   player.innerHTML = `
-    <div class="kefe-mini-shell">
-      <div class="kefe-mini-topline"><span>KEFE / NOW PLAYING</span><div class="kefe-mini-topline-actions"><button type="button" id="kefeMiniSkinToggle" class="kefe-mini-icon-button" aria-label="Switch to Skin 2" title="Skin 2"><span aria-hidden="true">S2</span></button><button type="button" id="kefeMiniFullscreen" class="kefe-mini-icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button><button type="button" id="kefeMiniClose" class="kefe-mini-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
-      <div id="kefeMiniCard" class="kefe-mini-card" role="button" tabindex="0" aria-pressed="false" aria-label="Show cover art" title="Tap to show cover art">
-        <div class="kefe-mini-body">
-          <div class="kefe-mini-art">
-            <div class="kefe-mini-spin">
-              <canvas id="kefeMiniCanvas" width="720" height="720"></canvas>
-              <div class="kefe-mini-hub"></div>
-            </div>
-            <div class="kefe-mini-art-caption" aria-hidden="true"><strong id="kefeMiniCapArtist"></strong><span id="kefeMiniCapTitle"></span></div>
-          </div>
-          <div class="kefe-mini-info">
-            <div class="kefe-mini-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-            <div id="kefeMiniArtist" class="kefe-mini-artist">Add music to begin</div>
-            <div id="kefeMiniTitle" class="kefe-mini-title">Nothing queued</div>
-            <div class="kefe-mini-bar" aria-hidden="true"><span id="kefeMiniProgress"></span></div>
-          </div>
-          <div id="kefeMiniControlPanel" class="kefe-mini-control-panel">
-        <button type="button" id="kefeMiniUpload" class="kefe-mini-add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload media</span></button><input id="kefeMiniFiles" type="file" accept="audio/*,.aac,.aif,.aiff,.alac,.amr,.ape,.au,.caf,.flac,.m4a,.m4b,.m4r,.mka,.mp2,.mp3,.mpga,.oga,.ogg,.opus,.ra,.wav,.weba,.wma,.wv,.3ga,.ac3,.eac3,.mid,.midi,.mp4,.m4v,.mov,.webm,.3gp,.mkv,.ogv" multiple hidden>
-        <div class="kefe-mini-controls" aria-label="Playback controls">
-          <button type="button" id="kefeMiniShuffleTrack" class="kefe-mini-control-icon" aria-label="Shuffle queue" title="Shuffle queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h2c4 0 6 10 10 10h4M16 5h4v4M20 5l-4 4M4 17h2c1.8 0 3-1.5 4-3M16 15h4v4M20 19l-4-4"/></svg></button>
-          <button type="button" id="kefeMiniPrev" class="kefe-mini-control-icon" aria-label="Previous track" title="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg></button>
-          <button type="button" id="kefeMiniPlay" class="kefe-mini-play" aria-label="Play" title="Play"><svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></button>
-          <button type="button" id="kefeMiniStop" class="kefe-mini-control-icon" aria-label="Stop" title="Stop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7z"/></svg></button>
-          <button type="button" id="kefeMiniNext" class="kefe-mini-control-icon" aria-label="Next track" title="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12M6 6l8 6-8 6z"/></svg></button>
-          <button type="button" id="kefeMiniRepeat" class="kefe-mini-control-icon" aria-label="Repeat off" title="Repeat off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7H7a3 3 0 0 0 0 6h1M7 17h10a3 3 0 0 0 0-6h-1M15 5l2 2-2 2M9 15l-2 2 2 2"/></svg></button>
+    <div class="kip-shell">
+      <button type="button" class="kip-close" id="kipClose" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="kip-screen">
+        <div class="kip-statusbar">
+          <span class="kip-time" id="kipClock">9:41 AM</span>
+          <span class="kip-mode">Music</span>
+          <span class="kip-spacer"></span>
+          <svg class="kip-signal" viewBox="0 0 20 12"><rect x="0" y="7.5" width="3.2" height="4.5" rx=".6"/><rect x="4.4" y="5.2" width="3.2" height="6.8" rx=".6"/><rect x="8.8" y="2.6" width="3.2" height="9.4" rx=".6"/><rect x="13.2" y="0" width="3.2" height="12" rx=".6"/></svg>
+          <span class="kip-5g">5G</span>
+          <svg class="kip-battery" viewBox="0 0 26 12"><rect x=".5" y="1" width="21" height="10" rx="3"/><rect x="2" y="2.5" width="18" height="7" rx="1.6"/><rect x="23" y="4.2" width="2" height="3.6" rx=".8"/></svg>
         </div>
-        <input id="kefeMiniSeek" class="kefe-mini-seek" type="range" min="0" max="0" step="0.01" value="0" aria-label="Track position">
-        <div class="kefe-mini-clock"><span id="kefeMiniCurrent" class="cur">0 : 00</span><span class="sep"> / </span><span id="kefeMiniDuration" class="dur">0:00</span></div>
-        <div class="kefe-mini-actions">
-          <div class="kefe-mini-volume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v4h3l4 3V7L8 10H5zM16 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/></svg><input id="kefeMiniVolume" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"></div>
-          <button type="button" id="kefeMiniShuffle">Shuffle preset</button>
+        <div class="kip-main">
+          <div class="kip-art-wrap"><div class="kip-art" id="kipArt"></div></div>
+          <div class="kip-meta">
+            <div class="kip-title-row"><span class="kip-title" id="kipTitle">Add music to begin</span><span class="kip-explicit" id="kipExplicit" hidden>E</span></div>
+            <div class="kip-artist" id="kipArtist">Nothing queued</div>
+            <div class="kip-album" id="kipAlbum"></div>
+          </div>
         </div>
-        <div id="kefeMiniNotice" class="kefe-mini-notice" role="status" aria-live="polite" hidden></div>
-        <div class="kefe-mini-preset"><span>Visual</span><select id="kefeMiniPreset" aria-label="Butterchurn preset"></select></div>
-        <button type="button" id="kefeMiniLyricsToggle" class="kefe-mini-lyrics-toggle" aria-expanded="false" aria-controls="kefeMiniLyricsPanel"><span>Lyrics</span><svg class="lyrics-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-        <section id="kefeMiniLyricsPanel" class="kefe-mini-lyrics-panel" hidden>
-          <div class="kefe-mini-lyrics-head"><span>LYRICS</span><button type="button" id="kefeMiniLyricsClose" aria-label="Close lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-          <div id="kefeMiniLyricsContent" class="kefe-mini-lyrics-content"><p>No lyrics loaded</p></div>
-        </section>
-        <div class="kefe-mini-queue"><div class="kefe-mini-queue-head"><div><span>UP NEXT</span><small>Playlist</small></div><span id="kefeMiniQueueCount">0 tracks</span></div><ol id="kefeMiniQueueList"></ol></div>
+        <div class="kip-dolby-row">
+          <span class="kip-dolby"><svg viewBox="0 0 44 18" fill="currentColor"><path d="M0 2h6a7 7 0 0 1 0 14H0V2zm3 3v8h3a4 4 0 0 0 0-8H3zM20 2h6a7 7 0 0 1 0 14h-6V2zm3 3v8h3a4 4 0 0 0 0-8h-3z"/></svg> Dolby Atmos</span>
+          <div><button type="button" class="kip-icon-btn" id="kipStar" aria-label="Favorite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3.5l2.6 6 6.4.5-4.9 4.2 1.5 6.3L12 17l-5.6 3.5 1.5-6.3L3 10l6.4-.5z"/></svg></button><button type="button" class="kip-icon-btn" id="kipMore" aria-label="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="18" cy="12" r="2.2"/></svg></button></div>
+        </div>
+        <div class="kip-time-row"><span id="kipCurrent">0:00</span><span id="kipRemaining">-0:00</span></div>
+        <div class="kip-progress"><span id="kipProgress"></span></div>
+        <div class="kip-bottom-row">
+          <span class="kip-device"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M6 4v16M9 4v16M12 4.5c1.8 0 2.8 1 2.8 2.8v9.4c0 1.8-1 2.8-2.8 2.8"/></svg> kiloByte's AirPods</span>
+          <div><button type="button" class="kip-icon-btn" id="kipMessages" aria-label="Messages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 5.5h16v11H9l-5 4z"/></svg></button><button type="button" class="kip-icon-btn" id="kipList" aria-label="Queue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
         </div>
       </div>
-      <button type="button" id="kefeMiniVisualToggle" class="kefe-mini-visual-toggle" aria-pressed="false" aria-label="Switch to visualizer" title="Show audio visualizer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14c2.5-8 5.5-8 8 0s5.5 8 8 0M4 10c2.5 8 5.5 8 8 0s5.5-8 8 0"/></svg><span class="sr-only">Visualizer</span></button>
+      <div class="kip-wheel">
+        <button type="button" class="kip-wheel-btn kip-wheel-menu" id="kipMenu" aria-label="Presets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1.4"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.4"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.4"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.4"/></svg></button>
+        <button type="button" class="kip-wheel-btn kip-wheel-prev" id="kipPrev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6.5 5v14h1.8V5zM19 5.5L8.5 12 19 18.5z"/></svg></button>
+        <button type="button" class="kip-wheel-btn kip-wheel-next" id="kipNext" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M17.5 5v14h-1.8V5zM5 5.5L15.5 12 5 18.5z"/></svg></button>
+        <button type="button" class="kip-wheel-btn kip-wheel-play" id="kipPlay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg></button>
+        <button type="button" class="kip-wheel-center" id="kipCenter" aria-label="Play"></button>
+      </div>
+      <div class="kip-presets" id="kipPresets" hidden><h4>Presets</h4><div id="kipPresetList"></div></div>
     </div>`;
   document.body.appendChild(player);
 
+  const $ = id => document.getElementById(id);
   const audio = new Audio();
   audio.preload = 'auto';
   audio.playsInline = true;
-  const fallbackState = {
-    audio: { file: null, url: null, duration: 0, ready: false, metadata: { title: '', artist: '', album: '' } },
-    lyrics: { lines: [] },
-    style: { visualiserStyle: 'butterchurn', butterchurnPreset: '' }
-  };
+
+  const fallbackState = { audio: { file: null, metadata: { title: '', artist: '', album: '' } }, style: {} };
   const getState = () => window.state || fallbackState;
-  const urls = new Map();
-  let tracks = [];
-  let index = -1;
-  let raf = 0;
-  let dragging = false;
-  let dragPointerId = null;
-  let dragOffsetX = 0;
-  let dragOffsetY = 0;
-  let cssFullscreen = false;
-  let repeatTrack = false;
+  const fmt = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`; };
 
-  const $ = id => document.getElementById(id);
-  const canvas = $('kefeMiniCanvas');
-  const ctx = canvas.getContext('2d', { alpha: false });
-  const card = $('kefeMiniCard');
-  const spinEl = player.querySelector('.kefe-mini-spin');
-  const shellEl = player.querySelector('.kefe-mini-shell');
-  const seekEl = $('kefeMiniSeek');
-  const progressEl = $('kefeMiniProgress');
-  const reduceMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
-  const SPIN_DEG_PER_SEC = 42;
-  let expanded = false;
-  let angle = 0;
-  let spinVel = 0;
-  let settle = null;
-  let lastFrame = 0;
-  let lastProgress = -1;
-  let currentArtwork = null;
-  let currentArtworkUrl = '';
-  let metadataReadPromise = null;
-  let miniVisualiserStyle = 'butterchurn';
-  let discDisplay = 'artwork';
-  const fmt = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`; };
-  const fmtCur = t => { t = Math.max(0, Number(t) || 0); return `${Math.floor(t / 60)} : ${String(Math.floor(t % 60)).padStart(2, '0')}`; };
-  const esc = value => String(value || '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
-
-  function metadata(file) {
-    const base = String(file.name || '').replace(/\.[^.]+$/, '');
-    const parts = base.split(' - ');
-    return { title: parts.pop()?.trim() || base || '', artist: parts.join(' - ').trim() || 'Unknown artist' };
+  function syncClock() {
+    const d = new Date();
+    const h = d.getHours() % 12 || 12;
+    const m = String(d.getMinutes()).padStart(2,'0');
+    $('kipClock').textContent = `${h}:${m} ${d.getHours() < 12 ? 'AM' : 'PM'}`;
   }
+  syncClock(); setInterval(syncClock, 30000);
 
-  function loadMediaTags() {
-    if (window.jsmediatags) return Promise.resolve(window.jsmediatags);
-    if (metadataReadPromise) return metadataReadPromise;
-    metadataReadPromise = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = './vendor/jsmediatags/jsmediatags.min.js';
-      script.onload = () => window.jsmediatags ? resolve(window.jsmediatags) : reject(new Error('Metadata reader unavailable'));
-      script.onerror = reject;
-      document.head.appendChild(script);
-    }).catch(error => { metadataReadPromise = null; throw error; });
-    return metadataReadPromise;
-  }
-
-  async function readEmbeddedTrackMetadata(track) {
+  function syncMeta() {
+    const s = getState();
+    const md = s.audio?.metadata || {};
+    const file = s.audio?.file;
+    const title = md.title || (file ? file.name.replace(/\.[^.]+$/,'') : '') || 'Add music to begin';
+    $('kipTitle').textContent = title;
+    $('kipArtist').textContent = md.artist || 'Nothing queued';
+    $('kipAlbum').textContent = md.album || '';
     try {
-      const tagsLibrary = await loadMediaTags();
-      const result = await new Promise((resolve, reject) => tagsLibrary.read(track.file, { onSuccess: resolve, onError: reject }));
-      const tags = result?.tags || {};
-      if (tags.title) track.title = String(tags.title).trim();
-      if (tags.artist) track.artist = String(tags.artist).trim();
-      if (tags.album) track.album = String(tags.album).trim();
-      const picture = tags.picture;
-      if (picture?.data?.length) {
-        if (track.artUrl) URL.revokeObjectURL(track.artUrl);
-        track.artUrl = URL.createObjectURL(new Blob([new Uint8Array(picture.data)], { type: picture.format || 'image/jpeg' }));
-      }
-      return track;
-    } catch (_) {
-      return track;
-    }
+      const art = window.kefeAlbumArt?.src;
+      $('kipArt').style.backgroundImage = art ? `url("${art}")` : '';
+    } catch(e){}
   }
 
-  function setCurrentArtwork(url) {
-    currentArtworkUrl = url || '';
-    currentArtwork = null;
-    if (!url) return;
-    const image = new Image();
-    image.onload = () => { currentArtwork = image; };
-    image.src = url;
-  }
-  function setNowPlaying(title, artist) {
-    [['kefeMiniTitle', title], ['kefeMiniCapTitle', title], ['kefeMiniArtist', artist], ['kefeMiniCapArtist', artist]]
-      .forEach(([id, text]) => { const el = $(id); if (el) el.textContent = text; });
-  }
   function syncProgress() {
     const dur = Number(audio.duration) || 0;
-    const p = dur > 0 ? Math.min(1, Math.max(0, (audio.currentTime || 0) / dur)) : 0;
-    if (Math.abs(p - lastProgress) < 0.0005) return;
-    lastProgress = p;
-    progressEl.style.transform = `scaleX(${p})`;
-    seekEl.style.setProperty('--p', `${(p * 100).toFixed(2)}%`);
-  }
-  function setExpanded(value) {
-    value = !!value;
-    if (value === expanded) return;
-    expanded = value;
-    card.classList.toggle('is-expanded', expanded);
-    shellEl.classList.toggle('is-card-expanded', expanded);
-    card.setAttribute('aria-pressed', String(expanded));
-    const label = expanded ? 'Show disc' : 'Show cover art';
-    card.setAttribute('aria-label', label);
-    card.title = expanded ? 'Tap to show disc' : 'Tap to show cover art';
-    if (expanded) {
-      // Let the disc coast round to upright before the cover opens up.
-      const to = Math.ceil(angle / 360) * 360;
-      settle = { from: angle, to, start: performance.now(), dur: reduceMotion.matches ? 0 : 650 };
-      spinVel = 0;
-    } else {
-      settle = null;
-    }
-  }
-  function stepSpin(now, dt) {
-    if (settle) {
-      const t = settle.dur ? Math.min(1, (now - settle.start) / settle.dur) : 1;
-      angle = settle.from + (settle.to - settle.from) * (1 - Math.pow(1 - t, 3));
-      if (t >= 1) { angle = 0; settle = null; }
-    } else {
-      const target = !expanded && !audio.paused && !reduceMotion.matches ? SPIN_DEG_PER_SEC : 0;
-      spinVel += (target - spinVel) * Math.min(1, dt * 3);
-      if (Math.abs(spinVel) < 0.01 && !target) spinVel = 0;
-      angle = (angle + spinVel * dt) % 360;
-    }
-    spinEl.style.transform = `rotate(${angle.toFixed(2)}deg)`;
-  }
-  function renderQueue() {
-    $('kefeMiniQueueCount').textContent = `${tracks.length} ${tracks.length === 1 ? 'track' : 'tracks'}`;
-    $('kefeMiniQueueList').innerHTML = tracks.map((t, i) =>
-      `<li class="${i === index ? 'active' : ''}"><button type="button" data-mini-track="${i}"><span>${esc(t.title)}</span><small>${esc(t.artist)}</small></button></li>`
-    ).join('');
-    $('kefeMiniQueueList').querySelectorAll('[data-mini-track]').forEach(b => b.addEventListener('click', () => loadTrack(Number(b.dataset.miniTrack), true)));
-  }
-  function loadPresets() {
-    const select = $('kefeMiniPreset');
-    if (!select) return;
-
-    const style = getState().style || {};
-    const groups = [
-      { key: 'butterchurn', label: 'Butterchurn', api: window.kefeButterchurn, stateKey: 'butterchurnPreset' },
-      { key: 'matrixmusic', label: 'Matrix Music', api: window.kefeMatrixVisualiser, stateKey: 'matrixMusicPreset' },
-      { key: 'audioreactive', label: 'Audio Reactive Shaders', api: window.kefeAudioReactiveShaders, stateKey: 'audioReactiveShaderPreset' }
-    ];
-
-    const current = style.visualiserStyle || 'butterchurn';
-    miniVisualiserStyle = current;
-    const html = [];
-    groups.forEach(group => {
-      let items = [];
-      if (group.key === 'butterchurn') {
-        items = group.api?.presetNames?.() || [];
-      } else if (group.key === 'matrixmusic') {
-        items = (group.api?.presetRecords?.() || []).map(record => ({ value: record.id, label: record.name }));
-      } else if (group.key === 'audioreactive') {
-        items = (group.api?.presetNames?.() || []).map((name, i) => ({ value: String(i), label: name }));
-      }
-      if (!items.length) return;
-      html.push(`<optgroup label="${esc(group.label)}">`);
-      items.forEach(item => {
-        const value = typeof item === 'string' ? item : item.value;
-        const label = typeof item === 'string'
-          ? item.replace(/^[^-]+[-+]\\s*/,'').trim()
-          : item.label;
-        html.push(`<option value="${esc(group.key + '::' + value)}">${esc(label)}</option>`);
-      });
-      html.push('</optgroup>');
-    });
-
-    if (!html.length) {
-      select.innerHTML = '<option>Loading visualiser presets…</option>';
-      return;
-    }
-
-    select.innerHTML = html.join('');
-    let wanted = '';
-    if (current === 'butterchurn') wanted = style.butterchurnPreset ? 'butterchurn::' + style.butterchurnPreset : '';
-    if (current === 'matrixmusic') wanted = style.matrixMusicPreset ? 'matrixmusic::' + style.matrixMusicPreset : '';
-    if (current === 'audioreactive') wanted = style.audioReactiveShaderPreset !== undefined ? 'audioreactive::' + style.audioReactiveShaderPreset : '';
-    if (wanted && [...select.options].some(option => option.value === wanted)) select.value = wanted;
+    const cur = Number(audio.currentTime) || 0;
+    $('kipProgress').style.width = (dur > 0 ? (cur / dur * 100) : 0).toFixed(2) + '%';
+    $('kipCurrent').textContent = fmt(cur);
+    $('kipRemaining').textContent = dur > 0 ? '-' + fmt(dur - cur) : '-0:00';
   }
 
-  function choosePreset(value) {
-    const parts = String(value || '').split('::');
-    const group = parts.shift();
-    const preset = parts.join('::');
-    const state = getState();
-    if (!state.style) state.style = {};
-
-    miniVisualiserStyle = group;
-    state.style.visualiserStyle = group;
-    if (group === 'butterchurn') {
-      state.style.butterchurnPreset = preset;
-      try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
-    } else if (group === 'matrixmusic') {
-      state.style.matrixMusicPreset = preset;
-      try { window.kefeMatrixVisualiser?.selectPreset?.(preset, canvas.width, canvas.height); } catch (e) {}
-    } else if (group === 'audioreactive') {
-      state.style.audioReactiveShaderPreset = Number(preset) || 0;
-      try { window.kefeAudioReactiveShaders?.selectPreset?.(Number(preset) || 0, canvas.width, canvas.height); } catch (e) {}
-    }
-  }
-  function syncVisualToggle(button) {
-    if (!button) return;
-    const visualiserOn = discDisplay === 'visualiser';
-    button.setAttribute('aria-pressed', String(visualiserOn));
-    button.setAttribute('aria-label', visualiserOn ? 'Switch to album artwork' : 'Switch to audio visualizer');
-    button.title = visualiserOn ? 'Show album artwork' : 'Show audio visualizer';
-    const label = button.querySelector('span');
-    if (label) label.textContent = visualiserOn ? 'Artwork' : 'Visualizer';
-  }
-
-  function draw(now) {
-    now = now || performance.now();
-    const dt = Math.min(0.1, Math.max(0, (now - (lastFrame || now)) / 1000));
-    lastFrame = now;
-    if (!player.classList.contains('is-hidden')) {
-      stepSpin(now, dt);
-      syncProgress();
-      try {
-        const mode = miniVisualiserStyle || 'butterchurn';
-        const playing = !audio.paused && !audio.ended;
-
-        // Album artwork is the default disc face. The user can explicitly
-        // switch to the selected audio-reactive visualiser.
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (discDisplay === 'artwork' && currentArtwork) {
-          ctx.drawImage(currentArtwork, 0, 0, canvas.width, canvas.height);
-        }
-
-        if (discDisplay === 'visualiser') {
-          const hasArtwork = !!currentArtwork;
-          if (hasArtwork) {
-            ctx.save();
-            ctx.globalAlpha = 0.78;
-            ctx.globalCompositeOperation = 'screen';
-          }
-          try {
-            if (mode === 'butterchurn') {
-              window.kefeButterchurn?.prepare?.().catch?.(() => {});
-              window.kefeButterchurn?.drawMini?.(ctx, canvas.width, canvas.height, audio.currentTime || 0, getState(), audio);
-            } else if (mode === 'matrixmusic') {
-              window.kefeMatrixVisualiser?.draw?.(ctx, canvas.width, canvas.height);
-            } else if (mode === 'audioreactive') {
-              window.kefeAudioReactiveShaders?.draw?.(ctx, canvas.width, canvas.height);
-            }
-          } finally {
-            if (hasArtwork) ctx.restore();
-          }
-        }
-      } catch (e) {}
-    }
-    raf = requestAnimationFrame(draw);
-  }
-
-  function clampPosition(x, y) {
-    const shell = player.querySelector('.kefe-mini-shell');
-    if (!shell) return { x, y };
-    const margin = 12;
-    const maxX = Math.max(margin, window.innerWidth - shell.offsetWidth - margin);
-    const maxY = Math.max(margin, window.innerHeight - shell.offsetHeight - margin);
-    return { x: Math.min(Math.max(margin, x), maxX), y: Math.min(Math.max(margin, y), maxY) };
-  }
-
-  function setPosition(x, y) {
-    const shell = player.querySelector('.kefe-mini-shell');
-    if (!shell) return;
-    const p = clampPosition(x, y);
-    shell.style.transform = 'none';
-    shell.style.left = `${p.x}px`;
-    shell.style.top = `${p.y}px`;
-    shell.style.right = 'auto';
-    shell.style.bottom = 'auto';
-  }
-
-  function beginDrag(e) {
-    if (e.button !== undefined && e.button !== 0) return;
-    if (e.target.closest('button, input, select, label, a')) return;
-    const shell = player.querySelector('.kefe-mini-shell');
-    if (!shell) return;
-    const rect = shell.getBoundingClientRect();
-    dragging = true;
-    dragPointerId = e.pointerId;
-    dragOffsetX = e.clientX - rect.left;
-    dragOffsetY = e.clientY - rect.top;
-    shell.classList.add('is-dragging');
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-    e.preventDefault();
-  }
-
-  function drag(e) {
-    if (!dragging || e.pointerId !== dragPointerId) return;
-    setPosition(e.clientX - dragOffsetX, e.clientY - dragOffsetY);
-  }
-
-  function endDrag(e) {
-    if (!dragging || e.pointerId !== dragPointerId) return;
-    dragging = false;
-    dragPointerId = null;
-    player.querySelector('.kefe-mini-shell')?.classList.remove('is-dragging');
-  }
-
-  const dragHandle = player.querySelector('.kefe-mini-topline');
-  dragHandle?.addEventListener('pointerdown', beginDrag);
-  dragHandle?.addEventListener('pointermove', drag);
-  dragHandle?.addEventListener('pointerup', endDrag);
-  dragHandle?.addEventListener('pointercancel', endDrag);
-  window.addEventListener('resize', () => {
-    const shell = player.querySelector('.kefe-mini-shell');
-    if (!shell || shell.style.left === '') return;
-    const rect = shell.getBoundingClientRect();
-    setPosition(rect.left, rect.top);
-  });
-  async function loadTrack(nextIndex, autoplay) {
-    if (!tracks.length) return;
-    index = Math.max(0, Math.min(tracks.length - 1, nextIndex));
-    const track = tracks[index];
-    await readEmbeddedTrackMetadata(track);
-    let url = urls.get(track.file);
-    if (!url) { url = URL.createObjectURL(track.file); urls.set(track.file, url); }
-    audio.src = url;
-    audio.currentTime = 0;
-    getState().audio.file = track.file;
-    getState().audio.duration = 0;
-    getState().audio.ready = true;
-    getState().audio.metadata = { ...getState().audio.metadata, title: track.title, artist: track.artist, album: track.album || getState().audio.metadata?.album || '' };
-    const sameAsEditorAudio = window.state?.audio?.file === track.file;
-    const editorArtwork = sameAsEditorAudio ? window.kefeAlbumArt?.src : '';
-    setCurrentArtwork(track.artUrl || editorArtwork);
-    if (!getState().style.visualiserStyle) getState().style.visualiserStyle = 'butterchurn';
-    setNowPlaying(track.title, track.artist);
-    $('kefeMiniCurrent').textContent = fmtCur(0);
-    $('kefeMiniDuration').textContent = fmt(0);
-    seekEl.max = '0';
-    seekEl.value = '0';
-    lastProgress = -1;
-    renderLyrics();
-    renderQueue();
-    try { window.kefeButterchurn?.prepare?.(); } catch (e) {}
-    if (autoplay) audio.play().catch(() => {});
-  }
-  const AUDIO_EXT = new Set([
-    'aac', 'aif', 'aiff', 'alac', 'amr', 'ape', 'au', 'caf', 'flac', 'm4a', 'm4b', 'm4r', 'mka', 'mp2', 'mp3', 'mpga',
-    'oga', 'ogg', 'opus', 'ra', 'wav', 'weba', 'wma', 'wv', '3ga', 'ac3', 'eac3', 'mid', 'midi',
-    // containers that are commonly audio-only
-    'mp4', 'm4v', 'mov', 'webm', '3gp', 'mkv', 'ogv'
-  ]);
-  let noticeTimer = 0;
-  function notify(message) {
-    const el = $('kefeMiniNotice');
-    if (!el) return;
-    clearTimeout(noticeTimer);
-    el.textContent = message;
-    el.hidden = !message;
-    if (message) noticeTimer = setTimeout(() => { el.hidden = true; }, 6000);
-  }
-  function isAudioFile(file) {
-    const type = String(file.type || '').toLowerCase();
-    const ext = String(file.name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || '';
-    return type.startsWith('audio/') || type.startsWith('video/') || AUDIO_EXT.has(ext) || !type;
-  }
-  function addFiles(fileList) {
-    const all = [...(fileList || [])];
-    if (!all.length) return;
-    const files = all.filter(isAudioFile);
-    const skipped = all.length - files.length;
-    if (!files.length) { notify(`No audio found. ${skipped} file${skipped === 1 ? '' : 's'} skipped.`); return; }
-    const first = index < 0;
-    tracks.push(...files.map(file => ({ file, ...metadata(file) })));
-    if (first) loadTrack(0, true);
-    renderQueue();
-    notify(skipped ? `Added ${files.length}. Skipped ${skipped} non-audio file${skipped === 1 ? '' : 's'}.` : '');
-  }
-  function renderLyrics() {
-    const box = $('kefeMiniLyricsContent');
-    if (!box) return;
-    const lines = Array.isArray(getState()?.lyrics?.lines) ? getState().lyrics.lines : [];
-    box.innerHTML = lines.length
-      ? lines.map(line => {
-          const text = esc(line?.text || line?.words || '');
-          return text ? '<p>' + text + '</p>' : '';
-        }).join('')
-      : '<p>No lyrics loaded</p>';
-  }
-  function toggleLyrics() {
-    const panel = $('kefeMiniLyricsPanel');
-    const button = $('kefeMiniLyricsToggle');
-    if (!panel || !button) return;
-    const arrow = button.querySelector('.lyrics-chevron');
-    const open = panel.hidden;
-    panel.hidden = !open;
-    button.setAttribute('aria-expanded', String(open));
-    if (arrow) arrow.innerHTML = open ? '<path d="M6 15l6-6 6 6"/>' : '<path d="M6 9l6 6 6-6"/>';
-    if (open) renderLyrics();
+  function syncPlayIcon() {
+    const playing = !audio.paused && !audio.ended;
+    $('kipPlay').innerHTML = playing
+      ? '<svg viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>'
+      : '<svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg>';
   }
 
   function toggle() {
-    if (index < 0) return;
-    if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+    const f = getState().audio?.file;
+    if (!audio.src && f) audio.src = URL.createObjectURL(f);
+    if (!audio.src) return;
+    if (audio.paused) audio.play().catch(()=>{}); else audio.pause();
   }
+
   function next() {
-    if (!tracks.length) return;
-    if (repeatTrack && index >= 0) return loadTrack(index, true);
-    loadTrack((index + 1) % tracks.length, true);
+    if (window.kefeMiniPlayer?.tracks?.().length) { document.querySelector('#kefeMiniNext')?.click(); return; }
+    audio.currentTime = 0;
   }
-  function prev() { if (tracks.length) loadTrack((index - 1 + tracks.length) % tracks.length, true); }
+  function prev() {
+    if (window.kefeMiniPlayer?.tracks?.().length) { document.querySelector('#kefeMiniPrev')?.click(); return; }
+    audio.currentTime = 0;
+  }
 
-  audio.addEventListener('loadedmetadata', () => {
-    seekEl.max = String(audio.duration || 0);
-    $('kefeMiniDuration').textContent = fmt(audio.duration);
-    syncProgress();
-  });
-  audio.addEventListener('timeupdate', () => {
-    seekEl.value = String(audio.currentTime || 0);
-    $('kefeMiniCurrent').textContent = fmtCur(audio.currentTime);
-    syncProgress();
-  });
-  audio.addEventListener('play', () => {
-    shellEl.classList.add('is-playing');
-    const button = $('kefeMiniPlay');
-    button.setAttribute('aria-label', 'Pause');
-    button.title = 'Pause';
-    button.innerHTML = '<svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
-  });
-  audio.addEventListener('pause', () => {
-    shellEl.classList.remove('is-playing');
-    const button = $('kefeMiniPlay');
-    button.setAttribute('aria-label', 'Play');
-    button.title = 'Play';
-    button.innerHTML = '<svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>';
-  });
+  audio.addEventListener('timeupdate', syncProgress);
+  audio.addEventListener('loadedmetadata', syncProgress);
+  audio.addEventListener('play', syncPlayIcon);
+  audio.addEventListener('pause', syncPlayIcon);
   audio.addEventListener('ended', next);
-  audio.addEventListener('error', () => {
-    const track = tracks[index];
-    if (!track || !audio.src) return;
-    if (tracks.length > 1) {
-      notify(`Can't play "${track.title}". Skipped.`);
-      const bad = index;
-      tracks.splice(bad, 1);
-      urls.delete(track.file);
-      index = -1;
-      loadTrack(Math.min(bad, tracks.length - 1), true);
-    } else {
-      notify(`Can't play "${track.title}". This browser can't decode the format.`);
-    }
-  });
-  $('kefeMiniVisualToggle').addEventListener('click', event => {
-    event.stopPropagation();
-    discDisplay = discDisplay === 'artwork' ? 'visualiser' : 'artwork';
-    syncVisualToggle(event.currentTarget);
-    if (discDisplay === 'visualiser' && miniVisualiserStyle === 'butterchurn') {
-      try { window.kefeButterchurn?.prepare?.().then?.(loadPresets).catch?.(() => {}); } catch (e) {}
-    }
-  });
-  syncVisualToggle();
-  $('kefeMiniSkinToggle').addEventListener('click', event => { event.stopPropagation(); const skin2 = !player.classList.contains('skin-2'); player.classList.toggle('skin-2', skin2); event.currentTarget.setAttribute('aria-label', skin2 ? 'Switch to Skin 1' : 'Switch to Skin 2'); event.currentTarget.title = skin2 ? 'Skin 1' : 'Skin 2'; });
-  $('kefeMiniPlay').addEventListener('click', toggle);
-  $('kefeMiniStop').addEventListener('click', () => {
-    audio.pause();
-    try { audio.currentTime = 0; } catch (e) {}
-    $('kefeMiniCurrent').textContent = fmtCur(0);
-    syncProgress();
-  });
-  $('kefeMiniNext').addEventListener('click', next);
-  $('kefeMiniPrev').addEventListener('click', prev);
-  $('kefeMiniUpload').addEventListener('click', () => $('kefeMiniFiles').click());
-  $('kefeMiniFiles').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
-  seekEl.addEventListener('input', e => {
-    audio.currentTime = Number(e.target.value) || 0;
-    $('kefeMiniCurrent').textContent = fmtCur(audio.currentTime);
-    syncProgress();
-  });
-  const volumeEl = $('kefeMiniVolume');
-  const syncVolumeFill = () => volumeEl.style.setProperty('--p', `${(Number(volumeEl.value) || 0) * 100}%`);
-  volumeEl.addEventListener('input', e => { audio.volume = Math.max(0, Math.min(1, Number(e.target.value) || 0)); syncVolumeFill(); });
-  syncVolumeFill();
-  card.addEventListener('click', event => {
-    if (event.target.closest('button, input, select, a')) return;
-    setExpanded(!expanded);
-  });
-  card.addEventListener('keydown', e => {
-    if (e.target !== card || (e.key !== 'Enter' && e.key !== ' ')) return;
-    e.preventDefault();
-    setExpanded(!expanded);
-  });
-  $('kefeMiniRepeat').addEventListener('click', () => {
-    repeatTrack = !repeatTrack;
-    const button = $('kefeMiniRepeat');
-    button.classList.toggle('is-active', repeatTrack);
-    button.setAttribute('aria-label', repeatTrack ? 'Repeat track on' : 'Repeat off');
-    button.title = repeatTrack ? 'Repeat track on' : 'Repeat off';
-  });
-  $('kefeMiniShuffleTrack').addEventListener('click', () => {
-    if (tracks.length < 2) return;
-    let nextIndex = index;
-    while (nextIndex === index) nextIndex = Math.floor(Math.random() * tracks.length);
-    loadTrack(nextIndex, true);
-  });
-  $('kefeMiniShuffle').addEventListener('click', () => {
-    const select = $('kefeMiniPreset');
-    if (!select || !select.options.length) return;
-    const options = [...select.options].filter(option => option.value && !option.disabled);
-    if (!options.length) return;
-    const option = options[Math.floor(Math.random() * options.length)];
-    choosePreset(option.value);
-    select.value = option.value;
-  });
-  $('kefeMiniPreset').addEventListener('change', e => choosePreset(e.target.value));
-  $('kefeMiniClose').addEventListener('click', () => close());
-  $('kefeMiniLyricsToggle').addEventListener('click', toggleLyrics);
-  $('kefeMiniLyricsClose').addEventListener('click', toggleLyrics);
 
-  function syncFullscreenUI() {
-    const button = $('kefeMiniFullscreen');
-    const shell = player.querySelector('.kefe-mini-shell');
-    if (!button) return;
-    const active = document.fullscreenElement === shell || cssFullscreen;
-    button.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen');
-    button.setAttribute('title', active ? 'Exit fullscreen' : 'Fullscreen');
-    button.innerHTML = active
-      ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M20 15v5h-5"/></svg>'
-      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg>';
-    player.classList.toggle('kefe-mini-css-fullscreen', cssFullscreen);
-    shell?.classList.toggle('is-fullscreen', active);
+  $('kipPlay').addEventListener('click', toggle);
+  $('kipCenter').addEventListener('click', toggle);
+  $('kipPrev').addEventListener('click', prev);
+  $('kipNext').addEventListener('click', next);
+  $('kipClose').addEventListener('click', close);
+  $('kipStar').addEventListener('click', () => { $('kipStar').style.color = $('kipStar').style.color === 'rgb(255, 214, 92)' ? '' : 'rgb(255, 214, 92)'; });
+  $('kipMore').addEventListener('click', () => { $('kipMenu').click(); });
+  $('kipMessages').addEventListener('click', () => {});
+  $('kipList').addEventListener('click', () => { $('kipMenu').click(); });
+
+  function buildPresets() {
+    const groups = [
+      { key: 'butterchurn', label: 'Butterchurn', api: window.kefeButterchurn },
+      { key: 'matrixmusic', label: 'Matrix Music', api: window.kefeMatrixVisualiser },
+      { key: 'audioreactive', label: 'Audio Reactive', api: window.kefeAudioReactiveShaders }
+    ];
+    const html = [];
+    groups.forEach(g => {
+      let items = [];
+      if (g.key === 'butterchurn') items = g.api?.presetNames?.() || [];
+      else if (g.key === 'matrixmusic') items = (g.api?.presetRecords?.() || []).map(r => ({ value: r.id, label: r.name }));
+      else if (g.key === 'audioreactive') items = (g.api?.presetNames?.() || []).map((n,i) => ({ value: String(i), label: n }));
+      if (!items.length) return;
+      html.push(`<optgroup>${g.label}</optgroup>`);
+      items.forEach(it => {
+        const value = typeof it === 'string' ? it : it.value;
+        const label = typeof it === 'string' ? it.replace(/^[^-]+[-+]\s*/,'').trim() : it.label;
+        html.push(`<button type="button" data-preset="${g.key}::${value}">${label}</button>`);
+      });
+    });
+    $('kipPresetList').innerHTML = html.join('');
+    $('kipPresetList').querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
+      applyPreset(b.dataset.preset);
+      $('kipPresets').hidden = true;
+    }));
   }
-  async function toggleFullscreen() {
-    const shell = player.querySelector('.kefe-mini-shell');
-    if (!shell) return;
-    if (document.fullscreenElement === shell) {
-      try { await document.exitFullscreen(); } catch (e) {}
-      return;
-    }
-    if (document.fullscreenElement) {
-      try { await document.exitFullscreen(); } catch (e) {}
-    }
-    if (typeof shell.requestFullscreen === 'function') {
-      try {
-        await shell.requestFullscreen({ navigationUI: 'hide' });
-        cssFullscreen = false;
-        syncFullscreenUI();
-        return;
-      } catch (e) {}
-    }
-    cssFullscreen = !cssFullscreen;
-    syncFullscreenUI();
+
+  function applyPreset(value) {
+    const [group, ...rest] = String(value).split('::');
+    const preset = rest.join('::');
+    const state = getState(); if (!state.style) state.style = {};
+    state.style.visualiserStyle = group;
+    if (group === 'butterchurn') { state.style.butterchurnPreset = preset; try { window.kefeButterchurn?.prepare?.(); } catch(e){} }
+    else if (group === 'matrixmusic') { state.style.matrixMusicPreset = preset; try { window.kefeMatrixVisualiser?.selectPreset?.(preset); } catch(e){} }
+    else if (group === 'audioreactive') { state.style.audioReactiveShaderPreset = Number(preset) || 0; try { window.kefeAudioReactiveShaders?.selectPreset?.(Number(preset) || 0); } catch(e){} }
   }
-  document.addEventListener('fullscreenchange', syncFullscreenUI);
-  $('kefeMiniFullscreen').addEventListener('click', toggleFullscreen);
+  $('kipMenu').addEventListener('click', () => { buildPresets(); $('kipPresets').hidden = !$('kipPresets').hidden; });
 
   function open() {
     player.classList.remove('is-hidden');
-    loadPresets();
-    const shell = player.querySelector('.kefe-mini-shell');
-    if (shell && !shell.style.left) {
-      const x = Math.max(12, (window.innerWidth - shell.offsetWidth) / 2);
-      const y = Math.max(12, (window.innerHeight - shell.offsetHeight) / 2);
-      setPosition(x, y);
-    }
-    try { window.kefeButterchurn?.prepare?.().then?.(loadPresets).catch?.(() => {}); } catch (e) {}
-    try { window.kefeMatrixVisualiser?.load?.().then?.(loadPresets).catch?.(() => {}); } catch (e) {}
-    try { window.kefeAudioReactiveShaders?.load?.().then?.(loadPresets).catch?.(() => {}); } catch (e) {}
-    loadPresets();
-    if (!raf) raf = requestAnimationFrame(draw);
+    syncMeta(); syncProgress(); syncPlayIcon();
   }
-  function close() {
-    if (document.fullscreenElement === player.querySelector('.kefe-mini-shell')) {
-      document.exitFullscreen?.().catch?.(() => {});
-    }
-    cssFullscreen = false;
-    syncFullscreenUI();
-    player.classList.add('is-hidden');
-    setExpanded(false);
-    audio.pause();
-    if (raf) cancelAnimationFrame(raf);
-    raf = 0;
-  }
-  window.kefeMiniPlayer = {
-    version: 5,
-    open,
-    close,
-    setExpanded,
-    addFiles,
-    tracks: () => tracks.slice()
-  };
-  window.dispatchEvent(new CustomEvent('kefe:miniplayer-ready'));
-  loadPresets();
+  function close() { player.classList.add('is-hidden'); audio.pause(); }
 
-  const trigger = document.getElementById('miniPlayerBtn');
-  if (trigger) trigger.addEventListener('click', () => open());
+  window.kefeIpodPlayer = { version: 1, open, close };
+  window.addEventListener('kefe:open-ipod', open);
+
+  const trigger = document.getElementById('miniPlayerBtn') || document.getElementById('ipodPlayerBtn');
+  if (trigger) trigger.addEventListener('click', open);
+
+  setInterval(syncMeta, 1200);
 })();
