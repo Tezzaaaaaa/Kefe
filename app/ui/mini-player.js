@@ -32,13 +32,12 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg>
             <span>Upload audio</span><small>Choose a track to start</small>
           </button>
-          <button type="button" id="kefeMiniVisualToggle" class="kefe-mini-visual-toggle" aria-pressed="false" aria-label="Switch to visualizer" title="Show audio visualizer"><span>Visualizer</span></button>
-        <button type="button" id="kefeMiniControlsToggle" class="kefe-mini-control-toggle" aria-expanded="false" aria-controls="kefeMiniControlPanel" aria-label="Show player controls" title="Show controls"><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><span class="sr-only">Show player controls</span></button>
-        <div id="kefeMiniControlPanel" class="kefe-mini-control-panel">
+          <div id="kefeMiniControlPanel" class="kefe-mini-control-panel">
         <div class="kefe-mini-controls" aria-label="Playback controls">
           <button type="button" id="kefeMiniShuffleTrack" class="kefe-mini-control-icon" aria-label="Shuffle queue" title="Shuffle queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h2c4 0 6 10 10 10h4M16 5h4v4M20 5l-4 4M4 17h2c1.8 0 3-1.5 4-3M16 15h4v4M20 19l-4-4"/></svg></button>
           <button type="button" id="kefeMiniPrev" class="kefe-mini-control-icon" aria-label="Previous track" title="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6v12M18 6l-8 6 8 6z"/></svg></button>
           <button type="button" id="kefeMiniPlay" class="kefe-mini-play" aria-label="Play" title="Play"><svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></button>
+          <button type="button" id="kefeMiniStop" class="kefe-mini-control-icon" aria-label="Stop" title="Stop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7z"/></svg></button>
           <button type="button" id="kefeMiniNext" class="kefe-mini-control-icon" aria-label="Next track" title="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 6v12M6 6l8 6-8 6z"/></svg></button>
           <button type="button" id="kefeMiniRepeat" class="kefe-mini-control-icon" aria-label="Repeat off" title="Repeat off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7H7a3 3 0 0 0 0 6h1M7 17h10a3 3 0 0 0 0-6h-1M15 5l2 2-2 2M9 15l-2 2 2 2"/></svg></button>
         </div>
@@ -57,8 +56,8 @@
         </section>
         <div class="kefe-mini-queue"><div class="kefe-mini-queue-head"><div><span>UP NEXT</span><small>Playlist</small></div><span id="kefeMiniQueueCount">0 tracks</span></div><ol id="kefeMiniQueueList"></ol></div>
         </div>
-        </div>
       </div>
+      <button type="button" id="kefeMiniVisualToggle" class="kefe-mini-visual-toggle" aria-pressed="false" aria-label="Switch to visualizer" title="Show audio visualizer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14c2.5-8 5.5-8 8 0s5.5 8 8 0M4 10c2.5 8 5.5 8 8 0s5.5-8 8 0"/></svg><span class="sr-only">Visualizer</span></button>
     </div>`;
   document.body.appendChild(player);
 
@@ -170,6 +169,7 @@
     if (value === expanded) return;
     expanded = value;
     card.classList.toggle('is-expanded', expanded);
+    shellEl.classList.toggle('is-card-expanded', expanded);
     card.setAttribute('aria-pressed', String(expanded));
     const label = expanded ? 'Show disc' : 'Show cover art';
     card.setAttribute('aria-label', label);
@@ -518,16 +518,6 @@
       notify(`Can't play "${track.title}". This browser can't decode the format.`);
     }
   });
-  const controlsToggle = $('kefeMiniControlsToggle');
-  const miniBody = player.querySelector('.kefe-mini-body');
-  controlsToggle.addEventListener('click', event => {
-    event.stopPropagation();
-    const open = !miniBody.classList.contains('is-controls-open');
-    miniBody.classList.toggle('is-controls-open', open);
-    controlsToggle.setAttribute('aria-expanded', String(open));
-    controlsToggle.setAttribute('aria-label', open ? 'Hide player controls' : 'Show player controls');
-    controlsToggle.title = open ? 'Hide controls' : 'Show controls';
-  });
   $('kefeMiniVisualToggle').addEventListener('click', event => {
     event.stopPropagation();
     discDisplay = discDisplay === 'artwork' ? 'visualiser' : 'artwork';
@@ -539,6 +529,12 @@
   syncVisualToggle();
   $('kefeMiniSkinToggle').addEventListener('click', event => { event.stopPropagation(); const skin2 = !player.classList.contains('skin-2'); player.classList.toggle('skin-2', skin2); event.currentTarget.setAttribute('aria-label', skin2 ? 'Switch to Skin 1' : 'Switch to Skin 2'); event.currentTarget.title = skin2 ? 'Skin 1' : 'Skin 2'; });
   $('kefeMiniPlay').addEventListener('click', toggle);
+  $('kefeMiniStop').addEventListener('click', () => {
+    audio.pause();
+    try { audio.currentTime = 0; } catch (e) {}
+    $('kefeMiniCurrent').textContent = fmtCur(0);
+    syncProgress();
+  });
   $('kefeMiniNext').addEventListener('click', next);
   $('kefeMiniPrev').addEventListener('click', prev);
   $('kefeMiniUpload').addEventListener('click', () => $('kefeMiniFiles').click());
