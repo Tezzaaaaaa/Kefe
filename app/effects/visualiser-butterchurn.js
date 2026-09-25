@@ -220,40 +220,26 @@
   }
 
   async function loadButterchurnApi(source) {
+    // Butterchurn's .min.js is a UMD build — it exposes window.butterchurn
+    // as a global when loaded via a classic <script> tag. Loading it as an
+    // ES module fails with "export declarations may only appear at top level
+    // of a module" because the file uses UMD's export detection.
     try {
-      await withTimeout(loadScriptOnce(source.renderer, 'kefe-butterchurn-renderer-' + source.name), LOAD_TIMEOUT_MS, source.name + ' renderer');
-      var apiLocal = resolveButterchurnApi();
-      if (apiLocal) return apiLocal;
-    } catch (_) {}
-
-    if (source.rendererEsm) {
-      try {
-        var mod = await withTimeout(import(/* @vite-ignore */ source.rendererEsm), LOAD_TIMEOUT_MS, source.name + ' esm');
-        var candidate = mod.default || mod;
-        if (candidate && typeof candidate.createVisualizer === 'function') {
-          window.butterchurn = candidate;
-          return candidate;
-        }
-      } catch (_) {}
+      await withTimeout(
+        loadScriptOnce(source.renderer, 'kefe-butterchurn-renderer-' + source.name),
+        LOAD_TIMEOUT_MS,
+        source.name + ' renderer'
+      );
+    } catch (e) {
+      throw new Error('Could not load renderer: ' + (e && e.message || e));
     }
 
-    try {
-      var esmUrl = source.renderer.replace(/(@[\d.]+-?[\w.]*\/)/, '$1+esm/');
-      var mod2 = await withTimeout(import(/* @vite-ignore */ esmUrl), LOAD_TIMEOUT_MS, source.name + ' esm-wrapped');
-      var candidate2 = mod2.default || mod2;
-      if (candidate2 && typeof candidate2.createVisualizer === 'function') {
-        window.butterchurn = candidate2;
-        return candidate2;
-      }
-    } catch (_) {}
-
-    try {
-      await withTimeout(loadScriptOnce(source.renderer, 'kefe-butterchurn-renderer-' + source.name), LOAD_TIMEOUT_MS, source.name + ' renderer');
-      var api = resolveButterchurnApi();
-      if (api) return api;
-    } catch (_) {}
-
-    return null;
+    var api = resolveButterchurnApi();
+    if (!api) {
+      throw new Error('Renderer loaded but window.butterchurn is missing createVisualizer');
+    }
+    window.butterchurn = api;
+    return api;
   }
 
   async function tryLoadFromSource(source) {
