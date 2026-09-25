@@ -1,3 +1,4 @@
+window.kefeGetExportConfig = getExportConfig;
 import { exportVideo, resolveMasterInfo } from './index.js';
 import { getExportConfig } from './config.js';
 
