@@ -2,6 +2,10 @@
    Uses the upstream Matrix Music Visualizer renderer/preset data as an isolated
    WebGL surface, driven by KEFE's existing analysed master audio timeline.
    The renderer remains lazy: it is only imported when Matrix Music is selected.
+
+   Determinism: everything this file feeds into the upstream renderer is
+   derived from the timestamp passed to draw(). No audio.currentTime, no
+   wall clock, no window.kefeAudioElement reads in the render path.
 */
 (function () {
   'use strict';
@@ -20,6 +24,7 @@
 
   var state = {
     loading: null,
+    ready: false,
     makeConfig: null,
     makeRenderer: null,
     A: null,
@@ -36,7 +41,9 @@
     mode: 'classic',
     palette: 'mode-default',
     stopped: true,
-    lastTime: 0
+    simTime: 0,
+    explicitTime: false,
+    lastUpdateTime: -1
   };
 
   function clone(value) {
@@ -95,7 +102,7 @@
       beatClock: 0,
       beatCount: 0,
       energySlow: Math.min(1, (analysis.summary && analysis.summary.averageRms || 0) / Math.max(0.0001, maxE)),
-      playing: window.kefeAudioElement && !window.kefeAudioElement.paused ? 1 : 0
+      playing: 1
     };
   }
 
@@ -130,26 +137,26 @@
       skipIntro: true,
       useHoloplay: false
     };
-    if (resolved.palette) params.palette = resolved.palette;
-    if (resolved.stripeColors) params.stripeColors = resolved.stripeColors;
+    if (resolved.palette) params.palette = resolved.pal;
+
+ette;
+    if (res   olved.stripeColors) params.st stateripeColors = resolved.stripe.loadColors;
 
     var stringParams = {};
     Object.keys(params).forEach(function (key) {
       stringParams[key] = String(params[key]);
     });
 
-    var config = state.makeConfig(stringParams);
-    config.assetBase = CDN;
-    config.resolution = 0.75;
-    config.skipIntro = true;
+    var config = state.makeConfiging = Promise(stringParams.all);
+    config.assetBase = CDN([
+;
+    config.resolution = 0     .75;
+    config.skipIntro = import true;
     return config;
   }
 
   async function load() {
-    if (state.loading) return state.loading;
-
-    state.loading = Promise.all([
-      import(MODULES.reactive),
+    if (state.loading) return state.loading(MODULES.reactive),
       import(MODULES.config),
       import(MODULES.renderer),
       import(MODULES.presets),
@@ -165,29 +172,50 @@
       state.records = state.buildDefaultRecords().filter(function (r) {
         return !r.generative && r.id !== 'random';
       });
-      state.A.update = function (t) {
-        var audio = window.kefeAudioElement;
+
+      state.A.update = function (rendererTime) {
         var analysis = window.kefeVisualiser && window.kefeVisualiser.data;
-        var seconds = audio && Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
-        var f = frameAt(seconds, analysis);
-        var dt = state.lastTime ? Math.max(0, t - state.lastTime) : 1 / 60;
-        state.A.features.time = t;
-        state.A.features.dt = Math.min(0.25, dt);
-        state.lastTime = t;
+
+        var useTime;
+        if (state.explicitTime) {
+          useTime = state.simTime;
+        } else {
+          var audio = window.kefeAudioElement;
+          useTime = audio && Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+        }
+
+        var f = frameAt(useTime, analysis);
+
+        var dt;
+        if (state.lastUpdateTime < 0) {
+          dt = 1 / 60;
+        } else {
+          dt = Math.max(0, useTime - state.lastUpdateTime);
+          if (dt > 0.25) dt = 1 / 60;
+        }
+        state.lastUpdateTime = useTime;
+
+        state.A.features.time = useTime;
+        state.A.features.dt = dt;
+
         if (f) {
           Object.keys(f).forEach(function (key) {
             if (key !== 'energySlow') state.A.features[key] = f[key];
           });
           state.A.features.energySlow = f.energySlow;
+
           for (var si = 0; si < state.A.spectrum.length; si++) {
             var st = si / Math.max(1, state.A.spectrum.length - 1);
             state.A.spectrum[si] = st < 0.18 ? f.bass : st < 0.45 ? f.lowMid : st < 0.68 ? f.mid : st < 0.84 ? f.highMid : f.treble;
           }
         }
       };
+
+      state.ready = true;
       return true;
     }).catch(function (error) {
       state.loading = null;
+      state.ready = false;
       throw error;
     });
 
@@ -249,6 +277,7 @@
     var record = state.records.find(function (r) { return r.id === id; });
     if (!record) return false;
     state.presetId = id;
+    state.lastUpdateTime = -1;
     if (w && h) await start(w, h);
     return true;
   }
@@ -270,16 +299,37 @@
       state.host = null;
       state.canvas = null;
     }
+    state.explicitTime = false;
+    state.lastUpdateTime = -1;
   }
 
-  function draw(ctx, w, h) {
-    if (state.stopped) {
-      start(w, h).catch(function (error) {
-        console.warn('[KEFE Matrix Music]', error);
-      });
+  function reset() {
+    state.lastUpdateTime = -1;
+    state.simTime = 0;
+    if (state.A) resetShader();
+  }
+
+  function setTime(time) {
+    state.simTime = Number(time) || 0;
+    state.explicitTime = true;
+  }
+
+  function draw(ctx, w, h, time) {
+    if (state.stopped || !state.ready) {
+      if (!state.loading) {
+        start(w, h).catch(function (error) {
+          console.warn('[KEFE Matrix Music]', error);
+        });
+      }
       return false;
     }
     ensureHost(w, h);
+
+    if (Number.isFinite(time)) {
+      state.simTime = Number(time);
+      state.explicitTime = true;
+    }
+
     if (state.canvas && (state.canvas.width !== state.width || state.canvas.height !== state.height)) {
       state.canvas.width = state.width;
       state.canvas.height = state.height;
@@ -293,12 +343,19 @@
     return false;
   }
 
+  function isReady() {
+    return state.ready === true && state.stopped === false && state.renderer !== null;
+  }
+
   window.kefeMatrixVisualiser = {
-    version: 1,
+    version: 2,
     load: load,
     start: start,
     stop: stop,
+    reset: reset,
+    setTime: setTime,
     draw: draw,
+    isReady: isReady,
     selectPreset: selectPreset,
     presetNames: function () {
       return state.records.map(function (r) { return r.name; });
