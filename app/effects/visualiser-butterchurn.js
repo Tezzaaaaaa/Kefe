@@ -4,14 +4,14 @@
    preset packs actually set. Records a human-readable error in lastError
    if loading fails, so the MiniPlayer can show it on-screen.
 
-   BUTTERCHURN API SHAPE
-   ---------------------
-   The Butterchurn UMD build exposes its API in different places across
-   versions: window.butterchurn, window.butterchurn.default, or a nested
-   property. resolveButterchurnApi() checks all of them, and falls back to
-   a dynamic import() if none of the globals work. If everything fails, the
-   error message includes the keys actually present on window.butterchurn
-   so the failure mode is visible in the MiniPlayer canvas.
+   iOS AUDIO CONTEXT NOTE
+   ----------------------
+   iOS Safari keeps AudioContexts suspended until resume() is called from
+   inside a user gesture. Butterchurn reads frequency data from the audio
+   graph, so a suspended context means silence, which means a black canvas.
+   primeMiniAudio() must be called from a click / tap handler — the
+   MiniPlayer does this in open() and setDisplayMode(). A global tap
+   listener also resumes the context as a fallback.
 */
 (function () {
   'use strict';
@@ -99,8 +99,6 @@
     });
   }
 
-  /* Butterchurn exposes createVisualizer() in different places depending
-     on how the UMD build wrapped it. Check the common shapes. */
   function resolveButterchurnApi() {
     var w = window.butterchurn;
     if (!w) return null;
@@ -142,10 +140,38 @@
     return names;
   }
 
+  /* ---- Audio context priming (must be called from a user gesture) ---- */
+
+  function primeMiniAudio(audioElement) {
+    if (!audioElement) return false;
+    try {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return false;
+      if (!miniState.audioContext) {
+        miniState.audioContext = new AudioCtx();
+      }
+      if (!miniState.sourceNode || miniState.connectedAudio !== audioElement) {
+        if var (mini AudioState.sourceNode) {
+          try { miniState.sourceNode.disconnect(); } catch (_) {}
+        }
+        miniState.sourceNode = miniState.audioContext.createMediaElementSource(audioElement);
+        miniState.sourceNode.connect(miniState.audioContext.destination);
+        miniState.connectedAudio = audioElement;
+      }
+      if (miniState.audioContext.state === 'suspended') {
+        miniState.audioContext.resume().catch(function () {});
+      }
+      return true;
+    } catch (error) {
+      console.warn('[KEFE Butterchurn prime]', error);
+      return false;
+    }
+  }
+
   function ensureAudio() {
     var audio = window.kefeAudioElement;
     if (!audio) throw new Error('Main audio element unavailable.');
-    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+   Ctx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) throw new Error('Web Audio unavailable.');
     if (!state.audioContext) state.audioContext = new AudioCtx();
     if (!state.sourceNode || state.connectedAudio !== audio) {
@@ -216,10 +242,6 @@
 
     var api = resolveButterchurnApi();
 
-    // Fallback: if the UMD script did not expose the API cleanly, try a
-    // dynamic import on the same URL. On modern browsers the ESM wrapper
-    // will be preferred by the CDN, and the module's default export is
-    // the visualizer factory.
     if (!api) {
       try {
         var mod = await import(/* @vite-ignore */ source.renderer);
@@ -334,17 +356,20 @@
     }
   }
 
+  /* ---- MiniPlayer path ---- */
+
   function ensureMiniAudio(audio) {
-    var AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx || !audio) return null;
-    if (!miniState.audioContext) miniState.audioContext = new AudioCtx();
-    if (!miniState.sourceNode || miniState.connectedAudio !== audio) {
-      if (miniState.sourceNode) { try { miniState.sourceNode.disconnect(); } catch (_) {} }
-      miniState.sourceNode = miniState.audioContext.createMediaElementSource(audio);
-      miniState.sourceNode.connect(miniState.audioContext.destination);
-      miniState.connectedAudio = audio;
+    // Prefer the primed path — primeMiniAudio should have been called
+    // from a user gesture. Fall back to creating on the spot, which
+    // works on desktop but may leave the context suspended on iOS until
+    // the next user tap resumes it via the global listener below.
+    if (miniState.sourceNode && miniState.connectedAudio === audio) {
+      if (miniState.audioContext.state === 'suspended') {
+        miniState.audioContext.resume().catch(function () {});
+      }
+      return miniState.sourceNode;
     }
-    if (miniState.audioContext.state === 'suspended') miniState.audioContext.resume().catch(function () {});
+    primeMiniAudio(audio);
     return miniState.sourceNode;
   }
 
@@ -398,6 +423,22 @@
     }
   }
 
+  /* ---- Global tap fallback: resume contexts on any user interaction ---- */
+
+  function tryResumeContexts() {
+    if (miniState.audioContext && miniState.audioContext.state === 'suspended') {
+      miniState.audioContext.resume().catch(function () {});
+    }
+    if (state.audioContext && state.audioContext.state === 'suspended') {
+      state.audioContext.resume().catch(function () {});
+    }
+  }
+  ['touchstart', 'click', 'pointerdown'].forEach(function (ev) {
+    document.addEventListener(ev, tryResumeContexts, { passive: true, capture: true });
+  });
+
+  /* ---- Teardown ---- */
+
   function stop() {
     if (state.visualizer) { try { state.visualizer = null; } catch (_) {} }
     if (state.sourceNode) { try { state.sourceNode.disconnect(); } catch (_) {} state.sourceNode = null; }
@@ -421,13 +462,14 @@
   }
 
   window.kefeButterchurn = {
-    version: 3,
+    version: 4,
     limit: PRESET_LIMIT,
     prepare: prepare,
     retry: retry,
     selectPreset: selectPreset,
     draw: draw,
     drawMini: drawMini,
+    primeMiniAudio: primeMiniAudio,
     stop: stop,
     stopMini: stopMini,
     presetNames: function () { return state.names.slice(); },
