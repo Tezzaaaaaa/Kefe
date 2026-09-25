@@ -1,7 +1,18 @@
 /* KEFE — Butterchurn / MilkDrop visualiser.
    Loads the official Butterchurn renderer and the curated Butterchurn preset
    packs, exposes exactly 100 sorted presets to KEFE, and renders them into
-   the main preview canvas from KEFE's master audio element.
+   the MiniPlayer canvas.
+
+   SCOPE: This visualiser is MiniPlayer-only. It is NOT selectable in the
+   main editor's visualiser picker (see visualiser-picker.js) because
+   Butterchurn's renderer cannot honour an authoritative export timestamp —
+   it reads a live AudioContext and advances its own wall-clock-based
+   simulation. Keeping it out of the main picker means the export pipeline
+   never has to reason about a non-deterministic visualiser.
+
+   draw() still accepts the (ctx, w, h, time, appState) signature for
+   interface compatibility, but `time` cannot influence Butterchurn's
+   output. drawMini() is the primary entry point.
 */
 (function () {
   'use strict';
@@ -192,7 +203,6 @@
     await prepare();
     if (state.names.indexOf(name) < 0) return false;
     if (!getAppState().style) getAppState().style = {};
-    getAppState().style.visualiserStyle = 'butterchurn';
     getAppState().style.butterchurnPreset = name;
     state.currentPreset = '';
     return true;
@@ -201,8 +211,6 @@
   function draw(ctx, w, h, time, appState) {
     if (!ctx || !w || !h) return false;
 
-    // Loading is intentionally lazy: Butterchurn adds substantial WebGL and
-    // preset code, so ordinary KEFE visualisers do not pay that cost.
     if (!state.butterchurn) {
       prepare().catch(function (error) {
         console.warn('[KEFE Butterchurn]', error);
@@ -291,13 +299,45 @@
     }
   }
 
+  /* ---------- Teardown ----------
+     Both the full-size and MiniPlayer Butterchurn instances hold WebGL
+     contexts and Web Audio nodes. On iOS Safari these are the difference
+     between a smooth app and a memory-pressure crash, so they need
+     explicit release. Closing the AudioContext detaches the
+     MediaElementSource permanently, which is what we want when the
+     MiniPlayer is closing for good. */
+
+  function stop() {
+    if (state.visualizer) { try { state.visualizer = null; } catch (_) {} }
+    if (state.sourceNode) { try { state.sourceNode.disconnect(); } catch (_) {} state.sourceNode = null; }
+    if (state.audioContext) { try { state.audioContext.close(); } catch (_) {} state.audioContext = null; }
+    state.canvas = null;
+    state.connectedAudio = null;
+    state.currentPreset = '';
+    state.width = 0;
+    state.height = 0;
+  }
+
+  function stopMini() {
+    if (miniState.visualizer) { try { miniState.visualizer = null; } catch (_) {} }
+    if (miniState.sourceNode) { try { miniState.sourceNode.disconnect(); } catch (_) {} miniState.sourceNode = null; }
+    if (miniState.audioContext) { try { miniState.audioContext.close(); } catch (_) {} miniState.audioContext = null; }
+    miniState.canvas = null;
+    miniState.connectedAudio = null;
+    miniState.currentPreset = '';
+    miniState.width = 0;
+    miniState.height = 0;
+  }
+
   window.kefeButterchurn = {
-    version: 1,
+    version: 2,
     limit: PRESET_LIMIT,
     prepare: prepare,
     selectPreset: selectPreset,
     draw: draw,
     drawMini: drawMini,
+    stop: stop,
+    stopMini: stopMini,
     presetNames: function () { return state.names.slice(); },
     effectivePreset: effectivePreset,
     get ready() { return !!state.butterchurn && state.names.length === PRESET_LIMIT; }
