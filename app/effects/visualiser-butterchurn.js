@@ -1,21 +1,6 @@
-/* KEFE — Butterchurn / MilkDrop visualiser. MiniPlayer-only.
-
-   Tries jsDelivr first, then unpkg as a fallback. Detects which global the
-   preset packs actually set. Records a human-readable error in lastError
-   if loading fails, so the MiniPlayer can show it on-screen.
-
-   iOS AUDIO CONTEXT NOTE
-   ----------------------
-   iOS Safari keeps AudioContexts suspended until resume() is called from
-   inside a user gesture. Butterchurn reads frequency data from the audio
-   graph, so a suspended context means silence, which means a black canvas.
-   primeMiniAudio() must be called from a click / tap handler — the
-   MiniPlayer does this in open() and setDisplayMode(). A global tap
-   listener also resumes the context as a fallback.
-*/
+/* KEFE — Butterchurn / MilkDrop visualiser. MiniPlayer-only. */
 (function () {
   'use strict';
-
   if (window.kefeButterchurn) return;
 
   var CDN_SOURCES = [
@@ -34,6 +19,7 @@
   ];
 
   var PRESET_LIMIT = 100;
+  var LOAD_TIMEOUT_MS = 15000;
 
   var state = {
     loading: null,
@@ -65,8 +51,15 @@
     currentPreset: ''
   };
 
-  function getAppState() {
-    return window.state || { style: {} };
+  function getAppState() { return window.state || { style: {} }; }
+
+  function withTimeout(promise, ms, label) {
+    return Promise.race([
+      promise,
+      new Promise(function (_, reject) {
+        setTimeout(function () { reject(new Error('Timed out: ' + label)); }, ms);
+      })
+    ]);
   }
 
   function loadScriptOnce(src, id) {
@@ -74,27 +67,19 @@
       var existing = document.getElementById(id);
       if (existing) {
         if (existing.dataset.loaded === 'true') return resolve();
-        if (existing.dataset.failed === 'true') {
-          existing.remove();
-        } else {
+        if (existing.dataset.failed === 'true') existing.remove();
+        else {
           existing.addEventListener('load', resolve, { once: true });
           existing.addEventListener('error', reject, { once: true });
           return;
         }
       }
-
       var script = document.createElement('script');
       script.id = id;
       script.src = src;
       script.async = false;
-      script.onload = function () {
-        script.dataset.loaded = 'true';
-        resolve();
-      };
-      script.onerror = function () {
-        script.dataset.failed = 'true';
-        reject(new Error('Could not load ' + src));
-      };
+      script.onload = function () { script.dataset.loaded = 'true'; resolve(); };
+      script.onerror = function () { script.dataset.failed = 'true'; reject(new Error('Could not load ' + src)); };
       document.head.appendChild(script);
     });
   }
@@ -110,68 +95,45 @@
 
   function collectPresets() {
     var combined = {};
-    var candidates = [
-      window.base, window.butterchurnPresets,
-      window.extra, window.butterchurnPresetsExtra
-    ];
+    var candidates = [window.base, window.butterchurnPresets, window.extra, window.butterchurnPresetsExtra];
     for (var i = 0; i < candidates.length; i++) {
       var c = candidates[i];
       if (!c) continue;
       var source = (c.default && typeof c.default === 'object') ? c.default : c;
-      if (source && typeof source === 'object' && !Array.isArray(source)) {
-        Object.assign(combined, source);
-      }
+      if (source && typeof source === 'object' && !Array.isArray(source)) Object.assign(combined, source);
     }
-
     var names = Object.keys(combined)
-      .filter(function (name) {
-        return combined[name] && typeof combined[name] === 'object';
-      })
-      .sort(function (a, b) {
-        return a.toLowerCase().localeCompare(b.toLowerCase());
-      })
+      .filter(function (n) { return combined[n] && typeof combined[n] === 'object'; })
+      .sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); })
       .slice(0, PRESET_LIMIT);
-
     var selected = {};
-    names.forEach(function (name) { selected[name] = combined[name]; });
-
+    names.forEach(function (n) { selected[n] = combined[n]; });
     state.presets = selected;
     state.names = names;
     return names;
   }
-
-  /* ---- Audio context priming (must be called from a user gesture) ---- */
 
   function primeMiniAudio(audioElement) {
     if (!audioElement) return false;
     try {
       var AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return false;
-      if (!miniState.audioContext) {
-        miniState.audioContext = new AudioCtx();
-      }
+      if (!miniState.audioContext) miniState.audioContext = new AudioCtx();
       if (!miniState.sourceNode || miniState.connectedAudio !== audioElement) {
-        if var (mini AudioState.sourceNode) {
-          try { miniState.sourceNode.disconnect(); } catch (_) {}
-        }
+        if (miniState.sourceNode) { try { miniState.sourceNode.disconnect(); } catch (_) {} }
         miniState.sourceNode = miniState.audioContext.createMediaElementSource(audioElement);
         miniState.sourceNode.connect(miniState.audioContext.destination);
         miniState.connectedAudio = audioElement;
       }
-      if (miniState.audioContext.state === 'suspended') {
-        miniState.audioContext.resume().catch(function () {});
-      }
+      if (miniState.audioContext.state === 'suspended') miniState.audioContext.resume().catch(function () {});
       return true;
-    } catch (error) {
-      console.warn('[KEFE Butterchurn prime]', error);
-      return false;
-    }
+    } catch (error) { return false; }
   }
 
   function ensureAudio() {
     var audio = window.kefeAudioElement;
     if (!audio) throw new Error('Main audio element unavailable.');
-   Ctx = window.AudioContext || window.webkitAudioContext;
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) throw new Error('Web Audio unavailable.');
     if (!state.audioContext) state.audioContext = new AudioCtx();
     if (!state.sourceNode || state.connectedAudio !== audio) {
@@ -180,17 +142,14 @@
       state.sourceNode.connect(state.audioContext.destination);
       state.connectedAudio = audio;
     }
-    if (state.audioContext.state === 'suspended') {
-      state.audioContext.resume().catch(function () {});
-    }
+    if (state.audioContext.state === 'suspended') state.audioContext.resume().catch(function () {});
     return state.sourceNode;
   }
 
   function ensureCanvas(w, h) {
     if (!state.canvas) state.canvas = document.createElement('canvas');
     if (state.width !== w || state.height !== h) {
-      state.width = w;
-      state.height = h;
+      state.width = w; state.height = h;
       state.canvas.width = Math.max(1, Math.floor(w));
       state.canvas.height = Math.max(1, Math.floor(h));
     }
@@ -201,22 +160,12 @@
     if (!state.butterchurn || !state.audioContext) return null;
     ensureCanvas(w, h);
     if (!state.visualizer) {
-      state.visualizer = state.butterchurn.createVisualizer(
-        state.audioContext, state.canvas,
-        {
-          width: Math.max(1, Math.floor(w)),
-          height: Math.max(1, Math.floor(h)),
-          pixelRatio: 1,
-          textureRatio: 1
-        }
-      );
+      state.visualizer = state.butterchurn.createVisualizer(state.audioContext, state.canvas,
+        { width: Math.max(1, Math.floor(w)), height: Math.max(1, Math.floor(h)), pixelRatio: 1, textureRatio: 1 });
       state.visualizer.connectAudio(ensureAudio());
       state.currentPreset = '';
     } else {
-      state.visualizer.setRendererSize(
-        Math.max(1, Math.floor(w)),
-        Math.max(1, Math.floor(h))
-      );
+      state.visualizer.setRendererSize(Math.max(1, Math.floor(w)), Math.max(1, Math.floor(h)));
     }
     return state.visualizer;
   }
@@ -229,22 +178,18 @@
   function applyPreset(name, blendSeconds) {
     if (!state.visualizer || !state.presets[name]) return false;
     if (state.currentPreset === name) return true;
-    state.visualizer.loadPreset(
-      state.presets[name],
-      Number.isFinite(blendSeconds) ? blendSeconds : 1.5
-    );
+    state.visualizer.loadPreset(state.presets[name], Number.isFinite(blendSeconds) ? blendSeconds : 1.5);
     state.currentPreset = name;
     return true;
   }
 
   async function tryLoadFromSource(source) {
-    await loadScriptOnce(source.renderer, 'kefe-butterchurn-renderer-' + source.name);
+    await withTimeout(loadScriptOnce(source.renderer, 'kefe-butterchurn-renderer-' + source.name), LOAD_TIMEOUT_MS, source.name + ' renderer');
 
     var api = resolveButterchurnApi();
-
     if (!api) {
       try {
-        var mod = await import(/* @vite-ignore */ source.renderer);
+        var mod = await withTimeout(import(/* @vite-ignore */ source.renderer), LOAD_TIMEOUT_MS, source.name + ' renderer import');
         var candidate = mod.default || mod;
         if (candidate && typeof candidate.createVisualizer === 'function') {
           window.butterchurn = candidate;
@@ -255,30 +200,22 @@
 
     if (!api) {
       var w = window.butterchurn;
-      var shape = !w
-        ? '(window.butterchurn undefined)'
-        : '(keys: ' + Object.keys(w).slice(0, 30).join(', ') + ')';
+      var shape = !w ? '(window.butterchurn undefined)' : '(keys: ' + Object.keys(w).slice(0, 30).join(', ') + ')';
       throw new Error('No createVisualizer(). Shape ' + shape);
     }
 
     window.butterchurn = api;
     state.butterchurn = api;
 
-    try { await loadScriptOnce(source.base, 'kefe-butterchurn-base-' + source.name); } catch (_) {}
-    try { await loadScriptOnce(source.extra, 'kefe-butterchurn-extra-' + source.name); } catch (_) {}
+    try { await withTimeout(loadScriptOnce(source.base, 'kefe-butterchurn-base-' + source.name), LOAD_TIMEOUT_MS, source.name + ' presets base'); } catch (_) {}
+    try { await withTimeout(loadScriptOnce(source.extra, 'kefe-butterchurn-extra-' + source.name), LOAD_TIMEOUT_MS, source.name + ' presets extra'); } catch (_) {}
 
     var names = collectPresets();
-
     if (!names.length) {
-      var globals = [
-        'base', 'butterchurnPresets', 'extra', 'butterchurnPresetsExtra'
-      ].map(function (n) {
-        var v = window[n];
-        return n + '=' + (v == null ? 'undefined' : typeof v);
-      }).join(', ');
+      var globals = ['base', 'butterchurnPresets', 'extra', 'butterchurnPresetsExtra']
+        .map(function (n) { var v = window[n]; return n + '=' + (v == null ? 'undefined' : typeof v); }).join(', ');
       throw new Error('Preset packs loaded but no presets found. Globals: ' + globals);
     }
-
     state.loadedVia = source.name;
     return names;
   }
@@ -286,7 +223,6 @@
   async function prepare() {
     if (state.ready) return state.names;
     if (state.loading) return state.loading;
-
     state.lastError = '';
     state.loading = (async function () {
       var lastError = null;
@@ -305,22 +241,15 @@
         }
       }
       state.loading = null;
-      state.lastError = lastError
-        ? String(lastError.message || lastError)
-        : 'All CDN sources failed';
+      state.lastError = lastError ? String(lastError.message || lastError) : 'All CDN sources failed';
       throw lastError || new Error(state.lastError);
     })();
-
     return state.loading;
   }
 
   async function retry() {
-    state.ready = false;
-    state.lastError = '';
-    state.loading = null;
-    state.butterchurn = null;
-    state.presets = {};
-    state.names = [];
+    state.ready = false; state.lastError = ''; state.loading = null;
+    state.butterchurn = null; state.presets = {}; state.names = [];
     return prepare();
   }
 
@@ -335,10 +264,7 @@
 
   function draw(ctx, w, h, time, appState) {
     if (!ctx || !w || !h) return false;
-    if (!state.ready) {
-      prepare().catch(function () {});
-      return false;
-    }
+    if (!state.ready) { prepare().catch(function () {}); return false; }
     try {
       var visualizer = ensureVisualizer(w, h);
       if (!visualizer) return false;
@@ -346,27 +272,14 @@
       if (!name) return false;
       if (state.currentPreset !== name) applyPreset(name, 1.5);
       visualizer.render();
-      ctx.save();
-      ctx.drawImage(state.canvas, 0, 0, w, h);
-      ctx.restore();
+      ctx.save(); ctx.drawImage(state.canvas, 0, 0, w, h); ctx.restore();
       return true;
-    } catch (error) {
-      console.warn('[KEFE Butterchurn]', error);
-      return false;
-    }
+    } catch (error) { return false; }
   }
 
-  /* ---- MiniPlayer path ---- */
-
   function ensureMiniAudio(audio) {
-    // Prefer the primed path — primeMiniAudio should have been called
-    // from a user gesture. Fall back to creating on the spot, which
-    // works on desktop but may leave the context suspended on iOS until
-    // the next user tap resumes it via the global listener below.
     if (miniState.sourceNode && miniState.connectedAudio === audio) {
-      if (miniState.audioContext.state === 'suspended') {
-        miniState.audioContext.resume().catch(function () {});
-      }
+      if (miniState.audioContext.state === 'suspended') miniState.audioContext.resume().catch(function () {});
       return miniState.sourceNode;
     }
     primeMiniAudio(audio);
@@ -382,15 +295,8 @@
     miniState.canvas.width = miniState.width;
     miniState.canvas.height = miniState.height;
     if (!miniState.visualizer) {
-      miniState.visualizer = miniState.butterchurn.createVisualizer(
-        miniState.audioContext, miniState.canvas,
-        {
-          width: miniState.width,
-          height: miniState.height,
-          pixelRatio: 1,
-          textureRatio: 1
-        }
-      );
+      miniState.visualizer = miniState.butterchurn.createVisualizer(miniState.audioContext, miniState.canvas,
+        { width: miniState.width, height: miniState.height, pixelRatio: 1, textureRatio: 1 });
       miniState.visualizer.connectAudio(miniState.sourceNode);
       miniState.currentPreset = '';
     } else {
@@ -401,10 +307,7 @@
 
   function drawMini(ctx, w, h, time, appState, audio) {
     if (!ctx || !w || !h || !audio) return false;
-    if (!state.ready) {
-      prepare().catch(function () {});
-      return false;
-    }
+    if (!state.ready) { prepare().catch(function () {}); return false; }
     try {
       var visualizer = ensureMiniVisualizer(w, h, audio);
       if (!visualizer) return false;
@@ -417,52 +320,35 @@
       visualizer.render();
       ctx.drawImage(miniState.canvas, 0, 0, w, h);
       return true;
-    } catch (error) {
-      console.warn('[KEFE Butterchurn MiniPlayer]', error);
-      return false;
-    }
+    } catch (error) { return false; }
   }
 
-  /* ---- Global tap fallback: resume contexts on any user interaction ---- */
-
   function tryResumeContexts() {
-    if (miniState.audioContext && miniState.audioContext.state === 'suspended') {
-      miniState.audioContext.resume().catch(function () {});
-    }
-    if (state.audioContext && state.audioContext.state === 'suspended') {
-      state.audioContext.resume().catch(function () {});
-    }
+    if (miniState.audioContext && miniState.audioContext.state === 'suspended') miniState.audioContext.resume().catch(function () {});
+    if (state.audioContext && state.audioContext.state === 'suspended') state.audioContext.resume().catch(function () {});
   }
   ['touchstart', 'click', 'pointerdown'].forEach(function (ev) {
     document.addEventListener(ev, tryResumeContexts, { passive: true, capture: true });
   });
 
-  /* ---- Teardown ---- */
-
   function stop() {
-    if (state.visualizer) { try { state.visualizer = null; } catch (_) {} }
+    if (state.visualizer) state.visualizer = null;
     if (state.sourceNode) { try { state.sourceNode.disconnect(); } catch (_) {} state.sourceNode = null; }
     if (state.audioContext) { try { state.audioContext.close(); } catch (_) {} state.audioContext = null; }
-    state.canvas = null;
-    state.connectedAudio = null;
-    state.currentPreset = '';
-    state.width = 0;
-    state.height = 0;
+    state.canvas = null; state.connectedAudio = null; state.currentPreset = '';
+    state.width = 0; state.height = 0;
   }
 
   function stopMini() {
-    if (miniState.visualizer) { try { miniState.visualizer = null; } catch (_) {} }
+    if (miniState.visualizer) miniState.visualizer = null;
     if (miniState.sourceNode) { try { miniState.sourceNode.disconnect(); } catch (_) {} miniState.sourceNode = null; }
     if (miniState.audioContext) { try { miniState.audioContext.close(); } catch (_) {} miniState.audioContext = null; }
-    miniState.canvas = null;
-    miniState.connectedAudio = null;
-    miniState.currentPreset = '';
-    miniState.width = 0;
-    miniState.height = 0;
+    miniState.canvas = null; miniState.connectedAudio = null; miniState.currentPreset = '';
+    miniState.width = 0; miniState.height = 0;
   }
 
   window.kefeButterchurn = {
-    version: 4,
+    version: 5,
     limit: PRESET_LIMIT,
     prepare: prepare,
     retry: retry,
@@ -478,8 +364,4 @@
     get lastError() { return state.lastError; },
     get loadedVia() { return state.loadedVia; }
   };
-
-  window.dispatchEvent(new CustomEvent('kefe:butterchurn-ready', {
-    detail: window.kefeButterchurn
-  }));
 })();
