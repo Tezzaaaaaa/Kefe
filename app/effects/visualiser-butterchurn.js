@@ -23,8 +23,8 @@
     {
       name: 'local',
       renderer:    '/Kefe/vendor/butterchurn/butterchurn.min.js',
-      base:        '/Kefe/vendor/butterchurn/presets-base.min.js',
-      extra:       '/Kefe/vendor/butterchurn/presets-extra.min.js'
+      base:        '/Kefe/vendor/butterchurn/presets-base.js',
+      extra:       '/Kefe/vendor/butterchurn/presets-extra.js'
     }
   ];
 
@@ -220,10 +220,6 @@
   }
 
   async function loadButterchurnApi(source) {
-    // Butterchurn's .min.js is a UMD build — it exposes window.butterchurn
-    // as a global when loaded via a classic <script> tag. Loading it as an
-    // ES module fails with "export declarations may only appear at top level
-    // of a module" because the file uses UMD's export detection.
     try {
       await withTimeout(
         loadScriptOnce(source.renderer, 'kefe-butterchurn-renderer-' + source.name),
