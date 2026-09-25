@@ -96,7 +96,7 @@
     }, true);
 
     /* Observer bridge: mirror important DOM events into one application event stream. */
-    ['kefe:audio-analysis-ready','kefe:project-saved','kefe:project-recovered','kefe:renderer-ready']
+    ['kefe:audio-analysis-ready','kefe:renderer-ready']
         .forEach(type => window.addEventListener(type, event => bus.emit(type, event.detail)));
 
     /* Canonical lyric adapter. Every provider may return LRC text or a timeline. */
