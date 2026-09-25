@@ -118,15 +118,28 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
 
     try {
         // Single-pass render: encode every frame in one ffmpeg invocation.
+        // Write frames as JPEGs and immediately release the previous
+        // frame from the FFmpeg in-memory FS. Peak memory drops from
+        // "totalFrames × frameSize" to roughly "one frame".
         const frameNames = [];
+        let bytesSinceYield = 0;
         for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
             checkAbort(signal);
             const time = frameIndex / config.fps;
             await seekVideo(media?.video, time, signal);
             await renderFrame(ctx, config.width, config.height, time);
             const frameName = `kefe-frame-${String(frameIndex).padStart(6, '0')}.jpg`;
-            await ffmpeg.writeFile(frameName, await canvasToJpeg(target));
+            const bytes = await canvasToJpeg(target);
+            await ffmpeg.writeFile(frameName, bytes);
             frameNames.push(frameName);
+            bytesSinceYield += bytes.byteLength;
+            // Yield to the browser every ~20MB so GC can run and the UI
+            // stays responsive. Long single-pass loops without yields
+            // trip iOS and Firefox watchdog timers.
+            if (bytesSinceYield > 20 * 1024 * 1024) {
+                bytesSinceYield = 0;
+                await new Promise(r => setTimeout(r, 0));
+            }
             progress(5 + ((frameIndex + 1) / totalFrames) * 70, `Rendering frame ${frameIndex + 1} of ${totalFrames}`);
         }
 
@@ -146,13 +159,27 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
             '-keyint_min', String(config.fps * 2),
             '-sc_threshold', '0',
             '-fflags', '+genpts',
+            '-movflags', '+faststart',
             '-f', 'mp4',
             '-y', 'kefe-video.mp4'
         ], 'video encode');
 
+        // Release all frame JPEGs from the WASM FS before muxing.
         for (const name of frameNames) {
             try { await ffmpeg.deleteFile(name); } catch (_) {}
         }
+        frameNames.length = 0;
+
+        // Give the browser a chance to GC before the mux allocates the
+        // final MP4 buffer.
+        await new Promise(r => setTimeout(r, 100));
+
+        // Recycle the encoder before the mux. A fresh WASM heap on the
+        // mux step is what fixed the "Aborted()" failure in testing
+        // for similar exports on other KEFE builds.
+        releaseEncoder(ffmpeg);
+        progress(88, 'Loading muxer…');
+        ffmpeg = await loadEncoderResilient(message => progress(88, message));
 
         checkAbort(signal);
         // Reuse whichever engine instance is still alive from the last
@@ -179,15 +206,25 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
         progressHandler = ({ progress: ffProgress }) => { if (Number.isFinite(ffProgress)) progress(82 + Math.max(0, Math.min(1, ffProgress)) * 18, 'Finalising MP4'); };
         ffmpeg.on('progress', progressHandler);
         try {
-            const muxArgs = ['-fflags', '+genpts', '-i', concatInputName];
-            if (audioName) muxArgs.push('-fflags', '+genpts', '-i', audioName);
+            const muxArgs = [
+                '-probesize', '50M',
+                '-analyzeduration', '10M',
+                '-fflags', '+genpts',
+                '-i', concatInputName
+            ];
+            if (audioName) muxArgs.push(
+                '-probesize', '50M',
+                '-analyzeduration', '10M',
+                '-fflags', '+genpts',
+                '-i', audioName
+            );
             muxArgs.push('-map', '0:v:0');
             if (audioName) {
                 muxArgs.push('-map', '1:a:0', '-c:a', 'aac', '-b:a', quality.audioBitrate, '-af', 'aresample=async=1:first_pts=0');
             } else {
                 muxArgs.push('-an');
             }
-            muxArgs.push('-c:v', 'copy', '-t', duration.toFixed(3), '-movflags', '+faststart', '-y', outputName);
+            muxArgs.push('-c:v', 'copy', '-t', duration.toFixed(3), '-max_muxing_queue_size', '4096', '-movflags', '+faststart', '-y', outputName);
             await execChecked(ffmpeg, muxArgs, 'final MP4');
         } finally {
             ffmpeg.off('progress', progressHandler);
