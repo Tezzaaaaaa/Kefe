@@ -304,12 +304,12 @@ export async function exportVideo(options) {
 
     onProgress?.({
         percent: 3,
-        message: 'Preparing FFmpeg compatibility export…'
+        message: 'Preparing MediaRecorder export…'
     });
 
     const result =
-        await exportVideoFFmpeg(options);
+        await exportVideoMediaRecorder(options);
 
-    console.info('[KEFE] FFmpeg compatibility export completed');
+    console.info('[KEFE] MediaRecorder (VP9/WebM) export completed');
     return result;
 }
