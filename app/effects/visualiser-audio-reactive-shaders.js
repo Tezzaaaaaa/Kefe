@@ -2,6 +2,11 @@
    Adapted from TjardoOrtan/audio-reactive-shaders (MIT).
    The upstream scene modules are loaded lazily; KEFE supplies its existing
    master-audio analysis to the same audioLow/audioMid/audioHigh uniforms.
+
+   Deterministic for export: draw() takes an authoritative timestamp and
+   the shader's `time` uniform and audio uniforms are both derived purely
+   from that timestamp and the precomputed analysis. No audio.currentTime,
+   no performance.now(), no Math.random().
 */
 (function(){
   'use strict';
@@ -38,28 +43,37 @@
 
   var state = {
     loading:null, scenes:[], index:0, renderer:null, material:null, geometry:null,
-    canvas:null, host:null, width:0, height:0, lastTime:-1, running:false
+    canvas:null, host:null, width:0, height:0, lastTime:-1, running:false,
+    scene:null, camera:null, renderScene:null,
+    simTime:0, explicitTime:false
   };
 
   function frameAt(time, analysis){
-    if (!analysis || !analysis.frameHopMs || !analysis.energy) return {low:0,mid:0,high:0};
-    var hop=analysis.frameHopMs/1000;
-    var idx=Math.max(0,Math.min(analysis.energy.length-1,Math.floor(time/hop)));
-    var b=analysis.bands && analysis.bands[idx] || {};
-    var maxB=1,maxM=1,maxT=1;
-    var summary=analysis.summary||{};
-    var peak=Number(summary.peakRms)||0.0001;
-    for(var i=Math.max(0,idx-2);i<=Math.min(analysis.bands.length-1,idx+2);i++){
-      var x=analysis.bands[i]||{};
-      if(x.bass>maxB)maxB=x.bass;
-      if(x.mids>maxM)maxM=x.mids;
-      if(x.treble>maxT)maxT=x.treble;
+    if (!analysis || !analysis.frameHopMs || !analysis.energy || !analysis.energy.length) {
+      return {low:0, mid:0, high:0, energy:0};
     }
+    var hop = analysis.frameHopMs / 1000;
+    var idx = Math.max(0, Math.min(analysis.energy.length - 1, Math.floor(time / hop)));
+    var bands = analysis.bands || [];
+    var b = bands[idx] || {};
+
+    var maxB = 0.0001, maxM = 0.0001, maxT = 0.0001;
+    var lo = Math.max(0, idx - 4);
+    var hi = Math.min(bands.length - 1, idx + 4);
+    for (var i = lo; i <= hi; i++) {
+      var x = bands[i] || {};
+      if ((x.bass || 0) > maxB) maxB = x.bass || 0;
+      if ((x.mids || 0) > maxM) maxM = x.mids || 0;
+      if ((x.treble || 0) > maxT) maxT = x.treble || 0;
+    }
+    var peak = Number(analysis.summary && analysis.summary.peakRms) || 0.0001;
+    var e = Number(analysis.energy[idx]) || 0;
+
     return {
-      low:Math.min(1,(b.bass||0)/Math.max(0.0001,maxB)),
-      mid:Math.min(1,(b.mids||0)/Math.max(0.0001,maxM)),
-      high:Math.min(1,(b.treble||0)/Math.max(0.0001,maxT)),
-      energy:Math.min(1,(analysis.energy[idx]||0)/peak)
+      low: Math.min(1, (b.bass || 0) / maxB),
+      mid: Math.min(1, (b.mids || 0) / maxM),
+      high: Math.min(1, (b.treble || 0) / maxT),
+      energy: Math.min(1, e / peak)
     };
   }
 
@@ -106,7 +120,18 @@
     if(state.geometry){try{state.geometry.dispose();}catch(_){}}
     if(state.material){try{state.material.dispose();}catch(_){}}
     state.renderer=null;state.geometry=null;state.material=null;
+    state.scene=null;state.camera=null;state.renderScene=null;
     if(state.host){state.host.remove();state.host=null;state.canvas=null;}
+  }
+
+  function reset(){
+    state.lastTime = -1;
+    if (state.material && state.material.uniforms) {
+      state.material.uniforms.time.value = 0;
+      state.material.uniforms.audioLow.value = 0;
+      state.material.uniforms.audioMid.value = 0;
+      state.material.uniforms.audioHigh.value = 0;
+    }
   }
 
   function start(w,h){
@@ -136,14 +161,19 @@
       var scene=new THREE.Scene();
       var camera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
       scene.add(new THREE.Mesh(state.geometry,state.material));
-      state.scene=scene;state.camera=camera;state.lastTime=-1;state.running=true;
+      state.scene=scene;
+      state.camera=camera;
+      state.lastTime=-1;
+      state.running=true;
+
       state.renderScene=function(seconds){
-        var f=frameAt(seconds,window.kefeVisualiser&&window.kefeVisualiser.data);
-        state.material.uniforms.time.value=seconds;
-        state.material.uniforms.audioLow.value=f.low;
-        state.material.uniforms.audioMid.value=f.mid;
-        state.material.uniforms.audioHigh.value=f.high;
-        state.renderer.render(state.scene,state.camera);
+        var analysis = window.kefeVisualiser && window.kefeVisualiser.data;
+        var f = frameAt(seconds, analysis);
+        state.material.uniforms.time.value = seconds;
+        state.material.uniforms.audioLow.value = f.low;
+        state.material.uniforms.audioMid.value = f.mid;
+        state.material.uniforms.audioHigh.value = f.high;
+        state.renderer.render(state.scene, state.camera);
       };
       return true;
     });
@@ -151,30 +181,54 @@
 
   function selectPreset(index,w,h){
     state.index=Math.max(0,Math.min(state.scenes.length-1,Number(index)||0));
+    state.lastTime = -1;
     return start(w||state.width||1,h||state.height||1);
   }
 
-  function draw(ctx,w,h){
-    if(!state.running||!state.renderer){
+  function draw(ctx, w, h, time){
+    if(!state.running || !state.renderer){
       start(w,h).catch(function(err){console.warn('[KEFE Audio Reactive Shaders]',err);});
       return false;
     }
-    if(state.width!==Math.floor(w)||state.height!==Math.floor(h)){
+    if(state.width !== Math.floor(w) || state.height !== Math.floor(h)){
       start(w,h).catch(function(err){console.warn('[KEFE Audio Reactive Shaders]',err);});
       return false;
     }
-    var audio=window.kefeAudioElement;
-    var seconds=audio&&Number.isFinite(audio.currentTime)?audio.currentTime:0;
+
+    var seconds;
+    if (Number.isFinite(time)) {
+      seconds = Number(time);
+      state.explicitTime = true;
+    } else {
+      var audio = window.kefeAudioElement;
+      seconds = audio && Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+    }
+
+    if (state.lastTime >= 0 && seconds < state.lastTime - 1e-6) {
+      reset();
+    }
+    state.lastTime = seconds;
+
     state.renderScene(seconds);
-    ctx.save();ctx.drawImage(state.canvas,0,0,w,h);ctx.restore();
+
+    ctx.save();
+    ctx.drawImage(state.canvas, 0, 0, w, h);
+    ctx.restore();
     return true;
   }
 
-  function stop(){state.running=false;destroyRenderer();}
+  function stop(){state.running=false;state.lastTime=-1;destroyRenderer();}
 
   window.kefeAudioReactiveShaders={
-    load:load,start:start,stop:stop,draw:draw,selectPreset:selectPreset,
-    presetNames:function(){return state.scenes.map(function(s){return s.name;});},
-    get activePreset(){return state.scenes[state.index]?state.scenes[state.index].name:'';}
+    version: 2,
+    load: load,
+    start: start,
+    stop: stop,
+    reset: reset,
+    draw: draw,
+    selectPreset: selectPreset,
+    isReady: function(){ return state.running === true && state.renderer !== null; },
+    presetNames: function(){ return state.scenes.map(function(s){ return s.name; }); },
+    get activePreset(){ return state.scenes[state.index] ? state.scenes[state.index].name : ''; }
   };
 })();
