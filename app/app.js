@@ -3408,6 +3408,7 @@ function formatTime(seconds) {
 
 
 async function openExportPreflight() {
+    window.kefeSmartRender?.prepare?.();
     if (isExporting) return;
     const issues = projectValidationIssues();
     if (issues.length) { toast('Before export, add: ' + issues.join(', '), 'error'); return; }
