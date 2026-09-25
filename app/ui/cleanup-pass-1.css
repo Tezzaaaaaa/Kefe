@@ -142,6 +142,15 @@ header {
   border: 1px solid rgba(255,255,255,0.10) !important;
   background: rgba(255,255,255,0.03) !important;
 }
+.transport .play-button {
+  background: var(--red) !important;
+  border-color: var(--red) !important;
+  color: #fff !important;
+}
+.transport .play-button:hover {
+  background: var(--red-press) !important;
+  border-color: var(--red-press) !important;
+}
 .transport #clock {
   min-width: 84px !important;
   font-size: 12px !important;
