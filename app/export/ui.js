@@ -79,7 +79,7 @@ async function startExport() {
     window.kefeExportAbort = new AbortController();
     const previewTime = Number(window.state?.playback?.currentTime) || 0;
     showOverlay();
-    setExportUI(0, 'Preparing FFmpeg export…');
+    setExportUI(0, 'Preparing export…');
     if (cancelButton) cancelButton.textContent = 'Cancel';
     try {
         const result = await runExport();
@@ -114,4 +114,4 @@ cancelPreflight?.addEventListener('click', closePreflightModal);
 document.addEventListener('keydown', event => { if ((event.key === 'e' || event.key === 'E') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName)) { event.preventDefault(); event.stopImmediatePropagation(); if ($('exportPreflight')?.classList.contains('hidden')) { exportBottom?.click(); } } }, true);
 window.startOfflineExport = startExport;
 window.kefeCancelExport = () => window.kefeExportAbort?.abort();
-console.info('[KEFE] Integrated FFmpeg exporter loaded');
+console.info('[KEFE] Native WebCodecs export with FFmpeg compatibility fallback loaded');
