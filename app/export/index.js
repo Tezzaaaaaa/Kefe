@@ -240,6 +240,17 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
         }
 
         checkAbort(signal);
+
+        // Free WASM heap before reading the output. On Firefox/Zen and
+        // long exports, readFile allocates a JS buffer the size of the
+        // MP4; without deleting the inputs first the WASM heap and the
+        // JS heap together exceed the browser's memory ceiling and
+        // ffmpeg exits with code 1 right at the finish line.
+        try { await ffmpeg.deleteFile(concatInputName); } catch (_) {}
+        if (audioName) { try { await ffmpeg.deleteFile(audioName); } catch (_) {} }
+        try { await ffmpeg.deleteFile('kefe-frame-00000.jpg'); } catch (_) {}
+
+        progress(90, 'Reading final MP4…');
         const data = await ffmpeg.readFile(outputName);
         if (!data?.byteLength || data.byteLength < 1024) throw new Error('FFmpeg produced an empty MP4');
         progress(100, 'Export complete');
