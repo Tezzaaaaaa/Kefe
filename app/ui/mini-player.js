@@ -58,7 +58,7 @@
 .presets.is-open{display:block}
 .presets h4{margin:0 0 4px;font-size:8px;font-weight:700;letter-spacing:.14em;color:#8a93a3;text-transform:uppercase}
 .presets optgroup{display:block;margin:4px 0 2px;font-size:7px;font-weight:700;color:#6f7887;letter-spacing:.12em;text-transform:uppercase}
-.presetssvg button{display:block;width:100%;text-align:left;padding:5px 6px;border:0;background:transparent;color:#e7ecf4;font-size:10px;font-weight:600;border-radius:5px;cursor:pointer}
+.presets button{display:block;width:100%;text-align:left;padding:5px 6px;border:0;background:transparent;color:#e7ecf4;font-size:10px;font-weight:600;border-radius:5px;cursor:pointer}
 .presets button:hover{background:rgba(255,255,255,.08)}
 .presets .empty{color:#8a93a3;font-size:9px;padding:4px}
 .presets .err{color:#ff8a8a;font-size:9px;padding:4px;line-height:1.4;word-break:break-word}
@@ -68,8 +68,8 @@
 <div class="ipod is-hidden" data-kip="shell">
   <button type="button" class="close" data-kip="close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div class="screen" data-kip="screen">
-    <canvas class="canvas" data-kip="canvas><"></canvas>
-    <div class="statusbarsvg"><span data-kip=" classclock">9:41</span><span class="="spacer"></span><bsvg class="signal" viewBox="0 0 20 12"><rect x="0" y="7.5" width="3.2" height="4.5" rx=".6"/><rect x="4.4" y="5.2" width="3.2" height="6.8" rx=".6"/><rect x="8.8" y="2.6" width="3.2" height="9.4" rx=".6"/><rect x="13.2" y="0" width="3.2" height="12" rx=".6"/></attery" viewBox="0 0 26 12"><rect x=".5" y="1" width="21" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2" y="2.5" width="18" height="7" rx="1.6"/><rect x="23" y="4.2" width="2" height="3.6" rx=".8"/></svg></div>
+    <canvas class="canvas" data-kip="canvas"></canvas>
+    <div class="statusbar"><span data-kip="clock">9:41</span><span class="spacer"></span><svg class="signal" viewBox="0 0 20 12"><rect x="0" y="7.5" width="3.2" height="4.5" rx=".6"/><rect x="4.4" y="5.2" width="3.2" height="6.8" rx=".6"/><rect x="8.8" y="2.6" width="3.2" height="9.4" rx=".6"/><rect x="13.2" y="0" width="3.2" height="12" rx=".6"/></svg><svg class="battery" viewBox="0 0 26 12"><rect x=".5" y="1" width="21" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2" y="2.5" width="18" height="7" rx="1.6"/><rect x="23" y="4.2" width="2" height="3.6" rx=".8"/></svg></div>
     <div class="main"><div class="art-wrap"><div class="art" data-kip="art"></div></div><div class="meta"><div class="title" data-kip="title">Add music</div><div class="artist" data-kip="artist">Nothing queued</div><div class="album" data-kip="album"></div></div></div>
     <div class="bottom-row"><span class="dolby"><svg viewBox="0 0 44 18"><path d="M0 2h6a7 7 0 0 1 0 14H0V2zm3 3v8h3a4 4 0 0 0 0-8H3zM20 2h6a7 7 0 0 1 0 14h-6V2zm3 3v8h3a4 4 0 0 0 0-8h-3z"/></svg>Dolby</span><span data-kip="mode">Music</span></div>
     <div class="time-row"><span data-kip="current">0:00</span><span data-kip="remaining">-0:00</span></div>
