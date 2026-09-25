@@ -20,7 +20,6 @@ Before publishing a change:
 - Test all effects and aspect ratios.
 - Test export with and without an uploaded background.
 - Inspect an exported file for video duration, audio duration, frame rate and frame count.
-- Test the reset confirmation and `.kefe` project save/open flow.
 
 ## Style
 
