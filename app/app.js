@@ -3406,31 +3406,13 @@ function formatTime(seconds) {
     return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + String(c).padStart(2, '0');
 }
 
-function getExportDimensions(preset) {
-    const aspect = state.aspect || '9:16';
-    const sizes = {
-        '1080p': { '9:16':[1080,1920], '1:1':[1080,1080], '16:9':[1920,1080] },
-        '720p': { '9:16':[720,1280], '1:1':[720,720], '16:9':[1280,720] },
-        '480p': { '9:16':[480,854], '1:1':[480,480], '16:9':[854,480] },
-        'instagram': { '9:16':[1080,1920], '1:1':[1080,1080], '16:9':[1920,1080] },
-        'tiktok': { '9:16':[1080,1920], '1:1':[1080,1080], '16:9':[1920,1080] }
-    };
-    const encoding = {
-        '1080p':[60,14000000], '720p':[30,5000000], '480p':[24,2000000],
-        'instagram':[30,8000000], 'tiktok':[30,6000000]
-    };
-    const selected = sizes[preset] ? preset : '720p';
-    const dims = sizes[selected][aspect] || sizes[selected]['9:16'];
-    const enc = encoding[selected];
-    return { width:dims[0], height:dims[1], fps:enc[0], bitrate:enc[1] };
-}
 
 async function startExport() {
     if (isExporting) return;
     const issues = projectValidationIssues();
     if (issues.length) { toast('Before export, add: ' + issues.join(', '), 'error'); return; }
     ensureDefaultBackground();
-    const config = getExportDimensions($('exportPreset').value);
+    const config = window.kefeExportConfig.getExportConfig({ preset: $('exportPreset').value, aspect: state.aspect });
     const duration = getMasterDuration();
     const totalFrames = Math.ceil(duration * config.fps);
     const report = validateLyricTiming(state.lyrics.lines, duration);
@@ -4010,13 +3992,23 @@ window.addEventListener('unhandledrejection', function(e) {
     if (!isExporting) toast('Something went wrong: ' + (e.reason?.message || e.reason || 'unknown error'), 'error');
 });
 
-function checkExportCapability() {
+async function checkExportCapability() {
     const missing = [];
-    if (typeof WebAssembly === 'undefined') missing.push('WebAssembly');
-    if (typeof HTMLCanvasElement === 'undefined' || typeof HTMLCanvasElement.prototype.toBlob !== 'function') missing.push('canvas image encoding');
+    if (typeof HTMLCanvasElement === 'undefined' ||
+        typeof HTMLCanvasElement.prototype.getContext !== 'function') {
+        missing.push('canvas rendering');
+    }
     if (typeof TextEncoder === 'undefined') missing.push('text encoding');
+
+    const hasWebCodecs = typeof VideoEncoder !== 'undefined' && typeof VideoFrame !== 'undefined';
+    const hasFallback = typeof WebAssembly !== 'undefined' &&
+        typeof HTMLCanvasElement.prototype.toBlob === 'function';
+
+    if (!hasWebCodecs && !hasFallback && missing.length === 0) {
+        missing.push('neither WebCodecs nor WebAssembly is available for MP4 export');
+    }
     if (missing.length) {
-        toast('This browser is missing: ' + missing.join(', ') + '. MP4 export is unavailable — try a current Chrome, Edge, Firefox, or Safari release.', 'error');
+        toast('This browser cannot export MP4: ' + missing.join(', ') + '.', 'error');
         $('exportBottom').disabled = true;
         return false;
     }

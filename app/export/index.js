@@ -1,4 +1,5 @@
-import { getQualityPreset } from './config.js';
+import { getQualityPreset, getExportConfig } from './config.js';
+export { getExportConfig };
 import { loadEncoder, releaseEncoder } from './encoder.js';
 import { canUseWebCodecsExport, exportVideoWebCodecs } from './webcodecs.js';
 
@@ -49,17 +50,6 @@ function makeProgressReporter(onProgress) {
     };
 }
 
-export function getExportConfig(preset = '720p', aspect = '9:16') {
-    const presets = { '1080p': { size: 1080, fps: 30 }, '720p': { size: 720, fps: 30 }, '480p': { size: 480, fps: 24 }, instagram: { size: 1080, fps: 30, forceVertical: true }, tiktok: { size: 1080, fps: 30, forceVertical: true } };
-    const selected = presets[preset] || presets['720p'];
-    const selectedAspect = selected.forceVertical ? '9:16' : aspect;
-    const [a, b] = selectedAspect.split(':').map(Number);
-    if (!Number.isFinite(a) || !Number.isFinite(b) || a <= 0 || b <= 0) throw new Error('Invalid export aspect ratio');
-    const size = selected.size;
-    if (selectedAspect === '16:9') return { width: Math.round(size * 16 / 9), height: size, fps: selected.fps };
-    if (selectedAspect === '1:1') return { width: size, height: size, fps: selected.fps };
-    return { width: size, height: Math.round(size * b / a), fps: selected.fps };
-}
 
 export function resolveMasterInfo(state, media) {
     const mode = state?.audioSource?.master || 'uploaded';
