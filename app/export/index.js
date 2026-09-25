@@ -1,5 +1,6 @@
 import { getQualityPreset } from './config.js';
 import { loadEncoder, releaseEncoder } from './encoder.js';
+import { canUseWebCodecsExport, exportVideoWebCodecs } from './webcodecs.js';
 
 function abortError() { return new DOMException('Export cancelled', 'AbortError'); }
 function checkAbort(signal) { if (signal?.aborted) throw abortError(); }
@@ -113,7 +114,7 @@ async function loadEncoderResilient(onStatus) {
     }
 }
 
-export async function exportVideo({ state, media, config, renderFrame, buildFilename, signal, onProgress }) {
+async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilename, signal, onProgress }) {
     const master = resolveMasterInfo(state, media);
     const duration = master.duration;
     if (!Number.isFinite(duration) || duration <= 0) throw new Error('Master duration is unavailable (load an audio file or a video with audio)');
@@ -258,4 +259,66 @@ export async function exportVideo({ state, media, config, renderFrame, buildFile
         if (ffmpeg) releaseEncoder(ffmpeg);
         segmentChunks.length = 0;
     }
+}
+
+
+/*
+ * Default production exporter:
+ * WebCodecs + Mediabunny uses the browser's native H.264 encoder where
+ * available, with hardware acceleration preferred. FFmpeg.wasm remains the
+ * compatibility fallback for browsers/devices that cannot provide the
+ * required WebCodecs path.
+ */
+export async function exportVideo(options) {
+    const { config, signal, onProgress } = options || {};
+
+    if (signal?.aborted) throw abortError();
+
+    let webCodecsAvailable = false;
+
+    try {
+        webCodecsAvailable = await canUseWebCodecsExport(config);
+    } catch {
+        webCodecsAvailable = false;
+    }
+
+    if (webCodecsAvailable) {
+        try {
+            onProgress?.({
+                percent: 1,
+                message: 'Preparing native WebCodecs export…'
+            });
+
+            const result =
+                await exportVideoWebCodecs(options);
+
+            console.info('[KEFE] WebCodecs/Mediabunny export completed');
+            return result;
+        } catch (error) {
+            if (error?.name === 'AbortError') {
+                throw error;
+            }
+
+            console.warn(
+                '[KEFE] WebCodecs export unavailable; falling back to FFmpeg.wasm:',
+                error
+            );
+
+            onProgress?.({
+                percent: 2,
+                message: 'Switching to compatibility exporter…'
+            });
+        }
+    }
+
+    onProgress?.({
+        percent: 3,
+        message: 'Preparing FFmpeg compatibility export…'
+    });
+
+    const result =
+        await exportVideoFFmpeg(options);
+
+    console.info('[KEFE] FFmpeg compatibility export completed');
+    return result;
 }
