@@ -260,6 +260,98 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
  * compatibility fallback for browsers/devices that cannot provide the
  * required WebCodecs path.
  */
+async function exportVideoMediaRecorder({ state, media, config, renderFrame, buildFilename, signal, onProgress }) {
+    // Real-time MediaRecorder capture: VP9 in a WebM container. Firefox
+    // cannot encode H.264 via WebCodecs, so this is the fallback for
+    // Gecko-based browsers. Recording is real-time — a 3-minute song
+    // takes 3 minutes to export — but never hits the WASM memory ceiling
+    // the FFmpeg path does.
+    const master = resolveMasterInfo(state, media);
+    const duration = master.duration;
+    if (!Number.isFinite(duration) || duration <= 0) throw new Error('Master duration is unavailable');
+    if (typeof renderFrame !== 'function') throw new Error('Export renderer is not connected');
+
+    const target = document.createElement('canvas');
+    target.width = config.width;
+    target.height = config.height;
+    const ctx = target.getContext('2d', { alpha: false });
+    if (!ctx) throw new Error('Could not create export canvas');
+
+    const fps = config.fps || 30;
+    const stream = target.captureStream(fps);
+
+    try {
+        const mode = state?.audioSource?.master || 'uploaded';
+        const audioEl = mode === 'video' ? media?.video : window.kefeAudioElement;
+        if (audioEl) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            const actx = new AC();
+            const src = actx.createMediaElementSource(audioEl);
+            const dest = actx.createMediaStreamDestination();
+            src.connect(dest);
+            src.connect(actx.destination);
+            dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+            if (actx.state === 'suspended') await actx.resume().catch(() => {});
+        }
+    } catch (e) {
+        console.warn('[KEFE] MediaRecorder audio attach failed, video only:', e);
+    }
+
+    const mimeCandidates = [
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8,opus',
+        'video/webm;codecs=vp8',
+        'video/webm'
+    ];
+    const mime = mimeCandidates.find(m => typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(m));
+    if (!mime) throw new Error('MediaRecorder has no supported WebM codec in this browser');
+
+    const chunks = [];
+    const recorder = new MediaRecorder(stream, {
+        mimeType: mime,
+        videoBitsPerSecond: Math.max(2_000_000, config.videoBitrate || 4_000_000)
+    });
+    recorder.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+
+    const stopped = new Promise((resolve, reject) => {
+        recorder.onstop = () => resolve();
+        recorder.onerror = e => reject(e.error || new Error('MediaRecorder error'));
+        signal?.addEventListener('abort', () => { try { recorder.stop(); } catch (_) {} reject(abortError()); }, { once: true });
+    });
+
+    recorder.start(1000);
+
+    const totalFrames = Math.max(1, Math.ceil(duration * fps));
+    const frameIntervalMs = 1000 / fps;
+    const startWall = performance.now();
+
+    try {
+        for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
+            checkAbort(signal);
+            const time = frameIndex / fps;
+            await renderFrame(ctx, config.width, config.height, time);
+            const targetWall = startWall + (frameIndex + 1) * frameIntervalMs;
+            const wait = targetWall - performance.now();
+            if (wait > 0) await new Promise(r => setTimeout(r, wait));
+            const percent = 5 + ((frameIndex + 1) / totalFrames) * 90;
+            onProgress?.({ percent, message: `Recording frame ${frameIndex + 1} of ${totalFrames}` });
+        }
+    } finally {
+        try { recorder.stop(); } catch (_) {}
+    }
+
+    await stopped;
+    if (!chunks.length) throw new Error('MediaRecorder produced no data');
+
+    onProgress?.({ percent: 98, message: 'Finalising WebM…' });
+    const blob = new Blob(chunks, { type: mime.split(';')[0] });
+    const baseName = (buildFilename?.() || 'KEFE Visualiser.mp4').replace(/\.mp4$/i, '.webm');
+
+    onProgress?.({ percent: 100, message: 'Export complete' });
+    return { blob, filename: baseName };
+}
+
 export async function exportVideo(options) {
     const { config, signal, onProgress } = options || {};
 
