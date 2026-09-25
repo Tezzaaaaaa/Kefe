@@ -160,7 +160,7 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
 
                     const segmentName = `kefe-segment-${String(segment).padStart(4, '0')}.ts`;
                     progress(5 + ((firstFrame + frameCount) / totalFrames) * 65, `Encoding segment ${segment + 1} of ${segmentCount}…`);
-                    await execChecked(ffmpeg, ['-framerate', String(config.fps), '-start_number', '0', '-i', 'kefe-frame-%05d.jpg', '-frames:v', String(frameCount), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', String(quality.crf), '-pix_fmt', 'yuv420p', '-r', String(config.fps), '-g', String(config.fps * 2), '-keyint_min', String(config.fps * 2), '-sc_threshold', '0', '-f', 'mpegts', '-y', segmentName], `segment ${segment + 1}`);
+                    await execChecked(ffmpeg, ['-framerate', String(config.fps), '-start_number', '0', '-i', 'kefe-frame-%05d.jpg', '-frames:v', String(frameCount), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', String(quality.crf), '-pix_fmt', 'yuv420p', '-r', String(config.fps), '-g', String(config.fps * 2), '-keyint_min', String(config.fps * 2), '-sc_threshold', '0', '-fflags', '+genpts', '-avoid_negative_ts', 'make_zero', '-muxdelay', '0', '-muxpreload', '0', '-f', 'mpegts', '-y', segmentName], `segment ${segment + 1}`);
                     const segmentData = new Uint8Array(await ffmpeg.readFile(segmentName));
                     if (!segmentData.byteLength) throw new Error(`FFmpeg produced an empty segment ${segment + 1}`);
                     segmentChunks.push(segmentData);
@@ -224,8 +224,8 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
         progressHandler = ({ progress: ffProgress }) => { if (Number.isFinite(ffProgress)) progress(82 + Math.max(0, Math.min(1, ffProgress)) * 18, 'Finalising MP4'); };
         ffmpeg.on('progress', progressHandler);
         try {
-            const muxArgs = ['-i', concatInputName];
-            if (audioName) muxArgs.push('-i', audioName);
+            const muxArgs = ['-fflags', '+genpts', '-i', concatInputName];
+            if (audioName) muxArgs.push('-fflags', '+genpts', '-i', audioName);
             muxArgs.push('-map', '0:v:0');
             if (audioName) {
                 muxArgs.push('-map', '1:a:0', '-c:a', 'aac', '-b:a', quality.audioBitrate, '-af', 'aresample=async=1:first_pts=0');
