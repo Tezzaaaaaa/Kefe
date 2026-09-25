@@ -3,11 +3,25 @@
    'kefe:audio-analysis-ready') and draws reactive visuals into the
    main canvas during both preview and export.
 
+   Determinism contract: every renderer receives an absolute timestamp
+   derived from the master timeline. No renderer is allowed to read
+   live audio, wall clock or randomness during export. The dispatcher
+   enforces this by:
+     - never calling sampleLive() during an export frame
+     - passing time to every visualiser
+     - forwarding a hard reset signal on backwards time jumps
+
    Modes are selected via state.style.visualiserStyle:
-     pulse    — soft radial glow pulsing with the bass band
-     spectrum — three reactive bars along the bottom
-     waveform — horizontal wave line from the energy curve
-     radial   — slow-rotating radial glow driven by energy
+     ra            — 3D sphere of glowing metal spikes
+     tuffpuff      — WebGL2 fluid simulation
+     ridgeline     — perspective waveform stack
+     butterchurn   — Milkdrop presets via butterchurn
+     matrixmusic   — Matrix Music Visualizer presets
+     audioreactive — audio-reactive shader pack
+     pulse         — soft radial glow (legacy fallback)
+     spectrum      — three reactive bars (legacy fallback)
+     waveform      — horizontal wave line (legacy fallback)
+     radial        — slow-rotating glow (legacy fallback)
 */
 (function(){
   'use strict';
@@ -15,6 +29,29 @@
 
   var analysis = null;
   var maxima = { energy: 1, bass: 1, mids: 1, treble: 1, flux: 1 };
+
+  /* Export lockout: while true, sampleLive() is never used. The export
+     pipeline should call setExportMode(true) before the first frame and
+     setExportMode(false) after the last one. Preview is unaffected. */
+  var exporting = false;
+  function setExportMode(on) {
+    exporting = !!on;
+    if (exporting) resetAllRenderers();
+  }
+  function isExporting() { return exporting; }
+
+  /* Track the last timestamp we rendered at. Used to detect backward
+     time jumps so every stateful visualiser can hard-reset. */
+  var lastDispatchedTime = -1;
+  function resetAllRenderers() {
+    try { window.kefeRidgeline && window.kefeRidgeline.refresh && window.kefeRidgeline.refresh(); } catch (_) {}
+    try { window.kefeTuffPuff && window.kefeTuffPuff.refresh && window.kefeTuffPuff.refresh(); } catch (_) {}
+    try { window.kefeMatrixVisualiser && window.kefeMatrixVisualiser.reset && window.kefeMatrixVisualiser.reset(); } catch (_) {}
+    try { window.kefeAudioReactiveShaders && window.kefeAudioReactiveShaders.reset && window.kefeAudioReactiveShaders.reset(); } catch (_) {}
+    try { window.kefeButterchurn && window.kefeButterchurn.reset && window.kefeButterchurn.reset(); } catch (_) {}
+    resetRa();
+    lastDispatchedTime = -1;
+  }
 
   function ingest(data) {
     if (!data || !Array.isArray(data.energy) || !data.energy.length) return;
@@ -36,10 +73,6 @@
     maxima.bass = maxB || 1;
     maxima.mids = maxM || 1;
     maxima.treble = maxT || 1;
-    // Ridgeline needs a per-track flux ceiling too — spectral flux has no
-    // fixed scale, so an un-normalised value is either invisible or clipped
-    // depending on the track. (pulse/spectrum/waveform never used flux, so
-    // this wasn't tracked before.)
     maxima.flux = maxF || 1;
   }
 
@@ -73,6 +106,7 @@
   }
 
   function sampleLive(audio) {
+    if (exporting) return null;
     var analyser = ensureLiveAudio(audio);
     if (!analyser || !live.freq || !live.wave) return null;
     analyser.getByteFrequencyData(live.freq);
@@ -108,12 +142,13 @@
   function sample(time, source) {
     source = source || analysis;
     if (!source || !source.frameHopMs) return null;
+    if (!Array.isArray(source.energy) || !source.energy.length) return null;
     var hop = source.frameHopMs / 1000;
     var idx = Math.max(0, Math.min(source.energy.length - 1, Math.floor(time / hop)));
     var sum = 0, sumB = 0, sumM = 0, sumT = 0, n = 0;
     for (var k = -1; k <= 1; k++) {
       var i2 = idx + k;
-      if (i2 < 0 || i2 >= analysis.energy.length) continue;
+      if (i2 < 0 || i2 >= source.energy.length) continue;
       sum += source.energy[i2] || 0;
       var b = source.bands && source.bands[i2];
       if (b) {
@@ -131,6 +166,8 @@
       treble: Math.min(1, (sumT / n) / maxima.treble)
     };
   }
+
+  /* ---------- Legacy lightweight modes (kept as fallbacks) ---------- */
 
   function drawPulse(ctx, w, h, time, frame) {
     var intensity = frame ? frame.bass * 0.6 + frame.energy * 0.4 : 0;
@@ -217,14 +254,10 @@
     ctx.restore();
   }
 
-  
   /* ============================================================
-     RA — real 3D sphere of glowing metal spikes.
-     Renders into a hidden WebGL canvas via Three.js, then blits
-     the result into the 2D preview canvas. Inner shells are
-     white-hot, outer shells bronze. Bass breathes, vocals fire
-     random rods out, transients fire scattered clusters.
-     Silence is perfect stillness.
+     RA — 3D sphere of glowing metal spikes.
+     Deterministic: seeded RNG, fixed timestep driven from absolute
+     time, hard reset on backward time jumps. Same time → same frame.
      ============================================================ */
   var ra = {
     renderer: null, scene: null, camera: null,
@@ -232,20 +265,57 @@
     glCanvas: null,
     width: 0, height: 0,
     driftClock: 0, spinClock: 0,
-    lastTime: 0,
+    lastTime: -1,
     ready: false,
-    kickEnv: 0, vocalEnv: 0, transientEnv: 0, energyEnv: 0, bassEnv: 0
+    kickEnv: 0, vocalEnv: 0, transientEnv: 0, energyEnv: 0, bassEnv: 0,
+    spread: undefined,
+    centreLight: null,
+    FIXED_DT: 1 / 60,
+    rngState: 0x1a2b3c4d
   };
 
+  function raSeed(s) { ra.rngState = (s >>> 0) || 1; }
+  function raRng() {
+    ra.rngState = (ra.rngState + 0x6D2B79F5) >>> 0;
+    var t = ra.rngState;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+
   var RA_RAMP = [
-    [1.00, 0.98, 0.78],  // shell 0 (innermost) — white-hot
+    [1.00, 0.98, 0.78],
     [1.00, 0.92, 0.55],
     [1.00, 0.84, 0.32],
     [1.00, 0.72, 0.22],
     [0.92, 0.56, 0.14],
     [0.72, 0.38, 0.10],
-    [0.48, 0.24, 0.06]   // shell 6 (outermost) — deep bronze
+    [0.48, 0.24, 0.06]
   ];
+
+  var _raDummy = null;
+  var _raXAxis = null;
+  var _raTempV = null;
+  var _raTempQ = null;
+  var _raTempQ2 = null;
+
+  function resetRa() {
+    ra.lastTime = -1;
+    ra.driftClock = 0;
+    ra.spinClock = 0;
+    ra.kickEnv = 0;
+    ra.vocalEnv = 0;
+    ra.transientEnv = 0;
+    ra.energyEnv = 0;
+    ra.bassEnv = 0;
+    raSeed(0x1a2b3c4d);
+    for (var i = 0; i < ra.rods.length; i++) {
+      ra.rods[i].spin = raRng() * Math.PI * 2;
+      ra.rods[i].spinSpeed = 0.10 + raRng() * 0.20;
+      ra.rods[i].flare = 0;
+      ra.rods[i].shot = 0;
+    }
+  }
 
   function raInit(w, h){
     if (typeof THREE === 'undefined') {
@@ -253,7 +323,19 @@
       return false;
     }
 
-    // Hidden WebGL canvas — never appended to the DOM
+    if (!_raDummy) {
+      _raDummy = new THREE.Object3D();
+      _raXAxis = new THREE.Vector3(1, 0, 0);
+      _raTempV = new THREE.Vector3();
+      _raTempQ = new THREE.Quaternion();
+      _raTempQ2 = new THREE.Quaternion();
+    }
+
+    if (ra.renderer) {
+      try { ra.renderer.dispose(); } catch (_) {}
+      ra.renderer = null;
+    }
+
     ra.glCanvas = document.createElement('canvas');
     ra.glCanvas.width = w;
     ra.glCanvas.height = h;
@@ -272,24 +354,20 @@
     ra.camera.position.set(0, 0, 22);
     ra.camera.lookAt(0, 0, 0);
 
-    // Lights
     ra.scene.add(new THREE.AmbientLight(0x2a1408, 1.1));
     var key = new THREE.DirectionalLight(0xffe8b0, 1.35); key.position.set(6, 7, 9); ra.scene.add(key);
     var rim = new THREE.DirectionalLight(0xff7a28, 0.75); rim.position.set(-7, -5, -8); ra.scene.add(rim);
     var centre = new THREE.PointLight(0xffffff, 1.6, 26); centre.position.set(0, 0, 0); ra.scene.add(centre);
     ra.centreLight = centre;
 
-    // Tapered rod geometry — sharp at the tip
     var rodGeom = new THREE.CylinderGeometry(0.02, 1.0, 1.0, 7, 1, false);
-    rodGeom.rotateZ(-Math.PI/2);   // +X is the outward axis
+    rodGeom.rotateZ(-Math.PI/2);
 
-    // Build 7 concentric shells with Fibonacci distribution
     var shells = 7;
     var golden = Math.PI * (3 - Math.sqrt(5));
     var perShell = [70, 110, 150, 190, 220, 240, 260];
     var meshes = [];
 
-    // Pre-create an InstancedMesh per shell so we can attach a distinct material
     for (var sh = 0; sh < shells; sh++){
       var ramp = RA_RAMP[sh];
       var mat = new THREE.MeshStandardMaterial({
@@ -309,12 +387,12 @@
     }
     ra.meshes = meshes;
 
-    // Build per-rod metadata
     ra.rods.length = 0;
+    raSeed(0x1a2b3c4d);
     for (var sh = 0; sh < shells; sh++){
       var lT = sh / (shells - 1);
-      var shellR = (0.6 + 2.2 * lT);         // 0.6 inner → 2.8 outer
-      var quietLen = (1.4 - 0.5 * lT);       // inner longer, outer shorter
+      var shellR = (0.6 + 2.2 * lT);
+      var quietLen = (1.4 - 0.5 * lT);
       var n = perShell[sh];
       var phase = sh * golden * 0.5;
       for (var k = 0; k < n; k++){
@@ -332,73 +410,95 @@
           radius: 0.030,
           flare: 0,
           shot: 0,
-          spin: Math.random() * Math.PI * 2,
-          spinSpeed: 0.10 + Math.random() * 0.20
+          spin: raRng() * Math.PI * 2,
+          spinSpeed: 0.10 + raRng() * 0.20
         });
       }
     }
 
     ra.width = w;
     ra.height = h;
-    ra.spread = (ra.spread === undefined ? 1.0 : ra.spread);
     ra.ready = true;
+    ra.lastTime = -1;
     return true;
   }
 
-  var _raDummy = new THREE.Object3D ? new THREE.Object3D() : null;
-  var _raXAxis = new THREE.Vector3 ? new THREE.Vector3(1, 0, 0) : null;
+  function raOpts(appState) {
+    var st = (appState && appState.style) || {};
+    var speedPct = (st.raSpeed !== undefined) ? Number(st.raSpeed) : 30;
+    var speed;
+    if (speedPct <= 30) speed = speedPct / 30;
+    else speed = 1 + ((speedPct - 30) / 70) * 4;
+    return {
+      speed: speed,
+      spread: (st.raSpread !== undefined) ? Number(st.raSpread) : 1.0,
+      reaction: (st.raReaction !== undefined) ? Number(st.raReaction) : 1.0,
+      flare: (st.raFlare !== undefined) ? Number(st.raFlare) : 1.0,
+      breath: (st.raBreath !== undefined) ? Number(st.raBreath) : 1.0,
+      focus: (st.raFocus !== undefined) ? Number(st.raFocus) : 1.0
+    };
+  }
 
   function drawRa(ctx, w, h, time, frame, appState){
     var opts = raOpts(appState);
     if (!ra.ready || ra.width !== w || ra.height !== h || ra.spread !== opts.spread){
       if (!raInit(w, h)) return;
+      ra.spread = opts.spread;
+      resetRa();
     }
     if (!frame) return;
 
-    // Envelope followers
-    var dt = ra.lastTime ? Math.min(0.05, time - ra.lastTime) : 0.016;
-    ra.lastTime = time;
-    ra.kickEnv      += (frame.bass   - ra.kickEnv)      * 0.18;
-    ra.vocalEnv     += (frame.mids   - ra.vocalEnv)     * 0.15;
-    ra.transientEnv += (frame.treble - ra.transientEnv) * 0.20;
-    ra.energyEnv    += (frame.energy - ra.energyEnv)    * 0.12;
-    ra.bassEnv      += (frame.bass   - ra.bassEnv)      * 0.10;
+    if (ra.lastTime < 0 || time < ra.lastTime - 1e-6) {
+      resetRa();
+    }
 
-    // Only advance clock when audio is alive
+    var dt;
+    if (ra.lastTime < 0) {
+      dt = ra.FIXED_DT;
+    } else {
+      dt = Math.max(1e-4, Math.min(0.25, time - ra.lastTime));
+    }
+    ra.lastTime = time;
+    var k = dt / ra.FIXED_DT;
+
+    function env(current, target, alphaRef) {
+      var alpha = 1 - Math.pow(1 - alphaRef, k);
+      return current + (target - current) * alpha;
+    }
+    ra.kickEnv      = env(ra.kickEnv,      frame.bass,   0.18);
+    ra.vocalEnv     = env(ra.vocalEnv,     frame.mids,   0.15);
+    ra.transientEnv = env(ra.transientEnv, frame.treble, 0.20);
+    ra.energyEnv    = env(ra.energyEnv,    frame.energy, 0.12);
+    ra.bassEnv      = env(ra.bassEnv,      frame.bass,   0.10);
+
     var alive = Math.min(1, frame.energy * 6 + frame.bass * 4 + frame.mids * 4);
     ra.driftClock += dt * alive * opts.speed;
     ra.spinClock  += dt * alive * opts.speed;
 
-    var t0 = performance.now() * 0.001;
-    var halfH = 13.2;
-    var aspect = w / h;
+    var stepIndex = Math.floor(time / ra.FIXED_DT);
+    raSeed((0x1a2b3c4d ^ (stepIndex * 2654435761)) >>> 0);
 
-    // Clear per-shell counts
+    var aspect = w / h;
     var counts = new Array(ra.meshes.length).fill(0);
 
     for (var i = 0; i < ra.rods.length; i++){
       var r = ra.rods[i];
 
-      // Per-rod random fire (white noise per frame) — vocals
       var flareTarget = 0;
-      if (Math.random() < ra.vocalEnv * 0.9 * opts.reaction) flareTarget = (0.8 + Math.random() * 1.4) * opts.flare;
+      if (raRng() < ra.vocalEnv * 0.9 * opts.reaction) flareTarget = (0.8 + raRng() * 1.4) * opts.flare;
       r.flare += (flareTarget - r.flare) * 0.22;
 
-      // Per-rod random fire — transients
       var shotTarget = 0;
-      if (ra.transientEnv > 0.05 && Math.random() < ra.transientEnv * 0.7 * opts.reaction){
-        shotTarget = (1.2 + Math.random() * 1.6) * opts.flare;
+      if (ra.transientEnv > 0.05 && raRng() < ra.transientEnv * 0.7 * opts.reaction){
+        shotTarget = (1.2 + raRng() * 1.6) * opts.flare;
       }
       r.shot += (shotTarget - r.shot) * 0.28;
 
-      // Direction (unit)
       var dx = r.nx, dy = r.ny, dz = r.nz;
 
-      // Length
       var breath = 1 + ra.kickEnv * 0.22 * opts.breath + ra.energyEnv * 0.06 * opts.breath;
       var len = (r.quietLen + (r.flare + r.shot) * r.flareLen) * breath * opts.spread;
 
-      // Base radius
       var baseR = r.baseRadius * opts.spread * (1 + ra.bassEnv * 0.15);
 
       var cx = dx * baseR + dx * len * 0.5;
@@ -406,20 +506,20 @@
       var cz = dz * baseR + dz * len * 0.5;
 
       var ci = r.shell;
-      if (ci < ra.meshes.length && counts[ci] < ra.meshes[ci].count + 10000){
+      if (ci < ra.meshes.length){
         _raDummy.position.set(cx, cy, cz);
-        var v = new THREE.Vector3(dx, dy, dz);
-        var qA = new THREE.Quaternion().setFromUnitVectors(_raXAxis, v);
+        _raTempV.set(dx, dy, dz);
+        _raTempQ.setFromUnitVectors(_raXAxis, _raTempV);
         var spin = r.spin + ra.spinClock * r.spinSpeed;
-        var qS = new THREE.Quaternion().setFromAxisAngle(_raXAxis, spin);
-        qA.multiply(qS);
-        _raDummy.quaternion.copy(qA);
+        _raTempQ2.setFromAxisAngle(_raXAxis, spin);
+        _raTempQ.multiply(_raTempQ2);
+        _raDummy.quaternion.copy(_raTempQ);
         _raDummy.scale.set(len, r.radius, r.radius);
         _raDummy.updateMatrix();
 
         var arr = ra.meshes[ci].instanceMatrix.array;
         var o = counts[ci] * 16;
-        for (var m = 0; m < 16; m++) arr[o + m] = _raDummy.matrix.elements[m];
+        for (var mm = 0; mm < 16; mm++) arr[o + mm] = _raDummy.matrix.elements[mm];
 
         var bright = 1 + r.flare * 0.9 + r.shot * 1.4 + ra.energyEnv * 0.6;
         var col = ra.meshes[ci].instanceColor.array;
@@ -430,20 +530,17 @@
       }
     }
 
-    // Push counts and flag updates
     for (var k2 = 0; k2 < ra.meshes.length; k2++){
       ra.meshes[k2].count = counts[k2];
       ra.meshes[k2].instanceMatrix.needsUpdate = true;
       ra.meshes[k2].instanceColor.needsUpdate = true;
     }
 
-    // Center light pulses with audio
     if (ra.centreLight){
       ra.centreLight.intensity = 1.6 + ra.bassEnv * 6 + ra.kickEnv * 8;
     }
 
-    // Slow camera orbit
-    var t = time * 0.00006;
+    var t = time * 0.06;
     var camDist = 22 * Math.max(1, opts.spread);
     ra.camera.position.set(Math.sin(t)*camDist, Math.cos(t*0.6)*camDist*0.45, Math.cos(t)*camDist);
     ra.camera.lookAt(0, 0, 0);
@@ -452,30 +549,14 @@
 
     ra.renderer.render(ra.scene, ra.camera);
 
-    // Blit the WebGL canvas into the 2D preview canvas.
-    // globalCompositeOperation = 'lighter' lets it layer over the background.
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     ctx.drawImage(ra.glCanvas, 0, 0, w, h);
     ctx.restore();
   }
 
-  function raOpts(appState) {
-    var st = (appState && appState.style) || {};
-    // Speed slider: 0 → frozen, 30 → baseline, 100 → 5x
-    var speedPct = (st.raSpeed !== undefined) ? Number(st.raSpeed) : 30;
-    var speed;
-    if (speedPct <= 30) speed = speedPct / 30;
-    else speed = 1 + ((speedPct - 30) / 70) * 4;  // 1 → 5
-    return {
-      speed: speed,
-      spread: (st.raSpread !== undefined) ? Number(st.raSpread) : 1.0,
-      reaction: (st.raReaction !== undefined) ? Number(st.raReaction) : 1.0,
-      flare: (st.raFlare !== undefined) ? Number(st.raFlare) : 1.0,
-      breath: (st.raBreath !== undefined) ? Number(st.raBreath) : 1.0,
-      focus: (st.raFocus !== undefined) ? Number(st.raFocus) : 1.0
-    };
-  }
+  /* ---------- Delegating wrappers ---------- */
+
   function drawTuffPuff(ctx, w, h, time, frame, appState){
     if (!window.kefeTuffPuff) return;
     try { window.kefeTuffPuff.draw(ctx, w, h, time, frame, appState); }
@@ -484,21 +565,20 @@
 
   function drawAudioReactiveShaders(ctx, w, h, time, frame, appState){
     if (!window.kefeAudioReactiveShaders) return;
-    try { window.kefeAudioReactiveShaders.draw(ctx, w, h); }
+    try { window.kefeAudioReactiveShaders.draw(ctx, w, h, time, frame, appState); }
     catch(e){ console.warn('[KEFE Audio Reactive Shaders]', e); }
   }
 
   function drawMatrixMusic(ctx, w, h, time, frame, appState){
     if (!window.kefeMatrixVisualiser) return;
-    try { window.kefeMatrixVisualiser.draw(ctx, w, h); }
+    try { window.kefeMatrixVisualiser.draw(ctx, w, h, time, frame, appState); }
     catch(e){ console.warn('[KEFE Matrix Music]', e); }
   }
 
   function drawButterchurn(ctx, w, h, time, frame, appState){
     if (!window.kefeButterchurn) return;
-    try {
-      window.kefeButterchurn.draw(ctx, w, h, time, appState);
-    } catch(e){ console.warn('[KEFE butterchurn]', e); }
+    try { window.kefeButterchurn.draw(ctx, w, h, time, appState); }
+    catch(e){ console.warn('[KEFE butterchurn]', e); }
   }
 
   function drawRidgeline(ctx, w, h, time, frame, appState){
@@ -507,15 +587,34 @@
     catch(e){ console.warn('[KEFE ridgeline]', e); }
   }
 
-  // Visualiser modes. The legacy pulse/spectrum/waveform/radial renderers
-  // remain available as fallbacks; the picker exposes the production modes.
-  var MODES = { ra: drawRa, tuffpuff: drawTuffPuff, ridgeline: drawRidgeline, butterchurn: drawButterchurn, matrixmusic: drawMatrixMusic, audioreactive: drawAudioReactiveShaders };
+  var MODES = {
+    ra: drawRa,
+    tuffpuff: drawTuffPuff,
+    ridgeline: drawRidgeline,
+    butterchurn: drawButterchurn,
+    matrixmusic: drawMatrixMusic,
+    audioreactive: drawAudioReactiveShaders,
+    pulse: drawPulse,
+    spectrum: drawSpectrum,
+    waveform: drawWaveform,
+    radial: drawRadial
+  };
 
   function draw(ctx, w, h, time, appState, audioOverride, analysisOverride) {
     var mode = (appState && appState.style && appState.style.visualiserStyle) || 'pulse';
     var fn = MODES[mode] || drawPulse;
-    var frame = analysisOverride ? sample(time, analysisOverride) : sample(time);
-    if (!frame && audioOverride && !audioOverride.paused) frame = sampleLive(audioOverride);
+
+    if (lastDispatchedTime >= 0 && time < lastDispatchedTime - 1e-6) {
+      resetAllRenderers();
+    }
+    lastDispatchedTime = time;
+
+    var frame = sample(time, analysisOverride);
+    if (!frame && !exporting && audioOverride && !audioOverride.paused) {
+      frame = sampleLive(audioOverride);
+    }
+    if (!frame && exporting) return;
+
     try { fn(ctx, w, h, time, frame, appState); }
     catch (e) { console.warn('[KEFE visualiser]', e); }
   }
@@ -523,14 +622,17 @@
   function refreshRa(){ ra.ready = false; }
 
   window.kefeVisualiser = {
+    version: 2,
     draw: draw,
     refreshRa: refreshRa,
+    reset: resetAllRenderers,
+    setExportMode: setExportMode,
+    isExporting: isExporting,
     get data() { return analysis; },
     get maxima() { return maxima; },
     get modes() { return Object.keys(MODES); },
     ingest: ingest,
-    liveSample: sampleLive
-  ,
+    liveSample: sampleLive,
     ridgeline: function(ctx, w, h, time, frame, appState) {
       if (window.kefeRidgeline && typeof window.kefeRidgeline.draw === 'function') {
         window.kefeRidgeline.draw(ctx, w, h, time, frame, appState, analysis);
