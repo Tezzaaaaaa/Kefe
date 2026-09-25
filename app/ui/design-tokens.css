@@ -339,11 +339,6 @@ header {
 
 /* Aspect ratio group sits immediately after these and must not move */
 .preview-format,
-.preview-aspect-control {
-  flex: 0 0 auto;
-  margin-left: 0;
-}
-
 /* Right-side transport in its own grid cell, doesn't affect the left */
 .preview-toolbar .transport {
   justify-self: end;
@@ -386,15 +381,7 @@ header {
 
 /* Aspect pills: same look as the existing preview-format, but pinned */
 .kefe-preview-corner .preview-format,
-.kefe-preview-corner .preview-aspect-control {
-  margin-left: 0 !important;
-  flex: 0 0 auto;
-  height: var(--h-control);
-  box-sizing: border-box;
-  align-items: center;
-}
-
-/* Fullscreen button: same size as the pills' height for a clean row */
+.kefe-preview-corner /* Fullscreen button: same size as the pills' height for a clean row */
 .kefe-preview-corner .preview-focus-button,
 .kefe-preview-corner #previewFocusButton {
   width: var(--h-control);
