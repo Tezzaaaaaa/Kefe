@@ -89,12 +89,20 @@
 
   function collectPresets() {
     var combined = {};
-    var candidates = [window.base, window.butterchurnPresets, window.extra, window.butterchurnPresetsExtra];
+    var candidates = [window.butterchurnPresets, window.butterchurnPresetsExtra, window.base, window.extra];
     for (var i = 0; i < candidates.length; i++) {
       var c = candidates[i];
       if (!c) continue;
-      var source = (c.default && typeof c.default === 'object') ? c.default : c;
-      if (source && typeof source === 'object' && !Array.isArray(source)) Object.assign(combined, source);
+      var source = c;
+      if (typeof source === 'function') {
+        try { source = source(); } catch (_) {}
+      }
+      if (source && source.default && typeof source.default === 'object') {
+        source = source.default;
+      }
+      if (source && typeof source === 'object' && !Array.isArray(source)) {
+        Object.assign(combined, source);
+      }
     }
     var names = Object.keys(combined)
       .filter(function (n) { return combined[n] && typeof combined[n] === 'object'; })
