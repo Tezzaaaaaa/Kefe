@@ -280,3 +280,20 @@ KEFE Visualiser is actively developed and the `main` branch is the current produ
 The current codebase includes the functioning editor, three guided creation pathways, media and metadata handling, lyric and caption workflows, 11 registered lyric renderers, backgrounds, post-render Visual FX, project files, local MP4 export, automated repository checks, and a separate Node backend architecture.
 
 Current development is focused on reliability, cleanup, security hardening, browser/device compatibility, and continued refinement of the functioning tool rather than establishing the basic editor architecture.
+
+
+## Branding and visual identifiers
+
+KEFE's canonical branding assets are maintained under `assets/branding/`.
+
+- `kefe-logo.svg` — primary KEFE wordmark.
+- `kefe-logo-light.svg` — light wordmark used by the dark application header.
+- `kefe-logo-full.svg` — full KEFE Visualiser lockup.
+- `/favicon.svg` — browser/site icon.
+- `play-button` — primary playback control.
+- `icon-button` — standard secondary icon control.
+- `brand-logo` / `brand-logo-night` — application logo identifiers.
+
+The canonical KEFE accent red is `#EF3F38`, exposed to the UI through the shared `--red` token. The logo's red play/arrow mark and primary playback button use the same brand red.
+
+See `assets/branding/README.md` for the branding source of truth and `assets/repository-icons/README.md` for repository icon/identifier semantics.
