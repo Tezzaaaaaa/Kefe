@@ -88,6 +88,19 @@
   }
 
   function collectPresets() {
+    try {
+      var bcGlobal = window.butterchurnPresets;
+      var bcExtra = window.butterchurnPresetsExtra;
+      var bcResult = null;
+      var bcErr = null;
+      if (typeof bcGlobal === 'function') {
+        try { bcResult = bcGlobal(); } catch (e) { bcErr = e && e.message; }
+      }
+      console.log('[KEFE bc] globals:', typeof bcGlobal, typeof bcExtra, 'factoryResult:', typeof bcResult, 'resultKeys:', bcResult && typeof bcResult === 'object' ? Object.keys(bcResult).length : 'n/a', 'error:', bcErr);
+    } catch (e) {
+      console.log('[KEFE bc] diagnostic threw:', e && e.message);
+    }
+
     var combined = {};
     var candidates = [window.butterchurnPresets, window.butterchurnPresetsExtra, window.base, window.extra];
     for (var i = 0; i < candidates.length; i++) {
