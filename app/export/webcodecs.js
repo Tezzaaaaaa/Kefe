@@ -232,15 +232,7 @@ export async function exportVideoWebCodecs({
                     start: 0,
                     end: masterDuration
                 },
-                tags: {
-                    title:
-                        state?.audio?.metadata?.title ||
-                        undefined,
-                    artist:
-                        state?.audio?.metadata?.artist ||
-                        undefined
-                }
-            });
+});
 
         if (!conversion.isValid) {
             throw new Error(
