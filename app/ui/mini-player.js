@@ -1,16 +1,4 @@
-/* KEFE MiniPlayer — compact iPod docked bottom-right, in shadow DOM.
-
-   The MiniPlayer is a second view of the main editor's player. It reads
-   title/artist/album/artwork from window.state.audio and window.kefeAlbumArt,
-   and plays the same audio URL.
-
-   iOS AUDIO CONTEXT NOTE
-   ----------------------
-   Butterchurn needs a running AudioContext to read frequency data, and
-   iOS Safari only lets AudioContext.resume() run inside a user gesture.
-   So open() and setDisplayMode() call kefeButterchurn.primeMiniAudio()
-   synchronously in their click handlers.
-*/
+/* KEFE MiniPlayer — compact iPod docked bottom-right, in shadow DOM. */
 (() => {
   'use strict';
   if (window.kefeIpodPlayer) return;
@@ -21,6 +9,9 @@
 .ipod.is-hidden{display:none}
 .screen{position:relative;width:100%;flex:0 0 46%;border-radius:6px;background:linear-gradient(180deg,#0a1424 0%,#061020 100%);box-shadow:0 0 0 2px #1a1a1e,0 0 0 3px #2a2a30,0 3px 8px rgba(0,0,0,.6) inset;overflow:hidden;padding:8px 9px;display:flex;flex-direction:column;cursor:pointer}
 .screen::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 70% at 80% -10%,rgba(90,140,200,.35),transparent 55%)}
+.screen.is-vis{padding:0}
+.screen.is-vis::before{display:none}
+.screen.is-vis .statusbar,.screen.is-vis .main,.screen.is-vis .bottom-row,.screen.is-vis .time-row,.screen.is-vis .progress{display:none}
 .canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .3s;background:#000}
 .screen.is-vis .canvas{opacity:1}
 .screen.is-vis .art-wrap{opacity:0}
@@ -118,10 +109,11 @@
   const ctx = dom.canvas.getContext('2d', { alpha: false });
   let mode = 'art';
   let rafId = 0;
+  let lastDrawTime = 0;
   let lastW = 0, lastH = 0;
   let miniPlayerVisualiser = null;
-  let lastSyncedUrl = '';
   let audioBound = false;
+  const TARGET_FRAME_MS = 1000 / 60;
 
   const fmt = t => {
     const n = Math.max(0, Number(t) || 0);
@@ -144,8 +136,7 @@
 
   function getArtworkSrc() {
     const img = window.kefeAlbumArt;
-    if (img && img.src) return img.src;
-    return '';
+    return (img && img.src) ? img.src : '';
   }
 
   function syncClock() {
@@ -156,9 +147,7 @@
 
   function syncMeta() {
     const main = getMainEditorMeta();
-    const hasMedia = Boolean(main.file);
-
-    if (hasMedia) {
+    if (main.file) {
       dom.title.textContent = main.title || 'Untitled';
       dom.artist.textContent = main.artist || '';
       dom.album.textContent = main.album || '';
@@ -167,7 +156,6 @@
       dom.artist.textContent = 'Nothing queued';
       dom.album.textContent = '';
     }
-
     const artSrc = getArtworkSrc();
     dom.art.style.backgroundImage = artSrc ? `url("${artSrc}")` : '';
   }
@@ -193,21 +181,15 @@
     const w = Math.max(1, Math.round(rect.width * dpr));
     const h = Math.max(1, Math.round(rect.height * dpr));
     if (w !== lastW || h !== lastH) {
-      dom.canvas.width = w;
-      dom.canvas.height = h;
-      lastW = w;
-      lastH = h;
+      dom.canvas.width = w; dom.canvas.height = h;
+      lastW = w; lastH = h;
     }
   }
 
   function drawStatusText(line1, line2) {
-    const w = dom.canvas.width;
-    const h = dom.canvas.height;
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = '#e8ecf5';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    const w = dom.canvas.width, h = dom.canvas.height;
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#e8ecf5'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const size1 = Math.max(14, Math.round(w * 0.075));
     ctx.font = `600 ${size1}px -apple-system, system-ui, sans-serif`;
     ctx.fillText(line1, w / 2, h / 2 - size1 * 0.7);
@@ -221,12 +203,8 @@
       let current = '';
       for (const word of words) {
         const test = current ? current + ' ' + word : word;
-        if (ctx.measureText(test).width > maxWidth && current) {
-          lines.push(current);
-          current = word;
-        } else {
-          current = test;
-        }
+        if (ctx.measureText(test).width > maxWidth && current) { lines.push(current); current = word; }
+        else current = test;
       }
       if (current) lines.push(current);
       for (let i = 0; i < Math.min(lines.length, 3); i++) {
@@ -235,60 +213,40 @@
     }
   }
 
-  function drawFrame() {
+  function drawFrame(now) {
     rafId = requestAnimationFrame(drawFrame);
     if (shell.classList.contains('is-hidden')) return;
     if (mode !== 'visualiser') return;
+    if (now - lastDrawTime < TARGET_FRAME_MS - 1) return;
+    lastDrawTime = now;
 
     resizeCanvas();
     const style = miniPlayerVisualiser || 'butterchurn';
 
     if (style === 'butterchurn') {
       const bc = window.kefeButterchurn;
-      if (!bc) {
-        drawStatusText('Butterchurn not loaded', 'visualiser-butterchurn.js did not run');
-        return;
-      }
-      if (bc.lastError) {
-        drawStatusText('Butterchurn failed', bc.lastError);
-        return;
-      }
-      if (!bc.ready) {
-        drawStatusText('Loading Butterchurn…', 'First load takes a few seconds');
-        return;
-      }
+      if (!bc) { drawStatusText('Butterchurn not loaded', ''); return; }
+      if (bc.lastError) { drawStatusText('Butterchurn failed', bc.lastError); return; }
+      if (!bc.ready) { drawStatusText('Loading Butterchurn…', 'First load takes a few seconds'); return; }
       try {
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, dom.canvas.width, dom.canvas.height);
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, dom.canvas.width, dom.canvas.height);
         bc.drawMini(ctx, dom.canvas.width, dom.canvas.height, audio.currentTime || 0, window.state, audio);
-      } catch (e) {
-        drawStatusText('Draw failed', String(e && e.message || e));
-      }
+      } catch (e) { drawStatusText('Draw failed', String(e && e.message || e)); }
       return;
     }
 
     try {
-      ctx.fillStyle = '#000';
-      ctx.fillRect(0, 0, dom.canvas.width, dom.canvas.height);
-
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, dom.canvas.width, dom.canvas.height);
       if (style === 'matrixmusic' && window.kefeMatrixVisualiser) {
-        if (!window.kefeMatrixVisualiser.isReady || !window.kefeMatrixVisualiser.isReady()) {
-          drawStatusText('Loading Matrix…', '');
-          return;
-        }
+        if (!window.kefeMatrixVisualiser.isReady || !window.kefeMatrixVisualiser.isReady()) { drawStatusText('Loading Matrix…', ''); return; }
         window.kefeMatrixVisualiser.draw(ctx, dom.canvas.width, dom.canvas.height, audio.currentTime || 0);
       } else if (style === 'audioreactive' && window.kefeAudioReactiveShaders) {
-        if (!window.kefeAudioReactiveShaders.isReady || !window.kefeAudioReactiveShaders.isReady()) {
-          drawStatusText('Loading shaders…', '');
-          return;
-        }
+        if (!window.kefeAudioReactiveShaders.isReady || !window.kefeAudioReactiveShaders.isReady()) { drawStatusText('Loading shaders…', ''); return; }
         window.kefeAudioReactiveShaders.draw(ctx, dom.canvas.width, dom.canvas.height, audio.currentTime || 0);
       } else {
         drawStatusText('Visualiser unavailable', style);
       }
-    } catch (e) {
-      drawStatusText('Draw error', String(e && e.message || e));
-    }
+    } catch (e) { drawStatusText('Draw error', String(e && e.message || e)); }
   }
 
   function setDisplayMode(next) {
@@ -296,17 +254,50 @@
     dom.screen.classList.toggle('is-vis', mode === 'visualiser');
     dom.mode.textContent = mode === 'visualiser' ? 'Vis' : 'Music';
     if (mode === 'visualiser') {
-      // Prime the Butterchurn AudioContext inside this user gesture.
       try { window.kefeButterchurn?.primeMiniAudio?.(audio); } catch (_) {}
       resizeCanvas();
+      lastDrawTime = 0;
       if (!rafId) rafId = requestAnimationFrame(drawFrame);
+    }
+  }
+
+  function currentGroup() { return miniPlayerVisualiser || 'butterchurn'; }
+
+  function cyclePreset(direction) {
+    const group = currentGroup();
+    let names = [], currentKey = '';
+    if (group === 'butterchurn') {
+      names = window.kefeButterchurn?.presetNames?.() || [];
+      currentKey = (window.state?.style?.butterchurnPreset) || '';
+    } else if (group === 'matrixmusic') {
+      names = (window.kefeMatrixVisualiser?.presetRecords?.() || []).map(r => r.id);
+      currentKey = (window.state?.style?.matrixMusicPreset) || '';
+    } else if (group === 'audioreactive') {
+      names = (window.kefeAudioReactiveShaders?.presetNames?.() || []).map((_, i) => String(i));
+      const cur = window.state?.style?.audioReactiveShaderPreset;
+      currentKey = (cur === undefined || cur === null) ? '' : String(cur);
+    }
+    if (!names.length) return;
+    let idx = names.indexOf(currentKey);
+    if (idx < 0) idx = 0;
+    idx = (idx + direction + names.length) % names.length;
+    const next = names[idx];
+    if (!window.state) window.state = {};
+    if (!window.state.style) window.state.style = {};
+    if (group === 'butterchurn') window.state.style.butterchurnPreset = next;
+    else if (group === 'matrixmusic') {
+      window.state.style.matrixMusicPreset = next;
+      try { window.kefeMatrixVisualiser?.selectPreset?.(next, dom.canvas.width, dom.canvas.height); } catch (_) {}
+    } else if (group === 'audioreactive') {
+      const n = Number(next) || 0;
+      window.state.style.audioReactiveShaderPreset = n;
+      try { window.kefeAudioReactiveShaders?.selectPreset?.(n, dom.canvas.width, dom.canvas.height); } catch (_) {}
     }
   }
 
   function ensureAudioSource() {
     const main = getMainEditorMeta();
     if (main.url && audio.src !== main.url) {
-      lastSyncedUrl = main.url;
       const wasPlaying = !audio.paused;
       audio.src = main.url;
       if (wasPlaying) audio.play().catch(() => {});
@@ -317,16 +308,10 @@
     ensureAudioSource();
     if (!audio.src) return;
     if (audio.paused) {
-      // Prime in the gesture before play() so iOS unlocks the context.
       try { window.kefeButterchurn?.primeMiniAudio?.(audio); } catch (_) {}
       audio.play().catch(() => {});
-    } else {
-      audio.pause();
-    }
+    } else audio.pause();
   }
-
-  function nextTrack() { /* single-source player — no playlist */ }
-  function prevTrack() { /* single-source player — no playlist */ }
 
   function bindAudioEvents() {
     if (audioBound) return;
@@ -341,67 +326,52 @@
     });
     audio.addEventListener('pause', syncPlayIcon);
     audio.addEventListener('ended', syncPlayIcon);
-
     const main = window.kefeAudioElement;
-    if (main) {
-      main.addEventListener('play', () => {
-        if (!audio.paused) audio.pause();
-      });
-    }
+    if (main) main.addEventListener('play', () => { if (!audio.paused) audio.pause(); });
   }
   bindAudioEvents();
 
   function buildPresets() {
     const bc = window.kefeButterchurn;
+    const bcErr = bc?.lastError || '';
+    const bcReady = !!bc?.ready;
+    const bcNames = bc?.presetNames?.() || [];
+
+    const mmReady = !!window.kefeMatrixVisualiser?.isReady?.();
+    const mmRecords = window.kefeMatrixVisualiser?.presetRecords?.() || [];
+
+    const arReady = !!window.kefeAudioReactiveShaders?.isReady?.();
+    const arNames = window.kefeAudioReactiveShaders?.presetNames?.() || [];
+
     const html = [];
-    let anyItems = false;
-
-    if (bc && bc.lastError) {
-      dom.presetList.innerHTML = `<div class="err">Butterchurn failed:<br>${String(bc.lastError).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>`;
-      return;
-    }
-
-    const groups = [
-      {
-        key: 'butterchurn',
-        label: 'Butterchurn',
-        items: () => (bc?.presetNames?.() || []).map(n => ({
-          value: n,
-          label: String(n).replace(/^[^-]+[-+]\s*/, '').trim()
-        }))
-      },
-      {
-        key: 'matrixmusic',
-        label: 'Matrix',
-        items: () => (window.kefeMatrixVisualiser?.presetRecords?.() || []).map(r => ({
-          value: r.id, label: r.name
-        }))
-      },
-      {
-        key: 'audioreactive',
-        label: 'Shader',
-        items: () => (window.kefeAudioReactiveShaders?.presetNames?.() || []).map((n, i) => ({
-          value: String(i), label: n
-        }))
-      },
-    ];
-
-    for (const g of groups) {
-      const items = g.items();
-      if (!items.length) continue;
-      anyItems = true;
-      html.push(`<optgroup>${g.label}</optgroup>`);
-      for (const it of items) {
-        html.push(`<button type="button" data-kip-preset="${g.key}::${it.value}">${it.label}</button>`);
+    html.push('<optgroup>Butterchurn</optgroup>');
+    if (bcNames.length) {
+      for (const n of bcNames) {
+        const label = String(n).replace(/^[^-]+[-+]\s*/, '').trim();
+        html.push(`<button type="button" data-kip-preset="butterchurn::${n}">${label}</button>`);
       }
+    } else if (bcErr) {
+      html.push(`<div class="err">Failed: ${String(bcErr).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>`);
+    } else {
+      html.push(`<div class="empty">Loading…</div>`);
     }
 
-    if (!anyItems) {
-      const bcReady = bc && bc.ready;
-      dom.presetList.innerHTML = bcReady
-        ? '<div class="empty">No presets available</div>'
-        : '<div class="empty">Presets are still loading…</div>';
-      return;
+    html.push('<optgroup>Matrix</optgroup>');
+    if (mmRecords.length) {
+      for (const r of mmRecords) {
+        html.push(`<button type="button" data-kip-preset="matrixmusic::${r.id}">${r.name}</button>`);
+      }
+    } else {
+      html.push(`<div class="empty">${mmReady ? 'No presets' : 'Loading…'}</div>`);
+    }
+
+    html.push('<optgroup>Shader</optgroup>');
+    if (arNames.length) {
+      arNames.forEach((n, i) => {
+        html.push(`<button type="button" data-kip-preset="audioreactive::${i}">${n}</button>`);
+      });
+    } else {
+      html.push(`<div class="empty">${arReady ? 'No presets' : 'Loading…'}</div>`);
     }
 
     dom.presetList.innerHTML = html.join('');
@@ -414,13 +384,10 @@
     const [group, ...rest] = encoded.split('::');
     const preset = rest.join('::');
     miniPlayerVisualiser = group;
-
     if (!window.state) window.state = {};
     if (!window.state.style) window.state.style = {};
-
-    if (group === 'butterchurn') {
-      window.state.style.butterchurnPreset = preset;
-    } else if (group === 'matrixmusic') {
+    if (group === 'butterchurn') window.state.style.butterchurnPreset = preset;
+    else if (group === 'matrixmusic') {
       window.state.style.matrixMusicPreset = preset;
       try { window.kefeMatrixVisualiser?.selectPreset?.(preset); } catch (_) {}
     } else if (group === 'audioreactive') {
@@ -428,7 +395,6 @@
       window.state.style.audioReactiveShaderPreset = n;
       try { window.kefeAudioReactiveShaders?.selectPreset?.(n); } catch (_) {}
     }
-
     dom.presets.classList.remove('is-open');
     setDisplayMode('visualiser');
   }
@@ -442,17 +408,12 @@
   function open() {
     shell.classList.remove('is-hidden');
     ensureAudioSource();
-    syncMeta();
-    syncProgress();
-    syncPlayIcon();
+    syncMeta(); syncProgress(); syncPlayIcon();
     preloadVisualisers();
-    // Prime the Butterchurn AudioContext inside this user gesture.
     try { window.kefeButterchurn?.primeMiniAudio?.(audio); } catch (_) {}
-
-    if (dom.presets.classList.contains('is-open')) buildPresets();
-
     if (mode === 'visualiser') {
       resizeCanvas();
+      lastDrawTime = 0;
       if (!rafId) rafId = requestAnimationFrame(drawFrame);
     }
   }
@@ -472,10 +433,9 @@
   });
   dom.play.addEventListener('click', togglePlayback);
   dom.center.addEventListener('click', togglePlayback);
-  dom.prev.addEventListener('click', prevTrack);
-  dom.next.addEventListener('click', nextTrack);
+  dom.next.addEventListener('click', () => { if (mode === 'visualiser') cyclePreset(1); });
+  dom.prev.addEventListener('click', () => { if (mode === 'visualiser') cyclePreset(-1); });
   dom.close.addEventListener('click', close);
-
   dom.menu.addEventListener('click', () => {
     buildPresets();
     dom.presets.classList.toggle('is-open');
@@ -483,32 +443,28 @@
 
   window.addEventListener('resize', () => { if (mode === 'visualiser') resizeCanvas(); });
 
+  // Poll while the menu is open so loading states update.
+  setInterval(() => {
+    if (dom.presets.classList.contains('is-open')) {
+      buildPresets();
+    }
+  }, 1500);
+
   let lastMetaSignature = '';
   setInterval(() => {
     if (shell.classList.contains('is-hidden')) return;
-
     const main = getMainEditorMeta();
     const sig = `${main.title}|${main.artist}|${main.album}|${main.file?.name || ''}|${getArtworkSrc()}`;
     if (sig !== lastMetaSignature) {
       lastMetaSignature = sig;
-      syncMeta();
-      ensureAudioSource();
-    }
-
-    if (dom.presets.classList.contains('is-open')) {
-      const bc = window.kefeButterchurn;
-      const want = bc?.ready ? 'ready' : bc?.lastError ? 'error' : 'loading';
-      if (dom.presetList.dataset.lastState !== want) {
-        dom.presetList.dataset.lastState = want;
-        buildPresets();
-      }
+      syncMeta(); ensureAudioSource();
     }
   }, 800);
 
   syncClock();
   setInterval(syncClock, 30_000);
 
-  window.kefeIpodPlayer = { version: 11, open, close, setDisplayMode };
+  window.kefeIpodPlayer = { version: 14, open, close, setDisplayMode };
 
   const trigger = document.getElementById('miniPlayerBtn') || document.getElementById('ipodPlayerBtn');
   if (trigger) trigger.addEventListener('click', open);
