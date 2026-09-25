@@ -51,7 +51,7 @@ await new Promise((resolve, reject) => {
   server.listen(port, '127.0.0.1');
 });
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, channel: 'chrome' });
 const errors = [];
 
 async function boot(page) {
