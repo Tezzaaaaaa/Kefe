@@ -4,6 +4,9 @@
    dispatcher in visualiser-beat.js can blit the result into Kefe's
    preview canvas.
 
+   Deterministic for export: fixed 60 Hz timestep, seeded RNG, full
+   reset when time goes backward. Same time → same frame.
+
    Ported from TuffPuff.html (fork of Pavel Dobryakov, MIT).
 */
 (function(){
@@ -22,6 +25,13 @@
   var START_HUE = 0.5;
   var END_HUE = 1.0;
 
+  /* Fixed simulation clock. Preview and export both advance the sim in
+     whole steps of this size, so the state at time T is always the same
+     regardless of how the renderer was driven. */
+  var FIXED_DT = 1 / 60;
+  /* Seed for the RNG. Same seed + same step count = same splats. */
+  var SIM_SEED = 0x9e3779b9;
+
   var canvas = null, gl = null;
   var W = 0, H = 0;
   var dye = null, velocity = null, divergence = null, curl = null, pressure = null;
@@ -36,6 +46,17 @@
     viscosity: 1.0,
     burst: 1.0
   };
+
+  /* ---- Seeded RNG (mulberry32). Deterministic across runs. ---- */
+  var rngState = SIM_SEED;
+  function seedRng(s){ rngState = (s >>> 0) || 1; }
+  function rng(){
+    rngState = (rngState + 0x6D2B79F5) >>> 0;
+    var t = rngState;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
 
   var BASE_VS = 'precision highp float;\nattribute vec2 aPosition;\nvarying vec2 vUv; varying vec2 vL; varying vec2 vR; varying vec2 vT; varying vec2 vB;\nuniform vec2 texelSize;\nvoid main(){\n  vUv = aPosition * 0.5 + 0.5;\n  vL = vUv - vec2(texelSize.x, 0.0);\n  vR = vUv + vec2(texelSize.x, 0.0);\n  vT = vUv + vec2(0.0, texelSize.y);\n  vB = vUv - vec2(0.0, texelSize.y);\n  gl_Position = vec4(aPosition, 0.0, 1.0);\n}';
 
@@ -80,7 +101,7 @@
   }
 
   function generateColor() {
-    var hue = Math.random() * (END_HUE - START_HUE) + START_HUE;
+    var hue = rng() * (END_HUE - START_HUE) + START_HUE;
     var c = HSVtoRGB(hue, 1.0, 1.0);
     c.r *= opts.intensity;
     c.g *= opts.intensity;
@@ -146,6 +167,19 @@
       get write() { return b; }, set write(v) { b = v; },
       swap: function() { var t = a; a = b; b = t; }
     };
+  }
+
+  function clearAllFBOs() {
+    if (!gl) return;
+    var targets = [dye.read, dye.write, velocity.read, velocity.write, divergence, curl, pressure.read, pressure.write, sunraysMaskFBO, sunraysFBO];
+    for (var i = 0; i < targets.length; i++) {
+      var t = targets[i];
+      gl.bindFramebuffer(gl.FRAMEBUFFER, t.fbo);
+      gl.viewport(0, 0, t.width, t.height);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
   function initGL(w, h) {
@@ -317,25 +351,39 @@
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 
-  var lastBass = 0, lastTreble = 0, lastDrift = 0;
-  function emit(frame, time) {
-    if (time - lastDrift > 0.05) {
-      lastDrift = time;
+  var simStep = 0;
+  var lastBassStep = -1000, lastTrebleStep = -1000, lastDriftStep = -1000;
+
+  function resetSimState(){
+    simStep = 0;
+    lastBassStep = -1000;
+    lastTrebleStep = -1000;
+    lastDriftStep = -1000;
+    seedRng(SIM_SEED);
+    clearAllFBOs();
+  }
+
+  function emit(time, frame) {
+    var stepNow = simStep;
+    var stepSec = stepNow * FIXED_DT;
+
+    if (stepNow - lastDriftStep >= Math.round(0.05 / FIXED_DT)) {
+      lastDriftStep = stepNow;
       var pathSpeed = 0.85 * opts.speed;
       var ax = 0.34, ay = 0.30;
-      var sx = 0.5 + Math.sin(time * pathSpeed) * ax;
-      var sy = 0.5 + Math.cos(time * pathSpeed * 0.73) * ay;
-      var vx =  Math.cos(time * pathSpeed) * ax * pathSpeed;
-      var vy = -Math.sin(time * pathSpeed * 0.73) * ay * pathSpeed * 0.73;
+      var sx = 0.5 + Math.sin(stepSec * pathSpeed) * ax;
+      var sy = 0.5 + Math.cos(stepSec * pathSpeed * 0.73) * ay;
+      var vx =  Math.cos(stepSec * pathSpeed) * ax * pathSpeed;
+      var vy = -Math.sin(stepSec * pathSpeed * 0.73) * ay * pathSpeed * 0.73;
       var col = generateColor();
       var force = (SPLAT_FORCE * (0.3 + frame.energy * 0.7) * 0.35) * opts.force;
       splat(sx, sy, vx * force, vy * force, col, 1.0);
     }
-    if (frame.bass > 0.60 && time - lastBass > 0.55) {
-      lastBass = time;
+    if (frame.bass > 0.60 && stepNow - lastBassStep >= Math.round(0.55 / FIXED_DT)) {
+      lastBassStep = stepNow;
       var col2 = generateColor();
-      var px = -0.15 + Math.random() * 1.3;
-      var py = -0.15 + Math.random() * 1.3;
+      var px = -0.15 + rng() * 1.3;
+      var py = -0.15 + rng() * 1.3;
       var ox = px - 0.5;
       var oy = py - 0.5;
       var od = Math.hypot(ox, oy) + 0.001;
@@ -347,21 +395,19 @@
       var force2 = SPLAT_FORCE * (0.5 + frame.energy * 0.8) * opts.force;
       splat(px, py, dx * force2, dy * force2, col2, 1.2);
     }
-    if (frame.treble > 0.40 * (2 - opts.burst) && time - lastTreble > 0.55) {
-      lastTreble = time;
-      var n = 1 + Math.floor(Math.random() * 2 * opts.burst);
+    if (frame.treble > 0.40 * (2 - opts.burst) && stepNow - lastTrebleStep >= Math.round(0.55 / FIXED_DT)) {
+      lastTrebleStep = stepNow;
+      var n = 1 + Math.floor(rng() * 2 * opts.burst);
       for (var i = 0; i < n; i++) {
-        var px2 = -0.1 + Math.random() * 1.2;
-        var py2 = -0.1 + Math.random() * 1.2;
-        var ang = Math.random() * Math.PI * 2;
+        var px2 = -0.1 + rng() * 1.2;
+        var py2 = -0.1 + rng() * 1.2;
+        var ang = rng() * Math.PI * 2;
         var col3 = generateColor();
-        var force3 = SPLAT_FORCE * (0.2 + Math.random() * 0.35) * opts.force;
+        var force3 = SPLAT_FORCE * (0.2 + rng() * 0.35) * opts.force;
         splat(px2, py2, Math.cos(ang) * force3, Math.sin(ang) * force3, col3, 0.5);
       }
     }
   }
-
-  var startT = 0, lastFrameT = 0;
 
   function readOpts(appState) {
     var st = (appState && appState.style) || {};
@@ -373,23 +419,38 @@
     opts.burst     = (st.tpBurst     !== undefined) ? Number(st.tpBurst)     : 1.0;
   }
 
+  var lastRenderTime = -1;
+
   function draw(ctx, w, h, time, frame, appState) {
     if (!ready || W !== w || H !== h) {
       if (!initGL(w, h)) return;
-      startT = time;
-      lastFrameT = time;
+      resetSimState();
+      lastRenderTime = -1;
     }
     if (!frame) return;
+
+    if (lastRenderTime < 0 || time < lastRenderTime - 1e-6) {
+      resetSimState();
+      lastRenderTime = time;
+    }
+
     readOpts(appState);
 
-    if (startT === 0) startT = time;
-    var t = time - startT;
-    var rawDt = lastFrameT ? Math.min(0.05, time - lastFrameT) : 0.016;
-    lastFrameT = time;
-    var dt = rawDt * opts.speed;
+    var targetStep = Math.floor(time / FIXED_DT);
+    var steps = targetStep - simStep;
+    var maxStepsPerCall = 240;
+    if (steps > maxStepsPerCall) {
+      resetSimState();
+      lastRenderTime = time;
+      steps = 0;
+    }
+    for (var i = 0; i < steps; i++) {
+      simStep++;
+      emit(time, frame);
+      stepFluid(FIXED_DT * opts.speed);
+    }
+    lastRenderTime = time;
 
-    emit(frame, t);
-    stepFluid(dt);
     renderSunrays();
     displayFluid();
 
@@ -401,9 +462,11 @@
 
   function refresh() {
     ready = false;
+    lastRenderTime = -1;
   }
 
   window.kefeTuffPuff = {
+    version: 2,
     draw: draw,
     refresh: refresh
   };
