@@ -2,13 +2,14 @@
 
    The MiniPlayer is a second view of the main editor's player. It reads
    title/artist/album/artwork from window.state.audio and window.kefeAlbumArt,
-   and plays the same audio URL. No separate playlist, no filename parsing.
+   and plays the same audio URL.
 
-   It uses its own <audio> element because Butterchurn claims the main one
-   via createMediaElementSource() — that call can only happen once per element.
-
-   Visualiser loading failures render into the canvas as text, because there
-   is no console on iPhone.
+   iOS AUDIO CONTEXT NOTE
+   ----------------------
+   Butterchurn needs a running AudioContext to read frequency data, and
+   iOS Safari only lets AudioContext.resume() run inside a user gesture.
+   So open() and setDisplayMode() call kefeButterchurn.primeMiniAudio()
+   synchronously in their click handlers.
 */
 (() => {
   'use strict';
@@ -295,6 +296,8 @@
     dom.screen.classList.toggle('is-vis', mode === 'visualiser');
     dom.mode.textContent = mode === 'visualiser' ? 'Vis' : 'Music';
     if (mode === 'visualiser') {
+      // Prime the Butterchurn AudioContext inside this user gesture.
+      try { window.kefeButterchurn?.primeMiniAudio?.(audio); } catch (_) {}
       resizeCanvas();
       if (!rafId) rafId = requestAnimationFrame(drawFrame);
     }
@@ -313,8 +316,13 @@
   function togglePlayback() {
     ensureAudioSource();
     if (!audio.src) return;
-    if (audio.paused) audio.play().catch(() => {});
-    else audio.pause();
+    if (audio.paused) {
+      // Prime in the gesture before play() so iOS unlocks the context.
+      try { window.kefeButterchurn?.primeMiniAudio?.(audio); } catch (_) {}
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
   }
 
   function nextTrack() { /* single-source player — no playlist */ }
@@ -438,6 +446,8 @@
     syncProgress();
     syncPlayIcon();
     preloadVisualisers();
+    // Prime the Butterchurn AudioContext inside this user gesture.
+    try { window.kefeButterchurn?.primeMiniAudio?.(audio); } catch (_) {}
 
     if (dom.presets.classList.contains('is-open')) buildPresets();
 
@@ -498,7 +508,7 @@
   syncClock();
   setInterval(syncClock, 30_000);
 
-  window.kefeIpodPlayer = { version: 10, open, close, setDisplayMode };
+  window.kefeIpodPlayer = { version: 11, open, close, setDisplayMode };
 
   const trigger = document.getElementById('miniPlayerBtn') || document.getElementById('ipodPlayerBtn');
   if (trigger) trigger.addEventListener('click', open);
