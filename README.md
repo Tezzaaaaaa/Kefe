@@ -28,7 +28,7 @@ A video can provide the master audio/timing source when it contains audio; the a
 The editor is organised around five production sections:
 
 1. **Media** — audio/video input, metadata, source selection, and upload status.
-2. **Format** — aspect ratio, output presets, project save/open, and export.
+2. **Format** — aspect ratio, output presets, and export.
 3. **Lyrics & Captions** — lyrics, captions, timing, and text styling.
 4. **Background** — built-in backgrounds plus custom image/video media.
 5. **Visual FX** — post-render effects applied independently of the primary lyric renderer.
