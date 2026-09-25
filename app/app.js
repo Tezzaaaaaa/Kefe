@@ -65,7 +65,6 @@ let albumArtworkURL = null;
 let mediaTagsLoadPromise = null;
 let audioLoadToken = 0;
 let backgroundLoadToken = 0;
-let pendingProjectMetadata = null;
 let exportClockTime = null;
 let renderLoopId = null;
 var isExporting = false;
@@ -2449,10 +2448,8 @@ function handleAudioFile(file) {
     // Uploading audio is an explicit user action — route master to it.
     if (state.audioSource) { state.audioSource.master = "uploaded"; state.audioSource.userChosen = false; }
     const parsedMeta = songFromFilename(file.name);
-    const usingProjectMetadata = Boolean(pendingProjectMetadata);
-    state.audio.metadata = pendingProjectMetadata || { title: parsedMeta.track || '', artist: parsedMeta.artist || '', album: '' };
-    pendingProjectMetadata = null;
-    state.audio.metadataSource = usingProjectMetadata ? 'project' : 'filename';
+    state.audio.metadata = { title: parsedMeta.track || '', artist: parsedMeta.artist || '', album: '' };
+    state.audio.metadataSource = 'filename';
     if (replacingAudio) {
         state.lyrics.lines = [];
         state.lyrics.plainText = '';
@@ -2680,106 +2677,6 @@ $('backgroundColor').addEventListener('input', function() {
     if (!media.image && !media.video) state.background.type = 'solid';
     redrawCurrentPreviewFrame();
 });
-
-function serialiseProject() {
-    return {
-        format: 'KEFE Visualiser Project', version: 1, savedAt: new Date().toISOString(),
-        metadata: { ...state.audio.metadata }, lyrics: state.lyrics.lines,
-        lyricsSource: $('lyricsText').value || '', style: { ...state.style },
-        background: { solid: state.background.solid, dim: state.background.dim, blur: state.background.blur },
-        masterAudio: state.audioSource.master,
-        textMode: state.captions.mode,
-        captions: sanitiseProjectLyrics(state.captions.lines),
-        lyricsOffset: Number(state.lyricsOffset) || 0,
-        aspect: state.aspect,
-        projectType: state.projectType,
-        captionStyle: { ...state.captionStyle }
-    };
-}
-function sanitiseProjectLyrics(lines) {
-    if (!Array.isArray(lines) || lines.length > 10000) return [];
-    return lines.map(line => {
-        const time = Number(line?.time), endTime = Number(line?.endTime);
-        if (!Number.isFinite(time) || time < 0) return null;
-        const words = Array.isArray(line.words) ? line.words.slice(0, 500).map(word => ({
-            text: String(word?.text || '').slice(0, 200), time: Number(word?.time),
-            endTime: Number.isFinite(Number(word?.endTime)) ? Number(word.endTime) : null
-        })).filter(word => word.text && Number.isFinite(word.time)) : null;
-        return { text: String(line?.text || '').slice(0, 1000), time, endTime: Number.isFinite(endTime) ? endTime : time + 3, words };
-    }).filter(line => line?.text).sort((a, b) => a.time - b.time);
-}
-function applyProjectStyle(projectStyle) {
-    if (!projectStyle || typeof projectStyle !== 'object') return;
-    for (const [key, current] of Object.entries(state.style)) {
-        const incoming = projectStyle[key];
-        if (typeof current === 'number' && Number.isFinite(Number(incoming))) state.style[key] = linaClamp(Number(incoming), -1000, 1000);
-        else if (typeof current === 'boolean' && typeof incoming === 'boolean') state.style[key] = incoming;
-        else if (typeof current === 'string' && typeof incoming === 'string' && incoming.length <= 100) state.style[key] = incoming;
-    }
-    if (!EFFECT_LABELS[state.style.effect]) state.style.effect = 'apple';
-    if (!['left','center','right'].includes(state.style.align)) state.style.align = 'left';
-    for (const key of ['accentColor','textColor','bratTextColor','eternalInkColor']) if (!/^#[0-9a-f]{6}$/i.test(state.style[key])) state.style[key] = '#FFFFFF';
-}
-function downloadProject() {
-    if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
-    const url = URL.createObjectURL(new Blob([JSON.stringify(serialiseProject(), null, 2)], { type: 'application/json' }));
-    const link = document.createElement('a');
-    const label = sanitiseExportFilenamePart(resolveAudioLabels(state.audio).title) || '';
-    link.href = url; link.download = `${label} - KEFE Project.kefe`;
-    document.body.appendChild(link); link.click(); link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 30000);
-    toast('Project settings saved', 'success');
-}
-async function loadProjectFile(file) {
-    if (!file || isExporting) return;
-    if (file.size > 5 * 1024 * 1024) { toast('Project file is too large', 'error'); return; }
-    try {
-        const project = JSON.parse(await file.text());
-        if (project?.format !== 'KEFE Visualiser Project' || project?.version !== 1) throw new Error('Not a supported KEFE project');
-        state.audio.metadata = { title: String(project.metadata?.title || ''), artist: String(project.metadata?.artist || ''), album: String(project.metadata?.album || '') };
-        pendingProjectMetadata = { ...state.audio.metadata };
-        state.lyrics.lines = sanitiseProjectLyrics(project.lyrics);
-        state.captions.lines = sanitiseProjectLyrics(project.captions);
-        state.captions.mode = project.textMode === 'captions' ? 'captions' : 'lyrics';
-        if (PROJECT_TYPES.includes(project.projectType)) state.projectType = project.projectType;
-        if (project.captionStyle && typeof project.captionStyle === 'object') {
-            const cs = project.captionStyle;
-            state.captionStyle = {
-                position: CAPTION_POSITIONS.includes(cs.position) ? cs.position : 'bottom',
-                opacity: linaClamp(Number(cs.opacity) || 1, 0.3, 1),
-                color: /^#[0-9a-f]{6}$/i.test(cs.color || '') ? cs.color : '#FFFFFF',
-                shadow: cs.shadow !== false
-            };
-        }
-        state.lyricsOffset = Number.isFinite(Number(project.lyricsOffset)) ? linaClamp(Number(project.lyricsOffset), -2, 2) : 0;
-        applyProjectStyle(project.style);
-        if (project.background && typeof project.background === 'object') {
-            if (/^#[0-9a-f]{6}$/i.test(project.background.solid || '')) state.background.solid = project.background.solid;
-            state.background.dim = linaClamp(Number(project.background.dim) || 0, 0, 1);
-            state.background.blur = linaClamp(Number(project.background.blur) || 0, 0, 100);
-        }
-        if (MASTER_MODES.includes(project.masterAudio) && project.masterAudio !== 'uploaded') {
-            // Restore an explicitly-saved master choice after media is loaded again.
-            state.audioSource.master = project.masterAudio;
-            state.audioSource.userChosen = true;
-        }
-        state.aspect = ASPECTS[project.aspect] ? project.aspect : state.aspect;
-        $('lyricsText').value = String(project.lyricsSource || '').slice(0, 1000000);
-        updateMetadataInputs();
-        applyTextMode(state.captions.mode);
-        syncCaptionStyleUI();
-        updateSyncStatusUI();
-        $('backgroundColor').value = state.background.solid;
-        $('backgroundColorValue').textContent = state.background.solid.toUpperCase();
-        setAspectRatio(state.aspect);
-        setEffect(EFFECT_LABELS[state.style.effect] ? state.style.effect : 'apple');
-        readiness(); redrawCurrentPreviewFrame();
-        toast('Project opened · select its audio file to continue', 'success');
-    } catch (error) { toast(error.message || 'Could not open project', 'error'); }
-}
-$('saveProject').addEventListener('click', downloadProject);
-$('loadProject').addEventListener('click', () => $('projectFileInput').click());
-$('projectFileInput').addEventListener('change', function() { loadProjectFile(this.files?.[0]); this.value = ''; });
 
 ['metaTitle','metaArtist','metaAlbum'].forEach(id => {
     const input = $(id);
@@ -3076,7 +2973,6 @@ function resetProject() {
         return;
     }
     clearTimeout(resetConfirmTimer);
-    try { localStorage.removeItem(LINA_PREFS_KEY); } catch (e) { /* storage unavailable */ }
     window.location.href = new URL('./', window.location.href).href;
 }
 $('resetBtn').addEventListener('click', resetProject);
