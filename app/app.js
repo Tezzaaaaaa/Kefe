@@ -3407,7 +3407,7 @@ function formatTime(seconds) {
 }
 
 
-async function startExport() {
+async function openExportPreflight() {
     if (isExporting) return;
     const issues = projectValidationIssues();
     if (issues.length) { toast('Before export, add: ' + issues.join(', '), 'error'); return; }
@@ -3568,7 +3568,7 @@ function closeExportPreflight() { $('exportPreflight').classList.add('hidden'); 
 $('closePreflight').addEventListener('click', closeExportPreflight);
 $('cancelPreflight').addEventListener('click', closeExportPreflight);
 
-$('exportBottom').addEventListener('click', startExport);
+$('exportBottom').addEventListener('click', openExportPreflight);
 
 document.addEventListener('keydown', function(e) {
     const tag = e.target.tagName;
@@ -3580,7 +3580,7 @@ document.addEventListener('keydown', function(e) {
         case '1': document.querySelector('[data-effect="apple"]')?.click(); break;
         case '2': document.querySelector('[data-effect="brat"]')?.click(); break;
         case '3': document.querySelector('[data-effect="eternal"]')?.click(); break;
-        case 'e': case 'E': startExport(); break;
+        case 'e': case 'E': openExportPreflight(); break;
         case 'f': case 'F':
             if (document.fullscreenElement) document.exitFullscreen();
             else document.querySelector('.preview')?.requestFullscreen().catch(() => {});
