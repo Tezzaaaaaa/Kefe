@@ -187,6 +187,15 @@ export async function exportVideoWebCodecs({
         }
     );
 
+    const title = state?.audio?.metadata?.title;
+    const artist = state?.audio?.metadata?.artist;
+    if (title || artist) {
+        output.setMetadataTags({
+            ...(title ? { title } : {}),
+            ...(artist ? { artist } : {})
+        });
+    }
+
     let conversion = null;
 
     if (masterFile) {
