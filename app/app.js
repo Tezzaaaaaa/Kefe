@@ -3412,7 +3412,25 @@ async function startExport() {
     const issues = projectValidationIssues();
     if (issues.length) { toast('Before export, add: ' + issues.join(', '), 'error'); return; }
     ensureDefaultBackground();
-    const config = window.kefeExportConfig.getExportConfig({ preset: $('exportPreset').value, aspect: state.aspect });
+    // Preflight-only dimension lookup. The real export config is built
+    // by app/export/ui.js at export time via ES-module import.
+    const preflightPreset = $('exportPreset').value;
+    const preflightAspect = state.aspect || '9:16';
+    const preflightSizes = {
+      '1080p': { '9:16':[1080,1920], '1:1':[1080,1080], '16:9':[1920,1080] },
+      '720p':  { '9:16':[720,1280],  '1:1':[720,720],   '16:9':[1280,720]  },
+      '480p':  { '9:16':[480,854],   '1:1':[480,480],   '16:9':[854,480]   },
+      'instagram': { '9:16':[1080,1920], '1:1':[1080,1080], '16:9':[1920,1080] },
+      'tiktok':    { '9:16':[1080,1920], '1:1':[1080,1080], '16:9':[1920,1080] }
+    };
+    const preflightFps = { '480p': 24, '720p': 30, '1080p': 30, 'instagram': 30, 'tiktok': 30 };
+    const preflightKey = preflightSizes[preflightPreset] ? preflightPreset : '720p';
+    const preflightDims = preflightSizes[preflightKey][preflightAspect] || preflightSizes[preflightKey]['9:16'];
+    const config = {
+      width: preflightDims[0],
+      height: preflightDims[1],
+      fps: preflightFps[preflightKey] || 30
+    };
     const duration = getMasterDuration();
     const totalFrames = Math.ceil(duration * config.fps);
     const report = validateLyricTiming(state.lyrics.lines, duration);

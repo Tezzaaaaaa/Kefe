@@ -73,8 +73,3 @@ export function getExportConfig(opts = {}) {
     container: CODEC.container
   });
 }
-
-// Expose on window so non-module scripts (app.js) can consume it.
-if (typeof window !== 'undefined') {
-  window.kefeExportConfig = { getExportConfig, getQualityPreset, QUALITY_PRESETS, ASPECTS, RESOLUTIONS, SOCIAL_PRESETS, CODEC, normaliseQuality };
-}
