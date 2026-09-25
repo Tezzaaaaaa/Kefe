@@ -21,18 +21,10 @@
 
   var CDN_SOURCES = [
     {
-      name: 'jsdelivr',
-      renderer:    'https://cdn.jsdelivr.net/npm/butterchurn@3.0.0-beta.5/dist/butterchurn.min.js',
-      rendererEsm: 'https://cdn.jsdelivr.net/npm/butterchurn@3.0.0-beta.5/dist/butterchurn.min.mjs',
-      base:        'https://cdn.jsdelivr.net/npm/butterchurn-presets@3.0.0-beta.4/dist/base.min.js',
-      extra:       'https://cdn.jsdelivr.net/npm/butterchurn-presets@3.0.0-beta.4/dist/extra.min.js'
-    },
-    {
-      name: 'unpkg',
-      renderer:    'https://unpkg.com/butterchurn@3.0.0-beta.5/dist/butterchurn.min.js',
-      rendererEsm: 'https://unpkg.com/butterchurn@3.0.0-beta.5/dist/butterchurn.min.mjs',
-      base:        'https://unpkg.com/butterchurn-presets@3.0.0-beta.4/dist/base.min.js',
-      extra:       'https://unpkg.com/butterchurn-presets@3.0.0-beta.4/dist/extra.min.js'
+      name: 'local',
+      renderer:    './vendor/butterchurn/butterchurn.min.js',
+      base:        './vendor/butterchurn/presets-base.min.js',
+      extra:       './vendor/butterchurn/presets-extra.min.js'
     }
   ];
 
@@ -228,6 +220,12 @@
   }
 
   async function loadButterchurnApi(source) {
+    try {
+      await withTimeout(loadScriptOnce(source.renderer, 'kefe-butterchurn-renderer-' + source.name), LOAD_TIMEOUT_MS, source.name + ' renderer');
+      var apiLocal = resolveButterchurnApi();
+      if (apiLocal) return apiLocal;
+    } catch (_) {}
+
     if (source.rendererEsm) {
       try {
         var mod = await withTimeout(import(/* @vite-ignore */ source.rendererEsm), LOAD_TIMEOUT_MS, source.name + ' esm');
