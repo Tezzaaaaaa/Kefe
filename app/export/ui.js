@@ -1,4 +1,5 @@
-import { exportVideo, getExportConfig, resolveMasterInfo } from './index.js';
+import { exportVideo, resolveMasterInfo } from './index.js';
+import { getExportConfig } from './config.js';
 
 const $ = id => document.getElementById(id);
 // app.js attaches the authoritative preflight click handler to #exportBottom.
