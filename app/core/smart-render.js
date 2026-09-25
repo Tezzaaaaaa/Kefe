@@ -41,9 +41,19 @@
 
   function estimate(preset = getPreset()) {
     const duration = masterDuration();
+    const resolver = window.kefeGetExportConfig;
+    if (typeof resolver === 'function') {
+      const config = resolver(preset, window.state?.aspect || '9:16');
+      const duration = masterDuration();
+      const frames = Math.max(0, Math.ceil(duration * config.fps));
+      const pixelFrames = config.width * config.height * frames;
+      const load = pixelFrames > HIGH_POWER_PIXELS ? 'very-high' : pixelFrames > 30e9 ? 'high' : pixelFrames > 10e9 ? 'moderate' : 'light';
+      return { preset, width: config.width, height: config.height, fps: config.fps, duration, frames, pixelFrames, load };
+    }
     let dimensions = [720, 1280];
     let fps = 30;
-    if (preset === '1080p' || preset === 'instagram' || preset === 'tiktok') { dimensions = [1080, 1920]; fps = preset === '1080p' ? 60 : 30; }
+    if (preset === '1080p') dimensions = [1080, 1920];
+    if (preset === 'instagram' || preset === 'tiktok') dimensions = [1080, 1920];
     if (preset === '480p') { dimensions = [480, 854]; fps = 24; }
     const frames = Math.max(0, Math.ceil(duration * fps));
     const pixelFrames = dimensions[0] * dimensions[1] * frames;
@@ -73,18 +83,6 @@
     return window.kefeSmartRender.lastPlan;
   }
 
-  function bind() {
-    ['exportBottom'].forEach(id => {
-      const button = $(id);
-      if (!button || button.dataset.smartRenderBound) return;
-      button.dataset.smartRenderBound = '1';
-      button.addEventListener('click', () => {
-        if (window.kefeSmartRender.busy) return;
-        window.kefeSmartRender.prepare();
-      }, true);
-    });
-  }
-
   window.kefeSmartRender = {
     version: 1,
     prepare,
@@ -94,6 +92,4 @@
     busy: false
   };
 
-  bind();
-  new MutationObserver(bind).observe(document.body, { childList: true, subtree: true });
 })();
