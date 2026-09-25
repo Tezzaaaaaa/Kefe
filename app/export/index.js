@@ -113,12 +113,10 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
 
     const quality = getQualityPreset(window.kefeExportQuality || 'medium');
     const totalFrames = Math.max(1, Math.ceil(duration * config.fps));
-    const framesPerSegment = Math.max(config.fps * 2, Math.round(config.fps * 4));
     let progressHandler = null;
     const progress = makeProgressReporter(onProgress);
 
     try {
-        const segmentCount = Math.ceil(totalFrames / framesPerSegment);
         // Single-pass render: encode every frame in one ffmpeg invocation.
         const frameNames = [];
         for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
@@ -157,7 +155,6 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
         }
 
         checkAbort(signal);
-        if (!combinedSegmentBytes) throw new Error('No video segments were produced');
         // Reuse whichever engine instance is still alive from the last
         // segment batch instead of releasing it and booting yet another one —
         // muxing doesn't need a clean heap, and this saves one more full
@@ -216,7 +213,6 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
     } finally {
         if (progressHandler && ffmpeg) { try { ffmpeg.off('progress', progressHandler); } catch {} }
         if (ffmpeg) releaseEncoder(ffmpeg);
-        segmentChunks.length = 0;
 }
 
 
