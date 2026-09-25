@@ -130,61 +130,41 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
         const segmentCount = Math.ceil(totalFrames / framesPerSegment);
         const bootBatchSize = segmentsPerEncoderBoot(config.width, config.height);
 
-        for (let segment = 0; segment < segmentCount; segment++) {
+        // Single-pass render: encode every frame in one ffmpeg invocation.
+        const frameNames = [];
+        for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
             checkAbort(signal);
+            const time = frameIndex / config.fps;
+            await seekVideo(media?.video, time, signal);
+            await renderFrame(ctx, config.width, config.height, time);
+            const frameName = `kefe-frame-${String(frameIndex).padStart(6, '0')}.jpg`;
+            await ffmpeg.writeFile(frameName, await canvasToJpeg(target));
+            frameNames.push(frameName);
+            progress(5 + ((frameIndex + 1) / totalFrames) * 70, `Rendering frame ${frameIndex + 1} of ${totalFrames}`);
+        }
 
-            const startingNewBatch = segment % bootBatchSize === 0;
-            if (startingNewBatch) {
-                if (ffmpeg) { releaseEncoder(ffmpeg); ffmpeg = null; }
-                progress(4 + (segment / segmentCount) * 66, `Loading encoder for segment ${segment + 1} of ${segmentCount}…`);
-                ffmpeg = await loadEncoderResilient(message => progress(4 + (segment / segmentCount) * 66, message));
-            }
+        progress(76, 'Encoding video…');
+        await execChecked(ffmpeg, [
+            '-framerate', String(config.fps),
+            '-start_number', '0',
+            '-i', 'kefe-frame-%06d.jpg',
+            '-frames:v', String(totalFrames),
+            '-an',
+            '-c:v', 'libx264',
+            '-preset', 'veryfast',
+            '-crf', String(quality.crf),
+            '-pix_fmt', 'yuv420p',
+            '-r', String(config.fps),
+            '-g', String(config.fps * 2),
+            '-keyint_min', String(config.fps * 2),
+            '-sc_threshold', '0',
+            '-fflags', '+genpts',
+            '-f', 'mp4',
+            '-y', 'kefe-video.mp4'
+        ], 'video encode');
 
-            const firstFrame = segment * framesPerSegment;
-            const frameCount = Math.min(framesPerSegment, totalFrames - firstFrame);
-            const frameNames = [];
-            let segmentAttempt = 0;
-            for (;;) {
-                try {
-                    for (let local = 0; local < frameCount; local++) {
-                        checkAbort(signal);
-                        const frameIndex = firstFrame + local;
-                        const time = frameIndex / config.fps;
-                        await seekVideo(media?.video, time, signal);
-                        await renderFrame(ctx, config.width, config.height, time);
-                        const frameName = `kefe-frame-${String(local).padStart(5, '0')}.jpg`;
-                        await ffmpeg.writeFile(frameName, await canvasToJpeg(target));
-                        frameNames.push(frameName);
-                        progress(5 + ((frameIndex + 1) / totalFrames) * 65, `Rendering frame ${frameIndex + 1} of ${totalFrames}`);
-                    }
-
-                    const segmentName = `kefe-segment-${String(segment).padStart(4, '0')}.ts`;
-                    progress(5 + ((firstFrame + frameCount) / totalFrames) * 65, `Encoding segment ${segment + 1} of ${segmentCount}…`);
-                    await execChecked(ffmpeg, ['-framerate', String(config.fps), '-start_number', '0', '-i', 'kefe-frame-%05d.jpg', '-frames:v', String(frameCount), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', String(quality.crf), '-pix_fmt', 'yuv420p', '-r', String(config.fps), '-g', String(config.fps * 2), '-keyint_min', String(config.fps * 2), '-sc_threshold', '0', '-fflags', '+genpts', '-avoid_negative_ts', 'make_zero', '-muxdelay', '0', '-muxpreload', '0', '-f', 'mpegts', '-y', segmentName], `segment ${segment + 1}`);
-                    const segmentData = new Uint8Array(await ffmpeg.readFile(segmentName));
-                    if (!segmentData.byteLength) throw new Error(`FFmpeg produced an empty segment ${segment + 1}`);
-                    segmentChunks.push(segmentData);
-                    combinedSegmentBytes += segmentData.byteLength;
-                    progress(5 + ((firstFrame + frameCount) / totalFrames) * 65, `Encoded segment ${segment + 1} of ${segmentCount}`);
-                    for (const frameName of frameNames) { try { await ffmpeg.deleteFile(frameName); } catch {} }
-                    try { await ffmpeg.deleteFile(segmentName); } catch {}
-                    break;
-                } catch (error) {
-                    if (error?.name === 'AbortError') throw error;
-                    for (const frameName of frameNames) { try { await ffmpeg.deleteFile(frameName); } catch {} }
-                    frameNames.length = 0;
-                    segmentAttempt++;
-                    // A segment can fail because the shared engine instance picked up
-                    // bad wasm state (rare, but happens on long exports). One retry
-                    // with a freshly booted engine recovers from that instead of
-                    // failing the whole export over a single flaky segment.
-                    if (segmentAttempt > 1) throw error;
-                    checkAbort(signal);
-                    progress(4 + (segment / segmentCount) * 66, `Segment ${segment + 1} hit an error, retrying with a fresh encoder…`);
-                    if (ffmpeg) { releaseEncoder(ffmpeg); ffmpeg = null; }
-                    ffmpeg = await loadEncoderResilient(message => progress(4 + (segment / segmentCount) * 66, message));
-                }
-            }
+        for (const name of frameNames) {
+            try { await ffmpeg.deleteFile(name); } catch (_) {}
         }
 
         checkAbort(signal);
@@ -201,23 +181,13 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
             progress(81, 'Joining segments…');
         }
 
-        const combinedTs = new Uint8Array(combinedSegmentBytes);
-
-        // The master audio source decides what is muxed — preview and export share the same selection.
         const hasAudio = Boolean(master.file);
         let audioName = null;
         if (hasAudio) {
-            const extMatch = /\\.([a-z0-9]+)$/i.exec(master.filename || '');
-            const ext = (extMatch ? extMatch[1] : master.mode === 'video' ? 'mp4' : 'audio').toLowerCase();
-            audioName = `kefe-audio.${ext}`;
+            audioName = 'kefe-audio.bin';
             await ffmpeg.writeFile(audioName, new Uint8Array(await master.file.arrayBuffer()));
         }
-
-        let offset = 0;
-        for (const chunk of segmentChunks) { combinedTs.set(chunk, offset); offset += chunk.byteLength; }
-        segmentChunks.length = 0;
-        const concatInputName = 'kefe-video.ts';
-        await ffmpeg.writeFile(concatInputName, combinedTs);
+        const concatInputName = 'kefe-video.mp4';
 
         progress(82, 'Joining rendered video');
         const outputName = 'kefe-final.mp4';
