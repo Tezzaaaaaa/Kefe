@@ -160,7 +160,6 @@ try {
     { timeout: 15000 },
   );
 
-  // Follow the real guided lyric-video path instead of bypassing it.
   await page.locator('#wizardSection [data-choice="lyric"]').click();
   await page.locator('#wizardNextBtn').click();
   await page.locator('#wizardSection [data-source="uploaded"]').click();
@@ -270,3 +269,4 @@ try {
 } finally {
   if (browser) await browser.close().catch(() => {});
   await new Promise((resolve) => server.close(resolve));
+}
