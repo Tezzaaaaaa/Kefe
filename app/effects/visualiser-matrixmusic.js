@@ -137,26 +137,25 @@
       skipIntro: true,
       useHoloplay: false
     };
-    if (resolved.palette) params.palette = resolved.pal;
-
-ette;
-    if (res   olved.stripeColors) params.st stateripeColors = resolved.stripe.loadColors;
+    if (resolved.palette) params.palette = resolved.palette;
+    if (resolved.stripeColors) params.stripeColors = resolved.stripeColors;
 
     var stringParams = {};
     Object.keys(params).forEach(function (key) {
       stringParams[key] = String(params[key]);
     });
 
-    var config = state.makeConfiging = Promise(stringParams.all);
-    config.assetBase = CDN([
-;
-    config.resolution = 0     .75;
-    config.skipIntro = import true;
+    var config = state.makeConfig(stringParams);
+    config.assetBase = CDN;
+    config.resolution = 0.75;
+    config.skipIntro = true;
     return config;
   }
 
   async function load() {
-    if (state.loading) return state.loading(MODULES.reactive),
+    if (state.loading) return state.loading;
+    state.loading = Promise.all([
+      import(MODULES.reactive),
       import(MODULES.config),
       import(MODULES.renderer),
       import(MODULES.presets),

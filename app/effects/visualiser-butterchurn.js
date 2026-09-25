@@ -1,7 +1,12 @@
 /* KEFE — Butterchurn / MilkDrop visualiser. MiniPlayer-only.
 
-   Tries jsDelivr first, then unpkg. Detects which global the preset packs
-   set. Records human-readable errors in lastError for on-screen display.
+   WHY THE RENDERER LOADS AS AN ES MODULE
+   --------------------------------------
+   jsDelivr and unpkg both serve Butterchurn as an ES module — the .min.js
+   build contains `export` statements which a classic <script> tag cannot
+   parse (SyntaxError). Loading it as a module via dynamic import() gives
+   us the API on mod.default. The preset packs, by contrast, are UMD and
+   load fine as classic scripts.
 
    iOS AUDIO CONTEXT NOTE
    ----------------------
@@ -17,15 +22,17 @@
   var CDN_SOURCES = [
     {
       name: 'jsdelivr',
-      renderer: 'https://cdn.jsdelivr.net/npm/butterchurn@3.0.0-beta.5/dist/butterchurn.min.js',
-      base:     'https://cdn.jsdelivr.net/npm/butterchurn-presets@3.0.0-beta.4/dist/base.min.js',
-      extra:    'https://cdn.jsdelivr.net/npm/butterchurn-presets@3.0.0-beta.4/dist/extra.min.js'
+      renderer:    'https://cdn.jsdelivr.net/npm/butterchurn@3.0.0-beta.5/dist/butterchurn.min.js',
+      rendererEsm: 'https://cdn.jsdelivr.net/npm/butterchurn@3.0.0-beta.5/dist/butterchurn.min.mjs',
+      base:        'https://cdn.jsdelivr.net/npm/butterchurn-presets@3.0.0-beta.4/dist/base.min.js',
+      extra:       'https://cdn.jsdelivr.net/npm/butterchurn-presets@3.0.0-beta.4/dist/extra.min.js'
     },
     {
       name: 'unpkg',
-      renderer: 'https://unpkg.com/butterchurn@3.0.0-beta.5/dist/butterchurn.min.js',
-      base:     'https://unpkg.com/butterchurn-presets@3.0.0-beta.4/dist/base.min.js',
-      extra:    'https://unpkg.com/butterchurn-presets@3.0.0-beta.4/dist/extra.min.js'
+      renderer:    'https://unpkg.com/butterchurn@3.0.0-beta.5/dist/butterchurn.min.js',
+      rendererEsm: 'https://unpkg.com/butterchurn@3.0.0-beta.5/dist/butterchurn.min.mjs',
+      base:        'https://unpkg.com/butterchurn-presets@3.0.0-beta.4/dist/base.min.js',
+      extra:       'https://unpkg.com/butterchurn-presets@3.0.0-beta.4/dist/extra.min.js'
     }
   ];
 
@@ -108,8 +115,6 @@
     return names;
   }
 
-  /* Shared AudioContext + WeakSet of claimed audio elements.
-     iOS Safari only allows one MediaElementSource per element. */
   function getSharedAudioContext() {
     if (!window.__kefeSharedAudioCtx) {
       var AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -118,6 +123,7 @@
     }
     return window.__kefeSharedAudioCtx;
   }
+
   function getClaimedSet() {
     if (!window.__kefeClaimedAudioElements) {
       window.__kefeClaimedAudioElements = new WeakSet();
@@ -134,8 +140,6 @@
 
       miniState.audioContext = sharedCtx;
 
-      // If the element is already claimed by another source (the main
-      // editor's analyser, most likely), reuse that instead of throwing.
       if (claimed.has(audioElement)) {
         miniState.connectedAudio = audioElement;
         if (sharedCtx.state === 'suspended') sharedCtx.resume().catch(function () {});
@@ -223,28 +227,42 @@
     return true;
   }
 
-  async function tryLoadFromSource(source) {
-    await withTimeout(loadScriptOnce(source.renderer, 'kefe-butterchurn-renderer-' + source.name), LOAD_TIMEOUT_MS, source.name + ' renderer');
-
-    var api = resolveButterchurnApi();
-    if (!api) {
+  async function loadButterchurnApi(source) {
+    if (source.rendererEsm) {
       try {
-        var mod = await withTimeout(import(/* @vite-ignore */ source.renderer), LOAD_TIMEOUT_MS, source.name + ' renderer import');
+        var mod = await withTimeout(import(/* @vite-ignore */ source.rendererEsm), LOAD_TIMEOUT_MS, source.name + ' esm');
         var candidate = mod.default || mod;
         if (candidate && typeof candidate.createVisualizer === 'function') {
           window.butterchurn = candidate;
-          api = candidate;
+          return candidate;
         }
       } catch (_) {}
     }
 
-    if (!api) {
-      var w = window.butterchurn;
-      var shape = !w ? '(undefined)' : '(keys: ' + Object.keys(w).slice(0, 30).join(', ') + ')';
-      throw new Error('No createVisualizer(). Shape ' + shape);
-    }
+    try {
+      var esmUrl = source.renderer.replace(/(@[\d.]+-?[\w.]*\/)/, '$1+esm/');
+      var mod2 = await withTimeout(import(/* @vite-ignore */ esmUrl), LOAD_TIMEOUT_MS, source.name + ' esm-wrapped');
+      var candidate2 = mod2.default || mod2;
+      if (candidate2 && typeof candidate2.createVisualizer === 'function') {
+        window.butterchurn = candidate2;
+        return candidate2;
+      }
+    } catch (_) {}
 
-    window.butterchurn = api;
+    try {
+      await withTimeout(loadScriptOnce(source.renderer, 'kefe-butterchurn-renderer-' + source.name), LOAD_TIMEOUT_MS, source.name + ' renderer');
+      var api = resolveButterchurnApi();
+      if (api) return api;
+    } catch (_) {}
+
+    return null;
+  }
+
+  async function tryLoadFromSource(source) {
+    var api = await loadButterchurnApi(source);
+    if (!api) {
+      throw new Error('Could not load butterchurn renderer from ' + source.name);
+    }
     state.butterchurn = api;
 
     try { await withTimeout(loadScriptOnce(source.base, 'kefe-butterchurn-base-' + source.name), LOAD_TIMEOUT_MS, source.name + ' base'); } catch (_) {}
@@ -387,7 +405,7 @@
   }
 
   window.kefeButterchurn = {
-    version: 6,
+    version: 8,
     limit: PRESET_LIMIT,
     prepare: prepare,
     retry: retry,
