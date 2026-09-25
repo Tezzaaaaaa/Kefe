@@ -11,6 +11,7 @@ import {
 } from 'https://cdn.jsdelivr.net/npm/mediabunny@1.58.0/+esm';
 
 import { getQualityPreset } from './config.js';
+import { resolveMasterInfo } from './master.js';
 
 function abortError() {
     return new DOMException('Export cancelled', 'AbortError');
@@ -103,26 +104,9 @@ export async function exportVideoWebCodecs({
         );
     }
 
-    const masterMode =
-        state?.audioSource?.master || 'uploaded';
-
-    const masterFile =
-        masterMode === 'video'
-            ? media?.videoFile || null
-            : masterMode === 'none'
-                ? null
-                : state?.audio?.file || null;
-
-    const masterDuration =
-        masterMode === 'video'
-            ? Number(media?.video?.duration) || 0
-            : masterMode === 'none'
-                ? Math.max(
-                    Number(media?.video?.duration) || 0,
-                    Number(state?.audio?.duration) || 0,
-                    1
-                )
-                : Number(state?.audio?.duration) || 0;
+    const master = resolveMasterInfo(state, media);
+    const masterFile = master.file;
+    const masterDuration = master.duration;
 
     if (
         !Number.isFinite(masterDuration) ||
