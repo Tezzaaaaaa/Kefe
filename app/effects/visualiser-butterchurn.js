@@ -3,6 +3,15 @@
    Tries jsDelivr first, then unpkg as a fallback. Detects which global the
    preset packs actually set. Records a human-readable error in lastError
    if loading fails, so the MiniPlayer can show it on-screen.
+
+   BUTTERCHURN API SHAPE
+   ---------------------
+   The Butterchurn UMD build exposes its API in different places across
+   versions: window.butterchurn, window.butterchurn.default, or a nested
+   property. resolveButterchurnApi() checks all of them, and falls back to
+   a dynamic import() if none of the globals work. If everything fails, the
+   error message includes the keys actually present on window.butterchurn
+   so the failure mode is visible in the MiniPlayer canvas.
 */
 (function () {
   'use strict';
@@ -88,6 +97,17 @@
       };
       document.head.appendChild(script);
     });
+  }
+
+  /* Butterchurn exposes createVisualizer() in different places depending
+     on how the UMD build wrapped it. Check the common shapes. */
+  function resolveButterchurnApi() {
+    var w = window.butterchurn;
+    if (!w) return null;
+    if (typeof w.createVisualizer === 'function') return w;
+    if (w.default && typeof w.default.createVisualizer === 'function') return w.default;
+    if (w.butterchurn && typeof w.butterchurn.createVisualizer === 'function') return w.butterchurn;
+    return null;
   }
 
   function collectPresets() {
@@ -194,14 +214,37 @@
   async function tryLoadFromSource(source) {
     await loadScriptOnce(source.renderer, 'kefe-butterchurn-renderer-' + source.name);
 
-    if (!window.butterchurn || typeof window.butterchurn.createVisualizer !== 'function') {
-      throw new Error('Renderer loaded but window.butterchurn has no createVisualizer()');
+    var api = resolveButterchurnApi();
+
+    // Fallback: if the UMD script did not expose the API cleanly, try a
+    // dynamic import on the same URL. On modern browsers the ESM wrapper
+    // will be preferred by the CDN, and the module's default export is
+    // the visualizer factory.
+    if (!api) {
+      try {
+        var mod = await import(/* @vite-ignore */ source.renderer);
+        var candidate = mod.default || mod;
+        if (candidate && typeof candidate.createVisualizer === 'function') {
+          window.butterchurn = candidate;
+          api = candidate;
+        }
+      } catch (_) {}
     }
+
+    if (!api) {
+      var w = window.butterchurn;
+      var shape = !w
+        ? '(window.butterchurn undefined)'
+        : '(keys: ' + Object.keys(w).slice(0, 30).join(', ') + ')';
+      throw new Error('No createVisualizer(). Shape ' + shape);
+    }
+
+    window.butterchurn = api;
+    state.butterchurn = api;
 
     try { await loadScriptOnce(source.base, 'kefe-butterchurn-base-' + source.name); } catch (_) {}
     try { await loadScriptOnce(source.extra, 'kefe-butterchurn-extra-' + source.name); } catch (_) {}
 
-    state.butterchurn = window.butterchurn;
     var names = collectPresets();
 
     if (!names.length) {
