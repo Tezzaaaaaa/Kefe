@@ -1,33 +1,10 @@
-import { getQualityPreset } from './config.js';
+import { getQualityPreset, getExportConfig } from './config.js';
 import { loadEncoder, releaseEncoder } from './encoder.js';
 import { canUseWebCodecsExport, exportVideoWebCodecs } from './webcodecs.js';
 
 function abortError() { return new DOMException('Export cancelled', 'AbortError'); }
 function checkAbort(signal) { if (signal?.aborted) throw abortError(); }
 function timeout(ms, message) { return new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)); }
-
-async function seekVideo(video, time, signal) {
-    if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return;
-    checkAbort(signal);
-    const duration = video.duration;
-    const target = ((time % duration) + duration) % duration;
-    if (Math.abs(video.currentTime - target) < 0.002 && video.readyState >= 2 && !video.seeking) return;
-    await Promise.race([
-        new Promise((resolve, reject) => {
-            let settled = false;
-            const cleanup = () => { video.removeEventListener('seeked', done); video.removeEventListener('error', failed); signal?.removeEventListener('abort', cancelled); };
-            const finish = fn => { if (settled) return; settled = true; cleanup(); fn(); };
-            const done = () => finish(resolve);
-            const failed = () => finish(() => reject(new Error('Background video seek failed')));
-            const cancelled = () => finish(() => reject(abortError()));
-            video.addEventListener('seeked', done, { once: true });
-            video.addEventListener('error', failed, { once: true });
-            signal?.addEventListener('abort', cancelled, { once: true });
-            try { video.currentTime = target; } catch (error) { finish(() => reject(error)); }
-        }),
-        timeout(10000, `Background video seek timed out at ${target.toFixed(3)}s`)
-    ]);
-}
 
 async function canvasToJpeg(canvas) {
     const blob = await new Promise((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error('Could not encode rendered frame')), 'image/jpeg', 0.92));
@@ -49,17 +26,7 @@ function makeProgressReporter(onProgress) {
     };
 }
 
-export function getExportConfig(preset = '720p', aspect = '9:16') {
-    const presets = { '1080p': { size: 1080, fps: 30 }, '720p': { size: 720, fps: 30 }, '480p': { size: 480, fps: 24 }, instagram: { size: 1080, fps: 30, forceVertical: true }, tiktok: { size: 1080, fps: 30, forceVertical: true } };
-    const selected = presets[preset] || presets['720p'];
-    const selectedAspect = selected.forceVertical ? '9:16' : aspect;
-    const [a, b] = selectedAspect.split(':').map(Number);
-    if (!Number.isFinite(a) || !Number.isFinite(b) || a <= 0 || b <= 0) throw new Error('Invalid export aspect ratio');
-    const size = selected.size;
-    if (selectedAspect === '16:9') return { width: Math.round(size * 16 / 9), height: size, fps: selected.fps };
-    if (selectedAspect === '1:1') return { width: size, height: size, fps: selected.fps };
-    return { width: size, height: Math.round(size * b / a), fps: selected.fps };
-}
+export { getExportConfig };
 
 export function resolveMasterInfo(state, media) {
     const mode = state?.audioSource?.master || 'uploaded';
@@ -160,8 +127,7 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
                         checkAbort(signal);
                         const frameIndex = firstFrame + local;
                         const time = frameIndex / config.fps;
-                        await seekVideo(media?.video, time, signal);
-                        await renderFrame(ctx, config.width, config.height, time);
+                                        await renderFrame(ctx, config.width, config.height, time);
                         const frameName = `kefe-frame-${String(local).padStart(5, '0')}.jpg`;
                         await ffmpeg.writeFile(frameName, await canvasToJpeg(target));
                         frameNames.push(frameName);
