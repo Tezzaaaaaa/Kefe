@@ -87,12 +87,6 @@ export function resolveMasterInfo(state, media) {
 // encoded. Batching several segments per boot cuts that overhead by 5-12x
 // while keeping the same memory safety valve, tuned tighter for higher
 // resolutions since those hold more decoded frame data in memory per segment.
-function segmentsPerEncoderBoot(width, height) {
-    const pixels = width * height;
-    if (pixels <= 480 * 854) return 12;
-    if (pixels <= 720 * 1280) return 8;
-    return 5;
-}
 
 async function loadEncoderResilient(onStatus) {
     try { return await loadEncoder(onStatus); }
@@ -120,16 +114,11 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
     const quality = getQualityPreset(window.kefeExportQuality || 'medium');
     const totalFrames = Math.max(1, Math.ceil(duration * config.fps));
     const framesPerSegment = Math.max(config.fps * 2, Math.round(config.fps * 4));
-    const segmentChunks = [];
-    let combinedSegmentBytes = 0;
-    let ffmpeg = null;
     let progressHandler = null;
     const progress = makeProgressReporter(onProgress);
 
     try {
         const segmentCount = Math.ceil(totalFrames / framesPerSegment);
-        const bootBatchSize = segmentsPerEncoderBoot(config.width, config.height);
-
         // Single-pass render: encode every frame in one ffmpeg invocation.
         const frameNames = [];
         for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
@@ -169,7 +158,6 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
 
         checkAbort(signal);
         if (!combinedSegmentBytes) throw new Error('No video segments were produced');
-
         // Reuse whichever engine instance is still alive from the last
         // segment batch instead of releasing it and booting yet another one —
         // muxing doesn't need a clean heap, and this saves one more full
@@ -229,7 +217,6 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
         if (progressHandler && ffmpeg) { try { ffmpeg.off('progress', progressHandler); } catch {} }
         if (ffmpeg) releaseEncoder(ffmpeg);
         segmentChunks.length = 0;
-    }
 }
 
 
