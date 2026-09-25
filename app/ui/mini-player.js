@@ -1,4 +1,13 @@
-/* KEFE MiniPlayer — compact iPod docked bottom-right, in shadow DOM. */
+/* KEFE MiniPlayer — compact iPod docked bottom-right, in shadow DOM.
+
+   Uses the MAIN editor's audio element (window.kefeAudioElement), not its
+   own. On iOS Safari, createMediaElementSource() can only be called once
+   per element, and Butterchurn needs it to read frequency data. Sharing
+   the main element avoids the double-claim bug and keeps the two in sync.
+
+   FRAME THROTTLE: 60fps cap. ProMotion iPhones fire RAF at 120Hz, and
+   Butterchurn advances per render() call, so without this it runs at 2x.
+*/
 (() => {
   'use strict';
   if (window.kefeIpodPlayer) return;
@@ -102,8 +111,7 @@
     presets: el('presets'), presetList: el('presetList'),
   };
 
-  const audio = new Audio();
-  audio.preload = 'auto';
+  const audio = window.kefeAudioElement || new Audio();
   audio.playsInline = true;
 
   const ctx = dom.canvas.getContext('2d', { alpha: false });
@@ -112,7 +120,6 @@
   let lastDrawTime = 0;
   let lastW = 0, lastH = 0;
   let miniPlayerVisualiser = null;
-  let audioBound = false;
   const TARGET_FRAME_MS = 1000 / 60;
 
   const fmt = t => {
@@ -295,17 +302,7 @@
     }
   }
 
-  function ensureAudioSource() {
-    const main = getMainEditorMeta();
-    if (main.url && audio.src !== main.url) {
-      const wasPlaying = !audio.paused;
-      audio.src = main.url;
-      if (wasPlaying) audio.play().catch(() => {});
-    }
-  }
-
   function togglePlayback() {
-    ensureAudioSource();
     if (!audio.src) return;
     if (audio.paused) {
       try { window.kefeButterchurn?.primeMiniAudio?.(audio); } catch (_) {}
@@ -313,33 +310,19 @@
     } else audio.pause();
   }
 
-  function bindAudioEvents() {
-    if (audioBound) return;
-    audioBound = true;
-    audio.addEventListener('timeupdate', syncProgress);
-    audio.addEventListener('loadedmetadata', syncProgress);
-    audio.addEventListener('durationchange', syncProgress);
-    audio.addEventListener('play', () => {
-      syncPlayIcon();
-      const main = window.kefeAudioElement;
-      if (main && !main.paused) main.pause();
-    });
-    audio.addEventListener('pause', syncPlayIcon);
-    audio.addEventListener('ended', syncPlayIcon);
-    const main = window.kefeAudioElement;
-    if (main) main.addEventListener('play', () => { if (!audio.paused) audio.pause(); });
-  }
-  bindAudioEvents();
+  audio.addEventListener('timeupdate', syncProgress);
+  audio.addEventListener('loadedmetadata', syncProgress);
+  audio.addEventListener('durationchange', syncProgress);
+  audio.addEventListener('play', syncPlayIcon);
+  audio.addEventListener('pause', syncPlayIcon);
+  audio.addEventListener('ended', syncPlayIcon);
 
   function buildPresets() {
     const bc = window.kefeButterchurn;
     const bcErr = bc?.lastError || '';
-    const bcReady = !!bc?.ready;
     const bcNames = bc?.presetNames?.() || [];
-
     const mmReady = !!window.kefeMatrixVisualiser?.isReady?.();
     const mmRecords = window.kefeMatrixVisualiser?.presetRecords?.() || [];
-
     const arReady = !!window.kefeAudioReactiveShaders?.isReady?.();
     const arNames = window.kefeAudioReactiveShaders?.presetNames?.() || [];
 
@@ -358,21 +341,13 @@
 
     html.push('<optgroup>Matrix</optgroup>');
     if (mmRecords.length) {
-      for (const r of mmRecords) {
-        html.push(`<button type="button" data-kip-preset="matrixmusic::${r.id}">${r.name}</button>`);
-      }
-    } else {
-      html.push(`<div class="empty">${mmReady ? 'No presets' : 'Loading…'}</div>`);
-    }
+      for (const r of mmRecords) html.push(`<button type="button" data-kip-preset="matrixmusic::${r.id}">${r.name}</button>`);
+    } else html.push(`<div class="empty">${mmReady ? 'No presets' : 'Loading…'}</div>`);
 
     html.push('<optgroup>Shader</optgroup>');
     if (arNames.length) {
-      arNames.forEach((n, i) => {
-        html.push(`<button type="button" data-kip-preset="audioreactive::${i}">${n}</button>`);
-      });
-    } else {
-      html.push(`<div class="empty">${arReady ? 'No presets' : 'Loading…'}</div>`);
-    }
+      arNames.forEach((n, i) => html.push(`<button type="button" data-kip-preset="audioreactive::${i}">${n}</button>`));
+    } else html.push(`<div class="empty">${arReady ? 'No presets' : 'Loading…'}</div>`);
 
     dom.presetList.innerHTML = html.join('');
     dom.presetList.querySelectorAll('[data-kip-preset]').forEach(b => {
@@ -407,11 +382,10 @@
 
   function open() {
     shell.classList.remove('is-hidden');
-    ensureAudioSource();
     syncMeta(); syncProgress(); syncPlayIcon();
     preloadVisualisers();
-    try { window.kefeButterchurn?.primeMiniAudio?.(audio); } catch (_) {}
     if (mode === 'visualiser') {
+      try { window.kefeButterchurn?.primeMiniAudio?.(audio); } catch (_) {}
       resizeCanvas();
       lastDrawTime = 0;
       if (!rafId) rafId = requestAnimationFrame(drawFrame);
@@ -422,9 +396,6 @@
     shell.classList.add('is-hidden');
     dom.presets.classList.remove('is-open');
     if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
-    try { window.kefeButterchurn?.stopMini?.(); } catch (_) {}
-    try { window.kefeMatrixVisualiser?.stop?.(); } catch (_) {}
-    try { window.kefeAudioReactiveShaders?.stop?.(); } catch (_) {}
   }
 
   dom.screen.addEventListener('click', e => {
@@ -443,11 +414,8 @@
 
   window.addEventListener('resize', () => { if (mode === 'visualiser') resizeCanvas(); });
 
-  // Poll while the menu is open so loading states update.
   setInterval(() => {
-    if (dom.presets.classList.contains('is-open')) {
-      buildPresets();
-    }
+    if (dom.presets.classList.contains('is-open')) buildPresets();
   }, 1500);
 
   let lastMetaSignature = '';
@@ -457,14 +425,14 @@
     const sig = `${main.title}|${main.artist}|${main.album}|${main.file?.name || ''}|${getArtworkSrc()}`;
     if (sig !== lastMetaSignature) {
       lastMetaSignature = sig;
-      syncMeta(); ensureAudioSource();
+      syncMeta();
     }
   }, 800);
 
   syncClock();
   setInterval(syncClock, 30_000);
 
-  window.kefeIpodPlayer = { version: 14, open, close, setDisplayMode };
+  window.kefeIpodPlayer = { version: 15, open, close, setDisplayMode };
 
   const trigger = document.getElementById('miniPlayerBtn') || document.getElementById('ipodPlayerBtn');
   if (trigger) trigger.addEventListener('click', open);
