@@ -73,7 +73,7 @@ async function runExport() {
     });
 }
 
-async function startExport() {
+async function executeExport() {
     if (window.isExporting) return;
     window.isExporting = true;
     window.kefeExportAbort = new AbortController();
@@ -108,10 +108,8 @@ function closePreflightModal() { $('exportPreflight')?.classList.add('hidden'); 
 // add another click handler here: doing so would bypass preflight or start two
 // exports. This module only owns the actual confirmed export and overlay.
 cancelButton?.addEventListener('click', () => { if (window.isExporting) window.kefeExportAbort?.abort(); else $('exportOverlay')?.classList.add('hidden'); });
-confirmExport?.addEventListener('click', () => { closePreflightModal(); startExport(); });
+confirmExport?.addEventListener('click', () => { closePreflightModal(); executeExport(); });
 closePreflight?.addEventListener('click', closePreflightModal);
 cancelPreflight?.addEventListener('click', closePreflightModal);
-document.addEventListener('keydown', event => { if ((event.key === 'e' || event.key === 'E') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName)) { event.preventDefault(); event.stopImmediatePropagation(); if ($('exportPreflight')?.classList.contains('hidden')) { exportBottom?.click(); } } }, true);
-window.startOfflineExport = startExport;
 window.kefeCancelExport = () => window.kefeExportAbort?.abort();
 console.info('[KEFE] Native WebCodecs export with FFmpeg compatibility fallback loaded');
