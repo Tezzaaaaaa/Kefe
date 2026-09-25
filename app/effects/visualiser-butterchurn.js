@@ -1,4 +1,15 @@
-/* KEFE — Butterchurn / MilkDrop visualiser. MiniPlayer-only. */
+/* KEFE — Butterchurn / MilkDrop visualiser. MiniPlayer-only.
+
+   Tries jsDelivr first, then unpkg. Detects which global the preset packs
+   set. Records human-readable errors in lastError for on-screen display.
+
+   iOS AUDIO CONTEXT NOTE
+   ----------------------
+   iOS Safari only allows ONE MediaElementSource per <audio> element. If
+   the main editor has already claimed window.kefeAudioElement for its own
+   live analyser, calling createMediaElementSource again throws. So we
+   track claimed elements in a WeakSet and reuse a shared AudioContext.
+*/
 (function () {
   'use strict';
   if (window.kefeButterchurn) return;
@@ -22,33 +33,17 @@
   var LOAD_TIMEOUT_MS = 15000;
 
   var state = {
-    loading: null,
-    ready: false,
-    lastError: '',
-    butterchurn: null,
-    presets: {},
-    names: [],
-    loadedVia: '',
-    visualizer: null,
-    audioContext: null,
-    sourceNode: null,
-    canvas: null,
-    width: 0,
-    height: 0,
-    connectedAudio: null,
-    currentPreset: ''
+    loading: null, ready: false, lastError: '',
+    butterchurn: null, presets: {}, names: [], loadedVia: '',
+    visualizer: null, audioContext: null, sourceNode: null,
+    canvas: null, width: 0, height: 0,
+    connectedAudio: null, currentPreset: ''
   };
 
   var miniState = {
-    butterchurn: null,
-    visualizer: null,
-    audioContext: null,
-    sourceNode: null,
-    canvas: null,
-    width: 0,
-    height: 0,
-    connectedAudio: null,
-    currentPreset: ''
+    butterchurn: null, visualizer: null, audioContext: null, sourceNode: null,
+    canvas: null, width: 0, height: 0,
+    connectedAudio: null, currentPreset: ''
   };
 
   function getAppState() { return window.state || { style: {} }; }
@@ -113,36 +108,81 @@
     return names;
   }
 
+  /* Shared AudioContext + WeakSet of claimed audio elements.
+     iOS Safari only allows one MediaElementSource per element. */
+  function getSharedAudioContext() {
+    if (!window.__kefeSharedAudioCtx) {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return null;
+      window.__kefeSharedAudioCtx = new AudioCtx();
+    }
+    return window.__kefeSharedAudioCtx;
+  }
+  function getClaimedSet() {
+    if (!window.__kefeClaimedAudioElements) {
+      window.__kefeClaimedAudioElements = new WeakSet();
+    }
+    return window.__kefeClaimedAudioElements;
+  }
+
   function primeMiniAudio(audioElement) {
     if (!audioElement) return false;
     try {
-      var AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return false;
-      if (!miniState.audioContext) miniState.audioContext = new AudioCtx();
-      if (!miniState.sourceNode || miniState.connectedAudio !== audioElement) {
-        if (miniState.sourceNode) { try { miniState.sourceNode.disconnect(); } catch (_) {} }
-        miniState.sourceNode = miniState.audioContext.createMediaElementSource(audioElement);
-        miniState.sourceNode.connect(miniState.audioContext.destination);
+      var sharedCtx = getSharedAudioContext();
+      if (!sharedCtx) return false;
+      var claimed = getClaimedSet();
+
+      miniState.audioContext = sharedCtx;
+
+      // If the element is already claimed by another source (the main
+      // editor's analyser, most likely), reuse that instead of throwing.
+      if (claimed.has(audioElement)) {
         miniState.connectedAudio = audioElement;
+        if (sharedCtx.state === 'suspended') sharedCtx.resume().catch(function () {});
+        return true;
       }
-      if (miniState.audioContext.state === 'suspended') miniState.audioContext.resume().catch(function () {});
+
+      if (miniState.sourceNode) {
+        try { miniState.sourceNode.disconnect(); } catch (_) {}
+        miniState.sourceNode = null;
+      }
+      miniState.sourceNode = sharedCtx.createMediaElementSource(audioElement);
+      miniState.sourceNode.connect(sharedCtx.destination);
+      miniState.connectedAudio = audioElement;
+      claimed.add(audioElement);
+
+      if (sharedCtx.state === 'suspended') sharedCtx.resume().catch(function () {});
       return true;
-    } catch (error) { return false; }
+    } catch (error) {
+      return false;
+    }
   }
 
   function ensureAudio() {
     var audio = window.kefeAudioElement;
     if (!audio) throw new Error('Main audio element unavailable.');
-    var AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) throw new Error('Web Audio unavailable.');
-    if (!state.audioContext) state.audioContext = new AudioCtx();
-    if (!state.sourceNode || state.connectedAudio !== audio) {
-      if (state.sourceNode) { try { state.sourceNode.disconnect(); } catch (_) {} }
-      state.sourceNode = state.audioContext.createMediaElementSource(audio);
-      state.sourceNode.connect(state.audioContext.destination);
+    var sharedCtx = getSharedAudioContext();
+    if (!sharedCtx) throw new Error('Web Audio unavailable.');
+    var claimed = getClaimedSet();
+
+    state.audioContext = sharedCtx;
+
+    if (claimed.has(audio)) {
       state.connectedAudio = audio;
+      if (sharedCtx.state === 'suspended') sharedCtx.resume().catch(function () {});
+      return state.sourceNode;
     }
-    if (state.audioContext.state === 'suspended') state.audioContext.resume().catch(function () {});
+
+    if (state.sourceNode) {
+      try { state.sourceNode.disconnect(); } catch (_) {}
+      state.sourceNode = null;
+    }
+    state.sourceNode = sharedCtx.createMediaElementSource(audio);
+    state.sourceNode.connect(sharedCtx.destination);
+    state.connectedAudio = audio;
+    claimed.add(audio);
+
+    if (sharedCtx.state === 'suspended') sharedCtx.resume().catch(function () {});
     return state.sourceNode;
   }
 
@@ -200,21 +240,21 @@
 
     if (!api) {
       var w = window.butterchurn;
-      var shape = !w ? '(window.butterchurn undefined)' : '(keys: ' + Object.keys(w).slice(0, 30).join(', ') + ')';
+      var shape = !w ? '(undefined)' : '(keys: ' + Object.keys(w).slice(0, 30).join(', ') + ')';
       throw new Error('No createVisualizer(). Shape ' + shape);
     }
 
     window.butterchurn = api;
     state.butterchurn = api;
 
-    try { await withTimeout(loadScriptOnce(source.base, 'kefe-butterchurn-base-' + source.name), LOAD_TIMEOUT_MS, source.name + ' presets base'); } catch (_) {}
-    try { await withTimeout(loadScriptOnce(source.extra, 'kefe-butterchurn-extra-' + source.name), LOAD_TIMEOUT_MS, source.name + ' presets extra'); } catch (_) {}
+    try { await withTimeout(loadScriptOnce(source.base, 'kefe-butterchurn-base-' + source.name), LOAD_TIMEOUT_MS, source.name + ' base'); } catch (_) {}
+    try { await withTimeout(loadScriptOnce(source.extra, 'kefe-butterchurn-extra-' + source.name), LOAD_TIMEOUT_MS, source.name + ' extra'); } catch (_) {}
 
     var names = collectPresets();
     if (!names.length) {
       var globals = ['base', 'butterchurnPresets', 'extra', 'butterchurnPresetsExtra']
         .map(function (n) { var v = window[n]; return n + '=' + (v == null ? 'undefined' : typeof v); }).join(', ');
-      throw new Error('Preset packs loaded but no presets found. Globals: ' + globals);
+      throw new Error('No presets. Globals: ' + globals);
     }
     state.loadedVia = source.name;
     return names;
@@ -278,7 +318,7 @@
   }
 
   function ensureMiniAudio(audio) {
-    if (miniState.sourceNode && miniState.connectedAudio === audio) {
+    if (miniState.connectedAudio === audio && miniState.audioContext) {
       if (miniState.audioContext.state === 'suspended') miniState.audioContext.resume().catch(function () {});
       return miniState.sourceNode;
     }
@@ -297,7 +337,7 @@
     if (!miniState.visualizer) {
       miniState.visualizer = miniState.butterchurn.createVisualizer(miniState.audioContext, miniState.canvas,
         { width: miniState.width, height: miniState.height, pixelRatio: 1, textureRatio: 1 });
-      miniState.visualizer.connectAudio(miniState.sourceNode);
+      miniState.visualizer.connectAudio(miniState.sourceNode || miniState.audioContext);
       miniState.currentPreset = '';
     } else {
       miniState.visualizer.setRendererSize(miniState.width, miniState.height);
@@ -324,8 +364,9 @@
   }
 
   function tryResumeContexts() {
-    if (miniState.audioContext && miniState.audioContext.state === 'suspended') miniState.audioContext.resume().catch(function () {});
-    if (state.audioContext && state.audioContext.state === 'suspended') state.audioContext.resume().catch(function () {});
+    if (window.__kefeSharedAudioCtx && window.__kefeSharedAudioCtx.state === 'suspended') {
+      window.__kefeSharedAudioCtx.resume().catch(function () {});
+    }
   }
   ['touchstart', 'click', 'pointerdown'].forEach(function (ev) {
     document.addEventListener(ev, tryResumeContexts, { passive: true, capture: true });
@@ -334,7 +375,6 @@
   function stop() {
     if (state.visualizer) state.visualizer = null;
     if (state.sourceNode) { try { state.sourceNode.disconnect(); } catch (_) {} state.sourceNode = null; }
-    if (state.audioContext) { try { state.audioContext.close(); } catch (_) {} state.audioContext = null; }
     state.canvas = null; state.connectedAudio = null; state.currentPreset = '';
     state.width = 0; state.height = 0;
   }
@@ -342,13 +382,12 @@
   function stopMini() {
     if (miniState.visualizer) miniState.visualizer = null;
     if (miniState.sourceNode) { try { miniState.sourceNode.disconnect(); } catch (_) {} miniState.sourceNode = null; }
-    if (miniState.audioContext) { try { miniState.audioContext.close(); } catch (_) {} miniState.audioContext = null; }
     miniState.canvas = null; miniState.connectedAudio = null; miniState.currentPreset = '';
     miniState.width = 0; miniState.height = 0;
   }
 
   window.kefeButterchurn = {
-    version: 5,
+    version: 6,
     limit: PRESET_LIMIT,
     prepare: prepare,
     retry: retry,
