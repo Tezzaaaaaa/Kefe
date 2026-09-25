@@ -22,9 +22,9 @@
   var CDN_SOURCES = [
     {
       name: 'local',
-      renderer:    './vendor/butterchurn/butterchurn.min.js',
-      base:        './vendor/butterchurn/presets-base.min.js',
-      extra:       './vendor/butterchurn/presets-extra.min.js'
+      renderer:    '/Kefe/vendor/butterchurn/butterchurn.min.js',
+      base:        '/Kefe/vendor/butterchurn/presets-base.min.js',
+      extra:       '/Kefe/vendor/butterchurn/presets-extra.min.js'
     }
   ];
 
