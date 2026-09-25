@@ -65,6 +65,9 @@
       }
     }
 
+    // Attach the dot metadata to the root so the animation loop can find it.
+    root.__kefeDots = dots;
+
     var instance={
       root:root,
       text:text,
@@ -113,21 +116,6 @@
     requestAnimationFrame(animate);
   }
 
-  // Attach the generated dot metadata after the animation loop is defined.
-  var originalCreate=createLoader;
-  createLoader=function(options){
-    var inst=originalCreate(options);
-    var rects=inst.root.querySelectorAll('rect');
-    // Reconstruct the fixed grid metadata without keeping a second DOM system.
-    var dots=[], COLS=5, ROWS=5, STEP=14, START_X=15, START_Y=15;
-    for(var row=0;row<ROWS;row++){
-      for(var col=0;col<COLS;col++){
-        dots.push({rect:rects[row*COLS+col],x:START_X+col*STEP,y:START_Y+row*STEP,distance:Math.sqrt(Math.pow(col-2,2)+Math.pow(row-2,2))});
-      }
-    }
-    inst.root.__kefeDots=dots;
-    return inst;
-  };
 
   window.KefeLoader={
     create:createLoader,
