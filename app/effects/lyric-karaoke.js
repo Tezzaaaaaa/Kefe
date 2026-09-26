@@ -30,7 +30,7 @@
     if(!active) return;
     var words=u.wordsFor(active.line,active.next);
     if(!words.length) return;
-    var family=style.kefeMotionFont||'Inter Tight';
+    var family=style.kefeMotionFont||'Boogaloo';
     var maxWidth=w*0.82;
     var size=Math.max(34,Math.min(150,Number(style.fontSize)||84));
     var layout;

@@ -7,7 +7,7 @@
   if (!u) { console.error('[lyric-flipcards] requires core.js'); return; }
   function clamp(v,a,b){ a=a==null?0:a; b=b==null?1:b; return Math.max(a,Math.min(b,Number(v)||0)); }
   function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
-  function setFlipFont(ctx,size){ ctx.font='900 '+Math.max(18,size)+'px "Inter Tight","Arial Black",system-ui,sans-serif'; }
+  function setFlipFont(ctx,size){ ctx.font='800 '+Math.max(18,size)+'px "Urbanist","Inter Tight",system-ui,sans-serif'; }
   function wrapWords(ctx,words,maxWidth,gapPx){
     var rows=[], row=[], rowWidth=0;
     for(var i=0;i<words.length;i++){

@@ -13,14 +13,14 @@
     if (previewEl) previewEl.id = 'previewSection';
 
     const PATHS = {
-        lyric: ['intro', 'source', 'lyrics', 'style', 'background', 'preview', 'export'],
-        visualiser: ['intro', 'source', 'style', 'background', 'preview', 'export'],
-        captioned: ['intro', 'source', 'captions', 'background', 'preview', 'export']
+        lyric: ['intro', 'source', 'lyrics', 'style', 'background', 'export'],
+        visualiser: ['intro', 'source', 'style', 'background', 'export'],
+        captioned: ['intro', 'source', 'captions', 'background', 'export']
     };
     const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video'};
     const PATH_HINTS = { lyric: 'Synced lyrics with expressive motion.', visualiser: 'Audio-reactive visuals with no lyrics.', captioned: 'Timed captions for spoken audio or video.'};
     const STEP_TITLES = { lyrics: 'Add your lyrics', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background', export: 'Export your video' };
-    const STEP_LABELS = { intro: 'Format', source: 'Media', lyrics: 'Lyrics', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview', export: 'Export' };
+    const STEP_LABELS = { intro: 'Format', source: 'Media', lyrics: 'Lyrics', captions: 'Captions', style: 'Style', background: 'Background', export: 'Export' };
     const CHOICE_ICONS = {
         lyric: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10"/><circle cx="18.2" cy="17.4" r="2.6"/><path d="M20.8 17.4V8.2l-2.6.9"/></svg>',
         visualiser: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>',
@@ -98,6 +98,8 @@
             } catch (e) {}
         }
         renderSource(); refreshNextState();
+        if (source === 'none') goTo(wizard.index + 1);
+        else chooseSourceMedia();
     }
     function renderSource() {
         // Visualiser doesn't take a background video — it's a full-canvas
@@ -108,12 +110,12 @@
             : wizard.choice === 'visualiser'
             ? [['uploaded', 'Audio file', 'Use an MP3, WAV or M4A track.'], ['none', 'No audio', 'Create silent visuals.']]
             : [['uploaded', 'Audio file', 'Use an MP3, WAV or M4A track.'], ['media', 'Background video', 'Use a video as the visual background and its soundtrack.'], ['none', 'No audio', 'Create silent visuals.']];
-        panel.innerHTML = '<p class="wizard-panel-kicker">02 · Media</p><h3 class="wizard-panel-title">What are you starting with?</h3><p class="wizard-panel-hint">Pick your source. KEFE will carry it through the rest of the project.</p><div class="wizard-choices wizard-source-choices">' + options.map(([v,l,h]) => `<button type="button" class="wizard-choice${wizard.source === v ? ' selected' : ''}" data-source="${v}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${SOURCE_ICONS[v]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${l}</strong><span>${h}</span></span></button>`).join('') + '</div>' + (wizard.source ? `<div class="wizard-source-action"><strong>${sourceStatus()}</strong><button type="button" id="wizardSourceAction" class="file-button">${sourceReady() ? 'Replace media' : 'Choose media'}</button></div>` : '') + '<div id="wizardMetadataMount"></div><p class="music-sync-hint">Enter the artist and title to find synced lyrics when the file has no metadata.</p>';
+        panel.innerHTML = '<p class="wizard-panel-kicker">02 · Media</p><h3 class="wizard-panel-title">What are you starting with?</h3><p class="wizard-panel-hint">Pick your source. KEFE will carry it through the rest of the project.</p><div class="wizard-choices wizard-source-choices">' + options.map(([v,l,h]) => `<button type="button" class="wizard-choice${wizard.source === v ? ' selected' : ''}" data-source="${v}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${SOURCE_ICONS[v]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${l}</strong><span>${h}</span></span></button>`).join('') + '</div>' + '<div id="wizardMetadataMount"></div><p class="music-sync-hint">Enter the artist and title to find synced lyrics when the file has no metadata.</p>';
         const metadataMount = $('wizardMetadataMount');
-        const metadataBlock = document.querySelector('#audioSection .music-details');
+        const metadataBlock = document.querySelector('.music-details');
         if (metadataMount && metadataBlock) metadataMount.appendChild(metadataBlock);
         panel.querySelectorAll('[data-source]').forEach(btn => btn.addEventListener('click', () => applySourceChoice(btn.dataset.source)));
-        $('wizardSourceAction')?.addEventListener('click', chooseSourceMedia);
+        // Selecting an audio/video card opens its existing file picker directly.
     }
     function renderIntro() {
         destroyIntroVeil();
@@ -131,7 +133,7 @@
                 resolutionScale: 1
             }));
         }
-        panel.querySelectorAll('[data-choice]').forEach(btn => btn.addEventListener('click', () => { const c = btn.dataset.choice; if (wizard.choice !== c) wizard.source = null; wizard.choice = c; wizard.path = c; wizard.index = 0; if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(c); panel.querySelectorAll('.wizard-choice').forEach(x => x.classList.toggle('selected', x.dataset.choice === c)); refreshNextState(); }));
+        panel.querySelectorAll('[data-choice]').forEach(btn => btn.addEventListener('click', () => { const c = btn.dataset.choice; if (wizard.choice !== c) wizard.source = null; wizard.choice = c; wizard.path = c; wizard.index = 1; if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(c); applyStep(); }));
     }
     function previewLineText() {
         const st = window.state || {};
@@ -213,10 +215,10 @@
         // the wizard panel is rebuilt. Without this, panel.innerHTML=""
         // destroys #lyricStyleBlock and style/background steps render blank.
         restoreStyleBlock();
-        const steps = stepsFor(), step = steps[wizard.index] || 'preview';
+        const steps = stepsFor(), step = steps[wizard.index] || 'export';
         body.dataset.wizardStep = step;
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        if (previewEl) { const showLivePreview = ['lyrics','captions','style','background','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
+        if (previewEl) { const showLivePreview = ['lyrics','captions','style','background','export'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
         const targetIds = targetsForStep(step);
         let firstTarget = null;
 
@@ -225,12 +227,17 @@
             panel.classList.add('wizard-current');
             firstTarget = panel;
         } else if (targetIds.length) {
+            if (step === 'lyrics') {
+                const metadataBlock = document.querySelector('.music-details');
+                const lyricsPanel = $('lyricsPanel');
+                const styleBlock = $('lyricStyleBlock');
+                if (metadataBlock && lyricsPanel) lyricsPanel.insertBefore(metadataBlock, styleBlock || null);
+            }
             panel.innerHTML = '';
             targetIds.forEach(id => { const el = $(id); if (el) { el.classList.add('wizard-current'); if (!firstTarget) firstTarget = el; } });
         } else {
             if (step === 'intro') renderIntro();
             else if (step === 'source') renderSource();
-            else if (step === 'preview') renderPreview();
             panel.classList.add('wizard-current');
             firstTarget = panel;
         }
@@ -240,7 +247,8 @@
         $('wizardStepLabel').textContent = STEP_LABELS[step] || '';
         $('wizardBackBtn').disabled = wizard.index === 0;
         const next = $('wizardNextBtn'); next.textContent = step === 'export' ? 'Export' : 'Next'; next.disabled = !nextEnabled(step);
-        if (firstTarget) { firstTarget.setAttribute('tabindex', '-1'); firstTarget.focus({ preventScroll: true }); }
+        (firstTarget === panel ? panel : firstTarget).appendChild(nav);
+        if (firstTarget) { firstTarget.setAttribute('tabindex', '-1'); firstTarget.focus({ preventScroll: false }); }
     }
     function refreshNextState() { const step = stepsFor()[wizard.index], b = $('wizardNextBtn'); if (step && b) b.disabled = !nextEnabled(step); }
     function finishWizard() {
@@ -273,6 +281,9 @@
         goTo(wizard.index + 1);
     });
     $('wizardSkipBtn').addEventListener('click', finishWizard);
+    document.addEventListener('change', () => {
+        if (document.body.dataset.wizardStep === 'source' && sourceReady()) goTo(wizard.index + 1);
+    }, true);
     sidebar.addEventListener('input', () => setTimeout(refreshNextState, 0));
     sidebar.addEventListener('change', () => setTimeout(refreshNextState, 0));
     sidebar.addEventListener('click', () => setTimeout(refreshNextState, 0));

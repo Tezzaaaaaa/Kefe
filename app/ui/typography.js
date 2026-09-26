@@ -27,13 +27,11 @@
     flipcards:           'Urbanist',
     karaoke:             'Boogaloo',
     trailer:             'Monoton',
-    // Next batch (effects coming next)
+    // Additional bundled effects
     chromatica:          'Memesique',
     analogtv:            'VT323',
-    fancy:               'Anton',
-    glitch:              'Special Elite',
-    splitflap:           'Big Shoulders Stencil Display',
-    rain:                'Frijole'
+    fancy:               'Archivo Narrow',
+    glitch:              'Special Elite'
   };
 
   /* ---------------------------------------------------------

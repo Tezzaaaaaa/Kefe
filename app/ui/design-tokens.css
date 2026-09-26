@@ -619,3 +619,95 @@ body[data-project-type="visualiser"] #backgroundSection .background-choice[data-
 body[data-project-type="visualiser"] #backgroundSection .background-choice[data-background-preset="solid"] {
   min-height: 52px !important;
 }
+
+
+/* ---------------------------------------------------------------------
+   Final layout contract — one spacing rhythm and fixed control geometry.
+   --------------------------------------------------------------------- */
+:root{
+  --layout-gap:16px;
+  --section-pad:16px;
+  --control-gap:8px;
+  --control-radius:8px;
+}
+button,select,input[type="text"],input[type="email"],input[type="password"],input[type="number"],input[type="color"],textarea{
+  box-sizing:border-box;
+}
+button{height:40px;min-height:40px;padding:0 14px;border-radius:8px}
+button.icon-button{width:40px;min-width:40px;padding:0}
+.sidebar>.section{padding:16px!important}
+.sidebar>.section>h3{margin:0 0 12px!important}
+.sidebar>.section>.sub-block,.sidebar>.section>.drop-zone,.sidebar>.section>.lyrics-actions,.sidebar>.section>.control-row,.sidebar>.section>.metadata-grid{margin-bottom:12px}
+.preview{min-width:0;min-height:0}
+.preview-toolbar{min-height:62px;height:auto;padding:10px 16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,48%);align-items:center;gap:16px}
+.transport{display:grid;grid-template-columns:40px 40px minmax(120px,1fr) auto 40px;align-items:center;gap:8px;width:100%;height:40px;min-width:0;padding:0}
+.transport .play-button,.transport .icon-button,.transport .preview-focus-button{width:40px;height:40px;min-width:40px;min-height:40px;padding:0}
+.transport .slider{width:100%;min-width:80px;margin:0}
+.transport #clock{min-width:72px;font-variant-numeric:tabular-nums}
+.transport .preview-focus-button{display:inline-flex}
+.kefe-wave-wrap{width:auto!important;min-width:80px!important;height:40px!important}
+.kefe-wave-wrap .slider{height:40px!important}
+.kefe-wave-canvas{opacity:.32!important}
+.kefe-wave-played .kefe-wave-canvas{opacity:.9!important}
+.kefe-sync-toggle,.kefe-live-adjust-toggle{height:32px;min-height:32px;padding:0 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--text-2);display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:650}
+.kefe-live-adjust-toggle{margin:0}
+.kefe-live-adjust-toggle input{width:14px;height:14px;margin:0;accent-color:var(--red)}
+.preview-heading{min-width:0}
+.preview-heading>*{min-width:0}
+.wizard-nav{width:100%;box-sizing:border-box;padding:10px 0 0;margin-top:16px;border-top:1px solid var(--line);background:transparent}
+body.wizard-mode .wizard-panel{padding:16px!important}
+body.wizard-mode .wizard-current{scroll-margin-top:8px}
+body.wizard-mode .wizard-choices .wizard-choice{min-height:72px;padding:12px 14px}
+body.wizard-mode .wizard-choices .wizard-choice .wizard-choice-icon{width:36px;height:36px}
+body.wizard-mode .wizard-panel-title{font-size:20px;letter-spacing:-.025em}
+body.wizard-mode .wizard-panel-hint{font-size:12px;line-height:1.45;margin-bottom:14px}
+body.wizard-mode .wizard-next,body.wizard-mode .wizard-back{height:40px;min-height:40px}
+body.wizard-mode .wizard-nav .wizard-progress-wrap{min-width:0}
+body.wizard-mode #textSection.wizard-current{padding:16px!important}
+body.wizard-mode #textSection.wizard-current .music-details{margin-top:12px}
+body.wizard-mode #exportSection.wizard-current{padding-bottom:24px!important}
+#exportOverlay .modal-content{width:min(420px,calc(100vw - 32px));padding:28px!important;border:1px solid var(--line-strong);border-radius:12px;text-align:center}
+#exportOverlay #exportStatus{font-size:13px;color:var(--text-2);margin:0 0 8px}
+#exportOverlay #exportProgress{width:100%;height:5px;margin:8px 0}
+#exportOverlay #exportPct{display:block;font-size:12px;font-variant-numeric:tabular-nums;color:var(--text);margin:8px 0 18px}
+#exportOverlay #cancelExport{min-width:104px}
+@media(max-width:900px){
+  .preview-toolbar{grid-template-columns:1fr;gap:8px}
+  .transport{grid-template-columns:40px 40px minmax(0,1fr) auto 40px}
+}
+@media(max-width:560px){
+  .transport{grid-template-columns:38px 38px minmax(0,1fr) auto 38px;gap:5px}
+  .transport .play-button,.transport .icon-button,.transport .preview-focus-button{width:38px;min-width:38px;height:38px;min-height:38px}
+  .transport #clock{min-width:58px;font-size:10px}
+  .kefe-wave-wrap{height:38px!important}
+  .kefe-wave-wrap .slider{height:38px!important}
+}
+
+#exportOverlay .modal-content{background:var(--surface);box-shadow:none}
+#exportOverlay #exportStatus{display:flex;align-items:center;justify-content:center;gap:10px;min-height:28px;color:var(--text)}
+#exportOverlay #exportStatus.loading::before{content:"";width:16px;height:16px;flex:0 0 16px;border:2px solid rgba(255,255,255,.16);border-top-color:var(--red);border-radius:50%;animation:kefe-export-spin .72s linear infinite}
+#exportOverlay #exportProgress{appearance:none;-webkit-appearance:none;background:var(--surface-3);border:0;border-radius:99px;overflow:hidden}
+#exportOverlay #exportProgress::-webkit-progress-bar{background:var(--surface-3);border-radius:99px}
+#exportOverlay #exportProgress::-webkit-progress-value{background:var(--red);border-radius:99px;transition:width .16s linear}
+#exportOverlay #exportProgress::-moz-progress-bar{background:var(--red);border-radius:99px}
+@keyframes kefe-export-spin{to{transform:rotate(360deg)}}
+
+#lyricStyleBlock .effect-buttons>button[data-effect]{font-weight:700;letter-spacing:-.01em;position:relative;overflow:hidden}
+#lyricStyleBlock .effect-buttons>button[data-effect]::before{content:"";position:absolute;left:10px;right:10px;top:8px;height:22px;border-radius:6px;opacity:.72;background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.18),rgba(255,255,255,.05));pointer-events:none}
+#lyricStyleBlock .effect-buttons>button[data-effect]::after{content:"";position:absolute;left:14px;right:14px;top:18px;height:2px;border-radius:99px;background:currentColor;opacity:.18;pointer-events:none}
+#lyricStyleBlock .effect-buttons>button[data-effect="apple"]{font-family:"Open Sans",sans-serif}
+#lyricStyleBlock .effect-buttons>button[data-effect="brat"]{font-family:"Archivo Narrow",sans-serif}
+#lyricStyleBlock .effect-buttons>button[data-effect="eternal"]{font-family:"Homemade Apple",cursive}
+#lyricStyleBlock .effect-buttons>button[data-effect="aurora"]{font-family:"Bricolage Grotesque",sans-serif}
+#lyricStyleBlock .effect-buttons>button[data-effect="typewriter"],#lyricStyleBlock .effect-buttons>button[data-effect="decrypt"]{font-family:"Courier Prime",monospace}
+#lyricStyleBlock .effect-buttons>button[data-effect="instagram"],#lyricStyleBlock .effect-buttons>button[data-effect="shiny"]{font-family:"Inter Tight",sans-serif}
+#lyricStyleBlock .effect-buttons>button[data-effect="fadeup"]{font-family:"Momo Trust Display",sans-serif}
+#lyricStyleBlock .effect-buttons>button[data-effect="barbie"]{font-family:"Baloo 2",sans-serif}
+#lyricStyleBlock .effect-buttons>button[data-effect="elasticpop"]{font-family:"Bangers",sans-serif}
+#lyricStyleBlock .effect-buttons>button[data-effect="flipcards"]{font-family:"Urbanist",sans-serif}
+#lyricStyleBlock .effect-buttons>button[data-effect="karaoke"]{font-family:"Boogaloo",sans-serif}
+#lyricStyleBlock .effect-buttons>button[data-effect="trailer"]{font-family:"Monoton",sans-serif}
+#lyricStyleBlock .effect-buttons>button[data-effect="fancy"]{font-family:"Archivo Narrow",sans-serif}
+#lyricStyleBlock .effect-buttons>button[data-effect="glitch"]{font-family:"Special Elite",cursive}
+#lyricStyleBlock .effect-buttons>button[data-effect="analogtv"]{font-family:"Courier Prime",monospace}
+#lyricStyleBlock .effect-buttons>button.active-effect::before{opacity:.95}

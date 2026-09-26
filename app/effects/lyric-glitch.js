@@ -8,7 +8,7 @@
   function clamp(v,a,b){ a=a==null?0:a; b=b==null?1:b; return Math.max(a,Math.min(b,Number(v)||0)); }
   function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
 
-  function font(ctx,size){ ctx.font='900 '+Math.max(18,size)+'px "Anton","Arial Black",system-ui,sans-serif'; }
+  function font(ctx,size){ ctx.font='400 '+Math.max(18,size)+'px "Special Elite","Courier Prime",system-ui,sans-serif'; }
   function fit(ctx,text,requested,maxWidth){
     var size=Math.max(40,Math.min(220,Number(requested)||150));
     font(ctx,size);

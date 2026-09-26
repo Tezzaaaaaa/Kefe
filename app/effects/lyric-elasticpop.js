@@ -13,7 +13,7 @@
     var s=period/4;
     return amplitude*Math.pow(2,-10*t)*Math.sin((t-s)*(2*Math.PI)/period)+1;
   }
-  function setElasticFont(ctx,size){ ctx.font='900 '+Math.max(18,size)+'px "Inter Tight","Arial Black",system-ui,sans-serif'; }
+  function setElasticFont(ctx,size){ ctx.font='400 '+Math.max(18,size)+'px "Bangers","Inter Tight",system-ui,sans-serif'; }
   function wrapWords(ctx,words,maxWidth,gapPx){
     var rows=[], row=[], rowWidth=0;
     for(var i=0;i<words.length;i++){

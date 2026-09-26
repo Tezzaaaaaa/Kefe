@@ -13,10 +13,10 @@ function addControl() {
     <label>Quality
       <select id="kefeQualityPreset" aria-label="Export quality">
         <option value="low">Low — Fast export</option>
-        <option value="medium" selected>Medium — Balanced</option>
+        <option value="medium">Medium — Balanced</option>
         <option value="high">High — Best for YouTube</option>
         <option value="ultra">Ultra — Maximum quality</option>
-        <option value="lossless">Lossless — Very large files</option>
+        <option value="lossless" selected>Lossless — Very large files</option>
       </select>
     </label>
     <div id="kefeQualityHint" class="sub-hint">Balanced · recommended</div>
