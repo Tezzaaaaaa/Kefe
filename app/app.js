@@ -3472,7 +3472,7 @@ async function openExportPreflight() {
             btn.textContent = sol.label;
             btn.addEventListener('click', () => {
                 sol.apply();
-                startExport(); // re-run preflight after repair
+                openExportPreflight(); // re-run preflight after repair
             });
             preflightRepair.appendChild(btn);
         });
