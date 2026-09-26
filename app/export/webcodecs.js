@@ -44,7 +44,7 @@ function qualityForMediabunny(name, config) {
         Number.parseInt(
             quality.videoBitrate || '0',
             10
-        ) * 1_000_000;
+        );
 
     const bitrate = Math.max(
         minimumBitrate,
@@ -197,9 +197,9 @@ export async function exportVideoWebCodecs({
 
         const audioBitrate =
             Number.parseInt(
-                audioQuality.audioBitrate || '128k',
+                audioQuality.audioBitrate || '128000',
                 10
-            ) * 1000;
+            );
 
         conversion =
             await Conversion.init({

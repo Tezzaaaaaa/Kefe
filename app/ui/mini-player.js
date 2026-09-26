@@ -14,7 +14,7 @@
 
   const CSS = `
 *{box-sizing:border-box;margin:0;padding:0}
-.ipod{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:180px;height:300px;border-radius:30px;background:linear-gradient(180deg,#f5f5f7 0%,#e8e8ec 50%,#d4d4da 100%);box-shadow:0 18px 40px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.9) inset,0 -1px 0 rgba(0,0,0,.1) inset,0 0 0 1px rgba(0,0,0,.15);display:flex;flex-direction:column;padding:12px 12px 14px;z-index:11001;font-family:-apple-system,"SF Pro Text",system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+.ipod{position:fixed;left:calc(100vw - 194px);top:calc(100vh - 314px);width:180px;height:300px;border-radius:30px;background:linear-gradient(180deg,#f5f5f7 0%,#e8e8ec 50%,#d4d4da 100%);box-shadow:0 18px 40px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.9) inset,0 -1px 0 rgba(0,0,0,.1) inset,0 0 0 1px rgba(0,0,0,.15);display:flex;flex-direction:column;padding:12px 12px 14px;z-index:11001;font-family:-apple-system,"SF Pro Text",system-ui,sans-serif;user-select:none;-webkit-user-select:none}
 .ipod.is-hidden{display:none}
 .screen{position:relative;width:100%;flex:0 0 46%;border-radius:6px;background:linear-gradient(180deg,#0a1424 0%,#061020 100%);box-shadow:0 0 0 2px #1a1a1e,0 0 0 3px #2a2a30,0 3px 8px rgba(0,0,0,.6) inset;overflow:hidden;padding:8px 9px;display:flex;flex-direction:column;cursor:pointer}
 .screen::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 70% at 80% -10%,rgba(90,140,200,.35),transparent 55%)}
@@ -24,7 +24,7 @@
 .canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .3s;background:#000}
 .screen.is-vis .canvas{opacity:1}
 .screen.is-vis .art-wrap{opacity:0}
-.statusbar{display:flex;align-items:center;gap:3px;font-size:8px;font-weight:600;color:#cfd7e6;position:relative;z-index:2}
+.statusbar{cursor:grab;touch-action:none;display:flex;align-items:center;gap:3px;font-size:8px;font-weight:600;color:#cfd7e6;position:relative;z-index:2}
 .statusbar .spacer{flex:1}
 .statusbar svg{fill:currentColor;display:block}
 .statusbar .signal{width:11px;height:7px}
@@ -107,7 +107,7 @@
     art: el('art'), title: el('title'), artist: el('artist'), album: el('album'),
     current: el('current'), remaining: el('remaining'), progress: el('progress'),
     play: el('play'), center: el('center'), prev: el('prev'), next: el('next'),
-    close: el('close'), menu: el('menu'), mode: el('mode'),
+    close: el('close'), menu: el('menu'), mode: el('mode'), statusbar: shadow.querySelector('.statusbar'),
     presets: el('presets'), presetList: el('presetList'),
   };
 
@@ -121,6 +121,9 @@
   let lastW = 0, lastH = 0;
   let miniPlayerVisualiser = null;
   const TARGET_FRAME_MS = 1000 / 60;
+  let dragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
 
   const fmt = t => {
     const n = Math.max(0, Number(t) || 0);
@@ -397,6 +400,34 @@
     dom.presets.classList.remove('is-open');
     if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
   }
+
+  dom.statusbar?.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    const rect = shell.getBoundingClientRect();
+    dragging = true;
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+    dom.statusbar.setPointerCapture?.(e.pointerId);
+    dom.statusbar.style.cursor = 'grabbing';
+  });
+  dom.statusbar?.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const maxX = Math.max(0, window.innerWidth - shell.offsetWidth);
+    const maxY = Math.max(0, window.innerHeight - shell.offsetHeight);
+    const x = Math.max(0, Math.min(maxX, e.clientX - dragOffsetX));
+    const y = Math.max(0, Math.min(maxY, e.clientY - dragOffsetY));
+    shell.style.left = x + 'px';
+    shell.style.top = y + 'px';
+  });
+  dom.statusbar?.addEventListener('pointerup', e => {
+    dragging = false;
+    dom.statusbar.style.cursor = 'grab';
+    dom.statusbar.releasePointerCapture?.(e.pointerId);
+  });
+  dom.statusbar?.addEventListener('pointercancel', () => {
+    dragging = false;
+    dom.statusbar.style.cursor = 'grab';
+  });
 
   dom.screen.addEventListener('click', e => {
     if (e.target.closest('button')) return;

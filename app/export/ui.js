@@ -26,7 +26,7 @@ function buildFilename() {
     }
     return `${title}${artist && artist.toLowerCase() !== title.toLowerCase() ? ` - ${artist}` : ''} - KEFE Visualiser.mp4`;
 }
-function setExportUI(percent, message) { const status = $('exportStatus'); const pct = $('exportPct'); const progress = $('exportProgress'); if (status) status.textContent = message || 'Exporting…'; if (pct) pct.textContent = `${Math.round(percent)}%`; if (progress) progress.value = percent; }
+function setExportUI(percent, message) { const status = $('exportStatus'); const pct = $('exportPct'); const progress = $('exportProgress'); if (status) { status.textContent = message || 'Exporting…'; status.classList.toggle('loading', percent < 100 && !/complete|cancelled|failed/i.test(String(message || ''))); } if (pct) pct.textContent = `${Math.round(percent)}%`; if (progress) progress.value = percent; }
 function showOverlay() { $('exportOverlay')?.classList.remove('hidden'); }
 function hideOverlay(delay = 1200) { setTimeout(() => $('exportOverlay')?.classList.add('hidden'), delay); }
 

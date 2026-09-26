@@ -12,13 +12,12 @@
     var heading = document.querySelector('.preview-heading');
     var row = document.getElementById('kefeSyncRow');
     if (!preview || !heading || !row) return false;
-    if (document.querySelector('.kefe-sync-toggle')) return true;
-
     // ensure closed by default
     preview.dataset.kefeSyncOpen = 'false';
 
-    var btn = document.createElement('button');
-    btn.type = 'button';
+    var btn = document.querySelector('.kefe-sync-toggle') || document.createElement('button');
+    if (btn.parentElement !== heading) heading.appendChild(btn);
+    if (!btn.classList.contains('kefe-sync-toggle')) btn.type = 'button';
     btn.className = 'kefe-sync-toggle';
     btn.setAttribute('aria-expanded', 'false');
     btn.setAttribute('aria-controls', 'kefeSyncRow');
@@ -29,14 +28,19 @@
       '</svg>' +
       '<span>Fine-tune sync</span>';
 
-    btn.addEventListener('click', function(){
+    if (!btn.dataset.kefeBound) btn.addEventListener('click', function(){
       var open = preview.dataset.kefeSyncOpen === 'true';
       preview.dataset.kefeSyncOpen = open ? 'false' : 'true';
       btn.setAttribute('aria-expanded', open ? 'false' : 'true');
     });
+    btn.dataset.kefeBound = '1';
 
-    // Append to the end of the heading, after "Ready"
-    heading.appendChild(btn);
+    var live = document.getElementById('syncLive');
+    if (live && live.parentElement) {
+      var liveLabel = live.closest('.toggle-row') || live.parentElement;
+      if (liveLabel && liveLabel.parentElement !== heading) heading.appendChild(liveLabel);
+      liveLabel.classList.add('kefe-live-adjust-toggle');
+    }
     return true;
   }
 

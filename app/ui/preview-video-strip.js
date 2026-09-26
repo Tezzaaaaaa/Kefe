@@ -39,7 +39,7 @@
 
   function buildStrip() {
     var slider = document.getElementById('seek');
-    if (!slider || slider.dataset.kefeStripWrapped) return;
+    if (!slider || slider.dataset.kefeStripWrapped || slider.closest('.kefe-wave-wrap')) return;
     slider.dataset.kefeStripWrapped = '1';
 
     var wrap = document.createElement('div');

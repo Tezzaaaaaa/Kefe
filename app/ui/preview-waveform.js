@@ -10,7 +10,7 @@
   var css = document.createElement('style');
   css.id = 'kefe-preview-waveform-css';
   css.textContent = [
-    '.kefe-wave-wrap{position:relative;flex:1 1 auto;min-width:120px;width:min(360px,32vw);height:32px;display:flex;align-items:center}',
+    '.kefe-wave-wrap{position:relative;flex:1 1 auto;min-width:80px;width:auto;height:32px;display:flex;align-items:center}',
     '.kefe-wave-wrap .slider{position:relative;z-index:2;width:100%;margin:0;background:transparent}',
     '.kefe-wave-canvas{position:absolute;inset:0;z-index:1;width:100%;height:100%;pointer-events:none;opacity:0.55}',
     /* Played portion tint (draws over the "past" part of the wave) */
@@ -24,6 +24,7 @@
   var wrap = null;
   var energyCache = null;
   var lastEnergyLen = 0;
+  var lastWaveKey = '';
 
   function build() {
     var slider = document.getElementById('seek');
@@ -65,6 +66,15 @@
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     var w = Math.max(1, wrap.clientWidth);
     var h = Math.max(1, wrap.clientHeight);
+    var total = Number(getDuration());
+    var cur = Number(getCurrentTime());
+    var pct = total > 0 ? Math.max(0, Math.min(1, cur / total)) : 0;
+    var playedWrap = wrap.querySelector('.kefe-wave-played');
+    if (playedWrap) playedWrap.style.width = (pct * 100) + '%';
+    var energy = getEnergy();
+    var waveKey = w + 'x' + h + 'x' + dpr + 'x' + (energy ? energy.length : 0);
+    if (waveKey === lastWaveKey) return;
+    lastWaveKey = waveKey;
     if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
       canvas.width = w * dpr;
       canvas.height = h * dpr;
@@ -80,8 +90,6 @@
     pctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
     pctx.clearRect(0, 0, w, h);
-
-    var energy = getEnergy();
 
     // If no analysis data yet, draw a soft flat line so the bar still
     // has a visual rhythm rather than an empty band.
@@ -122,10 +130,6 @@
     paint(ctx, 'rgba(255,255,255,0.34)');
 
     // Played: brighter
-    var total = Number(getDuration());
-    var cur = Number(getCurrentTime());
-    var pct = total > 0 ? Math.max(0, Math.min(1, cur / total)) : 0;
-    wrap.parentElement.querySelector('.kefe-wave-played').style.width = (pct * 100) + '%';
     paint(pctx, 'rgba(239,63,56,0.95)');
   }
 
@@ -141,7 +145,7 @@
       build();
       draw();
     } catch (e) { /* ignore */ }
-  }, 200);
+  }, 33);
 
   console.log('[KEFE] preview waveform active');
 })();

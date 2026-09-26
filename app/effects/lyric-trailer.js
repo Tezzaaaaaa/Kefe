@@ -9,8 +9,8 @@
   function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
   function overshoot(v){ var t=clamp(v); if(t>=1) return 1; var c=1.7; return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2); }
 
-  function heavyFont(ctx,size){ ctx.font='900 '+Math.max(18,size)+'px "Archivo Narrow","Inter Tight",system-ui,sans-serif'; }
-  function leadFont(ctx,size){ ctx.font='600 '+Math.max(14,size)+'px "Archivo Narrow","Inter Tight",system-ui,sans-serif'; }
+  function heavyFont(ctx,size){ ctx.font='400 '+Math.max(18,size)+'px "Monoton","Archivo Narrow",system-ui,sans-serif'; }
+  function leadFont(ctx,size){ ctx.font='400 '+Math.max(14,size)+'px "Monoton","Archivo Narrow",system-ui,sans-serif'; }
   function fitHeavy(ctx,text,startSize,maxWidth){
     var size=startSize;
     heavyFont(ctx,size);

@@ -1106,7 +1106,7 @@ function drawBackground(ctx, w, h, bg, media) {
     ctx.restore();
 }
 
-const TITLECARD_DESIGN_LABELS = { auto: 'Auto (matches effect)', minimal: 'Minimal', spotlight: 'Spotlight', editorial: 'Editorial', statement: 'Statement' };
+const TITLECARD_DESIGN_LABELS = { auto: 'Auto (matches effect)', spotlight: 'Spotlight', cinema: 'Cinema', type: 'Type', cover: 'Cover', mono: 'Mono', lower: 'Lower Third' };
 const TITLECARD_DESIGN_FOR_EFFECT = { apple: 'minimal', brat: 'statement', eternal: 'editorial', aurora: 'spotlight', pulse: 'spotlight', typewriter: 'editorial', instagram: 'statement', fadeup: 'minimal' };
 function resolveTitleCardDesign(appState) {
     const chosen = appState.style.titleCardStyle || 'auto';
@@ -1142,6 +1142,98 @@ function renderTitleCard(ctx, w, h, time, appState) {
     };
     const design = resolveTitleCardDesign(appState);
     if (design === 'spotlight') return renderTitleCardSpotlight(ctx, w, h, phase, info);
+    if (design === 'cinema') {
+        ctx.save();
+        ctx.globalAlpha = phase.alpha;
+        ctx.fillStyle = 'rgba(0,0,0,0.46)';
+        ctx.fillRect(0, h * 0.17, w, h * 0.66);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const size = fitTitleText(ctx, info.title, 800, '"Open Sans"', Math.min(w * 0.11, h * 0.075), w * 0.78, 28);
+        ctx.font = `800 ${size}px "Open Sans",Arial,sans-serif`;
+        ctx.fillText(info.title, w / 2, h * 0.48 + (1 - phase.enter) * h * 0.02);
+        ctx.font = '500 18px "Inter Tight",Arial,sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,.68)';
+        ctx.fillText([info.artist, info.album].filter(Boolean).join(' · '), w / 2, h * 0.56);
+        ctx.fillStyle = 'rgba(255,255,255,.7)';
+        ctx.fillRect(w * 0.39, h * 0.62, w * 0.22, 2);
+        ctx.restore();
+        return true;
+    }
+    if (design === 'type') {
+        ctx.save();
+        ctx.globalAlpha = phase.alpha;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = '#FFFFFF';
+        const size = fitTitleText(ctx, info.title, 900, '"Archivo Narrow"', Math.min(w * 0.17, h * 0.11), w * 0.78, 30);
+        ctx.font = `900 ${size}px "Archivo Narrow",Arial,sans-serif`;
+        const x = w * 0.09;
+        const y = h * 0.70 + (1 - phase.enter) * h * 0.025;
+        ctx.fillText(info.title.toUpperCase(), x, y);
+        ctx.fillStyle = 'rgba(255,255,255,.62)';
+        ctx.font = '600 18px "Inter Tight",Arial,sans-serif';
+        ctx.fillText(info.artist || '', x, y + size * 0.42);
+        ctx.restore();
+        return true;
+    }
+    if (design === 'cover') {
+        ctx.save();
+        ctx.globalAlpha = phase.alpha;
+        const unit = Math.min(w, h);
+        const artSize = linaClamp(unit * 0.38, 190, 520);
+        drawTitleArtwork(ctx, info.artwork, w / 2, h * 0.39, artSize, artSize * 0.055);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        const size = fitTitleText(ctx, info.title, 800, '"Open Sans"', Math.min(w * 0.075, h * 0.052), w * 0.82, 24);
+        ctx.font = `800 ${size}px "Open Sans",Arial,sans-serif`;
+        ctx.fillText(info.title, w / 2, h * 0.72);
+        ctx.fillStyle = 'rgba(255,255,255,.64)';
+        ctx.font = '500 18px "Inter Tight",Arial,sans-serif';
+        ctx.fillText(info.artist || '', w / 2, h * 0.77);
+        ctx.restore();
+        return true;
+    }
+    if (design === 'mono') {
+        ctx.save();
+        ctx.globalAlpha = phase.alpha;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(w * 0.08, h * 0.18, w * 0.84, h * 0.64);
+        ctx.fillStyle = '#090909';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        const x = w * 0.14;
+        const size = fitTitleText(ctx, info.title, 900, '"Archivo Narrow"', Math.min(w * 0.12, h * 0.08), w * 0.70, 28);
+        ctx.font = `900 ${size}px "Archivo Narrow",Arial,sans-serif`;
+        const lines = wrapTitleText(ctx, info.title.toUpperCase(), w * 0.70);
+        lines.slice(0, 3).forEach((line, i) => ctx.fillText(line, x, h * 0.44 + i * size * 0.9));
+        ctx.font = '600 17px "Inter Tight",Arial,sans-serif';
+        ctx.fillText(info.artist || '', x, h * 0.72);
+        ctx.restore();
+        return true;
+    }
+    if (design === 'lower') {
+        ctx.save();
+        ctx.globalAlpha = phase.alpha;
+        const barY = h * 0.72;
+        ctx.fillStyle = 'rgba(5,5,5,.82)';
+        ctx.fillRect(0, barY, w, h * 0.16);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(w * 0.07, barY + h * 0.035, 3, h * 0.09);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        const x = w * 0.10;
+        const size = fitTitleText(ctx, info.title, 800, '"Open Sans"', Math.min(w * 0.062, h * 0.044), w * 0.78, 22);
+        ctx.font = `800 ${size}px "Open Sans",Arial,sans-serif`;
+        ctx.fillText(info.title, x, barY + h * 0.075);
+        ctx.font = '500 16px "Inter Tight",Arial,sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,.62)';
+        ctx.fillText(info.artist || '', x, barY + h * 0.12);
+        ctx.restore();
+        return true;
+    }
     if (design === 'editorial') return renderTitleCardEditorial(ctx, w, h, phase, info);
     if (design === 'statement') return renderTitleCardStatement(ctx, w, h, appState, phase, info);
     return renderTitleCardMinimal(ctx, w, h, phase, info);

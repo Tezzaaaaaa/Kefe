@@ -7,7 +7,7 @@
   if (!u) { console.error('[lyric-analogtv] requires core.js'); return; }
   function clamp(v,a,b){ a=a==null?0:a; b=b==null?1:b; return Math.max(a,Math.min(b,Number(v)||0)); }
 
-  function font(ctx,size){ ctx.font='400 '+Math.max(18,size)+'px "VT323","Courier New",monospace'; }
+  function font(ctx,size){ ctx.font='400 '+Math.max(18,size)+'px "Courier Prime",monospace'; }
   function fit(ctx,text,requested,maxWidth){
     var size=Math.max(34,Math.min(200,Number(requested)||96));
     font(ctx,size);

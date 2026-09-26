@@ -8,6 +8,7 @@
     var t = document.querySelector(".transport");
     if (!focus || !t) return;
     if (focus.parentElement !== t) t.appendChild(focus);
+    focus.classList.add("preview-focus-button");
   }
   setInterval(move, 300);
   move();
