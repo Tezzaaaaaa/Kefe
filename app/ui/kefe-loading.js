@@ -15,10 +15,10 @@
     var css = document.createElement('style');
     css.id = 'kefe-official-loader-css';
     css.textContent = [
-      '.kefe-official-loader{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;user-select:none}',
-      '.kefe-official-loader__matrix{width:var(--kefe-loader-size,112px);height:var(--kefe-loader-size,112px);display:block;overflow:visible}',
-      '.kefe-official-loader__text{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;font-size:15px;font-weight:500;letter-spacing:-.015em;line-height:1.4;color:#85899a;white-space:nowrap;will-change:opacity}',
-      '.kefe-official-loader--compact{--kefe-loader-size:88px;gap:8px}',
+      '.kefe-official-loader{position:relative;display:flex;align-items:center;justify-content:center;width:var(--kefe-loader-size,112px);height:var(--kefe-loader-size,112px);pointer-events:none;user-select:none}',
+      '.kefe-official-loader__matrix{width:100%;height:100%;display:block;overflow:visible}',
+      '.kefe-official-loader__text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;font-size:15px;font-weight:500;letter-spacing:-.015em;line-height:1.4;color:#85899a;white-space:nowrap;will-change:opacity}',
+      '.kefe-official-loader--compact{--kefe-loader-size:88px}',
       '.kefe-official-loader--compact .kefe-official-loader__text{font-size:13px}',
       '.kefe-caption-loader{margin:10px 0 4px}',
       '.kefe-export-loader{margin:4px auto 12px}',
@@ -117,7 +117,7 @@
     arc.setAttribute('stroke','url(#'+gradientId+')');
     arc.setAttribute('stroke-width','7');
     arc.setAttribute('stroke-linecap','round');
-    arc.setAttribute('stroke-dasharray','225 58');
+    arc.setAttribute('stroke-dasharray','210 73');
     arc.setAttribute('stroke-dashoffset','0');
     arc.setAttribute('filter','url(#'+glowId+')');
     svg.appendChild(arc);
