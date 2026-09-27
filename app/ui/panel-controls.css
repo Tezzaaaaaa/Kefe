@@ -69,8 +69,8 @@
 .sidebar input[type="text"],
 .sidebar select,
 .metadata-grid input {
-  height: var(--control-h);
-  padding: 0 12px;
+  height: var(--h-control);
+  padding: 0 var(--s-3);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface-2);
