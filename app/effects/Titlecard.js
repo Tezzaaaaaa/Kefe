@@ -127,7 +127,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         const targetIconsX = targetRight - iconSize;
         const targetTextRight = targetIconsX - iconGap;
         const morph = linaSmooth(toLyrics);
-        const startArtSize = linaClamp(unit * 0.18, 126, 220);
+        const startArtSize = iphoneBoundaryWidth * (180 / 390);
         const startArtX = (w - startArtSize) / 2;
         const startArtY = contentY - startArtSize - unit * 0.055;
         const artSize = startArtSize + (targetArtSize - startArtSize) * morph;
@@ -196,7 +196,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         return true;
     }
 
-    const artworkSize = linaClamp(unit * 0.18, 126, 220);
+    const artworkSize = iphoneBoundaryWidth * (180 / 390);
     ctx.translate(w / 2, contentY);
     ctx.globalAlpha = alpha;
     ctx.textAlign = 'center';
@@ -222,7 +222,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         textOriginY = unit * 0.025;
     }
 
-    let titleSize = Math.max(36, Math.round(unit * 0.066));
+    let titleSize = Math.max(30, Math.round(iphoneBoundaryWidth * (32 / 390)));
     ctx.font = `800 ${titleSize}px "Open Sans",Arial,sans-serif`;
     while (titleSize > 30 && ctx.measureText(title).width > maxTextWidth) {
         titleSize -= 2;
@@ -236,7 +236,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     ctx.shadowBlur = Math.max(5, unit * 0.009);
     let cursorY = titleY + Math.max(42, titleSize * 0.92);
     if (artist) {
-        let artistSize = Math.max(19, Math.round(unit * 0.026));
+        let artistSize = Math.max(16, Math.round(iphoneBoundaryWidth * (17 / 390)));
         ctx.font = `600 ${artistSize}px "Open Sans",Arial,sans-serif`;
         while (artistSize > 15 && ctx.measureText(artist).width > maxTextWidth) {
             artistSize -= 1;
@@ -247,7 +247,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         cursorY += Math.max(30, artistSize * 1.45);
     }
     if (album) {
-        let albumSize = Math.max(15, Math.round(unit * 0.019));
+        let albumSize = Math.max(13, Math.round(iphoneBoundaryWidth * (14 / 390)));
         ctx.font = `500 ${albumSize}px "Open Sans",Arial,sans-serif`;
         while (albumSize > 13 && ctx.measureText(album).width > maxTextWidth) {
             albumSize -= 1;
