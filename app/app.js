@@ -465,7 +465,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.55, 0.20, 0.70);
     const pastOpacity = linaClamp(upcomingOpacity * 0.64, 0.20, 0.50);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
-    const topAnchor = h * linaClamp(Number(style.appleTopOffset) || 0.34, 0.30, 0.62);
+    const topAnchor = h * linaClamp(Number(style.appleTopOffset) || 0.38, 0.36, 0.62);
     const glow = Number(style.appleGlow) || 0.012;
     const activeScale = 1 + linaClamp(Number(style.appleDepth) ?? 0.008, 0, 0.06) * 2.5;
 
@@ -1293,7 +1293,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     const unit = Math.min(w, h);
     const lift = (1 - enter) * unit * 0.022;
     const centerY = h * 0.52 + lift;
-    const contentY = centerY + (h * 0.38 - centerY) * toLyrics;
+    const contentY = centerY + (h * 0.16 - centerY) * toLyrics;
     const maxTextWidth = w * 0.78;
     const title = info.title;
     const artist = info.artist;
@@ -1301,38 +1301,57 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     const artwork = info.artwork;
 
     ctx.save();
-
-    // Keep the Apple-style artwork gradient visible underneath the title card.
-    // The title card remains foreground content; the gradient is only a background wash.
     ctx.globalAlpha = alpha;
-    if (artwork) {
-        const sw = artwork.naturalWidth || artwork.videoWidth || artwork.width;
-        const sh = artwork.naturalHeight || artwork.videoHeight || artwork.height;
-        if (sw && sh) {
+
+    if (toLyrics > 0.001) {
+        // Apple lyrics view: the title card collapses into a compact,
+        // horizontal Now Playing header at the top and stays there.
+        const headerTop = Math.max(28, h * 0.052);
+        const artSize = linaClamp(unit * 0.075, 56, 88);
+        const left = Math.max((w - Math.min(w, h * (390 / 844))) / 2 + unit * (31 / 390), unit * 0.05);
+        const artY = headerTop;
+
+        if (artwork) {
             ctx.save();
-            ctx.filter = 'blur(70px) saturate(1.7)';
-            const scale = Math.max((w + 140) / sw, (h + 140) / sh);
-            const dw = sw * scale;
-            const dh = sh * scale;
-            ctx.drawImage(artwork, (w - dw) / 2, (h - dh) / 2, dw, dh);
-            ctx.filter = 'none';
-            const wash = ctx.createLinearGradient(0, 0, 0, h);
-            wash.addColorStop(0, 'rgba(0,0,0,0.28)');
-            wash.addColorStop(0.5, 'rgba(0,0,0,0.46)');
-            wash.addColorStop(1, 'rgba(0,0,0,0.30)');
-            ctx.fillStyle = wash;
-            ctx.fillRect(0, 0, w, h);
+            ctx.beginPath();
+            ctx.roundRect(left, artY, artSize, artSize, Math.max(8, artSize * 0.08));
+            ctx.clip();
+            const sw = artwork.naturalWidth || artwork.videoWidth || artwork.width;
+            const sh = artwork.naturalHeight || artwork.videoHeight || artwork.height;
+            if (sw && sh) {
+                const side = Math.min(sw, sh);
+                ctx.drawImage(artwork, (sw - side) / 2, (sh - side) / 2, side, side, left, artY, artSize, artSize);
+            }
             ctx.restore();
         }
-    } else {
-        const wash = ctx.createLinearGradient(0, 0, 0, h);
-        wash.addColorStop(0, 'rgba(0,0,0,0.10)');
-        wash.addColorStop(0.5, 'rgba(0,0,0,0.28)');
-        wash.addColorStop(1, 'rgba(0,0,0,0.16)');
-        ctx.fillStyle = wash;
-        ctx.fillRect(0, 0, w, h);
+
+        const detailX = left + artSize + 14;
+        const detailWidth = Math.max(1, w - detailX - left);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.38)';
+        ctx.shadowBlur = Math.max(4, unit * 0.008);
+
+        let titleSize = Math.max(17, Math.round(artSize * 0.25));
+        ctx.font = `700 ${titleSize}px -apple-system, "SF Pro Display", sans-serif`;
+        while (titleSize > 15 && ctx.measureText(title).width > detailWidth) {
+            titleSize -= 1;
+            ctx.font = `700 ${titleSize}px -apple-system, "SF Pro Display", sans-serif`;
+        }
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(title, detailX, headerTop + artSize * 0.36);
+
+        let artistSize = Math.max(13, Math.round(artSize * 0.18));
+        ctx.font = `500 ${artistSize}px -apple-system, "SF Pro Display", sans-serif`;
+        ctx.fillStyle = 'rgba(255,255,255,0.72)';
+        ctx.fillText(String(artist || album || ''), detailX, headerTop + artSize * 0.68);
+
+        ctx.restore();
+        return true;
     }
 
+    // Intro state: retain the existing centred title-card treatment.
+    const artworkSize = linaClamp(unit * 0.18, 126, 220);
     ctx.translate(w / 2, contentY);
     ctx.globalAlpha = alpha;
     ctx.textAlign = 'center';
@@ -1343,18 +1362,16 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
 
     let textOriginY = 0;
     if (artwork) {
-        const artworkSize = linaClamp(unit * 0.18, 126, 220);
         const artY = -artworkSize - unit * 0.055;
         ctx.save();
         ctx.beginPath();
         ctx.roundRect(-artworkSize / 2, artY, artworkSize, artworkSize, Math.max(12, artworkSize * 0.07));
         ctx.clip();
         const sw = artwork.naturalWidth || artwork.videoWidth || artwork.width;
-        const sh = artwork.naturalHeight || artwork.videoHeight || artwork.height;
+        const sh = artwork.naturalHeight || artwork.height;
         if (sw && sh) {
             const side = Math.min(sw, sh);
-            ctx.drawImage(artwork, (sw - side) / 2, (sh - side) / 2, side, side,
-                -artworkSize / 2, artY, artworkSize, artworkSize);
+            ctx.drawImage(artwork, (sw - side) / 2, (sh - side) / 2, side, side, -artworkSize / 2, artY, artworkSize, artworkSize);
         }
         ctx.restore();
         textOriginY = unit * 0.025;
@@ -1366,7 +1383,6 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         titleSize -= 2;
         ctx.font = `800 ${titleSize}px "Open Sans",Arial,sans-serif`;
     }
-
     const metadataLines = Number(Boolean(artist)) + Number(Boolean(album));
     const titleY = textOriginY - (metadataLines ? titleSize * 0.55 : 0);
     ctx.fillStyle = '#FFFFFF';
@@ -1374,7 +1390,6 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
 
     ctx.shadowBlur = Math.max(5, unit * 0.009);
     let cursorY = titleY + Math.max(42, titleSize * 0.92);
-
     if (artist) {
         let artistSize = Math.max(19, Math.round(unit * 0.026));
         ctx.font = `600 ${artistSize}px "Open Sans",Arial,sans-serif`;
@@ -1386,7 +1401,6 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         ctx.fillText(artist, 0, cursorY);
         cursorY += Math.max(30, artistSize * 1.45);
     }
-
     if (album) {
         let albumSize = Math.max(15, Math.round(unit * 0.019));
         ctx.font = `500 ${albumSize}px "Open Sans",Arial,sans-serif`;
@@ -1397,7 +1411,6 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         ctx.fillStyle = 'rgba(255,255,255,0.60)';
         ctx.fillText(album, 0, cursorY);
     }
-
     ctx.restore();
     return true;
 }
