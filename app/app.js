@@ -247,15 +247,6 @@ function appleWordsForLine(line, nextLine) {
     });
 }
 
-
-
-
-
-
-
-
-
-
 function appleKeyframeLerp(ed, points) {
     if (ed <= points[0][0]) return points[0][1];
     if (ed >= points[points.length - 1][0]) return points[points.length - 1][1];
@@ -581,7 +572,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
 function buildBratWords(lines) {
     const output = [];
     for (let i = 0; i < lines.length; i++) {
-        const line = linaNormaliseLine(displayLines, i);
+        const line = linaNormaliseLine(lines, i);
         if (!line) continue;
         const words = appleWordsForLine(line, lines[i+1] || null);
         for (const w of words) output.push({ ...w, globalIndex: output.length });
@@ -1995,22 +1986,6 @@ function hasMasterSource() {
     if (mode === 'none') return getMasterDuration() > 0; // virtual timeline is a valid master
     return Boolean(state.audio.file) && state.audio.ready;
 }
-document.addEventListener('click', (event) => {
-    const link = event.target.closest('.section-nav-link[data-nav]');
-    if (!link) return;
-    const targetId = link.getAttribute('aria-controls');
-    const target = document.getElementById(targetId);
-    if (!target) return;
-    document.querySelectorAll('.sidebar > .section').forEach(section => {
-        section.classList.toggle('active', section === target);
-    });
-    document.querySelectorAll('.section-nav-link').forEach(item => {
-        const active = item === link;
-        item.classList.toggle('active', active);
-        if (active) item.setAttribute('aria-current', 'page');
-        else item.removeAttribute('aria-current');
-    });
-});
 
 function updateSectionNav() {
     const masterDur = getMasterDuration();
@@ -4195,18 +4170,3 @@ window.addEventListener('beforeunload', function() {
     try { window.kefeExportAbort?.abort(); } catch (e) {}
 });
 
-// KEFE section navigation: single native owner.
-if (!window.__kefeSectionNavBound) {
-  window.__kefeSectionNavBound = true;
-  document.addEventListener('click', (event) => {
-    const link = event.target.closest('.section-nav-link[data-nav]');
-    if (!link) return;
-    const id = link.getAttribute('aria-controls');
-    const section = id && document.getElementById(id);
-    if (!section) return;
-    event.preventDefault();
-    document.querySelectorAll('.section-nav-link').forEach(x => x.classList.toggle('active', x === link));
-    document.querySelectorAll('.sidebar > .section').forEach(x => x.classList.toggle('active', x === section));
-    section.scrollIntoView({block:'nearest'});
-  });
-}
