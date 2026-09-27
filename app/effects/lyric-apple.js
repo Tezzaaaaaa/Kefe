@@ -193,13 +193,43 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
         const sw = source.videoWidth || source.naturalWidth || source.width;
         const sh = source.videoHeight || source.naturalHeight || source.height;
         if (sw && sh) {
-            const scale = Math.max(w / sw, h / sh);
-            const dw = sw * scale, dh = sh * scale;
-            ctx.filter = 'blur(' + Math.max(w, h) * 0.075 + 'px) saturate(1.08)';
-            ctx.drawImage(source, (w - dw) / 2, (h - dh) / 2, dw, dh);
-            ctx.filter = 'none';
-            ctx.fillStyle = 'rgba(0,0,0,0.48)';
-            ctx.fillRect(0, 0, w, h);
+            try {
+                const paletteCanvas = document.createElement('canvas');
+                paletteCanvas.width = 24;
+                paletteCanvas.height = 24;
+                const paletteCtx = paletteCanvas.getContext('2d', { willReadFrequently: true });
+                paletteCtx.drawImage(source, 0, 0, 24, 24);
+                const pixels = paletteCtx.getImageData(0, 0, 24, 24).data;
+                let r = 0, g = 0, b = 0, weight = 0;
+                for (let i = 0; i < pixels.length; i += 4) {
+                    const pr = pixels[i], pg = pixels[i + 1], pb = pixels[i + 2], pa = pixels[i + 3] / 255;
+                    if (pa <= 0) continue;
+                    const brightness = (pr + pg + pb) / 3;
+                    const saturation = Math.max(pr, pg, pb) - Math.min(pr, pg, pb);
+                    const sampleWeight = pa * (0.35 + saturation / 255) * linaClamp(1.15 - brightness / 510, 0.35, 1.15);
+                    r += pr * sampleWeight;
+                    g += pg * sampleWeight;
+                    b += pb * sampleWeight;
+                    weight += sampleWeight;
+                }
+                if (weight > 0) {
+                    r = r / weight;
+                    g = g / weight;
+                    b = b / weight;
+                    const gradient = ctx.createRadialGradient(
+                        w * 0.5, h * 0.38, 0,
+                        w * 0.5, h * 0.38, Math.max(w, h) * 0.82
+                    );
+                    gradient.addColorStop(0, 'rgba(' + Math.round(r * 0.30) + ',' + Math.round(g * 0.30) + ',' + Math.round(b * 0.30) + ',0.62)');
+                    gradient.addColorStop(0.52, 'rgba(' + Math.round(r * 0.16) + ',' + Math.round(g * 0.16) + ',' + Math.round(b * 0.16) + ',0.38)');
+                    gradient.addColorStop(1, 'rgba(8,8,8,0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, w, h);
+                }
+            } catch (_) {
+                ctx.fillStyle = '#080808';
+                ctx.fillRect(0, 0, w, h);
+            }
         }
     }
     ctx.restore();
