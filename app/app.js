@@ -465,7 +465,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.55, 0.20, 0.70);
     const pastOpacity = linaClamp(upcomingOpacity * 0.64, 0.20, 0.50);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
-    const topAnchor = h * linaClamp(Number(style.appleTopOffset) || 0.53, 0.34, 0.66);
+    const topAnchor = h * linaClamp(Number(style.appleTopOffset) || 0.34, 0.30, 0.62);
     const glow = Number(style.appleGlow) || 0.012;
     const activeScale = 1 + linaClamp(Number(style.appleDepth) ?? 0.008, 0, 0.06) * 2.5;
 
@@ -573,14 +573,14 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     }
 
     // Keep the song identity visible while lyrics are playing: compact artwork
-    // and metadata remain anchored to the lower-left edge, like a persistent
-    // now-playing title treatment rather than occupying the lyric area.
+    // and metadata stay anchored at the top, with the lyric stack beginning
+    // below it. This matches the Now Playing lyrics hierarchy.
     if (source && state?.audio) {
-        const metadata = resolveAudioLabels(appState.audio);
+        const metadata = resolveAudioLabels(state.audio);
         const artSize = linaClamp(Math.min(w, h) * 0.075, 56, 88);
         const left = margin;
-        const bottom = h - Math.max(28, h * 0.055);
-        const artY = bottom - artSize;
+        const top = Math.max(34, h * 0.052);
+        const artY = top;
         ctx.save();
         ctx.globalAlpha = 0.94;
         ctx.beginPath();
@@ -596,13 +596,13 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         const detailX = left + artSize + 16;
         ctx.save();
         ctx.textAlign = 'left';
-        ctx.textBaseline = 'bottom';
+        ctx.textBaseline = 'middle';
         ctx.font = `700 ${Math.max(16, Math.round(artSize * 0.23))}px ${family}`;
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(String(metadata.title || ''), detailX, bottom - artSize * 0.47);
+        ctx.fillText(String(metadata.title || ''), detailX, top + artSize * 0.38);
         ctx.font = `500 ${Math.max(13, Math.round(artSize * 0.17))}px ${family}`;
         ctx.fillStyle = 'rgba(255,255,255,0.72)';
-        ctx.fillText(String(metadata.artist || metadata.album || ''), detailX, bottom - artSize * 0.16);
+        ctx.fillText(String(metadata.artist || metadata.album || ''), detailX, top + artSize * 0.70);
         ctx.restore();
     }
 }
