@@ -1641,10 +1641,18 @@ function render(ctx, w, h, appState, mediaCache) {
                 : renderTitleCard(ctx, w, h, cappedTime, appState);
         const titleLyricsStart = Number.isFinite(tcActive?.lyricsStart) ? tcActive.lyricsStart : Infinity;
         const timedLines = activeTimedLines();
-        if (appleTitleCard) renderTitleCard(ctx, w, h, cappedTime, appState);
-        if (!tcActive || cappedTime >= titleLyricsStart) {
+        const lyricTime = Math.max(0, cappedTime - (Number(appState.lyricsOffset) || 0));
+
+        if (appleTitleCard && timedLines.length) {
+            // Apple owns the lyric background and stack. Render it first so the
+            // title card remains visible above the lyrics instead of being covered.
+            try {
+                renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime);
+            }
+            catch(e) { console.error(`${style.effect} render error:`, e); }
+            renderTitleCard(ctx, w, h, cappedTime, appState);
+        } else if (!tcActive || cappedTime >= titleLyricsStart) {
             if (timedLines.length) {
-                const lyricTime = Math.max(0, cappedTime - (Number(appState.lyricsOffset) || 0));
                 try {
                     // Captions use the dedicated caption/subtitle style — never a lyric effect.
                     if (activeTextMode() === 'captions') renderCaptionStyle(ctx, w, h, timedLines, lyricTime);
