@@ -100,10 +100,14 @@ function wrapTitleText(ctx, text, maxWidth) {
 function renderTitleCardMinimal(ctx, w, h, phase, info) {
     const { alpha, enter, toLyrics = 0 } = phase;
     const unit = Math.min(w, h);
+    const aspectRatio = w / Math.max(1, h);
+    const compositionWidth = aspectRatio < 0.75 ? w * 0.84 : (aspectRatio < 1.25 ? w * 0.78 : w * 0.72);
+    const horizontalPadding = compositionWidth * (31 / 390);
+    const boundaryLeft = Math.max(0, (w - compositionWidth) / 2);
     const lift = (1 - enter) * unit * 0.022;
     const centerY = h * 0.52 + lift;
     const contentY = centerY + (h * 0.16 - centerY) * toLyrics;
-    const maxTextWidth = w * 0.78;
+    const maxTextWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
     const title = info.title;
     const artist = info.artist;
     const album = info.album;
@@ -113,9 +117,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     ctx.globalAlpha = alpha;
 
     if (toLyrics > 0.001) {
-        const iphoneBoundaryWidth = Math.min(w, h * (390 / 844));
-        const iphoneSideInset = iphoneBoundaryWidth * (31 / 390);
-        const boundaryLeft = Math.max(0, (w - iphoneBoundaryWidth) / 2);
+        const iphoneSideInset = horizontalPadding;
         const headerTop = Math.max(24, h * 0.035);
         const targetArtSize = 48;
         const targetLeft = boundaryLeft + iphoneSideInset;
@@ -127,7 +129,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         const targetIconsX = targetRight - iconSize;
         const targetTextRight = targetIconsX - iconGap;
         const morph = linaSmooth(toLyrics);
-        const startArtSize = iphoneBoundaryWidth * (180 / 390);
+        const startArtSize = unit * (180 / 390);
         const startArtX = (w - startArtSize) / 2;
         const startArtY = contentY - startArtSize - unit * 0.055;
         const artSize = startArtSize + (targetArtSize - startArtSize) * morph;
@@ -196,7 +198,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         return true;
     }
 
-    const artworkSize = iphoneBoundaryWidth * (180 / 390);
+    const artworkSize = unit * (180 / 390);
     ctx.translate(w / 2, contentY);
     ctx.globalAlpha = alpha;
     ctx.textAlign = 'center';
@@ -222,7 +224,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         textOriginY = unit * 0.025;
     }
 
-    let titleSize = Math.max(30, Math.round(iphoneBoundaryWidth * (32 / 390)));
+    let titleSize = Math.max(30, Math.round(unit * (32 / 390)));
     ctx.font = `800 ${titleSize}px "Open Sans",Arial,sans-serif`;
     while (titleSize > 30 && ctx.measureText(title).width > maxTextWidth) {
         titleSize -= 2;
@@ -236,7 +238,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     ctx.shadowBlur = Math.max(5, unit * 0.009);
     let cursorY = titleY + Math.max(42, titleSize * 0.92);
     if (artist) {
-        let artistSize = Math.max(16, Math.round(iphoneBoundaryWidth * (17 / 390)));
+        let artistSize = Math.max(16, Math.round(unit * (17 / 390)));
         ctx.font = `600 ${artistSize}px "Open Sans",Arial,sans-serif`;
         while (artistSize > 15 && ctx.measureText(artist).width > maxTextWidth) {
             artistSize -= 1;
@@ -247,7 +249,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         cursorY += Math.max(30, artistSize * 1.45);
     }
     if (album) {
-        let albumSize = Math.max(13, Math.round(iphoneBoundaryWidth * (14 / 390)));
+        let albumSize = Math.max(13, Math.round(unit * (14 / 390)));
         ctx.font = `500 ${albumSize}px "Open Sans",Arial,sans-serif`;
         while (albumSize > 13 && ctx.measureText(album).width > maxTextWidth) {
             albumSize -= 1;
