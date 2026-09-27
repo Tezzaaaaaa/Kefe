@@ -47,20 +47,29 @@
   stroke-linejoin: round;
 }
 
-.preview:fullscreen {
+.preview:fullscreen,
+.preview:-webkit-full-screen {
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100dvh;
   background: var(--bg);
   padding: 0;
 }
 
-.preview:fullscreen .preview-toolbar {
+.preview:fullscreen .preview-toolbar,
+.preview:-webkit-full-screen .preview-toolbar {
   padding: 12px 20px;
 }
 
-.preview:fullscreen .canvas-wrapper {
+.preview:fullscreen .canvas-wrapper,
+.preview:-webkit-full-screen .canvas-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 24px;
 }
 
-.preview:fullscreen .transport {
+.preview:fullscreen .transport,
+.preview:-webkit-full-screen .transport {
   padding: 10px 20px;
 }
 
