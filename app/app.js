@@ -445,10 +445,10 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     // lines dimmed with no blur; already-sung lines dimmer still and softly
     // blurred, like they've receded behind the active one. Reads from the
     // existing style.apple* controls (previously defined but never wired in).
-    const lineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.58, 0.45, 1.10);
-    const lineHeight = activeFontSize * 1.18 + lineSpacing;
+    const appleLineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.58, 0.45, 1.10);
+    const lineHeight = activeFontSize * 1.18 + appleLineSpacing;
     const rowHeight = activeFontSize * 1.18;
-    const blockGap = lineSpacing;
+    const blockGap = appleLineSpacing;
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.30, 0.20, 0.40);
     const pastOpacity = linaClamp(upcomingOpacity * 0.72, 0.20, 0.30);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
@@ -475,7 +475,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
 
     const scalePoints = [[-1, 1], [0, activeScale], [1, 1]];
     const opacityPoints = [[-2, pastOpacity], [-1, upcomingOpacity], [0, 1], [1, upcomingOpacity], [2, pastOpacity]];
-    const blurPoints = [[-2, 5], [-1, 4], [0, 0], [1, 4], [2, 5]];
+    const blurPoints = [[-2, 5], [-1, 4], [0, 0], [1, 0], [2, 0]];
 
     const previousBlock = displayLines[activeIndex - 1];
     const transitionShift = previousBlock
@@ -514,7 +514,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         const blurAmt = appleKeyframeLerp(edStyle, blurPoints);
 
         ctx.save();
-        ctx.font = `800 ${fontSize}px ${family}`;
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
         ctx.globalAlpha = alphaAmt;
@@ -4212,4 +4211,3 @@ window.addEventListener('beforeunload', function() {
     audio.src = '';
     try { window.kefeExportAbort?.abort(); } catch (e) {}
 });
-
