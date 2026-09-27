@@ -185,52 +185,80 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     const activeIndex = linaFindActiveLine(displayLines, time);
 
     const source = albumArtworkImage;
+    let palette = source?.__kefeApplePalette;
+    if (source && !palette) {
+        try {
+            const sample = document.createElement('canvas');
+            sample.width = 32;
+            sample.height = 32;
+            const sampleCtx = sample.getContext('2d', { willReadFrequently: true });
+            const sw = source.videoWidth || source.naturalWidth || source.width;
+            const sh = source.videoHeight || source.naturalHeight || source.height;
+            if (sampleCtx && sw && sh) {
+                sampleCtx.drawImage(source, 0, 0, sw, sh, 0, 0, 32, 32);
+                const data = sampleCtx.getImageData(0, 0, 32, 32).data;
+                const buckets = Array.from({ length: 12 }, () => ({ r: 0, g: 0, b: 0, n: 0, lum: 0 }));
+                for (let p = 0; p < data.length; p += 4) {
+                    const a = data[p + 3] / 255;
+                    if (a < 0.2) continue;
+                    const r0 = data[p], g0 = data[p + 1], b0 = data[p + 2];
+                    const mx = Math.max(r0, g0, b0), mn = Math.min(r0, g0, b0);
+                    const sat = mx ? (mx - mn) / mx : 0;
+                    const lum = (0.2126 * r0 + 0.7152 * g0 + 0.0722 * b0) / 255;
+                    const hue = Math.atan2(Math.sqrt(3) * (g0 - b0), 2 * r0 - g0 - b0);
+                    const bucket = sat < 0.12 ? 11 : Math.min(10, Math.floor(((hue + Math.PI) / (Math.PI * 2)) * 11));
+                    const weight = a * (0.45 + sat);
+                    buckets[bucket].r += r0 * weight;
+                    buckets[bucket].g += g0 * weight;
+                    buckets[bucket].b += b0 * weight;
+                    buckets[bucket].n += weight;
+                    buckets[bucket].lum += lum * weight;
+                }
+                const ranked = buckets.filter(item => item.n).sort((a, b) => b.n - a.n);
+                const selected = [];
+                for (const bucket of ranked) {
+                    const color = { r: bucket.r / bucket.n, g: bucket.g / bucket.n, b: bucket.b / bucket.n };
+                    if (selected.every(item => Math.hypot(color.r - item.r, color.g - item.g, color.b - item.b) >= 32)) {
+                        selected.push(color);
+                    }
+                    if (selected.length >= 4) break;
+                }
+                palette = selected;
+                if (palette.length) source.__kefeApplePalette = palette;
+            }
+        } catch (_) {
+            palette = null;
+        }
+    }
 
     ctx.save();
     ctx.fillStyle = '#080808';
     ctx.fillRect(0, 0, w, h);
-    if (source) {
-        const sw = source.videoWidth || source.naturalWidth || source.width;
-        const sh = source.videoHeight || source.naturalHeight || source.height;
-        if (sw && sh) {
-            try {
-                const paletteCanvas = document.createElement('canvas');
-                paletteCanvas.width = 24;
-                paletteCanvas.height = 24;
-                const paletteCtx = paletteCanvas.getContext('2d', { willReadFrequently: true });
-                paletteCtx.drawImage(source, 0, 0, 24, 24);
-                const pixels = paletteCtx.getImageData(0, 0, 24, 24).data;
-                let r = 0, g = 0, b = 0, weight = 0;
-                for (let i = 0; i < pixels.length; i += 4) {
-                    const pr = pixels[i], pg = pixels[i + 1], pb = pixels[i + 2], pa = pixels[i + 3] / 255;
-                    if (pa <= 0) continue;
-                    const brightness = (pr + pg + pb) / 3;
-                    const saturation = Math.max(pr, pg, pb) - Math.min(pr, pg, pb);
-                    const sampleWeight = pa * (0.35 + saturation / 255) * linaClamp(1.15 - brightness / 510, 0.35, 1.15);
-                    r += pr * sampleWeight;
-                    g += pg * sampleWeight;
-                    b += pb * sampleWeight;
-                    weight += sampleWeight;
-                }
-                if (weight > 0) {
-                    r = r / weight;
-                    g = g / weight;
-                    b = b / weight;
-                    const gradient = ctx.createRadialGradient(
-                        w * 0.5, h * 0.38, 0,
-                        w * 0.5, h * 0.38, Math.max(w, h) * 0.82
-                    );
-                    gradient.addColorStop(0, 'rgba(' + Math.round(r * 0.30) + ',' + Math.round(g * 0.30) + ',' + Math.round(b * 0.30) + ',0.62)');
-                    gradient.addColorStop(0.52, 'rgba(' + Math.round(r * 0.16) + ',' + Math.round(g * 0.16) + ',' + Math.round(b * 0.16) + ',0.38)');
-                    gradient.addColorStop(1, 'rgba(8,8,8,0)');
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(0, 0, w, h);
-                }
-            } catch (_) {
-                ctx.fillStyle = '#080808';
-                ctx.fillRect(0, 0, w, h);
-            }
+    if (palette?.length) {
+        ctx.globalCompositeOperation = 'screen';
+        const positions = [
+            [0.18, 0.18],
+            [0.82, 0.28],
+            [0.30, 0.78],
+            [0.76, 0.76]
+        ];
+        const radii = [0.62, 0.58, 0.64, 0.60];
+        for (let pi = 0; pi < palette.length; pi++) {
+            const color = palette[pi];
+            const factor = 0.16;
+            const gradient = ctx.createRadialGradient(
+                w * positions[pi][0], h * positions[pi][1], 0,
+                w * positions[pi][0], h * positions[pi][1], Math.max(w, h) * radii[pi]
+            );
+            gradient.addColorStop(0, 'rgba(' + Math.round(color.r * factor) + ',' + Math.round(color.g * factor) + ',' + Math.round(color.b * factor) + ',0.72)');
+            gradient.addColorStop(0.48, 'rgba(' + Math.round(color.r * factor * 0.72) + ',' + Math.round(color.g * factor * 0.72) + ',' + Math.round(color.b * factor * 0.72) + ',0.36)');
+            gradient.addColorStop(1, 'rgba(8,8,8,0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, w, h);
         }
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(0,0,0,0.24)';
+        ctx.fillRect(0, 0, w, h);
     }
     ctx.restore();
 
