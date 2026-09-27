@@ -312,11 +312,67 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const activeIndex = linaFindActiveLine(lines, time);
     if (activeIndex < 0) return;
 
-    // Backdrop: heavily blurred, saturated album art under a dark overlay —
-    // matches Apple Music's Now Playing lyrics sheet background treatment.
+    // Apple Music's lyric background is driven by the album artwork palette:
+    // saturated artwork-derived colour fields are layered, blurred and gently
+    // moved instead of displaying a flat colour or a simple vertical gradient.
     const source = albumArtworkImage;
+    let palette = source?.__kefeApplePalette;
+    if (source && !palette) {
+        try {
+            const sample = document.createElement('canvas');
+            sample.width = 32;
+            sample.height = 32;
+            const sampleCtx = sample.getContext('2d', { willReadFrequently: true });
+            const sw = source.videoWidth || source.naturalWidth || source.width;
+            const sh = source.videoHeight || source.naturalHeight || source.height;
+            if (sampleCtx && sw && sh) {
+                const side = Math.min(sw, sh);
+                sampleCtx.drawImage(source, (sw - side) / 2, (sh - side) / 2, side, side, 0, 0, 32, 32);
+                const data = sampleCtx.getImageData(0, 0, 32, 32).data;
+                const buckets = Array.from({ length: 8 }, () => ({ r: 0, g: 0, b: 0, n: 0 }));
+                for (let p = 0; p < data.length; p += 4) {
+                    const a = data[p + 3] / 255;
+                    if (a < 0.2) continue;
+                    const r0 = data[p], g0 = data[p + 1], b0 = data[p + 2];
+                    const mx = Math.max(r0, g0, b0), mn = Math.min(r0, g0, b0);
+                    const sat = mx ? (mx - mn) / mx : 0;
+                    const lum = (0.2126 * r0 + 0.7152 * g0 + 0.0722 * b0) / 255;
+                    const bucket = Math.min(7, Math.floor((sat * 0.7 + lum * 0.3) * 8));
+                    buckets[bucket].r += r0; buckets[bucket].g += g0; buckets[bucket].b += b0; buckets[bucket].n += 1;
+                }
+                palette = buckets.filter(b => b.n).sort((a, b) => b.n - a.n).slice(0, 4)
+                    .map(b => `rgb(${Math.round(b.r / b.n)} ${Math.round(b.g / b.n)} ${Math.round(b.b / b.n)})`);
+                if (palette.length) source.__kefeApplePalette = palette;
+            }
+        } catch (_) {}
+    }
+
     ctx.save();
-    if (source) {
+    ctx.fillStyle = '#080808';
+    ctx.fillRect(0, 0, w, h);
+    if (palette?.length) {
+        ctx.globalCompositeOperation = 'screen';
+        const positions = [
+            [0.18 + 0.08 * Math.sin(time * 0.17), 0.22 + 0.07 * Math.cos(time * 0.13)],
+            [0.78 + 0.08 * Math.cos(time * 0.15), 0.28 + 0.09 * Math.sin(time * 0.11)],
+            [0.26 + 0.09 * Math.cos(time * 0.12), 0.82 + 0.07 * Math.sin(time * 0.16)],
+            [0.78 + 0.07 * Math.sin(time * 0.10), 0.78 + 0.08 * Math.cos(time * 0.14)]
+        ];
+        const radii = [0.72, 0.68, 0.74, 0.70];
+        for (let pi = 0; pi < Math.min(4, palette.length); pi++) {
+            const [px, py] = positions[pi];
+            const radius = Math.max(w, h) * radii[pi];
+            const gradient = ctx.createRadialGradient(w * px, h * py, 0, w * px, h * py, radius);
+            gradient.addColorStop(0, palette[pi]);
+            gradient.addColorStop(0.42, palette[pi]);
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, w, h);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(0,0,0,0.42)';
+        ctx.fillRect(0, 0, w, h);
+    } else if (source) {
         const sw = source.videoWidth || source.naturalWidth || source.width;
         const sh = source.videoHeight || source.naturalHeight || source.height;
         if (sw && sh) {
@@ -324,11 +380,11 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
             const scale = Math.max((w + 120) / sw, (h + 120) / sh);
             const dw = sw * scale, dh = sh * scale;
             ctx.drawImage(source, (w - dw) / 2, (h - dh) / 2, dw, dh);
+            ctx.filter = 'none';
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(0, 0, w, h);
         }
     }
-    ctx.filter = 'none';
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(0, 0, w, h);
     ctx.restore();
 
     // Apple Music's real lyric states (verified, not the earlier stylised
