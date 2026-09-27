@@ -29,8 +29,7 @@
     };
     const SOURCE_ICONS = {
         uploaded: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>',
-        media: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m10 9 5 3-5 3z"/></svg>',
-        none: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h16"/><path d="m17 10 4 4m0-4-4 4"/></svg>'
+        media: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m10 9 5 3-5 3z"/></svg>'
     };
 
     const wizard = { path: 'lyric', index: 0, choice: null, source: null };
@@ -85,14 +84,13 @@
     function sourceStatus() {
         if (wizard.source === 'uploaded') return hasLoadedAudio() ? 'Audio loaded' : 'Choose your audio file.';
         if (wizard.source === 'media') { const m = window.kefeMedia || {}; return m.videoFile ? 'Background video loaded' : m.image ? 'Background image loaded' : 'Choose an image or video.'; }
-        return 'Silent project — no audio will be exported.';
+        return 'Choose your media source.';
     }
     function chooseSourceMedia() { if (wizard.source === 'uploaded') $('audioInput')?.click(); if (wizard.source === 'media') $('backgroundInput')?.click(); }
     function applySourceChoice(source) {
         wizard.source = source; window.kefeWizardSource = source; const st = window.state;
         if (typeof window.applyMasterSelection === 'function') {
             try {
-                if (source === 'none') window.applyMasterSelection('none', { userInitiated: true, silent: true });
                 if (source === 'uploaded') window.applyMasterSelection('uploaded', { userInitiated: false, silent: true });
                 if (source === 'media') { if (st?.audioSource) st.audioSource.userChosen = false; const m = window.kefeMedia || {}; if (m.video && m.videoFile && m.videoHasAudio) window.applyMasterSelection('video', { userInitiated: false, silent: true }); }
             } catch (e) {}
@@ -100,14 +98,10 @@
         renderSource(); refreshNextState();
     }
     function renderSource() {
-        // Visualiser doesn't take a background video — it's a full-canvas
-        // audio-reactive effect. Only offer audio file or silent.
-        // Lyric video and captioned both keep the 'Background video' option.
+        // Visualiser uses the same media-source choices as the other pathways.
         const options = wizard.choice === 'captioned'
             ? [['uploaded', 'Audio file', 'Use a music track or voice recording.'], ['media', 'Background video', 'Use a video and its soundtrack.']]
-            : wizard.choice === 'visualiser'
-            ? [['uploaded', 'Audio file', 'Use an MP3, WAV or M4A track.'], ['none', 'No audio', 'Create silent visuals.']]
-            : [['uploaded', 'Audio file', 'Use an MP3, WAV or M4A track.'], ['media', 'Background video', 'Use a video as the visual background and its soundtrack.'], ['none', 'No audio', 'Create silent visuals.']];
+            : [['uploaded', 'Audio file', 'Use an MP3, WAV or M4A track.'], ['media', 'Background video', 'Use a video as the visual background and its soundtrack.']];
         panel.innerHTML = '<p class="wizard-panel-kicker">02 · Media</p><h3 class="wizard-panel-title">What are you starting with?</h3><p class="wizard-panel-hint">Pick your source. KEFE will carry it through the rest of the project.</p><div class="wizard-choices wizard-source-choices">' + options.map(([v,l,h]) => `<div class="wizard-choice${wizard.source === v ? ' selected' : ''}" data-source="${v}" role="button" tabindex="0"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${SOURCE_ICONS[v]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${l}</strong><span>${h}</span>${v !== 'none' ? `<button type="button" class="file-button wizard-source-upload" data-source="${v}">${v === 'uploaded' ? 'Upload audio' : 'Upload media'}</button>` : ''}</span></div>`).join('') + '</div>' + '<div id="wizardMetadataMount"></div><p class="music-sync-hint">Enter the artist and title to find synced lyrics when the file has no metadata.</p>';
         const metadataMount = $('wizardMetadataMount');
         const metadataBlock = document.querySelector('#audioSection .music-details');
