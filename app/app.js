@@ -1636,11 +1636,12 @@ function render(ctx, w, h, appState, mediaCache) {
         const tcActive = appState.projectType === 'captioned'
             ? false
             : appleTitleCard
-                ? null
+                ? titleCardPhase(appState, cappedTime)
                 : renderTitleCard(ctx, w, h, cappedTime, appState);
         const titleLyricsStart = Number.isFinite(tcActive?.lyricsStart) ? tcActive.lyricsStart : Infinity;
         const timedLines = activeTimedLines();
-        if (!appleTitleCard && (!tcActive || cappedTime >= titleLyricsStart)) {
+        if (appleTitleCard) renderTitleCard(ctx, w, h, cappedTime, appState);
+        if (!tcActive || cappedTime >= titleLyricsStart) {
             if (timedLines.length) {
                 const lyricTime = Math.max(0, cappedTime - (Number(appState.lyricsOffset) || 0));
                 try {
@@ -1653,7 +1654,6 @@ function render(ctx, w, h, appState, mediaCache) {
                 drawPlainLyrics(ctx, w, h, appState.lyrics.plainText);
             }
         }
-        if (appleTitleCard) renderTitleCard(ctx, w, h, cappedTime, appState);
     } finally { ctx.restore(); }
 }
 
