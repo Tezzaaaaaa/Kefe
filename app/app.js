@@ -458,14 +458,14 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     // lines dimmed with no blur; already-sung lines dimmer still and softly
     // blurred, like they've receded behind the active one. Reads from the
     // existing style.apple* controls (previously defined but never wired in).
-    const lineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.72, 0.45, 1.10);
+    const lineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.58, 0.45, 1.10);
     const lineHeight = fontSize * (1 + lineSpacing);
     const rowHeight = fontSize * 1.18;
     const blockGap = Math.max(fontSize * 0.42, lineHeight * 0.20);
-    const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.25, 0.05, 0.6);
-    const pastOpacity = upcomingOpacity * 0.6;
+    const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.55, 0.20, 0.70);
+    const pastOpacity = linaClamp(upcomingOpacity * 0.64, 0.20, 0.50);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
-    const topAnchor = h * linaClamp(Number(style.appleTopOffset) || 0.245, 0.10, 0.50);
+    const topAnchor = h * linaClamp(Number(style.appleTopOffset) || 0.53, 0.34, 0.66);
     const glow = Number(style.appleGlow) || 0.012;
     const activeScale = 1 + linaClamp(Number(style.appleDepth) ?? 0.008, 0, 0.06) * 2.5;
 
@@ -480,7 +480,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const styleT = appleCubicBezier((time - active.time) / 0.3, 0.25, 0.1, 0.25, 1);
 
     const scalePoints = [[-1, 1], [0, activeScale], [1, 1]];
-    const opacityPoints = [[-2, 0], [-1, pastOpacity], [0, 1], [1, upcomingOpacity]];
+    const opacityPoints = [[-2, pastOpacity], [-1, upcomingOpacity], [0, 1], [1, upcomingOpacity], [2, pastOpacity]];
     const blurPoints = [[-2, 1.5], [-1, 1.5], [0, 0], [1, 0]];
 
     const previousBlock = displayLines[activeIndex - 1];
@@ -513,7 +513,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         const words = appleWordsForLine(line, displayLines[i + 1] || null);
         const rows = line.appleRows || [String(line.text || '').trim()];
         const text = String(line.text || '').trim();
-        const x = margin;
+        const x = w / 2;
         const y = topAnchor + settledOffset + (1 - posT) * transitionShift;
         const scaleAmt = appleKeyframeLerp(edStyle, scalePoints);
         const alphaAmt = linaClamp(appleKeyframeLerp(edStyle, opacityPoints), 0, 1);
@@ -522,7 +522,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         ctx.save();
         ctx.font = `800 ${fontSize}px ${family}`;
         ctx.textBaseline = 'middle';
-        ctx.textAlign = 'left';
+        ctx.textAlign = 'center';
         ctx.globalAlpha = alphaAmt;
         ctx.filter = blurAmt > 0.05 ? `blur(${blurAmt.toFixed(1)}px)` : 'none';
         ctx.fillStyle = isActiveRow ? '#FFFFFF' : 'rgba(255,255,255,0.9)';
@@ -540,32 +540,33 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
             rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
         } else {
             let wordIndex = 0;
-            const easeWindow = 0.1;
+            const easeWindow = 0.10;
             for (let ri = 0; ri < rows.length; ri++) {
-                let cursorX = x;
                 const rowTokens = rows[ri].split(/\s+/).filter(Boolean);
+                const rowWords = [];
+                let rowWidth = 0;
                 for (let ti = 0; ti < rowTokens.length; ti++) {
-                    const word = words[wordIndex++];
-                    if (!word) break;
-                    const wordText = String(word.text || rowTokens[ti]);
+                    const word = words[wordIndex + ti];
+                    const wordText = String(word?.text || rowTokens[ti]);
                     const wordWidth = ctx.measureText(wordText).width;
-                    const duration = Math.max(0.001, Number(word.endTime) - Number(word.time));
-                    const swap = linaSmooth((time - Number(word.time)) / easeWindow);
-                    const sung = time >= Number(word.time);
-                    ctx.fillStyle = `rgba(255,255,255,${(0.5 + 0.5 * swap).toFixed(3)})`;
-                    ctx.fillText(wordText, cursorX, rowYs[ri]);
-
-                    if (sung && duration > 0.9 && time < Number(word.endTime)) {
-                        const holdPhase = ((time - Number(word.time)) % 1.1) / 1.1;
-                        const pulse = 0.5 - 0.5 * Math.cos(2 * Math.PI * holdPhase);
-                        ctx.shadowColor = 'rgba(255,255,255,0.6)';
-                        ctx.shadowBlur = 16 * pulse;
-                        ctx.fillText(wordText, cursorX, rowYs[ri]);
-                        ctx.shadowBlur = isActiveRow ? 20 : 0;
-                    }
-                    cursorX += wordWidth;
-                    if (ti < rowTokens.length - 1) cursorX += ctx.measureText(' ').width;
+                    rowWords.push({ word, wordText, wordWidth });
+                    rowWidth += wordWidth;
                 }
+                rowWidth += ctx.measureText(' ').width * Math.max(0, rowWords.length - 1);
+                let cursorX = x - rowWidth / 2;
+                for (const item of rowWords) {
+                    const word = item.word;
+                    const wordText = item.wordText;
+                    const wordWidth = item.wordWidth;
+                    const swap = word
+                        ? linaSmooth((time - Number(word.time)) / easeWindow)
+                        : 1;
+                    const opacity = 0.55 + 0.45 * swap;
+                    ctx.fillStyle = `rgba(255,255,255,${opacity.toFixed(3)})`;
+                    ctx.fillText(wordText, cursorX, rowYs[ri]);
+                    cursorX += wordWidth + ctx.measureText(' ').width;
+                }
+                wordIndex += rowTokens.length;
             }
         }
         ctx.restore();
