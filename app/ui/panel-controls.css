@@ -33,8 +33,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 20px 16px;
+  gap: var(--s-2);
+  padding: var(--s-5) var(--s-4);
   text-align: center;
   border: 1px dashed var(--line-strong);
   border-radius: var(--radius-md);
@@ -56,16 +56,16 @@
   text-transform: uppercase;
   color: var(--text-3);
 }
-.sub-hint { margin-top: 6px; font-size: var(--type-caption); color: var(--text-3); }
+.sub-hint { margin-top: var(--s-1); font-size: var(--type-caption); color: var(--text-3); }
 
 /* ---------- Metadata / labelled inputs ---------- */
 .metadata-grid, .sidebar label {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s-1);
 }
 .metadata-grid { gap: var(--stack-gap); }
-.metadata-grid label { display: flex; flex-direction: column; gap: 6px; font-size: var(--type-caption); color: var(--text-2); }
+.metadata-grid label { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--type-caption); color: var(--text-2); }
 .sidebar input[type="text"],
 .sidebar select,
 .metadata-grid input {
@@ -81,7 +81,7 @@
 .control-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s-1);
 }
 .control-row + .control-row { margin-top: var(--stack-gap); }
 .control-row label {
@@ -97,7 +97,7 @@
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  gap: 4px;
+  gap: var(--s-1);
   padding: 2px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
@@ -126,7 +126,7 @@
 .toggle-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s-2);
   margin-top: var(--stack-gap);
   font-size: var(--type-caption);
   color: var(--text-2);
