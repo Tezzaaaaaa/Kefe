@@ -296,17 +296,13 @@ function appleSpringOut(t) {
 function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
 
-    const fontSize = linaClamp(Math.min(36, Math.max(32, Math.min(w, h) * 0.0425)), 32, 36);
+    const activeFontSize = w * 0.10;
+    const inactiveFontSize = w * 0.08;
+    const horizontalPadding = w * 0.06;
+    const lineSpacing = w * 0.06;
     const family = '-apple-system,"SF Pro Display",sans-serif';
-
-    // Apple Lyrics always uses a portrait iPhone composition boundary.
-    // The export aspect ratio must never widen the lyric layout.
-    const iphoneWidth = 390;
-    const iphoneHeight = 844;
-    const iphoneBoundaryWidth = Math.min(w, h * (iphoneWidth / iphoneHeight));
-    const iphoneSideInset = iphoneBoundaryWidth * (31 / iphoneWidth);
-    const margin = Math.max(0, (w - iphoneBoundaryWidth) / 2 + iphoneSideInset);
-    const maxWidth = Math.max(1, iphoneBoundaryWidth - iphoneSideInset * 2);
+    const margin = horizontalPadding;
+    const maxWidth = Math.max(1, w - horizontalPadding * 2);
     const displayLines = [];
     for (let li = 0; li < lines.length; li++) {
         const original = linaNormaliseLine(lines, li);
@@ -320,7 +316,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     }
 
     ctx.save();
-    ctx.font = `800 ${fontSize}px ${family}`;
+    ctx.font = `800 ${activeFontSize}px ${family}`;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     for (const line of displayLines) {
@@ -341,7 +337,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         if (!rows.length) rows.push(String(line.text || ''));
         line.appleRows = rows;
         line.appleRowCount = rows.length;
-        line.appleBlockHeight = rows.length * fontSize * 1.18;
+        line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
     }
     ctx.restore();
     const activeIndex = linaFindActiveLine(displayLines, time);
@@ -450,9 +446,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     // blurred, like they've receded behind the active one. Reads from the
     // existing style.apple* controls (previously defined but never wired in).
     const lineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.58, 0.45, 1.10);
-    const lineHeight = fontSize * (1 + lineSpacing);
-    const rowHeight = fontSize * 1.18;
-    const blockGap = Math.max(24, Math.min(32, fontSize * 0.82));
+    const lineHeight = activeFontSize * 1.18 + lineSpacing;
+    const rowHeight = activeFontSize * 1.18;
+    const blockGap = lineSpacing;
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.30, 0.20, 0.40);
     const pastOpacity = linaClamp(upcomingOpacity * 0.72, 0.20, 0.30);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
@@ -523,7 +519,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         ctx.textAlign = 'left';
         ctx.globalAlpha = alphaAmt;
         ctx.filter = blurAmt > 0.05 ? `blur(${blurAmt.toFixed(1)}px)` : 'none';
-        const rowFontSize = isActiveRow ? fontSize : linaClamp(fontSize * 0.82, 24, 28);
+        const rowFontSize = isActiveRow ? activeFontSize : inactiveFontSize;
         ctx.font = `800 ${rowFontSize}px ${family}`;
         ctx.fillStyle = '#FFFFFF';
         ctx.translate(x, y);
@@ -535,7 +531,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
             ctx.shadowBlur = 0;
         }
 
-        const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * rowHeight);
+        const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
         if (!isActiveRow || !words.length) {
             rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
         } else {
