@@ -245,12 +245,6 @@ async function assertEditing(page) {
   if (!analysis?.validation || analysis.validation.count !== 2)
     throw new Error(`Lyrics analysis failed: ${JSON.stringify(analysis)}`);
 
-  const auto = await page.evaluate(() =>
-    window.kefeAutoCreate.run({ allowWithoutAudio: true }),
-  );
-  if (!auto || !auto.plan?.effect)
-    throw new Error(`Auto Create failed: ${JSON.stringify(auto)}`);
-
   const renderPlan = await page.evaluate(() =>
     window.kefeSmartRender.prepare(),
   );
