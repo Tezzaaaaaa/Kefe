@@ -3188,13 +3188,6 @@ async function requestSyncedLyrics(artist, track, duration, signal) {
         .trim();
     artist = String(artist || "").trim();
 
-    // Strip trailing descriptor suffixes from the title before searching.
-    track = String(track || "")
-        .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*$/g, "")
-        .replace(/\s+(official|lyric|lyrics|audio|visuali[sz]er|video|HD|4K)\s*$/ig, "")
-        .trim();
-    artist = String(artist || "").trim();
-
     const candidates = [];
 
     // Levenshtein distance for spelling correction.
