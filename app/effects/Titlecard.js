@@ -105,7 +105,8 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     const horizontalPadding = compositionWidth * (31 / 390);
     const boundaryLeft = Math.max(0, (w - compositionWidth) / 2);
     const lift = (1 - enter) * unit * 0.022;
-    const centerY = h * 0.52 + lift;
+    const artworkSize = unit * (180 / 390);
+    const centerY = h * 0.52 + lift + (artwork ? artworkSize * 0.45 : 0);
     const contentY = centerY + (h * 0.16 - centerY) * toLyrics;
     const maxTextWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
     const title = info.title;
@@ -198,7 +199,6 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         return true;
     }
 
-    const artworkSize = unit * (180 / 390);
     ctx.translate(w / 2, contentY);
     ctx.globalAlpha = alpha;
     ctx.textAlign = 'center';
