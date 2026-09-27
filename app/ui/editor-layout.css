@@ -100,9 +100,6 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 .preview-heading strong{font-size:12px!important}
 }
 
-.preview-logo-backdrop{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.65);width:480px;height:480px;background-image:url(../assets/kefe-logo-loop.gif);background-size:contain;background-repeat:no-repeat;background-position:center;pointer-events:none;opacity:0.7;z-index:1;mix-blend-mode:screen}
-@media(max-width:700px){.preview-logo-backdrop{transform:translate(-50%,-50%) scale(0.6);width:400px;height:400px}}
-@media(max-width:480px){.preview-logo-backdrop{transform:translate(-50%,-50%) scale(0.55);width:340px;height:340px}}
 
 .kefe-preview-corner{display:none!important}
 
@@ -110,12 +107,11 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 .transport #seek,.transport .slider,.transport input[type=range]{grid-column:3!important;width:100%!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important}
 .transport #clock{grid-column:4!important;min-width:80px!important;text-align:right!important}
 .transport #previewFocusButton,.transport .preview-focus-button{grid-column:5!important;display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
-.preview-logo-backdrop{background-color:transparent!important;border:none!important;box-shadow:none!important;outline:none!important;padding:0!important;opacity:0.55!important;mix-blend-mode:screen!important;filter:none!important}
 .preview.is-placeholder .canvas-wrapper{background:transparent!important}
 .preview.is-placeholder .canvas-wrapper::before{display:none!important}
 .preview.is-placeholder .canvas-wrapper canvas{box-shadow:none!important;outline:none!important;border-radius:0!important}
 
-.canvas-wrapper>*:not(canvas):not(.preview-logo-backdrop){display:none!important}
+.canvas-wrapper>*:not(canvas){display:none!important}
 
 /* MiniPlayer toggle — same size/shape as the other header icons */
 #kmpHeaderToggle.icon-button{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px!important;max-height:40px!important;padding:0!important;border:1px solid rgba(255,255,255,0.10)!important;border-radius:8px!important;background:transparent!important;color:rgba(255,255,255,0.75)!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;box-sizing:border-box!important}
