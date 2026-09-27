@@ -19,14 +19,19 @@
     transport.setAttribute('aria-label', 'Preview playback controls');
   }
 
-  const meta = document.createElement('div');
-  meta.className = 'preview-live-meta';
-  meta.innerHTML = '<button type="button" class="preview-focus-button" id="previewFocusButton" aria-label="Open preview fullscreen" title="Fullscreen preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M20 16v4h-4M4 16v4h4"/></svg></button>';
-  toolbar.appendChild(meta);
+  const focusButton = document.createElement('button');
+  focusButton.type = 'button';
+  focusButton.className = 'preview-focus-button';
+  focusButton.id = 'previewFocusButton';
+  focusButton.setAttribute('aria-label', 'Open preview fullscreen');
+  focusButton.title = 'Fullscreen preview';
+  focusButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M20 16v4h-4M4 16v4h4"/></svg>';
+  transport?.appendChild(focusButton);
 
   const modeBadge = document.getElementById('previewModeBadge');
   const status = document.getElementById('previewStatus');
   const focusBtn = document.getElementById('previewFocusButton');
+  let fallbackFullscreen = false;
 
   function activeLine() {
     const state = window.state;
@@ -56,14 +61,37 @@
   }
 
   function toggleFullscreen() {
-    const activeFullscreen = document.fullscreenElement === preview || document.webkitFullscreenElement === preview;
-    if (activeFullscreen) {
+    const nativeFullscreen = document.fullscreenElement === preview || document.webkitFullscreenElement === preview;
+    if (nativeFullscreen) {
       const exit = document.exitFullscreen?.() || document.webkitExitFullscreen?.();
       if (exit?.catch) exit.catch(() => {});
       return;
     }
-    const request = preview.requestFullscreen?.({ navigationUI: 'hide' }) || preview.webkitRequestFullscreen?.();
-    if (request?.catch) request.catch(() => {});
+    if (fallbackFullscreen) {
+      fallbackFullscreen = false;
+      preview.classList.remove('kefe-preview-fullscreen');
+      syncFullscreenState();
+      return;
+    }
+
+    const request = preview.requestFullscreen || preview.webkitRequestFullscreen;
+    if (request && (document.fullscreenEnabled || document.webkitFullscreenEnabled)) {
+      try {
+        const result = request.call(preview);
+        if (result?.catch) {
+          result.catch(() => {
+            fallbackFullscreen = true;
+            preview.classList.add('kefe-preview-fullscreen');
+            syncFullscreenState();
+          });
+        }
+        return;
+      } catch (_) {}
+    }
+
+    fallbackFullscreen = true;
+    preview.classList.add('kefe-preview-fullscreen');
+    syncFullscreenState();
   }
 
   focusBtn?.addEventListener('click', toggleFullscreen);
@@ -71,7 +99,7 @@
     if (event.target === canvas || event.target.closest('.canvas-wrapper')) toggleFullscreen();
   });
   const syncFullscreenState = () => {
-    const active = document.fullscreenElement === preview || document.webkitFullscreenElement === preview;
+    const active = fallbackFullscreen || document.fullscreenElement === preview || document.webkitFullscreenElement === preview;
     if (focusBtn) {
       focusBtn.setAttribute('aria-label', active ? 'Exit fullscreen preview' : 'Open preview fullscreen');
       focusBtn.title = active ? 'Exit fullscreen' : 'Fullscreen preview';
@@ -79,6 +107,13 @@
   };
   document.addEventListener('fullscreenchange', syncFullscreenState);
   document.addEventListener('webkitfullscreenchange', syncFullscreenState);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && fallbackFullscreen) {
+      fallbackFullscreen = false;
+      preview.classList.remove('kefe-preview-fullscreen');
+      syncFullscreenState();
+    }
+  });
 
   window.addEventListener('kefe:preview-updated', sync);
   setInterval(sync, 180);
