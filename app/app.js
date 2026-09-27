@@ -297,7 +297,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
 
     const baseFontSize = Math.max(28, Math.min(150, Number(style.fontSize) || 76));
-    const fontSize = baseFontSize;
+    const fontSize = linaClamp(Math.min(34, Math.max(28, Math.min(w, h) * 0.0405)), 28, 34);
     const family = '-apple-system,"SF Pro Display",sans-serif';
 
     // Apple Lyrics always uses a portrait iPhone composition boundary.
@@ -457,11 +457,12 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.55, 0.20, 0.70);
     const pastOpacity = linaClamp(upcomingOpacity * 0.64, 0.20, 0.50);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
-    const appleHeaderSize = linaClamp(Math.min(w, h) * 0.075, 56, 88);
-    const appleHeaderBottom = Math.max(32, h * 0.052) + appleHeaderSize;
+    const appleHeaderSize = linaClamp(Math.min(w, h) * 0.075, 48, 64);
+    const appleHeaderTop = Math.max(24, h * 0.035);
+    const appleHeaderBottom = appleHeaderTop + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = Math.max(
-        h * linaClamp(Number(style.appleTopOffset) || 0.38, 0.36, 0.62),
+        h * linaClamp(Number(style.appleTopOffset) || 0.38, 0.34, 0.62),
         appleHeaderBottom + activeBlockHeight / 2 + blockGap
     );
     const glow = Number(style.appleGlow) || 0.012;
