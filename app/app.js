@@ -1,3 +1,5 @@
+import { drawAppleEffect, appleWordsForLine } from './effects/apple.js';
+
 const $ = id => document.getElementById(id);
 const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
@@ -46,9 +48,7 @@ const state = {
     playback: { isPlaying: false, currentTime: 0, isSeeking: false },
     audioSource: { master: 'uploaded', userChosen: false },
     captions: { mode: 'lyrics', lines: [] },
-    // Dedicated caption/subtitle styling — deliberately separate from lyric effects.
     captionStyle: { position: 'bottom', opacity: 1, color: '#FFFFFF', shadow: true },
-    // Final selected video type from the guided workflow — determines what content renders.
     projectType: 'lyric',
     lyricsOffset: 0,
     touched: { fx: false, background: false, title: false },
@@ -57,7 +57,7 @@ const state = {
 window.state = state;
 
 let media = { image: null, video: null, videoFile: null, videoHasAudio: false };
-window.kefeMedia = media; // wizard.js reads background/video state via window.kefeMedia
+window.kefeMedia = media;
 let audioURL = null;
 let backgroundURL = null;
 let albumArtworkImage = null;
@@ -70,9 +70,9 @@ let renderLoopId = null;
 var isExporting = false;
 let userScrubbing = false;
 let lastVideoHardSync = -Infinity;
-let noneClockRunning = false; // virtual clock active (sync parity: uses performance.now")
-let noneClockBase = 0;        // master time the virtual clock started at
-let noneClockWall = 0;        // performance.now() when virtual clock started
+let noneClockRunning = false;
+let noneClockBase = 0;
+let noneClockWall = 0;
 
 const MAX_INK_CACHE_SIZE = 50;
 const lastVideoFrame = document.createElement("canvas");
@@ -87,7 +87,7 @@ function saveLinaPrefs() {
             aspect: state.aspect,
             effect: state.style.effect
         }));
-    } catch (e) { /* storage unavailable (private mode / quota) — not critical, skip silently */ }
+    } catch (e) { }
 }
 function loadLinaPrefs() {
     try {
@@ -98,26 +98,18 @@ function loadLinaPrefs() {
     } catch (e) { return null; }
 }
 
-/* ---------- Night presentation ---------- */
 function applyNightPresentation() {
     document.documentElement.dataset.theme = 'night';
     document.documentElement.style.colorScheme = 'dark';
 }
 
-/* ---------- Timed text resolution (Lyrics vs Captions) ---------- */
 function activeTextMode() { return state.captions.mode === 'captions' ? 'captions' : 'lyrics'; }
 const PROJECT_TYPES = ['lyric', 'visualiser', 'captioned'];
 function timedTextRequired() {
-    // Visualiser and Custom compositions are valid without timed text —
-    // a Visualiser must never inherit lyric/caption content as active visuals.
     return state.projectType !== 'visualiser' && state.projectType !== 'custom';
 }
 function activeTimedLines() {
-    // State-level gate: the final selected video type decides which text
-    // source is authoritative. Cached text from another workflow must never
-    // bleed into the current one.
     if (state.projectType === 'visualiser') return [];
-    // Captions mode is exclusive: it NEVER falls back to lyrics.
     if (state.captions.mode === 'captions') return state.captions.lines;
     return state.lyrics.lines;
 }
@@ -127,7 +119,6 @@ function markSectionTouched(key) {
     updateSectionNav();
 }
 
-/* ---------- Play button icons (never overwrite the SVG with text) ---------- */
 const PLAY_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M8 5.2v13.6a1 1 0 0 0 1.52.86l10.2-6.8a1 1 0 0 0 0-1.66l-10.2-6.8A1 1 0 0 0 8 5.2Z" fill="currentColor"/></svg>';
 const PAUSE_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><rect x="6.4" y="5" width="4" height="14" rx="1.2" fill="currentColor" stroke="none"/><rect x="13.6" y="5" width="4" height="14" rx="1.2" fill="currentColor" stroke="none"/></svg>';
 function setPlayIcon(playing) {
@@ -205,369 +196,6 @@ function normaliseEnhancedWordEnds(lines) {
     return lines;
 }
 
-function estimateLineVocalEnd(line, nextLine) {
-    const start = Number(line.time);
-    if (!Number.isFinite(start)) return null;
-    const tokens = String(line.text || "").trim().split(/\s+/).filter(Boolean);
-    if (!tokens.length) return start;
-    const nextStart = Number(nextLine?.time);
-    const estimated = tokens.reduce((total, token) => {
-        const letters = Array.from(token.replace(/[^\p{L}\p{N}]/gu, "")).length || 1;
-        return total + linaClamp(0.16 + letters * 0.045, 0.24, 0.78);
-    }, 0) + Math.max(0, tokens.length - 1) * 0.055;
-    let duration = linaClamp(estimated, 0.65, 5.0);
-    if (Number.isFinite(nextStart)) {
-        const available = Math.max(0.20, nextStart - start - 0.10);
-        duration = Math.min(duration, available);
-    }
-    return start + duration;
-}
-
-function appleWordsForLine(line, nextLine) {
-    if (Array.isArray(line?.words) && line.words.length) {
-        return line.words.map(w => ({ ...w, estimated: false }));
-    }
-    const tokens = String(line?.text || "").trim().split(/\s+/).filter(Boolean);
-    if (!tokens.length || !hasFiniteNumber(line?.time)) return [];
-    const start = Number(line.time);
-    const vocalEnd = estimateLineVocalEnd(line, nextLine);
-    const duration = Math.max(0.15, vocalEnd - start);
-    const weights = tokens.map(token => {
-        const letters = Array.from(token.replace(/[^\p{L}\p{N}]/gu, "")).length || 1;
-        const punctuation = /[,.!?;:]$/.test(token) ? 0.20 : 0;
-        return Math.max(0.75, Math.pow(letters, 0.72)) + punctuation;
-    });
-    const total = weights.reduce((s, v) => s + v, 0) || tokens.length;
-    let cursor = 0;
-    return tokens.map((text, i) => {
-        const ws = start + duration * (cursor / total);
-        cursor += weights[i];
-        const we = start + duration * (cursor / total);
-        return { text, time: ws, endTime: Math.max(ws + 0.05, we), estimated: true };
-    });
-}
-
-function appleKeyframeLerp(ed, points) {
-    if (ed <= points[0][0]) return points[0][1];
-    if (ed >= points[points.length - 1][0]) return points[points.length - 1][1];
-    for (let i = 0; i < points.length - 1; i++) {
-        const [ed0, v0] = points[i];
-        const [ed1, v1] = points[i + 1];
-        if (ed >= ed0 && ed <= ed1) {
-            const t = (ed - ed0) / (ed1 - ed0);
-            return v0 + (v1 - v0) * t;
-        }
-    }
-    return points[points.length - 1][1];
-}
-
-// Evaluates a CSS-style cubic-bezier(x1,y1,x2,y2) easing curve at time t
-// (0..1), same maths a browser uses for a `transition-timing-function`.
-function appleCubicBezier(t, x1, y1, x2, y2) {
-    t = linaClamp(t);
-    if (t <= 0) return 0;
-    if (t >= 1) return 1;
-    const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
-    const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
-    const sampleX = u => ((ax * u + bx) * u + cx) * u;
-    const sampleY = u => ((ay * u + by) * u + cy) * u;
-    const sampleDX = u => (3 * ax * u + 2 * bx) * u + cx;
-    let u = t;
-    for (let i = 0; i < 8; i++) {
-        const dx = sampleX(u) - t;
-        if (Math.abs(dx) < 1e-4) break;
-        const d = sampleDX(u);
-        if (Math.abs(d) < 1e-6) break;
-        u -= dx / d;
-    }
-    return sampleY(linaClamp(u));
-}
-
-// A gentle overshoot-then-settle curve for the line-to-line scroll — the
-// small "bounce" iOS spring lists (and Apple Music's own lyric scroll) have,
-// rather than a flat ease-out.
-function appleSpringOut(t) {
-    t = linaClamp(t);
-    const c1 = 1.2, c3 = c1 + 1;
-    const u = t - 1;
-    return 1 + c3 * u * u * u + c1 * u * u;
-}
-
-function drawAppleEffect(ctx, w, h, style, lines, time) {
-    if (!Array.isArray(lines) || !lines.length) return;
-
-    const baseDimension = Math.min(w, h);
-    const activeFontSize = baseDimension * 0.12;
-    const inactiveFontSize = baseDimension * 0.10;
-    const horizontalPadding = w * 0.06;
-    const lineSpacing = baseDimension * 0.06;
-    const family = '-apple-system,"SF Pro Display",sans-serif';
-    const margin = horizontalPadding;
-    const maxWidth = Math.max(1, w - horizontalPadding * 2);
-    const displayLines = [];
-    for (let li = 0; li < lines.length; li++) {
-        const original = linaNormaliseLine(lines, li);
-        if (!original) continue;
-        const text = String(original.text || '').replace(/\s+/g, ' ').trim();
-        if (!text) continue;
-        displayLines.push({
-            ...original,
-            text
-        });
-    }
-
-    ctx.save();
-    ctx.font = `800 ${activeFontSize}px ${family}`;
-    ctx.textBaseline = 'middle';
-    ctx.textAlign = 'left';
-    for (const line of displayLines) {
-        const words = appleWordsForLine(line, null);
-        const tokens = words.length ? words.map(word => String(word.text || '').trim()).filter(Boolean) : String(line.text || '').split(' ').filter(Boolean);
-        const rows = [];
-        let row = '';
-        for (const token of tokens) {
-            const candidate = row ? `${row} ${token}` : token;
-            if (row && ctx.measureText(candidate).width > maxWidth) {
-                rows.push(row);
-                row = token;
-            } else {
-                row = candidate;
-            }
-        }
-        if (row) rows.push(row);
-        if (!rows.length) rows.push(String(line.text || ''));
-        line.appleRows = rows;
-        line.appleRowCount = rows.length;
-        line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
-    }
-    ctx.restore();
-    const activeIndex = linaFindActiveLine(displayLines, time);
-
-    // Apple Music's lyric background is driven by the album artwork palette:
-    // saturated artwork-derived colour fields are layered, blurred and gently
-    // moved instead of displaying a flat colour or a simple vertical gradient.
-    const source = albumArtworkImage;
-    let palette = source?.__kefeApplePalette;
-    if (source && !palette) {
-        try {
-            const sample = document.createElement('canvas');
-            sample.width = 32;
-            sample.height = 32;
-            const sampleCtx = sample.getContext('2d', { willReadFrequently: true });
-            const sw = source.videoWidth || source.naturalWidth || source.width;
-            const sh = source.videoHeight || source.naturalHeight || source.height;
-            if (sampleCtx && sw && sh) {
-                sampleCtx.drawImage(source, 0, 0, sw, sh, 0, 0, 32, 32);
-                const data = sampleCtx.getImageData(0, 0, 32, 32).data;
-                const buckets = Array.from({ length: 12 }, () => ({ r: 0, g: 0, b: 0, n: 0 }));
-                for (let p = 0; p < data.length; p += 4) {
-                    const a = data[p + 3] / 255;
-                    if (a < 0.2) continue;
-                    const r0 = data[p], g0 = data[p + 1], b0 = data[p + 2];
-                    const mx = Math.max(r0, g0, b0), mn = Math.min(r0, g0, b0);
-                    const sat = mx ? (mx - mn) / mx : 0;
-                    const lum = (0.2126 * r0 + 0.7152 * g0 + 0.0722 * b0) / 255;
-                    const bucket = sat < 0.12
-                        ? 11
-                        : Math.min(10, Math.floor((Math.atan2(Math.sqrt(3) * (g0 - b0), 2 * r0 - g0 - b0) + Math.PI) / (Math.PI * 2) * 11));
-                    buckets[bucket].r += r0 * (0.45 + sat);
-                    buckets[bucket].g += g0 * (0.45 + sat);
-                    buckets[bucket].b += b0 * (0.45 + sat);
-                    buckets[bucket].n += 0.45 + sat;
-                    buckets[bucket].lum = (buckets[bucket].lum || 0) + lum * (0.45 + sat);
-                }
-                const ranked = buckets.filter(b => b.n).sort((a, b) => {
-                    const av = a.lum / a.n, bv = b.lum / b.n;
-                    return (b.n * (0.65 + bv)) - (a.n * (0.65 + av));
-                });
-                const selected = [];
-                for (const bucket of ranked) {
-                    const color = { r: bucket.r / bucket.n, g: bucket.g / bucket.n, b: bucket.b / bucket.n };
-                    if (selected.every(item => Math.hypot(color.r - item.r, color.g - item.g, color.b - item.b) >= 28)) {
-                        selected.push(color);
-                    }
-                    if (selected.length >= 6) break;
-                }
-                palette = selected.map(color =>
-                    `rgb(${Math.round(color.r)} ${Math.round(color.g)} ${Math.round(color.b)})`
-                );
-                if (palette.length) source.__kefeApplePalette = palette;
-            }
-        } catch (_) {}
-    }
-
-    ctx.save();
-    ctx.fillStyle = '#080808';
-    ctx.fillRect(0, 0, w, h);
-    if (palette?.length) {
-        ctx.globalCompositeOperation = 'screen';
-        const positions = [
-            [0.16 + 0.08 * Math.sin(time * 0.17), 0.20 + 0.07 * Math.cos(time * 0.13)],
-            [0.50 + 0.09 * Math.cos(time * 0.15), 0.18 + 0.08 * Math.sin(time * 0.11)],
-            [0.82 + 0.08 * Math.sin(time * 0.12), 0.28 + 0.07 * Math.cos(time * 0.16)],
-            [0.22 + 0.09 * Math.cos(time * 0.10), 0.72 + 0.08 * Math.sin(time * 0.14)],
-            [0.55 + 0.08 * Math.sin(time * 0.13), 0.82 + 0.07 * Math.cos(time * 0.09)],
-            [0.84 + 0.07 * Math.cos(time * 0.11), 0.70 + 0.08 * Math.sin(time * 0.15)]
-        ];
-        const radii = [0.70, 0.66, 0.68, 0.72, 0.66, 0.70];
-        for (let pi = 0; pi < Math.min(6, palette.length); pi++) {
-            const [px, py] = positions[pi];
-            const radius = Math.max(w, h) * radii[pi];
-            const gradient = ctx.createRadialGradient(w * px, h * py, 0, w * px, h * py, radius);
-            gradient.addColorStop(0, palette[pi]);
-            gradient.addColorStop(0.42, palette[pi]);
-            gradient.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, w, h);
-        }
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = 'rgba(0,0,0,0.42)';
-        ctx.fillRect(0, 0, w, h);
-    } else if (source) {
-        const sw = source.videoWidth || source.naturalWidth || source.width;
-        const sh = source.videoHeight || source.naturalHeight || source.height;
-        if (sw && sh) {
-            ctx.filter = 'blur(60px) saturate(1.5)';
-            const scale = Math.max((w + 120) / sw, (h + 120) / sh);
-            const dw = sw * scale, dh = sh * scale;
-            ctx.drawImage(source, (w - dw) / 2, (h - dh) / 2, dw, dh);
-            ctx.filter = 'none';
-            ctx.fillStyle = 'rgba(0,0,0,0.42)';
-            ctx.fillRect(0, 0, w, h);
-        }
-    }
-    ctx.restore();
-
-    const displayLine = activeIndex >= 0 ? displayLines[activeIndex] : null;
-    if (activeIndex < 0 || !displayLine) return;
-
-    // Apple Music's real lyric states (verified, not the earlier stylised
-    // guess): active line full brightness/no blur/subtle scale; upcoming
-    // lines dimmed with no blur; already-sung lines dimmer still and softly
-    // blurred, like they've receded behind the active one. Reads from the
-    // existing style.apple* controls (previously defined but never wired in).
-    const appleLineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.58, 0.45, 1.10);
-    const lineHeight = activeFontSize * 1.18 + appleLineSpacing;
-    const rowHeight = activeFontSize * 1.18;
-    const blockGap = appleLineSpacing;
-    const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.30, 0.20, 0.40);
-    const pastOpacity = linaClamp(upcomingOpacity * 0.72, 0.20, 0.30);
-    const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
-    const appleHeaderSize = baseDimension * 0.08;
-    const appleHeaderTop = Math.max(24, h * 0.035);
-    const appleHeaderBottom = appleHeaderTop + appleHeaderSize;
-    const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
-    const topAnchor = Math.max(
-        h * linaClamp(Number(style.appleTopOffset) || 0.42, 0.40, 0.68),
-        appleHeaderBottom + activeBlockHeight / 2 + blockGap
-    );
-    const glow = Number(style.appleGlow) || 0.012;
-    const activeScale = 1;
-
-    const active = linaNormaliseLine(displayLines, activeIndex);
-    if (!active) return;
-
-    // Two clocks, matched to how the real lyrics view actually animates:
-    // the stack scrolls by one line-height per active-line change with a
-    // short spring settle (~0.35s, slight overshoot), while each row's own
-    // opacity/blur/scale cross-fades on Apple's documented 0.3s ease.
-    const posT = appleSpringOut((time - active.time) / 0.35);
-    const styleT = appleCubicBezier((time - active.time) / 0.3, 0.25, 0.1, 0.25, 1);
-
-    const scalePoints = [[-1, 1], [0, activeScale], [1, 1]];
-    const opacityPoints = [[-2, pastOpacity], [-1, upcomingOpacity], [0, 1], [1, upcomingOpacity], [2, pastOpacity]];
-    const blurPoints = [[-2, 5], [-1, 4], [0, 0], [1, 0], [2, 0]];
-
-    const previousBlock = displayLines[activeIndex - 1];
-    const transitionShift = previousBlock
-        ? ((previousBlock.appleBlockHeight || rowHeight) + (displayLine.appleBlockHeight || rowHeight)) / 2 + blockGap
-        : (displayLine.appleBlockHeight || rowHeight) + blockGap;
-
-    for (let i = Math.max(0, activeIndex - 2); i <= Math.min(displayLines.length - 1, activeIndex + visibleLines); i++) {
-        const line = displayLines[i];
-        if (!line || !String(line.text || '').trim()) continue;
-
-        const distance = i - activeIndex;
-        let settledOffset = 0;
-        if (distance > 0) {
-            for (let oi = activeIndex; oi < i; oi++) {
-                settledOffset += ((displayLines[oi]?.appleBlockHeight || rowHeight) / 2)
-                    + ((displayLines[oi + 1]?.appleBlockHeight || rowHeight) / 2)
-                    + blockGap;
-            }
-        } else if (distance < 0) {
-            for (let oi = activeIndex; oi > i; oi--) {
-                settledOffset -= ((displayLines[oi]?.appleBlockHeight || rowHeight) / 2)
-                    + ((displayLines[oi - 1]?.appleBlockHeight || rowHeight) / 2)
-                    + blockGap;
-            }
-        }
-
-        const edStyle = distance + (1 - styleT);
-        const isActiveRow = distance === 0;
-        const words = appleWordsForLine(line, displayLines[i + 1] || null);
-        const rows = line.appleRows || [String(line.text || '').trim()];
-        const text = String(line.text || '').trim();
-        const x = margin;
-        const y = topAnchor + settledOffset + (1 - posT) * transitionShift;
-        const scaleAmt = appleKeyframeLerp(edStyle, scalePoints);
-        const alphaAmt = linaClamp(appleKeyframeLerp(edStyle, opacityPoints), 0, 1);
-        const blurAmt = appleKeyframeLerp(edStyle, blurPoints);
-
-        ctx.save();
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'left';
-        ctx.globalAlpha = alphaAmt;
-        const rowFontSize = isActiveRow ? activeFontSize : inactiveFontSize;
-        ctx.font = `800 ${rowFontSize}px ${family}`;
-        ctx.fillStyle = '#FFFFFF';
-        ctx.translate(x, y);
-        ctx.scale(scaleAmt, scaleAmt);
-        ctx.translate(-x, -y);
-
-        if (isActiveRow) {
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-        }
-
-        const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
-        if (!isActiveRow || !words.length) {
-            rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
-        } else {
-            let wordIndex = 0;
-            const easeWindow = 0.10;
-            for (let ri = 0; ri < rows.length; ri++) {
-                const rowTokens = rows[ri].split(/\s+/).filter(Boolean);
-                const rowWords = [];
-                let rowWidth = 0;
-                for (let ti = 0; ti < rowTokens.length; ti++) {
-                    const word = words[wordIndex + ti];
-                    const wordText = String(word?.text || rowTokens[ti]);
-                    const wordWidth = ctx.measureText(wordText).width;
-                    rowWords.push({ word, wordText, wordWidth });
-                    rowWidth += wordWidth;
-                }
-                rowWidth += ctx.measureText(' ').width * Math.max(0, rowWords.length - 1);
-                let cursorX = x;
-                for (const item of rowWords) {
-                    const word = item.word;
-                    const wordText = item.wordText;
-                    const wordWidth = item.wordWidth;
-                    const swap = word
-                        ? linaSmooth((time - Number(word.time)) / easeWindow)
-                        : 1;
-                    const opacity = 0.55 + 0.45 * swap;
-                    ctx.fillStyle = `rgba(255,255,255,${opacity.toFixed(3)})`;
-                    ctx.fillText(wordText, cursorX, rowYs[ri]);
-                    cursorX += wordWidth + ctx.measureText(' ').width;
-                }
-                wordIndex += rowTokens.length;
-            }
-        }
-        ctx.restore();
-    }
-
-}
 function buildBratWords(lines) {
     const output = [];
     for (let i = 0; i < lines.length; i++) {
@@ -674,12 +302,8 @@ async function ensureEternalFont() {
             if (document.fonts && document.fonts.ready) {
                 try { await document.fonts.ready; } catch (e) {}
             }
-            // Prefer an explicit check, but if that's unavailable, treat the
-            // font as ready — the ink renderer draws text either way.
             if (document.fonts && typeof document.fonts.check === 'function') {
                 eternalFontReady = document.fonts.check('76px "Homemade Apple"');
-                // Even if check fails, allow the renderer to try. Its cache
-                // path will fall back to plain fillText when fonts are missing.
                 if (!eternalFontReady) eternalFontReady = true;
             } else {
                 eternalFontReady = true;
@@ -840,8 +464,6 @@ function getEternalLineAlpha(slot, group, time) {
 function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
     if (!eternalFontReady) {
         ensureEternalFont();
-        // Fallback: draw plain text so the user still sees their lyrics.
-        // The handwritten reveal swaps in as soon as the font is ready.
         const ci = linaFindActiveLine(lines, time);
         if (ci < 0) return;
         const line = linaNormaliseLine(lines, ci);
@@ -879,44 +501,36 @@ function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
         if (!line || time < line.time) continue;
         const text = String(line.text || "").trim();
         if (!text) continue;
-
         let targetSize = linaClamp(baseSize * sizes[slot], 34, 150);
         const prepared = fitEternalText(text, targetSize, w - margin * 2);
         if (!prepared) continue;
-
         const cache = prepared.cache, fontSize = prepared.fontSize;
         const duration = Math.max(0.001, line.endTime - line.time);
         const rawProgress = linaClamp((time - line.time) / (duration * Math.max(0.20, writeSpan)));
         const progress = linaSmoother(rawProgress);
         const rendered = renderInkRow(cache, progress, { fontSize, inkColor, penWidth, glow });
         if (!rendered) continue;
-
         const vh = cache.ascent + cache.descent;
         const placement = getEternalPlacement(positions[slot], w, h, cache.textWidth, vh, margin);
         let alpha = getEternalLineAlpha(slot, group, time);
-
         if (finalLine) {
             const fd = Math.max(0.20, finalLine.endTime - finalLine.time);
             const cs = finalLine.endTime - Math.min(0.65, Math.max(0.30, fd * 0.18));
             if (time > cs) alpha *= 1 - linaSmooth((time - cs) / Math.min(0.65, Math.max(0.30, fd * 0.18)));
         }
-
         const isWriting = rawProgress > 0 && rawProgress < 1;
         const writeEnergy = isWriting ? Math.sin(rawProgress * Math.PI) : 0;
         const popScale = 1 + presence * 0.018 * writeEnergy;
         const bloom = fontSize * (glow / 100 + presence * 0.055 * writeEnergy);
         const echoAlpha = alpha * presence * 0.13 * writeEnergy;
-
         const drawX = placement.x - cache.padding;
         const drawY = placement.y - cache.padding;
         const centreX = placement.x + cache.textWidth / 2;
         const centreY = placement.y + vh / 2;
-
         ctx.save();
         ctx.translate(centreX, centreY);
         ctx.scale(popScale, popScale);
         ctx.translate(-centreX, -centreY);
-
         if (echoAlpha > 0.001) {
             ctx.save();
             ctx.globalAlpha = echoAlpha;
@@ -925,7 +539,6 @@ function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
             ctx.drawImage(rendered, drawX + fontSize * 0.012, drawY + fontSize * 0.010);
             ctx.restore();
         }
-
         ctx.globalAlpha = alpha;
         ctx.shadowColor = inkColor;
         ctx.shadowBlur = bloom;
@@ -956,7 +569,6 @@ function drawAuroraEffect(ctx, w, h, style, lines, time) {
     if (!line) return;
     const text = String(line.text || '').trim();
     if (!text) return;
-
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -1034,7 +646,7 @@ function renderLyricsEffect(ctx, w, h, style, lines, time) {
     ctx.save();
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over"; ctx.filter = "none"; ctx.shadowBlur = 0;
     switch(style.effect) {
-        case "apple": drawAppleEffect(ctx, w, h, style, lines, time); break;
+        case "apple": drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage); break;
         case "brat": drawBratEffect(ctx, w, h, style, lines, time); break;
         case "eternal": drawEternalSunshineEffect(ctx, w, h, style, lines, time); break;
         case "aurora": drawAuroraEffect(ctx, w, h, style, lines, time); break;
@@ -1045,15 +657,12 @@ function renderLyricsEffect(ctx, w, h, style, lines, time) {
         default: {
             const fn = window.kefeEffects && window.kefeEffects[style.effect];
             if (typeof fn === "function") fn(ctx, w, h, style, lines, time);
-            else drawAppleEffect(ctx, w, h, style, lines, time);
+            else drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage);
         }
     }
     ctx.restore();
 }
 
-/* ---------- Dedicated caption/subtitle style (Captioned Video) ----------
-   Conventional caption presentation — deliberately separate from the lyric
-   effects: centred, high-contrast, positioned in the caption-safe area. */
 function captionActiveLine(lines, time) {
     let active = null;
     for (const line of lines) {
@@ -1076,7 +685,7 @@ function wrapCaptionText(ctx, text, maxWidth) {
         else row = proposed;
     }
     if (row) rows.push(row);
-    return rows.slice(0, 3); // conventional captions never run past three lines
+    return rows.slice(0, 3);
 }
 function renderCaptionStyle(ctx, w, h, lines, time) {
     const cs = state.captionStyle || {};
@@ -1092,17 +701,15 @@ function renderCaptionStyle(ctx, w, h, lines, time) {
     const rows = wrapCaptionText(ctx, active.line.text, w * 0.82);
     if (!rows.length) { ctx.restore(); return; }
     const lineHeight = fontSize * 1.32;
-    const safe = unit * 0.085; // caption-safe area — never against the frame edge
+    const safe = unit * 0.085;
     const isTop = cs.position === 'top';
     const lastBaseline = isTop ? safe + fontSize + (rows.length - 1) * lineHeight : h - safe;
     const firstBaseline = lastBaseline - (rows.length - 1) * lineHeight;
-    // Gentle fade in/out at the edges of each caption segment.
     const fade = linaClamp((time - active.start) / 0.15) * linaClamp((active.finish - time) / 0.25);
     const opacity = linaClamp(Number(cs.opacity) || 1, 0.1, 1);
     ctx.globalAlpha = opacity * fade;
     ctx.fillStyle = /^#[0-9a-f]{6}$/i.test(cs.color || '') ? cs.color : '#FFFFFF';
     if (cs.shadow !== false) {
-        // Simple, professional readability treatment: dark outline + soft drop shadow.
         ctx.strokeStyle = 'rgba(0,0,0,0.88)';
         ctx.lineWidth = Math.max(2, fontSize * 0.085);
         ctx.lineJoin = 'round';
@@ -1252,7 +859,6 @@ function wrapTitleText(ctx, text, maxWidth) {
     return rows.length ? rows : [''];
 }
 
-/* Design: Minimal — restrained wash, centred artwork + title (KEFE classic). */
 function renderTitleCardMinimal(ctx, w, h, phase, info) {
     const { alpha, enter, toLyrics = 0 } = phase;
     const unit = Math.min(w, h);
@@ -1269,8 +875,6 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     ctx.globalAlpha = alpha;
 
     if (toLyrics > 0.001) {
-        // Apple lyrics header: the centred title card morphs into a compact
-        // Now Playing row at the safe top edge and remains there.
         const iphoneBoundaryWidth = Math.min(w, h * (390 / 844));
         const iphoneSideInset = iphoneBoundaryWidth * (31 / 390);
         const boundaryLeft = Math.max(0, (w - iphoneBoundaryWidth) / 2);
@@ -1354,7 +958,6 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         return true;
     }
 
-    // Intro state: retain the existing centred title-card treatment.
     const artworkSize = linaClamp(unit * 0.18, 126, 220);
     ctx.translate(w / 2, contentY);
     ctx.globalAlpha = alpha;
@@ -1419,7 +1022,6 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     return true;
 }
 
-/* Design: Spotlight — cinematic radial glow, large artwork, title beneath. */
 function renderTitleCardSpotlight(ctx, w, h, phase, info) {
     const { alpha, enter, toLyrics = 0 } = phase;
     const unit = Math.min(w, h);
@@ -1443,8 +1045,6 @@ function renderTitleCardSpotlight(ctx, w, h, phase, info) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // During the lyric section the title card becomes the compact top
-    // now-playing identity, leaving the lyric stack below it.
     const artSize = linaClamp(unit * (0.34 - 0.24 * toLyrics), 72, 460);
     const artCenterY = cy - artSize * 0.34;
     let cursorY = cy;
@@ -1505,7 +1105,6 @@ function renderTitleCardSpotlight(ctx, w, h, phase, info) {
     return true;
 }
 
-/* Design: Editorial — print-inspired rules, Courier caps kicker, Bricolage title. */
 function renderTitleCardEditorial(ctx, w, h, phase, info) {
     const { alpha, enter } = phase;
     const unit = Math.min(w, h);
@@ -1551,7 +1150,6 @@ function renderTitleCardEditorial(ctx, w, h, phase, info) {
         ctx.fillStyle = 'rgba(255,255,255,0.66)';
         ctx.fillText(info.artist.toUpperCase(), w / 2, metaY);
     }
-    // Corner registration marks give the print feel without a card.
     const corner = unit * 0.045;
     const inset = unit * 0.055;
     ctx.strokeStyle = 'rgba(255,255,255,0.34)';
@@ -1567,7 +1165,6 @@ function renderTitleCardEditorial(ctx, w, h, phase, info) {
     return true;
 }
 
-/* Design: Statement — bold flat panel, oversized condensed type, per-effect accent. */
 const STATEMENT_THEMES = {
     brat: { bg: '#C8FF00', ink: '#111111', muted: 'rgba(17,17,17,0.62)', family: '"Archivo Narrow"' },
     instagram: { bg: '#F08B35', ink: '#FFFFFF', muted: 'rgba(255,255,255,0.66)', family: '"Inter Tight"' },
@@ -1586,14 +1183,12 @@ function renderTitleCardStatement(ctx, w, h, appState, phase, info) {
     const marginX = w * (themeKey === 'brat' ? 0.055 : 0.09);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
-    // Top: artist kicker.
     if (info.artist) {
         const kickerSize = Math.max(18, Math.round(unit * 0.026));
         ctx.font = `700 ${kickerSize}px ${theme.family}, Arial, sans-serif`;
         ctx.fillStyle = theme.muted;
         ctx.fillText(info.artist.toUpperCase(), marginX, unit * 0.13 + slide * 0.4);
     }
-    // Bottom: huge wrapped title.
     const maxTextWidth = w - marginX * 2;
     let titleSize = Math.max(64, Math.round(unit * 0.135));
     ctx.font = `700 ${titleSize}px ${theme.family}, Arial, sans-serif`;
@@ -1607,7 +1202,6 @@ function renderTitleCardStatement(ctx, w, h, appState, phase, info) {
     const baselineStart = h * 0.86 - (rows.length - 1) * lineHeight;
     ctx.fillStyle = theme.ink;
     rows.forEach((row, i) => ctx.fillText(row, marginX, baselineStart + i * lineHeight));
-    // Thin blue rule — the KEFE logo accent.
     ctx.fillStyle = '#ef3f38';
     ctx.fillRect(marginX, h * 0.86 + unit * 0.022, Math.min(w - marginX * 2, unit * 0.16), Math.max(3, unit * 0.005));
     if (info.album) {
@@ -1659,19 +1253,13 @@ function render(ctx, w, h, appState, mediaCache) {
         if (hasPreviewMedia) drawBackground(ctx, w, h, appState.background, mediaCache);
         const masterMode = getMasterMode();
         const missingMaster = masterMode === 'uploaded' ? !appState.audio?.file : masterMode === 'video' ? !(mediaCache?.video && mediaCache.videoFile) : false;
-        /* placeholder removed — empty canvas until media is loaded */
         const time = Number.isFinite(appState.playback.currentTime) ? appState.playback.currentTime : 0;
         const cappedTime = (appState.playback.trimTo != null && time > appState.playback.trimTo)
             ? appState.playback.trimTo : time;
         const style = { ...appState.style };
-        // Audio-reactive visualisers are a visual layer of the selected Visualiser pathway.
-        // Render them before the title card so the title card can still take precedence.
         if (appState.projectType === 'visualiser' && window.kefeVisualiser) {
             window.kefeVisualiser.draw(ctx, w, h, cappedTime, appState, window.kefeAudioElement);
         }
-        // The captioned pathway has no title-card step. A title card left
-        // over from a previous lyric session must not bleed into a captioned
-        // video, so we explicitly skip it in this pathway.
         const appleTitleCard = appState.projectType !== 'captioned' && style.effect === 'apple';
         const tcActive = appState.projectType === 'captioned'
             ? false
@@ -1683,8 +1271,6 @@ function render(ctx, w, h, appState, mediaCache) {
         const lyricTime = Math.max(0, cappedTime - (Number(appState.lyricsOffset) || 0));
 
         if (appleTitleCard && timedLines.length) {
-            // Apple owns the lyric background and stack. Render it first so the
-            // title card remains visible above the lyrics instead of being covered.
             try {
                 renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime);
             }
@@ -1693,7 +1279,6 @@ function render(ctx, w, h, appState, mediaCache) {
         } else if (!tcActive || cappedTime >= titleLyricsStart) {
             if (timedLines.length) {
                 try {
-                    // Captions use the dedicated caption/subtitle style — never a lyric effect.
                     if (activeTextMode() === 'captions') renderCaptionStyle(ctx, w, h, timedLines, lyricTime);
                     else renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime);
                 }
@@ -1705,10 +1290,6 @@ function render(ctx, w, h, appState, mediaCache) {
     } finally { ctx.restore(); }
 }
 
-// export/ui.js (a module, so it can't see this script's lexical `state`/`media`/
-// `render`) drives frame-accurate export by calling window.kefeRenderFrame for
-// each output frame. Without this bridge, export always fails immediately with
-// "KEFE export renderer is not connected".
 window.kefeRenderFrame = function(ctx, w, h, time) {
     state.playback.currentTime = time;
     render(ctx, w, h, state, media);
@@ -1732,7 +1313,6 @@ function getMasterDuration() {
     if (mode === 'none') {
         const vd = (media?.video && Number.isFinite(media.video.duration) && media.video.duration > 0) ? media.video.duration : 0;
         const ad = Number.isFinite(state.audio.duration) && state.audio.duration > 0 ? state.audio.duration : 0;
-        // For a muted composition, the timeline should at least cover the timed text.
         let textEnd = 0;
         const lastLine = state.projectType === 'visualiser' ? null : state.lyrics.lines[state.lyrics.lines.length - 1];
         if (lastLine) {
@@ -1768,10 +1348,8 @@ function setMasterTime(target) {
     const mode = getMasterMode();
     if (mode === 'video') {
         const v = media?.video;
-        // A new seek supersedes an in-flight seek; do not silently drop rapid scrubs.
         if (v && Number.isFinite(v.duration) && v.duration > 0) v.currentTime = wrappedVideoTime(t, v.duration);
     } else if (mode === 'none') {
-        // Rebase the virtual clock at the new position; if it was running it keeps running from here.
         noneClockBase = t; noneClockWall = performance.now();
     } else {
         audio.currentTime = t;
@@ -1799,7 +1377,7 @@ function circularVideoDrift(cur, target, dur) {
     return drift;
 }
 function maintainBackgroundVideoSync(masterTime) {
-    if (getMasterMode() === 'video') return; // video is the driving clock; don't fight it
+    if (getMasterMode() === 'video') return;
     if (exportClockTime !== null) return;
     const video = media?.video;
     if (!video || !Number.isFinite(video.duration) || video.duration <= 0 || video.readyState < 2) return;
@@ -1925,7 +1503,6 @@ function renderEffectControls() {
             { key: "accentColor", label: "Glow colour", type: "color" }
         ];
     }
-    // Title Card controls live in their own section (05) — see wireTitleCardControls().
     const allControls = [...controls, ...extraControls];
     for (const control of allControls) {
         const row = document.createElement("div");
@@ -2016,7 +1593,6 @@ function readiness() {
     const timedLines = activeTimedLines();
     const timingValid = timedLines.length > 0 && validateLyricTiming(timedLines, masterDur).errors.length === 0;
     const masterReady = hasMasterSource() && masterDur > 0;
-    // Visualiser / Custom exports are valid without timed text.
     const ready = masterReady && (timedTextRequired() ? timingValid : true);
     $('exportBottom').disabled = !ready;
     refreshLyricsTimingStatus();
@@ -2032,7 +1608,7 @@ function ensureDefaultBackground() {
 function hasMasterSource() {
     const mode = getMasterMode();
     if (mode === 'video') return Boolean(media.video && media.videoFile);
-    if (mode === 'none') return getMasterDuration() > 0; // virtual timeline is a valid master
+    if (mode === 'none') return getMasterDuration() > 0;
     return Boolean(state.audio.file) && state.audio.ready;
 }
 
@@ -2123,7 +1699,6 @@ function refreshLyricsTimingStatus() {
     updateSyncStatusUI();
 }
 
-/* ---------- Sync diagnostics & repair ---------- */
 function shiftedLines(delta, lines) {
     return lines.map(line => {
         const copy = { ...line, time: Math.max(0, Number(line.time) + delta) };
@@ -2604,11 +2179,6 @@ function handleAudioFile(file) {
         toast('Audio file too large (max ' + Math.round(MAX_AUDIO_BYTES / 1024 / 1024) + 'MB)', 'error');
         return;
     }
-    // Apple Music's lossless downloads are ALAC. Safari's <audio> tag can
-    // play them, but decodeAudioData() (which the analysis engine needs for
-    // FFT) doesn't support ALAC at all. Reject early with a real reason —
-    // otherwise the file loads, appears "OK", and then silently fails to
-    // analyse, leaving the user staring at a dead visualiser.
     var __name = (file.name || '').toLowerCase();
     var __type = (file.type || '').toLowerCase();
     if (/\[alac\]/.test(__name) || /\balac\b/.test(__name) || __type === 'audio/x-alac') {
@@ -2625,7 +2195,6 @@ function handleAudioFile(file) {
     state.audio.url = audioURL;
     state.audio.duration = 0;
     state.audio.ready = false;
-    // Uploading audio is an explicit user action — route master to it.
     if (state.audioSource) { state.audioSource.master = "uploaded"; state.audioSource.userChosen = false; }
     const parsedMeta = songFromFilename(file.name);
     state.audio.metadata = { title: parsedMeta.track || '', artist: parsedMeta.artist || '', album: '' };
@@ -2647,8 +2216,6 @@ function handleAudioFile(file) {
     audioStatus.textContent = file.name;
     audioStatus.className = 'status success';
     toast('Audio loaded: ' + file.name, 'success');
-    // Additive error listener — fires only if the browser can't decode
-    // the file. Does not replace the success path; runs in parallel.
     (function() {
       var fileName = file.name;
       function onLoadError() {
@@ -2719,7 +2286,6 @@ function handleBackgroundFile(file) {
             if (media.video && media.video !== vid) { media.video.pause(); media.video.src = ''; }
             if (backgroundURL) URL.revokeObjectURL(backgroundURL);
             backgroundURL = candidateURL;
-            // When the video acts as the master clock it must stop at its end (no loop).
             vid.addEventListener('ended', function() {
                 if (getMasterMode() !== 'video') return;
                 setPlayIcon(false);
@@ -2729,16 +2295,11 @@ function handleBackgroundFile(file) {
             media.video = vid;
             media.videoFile = file;
             media.image = null;
-            // Detection completed before master-source selection.
             media.videoHasAudio = videoHasAudio;
             state.background.type = 'video';
             $('backgroundStatus').textContent = file.name + (media.videoHasAudio ? ' · has audio' : '');
             $('backgroundStatus').className = 'status success';
             toast('Background video loaded' + (media.videoHasAudio ? '' : ' (no audio track)'), 'success');
-            // If no title/artist has been set yet (no uploaded-audio ID3 tags, no
-            // manual entry), take a best guess from the video filename so users
-            // relying on the video's own audio as master still get a usable
-            // starting point for Find Synced Lyrics instead of a dead end.
             if (!state.audio.metadata.title && !state.audio.metadata.artist) {
                 const guess = songFromFilename(file.name);
                 if (guess.track || guess.artist) {
@@ -2749,24 +2310,11 @@ function handleBackgroundFile(file) {
                 }
             }
 
-            // Video media uses the same metadata pipeline as uploaded audio.
-            // The video remains the master media source; its metadata only
-            // populates the shared song metadata fields used by lyric lookup.
             readEmbeddedVideoMetadata(file, token);
-            // Default master selection (only when the user has not explicitly chosen):
-            // - no uploaded audio + video has audio  -> video audio becomes master
-            // - no uploaded audio + video has no audio -> virtual timeline (muted) driven by video duration
-            // - uploaded audio exists + lyrics already synced to it -> ask the user
-            //   which source should be master rather than silently deciding for them
-            // - uploaded audio exists, no lyrics synced yet -> uploaded stays master
-            //   (classic flow), except the wizard's dedicated "Background Video" audio
-            //   source step, which still switches automatically as before
             if (!state.audio.file) {
                 applyMasterSelection(media.videoHasAudio ? 'video' : 'uploaded', { userInitiated: false, silent: true });
             } else if (media.videoHasAudio && getMasterMode() !== "video") {
                 if (window.kefeWizardSource === "media") {
-                    // Wizard "Background Video" audio source: the video's own track takes
-                    // over as master, even when uploaded audio is already loaded.
                     state.audioSource.userChosen = false;
                     applyMasterSelection('video', { userInitiated: false, silent: true });
                 } else {
@@ -2819,11 +2367,6 @@ const audioInput = document.getElementById('audioInput');
 const audioStatus = document.getElementById('audioStatus');
 const audioChooseBtn = document.getElementById('audioChooseBtn');
 
-// The Media step accepts either an audio file or a video file. A video
-// uploaded here becomes both the background video AND (when it has an
-// audio track) the master audio source — so the user doesn't have to
-// upload the same file again later in the Background step just to get
-// at its audio.
 function handleMediaSourceFile(file) {
     if (!file) return;
     const isVideo = (file.type && file.type.startsWith('video/')) || /\.(mp4|mov|webm|m4v|avi|mkv)$/i.test(file.name);
@@ -2871,7 +2414,6 @@ audio.addEventListener('loadedmetadata', function() {
     }
     state.audio.duration = this.duration;
     state.audio.ready = true;
-    // Default master selection: uploaded audio takes priority (per product spec).
     applyMasterSelection('uploaded', { userInitiated: false, silent: true });
     const seek = $('seek'); if (seek) seek.max = getMasterDuration();
     $('clock').textContent = '0:00 / ' + fmt(getMasterDuration());
@@ -2886,7 +2428,7 @@ audio.addEventListener('error', function() {
 });
 audio.addEventListener('timeupdate', function() { if (getMasterMode() === 'uploaded') state.playback.currentTime = this.currentTime || 0; });
 audio.addEventListener('play', function() {
-    if (getMasterMode() !== 'uploaded') return; // only the selected master source drives preview
+    if (getMasterMode() !== 'uploaded') return;
     setPlayIcon(true);
     state.playback.isPlaying = true;
     if (isExporting) return;
@@ -2977,12 +2519,6 @@ function stopPlayback() {
 }
 $('stopBtn').addEventListener('click', stopPlayback);
 
-/* =========================================================================
- * AUDIO SOURCE SELECTION (Phase 1)
- * The master audio source decides BOTH the audible preview audio AND the
- * timing reference. Preview and export always read the same selection, so a
- * source can never silently change between them.
- * ========================================================================= */
 const MASTER_MODES = ['uploaded', 'video'];
 const MASTER_MODE_LABELS = {
     uploaded: 'Uploaded Audio',
@@ -3002,35 +2538,28 @@ function applyMasterSelection(mode, opts = {}) {
         syncMasterSourceUI();
         return false;
     }
-    // Automatic defaults must never override an explicit user choice.
     if (!userInitiated && state.audioSource.userChosen) {
         syncMasterSourceUI();
         return false;
     }
-    // Never silently switch during playback/export: if the user is changing the
-    // source while something is playing or exporting, stop first.
     if (isExporting) { toast('Finish or cancel the current export first', 'error'); return false; }
     if (isMasterPlaying()) { pauseMasterPlayback(); }
     const previous = getMasterMode();
     state.audioSource.master = mode;
     if (userInitiated) {
         state.audioSource.userChosen = true;
-        // A user-driven selection may have a different timing reference, so warn
-        // whenever timed text exists — its synchronization may no longer match.
         if (!silent && state.lyrics.lines.length) {
             toast('Timed text was synchronized against another source — it may no longer match the new master audio', '');
             console.warn('[KEFE] Master audio source changed while timed text exists; the text may be out of sync.');
         }
     }
     if (previous !== mode) {
-        // Load the new master ready for playback and enforce mute routing so only
-        // the selected master source is audible at any time.
         if (mode === 'uploaded' && state.audio.file) {
             if (!audio.src || audio.src !== state.audio.url) { audio.src = state.audio.url; audio.load(); }
-            if (media?.video) { media.video.muted = true; media.video.loop = true; } // uploaded audio is authoritative; video stays silent + loops as artwork
+            if (media?.video) { media.video.muted = true; media.video.loop = true; }
         } else if (mode === 'video' && media.video) {
-            media.video.muted = false; // allow the background video's own audio to be heard
-            media.video.loop = false;  // the video is the master clock: it should stop at its end like audio
+            media.video.muted = false;
+            media.video.loop = false;
             if (audio && !audio.paused) audio.pause();
         } else {
             if (audio && !audio.paused) audio.pause();
@@ -3088,9 +2617,6 @@ function syncMasterSourceUI() {
     status.innerHTML = parts.join(' · ');
 }
 
-// Shown when the user already has uploaded audio with lyrics synced to it,
-// and then adds a video that also has its own audio track. Rather than
-// silently pick one, ask which source the lyrics should stay synced to.
 const masterAudioChoiceModal = $('masterAudioChoice');
 function promptMasterAudioChoice() {
     if (!masterAudioChoiceModal) return;
@@ -3107,7 +2633,7 @@ if (masterAudioChoiceModal) {
     qsa('#masterAudioChoice [data-master]').forEach(btn => {
         btn.addEventListener('click', () => {
             const mode = btn.dataset.master;
-            state.audioSource.userChosen = false; // let this explicit pick set the record, not block itself
+            state.audioSource.userChosen = false;
             applyMasterSelection(mode, { userInitiated: true, silent: mode === getMasterMode() });
             closeMasterAudioChoice();
         });
@@ -3165,7 +2691,6 @@ async function fetchWithRetry(url, options, retries = 2, backoffMs = 600) {
             await new Promise(r => setTimeout(r, backoffMs * Math.pow(2, attempt)));
             continue;
         }
-        // Retry on server errors / rate limiting, not on 4xx client errors (retrying won't help those).
         if ((resp.status >= 500 || resp.status === 429) && attempt < retries) {
             await new Promise(r => setTimeout(r, backoffMs * Math.pow(2, attempt)));
             continue;
@@ -3176,10 +2701,7 @@ async function fetchWithRetry(url, options, retries = 2, backoffMs = 600) {
 
 function cleanTrackName(value) {
     return String(value || "")
-        // Strip any trailing parenthetical or bracketed descriptor:
-        //   (official music video), (Official Video), [Lyric Video], etc.
         .replace(/\s*[\[\(][^\]\)]*[\]\)]\s*$/g, "")
-        // Strip common suffix keywords without brackets
         .replace(/\s+(official|lyric|lyrics|audio|visuali[sz]er|video|HD|4K)\s*$/ig, "")
         .replace(/\s+/g, " ")
         .trim();
@@ -3240,7 +2762,6 @@ async function requestSyncedLyrics(artist, track, duration, signal) {
 
     const candidates = [];
 
-    // Levenshtein distance for spelling correction.
     function lev(a, b) {
         if (a === b) return 0;
         if (!a) return b.length;
@@ -3265,7 +2786,6 @@ async function requestSyncedLyrics(artist, track, duration, signal) {
         return 1 - d / Math.max(a.length, b.length);
     }
 
-    // ---- 1. Try the exact match first ----
     const exact = new URLSearchParams({ artist_name: artist, track_name: track });
     if (Number.isFinite(duration) && duration > 0) exact.set("duration", String(Math.round(duration)));
     let exactResp = null;
@@ -3278,14 +2798,11 @@ async function requestSyncedLyrics(artist, track, duration, signal) {
         }
     }
 
-    // ---- 2. Search by track name alone — LRCLIB will tell us the correct artist spelling ----
     const trackOnly = new URLSearchParams({ track_name: track });
     const trackResp = await fetchWithRetry("https://lrclib.net/api/search?" + trackOnly.toString(), { signal });
     if (!trackResp.ok && trackResp.status === 429) throw new Error("Lyrics service is rate-limited, try again shortly");
     const trackResults = trackResp.ok ? (await trackResp.json()) : [];
     if (Array.isArray(trackResults)) {
-        // Find results whose artist is CLOSE to what the user typed.
-        // That is the correction we want.
         const scored = trackResults
             .filter(function(r){ return r && r.syncedLyrics; })
             .map(function(r){
@@ -3302,15 +2819,12 @@ async function requestSyncedLyrics(artist, track, duration, signal) {
 
         const best = scored[0];
         if (best && best.score >= 0.55) {
-            // If the matched artist spelling is different, note it so the
-            // caller can update the metadata fields.
             best.item._correctedArtist = best.item.artistName;
             best.item._correctedTrack = best.item.trackName;
             return best.item;
         }
     }
 
-    // ---- 3. Fall back to the broader search ----
     const searches = [
         new URLSearchParams({ track_name: track, ...(artist ? { artist_name: artist } : {}) }),
         new URLSearchParams({ q: [artist, track].filter(Boolean).join(" ") })
@@ -3352,8 +2866,6 @@ $('findLyricsBtn').addEventListener('click', async function() {
     let artist = resolved.artist;
     let track = resolved.title;
 
-    // If the metadata fields are empty, guess from the media filename.
-    // The video/audio file name is often "Artist - Title (extra words)".
     if (!track || !artist) {
         const media = window.kefeMedia || {};
         const sourceFile = (media.videoFile && media.videoFile.name) ||
@@ -3363,13 +2875,11 @@ $('findLyricsBtn').addEventListener('click', async function() {
             const guessed = songFromFilename(sourceFile);
             if (!track && guessed.track) track = guessed.track;
             if (!artist && guessed.artist) artist = guessed.artist;
-            // Strip trailing descriptors like "(official music video)".
             track = String(track || '')
                 .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*$/g, '')
                 .replace(/\s+(official|lyric|lyrics|audio|visuali[sz]er|video|HD|4K)\s*$/ig, '')
                 .trim();
             artist = String(artist || '').trim();
-            // Mirror the guess into the fields so the user sees what we used.
             if (track && $('metaTitle') && !$('metaTitle').value.trim()) $('metaTitle').value = track;
             if (artist && $('metaArtist') && !$('metaArtist').value.trim()) $('metaArtist').value = artist;
             if (track) state.audio.metadata.title = track;
@@ -3577,8 +3087,6 @@ async function openExportPreflight() {
     const issues = projectValidationIssues();
     if (issues.length) { toast('Before export, add: ' + issues.join(', '), 'error'); return; }
     ensureDefaultBackground();
-    // Preflight-only dimension lookup. The real export config is built
-    // by app/export/ui.js at export time via ES-module import.
     const preflightPreset = $('exportPreset').value;
     const preflightAspect = state.aspect || '9:16';
     const preflightSizes = {
@@ -3621,8 +3129,6 @@ async function openExportPreflight() {
     const warnings = [...report.warnings];
     if (demandLabel === 'High' || demandLabel === 'Very high') warnings.unshift('This export may take a long time on a phone. The finished MP4 timing will remain frame-accurate.');
 
-    // --- Sync repair: offer solutions when timed text is out of sync with the
-    //     chosen master source (uploaded audio or background video audio) ---
     const syncReport = assessSyncQuality();
     const preflightRepair = $('preflightRepair');
     if (syncReport.problems.length) {
@@ -3636,7 +3142,7 @@ async function openExportPreflight() {
             btn.textContent = sol.label;
             btn.addEventListener('click', () => {
                 sol.apply();
-                openExportPreflight(); // re-run preflight after repair
+                openExportPreflight();
             });
             preflightRepair.appendChild(btn);
         });
@@ -3648,7 +3154,6 @@ async function openExportPreflight() {
     $('exportPreflight').classList.remove('hidden');
 }
 
-/* ---------- Sync quality assessment + repair ---------- */
 function assessSyncQuality() {
     const lines = activeTimedLines();
     const duration = getMasterDuration();
@@ -3659,8 +3164,6 @@ function assessSyncQuality() {
     if (report.errors.length) {
         problems.push(report.errors[0]);
     }
-    // Out-of-sync detection: lyrics finishing well before the audio ends,
-    // or starting late — the classic "timed against the wrong source" symptom.
     if (lines.length && Number.isFinite(duration) && duration > 0) {
         const first = Number(lines[0]?.time);
         const last = Number(lines[lines.length - 1]?.time);
@@ -3683,7 +3186,6 @@ function assessSyncQuality() {
             });
         }
     }
-    // Deduplicate solutions (a single problem can trigger multiple repairs)
     const seen = new Set();
     return {
         problems: problems.length ? problems : ['Sync check passed'],
@@ -3715,8 +3217,6 @@ function stretchLyricsToDuration(duration) {
 }
 
 function trimMasterToLyrics(duration, lastLyricTime) {
-    // Trims the master source to end where the lyrics do, so the exported
-    // video stops with the last line instead of running on into silence.
     const mode = getMasterMode();
     if (mode === 'video' && media?.video) {
         try { media.video.currentTime = 0; } catch (e) {}
@@ -3770,9 +3270,6 @@ function setupDropZone(zone, inputId) {
 setupDropZone($('audioDrop'), 'audioInput');
 setupDropZone($('bgDrop'), 'backgroundInput');
 
-/* =========================================================================
- * TITLE CARD SECTION (05) — dedicated controls, per-effect default designs.
- * ========================================================================= */
 function syncTitleCardUI() {
     const toggle = $('titleCardEnabled');
     if (toggle) toggle.checked = state.style.titleCardEnabled !== false;
@@ -3814,9 +3311,6 @@ function wireTitleCardControls() {
     });
 }
 
-/* =========================================================================
- * TEXT MODE (Lyrics ⇄ Captions)
- * ========================================================================= */
 function applyTextMode(mode) {
     state.captions.mode = mode === 'captions' ? 'captions' : 'lyrics';
     qsa('[data-text-mode]').forEach(b => {
@@ -3826,7 +3320,6 @@ function applyTextMode(mode) {
     });
     $('lyricsPanel')?.classList.toggle('hidden', state.captions.mode !== 'lyrics');
     $('captionsPanel')?.classList.toggle('hidden', state.captions.mode !== 'captions');
-    // Architecture separation: lyric effects belong to lyrics, caption style to captions.
     $('lyricStyleBlock')?.classList.toggle('hidden', state.captions.mode === 'captions');
     const badge = $('previewModeBadge');
     if (badge) badge.textContent = state.captions.mode === 'captions' ? 'Captions' : 'Lyrics';
@@ -3834,9 +3327,6 @@ function applyTextMode(mode) {
     redrawCurrentPreviewFrame();
 }
 
-/* =========================================================================
- * CAPTION STYLE (dedicated subtitle styling — separate from lyric effects)
- * ========================================================================= */
 const CAPTION_POSITIONS = ['bottom', 'top'];
 function applyCaptionPosition(pos) {
     state.captionStyle.position = CAPTION_POSITIONS.includes(pos) ? pos : 'bottom';
@@ -3880,13 +3370,10 @@ function wireCaptionStyleControls() {
     });
 }
 
-/* ---------- Guided-workflow bridge: the final selected video type decides
-   what content is rendered (see activeTimedLines / timedTextRequired). ---------- */
 window.kefeSetProjectType = function(type) {
     if (!PROJECT_TYPES.includes(type)) return;
     if (state.projectType === type) return;
     state.projectType = type;
-    // Captioned pathway forces the captions panel; other pathways reset to lyrics.
     if (type === 'captioned') {
         if (typeof applyTextMode === 'function') applyTextMode('captions');
         else state.captions.mode = 'captions';
@@ -3898,10 +3385,6 @@ window.kefeSetProjectType = function(type) {
     redrawCurrentPreviewFrame();
 };
 
-/* =========================================================================
- * CAPTIONS — automatic timed-block generation from the master audio.
- * Analyses loudness (energy voice-activity detection) entirely in-browser.
- * ========================================================================= */
 const CAPTION_MIN_SEGMENT = 0.5;
 const CAPTION_MERGE_GAP = 0.35;
 const CAPTION_PAD_HEAD = 0.10;
@@ -3929,7 +3412,7 @@ async function autoGenerateCaptions() {
         const decoded = await actx.decodeAudioData(buffer);
         const sampleRate = decoded.sampleRate;
         const data = decoded.getChannelData(0);
-        const win = Math.max(1, Math.round(sampleRate * 0.05)); // 50ms windows
+        const win = Math.max(1, Math.round(sampleRate * 0.05));
         const rms = [];
         for (let i = 0; i + win <= data.length; i += win) {
             let sum = 0;
@@ -3991,7 +3474,6 @@ async function autoGenerateCaptions() {
     }
 }
 
-/* ---------- Captions editor ---------- */
 function openCaptionsEditor() {
     if (isExporting) { toast('Finish or cancel the current export first', 'error'); return; }
     renderCaptionRows();
@@ -4102,7 +3584,6 @@ function wireCaptions() {
     });
 }
 
-/* ---------- Background customisation ---------- */
 function wireBackgroundControls() {
     $('bgDim')?.addEventListener('input', function() {
         if (isExporting) { this.value = String(Math.round((state.background.dim || 0) * 100)); return; }
