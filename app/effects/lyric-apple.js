@@ -184,7 +184,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     const styleT = appleCubicBezier((time - active.time) / 0.3, 0.25, 0.1, 0.25, 1);
     const scalePoints = [[-1, 1], [0, 1], [1, 1]];
     const opacityPoints = [[-2, pastOpacity], [-1, upcomingOpacity], [0, 1], [1, upcomingOpacity], [2, pastOpacity]];
-    const blurPoints = [[-2, 8.5], [-1, 5.0], [0, 1.8], [1, 4.8], [2, 7.5], [3, 10.5], [4, 13.5], [5, 16.5], [6, 19.5]];
+    const blurPoints = [[-2, 18], [-1, 10], [0, 0], [1, 10], [2, 18], [3, 26], [4, 34], [5, 42], [6, 50]];
 
     const previousBlock = displayLines[activeIndex - 1];
     const transitionShift = previousBlock
