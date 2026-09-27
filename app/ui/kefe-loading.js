@@ -16,10 +16,10 @@
     css.id = 'kefe-official-loader-css';
     css.textContent = [
       '.kefe-official-loader{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;user-select:none}',
-      '.kefe-official-loader__matrix{width:var(--kefe-loader-size,84px);height:var(--kefe-loader-size,84px);display:block;filter:drop-shadow(0 4px 16px rgba(0,0,0,.55))}',
-      '.kefe-official-loader__text{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;font-size:15px;font-weight:500;letter-spacing:-.015em;line-height:1.4;background:linear-gradient(90deg,#555 0%,#fff 50%,#555 100%);background-size:200% auto;color:transparent;-webkit-background-clip:text;background-clip:text;white-space:nowrap;will-change:opacity,background-position}',
-      '.kefe-official-loader--compact{--kefe-loader-size:64px;gap:10px}',
-      '.kefe-official-loader--compact .kefe-official-loader__text{font-size:14px}',
+      '.kefe-official-loader__matrix{width:var(--kefe-loader-size,112px);height:var(--kefe-loader-size,112px);display:block;overflow:visible}',
+      '.kefe-official-loader__text{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;font-size:15px;font-weight:500;letter-spacing:-.015em;line-height:1.4;color:#85899a;white-space:nowrap;will-change:opacity}',
+      '.kefe-official-loader--compact{--kefe-loader-size:88px;gap:8px}',
+      '.kefe-official-loader--compact .kefe-official-loader__text{font-size:13px}',
       '.kefe-caption-loader{margin:10px 0 4px}',
       '.kefe-export-loader{margin:4px auto 12px}',
       '#exportOverlay .kefe-export-loader + #exportStatus{margin-top:0}',
@@ -42,33 +42,106 @@
 
     var text=document.createElement('div');
     text.className='kefe-official-loader__text';
-    text.textContent=options.text||'Generating';
+    text.textContent=options.text||'Loading…';
     root.appendChild(text);
 
     var svg=document.createElementNS(NS,'svg');
-    svg.setAttribute('viewBox','0 0 100 100');
+    svg.setAttribute('viewBox','0 0 120 120');
     svg.setAttribute('xmlns',NS);
     svg.setAttribute('aria-hidden','true');
     host.appendChild(svg);
 
-    var dots=[];
-    var COLS=5, ROWS=5, STEP=14, START_X=15, START_Y=15;
-    var RED='#EF2B0F', SHADOW='#5e0a04';
+    var defs=document.createElementNS(NS,'defs');
+    var gradient=document.createElementNS(NS,'linearGradient');
+    var gradientId='kefe-loader-gradient-'+Math.random().toString(36).slice(2);
+    gradient.setAttribute('id',gradientId);
+    gradient.setAttribute('x1','0%');
+    gradient.setAttribute('y1','0%');
+    gradient.setAttribute('x2','100%');
+    gradient.setAttribute('y2','0%');
 
-    for(var row=0;row<ROWS;row++){
-      for(var col=0;col<COLS;col++){
-        var rect=document.createElementNS(NS,'rect');
-        var x=START_X+col*STEP, y=START_Y+row*STEP;
-        rect.setAttribute('rx','2');
-        svg.appendChild(rect);
-        dots.push({rect:rect,x:x,y:y,distance:Math.sqrt(Math.pow(col-2,2)+Math.pow(row-2,2))});
-      }
+    [
+      ['0%','#1D97F1'],
+      ['34%','#1767AF'],
+      ['62%','#16C9C6'],
+      ['82%','#11EDAA'],
+      ['100%','#0D986F']
+    ].forEach(function(stop){
+      var node=document.createElementNS(NS,'stop');
+      node.setAttribute('offset',stop[0]);
+      node.setAttribute('stop-color',stop[1]);
+      gradient.appendChild(node);
+    });
+
+    var glow=document.createElementNS(NS,'filter');
+    var glowId=gradientId+'-glow';
+    glow.setAttribute('id',glowId);
+    glow.setAttribute('x','-50%');
+    glow.setAttribute('y','-50%');
+    glow.setAttribute('width','200%');
+    glow.setAttribute('height','200%');
+
+    var blur=document.createElementNS(NS,'feGaussianBlur');
+    blur.setAttribute('stdDeviation','3.2');
+    blur.setAttribute('result','blur');
+    glow.appendChild(blur);
+
+    var merge=document.createElementNS(NS,'feMerge');
+    var blurNode=document.createElementNS(NS,'feMergeNode');
+    blurNode.setAttribute('in','blur');
+    var sourceNode=document.createElementNS(NS,'feMergeNode');
+    sourceNode.setAttribute('in','SourceGraphic');
+    merge.appendChild(blurNode);
+    merge.appendChild(sourceNode);
+    glow.appendChild(merge);
+
+    defs.appendChild(gradient);
+    defs.appendChild(glow);
+    svg.appendChild(defs);
+
+    var ring=document.createElementNS(NS,'circle');
+    ring.setAttribute('cx','60');
+    ring.setAttribute('cy','60');
+    ring.setAttribute('r','45');
+    ring.setAttribute('fill','none');
+    ring.setAttribute('stroke','#303343');
+    ring.setAttribute('stroke-width','7');
+    ring.setAttribute('opacity','.72');
+    svg.appendChild(ring);
+
+    var arc=document.createElementNS(NS,'circle');
+    arc.setAttribute('cx','60');
+    arc.setAttribute('cy','60');
+    arc.setAttribute('r','45');
+    arc.setAttribute('fill','none');
+    arc.setAttribute('stroke','url(#'+gradientId+')');
+    arc.setAttribute('stroke-width','7');
+    arc.setAttribute('stroke-linecap','round');
+    arc.setAttribute('stroke-dasharray','225 58');
+    arc.setAttribute('stroke-dashoffset','0');
+    arc.setAttribute('filter','url(#'+glowId+')');
+    svg.appendChild(arc);
+
+    var highlight=document.createElementNS(NS,'circle');
+    highlight.setAttribute('cx','60');
+    highlight.setAttribute('cy','15');
+    highlight.setAttribute('r','2.4');
+    highlight.setAttribute('fill','#58eaff');
+    highlight.setAttribute('opacity','.95');
+    svg.appendChild(highlight);
+
+    var sparkles=[];
+    for(var s=0;s<4;s++){
+      var sparkle=document.createElementNS(NS,'circle');
+      sparkle.setAttribute('r',s%2===0?'1.2':'.8');
+      sparkle.setAttribute('fill',s%2===0?'#16C9C6':'#1D97F1');
+      sparkle.setAttribute('opacity','0');
+      svg.appendChild(sparkle);
+      sparkles.push(sparkle);
     }
 
-    // Attach the dot metadata to the root so the animation loop can find it.
-    root.__kefeDots = dots;
-
-    var instance={
+    root.__kefeLoader={arc:arc,highlight:highlight,sparkles:sparkles};
+    return {
       root:root,
       text:text,
       start:performance.now(),
@@ -76,8 +149,6 @@
       setText:function(value){ text.textContent=String(value==null?'':value); },
       destroy:function(){ this.destroyed=true; if(root.parentNode) root.parentNode.removeChild(root); }
     };
-    loaderInstances.push(instance);
-    return instance;
   }
 
   function animate(now){
@@ -87,30 +158,39 @@
       if(inst.destroyed){ loaderInstances.splice(n,1); continue; }
 
       var elapsed=(now-inst.start)/1000;
-      var globalWave=(Math.sin(elapsed*4)+1)/2;
-
       if(reduce){
         inst.text.style.opacity='.65';
         inst.text.style.backgroundPosition='center';
-      }else{
-        inst.text.style.opacity=.25+.75*globalWave;
-        inst.text.style.backgroundPosition=((elapsed*80)%200)+'% center';
-
-        var dots=inst.root.querySelectorAll('rect');
-        for(var i=0;i<dots.length;i++){
-          var dot=inst.root.__kefeDots?inst.root.__kefeDots[i]:null;
-          if(!dot) continue;
-          var wave=Math.sin(elapsed*4-dot.distance*.8);
-          var weight=(wave+1)/2;
-          var size=2.2+(5.5-2.2)*weight;
-          var cx=dot.x+STEP/2, cy=dot.y+STEP/2;
-          dot.rect.setAttribute('x',cx-size);
-          dot.rect.setAttribute('y',cy-size);
-          dot.rect.setAttribute('width',size*2);
-          dot.rect.setAttribute('height',size*2);
-          dot.rect.setAttribute('fill',weight<.3?SHADOW:RED);
-          dot.rect.setAttribute('opacity',.25+.75*weight);
+        if(inst.root.__kefeLoader){
+          inst.root.__kefeLoader.arc.style.strokeDashoffset='0';
+          inst.root.__kefeLoader.highlight.style.opacity='.65';
         }
+        continue;
+      }
+
+      inst.text.style.opacity=.48+.52*((Math.sin(elapsed*2.6)+1)/2);
+      inst.text.style.backgroundPosition=((elapsed*28)%200)+'% center';
+
+      var parts=inst.root.__kefeLoader;
+      if(!parts) continue;
+
+      var rotation=elapsed*42;
+      parts.arc.style.transformOrigin='60px 60px';
+      parts.arc.style.transform='rotate('+rotation+'deg)';
+      parts.highlight.style.transformOrigin='60px 60px';
+      parts.highlight.style.transform='rotate('+rotation+'deg)';
+
+      var pulse=(Math.sin(elapsed*5)+1)/2;
+      parts.arc.style.opacity=.84+.16*pulse;
+
+      for(var i=0;i<parts.sparkles.length;i++){
+        var sparkle=parts.sparkles[i];
+        var angle=(rotation-28-i*7)*Math.PI/180;
+        var radius=49+i%2*3;
+        sparkle.setAttribute('cx',60+Math.cos(angle)*radius);
+        sparkle.setAttribute('cy',60+Math.sin(angle)*radius);
+        var life=(Math.sin(elapsed*4.5+i*1.7)+1)/2;
+        sparkle.setAttribute('opacity',life>.62?(life-.62)*2.6:0);
       }
     }
     requestAnimationFrame(animate);
