@@ -457,10 +457,11 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const pastOpacity = linaClamp(upcomingOpacity * 0.64, 0.20, 0.50);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
     const appleHeaderSize = linaClamp(Math.min(w, h) * 0.075, 56, 88);
-    const appleHeaderBottom = Math.max(34, h * 0.052) + appleHeaderSize;
+    const appleHeaderBottom = Math.max(28, h * 0.052) + appleHeaderSize;
+    const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = Math.max(
         h * linaClamp(Number(style.appleTopOffset) || 0.38, 0.36, 0.62),
-        appleHeaderBottom + rowHeight * 0.72
+        appleHeaderBottom + activeBlockHeight / 2 + blockGap
     );
     const glow = Number(style.appleGlow) || 0.012;
     const activeScale = 1 + linaClamp(Number(style.appleDepth) ?? 0.008, 0, 0.06) * 2.5;
@@ -1639,7 +1640,7 @@ function render(ctx, w, h, appState, mediaCache) {
                 : renderTitleCard(ctx, w, h, cappedTime, appState);
         const titleLyricsStart = Number.isFinite(tcActive?.lyricsStart) ? tcActive.lyricsStart : Infinity;
         const timedLines = activeTimedLines();
-        if (!tcActive || cappedTime >= titleLyricsStart) {
+        if (!appleTitleCard && (!tcActive || cappedTime >= titleLyricsStart)) {
             if (timedLines.length) {
                 const lyricTime = Math.max(0, cappedTime - (Number(appState.lyricsOffset) || 0));
                 try {
