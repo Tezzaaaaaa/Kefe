@@ -1205,11 +1205,11 @@ function renderTitleCard(ctx, w, h, time, appState) {
         artwork: appState.audio?.hasArtwork && albumArtworkImage ? albumArtworkImage : null
     };
     const design = resolveTitleCardDesign(appState);
-    if (design === 'spotlight') {
-        if (appState.style.effect === 'apple' && phase.toLyrics > 0.001) renderTitleCardMinimal(ctx, w, h, phase, info);
-        else renderTitleCardSpotlight(ctx, w, h, phase, info);
-    }
-    else if (design === 'editorial') renderTitleCardEditorial(ctx, w, h, phase, info);
+    if (appState.style.effect === 'apple') {
+        renderTitleCardMinimal(ctx, w, h, phase, info);
+    } else if (design === 'spotlight') {
+        renderTitleCardSpotlight(ctx, w, h, phase, info);
+    } else if (design === 'editorial') renderTitleCardEditorial(ctx, w, h, phase, info);
     else if (design === 'statement') renderTitleCardStatement(ctx, w, h, appState, phase, info);
     else renderTitleCardMinimal(ctx, w, h, phase, info);
     return phase;
