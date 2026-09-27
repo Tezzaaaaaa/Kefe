@@ -353,7 +353,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
                 const side = Math.min(sw, sh);
                 sampleCtx.drawImage(source, (sw - side) / 2, (sh - side) / 2, side, side, 0, 0, 32, 32);
                 const data = sampleCtx.getImageData(0, 0, 32, 32).data;
-                const buckets = Array.from({ length: 8 }, () => ({ r: 0, g: 0, b: 0, n: 0 }));
+                const buckets = Array.from({ length: 12 }, () => ({ r: 0, g: 0, b: 0, n: 0 }));
                 for (let p = 0; p < data.length; p += 4) {
                     const a = data[p + 3] / 255;
                     if (a < 0.2) continue;
@@ -361,23 +361,30 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
                     const mx = Math.max(r0, g0, b0), mn = Math.min(r0, g0, b0);
                     const sat = mx ? (mx - mn) / mx : 0;
                     const lum = (0.2126 * r0 + 0.7152 * g0 + 0.0722 * b0) / 255;
-                    const bucket = Math.min(7, Math.floor((sat * 0.7 + lum * 0.3) * 8));
-                    buckets[bucket].r += r0; buckets[bucket].g += g0; buckets[bucket].b += b0; buckets[bucket].n += 1;
+                    const bucket = sat < 0.12
+                        ? 11
+                        : Math.min(10, Math.floor((Math.atan2(Math.sqrt(3) * (g0 - b0), 2 * r0 - g0 - b0) + Math.PI) / (Math.PI * 2) * 11));
+                    buckets[bucket].r += r0 * (0.45 + sat);
+                    buckets[bucket].g += g0 * (0.45 + sat);
+                    buckets[bucket].b += b0 * (0.45 + sat);
+                    buckets[bucket].n += 0.45 + sat;
+                    buckets[bucket].lum = (buckets[bucket].lum || 0) + lum * (0.45 + sat);
                 }
-                const ranked = buckets.filter(b => b.n).sort((a, b) => b.n - a.n);
-                const first = ranked[0];
-                const firstColor = first ? {
-                    r: first.r / first.n,
-                    g: first.g / first.n,
-                    b: first.b / first.n
-                } : null;
-                const second = ranked.slice(1).find(b => {
-                    const color = { r: b.r / b.n, g: b.g / b.n, b: b.b / b.n };
-                    const distance = Math.hypot(color.r - firstColor.r, color.g - firstColor.g, color.b - firstColor.b);
-                    return distance >= 55;
+                const ranked = buckets.filter(b => b.n).sort((a, b) => {
+                    const av = a.lum / a.n, bv = b.lum / b.n;
+                    return (b.n * (0.65 + bv)) - (a.n * (0.65 + av));
                 });
-                palette = [first, second].filter(Boolean)
-                    .map(b => `rgb(${Math.round(b.r / b.n)} ${Math.round(b.g / b.n)} ${Math.round(b.b / b.n)})`);
+                const selected = [];
+                for (const bucket of ranked) {
+                    const color = { r: bucket.r / bucket.n, g: bucket.g / bucket.n, b: bucket.b / bucket.n };
+                    if (selected.every(item => Math.hypot(color.r - item.r, color.g - item.g, color.b - item.b) >= 28)) {
+                        selected.push(color);
+                    }
+                    if (selected.length >= 6) break;
+                }
+                palette = selected.map(color =>
+                    `rgb(${Math.round(color.r)} ${Math.round(color.g)} ${Math.round(color.b)})`
+                );
                 if (palette.length) source.__kefeApplePalette = palette;
             }
         } catch (_) {}
@@ -536,7 +543,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     // Keep the song identity visible while lyrics are playing: compact artwork
     // and metadata remain anchored to the lower-left edge, like a persistent
     // now-playing title treatment rather than occupying the lyric area.
-    if (source && appState?.audio) {
+    if (source && state?.audio) {
         const metadata = resolveAudioLabels(appState.audio);
         const artSize = linaClamp(Math.min(w, h) * 0.075, 56, 88);
         const left = margin;
