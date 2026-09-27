@@ -14,7 +14,7 @@
 
   const CSS = `
 *{box-sizing:border-box;margin:0;padding:0}
-.ipod{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:180px;height:300px;border-radius:30px;background:linear-gradient(180deg,#f5f5f7 0%,#e8e8ec 50%,#d4d4da 100%);box-shadow:0 18px 40px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.9) inset,0 -1px 0 rgba(0,0,0,.1) inset,0 0 0 1px rgba(0,0,0,.15);display:flex;flex-direction:column;padding:12px 12px 14px;z-index:11001;font-family:-apple-system,"SF Pro Text",system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+.ipod{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:180px;height:300px;border-radius:30px;background:linear-gradient(180deg,#18181b 0%,#101014 52%,#09090c 100%);box-shadow:0 18px 40px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.06) inset,0 -1px 0 rgba(0,0,0,.45) inset,0 0 0 1px rgba(255,255,255,.08);display:flex;flex-direction:column;padding:12px 12px 14px;z-index:11001;font-family:-apple-system,"SF Pro Text",system-ui,sans-serif;user-select:none;-webkit-user-select:none}
 .ipod.is-hidden{display:none}
 .screen{position:relative;width:100%;flex:0 0 46%;border-radius:6px;background:linear-gradient(180deg,#0a1424 0%,#061020 100%);box-shadow:0 0 0 2px #1a1a1e,0 0 0 3px #2a2a30,0 3px 8px rgba(0,0,0,.6) inset;overflow:hidden;padding:8px 9px;display:flex;flex-direction:column;cursor:pointer}
 .screen::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 70% at 80% -10%,rgba(90,140,200,.35),transparent 55%)}
@@ -42,17 +42,17 @@
 .progress{height:2px;border-radius:99px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:2px;position:relative;z-index:2}
 .progress span{display:block;height:100%;width:0%;background:#e8ecf5;transition:width .15s linear}
 .wheel-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding-top:10px}
-.wheel{position:relative;width:128px;height:128px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#fdfdfd 0%,#e4e4e8 55%,#c8c8ce 100%);box-shadow:0 0 0 1px rgba(0,0,0,.15),0 2px 4px rgba(0,0,0,.25),0 -1px 0 rgba(255,255,255,.9) inset,0 1px 3px rgba(0,0,0,.15) inset}
-.wheel-btn{position:absolute;display:flex;align-items:center;justify-content:center;padding:0;border:0;background:transparent;color:#4a4a52;cursor:pointer;border-radius:50%}
-.wheel-btn:active{color:#111}
+.wheel{position:relative;width:128px;height:128px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#34343a 0%,#24242a 55%,#17171c 100%);box-shadow:0 0 0 1px rgba(0,0,0,.15),0 2px 4px rgba(0,0,0,.25),0 -1px 0 rgba(255,255,255,.9) inset,0 1px 3px rgba(0,0,0,.15) inset}
+.wheel-btn{position:absolute;display:flex;align-items:center;justify-content:center;padding:0;border:0;background:transparent;color:#d7d7dc;cursor:pointer;border-radius:50%}
+.wheel-btn:active{color:#fff}
 .wheel-btn svg{width:12px;height:12px;fill:currentColor}
 .wheel-btn svg[fill="none"]{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .wheel-menu{top:4px;left:50%;transform:translateX(-50%);width:24px;height:24px}
 .wheel-prev{left:4px;top:50%;transform:translateY(-50%);width:24px;height:24px}
 .wheel-next{right:4px;top:50%;transform:translateY(-50%);width:24px;height:24px}
 .wheel-play{bottom:4px;left:50%;transform:translateX(-50%);width:24px;height:24px}
-.wheel-center{position:absolute;inset:34px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#f8f8fa 0%,#dcdce0 100%);border:0;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.2) inset}
-.wheel-center:active{background:radial-gradient(circle at 50% 40%,#ececec 0%,#c8c8cc 100%)}
+.wheel-center{position:absolute;inset:34px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#34343a 0%,#202025 100%);border:0;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.2) inset}
+.wheel-center:active{background:radial-gradient(circle at 50% 40%,#45454c 0%,#26262c 100%)}
 .close{position:absolute;top:6px;right:6px;width:16px;height:16px;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;z-index:5}
 .close svg{width:8px;height:8px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round}
 .presets{position:absolute;inset:auto 8px 8px;max-height:70%;overflow:auto;background:rgba(8,12,20,.97);border-radius:8px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,.7);z-index:6;display:none}
