@@ -296,7 +296,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
 
     const scalePoints = [[-1, 1], [0, activeScale], [1, 1]];
     const opacityPoints = [[-2, pastOpacity], [-1, upcomingOpacity], [0, 1], [1, upcomingOpacity], [2, pastOpacity]];
-    const blurPoints = [[-2, 18], [-1, 10], [0, 0], [1, 10], [2, 18], [3, 26], [4, 34], [5, 42], [6, 50]];
+    const blurPoints = [[-2, 30], [-1, 16], [0, 0], [1, 16], [2, 30], [3, 44], [4, 58], [5, 72], [6, 86]];
 
     const previousBlock = displayLines[activeIndex - 1];
     const transitionShift = previousBlock
