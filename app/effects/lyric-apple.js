@@ -248,22 +248,22 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
         ];
         const radii = [0.82, 0.78, 0.84, 0.86, 0.80, 0.84];
         ctx.globalCompositeOperation = 'screen';
-        ctx.globalAlpha = 0.22;
+        ctx.globalAlpha = 0.34;
         for (let pi = 0; pi < Math.min(6, palette.length); pi++) {
             const color = palette[pi];
             const gradient = ctx.createRadialGradient(
                 w * positions[pi][0], h * positions[pi][1], 0,
                 w * positions[pi][0], h * positions[pi][1], Math.max(w, h) * radii[pi]
             );
-            gradient.addColorStop(0, 'rgb(' + Math.round(color.r * 0.32) + ' ' + Math.round(color.g * 0.32) + ' ' + Math.round(color.b * 0.32) + ')');
-            gradient.addColorStop(0.55, 'rgb(' + Math.round(color.r * 0.14) + ' ' + Math.round(color.g * 0.14) + ' ' + Math.round(color.b * 0.14) + ')');
+            gradient.addColorStop(0, 'rgb(' + Math.round(color.r * 0.46) + ' ' + Math.round(color.g * 0.46) + ' ' + Math.round(color.b * 0.46) + ')');
+            gradient.addColorStop(0.55, 'rgb(' + Math.round(color.r * 0.20) + ' ' + Math.round(color.g * 0.20) + ' ' + Math.round(color.b * 0.20) + ')');
             gradient.addColorStop(1, 'rgba(8,8,8,0)');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, w, h);
         }
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = 'rgba(0,0,0,0.34)';
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
         ctx.fillRect(0, 0, w, h);
     }
     ctx.restore();
@@ -378,7 +378,17 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
                     const wordText = item.wordText;
                     const wordWidth = item.wordWidth;
                     const swap = word ? linaSmooth((time - Number(word.time)) / easeWindow) : 1;
-                    const opacity = 0.55 + 0.45 * swap;
+                    const wordTime = Number(word?.time);
+                    const wordEndTime = Number(word?.endTime);
+                    let opacity = 0.28;
+                    if (Number.isFinite(wordTime) && time >= wordTime) {
+                        if (Number.isFinite(wordEndTime) && time < wordEndTime) {
+                            const wordT = linaSmooth((time - wordTime) / easeWindow);
+                            opacity = 0.28 + 0.72 * wordT;
+                        } else {
+                            opacity = 1;
+                        }
+                    }
                     ctx.fillStyle = `rgba(255,255,255,${opacity.toFixed(3)})`;
                     ctx.fillText(wordText, cursorX, rowYs[ri]);
                     cursorX += wordWidth + ctx.measureText(' ').width;
