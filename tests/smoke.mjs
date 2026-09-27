@@ -138,9 +138,7 @@ try {
   if (!iPodLayout.shellWidth || iPodLayout.shellWidth > 360 || iPodLayout.screenRatio < 1.35 || iPodLayout.screenRatio > 1.5 || iPodLayout.wheelRatio < 0.70 || iPodLayout.wheelRatio > 0.90) throw new Error('iPod MiniPlayer layout does not match the required proportions');
   await page.evaluate(() => window.kefeIpodPlayer.close());
   if (await page.locator('.kefe-preview-hint').count()) throw new Error('Preview text placeholder should not exist');
-  await page.locator('.preview-logo-backdrop').waitFor({ state: 'attached', timeout: 5000 });
-  const placeholderStyle = await page.locator('.preview-logo-backdrop').evaluate((el) => getComputedStyle(el).mixBlendMode);
-  if (placeholderStyle !== 'screen') throw new Error('Preview logo backdrop is not using transparent-style blending');
+  if (await page.locator('.preview-logo-backdrop').count()) throw new Error('Preview K logo backdrop should not exist');
   const visiblePreviewText = await page.locator('.preview').evaluate((el) => {
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     const values = [];
