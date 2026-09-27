@@ -1,9 +1,8 @@
-/* KEFE Visualiser — Instagram Story lyric sticker.
-   - Heavy condensed uppercase type
-   - Each line's font size adapts to fit the column (short lines go huge)
-   - Left-aligned within a centred rectangular block
-   - Word-by-word colour fade as sung (smooth ~220ms per word)
-   - Block is bounded by a rectangular area so it doesn't fill the frame
+/* KEFE Visualiser — Instagram Reels lyric takeover.
+   - Full-frame, centered, bold uppercase type
+   - Active line fills the width; wraps into up to 3 balanced rows
+   - Karaoke-lit: past words solid, active word scaled + accent, upcoming words muted
+   - No bounding box, no left-aligned column, no sticker
    Supports line-level and word-level LRC timing. */
 (() => {
   'use strict';
@@ -11,39 +10,11 @@
   window.kefeEffects = window.kefeEffects || {};
 
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, Number(v) || 0));
-  const smooth = v => { const t = clamp(v); return t * t * (3 - 2 * t); };
   const smoother = v => { const t = clamp(v); return t * t * t * (t * (t * 6 - 15) + 10); };
 
-  // The bounding rectangle of the lyric block, as fractions of the frame.
-  // Anything outside this box is off-limits — the effect never spills over.
-  const BOX = { x: 0.16, y: 0.12, w: 0.68, h: 0.76 };  // narrow vertical column
-
-  function boxRect(w, h) {
-    return {
-      left:   Math.round(w * BOX.x),
-      top:    Math.round(h * BOX.y),
-      width:  Math.round(w * BOX.w),
-      height: Math.round(h * BOX.h)
-    };
-  }
-
-  // Heavy condensed face; user override via style.instagramFontFamily.
-  function setInstagramFont(ctx, size, weight) {
-    const family = '"Inter Tight", "Helvetica Neue Condensed", "Arial Narrow", Impact, sans-serif';
-    ctx.font = `${weight || 900} ${Math.max(20, size)}px ${family}`;
-  }
-
-  // Fit one line so its width fills the column — the signature Instagram move.
-  function sizeForLine(ctx, text, columnW, maxSize, minSize) {
-    const upper = String(text || '').trim().toUpperCase();
-    if (!upper) return minSize;
-    setInstagramFont(ctx, 100, 900);
-    const baseWidth = ctx.measureText(upper).width;
-    if (!baseWidth) return minSize;
-    let target = Math.floor((columnW / baseWidth) * 100);
-    if (target > maxSize) target = maxSize;
-    if (target < minSize) target = minSize;
-    return target;
+  function setFont(ctx, size, weight) {
+    const family = '"Inter Tight", "Helvetica Neue", "Arial Narrow", Impact, sans-serif';
+    ctx.font = `${weight || 900} ${Math.max(18, size)}px ${family}`;
   }
 
   function wordTimings(line) {
@@ -58,10 +29,9 @@
       }));
     }
     const start = Number(line.time) || 0;
-    const next = Number(line.nextLineTime);
     const end = Number.isFinite(Number(line.endTime))
       ? Number(line.endTime)
-      : (Number.isFinite(next) ? next : start + 3);
+      : (Number.isFinite(Number(line.nextLineTime)) ? Number(line.nextLineTime) : start + 3);
     const span = Math.max(0.4, end - start);
     const per = span / tokens.length;
     return tokens.map((t, i) => ({
@@ -71,101 +41,173 @@
     }));
   }
 
+  function wrapWords(ctx, words, maxWidth, maxRows) {
+    if (!words.length) return [[]];
+    const spaceW = ctx.measureText(' ').width;
+    const widths = words.map(w => ctx.measureText(w.text).width);
+
+    let best = null;
+    for (let rowCount = 1; rowCount <= Math.min(maxRows, words.length); rowCount++) {
+      const rows = [];
+      let cursor = 0;
+      let widest = 0;
+      let valid = true;
+
+      for (let r = 0; r < rowCount; r++) {
+        const remainingRows = rowCount - r;
+        const remainingWords = words.length - cursor;
+        const minTake = 1;
+        const maxTake = remainingWords - (remainingRows - 1);
+        if (maxTake < minTake) { valid = false; break; }
+
+        let take = 0;
+        let rowW = 0;
+        while (take < maxTake) {
+          const w = widths[cursor + take];
+          const add = take === 0 ? w : spaceW + w;
+          if (rowW + add > maxWidth && take >= minTake) break;
+          rowW += add;
+          take++;
+        }
+        if (take < minTake) { valid = false; break; }
+
+        const rowWords = words.slice(cursor, cursor + take);
+        rows.push(rowWords);
+        if (rowW > widest) widest = rowW;
+        cursor += take;
+      }
+
+      if (!valid || cursor !== words.length) continue;
+      if (!best || widest < best.widest) {
+        best = { rows, widest };
+      }
+    }
+
+    return best ? best.rows : [words];
+  }
+
+  function hexToRgb(hex) {
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '#FFFFFF');
+    if (!m) return [255, 255, 255];
+    return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
+  }
+  function blendHex(a, b, t) {
+    const ra = hexToRgb(a), rb = hexToRgb(b);
+    const r = Math.round(ra[0] + (rb[0] - ra[0]) * t);
+    const g = Math.round(ra[1] + (rb[1] - ra[1]) * t);
+    const bl = Math.round(ra[2] + (rb[2] - ra[2]) * t);
+    return `rgb(${r},${g},${bl})`;
+  }
+
   window.kefeEffects.instagram = function(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length || !Number.isFinite(time)) return;
     const active = u.activeLine(lines, time);
     if (!active || !active.line) return;
 
-    const rect = boxRect(w, h);
-    const columnW = rect.width;
-    const leftX = rect.left;
+    const line = active.line;
+    const words = wordTimings(line);
+    if (!words.length) return;
 
+    const upperWords = words.map(w => ({ ...w, upper: w.text.toUpperCase() }));
+
+    const margin = w * 0.06;
+    const usableW = w - margin * 2;
     const userMax = Number(style.instagramFontSize ?? style.fontSize);
-    const maxSize = (Number.isFinite(userMax) && userMax > 0 ? userMax : 96) * 1.85;
-    const minSize = 30;
-    const gap = 0.02;
+    const sizeCap = (Number.isFinite(userMax) && userMax > 0 ? userMax : 96) * 2.2;
 
-    // Visible lines: one before, current, and enough after to fill the box.
-    const before = 1;
-    const after = 8;
-    const entries = [];
-    for (let i = Math.max(0, active.index - before); i <= active.index + after && i < lines.length; i++) {
-      if (!lines[i]) continue;
-      entries.push({ line: lines[i], index: i });
+    let lo = 28;
+    let hi = sizeCap;
+    let rows = [];
+    for (let i = 0; i < 10; i++) {
+      const mid = (lo + hi) / 2;
+      setFont(ctx, mid, 900);
+      const candidate = wrapWords(ctx, upperWords, usableW, 3);
+      const spaceW = ctx.measureText(' ').width;
+      const widest = candidate.reduce((max, row) => {
+        let rowW = 0;
+        for (let j = 0; j < row.length; j++) {
+          rowW += ctx.measureText(row[j].upper).width;
+          if (j < row.length - 1) rowW += spaceW;
+        }
+        return Math.max(max, rowW);
+      }, 0);
+      if (widest <= usableW && candidate.length <= 3) { lo = mid; rows = candidate; }
+      else hi = mid;
     }
-    if (!entries.length) return;
+    const fontSize = lo;
 
-    // Build rows with per-line size + measured widths.
-    const rows = [];
-    for (const entry of entries) {
-      const upperText = String(entry.line.text || '').trim().toUpperCase();
-      if (!upperText) continue;
-      const size = sizeForLine(ctx, upperText, columnW, maxSize, minSize);
-      const rowHeight = size * (1 + gap);
-      const words = wordTimings(entry.line).map(w => ({ ...w, upper: w.text.toUpperCase() }));
-      setInstagramFont(ctx, size, 900);
-      const widths = words.map(wd => ctx.measureText(wd.upper).width);
-      const space = ctx.measureText(' ').width;
-      const rowWidth = widths.reduce((a, b) => a + b, 0) + space * Math.max(0, widths.length - 1);
-      rows.push({ lineIndex: entry.index, size, rowHeight, words, widths, space, rowWidth });
-    }
-    if (!rows.length) return;
+    setFont(ctx, fontSize, 900);
+    const lineHeight = fontSize * 1.12;
+    const blockH = rows.length * lineHeight;
+    const blockTop = h * 0.5 - blockH * 0.5;
+    const baselineOffset = fontSize * 0.86;
 
-    // If the total height exceeds the box, scroll so the active row is visible
-    // but never draw outside the box. We clip in that case.
-    const totalH = rows.reduce((s, r) => s + r.rowHeight, 0);
-    const activeRowIdx = Math.max(0, rows.findIndex(r => r.lineIndex === active.index));
-    let offsetY;
-    if (totalH <= rect.height) {
-      // Fits — anchor at top of the box.
-      offsetY = rect.top;
-    } else {
-      // Scroll so active row is around 35% down the box.
-      const rowsAbove = rows.slice(0, activeRowIdx).reduce((s, r) => s + r.rowHeight, 0);
-      const desired = rect.top + rect.height * 0.35 - rowsAbove;
-      const minY = rect.top - (totalH - rect.height);
-      offsetY = clamp(desired, minY, rect.top);
-    }
-
-    const primary = style.instagramTextColor || '#FFFFFF';
-    const mutedAlpha = 0.32;
-    // Word fade duration. Instagram uses a soft crossfade rather than a
-    // hard switch — 220ms reads as a smooth glow-in, not a pop.
-    const FADE = 0.22;
+    const primary = style.instagramTextColor || style.textColor || '#FFFFFF';
+    const accent = style.accentColor || '#FFFFFF';
+    const upcoming = 0.22;
 
     ctx.save();
-    // Clip to the box so scrolling rows never spill outside.
-    ctx.beginPath();
-    ctx.rect(rect.left, rect.top, rect.width, rect.height);
-    ctx.clip();
-    ctx.textAlign = 'left';
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
+    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+    ctx.shadowBlur = fontSize * 0.09;
+    ctx.shadowOffsetY = Math.max(2, fontSize * 0.012);
 
-    let y = offsetY;
-    for (const row of rows) {
-      const baseline = y + row.size * 0.86;
-      let x = leftX;
-      setInstagramFont(ctx, row.size, 900);
-      ctx.shadowColor = 'rgba(0,0,0,0.38)';
-      ctx.shadowBlur = row.size * 0.08;
-      ctx.shadowOffsetY = Math.max(1, row.size * 0.01);
+    const spaceW = ctx.measureText(' ').width;
 
-      for (let wi = 0; wi < row.words.length; wi++) {
-        const word = row.words[wi];
-        const sinceStart = time - word.start;
-        let t;
-        if (sinceStart <= 0) t = 0;
-        else if (sinceStart >= FADE) t = 1;
-        else t = smoother(sinceStart / FADE);
+    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+      const rowWords = rows[rowIdx];
+      const rowBaseline = blockTop + rowIdx * lineHeight + baselineOffset;
 
-        ctx.globalAlpha = mutedAlpha + (1 - mutedAlpha) * t;
-        ctx.fillStyle = primary;
-        setInstagramFont(ctx, row.size, 900);
-        ctx.fillText(word.upper, x, baseline);
-        x += row.widths[wi] + row.space;
+      const widths = rowWords.map(w => ctx.measureText(w.upper).width);
+      let rowW = 0;
+      for (let j = 0; j < widths.length; j++) {
+        rowW += widths[j];
+        if (j < widths.length - 1) rowW += spaceW;
       }
 
-      y += row.rowHeight;
+      let x = w * 0.5 - rowW * 0.5;
+
+      for (let wi = 0; wi < rowWords.length; wi++) {
+        const word = rowWords[wi];
+        const wWidth = widths[wi];
+
+        const sinceStart = time - word.start;
+        const untilEnd = word.end - time;
+
+        let alpha;
+        let colour;
+        let scale = 1;
+
+        if (sinceStart <= 0) {
+          alpha = upcoming;
+          colour = primary;
+        } else if (sinceStart < 0.14) {
+          const t = smoother(sinceStart / 0.14);
+          alpha = upcoming + (1 - upcoming) * t;
+          colour = accent;
+          scale = 1 + 0.12 * (1 - t) * Math.sin(t * Math.PI);
+        } else if (untilEnd > 0) {
+          alpha = 1;
+          colour = accent;
+        } else {
+          const sincePast = -untilEnd;
+          const t = smoother(clamp(sincePast / 0.18));
+          alpha = 1;
+          colour = t >= 1 ? primary : blendHex(accent, primary, t);
+        }
+
+        const cx = x + wWidth * 0.5;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = colour;
+        ctx.translate(cx, rowBaseline);
+        ctx.scale(scale, scale);
+        ctx.fillText(word.upper, -wWidth * 0.5, 0);
+        ctx.restore();
+
+        x += wWidth + spaceW;
+      }
     }
 
     ctx.restore();
