@@ -296,10 +296,11 @@ function appleSpringOut(t) {
 function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
 
-    const activeFontSize = w * 0.10;
-    const inactiveFontSize = w * 0.08;
+    const baseDimension = Math.min(w, h);
+    const activeFontSize = baseDimension * 0.12;
+    const inactiveFontSize = baseDimension * 0.10;
     const horizontalPadding = w * 0.06;
-    const lineSpacing = w * 0.06;
+    const lineSpacing = baseDimension * 0.06;
     const family = '-apple-system,"SF Pro Display",sans-serif';
     const margin = horizontalPadding;
     const maxWidth = Math.max(1, w - horizontalPadding * 2);
@@ -452,7 +453,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.30, 0.20, 0.40);
     const pastOpacity = linaClamp(upcomingOpacity * 0.72, 0.20, 0.30);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
-    const appleHeaderSize = linaClamp(Math.min(w, h) * 0.075, 48, 64);
+    const appleHeaderSize = baseDimension * 0.08;
     const appleHeaderTop = Math.max(24, h * 0.035);
     const appleHeaderBottom = appleHeaderTop + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
