@@ -1127,18 +1127,16 @@ function titleCardPhase(appState, time) {
         return Number.isFinite(t) ? Math.min(first, Math.max(0, t)) : first;
     }, Infinity);
     const lyricsStart = Number.isFinite(firstLyricTime) ? firstLyricTime : introDuration;
-    const isIntro = time >= 0 && time < lyricsStart;
+    const isIntro = time >= 0 && time < (Number.isFinite(firstLyricTime) ? totalDuration : introDuration);
     const outroStart = totalDuration > outroDuration ? totalDuration - outroDuration : Infinity;
     const isOutro = time >= outroStart && time <= totalDuration + 0.05;
     if (!isIntro && !isOutro) return null;
     const phaseTime = isOutro ? time - outroStart : time;
-    const phaseDuration = isOutro ? outroDuration : lyricsStart;
+    const phaseDuration = isOutro ? outroDuration : introDuration;
     const enter = linaSmoother(linaClamp(phaseTime / 0.5));
-    const exit = isIntro
-        ? 1
-        : 1;
-    const toLyrics = isIntro && Number.isFinite(firstLyricTime)
-        ? linaSmoother(linaClamp((time - (lyricsStart - 0.55)) / 0.55))
+    const exit = 1;
+    const toLyrics = Number.isFinite(firstLyricTime)
+        ? linaSmoother(linaClamp((time - (lyricsStart - 0.55)) / 0.65))
         : 0;
     return {
         intro: isIntro,
@@ -1160,10 +1158,11 @@ function renderTitleCard(ctx, w, h, time, appState) {
         artwork: appState.audio?.hasArtwork && albumArtworkImage ? albumArtworkImage : null
     };
     const design = resolveTitleCardDesign(appState);
-    if (design === 'spotlight') return renderTitleCardSpotlight(ctx, w, h, phase, info);
-    if (design === 'editorial') return renderTitleCardEditorial(ctx, w, h, phase, info);
-    if (design === 'statement') return renderTitleCardStatement(ctx, w, h, appState, phase, info);
-    return renderTitleCardMinimal(ctx, w, h, phase, info);
+    if (design === 'spotlight') renderTitleCardSpotlight(ctx, w, h, phase, info);
+    else if (design === 'editorial') renderTitleCardEditorial(ctx, w, h, phase, info);
+    else if (design === 'statement') renderTitleCardStatement(ctx, w, h, appState, phase, info);
+    else renderTitleCardMinimal(ctx, w, h, phase, info);
+    return phase;
 }
 
 function drawTitleArtwork(ctx, artwork, cx, cy, size, radius) {
