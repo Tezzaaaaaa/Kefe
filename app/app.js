@@ -424,7 +424,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
             ctx.fillRect(0, 0, w, h);
         }
         ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.fillStyle = 'rgba(0,0,0,0.42)';
         ctx.fillRect(0, 0, w, h);
     } else if (source) {
         const sw = source.videoWidth || source.naturalWidth || source.width;
@@ -435,7 +435,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
             const dw = sw * scale, dh = sh * scale;
             ctx.drawImage(source, (w - dw) / 2, (h - dh) / 2, dw, dh);
             ctx.filter = 'none';
-            ctx.fillStyle = 'rgba(0,0,0,0.28)';
+            ctx.fillStyle = 'rgba(0,0,0,0.42)';
             ctx.fillRect(0, 0, w, h);
         }
     }
