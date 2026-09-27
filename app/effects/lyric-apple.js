@@ -226,7 +226,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
                     }
                     if (selected.length >= 6) break;
                 }
-                palette = selected.map(color => 'rgb(' + Math.round(color.r) + ' ' + Math.round(color.g) + ' ' + Math.round(color.b) + ')');
+                palette = selected;
                 if (palette.length) source.__kefeApplePalette = palette;
             }
         } catch (_) {
@@ -238,28 +238,32 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     ctx.fillStyle = '#080808';
     ctx.fillRect(0, 0, w, h);
     if (palette?.length) {
-        ctx.globalCompositeOperation = 'screen';
         const positions = [
-            [0.16 + 0.08 * Math.sin(time * 0.17), 0.20 + 0.07 * Math.cos(time * 0.13)],
-            [0.50 + 0.09 * Math.cos(time * 0.15), 0.18 + 0.08 * Math.sin(time * 0.11)],
-            [0.82 + 0.08 * Math.sin(time * 0.12), 0.28 + 0.07 * Math.cos(time * 0.16)],
-            [0.22 + 0.09 * Math.cos(time * 0.10), 0.72 + 0.08 * Math.sin(time * 0.14)],
-            [0.55 + 0.08 * Math.sin(time * 0.13), 0.82 + 0.07 * Math.cos(time * 0.09)],
-            [0.84 + 0.07 * Math.cos(time * 0.11), 0.70 + 0.08 * Math.sin(time * 0.15)]
+            [0.12, 0.18],
+            [0.52, 0.12],
+            [0.88, 0.22],
+            [0.20, 0.72],
+            [0.58, 0.82],
+            [0.88, 0.68]
         ];
-        const radii = [0.70, 0.66, 0.68, 0.72, 0.66, 0.70];
+        const radii = [0.82, 0.78, 0.84, 0.86, 0.80, 0.84];
+        ctx.globalCompositeOperation = 'screen';
+        ctx.globalAlpha = 0.22;
         for (let pi = 0; pi < Math.min(6, palette.length); pi++) {
-            const [px, py] = positions[pi];
-            const radius = Math.max(w, h) * radii[pi];
-            const gradient = ctx.createRadialGradient(w * px, h * py, 0, w * px, h * py, radius);
-            gradient.addColorStop(0, palette[pi]);
-            gradient.addColorStop(0.42, palette[pi]);
-            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            const color = palette[pi];
+            const gradient = ctx.createRadialGradient(
+                w * positions[pi][0], h * positions[pi][1], 0,
+                w * positions[pi][0], h * positions[pi][1], Math.max(w, h) * radii[pi]
+            );
+            gradient.addColorStop(0, 'rgb(' + Math.round(color.r * 0.32) + ' ' + Math.round(color.g * 0.32) + ' ' + Math.round(color.b * 0.32) + ')');
+            gradient.addColorStop(0.55, 'rgb(' + Math.round(color.r * 0.14) + ' ' + Math.round(color.g * 0.14) + ' ' + Math.round(color.b * 0.14) + ')');
+            gradient.addColorStop(1, 'rgba(8,8,8,0)');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, w, h);
         }
+        ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = 'rgba(0,0,0,0.42)';
+        ctx.fillStyle = 'rgba(0,0,0,0.34)';
         ctx.fillRect(0, 0, w, h);
     }
     ctx.restore();
