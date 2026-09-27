@@ -1,26 +1,29 @@
-/* KEFE Visualiser — Instagram Reels lyric takeover.
-   - Full-frame, centered, bold uppercase type
-   - Active line fills the width; wraps into up to 3 balanced rows
-   - Karaoke-lit: past words solid, active word scaled + accent, upcoming words muted
-   - No bounding box, no left-aligned column, no sticker
-   Supports line-level and word-level LRC timing. */
+/* KEFE Visualiser — Instagram Lyrics sticker.
+   Matches the actual Instagram music-sticker lyric look:
+   - Left-aligned block, sits mid-frame, no bounding box
+   - Heavy bold uppercase sans
+   - Per-row font sizing: each row fills the same horizontal width
+   - Word-by-word grey→white reveal at the timing, no pop, no scale
+   - Block replaces on line-group change, doesn't scroll */
 (() => {
   'use strict';
   const u = window.kefeEffectUtils;
   window.kefeEffects = window.kefeEffects || {};
 
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, Number(v) || 0));
-  const smoother = v => { const t = clamp(v); return t * t * t * (t * (t * 6 - 15) + 10); };
 
   function setFont(ctx, size, weight) {
-    const family = '"Inter Tight", "Helvetica Neue", "Arial Narrow", Impact, sans-serif';
-    ctx.font = `${weight || 900} ${Math.max(18, size)}px ${family}`;
+    const family = '"Inter Tight", "Helvetica Neue", Arial, sans-serif';
+    ctx.font = `${weight || 800} ${Math.max(16, size)}px ${family}`;
   }
 
+  // Word-level timing. If words[] is present and matches token count, use it.
+  // Otherwise split the line evenly.
   function wordTimings(line) {
     const text = String(line.text || '').trim();
     const tokens = text.split(/\s+/).filter(Boolean);
     if (!tokens.length) return [];
+
     if (Array.isArray(line.words) && line.words.length === tokens.length) {
       return line.words.map((w, i) => ({
         text: tokens[i],
@@ -28,6 +31,7 @@
         end: Number(w.endTime) || Number(w.time) + 0.5
       }));
     }
+
     const start = Number(line.time) || 0;
     const end = Number.isFinite(Number(line.endTime))
       ? Number(line.endTime)
@@ -41,6 +45,7 @@
     }));
   }
 
+  // Greedy wrap into up to N rows.
   function wrapWords(ctx, words, maxWidth, maxRows) {
     if (!words.length) return [[]];
     const spaceW = ctx.measureText(' ').width;
@@ -78,25 +83,10 @@
       }
 
       if (!valid || cursor !== words.length) continue;
-      if (!best || widest < best.widest) {
-        best = { rows, widest };
-      }
+      if (!best || widest < best.widest) best = { rows, widest };
     }
 
     return best ? best.rows : [words];
-  }
-
-  function hexToRgb(hex) {
-    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '#FFFFFF');
-    if (!m) return [255, 255, 255];
-    return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
-  }
-  function blendHex(a, b, t) {
-    const ra = hexToRgb(a), rb = hexToRgb(b);
-    const r = Math.round(ra[0] + (rb[0] - ra[0]) * t);
-    const g = Math.round(ra[1] + (rb[1] - ra[1]) * t);
-    const bl = Math.round(ra[2] + (rb[2] - ra[2]) * t);
-    return `rgb(${r},${g},${bl})`;
   }
 
   window.kefeEffects.instagram = function(ctx, w, h, style, lines, time) {
@@ -110,17 +100,26 @@
 
     const upperWords = words.map(w => ({ ...w, upper: w.text.toUpperCase() }));
 
-    const margin = w * 0.06;
-    const usableW = w - margin * 2;
-    const userMax = Number(style.instagramFontSize ?? style.fontSize);
-    const sizeCap = (Number.isFinite(userMax) && userMax > 0 ? userMax : 96) * 2.2;
+    // Fixed left margin. Frame width minus margin on both sides is the
+    // usable column. Instagram's column is roughly 76% of the frame.
+    const marginLeft = w * 0.12;
+    const marginRight = w * 0.12;
+    const usableW = w - marginLeft - marginRight;
 
-    let lo = 28;
+    const userMax = Number(style.instagramFontSize ?? style.fontSize);
+    const sizeCap = (Number.isFinite(userMax) && userMax > 0 ? userMax : 96) * 1.4;
+    const sizeFloor = 26;
+
+    // Choose the font size for the whole line: the largest size at which
+    // the line still wraps into at most 3 rows within the column.
+    let lo = sizeFloor;
     let hi = sizeCap;
-    let rows = [];
-    for (let i = 0; i < 10; i++) {
+    let chosenRows = null;
+    let chosenSize = sizeFloor;
+
+    for (let iter = 0; iter < 12; iter++) {
       const mid = (lo + hi) / 2;
-      setFont(ctx, mid, 900);
+      setFont(ctx, mid, 800);
       const candidate = wrapWords(ctx, upperWords, usableW, 3);
       const spaceW = ctx.measureText(' ').width;
       const widest = candidate.reduce((max, row) => {
@@ -131,80 +130,83 @@
         }
         return Math.max(max, rowW);
       }, 0);
-      if (widest <= usableW && candidate.length <= 3) { lo = mid; rows = candidate; }
-      else hi = mid;
+      if (candidate.length <= 3 && widest <= usableW) {
+        lo = mid;
+        chosenRows = candidate;
+        chosenSize = mid;
+      } else {
+        hi = mid;
+      }
     }
-    const fontSize = lo;
 
-    setFont(ctx, fontSize, 900);
-    const lineHeight = fontSize * 1.12;
-    const blockH = rows.length * lineHeight;
+    if (!chosenRows) {
+      setFont(ctx, sizeFloor, 800);
+      chosenRows = wrapWords(ctx, upperWords, usableW, 3);
+      chosenSize = sizeFloor;
+    }
+
+    const fontSize = chosenSize;
+    setFont(ctx, fontSize, 800);
+    const lineHeight = fontSize * 1.14;
+    const blockH = chosenRows.length * lineHeight;
+
+    // Instagram places the block roughly at 45% of vertical height.
     const blockTop = h * 0.5 - blockH * 0.5;
     const baselineOffset = fontSize * 0.86;
 
-    const primary = style.instagramTextColor || style.textColor || '#FFFFFF';
-    const accent = style.accentColor || '#FFFFFF';
-    const upcoming = 0.22;
+    const whiteColour = style.instagramTextColor || style.textColor || '#FFFFFF';
+    const greyColour = 'rgba(255,255,255,0.36)';
 
     ctx.save();
-    ctx.textAlign = 'center';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
-    ctx.shadowColor = 'rgba(0,0,0,0.55)';
-    ctx.shadowBlur = fontSize * 0.09;
-    ctx.shadowOffsetY = Math.max(2, fontSize * 0.012);
+    ctx.shadowColor = 'rgba(0,0,0,0.28)';
+    ctx.shadowBlur = fontSize * 0.05;
+    ctx.shadowOffsetY = 1;
 
     const spaceW = ctx.measureText(' ').width;
 
-    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
-      const rowWords = rows[rowIdx];
-      const rowBaseline = blockTop + rowIdx * lineHeight + baselineOffset;
-
-      const widths = rowWords.map(w => ctx.measureText(w.upper).width);
-      let rowW = 0;
-      for (let j = 0; j < widths.length; j++) {
-        rowW += widths[j];
-        if (j < widths.length - 1) rowW += spaceW;
+    // Compute row widths first so we can nudge-shorten them.
+    const rowWidths = chosenRows.map(row => {
+      let sum = 0;
+      for (let j = 0; j < row.length; j++) {
+        sum += ctx.measureText(row[j].upper).width;
+        if (j < row.length - 1) sum += spaceW;
       }
+      return sum;
+    });
 
-      let x = w * 0.5 - rowW * 0.5;
+    for (let rowIdx = 0; rowIdx < chosenRows.length; rowIdx++) {
+      const rowWords = chosenRows[rowIdx];
+      const baseline = blockTop + rowIdx * lineHeight + baselineOffset;
 
+      let x = marginLeft;
       for (let wi = 0; wi < rowWords.length; wi++) {
         const word = rowWords[wi];
-        const wWidth = widths[wi];
+        const wWidth = ctx.measureText(word.upper).width;
 
+        // Grey → white based on whether the word has started being sung.
+        // Instagram snaps to white at word start with a very short ramp.
         const sinceStart = time - word.start;
-        const untilEnd = word.end - time;
+        let mix;
+        if (sinceStart <= 0) mix = 0;
+        else if (sinceStart >= 0.08) mix = 1;
+        else mix = sinceStart / 0.08;
 
-        let alpha;
-        let colour;
-        let scale = 1;
-
-        if (sinceStart <= 0) {
-          alpha = upcoming;
-          colour = primary;
-        } else if (sinceStart < 0.14) {
-          const t = smoother(sinceStart / 0.14);
-          alpha = upcoming + (1 - upcoming) * t;
-          colour = accent;
-          scale = 1 + 0.12 * (1 - t) * Math.sin(t * Math.PI);
-        } else if (untilEnd > 0) {
-          alpha = 1;
-          colour = accent;
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = mix >= 1 ? whiteColour : greyColour;
+        if (mix > 0 && mix < 1) {
+          // Blend the two opacities by drawing the white word over the grey one.
+          ctx.fillStyle = greyColour;
+          ctx.fillText(word.upper, x, baseline);
+          ctx.save();
+          ctx.globalAlpha = mix;
+          ctx.fillStyle = whiteColour;
+          ctx.fillText(word.upper, x, baseline);
+          ctx.restore();
         } else {
-          const sincePast = -untilEnd;
-          const t = smoother(clamp(sincePast / 0.18));
-          alpha = 1;
-          colour = t >= 1 ? primary : blendHex(accent, primary, t);
+          ctx.fillText(word.upper, x, baseline);
         }
-
-        const cx = x + wWidth * 0.5;
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = colour;
-        ctx.translate(cx, rowBaseline);
-        ctx.scale(scale, scale);
-        ctx.fillText(word.upper, -wWidth * 0.5, 0);
-        ctx.restore();
 
         x += wWidth + spaceW;
       }
