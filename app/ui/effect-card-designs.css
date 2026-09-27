@@ -189,10 +189,6 @@
 #lyricStyleBlock .effect-buttons > button[data-effect="trailer"]::before {
   background: linear-gradient(180deg, #090909, #242424 48%, #050505), repeating-linear-gradient(90deg, transparent 0 18px, rgba(255,255,255,.08) 18px 19px);
 }
-#lyricStyleBlock .effect-buttons > button[data-effect="rain"]::before {
-  background: radial-gradient(circle at 22% 28%, rgba(190,225,255,.7) 0 2px, transparent 3px), radial-gradient(circle at 68% 60%, rgba(190,225,255,.55) 0 2px, transparent 3px), linear-gradient(135deg, #071522, #183b58 55%, #050b12);
-  background-size: auto, auto, auto;
-}
 #lyricStyleBlock .effect-buttons > button[data-effect="fancy"]::before {
   background: linear-gradient(90deg, #ff3b30 0 32%, #52d7ff 32% 66%, #baff4a 66% 100%);
 }
@@ -220,7 +216,6 @@
 #lyricStyleBlock .effect-buttons > button[data-effect="flipcards"]::after,
 #lyricStyleBlock .effect-buttons > button[data-effect="karaoke"]::after,
 #lyricStyleBlock .effect-buttons > button[data-effect="trailer"]::after,
-#lyricStyleBlock .effect-buttons > button[data-effect="rain"]::after,
 #lyricStyleBlock .effect-buttons > button[data-effect="fancy"]::after,
 #lyricStyleBlock .effect-buttons > button[data-effect="glitch"]::after,
 #lyricStyleBlock .effect-buttons > button[data-effect="analogtv"]::after,
