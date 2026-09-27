@@ -414,20 +414,7 @@
 
   window.addEventListener('resize', () => { if (mode === 'visualiser') resizeCanvas(); });
 
-  setInterval(() => {
-    if (dom.presets.classList.contains('is-open')) buildPresets();
-  }, 1500);
 
-  let lastMetaSignature = '';
-  setInterval(() => {
-    if (shell.classList.contains('is-hidden')) return;
-    const main = getMainEditorMeta();
-    const sig = `${main.title}|${main.artist}|${main.album}|${main.file?.name || ''}|${getArtworkSrc()}`;
-    if (sig !== lastMetaSignature) {
-      lastMetaSignature = sig;
-      syncMeta();
-    }
-  }, 800);
 
   syncClock();
   setInterval(syncClock, 30_000);
