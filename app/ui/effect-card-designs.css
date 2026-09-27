@@ -244,3 +244,105 @@
 #lyricStyleBlock .effect-buttons > button[data-effect="shiny"]::before {
   background: linear-gradient(110deg, #0b0b0b 0%, #191919 28%, #ffffff 49%, #191919 70%, #0b0b0b 100%);
 }
+
+/* ---------- Pathway-menu treatment for lyric-effect choices ---------- */
+#lyricStyleBlock .effect-buttons{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:12px !important;
+  align-items:stretch;
+}
+#lyricStyleBlock .effect-buttons > button{
+  position:relative !important;
+  min-height:132px !important;
+  padding:9px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  justify-content:flex-end !important;
+  gap:8px !important;
+  overflow:hidden !important;
+  isolation:isolate !important;
+  border:1px solid var(--line) !important;
+  border-radius:14px !important;
+  background:var(--surface-2) !important;
+  color:var(--text) !important;
+  text-align:left !important;
+  box-shadow:none !important;
+  transform:none !important;
+  transition:transform .2s var(--ease),border-color .2s ease,background .2s ease,box-shadow .2s ease !important;
+}
+#lyricStyleBlock .effect-buttons > button::before{
+  content:'' !important;
+  position:absolute !important;
+  inset:8px 8px 40px !important;
+  z-index:-2 !important;
+  border-radius:9px !important;
+  opacity:1 !important;
+  transform:none !important;
+  transition:transform .28s var(--ease),filter .28s ease !important;
+}
+#lyricStyleBlock .effect-buttons > button::after{
+  content:'' !important;
+  position:absolute !important;
+  left:8px !important;
+  right:8px !important;
+  top:auto !important;
+  bottom:40px !important;
+  height:2px !important;
+  z-index:-1 !important;
+  border-radius:999px !important;
+  opacity:.45 !important;
+  transition:transform .28s var(--ease),opacity .2s ease !important;
+}
+#lyricStyleBlock .effect-buttons > button::after{
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent) !important;
+}
+#lyricStyleBlock .effect-buttons > button:hover{
+  transform:translateY(-3px) !important;
+  border-color:var(--line-strong) !important;
+  background:var(--surface-3) !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.14) !important;
+}
+#lyricStyleBlock .effect-buttons > button:hover::before{
+  transform:scale(1.035) !important;
+  filter:saturate(1.15) !important;
+}
+#lyricStyleBlock .effect-buttons > button:hover::after{
+  transform:scaleX(1.03) !important;
+  opacity:.9 !important;
+}
+#lyricStyleBlock .effect-buttons > button.active-effect{
+  transform:none !important;
+  border-color:var(--red) !important;
+  background:color-mix(in srgb,var(--red) 10%,var(--surface-2)) !important;
+  box-shadow:0 0 0 1px var(--red) !important;
+}
+#lyricStyleBlock .effect-buttons > button.active-effect::before{
+  transform:scale(1.02) !important;
+}
+#lyricStyleBlock .effect-buttons > button.active-effect::after{
+  background:var(--red) !important;
+  opacity:1 !important;
+}
+#lyricStyleBlock .effect-buttons > button[data-kefe-owned]{
+  font-size:12px !important;
+  font-weight:700 !important;
+  letter-spacing:-.015em !important;
+  white-space:normal !important;
+}
+@media (max-width:560px){
+  #lyricStyleBlock .effect-buttons{
+    grid-template-columns:1fr !important;
+  }
+  #lyricStyleBlock .effect-buttons > button{
+    min-height:118px !important;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  #lyricStyleBlock .effect-buttons > button,
+  #lyricStyleBlock .effect-buttons > button::before,
+  #lyricStyleBlock .effect-buttons > button::after{
+    transition:none !important;
+  }
+}
