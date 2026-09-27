@@ -1,7 +1,7 @@
 .preview-format {
   position: absolute;
   top: 50%;
-  right: calc(var(--s-6) + var(--h-control) + var(--s-2));
+  right: var(--s-6);
   z-index: 6;
   display: inline-flex;
   align-items: center;
@@ -61,7 +61,7 @@
 @media (max-width: 700px) {
   .preview-format {
     top: 50%;
-    right: calc(var(--s-2) + var(--h-control) + var(--s-2));
+    right: var(--s-2);
     margin-left: 0;
     gap: 1px;
   }
