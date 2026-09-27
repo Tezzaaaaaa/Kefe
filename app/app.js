@@ -305,16 +305,18 @@ function appleSpringOut(t) {
 function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
 
-    const aspectRatio = h > 0 ? w / h : 1;
-    const portrait = aspectRatio < 0.8;
-    const square = aspectRatio >= 0.8 && aspectRatio <= 1.3;
-    const landscape = aspectRatio > 1.3;
     const baseFontSize = Math.max(28, Math.min(150, Number(style.fontSize) || 76));
-    const fontScale = portrait ? 1 : square ? 0.90 : 0.80;
-    const fontSize = Math.max(28, Math.round(baseFontSize * fontScale));
+    const fontSize = baseFontSize;
     const family = '-apple-system,"SF Pro Display",sans-serif';
-    const margin = Math.max(48, w * (portrait ? 0.075 : square ? 0.09 : 0.10));
-    const maxWidth = w - margin * 2;
+
+    // Apple Lyrics always uses a portrait iPhone composition boundary.
+    // The export aspect ratio must never widen the lyric layout.
+    const iphoneWidth = 390;
+    const iphoneHeight = 844;
+    const iphoneBoundaryWidth = Math.min(w, h * (iphoneWidth / iphoneHeight));
+    const iphoneSideInset = iphoneBoundaryWidth * (31 / iphoneWidth);
+    const margin = Math.max(0, (w - iphoneBoundaryWidth) / 2 + iphoneSideInset);
+    const maxWidth = Math.max(1, iphoneBoundaryWidth - iphoneSideInset * 2);
     const displayLines = [];
     for (let li = 0; li < lines.length; li++) {
         const original = linaNormaliseLine(lines, li);
