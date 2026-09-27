@@ -6,9 +6,9 @@
    One spacing scale, applied consistently, fixes it. */
 
 :root {
-  --panel-gap: 18px;   /* space between blocks inside a section */
-  --stack-gap: 10px;   /* space between rows inside a block */
-  --tight-gap: 6px;    /* space between small inline items */
+  --panel-gap: var(--s-4);   /* space between blocks inside a section */
+  --stack-gap: var(--s-2);   /* space between rows inside a block */
+  --tight-gap: var(--s-1);    /* space between small inline items */
 }
 
 /* Every direct child block in a section panel gets consistent breathing room. */
