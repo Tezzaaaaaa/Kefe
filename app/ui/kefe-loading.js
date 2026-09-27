@@ -141,7 +141,7 @@
     }
 
     root.__kefeLoader={arc:arc,highlight:highlight,sparkles:sparkles};
-    return {
+    var instance={
       root:root,
       text:text,
       start:performance.now(),
@@ -149,6 +149,8 @@
       setText:function(value){ text.textContent=String(value==null?'':value); },
       destroy:function(){ this.destroyed=true; if(root.parentNode) root.parentNode.removeChild(root); }
     };
+    loaderInstances.push(instance);
+    return instance;
   }
 
   function animate(now){
