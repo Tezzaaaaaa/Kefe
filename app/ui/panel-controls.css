@@ -228,7 +228,7 @@ input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
 .music-slot {
   display: flex !important;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s-1);
   width: 100%;
 }
 
