@@ -465,7 +465,12 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.55, 0.20, 0.70);
     const pastOpacity = linaClamp(upcomingOpacity * 0.64, 0.20, 0.50);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
-    const topAnchor = h * linaClamp(Number(style.appleTopOffset) || 0.38, 0.36, 0.62);
+    const appleHeaderSize = linaClamp(Math.min(w, h) * 0.075, 56, 88);
+    const appleHeaderBottom = Math.max(34, h * 0.052) + appleHeaderSize;
+    const topAnchor = Math.max(
+        h * linaClamp(Number(style.appleTopOffset) || 0.38, 0.36, 0.62),
+        appleHeaderBottom + rowHeight * 0.72
+    );
     const glow = Number(style.appleGlow) || 0.012;
     const activeScale = 1 + linaClamp(Number(style.appleDepth) ?? 0.008, 0, 0.06) * 2.5;
 
