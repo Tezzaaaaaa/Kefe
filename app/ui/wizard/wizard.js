@@ -119,7 +119,12 @@
     function renderIntro() {
         destroyIntroVeil();
         const veil = '<div class="wizard-dark-veil" aria-hidden="true"></div>';
-        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">Choose your KEFE project</h3><div class="wizard-choices-wrap"><div class="wizard-choices">' + ['lyric','visualiser','captioned'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div></div>';
+        const projects = [
+            ['lyric', 'Lyric Video', 'Synced lyrics with expressive motion.', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img01-alt.jpg'],
+            ['visualiser', 'Visualiser', 'Audio-reactive visuals with no lyrics.', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img02.jpg'],
+            ['captioned', 'Captioned Video', 'Timed captions for spoken audio or video.', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img03.jpg']
+        ];
+        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">Choose your KEFE project</h3><div class="wizard-choices-wrap"><div class="wizard-choices wizard-hover-img-menu">' + projects.map(([k,title,label,image]) => '<button type="button" class="wizard-choice hover-img-project' + (wizard.choice === k ? ' selected' : '') + '" data-choice="' + k + '" data-hover-image="' + image + '"><span class="hover-img-project-copy"><strong>' + title + '</strong><span>' + label + '</span></span><span class="hover-img-project-arrow" aria-hidden="true">↗</span></button>').join('') + '</div><div class="hover-img-thumbnail-wrapper" aria-hidden="true"><div class="hover-img-thumbnail"><img alt=""></div></div></div>';
         const veilTarget = panel.querySelector('.wizard-dark-veil');
         if (veilTarget && window.KefeDarkVeil?.mount) {
             requestAnimationFrame(() => window.KefeDarkVeil.mount(veilTarget, {
@@ -132,7 +137,49 @@
                 resolutionScale: 1
             }));
         }
-        panel.querySelectorAll('[data-choice]').forEach(btn => btn.addEventListener('click', () => { const c = btn.dataset.choice; if (wizard.choice !== c) wizard.source = null; wizard.choice = c; wizard.path = c; wizard.index = 0; if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(c); panel.querySelectorAll('.wizard-choice').forEach(x => x.classList.toggle('selected', x.dataset.choice === c)); refreshNextState(); }));
+        const menu = panel.querySelector('.wizard-hover-img-menu');
+        const thumbnail = panel.querySelector('.hover-img-thumbnail-wrapper');
+        const thumbnailImage = panel.querySelector('.hover-img-thumbnail img');
+        if (menu && thumbnail && thumbnailImage && !reducedMotion) {
+            let activeProject = null;
+            menu.addEventListener('mousemove', event => {
+                const rect = menu.getBoundingClientRect();
+                thumbnail.style.transform = 'translate3d(' + (event.clientX - rect.left) + 'px,' + (event.clientY - rect.top) + 'px,0) translate(-50%,-50%) scale(1)';
+            });
+            menu.addEventListener('mouseleave', () => {
+                activeProject = null;
+                thumbnail.style.transform = 'translate3d(0,0,0) translate(-50%,-50%) scale(0)';
+            });
+            menu.querySelectorAll('.hover-img-project').forEach(project => {
+                project.addEventListener('mouseenter', () => {
+                    activeProject = project.dataset.choice;
+                    if (thumbnailImage.src !== project.dataset.hoverImage) thumbnailImage.src = project.dataset.hoverImage;
+                    thumbnailImage.alt = project.querySelector('strong')?.textContent || '';
+                    thumbnail.classList.toggle('is-visible', Boolean(activeProject));
+                });
+                project.addEventListener('click', () => {
+                    const choice = project.dataset.choice;
+                    if (wizard.choice !== choice) wizard.source = null;
+                    wizard.choice = choice;
+                    wizard.path = choice;
+                    wizard.index = 0;
+                    if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(choice);
+                    menu.querySelectorAll('.wizard-choice').forEach(x => x.classList.toggle('selected', x.dataset.choice === choice));
+                    refreshNextState();
+                });
+            });
+        } else if (menu) {
+            menu.querySelectorAll('.wizard-choice').forEach(btn => btn.addEventListener('click', () => {
+                const c = btn.dataset.choice;
+                if (wizard.choice !== c) wizard.source = null;
+                wizard.choice = c;
+                wizard.path = c;
+                wizard.index = 0;
+                if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(c);
+                menu.querySelectorAll('.wizard-choice').forEach(x => x.classList.toggle('selected', x.dataset.choice === c));
+                refreshNextState();
+            }));
+        }
     }
     function previewLineText() {
         const st = window.state || {};
