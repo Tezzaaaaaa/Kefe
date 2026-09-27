@@ -71,7 +71,8 @@ global.__kefeMakeCtx = makeCtx;
 
 // ---- eval helpers ----
 function load(file) {
-  const src = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+  let src = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+  src = src.replace(/^export\s+(?=(?:function|const|let|var|class)\b)/gm, '');
   (0, eval)(`(function(){${src}\n})()`); // execute in this scope so IIFEs see stubs
 }
 
@@ -79,11 +80,11 @@ function load(file) {
 const scripts = [
   'app/ui/typography.js',
   'app/effects/core.js',
-  'app/effects/brat.js',
-  'app/effects/aurora.js',
-  'app/effects/eternal-sunshine.js',
+  'app/effects/lyric-brat.js',
+  'app/effects/lyric-aurora.js',
+  'app/effects/lyric-eternal.js',
   'app/effects/typewriter.js',
-  'app/effects/instagram-lyrics.js',
+  'app/effects/lyric-instagram.js',
   'app/effects/story-fade.js',
   'app/effects/lyric-barbie.js',
   'app/effects/lyric-elasticpop.js',
