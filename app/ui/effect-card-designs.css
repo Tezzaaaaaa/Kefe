@@ -156,3 +156,77 @@
     repeating-conic-gradient(#1a1208 0% 25%, #2a1d0e 25% 50%) 0 0/6px 6px,
     radial-gradient(circle at 50% 40%, #4a331c 0%, #160e06 78%);
 }
+
+/* ---------- Additional lyric-effect card designs ---------- */
+
+#lyricStyleBlock .effect-buttons > button[data-effect="rise"]::before {
+  background: radial-gradient(ellipse at 50% 100%, rgba(120,160,255,.55), transparent 58%), linear-gradient(0deg, #0a0a12, #2a2a4a 58%, #5d6fb0);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="slide"]::before {
+  background: linear-gradient(90deg, #0a0a12, #385078 38%, #91b8df 55%, #0a0a12 100%);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="drop"]::before {
+  background: radial-gradient(ellipse at 50% 8%, rgba(255,170,125,.7), transparent 45%), linear-gradient(180deg, #59648d, #24243b 55%, #09090e);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="drift"]::before {
+  background: linear-gradient(135deg, #161629, #463468 42%, #8b69ad 68%, #171729);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="scrolllines"]::before {
+  background: repeating-linear-gradient(180deg, transparent 0 8px, rgba(255,255,255,.24) 8px 9px, transparent 9px 18px), linear-gradient(90deg, #08080d, #242431 50%, #08080d);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="barbie"]::before {
+  background: radial-gradient(circle at 50% 42%, #ff8bc8 0, transparent 38%), linear-gradient(135deg, #4b103d, #d72b83 52%, #ff9fcb);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="elasticpop"]::before {
+  background: radial-gradient(circle at 50% 50%, #fff18a 0, #ff8c38 34%, transparent 64%), linear-gradient(135deg, #2b122f, #8e245e 55%, #160b20);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="flipcards"]::before {
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,.12) 0 1px, transparent 1px 14px), linear-gradient(135deg, #11131a, #303746 48%, #0a0b10);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="karaoke"]::before {
+  background: linear-gradient(90deg, #141414 0 38%, #ffcf33 38% 63%, #fff3a1 63% 70%, #141414 70% 100%);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="trailer"]::before {
+  background: linear-gradient(180deg, #090909, #242424 48%, #050505), repeating-linear-gradient(90deg, transparent 0 18px, rgba(255,255,255,.08) 18px 19px);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="rain"]::before {
+  background: radial-gradient(circle at 22% 28%, rgba(190,225,255,.7) 0 2px, transparent 3px), radial-gradient(circle at 68% 60%, rgba(190,225,255,.55) 0 2px, transparent 3px), linear-gradient(135deg, #071522, #183b58 55%, #050b12);
+  background-size: auto, auto, auto;
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="fancy"]::before {
+  background: linear-gradient(90deg, #ff3b30 0 32%, #52d7ff 32% 66%, #baff4a 66% 100%);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="glitch"]::before {
+  background: repeating-linear-gradient(0deg, #17171b 0 4px, #e83e55 4px 5px, #17171b 5px 9px), linear-gradient(90deg, #00e5ff, #16161b 50%, #ff315c);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="analogtv"]::before {
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,.12) 0 1px, transparent 1px 4px), linear-gradient(180deg, #183c44, #0a1a1e 48%, #263c32);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="splitflap"]::before {
+  background: repeating-linear-gradient(180deg, #171717 0 18px, #050505 18px 20px), linear-gradient(90deg, #383838, #121212);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="chromatica"]::before {
+  background: radial-gradient(circle at 70% 30%, rgba(255,240,214,.35), transparent 28%), linear-gradient(135deg, #78cdb1, #b9d7a7 52%, #e88976);
+}
+
+/* Deeper card treatments for the effects whose design is defined here. */
+#lyricStyleBlock .effect-buttons > button[data-effect="rise"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="slide"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="drop"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="drift"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="scrolllines"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="barbie"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="elasticpop"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="flipcards"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="karaoke"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="trailer"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="rain"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="fancy"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="glitch"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="analogtv"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="splitflap"]::after,
+#lyricStyleBlock .effect-buttons > button[data-effect="chromatica"]::after {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.42), transparent);
+  filter: blur(3px);
+  transform: translateX(-8px) skewX(-12deg);
+}
