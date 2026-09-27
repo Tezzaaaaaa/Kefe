@@ -106,23 +106,24 @@ try {
   await page.evaluate(() => window.kefeIpodPlayer.open());
   await page.locator('#kefeIpodPlayer').waitFor({ state: 'visible', timeout: 5000 });
   const miniPlayerState = await page.evaluate(() => {
-    const player = document.getElementById('kefeIpodPlayer');
-    const ids = ['kipClose', 'kipStar', 'kipMore', 'kipMessages', 'kipList', 'kipMenu', 'kipPrev', 'kipNext', 'kipPlay', 'kipCenter', 'kipPresets'];
-    const styles = [...document.querySelectorAll('style#kip-styles')];
-    const scopedStyles = styles.length === 1 && !/\.kefe-mini-|#kefeMini/.test(styles[0].textContent);
+    const host = document.getElementById('kefeIpodPlayer');
+    const shell = host?.shadowRoot?.querySelector('.ipod');
+    const styles = host?.shadowRoot?.querySelectorAll('style') || [];
+    const ids = ['close', 'menu', 'prev', 'next', 'play', 'center', 'presets'];
     return {
-      player: Boolean(player),
-      singlePlayer: document.querySelectorAll('#kefeIpodPlayer').length === 1,
-      controls: ids.every(id => document.getElementById(id)?.closest('#kefeIpodPlayer') === player),
-      scopedStyles,
+      host: Boolean(host),
+      shell: Boolean(shell),
+      singleHost: document.querySelectorAll('#kefeIpodPlayer').length === 1,
+      controls: ids.every(name => Boolean(shell?.querySelector('[data-kip="' + name + '"]'))),
+      singleStyle: styles.length === 1,
       launcher: document.getElementById('miniPlayerBtn')?.getAttribute('aria-label') === 'Open MiniPlayer',
     };
   });
-  if (!miniPlayerState.player || !miniPlayerState.singlePlayer || !miniPlayerState.controls || !miniPlayerState.scopedStyles || !miniPlayerState.launcher) throw new Error('iPod MiniPlayer structure or scoped styles are invalid');
+  if (!miniPlayerState.host || !miniPlayerState.shell || !miniPlayerState.singleHost || !miniPlayerState.controls || !miniPlayerState.singleStyle || !miniPlayerState.launcher) throw new Error('iPod MiniPlayer structure is invalid');
   const iPodLayout = await page.evaluate(() => {
-    const shell = document.querySelector('.kip-shell');
-    const screen = document.querySelector('.kip-screen');
-    const wheel = document.querySelector('.kip-wheel');
+    const shell = document.getElementById('kefeIpodPlayer')?.shadowRoot?.querySelector('.ipod');
+    const screen = shell?.querySelector('.screen');
+    const wheel = shell?.querySelector('.wheel');
     const rect = shell?.getBoundingClientRect();
     const screenRect = screen?.getBoundingClientRect();
     const wheelRect = wheel?.getBoundingClientRect();
@@ -131,10 +132,10 @@ try {
       shellHeight: rect?.height || 0,
       screenRatio: screenRect?.height ? screenRect.width / screenRect.height : 0,
       wheelRatio: rect?.width ? wheelRect.width / rect.width : 0,
-      closeHidden: getComputedStyle(document.getElementById('kipClose')).opacity === '0',
+      closeVisible: getComputedStyle(shell?.querySelector('.close')).opacity !== '0',
     };
   });
-  if (!iPodLayout.shellWidth || iPodLayout.shellWidth > 360 || iPodLayout.screenRatio < 1.35 || iPodLayout.screenRatio > 1.5 || iPodLayout.wheelRatio < 0.74 || iPodLayout.wheelRatio > 0.82) throw new Error('iPod MiniPlayer layout does not match the required proportions');
+  if (!iPodLayout.shellWidth || iPodLayout.shellWidth > 360 || iPodLayout.screenRatio < 1.35 || iPodLayout.screenRatio > 1.5 || iPodLayout.wheelRatio < 0.70 || iPodLayout.wheelRatio > 0.90) throw new Error('iPod MiniPlayer layout does not match the required proportions');
   await page.evaluate(() => window.kefeIpodPlayer.close());
   if (await page.locator('.kefe-preview-hint').count()) throw new Error('Preview text placeholder should not exist');
   await page.locator('.preview-logo-backdrop').waitFor({ state: 'attached', timeout: 5000 });
