@@ -124,7 +124,7 @@
             ['visualiser', 'Visualiser', 'Audio-reactive visuals with no lyrics.', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img02.jpg'],
             ['captioned', 'Captioned Video', 'Timed captions for spoken audio or video.', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img03.jpg']
         ];
-        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">Choose your KEFE project</h3><div class="wizard-choices-wrap"><div class="wizard-choices wizard-hover-img-menu">' + projects.map(([k,title,label,image]) => '<button type="button" class="wizard-choice hover-img-project' + (wizard.choice === k ? ' selected' : '') + '" data-choice="' + k + '" data-hover-image="' + image + '"><span class="hover-img-project-copy"><strong>' + title + '</strong><span>' + label + '</span></span></button>').join('') + '</div><div class="hover-img-thumbnail-wrapper" aria-hidden="true">' + projects.map(([,title,,image]) => '<div class="hover-img-thumbnail"><img src="' + image + '" alt="' + title + '"></div>').join('') + '</div></div>';
+        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">Choose your KEFE project</h3><div class="wizard-choices-wrap"><div class="wizard-choices wizard-hover-img-menu">' + projects.map(([k,title,label,image]) => '<button type="button" class="wizard-choice hover-img-project' + (wizard.choice === k ? ' selected' : '') + '" data-choice="' + k + '" data-hover-image="' + image + '"><span class="hover-img-project-copy"><strong>' + title + '</strong><span>' + label + '</span></span></button>').join('') + '</div><div class="hover-img-thumbnail-wrapper" aria-hidden="true">' + projects.map(([,title,,image], index) => '<div class="hover-img-thumbnail" style="--thumb-index:' + index + '"><img src="' + image + '" alt="' + title + '"></div>').join('') + '</div></div>';
         const veilTarget = panel.querySelector('.wizard-dark-veil');
         if (veilTarget && window.KefeDarkVeil?.mount) {
             requestAnimationFrame(() => window.KefeDarkVeil.mount(veilTarget, {
@@ -136,6 +136,8 @@
         const thumbnail = panel.querySelector('.hover-img-thumbnail-wrapper');
         if (menu && thumbnail && !reducedMotion) {
             const moveThumbnail = event => {
+                thumbnail.dataset.x = event.clientX;
+                thumbnail.dataset.y = event.clientY;
                 thumbnail.style.transform = 'translate3d(' + event.clientX + 'px,' + event.clientY + 'px,0) translate(-50%,-50%)';
             };
             const hideThumbnail = () => {
@@ -146,7 +148,7 @@
             menu.querySelectorAll('.hover-img-project').forEach((project, index) => {
                 project.addEventListener('mouseenter', () => {
                     thumbnail.style.transform = 'translate3d(' + (thumbnail.dataset.x || 0) + 'px,' + (thumbnail.dataset.y || 0) + 'px,0) translate(-50%,-50%) scale(1)';
-                    thumbnail.style.setProperty('--hover-img-index', index);
+                    thumbnail.style.setProperty('--active-index', index);
                 });
                 project.addEventListener('click', () => {
                     const choice = project.dataset.choice;
