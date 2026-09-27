@@ -1,8 +1,8 @@
-import { drawAppleEffect, appleWordsForLine } from './effects/apple.js';
-import { drawBratEffect } from './effects/brat.js';
-import { drawEternalSunshineEffect } from './effects/eternal.js';
-import { drawAuroraEffect } from './effects/aurora.js';
-import { drawPulseEffect } from './effects/pulse.js';
+import { drawAppleEffect, appleWordsForLine } from './effects/lyric-apple.js';
+import { drawBratEffect } from './effects/lyric-brat.js';
+import { drawEternalSunshineEffect } from './effects/lyric-eternal.js';
+import { drawAuroraEffect } from './effects/lyric-aurora.js';
+import { drawPulseEffect } from './effects/lyric-pulse.js';
 import { renderTitleCard, resolveTitleCardDesign, titleCardPhase } from './effects/Titlecard.js';
 import {
     formatTime, cleanLyricsLookupText, songFromFilename, fetchWithRetry,
