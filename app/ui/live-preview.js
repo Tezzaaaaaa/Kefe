@@ -56,24 +56,29 @@
   }
 
   function toggleFullscreen() {
-    if (document.fullscreenElement) {
-      document.exitFullscreen?.();
+    const activeFullscreen = document.fullscreenElement === preview || document.webkitFullscreenElement === preview;
+    if (activeFullscreen) {
+      const exit = document.exitFullscreen?.() || document.webkitExitFullscreen?.();
+      if (exit?.catch) exit.catch(() => {});
       return;
     }
-    preview.requestFullscreen?.().catch(() => {});
+    const request = preview.requestFullscreen?.({ navigationUI: 'hide' }) || preview.webkitRequestFullscreen?.();
+    if (request?.catch) request.catch(() => {});
   }
 
   focusBtn?.addEventListener('click', toggleFullscreen);
   preview.addEventListener('dblclick', event => {
     if (event.target === canvas || event.target.closest('.canvas-wrapper')) toggleFullscreen();
   });
-  document.addEventListener('fullscreenchange', () => {
-    const active = document.fullscreenElement === preview;
+  const syncFullscreenState = () => {
+    const active = document.fullscreenElement === preview || document.webkitFullscreenElement === preview;
     if (focusBtn) {
       focusBtn.setAttribute('aria-label', active ? 'Exit fullscreen preview' : 'Open preview fullscreen');
       focusBtn.title = active ? 'Exit fullscreen' : 'Fullscreen preview';
     }
-  });
+  };
+  document.addEventListener('fullscreenchange', syncFullscreenState);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenState);
 
   window.addEventListener('kefe:preview-updated', sync);
   setInterval(sync, 180);
