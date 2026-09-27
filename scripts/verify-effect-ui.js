@@ -13,9 +13,9 @@ const effectSources = fs.readdirSync(effectsDir)
   .map(name => fs.readFileSync(path.join(effectsDir, name), 'utf8'))
   .join('\n');
 
-// Apple and Pulse are canonical native renderers in app.js. Modular renderers
+// Apple, Brat, Eternal Sunshine, Aurora and Pulse are canonical native renderers in app.js. Modular renderers
 // register themselves on window.kefeEffects.<key>.
-const canonical = new Set(['apple', 'pulse']);
+const canonical = new Set(['apple', 'brat', 'eternal', 'aurora', 'pulse']);
 const modular = new Set(
   [...effectSources.matchAll(/window\.kefeEffects\.([a-z][a-z0-9_]*)\s*=/g)].map(m => m[1])
 );
