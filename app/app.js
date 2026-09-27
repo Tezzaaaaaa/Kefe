@@ -40,7 +40,7 @@ const state = {
         pulseGlowSize: 1.0,
         titleCardEnabled: true,
         titleCardDuration: 3,
-        titleCardStyle: 'auto'
+        titleCardStyle: 'spotlight'
     },
     background: { type: 'solid', image: null, video: null, dim: 0.35, solid: '#0A0A0A', blur: 0 },
     playback: { isPlaying: false, currentTime: 0, isSeeking: false },
