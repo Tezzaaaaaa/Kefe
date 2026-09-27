@@ -364,7 +364,19 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
                     const bucket = Math.min(7, Math.floor((sat * 0.7 + lum * 0.3) * 8));
                     buckets[bucket].r += r0; buckets[bucket].g += g0; buckets[bucket].b += b0; buckets[bucket].n += 1;
                 }
-                palette = buckets.filter(b => b.n).sort((a, b) => b.n - a.n).slice(0, 4)
+                const ranked = buckets.filter(b => b.n).sort((a, b) => b.n - a.n);
+                const first = ranked[0];
+                const firstColor = first ? {
+                    r: first.r / first.n,
+                    g: first.g / first.n,
+                    b: first.b / first.n
+                } : null;
+                const second = ranked.slice(1).find(b => {
+                    const color = { r: b.r / b.n, g: b.g / b.n, b: b.b / b.n };
+                    const distance = Math.hypot(color.r - firstColor.r, color.g - firstColor.g, color.b - firstColor.b);
+                    return distance >= 55;
+                });
+                palette = [first, second].filter(Boolean)
                     .map(b => `rgb(${Math.round(b.r / b.n)} ${Math.round(b.g / b.n)} ${Math.round(b.b / b.n)})`);
                 if (palette.length) source.__kefeApplePalette = palette;
             }
@@ -464,7 +476,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         ctx.font = `800 ${size}px ${family}`;
 
         const width = ctx.measureText(text).width;
-        const x = (w - width) / 2;
+        const x = margin;
         const y = topAnchor + edPos * lineHeight;
         const scaleAmt = appleKeyframeLerp(edStyle, scalePoints);
         const alphaAmt = linaClamp(appleKeyframeLerp(edStyle, opacityPoints), 0, 1);
@@ -518,6 +530,40 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
                 if (wi < words.length - 1) cursorX += space;
             }
         }
+        ctx.restore();
+    }
+
+    // Keep the song identity visible while lyrics are playing: compact artwork
+    // and metadata remain anchored to the lower-left edge, like a persistent
+    // now-playing title treatment rather than occupying the lyric area.
+    if (source && appState?.audio) {
+        const metadata = resolveAudioLabels(appState.audio);
+        const artSize = linaClamp(Math.min(w, h) * 0.075, 56, 88);
+        const left = margin;
+        const bottom = h - Math.max(28, h * 0.055);
+        const artY = bottom - artSize;
+        ctx.save();
+        ctx.globalAlpha = 0.94;
+        ctx.beginPath();
+        ctx.roundRect(left, artY, artSize, artSize, Math.max(8, artSize * 0.08));
+        ctx.clip();
+        const sw = source.naturalWidth || source.videoWidth || source.width;
+        const sh = source.naturalHeight || source.videoHeight || source.height;
+        if (sw && sh) {
+            const side = Math.min(sw, sh);
+            ctx.drawImage(source, (sw - side) / 2, (sh - side) / 2, side, side, left, artY, artSize, artSize);
+        }
+        ctx.restore();
+        const detailX = left + artSize + 16;
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.font = `700 ${Math.max(16, Math.round(artSize * 0.23))}px ${family}`;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(String(metadata.title || ''), detailX, bottom - artSize * 0.47);
+        ctx.font = `500 ${Math.max(13, Math.round(artSize * 0.17))}px ${family}`;
+        ctx.fillStyle = 'rgba(255,255,255,0.72)';
+        ctx.fillText(String(metadata.artist || metadata.album || ''), detailX, bottom - artSize * 0.16);
         ctx.restore();
     }
 }
