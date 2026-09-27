@@ -1,11 +1,5 @@
 /* KEFE Live Preview — restrained chrome around the canvas. */
 
-.preview-live-meta {
-  display: inline-flex;
-  align-items: center;
-  margin-left: auto;
-}
-
 .preview-live-indicator,
 .preview-live-effect,
 .preview-live-stage {
@@ -74,10 +68,6 @@
 }
 
 @media (max-width: 700px) {
-  .preview-live-meta {
-    margin-left: auto;
-  }
-
   .preview-focus-button {
     width: var(--h-control);
     height: var(--h-control);
