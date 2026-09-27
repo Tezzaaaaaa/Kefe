@@ -230,3 +230,17 @@
   filter: blur(3px);
   transform: translateX(-8px) skewX(-12deg);
 }
+
+/* Complete the four earlier card definitions that only had preview tokens. */
+#lyricStyleBlock .effect-buttons > button[data-effect="pulse"]::before {
+  background: radial-gradient(circle at 50% 52%, #ff3a6e 0 8%, #7a1330 34%, #1a0510 76%, #050505 100%);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="decrypt"]::before {
+  background: repeating-linear-gradient(90deg, transparent 0 4px, rgba(120,255,180,.2) 4px 5px), linear-gradient(135deg, #08130b, #1e5c2a 58%, #071009);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="blur"]::before {
+  background: radial-gradient(circle at 50% 50%, rgba(190,150,255,.7), transparent 42%), linear-gradient(135deg, #17172a, #4a3970 58%, #11111e);
+}
+#lyricStyleBlock .effect-buttons > button[data-effect="shiny"]::before {
+  background: linear-gradient(110deg, #0b0b0b 0%, #191919 28%, #ffffff 49%, #191919 70%, #0b0b0b 100%);
+}
