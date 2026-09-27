@@ -151,10 +151,13 @@ body.wizard-mode .wizard-choices.wizard-source-choices {
 }
 .wizard-hover-img-menu .hover-img-project.selected,
 .wizard-hover-img-menu .hover-img-project.selected:hover{
-    border-color:rgba(255,255,255,.2)!important;
-    background:transparent!important;
-    box-shadow:none!important;
+    border-color:var(--red)!important;
+    background:color-mix(in srgb,var(--red) 22%,transparent)!important;
+    box-shadow:0 0 0 1px var(--red)!important;
     opacity:1!important;
+}
+.wizard-hover-img-menu .hover-img-project.selected strong{
+    color:var(--red)!important;
 }
 .hover-img-thumbnail-wrapper{
     position:fixed!important;
