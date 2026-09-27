@@ -70,8 +70,8 @@
   }
 
   .preview-focus-button {
-    width: 30px;
-    height: 30px;
+    width: var(--h-control);
+    height: var(--h-control);
   }
 }
 
