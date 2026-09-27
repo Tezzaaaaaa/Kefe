@@ -396,13 +396,15 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (palette?.length) {
         ctx.globalCompositeOperation = 'screen';
         const positions = [
-            [0.18 + 0.08 * Math.sin(time * 0.17), 0.22 + 0.07 * Math.cos(time * 0.13)],
-            [0.78 + 0.08 * Math.cos(time * 0.15), 0.28 + 0.09 * Math.sin(time * 0.11)],
-            [0.26 + 0.09 * Math.cos(time * 0.12), 0.82 + 0.07 * Math.sin(time * 0.16)],
-            [0.78 + 0.07 * Math.sin(time * 0.10), 0.78 + 0.08 * Math.cos(time * 0.14)]
+            [0.16 + 0.08 * Math.sin(time * 0.17), 0.20 + 0.07 * Math.cos(time * 0.13)],
+            [0.50 + 0.09 * Math.cos(time * 0.15), 0.18 + 0.08 * Math.sin(time * 0.11)],
+            [0.82 + 0.08 * Math.sin(time * 0.12), 0.28 + 0.07 * Math.cos(time * 0.16)],
+            [0.22 + 0.09 * Math.cos(time * 0.10), 0.72 + 0.08 * Math.sin(time * 0.14)],
+            [0.55 + 0.08 * Math.sin(time * 0.13), 0.82 + 0.07 * Math.cos(time * 0.09)],
+            [0.84 + 0.07 * Math.cos(time * 0.11), 0.70 + 0.08 * Math.sin(time * 0.15)]
         ];
-        const radii = [0.72, 0.68, 0.74, 0.70];
-        for (let pi = 0; pi < Math.min(4, palette.length); pi++) {
+        const radii = [0.70, 0.66, 0.68, 0.72, 0.66, 0.70];
+        for (let pi = 0; pi < Math.min(6, palette.length); pi++) {
             const [px, py] = positions[pi];
             const radius = Math.max(w, h) * radii[pi];
             const gradient = ctx.createRadialGradient(w * px, h * py, 0, w * px, h * py, radius);
