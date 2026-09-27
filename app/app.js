@@ -343,7 +343,7 @@ function render(ctx, w, h, appState, mediaCache) {
                 try {
                     renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime);
                 }
-                catch(e) { console.error(\`${style.effect} render error:\`, e); }
+                catch(e) { console.error(`${style.effect} render error:`, e); }
             }
             renderTitleCard(ctx, w, h, cappedTime, appState, albumArtworkImage, resolveAudioLabels);
         } else if (!tcActive || cappedTime >= titleLyricsStart) {
