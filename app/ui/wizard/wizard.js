@@ -120,11 +120,11 @@
         destroyIntroVeil();
         const veil = '<div class="wizard-dark-veil" aria-hidden="true"></div>';
         const projects = [
-            ['lyric', 'Lyric Video', 'Synced lyrics with expressive motion.', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img01-alt.jpg'],
-            ['visualiser', 'Visualiser', 'Audio-reactive visuals with no lyrics.', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img02.jpg'],
-            ['captioned', 'Captioned Video', 'Timed captions for spoken audio or video.', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img03.jpg']
+            ['lyric', 'Lyric Video', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img01-alt.jpg'],
+            ['visualiser', 'Visualiser', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img02.jpg'],
+            ['captioned', 'Captioned Video', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img03.jpg']
         ];
-        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">Choose your KEFE project</h3><div class="wizard-choices-wrap"><div class="wizard-choices wizard-hover-img-menu">' + projects.map(([k,title,label,image]) => '<button type="button" class="wizard-choice hover-img-project' + (wizard.choice === k ? ' selected' : '') + '" data-choice="' + k + '" data-hover-image="' + image + '"><span class="hover-img-project-copy"><strong>' + title + '</strong><span>' + label + '</span></span></button>').join('') + '</div><div class="hover-img-thumbnail-wrapper" aria-hidden="true">' + projects.map(([,title,,image], index) => '<div class="hover-img-thumbnail" style="--thumb-index:' + index + '"><img src="' + image + '" alt="' + title + '"></div>').join('') + '</div></div>';
+        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">Choose your KEFE project</h3><div class="wizard-choices-wrap"><div class="wizard-choices wizard-hover-img-menu">' + projects.map(([k,title,image]) => '<button type="button" class="wizard-choice hover-img-project' + (wizard.choice === k ? ' selected' : '') + '" data-choice="' + k + '" data-hover-image="' + image + '"><span class="hover-img-project-copy"><strong>' + title + '</strong></span></button>').join('') + '</div><div class="hover-img-thumbnail-wrapper" aria-hidden="true">' + projects.map(([,title,image], index) => '<div class="hover-img-thumbnail" style="--thumb-index:' + index + '"><img src="' + image + '" alt="' + title + '"></div>').join('') + '</div></div>';
         const veilTarget = panel.querySelector('.wizard-dark-veil');
         if (veilTarget && window.KefeDarkVeil?.mount) {
             requestAnimationFrame(() => window.KefeDarkVeil.mount(veilTarget, {
