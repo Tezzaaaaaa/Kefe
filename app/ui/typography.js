@@ -158,7 +158,6 @@
     flipcards:  { family: families.flipcards,   weight: 800, min: 30, max: 140, lineHeight: 1.2, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     karaoke:    { family: families.karaoke,     weight: 400, min: 40, max: 170, lineHeight: 1.05, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     trailer:    { family: families.trailer,     weight: 400, min: 52, max: 220, lineHeight: 1.05, tracking: 0.04,      align: 'center', case: 'upper', opticalScale: 1.00 },
-    rain:       { family: families.rain,        weight: 400, min: 40, max: 180, lineHeight: 1.35, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     fancy:      { family: families.fancy,       weight: 900, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     glitch:     { family: families.glitch,      weight: 400, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     analogtv:   { family: families.analogtv,    weight: 400, min: 34, max: 200, lineHeight: 1.12, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
