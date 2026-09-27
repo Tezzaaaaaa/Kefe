@@ -136,13 +136,17 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     if (!Array.isArray(lines) || !lines.length) return;
 
     const baseDimension = Math.min(w, h);
-    const activeFontSize = w * 0.081;
-    const inactiveFontSize = w * 0.074;
-    const horizontalPadding = w * 0.083;
-    const lineSpacing = w * 0.014;
+    const iphoneBoundaryWidth = Math.min(w, h * (390 / 844));
+    const iphoneSideInset = iphoneBoundaryWidth * (31 / 390);
+    const horizontalPadding = iphoneSideInset;
+    const contentWidth = Math.max(1, iphoneBoundaryWidth - horizontalPadding * 2);
+    const activeFontSize = iphoneBoundaryWidth * (32 / 390);
+    const inactiveFontSize = iphoneBoundaryWidth * (29 / 390);
+    const lineSpacing = iphoneBoundaryWidth * (5 / 390);
     const family = '-apple-system,"SF Pro Display",sans-serif';
-    const margin = horizontalPadding;
-    const maxWidth = Math.max(1, w - horizontalPadding * 2);
+    const boundaryLeft = Math.max(0, (w - iphoneBoundaryWidth) / 2);
+    const margin = boundaryLeft + horizontalPadding;
+    const maxWidth = contentWidth;
     const displayLines = [];
 
     for (let li = 0; li < lines.length; li++) {
@@ -274,7 +278,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     const appleLineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.58, 0.45, 1.10);
     const lineHeight = activeFontSize * 1.18 + appleLineSpacing;
     const rowHeight = activeFontSize * 1.18;
-    const blockGap = w * 0.060;
+    const blockGap = iphoneBoundaryWidth * (24 / 390);
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.30, 0.20, 0.40);
     const pastOpacity = linaClamp(upcomingOpacity * 0.72, 0.20, 0.30);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
