@@ -349,7 +349,12 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
             ctx.shadowBlur = 0;
             ctx.filter = 'none';
         } else {
-            ctx.filter = 'blur(' + Math.max(0, blurAmt).toFixed(2) + 'px)';
+            const visibleBlur = Math.max(0, blurAmt);
+            ctx.filter = 'blur(' + visibleBlur.toFixed(2) + 'px)';
+            ctx.shadowColor = 'rgba(255,255,255,0.22)';
+            ctx.shadowBlur = visibleBlur * 0.75;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
         }
 
         const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
