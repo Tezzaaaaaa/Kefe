@@ -2582,7 +2582,7 @@ function handleBackgroundFile(file) {
             //   (classic flow), except the wizard's dedicated "Background Video" audio
             //   source step, which still switches automatically as before
             if (!state.audio.file) {
-                applyMasterSelection(media.videoHasAudio ? 'video' : 'none', { userInitiated: false, silent: true });
+                applyMasterSelection(media.videoHasAudio ? 'video' : 'uploaded', { userInitiated: false, silent: true });
             } else if (media.videoHasAudio && getMasterMode() !== "video") {
                 if (window.kefeWizardSource === "media") {
                     // Wizard "Background Video" audio source: the video's own track takes
@@ -2802,16 +2802,15 @@ $('stopBtn').addEventListener('click', stopPlayback);
  * timing reference. Preview and export always read the same selection, so a
  * source can never silently change between them.
  * ========================================================================= */
-const MASTER_MODES = ['uploaded', 'video', 'none'];
+const MASTER_MODES = ['uploaded', 'video'];
 const MASTER_MODE_LABELS = {
     uploaded: 'Uploaded Audio',
     video: 'Background Video Audio',
-    none: 'No audio / Muted'
 };
 function masterModeAvailable(mode) {
     if (mode === 'uploaded') return Boolean(state.audio.file);
     if (mode === 'video') return Boolean(media.video && media.videoFile && media.videoHasAudio);
-    return true;
+    return false;
 }
 function applyMasterSelection(mode, opts = {}) {
     const userInitiated = Boolean(opts.userInitiated);
