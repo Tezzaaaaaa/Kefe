@@ -458,7 +458,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const pastOpacity = linaClamp(upcomingOpacity * 0.64, 0.20, 0.50);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
     const appleHeaderSize = linaClamp(Math.min(w, h) * 0.075, 56, 88);
-    const appleHeaderBottom = Math.max(28, h * 0.052) + appleHeaderSize;
+    const appleHeaderBottom = Math.max(32, h * 0.052) + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = Math.max(
         h * linaClamp(Number(style.appleTopOffset) || 0.38, 0.36, 0.62),
@@ -1271,7 +1271,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     if (toLyrics > 0.001) {
         // Apple lyrics view: the title card collapses into a compact,
         // horizontal Now Playing header at the top and stays there.
-        const headerTop = Math.max(28, h * 0.052);
+        const headerTop = Math.max(32, h * 0.052);
         const artSize = linaClamp(unit * 0.075, 56, 88);
         const left = Math.max((w - Math.min(w, h * (390 / 844))) / 2 + unit * (31 / 390), unit * 0.05);
         const artY = headerTop;
