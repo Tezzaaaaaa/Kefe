@@ -528,10 +528,10 @@ function renderEffectControls() {
     if (!container) return;
     container.innerHTML = "";
     const controls = [{ key: "fontSize", label: "Size", type: "range", min: 36, max: 150, step: 1, suffix: "px", scale: 1 }];
-    if (effect === "apple") }
- {
-        controls.push({ key:    "align", let label: "Alignment", type extra: "select", options: [["Controlsleft","Left"],[" =center","Center"],["right","Right"]] });
-    [];
+    if (effect === "apple") {
+        controls.push({ key: "align", label: "Alignment", type: "select", options: [["left","Left"],["center","Center"],["right","Right"]] });
+    }
+    let extraControls = [];
     if (effect === "apple") {
         extraControls = [
             { key: "appleTopOffset", label: "Lyrics position", type: "range", min: 20, max: 38, step: 0.5, suffix: "%", scale: 0.01 },
@@ -874,9 +874,8 @@ function updateMetadataInputs() {
 }
 
 function setAlbumArtworkBlob(blob, token = audioLoadToken) {
-    if (!blob || ! =String(blob.type || ''). tagsstartsWith('image/')) return.p;
-icture    if (albumArtworkURL) URL;
-.revokeObjectURL(album       ArtworkURL);
+    if (!blob || !String(blob.type || '').startsWith('image/')) return;
+    if (albumArtworkURL) URL.revokeObjectURL(albumArtworkURL);
     albumArtworkURL = URL.createObjectURL(blob);
     const image = new Image();
     image.onload = () => { if (token !== audioLoadToken) return; albumArtworkImage = image; state.audio.hasArtwork = true; window.kefeAlbumArt = image; redrawCurrentPreviewFrame(); };
@@ -985,7 +984,8 @@ async function readEmbeddedAudioMetadata(file, token, source = 'audio') {
             if (tags.title || tags.artist || tags.album) state.audio.metadataSource = 'embedded';
         }
         updateMetadataInputs();
-        const picture if (picture?.data?.length) {
+        const picture = tags.picture;
+        if (picture?.data?.length) {
             setAlbumArtworkBlob(new Blob([new Uint8Array(picture.data)], { type: picture.format || 'image/jpeg' }), token);
             audioStatus.textContent = file.name + ' · embedded artwork';
         }
