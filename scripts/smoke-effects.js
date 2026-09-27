@@ -102,7 +102,8 @@ for (const s of scripts) load(s);
 // ---- verification ----
 const failures = [];
 const registered = Object.keys(windowStub.kefeEffects || {}).sort();
-const expectKeys = ['brat', 'aurora', 'eternal', 'typewriter', 'instagram', 'fadeup',
+// Native effect modules are imported directly by app/app.js; this smoke list covers window.kefeEffects registrations.
+const expectKeys = ['typewriter', 'instagram', 'fadeup',
   'barbie',
   'elasticpop',
   'flipcards',
