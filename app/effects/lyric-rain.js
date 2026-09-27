@@ -65,7 +65,7 @@
   function drawLyricToBuffer(ctx,w,h,style,active,words,time){
     ctx.clearRect(0,0,w,h);
     var size=Math.max(40,Math.min(180,Number(style.fontSize)||96));
-    ctx.font='200 '+size+'px "Inter Tight",system-ui,sans-serif';
+    ctx.font='400 '+size+'px "Frijole",system-ui,sans-serif';
     var lineHeight=size*1.4;
     var gap=size*0.36;
     var maxW=w*0.82;
