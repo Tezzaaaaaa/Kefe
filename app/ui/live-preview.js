@@ -95,9 +95,6 @@
   }
 
   focusBtn?.addEventListener('click', toggleFullscreen);
-  preview.addEventListener('dblclick', event => {
-    if (event.target === canvas || event.target.closest('.canvas-wrapper')) toggleFullscreen();
-  });
   const syncFullscreenState = () => {
     const active = fallbackFullscreen || document.fullscreenElement === preview || document.webkitFullscreenElement === preview;
     if (focusBtn) {
