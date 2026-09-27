@@ -260,7 +260,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
 
     const fontSize = Math.max(28, Math.min(150, Number(style.fontSize) || 76));
-    const family = '"Open Sans",Arial,sans-serif';
+    const family = '-apple-system,"SF Pro Display",sans-serif';
     const lineHeight = fontSize * 1.35;
     const margin = Math.max(48, w * 0.075);
     const maxWidth = w - margin * 2;
