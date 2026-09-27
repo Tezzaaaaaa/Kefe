@@ -124,38 +124,29 @@
             ['visualiser', 'Visualiser', 'Audio-reactive visuals with no lyrics.', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img02.jpg'],
             ['captioned', 'Captioned Video', 'Timed captions for spoken audio or video.', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img03.jpg']
         ];
-        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">Choose your KEFE project</h3><div class="wizard-choices-wrap"><div class="wizard-choices wizard-hover-img-menu">' + projects.map(([k,title,label,image]) => '<button type="button" class="wizard-choice hover-img-project' + (wizard.choice === k ? ' selected' : '') + '" data-choice="' + k + '" data-hover-image="' + image + '"><span class="hover-img-project-copy"><strong>' + title + '</strong><span>' + label + '</span></span><span class="hover-img-project-arrow" aria-hidden="true">↗</span></button>').join('') + '</div><div class="hover-img-thumbnail-wrapper" aria-hidden="true"><div class="hover-img-thumbnail"><img alt=""></div></div></div>';
+        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">Choose your KEFE project</h3><div class="wizard-choices-wrap"><div class="wizard-choices wizard-hover-img-menu">' + projects.map(([k,title,label,image]) => '<button type="button" class="wizard-choice hover-img-project' + (wizard.choice === k ? ' selected' : '') + '" data-choice="' + k + '" data-hover-image="' + image + '"><span class="hover-img-project-copy"><strong>' + title + '</strong><span>' + label + '</span></span></button>').join('') + '</div><div class="hover-img-thumbnail-wrapper" aria-hidden="true">' + projects.map(([,title,,image]) => '<div class="hover-img-thumbnail"><img src="' + image + '" alt="' + title + '"></div>').join('') + '</div></div>';
         const veilTarget = panel.querySelector('.wizard-dark-veil');
         if (veilTarget && window.KefeDarkVeil?.mount) {
             requestAnimationFrame(() => window.KefeDarkVeil.mount(veilTarget, {
-                hueShift: 0,
-                speed: reducedMotion ? 0 : 0.5,
-                noiseIntensity: 0,
-                scanlineIntensity: 0,
-                scanlineFrequency: 0,
-                warpAmount: 0,
-                resolutionScale: 1
+                hueShift: 0, speed: reducedMotion ? 0 : 0.5, noiseIntensity: 0, scanlineIntensity: 0,
+                scanlineFrequency: 0, warpAmount: 0, resolutionScale: 1
             }));
         }
         const menu = panel.querySelector('.wizard-hover-img-menu');
         const thumbnail = panel.querySelector('.hover-img-thumbnail-wrapper');
-        const thumbnailImage = panel.querySelector('.hover-img-thumbnail img');
-        if (menu && thumbnail && thumbnailImage && !reducedMotion) {
-            let activeProject = null;
-            menu.addEventListener('mousemove', event => {
-                const rect = menu.getBoundingClientRect();
-                thumbnail.style.transform = 'translate3d(' + (event.clientX - rect.left) + 'px,' + (event.clientY - rect.top) + 'px,0) translate(-50%,-50%) scale(1)';
-            });
-            menu.addEventListener('mouseleave', () => {
-                activeProject = null;
-                thumbnail.style.transform = 'translate3d(0,0,0) translate(-50%,-50%) scale(0)';
-            });
-            menu.querySelectorAll('.hover-img-project').forEach(project => {
+        if (menu && thumbnail && !reducedMotion) {
+            const moveThumbnail = event => {
+                thumbnail.style.transform = 'translate3d(' + event.clientX + 'px,' + event.clientY + 'px,0) translate(-50%,-50%)';
+            };
+            const hideThumbnail = () => {
+                thumbnail.style.transform = 'translate3d(' + thumbnail.dataset.x + 'px,' + thumbnail.dataset.y + 'px,0) translate(-50%,-50%) scale(0)';
+            };
+            menu.addEventListener('mousemove', moveThumbnail);
+            menu.addEventListener('mouseleave', hideThumbnail);
+            menu.querySelectorAll('.hover-img-project').forEach((project, index) => {
                 project.addEventListener('mouseenter', () => {
-                    activeProject = project.dataset.choice;
-                    if (thumbnailImage.src !== project.dataset.hoverImage) thumbnailImage.src = project.dataset.hoverImage;
-                    thumbnailImage.alt = project.querySelector('strong')?.textContent || '';
-                    thumbnail.classList.toggle('is-visible', Boolean(activeProject));
+                    thumbnail.style.transform = 'translate3d(' + (thumbnail.dataset.x || 0) + 'px,' + (thumbnail.dataset.y || 0) + 'px,0) translate(-50%,-50%) scale(1)';
+                    thumbnail.style.setProperty('--hover-img-index', index);
                 });
                 project.addEventListener('click', () => {
                     const choice = project.dataset.choice;
