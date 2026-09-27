@@ -72,8 +72,8 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
 .transport #previewFocusButton,.transport .preview-focus-button{order:99;margin-left:auto;width:40px;height:40px;min-width:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:rgba(255,255,255,0.75);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex:0 0 auto}
 .transport #previewFocusButton:hover,.transport .preview-focus-button:hover{background:rgba(255,255,255,0.06);color:#fff}
 .transport #previewFocusButton svg,.transport .preview-focus-button svg{width:18px;height:18px}
-@media(max-width:700px){.transport{grid-template-columns:44px 44px minmax(0,1fr) auto auto}.transport #previewFocusButton,.transport .preview-focus-button{width:44px;height:44px;min-width:44px}}
-@media(max-width:480px){.transport{grid-template-columns:42px 42px minmax(0,1fr) auto auto}.transport #previewFocusButton,.transport .preview-focus-button{width:42px;height:42px;min-width:42px}}
+@media(max-width:700px){.transport{grid-template-columns:40px 40px minmax(0,1fr) auto auto}.transport #previewFocusButton,.transport .preview-focus-button{width:44px;height:44px;min-width:44px}}
+@media(max-width:480px){.transport{grid-template-columns:40px 40px minmax(0,1fr) auto auto}.transport #previewFocusButton,.transport .preview-focus-button{width:42px;height:42px;min-width:42px}}
 
 /* UNIFORM BUTTONS */
 button,.play-button,.transport .play-button,.transport .icon-button,#previewFocusButton,.preview-focus-button,.wizard-nav button,.wizard-back,.wizard-next{height:40px!important;min-height:40px!important;max-height:40px!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important}
