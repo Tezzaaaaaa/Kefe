@@ -338,11 +338,13 @@ function render(ctx, w, h, appState, mediaCache) {
         const timedLines = activeTimedLines();
         const lyricTime = Math.max(0, cappedTime - (Number(appState.lyricsOffset) || 0));
 
-        if (appleTitleCard && timedLines.length) {
-            try {
-                renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime);
+        if (appleTitleCard) {
+            if (timedLines.length) {
+                try {
+                    renderLyricsEffect(ctx, w, h, style, timedLines, lyricTime);
+                }
+                catch(e) { console.error(\`${style.effect} render error:\`, e); }
             }
-            catch(e) { console.error(`${style.effect} render error:`, e); }
             renderTitleCard(ctx, w, h, cappedTime, appState, albumArtworkImage, resolveAudioLabels);
         } else if (!tcActive || cappedTime >= titleLyricsStart) {
             if (timedLines.length) {
