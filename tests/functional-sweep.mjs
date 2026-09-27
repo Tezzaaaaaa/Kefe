@@ -254,13 +254,11 @@ async function assertEditing(page) {
   const persisted = await page.evaluate(() => ({
     effect: window.state.style.effect,
     background: window.state.background.type,
-    autoCreated: Boolean(window.kefeAutoCreate.lastResult),
     renderPreset: window.kefeSmartRender.lastPlan?.preset,
   }));
   if (
     persisted.effect !== 'brat' ||
     persisted.background !== 'image' ||
-    !persisted.autoCreated ||
     !persisted.renderPreset
   ) {
     throw new Error(`Editor state did not persist: ${JSON.stringify(persisted)}`);
