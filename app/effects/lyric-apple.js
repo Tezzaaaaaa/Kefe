@@ -27,6 +27,28 @@ function linaFindActiveLine(lines, time) {
     return index;
 }
 
+function estimateFinalVocalWordEnd(words, nextLineTime = Infinity) {
+    if (!Array.isArray(words) || !words.length) return null;
+    const last = words[words.length - 1];
+    const start = Number(last.time);
+    if (!Number.isFinite(start)) return null;
+    const gaps = [];
+    for (let i = 0; i < words.length - 1; i++) {
+        const a = Number(words[i].time), b = Number(words[i + 1].time);
+        const gap = b - a;
+        if (Number.isFinite(gap) && gap >= 0.08 && gap <= 1.8) gaps.push(gap);
+    }
+    const cadence = gaps.length ? gaps.sort((a, b) => a - b)[Math.floor(gaps.length / 2)] : 0.48;
+    const letters = Array.from(String(last.text || "").replace(/[^\p{L}\p{N}]/gu, "")).length;
+    const textDuration = linaClamp(0.24 + letters * 0.055, 0.28, 1.15);
+    const cadenceDuration = linaClamp(cadence * 1.10, 0.28, 1.25);
+    let duration = Math.max(textDuration, cadenceDuration);
+    duration = linaClamp(duration, 0.28, 1.35);
+    let end = start + duration;
+    if (Number.isFinite(nextLineTime)) end = Math.min(end, Math.max(start + 0.12, nextLineTime - 0.08));
+    return end;
+}
+
 function estimateLineVocalEnd(line, nextLine) {
     const start = Number(line.time);
     if (!Number.isFinite(start)) return null;
@@ -38,12 +60,17 @@ function estimateLineVocalEnd(line, nextLine) {
         return total + linaClamp(0.16 + letters * 0.045, 0.24, 0.78);
     }, 0) + Math.max(0, tokens.length - 1) * 0.055;
     let duration = linaClamp(estimated, 0.65, 5.0);
-    if (Number.isFinite(nextStart)) duration = Math.min(duration, Math.max(0.20, nextStart - start - 0.10));
+    if (Number.isFinite(nextStart)) {
+        const available = Math.max(0.20, nextStart - start - 0.10);
+        duration = Math.min(duration, available);
+    }
     return start + duration;
 }
 
 export function appleWordsForLine(line, nextLine) {
-    if (Array.isArray(line?.words) && line.words.length) return line.words.map(w => ({ ...w, estimated: false }));
+    if (Array.isArray(line?.words) && line.words.length) {
+        return line.words.map(w => ({ ...w, estimated: false }));
+    }
     const tokens = String(line?.text || "").trim().split(/\s+/).filter(Boolean);
     if (!tokens.length || !hasFiniteNumber(line?.time)) return [];
     const start = Number(line.time);
@@ -144,7 +171,9 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
             if (row && ctx.measureText(candidate).width > maxWidth) {
                 rows.push(row);
                 row = token;
-            } else row = candidate;
+            } else {
+                row = candidate;
+            }
         }
         if (row) rows.push(row);
         if (!rows.length) rows.push(String(line.text || ''));
@@ -153,13 +182,26 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
         line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
     }
     ctx.restore();
-
     const activeIndex = linaFindActiveLine(displayLines, time);
+
     const source = albumArtworkImage;
 
     ctx.save();
     ctx.fillStyle = '#080808';
     ctx.fillRect(0, 0, w, h);
+    if (source) {
+        const sw = source.videoWidth || source.naturalWidth || source.width;
+        const sh = source.videoHeight || source.naturalHeight || source.height;
+        if (sw && sh) {
+            const scale = Math.max(w / sw, h / sh);
+            const dw = sw * scale, dh = sh * scale;
+            ctx.filter = 'blur(' + Math.max(w, h) * 0.075 + 'px) saturate(1.08)';
+            ctx.drawImage(source, (w - dw) / 2, (h - dh) / 2, dw, dh);
+            ctx.filter = 'none';
+            ctx.fillStyle = 'rgba(0,0,0,0.48)';
+            ctx.fillRect(0, 0, w, h);
+        }
+    }
     ctx.restore();
 
     const displayLine = activeIndex >= 0 ? displayLines[activeIndex] : null;
@@ -176,13 +218,19 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     const appleHeaderTop = Math.max(24, h * 0.035);
     const appleHeaderBottom = appleHeaderTop + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
-    const topAnchor = Math.max(h * linaClamp(Number(style.appleTopOffset) || 0.29, 0.26, 0.40), appleHeaderBottom + activeBlockHeight / 2 + blockGap);
+    const topAnchor = Math.max(
+        h * linaClamp(Number(style.appleTopOffset) || 0.29, 0.26, 0.40),
+        appleHeaderBottom + activeBlockHeight / 2 + blockGap
+    );
+    const activeScale = 1;
+
     const active = linaNormaliseLine(displayLines, activeIndex);
     if (!active) return;
 
     const posT = appleSpringOut((time - active.time) / 0.35);
     const styleT = appleCubicBezier((time - active.time) / 0.3, 0.25, 0.1, 0.25, 1);
-    const scalePoints = [[-1, 1], [0, 1], [1, 1]];
+
+    const scalePoints = [[-1, 1], [0, activeScale], [1, 1]];
     const opacityPoints = [[-2, pastOpacity], [-1, upcomingOpacity], [0, 1], [1, upcomingOpacity], [2, pastOpacity]];
     const blurPoints = [[-2, 18], [-1, 10], [0, 0], [1, 10], [2, 18], [3, 26], [4, 34], [5, 42], [6, 50]];
 
@@ -200,12 +248,14 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
         if (distance > 0) {
             for (let oi = activeIndex; oi < i; oi++) {
                 settledOffset += ((displayLines[oi]?.appleBlockHeight || rowHeight) / 2)
-                    + ((displayLines[oi + 1]?.appleBlockHeight || rowHeight) / 2) + blockGap;
+                    + ((displayLines[oi + 1]?.appleBlockHeight || rowHeight) / 2)
+                    + blockGap;
             }
         } else if (distance < 0) {
             for (let oi = activeIndex; oi > i; oi--) {
                 settledOffset -= ((displayLines[oi]?.appleBlockHeight || rowHeight) / 2)
-                    + ((displayLines[oi - 1]?.appleBlockHeight || rowHeight) / 2) + blockGap;
+                    + ((displayLines[oi - 1]?.appleBlockHeight || rowHeight) / 2)
+                    + blockGap;
             }
         }
 
@@ -229,7 +279,14 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
         ctx.translate(x, y);
         ctx.scale(scaleAmt, scaleAmt);
         ctx.translate(-x, -y);
-        ctx.filter = isActiveRow ? 'none' : 'blur(' + Math.max(0, blurAmt).toFixed(2) + 'px)';
+
+        if (isActiveRow) {
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.filter = 'none';
+        } else {
+            ctx.filter = 'blur(' + Math.max(0, blurAmt).toFixed(2) + 'px)';
+        }
 
         const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
         if (!isActiveRow || !words.length) {
@@ -239,17 +296,25 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
             const easeWindow = 0.10;
             for (let ri = 0; ri < rows.length; ri++) {
                 const rowTokens = rows[ri].split(/\s+/).filter(Boolean);
-                let cursorX = x;
-                for (const rowToken of rowTokens) {
-                    const word = words[wordIndex++];
-                    const wordText = String(word?.text || rowToken);
+                const rowWords = [];
+                for (let ti = 0; ti < rowTokens.length; ti++) {
+                    const word = words[wordIndex + ti];
+                    const wordText = String(word?.text || rowTokens[ti]);
                     const wordWidth = ctx.measureText(wordText).width;
+                    rowWords.push({ word, wordText, wordWidth });
+                }
+                let cursorX = x;
+                for (const item of rowWords) {
+                    const word = item.word;
+                    const wordText = item.wordText;
+                    const wordWidth = item.wordWidth;
                     const swap = word ? linaSmooth((time - Number(word.time)) / easeWindow) : 1;
                     const opacity = 0.55 + 0.45 * swap;
                     ctx.fillStyle = `rgba(255,255,255,${opacity.toFixed(3)})`;
                     ctx.fillText(wordText, cursorX, rowYs[ri]);
                     cursorX += wordWidth + ctx.measureText(' ').width;
                 }
+                wordIndex += rowTokens.length;
             }
         }
         ctx.restore();
