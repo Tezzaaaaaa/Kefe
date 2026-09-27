@@ -42,25 +42,15 @@
   function estimate(preset = getPreset()) {
     const duration = masterDuration();
     const resolver = window.kefeGetExportConfig;
-    if (typeof resolver === 'function') {
-      const config = resolver(preset, window.state?.aspect || '9:16');
-      const duration = masterDuration();
-      const frames = Math.max(0, Math.ceil(duration * config.fps));
-      const pixelFrames = config.width * config.height * frames;
-      const load = pixelFrames > HIGH_POWER_PIXELS ? 'very-high' : pixelFrames > 30e9 ? 'high' : pixelFrames > 10e9 ? 'moderate' : 'light';
-      return { preset, width: config.width, height: config.height, fps: config.fps, duration, frames, pixelFrames, load };
+    if (typeof resolver !== 'function') {
+      throw new Error('KEFE export configuration is not available');
     }
-    let dimensions = [720, 1280];
-    let fps = 30;
-    if (preset === '1080p') dimensions = [1080, 1920];
-    if (preset === 'instagram' || preset === 'tiktok') dimensions = [1080, 1920];
-    if (preset === '480p') { dimensions = [480, 854]; fps = 24; }
-    const frames = Math.max(0, Math.ceil(duration * fps));
-    const pixelFrames = dimensions[0] * dimensions[1] * frames;
+    const config = resolver(preset, window.state?.aspect || '9:16');
+    const frames = Math.max(0, Math.ceil(duration * config.fps));
+    const pixelFrames = config.width * config.height * frames;
     const load = pixelFrames > HIGH_POWER_PIXELS ? 'very-high' : pixelFrames > 30e9 ? 'high' : pixelFrames > 10e9 ? 'moderate' : 'light';
-    return { preset, width: dimensions[0], height: dimensions[1], fps, duration, frames, pixelFrames, load };
+    return { preset, width: config.width, height: config.height, fps: config.fps, duration, frames, pixelFrames, load };
   }
-
   function setStatus(text) {
     const el = $('previewStatus');
     if (!el) return;
