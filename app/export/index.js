@@ -1,4 +1,5 @@
 import { getQualityPreset, getExportConfig } from './config.js';
+import { resolveMasterInfo } from './master.js';
 import { loadEncoder, releaseEncoder } from './encoder.js';
 import { canUseWebCodecsExport, exportVideoWebCodecs } from './webcodecs.js';
 
@@ -28,7 +29,7 @@ function makeProgressReporter(onProgress) {
 
 export { getExportConfig };
 
-export { resolveMasterInfo } from './master.js';
+export { resolveMasterInfo };
 
 // How many 4-second segments to encode per FFmpeg engine boot before we
 // tear it down and start a fresh one. FFmpeg-wasm's heap doesn't get fully
