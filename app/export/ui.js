@@ -1,6 +1,7 @@
-window.kefeGetExportConfig = getExportConfig;
 import { exportVideo, resolveMasterInfo } from './index.js';
 import { getExportConfig } from './config.js';
+
+window.kefeGetExportConfig = getExportConfig;
 
 const $ = id => document.getElementById(id);
 // app.js attaches the authoritative preflight click handler to #exportBottom.
