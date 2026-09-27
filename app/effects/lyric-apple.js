@@ -300,7 +300,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
 
     const scalePoints = [[-1, 1], [0, activeScale], [1, 1]];
     const opacityPoints = [[-2, pastOpacity], [-1, upcomingOpacity], [0, 1], [1, upcomingOpacity], [2, pastOpacity]];
-    const blurPoints = [[-2, 5], [-1, 4], [0, 0], [1, 0], [2, 0]];
+    const blurPoints = [[-2, 3.8], [-1, 2.8], [0, 0], [1, 2.2], [2, 3.2]];
 
     const previousBlock = displayLines[activeIndex - 1];
     const transitionShift = previousBlock
