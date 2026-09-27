@@ -185,7 +185,7 @@ try {
   await page.locator('#wizardNextBtn').click();
   await page.locator('#lyricStyleBlock').waitFor({ state: 'visible' });
   await page
-    .locator('#wizardSection [data-wizard-effect="rise"]')
+    .locator('#lyricStyleBlock [data-effect="rise"]')
     .click({ force: true });
   await page
     .locator('#backgroundSection [data-background-preset="aurora"]')
