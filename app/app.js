@@ -40,7 +40,7 @@ const state = {
         pulseGlowSize: 1.0,
         titleCardEnabled: true,
         titleCardDuration: 3,
-        titleCardStyle: 'minimal'
+        titleCardStyle: 'spotlight'
     },
     background: { type: 'solid', image: null, video: null, dim: 0.35, solid: '#0A0A0A', blur: 0 },
     playback: { isPlaying: false, currentTime: 0, isSeeking: false },
@@ -1210,7 +1210,10 @@ function renderTitleCard(ctx, w, h, time, appState) {
         artwork: appState.audio?.hasArtwork && albumArtworkImage ? albumArtworkImage : null
     };
     const design = resolveTitleCardDesign(appState);
-    if (design === 'spotlight') renderTitleCardSpotlight(ctx, w, h, phase, info);
+    if (design === 'spotlight') {
+        if (appState.style.effect === 'apple' && phase.toLyrics > 0.001) renderTitleCardMinimal(ctx, w, h, phase, info);
+        else renderTitleCardSpotlight(ctx, w, h, phase, info);
+    }
     else if (design === 'editorial') renderTitleCardEditorial(ctx, w, h, phase, info);
     else if (design === 'statement') renderTitleCardStatement(ctx, w, h, appState, phase, info);
     else renderTitleCardMinimal(ctx, w, h, phase, info);
