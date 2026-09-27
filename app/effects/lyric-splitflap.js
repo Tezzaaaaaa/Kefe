@@ -7,7 +7,7 @@
   if (!u) { console.error('[lyric-splitflap] requires core.js'); return; }
   function clamp(v,a,b){ a=a==null?0:a; b=b==null?1:b; return Math.max(a,Math.min(b,Number(v)||0)); }
 
-  function font(ctx,size){ ctx.font='900 '+Math.max(18,size)+'px "Archivo Narrow","Arial Narrow",system-ui,sans-serif'; }
+  function font(ctx,size){ ctx.font='900 '+Math.max(18,size)+'px "Big Shoulders Stencil Display","Arial Narrow",system-ui,sans-serif'; }
   function fit(ctx,text,requested,maxWidth){
     var size=Math.max(40,Math.min(220,Number(requested)||120));
     font(ctx,size);
