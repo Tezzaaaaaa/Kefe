@@ -507,16 +507,116 @@ function drawAppleMusicTransition(ctx, w, h, settings, lines, time, visibleCount
 
 function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
-    const wash=ctx.createLinearGradient(0,0,0,h); wash.addColorStop(0,'rgba(18,18,20,0.20)'); wash.addColorStop(0.55,'rgba(8,8,10,0.08)'); wash.addColorStop(1,'rgba(0,0,0,0.34)');
-    ctx.save(); ctx.fillStyle=wash; ctx.fillRect(0,0,w,h); ctx.restore();
-    drawAppleMusicHeader(ctx,w,h);
-    const settings={fontSize:Number(style.fontSize)||76,align:style.align||'left',activeColor:'#FFFFFF',inactiveColor:'rgba(255,255,255,0.46)',backgroundColor:'#FFFFFF',inactiveOpacity:Number.isFinite(Number(style.appleInactiveOpacity))?Number(style.appleInactiveOpacity):0.25,glow:0.012,depth:0.008,lift:0,highlightSpan:0.96,topOffset:Number(style.appleTopOffset)||0.245,lineSpacing:Number(style.appleLineSpacing)||0.72};
-    const visibleCount=Math.max(2,Math.min(6,Math.round(Number(style.appleVisibleLines)||4)));
-    const first=linaNormaliseLine(lines,0); if(!first||time<Math.max(0,first.time-1.2)) return;
-    const motion=getAppleFocalMotion(lines,time)||{fromIndex:0,toIndex:0,progress:1};
-    drawAppleMusicTransition(ctx,w,h,settings,lines,time,visibleCount,motion);
-}
 
+    const fontSize = Math.max(28, Math.min(150, Number(style.fontSize) || 76));
+    const family = '"Open Sans",Arial,sans-serif';
+    const lineHeight = fontSize * 1.35;
+    const margin = Math.max(48, w * 0.075);
+    const maxWidth = w - margin * 2;
+    const activeIndex = linaFindActiveLine(lines, time);
+    if (activeIndex < 0) return;
+
+    // Apple-style atmospheric backdrop: use the existing album artwork when available.
+    const source = albumArtworkImage;
+    ctx.save();
+    if (source) {
+        const sw = source.videoWidth || source.naturalWidth || source.width;
+        const sh = source.videoHeight || source.naturalHeight || source.height;
+        if (sw && sh) {
+            ctx.filter = 'blur(70px) saturate(1.6) brightness(0.6)';
+            const scale = Math.max((w + 120) / sw, (h + 120) / sh);
+            const dw = sw * scale, dh = sh * scale;
+            ctx.drawImage(source, (w - dw) / 2, (h - dh) / 2, dw, dh);
+        }
+    }
+    ctx.filter = 'none';
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
+
+    // The supplied design uses a centred scrolling stack with the active line
+    // enlarged and sharp. Word timing remains automatic through the existing
+    // lyric timing pipeline when per-word timestamps are not present.
+    const visibleRadius = 4;
+    const active = linaNormaliseLine(lines, activeIndex);
+    if (!active) return;
+
+    for (let i = Math.max(0, activeIndex - 2); i <= Math.min(lines.length - 1, activeIndex + visibleRadius); i++) {
+        const line = linaNormaliseLine(lines, i);
+        if (!line || !String(line.text || '').trim()) continue;
+
+        const distance = i - activeIndex;
+        const isActive = distance === 0;
+        const isPast = distance < 0;
+        const words = appleWordsForLine(line, lines[i + 1] || null);
+        const text = String(line.text || '').trim();
+
+        ctx.save();
+        ctx.font = `800 ${fontSize}px ${family}`;
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'left';
+
+        const measured = ctx.measureText(text).width;
+        const size = Math.min(fontSize, measured > maxWidth ? fontSize * (maxWidth / measured) : fontSize);
+        ctx.font = `800 ${size}px ${family}`;
+        const width = ctx.measureText(text).width;
+        const x = (w - width) / 2;
+        const y = h * 0.5 + distance * lineHeight;
+
+        ctx.globalAlpha = isActive ? 1 : (isPast ? 0.14 : 0.22);
+        ctx.filter = isActive ? 'none' : 'blur(3px)';
+        ctx.fillStyle = '#FFFFFF';
+
+        if (isActive) {
+            ctx.translate(w / 2, y);
+            ctx.scale(1.18, 1.18);
+            ctx.translate(-w / 2, -y);
+            ctx.shadowColor = 'rgba(255,255,255,0.3)';
+            ctx.shadowBlur = 28;
+        } else {
+            ctx.scale(isPast ? 0.85 : 0.88, isPast ? 0.85 : 0.88);
+            ctx.translate(w * (1 - (isPast ? 0.85 : 0.88)) / 2, y * (1 - (isPast ? 0.85 : 0.88)));
+        }
+
+        if (!words.length) {
+            ctx.fillText(text, x, y);
+        } else {
+            let cursorX = x;
+            const space = ctx.measureText(' ').width;
+            for (let wi = 0; wi < words.length; wi++) {
+                const word = words[wi];
+                const wordText = String(word.text || '');
+                const wordWidth = ctx.measureText(wordText).width;
+                const duration = Math.max(0.001, Number(word.endTime) - Number(word.time));
+                const progress = linaClamp((time - Number(word.time)) / duration);
+
+                if (!isActive) {
+                    ctx.fillText(wordText, cursorX, y);
+                } else {
+                    const gradient = ctx.createLinearGradient(cursorX, 0, cursorX + wordWidth, 0);
+                    const stop = progress;
+                    gradient.addColorStop(0, '#FFFFFF');
+                    gradient.addColorStop(Math.max(0, Math.min(1, stop)), '#FFFFFF');
+                    gradient.addColorStop(Math.max(0, Math.min(1, stop)), 'rgba(255,255,255,0.28)');
+                    gradient.addColorStop(1, 'rgba(255,255,255,0.28)');
+                    ctx.fillStyle = gradient;
+                    ctx.fillText(wordText, cursorX, y);
+                    if (duration > 0.9 && progress > 0 && progress < 1) {
+                        ctx.shadowColor = 'rgba(255,255,255,0.6)';
+                        ctx.shadowBlur = 18;
+                        ctx.fillText(wordText, cursorX, y);
+                        ctx.shadowBlur = 0;
+                    }
+                    ctx.fillStyle = '#FFFFFF';
+                }
+
+                cursorX += wordWidth;
+                if (wi < words.length - 1) cursorX += space;
+            }
+        }
+        ctx.restore();
+    }
+}
 function buildBratWords(lines) {
     const output = [];
     for (let i = 0; i < lines.length; i++) {
