@@ -517,7 +517,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
         ctx.globalAlpha = alphaAmt;
-        ctx.filter = blurAmt > 0.05 ? `blur(${blurAmt.toFixed(1)}px)` : 'none';
         const rowFontSize = isActiveRow ? activeFontSize : inactiveFontSize;
         ctx.font = `800 ${rowFontSize}px ${family}`;
         ctx.fillStyle = '#FFFFFF';
@@ -2815,7 +2814,8 @@ function handleBackgroundFile(file) {
     }
 }
 
-const audioInput = $('audioInput'), audioStatus = $('audioStatus');
+const audioInput = document.getElementById('audioInput');
+const audioStatus = document.getElementById('audioStatus');
 const audioChooseBtn = document.getElementById('audioChooseBtn');
 
 // The Media step accepts either an audio file or a video file. A video
@@ -2830,7 +2830,7 @@ function handleMediaSourceFile(file) {
     else handleAudioFile(file);
 }
 
-audioInput.addEventListener('change', function () {
+if (audioInput) audioInput.addEventListener('change', function () {
     const file = this.files && this.files[0];
     if (!file) return;
     handleMediaSourceFile(file);
