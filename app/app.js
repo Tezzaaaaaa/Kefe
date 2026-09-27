@@ -572,39 +572,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         ctx.restore();
     }
 
-    // Keep the song identity visible while lyrics are playing: compact artwork
-    // and metadata stay anchored at the top, with the lyric stack beginning
-    // below it. This matches the Now Playing lyrics hierarchy.
-    if (source && state?.audio) {
-        const metadata = resolveAudioLabels(state.audio);
-        const artSize = linaClamp(Math.min(w, h) * 0.075, 56, 88);
-        const left = margin;
-        const top = Math.max(34, h * 0.052);
-        const artY = top;
-        ctx.save();
-        ctx.globalAlpha = 0.94;
-        ctx.beginPath();
-        ctx.roundRect(left, artY, artSize, artSize, Math.max(8, artSize * 0.08));
-        ctx.clip();
-        const sw = source.naturalWidth || source.videoWidth || source.width;
-        const sh = source.naturalHeight || source.videoHeight || source.height;
-        if (sw && sh) {
-            const side = Math.min(sw, sh);
-            ctx.drawImage(source, (sw - side) / 2, (sh - side) / 2, side, side, left, artY, artSize, artSize);
-        }
-        ctx.restore();
-        const detailX = left + artSize + 16;
-        ctx.save();
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.font = `700 ${Math.max(16, Math.round(artSize * 0.23))}px ${family}`;
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(String(metadata.title || ''), detailX, top + artSize * 0.38);
-        ctx.font = `500 ${Math.max(13, Math.round(artSize * 0.17))}px ${family}`;
-        ctx.fillStyle = 'rgba(255,255,255,0.72)';
-        ctx.fillText(String(metadata.artist || metadata.album || ''), detailX, top + artSize * 0.70);
-        ctx.restore();
-    }
 }
 function buildBratWords(lines) {
     const output = [];
