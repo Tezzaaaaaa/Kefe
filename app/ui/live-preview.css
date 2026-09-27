@@ -90,3 +90,31 @@
     transition: none;
   }
 }
+
+
+/* Preview fullscreen has one owner: live-preview.js. On iPhone Safari,
+   element fullscreen is unavailable, so this class provides the functional
+   viewport fallback while keeping the preview controls usable. */
+.preview.kefe-preview-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.preview.kefe-preview-fullscreen .preview-toolbar,
+.preview.kefe-preview-fullscreen .transport {
+  flex: 0 0 auto;
+}
+
+.preview.kefe-preview-fullscreen .canvas-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+}
