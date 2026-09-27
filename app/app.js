@@ -1379,46 +1379,84 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
 
 /* Design: Spotlight — cinematic radial glow, large artwork, title beneath. */
 function renderTitleCardSpotlight(ctx, w, h, phase, info) {
-    const { alpha, enter } = phase;
+    const { alpha, enter, toLyrics = 0 } = phase;
     const unit = Math.min(w, h);
     const glow = ctx.createRadialGradient(w / 2, h * 0.42, unit * 0.08, w / 2, h * 0.42, unit * 0.85);
     glow.addColorStop(0, 'rgba(255,255,255,0.16)');
     glow.addColorStop(0.45, 'rgba(0,0,0,0.18)');
     glow.addColorStop(1, 'rgba(0,0,0,0.62)');
+
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, w, h);
-    const lift = (1 - enter) * unit * 0.03;
-    const cy = h * 0.5 + lift;
+
+    const centerY = h * 0.50 + (1 - enter) * unit * 0.03;
+    const topY = Math.max(unit * 0.09, h * 0.10);
+    const cy = centerY + (topY - centerY) * toLyrics;
+    const maxWidth = w * 0.78;
+
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+
+    // During the lyric section the title card becomes the compact top
+    // now-playing identity, leaving the lyric stack below it.
+    const artSize = linaClamp(unit * (0.34 - 0.24 * toLyrics), 72, 460);
+    const artCenterY = cy - artSize * 0.34;
     let cursorY = cy;
-    const artSize = linaClamp(unit * 0.34, 180, 460);
-    if (drawTitleArtwork(ctx, info.artwork, w / 2, cy - unit * 0.10, artSize, Math.max(14, artSize * 0.06))) {
-        cursorY = cy - unit * 0.10 + artSize / 2 + unit * 0.075;
+
+    if (drawTitleArtwork(ctx, info.artwork, w / 2, artCenterY, artSize, Math.max(12, artSize * 0.06))) {
+        cursorY = artCenterY + artSize / 2 + unit * (0.075 - 0.045 * toLyrics);
     }
-    const titleSize = fitTitleText(ctx, info.title, 800, '"Open Sans"', Math.max(40, Math.round(unit * 0.062)), w * 0.80);
-    ctx.font = `800 ${titleSize}px "Open Sans", Arial, sans-serif`;
+
+    const titleSize = fitTitleText(
+        ctx,
+        info.title,
+        800,
+        '-apple-system, "SF Pro Display", sans-serif',
+        Math.max(24, Math.round(unit * (0.062 - 0.024 * toLyrics))),
+        maxWidth,
+        18
+    );
+    ctx.font = `800 ${titleSize}px -apple-system, "SF Pro Display", sans-serif`;
     ctx.fillStyle = '#FFFFFF';
     ctx.shadowColor = 'rgba(0,0,0,0.5)';
-    ctx.shadowBlur = Math.max(8, unit * 0.016);
+    ctx.shadowBlur = Math.max(5, unit * 0.012);
     ctx.fillText(info.title, w / 2, cursorY);
+
     let below = cursorY + titleSize * 0.72;
     if (info.artist) {
-        const artistSize = fitTitleText(ctx, info.artist, 600, '"Open Sans"', Math.max(20, Math.round(unit * 0.028)), w * 0.7);
-        ctx.font = `600 ${artistSize}px "Open Sans", Arial, sans-serif`;
+        const artistSize = fitTitleText(
+            ctx,
+            info.artist,
+            600,
+            '-apple-system, "SF Pro Display", sans-serif',
+            Math.max(16, Math.round(unit * (0.028 - 0.010 * toLyrics))),
+            w * 0.70,
+            14
+        );
+        ctx.font = `600 ${artistSize}px -apple-system, "SF Pro Display", sans-serif`;
         ctx.fillStyle = 'rgba(255,255,255,0.78)';
-        ctx.shadowBlur = Math.max(4, unit * 0.008);
+        ctx.shadowBlur = Math.max(3, unit * 0.006);
         ctx.fillText(info.artist, w / 2, below + artistSize);
-        below += artistSize * 2.1;
+        below += artistSize * 2.0;
     }
+
     if (info.album) {
-        const albumSize = fitTitleText(ctx, info.album, 500, '"Open Sans"', Math.max(15, Math.round(unit * 0.019)), w * 0.6);
-        ctx.font = `500 ${albumSize}px "Open Sans", Arial, sans-serif`;
+        const albumSize = fitTitleText(
+            ctx,
+            info.album,
+            500,
+            '-apple-system, "SF Pro Display", sans-serif',
+            Math.max(13, Math.round(unit * (0.019 - 0.006 * toLyrics))),
+            w * 0.60,
+            12
+        );
+        ctx.font = `500 ${albumSize}px -apple-system, "SF Pro Display", sans-serif`;
         ctx.fillStyle = 'rgba(255,255,255,0.52)';
         ctx.fillText(info.album, w / 2, below + albumSize);
     }
+
     ctx.restore();
     return true;
 }
