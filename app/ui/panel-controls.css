@@ -221,8 +221,8 @@ input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
 .music-details {
   display: grid !important;
   grid-template-columns: 1fr !important;
-  gap: 12px !important;
-  margin-top: 14px;
+  gap: var(--s-3) !important;
+  margin-top: var(--s-3);
 }
 
 .music-slot {
