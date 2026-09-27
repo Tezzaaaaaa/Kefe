@@ -121,7 +121,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         const headerTop = Math.max(24, h * 0.035);
         const targetArtSize = 48;
         const targetLeft = boundaryLeft + iphoneSideInset;
-        const targetRight = boundaryLeft + iphoneBoundaryWidth - iphoneSideInset;
+        const targetRight = boundaryLeft + compositionWidth - iphoneSideInset;
         const targetArtY = headerTop;
         const targetDetailX = targetLeft + targetArtSize + 12;
         const iconGap = 16;
@@ -225,7 +225,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     }
 
     let titleSize = Math.max(30, Math.round(unit * (32 / 390)));
-    ctx.font = `800 ${titleSize}px "Open Sans",Arial,sans-serif`;
+    ctx.font = `800 ${titleSize}px -apple-system,"SF Pro Display",sans-serif`;
     while (titleSize > 30 && ctx.measureText(title).width > maxTextWidth) {
         titleSize -= 2;
         ctx.font = `800 ${titleSize}px "Open Sans",Arial,sans-serif`;
@@ -239,7 +239,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     let cursorY = titleY + Math.max(42, titleSize * 0.92);
     if (artist) {
         let artistSize = Math.max(16, Math.round(unit * (17 / 390)));
-        ctx.font = `600 ${artistSize}px "Open Sans",Arial,sans-serif`;
+        ctx.font = `600 ${artistSize}px -apple-system,"SF Pro Display",sans-serif`;
         while (artistSize > 15 && ctx.measureText(artist).width > maxTextWidth) {
             artistSize -= 1;
             ctx.font = `600 ${artistSize}px "Open Sans",Arial,sans-serif`;
@@ -250,7 +250,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     }
     if (album) {
         let albumSize = Math.max(13, Math.round(unit * (14 / 390)));
-        ctx.font = `500 ${albumSize}px "Open Sans",Arial,sans-serif`;
+        ctx.font = `500 ${albumSize}px -apple-system,"SF Pro Display",sans-serif`;
         while (albumSize > 13 && ctx.measureText(album).width > maxTextWidth) {
             albumSize -= 1;
             ctx.font = `500 ${albumSize}px "Open Sans",Arial,sans-serif`;
