@@ -256,49 +256,121 @@ function appleWordsForLine(line, nextLine) {
 
 
 
+function appleKeyframeLerp(ed, points) {
+    if (ed <= points[0][0]) return points[0][1];
+    if (ed >= points[points.length - 1][0]) return points[points.length - 1][1];
+    for (let i = 0; i < points.length - 1; i++) {
+        const [ed0, v0] = points[i];
+        const [ed1, v1] = points[i + 1];
+        if (ed >= ed0 && ed <= ed1) {
+            const t = (ed - ed0) / (ed1 - ed0);
+            return v0 + (v1 - v0) * t;
+        }
+    }
+    return points[points.length - 1][1];
+}
+
+// Evaluates a CSS-style cubic-bezier(x1,y1,x2,y2) easing curve at time t
+// (0..1), same maths a browser uses for a `transition-timing-function`.
+function appleCubicBezier(t, x1, y1, x2, y2) {
+    t = linaClamp(t);
+    if (t <= 0) return 0;
+    if (t >= 1) return 1;
+    const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+    const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+    const sampleX = u => ((ax * u + bx) * u + cx) * u;
+    const sampleY = u => ((ay * u + by) * u + cy) * u;
+    const sampleDX = u => (3 * ax * u + 2 * bx) * u + cx;
+    let u = t;
+    for (let i = 0; i < 8; i++) {
+        const dx = sampleX(u) - t;
+        if (Math.abs(dx) < 1e-4) break;
+        const d = sampleDX(u);
+        if (Math.abs(d) < 1e-6) break;
+        u -= dx / d;
+    }
+    return sampleY(linaClamp(u));
+}
+
+// A gentle overshoot-then-settle curve for the line-to-line scroll — the
+// small "bounce" iOS spring lists (and Apple Music's own lyric scroll) have,
+// rather than a flat ease-out.
+function appleSpringOut(t) {
+    t = linaClamp(t);
+    const c1 = 1.2, c3 = c1 + 1;
+    const u = t - 1;
+    return 1 + c3 * u * u * u + c1 * u * u;
+}
+
 function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
 
     const fontSize = Math.max(28, Math.min(150, Number(style.fontSize) || 76));
     const family = '-apple-system,"SF Pro Display",sans-serif';
-    const lineHeight = fontSize * 1.35;
     const margin = Math.max(48, w * 0.075);
     const maxWidth = w - margin * 2;
     const activeIndex = linaFindActiveLine(lines, time);
     if (activeIndex < 0) return;
 
-    // Apple-style atmospheric backdrop: use the existing album artwork when available.
+    // Backdrop: heavily blurred, saturated album art under a dark overlay —
+    // matches Apple Music's Now Playing lyrics sheet background treatment.
     const source = albumArtworkImage;
     ctx.save();
     if (source) {
         const sw = source.videoWidth || source.naturalWidth || source.width;
         const sh = source.videoHeight || source.naturalHeight || source.height;
         if (sw && sh) {
-            ctx.filter = 'blur(70px) saturate(1.6) brightness(0.6)';
+            ctx.filter = 'blur(60px) saturate(1.5)';
             const scale = Math.max((w + 120) / sw, (h + 120) / sh);
             const dw = sw * scale, dh = sh * scale;
             ctx.drawImage(source, (w - dw) / 2, (h - dh) / 2, dw, dh);
         }
     }
     ctx.filter = 'none';
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.fillRect(0, 0, w, h);
     ctx.restore();
 
-    // The supplied design uses a centred scrolling stack with the active line
-    // enlarged and sharp. Word timing remains automatic through the existing
-    // lyric timing pipeline when per-word timestamps are not present.
-    const visibleRadius = 4;
+    // Apple Music's real lyric states (verified, not the earlier stylised
+    // guess): active line full brightness/no blur/subtle scale; upcoming
+    // lines dimmed with no blur; already-sung lines dimmer still and softly
+    // blurred, like they've receded behind the active one. Reads from the
+    // existing style.apple* controls (previously defined but never wired in).
+    const lineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.72, 0.45, 1.10);
+    const lineHeight = fontSize * (1 + lineSpacing);
+    const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.25, 0.05, 0.6);
+    const pastOpacity = upcomingOpacity * 0.6;
+    const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
+    const topAnchor = h * linaClamp(Number(style.appleTopOffset) || 0.245, 0.10, 0.50);
+    const glow = Number(style.appleGlow) || 0.012;
+    const activeScale = 1 + linaClamp(Number(style.appleDepth) ?? 0.008, 0, 0.06) * 2.5;
+
     const active = linaNormaliseLine(lines, activeIndex);
     if (!active) return;
 
-    for (let i = Math.max(0, activeIndex - 2); i <= Math.min(lines.length - 1, activeIndex + visibleRadius); i++) {
+    // Two clocks, matched to how the real lyrics view actually animates:
+    // the stack scrolls by one line-height per active-line change with a
+    // short spring settle (~0.35s, slight overshoot), while each row's own
+    // opacity/blur/scale cross-fades on Apple's documented 0.3s ease.
+    const posT = appleSpringOut((time - active.time) / 0.35);
+    const styleT = appleCubicBezier((time - active.time) / 0.3, 0.25, 0.1, 0.25, 1);
+
+    const scalePoints = [[-1, 1], [0, activeScale], [1, 1]];
+    const opacityPoints = [[-2, 0], [-1, pastOpacity], [0, 1], [1, upcomingOpacity]];
+    const blurPoints = [[-2, 1.5], [-1, 1.5], [0, 0], [1, 0]];
+
+    for (let i = Math.max(0, activeIndex - 2); i <= Math.min(lines.length - 1, activeIndex + visibleLines); i++) {
         const line = linaNormaliseLine(lines, i);
         if (!line || !String(line.text || '').trim()) continue;
 
         const distance = i - activeIndex;
-        const isActive = distance === 0;
-        const isPast = distance < 0;
+        // Position slides from this row's pre-transition slot (distance + 1)
+        // down to its settled slot (distance) as posT goes 0 -> 1; style
+        // (opacity/scale/blur) does the same on its own, shorter clock.
+        const edPos = distance + (1 - posT);
+        const edStyle = distance + (1 - styleT);
+        const isActiveRow = distance === 0;
+
         const words = appleWordsForLine(line, lines[i + 1] || null);
         const text = String(line.text || '').trim();
 
@@ -310,55 +382,55 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         const measured = ctx.measureText(text).width;
         const size = Math.min(fontSize, measured > maxWidth ? fontSize * (maxWidth / measured) : fontSize);
         ctx.font = `800 ${size}px ${family}`;
-        const width = ctx.measureText(text).width;
-        const x = (w - width) / 2;
-        const y = h * 0.5 + distance * lineHeight;
 
-        ctx.globalAlpha = isActive ? 1 : (isPast ? 0.14 : 0.22);
-        ctx.filter = isActive ? 'none' : 'blur(3px)';
-        ctx.fillStyle = '#FFFFFF';
+        const x = margin;
+        const y = topAnchor + edPos * lineHeight;
+        const scaleAmt = appleKeyframeLerp(edStyle, scalePoints);
+        const alphaAmt = linaClamp(appleKeyframeLerp(edStyle, opacityPoints), 0, 1);
+        const blurAmt = appleKeyframeLerp(edStyle, blurPoints);
 
-        if (isActive) {
-            ctx.translate(w / 2, y);
-            ctx.scale(1.18, 1.18);
-            ctx.translate(-w / 2, -y);
-            ctx.shadowColor = 'rgba(255,255,255,0.3)';
-            ctx.shadowBlur = 28;
-        } else {
-            ctx.scale(isPast ? 0.85 : 0.88, isPast ? 0.85 : 0.88);
-            ctx.translate(w * (1 - (isPast ? 0.85 : 0.88)) / 2, y * (1 - (isPast ? 0.85 : 0.88)));
+        ctx.globalAlpha = alphaAmt;
+        ctx.filter = blurAmt > 0.05 ? `blur(${blurAmt.toFixed(1)}px)` : 'none';
+        ctx.fillStyle = isActiveRow ? '#FFFFFF' : 'rgba(255,255,255,0.9)';
+
+        ctx.translate(x, y);
+        ctx.scale(scaleAmt, scaleAmt);
+        ctx.translate(-x, -y);
+
+        if (isActiveRow) {
+            ctx.shadowColor = `rgba(255,255,255,${linaClamp(0.3 + glow * 10, 0, 0.6)})`;
+            ctx.shadowBlur = 20;
         }
 
-        if (!words.length) {
+        if (!isActiveRow || !words.length) {
             ctx.fillText(text, x, y);
         } else {
+            // Apple Music highlights the active line word-by-word: each word
+            // snaps from ~50% opacity to full white in a quick 0.1s ease the
+            // instant it's sung — a discrete swap, not a left-to-right wipe
+            // across the letters. Words held for a while get an undulating
+            // glow instead of staying flat.
             let cursorX = x;
             const space = ctx.measureText(' ').width;
+            const easeWindow = 0.1;
             for (let wi = 0; wi < words.length; wi++) {
                 const word = words[wi];
                 const wordText = String(word.text || '');
                 const wordWidth = ctx.measureText(wordText).width;
                 const duration = Math.max(0.001, Number(word.endTime) - Number(word.time));
-                const progress = linaClamp((time - Number(word.time)) / duration);
+                const swap = linaSmooth((time - Number(word.time)) / easeWindow);
+                const sung = time >= Number(word.time);
 
-                if (!isActive) {
+                ctx.fillStyle = `rgba(255,255,255,${(0.5 + 0.5 * swap).toFixed(3)})`;
+                ctx.fillText(wordText, cursorX, y);
+
+                if (sung && duration > 0.9 && time < Number(word.endTime)) {
+                    const holdPhase = ((time - Number(word.time)) % 1.1) / 1.1;
+                    const pulse = 0.5 - 0.5 * Math.cos(2 * Math.PI * holdPhase);
+                    ctx.shadowColor = 'rgba(255,255,255,0.6)';
+                    ctx.shadowBlur = 16 * pulse;
                     ctx.fillText(wordText, cursorX, y);
-                } else {
-                    const gradient = ctx.createLinearGradient(cursorX, 0, cursorX + wordWidth, 0);
-                    const stop = progress;
-                    gradient.addColorStop(0, '#FFFFFF');
-                    gradient.addColorStop(Math.max(0, Math.min(1, stop)), '#FFFFFF');
-                    gradient.addColorStop(Math.max(0, Math.min(1, stop)), 'rgba(255,255,255,0.28)');
-                    gradient.addColorStop(1, 'rgba(255,255,255,0.28)');
-                    ctx.fillStyle = gradient;
-                    ctx.fillText(wordText, cursorX, y);
-                    if (duration > 0.9 && progress > 0 && progress < 1) {
-                        ctx.shadowColor = 'rgba(255,255,255,0.6)';
-                        ctx.shadowBlur = 18;
-                        ctx.fillText(wordText, cursorX, y);
-                        ctx.shadowBlur = 0;
-                    }
-                    ctx.fillStyle = '#FFFFFF';
+                    ctx.shadowBlur = isActiveRow ? 20 : 0;
                 }
 
                 cursorX += wordWidth;
