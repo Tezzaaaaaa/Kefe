@@ -40,7 +40,7 @@ const state = {
         pulseGlowSize: 1.0,
         titleCardEnabled: true,
         titleCardDuration: 3,
-        titleCardStyle: 'spotlight'
+        titleCardStyle: 'minimal'
     },
     background: { type: 'solid', image: null, video: null, dim: 0.35, solid: '#0A0A0A', blur: 0 },
     playback: { isPlaying: false, currentTime: 0, isSeeking: false },
@@ -1287,7 +1287,7 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         const targetIconsX = targetRight - iconSize;
         const targetTextRight = targetIconsX - iconGap;
         const morph = linaSmooth(toLyrics);
-        const startArtSize = artworkSize;
+        const startArtSize = linaClamp(unit * 0.18, 126, 220);
         const startArtX = (w - startArtSize) / 2;
         const startArtY = contentY - startArtSize - unit * 0.055;
         const artSize = startArtSize + (targetArtSize - startArtSize) * morph;
