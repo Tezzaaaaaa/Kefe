@@ -163,7 +163,7 @@ try {
 
   await page.locator('#wizardSection [data-choice="lyric"]').click();
   await page.locator('#wizardNextBtn').click();
-  await page.locator('#wizardSection [data-source="uploaded"]').click();
+  await page.locator('#wizardSection .wizard-choice[data-source="uploaded"]').click();
 
   const wav = makeWav();
   await page.locator('#audioInput').setInputFiles({
