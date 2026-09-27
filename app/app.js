@@ -2063,7 +2063,6 @@ window.kefeSetProjectType = function(type) {
     if (!PROJECT_TYPES.includes(type)) return;
     if (state.projectType === type) return;
     state.projectType = type;
-    state.style.effect = 'apple';
     if (type === 'captioned') {
         if (typeof applyTextMode === 'function') applyTextMode('captions');
         else state.captions.mode = 'captions';
