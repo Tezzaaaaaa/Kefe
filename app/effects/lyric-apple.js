@@ -214,16 +214,19 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
                     buckets[bucket].n += weight;
                     buckets[bucket].lum += lum * weight;
                 }
-                const ranked = buckets.filter(item => item.n).sort((a, b) => b.n - a.n);
+                const ranked = buckets.filter(bucket => bucket.n).sort((a, b) => {
+                    const av = a.lum / a.n, bv = b.lum / b.n;
+                    return (b.n * (0.65 + bv)) - (a.n * (0.65 + av));
+                });
                 const selected = [];
                 for (const bucket of ranked) {
                     const color = { r: bucket.r / bucket.n, g: bucket.g / bucket.n, b: bucket.b / bucket.n };
-                    if (selected.every(item => Math.hypot(color.r - item.r, color.g - item.g, color.b - item.b) >= 32)) {
+                    if (selected.every(item => Math.hypot(color.r - item.r, color.g - item.g, color.b - item.b) >= 28)) {
                         selected.push(color);
                     }
-                    if (selected.length >= 4) break;
+                    if (selected.length >= 6) break;
                 }
-                palette = selected;
+                palette = selected.map(color => 'rgb(' + Math.round(color.r) + ' ' + Math.round(color.g) + ' ' + Math.round(color.b) + ')');
                 if (palette.length) source.__kefeApplePalette = palette;
             }
         } catch (_) {
@@ -237,27 +240,26 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     if (palette?.length) {
         ctx.globalCompositeOperation = 'screen';
         const positions = [
-            [0.18, 0.18],
-            [0.82, 0.28],
-            [0.30, 0.78],
-            [0.76, 0.76]
+            [0.16 + 0.08 * Math.sin(time * 0.17), 0.20 + 0.07 * Math.cos(time * 0.13)],
+            [0.50 + 0.09 * Math.cos(time * 0.15), 0.18 + 0.08 * Math.sin(time * 0.11)],
+            [0.82 + 0.08 * Math.sin(time * 0.12), 0.28 + 0.07 * Math.cos(time * 0.16)],
+            [0.22 + 0.09 * Math.cos(time * 0.10), 0.72 + 0.08 * Math.sin(time * 0.14)],
+            [0.55 + 0.08 * Math.sin(time * 0.13), 0.82 + 0.07 * Math.cos(time * 0.09)],
+            [0.84 + 0.07 * Math.cos(time * 0.11), 0.70 + 0.08 * Math.sin(time * 0.15)]
         ];
-        const radii = [0.62, 0.58, 0.64, 0.60];
-        for (let pi = 0; pi < palette.length; pi++) {
-            const color = palette[pi];
-            const factor = 0.16;
-            const gradient = ctx.createRadialGradient(
-                w * positions[pi][0], h * positions[pi][1], 0,
-                w * positions[pi][0], h * positions[pi][1], Math.max(w, h) * radii[pi]
-            );
-            gradient.addColorStop(0, 'rgba(' + Math.round(color.r * factor) + ',' + Math.round(color.g * factor) + ',' + Math.round(color.b * factor) + ',0.72)');
-            gradient.addColorStop(0.48, 'rgba(' + Math.round(color.r * factor * 0.72) + ',' + Math.round(color.g * factor * 0.72) + ',' + Math.round(color.b * factor * 0.72) + ',0.36)');
-            gradient.addColorStop(1, 'rgba(8,8,8,0)');
+        const radii = [0.70, 0.66, 0.68, 0.72, 0.66, 0.70];
+        for (let pi = 0; pi < Math.min(6, palette.length); pi++) {
+            const [px, py] = positions[pi];
+            const radius = Math.max(w, h) * radii[pi];
+            const gradient = ctx.createRadialGradient(w * px, h * py, 0, w * px, h * py, radius);
+            gradient.addColorStop(0, palette[pi]);
+            gradient.addColorStop(0.42, palette[pi]);
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, w, h);
         }
         ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = 'rgba(0,0,0,0.24)';
+        ctx.fillStyle = 'rgba(0,0,0,0.42)';
         ctx.fillRect(0, 0, w, h);
     }
     ctx.restore();
