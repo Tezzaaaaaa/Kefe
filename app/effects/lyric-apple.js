@@ -136,10 +136,10 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     if (!Array.isArray(lines) || !lines.length) return;
 
     const baseDimension = Math.min(w, h);
-    const activeFontSize = baseDimension * 0.12;
-    const inactiveFontSize = baseDimension * 0.10;
-    const horizontalPadding = w * 0.06;
-    const lineSpacing = baseDimension * 0.06;
+    const activeFontSize = w * 0.081;
+    const inactiveFontSize = w * 0.074;
+    const horizontalPadding = w * 0.083;
+    const lineSpacing = w * 0.014;
     const family = '-apple-system,"SF Pro Display",sans-serif';
     const margin = horizontalPadding;
     const maxWidth = Math.max(1, w - horizontalPadding * 2);
@@ -274,7 +274,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     const appleLineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.58, 0.45, 1.10);
     const lineHeight = activeFontSize * 1.18 + appleLineSpacing;
     const rowHeight = activeFontSize * 1.18;
-    const blockGap = appleLineSpacing;
+    const blockGap = w * 0.060;
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.30, 0.20, 0.40);
     const pastOpacity = linaClamp(upcomingOpacity * 0.72, 0.20, 0.30);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
@@ -283,7 +283,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     const appleHeaderBottom = appleHeaderTop + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = Math.max(
-        h * linaClamp(Number(style.appleTopOffset) || 0.42, 0.40, 0.68),
+        h * linaClamp(Number(style.appleTopOffset) || 0.29, 0.26, 0.40),
         appleHeaderBottom + activeBlockHeight / 2 + blockGap
     );
     const activeScale = 1;
@@ -347,6 +347,9 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
         if (isActiveRow) {
             ctx.shadowColor = 'transparent';
             ctx.shadowBlur = 0;
+            ctx.filter = 'none';
+        } else {
+            ctx.filter = 'blur(' + Math.max(0, blurAmt).toFixed(2) + 'px)';
         }
 
         const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
