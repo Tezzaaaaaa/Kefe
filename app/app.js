@@ -305,16 +305,22 @@ function appleSpringOut(t) {
 function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
 
-    const fontSize = Math.max(28, Math.min(150, Number(style.fontSize) || 76));
+    const aspectRatio = h > 0 ? w / h : 1;
+    const portrait = aspectRatio < 0.8;
+    const square = aspectRatio >= 0.8 && aspectRatio <= 1.3;
+    const landscape = aspectRatio > 1.3;
+    const baseFontSize = Math.max(28, Math.min(150, Number(style.fontSize) || 76));
+    const fontScale = portrait ? 1 : square ? 0.90 : 0.80;
+    const fontSize = Math.max(28, Math.round(baseFontSize * fontScale));
     const family = '-apple-system,"SF Pro Display",sans-serif';
-    const margin = Math.max(48, w * 0.075);
+    const margin = Math.max(48, w * (portrait ? 0.075 : square ? 0.09 : 0.10));
     const maxWidth = w - margin * 2;
     const displayLines = [];
     for (let li = 0; li < lines.length; li++) {
         const original = linaNormaliseLine(lines, li);
         if (!original) continue;
-        const text = String(original.text || '').trim();
-        const parts = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+        const text = String(original.text || '').replace(/\s+/g, ' ').trim();
+        const parts = text.match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g) || [text];
         const usable = parts.map(part => part.trim()).filter(Boolean);
         const start = Number(original.time) || 0;
         const end = Number(original.endTime);
@@ -332,6 +338,32 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
             elapsed += partDuration;
         }
     }
+
+    ctx.save();
+    ctx.font = `800 ${fontSize}px ${family}`;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    for (const line of displayLines) {
+        const words = appleWordsForLine(line, null);
+        const tokens = words.length ? words.map(word => String(word.text || '').trim()).filter(Boolean) : String(line.text || '').split(' ').filter(Boolean);
+        const rows = [];
+        let row = '';
+        for (const token of tokens) {
+            const candidate = row ? `${row} ${token}` : token;
+            if (row && ctx.measureText(candidate).width > maxWidth) {
+                rows.push(row);
+                row = token;
+            } else {
+                row = candidate;
+            }
+        }
+        if (row) rows.push(row);
+        if (!rows.length) rows.push(String(line.text || ''));
+        line.appleRows = rows;
+        line.appleRowCount = rows.length;
+        line.appleBlockHeight = rows.length * fontSize * 1.18;
+    }
+    ctx.restore();
     const activeIndex = linaFindActiveLine(displayLines, time);
     if (activeIndex < 0) return;
     const displayLine = displayLines[activeIndex];
@@ -438,6 +470,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     // existing style.apple* controls (previously defined but never wired in).
     const lineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.72, 0.45, 1.10);
     const lineHeight = fontSize * (1 + lineSpacing);
+    const rowHeight = fontSize * 1.18;
+    const blockGap = Math.max(fontSize * 0.42, lineHeight * 0.20);
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.25, 0.05, 0.6);
     const pastOpacity = upcomingOpacity * 0.6;
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
@@ -459,41 +493,49 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const opacityPoints = [[-2, 0], [-1, pastOpacity], [0, 1], [1, upcomingOpacity]];
     const blurPoints = [[-2, 1.5], [-1, 1.5], [0, 0], [1, 0]];
 
-    for (let i = Math.max(0, activeIndex - 2); i <= Math.min(lines.length - 1, activeIndex + visibleLines); i++) {
-        const line = linaNormaliseLine(displayLines, i);
+    const previousBlock = displayLines[activeIndex - 1];
+    const transitionShift = previousBlock
+        ? ((previousBlock.appleBlockHeight || rowHeight) + (displayLine.appleBlockHeight || rowHeight)) / 2 + blockGap
+        : (displayLine.appleBlockHeight || rowHeight) + blockGap;
+
+    for (let i = Math.max(0, activeIndex - 2); i <= Math.min(displayLines.length - 1, activeIndex + visibleLines); i++) {
+        const line = displayLines[i];
         if (!line || !String(line.text || '').trim()) continue;
 
         const distance = i - activeIndex;
-        // Position slides from this row's pre-transition slot (distance + 1)
-        // down to its settled slot (distance) as posT goes 0 -> 1; style
-        // (opacity/scale/blur) does the same on its own, shorter clock.
-        const edPos = distance + (1 - posT);
+        let settledOffset = 0;
+        if (distance > 0) {
+            for (let oi = activeIndex; oi < i; oi++) {
+                settledOffset += ((displayLines[oi]?.appleBlockHeight || rowHeight) / 2)
+                    + ((displayLines[oi + 1]?.appleBlockHeight || rowHeight) / 2)
+                    + blockGap;
+            }
+        } else if (distance < 0) {
+            for (let oi = activeIndex; oi > i; oi--) {
+                settledOffset -= ((displayLines[oi]?.appleBlockHeight || rowHeight) / 2)
+                    + ((displayLines[oi - 1]?.appleBlockHeight || rowHeight) / 2)
+                    + blockGap;
+            }
+        }
+
         const edStyle = distance + (1 - styleT);
         const isActiveRow = distance === 0;
-
         const words = appleWordsForLine(line, displayLines[i + 1] || null);
+        const rows = line.appleRows || [String(line.text || '').trim()];
         const text = String(line.text || '').trim();
+        const x = margin;
+        const y = topAnchor + settledOffset + (1 - posT) * transitionShift;
+        const scaleAmt = appleKeyframeLerp(edStyle, scalePoints);
+        const alphaAmt = linaClamp(appleKeyframeLerp(edStyle, opacityPoints), 0, 1);
+        const blurAmt = appleKeyframeLerp(edStyle, blurPoints);
 
         ctx.save();
         ctx.font = `800 ${fontSize}px ${family}`;
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
-
-        const measured = ctx.measureText(text).width;
-        const size = Math.min(fontSize, measured > maxWidth ? fontSize * (maxWidth / measured) : fontSize);
-        ctx.font = `800 ${size}px ${family}`;
-
-        const width = ctx.measureText(text).width;
-        const x = margin;
-        const y = topAnchor + edPos * lineHeight;
-        const scaleAmt = appleKeyframeLerp(edStyle, scalePoints);
-        const alphaAmt = linaClamp(appleKeyframeLerp(edStyle, opacityPoints), 0, 1);
-        const blurAmt = appleKeyframeLerp(edStyle, blurPoints);
-
         ctx.globalAlpha = alphaAmt;
         ctx.filter = blurAmt > 0.05 ? `blur(${blurAmt.toFixed(1)}px)` : 'none';
         ctx.fillStyle = isActiveRow ? '#FFFFFF' : 'rgba(255,255,255,0.9)';
-
         ctx.translate(x, y);
         ctx.scale(scaleAmt, scaleAmt);
         ctx.translate(-x, -y);
@@ -503,39 +545,37 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
             ctx.shadowBlur = 20;
         }
 
+        const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * rowHeight);
         if (!isActiveRow || !words.length) {
-            ctx.fillText(text, x, y);
+            rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
         } else {
-            // Apple Music highlights the active line word-by-word: each word
-            // snaps from ~50% opacity to full white in a quick 0.1s ease the
-            // instant it's sung — a discrete swap, not a left-to-right wipe
-            // across the letters. Words held for a while get an undulating
-            // glow instead of staying flat.
-            let cursorX = x;
-            const space = ctx.measureText(' ').width;
+            let wordIndex = 0;
             const easeWindow = 0.1;
-            for (let wi = 0; wi < words.length; wi++) {
-                const word = words[wi];
-                const wordText = String(word.text || '');
-                const wordWidth = ctx.measureText(wordText).width;
-                const duration = Math.max(0.001, Number(word.endTime) - Number(word.time));
-                const swap = linaSmooth((time - Number(word.time)) / easeWindow);
-                const sung = time >= Number(word.time);
+            for (let ri = 0; ri < rows.length; ri++) {
+                let cursorX = x;
+                const rowTokens = rows[ri].split(/\s+/).filter(Boolean);
+                for (let ti = 0; ti < rowTokens.length; ti++) {
+                    const word = words[wordIndex++];
+                    if (!word) break;
+                    const wordText = String(word.text || rowTokens[ti]);
+                    const wordWidth = ctx.measureText(wordText).width;
+                    const duration = Math.max(0.001, Number(word.endTime) - Number(word.time));
+                    const swap = linaSmooth((time - Number(word.time)) / easeWindow);
+                    const sung = time >= Number(word.time);
+                    ctx.fillStyle = `rgba(255,255,255,${(0.5 + 0.5 * swap).toFixed(3)})`;
+                    ctx.fillText(wordText, cursorX, rowYs[ri]);
 
-                ctx.fillStyle = `rgba(255,255,255,${(0.5 + 0.5 * swap).toFixed(3)})`;
-                ctx.fillText(wordText, cursorX, y);
-
-                if (sung && duration > 0.9 && time < Number(word.endTime)) {
-                    const holdPhase = ((time - Number(word.time)) % 1.1) / 1.1;
-                    const pulse = 0.5 - 0.5 * Math.cos(2 * Math.PI * holdPhase);
-                    ctx.shadowColor = 'rgba(255,255,255,0.6)';
-                    ctx.shadowBlur = 16 * pulse;
-                    ctx.fillText(wordText, cursorX, y);
-                    ctx.shadowBlur = isActiveRow ? 20 : 0;
+                    if (sung && duration > 0.9 && time < Number(word.endTime)) {
+                        const holdPhase = ((time - Number(word.time)) % 1.1) / 1.1;
+                        const pulse = 0.5 - 0.5 * Math.cos(2 * Math.PI * holdPhase);
+                        ctx.shadowColor = 'rgba(255,255,255,0.6)';
+                        ctx.shadowBlur = 16 * pulse;
+                        ctx.fillText(wordText, cursorX, rowYs[ri]);
+                        ctx.shadowBlur = isActiveRow ? 20 : 0;
+                    }
+                    cursorX += wordWidth;
+                    if (ti < rowTokens.length - 1) cursorX += ctx.measureText(' ').width;
                 }
-
-                cursorX += wordWidth;
-                if (wi < words.length - 1) cursorX += space;
             }
         }
         ctx.restore();
