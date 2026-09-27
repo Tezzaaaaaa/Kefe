@@ -1,4 +1,5 @@
 const linaClamp = (value, min = 0, max = 1) => Math.max(min, Math.min(max, value));
+const linaSmooth = value => { const t = linaClamp(value); return t * t * (3 - 2 * t); };
 const linaSmoother = value => { const t = linaClamp(value); return t * t * t * (t * (t * 6 - 15) + 10); };
 
 const TITLECARD_DESIGN_LABELS = { auto: 'Auto (matches effect)', minimal: 'Minimal', spotlight: 'Spotlight', editorial: 'Editorial', statement: 'Statement' };
