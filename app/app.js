@@ -1301,14 +1301,36 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
 
     ctx.save();
 
-    // A restrained full-frame wash keeps type readable without placing it in a card.
-    const wash = ctx.createLinearGradient(0, 0, 0, h);
-    wash.addColorStop(0, 'rgba(0,0,0,0.10)');
-    wash.addColorStop(0.5, 'rgba(0,0,0,0.28)');
-    wash.addColorStop(1, 'rgba(0,0,0,0.16)');
+    // Keep the Apple-style artwork gradient visible underneath the title card.
+    // The title card remains foreground content; the gradient is only a background wash.
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = wash;
-    ctx.fillRect(0, 0, w, h);
+    if (artwork) {
+        const sw = artwork.naturalWidth || artwork.videoWidth || artwork.width;
+        const sh = artwork.naturalHeight || artwork.videoHeight || artwork.height;
+        if (sw && sh) {
+            ctx.save();
+            ctx.filter = 'blur(70px) saturate(1.7)';
+            const scale = Math.max((w + 140) / sw, (h + 140) / sh);
+            const dw = sw * scale;
+            const dh = sh * scale;
+            ctx.drawImage(artwork, (w - dw) / 2, (h - dh) / 2, dw, dh);
+            ctx.filter = 'none';
+            const wash = ctx.createLinearGradient(0, 0, 0, h);
+            wash.addColorStop(0, 'rgba(0,0,0,0.28)');
+            wash.addColorStop(0.5, 'rgba(0,0,0,0.46)');
+            wash.addColorStop(1, 'rgba(0,0,0,0.30)');
+            ctx.fillStyle = wash;
+            ctx.fillRect(0, 0, w, h);
+            ctx.restore();
+        }
+    } else {
+        const wash = ctx.createLinearGradient(0, 0, 0, h);
+        wash.addColorStop(0, 'rgba(0,0,0,0.10)');
+        wash.addColorStop(0.5, 'rgba(0,0,0,0.28)');
+        wash.addColorStop(1, 'rgba(0,0,0,0.16)');
+        ctx.fillStyle = wash;
+        ctx.fillRect(0, 0, w, h);
+    }
 
     ctx.translate(w / 2, contentY);
     ctx.globalAlpha = alpha;
