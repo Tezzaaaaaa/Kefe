@@ -1322,8 +1322,8 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
         }
 
         const startTextX = w / 2;
-        const startTitleY = contentY + artworkSize * 0.025;
-        const startArtistY = startTitleY + Math.max(42, Math.round(artworkSize * 0.22));
+        const startTitleY = contentY + startArtSize * 0.025;
+        const startArtistY = startTitleY + Math.max(42, Math.round(startArtSize * 0.22));
         const titleX = startTextX + (targetDetailX - startTextX) * morph;
         const titleY = startTitleY + (headerTop + 15 - startTitleY) * morph;
         const artistY = startArtistY + (headerTop + 34 - startArtistY) * morph;
