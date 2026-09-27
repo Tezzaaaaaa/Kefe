@@ -87,7 +87,7 @@
         if (wizard.source === 'media') { const m = window.kefeMedia || {}; return m.videoFile ? 'Background video loaded' : m.image ? 'Background image loaded' : 'Choose an image or video.'; }
         return 'Silent project — no audio will be exported.';
     }
-    function chooseSourceMedia() { if (wizard.source === 'uploaded') $('audioChooseBtn')?.click(); if (wizard.source === 'media') $('backgroundInput')?.click(); }
+    function chooseSourceMedia() { if (wizard.source === 'uploaded') $('audioInput')?.click(); if (wizard.source === 'media') $('backgroundInput')?.click(); }
     function applySourceChoice(source) {
         wizard.source = source; window.kefeWizardSource = source; const st = window.state;
         if (typeof window.applyMasterSelection === 'function') {
@@ -100,7 +100,6 @@
         renderSource(); refreshNextState();
     }
     function renderSource() {
-        document.querySelector('#audioSection .audio-upload-zone')?.style.setProperty('display', 'none');
         // Visualiser doesn't take a background video — it's a full-canvas
         // audio-reactive effect. Only offer audio file or silent.
         // Lyric video and captioned both keep the 'Background video' option.
@@ -256,7 +255,6 @@
 
         const metadataBlock = document.querySelector('#wizardMetadataMount .music-details');
         if (metadataBlock) $('audioSection')?.appendChild(metadataBlock);
-        document.querySelector('#audioSection .audio-upload-zone')?.style.removeProperty('display');
 
         restoreStyleBlock();
 
