@@ -296,7 +296,6 @@ function appleSpringOut(t) {
 function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
 
-    const baseFontSize = Math.max(28, Math.min(150, Number(style.fontSize) || 76));
     const fontSize = linaClamp(Math.min(34, Math.max(28, Math.min(w, h) * 0.0405)), 28, 34);
     const family = '-apple-system,"SF Pro Display",sans-serif';
 
@@ -425,7 +424,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
             ctx.fillRect(0, 0, w, h);
         }
         ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = 'rgba(0,0,0,0.42)';
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
         ctx.fillRect(0, 0, w, h);
     } else if (source) {
         const sw = source.videoWidth || source.naturalWidth || source.width;
@@ -436,7 +435,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
             const dw = sw * scale, dh = sh * scale;
             ctx.drawImage(source, (w - dw) / 2, (h - dh) / 2, dw, dh);
             ctx.filter = 'none';
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillStyle = 'rgba(0,0,0,0.28)';
             ctx.fillRect(0, 0, w, h);
         }
     }
@@ -453,9 +452,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const lineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.58, 0.45, 1.10);
     const lineHeight = fontSize * (1 + lineSpacing);
     const rowHeight = fontSize * 1.18;
-    const blockGap = Math.max(fontSize * 0.42, lineHeight * 0.20);
-    const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.55, 0.20, 0.70);
-    const pastOpacity = linaClamp(upcomingOpacity * 0.64, 0.20, 0.50);
+    const blockGap = Math.max(24, Math.min(32, fontSize * 0.82));
+    const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.30, 0.20, 0.40);
+    const pastOpacity = linaClamp(upcomingOpacity * 0.72, 0.20, 0.30);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
     const appleHeaderSize = linaClamp(Math.min(w, h) * 0.075, 48, 64);
     const appleHeaderTop = Math.max(24, h * 0.035);
@@ -466,7 +465,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         appleHeaderBottom + activeBlockHeight / 2 + blockGap
     );
     const glow = Number(style.appleGlow) || 0.012;
-    const activeScale = 1 + linaClamp(Number(style.appleDepth) ?? 0.008, 0, 0.06) * 2.5;
+    const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
     if (!active) return;
@@ -480,7 +479,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
 
     const scalePoints = [[-1, 1], [0, activeScale], [1, 1]];
     const opacityPoints = [[-2, pastOpacity], [-1, upcomingOpacity], [0, 1], [1, upcomingOpacity], [2, pastOpacity]];
-    const blurPoints = [[-2, 1.5], [-1, 1.5], [0, 0], [1, 0]];
+    const blurPoints = [[-2, 5], [-1, 4], [0, 0], [1, 4], [2, 5]];
 
     const previousBlock = displayLines[activeIndex - 1];
     const transitionShift = previousBlock
@@ -512,7 +511,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         const words = appleWordsForLine(line, displayLines[i + 1] || null);
         const rows = line.appleRows || [String(line.text || '').trim()];
         const text = String(line.text || '').trim();
-        const x = w / 2;
+        const x = margin;
         const y = topAnchor + settledOffset + (1 - posT) * transitionShift;
         const scaleAmt = appleKeyframeLerp(edStyle, scalePoints);
         const alphaAmt = linaClamp(appleKeyframeLerp(edStyle, opacityPoints), 0, 1);
@@ -521,17 +520,19 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         ctx.save();
         ctx.font = `800 ${fontSize}px ${family}`;
         ctx.textBaseline = 'middle';
-        ctx.textAlign = 'center';
+        ctx.textAlign = 'left';
         ctx.globalAlpha = alphaAmt;
         ctx.filter = blurAmt > 0.05 ? `blur(${blurAmt.toFixed(1)}px)` : 'none';
-        ctx.fillStyle = isActiveRow ? '#FFFFFF' : 'rgba(255,255,255,0.9)';
+        const rowFontSize = isActiveRow ? fontSize : linaClamp(fontSize * 0.82, 24, 28);
+        ctx.font = `800 ${rowFontSize}px ${family}`;
+        ctx.fillStyle = '#FFFFFF';
         ctx.translate(x, y);
         ctx.scale(scaleAmt, scaleAmt);
         ctx.translate(-x, -y);
 
         if (isActiveRow) {
-            ctx.shadowColor = `rgba(255,255,255,${linaClamp(0.3 + glow * 10, 0, 0.6)})`;
-            ctx.shadowBlur = 20;
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
         }
 
         const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * rowHeight);
@@ -552,7 +553,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
                     rowWidth += wordWidth;
                 }
                 rowWidth += ctx.measureText(' ').width * Math.max(0, rowWords.length - 1);
-                let cursorX = x - rowWidth / 2;
+                let cursorX = x;
                 for (const item of rowWords) {
                     const word = item.word;
                     const wordText = item.wordText;
@@ -1270,47 +1271,86 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     ctx.globalAlpha = alpha;
 
     if (toLyrics > 0.001) {
-        // Apple lyrics view: the title card collapses into a compact,
-        // horizontal Now Playing header at the top and stays there.
+        // Apple lyrics header: the centred title card morphs into a compact
+        // Now Playing row at the safe top edge and remains there.
+        const iphoneBoundaryWidth = Math.min(w, h * (390 / 844));
+        const iphoneSideInset = iphoneBoundaryWidth * (31 / 390);
+        const boundaryLeft = Math.max(0, (w - iphoneBoundaryWidth) / 2);
         const headerTop = Math.max(24, h * 0.035);
-        const artSize = linaClamp(unit * 0.075, 48, 64);
-        const left = Math.max((w - Math.min(w, h * (390 / 844))) / 2 + unit * (31 / 390), unit * 0.05);
-        const artY = headerTop;
+        const targetArtSize = 48;
+        const targetLeft = boundaryLeft + iphoneSideInset;
+        const targetRight = boundaryLeft + iphoneBoundaryWidth - iphoneSideInset;
+        const targetArtY = headerTop;
+        const targetDetailX = targetLeft + targetArtSize + 12;
+        const iconGap = 16;
+        const iconSize = 20;
+        const targetIconsX = targetRight - iconSize;
+        const targetTextRight = targetIconsX - iconGap;
+        const morph = linaSmooth(toLyrics);
+        const startArtSize = artworkSize;
+        const startArtX = (w - startArtSize) / 2;
+        const startArtY = contentY - startArtSize - unit * 0.055;
+        const artSize = startArtSize + (targetArtSize - startArtSize) * morph;
+        const artX = startArtX + (targetLeft - startArtX) * morph;
+        const artY = startArtY + (targetArtY - startArtY) * morph;
 
         if (artwork) {
             ctx.save();
+            ctx.shadowColor = `rgba(0,0,0,${0.24 * morph})`;
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetY = 2;
+            ctx.fillStyle = 'rgba(0,0,0,0.001)';
             ctx.beginPath();
-            ctx.roundRect(left, artY, artSize, artSize, Math.max(8, artSize * 0.08));
+            ctx.roundRect(artX, artY, artSize, artSize, Math.max(6, artSize * 0.08));
+            ctx.fill();
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.beginPath();
+            ctx.roundRect(artX, artY, artSize, artSize, Math.max(6, artSize * 0.08));
             ctx.clip();
             const sw = artwork.naturalWidth || artwork.videoWidth || artwork.width;
-            const sh = artwork.naturalHeight || artwork.videoHeight || artwork.height;
+            const sh = artwork.naturalHeight || artwork.videoHeight || artwork.width;
             if (sw && sh) {
                 const side = Math.min(sw, sh);
-                ctx.drawImage(artwork, (sw - side) / 2, (sh - side) / 2, side, side, left, artY, artSize, artSize);
+                ctx.drawImage(artwork, (sw - side) / 2, (sh - side) / 2, side, side, artX, artY, artSize, artSize);
             }
             ctx.restore();
         }
 
-        const detailX = left + artSize + 14;
-        const detailWidth = Math.max(1, w - detailX - left);
+        const startTextX = w / 2;
+        const startTitleY = contentY + artworkSize * 0.025;
+        const startArtistY = startTitleY + Math.max(42, Math.round(artworkSize * 0.22));
+        const titleX = startTextX + (targetDetailX - startTextX) * morph;
+        const titleY = startTitleY + (headerTop + 15 - startTitleY) * morph;
+        const artistY = startArtistY + (headerTop + 34 - startArtistY) * morph;
+        const detailWidth = Math.max(1, targetTextRight - targetDetailX);
+
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
-        ctx.shadowColor = 'rgba(0,0,0,0.38)';
-        ctx.shadowBlur = Math.max(4, unit * 0.008);
+        ctx.shadowColor = 'rgba(0,0,0,0.24)';
+        ctx.shadowBlur = 4;
 
-        let titleSize = Math.max(17, Math.round(artSize * 0.25));
-        ctx.font = `700 ${titleSize}px -apple-system, "SF Pro Display", sans-serif`;
-        while (titleSize > 15 && ctx.measureText(title).width > detailWidth) {
-            titleSize -= 1;
-            ctx.font = `700 ${titleSize}px -apple-system, "SF Pro Display", sans-serif`;
+        ctx.font = '700 16px -apple-system, "SF Pro Display", sans-serif';
+        let displayTitle = String(title || '');
+        while (displayTitle && ctx.measureText(displayTitle).width > detailWidth) {
+            displayTitle = displayTitle.slice(0, -1);
+            if (displayTitle.length > 1) displayTitle = displayTitle.slice(0, -1) + '…';
         }
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(title, detailX, headerTop + artSize * 0.36);
+        ctx.globalAlpha = alpha;
+        ctx.fillText(displayTitle, titleX, titleY);
 
-        let artistSize = Math.max(13, Math.round(artSize * 0.18));
-        ctx.font = `500 ${artistSize}px -apple-system, "SF Pro Display", sans-serif`;
+        ctx.font = '500 14px -apple-system, "SF Pro Display", sans-serif';
         ctx.fillStyle = 'rgba(255,255,255,0.72)';
-        ctx.fillText(String(artist || album || ''), detailX, headerTop + artSize * 0.68);
+        ctx.fillText(String(artist || album || ''), titleX, artistY);
+
+        ctx.globalAlpha = alpha * morph;
+        ctx.font = '400 20px -apple-system, "SF Pro Display", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText('☆', targetIconsX - iconSize - 8, headerTop + targetArtSize / 2);
+        ctx.fillText('⋯', targetIconsX, headerTop + targetArtSize / 2);
 
         ctx.restore();
         return true;
