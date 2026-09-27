@@ -2650,15 +2650,6 @@ function handleMediaSourceFile(file) {
     else handleAudioFile(file);
 }
 
-audioChooseBtn.addEventListener('click', function () {
-    if (isExporting) {
-        toast('Finish or cancel the current export first', 'error');
-        return;
-    }
-    audioInput.value = '';
-    audioInput.click();
-});
-
 audioInput.addEventListener('change', function () {
     const file = this.files && this.files[0];
     if (!file) return;
