@@ -1,6 +1,10 @@
+.preview-toolbar {
+  position: relative;
+}
+
 .preview-format {
   position: absolute;
-  top: var(--s-3);
+  top: 50%;
   right: var(--s-6);
   z-index: 6;
   display: inline-flex;
@@ -11,6 +15,7 @@
   border: 1px solid var(--line);
   border-radius: var(--r-sm, 8px);
   background: var(--surface-2);
+  transform: translateY(-50%);
 }
 
 .preview-format-btn,
@@ -59,7 +64,7 @@
 
 @media (max-width: 700px) {
   .preview-format {
-    top: var(--s-2);
+    top: 50%;
     right: var(--s-2);
     margin-left: 0;
     gap: 1px;
