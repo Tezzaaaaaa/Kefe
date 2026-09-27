@@ -16,7 +16,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 .ipod{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:180px;height:300px;border-radius:30px;background:linear-gradient(180deg,#18181b 0%,#101014 52%,#09090c 100%);box-shadow:0 18px 40px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.06) inset,0 -1px 0 rgba(0,0,0,.45) inset,0 0 0 1px rgba(255,255,255,.08);display:flex;flex-direction:column;padding:12px 12px 14px;z-index:11001;font-family:-apple-system,"SF Pro Text",system-ui,sans-serif;user-select:none;-webkit-user-select:none}
 .ipod.is-hidden{display:none}
-.screen{position:relative;width:100%;flex:0 0 46%;border-radius:6px;background:linear-gradient(180deg,#0a1424 0%,#061020 100%);box-shadow:0 0 0 2px #1a1a1e,0 0 0 3px #2a2a30,0 3px 8px rgba(0,0,0,.6) inset;overflow:hidden;padding:8px 9px;display:flex;flex-direction:column;cursor:pointer}
+.screen{position:relative;width:100%;flex:0 0 41%;border-radius:6px;background:linear-gradient(180deg,#0a1424 0%,#061020 100%);box-shadow:0 0 0 2px #1a1a1e,0 0 0 3px #2a2a30,0 3px 8px rgba(0,0,0,.6) inset;overflow:hidden;padding:8px 9px;display:flex;flex-direction:column;cursor:pointer}
 .screen::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 70% at 80% -10%,rgba(90,140,200,.35),transparent 55%)}
 .screen.is-vis{padding:0}
 .screen.is-vis::before{display:none}
