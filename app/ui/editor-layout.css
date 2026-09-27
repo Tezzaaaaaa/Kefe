@@ -76,7 +76,7 @@ body.wizard-mode .wizard-nav{flex:0 0 auto}
 @media(max-width:480px){.transport{grid-template-columns:40px 40px minmax(0,1fr) auto auto}.transport #previewFocusButton,.transport .preview-focus-button{width:40px;height:40px;min-width:40px}}
 
 /* UNIFORM BUTTONS */
-button,.play-button,.transport .play-button,.transport .icon-button,#previewFocusButton,.preview-focus-button,.wizard-nav button,.wizard-back,.wizard-next{height:40px!important;min-height:40px!important;max-height:40px!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important}
+button,.play-button,.transport .play-button,.transport .icon-button,#previewFocusButton,.preview-focus-button,.wizard-nav button,.wizard-back,.wizard-next{height:var(--h-control)!important;min-height:var(--h-control)!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important}
 button.icon-button,.play-button,.transport .play-button,.transport .icon-button,#previewFocusButton,.preview-focus-button{width:40px!important;min-width:40px!important;padding:0!important}
 
 /* Seek slider fills the transport row */
