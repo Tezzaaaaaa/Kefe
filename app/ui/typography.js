@@ -22,6 +22,7 @@
     blur:                'Bricolage Grotesque',
     shiny:               'Inter Tight',
     // New lyric effects
+    drop:       { family: families.drop,       weight: 400, min: 36, max: 180, lineHeight: 1.05, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     barbie:              'Baloo 2',
     elasticpop:          'Bangers',
     flipcards:           'Urbanist',
@@ -33,7 +34,7 @@
     fancy:               'Anton',
     glitch:              'Special Elite',
     splitflap:           'Big Shoulders Stencil Display',
-    rain:                'Frijole'
+    drop:                'Frijole'
   };
 
   /* ---------------------------------------------------------
