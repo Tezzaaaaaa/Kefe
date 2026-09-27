@@ -296,7 +296,7 @@ function appleSpringOut(t) {
 function drawAppleEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length) return;
 
-    const fontSize = linaClamp(Math.min(34, Math.max(28, Math.min(w, h) * 0.0405)), 28, 34);
+    const fontSize = linaClamp(Math.min(36, Math.max(32, Math.min(w, h) * 0.0425)), 32, 36);
     const family = '-apple-system,"SF Pro Display",sans-serif';
 
     // Apple Lyrics always uses a portrait iPhone composition boundary.
@@ -461,7 +461,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const appleHeaderBottom = appleHeaderTop + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = Math.max(
-        h * linaClamp(Number(style.appleTopOffset) || 0.38, 0.34, 0.62),
+        h * linaClamp(Number(style.appleTopOffset) || 0.42, 0.40, 0.68),
         appleHeaderBottom + activeBlockHeight / 2 + blockGap
     );
     const glow = Number(style.appleGlow) || 0.012;
