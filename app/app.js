@@ -439,7 +439,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         const size = Math.min(fontSize, measured > maxWidth ? fontSize * (maxWidth / measured) : fontSize);
         ctx.font = `800 ${size}px ${family}`;
 
-        const x = margin;
+        const width = ctx.measureText(text).width;
+        const x = (w - width) / 2;
         const y = topAnchor + edPos * lineHeight;
         const scaleAmt = appleKeyframeLerp(edStyle, scalePoints);
         const alphaAmt = linaClamp(appleKeyframeLerp(edStyle, opacityPoints), 0, 1);
