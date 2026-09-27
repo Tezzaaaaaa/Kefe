@@ -1628,12 +1628,15 @@ function render(ctx, w, h, appState, mediaCache) {
         // The captioned pathway has no title-card step. A title card left
         // over from a previous lyric session must not bleed into a captioned
         // video, so we explicitly skip it in this pathway.
+        const appleTitleCard = appState.projectType !== 'captioned' && style.effect === 'apple';
         const tcActive = appState.projectType === 'captioned'
             ? false
-            : renderTitleCard(ctx, w, h, cappedTime, appState);
+            : appleTitleCard
+                ? null
+                : renderTitleCard(ctx, w, h, cappedTime, appState);
         const titleLyricsStart = Number.isFinite(tcActive?.lyricsStart) ? tcActive.lyricsStart : Infinity;
+        const timedLines = activeTimedLines();
         if (!tcActive || cappedTime >= titleLyricsStart) {
-            const timedLines = activeTimedLines();
             if (timedLines.length) {
                 const lyricTime = Math.max(0, cappedTime - (Number(appState.lyricsOffset) || 0));
                 try {
@@ -1646,6 +1649,7 @@ function render(ctx, w, h, appState, mediaCache) {
                 drawPlainLyrics(ctx, w, h, appState.lyrics.plainText);
             }
         }
+        if (appleTitleCard) renderTitleCard(ctx, w, h, cappedTime, appState);
     } finally { ctx.restore(); }
 }
 
