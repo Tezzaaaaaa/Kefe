@@ -184,7 +184,7 @@ input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
 .caption-pos-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
+  gap: var(--s-1);
   margin-bottom: var(--stack-gap);
 }
 .caption-style-grid {
@@ -196,7 +196,7 @@ input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--s-2);
 }
 .caption-color-input { width: 44px; height: 32px; padding: 0; border-radius: var(--radius-sm); }
 
