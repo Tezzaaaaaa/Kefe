@@ -106,7 +106,7 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 
 .kefe-preview-corner{display:none!important}
 
-.transport{display:grid!important;grid-template-columns:40px 40px minmax(0,1fr) auto 40px!important;gap:10px!important;align-items:center!important;padding:8px 12px!important;width:100%!important}
+.transport{display:grid!important;grid-template-columns:40px 40px minmax(0,1fr) auto 40px!important;gap:var(--s-2)!important;align-items:center!important;padding:8px 12px!important;width:100%!important}
 .transport #seek,.transport .slider,.transport input[type=range]{grid-column:3!important;width:100%!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important}
 .transport #clock{grid-column:4!important;min-width:80px!important;text-align:right!important}
 .transport #previewFocusButton,.transport .preview-focus-button{grid-column:5!important;display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
