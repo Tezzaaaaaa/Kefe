@@ -122,3 +122,18 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 #kmpHeaderToggle.icon-button:hover{background:rgba(255,255,255,0.06)!important;color:#fff!important}
 #kmpHeaderToggle.icon-button svg{width:18px!important;height:18px!important;stroke:currentColor!important;fill:none!important;stroke-width:1.8!important}
 #kmpHeaderToggle.icon-button[data-on="true"]{background:rgba(239,63,56,0.18)!important;border-color:rgba(239,63,56,0.55)!important;color:#fff!important}
+
+
+/* Preview layout — establish one stable toolbar row and a bounded canvas area. */
+.preview-toolbar{height:62px;box-sizing:border-box;flex:0 0 62px}
+.preview-heading{flex:1 1 auto;min-width:0}
+.transport{flex:0 0 auto;min-width:0}
+.canvas-wrapper{flex:1 1 0;min-height:0;box-sizing:border-box}
+@media(max-width:900px){
+  .preview-toolbar{height:64px;flex-basis:64px}
+  .preview-heading{min-width:0;overflow:visible!important}
+  .canvas-wrapper{min-height:0}
+}
+@media(max-width:560px){
+  .preview-toolbar{height:60px;flex-basis:60px}
+}
