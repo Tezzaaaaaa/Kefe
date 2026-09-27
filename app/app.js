@@ -1388,8 +1388,10 @@ function renderTitleCardSpotlight(ctx, w, h, phase, info) {
 
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, w, h);
+    if (toLyrics < 0.999) {
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, w, h);
+    }
 
     const centerY = h * 0.50 + (1 - enter) * unit * 0.03;
     const topY = Math.max(unit * 0.09, h * 0.10);
