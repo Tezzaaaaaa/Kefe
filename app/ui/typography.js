@@ -17,12 +17,11 @@
     typewriter:          'Courier Prime',
     instagram:           'Inter Tight',
     fadeup:              'Momo Trust Display',
-    mixedmedia:          'Open Sans',
+    mixedmedia:          'Boulder',
     decrypt:             'Courier Prime',
     blur:                'Bricolage Grotesque',
     shiny:               'Inter Tight',
     // New lyric effects
-    drop:       { family: families.drop,       weight: 400, min: 36, max: 180, lineHeight: 1.05, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     barbie:              'Baloo 2',
     elasticpop:          'Bangers',
     flipcards:           'Urbanist',
@@ -112,8 +111,10 @@
     { family: 'Monoton',        weight: 400, style: 'normal', file: 'fonts/monoton/Monoton-Regular.woff2' },
     // Big Shoulders Stencil Display — splitflap
     { family: 'Big Shoulders Stencil Display', weight: 900, style: 'normal', file: 'fonts/big-shoulders-stencil/BigShouldersStencil-Black.woff2' },
-    // Frijole — rain
+    // Frijole — drop
     { family: 'Frijole',        weight: 400, style: 'normal', file: 'fonts/frijole/Frijole-Regular.woff2' },
+    // Boulder — mixedmedia
+    { family: 'Boulder',        weight: 400, style: 'normal', file: 'fonts/boulder/Boulder-Regular.woff2' },
     // Urbanist — flipcards
     { family: 'Urbanist',       weight: 800, style: 'normal', file: 'fonts/urbanist/Urbanist-VariableFont_wght.woff2' },
     // Special Elite — glitch
