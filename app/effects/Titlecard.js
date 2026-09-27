@@ -106,13 +106,13 @@ function renderTitleCardMinimal(ctx, w, h, phase, info) {
     const boundaryLeft = Math.max(0, (w - compositionWidth) / 2);
     const lift = (1 - enter) * unit * 0.022;
     const artworkSize = unit * (180 / 390);
-    const centerY = h * 0.52 + lift + (artwork ? artworkSize * 0.45 : 0);
-    const contentY = centerY + (h * 0.16 - centerY) * toLyrics;
-    const maxTextWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
     const title = info.title;
     const artist = info.artist;
     const album = info.album;
     const artwork = info.artwork;
+    const centerY = h * 0.52 + lift + (artwork ? artworkSize * 0.45 : 0);
+    const contentY = centerY + (h * 0.16 - centerY) * toLyrics;
+    const maxTextWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
 
     ctx.save();
     ctx.globalAlpha = alpha;
