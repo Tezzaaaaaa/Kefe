@@ -1121,17 +1121,32 @@ function titleCardPhase(appState, time) {
     const introDuration = linaClamp(Number(appState.style.titleCardDuration) || 3, 1, 15);
     const totalDuration = Number(appState.audio?.duration) || 0;
     const outroDuration = 1.6;
-    const isIntro = time >= 0 && time < introDuration;
+    const lyricLines = Array.isArray(appState.lyrics?.lines) ? appState.lyrics.lines : [];
+    const firstLyricTime = lyricLines.reduce((first, line) => {
+        const t = Number(line?.time);
+        return Number.isFinite(t) ? Math.min(first, Math.max(0, t)) : first;
+    }, Infinity);
+    const lyricsStart = Number.isFinite(firstLyricTime) ? firstLyricTime : introDuration;
+    const isIntro = time >= 0 && time < lyricsStart;
     const outroStart = totalDuration > outroDuration ? totalDuration - outroDuration : Infinity;
     const isOutro = time >= outroStart && time <= totalDuration + 0.05;
     if (!isIntro && !isOutro) return null;
     const phaseTime = isOutro ? time - outroStart : time;
-    const phaseDuration = isOutro ? outroDuration : introDuration;
+    const phaseDuration = isOutro ? outroDuration : lyricsStart;
     const enter = linaSmoother(linaClamp(phaseTime / 0.5));
     const exit = isIntro
-        ? 1 - linaSmoother(linaClamp((phaseTime - (phaseDuration - 0.45)) / 0.45))
+        ? 1
         : 1;
-    return { intro: isIntro, alpha: linaClamp(enter * exit), enter };
+    const toLyrics = isIntro && Number.isFinite(firstLyricTime)
+        ? linaSmoother(linaClamp((time - (lyricsStart - 0.55)) / 0.55))
+        : 0;
+    return {
+        intro: isIntro,
+        alpha: linaClamp(enter * exit),
+        enter,
+        toLyrics,
+        lyricsStart
+    };
 }
 function renderTitleCard(ctx, w, h, time, appState) {
     if (!appState.style.titleCardEnabled) return false;
@@ -1190,10 +1205,11 @@ function wrapTitleText(ctx, text, maxWidth) {
 
 /* Design: Minimal — restrained wash, centred artwork + title (KEFE classic). */
 function renderTitleCardMinimal(ctx, w, h, phase, info) {
-    const { alpha, enter } = phase;
+    const { alpha, enter, toLyrics = 0 } = phase;
     const unit = Math.min(w, h);
     const lift = (1 - enter) * unit * 0.022;
-    const contentY = h * 0.52 + lift;
+    const centerY = h * 0.52 + lift;
+    const contentY = centerY + (h * 0.38 - centerY) * toLyrics;
     const maxTextWidth = w * 0.78;
     const title = info.title;
     const artist = info.artist;
@@ -1496,7 +1512,8 @@ function render(ctx, w, h, appState, mediaCache) {
         const tcActive = appState.projectType === 'captioned'
             ? false
             : renderTitleCard(ctx, w, h, cappedTime, appState);
-        if (!tcActive) {
+        const titleLyricsStart = Number.isFinite(tcActive?.lyricsStart) ? tcActive.lyricsStart : Infinity;
+        if (!tcActive || cappedTime >= titleLyricsStart) {
             const timedLines = activeTimedLines();
             if (timedLines.length) {
                 const lyricTime = Math.max(0, cappedTime - (Number(appState.lyricsOffset) || 0));
