@@ -27,28 +27,6 @@ function linaFindActiveLine(lines, time) {
     return index;
 }
 
-function estimateFinalVocalWordEnd(words, nextLineTime = Infinity) {
-    if (!Array.isArray(words) || !words.length) return null;
-    const last = words[words.length - 1];
-    const start = Number(last.time);
-    if (!Number.isFinite(start)) return null;
-    const gaps = [];
-    for (let i = 0; i < words.length - 1; i++) {
-        const a = Number(words[i].time), b = Number(words[i + 1].time);
-        const gap = b - a;
-        if (Number.isFinite(gap) && gap >= 0.08 && gap <= 1.8) gaps.push(gap);
-    }
-    const cadence = gaps.length ? gaps.sort((a, b) => a - b)[Math.floor(gaps.length / 2)] : 0.48;
-    const letters = Array.from(String(last.text || "").replace(/[^\p{L}\p{N}]/gu, "")).length;
-    const textDuration = linaClamp(0.24 + letters * 0.055, 0.28, 1.15);
-    const cadenceDuration = linaClamp(cadence * 1.10, 0.28, 1.25);
-    let duration = Math.max(textDuration, cadenceDuration);
-    duration = linaClamp(duration, 0.28, 1.35);
-    let end = start + duration;
-    if (Number.isFinite(nextLineTime)) end = Math.min(end, Math.max(start + 0.12, nextLineTime - 0.08));
-    return end;
-}
-
 function estimateLineVocalEnd(line, nextLine) {
     const start = Number(line.time);
     if (!Number.isFinite(start)) return null;
@@ -60,17 +38,12 @@ function estimateLineVocalEnd(line, nextLine) {
         return total + linaClamp(0.16 + letters * 0.045, 0.24, 0.78);
     }, 0) + Math.max(0, tokens.length - 1) * 0.055;
     let duration = linaClamp(estimated, 0.65, 5.0);
-    if (Number.isFinite(nextStart)) {
-        const available = Math.max(0.20, nextStart - start - 0.10);
-        duration = Math.min(duration, available);
-    }
+    if (Number.isFinite(nextStart)) duration = Math.min(duration, Math.max(0.20, nextStart - start - 0.10));
     return start + duration;
 }
 
 export function appleWordsForLine(line, nextLine) {
-    if (Array.isArray(line?.words) && line.words.length) {
-        return line.words.map(w => ({ ...w, estimated: false }));
-    }
+    if (Array.isArray(line?.words) && line.words.length) return line.words.map(w => ({ ...w, estimated: false }));
     const tokens = String(line?.text || "").trim().split(/\s+/).filter(Boolean);
     if (!tokens.length || !hasFiniteNumber(line?.time)) return [];
     const start = Number(line.time);
@@ -171,9 +144,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
             if (row && ctx.measureText(candidate).width > maxWidth) {
                 rows.push(row);
                 row = token;
-            } else {
-                row = candidate;
-            }
+            } else row = candidate;
         }
         if (row) rows.push(row);
         if (!rows.length) rows.push(String(line.text || ''));
@@ -182,94 +153,13 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
         line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
     }
     ctx.restore();
-    const activeIndex = linaFindActiveLine(displayLines, time);
 
+    const activeIndex = linaFindActiveLine(displayLines, time);
     const source = albumArtworkImage;
-    let palette = source?.__kefeApplePalette;
-    if (source && !palette) {
-        try {
-            const sample = document.createElement('canvas');
-            sample.width = 32;
-            sample.height = 32;
-            const sampleCtx = sample.getContext('2d', { willReadFrequently: true });
-            const sw = source.videoWidth || source.naturalWidth || source.width;
-            const sh = source.videoHeight || source.naturalHeight || source.height;
-            if (sampleCtx && sw && sh) {
-                sampleCtx.drawImage(source, 0, 0, sw, sh, 0, 0, 32, 32);
-                const data = sampleCtx.getImageData(0, 0, 32, 32).data;
-                const buckets = Array.from({ length: 12 }, () => ({ r: 0, g: 0, b: 0, n: 0 }));
-                for (let p = 0; p < data.length; p += 4) {
-                    const a = data[p + 3] / 255;
-                    if (a < 0.2) continue;
-                    const r0 = data[p], g0 = data[p + 1], b0 = data[p + 2];
-                    const mx = Math.max(r0, g0, b0), mn = Math.min(r0, g0, b0);
-                    const sat = mx ? (mx - mn) / mx : 0;
-                    const lum = (0.2126 * r0 + 0.7152 * g0 + 0.0722 * b0) / 255;
-                    const bucket = sat < 0.12 ? 11 : Math.min(10, Math.floor((Math.atan2(Math.sqrt(3) * (g0 - b0), 2 * r0 - g0 - b0) + Math.PI) / (Math.PI * 2) * 11));
-                    buckets[bucket].r += r0 * (0.45 + sat);
-                    buckets[bucket].g += g0 * (0.45 + sat);
-                    buckets[bucket].b += b0 * (0.45 + sat);
-                    buckets[bucket].n += 0.45 + sat;
-                    buckets[bucket].lum = (buckets[bucket].lum || 0) + lum * (0.45 + sat);
-                }
-                const ranked = buckets.filter(b => b.n).sort((a, b) => {
-                    const av = a.lum / a.n, bv = b.lum / b.n;
-                    return (b.n * (0.65 + bv)) - (a.n * (0.65 + av));
-                });
-                const selected = [];
-                for (const bucket of ranked) {
-                    const color = { r: bucket.r / bucket.n, g: bucket.g / bucket.n, b: bucket.b / bucket.n };
-                    if (selected.every(item => Math.hypot(color.r - item.r, color.g - item.g, color.b - item.b) >= 28)) {
-                        selected.push(color);
-                    }
-                    if (selected.length >= 6) break;
-                }
-                palette = selected.map(color => `rgb(${Math.round(color.r)} ${Math.round(color.g)} ${Math.round(color.b)})`);
-                if (palette.length) source.__kefeApplePalette = palette;
-            }
-        } catch (_) {}
-    }
 
     ctx.save();
     ctx.fillStyle = '#080808';
     ctx.fillRect(0, 0, w, h);
-    if (palette?.length) {
-        ctx.globalCompositeOperation = 'screen';
-        const positions = [
-            [0.16 + 0.08 * Math.sin(time * 0.17), 0.20 + 0.07 * Math.cos(time * 0.13)],
-            [0.50 + 0.09 * Math.cos(time * 0.15), 0.18 + 0.08 * Math.sin(time * 0.11)],
-            [0.82 + 0.08 * Math.sin(time * 0.12), 0.28 + 0.07 * Math.cos(time * 0.16)],
-            [0.22 + 0.09 * Math.cos(time * 0.10), 0.72 + 0.08 * Math.sin(time * 0.14)],
-            [0.55 + 0.08 * Math.sin(time * 0.13), 0.82 + 0.07 * Math.cos(time * 0.09)],
-            [0.84 + 0.07 * Math.cos(time * 0.11), 0.70 + 0.08 * Math.sin(time * 0.15)]
-        ];
-        const radii = [0.70, 0.66, 0.68, 0.72, 0.66, 0.70];
-        for (let pi = 0; pi < Math.min(6, palette.length); pi++) {
-            const [px, py] = positions[pi];
-            const radius = Math.max(w, h) * radii[pi];
-            const gradient = ctx.createRadialGradient(w * px, h * py, 0, w * px, h * py, radius);
-            gradient.addColorStop(0, palette[pi]);
-            gradient.addColorStop(0.42, palette[pi]);
-            gradient.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, w, h);
-        }
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = 'rgba(0,0,0,0.42)';
-        ctx.fillRect(0, 0, w, h);
-    } else if (source) {
-        const sw = source.videoWidth || source.naturalWidth || source.width;
-        const sh = source.videoHeight || source.naturalHeight || source.height;
-        if (sw && sh) {
-            ctx.filter = 'blur(60px) saturate(1.5)';
-            const scale = Math.max((w + 120) / sw, (h + 120) / sh);
-            const dw = sw * scale, dh = sh * scale;
-            ctx.drawImage(source, (w - dw) / 2, (h - dh) / 2, dw, dh);
-            ctx.filter = 'none';
-            ctx.fillStyle = 'rgba(0,0,0,0.42)';
-            ctx.fillRect(0, 0, w, h);
-        }
-    }
     ctx.restore();
 
     const displayLine = activeIndex >= 0 ? displayLines[activeIndex] : null;
@@ -286,19 +176,13 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     const appleHeaderTop = Math.max(24, h * 0.035);
     const appleHeaderBottom = appleHeaderTop + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
-    const topAnchor = Math.max(
-        h * linaClamp(Number(style.appleTopOffset) || 0.29, 0.26, 0.40),
-        appleHeaderBottom + activeBlockHeight / 2 + blockGap
-    );
-    const activeScale = 1;
-
+    const topAnchor = Math.max(h * linaClamp(Number(style.appleTopOffset) || 0.29, 0.26, 0.40), appleHeaderBottom + activeBlockHeight / 2 + blockGap);
     const active = linaNormaliseLine(displayLines, activeIndex);
     if (!active) return;
 
     const posT = appleSpringOut((time - active.time) / 0.35);
     const styleT = appleCubicBezier((time - active.time) / 0.3, 0.25, 0.1, 0.25, 1);
-
-    const scalePoints = [[-1, 1], [0, activeScale], [1, 1]];
+    const scalePoints = [[-1, 1], [0, 1], [1, 1]];
     const opacityPoints = [[-2, pastOpacity], [-1, upcomingOpacity], [0, 1], [1, upcomingOpacity], [2, pastOpacity]];
     const blurPoints = [[-2, 8.5], [-1, 5.0], [0, 1.8], [1, 4.8], [2, 7.5], [3, 10.5], [4, 13.5], [5, 16.5], [6, 19.5]];
 
@@ -316,14 +200,12 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
         if (distance > 0) {
             for (let oi = activeIndex; oi < i; oi++) {
                 settledOffset += ((displayLines[oi]?.appleBlockHeight || rowHeight) / 2)
-                    + ((displayLines[oi + 1]?.appleBlockHeight || rowHeight) / 2)
-                    + blockGap;
+                    + ((displayLines[oi + 1]?.appleBlockHeight || rowHeight) / 2) + blockGap;
             }
         } else if (distance < 0) {
             for (let oi = activeIndex; oi > i; oi--) {
                 settledOffset -= ((displayLines[oi]?.appleBlockHeight || rowHeight) / 2)
-                    + ((displayLines[oi - 1]?.appleBlockHeight || rowHeight) / 2)
-                    + blockGap;
+                    + ((displayLines[oi - 1]?.appleBlockHeight || rowHeight) / 2) + blockGap;
             }
         }
 
@@ -347,14 +229,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
         ctx.translate(x, y);
         ctx.scale(scaleAmt, scaleAmt);
         ctx.translate(-x, -y);
-
-        if (isActiveRow) {
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            ctx.filter = 'none';
-        } else {
-            ctx.filter = 'blur(' + Math.max(0, blurAmt).toFixed(2) + 'px)';
-        }
+        ctx.filter = isActiveRow ? 'none' : 'blur(' + Math.max(0, blurAmt).toFixed(2) + 'px)';
 
         const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
         if (!isActiveRow || !words.length) {
@@ -364,25 +239,17 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
             const easeWindow = 0.10;
             for (let ri = 0; ri < rows.length; ri++) {
                 const rowTokens = rows[ri].split(/\s+/).filter(Boolean);
-                const rowWords = [];
-                for (let ti = 0; ti < rowTokens.length; ti++) {
-                    const word = words[wordIndex + ti];
-                    const wordText = String(word?.text || rowTokens[ti]);
-                    const wordWidth = ctx.measureText(wordText).width;
-                    rowWords.push({ word, wordText, wordWidth });
-                }
                 let cursorX = x;
-                for (const item of rowWords) {
-                    const word = item.word;
-                    const wordText = item.wordText;
-                    const wordWidth = item.wordWidth;
+                for (const rowToken of rowTokens) {
+                    const word = words[wordIndex++];
+                    const wordText = String(word?.text || rowToken);
+                    const wordWidth = ctx.measureText(wordText).width;
                     const swap = word ? linaSmooth((time - Number(word.time)) / easeWindow) : 1;
                     const opacity = 0.55 + 0.45 * swap;
                     ctx.fillStyle = `rgba(255,255,255,${opacity.toFixed(3)})`;
                     ctx.fillText(wordText, cursorX, rowYs[ri]);
                     cursorX += wordWidth + ctx.measureText(' ').width;
                 }
-                wordIndex += rowTokens.length;
             }
         }
         ctx.restore();
