@@ -124,6 +124,7 @@ body.wizard-mode .wizard-choices.wizard-source-choices {
     justify-content:space-between;
     width:100%;
 }
+ .wizard-hover-img-menu .hover-img-project-copy span{display:none!important;}
 .wizard-hover-img-menu .hover-img-project-copy strong{
     margin:0!important;
     font-family:"Raleway","Inter",system-ui,sans-serif!important;
