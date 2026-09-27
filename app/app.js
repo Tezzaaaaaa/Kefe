@@ -350,8 +350,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
             const sw = source.videoWidth || source.naturalWidth || source.width;
             const sh = source.videoHeight || source.naturalHeight || source.height;
             if (sampleCtx && sw && sh) {
-                const side = Math.min(sw, sh);
-                sampleCtx.drawImage(source, (sw - side) / 2, (sh - side) / 2, side, side, 0, 0, 32, 32);
+                sampleCtx.drawImage(source, 0, 0, sw, sh, 0, 0, 32, 32);
                 const data = sampleCtx.getImageData(0, 0, 32, 32).data;
                 const buckets = Array.from({ length: 12 }, () => ({ r: 0, g: 0, b: 0, n: 0 }));
                 for (let p = 0; p < data.length; p += 4) {
