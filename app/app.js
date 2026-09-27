@@ -309,8 +309,32 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const family = '-apple-system,"SF Pro Display",sans-serif';
     const margin = Math.max(48, w * 0.075);
     const maxWidth = w - margin * 2;
-    const activeIndex = linaFindActiveLine(lines, time);
+    const displayLines = [];
+    for (let li = 0; li < lines.length; li++) {
+        const original = linaNormaliseLine(lines, li);
+        if (!original) continue;
+        const text = String(original.text || '').trim();
+        const parts = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+        const usable = parts.map(part => part.trim()).filter(Boolean);
+        const start = Number(original.time) || 0;
+        const end = Number(original.endTime);
+        const duration = Number.isFinite(end) && end > start ? end - start : 0;
+        const totalWeight = usable.reduce((sum, part) => sum + part.length, 0) || 1;
+        let elapsed = 0;
+        for (const part of usable) {
+            const partDuration = duration ? duration * (part.length / totalWeight) : 0;
+            displayLines.push({
+                ...original,
+                text: part,
+                time: start + elapsed,
+                endTime: start + elapsed + partDuration
+            });
+            elapsed += partDuration;
+        }
+    }
+    const activeIndex = linaFindActiveLine(displayLines, time);
     if (activeIndex < 0) return;
+    const displayLine = displayLines[activeIndex];
 
     // Apple Music's lyric background is driven by the album artwork palette:
     // saturated artwork-derived colour fields are layered, blurred and gently
@@ -401,7 +425,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const glow = Number(style.appleGlow) || 0.012;
     const activeScale = 1 + linaClamp(Number(style.appleDepth) ?? 0.008, 0, 0.06) * 2.5;
 
-    const active = linaNormaliseLine(lines, activeIndex);
+    const active = linaNormaliseLine(displayLines, activeIndex);
     if (!active) return;
 
     // Two clocks, matched to how the real lyrics view actually animates:
@@ -416,7 +440,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     const blurPoints = [[-2, 1.5], [-1, 1.5], [0, 0], [1, 0]];
 
     for (let i = Math.max(0, activeIndex - 2); i <= Math.min(lines.length - 1, activeIndex + visibleLines); i++) {
-        const line = linaNormaliseLine(lines, i);
+        const line = linaNormaliseLine(displayLines, i);
         if (!line || !String(line.text || '').trim()) continue;
 
         const distance = i - activeIndex;
@@ -427,7 +451,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         const edStyle = distance + (1 - styleT);
         const isActiveRow = distance === 0;
 
-        const words = appleWordsForLine(line, lines[i + 1] || null);
+        const words = appleWordsForLine(line, displayLines[i + 1] || null);
         const text = String(line.text || '').trim();
 
         ctx.save();
@@ -500,7 +524,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
 function buildBratWords(lines) {
     const output = [];
     for (let i = 0; i < lines.length; i++) {
-        const line = linaNormaliseLine(lines, i);
+        const line = linaNormaliseLine(displayLines, i);
         if (!line) continue;
         const words = appleWordsForLine(line, lines[i+1] || null);
         for (const w of words) output.push({ ...w, globalIndex: output.length });
