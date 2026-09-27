@@ -320,23 +320,11 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         const original = linaNormaliseLine(lines, li);
         if (!original) continue;
         const text = String(original.text || '').replace(/\s+/g, ' ').trim();
-        const parts = text.match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g) || [text];
-        const usable = parts.map(part => part.trim()).filter(Boolean);
-        const start = Number(original.time) || 0;
-        const end = Number(original.endTime);
-        const duration = Number.isFinite(end) && end > start ? end - start : 0;
-        const totalWeight = usable.reduce((sum, part) => sum + part.length, 0) || 1;
-        let elapsed = 0;
-        for (const part of usable) {
-            const partDuration = duration ? duration * (part.length / totalWeight) : 0;
-            displayLines.push({
-                ...original,
-                text: part,
-                time: start + elapsed,
-                endTime: start + elapsed + partDuration
-            });
-            elapsed += partDuration;
-        }
+        if (!text) continue;
+        displayLines.push({
+            ...original,
+            text
+        });
     }
 
     ctx.save();
