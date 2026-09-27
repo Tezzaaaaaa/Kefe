@@ -346,8 +346,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
     }
     ctx.restore();
     const activeIndex = linaFindActiveLine(displayLines, time);
-    if (activeIndex < 0) return;
-    const displayLine = displayLines[activeIndex];
 
     // Apple Music's lyric background is driven by the album artwork palette:
     // saturated artwork-derived colour fields are layered, blurred and gently
@@ -443,6 +441,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time) {
         }
     }
     ctx.restore();
+
+    const displayLine = activeIndex >= 0 ? displayLines[activeIndex] : null;
+    if (activeIndex < 0 || !displayLine) return;
 
     // Apple Music's real lyric states (verified, not the earlier stylised
     // guess): active line full brightness/no blur/subtle scale; upcoming
