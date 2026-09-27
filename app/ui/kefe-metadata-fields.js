@@ -183,9 +183,16 @@
     }
 
     var block = buildBlock();
-    // Insert at the top of the host so it sits above the drop-zone/status.
-    host.insertBefore(block.grid, host.firstChild);
-    host.insertBefore(block.heading, host.firstChild);
+    // In the Lyrics panel, the automatic lyrics action is the primary control.
+    // Keep Song details immediately below it; otherwise keep metadata at the host top.
+    var findLyricsButton = host.id === 'lyricsPanel' ? document.getElementById('findLyricsBtn') : null;
+    if (findLyricsButton && findLyricsButton.parentNode === host) {
+      host.insertBefore(block.heading, findLyricsButton.nextSibling);
+      host.insertBefore(block.grid, block.heading.nextSibling);
+    } else {
+      host.insertBefore(block.grid, host.firstChild);
+      host.insertBefore(block.heading, host.firstChild);
+    }
 
     // Restore values from state if present.
     var s = window.state;
