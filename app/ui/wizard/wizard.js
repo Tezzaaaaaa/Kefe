@@ -152,6 +152,15 @@
                 });
                 project.addEventListener('click', () => {
                     const choice = project.dataset.choice;
+                    if (wizard.choice === choice) {
+                        wizard.choice = null;
+                        wizard.path = null;
+                        wizard.source = null;
+                        wizard.index = 0;
+                        project.classList.remove('selected');
+                        refreshNextState();
+                        return;
+                    }
                     if (wizard.choice !== choice) wizard.source = null;
                     wizard.choice = choice;
                     wizard.path = choice;
@@ -164,6 +173,15 @@
         } else if (menu) {
             menu.querySelectorAll('.wizard-choice').forEach(btn => btn.addEventListener('click', () => {
                 const c = btn.dataset.choice;
+                if (wizard.choice === c) {
+                    wizard.choice = null;
+                    wizard.path = null;
+                    wizard.source = null;
+                    wizard.index = 0;
+                    btn.classList.remove('selected');
+                    refreshNextState();
+                    return;
+                }
                 if (wizard.choice !== c) wizard.source = null;
                 wizard.choice = c;
                 wizard.path = c;
