@@ -272,12 +272,14 @@ body.wizard-mode .kefe-pathway-card-container{
   will-change:grid-template-columns;
 }
 .kefe-pathway-background{
-  position:absolute;
+  position:fixed;
   inset:0;
-  z-index:0;
+  z-index:-1;
+  width:100vw;
+  height:100vh;
   overflow:hidden;
   pointer-events:none;
-  background:#080808;
+  background:#f4f7fb;
 }
 .kefe-pathway-background-image{
   position:absolute;
@@ -318,7 +320,7 @@ body.wizard-mode .kefe-pathway-card-container{
   content:"";
   position:absolute;
   inset:0;
-  background:rgba(0,0,0,.48);
+  background:rgba(244,247,251,.16);
   z-index:2;
 }
 @keyframes kefe-pathway-background-slide{
