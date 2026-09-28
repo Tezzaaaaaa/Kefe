@@ -5,6 +5,7 @@
     const $ = id => document.getElementById(id);
     const body = document.body;
     const sidebar = document.querySelector('.sidebar');
+    const editorTabs = sidebar?.querySelector('.kefe-editor-tabs');
     if (!sidebar || $('wizardSection')) return;
     const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const pad = n => String(n).padStart(2, '0');
@@ -259,11 +260,27 @@
 
         restoreStyleBlock();
 
-        clearTimeout(fadeTimer); sidebar.classList.remove('wizard-fading'); stepHeading.remove(); nav.remove(); panel.remove(); document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current')); body.classList.remove('wizard-mode'); delete body.dataset.wizardStep;
-        document.querySelectorAll('.sidebar .section').forEach(s => s.classList.toggle('active', s.id === 'exportSection'));
-        $('exportSection')?.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
+        clearTimeout(fadeTimer); sidebar.classList.remove('wizard-fading'); stepHeading.remove(); nav.remove(); panel.remove(); document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current')); body.classList.remove('wizard-mode'); body.classList.add('kefe-editor-mode'); delete body.dataset.wizardStep;
+        document.querySelectorAll('.sidebar .section').forEach(s => s.classList.remove('editor-active'));
+        $('audioSection')?.classList.add('editor-active');
+        editorTabs?.querySelectorAll('.kefe-editor-tab').forEach(tab => tab.classList.toggle('is-active', tab.getAttribute('href') === '#audioSection'));
     }
     function goTo(index) { const steps = stepsFor(); if (index < 0 || index >= steps.length) return; wizard.index = index; if (reducedMotion) return applyStep(); sidebar.classList.add('wizard-fading'); clearTimeout(fadeTimer); fadeTimer = setTimeout(() => { applyStep(); sidebar.classList.remove('wizard-fading'); }, 150); }
+
+    editorTabs?.addEventListener('click', event => {
+        const tab = event.target.closest('.kefe-editor-tab');
+        if (!tab || !body.classList.contains('kefe-editor-mode')) return;
+        event.preventDefault();
+        const target = tab.getAttribute('href');
+        const mappedTarget = target === '#lyricStyleBlock' ? '#textSection' : target;
+        document.querySelectorAll('.sidebar .section').forEach(section => section.classList.toggle('editor-active', '#' + section.id === mappedTarget));
+        editorTabs.querySelectorAll('.kefe-editor-tab').forEach(item => item.classList.toggle('is-active', item === tab));
+        if (target === '#lyricStyleBlock') {
+            document.querySelector('#lyricStyleBlock')?.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
+        } else {
+            document.querySelector(mappedTarget)?.scrollTo?.({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
+        }
+    });
 
     window.kefeWizard = {
         version: 1,
