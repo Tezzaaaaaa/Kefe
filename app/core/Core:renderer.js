@@ -182,4 +182,7 @@ export function render(ctx, w, h, appState, mediaCache) {
         }
     } finally { ctx.restore(); }
 }
-window.render = render;
+if (!window.__kefeCoreRendererInstalled) {
+    window.__kefeCoreRendererInstalled = true;
+    window.render = render;
+}
