@@ -143,7 +143,8 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     const activeFontSize = baseDimension * (32 / 390);
     const inactiveFontSize = baseDimension * (29 / 390);
     const lineSpacing = baseDimension * (5 / 390);
-    const family = '-apple-system,"SF Pro Display",sans-serif';
+    const contract = window.KEFE_TYPE?.effects?.apple || {};
+    const family = `"${contract.family || 'Open Sans'}",Arial,sans-serif`;
     const boundaryLeft = Math.max(0, (w - compositionWidth) / 2);
     const margin = boundaryLeft + horizontalPadding;
     const maxWidth = contentWidth;
@@ -158,7 +159,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     }
 
     ctx.save();
-    ctx.font = `800 ${activeFontSize}px ${family}`;
+    ctx.font = `${contract.weight || 700} ${activeFontSize}px ${family}`;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     for (const line of displayLines) {
@@ -338,7 +339,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
         ctx.textAlign = 'left';
         ctx.globalAlpha = alphaAmt;
         const rowFontSize = isActiveRow ? activeFontSize : inactiveFontSize;
-        ctx.font = `800 ${rowFontSize}px ${family}`;
+        ctx.font = `${contract.weight || 700} ${rowFontSize}px ${family}`;
         ctx.fillStyle = '#FFFFFF';
         ctx.translate(x, y);
         ctx.scale(scaleAmt, scaleAmt);
