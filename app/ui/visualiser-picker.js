@@ -398,6 +398,7 @@
   }
 
   tick();
-  window.kefeRefreshVisualiserPicker = tick;
+  document.addEventListener('kefe:editor-mode', tick);
+  document.addEventListener('kefe:project-type', tick);
   console.log('[KEFE] visualiser picker active');
 })();
