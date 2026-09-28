@@ -6,7 +6,8 @@
     window.__kefeVisualFxInstalled = true;
     const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
     const FX_KEY = 'kefe-visual-fx-v1';
-    const originalRender = window.render;
+    const renderPipeline = window.kefeRenderPipeline;
+    if (!renderPipeline) return;
     const fxInput = document.createElement('canvas');
     const fxInputCtx = fxInput.getContext('2d', { alpha: false });
     const scratch = document.createElement('canvas');
@@ -213,7 +214,7 @@
         default:base(c,src,w,h);
       }
     }
-    window.render=function(ctx,w,h,appState,mediaCache){const fx=appState?.style?.visualFx||'none';if(!fx||fx==='none')return originalRender(ctx,w,h,appState,mediaCache);resize(w,h);originalRender(fxInputCtx,w,h,appState,mediaCache);ctx.save();apply(ctx,w,h,appState.style,Number(appState.playback?.currentTime)||0,fxInput);ctx.restore();};
+    renderPipeline.use('visual-fx', originalRender => function(ctx,w,h,appState,mediaCache){const fx=appState?.style?.visualFx||'none';if(!fx||fx==='none')return originalRender(ctx,w,h,appState,mediaCache);resize(w,h);originalRender(fxInputCtx,w,h,appState,mediaCache);ctx.save();apply(ctx,w,h,appState.style,Number(appState.playback?.currentTime)||0,fxInput);ctx.restore();});
     const labels={none:'Off — clean KEFE rendering',vhs:'VHS — tape wobble, chroma bleed, scanlines and grain',crt:'CRT — scanlines, glow, RGB separation and vignette',rgb:'RGB Shift — chromatic lens separation',bloom:'Bloom — soft highlight diffusion and light bleed',motion:'Motion Blur — directional trails',shake:'Camera Shake — subtle handheld movement',glitch:'Glitch — controlled signal breaks and chromatic distortion',halftone:'Halftone — graphic print-screen texture',vignette:'Vignette — restrained cinematic edge falloff',mixedmedia:'Mixed Media — layered collage, print texture, halftone and imperfect registration'};
     const catalog={
       'Blur':['Camera shake','Depth of field','Circular blur','Motion blur','Radial blur','Zoom blur','Blur/sharp','Gaussian blur'],
