@@ -205,9 +205,7 @@ header {
 .canvas-wrapper canvas,
 .canvas-wrapper #stageCanvas {
   border-radius: var(--r-lg);
-  box-shadow:
-    0 12px 40px rgba(0,0,0,0.28),
-    0 1px 2px rgba(0,0,0,0.16);
+  
   outline: 1px solid rgba(255,255,255,0.06);
   outline-offset: -1px;
 }
@@ -574,7 +572,7 @@ body.wizard-mode .wizard-choices .wizard-choice.selected .kefe-accordion-inner s
   border-color: var(--line-strong, rgba(255,255,255,0.28));
 }
 .kefe-ridge-swatch.active {
-  box-shadow: 0 0 0 2px var(--red, #EF3F38);
+  
   border-color: var(--red, #EF3F38);
 }
 
@@ -665,7 +663,7 @@ body.wizard-mode #exportSection.wizard-current{padding-bottom:24px!important}
   .kefe-wave-wrap .slider{height:38px!important}
 }
 
-#exportOverlay .modal-content{background:var(--surface);box-shadow:none}
+#exportOverlay .modal-content{background:var(--surface);}
 #exportOverlay #exportStatus{display:flex;align-items:center;justify-content:center;gap:10px;min-height:28px;color:var(--text)}
 #exportOverlay #exportStatus.loading::before{content:"";width:16px;height:16px;flex:0 0 16px;border:2px solid rgba(255,255,255,.16);border-top-color:var(--red);border-radius:50%;animation:kefe-export-spin .72s linear infinite}
 #exportOverlay #exportProgress{appearance:none;-webkit-appearance:none;background:var(--surface-3);border:0;border-radius:99px;overflow:hidden}
