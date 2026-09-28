@@ -348,11 +348,7 @@
         $('wizardStepLabel').textContent = STEP_LABELS[step] || '';
         const stepMenu = $('wizardStepMenu');
         if (stepMenu) {
-            stepMenu.innerHTML = steps.map((key, index) => {
-                const active = index === wizard.index;
-                const done = index < wizard.index;
-                return `<span class="wizard-step-menu-item${active ? ' active' : ''}${done ? ' done' : ''}" role="listitem" aria-current="${active ? 'step' : 'false'}"><span class="wizard-step-menu-index">${pad(index + 1)}</span><span class="wizard-step-menu-label">${STEP_LABELS[key] || key}</span></span>`;
-            }).join('<span class="wizard-step-menu-line" aria-hidden="true"></span>');
+            stepMenu.innerHTML = `<span class="wizard-step-menu-item active" role="listitem" aria-current="step"><span class="wizard-step-menu-index">${wizard.index + 1}</span></span>`;
         }
         $('wizardBackBtn').disabled = wizard.index === 0;
         const next = $('wizardNextBtn'); next.textContent = step === 'export' ? 'Export' : 'Next'; next.disabled = !nextEnabled(step);
