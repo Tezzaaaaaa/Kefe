@@ -899,3 +899,136 @@ body.wizard-mode .wizard-nav{color:#2a3242}
 body.wizard-mode .wizard-progress,body.wizard-mode .wizard-step-label{color:#5a6478}
 body.wizard-mode .wizard-back{background:rgba(255,255,255,.55);color:#2a3242;border-color:rgba(255,255,255,.78)}
 body.wizard-mode .wizard-skip{color:#5a6478}
+
+
+/* ========================================================================== 
+   KEFE — serene pastel glass pathway layout
+   Keep the creation controls immediately beneath the header and use the
+   supplied mobile reference for spacing, hierarchy and surface treatment.
+   ========================================================================== */
+body.wizard-mode .wizard-nav{
+  order:-1;
+  position:relative;
+  z-index:20;
+  flex:0 0 auto;
+  min-height:60px;
+  height:60px;
+  margin:0 0 10px;
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,.70);
+  border-radius:999px;
+  background:rgba(255,255,255,.45);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 8px 32px rgba(100,120,150,.10);
+  backdrop-filter:blur(24px) saturate(1.6);
+  -webkit-backdrop-filter:blur(24px) saturate(1.6);
+}
+body.wizard-mode .wizard-nav .wizard-progress-wrap{
+  gap:10px;
+}
+body.wizard-mode .wizard-nav .wizard-step-menu{
+  width:38px;
+  min-width:38px;
+  height:38px;
+  padding:4px;
+  border-radius:999px;
+  background:rgba(255,255,255,.65);
+  border:1px solid rgba(255,255,255,.80);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95);
+  backdrop-filter:blur(20px) saturate(1.5);
+  -webkit-backdrop-filter:blur(20px) saturate(1.5);
+}
+body.wizard-mode .wizard-nav .wizard-back,
+body.wizard-mode .wizard-nav .wizard-next{
+  height:40px;
+  min-height:40px;
+  min-width:88px;
+  border-radius:999px;
+}
+body.wizard-mode .wizard-nav .wizard-back{
+  background:rgba(255,255,255,.52);
+  border-color:rgba(255,255,255,.78);
+  color:#2a3242;
+}
+body.wizard-mode .wizard-nav .wizard-next{
+  background:#8ba8d4;
+  border-color:#8ba8d4;
+  box-shadow:0 4px 16px rgba(139,168,212,.30);
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel{
+  padding:0 4px 20px;
+  overflow:visible;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel-kicker{
+  margin:4px 0 7px;
+  color:#6b8bb8!important;
+  font-size:10px;
+  letter-spacing:.12em;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel-title{
+  margin:0 0 7px;
+  color:#1a202c!important;
+  font-size:clamp(25px,3vw,34px);
+  line-height:1.12;
+  letter-spacing:-.045em;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel-hint{
+  margin:0;
+  max-width:620px;
+  color:#5a6478!important;
+  font-size:13px;
+  line-height:1.5;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices-wrap{
+  width:min(100%,760px);
+  margin:18px auto 0;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-choices{
+  gap:10px;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-choice{
+  min-height:92px;
+  padding:16px 18px;
+  border:1px solid rgba(255,255,255,.70);
+  border-radius:20px;
+  background:rgba(255,255,255,.45);
+  color:#2a3242;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 8px 32px rgba(100,120,150,.10);
+  backdrop-filter:blur(20px) saturate(1.5);
+  -webkit-backdrop-filter:blur(20px) saturate(1.5);
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-choice:hover{
+  transform:translateY(-2px);
+  background:rgba(255,255,255,.65);
+  border-color:rgba(255,255,255,.88);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 12px 40px rgba(100,120,150,.15);
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-choice.selected{
+  background:rgba(255,255,255,.68)!important;
+  border-color:rgba(139,168,212,.75)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 8px 32px rgba(100,120,150,.12)!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-choice.selected strong{
+  color:#2a3242!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-choice-icon{
+  background:rgba(255,255,255,.60);
+  border:1px solid rgba(255,255,255,.80);
+  color:#6b8bb8;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95);
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-start-indicator{
+  margin:16px auto 0;
+}
+@media(max-width:900px){
+  body.wizard-mode .wizard-nav{margin:0 0 8px;height:56px;min-height:56px;padding:7px 10px}
+  body.wizard-mode .wizard-nav .wizard-back,body.wizard-mode .wizard-nav .wizard-next{min-width:78px;height:40px;min-height:40px;padding:0 16px}
+  body.wizard-mode[data-wizard-step="intro"] .wizard-panel{padding:0 0 18px}
+  body.wizard-mode[data-wizard-step="intro"] .wizard-choices-wrap{margin-top:14px}
+  body.wizard-mode[data-wizard-step="intro"] .wizard-choices{gap:8px}
+  body.wizard-mode[data-wizard-step="intro"] .wizard-choice{min-height:82px;padding:14px 16px;border-radius:18px}
+}
+@media(max-width:560px){
+  body.wizard-mode .wizard-nav{margin:0 0 6px;border-radius:20px}
+  body.wizard-mode[data-wizard-step="intro"] .wizard-panel-title{font-size:25px}
+  body.wizard-mode[data-wizard-step="intro"] .wizard-choice{min-height:74px;padding:12px 14px;border-radius:16px}
+}
