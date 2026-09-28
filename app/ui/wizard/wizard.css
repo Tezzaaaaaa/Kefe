@@ -1343,3 +1343,10 @@ body.wizard-mode[data-wizard-step="intro"] .app{position:relative;z-index:2;back
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container,
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-glass-dock{z-index:3}
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image.is-visible{opacity:1}
+/* Pathway screen owns the full workspace; the live preview does not exist here. */
+body.wizard-mode[data-wizard-step="intro"] .app > main > .preview{
+  display:none!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .app > main{
+  grid-template-columns:minmax(0,1fr)!important;
+}
