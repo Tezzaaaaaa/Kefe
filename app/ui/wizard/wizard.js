@@ -118,9 +118,9 @@
         destroyIntroVeil();
         const veil = '<div class="wizard-dark-veil" aria-hidden="true"></div>';
         const projects = [
-            ['lyric', 'Lyric Video', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img01-alt.jpg'],
-            ['visualiser', 'Visualiser', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img02.jpg'],
-            ['captioned', 'Captioned Video', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img03.jpg']
+            ['lyric', 'Lyric Video', 'assets/IMG_3719.jpeg'],
+            ['visualiser', 'Visualiser', 'assets/IMG_3737.jpeg'],
+            ['captioned', 'Captioned Video', 'assets/IMG_3984.gif']
         ];
         panel.innerHTML = veil +
             '<p class="wizard-panel-kicker">01 · Start</p>' +
