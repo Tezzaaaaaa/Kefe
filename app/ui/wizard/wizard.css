@@ -281,6 +281,10 @@ body.wizard-mode .kefe-pathway-card-container{
   pointer-events:none;
   background:#f4f7fb;
 }
+body.wizard-mode > *:not(.kefe-pathway-background){
+  position:relative;
+  z-index:1;
+}
 .kefe-pathway-background-image{
   position:absolute;
   inset:0;
