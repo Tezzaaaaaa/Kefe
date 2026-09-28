@@ -11,7 +11,6 @@ import {
 import { readiness, ensureDefaultBackground } from './core/status.js';
 import { wireMediaInputs, updateMetadataInputs } from './core/media.js';
 import { renderMasterSourceUI, wireMasterChoiceModal, syncMasterSourceUI } from './core/master-source.js';
-import { renderEffectControls, setEffect, wireEffectButtons, EFFECT_LABELS } from './ui/effects.js';
 import { wireTitleCardControls, syncTitleCardUI } from './ui/title-card.js';
 import { wireSyncControls } from './ui/sync.js';
 import { applyTextMode, wireCaptions, wireCaptionStyleControls, syncCaptionStyleUI } from './ui/captions.js';
@@ -50,13 +49,12 @@ function init() {
         wireLyricsLookupButtons();
         wireExportPreflight();
         wireKeyboardShortcuts();
-        wireEffectButtons();
         wireTransport();
         wireReset();
         wireGlassVisibility();
 
         readiness();
-        setEffect(prefs?.effect && EFFECT_LABELS[prefs.effect] ? prefs.effect : (state.style.effect || 'apple'));
+        window.setEffect?.(prefs?.effect || state.style.effect || 'apple');
         redrawCurrentPreviewFrame();
         window.dispatchEvent(new CustomEvent('kefe:app-ready'));
         toast('KEFE Visualiser ready', 'success');
