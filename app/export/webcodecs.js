@@ -41,10 +41,7 @@ function qualityForMediabunny(name, config) {
                 : 2_500_000;
 
     const configuredBitrate =
-        Number.parseInt(
-            quality.videoBitrate || '0',
-            10
-        ) * 1_000_000;
+        Number.parseInt(quality.videoBitrate || '0', 10);
 
     const bitrate = Math.max(
         minimumBitrate,
@@ -145,10 +142,7 @@ export async function exportVideoWebCodecs({
     const videoSource =
         new CanvasSource(canvas, {
             codec: 'avc',
-            quality: qualityForMediabunny(
-                window.kefeExportQuality || 'medium',
-                config
-            ),
+            quality: qualityForMediabunny(config.quality, config),
             hardwareAcceleration: 'prefer-hardware',
             latencyMode: 'quality',
             keyFrameInterval: 2
@@ -191,9 +185,7 @@ export async function exportVideoWebCodecs({
             });
 
         const audioQuality =
-            getQualityPreset(
-                window.kefeExportQuality || 'medium'
-            );
+            getQualityPreset(config.quality);
 
         const audioBitrate =
             Number.parseInt(
