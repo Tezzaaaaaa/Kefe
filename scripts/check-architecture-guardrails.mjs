@@ -75,16 +75,11 @@ const STATE_WRITE_BASELINE = new Set([
   'app/effects/aurora-fx.js',
   'app/effects/effect-app-fx.js',
   'app/effects/story-fade.js',
-  'app/export/ui.js',
 
   // The video strip writes state.songStartTime when the user marks where the
   // song starts. Migrate to window.kefe.bus when the wider state-write
   // migration happens.
   'app/ui/preview-video-strip.js',
-  // The MiniPlayer mirrors the main editor's media state into window.state
-  // so Butterchurn and the visualiser modules can read it. Migrate to
-  // window.kefe.bus when the wider state-write migration happens.
-  'app/ui/mini-player.js',
 ]);
 const stateWriters = new Set();
 for (const file of appFiles) {
