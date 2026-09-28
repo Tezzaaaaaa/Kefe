@@ -132,7 +132,6 @@
                         '<button type="button" class="wizard-choice kefe-pathway-card' + (wizard.choice === k ? ' is-selected' : '') + '" data-choice="' + k + '" data-pathway-index="' + index + '">' +
                             '<span class="kefe-pathway-image"><img src="' + image + '" alt="" aria-hidden="true"></span>' +
                             '<span class="kefe-pathway-card-content"><span class="kefe-pathway-number">0' + (index + 1) + '</span><strong>' + title + '</strong><span>' + PATH_HINTS[k] + '</span></span>' +
-                            '<span class="kefe-pathway-arrow" aria-hidden="true">↗</span>' +
                         '</button>'
                     ).join('') +
                 '</div>' +
