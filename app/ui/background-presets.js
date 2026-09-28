@@ -7,7 +7,30 @@ const defs={gradient:{label:'Soft Gradient',svg:`<svg xmlns="http://www.w3.org/2
 const clear=()=>{if(media.video){media.video.pause();media.video.src='';media.video=null}media.videoFile=null;media.videoHasAudio=false;media.image=null};
 const select=k=>presets.forEach(x=>x.classList.toggle('active-background',x.dataset.backgroundPreset===k)),redraw=()=>window.redrawCurrentPreviewFrame?.();
 const choose=key=>{if(window.isExporting)return;clear();if(key==='solid'){state.background.type='solid';select('solid');if(status)status.textContent=`Colour background · ${state.background.solid.toUpperCase()}`;redraw();return}const def=defs[key];if(!def)return;const img=new Image();img.src=`data:image/svg+xml;charset=utf-8,${encodeURIComponent(def.svg)}`;img.onload=()=>{media.image=img;state.background.type='image';select(key);if(status)status.textContent=`${def.label} · ready`;redraw()}};
-presets.forEach(x=>x.addEventListener('click',()=>choose(x.dataset.backgroundPreset)));colorInput?.addEventListener('input',()=>{clear();state.background.type='solid';state.background.solid=colorInput.value;if(colorValue)colorValue.textContent=colorInput.value.toUpperCase();select('solid');redraw()});select('solid');
+presets.forEach(x=>x.addEventListener('click',()=>choose(x.dataset.backgroundPreset)));
+const syncControls=()=>{
+  const dim=document.getElementById('bgDim');
+  if(dim)dim.value=String(Math.round((state.background.dim??0.35)*100));
+  const dimValue=document.getElementById('bgDimVal');
+  if(dimValue)dimValue.textContent=`${Math.round((state.background.dim??0.35)*100)}%`;
+  const blur=document.getElementById('bgBlur');
+  if(blur)blur.value=String(state.background.blur||0);
+  const blurValue=document.getElementById('bgBlurVal');
+  if(blurValue)blurValue.textContent=`${state.background.blur||0}px`;
+};
+document.getElementById('bgDim')?.addEventListener('input',function(){
+  if(window.isExporting){this.value=String(Math.round((state.background.dim||0)*100));return}
+  state.background.dim=Number(this.value)/100;
+  const value=document.getElementById('bgDimVal');if(value)value.textContent=`${this.value}%`;
+  redraw();
+});
+document.getElementById('bgBlur')?.addEventListener('input',function(){
+  if(window.isExporting){this.value=String(state.background.blur||0);return}
+  state.background.blur=Number(this.value)||0;
+  const value=document.getElementById('bgBlurVal');if(value)value.textContent=`${this.value}px`;
+  redraw();
+});
+syncControls();colorInput?.addEventListener('input',()=>{clear();state.background.type='solid';state.background.solid=colorInput.value;if(colorValue)colorValue.textContent=colorInput.value.toUpperCase();select('solid');redraw()});select('solid');
 
 const buildBackgroundPopover=()=>{
   if(!grid||grid.dataset.kefePopoverApplied==='1')return;
