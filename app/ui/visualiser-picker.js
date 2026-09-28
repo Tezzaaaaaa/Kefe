@@ -2,7 +2,7 @@
   'use strict';
   if (window.__kefeVisualiserPicker) return;
   window.__kefeVisualiserPicker = true;
-  var appState = function(){ return window.kefe?.state || appState(); };
+  var appState = function(){ return window.kefe?.state || window.state || null; };
 
   // Keep body[data-project-type] in sync so CSS can scope visualiser-only
   // rules without fighting the rest of the layout.
