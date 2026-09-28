@@ -355,39 +355,6 @@ body.wizard-mode .kefe-pathway-card-content>span:last-child{
   line-height:1.45;
   opacity:1;
 }
-body.wizard-mode .kefe-pathway-arrow{
-  position:absolute;
-  z-index:3;
-  top:16px;
-  right:16px;
-  display:grid;
-  place-items:center;
-  width:34px;
-  height:34px;
-  border:1px solid rgba(255,255,255,.16);
-  border-radius:50%;
-  background:rgba(0,0,0,.3);
-  color:#fff;
-  font-size:15px;
-  backdrop-filter:blur(8px);
-  transition:transform .24s cubic-bezier(.22,1,.36,1),background .2s ease,border-color .2s ease;
-}
-body.wizard-mode .kefe-pathway-card.is-focused .kefe-pathway-arrow{
-  transform:translate(2px,-2px);
-  background:rgba(239,63,56,.88);
-  border-color:rgba(239,63,56,.9);
-}
-body.wizard-mode .kefe-pathway-controller{
-  position:absolute;
-  width:1px;
-  height:1px;
-  padding:0;
-  margin:-1px;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-  white-space:nowrap;
-  border:0;
-}
 @media(max-width:900px){
   body.wizard-mode .kefe-pathway-carousel{
     --card-width:76%;
