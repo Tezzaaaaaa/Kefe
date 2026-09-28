@@ -258,6 +258,11 @@ body.wizard-mode[data-wizard-step="intro"] #wizardSection{
 body.wizard-mode[data-wizard-step="intro"] .sidebar > .section-nav,
 body.wizard-mode[data-wizard-step="intro"] #wizardNav,
 body.wizard-mode[data-wizard-step="intro"] .sidebar > .section:not(#wizardSection){
+  display:none !important;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel-kicker,
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel-title,
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel-hint{
   display:none;
 }
 
