@@ -1322,17 +1322,24 @@ body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-glass-item:focus-visibl
 }
 
 
-/* Pathway photography must remain visible through the entire intro shell. */
-body.wizard-mode[data-wizard-step="intro"] .app,
-body.wizard-mode[data-wizard-step="intro"] main,
+/* Pathway photography sits behind the intro surface, not behind an opaque panel. */
 body.wizard-mode[data-wizard-step="intro"] .wizard-panel,
-body.wizard-mode[data-wizard-step="intro"] .sidebar{
+body.wizard-mode[data-wizard-step="intro"] main{
   background:transparent!important;
   background-color:transparent!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel{
+  border-color:transparent!important;
+  box-shadow:none!important;
 }
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background{
   z-index:0;
 }
-body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image.is-visible{
-  opacity:1;
-}
+
+/* Intro photography layer: above the page background, below KEFE UI. */
+body.wizard-mode[data-wizard-step="intro"]{background:transparent!important}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background{z-index:1}
+body.wizard-mode[data-wizard-step="intro"] .app{position:relative;z-index:2;background:transparent!important}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container,
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-glass-dock{z-index:3}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image.is-visible{opacity:1}
