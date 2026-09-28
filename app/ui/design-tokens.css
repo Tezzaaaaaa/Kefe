@@ -564,7 +564,6 @@ body.wizard-mode .wizard-choices .wizard-choice.selected .kefe-accordion-inner s
   padding: 0;
   cursor: pointer;
   transition: transform var(--dur) var(--ease),
-              box-shadow var(--dur) var(--ease),
               border-color var(--dur) var(--ease);
 }
 .kefe-ridge-swatch:hover {
