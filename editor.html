@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>KEFE Editor</title>
+<script src="./app/ui/typography.js"></script>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#070707;--panel:rgba(22,22,22,.72);--line:rgba(255,255,255,.09);--text:#f5f5f5;--muted:#8d8d8d;--accent:#ef3f38;--glass:rgba(255,255,255,.055)}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:"Inter Tight",system-ui,sans-serif}
+body{overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer}
+.kefe-editor{height:100vh;display:grid;grid-template-rows:60px 1fr 76px;background:radial-gradient(circle at 50% 20%,rgba(255,255,255,.035),transparent 42%),#070707}
+.kefe-top{display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--line);background:rgba(8,8,8,.72);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px)}
+.kefe-brand{font-weight:800;letter-spacing:-.04em;font-size:20px}
+.kefe-top-actions{display:flex;gap:8px}
+.kefe-btn{min-height:38px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:var(--glass);color:var(--text)}
+.kefe-btn.primary{background:var(--accent);border-color:var(--accent);font-weight:700}
+.kefe-work{min-height:0;display:grid;grid-template-columns:220px minmax(0,1fr) 300px}
+.kefe-rail,.kefe-inspector{min-width:0;background:rgba(12,12,12,.72);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.kefe-rail{border-right:1px solid var(--line);padding:14px 10px}
+.kefe-inspector{border-left:1px solid var(--line);padding:16px;overflow:auto}
+.kefe-section{width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 12px;margin:2px 0;border-radius:12px;color:var(--muted);text-align:left}
+.kefe-section.active,.kefe-section:hover{background:var(--glass);color:var(--text)}
+.kefe-section.active{box-shadow:inset 2px 0 var(--accent)}
+.kefe-preview{min-width:0;min-height:0;display:grid;place-items:center;padding:28px}
+.kefe-stage{width:min(78vw,980px);height:min(70vh,620px);aspect-ratio:16/9;position:relative;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#000}
+#kefeCanvas{display:block;width:100%;height:100%}
+.kefe-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);pointer-events:none}
+.kefe-empty strong{display:block;color:var(--text);font-size:20px;margin-bottom:7px}
+.kefe-panel{display:none}
+.kefe-panel.active{display:block}
+.kefe-panel h2{font-size:16px;margin:0 0 16px}
+.kefe-label{display:block;font-size:12px;color:var(--muted);margin:16px 0 7px}
+.kefe-select,.kefe-input,.kefe-textarea{width:100%;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.045);padding:10px 11px;outline:none}
+.kefe-textarea{min-height:150px;resize:vertical;line-height:1.5}
+.kefe-effect-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.kefe-effect{min-height:58px;padding:10px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.035);text-align:left}
+.kefe-effect small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.kefe-effect.active{border-color:var(--accent);background:rgba(239,63,56,.12)}
+.kefe-font-card{padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.035)}
+.kefe-font-name{font-size:20px;margin-bottom:4px}
+.kefe-meta{font-size:12px;color:var(--muted)}
+.kefe-transport{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:0 20px;border-top:1px solid var(--line);background:rgba(8,8,8,.82);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px)}
+.kefe-play{width:44px;height:44px;border-radius:50%;background:var(--text);color:#000;font-weight:800}
+#kefeTime{width:100%;accent-color:var(--accent)}
+.kefe-time{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+.kefe-file{display:none}
+.kefe-upload{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);cursor:pointer}
+.kefe-upload:hover{border-color:rgba(255,255,255,.25);color:var(--text)}
+@media(max-width:900px){.kefe-work{grid-template-columns:64px minmax(0,1fr)}.kefe-inspector{display:none}.kefe-section{justify-content:center;font-size:0}.kefe-section::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}.kefe-stage{width:100%;height:auto}.kefe-preview{padding:14px}}
+</style>
+</head>
+<body>
+<div class="kefe-editor">
+<header class="kefe-top">
+  <div class="kefe-brand">KEFE</div>
+  <div class="kefe-top-actions"><button class="kefe-btn" id="mediaButton">Add media</button><button class="kefe-btn primary" id="exportButton">Export</button></div>
+</header>
+<main class="kefe-work">
+  <nav class="kefe-rail" aria-label="Editor sections">
+    <button class="kefe-section active" data-panel="media">Media</button>
+    <button class="kefe-section" data-panel="fonts">Fonts</button>
+    <button class="kefe-section" data-panel="effects">Lyric Effects</button>
+    <button class="kefe-section" data-panel="background">Background Effects</button>
+    <button class="kefe-section" data-panel="fx">Visual FX</button>
+    <button class="kefe-section" data-panel="visualisers">Visualisers</button>
+    <button class="kefe-section" data-panel="export">Export</button>
+  </nav>
+  <section class="kefe-preview">
+    <div class="kefe-stage">
+      <canvas id="kefeCanvas" width="1280" height="720"></canvas>
+      <div class="kefe-empty" id="emptyState"><div><strong>Add lyrics to preview</strong><span>Choose a lyric effect and enter timed lines.</span></div></div>
+    </div>
+  </section>
+  <aside class="kefe-inspector">
+    <section class="kefe-panel active" data-panel-view="media">
+      <h2>Media</h2>
+      <label class="kefe-upload" for="mediaInput">Choose audio or video</label>
+      <input class="kefe-file" id="mediaInput" type="file" accept="audio/*,video/*">
+      <div class="kefe-label">Lyrics</div>
+      <textarea class="kefe-textarea" id="lyricsInput" spellcheck="false">We were dancing in the dark
+And everything was moving slow
+I could feel the night begin</textarea>
+      <div class="kefe-label">Timing</div>
+      <div class="kefe-meta">One line per lyric. Lines are previewed with automatic timing; use the browser timeline to scrub.</div>
+    </section>
+    <section class="kefe-panel" data-panel-view="fonts">
+      <h2>Font</h2>
+      <div class="kefe-font-card"><div class="kefe-font-name" id="fontName">Open Sans</div><div class="kefe-meta" id="fontMeta">Automatically selected by lyric effect</div></div>
+      <label class="kefe-label">Font override</label>
+      <select class="kefe-select" id="fontOverride"><option value="">Use effect font</option></select>
+    </section>
+    <section class="kefe-panel" data-panel-view="effects">
+      <h2>Lyric Effects</h2>
+      <div class="kefe-effect-grid" id="effectGrid"></div>
+    </section>
+    <section class="kefe-panel" data-panel-view="background"><h2>Background Effects</h2><div class="kefe-meta">Background controls will share this preview surface.</div></section>
+    <section class="kefe-panel" data-panel-view="fx"><h2>Visual FX</h2><div class="kefe-meta">Visual FX will render behind the selected lyric treatment.</div></section>
+    <section class="kefe-panel" data-panel-view="visualisers"><h2>Visualisers</h2><div class="kefe-meta">Audio-reactive visualisers will render beneath the lyric layer.</div></section>
+    <section class="kefe-panel" data-panel-view="export"><h2>Export</h2><div class="kefe-meta">Export controls are connected to the current project surface.</div></section>
+  </aside>
+</main>
+<footer class="kefe-transport">
+  <button class="kefe-play" id="playButton" aria-label="Play">▶</button>
+  <input id="kefeTime" type="range" min="0" max="30" step=".01" value="0" aria-label="Timeline">
+  <div class="kefe-time"><span id="timeNow">0:00</span> / <span id="timeEnd">0:30</span></div>
+</footer>
+</div>
+<audio id="kefeAudio" preload="metadata"></audio>
+<script>
+(() => {
+  'use strict';
+
+  window.kefeEffects = window.kefeEffects || {};
+  window.__kefeRenderers = window.__kefeRenderers || {};
+
+  window.kefeEffectUtils = {
+    clamp(v,a=0,b=1){ return Math.max(a,Math.min(b,Number(v)||0)); },
+    activeLine(lines,time){
+      let index=-1;
+      for(let i=0;i<lines.length;i++){ if(time>=Number(lines[i].time||0)) index=i; else break; }
+      if(index<0) return null;
+      return {index,line:lines[index],next:lines[index+1]||null};
+    },
+    lineProgress(line,time){
+      const start=Number(line?.time)||0;
+      const end=Math.max(start+.3,Number(line?.endTime)||start+3);
+      const enter=this.clamp((time-start)/.35);
+      const exit=this.clamp((end-time)/.35);
+      return {opacity:Math.min(enter,exit),enter,exit};
+    },
+    wordsFor(line,next){
+      if(Array.isArray(line?.words)&&line.words.length)return line.words;
+      const text=String(line?.text||'').trim();
+      if(!text)return [];
+      const tokens=text.split(/\s+/).filter(Boolean);
+      const start=Number(line?.time)||0;
+      const end=Number(line?.endTime)||Number(next?.time)||start+3;
+      const step=Math.max(.08,(end-start)/tokens.length);
+      return tokens.map((text,i)=>({text,time:start+i*step,endTime:start+(i+1)*step}));
+    },
+    setContractFont(ctx,id,size){
+      const c=window.KEFE_TYPE?.effects?.[id]||{};
+      ctx.font=`${c.weight||700} ${Math.max(18,size)}px "${c.family||'Open Sans'}",system-ui,sans-serif`;
+    }
+  };
+
+  const baseFonts = Object.values(window.KEFE_TYPE?.families||{});
+  const fontSelect = document.getElementById('fontOverride');
+  [...new Set(baseFonts)].forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f;o.style.fontFamily='"'+f+'",sans-serif';fontSelect.appendChild(o)});
+
+  const effectDefinitions = [
+    ['apple','Apple'],['progressiveblur','Progressive Blur'],['trailer','Trailer'],['fancy','Fancy'],['analogtv','Analog TV'],['glitch','Glitch'],['splitflap','Split-Flap'],['karaoke','Karaoke'],['chromatica','Chromatica'],['flipcards','Flip Text'],['elasticpop','Elastic Pop'],['barbie','Barbie'],['instagram','Instagram'],['fadeup','Fade Up'],['rise','Rise'],['slide','Slide'],['drop','Drop'],['drift','Drift'],['scrolllines','Scroll Lines'],['blur','Blur In'],['typewriter','Typewriter'],['shiny','Shiny'],['decrypt','Decrypt']
+  ];
+
+  let state={effect:'apple',fontOverride:'',lines:[],time:0};
+  const canvas=document.getElementById('kefeCanvas'), ctx=canvas.getContext('2d');
+  const empty=document.getElementById('emptyState'), lyricsInput=document.getElementById('lyricsInput');
+  const audio=document.getElementById('kefeAudio'), range=document.getElementById('kefeTime');
+  const timeNow=document.getElementById('timeNow'), timeEnd=document.getElementById('timeEnd');
+
+  function parseLyrics(){
+    const raw=lyricsInput.value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+    state.lines=raw.map((text,i)=>({text,time:i*3,endTime:(i+1)*3}));
+    empty.style.display=state.lines.length?'none':'grid';
+    draw();
+  }
+  function currentStyle(){
+    const contract=window.KEFE_TYPE?.effects?.[state.effect]||{};
+    return {
+      effect:state.effect,
+      fontSize:Math.min(canvas.width,canvas.height)*.13,
+      textColor:'#fff',
+      accentColor:'#ef3f38',
+      flipcardsColor:'#fff',
+      flipcardsAccent:'rgba(255,255,255,.25)',
+      kefeMotionFont:state.fontOverride||contract.family||'Open Sans'
+    };
+  }
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#080808';ctx.fillRect(0,0,canvas.width,canvas.height);
+    if(!state.lines.length)return;
+    const fn=window.kefeEffects[state.effect];
+    if(typeof fn==='function'){
+      try{
+        fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time);
+      }catch(err){
+        ctx.fillStyle='#fff';ctx.font='16px system-ui';ctx.textAlign='center';ctx.fillText('Effect error: '+err.message,canvas.width/2,canvas.height/2);
+        console.error('[KEFE effect]',state.effect,err);
+      }
+    }
+    else if(state.effect==='apple'&&window.kefeAppleDraw){
+      window.kefeAppleDraw(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time);
+    }
+  }
+  function setEffect(id){
+    state.effect=id;
+    document.querySelectorAll('.kefe-effect').forEach(b=>b.classList.toggle('active',b.dataset.effect===id));
+    const c=window.KEFE_TYPE?.effects?.[id]||{};
+    document.getElementById('fontName').textContent=c.family||'System UI';
+    document.getElementById('fontMeta').textContent='Locked effect font · '+(c.weight||400)+' weight';
+    draw();
+  }
+  effectDefinitions.forEach(([id,label])=>{
+    const b=document.createElement('button');b.className='kefe-effect';b.dataset.effect=id;b.innerHTML=`<span>${label}</span><small>${window.KEFE_TYPE?.effects?.[id]?.family||'System UI'}</small>`;
+    b.onclick=()=>setEffect(id);document.getElementById('effectGrid').appendChild(b);
+  });
+
+  document.querySelectorAll('.kefe-section').forEach(button=>button.addEventListener('click',()=>{
+    document.querySelectorAll('.kefe-section').forEach(b=>b.classList.toggle('active',b===button));
+    document.querySelectorAll('.kefe-panel').forEach(p=>p.classList.toggle('active',p.dataset.panelView===button.dataset.panel));
+  }));
+  lyricsInput.addEventListener('input',parseLyrics);
+  fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
+  document.getElementById('mediaButton').onclick=()=>document.getElementById('mediaInput').click();
+  document.getElementById('mediaInput').addEventListener('change',e=>{
+    const file=e.target.files?.[0]; if(!file)return;
+    audio.src=URL.createObjectURL(file);audio.load();
+  });
+  document.getElementById('playButton').onclick=()=>{
+    if(audio.src){ if(audio.paused)audio.play();else audio.pause(); }
+    else { state.time=state.time>=30?0:state.time+.05; draw(); }
+  };
+  audio.addEventListener('loadedmetadata',()=>{
+    range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);
+  });
+  audio.addEventListener('timeupdate',()=>{state.time=audio.currentTime;range.value=state.time;updateTime();draw()});
+  range.addEventListener('input',()=>{state.time=Number(range.value);if(audio.src)audio.currentTime=state.time;updateTime();draw()});
+  function fmt(v){v=Math.max(0,Number(v)||0);return Math.floor(v/60)+':'+String(Math.floor(v%60)).padStart(2,'0')}
+  function updateTime(){timeNow.textContent=fmt(state.time);timeEnd.textContent=fmt(Number(range.max)||30)}
+  document.getElementById('exportButton').onclick=()=>window.print();
+
+  window.kefeRenderPipeline={use(name,plugin){const wrapped=plugin(window.__kefeBaseRender||(()=>{}));window.__kefeRenderers[name]=wrapped;return wrapped;}};
+  window.__kefeBaseRender=()=>{};
+
+  parseLyrics();
+  setEffect('apple');
+})();
+</script>
+<script src="./app/effects/lyric-progressiveblur.js"></script>
+<script src="./app/effects/lyric-trailer.js"></script>
+<script src="./app/effects/lyric-fancy.js"></script>
+<script src="./app/effects/lyric-analogtv.js"></script>
+<script src="./app/effects/lyric-glitch.js"></script>
+<script src="./app/effects/lyric-splitflap.js"></script>
+<script src="./app/effects/lyric-karaoke.js"></script>
+<script src="./app/effects/lyric-chromatica.js"></script>
+<script src="./app/effects/lyric-flipcards.js"></script>
+<script src="./app/effects/lyric-elasticpop.js"></script>
+<script src="./app/effects/lyric-barbie.js"></script>
+<script src="./app/effects/lyric-instagram.js"></script>
+<script src="./app/effects/story-fade.js"></script>
+<script src="./app/effects/scroll-lines.js"></script>
+<script src="./app/effects/blur-text.js"></script>
+<script src="./app/effects/typewriter.js"></script>
+<script src="./app/effects/shiny-text.js"></script>
+<script src="./app/effects/decrypt-text.js"></script>
+<script type="module">
+import {drawAppleEffect} from './app/effects/lyric-apple.js';
+window.kefeAppleDraw=drawAppleEffect;
+window.kefeEffects.apple=(ctx,w,h,style,lines,time)=>drawAppleEffect(ctx,w,h,style,lines,time,null);
+window.dispatchEvent(new Event('kefe-effects-ready'));
+</script>
+</body>
+</html>
