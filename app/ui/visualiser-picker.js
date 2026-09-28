@@ -62,10 +62,11 @@
     var isVisualiser = window.state && window.state.projectType === 'visualiser';
     var onStyleStep = document.body.dataset.wizardStep === 'style';
     var editorMode = document.body.classList.contains('kefe-editor-mode');
+    var editorVisualiserSection = editorMode && document.getElementById('visualiserControls');
     var host = document.getElementById('wizardSection') || document.getElementById('visualiserControls');
     var existing = document.getElementById('kefeVisualiserPicker');
 
-    if (!isVisualiser || (!onStyleStep && !editorMode) || !host) {
+    if (!isVisualiser && !editorVisualiserSection || (!onStyleStep && !editorMode) || !host) {
       if (existing) existing.remove();
       return;
     }
