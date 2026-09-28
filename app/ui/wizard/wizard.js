@@ -335,7 +335,8 @@
             previewEl.classList.toggle('preview-expanded', showLivePreview);
             previewEl.classList.toggle('preview-collapsed', !showLivePreview);
             previewEl.classList.toggle('preview-empty', !showLivePreview);
-            previewEl.style.display = showLivePreview ? '' : 'none';
+            if (showLivePreview) previewEl.style.removeProperty('display');
+            else previewEl.style.setProperty('display', 'none', 'important');
             const main = previewEl.closest('main');
             if (main) {
                 if (showLivePreview) main.style.removeProperty('grid-template-columns');
