@@ -337,7 +337,10 @@
             previewEl.classList.toggle('preview-empty', !showLivePreview);
             previewEl.style.display = showLivePreview ? '' : 'none';
             const main = previewEl.closest('main');
-            if (main) main.style.gridTemplateColumns = showLivePreview ? '' : '1fr';
+            if (main) {
+                if (showLivePreview) main.style.removeProperty('grid-template-columns');
+                else main.style.setProperty('grid-template-columns', '1fr', 'important');
+            }
         }
         const targetIds = targetsForStep(step);
         let firstTarget = null;
