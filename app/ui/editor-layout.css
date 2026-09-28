@@ -3,7 +3,6 @@
 .sidebar{width:auto;min-width:0;min-height:0;overflow:hidden;border-right:1px solid var(--line);background:var(--surface)}
 body.wizard-mode .sidebar{display:flex;flex-direction:column;min-height:0}
 
-body.wizard-mode .section-nav{display:none}
 body.wizard-mode #fxSection{display:none}
 body.wizard-mode .wizard-skip{display:none}
 body.wizard-mode main{padding-top:0}
