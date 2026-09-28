@@ -47,15 +47,7 @@
   <div class="kefe-waveform-meta"><span>Extend from <b id="kefeWaveformTimestamp">0:00.0</b></span><span id="kefeWaveformStatus">No audio loaded</span></div>
   <div class="kefe-waveform-offset"><label for="editorLyricsOffset">Offset</label><input type="range" id="editorLyricsOffset" min="-10" max="10" step="0.01" value="0"><output id="editorLyricsOffsetValue">0.00s</output></div>
 </div><button type="button" class="kefe-editor-export" id="kefeEditorExport">Export video</button></section><aside class="sidebar kefe-editor-rightbar">
-            <nav class="kefe-editor-tabs" aria-label="Editor sections">
-                <a href="#audioSection" class="kefe-editor-tab is-active">Media</a>
-                <a href="#lyricStyleBlock" class="kefe-editor-tab">Fonts</a>
-                <a href="#textSection" class="kefe-editor-tab">Lyric Effects</a>
-                <a href="#backgroundSection" class="kefe-editor-tab">Background Effects</a>
-                <a href="#fxSection" class="kefe-editor-tab">Visual FX</a>
-                <a href="#visualiserSection" class="kefe-editor-tab">Visualisers</a>
-                <a href="#exportSection" class="kefe-editor-tab">Export</a>
-            </nav><div class="section" id="audioSection">
+            <div class="section" id="audioSection">
                 <h3>Media</h3>
                 <div class="drop-zone audio-upload-zone" id="audioDrop"><button type="button" id="audioChooseBtn" class="file-button audio-upload-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload Audio</span></button><p class="control-hint">Drop an audio file here or click to browse</p><input type="file" id="audioInput" accept="audio/*" class="hidden"></div>
                 <div id="audioStatus" class="status">No audio loaded</div>
