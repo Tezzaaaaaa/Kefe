@@ -13,7 +13,7 @@
   CATALOGUE.forEach(function(e){ BY_KEY[e.key] = e; });
 
   function syncActive(host) {
-    var current = (window.state && window.state.style && window.state.style.effect) || 'apple';
+    var current = (window.kefe?.state?.style?.effect) || 'apple';
     host.querySelectorAll('button[data-effect]').forEach(function(b){
       b.classList.toggle('active-effect', b.dataset.effect === current);
     });
@@ -63,8 +63,9 @@
 
   function setEffect(key) {
     var def = BY_KEY[key];
-    if (!def || !window.state || !window.state.style) return false;
-    window.state.style.effect = def.key;
+    var appState = window.kefe?.state;
+    if (!def || !appState?.style) return false;
+    appState.style.effect = def.key;
     try {
       if (typeof window.saveLinaPrefs === 'function') window.saveLinaPrefs();
     } catch (_) {}
