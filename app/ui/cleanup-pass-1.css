@@ -556,6 +556,35 @@ body.kefe-editor-mode .sidebar>.section.editor-active .effect-buttons{
 body.kefe-editor-mode .sidebar>.section.editor-active .effect-buttons button{
   min-height:42px;
 }
+body.kefe-editor-mode #audioSection,
+body.kefe-editor-mode #textSection,
+body.kefe-editor-mode #backgroundSection,
+body.kefe-editor-mode #fxSection,
+body.kefe-editor-mode #visualiserSection,
+body.kefe-editor-mode #exportSection{
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:16px;
+  background:rgba(255,255,255,.025);
+}
+body.kefe-editor-mode #audioSection .audio-upload-zone,
+body.kefe-editor-mode #backgroundSection .drop-zone{
+  min-height:118px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+body.kefe-editor-mode #exportSection .export-action{
+  width:100%;
+  min-height:46px;
+  margin-top:8px;
+}
+body.kefe-editor-mode #visualiserSection #visualiserControls:empty::before{
+  content:'Choose a visualiser to begin';
+  display:block;
+  padding:28px 8px;
+  color:var(--text-3);
+  text-align:center;
+}
 body.kefe-editor-mode .preview{
   min-width:0;
   min-height:0;
