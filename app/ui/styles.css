@@ -517,3 +517,103 @@ body{
 .kefe-mega-item small{color:#5a6478}
 .kefe-mega-icon{border-color:rgba(100,120,150,.14);color:#6b8bb8}
 .kefe-mega-item:hover .kefe-mega-icon{color:#6b8bb8;border-color:rgba(139,168,212,.45);background:rgba(139,168,212,.10)}
+
+/* Glass visibility control. */
+:root{--kefe-glass-visibility:1}
+.kefe-glass-control{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  height:40px;
+  padding:0 10px;
+  border:1px solid rgba(255,255,255,.70);
+  border-radius:40px;
+  background:rgba(255,255,255,.45);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 8px 32px rgba(100,120,150,.10);
+  color:#5a6478;
+  font-size:11px;
+  font-weight:600;
+  white-space:nowrap;
+}
+.kefe-glass-control input[type="range"]{
+  width:76px;
+  height:18px;
+  margin:0;
+  accent-color:#8ba8d4;
+  cursor:pointer;
+}
+.kefe-glass-control output{min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+.kefe-glass-control input[type="range"]::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:rgba(90,100,120,.18)}
+.kefe-glass-control input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;margin-top:-5px;border:1px solid rgba(255,255,255,.90);border-radius:50%;background:#8ba8d4;box-shadow:0 2px 6px rgba(100,120,150,.18)}
+.kefe-glass-control input[type="range"]::-moz-range-track{height:4px;border-radius:999px;background:rgba(90,100,120,.18)}
+.kefe-glass-control input[type="range"]::-moz-range-thumb{width:14px;height:14px;border:1px solid rgba(255,255,255,.90);border-radius:50%;background:#8ba8d4}
+.kefe-main-nav .kefe-glass-control{flex:0 0 auto}
+.kefe-main-nav .kefe-glass-control ~ .kefe-hard-refresh{margin-left:4px}
+.kefe-mega-popover,
+.app .sidebar,
+.app .preview,
+.app .preview-toolbar,
+.app .canvas-wrapper,
+.app .section-nav,
+.app .sub-block,
+.app .control-row,
+.app .metadata-grid,
+.app .background-choice-grid,
+.app .effect-buttons,
+.app .transport{
+  background:color-mix(in srgb, rgba(255,255,255,.45) calc(var(--kefe-glass-visibility) * 100%), transparent);
+}
+.kefe-main-nav,
+.kefe-hard-refresh,
+body.wizard-mode .wizard-panel,
+body.wizard-mode .wizard-nav,
+body.wizard-mode .section-nav,
+body.wizard-mode .sidebar,
+body.wizard-mode .section,
+body.wizard-mode .sub-block,
+body.wizard-mode .music-details,
+body.wizard-mode .control-row,
+body.wizard-mode .lyrics-actions,
+body.wizard-mode .nudge-row,
+body.wizard-mode .caption-style-grid,
+body.wizard-mode .metadata-grid,
+body.wizard-mode .wizard-progress-wrap,
+body.wizard-mode .wizard-step-menu,
+body.wizard-mode .wizard-effect-popover,
+body.wizard-mode .kefe-effect-subpopover,
+body.wizard-mode .preview,
+body.wizard-mode .preview-stage,
+body.wizard-mode .transport,
+body.wizard-mode .transport-controls,
+body.wizard-mode .transport-progress,
+body.wizard-mode .transport-actions,
+body.wizard-mode .aspect-buttons,
+body.wizard-mode .background-choice-grid,
+body.wizard-mode .effect-buttons,
+body.wizard-mode .wizard-choice,
+body.wizard-mode .wizard-source-choices .wizard-choice,
+body.wizard-mode .wizard-style-group,
+body.wizard-mode .wizard-summary-row,
+body.wizard-mode .wizard-effect-choice,
+body.wizard-mode input:not([type="range"]):not([type="color"]),
+body.wizard-mode select,
+body.wizard-mode textarea,
+body.wizard-mode button:not(.wizard-next):not(.primary),
+body.wizard-mode .file-button,
+body.wizard-mode .segmented-btn,
+body.wizard-mode .background-choice,
+body.wizard-mode .aspect-buttons button,
+body.wizard-mode .nudge-row button{
+  background:color-mix(in srgb, rgba(255,255,255,.45) calc(var(--kefe-glass-visibility) * 100%), transparent);
+}
+.kefe-main-nav{background:color-mix(in srgb,rgba(255,255,255,.45) calc(var(--kefe-glass-visibility) * 100%),transparent)}
+.kefe-hard-refresh{background:color-mix(in srgb,rgba(255,255,255,.45) calc(var(--kefe-glass-visibility) * 100%),transparent)}
+.kefe-glass-control{background:color-mix(in srgb,rgba(255,255,255,.45) calc(var(--kefe-glass-visibility) * 100%),transparent)}
+body.wizard-mode .kefe-pathway-card{background:color-mix(in srgb,rgba(255,255,255,.45) calc(var(--kefe-glass-visibility) * 100%),transparent)}
+body.wizard-mode .kefe-pathway-card.active{background:color-mix(in srgb,rgba(255,255,255,.68) calc(var(--kefe-glass-visibility) * 100%),transparent)}
+body.wizard-mode .kefe-pathway-card:hover:not(.active){background:color-mix(in srgb,rgba(255,255,255,.65) calc(var(--kefe-glass-visibility) * 100%),transparent)}
+@media(max-width:650px){
+  .kefe-glass-control{gap:4px;padding:0 7px}
+  .kefe-glass-control span,.kefe-glass-control output{display:none}
+  .kefe-glass-control input[type="range"]{width:52px}
+}
