@@ -1,5 +1,5 @@
 import { generateSrt, generateVtt, timedLinesForState } from './subtitles.js';
-import { getQualityPreset } from './config.js';
+import { getQualityPreset, getSelectedQuality, setSelectedQuality } from './config.js';
 
 const $ = id => document.getElementById(id);
 
@@ -31,13 +31,12 @@ function addControl() {
 
   const select = $('kefeQualityPreset');
   const hint = $('kefeQualityHint');
-  const saved = localStorage.getItem('kefe-export-quality');
-  if (saved && getQualityPreset(saved)) select.value = saved;
+  const saved = getSelectedQuality();
+  if (saved && getQualityPreset(saved)) select.value = saved === 'maximum' ? 'lossless' : saved;
   const sync = () => {
-    const quality = getQualityPreset(select.value);
-    window.kefeExportQuality = select.value;
+    const selected = setSelectedQuality(select.value);
+    const quality = getQualityPreset(selected);
     hint.textContent = `${quality.description} · ${quality.videoBitrate || 'CRF 0'}`;
-    localStorage.setItem('kefe-export-quality', select.value);
   };
   select.addEventListener('change', sync);
   sync();
