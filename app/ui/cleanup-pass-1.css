@@ -284,3 +284,165 @@ header {
   color: #fff !important;
 }
 .kefe-sync-toggle svg { width: 14px; height: 14px; }
+
+
+/* KEFE LIQUEFY EDITOR MATERIAL */
+:root{
+  --lq-tint:rgba(255,255,255,.075);
+  --lq-tint-strong:rgba(255,255,255,.12);
+  --lq-line:rgba(255,255,255,.16);
+  --lq-line-strong:rgba(255,255,255,.28);
+  --lq-text:rgba(255,255,255,.94);
+  --lq-muted:rgba(255,255,255,.58);
+  --lq-radius:18px;
+  --lq-radius-sm:14px;
+  --lq-ease:cubic-bezier(.2,.72,.2,1);
+}
+
+.sidebar{
+  position:relative;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.18) transparent;
+  background:
+    radial-gradient(circle at 20% 0%,rgba(255,255,255,.055),transparent 38%),
+    rgba(8,8,10,.72);
+  -webkit-backdrop-filter:saturate(145%);
+  backdrop-filter:saturate(145%);
+}
+
+.kefe-editor-tabs{
+  position:sticky;
+  top:10px;
+  z-index:30;
+  display:flex;
+  align-items:center;
+  gap:3px;
+  width:calc(100% - 24px);
+  margin:10px 12px 8px;
+  padding:4px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  border:1px solid var(--lq-line);
+  border-radius:999px;
+  background:rgba(18,18,21,.58);
+  -webkit-backdrop-filter:blur(22px) saturate(155%);
+  backdrop-filter:blur(22px) saturate(155%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.22);
+}
+.kefe-editor-tabs::-webkit-scrollbar{display:none}
+
+.kefe-editor-tab{
+  flex:0 0 auto;
+  min-height:34px;
+  padding:0 13px;
+  border:1px solid transparent;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--lq-muted);
+  background:transparent;
+  text-decoration:none;
+  font-size:11px;
+  font-weight:650;
+  letter-spacing:-.01em;
+  transition:background .2s var(--lq-ease),color .2s var(--lq-ease),border-color .2s var(--lq-ease),transform .2s var(--lq-ease);
+}
+.kefe-editor-tab:hover{
+  color:var(--lq-text);
+  background:rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.1);
+  transform:translateY(-1px);
+}
+.kefe-editor-tab:focus-visible{
+  outline:2px solid rgba(255,255,255,.72);
+  outline-offset:1px;
+}
+.kefe-editor-tab.is-active{
+  color:#fff;
+  background:rgba(255,255,255,.13);
+  border-color:rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+}
+
+.sidebar>.section{
+  margin:8px 12px;
+  padding:18px !important;
+  border:1px solid var(--lq-line);
+  border-radius:var(--lq-radius);
+  background:linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.035));
+  -webkit-backdrop-filter:blur(24px) saturate(145%);
+  backdrop-filter:blur(24px) saturate(145%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(0,0,0,.2);
+}
+
+.sidebar>.section>h3{
+  color:var(--lq-text);
+  font-size:12px;
+  letter-spacing:.02em;
+  text-transform:none;
+  font-weight:700;
+}
+
+.sidebar button,
+.sidebar select,
+.sidebar input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.sidebar textarea{
+  border-color:rgba(255,255,255,.14);
+  background:rgba(255,255,255,.045);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);
+  backdrop-filter:blur(16px) saturate(140%);
+}
+.sidebar button:hover{
+  background:rgba(255,255,255,.10);
+  border-color:rgba(255,255,255,.24);
+}
+.sidebar button.primary{
+  background:rgba(239,63,56,.88);
+  border-color:rgba(255,255,255,.12);
+}
+.sidebar .segmented,
+.sidebar .effect-buttons,
+.sidebar .background-choice-grid,
+.sidebar .metadata-grid{
+  border-color:var(--lq-line);
+}
+
+.sidebar .segmented,
+.sidebar .toggle-row,
+.sidebar .control-row,
+.sidebar .drop-zone,
+.sidebar .music-sync-hint,
+.sidebar .background-choice,
+.sidebar .effect-buttons>button{
+  border-color:rgba(255,255,255,.13);
+  background:rgba(255,255,255,.045);
+}
+
+.sidebar input[type="range"]{
+  accent-color:#fff;
+}
+
+.sidebar .toggle-switch{
+  background:rgba(255,255,255,.16);
+  border-color:rgba(255,255,255,.2);
+}
+.sidebar input:checked + .toggle-switch{
+  background:rgba(255,255,255,.82);
+}
+
+#exportSection #exportBottom{
+  width:100%;
+}
+
+#exportSection progress,
+#exportProgress{
+  accent-color:#fff;
+}
+
+@media(max-width:900px){
+  .kefe-editor-tabs{top:6px;margin:6px 10px 8px;width:calc(100% - 20px)}
+  .sidebar>.section{margin:8px 10px;padding:16px !important}
+}
