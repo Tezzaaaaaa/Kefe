@@ -94,7 +94,7 @@ async function executeExport() {
     } finally {
         try {
             const master = resolveMasterInfo(state, media);
-            if (Number.isFinite(master.duration) && master.duration > 0) window.state.playback.currentTime = Math.min(previewTime, master.duration);
+            if (Number.isFinite(master.duration) && master.duration > 0) state.playback.currentTime = Math.min(previewTime, master.duration);
         } catch {}
         if (media.video && Number.isFinite(media.video.duration)) { try { const video = media.video; video.pause(); if (video.duration > 0) video.currentTime = ((previewTime % video.duration) + video.duration) % video.duration; } catch {} }
         exportAbort = null; runtime.isExporting = false; if (cancelButton) cancelButton.textContent = 'Close';
