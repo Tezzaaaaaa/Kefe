@@ -1,8 +1,5 @@
 /* KEFE guided workflow styles. Shell geometry remains in editor-layout.css. */
 body.wizard-mode main{position:relative;grid-template-columns:var(--editor-rail) minmax(0,1fr);grid-template-rows:minmax(0,1fr);padding-top:64px}
-body.wizard-mode .section-nav{position:absolute;z-index:10;top:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:6px 10px;background:var(--surface);border-bottom:1px solid var(--line);overflow:hidden}
-body.wizard-mode .section-nav-link{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;min-height:52px;padding:7px 10px;border:0;border-radius:var(--radius-sm);text-align:left}
-body.wizard-mode .section-nav-link.active{background:var(--red);border-color:var(--red);color:#fff;font-weight:800}
 body.wizard-mode .sidebar{width:auto;min-width:0}
 body.wizard-mode .wizard-panel{overflow-y:auto}
 @media(max-width:900px){body.wizard-mode main{grid-template-columns:1fr;grid-template-rows:minmax(280px,46dvh) minmax(0,1fr);padding-top:56px}body.wizard-mode .section-nav{display:flex;flex-direction:row;gap:6px;padding:8px 10px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}body.wizard-mode .section-nav::-webkit-scrollbar{display:none}body.wizard-mode .section-nav-link{flex:0 0 auto;min-height:40px;padding:8px 14px;white-space:nowrap}}
