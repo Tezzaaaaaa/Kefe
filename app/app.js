@@ -58,6 +58,7 @@ function init() {
         readiness();
         setEffect(prefs?.effect && EFFECT_LABELS[prefs.effect] ? prefs.effect : (state.style.effect || 'apple'));
         redrawCurrentPreviewFrame();
+        window.dispatchEvent(new CustomEvent('kefe:app-ready'));
         toast('KEFE Visualiser ready', 'success');
     } catch (e) {
         console.error('Init error:', e);
@@ -177,7 +178,6 @@ window.kefeSetProjectType = function (type) {
     readiness(); redrawCurrentPreviewFrame();
 };
 
-window.kefeRenderFrame = kefeRenderFrame;
 
 // ---- global error surfaces ----
 window.addEventListener('error', e => { console.error('Unhandled error:', e.error || e.message); if (!runtime.isExporting) toast('Something went wrong: ' + (e.message || 'unknown error'), 'error'); });

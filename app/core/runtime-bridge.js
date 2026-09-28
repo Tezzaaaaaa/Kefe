@@ -1,29 +1,40 @@
 /* KEFE runtime bridge — exposes the core editor runtime to modular UI engines. */
 (() => {
   'use strict';
-  if (window.kefeRuntime?.ready) return;
 
-  const runtimeState = window.state;
-  const runtimeCanvas = window.canvas || document.getElementById('stageCanvas');
-  const runtimeMedia = window.kefeMedia;
-  if (!runtimeState || !runtimeCanvas || !runtimeMedia) {
-    console.error('[KEFE Runtime] Core editor state is not available. Runtime bridge not installed.');
-    return;
+  function install() {
+    if (window.kefeRuntime?.ready) return true;
+
+    const runtimeState = window.state;
+    const runtimeCanvas = window.canvas || document.getElementById('stageCanvas');
+    const runtimeMedia = window.kefeMedia;
+
+    if (!runtimeState || !runtimeCanvas || !runtimeMedia) return false;
+
+    window.kefeRuntime = {
+      version: 1,
+      ready: true,
+      state: runtimeState,
+      canvas: runtimeCanvas,
+      media: runtimeMedia,
+      redraw: window.redrawCurrentPreviewFrame || null,
+      renderFrame: window.kefeRenderFrame || null
+    };
+
+    window.dispatchEvent(new CustomEvent('kefe:runtime-ready'));
+    return true;
   }
 
-  window.state = runtimeState;
-  window.canvas = runtimeCanvas;
-  window.kefeMedia = runtimeMedia;
-  window.isExporting = Boolean(window.isExporting);
+  function tryInstall() {
+    if (install()) return;
+    if (document.readyState === 'loading') return;
+    setTimeout(tryInstall, 25);
+  }
 
-  window.kefeRuntime = {
-    version: 1,
-    ready: true,
-    state: runtimeState,
-    canvas: runtimeCanvas,
-    media: runtimeMedia,
-    redraw: window.redrawCurrentPreviewFrame || null,
-    renderFrame: window.kefeRenderFrame || null
-  };
-  window.dispatchEvent(new CustomEvent('kefe:runtime-ready'));
+  window.addEventListener('kefe:app-ready', install, { once: true });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tryInstall, { once: true });
+  } else {
+    tryInstall();
+  }
 })();
