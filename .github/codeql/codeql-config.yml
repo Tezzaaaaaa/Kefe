@@ -1,8 +1,0 @@
-name: KEFE CodeQL configuration
-
-queries:
-  - security-and-quality
-
-paths-ignore:
-  - scripts/smoke-effects.js
-  - tests/**
