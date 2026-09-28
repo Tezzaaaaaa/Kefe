@@ -212,3 +212,141 @@ body.wizard-mode .wizard-choices.wizard-source-choices {
         display:none!important;
     }
 }
+
+
+/* ==========================================================================
+   KEFE — Xchyler-inspired step menu
+   Persistent across every wizard step; active state follows the current path.
+   ========================================================================== */
+body.wizard-mode .wizard-nav{
+  min-height:78px;
+  padding:10px 18px calc(10px + env(safe-area-inset-bottom,0px));
+  gap:14px;
+  background:#080808;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+body.wizard-mode .wizard-progress-wrap{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  min-width:0;
+  flex:1 1 auto;
+}
+body.wizard-mode .wizard-step-menu{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  max-width:100%;
+  overflow-x:auto;
+  scrollbar-width:none;
+  padding:3px 2px;
+}
+body.wizard-mode .wizard-step-menu::-webkit-scrollbar{display:none}
+body.wizard-mode .wizard-step-menu-item{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  flex:0 0 auto;
+  min-height:34px;
+  padding:0 9px;
+  color:#666;
+  font-size:10px;
+  font-weight:650;
+  letter-spacing:.015em;
+  white-space:nowrap;
+  transition:color .18s ease,transform .18s ease;
+}
+body.wizard-mode .wizard-step-menu-item::after{
+  content:"";
+  position:absolute;
+  left:8px;
+  right:8px;
+  bottom:-7px;
+  height:2px;
+  border-radius:2px;
+  background:transparent;
+  transform:scaleX(.25);
+  transition:background .18s ease,transform .18s ease;
+}
+body.wizard-mode .wizard-step-menu-index{
+  display:inline-grid;
+  place-items:center;
+  width:20px;
+  height:20px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:50%;
+  color:#5f5f5f;
+  font-size:8px;
+  font-variant-numeric:tabular-nums;
+  transition:background .18s ease,border-color .18s ease,color .18s ease;
+}
+body.wizard-mode .wizard-step-menu-label{line-height:1}
+body.wizard-mode .wizard-step-menu-item.done{color:#aaa}
+body.wizard-mode .wizard-step-menu-item.done .wizard-step-menu-index{
+  border-color:rgba(255,255,255,.18);
+  color:#aaa;
+}
+body.wizard-mode .wizard-step-menu-item.active{
+  color:#fff;
+  transform:translateY(-1px);
+}
+body.wizard-mode .wizard-step-menu-item.active .wizard-step-menu-index{
+  background:var(--red,#ef3f38);
+  border-color:var(--red,#ef3f38);
+  color:#fff;
+}
+body.wizard-mode .wizard-step-menu-item.active::after{
+  background:var(--red,#ef3f38);
+  transform:scaleX(1);
+}
+body.wizard-mode .wizard-step-menu-line{
+  width:24px;
+  height:1px;
+  flex:0 0 24px;
+  background:rgba(255,255,255,.09);
+}
+body.wizard-mode .wizard-progress-meta{
+  display:none;
+}
+body.wizard-mode .wizard-nav .wizard-back,
+body.wizard-mode .wizard-nav .wizard-next{
+  min-width:88px;
+  height:38px;
+  min-height:38px;
+}
+body.wizard-mode .wizard-nav .wizard-skip{
+  position:absolute;
+  right:0;
+  bottom:-19px;
+  z-index:2;
+  font-size:9px;
+  opacity:.65;
+}
+body.wizard-mode .wizard-nav .wizard-skip:hover{opacity:1}
+@media(max-width:900px){
+  body.wizard-mode .wizard-nav{padding-left:10px;padding-right:10px;gap:8px}
+  body.wizard-mode .wizard-step-menu{justify-content:flex-start}
+  body.wizard-mode .wizard-step-menu-item{padding:0 7px}
+  body.wizard-mode .wizard-step-menu-line{width:12px;flex-basis:12px}
+  body.wizard-mode .wizard-step-menu-label{font-size:9px}
+  body.wizard-mode .wizard-nav .wizard-back,
+  body.wizard-mode .wizard-nav .wizard-next{min-width:72px}
+}
+@media(max-width:560px){
+  body.wizard-mode .wizard-nav{min-height:70px}
+  body.wizard-mode .wizard-step-menu-item{padding:0 5px}
+  body.wizard-mode .wizard-step-menu-label{display:none}
+  body.wizard-mode .wizard-step-menu-index{width:24px;height:24px}
+  body.wizard-mode .wizard-step-menu-item::after{left:5px;right:5px;bottom:-5px}
+  body.wizard-mode .wizard-nav .wizard-back,
+  body.wizard-mode .wizard-nav .wizard-next{min-width:62px;padding:0 10px}
+}
+@media(prefers-reduced-motion:reduce){
+  body.wizard-mode .wizard-step-menu-item,
+  body.wizard-mode .wizard-step-menu-item::after,
+  body.wizard-mode .wizard-step-menu-index{transition:none}
+}
