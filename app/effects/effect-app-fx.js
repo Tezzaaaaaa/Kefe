@@ -58,24 +58,36 @@
     function setFx(name){if(!labels[name]||window.isExporting)return;window.state.style.visualFx=name;qsa('.kefe-fx-button').forEach(b=>b.classList.toggle('active-effect',b.dataset.fx===name));const l=document.getElementById('visualFxLabel');if(l)l.textContent=labels[name];save();window.redrawCurrentPreviewFrame?.();}
     function range(parent,key,text,min,max,step,suffix=''){const row=document.createElement('div');row.className='control-row';const label=document.createElement('label'),value=document.createElement('span'),input=document.createElement('input');value.style.marginLeft='6px';label.textContent=text;input.type='range';input.min=min;input.max=max;input.step=step;input.value=window.state.style[key];const show=()=>value.textContent=`${Number(input.value).toFixed(step<.1?2:1)}${suffix}`;label.appendChild(value);show();input.addEventListener('input',()=>{window.state.style[key]=Number(input.value);show();save();window.redrawCurrentPreviewFrame?.();});row.append(label,input);parent.appendChild(row);}
     function ui(){
-      const sec=document.getElementById('fxSection');
+      const sec=document.getElementById('backgroundSection');
+      const fxSec=document.getElementById('fxSection');
       if(!sec||sec.dataset.kefeFxBuilt)return;
       sec.dataset.kefeFxBuilt='true';
-      sec.replaceChildren();
-      const h=document.createElement('h3');h.textContent='Visual FX';sec.appendChild(h);
-      const available=document.createElement('div');available.className='sub-heading';available.textContent='Available in KEFE';sec.appendChild(available);
-      const buttons=document.createElement('div');buttons.className='effect-buttons';
-      ['none','vhs','crt','rgb','bloom','motion','shake','glitch','halftone','vignette','mixedmedia'].forEach(n=>{const b=document.createElement('button');b.type='button';b.dataset.fx=n;b.className='kefe-fx-button';b.textContent=n==='none'?'Off':n==='rgb'?'RGB':n==='mixedmedia'?'Mixed Media':n[0].toUpperCase()+n.slice(1);b.addEventListener('click',()=>setFx(n));buttons.appendChild(b);});
-      sec.appendChild(buttons);
+      if(fxSec)fxSec.hidden=true;
+      const h=document.createElement('div');h.className='sub-heading';h.textContent='Background Effects';sec.insertBefore(h,sec.firstChild);
+      const select=document.createElement('select');select.id='backgroundEffectSelect';select.setAttribute('aria-label','Background effect');
+      const off=document.createElement('option');off.value='none';off.textContent='Off — clean KEFE rendering';select.appendChild(off);
+      const native=document.createElement('optgroup');native.label='Available in KEFE';
+      [['vhs','VHS'],['crt','CRT'],['rgb','RGB Shift'],['bloom','Bloom'],['motion','Motion Blur'],['shake','Camera Shake'],['glitch','Glitch'],['halftone','Halftone'],['vignette','Vignette'],['mixedmedia','Mixed Media']].forEach(([value,label])=>{const o=document.createElement('option');o.value=value;o.textContent=label;native.appendChild(o);});
+      select.appendChild(native);
       Object.entries(catalog).forEach(([category,names])=>{
-        const heading=document.createElement('div');heading.className='sub-heading';heading.textContent=category;sec.appendChild(heading);
-        const row=document.createElement('div');row.className='effect-buttons';
-        names.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='kefe-fx-button';b.textContent=name;b.title=implemented.has(name)?'Available in KEFE':'Catalogued effect — renderer not yet implemented';b.disabled=!implemented.has(name);row.appendChild(b);});
-        sec.appendChild(row);
+        const group=document.createElement('optgroup');group.label=category;
+        names.forEach(name=>{
+          const o=document.createElement('option');
+          const map={ 'Camera shake':'shake','Motion blur':'motion','Glitch':'glitch','VHS':'vhs','Halftone screen':'halftone','Bloom':'bloom','CRT screen':'crt','RGB Shift':'rgb','Vignette':'vignette' };
+          o.value=map[name]||'';
+          o.textContent=implemented.has(name)?`${name} — available in KEFE`:`${name}`;
+          o.disabled=!implemented.has(name);
+          if(!implemented.has(name))o.title='Catalogued effect — renderer not yet implemented';
+          group.appendChild(o);
+        });
+        select.appendChild(group);
       });
-      const d=document.createElement('div');d.className='effect-label';d.id='visualFxLabel';d.textContent=labels[window.state.style.visualFx]||labels.none;sec.appendChild(d);
-      const controls=document.createElement('div');range(controls,'fxIntensity','Intensity',0,1,.05);range(controls,'fxSpeed','Animation speed',.25,2.5,.05,'×');sec.appendChild(controls);
-      qsa('.kefe-fx-button').forEach(b=>b.classList.toggle('active-effect',b.dataset.fx===window.state.style.visualFx));
+      const wrap=document.createElement('label');wrap.className='background-effect-select';wrap.textContent='Effect';wrap.appendChild(select);
+      sec.insertBefore(wrap,h.nextSibling);
+      const label=document.createElement('div');label.className='effect-label';label.id='visualFxLabel';label.textContent=labels[window.state.style.visualFx]||labels.none;sec.insertBefore(label,wrap.nextSibling);
+      const controls=document.createElement('div');controls.className='background-effect-controls';range(controls,'fxIntensity','Intensity',0,1,.05);range(controls,'fxSpeed','Animation speed',.25,2.5,.05,'×');sec.insertBefore(controls,label.nextSibling);
+      select.value=window.state.style.visualFx||'none';
+      select.addEventListener('change',()=>setFx(select.value));
     }
     ui();
     }
