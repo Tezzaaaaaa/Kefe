@@ -80,5 +80,74 @@
   function tick() { try { buildPicker(); } catch(e){ console.warn(e); } }
   tick();
 
+  function applyPopoverPicker() {
+    var host = document.querySelector('#lyricStyleBlock .effect-buttons');
+    if (!host || host.dataset.kefePopoverApplied === '1') return;
+    var buttons = Array.from(host.querySelectorAll(':scope > button[data-effect]'));
+    if (!buttons.length) return;
+    host.dataset.kefePopoverApplied = '1';
+    host.innerHTML = '';
+
+    var mainId = 'kefe-lyric-effects-popover';
+    var trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'segmented-btn kefe-popover-trigger';
+    trigger.setAttribute('popoverTarget', mainId);
+    trigger.textContent = 'Choose lyric effect';
+    host.appendChild(trigger);
+
+    var menu = document.createElement('div');
+    menu.id = mainId;
+    menu.setAttribute('popover','auto');
+    menu.className = 'kefe-effect-popover';
+    menu.innerHTML = '<span class="kefe-popover-active" aria-hidden="true"></span>';
+    host.appendChild(menu);
+
+    var groups = [
+      ['Core',['apple','pulse','typewriter','fadeup','slide','drop','drift','scrolllines']],
+      ['Typography',['brat','eternal','rise','barbie','trailer','fancy','splitflap','chromatica']],
+      ['Animated',['aurora','instagram','decrypt','blur','shiny','elasticpop','flipcards','karaoke']],
+      ['Signal & FX',['glitch','analogtv','progressiveblur']]
+    ];
+    groups.forEach(function(group, gi) {
+      var groupButtons = group[1].map(function(key) {
+        return buttons.find(function(btn){ return btn.dataset.effect === key; });
+      }).filter(Boolean);
+      if (!groupButtons.length) return;
+      var subId = 'kefe-lyric-group-' + gi;
+      var cat = document.createElement('button');
+      cat.type = 'button';
+      cat.className = 'kefe-popover-category';
+      cat.setAttribute('popoverTarget', subId);
+      cat.textContent = group[0];
+      menu.appendChild(cat);
+
+      var sub = document.createElement('div');
+      sub.id = subId;
+      sub.setAttribute('popover','auto');
+      sub.className = 'kefe-effect-subpopover';
+      groupButtons.forEach(function(btn) {
+        btn.className = 'kefe-effect-option';
+        sub.appendChild(btn);
+      });
+      menu.appendChild(sub);
+    });
+  }
+
+  var popoverCss = document.createElement('style');
+  popoverCss.id = 'kefe-effects-popover-css';
+  popoverCss.textContent = [
+    '#lyricStyleBlock .effect-buttons{display:block !important}',
+    '#lyricStyleBlock .kefe-popover-trigger{width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--text);font-size:12px;font-weight:650;text-align:left}',
+    '.kefe-effect-popover,.kefe-effect-subpopover{margin:0;padding:8px;min-width:210px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--text);box-shadow:none}',
+    '.kefe-effect-popover > .kefe-popover-category,.kefe-effect-option{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border:0;border-radius:7px;background:transparent;color:var(--text);font:600 12px "Inter Tight",sans-serif;text-align:left;cursor:pointer}',
+    '.kefe-effect-popover > .kefe-popover-category:hover,.kefe-effect-option:hover{background:var(--surface-3)}',
+    '.kefe-effect-option.active-effect{color:var(--red);font-weight:750}',
+    '.kefe-effect-subpopover{min-width:220px}',
+    '.kefe-popover-active{display:block;height:2px;margin:0 4px 6px;background:var(--red);opacity:.85}'
+  ].join('');
+  document.head.appendChild(popoverCss);
+  applyPopoverPicker();
+
   console.log('[KEFE effects] picker installed - ' + CATALOGUE.length + ' effects from manifest');
 })();
