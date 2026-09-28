@@ -450,24 +450,24 @@ body.wizard-mode .kefe-pathway-card.selected .kefe-pathway-arrow{
 }
 
 /* Style step — keep the preview and effect picker in one clean vertical layout. */
-body.wizard-mode[data-wizard-step="style"] .wizard-panel{
+body.wizard-mode[data-wizard-step="look"] .wizard-panel{
   display:flex;
   flex-direction:column;
   align-items:stretch;
   min-width:0;
 }
-body.wizard-mode[data-wizard-step="style"] .wizard-style-preview{
+body.wizard-mode[data-wizard-step="look"] .wizard-style-preview{
   width:100%;
   max-width:none;
   margin:20px 0 0;
   flex:0 0 auto;
 }
-body.wizard-mode[data-wizard-step="style"] #wizardStyleMount{
+body.wizard-mode[data-wizard-step="look"] #wizardStyleMount{
   width:100%;
   min-width:0;
   margin:14px 0 0;
 }
-body.wizard-mode[data-wizard-step="style"] #lyricStyleBlock{
+body.wizard-mode[data-wizard-step="look"] #lyricStyleBlock{
   width:100%;
   min-width:0;
   margin:0;
@@ -477,32 +477,64 @@ body.wizard-mode[data-wizard-step="style"] #lyricStyleBlock{
   border-radius:var(--radius-md);
   background:var(--surface-2);
 }
-body.wizard-mode[data-wizard-step="style"] #lyricStyleBlock .sub-heading{
+body.wizard-mode[data-wizard-step="look"] #lyricStyleBlock .sub-heading{
   margin:0 0 10px;
 }
-body.wizard-mode[data-wizard-step="style"] #lyricStyleBlock .effect-buttons{
+body.wizard-mode[data-wizard-step="look"] #lyricStyleBlock .effect-buttons{
   width:100%;
   display:grid!important;
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
   gap:8px!important;
   min-width:0;
 }
-body.wizard-mode[data-wizard-step="style"] #lyricStyleBlock .effect-buttons > button{
+body.wizard-mode[data-wizard-step="look"] #lyricStyleBlock .effect-buttons > button{
   width:100%;
   min-width:0;
   min-height:64px;
   box-sizing:border-box;
 }
-body.wizard-mode[data-wizard-step="style"] #lyricStyleBlock .effect-label{
+body.wizard-mode[data-wizard-step="look"] #lyricStyleBlock .effect-label{
   margin-top:10px;
   min-height:16px;
 }
 @media(max-width:560px){
-  body.wizard-mode[data-wizard-step="style"] #lyricStyleBlock .effect-buttons{
+  body.wizard-mode[data-wizard-step="look"] #lyricStyleBlock .effect-buttons{
     grid-template-columns:1fr!important;
   }
-  body.wizard-mode[data-wizard-step="style"] .wizard-style-preview{
+  body.wizard-mode[data-wizard-step="look"] .wizard-style-preview{
     margin-top:16px;
   }
 }
 
+
+
+/* User-facing Look and Visuals steps. */
+body.wizard-mode[data-wizard-step="look"] #wizardStyleMount,
+body.wizard-mode[data-wizard-step="look"] #wizardBackgroundMount{
+  width:100%;
+  min-width:0;
+  margin-top:14px;
+}
+body.wizard-mode[data-wizard-step="look"] #lyricStyleBlock,
+body.wizard-mode[data-wizard-step="look"] #backgroundSection{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+body.wizard-mode[data-wizard-step="look"] #backgroundSection{
+  margin-top:0;
+}
+body.wizard-mode[data-wizard-step="look"] #backgroundSection h3{
+  margin-top:0;
+}
+body.wizard-mode[data-wizard-step="visuals"] #kefeVisualiserPicker{
+  width:100%;
+  margin:16px 0 0;
+  box-sizing:border-box;
+}
+body.wizard-mode[data-wizard-step="visuals"] .wizard-panel{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  min-width:0;
+}
