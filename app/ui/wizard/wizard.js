@@ -132,9 +132,9 @@
             '<p class="wizard-panel-hint">Choose a pathway and KEFE will guide you through the steps.</p>' +
             '<div class="kefe-pathway-card-container active-' + (activeIndex + 1) + '" id="kefePathwayCards" aria-label="Choose a KEFE project">' +
                 '<div class="kefe-pathway-background" aria-hidden="true">' +
-                    '<span class="kefe-pathway-background-image is-visible" style="background-image:url("assets/IMG_3719.jpeg")"></span>' +
-                    '<span class="kefe-pathway-background-image" style="background-image:url("assets/IMG_3737.jpeg")"></span>' +
-                    '<span class="kefe-pathway-background-image" style="background-image:url("assets/IMG_3984.gif")"></span>' +
+                    '<span class="kefe-pathway-background-image is-visible" style="background-image:url(assets/IMG_3719.jpeg)"></span>' +
+                    '<span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_3737.jpeg)"></span>' +
+                    '<span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_3984.gif)"></span>' +
                 '</div>' +
                 '<button type="button" class="kefe-pathway-card' + (activeIndex === 0 ? ' active' : '') + '" data-choice="lyric">' +
                     '<span class="kefe-pathway-content">' +
