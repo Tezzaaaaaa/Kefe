@@ -1,43 +1,42 @@
 # KEFE Effect Typography — Locked
 
-These typography assignments are the locked design specification for the current KEFE production lyric effects. Production effects use locally bundled WOFF2 fonts from the repository; no Google Fonts or other remote font dependency is required.
+Each production lyric effect has one canonical typography pairing. The effect renderer must resolve its production font from `window.KEFE_TYPE.effects`; effect-specific font selectors must not override a locked pairing.
 
-| Effect | Font | Treatment |
-|---|---|---|
-| Apple Music | Open Sans | Premium lyric typography with smooth focus/highlight movement |
-| Brat | Archivo Narrow | Compact, edge-to-edge album-cover typography |
-| Eternal Sunshine | Homemade Apple | Handwritten lyric reveal with smooth organic word-level ink resolution |
-| Aurora | Bricolage Grotesque | Atmospheric colour-flowing gradient typography with a soft aurora glow |
-| Typewriter | Courier Prime | Restrained character-by-character reveal |
-| Instagram Lyrics | **Inter Tight ExtraBold** | Bold uppercase Story composition with dominant active lyric, restrained surrounding lines and smooth stacked handoff |
-| Fade Up | Momo Trust Display | Clean word-by-word rise, settle and restrained glow |
+| # | Effect | Font |
+|---:|---|---|
+| 1 | Apple | Open Sans |
+| 2 | Brat | Archivo Narrow |
+| 3 | Eternal Sunshine | Homemade Apple |
+| 4 | Aurora | Bricolage Grotesque |
+| 5 | Typewriter | Courier Prime |
+| 6 | Instagram | Inter Tight |
+| 7 | Drop | Frijole |
+| 8 | Barbie | Baloo 2 |
+| 9 | Elastic Pop | Bangers |
+| 10 | Flip Text | Urbanist |
+| 11 | Karaoke | Boogaloo |
+| 12 | Fancy | Anton |
+| 13 | Glitch | Special Elite |
+| 14 | Analog TV | VT323 |
+| 15 | Split-Flap | Big Shoulders Stencil Display |
+| 16 | Chromatica | Memesique |
+| 17 | Pulse | AuraSerif |
+| 18 | Fade Up | BlockParty |
+| 19 | Decrypt | Kefe Tracklist Cursive |
+| 20 | Blur In | VogueNoir |
+| 21 | Shiny | BubblegumDisplay |
+| 22 | Rise | Boulder |
+| 23 | Slide | Pending — no unique bundled font currently available |
+| 24 | Drift | Pending — no unique bundled font currently available |
+| 25 | Scroll Lines | Pending — no unique bundled font currently available |
+| 26 | Trailer | Monoton |
 
-## Brat
+## Wiring rule
 
-Brat uses Archivo Narrow as its production face. The typography is lowercase, tightly tracked, deliberately soft and visually awkward in the specific way required by the Brat reference language.
+The first 22 listed pairings are locked production assignments. Slide, Drift and Scroll Lines remain explicitly unassigned until unique bundled fonts are available; they must not silently inherit another effect's production font.
 
-## Aurora
+Trailer is already canonically assigned to Monoton in the typography registry.
 
-Aurora uses Bricolage Grotesque as its production face. The treatment uses atmospheric colour, restrained glow and cinematic movement over a modern, flowing grotesque — one effect, one font. It does not share a face with any other effect.
+The repository currently contains fewer unique bundled font families than the 26-effect target requires. Do not reuse an existing production font to fill the remaining slots.
 
-## Eternal Sunshine
-
-Eternal Sunshine remains based on Homemade Apple. The animation is intentionally word-synchronised, but individual letters remain geometrically locked to the same baseline. This removes the previous per-letter jumping while preserving the handwritten reveal character.
-
-## Instagram Lyrics
-
-Instagram Lyrics uses **Inter Tight ExtraBold** as the locked production face. The composition follows the Instagram Stories lyric language: uppercase compact bold lettering, a dominant active line, quieter surrounding lines, controlled width and a smooth vertical handoff between lyric states. It uses no outline, stroke or typewriter cursor.
-
-## Embedded font policy
-
-The following font families are canonical for production rendering:
-
-- Open Sans — Apple Music and UI
-- Archivo Narrow — Brat
-- Homemade Apple — Eternal Sunshine
-- Bricolage Grotesque — Aurora
-- Courier Prime — Typewriter
-- Inter Tight — Instagram Lyrics
-- Momo Trust Display — Fade Up
-
-Do not substitute a different effect font without an explicit design decision.
+All production fonts are locally bundled WOFF2 files. No remote font dependency is introduced.
