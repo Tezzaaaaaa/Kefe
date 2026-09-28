@@ -1,5 +1,6 @@
 import { exportVideo } from './index.js';
-import { getExportConfig } from './config.js';
+import { getExportConfig, getSelectedQuality } from './config.js';
+import { runtime } from '../core/context.js';
 import { resolveMasterInfo } from './master.js';
 
 window.kefeGetExportConfig = getExportConfig;
@@ -9,6 +10,7 @@ const cancelButton = $('cancelExport');
 const confirmExport = $('confirmExport');
 const closePreflight = $('closePreflight');
 const cancelPreflight = $('cancelPreflight');
+let exportAbort = null;
 
 function cleanPart(value) { return String(value || '').replace(/[<>:\"/\\|?*\u0000-\u001F]/g, ' ').replace(/\s+/g, ' ').replace(/[. ]+$/g, '').trim(); }
 function buildFilename() {
@@ -66,18 +68,18 @@ async function runExport() {
     if (textRequired && !timedLines.length) throw new Error('No timed text loaded — add synced lyrics or captions');
     if (typeof window.kefeRenderFrame !== 'function') throw new Error('KEFE export renderer is not connected');
     const preset = $('exportPreset')?.value || '720p';
-    const config = getExportConfig(preset, state.aspect || '9:16');
+    const config = getExportConfig({ preset, aspect: state.aspect || '9:16', quality: getSelectedQuality() });
     return await exportVideo({
-        state, media, config, signal: window.kefeExportAbort?.signal, buildFilename,
+        state, media, config, signal: exportAbort?.signal, buildFilename,
         onProgress: ({ percent, message }) => setExportUI(percent, message),
-        renderFrame: async (ctx, width, height, time) => { await seekAndRender(ctx, width, height, time, window.kefeExportAbort?.signal); }
+        renderFrame: async (ctx, width, height, time) => { await seekAndRender(ctx, width, height, time, exportAbort?.signal); }
     });
 }
 
 async function executeExport() {
-    if (window.isExporting) return;
-    window.isExporting = true;
-    window.kefeExportAbort = new AbortController();
+    if (runtime.isExporting) return;
+    runtime.isExporting = true;
+    exportAbort = new AbortController();
     const previewTime = Number(window.state?.playback?.currentTime) || 0;
     showOverlay();
     setExportUI(0, 'Preparing export…');
@@ -98,7 +100,7 @@ async function executeExport() {
             if (Number.isFinite(master.duration) && master.duration > 0) window.state.playback.currentTime = Math.min(previewTime, master.duration);
         } catch {}
         if (window.kefeMedia?.video && Number.isFinite(window.kefeMedia.video.duration)) { try { const video = window.kefeMedia.video; video.pause(); if (video.duration > 0) video.currentTime = ((previewTime % video.duration) + video.duration) % video.duration; } catch {} }
-        window.kefeExportAbort = null; window.isExporting = false; if (cancelButton) cancelButton.textContent = 'Close';
+        exportAbort = null; runtime.isExporting = false; if (cancelButton) cancelButton.textContent = 'Close';
         try { window.redrawCurrentPreviewFrame?.(); } catch {}
     }
 }
@@ -108,9 +110,9 @@ function closePreflightModal() { $('exportPreflight')?.classList.add('hidden'); 
 // app.js owns the two Export-button click handlers and opens preflight. Do NOT
 // add another click handler here: doing so would bypass preflight or start two
 // exports. This module only owns the actual confirmed export and overlay.
-cancelButton?.addEventListener('click', () => { if (window.isExporting) window.kefeExportAbort?.abort(); else $('exportOverlay')?.classList.add('hidden'); });
+cancelButton?.addEventListener('click', () => { if (runtime.isExporting) exportAbort?.abort(); else $('exportOverlay')?.classList.add('hidden'); });
 confirmExport?.addEventListener('click', () => { closePreflightModal(); executeExport(); });
 closePreflight?.addEventListener('click', closePreflightModal);
 cancelPreflight?.addEventListener('click', closePreflightModal);
-window.kefeCancelExport = () => window.kefeExportAbort?.abort();
+window.kefeCancelExport = () => exportAbort?.abort();
 console.info('[KEFE] Native WebCodecs export with FFmpeg compatibility fallback loaded');
