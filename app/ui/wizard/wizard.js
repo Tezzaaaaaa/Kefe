@@ -51,7 +51,7 @@
     const nav = document.createElement('div');
     nav.className = 'wizard-nav';
     nav.id = 'wizardNav';
-    nav.innerHTML = '<div class="wizard-glow-button"><span class="wizard-glow wizard-glow-back" aria-hidden="true"></span><button type="button" id="wizardBackBtn" class="wizard-back" disabled>Back</button></div><div class="wizard-progress-wrap"><div id="wizardProgress" class="wizard-progress">01 / 07</div><span id="wizardStepLabel" class="wizard-step-label">Format</span><button type="button" id="wizardSkipBtn" class="wizard-skip">Skip setup</button></div><div class="wizard-glow-button"><span class="wizard-glow wizard-glow-next" aria-hidden="true"></span><button type="button" id="wizardNextBtn" class="primary wizard-next">Next<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>';
+    nav.innerHTML = '<div class="wizard-glow-button"><span class="wizard-glow wizard-glow-back" aria-hidden="true"></span><button type="button" id="wizardBackBtn" class="wizard-back" disabled>Back</button></div><div class="wizard-progress-wrap"><div id="wizardStepMenu" class="wizard-step-menu" role="list" aria-label="Creation steps"></div><div class="wizard-progress-meta"><div id="wizardProgress" class="wizard-progress">01 / 07</div><span id="wizardStepLabel" class="wizard-step-label">Format</span></div><button type="button" id="wizardSkipBtn" class="wizard-skip">Skip setup</button></div><div class="wizard-glow-button"><span class="wizard-glow wizard-glow-next" aria-hidden="true"></span><button type="button" id="wizardNextBtn" class="primary wizard-next">Next<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>';
     sidebar.appendChild(nav);
     const stepHeading = document.createElement('div');
     stepHeading.className = 'wizard-step-heading';
@@ -297,6 +297,14 @@
         if (firstTarget && firstTarget !== panel) { stepHeading.textContent = STEP_TITLES[step] || step; firstTarget.prepend(stepHeading); } else stepHeading.remove();
         $('wizardProgress').textContent = `${pad(wizard.index + 1)} / ${pad(steps.length)}`;
         $('wizardStepLabel').textContent = STEP_LABELS[step] || '';
+        const stepMenu = $('wizardStepMenu');
+        if (stepMenu) {
+            stepMenu.innerHTML = steps.map((key, index) => {
+                const active = index === wizard.index;
+                const done = index < wizard.index;
+                return `<span class="wizard-step-menu-item${active ? ' active' : ''}${done ? ' done' : ''}" role="listitem" aria-current="${active ? 'step' : 'false'}"><span class="wizard-step-menu-index">${pad(index + 1)}</span><span class="wizard-step-menu-label">${STEP_LABELS[key] || key}</span></span>`;
+            }).join('<span class="wizard-step-menu-line" aria-hidden="true"></span>');
+        }
         $('wizardBackBtn').disabled = wizard.index === 0;
         const next = $('wizardNextBtn'); next.textContent = step === 'export' ? 'Export' : 'Next'; next.disabled = !nextEnabled(step);
         if (firstTarget) { firstTarget.setAttribute('tabindex', '-1'); firstTarget.focus({ preventScroll: true }); }
