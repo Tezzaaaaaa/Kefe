@@ -1354,60 +1354,76 @@ body.wizard-mode[data-wizard-step="intro"] .app > main{
 
 /* Intro pathway cards: force the pathway surface into the visible wizard workspace. */
 body.wizard-mode[data-wizard-step="intro"] #wizardSection{
+  position:relative;
+  width:100%;
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+  padding:0!important;
   background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
 }
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel{
+  position:static!important;
+  width:100%;
+  height:100%;
+  min-height:0;
+  padding:0!important;
+  overflow:hidden;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel-kicker,
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel-title,
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel-hint{
+  display:none!important;
+}
+
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container{
-  display:grid!important;
   position:absolute!important;
-  z-index:100!important;
   top:50%!important;
   left:50%!important;
-  width:min(1100px,calc(100% - 32px))!important;
+  z-index:10!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  width:min(1100px,calc(100% - 48px))!important;
   height:min(320px,42dvh)!important;
   margin:0!important;
+  gap:15px!important;
   transform:translate(-50%,-50%)!important;
   visibility:visible!important;
   opacity:1!important;
   pointer-events:auto!important;
 }
+
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card{
+  position:relative!important;
   display:flex!important;
   visibility:visible!important;
   opacity:1!important;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
   pointer-events:auto!important;
 }
-body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-glass-dock{
-  z-index:101!important;
-  pointer-events:none!important;
-}
-@media(max-width:560px){
-  body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container{
-    width:calc(100% - 24px)!important;
-    height:min(230px,38dvh)!important;
-  }
-}
 
-
-/* Intro pathway surface: remove the sidebar glass layer so the cards and photography are visible. */
-body.wizard-mode[data-wizard-step="intro"] .sidebar{
-  background:transparent!important;
-  background-color:transparent!important;
-  border-color:transparent!important;
-  box-shadow:none!important;
-}
-
-/* Intro photography: keep the supplied pathway images visible behind the cards. */
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background{
   display:block!important;
   position:absolute!important;
   inset:0!important;
-  z-index:1!important;
+  z-index:0!important;
   width:100%!important;
   height:100%!important;
   opacity:1!important;
   background:transparent!important;
   pointer-events:none!important;
 }
+
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image{
   display:block!important;
   position:absolute!important;
@@ -1418,6 +1434,69 @@ body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image{
   background-size:cover!important;
   background-repeat:no-repeat!important;
 }
+
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image.is-visible{
   opacity:1!important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-glass-dock{
+  display:none!important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .sidebar{
+  position:relative;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  background:transparent!important;
+  background-color:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .app > main{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  padding:0!important;
+  gap:0!important;
+  background:transparent!important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] .app > main > .preview,
+body.wizard-mode[data-wizard-step="intro"] .preview,
+body.wizard-mode[data-wizard-step="intro"] .preview-stage,
+body.wizard-mode[data-wizard-step="intro"] #preview,
+body.wizard-mode[data-wizard-step="intro"] #previewStage{
+  display:none!important;
+}
+
+body.wizard-mode[data-wizard-step="intro"] #wizardNav{
+  position:absolute!important;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:30;
+  display:flex;
+}
+
+@media(max-width:900px){
+  body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container{
+    width:calc(100% - 32px)!important;
+    height:min(280px,40dvh)!important;
+    gap:10px!important;
+  }
+}
+
+@media(max-width:560px){
+  body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container{
+    width:calc(100% - 24px)!important;
+    height:min(230px,34dvh)!important;
+    gap:8px!important;
+  }
+
+  body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card{
+    border-radius:20px;
+  }
 }
