@@ -119,22 +119,107 @@
         // Selecting an audio/video card opens its existing file picker directly.
     }
     function renderIntro() {
+        if (previewEl) previewEl.remove();
         destroyIntroVeil();
-        const veil = '<div class="wizard-dark-veil" aria-hidden="true"></div>';
-        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">Choose your KEFE project</h3><div class="wizard-choices-wrap"><div class="wizard-choices">' + ['lyric','visualiser','captioned'].map(k => `<button type="button" class="wizard-choice${wizard.choice === k ? ' selected' : ''}" data-choice="${k}"><span class="wizard-choice-visual"><span class="wizard-choice-icon">${CHOICE_ICONS[k]}</span><span class="wizard-choice-lines"></span></span><span class="wizard-choice-copy"><strong>${PATH_LABELS[k]}</strong><span>${PATH_HINTS[k]}</span></span></button>`).join('') + '</div></div>';
-        const veilTarget = panel.querySelector('.wizard-dark-veil');
-        if (veilTarget && window.KefeDarkVeil?.mount) {
-            requestAnimationFrame(() => window.KefeDarkVeil.mount(veilTarget, {
-                hueShift: 0,
-                speed: reducedMotion ? 0 : 0.5,
-                noiseIntensity: 0,
-                scanlineIntensity: 0,
-                scanlineFrequency: 0,
-                warpAmount: 0,
-                resolutionScale: 1
-            }));
-        }
-        panel.querySelectorAll('[data-choice]').forEach(btn => btn.addEventListener('click', () => { const c = btn.dataset.choice; if (wizard.choice !== c) wizard.source = null; wizard.choice = c; wizard.path = c; wizard.index = 1; if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(c); applyStep(); }));
+
+        const projects = [
+            ['lyric', 'Lyric Video'],
+            ['visualiser', 'Visualiser'],
+            ['captioned', 'Captioned Video']
+        ];
+
+        const selectedIndex = Math.max(0, projects.findIndex(([key]) => key === wizard.choice));
+        const activeIndex = selectedIndex >= 0 ? selectedIndex : 0;
+
+        panel.innerHTML =
+            '<p class="wizard-panel-kicker">01 · Start</p>' +
+            '<h3 class="wizard-panel-title">Choose your KEFE project</h3>' +
+            '<p class="wizard-panel-hint">Choose a pathway and KEFE will guide you through the steps.</p>' +
+            '<div class="kefe-pathway-background" aria-hidden="true">\n                <span class="kefe-pathway-background-image is-visible" style="background-image:url(assets/IMG_4096.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4097.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4099.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4100.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4101.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4102.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4103.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4104.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4105.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4106.jpeg)"></span>\n            </div>' +
+            '<div class="kefe-pathway-card-container active-' + (activeIndex + 1) + '" id="kefePathwayCards" aria-label="Choose a KEFE project">' +
+                '<button type="button" class="kefe-pathway-card' + (activeIndex === 0 ? ' active' : '') + '" data-choice="lyric">' +
+                    '<span class="kefe-pathway-content">' +
+                        '<strong>LYRIC VIDEO</strong>' +
+                    '</span>' +
+                '</button>' +
+                '<button type="button" class="kefe-pathway-card' + (activeIndex === 1 ? ' active' : '') + '" data-choice="visualiser">' +
+                    '<span class="kefe-pathway-content">' +
+                        '<strong>MUSIC VISUALISER</strong>' +
+                    '</span>' +
+                '</button>' +
+                '<button type="button" class="kefe-pathway-card' + (activeIndex === 2 ? ' active' : '') + '" data-choice="captioned">' +
+                    '<span class="kefe-pathway-content">' +
+                        '<strong>CAPTIONED VIDEO</strong>' +
+                    '</span>' +
+                '</button>' +
+            '</div>' +
+            '<nav class="kefe-pathway-glass-dock" id="kefePathwayGlassDock" aria-label="Pathway selector">' +
+                '<div class="kefe-pathway-glass-lens" id="kefePathwayGlassLens" aria-hidden="true"></div>' +
+                '<span class="kefe-pathway-glass-indicator" aria-hidden="true"></span>' +
+            '</nav>';
+
+        const pathwayBackground = panel.querySelector('.kefe-pathway-background');
+        if (pathwayBackground) document.body.appendChild(pathwayBackground);
+
+        const container = $('kefePathwayCards');
+        const lens = $('kefePathwayGlassLens');
+        const items = [...panel.querySelectorAll('.kefe-pathway-card')];
+        if (!container || !items.length) return;
+
+        const moveLens = targetItem => {
+            if (!lens || !targetItem) return;
+            const dock = $('kefePathwayGlassDock');
+            if (!dock) return;
+            const dockRect = dock.getBoundingClientRect();
+            const itemRect = targetItem.getBoundingClientRect();
+            const centerX = (itemRect.left - dockRect.left) + (itemRect.width / 2);
+            const centerY = (itemRect.top - dockRect.top) + (itemRect.height / 2);
+            lens.style.transform = `translate(${centerX - (lens.offsetWidth / 2)}px,${centerY - (lens.offsetHeight / 2)}px)`;
+        };
+
+        const selectCard = index => {
+            const card = items[index];
+            if (!card) return;
+
+            const choice = card.dataset.choice;
+            wizard.choice = choice;
+            wizard.path = choice;
+            wizard.source = wizard.source && wizard.choice === choice ? wizard.source : null;
+            wizard.index = 0;
+
+            items.forEach((item, itemIndex) => {
+                item.classList.toggle('active', itemIndex === index);
+            });
+
+            if (typeof window.kefeSetProjectType === 'function') {
+                window.kefeSetProjectType(choice);
+            }
+
+            refreshNextState();
+            requestAnimationFrame(() => moveLens(card));
+        };
+
+        items.forEach((item, index) => {
+            item.addEventListener('click', () => selectCard(index));
+            item.addEventListener('keydown', event => {
+                if (event.key === 'ArrowRight') {
+                    event.preventDefault();
+                    const next = (index + 1) % items.length;
+                    selectCard(next);
+                    items[next].focus();
+                } else if (event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    const previous = (index - 1 + items.length) % items.length;
+                    selectCard(previous);
+                    items[previous].focus();
+                }
+            });
+        });
+
+        requestAnimationFrame(() => moveLens(items[activeIndex] || items[0]));
+
+        if (wizard.choice) selectCard(activeIndex);
+        else refreshNextState();
     }
     function previewLineText() {
         const st = window.state || {};
