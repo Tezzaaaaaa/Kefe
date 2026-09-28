@@ -23,7 +23,7 @@
     decrypt:             'Kefe Tracklist Cursive',
     blur:                'VogueNoir',
     shiny:               'BubblegumDisplay',
-    riseContract: { family: families.rise,      weight: 400, min: 36, max: 160, lineHeight: 1.06, tracking: .005,  align: 'center', case: 'none',  opticalScale: 1.00 },
+    riseContract: { family: 'Boulder',          weight: 400, min: 36, max: 160, lineHeight: 1.06, tracking: .005,  align: 'center', case: 'none',  opticalScale: 1.00 },
     // New lyric effects
     barbie:              'Baloo 2',
     elasticpop:          'Bangers',
