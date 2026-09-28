@@ -1276,3 +1276,21 @@ body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-glass-item:focus-visibl
     transition:none;
   }
 }
+
+
+/* Pathway photography sits behind the intro surface, not behind an opaque panel. */
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel,
+body.wizard-mode[data-wizard-step="intro"] main{
+  background:transparent!important;
+  background-color:transparent!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-panel{
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background{
+  z-index:0;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image{
+  background-image:var(--kefe-pathway-image)!important;
+}
