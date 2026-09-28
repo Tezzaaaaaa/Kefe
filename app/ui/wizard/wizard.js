@@ -13,14 +13,14 @@
     if (previewEl) previewEl.id = 'previewSection';
 
     const PATHS = {
-        lyric: ['intro', 'source', 'lyrics', 'style', 'background', 'preview', 'export'],
-        visualiser: ['intro', 'source', 'style', 'background', 'preview', 'export'],
-        captioned: ['intro', 'source', 'captions', 'background', 'preview', 'export']
+        lyric: ['intro', 'source', 'lyrics', 'look', 'preview', 'export'],
+        visualiser: ['intro', 'source', 'look', 'visuals', 'preview', 'export'],
+        captioned: ['intro', 'source', 'captions', 'look', 'preview', 'export']
     };
     const PATH_LABELS = { lyric: 'Lyric Video', visualiser: 'Visualiser', captioned: 'Captioned Video'};
     const PATH_HINTS = { lyric: 'Synced lyrics with expressive motion.', visualiser: 'Audio-reactive visuals with no lyrics.', captioned: 'Timed captions for spoken audio or video.'};
     const STEP_TITLES = { lyrics: 'Add your lyrics', captions: 'Create your captions', style: 'Choose your look', background: 'Choose your background', export: 'Export your video' };
-    const STEP_LABELS = { intro: 'Format', source: 'Media', lyrics: 'Lyrics', captions: 'Captions', style: 'Style', background: 'Background', preview: 'Preview', export: 'Export' };
+    const STEP_LABELS = { intro: 'Start', source: 'Media', lyrics: 'Lyrics', captions: 'Captions', look: 'Look', visuals: 'Visuals', preview: 'Preview', export: 'Export' };
     const CHOICE_ICONS = {
         lyric: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10"/><circle cx="18.2" cy="17.4" r="2.6"/><path d="M20.8 17.4V8.2l-2.6.9"/></svg>',
         visualiser: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>',
@@ -76,8 +76,6 @@
     function targetsForStep(step) {
         if (step === 'lyrics') return ['textSection'];
         if (step === 'captions') return ['textSection', 'captionGenSection', 'captionReviewSection'];
-        if (step === 'style') return [];
-        if (step === 'background') return ['backgroundSection'];
         if (step === 'export') return ['exportSection'];
         return [];
     }
@@ -220,15 +218,27 @@
             existing.classList.add('is-animating');
         }
     }
-    function renderStylePanel() {
+    function renderLookPanel() {
         const styleBlock = document.querySelector('#lyricStyleBlock');
+        const backgroundSection = $('backgroundSection');
         const current = window.state?.style?.effect || 'apple';
-        const stepNumber = stepsFor().indexOf('style') + 1;
+        const stepNumber = stepsFor().indexOf('look') + 1;
+
+        if (wizard.choice === 'visualiser') {
+            panel.innerHTML =
+                '<p class="wizard-panel-kicker">' + pad(stepNumber) + ' · Look</p>' +
+                '<h3 class="wizard-panel-title">Set the visual foundation</h3>' +
+                '<p class="wizard-panel-hint">Choose the background and title treatment for your visualiser.</p>' +
+                '<div id="wizardBackgroundMount"></div>';
+            const backgroundMount = $('wizardBackgroundMount');
+            if (backgroundMount && backgroundSection) backgroundMount.appendChild(backgroundSection);
+            return;
+        }
 
         panel.innerHTML =
-            '<p class="wizard-panel-kicker">' + pad(stepNumber) + ' · Style</p>' +
+            '<p class="wizard-panel-kicker">' + pad(stepNumber) + ' · Look</p>' +
             '<h3 class="wizard-panel-title">Choose your look</h3>' +
-            '<p class="wizard-panel-hint">Choose a lyric style and see the result immediately.</p>' +
+            '<p class="wizard-panel-hint">Choose the lyric or caption style, then shape the background around it.</p>' +
             '<div class="wizard-style-preview" data-effect="' + current + '">' +
                 '<div class="wizard-style-preview-media-wrap">' + previewBackgroundMarkup() + '</div>' +
                 '<div class="wizard-style-preview-shade"></div>' +
@@ -238,22 +248,39 @@
                     '<span class="wizard-style-preview-effect">' + current + '</span>' +
                 '</div>' +
             '</div>' +
-            '<div id="wizardStyleMount"></div>';
+            '<div id="wizardStyleMount"></div>' +
+            '<div id="wizardBackgroundMount"></div>';
 
         const mount = $('wizardStyleMount');
-        if (mount && styleBlock && wizard.choice !== 'visualiser') {
+        if (mount && styleBlock) {
+            const heading = styleBlock.querySelector('.sub-heading');
+            if (heading) heading.textContent = wizard.choice === 'captioned' ? 'Caption style' : 'Lyrics style';
             mount.appendChild(styleBlock);
         }
 
+        const backgroundMount = $('wizardBackgroundMount');
+        if (backgroundMount && backgroundSection) backgroundMount.appendChild(backgroundSection);
+
         renderStylePreview(current);
     }
-
     function restoreStyleBlock() {
         const styleBlock = document.querySelector('#wizardStyleMount #lyricStyleBlock');
         const lyricsPanel = $('lyricsPanel');
         if (!styleBlock || !lyricsPanel) return;
         const syncBlock = $('lyricsOffset')?.closest('.sub-block');
         lyricsPanel.insertBefore(styleBlock, syncBlock || null);
+        const heading = styleBlock.querySelector('.sub-heading');
+        if (heading) heading.textContent = 'Style';
+    }
+
+    function restoreBackgroundSection() {
+        const background = document.querySelector('#wizardBackgroundMount #backgroundSection');
+        if (!background) return;
+        const sidebar = document.querySelector('.sidebar');
+        const exportSection = $('exportSection');
+        if (sidebar && exportSection) sidebar.insertBefore(background, exportSection);
+        const mount = background.querySelector('#wizardBackgroundMount');
+        if (mount) mount.remove();
     }
 
     function renderPreview() {
@@ -275,12 +302,16 @@
         const steps = stepsFor(), step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        if (previewEl) { const showLivePreview = ['lyrics','captions','style','background','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
+        if (previewEl) { const showLivePreview = ['lyrics','captions','look','visuals','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
         const targetIds = targetsForStep(step);
         let firstTarget = null;
 
-        if (step === 'style') {
-            renderStylePanel();
+        if (step === 'look') {
+            renderLookPanel();
+            panel.classList.add('wizard-current');
+            firstTarget = panel;
+        } else if (step === 'visuals') {
+            panel.innerHTML = '<p class="wizard-panel-kicker">' + pad(steps.indexOf('visuals') + 1) + ' · Visuals</p><h3 class="wizard-panel-title">Make it move</h3><p class="wizard-panel-hint">Choose the audio-reactive visualiser that carries the energy of your track.</p>';
             panel.classList.add('wizard-current');
             firstTarget = panel;
         } else if (targetIds.length) {
@@ -316,6 +347,7 @@
         const metadataBlock = document.querySelector('#wizardMetadataMount .music-details');
         if (metadataBlock) $('audioSection')?.appendChild(metadataBlock);
 
+        restoreBackgroundSection();
         restoreStyleBlock();
 
         clearTimeout(fadeTimer); sidebar.classList.remove('wizard-fading'); stepHeading.remove(); nav.remove(); panel.remove(); document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current')); body.classList.remove('wizard-mode'); delete body.dataset.wizardStep;
