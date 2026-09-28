@@ -86,134 +86,6 @@ body.wizard-mode .wizard-choices.wizard-source-choices {
 
 
 
-/* HoverImg pathway menu */
-.wizard-hover-img-menu{
-    display:flex!important;
-    flex-direction:column!important;
-    width:100%!important;
-    max-width:1200px!important;
-    gap:0!important;
-}
-.wizard-hover-img-menu .hover-img-project{
-    width:100%!important;
-    display:flex!important;
-    align-items:center!important;
-    justify-content:space-between!important;
-    min-height:0!important;
-    padding:2rem 4rem!important;
-    border:0!important;
-    border-top:1px solid rgba(255,255,255,.2)!important;
-    border-radius:0!important;
-    background:transparent!important;
-    color:#fff!important;
-    text-align:left!important;
-    cursor:pointer!important;
-    transition:opacity .5s ease!important;
-    transform:none!important;
-    box-shadow:none!important;
-}
-.wizard-hover-img-menu .hover-img-project:last-child{
-    border-bottom:1px solid rgba(255,255,255,.2)!important;
-}
-.wizard-hover-img-menu .hover-img-project:hover{
-    opacity:.5!important;
-}
-.wizard-hover-img-project-copy{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    width:100%;
-}
- .wizard-hover-img-menu .hover-img-project-copy span{display:none!important;}
-.wizard-hover-img-menu .hover-img-project-copy strong{
-    margin:0!important;
-    font-family:"Raleway","Inter",system-ui,sans-serif!important;
-    font-size:2.5rem!important;
-    line-height:1.1!important;
-    font-weight:500!important;
-    letter-spacing:-.02em!important;
-    color:#fff!important;
-    transition:transform .5s ease!important;
-}
-.wizard-hover-img-menu .hover-img-project-copy span{
-    margin:0!important;
-    font-family:"Raleway","Inter",system-ui,sans-serif!important;
-    font-size:1rem!important;
-    line-height:1.2!important;
-    font-weight:400!important;
-    color:#999!important;
-    transition:transform .5s ease!important;
-}
-.wizard-hover-img-menu .hover-img-project:hover strong{
-    transform:translateX(-15px);
-}
-.wizard-hover-img-menu .hover-img-project:hover span{
-    transform:translateX(15px);
-}
-.wizard-hover-img-menu .hover-img-project.selected,
-.wizard-hover-img-menu .hover-img-project.selected:hover{
-    border-color:var(--red)!important;
-    background:color-mix(in srgb,var(--red) 22%,transparent)!important;
-    box-shadow:0 0 0 1px var(--red)!important;
-    opacity:1!important;
-}
-.wizard-hover-img-menu .hover-img-project.selected strong{
-    color:var(--red)!important;
-}
-.hover-img-thumbnail-wrapper{
-    position:fixed!important;
-    width:400px!important;
-    height:250px!important;
-    display:flex!important;
-    flex-direction:column!important;
-    overflow:hidden!important;
-    pointer-events:none!important;
-    top:0!important;
-    left:0!important;
-    transform-origin:center center!important;
-    z-index:100!important;
-    border-radius:12px!important;
-    box-shadow:0 25px 50px -12px rgba(0,0,0,.3)!important;
-    transform:translate3d(0,0,0) translate(-50%,-50%) scale(0);
-    transition:transform .3s ease!important;
-}
-.hover-img-thumbnail{
-    width:100%;
-    height:100%;
-    flex-shrink:0;
-    transform:translateY(calc(var(--hover-img-index,0) * -100%));
-    transition:transform .4s ease;
-}
-.hover-img-thumbnail img{
-    width:100%;
-    height:100%;
-    display:block;
-    object-fit:cover;
-}
-@media(max-width:1024px){
-    .wizard-hover-img-menu .hover-img-project{
-        padding:2rem 4rem!important;
-    }
-    .wizard-hover-img-menu .hover-img-project-copy strong{
-        font-size:2.5rem!important;
-    }
-}
-@media(max-width:768px){
-    .wizard-hover-img-menu .hover-img-project{
-        padding:1.5rem 2rem!important;
-    }
-    .wizard-hover-img-menu .hover-img-project-copy strong{
-        font-size:1.75rem!important;
-    }
-    .wizard-hover-img-menu .hover-img-project-copy span{
-        font-size:.875rem!important;
-    }
-    .hover-img-thumbnail-wrapper{
-        display:none!important;
-    }
-}
-
-
 /* ==========================================================================
    KEFE — Xchyler-inspired step menu
    Persistent across every wizard step; active state follows the current path.
@@ -352,151 +224,86 @@ body.wizard-mode .wizard-nav .wizard-skip:hover{opacity:1}
 }
 
 
-/* KEFE pathway cards — folder interaction inspired by Framer's Card — Folder. */
-body.wizard-mode .kefe-pathway-steps .wizard-hover-img-menu{
-  display:grid;
-  gap:14px;
+/* KEFE pathway cards — Velocity Carousel treatment inspired by Framer's Velocity Carousel. */
+body.wizard-mode .kefe-pathway-carousel{width:100%;margin:26px auto 0;min-width:0}
+body.wizard-mode .kefe-pathway-track{
+  display:flex;align-items:center;gap:18px;width:100%;overflow-x:auto;overflow-y:visible;
+  padding:28px max(12px,calc((100% - min(68%,380px))/2)) 34px;box-sizing:border-box;
+  scrollbar-width:none;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
 }
+body.wizard-mode .kefe-pathway-track::-webkit-scrollbar{display:none}
 body.wizard-mode .kefe-pathway-card{
-  position:relative;
-  display:grid;
-  grid-template-columns:52px minmax(0,1fr) 34px;
-  align-items:end;
-  gap:14px;
-  width:100%;
-  min-height:128px;
-  padding:26px 18px 16px;
-  border:0;
-  border-radius:0 14px 14px 14px;
-  background:#111;
-  color:#fff;
-  text-align:left;
-  overflow:visible;
-  isolation:isolate;
-  cursor:pointer;
-  transition:transform .28s cubic-bezier(.22,1,.36,1);
+  position:relative;flex:0 0 min(68%,380px);min-height:330px;display:flex;flex-direction:column;
+  align-items:stretch;justify-content:flex-end;padding:0;border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;background:#101010;color:#fff;text-align:left;overflow:hidden;scroll-snap-align:center;
+  opacity:.46;transform:scale(.88);transform-origin:center;filter:saturate(.72);cursor:pointer;box-shadow:none;
+  transition:transform .42s cubic-bezier(.22,1,.36,1),opacity .32s ease,filter .32s ease,border-color .32s ease;
 }
-body.wizard-mode .kefe-pathway-card::before{
-  content:"";
-  position:absolute;
-  left:0;
-  top:-16px;
-  width:92px;
-  height:18px;
-  border-radius:10px 10px 0 0;
-  background:#111;
-  z-index:-1;
+body.wizard-mode .kefe-pathway-card.is-focused,body.wizard-mode .kefe-pathway-card.selected{
+  opacity:1;transform:scale(1);filter:none;border-color:rgba(255,255,255,.2);
 }
-body.wizard-mode .kefe-pathway-card::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border:1px solid rgba(255,255,255,.09);
-  border-radius:0 14px 14px 14px;
-  pointer-events:none;
+body.wizard-mode .kefe-pathway-card:hover{border-color:rgba(255,255,255,.28)}
+body.wizard-mode .kefe-pathway-card:focus-visible{outline:2px solid var(--red);outline-offset:4px}
+body.wizard-mode .kefe-pathway-card.selected{border-color:rgba(239,63,56,.7)}
+body.wizard-mode .kefe-pathway-image{position:absolute;inset:0;z-index:0;display:block;background:#080808}
+body.wizard-mode .kefe-pathway-image::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.05) 20%,rgba(0,0,0,.28) 48%,rgba(0,0,0,.94) 100%);
 }
-body.wizard-mode .kefe-pathway-card:hover,
-body.wizard-mode .kefe-pathway-card:focus-visible{
-  transform:translateY(-6px);
+body.wizard-mode .kefe-pathway-image img{
+  width:100%;height:100%;display:block;object-fit:cover;opacity:.82;transform:scale(1.01);
+  transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .32s ease;
 }
-body.wizard-mode .kefe-pathway-card:hover::after,
-body.wizard-mode .kefe-pathway-card:focus-visible::after{
-  border-color:rgba(255,255,255,.2);
-}
-body.wizard-mode .kefe-pathway-card.selected{
-  background:linear-gradient(145deg,rgba(239,63,56,.18),rgba(17,17,17,.98) 46%);
-}
-body.wizard-mode .kefe-pathway-card.selected::before{
-  background:#ef3f38;
-}
-body.wizard-mode .kefe-pathway-card.selected::after{
-  border-color:rgba(239,63,56,.65);
+body.wizard-mode .kefe-pathway-card:hover .kefe-pathway-image img,
+body.wizard-mode .kefe-pathway-card.is-focused .kefe-pathway-image img{transform:scale(1.045);opacity:.92}
+body.wizard-mode .kefe-pathway-card-content{
+  position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;
+  min-width:0;padding:20px;
 }
 body.wizard-mode .kefe-pathway-number{
-  display:grid;
-  place-items:center;
-  width:40px;
-  height:40px;
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:50%;
-  background:#090909;
-  color:#777;
-  font-size:10px;
-  font-variant-numeric:tabular-nums;
-  transition:transform .28s cubic-bezier(.22,1,.36,1),border-color .2s ease,color .2s ease;
+  display:grid;place-items:center;width:30px;height:22px;border:1px solid rgba(255,255,255,.16);
+  border-radius:999px;background:rgba(0,0,0,.34);color:#aaa;font-size:9px;font-variant-numeric:tabular-nums;
+  backdrop-filter:blur(8px);
 }
-body.wizard-mode .kefe-pathway-card:hover .kefe-pathway-number,
-body.wizard-mode .kefe-pathway-card:focus-visible .kefe-pathway-number{
-  transform:translateY(-2px);
+body.wizard-mode .kefe-pathway-card-content strong{
+  color:#fff;font-size:23px;line-height:1.05;font-weight:700;letter-spacing:-.035em;
 }
-body.wizard-mode .kefe-pathway-card.selected .kefe-pathway-number{
-  border-color:#ef3f38;
-  color:#fff;
-}
-body.wizard-mode .kefe-pathway-card .hover-img-project-copy{
-  display:grid;
-  gap:5px;
-  min-width:0;
-}
-body.wizard-mode .kefe-pathway-card .hover-img-project-copy strong{
-  color:#f5f5f5;
-  font-size:15px;
-  font-weight:650;
-  letter-spacing:-.01em;
-}
-body.wizard-mode .kefe-pathway-card .hover-img-project-copy span{
-  color:#777;
-  font-size:11px;
-  line-height:1.4;
-}
-body.wizard-mode .kefe-pathway-card:hover .hover-img-project-copy span,
-body.wizard-mode .kefe-pathway-card.selected .hover-img-project-copy span{
-  color:#a0a0a0;
-}
+body.wizard-mode .kefe-pathway-card-content>span:last-child{max-width:280px;color:rgba(255,255,255,.62);font-size:11px;line-height:1.45}
 body.wizard-mode .kefe-pathway-arrow{
-  display:grid;
-  place-items:center;
-  width:32px;
-  height:32px;
-  border:1px solid rgba(255,255,255,.1);
-  border-radius:50%;
-  color:#666;
-  font-size:15px;
-  transition:color .2s ease,border-color .2s ease,transform .28s cubic-bezier(.22,1,.36,1);
+  position:absolute;z-index:3;top:16px;right:16px;display:grid;place-items:center;width:34px;height:34px;
+  border:1px solid rgba(255,255,255,.16);border-radius:50%;background:rgba(0,0,0,.3);color:#fff;font-size:15px;
+  backdrop-filter:blur(8px);transition:transform .3s cubic-bezier(.22,1,.36,1),background .2s ease,border-color .2s ease;
 }
 body.wizard-mode .kefe-pathway-card:hover .kefe-pathway-arrow,
-body.wizard-mode .kefe-pathway-card.selected .kefe-pathway-arrow{
-  color:#fff;
-  border-color:rgba(255,255,255,.2);
-  transform:translate(2px,-2px);
+body.wizard-mode .kefe-pathway-card.is-focused .kefe-pathway-arrow{
+  transform:translate(2px,-2px);background:rgba(239,63,56,.88);border-color:rgba(239,63,56,.9);
 }
-body.wizard-mode .kefe-pathway-steps .hover-img-thumbnail-wrapper{
-  display:none;
+body.wizard-mode .kefe-pathway-dots{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:-8px}
+body.wizard-mode .kefe-pathway-dot{
+  width:7px;height:7px;min-height:7px;padding:0;border:0;border-radius:50%;background:#4b4b4b;cursor:pointer;
+  transition:width .25s ease,background .25s ease,transform .25s ease;
+}
+body.wizard-mode .kefe-pathway-dot:hover{background:#888}
+body.wizard-mode .kefe-pathway-dot.active{width:22px;background:var(--red);border-radius:999px}
+@media(max-width:900px){
+  body.wizard-mode .kefe-pathway-carousel{margin-top:20px}
+  body.wizard-mode .kefe-pathway-track{gap:12px;padding:22px max(10px,calc((100% - min(78%,340px))/2)) 28px}
+  body.wizard-mode .kefe-pathway-card{flex-basis:min(78%,340px);min-height:290px}
+  body.wizard-mode .kefe-pathway-card-content{padding:17px}
+  body.wizard-mode .kefe-pathway-card-content strong{font-size:20px}
 }
 @media(max-width:560px){
-  body.wizard-mode .kefe-pathway-steps .wizard-hover-img-menu{gap:12px}
-  body.wizard-mode .kefe-pathway-card{
-    grid-template-columns:42px minmax(0,1fr) 30px;
-    min-height:112px;
-    padding:22px 14px 14px;
-    gap:10px;
-  }
-  body.wizard-mode .kefe-pathway-card::before{
-    width:76px;
-    height:15px;
-    top:-13px;
-  }
-  body.wizard-mode .kefe-pathway-number{width:34px;height:34px}
-  body.wizard-mode .kefe-pathway-card .hover-img-project-copy strong{font-size:14px}
-  body.wizard-mode .kefe-pathway-card .hover-img-project-copy span{font-size:10px}
-  body.wizard-mode .kefe-pathway-arrow{width:28px;height:28px}
+  body.wizard-mode .kefe-pathway-track{gap:10px;padding:18px max(8px,calc((100% - min(82%,300px))/2)) 24px}
+  body.wizard-mode .kefe-pathway-card{flex-basis:min(82%,300px);min-height:260px;border-radius:14px}
+  body.wizard-mode .kefe-pathway-card-content{padding:15px}
+  body.wizard-mode .kefe-pathway-card-content strong{font-size:18px}
+  body.wizard-mode .kefe-pathway-card-content>span:last-child{font-size:10px}
+  body.wizard-mode .kefe-pathway-arrow{top:12px;right:12px;width:30px;height:30px}
 }
 @media(prefers-reduced-motion:reduce){
-  body.wizard-mode .kefe-pathway-card,
-  body.wizard-mode .kefe-pathway-number,
-  body.wizard-mode .kefe-pathway-arrow{
-    transition:none;
-  }
+  body.wizard-mode .kefe-pathway-card,body.wizard-mode .kefe-pathway-card .kefe-pathway-image img,
+  body.wizard-mode .kefe-pathway-arrow,body.wizard-mode .kefe-pathway-dot{transition:none}
 }
 
 /* Style step — keep the preview and effect picker in one clean vertical layout. */
