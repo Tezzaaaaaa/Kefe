@@ -230,6 +230,22 @@ body.wizard-mode .preview.preview-empty{
   display:none;
 }
 
+/* Pathway selection is a full-canvas state; hide the editor panel and its navigation. */
+body.wizard-mode[data-wizard-step="intro"] .sidebar{
+  display:block;
+  overflow:visible;
+  background:transparent;
+  border:0;
+}
+body.wizard-mode[data-wizard-step="intro"] #wizardSection,
+body.wizard-mode[data-wizard-step="intro"] #wizardNav,
+body.wizard-mode[data-wizard-step="intro"] .sidebar > .section:not(#wizardSection),
+body.wizard-mode[data-wizard-step="intro"] .sidebar > .section-nav{
+  display:none;
+}
+body.wizard-mode[data-wizard-step="intro"] main{
+  grid-template-columns:1fr;
+}
 /* Keep wizard navigation below the pathway canvas rather than over it. */
 body.wizard-mode .wizard-panel{
   flex:1 1 auto;
