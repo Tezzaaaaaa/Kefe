@@ -2263,20 +2263,6 @@ function wireCaptions() {
     });
 }
 
-function wireBackgroundControls() {
-    $('bgDim')?.addEventListener('input', function() {
-        if (isExporting) { this.value = String(Math.round((state.background.dim || 0) * 100)); return; }
-        state.background.dim = Number(this.value) / 100;
-        $('bgDimVal').textContent = `${this.value}%`;
-        redrawCurrentPreviewFrame();
-    });
-    $('bgBlur')?.addEventListener('input', function() {
-        if (isExporting) { this.value = String(state.background.blur || 0); return; }
-        state.background.blur = Number(this.value) || 0;
-        $('bgBlurVal').textContent = `${this.value}px`;
-        redrawCurrentPreviewFrame();
-    });
-}
 function syncBackgroundControls() {
     const dim = $('bgDim');
     if (dim) dim.value = String(Math.round((state.background.dim ?? 0.35) * 100));
@@ -2310,8 +2296,6 @@ function init() {
         syncTitleCardUI();
         wireSyncControls();
         wireCaptions();
-        wireBackgroundControls();
-        syncBackgroundControls();
         qsa('[data-text-mode]').forEach(b => b.addEventListener('click', () => applyTextMode(b.dataset.textMode)));
         applyTextMode(state.captions.mode);
         wireCaptionStyleControls();
