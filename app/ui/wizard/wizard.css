@@ -814,6 +814,60 @@ body.wizard-mode textarea:focus-visible{
   outline-offset:2px;
 }
 
+/* Final Liquid Glass surface contract — the Glass slider controls every wizard surface. */
+body.wizard-mode .wizard-panel,
+body.wizard-mode .wizard-nav,
+body.wizard-mode .section-nav,
+body.wizard-mode .sidebar,
+body.wizard-mode .section,
+body.wizard-mode .sub-block,
+body.wizard-mode .music-details,
+body.wizard-mode .control-row,
+body.wizard-mode .lyrics-actions,
+body.wizard-mode .nudge-row,
+body.wizard-mode .caption-style-grid,
+body.wizard-mode .metadata-grid,
+body.wizard-mode .wizard-progress-wrap,
+body.wizard-mode .wizard-step-menu,
+body.wizard-mode .wizard-effect-popover,
+body.wizard-mode .kefe-effect-subpopover,
+body.wizard-mode .preview,
+body.wizard-mode .preview-stage,
+body.wizard-mode .transport,
+body.wizard-mode .transport-controls,
+body.wizard-mode .transport-progress,
+body.wizard-mode .transport-actions,
+body.wizard-mode .aspect-buttons,
+body.wizard-mode .background-choice-grid,
+body.wizard-mode .effect-buttons,
+body.wizard-mode .wizard-choice,
+body.wizard-mode .wizard-source-choices .wizard-choice,
+body.wizard-mode .wizard-style-group,
+body.wizard-mode .wizard-summary-row,
+body.wizard-mode .wizard-effect-choice{
+  background:color-mix(in srgb,rgba(255,255,255,.52) calc(var(--kefe-glass-visibility) * 100%),transparent);
+  border-color:color-mix(in srgb,rgba(255,255,255,.78) calc(var(--kefe-glass-visibility) * 100%),rgba(255,255,255,.22));
+  box-shadow:inset 0 1px 0 color-mix(in srgb,rgba(255,255,255,.92) calc(var(--kefe-glass-visibility) * 100%),transparent),0 10px 34px color-mix(in srgb,rgba(100,120,150,.12) calc(var(--kefe-glass-visibility) * 100%),transparent);
+  backdrop-filter:blur(var(--kefe-glass-blur)) saturate(var(--kefe-glass-saturation));
+  -webkit-backdrop-filter:blur(var(--kefe-glass-blur)) saturate(var(--kefe-glass-saturation));
+}
+body.wizard-mode button,
+body.wizard-mode .file-button,
+body.wizard-mode .segmented-btn,
+body.wizard-mode .background-choice,
+body.wizard-mode .aspect-buttons button,
+body.wizard-mode .nudge-row button{
+  background:color-mix(in srgb,rgba(255,255,255,.52) calc(var(--kefe-glass-visibility) * 100%),transparent);
+  border-color:color-mix(in srgb,rgba(255,255,255,.78) calc(var(--kefe-glass-visibility) * 100%),rgba(255,255,255,.22));
+  box-shadow:inset 0 1px 0 color-mix(in srgb,rgba(255,255,255,.92) calc(var(--kefe-glass-visibility) * 100%),transparent),0 6px 20px color-mix(in srgb,rgba(100,120,150,.10) calc(var(--kefe-glass-visibility) * 100%),transparent);
+}
+body.wizard-mode .wizard-back{background:color-mix(in srgb,rgba(255,255,255,.55) calc(var(--kefe-glass-visibility) * 100%),transparent);}
+body.wizard-mode input:not([type="range"]):not([type="color"]),
+body.wizard-mode select,
+body.wizard-mode textarea{
+  background:color-mix(in srgb,rgba(255,255,255,.58) calc(var(--kefe-glass-visibility) * 100%),transparent);
+}
+
 /* ==========================================================================
    KEFE — serene pastel glass wizard theme
    ========================================================================== */
