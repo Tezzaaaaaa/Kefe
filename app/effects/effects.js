@@ -61,6 +61,18 @@
     syncActive(host);
   }
 
+  function setEffect(key) {
+    var def = BY_KEY[key];
+    if (!def || !window.state || !window.state.style) return false;
+    window.state.style.effect = def.key;
+    try {
+      if (typeof window.saveLinaPrefs === 'function') window.saveLinaPrefs();
+    } catch (_) {}
+    return true;
+  }
+
+  window.setEffect = setEffect;
+
   window.kefeEffectRegistry = Object.freeze({
     list: function(){ return CATALOGUE.slice(); },
     get: function(key){ return BY_KEY[key] || null; },
