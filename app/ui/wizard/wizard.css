@@ -304,18 +304,18 @@ body.wizard-mode .kefe-pathway-card-container{
   background-repeat:no-repeat;
   opacity:0;
   transform:scale(1.04);
-  animation:kefe-pathway-background-slide 40s ease-in-out infinite;
+  animation:kefe-pathway-background-slide 180s ease-in-out infinite;
   will-change:opacity,transform;
 }
-.kefe-pathway-background-image:nth-child(2){animation-delay:4s}
-.kefe-pathway-background-image:nth-child(3){animation-delay:8s}
-.kefe-pathway-background-image:nth-child(4){animation-delay:12s}
-.kefe-pathway-background-image:nth-child(5){animation-delay:16s}
-.kefe-pathway-background-image:nth-child(6){animation-delay:20s}
-.kefe-pathway-background-image:nth-child(7){animation-delay:24s}
-.kefe-pathway-background-image:nth-child(8){animation-delay:28s}
-.kefe-pathway-background-image:nth-child(9){animation-delay:32s}
-.kefe-pathway-background-image:nth-child(10){animation-delay:36s}
+.kefe-pathway-background-image:nth-child(2){animation-delay:18s}
+.kefe-pathway-background-image:nth-child(3){animation-delay:36s}
+.kefe-pathway-background-image:nth-child(4){animation-delay:54s}
+.kefe-pathway-background-image:nth-child(5){animation-delay:72s}
+.kefe-pathway-background-image:nth-child(6){animation-delay:90s}
+.kefe-pathway-background-image:nth-child(7){animation-delay:108s}
+.kefe-pathway-background-image:nth-child(8){animation-delay:126s}
+.kefe-pathway-background-image:nth-child(9){animation-delay:144s}
+.kefe-pathway-background-image:nth-child(10){animation-delay:162s}
 .kefe-pathway-background-image::after{
   content:"";
   position:absolute;
