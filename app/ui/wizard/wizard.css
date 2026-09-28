@@ -1397,7 +1397,7 @@ body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background{
   width:100%!important;
   height:100%!important;
   opacity:1!important;
-  background:#111!important;
+  background:transparent!important;
   pointer-events:none!important;
 }
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image{
@@ -1412,7 +1412,4 @@ body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image{
 }
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image.is-visible{
   opacity:1!important;
-}
-body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background::after{
-  background:rgba(0,0,0,.18)!important;
 }
