@@ -233,6 +233,7 @@ body.wizard-mode .preview.preview-empty{
 /* Pathway selection is a full-canvas state: cards only. */
 body.wizard-mode[data-wizard-step="intro"] main{
   grid-template-columns:1fr;
+  grid-template-rows:1fr;
 }
 body.wizard-mode[data-wizard-step="intro"] .sidebar{
   width:100%;
