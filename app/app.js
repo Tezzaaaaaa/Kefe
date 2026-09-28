@@ -3814,6 +3814,8 @@ window.kefeSetProjectType = function(type) {
     if (!PROJECT_TYPES.includes(type)) return;
     if (state.projectType === type) return;
     state.projectType = type;
+    document.body.setAttribute('data-project-type', type);
+    document.dispatchEvent(new CustomEvent('kefe:project-type'));
     // Captioned pathway forces the captions panel; other pathways reset to lyrics.
     if (type === 'captioned') {
         if (typeof applyTextMode === 'function') applyTextMode('captions');
