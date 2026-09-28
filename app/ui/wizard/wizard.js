@@ -306,7 +306,15 @@
         const steps = stepsFor(), step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        if (previewEl) { const showLivePreview = ['lyrics','captions','look','visuals','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); previewEl.classList.toggle('preview-empty', !showLivePreview); }
+        if (previewEl) {
+            const showLivePreview = ['lyrics','captions','look','visuals','preview'].includes(step);
+            previewEl.classList.toggle('preview-expanded', showLivePreview);
+            previewEl.classList.toggle('preview-collapsed', !showLivePreview);
+            previewEl.classList.toggle('preview-empty', !showLivePreview);
+            previewEl.style.display = showLivePreview ? '' : 'none';
+            const main = previewEl.closest('main');
+            if (main) main.style.gridTemplateColumns = showLivePreview ? '' : '1fr';
+        }
         const targetIds = targetsForStep(step);
         let firstTarget = null;
 
@@ -354,7 +362,11 @@
         restoreBackgroundSection();
         restoreStyleBlock();
 
-        clearTimeout(fadeTimer); sidebar.classList.remove('wizard-fading'); stepHeading.remove(); nav.remove(); panel.remove(); document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current')); body.classList.remove('wizard-mode'); delete body.dataset.wizardStep;
+        clearTimeout(fadeTimer);
+        if (previewEl) previewEl.style.display = '';
+        const main = previewEl?.closest('main');
+        if (main) main.style.gridTemplateColumns = '';
+        sidebar.classList.remove('wizard-fading'); stepHeading.remove(); nav.remove(); panel.remove(); document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current')); body.classList.remove('wizard-mode'); delete body.dataset.wizardStep;
         document.querySelectorAll('.sidebar .section').forEach(s => s.classList.toggle('active', s.id === 'exportSection'));
         $('exportSection')?.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
     }
