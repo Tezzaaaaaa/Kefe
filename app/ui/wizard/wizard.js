@@ -86,7 +86,7 @@
     }
     function chooseSourceMedia() { if (wizard.source === 'uploaded') $('audioInput')?.click(); if (wizard.source === 'media') $('backgroundInput')?.click(); }
     function applySourceChoice(source) {
-        wizard.source = source; window.kefeWizardSource = source; const st = window.state;
+        wizard.source = source; const st = window.state;
         if (typeof window.applyMasterSelection === 'function') {
             try {
                 if (source === 'uploaded') window.applyMasterSelection('uploaded', { userInitiated: false, silent: true });
@@ -95,6 +95,15 @@
         }
         renderSource(); refreshNextState();
     }
+    document.addEventListener('kefe:background-ready', () => {
+        if (wizard.source !== 'media') return;
+        const st = window.state;
+        const m = window.kefeMedia || {};
+        if (!m.video || !m.videoFile || !m.videoHasAudio || typeof window.applyMasterSelection !== 'function') return;
+        if (st?.audioSource) st.audioSource.userChosen = false;
+        window.applyMasterSelection('video', { userInitiated: false, silent: true });
+    });
+
     function renderSource() {
         // Visualiser uses the same media-source choices as the other pathways.
         const options = wizard.choice === 'captioned'
