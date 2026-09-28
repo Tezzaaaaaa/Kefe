@@ -15,12 +15,15 @@
     eternal:             'Homemade Apple',
     aurora:              'Bricolage Grotesque',
     typewriter:          'Courier Prime',
+    pulse:               'AuraSerif',
+    rise:                'Boulder',
     instagram:           'Inter Tight',
-    fadeup:              'Momo Trust Display',
+    fadeup:              'BlockParty',
     mixedmedia:          'Boulder',
-    decrypt:             'Courier Prime',
-    blur:                'Bricolage Grotesque',
-    shiny:               'Inter Tight',
+    decrypt:             'Kefe Tracklist Cursive',
+    blur:                'VogueNoir',
+    shiny:               'BubblegumDisplay',
+    rise:       { family: families.rise,        weight: 400, min: 36, max: 160, lineHeight: 1.06, tracking: .005,  align: 'center', case: 'none',  opticalScale: 1.00 },
     // New lyric effects
     barbie:              'Baloo 2',
     elasticpop:          'Bangers',
@@ -93,6 +96,12 @@
     { family: 'Inter Tight', weight: 900, style: 'italic', file: 'fonts/inter-tight/InterTight-Italic-VariableFont_wght.woff2' },
     // Momo Trust Display
     { family: 'Momo Trust Display', weight: 400, style: 'normal', file: 'fonts/momo-trust-display/MomoTrustDisplay-Regular.woff2' },
+    // New lyric-effect fonts
+    { family: 'AuraSerif', weight: 400, style: 'normal', file: 'fonts/AuraSerif.woff2' },
+    { family: 'BlockParty', weight: 400, style: 'normal', file: 'fonts/BlockParty.woff2' },
+    { family: 'Kefe Tracklist Cursive', weight: 400, style: 'normal', file: 'fonts/KefeTracklistCursive-Regular.woff2' },
+    { family: 'VogueNoir', weight: 400, style: 'normal', file: 'fonts/VogueNoir.woff2' },
+    { family: 'BubblegumDisplay', weight: 400, style: 'normal', file: 'fonts/BubblegumDisplay.woff2' },
     // Bricolage Grotesque
     { family: 'Bricolage Grotesque', weight: 200, style: 'normal', file: 'fonts/bricolage-grotesque/BricolageGrotesque-VariableFont_opsz-wdth-wght.woff2' },
     { family: 'Bricolage Grotesque', weight: 300, style: 'normal', file: 'fonts/bricolage-grotesque/BricolageGrotesque-VariableFont_opsz-wdth-wght.woff2' },
@@ -101,6 +110,8 @@
     { family: 'Bricolage Grotesque', weight: 600, style: 'normal', file: 'fonts/bricolage-grotesque/BricolageGrotesque-VariableFont_opsz-wdth-wght.woff2' },
     { family: 'Bricolage Grotesque', weight: 700, style: 'normal', file: 'fonts/bricolage-grotesque/BricolageGrotesque-VariableFont_opsz-wdth-wght.woff2' },
     { family: 'Bricolage Grotesque', weight: 800, style: 'normal', file: 'fonts/bricolage-grotesque/BricolageGrotesque-VariableFont_opsz-wdth-wght.woff2' },
+    // Boulder — for Rise effect
+    { family: 'Boulder',        weight: 400, style: 'normal', file: 'fonts/boulder/Boulder-Regular.woff2' },
     // Baloo 2 — for Barbie effect
     { family: 'Baloo 2',           weight: 800, style: 'normal', file: 'fonts/baloo2/Baloo2-800.woff2' },
     // Memesique — for Chromatica effect (locked Chromatica typeface)
@@ -114,7 +125,6 @@
     // Frijole — drop
     { family: 'Frijole',        weight: 400, style: 'normal', file: 'fonts/frijole/Frijole-Regular.woff2' },
     // Boulder — mixedmedia
-    { family: 'Boulder',        weight: 400, style: 'normal', file: 'fonts/boulder/Boulder-Regular.woff2' },
     // Urbanist — flipcards
     { family: 'Urbanist',       weight: 800, style: 'normal', file: 'fonts/urbanist/Urbanist-VariableFont_wght.woff2' },
     // Special Elite — glitch
@@ -146,6 +156,7 @@
     apple:      { family: families.apple,       weight: 700, min: 42, max: 150, lineHeight: 1.08, tracking: -.020, align: 'center', case: 'none',  opticalScale: 1.00 },
     brat:       { family: families.brat,        weight: 700, min: 36, max: 150, lineHeight: .94,  tracking: -.055, align: 'center', case: 'none',  opticalScale: 1.04 },
     eternal:    { family: families.eternal,     weight: 400, min: 34, max: 150, lineHeight: 1,    tracking: .004,  align: 'left',   case: 'none',  opticalScale: .98 },
+    pulse:      { family: families.pulse,       weight: 400, min: 38, max: 160, lineHeight: 1.05, tracking: .010,  align: 'center', case: 'none',  opticalScale: 1.00 },
     aurora:     { family: families.aurora,      weight: 500, min: 38, max: 150, lineHeight: 1.05, tracking: -.006, align: 'center', case: 'none',  opticalScale: 1.00 },
     typewriter: { family: families.typewriter,  weight: 400, min: 32, max: 140, lineHeight: 1.02, tracking: .020,  align: 'center', case: 'none',  opticalScale: .98 },
     instagram:  { family: families.instagram,   weight: 800, min: 48, max: 150, lineHeight: .78,  tracking: -.035, align: 'center', case: 'upper', opticalScale: 1.00 },
