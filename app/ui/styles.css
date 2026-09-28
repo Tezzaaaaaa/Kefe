@@ -47,7 +47,7 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
   position:relative;
   z-index:100;
   display:grid !important;
-  grid-template-columns:auto minmax(0,1fr) auto;
+  grid-template-columns:auto minmax(0,1fr);
   align-items:center;
   gap:24px;
   min-height:68px !important;
@@ -110,25 +110,26 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
   outline-offset:2px;
 }
 .kefe-hard-refresh{
-  position:absolute;
-  top:50%;
-  right:20px;
-  transform:translateY(-50%);
-  width:36px;
-  height:36px;
+  width:32px;
+  height:32px;
+  min-width:32px;
+  min-height:32px;
   padding:0;
-  border:1px solid rgba(255,255,255,.12);
+  border:1px solid transparent;
   border-radius:8px;
-  background:rgba(255,255,255,.035);
-  color:rgba(255,255,255,.78);
+  background:transparent;
+  color:rgba(255,255,255,.62);
   display:inline-flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
+  flex:0 0 auto;
+  box-sizing:border-box;
+  transition:background .18s var(--ease),border-color .18s var(--ease),color .18s var(--ease),transform .18s var(--ease);
 }
 .kefe-hard-refresh svg{
-  width:17px;
-  height:17px;
+  width:16px;
+  height:16px;
   display:block;
   fill:none;
   stroke:currentColor;
@@ -138,12 +139,19 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
 }
 .kefe-hard-refresh:hover{
   background:rgba(255,255,255,.075);
-  border-color:rgba(255,255,255,.2);
+  border-color:rgba(255,255,255,.10);
   color:#fff;
 }
 .kefe-hard-refresh:focus-visible{
   outline:2px solid var(--red,#ef3f38);
   outline-offset:2px;
+}
+.kefe-nav-divider{
+  width:1px;
+  height:18px;
+  margin:0 5px;
+  background:rgba(255,255,255,.12);
+  flex:0 0 auto;
 }
 .kefe-header .header-actions{
   justify-content:flex-end;
