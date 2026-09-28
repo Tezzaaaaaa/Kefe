@@ -2361,6 +2361,7 @@ async function checkExportCapability() {
 }
 
 startSingleRenderLoop();
+document.getElementById('kefeHardRefresh')?.addEventListener('click', () => window.location.reload());
 init();
 checkExportCapability();
 
