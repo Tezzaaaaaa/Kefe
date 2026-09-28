@@ -307,6 +307,21 @@ body.wizard-mode .kefe-pathway-card-container{
   animation:kefe-pathway-background-slide 180s ease-in-out infinite;
   will-change:opacity,transform;
 }
+.kefe-pathway-background-image::before{
+  content:"";
+  position:absolute;
+  inset:-18%;
+  z-index:1;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 18% 24%,rgba(255,255,255,.11),transparent 28%),
+    radial-gradient(circle at 82% 72%,rgba(255,255,255,.08),transparent 30%),
+    linear-gradient(120deg,rgba(255,255,255,.035),transparent 42%,rgba(255,255,255,.045));
+  opacity:.55;
+  transform:translate3d(-2%,-1%,0) scale(1.04);
+  animation:kefe-pathway-background-gradient 90s ease-in-out infinite alternate;
+  will-change:transform,opacity;
+}
 .kefe-pathway-background-image:nth-child(2){animation-delay:18s}
 .kefe-pathway-background-image:nth-child(3){animation-delay:36s}
 .kefe-pathway-background-image:nth-child(4){animation-delay:54s}
@@ -321,11 +336,26 @@ body.wizard-mode .kefe-pathway-card-container{
   position:absolute;
   inset:0;
   background:rgba(0,0,0,.48);
+  z-index:2;
 }
 @keyframes kefe-pathway-background-slide{
   0%,28%{opacity:1;transform:scale(1)}
   33%,95%{opacity:0;transform:scale(1.04)}
   100%{opacity:1;transform:scale(1)}
+}
+@keyframes kefe-pathway-background-gradient{
+  0%{
+    transform:translate3d(-2%,-1%,0) scale(1.04);
+    opacity:.42;
+  }
+  50%{
+    transform:translate3d(2%,1.5%,0) scale(1.07);
+    opacity:.62;
+  }
+  100%{
+    transform:translate3d(-1%,2%,0) scale(1.05);
+    opacity:.48;
+  }
 }
 @media(prefers-reduced-motion:reduce){
   .kefe-pathway-background-image{
