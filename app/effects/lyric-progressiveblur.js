@@ -159,21 +159,6 @@
       ctx.restore();
     }
 
-    // Transparent edge masks make the blur fall away progressively rather
-    // than ending at a hard clip.
-    const leftMask = ctx.createLinearGradient(0, 0, sideFade, 0);
-    leftMask.addColorStop(0, 'rgba(0,0,0,.82)');
-    leftMask.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.fillStyle = leftMask;
-    ctx.fillRect(0, 0, sideFade, h);
-
-    const rightMask = ctx.createLinearGradient(w - sideFade, 0, w, 0);
-    rightMask.addColorStop(0, 'rgba(0,0,0,0)');
-    rightMask.addColorStop(1, 'rgba(0,0,0,.82)');
-    ctx.fillStyle = rightMask;
-    ctx.fillRect(w - sideFade, 0, sideFade, h);
-
     ctx.restore();
   }
 
