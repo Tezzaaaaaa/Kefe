@@ -51,7 +51,7 @@
     const nav = document.createElement('div');
     nav.className = 'wizard-nav';
     nav.id = 'wizardNav';
-    nav.innerHTML = '<div class="wizard-glow-button"><span class="wizard-glow wizard-glow-back" aria-hidden="true"></span><button type="button" id="wizardBackBtn" class="wizard-back" disabled>Back</button></div><div class="wizard-progress-wrap"><div id="wizardStepMenu" class="wizard-step-menu" role="list" aria-label="Creation steps"></div><div class="wizard-progress-meta"><div id="wizardProgress" class="wizard-progress">01 / 07</div><span id="wizardStepLabel" class="wizard-step-label">Format</span></div><button type="button" id="wizardSkipBtn" class="wizard-skip">Skip setup</button></div><div class="wizard-glow-button"><span class="wizard-glow wizard-glow-next" aria-hidden="true"></span><button type="button" id="wizardNextBtn" class="primary wizard-next">Next<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>';
+    nav.innerHTML = '<div class="wizard-glow-button"><span class="wizard-glow wizard-glow-back" aria-hidden="true"></span><button type="button" id="wizardBackBtn" class="wizard-back" disabled>Back</button></div><div class="wizard-progress-wrap"><div id="wizardProgress" class="wizard-progress">01 / 07</div></div><div class="wizard-glow-button"><span class="wizard-glow wizard-glow-next" aria-hidden="true"></span><button type="button" id="wizardNextBtn" class="primary wizard-next">Next<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>';
     sidebar.insertBefore(nav, sidebar.firstChild);
     const stepHeading = document.createElement('div');
     stepHeading.className = 'wizard-step-heading';
@@ -350,7 +350,6 @@
 
         if (firstTarget && firstTarget !== panel) { stepHeading.textContent = STEP_TITLES[step] || step; firstTarget.prepend(stepHeading); } else stepHeading.remove();
         $('wizardProgress').textContent = `${pad(wizard.index + 1)} / ${pad(steps.length)}`;
-        $('wizardStepLabel').textContent = STEP_LABELS[step] || '';
         const stepMenu = $('wizardStepMenu');
         if (stepMenu) {
             stepMenu.innerHTML = `<span class="wizard-step-menu-item active" role="listitem" aria-current="step"><span class="wizard-step-menu-index">${wizard.index + 1}</span></span>`;
