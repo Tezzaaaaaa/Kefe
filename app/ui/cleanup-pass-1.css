@@ -460,3 +460,35 @@ header {
   border-color:rgba(255,255,255,.18);
 }
 body.wizard-mode .kefe-editor-tabs{display:none}
+
+
+/* KEFE — unified editor workspace */
+body.kefe-editor-mode .sidebar{
+  overflow-y:auto;
+}
+body.kefe-editor-mode .sidebar>.section{
+  display:none;
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+}
+body.kefe-editor-mode .sidebar>.section.editor-active{
+  display:block;
+}
+body.kefe-editor-mode .kefe-editor-tabs{
+  flex:0 0 auto;
+}
+body.kefe-editor-mode #visualiserSection{
+  min-height:0;
+}
+body.kefe-editor-mode #visualiserSection #visualiserControls{
+  min-height:0;
+}
+body.kefe-editor-mode #previewSection{
+  display:flex;
+}
+body.kefe-editor-mode .kefe-editor-tab[href="#previewSection"].is-active{
+  color:#fff;
+  background:rgba(255,255,255,.13);
+  border-color:rgba(255,255,255,.18);
+}
