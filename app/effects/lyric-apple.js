@@ -144,7 +144,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     const inactiveFontSize = baseDimension * (29 / 390);
     const lineSpacing = baseDimension * (5 / 390);
     const contract = window.KEFE_TYPE?.effects?.apple || {};
-    const family = `"${contract.family || 'Open Sans'}",Arial,sans-serif`;
+    const family = `"${contract.family || 'SF Pro Display'}",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
     const boundaryLeft = Math.max(0, (w - compositionWidth) / 2);
     const margin = boundaryLeft + horizontalPadding;
     const maxWidth = contentWidth;
