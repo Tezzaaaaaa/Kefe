@@ -157,6 +157,7 @@
         let dragStartX = null;
         let dragDelta = 0;
         let dragging = false;
+        let wasDragging = false;
 
         const wrapIndex = index => (index + cards.length) % cards.length;
 
@@ -208,6 +209,7 @@
 
         const dragEnd = () => {
             if (!dragging) return;
+            wasDragging = Math.abs(dragDelta) > 8;
             dragging = false;
             if (Math.abs(dragDelta) > 45) moveCenter(dragDelta < 0 ? 1 : -1);
             else updateCards(0);
@@ -255,8 +257,9 @@
 
         cards.forEach((card, index) => {
             card.addEventListener('click', event => {
-                if (Math.abs(dragDelta) > 8) {
+                if (wasDragging) {
                     event.preventDefault();
+                    wasDragging = false;
                     return;
                 }
                 const relative = Number(card.dataset.x || 0);
