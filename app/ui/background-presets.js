@@ -8,6 +8,41 @@ const clear=()=>{if(media.video){media.video.pause();media.video.src='';media.vi
 const select=k=>presets.forEach(x=>x.classList.toggle('active-background',x.dataset.backgroundPreset===k)),redraw=()=>window.redrawCurrentPreviewFrame?.();
 const choose=key=>{if(window.isExporting)return;clear();if(key==='solid'){state.background.type='solid';select('solid');if(status)status.textContent=`Colour background · ${state.background.solid.toUpperCase()}`;redraw();return}const def=defs[key];if(!def)return;const img=new Image();img.src=`data:image/svg+xml;charset=utf-8,${encodeURIComponent(def.svg)}`;img.onload=()=>{media.image=img;state.background.type='image';select(key);if(status)status.textContent=`${def.label} · ready`;redraw()}};
 presets.forEach(x=>x.addEventListener('click',()=>choose(x.dataset.backgroundPreset)));colorInput?.addEventListener('input',()=>{clear();state.background.type='solid';state.background.solid=colorInput.value;if(colorValue)colorValue.textContent=colorInput.value.toUpperCase();select('solid');redraw()});select('solid');
+
+const buildBackgroundPopover=()=>{
+  if(!grid||grid.dataset.kefePopoverApplied==='1')return;
+  const buttons=[...grid.querySelectorAll('[data-background-preset]')];
+  if(!buttons.length)return;
+  grid.dataset.kefePopoverApplied='1';
+  grid.innerHTML='';
+  const trigger=document.createElement('button');
+  trigger.type='button';trigger.className='background-choice kefe-popover-trigger';
+  trigger.setAttribute('popoverTarget','kefe-background-popover');
+  trigger.textContent='Choose background';
+  grid.appendChild(trigger);
+  const menu=document.createElement('div');
+  menu.id='kefe-background-popover';menu.setAttribute('popover','auto');menu.className='kefe-background-popover';
+  menu.innerHTML='<span class="kefe-popover-active" aria-hidden="true"></span>';
+  const subTrigger=document.createElement('button');
+  subTrigger.type='button';subTrigger.className='kefe-popover-category';
+  subTrigger.setAttribute('popoverTarget','kefe-background-presets-popover');
+  subTrigger.textContent='Presets';
+  menu.appendChild(subTrigger);
+  const sub=document.createElement('div');
+  sub.id='kefe-background-presets-popover';sub.setAttribute('popover','auto');sub.className='kefe-background-subpopover';
+  buttons.forEach(b=>{b.classList.add('kefe-background-option');sub.appendChild(b);});
+  menu.appendChild(sub);grid.appendChild(menu);
+  const s=document.createElement('style');s.id='kefe-background-popover-css';s.textContent=[
+    '#backgroundSection .background-choice-grid{display:block !important}',
+    '#backgroundSection .kefe-popover-trigger{width:100%;min-height:44px;justify-content:flex-start;text-align:left}',
+    '.kefe-background-popover,.kefe-background-subpopover{margin:0;padding:8px;min-width:220px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--text);box-shadow:none}',
+    '.kefe-background-popover > .kefe-popover-category{display:flex;width:100%;align-items:center;justify-content:space-between;padding:9px 10px;border:0;border-radius:7px;background:transparent;color:var(--text);font:600 12px "Inter Tight",sans-serif;text-align:left;cursor:pointer}',
+    '.kefe-background-subpopover .kefe-background-option{width:100%;min-height:38px;justify-content:flex-start;text-align:left;border:0;border-radius:7px;background:transparent;color:var(--text);font:600 12px "Inter Tight",sans-serif;cursor:pointer}',
+    '.kefe-background-subpopover .kefe-background-option:hover,.kefe-background-popover > .kefe-popover-category:hover{background:var(--surface-3)}',
+    '.kefe-popover-active{display:block;height:2px;margin:0 4px 6px;background:var(--red);opacity:.85}'
+  ].join('');document.head.appendChild(s);
+};
+buildBackgroundPopover();
 const loadAurora=()=>{if(window.KefeAuroraFX||document.querySelector('script[data-kefe-aurora-fx]'))return;const script=document.createElement('script');script.src='./app/effects/aurora-fx.js?v=20260905-1';script.async=false;script.dataset.kefeAuroraFx='1';document.body.appendChild(script)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadAurora,{once:true});else loadAurora();
 })();
