@@ -145,7 +145,9 @@
                     '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 11h2M13 11h4M7 15h4M15 15h2"/></svg>' +
                     '<span>Captioned</span>' +
                 '</button>' +
-            '</nav>';\n\n        const pathwayBackground = panel.querySelector('.kefe-pathway-background');
+            '</nav>';
+
+        const pathwayBackground = panel.querySelector('.kefe-pathway-background');
         if (pathwayBackground) document.body.appendChild(pathwayBackground);
 
         const container = $('kefePathwayCards');
