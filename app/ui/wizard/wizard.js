@@ -116,185 +116,83 @@
     }
     function renderIntro() {
         destroyIntroVeil();
-        const veil = '<div class="wizard-dark-veil" aria-hidden="true"></div>';
+
         const projects = [
-            ['lyric', 'Lyric Video', 'assets/IMG_3719.jpeg'],
-            ['visualiser', 'Visualiser', 'assets/IMG_3737.jpeg'],
-            ['captioned', 'Captioned Video', 'assets/IMG_3984.gif']
+            ['lyric', 'Lyric Video'],
+            ['visualiser', 'Visualiser'],
+            ['captioned', 'Captioned Video']
         ];
-        panel.innerHTML = veil +
+
+        const selectedIndex = Math.max(0, projects.findIndex(([key]) => key === wizard.choice));
+        const activeIndex = selectedIndex >= 0 ? selectedIndex : 0;
+
+        panel.innerHTML =
             '<p class="wizard-panel-kicker">01 · Start</p>' +
             '<h3 class="wizard-panel-title">Choose your KEFE project</h3>' +
             '<p class="wizard-panel-hint">Choose a pathway and KEFE will guide you through the steps.</p>' +
-            '<div class="kefe-pathway-carousel" aria-label="Choose a KEFE project">' +
-                '<div class="kefe-pathway-track" tabindex="0" aria-label="Drag to browse project pathways">' +
-                    projects.map(([k,title,image], index) =>
-                        '<button type="button" class="wizard-choice kefe-pathway-card' + (wizard.choice === k ? ' is-selected' : '') + '" data-choice="' + k + '" data-pathway-index="' + index + '">' +
-                            '<span class="kefe-pathway-image"><img src="' + image + '" alt="" aria-hidden="true"></span>' +
-                            '<span class="kefe-pathway-card-content"><span class="kefe-pathway-number">0' + (index + 1) + '</span><strong>' + title + '</strong><span>' + PATH_HINTS[k] + '</span></span>' +
-                        '</button>'
-                    ).join('') +
-                '</div>' +
-                '<button type="button" class="kefe-pathway-controller" aria-label="Browse project pathways">Carousel controller</button>' +
+            '<div class="kefe-pathway-card-container active-' + (activeIndex + 1) + '" id="kefePathwayCards" aria-label="Choose a KEFE project">' +
+                '<button type="button" class="kefe-pathway-card' + (activeIndex === 0 ? ' active' : '') + '" data-choice="lyric">' +
+                    '<span class="kefe-pathway-content">' +
+                        '<span class="kefe-pathway-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>' +
+                        '<strong>LYRIC VIDEO</strong>' +
+                    '</span>' +
+                '</button>' +
+                '<button type="button" class="kefe-pathway-card' + (activeIndex === 1 ? ' active' : '') + '" data-choice="visualiser">' +
+                    '<span class="kefe-pathway-content">' +
+                        '<span class="kefe-pathway-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></svg></span>' +
+                        '<strong>VISUALISER</strong>' +
+                    '</span>' +
+                '</button>' +
+                '<button type="button" class="kefe-pathway-card' + (activeIndex === 2 ? ' active' : '') + '" data-choice="captioned">' +
+                    '<span class="kefe-pathway-content">' +
+                        '<span class="kefe-pathway-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="14" x="3" y="5" rx="2"/><path d="M7 15h4"/><path d="M15 15h2"/><path d="M7 11h2"/><path d="M13 11h4"/></svg></span>' +
+                        '<strong>CAPTIONED VIDEO</strong>' +
+                    '</span>' +
+                '</button>' +
             '</div>';
 
-        const veilTarget = panel.querySelector('.wizard-dark-veil');
-        if (veilTarget && window.KefeDarkVeil?.mount) {
-            requestAnimationFrame(() => window.KefeDarkVeil.mount(veilTarget, {
-                hueShift: 0, speed: reducedMotion ? 0 : 0.5, noiseIntensity: 0, scanlineIntensity: 0,
-                scanlineFrequency: 0, warpAmount: 0, resolutionScale: 1
-            }));
-        }
-
-        const track = panel.querySelector('.kefe-pathway-track');
+        const container = $('kefePathwayCards');
         const cards = [...panel.querySelectorAll('.kefe-pathway-card')];
-        const controller = panel.querySelector('.kefe-pathway-controller');
-        if (!track || !cards.length) return;
-
-        const centerIndex = cards.length - 1;
-        let centerCard = wizard.choice ? Math.max(0, projects.findIndex(([k]) => k === wizard.choice)) : 0;
-        let dragStartX = null;
-        let dragDelta = 0;
-        let dragging = false;
-        let wasDragging = false;
-
-        const wrapIndex = index => (index + cards.length) % cards.length;
-
-        const updateCards = (offset = 0, animate = true) => {
-            cards.forEach((card, index) => {
-                let relative = index - centerCard - offset;
-                while (relative > 1.5) relative -= cards.length;
-                while (relative < -1.5) relative += cards.length;
-
-                const distance = Math.abs(relative);
-                const scale = distance === 0 ? 1 : distance === 1 ? 0.82 : 0.66;
-                const opacity = distance === 0 ? 1 : distance === 1 ? 0.72 : 0.38;
-                const zIndex = distance === 0 ? 3 : distance === 1 ? 2 : 1;
-                const x = relative * 78;
-
-                card.dataset.x = relative;
-                card.style.zIndex = String(zIndex);
-                card.style.opacity = String(opacity);
-                card.style.transform = `translateX(calc(-50% + ${x + (offset * 78)}%)) scale(${scale})`;
-                card.style.pointerEvents = distance <= 1.05 ? 'auto' : 'none';
-                card.classList.toggle('is-focused', distance < 0.5);
-                card.classList.toggle('is-side', distance >= 0.5);
-                card.style.transition = animate && !dragging
-                    ? 'transform .32s cubic-bezier(.22,1,.36,1),opacity .24s ease,filter .24s ease'
-                    : 'none';
-                card.style.filter = distance === 0 ? 'none' : 'saturate(.72)';
-            });
-        };
+        if (!container || !cards.length) return;
 
         const selectCard = index => {
             const card = cards[index];
             if (!card) return;
+
             const choice = card.dataset.choice;
             wizard.choice = choice;
             wizard.path = choice;
             wizard.source = wizard.source && wizard.choice === choice ? wizard.source : null;
             wizard.index = 0;
-            centerCard = index;
-            cards.forEach(x => x.classList.toggle('is-selected', x === card));
-            updateCards(0);
-            if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(choice);
+
+            cards.forEach((item, cardIndex) => {
+                item.classList.toggle('active', cardIndex === index);
+            });
+            container.className = 'kefe-pathway-card-container active-' + (index + 1);
+
+            if (typeof window.kefeSetProjectType === 'function') {
+                window.kefeSetProjectType(choice);
+            }
             refreshNextState();
         };
 
-        const moveCenter = direction => {
-            centerCard = wrapIndex(centerCard + direction);
-            selectCard(centerCard);
-        };
-
-        const dragEnd = () => {
-            if (!dragging) return;
-            wasDragging = Math.abs(dragDelta) > 8;
-            dragging = false;
-            if (Math.abs(dragDelta) > 45) moveCenter(dragDelta < 0 ? 1 : -1);
-            else updateCards(0);
-            dragStartX = null;
-            dragDelta = 0;
-        };
-
-        track.addEventListener('pointerdown', event => {
-            if (event.button !== undefined && event.button !== 0) return;
-            dragging = true;
-            dragStartX = event.clientX;
-            dragDelta = 0;
-            track.setPointerCapture?.(event.pointerId);
-            track.classList.add('is-dragging');
-            updateCards(0, false);
-        });
-
-        track.addEventListener('pointermove', event => {
-            if (!dragging || dragStartX === null) return;
-            dragDelta = event.clientX - dragStartX;
-            const distance = Math.max(-1.15, Math.min(1.15, dragDelta / Math.max(180, track.clientWidth * 0.42)));
-            cards.forEach((card, index) => {
-                const relative = Number(card.dataset.x || 0);
-                const x = (relative * 78) + (distance * 78);
-                const scale = Math.max(.62, 1 - Math.min(1, Math.abs(relative + distance)) * .18);
-                const opacity = Math.max(.34, 1 - Math.min(1, Math.abs(relative + distance)) * .28);
-                card.style.transition = 'none';
-                card.style.transform = `translateX(calc(-50% + ${x}%)) scale(${scale})`;
-                card.style.opacity = String(opacity);
-            });
-        });
-
-        track.addEventListener('pointerup', () => {
-            track.classList.remove('is-dragging');
-            dragEnd();
-        });
-        track.addEventListener('pointercancel', () => {
-            track.classList.remove('is-dragging');
-            dragEnd();
-        });
-        track.addEventListener('lostpointercapture', () => {
-            track.classList.remove('is-dragging');
-            dragEnd();
-        });
-
         cards.forEach((card, index) => {
-            card.addEventListener('click', event => {
-                if (wasDragging) {
-                    event.preventDefault();
-                    wasDragging = false;
-                    return;
-                }
-                const relative = Number(card.dataset.x || 0);
-                if (relative < -0.5) moveCenter(-1);
-                else if (relative > 0.5) moveCenter(1);
-                else selectCard(index);
-            });
-        });
-
-        if (controller) {
-            controller.addEventListener('keydown', event => {
+            card.addEventListener('click', () => selectCard(index));
+            card.addEventListener('keydown', event => {
                 if (event.key === 'ArrowRight') {
                     event.preventDefault();
-                    moveCenter(1);
+                    selectCard((index + 1) % cards.length);
+                    cards[(index + 1) % cards.length].focus();
                 } else if (event.key === 'ArrowLeft') {
                     event.preventDefault();
-                    moveCenter(-1);
+                    selectCard((index - 1 + cards.length) % cards.length);
+                    cards[(index - 1 + cards.length) % cards.length].focus();
                 }
             });
-            controller.addEventListener('click', () => moveCenter(1));
-        }
-
-        track.addEventListener('keydown', event => {
-            if (event.key === 'ArrowRight') {
-                event.preventDefault();
-                moveCenter(1);
-            } else if (event.key === 'ArrowLeft') {
-                event.preventDefault();
-                moveCenter(-1);
-            } else if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                selectCard(centerCard);
-            }
         });
 
-        updateCards(0, false);
+        if (wizard.choice) selectCard(activeIndex);
+        else refreshNextState();
     }
     function previewLineText() {
         const st = window.state || {};
