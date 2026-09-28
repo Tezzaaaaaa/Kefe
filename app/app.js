@@ -2364,6 +2364,20 @@ async function checkExportCapability() {
 
 startSingleRenderLoop();
 document.getElementById('kefeHardRefresh')?.addEventListener('click', () => window.location.reload());
+const kefeGlassVisibility = document.getElementById('kefeGlassVisibility');
+const kefeGlassVisibilityValue = document.getElementById('kefeGlassVisibilityValue');
+if (kefeGlassVisibility) {
+    const savedGlassVisibility = Number(localStorage.getItem('kefeGlassVisibility'));
+    if (Number.isFinite(savedGlassVisibility)) kefeGlassVisibility.value = String(Math.max(0, Math.min(100, savedGlassVisibility)));
+    const applyGlassVisibility = () => {
+        const value = Number(kefeGlassVisibility.value) / 100;
+        document.documentElement.style.setProperty('--kefe-glass-visibility', String(value));
+        if (kefeGlassVisibilityValue) kefeGlassVisibilityValue.textContent = `${Math.round(value * 100)}%`;
+        localStorage.setItem('kefeGlassVisibility', String(Math.round(value * 100)));
+    };
+    kefeGlassVisibility.addEventListener('input', applyGlassVisibility);
+    applyGlassVisibility();
+}
 init();
 checkExportCapability();
 
