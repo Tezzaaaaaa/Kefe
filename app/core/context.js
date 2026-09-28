@@ -87,4 +87,3 @@ Object.defineProperty(window, 'audioURL',            { get: () => blobs.audioURL
 Object.defineProperty(window, 'backgroundURL',       { get: () => blobs.backgroundURL, set: v => { blobs.backgroundURL = v; } });
 Object.defineProperty(window, 'albumArtworkURL',     { get: () => blobs.albumArtworkURL, set: v => { blobs.albumArtworkURL = v; } });
 Object.defineProperty(window, 'albumArtworkImage',   { get: () => albumArtwork.image, set: v => { albumArtwork.image = v; } });
-Object.defineProperty(window, 'isExporting',         { get: () => runtime.isExporting, set: v => { runtime.isExporting = v; } });
