@@ -558,3 +558,15 @@ body.wizard-mode[data-wizard-step="visuals"] .wizard-panel{
   align-items:stretch;
   min-width:0;
 }
+
+
+/* Full-site pathway slideshow — keep the existing rotating images behind the complete wizard shell. */
+body.wizard-mode{position:relative;isolation:isolate;background:#080808;overflow:hidden}
+body.wizard-mode::before{content:"";position:fixed;inset:0;z-index:-2;background:#080808}
+body.wizard-mode .kefe-pathway-background{position:fixed;inset:0;z-index:-1;border-radius:0}
+body.wizard-mode .kefe-header,
+body.wizard-mode main,
+body.wizard-mode .sidebar,
+body.wizard-mode .wizard-nav{background:transparent}
+body.wizard-mode .kefe-header{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+body.wizard-mode .wizard-nav{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
