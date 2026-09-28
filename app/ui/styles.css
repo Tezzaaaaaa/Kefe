@@ -105,17 +105,28 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
   width:36px;
   height:36px;
   padding:0;
-  border:1px solid rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.12);
   border-radius:8px;
-  background:transparent;
-  color:rgba(255,255,255,.72);
-  font:inherit;
-  font-size:20px;
-  line-height:1;
+  background:rgba(255,255,255,.035);
+  color:rgba(255,255,255,.78);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   cursor:pointer;
 }
+.kefe-hard-refresh svg{
+  width:17px;
+  height:17px;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
 .kefe-hard-refresh:hover{
-  background:rgba(255,255,255,.055);
+  background:rgba(255,255,255,.075);
+  border-color:rgba(255,255,255,.2);
   color:#fff;
 }
 .kefe-hard-refresh:focus-visible{
