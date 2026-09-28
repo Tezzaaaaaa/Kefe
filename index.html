@@ -33,6 +33,14 @@
     </header>
     <main>
         <aside class="sidebar">
+            <nav class="kefe-editor-tabs" aria-label="Editor sections">
+                <a href="#audioSection" class="kefe-editor-tab is-active">Media</a>
+                <a href="#textSection" class="kefe-editor-tab">Lyrics</a>
+                <a href="#backgroundSection" class="kefe-editor-tab">Background</a>
+                <a href="#fxSection" class="kefe-editor-tab">Visual FX</a>
+                <a href="#previewSection" class="kefe-editor-tab">Visualisers</a>
+                <a href="#exportSection" class="kefe-editor-tab">Export</a>
+            </nav>
             <div class="section" id="audioSection">
                 <h3>Media</h3>
                 <div class="drop-zone audio-upload-zone" id="audioDrop"><button type="button" id="audioChooseBtn" class="file-button audio-upload-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload Audio</span></button><p class="control-hint">Drop an audio file here or click to browse</p><input type="file" id="audioInput" accept="audio/*" class="hidden"></div>
