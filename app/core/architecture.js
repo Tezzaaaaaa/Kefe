@@ -126,6 +126,7 @@
 
     const api = {
         version: 1,
+        state: window.state,
         bus,
         effects,
         lyricProviders,
