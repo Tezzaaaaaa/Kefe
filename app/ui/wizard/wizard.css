@@ -1352,6 +1352,8 @@ body.wizard-mode[data-wizard-step="intro"] .app > main{
 }
 
 
+body.wizard-mode[data-wizard-step="intro"] .wizard-nav{display:none!important;}
+
 /* Intro pathway cards: force the pathway surface into the visible wizard workspace. */
 body.wizard-mode[data-wizard-step="intro"] #wizardSection{
   position:relative;
