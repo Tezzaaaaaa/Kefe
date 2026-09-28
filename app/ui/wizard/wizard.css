@@ -94,8 +94,11 @@ body.wizard-mode .wizard-nav{
   min-height:78px;
   padding:10px 18px calc(10px + env(safe-area-inset-bottom,0px));
   gap:14px;
-  background:#080808;
-  border-top:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.34);
+  border-top:1px solid rgba(255,255,255,.78);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 -8px 28px rgba(100,120,150,.08);
+  backdrop-filter:blur(20px) saturate(1.5);
+  -webkit-backdrop-filter:blur(20px) saturate(1.5);
 }
 body.wizard-mode .wizard-progress-wrap{
   position:relative;
