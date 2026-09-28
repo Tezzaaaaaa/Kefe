@@ -93,7 +93,7 @@
 
     function apply() {
       var v = Number(slider.value) || 0;
-      window.state.lyricsOffset = v;
+      window.kefe?.state || window.state.lyricsOffset = v;
       value.textContent = (v > 0 ? '+' : '') + v.toFixed(2) + 's';
       try { window.redrawCurrentPreviewFrame(); } catch(e){}
     }
@@ -105,7 +105,7 @@
     row.querySelector('#kefeSyncSnap').addEventListener('click', function(){
       // If a video is loaded and the user has marked where they think the
       // song starts (by scrubbing there first), take that as the offset.
-      var t = Number(window.state.playback.currentTime) || 0;
+      var t = Number(window.kefe?.state || window.state.playback.currentTime) || 0;
       if (t > 0) {
         slider.value = Math.max(-30, Math.min(30, -t));
         apply();
@@ -113,7 +113,7 @@
     });
 
     // Sync from existing state (clamped — stale/undefined state used to pin to -30)
-    var existing = Number(window.state.lyricsOffset);
+    var existing = Number(window.kefe?.state || window.state.lyricsOffset);
     if (Number.isFinite(existing) && existing >= -30 && existing <= 30) {
       slider.value = existing;
     } else {
@@ -187,7 +187,7 @@
       playhead.style.left = (pct * 100) + '%';
     }
     // Song start marker if we detected one
-    var start = window.state && window.state.songStartTime;
+    var start = window.kefe?.state || window.state && window.kefe?.state || window.state.songStartTime;
     if (typeof start === 'number' && start > 0 && dur > 0) {
       songStartMark.style.left = ((start / dur) * 100) + '%';
       songStartMark.classList.add('visible');
