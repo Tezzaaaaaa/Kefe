@@ -1,23 +1,6 @@
 :root{--editor-rail:220px;--header-h:64px;--preview-pad:clamp(18px,3vw,44px);--panel-radius:14px}
 
 .sidebar{width:auto;min-width:0;min-height:0;overflow:hidden;border-right:1px solid var(--line);background:var(--surface)}
-body.wizard-mode .sidebar{display:flex;flex-direction:column;min-height:0}
-
-body.wizard-mode #fxSection{display:none}
-body.wizard-mode .wizard-skip{display:none}
-body.wizard-mode main{padding-top:0}
-body.wizard-mode .sidebar>.section:not(.wizard-current){display:none}
-body.wizard-mode .sidebar>.section.wizard-current{display:block;flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px 16px 20px}
-body.wizard-mode #textSection:has(#lyricsPanel.wizard-current),
-body.wizard-mode #textSection:has(#captionsPanel.wizard-current){display:block;flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px 16px 20px}
-body.wizard-mode[data-wizard-step="lyrics"] #textSection>h3,
-body.wizard-mode[data-wizard-step="captions"] #textSection>h3{display:none}
-body.wizard-mode[data-wizard-step="lyrics"] #textSection>[role="tablist"],
-body.wizard-mode[data-wizard-step="captions"] #textSection>[role="tablist"]{display:none}
-body.wizard-mode[data-wizard-step="lyrics"] #captionsPanel{display:none}
-body.wizard-mode[data-wizard-step="captions"] #lyricsPanel{display:none}
-body.wizard-mode[data-wizard-step="lyrics"] #lyricStyleBlock{display:none}
-body.wizard-mode .wizard-nav{flex:0 0 auto}
 
 body.kefe-editor-mode main{
   grid-template-columns:220px minmax(0,1fr) 320px;
@@ -78,9 +61,6 @@ body.kefe-editor-mode .kefe-editor-transport{display:flex;min-height:64px;align-
 body.kefe-editor-mode .kefe-editor-transport .transport{display:flex;width:100%;min-width:0;padding:0;border:0;background:transparent}
 body.kefe-editor-mode .kefe-editor-transport .transport #seek{flex:1 1 auto;min-width:120px}
 
-body.wizard-mode .kefe-editor-rail,
-body.wizard-mode .kefe-editor-workspace,
-body.wizard-mode .kefe-editor-transport{display:none}
 
 @media(max-width:1100px){
   body.kefe-editor-mode main{grid-template-columns:190px minmax(0,1fr) 300px}
