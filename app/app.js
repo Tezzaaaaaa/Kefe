@@ -1154,16 +1154,12 @@ function handleBackgroundFile(file) {
             if (!state.audio.file) {
                 applyMasterSelection(media.videoHasAudio ? 'video' : 'uploaded', { userInitiated: false, silent: true });
             } else if (media.videoHasAudio && getMasterMode() !== "video") {
-                if (window.kefeWizardSource === "media") {
-                    state.audioSource.userChosen = false;
-                    applyMasterSelection('video', { userInitiated: false, silent: true });
-                } else {
-                    if (media.video) media.video.muted = true;
-                    state.audioSource.master = "uploaded";
-                    state.audioSource.userChosen = true;
-                    if (typeof syncMasterSourceUI === "function") syncMasterSourceUI();
-                }
+                if (media.video) media.video.muted = true;
+                state.audioSource.master = "uploaded";
+                state.audioSource.userChosen = true;
+                if (typeof syncMasterSourceUI === "function") syncMasterSourceUI();
             }
+            document.dispatchEvent(new CustomEvent('kefe:background-ready'));
             readiness();
             hasLastVideoFrame = false;
             const t = getMasterTime();
