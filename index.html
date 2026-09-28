@@ -1,217 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="KEFE — a browser-based lyric video visualiser.">
-    <title>KEFE Visualiser</title>
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="./app/ui/styles.css">
-    <link rel="stylesheet" href="./app/ui/typography.css">
-    <link rel="stylesheet" href="./app/effects/effect-selector.css">
-    <link rel="stylesheet" href="./app/ui/background-presets.css">
-    <link rel="stylesheet" href="./app/ui/caption-generator.css">
-    <link rel="stylesheet" href="./app/ui/auth-ui.css">
-    <link rel="stylesheet" href="./app/ui/live-preview.css">
-    <link rel="stylesheet" href="./app/ui/preview-format.css">
-    <link rel="stylesheet" href="./app/ui/panel-controls.css">
-    <link rel="stylesheet" href="./app/ui/editor-layout.css">
-    <link rel="stylesheet" href="./app/ui/wizard/wizard.css">
-    <link rel="stylesheet" href="./app/ui/kefe-product-polish.css?v=2">
-    <link rel="stylesheet" href="./app/ui/design-tokens.css?v=10">
-    <link rel="stylesheet" href="./app/ui/effect-card-designs.css">
-    <link rel="stylesheet" href="./app/ui/square-ui.css">
-    <link rel="stylesheet" href="./app/ui/cleanup-pass-1.css?v=5">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KEFE — Make visualisers and lyric videos in minutes</title>
+<meta name="description" content="KEFE is a fast, browser-based editor for making lyric videos and music visualisers. Drop in your track, pick a style, export. No install, no account, no watermark." />
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#0a0a0a;color:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;padding:0}svg{display:block}
+:root{--bg-page:#0a0a0a;--bg-panel:#111;--bg-card:#141414;--bg-card-hover:#1a1a1a;--border:#1f1f1f;--border-strong:#2a2a2a;--text-primary:#f5f5f5;--text-secondary:#a3a3a3;--text-muted:#666;--accent:#ef4444;--accent-hover:#f56565;--accent-soft:rgba(239,68,68,.12);--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-pill:999px}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{display:flex;align-items:center;gap:24px;height:64px}.nav .logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:1px;font-size:16px}.nav .logo-mark{width:28px;height:28px}.nav-links{display:flex;gap:4px;margin-left:auto}.nav-links a{padding:8px 14px;border-radius:var(--radius-pill);color:var(--text-secondary);font-weight:500;font-size:14px;transition:background .15s,color .15s}.nav-links a:hover{background:var(--bg-card);color:var(--text-primary)}.nav-cta{padding:9px 18px;border-radius:var(--radius-pill);background:var(--accent);color:#fff;font-weight:600;font-size:14px;transition:background .15s}.nav-cta:hover{background:var(--accent-hover)}
+.hero{position:relative;padding:100px 0 80px;overflow:hidden}.hero::before{content:"";position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:900px;height:900px;background:radial-gradient(circle,rgba(239,68,68,.15) 0%,transparent 60%);pointer-events:none;z-index:0}.hero-inner{position:relative;z-index:1;text-align:center;max-width:820px;margin:0 auto}.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);font-size:13px;color:var(--text-secondary);margin-bottom:28px}.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}.hero h1{font-size:clamp(40px,6vw,72px);line-height:1.05;letter-spacing:-.03em;font-weight:800;margin:0 0 24px;color:var(--text-primary)}.hero h1 .accent{background:linear-gradient(135deg,#ef4444,#f97316);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p.lead{font-size:18px;color:var(--text-secondary);max-width:620px;margin:0 auto 36px}.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 24px;border-radius:var(--radius-md);font-weight:600;font-size:15px;transition:all .15s}.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}.btn-secondary{background:var(--bg-card);border:1px solid var(--border-strong);color:var(--text-primary)}.btn-secondary:hover{background:var(--bg-card-hover);border-color:#3a3a3a}.hero-note{margin-top:20px;font-size:13px;color:var(--text-muted)}
+.preview-mock{position:relative;z-index:1;margin:72px auto 0;max-width:1000px;border-radius:var(--radius-lg);border:1px solid var(--border-strong);background:var(--bg-panel);overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.03),0 40px 100px rgba(0,0,0,.6),0 0 120px rgba(239,68,68,.08)}.preview-mock .mock-topbar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg-panel)}.preview-mock .mock-dot{width:11px;height:11px;border-radius:50%;background:#2a2a2a}.preview-mock .mock-url{margin-left:12px;padding:4px 12px;background:var(--bg-card);border-radius:var(--radius-pill);font-size:12px;color:var(--text-muted)}.preview-mock .mock-body{display:grid;grid-template-columns:180px 1fr 220px;min-height:420px}.preview-mock .mock-side{background:var(--bg-panel);border-right:1px solid var(--border);padding:14px 10px}.preview-mock .mock-side.right{border-right:none;border-left:1px solid var(--border)}.preview-mock .mock-rail-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);margin-bottom:2px}.preview-mock .mock-rail-item.active{background:var(--accent-soft);color:var(--accent)}.preview-mock .mock-rail-item .mock-icon{width:14px;height:14px;background:currentColor;border-radius:3px;opacity:.6}.preview-mock .mock-main{padding:16px;display:flex;flex-direction:column;gap:12px}.preview-mock .mock-canvas{flex:0 0 auto;aspect-ratio:16/9;border-radius:var(--radius-sm);background:radial-gradient(circle at 30% 40%,rgba(239,68,68,.35),transparent 50%),radial-gradient(circle at 70% 60%,rgba(249,115,22,.25),transparent 50%),#000;border:1px solid var(--border);position:relative;overflow:hidden}.preview-mock .mock-lyric{position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:20px;font-weight:800;letter-spacing:-.02em;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.8)}.preview-mock .mock-wave{height:60px;border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 8px;gap:2px;overflow:hidden}.preview-mock .mock-bar{flex:1;background:var(--border-strong);border-radius:2px}.preview-mock .mock-bar.played{background:var(--accent)}
+.social{padding:40px 0;border-bottom:1px solid var(--border);text-align:center}.social p{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);margin:0 0 24px}.social-list{display:flex;justify-content:center;flex-wrap:wrap;gap:48px;align-items:center}.social-list span{font-size:18px;font-weight:700;color:var(--text-muted);letter-spacing:-.02em}
+section.block{padding:100px 0;border-bottom:1px solid var(--border)}.section-label{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);font-weight:600;margin-bottom:16px}.section-title{font-size:clamp(28px,4vw,44px);line-height:1.15;letter-spacing:-.02em;font-weight:800;color:var(--text-primary);margin:0 0 16px}.section-sub{font-size:17px;color:var(--text-secondary);max-width:640px;margin:0 0 56px}.features,.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.feature{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;transition:border-color .15s,transform .15s}.feature:hover{border-color:var(--border-strong);transform:translateY(-2px)}.feature-icon{width:44px;height:44px;border-radius:var(--radius-md);background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:20px}.feature h3{font-size:17px;font-weight:700;margin:0 0 8px;color:var(--text-primary);letter-spacing:-.01em}.feature p,.step p{font-size:14px;color:var(--text-secondary);margin:0;line-height:1.55}.steps{counter-reset:step}.step{position:relative;padding:32px 24px 24px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg)}.step-num{position:absolute;top:-18px;left:24px;width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 6px var(--bg-page)}.step h3{font-size:17px;font-weight:700;margin:12px 0 8px;color:var(--text-primary)}
+.cta{padding:120px 0;text-align:center;position:relative;overflow:hidden}.cta::before{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(239,68,68,.15) 0%,transparent 60%);pointer-events:none}.cta-inner{position:relative;z-index:1}.cta h2{font-size:clamp(32px,5vw,56px);line-height:1.1;letter-spacing:-.03em;font-weight:800;color:var(--text-primary);margin:0 0 20px}.cta p{font-size:18px;color:var(--text-secondary);margin:0 0 36px}
+.faq{max-width:720px;margin:0 auto}.faq-item{border-bottom:1px solid var(--border)}.faq-item summary{list-style:none;cursor:pointer;padding:24px 0;font-size:16px;font-weight:600;color:var(--text-primary);display:flex;align-items:center;justify-content:space-between;gap:16px}.faq-item summary::-webkit-details-marker{display:none}.faq-item summary::after{content:"+";font-size:22px;font-weight:400;color:var(--text-muted);transition:transform .15s}.faq-item[open] summary::after{transform:rotate(45deg)}.faq-item p{margin:0 0 24px;font-size:15px;color:var(--text-secondary);line-height:1.65}
+footer{padding:48px 0;border-top:1px solid var(--border);background:var(--bg-panel)}.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}.footer-brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:1px}.footer-brand .logo-mark{width:24px;height:24px}.footer-links{display:flex;gap:24px;flex-wrap:wrap}.footer-links a{font-size:14px;color:var(--text-secondary);transition:color .15s}.footer-links a:hover{color:var(--text-primary)}.footer-copy{font-size:13px;color:var(--text-muted)}
+@media(max-width:900px){.features,.steps{grid-template-columns:1fr}.preview-mock .mock-body{grid-template-columns:1fr}.preview-mock .mock-side{display:none}.nav-links{display:none}}
+@media(max-width:600px){.hero{padding:60px 0 40px}section.block{padding:64px 0}.cta{padding:80px 0}.social-list{gap:24px}.social-list span{font-size:15px}}
+</style>
 </head>
 <body>
-<div class="app">
-    <header>
-        <a class="brand" href="./" aria-label="KEFE Visualiser home" title="Return home"><img class="brand-logo brand-logo-night" src="./assets/branding/kefe-logo-light.svg" alt="KEFE"><span class="brand-descriptor" aria-hidden="true"><span>V</span><span>I</span><span>S</span><span>U</span><span>A</span><span>L</span><span>I</span><span>S</span><span>E</span><span>R</span></span></a>
-        <div class="header-actions">
-            <button id="miniPlayerBtn" type="button" class="icon-button" aria-label="Open MiniPlayer" title="Open MiniPlayer"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg></button><button id="resetBtn" type="button" class="icon-button" aria-label="Reset project" title="Reset project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7v5h5M5.4 12a7.5 7.5 0 1 0 2.1-5.2L4 10"/></svg></button>
-        </div>
-    </header>
-    <main><aside class="kefe-editor-rail" aria-label="Editor tools">
-  <div class="kefe-editor-rail-label">Tools</div>
-  <button type="button" class="kefe-editor-rail-item is-active" data-editor-target="#audioSection"><span>Media</span></button>
-  <button type="button" class="kefe-editor-rail-item" data-editor-target="#lyricStyleBlock"><span>Fonts</span></button>
-  <button type="button" class="kefe-editor-rail-item" data-editor-target="#textSection"><span>Lyric Effects</span></button>
-  <button type="button" class="kefe-editor-rail-item" data-editor-target="#backgroundSection"><span>Background Effects</span></button>
-  <button type="button" class="kefe-editor-rail-item" data-editor-target="#fxSection"><span>Visual FX</span></button>
-  <button type="button" class="kefe-editor-rail-item" data-editor-target="#visualiserSection"><span>Visualisers</span></button>
-  <div class="kefe-editor-rail-divider"></div>
-  <button type="button" class="kefe-editor-rail-item" data-editor-target="#exportSection"><span>Export</span></button>
-</aside><section class="kefe-editor-workspace"><section class="preview"><div class="preview-toolbar"><div class="preview-heading"><strong>Preview</strong><span id="previewStatus">Ready</span><span id="previewModeBadge" class="mode-badge">Lyrics</span><div id="previewFormat" class="preview-format" role="group" aria-label="Aspect ratio"></div></div></div><div class="canvas-wrapper"><canvas id="stageCanvas"></canvas></div></section><div class="kefe-waveform-panel">
-  <div class="kefe-waveform-header"><strong>Waveform &amp; Timing</strong><div class="kefe-waveform-actions"><button type="button" id="wfSelectAll">Select All</button><button type="button" id="wfClear">Clear</button></div></div>
-  <div class="kefe-waveform-box" id="kefeWaveformBox"><canvas id="kefeWaveformCanvas" aria-label="Audio waveform"></canvas><span class="kefe-waveform-hint">Drop media here</span></div>
-  <div class="kefe-waveform-meta"><span>Extend from <b id="kefeWaveformTimestamp">0:00.0</b></span><span id="kefeWaveformStatus">No audio loaded</span></div>
-  <div class="kefe-waveform-offset"><label for="editorLyricsOffset">Offset</label><input type="range" id="editorLyricsOffset" min="-10" max="10" step="0.01" value="0"><output id="editorLyricsOffsetValue">0.00s</output></div>
-</div><button type="button" class="kefe-editor-export" id="kefeEditorExport">Export video</button></section><aside class="sidebar kefe-editor-rightbar">
-            <div class="section" id="audioSection">
-                <h3>Media</h3>
-                <div class="drop-zone audio-upload-zone" id="audioDrop"><button type="button" id="audioChooseBtn" class="file-button audio-upload-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload Audio</span></button><p class="control-hint">Drop an audio file here or click to browse</p><input type="file" id="audioInput" accept="audio/*" class="hidden"></div>
-                <div id="audioStatus" class="status">No audio loaded</div>
-                <div class="sub-block"><div class="sub-heading">Master audio source</div><div id="audioSourceButtons" class="segmented"></div><div id="audioSourceStatus" class="sub-hint"></div></div>
-                <div class="sub-heading music-details-heading">Song details</div><div class="metadata-grid music-details" aria-label="Song details">
-  <label class="music-slot" for="metaArtist"><span>Artist</span><input type="text" id="metaArtist" autocomplete="off" placeholder="Enter artist"></label>
-  <label class="music-slot" for="metaTitle"><span>Title</span><input type="text" id="metaTitle" autocomplete="off" placeholder="Enter song title"></label>
-  <label class="music-slot" for="metaAlbum"><span>Album</span><input type="text" id="metaAlbum" autocomplete="off" placeholder="Enter album"></label>
-</div>
-<div class="music-sync-hint" id="musicSyncHint">Enter the artist and song to find synced lyrics. If your background video has audio, its soundtrack will be used as the lyric sync source.</div>
-            </div><div class="section" id="textSection">
-                <h3>Lyrics &amp; Captions</h3>
-                <div class="segmented" role="tablist" aria-label="Text mode"><button type="button" class="segmented-btn active" data-text-mode="lyrics">Lyrics</button><button type="button" class="segmented-btn" data-text-mode="captions">Captions</button></div>
-                <div id="lyricsPanel" class="text-panel"><div id="lyricsStatus" class="status">No lyrics loaded</div><div class="lyrics-actions"><button type="button" id="findLyricsBtn" class="file-button">Find lyrics automatically</button><button type="button" id="editLyricsBtn" class="file-button">Edit / paste lyrics</button><button type="button" id="uploadLrcMain" class="file-button">Upload .lrc file</button></div><div id="lyricStyleBlock" class="sub-block"><div class="sub-heading">Style</div><div class="effect-buttons"><button type="button" class="segmented-btn" data-effect="apple">Apple</button><button type="button" class="segmented-btn" data-effect="brat">Brat</button><button type="button" class="segmented-btn" data-effect="eternal">Eternal Sunshine</button><button type="button" class="segmented-btn" data-effect="aurora">Aurora</button><button type="button" class="segmented-btn" data-effect="pulse">Pulse</button><button type="button" class="segmented-btn" data-effect="typewriter">Typewriter</button><button type="button" class="segmented-btn" data-effect="instagram">Instagram</button><button type="button" class="segmented-btn" data-effect="fadeup">Fade Up</button><button type="button" class="segmented-btn" data-effect="decrypt">Decrypt</button><button type="button" class="segmented-btn" data-effect="blur">Blur In</button><button type="button" class="segmented-btn" data-effect="shiny">Shiny</button></div><div id="effectLabel" class="effect-label"></div></div><div class="sub-block"><div class="sub-heading">Title card</div><label class="toggle-row"><input type="checkbox" id="titleCardEnabled" checked><span class="toggle-switch"></span> Show title card</label><div class="control-row"><label for="titleCardDuration">Duration <span id="titleCardDurationVal">3s</span></label><input type="range" id="titleCardDuration" min="1" max="15" step="1" value="3"></div><label>Style<select id="titleCardStyle"><option value="auto">Auto (matches effect)</option><option value="spotlight">Spotlight</option><option value="cinema">Cinema</option><option value="type">Type</option><option value="cover">Cover</option><option value="mono">Mono</option><option value="lower">Lower Third</option></select></label><div id="titleCardStyleHint" class="sub-hint"></div></div><div class="sub-block"><div class="sub-heading">Sync</div><label class="toggle-row"><input type="checkbox" id="syncLive"><span class="toggle-switch"></span> Live adjust while playing</label><div class="control-row"><label for="lyricsOffset">Offset <span id="offsetVal">0.00s</span></label><input type="range" id="lyricsOffset" min="-10" max="10" step="0.01" value="0"></div><div class="nudge-row"><button type="button" data-nudge="-0.1">-0.1s</button><button type="button" id="resetOffset">Reset</button><button type="button" data-nudge="0.1">+0.1s</button></div></div></div>
-                <div id="captionsPanel" class="text-panel hidden"><div id="captionsStatus" class="status">No captions generated</div><div class="lyrics-actions"><button type="button" id="autoCaptionsBtn" class="file-button">Auto-generate timing</button><button type="button" id="editCaptionsBtn" class="file-button">Edit caption blocks</button></div><div class="sub-block"><div class="sub-heading">Caption style</div><div class="caption-pos-row"><button type="button" class="segmented-btn" data-caption-pos="bottom">Bottom</button><button type="button" class="segmented-btn" data-caption-pos="top">Top</button></div><div class="caption-style-grid"><label>Colour<input type="color" id="captionColor" value="#FFFFFF" class="caption-color-input"></label><div class="control-row"><label for="captionOpacity">Opacity <span id="captionOpacityVal">100%</span></label><input type="range" id="captionOpacity" min="30" max="100" step="1" value="100"></div><label class="toggle-row"><input type="checkbox" id="captionShadow" checked><span class="toggle-switch"></span> Drop shadow</label></div></div></div>
-            </div><div class="section" id="backgroundSection"><h3>Background</h3><div class="background-upload-primary"><div class="sub-heading">Upload your background</div><div class="drop-zone" id="bgDrop"><label class="file-button" for="backgroundInput">Upload image or video</label><p class="control-hint">Choose your own background or drag &amp; drop it here.</p><input type="file" id="backgroundInput" accept="image/*,video/*" class="hidden"></div><div id="backgroundStatus" class="status"></div></div><div class="background-choice-grid">
-<button type="button" class="background-choice" data-background-preset="solid" style="--kefe-bg-solid-preview:#0A0A0A"><span class="background-choice-preview background-choice-swatch"></span><span class="background-choice-label">Solid</span></button>
-<button type="button" class="background-choice" data-background-preset="gradient"><span class="background-choice-preview"></span><span class="background-choice-label">Velvet</span></button>
-<button type="button" class="background-choice" data-background-preset="spotlight"><span class="background-choice-preview"></span><span class="background-choice-label">Spotlight</span></button>
-<button type="button" class="background-choice" data-background-preset="aurora"><span class="background-choice-preview"></span><span class="background-choice-label">Aurora</span></button>
-<button type="button" class="background-choice" data-background-preset="grid"><span class="background-choice-preview"></span><span class="background-choice-label">Grid</span></button>
-<button type="button" class="background-choice" data-background-preset="grain"><span class="background-choice-preview"></span><span class="background-choice-label">Film</span></button>
-<button type="button" class="background-choice" data-background-preset="midnight"><span class="background-choice-preview"></span><span class="background-choice-label">Midnight</span></button>
-<button type="button" class="background-choice" data-background-preset="ocean"><span class="background-choice-preview"></span><span class="background-choice-label">Deep Ocean</span></button>
-<button type="button" class="background-choice" data-background-preset="rose"><span class="background-choice-preview"></span><span class="background-choice-label">Rose Noir</span></button>
-<button type="button" class="background-choice" data-background-preset="amber"><span class="background-choice-preview"></span><span class="background-choice-label">Amber</span></button>
-<button type="button" class="background-choice" data-background-preset="emerald"><span class="background-choice-preview"></span><span class="background-choice-label">Emerald</span></button>
-<button type="button" class="background-choice" data-background-preset="violet"><span class="background-choice-preview"></span><span class="background-choice-label">Violet</span></button>
-<button type="button" class="background-choice" data-background-preset="mono"><span class="background-choice-preview"></span><span class="background-choice-label">Monochrome</span></button>
-<button type="button" class="background-choice" data-background-preset="sunset"><span class="background-choice-preview"></span><span class="background-choice-label">Sunset</span></button>
-<button type="button" class="background-choice" data-background-preset="haze"><span class="background-choice-preview"></span><span class="background-choice-label">Soft Haze</span></button>
-<button type="button" class="background-choice" data-background-preset="bokeh"><span class="background-choice-preview"></span><span class="background-choice-label">Bokeh</span></button>
-<button type="button" class="background-choice" data-background-preset="stage"><span class="background-choice-preview"></span><span class="background-choice-label">Stage Light</span></button>
-<button type="button" class="background-choice" data-background-preset="paper"><span class="background-choice-preview"></span><span class="background-choice-label">Paper</span></button>
-<button type="button" class="background-choice" data-background-preset="prism"><span class="background-choice-preview"></span><span class="background-choice-label">Prism</span></button>
-<button type="button" class="background-choice" data-background-preset="neon"><span class="background-choice-preview"></span><span class="background-choice-label">Neon</span></button>
-<button type="button" class="background-choice" data-background-preset="cobalt"><span class="background-choice-preview"></span><span class="background-choice-label">Cobalt</span></button>
-</div><label>Colour <input type="color" id="backgroundColor" value="#0A0A0A"> <span id="backgroundColorValue">#0A0A0A</span></label><div class="bg-controls"><div class="control-row"><label for="bgDim">Dim <span id="bgDimVal">35%</span></label><input type="range" id="bgDim" min="0" max="90" step="1" value="35"></div><div class="control-row"><label for="bgBlur">Blur <span id="bgBlurVal">0px</span></label><input type="range" id="bgBlur" min="0" max="30" step="1" value="0"></div></div></div><div class="section" id="fxSection"><h3>Visual FX</h3><div id="effectControls"></div></div><div class="section" id="visualiserSection"><h3>Visualisers</h3><div id="visualiserControls"></div></div><div class="section" id="exportSection"><h3>Export</h3><label>Aspect ratio<select id="aspectSelect"><option value="9:16">1080 × 1920 (Vertical)</option><option value="1:1">1080 × 1080 (Square)</option><option value="16:9">1920 × 1080 (Horizontal)</option></select></label><div id="aspectInfo" class="aspect-info"></div><label>Quality / preset<select id="exportPreset"><option value="720p">720p</option><option value="1080p" selected>1080p (recommended)</option><option value="480p">480p (fastest)</option><option value="instagram">Instagram (1080×1920)</option><option value="tiktok">TikTok (1080×1920)</option></select></label><button type="button" id="exportBottom" class="primary export-action">Export video</button></div></aside></main><footer class="kefe-editor-transport"><div class="transport"><button type="button" id="playBtn" class="play-button" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4.5l11 7.5-11 7.5z" fill="currentColor"/></svg></button><button type="button" id="stopBtn" class="icon-button" aria-label="Stop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12v12H6z"/></svg></button><input type="range" id="seek" class="slider" min="0" max="0" step="0.01" value="0"><span id="clock">0:00 / 0:00</span></div></footer>
-</div>
-<div id="lyricsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Edit lyrics (LRC)</strong><button type="button" id="closeEditor" class="close-btn" aria-label="Close">&times;</button></div><div class="modal-body"><textarea id="lyricsText" rows="14" placeholder="[00:12.34]First line of lyrics&#10;[00:15.80]Next line…"></textarea><div id="editorStatus" class="status"></div></div><div class="modal-footer"><button type="button" id="pasteLyrics" class="file-button">Paste from clipboard</button><button type="button" id="uploadLrc" class="file-button">Upload .lrc file</button><input type="file" id="lrcFileInput" accept=".lrc,.txt,text/plain,application/octet-stream" class="hidden"><button type="button" id="cancelEditor" class="ghost">Cancel</button><button type="button" id="saveLyrics" class="primary">Save</button></div></div></div>
-<div id="captionsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Edit caption blocks</strong><button type="button" id="closeCaptions" class="close-btn" aria-label="Close">&times;</button></div><div class="modal-body"><div class="lyrics-actions"><button type="button" id="addCaptionRow" class="file-button">Add block</button><button type="button" id="clearCaptionText" class="file-button">Clear all text</button><button type="button" id="pasteCaptions" class="file-button">Paste text from clipboard</button></div><textarea id="captionsBulkText" rows="4" placeholder="Paste the full transcript here, then Fit Text to Blocks"></textarea><button type="button" id="distributeCaptions" class="file-button">Fit text to blocks</button><div id="captionsRows" class="caption-rows"></div><div id="captionsEditorStatus" class="status"></div></div><div class="modal-footer"><button type="button" id="cancelCaptions" class="ghost">Cancel</button><button type="button" id="saveCaptions" class="primary">Save</button></div></div></div>
-<div id="exportPreflight" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Ready to export</strong></div><div class="modal-body"><div id="preflightSummary" class="preflight-list"></div><div id="preflightWarning" class="preflight-warning hidden"></div><div id="preflightRepair" class="preflight-repair"></div></div><div class="modal-footer"><button type="button" id="closePreflight" class="close-btn" aria-label="Close">&times;</button><button type="button" id="cancelPreflight" class="ghost">Cancel</button><button type="button" id="confirmExport" class="primary">Start export</button></div></div></div>
-<div id="masterAudioChoice" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Which audio should the lyrics sync to?</strong></div><div class="modal-body"><p class="control-hint">You've already synced lyrics to your uploaded audio, and your video also has its own audio. Pick which one should be the master audio — the other will be muted.</p><div id="masterAudioChoiceInfo" class="sub-hint"></div></div><div class="modal-footer"><button type="button" id="chooseMasterUploaded" class="file-button" data-master="uploaded">Keep uploaded audio</button><button type="button" id="chooseMasterVideo" class="file-button" data-master="video">Use video audio</button></div></div></div>
-<div id="exportOverlay" class="overlay hidden"><div class="modal-content"><div id="exportStatus" class="status">Exporting…</div><progress id="exportProgress" value="0" max="100"></progress><span id="exportPct">0%</span><button id="cancelExport" class="ghost" type="button">Cancel</button></div></div>
-<div id="toast" class="toast"></div>
-<script src="./app/effects/manifest.js"></script>
-<script src="./app/effects/core.js"></script><script src="./app/effects/typewriter.js"></script><script src="./app/effects/lyric-barbie.js"></script><script src="./app/effects/lyric-elasticpop.js"></script><script src="./app/effects/lyric-flipcards.js"></script><script src="./app/effects/lyric-karaoke.js"></script><script src="./app/effects/lyric-trailer.js"></script><script src="./app/effects/lyric-fancy.js"></script><script src="./app/effects/lyric-glitch.js"></script><script src="./app/effects/lyric-analogtv.js"></script><script src="./app/effects/instagram-lyrics.js"></script><script src="./app/effects/story-fade.js"></script><script src="./app/effects/brat.js"></script><script src="./app/effects/aurora.js"></script><script src="./app/effects/dark-veil.js"></script><script src="./app/effects/eternal-sunshine.js"></script><script src="./app/effects/decrypt-text.js"></script><script src="./app/effects/blur-text.js"></script><script src="./app/effects/shiny-text.js"></script><script src="./app/app.js"></script><script src="./app/core/analysis-engine.js"></script>
-<script src="./app/core/song-start.js"></script><script src="./app/core/frame-renderer.js"></script><script src="./app/ui/typography.js?v=5"></script><script src="./app/ui/background-presets.js"></script><script src="./app/ui/caption-generator.js"></script>
-<script src="./app/core/lyric-aligner.js"></script><script src="./app/ui/auth-ui.js"></script><script src="./app/effects/effect-app-fx.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="./app/effects/visualiser-ridgeline.js?v=9"></script><script src="./app/effects/visualiser-butterchurn.js?v=17"></script><script src="./app/effects/visualiser-matrixmusic.js?v=3"></script><script src="./app/effects/visualiser-audio-reactive-shaders.js?v=3"></script><script src="./app/effects/visualiser-beat.js?v=3"></script><script src="./app/effects/visualiser-tuffpuff.js"></script><script type="module" src="./app/export/ui.js"></script><script type="module" src="./app/export/export-enhancements.js"></script><script src="./app/ui/live-preview.js"></script><script src="./app/ui/music-intelligence.js"></script><script src="./app/ui/preview-format.js"></script>
-<script src="./app/ui/preview-corner.js"></script>
-<script src="./app/ui/wizard/card-accordion.js"></script>
-
-<script src="./app/ui/preview-video-strip.js"></script><script src="./app/ui/background-video-compat.js"></script><script src="./app/ui/auto-lyrics-sync.js"></script><script src="./app/ui/wizard/wizard.js"></script>
-<script src="./app/ui/visualiser-picker.js?v=7"></script>
-<script src="./app/effects/effects.js"></script>
-<script src="./app/ui/kefe-section-rescue.js"></script>
-<script src="./app/ui/kefe-rearrange.js"></script>
-<script src="./app/ui/kefe-metadata-fields.js"></script>
-<script src="./app/ui/kefe-preview.js?v=2"></script>
-<script src="./app/ui/preview-confirmations.js"></script>
-<script src="./app/ui/kefe-export-fix.js"></script>
-<script src="./app/ui/kefe-success-boxes.js"></script>
-<script src="./app/ui/kefe-audio-watchdog.js"></script>
-<script src="./app/ui/kefe-loading.js"></script>
-<script src="./app/ui/cleanup-pass-2.js?v=3"></script>
-<script src="./app/ui/mini-player.js?v=16"></script>
+<nav class="nav"><div class="container nav-inner">
+<a href="#" class="logo"><svg class="logo-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M 18 12 L 38 12 L 38 40 L 58 12 L 80 12 L 48 46 L 80 88 L 58 88 L 38 58 L 38 88 L 18 88 Z" fill="#f5f5f5"/><path d="M 62 44 L 82 54 L 62 64 Z" fill="#ef4444"/></svg><span>KEFE</span></a>
+<div class="nav-links"><a href="#features">Features</a><a href="#how">How it works</a><a href="#faq">FAQ</a></div><a href="./editor.html" class="nav-cta">Open editor</a>
+</div></nav>
+<header class="hero"><div class="container hero-inner">
+<div class="hero-badge"><span class="dot"></span>Free · No account · Runs in your browser</div>
+<h1>Make <span class="accent">lyric videos</span><br/>and visualisers<br/>in minutes.</h1>
+<p class="lead">KEFE is a fast, browser-based editor for musicians and creators. Drop in your track, pick a style, hit export. No install, no watermark, no learning curve.</p>
+<div class="hero-actions"><a href="./editor.html" class="btn btn-primary">Start creating <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a><a href="#how" class="btn btn-secondary">See how it works</a></div>
+<div class="hero-note">Works on desktop Chrome, Edge, Firefox, and Safari</div></div>
+<div class="container"><div class="preview-mock"><div class="mock-topbar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-url">kefe.app/editor</span></div><div class="mock-body">
+<aside class="mock-side"><div class="mock-rail-item"><span class="mock-icon"></span>Fonts</div><div class="mock-rail-item active"><span class="mock-icon"></span>Lyric Effects</div><div class="mock-rail-item"><span class="mock-icon"></span>Background</div><div class="mock-rail-item"><span class="mock-icon"></span>Visual FX</div><div class="mock-rail-item"><span class="mock-icon"></span>Visualisers</div></aside>
+<div class="mock-main"><div class="mock-canvas"><div class="mock-lyric">We were dancing in the dark</div></div><div class="mock-wave" id="mockWave"></div></div>
+<aside class="mock-side right"><div class="mock-rail-item"><span class="mock-icon"></span>Neon Nights.mp3</div><div class="mock-rail-item"><span class="mock-icon"></span>Cosmic Drift.wav</div><div class="mock-rail-item"><span class="mock-icon"></span>city_loop.mp4</div></aside>
+</div></div></div></header>
+<section class="social"><div class="container"><p>Built for independent artists, producers, and creators</p><div class="social-list"><span>SoundCloud</span><span>Spotify</span><span>YouTube</span><span>TikTok</span><span>Bandcamp</span></div></div></section>
+<section class="block" id="features"><div class="container"><div class="section-label">Features</div><h2 class="section-title">Everything you need. Nothing you don't.</h2><p class="section-sub">KEFE strips the editor down to the essentials so you can go from raw track to finished video without fighting the interface.</p><div class="features">
+<div class="feature"><div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div><h3>Lyric timing made simple</h3><p>Drag the waveform to sync lines. Nudge with the offset slider. Watch it update live on the preview.</p></div>
+<div class="feature"><div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg></div><h3>Visualisers that react</h3><p>Bars, waves, radial patterns, particles. All audio-reactive and ready to go in one click.</p></div>
+<div class="feature"><div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div><h3>Backgrounds and FX</h3><p>Solid colors, gradients, video loops, blur, grain, bloom, chromatic aberration. All baked into the render.</p></div>
+<div class="feature"><div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg></div><h3>Your fonts, your style</h3><p>Pick from built-in fonts or upload your own. Full control over size, weight, spacing, and animation.</p></div>
+<div class="feature"><div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></div><h3>Export without limits</h3><p>Full-resolution MP4 or WebM. No watermarks, no export count caps, no paywall on the download button.</p></div>
+<div class="feature"><div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div><h3>Runs in your browser</h3><p>No download, no install, no account. Everything happens locally on your machine. Your files never leave your device.</p></div>
+</div></div></section>
+<section class="block" id="how"><div class="container"><div class="section-label">How it works</div><h2 class="section-title">Three steps. Under five minutes.</h2><p class="section-sub">No timeline gymnastics. No hidden menus. Load, style, export.</p><div class="steps">
+<div class="step"><span class="step-num">1</span><h3>Load your track</h3><p>Drag an audio file into the editor. KEFE decodes it in the browser and shows you the waveform.</p></div>
+<div class="step"><span class="step-num">2</span><h3>Add lyrics and pick a style</h3><p>Paste your lyrics, sync them to the waveform, then choose a font, effect, background, and visualiser.</p></div>
+<div class="step"><span class="step-num">3</span><h3>Export</h3><p>Hit the export button. KEFE renders the video frame by frame and downloads it directly to your computer.</p></div>
+</div></div></section>
+<section class="cta"><div class="container cta-inner"><h2>Ready to make something?</h2><p>Open the editor and start your first video. No sign-up required.</p><a href="./editor.html" class="btn btn-primary">Open KEFE editor <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a></div></section>
+<section class="block" id="faq"><div class="container"><div class="section-label">FAQ</div><h2 class="section-title">Questions, answered.</h2><p class="section-sub" style="margin-bottom:40px;">Anything else? Reach out.</p><div class="faq">
+<details class="faq-item"><summary>Is KEFE really free?</summary><p>Yes. The editor, the visualisers, the export — all free. There's no account, no trial, no credit card, and no watermark on your output.</p></details>
+<details class="faq-item"><summary>Do my files get uploaded anywhere?</summary><p>No. KEFE runs entirely in your browser. Your audio and video files are processed locally on your machine and never sent to a server.</p></details>
+<details class="faq-item"><summary>What formats can I export?</summary><p>MP4 and WebM, at up to 1080p. Resolution and frame rate are configurable in the export panel.</p></details>
+<details class="faq-item"><summary>Can I use my own fonts?</summary><p>Yes. KEFE ships with a set of built-in fonts, but you can upload any font file (TTF, OTF, WOFF) and it will appear in the font picker.</p></details>
+<details class="faq-item"><summary>Does it work on mobile?</summary><p>Viewing works on mobile. Editing is built for desktop and works best on a laptop or desktop browser with a keyboard and mouse.</p></details>
+<details class="faq-item"><summary>What browsers are supported?</summary><p>Chrome, Edge, and Firefox on desktop. Safari works but may be slower on very long exports due to browser-level media encoding limits.</p></details>
+</div></div></section>
+<footer><div class="container footer-inner"><div class="footer-brand"><svg class="logo-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M 18 12 L 38 12 L 38 40 L 58 12 L 80 12 L 48 46 L 80 88 L 58 88 L 38 58 L 38 88 L 18 88 Z" fill="#f5f5f5"/><path d="M 62 44 L 82 54 L 62 64 Z" fill="#ef4444"/></svg><span>KEFE</span></div><div class="footer-links"><a href="./editor.html">Editor</a><a href="#features">Features</a><a href="#faq">FAQ</a><a href="https://github.com/tezzaaaaaa" target="_blank" rel="noopener">GitHub</a></div><div class="footer-copy">© <span id="year"></span> KEFE</div></div></footer>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const rail = document.querySelector('.kefe-editor-rail');
-  rail?.addEventListener('click', event => {
-    const item = event.target.closest('[data-editor-target]');
-    if (!item) return;
-    const target = item.getAttribute('data-editor-target');
-    const mappedTarget = target === '#lyricStyleBlock' ? '#textSection' : target;
-    document.querySelectorAll('.sidebar .section').forEach(section => section.classList.toggle('editor-active', '#' + section.id === mappedTarget));
-    const focusTarget = target === '#lyricStyleBlock' ? document.querySelector('#lyricStyleBlock') : document.querySelector(mappedTarget);
-    focusTarget?.scrollIntoView({block:'start', behavior:'smooth'});
-    rail.querySelectorAll('.kefe-editor-rail-item').forEach(node => node.classList.toggle('is-active', node === item));
-  });
-  document.getElementById('kefeEditorExport')?.addEventListener('click', () => document.getElementById('exportBottom')?.click());
-  const offset = document.getElementById('editorLyricsOffset');
-  const value = document.getElementById('editorLyricsOffsetValue');
-  offset?.addEventListener('input', event => {
-    const v = Number(event.target.value) || 0;
-    if (value) value.textContent = (v >= 0 ? '+' : '') + v.toFixed(2) + 's';
-    const legacy = document.getElementById('lyricsOffset');
-    if (legacy) { legacy.value = String(v); legacy.dispatchEvent(new Event('input', {bubbles:true})); }
-  });
-});
+document.getElementById("year").textContent=new Date().getFullYear();
+(function(){const wave=document.getElementById("mockWave");if(!wave)return;for(let i=0;i<60;i++){const bar=document.createElement("div");bar.className="mock-bar"+(i<22?" played":"");const h=20+Math.abs(Math.sin(i*.7))*60+Math.random()*10;bar.style.height=Math.min(100,h)+"%";bar.style.alignSelf="center";wave.appendChild(bar)}})();
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",e=>{const id=a.getAttribute("href");if(id.length>1){const el=document.querySelector(id);if(el){e.preventDefault();el.scrollIntoView({behavior:"smooth",block:"start"})}}}));
 </script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const box = document.getElementById('kefeWaveformBox');
-  const canvas = document.getElementById('kefeWaveformCanvas');
-  if (!box || !canvas) return;
-  const ctx = canvas.getContext('2d');
-  let peaks = null, duration = 0, currentFile = null, frame = 0;
-
-  const formatTime = (s,tenths=false) => {
-    s=Number.isFinite(s)?s:0;
-    const m=Math.floor(s/60), sec=Math.floor(s%60);
-    return m+':'+String(sec).padStart(2,'0')+(tenths?'.'+Math.floor((s*10)%10):'');
-  };
-  const resize = () => {
-    const r=box.getBoundingClientRect(), dpr=Math.min(window.devicePixelRatio||1,2);
-    canvas.width=Math.max(1,Math.floor(r.width*dpr));
-    canvas.height=Math.max(1,Math.floor(r.height*dpr));
-    canvas.style.width=r.width+'px'; canvas.style.height=r.height+'px';
-    ctx.setTransform(dpr,0,0,dpr,0,0); draw();
-  };
-  const getTime=()=>{try{return Number(window.getMasterTime?.())||0}catch{return 0}};
-  const getDuration=()=>{try{return Number(window.getMasterDuration?.())||Number(window.state?.audio?.duration)||0}catch{return Number(window.state?.audio?.duration)||0}};
-  const draw=()=>{
-    const w=box.clientWidth||1,h=box.clientHeight||1,d=getDuration()||duration,t=Math.max(0,Math.min(d,getTime())),played=d>0?t/d:0;
-    ctx.clearRect(0,0,w,h);
-    if(!peaks?.length){
-      ctx.fillStyle='rgba(255,255,255,.12)';
-      for(let x=0;x<w;x+=4)ctx.fillRect(x,h/2-1,2,2);
-    }else{
-      const step=w/peaks.length;
-      for(let i=0;i<peaks.length;i++){const amp=Math.max(2,peaks[i]*h*.82);ctx.fillStyle=i/peaks.length<=played?'#ef3f38':'rgba(255,255,255,.28)';ctx.fillRect(i*step,h/2-amp/2,Math.max(1,step-.7),amp)}
-    }
-    const x=Math.max(0,Math.min(w,played*w));ctx.fillStyle='#ef3f38';ctx.fillRect(x-1,0,2,h);
-    const ts=document.getElementById('kefeWaveformTimestamp'),st=document.getElementById('kefeWaveformStatus');
-    if(ts)ts.textContent=formatTime(t,true);
-    if(st)st.textContent=currentFile?currentFile.name+' · '+formatTime(d):'No audio loaded';
-  };
-  const animate=()=>{
-    draw();
-    if(window.kefeAudioElement&&!window.kefeAudioElement.paused) frame=requestAnimationFrame(animate);
-    else frame=0;
-  };
-  const attachAudio=()=>{
-    const audio=window.kefeAudioElement;
-    if(!audio||audio.dataset.kefeWaveEvents)return;
-    audio.dataset.kefeWaveEvents='1';
-    ['loadedmetadata','timeupdate','play','pause','ended','durationchange'].forEach(type=>audio.addEventListener(type,()=>type==='play'?animate():draw()));
-  };
-  const computePeaks=async file=>{
-    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
-    const decoded=await new AC().decodeAudioData((await file.arrayBuffer()).slice(0));
-    const data=decoded.getChannelData(0),count=Math.max(80,Math.min(1600,Math.floor(box.clientWidth*2))),bucket=Math.max(1,Math.floor(data.length/count)),out=new Float32Array(count);
-    for(let i=0;i<count;i++){let max=0,end=Math.min(data.length,(i+1)*bucket);for(let j=i*bucket;j<end;j++)max=Math.max(max,Math.abs(data[j]));out[i]=max}
-    let max=0;for(const v of out)max=Math.max(max,v);if(max)for(let i=0;i<out.length;i++)out[i]/=max;return out;
-  };
-  const loadFile=async file=>{
-    if(!file||(!file.type.startsWith('audio/')&&!file.type.startsWith('video/')))return;
-    currentFile=file;box.classList.add('has-audio');document.getElementById('kefeWaveformStatus').textContent='Analyzing waveform…';
-    try{peaks=await computePeaks(file);duration=Number(window.state?.audio?.duration)||0}catch{peaks=null}draw();
-  };
-  const ro=new ResizeObserver(resize);ro.observe(box);
-  document.getElementById('audioInput')?.addEventListener('change',e=>loadFile(e.target.files?.[0]));
-  document.getElementById('backgroundInput')?.addEventListener('change',e=>loadFile(e.target.files?.[0]));
-  box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('drag-over')});
-  box.addEventListener('dragleave',()=>box.classList.remove('drag-over'));
-  box.addEventListener('drop',e=>{e.preventDefault();box.classList.remove('drag-over');loadFile(e.dataTransfer.files?.[0])});
-  box.addEventListener('click',()=>document.getElementById('audioInput')?.click());
-  document.getElementById('wfSelectAll')?.addEventListener('click',()=>{try{window.seekPreview?.(0)}catch{}draw()});
-  document.getElementById('wfClear')?.addEventListener('click',()=>{peaks=null;currentFile=null;duration=0;box.classList.remove('has-audio');draw()});
-  const offset=document.getElementById('editorLyricsOffset'),value=document.getElementById('editorLyricsOffsetValue');
-  offset?.addEventListener('input',e=>{const v=Number(e.target.value)||0;if(value)value.textContent=(v>=0?'+':'')+v.toFixed(2)+'s';const legacy=document.getElementById('lyricsOffset');if(legacy){legacy.value=String(v);legacy.dispatchEvent(new Event('input',{bubbles:true}))}});
-  document.addEventListener('kefe:editor-mode',()=>{attachAudio();draw()});
-  attachAudio();resize();
-});
-</script></body>
+</body>
 </html>
