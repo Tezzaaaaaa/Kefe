@@ -97,6 +97,31 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
   outline:1px solid rgba(239,63,56,.8);
   outline-offset:2px;
 }
+.kefe-hard-refresh{
+  position:absolute;
+  top:50%;
+  right:20px;
+  transform:translateY(-50%);
+  width:36px;
+  height:36px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;
+  background:transparent;
+  color:rgba(255,255,255,.72);
+  font:inherit;
+  font-size:20px;
+  line-height:1;
+  cursor:pointer;
+}
+.kefe-hard-refresh:hover{
+  background:rgba(255,255,255,.055);
+  color:#fff;
+}
+.kefe-hard-refresh:focus-visible{
+  outline:2px solid var(--red,#ef3f38);
+  outline-offset:2px;
+}
 .kefe-header .header-actions{
   justify-content:flex-end;
   gap:6px !important;
