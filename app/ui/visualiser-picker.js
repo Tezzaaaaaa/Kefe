@@ -31,6 +31,13 @@
       '#kefeVisualiserPicker .kefe-vis-btn{position:relative;overflow:hidden;min-height:64px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:600 12px "Open Sans",Arial,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .18s ease,box-shadow .18s ease}',
       '#kefeVisualiserPicker .kefe-vis-btn:hover{border-color:var(--line-strong)}',
       '#kefeVisualiserPicker .kefe-vis-btn.active-effect{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}',
+      '#kefeVisualiserPicker .kefe-vis-popover-trigger{width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:650 12px "Inter Tight",sans-serif;text-align:left;cursor:pointer}',
+      '.kefe-vis-popover,.kefe-vis-subpopover{margin:0;padding:8px;min-width:220px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--text);box-shadow:none}',
+      '.kefe-vis-popover > .kefe-popover-category{display:flex;width:100%;align-items:center;justify-content:space-between;padding:9px 10px;border:0;border-radius:7px;background:transparent;color:var(--text);font:600 12px "Inter Tight",sans-serif;text-align:left;cursor:pointer}',
+      '.kefe-vis-popover > .kefe-popover-category:hover,.kefe-vis-subpopover .kefe-vis-btn:hover{background:var(--surface-3)}',
+      '.kefe-vis-subpopover .kefe-vis-grid{display:grid;grid-template-columns:1fr;gap:4px}',
+      '.kefe-vis-subpopover .kefe-vis-btn{min-height:38px;border:0;border-radius:7px;background:transparent;text-align:left;justify-content:flex-start}',
+      '.kefe-popover-active{display:block;height:2px;margin:0 4px 6px;background:var(--red);opacity:.85}',
       '#kefeVisualiserPicker .kefe-ra-controls{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}',
       '#kefeVisualiserPicker .kefe-ra-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}',
       '#kefeVisualiserPicker .kefe-ra-row label{flex:0 0 74px;font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em}',
@@ -89,7 +96,12 @@
     box.innerHTML =
       '<div class="kefe-vis-title">Visualiser style</div>' +
       '<div class="kefe-vis-hint">Audio-reactive visuals driven by your track\'s energy and beats.</div>' +
-      '<div class="kefe-vis-grid"></div>';
+      '<button type="button" class="kefe-vis-popover-trigger" popoverTarget="kefe-visualiser-popover">Choose visualiser</button>' +
+      '<div id="kefe-visualiser-popover" class="kefe-vis-popover" popover="auto">' +
+        '<span class="kefe-popover-active" aria-hidden="true"></span>' +
+        '<button type="button" class="kefe-popover-category" popoverTarget="kefe-visualiser-options">Visualisers</button>' +
+        '<div id="kefe-visualiser-options" class="kefe-vis-subpopover" popover="auto"><div class="kefe-vis-grid"></div></div>' +
+      '</div>';
 
     var grid = box.querySelector('.kefe-vis-grid');
     MODES.forEach(function(m){
