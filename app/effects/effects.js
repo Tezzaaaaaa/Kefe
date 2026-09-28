@@ -70,24 +70,6 @@
     syncActive(host);
   }
 
-  var layoutCache = new Map();
-  try {
-    var proto = CanvasRenderingContext2D.prototype;
-    var original = proto.measureText;
-    proto.measureText = function(text) {
-      var key = this.font + '\u0000' + text;
-      var hit = layoutCache.get(key);
-      if (hit !== undefined) return hit;
-      var result = original.call(this, text);
-      if (layoutCache.size > 3000) layoutCache.clear();
-      layoutCache.set(key, result);
-      return result;
-    };
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(function(){ layoutCache.clear(); });
-    }
-  } catch (e) {}
-
   window.kefeEffectRegistry = Object.freeze({
     list: function(){ return CATALOGUE.slice(); },
     get: function(key){ return BY_KEY[key] || null; },
@@ -97,12 +79,6 @@
 
   function tick() { try { buildPicker(); } catch(e){ console.warn(e); } }
   tick();
-  setInterval(tick, 300);
-  document.addEventListener('click', function(){ setTimeout(tick, 60); }, true);
-
-  var observer = new MutationObserver(function(){ buildPicker(); });
-  var host = document.querySelector('#lyricStyleBlock .effect-buttons');
-  if (host) observer.observe(host, { childList: true });
 
   console.log('[KEFE effects] picker installed - ' + CATALOGUE.length + ' effects from manifest');
 })();
