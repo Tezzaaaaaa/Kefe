@@ -122,7 +122,6 @@
     { family: 'Big Shoulders Stencil Display', weight: 900, style: 'normal', file: 'fonts/big-shoulders-stencil/BigShouldersStencil-Black.woff2' },
     // Frijole — drop
     { family: 'Frijole',        weight: 400, style: 'normal', file: 'fonts/frijole/Frijole-Regular.woff2' },
-    // Boulder — mixedmedia
     // Urbanist — flipcards
     { family: 'Urbanist',       weight: 800, style: 'normal', file: 'fonts/urbanist/Urbanist-VariableFont_wght.woff2' },
     // Special Elite — glitch
