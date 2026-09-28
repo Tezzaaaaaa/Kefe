@@ -352,52 +352,85 @@ body.wizard-mode .wizard-nav .wizard-skip:hover{opacity:1}
 }
 
 
-/* KEFE pathway cards — Steps component treatment */
+/* KEFE pathway cards — folder interaction inspired by Framer's Card — Folder. */
 body.wizard-mode .kefe-pathway-steps .wizard-hover-img-menu{
   display:grid;
-  gap:8px;
+  gap:14px;
 }
 body.wizard-mode .kefe-pathway-card{
   position:relative;
   display:grid;
-  grid-template-columns:38px minmax(0,1fr) 28px;
-  align-items:center;
+  grid-template-columns:52px minmax(0,1fr) 34px;
+  align-items:end;
   gap:14px;
   width:100%;
-  min-height:78px;
-  padding:14px 16px;
-  border:1px solid rgba(255,255,255,.09);
-  border-radius:12px;
-  background:#0b0b0b;
+  min-height:128px;
+  padding:26px 18px 16px;
+  border:0;
+  border-radius:0 14px 14px 14px;
+  background:#111;
   color:#fff;
   text-align:left;
-  overflow:hidden;
-  transition:border-color .2s ease,background .2s ease,transform .2s ease;
+  overflow:visible;
+  isolation:isolate;
+  cursor:pointer;
+  transition:transform .28s cubic-bezier(.22,1,.36,1);
+}
+body.wizard-mode .kefe-pathway-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:-16px;
+  width:92px;
+  height:18px;
+  border-radius:10px 10px 0 0;
+  background:#111;
+  z-index:-1;
+}
+body.wizard-mode .kefe-pathway-card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:0 14px 14px 14px;
+  pointer-events:none;
 }
 body.wizard-mode .kefe-pathway-card:hover,
 body.wizard-mode .kefe-pathway-card:focus-visible{
+  transform:translateY(-6px);
+}
+body.wizard-mode .kefe-pathway-card:hover::after,
+body.wizard-mode .kefe-pathway-card:focus-visible::after{
   border-color:rgba(255,255,255,.2);
-  background:#111;
-  transform:translateX(3px);
 }
 body.wizard-mode .kefe-pathway-card.selected{
-  border-color:rgba(239,63,56,.7);
-  background:rgba(239,63,56,.07);
+  background:linear-gradient(145deg,rgba(239,63,56,.18),rgba(17,17,17,.98) 46%);
+}
+body.wizard-mode .kefe-pathway-card.selected::before{
+  background:#ef3f38;
+}
+body.wizard-mode .kefe-pathway-card.selected::after{
+  border-color:rgba(239,63,56,.65);
 }
 body.wizard-mode .kefe-pathway-number{
   display:grid;
   place-items:center;
-  width:34px;
-  height:34px;
+  width:40px;
+  height:40px;
   border:1px solid rgba(255,255,255,.12);
   border-radius:50%;
+  background:#090909;
   color:#777;
   font-size:10px;
   font-variant-numeric:tabular-nums;
+  transition:transform .28s cubic-bezier(.22,1,.36,1),border-color .2s ease,color .2s ease;
+}
+body.wizard-mode .kefe-pathway-card:hover .kefe-pathway-number,
+body.wizard-mode .kefe-pathway-card:focus-visible .kefe-pathway-number{
+  transform:translateY(-2px);
 }
 body.wizard-mode .kefe-pathway-card.selected .kefe-pathway-number{
   border-color:#ef3f38;
-  background:#ef3f38;
   color:#fff;
 }
 body.wizard-mode .kefe-pathway-card .hover-img-project-copy{
@@ -407,46 +440,63 @@ body.wizard-mode .kefe-pathway-card .hover-img-project-copy{
 }
 body.wizard-mode .kefe-pathway-card .hover-img-project-copy strong{
   color:#f5f5f5;
-  font-size:14px;
+  font-size:15px;
   font-weight:650;
   letter-spacing:-.01em;
 }
 body.wizard-mode .kefe-pathway-card .hover-img-project-copy span{
   color:#777;
   font-size:11px;
-  line-height:1.35;
+  line-height:1.4;
 }
 body.wizard-mode .kefe-pathway-card:hover .hover-img-project-copy span,
 body.wizard-mode .kefe-pathway-card.selected .hover-img-project-copy span{
-  color:#999;
+  color:#a0a0a0;
 }
 body.wizard-mode .kefe-pathway-arrow{
   display:grid;
   place-items:center;
-  width:28px;
-  height:28px;
-  border:1px solid rgba(255,255,255,.08);
+  width:32px;
+  height:32px;
+  border:1px solid rgba(255,255,255,.1);
   border-radius:50%;
   color:#666;
   font-size:15px;
-  transition:color .2s ease,border-color .2s ease,transform .2s ease;
+  transition:color .2s ease,border-color .2s ease,transform .28s cubic-bezier(.22,1,.36,1);
 }
 body.wizard-mode .kefe-pathway-card:hover .kefe-pathway-arrow,
 body.wizard-mode .kefe-pathway-card.selected .kefe-pathway-arrow{
   color:#fff;
-  border-color:rgba(255,255,255,.18);
+  border-color:rgba(255,255,255,.2);
   transform:translate(2px,-2px);
 }
+body.wizard-mode .kefe-pathway-steps .hover-img-thumbnail-wrapper{
+  display:none;
+}
 @media(max-width:560px){
+  body.wizard-mode .kefe-pathway-steps .wizard-hover-img-menu{gap:12px}
   body.wizard-mode .kefe-pathway-card{
-    grid-template-columns:32px minmax(0,1fr) 26px;
-    min-height:70px;
-    padding:12px;
+    grid-template-columns:42px minmax(0,1fr) 30px;
+    min-height:112px;
+    padding:22px 14px 14px;
     gap:10px;
   }
-  body.wizard-mode .kefe-pathway-number{width:30px;height:30px}
-  body.wizard-mode .kefe-pathway-card .hover-img-project-copy strong{font-size:13px}
+  body.wizard-mode .kefe-pathway-card::before{
+    width:76px;
+    height:15px;
+    top:-13px;
+  }
+  body.wizard-mode .kefe-pathway-number{width:34px;height:34px}
+  body.wizard-mode .kefe-pathway-card .hover-img-project-copy strong{font-size:14px}
   body.wizard-mode .kefe-pathway-card .hover-img-project-copy span{font-size:10px}
+  body.wizard-mode .kefe-pathway-arrow{width:28px;height:28px}
+}
+@media(prefers-reduced-motion:reduce){
+  body.wizard-mode .kefe-pathway-card,
+  body.wizard-mode .kefe-pathway-number,
+  body.wizard-mode .kefe-pathway-arrow{
+    transition:none;
+  }
 }
 
 /* Style step — keep the preview and effect picker in one clean vertical layout. */
