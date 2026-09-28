@@ -97,11 +97,11 @@
     // New lyric-effect fonts
     { family: 'Anton', weight: 400, style: 'normal', file: 'fonts/anton/Anton-Regular.woff2' },
     { family: 'VT323', weight: 400, style: 'normal', file: 'fonts/vt323/VT323-Regular.woff2' },
-    { family: 'AuraSerif', weight: 400, style: 'normal', file: 'fonts/AuraSerif.woff2' },
-    { family: 'BlockParty', weight: 400, style: 'normal', file: 'fonts/BlockParty.woff2' },
-    { family: 'Kefe Tracklist Cursive', weight: 400, style: 'normal', file: 'fonts/KefeTracklistCursive-Regular.woff2' },
-    { family: 'VogueNoir', weight: 400, style: 'normal', file: 'fonts/VogueNoir.woff2' },
-    { family: 'BubblegumDisplay', weight: 400, style: 'normal', file: 'fonts/BubblegumDisplay.woff2' },
+    { family: 'AuraSerif', weight: 400, style: 'normal', file: 'fonts/aura-serif/AuraSerif.woff2' },
+    { family: 'BlockParty', weight: 400, style: 'normal', file: 'fonts/block-party/BlockParty.woff2' },
+    { family: 'Kefe Tracklist Cursive', weight: 400, style: 'normal', file: 'fonts/kefe-tracklist-cursive/KefeTracklistCursive-Regular.woff2' },
+    { family: 'VogueNoir', weight: 400, style: 'normal', file: 'fonts/vogue-noir/VogueNoir.woff2' },
+    { family: 'BubblegumDisplay', weight: 400, style: 'normal', file: 'fonts/bubblegum-display/BubblegumDisplay.woff2' },
     // Bricolage Grotesque
     { family: 'Bricolage Grotesque', weight: 200, style: 'normal', file: 'fonts/bricolage-grotesque/BricolageGrotesque-VariableFont_opsz-wdth-wght.woff2' },
     { family: 'Bricolage Grotesque', weight: 300, style: 'normal', file: 'fonts/bricolage-grotesque/BricolageGrotesque-VariableFont_opsz-wdth-wght.woff2' },
