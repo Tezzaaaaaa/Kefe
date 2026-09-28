@@ -12,10 +12,11 @@
 
     /* 2. Force the main preview to stay expanded on every wizard step.
           wizard.js toggles preview-collapsed on early steps; we override. */
-    'body.wizard-mode .preview.preview-collapsed{display:flex !important;visibility:visible !important}',
-    'body.wizard-mode .preview.preview-collapsed .canvas-wrapper{display:flex !important}',
-    'body.wizard-mode .preview.preview-collapsed canvas{display:block !important}',
+    'body.wizard-mode:not([data-wizard-step="intro"]) .preview.preview-collapsed{display:flex !important;visibility:visible !important}',
+    'body.wizard-mode:not([data-wizard-step="intro"]) .preview.preview-collapsed .canvas-wrapper{display:flex !important}',
+    'body.wizard-mode:not([data-wizard-step="intro"]) .preview.preview-collapsed canvas{display:block !important}',
     'body.wizard-mode .preview{min-height:0 !important}',
+    'body.wizard-mode[data-wizard-step="intro"] .preview{display:none !important}',
 
     /* 3. The intro step stays logo-only before any media is loaded. */
   ].join('');
@@ -31,7 +32,7 @@
 
   function forceExpand() {
     var preview = document.querySelector('.preview');
-    if (!preview) return;
+    if (!preview || document.body.dataset.wizardStep === 'intro') return;
     // Never let wizard collapse it.
     preview.classList.remove('preview-collapsed');
     preview.classList.add('preview-expanded');
