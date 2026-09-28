@@ -33,7 +33,7 @@ Each production lyric effect has one canonical typography pairing. The effect re
 
 ## Wiring rule
 
-The first 22 listed pairings are locked production assignments. Slide, Drift and Scroll Lines remain explicitly unassigned until unique bundled fonts are available; they must not silently inherit another effect's production font.
+The 23 listed pairings with a named font are locked production assignments. Slide, Drift and Scroll Lines remain explicitly unassigned until unique bundled fonts are available; they must not silently inherit another effect's production font.
 
 Trailer is already canonically assigned to Monoton in the typography registry.
 
