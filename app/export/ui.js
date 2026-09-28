@@ -1,6 +1,6 @@
 import { exportVideo } from './index.js';
 import { getExportConfig, getSelectedQuality } from './config.js';
-import { runtime } from '../core/context.js';
+import { state, media, runtime } from '../core/context.js';
 import { resolveMasterInfo } from './master.js';
 
 window.kefeGetExportConfig = getExportConfig;
@@ -14,7 +14,7 @@ let exportAbort = null;
 
 function cleanPart(value) { return String(value || '').replace(/[<>:\"/\\|?*\u0000-\u001F]/g, ' ').replace(/\s+/g, ' ').replace(/[. ]+$/g, '').trim(); }
 function buildFilename() {
-    const audio = window.state?.audio || {};
+    const audio = state?.audio || {};
     const metadata = audio.metadata || {};
     const filename = String(audio.file?.name || '').replace(/\.[^.]+$/, '');
     const fallback = filename.replace(/[_]+/g, ' ').trim();
@@ -23,7 +23,7 @@ function buildFilename() {
     let title = titleInput || cleanPart(metadata.title) || fallback || 'Lyric Video';
     let artist = artistInput || cleanPart(metadata.artist);
     if (!filename) {
-        const videoFile = window.kefeMedia?.videoFile;
+        const videoFile = media.videoFile;
         if (videoFile?.name) { const base = String(videoFile.name).replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim(); if (base) title = cleanPart(base); }
     }
     return `${title}${artist && artist.toLowerCase() !== title.toLowerCase() ? ` - ${artist}` : ''} - KEFE Visualiser.mp4`;
@@ -34,9 +34,8 @@ function hideOverlay(delay = 1200) { setTimeout(() => $('exportOverlay')?.classL
 
 async function seekAndRender(ctx, width, height, time, signal) {
     if (signal?.aborted) throw new DOMException('Export cancelled', 'AbortError');
-    const state = window.state;
     const renderExportFrame = window.kefeRenderFrame;
-    const video = window.kefeMedia?.video;
+    const video = media.video;
     if (typeof renderExportFrame !== 'function') throw new Error('KEFE export renderer is not connected');
     if (video && Number.isFinite(video.duration) && video.duration > 0) {
         const target = ((time % video.duration) + video.duration) % video.duration;
@@ -59,9 +58,7 @@ async function seekAndRender(ctx, width, height, time, signal) {
 }
 
 async function runExport() {
-    const state = window.state;
-    const media = window.kefeMedia || {};
-    const master = resolveMasterInfo(state, media);
+        const master = resolveMasterInfo(state, media);
     if (!Number.isFinite(master.duration) || master.duration <= 0) throw new Error('Master duration is unavailable (load an audio file or a video with audio)');
     const textRequired = !state.projectType || state.projectType === 'lyric' || state.projectType === 'captioned';
     const timedLines = state.captions?.mode === 'captions' ? (Array.isArray(state.captions?.lines) ? state.captions.lines : []) : (Array.isArray(state.lyrics?.lines) ? state.lyrics.lines : []);
@@ -80,7 +77,7 @@ async function executeExport() {
     if (runtime.isExporting) return;
     runtime.isExporting = true;
     exportAbort = new AbortController();
-    const previewTime = Number(window.state?.playback?.currentTime) || 0;
+    const previewTime = Number(state?.playback?.currentTime) || 0;
     showOverlay();
     setExportUI(0, 'Preparing export…');
     if (cancelButton) cancelButton.textContent = 'Cancel';
@@ -96,10 +93,10 @@ async function executeExport() {
         else { console.error('[KEFE] Export failed:', error); setExportUI(0, `Export failed: ${error?.message || error}`); showOverlay(); }
     } finally {
         try {
-            const master = resolveMasterInfo(window.state, window.kefeMedia || {});
-            if (Number.isFinite(master.duration) && master.duration > 0) window.state.playback.currentTime = Math.min(previewTime, master.duration);
+            const master = resolveMasterInfo(state, media);
+            if (Number.isFinite(master.duration) && master.duration > 0) state.playback.currentTime = Math.min(previewTime, master.duration);
         } catch {}
-        if (window.kefeMedia?.video && Number.isFinite(window.kefeMedia.video.duration)) { try { const video = window.kefeMedia.video; video.pause(); if (video.duration > 0) video.currentTime = ((previewTime % video.duration) + video.duration) % video.duration; } catch {} }
+        if (media.video && Number.isFinite(media.video.duration)) { try { const video = media.video; video.pause(); if (video.duration > 0) video.currentTime = ((previewTime % video.duration) + video.duration) % video.duration; } catch {} }
         exportAbort = null; runtime.isExporting = false; if (cancelButton) cancelButton.textContent = 'Close';
         try { window.redrawCurrentPreviewFrame?.(); } catch {}
     }
@@ -114,5 +111,4 @@ cancelButton?.addEventListener('click', () => { if (runtime.isExporting) exportA
 confirmExport?.addEventListener('click', () => { closePreflightModal(); executeExport(); });
 closePreflight?.addEventListener('click', closePreflightModal);
 cancelPreflight?.addEventListener('click', closePreflightModal);
-window.kefeCancelExport = () => exportAbort?.abort();
 console.info('[KEFE] Native WebCodecs export with FFmpeg compatibility fallback loaded');

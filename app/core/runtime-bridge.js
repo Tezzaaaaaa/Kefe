@@ -6,7 +6,7 @@
     if (window.kefeRuntime?.ready) return true;
 
     const runtimeState = window.state;
-    const runtimeCanvas = window.canvas || document.getElementById('stageCanvas');
+    const runtimeCanvas = document.getElementById('stageCanvas');
     const runtimeMedia = window.kefeMedia;
 
     if (!runtimeState || !runtimeCanvas || !runtimeMedia) return false;
