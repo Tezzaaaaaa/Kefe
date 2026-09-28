@@ -133,3 +133,22 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 @media(max-width:560px){
   .preview-toolbar{height:60px;flex-basis:60px}
 }
+
+/* Lyric sync fallback panel. */
+.preview #kefeSyncRow{display:none}
+.preview[data-kefe-sync-open="true"] #kefeSyncRow{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 20px;margin:0;background:rgba(255,255,255,.025);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);position:relative;z-index:3}
+#kefeSyncRow label[for="kefeSyncSlider"]{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);flex:0 0 auto}
+#kefeSyncRow #kefeSyncSlider{flex:1 1 200px;min-width:120px;height:20px;background:transparent;cursor:pointer;-webkit-appearance:none;appearance:none}
+#kefeSyncSlider::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:rgba(255,255,255,.12)}
+#kefeSyncSlider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#EF3F38;border:2px solid #fff;margin-top:-5px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+#kefeSyncSlider::-moz-range-track{height:4px;border-radius:2px;background:rgba(255,255,255,.12)}
+#kefeSyncSlider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#EF3F38;border:2px solid #fff}
+#kefeSyncRow #kefeSyncValue{flex:0 0 auto;min-width:64px;font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;color:rgba(255,255,255,.85);text-align:right}
+#kefeSyncRow .kefe-sync-actions{display:inline-flex;gap:8px;flex:0 0 auto}
+#kefeSyncRow .kefe-sync-actions button{height:32px;padding:0 14px;border-radius:6px;border:1px solid rgba(255,255,255,.14);background:transparent;color:rgba(255,255,255,.85);font-size:12.5px;font-weight:500;white-space:nowrap;cursor:pointer}
+#kefeSyncRow .kefe-sync-actions button:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.22)}
+#kefeSyncRow .kefe-sync-hint{flex:0 0 100%;margin:0;font-size:12px;color:rgba(255,255,255,.45);line-height:1.5}
+.kefe-sync-toggle{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:6px;border:1px solid rgba(255,255,255,.10);background:transparent;color:rgba(255,255,255,.65);font-size:12px;font-weight:500;cursor:pointer;margin-left:auto}
+.kefe-sync-toggle:hover{background:rgba(255,255,255,.05);color:#fff}
+.kefe-sync-toggle[aria-expanded="true"]{background:rgba(239,63,56,.15);border-color:rgba(239,63,56,.5);color:#fff}
+.kefe-sync-toggle svg{width:14px;height:14px}
