@@ -128,7 +128,7 @@
   };
 
   function getMainEditorMeta() {
-    const mainState = window.state || {};
+    const mainState = window.kefe?.state || window.state || {};
     const meta = mainState.audio?.metadata || {};
     const file = mainState.audio?.file;
     const videoFile = window.kefeMedia?.videoFile;
@@ -237,7 +237,7 @@
       if (!bc.ready) { drawStatusText('Loading Butterchurn…', 'First load takes a few seconds'); return; }
       try {
         ctx.fillStyle = '#000'; ctx.fillRect(0, 0, dom.canvas.width, dom.canvas.height);
-        bc.drawMini(ctx, dom.canvas.width, dom.canvas.height, audio.currentTime || 0, window.state, audio);
+        bc.drawMini(ctx, dom.canvas.width, dom.canvas.height, audio.currentTime || 0, window.kefe?.state || window.state, audio);
       } catch (e) { drawStatusText('Draw failed', String(e && e.message || e)); }
       return;
     }
@@ -275,13 +275,13 @@
     let names = [], currentKey = '';
     if (group === 'butterchurn') {
       names = window.kefeButterchurn?.presetNames?.() || [];
-      currentKey = (window.state?.style?.butterchurnPreset) || '';
+      currentKey = (window.kefe?.state || window.state?.style?.butterchurnPreset) || '';
     } else if (group === 'matrixmusic') {
       names = (window.kefeMatrixVisualiser?.presetRecords?.() || []).map(r => r.id);
-      currentKey = (window.state?.style?.matrixMusicPreset) || '';
+      currentKey = (window.kefe?.state || window.state?.style?.matrixMusicPreset) || '';
     } else if (group === 'audioreactive') {
       names = (window.kefeAudioReactiveShaders?.presetNames?.() || []).map((_, i) => String(i));
-      const cur = window.state?.style?.audioReactiveShaderPreset;
+      const cur = window.kefe?.state || window.state?.style?.audioReactiveShaderPreset;
       currentKey = (cur === undefined || cur === null) ? '' : String(cur);
     }
     if (!names.length) return;
@@ -289,15 +289,15 @@
     if (idx < 0) idx = 0;
     idx = (idx + direction + names.length) % names.length;
     const next = names[idx];
-    if (!window.state) window.state = {};
-    if (!window.state.style) window.state.style = {};
-    if (group === 'butterchurn') window.state.style.butterchurnPreset = next;
+    if (!window.kefe?.state || window.state) window.kefe?.state || window.state = {};
+    if (!window.kefe?.state || window.state.style) window.kefe?.state || window.state.style = {};
+    if (group === 'butterchurn') window.kefe?.state || window.state.style.butterchurnPreset = next;
     else if (group === 'matrixmusic') {
-      window.state.style.matrixMusicPreset = next;
+      window.kefe?.state || window.state.style.matrixMusicPreset = next;
       try { window.kefeMatrixVisualiser?.selectPreset?.(next, dom.canvas.width, dom.canvas.height); } catch (_) {}
     } else if (group === 'audioreactive') {
       const n = Number(next) || 0;
-      window.state.style.audioReactiveShaderPreset = n;
+      window.kefe?.state || window.state.style.audioReactiveShaderPreset = n;
       try { window.kefeAudioReactiveShaders?.selectPreset?.(n, dom.canvas.width, dom.canvas.height); } catch (_) {}
     }
   }
@@ -359,15 +359,15 @@
     const [group, ...rest] = encoded.split('::');
     const preset = rest.join('::');
     miniPlayerVisualiser = group;
-    if (!window.state) window.state = {};
-    if (!window.state.style) window.state.style = {};
-    if (group === 'butterchurn') window.state.style.butterchurnPreset = preset;
+    if (!window.kefe?.state || window.state) window.kefe?.state || window.state = {};
+    if (!window.kefe?.state || window.state.style) window.kefe?.state || window.state.style = {};
+    if (group === 'butterchurn') window.kefe?.state || window.state.style.butterchurnPreset = preset;
     else if (group === 'matrixmusic') {
-      window.state.style.matrixMusicPreset = preset;
+      window.kefe?.state || window.state.style.matrixMusicPreset = preset;
       try { window.kefeMatrixVisualiser?.selectPreset?.(preset); } catch (_) {}
     } else if (group === 'audioreactive') {
       const n = Number(preset) || 0;
-      window.state.style.audioReactiveShaderPreset = n;
+      window.kefe?.state || window.state.style.audioReactiveShaderPreset = n;
       try { window.kefeAudioReactiveShaders?.selectPreset?.(n); } catch (_) {}
     }
     dom.presets.classList.remove('is-open');
