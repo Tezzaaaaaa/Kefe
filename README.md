@@ -37,19 +37,35 @@ Successful media uploads provide an in-editor upload summary and retry path. Aud
 
 ## Lyric effects
 
-The current production picker contains **11 registered lyric renderers**:
+The current production picker contains **27 registered lyric renderers**:
 
 - **Apple**
 - **Brat**
-- **Aurora**
 - **Eternal Sunshine**
+- **Aurora**
+- **Pulse**
 - **Typewriter**
-- **Instagram Lyrics**
+- **Instagram**
 - **Fade Up**
 - **Decrypt**
-- **Blur**
+- **Blur In**
 - **Shiny**
-- **Pulse**
+- **Rise**
+- **Slide**
+- **Drop**
+- **Drift**
+- **Scroll Lines**
+- **Barbie**
+- **Elastic Pop**
+- **Flip Text**
+- **Karaoke**
+- **Trailer**
+- **Fancy**
+- **Glitch**
+- **Analog TV**
+- **Split-Flap**
+- **Chromatica**
+- **Progressive Blur**
 
 The effect system uses a single registration/dispatch architecture with shared timing, typography, and drawing utilities. Native/canonical renderers and modular renderers are kept in the same production architecture rather than maintaining duplicate rendering pipelines.
 
@@ -277,7 +293,7 @@ See `docs/DEPLOY.md` for deployment details.
 
 KEFE Visualiser is actively developed and the `main` branch is the current production branch for the browser application.
 
-The current codebase includes the functioning editor, three guided creation pathways, media and metadata handling, lyric and caption workflows, 11 registered lyric renderers, backgrounds, post-render Visual FX, project files, local MP4 export, automated repository checks, and a separate Node backend architecture.
+The current codebase includes the functioning editor, three guided creation pathways, media and metadata handling, lyric and caption workflows, 27 registered lyric renderers, backgrounds, post-render Visual FX, project files, local MP4 export, automated repository checks, and a separate Node backend architecture.
 
 Current development is focused on reliability, cleanup, security hardening, browser/device compatibility, and continued refinement of the functioning tool rather than establishing the basic editor architecture.
 
