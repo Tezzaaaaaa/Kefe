@@ -10,7 +10,5 @@ Wizard-specific helper modules live here so the editor's guided-creation code ha
 
 - `wizard.js` — canonical controller and guided-creation state machine.
 - `wizard.css` — wizard presentation and responsive wizard layout.
-- `wizard-all-effects.js` — effect/style integration adapter.
-- `wizard-style-sections.js` — style-section rendering helpers.
 
 Do not add another `wizard-*` module unless it owns a distinct responsibility that cannot live in an existing subsystem.
