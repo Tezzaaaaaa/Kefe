@@ -2263,17 +2263,6 @@ function wireCaptions() {
     });
 }
 
-function syncBackgroundControls() {
-    const dim = $('bgDim');
-    if (dim) dim.value = String(Math.round((state.background.dim ?? 0.35) * 100));
-    const dimVal = $('bgDimVal');
-    if (dimVal) dimVal.textContent = `${Math.round((state.background.dim ?? 0.35) * 100)}%`;
-    const blur = $('bgBlur');
-    if (blur) blur.value = String(state.background.blur || 0);
-    const blurVal = $('bgBlurVal');
-    if (blurVal) blurVal.textContent = `${state.background.blur || 0}px`;
-}
-
 function init() {
     try {
         ensureDefaultBackground();
