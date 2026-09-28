@@ -1388,6 +1388,14 @@ body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-glass-dock{
 }
 
 
+/* Intro pathway surface: remove the sidebar glass layer so the cards and photography are visible. */
+body.wizard-mode[data-wizard-step="intro"] .sidebar{
+  background:transparent!important;
+  background-color:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+
 /* Intro photography: keep the supplied pathway images visible behind the cards. */
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background{
   display:block!important;
