@@ -66,20 +66,20 @@
       const h=document.createElement('div');h.className='sub-heading';h.textContent='Background Effects';sec.insertBefore(h,sec.firstChild);
       const select=document.createElement('select');select.id='backgroundEffectSelect';select.setAttribute('aria-label','Background effect');
       const off=document.createElement('option');off.value='none';off.textContent='Off — clean KEFE rendering';select.appendChild(off);
-      const native=document.createElement('optgroup');native.label='Available in KEFE';
-      [['vhs','VHS'],['crt','CRT'],['rgb','RGB Shift'],['bloom','Bloom'],['motion','Motion Blur'],['shake','Camera Shake'],['glitch','Glitch'],['halftone','Halftone'],['vignette','Vignette'],['mixedmedia','Mixed Media']].forEach(([value,label])=>{const o=document.createElement('option');o.value=value;o.textContent=label;native.appendChild(o);});
-      select.appendChild(native);
       Object.entries(catalog).forEach(([category,names])=>{
         const group=document.createElement('optgroup');group.label=category;
         names.forEach(name=>{
           const o=document.createElement('option');
           const map={ 'Camera shake':'shake','Motion blur':'motion','Glitch':'glitch','VHS':'vhs','Halftone screen':'halftone','Bloom':'bloom','CRT screen':'crt','RGB Shift':'rgb','Vignette':'vignette' };
           o.value=map[name]||'';
-          o.textContent=implemented.has(name)?`${name} — available in KEFE`:`${name}`;
+          o.textContent=name;
           o.disabled=!implemented.has(name);
-          if(!implemented.has(name))o.title='Catalogued effect — renderer not yet implemented';
+          if(!implemented.has(name)){o.title='Catalogued effect — renderer not yet implemented';o.value='';}
           group.appendChild(o);
         });
+        if(category==='Effects'){
+          const mixed=document.createElement('option');mixed.value='mixedmedia';mixed.textContent='Mixed Media';group.appendChild(mixed);
+        }
         select.appendChild(group);
       });
       const wrap=document.createElement('label');wrap.className='background-effect-select';wrap.textContent='Effect';wrap.appendChild(select);
