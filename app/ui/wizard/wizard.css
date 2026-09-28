@@ -826,3 +826,36 @@ body.wizard-mode textarea:focus-visible{
   outline:2px solid rgba(239,63,56,.9);
   outline-offset:2px;
 }
+
+/* ==========================================================================
+   KEFE — serene pastel glass wizard theme
+   ========================================================================== */
+body.wizard-mode{
+  color:#2a3242;
+  background:radial-gradient(circle at 10% 10%,#e0eafc 0%,transparent 50%),radial-gradient(circle at 90% 90%,#fcece0 0%,transparent 50%),radial-gradient(circle at 50% 50%,#f0f4f8 0%,transparent 100%),#f4f7fb;
+}
+body.wizard-mode::before{background:transparent}
+body.wizard-mode .kefe-pathway-background{background:transparent}
+body.wizard-mode .kefe-pathway-background::after{background:rgba(255,255,255,.22)}
+body.wizard-mode .kefe-pathway-background-image{filter:saturate(.78) brightness(1.08)}
+body.wizard-mode .kefe-pathway-card{border-color:rgba(255,255,255,.70);background:rgba(255,255,255,.45);color:#2a3242;box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 8px 32px rgba(100,120,150,.10);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5)}
+body.wizard-mode .kefe-pathway-card:hover:not(.active){background:rgba(255,255,255,.65);border-color:rgba(255,255,255,.88)}
+body.wizard-mode .kefe-pathway-card.active{background:rgba(255,255,255,.68);border-color:rgba(255,255,255,.92)}
+body.wizard-mode .kefe-pathway-content strong{color:rgba(42,50,66,.68)}
+body.wizard-mode .kefe-pathway-card.active .kefe-pathway-content strong{color:#2a3242}
+body.wizard-mode .wizard-panel,body.wizard-mode .wizard-nav,body.wizard-mode .section-nav,body.wizard-mode .sidebar,body.wizard-mode .section,body.wizard-mode .sub-block,body.wizard-mode .music-details,body.wizard-mode .control-row,body.wizard-mode .lyrics-actions,body.wizard-mode .nudge-row,body.wizard-mode .caption-style-grid,body.wizard-mode .metadata-grid,body.wizard-mode .wizard-progress-wrap,body.wizard-mode .wizard-step-menu,body.wizard-mode .wizard-effect-popover,body.wizard-mode .kefe-effect-subpopover,body.wizard-mode .preview,body.wizard-mode .preview-stage,body.wizard-mode .transport,body.wizard-mode .transport-controls,body.wizard-mode .transport-progress,body.wizard-mode .transport-actions,body.wizard-mode .aspect-buttons,body.wizard-mode .background-choice-grid,body.wizard-mode .effect-buttons{background:rgba(255,255,255,.45);border-color:rgba(255,255,255,.70);box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 8px 32px rgba(100,120,150,.10);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5)}
+body.wizard-mode input:not([type="range"]):not([type="color"]),body.wizard-mode select,body.wizard-mode textarea{background:rgba(255,255,255,.58);border-color:rgba(255,255,255,.80);box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 4px 16px rgba(100,120,150,.07);color:#2a3242}
+body.wizard-mode button,body.wizard-mode .file-button,body.wizard-mode .segmented-btn,body.wizard-mode .background-choice,body.wizard-mode .aspect-buttons button,body.wizard-mode .nudge-row button{background:rgba(255,255,255,.45);border-color:rgba(255,255,255,.72);box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 6px 20px rgba(100,120,150,.10);color:#2a3242}
+body.wizard-mode button:hover,body.wizard-mode .file-button:hover,body.wizard-mode .segmented-btn:hover,body.wizard-mode .background-choice:hover,body.wizard-mode .aspect-buttons button:hover,body.wizard-mode .nudge-row button:hover{background:rgba(255,255,255,.68);border-color:rgba(255,255,255,.90);color:#2a3242}
+body.wizard-mode button.primary,body.wizard-mode .wizard-next,body.wizard-mode .wizard-choice.selected,body.wizard-mode .section-nav-link.active{background:#8ba8d4!important;border-color:#8ba8d4!important;color:#fff!important}
+body.wizard-mode .wizard-choice,body.wizard-mode .wizard-source-choices .wizard-choice,body.wizard-mode .wizard-style-group,body.wizard-mode .wizard-summary-row,body.wizard-mode .wizard-effect-choice{background:rgba(255,255,255,.45);border-color:rgba(255,255,255,.70);color:#2a3242;box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 8px 32px rgba(100,120,150,.10)}
+body.wizard-mode .wizard-choice strong,body.wizard-mode .wizard-effect-copy strong,body.wizard-mode .wizard-panel-title{color:#2a3242}
+body.wizard-mode .wizard-choice-copy>span,body.wizard-mode .wizard-panel-hint,body.wizard-mode .wizard-panel-note,body.wizard-mode .wizard-summary-row span,body.wizard-mode .wizard-motion-effects-hint{color:#5a6478}
+body.wizard-mode .wizard-choice-icon,body.wizard-mode .wizard-effect-demo{background:rgba(255,255,255,.60);color:#6b8bb8;border-color:rgba(255,255,255,.80)}
+body.wizard-mode .wizard-effect-demo{box-shadow:inset 0 1px 0 rgba(255,255,255,.90)}
+body.wizard-mode .wizard-start-indicator{background:rgba(255,255,255,.60);border-color:rgba(255,255,255,.80);box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 8px 32px rgba(100,120,150,.10)}
+body.wizard-mode[data-wizard-step="intro"] .wizard-start-indicator{background:#8ba8d4;border-color:#8ba8d4;box-shadow:0 8px 24px rgba(100,120,150,.16)}
+body.wizard-mode .wizard-nav{color:#2a3242}
+body.wizard-mode .wizard-progress,body.wizard-mode .wizard-step-label{color:#5a6478}
+body.wizard-mode .wizard-back{background:rgba(255,255,255,.55);color:#2a3242;border-color:rgba(255,255,255,.78)}
+body.wizard-mode .wizard-skip{color:#5a6478}
