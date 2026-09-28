@@ -1,139 +1,31 @@
-:root{--editor-rail:380px;--header-h:64px;--preview-pad:clamp(18px,3vw,44px);--panel-radius:14px}
-main{display:grid;grid-template-columns:var(--editor-rail) minmax(0,1fr);grid-template-rows:minmax(0,1fr);flex:1;min-width:0;min-height:0;overflow:hidden;background:var(--bg)}
+:root{--editor-rail:220px;--header-h:64px;--preview-pad:clamp(18px,3vw,44px);--panel-radius:14px}
+
 .sidebar{width:auto;min-width:0;min-height:0;overflow:hidden;border-right:1px solid var(--line);background:var(--surface)}
 body.wizard-mode .sidebar{display:flex;flex-direction:column;min-height:0}
-/* The guided wizard owns the active editing flow, while the existing section
-   navigation remains available as the persistent editor navigation. */
-body.wizard-mode .section-nav{display:grid!important}
-body.wizard-mode #fxSection{display:none!important}
-body.wizard-mode .wizard-skip{display:none!important}
-body.wizard-mode main{padding-top:0!important}
+
+body.wizard-mode .section-nav{display:none}
+body.wizard-mode #fxSection{display:none}
+body.wizard-mode .wizard-skip{display:none}
+body.wizard-mode main{padding-top:0}
 body.wizard-mode .sidebar>.section:not(.wizard-current){display:none}
 body.wizard-mode .sidebar>.section.wizard-current{display:block;flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px 16px 20px}
-body.wizard-mode #textSection:has(#lyricsPanel.wizard-current),body.wizard-mode #textSection:has(#captionsPanel.wizard-current){display:block;flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px 16px 20px}
-body.wizard-mode[data-wizard-step="lyrics"] #textSection>h3,body.wizard-mode[data-wizard-step="captions"] #textSection>h3{display:none}
-body.wizard-mode[data-wizard-step="lyrics"] #textSection>[role="tablist"],body.wizard-mode[data-wizard-step="captions"] #textSection>[role="tablist"]{display:none}
-body.wizard-mode[data-wizard-step="lyrics"] #captionsPanel{display:none!important}
-body.wizard-mode[data-wizard-step="captions"] #lyricsPanel{display:none!important}
-body.wizard-mode[data-wizard-step="lyrics"] #lyricStyleBlock{display:none!important}
+body.wizard-mode #textSection:has(#lyricsPanel.wizard-current),
+body.wizard-mode #textSection:has(#captionsPanel.wizard-current){display:block;flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px 16px 20px}
+body.wizard-mode[data-wizard-step="lyrics"] #textSection>h3,
+body.wizard-mode[data-wizard-step="captions"] #textSection>h3{display:none}
+body.wizard-mode[data-wizard-step="lyrics"] #textSection>[role="tablist"],
+body.wizard-mode[data-wizard-step="captions"] #textSection>[role="tablist"]{display:none}
+body.wizard-mode[data-wizard-step="lyrics"] #captionsPanel{display:none}
+body.wizard-mode[data-wizard-step="captions"] #lyricsPanel{display:none}
+body.wizard-mode[data-wizard-step="lyrics"] #lyricStyleBlock{display:none}
 body.wizard-mode .wizard-nav{flex:0 0 auto}
-.preview{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;padding:0;background:var(--bg)}
-.preview-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0;min-height:58px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--surface);flex:0 0 auto}
-.preview-heading{display:flex;align-items:center;min-width:0;gap:9px}.preview-heading>*{flex:0 0 auto}
-.canvas-wrapper{position:relative;display:flex;align-items:center;justify-content:center;flex:1 1 auto;min-width:0;min-height:0;padding:clamp(10px,1.5vw,16px);background:var(--surface-2);overflow:hidden;isolation:isolate}
-.canvas-wrapper::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 46%,rgba(255,255,255,.045),transparent 52%);z-index:-1}
-.canvas-wrapper canvas{position:relative;z-index:1;display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;border-radius:var(--panel-radius);box-shadow:0 22px 70px rgba(0,0,0,.22),0 2px 10px rgba(0,0,0,.14);outline:1px solid rgba(255,255,255,.08);outline-offset:-1px}
-.transport{display:flex;align-items:center;gap:8px;min-width:0;padding:0 16px 0 0;border:0;background:transparent;flex:0 0 auto}.transport .slider{flex:1 1 auto;min-width:120px;width:min(360px,32vw)}.transport #clock{flex:0 0 auto;min-width:76px;text-align:right;white-space:nowrap}
-@media(max-width:1100px){:root{--editor-rail:340px}}
-@media(max-width:900px){main{grid-template-columns:1fr;grid-template-rows:minmax(280px,46dvh) minmax(0,1fr)}.sidebar{width:100%;min-height:0;border-right:0;border-bottom:1px solid var(--line)}.preview-toolbar{padding:9px 14px}.canvas-wrapper{padding:8px}body.wizard-mode main{grid-template-columns:1fr;grid-template-rows:minmax(280px,46dvh) minmax(0,1fr)}}
-@media(max-width:700px){.preview-toolbar{min-height:52px;gap:8px;padding:8px 10px}.preview-heading{gap:6px}.transport{display:grid;grid-template-columns:44px 44px minmax(0,1fr) auto;gap:6px}.transport>button,.transport>.icon-button{min-width:44px;min-height:44px}.transport .slider{min-width:0;width:100%}.canvas-wrapper{padding:6px}body.wizard-mode .sidebar>.section.wizard-current,body.wizard-mode #textSection:has(#lyricsPanel.wizard-current),body.wizard-mode #textSection:has(#captionsPanel.wizard-current){padding:14px 12px 16px}}
-@media(max-width:480px){.preview-heading #previewStatus{display:none}.transport{grid-template-columns:42px 42px minmax(0,1fr) auto;gap:5px}.transport>button,.transport>.icon-button{min-width:42px;min-height:42px}.transport #clock{min-width:62px;font-size:10px}}
-@media(pointer:coarse){.preview-toolbar button,.preview-toolbar select,.preview-toolbar input[type=range],.transport button,.transport input[type=range]{min-height:44px}}
 
-
-
-.section-nav-link:hover{background:rgba(255,255,255,.05)}
-.section-nav-link.active,[aria-current="page"]
-.section-nav-link:focus-visible{outline:2px solid currentColor;outline-offset:-2px}
-
-.section-nav{display:flex;flex:0 0 auto;width:100%;box-sizing:border-box;overflow-x:auto;padding:0 16px;border-bottom:1px solid var(--border-color,#2a2a2a)}
-.section-nav-list{display:flex;flex:1 0 max-content;align-items:stretch;gap:2px;min-width:100%}
-.section-nav-link{appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;box-sizing:border-box;padding:10px 14px;font:inherit;font-weight:500;line-height:1.2;white-space:nowrap;border-bottom:2px solid transparent}
-.section-nav-link:hover{background:rgba(255,255,255,.05)}
-.section-nav-link.active{font-weight:700;border-bottom-color:currentColor}
-.section-nav-link:focus-visible{outline:2px solid currentColor;outline-offset:-2px}
-
-/* ---------------------------------------------------------------------
-   Mobile toolbar fixes — allow the heading to shrink and stack when
-   narrow. Overlapping at <700px was caused by .preview-heading > *
-   { flex:0 0 auto } preventing anything from giving.
-   --------------------------------------------------------------------- */
-@media(max-width:700px){
-  .preview-heading{gap:6px;min-width:0;flex-wrap:nowrap}
-  .preview-heading>*{min-width:0}
-  .preview-heading .kefe-sync-toggle span{display:none}
-  .preview-heading .kefe-sync-toggle{padding:0 10px;gap:0}
-  .preview-heading .preview-format button{padding:0 8px;font-size:11px}
-  .preview-heading .preview-format{padding:2px;gap:1px}
-  .preview-heading #previewModeBadge{display:none}
-}
-@media(max-width:480px){
-  .preview-heading .kefe-sync-toggle{display:none}
-  .preview-heading .preview-format button{padding:0 6px;font-size:10px}
-  .preview-heading .preview-focus-button,
-  .preview-heading #previewFocusButton{display:none}
-}
-
-/* Mobile layout improvements */
-@media(max-width:900px){main{gap:16px;padding:12px}.preview{border-radius:14px;overflow:hidden}.preview-toolbar{padding:14px 16px;min-height:64px;gap:12px;flex-wrap:wrap}.preview-heading{gap:10px;width:100%}.canvas-wrapper{padding:8px}.transport{padding:12px 14px;min-height:56px;gap:10px;border-top:1px solid var(--line);background:var(--surface)}.transport .play-button,.transport .icon-button{width:44px;height:44px;min-width:44px}.sidebar>.section{padding:18px 16px}.wizard-choices{gap:14px}.wizard-choices:not(.wizard-source-choices) .wizard-choice{padding:22px 18px;min-height:auto;gap:12px}.wizard-choice-copy strong{font-size:16px;line-height:1.25}.wizard-choice-copy span{font-size:12.5px;line-height:1.5;margin-top:2px}.wizard-nav{padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));gap:12px}.wizard-nav button:not(.wizard-skip){min-width:100px;min-height:46px;padding:0 20px;font-size:13.5px}}
-@media(max-width:560px){main{padding:10px;gap:14px}.preview-toolbar{padding:12px 14px;min-height:60px}.canvas-wrapper{padding:6px}.sidebar>.section{padding:16px 14px}.wizard-choices:not(.wizard-source-choices) .wizard-choice{padding:20px 16px}.wizard-panel{padding:20px 16px 24px}}
-
-
-.transport #previewFocusButton,.transport .preview-focus-button{order:99;margin-left:auto;width:40px;height:40px;min-width:40px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:rgba(255,255,255,0.75);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex:0 0 auto}
-.transport #previewFocusButton:hover,.transport .preview-focus-button:hover{background:rgba(255,255,255,0.06);color:#fff}
-.transport #previewFocusButton svg,.transport .preview-focus-button svg{width:18px;height:18px}
-@media(max-width:700px){.transport{grid-template-columns:44px 44px minmax(0,1fr) auto auto}.transport #previewFocusButton,.transport .preview-focus-button{width:44px;height:44px;min-width:44px}}
-@media(max-width:480px){.transport{grid-template-columns:42px 42px minmax(0,1fr) auto auto}.transport #previewFocusButton,.transport .preview-focus-button{width:42px;height:42px;min-width:42px}}
-
-/* UNIFORM BUTTONS */
-button,.play-button,.transport .play-button,.transport .icon-button,#previewFocusButton,.preview-focus-button,.wizard-nav button,.wizard-back,.wizard-next{height:40px!important;min-height:40px!important;max-height:40px!important;box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important}
-button.icon-button,.play-button,.transport .play-button,.transport .icon-button,#previewFocusButton,.preview-focus-button{width:40px!important;min-width:40px!important;padding:0!important}
-
-/* Seek slider fills the transport row */
-.transport #seek,.transport .slider{flex:1 1 auto!important;width:100%!important;min-width:120px!important;max-width:none!important;margin:0!important}
-.transport{gap:10px!important;align-items:center!important}
-
-
-/* MOBILE: keep preview heading in one row, aspect chips inline on the right */
-@media(max-width:900px){
-.preview-toolbar{flex-wrap:nowrap!important;gap:8px!important;padding:10px 12px!important}
-.preview-heading{flex-wrap:nowrap!important;gap:6px!important;width:auto!important;flex:1 1 auto!important;min-width:0!important;overflow:hidden!important}
-.preview-heading strong{font-size:13px!important;flex:0 0 auto!important}
-.preview-heading #previewStatus{display:none!important}
-.preview-heading #previewModeBadge,.preview-heading .mode-badge{display:none!important}
-.preview-heading .kefe-sync-toggle{display:none!important}
-.preview-heading .preview-format{margin-left:auto!important;flex:0 0 auto!important;height:36px!important;padding:3px!important;gap:2px!important}
-.preview-heading .preview-format button{height:28px!important;padding:0 8px!important;font-size:11px!important}
-}
-@media(max-width:480px){
-.preview-heading .preview-format button{padding:0 6px!important;font-size:10.5px!important}
-.preview-heading strong{font-size:12px!important}
-}
-
-.preview-logo-backdrop{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.65);width:480px;height:480px;background-image:url(../assets/kefe-logo-loop.gif);background-size:contain;background-repeat:no-repeat;background-position:center;pointer-events:none;opacity:0.7;z-index:1;mix-blend-mode:screen}
-@media(max-width:700px){.preview-logo-backdrop{transform:translate(-50%,-50%) scale(0.6);width:400px;height:400px}}
-@media(max-width:480px){.preview-logo-backdrop{transform:translate(-50%,-50%) scale(0.55);width:340px;height:340px}}
-
-.kefe-preview-corner{display:none!important}
-
-.transport{display:grid!important;grid-template-columns:40px 40px minmax(0,1fr) auto 40px!important;gap:10px!important;align-items:center!important;padding:8px 12px!important;width:100%!important}
-.transport #seek,.transport .slider,.transport input[type=range]{grid-column:3!important;width:100%!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important}
-.transport #clock{grid-column:4!important;min-width:80px!important;text-align:right!important}
-.transport #previewFocusButton,.transport .preview-focus-button{grid-column:5!important;display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
-.preview-logo-backdrop{background-color:transparent!important;border:none!important;box-shadow:none!important;outline:none!important;padding:0!important;opacity:0.55!important;mix-blend-mode:screen!important;filter:none!important}
-.preview.is-placeholder .canvas-wrapper{background:transparent!important}
-.preview.is-placeholder .canvas-wrapper::before{display:none!important}
-.preview.is-placeholder .canvas-wrapper canvas{box-shadow:none!important;outline:none!important;border-radius:0!important}
-
-.canvas-wrapper>*:not(canvas):not(.preview-logo-backdrop){display:none!important}
-
-/* MiniPlayer toggle — same size/shape as the other header icons */
-#kmpHeaderToggle.icon-button{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px!important;max-height:40px!important;padding:0!important;border:1px solid rgba(255,255,255,0.10)!important;border-radius:8px!important;background:transparent!important;color:rgba(255,255,255,0.75)!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;box-sizing:border-box!important}
-#kmpHeaderToggle.icon-button:hover{background:rgba(255,255,255,0.06)!important;color:#fff!important}
-#kmpHeaderToggle.icon-button svg{width:18px!important;height:18px!important;stroke:currentColor!important;fill:none!important;stroke-width:1.8!important}
-#kmpHeaderToggle.icon-button[data-on="true"]{background:rgba(239,63,56,0.18)!important;border-color:rgba(239,63,56,0.55)!important;color:#fff!important}
-
-
-/* ---------------------------------------------------------------------
-   KEFE editor workspace — three-rail layout based on the new editor shell.
-   Existing KEFE controls stay in the right rail; preview and timing stay
-   in the center so the renderer/state/export pipeline remains unchanged.
-   --------------------------------------------------------------------- */
 body.kefe-editor-mode main{
   grid-template-columns:220px minmax(0,1fr) 320px;
   grid-template-rows:minmax(0,1fr);
   min-height:0;
 }
+
 body.kefe-editor-mode .kefe-editor-rail{
   display:flex;
   flex-direction:column;
@@ -144,91 +36,27 @@ body.kefe-editor-mode .kefe-editor-rail{
   background:var(--surface);
   overflow-y:auto;
 }
-.kefe-editor-rail-label{
-  padding:0 8px 8px;
-  color:var(--text-3);
-  font-size:10px;
-  font-weight:600;
-  letter-spacing:1px;
-  text-transform:uppercase;
-}
-.kefe-editor-rail-item{
-  width:100%;
-  min-height:40px;
-  padding:0 12px;
-  border:0;
-  border-radius:10px;
-  background:transparent;
-  color:var(--text-2);
-  text-align:left;
-  font:inherit;
-  font-size:13px;
-  cursor:pointer;
-}
+
+.kefe-editor-rail-label{padding:0 8px 8px;color:var(--text-3);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.kefe-editor-rail-item{width:100%;min-height:40px;padding:0 12px;border:0;border-radius:10px;background:transparent;color:var(--text-2);text-align:left;font:inherit;font-size:13px;cursor:pointer}
 .kefe-editor-rail-item:hover{background:var(--surface-2);color:var(--text)}
 .kefe-editor-rail-item.is-active{background:rgba(239,63,56,.12);color:var(--red)}
 .kefe-editor-rail-divider{height:1px;margin:12px 8px;background:var(--line)}
-body.kefe-editor-mode .kefe-editor-workspace{
-  display:flex;
-  flex-direction:column;
-  min-width:0;
-  min-height:0;
-  gap:16px;
-  padding:20px;
-  overflow-y:auto;
-  background:var(--bg);
-}
-body.kefe-editor-mode .kefe-editor-workspace .preview{
-  position:relative;
-  flex:1 1 auto;
-  min-height:280px;
-  aspect-ratio:auto;
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:#000;
-}
+
+body.kefe-editor-mode .kefe-editor-workspace{display:flex;flex-direction:column;min-width:0;min-height:0;gap:16px;padding:20px;overflow-y:auto;background:var(--bg)}
+body.kefe-editor-mode .kefe-editor-workspace .preview{position:relative;flex:1 1 auto;min-height:280px;aspect-ratio:auto;border:1px solid var(--line);border-radius:16px;background:#000}
 body.kefe-editor-mode .kefe-editor-workspace .canvas-wrapper{min-height:0}
-.kefe-waveform-panel{
-  flex:0 0 auto;
-  padding:16px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  background:var(--surface-2);
-}
+
+.kefe-waveform-panel{flex:0 0 auto;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
 .kefe-waveform-header,.kefe-waveform-meta,.kefe-waveform-offset{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .kefe-waveform-header{margin-bottom:12px;color:var(--text)}
 .kefe-waveform-header strong{font-size:13px}
 .kefe-waveform-actions{display:flex;gap:6px}
-.kefe-waveform-actions button{
-  height:30px;
-  padding:0 10px;
-  border:1px solid var(--line-strong);
-  border-radius:999px;
-  background:var(--surface);
-  color:var(--text-2);
-  font:inherit;
-  font-size:12px;
-}
-.kefe-waveform-box{
-  position:relative;
-  height:88px;
-  overflow:hidden;
-  border:1px solid var(--line);
-  border-radius:8px;
-  background:#080808;
-}
+.kefe-waveform-actions button{height:30px;padding:0 10px;border:1px solid var(--line-strong);border-radius:999px;background:var(--surface);color:var(--text-2);font:inherit;font-size:12px}
+.kefe-waveform-box{position:relative;height:88px;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:#080808}
 .kefe-waveform-box.drag-over{border-color:var(--red);background:rgba(239,63,56,.08)}
 .kefe-waveform-box canvas{display:block;width:100%;height:100%}
-.kefe-waveform-hint{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:var(--text-3);
-  font-size:12px;
-  pointer-events:none;
-}
+.kefe-waveform-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:12px;pointer-events:none}
 .kefe-waveform-box.has-audio .kefe-waveform-hint{opacity:0}
 .kefe-waveform-meta{margin-top:10px;color:var(--text-2);font-size:12px}
 .kefe-waveform-meta b{color:var(--red);font-weight:600}
@@ -236,76 +64,25 @@ body.kefe-editor-mode .kefe-editor-workspace .canvas-wrapper{min-height:0}
 .kefe-waveform-offset label{min-width:60px;color:var(--text-2);font-size:12px}
 .kefe-waveform-offset input{flex:1;accent-color:var(--red)}
 .kefe-waveform-offset output{min-width:52px;color:var(--text);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
-.kefe-editor-export{
-  flex:0 0 auto;
-  width:100%;
-  min-height:46px;
-  border:0;
-  border-radius:12px;
-  background:var(--red);
-  color:#fff;
-  font:inherit;
-  font-weight:600;
-  cursor:pointer;
-}
+
+.kefe-editor-export{flex:0 0 auto;width:100%;min-height:46px;border:0;border-radius:12px;background:var(--red);color:#fff;font:inherit;font-weight:600;cursor:pointer}
 .kefe-editor-export:hover{background:#f56565}
-body.kefe-editor-mode .sidebar.kefe-editor-rightbar{
-  min-width:0;
-  min-height:0;
-  border-right:0;
-  border-left:1px solid var(--line);
-  overflow:hidden;
-}
-body.kefe-editor-mode .sidebar.kefe-editor-rightbar .kefe-editor-tabs{display:none}
-body.kefe-editor-mode .sidebar.kefe-editor-rightbar>.section{
-  width:auto;
-  margin:0;
-  border:0;
-  border-radius:0;
-  background:var(--surface);
-}
-body.kefe-editor-mode .sidebar.kefe-editor-rightbar>.section.editor-active{
-  flex:1 1 auto;
-  min-height:0;
-  overflow-y:auto;
-  padding:16px;
-}
+
+body.kefe-editor-mode .sidebar.kefe-editor-rightbar{min-width:0;min-height:0;border-right:0;border-left:1px solid var(--line);overflow:hidden}
+body.kefe-editor-mode .sidebar.kefe-editor-rightbar>.section{width:auto;margin:0;border:0;border-radius:0;background:var(--surface)}
+body.kefe-editor-mode .sidebar.kefe-editor-rightbar>.section.editor-active{flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px}
 body.kefe-editor-mode .sidebar.kefe-editor-rightbar>.section:not(.editor-active){display:none}
-body.kefe-editor-mode .sidebar.kefe-editor-rightbar>.section.editor-active>h3{
-  position:sticky;
-  top:-16px;
-  z-index:3;
-  margin:-16px -16px 16px;
-  padding:14px 16px;
-  background:rgba(17,17,17,.94);
-  border-bottom:1px solid var(--line);
-}
-.kefe-editor-transport{
-  display:none;
-}
-body.kefe-editor-mode .kefe-editor-transport{
-  display:flex;
-  min-height:64px;
-  align-items:center;
-  gap:12px;
-  padding:0 20px;
-  border-top:1px solid var(--line);
-  background:var(--surface);
-}
-body.kefe-editor-mode .kefe-editor-transport .transport{
-  display:flex!important;
-  width:100%;
-  min-width:0;
-  padding:0;
-  border:0;
-  background:transparent;
-}
+body.kefe-editor-mode .sidebar.kefe-editor-rightbar>.section.editor-active>h3{position:sticky;top:-16px;z-index:3;margin:-16px -16px 16px;padding:14px 16px;background:rgba(17,17,17,.94);border-bottom:1px solid var(--line)}
+
+.kefe-editor-transport{display:none}
+body.kefe-editor-mode .kefe-editor-transport{display:flex;min-height:64px;align-items:center;gap:12px;padding:0 20px;border-top:1px solid var(--line);background:var(--surface)}
+body.kefe-editor-mode .kefe-editor-transport .transport{display:flex;width:100%;min-width:0;padding:0;border:0;background:transparent}
 body.kefe-editor-mode .kefe-editor-transport .transport #seek{flex:1 1 auto;min-width:120px}
+
 body.wizard-mode .kefe-editor-rail,
 body.wizard-mode .kefe-editor-workspace,
 body.wizard-mode .kefe-editor-transport{display:none}
-body.wizard-mode main{grid-template-columns:var(--editor-rail) minmax(0,1fr)}
-body.wizard-mode .sidebar{grid-column:1 / -1}
+
 @media(max-width:1100px){
   body.kefe-editor-mode main{grid-template-columns:190px minmax(0,1fr) 300px}
 }
@@ -315,4 +92,8 @@ body.wizard-mode .sidebar{grid-column:1 / -1}
   body.kefe-editor-mode .sidebar.kefe-editor-rightbar{border-left:0;border-top:1px solid var(--line);max-height:48dvh}
   body.kefe-editor-mode .kefe-editor-workspace{min-height:0;padding:12px}
   body.kefe-editor-mode .kefe-editor-workspace .preview{min-height:240px}
+}
+@media(max-width:700px){
+  body.kefe-editor-mode .kefe-editor-workspace{gap:12px}
+  .kefe-waveform-panel{padding:12px}
 }
