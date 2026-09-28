@@ -1194,3 +1194,46 @@ body.wizard-mode .app .preview,
 body.wizard-mode #previewSection{
   display:none!important;
 }
+
+/* Preview drawer: keep the render surface out of the way until it is needed. */
+#previewSection.preview-drawer {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 50;
+  width: auto;
+  height: min(62dvh, 720px);
+  min-height: 320px;
+  transform: translateY(calc(100% + 28px));
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .28s var(--ease), opacity .2s ease;
+}
+#previewSection.preview-drawer.preview-drawer-open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.preview-drawer-tab {
+  position: fixed;
+  right: 18px;
+  bottom: 16px;
+  z-index: 51;
+  min-height: 36px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--kefe-lg-bg, rgba(255,255,255,.82));
+  border: 1px solid var(--kefe-lg-border, rgba(255,255,255,.8));
+  box-shadow: var(--kefe-lg-shadow, 0 8px 28px rgba(0,0,0,.12));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.preview-drawer-open + .preview-drawer-tab { display: none; }
+@media (max-width: 700px) {
+  #previewSection.preview-drawer { left: 8px; right: 8px; bottom: 8px; height: min(70dvh, 620px); min-height: 260px; }
+  .preview-drawer-tab { right: 10px; bottom: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #previewSection.preview-drawer { transition: none; }
+}
