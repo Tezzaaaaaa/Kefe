@@ -264,6 +264,7 @@
         document.querySelectorAll('.sidebar .section').forEach(s => s.classList.remove('editor-active'));
         $('audioSection')?.classList.add('editor-active');
         editorTabs?.querySelectorAll('.kefe-editor-tab').forEach(tab => tab.classList.toggle('is-active', tab.getAttribute('href') === '#audioSection'));
+        document.dispatchEvent(new CustomEvent('kefe:editor-mode'));
     }
     function goTo(index) { const steps = stepsFor(); if (index < 0 || index >= steps.length) return; wizard.index = index; if (reducedMotion) return applyStep(); sidebar.classList.add('wizard-fading'); clearTimeout(fadeTimer); fadeTimer = setTimeout(() => { applyStep(); sidebar.classList.remove('wizard-fading'); }, 150); }
 
