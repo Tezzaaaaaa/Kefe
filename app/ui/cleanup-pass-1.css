@@ -446,3 +446,17 @@ header {
   .kefe-editor-tabs{top:6px;margin:6px 10px 8px;width:calc(100% - 20px)}
   .sidebar>.section{margin:8px 10px;padding:16px !important}
 }
+
+
+/* KEFE LIQUEFY EDITOR TAB TARGET STATES */
+.sidebar:has(#audioSection:target) .kefe-editor-tab[href="#audioSection"],
+.sidebar:has(#lyricStyleBlock:target) .kefe-editor-tab[href="#lyricStyleBlock"],
+.sidebar:has(#textSection:target) .kefe-editor-tab[href="#textSection"],
+.sidebar:has(#backgroundSection:target) .kefe-editor-tab[href="#backgroundSection"],
+.sidebar:has(#fxSection:target) .kefe-editor-tab[href="#fxSection"],
+.sidebar:has(#exportSection:target) .kefe-editor-tab[href="#exportSection"]{
+  color:#fff;
+  background:rgba(255,255,255,.13);
+  border-color:rgba(255,255,255,.18);
+}
+body.wizard-mode .kefe-editor-tabs{display:none}
