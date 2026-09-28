@@ -290,10 +290,9 @@ body.wizard-mode .kefe-pathway-card-container{
 }
 .kefe-pathway-background{
   position:absolute;
-  inset:-18px;
+  inset:0;
   z-index:0;
   overflow:hidden;
-  border-radius:36px;
   pointer-events:none;
   background:#080808;
 }
