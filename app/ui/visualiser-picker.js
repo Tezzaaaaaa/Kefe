@@ -61,10 +61,11 @@
     injectCss();
     var isVisualiser = window.state && window.state.projectType === 'visualiser';
     var onStyleStep = document.body.dataset.wizardStep === 'style';
-    var host = document.getElementById('wizardSection');
+    var editorMode = document.body.classList.contains('kefe-editor-mode');
+    var host = document.getElementById('wizardSection') || document.getElementById('visualiserControls');
     var existing = document.getElementById('kefeVisualiserPicker');
 
-    if (!isVisualiser || !onStyleStep || !host) {
+    if (!isVisualiser || (!onStyleStep && !editorMode) || !host) {
       if (existing) existing.remove();
       return;
     }
