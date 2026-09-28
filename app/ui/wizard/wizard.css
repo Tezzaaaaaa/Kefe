@@ -1515,3 +1515,12 @@ body.wizard-mode[data-wizard-step="intro"] .wizard-nav,
 body.wizard-mode[data-wizard-step="intro"] .wizard-step-heading{
   display:none!important;
 }
+
+
+/* Intro: collapse the editor sections so they cannot occupy or obstruct the pathway surface. */
+body.wizard-mode[data-wizard-step="intro"] .sidebar > .section:not(#wizardSection){
+  display:none!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .sidebar > #wizardSection{
+  display:block!important;
+}
