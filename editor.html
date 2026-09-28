@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="KEFE — a browser-based lyric video visualiser.">
+    <title>KEFE Visualiser</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./app/ui/styles.css">
+    <link rel="stylesheet" href="./app/ui/typography.css">
+    <link rel="stylesheet" href="./app/effects/effect-selector.css">
+    <link rel="stylesheet" href="./app/ui/background-presets.css">
+    <link rel="stylesheet" href="./app/ui/caption-generator.css">
+    <link rel="stylesheet" href="./app/ui/auth-ui.css">
+    <link rel="stylesheet" href="./app/ui/live-preview.css">
+    <link rel="stylesheet" href="./app/ui/preview-format.css">
+    <link rel="stylesheet" href="./app/ui/panel-controls.css">
+    <link rel="stylesheet" href="./app/ui/editor-layout.css">
+    <link rel="stylesheet" href="./app/ui/wizard/wizard.css">
+    <link rel="stylesheet" href="./app/ui/kefe-product-polish.css?v=2">
+    <link rel="stylesheet" href="./app/ui/design-tokens.css?v=10">
+    <link rel="stylesheet" href="./app/ui/effect-card-designs.css">
+    <link rel="stylesheet" href="./app/ui/square-ui.css">
+    <link rel="stylesheet" href="./app/ui/cleanup-pass-1.css?v=5">
+</head>
+<body>
+<div class="app">
+    <header>
+        <a class="brand" href="./" aria-label="KEFE Visualiser home" title="Return home"><img class="brand-logo brand-logo-night" src="./assets/branding/kefe-logo-light.svg" alt="KEFE"><span class="brand-descriptor" aria-hidden="true"><span>V</span><span>I</span><span>S</span><span>U</span><span>A</span><span>L</span><span>I</span><span>S</span><span>E</span><span>R</span></span></a>
+        <div class="header-actions">
+            <button id="miniPlayerBtn" type="button" class="icon-button" aria-label="Open MiniPlayer" title="Open MiniPlayer"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg></button><button id="resetBtn" type="button" class="icon-button" aria-label="Reset project" title="Reset project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7v5h5M5.4 12a7.5 7.5 0 1 0 2.1-5.2L4 10"/></svg></button>
+        </div>
+    </header>
+    <main><aside class="kefe-editor-rail" aria-label="Editor tools">
+  <div class="kefe-editor-rail-label">Tools</div>
+  <button type="button" class="kefe-editor-rail-item is-active" data-editor-target="#audioSection"><span>Media</span></button>
+  <button type="button" class="kefe-editor-rail-item" data-editor-target="#lyricStyleBlock"><span>Fonts</span></button>
+  <button type="button" class="kefe-editor-rail-item" data-editor-target="#textSection"><span>Lyric Effects</span></button>
+  <button type="button" class="kefe-editor-rail-item" data-editor-target="#backgroundSection"><span>Background Effects</span></button>
+  <button type="button" class="kefe-editor-rail-item" data-editor-target="#fxSection"><span>Visual FX</span></button>
+  <button type="button" class="kefe-editor-rail-item" data-editor-target="#visualiserSection"><span>Visualisers</span></button>
+  <div class="kefe-editor-rail-divider"></div>
+  <button type="button" class="kefe-editor-rail-item" data-editor-target="#exportSection"><span>Export</span></button>
+</aside><section class="kefe-editor-workspace"><section class="preview"><div class="preview-toolbar"><div class="preview-heading"><strong>Preview</strong><span id="previewStatus">Ready</span><span id="previewModeBadge" class="mode-badge">Lyrics</span><div id="previewFormat" class="preview-format" role="group" aria-label="Aspect ratio"></div></div></div><div class="canvas-wrapper"><canvas id="stageCanvas"></canvas></div></section><div class="kefe-waveform-panel">
+  <div class="kefe-waveform-header"><strong>Waveform &amp; Timing</strong><div class="kefe-waveform-actions"><button type="button" id="wfSelectAll">Select All</button><button type="button" id="wfClear">Clear</button></div></div>
+  <div class="kefe-waveform-box" id="kefeWaveformBox"><canvas id="kefeWaveformCanvas" aria-label="Audio waveform"></canvas><span class="kefe-waveform-hint">Drop media here</span></div>
+  <div class="kefe-waveform-meta"><span>Extend from <b id="kefeWaveformTimestamp">0:00.0</b></span><span id="kefeWaveformStatus">No audio loaded</span></div>
+  <div class="kefe-waveform-offset"><label for="editorLyricsOffset">Offset</label><input type="range" id="editorLyricsOffset" min="-10" max="10" step="0.01" value="0"><output id="editorLyricsOffsetValue">0.00s</output></div>
+</div><button type="button" class="kefe-editor-export" id="kefeEditorExport">Export video</button></section><aside class="sidebar kefe-editor-rightbar">
+            <div class="section" id="audioSection">
+                <h3>Media</h3>
+                <div class="drop-zone audio-upload-zone" id="audioDrop"><button type="button" id="audioChooseBtn" class="file-button audio-upload-button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 19h14"/></svg><span>Upload Audio</span></button><p class="control-hint">Drop an audio file here or click to browse</p><input type="file" id="audioInput" accept="audio/*" class="hidden"></div>
+                <div id="audioStatus" class="status">No audio loaded</div>
+                <div class="sub-block"><div class="sub-heading">Master audio source</div><div id="audioSourceButtons" class="segmented"></div><div id="audioSourceStatus" class="sub-hint"></div></div>
+                <div class="sub-heading music-details-heading">Song details</div><div class="metadata-grid music-details" aria-label="Song details">
+  <label class="music-slot" for="metaArtist"><span>Artist</span><input type="text" id="metaArtist" autocomplete="off" placeholder="Enter artist"></label>
+  <label class="music-slot" for="metaTitle"><span>Title</span><input type="text" id="metaTitle" autocomplete="off" placeholder="Enter song title"></label>
+  <label class="music-slot" for="metaAlbum"><span>Album</span><input type="text" id="metaAlbum" autocomplete="off" placeholder="Enter album"></label>
+</div>
+<div class="music-sync-hint" id="musicSyncHint">Enter the artist and song to find synced lyrics. If your background video has audio, its soundtrack will be used as the lyric sync source.</div>
+            </div><div class="section" id="textSection">
+                <h3>Lyrics &amp; Captions</h3>
+                <div class="segmented" role="tablist" aria-label="Text mode"><button type="button" class="segmented-btn active" data-text-mode="lyrics">Lyrics</button><button type="button" class="segmented-btn" data-text-mode="captions">Captions</button></div>
+                <div id="lyricsPanel" class="text-panel"><div id="lyricsStatus" class="status">No lyrics loaded</div><div class="lyrics-actions"><button type="button" id="findLyricsBtn" class="file-button">Find lyrics automatically</button><button type="button" id="editLyricsBtn" class="file-button">Edit / paste lyrics</button><button type="button" id="uploadLrcMain" class="file-button">Upload .lrc file</button></div><div id="lyricStyleBlock" class="sub-block"><div class="sub-heading">Style</div><div class="effect-buttons"><button type="button" class="segmented-btn" data-effect="apple">Apple</button><button type="button" class="segmented-btn" data-effect="brat">Brat</button><button type="button" class="segmented-btn" data-effect="eternal">Eternal Sunshine</button><button type="button" class="segmented-btn" data-effect="aurora">Aurora</button><button type="button" class="segmented-btn" data-effect="pulse">Pulse</button><button type="button" class="segmented-btn" data-effect="typewriter">Typewriter</button><button type="button" class="segmented-btn" data-effect="instagram">Instagram</button><button type="button" class="segmented-btn" data-effect="fadeup">Fade Up</button><button type="button" class="segmented-btn" data-effect="decrypt">Decrypt</button><button type="button" class="segmented-btn" data-effect="blur">Blur In</button><button type="button" class="segmented-btn" data-effect="shiny">Shiny</button></div><div id="effectLabel" class="effect-label"></div></div><div class="sub-block"><div class="sub-heading">Title card</div><label class="toggle-row"><input type="checkbox" id="titleCardEnabled" checked><span class="toggle-switch"></span> Show title card</label><div class="control-row"><label for="titleCardDuration">Duration <span id="titleCardDurationVal">3s</span></label><input type="range" id="titleCardDuration" min="1" max="15" step="1" value="3"></div><label>Style<select id="titleCardStyle"><option value="auto">Auto (matches effect)</option><option value="spotlight">Spotlight</option><option value="cinema">Cinema</option><option value="type">Type</option><option value="cover">Cover</option><option value="mono">Mono</option><option value="lower">Lower Third</option></select></label><div id="titleCardStyleHint" class="sub-hint"></div></div><div class="sub-block"><div class="sub-heading">Sync</div><label class="toggle-row"><input type="checkbox" id="syncLive"><span class="toggle-switch"></span> Live adjust while playing</label><div class="control-row"><label for="lyricsOffset">Offset <span id="offsetVal">0.00s</span></label><input type="range" id="lyricsOffset" min="-10" max="10" step="0.01" value="0"></div><div class="nudge-row"><button type="button" data-nudge="-0.1">-0.1s</button><button type="button" id="resetOffset">Reset</button><button type="button" data-nudge="0.1">+0.1s</button></div></div></div>
+                <div id="captionsPanel" class="text-panel hidden"><div id="captionsStatus" class="status">No captions generated</div><div class="lyrics-actions"><button type="button" id="autoCaptionsBtn" class="file-button">Auto-generate timing</button><button type="button" id="editCaptionsBtn" class="file-button">Edit caption blocks</button></div><div class="sub-block"><div class="sub-heading">Caption style</div><div class="caption-pos-row"><button type="button" class="segmented-btn" data-caption-pos="bottom">Bottom</button><button type="button" class="segmented-btn" data-caption-pos="top">Top</button></div><div class="caption-style-grid"><label>Colour<input type="color" id="captionColor" value="#FFFFFF" class="caption-color-input"></label><div class="control-row"><label for="captionOpacity">Opacity <span id="captionOpacityVal">100%</span></label><input type="range" id="captionOpacity" min="30" max="100" step="1" value="100"></div><label class="toggle-row"><input type="checkbox" id="captionShadow" checked><span class="toggle-switch"></span> Drop shadow</label></div></div></div>
+            </div><div class="section" id="backgroundSection"><h3>Background</h3><div class="background-upload-primary"><div class="sub-heading">Upload your background</div><div class="drop-zone" id="bgDrop"><label class="file-button" for="backgroundInput">Upload image or video</label><p class="control-hint">Choose your own background or drag &amp; drop it here.</p><input type="file" id="backgroundInput" accept="image/*,video/*" class="hidden"></div><div id="backgroundStatus" class="status"></div></div><div class="background-choice-grid">
+<button type="button" class="background-choice" data-background-preset="solid" style="--kefe-bg-solid-preview:#0A0A0A"><span class="background-choice-preview background-choice-swatch"></span><span class="background-choice-label">Solid</span></button>
+<button type="button" class="background-choice" data-background-preset="gradient"><span class="background-choice-preview"></span><span class="background-choice-label">Velvet</span></button>
+<button type="button" class="background-choice" data-background-preset="spotlight"><span class="background-choice-preview"></span><span class="background-choice-label">Spotlight</span></button>
+<button type="button" class="background-choice" data-background-preset="aurora"><span class="background-choice-preview"></span><span class="background-choice-label">Aurora</span></button>
+<button type="button" class="background-choice" data-background-preset="grid"><span class="background-choice-preview"></span><span class="background-choice-label">Grid</span></button>
+<button type="button" class="background-choice" data-background-preset="grain"><span class="background-choice-preview"></span><span class="background-choice-label">Film</span></button>
+<button type="button" class="background-choice" data-background-preset="midnight"><span class="background-choice-preview"></span><span class="background-choice-label">Midnight</span></button>
+<button type="button" class="background-choice" data-background-preset="ocean"><span class="background-choice-preview"></span><span class="background-choice-label">Deep Ocean</span></button>
+<button type="button" class="background-choice" data-background-preset="rose"><span class="background-choice-preview"></span><span class="background-choice-label">Rose Noir</span></button>
+<button type="button" class="background-choice" data-background-preset="amber"><span class="background-choice-preview"></span><span class="background-choice-label">Amber</span></button>
+<button type="button" class="background-choice" data-background-preset="emerald"><span class="background-choice-preview"></span><span class="background-choice-label">Emerald</span></button>
+<button type="button" class="background-choice" data-background-preset="violet"><span class="background-choice-preview"></span><span class="background-choice-label">Violet</span></button>
+<button type="button" class="background-choice" data-background-preset="mono"><span class="background-choice-preview"></span><span class="background-choice-label">Monochrome</span></button>
+<button type="button" class="background-choice" data-background-preset="sunset"><span class="background-choice-preview"></span><span class="background-choice-label">Sunset</span></button>
+<button type="button" class="background-choice" data-background-preset="haze"><span class="background-choice-preview"></span><span class="background-choice-label">Soft Haze</span></button>
+<button type="button" class="background-choice" data-background-preset="bokeh"><span class="background-choice-preview"></span><span class="background-choice-label">Bokeh</span></button>
+<button type="button" class="background-choice" data-background-preset="stage"><span class="background-choice-preview"></span><span class="background-choice-label">Stage Light</span></button>
+<button type="button" class="background-choice" data-background-preset="paper"><span class="background-choice-preview"></span><span class="background-choice-label">Paper</span></button>
+<button type="button" class="background-choice" data-background-preset="prism"><span class="background-choice-preview"></span><span class="background-choice-label">Prism</span></button>
+<button type="button" class="background-choice" data-background-preset="neon"><span class="background-choice-preview"></span><span class="background-choice-label">Neon</span></button>
+<button type="button" class="background-choice" data-background-preset="cobalt"><span class="background-choice-preview"></span><span class="background-choice-label">Cobalt</span></button>
+</div><label>Colour <input type="color" id="backgroundColor" value="#0A0A0A"> <span id="backgroundColorValue">#0A0A0A</span></label><div class="bg-controls"><div class="control-row"><label for="bgDim">Dim <span id="bgDimVal">35%</span></label><input type="range" id="bgDim" min="0" max="90" step="1" value="35"></div><div class="control-row"><label for="bgBlur">Blur <span id="bgBlurVal">0px</span></label><input type="range" id="bgBlur" min="0" max="30" step="1" value="0"></div></div></div><div class="section" id="fxSection"><h3>Visual FX</h3><div id="effectControls"></div></div><div class="section" id="visualiserSection"><h3>Visualisers</h3><div id="visualiserControls"></div></div><div class="section" id="exportSection"><h3>Export</h3><label>Aspect ratio<select id="aspectSelect"><option value="9:16">1080 × 1920 (Vertical)</option><option value="1:1">1080 × 1080 (Square)</option><option value="16:9">1920 × 1080 (Horizontal)</option></select></label><div id="aspectInfo" class="aspect-info"></div><label>Quality / preset<select id="exportPreset"><option value="720p">720p</option><option value="1080p" selected>1080p (recommended)</option><option value="480p">480p (fastest)</option><option value="instagram">Instagram (1080×1920)</option><option value="tiktok">TikTok (1080×1920)</option></select></label><button type="button" id="exportBottom" class="primary export-action">Export video</button></div></aside></main><footer class="kefe-editor-transport"><div class="transport"><button type="button" id="playBtn" class="play-button" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4.5l11 7.5-11 7.5z" fill="currentColor"/></svg></button><button type="button" id="stopBtn" class="icon-button" aria-label="Stop"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12v12H6z"/></svg></button><input type="range" id="seek" class="slider" min="0" max="0" step="0.01" value="0"><span id="clock">0:00 / 0:00</span></div></footer>
+</div>
+<div id="lyricsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Edit lyrics (LRC)</strong><button type="button" id="closeEditor" class="close-btn" aria-label="Close">&times;</button></div><div class="modal-body"><textarea id="lyricsText" rows="14" placeholder="[00:12.34]First line of lyrics&#10;[00:15.80]Next line…"></textarea><div id="editorStatus" class="status"></div></div><div class="modal-footer"><button type="button" id="pasteLyrics" class="file-button">Paste from clipboard</button><button type="button" id="uploadLrc" class="file-button">Upload .lrc file</button><input type="file" id="lrcFileInput" accept=".lrc,.txt,text/plain,application/octet-stream" class="hidden"><button type="button" id="cancelEditor" class="ghost">Cancel</button><button type="button" id="saveLyrics" class="primary">Save</button></div></div></div>
+<div id="captionsEditor" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Edit caption blocks</strong><button type="button" id="closeCaptions" class="close-btn" aria-label="Close">&times;</button></div><div class="modal-body"><div class="lyrics-actions"><button type="button" id="addCaptionRow" class="file-button">Add block</button><button type="button" id="clearCaptionText" class="file-button">Clear all text</button><button type="button" id="pasteCaptions" class="file-button">Paste text from clipboard</button></div><textarea id="captionsBulkText" rows="4" placeholder="Paste the full transcript here, then Fit Text to Blocks"></textarea><button type="button" id="distributeCaptions" class="file-button">Fit text to blocks</button><div id="captionsRows" class="caption-rows"></div><div id="captionsEditorStatus" class="status"></div></div><div class="modal-footer"><button type="button" id="cancelCaptions" class="ghost">Cancel</button><button type="button" id="saveCaptions" class="primary">Save</button></div></div></div>
+<div id="exportPreflight" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Ready to export</strong></div><div class="modal-body"><div id="preflightSummary" class="preflight-list"></div><div id="preflightWarning" class="preflight-warning hidden"></div><div id="preflightRepair" class="preflight-repair"></div></div><div class="modal-footer"><button type="button" id="closePreflight" class="close-btn" aria-label="Close">&times;</button><button type="button" id="cancelPreflight" class="ghost">Cancel</button><button type="button" id="confirmExport" class="primary">Start export</button></div></div></div>
+<div id="masterAudioChoice" class="modal hidden"><div class="modal-content"><div class="modal-header"><strong>Which audio should the lyrics sync to?</strong></div><div class="modal-body"><p class="control-hint">You've already synced lyrics to your uploaded audio, and your video also has its own audio. Pick which one should be the master audio — the other will be muted.</p><div id="masterAudioChoiceInfo" class="sub-hint"></div></div><div class="modal-footer"><button type="button" id="chooseMasterUploaded" class="file-button" data-master="uploaded">Keep uploaded audio</button><button type="button" id="chooseMasterVideo" class="file-button" data-master="video">Use video audio</button></div></div></div>
+<div id="exportOverlay" class="overlay hidden"><div class="modal-content"><div id="exportStatus" class="status">Exporting…</div><progress id="exportProgress" value="0" max="100"></progress><span id="exportPct">0%</span><button id="cancelExport" class="ghost" type="button">Cancel</button></div></div>
+<div id="toast" class="toast"></div>
+<script src="./app/effects/manifest.js"></script>
+<script src="./app/effects/core.js"></script><script src="./app/effects/typewriter.js"></script><script src="./app/effects/lyric-barbie.js"></script><script src="./app/effects/lyric-elasticpop.js"></script><script src="./app/effects/lyric-flipcards.js"></script><script src="./app/effects/lyric-karaoke.js"></script><script src="./app/effects/lyric-trailer.js"></script><script src="./app/effects/lyric-fancy.js"></script><script src="./app/effects/lyric-glitch.js"></script><script src="./app/effects/lyric-analogtv.js"></script><script src="./app/effects/instagram-lyrics.js"></script><script src="./app/effects/story-fade.js"></script><script src="./app/effects/brat.js"></script><script src="./app/effects/aurora.js"></script><script src="./app/effects/dark-veil.js"></script><script src="./app/effects/eternal-sunshine.js"></script><script src="./app/effects/decrypt-text.js"></script><script src="./app/effects/blur-text.js"></script><script src="./app/effects/shiny-text.js"></script><script src="./app/app.js"></script><script src="./app/core/analysis-engine.js"></script>
+<script src="./app/core/song-start.js"></script><script src="./app/core/frame-renderer.js"></script><script src="./app/ui/typography.js?v=5"></script><script src="./app/ui/background-presets.js"></script><script src="./app/ui/caption-generator.js"></script>
+<script src="./app/core/lyric-aligner.js"></script><script src="./app/ui/auth-ui.js"></script><script src="./app/effects/effect-app-fx.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="./app/effects/visualiser-ridgeline.js?v=9"></script><script src="./app/effects/visualiser-butterchurn.js?v=17"></script><script src="./app/effects/visualiser-matrixmusic.js?v=3"></script><script src="./app/effects/visualiser-audio-reactive-shaders.js?v=3"></script><script src="./app/effects/visualiser-beat.js?v=3"></script><script src="./app/effects/visualiser-tuffpuff.js"></script><script type="module" src="./app/export/ui.js"></script><script type="module" src="./app/export/export-enhancements.js"></script><script src="./app/ui/live-preview.js"></script><script src="./app/ui/music-intelligence.js"></script><script src="./app/ui/preview-format.js"></script>
+<script src="./app/ui/preview-corner.js"></script>
+<script src="./app/ui/wizard/card-accordion.js"></script>
+
+<script src="./app/ui/preview-video-strip.js"></script><script src="./app/ui/background-video-compat.js"></script><script src="./app/ui/auto-lyrics-sync.js"></script><script src="./app/ui/wizard/wizard.js"></script>
+<script src="./app/ui/visualiser-picker.js?v=7"></script>
+<script src="./app/effects/effects.js"></script>
+<script src="./app/ui/kefe-section-rescue.js"></script>
+<script src="./app/ui/kefe-rearrange.js"></script>
+<script src="./app/ui/kefe-metadata-fields.js"></script>
+<script src="./app/ui/kefe-preview.js?v=2"></script>
+<script src="./app/ui/preview-confirmations.js"></script>
+<script src="./app/ui/kefe-export-fix.js"></script>
+<script src="./app/ui/kefe-success-boxes.js"></script>
+<script src="./app/ui/kefe-audio-watchdog.js"></script>
+<script src="./app/ui/kefe-loading.js"></script>
+<script src="./app/ui/cleanup-pass-2.js?v=3"></script>
+<script src="./app/ui/mini-player.js?v=16"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const rail = document.querySelector('.kefe-editor-rail');
+  rail?.addEventListener('click', event => {
+    const item = event.target.closest('[data-editor-target]');
+    if (!item) return;
+    const target = item.getAttribute('data-editor-target');
+    const mappedTarget = target === '#lyricStyleBlock' ? '#textSection' : target;
+    document.querySelectorAll('.sidebar .section').forEach(section => section.classList.toggle('editor-active', '#' + section.id === mappedTarget));
+    const focusTarget = target === '#lyricStyleBlock' ? document.querySelector('#lyricStyleBlock') : document.querySelector(mappedTarget);
+    focusTarget?.scrollIntoView({block:'start', behavior:'smooth'});
+    rail.querySelectorAll('.kefe-editor-rail-item').forEach(node => node.classList.toggle('is-active', node === item));
+  });
+  document.getElementById('kefeEditorExport')?.addEventListener('click', () => document.getElementById('exportBottom')?.click());
+  const offset = document.getElementById('editorLyricsOffset');
+  const value = document.getElementById('editorLyricsOffsetValue');
+  offset?.addEventListener('input', event => {
+    const v = Number(event.target.value) || 0;
+    if (value) value.textContent = (v >= 0 ? '+' : '') + v.toFixed(2) + 's';
+    const legacy = document.getElementById('lyricsOffset');
+    if (legacy) { legacy.value = String(v); legacy.dispatchEvent(new Event('input', {bubbles:true})); }
+  });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const box = document.getElementById('kefeWaveformBox');
+  const canvas = document.getElementById('kefeWaveformCanvas');
+  if (!box || !canvas) return;
+  const ctx = canvas.getContext('2d');
+  let peaks = null, duration = 0, currentFile = null, frame = 0;
+
+  const formatTime = (s,tenths=false) => {
+    s=Number.isFinite(s)?s:0;
+    const m=Math.floor(s/60), sec=Math.floor(s%60);
+    return m+':'+String(sec).padStart(2,'0')+(tenths?'.'+Math.floor((s*10)%10):'');
+  };
+  const resize = () => {
+    const r=box.getBoundingClientRect(), dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=Math.max(1,Math.floor(r.width*dpr));
+    canvas.height=Math.max(1,Math.floor(r.height*dpr));
+    canvas.style.width=r.width+'px'; canvas.style.height=r.height+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0); draw();
+  };
+  const getTime=()=>{try{return Number(window.getMasterTime?.())||0}catch{return 0}};
+  const getDuration=()=>{try{return Number(window.getMasterDuration?.())||Number(window.state?.audio?.duration)||0}catch{return Number(window.state?.audio?.duration)||0}};
+  const draw=()=>{
+    const w=box.clientWidth||1,h=box.clientHeight||1,d=getDuration()||duration,t=Math.max(0,Math.min(d,getTime())),played=d>0?t/d:0;
+    ctx.clearRect(0,0,w,h);
+    if(!peaks?.length){
+      ctx.fillStyle='rgba(255,255,255,.12)';
+      for(let x=0;x<w;x+=4)ctx.fillRect(x,h/2-1,2,2);
+    }else{
+      const step=w/peaks.length;
+      for(let i=0;i<peaks.length;i++){const amp=Math.max(2,peaks[i]*h*.82);ctx.fillStyle=i/peaks.length<=played?'#ef3f38':'rgba(255,255,255,.28)';ctx.fillRect(i*step,h/2-amp/2,Math.max(1,step-.7),amp)}
+    }
+    const x=Math.max(0,Math.min(w,played*w));ctx.fillStyle='#ef3f38';ctx.fillRect(x-1,0,2,h);
+    const ts=document.getElementById('kefeWaveformTimestamp'),st=document.getElementById('kefeWaveformStatus');
+    if(ts)ts.textContent=formatTime(t,true);
+    if(st)st.textContent=currentFile?currentFile.name+' · '+formatTime(d):'No audio loaded';
+  };
+  const animate=()=>{
+    draw();
+    if(window.kefeAudioElement&&!window.kefeAudioElement.paused) frame=requestAnimationFrame(animate);
+    else frame=0;
+  };
+  const attachAudio=()=>{
+    const audio=window.kefeAudioElement;
+    if(!audio||audio.dataset.kefeWaveEvents)return;
+    audio.dataset.kefeWaveEvents='1';
+    ['loadedmetadata','timeupdate','play','pause','ended','durationchange'].forEach(type=>audio.addEventListener(type,()=>type==='play'?animate():draw()));
+  };
+  const computePeaks=async file=>{
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+    const decoded=await new AC().decodeAudioData((await file.arrayBuffer()).slice(0));
+    const data=decoded.getChannelData(0),count=Math.max(80,Math.min(1600,Math.floor(box.clientWidth*2))),bucket=Math.max(1,Math.floor(data.length/count)),out=new Float32Array(count);
+    for(let i=0;i<count;i++){let max=0,end=Math.min(data.length,(i+1)*bucket);for(let j=i*bucket;j<end;j++)max=Math.max(max,Math.abs(data[j]));out[i]=max}
+    let max=0;for(const v of out)max=Math.max(max,v);if(max)for(let i=0;i<out.length;i++)out[i]/=max;return out;
+  };
+  const loadFile=async file=>{
+    if(!file||(!file.type.startsWith('audio/')&&!file.type.startsWith('video/')))return;
+    currentFile=file;box.classList.add('has-audio');document.getElementById('kefeWaveformStatus').textContent='Analyzing waveform…';
+    try{peaks=await computePeaks(file);duration=Number(window.state?.audio?.duration)||0}catch{peaks=null}draw();
+  };
+  const ro=new ResizeObserver(resize);ro.observe(box);
+  document.getElementById('audioInput')?.addEventListener('change',e=>loadFile(e.target.files?.[0]));
+  document.getElementById('backgroundInput')?.addEventListener('change',e=>loadFile(e.target.files?.[0]));
+  box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('drag-over')});
+  box.addEventListener('dragleave',()=>box.classList.remove('drag-over'));
+  box.addEventListener('drop',e=>{e.preventDefault();box.classList.remove('drag-over');loadFile(e.dataTransfer.files?.[0])});
+  box.addEventListener('click',()=>document.getElementById('audioInput')?.click());
+  document.getElementById('wfSelectAll')?.addEventListener('click',()=>{try{window.seekPreview?.(0)}catch{}draw()});
+  document.getElementById('wfClear')?.addEventListener('click',()=>{peaks=null;currentFile=null;duration=0;box.classList.remove('has-audio');draw()});
+  const offset=document.getElementById('editorLyricsOffset'),value=document.getElementById('editorLyricsOffsetValue');
+  offset?.addEventListener('input',e=>{const v=Number(e.target.value)||0;if(value)value.textContent=(v>=0?'+':'')+v.toFixed(2)+'s';const legacy=document.getElementById('lyricsOffset');if(legacy){legacy.value=String(v);legacy.dispatchEvent(new Event('input',{bubbles:true}))}});
+  document.addEventListener('kefe:editor-mode',()=>{attachAudio();draw()});
+  attachAudio();resize();
+});
+</script></body>
+</html>
