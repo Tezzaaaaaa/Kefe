@@ -272,14 +272,11 @@
         if (!tab || !body.classList.contains('kefe-editor-mode')) return;
         event.preventDefault();
         const target = tab.getAttribute('href');
-        const mappedTarget = target === '#lyricStyleBlock' ? '#textSection' : target === '#previewSection' ? '#visualiserSection' : target;
+        const mappedTarget = target === '#lyricStyleBlock' ? '#textSection' : target;
         document.querySelectorAll('.sidebar .section').forEach(section => section.classList.toggle('editor-active', '#' + section.id === mappedTarget));
         editorTabs.querySelectorAll('.kefe-editor-tab').forEach(item => item.classList.toggle('is-active', item === tab));
-        if (target === '#lyricStyleBlock') {
-            document.querySelector('#lyricStyleBlock')?.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
-        } else {
-            document.querySelector(mappedTarget)?.scrollTo?.({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
-        }
+        const focusTarget = target === '#lyricStyleBlock' ? document.querySelector('#lyricStyleBlock') : document.querySelector(mappedTarget);
+        focusTarget?.scrollIntoView({ block: 'start', behavior: reducedMotion ? 'auto' : 'smooth' });
     });
 
     window.kefeWizard = {
