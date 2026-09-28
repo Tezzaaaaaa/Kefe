@@ -1134,6 +1134,45 @@ body.wizard-mode .section-nav-link{
 }
 
 
+/* Restored pathway cards beneath the Liquid Glass selector. */
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container{
+  display:grid!important;
+  position:relative;
+  z-index:5;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:15px;
+  width:min(100%,1100px);
+  height:320px;
+  margin:22px auto 0;
+  visibility:visible!important;
+  opacity:1!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  position:relative;
+  min-width:0;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-glass-dock{
+  position:absolute;
+  left:50%;
+  bottom:28px;
+  transform:translateX(-50%);
+  z-index:20;
+  margin:0;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container{
+  margin-top:0;
+  height:100%;
+}
+body.wizard-mode[data-wizard-step="intro"] .preview,
+body.wizard-mode[data-wizard-step="intro"] .preview-stage,
+body.wizard-mode[data-wizard-step="intro"] #preview,
+body.wizard-mode[data-wizard-step="intro"] #previewStage{
+  display:none!important;
+}
+
 /* ==========================================================================
    KEFE — Liquid Glass pathway dock
    Three pathways share one moving optical lens; controls remain sharp above it.
