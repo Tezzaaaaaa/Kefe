@@ -33,10 +33,10 @@ Each production lyric effect has one canonical typography pairing. The effect re
 
 ## Wiring rule
 
-The 21 pairings with a physically verified bundled font file are locked production assignments. Anton and VT323 are referenced by Fancy and Analog TV respectively, but their font files are not currently present in /fonts. Slide, Drift and Scroll Lines remain explicitly unassigned until unique bundled fonts are available; they must not silently inherit another effect's production font.
+The 23 currently assigned pairings are locked production assignments. Apple uses the platform SF Pro Display/system stack and does not require a bundled Apple font. Anton and VT323 are now bundled locally for Fancy and Analog TV. Slide, Drift and Scroll Lines remain explicitly unassigned until unique bundled fonts are available; they must not silently inherit another effect's production font.
 
 Trailer is already canonically assigned to Monoton in the typography registry.
 
-The repository currently contains fewer unique bundled font families than the 26-effect target requires, with Anton and VT323 also missing as physical font files. Do not reuse an existing production font to fill the remaining slots.
+The repository currently contains fewer unique font families than the 26-effect target requires. Apple uses the platform SF Pro system stack rather than redistributing Apple's font files. Do not reuse an existing production font to fill the remaining slots.
 
 All production fonts are locally bundled WOFF2 files. No remote font dependency is introduced.
