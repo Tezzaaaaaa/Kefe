@@ -239,6 +239,7 @@ I could feel the night begin</textarea>
 
   parseLyrics();
   setEffect('apple');
+  window.addEventListener('kefe-effects-ready',()=>{ setEffect(state.effect); });
 })();
 </script>
 <script src="./app/effects/lyric-progressiveblur.js"></script>
