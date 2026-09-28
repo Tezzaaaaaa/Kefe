@@ -13,7 +13,7 @@
     try {
       if (typeof getMasterDuration === 'function') return Number(getMasterDuration()) || 0;
     } catch (_) {}
-    return Number(window.state?.audio?.duration || 0);
+    return Number((window.kefe?.state || window.state)?.audio?.duration || 0);
   }
 
   function getPreset() {
@@ -45,7 +45,7 @@
     if (typeof resolver !== 'function') {
       throw new Error('KEFE export configuration is not available');
     }
-    const config = resolver(preset, window.state?.aspect || '9:16');
+    const config = resolver(preset, (window.kefe?.state || window.state)?.aspect || '9:16');
     const frames = Math.max(0, Math.ceil(duration * config.fps));
     const pixelFrames = config.width * config.height * frames;
     const load = pixelFrames > HIGH_POWER_PIXELS ? 'very-high' : pixelFrames > 30e9 ? 'high' : pixelFrames > 10e9 ? 'moderate' : 'light';
