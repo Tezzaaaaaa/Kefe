@@ -80,3 +80,162 @@ body.wizard-mode .wizard-choices.wizard-source-choices {
 .wizard-choices:not(.wizard-source-choices) .wizard-choice.selected .kefe-accordion-inner span{display:block!important}
 .wizard-choices:not(.wizard-source-choices) .wizard-choice .kefe-accordion-inner p{display:none!important}
 .wizard-choices:not(.wizard-source-choices) .wizard-choice.selected .kefe-accordion-inner p{display:block!important}
+
+
+/* Pathway intro: the old editor layout does not exist on the chooser. */
+body.wizard-mode[data-wizard-step="intro"]{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  background:transparent;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-editor-rail,
+body.wizard-mode[data-wizard-step="intro"] .kefe-editor-workspace,
+body.wizard-mode[data-wizard-step="intro"] .kefe-editor-transport,
+body.wizard-mode[data-wizard-step="intro"] .sidebar>.section:not(#wizardSection),
+body.wizard-mode[data-wizard-step="intro"] #wizardNav,
+body.wizard-mode[data-wizard-step="intro"] .preview,
+body.wizard-mode[data-wizard-step="intro"] .kefe-waveform-panel,
+body.wizard-mode[data-wizard-step="intro"] .kefe-editor-export{
+  display:none!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .app,
+body.wizard-mode[data-wizard-step="intro"] main,
+body.wizard-mode[data-wizard-step="intro"] .sidebar,
+body.wizard-mode[data-wizard-step="intro"] #wizardSection{
+  background:transparent!important;
+  border:0;
+}
+body.wizard-mode[data-wizard-step="intro"] main{
+  display:block;
+  width:100%;
+  height:100dvh;
+  min-height:100dvh;
+  padding:0;
+}
+body.wizard-mode[data-wizard-step="intro"] .sidebar{
+  width:100%;
+  height:100dvh;
+  min-height:100dvh;
+  overflow:visible;
+}
+body.wizard-mode[data-wizard-step="intro"] #wizardSection{
+  position:relative;
+  width:100%;
+  height:100dvh;
+  min-height:100dvh;
+  padding:0;
+  overflow:visible;
+  display:block;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  width:100vw;
+  height:100dvh;
+  overflow:hidden;
+  pointer-events:none;
+  background:#080808;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image{
+  position:absolute;
+  inset:0;
+  background-position:center;
+  background-size:cover;
+  background-repeat:no-repeat;
+  opacity:0;
+  transform:scale(1.02);
+  animation:kefePathwaySlide 180s linear infinite;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image.is-visible{
+  opacity:1;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  display:grid;
+  grid-template-columns:2.5fr 1fr 1fr;
+  gap:15px;
+  width:100%;
+  height:100%;
+  padding:32px;
+  transition:grid-template-columns .8s cubic-bezier(.16,1,.3,1);
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container.active-1{grid-template-columns:2.5fr 1fr 1fr}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container.active-2{grid-template-columns:1fr 2.5fr 1fr}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container.active-3{grid-template-columns:1fr 1fr 2.5fr}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card{
+  position:relative;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  padding:20px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:24px;
+  background:rgba(10,10,10,.28);
+  color:#fff;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  backdrop-filter:blur(20px) saturate(115%);
+  -webkit-backdrop-filter:blur(20px) saturate(115%);
+  transition:background .35s cubic-bezier(.16,1,.3,1),border-color .35s cubic-bezier(.16,1,.3,1),transform .35s cubic-bezier(.16,1,.3,1);
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card:hover:not(.active){
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.32);
+  transform:translateY(-2px);
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card.active{
+  background:rgba(10,10,10,.34);
+  border-color:rgba(255,255,255,.38);
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-content{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+  text-align:center;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-content strong{
+  color:rgba(255,255,255,.72);
+  font-size:clamp(10px,1.2vw,14px);
+  font-weight:650;
+  letter-spacing:.12em;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card.active .kefe-pathway-content strong{
+  color:#fff;
+  font-size:clamp(22px,3vw,42px);
+}
+@keyframes kefePathwaySlide{
+  0%,8%{opacity:1;transform:scale(1.02)}
+  10%,100%{opacity:0;transform:scale(1.05)}
+}
+@media(max-width:700px){
+  body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container{
+    grid-template-columns:1fr!important;
+    grid-template-rows:repeat(3,1fr);
+    gap:8px;
+    padding:16px;
+  }
+  body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card.active{
+    min-height:0;
+  }
+  body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card.active .kefe-pathway-content strong{
+    font-size:clamp(18px,7vw,30px);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image,
+  body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container,
+  body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card{
+    animation:none;
+    transition:none;
+  }
+}
