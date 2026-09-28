@@ -1350,3 +1350,39 @@ body.wizard-mode[data-wizard-step="intro"] .app > main > .preview{
 body.wizard-mode[data-wizard-step="intro"] .app > main{
   grid-template-columns:minmax(0,1fr)!important;
 }
+
+
+/* Intro pathway cards: force the pathway surface into the visible wizard workspace. */
+body.wizard-mode[data-wizard-step="intro"] #wizardSection{
+  background:transparent!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container{
+  display:grid!important;
+  position:absolute!important;
+  z-index:100!important;
+  top:50%!important;
+  left:50%!important;
+  width:min(1100px,calc(100% - 32px))!important;
+  height:min(320px,42dvh)!important;
+  margin:0!important;
+  transform:translate(-50%,-50%)!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-glass-dock{
+  z-index:101!important;
+  pointer-events:none!important;
+}
+@media(max-width:560px){
+  body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-card-container{
+    width:calc(100% - 24px)!important;
+    height:min(230px,38dvh)!important;
+  }
+}
