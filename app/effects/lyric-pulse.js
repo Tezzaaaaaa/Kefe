@@ -62,7 +62,8 @@ export function drawPulseEffect(ctx, w, h, style, lines, time) {
     ctx.save();
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    const contract = window.KEFE_TYPE?.effects?.pulse || {};\n    ctx.font = `${contract.weight || 400} ${fontSize}px "${contract.family || "AuraSerif"}",Arial,sans-serif`;
+    const contract = window.KEFE_TYPE?.effects?.pulse || {};
+    ctx.font = `${contract.weight || 400} ${fontSize}px "${contract.family || "AuraSerif"}",Arial,sans-serif`;
     const spaceW = ctx.measureText(' ').width;
     const widths = perWord.map(w => ctx.measureText(w.text).width);
     const totalW = widths.reduce((a, b) => a + b, 0) + spaceW * (perWord.length - 1);
