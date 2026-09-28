@@ -1,11 +1,39 @@
 /* KEFE Live Preview — keeps the canvas feeling like the centre of the editor. */
 (() => {
   'use strict';
-  const preview = document.querySelector('.preview');
+  const preview = document.querySelector('#previewSection.preview');
   const toolbar = preview?.querySelector('.preview-toolbar');
   const canvas = document.getElementById('stageCanvas');
   const transport = preview?.querySelector('.transport');
   if (!preview || !toolbar || !canvas || preview.dataset.livePreviewReady) return;
+  preview.classList.add('preview-drawer');
+
+  const drawerTab = document.createElement('button');
+  drawerTab.type = 'button';
+  drawerTab.className = 'preview-drawer-tab';
+  drawerTab.textContent = 'Show preview';
+  drawerTab.setAttribute('aria-controls', 'previewSection');
+  drawerTab.setAttribute('aria-expanded', 'false');
+  preview.insertAdjacentElement('afterend', drawerTab);
+
+  function openPreview() {
+    preview.classList.add('preview-drawer-open');
+    drawerTab.setAttribute('aria-expanded', 'true');
+  }
+  function closePreview() {
+    preview.classList.remove('preview-drawer-open');
+    drawerTab.setAttribute('aria-expanded', 'false');
+  }
+  drawerTab.addEventListener('click', openPreview);
+  window.kefeOpenPreview = openPreview;
+  window.kefeClosePreview = closePreview;
+
+  document.querySelectorAll('a[href="#previewSection"]').forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      openPreview();
+    });
+  });
   preview.dataset.livePreviewReady = 'true';
 
   // live-preview.css is already part of index.html. Do not inject a root-relative
@@ -112,7 +140,10 @@
     }
   });
 
-  window.addEventListener('kefe:preview-updated', sync);
+  window.addEventListener('kefe:preview-updated', () => {
+    openPreview();
+    sync();
+  });
   setInterval(sync, 180);
   sync();
 })();
