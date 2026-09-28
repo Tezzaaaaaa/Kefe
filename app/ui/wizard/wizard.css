@@ -1291,6 +1291,3 @@ body.wizard-mode[data-wizard-step="intro"] .wizard-panel{
 body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background{
   z-index:0;
 }
-body.wizard-mode[data-wizard-step="intro"] .kefe-pathway-background-image{
-  background-image:var(--kefe-pathway-image)!important;
-}
