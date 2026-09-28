@@ -42,9 +42,9 @@ function addControl() {
   sync();
 
   function download(text, extension, mime) {
-    const lines = timedLinesForState(window.state);
+    const lines = timedLinesForState(window.kefe?.state || window.state);
     if (!lines.length) { alert('No synced lyrics or captions are available to export.'); return; }
-    const base = (window.state?.audio?.file?.name || 'KEFE Visualiser').replace(/\.[^.]+$/, '').replace(/[<>:"/\\|?*\u0000-\u001F]/g, ' ').trim() || 'KEFE Visualiser';
+    const base = ((window.kefe?.state || window.state)?.audio?.file?.name || 'KEFE Visualiser').replace(/\.[^.]+$/, '').replace(/[<>:"/\\|?*\u0000-\u001F]/g, ' ').trim() || 'KEFE Visualiser';
     const blob = new Blob([text(lines)], { type: mime });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a'); link.href = url; link.download = `${base}.${extension}`; document.body.appendChild(link); link.click(); link.remove();
