@@ -1507,3 +1507,11 @@ body.wizard-mode[data-wizard-step="intro"] #wizardNav{
     border-radius:20px;
   }
 }
+
+
+/* Intro is the pathway chooser only: no step/navigation chrome. */
+body.wizard-mode[data-wizard-step="intro"] .section-nav,
+body.wizard-mode[data-wizard-step="intro"] .wizard-nav,
+body.wizard-mode[data-wizard-step="intro"] .wizard-step-heading{
+  display:none!important;
+}
