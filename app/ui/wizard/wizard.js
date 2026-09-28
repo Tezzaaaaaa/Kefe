@@ -52,7 +52,7 @@
     nav.className = 'wizard-nav';
     nav.id = 'wizardNav';
     nav.innerHTML = '<div class="wizard-glow-button"><span class="wizard-glow wizard-glow-back" aria-hidden="true"></span><button type="button" id="wizardBackBtn" class="wizard-back" disabled>Back</button></div><div class="wizard-progress-wrap"><div id="wizardStepMenu" class="wizard-step-menu" role="list" aria-label="Creation steps"></div><div class="wizard-progress-meta"><div id="wizardProgress" class="wizard-progress">01 / 07</div><span id="wizardStepLabel" class="wizard-step-label">Format</span></div><button type="button" id="wizardSkipBtn" class="wizard-skip">Skip setup</button></div><div class="wizard-glow-button"><span class="wizard-glow wizard-glow-next" aria-hidden="true"></span><button type="button" id="wizardNextBtn" class="primary wizard-next">Next<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>';
-    sidebar.appendChild(nav);
+    sidebar.insertBefore(nav, sidebar.firstChild);
     const stepHeading = document.createElement('div');
     stepHeading.className = 'wizard-step-heading';
     let fadeTimer = null;
