@@ -129,7 +129,7 @@
             '<div class="kefe-pathway-carousel" aria-label="Choose a KEFE project">' +
                 '<div class="kefe-pathway-track" tabindex="0">' +
                     projects.map(([k,title,image], index) =>
-                        '<button type="button" class="wizard-choice kefe-pathway-card' + (wizard.choice === k ? ' selected' : '') + '" data-choice="' + k + '" data-pathway-index="' + index + '">' +
+                        '<button type="button" class="wizard-choice kefe-pathway-card' + (wizard.choice === k ? ' is-selected' : '') + '" data-choice="' + k + '" data-pathway-index="' + index + '">' +
                             '<span class="kefe-pathway-image"><img src="' + image + '" alt="" aria-hidden="true"></span>' +
                             '<span class="kefe-pathway-card-content"><span class="kefe-pathway-number">0' + (index + 1) + '</span><strong>' + title + '</strong><span>' + PATH_HINTS[k] + '</span></span>' +
                             '<span class="kefe-pathway-arrow" aria-hidden="true">↗</span>' +
@@ -179,7 +179,7 @@
                     wizard.path = null;
                     wizard.source = null;
                     wizard.index = 0;
-                    card.classList.remove('selected');
+                    card.classList.remove('is-selected');
                     setFocusedCard(index);
                     refreshNextState();
                     return;
@@ -189,7 +189,7 @@
                 wizard.path = choice;
                 wizard.index = 0;
                 if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(choice);
-                cards.forEach(x => x.classList.toggle('selected', x === card));
+                cards.forEach(x => x.classList.toggle('is-selected', x === card));
                 focusCard(index);
                 refreshNextState();
             });
@@ -206,7 +206,7 @@
                 wizard.path = choice;
                 wizard.index = 0;
                 if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(choice);
-                cards.forEach(x => x.classList.toggle('selected', x === card));
+                cards.forEach(x => x.classList.toggle('is-selected', x === card));
                 refreshNextState();
             });
         });
