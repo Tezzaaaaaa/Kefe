@@ -306,7 +306,7 @@
         const steps = stepsFor(), step = steps[wizard.index] || 'preview';
         body.dataset.wizardStep = step;
         document.querySelectorAll('.wizard-current').forEach(el => el.classList.remove('wizard-current'));
-        if (previewEl) { const showLivePreview = ['lyrics','captions','look','visuals','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); }
+        if (previewEl) { const showLivePreview = ['lyrics','captions','look','visuals','preview'].includes(step); previewEl.classList.toggle('preview-expanded', showLivePreview); previewEl.classList.toggle('preview-collapsed', !showLivePreview); previewEl.classList.toggle('preview-empty', !showLivePreview); }
         const targetIds = targetsForStep(step);
         let firstTarget = null;
 
