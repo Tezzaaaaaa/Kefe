@@ -151,124 +151,73 @@ document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('kefeWaveformCanvas');
   if (!box || !canvas) return;
   const ctx = canvas.getContext('2d');
-  let peaks = null;
-  let duration = 0;
-  let currentFile = null;
-  let raf = 0;
+  let peaks = null, duration = 0, currentFile = null, frame = 0;
 
-  const resize = () => {
-    const r = box.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, Math.floor(r.width * dpr));
-    canvas.height = Math.max(1, Math.floor(r.height * dpr));
-    canvas.style.width = r.width + 'px';
-    canvas.style.height = r.height + 'px';
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-    draw();
-  };
-  const ro = new ResizeObserver(resize);
-  ro.observe(box);
-
-  const getTime = () => {
-    try { return Number(window.getMasterTime?.()) || 0; } catch { return 0; }
-  };
-  const getDuration = () => {
-    try { return Number(window.getMasterDuration?.()) || Number(window.state?.audio?.duration) || 0; } catch { return Number(window.state?.audio?.duration) || 0; }
-  };
-  const draw = () => {
-    const w = box.clientWidth || 1, h = box.clientHeight || 1;
-    ctx.clearRect(0,0,w,h);
-    const d = getDuration() || duration;
-    const t = Math.max(0, Math.min(d || 0, getTime()));
-    const played = d > 0 ? t / d : 0;
-    if (!peaks?.length) {
-      ctx.fillStyle = 'rgba(255,255,255,.12)';
-      for(let x=0;x<w;x+=4) ctx.fillRect(x,h/2-1,2,2);
-    } else {
-      const step=w/peaks.length;
-      for(let i=0;i<peaks.length;i++){
-        const amp=Math.max(2,peaks[i]*h*.82);
-        ctx.fillStyle=(i/peaks.length)<=played ? '#ef3f38' : 'rgba(255,255,255,.28)';
-        ctx.fillRect(i*step,h/2-amp/2,Math.max(1,step-.7),amp);
-      }
-    }
-    const x=Math.max(0,Math.min(w,played*w));
-    ctx.fillStyle='#ef3f38';
-    ctx.fillRect(x-1,0,2,h);
-    const ts=document.getElementById('kefeWaveformTimestamp');
-    const status=document.getElementById('kefeWaveformStatus');
-    if(ts) ts.textContent=formatTime(t,true);
-    if(status) status.textContent=currentFile ? currentFile.name+' · '+formatTime(d) : 'No audio loaded';
-  };
   const formatTime = (s,tenths=false) => {
     s=Number.isFinite(s)?s:0;
     const m=Math.floor(s/60), sec=Math.floor(s%60);
     return m+':'+String(sec).padStart(2,'0')+(tenths?'.'+Math.floor((s*10)%10):'');
   };
-  const computePeaks = async file => {
-    const AC=window.AudioContext||window.webkitAudioContext;
-    if(!AC) return null;
-    const buffer=await file.arrayBuffer();
-    const audioCtx=new AC();
-    try{
-      const decoded=await audioCtx.decodeAudioData(buffer.slice(0));
-      const data=decoded.getChannelData(0);
-      const count=Math.max(80,Math.min(1600,Math.floor(box.clientWidth*2)));
-      const out=new Float32Array(count);
-      const bucket=Math.max(1,Math.floor(data.length/count));
-      for(let i=0;i<count;i++){
-        let max=0;
-        const end=Math.min(data.length,(i+1)*bucket);
-        for(let j=i*bucket;j<end;j++) max=Math.max(max,Math.abs(data[j]));
-        out[i]=max;
-      }
-      let max=0; for(const v of out) max=Math.max(max,v);
-      if(max) for(let i=0;i<out.length;i++) out[i]/=max;
-      return out;
-    } finally { await audioCtx.close().catch(()=>{}); }
+  const resize = () => {
+    const r=box.getBoundingClientRect(), dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=Math.max(1,Math.floor(r.width*dpr));
+    canvas.height=Math.max(1,Math.floor(r.height*dpr));
+    canvas.style.width=r.width+'px'; canvas.style.height=r.height+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0); draw();
   };
-  const loadFile = async file => {
-    if(!file || (!file.type.startsWith('audio/') && !file.type.startsWith('video/'))) return;
-    currentFile=file;
-    box.classList.add('has-audio');
-    document.getElementById('kefeWaveformStatus').textContent='Analyzing waveform…';
-    try {
-      peaks=await computePeaks(file);
-      duration=Number(window.state?.audio?.duration)||0;
-      draw();
-    } catch(e) {
-      peaks=null;
-      draw();
+  const getTime=()=>{try{return Number(window.getMasterTime?.())||0}catch{return 0}};
+  const getDuration=()=>{try{return Number(window.getMasterDuration?.())||Number(window.state?.audio?.duration)||0}catch{return Number(window.state?.audio?.duration)||0}};
+  const draw=()=>{
+    const w=box.clientWidth||1,h=box.clientHeight||1,d=getDuration()||duration,t=Math.max(0,Math.min(d,getTime())),played=d>0?t/d:0;
+    ctx.clearRect(0,0,w,h);
+    if(!peaks?.length){
+      ctx.fillStyle='rgba(255,255,255,.12)';
+      for(let x=0;x<w;x+=4)ctx.fillRect(x,h/2-1,2,2);
+    }else{
+      const step=w/peaks.length;
+      for(let i=0;i<peaks.length;i++){const amp=Math.max(2,peaks[i]*h*.82);ctx.fillStyle=i/peaks.length<=played?'#ef3f38':'rgba(255,255,255,.28)';ctx.fillRect(i*step,h/2-amp/2,Math.max(1,step-.7),amp)}
     }
+    const x=Math.max(0,Math.min(w,played*w));ctx.fillStyle='#ef3f38';ctx.fillRect(x-1,0,2,h);
+    const ts=document.getElementById('kefeWaveformTimestamp'),st=document.getElementById('kefeWaveformStatus');
+    if(ts)ts.textContent=formatTime(t,true);
+    if(st)st.textContent=currentFile?currentFile.name+' · '+formatTime(d):'No audio loaded';
   };
+  const animate=()=>{
+    draw();
+    if(window.kefeAudioElement&&!window.kefeAudioElement.paused) frame=requestAnimationFrame(animate);
+    else frame=0;
+  };
+  const attachAudio=()=>{
+    const audio=window.kefeAudioElement;
+    if(!audio||audio.dataset.kefeWaveEvents)return;
+    audio.dataset.kefeWaveEvents='1';
+    ['loadedmetadata','timeupdate','play','pause','ended','durationchange'].forEach(type=>audio.addEventListener(type,()=>type==='play'?animate():draw()));
+  };
+  const computePeaks=async file=>{
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+    const decoded=await new AC().decodeAudioData((await file.arrayBuffer()).slice(0));
+    const data=decoded.getChannelData(0),count=Math.max(80,Math.min(1600,Math.floor(box.clientWidth*2))),bucket=Math.max(1,Math.floor(data.length/count)),out=new Float32Array(count);
+    for(let i=0;i<count;i++){let max=0,end=Math.min(data.length,(i+1)*bucket);for(let j=i*bucket;j<end;j++)max=Math.max(max,Math.abs(data[j]));out[i]=max}
+    let max=0;for(const v of out)max=Math.max(max,v);if(max)for(let i=0;i<out.length;i++)out[i]/=max;return out;
+  };
+  const loadFile=async file=>{
+    if(!file||(!file.type.startsWith('audio/')&&!file.type.startsWith('video/')))return;
+    currentFile=file;box.classList.add('has-audio');document.getElementById('kefeWaveformStatus').textContent='Analyzing waveform…';
+    try{peaks=await computePeaks(file);duration=Number(window.state?.audio?.duration)||0}catch{peaks=null}draw();
+  };
+  const ro=new ResizeObserver(resize);ro.observe(box);
   document.getElementById('audioInput')?.addEventListener('change',e=>loadFile(e.target.files?.[0]));
   document.getElementById('backgroundInput')?.addEventListener('change',e=>loadFile(e.target.files?.[0]));
   box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('drag-over')});
   box.addEventListener('dragleave',()=>box.classList.remove('drag-over'));
-  box.addEventListener('drop',e=>{
-    e.preventDefault(); box.classList.remove('drag-over');
-    const file=e.dataTransfer.files?.[0];
-    if(file) loadFile(file);
-  });
+  box.addEventListener('drop',e=>{e.preventDefault();box.classList.remove('drag-over');loadFile(e.dataTransfer.files?.[0])});
   box.addEventListener('click',()=>document.getElementById('audioInput')?.click());
-  document.getElementById('wfSelectAll')?.addEventListener('click',()=>{ try { window.seekPreview?.(0); } catch {} draw(); });
+  document.getElementById('wfSelectAll')?.addEventListener('click',()=>{try{window.seekPreview?.(0)}catch{}draw()});
   document.getElementById('wfClear')?.addEventListener('click',()=>{peaks=null;currentFile=null;duration=0;box.classList.remove('has-audio');draw()});
-  const audioOffset=document.getElementById('editorLyricsOffset');
-  const audioOffsetValue=document.getElementById('editorLyricsOffsetValue');
-  audioOffset?.addEventListener('input',e=>{
-    const v=Number(e.target.value)||0;
-    if(audioOffsetValue) audioOffsetValue.value=(v>=0?'+':'')+v.toFixed(2)+'s';
-    const legacy=document.getElementById('lyricsOffset');
-    if(legacy){legacy.value=String(v);legacy.dispatchEvent(new Event('input',{bubbles:true}));}
-  });
-  ['timeupdate','loadedmetadata','play','pause','ended'].forEach(type=>{
-    document.addEventListener('kefe:playback',draw);
-  });
-  document.addEventListener('kefe:editor-mode',draw);
-  document.addEventListener('kefe:audio-ready',draw);
-  const renderLoop=()=>{draw();raf=requestAnimationFrame(renderLoop)};
-  raf=requestAnimationFrame(renderLoop);
-  resize();
+  const offset=document.getElementById('editorLyricsOffset'),value=document.getElementById('editorLyricsOffsetValue');
+  offset?.addEventListener('input',e=>{const v=Number(e.target.value)||0;if(value)value.textContent=(v>=0?'+':'')+v.toFixed(2)+'s';const legacy=document.getElementById('lyricsOffset');if(legacy){legacy.value=String(v);legacy.dispatchEvent(new Event('input',{bubbles:true}))}});
+  document.addEventListener('kefe:editor-mode',()=>{attachAudio();draw()});
+  attachAudio();resize();
 });
 </script></body>
 </html>
