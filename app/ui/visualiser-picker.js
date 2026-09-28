@@ -398,9 +398,6 @@
   }
 
   tick();
-  setInterval(tick, 300);
-  ['click','change','input'].forEach(function(ev){
-    document.addEventListener(ev, function(){ setTimeout(tick, 80); }, true);
-  });
+  window.kefeRefreshVisualiserPicker = tick;
   console.log('[KEFE] visualiser picker active');
 })();
