@@ -152,6 +152,9 @@
                 '</button>' +
             '</div>';
 
+        const pathwayBackground = panel.querySelector('.kefe-pathway-background');
+        if (pathwayBackground) document.body.appendChild(pathwayBackground);
+
         const container = $('kefePathwayCards');
         const cards = [...panel.querySelectorAll('.kefe-pathway-card')];
         if (!container || !cards.length) return;
@@ -300,6 +303,8 @@
     }
 
     function applyStep() {
+        const existingPathwayBackground = document.querySelector('.kefe-pathway-background');
+        if (existingPathwayBackground) existingPathwayBackground.remove();
         // Move the shared style block back to its permanent home BEFORE
         // the wizard panel is rebuilt. Without this, panel.innerHTML=""
         // destroys #lyricStyleBlock and style/background steps render blank.
