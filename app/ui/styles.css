@@ -49,12 +49,15 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
   display:grid !important;
   grid-template-columns:auto minmax(0,1fr) auto;
   align-items:center;
-  gap:28px;
+  gap:24px;
   min-height:68px !important;
   height:68px;
   padding:0 20px !important;
-  background:#070707;
-  border-bottom:1px solid rgba(255,255,255,.09);
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+  border-bottom:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter:blur(24px) saturate(125%);
+  -webkit-backdrop-filter:blur(24px) saturate(125%);
 }
 .kefe-header .brand{
   width:104px;
@@ -62,35 +65,44 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
   gap:2px;
 }
 .kefe-header .brand img{width:100%;height:auto}
-.kefe-header .brand-descriptor{font-size:7px;color:#707070}
+.kefe-header .brand-descriptor{font-size:7px;color:rgba(255,255,255,.42)}
 .kefe-main-nav{
+  justify-self:center;
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:4px;
+  gap:2px;
   min-width:0;
+  padding:4px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(255,255,255,.095),rgba(255,255,255,.025));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 8px 24px rgba(0,0,0,.12);
+  backdrop-filter:blur(18px) saturate(125%);
+  -webkit-backdrop-filter:blur(18px) saturate(125%);
 }
 .kefe-nav-trigger{
   min-height:var(--control-h) !important;
   height:var(--control-h);
-  padding:0 13px !important;
+  padding:0 16px !important;
   border:1px solid transparent !important;
-  border-radius:8px !important;
+  border-radius:9px !important;
   background:transparent !important;
-  color:rgba(255,255,255,.72);
+  color:rgba(255,255,255,.68);
   font-size:12px;
   font-weight:600;
   letter-spacing:-.01em;
+  transition:background .18s var(--ease),border-color .18s var(--ease),color .18s var(--ease);
 }
 .kefe-nav-trigger svg{
   width:13px;
   height:13px;
-  margin-left:2px;
+  margin-left:3px;
   transition:transform .18s var(--ease);
 }
 .kefe-nav-trigger:hover{
-  background:rgba(255,255,255,.055) !important;
-  border-color:rgba(255,255,255,.08) !important;
+  background:rgba(255,255,255,.075) !important;
+  border-color:rgba(255,255,255,.1) !important;
   color:#fff;
 }
 .kefe-nav-trigger:focus-visible{
