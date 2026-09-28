@@ -303,8 +303,8 @@ body.wizard-mode .kefe-pathway-card-container{
   background-size:cover;
   background-repeat:no-repeat;
   opacity:0;
-  transform:scale(1.04);
-  animation:kefe-pathway-background-slide 180s ease-in-out infinite;
+  transform:scale(1.02);
+  animation:kefe-pathway-background-slide 180s linear infinite;
   will-change:opacity,transform;
 }
 .kefe-pathway-background-image::before{
@@ -339,9 +339,8 @@ body.wizard-mode .kefe-pathway-card-container{
   z-index:2;
 }
 @keyframes kefe-pathway-background-slide{
-  0%,28%{opacity:1;transform:scale(1)}
-  33%,95%{opacity:0;transform:scale(1.04)}
-  100%{opacity:1;transform:scale(1)}
+  0%,8%{opacity:1;transform:scale(1.02)}
+  10%,100%{opacity:0;transform:scale(1.05)}
 }
 @keyframes kefe-pathway-background-gradient{
   0%{
