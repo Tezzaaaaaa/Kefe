@@ -130,11 +130,7 @@
             '<p class="wizard-panel-kicker">01 · Start</p>' +
             '<h3 class="wizard-panel-title">Choose your KEFE project</h3>' +
             '<p class="wizard-panel-hint">Choose a pathway and KEFE will guide you through the steps.</p>' +
-            '<div class="kefe-pathway-background" aria-hidden="true">' +
-                '<span class="kefe-pathway-background-image is-visible" style="background-image:url(assets/liquid-logo_21_9_2026_11_07_15%20pm.gif)"></span>' +
-                '<span class="kefe-pathway-background-image" style="background-image:url(assets/liquid-logo_22_9_2026_10_13_07%20am.gif)"></span>' +
-                '<span class="kefe-pathway-background-image" style="background-image:url(assets/liquid-logo_22_9_2026_9_48_17%20am.gif)"></span>' +
-            '</div>' +
+            '<div class="kefe-pathway-background" aria-hidden="true">\n                <span class="kefe-pathway-background-image is-visible" style="background-image:url(assets/IMG_4096.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4097.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4099.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4100.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4101.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4102.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4103.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4104.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4105.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4106.jpeg)"></span>\n            </div>' +
             '<div class="kefe-pathway-card-container active-' + (activeIndex + 1) + '" id="kefePathwayCards" aria-label="Choose a KEFE project">' +
                 '<button type="button" class="kefe-pathway-card' + (activeIndex === 0 ? ' active' : '') + '" data-choice="lyric">' +
                     '<span class="kefe-pathway-content">' +
