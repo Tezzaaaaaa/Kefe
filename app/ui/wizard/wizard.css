@@ -232,6 +232,45 @@ body.wizard-mode .preview.preview-empty{
 
 /* KEFE pathway cards — expanding three-card layout. */
 body.wizard-mode .kefe-pathway-card-container{
+.kefe-pathway-background{
+  position:absolute;
+  inset:-18px;
+  z-index:0;
+  overflow:hidden;
+  border-radius:36px;
+  pointer-events:none;
+  background:#080808;
+}
+.kefe-pathway-background-image{
+  position:absolute;
+  inset:0;
+  background-position:center;
+  background-size:cover;
+  background-repeat:no-repeat;
+  opacity:0;
+  transform:scale(1.04);
+  animation:kefe-pathway-background-slide 18s ease-in-out infinite;
+  will-change:opacity,transform;
+}
+.kefe-pathway-background-image:nth-child(2){animation-delay:6s}
+.kefe-pathway-background-image:nth-child(3){animation-delay:12s}
+.kefe-pathway-background-image::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.48);
+}
+@keyframes kefe-pathway-background-slide{
+  0%,28%{opacity:1;transform:scale(1)}
+  33%,95%{opacity:0;transform:scale(1.04)}
+  100%{opacity:1;transform:scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+  .kefe-pathway-background-image{
+    animation:none;
+  }
+  .kefe-pathway-background-image:not(:first-child){display:none}
+}
   position:relative;
   z-index:2;
   display:grid;
