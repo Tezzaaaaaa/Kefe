@@ -334,6 +334,11 @@
         } else if (targetIds.length) {
             panel.innerHTML = '';
             targetIds.forEach(id => { const el = $(id); if (el) { el.classList.add('wizard-current'); if (!firstTarget) firstTarget = el; } });
+            if (step === 'lyrics') {
+                const styleBlock = $('lyricStyleBlock');
+                const effectControls = $('effectControls');
+                if (styleBlock && effectControls && !styleBlock.contains(effectControls)) styleBlock.appendChild(effectControls);
+            }
         } else {
             if (step === 'intro') renderIntro();
             else if (step === 'source') renderSource();
@@ -360,6 +365,10 @@
     function refreshNextState() { const step = stepsFor()[wizard.index], b = $('wizardNextBtn'); if (step && b) b.disabled = !nextEnabled(step); }
     function finishWizard() {
         destroyIntroVeil();
+
+        const effectControls = $('effectControls');
+        const fxSection = $('fxSection');
+        if (effectControls && fxSection && !fxSection.contains(effectControls)) fxSection.appendChild(effectControls);
 
         const metadataBlock = document.querySelector('#wizardMetadataMount .music-details');
         if (metadataBlock) $('audioSection')?.appendChild(metadataBlock);
