@@ -103,7 +103,7 @@
           c.save();c.filter=`brightness(${1+.85*a}) contrast(${1+.15*a})`;c.drawImage(src,0,0,w,h);c.filter='none';c.restore();break;
         }
         case'monochrome':
-        case'black-&-white':{
+        case'black-white':{
           c.save();c.filter=`grayscale(1) contrast(${1+.3*a})`;c.drawImage(src,0,0,w,h);c.filter='none';c.restore();break;
         }
         case'color-matrix':{
@@ -226,9 +226,8 @@
     };
     const effectValues={};
     Object.values(catalog).flat().forEach(name=>effectValues[name]=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
-    Object.assign(effectValues,{'VHS':'vhs','CRT screen':'crt-screen','RGB Shift':'rgb-shift','Bloom':'bloom','Motion blur':'motion-blur','Camera shake':'camera-shake','Glitch':'glitch','Halftone screen':'halftone-screen','Vignette':'vignette','Mixed media':'mixedmedia'});
-    Object.values(effectValues).forEach(value=>{if(!labels[value])labels[value]=value.replace(/-/g,' ');});
-    Object.entries(effectValues).forEach(([name,value])=>{if(catalog[name])labels[value]=name;});
+    Object.assign(effectValues,{'Black & White':'black-white','VHS':'vhs','CRT screen':'crt-screen','RGB Shift':'rgb-shift','Bloom':'bloom','Motion blur':'motion-blur','Camera shake':'camera-shake','Glitch':'glitch','Halftone screen':'halftone-screen','Vignette':'vignette','Mixed media':'mixedmedia'});
+    Object.entries(effectValues).forEach(([name,value])=>{labels[value]=name;});
     const implemented=new Set([...Object.keys(effectValues)]);
     function setFx(name){if(!labels[name]||window.isExporting)return;window.state.style.visualFx=name;qsa('.kefe-fx-button').forEach(b=>b.classList.toggle('active-effect',b.dataset.fx===name));const l=document.getElementById('visualFxLabel');if(l)l.textContent=labels[name];save();window.redrawCurrentPreviewFrame?.();}
     function range(parent,key,text,min,max,step,suffix=''){const row=document.createElement('div');row.className='control-row';const label=document.createElement('label'),value=document.createElement('span'),input=document.createElement('input');value.style.marginLeft='6px';label.textContent=text;input.type='range';input.min=min;input.max=max;input.step=step;input.value=window.state.style[key];const show=()=>value.textContent=`${Number(input.value).toFixed(step<.1?2:1)}${suffix}`;label.appendChild(value);show();input.addEventListener('input',()=>{window.state.style[key]=Number(input.value);show();save();window.redrawCurrentPreviewFrame?.();});row.append(label,input);parent.appendChild(row);}
