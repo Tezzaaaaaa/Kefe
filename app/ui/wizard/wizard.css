@@ -225,6 +225,11 @@ body.wizard-mode .wizard-nav .wizard-skip:hover{opacity:1}
 }
 
 
+/* Keep the live preview out of the wizard until a preview-producing step is active. */
+body.wizard-mode .preview.preview-empty{
+  display:none;
+}
+
 /* KEFE pathway cards — expanding three-card layout. */
 body.wizard-mode .kefe-pathway-card-container{
   position:relative;
