@@ -311,6 +311,8 @@ function drawPlainLyrics(ctx, w, h, text) {
     ctx.restore();
 }
 
+window.render = render;
+
 function render(ctx, w, h, appState, mediaCache) {
     if (!ctx || !w || !h) return;
     ctx.save();
