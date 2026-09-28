@@ -122,7 +122,27 @@
             ['visualiser', 'Visualiser', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img02.jpg'],
             ['captioned', 'Captioned Video', 'https://pub-830233752de349e29c6104a501b309d4.r2.dev/hover-img/hover-img-img03.jpg']
         ];
-        panel.innerHTML = veil + '<p class="wizard-panel-kicker">01 · Start</p><h3 class="wizard-panel-title">Choose your KEFE project</h3><p class="wizard-panel-hint">Choose a pathway and KEFE will guide you through the steps.</p><div class="wizard-choices-wrap kefe-pathway-steps"><div class="wizard-choices wizard-hover-img-menu">' + projects.map(([k,title,image], index) => '<button type="button" class="wizard-choice hover-img-project kefe-pathway-card' + (wizard.choice === k ? ' selected' : '') + '" data-choice="' + k + '" data-hover-image="' + image + '"><span class="kefe-pathway-number">0' + (index + 1) + '</span><span class="hover-img-project-copy"><strong>' + title + '</strong><span>' + PATH_HINTS[k] + '</span></span><span class="kefe-pathway-arrow" aria-hidden="true">↗</span></button>').join('') + '</div><div class="hover-img-thumbnail-wrapper" aria-hidden="true">' + projects.map(([,title,image], index) => '<div class="hover-img-thumbnail" style="--thumb-index:' + index + '"><img src="' + image + '" alt="' + title + '"></div>').join('') + '</div></div>';
+        panel.innerHTML = veil +
+            '<p class="wizard-panel-kicker">01 · Start</p>' +
+            '<h3 class="wizard-panel-title">Choose your KEFE project</h3>' +
+            '<p class="wizard-panel-hint">Choose a pathway and KEFE will guide you through the steps.</p>' +
+            '<div class="kefe-pathway-carousel" aria-label="Choose a KEFE project">' +
+                '<div class="kefe-pathway-track" tabindex="0">' +
+                    projects.map(([k,title,image], index) =>
+                        '<button type="button" class="wizard-choice kefe-pathway-card' + (wizard.choice === k ? ' selected' : '') + '" data-choice="' + k + '" data-pathway-index="' + index + '">' +
+                            '<span class="kefe-pathway-image"><img src="' + image + '" alt="" aria-hidden="true"></span>' +
+                            '<span class="kefe-pathway-card-content"><span class="kefe-pathway-number">0' + (index + 1) + '</span><strong>' + title + '</strong><span>' + PATH_HINTS[k] + '</span></span>' +
+                            '<span class="kefe-pathway-arrow" aria-hidden="true">↗</span>' +
+                        '</button>'
+                    ).join('') +
+                '</div>' +
+                '<div class="kefe-pathway-dots" role="tablist" aria-label="Project pathways">' +
+                    projects.map(([k,title], index) =>
+                        '<button type="button" class="kefe-pathway-dot' + (wizard.choice === k ? ' active' : (!wizard.choice && index === 0 ? ' active' : '')) + '" data-pathway-dot="' + index + '" role="tab" aria-label="' + title + '" aria-selected="' + (wizard.choice === k || (!wizard.choice && index === 0) ? 'true' : 'false') + '"></button>'
+                    ).join('') +
+                '</div>' +
+            '</div>';
+
         const veilTarget = panel.querySelector('.wizard-dark-veil');
         if (veilTarget && window.KefeDarkVeil?.mount) {
             requestAnimationFrame(() => window.KefeDarkVeil.mount(veilTarget, {
@@ -130,64 +150,100 @@
                 scanlineFrequency: 0, warpAmount: 0, resolutionScale: 1
             }));
         }
-        const menu = panel.querySelector('.wizard-hover-img-menu');
-        const thumbnail = panel.querySelector('.hover-img-thumbnail-wrapper');
-        if (menu && thumbnail && !reducedMotion) {
-            const moveThumbnail = event => {
-                thumbnail.dataset.x = event.clientX;
-                thumbnail.dataset.y = event.clientY;
-                thumbnail.style.transform = 'translate3d(' + event.clientX + 'px,' + event.clientY + 'px,0) translate(-50%,-50%)';
-            };
-            const hideThumbnail = () => {
-                thumbnail.style.transform = 'translate3d(' + thumbnail.dataset.x + 'px,' + thumbnail.dataset.y + 'px,0) translate(-50%,-50%) scale(0)';
-            };
-            menu.addEventListener('mousemove', moveThumbnail);
-            menu.addEventListener('mouseleave', hideThumbnail);
-            menu.querySelectorAll('.hover-img-project').forEach((project, index) => {
-                project.addEventListener('mouseenter', () => {
-                    thumbnail.style.transform = 'translate3d(' + (thumbnail.dataset.x || 0) + 'px,' + (thumbnail.dataset.y || 0) + 'px,0) translate(-50%,-50%) scale(1)';
-                    thumbnail.style.setProperty('--active-index', index);
-                });
-                project.addEventListener('click', () => {
-                    const choice = project.dataset.choice;
-                    if (wizard.choice === choice) {
-                        wizard.choice = null;
-                        wizard.path = null;
-                        wizard.source = null;
-                        wizard.index = 0;
-                        project.classList.remove('selected');
-                        refreshNextState();
-                        return;
-                    }
-                    if (wizard.choice !== choice) wizard.source = null;
-                    wizard.choice = choice;
-                    wizard.path = choice;
-                    wizard.index = 0;
-                    if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(choice);
-                    menu.querySelectorAll('.wizard-choice').forEach(x => x.classList.toggle('selected', x.dataset.choice === choice));
-                    refreshNextState();
-                });
+
+        const track = panel.querySelector('.kefe-pathway-track');
+        const cards = [...panel.querySelectorAll('.kefe-pathway-card')];
+        const dots = [...panel.querySelectorAll('.kefe-pathway-dot')];
+
+        const setFocusedCard = index => {
+            cards.forEach((card, cardIndex) => card.classList.toggle('is-focused', cardIndex === index));
+            dots.forEach((dot, dotIndex) => {
+                const active = dotIndex === index;
+                dot.classList.toggle('active', active);
+                dot.setAttribute('aria-selected', active ? 'true' : 'false');
             });
-        } else if (menu) {
-            menu.querySelectorAll('.wizard-choice').forEach(btn => btn.addEventListener('click', () => {
-                const c = btn.dataset.choice;
-                if (wizard.choice === c) {
+        };
+
+        const focusCard = (index, behavior = reducedMotion ? 'auto' : 'smooth') => {
+            const card = cards[index];
+            if (!card) return;
+            setFocusedCard(index);
+            card.scrollIntoView({ behavior, block: 'nearest', inline: 'center' });
+        };
+
+        cards.forEach((card, index) => {
+            card.addEventListener('click', () => {
+                const choice = card.dataset.choice;
+                if (wizard.choice === choice) {
                     wizard.choice = null;
                     wizard.path = null;
                     wizard.source = null;
                     wizard.index = 0;
-                    btn.classList.remove('selected');
+                    card.classList.remove('selected');
+                    setFocusedCard(index);
                     refreshNextState();
                     return;
                 }
-                if (wizard.choice !== c) wizard.source = null;
-                wizard.choice = c;
-                wizard.path = c;
+                if (wizard.choice !== choice) wizard.source = null;
+                wizard.choice = choice;
+                wizard.path = choice;
                 wizard.index = 0;
-                if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(c);
-                menu.querySelectorAll('.wizard-choice').forEach(x => x.classList.toggle('selected', x.dataset.choice === c));
+                if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(choice);
+                cards.forEach(x => x.classList.toggle('selected', x === card));
+                focusCard(index);
                 refreshNextState();
-            }));
+            });
+        });
+
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                focusCard(index);
+                const card = cards[index];
+                if (!card) return;
+                const choice = card.dataset.choice;
+                if (wizard.choice !== choice) wizard.source = null;
+                wizard.choice = choice;
+                wizard.path = choice;
+                wizard.index = 0;
+                if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(choice);
+                cards.forEach(x => x.classList.toggle('selected', x === card));
+                refreshNextState();
+            });
+        });
+
+        if (track) {
+            track.addEventListener('scroll', () => {
+                const center = track.scrollLeft + track.clientWidth / 2;
+                let nearest = 0;
+                let distance = Infinity;
+                cards.forEach((card, index) => {
+                    const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+                    const nextDistance = Math.abs(cardCenter - center);
+                    if (nextDistance < distance) {
+                        distance = nextDistance;
+                        nearest = index;
+                    }
+                });
+                setFocusedCard(nearest);
+            }, { passive: true });
+
+            track.addEventListener('keydown', event => {
+                if (event.key === 'ArrowRight') {
+                    event.preventDefault();
+                    const current = cards.findIndex(card => card.classList.contains('is-focused'));
+                    focusCard(Math.min(cards.length - 1, Math.max(0, current + 1)));
+                } else if (event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    const current = cards.findIndex(card => card.classList.contains('is-focused'));
+                    focusCard(Math.max(0, current - 1));
+                }
+            });
+        }
+
+        const initialIndex = wizard.choice ? Math.max(0, projects.findIndex(([k]) => k === wizard.choice)) : 0;
+        setFocusedCard(initialIndex);
+        if (track && cards[initialIndex]) {
+            requestAnimationFrame(() => cards[initialIndex].scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' }));
         }
     }
     function previewLineText() {
