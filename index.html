@@ -122,8 +122,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = event.target.closest('[data-editor-target]');
     if (!item) return;
     const target = item.getAttribute('data-editor-target');
-    const tab = document.querySelector('.kefe-editor-tabs .kefe-editor-tab[href="' + target + '"]');
-    tab?.click();
+    const mappedTarget = target === '#lyricStyleBlock' ? '#textSection' : target;
+    document.querySelectorAll('.sidebar .section').forEach(section => section.classList.toggle('editor-active', '#' + section.id === mappedTarget));
+    const focusTarget = target === '#lyricStyleBlock' ? document.querySelector('#lyricStyleBlock') : document.querySelector(mappedTarget);
+    focusTarget?.scrollIntoView({block:'start', behavior:'smooth'});
     rail.querySelectorAll('.kefe-editor-rail-item').forEach(node => node.classList.toggle('is-active', node === item));
   });
   document.getElementById('kefeEditorExport')?.addEventListener('click', () => document.getElementById('exportBottom')?.click());
