@@ -1524,3 +1524,20 @@ body.wizard-mode[data-wizard-step="intro"] .sidebar > .section:not(#wizardSectio
 body.wizard-mode[data-wizard-step="intro"] .sidebar > #wizardSection{
   display:block!important;
 }
+
+/* Intro pathway owns the click surface. Wizard chrome must never sit over the cards. */
+body.wizard-mode[data-wizard-step="intro"] #wizardSection,
+body.wizard-mode[data-wizard-step="intro"] #wizardSection::before,
+body.wizard-mode[data-wizard-step="intro"] #wizardSection::after{
+  pointer-events:none!important;
+}
+body.wizard-mode[data-wizard-step="intro"] #wizardSection .kefe-pathway-card-container,
+body.wizard-mode[data-wizard-step="intro"] #wizardSection .kefe-pathway-card{
+  pointer-events:auto!important;
+  z-index:100!important;
+}
+body.wizard-mode[data-wizard-step="intro"] .wizard-dark-veil,
+body.wizard-mode[data-wizard-step="intro"] .wizard-nav,
+body.wizard-mode[data-wizard-step="intro"] .section-nav{
+  pointer-events:none!important;
+}
