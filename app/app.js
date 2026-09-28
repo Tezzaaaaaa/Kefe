@@ -630,6 +630,8 @@ function renderEffectControls() {
     }
 }
 
+renderEffectControls();
+
 function setEffect(name) {
     if (isExporting) { toast('Finish or cancel the current export first', 'error'); return false; }
     state.style.effect = name;
