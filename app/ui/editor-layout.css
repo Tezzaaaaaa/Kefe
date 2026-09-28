@@ -122,3 +122,197 @@ button.icon-button,.play-button,.transport .play-button,.transport .icon-button,
 #kmpHeaderToggle.icon-button:hover{background:rgba(255,255,255,0.06)!important;color:#fff!important}
 #kmpHeaderToggle.icon-button svg{width:18px!important;height:18px!important;stroke:currentColor!important;fill:none!important;stroke-width:1.8!important}
 #kmpHeaderToggle.icon-button[data-on="true"]{background:rgba(239,63,56,0.18)!important;border-color:rgba(239,63,56,0.55)!important;color:#fff!important}
+
+
+/* ---------------------------------------------------------------------
+   KEFE editor workspace — three-rail layout based on the new editor shell.
+   Existing KEFE controls stay in the right rail; preview and timing stay
+   in the center so the renderer/state/export pipeline remains unchanged.
+   --------------------------------------------------------------------- */
+body.kefe-editor-mode main{
+  grid-template-columns:220px minmax(0,1fr) 320px;
+  grid-template-rows:minmax(0,1fr);
+  min-height:0;
+}
+body.kefe-editor-mode .kefe-editor-rail{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  min-height:0;
+  padding:16px 12px;
+  border-right:1px solid var(--line);
+  background:var(--surface);
+  overflow-y:auto;
+}
+.kefe-editor-rail-label{
+  padding:0 8px 8px;
+  color:var(--text-3);
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+.kefe-editor-rail-item{
+  width:100%;
+  min-height:40px;
+  padding:0 12px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:var(--text-2);
+  text-align:left;
+  font:inherit;
+  font-size:13px;
+  cursor:pointer;
+}
+.kefe-editor-rail-item:hover{background:var(--surface-2);color:var(--text)}
+.kefe-editor-rail-item.is-active{background:rgba(239,63,56,.12);color:var(--red)}
+.kefe-editor-rail-divider{height:1px;margin:12px 8px;background:var(--line)}
+body.kefe-editor-mode .kefe-editor-workspace{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  min-height:0;
+  gap:16px;
+  padding:20px;
+  overflow-y:auto;
+  background:var(--bg);
+}
+body.kefe-editor-mode .kefe-editor-workspace .preview{
+  position:relative;
+  flex:1 1 auto;
+  min-height:280px;
+  aspect-ratio:auto;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#000;
+}
+body.kefe-editor-mode .kefe-editor-workspace .canvas-wrapper{min-height:0}
+.kefe-waveform-panel{
+  flex:0 0 auto;
+  padding:16px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--surface-2);
+}
+.kefe-waveform-header,.kefe-waveform-meta,.kefe-waveform-offset{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.kefe-waveform-header{margin-bottom:12px;color:var(--text)}
+.kefe-waveform-header strong{font-size:13px}
+.kefe-waveform-actions{display:flex;gap:6px}
+.kefe-waveform-actions button{
+  height:30px;
+  padding:0 10px;
+  border:1px solid var(--line-strong);
+  border-radius:999px;
+  background:var(--surface);
+  color:var(--text-2);
+  font:inherit;
+  font-size:12px;
+}
+.kefe-waveform-box{
+  position:relative;
+  height:88px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#080808;
+}
+.kefe-waveform-box.drag-over{border-color:var(--red);background:rgba(239,63,56,.08)}
+.kefe-waveform-box canvas{display:block;width:100%;height:100%}
+.kefe-waveform-hint{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-3);
+  font-size:12px;
+  pointer-events:none;
+}
+.kefe-waveform-box.has-audio .kefe-waveform-hint{opacity:0}
+.kefe-waveform-meta{margin-top:10px;color:var(--text-2);font-size:12px}
+.kefe-waveform-meta b{color:var(--red);font-weight:600}
+.kefe-waveform-offset{margin-top:12px}
+.kefe-waveform-offset label{min-width:60px;color:var(--text-2);font-size:12px}
+.kefe-waveform-offset input{flex:1;accent-color:var(--red)}
+.kefe-waveform-offset output{min-width:52px;color:var(--text);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.kefe-editor-export{
+  flex:0 0 auto;
+  width:100%;
+  min-height:46px;
+  border:0;
+  border-radius:12px;
+  background:var(--red);
+  color:#fff;
+  font:inherit;
+  font-weight:600;
+  cursor:pointer;
+}
+.kefe-editor-export:hover{background:#f56565}
+body.kefe-editor-mode .sidebar.kefe-editor-rightbar{
+  min-width:0;
+  min-height:0;
+  border-right:0;
+  border-left:1px solid var(--line);
+  overflow:hidden;
+}
+body.kefe-editor-mode .sidebar.kefe-editor-rightbar .kefe-editor-tabs{display:none}
+body.kefe-editor-mode .sidebar.kefe-editor-rightbar>.section{
+  width:auto;
+  margin:0;
+  border:0;
+  border-radius:0;
+  background:var(--surface);
+}
+body.kefe-editor-mode .sidebar.kefe-editor-rightbar>.section.editor-active{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  padding:16px;
+}
+body.kefe-editor-mode .sidebar.kefe-editor-rightbar>.section:not(.editor-active){display:none}
+body.kefe-editor-mode .sidebar.kefe-editor-rightbar>.section.editor-active>h3{
+  position:sticky;
+  top:-16px;
+  z-index:3;
+  margin:-16px -16px 16px;
+  padding:14px 16px;
+  background:rgba(17,17,17,.94);
+  border-bottom:1px solid var(--line);
+}
+.kefe-editor-transport{
+  display:none;
+}
+body.kefe-editor-mode .kefe-editor-transport{
+  display:flex;
+  min-height:64px;
+  align-items:center;
+  gap:12px;
+  padding:0 20px;
+  border-top:1px solid var(--line);
+  background:var(--surface);
+}
+body.kefe-editor-mode .kefe-editor-transport .transport{
+  display:flex!important;
+  width:100%;
+  min-width:0;
+  padding:0;
+  border:0;
+  background:transparent;
+}
+body.kefe-editor-mode .kefe-editor-transport .transport #seek{flex:1 1 auto;min-width:120px}
+body.wizard-mode .kefe-editor-rail,
+body.wizard-mode .kefe-editor-workspace,
+body.wizard-mode .kefe-editor-transport{display:none}
+body.wizard-mode main{grid-template-columns:var(--editor-rail) minmax(0,1fr)}
+body.wizard-mode .sidebar{grid-column:1 / -1}
+@media(max-width:1100px){
+  body.kefe-editor-mode main{grid-template-columns:190px minmax(0,1fr) 300px}
+}
+@media(max-width:900px){
+  body.kefe-editor-mode main{grid-template-columns:1fr;grid-template-rows:minmax(360px,1fr) auto}
+  body.kefe-editor-mode .kefe-editor-rail{display:none}
+  body.kefe-editor-mode .sidebar.kefe-editor-rightbar{border-left:0;border-top:1px solid var(--line);max-height:48dvh}
+  body.kefe-editor-mode .kefe-editor-workspace{min-height:0;padding:12px}
+  body.kefe-editor-mode .kefe-editor-workspace .preview{min-height:240px}
+}
