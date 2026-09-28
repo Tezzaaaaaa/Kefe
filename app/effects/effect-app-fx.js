@@ -45,9 +45,38 @@
     function apply(c,w,h,s,t,src){const fx=s.visualFx||'none',a=clamp(s.fxIntensity),speed=Math.max(.1,Number(s.fxSpeed)||1);if(fx==='none')return;c.clearRect(0,0,w,h);switch(fx){case'vhs':shake(c,src,w,h,a*.45,t,speed*.8);rgb(c,src,w,h,.004*a);motion(c,src,w,h,a*.65,t);scan(c,w,h,clamp(s.fxScanlines*.75+a*.12),5);grain(c,w,h,s.fxGrain+a*.28,t);glitch(c,src,w,h,a*.7,t);break;case'crt':base(c,src,w,h);rgb(c,src,w,h,.0025*a);bloom(c,src,w,h,a*.55);scan(c,w,h,s.fxScanlines+a*.22,4);vignette(c,w,h,s.fxVignette+a*.18);break;case'rgb':base(c,src,w,h);rgb(c,src,w,h,s.fxRgbShift*a);break;case'bloom':base(c,src,w,h);bloom(c,src,w,h,a);break;case'motion':base(c,src,w,h);motion(c,src,w,h,s.fxBlur*a+a*.35,t);break;case'shake':shake(c,src,w,h,s.fxShake*a+a*.35,t,speed);motion(c,src,w,h,a*.35,t);break;case'glitch':base(c,src,w,h);glitch(c,src,w,h,a,t);rgb(c,src,w,h,.004*a);break;case'halftone':base(c,src,w,h);halftone(c,src,w,h,s.fxHalftone*a);break;case'vignette':base(c,src,w,h);vignette(c,w,h,s.fxVignette*a+.12*a);break;case'mixedmedia':mixedMedia(c,src,w,h,a,t,speed);break;default:base(c,src,w,h);}}
     window.render=function(ctx,w,h,appState,mediaCache){const fx=appState?.style?.visualFx||'none';if(!fx||fx==='none')return originalRender(ctx,w,h,appState,mediaCache);resize(w,h);originalRender(fxInputCtx,w,h,appState,mediaCache);ctx.save();apply(ctx,w,h,appState.style,Number(appState.playback?.currentTime)||0,fxInput);ctx.restore();};
     const labels={none:'Off — clean KEFE rendering',vhs:'VHS — tape wobble, chroma bleed, scanlines and grain',crt:'CRT — scanlines, glow, RGB separation and vignette',rgb:'RGB Shift — chromatic lens separation',bloom:'Bloom — soft highlight diffusion and light bleed',motion:'Motion Blur — directional trails',shake:'Camera Shake — subtle handheld movement',glitch:'Glitch — controlled signal breaks and chromatic distortion',halftone:'Halftone — graphic print-screen texture',vignette:'Vignette — restrained cinematic edge falloff',mixedmedia:'Mixed Media — layered collage, print texture, halftone and imperfect registration'};
+    const catalog={
+      'Blur':['Camera shake','Depth of field','Circular blur','Motion blur','Radial blur','Zoom blur','Blur/sharp','Gaussian blur'],
+      'Color':['Color grading','Hue curves','Gradient map','Curves','Thermal','Dither','Exposure','Monochrome','Hue/saturation','Color balance','Color matrix','Levels','RGB Gain','Duotone','Color temperature','Contrast'],
+      'Distort':['Reeded glass','Elastic grid','Cubify','Glitch','Ripple','Transform','Polar to rectangular','Pinch','Perspective','Swirl','Rectangular to polar'],
+      'Effects':['Frame drop','Risograph','Motion trails','Star glow','VHS','ASCII','Halftone screen','Modulation','Threshold','Bloom','CRT screen','NTSC','RGB Shift','LED screen','Stripe','Vignette','Emboss'],
+      'Generate':['Text','Blob Tracker','Ink bleed','Paper scan','Noise'],
+      'Custom':['Displacement','Texture Blur','Layer Mix'],
+      'Film':['Classic Film','Halation','Film Grain','Black & White','Vintage Film']
+    };
+    const implemented=new Set(['VHS','CRT screen','RGB Shift','Bloom','Motion blur','Camera shake','Glitch','Halftone screen','Vignette','Mixed media']);
     function setFx(name){if(!labels[name]||window.isExporting)return;window.state.style.visualFx=name;qsa('.kefe-fx-button').forEach(b=>b.classList.toggle('active-effect',b.dataset.fx===name));const l=document.getElementById('visualFxLabel');if(l)l.textContent=labels[name];save();window.redrawCurrentPreviewFrame?.();}
     function range(parent,key,text,min,max,step,suffix=''){const row=document.createElement('div');row.className='control-row';const label=document.createElement('label'),value=document.createElement('span'),input=document.createElement('input');value.style.marginLeft='6px';label.textContent=text;input.type='range';input.min=min;input.max=max;input.step=step;input.value=window.state.style[key];const show=()=>value.textContent=`${Number(input.value).toFixed(step<.1?2:1)}${suffix}`;label.appendChild(value);show();input.addEventListener('input',()=>{window.state.style[key]=Number(input.value);show();save();window.redrawCurrentPreviewFrame?.();});row.append(label,input);parent.appendChild(row);}
-    function ui(){const anchor=document.querySelector('.sidebar .section:has(#effectControls)');if(!anchor||document.getElementById('visualFxSection'))return;const sec=document.createElement('div');sec.className='section';sec.id='visualFxSection';const h=document.createElement('h3');h.textContent='Visual FX';sec.appendChild(h);const buttons=document.createElement('div');buttons.className='effect-buttons';['none','vhs','crt','rgb','bloom','motion','shake','glitch','halftone','vignette','mixedmedia'].forEach(n=>{const b=document.createElement('button');b.type='button';b.dataset.fx=n;b.className='kefe-fx-button';b.textContent=n==='none'?'Off':n==='rgb'?'RGB':n==='mixedmedia'?'Mixed Media':n[0].toUpperCase()+n.slice(1);b.addEventListener('click',()=>setFx(n));buttons.appendChild(b);});sec.appendChild(buttons);const d=document.createElement('div');d.className='effect-label';d.id='visualFxLabel';d.textContent=labels[window.state.style.visualFx]||labels.none;sec.appendChild(d);const controls=document.createElement('div');range(controls,'fxIntensity','Intensity',0,1,.05);range(controls,'fxSpeed','Animation speed',.25,2.5,.05,'×');sec.appendChild(controls);anchor.insertAdjacentElement('afterend',sec);qsa('.kefe-fx-button').forEach(b=>b.classList.toggle('active-effect',b.dataset.fx===window.state.style.visualFx));}
+    function ui(){
+      const sec=document.getElementById('fxSection');
+      if(!sec||sec.dataset.kefeFxBuilt)return;
+      sec.dataset.kefeFxBuilt='true';
+      sec.replaceChildren();
+      const h=document.createElement('h3');h.textContent='Visual FX';sec.appendChild(h);
+      const available=document.createElement('div');available.className='sub-heading';available.textContent='Available in KEFE';sec.appendChild(available);
+      const buttons=document.createElement('div');buttons.className='effect-buttons';
+      ['none','vhs','crt','rgb','bloom','motion','shake','glitch','halftone','vignette','mixedmedia'].forEach(n=>{const b=document.createElement('button');b.type='button';b.dataset.fx=n;b.className='kefe-fx-button';b.textContent=n==='none'?'Off':n==='rgb'?'RGB':n==='mixedmedia'?'Mixed Media':n[0].toUpperCase()+n.slice(1);b.addEventListener('click',()=>setFx(n));buttons.appendChild(b);});
+      sec.appendChild(buttons);
+      Object.entries(catalog).forEach(([category,names])=>{
+        const heading=document.createElement('div');heading.className='sub-heading';heading.textContent=category;sec.appendChild(heading);
+        const row=document.createElement('div');row.className='effect-buttons';
+        names.forEach(name=>{const b=document.createElement('button');b.type='button';b.className='kefe-fx-button';b.textContent=name;b.title=implemented.has(name)?'Available in KEFE':'Catalogued effect — renderer not yet implemented';b.disabled=!implemented.has(name);row.appendChild(b);});
+        sec.appendChild(row);
+      });
+      const d=document.createElement('div');d.className='effect-label';d.id='visualFxLabel';d.textContent=labels[window.state.style.visualFx]||labels.none;sec.appendChild(d);
+      const controls=document.createElement('div');range(controls,'fxIntensity','Intensity',0,1,.05);range(controls,'fxSpeed','Animation speed',.25,2.5,.05,'×');sec.appendChild(controls);
+      qsa('.kefe-fx-button').forEach(b=>b.classList.toggle('active-effect',b.dataset.fx===window.state.style.visualFx));
+    }
     ui();
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
