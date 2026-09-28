@@ -67,11 +67,11 @@
   function tick(){
     injectCss();
     var isVisualiser = window.state && window.state.projectType === 'visualiser';
-    var onStyleStep = document.body.dataset.wizardStep === 'style';
+    var onVisualsStep = document.body.dataset.wizardStep === 'visuals';
     var host = document.getElementById('wizardSection');
     var existing = document.getElementById('kefeVisualiserPicker');
 
-    if (!isVisualiser || !onStyleStep || !host) {
+    if (!isVisualiser || !onVisualsStep || !host) {
       if (existing) existing.remove();
       return;
     }
