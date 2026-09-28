@@ -1,0 +1,33 @@
+BOULDER FONT LICENSE v1.0
+
+Copyright 2026 KEFE
+
+Boulder is an original typeface created for the KEFE Visualiser project.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of the Boulder font software, to use, embed, reproduce, and redistribute the
+font software, subject to the following conditions:
+
+1. The font software may be used for personal, educational, and commercial
+   purposes, including in websites, applications, videos, games, documents,
+   and other digital or physical works.
+
+2. The font software may be embedded in applications and web projects.
+
+3. Modified versions of the font software may be created and distributed,
+   provided that modified versions are not represented as the original
+   Boulder typeface.
+
+4. Copies and modified versions must retain this license notice and must
+   identify the modified version as modified.
+
+5. The font software is provided "AS IS", without warranty of any kind,
+   express or implied. In no event shall the copyright holder be liable for
+   any claim, damages, or other liability arising from the use of the font.
+
+6. This license does not grant permission to use the KEFE name or branding
+   to imply endorsement of a modified font or product.
+
+Except as expressly stated above, the copyright holder reserves no additional
+restrictions on use, reproduction, embedding, or redistribution of the font
+software.
