@@ -131,20 +131,26 @@
             '<h3 class="wizard-panel-title">Choose your KEFE project</h3>' +
             '<p class="wizard-panel-hint">Choose a pathway and KEFE will guide you through the steps.</p>' +
             '<div class="kefe-pathway-background" aria-hidden="true">\n                <span class="kefe-pathway-background-image is-visible" style="background-image:url(assets/IMG_4096.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4097.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4099.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4100.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4101.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4102.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4103.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4104.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4105.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4106.jpeg)"></span>\n            </div>' +
-            '<nav class="kefe-pathway-glass-dock" id="kefePathwayCards" aria-label="Choose a KEFE project">' +
+            '<div class="kefe-pathway-card-container active-' + (activeIndex + 1) + '" id="kefePathwayCards" aria-label="Choose a KEFE project">' +
+                '<button type="button" class="kefe-pathway-card' + (activeIndex === 0 ? ' active' : '') + '" data-choice="lyric">' +
+                    '<span class="kefe-pathway-content">' +
+                        '<strong>LYRIC VIDEO</strong>' +
+                    '</span>' +
+                '</button>' +
+                '<button type="button" class="kefe-pathway-card' + (activeIndex === 1 ? ' active' : '') + '" data-choice="visualiser">' +
+                    '<span class="kefe-pathway-content">' +
+                        '<strong>MUSIC VISUALISER</strong>' +
+                    '</span>' +
+                '</button>' +
+                '<button type="button" class="kefe-pathway-card' + (activeIndex === 2 ? ' active' : '') + '" data-choice="captioned">' +
+                    '<span class="kefe-pathway-content">' +
+                        '<strong>CAPTIONED VIDEO</strong>' +
+                    '</span>' +
+                '</button>' +
+            '</div>' +
+            '<nav class="kefe-pathway-glass-dock" id="kefePathwayGlassDock" aria-label="Pathway selector">' +
                 '<div class="kefe-pathway-glass-lens" id="kefePathwayGlassLens" aria-hidden="true"></div>' +
-                '<button type="button" class="kefe-pathway-glass-item' + (activeIndex === 0 ? ' active' : '') + '" data-choice="lyric">' +
-                    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>' +
-                    '<span>Lyric Video</span>' +
-                '</button>' +
-                '<button type="button" class="kefe-pathway-glass-item' + (activeIndex === 1 ? ' active' : '') + '" data-choice="visualiser">' +
-                    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 10v3M6 6v11M10 3v18M14 8v7M18 5v13M22 10v3"/></svg>' +
-                    '<span>Visualiser</span>' +
-                '</button>' +
-                '<button type="button" class="kefe-pathway-glass-item' + (activeIndex === 2 ? ' active' : '') + '" data-choice="captioned">' +
-                    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 11h2M13 11h4M7 15h4M15 15h2"/></svg>' +
-                    '<span>Captioned</span>' +
-                '</button>' +
+                '<span class="kefe-pathway-glass-indicator" aria-hidden="true"></span>' +
             '</nav>';
 
         const pathwayBackground = panel.querySelector('.kefe-pathway-background');
@@ -152,11 +158,14 @@
 
         const container = $('kefePathwayCards');
         const lens = $('kefePathwayGlassLens');
-        const items = [...panel.querySelectorAll('.kefe-pathway-glass-item')];
-        if (!container || !lens || !items.length) return;
+        const items = [...panel.querySelectorAll('.kefe-pathway-card')];
+        if (!container || !items.length) return;
 
         const moveLens = targetItem => {
-            const dockRect = container.getBoundingClientRect();
+            if (!lens || !targetItem) return;
+            const dock = $('kefePathwayGlassDock');
+            if (!dock) return;
+            const dockRect = dock.getBoundingClientRect();
             const itemRect = targetItem.getBoundingClientRect();
             const centerX = (itemRect.left - dockRect.left) + (itemRect.width / 2);
             const centerY = (itemRect.top - dockRect.top) + (itemRect.height / 2);
@@ -180,6 +189,7 @@
             if (typeof window.kefeSetProjectType === 'function') {
                 window.kefeSetProjectType(choice);
             }
+
             refreshNextState();
             requestAnimationFrame(() => moveLens(card));
         };
@@ -202,11 +212,6 @@
         });
 
         requestAnimationFrame(() => moveLens(items[activeIndex] || items[0]));
-
-        window.addEventListener('resize', () => {
-            const active = container.querySelector('.kefe-pathway-glass-item.active');
-            if (active) moveLens(active);
-        });
 
         if (wizard.choice) selectCard(activeIndex);
         else refreshNextState();
