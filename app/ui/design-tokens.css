@@ -408,8 +408,7 @@ header {
 /* ---------------------------------------------------------------------
    Wizard cards — centered layout.
    Icon on top, title below, description below. All horizontally centered.
-   Overrides the scattered rules in styles.css, square-ui.css,
-   kefe-product-polish.css, wizard.css. Source of truth: this file.
+   Overrides the scattered rules in styles.css,     wizard.css. Source of truth: this file.
    --------------------------------------------------------------------- */
 
 body.wizard-mode .wizard-choices .wizard-choice {
