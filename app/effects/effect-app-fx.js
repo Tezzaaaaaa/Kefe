@@ -260,6 +260,39 @@
       const controls=document.createElement('div');controls.className='background-effect-controls';range(controls,'fxIntensity','Intensity',0,1,.05);range(controls,'fxSpeed','Animation speed',.25,2.5,.05,'×');fxSec.appendChild(controls);
       select.value=window.state.style.visualFx||'none';
       select.addEventListener('change',()=>setFx(select.value));
+
+      select.style.display='none';
+      const popTrigger=document.createElement('button');
+      popTrigger.type='button';popTrigger.className='file-button kefe-popover-trigger';
+      popTrigger.setAttribute('popoverTarget','kefe-visual-fx-popover');
+      popTrigger.textContent='Choose visual FX';
+      wrap.insertBefore(popTrigger,select);
+
+      const fxMenu=document.createElement('div');
+      fxMenu.id='kefe-visual-fx-popover';fxMenu.setAttribute('popover','auto');fxMenu.className='kefe-fx-popover';
+      fxMenu.innerHTML='<span class="kefe-popover-active" aria-hidden="true"></span>';
+      Object.entries(catalog).forEach(([category,names],gi)=>{
+        const subId='kefe-visual-fx-'+gi;
+        const cat=document.createElement('button');cat.type='button';cat.className='kefe-popover-category';
+        cat.setAttribute('popoverTarget',subId);cat.textContent=category;fxMenu.appendChild(cat);
+        const sub=document.createElement('div');sub.id=subId;sub.setAttribute('popover','auto');sub.className='kefe-fx-subpopover';
+        names.forEach(name=>{
+          const value=effectValues[name]||'';
+          if(!value)return;
+          const b=document.createElement('button');b.type='button';b.className='kefe-fx-option';b.dataset.fx=value;b.textContent=name;
+          b.addEventListener('click',()=>{setFx(value);sub.hidePopover?.();fxMenu.hidePopover?.();});
+          sub.appendChild(b);
+        });
+        fxMenu.appendChild(sub);
+      });
+      wrap.appendChild(fxMenu);
+      const fxStyle=document.createElement('style');fxStyle.id='kefe-visual-fx-popover-css';fxStyle.textContent=[
+        '.kefe-fx-popover,.kefe-fx-subpopover{margin:0;padding:8px;min-width:220px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--text);box-shadow:none}',
+        '.kefe-fx-popover > .kefe-popover-category,.kefe-fx-option{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border:0;border-radius:7px;background:transparent;color:var(--text);font:600 12px "Inter Tight",sans-serif;text-align:left;cursor:pointer}',
+        '.kefe-fx-popover > .kefe-popover-category:hover,.kefe-fx-option:hover{background:var(--surface-3)}',
+        '.kefe-fx-option[data-fx="none"]{color:var(--text-2)}',
+        '.kefe-popover-active{display:block;height:2px;margin:0 4px 6px;background:var(--red);opacity:.85}'
+      ].join('');document.head.appendChild(fxStyle);
     }
     ui();
     }
