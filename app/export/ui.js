@@ -1,11 +1,10 @@
-import { exportVideo, resolveMasterInfo } from './index.js';
+import { exportVideo } from './index.js';
 import { getExportConfig } from './config.js';
+import { resolveMasterInfo } from './master.js';
 
 window.kefeGetExportConfig = getExportConfig;
 
 const $ = id => document.getElementById(id);
-// app.js attaches the authoritative preflight click handler to #exportBottom.
-const exportBottom = $('exportBottom');
 const cancelButton = $('cancelExport');
 const confirmExport = $('confirmExport');
 const closePreflight = $('closePreflight');
@@ -53,7 +52,6 @@ async function seekAndRender(ctx, width, height, time, signal) {
         }
     }
     if (signal?.aborted) throw new DOMException('Export cancelled', 'AbortError');
-    state.playback.currentTime = time;
     const cappedTime = (state.playback.trimTo != null && time > state.playback.trimTo) ? state.playback.trimTo : time;
     renderExportFrame(ctx, width, height, cappedTime);
 }
