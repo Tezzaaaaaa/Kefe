@@ -1185,3 +1185,13 @@ body.wizard-mode .wizard-panel:after{display:none!important}
 .app .kefe-mega-popover{
   border-radius:var(--kefe-lg-radius)!important;
 }
+
+
+/* Wizard: remove the preview surface completely. */
+body.wizard-mode .app main{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+body.wizard-mode .app .preview,
+body.wizard-mode #previewSection{
+  display:none!important;
+}
