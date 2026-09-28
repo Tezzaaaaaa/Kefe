@@ -10,7 +10,7 @@
      --------------------------------------------------------- */
   const families = {
     ui:                  'Open Sans',
-    apple:               'Open Sans',
+    apple:               'SF Pro Display',
     brat:                'Archivo Narrow',
     eternal:             'Homemade Apple',
     aurora:              'Bricolage Grotesque',
@@ -95,6 +95,8 @@
     // Momo Trust Display
     { family: 'Momo Trust Display', weight: 400, style: 'normal', file: 'fonts/momo-trust-display/MomoTrustDisplay-Regular.woff2' },
     // New lyric-effect fonts
+    { family: 'Anton', weight: 400, style: 'normal', file: 'fonts/anton/Anton-Regular.woff2' },
+    { family: 'VT323', weight: 400, style: 'normal', file: 'fonts/vt323/VT323-Regular.woff2' },
     { family: 'AuraSerif', weight: 400, style: 'normal', file: 'fonts/AuraSerif.woff2' },
     { family: 'BlockParty', weight: 400, style: 'normal', file: 'fonts/BlockParty.woff2' },
     { family: 'Kefe Tracklist Cursive', weight: 400, style: 'normal', file: 'fonts/KefeTracklistCursive-Regular.woff2' },
