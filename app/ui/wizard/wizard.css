@@ -236,6 +236,7 @@ body.wizard-mode[data-wizard-step="intro"] main{
   grid-template-rows:1fr;
 }
 body.wizard-mode[data-wizard-step="intro"] .sidebar{
+  position:relative;
   display:block;
   width:100%;
   height:100%;
@@ -244,6 +245,14 @@ body.wizard-mode[data-wizard-step="intro"] .sidebar{
   overflow:hidden;
   background:transparent;
   border:0;
+}
+body.wizard-mode[data-wizard-step="intro"] #wizardNav{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:10;
+  display:flex;
 }
 body.wizard-mode[data-wizard-step="intro"] #wizardSection{
   position:relative;
@@ -256,7 +265,6 @@ body.wizard-mode[data-wizard-step="intro"] #wizardSection{
   box-sizing:border-box;
 }
 body.wizard-mode[data-wizard-step="intro"] .sidebar > .section-nav,
-body.wizard-mode[data-wizard-step="intro"] #wizardNav,
 body.wizard-mode[data-wizard-step="intro"] .sidebar > .section:not(#wizardSection){
   display:none !important;
 }
