@@ -115,6 +115,7 @@
         }));
     }
     function renderIntro() {
+        if (previewEl) previewEl.style.setProperty('display', 'none', 'important');
         destroyIntroVeil();
 
         const projects = [
