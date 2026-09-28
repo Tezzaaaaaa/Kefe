@@ -224,6 +224,14 @@ body.wizard-mode .wizard-nav .wizard-skip:hover{opacity:1}
 }
 
 
+body.wizard-mode .wizard-choices:not(.wizard-source-choices) .kefe-pathway-card{
+  display:flex;
+  grid-template-columns:none;
+  min-height:330px;
+  padding:0;
+  overflow:hidden;
+  border-radius:16px;
+}
 /* KEFE pathway cards — Velocity Carousel treatment inspired by Framer's Velocity Carousel. */
 body.wizard-mode .kefe-pathway-carousel{width:100%;margin:26px auto 0;min-width:0}
 body.wizard-mode .kefe-pathway-track{
@@ -240,12 +248,12 @@ body.wizard-mode .kefe-pathway-card{
   opacity:.46;transform:scale(.88);transform-origin:center;filter:saturate(.72);cursor:pointer;box-shadow:none;
   transition:transform .42s cubic-bezier(.22,1,.36,1),opacity .32s ease,filter .32s ease,border-color .32s ease;
 }
-body.wizard-mode .kefe-pathway-card.is-focused,body.wizard-mode .kefe-pathway-card.selected{
+body.wizard-mode .kefe-pathway-card.is-focused,body.wizard-mode .kefe-pathway-card.is-selected{
   opacity:1;transform:scale(1);filter:none;border-color:rgba(255,255,255,.2);
 }
 body.wizard-mode .kefe-pathway-card:hover{border-color:rgba(255,255,255,.28)}
 body.wizard-mode .kefe-pathway-card:focus-visible{outline:2px solid var(--red);outline-offset:4px}
-body.wizard-mode .kefe-pathway-card.selected{border-color:rgba(239,63,56,.7)}
+body.wizard-mode .kefe-pathway-card.is-selected{border-color:rgba(239,63,56,.7)}
 body.wizard-mode .kefe-pathway-image{position:absolute;inset:0;z-index:0;display:block;background:#080808}
 body.wizard-mode .kefe-pathway-image::after{
   content:"";position:absolute;inset:0;
