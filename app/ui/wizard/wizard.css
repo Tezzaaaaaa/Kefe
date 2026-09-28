@@ -1032,3 +1032,103 @@ body.wizard-mode[data-wizard-step="intro"] .wizard-start-indicator{
   body.wizard-mode[data-wizard-step="intro"] .wizard-panel-title{font-size:25px}
   body.wizard-mode[data-wizard-step="intro"] .wizard-choice{min-height:74px;padding:12px 14px;border-radius:16px}
 }
+
+
+/* Liquid glass navigation system — wizard surfaces follow the same shell. */
+body.wizard-mode{
+  --wizard-lg-bg:rgba(255,255,255,.42);
+  --wizard-lg-border:rgba(255,255,255,.72);
+  --wizard-lg-highlight:rgba(255,255,255,.92);
+  --wizard-lg-shadow:0 14px 40px rgba(86,106,132,.12);
+}
+body.wizard-mode .wizard-nav,
+body.wizard-mode .section-nav,
+body.wizard-mode .wizard-panel,
+body.wizard-mode .wizard-choice,
+body.wizard-mode .wizard-effect-choice,
+body.wizard-mode .wizard-style-group,
+body.wizard-mode .wizard-summary-row,
+body.wizard-mode .wizard-progress-wrap,
+body.wizard-mode .wizard-step-menu,
+body.wizard-mode .section,
+body.wizard-mode .sub-block,
+body.wizard-mode .control-row,
+body.wizard-mode .metadata-grid,
+body.wizard-mode .background-choice-grid,
+body.wizard-mode .effect-buttons{
+  border-color:var(--wizard-lg-border);
+  background:color-mix(in srgb,var(--wizard-lg-bg) calc(var(--kefe-glass-visibility) * 100%),transparent);
+  box-shadow:inset 0 1px 0 var(--wizard-lg-highlight),var(--wizard-lg-shadow);
+  backdrop-filter:blur(26px) saturate(1.6);
+  -webkit-backdrop-filter:blur(26px) saturate(1.6);
+}
+body.wizard-mode .wizard-nav{
+  height:60px;
+  min-height:60px;
+  padding:8px 10px;
+  gap:8px;
+  border:1px solid var(--wizard-lg-border);
+  border-radius:999px;
+}
+body.wizard-mode .wizard-progress-wrap{
+  min-height:42px;
+  height:42px;
+  border-radius:999px;
+  padding:3px 14px;
+}
+body.wizard-mode .wizard-progress{
+  color:#46546b;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+body.wizard-mode .wizard-back,
+body.wizard-mode .wizard-next{
+  height:42px!important;
+  min-height:42px!important;
+  min-width:92px;
+  border-radius:999px!important;
+}
+body.wizard-mode .wizard-back{
+  background:rgba(255,255,255,.48)!important;
+  border-color:rgba(255,255,255,.76)!important;
+}
+body.wizard-mode .wizard-next{
+  background:#8ba8d4!important;
+  border-color:#8ba8d4!important;
+}
+body.wizard-mode .wizard-panel{
+  border-radius:22px;
+}
+body.wizard-mode .wizard-choice,
+body.wizard-mode .wizard-effect-choice,
+body.wizard-mode .wizard-style-group,
+body.wizard-mode .wizard-summary-row{
+  border-radius:20px!important;
+}
+body.wizard-mode .wizard-choice-icon,
+body.wizard-mode .wizard-effect-demo{
+  border-radius:14px!important;
+}
+body.wizard-mode .section-nav{
+  border-radius:999px!important;
+  padding:6px!important;
+}
+body.wizard-mode .section-nav-link{
+  border-radius:999px!important;
+}
+@media(max-width:900px){
+  body.wizard-mode .wizard-nav{
+    height:56px;
+    min-height:56px;
+    border-radius:22px;
+  }
+  body.wizard-mode .wizard-progress-wrap{
+    height:40px;
+    min-height:40px;
+  }
+  body.wizard-mode .wizard-back,
+  body.wizard-mode .wizard-next{
+    min-width:78px;
+  }
+}
