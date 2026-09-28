@@ -1,4 +1,4 @@
-import { getQualityPreset, getExportConfig } from './config.js';
+import { getQualityPreset } from './config.js';
 import { resolveMasterInfo } from './master.js';
 import { loadEncoder, releaseEncoder } from './encoder.js';
 import { canUseWebCodecsExport, exportVideoWebCodecs } from './webcodecs.js';
@@ -65,7 +65,7 @@ async function exportVideoFFmpeg({ state, media, config, renderFrame, buildFilen
     const ctx = target.getContext('2d', { alpha: false });
     if (!ctx) throw new Error('Could not create export canvas');
 
-    const quality = getQualityPreset(window.kefeExportQuality || 'medium');
+    const quality = getQualityPreset(config?.quality);
     const totalFrames = Math.max(1, Math.ceil(duration * config.fps));
     const framesPerSegment = Math.max(config.fps * 2, Math.round(config.fps * 4));
     const segmentChunks = [];
