@@ -1067,3 +1067,121 @@ body.wizard-mode .wizard-panel:after{display:none!important}
 @media(prefers-reduced-motion:reduce){
   .app *,body.wizard-mode *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+
+/* Liquid glass navigation system — unified across every KEFE surface. */
+.app{
+  --kefe-lg-radius:22px;
+  --kefe-lg-pill:999px;
+  --kefe-lg-bg:rgba(255,255,255,.42);
+  --kefe-lg-border:rgba(255,255,255,.72);
+  --kefe-lg-highlight:rgba(255,255,255,.92);
+  --kefe-lg-shadow:0 14px 40px rgba(86,106,132,.12);
+  --kefe-lg-blur:26px;
+}
+.app .kefe-main-nav,
+.app main,
+.app .sidebar,
+.app .preview,
+.app .preview-toolbar,
+.app .canvas-wrapper,
+.app .section,
+.app .sub-block,
+.app .control-row,
+.app .metadata-grid,
+.app .background-choice-grid,
+.app .effect-buttons,
+.app .segmented,
+.app .transport,
+.app .transport-controls,
+.app .transport-progress,
+.app .transport-actions,
+.app .aspect-buttons,
+.app .wizard-nav,
+.app .section-nav,
+.app .wizard-progress-wrap,
+.app .wizard-step-menu,
+.app .wizard-choice,
+.app .wizard-effect-choice,
+.app .wizard-style-group,
+.app .wizard-summary-row,
+.app .kefe-mega-popover{
+  border-color:var(--kefe-lg-border);
+  background:color-mix(in srgb,var(--kefe-lg-bg) calc(var(--kefe-glass-visibility) * 100%),transparent);
+  box-shadow:inset 0 1px 0 var(--kefe-lg-highlight),var(--kefe-lg-shadow);
+  backdrop-filter:blur(var(--kefe-lg-blur)) saturate(1.6);
+  -webkit-backdrop-filter:blur(var(--kefe-lg-blur)) saturate(1.6);
+}
+.app .kefe-main-nav{
+  min-height:48px;
+  padding:7px 9px;
+  gap:5px;
+  border-radius:var(--kefe-lg-pill);
+}
+.app .kefe-nav-trigger{
+  height:38px!important;
+  min-height:38px!important;
+  padding:0 15px!important;
+  border-radius:var(--kefe-lg-pill)!important;
+  color:#46546b!important;
+}
+.app .kefe-nav-trigger:hover{
+  background:rgba(255,255,255,.56)!important;
+  color:#263246!important;
+}
+.app .kefe-glass-control,
+.app .kefe-hard-refresh{
+  border-radius:var(--kefe-lg-pill)!important;
+  box-shadow:inset 0 1px 0 var(--kefe-lg-highlight),0 7px 22px rgba(86,106,132,.10)!important;
+}
+.app main,
+.app .sidebar,
+.app .preview{
+  border-radius:var(--kefe-lg-radius);
+}
+.app .preview-toolbar{
+  border-radius:var(--kefe-lg-radius) var(--kefe-lg-radius) 0 0;
+}
+.app .section{
+  border-radius:18px;
+}
+.app .section-nav{
+  border-radius:var(--kefe-lg-pill);
+}
+.app .section-nav-link{
+  border-radius:var(--kefe-lg-pill);
+}
+.app .wizard-choice,
+.app .wizard-effect-choice,
+.app .background-choice{
+  border-radius:18px!important;
+}
+.app button:not(.primary),
+.app .file-button,
+.app select,
+.app input:not([type="range"]):not([type="color"]),
+.app textarea,
+.app .segmented-btn,
+.app .aspect-buttons button,
+.app .nudge-row button{
+  border-radius:var(--kefe-lg-pill)!important;
+}
+.app button.primary,
+.app .wizard-next{
+  border-radius:var(--kefe-lg-pill)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.30),0 8px 24px rgba(107,139,184,.22);
+}
+.app .preview-format{
+  border-radius:var(--kefe-lg-pill)!important;
+}
+.app .preview-format button,
+.app .preview-format-btn{
+  border-radius:var(--kefe-lg-pill)!important;
+}
+.app .transport{
+  border-radius:var(--kefe-lg-pill);
+}
+.app .modal .modal-content,
+.app .kefe-mega-popover{
+  border-radius:var(--kefe-lg-radius)!important;
+}
