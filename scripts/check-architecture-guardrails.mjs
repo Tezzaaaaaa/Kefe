@@ -62,7 +62,7 @@ for (const file of appFiles) {
 
 /* ------------------------------------------------------------
    2. window.state direct writes — baselined, not banned.
-      These four files are grandfathered because converting them
+      These three files are grandfathered because converting them
       requires the incremental migration in the doc, verified live
       (no headless browser available in CI sandbox history to
       auto-verify render/state changes). Any FIFTH file that starts
@@ -76,10 +76,6 @@ const STATE_WRITE_BASELINE = new Set([
   'app/effects/effect-app-fx.js',
   'app/effects/story-fade.js',
 
-  // The video strip writes state.songStartTime when the user marks where the
-  // song starts. Migrate to window.kefe.bus when the wider state-write
-  // migration happens.
-  'app/ui/preview-video-strip.js',
 ]);
 const stateWriters = new Set();
 for (const file of appFiles) {
