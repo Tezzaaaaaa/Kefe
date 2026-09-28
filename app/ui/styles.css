@@ -6,15 +6,15 @@
    ========================================================================== */
 
 :root {
-  --bg: #030303; --surface: #0a0a0a; --surface-2: #141414; --surface-3: #1e1e1e;
-  --line: rgba(255,255,255,.07); --line-strong: rgba(255,255,255,.14); --text: #ffffff; --text-2: #9a9a9a; --text-3: #6b6b6b;
-  --red: #ef3f38; --red-press: #d6352f; --red-soft: rgba(239,63,56,.14); --blue: var(--red);
-  --blue-press: var(--red-press); --success: #30d158; --warning: #ffb340; --danger: #ff453a;
+  --bg: #f4f7fb; --surface: rgba(255,255,255,.45); --surface-2: rgba(255,255,255,.58); --surface-3: rgba(255,255,255,.72);
+  --line: rgba(255,255,255,.70); --line-strong: rgba(255,255,255,.88); --text: #2a3242; --text-2: #5a6478; --text-3: #6d778a;
+  --red: #8ba8d4; --red-press: #6b8bb8; --red-soft: rgba(139,168,212,.16); --blue: #8ba8d4;
+  --blue-press: #6b8bb8; --success: #4f9d69; --warning: #b8843b; --danger: #b85c5c;
   --radius-lg: 12px; --radius-md: 8px; --radius-sm: 6px; --control-h: 40px; --icon-size: 16px; --icon-box: 32px;
-  --shadow-card: none; --font: 'Inter Tight', 'Open Sans', Arial, sans-serif; --ease: cubic-bezier(.2,.72,.2,1);
+  --shadow-card: inset 0 1px 0 rgba(255,255,255,.90), 0 8px 32px rgba(100,120,150,.10); --font: 'Inter Tight', 'Open Sans', Arial, sans-serif; --ease: cubic-bezier(.2,.72,.2,1);
 }
 *{margin:0;padding:0;box-sizing:border-box} [hidden]{display:none!important} html,body{height:100%;min-height:100dvh;overflow:hidden} html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13.5px;line-height:1.5;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;user-select:none}
+body{background:radial-gradient(circle at 10% 10%,#e0eafc 0%,transparent 50%),radial-gradient(circle at 90% 90%,#fcece0 0%,transparent 50%),radial-gradient(circle at 50% 50%,#f0f4f8 0%,transparent 100%),#f4f7fb;color:var(--text);font-family:var(--font);font-size:13.5px;line-height:1.5;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;user-select:none}
 button,input,select,textarea{font-family:inherit;color:inherit}
 svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;color:var(--text)}
 .status,.effect-label,.aspect-info,label,h1,h2,h3,p{user-select:text;-webkit-user-select:text} textarea,input,select{user-select:text;-webkit-user-select:text}
@@ -210,7 +210,7 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
   padding:0;
   border:1px solid rgba(255,255,255,.11);
   border-radius:16px !important;
-  background:#0b0b0b;
+  background:rgba(255,255,255,.68);
   color:var(--text);
   overflow:hidden;
   box-shadow:0 26px 70px rgba(0,0,0,.42) !important;
@@ -242,7 +242,7 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
 }
 .kefe-mega-kicker{
   margin-bottom:8px;
-  color:#747474;
+  color:#5a6478;
   font-size:9px;
   font-weight:800;
   letter-spacing:.16em;
@@ -255,7 +255,7 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
 .kefe-mega-intro p{
   max-width:520px;
   margin-top:8px;
-  color:#858585;
+  color:#5a6478;
   font-size:12px;
   line-height:1.5;
 }
@@ -291,11 +291,11 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
 .kefe-mega-item strong{
   font-size:13px;
   font-weight:650;
-  color:#f4f4f4;
+  color:#2a3242;
 }
 .kefe-mega-item small{
   margin-top:4px;
-  color:#707070;
+  color:#5a6478;
   font-size:11px;
   line-height:1.45;
 }
@@ -308,7 +308,7 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
   flex:0 0 var(--icon-box);
   border:1px solid rgba(255,255,255,.09);
   border-radius:8px !important;
-  color:#a8a8a8;
+  color:#5a6478;
   font-size:9px;
   font-weight:800;
   letter-spacing:.04em;
@@ -320,10 +320,10 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
 }
 
 .app main{
-  background:#050505;
+  background:rgba(255,255,255,.36);
 }
 .app .sidebar{
-  background:#080808;
+  background:rgba(255,255,255,.48);
   border-right:1px solid rgba(255,255,255,.08);
 }
 .app .sidebar > .section{
@@ -339,7 +339,7 @@ button:hover{background:var(--surface-3);border-color:var(--line-strong)}button:
 }
 .app .sub-heading,
 .app .wizard-panel-kicker{
-  color:#666;
+  color:#5a6478;
   font-size:9px;
   font-weight:750;
   letter-spacing:.12em;
@@ -469,3 +469,51 @@ body.wizard-mode .kefe-header .kefe-nav-trigger:hover{
   background:linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,.06));
   border-color:rgba(255,255,255,.28);
 }
+
+
+/* ==========================================================================
+   KEFE — serene pastel glass theme
+   ========================================================================== */
+body{
+  background:
+    radial-gradient(circle at 10% 10%,#e0eafc 0%,transparent 50%),
+    radial-gradient(circle at 90% 90%,#fcece0 0%,transparent 50%),
+    radial-gradient(circle at 50% 50%,#f0f4f8 0%,transparent 100%),
+    #f4f7fb;
+  color:#2a3242;
+}
+.app{background:transparent}
+.kefe-header{background:transparent!important}
+.kefe-main-nav{
+  border-color:rgba(255,255,255,.70);
+  background:rgba(255,255,255,.45);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 8px 32px rgba(100,120,150,.10);
+  backdrop-filter:blur(20px) saturate(1.5);
+  -webkit-backdrop-filter:blur(20px) saturate(1.5);
+}
+.kefe-header .brand img{box-shadow:0 2px 6px rgba(100,120,150,.08)}
+.kefe-nav-trigger{color:#5a6478!important}
+.kefe-nav-trigger:hover{color:#2a3242!important;background:rgba(255,255,255,.65)!important}
+.kefe-hard-refresh{
+  border-color:rgba(255,255,255,.70);
+  background:rgba(255,255,255,.45);
+  color:#5a6478;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.90),0 8px 32px rgba(100,120,150,.10);
+}
+.kefe-hard-refresh:hover{background:#fff;border-color:rgba(255,255,255,.88);color:#6b8bb8}
+.app main{background:transparent}
+.app .sidebar{background:rgba(255,255,255,.34);border-right-color:rgba(255,255,255,.70)}
+.app .sidebar>.section{border-bottom-color:rgba(255,255,255,.55)}
+.app .preview{background:rgba(255,255,255,.28)}
+.app .preview-toolbar{background:rgba(255,255,255,.42);border-bottom-color:rgba(255,255,255,.70)}
+.app .canvas-wrapper{background:rgba(240,244,248,.52)}
+.app .canvas-wrapper::before{background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.42),transparent 52%)}
+.app .sidebar> .section>h3{color:#2a3242}
+.app .sub-heading,.app .wizard-panel-kicker{color:#5a6478}
+.kefe-mega-popover{background:rgba(255,255,255,.78);border-color:rgba(255,255,255,.78);color:#2a3242;box-shadow:0 26px 70px rgba(100,120,150,.18)!important;backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5)}
+.kefe-mega-intro{background:linear-gradient(135deg,rgba(255,255,255,.55),transparent 62%);border-bottom-color:rgba(100,120,150,.10)}
+.kefe-mega-item:hover{background:rgba(255,255,255,.55);border-color:rgba(255,255,255,.70)}
+.kefe-mega-item strong{color:#2a3242}
+.kefe-mega-item small{color:#5a6478}
+.kefe-mega-icon{border-color:rgba(100,120,150,.14);color:#6b8bb8}
+.kefe-mega-item:hover .kefe-mega-icon{color:#6b8bb8;border-color:rgba(139,168,212,.45);background:rgba(139,168,212,.10)}
