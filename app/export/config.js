@@ -36,6 +36,22 @@ export const CODEC = Object.freeze({
   container: 'mp4'
 });
 
+const QUALITY_STORAGE_KEY = 'kefe-export-quality';
+
+export function getSelectedQuality() {
+  try {
+    return normaliseQuality(localStorage.getItem(QUALITY_STORAGE_KEY) || 'medium');
+  } catch {
+    return 'medium';
+  }
+}
+
+export function setSelectedQuality(name) {
+  const key = normaliseQuality(name);
+  try { localStorage.setItem(QUALITY_STORAGE_KEY, key); } catch {}
+  return key;
+}
+
 export function getQualityPreset(name = 'medium') {
   const key = normaliseQuality(name);
   return { key, ...QUALITY_PRESETS[key] };
@@ -57,7 +73,7 @@ export function getExportConfig(opts = {}) {
   const aspectKey = ASPECTS[base.aspect] ? base.aspect : '9:16';
   const [width, height] = RESOLUTIONS[resolutionKey][aspectKey];
   const fps = Number.isFinite(base.fps) ? base.fps : 30;
-  const quality = getQualityPreset(base.quality);
+  const quality = getQualityPreset(base.quality || getSelectedQuality());
 
   return Object.freeze({
     preset: base.preset || null,
