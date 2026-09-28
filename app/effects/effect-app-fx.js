@@ -234,10 +234,10 @@
     function ui(){
       const sec=document.getElementById('backgroundSection');
       const fxSec=document.getElementById('fxSection');
-      if(!sec||sec.dataset.kefeFxBuilt)return;
+      if(!sec||!fxSec||sec.dataset.kefeFxBuilt)return;
       sec.dataset.kefeFxBuilt='true';
-      if(fxSec)fxSec.hidden=true;
-      const h=document.createElement('div');h.className='sub-heading';h.textContent='Background Effects';sec.insertBefore(h,sec.firstChild);
+      fxSec.hidden=false;
+      const h=document.createElement('div');h.className='sub-heading';h.textContent='Effect';fxSec.appendChild(h);
       const select=document.createElement('select');select.id='backgroundEffectSelect';select.setAttribute('aria-label','Background effect');
       const off=document.createElement('option');off.value='none';off.textContent='Off — clean KEFE rendering';select.appendChild(off);
       Object.entries(catalog).forEach(([category,names])=>{
@@ -255,9 +255,9 @@
         select.appendChild(group);
       });
       const wrap=document.createElement('label');wrap.className='background-effect-select';wrap.textContent='Effect';wrap.appendChild(select);
-      sec.insertBefore(wrap,h.nextSibling);
-      const label=document.createElement('div');label.className='effect-label';label.id='visualFxLabel';label.textContent=labels[window.state.style.visualFx]||labels.none;sec.insertBefore(label,wrap.nextSibling);
-      const controls=document.createElement('div');controls.className='background-effect-controls';range(controls,'fxIntensity','Intensity',0,1,.05);range(controls,'fxSpeed','Animation speed',.25,2.5,.05,'×');sec.insertBefore(controls,label.nextSibling);
+      fxSec.appendChild(wrap);
+      const label=document.createElement('div');label.className='effect-label';label.id='visualFxLabel';label.textContent=labels[window.state.style.visualFx]||labels.none;fxSec.appendChild(label);
+      const controls=document.createElement('div');controls.className='background-effect-controls';range(controls,'fxIntensity','Intensity',0,1,.05);range(controls,'fxSpeed','Animation speed',.25,2.5,.05,'×');fxSec.appendChild(controls);
       select.value=window.state.style.visualFx||'none';
       select.addEventListener('change',()=>setFx(select.value));
     }
