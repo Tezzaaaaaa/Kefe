@@ -272,7 +272,7 @@
         if (!tab || !body.classList.contains('kefe-editor-mode')) return;
         event.preventDefault();
         const target = tab.getAttribute('href');
-        const mappedTarget = target === '#lyricStyleBlock' ? '#textSection' : target;
+        const mappedTarget = target === '#lyricStyleBlock' ? '#textSection' : target === '#previewSection' ? '#visualiserSection' : target;
         document.querySelectorAll('.sidebar .section').forEach(section => section.classList.toggle('editor-active', '#' + section.id === mappedTarget));
         editorTabs.querySelectorAll('.kefe-editor-tab').forEach(item => item.classList.toggle('is-active', item === tab));
         if (target === '#lyricStyleBlock') {
