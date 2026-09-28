@@ -2,13 +2,14 @@
   'use strict';
   if (window.__kefeVisualiserPicker) return;
   window.__kefeVisualiserPicker = true;
+  var appState = function(){ return window.kefe?.state || appState(); };
 
   // Keep body[data-project-type] in sync so CSS can scope visualiser-only
   // rules without fighting the rest of the layout.
   (function projectTypeMirror() {
     var last = null;
     function sync() {
-      var pt = (window.state && window.state.projectType) || '';
+      var pt = (appState() && appState().projectType) || '';
       if (pt !== last) {
         document.body.setAttribute('data-project-type', pt);
         last = pt;
@@ -61,12 +62,12 @@
   ];
 
   function current(){
-    return (window.state && window.state.style && window.state.style.visualiserStyle) || 'pulse';
+    return (appState() && appState().style && appState().style.visualiserStyle) || 'pulse';
   }
 
   function tick(){
     injectCss();
-    var isVisualiser = window.state && window.state.projectType === 'visualiser';
+    var isVisualiser = appState() && appState().projectType === 'visualiser';
     var onVisualsStep = document.body.dataset.wizardStep === 'visuals';
     var host = document.getElementById('wizardSection');
     var existing = document.getElementById('kefeVisualiserPicker');
@@ -111,11 +112,11 @@
       b.dataset.mode = m.key;
       b.textContent = m.label;
       b.addEventListener('click', function(){
-        if (!window.state) return;
-        if (!window.state.style) window.state.style = {};
+        if (!appState()) return;
+        if (!appState().style) appState().style = {};
         if (m.key !== 'matrixmusic' && window.kefeMatrixVisualiser) window.kefeMatrixVisualiser.stop();
         if (m.key !== 'audioreactive' && window.kefeAudioReactiveShaders) window.kefeAudioReactiveShaders.stop();
-        window.state.style.visualiserStyle = m.key;
+        appState().style.visualiserStyle = m.key;
         window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
         tick();
       });
@@ -148,13 +149,13 @@
         names.forEach(function(name,i){
           var o=document.createElement('option');o.value=String(i);o.textContent=name;arSelect.appendChild(o);
         });
-        var wanted=window.state&&window.state.style&&window.state.style.audioReactiveShaderPreset;
+        var wanted=appState()&&appState().style&&appState().style.audioReactiveShaderPreset;
         if(wanted!==undefined&&Number(wanted)<names.length)arSelect.value=String(wanted);
         return true;
       }
       arSelect.addEventListener('change',function(){
         var idx=Number(arSelect.value)||0;
-        if(window.state){window.state.style.visualiserStyle='audioreactive';window.state.style.audioReactiveShaderPreset=idx;}
+        if(appState()){appState().style.visualiserStyle='audioreactive';appState().style.audioReactiveShaderPreset=idx;}
         window.kefeAudioReactiveShaders&&window.kefeAudioReactiveShaders.selectPreset(idx,1,1).then(function(){
           window.redrawCurrentPreviewFrame&&window.redrawCurrentPreviewFrame();
         }).catch(function(e){console.warn('[KEFE Audio Reactive Shaders]',e);});
@@ -202,16 +203,16 @@
           option.textContent = record.name;
           mmSelect.appendChild(option);
         });
-        var wanted = window.state && window.state.style && window.state.style.matrixMusicPreset;
+        var wanted = appState() && appState().style && appState().style.matrixMusicPreset;
         if (wanted && records.some(function(r){ return r.id === wanted; })) mmSelect.value = wanted;
         return true;
       }
 
       mmSelect.addEventListener('change', function() {
-        if (!window.state) return;
-        if (!window.state.style) window.state.style = {};
-        window.state.style.visualiserStyle = 'matrixmusic';
-        window.state.style.matrixMusicPreset = mmSelect.value;
+        if (!appState()) return;
+        if (!appState().style) appState().style = {};
+        appState().style.visualiserStyle = 'matrixmusic';
+        appState().style.matrixMusicPreset = mmSelect.value;
         var r = window.kefeMatrixVisualiser;
         if (r) {
           r.selectPreset(mmSelect.value, 1, 1).then(function() {
@@ -254,7 +255,7 @@
         { key: 'tpBurst',     label: 'Burst',    min: 0.2, max: 3,   step: 0.05, def: 1.0 }
       ];
       TP_SLIDERS.forEach(function(cfg){
-        var existingVal = (window.state.style && window.state.style[cfg.key]);
+        var existingVal = (appState().style && appState().style[cfg.key]);
         var val = (existingVal === undefined || existingVal === null) ? cfg.def : existingVal;
         var row = document.createElement('div');
         row.className = 'kefe-ra-row';
@@ -269,8 +270,8 @@
         valEl.textContent = (cfg.step < 0.1 ? Number(val).toFixed(2) : Number(val).toFixed(2));
         inp.addEventListener('input', function(){
           var v = Number(inp.value);
-          if (!window.state.style) window.state.style = {};
-          window.state.style[cfg.key] = v;
+          if (!appState().style) appState().style = {};
+          appState().style[cfg.key] = v;
           valEl.textContent = v.toFixed(2);
           window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
         });
@@ -294,7 +295,7 @@
         { key: 'ridgePeaks',    label: 'Peaks',  min: 0.3,  max: 2.0, step: 0.05, def: 1.0 }
       ];
       RIDGE_SLIDERS.forEach(function(cfg){
-        var existingVal = (window.state.style && window.state.style[cfg.key]);
+        var existingVal = (appState().style && appState().style[cfg.key]);
         var val = (existingVal === undefined || existingVal === null) ? cfg.def : existingVal;
         var row = document.createElement('div');
         row.className = 'kefe-ra-row';
@@ -308,8 +309,8 @@
         valEl.textContent = Number(val).toFixed(2);
         inp.addEventListener('input', function(){
           var v = Number(inp.value);
-          if (!window.state.style) window.state.style = {};
-          window.state.style[cfg.key] = v;
+          if (!appState().style) appState().style = {};
+          appState().style[cfg.key] = v;
           valEl.textContent = v.toFixed(2);
           window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
         });
@@ -329,7 +330,7 @@
       var presetRow = document.createElement('div');
       presetRow.className = 'kefe-ridge-gradients-row';
       var PRESETS = (window.kefeRidgeline && window.kefeRidgeline.presets) || {};
-      var currentPreset = (window.state.style && window.state.style.ridgeGradientPreset) || 'pulsar-white';
+      var currentPreset = (appState().style && appState().style.ridgeGradientPreset) || 'pulsar-white';
       Object.keys(PRESETS).forEach(function(key){
         var preset = PRESETS[key];
         var sw = document.createElement('button');
@@ -339,8 +340,8 @@
         sw.setAttribute('aria-label', preset.label);
         sw.style.background = 'linear-gradient(90deg,' + preset.stops.join(',') + ')';
         sw.addEventListener('click', function(){
-          if (!window.state.style) window.state.style = {};
-          window.state.style.ridgeGradientPreset = key;
+          if (!appState().style) appState().style = {};
+          appState().style.ridgeGradientPreset = key;
           presetRow.querySelectorAll('.kefe-ridge-swatch').forEach(function(b){ b.classList.remove('active'); });
           sw.classList.add('active');
           window.redrawCurrentPreviewFrame && window.redrawCurrentPreviewFrame();
@@ -365,7 +366,7 @@
         { key: 'raFocus',    label: 'Focus',    min: 0,    max: 2,   step: 0.05, def: 1.0 }
       ];
       RA_SLIDERS.forEach(function(cfg){
-        var existingVal = (window.state.style && window.state.style[cfg.key]);
+        var existingVal = (appState().style && appState().style[cfg.key]);
         var val = (existingVal === undefined || existingVal === null) ? cfg.def : existingVal;
 
         var row = document.createElement('div');
@@ -385,8 +386,8 @@
 
         inp.addEventListener('input', function(){
           var v = Number(inp.value);
-          if (!window.state.style) window.state.style = {};
-          window.state.style[cfg.key] = v;
+          if (!appState().style) appState().style = {};
+          appState().style[cfg.key] = v;
           valEl.textContent = (cfg.step < 1 ? v.toFixed(2) : String(Math.round(v)));
           if (cfg.key === 'raSpread') {
             if (window.kefeVisualiser && window.kefeVisualiser.refreshRa) {
