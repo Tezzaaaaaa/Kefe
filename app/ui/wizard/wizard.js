@@ -131,10 +131,8 @@
         const selectedIndex = Math.max(0, projects.findIndex(([key]) => key === wizard.choice));
         const activeIndex = selectedIndex >= 0 ? selectedIndex : 0;
 
+        nav.style.display = 'none';
         panel.innerHTML =
-            '<p class="wizard-panel-kicker">01 · Start</p>' +
-            '<h3 class="wizard-panel-title">Choose your KEFE project</h3>' +
-            '<p class="wizard-panel-hint">Choose a pathway and KEFE will guide you through the steps.</p>' +
             '<div class="kefe-pathway-background" aria-hidden="true">\n                <span class="kefe-pathway-background-image is-visible" style="background-image:url(assets/IMG_4096.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4097.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4099.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4100.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4101.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4102.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4103.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4104.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4105.jpeg)"></span>\n                <span class="kefe-pathway-background-image" style="background-image:url(assets/IMG_4106.jpeg)"></span>\n            </div>' +
             '<div class="kefe-pathway-card-container active-' + (activeIndex + 1) + '" id="kefePathwayCards" aria-label="Choose a KEFE project">' +
                 '<button type="button" class="kefe-pathway-card' + (activeIndex === 0 ? ' active' : '') + '" data-choice="lyric">' +
@@ -152,11 +150,7 @@
                         '<strong>CAPTIONED VIDEO</strong>' +
                     '</span>' +
                 '</button>' +
-            '</div>' +
-            '<nav class="kefe-pathway-glass-dock" id="kefePathwayGlassDock" aria-label="Pathway selector">' +
-                '<div class="kefe-pathway-glass-lens" id="kefePathwayGlassLens" aria-hidden="true"></div>' +
-                '<span class="kefe-pathway-glass-indicator" aria-hidden="true"></span>' +
-            '</nav>';
+            '</div>';
 
         const pathwayBackground = panel.querySelector('.kefe-pathway-background');
         if (pathwayBackground) document.body.appendChild(pathwayBackground);
