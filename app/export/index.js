@@ -5,8 +5,6 @@ import { canUseWebCodecsExport, exportVideoWebCodecs } from './webcodecs.js';
 
 function abortError() { return new DOMException('Export cancelled', 'AbortError'); }
 function checkAbort(signal) { if (signal?.aborted) throw abortError(); }
-function timeout(ms, message) { return new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)); }
-
 async function canvasToJpeg(canvas) {
     const blob = await new Promise((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error('Could not encode rendered frame')), 'image/jpeg', 0.92));
     return new Uint8Array(await blob.arrayBuffer());
@@ -26,10 +24,6 @@ function makeProgressReporter(onProgress) {
         onProgress?.({ percent: high, message });
     };
 }
-
-export { getExportConfig };
-
-export { resolveMasterInfo };
 
 // How many 4-second segments to encode per FFmpeg engine boot before we
 // tear it down and start a fresh one. FFmpeg-wasm's heap doesn't get fully
