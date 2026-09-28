@@ -269,19 +269,20 @@
   }
 
   function currentGroup() { return miniPlayerVisualiser || 'butterchurn'; }
+  function appState() { return window.kefe?.state || window.state || null; }
 
   function cyclePreset(direction) {
     const group = currentGroup();
     let names = [], currentKey = '';
     if (group === 'butterchurn') {
       names = window.kefeButterchurn?.presetNames?.() || [];
-      currentKey = (window.kefe?.state || window.state?.style?.butterchurnPreset) || '';
+      currentKey = appState()?.style?.butterchurnPreset || '';
     } else if (group === 'matrixmusic') {
       names = (window.kefeMatrixVisualiser?.presetRecords?.() || []).map(r => r.id);
-      currentKey = (window.kefe?.state || window.state?.style?.matrixMusicPreset) || '';
+      currentKey = appState()?.style?.matrixMusicPreset || '';
     } else if (group === 'audioreactive') {
       names = (window.kefeAudioReactiveShaders?.presetNames?.() || []).map((_, i) => String(i));
-      const cur = window.kefe?.state || window.state?.style?.audioReactiveShaderPreset;
+      const cur = appState()?.style?.audioReactiveShaderPreset;
       currentKey = (cur === undefined || cur === null) ? '' : String(cur);
     }
     if (!names.length) return;
@@ -289,15 +290,16 @@
     if (idx < 0) idx = 0;
     idx = (idx + direction + names.length) % names.length;
     const next = names[idx];
-    if (!window.kefe?.state || window.state) window.kefe?.state || window.state = {};
-    if (!window.kefe?.state || window.state.style) window.kefe?.state || window.state.style = {};
-    if (group === 'butterchurn') window.kefe?.state || window.state.style.butterchurnPreset = next;
+    const state = appState();
+    if (!state) return;
+    if (!state.style) state.style = {};
+    if (group === 'butterchurn') state.style.butterchurnPreset = next;
     else if (group === 'matrixmusic') {
-      window.kefe?.state || window.state.style.matrixMusicPreset = next;
+      state.style.matrixMusicPreset = next;
       try { window.kefeMatrixVisualiser?.selectPreset?.(next, dom.canvas.width, dom.canvas.height); } catch (_) {}
     } else if (group === 'audioreactive') {
       const n = Number(next) || 0;
-      window.kefe?.state || window.state.style.audioReactiveShaderPreset = n;
+      state.style.audioReactiveShaderPreset = n;
       try { window.kefeAudioReactiveShaders?.selectPreset?.(n, dom.canvas.width, dom.canvas.height); } catch (_) {}
     }
   }
@@ -359,15 +361,16 @@
     const [group, ...rest] = encoded.split('::');
     const preset = rest.join('::');
     miniPlayerVisualiser = group;
-    if (!window.kefe?.state || window.state) window.kefe?.state || window.state = {};
-    if (!window.kefe?.state || window.state.style) window.kefe?.state || window.state.style = {};
-    if (group === 'butterchurn') window.kefe?.state || window.state.style.butterchurnPreset = preset;
+    const state = appState();
+    if (!state) return;
+    if (!state.style) state.style = {};
+    if (group === 'butterchurn') state.style.butterchurnPreset = preset;
     else if (group === 'matrixmusic') {
-      window.kefe?.state || window.state.style.matrixMusicPreset = preset;
+      state.style.matrixMusicPreset = preset;
       try { window.kefeMatrixVisualiser?.selectPreset?.(preset); } catch (_) {}
     } else if (group === 'audioreactive') {
       const n = Number(preset) || 0;
-      window.kefe?.state || window.state.style.audioReactiveShaderPreset = n;
+      state.style.audioReactiveShaderPreset = n;
       try { window.kefeAudioReactiveShaders?.selectPreset?.(n); } catch (_) {}
     }
     dom.presets.classList.remove('is-open');
