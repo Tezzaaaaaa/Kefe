@@ -625,16 +625,19 @@ body.wizard-mode .kefe-pathway-card:hover:not(.active){background:color-mix(in s
    shares the same geometry and glass treatment.
    ========================================================================== */
 :root{
-  --kefe-glass-bg: rgba(255,255,255,.52);
-  --kefe-glass-strong: rgba(255,255,255,.68);
-  --kefe-glass-soft: rgba(255,255,255,.34);
-  --kefe-glass-border: rgba(255,255,255,.78);
-  --kefe-glass-highlight: rgba(255,255,255,.92);
-  --kefe-glass-shadow: 0 10px 34px rgba(100,120,150,.12);
-  --kefe-page-pad: clamp(12px,2vw,24px);
-  --kefe-gap: 12px;
-  --kefe-radius: 18px;
-  --kefe-control-radius: 12px;
+  --kefe-glass-visibility:1;
+  --kefe-glass-bg:rgba(255,255,255,.52);
+  --kefe-glass-strong:rgba(255,255,255,.68);
+  --kefe-glass-soft:rgba(255,255,255,.34);
+  --kefe-glass-border:rgba(255,255,255,.78);
+  --kefe-glass-highlight:rgba(255,255,255,.92);
+  --kefe-glass-shadow:0 10px 34px rgba(100,120,150,.12);
+  --kefe-glass-blur:24px;
+  --kefe-glass-saturation:1.55;
+  --kefe-page-pad:clamp(12px,2vw,24px);
+  --kefe-gap:12px;
+  --kefe-radius:18px;
+  --kefe-control-radius:12px;
 }
 html,body{width:100%;height:100%;min-height:100dvh;overflow:hidden}
 body,.app{background:
@@ -676,10 +679,10 @@ body,.app{background:
 .app .transport-actions,
 .app .aspect-buttons{
   border-color:var(--kefe-glass-border);
-  background:color-mix(in srgb,var(--kefe-glass-bg) calc(var(--kefe-glass-visibility,1) * 100%),transparent);
+  background:color-mix(in srgb,var(--kefe-glass-bg) calc(var(--kefe-glass-visibility) * 100%),transparent);
   box-shadow:inset 0 1px 0 var(--kefe-glass-highlight),var(--kefe-glass-shadow);
-  backdrop-filter:blur(22px) saturate(1.45);
-  -webkit-backdrop-filter:blur(22px) saturate(1.45);
+  backdrop-filter:blur(var(--kefe-glass-blur)) saturate(var(--kefe-glass-saturation));
+  -webkit-backdrop-filter:blur(var(--kefe-glass-blur)) saturate(var(--kefe-glass-saturation));
 }
 .app .section{box-shadow:none;border-left:0;border-right:0;border-top:0}
 .app button,
@@ -693,7 +696,7 @@ body,.app{background:
 .app .aspect-buttons button{
   border:1px solid var(--kefe-glass-border);
   border-radius:var(--kefe-control-radius)!important;
-  background:color-mix(in srgb,var(--kefe-glass-bg) calc(var(--kefe-glass-visibility,1) * 100%),transparent);
+  background:color-mix(in srgb,var(--kefe-glass-bg) calc(var(--kefe-glass-visibility) * 100%),transparent);
   color:#2a3242;
   box-shadow:inset 0 1px 0 var(--kefe-glass-highlight),0 5px 18px rgba(100,120,150,.08);
 }
@@ -704,7 +707,7 @@ body,.app{background:
 .app .segmented-btn:hover,
 .app .nudge-row button:hover,
 .app .aspect-buttons button:hover{
-  background:color-mix(in srgb,rgba(255,255,255,.72) calc(var(--kefe-glass-visibility,1) * 100%),transparent);
+  background:color-mix(in srgb,rgba(255,255,255,.72) calc(var(--kefe-glass-visibility) * 100%),transparent);
   border-color:rgba(255,255,255,.92);
 }
 .app button.primary,
@@ -751,7 +754,7 @@ body,.app{background:
   gap:4px;
   border:1px solid var(--kefe-glass-border);
   border-radius:999px;
-  background:color-mix(in srgb,rgba(255,255,255,.55) calc(var(--kefe-glass-visibility,1) * 100%),transparent);
+  background:color-mix(in srgb,rgba(255,255,255,.55) calc(var(--kefe-glass-visibility) * 100%),transparent);
   box-shadow:inset 0 1px 0 var(--kefe-glass-highlight),var(--kefe-glass-shadow);
   backdrop-filter:blur(24px) saturate(1.55);
   -webkit-backdrop-filter:blur(24px) saturate(1.55);
@@ -769,7 +772,7 @@ body,.app{background:
 .kefe-hard-refresh{
   width:40px!important;min-width:40px!important;padding:0!important;margin-left:4px!important;
   border:1px solid var(--kefe-glass-border)!important;
-  background:color-mix(in srgb,rgba(255,255,255,.45) calc(var(--kefe-glass-visibility,1) * 100%),transparent)!important;
+  background:color-mix(in srgb,rgba(255,255,255,.45) calc(var(--kefe-glass-visibility) * 100%),transparent)!important;
   color:#5a6478!important;
   box-shadow:inset 0 1px 0 var(--kefe-glass-highlight),0 5px 18px rgba(100,120,150,.08)!important;
 }
@@ -780,11 +783,44 @@ body,.app{background:
 .kefe-glass-control{
   display:flex;align-items:center;gap:6px;padding:0 9px;
   border:1px solid var(--kefe-glass-border);color:#5a6478;
-  background:color-mix(in srgb,rgba(255,255,255,.45) calc(var(--kefe-glass-visibility,1) * 100%),transparent);
+  background:color-mix(in srgb,rgba(255,255,255,.45) calc(var(--kefe-glass-visibility) * 100%),transparent);
   box-shadow:inset 0 1px 0 var(--kefe-glass-highlight),0 5px 18px rgba(100,120,150,.08);
   font-size:11px;font-weight:650;white-space:nowrap;
 }
 .kefe-glass-control input[type="range"]{width:76px;height:18px;margin:0}
+
+/* Glass visibility is a real surface control: 0% is clear glass, 100% is fully frosted. */
+.app .kefe-main-nav,
+.app .kefe-glass-control,
+.app .kefe-hard-refresh,
+.app main,
+.app .sidebar,
+.app .preview,
+.app .preview-toolbar,
+.app .canvas-wrapper,
+.app .section,
+.app .sub-block,
+.app .control-row,
+.app .metadata-grid,
+.app .background-choice-grid,
+.app .effect-buttons,
+.app .segmented,
+.app .transport,
+.app .transport-controls,
+.app .transport-progress,
+.app .transport-actions,
+.app .aspect-buttons,
+.app button:not(.primary),
+.app .file-button,
+.app select,
+.app input:not([type="range"]):not([type="color"]),
+.app textarea,
+.app .background-choice,
+.app .segmented-btn,
+.app .nudge-row button,
+.app .aspect-buttons button{
+  background-color:color-mix(in srgb,rgba(255,255,255,.52) calc(var(--kefe-glass-visibility) * 100%),transparent);
+}
 
 /* Editor shell: exact containment, no edge clipping. */
 .app main{
