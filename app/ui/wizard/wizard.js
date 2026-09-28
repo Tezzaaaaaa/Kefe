@@ -127,7 +127,7 @@
             '<h3 class="wizard-panel-title">Choose your KEFE project</h3>' +
             '<p class="wizard-panel-hint">Choose a pathway and KEFE will guide you through the steps.</p>' +
             '<div class="kefe-pathway-carousel" aria-label="Choose a KEFE project">' +
-                '<div class="kefe-pathway-track" tabindex="0">' +
+                '<div class="kefe-pathway-track" tabindex="0" aria-label="Drag to browse project pathways">' +
                     projects.map(([k,title,image], index) =>
                         '<button type="button" class="wizard-choice kefe-pathway-card' + (wizard.choice === k ? ' is-selected' : '') + '" data-choice="' + k + '" data-pathway-index="' + index + '">' +
                             '<span class="kefe-pathway-image"><img src="' + image + '" alt="" aria-hidden="true"></span>' +
@@ -136,11 +136,7 @@
                         '</button>'
                     ).join('') +
                 '</div>' +
-                '<div class="kefe-pathway-dots" role="tablist" aria-label="Project pathways">' +
-                    projects.map(([k,title], index) =>
-                        '<button type="button" class="kefe-pathway-dot' + (wizard.choice === k ? ' active' : (!wizard.choice && index === 0 ? ' active' : '')) + '" data-pathway-dot="' + index + '" role="tab" aria-label="' + title + '" aria-selected="' + (wizard.choice === k || (!wizard.choice && index === 0) ? 'true' : 'false') + '"></button>'
-                    ).join('') +
-                '</div>' +
+                '<button type="button" class="kefe-pathway-controller" aria-label="Browse project pathways">Carousel controller</button>' +
             '</div>';
 
         const veilTarget = panel.querySelector('.wizard-dark-veil');
@@ -153,98 +149,150 @@
 
         const track = panel.querySelector('.kefe-pathway-track');
         const cards = [...panel.querySelectorAll('.kefe-pathway-card')];
-        const dots = [...panel.querySelectorAll('.kefe-pathway-dot')];
+        const controller = panel.querySelector('.kefe-pathway-controller');
+        if (!track || !cards.length) return;
 
-        const setFocusedCard = index => {
-            cards.forEach((card, cardIndex) => card.classList.toggle('is-focused', cardIndex === index));
-            dots.forEach((dot, dotIndex) => {
-                const active = dotIndex === index;
-                dot.classList.toggle('active', active);
-                dot.setAttribute('aria-selected', active ? 'true' : 'false');
+        const centerIndex = cards.length - 1;
+        let centerCard = wizard.choice ? Math.max(0, projects.findIndex(([k]) => k === wizard.choice)) : 0;
+        let dragStartX = null;
+        let dragDelta = 0;
+        let dragging = false;
+
+        const wrapIndex = index => (index + cards.length) % cards.length;
+
+        const updateCards = (offset = 0, animate = true) => {
+            cards.forEach((card, index) => {
+                let relative = index - centerCard - offset;
+                while (relative > 1.5) relative -= cards.length;
+                while (relative < -1.5) relative += cards.length;
+
+                const distance = Math.abs(relative);
+                const scale = distance === 0 ? 1 : distance === 1 ? 0.82 : 0.66;
+                const opacity = distance === 0 ? 1 : distance === 1 ? 0.72 : 0.38;
+                const zIndex = distance === 0 ? 3 : distance === 1 ? 2 : 1;
+                const x = relative * 78;
+
+                card.dataset.x = relative;
+                card.style.zIndex = String(zIndex);
+                card.style.opacity = String(opacity);
+                card.style.transform = `translateX(calc(-50% + ${x + (offset * 78)}%)) scale(${scale})`;
+                card.style.pointerEvents = distance <= 1.05 ? 'auto' : 'none';
+                card.classList.toggle('is-focused', distance < 0.5);
+                card.classList.toggle('is-side', distance >= 0.5);
+                card.style.transition = animate && !dragging
+                    ? 'transform .32s cubic-bezier(.22,1,.36,1),opacity .24s ease,filter .24s ease'
+                    : 'none';
+                card.style.filter = distance === 0 ? 'none' : 'saturate(.72)';
             });
         };
 
-        const focusCard = (index, behavior = reducedMotion ? 'auto' : 'smooth') => {
+        const selectCard = index => {
             const card = cards[index];
             if (!card) return;
-            setFocusedCard(index);
-            card.scrollIntoView({ behavior, block: 'nearest', inline: 'center' });
+            const choice = card.dataset.choice;
+            wizard.choice = choice;
+            wizard.path = choice;
+            wizard.source = wizard.source && wizard.choice === choice ? wizard.source : null;
+            wizard.index = 0;
+            centerCard = index;
+            cards.forEach(x => x.classList.toggle('is-selected', x === card));
+            updateCards(0);
+            if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(choice);
+            refreshNextState();
         };
 
+        const moveCenter = direction => {
+            centerCard = wrapIndex(centerCard + direction);
+            selectCard(centerCard);
+        };
+
+        const dragEnd = () => {
+            if (!dragging) return;
+            dragging = false;
+            if (Math.abs(dragDelta) > 45) moveCenter(dragDelta < 0 ? 1 : -1);
+            else updateCards(0);
+            dragStartX = null;
+            dragDelta = 0;
+        };
+
+        track.addEventListener('pointerdown', event => {
+            if (event.button !== undefined && event.button !== 0) return;
+            dragging = true;
+            dragStartX = event.clientX;
+            dragDelta = 0;
+            track.setPointerCapture?.(event.pointerId);
+            track.classList.add('is-dragging');
+            updateCards(0, false);
+        });
+
+        track.addEventListener('pointermove', event => {
+            if (!dragging || dragStartX === null) return;
+            dragDelta = event.clientX - dragStartX;
+            const distance = Math.max(-1.15, Math.min(1.15, dragDelta / Math.max(180, track.clientWidth * 0.42)));
+            cards.forEach((card, index) => {
+                const relative = Number(card.dataset.x || 0);
+                const x = (relative * 78) + (distance * 78);
+                const scale = Math.max(.62, 1 - Math.min(1, Math.abs(relative + distance)) * .18);
+                const opacity = Math.max(.34, 1 - Math.min(1, Math.abs(relative + distance)) * .28);
+                card.style.transition = 'none';
+                card.style.transform = `translateX(calc(-50% + ${x}%)) scale(${scale})`;
+                card.style.opacity = String(opacity);
+            });
+        });
+
+        track.addEventListener('pointerup', () => {
+            track.classList.remove('is-dragging');
+            dragEnd();
+        });
+        track.addEventListener('pointercancel', () => {
+            track.classList.remove('is-dragging');
+            dragEnd();
+        });
+        track.addEventListener('lostpointercapture', () => {
+            track.classList.remove('is-dragging');
+            dragEnd();
+        });
+
         cards.forEach((card, index) => {
-            card.addEventListener('click', () => {
-                const choice = card.dataset.choice;
-                if (wizard.choice === choice) {
-                    wizard.choice = null;
-                    wizard.path = null;
-                    wizard.source = null;
-                    wizard.index = 0;
-                    card.classList.remove('is-selected');
-                    setFocusedCard(index);
-                    refreshNextState();
+            card.addEventListener('click', event => {
+                if (Math.abs(dragDelta) > 8) {
+                    event.preventDefault();
                     return;
                 }
-                if (wizard.choice !== choice) wizard.source = null;
-                wizard.choice = choice;
-                wizard.path = choice;
-                wizard.index = 0;
-                if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(choice);
-                cards.forEach(x => x.classList.toggle('is-selected', x === card));
-                focusCard(index);
-                refreshNextState();
+                const relative = Number(card.dataset.x || 0);
+                if (relative < -0.5) moveCenter(-1);
+                else if (relative > 0.5) moveCenter(1);
+                else selectCard(index);
             });
         });
 
-        dots.forEach((dot, index) => {
-            dot.addEventListener('click', () => {
-                focusCard(index);
-                const card = cards[index];
-                if (!card) return;
-                const choice = card.dataset.choice;
-                if (wizard.choice !== choice) wizard.source = null;
-                wizard.choice = choice;
-                wizard.path = choice;
-                wizard.index = 0;
-                if (typeof window.kefeSetProjectType === 'function') window.kefeSetProjectType(choice);
-                cards.forEach(x => x.classList.toggle('is-selected', x === card));
-                refreshNextState();
-            });
-        });
-
-        if (track) {
-            track.addEventListener('scroll', () => {
-                const center = track.scrollLeft + track.clientWidth / 2;
-                let nearest = 0;
-                let distance = Infinity;
-                cards.forEach((card, index) => {
-                    const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-                    const nextDistance = Math.abs(cardCenter - center);
-                    if (nextDistance < distance) {
-                        distance = nextDistance;
-                        nearest = index;
-                    }
-                });
-                setFocusedCard(nearest);
-            }, { passive: true });
-
-            track.addEventListener('keydown', event => {
+        if (controller) {
+            controller.addEventListener('keydown', event => {
                 if (event.key === 'ArrowRight') {
                     event.preventDefault();
-                    const current = cards.findIndex(card => card.classList.contains('is-focused'));
-                    focusCard(Math.min(cards.length - 1, Math.max(0, current + 1)));
+                    moveCenter(1);
                 } else if (event.key === 'ArrowLeft') {
                     event.preventDefault();
-                    const current = cards.findIndex(card => card.classList.contains('is-focused'));
-                    focusCard(Math.max(0, current - 1));
+                    moveCenter(-1);
                 }
             });
+            controller.addEventListener('click', () => moveCenter(1));
         }
 
-        const initialIndex = wizard.choice ? Math.max(0, projects.findIndex(([k]) => k === wizard.choice)) : 0;
-        setFocusedCard(initialIndex);
-        if (track && cards[initialIndex]) {
-            requestAnimationFrame(() => cards[initialIndex].scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' }));
-        }
+        track.addEventListener('keydown', event => {
+            if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                moveCenter(1);
+            } else if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                moveCenter(-1);
+            } else if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                selectCard(centerCard);
+            }
+        });
+
+        updateCards(0, false);
     }
     function previewLineText() {
         const st = window.state || {};
