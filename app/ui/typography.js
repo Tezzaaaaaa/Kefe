@@ -34,7 +34,10 @@
     fancy:               'Anton',
     glitch:              'Special Elite',
     splitflap:           'Big Shoulders Stencil Display',
-    drop:                'Frijole'
+    drop:                'Frijole',
+    slide:               'Momo Trust Display',
+    drift:               'Georgia',
+    scrolllines:         'Trebuchet MS'
   };
 
   /* ---------------------------------------------------------
@@ -165,6 +168,9 @@
     blur:       { family: families.blur,        weight: 600, min: 30, max: 140, lineHeight: 1.14, tracking: -.010, align: 'center', case: 'none',  opticalScale: 1.00 },
     shiny:      { family: families.shiny,       weight: 800, min: 30, max: 150, lineHeight: 1.10, tracking: -.020, align: 'center', case: 'none',  opticalScale: 1.00 },
     drop:       { family: families.drop,        weight: 400, min: 36, max: 160, lineHeight: 1.06, tracking: -.006, align: 'center', case: 'none',  opticalScale: 1.00 },
+    slide:      { family: families.slide,       weight: 400, min: 36, max: 160, lineHeight: 1.04, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
+    drift:      { family: families.drift,       weight: 400, min: 36, max: 160, lineHeight: 1.06, tracking: .002,   align: 'center', case: 'none',  opticalScale: 1.00 },
+    scrolllines:{ family: families.scrolllines, weight: 700, min: 34, max: 150, lineHeight: 1.02, tracking: -.015, align: 'center', case: 'none',  opticalScale: 1.00 },
     // New lyric effects
     barbie:     { family: families.barbie,      weight: 800, min: 44, max: 220, lineHeight: 1.05, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     elasticpop: { family: families.elasticpop,  weight: 400, min: 36, max: 160, lineHeight: 1.1, tracking: 0.01,      align: 'center', case: 'none',  opticalScale: 1.00 },
