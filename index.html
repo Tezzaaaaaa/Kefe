@@ -554,6 +554,7 @@ button{border:0;cursor:pointer}
         songAlbum.value=item.collectionName||'';
         songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
         songAlbum.dataset.artUrl=item.artworkUrl100?item.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1'):'';
+        songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
         updateMediaTrack();
         updateTitleCard();
         applyAppleAlbumGradient();
@@ -731,7 +732,7 @@ button{border:0;cursor:pointer}
     if(!state.lines.length)return;
     const fn=window.kefeEffects[state.effect];
     if(typeof fn==='function'){
-      try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time);}
+      try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time,titleArt?.querySelector('img')||null);}
       catch(err){
         ctx.fillStyle='#fff';ctx.font='16px system-ui';ctx.textAlign='center';
         ctx.fillText('Effect error: '+err.message,canvas.width/2,canvas.height/2);
@@ -761,7 +762,13 @@ button{border:0;cursor:pointer}
         const time=appleTime(node.getAttribute('begin'));
         const end=appleTime(node.getAttribute('end'));
         const text=String(node.textContent||'').replace(/\s+/g,' ').trim();
-        return Number.isFinite(time)&&text?{time,end:Number.isFinite(end)?end:time+3,text}:null;
+        const words=Array.from(node.querySelectorAll('span[begin]')).map(wordNode=>{
+          const wordTime=appleTime(wordNode.getAttribute('begin'));
+          const wordEnd=appleTime(wordNode.getAttribute('end'));
+          const wordText=String(wordNode.textContent||'').replace(/\s+/g,' ');
+          return Number.isFinite(wordTime)&&wordText.trim()?{text:wordText,time:wordTime,endTime:Number.isFinite(wordEnd)?wordEnd:wordTime+0.35}:null;
+        }).filter(Boolean);
+        return Number.isFinite(time)&&text?{time,end:Number.isFinite(end)?end:time+3,text,words}:null;
       }).filter(Boolean).sort((a,b)=>a.time-b.time);
     }catch(error){
       console.warn('[KEFE Apple TTML]',error);
@@ -992,10 +999,10 @@ button{border:0;cursor:pointer}
   let biniLyricsRequest=0;
   async function loadBiniLyrics(){
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
-    const duration=Math.round(Number(audio.duration)||0);
+    const duration=Math.round(Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0);
     const lyricsStatus=document.getElementById('kefeLyricsStatus');
-    if(!title||!artist){
-      if(lyricsStatus)lyricsStatus.textContent='Identify the track to fetch synchronized lyrics.';
+    if(!title||!artist||duration<=0){
+      if(lyricsStatus)lyricsStatus.textContent=artist?'Waiting for track duration to fetch synchronized lyrics.':'Identify the track to fetch synchronized lyrics.';
       return;
     }
     const request=++biniLyricsRequest;
@@ -1054,7 +1061,7 @@ button{border:0;cursor:pointer}
 
       if(!parsedLines.length)throw new Error(result?.message||result?.error||'No synchronized lyrics match');
       state.appleLines=parsedLines.map((line,index)=>({...line,end:Number.isFinite(line.end)?line.end:(parsedLines[index+1]?.time||line.time+3)}));
-      state.lines=state.appleLines.map(line=>({text:line.text,time:line.time,endTime:line.end}));
+      state.lines=state.appleLines.map(line=>({text:line.text,time:line.time,endTime:line.end,words:Array.isArray(line.words)?line.words.map(word=>({text:word.text,time:word.time,endTime:word.endTime})):undefined}));
       empty.hidden=true;empty.classList.add('is-hidden');
       lyricsInput.value=state.appleLines.map(line=>{
         const mins=Math.floor(line.time/60),secs=line.time-mins*60;
@@ -1179,6 +1186,7 @@ button{border:0;cursor:pointer}
   syncAppleLyrics(true);
 })();
 </script>
+
 
 <script src="./app/effects/lyric-apple.js"></script>
 <script src="./app/effects/lyric-progressiveblur.js"></script>
