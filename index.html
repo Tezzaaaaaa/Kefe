@@ -890,6 +890,10 @@ button{border:0;cursor:pointer}
     songAlbum.value='';
     songYear.value='';
     state.appleLines=[];
+    state.lines=[];
+    lyricsInput.value='';
+    const uploadLyricsStatus=document.getElementById('kefeLyricsStatus');
+    if(uploadLyricsStatus)uploadLyricsStatus.textContent='Identifying track…';
     delete songAlbum.dataset.artUrl;
     const suggestionsPanel=document.getElementById('kefeSuggestions');
     const suggestionsList=document.getElementById('kefeSuggestionList');
@@ -917,7 +921,7 @@ button{border:0;cursor:pointer}
               const matches=songs.filter(item=>normalize(item.trackName)===wanted);
               matches.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
               if(!songArtist.value.trim()&&matches.length){
-                const exact=matches.find(item=>Math.abs((item.trackTimeMillis||Infinity)-duration)<=3000);
+                const exact=matches.find(item=>Math.abs((item.trackTimeMillis||Infinity)-duration)<=10000);
                 if(exact){
                   songTitle.value=exact.trackName||songTitle.value;
                   songArtist.value=exact.artistName||'';
@@ -1017,9 +1021,8 @@ button{border:0;cursor:pointer}
       if(lyricsStatus)lyricsStatus.textContent=artist?'Waiting for track duration to fetch synchronized lyrics.':'Identify the track to fetch synchronized lyrics.';
       return;
     }
-    await appleLyricsReady;
     const request=++biniLyricsRequest;
-    const params=new URLSearchParams({s:title,a:artist,al:album,d:String(duration)});
+    const params=new URLSearchParams({s:title,a:artist,al:album||title,d:String(duration)});
     try{
       const response=await fetch('https://api.betterlyrics.org/getLyrics?'+params.toString());
       if(request!==biniLyricsRequest)return;
