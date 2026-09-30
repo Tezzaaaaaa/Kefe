@@ -728,12 +728,6 @@ button{border:0;cursor:pointer}
     }else if(hasUploadedMedia&&visualiserPreset==='ring'){
       ctx.save();ctx.globalAlpha=.35;ctx.strokeStyle='#ef3f38';ctx.lineWidth=3;ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*(.24+.04*Math.sin(t*3)*reactive),0,Math.PI*2);ctx.stroke();ctx.restore();
     }
-    const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics)appleLyrics.style.display='none';
-    if(state.effect==='apple'){
-      drawAppleLyrics(ctx,canvas.width,canvas.height,state.appleLines,state.time);
-      return;
-    }
     if(!state.lines.length)return;
     const fn=window.kefeEffects[state.effect];
     if(typeof fn==='function'){
@@ -743,8 +737,6 @@ button{border:0;cursor:pointer}
         ctx.fillText('Effect error: '+err.message,canvas.width/2,canvas.height/2);
         console.error('[KEFE effect]',state.effect,err);
       }
-    }else if(state.effect==='apple'&&window.kefeAppleDraw){
-      window.kefeAppleDraw(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time,null);
     }
   }
   function appleTime(value){
