@@ -441,11 +441,11 @@ I could feel the night begin</textarea>
   async function enterKefeFullscreen(){
     if(document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen'))return;
     try{
-      if(document.fullscreenEnabled&&previewStage.requestFullscreen){
+      if(typeof previewStage.requestFullscreen==='function'){
         await previewStage.requestFullscreen({navigationUI:'hide'});
         return;
       }
-      if(previewStage.webkitRequestFullscreen){
+      if(typeof previewStage.webkitRequestFullscreen==='function'){
         previewStage.webkitRequestFullscreen();
         return;
       }
@@ -462,6 +462,7 @@ I could feel the night begin</textarea>
   previewFullscreen.addEventListener('click',()=>document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen')?exitKefeFullscreen():enterKefeFullscreen());
   document.addEventListener('fullscreenchange',updateFullscreenButton);
   document.addEventListener('fullscreenerror',()=>setPseudoFullscreen(true));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&previewStage.classList.contains('kefe-pseudo-fullscreen'))setPseudoFullscreen(false)});
   const songSearchButton=document.getElementById('songSearchButton'),songSearchResults=document.getElementById('songSearchResults'),songSearchStatus=document.getElementById('songSearchStatus');
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead'),wave=document.getElementById('waveform');
 
