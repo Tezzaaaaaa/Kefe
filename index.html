@@ -681,7 +681,7 @@ I could feel the night begin</textarea>
   function setEffect(id){
     state.effect=id;
     const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics){appleLyrics.style.display=id==='apple'?'block':'none';if(id==='apple')applyAppleAlbumGradient();}
+    if(appleLyrics){appleLyrics.style.display=id==='apple'?'block':'none';if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();}}
     document.querySelectorAll('.kefe-card').forEach(b=>b.classList.toggle('active',b.dataset.effect===id));
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
@@ -799,7 +799,7 @@ I could feel the night begin</textarea>
     appleLyrics.songArtist=artist;
     appleLyrics.songAlbum=album;
     appleLyrics.query=[title,artist].filter(Boolean).join(' - ');
-    appleLyrics.songDuration=Math.round((audio.duration||video.duration||0)*1000);
+    appleLyrics.songDurationMs=Math.round((audio.duration||video.duration||0)*1000);
     appleLyrics.currentTime=Math.round((audio.currentTime||state.time||0)*1000);
   }
   function syncAppleLyrics(seeking=false){
