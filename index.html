@@ -67,7 +67,7 @@ button{border:0;cursor:pointer}
 .kefe-empty span{font-size:13px}
 .kefe-timeline{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:10px 24px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);background:var(--surface);box-shadow:var(--inner)}
 .kefe-transport{display:flex;align-items:center;gap:8px}
-.kefe-play{width:42px;height:42px;border-radius:50%;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--lift);font-weight:800}
+.kefe-play{width:42px;height:42px;border-radius:50%;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--lift);font-weight:800;display:grid;place-items:center}.kefe-play svg{width:17px;height:17px;display:block}.kefe-play .kefe-pause-icon{width:18px;height:18px}
 .kefe-play:active{box-shadow:inset 2px 2px 5px rgba(67,60,51,.18)}
 .kefe-wave{height:42px;position:relative;display:flex;align-items:center;gap:2px;padding:0 4px}
 .kefe-wave span{display:block;flex:1 1 0;min-width:1px;border-radius:2px;background:#aaa59d;opacity:.65}
@@ -219,7 +219,7 @@ button{border:0;cursor:pointer}
 
   <section class="kefe-timeline" aria-label="Timeline">
     <div class="kefe-transport">
-      <button class="kefe-play" id="playButton" aria-label="Play">▶</button>
+      <button class="kefe-play" id="playButton" type="button" aria-label="Play" title="Play"><svg class="kefe-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button>
     </div>
     <div class="kefe-wave" id="waveform">
       <input id="kefeTime" class="kefe-slider" type="range" min="0" max="30" step=".01" value="0" aria-label="Timeline">
@@ -790,6 +790,14 @@ I could feel the night begin</textarea>
       loadBiniLyrics();
     })();
   });
+  function updatePlayButton(){
+    const button=document.getElementById('playButton');
+    if(!button)return;
+    const playing=!!audio.src&&!audio.paused;
+    button.setAttribute('aria-label',playing?'Pause':'Play');
+    button.setAttribute('title',playing?'Pause':'Play');
+    button.innerHTML=playing?'<svg class="kefe-pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>':'<svg class="kefe-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg>';
+  }
   document.getElementById('playButton').onclick=()=>{
     if(audio.src){if(audio.paused)audio.play();else audio.pause();}
     else{state.time=state.time>=30?0:state.time+.05;updateTime();draw();}
@@ -867,6 +875,7 @@ I could feel the night begin</textarea>
     }
   }
   audio.addEventListener('play',()=>{
+    updatePlayButton();
     if(video.src){
       video.currentTime=audio.currentTime;
       video.play().catch(err=>console.warn('[KEFE video]',err));
@@ -878,6 +887,7 @@ I could feel the night begin</textarea>
     requestAnimationFrame(syncPreview);
   });
   audio.addEventListener('pause',()=>{
+    updatePlayButton();
     if(video.src&&!video.paused)video.pause();
     hideTitleCard();
     syncAppleLyrics();
@@ -885,6 +895,7 @@ I could feel the night begin</textarea>
     if(appleLyrics&&typeof appleLyrics.pause==='function')appleLyrics.pause();
   });
   audio.addEventListener('ended',()=>{
+    updatePlayButton();
     if(video.src&&!video.paused)video.pause();
     hideTitleCard();
     syncAppleLyrics(true);
@@ -938,7 +949,7 @@ I could feel the night begin</textarea>
   window.kefeRenderPipeline={use(name,plugin){const wrapped=plugin(window.__kefeBaseRender||(()=>{}));window.__kefeRenderers[name]=wrapped;return wrapped;}};
   window.__kefeBaseRender=()=>{};
 
-  parseLyrics();setEffect('apple');updateTitleCard();updateTime();
+  parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();
   syncAppleLyricsMetadata();
   syncAppleLyrics(true);
   appleLyricsReady.then(()=>{
