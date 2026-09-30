@@ -78,7 +78,7 @@ button{border:0;cursor:pointer}
 .kefe-slider::-moz-range-track{height:8px;background:linear-gradient(to right,#8f8a82 0%,#8f8a82 var(--progress,0%),#d0cbc2 var(--progress,0%),#d0cbc2 100%);border-radius:4px;box-shadow:inset 1px 1px 2px rgba(60,55,49,.14)}
 .kefe-slider::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin-top:-5px;border-radius:50%;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--lift)}
 .kefe-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--lift)}
-.kefe-editing{min-height:0;display:grid;grid-template-columns:164px minmax(0,1fr);background:var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}
+.kefe-editing{min-height:0;min-width:0;display:grid;grid-template-columns:164px minmax(0,1fr);background:var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.65);overflow:hidden}
 .kefe-tabs{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:16px 12px;border-right:1px solid var(--line-soft);overflow:auto;background:var(--surface);}
 .kefe-section{position:relative;height:42px;min-height:42px;padding:0 14px;text-align:left;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--muted);white-space:nowrap;box-shadow:none;transition:transform .18s ease,box-shadow .18s ease,background .18s ease,color .18s ease}
 .kefe-section:hover{background:var(--surface-hi);color:var(--text);box-shadow:var(--inner)}
@@ -129,7 +129,7 @@ button{border:0;cursor:pointer}
 @media(max-width:900px){
   .kefe-editor{grid-template-rows:52px minmax(0,1fr)}
   .kefe-preview{padding:12px}
-  .kefe-work{grid-template-rows:minmax(220px,40%) 66px minmax(0,60%);overflow:hidden}
+  .kefe-work{grid-template-rows:minmax(0,1fr) 66px minmax(0,1fr);overflow:hidden}
   .kefe-timeline{padding:8px 12px;gap:8px}
   .kefe-tabs{position:relative;top:auto;left:auto;right:auto;height:50px;z-index:1;flex-direction:row;align-items:center;gap:5px;margin:8px 10px;padding:5px 6px;border:1px solid var(--line);border-radius:999px;overflow-x:auto;overflow-y:hidden;background:rgba(233,230,223,.92);box-shadow:8px 10px 22px rgba(69,62,52,.18),-3px -3px 10px rgba(255,255,255,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
   .kefe-section{height:38px;min-height:38px;flex:0 0 auto;padding:0 14px;text-align:center}
@@ -143,7 +143,7 @@ button{border:0;cursor:pointer}
   .kefe-top-nav::-webkit-scrollbar{display:none}
   .kefe-top-profile{flex:0 0 auto}
   .kefe-top-link{min-height:34px;padding:0 9px;font-size:12px}
-  .kefe-editing{display:grid;grid-template-rows:56px minmax(0,1fr);min-height:0;overflow:hidden}
+  .kefe-editing{display:grid;grid-template-rows:56px minmax(0,1fr);min-height:0;min-width:0;overflow:hidden}
   .kefe-tabs{min-height:0;margin:0;border-radius:0;border-left:0;border-right:0;box-shadow:var(--inner)}
   .kefe-panels{min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 }
