@@ -822,30 +822,38 @@ I could feel the night begin</textarea>
   };
   audio.addEventListener('loadedmetadata',async()=>{
     range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
-    if(!songArtist.value.trim()){
-      try{
-        const params=new URLSearchParams({term:songTitle.value.trim(),entity:'song',limit:'25',country:'AU'});
+    try{
+      const titleQuery=songTitle.value.trim();
+      const artistQuery=songArtist.value.trim();
+      if(titleQuery){
+        const params=new URLSearchParams({term:[titleQuery,artistQuery].filter(Boolean).join(' '),entity:'song',limit:'50',country:'AU'});
         const response=await fetch('https://itunes.apple.com/search?'+params.toString());
         if(response.ok){
           const result=await response.json();
           const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-          const wanted=normalize(songTitle.value);
+          const title=normalize(titleQuery);
+          const artist=normalize(artistQuery);
           const duration=audio.duration*1000;
-          const matches=(Array.isArray(result.results)?result.results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song'&&normalize(item.trackName)===wanted);
-          matches.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
-          const match=matches[0];
+          const songs=(Array.isArray(result.results)?result.results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song');
+          const titleMatches=songs.filter(item=>normalize(item.trackName)===title);
+          const artistMatches=artist?titleMatches.filter(item=>normalize(item.artistName)===artist):titleMatches;
+          const pool=artistMatches.length?artistMatches:(artist?titleMatches: songs);
+          pool.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
+          const match=pool[0];
           if(match){
-            songTitle.value=match.trackName||songTitle.value;
+            songTitle.value=match.trackName||titleQuery;
             songArtist.value=match.artistName||'';
             songAlbum.value=match.collectionName||'';
             songYear.value=match.releaseDate?String(match.releaseDate).slice(0,4):'';
             if(match.artworkUrl100)songAlbum.dataset.artUrl=match.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
             updateMediaTrack();
             updateTitleCard();
+            applyAppleAlbumGradient();
+            showTitleCard();
           }
         }
-      }catch(error){console.warn('[KEFE metadata lookup]',error);}
-    }
+      }
+    }catch(error){console.warn('[KEFE metadata lookup]',error);}
     syncAppleLyricsMetadata();
     fetchAlbumArt(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim()).catch(err=>console.warn('[KEFE artwork]',err));
     loadBiniLyrics();
