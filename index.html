@@ -430,7 +430,6 @@ I could feel the night begin</textarea>
     songTitle.value=item.trackName||'';songArtist.value=item.artistName||'';songAlbum.value=item.collectionName||'';songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
     if(item.artworkUrl100)songAlbum.dataset.artUrl=item.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
     updateTitleCard();parseLyrics();songSearchResults.classList.remove('active');setSongSearchStatus('Selected: '+[songTitle.value,songArtist.value].filter(Boolean).join(' — '));
-    fetchAlbumArt(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim()).catch(err=>console.warn('[KEFE artwork]',err));
     try{
       const response=await fetch('https://lrclib.net/api/search?q='+encodeURIComponent(songArtist.value+' '+songTitle.value));
       if(response.ok){const results=await response.json(),wantedTitle=normalizeSongSearchValue(songTitle.value),wantedArtist=normalizeSongSearchValue(songArtist.value);
