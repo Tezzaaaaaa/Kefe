@@ -307,7 +307,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
             }
         }
 
-        const edStyle = distance + (1 - styleT);
+        const edStyle = distance;
         const isActiveRow = distance === 0;
         const words = appleWordsForLine(line);
         const rows = line.appleRows || [String(line.text || '').trim()];
