@@ -813,15 +813,28 @@ I could feel the night begin</textarea>
     e.target.value='';
     if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
     mediaObjectUrl=URL.createObjectURL(file);
+    const uploadUrl=mediaObjectUrl;
+    songArtist.value='';
+    songAlbum.value='';
+    songYear.value='';
+    delete songAlbum.dataset.artUrl;
+    const suggestionsPanel=document.getElementById('kefeSuggestions');
+    const suggestionsList=document.getElementById('kefeSuggestionList');
+    if(suggestionsPanel)suggestionsPanel.hidden=true;
+    if(suggestionsList)suggestionsList.innerHTML='';
+    if(titleCard){
+      titleCard.classList.remove('active','leaving');
+      titleCard.setAttribute('aria-hidden','true');
+    }
     if(file.type.startsWith('video/')){
       video.src=mediaObjectUrl;video.load();
       video.onloadedmetadata=async()=>{
         range.max=String(video.duration||30);timeEnd.textContent=fmt(video.duration||30);updateTime();
-        if(!songArtist.value.trim()){
+        if(!songArtist.value.trim()&&mediaObjectUrl===uploadUrl){
           try{
             const params=new URLSearchParams({term:songTitle.value.trim(),entity:'song',limit:'25',country:'AU'});
             const response=await fetch('https://itunes.apple.com/search?'+params.toString());
-            if(response.ok){
+            if(response.ok&&mediaObjectUrl===uploadUrl){
               const result=await response.json();
               const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
               const wanted=normalize(songTitle.value);
@@ -829,7 +842,7 @@ I could feel the night begin</textarea>
               const matches=(Array.isArray(result.results)?result.results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song'&&normalize(item.trackName)===wanted);
               matches.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
               const match=matches[0];
-              if(match){
+              if(match&&mediaObjectUrl===lookupUrl){
                 songTitle.value=match.trackName||songTitle.value;
                 songArtist.value=match.artistName||'';
                 songAlbum.value=match.collectionName||'';
@@ -873,13 +886,14 @@ I could feel the night begin</textarea>
   };
   audio.addEventListener('loadedmetadata',async()=>{
     range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
+    const lookupUrl=mediaObjectUrl;
     try{
       const titleQuery=songTitle.value.trim();
       const artistQuery=songArtist.value.trim();
       if(titleQuery){
         const params=new URLSearchParams({term:[titleQuery,artistQuery].filter(Boolean).join(' '),entity:'song',limit:'50',country:'AU'});
         const response=await fetch('https://itunes.apple.com/search?'+params.toString());
-        if(response.ok){
+        if(response.ok&&mediaObjectUrl===lookupUrl){
           const result=await response.json();
           const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
           const title=normalize(titleQuery);
@@ -906,9 +920,11 @@ I could feel the night begin</textarea>
         }
       }
     }catch(error){console.warn('[KEFE metadata lookup]',error);}
-    syncAppleLyricsMetadata();
-    fetchAlbumArt(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim()).catch(err=>console.warn('[KEFE artwork]',err));
-    loadBiniLyrics();
+    if(mediaObjectUrl===lookupUrl){
+      syncAppleLyricsMetadata();
+      fetchAlbumArt(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim()).catch(err=>console.warn('[KEFE artwork]',err));
+      loadBiniLyrics();
+    }
   });
   let biniLyricsRequest=0;
   const appleLyricsReady=customElements.whenDefined('am-lyrics');
