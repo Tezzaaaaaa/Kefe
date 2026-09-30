@@ -671,6 +671,7 @@ button{border:0;cursor:pointer}
     if(Number.isFinite(firstLineTime)&&previewTime<firstLineTime)state.time=firstLineTime;
     draw();
   }
+  window.addEventListener('kefe-effects-ready',()=>draw());
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const hasUploadedMedia=!!(audio.currentSrc||audio.src||video.currentSrc||video.src);
