@@ -1074,8 +1074,47 @@ button{border:0;cursor:pointer}
       syncAppleLyrics(true);
     }catch(error){
       if(request!==biniLyricsRequest)return;
-      if(lyricsStatus)lyricsStatus.textContent=error?.name==='AbortError'?'BiniLyrics request timed out.':'Synchronized lyrics unavailable for this track.';
       console.warn('[KEFE BiniLyrics]',error);
+      const fallbackController=new AbortController();
+      const fallbackTimeout=setTimeout(()=>fallbackController.abort(),10000);
+      try{
+        if(lyricsStatus)lyricsStatus.textContent='BiniLyrics unavailable — trying synchronized LRC lyrics…';
+        const fallbackParams=new URLSearchParams({
+          track_name:title,
+          artist_name:artist,
+          duration:String(Math.round(duration))
+        });
+        if(album)fallbackParams.set('album_name',album);
+        const fallbackResponse=await fetch('https://lrclib.net/api/get?'+fallbackParams.toString(),{
+          signal:fallbackController.signal,
+          headers:{
+            'Accept':'application/json',
+            'X-User-Agent':'KEFE (https://tezzaaaaaa.github.io/Kefe/)'
+          }
+        });
+        if(request!==biniLyricsRequest)return;
+        if(!fallbackResponse.ok)throw new Error('LRCLIB lookup failed: '+fallbackResponse.status);
+        const fallbackPayload=await fallbackResponse.json();
+        const lrc=String(fallbackPayload?.syncedLyrics||'').trim();
+        if(!lrc)throw new Error('LRCLIB returned no synchronized LRC');
+        const parsedLrc=parseAppleLrc(lrc);
+        if(!parsedLrc.length)throw new Error('LRCLIB returned no timed lines');
+        state.appleLines=parsedLrc.map((line,index)=>({...line,end:index+1<parsedLrc.length?parsedLrc[index+1].time:line.time+3}));
+        state.lines=state.appleLines.map(line=>({text:line.text,time:line.time,endTime:line.end}));
+        empty.hidden=true;empty.classList.add('is-hidden');
+        lyricsInput.value=lrc;
+        if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics fetched from LRCLIB.';
+        openEditorPanel('lyrics');
+        syncAppleLyricsMetadata();
+        draw();
+        syncAppleLyrics(true);
+      }catch(fallbackError){
+        if(request!==biniLyricsRequest)return;
+        if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics unavailable for this track.';
+        console.warn('[KEFE LRCLIB]',fallbackError);
+      }finally{
+        clearTimeout(fallbackTimeout);
+      }
     }finally{
       clearTimeout(timeout);
     }
