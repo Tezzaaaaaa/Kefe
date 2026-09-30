@@ -194,6 +194,10 @@ button{border:0;cursor:pointer}
         <div class="kefe-form">
           <label class="kefe-upload" for="mediaInput">Choose audio or video</label>
           <input class="kefe-file" id="mediaInput" type="file" accept="audio/*,video/*">
+          <div><label class="kefe-label" for="songTitle">Song title</label><input class="kefe-input" id="songTitle" type="text" placeholder="Song title"></div>
+          <div><label class="kefe-label" for="songArtist">Artist</label><input class="kefe-input" id="songArtist" type="text" placeholder="Artist"></div>
+          <div><label class="kefe-label" for="songAlbum">Album</label><input class="kefe-input" id="songAlbum" type="text" placeholder="Album"></div>
+          <div><label class="kefe-label" for="songYear">Year</label><input class="kefe-input" id="songYear" type="text" placeholder="Year"></div>
           <div>
             <label class="kefe-label" for="lyricsInput">Lyrics</label>
             <textarea class="kefe-textarea" id="lyricsInput" spellcheck="false">We were dancing in the dark
@@ -330,6 +334,7 @@ I could feel the night begin</textarea>
   const video=document.createElement('video');
   video.preload='metadata'; video.muted=true; video.playsInline=true; video.style.display='none'; document.body.appendChild(video);
   let mediaObjectUrl=''; let visualiserPreset='bars',visualiserBackground='black',visualiserMotion='reactive';
+  const songTitle=document.getElementById('songTitle'),songArtist=document.getElementById('songArtist'),songAlbum=document.getElementById('songAlbum'),songYear=document.getElementById('songYear');
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead'),wave=document.getElementById('waveform');
 
   for(let i=0;i<120;i++){const bar=document.createElement('span');bar.style.height=(24+((i*37)%70))+'%';wave.insertBefore(bar,range);}
@@ -427,6 +432,7 @@ I could feel the night begin</textarea>
       audio.src=mediaObjectUrl;audio.load();video.removeAttribute('src');video.load();
     }
     document.querySelector('.kefe-upload').textContent=file.name;
+    songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
   });
   document.getElementById('playButton').onclick=()=>{
     if(audio.src){if(audio.paused)audio.play();else audio.pause();}
