@@ -665,6 +665,9 @@ I could feel the night begin</textarea>
   }
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
+    const hasUploadedMedia=!!(audio.currentSrc||audio.src||video.currentSrc||video.src);
+    const emptyState=document.getElementById('emptyState');
+    if(emptyState)emptyState.hidden=hasUploadedMedia;
     const t=state.time;
     if(visualiserBackground==='gradient'){
       const g=ctx.createLinearGradient(0,0,canvas.width,canvas.height);g.addColorStop(0,'#080808');g.addColorStop(1,'#24201f');ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -718,13 +721,13 @@ I could feel the night begin</textarea>
       ctx.drawImage(video,(canvas.width-dw)/2,(canvas.height-dh)/2,dw,dh);
     }
     const reactive=visualiserMotion==='steady'?1:visualiserMotion==='slow'?.45:(audio.src&&!audio.paused?1+Math.sin(t*18)*.08:1);
-    if(visualiserPreset==='bars'){
+    if(hasUploadedMedia&&visualiserPreset==='bars'){
       ctx.save();ctx.globalAlpha=.55;ctx.fillStyle='#ef3f38';
       for(let i=0;i<48;i++){const x=i*canvas.width/48;const h=(.08+.12*(Math.sin(t*3+i*.7)*.5+.5))*canvas.height*reactive;ctx.fillRect(x,canvas.height-h,Math.max(2,canvas.width/80),h);}
       ctx.restore();
-    }else if(visualiserPreset==='pulse'){
+    }else if(hasUploadedMedia&&visualiserPreset==='pulse'){
       ctx.save();ctx.globalAlpha=.22;ctx.strokeStyle='#ef3f38';ctx.lineWidth=5;ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*(.28+.025*Math.sin(t*4)*reactive),0,Math.PI*2);ctx.stroke();ctx.restore();
-    }else if(visualiserPreset==='ring'){
+    }else if(hasUploadedMedia&&visualiserPreset==='ring'){
       ctx.save();ctx.globalAlpha=.35;ctx.strokeStyle='#ef3f38';ctx.lineWidth=3;ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*(.24+.04*Math.sin(t*3)*reactive),0,Math.PI*2);ctx.stroke();ctx.restore();
     }
     const appleLyrics=document.getElementById('kefeAppleLyrics');
