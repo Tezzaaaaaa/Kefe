@@ -882,8 +882,6 @@ I could feel the night begin</textarea>
     }
     if(audio.currentTime<=0.08&&titleCardShownFor!==mediaObjectUrl)showTitleCard();
     syncAppleLyrics();
-    const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics&&typeof appleLyrics.play==='function')appleLyrics.play();
     requestAnimationFrame(syncPreview);
   });
   audio.addEventListener('pause',()=>{
@@ -891,8 +889,7 @@ I could feel the night begin</textarea>
     if(video.src&&!video.paused)video.pause();
     hideTitleCard();
     syncAppleLyrics();
-    const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics&&typeof appleLyrics.pause==='function')appleLyrics.pause();
+    
   });
   audio.addEventListener('ended',()=>{
     updatePlayButton();
