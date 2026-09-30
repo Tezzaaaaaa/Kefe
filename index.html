@@ -556,6 +556,7 @@ button{border:0;cursor:pointer}
         songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
         songAlbum.dataset.artUrl=item.artworkUrl100?item.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1'):'';
         songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
+        songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
         updateMediaTrack();
         updateTitleCard();
         applyAppleAlbumGradient();
@@ -896,6 +897,8 @@ button{border:0;cursor:pointer}
     if(uploadLyricsStatus)uploadLyricsStatus.textContent='Identifying track…';
     empty.hidden=true;empty.classList.add('is-hidden');
     delete songAlbum.dataset.artUrl;
+    delete songAlbum.dataset.trackDuration;
+    delete songAlbum.dataset.platformId;
     const suggestionsPanel=document.getElementById('kefeSuggestions');
     const suggestionsList=document.getElementById('kefeSuggestionList');
     if(suggestionsPanel)suggestionsPanel.hidden=true;
@@ -983,6 +986,8 @@ button{border:0;cursor:pointer}
             songAlbum.value=exact.collectionName||'';
             songYear.value=exact.releaseDate?String(exact.releaseDate).slice(0,4):'';
             songAlbum.dataset.artUrl=exact.artworkUrl100?exact.artworkUrl100.replace(/100x100bb\\.(jpg|jpeg|png)$/i,'600x600bb.$1'):'';
+            songAlbum.dataset.trackDuration=exact.trackTimeMillis?String(Number(exact.trackTimeMillis)/1000):'';
+            songAlbum.dataset.platformId=exact.trackId?String(exact.trackId):'';
             updateMediaTrack();
             updateTitleCard();
             applyAppleAlbumGradient();
@@ -1000,29 +1005,30 @@ button{border:0;cursor:pointer}
   let biniLyricsRequest=0;
   async function loadBiniLyrics(){
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
-    const duration=Math.round(Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0);
+    const duration=Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0;
+    const platformId=String(songAlbum.dataset.platformId||'').trim();
     const lyricsStatus=document.getElementById('kefeLyricsStatus');
     if(!title||!artist||duration<=0){
       if(lyricsStatus)lyricsStatus.textContent=artist?'Waiting for track duration to fetch synchronized lyrics.':'Identify the track to fetch synchronized lyrics.';
       return;
     }
     const request=++biniLyricsRequest;
-    const params=new URLSearchParams({track:title,artist});
+    const params=new URLSearchParams({title,artist,duration:String(duration)});
     if(album)params.set('album',album);
-    params.set('duration',String(duration));
+    if(platformId)params.set('platformId',platformId);
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),10000);
     try{
-      const response=await fetch('https://lyrics-api.binimum.org/?'+params.toString());
+      if(lyricsStatus)lyricsStatus.textContent='Fetching synchronized lyrics from BiniLyrics…';
+      const response=await fetch('https://lyrics-api.binimum.org/v1/ttml/get?'+params.toString(),{
+        signal:controller.signal,
+        headers:{'Accept':'application/xml,text/xml;q=0.9,text/plain;q=0.8'}
+      });
       if(request!==biniLyricsRequest)return;
-      if(!response.ok)throw new Error('BiniLyrics lookup failed: '+response.status);
-      const result=await response.json().catch(()=>({}));
-      const match=Array.isArray(result?.results)?result.results[0]:null;
-      const lyricsUrl=typeof match?.lyricsUrl==='string'?match.lyricsUrl:'';
-      if(!lyricsUrl)throw new Error(result?.error||'No BiniLyrics match');
-      const lyricsResponse=await fetch(lyricsUrl);
+      if(!response.ok)throw new Error('BiniLyrics TTML lookup failed: '+response.status);
+      const ttml=await response.text();
       if(request!==biniLyricsRequest)return;
-      if(!lyricsResponse.ok)throw new Error('BiniLyrics TTML fetch failed: '+lyricsResponse.status);
-      const ttml=await lyricsResponse.text();
-      if(!ttml.trim().startsWith('<'))throw new Error('Invalid BiniLyrics TTML');
+      if(!ttml.trim().startsWith('<'))throw new Error('BiniLyrics returned non-TTML lyrics');
       const parsedLines=parseAppleTTML(ttml);
       if(!parsedLines.length)throw new Error('BiniLyrics returned no timed lyrics');
       state.appleLines=parsedLines.map((line,index)=>({...line,end:Number.isFinite(line.end)?line.end:(parsedLines[index+1]?.time||line.time+3)}));
@@ -1030,7 +1036,7 @@ button{border:0;cursor:pointer}
       empty.hidden=true;empty.classList.add('is-hidden');
       lyricsInput.value=state.appleLines.map(line=>{
         const mins=Math.floor(line.time/60),secs=line.time-mins*60;
-        return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\\.$/,'')+'] '+line.text;
+        return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\.$/,'')+'] '+line.text;
       }).join('\n');
       if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics fetched from BiniLyrics.';
       syncAppleLyricsMetadata();
@@ -1038,8 +1044,10 @@ button{border:0;cursor:pointer}
       syncAppleLyrics(true);
     }catch(error){
       if(request!==biniLyricsRequest)return;
-      if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics unavailable for this track.';
+      if(lyricsStatus)lyricsStatus.textContent=error?.name==='AbortError'?'BiniLyrics request timed out.':'Synchronized lyrics unavailable for this track.';
       console.warn('[KEFE BiniLyrics]',error);
+    }finally{
+      clearTimeout(timeout);
     }
   }
   function syncAppleLyricsMetadata(){
