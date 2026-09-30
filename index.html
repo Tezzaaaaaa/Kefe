@@ -35,8 +35,8 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text)
 body{overflow:hidden}
 button,input,textarea,select{font:inherit;color:inherit}
 button{border:0;cursor:pointer}
-.kefe-editor{height:100dvh;display:grid;grid-template-rows:56px minmax(0,1fr) 92px;background:var(--bg)}
-.kefe-top{display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line-soft);background:var(--surface);box-shadow:var(--inner);z-index:5}
+.kefe-editor{height:100dvh;display:grid;grid-template-rows:56px minmax(0,1fr) 250px;background:var(--bg)}
+.kefe-top{display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line-soft);background:var(--surface);box-shadow:var(--inner);z-index:20}
 .kefe-top-nav,.kefe-top-actions{display:flex;align-items:center;gap:6px}
 .kefe-brand{width:32px;height:32px;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--surface-hi);box-shadow:var(--lift);font-weight:800;font-size:16px}
 .kefe-top-link{min-height:36px;padding:0 12px;border:1px solid transparent;border-radius:var(--r2);background:transparent;color:var(--muted)}
@@ -73,12 +73,13 @@ button{border:0;cursor:pointer}
 .kefe-slider{height:8px;width:100%;appearance:none;background:linear-gradient(to right,#8f8a82 0%,#8f8a82 var(--progress,0%),#d0cbc2 var(--progress,0%),#d0cbc2 100%);border-radius:4px;outline:none;box-shadow:inset 1px 1px 2px rgba(60,55,49,.14)}
 .kefe-slider::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--lift)}
 .kefe-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--lift)}
-.kefe-editing{min-height:0;display:grid;grid-template-rows:58px minmax(0,1fr);background:var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}
-.kefe-tabs{display:flex;align-items:center;gap:6px;padding:8px 24px;border-bottom:1px solid var(--line-soft);overflow:auto}
-.kefe-section{height:40px;padding:0 15px;border:1px solid transparent;border-radius:var(--r2);background:transparent;color:var(--muted);white-space:nowrap;box-shadow:none}
+.kefe-editing{min-height:0;display:grid;grid-template-columns:164px minmax(0,1fr);background:var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}
+.kefe-tabs{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:16px 12px;border-right:1px solid var(--line-soft);overflow:auto;background:var(--surface);}
+.kefe-section{position:relative;height:42px;min-height:42px;padding:0 14px;text-align:left;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--muted);white-space:nowrap;box-shadow:none;transition:transform .18s ease,box-shadow .18s ease,background .18s ease,color .18s ease}
 .kefe-section:hover{background:var(--surface-hi);color:var(--text);box-shadow:var(--inner)}
-.kefe-section.active{background:var(--surface-hi);color:var(--text);border-color:var(--line);box-shadow:var(--lift);font-weight:700}
-.kefe-panels{min-height:0;overflow:auto;padding:14px 24px 18px}
+.kefe-section.active{background:var(--surface-hi);color:var(--text);border-color:rgba(55,50,44,.12);box-shadow:6px 7px 14px rgba(69,62,52,.15),-3px -3px 9px rgba(255,255,255,.8),inset 1px 1px 2px rgba(255,255,255,.72);font-weight:700;transform:translateX(2px)}
+.kefe-section.active:before{content:"";position:absolute;left:7px;top:9px;bottom:9px;width:3px;border-radius:999px;background:var(--accent);box-shadow:0 0 8px rgba(239,63,56,.25)}
+.kefe-panels{min-height:0;overflow:auto;padding:16px 24px 18px}
 .kefe-panel{display:none;max-width:1180px;margin:0 auto}
 .kefe-panel.active{display:block}
 .kefe-panel-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px}
@@ -108,15 +109,20 @@ button{border:0;cursor:pointer}
 .kefe-font-name{font-size:18px;margin-bottom:3px}
 .kefe-empty-panel{padding:18px;border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);box-shadow:var(--inner);color:var(--muted)}
 @media(max-width:900px){
-  .kefe-editor{grid-template-rows:52px minmax(0,1fr) 84px}
+  .kefe-editor{grid-template-rows:52px minmax(0,1fr) 230px}
   .kefe-preview{padding:12px}
   .kefe-work{grid-template-rows:minmax(0,1fr) 66px minmax(0,230px)}
   .kefe-timeline{padding:8px 12px;gap:8px}
-  .kefe-tabs,.kefe-panels{padding-left:12px;padding-right:12px}
+  .kefe-tabs{position:fixed;top:52px;left:10px;right:10px;height:50px;z-index:18;flex-direction:row;align-items:center;gap:5px;padding:5px 6px;border:1px solid var(--line);border-radius:999px;overflow-x:auto;overflow-y:hidden;background:rgba(233,230,223,.92);box-shadow:8px 10px 22px rgba(69,62,52,.18),-3px -3px 10px rgba(255,255,255,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+  .kefe-section{height:38px;min-height:38px;flex:0 0 auto;padding:0 14px;text-align:center}
+  .kefe-section.active{transform:none}
+  .kefe-section.active:before{left:12px;right:12px;top:auto;bottom:4px;width:auto;height:3px}
+  .kefe-panels{padding:62px 12px 18px}
   .kefe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .kefe-form{grid-template-columns:1fr}
   .kefe-top{padding:0 12px}
   .kefe-top-actions .kefe-btn:first-child{display:none}
+  .kefe-editing{display:block;overflow:hidden}
 }
 @media(max-width:520px){
   .kefe-top{padding:0 10px}
