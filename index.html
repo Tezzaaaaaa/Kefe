@@ -1021,7 +1021,7 @@ button{border:0;cursor:pointer}
       return;
     }
     const request=++biniLyricsRequest;
-    const params=new URLSearchParams({title,artist,duration:String(duration)});
+    const params=new URLSearchParams({track:title,artist,duration:String(duration)});
     if(album)params.set('album',album);
     if(platformId)params.set('platformId',platformId);
     const controller=new AbortController();
