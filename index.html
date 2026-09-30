@@ -238,7 +238,7 @@ I could feel the night begin</textarea>
               <option value="bars">Spectrum Bars</option>
               <option value="pulse">Pulse</option>
               <option value="ring">Ring</option>
-              <option value="none">None</option>
+              <option value="none" selected>None</option>
             </select>
           </div>
           <div>
@@ -337,7 +337,7 @@ I could feel the night begin</textarea>
   const audio=document.getElementById('kefeAudio'),range=document.getElementById('kefeTime');
   const video=document.createElement('video');
   video.preload='metadata'; video.muted=true; video.playsInline=true; video.style.display='none'; document.body.appendChild(video);
-  let mediaObjectUrl=''; let visualiserPreset='bars',visualiserBackground='black',visualiserMotion='reactive';
+  let mediaObjectUrl=''; let visualiserPreset='none',visualiserBackground='black',visualiserMotion='reactive';
   const songTitle=document.getElementById('songTitle'),songArtist=document.getElementById('songArtist'),songAlbum=document.getElementById('songAlbum'),songYear=document.getElementById('songYear');
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead'),wave=document.getElementById('waveform');
 
