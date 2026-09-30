@@ -171,8 +171,7 @@ button{border:0;cursor:pointer}
   .kefe-panels{padding:6px 10px 14px}
 }
 .kefe-media-track{display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);box-shadow:var(--inner)}.kefe-media-track[hidden]{display:none}.kefe-media-track-art{width:88px;height:88px;overflow:hidden;border-radius:8px;background:#161616;border:1px solid rgba(255,255,255,.1)}.kefe-media-track-art img{width:100%;height:100%;display:block;object-fit:cover}.kefe-media-track-fallback{width:100%;height:100%;display:grid;place-items:center;font-size:32px;font-weight:800;letter-spacing:-.08em;background:linear-gradient(145deg,#262626,#090909);color:#fff}.kefe-media-track-info{min-width:0}.kefe-media-track-kicker{margin:0 0 5px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}.kefe-media-track-info h3{margin:0;font-size:17px;line-height:1.05;overflow-wrap:anywhere}.kefe-media-track-info p:not(.kefe-media-track-kicker){margin:5px 0 0;color:var(--muted);font-size:13px;overflow-wrap:anywhere}.kefe-media-track-meta{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:8px;font-size:10px;color:var(--muted)}@media(max-width:520px){.kefe-media-track{grid-template-columns:72px minmax(0,1fr);padding:10px}.kefe-media-track-art{width:72px;height:72px}}
-.kefe-suggestion-list{display:grid;gap:6px;margin-top:9px}.kefe-suggestion{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:center;width:100%;padding:7px;border:1px solid transparent;border-radius:7px;background:transparent;color:inherit;text-align:left;cursor:pointer}.kefe-suggestion:hover{background:rgba(255,255,255,.06);border-color:var(--line)}.kefe-suggestion-art{width:44px;height:44px;margin:0;display:block}.kefe-suggestion-copy{min-width:0}.kefe-suggestion-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kefe-suggestion-artist{margin-top:3px;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kefe-suggestion-album{margin-top:2px;font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kefe-suggestion-empty{padding:5px 0;font-size:10px;color:var(--muted)}
-.kefe-suggestion-art{display:none;width:52px;height:52px;margin-top:9px;overflow:hidden;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:#161616}.kefe-suggestion-art img{width:100%;height:100%;display:block;object-fit:cover}
+.kefe-suggestions{grid-column:1/-1;min-width:0}.kefe-suggestion-list{display:grid;gap:6px;margin-top:9px;max-height:240px;overflow-y:auto;overflow-x:hidden}.kefe-suggestion{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:center;width:100%;min-width:0;padding:7px;border:1px solid transparent;border-radius:7px;background:transparent;color:inherit;text-align:left;cursor:pointer}.kefe-suggestion:hover{background:rgba(255,255,255,.06);border-color:var(--line)}.kefe-suggestion-art{width:44px;height:44px;margin:0;display:block;overflow:hidden;border-radius:5px;background:var(--surface-lo)}.kefe-suggestion-art img{width:100%;height:100%;display:block;object-fit:cover}.kefe-suggestion-copy{min-width:0}.kefe-suggestion-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kefe-suggestion-artist{margin-top:3px;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kefe-suggestion-album{margin-top:2px;font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kefe-suggestion-empty{padding:5px 0;font-size:10px;color:var(--muted)}
 .kefe-suggestions{display:block;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r2);background:var(--surface-hi);box-shadow:var(--inner)}.kefe-suggestions[hidden]{display:none}.kefe-suggestions-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:18px}.kefe-suggestions-title{font-size:11px;font-weight:700;letter-spacing:.02em}.kefe-suggestions-status{font-size:10px;color:var(--muted);display:inline-flex;align-items:center}.kefe-suggestions-dots{display:inline-flex;gap:3px;margin-left:5px}.kefe-suggestions-dots i{width:4px;height:4px;border-radius:50%;background:currentColor;animation:kefeSongSearchPulse 1s ease-in-out infinite}.kefe-suggestions-dots i:nth-child(2){animation-delay:.14s}.kefe-suggestions-dots i:nth-child(3){animation-delay:.28s}@media(prefers-reduced-motion:reduce){.kefe-suggestions-dots i{animation:none}}
 .kefe-title-card{position:absolute;inset:0;z-index:4;display:none;align-items:center;justify-content:center;padding:clamp(28px,6vw,72px);background:#080808;color:#fff;overflow:hidden}.kefe-title-card.active{display:flex}.kefe-title-card:before{content:"";position:absolute;inset:-12%;background:radial-gradient(circle at 25% 20%,rgba(255,255,255,.10),transparent 34%),radial-gradient(circle at 80% 80%,rgba(239,63,56,.14),transparent 38%);filter:blur(28px)}.kefe-title-card-inner{position:relative;width:min(760px,100%);display:grid;grid-template-columns:minmax(180px,320px) minmax(0,1fr);gap:clamp(24px,5vw,56px);align-items:end}.kefe-title-art{width:100%;aspect-ratio:1;background:#161616;border:1px solid rgba(255,255,255,.12);box-shadow:0 24px 60px rgba(0,0,0,.38);overflow:hidden}.kefe-title-art img{width:100%;height:100%;display:block;object-fit:cover}.kefe-title-art-fallback{width:100%;height:100%;display:grid;place-items:center;font-size:clamp(54px,10vw,110px);font-weight:800;letter-spacing:-.08em;background:linear-gradient(145deg,#262626,#090909);color:#fff}.kefe-title-info{min-width:0;padding-bottom:4px}.kefe-title-kicker{margin:0 0 12px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.52)}.kefe-title-name{margin:0;font-size:clamp(30px,5vw,58px);line-height:.95;letter-spacing:-.045em;font-weight:750;overflow-wrap:anywhere}.kefe-title-artist{margin:12px 0 0;font-size:clamp(17px,2.2vw,24px);color:rgba(255,255,255,.72);overflow-wrap:anywhere}.kefe-title-meta{margin:20px 0 0;display:flex;flex-wrap:wrap;gap:7px 14px;font-size:12px;color:rgba(255,255,255,.45)}@media(max-width:680px){.kefe-title-card-inner{grid-template-columns:minmax(0,1fr);align-items:start;width:min(360px,100%)}.kefe-title-art{width:min(68vw,280px);margin:0 auto}.kefe-title-name{font-size:clamp(30px,9vw,46px)}.kefe-title-artist{margin-top:9px}.kefe-title-meta{margin-top:14px}}</style>
 </head>
@@ -836,13 +835,15 @@ I could feel the night begin</textarea>
             const response=await fetch('https://itunes.apple.com/search?'+params.toString());
             if(response.ok&&mediaObjectUrl===uploadUrl){
               const result=await response.json();
+              const songs=(Array.isArray(result.results)?result.results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song');
+              renderSongSuggestions(songs);
               const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
               const wanted=normalize(songTitle.value);
               const duration=video.duration*1000;
-              const matches=(Array.isArray(result.results)?result.results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song'&&normalize(item.trackName)===wanted);
+              const matches=songs.filter(item=>normalize(item.trackName)===wanted);
               matches.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
               const match=matches[0];
-              if(match&&mediaObjectUrl===lookupUrl){
+              if(match&&mediaObjectUrl===uploadUrl){
                 songTitle.value=match.trackName||songTitle.value;
                 songArtist.value=match.artistName||'';
                 songAlbum.value=match.collectionName||'';
@@ -900,6 +901,7 @@ I could feel the night begin</textarea>
           const artist=normalize(artistQuery);
           const duration=audio.duration*1000;
           const songs=(Array.isArray(result.results)?result.results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song');
+          renderSongSuggestions(songs);
           const titleMatches=songs.filter(item=>normalize(item.trackName)===title);
           const artistMatches=artist?titleMatches.filter(item=>normalize(item.artistName)===artist):titleMatches;
           const pool=artistMatches.length?artistMatches:(artist?titleMatches: songs);
@@ -915,7 +917,6 @@ I could feel the night begin</textarea>
             updateTitleCard();
             applyAppleAlbumGradient();
             showTitleCard();
-            renderSongSuggestions(songs);
           }
         }
       }
