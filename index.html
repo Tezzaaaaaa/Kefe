@@ -263,20 +263,17 @@ button{border:0;cursor:pointer}
           <div><label class="kefe-label" for="songArtist">Artist</label><input class="kefe-input" id="songArtist" type="text" placeholder="Artist"></div>
           <div><label class="kefe-label" for="songAlbum">Album</label><input class="kefe-input" id="songAlbum" type="text" placeholder="Album"></div>
           <div><label class="kefe-label" for="songYear">Year</label><input class="kefe-input" id="songYear" type="text" placeholder="Year"></div>
-          <div>
-            <label class="kefe-label" for="lyricsInput">Lyrics</label>
-            <textarea class="kefe-textarea" id="lyricsInput" spellcheck="false">We were dancing in the dark
-And everything was moving slow
-I could feel the night begin</textarea>
-          </div>
           <div class="kefe-empty-panel"><strong>Preview stays primary.</strong><br><span class="kefe-meta">Editing controls stay compact beneath the visualiser.</span></div>
         </div>
       </section>
 
       <section class="kefe-panel" data-panel-view="lyrics">
-        <div class="kefe-panel-head"><h2>Lyrics</h2><span class="kefe-meta">Lyrics and timing for the master track.</span></div>
+        <div class="kefe-panel-head"><h2>Lyrics</h2><span class="kefe-meta" id="kefeLyricsStatus">Upload audio to fetch synchronized lyrics.</span></div>
         <div class="kefe-form">
-          <div class="kefe-empty-panel">Timing is currently derived from lyric lines and the master timeline.</div>
+          <div>
+            <label class="kefe-label" for="lyricsInput">Fetched lyrics</label>
+            <textarea class="kefe-textarea" id="lyricsInput" spellcheck="false" placeholder="Synchronized lyrics will appear here after an audio track is identified."></textarea>
+          </div>
         </div>
       </section>
 
@@ -1014,13 +1011,22 @@ I could feel the night begin</textarea>
     const request=++biniLyricsRequest;
     const params=new URLSearchParams({s:title,a:artist,al:album,d:String(duration)});
     try{
-      const response=await fetch('https://lyrics-api.boidu.dev/getLyrics?'+params.toString());
-      if(!response.ok)throw new Error('BiniLyrics request failed: '+response.status);
-      const result=await response.json();
+      const response=await fetch('https://api.betterlyrics.org/getLyrics?'+params.toString());
       if(request!==biniLyricsRequest)return;
+      let result=await response.json().catch(()=>({}));
       let ttml=typeof result?.ttml==='string'?result.ttml:'';
+      if(!response.ok&&!ttml)throw new Error(result?.message||result?.error||'Better Lyrics request failed: '+response.status);
       if(!ttml.trim()&&typeof result?.data?.ttml==='string')ttml=result.data.ttml;
       let parsedLines=parseAppleTTML(ttml);
+      if(!parsedLines.length){
+        const fallbackResponse=await fetch('https://api.betterlyrics.org/kugou/getLyrics?'+params.toString());
+        if(request!==biniLyricsRequest)return;
+        const fallbackResult=await fallbackResponse.json().catch(()=>({}));
+        if(fallbackResponse.ok&&typeof fallbackResult?.lyrics==='string'){
+          ttml=fallbackResult.lyrics;
+          parsedLines=parseAppleLrc(ttml);
+        }
+      }
       if(!parsedLines.length&&typeof result?.lyrics==='string'){
         const lyrics=result.lyrics.trim();
         if(lyrics.startsWith('<')){
@@ -1042,12 +1048,20 @@ I could feel the night begin</textarea>
       if(!parsedLines.length)throw new Error(result?.message||result?.error||'No synchronized lyrics match');
       appleLyrics.ttml=ttml;
       state.appleLines=parsedLines.map((line,index)=>({...line,end:Number.isFinite(line.end)?line.end:(parsedLines[index+1]?.time||line.time+3)}));
+      lyricsInput.value=state.appleLines.map(line=>{
+        const mins=Math.floor(line.time/60),secs=line.time-mins*60;
+        return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\.$/,'')+'] '+line.text;
+      }).join('\n');
+      const lyricsStatus=document.getElementById('kefeLyricsStatus');
+      if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics fetched.';
       syncAppleLyricsMetadata();
       draw();
       syncAppleLyrics(true);
       if(state.effect==='apple')appleLyrics.style.display='block';
     }catch(error){
       if(request!==biniLyricsRequest)return;
+      const lyricsStatus=document.getElementById('kefeLyricsStatus');
+      if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics unavailable for this track.';
       console.warn('[KEFE BiniLyrics]',error);
     }
   }
