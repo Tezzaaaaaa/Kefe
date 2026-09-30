@@ -57,7 +57,7 @@ button{border:0;cursor:pointer}
 .kefe-work{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto minmax(220px,40vh);overflow:hidden}
 .kefe-preview{min-width:0;min-height:0;display:grid;place-items:center;padding:20px 24px 14px;overflow:hidden}
 .kefe-stage{
-  position:relative;width:min(100%,1180px);height:auto;max-height:100%;min-height:0;
+  position:relative;width:auto;height:auto;max-width:100%;max-height:100%;min-width:0;min-height:0;
   aspect-ratio:16/9;overflow:hidden;background:var(--preview);border:1px solid #252525;border-radius:var(--r3);
   box-shadow:var(--float)
 }
@@ -783,6 +783,20 @@ I could feel the night begin</textarea>
     document.querySelectorAll('.kefe-panel').forEach(p=>p.classList.toggle('active',p.dataset.panelView===panel));
   }
   document.querySelectorAll('.kefe-section').forEach(button=>button.addEventListener('click',()=>openEditorPanel(button.dataset.panel)));
+  const previewPane=document.querySelector('.kefe-preview');
+  const previewStage=document.querySelector('.kefe-stage');
+  function fitPreviewStage(){
+    if(!previewPane||!previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen')||document.fullscreenElement===previewStage)return;
+    const active=document.querySelector('.kefe-aspect-button.active')?.dataset.aspect||'16:9';
+    const ratio=active==='9:16'?9/16:active==='1:1'?1:16/9;
+    const maxWidth=Math.min(previewPane.clientWidth,1180);
+    const maxHeight=previewPane.clientHeight;
+    if(maxWidth<=0||maxHeight<=0)return;
+    const width=Math.min(maxWidth,maxHeight*ratio);
+    const height=width/ratio;
+    previewStage.style.width=Math.floor(width)+'px';
+    previewStage.style.height=Math.floor(height)+'px';
+  }
   document.querySelectorAll('.kefe-aspect-button').forEach(button=>button.addEventListener('click',()=>{
     const aspect=button.dataset.aspect;
     const stage=document.querySelector('.kefe-stage');
@@ -800,8 +814,10 @@ I could feel the night begin</textarea>
       item.classList.toggle('active',active);
       item.setAttribute('aria-pressed',active?'true':'false');
     });
+    fitPreviewStage();
     draw();
   }));
+  window.addEventListener('resize',fitPreviewStage);
   document.querySelectorAll('.kefe-top-link').forEach(button=>button.addEventListener('click',()=>{
     const panel=button.dataset.topPanel;
     if(panel==='media'||panel==='editor')openEditorPanel('media');
@@ -1069,7 +1085,7 @@ I could feel the night begin</textarea>
   window.kefeRenderPipeline={use(name,plugin){const wrapped=plugin(window.__kefeBaseRender||(()=>{}));window.__kefeRenderers[name]=wrapped;return wrapped;}};
   window.__kefeBaseRender=()=>{};
 
-  parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();
+  parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();
   syncAppleLyricsMetadata();
   syncAppleLyrics(true);
   appleLyricsReady.then(()=>{
