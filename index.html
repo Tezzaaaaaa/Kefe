@@ -140,8 +140,8 @@ button{border:0;cursor:pointer}
 @media(max-width:900px){
   .kefe-editor{grid-template-rows:52px minmax(0,1fr)}
   .kefe-preview{padding:12px}
-  .kefe-work{grid-template-rows:minmax(0,1fr) 66px minmax(220px,46vh);overflow:hidden}
-  .kefe-timeline{padding:8px 12px;gap:8px}
+  .kefe-work{position:relative;grid-template-rows:minmax(0,1fr) minmax(0,1fr);overflow:hidden}
+  .kefe-timeline{position:absolute;left:0;right:0;top:50%;height:66px;padding:8px 12px;gap:8px;transform:translateY(-50%);z-index:10}
   .kefe-tabs{position:relative;top:auto;left:auto;right:auto;height:50px;z-index:1;flex-direction:row;align-items:center;gap:5px;margin:8px 10px;padding:5px 6px;border:1px solid var(--line);border-radius:999px;overflow-x:auto;overflow-y:hidden;background:rgba(233,230,223,.92);box-shadow:8px 10px 22px rgba(69,62,52,.18),-3px -3px 10px rgba(255,255,255,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
   .kefe-section{height:38px;min-height:38px;flex:0 0 auto;padding:0 14px;text-align:center}
   .kefe-section.active{transform:none}
@@ -154,7 +154,7 @@ button{border:0;cursor:pointer}
   .kefe-top-nav::-webkit-scrollbar{display:none}
   .kefe-top-profile{flex:0 0 auto}
   .kefe-top-link{min-height:34px;padding:0 9px;font-size:12px}
-  .kefe-editing{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:56px minmax(0,1fr);width:100%;min-height:0;min-width:0;overflow:hidden}
+  .kefe-editing{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:56px minmax(0,1fr);grid-row:2;width:100%;min-height:0;min-width:0;overflow:hidden}
   .kefe-tabs{width:100%;min-width:0;min-height:0;margin:0;border-radius:0;border-left:0;border-right:0;box-shadow:var(--inner)}
   .kefe-panels{min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 }
@@ -890,7 +890,7 @@ button{border:0;cursor:pointer}
     let height=width/ratio;
     const mobile=window.matchMedia('(max-width: 700px)').matches;
     if(mobile){
-      const mobileHeight=Math.max(1,Math.floor(window.innerHeight*.48));
+      const mobileHeight=Math.max(1,Math.floor((window.innerHeight-52)/2-90));
       height=Math.min(height,mobileHeight);
       width=height*ratio;
       if(width>paneWidth){width=paneWidth;height=width/ratio;}
