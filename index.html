@@ -137,18 +137,16 @@ button{border:0;cursor:pointer}
 <body>
 <div class="kefe-editor">
 <header class="kefe-top">
-  <div class="kefe-top-nav">
+  <nav class="kefe-top-nav" aria-label="Primary">
     <button class="kefe-brand" aria-label="KEFE home">K</button>
     <button class="kefe-top-link" type="button" data-top-panel="media">Media</button>
     <button class="kefe-top-link" type="button" data-top-panel="editor">Editor</button>
-  </div>
-  <div class="kefe-top-actions">
     <button class="kefe-top-link" type="button" data-top-panel="miniplayer">MiniPlayer</button>
-  </div>
-  <div class="kefe-top-profile">
+  </nav>
+  <nav class="kefe-top-profile" aria-label="Account">
     <button class="kefe-top-link" type="button" data-top-panel="profile">Profile</button>
     <button class="kefe-top-link" type="button" data-top-panel="settings">Settings</button>
-  </div>
+  </nav>
 </header>
 
 <main class="kefe-work">
@@ -357,9 +355,7 @@ I could feel the night begin</textarea>
   kefeBrand.addEventListener('dblclick',()=>{
     if(kefeBrandClickTimer)clearTimeout(kefeBrandClickTimer);
     kefeBrandClickTimer=null;
-    const url=new URL(window.location.href);
-    url.searchParams.set('_kefe_refresh',Date.now().toString());
-    window.location.replace(url.toString());
+    window.location.reload();
   });
 
   document.querySelectorAll('.kefe-section').forEach(button=>button.addEventListener('click',()=>{
