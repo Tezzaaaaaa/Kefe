@@ -170,6 +170,7 @@ button{border:0;cursor:pointer}
   .kefe-section{height:36px;min-height:36px;padding:0 12px;font-size:12px}
   .kefe-panels{padding:6px 10px 14px}
 }
+.kefe-media-track{display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);box-shadow:var(--inner)}.kefe-media-track[hidden]{display:none}.kefe-media-track-art{width:88px;height:88px;overflow:hidden;border-radius:8px;background:#161616;border:1px solid rgba(255,255,255,.1)}.kefe-media-track-art img{width:100%;height:100%;display:block;object-fit:cover}.kefe-media-track-fallback{width:100%;height:100%;display:grid;place-items:center;font-size:32px;font-weight:800;letter-spacing:-.08em;background:linear-gradient(145deg,#262626,#090909);color:#fff}.kefe-media-track-info{min-width:0}.kefe-media-track-kicker{margin:0 0 5px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}.kefe-media-track-info h3{margin:0;font-size:17px;line-height:1.05;overflow-wrap:anywhere}.kefe-media-track-info p:not(.kefe-media-track-kicker){margin:5px 0 0;color:var(--muted);font-size:13px;overflow-wrap:anywhere}.kefe-media-track-meta{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:8px;font-size:10px;color:var(--muted)}@media(max-width:520px){.kefe-media-track{grid-template-columns:72px minmax(0,1fr);padding:10px}.kefe-media-track-art{width:72px;height:72px}}
 .kefe-title-card{position:absolute;inset:0;z-index:4;display:none;align-items:center;justify-content:center;padding:clamp(28px,6vw,72px);background:#080808;color:#fff;overflow:hidden}.kefe-title-card.active{display:flex}.kefe-title-card:before{content:"";position:absolute;inset:-12%;background:radial-gradient(circle at 25% 20%,rgba(255,255,255,.10),transparent 34%),radial-gradient(circle at 80% 80%,rgba(239,63,56,.14),transparent 38%);filter:blur(28px)}.kefe-title-card-inner{position:relative;width:min(760px,100%);display:grid;grid-template-columns:minmax(180px,320px) minmax(0,1fr);gap:clamp(24px,5vw,56px);align-items:end}.kefe-title-art{width:100%;aspect-ratio:1;background:#161616;border:1px solid rgba(255,255,255,.12);box-shadow:0 24px 60px rgba(0,0,0,.38);overflow:hidden}.kefe-title-art img{width:100%;height:100%;display:block;object-fit:cover}.kefe-title-art-fallback{width:100%;height:100%;display:grid;place-items:center;font-size:clamp(54px,10vw,110px);font-weight:800;letter-spacing:-.08em;background:linear-gradient(145deg,#262626,#090909);color:#fff}.kefe-title-info{min-width:0;padding-bottom:4px}.kefe-title-kicker{margin:0 0 12px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.52)}.kefe-title-name{margin:0;font-size:clamp(30px,5vw,58px);line-height:.95;letter-spacing:-.045em;font-weight:750;overflow-wrap:anywhere}.kefe-title-artist{margin:12px 0 0;font-size:clamp(17px,2.2vw,24px);color:rgba(255,255,255,.72);overflow-wrap:anywhere}.kefe-title-meta{margin:20px 0 0;display:flex;flex-wrap:wrap;gap:7px 14px;font-size:12px;color:rgba(255,255,255,.45)}@media(max-width:680px){.kefe-title-card-inner{grid-template-columns:minmax(0,1fr);align-items:start;width:min(360px,100%)}.kefe-title-art{width:min(68vw,280px);margin:0 auto}.kefe-title-name{font-size:clamp(30px,9vw,46px)}.kefe-title-artist{margin-top:9px}.kefe-title-meta{margin-top:14px}}</style>
 </head>
 <body>
@@ -243,6 +244,15 @@ button{border:0;cursor:pointer}
         <div class="kefe-form">
           <label class="kefe-upload" for="mediaInput">Choose audio or video</label>
           <input class="kefe-file" id="mediaInput" type="file" accept=".mp3,.m4a,.wav,.aac,.flac,.ogg,.oga,.opus,.aiff,.caf,.mp4,.mov,.m4v,.webm,.avi,audio/*,video/*">
+          <div class="kefe-media-track" id="kefeMediaTrack" hidden>
+            <div class="kefe-media-track-art" id="kefeMediaTrackArt"><div class="kefe-media-track-fallback" id="kefeMediaTrackFallback">K</div></div>
+            <div class="kefe-media-track-info">
+              <p class="kefe-media-track-kicker">Identified track</p>
+              <h3 id="kefeMediaTrackTitle">Untitled</h3>
+              <p id="kefeMediaTrackArtist">Unknown artist</p>
+              <div class="kefe-media-track-meta"><span id="kefeMediaTrackAlbum"></span><span id="kefeMediaTrackYear"></span></div>
+            </div>
+          </div>
           <div><label class="kefe-label" for="songTitle">Song title</label><input class="kefe-input" id="songTitle" type="text" placeholder="Song title"></div>
           <div><label class="kefe-label" for="songArtist">Artist</label><input class="kefe-input" id="songArtist" type="text" placeholder="Artist"></div>
           <div><label class="kefe-label" for="songAlbum">Album</label><input class="kefe-input" id="songAlbum" type="text" placeholder="Album"></div>
@@ -460,7 +470,34 @@ I could feel the night begin</textarea>
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead'),wave=document.getElementById('waveform');
 
   for(let i=0;i<120;i++){const bar=document.createElement('span');bar.style.height=(24+((i*37)%70))+'%';wave.insertBefore(bar,range);}
+  function updateMediaTrack(){
+    const track=document.getElementById('kefeMediaTrack');
+    const art=document.getElementById('kefeMediaTrackArt');
+    const fallback=document.getElementById('kefeMediaTrackFallback');
+    const title=document.getElementById('kefeMediaTrackTitle');
+    const artist=document.getElementById('kefeMediaTrackArtist');
+    const album=document.getElementById('kefeMediaTrackAlbum');
+    const year=document.getElementById('kefeMediaTrackYear');
+    if(!track||!art||!fallback||!title||!artist||!album||!year)return;
+    const song=songTitle.value.trim();
+    const cover=songAlbum.dataset.artUrl||'';
+    title.textContent=song||'Untitled';
+    artist.textContent=songArtist.value.trim()||'Unknown artist';
+    album.textContent=songAlbum.value.trim()||'';
+    year.textContent=songYear.value.trim()||'';
+    art.innerHTML='';
+    if(cover){
+      const image=document.createElement('img');
+      image.src=cover;
+      image.alt='';
+      art.appendChild(image);
+    }else{
+      art.appendChild(fallback);
+    }
+    track.hidden=!song;
+  }
   function updateTitleCard(){
+    updateMediaTrack();
     titleName.textContent=songTitle.value.trim()||'Untitled';
     titleArtist.textContent=songArtist.value.trim()||'Unknown artist';
     titleAlbum.textContent=songAlbum.value.trim()||'';
