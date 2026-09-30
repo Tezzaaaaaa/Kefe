@@ -989,7 +989,7 @@ button{border:0;cursor:pointer}
           const pool=artistMatches.length?artistMatches:(artist?titleMatches:songs);
           pool.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
           if(!artist&&titleMatches.length){
-            const exact=titleMatches.find(item=>Math.abs((item.trackTimeMillis||Infinity)-duration)<=3000);
+            const exact=titleMatches.find(item=>Math.abs((item.trackTimeMillis||Infinity)-duration)<=10000);
             if(exact){
               songTitle.value=exact.trackName||songTitle.value;
               songArtist.value=exact.artistName||'';
