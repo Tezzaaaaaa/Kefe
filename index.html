@@ -597,8 +597,10 @@ button{border:0;cursor:pointer}
     if(cover){
       titleArt.innerHTML='';
       const image=document.createElement('img');
+      image.crossOrigin='anonymous';
       image.src=cover;
       image.alt='';
+      image.addEventListener('load',()=>{if(state.effect==='apple')draw();},{once:true});
       titleArt.appendChild(image);
     }else{
       titleArt.innerHTML='';
