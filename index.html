@@ -56,7 +56,7 @@ button{border:0;cursor:pointer}
   aspect-ratio:16/9;overflow:hidden;background:var(--preview);border:1px solid #252525;border-radius:var(--r3);
   box-shadow:var(--float)
 }
-#kefeCanvas{display:block;width:100%;height:100%}
+#kefeCanvas{display:block;width:100%;height:100%}.kefe-apple-lyrics{position:absolute;inset:0;display:none;width:100%;height:100%;z-index:2}
 .kefe-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#aaa;pointer-events:none}
 .kefe-empty strong{display:block;color:#f4f4f4;font-size:20px;margin-bottom:6px}
 .kefe-empty span{font-size:13px}
@@ -162,6 +162,7 @@ button{border:0;cursor:pointer}
   <section class="kefe-preview">
     <div class="kefe-stage">
       <canvas id="kefeCanvas" width="1280" height="720"></canvas>
+      <am-lyrics id="kefeAppleLyrics" class="kefe-apple-lyrics" highlight-color="#fff" autoscroll interpolate></am-lyrics>
       <div class="kefe-empty" id="emptyState">
         <div><img class="kefe-empty-logo" src="./kefe-logo-full%202.svg" alt="KEFE Visualiser"><strong>Add lyrics to preview</strong><span class="kefe-empty-copy">Choose a lyric effect and enter timed lines.</span></div>
       </div>
@@ -385,6 +386,9 @@ I could feel the night begin</textarea>
       ctx.save();ctx.globalAlpha=.35;ctx.strokeStyle='#ef3f38';ctx.lineWidth=3;ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*(.24+.04*Math.sin(t*3)*reactive),0,Math.PI*2);ctx.stroke();ctx.restore();
     }
     if(!state.lines.length)return;
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(state.effect==='apple'&&appleLyrics){appleLyrics.style.display='block';return;}
+    if(appleLyrics)appleLyrics.style.display='none';
     const fn=window.kefeEffects[state.effect];
     if(typeof fn==='function'){
       try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time);}
@@ -399,6 +403,8 @@ I could feel the night begin</textarea>
   }
   function setEffect(id){
     state.effect=id;
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(appleLyrics)appleLyrics.style.display=id==='apple'?'block':'none';
     document.querySelectorAll('.kefe-card').forEach(b=>b.classList.toggle('active',b.dataset.effect===id));
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
@@ -473,6 +479,8 @@ I could feel the night begin</textarea>
   });
   audio.addEventListener('timeupdate',()=>{
     state.time=audio.currentTime;range.value=state.time;updateTime();
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(appleLyrics)appleLyrics.currentTime=audio.currentTime*1000;
   });
   function syncPreview(){
     if(audio.src&&!audio.paused){
@@ -480,6 +488,8 @@ I could feel the night begin</textarea>
       range.value=state.time;
       updateTime();
       draw();
+      const appleLyrics=document.getElementById('kefeAppleLyrics');
+      if(appleLyrics)appleLyrics.currentTime=audio.currentTime*1000;
       requestAnimationFrame(syncPreview);
     }
   }
@@ -488,6 +498,8 @@ I could feel the night begin</textarea>
     state.time=Number(range.value);
     if(audio.src)audio.currentTime=state.time;
     if(video.src)video.currentTime=state.time;
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(appleLyrics)appleLyrics.currentTime=state.time*1000;
     updateTime();draw();
   });
   document.getElementById('visualiserPreset').addEventListener('change',e=>{visualiserPreset=e.target.value;draw()});
@@ -525,6 +537,14 @@ I could feel the night begin</textarea>
   window.__kefeBaseRender=()=>{};
 
   parseLyrics();setEffect('apple');updateTime();
+  const appleLyrics=document.getElementById('kefeAppleLyrics');
+  if(appleLyrics){
+    appleLyrics.songTitle=songTitle.value.trim();
+    appleLyrics.songArtist=songArtist.value.trim();
+    appleLyrics.songAlbum=songAlbum.value.trim();
+    appleLyrics.query=[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' - ');
+    appleLyrics.currentTime=state.time*1000;
+  }
   window.addEventListener('kefe-effects-ready',()=>setEffect(state.effect));
 })();
 </script>
@@ -548,9 +568,7 @@ I could feel the night begin</textarea>
 <script src="./app/effects/shiny-text.js"></script>
 <script src="./app/effects/decrypt-text.js"></script>
 <script type="module">
-import {drawAppleEffect} from './app/effects/lyric-apple.js';
-window.kefeAppleDraw=drawAppleEffect;
-window.kefeEffects.apple=(ctx,w,h,style,lines,time)=>drawAppleEffect(ctx,w,h,style,lines,time,null);
+import 'https://cdn.jsdelivr.net/npm/@uimaxbai/am-lyrics/dist/src/am-lyrics.min.js';
 window.dispatchEvent(new Event('kefe-effects-ready'));
 </script>
 </body>
