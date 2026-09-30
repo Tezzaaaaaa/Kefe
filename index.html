@@ -725,7 +725,7 @@ I could feel the night begin</textarea>
   lyricEffectSelect.addEventListener('change',()=>setEffect(lyricEffectSelect.value));
   songSearchButton.addEventListener('click',searchSongsForKefe);
   [songTitle,songArtist].forEach(input=>input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchSongsForKefe();}}));
-  document.getElementById('mediaInput').addEventListener('change',e=>{
+  document.getElementById('mediaInput').addEventListener('change',async e=>{
     const file=e.target.files?.[0];if(!file)return;
     if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
     mediaObjectUrl=URL.createObjectURL(file);
