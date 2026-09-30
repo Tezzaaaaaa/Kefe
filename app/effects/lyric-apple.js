@@ -166,7 +166,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
     }
     ctx.restore();
-    const activeIndex = Math.max(0, linaFindActiveLine(displayLines, time));
+    const activeIndex = linaFindActiveLine(displayLines, time);
 
     const source = albumArtworkImage;
     let palette = source?.__kefeApplePalette;
@@ -252,8 +252,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     }
     ctx.restore();
 
-    const displayLine = activeIndex >= 0 ? displayLines[activeIndex] : null;
-    if (activeIndex < 0 || !displayLine) return;
+    const displayLine = activeIndex >= 0 ? displayLines[activeIndex] : displayLines[0];
+    if (!displayLine) return;
 
     const appleLineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.58, 0.45, 1.10);
     const lineHeight = activeFontSize * 1.18 + appleLineSpacing;
