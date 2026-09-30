@@ -742,7 +742,7 @@ I could feel the night begin</textarea>
       audio.src=mediaObjectUrl;audio.load();video.removeAttribute('src');video.load();
     }
     document.querySelector('.kefe-upload').textContent=file.name;
-    songTitle.value=file.name.replace(/\\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
+    songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
     updateTitleCard();
     syncAppleLyricsMetadata();
     void (async()=>{
@@ -760,7 +760,7 @@ I could feel the night begin</textarea>
               songArtist.value=match.artistName||'';
               songAlbum.value=match.collectionName||'';
               songYear.value=match.releaseDate?String(match.releaseDate).slice(0,4):'';
-              if(match.artworkUrl100)songAlbum.dataset.artUrl=match.artworkUrl100.replace(/100x100bb\\.(jpg|jpeg|png)$/i,'600x600bb.$1');
+              if(match.artworkUrl100)songAlbum.dataset.artUrl=match.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
               updateTitleCard();
               syncAppleLyricsMetadata();
             }
