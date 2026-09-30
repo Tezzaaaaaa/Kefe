@@ -342,7 +342,6 @@ I could feel the night begin</textarea>
   }));
   lyricsInput.addEventListener('input',parseLyrics);
   fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
-  document.getElementById('mediaButton').onclick=()=>document.getElementById('mediaInput').click();
   document.getElementById('mediaInput').addEventListener('change',e=>{
     const file=e.target.files?.[0];if(!file)return;
     audio.src=URL.createObjectURL(file);audio.load();
@@ -368,7 +367,6 @@ I could feel the night begin</textarea>
     const p=(state.time/(Number(range.max)||30))*100;
     range.style.setProperty('--progress',p+'%');playhead.style.left=p+'%';
   }
-  document.getElementById('exportButton').onclick=()=>window.print();
 
   window.kefeRenderPipeline={use(name,plugin){const wrapped=plugin(window.__kefeBaseRender||(()=>{}));window.__kefeRenderers[name]=wrapped;return wrapped;}};
   window.__kefeBaseRender=()=>{};
