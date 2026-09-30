@@ -994,12 +994,13 @@ button{border:0;cursor:pointer}
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     const duration=Math.round(Number(audio.duration)||0);
     const lyricsStatus=document.getElementById('kefeLyricsStatus');
-    if(!title||!artist||duration<=0){
-      if(lyricsStatus)lyricsStatus.textContent=artist?'Waiting for track duration to fetch synchronized lyrics.':'Identify the track to fetch synchronized lyrics.';
+    if(!title||!artist){
+      if(lyricsStatus)lyricsStatus.textContent='Identify the track to fetch synchronized lyrics.';
       return;
     }
     const request=++biniLyricsRequest;
-    const params=new URLSearchParams({s:title,a:artist,al:album,d:String(duration)});
+    const params=new URLSearchParams({s:title,a:artist,al:album});
+    if(duration>0)params.set('d',String(duration));
     try{
       let parsedLines=[];
       let result={};
