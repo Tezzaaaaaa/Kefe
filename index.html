@@ -761,19 +761,33 @@ I could feel the night begin</textarea>
   }
   function parseAppleTTML(ttml){
     if(typeof ttml!=='string'||!ttml.trim())return [];
+    const source=ttml.replace(/^\\uFEFF/,'').trim();
     try{
-      const doc=new DOMParser().parseFromString(ttml,'application/xml');
+      const doc=new DOMParser().parseFromString(source,'application/xml');
       if(doc.querySelector('parsererror'))return [];
-      return Array.from(doc.querySelectorAll('p')).map(p=>{
-        const time=appleTime(p.getAttribute('begin'));
-        const end=appleTime(p.getAttribute('end'));
-        const text=String(p.textContent||'').replace(/\s+/g,' ').trim();
+      const timedNodes=Array.from(doc.querySelectorAll('p')).filter(node=>node.hasAttribute('begin'));
+      const nodes=timedNodes.length?timedNodes:Array.from(doc.querySelectorAll('span')).filter(node=>node.hasAttribute('begin'));
+      return nodes.map(node=>{
+        const time=appleTime(node.getAttribute('begin'));
+        const end=appleTime(node.getAttribute('end'));
+        const text=String(node.textContent||'').replace(/\\s+/g,' ').trim();
         return Number.isFinite(time)&&text?{time,end:Number.isFinite(end)?end:time+3,text}:null;
-      }).filter(Boolean);
+      }).filter(Boolean).sort((a,b)=>a.time-b.time);
     }catch(error){
       console.warn('[KEFE Apple TTML]',error);
       return [];
     }
+  }
+  function parseAppleLrc(lyrics){
+    if(typeof lyrics!=='string'||!lyrics.trim())return [];
+    return lyrics.replace(/\\r/g,'').split(/\\n+/).map(line=>{
+      const match=line.match(/^\\[(\\d{1,3}):(\\d{2})(?:[.:](\\d{1,3}))?\\]\\s*(.*)$/);
+      if(!match)return null;
+      const fraction=match[3]?Number(match[3])/(match[3].length===3?1000:100):0;
+      const time=Number(match[1])*60+Number(match[2])+fraction;
+      const text=match[4].trim();
+      return text?{time,text}:null;
+    }).filter(Boolean).sort((a,b)=>a.time-b.time).map((line,index)=>({...line,end:index+1?undefined:undefined}));
   }
   function drawAppleLyrics(ctx,width,height,lines,time){
     if(!lines.length)return;
@@ -1005,18 +1019,29 @@ I could feel the night begin</textarea>
       const result=await response.json();
       if(request!==biniLyricsRequest)return;
       let ttml=typeof result?.ttml==='string'?result.ttml:'';
-      if(!ttml.trim().startsWith('<')&&typeof result?.lyrics==='string')ttml=result.lyrics;
-      if(!ttml.trim().startsWith('<')&&Array.isArray(result?.results)){
+      if(!ttml.trim()&&typeof result?.data?.ttml==='string')ttml=result.data.ttml;
+      let parsedLines=parseAppleTTML(ttml);
+      if(!parsedLines.length&&typeof result?.lyrics==='string'){
+        const lyrics=result.lyrics.trim();
+        if(lyrics.startsWith('<')){
+          ttml=lyrics;
+          parsedLines=parseAppleTTML(ttml);
+        }else{
+          parsedLines=parseAppleLrc(lyrics);
+        }
+      }
+      if(!parsedLines.length&&Array.isArray(result?.results)){
         const match=result.results.find(item=>typeof item?.lyricsUrl==='string');
         if(match?.lyricsUrl){
           const lyricsResponse=await fetch(match.lyricsUrl);
           if(!lyricsResponse.ok)throw new Error('BiniLyrics TTML fetch failed: '+lyricsResponse.status);
           ttml=await lyricsResponse.text();
+          parsedLines=parseAppleTTML(ttml);
         }
       }
-      if(!ttml.trim().startsWith('<'))throw new Error(result?.message||result?.error||'No BiniLyrics TTML match');
+      if(!parsedLines.length)throw new Error(result?.message||result?.error||'No synchronized lyrics match');
       appleLyrics.ttml=ttml;
-      state.appleLines=parseAppleTTML(ttml);
+      state.appleLines=parsedLines.map((line,index)=>({...line,end:Number.isFinite(line.end)?line.end:(parsedLines[index+1]?.time||line.time+3)}));
       syncAppleLyricsMetadata();
       draw();
       syncAppleLyrics(true);
