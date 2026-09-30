@@ -359,7 +359,15 @@ I could feel the night begin</textarea>
       state.lines=raw.map((text,i)=>({text,time:i*3,endTime:(i+1)*3}));
     }
     empty.style.display=state.lines.length?'none':'grid';
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(appleLyrics)appleLyrics.ttml=lyricsToTtml(state.lines);
     draw();
+  }
+  function lyricsToTtml(lines){
+    const escapeXml=value=>String(value||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+    const time=value=>Math.max(0,Number(value)||0).toFixed(3);
+    const body=lines.map(line=>'<p begin="'+time(line.time)+'s" end="'+time(line.endTime)+'s">'+escapeXml(line.text)+'</p>').join('');
+    return '<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:itunes="http://music.apple.com/lyric-ttml-internal" xmlns:amll="http://www.example.com/ns/amll" itunes:timing="Line"><head><metadata><amll:meta key="musicName" value="'+escapeXml(songTitle.value.trim())+'"/><amll:meta key="artists" value="'+escapeXml(songArtist.value.trim())+'"/><amll:meta key="album" value="'+escapeXml(songAlbum.value.trim())+'"/></metadata></head><body><div>'+body+'</div></body></tt>';
   }
   function currentStyle(){
     const contract=window.KEFE_TYPE?.effects?.[state.effect]||{};
@@ -464,18 +472,19 @@ I could feel the night begin</textarea>
         if(match.trackName)songTitle.value=match.trackName;
         if(match.artistName)songArtist.value=match.artistName;
         if(match.albumName)songAlbum.value=match.albumName;
+        if(match.syncedLyrics||match.plainLyrics){
+          const lyricSource=match.syncedLyrics||match.plainLyrics;
+          lyricsInput.value=String(lyricSource).replace(/\r/g,'').trim();
+          parseLyrics();
+        }
         const appleLyrics=document.getElementById('kefeAppleLyrics');
         if(appleLyrics){
           appleLyrics.songTitle=songTitle.value.trim();
           appleLyrics.songArtist=songArtist.value.trim();
           appleLyrics.songAlbum=songAlbum.value.trim();
-          appleLyrics.query=[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' - ');
+          appleLyrics.songDuration=Math.round((audio.duration||0)*1000);
+          appleLyrics.ttml=lyricsToTtml(state.lines);
           appleLyrics.currentTime=state.time*1000;
-        }
-        if(match.syncedLyrics||match.plainLyrics){
-          const lyricSource=match.syncedLyrics||match.plainLyrics;
-          lyricsInput.value=String(lyricSource).replace(/\r/g,'').trim();
-          parseLyrics();
         }
       })
       .catch(err=>console.warn('[KEFE lyrics]',err));
@@ -486,6 +495,8 @@ I could feel the night begin</textarea>
   };
   audio.addEventListener('loadedmetadata',()=>{
     range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(appleLyrics)appleLyrics.songDuration=Math.round((audio.duration||0)*1000);
   });
   function syncAppleLyrics(seeking=false){
     const appleLyrics=document.getElementById('kefeAppleLyrics');
@@ -572,7 +583,8 @@ I could feel the night begin</textarea>
     appleLyrics.songTitle=songTitle.value.trim();
     appleLyrics.songArtist=songArtist.value.trim();
     appleLyrics.songAlbum=songAlbum.value.trim();
-    appleLyrics.query=[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' - ');
+    appleLyrics.ttml=lyricsToTtml(state.lines);
+    appleLyrics.currentTime=state.time*1000;
     syncAppleLyrics(true);
   }
   window.addEventListener('kefe-effects-ready',()=>setEffect(state.effect));
