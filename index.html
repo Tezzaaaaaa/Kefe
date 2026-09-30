@@ -914,7 +914,19 @@ I could feel the night begin</textarea>
     syncAppleLyrics(true);
     if(songTitle.value.trim()&&songArtist.value.trim())fetchBinimumTtml(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim(),audio.duration||0).catch(err=>console.warn('[KEFE BiniLyrics]',err));
   }
-  window.addEventListener('kefe-effects-ready',()=>setEffect(state.effect));
+  window.addEventListener('kefe-effects-ready',()=>{
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(appleLyrics){
+      appleLyrics.songTitle=songTitle.value.trim();
+      appleLyrics.songArtist=songArtist.value.trim();
+      appleLyrics.songAlbum=songAlbum.value.trim();
+      appleLyrics.songDuration=Math.round((audio.duration||0)*1000);
+      appleLyrics.ttml=lyricsToTtml(state.lines);
+      appleLyrics.currentTime=Math.round((audio.currentTime||state.time||0)*1000);
+      appleLyrics.style.display=state.effect==='apple'?'block':'none';
+    }
+    setEffect(state.effect);
+  });
 })();
 </script>
 
