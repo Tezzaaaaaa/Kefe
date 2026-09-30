@@ -644,8 +644,8 @@ button{border:0;cursor:pointer}
     }else{
       state.lines=raw.map((text,i)=>({text,time:i*3,endTime:(i+1)*3}));
     }
+    state.appleLines=state.lines.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
     empty.style.display=state.lines.length?'none':'grid';
-    const appleLyrics=document.getElementById('kefeAppleLyrics');
     draw();
   }
   function lyricsToTtml(lines){
@@ -823,7 +823,7 @@ button{border:0;cursor:pointer}
   function setEffect(id){
     state.effect=id;
     const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics){appleLyrics.style.display=id==='apple'?'block':'none';if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();}}
+    if(appleLyrics){appleLyrics.style.display='none';if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();}}
     document.querySelectorAll('.kefe-card').forEach(b=>b.classList.toggle('active',b.dataset.effect===id));
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
@@ -1012,7 +1012,11 @@ button{border:0;cursor:pointer}
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     const duration=Math.round(Number(audio.duration||video.duration)||0);
-    if(!appleLyrics||!title||!artist||!album||duration<=0)return;
+    const lyricsStatus=document.getElementById('kefeLyricsStatus');
+    if(!appleLyrics||!title||!artist||duration<=0){
+      if(lyricsStatus)lyricsStatus.textContent=artist?'Waiting for track duration to fetch synchronized lyrics.':'Identify the track to fetch synchronized lyrics.';
+      return;
+    }
     await appleLyricsReady;
     const request=++biniLyricsRequest;
     const params=new URLSearchParams({s:title,a:artist,al:album,d:String(duration)});
@@ -1053,16 +1057,15 @@ button{border:0;cursor:pointer}
       if(!parsedLines.length)throw new Error(result?.message||result?.error||'No synchronized lyrics match');
       appleLyrics.ttml=ttml;
       state.appleLines=parsedLines.map((line,index)=>({...line,end:Number.isFinite(line.end)?line.end:(parsedLines[index+1]?.time||line.time+3)}));
+      state.lines=state.appleLines.map(line=>({text:line.text,time:line.time,endTime:line.end}));
       lyricsInput.value=state.appleLines.map(line=>{
         const mins=Math.floor(line.time/60),secs=line.time-mins*60;
         return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\.$/,'')+'] '+line.text;
       }).join('\n');
-      const lyricsStatus=document.getElementById('kefeLyricsStatus');
       if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics fetched.';
       syncAppleLyricsMetadata();
       draw();
       syncAppleLyrics(true);
-      if(state.effect==='apple')appleLyrics.style.display='block';
     }catch(error){
       if(request!==biniLyricsRequest)return;
       const lyricsStatus=document.getElementById('kefeLyricsStatus');
