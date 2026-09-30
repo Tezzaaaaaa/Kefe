@@ -143,7 +143,9 @@ button{border:0;cursor:pointer}
   .kefe-top-nav::-webkit-scrollbar{display:none}
   .kefe-top-profile{flex:0 0 auto}
   .kefe-top-link{min-height:34px;padding:0 9px;font-size:12px}
-  .kefe-editing{display:block;overflow:hidden}
+  .kefe-editing{display:grid;grid-template-rows:62px minmax(0,1fr);min-height:0;overflow:hidden}
+  .kefe-tabs{min-height:0}
+  .kefe-panels{min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 }
 @media(max-width:520px){
   .kefe-top{padding:0 7px;gap:4px}
