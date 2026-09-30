@@ -550,6 +550,7 @@ I could feel the night begin</textarea>
     const cover=match?.artworkUrl100||'';
     if(!cover)return;
     songAlbum.dataset.artUrl=cover.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
+    updateMediaTrack();
     updateTitleCard();
   }
   function applyAppleAlbumGradient(){
@@ -839,6 +840,7 @@ I could feel the night begin</textarea>
             songAlbum.value=match.collectionName||'';
             songYear.value=match.releaseDate?String(match.releaseDate).slice(0,4):'';
             if(match.artworkUrl100)songAlbum.dataset.artUrl=match.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
+            updateMediaTrack();
             updateTitleCard();
           }
         }
