@@ -682,6 +682,10 @@ I could feel the night begin</textarea>
     }
   }
   audio.addEventListener('play',()=>{
+    if(video.src){
+      video.currentTime=audio.currentTime;
+      video.play().catch(err=>console.warn('[KEFE video]',err));
+    }
     if(audio.currentTime<=0.08&&titleCardShownFor!==mediaObjectUrl)showTitleCard();
     syncAppleLyrics();
     const appleLyrics=document.getElementById('kefeAppleLyrics');
@@ -689,19 +693,24 @@ I could feel the night begin</textarea>
     requestAnimationFrame(syncPreview);
   });
   audio.addEventListener('pause',()=>{
+    if(video.src&&!video.paused)video.pause();
     hideTitleCard();
     syncAppleLyrics();
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     if(appleLyrics&&typeof appleLyrics.pause==='function')appleLyrics.pause();
   });
   audio.addEventListener('ended',()=>{
+    if(video.src&&!video.paused)video.pause();
     hideTitleCard();
     syncAppleLyrics(true);
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     if(appleLyrics&&typeof appleLyrics.pause==='function')appleLyrics.pause();
   });
   audio.addEventListener('seeking',()=>syncAppleLyrics(true));
-  audio.addEventListener('seeked',()=>syncAppleLyrics(true));
+  audio.addEventListener('seeked',()=>{
+    if(video.src)video.currentTime=audio.currentTime;
+    syncAppleLyrics(true);draw();
+  });
   range.addEventListener('input',()=>{
     state.time=Number(range.value);
     if(audio.src)audio.currentTime=state.time;
