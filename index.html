@@ -848,7 +848,7 @@ button{border:0;cursor:pointer}
   function setEffect(id){
     state.effect=id;
     const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics){appleLyrics.style.display='none';if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();}}
+    if(appleLyrics){appleLyrics.style.display='none';if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();visualiserBackground='gradient';document.getElementById('visualiserBackground').value='gradient';}}
     document.querySelectorAll('.kefe-card').forEach(b=>b.classList.toggle('active',b.dataset.effect===id));
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
