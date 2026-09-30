@@ -415,7 +415,7 @@ I could feel the night begin</textarea>
   ];
   const effectDefinitions=(Array.isArray(window.KEFE_EFFECTS)&&window.KEFE_EFFECTS.length?window.KEFE_EFFECTS.map(e=>[e.key,e.label]):fallbackEffects);
 
-  let state={effect:'apple',fontOverride:'',lines:[],time:0};
+  let state={effect:'apple',fontOverride:'',lines:[],appleLines:[],time:0};
   const canvas=document.getElementById('kefeCanvas'),ctx=canvas.getContext('2d');
   const empty=document.getElementById('emptyState'),lyricsInput=document.getElementById('lyricsInput');
   const audio=document.getElementById('kefeAudio'),range=document.getElementById('kefeTime');
@@ -669,6 +669,7 @@ I could feel the night begin</textarea>
     const emptyState=document.getElementById('emptyState');
     if(emptyState)emptyState.hidden=hasUploadedMedia;
     const t=state.time;
+    const hasUploadedMedia=!!(audio.currentSrc||audio.src||video.currentSrc||video.src);
     if(visualiserBackground==='gradient'){
       const g=ctx.createLinearGradient(0,0,canvas.width,canvas.height);g.addColorStop(0,'#080808');g.addColorStop(1,'#24201f');ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);
     }else if(visualiserBackground==='accent'){
@@ -731,8 +732,11 @@ I could feel the night begin</textarea>
       ctx.save();ctx.globalAlpha=.35;ctx.strokeStyle='#ef3f38';ctx.lineWidth=3;ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*(.24+.04*Math.sin(t*3)*reactive),0,Math.PI*2);ctx.stroke();ctx.restore();
     }
     const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(state.effect==='apple'&&appleLyrics){appleLyrics.style.display='block';return;}
     if(appleLyrics)appleLyrics.style.display='none';
+    if(state.effect==='apple'){
+      drawAppleLyrics(ctx,canvas.width,canvas.height,state.appleLines,state.time);
+      return;
+    }
     if(!state.lines.length)return;
     const fn=window.kefeEffects[state.effect];
     if(typeof fn==='function'){
@@ -745,6 +749,65 @@ I could feel the night begin</textarea>
     }else if(state.effect==='apple'&&window.kefeAppleDraw){
       window.kefeAppleDraw(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time,null);
     }
+  }
+  function appleTime(value){
+    const text=String(value||'').trim();
+    if(!text)return NaN;
+    if(/^\d+(?:\.\d+)?s$/.test(text))return Number.parseFloat(text);
+    const parts=text.split(':').map(Number);
+    if(parts.some(Number.isNaN))return NaN;
+    if(parts.length===3)return parts[0]*3600+parts[1]*60+parts[2];
+    if(parts.length===2)return parts[0]*60+parts[1];
+    return parts[0];
+  }
+  function parseAppleTTML(ttml){
+    if(typeof ttml!=='string'||!ttml.trim())return [];
+    try{
+      const doc=new DOMParser().parseFromString(ttml,'application/xml');
+      if(doc.querySelector('parsererror'))return [];
+      return Array.from(doc.querySelectorAll('p')).map(p=>{
+        const time=appleTime(p.getAttribute('begin'));
+        const end=appleTime(p.getAttribute('end'));
+        const text=String(p.textContent||'').replace(/\s+/g,' ').trim();
+        return Number.isFinite(time)&&text?{time,end:Number.isFinite(end)?end:time+3,text}:null;
+      }).filter(Boolean);
+    }catch(error){
+      console.warn('[KEFE Apple TTML]',error);
+      return [];
+    }
+  }
+  function drawAppleLyrics(ctx,width,height,lines,time){
+    if(!lines.length)return;
+    const active=lines.reduce((best,line,index)=>line.time<=time&&(!best||line.time>best.time)?{...line,index}:best,null);
+    const index=active?.index??(time<lines[0].time?0:lines.length-1);
+    const center=lines[index];
+    if(!center)return;
+    ctx.save();
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    const size=Math.max(22,Math.min(48,width*.038));
+    const gap=size*1.38;
+    const maxWidth=width*.78;
+    for(let offset=-2;offset<=2;offset++){
+      const line=lines[index+offset];
+      if(!line)continue;
+      const y=height/2+offset*gap;
+      const isCurrent=offset===0;
+      const distance=Math.abs(offset);
+      ctx.font=(isCurrent?'750 ':'600 ')+size+'px "Inter Tight",system-ui,sans-serif';
+      ctx.globalAlpha=isCurrent?1:Math.max(.22,.62-distance*.16);
+      ctx.fillStyle='#fff';
+      let text=line.text;
+      while(ctx.measureText(text).width>maxWidth&&text.length>3)text=text.slice(0,-2)+'…';
+      ctx.fillText(text,width/2,y);
+    }
+    if(active&&Number.isFinite(active.end)&&time>=active.time&&time<=active.end){
+      const progress=Math.min(1,Math.max(0,(time-active.time)/(active.end-active.time||1)));
+      ctx.globalAlpha=.08+.12*progress;
+      ctx.fillStyle='#fff';
+      ctx.fillRect(width*.11,height*.5+size*.82,width*.78*progress,2);
+    }
+    ctx.restore();
   }
   function setEffect(id){
     state.effect=id;
@@ -789,13 +852,14 @@ I could feel the night begin</textarea>
     if(!previewPane||!previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen')||document.fullscreenElement===previewStage)return;
     const active=document.querySelector('.kefe-aspect-button.active')?.dataset.aspect||'16:9';
     const ratio=active==='9:16'?9/16:active==='1:1'?1:16/9;
-    const maxWidth=Math.min(previewPane.clientWidth,1180);
-    const maxHeight=previewPane.clientHeight;
-    if(maxWidth<=0||maxHeight<=0)return;
-    const width=Math.min(maxWidth,maxHeight*ratio);
-    const height=width/ratio;
-    previewStage.style.width=Math.floor(width)+'px';
-    previewStage.style.height=Math.floor(height)+'px';
+    const paneWidth=Math.max(0,previewPane.clientWidth-48);
+    const paneHeight=Math.max(0,previewPane.clientHeight-34);
+    if(paneWidth<=0||paneHeight<=0)return;
+    let width=Math.min(paneWidth,1180);
+    let height=width/ratio;
+    if(height>paneHeight){height=paneHeight;width=height*ratio;}
+    previewStage.style.width=Math.max(1,Math.floor(width))+'px';
+    previewStage.style.height=Math.max(1,Math.floor(height))+'px';
   }
   document.querySelectorAll('.kefe-aspect-button').forEach(button=>button.addEventListener('click',()=>{
     const aspect=button.dataset.aspect;
@@ -835,6 +899,7 @@ I could feel the night begin</textarea>
     songArtist.value='';
     songAlbum.value='';
     songYear.value='';
+    state.appleLines=[];
     delete songAlbum.dataset.artUrl;
     const suggestionsPanel=document.getElementById('kefeSuggestions');
     const suggestionsList=document.getElementById('kefeSuggestionList');
@@ -973,7 +1038,9 @@ I could feel the night begin</textarea>
       }
       if(!ttml.trim().startsWith('<'))throw new Error(result?.message||result?.error||'No BiniLyrics TTML match');
       appleLyrics.ttml=ttml;
+      state.appleLines=parseAppleTTML(ttml);
       syncAppleLyricsMetadata();
+      draw();
       syncAppleLyrics(true);
       if(state.effect==='apple')appleLyrics.style.display='block';
     }catch(error){
