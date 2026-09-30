@@ -165,6 +165,60 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
   window.kefeEffects.slide = __makeMotionRenderer('slide');
   window.kefeEffects.drop = __makeMotionRenderer('drop');
   window.kefeEffects.drift = __makeMotionRenderer('drift');
+
+  function drawSpecialText(ctx,w,h,style,lines,time,mode){
+    const active=u.activeLine(lines,time);
+    if(!active)return;
+    const text=String(active.line.text||'').trim();
+    if(!text)return;
+    const contract=u.contract(mode);
+    const family=contract.family||'Open Sans';
+    const requested=Math.max(contract.min||34,Math.min(contract.max||150,Number(style.fontSize)||78));
+    const prepared=fitMotionText(ctx,text,requested,Number(contract.tracking)||0,w*.86,family);
+    const size=prepared.size;
+    const trackingPx=(Number(contract.tracking)||0)*size;
+    const start=Number(active.line.time)||0;
+    const end=Math.max(start+.4,Number(active.line.endTime)||start+3);
+    const duration=end-start;
+    const p=clamp((time-start)/Math.min(.55,Math.max(.25,duration*.22)));
+    const exit=clamp((end-time)/Math.min(.35,Math.max(.2,duration*.14)));
+    const eased=smoother(p);
+    const alpha=eased*exit;
+    ctx.save();
+    ctx.textAlign=contract.align||'center';
+    ctx.textBaseline='middle';
+    setMotionFont(ctx,family,size);
+    if(mode==='brat'){
+      const reveal=Math.max(0,Math.min(text.length,Math.ceil(text.length*smoother(clamp((time-start)/Math.min(.8,Math.max(.3,duration*.3)))))));
+      ctx.globalAlpha=alpha;ctx.fillStyle=style.textColor||'#fff';
+      ctx.translate(w/2,h*.5);
+      u.drawTrackedText(ctx,text.slice(0,reveal),0,0,trackingPx,'fillText');
+    }else if(mode==='eternal'){
+      ctx.globalAlpha=alpha;ctx.fillStyle=style.textColor||'#fff';
+      ctx.translate(w*.12,h*.55);
+      u.drawTrackedText(ctx,text,0,0,trackingPx,'fillText');
+    }else if(mode==='aurora'){
+      const g=ctx.createLinearGradient(w*.15,0,w*.85,h);
+      const hue=(time-start)*70;
+      g.addColorStop(0,'hsl('+((hue+190)%360)+' 90% 72%)');
+      g.addColorStop(.5,'hsl('+((hue+280)%360)+' 90% 76%)');
+      g.addColorStop(1,'hsl('+((hue+340)%360)+' 90% 70%)');
+      ctx.globalAlpha=alpha;ctx.fillStyle=g;ctx.shadowColor='rgba(255,255,255,.35)';ctx.shadowBlur=size*.08;
+      u.drawTrackedText(ctx,text,w/2,h*.5,trackingPx,'fillText');
+    }else{
+      const wave=Math.sin((time-start)*Math.PI*2.4)*size*.025;
+      const scale=1+Math.sin(clamp((time-start)/Math.max(.01,duration))*Math.PI*2.4)*.025;
+      ctx.globalAlpha=alpha;ctx.fillStyle=style.textColor||'#fff';
+      ctx.translate(w/2,h*.5+wave);ctx.scale(scale,scale);
+      ctx.shadowColor=style.accentColor||'#fff';ctx.shadowBlur=size*.07;
+      u.drawTrackedText(ctx,text,0,0,trackingPx,'fillText');
+    }
+    ctx.restore();
+  }
+  window.kefeEffects.brat=(ctx,w,h,style,lines,time)=>drawSpecialText(ctx,w,h,style,lines,time,'brat');
+  window.kefeEffects.eternal=(ctx,w,h,style,lines,time)=>drawSpecialText(ctx,w,h,style,lines,time,'eternal');
+  window.kefeEffects.aurora=(ctx,w,h,style,lines,time)=>drawSpecialText(ctx,w,h,style,lines,time,'aurora');
+  window.kefeEffects.pulse=(ctx,w,h,style,lines,time)=>drawSpecialText(ctx,w,h,style,lines,time,'pulse');
   function installMotionEffects(){if(window.__kefeMotionEffectsInstalled)return true;const pipeline=window.kefeRenderPipeline;if(!pipeline)return false;const extra=new Set(Object.keys(MOTION));pipeline.use('motion-effects',originalRender=>function(ctx,w,h,appState,mediaCache){const effect=appState?.style?.effect;if(!extra.has(effect))return originalRender(ctx,w,h,appState,mediaCache);const style=appState.style,lines=appState.captions?.mode==='captions'&&Array.isArray(appState.captions.lines)&&appState.captions.lines.length?appState.captions.lines:(Array.isArray(appState.lyrics?.lines)?appState.lyrics.lines:[]),time=Number(appState.playback?.currentTime)||0,originalEffect=style.effect,originalText=style.textColor,originalAccent=style.accentColor,originalOpacity=style.appleInactiveOpacity;try{style.effect='apple';style.textColor='rgba(0,0,0,0)';style.accentColor='rgba(0,0,0,0)';style.appleInactiveOpacity=0;originalRender(ctx,w,h,appState,mediaCache);}finally{style.effect=originalEffect;style.textColor=originalText;style.accentColor=originalAccent;style.appleInactiveOpacity=originalOpacity;}if(lines.length)window.kefeEffects[effect](ctx,w,h,style,lines,time);});window.__kefeMotionEffectsInstalled=true;return true;}
   function addMotionFontControl(){if(document.getElementById('kefeMotionFontControl'))return;const styleBlock=document.getElementById('lyricStyleBlock');if(!styleBlock)return;const row=document.createElement('label');row.id='kefeMotionFontControl';row.className='kefe-motion-font-control';row.textContent='Font';const select=document.createElement('select');select.id='kefeMotionFont';select.setAttribute('aria-label','Font for Slide and Drift');const groups={};for(const font of BASE_FONTS){const group=font.group||'Fonts';if(!groups[group]){groups[group]=document.createElement('optgroup');groups[group].label=group;select.appendChild(groups[group]);}const option=document.createElement('option');option.value=font.value;option.textContent=font.label;option.style.fontFamily=`"${font.value}",sans-serif`;groups[group].appendChild(option);}let saved=window.state?.style?.kefeMotionFont;try{saved=saved||localStorage.getItem(FONT_KEY);}catch(_){}select.value=BASE_FONTS.some(f=>f.value===saved)?saved:'Open Sans';if(window.state?.style)window.state.style.kefeMotionFont=select.value;select.addEventListener('change',()=>{if(window.state?.style)window.state.style.kefeMotionFont=select.value;try{localStorage.setItem(FONT_KEY,select.value);}catch(_){}window.redrawCurrentPreviewFrame?.();});row.appendChild(select);styleBlock.querySelector('.effect-buttons')?.insertAdjacentElement('afterend',row);}
   function updateMotionFontVisibility(){const control=document.getElementById('kefeMotionFontControl');if(!control)return;const selected=window.state?.style?.effect;control.style.display=(selected==='slide'||selected==='drift')?'grid':'none';}
