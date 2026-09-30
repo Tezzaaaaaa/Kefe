@@ -339,8 +339,22 @@ I could feel the night begin</textarea>
 
   for(let i=0;i<120;i++){const bar=document.createElement('span');bar.style.height=(24+((i*37)%70))+'%';wave.insertBefore(bar,range);}
   function parseLyrics(){
-    const raw=lyricsInput.value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
-    state.lines=raw.map((text,i)=>({text,time:i*3,endTime:(i+1)*3}));
+    const raw=lyricsInput.value.replace(/\r/g,'').split(/\n+/).map(s=>s.trim()).filter(Boolean);
+    const synced=raw.map(line=>{
+      const m=line.match(/^\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]\s*(.*)$/);
+      if(!m)return null;
+      const fraction=m[3]?Number(m[3])/(m[3].length===3?1000:100):0;
+      return {text:m[4].trim(),time:Number(m[1])*60+Number(m[2])+fraction};
+    }).filter(line=>line&&line.text);
+    if(synced.length){
+      state.lines=synced.map((line,i)=>({...line,endTime:synced[i+1]?.time||line.time+3}));
+      lyricsInput.value=state.lines.map(line=>{
+        const mins=Math.floor(line.time/60),secs=line.time-mins*60;
+        return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\.$/,'')+'] '+line.text;
+      }).join('\n');
+    }else{
+      state.lines=raw.map((text,i)=>({text,time:i*3,endTime:(i+1)*3}));
+    }
     empty.style.display=state.lines.length?'none':'grid';
     draw();
   }
@@ -443,7 +457,8 @@ I could feel the night begin</textarea>
         if(match.artistName)songArtist.value=match.artistName;
         if(match.albumName)songAlbum.value=match.albumName;
         if(match.syncedLyrics||match.plainLyrics){
-          lyricsInput.value=String(match.plainLyrics||match.syncedLyrics).replace(/\r/g,'').split('\n').map(line=>line.replace(/^\[[^\]]+\]\s*/,'').trim()).filter(Boolean).join('\n');
+          const lyricSource=match.syncedLyrics||match.plainLyrics;
+          lyricsInput.value=String(lyricSource).replace(/\r/g,'').trim();
           parseLyrics();
         }
       })
@@ -457,8 +472,18 @@ I could feel the night begin</textarea>
     range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
   });
   audio.addEventListener('timeupdate',()=>{
-    state.time=audio.currentTime;range.value=state.time;updateTime();draw();
+    state.time=audio.currentTime;range.value=state.time;updateTime();
   });
+  function syncPreview(){
+    if(audio.src&&!audio.paused){
+      state.time=audio.currentTime;
+      range.value=state.time;
+      updateTime();
+      draw();
+      requestAnimationFrame(syncPreview);
+    }
+  }
+  audio.addEventListener('play',()=>requestAnimationFrame(syncPreview));
   range.addEventListener('input',()=>{
     state.time=Number(range.value);
     if(audio.src)audio.currentTime=state.time;
