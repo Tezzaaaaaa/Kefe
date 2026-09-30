@@ -915,17 +915,7 @@ button{border:0;cursor:pointer}
               const duration=video.duration*1000;
               const matches=songs.filter(item=>normalize(item.trackName)===wanted);
               matches.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
-              const match=matches[0];
-              if(match&&mediaObjectUrl===uploadUrl){
-                songTitle.value=match.trackName||songTitle.value;
-                songArtist.value=match.artistName||'';
-                songAlbum.value=match.collectionName||'';
-                songYear.value=match.releaseDate?String(match.releaseDate).slice(0,4):'';
-                if(match.artworkUrl100)songAlbum.dataset.artUrl=match.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
-                updateTitleCard();
-                applyAppleAlbumGradient();
-                showTitleCard();
-              }
+              // Suggestions are display-only. Never auto-select a candidate because an incorrect match can fetch lyrics for the wrong recording.
             }
           }catch(error){console.warn('[KEFE metadata lookup]',error);}
         }
@@ -979,18 +969,7 @@ button{border:0;cursor:pointer}
           const artistMatches=artist?titleMatches.filter(item=>normalize(item.artistName)===artist):titleMatches;
           const pool=artistMatches.length?artistMatches:(artist?titleMatches: songs);
           pool.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
-          const match=pool[0];
-          if(match){
-            songTitle.value=match.trackName||titleQuery;
-            songArtist.value=match.artistName||'';
-            songAlbum.value=match.collectionName||'';
-            songYear.value=match.releaseDate?String(match.releaseDate).slice(0,4):'';
-            if(match.artworkUrl100)songAlbum.dataset.artUrl=match.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
-            updateMediaTrack();
-            updateTitleCard();
-            applyAppleAlbumGradient();
-            showTitleCard();
-          }
+          // Suggestions are display-only. Never auto-select a candidate because an incorrect match can fetch lyrics for the wrong recording.
         }
       }
     }catch(error){console.warn('[KEFE metadata lookup]',error);}
