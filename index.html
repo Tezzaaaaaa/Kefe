@@ -1007,68 +1007,32 @@ button{border:0;cursor:pointer}
       return;
     }
     const request=++biniLyricsRequest;
-    const params=new URLSearchParams({s:title,a:artist,al:album});
-    if(duration>0)params.set('d',String(duration));
+    const params=new URLSearchParams({track:title,artist});
+    if(album)params.set('album',album);
+    params.set('duration',String(duration));
     try{
-      let parsedLines=[];
-      let result={};
-      let response;
-
-      response=await fetch('https://api.betterlyrics.org/qq/getLyrics?'+params.toString());
+      const response=await fetch('https://lyrics-api.binimum.org/?'+params.toString());
       if(request!==biniLyricsRequest)return;
-      result=await response.json().catch(()=>({}));
-      if(response.ok&&typeof result?.lyrics==='string'){
-        let qrc=result.lyrics;
-        if(qrc.trim().startsWith('<')){
-          const match=qrc.match(/LyricContent="([\s\S]*?)"\s*\/?/i);
-          qrc=match?match[1]:'';
-          qrc=qrc.replace(/&quot;/g,'"').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#39;/g,"'");
-        }
-        const timedLines=qrc.match(/\[\d+,\d+\][\s\S]*?(?=\s*\[\d+,\d+\]|$)/g)||[];
-        const lrc=timedLines.map(line=>{
-          const match=line.trim().match(/^\[(\d+),(\d+)\]([\s\S]*)$/);
-          if(!match)return '';
-          const millis=Number(match[1]);
-          const mins=Math.floor(millis/60000);
-          const secs=((millis%60000)/1000).toFixed(3).padStart(6,'0');
-          const text=match[3].replace(/\(\d+,\d+\)/g,'').trim();
-          return text?'['+String(mins).padStart(2,'0')+':'+secs+'] '+text:'';
-        }).filter(Boolean).join('\\n');
-        parsedLines=parseAppleLrc(lrc);
-      }
-
-      if(!parsedLines.length){
-        response=await fetch('https://api.betterlyrics.org/kugou/getLyrics?'+params.toString());
-        if(request!==biniLyricsRequest)return;
-        result=await response.json().catch(()=>({}));
-        if(response.ok&&typeof result?.lyrics==='string')parsedLines=parseAppleLrc(result.lyrics);
-      }
-
-      if(!parsedLines.length){
-        response=await fetch('https://api.betterlyrics.org/ttml/getLyrics?'+params.toString());
-        if(request!==biniLyricsRequest)return;
-        result=await response.json().catch(()=>({}));
-        const ttml=typeof result?.lyrics==='string'?result.lyrics:'';
-        if(response.ok&&ttml.trim())parsedLines=parseAppleTTML(ttml);
-      }
-
-      if(!parsedLines.length){
-        response=await fetch('https://api.betterlyrics.org/getLyrics?'+params.toString());
-        if(request!==biniLyricsRequest)return;
-        result=await response.json().catch(()=>({}));
-        const ttml=typeof result?.ttml==='string'?result.ttml:(typeof result?.data?.ttml==='string'?result.data.ttml:'');
-        if(response.ok&&ttml.trim())parsedLines=parseAppleTTML(ttml);
-      }
-
-      if(!parsedLines.length)throw new Error(result?.message||result?.error||'No synchronized lyrics match');
+      if(!response.ok)throw new Error('BiniLyrics lookup failed: '+response.status);
+      const result=await response.json().catch(()=>({}));
+      const match=Array.isArray(result?.results)?result.results[0]:null;
+      const lyricsUrl=typeof match?.lyricsUrl==='string'?match.lyricsUrl:'';
+      if(!lyricsUrl)throw new Error(result?.error||'No BiniLyrics match');
+      const lyricsResponse=await fetch(lyricsUrl);
+      if(request!==biniLyricsRequest)return;
+      if(!lyricsResponse.ok)throw new Error('BiniLyrics TTML fetch failed: '+lyricsResponse.status);
+      const ttml=await lyricsResponse.text();
+      if(!ttml.trim().startsWith('<'))throw new Error('Invalid BiniLyrics TTML');
+      const parsedLines=parseAppleTTML(ttml);
+      if(!parsedLines.length)throw new Error('BiniLyrics returned no timed lyrics');
       state.appleLines=parsedLines.map((line,index)=>({...line,end:Number.isFinite(line.end)?line.end:(parsedLines[index+1]?.time||line.time+3)}));
       state.lines=state.appleLines.map(line=>({text:line.text,time:line.time,endTime:line.end,words:Array.isArray(line.words)?line.words.map(word=>({text:word.text,time:word.time,endTime:word.endTime})):undefined}));
       empty.hidden=true;empty.classList.add('is-hidden');
       lyricsInput.value=state.appleLines.map(line=>{
         const mins=Math.floor(line.time/60),secs=line.time-mins*60;
         return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\\.$/,'')+'] '+line.text;
-      }).join('\\n');
-      if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics fetched.';
+      }).join('\n');
+      if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics fetched from BiniLyrics.';
       syncAppleLyricsMetadata();
       draw();
       syncAppleLyrics(true);
