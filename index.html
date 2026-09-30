@@ -645,7 +645,7 @@ button{border:0;cursor:pointer}
       state.lines=raw.map((text,i)=>({text,time:i*3,endTime:(i+1)*3}));
     }
     state.appleLines=state.lines.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
-    empty.style.display=state.lines.length?'none':'grid';
+    empty.hidden=state.lines.length>0;empty.classList.toggle('is-hidden',state.lines.length===0);
     draw();
   }
   function lyricsToTtml(lines){
@@ -665,7 +665,7 @@ button{border:0;cursor:pointer}
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const hasUploadedMedia=!!(audio.currentSrc||audio.src||video.currentSrc||video.src);
     const emptyState=document.getElementById('emptyState');
-    if(emptyState){emptyState.hidden=hasUploadedMedia;emptyState.classList.toggle('is-hidden',hasUploadedMedia);}
+    if(emptyState){const showEmpty=!hasUploadedMedia&&!state.appleLines.length&&!state.lines.length;emptyState.hidden=!showEmpty;emptyState.classList.toggle('is-hidden',!showEmpty);}
     const t=state.time;
     if(visualiserBackground==='gradient'){
       const g=ctx.createLinearGradient(0,0,canvas.width,canvas.height);g.addColorStop(0,'#080808');g.addColorStop(1,'#24201f');ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -894,6 +894,7 @@ button{border:0;cursor:pointer}
     lyricsInput.value='';
     const uploadLyricsStatus=document.getElementById('kefeLyricsStatus');
     if(uploadLyricsStatus)uploadLyricsStatus.textContent='Identifying track…';
+    empty.hidden=true;empty.classList.add('is-hidden');
     delete songAlbum.dataset.artUrl;
     const suggestionsPanel=document.getElementById('kefeSuggestions');
     const suggestionsList=document.getElementById('kefeSuggestionList');
@@ -1061,6 +1062,7 @@ button{border:0;cursor:pointer}
       appleLyrics.ttml=ttml;
       state.appleLines=parsedLines.map((line,index)=>({...line,end:Number.isFinite(line.end)?line.end:(parsedLines[index+1]?.time||line.time+3)}));
       state.lines=state.appleLines.map(line=>({text:line.text,time:line.time,endTime:line.end}));
+      empty.hidden=true;empty.classList.add('is-hidden');
       lyricsInput.value=state.appleLines.map(line=>{
         const mins=Math.floor(line.time/60),secs=line.time-mins*60;
         return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\.$/,'')+'] '+line.text;
