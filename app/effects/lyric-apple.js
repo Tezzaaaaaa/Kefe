@@ -278,9 +278,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const posT = appleSpringOut((time - active.time) / 0.35);
     const styleT = appleCubicBezier((time - active.time) / 0.3, 0.25, 0.1, 0.25, 1);
 
-    const scalePoints = [[-1, 1], [0, activeScale], [1, 1]];
-    const opacityPoints = [[-2, pastOpacity], [-1, upcomingOpacity], [0, 1], [1, upcomingOpacity], [2, pastOpacity]];
-    const blurPoints = [[-2, activeFontSize * 0.07], [-1, activeFontSize * 0.035], [0, 0], [1, activeFontSize * 0.035], [2, activeFontSize * 0.07], [3, activeFontSize * 0.07], [4, activeFontSize * 0.07]];
+    const scalePoints = [[-4, 0.98], [-3, 0.98], [-2, 0.98], [-1, 0.98], [0, activeScale], [1, 0.98], [2, 0.98], [3, 0.98], [4, 0.98]];
+    const opacityPoints = [[-4, 0.46], [-3, 0.58], [-2, 0.70], [-1, 0.80], [0, 1], [1, 0.80], [2, 0.70], [3, 0.58], [4, 0.46]];
+    const blurPoints = [[-4, activeFontSize * 0.07], [-3, activeFontSize * 0.05], [-2, activeFontSize * 0.028], [-1, activeFontSize * 0.028], [0, 0], [1, activeFontSize * 0.028], [2, activeFontSize * 0.028], [3, activeFontSize * 0.05], [4, activeFontSize * 0.07]];
 
     const previousBlock = displayLines[activeIndex - 1];
     const transitionShift = previousBlock
@@ -364,14 +364,20 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                             ? linaSmooth((time - wordTime) / Math.min(easeWindow, wordEndTime - wordTime))
                             : 1;
                     }
-                    ctx.fillStyle = 'rgba(255,255,255,0.30)';
+                    ctx.fillStyle = 'rgba(255,255,255,0.55)';
                     ctx.fillText(wordText, cursorX, rowYs[ri]);
                     if (progress > 0) {
+                        const wipeEnd = cursorX + wordWidth * progress;
+                        const feather = Math.min(ctx.measureText('M').width * 0.75, Math.max(1, wordWidth * 0.18));
+                        const wipeStart = Math.max(cursorX, wipeEnd - feather);
                         ctx.save();
                         ctx.beginPath();
                         ctx.rect(cursorX - 2, rowYs[ri] - rowHeight * 0.62, wordWidth * progress + 4, rowHeight * 1.24);
                         ctx.clip();
-                        ctx.fillStyle = '#FFFFFF';
+                        const wipe = ctx.createLinearGradient(wipeStart, 0, wipeEnd, 0);
+                        wipe.addColorStop(0, '#FFFFFF');
+                        wipe.addColorStop(1, 'rgba(255,255,255,0)');
+                        ctx.fillStyle = wipe;
                         ctx.fillText(wordText, cursorX, rowYs[ri]);
                         ctx.restore();
                     }
