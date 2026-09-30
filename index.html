@@ -888,7 +888,15 @@ button{border:0;cursor:pointer}
     if(paneWidth<=0||paneHeight<=0)return;
     let width=Math.min(paneWidth,1180);
     let height=width/ratio;
-    if(height>paneHeight){height=paneHeight;width=height*ratio;}
+    const mobile=window.matchMedia('(max-width: 700px)').matches;
+    if(mobile){
+      const mobileHeight=Math.max(1,Math.floor(window.innerHeight*.48));
+      height=Math.min(height,mobileHeight);
+      width=height*ratio;
+      if(width>paneWidth){width=paneWidth;height=width/ratio;}
+    }else if(height>paneHeight){
+      height=paneHeight;width=height*ratio;
+    }
     previewStage.style.width=Math.max(1,Math.floor(width))+'px';
     previewStage.style.height=Math.max(1,Math.floor(height))+'px';
   }
