@@ -669,7 +669,6 @@ I could feel the night begin</textarea>
     const emptyState=document.getElementById('emptyState');
     if(emptyState)emptyState.hidden=hasUploadedMedia;
     const t=state.time;
-    const hasUploadedMedia=!!(audio.currentSrc||audio.src||video.currentSrc||video.src);
     if(visualiserBackground==='gradient'){
       const g=ctx.createLinearGradient(0,0,canvas.width,canvas.height);g.addColorStop(0,'#080808');g.addColorStop(1,'#24201f');ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);
     }else if(visualiserBackground==='accent'){
