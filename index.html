@@ -726,6 +726,8 @@ I could feel the night begin</textarea>
                 songYear.value=match.releaseDate?String(match.releaseDate).slice(0,4):'';
                 if(match.artworkUrl100)songAlbum.dataset.artUrl=match.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
                 updateTitleCard();
+                applyAppleAlbumGradient();
+                showTitleCard();
               }
             }
           }catch(error){console.warn('[KEFE metadata lookup]',error);}
@@ -742,6 +744,7 @@ I could feel the night begin</textarea>
     songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
     updateTitleCard();
     syncAppleLyricsMetadata();
+    showTitleCard();
     void (async()=>{
       fetchAlbumArt(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim()).catch(err=>console.warn('[KEFE artwork]',err));
     })();
