@@ -1015,7 +1015,6 @@ button{border:0;cursor:pointer}
       if(request!==biniLyricsRequest)return;
       let result=await response.json().catch(()=>({}));
       let ttml=typeof result?.ttml==='string'?result.ttml:'';
-      if(!response.ok&&!ttml)throw new Error(result?.message||result?.error||'Better Lyrics request failed: '+response.status);
       if(!ttml.trim()&&typeof result?.data?.ttml==='string')ttml=result.data.ttml;
       let parsedLines=parseAppleTTML(ttml);
       if(!parsedLines.length){
