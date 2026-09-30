@@ -514,6 +514,11 @@ I could feel the night begin</textarea>
       ctx.fillStyle='#160909';
     }else{ctx.fillStyle='#080808';}
     ctx.fillRect(0,0,canvas.width,canvas.height);
+    if(video.src&&video.readyState>=2){
+      const vw=video.videoWidth||canvas.width,vh=video.videoHeight||canvas.height;
+      const scale=Math.max(canvas.width/vw,canvas.height/vh),dw=vw*scale,dh=vh*scale;
+      ctx.drawImage(video,(canvas.width-dw)/2,(canvas.height-dh)/2,dw,dh);
+    }
     const reactive=visualiserMotion==='steady'?1:visualiserMotion==='slow'?.45:(audio.src&&!audio.paused?1+Math.sin(t*18)*.08:1);
     if(visualiserPreset==='bars'){
       ctx.save();ctx.globalAlpha=.55;ctx.fillStyle='#ef3f38';
@@ -669,7 +674,9 @@ I could feel the night begin</textarea>
     if(seeking&&typeof appleLyrics.seek==='function')appleLyrics.seek();
   }
   audio.addEventListener('timeupdate',()=>{
-    state.time=audio.currentTime;range.value=state.time;updateTime();
+    if(audio.paused){
+      state.time=audio.currentTime;range.value=state.time;updateTime();syncAppleLyrics();
+    }
   });
   function syncPreview(){
     if(audio.src&&!audio.paused){
