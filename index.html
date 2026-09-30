@@ -73,9 +73,11 @@ button{border:0;cursor:pointer}
 .kefe-wave .playhead{position:absolute;top:1px;bottom:1px;width:2px;background:var(--accent);left:0;border-radius:2px;box-shadow:0 0 7px rgba(239,63,56,.35);pointer-events:none}
 .kefe-time{min-width:82px;text-align:right;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
 #kefeTime{position:absolute;opacity:0;pointer-events:none}
-.kefe-slider{height:8px;width:100%;appearance:none;background:linear-gradient(to right,#8f8a82 0%,#8f8a82 var(--progress,0%),#d0cbc2 var(--progress,0%),#d0cbc2 100%);border-radius:4px;outline:none;box-shadow:inset 1px 1px 2px rgba(60,55,49,.14)}
-.kefe-slider::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--lift)}
-.kefe-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--lift)}
+.kefe-slider{position:absolute;inset:0;width:100%;height:42px;margin:0;padding:0;appearance:none;-webkit-appearance:none;background:transparent;border:0;border-radius:0;outline:none;z-index:3;cursor:pointer;touch-action:none}
+.kefe-slider::-webkit-slider-runnable-track{height:8px;background:linear-gradient(to right,#8f8a82 0%,#8f8a82 var(--progress,0%),#d0cbc2 var(--progress,0%),#d0cbc2 100%);border-radius:4px;box-shadow:inset 1px 1px 2px rgba(60,55,49,.14)}
+.kefe-slider::-moz-range-track{height:8px;background:linear-gradient(to right,#8f8a82 0%,#8f8a82 var(--progress,0%),#d0cbc2 var(--progress,0%),#d0cbc2 100%);border-radius:4px;box-shadow:inset 1px 1px 2px rgba(60,55,49,.14)}
+.kefe-slider::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin-top:-5px;border-radius:50%;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--lift)}
+.kefe-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--lift)}
 .kefe-editing{min-height:0;display:grid;grid-template-columns:164px minmax(0,1fr);background:var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}
 .kefe-tabs{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:16px 12px;border-right:1px solid var(--line-soft);overflow:auto;background:var(--surface);}
 .kefe-section{position:relative;height:42px;min-height:42px;padding:0 14px;text-align:left;border:1px solid transparent;border-radius:999px;background:transparent;color:var(--muted);white-space:nowrap;box-shadow:none;transition:transform .18s ease,box-shadow .18s ease,background .18s ease,color .18s ease}
