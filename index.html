@@ -35,7 +35,7 @@
   --float:8px 10px 22px rgba(69,62,52,.18),-3px -3px 10px rgba(255,255,255,.72);
 }
 html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font-family:"Inter Tight","Open Sans",system-ui,sans-serif}
-body{overflow:hidden}
+body{overflow:hidden}.kefe-fullscreen-open{overflow:hidden!important}
 button,input,textarea,select{font:inherit;color:inherit}
 button{border:0;cursor:pointer}
 .kefe-editor{height:100dvh;display:grid;grid-template-rows:56px minmax(0,1fr);background:var(--bg)}
@@ -427,10 +427,41 @@ I could feel the night begin</textarea>
     draw();
   }
   document.querySelectorAll('.kefe-aspect-button').forEach(button=>button.addEventListener('click',()=>setPreviewAspectRatio(button.dataset.aspect)));
-  function updateFullscreenButton(){const active=document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen');previewFullscreen.setAttribute('aria-label',active?'Exit fullscreen':'Enter fullscreen');previewFullscreen.setAttribute('title',active?'Exit fullscreen':'Enter fullscreen');previewFullscreen.innerHTML=active?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M20 9V4h-5M4 15v5h5M15 20h5v-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';}
-  function exitKefeFullscreen(){if(document.fullscreenElement===previewStage)return document.exitFullscreen();previewStage.classList.remove('kefe-pseudo-fullscreen');updateFullscreenButton();}
-  previewFullscreen.addEventListener('click',async()=>{try{if(document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen')){await exitKefeFullscreen();return;}if(previewStage.requestFullscreen){await previewStage.requestFullscreen();return;}if(previewStage.webkitRequestFullscreen){previewStage.webkitRequestFullscreen();return;}previewStage.classList.add('kefe-pseudo-fullscreen');updateFullscreenButton();}catch(err){console.warn('[KEFE fullscreen]',err);previewStage.classList.add('kefe-pseudo-fullscreen');updateFullscreenButton();}});
+  function updateFullscreenButton(){
+    const active=document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen');
+    previewFullscreen.setAttribute('aria-label',active?'Exit fullscreen':'Enter fullscreen');
+    previewFullscreen.setAttribute('title',active?'Exit fullscreen':'Enter fullscreen');
+    previewFullscreen.innerHTML=active?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M20 9V4h-5M4 15v5h5M15 20h5v-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  function setPseudoFullscreen(active){
+    previewStage.classList.toggle('kefe-pseudo-fullscreen',active);
+    document.body.classList.toggle('kefe-fullscreen-open',active);
+    updateFullscreenButton();
+  }
+  async function enterKefeFullscreen(){
+    if(document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen'))return;
+    try{
+      if(document.fullscreenEnabled&&previewStage.requestFullscreen){
+        await previewStage.requestFullscreen({navigationUI:'hide'});
+        return;
+      }
+      if(previewStage.webkitRequestFullscreen){
+        previewStage.webkitRequestFullscreen();
+        return;
+      }
+    }catch(err){console.warn('[KEFE fullscreen]',err);}
+    setPseudoFullscreen(true);
+  }
+  async function exitKefeFullscreen(){
+    if(document.fullscreenElement===previewStage){
+      await document.exitFullscreen();
+      return;
+    }
+    setPseudoFullscreen(false);
+  }
+  previewFullscreen.addEventListener('click',()=>document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen')?exitKefeFullscreen():enterKefeFullscreen());
   document.addEventListener('fullscreenchange',updateFullscreenButton);
+  document.addEventListener('fullscreenerror',()=>setPseudoFullscreen(true));
   const songSearchButton=document.getElementById('songSearchButton'),songSearchResults=document.getElementById('songSearchResults'),songSearchStatus=document.getElementById('songSearchStatus');
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead'),wave=document.getElementById('waveform');
 
@@ -696,6 +727,7 @@ I could feel the night begin</textarea>
   songTitle.addEventListener('input',updateTitleCard);songArtist.addEventListener('input',updateTitleCard);songAlbum.addEventListener('input',updateTitleCard);songYear.addEventListener('input',updateTitleCard);
   lyricsInput.addEventListener('input',parseLyrics);
   fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
+  lyricEffectSelect.addEventListener('change',()=>setEffect(lyricEffectSelect.value));
   songSearchButton.addEventListener('click',searchSongsForKefe);
   [songTitle,songArtist].forEach(input=>input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchSongsForKefe();}}));
   document.getElementById('mediaInput').addEventListener('change',e=>{
