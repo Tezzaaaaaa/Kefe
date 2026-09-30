@@ -61,19 +61,6 @@
     syncActive(host);
   }
 
-  function setEffect(key) {
-    var def = BY_KEY[key];
-    var appState = window.kefe?.state;
-    if (!def || !appState?.style) return false;
-    appState.style.effect = def.key;
-    try {
-      if (typeof window.saveLinaPrefs === 'function') window.saveLinaPrefs();
-    } catch (_) {}
-    return true;
-  }
-
-  window.setEffect = setEffect;
-
   window.kefeEffectRegistry = Object.freeze({
     list: function(){ return CATALOGUE.slice(); },
     get: function(key){ return BY_KEY[key] || null; },
