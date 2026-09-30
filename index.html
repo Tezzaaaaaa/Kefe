@@ -117,20 +117,29 @@ button{border:0;cursor:pointer}
   .kefe-section{height:38px;min-height:38px;flex:0 0 auto;padding:0 14px;text-align:center}
   .kefe-section.active{transform:none}
   .kefe-section.active:before{left:12px;right:12px;top:auto;bottom:4px;width:auto;height:3px}
-  .kefe-panels{padding:62px 12px 18px}
+  .kefe-panels{padding:8px 12px 18px}
   .kefe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .kefe-form{grid-template-columns:1fr}
-  .kefe-top{padding:0 12px}
-  .kefe-top-actions .kefe-btn:first-child{display:none}
+  .kefe-top{padding:0 10px;gap:6px;overflow:hidden}
+  .kefe-top-nav{min-width:0;overflow-x:auto;scrollbar-width:none}
+  .kefe-top-nav::-webkit-scrollbar{display:none}
+  .kefe-top-profile{flex:0 0 auto}
+  .kefe-top-link{min-height:34px;padding:0 9px;font-size:12px}
   .kefe-editing{display:block;overflow:hidden}
 }
 @media(max-width:520px){
-  .kefe-top{padding:0 10px}
-  .kefe-brand{font-size:18px}
+  .kefe-top{padding:0 7px;gap:4px}
+  .kefe-top-nav{gap:2px}
+  .kefe-top-profile{gap:2px}
+  .kefe-brand{width:30px;height:30px;font-size:17px;flex:0 0 auto}
+  .kefe-top-link{min-height:32px;padding:0 7px;font-size:11px}
   .kefe-stage{aspect-ratio:16/10}
   .kefe-grid{grid-template-columns:1fr 1fr}
   .kefe-card{padding:9px}
   .kefe-time{min-width:66px;font-size:11px}
+  .kefe-tabs{margin:6px 8px;height:48px}
+  .kefe-section{height:36px;min-height:36px;padding:0 12px;font-size:12px}
+  .kefe-panels{padding:6px 10px 14px}
 }
 </style>
 </head>
