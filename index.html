@@ -263,6 +263,7 @@ button{border:0;cursor:pointer}
     const dimensions=ratio==='9:16'?[720,1280]:ratio==='1:1'?[1080,1080]:[1280,720];
     canvas.width=dimensions[0];canvas.height=dimensions[1];
     document.querySelectorAll('.kefe-aspect-button').forEach(button=>{const active=button.dataset.aspect===ratio;button.classList.toggle('active',active);button.setAttribute('aria-pressed',active?'true':'false');});
+    fitPreviewStage();
     draw();
   }
   document.querySelectorAll('.kefe-aspect-button').forEach(button=>button.addEventListener('click',()=>{const controls=button.closest('.kefe-aspect-controls');if(button.classList.contains('active')){controls.classList.toggle('is-open');return;}setPreviewAspectRatio(button.dataset.aspect);fitPreviewStage();controls.classList.remove('is-open');}));
