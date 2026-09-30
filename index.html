@@ -916,7 +916,20 @@ button{border:0;cursor:pointer}
               const duration=video.duration*1000;
               const matches=songs.filter(item=>normalize(item.trackName)===wanted);
               matches.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
-              // Suggestions are display-only. Never auto-select a candidate because an incorrect match can fetch lyrics for the wrong recording.
+              if(!songArtist.value.trim()&&matches.length){
+                const exact=matches.find(item=>Math.abs((item.trackTimeMillis||Infinity)-duration)<=3000);
+                if(exact){
+                  songTitle.value=exact.trackName||songTitle.value;
+                  songArtist.value=exact.artistName||'';
+                  songAlbum.value=exact.collectionName||'';
+                  songYear.value=exact.releaseDate?String(exact.releaseDate).slice(0,4):'';
+                  songAlbum.dataset.artUrl=exact.artworkUrl100?exact.artworkUrl100.replace(/100x100bb\\.(jpg|jpeg|png)$/i,'600x600bb.$1'):'';
+                  updateMediaTrack();
+                  updateTitleCard();
+                  applyAppleAlbumGradient();
+                  syncAppleLyricsMetadata();
+                }
+              }
             }
           }catch(error){console.warn('[KEFE metadata lookup]',error);}
         }
@@ -968,9 +981,22 @@ button{border:0;cursor:pointer}
           renderSongSuggestions(songs);
           const titleMatches=songs.filter(item=>normalize(item.trackName)===title);
           const artistMatches=artist?titleMatches.filter(item=>normalize(item.artistName)===artist):titleMatches;
-          const pool=artistMatches.length?artistMatches:(artist?titleMatches: songs);
+          const pool=artistMatches.length?artistMatches:(artist?titleMatches:songs);
           pool.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
-          // Suggestions are display-only. Never auto-select a candidate because an incorrect match can fetch lyrics for the wrong recording.
+          if(!artist&&titleMatches.length){
+            const exact=titleMatches.find(item=>Math.abs((item.trackTimeMillis||Infinity)-duration)<=3000);
+            if(exact){
+              songTitle.value=exact.trackName||songTitle.value;
+              songArtist.value=exact.artistName||'';
+              songAlbum.value=exact.collectionName||'';
+              songYear.value=exact.releaseDate?String(exact.releaseDate).slice(0,4):'';
+              songAlbum.dataset.artUrl=exact.artworkUrl100?exact.artworkUrl100.replace(/100x100bb\\.(jpg|jpeg|png)$/i,'600x600bb.$1'):'';
+              updateMediaTrack();
+              updateTitleCard();
+              applyAppleAlbumGradient();
+              syncAppleLyricsMetadata();
+            }
+          }
         }
       }
     }catch(error){console.warn('[KEFE metadata lookup]',error);}
