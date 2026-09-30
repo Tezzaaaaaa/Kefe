@@ -559,8 +559,9 @@ button{border:0;cursor:pointer}
         updateTitleCard();
         applyAppleAlbumGradient();
         syncAppleLyricsMetadata();
+        panel.hidden=true;
+        list.innerHTML='';
         loadBiniLyrics();
-        renderSongSuggestions([]);
       });
       list.appendChild(button);
     });
@@ -949,7 +950,7 @@ button{border:0;cursor:pointer}
       if(titleQuery){
         const params=new URLSearchParams({term:[parsedTitle,artistQuery].filter(Boolean).join(' '),entity:'song',limit:'50',country:'AU'});
         const response=await fetch('https://itunes.apple.com/search?'+params.toString());
-        if(response.ok&&mediaObjectUrl===lookupUrl){
+        if(response.ok&&mediaObjectUrl===lookupUrl&&songTitle.value.trim()===titleQuery){
           const result=await response.json();
           const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
           const title=normalize(parsedTitle);
