@@ -662,10 +662,10 @@ I could feel the night begin</textarea>
     }else if(visualiserPreset==='ring'){
       ctx.save();ctx.globalAlpha=.35;ctx.strokeStyle='#ef3f38';ctx.lineWidth=3;ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*(.24+.04*Math.sin(t*3)*reactive),0,Math.PI*2);ctx.stroke();ctx.restore();
     }
-    if(!state.lines.length)return;
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     if(state.effect==='apple'&&appleLyrics){appleLyrics.style.display='block';return;}
     if(appleLyrics)appleLyrics.style.display='none';
+    if(!state.lines.length)return;
     const fn=window.kefeEffects[state.effect];
     if(typeof fn==='function'){
       try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time);}
