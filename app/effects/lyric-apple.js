@@ -320,7 +320,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ctx.save();
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
-        ctx.globalAlpha = alphaAmt;
+        ctx.globalAlpha = isActiveRow ? 1 : alphaAmt;
         const rowFontSize = isActiveRow ? activeFontSize : inactiveFontSize;
         ctx.font = `${contract.weight || 700} ${rowFontSize}px ${family}`;
         ctx.fillStyle = '#FFFFFF';
@@ -343,7 +343,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
 
         const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
         if (!isActiveRow || !words.length) {
-            ctx.fillStyle = isActiveRow ? '#FFFFFF' : '#FFFFFF';
+            ctx.fillStyle = isActiveRow ? '#FFFFFF' : '#8A8A8A';
             rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
         } else {
             let wordIndex = 0;
