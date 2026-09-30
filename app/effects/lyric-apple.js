@@ -166,7 +166,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
     }
     ctx.restore();
-    const activeIndex = linaFindActiveLine(displayLines, time);
+    const activeIndex = Math.max(0, linaFindActiveLine(displayLines, time));
 
     const source = albumArtworkImage;
     let palette = source?.__kefeApplePalette;
