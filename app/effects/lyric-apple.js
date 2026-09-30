@@ -67,7 +67,7 @@ function estimateLineVocalEnd(line, nextLine) {
     return start + duration;
 }
 
-export function appleWordsForLine(line) {
+function appleWordsForLine(line) {
     if (Array.isArray(line?.words) && line.words.length) {
         return line.words.map(w => ({ ...w, estimated: false }));
     }
@@ -115,7 +115,7 @@ function appleSpringOut(t) {
     return 1 + c3 * u * u * u + c1 * u * u;
 }
 
-export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
+function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     if (!Array.isArray(lines) || !lines.length) return;
 
     const baseDimension = Math.min(w, h);
@@ -383,3 +383,6 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
         ctx.restore();
     }
 }
+
+window.kefeEffects = window.kefeEffects || {};
+window.kefeEffects.apple = drawAppleEffect;
