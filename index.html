@@ -740,7 +740,7 @@ button{border:0;cursor:pointer}
       ctx.save();ctx.globalAlpha=.35;ctx.strokeStyle='#ef3f38';ctx.lineWidth=3;ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*(.24+.04*Math.sin(t*3)*reactive),0,Math.PI*2);ctx.stroke();ctx.restore();
     }
     if(!state.lines.length)return;
-    const fn=window.kefeEffects[state.effect];
+    const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
     if(typeof fn==='function'){
       try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time,titleArt?.querySelector('img')||null);}
       catch(err){
