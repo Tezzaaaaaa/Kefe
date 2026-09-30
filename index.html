@@ -433,6 +433,21 @@ I could feel the night begin</textarea>
     }
     document.querySelector('.kefe-upload').textContent=file.name;
     songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
+    const queryTitle=songTitle.value;
+    fetch('https://lrclib.net/api/search?q='+encodeURIComponent(queryTitle))
+      .then(response=>response.ok?response.json():[])
+      .then(results=>{
+        const match=Array.isArray(results)?results[0]:null;
+        if(!match)return;
+        if(match.trackName)songTitle.value=match.trackName;
+        if(match.artistName)songArtist.value=match.artistName;
+        if(match.albumName)songAlbum.value=match.albumName;
+        if(match.syncedLyrics||match.plainLyrics){
+          lyricsInput.value=String(match.plainLyrics||match.syncedLyrics).replace(/\r/g,'').split('\n').map(line=>line.replace(/^\[[^\]]+\]\s*/,'').trim()).filter(Boolean).join('\n');
+          parseLyrics();
+        }
+      })
+      .catch(err=>console.warn('[KEFE lyrics]',err));
   });
   document.getElementById('playButton').onclick=()=>{
     if(audio.src){if(audio.paused)audio.play();else audio.pause();}
