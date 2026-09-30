@@ -8,9 +8,7 @@ It combines a large library of lyric treatments, effect-specific typography, a v
 
 The current editor is available at:
 
-- https://tezzaaaaaa.github.io/Kefe/editor.html
-
-The repository root redirects to the editor.
+- https://tezzaaaaaa.github.io/Kefe/
 
 ### Current workflow
 
