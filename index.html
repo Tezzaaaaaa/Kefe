@@ -715,6 +715,25 @@ I could feel the night begin</textarea>
     document.querySelectorAll('.kefe-panel').forEach(p=>p.classList.toggle('active',p.dataset.panelView===panel));
   }
   document.querySelectorAll('.kefe-section').forEach(button=>button.addEventListener('click',()=>openEditorPanel(button.dataset.panel)));
+  document.querySelectorAll('.kefe-aspect-button').forEach(button=>button.addEventListener('click',()=>{
+    const aspect=button.dataset.aspect;
+    const stage=document.querySelector('.kefe-stage');
+    const canvas=document.getElementById('kefeCanvas');
+    if(!stage||!canvas)return;
+    const classes=['is-16x9','is-9x16','is-1x1'];
+    stage.classList.remove(...classes);
+    const map={'16:9':['is-16x9',1280,720],'9:16':['is-9x16',720,1280],'1:1':['is-1x1',1080,1080]};
+    const next=map[aspect]||map['16:9'];
+    stage.classList.add(next[0]);
+    canvas.width=next[1];
+    canvas.height=next[2];
+    document.querySelectorAll('.kefe-aspect-button').forEach(item=>{
+      const active=item===button;
+      item.classList.toggle('active',active);
+      item.setAttribute('aria-pressed',active?'true':'false');
+    });
+    draw();
+  }));
   document.querySelectorAll('.kefe-top-link').forEach(button=>button.addEventListener('click',()=>{
     const panel=button.dataset.topPanel;
     if(panel==='media'||panel==='editor')openEditorPanel('media');
