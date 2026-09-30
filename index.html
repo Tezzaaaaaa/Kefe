@@ -988,8 +988,11 @@ button{border:0;cursor:pointer}
           const artistMatches=artist?titleMatches.filter(item=>normalize(item.artistName)===artist):titleMatches;
           const pool=artistMatches.length?artistMatches:(artist?titleMatches:songs);
           pool.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
-          if(!artist&&titleMatches.length){
-            const exact=titleMatches.find(item=>Math.abs((item.trackTimeMillis||Infinity)-duration)<=10000)|| (titleMatches.length===1?titleMatches[0]:null);
+          const durationMatches=songs.filter(item=>Math.abs((item.trackTimeMillis||Infinity)-duration)<=10000);
+          if(!artist){
+            const exact=titleMatches.find(item=>Math.abs((item.trackTimeMillis||Infinity)-duration)<=10000)
+              ||(titleMatches.length===1?titleMatches[0]:null)
+              ||(durationMatches.length===1?durationMatches[0]:null);
             if(exact){
               songTitle.value=exact.trackName||songTitle.value;
               songArtist.value=exact.artistName||'';
