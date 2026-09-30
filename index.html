@@ -224,18 +224,41 @@ I could feel the night begin</textarea>
       <section class="kefe-panel" data-panel-view="visualiser">
         <div class="kefe-panel-head"><h2>Visualiser</h2><span class="kefe-meta">The visualiser remains the main canvas.</span></div>
         <div class="kefe-form">
-          <div class="kefe-empty-panel"><strong>Visualiser presets</strong><br><span class="kefe-meta">Audio-reactive visualisers render behind the lyric layer.</span></div>
-          <div class="kefe-empty-panel"><strong>Background</strong><br><span class="kefe-meta">Background and visual FX stay subordinate to the preview.</span></div>
-          <div class="kefe-empty-panel"><strong>Motion</strong><br><span class="kefe-meta">Use the timeline above for direct preview control.</span></div>
+          <div>
+            <label class="kefe-label" for="visualiserPreset">Visualiser preset</label>
+            <select class="kefe-select" id="visualiserPreset">
+              <option value="bars">Spectrum Bars</option>
+              <option value="pulse">Pulse</option>
+              <option value="ring">Ring</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <div>
+            <label class="kefe-label" for="visualiserBackground">Background</label>
+            <select class="kefe-select" id="visualiserBackground">
+              <option value="black">Black</option>
+              <option value="gradient">Gradient</option>
+              <option value="accent">Accent</option>
+            </select>
+          </div>
+          <div>
+            <label class="kefe-label" for="visualiserMotion">Motion</label>
+            <select class="kefe-select" id="visualiserMotion">
+              <option value="reactive">Audio reactive</option>
+              <option value="steady">Steady</option>
+              <option value="slow">Slow</option>
+            </select>
+          </div>
         </div>
       </section>
 
       <section class="kefe-panel" data-panel-view="export">
         <div class="kefe-panel-head"><h2>Export</h2><span class="kefe-meta">Export the current visualiser composition.</span></div>
         <div class="kefe-form">
-          <select class="kefe-select" aria-label="Export format"><option>MP4 video</option><option>WebM video</option></select>
-          <select class="kefe-select" aria-label="Export resolution"><option>1080p</option><option>4K</option></select>
-          <div class="kefe-empty-panel">Export settings stay in this compact editing surface.</div>
+          <select class="kefe-select" id="exportFormat" aria-label="Export format"><option value="webm">WebM video</option></select>
+          <select class="kefe-select" id="exportResolution" aria-label="Export resolution"><option value="720">720p</option><option value="1080" selected>1080p</option></select>
+          <button class="kefe-btn primary" id="exportButton" type="button">Export video</button>
+          <div class="kefe-empty-panel" id="exportStatus">Exports the current preview canvas with its lyric and visualiser layers.</div>
         </div>
       </section>
     </div>
@@ -304,6 +327,9 @@ I could feel the night begin</textarea>
   const canvas=document.getElementById('kefeCanvas'),ctx=canvas.getContext('2d');
   const empty=document.getElementById('emptyState'),lyricsInput=document.getElementById('lyricsInput');
   const audio=document.getElementById('kefeAudio'),range=document.getElementById('kefeTime');
+  const video=document.createElement('video');
+  video.preload='metadata'; video.muted=true; video.playsInline=true; video.style.display='none'; document.body.appendChild(video);
+  let mediaObjectUrl=''; let visualiserPreset='bars',visualiserBackground='black',visualiserMotion='reactive';
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead'),wave=document.getElementById('waveform');
 
   for(let i=0;i<120;i++){const bar=document.createElement('span');bar.style.height=(24+((i*37)%70))+'%';wave.insertBefore(bar,range);}
@@ -322,7 +348,23 @@ I could feel the night begin</textarea>
   }
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle='#080808';ctx.fillRect(0,0,canvas.width,canvas.height);
+    const t=state.time;
+    if(visualiserBackground==='gradient'){
+      const g=ctx.createLinearGradient(0,0,canvas.width,canvas.height);g.addColorStop(0,'#080808');g.addColorStop(1,'#24201f');ctx.fillStyle=g;
+    }else if(visualiserBackground==='accent'){
+      ctx.fillStyle='#160909';
+    }else{ctx.fillStyle='#080808';}
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    const reactive=visualiserMotion==='steady'?1:visualiserMotion==='slow'?.45:(audio.src&&!audio.paused?1+Math.sin(t*18)*.08:1);
+    if(visualiserPreset==='bars'){
+      ctx.save();ctx.globalAlpha=.55;ctx.fillStyle='#ef3f38';
+      for(let i=0;i<48;i++){const x=i*canvas.width/48;const h=(.08+.12*(Math.sin(t*3+i*.7)*.5+.5))*canvas.height*reactive;ctx.fillRect(x,canvas.height-h,Math.max(2,canvas.width/80),h);}
+      ctx.restore();
+    }else if(visualiserPreset==='pulse'){
+      ctx.save();ctx.globalAlpha=.22;ctx.strokeStyle='#ef3f38';ctx.lineWidth=5;ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*(.28+.025*Math.sin(t*4)*reactive),0,Math.PI*2);ctx.stroke();ctx.restore();
+    }else if(visualiserPreset==='ring'){
+      ctx.save();ctx.globalAlpha=.35;ctx.strokeStyle='#ef3f38';ctx.lineWidth=3;ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*(.24+.04*Math.sin(t*3)*reactive),0,Math.PI*2);ctx.stroke();ctx.restore();
+    }
     if(!state.lines.length)return;
     const fn=window.kefeEffects[state.effect];
     if(typeof fn==='function'){
@@ -375,7 +417,16 @@ I could feel the night begin</textarea>
   fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
   document.getElementById('mediaInput').addEventListener('change',e=>{
     const file=e.target.files?.[0];if(!file)return;
-    audio.src=URL.createObjectURL(file);audio.load();
+    if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
+    mediaObjectUrl=URL.createObjectURL(file);
+    if(file.type.startsWith('video/')){
+      video.src=mediaObjectUrl;video.load();
+      video.onloadedmetadata=()=>{range.max=String(video.duration||30);timeEnd.textContent=fmt(video.duration||30);updateTime();};
+      video.onplay=()=>audio.pause();
+    }else{
+      audio.src=mediaObjectUrl;audio.load();video.removeAttribute('src');video.load();
+    }
+    document.querySelector('.kefe-upload').textContent=file.name;
   });
   document.getElementById('playButton').onclick=()=>{
     if(audio.src){if(audio.paused)audio.play();else audio.pause();}
@@ -390,7 +441,32 @@ I could feel the night begin</textarea>
   range.addEventListener('input',()=>{
     state.time=Number(range.value);
     if(audio.src)audio.currentTime=state.time;
+    if(video.src)video.currentTime=state.time;
     updateTime();draw();
+  });
+  document.getElementById('visualiserPreset').addEventListener('change',e=>{visualiserPreset=e.target.value;draw()});
+  document.getElementById('visualiserBackground').addEventListener('change',e=>{visualiserBackground=e.target.value;draw()});
+  document.getElementById('visualiserMotion').addEventListener('change',e=>{visualiserMotion=e.target.value;draw()});
+  document.getElementById('exportButton').addEventListener('click',async()=>{
+    const status=document.getElementById('exportStatus'),format=document.getElementById('exportFormat').value;
+    if(!window.MediaRecorder||!canvas.captureStream){status.textContent='Video export is not supported by this browser.';return;}
+    const mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
+    const stream=canvas.captureStream(30),chunks=[],recorder=new MediaRecorder(stream,{mimeType:mime});
+    recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+    recorder.onstop=()=>{
+      const blob=new Blob(chunks,{type:mime}),url=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=url;a.download='kefe-visualiser.webm';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+      status.textContent='Export complete.';
+    };
+    status.textContent='Exporting preview…';
+    recorder.start();
+    const start=state.time;
+    let elapsed=0,last=performance.now();
+    const tick=now=>{
+      elapsed+=(now-last)/1000;last=now;state.time=start+elapsed;range.value=state.time;updateTime();draw();
+      if(elapsed<Math.max(1,Number(range.max)-start))requestAnimationFrame(tick);else recorder.stop();
+    };
+    requestAnimationFrame(tick);
   });
   function fmt(v){v=Math.max(0,Number(v)||0);return Math.floor(v/60)+':'+String(Math.floor(v%60)).padStart(2,'0')}
   function updateTime(){
