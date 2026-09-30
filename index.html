@@ -751,9 +751,33 @@ I could feel the night begin</textarea>
     mediaObjectUrl=URL.createObjectURL(file);
     if(file.type.startsWith('video/')){
       video.src=mediaObjectUrl;video.load();
-      video.onloadedmetadata=()=>{
+      video.onloadedmetadata=async()=>{
         range.max=String(video.duration||30);timeEnd.textContent=fmt(video.duration||30);updateTime();
+        if(!songArtist.value.trim()){
+          try{
+            const params=new URLSearchParams({term:songTitle.value.trim(),entity:'song',limit:'25',country:'AU'});
+            const response=await fetch('https://itunes.apple.com/search?'+params.toString());
+            if(response.ok){
+              const result=await response.json();
+              const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+              const wanted=normalize(songTitle.value);
+              const duration=video.duration*1000;
+              const matches=(Array.isArray(result.results)?result.results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song'&&normalize(item.trackName)===wanted);
+              matches.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
+              const match=matches[0];
+              if(match){
+                songTitle.value=match.trackName||songTitle.value;
+                songArtist.value=match.artistName||'';
+                songAlbum.value=match.collectionName||'';
+                songYear.value=match.releaseDate?String(match.releaseDate).slice(0,4):'';
+                if(match.artworkUrl100)songAlbum.dataset.artUrl=match.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
+                updateTitleCard();
+              }
+            }
+          }catch(error){console.warn('[KEFE metadata lookup]',error);}
+        }
         syncAppleLyricsMetadata();
+        fetchAlbumArt(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim()).catch(err=>console.warn('[KEFE artwork]',err));
         loadBiniLyrics();
       };
       video.onplay=()=>audio.pause();
@@ -765,29 +789,7 @@ I could feel the night begin</textarea>
     updateTitleCard();
     syncAppleLyricsMetadata();
     void (async()=>{
-      if(!songArtist.value.trim()){
-        try{
-          const params=new URLSearchParams({term:songTitle.value.trim(),entity:'song',limit:'10',country:'AU'});
-          const response=await fetch('https://itunes.apple.com/search?'+params.toString());
-          if(response.ok){
-            const result=await response.json();
-            const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-            const wanted=normalize(songTitle.value);
-            const match=(Array.isArray(result.results)?result.results:[]).find(item=>item.wrapperType==='track'&&item.kind==='song'&&normalize(item.trackName)===wanted);
-            if(match){
-              songTitle.value=match.trackName||songTitle.value;
-              songArtist.value=match.artistName||'';
-              songAlbum.value=match.collectionName||'';
-              songYear.value=match.releaseDate?String(match.releaseDate).slice(0,4):'';
-              if(match.artworkUrl100)songAlbum.dataset.artUrl=match.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
-              updateTitleCard();
-              syncAppleLyricsMetadata();
-            }
-          }
-        }catch(error){console.warn('[KEFE metadata lookup]',error);}
-      }
       fetchAlbumArt(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim()).catch(err=>console.warn('[KEFE artwork]',err));
-      loadBiniLyrics();
     })();
   });
   function updatePlayButton(){
@@ -802,9 +804,33 @@ I could feel the night begin</textarea>
     if(audio.src){if(audio.paused)audio.play();else audio.pause();}
     else{state.time=state.time>=30?0:state.time+.05;updateTime();draw();}
   };
-  audio.addEventListener('loadedmetadata',()=>{
+  audio.addEventListener('loadedmetadata',async()=>{
     range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
+    if(!songArtist.value.trim()){
+      try{
+        const params=new URLSearchParams({term:songTitle.value.trim(),entity:'song',limit:'25',country:'AU'});
+        const response=await fetch('https://itunes.apple.com/search?'+params.toString());
+        if(response.ok){
+          const result=await response.json();
+          const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+          const wanted=normalize(songTitle.value);
+          const duration=audio.duration*1000;
+          const matches=(Array.isArray(result.results)?result.results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song'&&normalize(item.trackName)===wanted);
+          matches.sort((a,b)=>Math.abs((a.trackTimeMillis||Infinity)-duration)-Math.abs((b.trackTimeMillis||Infinity)-duration));
+          const match=matches[0];
+          if(match){
+            songTitle.value=match.trackName||songTitle.value;
+            songArtist.value=match.artistName||'';
+            songAlbum.value=match.collectionName||'';
+            songYear.value=match.releaseDate?String(match.releaseDate).slice(0,4):'';
+            if(match.artworkUrl100)songAlbum.dataset.artUrl=match.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
+            updateTitleCard();
+          }
+        }
+      }catch(error){console.warn('[KEFE metadata lookup]',error);}
+    }
     syncAppleLyricsMetadata();
+    fetchAlbumArt(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim()).catch(err=>console.warn('[KEFE artwork]',err));
     loadBiniLyrics();
   });
   let biniLyricsRequest=0;
