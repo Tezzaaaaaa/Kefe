@@ -121,7 +121,15 @@ button{border:0;cursor:pointer}
 .kefe-song-result img,.kefe-song-result-art{width:44px;height:44px;display:block;object-fit:cover;border-radius:3px;background:var(--surface-lo)}
 .kefe-song-result-art{display:grid;place-items:center;color:var(--muted);font-size:12px;font-weight:800}
 .kefe-song-result-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kefe-song-result-meta{margin-top:3px;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kefe-song-search-status{margin-top:8px;font-size:10px;color:var(--muted)}
+.kefe-song-search-status{margin-top:8px;font-size:10px;color:var(--muted);min-height:15px}
+.kefe-song-search.is-searching .kefe-song-search-button{pointer-events:none}
+.kefe-song-search.is-searching .kefe-song-search-button:before{content:'';display:inline-block;width:12px;height:12px;margin-right:8px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-2px;animation:kefeSongSearchSpin .7s linear infinite}
+.kefe-song-search.is-searching .kefe-song-search-status:after{content:'';display:inline-block;width:5px;height:5px;margin-left:5px;border-radius:50%;background:currentColor;animation:kefeSongSearchPulse 1s ease-in-out infinite}
+.kefe-song-result{opacity:0;transform:translateY(6px);animation:kefeSongSearchResultIn .24s ease forwards}
+@keyframes kefeSongSearchSpin{to{transform:rotate(360deg)}}
+@keyframes kefeSongSearchPulse{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+@keyframes kefeSongSearchResultIn{to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.kefe-song-search-button:before,.kefe-song-search-status:after,.kefe-song-result{animation:none}}
 @media(max-width:900px){.kefe-song-search{grid-column:auto}.kefe-song-search-head{align-items:flex-start}}@media(max-width:520px){.kefe-song-search-head{display:grid}.kefe-song-search-button{width:100%}}
 .kefe-font-card{padding:12px;border:1px solid var(--line);border-radius:var(--r2);background:var(--surface-hi);box-shadow:var(--lift)}
 .kefe-font-name{font-size:18px;margin-bottom:3px}
@@ -230,7 +238,7 @@ button{border:0;cursor:pointer}
           <div><label class="kefe-label" for="songArtist">Artist</label><input class="kefe-input" id="songArtist" type="text" placeholder="Artist"></div>
           <div><label class="kefe-label" for="songAlbum">Album</label><input class="kefe-input" id="songAlbum" type="text" placeholder="Album"></div>
           <div><label class="kefe-label" for="songYear">Year</label><input class="kefe-input" id="songYear" type="text" placeholder="Year"></div>
-          <div class="kefe-song-search">
+          <div class="kefe-song-search" id="songSearchPanel">
             <div class="kefe-song-search-head">
               <div class="kefe-song-search-copy"><div class="kefe-song-search-title">Can’t find the exact song?</div><div class="kefe-song-search-help">Search the music catalogue and choose the exact match for this audio.</div></div>
               <button class="kefe-song-search-button" id="songSearchButton" type="button">Find song</button>
@@ -421,15 +429,16 @@ I could feel the night begin</textarea>
     songSearchResults.classList.add('active');setSongSearchStatus(rows.length+' songs found — choose the exact match.');
   }
   async function searchSongsForKefe(){
+    const songSearchPanel=document.getElementById('songSearchPanel');
     const query=[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' ').trim();
     if(!query){setSongSearchStatus('Enter a song title or artist first.');songTitle.focus();return;}
-    songSearchButton.disabled=true;songSearchButton.textContent='Searching…';songSearchResults.classList.remove('active');setSongSearchStatus('Searching the music catalogue…');
+    songSearchButton.disabled=true;songSearchPanel.classList.add('is-searching');songSearchResults.classList.remove('active');setSongSearchStatus('Searching the music catalogue…');
     try{
       const params=new URLSearchParams({term:query,entity:'song',limit:'20',country:'AU'});
       const response=await fetch('https://itunes.apple.com/search?'+params.toString());if(!response.ok)throw new Error('Song search failed: '+response.status);
       const result=await response.json();renderSongSearchResults((Array.isArray(result.results)?result.results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song'));
     }catch(error){console.warn('[KEFE song search]',error);songSearchResults.classList.remove('active');setSongSearchStatus('Song search is unavailable right now. Check your connection and try again.');}
-    finally{songSearchButton.disabled=false;songSearchButton.textContent='Find song';}
+    finally{songSearchButton.disabled=false;songSearchPanel.classList.remove('is-searching');}
   }
   async function selectSongSearchResult(item){
     songTitle.value=item.trackName||'';songArtist.value=item.artistName||'';songAlbum.value=item.collectionName||'';songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
