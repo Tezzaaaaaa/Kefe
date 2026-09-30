@@ -995,12 +995,13 @@ I could feel the night begin</textarea>
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     const duration=Math.round(Number(audio.duration||video.duration)||0);
-    if(!appleLyrics||!title||!artist||!album||duration<=0)return;
+    if(!appleLyrics||!title||!artist||duration<=0)return;
     await appleLyricsReady;
     const request=++biniLyricsRequest;
-    const params=new URLSearchParams({s:title,a:artist,al:album,d:String(duration)});
+    const params=new URLSearchParams({s:title,a:artist,d:String(duration)});
+    if(album)params.set('al',album);
     try{
-      const response=await fetch('https://api.betterlyrics.org/getLyrics?'+params.toString());
+      const response=await fetch('https://lyrics-api.boidu.dev/getLyrics?'+params.toString());
       if(!response.ok)throw new Error('BiniLyrics request failed: '+response.status);
       const result=await response.json();
       if(request!==biniLyricsRequest)return;
