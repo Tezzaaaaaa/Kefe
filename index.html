@@ -1020,19 +1020,20 @@ button{border:0;cursor:pointer}
       if(response.ok&&typeof result?.lyrics==='string'){
         let qrc=result.lyrics;
         if(qrc.trim().startsWith('<')){
-          const doc=new DOMParser().parseFromString(qrc,'application/xml');
-          const lyricNode=doc.querySelector('Lyric_1[LyricContent]');
-          qrc=lyricNode?.getAttribute('LyricContent')||'';
+          const match=qrc.match(/LyricContent="([\\s\\S]*?)"\\s*\/?/i);
+          qrc=match?match[1]:'';
+          qrc=qrc.replace(/&quot;/g,'"').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#39;/g,"'");
         }
-        const lrc=qrc.split(/\r?\n/).map(line=>{
-          const match=line.trim().match(/^\[(\d+),(\d+)\](.*)$/);
+        const timedLines=qrc.match(/\\[\\d+,\\d+\\][\\s\\S]*?(?=\\s*\\[\\d+,\\d+\\]|$)/g)||[];
+        const lrc=timedLines.map(line=>{
+          const match=line.trim().match(/^\\[(\\d+),(\\d+)\\]([\\s\\S]*)$/);
           if(!match)return '';
           const millis=Number(match[1]);
           const mins=Math.floor(millis/60000);
           const secs=((millis%60000)/1000).toFixed(3).padStart(6,'0');
-          const text=match[3].replace(/\(\d+,\d+\)/g,'').trim();
+          const text=match[3].replace(/\\(\\d+,\\d+\\)/g,'').trim();
           return text?'['+String(mins).padStart(2,'0')+':'+secs+'] '+text:'';
-        }).filter(Boolean).join('\n');
+        }).filter(Boolean).join('\\n');
         parsedLines=parseAppleLrc(lrc);
       }
 
