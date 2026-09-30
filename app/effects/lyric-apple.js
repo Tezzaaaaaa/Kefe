@@ -219,8 +219,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     }
 
     ctx.save();
-    ctx.fillStyle = '#080808';
-    ctx.fillRect(0, 0, w, h);
     if (palette?.length) {
         const positions = [
             [0.12, 0.18],
