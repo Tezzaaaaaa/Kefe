@@ -664,6 +664,13 @@ button{border:0;cursor:pointer}
       flipcardsColor:'#fff',flipcardsAccent:'rgba(255,255,255,.25)',kefeMotionFont:state.fontOverride||contract.family||'Open Sans'
     };
   }
+  function renderLyricsPreview(){
+    if(!state.lines.length)return;
+    const previewTime=Number(state.time)||0;
+    const firstLineTime=Number(state.lines[0]?.time);
+    if(Number.isFinite(firstLineTime)&&previewTime<firstLineTime)state.time=firstLineTime;
+    draw();
+  }
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const hasUploadedMedia=!!(audio.currentSrc||audio.src||video.currentSrc||video.src);
