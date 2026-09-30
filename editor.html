@@ -37,8 +37,11 @@ button,input,textarea,select{font:inherit;color:inherit}
 button{border:0;cursor:pointer}
 .kefe-editor{height:100dvh;display:grid;grid-template-rows:56px minmax(0,1fr) 92px;background:var(--bg)}
 .kefe-top{display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line-soft);background:var(--surface);box-shadow:var(--inner);z-index:5}
-.kefe-brand{font-weight:800;letter-spacing:-.045em;font-size:20px}
-.kefe-top-actions{display:flex;align-items:center;gap:8px}
+.kefe-top-nav,.kefe-top-actions{display:flex;align-items:center;gap:6px}
+.kefe-brand{width:32px;height:32px;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--surface-hi);box-shadow:var(--lift);font-weight:800;font-size:16px}
+.kefe-top-link{min-height:36px;padding:0 12px;border:1px solid transparent;border-radius:var(--r2);background:transparent;color:var(--muted)}
+.kefe-top-link:hover{background:var(--surface-hi);color:var(--text);border-color:var(--line);box-shadow:var(--inner)}
+.kefe-top-link:active{box-shadow:inset 2px 2px 5px rgba(67,60,51,.18)}
 .kefe-btn,.kefe-control{
   min-height:36px;padding:0 13px;border:1px solid var(--line);border-radius:var(--r2);
   background:var(--surface);box-shadow:var(--inner);transition:box-shadow .16s ease,transform .16s ease,background .16s ease
@@ -128,10 +131,14 @@ button{border:0;cursor:pointer}
 <body>
 <div class="kefe-editor">
 <header class="kefe-top">
-  <div class="kefe-brand">KEFE</div>
+  <div class="kefe-top-nav">
+    <button class="kefe-brand" aria-label="KEFE home">K</button>
+    <button class="kefe-top-link" type="button" data-top-panel="media">Media</button>
+    <button class="kefe-top-link" type="button" data-top-panel="editor">Editor</button>
+  </div>
   <div class="kefe-top-actions">
-    <button class="kefe-btn" id="mediaButton">Add media</button>
-    <button class="kefe-btn primary" id="exportButton">Export</button>
+    <button class="kefe-top-link" type="button">Miniplayer</button>
+    <button class="kefe-top-link" type="button">Settings</button>
   </div>
 </header>
 
