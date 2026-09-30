@@ -52,7 +52,7 @@ button{border:0;cursor:pointer}
 .kefe-btn:hover,.kefe-control:hover{transform:translateY(-1px);box-shadow:var(--lift)}
 .kefe-btn:active,.kefe-control:active{transform:translateY(0);box-shadow:inset 2px 2px 5px rgba(67,60,51,.18),inset -1px -1px 2px rgba(255,255,255,.7)}
 .kefe-btn.primary{font-weight:700;background:#d9ddd5;border-color:#bcc5b9;box-shadow:var(--lift)}
-.kefe-work{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto minmax(0,1fr);overflow:hidden}
+.kefe-work{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto minmax(220px,40vh);overflow:hidden}
 .kefe-preview{min-width:0;min-height:0;display:grid;place-items:center;padding:20px 24px 14px;overflow:hidden}
 .kefe-stage{
   position:relative;width:min(100%,1180px);height:100%;max-height:100%;
@@ -129,7 +129,7 @@ button{border:0;cursor:pointer}
 @media(max-width:900px){
   .kefe-editor{grid-template-rows:52px minmax(0,1fr)}
   .kefe-preview{padding:12px}
-  .kefe-work{grid-template-rows:minmax(0,1fr) 66px minmax(0,1fr);overflow:hidden}
+  .kefe-work{grid-template-rows:minmax(0,1fr) 66px minmax(220px,46vh);overflow:hidden}
   .kefe-timeline{padding:8px 12px;gap:8px}
   .kefe-tabs{position:relative;top:auto;left:auto;right:auto;height:50px;z-index:1;flex-direction:row;align-items:center;gap:5px;margin:8px 10px;padding:5px 6px;border:1px solid var(--line);border-radius:999px;overflow-x:auto;overflow-y:hidden;background:rgba(233,230,223,.92);box-shadow:8px 10px 22px rgba(69,62,52,.18),-3px -3px 10px rgba(255,255,255,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
   .kefe-section{height:38px;min-height:38px;flex:0 0 auto;padding:0 14px;text-align:center}
