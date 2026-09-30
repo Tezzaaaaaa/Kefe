@@ -846,7 +846,6 @@ I could feel the night begin</textarea>
   }
   document.querySelectorAll('.kefe-section').forEach(button=>button.addEventListener('click',()=>openEditorPanel(button.dataset.panel)));
   const previewPane=document.querySelector('.kefe-preview');
-  const previewStage=document.querySelector('.kefe-stage');
   function fitPreviewStage(){
     if(!previewPane||!previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen')||document.fullscreenElement===previewStage)return;
     const active=document.querySelector('.kefe-aspect-button.active')?.dataset.aspect||'16:9';
