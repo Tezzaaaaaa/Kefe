@@ -623,7 +623,7 @@ button{border:0;cursor:pointer}
     if(!audio.src||!titleCard)return;updateTitleCard();titleCardShownFor=mediaObjectUrl;
     titleCard.classList.remove('leaving');titleCard.classList.add('active');titleCard.setAttribute('aria-hidden','false');applyAppleAlbumGradient();
     if(titleCardTimer)clearTimeout(titleCardTimer);const firstLyric=state.lines[0]?.time;
-    const remaining=Number.isFinite(firstLyric)?Math.max(500,(firstLyric-audio.currentTime)*1000):2200;titleCardTimer=setTimeout(hideTitleCard,remaining);
+    const remaining=Number.isFinite(firstLyric)?Math.max(0,(firstLyric-audio.currentTime)*1000):2200;titleCardTimer=setTimeout(hideTitleCard,remaining);
   }
   function hideTitleCard(){
     if(!titleCard||!titleCard.classList.contains('active')||titleCard.classList.contains('leaving'))return;
