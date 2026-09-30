@@ -67,28 +67,11 @@ function estimateLineVocalEnd(line, nextLine) {
     return start + duration;
 }
 
-export function appleWordsForLine(line, nextLine) {
+export function appleWordsForLine(line) {
     if (Array.isArray(line?.words) && line.words.length) {
         return line.words.map(w => ({ ...w, estimated: false }));
     }
-    const tokens = String(line?.text || "").trim().split(/\s+/).filter(Boolean);
-    if (!tokens.length || !hasFiniteNumber(line?.time)) return [];
-    const start = Number(line.time);
-    const vocalEnd = estimateLineVocalEnd(line, nextLine);
-    const duration = Math.max(0.15, vocalEnd - start);
-    const weights = tokens.map(token => {
-        const letters = Array.from(token.replace(/[^\p{L}\p{N}]/gu, "")).length || 1;
-        const punctuation = /[,.!?;:]$/.test(token) ? 0.20 : 0;
-        return Math.max(0.75, Math.pow(letters, 0.72)) + punctuation;
-    });
-    const total = weights.reduce((s, v) => s + v, 0) || tokens.length;
-    let cursor = 0;
-    return tokens.map((text, i) => {
-        const ws = start + duration * (cursor / total);
-        cursor += weights[i];
-        const we = start + duration * (cursor / total);
-        return { text, time: ws, endTime: Math.max(ws + 0.05, we), estimated: true };
-    });
+    return [];
 }
 
 function appleKeyframeLerp(ed, points) {
@@ -163,7 +146,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     for (const line of displayLines) {
-        const words = appleWordsForLine(line, null);
+        const words = appleWordsForLine(line);
         const tokens = words.length ? words.map(word => String(word.text || '').trim()).filter(Boolean) : String(line.text || '').split(' ').filter(Boolean);
         const rows = [];
         let row = '';
@@ -284,7 +267,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
     const appleHeaderBottom = appleHeaderTop + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = Math.max(
-        h * linaClamp(Number(style.appleTopOffset) || 0.29, 0.26, 0.40),
+        h * linaClamp(Number(style.appleTopOffset) || 0.50, 0.40, 0.60),
         appleHeaderBottom + activeBlockHeight / 2 + blockGap
     );
     const activeScale = 1;
@@ -297,7 +280,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
 
     const scalePoints = [[-1, 1], [0, activeScale], [1, 1]];
     const opacityPoints = [[-2, pastOpacity], [-1, upcomingOpacity], [0, 1], [1, upcomingOpacity], [2, pastOpacity]];
-    const blurPoints = [[-2, 30], [-1, 16], [0, 0], [1, 16], [2, 30], [3, 44], [4, 58], [5, 72], [6, 86]];
+    const blurPoints = [[-2, activeFontSize * 0.07], [-1, activeFontSize * 0.035], [0, 0], [1, activeFontSize * 0.035], [2, activeFontSize * 0.07], [3, activeFontSize * 0.07], [4, activeFontSize * 0.07]];
 
     const previousBlock = displayLines[activeIndex - 1];
     const transitionShift = previousBlock
@@ -326,7 +309,7 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
 
         const edStyle = distance + (1 - styleT);
         const isActiveRow = distance === 0;
-        const words = appleWordsForLine(line, displayLines[i + 1] || null);
+        const words = appleWordsForLine(line);
         const rows = line.appleRows || [String(line.text || '').trim()];
         const x = margin;
         const y = topAnchor + settledOffset + (1 - posT) * transitionShift;
@@ -360,39 +343,39 @@ export function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage
 
         const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
         if (!isActiveRow || !words.length) {
+            ctx.fillStyle = isActiveRow ? '#FFFFFF' : '#FFFFFF';
             rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
         } else {
             let wordIndex = 0;
             const easeWindow = 0.10;
             for (let ri = 0; ri < rows.length; ri++) {
                 const rowTokens = rows[ri].split(/\s+/).filter(Boolean);
-                const rowWords = [];
+                let cursorX = x;
                 for (let ti = 0; ti < rowTokens.length; ti++) {
                     const word = words[wordIndex + ti];
                     const wordText = String(word?.text || rowTokens[ti]);
                     const wordWidth = ctx.measureText(wordText).width;
-                    rowWords.push({ word, wordText, wordWidth });
-                }
-                let cursorX = x;
-                for (const item of rowWords) {
-                    const word = item.word;
-                    const wordText = item.wordText;
-                    const wordWidth = item.wordWidth;
-                    const swap = word ? linaSmooth((time - Number(word.time)) / easeWindow) : 1;
+                    const spaceWidth = ctx.measureText(' ').width;
                     const wordTime = Number(word?.time);
                     const wordEndTime = Number(word?.endTime);
-                    let opacity = 0.10;
+                    let progress = 0;
                     if (Number.isFinite(wordTime) && time >= wordTime) {
-                        if (Number.isFinite(wordEndTime) && time < wordEndTime) {
-                            const wordT = linaSmooth((time - wordTime) / easeWindow);
-                            opacity = 0.10 + 0.90 * wordT;
-                        } else {
-                            opacity = 1;
-                        }
+                        progress = Number.isFinite(wordEndTime) && wordEndTime > wordTime
+                            ? linaSmooth((time - wordTime) / Math.min(easeWindow, wordEndTime - wordTime))
+                            : 1;
                     }
-                    ctx.fillStyle = `rgba(255,255,255,${opacity.toFixed(3)})`;
+                    ctx.fillStyle = 'rgba(255,255,255,0.30)';
                     ctx.fillText(wordText, cursorX, rowYs[ri]);
-                    cursorX += wordWidth + ctx.measureText(' ').width;
+                    if (progress > 0) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.rect(cursorX - 2, rowYs[ri] - rowHeight * 0.62, wordWidth * progress + 4, rowHeight * 1.24);
+                        ctx.clip();
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillText(wordText, cursorX, rowYs[ri]);
+                        ctx.restore();
+                    }
+                    cursorX += wordWidth + spaceWidth;
                 }
                 wordIndex += rowTokens.length;
             }
