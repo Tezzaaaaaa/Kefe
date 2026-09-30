@@ -247,14 +247,6 @@ button{border:0;cursor:pointer}
           <div><label class="kefe-label" for="songArtist">Artist</label><input class="kefe-input" id="songArtist" type="text" placeholder="Artist"></div>
           <div><label class="kefe-label" for="songAlbum">Album</label><input class="kefe-input" id="songAlbum" type="text" placeholder="Album"></div>
           <div><label class="kefe-label" for="songYear">Year</label><input class="kefe-input" id="songYear" type="text" placeholder="Year"></div>
-          <div class="kefe-song-search" id="songSearchPanel">
-            <div class="kefe-song-search-head">
-              <div class="kefe-song-search-copy"><div class="kefe-song-search-title">Can’t find the exact song?</div><div class="kefe-song-search-help">Search the music catalogue and choose the exact match for this audio.</div></div>
-              <button class="kefe-song-search-button" id="songSearchButton" type="button">Find song</button>
-            </div>
-            <div class="kefe-song-search-status" id="songSearchStatus" aria-live="polite"></div>
-            <div class="kefe-song-search-results" id="songSearchResults"></div>
-          </div>
           <div>
             <label class="kefe-label" for="lyricsInput">Lyrics</label>
             <textarea class="kefe-textarea" id="lyricsInput" spellcheck="false">We were dancing in the dark
@@ -465,7 +457,6 @@ I could feel the night begin</textarea>
   document.addEventListener('fullscreenchange',updateFullscreenButton);
   document.addEventListener('fullscreenerror',()=>setPseudoFullscreen(true));
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&previewStage.classList.contains('kefe-pseudo-fullscreen'))setPseudoFullscreen(false)});
-  const songSearchButton=document.getElementById('songSearchButton'),songSearchResults=document.getElementById('songSearchResults'),songSearchStatus=document.getElementById('songSearchStatus');
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead'),wave=document.getElementById('waveform');
 
   for(let i=0;i<120;i++){const bar=document.createElement('span');bar.style.height=(24+((i*37)%70))+'%';wave.insertBefore(bar,range);}
@@ -485,41 +476,6 @@ I could feel the night begin</textarea>
       titleArt.innerHTML='';
       titleArt.appendChild(titleArtFallback);
     }
-  }
-  function normalizeSongSearchValue(value){return String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();}
-  function setSongSearchStatus(message){if(songSearchStatus)songSearchStatus.textContent=message||'';}
-  function renderSongSearchResults(results){
-    songSearchResults.innerHTML='';
-    const rows=Array.isArray(results)?results:[];
-    if(!rows.length){songSearchResults.classList.remove('active');setSongSearchStatus('No matching songs found. Try the title and artist together.');return;}
-    rows.forEach(item=>{
-      const button=document.createElement('button');button.type='button';button.className='kefe-song-result';
-      const art=item.artworkUrl100||'',artNode=art?document.createElement('img'):document.createElement('div');
-      if(art){artNode.src=art.replace(/100x100bb\.(jpg|jpeg|png)$/i,'200x200bb.$1');artNode.alt='';}else{artNode.className='kefe-song-result-art';artNode.textContent='K';}
-      const copy=document.createElement('div'),name=document.createElement('div'),meta=document.createElement('div');
-      name.className='kefe-song-result-name';name.textContent=item.trackName||'Untitled song';
-      meta.className='kefe-song-result-meta';meta.textContent=[item.artistName,item.collectionName,item.releaseDate?String(item.releaseDate).slice(0,4):''].filter(Boolean).join(' · ');
-      copy.append(name,meta);button.append(artNode,copy);button.addEventListener('click',()=>selectSongSearchResult(item));songSearchResults.appendChild(button);
-    });
-    songSearchResults.classList.add('active');setSongSearchStatus(rows.length+' songs found — choose the exact match.');
-  }
-  async function searchSongsForKefe(){
-    const songSearchPanel=document.getElementById('songSearchPanel');
-    const query=[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' ').trim();
-    if(!query){setSongSearchStatus('Enter a song title or artist first.');songTitle.focus();return;}
-    songSearchButton.disabled=true;songSearchPanel.classList.add('is-searching');songSearchResults.classList.remove('active');setSongSearchStatus('Searching the music catalogue…');
-    try{
-      const params=new URLSearchParams({term:query,entity:'song',limit:'20',country:'AU'});
-      const response=await fetch('https://itunes.apple.com/search?'+params.toString());if(!response.ok)throw new Error('Song search failed: '+response.status);
-      const result=await response.json();renderSongSearchResults((Array.isArray(result.results)?result.results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song'));
-    }catch(error){console.warn('[KEFE song search]',error);songSearchResults.classList.remove('active');setSongSearchStatus('Song search is unavailable right now. Check your connection and try again.');}
-    finally{songSearchButton.disabled=false;songSearchPanel.classList.remove('is-searching');}
-  }
-  async function selectSongSearchResult(item){
-    songTitle.value=item.trackName||'';songArtist.value=item.artistName||'';songAlbum.value=item.collectionName||'';songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
-    if(item.artworkUrl100)songAlbum.dataset.artUrl=item.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
-    updateTitleCard();parseLyrics();syncAppleLyricsMetadata();songSearchResults.classList.remove('active');setSongSearchStatus('Selected: '+[songTitle.value,songArtist.value].filter(Boolean).join(' — '));
-    loadBiniLyrics();
   }
   async function fetchAlbumArt(title,artist,album){
     if(!title||!artist)return;
@@ -742,8 +698,6 @@ I could feel the night begin</textarea>
   lyricsInput.addEventListener('input',parseLyrics);
   fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
   lyricEffectSelect.addEventListener('change',()=>setEffect(lyricEffectSelect.value));
-  songSearchButton.addEventListener('click',searchSongsForKefe);
-  [songTitle,songArtist].forEach(input=>input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchSongsForKefe();}}));
   document.getElementById('mediaInput').addEventListener('change',e=>{
     const file=e.target.files?.[0];if(!file)return;
     e.target.value='';
