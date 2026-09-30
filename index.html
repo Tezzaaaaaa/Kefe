@@ -485,29 +485,49 @@ I could feel the night begin</textarea>
   audio.addEventListener('loadedmetadata',()=>{
     range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
   });
+  function syncAppleLyrics(seeking=false){
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(!appleLyrics||!audio.src)return;
+    appleLyrics.currentTime=Math.round(audio.currentTime*1000);
+    if(seeking&&typeof appleLyrics.seek==='function')appleLyrics.seek();
+  }
   audio.addEventListener('timeupdate',()=>{
     state.time=audio.currentTime;range.value=state.time;updateTime();
-    const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics)appleLyrics.currentTime=audio.currentTime*1000;
   });
   function syncPreview(){
     if(audio.src&&!audio.paused){
       state.time=audio.currentTime;
       range.value=state.time;
       updateTime();
+      syncAppleLyrics();
       draw();
-      const appleLyrics=document.getElementById('kefeAppleLyrics');
-      if(appleLyrics)appleLyrics.currentTime=audio.currentTime*1000;
       requestAnimationFrame(syncPreview);
     }
   }
-  audio.addEventListener('play',()=>requestAnimationFrame(syncPreview));
+  audio.addEventListener('play',()=>{
+    syncAppleLyrics();
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(appleLyrics&&typeof appleLyrics.play==='function')appleLyrics.play();
+    requestAnimationFrame(syncPreview);
+  });
+  audio.addEventListener('pause',()=>{
+    syncAppleLyrics();
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(appleLyrics&&typeof appleLyrics.pause==='function')appleLyrics.pause();
+  });
+  audio.addEventListener('ended',()=>{
+    syncAppleLyrics(true);
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(appleLyrics&&typeof appleLyrics.pause==='function')appleLyrics.pause();
+  });
+  audio.addEventListener('seeking',()=>syncAppleLyrics(true));
+  audio.addEventListener('seeked',()=>syncAppleLyrics(true));
   range.addEventListener('input',()=>{
     state.time=Number(range.value);
     if(audio.src)audio.currentTime=state.time;
     if(video.src)video.currentTime=state.time;
     const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics)appleLyrics.currentTime=state.time*1000;
+    syncAppleLyrics(true);
     updateTime();draw();
   });
   document.getElementById('visualiserPreset').addEventListener('change',e=>{visualiserPreset=e.target.value;draw()});
@@ -551,7 +571,7 @@ I could feel the night begin</textarea>
     appleLyrics.songArtist=songArtist.value.trim();
     appleLyrics.songAlbum=songAlbum.value.trim();
     appleLyrics.query=[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' - ');
-    appleLyrics.currentTime=state.time*1000;
+    syncAppleLyrics(true);
   }
   window.addEventListener('kefe-effects-ready',()=>setEffect(state.effect));
 })();
