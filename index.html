@@ -249,20 +249,33 @@ I could feel the night begin</textarea>
       </section>
 
       <section class="kefe-panel" data-panel-view="lyrics">
-        <div class="kefe-panel-head"><h2>Lyrics</h2><span class="kefe-meta">Typography and timing for the lyric layer.</span></div>
+        <div class="kefe-panel-head"><h2>Lyrics</h2><span class="kefe-meta">Lyrics and timing for the master track.</span></div>
         <div class="kefe-form">
-          <div class="kefe-font-card"><div class="kefe-font-name" id="fontName">SF Pro Display</div><div class="kefe-meta" id="fontMeta">Locked effect font</div></div>
-          <div>
-            <label class="kefe-label" for="fontOverride">Font override</label>
-            <select class="kefe-select" id="fontOverride"><option value="">Use effect font</option></select>
-          </div>
           <div class="kefe-empty-panel">Timing is currently derived from lyric lines and the master timeline.</div>
         </div>
       </section>
 
       <section class="kefe-panel" data-panel-view="effects">
-        <div class="kefe-panel-head"><h2>Effects</h2><span class="kefe-meta">Locked KEFE lyric treatments.</span></div>
-        <div class="kefe-grid" id="effectGrid"></div>
+        <div class="kefe-panel-head"><h2>Effects</h2><span class="kefe-meta">Choose the lyric treatment, font and background effect.</span></div>
+        <div class="kefe-form">
+          <div>
+            <label class="kefe-label" for="lyricEffect">Lyric effect</label>
+            <select class="kefe-select" id="lyricEffect"></select>
+          </div>
+          <div>
+            <label class="kefe-label" for="fontOverride">Font</label>
+            <select class="kefe-select" id="fontOverride"><option value="">Use effect font</option></select>
+          </div>
+          <div>
+            <label class="kefe-label" for="visualiserBackground">Background effect</label>
+            <select class="kefe-select" id="visualiserBackground">
+              <option value="black">Black</option>
+              <option value="gradient">Gradient</option>
+              <option value="accent">Accent</option>
+            </select>
+          </div>
+          <div class="kefe-font-card"><div class="kefe-font-name" id="fontName">SF Pro Display</div><div class="kefe-meta" id="fontMeta">Locked effect font</div></div>
+        </div>
       </section>
 
       <section class="kefe-panel" data-panel-view="visualiser">
@@ -275,14 +288,6 @@ I could feel the night begin</textarea>
               <option value="pulse">Pulse</option>
               <option value="ring">Ring</option>
               <option value="none" selected>None</option>
-            </select>
-          </div>
-          <div>
-            <label class="kefe-label" for="visualiserBackground">Background</label>
-            <select class="kefe-select" id="visualiserBackground">
-              <option value="black">Black</option>
-              <option value="gradient">Gradient</option>
-              <option value="accent">Accent</option>
             </select>
           </div>
           <div>
@@ -554,12 +559,11 @@ I could feel the night begin</textarea>
     document.getElementById('fontMeta').textContent='Locked effect font · '+(c.weight||400)+' weight';
     draw();
   }
+  const lyricEffectSelect=document.getElementById('lyricEffect');
   effectDefinitions.forEach(([id,label])=>{
-    const b=document.createElement('button');
-    b.className='kefe-card';b.dataset.effect=id;
-    b.innerHTML=`<strong>${label}</strong><small>${window.KEFE_TYPE?.effects?.[id]?.family||'System UI'}</small>`;
-    b.onclick=()=>setEffect(id);
-    document.getElementById('effectGrid').appendChild(b);
+    const o=document.createElement('option');
+    o.value=id;o.textContent=label;
+    lyricEffectSelect.appendChild(o);
   });
 
   const kefeBrand=document.querySelector('.kefe-brand');
