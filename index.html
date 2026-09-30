@@ -477,15 +477,8 @@ I could feel the night begin</textarea>
           lyricsInput.value=String(lyricSource).replace(/\r/g,'').trim();
           parseLyrics();
         }
-        const appleLyrics=document.getElementById('kefeAppleLyrics');
-        if(appleLyrics){
-          appleLyrics.songTitle=songTitle.value.trim();
-          appleLyrics.songArtist=songArtist.value.trim();
-          appleLyrics.songAlbum=songAlbum.value.trim();
-          appleLyrics.songDuration=Math.round((audio.duration||0)*1000);
-          appleLyrics.ttml=lyricsToTtml(state.lines);
-          appleLyrics.currentTime=state.time*1000;
-        }
+        fetchBinimumTtml(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim(),audio.duration||0)
+          .catch(err=>console.warn('[KEFE BiniLyrics]',err));
       })
       .catch(err=>console.warn('[KEFE lyrics]',err));
   });
@@ -496,8 +489,34 @@ I could feel the night begin</textarea>
   audio.addEventListener('loadedmetadata',()=>{
     range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
     const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics)appleLyrics.songDuration=Math.round((audio.duration||0)*1000);
+    if(appleLyrics){
+      appleLyrics.songDuration=Math.round((audio.duration||0)*1000);
+      if(songTitle.value.trim()&&songArtist.value.trim())fetchBinimumTtml(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim(),audio.duration||0).catch(err=>console.warn('[KEFE BiniLyrics]',err));
+    }
   });
+  async function fetchBinimumTtml(title,artist,album,duration){
+    const appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(!appleLyrics||!title||!artist)return;
+    const params=new URLSearchParams({track:title,artist});
+    if(album)params.set('album',album);
+    if(duration>0)params.set('duration',String(Math.round(duration)));
+    const response=await fetch('https://lyrics-api.binimum.org/?'+params.toString());
+    if(!response.ok)throw new Error('BiniLyrics lookup failed: '+response.status);
+    const result=await response.json();
+    const match=Array.isArray(result.results)?result.results[0]:null;
+    const lyricsUrl=match?.lyricsUrl;
+    if(!lyricsUrl)throw new Error('No BiniLyrics TTML match');
+    const lyricsResponse=await fetch(lyricsUrl);
+    if(!lyricsResponse.ok)throw new Error('BiniLyrics TTML fetch failed: '+lyricsResponse.status);
+    const ttml=await lyricsResponse.text();
+    if(!ttml.trim().startsWith('<'))throw new Error('Invalid BiniLyrics TTML');
+    appleLyrics.ttml=ttml;
+    appleLyrics.songTitle=title;
+    appleLyrics.songArtist=artist;
+    appleLyrics.songAlbum=album;
+    appleLyrics.songDuration=Math.round((audio.duration||duration||0)*1000);
+    appleLyrics.currentTime=state.time*1000;
+  }
   function syncAppleLyrics(seeking=false){
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     if(!appleLyrics||!audio.src)return;
@@ -583,9 +602,9 @@ I could feel the night begin</textarea>
     appleLyrics.songTitle=songTitle.value.trim();
     appleLyrics.songArtist=songArtist.value.trim();
     appleLyrics.songAlbum=songAlbum.value.trim();
-    appleLyrics.ttml=lyricsToTtml(state.lines);
     appleLyrics.currentTime=state.time*1000;
     syncAppleLyrics(true);
+    if(songTitle.value.trim()&&songArtist.value.trim())fetchBinimumTtml(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim(),audio.duration||0).catch(err=>console.warn('[KEFE BiniLyrics]',err));
   }
   window.addEventListener('kefe-effects-ready',()=>setEffect(state.effect));
 })();
