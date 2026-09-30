@@ -144,7 +144,7 @@ button{border:0;cursor:pointer}
   .kefe-section{height:36px;min-height:36px;padding:0 12px;font-size:12px}
   .kefe-panels{padding:6px 10px 14px}
 }
-</style>
+.kefe-title-card{position:absolute;inset:0;z-index:4;display:none;align-items:center;justify-content:center;padding:clamp(28px,6vw,72px);background:#080808;color:#fff;overflow:hidden}.kefe-title-card.active{display:flex}.kefe-title-card:before{content:"";position:absolute;inset:-12%;background:radial-gradient(circle at 25% 20%,rgba(255,255,255,.10),transparent 34%),radial-gradient(circle at 80% 80%,rgba(239,63,56,.14),transparent 38%);filter:blur(28px)}.kefe-title-card-inner{position:relative;width:min(760px,100%);display:grid;grid-template-columns:minmax(180px,320px) minmax(0,1fr);gap:clamp(24px,5vw,56px);align-items:end}.kefe-title-art{width:100%;aspect-ratio:1;background:#161616;border:1px solid rgba(255,255,255,.12);box-shadow:0 24px 60px rgba(0,0,0,.38);overflow:hidden}.kefe-title-art img{width:100%;height:100%;display:block;object-fit:cover}.kefe-title-art-fallback{width:100%;height:100%;display:grid;place-items:center;font-size:clamp(54px,10vw,110px);font-weight:800;letter-spacing:-.08em;background:linear-gradient(145deg,#262626,#090909);color:#fff}.kefe-title-info{min-width:0;padding-bottom:4px}.kefe-title-kicker{margin:0 0 12px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.52)}.kefe-title-name{margin:0;font-size:clamp(30px,5vw,58px);line-height:.95;letter-spacing:-.045em;font-weight:750;overflow-wrap:anywhere}.kefe-title-artist{margin:12px 0 0;font-size:clamp(17px,2.2vw,24px);color:rgba(255,255,255,.72);overflow-wrap:anywhere}.kefe-title-meta{margin:20px 0 0;display:flex;flex-wrap:wrap;gap:7px 14px;font-size:12px;color:rgba(255,255,255,.45)}@media(max-width:680px){.kefe-title-card-inner{grid-template-columns:minmax(0,1fr);align-items:start;width:min(360px,100%)}.kefe-title-art{width:min(68vw,280px);margin:0 auto}.kefe-title-name{font-size:clamp(30px,9vw,46px)}.kefe-title-artist{margin-top:9px}.kefe-title-meta{margin-top:14px}}</style>
 </head>
 <body>
 <div class="kefe-editor">
@@ -166,6 +166,17 @@ button{border:0;cursor:pointer}
     <div class="kefe-stage">
       <canvas id="kefeCanvas" width="1280" height="720"></canvas>
       <am-lyrics id="kefeAppleLyrics" class="kefe-apple-lyrics" highlight-color="#fff" autoscroll interpolate></am-lyrics>
+      <div class="kefe-title-card" id="kefeTitleCard" aria-hidden="true">
+        <div class="kefe-title-card-inner">
+          <div class="kefe-title-art" id="kefeTitleArt"><div class="kefe-title-art-fallback" id="kefeTitleArtFallback">K</div></div>
+          <div class="kefe-title-info">
+            <p class="kefe-title-kicker">Now playing</p>
+            <h1 class="kefe-title-name" id="kefeTitleName">Untitled</h1>
+            <p class="kefe-title-artist" id="kefeTitleArtist">Unknown artist</p>
+            <div class="kefe-title-meta"><span id="kefeTitleAlbum"></span><span id="kefeTitleYear"></span></div>
+          </div>
+        </div>
+      </div>
       <div class="kefe-empty" id="emptyState">
         <div><img class="kefe-empty-logo" src="./kefe-logo-full%202.svg" alt="KEFE Visualiser"><strong>Add lyrics to preview</strong><span class="kefe-empty-copy">Choose a lyric effect and enter timed lines.</span></div>
       </div>
@@ -338,10 +349,34 @@ I could feel the night begin</textarea>
   const video=document.createElement('video');
   video.preload='metadata'; video.muted=true; video.playsInline=true; video.style.display='none'; document.body.appendChild(video);
   let mediaObjectUrl=''; let visualiserPreset='none',visualiserBackground='black',visualiserMotion='reactive';
+  const titleCard=document.getElementById('kefeTitleCard'),titleName=document.getElementById('kefeTitleName'),titleArtist=document.getElementById('kefeTitleArtist'),titleAlbum=document.getElementById('kefeTitleAlbum'),titleYear=document.getElementById('kefeTitleYear'),titleArt=document.getElementById('kefeTitleArt'),titleArtFallback=document.getElementById('kefeTitleArtFallback');
+  let titleCardTimer=null,titleCardShownFor='';
   const songTitle=document.getElementById('songTitle'),songArtist=document.getElementById('songArtist'),songAlbum=document.getElementById('songAlbum'),songYear=document.getElementById('songYear');
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead'),wave=document.getElementById('waveform');
 
   for(let i=0;i<120;i++){const bar=document.createElement('span');bar.style.height=(24+((i*37)%70))+'%';wave.insertBefore(bar,range);}
+  function updateTitleCard(){
+    titleName.textContent=songTitle.value.trim()||'Untitled';
+    titleArtist.textContent=songArtist.value.trim()||'Unknown artist';
+    titleAlbum.textContent=songAlbum.value.trim()||'';
+    titleYear.textContent=songYear.value.trim()||'';
+    const cover=songAlbum.dataset.artUrl||'';
+    if(cover){titleArt.innerHTML='<img src="'+cover.replace(/"/g,'&quot;')+'" alt="">';}
+    else{titleArt.innerHTML='';titleArt.appendChild(titleArtFallback);}
+  }
+  function showTitleCard(){
+    if(!audio.src||!titleCard)return;
+    updateTitleCard();
+    titleCardShownFor=mediaObjectUrl;
+    titleCard.classList.add('active');
+    titleCard.setAttribute('aria-hidden','false');
+    if(titleCardTimer)clearTimeout(titleCardTimer);
+    titleCardTimer=setTimeout(hideTitleCard,2200);
+  }
+  function hideTitleCard(){
+    titleCard.classList.remove('active');
+    titleCard.setAttribute('aria-hidden','true');
+  }
   function parseLyrics(){
     const raw=lyricsInput.value.replace(/\r/g,'').split(/\n+/).map(s=>s.trim()).filter(Boolean);
     const synced=raw.map(line=>{
@@ -449,6 +484,7 @@ I could feel the night begin</textarea>
     document.querySelectorAll('.kefe-section').forEach(b=>b.classList.toggle('active',b===button));
     document.querySelectorAll('.kefe-panel').forEach(p=>p.classList.toggle('active',p.dataset.panelView===button.dataset.panel));
   }));
+  songTitle.addEventListener('input',updateTitleCard);songArtist.addEventListener('input',updateTitleCard);songAlbum.addEventListener('input',updateTitleCard);songYear.addEventListener('input',updateTitleCard);
   lyricsInput.addEventListener('input',parseLyrics);
   fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
   document.getElementById('mediaInput').addEventListener('change',e=>{
@@ -478,6 +514,8 @@ I could feel the night begin</textarea>
         if(match.trackName)songTitle.value=match.trackName;
         if(match.artistName)songArtist.value=match.artistName;
         if(match.albumName)songAlbum.value=match.albumName;
+        if(match.releaseDate)songYear.value=String(match.releaseDate).slice(0,4);
+        updateTitleCard();
         if(match.syncedLyrics||match.plainLyrics){
           const lyricSource=match.syncedLyrics||match.plainLyrics;
           lyricsInput.value=String(lyricSource).replace(/\r/g,'').trim();
@@ -548,17 +586,20 @@ I could feel the night begin</textarea>
     }
   }
   audio.addEventListener('play',()=>{
+    if(audio.currentTime<=0.08&&titleCardShownFor!==mediaObjectUrl)showTitleCard();
     syncAppleLyrics();
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     if(appleLyrics&&typeof appleLyrics.play==='function')appleLyrics.play();
     requestAnimationFrame(syncPreview);
   });
   audio.addEventListener('pause',()=>{
+    hideTitleCard();
     syncAppleLyrics();
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     if(appleLyrics&&typeof appleLyrics.pause==='function')appleLyrics.pause();
   });
   audio.addEventListener('ended',()=>{
+    hideTitleCard();
     syncAppleLyrics(true);
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     if(appleLyrics&&typeof appleLyrics.pause==='function')appleLyrics.pause();
@@ -607,7 +648,7 @@ I could feel the night begin</textarea>
   window.kefeRenderPipeline={use(name,plugin){const wrapped=plugin(window.__kefeBaseRender||(()=>{}));window.__kefeRenderers[name]=wrapped;return wrapped;}};
   window.__kefeBaseRender=()=>{};
 
-  parseLyrics();setEffect('apple');updateTime();
+  parseLyrics();setEffect('apple');updateTitleCard();updateTime();
   const appleLyrics=document.getElementById('kefeAppleLyrics');
   if(appleLyrics){
     appleLyrics.songTitle=songTitle.value.trim();
