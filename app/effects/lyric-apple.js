@@ -386,3 +386,4 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
 
 window.kefeEffects = window.kefeEffects || {};
 window.kefeEffects.apple = drawAppleEffect;
+window.dispatchEvent(new Event('kefe-effects-ready'));
