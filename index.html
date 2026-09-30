@@ -1012,12 +1012,29 @@ button{border:0;cursor:pointer}
     try{
       let parsedLines=[];
       let result={};
-      let response=await fetch('https://api.betterlyrics.org/getLyrics?'+params.toString());
+      let response;
+
+      response=await fetch('https://api.betterlyrics.org/qq/getLyrics?'+params.toString());
       if(request!==biniLyricsRequest)return;
       result=await response.json().catch(()=>({}));
-      let ttml=typeof result?.ttml==='string'?result.ttml:'';
-      if(!ttml.trim()&&typeof result?.data?.ttml==='string')ttml=result.data.ttml;
-      if(response.ok&&ttml.trim())parsedLines=parseAppleTTML(ttml);
+      if(response.ok&&typeof result?.lyrics==='string'){
+        let qrc=result.lyrics;
+        if(qrc.trim().startsWith('<')){
+          const doc=new DOMParser().parseFromString(qrc,'application/xml');
+          const lyricNode=doc.querySelector('Lyric_1[LyricContent]');
+          qrc=lyricNode?.getAttribute('LyricContent')||'';
+        }
+        const lrc=qrc.split(/\r?\n/).map(line=>{
+          const match=line.trim().match(/^\[(\d+),(\d+)\](.*)$/);
+          if(!match)return '';
+          const millis=Number(match[1]);
+          const mins=Math.floor(millis/60000);
+          const secs=((millis%60000)/1000).toFixed(3).padStart(6,'0');
+          const text=match[3].replace(/\(\d+,\d+\)/g,'').trim();
+          return text?'['+String(mins).padStart(2,'0')+':'+secs+'] '+text:'';
+        }).filter(Boolean).join('\n');
+        parsedLines=parseAppleLrc(lrc);
+      }
 
       if(!parsedLines.length){
         response=await fetch('https://api.betterlyrics.org/kugou/getLyrics?'+params.toString());
@@ -1027,27 +1044,19 @@ button{border:0;cursor:pointer}
       }
 
       if(!parsedLines.length){
-        response=await fetch('https://api.betterlyrics.org/qq/getLyrics?'+params.toString());
+        response=await fetch('https://api.betterlyrics.org/ttml/getLyrics?'+params.toString());
         if(request!==biniLyricsRequest)return;
         result=await response.json().catch(()=>({}));
-        if(response.ok&&typeof result?.lyrics==='string'){
-          let qrc=result.lyrics;
-          if(qrc.trim().startsWith('<')){
-            const doc=new DOMParser().parseFromString(qrc,'application/xml');
-            const lyricNode=doc.querySelector('Lyric_1[LyricContent]');
-            qrc=lyricNode?.getAttribute('LyricContent')||'';
-          }
-          const lrc=qrc.split(/\\r?\\n/).map(line=>{
-            const match=line.trim().match(/^\\[(\\d+),(\\d+)\\](.*)$/);
-            if(!match)return '';
-            const millis=Number(match[1]);
-            const mins=Math.floor(millis/60000);
-            const secs=((millis%60000)/1000).toFixed(3).padStart(6,'0');
-            const text=match[3].replace(/\\(\\d+,\\d+\\)/g,'').trim();
-            return text?'['+String(mins).padStart(2,'0')+':'+secs+'] '+text:'';
-          }).filter(Boolean).join('\\n');
-          parsedLines=parseAppleLrc(lrc);
-        }
+        const ttml=typeof result?.lyrics==='string'?result.lyrics:'';
+        if(response.ok&&ttml.trim())parsedLines=parseAppleTTML(ttml);
+      }
+
+      if(!parsedLines.length){
+        response=await fetch('https://api.betterlyrics.org/getLyrics?'+params.toString());
+        if(request!==biniLyricsRequest)return;
+        result=await response.json().catch(()=>({}));
+        const ttml=typeof result?.ttml==='string'?result.ttml:(typeof result?.data?.ttml==='string'?result.data.ttml:'');
+        if(response.ok&&ttml.trim())parsedLines=parseAppleTTML(ttml);
       }
 
       if(!parsedLines.length)throw new Error(result?.message||result?.error||'No synchronized lyrics match');
