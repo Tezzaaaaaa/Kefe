@@ -854,6 +854,7 @@ button{border:0;cursor:pointer}
     document.getElementById('fontName').textContent=c.family||'System UI';
     document.getElementById('fontMeta').textContent='Locked effect font · '+(c.weight||400)+' weight';
     draw();
+    return true;
   }
   const lyricEffectSelect=document.getElementById('lyricEffect');
   effectDefinitions.forEach(([id,label])=>{
