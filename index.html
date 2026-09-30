@@ -766,19 +766,26 @@ button{border:0;cursor:pointer}
     try{
       const doc=new DOMParser().parseFromString(source,'application/xml');
       if(doc.querySelector('parsererror'))return [];
-      const timedNodes=Array.from(doc.querySelectorAll('p')).filter(node=>node.hasAttribute('begin'));
-      const nodes=timedNodes.length?timedNodes:Array.from(doc.querySelectorAll('span')).filter(node=>node.hasAttribute('begin'));
-      return nodes.map(node=>{
+      const pNodes=Array.from(doc.getElementsByTagNameNS('*','p')).length
+        ? Array.from(doc.getElementsByTagNameNS('*','p'))
+        : Array.from(doc.getElementsByTagName('p'));
+      return pNodes.map(node=>{
         const time=appleTime(node.getAttribute('begin'));
-        const end=appleTime(node.getAttribute('end'));
-        const text=String(node.textContent||'').replace(/\s+/g,' ').trim();
-        const words=Array.from(node.querySelectorAll('span[begin]')).map(wordNode=>{
+        if(!Number.isFinite(time))return null;
+        const words=Array.from(node.children).filter(child=>{
+          return String(child.localName||child.tagName||'').toLowerCase()==='span';
+        }).map(wordNode=>{
           const wordTime=appleTime(wordNode.getAttribute('begin'));
           const wordEnd=appleTime(wordNode.getAttribute('end'));
-          const wordText=String(wordNode.textContent||'').replace(/\s+/g,' ');
-          return Number.isFinite(wordTime)&&wordText.trim()?{text:wordText,time:wordTime,endTime:Number.isFinite(wordEnd)?wordEnd:wordTime+0.35}:null;
+          const wordText=String(wordNode.textContent||'').trim();
+          return Number.isFinite(wordTime)&&Number.isFinite(wordEnd)&&wordText
+            ?{text:wordText,time:wordTime,endTime:wordEnd}
+            :null;
         }).filter(Boolean);
-        return Number.isFinite(time)&&text?{time,end:Number.isFinite(end)?end:time+3,text,words}:null;
+        const text=words.length
+          ?words.map(word=>word.text).join(' ')
+          :String(node.textContent||'').replace(/\s+/g,' ').trim();
+        return text?{time,end:Number.isFinite(appleTime(node.getAttribute('end')))?appleTime(node.getAttribute('end')):time+3,text,words}:null;
       }).filter(Boolean).sort((a,b)=>a.time-b.time);
     }catch(error){
       console.warn('[KEFE Apple TTML]',error);
