@@ -765,9 +765,9 @@ I could feel the night begin</textarea>
     if(!appleLyrics||!title||!artist||!album||duration<=0)return;
     await appleLyricsReady;
     const request=++biniLyricsRequest;
-    const params=new URLSearchParams({s:title,a:artist,al:album,d:String(duration)});
+    const params=new URLSearchParams({track:title,artist,album,duration:String(duration)});
     try{
-      const response=await fetch('https://lyrics-api.binimum.org/getLyrics?'+params.toString());
+      const response=await fetch('https://lyrics-api.binimum.org/?'+params.toString());
       if(!response.ok)throw new Error('BiniLyrics request failed: '+response.status);
       const result=await response.json();
       if(request!==biniLyricsRequest)return;
