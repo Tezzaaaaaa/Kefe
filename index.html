@@ -1005,6 +1005,7 @@ button{border:0;cursor:pointer}
               syncAppleLyricsMetadata();
             }
           }
+        }
       }
     }catch(error){console.warn('[KEFE metadata lookup]',error);}
     if(mediaObjectUrl===lookupUrl){
@@ -1045,8 +1046,18 @@ button{border:0;cursor:pointer}
         if(request!==biniLyricsRequest)return;
         const fallbackResult=await fallbackResponse.json().catch(()=>({}));
         if(fallbackResponse.ok&&typeof fallbackResult?.lyrics==='string'){
-          ttml=fallbackResult.lyrics;
-          parsedLines=parseAppleTTML(ttml);
+          const qrc=fallbackResult.lyrics;
+          const qrcLines=qrc.match(/\[\d+,\d+\][^\r\n]*/g)||[];
+          const lrc=qrcLines.map(line=>{
+            const match=line.match(/^\[(\d+),(\d+)\](.*)$/);
+            if(!match)return '';
+            const millis=Number(match[1]);
+            const mins=Math.floor(millis/60000);
+            const secs=((millis%60000)/1000).toFixed(3).padStart(6,'0');
+            const text=match[3].replace(/\(\d+,\d+\)/g,'').trim();
+            return text?'['+String(mins).padStart(2,'0')+':'+secs+'] '+text:'';
+          }).filter(Boolean).join('\n');
+          parsedLines=parseAppleLrc(lrc);
         }
       }
       if(!parsedLines.length&&typeof result?.lyrics==='string'){
