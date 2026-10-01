@@ -130,7 +130,7 @@ button{border:0;cursor:pointer}
 .kefe-tabs{display:flex;flex-direction:column;align-items:stretch;gap:var(--control-gap);padding:var(--panel-pad) 12px;border-right:0;overflow:auto;background:var(--bg)}
 .kefe-section{position:relative;height:var(--tab-h);min-height:var(--tab-h);padding:0 14px;text-align:left;border:0;border-radius:999px;background:var(--bg);color:var(--muted);white-space:nowrap;box-shadow:none;transition:transform .18s ease,box-shadow .18s ease,background .18s ease,color .18s ease}
 .kefe-section:hover{background:var(--surface);color:var(--text);box-shadow:var(--lift)}
-.kefe-section.active{background:var(--accent);color:#fff;border-color:rgba(130,120,100,.10);box-shadow:inset 2px 2px 5px rgba(70,90,60,.45),inset -2px -2px 5px rgba(255,255,255,.28);font-weight:700;transform:none;border:0}
+.kefe-section.active{background:transparent;color:var(--text);border-color:rgba(130,120,100,.10);box-shadow:inset 2px 2px 5px rgba(70,90,60,.45),inset -2px -2px 5px rgba(255,255,255,.28);font-weight:700;transform:none;border:0}
 .kefe-section.active:before{content:"";position:absolute;left:7px;top:9px;bottom:9px;width:3px;border-radius:999px;background:transparent;box-shadow:none}
 .kefe-panels{min-height:0;overflow:auto;padding:var(--panel-pad) var(--panel-pad-x) 20px}
 .kefe-panel{display:none;max-width:var(--panel-max);margin:0 auto}
