@@ -366,6 +366,7 @@ if(miniPlayerCard){
     dragging=true;
     lastX=event.clientX;
     lastY=event.clientY;
+    miniPlayerCard.setPointerCapture?.(event.pointerId);
     miniPlayerCard.style.cursor='grabbing';
     window.parent.postMessage({type:'kefe-miniplayer-drag',action:'start',x:lastX,y:lastY},'*');
   },true);
