@@ -75,7 +75,7 @@ body.skin-dribbble-dark #kefeSkinSwitch{background:#060606;box-shadow:3px 3px 8p
 body.skin-dribbble-dark #kefeSkinSwitch button{background:#060606;color:#867565}
 body.skin-dribbble-dark #kefeSkinSwitch button.active{box-shadow:inset 2px 2px 4px rgba(0,0,0,.8),inset -2px -2px 4px rgba(134,117,101,.07);color:#E7DED5}
 
-#kefeSkinSwitch{position:fixed;right:12px;bottom:12px;z-index:80;display:flex;gap:4px;padding:4px;border-radius:999px;background:#e4e4e7;box-shadow:3px 3px 8px rgba(0,0,0,.18),-3px -3px 8px rgba(255,255,255,.65)}
+#kefeSkinSwitch{position:absolute;right:12px;bottom:12px;z-index:80;display:flex;gap:4px;padding:4px;border-radius:999px;background:#e4e4e7;box-shadow:3px 3px 8px rgba(0,0,0,.18),-3px -3px 8px rgba(255,255,255,.65)}
 #kefeSkinSwitch button{border:0;border-radius:999px;padding:5px 8px;font:600 8px/1 system-ui;cursor:pointer;background:transparent;color:#71717a}
 #kefeSkinSwitch button.active{box-shadow:inset 2px 2px 4px rgba(92,84,68,.22),inset -2px -2px 4px rgba(255,255,255,.7);color:#3f3f46}
 </style>
@@ -137,6 +137,7 @@ body.skin-dribbble-dark #kefeSkinSwitch button.active{box-shadow:inset 2px 2px 4
             <button id="loopBtn" title="Loop Mode" class="w-8 h-8 rounded-full bg-neu-base shadow-neu-flat flex items-center justify-center hover:text-neu-textDark active:shadow-neu-pressed transition text-[10px] cursor-pointer"><i class="fa-solid fa-repeat"></i></button>
             <div class="flex items-center gap-1.5 bg-neu-base rounded-full shadow-neu-pressed px-2.5 py-1"><i class="fa-solid fa-volume-high text-[10px]"></i><input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.8" class="w-16 h-1 bg-neu-base rounded-lg appearance-none cursor-pointer shadow-neu-pressed accent-blue-500 focus:outline-none"></div>
         </div>
+        <div id="kefeSkinSwitch" aria-label="MiniPlayer skin"><button type="button" data-skin="kefe" class="active">KEFE</button><button type="button" data-skin="dribbble-light">LIGHT</button><button type="button" data-skin="dribbble-dark">DARK</button></div>
     </div>
     <div id="playlistDrawer" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex justify-end transition-opacity duration-300 opacity-0 pointer-events-none">
         <div id="drawerContent" class="w-full max-w-xs h-full bg-neu-base shadow-2xl p-5 flex flex-col gap-4 transform translate-x-full transition-transform duration-300">
@@ -207,7 +208,7 @@ if(miniPlayerCard){
   miniPlayerCard.addEventListener('pointerup',endDrag);
   miniPlayerCard.addEventListener('pointercancel',endDrag);
 }</script>
-<div id="kefeSkinSwitch" aria-label="MiniPlayer skin"><button type="button" data-skin="kefe" class="active">KEFE</button><button type="button" data-skin="dribbble-light">LIGHT</button><button type="button" data-skin="dribbble-dark">DARK</button></div><script>
+<script>
 (()=>{const buttons=document.querySelectorAll('#kefeSkinSwitch button');buttons.forEach(b=>b.onclick=()=>{document.body.classList.remove('skin-dribbble-light','skin-dribbble-dark');if(b.dataset.skin!=='kefe')document.body.classList.add('skin-'+b.dataset.skin);buttons.forEach(x=>x.classList.toggle('active',x===b));try{localStorage.setItem('kefe-miniplayer-skin',b.dataset.skin)}catch(e){}});try{const skin=localStorage.getItem('kefe-miniplayer-skin')||'kefe',button=document.querySelector('#kefeSkinSwitch button[data-skin="'+skin+'"]');(button||buttons[0]).click()}catch(e){buttons[0].click()}})();
 </script></body>
 </html>
