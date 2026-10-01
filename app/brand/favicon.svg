@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="favTitle">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="favTitle">
   <title id="favTitle">KEFE</title>
   <rect width="128" height="128" rx="28" fill="#F6F6F3"/>
   <g transform="translate(19.214,16.000) scale(0.102019) translate(-94,-167)">
