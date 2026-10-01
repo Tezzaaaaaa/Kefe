@@ -42,7 +42,7 @@
     fontSelect.appendChild(o);
   });
 
-  const effectDefinitions=(Array.isArray(window.KEFE_EFFECTS)&&window.KEFE_EFFECTS.length?window.KEFE_EFFECTS.map(e=>[e.key,e.label]):fallbackEffects);
+  const effectDefinitions=Array.isArray(window.KEFE_EFFECTS)?window.KEFE_EFFECTS.map(e=>[e.key,e.label]):[];
 
   let state={effect:'apple',fontOverride:'',lines:[],appleLines:[],time:0};
   const canvas=document.getElementById('kefeCanvas'),ctx=canvas.getContext('2d');
