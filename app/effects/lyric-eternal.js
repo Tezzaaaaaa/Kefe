@@ -1,3 +1,5 @@
+(() => {
+  'use strict';
 /* =========================================================================
  * ETERNAL SUNSHINE EFFECT (Standalone Module)
  * ========================================================================= */
@@ -295,3 +297,7 @@ function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
     }
     ctx.restore();
 }
+
+  window.kefeEffects = window.kefeEffects || {};
+  window.kefeEffects.eternal = drawEternalSunshineEffect;
+})();

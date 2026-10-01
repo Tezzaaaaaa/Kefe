@@ -165,59 +165,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
   window.kefeEffects.drop = __makeMotionRenderer('drop');
   window.kefeEffects.drift = __makeMotionRenderer('drift');
 
-  function drawSpecialText(ctx,w,h,style,lines,time,mode){
-    const active=u.activeLine(lines,time);
-    if(!active)return;
-    const text=String(active.line.text||'').trim();
-    if(!text)return;
-    const contract=u.contract(mode);
-    const family=contract.family||'Open Sans';
-    const requested=Math.max(contract.min||34,Math.min(contract.max||150,Number(style.fontSize)||78));
-    const prepared=fitMotionText(ctx,text,requested,Number(contract.tracking)||0,w*.86,family);
-    const size=prepared.size;
-    const trackingPx=(Number(contract.tracking)||0)*size;
-    const start=Number(active.line.time)||0;
-    const end=Math.max(start+.4,Number(active.line.endTime)||start+3);
-    const duration=end-start;
-    const p=clamp((time-start)/Math.min(.55,Math.max(.25,duration*.22)));
-    const exit=clamp((end-time)/Math.min(.35,Math.max(.2,duration*.14)));
-    const eased=smoother(p);
-    const alpha=eased*exit;
-    ctx.save();
-    ctx.textAlign=contract.align||'center';
-    ctx.textBaseline='middle';
-    setMotionFont(ctx,family,size);
-    if(mode==='brat'){
-      const reveal=Math.max(0,Math.min(text.length,Math.ceil(text.length*smoother(clamp((time-start)/Math.min(.8,Math.max(.3,duration*.3)))))));
-      ctx.globalAlpha=alpha;ctx.fillStyle=style.textColor||'#fff';
-      ctx.translate(w/2,h*.5);
-      u.drawTrackedText(ctx,text.slice(0,reveal),0,0,trackingPx,'fillText');
-    }else if(mode==='eternal'){
-      ctx.globalAlpha=alpha;ctx.fillStyle=style.textColor||'#fff';
-      ctx.translate(w*.12,h*.55);
-      u.drawTrackedText(ctx,text,0,0,trackingPx,'fillText');
-    }else if(mode==='aurora'){
-      const g=ctx.createLinearGradient(w*.15,0,w*.85,h);
-      const hue=(time-start)*70;
-      g.addColorStop(0,'hsl('+((hue+190)%360)+' 90% 72%)');
-      g.addColorStop(.5,'hsl('+((hue+280)%360)+' 90% 76%)');
-      g.addColorStop(1,'hsl('+((hue+340)%360)+' 90% 70%)');
-      ctx.globalAlpha=alpha;ctx.fillStyle=g;ctx.shadowColor='rgba(255,255,255,.35)';ctx.shadowBlur=size*.08;
-      u.drawTrackedText(ctx,text,w/2,h*.5,trackingPx,'fillText');
-    }else{
-      const wave=Math.sin((time-start)*Math.PI*2.4)*size*.025;
-      const scale=1+Math.sin(clamp((time-start)/Math.max(.01,duration))*Math.PI*2.4)*.025;
-      ctx.globalAlpha=alpha;ctx.fillStyle=style.textColor||'#fff';
-      ctx.translate(w/2,h*.5+wave);ctx.scale(scale,scale);
-      ctx.shadowColor=style.accentColor||'#fff';ctx.shadowBlur=size*.07;
-      u.drawTrackedText(ctx,text,0,0,trackingPx,'fillText');
-    }
-    ctx.restore();
-  }
-  window.kefeEffects.brat=(ctx,w,h,style,lines,time)=>drawSpecialText(ctx,w,h,style,lines,time,'brat');
-  window.kefeEffects.eternal=(ctx,w,h,style,lines,time)=>drawSpecialText(ctx,w,h,style,lines,time,'eternal');
-  window.kefeEffects.aurora=(ctx,w,h,style,lines,time)=>drawSpecialText(ctx,w,h,style,lines,time,'aurora');
-  window.kefeEffects.pulse=(ctx,w,h,style,lines,time)=>drawSpecialText(ctx,w,h,style,lines,time,'pulse');
+
 
 
 })();

@@ -1,3 +1,5 @@
+(() => {
+  'use strict';
 /* =========================================================================
  * PULSE EFFECT (Standalone Module)
  * ========================================================================= */
@@ -92,3 +94,7 @@ function drawPulseEffect(ctx, w, h, style, lines, time) {
     }
     ctx.restore();
 }
+
+  window.kefeEffects = window.kefeEffects || {};
+  window.kefeEffects.pulse = drawPulseEffect;
+})();

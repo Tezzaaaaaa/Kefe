@@ -1,3 +1,5 @@
+(() => {
+  'use strict';
 /* =========================================================================
  * AURORA EFFECT (Standalone Module)
  * ========================================================================= */
@@ -70,3 +72,7 @@ function drawAuroraEffect(ctx, w, h, style, lines, time) {
     ctx.fillText(text, w / 2, y);
     ctx.restore();
 }
+
+  window.kefeEffects = window.kefeEffects || {};
+  window.kefeEffects.aurora = drawAuroraEffect;
+})();

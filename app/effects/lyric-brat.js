@@ -1,3 +1,5 @@
+(() => {
+  'use strict';
 /* =========================================================================
  * BRAT EFFECT (Standalone Module)
  * ========================================================================= */
@@ -154,3 +156,7 @@ function drawBratEffect(ctx, w, h, style, lines, time) {
     }
     ctx.restore();
 }
+
+  window.kefeEffects = window.kefeEffects || {};
+  window.kefeEffects.brat = drawBratEffect;
+})();
