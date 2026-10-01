@@ -141,6 +141,32 @@ function showSearchMessage(icon,iconClass,message){searchResultsContainer.innerH
 function renderSearchResults(results,query,notes){searchResultsContainer.innerHTML='';if(!results.length)return showSearchMessage('fa-triangle-exclamation','opacity-40','No matching tracks found for "'+query+'".');const sources=[...new Set(results.map(r=>r.source))].join(' + '),header=document.createElement('div');header.className='flex items-center justify-between px-1 pb-0.5';header.innerHTML='<span class="text-[9px] font-bold uppercase tracking-wider text-neu-textMuted">'+results.length+' result'+(results.length===1?'':'s')+' · '+escapeHtml(sources)+'</span>'+(notes.length?'<span class="text-[8px] font-semibold text-amber-600" title="'+escapeHtml(notes.join(' | '))+'">partial</span>':'');searchResultsContainer.appendChild(header);results.slice(0,30).forEach(song=>{const div=document.createElement('div'),sourceColor=song.source==='am-dl'?'text-violet-500':song.source==='iTunes'?'text-blue-500':'text-amber-500';div.className='p-2.5 rounded-2xl bg-neu-base shadow-neu-flat flex items-center justify-between gap-2.5 hover:shadow-neu-pressed transition';div.innerHTML='<div class="flex items-center gap-2.5 overflow-hidden"><img src="'+escapeHtml(song.artwork)+'" alt="Art" class="w-10 h-10 rounded-xl object-cover shadow-sm flex-shrink-0" onerror="this.src=\''+PLACEHOLDER_ART+'\'"><div class="overflow-hidden"><h4 class="text-[11px] font-bold text-neu-textDark truncate">'+escapeHtml(song.title)+'</h4><p class="text-[9px] text-neu-textMuted truncate">'+escapeHtml(song.artist)+' • '+escapeHtml(song.album)+'</p><span class="text-[8px] font-bold uppercase tracking-wide '+sourceColor+'">'+escapeHtml(song.source)+'</span></div></div><div class="flex items-center gap-1.5 flex-shrink-0"><button class="add-searched px-2.5 py-1.5 rounded-xl bg-neu-base shadow-neu-flat text-[10px] font-bold text-blue-600 hover:text-blue-700 active:shadow-neu-pressed transition flex items-center gap-1 cursor-pointer"><i class="fa-solid fa-plus text-[9px]"></i> Add</button><button class="download-searched px-2.5 py-1.5 rounded-xl bg-neu-base shadow-neu-flat text-[10px] font-bold text-emerald-600 hover:text-emerald-700 active:shadow-neu-pressed transition flex items-center gap-1 cursor-pointer"'+(song.playable?'':' disabled')+'><i class="fa-solid fa-download text-[9px]"></i></button></div>';div.querySelector('.add-searched').onclick=()=>{playlist.push({id:song.id+'-'+Date.now(),title:song.title,artist:song.artist,album:song.album,artwork:song.artwork,url:song.url||'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',isFavorite:false});renderPlaylist()};div.querySelector('.download-searched').onclick=async()=>{if(!song.playable||!song.url)return;const btn=div.querySelector('.download-searched'),safeName=(song.artist+' - '+song.title).replace(/[\\/:*?"<>|]/g,'_');btn.innerHTML='<i class="fa-solid fa-spinner animate-spin"></i>';try{const res=await fetch(song.url,{mode:'cors'});if(!res.ok)throw new Error('HTTP '+res.status);const blob=await res.blob(),blobUrl=URL.createObjectURL(blob),a=document.createElement('a');a.href=blobUrl;a.download=safeName+'.mp3';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(blobUrl)}catch(err){const a=document.createElement('a');a.href=song.url;a.download=safeName+'.mp3';a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove()}setTimeout(()=>btn.innerHTML='<i class="fa-solid fa-download text-[9px]"></i>',1000)};searchResultsContainer.appendChild(div)})}
 async function executeSearch(query){query=(query||'').trim();if(!query)return;const token=++searchToken;searchSourceStatus.textContent='Searching am-dl & iTunes…';showSearchMessage('fa-spinner','text-blue-500 animate-spin','Querying catalogs for "'+query+'"...');const notes=[],results=[];try{results.push(...await searchAmdl(query))}catch(err){notes.push('am-dl unavailable')}if(token!==searchToken)return;try{results.push(...await searchItunes(query))}catch(err){notes.push('iTunes unavailable')}if(token!==searchToken)return;if(!results.length){results.push(...searchLocalCatalog(query));if(results.length)notes.push('showing offline demo catalog')}renderSearchResults(dedupeTracks(results),query,notes)}
 function openSearchModal(){searchModal.classList.remove('opacity-0','pointer-events-none');searchModalContent.classList.remove('scale-95');setTimeout(()=>searchInput.focus(),120)}function closeSearchModal(){searchModal.classList.add('opacity-0','pointer-events-none');searchModalContent.classList.add('scale-95')}openSearchBtn.onclick=openSearchModal;openGlobeSearchBtn.onclick=openSearchModal;closeSearchModalBtn.onclick=closeSearchModal;searchModal.onclick=e=>e.target===searchModal&&closeSearchModal();document.querySelectorAll('.quick-tag').forEach(tag=>tag.onclick=()=>{searchInput.value=tag.textContent.trim();executeSearch(searchInput.value)});executeSearchBtn.onclick=()=>executeSearch(searchInput.value);searchInput.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();clearTimeout(searchDebounceTimer);executeSearch(searchInput.value)}};searchInput.oninput=()=>{clearTimeout(searchDebounceTimer);const value=searchInput.value.trim();if(value.length>=2)searchDebounceTimer=setTimeout(()=>executeSearch(value),550)};document.onkeydown=e=>e.key==='Escape'&&!searchModal.classList.contains('pointer-events-none')&&closeSearchModal();loadTrack(0,false)});
-    </script>
+    
+const miniPlayerCard=document.querySelector('body > div.w-full.max-w-\[340px\]');
+if(miniPlayerCard){
+  let dragging=false,lastX=0,lastY=0;
+  miniPlayerCard.addEventListener('pointerdown',event=>{
+    if(event.target.closest('button,label,input,select,textarea,a'))return;
+    dragging=true;
+    lastX=event.clientX;
+    lastY=event.clientY;
+    miniPlayerCard.setPointerCapture?.(event.pointerId);
+    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'start',x:lastX,y:lastY},'*');
+  });
+  miniPlayerCard.addEventListener('pointermove',event=>{
+    if(!dragging)return;
+    const dx=event.clientX-lastX,dy=event.clientY-lastY;
+    lastX=event.clientX;
+    lastY=event.clientY;
+    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'move',dx,dy},'*');
+  });
+  const endDrag=event=>{
+    dragging=false;
+    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'end',x:event.clientX,y:event.clientY},'*');
+  };
+  miniPlayerCard.addEventListener('pointerup',endDrag);
+  miniPlayerCard.addEventListener('pointercancel',endDrag);
+}
+</script>
 </body>
 </html>
