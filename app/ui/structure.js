@@ -21,11 +21,11 @@ document.body.insertAdjacentHTML('beforeend',KEFE_STRUCTURE);
     if(frameWrap){frameWrap.hidden=false;return;}
     frameWrap=document.createElement('div');
     frameWrap.id='kefeMiniPlayerWindow';
-    frameWrap.style.cssText='position:fixed;z-index:9999;width:min(340px,calc(100vw - 16px));height:min(760px,calc(100vh - 16px));left:0;top:0;display:block;overflow:hidden;border-radius:32px;background:#e4e4e7;box-shadow:0 18px 50px rgba(0,0,0,.22);touch-action:none;';
+    frameWrap.style.cssText='position:fixed;z-index:9999;width:min(340px,calc(100vw - 16px));height:min(760px,calc(100vh - 16px));left:0;top:0;display:block;overflow:hidden;border-radius:32px;background:transparent;box-shadow:none;touch-action:none;';
     const frame=document.createElement('iframe');
     frame.src='./MiniplayerKefe.html';
     frame.title='KEFE MiniPlayer';
-    frame.style.cssText='display:block;width:100%;height:100%;border:0;background:#e4e4e7;';
+    frame.style.cssText='display:block;width:100%;height:100%;border:0;background:transparent;';
     frameWrap.appendChild(frame);
     document.body.appendChild(frameWrap);
     requestAnimationFrame(positionDefault);
