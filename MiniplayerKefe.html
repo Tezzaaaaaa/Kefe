@@ -356,45 +356,7 @@ function renderSearchResults(results,query,notes){searchResultsContainer.innerHT
 async function executeSearch(query){query=(query||'').trim();if(!query)return;const token=++searchToken;searchSourceStatus.textContent='Searching am-dl & iTunes…';showSearchMessage('fa-spinner','text-blue-500 animate-spin','Querying catalogs for "'+query+'"...');const notes=[],results=[];try{results.push(...await searchAmdl(query))}catch(err){notes.push('am-dl unavailable')}if(token!==searchToken)return;try{results.push(...await searchItunes(query))}catch(err){notes.push('iTunes unavailable')}if(token!==searchToken)return;if(!results.length){results.push(...searchLocalCatalog(query));if(results.length)notes.push('showing offline demo catalog')}renderSearchResults(dedupeTracks(results),query,notes)}
 function openSearchModal(){searchModal.classList.remove('opacity-0','pointer-events-none');searchModalContent.classList.remove('scale-95');setTimeout(()=>searchInput.focus(),120)}function closeSearchModal(){searchModal.classList.add('opacity-0','pointer-events-none');searchModalContent.classList.add('scale-95')}openSearchBtn.onclick=openSearchModal;openGlobeSearchBtn.onclick=openSearchModal;closeSearchModalBtn.onclick=closeSearchModal;searchModal.onclick=e=>e.target===searchModal&&closeSearchModal();document.querySelectorAll('.quick-tag').forEach(tag=>tag.onclick=()=>{searchInput.value=tag.textContent.trim();executeSearch(searchInput.value)});executeSearchBtn.onclick=()=>executeSearch(searchInput.value);searchInput.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();clearTimeout(searchDebounceTimer);executeSearch(searchInput.value)}};searchInput.oninput=()=>{clearTimeout(searchDebounceTimer);const value=searchInput.value.trim();if(value.length>=2)searchDebounceTimer=setTimeout(()=>executeSearch(value),550)};document.onkeydown=e=>e.key==='Escape'&&!searchModal.classList.contains('pointer-events-none')&&closeSearchModal();loadTrack(0,false)});
     
-const miniPlayerCard=document.querySelector('body > div.w-full.max-w-\\[340px\\]');
-if(miniPlayerCard){
-  let dragging=false,lastX=0,lastY=0;
-  miniPlayerCard.style.cursor='grab';
-  miniPlayerCard.style.touchAction='none';
-  miniPlayerCard.addEventListener('pointerdown',event=>{
-    if(event.target instanceof Element&&event.target.closest('button,label,input,select,textarea,a'))return;
-    event.preventDefault();
-    dragging=true;
-    lastX=event.clientX;
-    lastY=event.clientY;
-    miniPlayerCard.setPointerCapture?.(event.pointerId);
-    miniPlayerCard.style.cursor='grabbing';
-    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'start',x:lastX,y:lastY},'*');
-  });
-  miniPlayerCard.addEventListener('pointermove',event=>{
-    if(!dragging)return;
-    event.preventDefault();
-    const dx=event.clientX-lastX,dy=event.clientY-lastY;
-    if(!dx&&!dy)return;
-    lastX=event.clientX;
-    lastY=event.clientY;
-    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'move',dx,dy},'*');
-  });
-  miniPlayerCard.addEventListener('pointerup',event=>{
-    if(!dragging)return;
-    dragging=false;
-    miniPlayerCard.releasePointerCapture?.(event.pointerId);
-    miniPlayerCard.style.cursor='grab';
-    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'end',x:event.clientX,y:event.clientY},'*');
-  });
-  miniPlayerCard.addEventListener('pointercancel',event=>{
-    if(!dragging)return;
-    dragging=false;
-    miniPlayerCard.releasePointerCapture?.(event.pointerId);
-    miniPlayerCard.style.cursor='grab';
-    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'end',x:event.clientX,y:event.clientY},'*');
-  });
-}</script>
+</script>
 <script>
 (()=>{const buttons=document.querySelectorAll('#kefeSkinSwitch button');buttons.forEach(b=>b.onclick=()=>{document.body.classList.remove('skin-dribbble-light','skin-dribbble-dark');if(b.dataset.skin!=='kefe')document.body.classList.add('skin-'+b.dataset.skin);buttons.forEach(x=>x.classList.toggle('active',x===b));try{localStorage.setItem('kefe-miniplayer-skin',b.dataset.skin)}catch(e){}});try{const skin=localStorage.getItem('kefe-miniplayer-skin')||'kefe',button=document.querySelector('#kefeSkinSwitch button[data-skin="'+skin+'"]');(button||buttons[0]).click()}catch(e){buttons[0].click()}})();
 </script></body>
