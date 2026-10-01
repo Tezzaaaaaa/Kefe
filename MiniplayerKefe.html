@@ -40,28 +40,44 @@
         .eq-anim span:nth-child(2){animation-delay:.3s}
         .eq-anim span:nth-child(3){animation-delay:.6s}
     </style><style id="kefe-skin-options">
-:root{--skin-bg:#e4e4e7;--skin-surface:#e4e4e7;--skin-dark:#d1d1d6;--skin-text:#3f3f46;--skin-muted:#71717a;--skin-accent:#3b82f6}
-body.skin-dark{background:#060606;color:#867565}
-body.skin-dark .bg-neu-base{background:#060606!important}
-body.skin-dark .text-neu-textDark{color:#f0ebe5!important}
-body.skin-dark .text-neu-textMuted{color:#867565!important}
-body.skin-dark .bg-neu-dark{background:#463b32!important}
-body.skin-dark .shadow-neu-flat{box-shadow:6px 6px 12px rgba(0,0,0,.72),-4px -4px 10px rgba(255,255,255,.025)!important}
-body.skin-dark .shadow-neu-flat-sm{box-shadow:3px 3px 6px rgba(0,0,0,.65),-3px -3px 6px rgba(255,255,255,.02)!important}
-body.skin-dark .shadow-neu-pressed{box-shadow:inset 3px 3px 7px rgba(0,0,0,.7),inset -3px -3px 7px rgba(134,117,101,.08)!important}
-body.skin-dark .shadow-neu-pressed-lg{box-shadow:inset 6px 6px 12px rgba(0,0,0,.75),inset -6px -6px 12px rgba(134,117,101,.08)!important}
-body.skin-dark .border-neu-dark\/30{border-color:rgba(134,117,101,.18)!important}
-body.skin-dark .accent-blue-500{accent-color:#867565}
-body.skin-dark .text-blue-500,body.skin-dark .text-blue-600,body.skin-dark .text-blue-700{color:#867565!important}
-body.skin-dark .hover\\:text-blue-500:hover,body.skin-dark .hover\\:text-blue-600:hover,body.skin-dark .hover\\:text-blue-700:hover{color:#b29d88!important}
-body.skin-dark .text-rose-500{color:#b56d62!important}
-body.skin-dark .bg-black\\/20{background:rgba(0,0,0,.28)!important}
-#kefeSkinSwitch{position:fixed;right:12px;bottom:12px;z-index:80;display:flex;gap:4px;padding:4px;border-radius:999px;background:inherit;box-shadow:3px 3px 8px rgba(0,0,0,.18),-3px -3px 8px rgba(255,255,255,.65)}
-#kefeSkinSwitch button{border:0;border-radius:999px;padding:5px 9px;font:600 9px/1 system-ui;cursor:pointer;background:inherit;color:#71717a}
+body{background:transparent}
+body.skin-dribbble-light{color:#824833}
+body.skin-dribbble-light .bg-neu-base{background:#E6E4DB}
+body.skin-dribbble-light .bg-neu-dark{background:#948D7B}
+body.skin-dribbble-light .text-neu-textDark{color:#824833}
+body.skin-dribbble-light .text-neu-textMuted{color:#948D7B}
+body.skin-dribbble-light .shadow-neu-flat{box-shadow:7px 7px 14px rgba(148,141,123,.34),-7px -7px 14px rgba(255,255,255,.78)}
+body.skin-dribbble-light .shadow-neu-flat-sm{box-shadow:3px 3px 7px rgba(148,141,123,.30),-3px -3px 7px rgba(255,255,255,.78)}
+body.skin-dribbble-light .shadow-neu-pressed{box-shadow:inset 3px 3px 7px rgba(148,141,123,.34),inset -3px -3px 7px rgba(255,255,255,.78)}
+body.skin-dribbble-light .shadow-neu-pressed-lg{box-shadow:inset 7px 7px 14px rgba(148,141,123,.36),inset -7px -7px 14px rgba(255,255,255,.8)}
+body.skin-dribbble-light .text-blue-500,body.skin-dribbble-light .text-blue-600,body.skin-dribbble-light .text-blue-700{color:#DF9C69}
+body.skin-dribbble-light .accent-blue-500{accent-color:#DF9C69}
+body.skin-dribbble-light .text-rose-500{color:#824833}
+body.skin-dribbble-light .bg-black\/20{background:rgba(130,72,51,.16)}
+body.skin-dribbble-light #kefeSkinSwitch{background:#E6E4DB;box-shadow:3px 3px 8px rgba(148,141,123,.34),-3px -3px 8px rgba(255,255,255,.78)}
+body.skin-dribbble-light #kefeSkinSwitch button{background:#E6E4DB;color:#948D7B}
+body.skin-dribbble-light #kefeSkinSwitch button.active{box-shadow:inset 2px 2px 4px rgba(148,141,123,.30),inset -2px -2px 4px rgba(255,255,255,.8);color:#824833}
+
+body.skin-dribbble-dark{background:transparent;color:#867565}
+body.skin-dribbble-dark .bg-neu-base{background:#060606}
+body.skin-dribbble-dark .bg-neu-dark{background:#463B32}
+body.skin-dribbble-dark .text-neu-textDark{color:#E7DED5}
+body.skin-dribbble-dark .text-neu-textMuted{color:#867565}
+body.skin-dribbble-dark .shadow-neu-flat{box-shadow:7px 7px 14px rgba(0,0,0,.78),-7px -7px 14px rgba(134,117,101,.045)}
+body.skin-dribbble-dark .shadow-neu-flat-sm{box-shadow:3px 3px 7px rgba(0,0,0,.72),-3px -3px 7px rgba(134,117,101,.04)}
+body.skin-dribbble-dark .shadow-neu-pressed{box-shadow:inset 3px 3px 7px rgba(0,0,0,.8),inset -3px -3px 7px rgba(134,117,101,.07)}
+body.skin-dribbble-dark .shadow-neu-pressed-lg{box-shadow:inset 7px 7px 14px rgba(0,0,0,.82),inset -7px -7px 14px rgba(134,117,101,.07)}
+body.skin-dribbble-dark .text-blue-500,body.skin-dribbble-dark .text-blue-600,body.skin-dribbble-dark .text-blue-700{color:#867565}
+body.skin-dribbble-dark .accent-blue-500{accent-color:#867565}
+body.skin-dribbble-dark .text-rose-500{color:#B56D62}
+body.skin-dribbble-dark .bg-black\/20{background:rgba(0,0,0,.30)}
+body.skin-dribbble-dark #kefeSkinSwitch{background:#060606;box-shadow:3px 3px 8px rgba(0,0,0,.8),-3px -3px 8px rgba(134,117,101,.045)}
+body.skin-dribbble-dark #kefeSkinSwitch button{background:#060606;color:#867565}
+body.skin-dribbble-dark #kefeSkinSwitch button.active{box-shadow:inset 2px 2px 4px rgba(0,0,0,.8),inset -2px -2px 4px rgba(134,117,101,.07);color:#E7DED5}
+
+#kefeSkinSwitch{position:fixed;right:12px;bottom:12px;z-index:80;display:flex;gap:4px;padding:4px;border-radius:999px;background:#e4e4e7;box-shadow:3px 3px 8px rgba(0,0,0,.18),-3px -3px 8px rgba(255,255,255,.65)}
+#kefeSkinSwitch button{border:0;border-radius:999px;padding:5px 8px;font:600 8px/1 system-ui;cursor:pointer;background:transparent;color:#71717a}
 #kefeSkinSwitch button.active{box-shadow:inset 2px 2px 4px rgba(92,84,68,.22),inset -2px -2px 4px rgba(255,255,255,.7);color:#3f3f46}
-body.skin-dark #kefeSkinSwitch{background:#060606;box-shadow:3px 3px 8px rgba(0,0,0,.75),-3px -3px 8px rgba(255,255,255,.025)}
-body.skin-dark #kefeSkinSwitch button{background:#060606;color:#867565}
-body.skin-dark #kefeSkinSwitch button.active{box-shadow:inset 2px 2px 4px rgba(0,0,0,.7),inset -2px -2px 4px rgba(134,117,101,.08);color:#f0ebe5}
 </style>
 </head>
 <body class="h-full flex items-center justify-center p-3 sm:p-4 overflow-auto">
@@ -191,7 +207,7 @@ if(miniPlayerCard){
   miniPlayerCard.addEventListener('pointerup',endDrag);
   miniPlayerCard.addEventListener('pointercancel',endDrag);
 }</script>
-<div id="kefeSkinSwitch" aria-label="MiniPlayer skin"><button type="button" data-skin="light" class="active">LIGHT</button><button type="button" data-skin="dark">DARK</button></div><script>
-(()=>{const buttons=document.querySelectorAll('#kefeSkinSwitch button');buttons.forEach(b=>b.onclick=()=>{const dark=b.dataset.skin==='dark';document.body.classList.toggle('skin-dark',dark);buttons.forEach(x=>x.classList.toggle('active',x===b));try{localStorage.setItem('kefe-miniplayer-skin',dark?'dark':'light')}catch(e){}});try{if(localStorage.getItem('kefe-miniplayer-skin')==='dark')buttons[1].click()}catch(e){}})();
+<div id="kefeSkinSwitch" aria-label="MiniPlayer skin"><button type="button" data-skin="kefe" class="active">KEFE</button><button type="button" data-skin="dribbble-light">LIGHT</button><button type="button" data-skin="dribbble-dark">DARK</button></div><script>
+(()=>{const buttons=document.querySelectorAll('#kefeSkinSwitch button');buttons.forEach(b=>b.onclick=()=>{document.body.classList.remove('skin-dribbble-light','skin-dribbble-dark');if(b.dataset.skin!=='kefe')document.body.classList.add('skin-'+b.dataset.skin);buttons.forEach(x=>x.classList.toggle('active',x===b));try{localStorage.setItem('kefe-miniplayer-skin',b.dataset.skin)}catch(e){}});try{const skin=localStorage.getItem('kefe-miniplayer-skin')||'kefe',button=document.querySelector('#kefeSkinSwitch button[data-skin="'+skin+'"]');(button||buttons[0]).click()}catch(e){buttons[0].click()}})();
 </script></body>
 </html>
