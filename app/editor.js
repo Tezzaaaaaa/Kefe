@@ -227,19 +227,13 @@
     }
   }
   async function fetchAlbumArt(title,artist,album){
-    if(!title||!artist)return;
-    const params=new URLSearchParams({term:title+' '+artist,entity:'song',limit:'10',country:'AU'});
-    const response=await fetch('https://api.deezer.com/search?q='+encodeURIComponent(params.get('term')||'')+'&limit=25');
-    if(!response.ok)throw new Error('Apple artwork lookup failed: '+response.status);
-    const result=await response.json();
-    const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-    const wantedTitle=normalize(title),wantedArtist=normalize(artist),wantedAlbum=normalize(album);
-    const items=Array.isArray(result.data)?result.data:[];
-    const match=items.find(item=>{
-      const itemTitle=normalize(item.title),itemArtist=normalize(item.artist?.name),itemAlbum=normalize(item.album?.title);
-      return itemTitle===wantedTitle&&itemArtist===wantedArtist&&(!wantedAlbum||itemAlbum===wantedAlbum);
-    })||items.find(item=>normalize(item.title)===wantedTitle&&normalize(item.artist?.name)===wantedArtist);
-    const cover=match?.album?.cover_xl||match?.album?.cover_big||'';
+    if(!title)return;
+    const query=[title,artist].filter(Boolean).join(' ');
+    const r=await fetch('https://api.deezer.com/search?q='+encodeURIComponent(query)+'&limit=1');
+    const result=await r.json();
+    const item=(result.data||[])[0];
+    if(!item)return;
+    const cover=item.album?.cover_xl||item.album?.cover_big||'';
     if(!cover)return;
     songAlbum.dataset.artUrl=cover;
     updateMediaTrack();
@@ -608,69 +602,45 @@
     range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
     const lookupUrl=mediaObjectUrl;
     try{
-      const titleQuery=songTitle.value.trim();
-      const filenameParts=titleQuery.split(/\s[-–—]\s/);
-      const parsedArtist=filenameParts.length>1?filenameParts.shift().trim():'';
-      const parsedTitle=filenameParts.join(' - ').trim()||titleQuery;
-      const artistQuery=songArtist.value.trim()||parsedArtist;
-      if(titleQuery){
-        const params=new URLSearchParams({term:[parsedTitle,artistQuery].filter(Boolean).join(' '),entity:'song',limit:'50',country:'AU'});
-        const response=await fetch('https://api.deezer.com/search?q='+encodeURIComponent(params.get('term')||'')+'&limit=25');
-        if(response.ok&&mediaObjectUrl===lookupUrl&&songTitle.value.trim()===titleQuery){
-          const result=await response.json();
-          const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-          const title=normalize(parsedTitle);
-          const originalTitle=normalize(titleQuery);
-          const artist=normalize(artistQuery);
-          const duration=audio.duration*1000;
-          const songs=(Array.isArray(result.data)?result.data:[]).map(item=>({
-            trackName:item.title,
-            artistName:item.artist?.name,
-            collectionName:item.album?.title,
-            releaseDate:item.release_date,
-            trackTimeMillis:(item.duration||0)*1000,
-            artworkUrl100:item.album?.cover_xl||item.album?.cover_big||'',
-            trackId:item.id
+      const raw=songTitle.value.trim();
+      const parts=raw.split(/\s+[-\u2013\u2014]\s+/);
+      const parsedArtist=parts.length>1?parts.shift().trim():'';
+      const parsedTitle=parts.join(' - ').trim()||raw;
+      const query=[parsedTitle,parsedArtist||songArtist.value.trim()].filter(Boolean).join(' ');
+      if(query){
+        const r=await fetch('https://api.deezer.com/search?q='+encodeURIComponent(query)+'&limit=10');
+        const result=await r.json();
+        const items=Array.isArray(result.data)?result.data:[];
+        if(items.length&&mediaObjectUrl===lookupUrl){
+          const best=items[0];
+          songTitle.value=best.title||parsedTitle;
+          songArtist.value=best.artist?.name||parsedArtist||'';
+          songAlbum.value=best.album?.title||'';
+          songYear.value=best.release_date?String(best.release_date).slice(0,4):'';
+          songAlbum.dataset.artUrl=best.album?.cover_xl||best.album?.cover_big||'';
+          songAlbum.dataset.trackDuration=best.duration?String(best.duration):'';
+          songAlbum.dataset.platformId=best.id?String(best.id):'';
+          const mapped=items.map(it=>({
+            trackName:it.title,
+            artistName:it.artist?.name,
+            collectionName:it.album?.title,
+            releaseDate:it.release_date,
+            trackTimeMillis:(it.duration||0)*1000,
+            artworkUrl100:it.album?.cover_xl||it.album?.cover_big||'',
+            trackId:it.id
           }));
-          renderSongSuggestions(songs);
-          const ranked=songs.map(item=>{
-            const itemTitle=normalize(item.trackName);
-            const itemArtist=normalize(item.artistName);
-            const titleExact=itemTitle===title||itemTitle===originalTitle;
-            const titleRelated=titleExact||(title&&(itemTitle.includes(title)||title.includes(itemTitle)));
-            const artistExact=!!artist&&itemArtist===artist;
-            const durationDiff=Math.abs((item.trackTimeMillis||Infinity)-duration);
-            const durationScore=durationDiff<=2000?40:durationDiff<=5000?25:durationDiff<=10000?10:0;
-            const score=(titleExact?100:titleRelated?30:0)+(artistExact?60:0)+durationScore;
-            return {item,score,titleExact,artistExact,durationDiff};
-          }).sort((a,b)=>b.score-a.score||a.durationDiff-b.durationDiff);
-          const best=ranked[0];
-          const second=ranked[1];
-          const confident=best&&(
-            (best.titleExact&&(best.artistExact||best.durationDiff<=10000)) ||
-            (!artist&&best.titleExact&&(!second||best.score>second.score)) ||
-            (!best.titleExact&&best.artistExact&&best.durationDiff<=5000)
-          );
-          if(confident&&mediaObjectUrl===lookupUrl){
-            const exact=best.item;
-            songTitle.value=exact.trackName||parsedTitle||songTitle.value;
-            songArtist.value=exact.artistName||'';
-            songAlbum.value=exact.collectionName||'';
-            songYear.value=exact.releaseDate?String(exact.releaseDate).slice(0,4):'';
-            songAlbum.dataset.artUrl=exact.artworkUrl100?exact.artworkUrl100.replace(/100x100bb\\.(jpg|jpeg|png)$/i,'600x600bb.$1'):'';
-            songAlbum.dataset.trackDuration=exact.trackTimeMillis?String(Number(exact.trackTimeMillis)/1000):'';
-            songAlbum.dataset.platformId=exact.trackId?String(exact.trackId):'';
-            updateMediaTrack();
-            updateTitleCard();
-            applyAppleAlbumGradient();
-            syncAppleLyricsMetadata();
-          }
+          renderSongSuggestions(mapped);
+          updateMediaTrack();
+          updateTitleCard();
+          applyAppleAlbumGradient();
+          syncAppleLyricsMetadata();
+        } else {
+          renderSongSuggestions([]);
         }
       }
-    }catch(error){console.warn('[KEFE metadata lookup]',error);}
+    }catch(error){console.warn('[KEFE metadata]',error);renderSongSuggestions([]);}
     if(mediaObjectUrl===lookupUrl){
       syncAppleLyricsMetadata();
-      fetchAlbumArt(songTitle.value.trim(),songArtist.value.trim(),songAlbum.value.trim()).catch(err=>console.warn('[KEFE artwork]',err));
       loadBiniLyrics();
     }
   });
