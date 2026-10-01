@@ -729,7 +729,7 @@
           duration:String(Math.round(duration))
         });
         if(album)fallbackParams.set('album_name',album);
-        const fallbackResponse=await fetch('https://lrclib.net/api/get?'+fallbackParams.toString(),{
+        let fallbackResponse=await fetch('https://lrclib.net/api/get?'+fallbackParams.toString(),{
           signal:fallbackController.signal,
           headers:{
             'Accept':'application/json',
@@ -737,8 +737,30 @@
           }
         });
         if(request!==biniLyricsRequest)return;
-        if(!fallbackResponse.ok)throw new Error('LRCLIB lookup failed: '+fallbackResponse.status);
-        const fallbackPayload=await fallbackResponse.json();
+        let fallbackPayload={};
+        if(fallbackResponse.ok){
+          fallbackPayload=await fallbackResponse.json();
+        }else if(fallbackResponse.status===404){
+          const searchParams=new URLSearchParams({track_name:title,artist_name:artist});
+          if(album)searchParams.set('album_name',album);
+          fallbackResponse=await fetch('https://lrclib.net/api/search?'+searchParams.toString(),{
+            signal:fallbackController.signal,
+            headers:{
+              'Accept':'application/json',
+              'X-User-Agent':'KEFE (https://tezzaaaaaa.github.io/Kefe/)'
+            }
+          });
+          if(request!==biniLyricsRequest)return;
+          if(!fallbackResponse.ok)throw new Error('LRCLIB search failed: '+fallbackResponse.status);
+          const searchResults=await fallbackResponse.json();
+          const ranked=Array.isArray(searchResults)?searchResults.filter(item=>item?.syncedLyrics).sort((a,b)=>{
+            const ad=Math.abs(Number(a.duration||0)-duration),bd=Math.abs(Number(b.duration||0)-duration);
+            return ad-bd;
+          }):[];
+          fallbackPayload=ranked[0]||searchResults?.[0]||{};
+        }else{
+          throw new Error('LRCLIB lookup failed: '+fallbackResponse.status);
+        }
         const lrc=String(fallbackPayload?.syncedLyrics||'').trim();
         if(!lrc)throw new Error('LRCLIB returned no synchronized LRC');
         const parsedLrc=parseAppleLrc(lrc);
