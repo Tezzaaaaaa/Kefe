@@ -68,8 +68,6 @@ button{border:0;cursor:pointer}
 .kefe-play{width:var(--control-h);height:var(--control-h);border-radius:50%;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--lift);font-weight:800;display:grid;place-items:center}.kefe-play svg{width:17px;height:17px;display:block}.kefe-play .kefe-pause-icon{width:18px;height:18px}
 .kefe-play:active{box-shadow:inset 2px 2px 5px rgba(92,84,68,.18)}
 .kefe-wave{height:42px;position:relative;display:flex;align-items:center;gap:2px;padding:0 4px}
-.kefe-wave span{display:block;flex:1 1 0;min-width:1px;border-radius:2px;background:#948d7b;opacity:.65}
-.kefe-wave span:nth-child(3n){height:34%}.kefe-wave span:nth-child(4n){height:68%}.kefe-wave span:nth-child(5n){height:46%}.kefe-wave span:nth-child(7n){height:82%}.kefe-wave span:nth-child(11n){height:56%}
 .kefe-wave .playhead{position:absolute;top:1px;bottom:1px;width:2px;background:var(--accent);left:0;border-radius:2px;box-shadow:0 0 7px rgba(239,63,56,.35);pointer-events:none}
 .kefe-time{min-width:82px;text-align:right;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
 #kefeTime{position:absolute;opacity:0}
@@ -259,7 +257,6 @@ body{letter-spacing:-.01em}
 .kefe-play:hover{background:var(--surface-hi)}
 .kefe-play:active{box-shadow:var(--inner)}
 .kefe-wave{height:42px;padding:0 6px}
-.kefe-wave span{background:var(--muted);opacity:.52}
 .kefe-wave .playhead{background:var(--accent-deep);box-shadow:0 0 7px rgba(130,72,51,.22)}
 .kefe-slider::-webkit-slider-runnable-track{background:linear-gradient(to right,var(--accent-deep) 0%,var(--accent-deep) var(--progress,0%),var(--surface-lo) var(--progress,0%),var(--surface-lo) 100%);box-shadow:var(--inner)}
 .kefe-slider::-moz-range-track{background:linear-gradient(to right,var(--accent-deep) 0%,var(--accent-deep) var(--progress,0%),var(--surface-lo) var(--progress,0%),var(--surface-lo) 100%);box-shadow:var(--inner)}
@@ -357,8 +354,6 @@ body{letter-spacing:-.01em}
 /* KEFE TIMELINE WAVEFORM REDESIGN */
 .kefe-timeline{grid-template-columns:auto minmax(0,1fr) auto;gap:12px;min-width:0;padding:8px 24px;background:var(--bg);border:0;box-shadow:none}
 .kefe-wave{position:relative;min-width:0;height:48px;padding:0 74px;display:flex;align-items:center;gap:2px;overflow:hidden;border-radius:999px;background:#E2E6EC;box-shadow:inset 6px 6px 12px rgba(168,152,132,.28),inset -6px -6px 12px rgba(255,255,255,.92)}
-.kefe-wave span{position:relative;z-index:1;display:block;flex:1 1 0;min-width:1px;max-height:32px;border-radius:999px;background:#3A342D;opacity:.28}
-.kefe-wave span:nth-child(3n){height:34%}.kefe-wave span:nth-child(4n){height:68%}.kefe-wave span:nth-child(5n){height:46%}.kefe-wave span:nth-child(7n){height:82%}.kefe-wave span:nth-child(11n){height:56%}
 .kefe-wave .playhead{position:absolute;z-index:5;top:7px;bottom:7px;left:0;width:2px;margin:0;border-radius:999px;background:#EF3F38;box-shadow:0 0 10px rgba(239,63,56,.52),0 0 18px rgba(239,63,56,.24);pointer-events:none;transform:translateX(-50%)}
 .kefe-wave .playhead::after{content:"";position:absolute;left:50%;bottom:-1px;width:9px;height:6px;border-radius:50%;background:#EF3F38;box-shadow:0 0 10px 3px rgba(239,63,56,.42);transform:translateX(-50%)}
 .kefe-slider{position:absolute;inset:0;z-index:4;width:100%;height:48px;margin:0;padding:0;appearance:none;-webkit-appearance:none;background:transparent;border:0;border-radius:999px;outline:none;cursor:pointer;touch-action:none}
