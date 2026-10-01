@@ -359,33 +359,37 @@ function openSearchModal(){searchModal.classList.remove('opacity-0','pointer-eve
 const miniPlayerCard=document.querySelector('body > div.w-full.max-w-\\[340px\\]');
 if(miniPlayerCard){
   let dragging=false,lastX=0,lastY=0;
-  const drag=event=>{
-    if(event.type==='pointerdown'){
-      if(!miniPlayerCard.contains(event.target)||(event.target instanceof Element&&event.target.closest('button,label,input,select,textarea,a')))return;
-      event.preventDefault();
-      dragging=true;
-      lastX=event.clientX;
-      lastY=event.clientY;
-      miniPlayerCard.setPointerCapture?.(event.pointerId);
-      miniPlayerCard.style.cursor='grabbing';
-      window.parent.postMessage({type:'kefe-miniplayer-drag',action:'start',x:lastX,y:lastY},'*');
-    }else if(event.type==='pointermove'&&dragging){
-      event.preventDefault();
-      const dx=event.clientX-lastX,dy=event.clientY-lastY;
-      lastX=event.clientX;
-      lastY=event.clientY;
-      window.parent.postMessage({type:'kefe-miniplayer-drag',action:'move',dx,dy},'*');
-    }else if((event.type==='pointerup'||event.type==='pointercancel')&&dragging){
-      dragging=false;
-      miniPlayerCard.releasePointerCapture?.(event.pointerId);
-      miniPlayerCard.style.cursor='';
-      window.parent.postMessage({type:'kefe-miniplayer-drag',action:'end',x:event.clientX,y:event.clientY},'*');
-    }
-  };
-  document.addEventListener('pointerdown',drag,true);
-  document.addEventListener('pointermove',drag,true);
-  document.addEventListener('pointerup',drag,true);
-  document.addEventListener('pointercancel',drag,true);
+  miniPlayerCard.style.cursor='grab';
+  miniPlayerCard.style.touchAction='none';
+  miniPlayerCard.addEventListener('pointerdown',event=>{
+    if(event.target instanceof Element&&event.target.closest('button,label,input,select,textarea,a'))return;
+    event.preventDefault();
+    dragging=true;
+    lastX=event.clientX;
+    lastY=event.clientY;
+    miniPlayerCard.style.cursor='grabbing';
+    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'start',x:lastX,y:lastY},'*');
+  });
+  window.addEventListener('pointermove',event=>{
+    if(!dragging)return;
+    event.preventDefault();
+    const dx=event.clientX-lastX,dy=event.clientY-lastY;
+    lastX=event.clientX;
+    lastY=event.clientY;
+    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'move',dx,dy},'*');
+  },true);
+  window.addEventListener('pointerup',event=>{
+    if(!dragging)return;
+    dragging=false;
+    miniPlayerCard.style.cursor='grab';
+    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'end',x:event.clientX,y:event.clientY},'*');
+  },true);
+  window.addEventListener('pointercancel',event=>{
+    if(!dragging)return;
+    dragging=false;
+    miniPlayerCard.style.cursor='grab';
+    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'end',x:event.clientX,y:event.clientY},'*');
+  },true);
 }</script>
 <script>
 (()=>{const buttons=document.querySelectorAll('#kefeSkinSwitch button');buttons.forEach(b=>b.onclick=()=>{document.body.classList.remove('skin-dribbble-light','skin-dribbble-dark');if(b.dataset.skin!=='kefe')document.body.classList.add('skin-'+b.dataset.skin);buttons.forEach(x=>x.classList.toggle('active',x===b));try{localStorage.setItem('kefe-miniplayer-skin',b.dataset.skin)}catch(e){}});try{const skin=localStorage.getItem('kefe-miniplayer-skin')||'kefe',button=document.querySelector('#kefeSkinSwitch button[data-skin="'+skin+'"]');(button||buttons[0]).click()}catch(e){buttons[0].click()}})();
