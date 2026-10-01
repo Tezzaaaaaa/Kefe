@@ -301,9 +301,9 @@ button{border:0;cursor:pointer}
   border:0;border-radius:var(--r2);background:var(--surface);box-shadow:var(--lift);
 }
 /* KEFE TIMELINE WAVEFORM REDESIGN */
-.kefe-timeline{grid-template-columns:auto minmax(0,1fr) auto;gap:12px;min-width:0;padding:8px 24px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);box-shadow:var(--inner)}
+.kefe-timeline{grid-template-columns:auto auto minmax(0,1fr) auto;gap:12px;min-width:0;padding:8px 24px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);box-shadow:var(--inner)}
 .kefe-wave .playhead::after{content:"";position:absolute;left:50%;bottom:-1px;width:9px;height:6px;border-radius:50%;background:#EF3F38;box-shadow:0 0 10px 3px rgba(239,63,56,.42);transform:translateX(-50%)}
-.kefe-wave .kefe-time{position:absolute;z-index:6;left:18px;right:18px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:space-between;gap:4px;width:auto;min-width:0;margin:0;color:#8A8F98;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap;pointer-events:none;user-select:none}
+.kefe-wave .kefe-time{display:none}
 .kefe-wave .kefe-time #timeEnd{display:block}
 .kefe-timeline .kefe-aspect-controls{position:static;flex:0 0 auto;align-self:center;width:auto;min-width:0;padding:4px;border:0;border-radius:999px;background:var(--bg);box-shadow:5px 6px 12px rgba(92,84,68,.18),-3px -3px 8px rgba(255,255,255,.78)}
 .kefe-timeline .kefe-aspect-button{height:30px;min-width:38px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:10px;font-weight:700}

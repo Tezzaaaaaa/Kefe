@@ -869,6 +869,110 @@
     range.style.setProperty('--progress',p+'%');playhead.style.left=p+'%';
   }
 
+  (function initWaveform(){
+    var host = document.getElementById('waveform');
+    if (!host) return;
+    var cv = document.createElement('canvas');
+    cv.id = 'kefeWaveCanvas';
+    cv.style.cssText = 'position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:100%;pointer-events:none;z-index:1;';
+    host.appendChild(cv);
+    var g = cv.getContext('2d');
+    var BAR_COUNT = 140;
+    var peaks = placeholder();
+    var dpr = window.devicePixelRatio || 1;
+    var lastW = 0, lastH = 0;
+    function placeholder(){
+      var out = new Float32Array(BAR_COUNT);
+      var seed = 1337;
+      function rnd(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+      for (var i = 0; i < BAR_COUNT; i++) {
+        var t = i / (BAR_COUNT - 1);
+        out[i] = Math.sin(t * Math.PI) * (0.18 + rnd() * 0.26);
+      }
+      return out;
+    }
+    function computePeaks(buffer, done){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return done(null);
+      var actx = new AC();
+      actx.decodeAudioData(buffer.slice(0), function(decoded){
+        var a = decoded.getChannelData(0);
+        if (decoded.numberOfChannels > 1) {
+          var b = decoded.getChannelData(1);
+          var m = new Float32Array(a.length);
+          for (var i = 0; i < a.length; i++) m[i] = (a[i] + b[i]) * 0.5;
+          a = m;
+        }
+        var block = Math.max(1, Math.floor(a.length / BAR_COUNT));
+        var out = new Float32Array(BAR_COUNT), max = 0;
+        for (var k = 0; k < BAR_COUNT; k++) {
+          var s = k * block, e = Math.min(a.length, s + block), pk = 0;
+          for (var j = s; j < e; j++) { var v = a[j] < 0 ? -a[j] : a[j]; if (v > pk) pk = v; }
+          out[k] = pk; if (pk > max) max = pk;
+        }
+        if (max > 0) for (var z = 0; z < BAR_COUNT; z++) out[z] /= max;
+        try { actx.close(); } catch (err) {}
+        done(out);
+      }, function(){ try { actx.close(); } catch (err) {} done(null); });
+    }
+    function roundRect(c, x, y, w, h, r){
+      r = Math.min(r, h / 2, w / 2);
+      c.beginPath();
+      c.moveTo(x + r, y);
+      c.arcTo(x + w, y, x + w, y + h, r);
+      c.arcTo(x + w, y + h, x, y + h, r);
+      c.arcTo(x, y + h, x, y, r);
+      c.arcTo(x, y, x + w, y, r);
+      c.closePath();
+    }
+    function resizeIfNeeded(){
+      var r = host.getBoundingClientRect();
+      if (r.width !== lastW || r.height !== lastH) {
+        lastW = r.width; lastH = r.height;
+        dpr = window.devicePixelRatio || 1;
+        cv.width = Math.max(1, Math.round(r.width * dpr));
+        cv.height = Math.max(1, Math.round(r.height * dpr));
+      }
+    }
+    function draw(){
+      resizeIfNeeded();
+      var w = cv.width, h = cv.height;
+      if (!w || !h) return;
+      g.clearRect(0, 0, w, h);
+      var barW = Math.max(dpr, w / (BAR_COUNT * 2.6));
+      var gap = (w - barW * BAR_COUNT) / (BAR_COUNT - 1);
+      var midY = h / 2;
+      var dur = Number(range.max) || 30;
+      var frac = Math.max(0, Math.min(1, (Number(range.value) || 0) / dur));
+      var splitX = frac * w;
+      for (var i = 0; i < BAR_COUNT; i++) {
+        var v = peaks[i];
+        var bh = Math.max(2 * dpr, v * h * 0.86);
+        var x = i * (barW + gap);
+        var y = midY - bh / 2;
+        var passed = (x + barW / 2) <= splitX;
+        g.fillStyle = passed ? 'rgba(120,185,255,0.85)' : 'rgba(90,80,70,0.42)';
+        roundRect(g, x, y, barW, bh, barW / 2);
+        g.fill();
+      }
+    }
+    function loop(){ draw(); requestAnimationFrame(loop); }
+    loop();
+    var input = document.getElementById('mediaInput');
+    if (input) {
+      input.addEventListener('change', function(ev){
+        var file = ev.target.files && ev.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(){
+          computePeaks(reader.result, function(p){ peaks = p || placeholder(); });
+        };
+        reader.readAsArrayBuffer(file);
+      });
+    }
+    window.addEventListener('resize', function(){ lastW = 0; lastH = 0; });
+  })();
+
   parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();
   syncAppleLyricsMetadata();
   syncAppleLyrics(true);
