@@ -285,16 +285,20 @@ function openSearchModal(){searchModal.classList.remove('opacity-0','pointer-eve
 const miniPlayerCard=document.querySelector('body > div.w-full.max-w-\\[340px\\]');
 if(miniPlayerCard){
   let dragging=false,lastX=0,lastY=0;
+  const isControl=target=>target.closest('button,label,input,select,textarea,a');
   miniPlayerCard.addEventListener('pointerdown',event=>{
-    if(event.target.closest('button,label,input,select,textarea,a'))return;
+    if(isControl(event.target))return;
+    event.preventDefault();
     dragging=true;
     lastX=event.clientX;
     lastY=event.clientY;
     miniPlayerCard.setPointerCapture?.(event.pointerId);
+    miniPlayerCard.style.cursor='grabbing';
     window.parent.postMessage({type:'kefe-miniplayer-drag',action:'start',x:lastX,y:lastY},'*');
   });
   miniPlayerCard.addEventListener('pointermove',event=>{
     if(!dragging)return;
+    event.preventDefault();
     const dx=event.clientX-lastX,dy=event.clientY-lastY;
     lastX=event.clientX;
     lastY=event.clientY;
@@ -303,6 +307,8 @@ if(miniPlayerCard){
   const endDrag=event=>{
     if(!dragging)return;
     dragging=false;
+    miniPlayerCard.releasePointerCapture?.(event.pointerId);
+    miniPlayerCard.style.cursor='';
     window.parent.postMessage({type:'kefe-miniplayer-drag',action:'end',x:event.clientX,y:event.clientY},'*');
   };
   miniPlayerCard.addEventListener('pointerup',endDrag);
