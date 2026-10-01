@@ -167,36 +167,30 @@ function openSearchModal(){searchModal.classList.remove('opacity-0','pointer-eve
     
 const miniPlayerCard=document.querySelector('body > div.w-full.max-w-\\[340px\\]');
 if(miniPlayerCard){
-  let dragging=false,offsetX=0,offsetY=0;
+  let dragging=false,lastX=0,lastY=0;
   miniPlayerCard.addEventListener('pointerdown',event=>{
     if(event.target.closest('button,label,input,select,textarea,a'))return;
-    const rect=miniPlayerCard.getBoundingClientRect();
-    miniPlayerCard.style.left=rect.left+'px';
-    miniPlayerCard.style.top=rect.top+'px';
-    miniPlayerCard.style.transform='none';
-    offsetX=event.clientX-rect.left;
-    offsetY=event.clientY-rect.top;
     dragging=true;
+    lastX=event.clientX;
+    lastY=event.clientY;
     miniPlayerCard.setPointerCapture?.(event.pointerId);
-    event.preventDefault();
+    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'start',x:lastX,y:lastY},'*');
   });
   miniPlayerCard.addEventListener('pointermove',event=>{
     if(!dragging)return;
-    const rect=miniPlayerCard.getBoundingClientRect();
-    const maxX=Math.max(0,window.innerWidth-rect.width);
-    const maxY=Math.max(0,window.innerHeight-rect.height);
-    miniPlayerCard.style.left=Math.min(maxX,Math.max(0,event.clientX-offsetX))+'px';
-    miniPlayerCard.style.top=Math.min(maxY,Math.max(0,event.clientY-offsetY))+'px';
+    const dx=event.clientX-lastX,dy=event.clientY-lastY;
+    lastX=event.clientX;
+    lastY=event.clientY;
+    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'move',dx,dy},'*');
   });
   const endDrag=event=>{
     if(!dragging)return;
     dragging=false;
-    miniPlayerCard.releasePointerCapture?.(event.pointerId);
+    window.parent.postMessage({type:'kefe-miniplayer-drag',action:'end',x:event.clientX,y:event.clientY},'*');
   };
   miniPlayerCard.addEventListener('pointerup',endDrag);
   miniPlayerCard.addEventListener('pointercancel',endDrag);
-}
-</script>
+}</script>
 <div id="kefeSkinSwitch" aria-label="MiniPlayer skin"><button type="button" data-skin="light" class="active">LIGHT</button><button type="button" data-skin="dark">DARK</button></div><script>
 (()=>{const buttons=document.querySelectorAll('#kefeSkinSwitch button');buttons.forEach(b=>b.onclick=()=>{const dark=b.dataset.skin==='dark';document.body.classList.toggle('skin-dark',dark);buttons.forEach(x=>x.classList.toggle('active',x===b));try{localStorage.setItem('kefe-miniplayer-skin',dark?'dark':'light')}catch(e){}});try{if(localStorage.getItem('kefe-miniplayer-skin')==='dark')buttons[1].click()}catch(e){}})();
 </script></body>
