@@ -36,3 +36,7 @@ app/
 The project is moving from the editor foundation into refinement and feature completion. Current work is focused on media handling, automatic lyrics and artwork, visualiser controls, responsive UI, and export.
 
 KEFE is not a chart app. It is a creative music visualiser and lyric-video editor.
+
+## ⚠️ Do not delete
+
+- `app/effects/core.js` — defines `window.kefeEffectUtils`. **17 effect files depend on it.** Nothing imports it directly; it is loaded via `<script>` in `index.html` before the effect renderers. Deleting it silently breaks most effects.
