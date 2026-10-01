@@ -44,7 +44,7 @@ document.body.insertAdjacentHTML('beforeend',KEFE_STRUCTURE);
     dragBar.appendChild(controls);
     frameWrap.appendChild(dragBar);
     const frame=document.createElement('iframe');
-    frame.src='./MiniplayerKefe.html';
+    frame.src='./app/ui/MiniplayerKefe.html';
     frame.title='KEFE MiniPlayer';
     frame.style.cssText='position:absolute;inset:0;z-index:1;display:block;width:100%;height:100%;border:0;background:transparent;';
     frameWrap.appendChild(frame);

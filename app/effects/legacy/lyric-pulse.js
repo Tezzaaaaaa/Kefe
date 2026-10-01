@@ -32,7 +32,7 @@ function activeEffectLine(lines, time) {
     return index >= 0 ? linaNormaliseLine(lines, index) : null;
 }
 
-export function drawPulseEffect(ctx, w, h, style, lines, time) {
+function drawPulseEffect(ctx, w, h, style, lines, time) {
     const line = activeEffectLine(lines, time);
     if (!line) return;
     const text = String(line.text || '').trim();

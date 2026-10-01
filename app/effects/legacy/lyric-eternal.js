@@ -209,7 +209,7 @@ function getEternalLineAlpha(slot, group, time) {
     return 1 - fade * 0.84;
 }
 
-export function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
+function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
     if (!eternalFontReady) {
         ensureEternalFont();
         const ci = linaFindActiveLine(lines, time);

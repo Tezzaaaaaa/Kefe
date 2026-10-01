@@ -109,7 +109,7 @@ function buildBratRows(ctx, words, w, h, style) {
     return rows;
 }
 
-export function drawBratEffect(ctx, w, h, style, lines, time) {
+function drawBratEffect(ctx, w, h, style, lines, time) {
     const typingSpeed = Number(style.bratTypingSpeed) || 1;
     const words = buildBratWords(lines);
     if (!words.length) return;
