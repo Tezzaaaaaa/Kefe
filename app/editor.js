@@ -161,7 +161,7 @@
     list.innerHTML='';
     const currentTitle=songTitle.value.trim().toLowerCase();
     const currentArtist=songArtist.value.trim().toLowerCase();
-    const items=(Array.isArray(results)?results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song').filter(item=>!(String(item.trackName||'').toLowerCase()===currentTitle&&String(item.artistName||'').toLowerCase()===currentArtist)).slice(0,4);
+    const items=(Array.isArray(results)?results:[]).filter(item=>item.trackName).filter(item=>!(String(item.trackName||'').toLowerCase()===currentTitle&&String(item.artistName||'').toLowerCase()===currentArtist)).slice(0,4);
     status.innerHTML=items.length?'Other matches':'No other matches';
     panel.hidden=!songTitle.value.trim();
     items.forEach(item=>{
@@ -229,18 +229,19 @@
   async function fetchAlbumArt(title,artist,album){
     if(!title||!artist)return;
     const params=new URLSearchParams({term:title+' '+artist,entity:'song',limit:'10',country:'AU'});
-    const response=await fetch('https://kefe-proxy.kuresa-afamasaga.workers.dev/?url='+encodeURIComponent('https://itunes.apple.com/search?'+params.toString()));
+    const response=await fetch('https://api.deezer.com/search?q='+encodeURIComponent(params.get('term')||'')+'&limit=25');
     if(!response.ok)throw new Error('Apple artwork lookup failed: '+response.status);
     const result=await response.json();
     const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
     const wantedTitle=normalize(title),wantedArtist=normalize(artist),wantedAlbum=normalize(album);
-    const match=(Array.isArray(result.results)?result.results:[]).find(item=>{
-      const itemTitle=normalize(item.trackName),itemArtist=normalize(item.artistName),itemAlbum=normalize(item.collectionName);
+    const items=Array.isArray(result.data)?result.data:[];
+    const match=items.find(item=>{
+      const itemTitle=normalize(item.title),itemArtist=normalize(item.artist?.name),itemAlbum=normalize(item.album?.title);
       return itemTitle===wantedTitle&&itemArtist===wantedArtist&&(!wantedAlbum||itemAlbum===wantedAlbum);
-    })||(Array.isArray(result.results)?result.results:[]).find(item=>normalize(item.trackName)===wantedTitle&&normalize(item.artistName)===wantedArtist);
-    const cover=match?.artworkUrl100||'';
+    })||items.find(item=>normalize(item.title)===wantedTitle&&normalize(item.artist?.name)===wantedArtist);
+    const cover=match?.album?.cover_xl||match?.album?.cover_big||'';
     if(!cover)return;
-    songAlbum.dataset.artUrl=cover.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1');
+    songAlbum.dataset.artUrl=cover;
     updateMediaTrack();
     updateTitleCard();
   }
@@ -614,7 +615,7 @@
       const artistQuery=songArtist.value.trim()||parsedArtist;
       if(titleQuery){
         const params=new URLSearchParams({term:[parsedTitle,artistQuery].filter(Boolean).join(' '),entity:'song',limit:'50',country:'AU'});
-        const response=await fetch('https://kefe-proxy.kuresa-afamasaga.workers.dev/?url='+encodeURIComponent('https://itunes.apple.com/search?'+params.toString()));
+        const response=await fetch('https://api.deezer.com/search?q='+encodeURIComponent(params.get('term')||'')+'&limit=25');
         if(response.ok&&mediaObjectUrl===lookupUrl&&songTitle.value.trim()===titleQuery){
           const result=await response.json();
           const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -622,7 +623,15 @@
           const originalTitle=normalize(titleQuery);
           const artist=normalize(artistQuery);
           const duration=audio.duration*1000;
-          const songs=(Array.isArray(result.results)?result.results:[]).filter(item=>item.wrapperType==='track'&&item.kind==='song');
+          const songs=(Array.isArray(result.data)?result.data:[]).map(item=>({
+            trackName:item.title,
+            artistName:item.artist?.name,
+            collectionName:item.album?.title,
+            releaseDate:item.release_date,
+            trackTimeMillis:(item.duration||0)*1000,
+            artworkUrl100:item.album?.cover_xl||item.album?.cover_big||'',
+            trackId:item.id
+          }));
           renderSongSuggestions(songs);
           const ranked=songs.map(item=>{
             const itemTitle=normalize(item.trackName);
