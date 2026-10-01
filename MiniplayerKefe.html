@@ -263,6 +263,8 @@ body.skin-dribbble-dark #kefeSkinSwitch button.active{box-shadow:inset 1px 1px 2
                 <div id="digitalTimeAmPm" class="text-[10px] sm:text-xs font-semibold text-neu-textMuted uppercase tracking-wider">6 PM</div>
             </div>
             <div class="flex items-center gap-1.5">
+                <button id="minimizeMiniPlayerBtn" type="button" title="Minimize MiniPlayer" aria-label="Minimize MiniPlayer" class="w-6 h-6 rounded-full bg-neu-base shadow-neu-flat flex items-center justify-center text-neu-textMuted hover:text-neu-textDark active:shadow-neu-pressed transition cursor-pointer"><i class="fa-solid fa-minus text-[8px]"></i></button>
+                <button id="closeMiniPlayerBtn" type="button" title="Close MiniPlayer" aria-label="Close MiniPlayer" class="w-6 h-6 rounded-full bg-neu-base shadow-neu-flat flex items-center justify-center text-neu-textMuted hover:text-rose-500 active:shadow-neu-pressed transition cursor-pointer"><i class="fa-solid fa-xmark text-[8px]"></i></button>
                 <button id="themeInfoBtn" title="Player Status" class="w-8 h-8 rounded-full bg-neu-base shadow-neu-flat flex items-center justify-center text-neu-textMuted hover:text-neu-textDark active:shadow-neu-pressed transition cursor-pointer"><span class="text-[10px] font-bold">R</span></button>
                 <div id="trackCountBadge" class="px-2.5 py-1 rounded-full bg-neu-base shadow-neu-pressed flex items-center justify-center text-[10px] font-bold text-neu-textMuted">03</div>
             </div>
@@ -356,6 +358,11 @@ function renderSearchResults(results,query,notes){searchResultsContainer.innerHT
 async function executeSearch(query){query=(query||'').trim();if(!query)return;const token=++searchToken;searchSourceStatus.textContent='Searching am-dl & iTunes…';showSearchMessage('fa-spinner','text-blue-500 animate-spin','Querying catalogs for "'+query+'"...');const notes=[],results=[];try{results.push(...await searchAmdl(query))}catch(err){notes.push('am-dl unavailable')}if(token!==searchToken)return;try{results.push(...await searchItunes(query))}catch(err){notes.push('iTunes unavailable')}if(token!==searchToken)return;if(!results.length){results.push(...searchLocalCatalog(query));if(results.length)notes.push('showing offline demo catalog')}renderSearchResults(dedupeTracks(results),query,notes)}
 function openSearchModal(){searchModal.classList.remove('opacity-0','pointer-events-none');searchModalContent.classList.remove('scale-95');setTimeout(()=>searchInput.focus(),120)}function closeSearchModal(){searchModal.classList.add('opacity-0','pointer-events-none');searchModalContent.classList.add('scale-95')}openSearchBtn.onclick=openSearchModal;openGlobeSearchBtn.onclick=openSearchModal;closeSearchModalBtn.onclick=closeSearchModal;searchModal.onclick=e=>e.target===searchModal&&closeSearchModal();document.querySelectorAll('.quick-tag').forEach(tag=>tag.onclick=()=>{searchInput.value=tag.textContent.trim();executeSearch(searchInput.value)});executeSearchBtn.onclick=()=>executeSearch(searchInput.value);searchInput.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();clearTimeout(searchDebounceTimer);executeSearch(searchInput.value)}};searchInput.oninput=()=>{clearTimeout(searchDebounceTimer);const value=searchInput.value.trim();if(value.length>=2)searchDebounceTimer=setTimeout(()=>executeSearch(value),550)};document.onkeydown=e=>e.key==='Escape'&&!searchModal.classList.contains('pointer-events-none')&&closeSearchModal();loadTrack(0,false)});
     
+const minimizeMiniPlayerBtn=document.getElementById('minimizeMiniPlayerBtn');
+const closeMiniPlayerBtn=document.getElementById('closeMiniPlayerBtn');
+minimizeMiniPlayerBtn?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();window.parent.postMessage({type:'kefe-miniplayer-window',action:'minimize'},'*')});
+closeMiniPlayerBtn?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();window.parent.postMessage({type:'kefe-miniplayer-window',action:'close'},'*')});
+
 const miniPlayerCard=document.querySelector('body > div.w-full.max-w-\\[340px\\]');
 if(miniPlayerCard){
   let dragging=false,lastX=0,lastY=0;
