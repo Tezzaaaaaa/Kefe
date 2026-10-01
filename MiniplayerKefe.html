@@ -367,29 +367,33 @@ if(miniPlayerCard){
     dragging=true;
     lastX=event.clientX;
     lastY=event.clientY;
+    miniPlayerCard.setPointerCapture?.(event.pointerId);
     miniPlayerCard.style.cursor='grabbing';
     window.parent.postMessage({type:'kefe-miniplayer-drag',action:'start',x:lastX,y:lastY},'*');
   });
-  window.addEventListener('pointermove',event=>{
+  miniPlayerCard.addEventListener('pointermove',event=>{
     if(!dragging)return;
     event.preventDefault();
     const dx=event.clientX-lastX,dy=event.clientY-lastY;
+    if(!dx&&!dy)return;
     lastX=event.clientX;
     lastY=event.clientY;
     window.parent.postMessage({type:'kefe-miniplayer-drag',action:'move',dx,dy},'*');
-  },true);
-  window.addEventListener('pointerup',event=>{
+  });
+  miniPlayerCard.addEventListener('pointerup',event=>{
     if(!dragging)return;
     dragging=false;
+    miniPlayerCard.releasePointerCapture?.(event.pointerId);
     miniPlayerCard.style.cursor='grab';
     window.parent.postMessage({type:'kefe-miniplayer-drag',action:'end',x:event.clientX,y:event.clientY},'*');
-  },true);
-  window.addEventListener('pointercancel',event=>{
+  });
+  miniPlayerCard.addEventListener('pointercancel',event=>{
     if(!dragging)return;
     dragging=false;
+    miniPlayerCard.releasePointerCapture?.(event.pointerId);
     miniPlayerCard.style.cursor='grab';
     window.parent.postMessage({type:'kefe-miniplayer-drag',action:'end',x:event.clientX,y:event.clientY},'*');
-  },true);
+  });
 }</script>
 <script>
 (()=>{const buttons=document.querySelectorAll('#kefeSkinSwitch button');buttons.forEach(b=>b.onclick=()=>{document.body.classList.remove('skin-dribbble-light','skin-dribbble-dark');if(b.dataset.skin!=='kefe')document.body.classList.add('skin-'+b.dataset.skin);buttons.forEach(x=>x.classList.toggle('active',x===b));try{localStorage.setItem('kefe-miniplayer-skin',b.dataset.skin)}catch(e){}});try{const skin=localStorage.getItem('kefe-miniplayer-skin')||'kefe',button=document.querySelector('#kefeSkinSwitch button[data-skin="'+skin+'"]');(button||buttons[0]).click()}catch(e){buttons[0].click()}})();
