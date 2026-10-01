@@ -535,7 +535,7 @@
     const panel=button.dataset.topPanel;
     if(panel==='media'||panel==='editor')openEditorPanel('media');
   }));
-  songTitle.addEventListener('input',updateTitleCard);songArtist.addEventListener('input',updateTitleCard);songAlbum.addEventListener('input',updateTitleCard);songYear.addEventListener('input',updateTitleCard);
+  songTitle.addEventListener('input',()=>{updateTitleCard();scheduleAutomaticLyricsFetch()});songArtist.addEventListener('input',()=>{updateTitleCard();scheduleAutomaticLyricsFetch()});songAlbum.addEventListener('input',()=>{updateTitleCard();scheduleAutomaticLyricsFetch()});songYear.addEventListener('input',()=>{updateTitleCard();scheduleAutomaticLyricsFetch()});
   lyricsInput.addEventListener('input',parseLyrics);
   fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
   lyricEffectSelect.addEventListener('change',()=>setEffect(lyricEffectSelect.value));
@@ -661,14 +661,21 @@
       loadBiniLyrics();
     }
   });
-  let biniLyricsRequest=0;
+  let biniLyricsRequest=0,automaticLyricsTimer=null;
+  function scheduleAutomaticLyricsFetch(){
+    if(lyricsInput.value.trim())return;
+    clearTimeout(automaticLyricsTimer);
+    automaticLyricsTimer=setTimeout(()=>{
+      if(!lyricsInput.value.trim())loadBiniLyrics();
+    },500);
+  }
   async function loadBiniLyrics(){
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     const duration=Math.round(Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0);
     const platformId=String(songAlbum.dataset.platformId||'').trim();
     const lyricsStatus=document.getElementById('kefeLyricsStatus');
-    if(!title||!artist||duration<=0){
-      if(lyricsStatus)lyricsStatus.textContent=artist?'Waiting for track duration to fetch synchronized lyrics.':'Identify the track to fetch synchronized lyrics.';
+    if(!title||!artist){
+      if(lyricsStatus)lyricsStatus.textContent='Identify the track to fetch synchronized lyrics.';
       return;
     }
     const request=++biniLyricsRequest;
