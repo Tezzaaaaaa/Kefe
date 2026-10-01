@@ -229,7 +229,7 @@
   async function fetchAlbumArt(title,artist,album){
     if(!title||!artist)return;
     const params=new URLSearchParams({term:title+' '+artist,entity:'song',limit:'10',country:'AU'});
-    const response=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://itunes.apple.com/search?'+params.toString()));
+    const response=await fetch('https://corsproxy.io/?url='+encodeURIComponent('https://itunes.apple.com/search?'+params.toString()));
     if(!response.ok)throw new Error('Apple artwork lookup failed: '+response.status);
     const result=await response.json();
     const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -614,7 +614,7 @@
       const artistQuery=songArtist.value.trim()||parsedArtist;
       if(titleQuery){
         const params=new URLSearchParams({term:[parsedTitle,artistQuery].filter(Boolean).join(' '),entity:'song',limit:'50',country:'AU'});
-        const response=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://itunes.apple.com/search?'+params.toString()));
+        const response=await fetch('https://corsproxy.io/?url='+encodeURIComponent('https://itunes.apple.com/search?'+params.toString()));
         if(response.ok&&mediaObjectUrl===lookupUrl&&songTitle.value.trim()===titleQuery){
           const result=await response.json();
           const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
