@@ -945,16 +945,32 @@
       var dur = Number(range.max) || 30;
       var frac = Math.max(0, Math.min(1, (Number(range.value) || 0) / dur));
       var splitX = frac * w;
+      g.fillStyle = 'rgba(90,80,70,0.10)';
+      g.fillRect(0, Math.round(midY - dpr*0.5), w, Math.max(1, dpr));
       for (var i = 0; i < BAR_COUNT; i++) {
         var v = peaks[i];
         var bh = Math.max(2 * dpr, v * h * 0.86);
         var x = i * (barW + gap);
         var y = midY - bh / 2;
         var passed = (x + barW / 2) <= splitX;
-        g.fillStyle = passed ? 'rgba(120,185,255,0.85)' : 'rgba(90,80,70,0.42)';
+        var grad = g.createLinearGradient(0, y, 0, y + bh);
+        if (passed) {
+          grad.addColorStop(0.00, 'rgba(164,181,155,0.30)');
+          grad.addColorStop(0.50, 'rgba(164,181,155,0.95)');
+          grad.addColorStop(1.00, 'rgba(164,181,155,0.30)');
+        } else {
+          grad.addColorStop(0.00, 'rgba(90,80,70,0.18)');
+          grad.addColorStop(0.50, 'rgba(90,80,70,0.55)');
+          grad.addColorStop(1.00, 'rgba(90,80,70,0.18)');
+        }
+        g.fillStyle = grad;
+        if (passed) { g.shadowColor = 'rgba(164,181,155,0.55)'; g.shadowBlur = 4 * dpr; }
+        else { g.shadowColor = 'transparent'; g.shadowBlur = 0; }
         roundRect(g, x, y, barW, bh, barW / 2);
         g.fill();
       }
+      g.shadowBlur = 0;
+      g.shadowColor = 'transparent';
     }
     function loop(){ draw(); requestAnimationFrame(loop); }
     loop();

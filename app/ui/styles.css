@@ -122,10 +122,10 @@ button{border:0;cursor:pointer}
 .kefe-time{min-width:82px;text-align:right;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
 #kefeTime{position:absolute;opacity:0}
 .kefe-slider{position:absolute;inset:0;width:100%;height:48px;margin:0;padding:0;appearance:none;-webkit-appearance:none;background:transparent;border:0;border-radius:999px;outline:none;z-index:4;cursor:pointer;touch-action:none}
-.kefe-slider::-webkit-slider-runnable-track{height:48px;background:transparent;border-radius:4px;box-shadow:var(--inner);border:0}
-.kefe-slider::-moz-range-track{height:48px;background:transparent;border-radius:4px;box-shadow:var(--inner);border:0}
-.kefe-slider::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:14px;height:14px;margin-top:17px;border-radius:50%;background:#F6F2EC;border:0;box-shadow:5px 6px 12px rgba(92,84,68,.24),-3px -3px 8px rgba(255,255,255,.88)}
-.kefe-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#F6F2EC;border:0;box-shadow:5px 6px 12px rgba(92,84,68,.24),-3px -3px 8px rgba(255,255,255,.88)}
+.kefe-slider::-webkit-slider-runnable-track{height:48px;background:transparent;border-radius:999px;box-shadow:none;border:0}
+.kefe-slider::-moz-range-track{height:48px;background:transparent;border-radius:999px;box-shadow:none;border:0}
+.kefe-slider::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:0;height:0;margin:0;border:0;background:transparent;box-shadow:none}
+.kefe-slider::-moz-range-thumb{width:0;height:0;border:0;background:transparent;box-shadow:none}
 .kefe-editing{min-height:0;min-width:0;display:grid;grid-template-columns:160px minmax(0,1fr);background:var(--bg);box-shadow:none;overflow:hidden}
 .kefe-tabs{display:flex;flex-direction:column;align-items:stretch;gap:var(--control-gap);padding:var(--panel-pad) 12px;border-right:0;overflow:auto;background:var(--bg)}
 .kefe-section{position:relative;height:var(--tab-h);min-height:var(--tab-h);padding:0 14px;text-align:left;border:0;border-radius:999px;background:var(--bg);color:var(--muted);white-space:nowrap;box-shadow:none;transition:transform .18s ease,box-shadow .18s ease,background .18s ease,color .18s ease}
