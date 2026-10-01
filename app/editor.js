@@ -112,6 +112,12 @@
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&previewStage.classList.contains('kefe-pseudo-fullscreen'))setPseudoFullscreen(false)});
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead');
 
+  function normalizeArtworkUrl(url,size='600x600bb'){
+    const value=String(url||'').trim();
+    if(!value)return '';
+    return value.replace(/^http:/i,'https:').replace(/\\b\\d+x\\d+bb(?=[.-])/i,size);
+  }
+
   function updateMediaTrack(){
     const track=document.getElementById('kefeMediaTrack');
     const art=document.getElementById('kefeMediaTrackArt');
@@ -130,8 +136,9 @@
     art.innerHTML='';
     if(cover){
       const image=document.createElement('img');
-      image.src=cover;
+      image.src=normalizeArtworkUrl(cover);
       image.alt='';
+      image.onerror=()=>{image.remove();art.appendChild(fallback);};
       art.appendChild(image);
     }else{
       art.appendChild(fallback);
@@ -192,7 +199,7 @@
         songArtist.value=item.artistName||'';
         songAlbum.value=item.collectionName||'';
         songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
-        songAlbum.dataset.artUrl=item.artworkUrl100?item.artworkUrl100.replace(/100x100bb\.(jpg|jpeg|png)$/i,'600x600bb.$1'):'';
+        songAlbum.dataset.artUrl=normalizeArtworkUrl(item.artworkUrl100);
         songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
         songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
         updateMediaTrack();
@@ -217,8 +224,9 @@
       titleArt.innerHTML='';
       const image=document.createElement('img');
       image.crossOrigin='anonymous';
-      image.src=cover;
+      image.src=normalizeArtworkUrl(cover);
       image.alt='';
+      image.onerror=()=>{titleArt.innerHTML='';titleArt.appendChild(titleArtFallback);};
       image.addEventListener('load',()=>{if(state.effect==='apple')draw();},{once:true});
       titleArt.appendChild(image);
     }else{
@@ -631,7 +639,7 @@
           songArtist.value=best.artistName||parsedArtist||'';
           songAlbum.value=best.collectionName||'';
           songYear.value=best.releaseDate?String(best.releaseDate).slice(0,4):'';
-          songAlbum.dataset.artUrl=best.artworkUrl100?best.artworkUrl100.replace(/100x100bb\\.(jpg|jpeg|png)$/i,'600x600bb.$1'):'';
+          songAlbum.dataset.artUrl=normalizeArtworkUrl(best.artworkUrl100);
           songAlbum.dataset.trackDuration=best.trackTimeMillis?String(Math.round(Number(best.trackTimeMillis)/1000)):'';
           songAlbum.dataset.platformId=best.trackId?String(best.trackId):'';
           const mapped=items.map(it=>({
