@@ -204,7 +204,7 @@ button{border:0;cursor:pointer}
 .kefe-top-nav::-webkit-scrollbar{display:none}
 .kefe-top-profile{flex:0 0 auto}
 .kefe-top-link{min-height:34px;padding:0 9px;font-size:12px}
-.kefe-editing{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:56px minmax(0,1fr);grid-row:3;width:100%;min-height:0;min-width:0;overflow:hidden}
+.kefe-editing{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:50px minmax(0,1fr);grid-row:3;width:100%;min-height:0;min-width:0;overflow:hidden}
 .kefe-wave{height:50px;padding:0 66px}
 .kefe-slider{height:50px}
 .kefe-slider::-webkit-slider-runnable-track{height:50px}
