@@ -6,7 +6,7 @@ document.body.insertAdjacentHTML('beforeend',KEFE_STRUCTURE);
 (function(){
   const nav=document.querySelector('[data-top-panel="miniplayer"]');
   if(!nav)return;
-  let frameWrap=null,dragging=false,lastX=0,lastY=0;
+  let frameWrap=null;
   function clampPosition(x,y){
     const w=frameWrap.offsetWidth,h=frameWrap.offsetHeight;
     return {x:Math.max(8,Math.min(x,window.innerWidth-w-8)),y:Math.max(8,Math.min(y,window.innerHeight-h-8))};
@@ -46,7 +46,7 @@ document.body.insertAdjacentHTML('beforeend',KEFE_STRUCTURE);
     const frame=document.createElement('iframe');
     frame.src='./MiniplayerKefe.html';
     frame.title='KEFE MiniPlayer';
-    frame.style.cssText='display:block;width:100%;height:100%;border:0;background:transparent;';
+    frame.style.cssText='position:absolute;inset:0;z-index:1;display:block;width:100%;height:100%;border:0;background:transparent;';
     frameWrap.appendChild(frame);
     document.body.appendChild(frameWrap);
     let parentDragging=false,parentStartX=0,parentStartY=0,parentStartLeft=0,parentStartTop=0;
@@ -90,26 +90,6 @@ document.body.insertAdjacentHTML('beforeend',KEFE_STRUCTURE);
       frameWrap=null;
     });
     requestAnimationFrame(positionDefault);
-    window.addEventListener('message',event=>{
-      if(event.source!==frame.contentWindow||!event.data||event.data.type!=='kefe-miniplayer-drag')return;
-      if(event.data.action==='start'){dragging=true;lastX=event.data.x;lastY=event.data.y;}
-      else if(event.data.action==='move'&&dragging){
-        const next=clampPosition(frameWrap.offsetLeft+event.data.dx,frameWrap.offsetTop+event.data.dy);
-        frameWrap.style.left=next.x+'px';
-        frameWrap.style.top=next.y+'px';
-      }else if(event.data.action==='end')dragging=false;
-    });
-    window.addEventListener('message',event=>{
-      if(event.source!==frame.contentWindow||!event.data||event.data.type!=='kefe-miniplayer-window')return;
-      if(event.data.action==='minimize')frameWrap.hidden=true;
-      if(event.data.action==='close'){
-        dragging=false;
-        frameWrap.remove();
-        frameWrap=null;
-      }
-    });
-    window.addEventListener('pointerup',()=>{dragging=false},{passive:true});
-    window.addEventListener('resize',positionDefault,{passive:true});
   }
   nav.addEventListener('click',open);
 })();
