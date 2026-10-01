@@ -23,7 +23,6 @@
     {value:'cursive',label:'Cursive',weight:400,group:'System Fonts'},
     {value:'fantasy',label:'Fantasy',weight:700,group:'System Fonts'}
   ];
-  const FONT_KEY='kefe-motion-font-v2';
   const getFont=name=>BASE_FONTS.find(f=>f.value===name)||BASE_FONTS[0];
   function setMotionFont(ctx,family,size){const f=getFont(family);ctx.font=`${f.weight} ${Math.max(18,size)}px "${f.value}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;return f;}
   function trackedWidth(ctx,text,tracking){const chars=Array.from(String(text));if(!chars.length)return 0;return chars.reduce((s,c)=>s+ctx.measureText(c).width,0)+Math.max(0,chars.length-1)*tracking;}
