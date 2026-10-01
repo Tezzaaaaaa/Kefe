@@ -602,45 +602,60 @@
     range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
     const lookupUrl=mediaObjectUrl;
     try{
-      const raw=songTitle.value.trim();
-      const parts=raw.split(/\s+[-\u2013\u2014]\s+/);
+      const raw=songTitle.value.trim().replace(/^\\s*\\d{1,3}[._)\\-]\\s*/,'');
+      const parts=raw.split(/\\s+[-\\u2013\\u2014]\\s+/);
       const parsedArtist=parts.length>1?parts.shift().trim():'';
       const parsedTitle=parts.join(' - ').trim()||raw;
-      const query=[parsedTitle,parsedArtist||songArtist.value.trim()].filter(Boolean).join(' ');
+      const query=[parsedTitle,parsedArtist].filter(Boolean).join(' ');
       if(query){
-        const mbUrl='https://musicbrainz.org/ws/2/recording?query='+encodeURIComponent(query)+'&fmt=json&limit=10';
-        const r=await fetch('https://kefe-proxy.kuresa-afamasaga.workers.dev/?url='+encodeURIComponent(mbUrl));
+        const itunesUrl='https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=song&limit=20&country=AU';
+        const r=await fetch('https://kefe-proxy.kuresa-afamasaga.workers.dev/?url='+encodeURIComponent(itunesUrl));
         const result=await r.json();
-        const items=Array.isArray(result.recordings)?result.recordings:[];
+        const items=Array.isArray(result.results)?result.results.filter(item=>item.trackName):[];
         if(items.length&&mediaObjectUrl===lookupUrl){
-          const best=items[0];
-          const artist=best['artist-credit']?.[0]?.name||parsedArtist||'';
-          const release=best.releases?.[0]||null;
-          songTitle.value=best.title||parsedTitle;
-          songArtist.value=artist;
-          songAlbum.value=release?.title||'';
-          songYear.value=release?.date?String(release.date).slice(0,4):'';
-          songAlbum.dataset.artUrl=release?.id?('https://coverartarchive.org/release/'+release.id+'/front-500'):'';
-          songAlbum.dataset.trackDuration=best.length?String(Math.round(best.length/1000)):'';
-          songAlbum.dataset.platformId=best.id||'';
+          const normalizedTitle=parsedTitle.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+          const normalizedArtist=parsedArtist.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+          let best=items[0],bestScore=-1;
+          items.forEach(item=>{
+            const itemTitle=String(item.trackName||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+            const itemArtist=String(item.artistName||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+            let score=0;
+            if(itemTitle===normalizedTitle)score+=100;
+            else if(itemTitle.includes(normalizedTitle)||normalizedTitle.includes(itemTitle))score+=45;
+            if(normalizedArtist&&(itemArtist===normalizedArtist))score+=100;
+            else if(normalizedArtist&&(itemArtist.includes(normalizedArtist)||normalizedArtist.includes(itemArtist)))score+=45;
+            if(audio.duration&&item.trackTimeMillis)score+=Math.max(0,30-Math.abs(Number(item.trackTimeMillis)/1000-audio.duration));
+            if(score>bestScore){bestScore=score;best=item;}
+          });
+          songTitle.value=best.trackName||parsedTitle;
+          songArtist.value=best.artistName||parsedArtist||'';
+          songAlbum.value=best.collectionName||'';
+          songYear.value=best.releaseDate?String(best.releaseDate).slice(0,4):'';
+          songAlbum.dataset.artUrl=best.artworkUrl100?best.artworkUrl100.replace(/100x100bb\\.(jpg|jpeg|png)$/i,'600x600bb.$1'):'';
+          songAlbum.dataset.trackDuration=best.trackTimeMillis?String(Math.round(Number(best.trackTimeMillis)/1000)):'';
+          songAlbum.dataset.platformId=best.trackId?String(best.trackId):'';
           const mapped=items.map(it=>({
-            trackName:it.title,
-            artistName:it['artist-credit']?.[0]?.name,
-            collectionName:it.releases?.[0]?.title,
-            releaseDate:it.releases?.[0]?.date,
-            trackTimeMillis:it.length||0,
-            artworkUrl100:it.releases?.[0]?.id?('https://coverartarchive.org/release/'+it.releases[0].id+'/front-250'):'',
-            trackId:it.id
+            trackName:it.trackName,
+            artistName:it.artistName,
+            collectionName:it.collectionName,
+            releaseDate:it.releaseDate,
+            trackTimeMillis:it.trackTimeMillis||0,
+            artworkUrl100:it.artworkUrl100||'',
+            trackId:it.trackId
           }));
           renderSongSuggestions(mapped);
           updateMediaTrack();
           updateTitleCard();
+          applyAppleAlbumGradient();
           syncAppleLyricsMetadata();
-        } else {
+        }else{
           renderSongSuggestions([]);
         }
       }
-    }catch(error){console.warn('[KEFE metadata]',error);renderSongSuggestions([]);}
+    }catch(error){
+      console.warn('[KEFE iTunes metadata]',error);
+      renderSongSuggestions([]);
+    }
     if(mediaObjectUrl===lookupUrl){
       syncAppleLyricsMetadata();
       loadBiniLyrics();
