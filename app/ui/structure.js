@@ -38,6 +38,15 @@ document.body.insertAdjacentHTML('beforeend',KEFE_STRUCTURE);
         frameWrap.style.top=next.y+'px';
       }else if(event.data.action==='end')dragging=false;
     });
+    window.addEventListener('message',event=>{
+      if(event.source!==frame.contentWindow||!event.data||event.data.type!=='kefe-miniplayer-window')return;
+      if(event.data.action==='minimize')frameWrap.hidden=true;
+      if(event.data.action==='close'){
+        dragging=false;
+        frameWrap.remove();
+        frameWrap=null;
+      }
+    });
     window.addEventListener('pointerup',()=>{dragging=false},{passive:true});
     window.addEventListener('resize',positionDefault,{passive:true});
   }
