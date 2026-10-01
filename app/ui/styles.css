@@ -226,7 +226,7 @@ body{letter-spacing:-.01em}
 .kefe-preview{padding:18px 24px 12px}
 .kefe-stage{
   background:var(--surface);
-  border:0;
+  border:1px solid var(--line);
   border-radius:var(--r-xl);
   box-shadow:var(--float);
 }
