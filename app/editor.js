@@ -42,14 +42,6 @@
     fontSelect.appendChild(o);
   });
 
-  const fallbackEffects=[
-    ['apple','Apple'],['brat','Brat'],['eternal','Eternal Sunshine'],['aurora','Aurora'],['pulse','Pulse'],
-    ['typewriter','Typewriter'],['instagram','Instagram'],['fadeup','Fade Up'],['decrypt','Decrypt'],['blur','Blur In'],
-    ['shiny','Shiny'],['rise','Rise'],['slide','Slide'],['drop','Drop'],['drift','Drift'],['scrolllines','Scroll Lines'],
-    ['barbie','Barbie'],['elasticpop','Elastic Pop'],['flipcards','Flip Text'],['karaoke','Karaoke'],['trailer','Trailer'],
-    ['fancy','Fancy'],['glitch','Glitch'],['analogtv','Analog TV'],['splitflap','Split-Flap'],['chromatica','Chromatica'],
-    ['progressiveblur','Progressive Blur']
-  ];
   const effectDefinitions=(Array.isArray(window.KEFE_EFFECTS)&&window.KEFE_EFFECTS.length?window.KEFE_EFFECTS.map(e=>[e.key,e.label]):fallbackEffects);
 
   let state={effect:'apple',fontOverride:'',lines:[],appleLines:[],time:0};
@@ -120,7 +112,7 @@
   document.addEventListener('webkitfullscreenchange',updateFullscreenButton);
   document.addEventListener('fullscreenerror',()=>setPseudoFullscreen(true));
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&previewStage.classList.contains('kefe-pseudo-fullscreen'))setPseudoFullscreen(false)});
-  const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead'),wave=document.getElementById('waveform');
+  const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead');
 
   function updateMediaTrack(){
     const track=document.getElementById('kefeMediaTrack');
