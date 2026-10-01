@@ -2,8 +2,6 @@
   'use strict';
 
   window.kefeEffects = window.kefeEffects || {};
-  window.__kefeRenderers = window.__kefeRenderers || {};
-
   window.kefeEffectUtils = {
     clamp(v,a=0,b=1){return Math.max(a,Math.min(b,Number(v)||0));},
     activeLine(lines,time){
@@ -870,9 +868,6 @@
     const p=(state.time/(Number(range.max)||30))*100;
     range.style.setProperty('--progress',p+'%');playhead.style.left=p+'%';
   }
-
-  window.kefeRenderPipeline={use(name,plugin){const wrapped=plugin(window.__kefeBaseRender||(()=>{}));window.__kefeRenderers[name]=wrapped;return wrapped;}};
-  window.__kefeBaseRender=()=>{};
 
   parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();
   syncAppleLyricsMetadata();
