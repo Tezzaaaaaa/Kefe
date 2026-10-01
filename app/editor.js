@@ -115,7 +115,7 @@
   function normalizeArtworkUrl(url,size='600x600bb'){
     const value=String(url||'').trim();
     if(!value)return '';
-    return value.replace(/^http:/i,'https:').replace(/\\b\\d+x\\d+bb(?=[.-])/i,size);
+    return value.replace(/^http:/i,'https:').replace(/\d+x\d+bb(?=[.-])/i,size);
   }
 
   function updateMediaTrack(){
