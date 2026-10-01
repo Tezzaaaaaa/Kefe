@@ -122,7 +122,6 @@
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&previewStage.classList.contains('kefe-pseudo-fullscreen'))setPseudoFullscreen(false)});
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead'),wave=document.getElementById('waveform');
 
-  for(let i=0;i<120;i++){const bar=document.createElement('span');bar.style.height=(24+((i*37)%70))+'%';wave.insertBefore(bar,range);}
   function updateMediaTrack(){
     const track=document.getElementById('kefeMediaTrack');
     const art=document.getElementById('kefeMediaTrackArt');
