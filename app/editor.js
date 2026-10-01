@@ -48,7 +48,7 @@
   const audio=document.getElementById('kefeAudio'),range=document.getElementById('kefeTime');
   const video=document.createElement('video');
   video.preload='metadata'; video.muted=true; video.playsInline=true; video.style.display='none'; document.body.appendChild(video);
-  let mediaObjectUrl=''; let visualiserPreset='none',visualiserBackground='black',visualiserMotion='reactive';
+  let mediaObjectUrl=''; let visualiserPreset='none',visualiserBackground='accent',visualiserMotion='reactive';
   let previewAspectRatio='16:9';
   const titleCard=document.getElementById('kefeTitleCard'),titleName=document.getElementById('kefeTitleName'),titleArtist=document.getElementById('kefeTitleArtist'),titleAlbum=document.getElementById('kefeTitleAlbum'),titleYear=document.getElementById('kefeTitleYear'),titleArt=document.getElementById('kefeTitleArt'),titleArtFallback=document.getElementById('kefeTitleArtFallback');
   let titleCardTimer=null,titleCardShownFor='';
