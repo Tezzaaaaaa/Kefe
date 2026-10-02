@@ -353,7 +353,7 @@
     }else if(visualiserBackground==='monochrome'){
       const g=ctx.createRadialGradient(canvas.width*.5,canvas.height*.4,0,canvas.width*.5,canvas.height*.5,canvas.width*.8);g.addColorStop(0,'#3b3b3b');g.addColorStop(.4,'#161616');g.addColorStop(1,'#030303');ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);
     }else{
-      ctx.fillStyle='#080808';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()||'#cbc5b1';ctx.fillRect(0,0,canvas.width,canvas.height);
     }
     if(video.src&&video.readyState>=2){
       const vw=video.videoWidth||canvas.width,vh=video.videoHeight||canvas.height;
