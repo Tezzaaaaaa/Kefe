@@ -60,11 +60,13 @@
     previewStage.classList.add(ratio==='9:16'?'is-9x16':ratio==='1:1'?'is-1x1':'is-16x9');
     const dimensions=ratio==='9:16'?[720,1280]:ratio==='1:1'?[1080,1080]:[1280,720];
     canvas.width=dimensions[0];canvas.height=dimensions[1];
-    document.querySelectorAll('.kefe-aspect-button').forEach(button=>{const active=button.dataset.aspect===ratio;button.classList.toggle('active',active);button.setAttribute('aria-pressed',active?'true':'false');});
+    const aspectSelect=document.getElementById('kefeAspect');
+    if(aspectSelect)aspectSelect.value=ratio;
     fitPreviewStage();
     draw();
   }
-  document.querySelectorAll('.kefe-aspect-button').forEach(button=>button.addEventListener('click',()=>{const controls=button.closest('.kefe-aspect-controls');if(button.classList.contains('active')){controls.classList.toggle('is-open');return;}setPreviewAspectRatio(button.dataset.aspect);fitPreviewStage();controls.classList.remove('is-open');}));
+  const aspectSelect=document.getElementById('kefeAspect');
+  if(aspectSelect)aspectSelect.addEventListener('change',()=>{setPreviewAspectRatio(aspectSelect.value);fitPreviewStage();});
   function updateFullscreenButton(){
     const active=document.fullscreenElement===previewStage||document.webkitFullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen');
     previewFullscreen.setAttribute('aria-label',active?'Exit fullscreen':'Enter fullscreen');
