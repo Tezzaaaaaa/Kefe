@@ -236,19 +236,6 @@
       titleArt.appendChild(titleArtFallback);
     }
   }
-  async function fetchAlbumArt(title,artist,album){
-    if(!title)return;
-    const query=[title,artist].filter(Boolean).join(' ');
-    const mbUrl='https://musicbrainz.org/ws/2/recording?query='+encodeURIComponent(query)+'&fmt=json&limit=1';
-    const r=await fetch('https://kefe-proxy.kuresa-afamasaga.workers.dev/?url='+encodeURIComponent(mbUrl));
-    const result=await r.json();
-    const item=(result.recordings||[])[0];
-    const release=item?.releases?.[0];
-    if(!release?.id)return;
-    songAlbum.dataset.artUrl='https://coverartarchive.org/release/'+release.id+'/front-500';
-    updateMediaTrack();
-    updateTitleCard();
-  }
   function applyAppleAlbumGradient(){
     const appleLyrics=document.getElementById('kefeAppleLyrics'),artUrl=songAlbum?.dataset.artUrl;
     if(!appleLyrics||!artUrl)return;
