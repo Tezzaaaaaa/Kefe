@@ -549,6 +549,13 @@
   lyricsInput.addEventListener('input',parseLyrics);
   fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
   lyricEffectSelect.addEventListener('change',()=>setEffect(lyricEffectSelect.value));
+  const uploadZone=document.getElementById('kefeUploadZone');
+  const mediaInput=document.getElementById('mediaInput');
+  if(uploadZone&&mediaInput){
+    uploadZone.addEventListener('dragover',event=>{event.preventDefault();uploadZone.classList.add('is-dragging')});
+    uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('is-dragging'));
+    uploadZone.addEventListener('drop',event=>{event.preventDefault();uploadZone.classList.remove('is-dragging');const file=event.dataTransfer?.files?.[0];if(!file)return;mediaInput.files=event.dataTransfer.files;mediaInput.dispatchEvent(new Event('change',{bubbles:true}))});
+  }
   document.getElementById('mediaInput').addEventListener('change',e=>{
     const file=e.target.files?.[0];if(!file)return;
     e.target.value='';
