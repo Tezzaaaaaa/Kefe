@@ -577,7 +577,8 @@
     }
 
     songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
-    document.querySelector('.kefe-upload').textContent=file.name;
+    const uploadName=document.querySelector('.kefe-upload-name');
+    if(uploadName)uploadName.textContent=file.name;
     video.onplay=null;
     video.muted=true;
 
