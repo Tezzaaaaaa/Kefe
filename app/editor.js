@@ -616,200 +616,221 @@
     if(audio.src){if(audio.paused)audio.play();else audio.pause();}
     else{state.time=state.time>=30?0:state.time+.05;updateTime();draw();}
   };
-  audio.addEventListener('loadedmetadata',async()=>{
-    range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
-    const lookupUrl=mediaObjectUrl;
-    try{
-      const raw=songTitle.value.trim().replace(/^\\s*\\d{1,3}[._)\\-]\\s*/,'');
-      const parts=raw.split(/\\s+[-\\u2013\\u2014]\\s+/);
-      const parsedArtist=parts.length>1?parts.shift().trim():'';
-      const parsedTitle=parts.join(' - ').trim()||raw;
-      const query=[parsedTitle,parsedArtist].filter(Boolean).join(' ');
-      if(query){
-        const itunesUrl='https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=song&limit=20&country=AU';
-        const r=await fetch('https://kefe-proxy.kuresa-afamasaga.workers.dev/?url='+encodeURIComponent(itunesUrl));
-        const result=await r.json();
-        const items=Array.isArray(result.results)?result.results.filter(item=>item.trackName):[];
-        if(items.length&&mediaObjectUrl===lookupUrl){
-          const normalizedTitle=parsedTitle.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-          const normalizedArtist=parsedArtist.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-          let best=items[0],bestScore=-1;
-          items.forEach(item=>{
-            const itemTitle=String(item.trackName||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-            const itemArtist=String(item.artistName||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-            let score=0;
-            if(itemTitle===normalizedTitle)score+=100;
-            else if(itemTitle.includes(normalizedTitle)||normalizedTitle.includes(itemTitle))score+=45;
-            if(normalizedArtist&&(itemArtist===normalizedArtist))score+=100;
-            else if(normalizedArtist&&(itemArtist.includes(normalizedArtist)||normalizedArtist.includes(itemArtist)))score+=45;
-            if(audio.duration&&item.trackTimeMillis)score+=Math.max(0,30-Math.abs(Number(item.trackTimeMillis)/1000-audio.duration));
-            if(score>bestScore){bestScore=score;best=item;}
-          });
-          songTitle.value=best.trackName||parsedTitle;
-          songArtist.value=best.artistName||parsedArtist||'';
-          songAlbum.value=best.collectionName||'';
-          songYear.value=best.releaseDate?String(best.releaseDate).slice(0,4):'';
-          songAlbum.dataset.artUrl=normalizeArtworkUrl(best.artworkUrl100);
-          songAlbum.dataset.trackDuration=best.trackTimeMillis?String(Math.round(Number(best.trackTimeMillis)/1000)):'';
-          songAlbum.dataset.platformId=best.trackId?String(best.trackId):'';
-          const mapped=items.map(it=>({
-            trackName:it.trackName,
-            artistName:it.artistName,
-            collectionName:it.collectionName,
-            releaseDate:it.releaseDate,
-            trackTimeMillis:it.trackTimeMillis||0,
-            artworkUrl100:it.artworkUrl100||'',
-            trackId:it.trackId
-          }));
-          renderSongSuggestions(mapped);
-          updateMediaTrack();
-          updateTitleCard();
-          applyAppleAlbumGradient();
-          syncAppleLyricsMetadata();
-        }else{
-          renderSongSuggestions([]);
-        }
-      }
-    }catch(error){
-      console.warn('[KEFE iTunes metadata]',error);
-      renderSongSuggestions([]);
-    }
-    if(mediaObjectUrl===lookupUrl){
-      syncAppleLyricsMetadata();
-      loadBiniLyrics();
-    }
-  });
-  let biniLyricsRequest=0,automaticLyricsTimer=null;
-  function scheduleAutomaticLyricsFetch(){
-    if(lyricsInput.value.trim())return;
-    clearTimeout(automaticLyricsTimer);
-    automaticLyricsTimer=setTimeout(()=>{
-      if(!lyricsInput.value.trim())loadBiniLyrics();
-    },500);
+  function decodeText(bytes){
+    try{return new TextDecoder('utf-8').decode(bytes).replace(/\0/g,'').trim();}catch(_){return '';}
   }
-  async function loadBiniLyrics(){
+  function decodeLatin(bytes){
+    let out='';for(let i=0;i<bytes.length;i++)if(bytes[i])out+=String.fromCharCode(bytes[i]);return out.trim();
+  }
+  function readId3Text(bytes){
+    if(bytes.length<4)return '';
+    const encoding=bytes[0],data=bytes.slice(1);
+    if(encoding===1&&data.length>=2){
+      try{return new TextDecoder('utf-16').decode(data).replace(/\0/g,'').trim();}catch(_){}
+    }
+    if(encoding===2){
+      try{return new TextDecoder('utf-16be').decode(data).replace(/\0/g,'').trim();}catch(_){}
+    }
+    return encoding===3?decodeText(data):decodeLatin(data);
+  }
+  function readMp4String(bytes){
+    const ascii=decodeLatin(bytes);
+    const nul=ascii.indexOf('\0');
+    return (nul>=0?ascii.slice(nul+1):ascii).replace(/^data.*?/,'').trim();
+  }
+  async function readEmbeddedMetadata(file){
+    const head=await file.slice(0,1024*1024).arrayBuffer();
+    const bytes=new Uint8Array(head),out={};
+    if(bytes[0]===0x49&&bytes[1]===0x44&&bytes[2]===0x33){
+      const version=bytes[3]||3;
+      let offset=10;
+      const size=((bytes[6]&127)<<21)|((bytes[7]&127)<<14)|((bytes[8]&127)<<7)|(bytes[9]&127);
+      const limit=Math.min(bytes.length,10+size);
+      while(offset+10<=limit){
+        const id=decodeLatin(bytes.slice(offset,offset+4));
+        if(!/^[A-Z0-9]{4}$/.test(id))break;
+        let frameSize=version>=4?((bytes[offset+4]&127)<<21)|((bytes[offset+5]&127)<<14)|((bytes[offset+6]&127)<<7)|(bytes[offset+7]&127):((bytes[offset+4]<<24)|(bytes[offset+5]<<16)|(bytes[offset+6]<<8)|bytes[offset+7]);
+        if(!frameSize||offset+10+frameSize>limit)break;
+        const value=readId3Text(bytes.slice(offset+10,offset+10+frameSize));
+        if(value){
+          if(id==='TIT2')out.title=value;
+          if(id==='TPE1')out.artist=value;
+          if(id==='TALB')out.album=value;
+          if(id==='TYER'||id==='TDRC')out.year=value.slice(0,4);
+        }
+        offset+=10+frameSize;
+      }
+    }
+    const text=decodeLatin(bytes);
+    const atom=(name)=>{
+      const marker=name==='title'?'©nam':name==='artist'?'©ART':name==='album'?'©alb':name==='year'?'©day':'';
+      const at=text.indexOf(marker);
+      if(at<0)return '';
+      return readMp4String(bytes.slice(Math.max(0,at-16),Math.min(bytes.length,at+256)));
+    };
+    if(!out.title)out.title=atom('title');
+    if(!out.artist)out.artist=atom('artist');
+    if(!out.album)out.album=atom('album');
+    if(!out.year)out.year=atom('year').slice(0,4);
+    return out;
+  }
+  function normalizeSearchText(value){
+    return String(value||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').trim();
+  }
+  function filenameMetadata(file){
+    const raw=String(file.name||'').replace(/\.[^.]+$/,'').replace(/^[\s\d._)\-]+/,'').replace(/[._]+/g,' ').trim();
+    const parts=raw.split(/\s+[-–—]\s+/).map(v=>v.trim()).filter(Boolean);
+    return parts.length>1?{artist:parts[0],title:parts.slice(1).join(' - ')}:{title:raw};
+  }
+  function rankTrack(item,meta,duration){
+    const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist);
+    const itemTitle=normalizeSearchText(item.trackName),itemArtist=normalizeSearchText(item.artistName);
+    let score=0;
+    if(title&&itemTitle===title)score+=120;else if(title&&(itemTitle.includes(title)||title.includes(itemTitle)))score+=55;
+    if(artist&&itemArtist===artist)score+=120;else if(artist&&(itemArtist.includes(artist)||artist.includes(itemArtist)))score+=55;
+    if(duration&&item.trackTimeMillis)score+=Math.max(0,40-Math.abs(Number(item.trackTimeMillis)/1000-duration)*2);
+    return score;
+  }
+  function applyIdentifiedTrack(item){
+    songTitle.value=item.trackName||songTitle.value;
+    songArtist.value=item.artistName||songArtist.value;
+    songAlbum.value=item.collectionName||songAlbum.value;
+    songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):songYear.value;
+    songAlbum.dataset.artUrl=normalizeArtworkUrl(item.artworkUrl100);
+    songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
+    songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
+    updateMediaTrack();updateTitleCard();applyAppleAlbumGradient();syncAppleLyricsMetadata();
+  }
+  async function fetchItunesMatches(meta,duration){
+    const query=[meta.title,meta.artist].filter(Boolean).join(' ');
+    if(!query)return [];
+    const url='https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=song&limit=25&country=AU';
+    const response=await fetch(url,{headers:{Accept:'application/json'}});
+    if(!response.ok)throw new Error('iTunes search failed: '+response.status);
+    const payload=await response.json();
+    return Array.isArray(payload.results)?payload.results.filter(item=>item.trackName).sort((a,b)=>rankTrack(b,meta,duration)-rankTrack(a,meta,duration)):[];
+  }
+  function setLyricsFromLines(lines,source){
+    if(!lines.length)return false;
+    state.appleLines=lines.map((line,index)=>({...line,end:Number.isFinite(line.end)?line.end:(lines[index+1]?.time||line.time+3)}));
+    state.lines=state.appleLines.map(line=>({text:line.text,time:line.time,endTime:line.end,words:Array.isArray(line.words)?line.words.map(word=>({text:word.text,time:word.time,endTime:word.endTime})):undefined}));
+    lyricsInput.value=state.appleLines.map(line=>{
+      const mins=Math.floor(line.time/60),secs=line.time-mins*60;
+      return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\.$/,'')+'] '+line.text;
+    }).join('\n');
+    empty.hidden=true;empty.classList.add('is-hidden');
+    const status=document.getElementById('kefeLyricsStatus');
+    if(status)status.textContent=source;
+    openEditorPanel('lyrics');syncAppleLyricsMetadata();draw();syncAppleLyrics(true);
+    return true;
+  }
+  let lyricsRequest=0;
+  async function loadAutomaticLyrics(){
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     const duration=Math.round(Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0);
-    const platformId=String(songAlbum.dataset.platformId||'').trim();
-    const lyricsStatus=document.getElementById('kefeLyricsStatus');
-    if(!title||!artist){
-      if(lyricsStatus)lyricsStatus.textContent='Identify the track to fetch synchronized lyrics.';
-      return;
-    }
-    const request=++biniLyricsRequest;
-    const params=new URLSearchParams({track:title,artist,duration:String(duration)});
-    if(album)params.set('album',album);
-    if(platformId)params.set('platformId',platformId);
-    const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),10000);
+    const status=document.getElementById('kefeLyricsStatus');
+    if(!title||!artist)return;
+    const request=++lyricsRequest;
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);
     try{
-      if(lyricsStatus)lyricsStatus.textContent='Finding synchronized lyrics from BiniLyrics…';
-      const response=await fetch('https://lyrics-api.binimum.org/getLyrics?'+params.toString(),{
-        signal:controller.signal,
-        headers:{
-          'Accept':'application/json,text/plain;q=0.9,*/*;q=0.8',
-          'X-Client-Package':'KEFE <https://tezzaaaaaa.github.io/Kefe/>'
-        }
-      });
-      if(request!==biniLyricsRequest)return;
-      const raw=await response.text();
-      if(!response.ok)throw new Error('BiniLyrics lookup failed: '+response.status);
-      let payload={};
-      try{payload=raw.trim()?JSON.parse(raw):{};}catch(_){throw new Error('BiniLyrics returned invalid JSON');}
-      const matches=Array.isArray(payload?.results)?payload.results:Array.isArray(payload?.data?.results)?payload.data.results:Array.isArray(payload)?payload:[payload];
-      const match=matches.find(item=>typeof item?.lyricsUrl==='string'&&item.lyricsUrl.trim())||matches.find(item=>typeof item?.url==='string'&&item.url.trim())||null;
-      const lyricsUrl=String(match?.lyricsUrl||match?.url||payload?.lyricsUrl||payload?.url||'').trim();
-      if(!lyricsUrl)throw new Error(payload?.error||'BiniLyrics returned no lyric URL');
-      const parsedUrl=new URL(lyricsUrl);
-      if(parsedUrl.protocol!=='https:'||parsedUrl.hostname!=='lyrics-storage.binimum.org')throw new Error('BiniLyrics returned an untrusted lyric URL');
-      const lyricsResponse=await fetch(parsedUrl.href,{signal:controller.signal,headers:{'Accept':'application/ttml+xml,application/xml,text/xml,text/plain;q=0.9,*/*;q=0.8'}});
-      if(request!==biniLyricsRequest)return;
-      if(!lyricsResponse.ok)throw new Error('BiniLyrics TTML fetch failed: '+lyricsResponse.status);
-      const ttml=(await lyricsResponse.text()).trim();
-      if(!ttml.startsWith('<'))throw new Error('BiniLyrics returned no TTML');
-      const parsedLines=parseAppleTTML(ttml);
-      if(!parsedLines.length)throw new Error('BiniLyrics TTML contained no timed lines');
-      state.appleLines=parsedLines.map((line,index)=>({...line,end:Number.isFinite(line.end)?line.end:(parsedLines[index+1]?.time||line.time+3)}));
-      state.lines=state.appleLines.map(line=>({text:line.text,time:line.time,endTime:line.end,words:Array.isArray(line.words)?line.words.map(word=>({text:word.text,time:word.time,endTime:word.endTime})):undefined}));
-      empty.hidden=true;empty.classList.add('is-hidden');
-      lyricsInput.value=state.appleLines.map(line=>{
-        const mins=Math.floor(line.time/60),secs=line.time-mins*60;
-        return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\\.$/,'')+'] '+line.text;
-      }).join('\\n');
-      if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics fetched from BiniLyrics.';
-      openEditorPanel('lyrics');
-      syncAppleLyricsMetadata();
-      draw();
-      syncAppleLyrics(true);
-    }catch(error){
-      if(request!==biniLyricsRequest)return;
-      console.warn('[KEFE BiniLyrics]',error);
-      const fallbackController=new AbortController();
-      const fallbackTimeout=setTimeout(()=>fallbackController.abort(),10000);
-      try{
-        if(lyricsStatus)lyricsStatus.textContent='BiniLyrics unavailable — trying synchronized LRC lyrics…';
-        const fallbackParams=new URLSearchParams({
-          track_name:title,
-          artist_name:artist,
-          duration:String(Math.round(duration))
-        });
-        if(album)fallbackParams.set('album_name',album);
-        let fallbackResponse=await fetch('https://lrclib.net/api/get?'+fallbackParams.toString(),{
-          signal:fallbackController.signal,
-          headers:{
-            'Accept':'application/json',
-            'X-User-Agent':'KEFE (https://tezzaaaaaa.github.io/Kefe/)'
-          }
-        });
-        if(request!==biniLyricsRequest)return;
-        let fallbackPayload={};
-        if(fallbackResponse.ok){
-          fallbackPayload=await fallbackResponse.json();
-        }else if(fallbackResponse.status===404){
-          const searchParams=new URLSearchParams({track_name:title,artist_name:artist});
-          if(album)searchParams.set('album_name',album);
-          fallbackResponse=await fetch('https://lrclib.net/api/search?'+searchParams.toString(),{
-            signal:fallbackController.signal,
-            headers:{
-              'Accept':'application/json',
-              'X-User-Agent':'KEFE (https://tezzaaaaaa.github.io/Kefe/)'
-            }
-          });
-          if(request!==biniLyricsRequest)return;
-          if(!fallbackResponse.ok)throw new Error('LRCLIB search failed: '+fallbackResponse.status);
-          const searchResults=await fallbackResponse.json();
-          const ranked=Array.isArray(searchResults)?searchResults.filter(item=>item?.syncedLyrics).sort((a,b)=>{
-            const ad=Math.abs(Number(a.duration||0)-duration),bd=Math.abs(Number(b.duration||0)-duration);
-            return ad-bd;
-          }):[];
-          fallbackPayload=ranked[0]||searchResults?.[0]||{};
-        }else{
-          throw new Error('LRCLIB lookup failed: '+fallbackResponse.status);
-        }
-        const lrc=String(fallbackPayload?.syncedLyrics||'').trim();
-        if(!lrc)throw new Error('LRCLIB returned no synchronized LRC');
-        const parsedLrc=parseAppleLrc(lrc);
-        if(!parsedLrc.length)throw new Error('LRCLIB returned no timed lines');
-        state.appleLines=parsedLrc.map((line,index)=>({...line,end:index+1<parsedLrc.length?parsedLrc[index+1].time:line.time+3}));
-        state.lines=state.appleLines.map(line=>({text:line.text,time:line.time,endTime:line.end}));
-        empty.hidden=true;empty.classList.add('is-hidden');
-        lyricsInput.value=lrc;
-        if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics fetched from LRCLIB.';
-        openEditorPanel('lyrics');
-        syncAppleLyricsMetadata();
-        draw();
-        syncAppleLyrics(true);
-      }catch(fallbackError){
-        if(request!==biniLyricsRequest)return;
-        if(lyricsStatus)lyricsStatus.textContent='Synchronized lyrics unavailable for this track.';
-        console.warn('[KEFE LRCLIB]',fallbackError);
-      }finally{
-        clearTimeout(fallbackTimeout);
+      if(status)status.textContent='Finding synchronized lyrics…';
+      const params=new URLSearchParams({s:title,a:artist,al:album,d:String(duration)});
+      let response=await fetch('https://api.betterlyrics.org/getLyrics?'+params,{signal:controller.signal,headers:{Accept:'application/json'}});
+      if(response.ok){
+        const payload=await response.json();
+        if(request!==lyricsRequest)return;
+        const ttml=String(payload?.ttml||'').trim();
+        const lines=ttml?parseAppleTTML(ttml):[];
+        if(setLyricsFromLines(lines,'Synchronized lyrics fetched.'))return;
       }
-    }finally{
-      clearTimeout(timeout);
+      response=await fetch('https://api.betterlyrics.org/kugou/getLyrics?'+params,{signal:controller.signal,headers:{Accept:'application/json'}});
+      if(response.ok){
+        const payload=await response.json();
+        if(request!==lyricsRequest)return;
+        const lines=parseAppleLrc(String(payload?.lyrics||''));
+        if(setLyricsFromLines(lines,'Synchronized lyrics fetched.'))return;
+      }
+      response=await fetch('https://lrclib.net/api/get?'+new URLSearchParams({track_name:title,artist_name:artist,album_name:album,duration:String(duration)}),{signal:controller.signal,headers:{Accept:'application/json'}});
+      if(response.ok){
+        const payload=await response.json();
+        if(request!==lyricsRequest)return;
+        const lines=parseAppleLrc(String(payload?.syncedLyrics||''));
+        if(setLyricsFromLines(lines,'Synchronized lyrics fetched.'))return;
+      }
+      if(status)status.textContent='No synchronized lyrics found for this track.';
+    }catch(error){
+      if(request===lyricsRequest&&status)status.textContent='Could not fetch synchronized lyrics.';
+      console.warn('[KEFE automatic lyrics]',error);
+    }finally{clearTimeout(timeout);}
+  }
+  async function identifyAndLoadTrack(file){
+    const uploadId=mediaObjectUrl;
+    const status=document.getElementById('kefeLyricsStatus');
+    try{
+      const embedded=await readEmbeddedMetadata(file);
+      const named=filenameMetadata(file);
+      const meta={title:embedded.title||named.title||'',artist:embedded.artist||named.artist||'',album:embedded.album||'',year:embedded.year||''};
+      songTitle.value=meta.title;
+      songArtist.value=meta.artist;
+      songAlbum.value=meta.album;
+      songYear.value=meta.year;
+      updateMediaTrack();updateTitleCard();
+      if(status)status.textContent='Identifying track…';
+      const matches=await fetchItunesMatches(meta,Number(audio.duration)||0);
+      if(mediaObjectUrl!==uploadId)return;
+      const best=matches[0];
+      if(best&&rankTrack(best,meta,Number(audio.duration)||0)>=70){
+        applyIdentifiedTrack(best);
+        renderSongSuggestions(matches.slice(0,5).map(item=>({...item})));
+        if(status)status.textContent='Track identified. Finding lyrics…';
+        await loadAutomaticLyrics();
+      }else{
+        renderSongSuggestions(matches.slice(0,5).map(item=>({...item})));
+        if(status)status.textContent='Track not identified automatically. Check the song details.';
+      }
+    }catch(error){
+      console.warn('[KEFE track identification]',error);
+      if(status)status.textContent='Track identification failed. Check the song details.';
     }
   }
+  songTitle.addEventListener('input',()=>updateTitleCard());
+  songArtist.addEventListener('input',()=>updateTitleCard());
+  songAlbum.addEventListener('input',()=>updateTitleCard());
+  songYear.addEventListener('input',()=>updateTitleCard());
+  lyricsInput.addEventListener('input',parseLyrics);
+  fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
+  lyricEffectSelect.addEventListener('change',()=>setEffect(lyricEffectSelect.value));
+  const uploadZone=document.getElementById('kefeUploadZone');
+  const mediaInput=document.getElementById('mediaInput');
+  if(uploadZone&&mediaInput){
+    uploadZone.addEventListener('dragover',event=>{event.preventDefault();uploadZone.classList.add('is-dragging')});
+    uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('is-dragging'));
+    uploadZone.addEventListener('drop',event=>{event.preventDefault();uploadZone.classList.remove('is-dragging');const file=event.dataTransfer?.files?.[0];if(!file)return;mediaInput.files=event.dataTransfer.files;mediaInput.dispatchEvent(new Event('change',{bubbles:true}))});
+  }
+  mediaInput.addEventListener('change',e=>{
+    const file=e.target.files?.[0];if(!file)return;
+    e.target.value='';
+    if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
+    mediaObjectUrl=URL.createObjectURL(file);
+    songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
+    songArtist.value='';songAlbum.value='';songYear.value='';
+    state.appleLines=[];state.lines=[];lyricsInput.value='';
+    delete songAlbum.dataset.artUrl;delete songAlbum.dataset.trackDuration;delete songAlbum.dataset.platformId;
+    const status=document.getElementById('kefeLyricsStatus');if(status)status.textContent='Reading track information…';
+    const uploadName=document.querySelector('.kefe-upload-name');if(uploadName)uploadName.textContent=file.name;
+    empty.hidden=true;empty.classList.add('is-hidden');
+    if(titleCard){titleCard.classList.remove('active','leaving');titleCard.setAttribute('aria-hidden','true');}
+    video.onplay=null;video.muted=true;
+    audio.src=mediaObjectUrl;audio.load();
+    if(file.type.startsWith('video/')){video.src=mediaObjectUrl;video.load();}else{video.removeAttribute('src');video.load();}
+    audio.addEventListener('loadedmetadata',function identifyOnce(){
+      audio.removeEventListener('loadedmetadata',identifyOnce);
+      range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
+      identifyAndLoadTrack(file);
+    });
+    updateTitleCard();syncAppleLyricsMetadata();showTitleCard();
+  });
+  function updatePlayButton(){
   function syncAppleLyricsMetadata(){
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     if(!appleLyrics)return;
