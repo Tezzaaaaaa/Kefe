@@ -144,8 +144,11 @@ button{border:0;cursor:pointer}
 .kefe-select,.kefe-input,.kefe-textarea{width:100%;min-height:var(--control-h);border:0;border-radius:var(--r2);background:var(--bg);box-shadow:var(--inner);padding:0 var(--control-pad);outline:none}
 .kefe-select:focus,.kefe-input:focus,.kefe-textarea:focus{border-color:transparent;box-shadow:0 0 0 3px rgba(143,175,193,.28),var(--inner)}
 .kefe-textarea{min-height:80px;height:auto;padding:var(--control-pad);resize:vertical}
-.kefe-upload{display:flex;align-items:center;justify-content:center;min-height:var(--control-h);border:0;border-radius:var(--r2);background:var(--bg);box-shadow:var(--lift);cursor:pointer;color:var(--muted)}
-.kefe-upload:hover{color:var(--text);box-shadow:var(--float)}
+.kefe-upload-zone{grid-column:1/-1;display:grid;place-items:center;gap:4px;min-height:112px;padding:18px;border:1px dashed var(--line);border-radius:var(--r2);background:var(--surface);box-shadow:var(--inner);cursor:pointer;text-align:center;color:var(--text);transition:border-color .16s ease,background .16s ease,box-shadow .16s ease}
+.kefe-upload-zone:hover,.kefe-upload-zone.is-dragging{border-color:var(--accent);background:var(--surface-hi);box-shadow:var(--lift)}
+.kefe-upload-title{font-size:13px;font-weight:800}
+.kefe-upload-name{font-size:11px;color:var(--muted)}
+.kefe-upload-help{font-size:9px;color:var(--soft)}
 .kefe-file{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0;opacity:0}
 .kefe-song-search{grid-column:1/-1;padding:var(--control-pad);border:1px solid var(--line);border-radius:var(--r2);background:var(--surface-hi);box-shadow:var(--inner)}
 .kefe-song-search-head{display:flex;align-items:center;justify-content:space-between;gap:var(--section-gap)}
