@@ -545,54 +545,6 @@
     const panel=button.dataset.topPanel;
     if(panel==='media'||panel==='editor')openEditorPanel('media');
   }));
-  document.getElementById('mediaInput').addEventListener('change',e=>{
-    const file=e.target.files?.[0];if(!file)return;
-    e.target.value='';
-    if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
-    mediaObjectUrl=URL.createObjectURL(file);
-    const uploadUrl=mediaObjectUrl;
-    songArtist.value='';
-    songAlbum.value='';
-    songYear.value='';
-    state.appleLines=[];
-    state.lines=[];
-    lyricsInput.value='';
-    const uploadLyricsStatus=document.getElementById('kefeLyricsStatus');
-    if(uploadLyricsStatus)uploadLyricsStatus.textContent='Identifying track…';
-    empty.hidden=true;empty.classList.add('is-hidden');
-    delete songAlbum.dataset.artUrl;
-    delete songAlbum.dataset.trackDuration;
-    delete songAlbum.dataset.platformId;
-    const suggestionsPanel=document.getElementById('kefeSuggestions');
-    const suggestionsList=document.getElementById('kefeSuggestionList');
-    if(suggestionsPanel)suggestionsPanel.hidden=true;
-    if(suggestionsList)suggestionsList.innerHTML='';
-    if(titleCard){
-      titleCard.classList.remove('active','leaving');
-      titleCard.setAttribute('aria-hidden','true');
-    }
-
-    songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
-    const uploadName=document.querySelector('.kefe-upload-name');
-    if(uploadName)uploadName.textContent=file.name;
-    video.onplay=null;
-    video.muted=true;
-
-    audio.src=mediaObjectUrl;
-    audio.load();
-
-    if(file.type.startsWith('video/')){
-      video.src=mediaObjectUrl;
-      video.load();
-    }else{
-      video.removeAttribute('src');
-      video.load();
-    }
-
-    updateTitleCard();
-    syncAppleLyricsMetadata();
-    showTitleCard();
-  });
   function updatePlayButton(){
     const button=document.getElementById('playButton');
     if(!button)return;
