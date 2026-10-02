@@ -44,7 +44,7 @@
 
   let state={effect:'apple',fontOverride:'',lines:[],appleLines:[],time:0};
   const canvas=document.getElementById('kefeCanvas'),ctx=canvas.getContext('2d');
-  const empty=document.getElementById('emptyState'),lyricsInput=document.getElementById('lyricsInput');
+  const lyricsInput=document.getElementById('lyricsInput');
   const audio=document.getElementById('kefeAudio'),range=document.getElementById('kefeTime');
   const video=document.createElement('video');
   video.preload='metadata'; video.muted=true; video.playsInline=true; video.style.display='none'; document.body.appendChild(video);
@@ -279,7 +279,7 @@
       state.lines=raw.map((text,i)=>({text,time:i*3,endTime:(i+1)*3}));
     }
     state.appleLines=state.lines.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
-    empty.hidden=state.lines.length>0;empty.classList.toggle('is-hidden',state.lines.length===0);
+    previewStage.classList.toggle('is-empty',state.lines.length===0);
     draw();
   }
   function lyricsToTtml(lines){
@@ -306,8 +306,8 @@
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const hasUploadedMedia=!!(audio.currentSrc||audio.src||video.currentSrc||video.src);
-    const emptyState=document.getElementById('emptyState');
-    if(emptyState){const showEmpty=!hasUploadedMedia&&!state.appleLines.length&&!state.lines.length;emptyState.hidden=!showEmpty;emptyState.classList.toggle('is-hidden',!showEmpty);}
+    const showEmpty=!hasUploadedMedia&&!state.appleLines.length&&!state.lines.length;
+    previewStage.classList.toggle('is-empty',showEmpty);
     const t=state.time;
     if(visualiserBackground==='gradient'){
       const g=ctx.createLinearGradient(0,0,canvas.width,canvas.height);g.addColorStop(0,'#080808');g.addColorStop(1,'#24201f');ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -646,7 +646,7 @@
       const mins=Math.floor(line.time/60),secs=line.time-mins*60;
       return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\.$/,'')+'] '+line.text;
     }).join('\n');
-    empty.hidden=true;empty.classList.add('is-hidden');
+    previewStage.classList.remove('is-empty');
     const status=document.getElementById('kefeLyricsStatus');
     if(status)status.textContent=source;
     openEditorPanel('lyrics');syncAppleLyricsMetadata();draw();syncAppleLyrics(true);
