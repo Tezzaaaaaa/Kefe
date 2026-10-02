@@ -101,7 +101,7 @@ button{border:0;cursor:pointer}
 .kefe-wave .kefe-time{left:12px;right:12px;font-size:10px}
 .kefe-timeline .kefe-aspect-controls{min-width:58px;flex-basis:58px}
 .kefe-timeline .kefe-aspect-button{min-width:32px;padding:0 5px}}
-.kefe-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--soft);pointer-events:none}
+.kefe-stage.is-empty:before{content:'Add lyrics to preview';position:absolute;inset:0;z-index:2;display:grid;place-items:center;text-align:center;color:var(--soft);font-weight:700;pointer-events:none}.kefe-stage.is-empty:after{content:'Choose a lyric effect and enter timed lines.';position:absolute;left:0;right:0;top:calc(50% + 24px);z-index:2;text-align:center;color:var(--soft);font-size:13px;pointer-events:none}
 .kefe-empty.is-hidden,.kefe-empty[hidden]{display:none}
 .kefe-empty-logo{filter:none;opacity:.58}
 .kefe-empty strong{display:block;color:var(--accent-deep);font-size:20px;margin-bottom:6px;font-weight:800;letter-spacing:-.03em}
