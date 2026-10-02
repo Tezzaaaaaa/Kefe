@@ -323,7 +323,7 @@
     if(visualiserBackground==='gradient'){
       const g=ctx.createLinearGradient(0,0,canvas.width,canvas.height);g.addColorStop(0,'#080808');g.addColorStop(1,'#24201f');ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);
     }else if(visualiserBackground==='accent'){
-      ctx.fillStyle='rgba(120,185,255,.28)';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='rgba(239,63,56,.28)';ctx.fillRect(0,0,canvas.width,canvas.height);
     }else if(visualiserBackground==='album'){
       const g=ctx.createRadialGradient(canvas.width*.28,canvas.height*.2,0,canvas.width*.52,canvas.height*.5,canvas.width*.8);g.addColorStop(0,'#ef3f38');g.addColorStop(.42,'#301516');g.addColorStop(1,'#050505');ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height);
     }else if(visualiserBackground==='aurora'){
