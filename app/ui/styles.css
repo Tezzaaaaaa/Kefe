@@ -118,7 +118,7 @@ button{border:0;cursor:pointer}
 .kefe-play .kefe-pause-icon{width:18px;height:18px}
 .kefe-play:active{box-shadow:var(--inner)}
 .kefe-wave{height:48px;position:relative;display:flex;align-items:center;gap:2px;padding:0 74px;min-width:0;overflow:hidden;border-radius:999px;background:var(--surface-hi);border:1px solid var(--line);box-shadow:var(--inner)}
-.kefe-wave .playhead{position:absolute;top:7px;bottom:7px;width:2px;background:#A4B59B;left:0;border-radius:999px;box-shadow:0 0 10px rgba(164,181,155,.55),0 0 18px rgba(164,181,155,.28);pointer-events:none;z-index:5;margin:0;transform:translateX(-50%)}
+.kefe-wave .playhead{position:absolute;top:5px;bottom:5px;width:2px;background:rgba(255,255,255,.46);left:0;border-radius:999px;box-shadow:0 0 8px rgba(255,255,255,.22);pointer-events:none;z-index:5;margin:0;transform:translateX(-50%);opacity:.72}
 .kefe-time{min-width:82px;text-align:right;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
 #kefeTime{position:absolute;opacity:0}
 .kefe-slider{position:absolute;inset:0;width:100%;height:48px;margin:0;padding:0;appearance:none;-webkit-appearance:none;background:transparent;border:0;border-radius:999px;outline:none;z-index:4;cursor:pointer;touch-action:none}
@@ -302,7 +302,7 @@ button{border:0;cursor:pointer}
 }
 /* KEFE TIMELINE WAVEFORM REDESIGN */
 .kefe-timeline{grid-template-columns:auto auto minmax(0,1fr) auto;gap:12px;min-width:0;padding:8px 24px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);box-shadow:var(--inner)}
-.kefe-wave .playhead::after{content:"";position:absolute;left:50%;bottom:-1px;width:9px;height:6px;border-radius:50%;background:#A4B59B;box-shadow:0 0 10px 3px rgba(164,181,155,.45);transform:translateX(-50%)}
+.kefe-wave .playhead::after{content:none}
 .kefe-wave .kefe-time{display:none}
 .kefe-wave .kefe-time #timeEnd{display:block}
 .kefe-timeline .kefe-aspect-controls{position:static;flex:0 0 auto;align-self:center;width:auto;min-width:0;padding:4px;border:0;border-radius:999px;background:var(--bg);box-shadow:5px 6px 12px rgba(92,84,68,.18),-3px -3px 8px rgba(255,255,255,.78)}
