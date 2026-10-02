@@ -978,32 +978,64 @@
       var dur = Number(range.max) || 30;
       var frac = Math.max(0, Math.min(1, (Number(range.value) || 0) / dur));
       var splitX = frac * w;
-      g.fillStyle = 'rgba(90,80,70,0.10)';
-      g.fillRect(0, Math.round(midY - dpr*0.5), w, Math.max(1, dpr));
-      for (var i = 0; i < BAR_COUNT; i++) {
-        var v = peaks[i];
-        var bh = Math.max(2 * dpr, v * h * 0.86);
-        var x = i * (barW + gap);
-        var y = midY - bh / 2;
-        var passed = (x + barW / 2) <= splitX;
-        var grad = g.createLinearGradient(0, y, 0, y + bh);
-        if (passed) {
-          grad.addColorStop(0.00, 'rgba(164,181,155,0.30)');
-          grad.addColorStop(0.50, 'rgba(164,181,155,0.95)');
-          grad.addColorStop(1.00, 'rgba(164,181,155,0.30)');
-        } else {
-          grad.addColorStop(0.00, 'rgba(90,80,70,0.18)');
-          grad.addColorStop(0.50, 'rgba(90,80,70,0.55)');
-          grad.addColorStop(1.00, 'rgba(90,80,70,0.18)');
-        }
-        g.fillStyle = grad;
-        if (passed) { g.shadowColor = 'rgba(164,181,155,0.55)'; g.shadowBlur = 4 * dpr; }
-        else { g.shadowColor = 'transparent'; g.shadowBlur = 0; }
-        roundRect(g, x, y, barW, bh, barW / 2);
-        g.fill();
+      var radius = h / 2;
+      var liquidHeight = h * 0.72;
+      var liquidTop = midY - liquidHeight / 2;
+
+      // The waveform is the liquid itself: a translucent, softly undulating fill
+      // that rises across the tube with playback instead of rendering as separate bars.
+      g.save();
+      g.beginPath();
+      g.moveTo(0, h);
+      g.lineTo(0, midY + h * 0.08);
+      for (var lx = 0; lx <= splitX; lx += Math.max(2 * dpr, w / 90)) {
+        var li = Math.min(BAR_COUNT - 1, Math.floor((lx / Math.max(1, w)) * BAR_COUNT));
+        var lv = peaks[li] || 0;
+        var ly = midY + h * 0.05 - lv * h * 0.30;
+        g.lineTo(lx, ly);
       }
-      g.shadowBlur = 0;
-      g.shadowColor = 'transparent';
+      g.lineTo(splitX, h);
+      g.closePath();
+
+      var liquidGrad = g.createLinearGradient(0, liquidTop, 0, h);
+      liquidGrad.addColorStop(0, 'rgba(164,181,155,0.12)');
+      liquidGrad.addColorStop(0.38, 'rgba(164,181,155,0.28)');
+      liquidGrad.addColorStop(0.72, 'rgba(164,181,155,0.42)');
+      liquidGrad.addColorStop(1, 'rgba(164,181,155,0.16)');
+      g.fillStyle = liquidGrad;
+      g.shadowColor = 'rgba(164,181,155,0.28)';
+      g.shadowBlur = 10 * dpr;
+      g.fill();
+
+      // Keep the waveform visible inside the liquid as a subtle glass texture.
+      g.beginPath();
+      g.moveTo(0, midY);
+      for (var wx = 0; wx <= splitX; wx += Math.max(2 * dpr, w / 120)) {
+        var wi = Math.min(BAR_COUNT - 1, Math.floor((wx / Math.max(1, w)) * BAR_COUNT));
+        var wv = peaks[wi] || 0;
+        g.lineTo(wx, midY - wv * h * 0.34);
+      }
+      g.strokeStyle = 'rgba(255,255,255,0.34)';
+      g.lineWidth = Math.max(1, dpr);
+      g.shadowColor = 'rgba(255,255,255,0.18)';
+      g.shadowBlur = 5 * dpr;
+      g.stroke();
+      g.restore();
+
+      // A faint unplayed waveform remains recessed in the tube.
+      g.save();
+      g.globalAlpha = 0.22;
+      g.beginPath();
+      g.moveTo(splitX, midY);
+      for (var ux = splitX; ux <= w; ux += Math.max(2 * dpr, w / 120)) {
+        var ui = Math.min(BAR_COUNT - 1, Math.floor((ux / Math.max(1, w)) * BAR_COUNT));
+        var uv = peaks[ui] || 0;
+        g.lineTo(ux, midY - uv * h * 0.30);
+      }
+      g.strokeStyle = 'rgba(90,80,70,0.55)';
+      g.lineWidth = Math.max(1, dpr);
+      g.stroke();
+      g.restore();
     }
     function loop(){ draw(); requestAnimationFrame(loop); }
     loop();
