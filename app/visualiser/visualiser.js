@@ -1,5 +1,5 @@
 /* KEFE visualiser engine — shared renderer and preset registry. */
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 const PRESETS = [
   {
     key:'particles-swarm', name:'Particles Swarm', desc:'A responsive swarm of particles flowing through a layered orbital field.',
