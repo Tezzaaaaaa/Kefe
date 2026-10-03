@@ -900,8 +900,6 @@ color.setHSL(hue, 0.9, light);`
 /* ============================================================
    LIVE PREVIEW
    ============================================================ */
-window.kefeParticleVisualiserActive = true;
-
 const canvas = document.getElementById('kefeVisualiserCanvas');
 const stage = canvas?.closest('.kefe-stage');
 if (!canvas) throw new Error('KEFE visualiser canvas is missing from the preview stage.');
