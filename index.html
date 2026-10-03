@@ -57,12 +57,7 @@
 <script src="./app/effects/lyric-decrypt-text.js"></script>
 <script src="./app/editor.js"></script>
 
-<!--
-  The particles visualiser is an ES module (it uses `import`), so it MUST be
-  loaded with type="module". Without this the `import` statements throw a
-  syntax error, the module never executes, and `window.kefeParticleVisualiserActive`
-  is never set — which is why the swarm wasn't showing in the preview.
--->
+<!-- The visualiser engine is an ES module and must be loaded with type="module". -->
 <script type="module" src="./app/visualiser/visualiser.js"></script>
 </body>
 </html>
