@@ -17,7 +17,7 @@
       { key: 'exportResolution', label: 'Export resolution', type: 'select', def: '1080', options: [['720', '720p'], ['1080', '1080p']] }
     ]},
     { group: 'Visualiser', items: [
-      { key: 'particleCount', label: 'Particle count', hint: 'Applies next time the page loads. Lower it if the preview stutters.', type: 'range', def: 20000, min: 1000, max: 30000, step: 1000, fmt: v => Number(v).toLocaleString() },
+      { key: 'particleCount', label: 'Particle count', hint: 'Applies next time the page loads. Lower it if the preview stutters.', type: 'range', def: 8000, min: 1000, max: 20000, step: 1000, fmt: v => Number(v).toLocaleString() },
       { key: 'autoSpin', label: 'Auto spin', hint: 'Applies next time the page loads.', type: 'toggle', def: true }
     ]}
   ];
