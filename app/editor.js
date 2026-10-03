@@ -53,65 +53,7 @@
   const titleCard=document.getElementById('kefeTitleCard'),titleName=document.getElementById('kefeTitleName'),titleArtist=document.getElementById('kefeTitleArtist'),titleAlbum=document.getElementById('kefeTitleAlbum'),titleYear=document.getElementById('kefeTitleYear'),titleArt=document.getElementById('kefeTitleArt'),titleArtFallback=document.getElementById('kefeTitleArtFallback');
   let titleCardTimer=null,titleCardShownFor='';
   const songTitle=document.getElementById('songTitle'),songArtist=document.getElementById('songArtist'),songAlbum=document.getElementById('songAlbum'),songYear=document.getElementById('songYear');
-  const previewFullscreen=document.getElementById('previewFullscreen'),previewStage=document.querySelector('.kefe-stage');
-  function setPreviewAspectRatio(ratio){
-    previewAspectRatio=ratio;
-    previewStage.classList.remove('is-16x9','is-9x16','is-1x1');
-    previewStage.classList.add(ratio==='9:16'?'is-9x16':ratio==='1:1'?'is-1x1':'is-16x9');
-    const dimensions=ratio==='9:16'?[720,1280]:ratio==='1:1'?[1080,1080]:[1280,720];
-    canvas.width=dimensions[0];canvas.height=dimensions[1];
-    const aspectSelect=document.getElementById('kefeAspect');
-    if(aspectSelect)aspectSelect.value=ratio;
-    fitPreviewStage();
-    draw();
-  }
-  const aspectSelect=document.getElementById('kefeAspect');
-  if(aspectSelect)aspectSelect.addEventListener('change',()=>{setPreviewAspectRatio(aspectSelect.value);fitPreviewStage();});
-  function updateFullscreenButton(){
-    const active=document.fullscreenElement===previewStage||document.webkitFullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen');
-    previewFullscreen.setAttribute('aria-label',active?'Exit fullscreen':'Enter fullscreen');
-    previewFullscreen.setAttribute('title',active?'Exit fullscreen':'Enter fullscreen');
-    previewFullscreen.innerHTML=active?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M20 9V4h-5M4 15v5h5M15 20h5v-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  }
-  function setPseudoFullscreen(active){
-    previewStage.classList.toggle('kefe-pseudo-fullscreen',active);
-    document.body.classList.toggle('kefe-fullscreen-open',active);
-    updateFullscreenButton();
-  }
-  async function enterKefeFullscreen(){
-    if(document.fullscreenElement===previewStage||document.webkitFullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen'))return;
-    if(window.matchMedia('(max-width:700px)').matches){
-      setPseudoFullscreen(true);
-      return;
-    }
-    try{
-      if(typeof previewStage.requestFullscreen==='function'){
-        await previewStage.requestFullscreen();
-        return;
-      }
-      if(typeof previewStage.webkitRequestFullscreen==='function'){
-        previewStage.webkitRequestFullscreen();
-        return;
-      }
-    }catch(err){console.warn('[KEFE fullscreen]',err);}
-    setPseudoFullscreen(true);
-  }
-  async function exitKefeFullscreen(){
-    if(document.fullscreenElement===previewStage&&typeof document.exitFullscreen==='function'){
-      await document.exitFullscreen();
-      return;
-    }
-    if(document.webkitFullscreenElement===previewStage&&typeof document.webkitExitFullscreen==='function'){
-      document.webkitExitFullscreen();
-      return;
-    }
-    setPseudoFullscreen(false);
-  }
-  previewFullscreen.addEventListener('click',()=>document.fullscreenElement===previewStage||document.webkitFullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen')?exitKefeFullscreen():enterKefeFullscreen());
-  document.addEventListener('fullscreenchange',updateFullscreenButton);
-  document.addEventListener('webkitfullscreenchange',updateFullscreenButton);
-  document.addEventListener('fullscreenerror',()=>setPseudoFullscreen(true));
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&previewStage.classList.contains('kefe-pseudo-fullscreen'))setPseudoFullscreen(false)});
+  const previewStage=document.querySelector('.kefe-stage');
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead');
 
   function normalizeArtworkUrl(url,size='600x600bb'){
@@ -217,6 +159,7 @@
   }
   function updateTitleCard(){
     updateMediaTrack();
+    if(!titleCard)return;
     titleName.textContent=songTitle.value.trim()||'Untitled';
     titleArtist.textContent=songArtist.value.trim()||'Unknown artist';
     titleAlbum.textContent=songAlbum.value.trim()||'';
@@ -746,7 +689,6 @@
     delete songAlbum.dataset.artUrl;delete songAlbum.dataset.trackDuration;delete songAlbum.dataset.platformId;
     const status=document.getElementById('kefeLyricsStatus');if(status)status.textContent='Reading track information…';
     const uploadName=document.querySelector('.kefe-upload-name');if(uploadName)uploadName.textContent=file.name;
-    empty.hidden=true;empty.classList.add('is-hidden');
     if(titleCard){titleCard.classList.remove('active','leaving');titleCard.setAttribute('aria-hidden','true');}
     video.onplay=null;video.muted=true;
     audio.src=mediaObjectUrl;audio.load();
@@ -794,7 +736,7 @@
   });
   function syncPreview(){
     const firstLyric=state.lines[0]?.time;
-    if(titleCard.classList.contains('active')&&!titleCard.classList.contains('leaving')&&Number.isFinite(firstLyric)&&audio.currentTime>=firstLyric)hideTitleCard();
+    if(titleCard&&titleCard.classList.contains('active')&&!titleCard.classList.contains('leaving')&&Number.isFinite(firstLyric)&&audio.currentTime>=firstLyric)hideTitleCard();
     if(audio.src&&!audio.paused){
       state.time=audio.currentTime;
       range.value=state.time;
