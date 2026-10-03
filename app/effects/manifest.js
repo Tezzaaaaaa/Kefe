@@ -31,9 +31,6 @@ window.KEFE_EFFECTS = [
   { key: 'splitflap',   label: 'Split-Flap',       description: 'Mechanical letter roll into place' },
   { key: 'chromatica',  label: 'Chromatica',       description: 'Memesique poster stack, salmon on green' },
   { key: 'progressiveblur', label: 'Progressive Blur', description: 'Infinite lyric slider with soft edge blur' }
-];
-
-window.KEFE_BACKGROUND_EFFECTS = [
-  { key: 'crtdesktop', label: 'CRT Computer Desktop', description: 'Late-80s desktop CRT screen treatment' },
-  { key: 'crttv', label: 'CRT TV Box', description: 'Late-80s/90s television raster treatment' }
+  { key: 'crtdesktop', label: 'CRT Computer Desktop', description: 'Late-80s desktop CRT lyric screen' },
+  { key: 'crttv', label: 'CRT TV Box', description: 'Late-80s/90s television lyric screen' }
 ];
