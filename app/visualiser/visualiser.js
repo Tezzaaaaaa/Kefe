@@ -936,7 +936,7 @@ const material = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: tr
 
 let instancedMesh = null;
 let positions = null;
-const initialCount = Math.max(1000, Math.min(30000, Number(window.kefeSettings?.get('particleCount')) || 8000));
+const initialCount = Math.max(1000, Math.min(20000, Number(window.kefeSettings?.get('particleCount')) || 8000));
 let currentCount = initialCount;
 
 const state = {
@@ -961,7 +961,19 @@ function rebuild(count) {
   positions = new Array(count);
   for (let i = 0; i < count; i++) {
     positions[i] = new THREE.Vector3(0, 0, 0);
-    instancedMesh.setColorAt(i, color.setHex(0x00ff88));
+    if (injectionFn) {
+      try {
+        injectionFn(i, count, state.time, addControlLive, target, color, THREE);
+        positions[i].copy(target);
+      } catch (e) {
+        injectionFn = null;
+        console.error('[KEFE visualiser preset]', state.preset.key, e);
+      }
+    }
+    dummy.position.copy(positions[i]);
+    dummy.updateMatrix();
+    instancedMesh.setMatrixAt(i, dummy.matrix);
+    instancedMesh.setColorAt(i, color);
   }
   document.getElementById('visualiserCountValue').textContent = count.toLocaleString();
 }
@@ -1154,7 +1166,7 @@ presetSelect.addEventListener('change', () => {
 
 document.getElementById('visualiserGenerate').addEventListener('click',()=>setPreset(matchPrompt(promptEl.value.trim())||PRESETS[0]));
 document.getElementById('visualiserRandom').addEventListener('click',()=>setPreset(PRESETS[Math.floor(Math.random()*PRESETS.length)]));
-countInput.addEventListener('input',e=>{const v=Math.max(1000,Math.min(30000,parseInt(e.target.value,10)||20000));countOutput.textContent=v.toLocaleString();clearTimeout(rebuildTimer);rebuildTimer=setTimeout(()=>{state.count=v;rebuild(v);},120);});
+countInput.addEventListener('input',e=>{const v=Math.max(1000,Math.min(20000,parseInt(e.target.value,10)||8000));countOutput.textContent=v.toLocaleString();clearTimeout(rebuildTimer);rebuildTimer=setTimeout(()=>{state.count=v;rebuild(v);},120);});
 speedInput.addEventListener('input',e=>{state.speed=parseFloat(e.target.value)||1;speedOutput.textContent=state.speed.toFixed(2)+'×';});
 spinButton.addEventListener('click',()=>{state.autoSpin=!state.autoSpin;controls.autoRotate=state.autoSpin;spinButton.textContent=state.autoSpin?'On':'Off';});
 countInput.value = String(initialCount);
