@@ -1,10 +1,38 @@
-/* KEFE default visualiser — Particles Swarm, adapted from the supplied VisualiserTool. */
+/* KEFE visualiser engine — shared renderer and preset registry. */
 import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js';
 const PRESETS = [
+  {
+    key:'particles-swarm', name:'Particles Swarm', desc:'A responsive swarm of particles flowing through a layered orbital field.',
+    keywords:['particles','particle','swarm','field','flow','orb','cloud'],
+    params:{radius:42,spread:1.2,flow:1.1,drift:0.65,twist:1.4,glow:0.8},
+    code:`const radius = addControl("radius", "Swarm Radius", 15, 90, 42);
+const spread = addControl("spread", "Particle Spread", 0.2, 3, 1.2);
+const flow = addControl("flow", "Flow Speed", 0, 3, 1.1);
+const drift = addControl("drift", "Field Drift", 0, 2, 0.65);
+const twist = addControl("twist", "Field Twist", 0, 4, 1.4);
+const glow = addControl("glow", "Glow", 0, 1, 0.8);
+const u = i / Math.max(count, 1);
+const golden = 2.399963229728653;
+const phi = Math.acos(1 - 2 * u);
+const theta = i * golden;
+const band = Math.sin(theta * 3.0 + time * flow) * 0.5 + 0.5;
+const radial = radius * (0.25 + 0.75 * Math.sqrt(u)) * spread;
+const localTwist = theta + time * flow * 0.55 + radial * 0.035 * twist;
+const wobble = Math.sin(theta * 5.0 + time * flow * 1.7) * drift * (0.4 + u);
+const x = Math.sin(phi) * Math.cos(localTwist) * radial + wobble * 7.0;
+const y = Math.cos(phi) * radial + Math.sin(theta * 2.0 - time * flow) * drift * 8.0;
+const z = Math.sin(phi) * Math.sin(localTwist) * radial + Math.cos(theta * 4.0 + time * flow) * drift * 5.0;
+const pinch = 1.0 + 0.12 * Math.sin(time * flow * 1.3 + radial * 0.08);
+target.set(x * pinch, y * pinch, z * pinch);
+const energy = 0.5 + 0.5 * Math.sin(theta * 2.0 + time * flow * 2.0 + band * twist);
+const hue = (0.52 + u * 0.34 + energy * 0.08) % 1.0;
+const light = Math.min(0.9, 0.34 + energy * 0.38 + glow * 0.12);
+color.setHSL(hue, 0.82, light);`
+  },
   {
     key:'sphere', name:'Fibonacci Sphere', desc:'Even point distribution on a sphere surface.',
     keywords:['sphere','ball','globe','orb','fibonacci'],
