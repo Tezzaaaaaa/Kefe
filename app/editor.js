@@ -242,13 +242,11 @@
     if(window.kefeSettings&&!window.kefeSettings.get('titleCard'))return;
     const title=songTitle.value.trim();
     if(!title)return;
-    const first=Number(state.lines[0]?.time)+lyricOffset();
-    const maxLen=Number(window.kefeSettings?.get('titleCardMax'))||10;
     if(t<0)return;
+    const first=Number(state.lines[0]?.time)+lyricOffset();
     const beforeLyrics=!Number.isFinite(first)||t<first;
-    const alpha=beforeLyrics
-      ? Math.max(0,Math.min(1,t/Math.min(.6,Math.max(first,0.6)/3)))
-      : 1;
+    // Always fully opaque: the card is on top of the lyrics now and must remain visible.
+    const alpha=1;
     const artist=songArtist.value.trim(),album=songAlbum.value.trim(),year=songYear.value.trim();
     const meta=[album,year].filter(Boolean).join(' · ');
     const img=titleArt?.querySelector('img');
@@ -302,10 +300,15 @@
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     if(window.kefeParticleVisualiserActive){
+      // Draw the lyric effect first, then the title card on top so it remains visible.
+      if(state.lines.length){
+        const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
+        if(typeof fn==='function'){
+          try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time-lyricOffset(),titleArt?.querySelector('img')||null);}
+          catch(err){console.error('[KEFE effect]',state.effect,err);}
+        }
+      }
       drawTitleCardCanvas(ctx,canvas.width,canvas.height,state.time);
-      if(!state.lines.length)return;
-      const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
-      if(typeof fn==='function'){try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time-lyricOffset(),titleArt?.querySelector('img')||null);}catch(err){console.error('[KEFE effect]',state.effect,err);}}
       return;
     }
     const hasUploadedMedia=!!(audio.currentSrc||audio.src||video.currentSrc||video.src);
@@ -379,17 +382,19 @@
     }else if(hasUploadedMedia&&visualiserPreset==='ring'){
       ctx.save();ctx.globalAlpha=.35;ctx.strokeStyle='#ef3f38';ctx.lineWidth=3;ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,Math.min(canvas.width,canvas.height)*(.24+.04*Math.sin(t*3)*reactive),0,Math.PI*2);ctx.stroke();ctx.restore();
     }
-    drawTitleCardCanvas(ctx,canvas.width,canvas.height,state.time);
-    if(!state.lines.length)return;
-    const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
-    if(typeof fn==='function'){
-      try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time-lyricOffset(),titleArt?.querySelector('img')||null);}
-      catch(err){
-        ctx.fillStyle='#fff';ctx.font='16px system-ui';ctx.textAlign='center';
-        ctx.fillText('Effect error: '+err.message,canvas.width/2,canvas.height/2);
-        console.error('[KEFE effect]',state.effect,err);
+    // Draw lyrics first, then the title card on top so it remains visible.
+    if(state.lines.length){
+      const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
+      if(typeof fn==='function'){
+        try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time-lyricOffset(),titleArt?.querySelector('img')||null);}
+        catch(err){
+          ctx.fillStyle='#fff';ctx.font='16px system-ui';ctx.textAlign='center';
+          ctx.fillText('Effect error: '+err.message,canvas.width/2,canvas.height/2);
+          console.error('[KEFE effect]',state.effect,err);
+        }
       }
     }
+    drawTitleCardCanvas(ctx,canvas.width,canvas.height,state.time);
   }
   function appleTime(value){
     const text=String(value||'').trim();
