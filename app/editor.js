@@ -1097,9 +1097,9 @@
     }catch(error){console.warn('[KEFE export audio]',error);return null;}
   }
   document.getElementById('exportButton').addEventListener('click',async()=>{
-    const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton');
+    const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),visualiserCanvas=document.getElementById('kefeVisualiserCanvas');
     if(exporting)return;
-    if(!window.MediaRecorder||!canvas.captureStream){status.textContent='Video export is not supported by this browser.';return;}
+    if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream||!visualiserCanvas){status.textContent='Video export is not supported by this browser.';return;}
     if(!audio.src||!Number.isFinite(audio.duration)){status.textContent='Upload a track first.';return;}
     const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'].find(m=>MediaRecorder.isTypeSupported(m));
     if(!mime){status.textContent='No supported video format in this browser.';return;}
@@ -1110,8 +1110,12 @@
     const long=even(res*16/9);
     const dims=aspect==='9:16'?[res,long]:aspect==='1:1'?[res,res]:[long,res];
     const prev={w:canvas.width,h:canvas.height,time:state.time};
+    const compositeCanvas=document.createElement('canvas');
+    compositeCanvas.width=dims[0];compositeCanvas.height=dims[1];
+    const compositeCtx=compositeCanvas.getContext('2d');
+    const compositeFrame=()=>{compositeCtx.clearRect(0,0,dims[0],dims[1]);compositeCtx.drawImage(visualiserCanvas,0,0,dims[0],dims[1]);compositeCtx.drawImage(canvas,0,0,dims[0],dims[1]);};
     exporting=true;button.disabled=true;
-    let recorder=null,ticker=null;
+    let recorder=null,ticker=null,frameTicker=null;
     try{
       audio.pause();
       canvas.width=dims[0];canvas.height=dims[1];
@@ -1122,7 +1126,9 @@
       state.time=0;range.value=0;updateTime();draw();
       const audioStream=getExportAudioStream();
       if(exportTap&&exportTap.ac.state==='suspended')await exportTap.ac.resume();
-      const stream=canvas.captureStream(30);
+      compositeFrame();
+      const stream=compositeCanvas.captureStream(30);
+      frameTicker=setInterval(compositeFrame,33);
       if(audioStream)audioStream.getAudioTracks().forEach(t=>stream.addTrack(t));
       else status.textContent='Audio capture unavailable here; exporting video only…';
       const chunks=[];
@@ -1135,7 +1141,8 @@
       ticker=setInterval(()=>{status.textContent='Exporting '+Math.min(99,Math.round(audio.currentTime/audio.duration*100))+'% — keep this tab open…';},500);
       await ended;
       clearInterval(ticker);ticker=null;
-      draw();
+      clearInterval(frameTicker);frameTicker=null;
+      compositeFrame();
       await new Promise(r=>setTimeout(r,300));
       recorder.stop();await stopped;
       const blob=new Blob(chunks,{type:mime}),url=URL.createObjectURL(blob),a=document.createElement('a');
@@ -1149,6 +1156,7 @@
       try{if(recorder&&recorder.state!=='inactive')recorder.stop();}catch(_){}
     }finally{
       if(ticker)clearInterval(ticker);
+      if(frameTicker)clearInterval(frameTicker);
       canvas.width=prev.w;canvas.height=prev.h;
       exporting=false;button.disabled=false;
       audio.pause();state.time=prev.time;range.value=prev.time;audio.currentTime=prev.time;updateTime();draw();
