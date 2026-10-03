@@ -880,7 +880,7 @@ scene.fog = new THREE.FogExp2(0x000000, 0.01);
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
 camera.position.set(0, 0, 100);
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
-renderer.setClearColor(0x000000, 0);
+renderer.setClearColor(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#F1ECE5', 1);
 renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 
