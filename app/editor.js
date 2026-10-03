@@ -639,7 +639,7 @@
     previewStage.classList.remove('is-empty');
     const status=document.getElementById('kefeLyricsStatus');
     if(status)status.textContent=source;
-    openEditorPanel('lyrics');syncAppleLyricsMetadata();draw();syncAppleLyrics(true);
+    openEditorPanel('lyrics');syncAppleLyricsMetadata();draw();syncAppleLyrics(true);showTitleCard();
     return true;
   }
   let lyricsRequest=0;
@@ -770,7 +770,12 @@
       songYear.value=meta.year;
       updateMediaTrack();updateTitleCard();
       if(status)status.textContent='Identifying track…';
-      const matches=await fetchItunesMatches(meta,Number(audio.duration)||0);
+      let matches=[];
+      try{
+        matches=await fetchItunesMatches(meta,Number(audio.duration)||0);
+      }catch(error){
+        console.warn('[KEFE iTunes identification]',error);
+      }
       if(mediaObjectUrl!==uploadId)return;
       const best=matches[0];
       if(best&&rankTrack(best,meta,Number(audio.duration)||0)>=70){
@@ -824,7 +829,7 @@
       range.max=String(audio.duration||30);timeEnd.textContent=fmt(audio.duration||30);updateTime();
       identifyAndLoadTrack(file);
     });
-    updateTitleCard();syncAppleLyricsMetadata();showTitleCard();
+    updateTitleCard();syncAppleLyricsMetadata();
     queueMicrotask(()=>{e.target.value='';});
   });
   function updatePlayButton(){
