@@ -218,7 +218,7 @@
     if(!state.lines.length)return;
     const previewTime=Number(state.time)||0;
     const firstLineTime=Number(state.lines[0]?.time);
-    if(Number.isFinite(firstLineTime)&&previewTime<firstLineTime)state.time=firstLineTime;
+    if(Number.isFinite(firstLineTime)&&previewTime<Math.max(0,firstLineTime-1))state.time=Math.max(0,firstLineTime-1);
     draw();
   }
   window.addEventListener('kefe-effects-ready',()=>draw());
