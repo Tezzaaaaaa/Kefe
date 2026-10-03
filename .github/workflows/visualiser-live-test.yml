@@ -1,0 +1,135 @@
+name: Visualiser live verification
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify-visualiser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Wait for GitHub Pages deployment
+        run: sleep 45
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Verify live visualiser
+        env:
+          KEFE_URL: https://tezzaaaaaa.github.io/Kefe/
+        run: |
+          cat > verify-visualiser.mjs <<'EOF'
+          import { chromium } from 'playwright';
+
+          const url = process.env.KEFE_URL;
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+
+          const errors = [];
+          page.on('pageerror', error => errors.push('pageerror: ' + error.message));
+          page.on('console', message => {
+            if (message.type() === 'error') errors.push('console: ' + message.text());
+          });
+
+          let loaded = false;
+          for (let attempt = 1; attempt <= 6; attempt++) {
+            try {
+              const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+              if (response?.ok()) {
+                loaded = true;
+                break;
+              }
+            } catch {}
+            await page.waitForTimeout(15000);
+          }
+
+          if (!loaded) throw new Error('GitHub Pages did not become reachable.');
+          await page.waitForTimeout(3000);
+
+          const visualiserTab = page.locator('.kefe-section[data-panel="visualiser"]');
+          await visualiserTab.click();
+
+          const result = await page.evaluate(() => {
+            const canvas = document.getElementById('kefeVisualiserCanvas');
+            const panel = document.querySelector('[data-panel-view="visualiser"]');
+            const preset = document.getElementById('visualiserPreset');
+            const parameters = document.getElementById('visualiserParameters');
+
+            if (!canvas) return { ok: false, reason: 'visualiser canvas missing' };
+            if (!panel?.classList.contains('active')) return { ok: false, reason: 'visualiser panel did not activate' };
+
+            const rect = canvas.getBoundingClientRect();
+            const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+            if (!gl) return { ok: false, reason: 'WebGL context unavailable' };
+
+            return {
+              ok: true,
+              width: rect.width,
+              height: rect.height,
+              presetCount: preset?.options.length ?? 0,
+              parameterCount: parameters?.children.length ?? 0,
+              rendererError: canvas.dataset.rendererError || null
+            };
+          });
+
+          if (!result.ok) throw new Error(result.reason);
+          if (result.width < 100 || result.height < 100) {
+            throw new Error(`Visualiser canvas has invalid size: ${result.width}x${result.height}`);
+          }
+          if (result.presetCount < 2) {
+            throw new Error(`Visualiser presets are not populated: ${result.presetCount}`);
+          }
+          if (result.parameterCount < 1) {
+            throw new Error('Visualiser effect parameters were not populated.');
+          }
+          if (result.rendererError) {
+            throw new Error('Visualiser renderer reported an initialization error.');
+          }
+
+          await page.waitForTimeout(1500);
+
+          const pixels = await page.evaluate(() => {
+            const canvas = document.getElementById('kefeVisualiserCanvas');
+            const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+            const sample = new Uint8Array(4);
+            let nonBlack = 0;
+            const points = [
+              [0.50, 0.50], [0.25, 0.50], [0.75, 0.50],
+              [0.50, 0.25], [0.50, 0.75]
+            ];
+            for (const [x, y] of points) {
+              gl.readPixels(
+                Math.floor(canvas.width * x),
+                Math.floor(canvas.height * (1 - y)),
+                1, 1,
+                gl.RGBA, gl.UNSIGNED_BYTE, sample
+              );
+              if (sample[0] > 2 || sample[1] > 2 || sample[2] > 2) nonBlack++;
+            }
+            return { nonBlack, width: canvas.width, height: canvas.height };
+          });
+
+          if (pixels.nonBlack < 1) {
+            throw new Error('Visualiser canvas remained completely black after rendering.');
+          }
+
+          if (errors.length) {
+            throw new Error('Browser errors detected:\n' + errors.join('\n'));
+          }
+
+          console.log(JSON.stringify({ result, pixels }, null, 2));
+          await browser.close();
+          EOF
+
+          node verify-visualiser.mjs
