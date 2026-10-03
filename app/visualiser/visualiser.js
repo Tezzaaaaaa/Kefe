@@ -931,12 +931,12 @@ const dummy = new THREE.Object3D();
 const color = new THREE.Color();
 const target = new THREE.Vector3();
 
-const geometry = new THREE.TetrahedronGeometry(1.5);
+const geometry = new THREE.TetrahedronGeometry(1.0);
 const material = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true });
 
 let instancedMesh = null;
 let positions = null;
-const initialCount = Math.max(1000, Math.min(30000, Number(window.kefeSettings?.get('particleCount')) || 20000));
+const initialCount = Math.max(1000, Math.min(30000, Number(window.kefeSettings?.get('particleCount')) || 8000));
 let currentCount = initialCount;
 
 const state = {
