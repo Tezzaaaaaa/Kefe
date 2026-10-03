@@ -901,9 +901,6 @@ color.setHSL(hue, 0.9, light);`
    LIVE PREVIEW
    ============================================================ */
 window.kefeParticleVisualiserActive = true;
-// Tell the editor's CSS that the WebGL layer is in charge of the background,
-// so the `.is-empty` rule does not hide the visualiser canvas.
-document.querySelector('.kefe-stage')?.classList.add('kefe-visualiser-active');
 
 const canvas = document.getElementById('kefeVisualiserCanvas');
 const stage = canvas?.closest('.kefe-stage');
@@ -961,13 +958,9 @@ function rebuild(count) {
   instancedMesh = new THREE.InstancedMesh(geometry, material, count);
   instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(instancedMesh);
-  positions = [];
+  positions = new Array(count);
   for (let i = 0; i < count; i++) {
-    positions.push(new THREE.Vector3(
-      (Math.random() - 0.5) * 100,
-      (Math.random() - 0.5) * 100,
-      (Math.random() - 0.5) * 100
-    ));
+    positions[i] = new THREE.Vector3(0, 0, 0);
     instancedMesh.setColorAt(i, color.setHex(0x00ff88));
   }
   document.getElementById('visualiserCountValue').textContent = count.toLocaleString();
@@ -1000,8 +993,12 @@ function animate() {
     for (let i = 0; i < currentCount; i++) {
       try {
         injectionFn(i, currentCount, time, addControlLive, target, color, THREE);
-      } catch (e) { /* skip per-particle errors */ }
-      positions[i].lerp(target, 0.1);
+      } catch (e) {
+        injectionFn = null;
+        console.error('[KEFE visualiser preset]', state.preset.key, e);
+        break;
+      }
+      positions[i].lerp(target, 0.14);
       dummy.position.copy(positions[i]);
       dummy.updateMatrix();
       instancedMesh.setMatrixAt(i, dummy.matrix);
