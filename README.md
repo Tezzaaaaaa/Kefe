@@ -50,7 +50,7 @@ app/
 - `app/editor.js` — editor state, media/lyrics handling, canvas rendering and effect dispatch
 - `app/effects/manifest.js` — single source of truth for lyric effects
 - `app/effects/core.js` — shared lyric-effect utilities
-- `app/visualiser/particles-swarm.js` — default visualiser, presets and parameters
+- `app/visualiser/visualiser.js` — visualiser engine, presets and parameters
 - `app/ui/structure.js` — editor sections and controls
 
 ## Do not delete
