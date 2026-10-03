@@ -877,7 +877,8 @@ const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x000000, 0.01);
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
 camera.position.set(0, 0, 100);
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+renderer.setClearColor(0x000000, 0);
 renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 
@@ -915,8 +916,8 @@ const state = {
 function rebuild(count) {
   if (instancedMesh) {
     scene.remove(instancedMesh);
-    instancedMesh.geometry.dispose();
-    instancedMesh.material.dispose();
+    instancedMesh.geometry = geometry;
+    instancedMesh.material = material;
   }
   currentCount = count;
   instancedMesh = new THREE.InstancedMesh(geometry, material, count);
@@ -931,8 +932,7 @@ function rebuild(count) {
     ));
     instancedMesh.setColorAt(i, color.setHex(0x00ff88));
   }
-  document.getElementById('o-count').textContent = count.toLocaleString();
-  document.getElementById('count-tag').textContent = count.toLocaleString();
+  document.getElementById('visualiserCountValue').textContent = count.toLocaleString();
 }
 
 let injectionFn = null;
@@ -991,23 +991,13 @@ window.addEventListener('orientationchange', () => setTimeout(resize, 200));
    ============================================================ */
 const promptEl = document.getElementById('visualiserPrompt');
 const paramList = document.getElementById('visualiserParameters');
-const toastsEl = document.getElementById('toasts');
 const presetGrid = document.getElementById('visualiserPresetGrid');
-
-function toast(msg, isErr) {
-  const el = document.createElement('div');
-  el.className = 'toast' + (isErr ? ' err' : '');
-  el.textContent = msg;
-  toastsEl.appendChild(el);
-  requestAnimationFrame(() => el.classList.add('show'));
-  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 220); }, 2200);
-}
 
 function renderPresetGrid() {
   presetGrid.innerHTML = PRESETS.map(p =>
-    '<div class="preset-item' + (p.key === state.preset.key ? ' active' : '') + '" data-key="' + p.key + '">' + p.name + '</div>'
+    '<button type="button" class="kefe-visualiser-preset' + (p.key === state.preset.key ? ' active' : '') + '" data-key="' + p.key + '">' + p.name + '</button>'
   ).join('');
-  presetGrid.querySelectorAll('.preset-item').forEach(el => {
+  presetGrid.querySelectorAll('.kefe-visualiser-preset').forEach(el => {
     el.addEventListener('click', () => {
       const p = PRESETS.find(x => x.key === el.dataset.key);
       if (p) setPreset(p);
