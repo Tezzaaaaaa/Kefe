@@ -990,6 +990,7 @@ window.addEventListener('orientationchange', () => setTimeout(resize, 200));
    UI
    ============================================================ */
 const promptEl = document.getElementById('visualiserPrompt');
+const presetSelect = document.getElementById('visualiserPreset');
 const paramList = document.getElementById('visualiserParameters');
 const presetGrid = document.getElementById('visualiserPresetGrid');
 
@@ -1046,11 +1047,13 @@ function formatVal(v) {
 
 function setPreset(preset, opts) {
   opts = opts || {};
+  if (!preset) return;
   state.preset = preset;
   state.params = { ...preset.params };
   document.getElementById('visualiserSceneName').textContent = preset.name;
   document.getElementById('visualiserSceneDesc').textContent = preset.desc;
   compileInjection(preset);
+  presetSelect.value = preset.key;
   renderParamSliders();
   renderPresetGrid();
 
@@ -1075,6 +1078,12 @@ const countOutput=document.getElementById('visualiserCountValue');
 const speedInput=document.getElementById('visualiserSpeed');
 const speedOutput=document.getElementById('visualiserSpeedValue');
 const spinButton=document.getElementById('visualiserSpin');
+presetSelect.innerHTML = PRESETS.map(p => '<option value="' + p.key + '">' + p.name + '</option>').join('');
+presetSelect.addEventListener('change', () => {
+  const p = PRESETS.find(x => x.key === presetSelect.value);
+  if (p) setPreset(p);
+});
+
 document.getElementById('visualiserGenerate').addEventListener('click',()=>setPreset(matchPrompt(promptEl.value.trim())||PRESETS[0]));
 document.getElementById('visualiserRandom').addEventListener('click',()=>setPreset(PRESETS[Math.floor(Math.random()*PRESETS.length)]));
 countInput.addEventListener('input',e=>{const v=Math.max(1000,Math.min(30000,parseInt(e.target.value,10)||20000));countOutput.textContent=v.toLocaleString();clearTimeout(rebuildTimer);rebuildTimer=setTimeout(()=>{state.count=v;rebuild(v);},120);});
