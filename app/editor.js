@@ -505,9 +505,15 @@
     return encoding===3?decodeText(data):decodeLatin(data);
   }
   function readMp4String(bytes){
-    const ascii=decodeLatin(bytes);
-    const nul=ascii.indexOf('\0');
-    return (nul>=0?ascii.slice(nul+1):ascii).replace(/^data.*?/,'').trim();
+    const utf8=new TextDecoder('utf-8',{fatal:false}).decode(bytes);
+    const utf16=new TextDecoder('utf-16le',{fatal:false}).decode(bytes);
+    const clean=value=>String(value||'').replace(/[\\0\\x01-\\x08\\x0B\\x0C\\x0E-\\x1F]/g,' ').replace(/^data[^\\x20]*\\s*/i,'').trim();
+    const candidates=[utf8,utf16];
+    for(const value of candidates){
+      const cleaned=clean(value);
+      if(cleaned&&cleaned.length<500)return cleaned;
+    }
+    return '';
   }
   async function readEmbeddedMetadata(file){
     const head=await file.slice(0,1024*1024).arrayBuffer();
