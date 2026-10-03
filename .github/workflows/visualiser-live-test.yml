@@ -8,12 +8,12 @@ on:
 jobs:
   verify-visualiser:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
 
     steps:
       - name: Wait for GitHub Pages deployment
         run: |
-          MAX_ATTEMPTS=20
+          MAX_ATTEMPTS=30
           ATTEMPT=0
 
           until [ $ATTEMPT -ge $MAX_ATTEMPTS ]; do
@@ -61,12 +61,16 @@ jobs:
           let loaded = false;
           for (let attempt = 1; attempt <= 6; attempt++) {
             try {
+              console.log(`Navigation attempt ${attempt}/6...`);
               const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
               if (response?.ok()) {
                 loaded = true;
+                console.log('Page loaded successfully');
                 break;
               }
-            } catch {}
+            } catch (e) {
+              console.log(`Attempt ${attempt} failed: ${e.message}`);
+            }
             await page.waitForTimeout(15000);
           }
 
@@ -74,9 +78,13 @@ jobs:
           await page.waitForTimeout(3000);
 
           const visualiserTab = page.locator('.kefe-section[data-panel="visualiser"]');
+          console.log('Clicking visualiser tab...');
           await visualiserTab.click();
-          await page.locator('#visualiserPreset option').nth(1).waitFor({ state: 'attached', timeout: 15000 });
-          await page.locator('#visualiserParameters').locator('input[type="range"]').first().waitFor({ state: 'attached', timeout: 15000 });
+
+          console.log('Waiting for preset option...');
+          await page.locator('#visualiserPreset option').nth(1).waitFor({ state: 'attached', timeout: 30000 });
+          console.log('Waiting for parameter slider...');
+          await page.locator('#visualiserParameters').locator('input[type="range"]').first().waitFor({ state: 'attached', timeout: 30000 });
           await page.waitForTimeout(1000);
 
           const result = await page.evaluate(() => {
