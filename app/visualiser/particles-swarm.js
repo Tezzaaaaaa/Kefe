@@ -873,6 +873,9 @@ color.setHSL(hue, 0.9, light);`
    LIVE PREVIEW
    ============================================================ */
 window.kefeParticleVisualiserActive = true;
+// Tell the editor's CSS that the WebGL layer is in charge of the background,
+// so the `.is-empty` rule does not hide the visualiser canvas.
+document.querySelector('.kefe-stage')?.classList.add('kefe-visualiser-active');
 
 const canvas = document.getElementById('kefeVisualiserCanvas');
 const scene = new THREE.Scene();
@@ -1005,6 +1008,22 @@ window.kefeVisualiserExport = {
 };
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+
+// If the stage starts at 0×0 (e.g. inside a hidden container, or before the
+// layout is settled), the renderer never gets a usable size. Observe the
+// stage and resize whenever its box changes to a non-zero value.
+(() => {
+  const stage = document.querySelector('.kefe-stage');
+  if (!stage) return;
+  const tryResize = () => {
+    if (stage.clientWidth > 0 && stage.clientHeight > 0) resize();
+  };
+  if (window.ResizeObserver) {
+    new ResizeObserver(tryResize).observe(stage);
+  }
+  // Also run once after layout settles.
+  requestAnimationFrame(() => requestAnimationFrame(tryResize));
+})();
 
 /* ============================================================
    UI
