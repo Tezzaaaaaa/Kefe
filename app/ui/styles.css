@@ -54,14 +54,11 @@ button{border:0;cursor:pointer}
 .kefe-work{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) var(--timeline-h) minmax(220px,40vh);overflow:hidden}
 .kefe-preview{min-width:0;min-height:0;display:grid;place-items:center;padding:18px 24px 12px;overflow:hidden}
 .kefe-stage{position:relative;width:min(1280px,calc(100% - 16px));height:auto;max-width:100%;max-height:calc(100% - 16px);min-width:0;min-height:0;aspect-ratio:16/9;overflow:hidden;background:var(--bg);border:1px solid var(--line-soft);border-radius:var(--r3);box-shadow:var(--lift)}
-.kefe-preview-brand{position:absolute;left:50%;top:50%;z-index:2147483646;width:min(220px,60%);height:120px;transform:translate(-50%,-50%);display:grid;place-items:center;background:transparent;border:0;border-radius:0;box-shadow:none;padding:0;pointer-events:none;visibility:visible;opacity:1}.kefe-preview-brand img{display:block;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:center;overflow:visible;visibility:visible;opacity:1;transform:none}
-#kefeCanvas{display:block;width:calc(100% - 16px);height:calc(100% - 16px);min-width:0;min-height:0;margin:8px;border:0;border-radius:inherit;box-shadow:none}
 @keyframes kefeAppleGradient{0%{background-position:0% 0%,100% 0%,50% 100%,center}50%{background-position:16% 10%,84% 18%,58% 88%,center}100%{background-position:8% 20%,92% 8%,42% 78%,center}}
 @keyframes kefeTitleIn{from{opacity:0;transform:scale(1.035)}to{opacity:1;transform:scale(1)}}
 @keyframes kefeTitleOut{from{opacity:1}to{opacity:0}}
 @keyframes kefeTitleInnerOut{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(calc(-50vh + clamp(72px,12vh,110px))) scale(.72)}}
 @media(prefers-reduced-motion:reduce){.kefe-apple-lyrics{transition:none}
-.kefe-title-card,.kefe-title-card.leaving,.kefe-title-card.leaving .kefe-song-search-button:before,.kefe-song-search-status:after,.kefe-song-result{animation:none}
 .kefe-suggestions-dots i{animation:none}}
 .kefe-preview-fullscreen{position:absolute;top:14px;right:14px;z-index:2147483647;width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:var(--surface);color:var(--text);box-shadow:var(--lift);backdrop-filter:none;-webkit-backdrop-filter:none;transition:transform .16s ease,box-shadow .16s ease,background .16s ease,color .16s ease}
 .kefe-stage.is-16x9{aspect-ratio:16/9}
@@ -72,7 +69,6 @@ button{border:0;cursor:pointer}
 .kefe-preview-fullscreen:focus-visible{outline:2px solid rgba(120,185,255,.8);outline-offset:2px}
 .kefe-preview-fullscreen svg{width:17px;height:17px;display:block}
 .kefe-stage:fullscreen,.kefe-stage.kefe-pseudo-fullscreen{position:fixed;inset:0;z-index:99999;width:100vw;height:100dvh;max-width:none;max-height:none;aspect-ratio:auto;transform:none;margin:0;border:0;border-radius:0;box-shadow:none;background:#e6e4db}
-.kefe-stage:fullscreen #kefeCanvas,.kefe-stage.kefe-pseudo-fullscreen #kefeCanvas{width:100%;height:100%;object-fit:contain}
 .kefe-stage:fullscreen .kefe-preview-fullscreen,.kefe-stage.kefe-pseudo-fullscreen .kefe-preview-fullscreen{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right))}
 @media(max-width:520px){.kefe-preview-fullscreen{top:8px;right:8px;width:34px;height:34px}
 .kefe-song-search-head{display:grid}
@@ -402,7 +398,6 @@ button{border:0;cursor:pointer}
 
 
 /* Particles Swarm visualiser integration */
-.kefe-stage{position:relative;overflow:hidden}
 #kefeVisualiserCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:auto}
 .kefe-stage.is-empty:not(.kefe-visualiser-active) #kefeVisualiserCanvas{visibility:hidden;pointer-events:none}
 .kefe-stage.is-empty #kefeCanvas{background:var(--bg);}
