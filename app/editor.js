@@ -1032,7 +1032,8 @@
     const file=e.target.files?.[0];if(!file)return;
     if(/\.(lrc|ttml|xml|txt)$/i.test(file.name)||file.type==='text/plain'){handleLrcFile(file);e.target.value='';return;}
     if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
-    mediaObjectUrl=URL.createObjectURL(file);\n    previewStage.classList.remove('is-empty');
+    mediaObjectUrl=URL.createObjectURL(file);
+    previewStage.classList.remove('is-empty');
     songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
     songArtist.value='';songAlbum.value='';songYear.value='';
     state.appleLines=[];state.lines=[];lyricsInput.value='';clearManualNotice();
