@@ -218,37 +218,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         }
     }
 
-    ctx.save();
-    if (palette?.length) {
-        const positions = [
-            [0.12, 0.18],
-            [0.52, 0.12],
-            [0.88, 0.22],
-            [0.20, 0.72],
-            [0.58, 0.82],
-            [0.88, 0.68]
-        ];
-        const radii = [0.82, 0.78, 0.84, 0.86, 0.80, 0.84];
-        ctx.globalCompositeOperation = 'screen';
-        ctx.globalAlpha = 0.48;
-        for (let pi = 0; pi < Math.min(6, palette.length); pi++) {
-            const color = palette[pi];
-            const gradient = ctx.createRadialGradient(
-                w * positions[pi][0], h * positions[pi][1], 0,
-                w * positions[pi][0], h * positions[pi][1], Math.max(w, h) * radii[pi]
-            );
-            gradient.addColorStop(0, 'rgb(' + Math.round(color.r * 0.62) + ' ' + Math.round(color.g * 0.62) + ' ' + Math.round(color.b * 0.62) + ')');
-            gradient.addColorStop(0.55, 'rgb(' + Math.round(color.r * 0.34) + ' ' + Math.round(color.g * 0.34) + ' ' + Math.round(color.b * 0.34) + ')');
-            gradient.addColorStop(1, 'rgba(8,8,8,0)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, w, h);
-        }
-        ctx.globalAlpha = 1;
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = 'rgba(0,0,0,0.08)';
-        ctx.fillRect(0, 0, w, h);
-    }
-    ctx.restore();
+    // The lyric canvas is a transparent overlay. Album artwork/palette belongs
+    // to the background/visualiser layer and must never paint an opaque layer
+    // over the WebGL visualiser.
 
     const displayLine = activeIndex >= 0 ? displayLines[activeIndex] : null;
     if (activeIndex < 0 || !displayLine) return;
