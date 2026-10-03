@@ -244,21 +244,24 @@
     if(!title)return;
     const first=Number(state.lines[0]?.time)+lyricOffset();
     const maxLen=Number(window.kefeSettings?.get('titleCardMax'))||10;
-    const end=Math.min(Number.isFinite(first)?first:4,maxLen);
-    if(end<=0.05||t<0||t>=end)return;
-    const fade=Math.min(.6,end/3);
-    const alpha=Math.max(0,Math.min(1,t/fade,(end-t)/fade));
-    if(alpha<=0)return;
+    if(t<0)return;
+    const beforeLyrics=!Number.isFinite(first)||t<first;
+    const alpha=beforeLyrics
+      ? Math.max(0,Math.min(1,t/Math.min(.6,Math.max(first,0.6)/3)))
+      : 1;
     const artist=songArtist.value.trim(),album=songAlbum.value.trim(),year=songYear.value.trim();
     const meta=[album,year].filter(Boolean).join(' · ');
     const img=titleArt?.querySelector('img');
     const hasArt=!!(img&&img.complete&&img.naturalWidth>0);
     const unit=Math.min(w,h);
-    const art=unit*.34,gap=unit*.04;
-    const tSize=Math.max(20,unit*.06),aSize=Math.max(14,unit*.038),mSize=Math.max(12,unit*.03);
+    const art=beforeLyrics?unit*.34:unit*.13,gap=beforeLyrics?unit*.04:unit*.02;
+    const tSize=beforeLyrics?Math.max(20,unit*.06):Math.max(14,unit*.026);
+    const aSize=beforeLyrics?Math.max(14,unit*.038):Math.max(11,unit*.019);
+    const mSize=beforeLyrics?Math.max(12,unit*.03):Math.max(10,unit*.016);
     const textH=tSize*1.25+(artist?aSize*1.35:0)+(meta?mSize*1.4:0);
     const totalH=art+gap+textH;
-    const top=(h-totalH)/2,cx=w/2,maxW=w*.82;
+    const top=beforeLyrics?(h-totalH)/2:Math.max(unit*.025,unit*.035);
+    const cx=w/2,maxW=w*.82;
     const fit=(text,font)=>{ctx.font=font;let out=text;while(ctx.measureText(out).width>maxW&&out.length>3)out=out.slice(0,-2)+'…';return out;};
     ctx.save();
     ctx.globalAlpha=alpha;
