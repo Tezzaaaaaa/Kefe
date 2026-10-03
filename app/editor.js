@@ -214,7 +214,7 @@
       state.lines=raw.map((text,i)=>({text,time:i*3,endTime:(i+1)*3}));
     }
     state.appleLines=state.lines.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
-    previewStage.classList.toggle('is-empty',state.lines.length===0);
+    previewStage.classList.toggle('is-empty',!(audio.currentSrc||audio.src||video.currentSrc||video.src)&&state.lines.length===0);
     draw();
   }
   function lyricsToTtml(lines){
@@ -1032,7 +1032,7 @@
     const file=e.target.files?.[0];if(!file)return;
     if(/\.(lrc|ttml|xml|txt)$/i.test(file.name)||file.type==='text/plain'){handleLrcFile(file);e.target.value='';return;}
     if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
-    mediaObjectUrl=URL.createObjectURL(file);
+    mediaObjectUrl=URL.createObjectURL(file);\n    previewStage.classList.remove('is-empty');
     songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
     songArtist.value='';songAlbum.value='';songYear.value='';
     state.appleLines=[];state.lines=[];lyricsInput.value='';clearManualNotice();
