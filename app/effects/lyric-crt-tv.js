@@ -1,23 +1,39 @@
-/* KEFE Visualiser — CRT TV Box lyric effect.
-   Renders a period-correct CRT television with scanlines, composite softness,
-   colour bleed, shadow mask, bloom, barrel curvature, hum bar, tracking error
-   and mains flicker. Lyrics appear as broadcast-style subtitles. */
+/* KEFE Visualiser — CRT Television lyric effect.
+   Uses retrotv.jpg as the physical set, replaces the glass with a live
+   raster: scanlines, composite softness, colour bleed, shadow mask, bloom,
+   barrel curvature, hum bar, tracking error and mains flicker.
+   Lyrics appear as broadcast-style subtitles. The baked-in "SO, WHAT DO YOU
+   FEEL?" text is masked out so live lyrics render in its place. With no
+   lyrics loaded the set shows tuner static (idle mode). Every parameter is
+   exposed in the Effects panel. */
 (function(){
   'use strict';
   var u = window.kefeEffectUtils;
   window.kefeEffects = window.kefeEffects || {};
   if (!u) { console.error('[lyric-crttv] requires editor.js utils'); return; }
 
-  var STORE = 'kefe.crttv.v2';
+  var IMG_SRC = './app/effects/retrotv.jpg';
+
+  /* Glass rect in image pixels. Adjust these four numbers if the photo is
+     swapped for a different shot — everything else follows automatically. */
+  var IMG = { w: 473, h: 852 };
+  var GLASS = { x: 52, y: 218, w: 368, h: 322, r: 22 };
+
+  /* Region of the photo that contains the baked-in "SO, WHAT DO YOU FEEL?"
+     text. Painted over with black glass so live lyrics sit in that space. */
+  var MASK = { x: 72, y: 320, w: 328, h: 120 };
+
+  var STORE = 'kefe.crttv.v3';
 
   var DEFAULTS = {
-    zoom: 0, lines: 400, curve: 25, vig: 45, reflect: true,
+    zoom: 0, lines: 400, curve: 12, vig: 45, reflect: true,
     soft: 20, bleed: 18, noise: 12, jitter: 15, hum: 25, flick: 20, persist: 35,
     scan: 55, mask: 35, glow: 18,
-    capFont: 'broadcast', capColor: 'yellow', capSize: 100, capY: 88, capBox: false, upper: false,
-    idleStatic: true, idle: 90, burst: true
+    capFont: 'teletext', capColor: 'green', capSize: 130, capY: 62, capBox: false, upper: true,
+    idleStatic: true, idle: 90, burst: true,
+    brand: true
   };
-  var CAP_COLORS = { yellow: '#ece86e', white: '#f2f2ea', green: '#8cf0a0', amber: '#ffb64a' };
+  var CAP_COLORS = { yellow: '#ece86e', white: '#f2f2ea', green: '#3fff6a', amber: '#ffb64a' };
 
   var S = (function(){
     var o = {}, k;
@@ -30,6 +46,7 @@
 
   function mk(w, h){ var c = document.createElement('canvas'); c.width = Math.max(1, w | 0); c.height = Math.max(1, h | 0); return c; }
   function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
+  function lerp(a, b, t){ return a + (b - a) * t; }
   var rs = 0x9e3779b9;
   function rnd(){ rs ^= rs << 13; rs ^= rs >>> 17; rs ^= rs << 5; return (rs >>> 0) / 4294967296; }
   function hash(n){ var x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); }
@@ -49,49 +66,64 @@
     return out;
   }
 
-  /* The TV frame is drawn procedurally — no external image needed. */
-  var GLASS = { x: 0, y: 0, w: 1, h: 1, r: 28 };
-  var HORSE = { x: 214, y: 170, w: 306, h: 308 };
+  GLASS.cx = GLASS.x + GLASS.w / 2; GLASS.cy = GLASS.y + GLASS.h / 2;
 
-  function drawTvBody(ctx, x, y, w, h, glass){
-    var pad = Math.round(w * 0.03);
-    var gx = x + pad, gy = y + pad, gw = w - pad * 2, gh = h - pad * 2;
-    glass.x = gx; glass.y = gy; glass.w = gw; glass.h = gh;
-    glass.cx = gx + gw / 2; glass.cy = gy + gh / 2;
+  var img = new Image(), imgReady = false;
+  img.onload = function(){
+    imgReady = true;
+    IMG.w = img.naturalWidth; IMG.h = img.naturalHeight;
+    fire();
+  };
+  img.onerror = function(){ console.warn('[lyric-crttv] could not load', IMG_SRC); };
+  img.src = IMG_SRC;
 
-    /* Cabinet */
-    var body = ctx.createLinearGradient(x, y, x, y + h);
-    body.addColorStop(0, '#d4cfbf'); body.addColorStop(0.5, '#c9c2b0'); body.addColorStop(1, '#b5ac97');
-    rrect(ctx, x, y, w, h, 18); ctx.fillStyle = body; ctx.fill();
-    /* Inner bevel */
-    rrect(ctx, x + 3, y + 3, w - 6, h - 6, 16);
-    ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.stroke();
-    /* Glass recess */
-    rrect(ctx, gx - 8, gy - 8, gw + 16, gh + 16, 22);
-    ctx.fillStyle = '#1a1815'; ctx.fill();
-    /* Bottom control strip */
-    var stripY = y + h - Math.round(h * 0.07);
-    ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(x + 12, stripY, w - 24, 2);
-    /* Speaker grille */
-    var spkX = x + w - Math.round(w * 0.22), spkW = Math.round(w * 0.16);
-    for (var i = 0; i < 5; i++) {
-      ctx.fillStyle = 'rgba(0,0,0,.22)';
-      ctx.fillRect(spkX, stripY + 6 + i * 4, spkW, 2);
+  var maskTile = null, maskTileA = -1;
+  function getMaskTile(a){
+    var q = Math.round(a * 50) / 50;
+    if (maskTile && q === maskTileA) return maskTile;
+    var c = maskTile || mk(3, 1), x = c.getContext('2d'), lo = Math.round(255 - 105 * q);
+    x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1;
+    x.fillStyle = 'rgb(255,' + lo + ',' + lo + ')'; x.fillRect(0, 0, 1, 1);
+    x.fillStyle = 'rgb(' + lo + ',255,' + lo + ')'; x.fillRect(1, 0, 1, 1);
+    x.fillStyle = 'rgb(' + lo + ',' + lo + ',255)'; x.fillRect(2, 0, 1, 1);
+    maskTileA = q; return (maskTile = c);
+  }
+
+  var B = { w: 0, h: 0 }, accReset = true, last = 0;
+  function ensure(w, h){
+    if (B.w === w && B.h === h) return;
+    B.w = w; B.h = h; accReset = true;
+    ['buf', 'acc', 'fin', 'proc', 'cr', 'cg', 'cb', 'out'].forEach(function(k){ B[k] = mk(w, h); B[k + 'x'] = B[k].getContext('2d'); });
+    B.snow = mk(w, h); B.snowx = B.snow.getContext('2d');
+    B.snowd = B.snowx.createImageData(w, h); B.snow32 = new Uint32Array(B.snowd.data.buffer);
+    B.bl1 = mk(w >> 2, h >> 2); B.bl1x = B.bl1.getContext('2d');
+    B.bl2 = mk(w / 10, h / 10); B.bl2x = B.bl2.getContext('2d');
+    B.mask = mk(w, h); B.maskx = B.mask.getContext('2d');
+  }
+  function paintSnow(){
+    var d = B.snow32, w = B.w, h = B.h;
+    for (var y = 0; y < h; y++) {
+      var gain = 0.5 + 0.6 * rnd(), row = y * w, x = 0;
+      while (x < w) {
+        var run = 1 + ((rnd() * 3) | 0), v = Math.pow(rnd(), 0.7) * 255 * gain;
+        v = v > 255 ? 255 : v | 0;
+        var px = 0xff000000 | (v << 16) | (v << 8) | v;
+        for (var k = 0; k < run && x < w; k++, x++) d[row + x] = px;
+      }
     }
-    /* Dial knobs */
-    var dialR = Math.round(h * 0.022);
-    var dialY = stripY + Math.round(h * 0.035);
-    [x + w * 0.12, x + w * 0.22].forEach(function(dx){
-      ctx.beginPath(); ctx.arc(dx, dialY, dialR, 0, Math.PI * 2);
-      ctx.fillStyle = '#9a9186'; ctx.fill();
-      ctx.beginPath(); ctx.arc(dx - dialR * 0.15, dialY - dialR * 0.15, dialR * 0.7, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.fill();
-    });
-    /* Brand plate */
-    ctx.fillStyle = 'rgba(60,56,48,.55)';
-    ctx.font = '700 ' + Math.round(h * 0.026) + 'px "Open Sans",system-ui,sans-serif';
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText('HVTV', x + w * 0.42, dialY);
+    B.snowx.putImageData(B.snowd, 0, 0);
+  }
+  function paintMask(){
+    var m = B.maskx;
+    m.setTransform(1, 0, 0, 1, 0, 0); m.globalCompositeOperation = 'source-over'; m.globalAlpha = 1;
+    m.clearRect(0, 0, B.w, B.h);
+    m.fillStyle = '#04120a';
+    m.fillRect(
+      (MASK.x - GLASS.x) * B.w / GLASS.w,
+      (MASK.y - GLASS.y) * B.h / GLASS.h,
+      MASK.w * B.w / GLASS.w,
+      MASK.h * B.h / GLASS.h
+    );
   }
 
   function drawCaption(b, Bw, Bh, text, alpha, style){
@@ -99,8 +131,8 @@
     var famC = contract.family || 'Open Sans';
     var fam = (style && style.kefeMotionFont && style.kefeMotionFont !== famC) ? style.kefeMotionFont : (S.capFont === 'teletext' ? 'VT323' : famC);
     var weight = fam === 'VT323' ? 400 : (contract.weight || 600);
-    var base = Bh * 0.07 * (S.capSize / 100) * (fam === 'VT323' ? 1.3 : 1);
-    var maxW = Bw * 0.8, size = base, lines;
+    var base = Bh * 0.11 * (S.capSize / 100) * (fam === 'VT323' ? 1.3 : 1);
+    var maxW = Bw * 0.82, size = base, lines;
     if (S.upper || fam === 'VT323') text = text.toUpperCase();
     for (var t = 0; t < 10; t++) {
       b.font = weight + ' ' + size + 'px "' + fam + '",system-ui,sans-serif';
@@ -121,45 +153,22 @@
         b.fillStyle = 'rgba(0,0,0,.72)'; b.fillRect(x - tw / 2, y - size * 0.92, tw, lh * 0.98);
       }
       b.lineWidth = Math.max(1.2, size * 0.1); b.strokeStyle = 'rgba(0,0,0,.6)'; b.strokeText(lines[i], x, y);
-      b.fillStyle = CAP_COLORS[S.capColor] || CAP_COLORS.yellow; b.fillText(lines[i], x, y);
+      b.fillStyle = CAP_COLORS[S.capColor] || CAP_COLORS.green; b.fillText(lines[i], x, y);
     }
     b.restore();
   }
 
-  /* Raster buffers */
-  var B = { w: 0, h: 0 }, accReset = true, last = 0;
-  function ensure(w, h){
-    if (B.w === w && B.h === h) return;
-    B.w = w; B.h = h; accReset = true;
-    ['buf', 'acc', 'fin', 'proc', 'cr', 'cg', 'cb', 'out'].forEach(function(k){ B[k] = mk(w, h); B[k + 'x'] = B[k].getContext('2d'); });
-    B.snow = mk(w, h); B.snowx = B.snow.getContext('2d');
-    B.snowd = B.snowx.createImageData(w, h); B.snow32 = new Uint32Array(B.snowd.data.buffer);
-    B.bl1 = mk(w >> 2, h >> 2); B.bl1x = B.bl1.getContext('2d');
-    B.bl2 = mk(w / 10, h / 10); B.bl2x = B.bl2.getContext('2d');
-  }
-  function paintSnow(){
-    var d = B.snow32, w = B.w, h = B.h;
-    for (var y = 0; y < h; y++) {
-      var gain = 0.5 + 0.6 * rnd(), row = y * w, x = 0;
-      while (x < w) {
-        var run = 1 + ((rnd() * 3) | 0), v = Math.pow(rnd(), 0.7) * 255 * gain;
-        v = v > 255 ? 255 : v | 0;
-        var px = 0xff000000 | (v << 16) | (v << 8) | v;
-        for (var k = 0; k < run && x < w; k++, x++) d[row + x] = px;
-      }
-    }
-    B.snowx.putImageData(B.snowd, 0, 0);
-  }
-  var maskTile = null, maskTileA = -1;
-  function getMaskTile(a){
-    var q = Math.round(a * 50) / 50;
-    if (maskTile && q === maskTileA) return maskTile;
-    var c = maskTile || mk(3, 1), x = c.getContext('2d'), lo = Math.round(255 - 105 * q);
-    x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1;
-    x.fillStyle = 'rgb(255,' + lo + ',' + lo + ')'; x.fillRect(0, 0, 1, 1);
-    x.fillStyle = 'rgb(' + lo + ',255,' + lo + ')'; x.fillRect(1, 0, 1, 1);
-    x.fillStyle = 'rgb(' + lo + ',' + lo + ',255)'; x.fillRect(2, 0, 1, 1);
-    maskTileA = q; return (maskTile = c);
+  function drawBrand(b, Bw, Bh){
+    if (!S.brand) return;
+    var s = Bh * 0.05;
+    b.save();
+    b.font = '700 ' + s + 'px "VT323",monospace';
+    b.fillStyle = '#3fff6a';
+    b.shadowColor = '#3fff6a'; b.shadowBlur = s * 0.5;
+    b.textBaseline = 'alphabetic';
+    b.textAlign = 'right';
+    b.fillText('KEFE', Bw * 0.94, Bh * 0.96);
+    b.restore();
   }
 
   function render(ctx, w, h, style, lines, time){
@@ -167,6 +176,8 @@
     var dt = last ? Math.min(0.25, Math.max(0, now - last)) : 0.25; last = now;
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#1a1a18'; ctx.fillRect(0, 0, w, h);
+    if (!imgReady) { ctx.restore(); return; }
 
     var hasLines = !!(lines && lines.length);
     var idleMode = !hasLines && S.idleStatic;
@@ -176,35 +187,26 @@
     var age = act ? time - Number(act.line.time || 0) : 99;
     var burst = (S.burst && act && age >= 0 && age < 0.22) ? 1 - age / 0.22 : 0;
 
-    /* TV frame dimensions */
-    var frameW = w, frameH = h;
-    var aspect = 4 / 3;
-    if (frameW / frameH > aspect) frameW = frameH * aspect;
-    else frameH = frameW / aspect;
-    var fx = (w - frameW) / 2, fy = (h - frameH) / 2;
-    var glass = { x: 0, y: 0, w: 0, h: 0, r: 0, cx: 0, cy: 0 };
-    var pad = frameW * 0.05;
-    var gx = fx + pad, gy = fy + pad * 1.1;
-    var gw = frameW - pad * 2, gh = frameH - pad * 1.6 - pad * 1.6;
-    glass.x = gx; glass.y = gy; glass.w = gw; glass.h = gh;
-    glass.cx = gx + gw / 2; glass.cy = gy + gh / 2; glass.r = Math.min(gw, gh) * 0.06;
+    var t = clamp(S.zoom / 100, 0, 1);
+    var s0 = Math.min(w / IMG.w, h / IMG.h), fw = w / (GLASS.w * 0.94), fh = h / (GLASS.h * 0.94), sf = Math.min(fw, fh);
+    if (sf < s0) sf = s0;
+    var s = s0 * Math.pow(sf / s0, t);
+    var cx = lerp(IMG.w / 2, GLASS.cx, t), cy = lerp(IMG.h / 2, GLASS.cy, t);
 
-    /* Raster size */
-    var Bh = Math.round(clamp(S.lines, 120, 480));
-    var Bw = Math.round(Bh * gw / gh);
+    var Bh = Math.round(clamp(S.lines, 120, 480)), Bw = Math.round(Bh * GLASS.w / GLASS.h);
     ensure(Bw, Bh);
+    paintMask();
 
-    /* 1. Content layer */
     var b = B.bufx;
     b.setTransform(1, 0, 0, 1, 0, 0); b.globalAlpha = 1; b.globalCompositeOperation = 'source-over';
     var g = b.createRadialGradient(Bw * 0.5, Bh * 0.46, 0, Bw * 0.5, Bh * 0.5, Bw * 0.72);
-    g.addColorStop(0, '#13262d'); g.addColorStop(0.6, '#0a161c'); g.addColorStop(1, '#03070a');
+    g.addColorStop(0, '#0d2418'); g.addColorStop(0.6, '#071710'); g.addColorStop(1, '#030a06');
     b.fillStyle = g; b.fillRect(0, 0, Bw, Bh);
     if (!idleMode) {
       if (text && lp && lp.opacity > 0.01) drawCaption(b, Bw, Bh, text, Math.min(1, lp.opacity * 2), style);
+      drawBrand(b, Bw, Bh);
     }
 
-    /* 2. Phosphor persistence */
     var tau = 0.02 + 0.3 * (S.persist / 100), keep = accReset ? 0 : Math.exp(-dt / tau);
     accReset = false;
     var a = B.accx;
@@ -212,7 +214,6 @@
     a.globalCompositeOperation = 'source-over'; a.globalAlpha = 1 - keep; a.fillStyle = '#000'; a.fillRect(0, 0, Bw, Bh);
     a.globalCompositeOperation = 'lighten'; a.globalAlpha = 1; a.drawImage(B.buf, 0, 0);
 
-    /* 3. Signal layer */
     var f = B.finx;
     f.setTransform(1, 0, 0, 1, 0, 0); f.globalCompositeOperation = 'source-over'; f.globalAlpha = 1;
     f.drawImage(B.acc, 0, 0);
@@ -225,7 +226,6 @@
       f.globalCompositeOperation = 'lighter'; f.fillStyle = hg; f.fillRect(0, by, Bw, bh); f.globalCompositeOperation = 'source-over';
     }
 
-    /* 4. Composite softness + chroma bleed */
     var p = B.procx;
     p.setTransform(1, 0, 0, 1, 0, 0); p.globalCompositeOperation = 'source-over'; p.globalAlpha = 1;
     p.drawImage(B.fin, 0, 0);
@@ -257,7 +257,6 @@
       src = B.out;
     }
 
-    /* 5. Bloom */
     var glow = S.glow / 100;
     if (glow > 0.02) {
       B.bl1x.globalCompositeOperation = 'source-over'; B.bl1x.globalAlpha = 1; B.bl1x.imageSmoothingEnabled = true;
@@ -267,22 +266,16 @@
       B.bl2x.drawImage(src, 0, 0, B.bl2.width, B.bl2.height);
     }
 
-    /* 6. The set */
-    var t = clamp(S.zoom / 100, 0, 1);
-    var vw = lerp(frameW, gw * 1.02, t);
-    var vh = lerp(frameH, gh * 1.02, t);
-    var vx = lerp(fx, glass.cx - vw / 2, t);
-    var vy = lerp(fy, glass.cy - vh / 2, t);
+    ctx.translate(w / 2, h / 2); ctx.scale(s, s); ctx.translate(-cx, -cy);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, IMG.w, IMG.h);
 
     ctx.save();
-    drawTvBody(ctx, vx, vy, vw, vh, glass);
+    rrect(ctx, GLASS.x, GLASS.y, GLASS.w, GLASS.h, GLASS.r); ctx.clip();
+    ctx.fillStyle = '#03070a'; ctx.fillRect(GLASS.x, GLASS.y, GLASS.w, GLASS.h);
 
-    ctx.save();
-    rrect(ctx, glass.x, glass.y, glass.w, glass.h, glass.r); ctx.clip();
-    ctx.fillStyle = '#03070a'; ctx.fillRect(glass.x, glass.y, glass.w, glass.h);
-
-    var LH = glass.h / Bh, curv = (S.curve / 100) * 0.07, J = S.jitter / 100;
-    var scanA = (S.scan / 100) * 0.62 * clamp((LH - 1.1) / 1.4, 0.3, 1);
+    var LH = GLASS.h / Bh, curv = (S.curve / 100) * 0.07, J = S.jitter / 100;
+    var scanA = (S.scan / 100) * 0.62 * clamp((LH * s - 1.1) / 1.4, 0.3, 1);
     var trk = Math.floor(now * 24);
     ctx.imageSmoothingEnabled = true;
     for (var i = 0; i < Bh; i++) {
@@ -291,62 +284,61 @@
       if (yy > 0.93) off += (hash(i * 13.37 + trk) * 2 - 1) * J * 3 * ((yy - 0.93) / 0.07);
       var dBand = Math.abs(yy - (bandY + 0.1));
       if (dBand < 0.05) off += Math.sin(i * 1.7 + now * 30) * J * 1.4 * (1 - dBand / 0.05);
-      var dw = glass.w * widthK, dx = glass.cx - dw / 2 + off * (glass.w / Bw), dy = glass.y + i * LH;
+      var dw = GLASS.w * widthK, dx = GLASS.cx - dw / 2 + off * (GLASS.w / Bw), dy = GLASS.y + i * LH;
       ctx.drawImage(src, 0, i, Bw, 1, dx, dy, dw, LH + 0.4);
       if (scanA > 0.01) { ctx.fillStyle = 'rgba(0,0,0,' + scanA.toFixed(3) + ')'; ctx.fillRect(dx, dy + LH * 0.58, dw, LH * 0.42); }
     }
 
     if (glow > 0.02) {
       ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = glow * 0.75; ctx.drawImage(B.bl1, glass.x, glass.y, glass.w, glass.h);
-      ctx.globalAlpha = glow * 0.9; ctx.drawImage(B.bl2, glass.x, glass.y, glass.w, glass.h);
+      ctx.globalAlpha = glow * 0.75; ctx.drawImage(B.bl1, GLASS.x, GLASS.y, GLASS.w, GLASS.h);
+      ctx.globalAlpha = glow * 0.9; ctx.drawImage(B.bl2, GLASS.x, GLASS.y, GLASS.w, GLASS.h);
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     }
 
     var maskA = (S.mask / 100) * 0.5;
     if (maskA > 0.01) {
       var pat = ctx.createPattern(getMaskTile(maskA / 0.5), 'repeat');
-      if (pat) { ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = pat; ctx.fillRect(glass.x, glass.y, glass.w, glass.h); ctx.restore(); }
+      if (pat) { ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = pat; ctx.fillRect(GLASS.x, GLASS.y, GLASS.w, GLASS.h); ctx.restore(); }
     }
 
     var vig = S.vig / 100;
-    ctx.save(); ctx.translate(glass.cx, glass.cy); ctx.scale(1, glass.h / glass.w);
-    var vg = ctx.createRadialGradient(0, 0, glass.w * 0.3, 0, 0, glass.w * 0.78);
+    ctx.save(); ctx.translate(GLASS.cx, GLASS.cy); ctx.scale(1, GLASS.h / GLASS.w);
+    var vg = ctx.createRadialGradient(0, 0, GLASS.w * 0.3, 0, 0, GLASS.w * 0.78);
     vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,' + (vig * 0.9).toFixed(3) + ')');
-    ctx.fillStyle = vg; ctx.fillRect(-glass.w, -glass.w, glass.w * 2, glass.w * 2); ctx.restore();
+    ctx.fillStyle = vg; ctx.fillRect(-GLASS.w, -GLASS.w, GLASS.w * 2, GLASS.w * 2); ctx.restore();
 
-    rrect(ctx, glass.x, glass.y, glass.w, glass.h, glass.r);
-    ctx.lineWidth = 22; ctx.strokeStyle = 'rgba(0,0,0,.22)'; ctx.stroke();
-    ctx.lineWidth = 9; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.stroke();
+    rrect(ctx, GLASS.x, GLASS.y, GLASS.w, GLASS.h, GLASS.r);
+    ctx.lineWidth = 14; ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.stroke();
+    ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.stroke();
 
     var fl = S.flick / 100;
     if (fl > 0.01) {
       var fv = 0.5 + 0.25 * Math.sin(now * 47.3) + 0.15 * Math.sin(now * 13.1 + 1) + 0.1 * Math.sin(now * 5.7);
-      ctx.fillStyle = 'rgba(0,0,0,' + (fl * 0.14 * fv).toFixed(3) + ')'; ctx.fillRect(glass.x, glass.y, glass.w, glass.h);
+      ctx.fillStyle = 'rgba(0,0,0,' + (fl * 0.14 * fv).toFixed(3) + ')'; ctx.fillRect(GLASS.x, GLASS.y, GLASS.w, GLASS.h);
     }
 
     if (S.reflect) {
-      var rx = glass.x, ry = glass.y;
+      var rx = GLASS.x, ry = GLASS.y;
       var rg = ctx.createLinearGradient(rx, ry, rx + 140, ry + 190);
-      rg.addColorStop(0, 'rgba(190,205,235,.30)'); rg.addColorStop(1, 'rgba(190,205,235,0)');
+      rg.addColorStop(0, 'rgba(190,205,235,.26)'); rg.addColorStop(1, 'rgba(190,205,235,0)');
       ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = rg;
       ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx + 150, ry); ctx.quadraticCurveTo(rx + 92, ry + 92, rx + 4, ry + 205); ctx.lineTo(rx, ry + 205); ctx.closePath(); ctx.fill();
       ctx.globalCompositeOperation = 'source-over';
     }
     ctx.restore();
     ctx.restore();
-    ctx.restore();
   }
-  function lerp(a, b, t){ return a + (b - a) * t; }
   render.idle = true;
   window.kefeEffects.crttv = render;
 
-  /* Controls */
   var GROUPS = [
     { t: 'Set', c: [
       ['range', 'zoom', 'Zoom to screen', 0, 100, 1, '%'],
+      ['toggle', 'brand', 'KEFE brand'],
       ['range', 'lines', 'Scanline count', 120, 480, 10, ''],
-      ['range', 'curve', 'Curvature', 0, 100, 1, '%'], ['range', 'vig', 'Vignette', 0, 100, 1, '%'],
+      ['range', 'curve', 'Curvature', 0, 100, 1, '%'],
+      ['range', 'vig', 'Vignette', 0, 100, 1, '%'],
       ['toggle', 'reflect', 'Glass reflection'] ] },
     { t: 'Signal', c: [
       ['range', 'soft', 'Softness', 0, 100, 1, '%'], ['range', 'bleed', 'Colour bleed', 0, 100, 1, '%'],
@@ -356,7 +348,7 @@
       ['range', 'scan', 'Scanlines', 0, 100, 1, '%'], ['range', 'mask', 'Shadow mask', 0, 100, 1, '%'], ['range', 'glow', 'Glow / bloom', 0, 100, 1, '%'] ] },
     { t: 'Captions', c: [
       ['select', 'capFont', 'Face', [['broadcast', 'Broadcast sans'], ['teletext', 'Teletext']]],
-      ['select', 'capColor', 'Colour', [['yellow', 'Yellow'], ['white', 'White'], ['green', 'Green'], ['amber', 'Amber']]],
+      ['select', 'capColor', 'Colour', [['green', 'Phosphor green'], ['yellow', 'Yellow'], ['white', 'White'], ['amber', 'Amber']]],
       ['range', 'capSize', 'Size', 50, 200, 1, '%'], ['range', 'capY', 'Position', 30, 98, 1, '%'],
       ['toggle', 'capBox', 'Caption box'], ['toggle', 'upper', 'Uppercase'] ] },
     { t: 'No lyrics loaded', c: [
@@ -365,8 +357,8 @@
 
   function buildPanel(){
     var host = document.querySelector('[data-panel-view="effects"] .kefe-form');
-    if (!host || document.getElementById('crtTvControls')) return;
-    var wrap = document.createElement('div'); wrap.id = 'crtTvControls'; wrap.className = 'crt-controls'; wrap.hidden = true;
+    if (!host || document.getElementById('crtTvControlsV3')) return;
+    var wrap = document.createElement('div'); wrap.id = 'crtTvControlsV3'; wrap.className = 'crt-controls'; wrap.hidden = true;
     var els = {};
     GROUPS.forEach(function(gr){
       var box = document.createElement('div'); box.className = 'crt-group';
@@ -410,17 +402,17 @@
   }
 
   var panel = null;
-  function isActive(){
-    var sel = document.getElementById('lyricEffect');
-    return !!sel && sel.value === 'crttv';
-  }
+  function isActive(){ var sel = document.getElementById('lyricEffect'); return !!sel && sel.value === 'crttv'; }
   function sync(){
-    if (!panel) panel = document.getElementById('crtTvControls') || (buildPanel(), document.getElementById('crtTvControls'));
-    if (panel) panel.hidden = !isActive();
+    if (!panel) panel = document.getElementById('crtTvControlsV3') || (buildPanel(), document.getElementById('crtTvControlsV3'));
+    if (panel) {
+      var show = isActive();
+      panel.hidden = !show;
+      panel.classList.toggle('kefe-hidden', !show);
+    }
   }
   var sel = document.getElementById('lyricEffect');
   if (sel) sel.addEventListener('change', sync);
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync);
-  else sync();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync); else sync();
   window.addEventListener('kefe-effects-ready', sync);
 })();
