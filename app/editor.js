@@ -289,7 +289,7 @@
       if(state.lines.length){
         const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
         if(typeof fn==='function'){
-          try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time-lyricOffset(),titleArtImage);}
+          try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time+1-lyricOffset(),titleArtImage);}
           catch(err){console.error('[KEFE effect]',state.effect,err);}
         }
       }
