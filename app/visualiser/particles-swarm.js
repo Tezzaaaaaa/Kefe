@@ -883,6 +883,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true,
 renderer.setClearColor(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#F1ECE5', 1);
 renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const initialSpin = window.kefeSettings ? !!window.kefeSettings.get('autoSpin') : true;
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -905,7 +906,6 @@ const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 let instancedMesh = null;
 let positions = null;
 const initialCount = Math.max(1000, Math.min(30000, Number(window.kefeSettings?.get('particleCount')) || 20000));
-const initialSpin = window.kefeSettings ? !!window.kefeSettings.get('autoSpin') : true;
 let currentCount = initialCount;
 
 const state = {
