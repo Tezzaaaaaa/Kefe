@@ -663,11 +663,19 @@
     const params=new URLSearchParams({title,artist,...(album?{album}:{}),...(duration?{duration:String(duration)}:{})});
     const base='https://lyrics-api.binimum.org';
     try{
-      const response=await fetch(base+'/v1/ttml/get?'+params,{signal,headers:{Accept:'application/xml,text/xml,text/plain'}});
+      const response=await fetch(base+'/v1/ttml/get?'+params,{signal,headers:{Accept:'application/json,text/xml,text/plain'}});
       if(response.ok){
-        const ttml=await response.text();
-        const lines=parseAppleTTML(ttml);
-        if(lines.length)return lines;
+        const contentType=response.headers.get('content-type')||'';
+        if(contentType.includes('json')){
+          const payload=await response.json();
+          const ttml=String(payload?.lyrics||payload?.ttml||'').trim();
+          const lines=ttml?parseAppleTTML(ttml):[];
+          if(lines.length)return lines;
+        }else{
+          const ttml=await response.text();
+          const lines=parseAppleTTML(ttml);
+          if(lines.length)return lines;
+        }
       }
     }catch(error){
       if(error?.name==='AbortError')throw error;
