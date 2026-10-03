@@ -1,9 +1,6 @@
 /* KEFE visualiser engine — shared renderer and preset registry. */
 import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-import { EffectComposer } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js';
 const PRESETS = [
   {
     key:'particles-swarm', name:'Particles Swarm', desc:'A responsive swarm of particles flowing through a layered orbital field.',
@@ -908,22 +905,22 @@ const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x000000, 0.01);
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
 camera.position.set(0, 0, 100);
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
-renderer.setClearColor(0x000000, 1);
-renderer.setSize(Math.max(1, canvas.clientWidth || stage?.clientWidth || 1), Math.max(1, canvas.clientHeight || stage?.clientHeight || 1), false);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+  renderer.setClearColor(0x000000, 1);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+} catch (error) {
+  canvas.dataset.rendererError = 'true';
+  console.error('[KEFE visualiser renderer]', error);
+  throw error;
+}
 const initialSpin = window.kefeSettings ? !!window.kefeSettings.get('autoSpin') : true;
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.autoRotate = initialSpin;
 controls.autoRotateSpeed = 2.0;
-
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(canvas.clientWidth, canvas.clientHeight), 1.5, 0.4, 0.85);
-bloom.strength = 1.8; bloom.radius = 0.4; bloom.threshold = 0;
-composer.addPass(bloom);
 
 const dummy = new THREE.Object3D();
 const color = new THREE.Color();
@@ -1017,7 +1014,7 @@ function animate() {
     instancedMesh.instanceMatrix.needsUpdate = true;
     instancedMesh.instanceColor.needsUpdate = true;
   }
-  composer.render();
+  renderer.render(scene, camera);
 }
 
 let exportLock = false, savedPixelRatio = 1;
@@ -1028,19 +1025,18 @@ function resize() {
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  composer.setSize(w, h);
-}
+  }
 window.kefeVisualiserExport = {
   begin(w, h) {
     exportLock = true;
     savedPixelRatio = renderer.getPixelRatio();
-    renderer.setPixelRatio(1); composer.setPixelRatio(1);
-    renderer.setSize(w, h, false); composer.setSize(w, h);
+    renderer.setPixelRatio(1);
+    renderer.setSize(w, h, false);
     camera.aspect = w / h; camera.updateProjectionMatrix();
   },
   end() {
     exportLock = false;
-    renderer.setPixelRatio(savedPixelRatio); composer.setPixelRatio(savedPixelRatio);
+    renderer.setPixelRatio(savedPixelRatio);
     resize();
   }
 };
