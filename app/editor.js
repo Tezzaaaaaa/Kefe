@@ -104,7 +104,7 @@
     }
     if(suggestions)suggestions.hidden=!song;
   }
-  function renderSongSuggestions(results){
+  function renderSongSuggestions(results,opts={}){
     const panel=document.getElementById('kefeSuggestions');
     const list=document.getElementById('kefeSuggestionList');
     const status=document.getElementById('kefeSuggestionsStatus');
@@ -112,8 +112,8 @@
     list.innerHTML='';
     const currentTitle=songTitle.value.trim().toLowerCase();
     const currentArtist=songArtist.value.trim().toLowerCase();
-    const items=(Array.isArray(results)?results:[]).filter(item=>item.trackName).filter(item=>!(String(item.trackName||'').toLowerCase()===currentTitle&&String(item.artistName||'').toLowerCase()===currentArtist)).slice(0,4);
-    status.innerHTML=items.length?'Other matches':'No other matches';
+    const items=(Array.isArray(results)?results:[]).filter(item=>item.trackName).filter(item=>!opts.excludeCurrent||!(String(item.trackName||'').toLowerCase()===currentTitle&&String(item.artistName||'').toLowerCase()===currentArtist)).slice(0,opts.limit||5);
+    status.textContent=opts.excludeCurrent?(items.length?'Other matches':'No other matches'):(items.length?'Select the correct song':'No matches found');
     panel.hidden=!songTitle.value.trim();
     items.forEach(item=>{
       const button=document.createElement('button');
@@ -150,6 +150,7 @@
         updateTitleCard();
         applyAppleAlbumGradient();
         syncAppleLyricsMetadata();
+        clearManualNotice();
         panel.hidden=true;
         list.innerHTML='';
         loadAutomaticLyrics();
@@ -206,18 +207,9 @@
   }
   function parseLyrics(){
     const raw=lyricsInput.value.replace(/\r/g,'').split(/\n+/).map(s=>s.trim()).filter(Boolean);
-    const synced=raw.map(line=>{
-      const m=line.match(/^\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]\s*(.*)$/);
-      if(!m)return null;
-      const fraction=m[3]?Number(m[3])/(m[3].length===3?1000:100):0;
-      return {text:m[4].trim(),time:Number(m[1])*60+Number(m[2])+fraction};
-    }).filter(line=>line&&line.text);
+    const synced=parseLrcText(raw.join('\n'));
     if(synced.length){
       state.lines=synced.map((line,i)=>({...line,endTime:synced[i+1]?.time||line.time+3}));
-      lyricsInput.value=state.lines.map(line=>{
-        const mins=Math.floor(line.time/60),secs=line.time-mins*60;
-        return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\.$/,'')+'] '+line.text;
-      }).join('\n');
     }else{
       state.lines=raw.map((text,i)=>({text,time:i*3,endTime:(i+1)*3}));
     }
@@ -366,16 +358,34 @@
       return [];
     }
   }
+  function fmtLrc(time){
+    const ms=Math.round(Math.max(0,Number(time)||0)*1000);
+    const mins=Math.floor(ms/60000),secs=(ms%60000)/1000;
+    return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0')+']';
+  }
+  function parseLrcText(text){
+    const src=String(text||'').replace(/^﻿/,'').replace(/\r/g,'');
+    const offsetMatch=src.match(/^\[offset:\s*(-?\d+)\s*\]/mi);
+    const offset=offsetMatch?Number(offsetMatch[1])/1000:0;
+    const out=[];
+    src.split('\n').forEach(raw=>{
+      let line=raw.trim(),m;
+      const stamps=[];
+      while((m=line.match(/^\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]/))){
+        const frac=m[3]?Number(m[3])/Math.pow(10,m[3].length):0;
+        stamps.push(Number(m[1])*60+Number(m[2])+frac);
+        line=line.slice(m[0].length).trim();
+      }
+      if(!stamps.length)return;
+      const clean=line.replace(/<\d{1,3}:\d{1,2}(?:[.:]\d{1,3})?>/g,'').replace(/\s+/g,' ').trim();
+      if(!clean)return;
+      stamps.forEach(t=>out.push({text:clean,time:Math.max(0,t-offset)}));
+    });
+    return out.sort((a,b)=>a.time-b.time);
+  }
   function parseAppleLrc(lyrics){
     if(typeof lyrics!=='string'||!lyrics.trim())return [];
-    return lyrics.replace(/\r/g,'').split(/\n+/).map(line=>{
-      const match=line.match(/^\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]\s*(.*)$/);
-      if(!match)return null;
-      const fraction=match[3]?Number(match[3])/(match[3].length===3?1000:100):0;
-      const time=Number(match[1])*60+Number(match[2])+fraction;
-      const text=match[4].trim();
-      return text?{time,text}:null;
-    }).filter(Boolean).sort((a,b)=>a.time-b.time).map((line,index)=>({...line,end:index+1?undefined:undefined}));
+    return parseLrcText(lyrics);
   }
   function drawAppleLyrics(ctx,width,height,lines,time){
     if(!lines.length)return;
@@ -600,14 +610,24 @@
     const parts=raw.split(/\s+[-–—]\s+/).map(v=>v.trim()).filter(Boolean);
     return parts.length>1?{artist:parts[0],title:parts.slice(1).join(' - ')}:{title:raw};
   }
+  function coreTitle(value){
+    return normalizeSearchText(String(value||'').replace(/\(.*?\)|\[.*?\]/g,' ').replace(/\s-\s.*$/,''));
+  }
   function rankTrack(item,meta,duration){
     const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist);
     const itemTitle=normalizeSearchText(item.trackName),itemArtist=normalizeSearchText(item.artistName);
     let score=0;
-    if(title&&itemTitle===title)score+=120;else if(title&&(itemTitle.includes(title)||title.includes(itemTitle)))score+=55;
-    if(artist&&itemArtist===artist)score+=120;else if(artist&&(itemArtist.includes(artist)||artist.includes(itemArtist)))score+=55;
+    const itemCore=coreTitle(item.trackName);
+    if(title&&(itemTitle===title||(itemCore&&itemCore===coreTitle(meta.title))))score+=120;
+    else if(title&&itemTitle&&(itemTitle.includes(title)||title.includes(itemTitle)))score+=55;
+    if(artist&&itemArtist===artist)score+=120;
+    else if(artist&&itemArtist&&(itemArtist.includes(artist)||artist.includes(itemArtist)))score+=55;
     if(duration&&item.trackTimeMillis)score+=Math.max(0,40-Math.abs(Number(item.trackTimeMillis)/1000-duration)*2);
     return score;
+  }
+  function isConfidentMatch(item,meta,duration){
+    if(!meta.title||!meta.artist)return false;
+    return rankTrack(item,meta,duration)>=170;
   }
   function applyIdentifiedTrack(item){
     songTitle.value=item.trackName||songTitle.value;
@@ -620,22 +640,32 @@
     updateMediaTrack();updateTitleCard();applyAppleAlbumGradient();syncAppleLyricsMetadata();
   }
   async function fetchItunesMatches(meta,duration){
-    const query=[meta.title,meta.artist].filter(Boolean).join(' ');
+    const query=[meta.title,meta.artist].filter(Boolean).join(' ').trim();
     if(!query)return [];
-    const url='https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=song&limit=25&country=AU';
-    const response=await fetch(url,{headers:{Accept:'application/json'}});
-    if(!response.ok)throw new Error('iTunes search failed: '+response.status);
-    const payload=await response.json();
-    return Array.isArray(payload.results)?payload.results.filter(item=>item.trackName).sort((a,b)=>rankTrack(b,meta,duration)-rankTrack(a,meta,duration)):[];
+    let lastError=null;
+    const run=async country=>{
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
+      try{
+        const response=await fetch('https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=song&limit=25&country='+country,{signal:controller.signal,headers:{Accept:'application/json'}});
+        if(!response.ok)throw new Error('iTunes search failed: '+response.status);
+        const payload=await response.json();
+        return Array.isArray(payload.results)?payload.results.filter(item=>item.trackName):[];
+      }finally{clearTimeout(timer);}
+    };
+    let results=[];
+    for(const country of ['AU','US']){
+      try{results=await run(country);}catch(error){lastError=error;console.warn('[KEFE iTunes search]',country,error?.name||error);}
+      if(results.length)break;
+    }
+    if(!results.length&&lastError)throw lastError;
+    return results.sort((a,b)=>rankTrack(b,meta,duration)-rankTrack(a,meta,duration));
   }
   function setLyricsFromLines(lines,source){
     if(!lines.length)return false;
     state.appleLines=lines.map((line,index)=>({...line,end:Number.isFinite(line.end)?line.end:(lines[index+1]?.time||line.time+3)}));
     state.lines=state.appleLines.map(line=>({text:line.text,time:line.time,endTime:line.end,words:Array.isArray(line.words)?line.words.map(word=>({text:word.text,time:word.time,endTime:word.endTime})):undefined}));
-    lyricsInput.value=state.appleLines.map(line=>{
-      const mins=Math.floor(line.time/60),secs=line.time-mins*60;
-      return '['+String(mins).padStart(2,'0')+':'+secs.toFixed(3).padStart(6,'0').replace(/0+$/,'').replace(/\.$/,'')+'] '+line.text;
-    }).join('\n');
+    lyricsInput.value=state.appleLines.map(line=>fmtLrc(line.time)+' '+line.text).join('\n');
+    clearManualNotice();
     previewStage.classList.remove('is-empty');
     const status=document.getElementById('kefeLyricsStatus');
     if(status)status.textContent=source;
@@ -663,7 +693,7 @@
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     const duration=Math.round(Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0);
     const status=document.getElementById('kefeLyricsStatus');
-    if(!title||!artist)return false;
+    if(!title||!artist){showManualNotice('Enter both the song title and artist so lyrics can be found.');return false;}
     const request=++lyricsRequest;
     let controller=new AbortController();
     let timeout=null;
@@ -733,12 +763,13 @@
     };
 
     const tryBetterLyrics=async()=>{
-      let response=await fetch('https://api.betterlyrics.org/getLyrics?'+new URLSearchParams({s:title,a:artist,al:album,d:String(duration)}),acceptJson);
+      const bl=()=>new URLSearchParams({s:title,a:artist,...(album?{al:album}:{}),...(duration?{d:String(duration)}:{})});
+      let response=await fetch('https://api.betterlyrics.org/getLyrics?'+bl(),acceptJson);
       if(response.ok){
         const payload=await response.json();
         if(tryLines(parseAppleTTML(String(payload?.ttml||''))))return true;
       }
-      response=await fetch('https://api.betterlyrics.org/kugou/getLyrics?'+new URLSearchParams({s:title,a:artist,al:album,d:String(duration)}),acceptJson);
+      response=await fetch('https://api.betterlyrics.org/kugou/getLyrics?'+bl(),acceptJson);
       if(response.ok){
         const payload=await response.json();
         if(tryLines(parseAppleLrc(String(payload?.lyrics||''))))return true;
@@ -747,29 +778,37 @@
     };
 
     const tryLrclib=async()=>{
-      const response=await fetch('https://lrclib.net/api/get?'+new URLSearchParams({track_name:title,artist_name:artist,album_name:album,duration:String(duration)}),acceptJson);
+      const response=await fetch('https://lrclib.net/api/get?'+new URLSearchParams({track_name:title,artist_name:artist,...(album?{album_name:album}:{}),...(duration?{duration:String(duration)}:{})}),acceptJson);
       if(!response.ok)return false;
       const payload=await response.json();
       return tryLines(parseAppleLrc(String(payload?.syncedLyrics||'')));
     };
-
-    const tryLrclibSearch=async()=>{
-      const response=await fetch('https://lrclib.net/api/search?'+new URLSearchParams({track_name:title,artist_name:artist}),acceptJson);
+    const pickLrclib=async query=>{
+      const response=await fetch('https://lrclib.net/api/search?'+new URLSearchParams(query),acceptJson);
       if(!response.ok)return false;
-      const list=(await response.json()).filter(item=>item&&item.syncedLyrics);
+      const wantArtist=normalizeSearchText(artist),wantTitle=coreTitle(title);
+      let list=(await response.json()).filter(item=>{
+        if(!item||!item.syncedLyrics)return false;
+        const a=normalizeSearchText(item.artistName),t=coreTitle(item.trackName);
+        return a&&wantArtist&&(a.includes(wantArtist)||wantArtist.includes(a))&&t&&wantTitle&&(t===wantTitle||t.includes(wantTitle)||wantTitle.includes(t));
+      });
+      if(duration)list=list.filter(item=>Math.abs((item.duration||0)-duration)<=8);
       if(!list.length)return false;
       if(duration)list.sort((a,b)=>Math.abs((a.duration||0)-duration)-Math.abs((b.duration||0)-duration));
       return tryLines(parseAppleLrc(String(list[0].syncedLyrics)));
     };
+    const tryLrclibSearch=()=>pickLrclib({track_name:title,artist_name:artist});
+    const tryLrclibQuery=()=>pickLrclib({q:title+' '+artist});
 
     try{
       if(status)status.textContent='Finding synchronized lyrics…';
       if(await attempt('lrclib',tryLrclib))return true;
       if(await attempt('lrclib-search',tryLrclibSearch))return true;
+      if(await attempt('lrclib-query',tryLrclibQuery))return true;
       if(await attempt('lyricsplus',tryLyricsPlus))return true;
       if(await attempt('betterlyrics',tryBetterLyrics))return true;
       if(await attempt('binimum',tryBini))return true;
-      if(status)status.textContent='No synchronized lyrics found for this track.';
+      showLyricsMissing();
       return false;
     }catch(error){
       if(request===lyricsRequest&&status)status.textContent=error?.name==='AbortError'?'Lyrics search timed out.':'Could not fetch synchronized lyrics.';
@@ -779,9 +818,35 @@
       clearTimeout(timeout);
     }
   }
+  function showManualNotice(text){
+    let n=document.getElementById('kefeManualNotice');
+    if(!n){
+      n=document.createElement('div');
+      n.id='kefeManualNotice';n.setAttribute('role','status');
+      n.style.cssText='margin:0 0 12px;padding:10px 12px;border-radius:10px;background:rgba(239,63,56,.14);border:1px solid rgba(239,63,56,.45);font-size:13px;line-height:1.4';
+      const anchor=songTitle.closest('label,.kefe-field,.kefe-row,div')||songTitle;
+      anchor.parentNode.insertBefore(n,anchor);
+    }
+    n.textContent=text;n.hidden=false;
+  }
+  function clearManualNotice(){const n=document.getElementById('kefeManualNotice');if(n)n.hidden=true;}
+  function setLyricsStatus(text){const el=document.getElementById('kefeLyricsStatus');if(el)el.textContent=text;}
+  function promptManualDetails(matches){
+    const list=Array.isArray(matches)?matches:[];
+    const msg=list.length
+      ?'Couldn’t confirm this song automatically. Pick the correct match below, or edit the title and artist.'
+      :'Couldn’t identify this song automatically. Enter the title and artist below, then pick the correct match.';
+    showManualNotice(msg);setLyricsStatus(msg);
+    openEditorPanel('media');
+    renderSongSuggestions(list,{excludeCurrent:false});
+    try{songTitle.focus();}catch(_){}
+  }
+  function showLyricsMissing(){
+    setLyricsStatus('No synchronized lyrics found for this track. Check the song details, or upload an .lrc file in the Lyrics section.');
+    openEditorPanel('lyrics');
+  }
   async function identifyAndLoadTrack(file){
     const uploadId=mediaObjectUrl;
-    const status=document.getElementById('kefeLyricsStatus');
     try{
       const embedded=await readEmbeddedMetadata(file);
       const named=filenameMetadata(file);
@@ -791,35 +856,104 @@
       songAlbum.value=meta.album;
       songYear.value=meta.year;
       updateMediaTrack();updateTitleCard();
-      if(status)status.textContent='Identifying track…';
+      setLyricsStatus('Identifying track…');
+      const duration=Number(audio.duration)||0;
       let matches=[];
-      try{
-        matches=await fetchItunesMatches(meta,Number(audio.duration)||0);
-      }catch(error){
-        console.warn('[KEFE iTunes identification]',error);
-      }
+      try{matches=await fetchItunesMatches(meta,duration);}
+      catch(error){console.warn('[KEFE iTunes identification]',error);}
       if(mediaObjectUrl!==uploadId)return;
       const best=matches[0];
-      if(best&&rankTrack(best,meta,Number(audio.duration)||0)>=70){
+      if(best&&isConfidentMatch(best,meta,duration)){
         applyIdentifiedTrack(best);
-        renderSongSuggestions(matches.slice(0,5).map(item=>({...item})));
-        if(status)status.textContent='Track identified. Finding lyrics…';
+        renderSongSuggestions(matches.slice(0,5),{excludeCurrent:true});
+        setLyricsStatus('Track identified. Finding lyrics…');
         await loadAutomaticLyrics();
-      }else if(songTitle.value.trim()&&songArtist.value.trim()){
-        renderSongSuggestions(matches.slice(0,5).map(item=>({...item})));
-        if(status)status.textContent='Using embedded song details. Finding lyrics…';
-        await loadAutomaticLyrics();
+      }else if(meta.title&&meta.artist){
+        renderSongSuggestions(matches.slice(0,5),{excludeCurrent:false});
+        setLyricsStatus('Using embedded song details. Finding lyrics…');
+        const found=await loadAutomaticLyrics();
+        if(!found&&mediaObjectUrl===uploadId)promptManualDetails(matches);
       }else{
-        renderSongSuggestions(matches.slice(0,5).map(item=>({...item})));
-        if(status)status.textContent='Track not identified automatically. Check the song details.';
+        promptManualDetails(matches);
       }
     }catch(error){
       console.warn('[KEFE track identification]',error);
-      if(status)status.textContent='Track identification failed. Check the song details.';
+      if(mediaObjectUrl===uploadId)promptManualDetails([]);
     }
   }
-  songTitle.addEventListener('input',()=>updateTitleCard());
-  songArtist.addEventListener('input',()=>updateTitleCard());
+  let manualSearchTimer=null,manualSearchSeq=0;
+  function scheduleManualSearch(){
+    clearTimeout(manualSearchTimer);
+    if(songTitle.value.trim().length<2)return;
+    manualSearchTimer=setTimeout(runManualSearch,450);
+  }
+  async function runManualSearch(){
+    const seq=++manualSearchSeq;
+    const meta={title:songTitle.value.trim(),artist:songArtist.value.trim()};
+    if(!meta.title)return;
+    try{
+      const matches=await fetchItunesMatches(meta,Number(audio.duration)||0);
+      if(seq!==manualSearchSeq)return;
+      renderSongSuggestions(matches.slice(0,5),{excludeCurrent:false});
+      setLyricsStatus(matches.length?'Pick the correct song from the suggestions.':'No matches found. Check the spelling or add the artist.');
+    }catch(error){
+      if(seq!==manualSearchSeq)return;
+      console.warn('[KEFE manual search]',error);
+      setLyricsStatus('Song search failed. Check your connection and try again.');
+    }
+  }
+  async function handleLrcFile(file){
+    try{
+      const text=String(await file.text()).replace(/^﻿/,'').trim();
+      const lines=text.startsWith('<')?parseAppleTTML(text):parseLrcText(text);
+      if(!lines.length){
+        setLyricsStatus('No timed lyrics found in '+file.name+'. Expected lines like [01:23.45] text.');
+        openEditorPanel('lyrics');
+        return false;
+      }
+      lyricsRequest++;
+      return setLyricsFromLines(lines,'Loaded lyrics from '+file.name+'.');
+    }catch(error){
+      console.warn('[KEFE LRC upload]',error);
+      setLyricsStatus('Could not read that lyrics file.');
+      return false;
+    }
+  }
+  function ensureLyricsTools(){
+    if(document.getElementById('kefeLyricsTools')||!lyricsInput.parentNode)return;
+    const bar=document.createElement('div');
+    bar.id='kefeLyricsTools';
+    bar.style.cssText='display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px';
+    const btnStyle='padding:8px 12px;border-radius:999px;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer;font:inherit;font-size:13px';
+    const find=document.createElement('button');
+    find.type='button';find.id='kefeFindLyrics';find.textContent='Find lyrics';find.style.cssText=btnStyle;
+    const upload=document.createElement('button');
+    upload.type='button';upload.id='kefeUploadLrc';upload.textContent='Upload .lrc';upload.style.cssText=btnStyle;
+    const input=document.createElement('input');
+    input.type='file';input.id='kefeLrcInput';input.accept='.lrc,.ttml,.xml,.txt,text/plain';input.hidden=true;
+    bar.append(find,upload,input);
+    if(!document.getElementById('kefeLyricsStatus')){
+      const st=document.createElement('span');
+      st.id='kefeLyricsStatus';st.style.cssText='font-size:13px;opacity:.8';
+      bar.appendChild(st);
+    }
+    lyricsInput.parentNode.insertBefore(bar,lyricsInput);
+    find.addEventListener('click',()=>{
+      if(!songTitle.value.trim()||!songArtist.value.trim()){
+        promptManualDetails([]);
+        return;
+      }
+      loadAutomaticLyrics();
+    });
+    upload.addEventListener('click',()=>input.click());
+    input.addEventListener('change',()=>{
+      const file=input.files?.[0];
+      input.value='';
+      if(file)handleLrcFile(file);
+    });
+  }
+  songTitle.addEventListener('input',()=>{updateTitleCard();scheduleManualSearch();});
+  songArtist.addEventListener('input',()=>{updateTitleCard();scheduleManualSearch();});
   songAlbum.addEventListener('input',()=>updateTitleCard());
   songYear.addEventListener('input',()=>updateTitleCard());
   lyricsInput.addEventListener('input',parseLyrics);
@@ -834,11 +968,12 @@
   }
   mediaInput.addEventListener('change',e=>{
     const file=e.target.files?.[0];if(!file)return;
+    if(/\.(lrc|ttml|xml|txt)$/i.test(file.name)||file.type==='text/plain'){handleLrcFile(file);e.target.value='';return;}
     if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
     mediaObjectUrl=URL.createObjectURL(file);
     songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
     songArtist.value='';songAlbum.value='';songYear.value='';
-    state.appleLines=[];state.lines=[];lyricsInput.value='';
+    state.appleLines=[];state.lines=[];lyricsInput.value='';clearManualNotice();
     delete songAlbum.dataset.artUrl;delete songAlbum.dataset.trackDuration;delete songAlbum.dataset.platformId;
     const status=document.getElementById('kefeLyricsStatus');if(status)status.textContent='Reading track information…';
     const uploadName=document.querySelector('.kefe-upload-name');if(uploadName)uploadName.textContent=file.name;
@@ -1158,7 +1293,7 @@
     if (input) {
       input.addEventListener('change', function(ev){
         var file = ev.target.files && ev.target.files[0];
-        if (!file) return;
+        if (!file || /\.(lrc|ttml|xml|txt)$/i.test(file.name)) return;
         var reader = new FileReader();
         reader.onload = function(){
           computePeaks(reader.result, function(p){ peaks = p || placeholder(); });
@@ -1169,7 +1304,7 @@
     window.addEventListener('resize', function(){ lastW = 0; lastH = 0; });
   })();
 
-  parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();
+  parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();ensureLyricsTools();
   syncAppleLyricsMetadata();
   syncAppleLyrics(true);
 })();
