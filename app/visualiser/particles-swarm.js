@@ -879,7 +879,7 @@ const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x000000, 0.01);
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
 camera.position.set(0, 0, 100);
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
 renderer.setClearColor(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#F1ECE5', 1);
 renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -977,7 +977,9 @@ function animate() {
   composer.render();
 }
 
+let exportLock = false, savedPixelRatio = 1;
 function resize() {
+  if (exportLock) return;
   const w = canvas.clientWidth, h = canvas.clientHeight;
   if (!w || !h) return;
   renderer.setSize(w, h, false);
@@ -985,6 +987,20 @@ function resize() {
   camera.updateProjectionMatrix();
   composer.setSize(w, h);
 }
+window.kefeVisualiserExport = {
+  begin(w, h) {
+    exportLock = true;
+    savedPixelRatio = renderer.getPixelRatio();
+    renderer.setPixelRatio(1); composer.setPixelRatio(1);
+    renderer.setSize(w, h, false); composer.setSize(w, h);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  },
+  end() {
+    exportLock = false;
+    renderer.setPixelRatio(savedPixelRatio); composer.setPixelRatio(savedPixelRatio);
+    resize();
+  }
+};
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 200));
 
