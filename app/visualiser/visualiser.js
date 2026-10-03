@@ -297,8 +297,7 @@ target.set(
 const bandRaw = Math.sin(planetY * bandContrast * 0.3 + time * 0.2) + Math.sin(planetY * bandContrast * 0.7 - time * 0.15) * 0.5;
 const band = (bandRaw + 1.5) / 3;
 const bandLayer = Math.floor(band * 6);
-const swirl = Math.sin(theta * 3 + planetY * 0.4 + time * 0.3) * 0.06;
-const jewelHues = [0.58, 0.75, 0.5, 0.08, 0.85, 0.13];
+const swirl = Math.sin(theta * 3 + planetY * 0.4 + time * 0.3) * 0.06;const jewelHues = [0.58, 0.75, 0.5, 0.08, 0.85, 0.13];
 const hueIndex = ((bandLayer % 6) + 6) % 6;
 const planetHue = jewelHues[hueIndex] + swirl;
 const ringGapVisible = ringGapPulse > 0.15 ? 1 : 0.3;
@@ -597,8 +596,7 @@ let finalSat = 1.0 * (1.0 - lockWeight) + 0.9 * lockWeight;
 let finalLit = 0.5 * (1.0 - lockWeight) + baseLit * lockWeight;
 finalLit += scanGlow * 0.5;
 finalSat -= scanGlow * 0.3;
-color.setHSL(finalHue, finalSat, finalLit);`
-  },
+color.setHSL(finalHue, finalSat, finalLit);`  },
   {
     key:'butterfly', name:'Butterfly in a Garden', desc:'Scattered particles bloom into a butterfly surrounded by flowers, then dissolve again.',
     keywords:['butterfly','garden','flower','bloom','scatter','nature'],
@@ -896,8 +894,7 @@ color.setHSL(hue, 0.9, light);`
 /* ============================================================
    LIVE PREVIEW
    ============================================================ */
-const canvas = document.getElementById('kefeVisualiserCanvas');
-const stage = canvas?.closest('.kefe-stage');
+const canvas = document.getElementById('kefeVisualiserCanvas');const stage = canvas?.closest('.kefe-stage');
 if (!canvas) throw new Error('KEFE visualiser canvas is missing from the preview stage.');
 canvas.style.visibility = 'visible';
 const scene = new THREE.Scene();
@@ -915,7 +912,7 @@ try {
   console.error('[KEFE visualiser renderer]', error);
   throw error;
 }
-const initialSpin = window.kefeSettings ? !!window.kefeSettings.get('autoSpin') : true;
+const initialSpin = true;
 
 const dummy = new THREE.Object3D();
 const color = new THREE.Color();
@@ -927,7 +924,7 @@ const material = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: tr
 let instancedMesh = null;
 let positions = null;
 window.kefeParticleVisualiserActive = true;
-const initialCount = Math.max(1000, Math.min(20000, Number(window.kefeSettings?.get('particleCount')) || 8000));
+const initialCount = 8000;
 let currentCount = initialCount;
 
 const state = {
