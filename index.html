@@ -13,6 +13,19 @@
 <script src="./app/effects/core.js"></script>
 <script src="./app/settings.js"></script>
 
+<!--
+  Import map for ES modules. It MUST appear before any <script type="module">,
+  so it lives in <head> to avoid ordering problems.
+-->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
 <link rel="stylesheet" href="./app/ui/styles.css">
 </head>
 <body><script src="./app/ui/structure.js"></script>
@@ -43,14 +56,13 @@
 <script src="./app/effects/lyric-shiny-text.js"></script>
 <script src="./app/effects/lyric-decrypt-text.js"></script>
 <script src="./app/editor.js"></script>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
+
+<!--
+  The particles visualiser is an ES module (it uses `import`), so it MUST be
+  loaded with type="module". Without this the `import` statements throw a
+  syntax error, the module never executes, and `window.kefeParticleVisualiserActive`
+  is never set — which is why the swarm wasn't showing in the preview.
+-->
 <script type="module" src="./app/visualiser/particles-swarm.js"></script>
 </body>
 </html>
