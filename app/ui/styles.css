@@ -414,7 +414,6 @@ button{border:0;cursor:pointer}
 
 /* Particles Swarm visualiser integration */
 .kefe-stage{position:relative;overflow:hidden}
-.kefe-stage::before{content:"";position:absolute;inset:0;z-index:0;background:var(--bg);border-radius:inherit;pointer-events:none}
 #kefeVisualiserCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;pointer-events:auto}
 .kefe-stage.is-empty:not(.kefe-visualiser-active) #kefeVisualiserCanvas{visibility:hidden;pointer-events:none}
 #kefeCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
