@@ -940,11 +940,12 @@ const state = {
 function rebuild(count) {
   if (instancedMesh) {
     scene.remove(instancedMesh);
-    instancedMesh.geometry = geometry;
-    instancedMesh.material = material;
   }
   currentCount = count;
   instancedMesh = new THREE.InstancedMesh(geometry, material, count);
+  // Particle positions are recalculated every frame, so the initial bounding
+  // sphere cannot safely be used for frustum culling.
+  instancedMesh.frustumCulled = false;
   instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(instancedMesh);
   positions = new Array(count);
@@ -983,7 +984,6 @@ const addControlLive = (id, label, min, max, def) => {
 
 const clock = new THREE.Clock();
 function animate() {
-  requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
   state.time += dt * state.speed;
   const time = state.time;
@@ -1014,6 +1014,7 @@ function animate() {
     instancedMesh.instanceColor.needsUpdate = true;
   }
   renderer.render(scene, camera);
+  requestAnimationFrame(animate);
 }
 
 let exportLock = false, savedPixelRatio = 1;
