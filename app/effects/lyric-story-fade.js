@@ -54,12 +54,12 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
     const line = String(active.line.text || '').trim();
 
     // ---- Font sizing: fit the whole line to width ----
-    let size = Math.max(34, Math.min(150, Number(style.fontSize) || 78));
+    const lay = u.layoutText(ctx, line, {
+      setFont: (c, s) => setMotionFont(c, family, s), size: Math.min(150, Number(style.fontSize) || 78),
+      minSize: 20, maxWidth: w * 0.84, maxHeight: h * 0.7, tracking, lineHeight: 1.24, maxLines: 4
+    });
+    let size = lay.size;
     setMotionFont(ctx, family, size);
-    while (size > 34 && trackedWidth(ctx, line, tracking * size) > w * 0.86) {
-      size -= 2;
-      setMotionFont(ctx, family, size);
-    }
     const trackingPx = tracking * size;
 
     // ---- Lay out words on ONE row, evenly spaced ----
@@ -112,6 +112,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
     ctx.globalCompositeOperation = 'source-over';
     ctx.filter = 'none';
 
+    let wordCursor = 0;
     for (let r = 0; r < rows.length; r++) {
       const row = rows[r];
       const y = topRow + r * rowHeight;
@@ -119,7 +120,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
       let x = rowLeft;
 
       for (const word of row.words) {
-        const delay = perWordDelay * (r * 1000 + row.words.indexOf(word)); // sequential across rows
+        const delay = perWordDelay * (wordCursor++); // sequential across rows
         const elapsed = time - start - delay;
         let p = elapsed / fadeDur;
         if (p < 0) p = 0;
@@ -153,7 +154,8 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
     drop:{label:'Drop — controlled downward arrival with a subtle weighty settle',tracking:-.006,distance:.70,direction:'down',rotation:0,overshoot:.024,ghost:.045},
     drift:{label:'Drift — gentle diagonal float with barely-there rotation',tracking:-.006,distance:.66,direction:'diagonal',rotation:.020,overshoot:.010,ghost:.075}
   };
-  function motionLine(ctx,w,h,style,active,time,mode){const line=String(active?.line?.text||'').trim();if(!line)return;const meta=MOTION[mode],family=u.contract(mode).family || getFont(style.kefeMotionFont).value,tracking=Number(meta?.tracking??-.006)||0,requested=Math.max(34,Math.min(150,Number(style.fontSize)||76)),prepared=fitMotionText(ctx,line,requested,tracking,w*.88,family),size=prepared.size,trackingPx=tracking*size,start=Number(active.line.time)||0,end=Math.max(start+.35,Number(active.line.endTime)||start+3),duration=end-start,enterDuration=Math.min(.46,Math.max(.20,duration*.19)),exitDuration=Math.min(.34,Math.max(.18,duration*.14)),enter=smoother((time-start)/enterDuration),exit=smoother((end-time)/exitDuration),opacity=enter*exit,settle=smoother((time-start-enterDuration*.48)/Math.max(.16,enterDuration*.68)),anticipation=1-smoother((time-start)/Math.max(.08,enterDuration*.22)),distance=Math.min(w*.20,size*meta.distance);let dx=0,dy=0,rotation=0;if(meta.direction==='up')dy=(1-enter)*distance-anticipation*size*.035;else if(meta.direction==='left')dx=(1-enter)*distance-anticipation*size*.035;else if(meta.direction==='down')dy=-(1-enter)*distance+anticipation*size*.035;else{dx=(1-enter)*distance*.72-anticipation*size*.025;dy=(1-enter)*distance*.28-anticipation*size*.018;rotation=(1-enter)*meta.rotation;}const settleWave=Math.sin(clamp((time-start)/Math.max(.01,enterDuration))*Math.PI)*(1-enter)*meta.overshoot*size;if(meta.direction==='up')dy-=settleWave;else if(meta.direction==='down')dy+=settleWave;else dx-=settleWave*(meta.direction==='left'?1:.55);const scale=.985+.015*settle,colour=style.textColor||'#FFFFFF',accent=style.accentColor||colour,glow=size*(.010+.014*settle);ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.globalCompositeOperation='source-over';ctx.filter='none';setMotionFont(ctx,family,size);if(meta.ghost>0&&enter<.92&&opacity>.01){ctx.save();ctx.globalAlpha=opacity*meta.ghost*(1-enter);ctx.fillStyle=accent;ctx.shadowColor=accent;ctx.shadowBlur = 0;ctx.translate(w/2+dx*.35,h*.76+dy*.35);ctx.rotate(rotation*.35);ctx.scale(scale,scale);u.drawTrackedText(ctx,line,0,0,trackingPx,'fillText');ctx.restore();}ctx.globalAlpha=opacity;ctx.fillStyle=colour;ctx.shadowColor=accent;ctx.shadowBlur = 0;ctx.translate(w/2+dx,h*.76+dy);ctx.rotate(rotation);ctx.scale(scale,scale);u.drawTrackedText(ctx,line,0,0,trackingPx,'fillText');ctx.restore();}
+  function drawBlock(ctx,lay,trackingPx){const n=lay.lines.length;lay.lines.forEach((t,i)=>u.drawTrackedText(ctx,t,0,(i-(n-1)/2)*lay.lineH,trackingPx,'fillText'));}
+  function motionLine(ctx,w,h,style,active,time,mode){const line=String(active?.line?.text||'').trim();if(!line)return;const meta=MOTION[mode],family=u.contract(mode).family || getFont(style.kefeMotionFont).value,tracking=Number(meta?.tracking??-.006)||0,requested=Math.max(34,Math.min(150,Number(style.fontSize)||76)),lay=u.layoutText(ctx,line,{setFont:(c,s)=>setMotionFont(c,family,s),size:requested,minSize:20,maxWidth:w*.86,maxHeight:h*.5,tracking,lineHeight:1.2,maxLines:4}),size=lay.size,cy=Math.min(h-lay.blockH/2-h*.04,Math.max(lay.blockH/2+h*.04,h*.76)),trackingPx=tracking*size,start=Number(active.line.time)||0,end=Math.max(start+.35,Number(active.line.endTime)||start+3),duration=end-start,enterDuration=Math.min(.46,Math.max(.20,duration*.19)),exitDuration=Math.min(.34,Math.max(.18,duration*.14)),enter=smoother((time-start)/enterDuration),exit=smoother((end-time)/exitDuration),opacity=enter*exit,settle=smoother((time-start-enterDuration*.48)/Math.max(.16,enterDuration*.68)),anticipation=1-smoother((time-start)/Math.max(.08,enterDuration*.22)),distance=Math.min(w*.20,size*meta.distance);let dx=0,dy=0,rotation=0;if(meta.direction==='up')dy=(1-enter)*distance-anticipation*size*.035;else if(meta.direction==='left')dx=(1-enter)*distance-anticipation*size*.035;else if(meta.direction==='down')dy=-(1-enter)*distance+anticipation*size*.035;else{dx=(1-enter)*distance*.72-anticipation*size*.025;dy=(1-enter)*distance*.28-anticipation*size*.018;rotation=(1-enter)*meta.rotation;}const settleWave=Math.sin(clamp((time-start)/Math.max(.01,enterDuration))*Math.PI)*(1-enter)*meta.overshoot*size;if(meta.direction==='up')dy-=settleWave;else if(meta.direction==='down')dy+=settleWave;else dx-=settleWave*(meta.direction==='left'?1:.55);const scale=.985+.015*settle,colour=style.textColor||'#FFFFFF',accent=style.accentColor||colour,glow=size*(.010+.014*settle);ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.globalCompositeOperation='source-over';ctx.filter='none';setMotionFont(ctx,family,size);if(meta.ghost>0&&enter<.92&&opacity>.01){ctx.save();ctx.globalAlpha=opacity*meta.ghost*(1-enter);ctx.fillStyle=accent;ctx.shadowColor=accent;ctx.shadowBlur = 0;ctx.translate(w/2+dx*.35,cy+dy*.35);ctx.rotate(rotation*.35);ctx.scale(scale,scale);drawBlock(ctx,lay,trackingPx);ctx.restore();}ctx.globalAlpha=opacity;ctx.fillStyle=colour;ctx.shadowColor=accent;ctx.shadowBlur = 0;ctx.translate(w/2+dx,cy+dy);ctx.rotate(rotation);ctx.scale(scale,scale);drawBlock(ctx,lay,trackingPx);ctx.restore();}
   function __makeMotionRenderer(name) {
     return function(ctx, w, h, style, lines, time) {
       const active = u.activeLine(lines, time);

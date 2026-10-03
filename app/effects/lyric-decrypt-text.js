@@ -47,7 +47,9 @@
     const scrambleDuration = clamp(Math.min(0.9, (end - start) * 0.5), 0, 1) || 0.55;
     const elapsed = time - start;
 
-    const prepared = fit(ctx, text, style.fontSize, w * 0.8);
+    const setF = u.contractFontSetter('decrypt');
+    const lay = u.layoutText(ctx, text, { setFont: setF, size: Math.min(140, Number(style.fontSize) || 72), minSize: 18, maxWidth: w * 0.84, maxHeight: h * 0.8, lineHeight: u.contract('decrypt').lineHeight || 1.1, maxLines: 6 });
+    const prepared = { size: lay.size, rows: lay.lines };
     const size = prepared.size;
     const rowHeight = size * (u.contract('decrypt').lineHeight || 1.1);
     const totalHeight = prepared.rows.length * rowHeight;
@@ -58,7 +60,7 @@
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    u.setContractFont(ctx, 'decrypt', size);
+    setF(ctx, size);
 
     let globalCharIndex = 0;
     for (let rowIndex = 0; rowIndex < prepared.rows.length; rowIndex++) {

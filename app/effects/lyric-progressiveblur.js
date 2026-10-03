@@ -18,9 +18,9 @@
   }
 
   function fitFont(ctx, text, requested, maxWidth, family, weight) {
-    let size = Math.max(24, Math.min(180, Number(requested) || 72));
+    let size = Math.max(12, Math.min(180, Number(requested) || 72));
     ctx.font = `${weight} ${size}px "${family}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-    while (size > 24 && textWidth(ctx, text) > maxWidth) {
+    while (size > 12 && textWidth(ctx, text) > maxWidth) {
       size -= 1;
       ctx.font = `${weight} ${size}px "${family}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
     }
@@ -74,8 +74,7 @@
     const inactive = style.inactiveColor || 'rgba(255,255,255,.62)';
     const centerY = h * 0.52;
     const gap = Math.max(24, Math.min(w * 0.055, requested * 0.42));
-    const velocity = Math.max(22, Math.min(90, w * 0.075));
-    const sideFade = Math.max(110, Math.min(w * 0.22, 200));
+        const sideFade = Math.max(110, Math.min(w * 0.22, 200));
     const maxTextWidth = w * 0.72;
 
     ctx.save();
@@ -109,10 +108,10 @@
       prepared.push({ line, offset, isActive, size, width });
     }
 
-    const cycleWidth = prepared.reduce((sum, item) => sum + item.width + gap, 0);
-    const activeWidth = prepared.find(item => item.isActive)?.width || 0;
-    const baseShift = (time * velocity) % Math.max(1, cycleWidth);
-    const activeNudge = (activeProgress - 0.5) * Math.min(18, w * 0.018);
+    const activeItemIndex = prepared.findIndex(item => item.isActive);
+    const activeWidth = prepared[activeItemIndex]?.width || 0;
+    const leftOfActive = prepared.slice(0, activeItemIndex).reduce((sum, item) => sum + item.width + gap, 0);
+    const drift = (activeProgress - 0.5) * Math.min(48, w * 0.05);
 
     const drawSlider = (filter, clipX, clipW) => {
       ctx.save();
@@ -121,21 +120,19 @@
       ctx.rect(clipX, 0, clipW, h);
       ctx.clip();
 
-      let x = w / 2 - activeWidth / 2 - baseShift + activeNudge;
-      for (let pass = 0; pass < 3; pass++) {
+      let x = w / 2 - activeWidth / 2 - leftOfActive + drift;
+      for (let pass = 0; pass < 1; pass++) {
         for (const item of prepared) {
           const y = centerY;
           const alpha = item.isActive
             ? activeOpacity
-            : 0.18 + 0.10 * Math.max(0, 1 - Math.abs(item.offset) / (visibleRadius + 1));
+            : 0.34 * Math.max(0.25, 1 - Math.abs(item.offset) / (visibleRadius + 1));
           const fill = item.isActive ? colour : inactive;
 
           ctx.font = `${weight} ${item.size}px "${family}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
           drawText(ctx, item.line.text, x, y, 'left', alpha, fill);
           x += item.width + gap;
         }
-        if (cycleWidth <= 0) break;
-        x += cycleWidth;
       }
       ctx.restore();
     };

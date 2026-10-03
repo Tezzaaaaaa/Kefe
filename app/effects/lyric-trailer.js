@@ -9,12 +9,12 @@
   function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
   function overshoot(v){ var t=clamp(v); if(t>=1) return 1; var c=1.7; return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2); }
 
-  function heavyFont(ctx,size){ const c=window.KEFE_TYPE?.effects?.trailer || {}; ctx.font=`${c.weight || 400} ${Math.max(18,size)}px "${c.family || 'Monoton'}",system-ui,sans-serif`; }
+  function heavyFont(ctx,size){ const c=window.KEFE_TYPE?.effects?.trailer || {}; ctx.font=`${c.weight || 400} ${Math.max(12,size)}px "${c.family || 'Monoton'}",system-ui,sans-serif`; }
   function leadFont(ctx,size){ const c=window.KEFE_TYPE?.effects?.trailer || {}; ctx.font=`${Math.min(c.weight || 400,600)} ${Math.max(14,size)}px "${c.family || 'Monoton'}",system-ui,sans-serif`; }
   function fitHeavy(ctx,text,startSize,maxWidth){
     var size=startSize;
     heavyFont(ctx,size);
-    while(size>28 && ctx.measureText(text.toUpperCase()).width>maxWidth){ size-=2; heavyFont(ctx,size); }
+    while(size>14 && ctx.measureText(text.toUpperCase()).width>maxWidth){ size-=2; heavyFont(ctx,size); }
     return size;
   }
 
@@ -40,7 +40,7 @@
     var alpha=Math.min(fade,exit);
     if(alpha<=0) return;
 
-    var maxWidth=w*0.84;
+    var maxWidth=w*0.78;
     var punchSize=fitHeavy(ctx,punch,Math.max(46,Math.min(220,(Number(style.fontSize)*1.5)||150)),maxWidth);
     heavyFont(ctx,punchSize);
     var punchHeight=punchSize*1.02;
@@ -67,6 +67,7 @@
 
     if(hasLead){
       leadFont(ctx,leadSize);
+      while(leadSize>10 && ctx.measureText(lead).width+lead.length*leadSize*0.32>w*0.86){ leadSize-=1; leadFont(ctx,leadSize); }
       ctx.globalAlpha=alpha*0.92;
       ctx.fillStyle=style.textColor||'#F2F0E6';
       var leadY=top+leadSize;

@@ -108,10 +108,10 @@
 
     const userMax = Number(style.instagramFontSize ?? style.fontSize);
     const sizeCap = (Number.isFinite(userMax) && userMax > 0 ? userMax : 96) * 1.4;
-    const sizeFloor = 26;
+    const sizeFloor = 16;
 
     // Choose the font size for the whole line: the largest size at which
-    // the line still wraps into at most 3 rows within the column.
+    // the line still wraps into at most 6 rows within the column and frame height.
     let lo = sizeFloor;
     let hi = sizeCap;
     let chosenRows = null;
@@ -120,7 +120,7 @@
     for (let iter = 0; iter < 12; iter++) {
       const mid = (lo + hi) / 2;
       setFont(ctx, mid, 800);
-      const candidate = wrapWords(ctx, upperWords, usableW, 3);
+      const candidate = wrapWords(ctx, upperWords, usableW, 6);
       const spaceW = ctx.measureText(' ').width;
       const widest = candidate.reduce((max, row) => {
         let rowW = 0;
@@ -130,7 +130,7 @@
         }
         return Math.max(max, rowW);
       }, 0);
-      if (candidate.length <= 3 && widest <= usableW) {
+      if (candidate.length <= 6 && candidate.length * mid * 1.14 <= h * 0.8 && widest <= usableW) {
         lo = mid;
         chosenRows = candidate;
         chosenSize = mid;
@@ -141,7 +141,7 @@
 
     if (!chosenRows) {
       setFont(ctx, sizeFloor, 800);
-      chosenRows = wrapWords(ctx, upperWords, usableW, 3);
+      chosenRows = wrapWords(ctx, upperWords, usableW, 6);
       chosenSize = sizeFloor;
     }
 

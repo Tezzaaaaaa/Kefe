@@ -7,7 +7,7 @@
   if (!u) { console.error('[lyric-fancy] requires core.js'); return; }
   function clamp(v,a,b){ a=a==null?0:a; b=b==null?1:b; return Math.max(a,Math.min(b,Number(v)||0)); }
 
-  function font(ctx,size){ ctx.font='900 '+Math.max(18,size)+'px "Anton","Arial Black",system-ui,sans-serif'; }
+  function font(ctx,size){ ctx.font='900 '+Math.max(12,size)+'px "Anton","Arial Black",system-ui,sans-serif'; }
   function fit(ctx,text,requested,maxWidth){
     var size=Math.max(40,Math.min(220,Number(requested)||160));
     font(ctx,size);
@@ -20,12 +20,13 @@
     if(!active) return;
     var text=String(active.line.text||'').trim().toUpperCase();
     if(!text) return;
-    var size=fit(ctx,text,(style.fontSize||140)*1.15,w*0.9);
+    var lay=u.layoutText(ctx,text,{setFont:font,size:Math.min(220,(style.fontSize||140)*1.15),minSize:16,maxWidth:w*0.84,maxHeight:h*0.82,lineHeight:1.05,maxLines:5});
+    var size=lay.size;
     var lineProg=u.lineProgress(active.line,time);
     if(lineProg.opacity<=0.01) return;
     font(ctx,size);
     var textWidth=ctx.measureText(text).width;
-    var x=w/2, y=h*0.5;
+    var x=w/2, y0=h*0.5-(lay.lines.length-1)*lay.lineH/2;
     ctx.save();
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.globalAlpha=lineProg.opacity;
@@ -34,19 +35,21 @@
     var sepX=6+Math.sin(t*18)*3;
     var sepY=Math.cos(t*22)*1.6;
 
+    lay.lines.forEach(function(txt,li){ var y=y0+li*lay.lineH;
     ctx.save();
     ctx.globalCompositeOperation='lighter';
     // red ghost
     ctx.fillStyle='rgba(255,0,0,0.85)';
-    ctx.fillText(text, x-sepX+jitter, y+sepY);
+    ctx.fillText(txt, x-sepX+jitter, y+sepY);
     // cyan ghost
     ctx.fillStyle='rgba(0,255,255,0.85)';
-    ctx.fillText(text, x+sepX-jitter, y-sepY);
+    ctx.fillText(txt, x+sepX-jitter, y-sepY);
     ctx.restore();
 
     // main white text
     ctx.fillStyle=style.textColor||'#FFFFFF';
-    ctx.fillText(text, x+jitter*0.35, y-jitter*0.15);
+    ctx.fillText(txt, x+jitter*0.35, y-jitter*0.15);
+    });
     ctx.restore();
   };
 })();

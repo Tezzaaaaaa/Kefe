@@ -466,6 +466,11 @@
   const aspectSelect=document.getElementById('kefeAspect');
   aspectSelect?.addEventListener('change',()=>{
     previewAspectRatio=aspectSelect.value;
+    // Preview canvas follows the chosen aspect so effects lay out for it instead of being stretched.
+    if(!exporting){
+      const pd=previewAspectRatio==='9:16'?[720,1280]:previewAspectRatio==='1:1'?[720,720]:[1280,720];
+      canvas.width=pd[0];canvas.height=pd[1];
+    }
     previewStage?.classList.remove('is-16x9','is-9x16','is-1x1');
     previewStage?.classList.add('is-'+previewAspectRatio.replace(':','x'));
     fitPreviewStage();

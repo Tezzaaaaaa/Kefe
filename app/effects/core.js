@@ -67,6 +67,68 @@
       ctx.textAlign=previous;
     },
     fillTrackedText(ctx,text,x,y,trackingPx){this.drawTrackedText(ctx,text,x,y,trackingPx,'fillText');},
+    /* Wrap timed word objects ({text,...}) into rows that always fit. Returns {size,gap,rows:[{words,width}],lineH}.
+       o: {setFont(ctx,size),size,minSize,maxWidth,maxHeight,gapEm,lineHeight,maxLines,headroom} — headroom shrinks maxWidth
+       for effects that scale words up (spring/elastic overshoot). */
+    fitWordRows(ctx,words,o={}){
+      const set=o.setFont,gapEm=o.gapEm==null?.28:o.gapEm,lh=Number(o.lineHeight)||1.2,maxLines=o.maxLines||4;
+      const maxW=Math.max(40,(Number(o.maxWidth)||400)/(Number(o.headroom)||1)),maxH=Number(o.maxHeight)>0?Number(o.maxHeight):Infinity;
+      const minSize=Math.max(12,o.minSize||18);
+      const build=size=>{
+        set(ctx,size);const gap=size*gapEm,rows=[];let row=[],rw=0,tooWide=false;
+        for(const wd of words){
+          const ww=ctx.measureText(wd.text).width;if(ww>maxW)tooWide=true;
+          const proposed=row.length?rw+gap+ww:ww;
+          if(row.length&&proposed>maxW){rows.push({words:row,width:rw});row=[wd];rw=ww;}else{row.push(wd);rw=proposed;}
+        }
+        if(row.length)rows.push({words:row,width:rw});
+        return {rows,gap,tooWide};
+      };
+      let size=Math.max(minSize,Number(o.size)||76),r=build(size);
+      while((r.tooWide||r.rows.length>maxLines||r.rows.length*size*lh>maxH)&&size>minSize){
+        size=Math.max(minSize,size-Math.max(1,Math.round(size*.04)));r=build(size);
+      }
+      set(ctx,size);
+      return {size,gap:r.gap,rows:r.rows,lineH:size*lh};
+    },
+    /* Font setter for an effect's typography contract that does NOT clamp to contract min/max (lets long lines shrink to fit). */
+    contractFontSetter(name){const self=this;return (ctx,size)=>{const c=self.contract(name);self.setFont(ctx,c.family,size,c.weight);};},
+    /* Wrap + shrink text so it always fits a box. Returns {size,lines,lineH,blockH}.
+       o: {family,weight,setFont(ctx,size),size,minSize,maxWidth,maxHeight,tracking(em),lineHeight,maxLines,upper} */
+    layoutText(ctx,text,o={}){
+      const src=String(text||'').replace(/\s+/g,' ').trim(),str=o.upper?src.toUpperCase():src;
+      const set=o.setFont||((c,s)=>this.setFont(c,o.family||'Open Sans',s,o.weight||700));
+      const maxW=Math.max(40,Number(o.maxWidth)||400),maxH=Number(o.maxHeight)>0?Number(o.maxHeight):Infinity;
+      const lh=Number(o.lineHeight)||1.2,track=Number(o.tracking)||0,maxLines=o.maxLines||4,minSize=Math.max(12,o.minSize||20);
+      const words=str?str.split(' '):[];
+      const meas=(t,size)=>ctx.measureText(t).width+track*size*Math.max(0,Array.from(t).length-1);
+      const wrap=size=>{
+        set(ctx,size);const rows=[];let cur='',broken=false;
+        for(const word of words){
+          if(meas(word,size)>maxW)broken=true;
+          const test=cur?cur+' '+word:word;
+          if(cur&&meas(test,size)>maxW){rows.push(cur);cur=word;}else cur=test;
+        }
+        if(cur)rows.push(cur);
+        return {rows,broken};
+      };
+      let size=Math.max(minSize,Number(o.size)||76),res=wrap(size);
+      const fits=r=>!r.broken&&r.rows.length<=maxLines&&r.rows.length*size*lh<=maxH;
+      while(!fits(res)&&size>minSize){size=Math.max(minSize,size-Math.max(1,Math.round(size*.04)));res=wrap(size);}
+      let rows=res.rows;
+      if(res.broken||rows.length>maxLines){
+        // last resort: break over-long words by character
+        set(ctx,size);const out=[];let cur='';
+        for(const ch of Array.from(str)){
+          if(cur&&meas(cur+ch,size)>maxW){out.push(cur.trim());cur=ch===' '?'':ch;}else cur+=ch;
+        }
+        if(cur.trim())out.push(cur.trim());
+        rows=out;
+      }
+      set(ctx,size);
+      const lineH=size*lh;
+      return {size,lines:rows,lineH,blockH:rows.length*lineH,text:str};
+    },
     fitTextBinary(ctx,family,text,size,maxWidth,weight=700,minSize=24){
       let lo=minSize,hi=Math.max(minSize,Number(size)||76);
       for(let i=0;i<8;i++){const mid=(lo+hi)/2;this.setFont(ctx,family,mid,weight);if(ctx.measureText(text).width<=maxWidth)lo=mid;else hi=mid;}

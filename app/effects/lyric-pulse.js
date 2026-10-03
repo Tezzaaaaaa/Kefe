@@ -65,33 +65,46 @@ function drawPulseEffect(ctx, w, h, style, lines, time) {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     const contract = window.KEFE_TYPE?.effects?.pulse || {};
-    ctx.font = `${contract.weight || 400} ${fontSize}px "${contract.family || "AuraSerif"}",Arial,sans-serif`;
+    const U = window.kefeEffectUtils;
+    const face = `${contract.weight || 400}`, fam = contract.family || 'AuraSerif';
+    const setF = (c, sz) => { c.font = `${face} ${sz}px "${fam}",Arial,sans-serif`; };
+    const lay = U.layoutText(ctx, text, { setFont: setF, size: fontSize, minSize: 18, maxWidth: w * 0.86, maxHeight: h * 0.8, lineHeight: 1.12, maxLines: 6 });
+    const size = lay.size;
+    setF(ctx, size);
     const spaceW = ctx.measureText(' ').width;
-    const widths = perWord.map(w => ctx.measureText(w.text).width);
-    const totalW = widths.reduce((a, b) => a + b, 0) + spaceW * (perWord.length - 1);
-    const startX = (w - totalW) / 2;
-    const y = h * 0.46;
-    let cursorX = startX;
-    for (let i = 0; i < perWord.length; i++) {
-        const word = perWord[i];
-        const duration = Math.max(0.001, word.end - word.start);
-        const local = linaClamp((time - word.start) / duration);
-        const pulse = linaSmoother(Math.sin(local * Math.PI));
-        const scale = 1 + amplitude * 0.28 * pulse;
-        const glow = fontSize * 0.10 * glowSize * pulse;
-        const alpha = time < word.start ? 0.28 : time >= word.end ? 0.88 : 1.0;
-        const cx = cursorX + widths[i] / 2;
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = colour;
-        ctx.shadowColor = colour;
-        ctx.shadowBlur = glow;
-        ctx.translate(cx, y);
-        ctx.scale(scale, scale);
-        ctx.fillText(word.text, -widths[i] / 2, 0);
-        ctx.restore();
-        cursorX += widths[i] + spaceW;
-    }
+    // Map the timed words onto the wrapped rows, in order.
+    const rowsTokens = lay.lines.map(t => t.split(' ').filter(Boolean));
+    const flat = rowsTokens.reduce((n, r) => n + r.length, 0);
+    const rowsWords = [];
+    if (flat === perWord.length) { let k = 0; rowsTokens.forEach(r => { rowsWords.push(r.map(() => perWord[k++])); }); }
+    else rowsWords.push(perWord);
+    const rowH = lay.lineH, cy = h * 0.46;
+    rowsWords.forEach((rowWords, ri) => {
+        const widths = rowWords.map(wd => ctx.measureText(wd.text).width);
+        const totalW = widths.reduce((a, b) => a + b, 0) + spaceW * (rowWords.length - 1);
+        let cursorX = (w - totalW) / 2;
+        const y = cy + (ri - (rowsWords.length - 1) / 2) * rowH;
+        for (let i = 0; i < rowWords.length; i++) {
+            const word = rowWords[i];
+            const duration = Math.max(0.001, word.end - word.start);
+            const local = linaClamp((time - word.start) / duration);
+            const pulse = linaSmoother(Math.sin(local * Math.PI));
+            const scale = 1 + amplitude * 0.28 * pulse;
+            const glow = size * 0.10 * glowSize * pulse;
+            const alpha = time < word.start ? 0.28 : time >= word.end ? 0.88 : 1.0;
+            const cx = cursorX + widths[i] / 2;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = colour;
+            ctx.shadowColor = colour;
+            ctx.shadowBlur = glow;
+            ctx.translate(cx, y);
+            ctx.scale(scale, scale);
+            ctx.fillText(word.text, -widths[i] / 2, 0);
+            ctx.restore();
+            cursorX += widths[i] + spaceW;
+        }
+    });
     ctx.restore();
 }
 

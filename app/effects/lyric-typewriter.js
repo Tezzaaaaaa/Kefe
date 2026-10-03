@@ -57,9 +57,10 @@
 
     const contract = u.contract('typewriter');
     const tracking = Number(contract.tracking) || 0;
-    const prepared = fit(ctx, text, style.fontSize, tracking, w * 0.78);
-    const size = prepared.size;
-    const rows = prepared.rows;
+    const setF = u.contractFontSetter('typewriter');
+    const lay = u.layoutText(ctx, text, { setFont: setF, size: Math.min(140, Number(style.fontSize) || 76), minSize: 18, maxWidth: w * 0.84, maxHeight: h * 0.78, tracking, lineHeight: 1.18, maxLines: 6 });
+    const size = lay.size;
+    const rows = lay.lines.map(t => ({ text: t, width: trackedWidth(ctx, t, tracking * size) }));
     const trackingPx = tracking * size;
     const rowHeight = size * 1.18;
     const totalH = rows.length * rowHeight;
@@ -83,7 +84,7 @@
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = colour;
-    u.setContractFont(ctx, 'typewriter', size);
+    setF(ctx, size);
 
     let remaining = revealCount;
     let cursorPos = null;

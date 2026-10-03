@@ -60,7 +60,9 @@
     bctx.textAlign = 'left';
     bctx.textBaseline = 'middle';
 
-    const prepared = fit(bctx, text, style.fontSize, w * 0.8);
+    const setF = u.contractFontSetter('shiny');
+    const lay = u.layoutText(bctx, text, { setFont: setF, size: Math.min(150, Number(style.fontSize) || 78), minSize: 18, maxWidth: w * 0.84, maxHeight: h * 0.8, lineHeight: u.contract('shiny').lineHeight || 1.1, maxLines: 6 });
+    const prepared = { size: lay.size, rows: lay.lines };
     const size = prepared.size;
     const rowHeight = size * (u.contract('shiny').lineHeight || 1.1);
     const totalHeight = prepared.rows.length * rowHeight;
@@ -70,7 +72,7 @@
     const left = w / 2 - blockWidth / 2;
 
     bctx.fillStyle = style.textColor || '#FFFFFF';
-    u.setContractFont(bctx, 'shiny', size);
+    setF(bctx, size);
     prepared.rows.forEach((row, i) => bctx.fillText(row, left + (blockWidth - rowWidths[i]) / 2, top + i * rowHeight));
 
     // Sweep a bright diagonal band across the text on a loop, masked to

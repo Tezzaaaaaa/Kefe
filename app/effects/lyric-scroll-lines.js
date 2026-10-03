@@ -31,9 +31,9 @@
     const key = (text || '') + '|' + (requested || 0) + '|' + (tracking || 0) + '|' + (maxWidth | 0) + '|' + (family || '');
     const hit = __scrollFitCache.get(key);
     if (hit) return hit;
-    let size = Math.max(28, Math.min(150, Number(requested) || 76));
+    let size = Math.max(16, Math.min(150, Number(requested) || 76));
     setFont(ctx, family, size);
-    while (size > 28 && trackedWidth(ctx, text, tracking * size) > maxWidth) {
+    while (size > 16 && trackedWidth(ctx, text, tracking * size) > maxWidth) {
       size -= 1;
       setFont(ctx, family, size);
     }
@@ -107,6 +107,7 @@
       ctx.shadowColor = activeLine ? accent : 'transparent';
       ctx.shadowBlur = 0;
       setFont(ctx, family, item.size, 700);
+      ctx.textAlign = 'center'; // anchored at the translated centre, so rows are truly centred
       ctx.translate(x + item.width / 2, y);
       ctx.scale(scale, scale);
       drawTracked(ctx, item.text, 0, 0, tracking * item.size);

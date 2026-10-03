@@ -53,13 +53,18 @@ function drawAuroraEffect(ctx, w, h, style, lines, time) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const maxWidth = w * 0.84;
-    const size = fitCentredEffectText(ctx, text, style.fontSize, maxWidth, 500, '"Bricolage Grotesque"');
+    const U = window.kefeEffectUtils;
+    const lay = U.layoutText(ctx, text, {
+        setFont: (c, sz) => { c.font = `500 ${sz}px "Bricolage Grotesque",Arial,sans-serif`; },
+        size: Number(style.fontSize) || 76, minSize: 18, maxWidth, maxHeight: h * 0.8, lineHeight: 1.12, maxLines: 6
+    });
+    const size = lay.size;
     const speed = Number(style.auroraSpeed) || 1.2;
     const intensity = Number(style.auroraIntensity) || 0.7;
     const saturation = linaClamp(Number(style.auroraSaturation) || 1, 0.2, 1.8);
     const hueBase = (time * speed * 28 + 180) % 360;
     const y = h * 0.46;
-    const gradient = ctx.createLinearGradient(w * 0.08, y - size, w * 0.92, y + size);
+    const gradient = ctx.createLinearGradient(w * 0.08, y - lay.blockH / 2 - size, w * 0.92, y + lay.blockH / 2 + size);
     for (let i = 0; i <= 6; i++) {
         const stop = i / 6;
         const hue = (hueBase + stop * 135) % 360;
@@ -69,7 +74,7 @@ function drawAuroraEffect(ctx, w, h, style, lines, time) {
     ctx.fillStyle = gradient;
     ctx.shadowColor = `hsl(${(hueBase + 65) % 360} 100% 72%)`;
     ctx.shadowBlur = size * 0.20 * intensity;
-    ctx.fillText(text, w / 2, y);
+    lay.lines.forEach((t, i) => ctx.fillText(t, w / 2, y + (i - (lay.lines.length - 1) / 2) * lay.lineH));
     ctx.restore();
 }
 

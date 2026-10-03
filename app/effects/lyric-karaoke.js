@@ -9,7 +9,7 @@
   function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
   function bounce(v){ var t=clamp(v); return t<1?1-Math.pow(1-t,3)*Math.cos(t*6)*0.12:1; }
 
-  function font(ctx,family,size,weight){ ctx.font=(weight||800)+' '+Math.max(18,size)+'px "'+(family||'Inter Tight')+'",system-ui,sans-serif'; }
+  function font(ctx,family,size,weight){ ctx.font=(weight||800)+' '+Math.max(14,size)+'px "'+(family||'Inter Tight')+'",system-ui,sans-serif'; }
   function layoutRows(ctx,words,family,size,maxWidth){
     var gap=Math.max(10,size*0.22);
     var rows=[], row=[], width=0;
@@ -31,13 +31,14 @@
     var words=u.wordsFor(active.line,active.next);
     if(!words.length) return;
     var family='Boogaloo';
-    var maxWidth=w*0.82;
-    var size=Math.max(34,Math.min(150,Number(style.fontSize)||84));
+    var maxWidth=w*0.84;
+    var size=Math.max(16,Math.min(150,Number(style.fontSize)||84));
     var layout;
-    while(size>30){
+    while(true){
       font(ctx,family,size);
       layout=layoutRows(ctx,words,family,size,maxWidth);
-      if(layout.rows.length<=3) break;
+      var widest=0; layout.rows.forEach(function(r){ widest=Math.max(widest,r.width); });
+      if((layout.rows.length<=4 && widest<=maxWidth*1.001 && layout.rows.length*size*1.18<=h*0.8) || size<=16) break;
       size-=2;
     }
     var rows=layout.rows, gap=layout.gap;
@@ -76,18 +77,9 @@
           ctx.beginPath();
           ctx.rect(0,-size,Math.max(1,word.width*fillFrac),size*2);
           ctx.clip();
-          ctx.fillStyle=fillFrac>=1?fillColor:outlineColor;
+          ctx.fillStyle=fillColor;
           ctx.fillText(word.text,0,0);
           ctx.restore();
-          if(fillFrac<1){
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(0,-size,Math.max(1,word.width*fillFrac*0.94),size*2);
-            ctx.clip();
-            ctx.fillStyle=fillColor;
-            ctx.fillText(word.text,0,0);
-            ctx.restore();
-          }
         }
         ctx.restore();
         x+=word.width+gap;

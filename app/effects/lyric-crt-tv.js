@@ -16,12 +16,12 @@
 
   /* Glass rect in image pixels. Adjust these four numbers if the photo is
      swapped for a different shot — everything else follows automatically. */
-  var IMG = { w: 473, h: 852 };
-  var GLASS = { x: 52, y: 218, w: 368, h: 322, r: 22 };
+  var IMG = { w: 1080, h: 1350 };
+  var GLASS = { x: 192, y: 332, w: 712, h: 552, r: 40 };
 
   /* Region of the photo that contains the baked-in "SO, WHAT DO YOU FEEL?"
      text. Painted over with black glass so live lyrics sit in that space. */
-  var MASK = { x: 72, y: 320, w: 328, h: 120 };
+  var MASK = { x: 225, y: 490, w: 670, h: 245 };
 
   var STORE = 'kefe.crttv.v3';
 
@@ -109,7 +109,7 @@
   }
   img.onerror = function(){
     console.warn('[lyric-crttv] could not load ' + IMG_SRC + '; using built-in set');
-    img = paintFallbackSet(); IMG.w = 473; IMG.h = 852; imgReady = true; fire();
+    img = paintFallbackSet(); IMG.w = 473; IMG.h = 852; GLASS.x = 52; GLASS.y = 218; GLASS.w = 368; GLASS.h = 322; GLASS.r = 22; GLASS.cx = GLASS.x + GLASS.w / 2; GLASS.cy = GLASS.y + GLASS.h / 2; imgReady = true; fire();
   };
   img.src = IMG_SRC;
 
@@ -236,7 +236,7 @@
     var b = B.bufx;
     b.setTransform(1, 0, 0, 1, 0, 0); b.globalAlpha = 1; b.globalCompositeOperation = 'source-over';
     var g = b.createRadialGradient(Bw * 0.5, Bh * 0.46, 0, Bw * 0.5, Bh * 0.5, Bw * 0.72);
-    g.addColorStop(0, '#0d2418'); g.addColorStop(0.6, '#071710'); g.addColorStop(1, '#030a06');
+    g.addColorStop(0, '#1f7a3e'); g.addColorStop(0.6, '#166030'); g.addColorStop(1, '#0c3a1b');
     b.fillStyle = g; b.fillRect(0, 0, Bw, Bh);
     if (!idleMode) {
       if (text && lp && lp.opacity > 0.01) drawCaption(b, Bw, Bh, text, Math.min(1, lp.opacity * 2), style);

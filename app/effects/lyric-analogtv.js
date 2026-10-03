@@ -7,7 +7,7 @@
   if (!u) { console.error('[lyric-analogtv] requires core.js'); return; }
   function clamp(v,a,b){ a=a==null?0:a; b=b==null?1:b; return Math.max(a,Math.min(b,Number(v)||0)); }
 
-  function font(ctx,size){ ctx.font='400 '+Math.max(18,size)+'px "VT323","Courier New",monospace'; }
+  function font(ctx,size){ ctx.font='400 '+Math.max(12,size)+'px "VT323","Courier New",monospace'; }
   function fit(ctx,text,requested,maxWidth){
     var size=Math.max(34,Math.min(200,Number(requested)||96));
     font(ctx,size);
@@ -20,9 +20,10 @@
     if(!active) return;
     var text=String(active.line.text||'').trim();
     if(!text) return;
-    var size=fit(ctx,text,style.fontSize||96,w*0.82);
+    var lay=u.layoutText(ctx,text,{setFont:font,size:Math.min(200,style.fontSize||96),minSize:16,maxWidth:w*0.8,maxHeight:h*0.8,lineHeight:1.1,maxLines:5});
+    var size=lay.size;
     font(ctx,size);
-    var x=w/2, y=h*0.5;
+    var x=w/2, y=h*0.5, y0=y-(lay.lines.length-1)*lay.lineH/2;
     var lineProg=u.lineProgress(active.line,time);
     if(lineProg.opacity<=0.01) return;
 
@@ -32,18 +33,19 @@
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.globalAlpha=lineProg.opacity*flicker;
 
+    lay.lines.forEach(function(txt,li){ var y=y0+li*lay.lineH; font(ctx,size);
     // scanlines across text
     ctx.save();
     ctx.shadowColor='rgba(120,180,255,0.9)';
     ctx.shadowBlur=size*0.5;
     ctx.fillStyle=style.textColor||'#EAF2FF';
-    ctx.fillText(text,x,y+Math.sin(time*2)*0.8);
+    ctx.fillText(txt,x,y+Math.sin(time*2)*0.8);
     ctx.restore();
 
     // scanline overlay (thin dark horizontal stripes)
     ctx.save();
     ctx.beginPath();
-    var textW=ctx.measureText(text).width;
+    var textW=ctx.measureText(txt).width;
     ctx.rect(x-textW/2-30, y-size*0.85, textW+60, size*1.7);
     ctx.clip();
     ctx.globalCompositeOperation='multiply';
@@ -53,8 +55,9 @@
     }
     ctx.restore();
 
+    });
     // tracking bar (horizontal bright band that rolls through the text)
-    var trackY=y-size*0.9+((time*0.6)%(size*1.8));
+    var trackY=(y0-size*0.9)+((time*60)%(lay.lines.length*lay.lineH+size*0.9));
     ctx.save();
     ctx.beginPath();
     ctx.rect(x-w/2, trackY-6, w, 14);

@@ -6,7 +6,7 @@
   if (!u) { console.error('[lyric-flipcards] requires core.js'); return; }
   function clamp(v,a,b){ a=a==null?0:a; b=b==null?1:b; return Math.max(a,Math.min(b,Number(v)||0)); }
   function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
-  function setFlipFont(ctx,size){ ctx.font='800 '+Math.max(18,size)+'px "Urbanist","Arial Black",system-ui,sans-serif'; }
+  function setFlipFont(ctx,size){ ctx.font='800 '+Math.max(14,size)+'px "Urbanist","Arial Black",system-ui,sans-serif'; }
   function wrapWords(ctx,words,maxWidth,gapPx){
     var rows=[], row=[], rowWidth=0;
     for(var i=0;i<words.length;i++){
@@ -51,7 +51,24 @@
       words.push({text:' ',time:Number(sourceWord.time)+(chars.length*CHAR_STAGGER)});
     });
 
-    var prepared=fit(ctx,words,style.fontSize,w*0.82);
+    // Wrap on whole words (never mid-word), then map the timed characters onto the rows.
+    var timed=words.slice();
+    var wl=u.layoutText(ctx,text,{setFont:setFlipFont,size:Math.min(140,Number(style.fontSize)||82),minSize:16,maxWidth:w*0.84,maxHeight:h*0.8,lineHeight:1.26,maxLines:5});
+    var prepared={size:wl.size,gap:wl.size*0.08,rows:[]};
+    setFlipFont(ctx,wl.size);
+    var cursor=0,okMap=true;
+    wl.lines.forEach(function(rowText){
+      var chars=Array.from(rowText),rowChars=[],rw=0;
+      chars.forEach(function(ch){
+        var tm=timed[cursor++];
+        if(!tm){okMap=false;return;}
+        rowChars.push({text:ch,time:tm.time});
+        rw+=ctx.measureText(ch).width+prepared.gap;
+      });
+      cursor++; // the space consumed by the line break
+      prepared.rows.push({words:rowChars,width:Math.max(0,rw-prepared.gap)});
+    });
+    if(!okMap) prepared=u.fitWordRows(ctx,words,{setFont:setFlipFont,size:Math.min(140,Number(style.fontSize)||82),minSize:16,maxWidth:w*0.84,maxHeight:h*0.8,gapEm:0.08,lineHeight:1.26,maxLines:5});
     var size=prepared.size;
     var rowHeight=size*1.26;
     var totalHeight=prepared.rows.length*rowHeight;

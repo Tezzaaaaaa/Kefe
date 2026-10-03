@@ -189,7 +189,7 @@ function fitEternalText(text, targetSize, maxWidth) {
     let size = targetSize;
     let cache = makeInkRowCache(text, size);
     if (!cache) return null;
-    while (cache.textWidth > maxWidth && size > 30) { size -= 2; cache = makeInkRowCache(text, size); if (!cache) return null; }
+    while (cache.textWidth > maxWidth && size > 14) { size -= 2; cache = makeInkRowCache(text, size); if (!cache) return null; }
     return { cache, fontSize: size };
 }
 
@@ -222,8 +222,9 @@ function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = style.eternalInkColor || style.textColor || '#FFF';
-        const size = Math.max(34, Math.min(150, Number(style.fontSize) || 76));
+        let size = Math.max(20, Math.min(150, Number(style.fontSize) || 76));
         ctx.font = '400 ' + size + 'px "Homemade Apple", cursive, serif';
+        while (size > 14 && ctx.measureText(String(line.text)).width > w * 0.86) { size -= 2; ctx.font = '400 ' + size + 'px "Homemade Apple", cursive, serif'; }
         ctx.fillText(String(line.text), w / 2, h * 0.58);
         ctx.restore();
         return;
@@ -251,8 +252,8 @@ function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
         if (!line || time < line.time) continue;
         const text = String(line.text || "").trim();
         if (!text) continue;
-        let targetSize = linaClamp(baseSize * sizes[slot], 34, 150);
-        const prepared = fitEternalText(text, targetSize, w - margin * 2);
+        let targetSize = linaClamp(baseSize * sizes[slot], 20, 150);
+        const prepared = fitEternalText(text, targetSize, w - margin * 2.3);
         if (!prepared) continue;
         const cache = prepared.cache, fontSize = prepared.fontSize;
         const duration = Math.max(0.001, line.endTime - line.time);

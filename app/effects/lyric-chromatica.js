@@ -12,7 +12,7 @@
   var GREEN='#1E6B4E';
   var BLACK='#000000';
 
-  function setFont(ctx,size){ ctx.font='400 '+Math.max(28,size)+'px "Memesique","Anton","Archivo Black","Arial Black",system-ui,sans-serif'; }
+  function setFont(ctx,size){ ctx.font='400 '+Math.max(14,size)+'px "Memesique","Anton","Archivo Black","Arial Black",system-ui,sans-serif'; }
 
   function wrapWords(ctx,words,maxWidth,gapPx){
     var rows=[], row=[], rowWidth=0;
@@ -47,7 +47,7 @@
     if(!text) return;
     var words=u.wordsFor(active.line,active.next);
     if(!words.length) return;
-    var prepared=fit(ctx,words,style.fontSize,w*0.86);
+    var prepared=u.fitWordRows(ctx,words,{setFont:setFont,size:Math.min(220,Number(style.fontSize)||130),minSize:16,maxWidth:w*0.72,maxHeight:h*0.7,gapEm:0.10,lineHeight:0.92,maxLines:5});
     var size=prepared.size;
     var rowHeight=size*0.92;
     var totalH=prepared.rows.length*rowHeight;

@@ -13,7 +13,7 @@
     var s=period/4;
     return amplitude*Math.pow(2,-10*t)*Math.sin((t-s)*(2*Math.PI)/period)+1;
   }
-  function setElasticFont(ctx,size){ ctx.font='400 '+Math.max(18,size)+'px "Bangers","Arial Black",system-ui,sans-serif'; }
+  function setElasticFont(ctx,size){ ctx.font='400 '+Math.max(14,size)+'px "Bangers","Arial Black",system-ui,sans-serif'; }
   function wrapWords(ctx,words,maxWidth,gapPx){
     var rows=[], row=[], rowWidth=0;
     for(var i=0;i<words.length;i++){
@@ -46,7 +46,7 @@
     if(!text) return;
     var words=u.wordsFor(active.line,active.next);
     if(!words.length) return;
-    var prepared=fit(ctx,words,style.fontSize,w*0.82);
+    var prepared=u.fitWordRows(ctx,words,{setFont:setElasticFont,size:Math.min(140,Number(style.fontSize)||84),minSize:16,maxWidth:w*0.86,headroom:1.16,maxHeight:h*0.8,gapEm:0.30,lineHeight:1.24,maxLines:5});
     var size=prepared.size;
     var rowHeight=size*1.24;
     var totalHeight=prepared.rows.length*rowHeight;

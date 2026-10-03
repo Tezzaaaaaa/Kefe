@@ -926,6 +926,7 @@ const material = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: tr
 
 let instancedMesh = null;
 let positions = null;
+window.kefeParticleVisualiserActive = true;
 const initialCount = Math.max(1000, Math.min(20000, Number(window.kefeSettings?.get('particleCount')) || 8000));
 let currentCount = initialCount;
 
@@ -1192,3 +1193,4 @@ setPreset(PRESETS[0],{toast:false});
 rebuild(initialCount);
 resize();
 animate();
+window.dispatchEvent(new Event('kefe-effects-ready'));

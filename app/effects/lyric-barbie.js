@@ -18,7 +18,7 @@
     ['#EA1E8C','#FF4FA8','#FF85C8','#C91C80','#FFA0D5']
   ];
 
-  function setFont(ctx,size){ ctx.font='800 '+Math.max(28,size)+'px "Baloo 2","Fredoka","Inter Tight",system-ui,sans-serif'; }
+  function setFont(ctx,size){ ctx.font='800 '+Math.max(14,size)+'px "Baloo 2","Fredoka","Inter Tight",system-ui,sans-serif'; }
   function setKickerFont(ctx,size){ ctx.font='700 '+Math.max(11,size)+'px "Inter Tight",system-ui,sans-serif'; }
 
   function wrapWords(ctx,words,maxWidth,gapPx){
@@ -58,7 +58,7 @@
       return w;
     }
     var width=measure(scale);
-    while(width>maxWidth && scale>0.4){ scale-=0.02; width=measure(scale); }
+    while(width>maxWidth && scale>0.12){ scale-=0.02; width=measure(scale); }
     return {scale:scale,width:width,gap:gap*scale};
   }
   function tiltFor(n){ var x=Math.sin(n*12.9898)*43758.5453; return ((x-Math.floor(x))-0.5)*0.05; }
@@ -207,7 +207,7 @@
       var row=rr.row, sizes=rr.sizes;
       var rowHeight=rowHeights[rowIdx];
       var y=cursorY+rowHeight*0.5;
-      var fitInfo=fitRowWithSizes(ctx,row.words,sizes,w*0.92);
+      var fitInfo=fitRowWithSizes(ctx,row.words,sizes,w*0.76);
       var finalSizes=sizes.map(function(s){return s*fitInfo.scale;});
       var finalGap=fitInfo.gap;
       var rowWidth=fitInfo.width;

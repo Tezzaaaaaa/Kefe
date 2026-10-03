@@ -8,7 +8,7 @@
   function clamp(v,a,b){ a=a==null?0:a; b=b==null?1:b; return Math.max(a,Math.min(b,Number(v)||0)); }
   function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
 
-  function font(ctx,size){ ctx.font='400 '+Math.max(18,size)+'px "Special Elite","Courier New",monospace'; }
+  function font(ctx,size){ ctx.font='400 '+Math.max(12,size)+'px "Special Elite","Courier New",monospace'; }
   function fit(ctx,text,requested,maxWidth){
     var size=Math.max(40,Math.min(220,Number(requested)||150));
     font(ctx,size);
@@ -23,7 +23,8 @@
     var text=String(active.line.text||'').trim().toUpperCase();
     if(!text) return;
 
-    var size=fit(ctx,text,style.fontSize||150,w*0.86);
+    var lay=u.layoutText(ctx,text,{setFont:font,size:Math.min(220,style.fontSize||150),minSize:16,maxWidth:w*0.8,maxHeight:h*0.82,lineHeight:1.12,maxLines:5});
+    var size=lay.size;
     var lineProg=u.lineProgress(active.line,time);
     if(lineProg.opacity<=0.01) return;
 
@@ -36,10 +37,9 @@
     var chaos=clamp(Math.max(entryChaos,exitChaos));
     var frame=Math.floor(time*18);
     var x=w/2;
-    var y=h*0.5;
+    var y0=h*0.5-(lay.lines.length-1)*lay.lineH/2;
 
     font(ctx,size);
-    var textWidth=ctx.measureText(text).width;
     var sliceHeight=Math.max(8,size*0.11);
 
     ctx.save();
@@ -47,9 +47,10 @@
     ctx.textBaseline='middle';
     ctx.globalAlpha=lineProg.opacity;
 
+    lay.lines.forEach(function(txt,li){ var y=y0+li*lay.lineH; font(ctx,size); var textWidth=ctx.measureText(txt).width;
     // Main text remains stable between damage bursts.
     ctx.fillStyle=style.textColor||'#FFFFFF';
-    ctx.fillText(text,x,y);
+    ctx.fillText(txt,x,y);
 
     // Horizontal data slices: each band gets its own deterministic displacement.
     if(chaos>0.02){
@@ -65,7 +66,7 @@
         ctx.clip();
         ctx.globalAlpha=lineProg.opacity*(0.45+0.35*r)*chaos;
         ctx.fillStyle=(i%2===0)?'rgba(255,0,70,0.95)':'rgba(0,220,255,0.95)';
-        ctx.fillText(text,x+sliceOffset,y);
+        ctx.fillText(txt,x+sliceOffset,y);
         ctx.restore();
       }
 
@@ -75,9 +76,9 @@
       ctx.globalCompositeOperation='screen';
       ctx.globalAlpha=lineProg.opacity*(0.22+0.45*chaos);
       ctx.fillStyle='rgba(255,0,70,0.9)';
-      ctx.fillText(text,x-chroma,y);
+      ctx.fillText(txt,x-chroma,y);
       ctx.fillStyle='rgba(0,220,255,0.9)';
-      ctx.fillText(text,x+chroma,y);
+      ctx.fillText(txt,x+chroma,y);
       ctx.restore();
 
       // Small rectangular signal tears above/below the glyphs.
@@ -95,6 +96,7 @@
       }
     }
 
+    });
     ctx.restore();
   };
 })();

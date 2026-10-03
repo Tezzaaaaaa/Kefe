@@ -47,7 +47,9 @@
     const elapsed = time - start;
     const endFade = clamp((end - time) / 0.22, 0, 1);
 
-    const prepared = fit(ctx, text, style.fontSize, w * 0.8);
+    const setF = u.contractFontSetter('blur');
+    const lay = u.layoutText(ctx, text, { setFont: setF, size: Math.min(140, Number(style.fontSize) || 74), minSize: 20, maxWidth: w * 0.84, maxHeight: h * 0.8, lineHeight: u.contract('blur').lineHeight || 1.14, maxLines: 5 });
+    const prepared = { size: lay.size, rows: lay.lines.map(l => l.split(' ')) };
     const size = prepared.size;
     const rowHeight = size * (u.contract('blur').lineHeight || 1.14);
     const totalHeight = prepared.rows.length * rowHeight;
@@ -56,7 +58,7 @@
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = style.textColor || '#FFFFFF';
-    u.setContractFont(ctx, 'blur', size);
+    setF(ctx, size);
     const space = ctx.measureText(' ').width;
 
     let globalWordIndex = 0;
