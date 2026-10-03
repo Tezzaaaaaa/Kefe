@@ -69,7 +69,7 @@ button{border:0;cursor:pointer}
 .kefe-title-card,.kefe-title-card.leaving,.kefe-title-card.leaving .kefe-title-card-inner{animation:none}
 .kefe-song-search-button:before,.kefe-song-search-status:after,.kefe-song-result{animation:none}
 .kefe-suggestions-dots i{animation:none}}
-.kefe-preview-fullscreen{position:absolute;top:14px;right:14px;z-index:2147483647;width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:50%;background:var(--bg);color:var(--text);box-shadow:var(--lift);backdrop-filter:none;-webkit-backdrop-filter:none;transition:transform .16s ease,background .16s ease,border-color .16s ease}
+.kefe-preview-fullscreen{position:absolute;top:14px;right:14px;z-index:2147483647;width:36px;height:36px;display:grid;place-items:center;border:1px solid transparent;border-radius:50%;background:transparent;color:var(--text);box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;transition:transform .16s ease,color .16s ease}
 .kefe-stage.is-16x9{aspect-ratio:16/9}
 .kefe-stage.is-9x16{aspect-ratio:9/16}
 .kefe-stage.is-1x1{aspect-ratio:1/1}
