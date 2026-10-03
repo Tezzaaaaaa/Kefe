@@ -224,6 +224,7 @@
   window.addEventListener('kefe-effects-ready',()=>draw());
   function lyricOffset(){const v=Number(window.kefeSettings?.get('lyricOffset'));return Number.isFinite(v)?v:0;}
   function drawTitleCardCanvas(ctx,w,h,t){
+    if(!state.lines.length)return;
     if(window.kefeSettings&&!window.kefeSettings.get('titleCard'))return;
     const title=songTitle.value.trim();
     if(!title)return;
@@ -284,8 +285,8 @@
   }
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(window.kefeParticleVisualiserActive){
-      // Draw the lyric effect first, then the title card on top so it remains visible.
+    {
+      // The WebGL visualiser is the background; this canvas only composites lyrics/title art.
       if(state.lines.length){
         const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
         if(typeof fn==='function'){
