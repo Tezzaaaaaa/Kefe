@@ -74,7 +74,43 @@
     IMG.w = img.naturalWidth; IMG.h = img.naturalHeight;
     fire();
   };
-  img.onerror = function(){ console.warn('[lyric-crttv] could not load', IMG_SRC); };
+  /* retrotv.jpg is not shipped in the repo. When it can't be loaded, paint a
+     simple procedural TV set at the same 473x852 geometry so the glass,
+     mask and every panel control still work. Dropping the real photo at
+     IMG_SRC takes over automatically. */
+  function paintFallbackSet(){
+    var c = mk(473, 852), g = c.getContext('2d');
+    g.fillStyle = '#1a1a18'; g.fillRect(0, 0, 473, 852);
+    // antenna
+    g.strokeStyle = '#8a8578'; g.lineWidth = 4; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(236, 170); g.lineTo(150, 70); g.moveTo(236, 170); g.lineTo(322, 62); g.stroke();
+    g.fillStyle = '#6d695d'; g.beginPath(); g.arc(236, 172, 14, Math.PI, 0); g.fill();
+    // legs
+    g.fillStyle = '#2b2a26'; g.fillRect(70, 640, 26, 70); g.fillRect(377, 640, 26, 70);
+    // cabinet
+    var body = g.createLinearGradient(0, 180, 0, 650);
+    body.addColorStop(0, '#d9d2bd'); body.addColorStop(0.5, '#c8c0a8'); body.addColorStop(1, '#a89f86');
+    rrect(g, 18, 180, 437, 470, 34); g.fillStyle = body; g.fill();
+    g.lineWidth = 3; g.strokeStyle = 'rgba(59,56,47,.55)'; g.stroke();
+    // bezel around the glass
+    rrect(g, GLASS.x - 16, GLASS.y - 16, GLASS.w + 32, GLASS.h + 32, GLASS.r + 14);
+    g.fillStyle = '#2a2925'; g.fill();
+    rrect(g, GLASS.x - 6, GLASS.y - 6, GLASS.w + 12, GLASS.h + 12, GLASS.r + 5);
+    g.fillStyle = '#0c0c0b'; g.fill();
+    rrect(g, GLASS.x, GLASS.y, GLASS.w, GLASS.h, GLASS.r); g.fillStyle = '#03070a'; g.fill();
+    // control strip
+    g.fillStyle = '#2a2925';
+    [[110, 590], [190, 590]].forEach(function(k){ g.beginPath(); g.arc(k[0], k[1], 22, 0, Math.PI * 2); g.fill(); });
+    g.strokeStyle = '#d9d2bd'; g.lineWidth = 3;
+    [[110, 590, -0.6], [190, 590, 0.9]].forEach(function(k){ g.beginPath(); g.moveTo(k[0], k[1]); g.lineTo(k[0] + Math.sin(k[2]) * 16, k[1] - Math.cos(k[2]) * 16); g.stroke(); });
+    g.fillStyle = '#4a463c';
+    for (var i = 0; i < 9; i++) g.fillRect(290 + (i % 3) * 52, 574 + Math.floor(i / 3) * 0, 40, 4), g.fillRect(290, 574 + i * 4, 150, 2);
+    return c;
+  }
+  img.onerror = function(){
+    console.warn('[lyric-crttv] could not load ' + IMG_SRC + '; using built-in set');
+    img = paintFallbackSet(); IMG.w = 473; IMG.h = 852; imgReady = true; fire();
+  };
   img.src = IMG_SRC;
 
   var maskTile = null, maskTileA = -1;
