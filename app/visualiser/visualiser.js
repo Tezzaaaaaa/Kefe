@@ -909,6 +909,7 @@ try {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
   renderer.setClearColor(0x000000, 1);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  canvas.dataset.rendererReady = 'true';
 } catch (error) {
   canvas.dataset.rendererError = 'true';
   console.error('[KEFE visualiser renderer]', error);
@@ -921,7 +922,7 @@ const color = new THREE.Color();
 const target = new THREE.Vector3();
 
 const geometry = new THREE.TetrahedronGeometry(1.0);
-const material = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true });
+const material = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true, fog: false });
 
 let instancedMesh = null;
 let positions = null;
@@ -1042,6 +1043,28 @@ window.kefeVisualiserExport = {
 };
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+canvas.addEventListener('webglcontextlost', event => {
+  event.preventDefault();
+  canvas.dataset.rendererContext = 'lost';
+});
+canvas.addEventListener('webglcontextrestored', () => {
+  canvas.dataset.rendererContext = 'restored';
+  resize();
+  rebuild(currentCount);
+});
+window.kefeVisualiserDiagnostics = () => ({
+  rendererReady: canvas.dataset.rendererReady === 'true',
+  context: canvas.dataset.rendererContext || 'active',
+  cssWidth: canvas.clientWidth,
+  cssHeight: canvas.clientHeight,
+  bufferWidth: canvas.width,
+  bufferHeight: canvas.height,
+  preset: state.preset.key,
+  particleCount: currentCount,
+  frame: renderer.info.render.frame,
+  drawCalls: renderer.info.render.calls,
+  triangles: renderer.info.render.triangles
+});
 
 // If the stage starts at 0×0 (e.g. inside a hidden container, or before the
 // layout is settled), the renderer never gets a usable size. Observe the
