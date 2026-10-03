@@ -493,6 +493,48 @@
     previewStage.style.height=Math.max(1,Math.floor(height))+'px';
   }
   window.addEventListener('resize',fitPreviewStage);
+  const previewFullscreen=document.getElementById('previewFullscreen');
+  function syncPreviewFullscreen(){
+    if(!previewFullscreen||!previewStage)return;
+    const active=document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen');
+    previewFullscreen.setAttribute('aria-label',active?'Exit fullscreen':'Enter fullscreen');
+    previewFullscreen.title=active?'Exit fullscreen':'Enter fullscreen';
+    previewFullscreen.innerHTML=active
+      ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  async function togglePreviewFullscreen(){
+    if(!previewStage)return;
+    try{
+      if(document.fullscreenElement===previewStage){
+        await document.exitFullscreen();
+      }else if(document.fullscreenElement){
+        await document.exitFullscreen();
+        await previewStage.requestFullscreen();
+      }else if(typeof previewStage.requestFullscreen==='function'){
+        await previewStage.requestFullscreen();
+      }else{
+        previewStage.classList.toggle('kefe-pseudo-fullscreen');
+        document.documentElement.classList.toggle('kefe-fullscreen-open',previewStage.classList.contains('kefe-pseudo-fullscreen'));
+        document.body.classList.toggle('kefe-fullscreen-open',previewStage.classList.contains('kefe-pseudo-fullscreen'));
+        fitPreviewStage();
+      }
+    }catch(error){
+      console.warn('[KEFE fullscreen]',error);
+      previewStage.classList.toggle('kefe-pseudo-fullscreen');
+      const active=previewStage.classList.contains('kefe-pseudo-fullscreen');
+      document.documentElement.classList.toggle('kefe-fullscreen-open',active);
+      document.body.classList.toggle('kefe-fullscreen-open',active);
+    }
+    syncPreviewFullscreen();
+  }
+  previewFullscreen?.addEventListener('click',togglePreviewFullscreen);
+  document.addEventListener('fullscreenchange',()=>{
+    if(document.fullscreenElement!==previewStage)previewStage?.classList.remove('kefe-pseudo-fullscreen');
+    syncPreviewFullscreen();
+    if(document.fullscreenElement!==previewStage)fitPreviewStage();
+  });
+  syncPreviewFullscreen();
   document.querySelectorAll('.kefe-top-link').forEach(button=>button.addEventListener('click',()=>{
     const panel=button.dataset.topPanel;
     if(panel==='media'||panel==='editor')openEditorPanel('media');
