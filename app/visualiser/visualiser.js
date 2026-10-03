@@ -1024,7 +1024,6 @@ function resize() {
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  }
 }
 window.kefeVisualiserExport = {
   begin(w, h) {
