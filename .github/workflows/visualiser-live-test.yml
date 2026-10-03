@@ -59,6 +59,9 @@ jobs:
 
           const visualiserTab = page.locator('.kefe-section[data-panel="visualiser"]');
           await visualiserTab.click();
+          await page.locator('#visualiserPreset option').nth(1).waitFor({ state: 'attached', timeout: 15000 });
+          await page.locator('#visualiserParameters').locator('input[type="range"]').first().waitFor({ state: 'attached', timeout: 15000 });
+          await page.waitForTimeout(1000);
 
           const result = await page.evaluate(() => {
             const canvas = document.getElementById('kefeVisualiserCanvas');
@@ -79,7 +82,10 @@ jobs:
               height: rect.height,
               presetCount: preset?.options.length ?? 0,
               parameterCount: parameters?.children.length ?? 0,
-              rendererError: canvas.dataset.rendererError || null
+              rendererError: canvas.dataset.rendererError || null,
+              rendererReady: canvas.dataset.rendererReady || null,
+              rendererContext: canvas.dataset.rendererContext || 'active',
+              diagnostic: typeof window.kefeVisualiserDiagnostics === 'function' ? window.kefeVisualiserDiagnostics() : null
             };
           });
 
@@ -96,18 +102,29 @@ jobs:
           if (result.rendererError) {
             throw new Error('Visualiser renderer reported an initialization error.');
           }
+          if (result.rendererReady !== 'true') {
+            throw new Error('Visualiser renderer did not report ready.');
+          }
+          if (!result.diagnostic || result.diagnostic.drawCalls < 1 || result.diagnostic.bufferWidth < 100 || result.diagnostic.bufferHeight < 100) {
+            throw new Error('Visualiser diagnostics show no active render output.');
+          }
 
-          await page.waitForTimeout(1500);
+          const initialFrame = result.diagnostic.frame;
+          await page.waitForTimeout(1000);
+          const frameCheck = await page.evaluate(() => window.kefeVisualiserDiagnostics?.() || null);
+          if (!frameCheck || frameCheck.frame <= initialFrame) {
+            throw new Error('Visualiser animation frame is not advancing.');
+          }
 
           const pixels = await page.evaluate(() => {
             const canvas = document.getElementById('kefeVisualiserCanvas');
             const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
             const sample = new Uint8Array(4);
             let nonBlack = 0;
-            const points = [
-              [0.50, 0.50], [0.25, 0.50], [0.75, 0.50],
-              [0.50, 0.25], [0.50, 0.75]
-            ];
+            const points = [];
+            for (let y = 0.1; y <= 0.9; y += 0.1) {
+              for (let x = 0.1; x <= 0.9; x += 0.1) points.push([x, y]);
+            }
             for (const [x, y] of points) {
               gl.readPixels(
                 Math.floor(canvas.width * x),
@@ -120,9 +137,29 @@ jobs:
             return { nonBlack, width: canvas.width, height: canvas.height };
           });
 
-          if (pixels.nonBlack < 1) {
-            throw new Error('Visualiser canvas remained completely black after rendering.');
+          if (pixels.nonBlack < 3) {
+            throw new Error(`Visualiser canvas rendered no meaningful non-black output: ${pixels.nonBlack} samples.`);
           }
+
+          const interaction = await page.evaluate(() => {
+            const select = document.getElementById('visualiserPreset');
+            const before = select.value;
+            const next = Array.from(select.options).find(option => option.value !== before);
+            if (!next) return { ok: false, reason: 'No alternate preset available.' };
+            select.value = next.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            const slider = document.querySelector('#visualiserParameters input[type="range"]');
+            if (!slider) return { ok: false, reason: 'No parameter slider available.' };
+            const oldValue = slider.value;
+            slider.value = String(Number(slider.value) + Number(slider.step || 0.01));
+            slider.dispatchEvent(new Event('input', { bubbles: true }));
+            return {
+              ok: select.value === next.value && slider.value !== oldValue,
+              preset: select.value,
+              parameterValue: slider.value
+            };
+          });
+          if (!interaction.ok) throw new Error(interaction.reason || 'Visualiser controls did not respond.');
 
           if (errors.length) {
             throw new Error('Browser errors detected:\n' + errors.join('\n'));
