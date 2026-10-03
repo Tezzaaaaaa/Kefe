@@ -661,21 +661,48 @@
   }
   async function fetchBiniLyrics(title,artist,album,duration,signal){
     const params=new URLSearchParams({title,artist,...(album?{album}:{}),...(duration?{duration:String(duration)}:{})});
-    const base='https://lyrics-api.binimum.org';
     try{
-      const response=await fetch(base+'/v1/ttml/get?'+params,{signal,headers:{Accept:'application/json,text/xml,text/plain'}});
+      const response=await fetch('https://lyrics-api.binimum.org/getLyrics?'+params,{signal,headers:{Accept:'application/json'}});
       if(response.ok){
-        const contentType=response.headers.get('content-type')||'';
-        if(contentType.includes('json')){
-          const payload=await response.json();
-          const ttml=String(payload?.lyrics||payload?.ttml||'').trim();
-          const lines=ttml?parseAppleTTML(ttml):[];
-          if(lines.length)return lines;
-        }else{
-          const ttml=await response.text();
-          const lines=parseAppleTTML(ttml);
-          if(lines.length)return lines;
+        const payload=await response.json();
+        const candidates=[];
+        const add=value=>{
+          if(!value)return;
+          if(typeof value==='string')candidates.push(value);
+          if(Array.isArray(value))value.forEach(add);
+          if(typeof value==='object'){
+            add(value.url);add(value.ttml);add(value.lyrics);add(value.lyricsUrl);add(value.ttmlUrl);
+          }
+        };
+        add(payload);
+        for(const candidate of candidates){
+          if(candidate.trim().startsWith('<')){
+            const lines=parseAppleTTML(candidate);
+            if(lines.length)return lines;
+            continue;
+          }
+          if(/^https?:\\/\\//i.test(candidate)){
+            try{
+              const lyricResponse=await fetch(candidate,{signal,headers:{Accept:'application/xml,text/xml,text/plain'}});
+              if(!lyricResponse.ok)continue;
+              const ttml=await lyricResponse.text();
+              const lines=parseAppleTTML(ttml);
+              if(lines.length)return lines;
+            }catch(error){
+              if(error?.name==='AbortError')throw error;
+            }
+          }
         }
+      }
+    }catch(error){
+      if(error?.name==='AbortError')throw error;
+    }
+    try{
+      const response=await fetch('https://lyrics-api.binimum.org/v1/ttml/get?'+params,{signal,headers:{Accept:'application/xml,text/xml,text/plain'}});
+      if(response.ok){
+        const ttml=await response.text();
+        const lines=parseAppleTTML(ttml);
+        if(lines.length)return lines;
       }
     }catch(error){
       if(error?.name==='AbortError')throw error;
@@ -713,12 +740,12 @@
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     const duration=Math.round(Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0);
     const status=document.getElementById('kefeLyricsStatus');
-    if(!title||!artist)return false;
+    if(!title)return false;
     const request=++lyricsRequest;
     const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);
     try{
       if(status)status.textContent='Finding synchronized lyrics…';
-      let lines=await fetchBiniLyrics(title,artist,album,duration,controller.signal);
+      let lines=artist?await fetchBiniLyrics(title,artist,album,duration,controller.signal):[];
       if(request!==lyricsRequest)return false;
       if(setLyricsFromLines(lines,'Synchronized lyrics fetched from BiniLyrics TTML.'))return true;
       lines=await fetchLyricsPlus(title,artist,album,duration,controller.signal);
