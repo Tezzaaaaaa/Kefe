@@ -872,6 +872,8 @@ color.setHSL(hue, 0.9, light);`
 /* ============================================================
    LIVE PREVIEW
    ============================================================ */
+window.kefeParticleVisualiserActive = true;
+
 const canvas = document.getElementById('kefeVisualiserCanvas');
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x000000, 0.01);
