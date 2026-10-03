@@ -596,43 +596,97 @@
     return true;
   }
   let lyricsRequest=0;
+  function parseLyricsPlus(payload){
+    const items=Array.isArray(payload?.lyrics)?payload.lyrics:[];
+    return items.map((line,index)=>{
+      const startMs=Number(line?.time);
+      if(!Number.isFinite(startMs))return null;
+      const durationMs=Number(line?.duration);
+      const nextMs=Number(items[index+1]?.time);
+      const endMs=Number.isFinite(durationMs)&&durationMs>0?startMs+durationMs:(Number.isFinite(nextMs)?nextMs:startMs+3000);
+      const words=Array.isArray(line?.syllabus)?line.syllabus.map(word=>{
+        const time=Number(word?.time),duration=Number(word?.duration);
+        if(!Number.isFinite(time))return null;
+        return {text:String(word?.text||'').trim(),time:time/1000,endTime:(Number.isFinite(duration)&&duration>0?time+duration:time+300)/1000};
+      }).filter(word=>word&&word.text):[];
+      return {text:String(line?.text||'').trim(),time:startMs/1000,end:endMs/1000,words};
+    }).filter(line=>line&&line.text);
+  }
+  async function fetchLyricsPlus(title,artist,album,duration,signal){
+    const mirrors=[
+      'https://lyricsplus.binimum.org',
+      'https://lyricsplus.atomix.one',
+      'https://lyricsplus.prjktla.workers.dev',
+      'https://lyricsplus-seven.vercel.app'
+    ];
+    const params=new URLSearchParams({
+      title,
+      artist,
+      ...(album?{album}:{}),
+      ...(duration?{duration:String(duration)}:{}),
+      source:'apple,lyricsplus,musixmatch,spotify,musixmatch-word'
+    });
+    for(const base of mirrors){
+      try{
+        const response=await fetch(base+'/v2/lyrics/get?'+params,{signal,headers:{Accept:'application/json'}});
+        if(!response.ok)continue;
+        const payload=await response.json();
+        const lines=parseLyricsPlus(payload);
+        if(lines.length)return lines;
+      }catch(error){
+        if(error?.name==='AbortError')throw error;
+      }
+    }
+    return [];
+  }
   async function loadAutomaticLyrics(){
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     const duration=Math.round(Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0);
     const status=document.getElementById('kefeLyricsStatus');
-    if(!title||!artist)return;
+    if(!title||!artist)return false;
     const request=++lyricsRequest;
-    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);
     try{
       if(status)status.textContent='Finding synchronized lyrics…';
+      let lines=await fetchLyricsPlus(title,artist,album,duration,controller.signal);
+      if(request!==lyricsRequest)return false;
+      if(setLyricsFromLines(lines,'Synchronized lyrics fetched from BiniLyrics.'))return true;
+
       const params=new URLSearchParams({s:title,a:artist,al:album,d:String(duration)});
       let response=await fetch('https://api.betterlyrics.org/getLyrics?'+params,{signal:controller.signal,headers:{Accept:'application/json'}});
       if(response.ok){
         const payload=await response.json();
-        if(request!==lyricsRequest)return;
+        if(request!==lyricsRequest)return false;
         const ttml=String(payload?.ttml||'').trim();
-        const lines=ttml?parseAppleTTML(ttml):[];
-        if(setLyricsFromLines(lines,'Synchronized lyrics fetched.'))return;
+        lines=ttml?parseAppleTTML(ttml):[];
+        if(setLyricsFromLines(lines,'Synchronized lyrics fetched.'))return true;
       }
+
       response=await fetch('https://api.betterlyrics.org/kugou/getLyrics?'+params,{signal:controller.signal,headers:{Accept:'application/json'}});
       if(response.ok){
         const payload=await response.json();
-        if(request!==lyricsRequest)return;
-        const lines=parseAppleLrc(String(payload?.lyrics||''));
-        if(setLyricsFromLines(lines,'Synchronized lyrics fetched.'))return;
+        if(request!==lyricsRequest)return false;
+        lines=parseAppleLrc(String(payload?.lyrics||''));
+        if(setLyricsFromLines(lines,'Synchronized lyrics fetched.'))return true;
       }
+
       response=await fetch('https://lrclib.net/api/get?'+new URLSearchParams({track_name:title,artist_name:artist,album_name:album,duration:String(duration)}),{signal:controller.signal,headers:{Accept:'application/json'}});
       if(response.ok){
         const payload=await response.json();
-        if(request!==lyricsRequest)return;
-        const lines=parseAppleLrc(String(payload?.syncedLyrics||''));
-        if(setLyricsFromLines(lines,'Synchronized lyrics fetched.'))return;
+        if(request!==lyricsRequest)return false;
+        lines=parseAppleLrc(String(payload?.syncedLyrics||''));
+        if(setLyricsFromLines(lines,'Synchronized lyrics fetched.'))return true;
       }
+
       if(status)status.textContent='No synchronized lyrics found for this track.';
+      return false;
     }catch(error){
-      if(request===lyricsRequest&&status)status.textContent='Could not fetch synchronized lyrics.';
+      if(request===lyricsRequest&&status)status.textContent=error?.name==='AbortError'?'Lyrics search timed out.':'Could not fetch synchronized lyrics.';
       console.warn('[KEFE automatic lyrics]',error);
-    }finally{clearTimeout(timeout);}
+      return false;
+    }finally{
+      clearTimeout(timeout);
+    }
   }
   async function identifyAndLoadTrack(file){
     const uploadId=mediaObjectUrl;
