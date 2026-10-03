@@ -886,7 +886,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.autoRotate = true;
+controls.autoRotate = initialSpin;
 controls.autoRotateSpeed = 2.0;
 
 const composer = new EffectComposer(renderer);
@@ -904,15 +904,17 @@ const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
 let instancedMesh = null;
 let positions = null;
-let currentCount = 20000;
+const initialCount = Math.max(1000, Math.min(30000, Number(window.kefeSettings?.get('particleCount')) || 20000));
+const initialSpin = window.kefeSettings ? !!window.kefeSettings.get('autoSpin') : true;
+let currentCount = initialCount;
 
 const state = {
   preset: PRESETS[0],
   params: {},
-  count: 20000,
+  count: initialCount,
   speed: 1,
   time: 0,
-  autoSpin: true
+  autoSpin: initialSpin
 };
 
 function rebuild(count) {
@@ -1091,6 +1093,7 @@ function matchPrompt(text) {
 }
 
 
+let rebuildTimer=null;
 const countInput=document.getElementById('visualiserCount');
 const countOutput=document.getElementById('visualiserCountValue');
 const speedInput=document.getElementById('visualiserSpeed');
@@ -1107,7 +1110,9 @@ document.getElementById('visualiserRandom').addEventListener('click',()=>setPres
 countInput.addEventListener('input',e=>{const v=Math.max(1000,Math.min(30000,parseInt(e.target.value,10)||20000));countOutput.textContent=v.toLocaleString();clearTimeout(rebuildTimer);rebuildTimer=setTimeout(()=>{state.count=v;rebuild(v);},120);});
 speedInput.addEventListener('input',e=>{state.speed=parseFloat(e.target.value)||1;speedOutput.textContent=state.speed.toFixed(2)+'×';});
 spinButton.addEventListener('click',()=>{state.autoSpin=!state.autoSpin;controls.autoRotate=state.autoSpin;spinButton.textContent=state.autoSpin?'On':'Off';});
+countInput.value = String(initialCount);
+spinButton.textContent = initialSpin ? 'On' : 'Off';
 setPreset(PRESETS[0],{toast:false});
-rebuild(20000);
+rebuild(initialCount);
 resize();
 animate();

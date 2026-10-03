@@ -237,11 +237,14 @@
     draw();
   }
   window.addEventListener('kefe-effects-ready',()=>draw());
+  function lyricOffset(){const v=Number(window.kefeSettings?.get('lyricOffset'));return Number.isFinite(v)?v:0;}
   function drawTitleCardCanvas(ctx,w,h,t){
+    if(window.kefeSettings&&!window.kefeSettings.get('titleCard'))return;
     const title=songTitle.value.trim();
     if(!title)return;
-    const first=Number(state.lines[0]?.time);
-    const end=Number.isFinite(first)?first:4;
+    const first=Number(state.lines[0]?.time)+lyricOffset();
+    const maxLen=Number(window.kefeSettings?.get('titleCardMax'))||10;
+    const end=Math.min(Number.isFinite(first)?first:4,maxLen);
     if(end<=0.05||t<0||t>=end)return;
     const fade=Math.min(.6,end/3);
     const alpha=Math.max(0,Math.min(1,t/fade,(end-t)/fade));
@@ -299,7 +302,7 @@
       drawTitleCardCanvas(ctx,canvas.width,canvas.height,state.time);
       if(!state.lines.length)return;
       const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
-      if(typeof fn==='function'){try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time,titleArt?.querySelector('img')||null);}catch(err){console.error('[KEFE effect]',state.effect,err);}}
+      if(typeof fn==='function'){try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time-lyricOffset(),titleArt?.querySelector('img')||null);}catch(err){console.error('[KEFE effect]',state.effect,err);}}
       return;
     }
     const hasUploadedMedia=!!(audio.currentSrc||audio.src||video.currentSrc||video.src);
@@ -377,7 +380,7 @@
     if(!state.lines.length)return;
     const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
     if(typeof fn==='function'){
-      try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time,titleArt?.querySelector('img')||null);}
+      try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time-lyricOffset(),titleArt?.querySelector('img')||null);}
       catch(err){
         ctx.fillStyle='#fff';ctx.font='16px system-ui';ctx.textAlign='center';
         ctx.fillText('Effect error: '+err.message,canvas.width/2,canvas.height/2);
@@ -1459,7 +1462,16 @@
     window.addEventListener('resize', function(){ lastW = 0; lastH = 0; });
   })();
 
-  parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();ensureLyricsTools();
+  function applySettingsDefaults(){
+    const S=window.kefeSettings;if(!S)return;
+    const res=document.getElementById('exportResolution');if(res)res.value=String(S.get('exportResolution'));
+    const asp=document.getElementById('kefeAspect');
+    if(asp&&asp.value!==S.get('aspect')){asp.value=S.get('aspect');asp.dispatchEvent(new Event('change'));}
+  }
+  if(window.kefeSettings)window.kefeSettings.onChange(key=>{
+    if(key==='exportResolution'||key==='aspect')applySettingsDefaults();else draw();
+  });
+  parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();ensureLyricsTools();applySettingsDefaults();
   syncAppleLyricsMetadata();
   syncAppleLyrics(true);
 })();
