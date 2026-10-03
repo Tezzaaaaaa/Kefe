@@ -906,13 +906,16 @@ window.kefeParticleVisualiserActive = true;
 document.querySelector('.kefe-stage')?.classList.add('kefe-visualiser-active');
 
 const canvas = document.getElementById('kefeVisualiserCanvas');
+const stage = canvas?.closest('.kefe-stage');
+if (!canvas) throw new Error('KEFE visualiser canvas is missing from the preview stage.');
+canvas.style.visibility = 'visible';
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x000000, 0.01);
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
 camera.position.set(0, 0, 100);
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
 renderer.setClearColor(0x000000, 1);
-renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+renderer.setSize(Math.max(1, canvas.clientWidth || stage?.clientWidth || 1), Math.max(1, canvas.clientHeight || stage?.clientHeight || 1), false);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const initialSpin = window.kefeSettings ? !!window.kefeSettings.get('autoSpin') : true;
 
@@ -1013,7 +1016,7 @@ function animate() {
 let exportLock = false, savedPixelRatio = 1;
 function resize() {
   if (exportLock) return;
-  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const w = canvas.clientWidth || stage?.clientWidth || 0, h = canvas.clientHeight || stage?.clientHeight || 0;
   if (!w || !h) return;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
