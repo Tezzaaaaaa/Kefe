@@ -1,6 +1,5 @@
 /* KEFE visualiser engine — shared renderer and preset registry. */
 import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
 const PRESETS = [
   {
     key:'particles-swarm', name:'Particles Swarm', desc:'A responsive swarm of particles flowing through a layered orbital field.',
@@ -917,11 +916,6 @@ try {
 }
 const initialSpin = window.kefeSettings ? !!window.kefeSettings.get('autoSpin') : true;
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.autoRotate = initialSpin;
-controls.autoRotateSpeed = 2.0;
-
 const dummy = new THREE.Object3D();
 const color = new THREE.Color();
 const target = new THREE.Vector3();
@@ -994,7 +988,12 @@ function animate() {
   state.time += dt * state.speed;
   const time = state.time;
 
-  controls.update();
+  if (state.autoSpin) {
+    const orbit = state.time * 0.35;
+    camera.position.x = Math.sin(orbit) * 100;
+    camera.position.z = Math.cos(orbit) * 100;
+    camera.lookAt(0, 0, 0);
+  }
 
   if (injectionFn && instancedMesh) {
     for (let i = 0; i < currentCount; i++) {
@@ -1026,6 +1025,7 @@ function resize() {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   }
+}
 window.kefeVisualiserExport = {
   begin(w, h) {
     exportLock = true;
@@ -1162,7 +1162,7 @@ document.getElementById('visualiserGenerate').addEventListener('click',()=>setPr
 document.getElementById('visualiserRandom').addEventListener('click',()=>setPreset(PRESETS[Math.floor(Math.random()*PRESETS.length)]));
 countInput.addEventListener('input',e=>{const v=Math.max(1000,Math.min(20000,parseInt(e.target.value,10)||8000));countOutput.textContent=v.toLocaleString();clearTimeout(rebuildTimer);rebuildTimer=setTimeout(()=>{state.count=v;rebuild(v);},120);});
 speedInput.addEventListener('input',e=>{state.speed=parseFloat(e.target.value)||1;speedOutput.textContent=state.speed.toFixed(2)+'×';});
-spinButton.addEventListener('click',()=>{state.autoSpin=!state.autoSpin;controls.autoRotate=state.autoSpin;spinButton.textContent=state.autoSpin?'On':'Off';});
+spinButton.addEventListener('click',()=>{state.autoSpin=!state.autoSpin;spinButton.textContent=state.autoSpin?'On':'Off';});
 countInput.value = String(initialCount);
 spinButton.textContent = initialSpin ? 'On' : 'Off';
 setPreset(PRESETS[0],{toast:false});
