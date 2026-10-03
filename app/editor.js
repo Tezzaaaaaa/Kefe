@@ -493,6 +493,14 @@
     previewStage.style.height=Math.max(1,Math.floor(height))+'px';
   }
   window.addEventListener('resize',fitPreviewStage);
+  const aspectSelect=document.getElementById('kefeAspect');
+  aspectSelect?.addEventListener('change',()=>{
+    previewAspectRatio=aspectSelect.value;
+    previewStage?.classList.remove('is-16x9','is-9x16','is-1x1');
+    previewStage?.classList.add('is-'+previewAspectRatio.replace(':','x'));
+    fitPreviewStage();
+    window.dispatchEvent(new Event('resize'));
+  });
   const previewFullscreen=document.getElementById('previewFullscreen');
   function syncPreviewFullscreen(){
     if(!previewFullscreen||!previewStage)return;
