@@ -505,7 +505,7 @@
     return encoding===3?decodeText(data):decodeLatin(data);
   }
   function readMp4String(bytes){
-    const clean=value=>String(value||'').replace(/[\\0\\x01-\\x08\\x0B\\x0C\\x0E-\\x1F]/g,' ').replace(/^data[^\\x20]*\\s*/i,'').trim();
+    const clean=value=>String(value||'').replace(/[\0\x01-\x08\x0B\x0C\x0E-\x1F]/g,' ').replace(/^data[^\x20]*\s*/i,'').trim();
     const decoders=[
       ()=>new TextDecoder('utf-8',{fatal:false}).decode(bytes),
       ()=>new TextDecoder('utf-16le',{fatal:false}).decode(bytes),
@@ -514,7 +514,7 @@
     for(const decode of decoders){
       try{
         const value=clean(decode());
-        if(value&&value.length<500&&!/^[^\\p{L}\\p{N}]{3,}/u.test(value))return value;
+        if(value&&value.length<500&&!/^[^\p{L}\p{N}]{3,}/u.test(value))return value;
       }catch(_){}
     }
     return '';
@@ -665,10 +665,22 @@
     const status=document.getElementById('kefeLyricsStatus');
     if(!title||!artist)return false;
     const request=++lyricsRequest;
-    const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),15000);
+    let controller=new AbortController();
+    let timeout=null;
     const params=new URLSearchParams({title,artist,...(album?{album}:{}),...(duration?{duration:String(duration)}:{})});
-    const acceptJson={signal:controller.signal,headers:{Accept:'application/json'}};
+    let acceptJson={signal:controller.signal,headers:{Accept:'application/json'}};
+    const freshRequest=()=>{
+      clearTimeout(timeout);
+      controller=new AbortController();
+      timeout=setTimeout(()=>controller.abort(),8000);
+      acceptJson={signal:controller.signal,headers:{Accept:'application/json'}};
+    };
+    const attempt=async(name,fn)=>{
+      if(request!==lyricsRequest)return true;
+      freshRequest();
+      try{return await fn();}
+      catch(error){console.warn('[KEFE lyrics] '+name+' failed:',error?.name||error);return false;}
+    };
 
     const tryLines=lines=>{
       if(request!==lyricsRequest)return true;
@@ -683,7 +695,7 @@
       const collect=value=>{
         if(!value)return;
         if(typeof value==='string'){
-          if(/^https?:\\/\\//i.test(value)||value.trim().startsWith('<'))urls.push(value);
+          if(/^https?:\/\//i.test(value)||value.trim().startsWith('<'))urls.push(value);
           return;
         }
         if(Array.isArray(value)){value.forEach(collect);return;}
@@ -741,12 +753,22 @@
       return tryLines(parseAppleLrc(String(payload?.syncedLyrics||'')));
     };
 
+    const tryLrclibSearch=async()=>{
+      const response=await fetch('https://lrclib.net/api/search?'+new URLSearchParams({track_name:title,artist_name:artist}),acceptJson);
+      if(!response.ok)return false;
+      const list=(await response.json()).filter(item=>item&&item.syncedLyrics);
+      if(!list.length)return false;
+      if(duration)list.sort((a,b)=>Math.abs((a.duration||0)-duration)-Math.abs((b.duration||0)-duration));
+      return tryLines(parseAppleLrc(String(list[0].syncedLyrics)));
+    };
+
     try{
       if(status)status.textContent='Finding synchronized lyrics…';
-      if(await tryBini())return true;
-      if(await tryLyricsPlus())return true;
-      if(await tryBetterLyrics())return true;
-      if(await tryLrclib())return true;
+      if(await attempt('lrclib',tryLrclib))return true;
+      if(await attempt('lrclib-search',tryLrclibSearch))return true;
+      if(await attempt('lyricsplus',tryLyricsPlus))return true;
+      if(await attempt('betterlyrics',tryBetterLyrics))return true;
+      if(await attempt('binimum',tryBini))return true;
       if(status)status.textContent='No synchronized lyrics found for this track.';
       return false;
     }catch(error){
@@ -918,26 +940,75 @@
   document.getElementById('visualiserPreset').addEventListener('change',e=>{visualiserPreset=e.target.value;draw()});
   document.getElementById('visualiserBackground').addEventListener('change',e=>{visualiserBackground=e.target.value;draw()});
   document.getElementById('visualiserMotion').addEventListener('change',e=>{visualiserMotion=e.target.value;draw()});
+  let exportTap=null,exporting=false;
+  function getExportAudioStream(){
+    if(exportTap)return exportTap.stream;
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return null;
+    try{
+      const ac=new AC(),src=ac.createMediaElementSource(audio),dest=ac.createMediaStreamDestination();
+      src.connect(ac.destination);src.connect(dest);
+      exportTap={ac,stream:dest.stream};
+      return exportTap.stream;
+    }catch(error){console.warn('[KEFE export audio]',error);return null;}
+  }
   document.getElementById('exportButton').addEventListener('click',async()=>{
-    const status=document.getElementById('exportStatus'),format=document.getElementById('exportFormat').value;
+    const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton');
+    if(exporting)return;
     if(!window.MediaRecorder||!canvas.captureStream){status.textContent='Video export is not supported by this browser.';return;}
-    const mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
-    const stream=canvas.captureStream(30),chunks=[],recorder=new MediaRecorder(stream,{mimeType:mime});
-    recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
-    recorder.onstop=()=>{
+    if(!audio.src||!Number.isFinite(audio.duration)){status.textContent='Upload a track first.';return;}
+    const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'].find(m=>MediaRecorder.isTypeSupported(m));
+    if(!mime){status.textContent='No supported video format in this browser.';return;}
+    const ext=mime.startsWith('video/mp4')?'mp4':'webm';
+    const res=Number(document.getElementById('exportResolution').value)||720;
+    const aspect=document.querySelector('.kefe-aspect-button.active')?.dataset.aspect||'16:9';
+    const even=n=>Math.round(n/2)*2;
+    const long=even(res*16/9);
+    const dims=aspect==='9:16'?[res,long]:aspect==='1:1'?[res,res]:[long,res];
+    const prev={w:canvas.width,h:canvas.height,time:state.time};
+    exporting=true;button.disabled=true;
+    let recorder=null,ticker=null;
+    try{
+      audio.pause();
+      canvas.width=dims[0];canvas.height=dims[1];
+      await new Promise(resolve=>{
+        if(audio.currentTime===0){resolve();return;}
+        audio.addEventListener('seeked',resolve,{once:true});audio.currentTime=0;
+      });
+      state.time=0;range.value=0;updateTime();draw();
+      const audioStream=getExportAudioStream();
+      if(exportTap&&exportTap.ac.state==='suspended')await exportTap.ac.resume();
+      const stream=canvas.captureStream(30);
+      if(audioStream)audioStream.getAudioTracks().forEach(t=>stream.addTrack(t));
+      else status.textContent='Audio capture unavailable here; exporting video only…';
+      const chunks=[];
+      recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:res>=1080?8000000:4000000});
+      recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+      const stopped=new Promise(resolve=>{recorder.onstop=resolve});
+      recorder.start(1000);
+      const ended=new Promise(resolve=>audio.addEventListener('ended',resolve,{once:true}));
+      await audio.play();
+      ticker=setInterval(()=>{status.textContent='Exporting '+Math.min(99,Math.round(audio.currentTime/audio.duration*100))+'% — keep this tab open…';},500);
+      await ended;
+      clearInterval(ticker);ticker=null;
+      draw();
+      await new Promise(r=>setTimeout(r,300));
+      recorder.stop();await stopped;
       const blob=new Blob(chunks,{type:mime}),url=URL.createObjectURL(blob),a=document.createElement('a');
-      a.href=url;a.download='kefe-visualiser.webm';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-      status.textContent='Export complete.';
-    };
-    status.textContent='Exporting preview…';
-    recorder.start();
-    const start=state.time;
-    let elapsed=0,last=performance.now();
-    const tick=now=>{
-      elapsed+=(now-last)/1000;last=now;state.time=start+elapsed;range.value=state.time;updateTime();draw();
-      if(elapsed<Math.max(1,Number(range.max)-start))requestAnimationFrame(tick);else recorder.stop();
-    };
-    requestAnimationFrame(tick);
+      const name=[songArtist.value,songTitle.value].map(v=>v.trim()).filter(Boolean).join(' - ').replace(/[\\/:*?"<>|]+/g,'')||'kefe-visualiser';
+      a.href=url;a.download=name+'.'+ext;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),10000);
+      status.textContent='Export complete ('+dims[0]+'×'+dims[1]+' '+ext.toUpperCase()+').';
+    }catch(error){
+      console.warn('[KEFE export]',error);
+      status.textContent='Export failed: '+(error?.message||'unknown error');
+      try{if(recorder&&recorder.state!=='inactive')recorder.stop();}catch(_){}
+    }finally{
+      if(ticker)clearInterval(ticker);
+      canvas.width=prev.w;canvas.height=prev.h;
+      exporting=false;button.disabled=false;
+      audio.pause();state.time=prev.time;range.value=prev.time;audio.currentTime=prev.time;updateTime();draw();
+    }
   });
   function fmt(v){v=Math.max(0,Number(v)||0);return Math.floor(v/60)+':'+String(Math.floor(v%60)).padStart(2,'0')}
   function updateTime(){
