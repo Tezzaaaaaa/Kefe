@@ -240,6 +240,12 @@
   window.addEventListener('kefe-effects-ready',()=>draw());
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(window.kefeParticleVisualiserActive){
+      if(!state.lines.length)return;
+      const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
+      if(typeof fn==='function'){try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time,titleArt?.querySelector('img')||null);}catch(err){console.error('[KEFE effect]',state.effect,err);}}
+      return;
+    }
     const hasUploadedMedia=!!(audio.currentSrc||audio.src||video.currentSrc||video.src);
     const showEmpty=!hasUploadedMedia&&!state.appleLines.length&&!state.lines.length;
     previewStage.classList.toggle('is-empty',showEmpty);
@@ -1078,9 +1084,6 @@
     syncAppleLyrics(true);
     updateTime();draw();
   });
-  document.getElementById('visualiserPreset').addEventListener('change',e=>{visualiserPreset=e.target.value;draw()});
-  document.getElementById('visualiserBackground').addEventListener('change',e=>{visualiserBackground=e.target.value;draw()});
-  document.getElementById('visualiserMotion').addEventListener('change',e=>{visualiserMotion=e.target.value;draw()});
   let exportTap=null,exporting=false;
   function getExportAudioStream(){
     if(exportTap)return exportTap.stream;
