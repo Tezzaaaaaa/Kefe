@@ -807,7 +807,6 @@
   }
   mediaInput.addEventListener('change',e=>{
     const file=e.target.files?.[0];if(!file)return;
-    e.target.value='';
     if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
     mediaObjectUrl=URL.createObjectURL(file);
     songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
@@ -826,6 +825,7 @@
       identifyAndLoadTrack(file);
     });
     updateTitleCard();syncAppleLyricsMetadata();showTitleCard();
+    queueMicrotask(()=>{e.target.value='';});
   });
   function updatePlayButton(){
     const button=document.getElementById('playButton');
