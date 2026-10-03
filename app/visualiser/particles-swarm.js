@@ -903,7 +903,7 @@ const dummy = new THREE.Object3D();
 const color = new THREE.Color();
 const target = new THREE.Vector3();
 
-const geometry = new THREE.TetrahedronGeometry(0.25);
+const geometry = new THREE.TetrahedronGeometry(1.5);
 const material = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true });
 
 let instancedMesh = null;
