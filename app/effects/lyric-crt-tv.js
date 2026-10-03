@@ -207,6 +207,7 @@
         b.restore();
       }
       if (S.showBug) drawBug(b, Bw, Bh, 1);
+      if (text && lp && lp.opacity > 0.01) drawCaption(b, Bw, Bh, text, Math.min(1, lp.opacity * 2), style);
     }
 
     /* 2. phosphor persistence (max of faded history and new frame) */
