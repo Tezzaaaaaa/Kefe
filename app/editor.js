@@ -152,7 +152,7 @@
         syncAppleLyricsMetadata();
         panel.hidden=true;
         list.innerHTML='';
-        loadBiniLyrics();
+        loadAutomaticLyrics();
       });
       list.appendChild(button);
     });
@@ -505,15 +505,59 @@
     return encoding===3?decodeText(data):decodeLatin(data);
   }
   function readMp4String(bytes){
-    const utf8=new TextDecoder('utf-8',{fatal:false}).decode(bytes);
-    const utf16=new TextDecoder('utf-16le',{fatal:false}).decode(bytes);
     const clean=value=>String(value||'').replace(/[\\0\\x01-\\x08\\x0B\\x0C\\x0E-\\x1F]/g,' ').replace(/^data[^\\x20]*\\s*/i,'').trim();
-    const candidates=[utf8,utf16];
-    for(const value of candidates){
-      const cleaned=clean(value);
-      if(cleaned&&cleaned.length<500)return cleaned;
+    const decoders=[
+      ()=>new TextDecoder('utf-8',{fatal:false}).decode(bytes),
+      ()=>new TextDecoder('utf-16le',{fatal:false}).decode(bytes),
+      ()=>new TextDecoder('utf-16be',{fatal:false}).decode(bytes)
+    ];
+    for(const decode of decoders){
+      try{
+        const value=clean(decode());
+        if(value&&value.length<500&&!/^[^\\p{L}\\p{N}]{3,}/u.test(value))return value;
+      }catch(_){}
     }
     return '';
+  }
+  function readMp4AtomValue(bytes,atomName){
+    const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+    const decoder=new TextDecoder('utf-8',{fatal:false});
+    const findAtom=(start,end)=>{
+      let offset=start;
+      while(offset+8<=end){
+        let size=view.getUint32(offset);
+        const type=decoder.decode(bytes.slice(offset+4,offset+8));
+        let header=8;
+        if(size===1){
+          if(offset+16>end)return '';
+          const high=view.getUint32(offset+8),low=view.getUint32(offset+12);
+          size=high*4294967296+low;header=16;
+        }else if(size===0){
+          size=end-offset;
+        }
+        if(size<header||offset+size>end)return '';
+        const payloadStart=offset+header,payloadEnd=offset+size;
+        if(type===atomName){
+          const payload=bytes.slice(payloadStart,payloadEnd);
+          const dataIndex=decoder.decode(payload).indexOf('data');
+          if(dataIndex>=0){
+            const marker=Math.min(payload.length-8,Math.max(0,dataIndex-4));
+            const text=readMp4String(payload.slice(marker));
+            if(text)return text;
+          }
+          return readMp4String(payload.slice(0,Math.min(payload.length,512)));
+        }
+        const container=['moov','udta','meta','ilst','----'].includes(type);
+        if(container){
+          const childStart=type==='meta'?payloadStart+4:payloadStart;
+          const value=findAtom(childStart,payloadEnd);
+          if(value)return value;
+        }
+        offset+=size;
+      }
+      return '';
+    };
+    return findAtom(0,bytes.byteLength);
   }
   async function readEmbeddedMetadata(file){
     const head=await file.slice(0,1024*1024).arrayBuffer();
@@ -538,12 +582,9 @@
         offset+=10+frameSize;
       }
     }
-    const text=decodeLatin(bytes);
     const atom=(name)=>{
       const marker=name==='title'?'©nam':name==='artist'?'©ART':name==='album'?'©alb':name==='year'?'©day':'';
-      const at=text.indexOf(marker);
-      if(at<0)return '';
-      return readMp4String(bytes.slice(Math.max(0,at-16),Math.min(bytes.length,at+256)));
+      return marker?readMp4AtomValue(bytes,marker):'';
     };
     if(!out.title)out.title=atom('title');
     if(!out.artist)out.artist=atom('artist');
@@ -618,6 +659,21 @@
       return {text:String(line?.text||'').trim(),time:startMs/1000,end:endMs/1000,words};
     }).filter(line=>line&&line.text);
   }
+  async function fetchBiniLyrics(title,artist,album,duration,signal){
+    const params=new URLSearchParams({title,artist,...(album?{album}:{}),...(duration?{duration:String(duration)}:{})});
+    const base='https://lyrics-api.binimum.org';
+    try{
+      const response=await fetch(base+'/v1/ttml/get?'+params,{signal,headers:{Accept:'application/xml,text/xml,text/plain'}});
+      if(response.ok){
+        const ttml=await response.text();
+        const lines=parseAppleTTML(ttml);
+        if(lines.length)return lines;
+      }
+    }catch(error){
+      if(error?.name==='AbortError')throw error;
+    }
+    return [];
+  }
   async function fetchLyricsPlus(title,artist,album,duration,signal){
     const mirrors=[
       'https://lyricsplus.binimum.org',
@@ -654,9 +710,12 @@
     const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);
     try{
       if(status)status.textContent='Finding synchronized lyrics…';
-      let lines=await fetchLyricsPlus(title,artist,album,duration,controller.signal);
+      let lines=await fetchBiniLyrics(title,artist,album,duration,controller.signal);
       if(request!==lyricsRequest)return false;
-      if(setLyricsFromLines(lines,'Synchronized lyrics fetched from BiniLyrics.'))return true;
+      if(setLyricsFromLines(lines,'Synchronized lyrics fetched from BiniLyrics TTML.'))return true;
+      lines=await fetchLyricsPlus(title,artist,album,duration,controller.signal);
+      if(request!==lyricsRequest)return false;
+      if(setLyricsFromLines(lines,'Synchronized lyrics fetched from LyricsPlus.'))return true;
 
       const params=new URLSearchParams({s:title,a:artist,al:album,d:String(duration)});
       let response=await fetch('https://api.betterlyrics.org/getLyrics?'+params,{signal:controller.signal,headers:{Accept:'application/json'}});
@@ -714,6 +773,10 @@
         applyIdentifiedTrack(best);
         renderSongSuggestions(matches.slice(0,5).map(item=>({...item})));
         if(status)status.textContent='Track identified. Finding lyrics…';
+        await loadAutomaticLyrics();
+      }else if(songTitle.value.trim()&&songArtist.value.trim()){
+        renderSongSuggestions(matches.slice(0,5).map(item=>({...item})));
+        if(status)status.textContent='Using embedded song details. Finding lyrics…';
         await loadAutomaticLyrics();
       }else{
         renderSongSuggestions(matches.slice(0,5).map(item=>({...item})));
