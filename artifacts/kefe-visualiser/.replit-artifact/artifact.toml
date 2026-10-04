@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "KEFE Visualiser"
+description = "A browser-based music visualiser and lyric-video editor for creating and exporting animated lyric videos. Includes audio and video import, synchronized lyrics, visualiser presets, effects, and export controls."
+version = "1.0.0"
+id = "artifacts/kefe-visualiser"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24968
+
+[services.development]
+run = "pnpm --filter @workspace/kefe-visualiser run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/kefe-visualiser", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/kefe-visualiser/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24968"
+BASE_PATH = "/"

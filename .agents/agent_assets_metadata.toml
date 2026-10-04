@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "QoazgMC7AjQ31Kw7FCGBM"
+uri = "file://.local/outputs/KEFE-Visualiser-Complete.zip"
+type = "unspecified"
+title = "KEFE Visualiser — Complete ZIP"
+description = "Includes the full Replit artifact source and a standalone browser-app copy with assets and run instructions. ZIP integrity verified."
+logical_id = "e768cb9b-ef31-45e9-bddf-b395d6151f2a"
+content_hash = "sha256:307fdf019a514eefe82a6bd41901bdbc090922fa536359b344868e1a9d217fcc"
+size = 5603323
+mtime_ms = 1791078236693
+storage_uri = "gcs://replit-rams-assets-reed/rams/assets/repl:afc9624a-5376-4e5b-8034-ad163f059e20/e768cb9b-ef31-45e9-bddf-b395d6151f2a/122e1528-d8df-41a5-ba11-b64a5eb844ca"
+storage_version_token = "1791078240998124"
+content_type = "application/octet-stream"

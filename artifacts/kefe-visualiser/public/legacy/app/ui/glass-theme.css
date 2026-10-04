@@ -1,0 +1,870 @@
+/* KEFE Studio — light neumorphism with a dark, glassy preview */
+:root {
+  color-scheme: light;
+  --bg: #eff0ed;
+  --surface: #f3f4f1;
+  --surface-hi: #fafbf9;
+  --surface-lo: #d9ddda;
+  --preview: #171927;
+  --text: #252837;
+  --muted: #747987;
+  --soft: #9ca1aa;
+  --line: rgba(58, 65, 82, .13);
+  --line-soft: rgba(58, 65, 82, .075);
+  --accent: #8fa99b;
+  --accent-hover: #809c8c;
+  --accent-pressed: #728b7d;
+  --accent-deep: #292c3d;
+  --focus: #8eaab8;
+  --inner: inset 3px 3px 8px rgba(125, 133, 143, .16), inset -3px -3px 8px rgba(255, 255, 255, .88);
+  --lift: 6px 7px 16px rgba(125, 133, 143, .15), -5px -5px 14px rgba(255, 255, 255, .86);
+  --float: 10px 12px 24px rgba(125, 133, 143, .2), -8px -8px 20px rgba(255, 255, 255, .92);
+  --in-md: inset 3px 3px 7px rgba(125, 133, 143, .17), inset -3px -3px 7px rgba(255, 255, 255, .78);
+  --r1: 8px;
+  --r2: 14px;
+  --r3: 24px;
+  --panel-pad: 14px;
+  --panel-pad-x: 24px;
+  --section-gap: 12px;
+  --control-gap: 8px;
+  --control-h: 42px;
+  --control-pad: 14px;
+  --tab-h: 38px;
+  --timeline-h: 70px;
+  --grid-gap: 10px;
+  --panel-max: 1360px;
+}
+
+html,
+body {
+  background:
+    radial-gradient(ellipse at 50% -30%, rgba(255,255,255,.95), transparent 65%),
+    var(--bg);
+  color: var(--text);
+  font-family: "Inter Tight", "Inter", system-ui, sans-serif;
+}
+
+body { letter-spacing: -.015em; }
+
+.kefe-editor {
+  grid-template-rows: 68px minmax(0, 1fr);
+  background: transparent;
+}
+
+.kefe-top {
+  height: 50px;
+  margin: 9px 20px 0;
+  padding: 0 12px;
+  border: 1px solid rgba(255,255,255,.78);
+  border-radius: 18px;
+  background: rgba(249,250,247,.76);
+  box-shadow: 0 6px 22px rgba(90,98,109,.08), inset 0 1px 0 rgba(255,255,255,.9);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.kefe-top-nav,
+.kefe-top-profile { gap: 7px; }
+
+.kefe-brand,
+.kefe-top-link {
+  height: 36px;
+  min-height: 36px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.kefe-brand {
+  width: 38px;
+  border: 1px solid var(--line-soft);
+  border-radius: 13px;
+  background: var(--surface);
+  box-shadow: var(--lift);
+}
+
+.kefe-brand img { width: 22px; height: 22px; }
+
+.kefe-brand:hover,
+.kefe-top-link:hover {
+  background: var(--surface-hi);
+  color: var(--accent-deep);
+  box-shadow: var(--lift);
+  transform: translateY(-1px);
+}
+
+.kefe-top-link {
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.kefe-top-link:focus-visible,
+.kefe-brand:focus-visible {
+  outline: 2px solid rgba(142,170,184,.72);
+  outline-offset: 2px;
+}
+
+.kefe-work {
+  grid-template-rows: minmax(270px, 1fr) var(--timeline-h) minmax(250px, 32vh);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.kefe-preview {
+  padding: 14px 30px 6px;
+  background: transparent;
+}
+
+.kefe-stage {
+  width: min(1360px, calc(100% - 20px));
+  max-height: calc(100% - 12px);
+  border: 1px solid rgba(255,255,255,.75);
+  border-radius: 28px;
+  background: #171927;
+  box-shadow: 0 22px 50px rgba(28,31,44,.18), 0 2px 8px rgba(28,31,44,.08);
+  isolation: isolate;
+}
+
+.kefe-stage::before {
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 78% 18%, rgba(109,126,157,.18), transparent 38%),
+    radial-gradient(ellipse at 18% 88%, rgba(116,150,145,.14), transparent 44%),
+    linear-gradient(145deg, #1b1e30, #11131f 72%);
+  border-radius: inherit;
+}
+
+.kefe-stage::after {
+  content: "LIVE PREVIEW";
+  position: absolute;
+  z-index: 4;
+  top: 18px;
+  left: 19px;
+  padding: 7px 11px 7px 23px;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 11px 50%, #a1cdb0 0 3px, transparent 3.5px),
+    rgba(255,255,255,.085);
+  color: rgba(248,249,255,.8);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  line-height: 1;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  pointer-events: none;
+}
+
+.kefe-preview-fullscreen {
+  top: 16px;
+  right: 17px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.11);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.kefe-preview-fullscreen:hover {
+  background: rgba(255,255,255,.19);
+  box-shadow: 0 8px 22px rgba(0,0,0,.24);
+}
+
+.kefe-stage:fullscreen,
+.kefe-stage.kefe-pseudo-fullscreen {
+  background: #171927;
+}
+
+.kefe-timeline {
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 10px clamp(22px, 4vw, 56px);
+  background: transparent;
+}
+
+.kefe-play {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,.72);
+  background: var(--surface);
+  color: var(--accent-deep);
+  box-shadow: var(--lift);
+}
+
+.kefe-play:hover { background: var(--surface-hi); }
+
+.kefe-time {
+  min-width: 94px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.kefe-wave {
+  height: 42px;
+  border: 1px solid rgba(255,255,255,.84);
+  border-radius: 16px;
+  background: rgba(249,250,247,.74);
+  box-shadow: var(--inner);
+}
+
+.kefe-slider { height: 42px; }
+.kefe-slider::-webkit-slider-runnable-track { height: 42px; }
+.kefe-slider::-moz-range-track { height: 42px; }
+.kefe-wave .playhead {
+  top: 7px;
+  bottom: 7px;
+  width: 2px;
+  background: var(--accent-deep);
+  box-shadow: 0 0 8px rgba(41,44,61,.22);
+  opacity: .8;
+}
+
+.kefe-aspect-controls {
+  width: 82px;
+  min-width: 82px;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--lift);
+}
+
+.kefe-aspect-select {
+  height: 32px;
+  border-radius: 10px;
+  background-color: var(--surface-hi);
+}
+
+.kefe-editing {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 48px minmax(0, 1fr);
+  gap: 2px;
+  background: transparent;
+}
+
+.kefe-tabs {
+  width: min(1360px, calc(100% - 60px));
+  height: 42px;
+  min-height: 42px;
+  margin: 0 auto;
+  padding: 4px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid rgba(255,255,255,.83);
+  border-radius: 15px;
+  background: rgba(249,250,247,.78);
+  box-shadow: 0 5px 18px rgba(90,98,109,.07), inset 0 1px 0 rgba(255,255,255,.9);
+  scrollbar-width: none;
+}
+
+.kefe-tabs::-webkit-scrollbar { display: none; }
+
+.kefe-section {
+  height: 32px;
+  min-height: 32px;
+  flex: 0 0 auto;
+  padding: 0 17px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  text-align: center;
+  box-shadow: none;
+}
+
+.kefe-section:hover {
+  background: rgba(255,255,255,.72);
+  color: var(--text);
+  box-shadow: var(--inner);
+}
+
+.kefe-section:active { box-shadow: var(--inner); }
+
+.kefe-section.active {
+  border-color: rgba(255,255,255,.12);
+  background: #292c3d;
+  color: #f7f8fa;
+  box-shadow: 0 4px 10px rgba(35,38,54,.2), inset 0 1px 0 rgba(255,255,255,.11);
+}
+
+.kefe-section.active::before { display: none; }
+
+.kefe-panels {
+  min-height: 0;
+  padding: 8px 30px 18px;
+  overflow: auto;
+  scrollbar-color: rgba(100,110,125,.28) transparent;
+  scrollbar-width: thin;
+}
+
+.kefe-panel {
+  max-width: var(--panel-max);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 17px 20px 19px;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 22px;
+  background: rgba(247,248,245,.78);
+  box-shadow: 0 12px 30px rgba(105,113,123,.1), inset 0 1px 0 rgba(255,255,255,.95);
+}
+
+.kefe-panel-head {
+  min-height: 31px;
+  margin-bottom: 13px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.kefe-panel h2 {
+  color: var(--accent-deep);
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -.025em;
+}
+
+.kefe-panel-head .kefe-meta {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.kefe-form { gap: 10px; }
+
+.kefe-label {
+  margin-bottom: 6px;
+  color: #858b95;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.kefe-select,
+.kefe-input,
+.kefe-textarea {
+  min-height: 40px;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 12px;
+  background: #f2f3f0;
+  box-shadow: var(--inner);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.kefe-select:hover,
+.kefe-input:hover,
+.kefe-textarea:hover {
+  background: var(--surface-hi);
+  box-shadow: var(--lift);
+}
+
+.kefe-select:focus,
+.kefe-input:focus,
+.kefe-textarea:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 3px rgba(142,170,184,.23), var(--inner);
+}
+
+.kefe-input::placeholder,
+.kefe-textarea::placeholder { color: #a3a8b0; }
+
+.kefe-btn {
+  min-height: 40px;
+  border: 1px solid rgba(255,255,255,.78);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--lift);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.kefe-btn.primary {
+  border-color: transparent;
+  background: #292c3d;
+  color: #f9fafb;
+  box-shadow: 0 6px 14px rgba(35,38,54,.18), inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+.kefe-btn.primary:hover { background: #383c52; }
+
+.kefe-upload-zone {
+  min-height: 118px;
+  border: 1px dashed rgba(93,108,121,.34);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(245,246,243,.95), rgba(235,237,233,.8));
+  box-shadow: var(--inner);
+}
+
+.kefe-upload-zone:hover,
+.kefe-upload-zone.is-dragging {
+  border-color: var(--accent);
+  background: #f8faf7;
+  box-shadow: var(--lift);
+}
+
+.kefe-upload-title { font-size: 12px; }
+.kefe-upload-name { color: var(--muted); font-size: 10px; }
+.kefe-upload-help { color: var(--soft); font-size: 9px; }
+
+.kefe-media-track,
+.kefe-suggestions,
+.kefe-song-search,
+.kefe-font-card,
+.kefe-empty-panel,
+.kefe-visualiser-intro,
+.kefe-visualiser-control-group {
+  border: 1px solid rgba(255,255,255,.88);
+  border-radius: 16px;
+  background: rgba(250,251,248,.72);
+  box-shadow: var(--inner);
+}
+
+.kefe-media-track { padding: 10px; }
+.kefe-media-track-art { border-radius: 12px; }
+
+.kefe-card,
+.kefe-song-search-button,
+.kefe-song-result,
+.kefe-suggestion,
+.kefe-visualiser-preset {
+  border: 1px solid rgba(255,255,255,.84);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--lift);
+}
+
+.kefe-card strong,
+.kefe-suggestion-name { color: var(--text); }
+
+.kefe-card.active,
+.kefe-visualiser-preset.active {
+  border-color: rgba(143,169,155,.42);
+  background: #e8eee9;
+  box-shadow: var(--inner);
+}
+
+.kefe-panel[data-panel-view="media"] .kefe-form {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(40px, auto);
+}
+
+.kefe-panel[data-panel-view="media"] .kefe-upload-zone {
+  grid-column: 1 / span 2;
+  grid-row: 1 / span 2;
+  min-height: 112px;
+  border-radius: 18px;
+}
+
+.kefe-panel[data-panel-view="media"] .kefe-media-track,
+.kefe-panel[data-panel-view="media"] .kefe-suggestions {
+  grid-column: 1 / -1;
+}
+
+.kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songTitle) {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songArtist) {
+  grid-column: 4;
+  grid-row: 1;
+}
+
+.kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songAlbum) {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songYear) {
+  grid-column: 4;
+  grid-row: 2;
+}
+
+.kefe-panel[data-panel-view="media"] .kefe-media-track { min-height: 112px; }
+
+.kefe-panel[data-panel-view="media"] .kefe-suggestions {
+  align-self: stretch;
+  padding: 11px 13px;
+}
+
+.kefe-panel[data-panel-view="media"] .kefe-input {
+  background: #f2f3f0;
+  border: 1px solid rgba(255,255,255,.9);
+}
+
+.kefe-panel[data-panel-view="lyrics"] .kefe-form {
+  grid-template-columns: minmax(0, 1.35fr) minmax(270px, .85fr);
+}
+
+.kefe-panel[data-panel-view="lyrics"] .kefe-textarea {
+  min-height: 180px;
+  line-height: 1.55;
+}
+
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing {
+  align-self: start;
+  border: 1px solid rgba(255,255,255,.86);
+  border-radius: 16px;
+  background: rgba(250,251,248,.76);
+  box-shadow: var(--inner);
+}
+
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-value {
+  border: 1px solid rgba(255,255,255,.88);
+  border-radius: 11px;
+  background: var(--surface);
+  box-shadow: var(--lift);
+}
+
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-webkit-slider-thumb,
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-moz-range-thumb {
+  border-color: rgba(255,255,255,.9);
+  background: var(--surface-hi);
+  box-shadow: var(--lift);
+}
+
+.kefe-panel[data-panel-view="effects"] .kefe-form {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card {
+  grid-column: span 2;
+  align-self: end;
+  min-height: 62px;
+  padding: 11px 14px;
+}
+
+.kefe-panel[data-panel-view="effects"] .kefe-select {
+  background: #f2f3f0;
+  border: 1px solid rgba(255,255,255,.9);
+}
+
+.kefe-font-name { color: var(--accent-deep); font-size: 15px; }
+
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-intro {
+  grid-column: 1 / -1;
+  padding: 10px 14px;
+}
+
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group {
+  padding: 12px;
+}
+
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-preset-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-height: 132px;
+}
+
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-preset {
+  min-height: 34px;
+  padding: 7px 9px;
+  font-size: 10px;
+}
+
+.kefe-panel[data-panel-view="export"] .kefe-form {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.kefe-panel[data-panel-view="export"] .kefe-empty-panel {
+  grid-column: 1 / -1;
+}
+
+.kefe-settings-backdrop { background: rgba(26,29,42,.42); backdrop-filter: blur(8px); }
+
+.kefe-settings {
+  border: 1px solid rgba(255,255,255,.82);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: 0 20px 60px rgba(32,36,50,.2);
+}
+
+@media (max-width: 1080px) {
+  .kefe-panel[data-panel-view="media"] .kefe-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kefe-panel[data-panel-view="media"] .kefe-upload-zone { grid-column: 1 / -1; grid-row: auto; }
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songTitle),
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songArtist),
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songAlbum),
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songYear) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .kefe-panel[data-panel-view="media"] .kefe-media-track,
+  .kefe-panel[data-panel-view="media"] .kefe-suggestions { grid-column: 1 / -1; }
+}
+
+@media (max-width: 900px) {
+  .kefe-editor { grid-template-rows: 60px minmax(0, 1fr); }
+  .kefe-work {
+    grid-template-rows: minmax(170px, .82fr) 62px minmax(260px, 1fr);
+  }
+  .kefe-preview { padding: 10px 18px 4px; }
+  .kefe-stage { width: min(100%, 900px); border-radius: 22px; }
+  .kefe-timeline { padding: 8px 18px; gap: 9px; }
+  .kefe-editing { grid-row: 3; grid-template-rows: 46px minmax(0, 1fr); }
+  .kefe-tabs { width: calc(100% - 32px); height: 40px; min-height: 40px; }
+  .kefe-panels { padding: 7px 16px 14px; }
+  .kefe-panel { padding: 15px 16px 17px; }
+  .kefe-panel[data-panel-view="effects"] .kefe-form,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form,
+  .kefe-panel[data-panel-view="export"] .kefe-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card { grid-column: 1 / -1; }
+}
+
+@media (max-width: 700px) {
+  .kefe-editor { grid-template-rows: 56px minmax(0, 1fr); }
+  .kefe-work { grid-template-rows: minmax(150px, .72fr) 56px minmax(270px, 1fr); }
+  .kefe-top { margin: 6px 10px 0; height: 44px; }
+  .kefe-top-link { height: 32px; min-height: 32px; padding: 0 9px; font-size: 11px; }
+  .kefe-brand { width: 34px; height: 34px; min-height: 34px; }
+  .kefe-brand img { width: 20px; height: 20px; }
+  .kefe-preview { padding: 8px 10px 3px; }
+  .kefe-stage { width: min(100%, calc(100vw - 20px)); border-radius: 18px; }
+  .kefe-stage::after { top: 10px; left: 10px; padding: 6px 8px 6px 19px; font-size: 8px; }
+  .kefe-preview-fullscreen { top: 8px; right: 8px; width: 32px; height: 32px; }
+  .kefe-timeline { grid-template-columns: auto 65px minmax(0, 1fr) auto; height: 56px; padding: 6px 10px; gap: 7px; }
+  .kefe-play { width: 36px; height: 36px; }
+  .kefe-time { min-width: 65px; width: 65px; font-size: 10px; }
+  .kefe-wave { height: 38px; border-radius: 13px; }
+  .kefe-slider { height: 38px; }
+  .kefe-slider::-webkit-slider-runnable-track,
+  .kefe-slider::-moz-range-track { height: 38px; }
+  .kefe-aspect-controls { width: 67px; min-width: 67px; height: 38px; }
+  .kefe-aspect-select { height: 28px; padding-left: 6px; font-size: 10px; }
+  .kefe-editing { grid-template-rows: 46px minmax(0, 1fr); }
+  .kefe-tabs { width: calc(100% - 20px); height: 38px; min-height: 38px; padding: 3px; }
+  .kefe-section { height: 30px; min-height: 30px; padding: 0 12px; font-size: 10px; }
+  .kefe-panels { padding: 6px 10px 14px; }
+  .kefe-panel { padding: 14px 13px 15px; border-radius: 17px; }
+  .kefe-panel-head { align-items: flex-start; gap: 8px; }
+  .kefe-panel-head .kefe-meta { font-size: 10px; }
+  .kefe-panel[data-panel-view="lyrics"] .kefe-form,
+  .kefe-panel[data-panel-view="effects"] .kefe-form,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form,
+  .kefe-panel[data-panel-view="export"] .kefe-form { grid-template-columns: 1fr; }
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-intro,
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card { grid-column: auto; }
+  .kefe-panel[data-panel-view="lyrics"] .kefe-textarea { min-height: 148px; }
+}
+
+@media (max-width: 420px) {
+  .kefe-top { padding: 0 6px; }
+  .kefe-top-nav,
+  .kefe-top-profile { gap: 2px; }
+  .kefe-top-link { padding: 0 7px; font-size: 10px; }
+  .kefe-brand { width: 31px; }
+  .kefe-timeline { grid-template-columns: 34px 58px minmax(0, 1fr) 58px; gap: 5px; padding: 6px; }
+  .kefe-time { width: 58px; min-width: 58px; font-size: 9px; }
+  .kefe-aspect-controls { width: 58px; min-width: 58px; }
+  .kefe-aspect-select { padding-right: 15px; font-size: 9px; }
+  .kefe-panel-head { display: grid; }
+  .kefe-panel-head .kefe-meta { text-align: left; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
+
+/* KEFE — porcelain controls, indigo canvas */
+:root {
+  --bg: #e9eae8;
+  --surface: #f0f1ef;
+  --surface-hi: #f8f9f7;
+  --surface-lo: #d6d9d7;
+  --preview: #171a2b;
+  --text: #292d3c;
+  --muted: #686e7b;
+  --soft: #858b96;
+  --line: rgba(57, 63, 80, .15);
+  --line-soft: rgba(57, 63, 80, .085);
+  --accent: #8da99c;
+  --accent-hover: #7e9c8e;
+  --accent-pressed: #708c7e;
+  --accent-deep: #2d3145;
+  --focus: #668d9c;
+  --inner: inset 3px 3px 7px rgba(111, 119, 130, .17), inset -3px -3px 7px rgba(255, 255, 255, .92);
+  --lift: 5px 6px 13px rgba(102, 110, 122, .15), -4px -4px 11px rgba(255, 255, 255, .9);
+  --float: 8px 9px 19px rgba(93, 102, 115, .19), -6px -6px 15px rgba(255, 255, 255, .94);
+  --in-md: inset 2px 2px 5px rgba(111, 119, 130, .2), inset -2px -2px 5px rgba(255, 255, 255, .82);
+}
+
+html,
+body {
+  background:
+    radial-gradient(ellipse at 50% -32%, rgba(255, 255, 255, .94), transparent 66%),
+    var(--bg);
+}
+
+.kefe-top,
+.kefe-tabs {
+  border-color: rgba(255, 255, 255, .88);
+  background: rgba(246, 247, 245, .82);
+  box-shadow: 0 5px 18px rgba(82, 90, 104, .075), inset 0 1px 0 rgba(255, 255, 255, .96);
+}
+
+.kefe-stage,
+.kefe-stage:fullscreen,
+.kefe-stage.kefe-pseudo-fullscreen {
+  background: var(--preview);
+}
+
+.kefe-stage::before {
+  background:
+    radial-gradient(ellipse at 78% 18%, rgba(111, 125, 166, .2), transparent 39%),
+    radial-gradient(ellipse at 17% 90%, rgba(117, 157, 151, .13), transparent 46%),
+    linear-gradient(145deg, #20243a, #131522 72%);
+}
+
+.kefe-preview-fullscreen {
+  border-color: rgba(246, 247, 255, .2);
+  background: rgba(246, 247, 255, .105);
+  color: rgba(255, 255, 255, .96);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .2), inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+
+.kefe-preview-fullscreen:hover {
+  background: rgba(246, 247, 255, .18);
+  box-shadow: 0 7px 20px rgba(0, 0, 0, .24), inset 0 1px 0 rgba(255, 255, 255, .16);
+}
+
+.kefe-time,
+.kefe-meta,
+.kefe-panel-head .kefe-meta {
+  font-variant-numeric: tabular-nums;
+}
+
+.kefe-select,
+.kefe-input,
+.kefe-textarea {
+  border-color: rgba(255, 255, 255, .9);
+  background-color: #eff0ee;
+}
+
+.kefe-select:focus-visible,
+.kefe-input:focus-visible,
+.kefe-textarea:focus-visible,
+.kefe-btn:focus-visible,
+.kefe-control:focus-visible,
+.kefe-play:focus-visible,
+.kefe-section:focus-visible,
+.kefe-card:focus-visible,
+.kefe-song-search-button:focus-visible,
+.kefe-song-result:focus-visible,
+.kefe-suggestion:focus-visible,
+.kefe-visualiser-preset:focus-visible,
+.kefe-upload-zone:focus-within,
+.kefe-lyrics-timing-step:focus-visible,
+.kefe-lyrics-timing-reset:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.kefe-select,
+.kefe-input,
+.kefe-textarea,
+.kefe-btn,
+.kefe-control,
+.kefe-section,
+.kefe-card,
+.kefe-song-search-button,
+.kefe-song-result,
+.kefe-suggestion,
+.kefe-visualiser-preset,
+.kefe-upload-zone,
+.kefe-play {
+  transition:
+    background-color .16s ease,
+    border-color .16s ease,
+    box-shadow .16s ease,
+    color .16s ease,
+    transform .16s ease;
+}
+
+.kefe-btn.primary {
+  background: var(--accent-deep);
+  color: #f8f9fc;
+}
+
+.kefe-btn.primary:hover {
+  background: #3a4058;
+}
+
+.kefe-btn.primary:active {
+  background: #25293b;
+  box-shadow: inset 2px 2px 5px rgba(12, 15, 27, .32), inset -1px -1px 3px rgba(255, 255, 255, .08);
+  transform: translateY(1px);
+}
+
+.kefe-section.active {
+  background: var(--accent-deep);
+}
+
+.kefe-card.active,
+.kefe-visualiser-preset.active {
+  border-color: rgba(112, 145, 128, .44);
+  background: #e7ede9;
+}
+
+.kefe-upload-zone {
+  color: var(--text);
+}
+
+.kefe-wave {
+  border-color: rgba(255, 255, 255, .9);
+  background: rgba(246, 247, 245, .82);
+}
+
+.kefe-settings {
+  color: var(--text);
+}
+
+@media (max-width: 700px) {
+  .kefe-panel,
+  .kefe-tabs,
+  .kefe-top {
+    box-shadow: 0 4px 12px rgba(82, 90, 104, .1), inset 0 1px 0 rgba(255, 255, 255, .86);
+  }
+
+  .kefe-stage::after {
+    letter-spacing: .1em;
+  }
+}
+
+@media (forced-colors: active) {
+  .kefe-select,
+  .kefe-input,
+  .kefe-textarea,
+  .kefe-btn,
+  .kefe-control,
+  .kefe-section,
+  .kefe-card,
+  .kefe-play,
+  .kefe-preview-fullscreen {
+    border: 1px solid ButtonText;
+  }
+
+  :focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: 3px;
+  }
+}
