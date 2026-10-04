@@ -294,7 +294,12 @@ button{border:0;cursor:pointer}
   border-bottom:1px solid var(--line-soft);
 }
 .kefe-panel[data-panel-view="effects"] .kefe-form{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
   gap:12px;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card{
+  grid-column:1 / -1;
 }
 .kefe-panel[data-panel-view="effects"] .kefe-select{
   background:var(--surface-hi);
