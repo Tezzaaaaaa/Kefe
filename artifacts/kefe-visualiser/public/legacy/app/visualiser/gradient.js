@@ -241,6 +241,9 @@
     /* wrap existing particle controls so the two engines can be switched */
     var particles=el('div','kefe-vis-view');particles.id='kefeVisParticlesView';
     while(form.firstChild)particles.appendChild(form.firstChild);
+    particles.insertBefore(toggle('Show particles',function(){return window.kefeVisualiserEnabled!==false;},function(v){
+      window.kefeVisualiserEnabled=v;var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
+    }),particles.firstChild);
     var gradient=el('div','kefe-vis-view kefe-gradient-view');gradient.id='kefeVisGradientView';gradient.hidden=true;
     var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');
     var tp=el('button','kefe-btn primary','Particles'),tg=el('button','kefe-btn','Gradient overlay');

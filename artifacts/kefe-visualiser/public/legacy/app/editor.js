@@ -304,7 +304,7 @@
     ctx.clearRect(0,0,canvas.width,canvas.height);
     // The WebGL visualiser is the background; this canvas only composites lyrics/title card.
     const ph=titlePhase(state.time);
-    if(state.lines.length&&ph.mode!=='hold'&&ph.mode!=='move'){
+    if(state.effect!=='none'&&state.lines.length&&ph.mode!=='hold'&&ph.mode!=='move'){
       const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
       if(typeof fn==='function'){
         try{
@@ -442,6 +442,7 @@
     return true;
   }
   const lyricEffectSelect=document.getElementById('lyricEffect');
+  {const off=document.createElement('option');off.value='none';off.textContent='Off (no lyrics)';lyricEffectSelect.appendChild(off);}
   effectDefinitions.forEach(([id,label])=>{
     const o=document.createElement('option');
     o.value=id;o.textContent=label;
@@ -1200,7 +1201,7 @@
       compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paint(compositeCtx,dims[0],dims[1],state.time);
       const vw=visualiserCanvas.width,vh=visualiserCanvas.height;
-      if(vw&&vh){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k;compositeCtx.save();compositeCtx.globalCompositeOperation='screen';compositeCtx.drawImage(visualiserCanvas,(dims[0]-dw)/2,(dims[1]-dh)/2,dw,dh);compositeCtx.restore();}
+      if(vw&&vh&&window.kefeVisualiserEnabled!==false){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k;compositeCtx.save();compositeCtx.globalCompositeOperation='screen';compositeCtx.drawImage(visualiserCanvas,(dims[0]-dw)/2,(dims[1]-dh)/2,dw,dh);compositeCtx.restore();}
       if(window.kefeGradientLayer)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
       compositeCtx.drawImage(canvas,0,0,dims[0],dims[1]);
     };

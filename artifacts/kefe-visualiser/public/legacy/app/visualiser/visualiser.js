@@ -985,6 +985,7 @@ const addControlLive = (id, label, min, max, def) => {
 
 const clock = new THREE.Clock();
 function animate() {
+  if (window.kefeVisualiserEnabled === false) { clock.getDelta(); requestAnimationFrame(animate); return; }
   const dt = Math.min(clock.getDelta(), 0.05);
   state.time += dt * state.speed;
   const time = state.time;

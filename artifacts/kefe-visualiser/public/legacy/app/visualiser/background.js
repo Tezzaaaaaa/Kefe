@@ -62,6 +62,7 @@
   /* paint(ctx,w,h,t) – used by the preview loop and by video export */
   function paint(g,w,h,t){
     g.save();g.fillStyle='#000';g.fillRect(0,0,w,h);
+    if(mode==='off'){g.restore();return;}
     if(useVideo()&&drawCover(g,vid,w,h)){g.restore();return;}
     prepareArt(artImage());
     var lw=480,lh=Math.max(2,Math.round(480*h/w));
@@ -104,7 +105,7 @@
   }
   function buildSelect(){
     sel=document.getElementById('visualiserBackground');if(!sel)return;
-    sel.innerHTML='<option value="apple">Apple Motion Art</option><option value="video" disabled>Uploaded video</option>';
+    sel.innerHTML='<option value="off">Off</option><option value="apple">Apple Motion Art</option><option value="video" disabled>Uploaded video</option>';
     sel.value='apple';
     sel.addEventListener('change',function(){setMode(sel.value==='video'&&!vid?'apple':sel.value);});
   }
