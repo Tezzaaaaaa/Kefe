@@ -898,7 +898,7 @@ color.setHSL(hue, 0.9, light);`
    ============================================================ */
 const canvas = document.getElementById('kefeVisualiserCanvas');const stage = canvas?.closest('.kefe-stage');
 if (!canvas) throw new Error('KEFE visualiser canvas is missing from the preview stage.');
-canvas.style.visibility = 'visible';
+canvas.style.visibility = 'hidden';
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x000000, 0.01);
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
@@ -925,7 +925,7 @@ const material = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: tr
 
 let instancedMesh = null;
 let positions = null;
-window.kefeParticleVisualiserActive = true;
+window.kefeParticleVisualiserActive = false;
 const initialCount = 8000;
 let currentCount = initialCount;
 
@@ -1150,6 +1150,9 @@ function setPreset(preset, opts) {
   document.getElementById('visualiserSceneName').textContent = preset.name;
   document.getElementById('visualiserSceneDesc').textContent = preset.desc;
   compileInjection(preset);
+  window.kefeParticleVisualiserActive = true;
+  canvas.style.visibility = 'visible';
+  rebuild(state.count);
   presetSelect.value = preset.key;
   renderParamSliders();
   renderPresetGrid();
@@ -1189,8 +1192,7 @@ speedInput.addEventListener('input',e=>{state.speed=parseFloat(e.target.value)||
 spinButton.addEventListener('click',()=>{state.autoSpin=!state.autoSpin;spinButton.textContent=state.autoSpin?'On':'Off';});
 countInput.value = String(initialCount);
 spinButton.textContent = initialSpin ? 'On' : 'Off';
-setPreset(PRESETS[0],{toast:false});
-rebuild(initialCount);
+renderPresetGrid();
 resize();
 animate();
 window.dispatchEvent(new Event('kefe-effects-ready'));
