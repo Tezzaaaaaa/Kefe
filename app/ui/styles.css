@@ -281,6 +281,50 @@ button{border:0;cursor:pointer}
 .kefe-font-card,.kefe-empty-panel{
   border:0;border-radius:var(--r2);background:var(--surface);box-shadow:var(--lift);
 }
+/* KEFE LYRICS PANEL CONSISTENCY */
+.kefe-panel[data-panel-view="lyrics"]{
+  background:var(--surface);
+  border:1px solid var(--line-soft);
+  border-radius:var(--r3);
+  box-shadow:var(--lift);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-panel-head{
+  margin-bottom:16px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--line-soft);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-form{
+  gap:12px;
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-textarea{
+  min-height:180px;
+  padding:12px;
+  border:1px solid var(--line-soft);
+  border-radius:var(--r2);
+  background:var(--surface-hi);
+  box-shadow:var(--inner);
+  line-height:1.5;
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-textarea::placeholder{
+  color:var(--soft);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-textarea:hover{
+  background:var(--surface-hi);
+  box-shadow:var(--lift);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-textarea:focus{
+  background:var(--surface-hi);
+  box-shadow:0 0 0 3px rgba(143,175,193,.28),var(--inner);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-label{
+  color:var(--muted);
+}
+@media(max-width:700px){
+  .kefe-panel[data-panel-view="lyrics"] .kefe-textarea{
+    min-height:160px;
+  }
+}
+
 /* KEFE MEDIA PANEL CONSISTENCY */
 .kefe-panel[data-panel-view="media"]{
   background:var(--surface);
