@@ -641,17 +641,17 @@ button{border:0;cursor:pointer}
 /* KEFE LYRICS TIMING CONTROL */
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing{
   min-width:0;
-  padding:14px;
+  padding:12px;
   border:1px solid var(--line-soft);
   border-radius:var(--r2);
-  background:var(--surface);
+  background:var(--surface-hi);
   box-shadow:var(--inner);
 }
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-head{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
-  gap:16px;
+  gap:12px;
 }
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-head .kefe-meta{
   margin-top:4px;
@@ -661,43 +661,95 @@ button{border:0;cursor:pointer}
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-value{
   flex:0 0 auto;
   min-width:68px;
-  padding:7px 9px;
+  min-height:32px;
+  display:grid;
+  place-items:center;
+  padding:0 9px;
   border:1px solid var(--line-soft);
-  border-radius:var(--r1);
-  background:var(--surface-hi);
-  box-shadow:var(--inner);
+  border-radius:var(--r2);
+  background:var(--surface);
+  box-shadow:var(--lift);
   color:var(--text);
   font-size:12px;
   font-variant-numeric:tabular-nums;
   font-weight:800;
-  text-align:center;
 }
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-controls{
   display:grid;
   grid-template-columns:auto minmax(120px,1fr) auto;
   align-items:center;
   gap:10px;
-  margin-top:14px;
+  margin-top:12px;
 }
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-step{
   min-width:78px;
-  min-height:36px;
+  min-height:var(--control-h);
   padding:0 10px;
   font-size:11px;
   font-weight:700;
   white-space:nowrap;
 }
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider{
+  position:relative;
+  inset:auto;
+  z-index:auto;
   width:100%;
+  height:var(--control-h);
   min-width:0;
   margin:0;
+  padding:0;
+  appearance:none;
+  -webkit-appearance:none;
+  background:transparent;
+  border:0;
+  border-radius:999px;
+  outline:none;
+  cursor:pointer;
+  touch-action:pan-x;
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-webkit-slider-runnable-track{
+  height:8px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--surface);
+  box-shadow:var(--inner);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-moz-range-track{
+  height:8px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--surface);
+  box-shadow:var(--inner);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-webkit-slider-thumb{
+  appearance:none;
+  -webkit-appearance:none;
+  width:18px;
+  height:18px;
+  margin-top:-6px;
+  border:1px solid var(--line);
+  border-radius:50%;
+  background:var(--surface);
+  box-shadow:var(--lift);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-moz-range-thumb{
+  width:18px;
+  height:18px;
+  border:1px solid var(--line);
+  border-radius:50%;
+  background:var(--surface);
+  box-shadow:var(--lift);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider:focus-visible{
+  box-shadow:0 0 0 3px rgba(143,175,193,.28);
+  border-radius:999px;
 }
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-foot{
   display:grid;
   grid-template-columns:1fr auto 1fr;
   align-items:center;
   gap:8px;
-  margin-top:8px;
+  margin-top:6px;
   color:var(--soft);
   font-size:10px;
   font-variant-numeric:tabular-nums;
@@ -706,7 +758,7 @@ button{border:0;cursor:pointer}
   text-align:right;
 }
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-reset{
-  min-height:30px;
+  min-height:32px;
   padding:0 10px;
   font-size:10px;
   font-weight:700;
@@ -721,13 +773,10 @@ button{border:0;cursor:pointer}
     align-items:start;
     gap:10px;
   }
-  .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-head .kefe-meta{
-    max-width:none;
-  }
   .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-controls{
     grid-template-columns:72px minmax(0,1fr) 72px;
     gap:7px;
-    margin-top:12px;
+    margin-top:10px;
   }
   .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-step{
     min-width:0;
