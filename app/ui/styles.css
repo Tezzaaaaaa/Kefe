@@ -41,11 +41,11 @@ button{border:0;cursor:pointer}
 .kefe-editor{height:100dvh;display:grid;grid-template-rows:56px minmax(0,1fr);background:var(--bg)}
 .kefe-top{display:flex;align-items:center;justify-content:space-between;margin:8px 12px 0;padding:0 8px;height:48px;border:1px solid var(--line-soft);border-radius:var(--r3);background:var(--surface);box-shadow:var(--lift);z-index:20}
 .kefe-top-nav,.kefe-top-actions,.kefe-top-profile{display:flex;align-items:center;gap:var(--control-gap)}
-.kefe-brand,.kefe-top-link{height:var(--control-h);min-height:var(--control-h);border:1px solid var(--line);background:var(--surface);box-shadow:var(--inner);transition:transform .16s ease,box-shadow .16s ease,background .16s ease,color .16s ease}
+.kefe-brand,.kefe-top-link{height:var(--control-h);min-height:var(--control-h);border:1px solid var(--line);background:var(--surface);box-shadow:var(--lift);transition:transform .16s ease,box-shadow .16s ease,background .16s ease,color .16s ease}
 .kefe-brand{width:var(--control-h);overflow:visible;padding:0;border-radius:50%;display:grid;place-items:center;user-select:none;color:var(--text)}
 .kefe-brand img{display:block;width:24px;height:24px;overflow:visible;object-fit:contain}
 .kefe-brand:hover,.kefe-top-link:hover{background:var(--surface-hi);color:var(--text);box-shadow:var(--lift);transform:translateY(-1px)}
-.kefe-brand:active,.kefe-top-link:active{background:var(--surface);transform:translateY(0);box-shadow:var(--in-md)}
+.kefe-brand:active,.kefe-top-link:active{background:var(--surface);transform:translateY(1px);box-shadow:var(--in-md)}
 .kefe-brand:focus-visible,.kefe-top-link:focus-visible{outline:2px solid rgba(143,175,193,.72);outline-offset:2px}
 .kefe-top-link{padding:0 13px;border-radius:var(--r2);color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.02em}
 .kefe-btn,.kefe-control{min-height:var(--control-h);padding:0 var(--control-pad);border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);box-shadow:var(--inner);transition:box-shadow .16s ease,transform .16s ease,background .16s ease}
