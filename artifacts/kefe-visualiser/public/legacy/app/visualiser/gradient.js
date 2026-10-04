@@ -126,12 +126,13 @@
     cv=document.createElement('canvas');cv.id='kefeGradientCanvas';cv.setAttribute('aria-hidden','true');
     var lyric=document.getElementById('kefeCanvas');
     stage.insertBefore(cv,lyric||null);cctx=cv.getContext('2d');
-    if(window.ResizeObserver)new ResizeObserver(function(){sizeCanvas();drawPreview();}).observe(stage);
+    if(window.ResizeObserver){var ro=new ResizeObserver(function(){sizeCanvas();drawPreview();});ro.observe(stage);ro.observe(cv);}
+    window.addEventListener('kefe-stage-resize',function(){sizeCanvas();drawPreview();});
     sizeCanvas();
   }
   function sizeCanvas(){
     if(!cv||!stage)return;
-    var r=stage.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2),sc=Math.min(1,1400/Math.max(r.width*dpr,r.height*dpr,1));
+    var r=(cv.clientWidth>2&&cv.clientHeight>2)?{width:cv.clientWidth,height:cv.clientHeight}:stage.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2),sc=Math.min(1,1400/Math.max(r.width*dpr,r.height*dpr,1));
     var w=Math.max(2,Math.round(r.width*dpr*sc)),h=Math.max(2,Math.round(r.height*dpr*sc));
     if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
   }

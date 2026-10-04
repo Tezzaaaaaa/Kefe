@@ -234,80 +234,96 @@
   if(lyricsTimingLater)lyricsTimingLater.addEventListener('click',()=>window.kefeSettings?.set('lyricOffset',Math.min(3,Math.round((lyricOffset()+.10)*100)/100)));
   if(lyricsTimingReset)lyricsTimingReset.addEventListener('click',()=>window.kefeSettings?.set('lyricOffset',0));
   syncLyricsTimingControl();
-  function drawTitleCardCanvas(ctx,w,h,t){
-    if(!state.lines.length)return;
-    if(window.kefeSettings&&!window.kefeSettings.get('titleCard'))return;
-    const title=songTitle.value.trim();
-    if(!title)return;
-    if(t<0)return;
+  /* Title card: Apple Music effect only.
+     hold   – card centred, nothing else on screen, until 1s before the first lyric
+     move   – card recedes to the top and becomes the landscape Apple Music header (art left, text right)
+     header – header stays pinned above the lyrics; lyrics are only drawn from here on */
+  function titlePhase(t){
+    if(state.effect!=='apple'||!state.lines.length)return {mode:'off'};
+    if(window.kefeSettings&&!window.kefeSettings.get('titleCard'))return {mode:'off'};
+    if(!songTitle.value.trim()||!(t>=0))return {mode:'off'};
     const first=Number(state.lines[0]?.time)+lyricOffset();
-    const beforeLyrics=!Number.isFinite(first)||t<first;
-    // Always fully opaque: the card is on top of the lyrics now and must remain visible.
-    const alpha=1;
-    const artist=songArtist.value.trim(),album=songAlbum.value.trim(),year=songYear.value.trim();
+    if(!Number.isFinite(first))return {mode:'off'};
+    const start=Math.max(0,first-1);
+    if(t<start)return {mode:'hold',p:0};
+    if(t<first){const x=(t-start)/Math.max(0.001,first-start);return {mode:'move',p:x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};}
+    return {mode:'header',p:1};
+  }
+  function drawTitleCardCanvas(ctx,w,h,t){
+    const ph=titlePhase(t);
+    if(ph.mode==='off')return;
+    const p=ph.p;
+    const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim(),year=songYear.value.trim();
     const meta=[album,year].filter(Boolean).join(' · ');
-    const img=titleArtImage;
-    const hasArt=!!(img&&img.complete&&img.naturalWidth>0);
-    const unit=Math.min(w,h);
-    const art=beforeLyrics?unit*.34:unit*.13,gap=beforeLyrics?unit*.04:unit*.02;
-    const tSize=beforeLyrics?Math.max(20,unit*.06):Math.max(14,unit*.026);
-    const aSize=beforeLyrics?Math.max(14,unit*.038):Math.max(11,unit*.019);
-    const mSize=beforeLyrics?Math.max(12,unit*.03):Math.max(10,unit*.016);
-    const textH=tSize*1.25+(artist?aSize*1.35:0)+(meta?mSize*1.4:0);
-    const totalH=art+gap+textH;
-    const top=beforeLyrics?(h-totalH)/2:Math.max(unit*.025,unit*.035);
-    const cx=w/2,maxW=w*.82;
-    const fit=(text,font)=>{ctx.font=font;let out=text;while(ctx.measureText(out).width>maxW&&out.length>3)out=out.slice(0,-2)+'…';return out;};
+    const img=titleArtImage,hasArt=!!(img&&img.complete&&img.naturalWidth>0);
+    const unit=Math.min(w,h),lerp=(a,b)=>a+(b-a)*p;
+    const font=(wt,size)=>wt+' '+size+'px "Inter Tight",system-ui,sans-serif';
+    // centred (hold) layout
+    const bigArt=unit*.34,bigGap=unit*.04,bt=Math.max(20,unit*.06),ba=Math.max(14,unit*.038),bm=Math.max(12,unit*.03);
+    const bigTextH=bt*1.25+(artist?ba*1.35:0)+(meta?bm*1.4:0),bigTop=(h-(bigArt+bigGap+bigTextH))/2;
+    // header layout – same column as the Apple lyrics
+    const aspect=w/Math.max(1,h),comp=aspect<.75?w*.84:(aspect<1.25?w*.78:w*.72);
+    const left=Math.max(0,(w-comp)/2)+comp*(31/390);
+    const hArt=unit*.11,hTop=Math.max(24,h*.035),hGap=unit*.028;
+    const ht=Math.max(13,unit*.036),hartist=Math.max(11,unit*.028),hm=Math.max(10,unit*.022);
+    const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,left),ay=lerp(bigTop,hTop),r=art*.08;
+    const maxW=w*.82;
+    const fit=(text,f,mw)=>{ctx.font=f;let out=text;while(ctx.measureText(out).width>mw&&out.length>3)out=out.slice(0,-2)+'…';return out;};
     ctx.save();
-    ctx.globalAlpha=alpha;
-    ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.textBaseline='top';
     // artwork
-    const ax=cx-art/2,r=art*.06;
-    ctx.save();
-    ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=unit*.04;ctx.shadowOffsetY=unit*.012;
-    ctx.beginPath();
-    ctx.moveTo(ax+r,top);ctx.arcTo(ax+art,top,ax+art,top+art,r);ctx.arcTo(ax+art,top+art,ax,top+art,r);ctx.arcTo(ax,top+art,ax,top,r);ctx.arcTo(ax,top,ax+art,top,r);ctx.closePath();
-    ctx.fillStyle='#222';ctx.fill();
-    ctx.restore();
-    if(hasArt){
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(ax+r,top);ctx.arcTo(ax+art,top,ax+art,top+art,r);ctx.arcTo(ax+art,top+art,ax,top+art,r);ctx.arcTo(ax,top+art,ax,top,r);ctx.arcTo(ax,top,ax+art,top,r);ctx.closePath();
-      ctx.clip();
-      try{ctx.drawImage(img,ax,top,art,art);}catch(err){console.warn('[KEFE title art]',err);}
+    const rr=()=>{ctx.beginPath();ctx.moveTo(ax+r,ay);ctx.arcTo(ax+art,ay,ax+art,ay+art,r);ctx.arcTo(ax+art,ay+art,ax,ay+art,r);ctx.arcTo(ax,ay+art,ax,ay,r);ctx.arcTo(ax,ay,ax+art,ay,r);ctx.closePath();};
+    ctx.save();ctx.shadowColor='rgba(0,0,0,'+lerp(.5,.35)+')';ctx.shadowBlur=unit*.04;ctx.shadowOffsetY=unit*.012;rr();ctx.fillStyle='#222';ctx.fill();ctx.restore();
+    if(hasArt){ctx.save();rr();ctx.clip();try{ctx.drawImage(img,ax,ay,art,art);}catch(err){console.warn('[KEFE title art]',err);}ctx.restore();}
+    ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=unit*.02;
+    // centred text fades out as the card recedes
+    if(p<1){
+      ctx.save();ctx.globalAlpha=Math.max(0,1-p*1.8);ctx.textAlign='center';
+      let y=ay+art+lerp(bigGap,bigGap*.5);const cx=w/2;
+      ctx.fillStyle='#fff';ctx.fillText(fit(title,font(750,bt),maxW),cx,y);y+=bt*1.25;
+      if(artist){ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillText(fit(artist,font(600,ba),maxW),cx,y);y+=ba*1.35;}
+      if(meta){ctx.fillStyle='rgba(255,255,255,.6)';ctx.fillText(fit(meta,font(500,bm),maxW),cx,y);}
       ctx.restore();
     }
-    // text
-    ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=unit*.02;
-    ctx.fillStyle='#fff';
-    let y=top+art+gap;
-    ctx.fillText(fit(title,'750 '+tSize+'px "Inter Tight",system-ui,sans-serif'),cx,y);
-    y+=tSize*1.25;
-    if(artist){
-      ctx.fillStyle='rgba(255,255,255,.85)';
-      ctx.fillText(fit(artist,'600 '+aSize+'px "Inter Tight",system-ui,sans-serif'),cx,y);
-      y+=aSize*1.35;
-    }
-    if(meta){
-      ctx.fillStyle='rgba(255,255,255,.6)';
-      ctx.fillText(fit(meta,'500 '+mSize+'px "Inter Tight",system-ui,sans-serif'),cx,y);
+    // header text (right of the artwork) fades in
+    if(p>0){
+      ctx.save();ctx.globalAlpha=Math.max(0,(p-.35)/.65);ctx.textAlign='left';
+      const tx=ax+art+hGap,mw=Math.max(40,left+comp*(1-2*31/390)-tx);
+      const blockH=ht*1.25+(artist?hartist*1.35:0)+(meta?hm*1.4:0);
+      let y=ay+(art-blockH)/2;
+      ctx.fillStyle='#fff';ctx.fillText(fit(title,font(750,ht),mw),tx,y);y+=ht*1.25;
+      if(artist){ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillText(fit(artist,font(600,hartist),mw),tx,y);y+=hartist*1.35;}
+      if(meta){ctx.fillStyle='rgba(255,255,255,.6)';ctx.fillText(fit(meta,font(500,hm),mw),tx,y);}
+      ctx.restore();
     }
     ctx.restore();
   }
+  let lyricLayer=null;
   function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    {
-      // The WebGL visualiser is the background; this canvas only composites lyrics/title art.
-      if(state.lines.length){
-        const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
-        if(typeof fn==='function'){
-          try{fn(ctx,canvas.width,canvas.height,currentStyle(),state.lines,state.time+1-lyricOffset(),titleArtImage);}
-          catch(err){console.error('[KEFE effect]',state.effect,err);}
-        }
+    // The WebGL visualiser is the background; this canvas only composites lyrics/title card.
+    const ph=titlePhase(state.time);
+    if(state.lines.length&&ph.mode!=='hold'&&ph.mode!=='move'){
+      const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
+      if(typeof fn==='function'){
+        try{
+          const W=canvas.width,H=canvas.height,effT=state.time+(state.effect==='apple'?0:1)-lyricOffset();
+          if(ph.mode==='header'){
+            // Lyrics scroll underneath the pinned header: render them on a scratch layer and fade/clip at the header's bottom edge.
+            if(!lyricLayer)lyricLayer=document.createElement('canvas');
+            if(lyricLayer.width!==W||lyricLayer.height!==H){lyricLayer.width=W;lyricLayer.height=H;}
+            const lc=lyricLayer.getContext('2d');lc.setTransform(1,0,0,1,0,0);lc.clearRect(0,0,W,H);
+            fn(lc,W,H,currentStyle(),state.lines,effT,titleArtImage);
+            const u=Math.min(W,H),edge=Math.max(24,H*.035)+u*.11+u*.03,fade=u*.05;
+            lc.save();lc.globalCompositeOperation='destination-in';
+            const g=lc.createLinearGradient(0,edge,0,edge+fade);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');
+            lc.fillStyle=g;lc.fillRect(0,0,W,H);lc.restore();
+            ctx.drawImage(lyricLayer,0,0);
+          }else fn(ctx,W,H,currentStyle(),state.lines,effT,titleArtImage);
+        }catch(err){console.error('[KEFE effect]',state.effect,err);}
       }
-      drawTitleCardCanvas(ctx,canvas.width,canvas.height,state.time);
-      return;
     }
+    drawTitleCardCanvas(ctx,canvas.width,canvas.height,state.time);
   }
   function appleTime(value){
     const text=String(value||'').trim();
@@ -453,9 +469,19 @@
   document.querySelectorAll('.kefe-section').forEach(button=>button.addEventListener('click',()=>openEditorPanel(button.dataset.panel)));
   const previewPane=document.querySelector('.kefe-preview');
   function fitPreviewStage(){
-    if(!previewPane||!previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen')||document.fullscreenElement===previewStage)return;
+    if(!previewPane||!previewStage)return;
     const active=previewAspectRatio||'16:9';
     const ratio=active==='9:16'?9/16:active==='1:1'?1:16/9;
+    if(previewStage.classList.contains('kefe-pseudo-fullscreen')||document.fullscreenElement===previewStage){
+      // Fullscreen: largest box of the chosen aspect that fits the screen, centred on black.
+      const vw=document.fullscreenElement===previewStage?(window.screen&&screen.width&&Math.abs(innerWidth-screen.width)<4?screen.width:innerWidth):innerWidth,vh=innerHeight;
+      let fw=vw,fh=fw/ratio;if(fh>vh){fh=vh;fw=fh*ratio;}
+      // The UA forces the fullscreen element to 100%×100%, so the canvases are letterboxed via CSS vars instead.
+      previewStage.style.width='';previewStage.style.height='';
+      previewStage.style.setProperty('--fs-w',Math.floor(fw)+'px');previewStage.style.setProperty('--fs-h',Math.floor(fh)+'px');
+      window.dispatchEvent(new Event('kefe-stage-resize'));
+      return;
+    }
     const paneWidth=Math.max(0,previewPane.clientWidth-48);
     const paneHeight=Math.max(0,previewPane.clientHeight-34);
     if(paneWidth<=0||paneHeight<=0)return;
@@ -520,14 +546,14 @@
       document.documentElement.classList.toggle('kefe-fullscreen-open',active);
       document.body.classList.toggle('kefe-fullscreen-open',active);
     }
-    syncPreviewFullscreen();
+    fitPreviewStage();syncPreviewFullscreen();
   }
   previewFullscreen?.addEventListener('click',togglePreviewFullscreen);
   document.addEventListener('fullscreenchange',()=>{
-    if(document.fullscreenElement!==previewStage)previewStage?.classList.remove('kefe-pseudo-fullscreen');
-    syncPreviewFullscreen();
-    if(document.fullscreenElement!==previewStage)fitPreviewStage();
+    if(document.fullscreenElement!==previewStage){previewStage?.classList.remove('kefe-pseudo-fullscreen');document.documentElement.classList.remove('kefe-fullscreen-open');document.body.classList.remove('kefe-fullscreen-open');}
+    syncPreviewFullscreen();fitPreviewStage();draw();
   });
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&previewStage?.classList.contains('kefe-pseudo-fullscreen')){togglePreviewFullscreen();}});
   syncPreviewFullscreen();
   document.querySelectorAll('.kefe-top-link').forEach(button=>button.addEventListener('click',()=>{
     const panel=button.dataset.topPanel;

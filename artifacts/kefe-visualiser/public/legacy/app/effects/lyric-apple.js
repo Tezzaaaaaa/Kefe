@@ -232,7 +232,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.30, 0.20, 0.40);
     const pastOpacity = linaClamp(upcomingOpacity * 0.72, 0.20, 0.30);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
-    const appleHeaderSize = baseDimension * 0.08;
+    const appleHeaderSize = baseDimension * 0.11;
     const appleHeaderTop = Math.max(24, h * 0.035);
     const appleHeaderBottom = appleHeaderTop + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;

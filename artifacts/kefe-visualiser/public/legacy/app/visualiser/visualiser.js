@@ -1042,6 +1042,7 @@ window.kefeVisualiserExport = {
   }
 };
 window.addEventListener('resize', resize);
+window.addEventListener('kefe-stage-resize', () => requestAnimationFrame(resize));
 window.addEventListener('orientationchange', () => setTimeout(resize, 200));
 canvas.addEventListener('webglcontextlost', event => {
   event.preventDefault();

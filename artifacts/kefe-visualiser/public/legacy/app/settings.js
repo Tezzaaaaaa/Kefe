@@ -6,8 +6,7 @@
   // key, label, hint, type, default, options
   const SCHEMA = [
     { group: 'Title card', items: [
-      { key: 'titleCard', label: 'Show title card', hint: 'Song artwork and details before the first lyric. Included in exports.', type: 'toggle', def: true },
-      { key: 'titleCardMax', label: 'Max length', hint: 'Never longer than the gap before the first lyric.', type: 'range', def: 10, min: 2, max: 10, step: 0.5, fmt: v => v + 's' }
+      { key: 'titleCard', label: 'Show title card', hint: 'Apple Music effect only: artwork and details on their own until 1s before the first lyric, then they move up into the header. Included in exports.', type: 'toggle', def: true }
     ]},
     { group: 'Lyrics', items: [
       { key: 'lyricOffset', label: 'Lyric offset', hint: 'Positive shows lyrics later, negative shows them earlier.', type: 'range', def: 0, min: -3, max: 3, step: 0.05, fmt: v => (v > 0 ? '+' : '') + v.toFixed(2) + 's' }
