@@ -920,3 +920,6 @@ button{border:0;cursor:pointer}
 .kefe-stage.kefe-pseudo-fullscreen{box-shadow:0 0 0 100vmax #000}
 
 .kefe-stage:fullscreen canvas,.kefe-stage.kefe-pseudo-fullscreen canvas{inset:auto!important;left:50%!important;top:50%!important;width:var(--fs-w,100%)!important;height:var(--fs-h,100%)!important;transform:translate(-50%,-50%)}
+
+#kefeBackgroundCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none;border-radius:0}
+#kefeVisualiserCanvas{mix-blend-mode:screen}

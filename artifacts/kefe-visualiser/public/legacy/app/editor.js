@@ -51,6 +51,7 @@
   let mediaObjectUrl=''; let visualiserPreset='none',visualiserBackground='black',visualiserMotion='reactive';
   let previewAspectRatio='16:9';
   let titleArtImage=null,titleCardShownFor='';
+  window.kefeGetAlbumArt=()=>titleArtImage;
   const songTitle=document.getElementById('songTitle'),songArtist=document.getElementById('songArtist'),songAlbum=document.getElementById('songAlbum'),songYear=document.getElementById('songYear');
   const previewStage=document.querySelector('.kefe-stage');
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead');
@@ -432,7 +433,7 @@
   function setEffect(id){
     state.effect=id;
     const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics){appleLyrics.style.display='none';if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();visualiserBackground='gradient';document.getElementById('visualiserBackground').value='gradient';}}
+    if(appleLyrics){appleLyrics.style.display='none';if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();}}
     document.querySelectorAll('.kefe-card').forEach(b=>b.classList.toggle('active',b.dataset.effect===id));
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
@@ -1197,8 +1198,9 @@
     const compositeCtx=compositeCanvas.getContext('2d');
     const compositeFrame=()=>{
       compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
+      if(window.kefeBackground)window.kefeBackground.paint(compositeCtx,dims[0],dims[1],state.time);
       const vw=visualiserCanvas.width,vh=visualiserCanvas.height;
-      if(vw&&vh){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k;compositeCtx.drawImage(visualiserCanvas,(dims[0]-dw)/2,(dims[1]-dh)/2,dw,dh);}
+      if(vw&&vh){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k;compositeCtx.save();compositeCtx.globalCompositeOperation='screen';compositeCtx.drawImage(visualiserCanvas,(dims[0]-dw)/2,(dims[1]-dh)/2,dw,dh);compositeCtx.restore();}
       if(window.kefeGradientLayer)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
       compositeCtx.drawImage(canvas,0,0,dims[0],dims[1]);
     };
