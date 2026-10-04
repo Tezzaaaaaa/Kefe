@@ -54,6 +54,7 @@
   const songTitle=document.getElementById('songTitle'),songArtist=document.getElementById('songArtist'),songAlbum=document.getElementById('songAlbum'),songYear=document.getElementById('songYear');
   const previewStage=document.querySelector('.kefe-stage');
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead');
+  const lyricsTiming=document.getElementById('lyricsTiming'),lyricsTimingValue=document.getElementById('lyricsTimingValue'),lyricsTimingEarlier=document.getElementById('lyricsTimingEarlier'),lyricsTimingLater=document.getElementById('lyricsTimingLater'),lyricsTimingReset=document.getElementById('lyricsTimingReset');
 
   function normalizeArtworkUrl(url,size='600x600bb'){
     const value=String(url||'').trim();
@@ -223,6 +224,16 @@
   }
   window.addEventListener('kefe-effects-ready',()=>draw());
   function lyricOffset(){const v=Number(window.kefeSettings?.get('lyricOffset'));return Number.isFinite(v)?v:0;}
+  function syncLyricsTimingControl(){
+    const value=lyricOffset();
+    if(lyricsTiming)lyricsTiming.value=String(value);
+    if(lyricsTimingValue)lyricsTimingValue.textContent=(value>0?'+':'')+value.toFixed(2)+'s';
+  }
+  if(lyricsTiming)lyricsTiming.addEventListener('input',()=>window.kefeSettings?.set('lyricOffset',Number(lyricsTiming.value)));
+  if(lyricsTimingEarlier)lyricsTimingEarlier.addEventListener('click',()=>window.kefeSettings?.set('lyricOffset',Math.max(-3,Math.round((lyricOffset()-.10)*100)/100)));
+  if(lyricsTimingLater)lyricsTimingLater.addEventListener('click',()=>window.kefeSettings?.set('lyricOffset',Math.min(3,Math.round((lyricOffset()+.10)*100)/100)));
+  if(lyricsTimingReset)lyricsTimingReset.addEventListener('click',()=>window.kefeSettings?.set('lyricOffset',0));
+  syncLyricsTimingControl();
   function drawTitleCardCanvas(ctx,w,h,t){
     if(!state.lines.length)return;
     if(window.kefeSettings&&!window.kefeSettings.get('titleCard'))return;
@@ -1381,6 +1392,7 @@
     if(asp&&asp.value!==S.get('aspect')){asp.value=S.get('aspect');asp.dispatchEvent(new Event('change'));}
   }
   if(window.kefeSettings)window.kefeSettings.onChange(key=>{
+    if(key==='lyricOffset')syncLyricsTimingControl();
     if(key==='exportResolution'||key==='aspect')applySettingsDefaults();else draw();
   });
   parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();ensureLyricsTools();applySettingsDefaults();
