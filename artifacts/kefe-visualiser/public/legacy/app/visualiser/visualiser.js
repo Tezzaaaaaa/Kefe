@@ -1,5 +1,8 @@
 /* KEFE visualiser engine — shared renderer and preset registry. */
 import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 const PRESETS = [
   {
     key:'particles-swarm', name:'Particles Swarm', desc:'A responsive swarm of particles flowing through a layered orbital field.',
@@ -906,7 +909,7 @@ camera.position.set(0, 0, 100);
 let renderer;
 try {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
-  renderer.setClearColor(0x171927, 1);
+  renderer.setClearColor(0x000000, 1);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   canvas.dataset.rendererReady = 'true';
 } catch (error) {
@@ -920,13 +923,20 @@ const dummy = new THREE.Object3D();
 const color = new THREE.Color();
 const target = new THREE.Vector3();
 
-const geometry = new THREE.TetrahedronGeometry(1.0);
-const material = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true, fog: false });
+const geometry = new THREE.TetrahedronGeometry(0.25);
+const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+/* Original look: additive-feeling glow from the same bloom settings as the Particles Swarm tool. */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), 1.5, 0.4, 0.85);
+bloom.strength = 1.8; bloom.radius = 0.4; bloom.threshold = 0;
+composer.addPass(bloom);
 
 let instancedMesh = null;
 let positions = null;
 window.kefeParticleVisualiserActive = false;
-const initialCount = 8000;
+const initialCount = 20000;
 let currentCount = initialCount;
 
 const state = {
@@ -1015,7 +1025,7 @@ function animate() {
     instancedMesh.instanceMatrix.needsUpdate = true;
     instancedMesh.instanceColor.needsUpdate = true;
   }
-  renderer.render(scene, camera);
+  composer.render();
   requestAnimationFrame(animate);
 }
 
@@ -1025,6 +1035,7 @@ function resize() {
   const w = canvas.clientWidth || stage?.clientWidth || 0, h = canvas.clientHeight || stage?.clientHeight || 0;
   if (!w || !h) return;
   renderer.setSize(w, h, false);
+  composer.setSize(w, h);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }
@@ -1034,6 +1045,7 @@ window.kefeVisualiserExport = {
     savedPixelRatio = renderer.getPixelRatio();
     renderer.setPixelRatio(1);
     renderer.setSize(w, h, false);
+    composer.setSize(w, h);
     camera.aspect = w / h; camera.updateProjectionMatrix();
   },
   end() {

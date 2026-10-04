@@ -5,7 +5,7 @@
    The particle canvas is blended with `screen` over this layer, and the same layer is composited into video export. */
 (function(){
   'use strict';
-  var stage,cv,cctx,sel,audio,mode='apple',vid=null,vidUrl='',vidName='',small=null,smallKey='',avg=[20,22,30];
+  var stage,cv,cctx,sel,audio,mode='off',vid=null,vidUrl='',vidName='',small=null,smallKey='',avg=[20,22,30];
   var work=document.createElement('canvas'),wctx=work.getContext('2d');
   var t0=performance.now();
 
@@ -100,13 +100,15 @@
   /* ── UI ── */
   function setMode(m){
     mode=m;if(sel&&sel.value!==m)sel.value=m;
+    /* Particles keep their own colours when no background is shown; only blend over a background. */
+    var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.mixBlendMode=m==='off'?'normal':'screen';
     var o=sel&&sel.querySelector('option[value="video"]');if(o)o.disabled=!vid;
     syncVideo(true);
   }
   function buildSelect(){
     sel=document.getElementById('visualiserBackground');if(!sel)return;
     sel.innerHTML='<option value="off">Off</option><option value="apple">Apple Motion Art</option><option value="video" disabled>Uploaded video</option>';
-    sel.value='apple';
+    sel.value='off';
     sel.addEventListener('change',function(){setMode(sel.value==='video'&&!vid?'apple':sel.value);});
   }
   function buildUpload(){
@@ -154,5 +156,5 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
-  window.kefeBackground={paint:paint,mode:function(){return mode;},hasVideo:function(){return !!vid;}};
+  window.kefeBackground={paint:paint,mode:function(){return mode;},blend:function(){return mode==='off'?'source-over':'screen';},hasVideo:function(){return !!vid;}};
 })();
