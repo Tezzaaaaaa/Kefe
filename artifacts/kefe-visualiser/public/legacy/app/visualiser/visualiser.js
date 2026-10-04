@@ -1152,6 +1152,7 @@ function setPreset(preset, opts) {
   document.getElementById('visualiserSceneName').textContent = preset.name;
   document.getElementById('visualiserSceneDesc').textContent = preset.desc;
   compileInjection(preset);
+  rebuild(state.count);
   presetSelect.value = preset.key;
   renderParamSliders();
   renderPresetGrid();
