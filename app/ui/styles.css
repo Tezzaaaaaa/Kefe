@@ -299,6 +299,7 @@ button{border:0;cursor:pointer}
 .kefe-panel[data-panel-view="effects"] .kefe-select{
   background:var(--surface-hi);
   border:1px solid var(--line-soft);
+  box-shadow:var(--inner);
 }
 .kefe-panel[data-panel-view="effects"] .kefe-select:hover{
   background:var(--surface-hi);
@@ -309,10 +310,10 @@ button{border:0;cursor:pointer}
   box-shadow:0 0 0 3px rgba(143,175,193,.28),var(--inner);
 }
 .kefe-panel[data-panel-view="effects"] .kefe-font-card{
-  background:var(--surface);
+  background:var(--surface-hi);
   border:1px solid var(--line-soft);
   border-radius:var(--r2);
-  box-shadow:var(--inner);
+  box-shadow:var(--lift);
 }
 .kefe-panel[data-panel-view="effects"] .kefe-font-name{
   color:var(--text);
