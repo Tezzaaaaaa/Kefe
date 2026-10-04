@@ -1173,6 +1173,7 @@
       compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
       const vw=visualiserCanvas.width,vh=visualiserCanvas.height;
       if(vw&&vh){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k;compositeCtx.drawImage(visualiserCanvas,(dims[0]-dw)/2,(dims[1]-dh)/2,dw,dh);}
+      if(window.kefeGradientLayer)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
       compositeCtx.drawImage(canvas,0,0,dims[0],dims[1]);
     };
     const visExport=window.kefeVisualiserExport;

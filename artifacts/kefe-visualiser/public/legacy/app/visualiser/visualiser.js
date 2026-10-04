@@ -297,7 +297,8 @@ target.set(
 const bandRaw = Math.sin(planetY * bandContrast * 0.3 + time * 0.2) + Math.sin(planetY * bandContrast * 0.7 - time * 0.15) * 0.5;
 const band = (bandRaw + 1.5) / 3;
 const bandLayer = Math.floor(band * 6);
-const swirl = Math.sin(theta * 3 + planetY * 0.4 + time * 0.3) * 0.06;const jewelHues = [0.58, 0.75, 0.5, 0.08, 0.85, 0.13];
+const swirl = Math.sin(theta * 3 + planetY * 0.4 + time * 0.3) * 0.06;
+const jewelHues = [0.58, 0.75, 0.5, 0.08, 0.85, 0.13];
 const hueIndex = ((bandLayer % 6) + 6) % 6;
 const planetHue = jewelHues[hueIndex] + swirl;
 const ringGapVisible = ringGapPulse > 0.15 ? 1 : 0.3;
@@ -523,81 +524,6 @@ const hue = goldTone + Math.sin(y * 0.1 - t) * 0.02;
 color.setHSL(hue, 0.9, brightness);`
   },
   {
-    key:'decoding', name:'Decoding Matrix', desc:'Materializing golden lotus geometry through an active scanline matrix.',
-    keywords:['decoding','matrix','scan','hologram','protocol','materialize'],
-    params:{scale:30,scanSpeed:0.8,goldTone:0.12},
-    code:`const masterScale = addControl("scale", "Logo Scale", 10, 50, 30);
-const scanSpeed = addControl("scanSpeed", "Decoding Speed", 0.1, 2.0, 0.8);
-const goldTone = addControl("goldTone", "Gold Hue", 0.0, 0.2, 0.12);
-let p = i / count;
-let lx = 0, ly = 0, lz = 0;
-let isBase = p < 0.75;
-let cross = (i % 31) / 30.0;
-let bevel = (0.5 - Math.abs(cross - 0.5)) * 2.0;
-let baseLit = 0.5;
-if (isBase) {
-  let lp = p / 0.75;
-  let line_idx = Math.floor(lp * 4);
-  let t_line = (lp * 4) % 1.0;
-  let depth = ((i * 7) % 17) / 16.0;
-  let sx = 0, sy = 0, ex = 0, ey = 0;
-  if (line_idx === 0) { sx = -0.8; sy = -0.6; ex = 0.0; ey = 0.6; }
-  else if (line_idx === 1) { sx = 0.0; sy = 0.6; ex = 0.8; ey = -0.6; }
-  else if (line_idx === 2) { sx = -0.8; sy = 0.6; ex = 0.0; ey = -0.6; }
-  else { sx = 0.0; sy = -0.6; ex = 0.8; ey = 0.6; }
-  let dx = ex - sx;
-  let dy = ey - sy;
-  let len = Math.sqrt(dx*dx + dy*dy);
-  let nx = -dy / len;
-  let ny = dx / len;
-  let w = 0.25;
-  let bx = (cross - 0.5) * w;
-  let bz = (depth - 0.5) * bevel * w * 1.5;
-  lx = sx + dx * t_line + nx * bx;
-  ly = sy + dy * t_line + ny * bx;
-  lz = bz;
-  baseLit = 0.2 + 0.6 * bevel;
-} else {
-  let lp = (p - 0.75) / 0.25;
-  let petal_idx = Math.floor(lp * 5);
-  let tp = (lp * 5) % 1.0;
-  let scale_p = 1.0, rot_p = 0.0, x_off = 0.0, y_off = 0.55;
-  if (petal_idx === 0) { scale_p = 1.0; rot_p = 0.0; x_off = 0.0; y_off = 0.55; }
-  else if (petal_idx === 1) { scale_p = 0.8; rot_p = -0.4; x_off = -0.25; y_off = 0.6; }
-  else if (petal_idx === 2) { scale_p = 0.8; rot_p = 0.4; x_off = 0.25; y_off = 0.6; }
-  else if (petal_idx === 3) { scale_p = 0.6; rot_p = -0.8; x_off = -0.45; y_off = 0.65; }
-  else { scale_p = 0.6; rot_p = 0.8; x_off = 0.45; y_off = 0.65; }
-  let px = Math.sin(tp * Math.PI) * (1.0 - tp) * 0.45 * scale_p * (i % 2 === 0 ? 1 : -1);
-  let py = tp * 0.7 * scale_p;
-  lx = x_off + px * Math.cos(rot_p) - py * Math.sin(rot_p);
-  ly = y_off + px * Math.sin(rot_p) + py * Math.cos(rot_p);
-  lz = (Math.sin(tp * Math.PI) * 0.15) * (i % 3 === 0 ? 1 : -1);
-  baseLit = 0.3 + 0.5 * Math.sin(tp * Math.PI);
-}
-lx *= masterScale; ly *= masterScale; lz *= masterScale;
-let phase = (time * scanSpeed) % 4.0;
-let scanY = (phase - 1.0) * masterScale * 1.5;
-let distToScan = scanY - ly;
-let lockWeight = Math.max(0.0, Math.min(1.0, distToScan * 0.5));
-lockWeight = lockWeight * lockWeight * (3.0 - 2.0 * lockWeight);
-let angle = i * 0.1 + time;
-let radius = masterScale * (1.2 + Math.sin(i * 123.4) * 0.4);
-let cx = Math.cos(angle) * radius;
-let cz = Math.sin(angle) * radius;
-let cy = ly + masterScale * (0.5 + Math.sin(i * 78.9 + time * 2.0) * 0.5);
-target.set(
-  cx * (1.0 - lockWeight) + lx * lockWeight,
-  cy * (1.0 - lockWeight) + ly * lockWeight,
-  cz * (1.0 - lockWeight) + lz * lockWeight
-);
-let scanGlow = Math.max(0.0, 1.0 - Math.abs(distToScan) * 0.5);
-let finalHue = 0.5 * (1.0 - lockWeight) + goldTone * lockWeight;
-let finalSat = 1.0 * (1.0 - lockWeight) + 0.9 * lockWeight;
-let finalLit = 0.5 * (1.0 - lockWeight) + baseLit * lockWeight;
-finalLit += scanGlow * 0.5;
-finalSat -= scanGlow * 0.3;
-color.setHSL(finalHue, finalSat, finalLit);`  },
-  {
     key:'butterfly', name:'Butterfly in a Garden', desc:'Scattered particles bloom into a butterfly surrounded by flowers, then dissolve again.',
     keywords:['butterfly','garden','flower','bloom','scatter','nature'],
     params:{cycle:10,bScale:16,scatterRadius:160,drift:0.6,flowerCount:10,fieldSpread:110,fieldCenterY:0,flowerSize:7,flapSpeed:6,flapAmp:0.55},
@@ -719,6 +645,82 @@ const outR = Math.min(1.0, colBaseR * glow);
 const outG = Math.min(1.0, colBaseG * glow);
 const outB = Math.min(1.0, colBaseB * glow);
 color.setRGB(outR, outG, outB);`
+  },
+  {
+    key:'decoding', name:'Decoding Matrix', desc:'Materializing golden lotus geometry through an active scanline matrix.',
+    keywords:['decoding','matrix','scan','hologram','protocol','materialize'],
+    params:{scale:30,scanSpeed:0.8,goldTone:0.12},
+    code:`const masterScale = addControl("scale", "Logo Scale", 10, 50, 30);
+const scanSpeed = addControl("scanSpeed", "Decoding Speed", 0.1, 2.0, 0.8);
+const goldTone = addControl("goldTone", "Gold Hue", 0.0, 0.2, 0.12);
+let p = i / count;
+let lx = 0, ly = 0, lz = 0;
+let isBase = p < 0.75;
+let cross = (i % 31) / 30.0;
+let bevel = (0.5 - Math.abs(cross - 0.5)) * 2.0;
+let baseLit = 0.5;
+if (isBase) {
+  let lp = p / 0.75;
+  let line_idx = Math.floor(lp * 4);
+  let t_line = (lp * 4) % 1.0;
+  let depth = ((i * 7) % 17) / 16.0;
+  let sx = 0, sy = 0, ex = 0, ey = 0;
+  if (line_idx === 0) { sx = -0.8; sy = -0.6; ex = 0.0; ey = 0.6; }
+  else if (line_idx === 1) { sx = 0.0; sy = 0.6; ex = 0.8; ey = -0.6; }
+  else if (line_idx === 2) { sx = -0.8; sy = 0.6; ex = 0.0; ey = -0.6; }
+  else { sx = 0.0; sy = -0.6; ex = 0.8; ey = 0.6; }
+  let dx = ex - sx;
+  let dy = ey - sy;
+  let len = Math.sqrt(dx*dx + dy*dy);
+  let nx = -dy / len;
+  let ny = dx / len;
+  let w = 0.25;
+  let bx = (cross - 0.5) * w;
+  let bz = (depth - 0.5) * bevel * w * 1.5;
+  lx = sx + dx * t_line + nx * bx;
+  ly = sy + dy * t_line + ny * bx;
+  lz = bz;
+  baseLit = 0.2 + 0.6 * bevel;
+} else {
+  let lp = (p - 0.75) / 0.25;
+  let petal_idx = Math.floor(lp * 5);
+  let tp = (lp * 5) % 1.0;
+  let scale_p = 1.0, rot_p = 0.0, x_off = 0.0, y_off = 0.55;
+  if (petal_idx === 0) { scale_p = 1.0; rot_p = 0.0; x_off = 0.0; y_off = 0.55; }
+  else if (petal_idx === 1) { scale_p = 0.8; rot_p = -0.4; x_off = -0.25; y_off = 0.6; }
+  else if (petal_idx === 2) { scale_p = 0.8; rot_p = 0.4; x_off = 0.25; y_off = 0.6; }
+  else if (petal_idx === 3) { scale_p = 0.6; rot_p = -0.8; x_off = -0.45; y_off = 0.65; }
+  else { scale_p = 0.6; rot_p = 0.8; x_off = 0.45; y_off = 0.65; }
+  let px = Math.sin(tp * Math.PI) * (1.0 - tp) * 0.45 * scale_p * (i % 2 === 0 ? 1 : -1);
+  let py = tp * 0.7 * scale_p;
+  lx = x_off + px * Math.cos(rot_p) - py * Math.sin(rot_p);
+  ly = y_off + px * Math.sin(rot_p) + py * Math.cos(rot_p);
+  lz = (Math.sin(tp * Math.PI) * 0.15) * (i % 3 === 0 ? 1 : -1);
+  baseLit = 0.3 + 0.5 * Math.sin(tp * Math.PI);
+}
+lx *= masterScale; ly *= masterScale; lz *= masterScale;
+let phase = (time * scanSpeed) % 4.0;
+let scanY = (phase - 1.0) * masterScale * 1.5;
+let distToScan = scanY - ly;
+let lockWeight = Math.max(0.0, Math.min(1.0, distToScan * 0.5));
+lockWeight = lockWeight * lockWeight * (3.0 - 2.0 * lockWeight);
+let angle = i * 0.1 + time;
+let radius = masterScale * (1.2 + Math.sin(i * 123.4) * 0.4);
+let cx = Math.cos(angle) * radius;
+let cz = Math.sin(angle) * radius;
+let cy = ly + masterScale * (0.5 + Math.sin(i * 78.9 + time * 2.0) * 0.5);
+target.set(
+  cx * (1.0 - lockWeight) + lx * lockWeight,
+  cy * (1.0 - lockWeight) + ly * lockWeight,
+  cz * (1.0 - lockWeight) + lz * lockWeight
+);
+let scanGlow = Math.max(0.0, 1.0 - Math.abs(distToScan) * 0.5);
+let finalHue = 0.5 * (1.0 - lockWeight) + goldTone * lockWeight;
+let finalSat = 1.0 * (1.0 - lockWeight) + 0.9 * lockWeight;
+let finalLit = 0.5 * (1.0 - lockWeight) + baseLit * lockWeight;
+finalLit += scanGlow * 0.5;
+finalSat -= scanGlow * 0.3;
+color.setHSL(finalHue, finalSat, finalLit);`
   },
   {
     key:'energycore', name:'Energy Core', desc:'Original ring-shaped power core made of particles. Seamless loop.',
