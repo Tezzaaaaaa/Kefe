@@ -77,8 +77,8 @@ button{border:0;cursor:pointer}
 .kefe-top{padding:0 7px;gap:4px}
 .kefe-top-nav{gap:2px}
 .kefe-top-profile{gap:2px}
-.kefe-brand{width:30px;height:30px;font-size:17px;overflow:visible;flex:0 0 auto}
-.kefe-top-link{min-height:32px;padding:0 9px;font-size:11px}
+.kefe-brand{width:34px;height:34px;font-size:17px;overflow:visible;flex:0 0 auto}
+.kefe-top-link{height:34px;min-height:34px;padding:0 9px;font-size:11px}
 .kefe-grid{grid-template-columns:1fr 1fr}
 .kefe-card{padding:9px}
 .kefe-time{min-width:66px;font-size:11px}
