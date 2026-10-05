@@ -166,7 +166,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
     }
     ctx.restore();
-    const activeIndex = Math.max(0, linaFindActiveLine(displayLines, time));
+    const activeIndex = linaFindActiveLine(displayLines, time);
+    if (activeIndex < 0) return;
 
     const source = albumArtworkImage;
     let palette = source?.__kefeApplePalette;
@@ -233,7 +234,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const pastOpacity = linaClamp(upcomingOpacity * 0.72, 0.20, 0.30);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
     const appleHeaderSize = baseDimension * 0.11;
-    const appleHeaderTop = Math.max(24, h * 0.035);
+    const appleHeaderTop = Math.max(baseDimension * 0.065, h * 0.035);
     const appleHeaderBottom = appleHeaderTop + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = Math.max(
@@ -245,7 +246,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const active = linaNormaliseLine(displayLines, activeIndex);
     if (!active) return;
 
-    const posT = appleSpringOut((time - active.time) / 0.35);
+    const transitionDuration = linaClamp((Number(active.nextLineTime) - Number(active.time)) * 0.22, 0.22, 0.42);
+    const posT = appleSpringOut((time - active.time) / transitionDuration);
     const styleT = appleCubicBezier((time - active.time) / 0.3, 0.25, 0.1, 0.25, 1);
 
     const scalePoints = [[-4, 0.98], [-3, 0.98], [-2, 0.98], [-1, 0.98], [0, activeScale], [1, 0.98], [2, 0.98], [3, 0.98], [4, 0.98]];
