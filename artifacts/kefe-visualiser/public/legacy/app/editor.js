@@ -105,6 +105,25 @@
     }
     if(suggestions)suggestions.hidden=!song;
   }
+  function applyPickedTrack(item){
+    songTitle.value=item.trackName||'';
+    songArtist.value=item.artistName||'';
+    songAlbum.value=item.collectionName||'';
+    songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
+    songAlbum.dataset.artUrl=normalizeArtworkUrl(item.artworkUrl100);
+    songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
+    songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
+    updateMediaTrack();
+    updateTitleCard();
+    applyAppleAlbumGradient();
+    syncAppleLyricsMetadata();
+    clearManualNotice();
+    const panel=document.getElementById('kefeSuggestions'),list=document.getElementById('kefeSuggestionList');
+    if(panel)panel.hidden=true;
+    if(list)list.innerHTML='';
+    return loadAutomaticLyrics();
+  }
+  window.kefeApplyTrack=item=>applyPickedTrack(item);
   function renderSongSuggestions(results,opts={}){
     const panel=document.getElementById('kefeSuggestions');
     const list=document.getElementById('kefeSuggestionList');
@@ -115,7 +134,8 @@
     const currentArtist=songArtist.value.trim().toLowerCase();
     const items=(Array.isArray(results)?results:[]).filter(item=>item.trackName).filter(item=>!opts.excludeCurrent||!(String(item.trackName||'').toLowerCase()===currentTitle&&String(item.artistName||'').toLowerCase()===currentArtist)).slice(0,opts.limit||5);
     status.textContent=opts.excludeCurrent?(items.length?'Other matches':'No other matches'):(items.length?'Select the correct song':'No matches found');
-    panel.hidden=!songTitle.value.trim();
+    panel.hidden=true;
+    if(window.kefeCarousel)window.kefeCarousel.showMatches(items,status.textContent);
     items.forEach(item=>{
       const button=document.createElement('button');
       button.type='button';
@@ -139,23 +159,7 @@
       album.textContent=item.collectionName||'';
       copy.append(name,artist,album);
       button.append(art,copy);
-      button.addEventListener('click',()=>{
-        songTitle.value=item.trackName||'';
-        songArtist.value=item.artistName||'';
-        songAlbum.value=item.collectionName||'';
-        songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
-        songAlbum.dataset.artUrl=normalizeArtworkUrl(item.artworkUrl100);
-        songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
-        songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
-        updateMediaTrack();
-        updateTitleCard();
-        applyAppleAlbumGradient();
-        syncAppleLyricsMetadata();
-        clearManualNotice();
-        panel.hidden=true;
-        list.innerHTML='';
-        loadAutomaticLyrics();
-      });
+      button.addEventListener('click',()=>applyPickedTrack(item));
       list.appendChild(button);
     });
   }

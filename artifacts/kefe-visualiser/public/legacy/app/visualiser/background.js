@@ -115,8 +115,8 @@
     var zone=document.getElementById('kefeUploadZone');if(!zone||document.getElementById('kefeBgVideoZone'))return;
     var wrap=document.createElement('div');wrap.style.cssText='grid-column:1/-1;display:grid;gap:8px';
     wrap.innerHTML='<label class="kefe-upload-zone" id="kefeBgVideoZone" for="bgVideoInput">'+
-      '<span class="kefe-upload-title">Background video</span>'+
-      '<span class="kefe-upload-name" id="bgVideoName">Optional — loops behind the visualiser</span>'+
+      '<span class="kefe-upload-title">Drop a background video</span>'+
+      '<span class="kefe-upload-name" id="bgVideoName">or choose a file</span>'+
       '<span class="kefe-upload-help">MP4, MOV, WebM</span>'+
       '<input class="kefe-file" id="bgVideoInput" type="file" accept=".mp4,.mov,.m4v,.webm,video/*"></label>'+
       '<button class="kefe-btn" id="bgVideoRemove" type="button" hidden>Remove background video</button>';
@@ -136,7 +136,7 @@
     ['dragenter','dragover'].forEach(function(e){z.addEventListener(e,function(ev){ev.preventDefault();z.classList.add('is-dragging');});});
     ['dragleave','drop'].forEach(function(e){z.addEventListener(e,function(ev){ev.preventDefault();z.classList.remove('is-dragging');});});
     z.addEventListener('drop',function(ev){var f=ev.dataTransfer&&ev.dataTransfer.files&&ev.dataTransfer.files[0];if(f)load(f);});
-    rm.addEventListener('click',function(){clearVideo();input.value='';name.textContent='Optional — loops behind the visualiser';rm.hidden=true;setMode('apple');});
+    rm.addEventListener('click',function(){clearVideo();input.value='';name.textContent='or choose a file';rm.hidden=true;setMode('apple');});
   }
   function clearVideo(){
     if(vid){vid.pause();vid.removeAttribute('src');vid.load();vid.remove();vid=null;}
