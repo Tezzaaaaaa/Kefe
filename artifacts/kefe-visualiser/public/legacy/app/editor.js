@@ -248,11 +248,19 @@
     if(window.kefeSettings&&!window.kefeSettings.get('titleCard'))return {mode:'off'};
     if(!songTitle.value.trim()||!(t>=0))return {mode:'off'};
     const first=Number(state.lines[0]?.time)+lyricOffset();
-    if(!Number.isFinite(first))return {mode:'off'};
+    const last=state.lines[state.lines.length-1];
+    const lastStart=Number(last?.time)+lyricOffset();
+    const lastEnd=Number.isFinite(Number(last?.vocalEndTime)) ? Number(last.vocalEndTime)+lyricOffset() : Number(last?.endTime)+lyricOffset();
+    const finalEnd=Number.isFinite(lastEnd) ? Math.max(lastEnd,lastStart+0.25) : lastStart+3;
+    if(!Number.isFinite(first)||!Number.isFinite(lastStart))return {mode:'off'};
     const start=Math.max(0,first-1);
     if(t<start)return {mode:'hold',p:0};
     if(t<first){const x=(t-start)/Math.max(0.001,first-start);return {mode:'move',p:x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};}
-    return {mode:'header',p:1};
+    if(t<=finalEnd)return {mode:'header',p:1};
+    const returnDuration=Math.min(1.0,Math.max(0.55,(finalEnd-lastStart)*0.35));
+    const x=linaClamp((t-finalEnd)/returnDuration);
+    const eased=x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+    return {mode:'return',p:1-eased};
   }
   function drawTitleCardCanvas(ctx,w,h,t){
     const ph=titlePhase(t);
@@ -308,7 +316,7 @@
     ctx.clearRect(0,0,canvas.width,canvas.height);
     // The WebGL visualiser is the background; this canvas only composites lyrics/title card.
     const ph=titlePhase(state.time);
-    if(state.effect!=='none'&&state.lines.length&&ph.mode!=='hold'&&ph.mode!=='move'){
+    if(state.effect!=='none'&&state.lines.length&&ph.mode==='header'){
       const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
       if(typeof fn==='function'){
         try{
@@ -1189,6 +1197,8 @@
     if(exporting)return;
     if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream||!visualiserCanvas){status.textContent='Video export is not supported by this browser.';return;}
     if(!audio.src||!Number.isFinite(audio.duration)){status.textContent='Upload a track first.';return;}
+    if(window.KEFE_TYPE?.ready){try{await window.KEFE_TYPE.ready;}catch(_){} }
+    if(document.fonts?.ready){try{await document.fonts.ready;}catch(_){} }
     const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'].find(m=>MediaRecorder.isTypeSupported(m));
     if(!mime){status.textContent='No supported video format in this browser.';return;}
     const ext=mime.startsWith('video/mp4')?'mp4':'webm';
@@ -1224,12 +1234,13 @@
       const audioStream=getExportAudioStream();
       if(exportTap&&exportTap.ac.state==='suspended')await exportTap.ac.resume();
       compositeFrame();
-      const stream=compositeCanvas.captureStream(30);
-      frameTicker=setInterval(compositeFrame,33);
+      const exportFps=60;
+      const stream=compositeCanvas.captureStream(exportFps);
+      frameTicker=setInterval(compositeFrame,1000/exportFps);
       if(audioStream)audioStream.getAudioTracks().forEach(t=>stream.addTrack(t));
       else status.textContent='Audio capture unavailable here; exporting video only…';
       const chunks=[];
-      recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:res>=1080?8000000:4000000});
+      recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:res>=1080?16000000:8000000});
       recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
       const stopped=new Promise(resolve=>{recorder.onstop=resolve});
       recorder.start(1000);
