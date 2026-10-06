@@ -28,6 +28,13 @@ KEFE is in active development. The current editor includes:
 - Centralised KEFE brand assets
 - Settings for title-card, lyric offset, editor defaults and visualiser behaviour
 - CRT Computer Desktop and CRT TV lyric effects
+- Lyric display modes (Line, Word, Karaoke, Chunk) and text case, applied to every effect
+- Lyric timing editor: line and word start times, pickups, held words, split/merge/insert/delete, undo, follow playback
+- Enhanced LRC (word tags) import, plus LRC, SRT and timed-JSON downloads
+- Lyric style layer: colours, text size, placement, outline, glow, custom text and logo, applied to every effect
+- Audio overlays (waveform, spectrum, radial, pulse) included in exports
+- Video type presets (lyric video, full-song visualiser, cover-art video, vertical release cut)
+- MP4 (H.264/AAC where the browser supports it) or WebM export, and a pre-export review checklist with phone-size preview
 
 ## Current development
 
@@ -41,8 +48,9 @@ The preview uses a consolidated canvas-based lyric/title-card rendering path alo
 app/
 ├── brand/          # KEFE logos, wordmark and favicon
 ├── effects/        # Lyric-effect manifest, shared core and renderers
-├── visualiser/     # Default Particles Swarm visualiser
-└── ui/             # Editor structure, styles and typography
+├── lyrics/         # lyric-model.js (timing data, LRC/SRT/JSON) and lyric-studio.js (display modes, timing editor, downloads)
+├── visualiser/     # Particles Swarm visualiser, backgrounds, gradient layer, audio overlays
+└── ui/             # Editor structure, styles, typography and the lyric style layer
 ```
 
 ## Important files
@@ -51,6 +59,10 @@ app/
 - `app/effects/manifest.js` — single source of truth for lyric effects
 - `app/effects/core.js` — shared lyric-effect utilities
 - `app/visualiser/visualiser.js` — visualiser engine, presets and parameters
+- `app/lyrics/lyric-model.js` — pure lyric data model (parse, edit, display modes, exports); no DOM
+- `app/lyrics/lyric-studio.js` — display mode, timing editor and lyric downloads (uses `window.kefeLyrics` from editor.js)
+- `app/ui/style-layer.js` — colours, size, placement, outline, glow, custom text and logo for all effects
+- `app/visualiser/audio-overlay.js` — shared WebAudio graph (preview analyser + export stream) and the 2D overlays
 - `app/ui/structure.js` — editor sections and controls
 
 ## Do not delete
