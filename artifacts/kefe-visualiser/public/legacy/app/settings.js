@@ -122,6 +122,40 @@
       dlg.appendChild(section);
     });
 
+    const project = el('section', 'kefe-settings-project');
+    const projectHead = el('div', 'kefe-settings-project-head');
+    const projectIcon = el('img', 'kefe-settings-project-icon');
+    projectIcon.src = './app/brand/favicon.svg';
+    projectIcon.alt = 'KEFE';
+    const projectCopy = el('div', 'kefe-settings-project-copy');
+    projectCopy.appendChild(el('strong', '', 'KEFE Visualiser'));
+    projectCopy.appendChild(el('span', '', 'Browser-based music visualiser and lyric-video editor'));
+    projectHead.append(projectIcon, projectCopy);
+    project.appendChild(projectHead);
+    const projectGrid = el('div', 'kefe-settings-project-grid');
+    const projectItems = [
+      ['Repository', 'Tezzaaaaaa/Kefe'],
+      ['Visibility', 'Public'],
+      ['Branch', 'main'],
+      ['Status', 'Active development'],
+      ['Commits', '1,795+'],
+      ['Editor', 'KEFE Visualiser'],
+      ['Site', 'tezzaaaaaa.github.io/Kefe'],
+      ['Scope', 'Lyric video · music visualiser']
+    ];
+    projectItems.forEach(([label, value]) => {
+      const item = el('div', 'kefe-settings-project-item');
+      item.append(el('span', '', label), el('strong', '', value));
+      projectGrid.appendChild(item);
+    });
+    project.appendChild(projectGrid);
+    const projectLinks = el('div', 'kefe-settings-project-links');
+    const live = el('a', 'kefe-btn', 'Open live site'); live.href = 'https://tezzaaaaaa.github.io/Kefe/'; live.target = '_blank'; live.rel = 'noopener noreferrer';
+    const github = el('a', 'kefe-btn', 'Open GitHub'); github.href = 'https://github.com/Tezzaaaaaa/Kefe'; github.target = '_blank'; github.rel = 'noopener noreferrer';
+    projectLinks.append(live, github);
+    project.appendChild(projectLinks);
+    dlg.appendChild(project);
+
     const foot = el('div', 'kefe-settings-foot');
     const reset = el('button', 'kefe-btn', 'Reset to defaults');
     reset.type = 'button';
