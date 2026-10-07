@@ -138,9 +138,11 @@
       ['Visibility', 'Public'],
       ['Branch', 'main'],
       ['Status', 'Active development'],
-      ['Commits', '1,795+'],
+      ['Commits', '1,799+'],
       ['Editor', 'KEFE Visualiser'],
       ['Site', 'tezzaaaaaa.github.io/Kefe'],
+      ['Hosting', 'GitHub Pages'],
+      ['Stack', 'HTML · CSS · JavaScript · Three.js'],
       ['Scope', 'Lyric video · music visualiser']
     ];
     projectItems.forEach(([label, value]) => {
