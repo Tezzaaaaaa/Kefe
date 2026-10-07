@@ -5,6 +5,76 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 const PRESETS = [
   {
+    key:'how-bad-reflection',
+    name:'How Bad — Reflection',
+    desc:'Monochrome shattered-reflection treatment with a clean subject void, moving glass streaks and hard rhythmic flashes.',
+    keywords:['how bad','reflection','shattered','glass','monochrome','portrait','streaks','mirror','gaga'],
+    params:{void:0.72,reflection:1.15,streaks:1.25,jitter:0.55,contrast:0.92,pulse:1.1},
+    code:`const subjectVoid = addControl("void", "Subject Void", 0.2, 1.0, 0.72);
+const reflection = addControl("reflection", "Reflection Offset", 0.2, 2.4, 1.15);
+const streaks = addControl("streaks", "Glass Streaks", 0, 2.5, 1.25);
+const jitter = addControl("jitter", "Image Jitter", 0, 1.5, 0.55);
+const contrast = addControl("contrast", "Contrast", 0.2, 1.5, 0.92);
+const pulse = addControl("pulse", "Flash Pulse", 0, 2.5, 1.1);
+
+const u = i / Math.max(count - 1, 1);
+const band = i % 9;
+const seed = Math.sin(i * 12.9898) * 43758.5453;
+const rnd = seed - Math.floor(seed);
+const seed2 = Math.sin(i * 78.233 + 4.7) * 24634.6345;
+const rnd2 = seed2 - Math.floor(seed2);
+const t = time;
+const side = rnd < 0.5 ? -1 : 1;
+const subjectWidth = 17.0 * subjectVoid;
+const x0 = (rnd2 - 0.5) * 112.0;
+const y0 = (0.5 - u) * 118.0;
+
+let x = x0;
+let y = y0;
+let z = -6.0 + (rnd - 0.5) * 8.0;
+
+if (band === 0 || band === 1) {
+  const mirrorPhase = t * 0.55 + rnd * 6.28318530718;
+  x = side * (subjectWidth + 8.0 + Math.abs(Math.sin(mirrorPhase)) * reflection * 8.0) + (rnd2 - 0.5) * 9.0;
+  y = y0 + Math.sin(mirrorPhase + u * 9.0) * (4.0 + streaks * 4.0);
+  z = -2.0 + Math.sin(mirrorPhase * 0.7 + u * 8.0) * 4.0;
+} else if (band >= 2 && band <= 5) {
+  const edge = side * (subjectWidth + 5.0 + rnd * 22.0);
+  const sweep = Math.sin(t * (0.7 + rnd * 0.7) + u * 18.0 + band) * streaks * 8.0;
+  x = edge + sweep;
+  y = y0 + Math.sin(t * 0.9 + rnd2 * 8.0) * 5.0;
+  z = -10.0 + band * 2.0 + Math.cos(t + rnd * 7.0) * 4.0;
+} else {
+  const a = rnd * Math.PI * 2.0;
+  const radius = 20.0 + rnd2 * 54.0;
+  const breathing = 1.0 + Math.sin(t * pulse + u * 16.0) * 0.045;
+  x = Math.cos(a + t * 0.08) * radius * breathing;
+  y = Math.sin(a + t * 0.13) * radius * 0.68;
+  z = 10.0 + Math.sin(a * 3.0 + t) * 7.0;
+}
+
+const edgeDistance = Math.abs(x);
+const voidDistance = Math.abs(x) / Math.max(subjectWidth, 1.0);
+const falloff = Math.max(0.08, 1.0 - Math.min(voidDistance, 1.0) * 0.72);
+const flicker = 0.5 + 0.5 * Math.sin(t * (2.2 + pulse) + i * 0.17);
+const hardPulse = Math.pow(Math.max(0, Math.sin(t * (1.3 + pulse * 0.8))), 10.0);
+const shimmer = Math.sin(t * 2.7 + x * 0.045 + y * 0.025 + i * 0.07) * jitter;
+
+x += shimmer * (1.0 + streaks);
+y += Math.sin(t * 1.4 + rnd * 10.0) * jitter * 3.0;
+
+const slice = Math.sin((x * 0.12) + t * 0.65);
+z += slice * reflection * 2.2;
+
+const mono = Math.min(1.0, Math.max(0.0, (0.18 + falloff * 0.52 + flicker * 0.18 + hardPulse * 0.42) * contrast));
+const bright = band <= 5 ? mono : mono * 0.7;
+color.setHSL(0, 0, Math.min(0.98, bright));
+
+const scale = 0.65 + bright * 1.9 + (band >= 2 && band <= 5 ? streaks * 0.55 : 0.0);
+target.set(x * 0.92, y * 0.78, z);
+`  },
+
+  {
     key:'particles-swarm', name:'Particles Swarm', desc:'A responsive swarm of particles flowing through a layered orbital field.',
     keywords:['particles','particle','swarm','field','flow','orb','cloud'],
     params:{radius:42,spread:1.2,flow:1.1,drift:0.65,twist:1.4,glow:0.8},
