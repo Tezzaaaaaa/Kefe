@@ -38,7 +38,7 @@ body{overflow:hidden;letter-spacing:-.01em}
 .kefe-fullscreen-open{overflow:hidden!important}
 button,input,textarea,select{font:inherit;color:inherit}
 button{border:0;cursor:pointer}
-.kefe-editor{height:100dvh;display:grid;grid-template-rows:56px minmax(0,1fr);background:var(--bg)}
+.kefe-editor{height:100dvh;display:grid;grid-template-rows:56px minmax(0,1fr) auto;background:var(--bg)}
 .kefe-top{display:flex;align-items:center;justify-content:space-between;margin:8px 12px 0;padding:0 8px;height:48px;border:1px solid var(--line-soft);border-radius:var(--r3);background:var(--surface);box-shadow:var(--lift);z-index:20}
 .kefe-top-nav,.kefe-top-actions,.kefe-top-profile{display:flex;align-items:center;gap:var(--control-gap)}
 .kefe-brand,.kefe-top-link{height:var(--control-h);min-height:var(--control-h);border:0;background:var(--surface);box-shadow:var(--lift);transition:transform .16s ease,box-shadow .16s ease,background .16s ease,color .16s ease}
