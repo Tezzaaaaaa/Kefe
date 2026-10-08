@@ -594,9 +594,16 @@
     button.setAttribute('title',playing?'Pause':'Play');
     button.innerHTML=playing?'<svg class="kefe-pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>':'<svg class="kefe-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg>';
   }
-  document.getElementById('playButton').onclick=()=>{
-    if(audio.src){if(audio.paused)audio.play();else audio.pause();}
-    else{state.time=state.time>=30?0:state.time+.05;updateTime();draw();}
+  document.getElementById('playButton').onclick=async()=>{
+    if(audio.src){
+      if(audio.paused){
+        const audioContext=window.kefeAudioGraph?.context?.();
+        if(audioContext&&audioContext.state==='suspended'){
+          try{await audioContext.resume();}catch(error){console.warn('[KEFE audio context]',error);}
+        }
+        try{await audio.play();}catch(error){console.warn('[KEFE audio playback]',error);setLyricsStatus('Could not play this media file: '+(error?.message||'unknown playback error'));}
+      }else audio.pause();
+    }else{state.time=state.time>=30?0:state.time+.05;updateTime();draw();}
   };
   function decodeText(bytes){
     try{return new TextDecoder('utf-8').decode(bytes).replace(/\0/g,'').trim();}catch(_){return '';}
