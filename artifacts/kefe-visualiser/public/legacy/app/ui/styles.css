@@ -8,8 +8,8 @@
   --preview:#e6e4db;
   --text:#3b382f;
   --muted:#948d7b;
-  --line:rgba(130,120,100,.264);
-  --line-soft:rgba(130,120,100,.144);
+  --line:rgba(130,120,100,.317);
+  --line-soft:rgba(130,120,100,.173);
   --accent:#ef3f38;
   --focus:#ef3f38;
   --r1:4px;
@@ -19,9 +19,9 @@
   --s2:8px;
   --s3:16px;
   --s4:24px;
-  --inner:inset 2px 2px 4px rgba(59,56,47,.864),inset -2px -2px 5px rgba(92,84,68,.264);
-  --lift:5px 6px 12px rgba(92,84,68,.216),-3px -3px 8px rgba(255,255,255,.936);
-  --float:8px 10px 22px rgba(92,84,68,.264),-4px -4px 11px rgba(59,56,47,.864);
+  --inner:inset 2px 2px 4px rgba(59,56,47,1),inset -2px -2px 5px rgba(92,84,68,.317);
+  --lift:5px 6px 12px rgba(92,84,68,.259),-3px -3px 8px rgba(255,255,255,1);
+  --float:8px 10px 22px rgba(92,84,68,.317),-4px -4px 11px rgba(59,56,47,1);
   --panel-pad:16px;
   --panel-pad-x:24px;
   --section-gap:12px;
