@@ -32,5 +32,6 @@ window.KEFE_EFFECTS = [
   { key: 'chromatica',  label: 'Chromatica',       description: 'Memesique poster stack, salmon on green' },
   { key: 'progressiveblur', label: 'Progressive Blur', description: 'Infinite lyric slider with soft edge blur' },
   { key: 'crtdesktop', label: 'CRT Computer Desktop', description: 'Late-80s desktop CRT lyric screen' },
-  { key: 'crttv', label: 'CRT TV Box', description: 'Late-80s/90s television lyric screen' }
+  { key: 'crttv', label: 'CRT TV Box', description: 'Late-80s/90s television lyric screen' },
+  { key: 'randomize', label: 'Randomize', description: 'Animated stencil segmentation over any font' }
 ];
