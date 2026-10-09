@@ -318,26 +318,23 @@
     ctx.save();ctx.shadowColor='rgba(0,0,0,'+lerp(.5,.35)+')';ctx.shadowBlur=unit*.04;ctx.shadowOffsetY=unit*.012;rr();ctx.fillStyle='#222';ctx.fill();ctx.restore();
     if(hasArt){ctx.save();rr();ctx.clip();try{ctx.drawImage(img,ax,ay,art,art);}catch(err){console.warn('[KEFE title art]',err);}ctx.restore();}
     ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=unit*.02;
-    // centred text fades out as the card recedes
-    if(p<1){
-      ctx.save();ctx.globalAlpha=Math.max(0,1-p*1.8);ctx.textAlign='center';
-      let y=ay+art+lerp(bigGap,bigGap*.5);const cx=w/2;
-      ctx.fillStyle='#fff';ctx.fillText(fit(title,font(750,bt),maxW),cx,y);y+=bt*1.25;
-      if(artist){ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillText(fit(artist,font(600,ba),maxW),cx,y);y+=ba*1.35;}
-      if(meta){ctx.fillStyle='rgba(255,255,255,.6)';ctx.fillText(fit(meta,font(500,bm),maxW),cx,y);}
-      ctx.restore();
-    }
-    // header text (right of the artwork) fades in
-    if(p>0){
-      ctx.save();ctx.globalAlpha=Math.max(0,(p-.35)/.65);ctx.textAlign='left';
-      const tx=ax+art+hGap,mw=Math.max(40,left+comp*(1-2*31/390)-tx);
-      const blockH=ht*1.25+(artist?hartist*1.35:0)+(meta?hm*1.4:0);
-      let y=ay+(art-blockH)/2;
-      ctx.fillStyle='#fff';ctx.fillText(fit(title,font(750,ht),mw),tx,y);y+=ht*1.25;
-      if(artist){ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillText(fit(artist,font(600,hartist),mw),tx,y);y+=hartist*1.35;}
-      if(meta){ctx.fillStyle='rgba(255,255,255,.6)';ctx.fillText(fit(meta,font(500,hm),mw),tx,y);}
-      ctx.restore();
-    }
+    // One title card morphs continuously from the centred opening layout into the pinned lyrics header.
+    const tx=ax+art+hGap,mw=Math.max(40,left+comp*(1-2*31/390)-tx);
+    const startY=ay+art+bigGap,blockH=ht*1.25+(artist?hartist*1.35:0)+(meta?hm*1.4:0),endY=ay+(art-blockH)/2;
+    let y=lerp(startY,endY);
+    const drawCardLine=(text,weight,startSize,endSize,startStep,endStep,color)=>{
+      if(!text)return;
+      const size=lerp(startSize,endSize),limit=lerp(maxW,mw),f=font(weight,size),value=fit(text,f,limit);
+      ctx.font=f;
+      const x=lerp((w-ctx.measureText(value).width)/2,tx);
+      ctx.fillStyle=color;ctx.fillText(value,x,y);
+      y+=lerp(startStep,endStep);
+    };
+    ctx.save();
+    drawCardLine(title,750,bt,ht,bt*1.25,ht*1.25,'#fff');
+    drawCardLine(artist,600,ba,hartist,ba*1.35,hartist*1.35,'rgba(255,255,255,.85)');
+    drawCardLine(meta,500,bm,hm,bm*1.4,hm*1.4,'rgba(255,255,255,.6)');
+    ctx.restore();
     ctx.restore();
   }
   let lyricLayer=null;
