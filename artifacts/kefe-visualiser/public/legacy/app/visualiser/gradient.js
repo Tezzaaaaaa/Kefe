@@ -283,6 +283,7 @@
       if(randomButton)randomButton.style.display=isHowBad?'none':'';
       if(isHowBad)window.kefeParticleVisualiser?.selectPreset('how-bad-reflection');
       else if(which==='particles'&&window.kefeParticleVisualiser?.getPreset()==='how-bad-reflection')window.kefeParticleVisualiser.selectPreset('particles-swarm');
+      syncAll();
     }
     tp.addEventListener('click',function(){show('particles');});tg.addEventListener('click',function(){show('gradient');});th.addEventListener('click',function(){show('howbad');});
     tabs.appendChild(tp);tabs.appendChild(tg);tabs.appendChild(th);
