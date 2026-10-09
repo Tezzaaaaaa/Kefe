@@ -691,6 +691,14 @@ button{border:0;cursor:pointer}
   accent-color:var(--accent);
 }
 .kefe-visualiser-spin-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.kefe-visualiser-spin-row .kefe-switch{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;min-width:82px;min-height:34px;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:800}
+.kefe-switch-state{min-width:22px;text-align:center}
+.kefe-switch-track{position:relative;display:block;flex:none;width:32px;height:18px;border:1px solid var(--line);border-radius:999px;background:var(--surface);box-shadow:var(--inner);transition:background .16s ease}
+.kefe-switch-thumb{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--text);box-shadow:var(--lift);transition:transform .16s ease,background .16s ease}
+.kefe-switch.is-on .kefe-switch-track{background:var(--accent);border-color:var(--accent)}
+.kefe-switch.is-on .kefe-switch-thumb{transform:translateX(14px);background:#fff}
+.kefe-switch:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
 .kefe-visualiser-empty{padding:10px 0;font-size:12px;opacity:.65}
 @media(max-width:700px){
   .kefe-visualiser-preset-grid{max-height:150px}
