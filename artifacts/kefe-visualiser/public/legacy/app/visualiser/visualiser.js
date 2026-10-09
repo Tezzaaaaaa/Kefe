@@ -23,12 +23,14 @@ const rnd = seed - Math.floor(seed);
 const seed2 = Math.sin(i * 78.233 + 4.7) * 24634.6345;
 const rnd2 = seed2 - Math.floor(seed2);
 const tick = Math.floor(time * 8.0);
+const audioBoost = Math.min(1.0, Math.max(0.0, audioLevel));
+const activeGlitch = Math.min(1.0, glitch + audioBoost * 0.45);
 const hash = Math.sin(row * 91.7 + tick * 13.1) * 43758.5453;
-const trigger = (hash - Math.floor(hash)) > 1.0 - glitch * 0.62;
+const trigger = (hash - Math.floor(hash)) > 1.0 - activeGlitch * 0.62;
 const rowY = (0.5 - u) * 118.0;
 const block = Math.floor(rnd2 * 12.0) / 12.0;
-const displacement = trigger ? (rnd2 - 0.5) * 30.0 * glitch : 0.0;
-const wave = Math.sin(time * 1.8 + u * 32.0 + rnd * 6.283) * (2.0 + glitch * 4.0);
+const displacement = trigger ? (rnd2 - 0.5) * 30.0 * activeGlitch : 0.0;
+const wave = Math.sin(time * 1.8 + u * 32.0 + rnd * 6.283) * (2.0 + activeGlitch * 4.0 + audioBoost * 5.0);
 const scaleZoom = 1.0 / zoom;
 const x = ((rnd2 - 0.5) * 112.0 + displacement + wave) * scaleZoom;
 const y = (rowY + (block - 0.5) * glitch * 8.0 + Math.sin(time * 0.8 + rnd * 9.0) * 3.0) * scaleZoom;
@@ -36,15 +38,15 @@ const z = -18.0 + rnd * 36.0 + Math.sin(time * 0.7 + u * 24.0) * 5.0;
 target.set(x, y, z);
 
 const energy = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin(time * 3.0 + row * 0.22));
-const fringe = rgb * (0.25 + glitch * 0.75);
+const fringe = rgb * (0.25 + activeGlitch * 0.75);
 const redBand = (i % 3) === 0;
 const blueBand = (i % 3) === 2;
 const feedbackGlow = Math.max(0.0, Math.min(1.0, (feedback - 0.85) / 0.145));
-const brightness = Math.min(1.0, energy * (0.72 + feedbackGlow * 0.65) + (trigger ? glitch * 0.3 : 0.0));
+const brightness = Math.min(1.0, energy * (0.72 + feedbackGlow * 0.65) + (trigger ? activeGlitch * 0.3 : 0.0) + audioBoost * 0.35);
 if (redBand) color.setRGB(Math.min(1.0, brightness), brightness * (0.08 + (1.0 - fringe) * 0.18), brightness * 0.12);
 else if (blueBand) color.setRGB(brightness * 0.12, brightness * (0.12 + (1.0 - fringe) * 0.2), Math.min(1.0, brightness * (0.55 + fringe * 0.45)));
 else color.setRGB(brightness * 0.38, Math.min(1.0, brightness * (0.55 + fringe * 0.45)), Math.min(1.0, brightness * (0.48 + fringe * 0.52)));
-const scale = 0.22 + glitch * 0.35 + (trigger ? 0.55 : 0.0) + feedbackGlow * 0.2;`
+const scale = 0.22 + activeGlitch * 0.35 + (trigger ? 0.55 : 0.0) + feedbackGlow * 0.2 + audioBoost * 0.3;`
   },
 
   {
@@ -1007,7 +1009,7 @@ function rebuild(count) {
     positions[i] = new THREE.Vector3(0, 0, 0);
     if (injectionFn) {
       try {
-        injectionFn(i, count, state.time, addControlLive, target, color, THREE);
+        injectionFn(i, count, state.time, addControlLive, target, color, THREE, 0);
         positions[i].copy(target);
       } catch (e) {
         injectionFn = null;
@@ -1025,7 +1027,7 @@ function rebuild(count) {
 let injectionFn = null;
 function compileInjection(preset) {
   try {
-    injectionFn = new Function('return function(i,count,time,addControl,target,color,THREE){' + preset.code + '}')();
+    injectionFn = new Function('return function(i,count,time,addControl,target,color,THREE,audioLevel){' + preset.code + '}')();
   } catch (e) {
     console.error('Injection compile failed:', e);
     injectionFn = null;
@@ -1037,6 +1039,12 @@ const addControlLive = (id, label, min, max, def) => {
 };
 
 const clock = new THREE.Clock();
+let audioBins = null;
+const audioElement = document.getElementById('kefeAudio');
+audioElement?.addEventListener('play', () => {
+  const graph = window.kefeAudioGraph?.ensure?.();
+  if (graph?.ac?.state === 'suspended') graph.ac.resume().catch(() => {});
+});
 function animate() {
   if (window.kefeVisualiserEnabled === false) { clock.getDelta(); requestAnimationFrame(animate); return; }
   const dt = Math.min(clock.getDelta(), 0.05);
@@ -1050,10 +1058,20 @@ function animate() {
     camera.lookAt(0, 0, 0);
   }
 
+  let audioLevel = 0;
+  const analyser = window.kefeAudioGraph?.analyser?.();
+  if (analyser) {
+    if (!audioBins || audioBins.length !== analyser.frequencyBinCount) audioBins = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(audioBins);
+    const limit = Math.max(1, Math.floor(audioBins.length * 0.6));
+    let total = 0;
+    for (let i = 0; i < limit; i++) total += audioBins[i];
+    audioLevel = total / (limit * 255);
+  }
   if (injectionFn && instancedMesh) {
     for (let i = 0; i < currentCount; i++) {
       try {
-        injectionFn(i, currentCount, time, addControlLive, target, color, THREE);
+        injectionFn(i, currentCount, time, addControlLive, target, color, THREE, audioLevel);
       } catch (e) {
         injectionFn = null;
         console.error('[KEFE visualiser preset]', state.preset.key, e);
