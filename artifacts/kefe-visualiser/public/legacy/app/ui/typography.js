@@ -15,13 +15,13 @@
     eternal:             'Homemade Apple',
     aurora:              'Bricolage Grotesque',
     typewriter:          'Courier Prime',
-    pulse:               'AuraSerif',
-    rise:                'Boulder',
+    pulse:               'AuraSerif', // * KEFE original merged font
+    rise:                'Boulder', // * KEFE original merged font
     instagram:           'Inter Tight',
-    fadeup:              'BlockParty',
-    decrypt:             'Kefe Tracklist Cursive',
-    blur:                'VogueNoir',
-    shiny:               'BubblegumDisplay',
+    fadeup:              'BlockParty', // * KEFE original merged font
+    decrypt:             'Kefe Tracklist Cursive', // * KEFE original merged font
+    blur:                'VogueNoir', // * KEFE original merged font
+    shiny:               'BubblegumDisplay', // * KEFE original merged font
     // New lyric effects
     barbie:              'Baloo 2',
     elasticpop:          'Bangers',
