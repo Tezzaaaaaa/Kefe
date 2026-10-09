@@ -5,74 +5,47 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 const PRESETS = [
   {
-    key:'how-bad-reflection',
-    name:'How Bad — Reflection',
-    desc:'Monochrome shattered-reflection treatment with a clean subject void, moving glass streaks and hard rhythmic flashes.',
-    keywords:['how bad','reflection','shattered','glass','monochrome','portrait','streaks','mirror','gaga'],
-    params:{void:0.72,reflection:1.15,streaks:1.25,jitter:0.55,contrast:0.92,pulse:1.1},
-    code:`const subjectVoid = addControl("void", "Subject Void", 0.2, 1.0, 0.72);
-const reflection = addControl("reflection", "Reflection Offset", 0.2, 2.4, 1.15);
-const streaks = addControl("streaks", "Glass Streaks", 0, 2.5, 1.25);
-const jitter = addControl("jitter", "Image Jitter", 0, 1.5, 0.55);
-const contrast = addControl("contrast", "Contrast", 0.2, 1.5, 0.92);
-const pulse = addControl("pulse", "Flash Pulse", 0, 2.5, 1.1);
+    key:'glitch-visualiser',
+    name:'The Glitch Visualiser',
+    desc:'Audio-reactive glitch field with row tears, RGB separation, block displacement and persistent-looking colour trails.',
+    keywords:['glitch','datamosh','rgb split','feedback','digital noise','signal tear','chromatic','corrupt'],
+    params:{glitch:0.25,rgb:0.35,feedback:0.94,zoom:0.999},
+    code:`const glitch = addControl("glitch", "Glitch", 0, 1, 0.25);
+const rgb = addControl("rgb", "RGB Split", 0, 1, 0.35);
+const feedback = addControl("feedback", "Feedback", 0.85, 0.995, 0.94);
+const zoom = addControl("zoom", "Zoom", 0.995, 1.005, 0.999);
 
-const u = i / Math.max(count - 1, 1);
-const band = i % 9;
+const safeCount = Math.max(count - 1, 1);
+const u = i / safeCount;
+const row = Math.floor(u * 60.0);
 const seed = Math.sin(i * 12.9898) * 43758.5453;
 const rnd = seed - Math.floor(seed);
 const seed2 = Math.sin(i * 78.233 + 4.7) * 24634.6345;
 const rnd2 = seed2 - Math.floor(seed2);
-const t = time;
-const side = rnd < 0.5 ? -1 : 1;
-const subjectWidth = 17.0 * subjectVoid;
-const x0 = (rnd2 - 0.5) * 112.0;
-const y0 = (0.5 - u) * 118.0;
+const tick = Math.floor(time * 8.0);
+const hash = Math.sin(row * 91.7 + tick * 13.1) * 43758.5453;
+const trigger = (hash - Math.floor(hash)) > 1.0 - glitch * 0.62;
+const rowY = (0.5 - u) * 118.0;
+const block = Math.floor(rnd2 * 12.0) / 12.0;
+const displacement = trigger ? (rnd2 - 0.5) * 30.0 * glitch : 0.0;
+const wave = Math.sin(time * 1.8 + u * 32.0 + rnd * 6.283) * (2.0 + glitch * 4.0);
+const scaleZoom = 1.0 / zoom;
+const x = ((rnd2 - 0.5) * 112.0 + displacement + wave) * scaleZoom;
+const y = (rowY + (block - 0.5) * glitch * 8.0 + Math.sin(time * 0.8 + rnd * 9.0) * 3.0) * scaleZoom;
+const z = -18.0 + rnd * 36.0 + Math.sin(time * 0.7 + u * 24.0) * 5.0;
+target.set(x, y, z);
 
-let x = x0;
-let y = y0;
-let z = -6.0 + (rnd - 0.5) * 8.0;
-
-if (band === 0 || band === 1) {
-  const mirrorPhase = t * 0.55 + rnd * 6.28318530718;
-  x = side * (subjectWidth + 8.0 + Math.abs(Math.sin(mirrorPhase)) * reflection * 8.0) + (rnd2 - 0.5) * 9.0;
-  y = y0 + Math.sin(mirrorPhase + u * 9.0) * (4.0 + streaks * 4.0);
-  z = -2.0 + Math.sin(mirrorPhase * 0.7 + u * 8.0) * 4.0;
-} else if (band >= 2 && band <= 5) {
-  const edge = side * (subjectWidth + 5.0 + rnd * 22.0);
-  const sweep = Math.sin(t * (0.7 + rnd * 0.7) + u * 18.0 + band) * streaks * 8.0;
-  x = edge + sweep;
-  y = y0 + Math.sin(t * 0.9 + rnd2 * 8.0) * 5.0;
-  z = -10.0 + band * 2.0 + Math.cos(t + rnd * 7.0) * 4.0;
-} else {
-  const a = rnd * Math.PI * 2.0;
-  const radius = 20.0 + rnd2 * 54.0;
-  const breathing = 1.0 + Math.sin(t * pulse + u * 16.0) * 0.045;
-  x = Math.cos(a + t * 0.08) * radius * breathing;
-  y = Math.sin(a + t * 0.13) * radius * 0.68;
-  z = 10.0 + Math.sin(a * 3.0 + t) * 7.0;
-}
-
-const edgeDistance = Math.abs(x);
-const voidDistance = Math.abs(x) / Math.max(subjectWidth, 1.0);
-const falloff = Math.max(0.08, 1.0 - Math.min(voidDistance, 1.0) * 0.72);
-const flicker = 0.5 + 0.5 * Math.sin(t * (2.2 + pulse) + i * 0.17);
-const hardPulse = Math.pow(Math.max(0, Math.sin(t * (1.3 + pulse * 0.8))), 10.0);
-const shimmer = Math.sin(t * 2.7 + x * 0.045 + y * 0.025 + i * 0.07) * jitter;
-
-x += shimmer * (1.0 + streaks);
-y += Math.sin(t * 1.4 + rnd * 10.0) * jitter * 3.0;
-
-const slice = Math.sin((x * 0.12) + t * 0.65);
-z += slice * reflection * 2.2;
-
-const mono = Math.min(1.0, Math.max(0.0, (0.18 + falloff * 0.52 + flicker * 0.18 + hardPulse * 0.42) * contrast));
-const bright = band <= 5 ? mono : mono * 0.7;
-color.setHSL(0, 0, Math.min(0.98, bright));
-
-const scale = 0.65 + bright * 1.9 + (band >= 2 && band <= 5 ? streaks * 0.55 : 0.0);
-target.set(x * 0.92, y * 0.78, z);
-`  },
+const energy = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin(time * 3.0 + row * 0.22));
+const fringe = rgb * (0.25 + glitch * 0.75);
+const redBand = (i % 3) === 0;
+const blueBand = (i % 3) === 2;
+const feedbackGlow = Math.max(0.0, Math.min(1.0, (feedback - 0.85) / 0.145));
+const brightness = Math.min(1.0, energy * (0.72 + feedbackGlow * 0.65) + (trigger ? glitch * 0.3 : 0.0));
+if (redBand) color.setRGB(Math.min(1.0, brightness), brightness * (0.08 + (1.0 - fringe) * 0.18), brightness * 0.12);
+else if (blueBand) color.setRGB(brightness * 0.12, brightness * (0.12 + (1.0 - fringe) * 0.2), Math.min(1.0, brightness * (0.55 + fringe * 0.45)));
+else color.setRGB(brightness * 0.38, Math.min(1.0, brightness * (0.55 + fringe * 0.45)), Math.min(1.0, brightness * (0.48 + fringe * 0.52)));
+const scale = 0.22 + glitch * 0.35 + (trigger ? 0.55 : 0.0) + feedbackGlow * 0.2;`
+  },
 
   {
     key:'particles-swarm', name:'Particles Swarm', desc:'A responsive swarm of particles flowing through a layered orbital field.',
@@ -1175,7 +1148,7 @@ const paramList = document.getElementById('visualiserParameters');
 const presetGrid = document.getElementById('visualiserPresetGrid');
 
 function renderPresetGrid() {
-  presetGrid.innerHTML = PRESETS.filter(p => p.key !== 'how-bad-reflection').map(p =>
+  presetGrid.innerHTML = PRESETS.map(p =>
     '<button type="button" class="kefe-visualiser-preset' + (p.key === state.preset.key ? ' active' : '') + '" data-key="' + p.key + '">' + p.name + '</button>'
   ).join('');
   presetGrid.querySelectorAll('.kefe-visualiser-preset').forEach(el => {
@@ -1245,7 +1218,7 @@ function setPreset(preset, opts) {
 function matchPrompt(text) {
   const t = text.toLowerCase();
   let best = null, bestScore = 0;
-  for (const p of PRESETS.filter(p => p.key !== 'how-bad-reflection')) {
+  for (const p of PRESETS) {
     let score = 0;
     for (const kw of p.keywords) {
       if (t.includes(kw)) score += kw.length;
@@ -1262,14 +1235,14 @@ const countOutput=document.getElementById('visualiserCountValue');
 const speedInput=document.getElementById('visualiserSpeed');
 const speedOutput=document.getElementById('visualiserSpeedValue');
 const spinButton=document.getElementById('visualiserSpin');
-presetSelect.innerHTML = PRESETS.filter(p => p.key !== 'how-bad-reflection').map(p => '<option value="' + p.key + '">' + p.name + '</option>').join('');
+presetSelect.innerHTML = PRESETS.map(p => '<option value="' + p.key + '">' + p.name + '</option>').join('');
 presetSelect.addEventListener('change', () => {
   const p = PRESETS.find(x => x.key === presetSelect.value);
   if (p) setPreset(p);
 });
 
 document.getElementById('visualiserGenerate').addEventListener('click',()=>setPreset(matchPrompt(promptEl.value.trim())||PRESETS[0]));
-document.getElementById('visualiserRandom').addEventListener('click',()=>{const presets=PRESETS.filter(p=>p.key!=='how-bad-reflection');setPreset(presets[Math.floor(Math.random()*presets.length)]);});
+document.getElementById('visualiserRandom').addEventListener('click',()=>{const presets=PRESETS;setPreset(presets[Math.floor(Math.random()*presets.length)]);});
 countInput.addEventListener('input',e=>{const v=Math.max(1000,Math.min(20000,parseInt(e.target.value,10)||8000));countOutput.textContent=v.toLocaleString();clearTimeout(rebuildTimer);rebuildTimer=setTimeout(()=>{state.count=v;rebuild(v);},120);});
 speedInput.addEventListener('input',e=>{state.speed=parseFloat(e.target.value)||1;speedOutput.textContent=state.speed.toFixed(2)+'×';});
 spinButton.addEventListener('click',()=>{state.autoSpin=!state.autoSpin;spinButton.textContent=state.autoSpin?'On':'Off';});
