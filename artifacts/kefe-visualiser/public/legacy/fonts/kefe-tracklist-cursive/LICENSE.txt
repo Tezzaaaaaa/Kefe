@@ -1,0 +1,7 @@
+KEFE ORIGINAL MERGED FONT NOTICE
+
+This directory contains a KEFE original merged-font creation.
+
+The font was created by combining or modifying existing font designs. The source-font licences remain applicable and take precedence wherever they impose conditions on modification, naming, embedding, or redistribution. This notice does not claim ownership of the underlying source fonts or override their licences.
+
+See the bundled fonts/CUSTOM-FONTS-LICENSE.md for the full KEFE original merged-font notice.
