@@ -253,6 +253,17 @@
       window.kefeVisualiserEnabled=v;var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
     });
     particles.insertBefore(particleToggle,particles.firstChild);
+    var howBad=el('div','kefe-vis-view kefe-howbad-view');howBad.id='kefeVisHowBadView';howBad.hidden=true;
+    howBad.appendChild(toggle('Show How Bad',function(){return window.kefeVisualiserEnabled!==false;},function(v){
+      window.kefeVisualiserEnabled=v;var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
+    }));
+    var howBadPresets=el('div','kefe-visualiser-control-group kefe-howbad-presets');
+    howBadPresets.appendChild(el('div','kefe-label','How Bad presets'));
+    var howBadPreset=el('button','kefe-visualiser-preset active','How Bad — Reflection');howBadPreset.type='button';
+    howBadPreset.setAttribute('aria-pressed','true');howBadPreset.addEventListener('click',function(){
+      window.kefeParticleVisualiser?.selectPreset('how-bad-reflection');
+    });
+    howBadPresets.appendChild(howBadPreset);howBad.appendChild(howBadPresets);
     var gradient=el('div','kefe-vis-view kefe-gradient-view');gradient.id='kefeVisGradientView';gradient.hidden=true;
     var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');
     var tp=el('button','kefe-btn primary','Particles'),tg=el('button','kefe-btn','Gradient'),th=el('button','kefe-btn','How Bad');
@@ -263,21 +274,19 @@
     var randomButton=document.getElementById('visualiserRandom');
     function show(which){
       var isGradient=which==='gradient',isHowBad=which==='howbad';
-      particles.hidden=isGradient;gradient.hidden=!isGradient;
+      particles.hidden=isGradient||isHowBad;howBad.hidden=!isHowBad;gradient.hidden=!isGradient;
       tp.classList.toggle('primary',which==='particles');tg.classList.toggle('primary',isGradient);th.classList.toggle('primary',isHowBad);
       tp.setAttribute('aria-selected',String(which==='particles'));tg.setAttribute('aria-selected',String(isGradient));th.setAttribute('aria-selected',String(isHowBad));
-      if(promptWrap)promptWrap.hidden=isHowBad;
-      if(presetWrap)presetWrap.hidden=isHowBad;
-      if(gridWrap)gridWrap.hidden=isHowBad;
-      if(randomButton)randomButton.hidden=isHowBad;
-      var particleToggleLabel=particleToggle.querySelector('.kefe-label');
-      if(particleToggleLabel)particleToggleLabel.textContent=isHowBad?'Show How Bad':'Show particles';
+      if(promptWrap)promptWrap.style.display=isHowBad?'none':'';
+      if(presetWrap)presetWrap.style.display=isHowBad?'none':'';
+      if(gridWrap)gridWrap.style.display=isHowBad?'none':'';
+      if(randomButton)randomButton.style.display=isHowBad?'none':'';
       if(isHowBad)window.kefeParticleVisualiser?.selectPreset('how-bad-reflection');
       else if(which==='particles'&&window.kefeParticleVisualiser?.getPreset()==='how-bad-reflection')window.kefeParticleVisualiser.selectPreset('particles-swarm');
     }
     tp.addEventListener('click',function(){show('particles');});tg.addEventListener('click',function(){show('gradient');});th.addEventListener('click',function(){show('howbad');});
     tabs.appendChild(tp);tabs.appendChild(tg);tabs.appendChild(th);
-    form.appendChild(tabs);form.appendChild(particles);form.appendChild(gradient);
+    form.appendChild(tabs);form.appendChild(particles);form.appendChild(howBad);form.appendChild(gradient);
     show('particles');
 
     /* ── gradient view ── */
