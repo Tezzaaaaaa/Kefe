@@ -1,43 +1,58 @@
-# Third-party notices and distribution status
+# Third-party notices and font licence index
 
-The root `LICENSE` applies to KEFE-authored code and documentation only. It does
-not relicense third-party software, fonts, artwork, logos, trademarks, or other
-assets included in or loaded by the application.
+The root `LICENSE` applies to KEFE-authored code and documentation only. It does not relicense fonts, third-party software, artwork, logos, trademarks, or other bundled assets.
 
-## Third-party software
+## Bundled third-party fonts
 
-- **Three.js** is loaded from jsDelivr in the legacy browser editor. Three.js is
-  distributed under the MIT License. Project: https://github.com/mrdoob/three.js
-  License text: https://github.com/mrdoob/three.js/blob/dev/LICENSE
+The applicable licence text is stored beside each bundled font file under `artifacts/kefe-visualiser/public/legacy/fonts/`.
 
-Other dependencies are declared in the workspace package manifests and lockfile.
-Their individual licenses remain applicable; this file is not a substitute for
-an exhaustive dependency-license report.
+| Font family | Bundled font directory | Licence file | Licence |
+|---|---|---|---|
+| Open Sans | `open-sans/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Archivo Narrow | `archivo-narrow/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Homemade Apple | `homemade-apple/` | `LICENSE.txt` | Apache License 2.0 |
+| Courier Prime | `courier-prime/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Inter Tight | `inter-tight/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Momo Trust Display | `momo-trust-display/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Anton | `anton/` | `OFL.txt` | SIL Open Font License 1.1 |
+| VT323 | `vt323/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Bricolage Grotesque | `bricolage-grotesque/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Baloo 2 | `baloo2/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Bangers | `bangers/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Urbanist | `urbanist/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Boogaloo | `boogaloo/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Monoton | `monoton/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Big Shoulders Stencil Display | `big-shoulders-stencil/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Frijole | `frijole/` | `OFL.txt` | SIL Open Font License 1.1 |
+| Special Elite | `special-elite/` | `LICENSE.txt` | Apache License 2.0 |
 
-## Fonts and type assets
+The OFL and Apache licence files were copied from the corresponding family directories in the official Google Fonts repository. Each licence file retains its upstream copyright and licence text.
 
-The editor bundles local WOFF2 files for font families including Open Sans,
-Archivo Narrow, Homemade Apple, Courier Prime, Inter Tight, Momo Trust Display,
-Anton, VT323, Bricolage Grotesque, Baloo 2, Bangers, Monoton, Big Shoulders
-Stencil Display, Frijole, Urbanist, Special Elite and Boogaloo. Some upstream
-releases of these families are distributed under the SIL Open Font License
-(OFL), but the repository does not currently include the original license text
-or provenance for every bundled font file. Confirm each file against its
-authoritative upstream source and include the required license/copyright
-notices before public redistribution.
+Official source index: https://github.com/google/fonts
 
-The following bundled font families appear custom or have not yet been matched
-to a verified license in this repository: AuraSerif, BlockParty, Kefe Tracklist
-Cursive, VogueNoir, BubblegumDisplay, Boulder and Memesique. Confirm that KEFE
-owns the files or has permission to redistribute them before publishing a
-downloadable application package containing them.
+## KEFE original merged fonts
 
-SF Pro Display is referenced as a font family name; this notice does not grant
-rights to Apple's font software or trademarks.
+The following are identified in the KEFE typography registry with an asterisk (`*`) as KEFE original merged-font creations:
 
-## Release clearance
+- AuraSerif *
+- BlockParty *
+- Kefe Tracklist Cursive *
+- VogueNoir *
+- BubblegumDisplay *
+- Boulder *
 
-A release workflow creates a **draft prerelease** and downloadable archives for
-review. Do not publish that draft until the bundled-font provenance and
-third-party license notices have been checked and completed. Do not describe the
-entire repository or all bundled assets as MIT-licensed.
+See [the KEFE custom-font notice](../../../../../../fonts/CUSTOM-FONTS-LICENSE.md) for the scope of the attribution and permissions. These fonts were made by merging or modifying other font designs. The applicable source-font licences still govern the merged font files; this notice does not override upstream terms. Keep the source-font identities and required notices with the project.
+
+## Other software
+
+Three.js is loaded from jsDelivr in the legacy browser editor and is distributed under the MIT License: https://github.com/mrdoob/three.js/blob/dev/LICENSE
+
+Other dependencies declared in workspace package manifests and lockfiles retain their own licences.
+
+## System font fallback
+
+SF Pro Display, Georgia, and Trebuchet MS are referenced as system font fallbacks; KEFE does not bundle those font files here. This notice does not grant rights to Apple's font software or trademarks.
+
+## Removed asset
+
+Memesique and the Chromatica lyric effect have been removed from the active application and bundled font directory.
