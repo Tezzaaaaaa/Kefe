@@ -64,8 +64,6 @@
     g.save();g.fillStyle='#000';g.fillRect(0,0,w,h);
     if(mode==='off'){g.restore();return;}
     if(useVideo()&&drawCover(g,vid,w,h)){
-      var darkness=Number(document.getElementById('backgroundTransparency')?.value)||0;
-      if(darkness>0){g.fillStyle='rgba(0,0,0,'+(Math.max(0,Math.min(100,darkness))/100)+')';g.fillRect(0,0,w,h);}
       g.restore();return;
     }
     prepareArt(artImage());
@@ -75,8 +73,6 @@
     drawApple(wctx,lw,lh,t);
     g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
     g.drawImage(work,0,0,w,h);
-    var darkness=Number(document.getElementById('backgroundTransparency')?.value)||0;
-    if(darkness>0){g.fillStyle='rgba(0,0,0,'+(Math.max(0,Math.min(100,darkness))/100)+')';g.fillRect(0,0,w,h);}
     g.restore();
   }
 
@@ -155,12 +151,17 @@
     if(!stage)return;
     cv=document.createElement('canvas');cv.id='kefeBackgroundCanvas';cv.setAttribute('aria-hidden','true');
     stage.insertBefore(cv,stage.firstChild);cctx=cv.getContext('2d');
+    var transparencyLayer=document.createElement('div');transparencyLayer.id='kefeBackgroundTransparencyLayer';transparencyLayer.setAttribute('aria-hidden','true');
+    transparencyLayer.style.cssText='position:absolute;inset:0;z-index:3;pointer-events:none;background:#000;opacity:0;';
+    stage.appendChild(transparencyLayer);
+    var lyricCanvas=document.getElementById('kefeCanvas'),appleLyrics=document.getElementById('kefeAppleLyrics');
+    if(lyricCanvas)lyricCanvas.style.zIndex='4';if(appleLyrics)appleLyrics.style.zIndex='5';
     if(window.ResizeObserver)new ResizeObserver(size).observe(stage);
     window.addEventListener('kefe-stage-resize',size);
     buildSelect();buildUpload();
     var transparency=document.getElementById('backgroundTransparency'),transparencyValue=document.getElementById('backgroundTransparencyValue');
     if(transparency&&transparencyValue){
-      var updateTransparency=function(){transparencyValue.value=transparency.value+'%';transparencyValue.textContent=transparency.value+'%';};
+      var updateTransparency=function(){var amount=Math.max(0,Math.min(100,Number(transparency.value)||0))/100;transparencyValue.value=transparency.value+'%';transparencyValue.textContent=transparency.value+'%';transparencyLayer.style.opacity=String(amount);};
       transparency.addEventListener('input',updateTransparency);updateTransparency();
     }
     if(audio)['play','pause','seeked','ended'].forEach(function(e){audio.addEventListener(e,function(){syncVideo(e==='seeked');});});
@@ -168,5 +169,6 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
-  window.kefeBackground={paint:paint,mode:function(){return mode;},blend:function(){return mode==='off'?'source-over':'screen';},hasVideo:function(){return !!vid;}};
+  function paintTransparency(g,w,h){var amount=Math.max(0,Math.min(100,Number(document.getElementById('backgroundTransparency')?.value)||0))/100;if(amount>0){g.save();g.fillStyle='rgba(0,0,0,'+amount+')';g.fillRect(0,0,w,h);g.restore();}}
+  window.kefeBackground={paint:paint,paintTransparency:paintTransparency,mode:function(){return mode;},blend:function(){return mode==='off'?'source-over':'screen';},hasVideo:function(){return !!vid;}};
 })();
