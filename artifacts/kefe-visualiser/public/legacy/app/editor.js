@@ -327,7 +327,7 @@
     ctx.clearRect(0,0,W,H);
     // The WebGL visualiser is the background; this canvas only composites lyrics/title card.
     const ph=titlePhase(state.time);
-    if(state.effect!=='none'&&state.lines.length&&(state.effect!=='apple'||ph.mode==='header'||ph.mode==='off')){
+    if(state.effect!=='none'&&state.lines.length&&(state.effect!=='apple'||ph.mode==='header'||ph.mode==='move'||ph.mode==='off')){
       const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
       if(typeof fn==='function'){
         try{
@@ -423,39 +423,6 @@
   function parseAppleLrc(lyrics){
     if(typeof lyrics!=='string'||!lyrics.trim())return [];
     return parseLrcText(lyrics);
-  }
-  function drawAppleLyrics(ctx,width,height,lines,time){
-    if(!lines.length)return;
-    const active=lines.reduce((best,line,index)=>line.time<=time&&(!best||line.time>best.time)?{...line,index}:best,null);
-    const index=active?.index??(time<lines[0].time?0:lines.length-1);
-    const center=lines[index];
-    if(!center)return;
-    ctx.save();
-    ctx.textAlign='center';
-    ctx.textBaseline='middle';
-    const size=Math.max(22,Math.min(48,width*.038));
-    const gap=size*1.38;
-    const maxWidth=width*.78;
-    for(let offset=-2;offset<=2;offset++){
-      const line=lines[index+offset];
-      if(!line)continue;
-      const y=height/2+offset*gap;
-      const isCurrent=offset===0;
-      const distance=Math.abs(offset);
-      ctx.font=(isCurrent?'750 ':'600 ')+size+'px "Inter Tight",system-ui,sans-serif';
-      ctx.globalAlpha=isCurrent?1:Math.max(.22,.62-distance*.16);
-      ctx.fillStyle='#fff';
-      let text=line.text;
-      while(ctx.measureText(text).width>maxWidth&&text.length>3)text=text.slice(0,-2)+'…';
-      ctx.fillText(text,width/2,y);
-    }
-    if(active&&Number.isFinite(active.end)&&time>=active.time&&time<=active.end){
-      const progress=Math.min(1,Math.max(0,(time-active.time)/(active.end-active.time||1)));
-      ctx.globalAlpha=.08+.12*progress;
-      ctx.fillStyle='#fff';
-      ctx.fillRect(width*.11,height*.5+size*.82,width*.78*progress,2);
-    }
-    ctx.restore();
   }
   function setEffect(id){
     state.effect=id;
