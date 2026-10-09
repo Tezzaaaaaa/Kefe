@@ -29,7 +29,6 @@
     karaoke:             'Boogaloo',
     trailer:             'Monoton',
     // Next batch (effects coming next)
-    chromatica:          'Memesique',
     analogtv:            'VT323',
     fancy:               'Anton',
     glitch:              'Special Elite',
@@ -117,8 +116,6 @@
     { family: 'Boulder',        weight: 400, style: 'normal', file: 'fonts/boulder/Boulder-Regular.woff2' },
     // Baloo 2 — for Barbie effect
     { family: 'Baloo 2',           weight: 800, style: 'normal', file: 'fonts/baloo2/Baloo2-800.woff2' },
-    // Memesique — for Chromatica effect (locked Chromatica typeface)
-    { family: 'Memesique',         weight: 400, style: 'normal', file: 'fonts/memesique/Memesique.woff2' },
     // Bangers — elasticpop
     { family: 'Bangers',        weight: 400, style: 'normal', file: 'fonts/bangers/Bangers-Regular.woff2' },
     // Monoton — trailer
@@ -181,7 +178,6 @@
     glitch:     { family: families.glitch,      weight: 400, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     analogtv:   { family: families.analogtv,    weight: 400, min: 34, max: 200, lineHeight: 1.12, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     splitflap:  { family: families.splitflap,   weight: 900, min: 44, max: 220, lineHeight: 1.02, tracking: 0.06,      align: 'center', case: 'upper', opticalScale: 1.00 },
-    chromatica: { family: families.chromatica,  weight: 400, min: 40, max: 220, lineHeight: 0.92, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     progressiveblur: { family: families.ui, weight: 700, min: 36, max: 180, lineHeight: 1.00, tracking: 0, align: 'center', case: 'none', opticalScale: 1.00 }
   };
 
