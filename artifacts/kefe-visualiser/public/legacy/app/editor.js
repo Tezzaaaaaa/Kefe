@@ -137,7 +137,7 @@
     const items=(Array.isArray(results)?results:[]).filter(item=>item.trackName).filter(item=>!opts.excludeCurrent||!(String(item.trackName||'').toLowerCase()===currentTitle&&String(item.artistName||'').toLowerCase()===currentArtist)).slice(0,opts.limit||5);
     status.textContent=opts.excludeCurrent?(items.length?'Other matches':'No other matches'):(items.length?'Select the correct song':'No matches found');
     panel.hidden=true;
-    if(window.kefeCarousel)window.kefeCarousel.showMatches(items,status.textContent);
+    if(window.kefeCarousel)window.kefeCarousel.showMatches(items,status.textContent,opts.query||[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' '));
     items.forEach(item=>{
       const button=document.createElement('button');
       button.type='button';
@@ -744,6 +744,13 @@
   }
   function isConfidentMatch(item,meta,duration){
     if(!meta.title||!meta.artist)return false;
+    const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist);
+    const candidateTitle=normalizeSearchText(item.trackName),candidateArtist=normalizeSearchText(item.artistName);
+    if(!(candidateTitle===title||coreTitle(item.trackName)===coreTitle(meta.title)))return false;
+    if(candidateArtist!==artist)return false;
+    const versionPattern=/\b(remix|rework|bootleg|mashup|nightcore|slowed|sped up|speed up|reverb|karaoke|cover|instrumental|live)\b/;
+    if(versionPattern.test(candidateTitle)&&!versionPattern.test(title))return false;
+    if(duration&&item.trackTimeMillis&&Math.abs(Number(item.trackTimeMillis)/1000-duration)>12)return false;
     return rankTrack(item,meta,duration)>=170;
   }
   function applyIdentifiedTrack(item){
@@ -987,11 +994,11 @@
       const best=matches[0];
       if(best&&isConfidentMatch(best,meta,duration)){
         applyIdentifiedTrack(best);
-        renderSongSuggestions(matches.slice(0,5),{excludeCurrent:true});
+        renderSongSuggestions(matches.slice(0,5),{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
         setLyricsStatus('Track identified. Finding lyrics…');
         await loadAutomaticLyrics();
       }else if(meta.title&&meta.artist){
-        renderSongSuggestions(matches.slice(0,5),{excludeCurrent:false});
+        renderSongSuggestions(matches.slice(0,5),{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
         setLyricsStatus('Using embedded song details. Finding lyrics…');
         const found=await loadAutomaticLyrics();
         if(!found&&mediaObjectUrl===uploadId)promptManualDetails(matches);
