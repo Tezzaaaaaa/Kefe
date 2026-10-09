@@ -41,7 +41,7 @@ The following are identified in the KEFE typography registry with an asterisk (`
 - BubblegumDisplay *
 - Boulder *
 
-See [the KEFE custom-font notice](../../../../../../fonts/CUSTOM-FONTS-LICENSE.md) for the scope of the attribution and permissions. These fonts were made by merging or modifying other font designs. The applicable source-font licences still govern the merged font files; this notice does not override upstream terms. Keep the source-font identities and required notices with the project.
+See [the KEFE custom-font notice](fonts/CUSTOM-FONTS-LICENSE.md) for the scope of the attribution and permissions. These fonts were made by merging or modifying other font designs. The applicable source-font licences still govern the merged font files; this notice does not override upstream terms. Keep the source-font identities and required notices with the project.
 
 ## Other software
 
@@ -52,7 +52,3 @@ Other dependencies declared in workspace package manifests and lockfiles retain 
 ## System font fallback
 
 SF Pro Display, Georgia, and Trebuchet MS are referenced as system font fallbacks; KEFE does not bundle those font files here. This notice does not grant rights to Apple's font software or trademarks.
-
-## Removed asset
-
-Memesique and the Chromatica lyric effect have been removed from the active application and bundled font directory.
