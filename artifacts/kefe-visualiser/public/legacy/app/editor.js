@@ -1257,7 +1257,7 @@
       compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paint(compositeCtx,dims[0],dims[1],state.time);
       const vw=visualiserCanvas.width,vh=visualiserCanvas.height;
-      if(vw&&vh&&(window.kefeFlutedGlassActive?window.kefeFlutedGlassEnabled!==false:window.kefeVisualiserEnabled!==false)){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k;compositeCtx.save();compositeCtx.globalCompositeOperation=window.kefeBackground?window.kefeBackground.blend():'source-over';compositeCtx.drawImage(visualiserCanvas,(dims[0]-dw)/2,(dims[1]-dh)/2,dw,dh);compositeCtx.restore();}
+      if(vw&&vh&&(window.kefeFlutedGlassActive?window.kefeFlutedGlassEnabled!==false:window.kefeVisualiserEnabled!==false)){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k;compositeCtx.save();compositeCtx.globalCompositeOperation=window.kefeFlutedGlassActive?'source-over':(window.kefeBackground?window.kefeBackground.blend():'source-over');compositeCtx.drawImage(visualiserCanvas,(dims[0]-dw)/2,(dims[1]-dh)/2,dw,dh);compositeCtx.restore();}
       if(window.kefeGradientLayer)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
       if(window.kefeAudioOverlay)window.kefeAudioOverlay.paint(compositeCtx,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paintTransparency(compositeCtx,dims[0],dims[1]);
