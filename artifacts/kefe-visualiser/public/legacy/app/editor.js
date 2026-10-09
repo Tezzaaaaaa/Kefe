@@ -348,6 +348,8 @@
     const ph=titlePhase(state.time);
     const useAppleComponent=state.effect==='apple'&&appleLyricsReady&&!window.kefeAppleCanvasExport;
     if(appleLyrics){
+      const lyricsTop=Math.max(24,H*.035)+Math.min(W,H)*.16;
+      appleLyrics.style.setProperty('--kefe-apple-lyrics-top',`${Math.min(0.92,lyricsTop/H)*100}%`);
       const hasTrack=!!(songTitle.value.trim()||songArtist.value.trim()||state.lines.length);
       appleLyrics.style.display=useAppleComponent&&hasTrack&&(ph.mode==='header'||ph.mode==='off')?'block':'none';
       if(appleLyricsReady)appleLyrics.currentTime=Math.round(((Number(state.time)||0)-lyricOffset())*1000);
