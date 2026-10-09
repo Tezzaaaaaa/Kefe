@@ -1010,7 +1010,7 @@ const initialCount = 20000;
 let currentCount = initialCount;
 
 const state = {
-  preset: PRESETS[0],
+  preset: PRESETS.find(p => p.key === 'particles-swarm') || PRESETS[0],
   params: {},
   count: initialCount,
   speed: 1,
@@ -1175,7 +1175,7 @@ const paramList = document.getElementById('visualiserParameters');
 const presetGrid = document.getElementById('visualiserPresetGrid');
 
 function renderPresetGrid() {
-  presetGrid.innerHTML = PRESETS.map(p =>
+  presetGrid.innerHTML = PRESETS.filter(p => p.key !== 'how-bad-reflection').map(p =>
     '<button type="button" class="kefe-visualiser-preset' + (p.key === state.preset.key ? ' active' : '') + '" data-key="' + p.key + '">' + p.name + '</button>'
   ).join('');
   presetGrid.querySelectorAll('.kefe-visualiser-preset').forEach(el => {
@@ -1245,7 +1245,7 @@ function setPreset(preset, opts) {
 function matchPrompt(text) {
   const t = text.toLowerCase();
   let best = null, bestScore = 0;
-  for (const p of PRESETS) {
+  for (const p of PRESETS.filter(p => p.key !== 'how-bad-reflection')) {
     let score = 0;
     for (const kw of p.keywords) {
       if (t.includes(kw)) score += kw.length;
@@ -1262,20 +1262,22 @@ const countOutput=document.getElementById('visualiserCountValue');
 const speedInput=document.getElementById('visualiserSpeed');
 const speedOutput=document.getElementById('visualiserSpeedValue');
 const spinButton=document.getElementById('visualiserSpin');
-presetSelect.innerHTML = PRESETS.map(p => '<option value="' + p.key + '">' + p.name + '</option>').join('');
+presetSelect.innerHTML = PRESETS.filter(p => p.key !== 'how-bad-reflection').map(p => '<option value="' + p.key + '">' + p.name + '</option>').join('');
 presetSelect.addEventListener('change', () => {
   const p = PRESETS.find(x => x.key === presetSelect.value);
   if (p) setPreset(p);
 });
 
 document.getElementById('visualiserGenerate').addEventListener('click',()=>setPreset(matchPrompt(promptEl.value.trim())||PRESETS[0]));
-document.getElementById('visualiserRandom').addEventListener('click',()=>setPreset(PRESETS[Math.floor(Math.random()*PRESETS.length)]));
+document.getElementById('visualiserRandom').addEventListener('click',()=>{const presets=PRESETS.filter(p=>p.key!=='how-bad-reflection');setPreset(presets[Math.floor(Math.random()*presets.length)]);});
 countInput.addEventListener('input',e=>{const v=Math.max(1000,Math.min(20000,parseInt(e.target.value,10)||8000));countOutput.textContent=v.toLocaleString();clearTimeout(rebuildTimer);rebuildTimer=setTimeout(()=>{state.count=v;rebuild(v);},120);});
 speedInput.addEventListener('input',e=>{state.speed=parseFloat(e.target.value)||1;speedOutput.textContent=state.speed.toFixed(2)+'×';});
 spinButton.addEventListener('click',()=>{state.autoSpin=!state.autoSpin;spinButton.textContent=state.autoSpin?'On':'Off';});
 countInput.value = String(initialCount);
 spinButton.textContent = initialSpin ? 'On' : 'Off';
 renderPresetGrid();
+window.kefeParticleVisualiser={selectPreset(key){const preset=PRESETS.find(p=>p.key===key);if(preset)setPreset(preset);},getPreset(){return state.preset.key;}};
+setPreset(state.preset);
 resize();
 animate();
 window.dispatchEvent(new Event('kefe-effects-ready'));
