@@ -7,14 +7,16 @@
 
 This licence applies only to the original selection, arrangement, and other original modifications contributed by the Licensor to the following KEFE font files, to the extent those contributions are protectable and the Licensor has the legal right to license them:
 
-- AuraSerif
-- BlockParty
-- Kefe Tracklist Cursive
-- VogueNoir
-- BubblegumDisplay
-- Boulder
+- AuraSerif *
+- BlockParty *
+- Kefe Tracklist Cursive *
+- VogueNoir *
+- BubblegumDisplay *
+- Boulder *
 
 It does not claim ownership of, or grant rights in, any underlying font software, glyph designs, outlines, names, trademarks, or other material created by third parties and incorporated into those files.
+
+*** = KEFE original merged-font creation.** The asterisk identifies your original merged-font work; it does not mean the underlying source fonts are owned by KEFE.
 
 ## Permission
 
