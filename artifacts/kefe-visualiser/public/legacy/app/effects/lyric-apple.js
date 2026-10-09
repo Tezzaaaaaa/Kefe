@@ -86,7 +86,7 @@
           ctx.fillText(word.text,x,baseline);
           if(isActive){
             const start=Number(word.start),end=Number(word.end);
-            const progress=finite(start)&&time>=start?(finite(end)&&end>start?smooth((time-start)/Math.min(.11,end-start):1):0;
+            const progress=finite(start)&&time>=start?(finite(end)&&end>start?smooth((time-start)/Math.min(.11,end-start)):1):0;
             if(progress>0){
               ctx.save();ctx.beginPath();ctx.rect(x-1,baseline-rowHeight*.62,wordWidth*progress+2,rowHeight*1.24);ctx.clip();
               ctx.filter='none';ctx.globalAlpha=1;ctx.fillStyle='#FFFFFF';ctx.fillText(word.text,x,baseline);ctx.restore();
