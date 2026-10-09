@@ -1236,7 +1236,7 @@
     }catch(error){console.warn('[KEFE export audio]',error);return null;}
   }
   document.getElementById('exportButton').addEventListener('click',async()=>{
-    const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),visualiserCanvas=document.getElementById('kefeVisualiserCanvas');
+    const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),visualiserCanvas=window.kefeFlutedGlassActive?document.getElementById('kefeFlutedGlassCanvas'):document.getElementById('kefeVisualiserCanvas');
     if(exporting)return;
     if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream||!visualiserCanvas){status.textContent='Video export is not supported by this browser.';return;}
     if(!audio.src||!Number.isFinite(audio.duration)){status.textContent='Upload a track first.';return;}
@@ -1262,7 +1262,7 @@
       compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paint(compositeCtx,dims[0],dims[1],state.time);
       const vw=visualiserCanvas.width,vh=visualiserCanvas.height;
-      if(vw&&vh&&window.kefeVisualiserEnabled!==false){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k;compositeCtx.save();compositeCtx.globalCompositeOperation=window.kefeBackground?window.kefeBackground.blend():'source-over';compositeCtx.drawImage(visualiserCanvas,(dims[0]-dw)/2,(dims[1]-dh)/2,dw,dh);compositeCtx.restore();}
+      if(vw&&vh&&(window.kefeFlutedGlassActive?window.kefeFlutedGlassEnabled!==false:window.kefeVisualiserEnabled!==false)){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k;compositeCtx.save();compositeCtx.globalCompositeOperation=window.kefeBackground?window.kefeBackground.blend():'source-over';compositeCtx.drawImage(visualiserCanvas,(dims[0]-dw)/2,(dims[1]-dh)/2,dw,dh);compositeCtx.restore();}
       if(window.kefeGradientLayer)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
       if(window.kefeAudioOverlay)window.kefeAudioOverlay.paint(compositeCtx,dims[0],dims[1]);
       compositeCtx.drawImage(canvas,0,0,dims[0],dims[1]);
