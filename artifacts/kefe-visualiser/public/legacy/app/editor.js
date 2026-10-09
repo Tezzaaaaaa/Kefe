@@ -306,7 +306,7 @@
     // header layout – same column as the Apple lyrics
     const aspect=w/Math.max(1,h),comp=aspect<.75?w*.84:(aspect<1.25?w*.78:w*.72);
     const left=Math.max(0,(w-comp)/2)+comp*(31/390);
-    const hArt=unit*.11,hTop=Math.max(24,h*.035),hGap=unit*.028;
+    const hArt=unit*.11,hTop=Math.max(32,h*.07),hGap=unit*.028;
     const ht=Math.max(13,unit*.036),hartist=Math.max(11,unit*.028),hm=Math.max(10,unit*.022);
     const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,left),ay=lerp(bigTop,hTop),r=art*.08;
     const maxW=w*.82;
@@ -348,7 +348,7 @@
     const ph=titlePhase(state.time);
     const useAppleComponent=state.effect==='apple'&&appleLyricsReady&&!window.kefeAppleCanvasExport;
     if(appleLyrics){
-      const lyricsTop=Math.max(24,H*.035)+Math.min(W,H)*.16;
+      const lyricsTop=Math.max(32,H*.07)+Math.min(W,H)*.173;
       appleLyrics.style.setProperty('--kefe-apple-lyrics-top',`${Math.min(0.92,lyricsTop/H)*100}%`);
       const hasTrack=!!(songTitle.value.trim()||songArtist.value.trim()||state.lines.length);
       appleLyrics.style.display=useAppleComponent&&hasTrack&&(ph.mode==='header'||ph.mode==='off')?'block':'none';
@@ -369,7 +369,7 @@
           if(lyricLayer.width!==W||lyricLayer.height!==H){lyricLayer.width=W;lyricLayer.height=H;}
           const lc=lyricLayer.getContext('2d');lc.setTransform(1,0,0,1,0,0);lc.clearRect(0,0,W,H);
           if(styler)styler.post(lc,W,H,paintEffect);else paintEffect(lc);
-          const u=Math.min(W,H),edge=Math.max(24,H*.035)+u*.11+u*.03,fade=u*.05;
+          const u=Math.min(W,H),edge=Math.max(32,H*.07)+u*.173,fade=u*.05;
           lc.save();lc.globalCompositeOperation='destination-in';
           const g=lc.createLinearGradient(0,edge,0,edge+fade);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');
           lc.fillStyle=g;lc.fillRect(0,0,W,H);lc.restore();
