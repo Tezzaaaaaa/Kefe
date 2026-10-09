@@ -726,7 +726,7 @@
   function rankTrack(item,meta,duration){
     const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist);
     const itemTitle=normalizeSearchText(item.trackName),itemArtist=normalizeSearchText(item.artistName);
-    const versionPattern=/\\b(remix|rework|bootleg|mashup|nightcore|slowed|sped up|speed up|reverb|karaoke|cover|instrumental|live)\\b/;
+    const versionPattern=/\b(remix|rework|bootleg|mashup|nightcore|slowed|sped up|speed up|reverb|karaoke|cover|instrumental|live)\b/;
     const sourceHasVersion=versionPattern.test(title),resultHasVersion=versionPattern.test(itemTitle);
     let score=0;
     const itemCore=coreTitle(item.trackName);
