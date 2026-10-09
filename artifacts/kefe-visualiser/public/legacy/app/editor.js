@@ -350,7 +350,7 @@
     if(appleLyrics){
       const hasTrack=!!(songTitle.value.trim()||songArtist.value.trim()||state.lines.length);
       appleLyrics.style.display=useAppleComponent&&hasTrack&&(ph.mode==='header'||ph.mode==='off')?'block':'none';
-      if(appleLyricsReady)appleLyrics.currentTime=Math.round((Number(state.time)||0)*1000);
+      if(appleLyricsReady)appleLyrics.currentTime=Math.round(((Number(state.time)||0)-lyricOffset())*1000);
     }
     if(state.effect!=='none'&&state.lines.length&&!useAppleComponent&&(state.effect!=='apple'||ph.mode==='header'||ph.mode==='move'||ph.mode==='off')){
       const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
@@ -1154,7 +1154,7 @@
     appleLyrics.musicId=songAlbum.dataset.platformId||'';
     appleLyrics.songDurationMs=Math.round((audio.duration||video.duration||Number(songAlbum.dataset.trackDuration)||0)*1000);
     appleLyrics.ttml=title||artist?'':state.lines.length?lyricsToTtml(state.lines):'';
-    appleLyrics.currentTime=Math.round((audio.currentTime||state.time||0)*1000);
+    appleLyrics.currentTime=Math.round(((audio.currentTime||state.time||0)-lyricOffset())*1000);
     appleLyrics.highlightColor='#fff';
     appleLyrics.fontFamily="'Inter', Arial, sans-serif";
     appleLyrics.autoScroll=true;
@@ -1162,7 +1162,7 @@
   }
   function syncAppleLyrics(seeking=false){
     if(!appleLyrics||!appleLyricsReady)return;
-    appleLyrics.currentTime=Math.round((audio.src?audio.currentTime:state.time)*1000);
+    appleLyrics.currentTime=Math.round(((audio.src?audio.currentTime:state.time)-lyricOffset())*1000);
     if(seeking&&typeof appleLyrics.seek==='function')appleLyrics.seek();
   }
   audio.addEventListener('timeupdate',()=>{
