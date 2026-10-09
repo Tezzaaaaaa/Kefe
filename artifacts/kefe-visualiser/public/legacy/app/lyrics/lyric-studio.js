@@ -103,40 +103,6 @@
     sync();
   }
 
-  /* ---------- Effects panel: video type presets ---------- */
-  var TYPES = [
-    ['lyric', 'Lyric video', 'Timed lyrics over the visualiser.'],
-    ['visualiser', 'Full-song visualiser', 'No lyrics. Spectrum overlay reacts to the music.'],
-    ['cover', 'Cover-art video', 'Artwork, title card and a pulse that follows the music.'],
-    ['release', 'Release cut (vertical)', 'Lyric video reframed 9:16 for short-form platforms.']
-  ];
-  function pick(id, value) {
-    var s = document.getElementById(id);
-    if (s && s.value !== value && s.querySelector('option[value="' + value + '"]')) { s.value = value; s.dispatchEvent(new Event('change')); }
-  }
-  function applyType(type) {
-    var eff = document.getElementById('lyricEffect'), cur = eff ? eff.value : 'apple';
-    if (type === 'lyric') { if (cur === 'none') pick('lyricEffect', 'apple'); }
-    if (type === 'visualiser') { pick('lyricEffect', 'none'); if (window.kefeAudioOverlay && window.kefeAudioOverlay.mode() === 'off') window.kefeAudioOverlay.setMode('spectrum'); }
-    if (type === 'cover') { pick('lyricEffect', 'apple'); pick('visualiserBackground', 'apple'); if (window.kefeAudioOverlay) window.kefeAudioOverlay.setMode('pulse'); }
-    if (type === 'release') { if (cur === 'none') pick('lyricEffect', 'apple'); pick('kefeAspect', '9:16'); }
-    var hint = document.getElementById('kefeTypeHint');
-    if (hint) hint.textContent = TYPES.filter(function (t) { return t[0] === type; })[0][2];
-  }
-  function buildTypeUi() {
-    var host = document.querySelector('[data-panel-view="effects"] .kefe-form');
-    if (!host || document.getElementById('kefeTypeGroup')) return;
-    var wrap = el('div'); wrap.id = 'kefeTypeGroup';
-    wrap.appendChild(el('label', 'kefe-label', 'Video type'));
-    var sel = el('select', 'kefe-select'); sel.id = 'kefeVideoType';
-    var blank = el('option', null, 'Custom'); blank.value = ''; sel.appendChild(blank);
-    TYPES.forEach(function (t) { var o = el('option', null, t[1]); o.value = t[0]; sel.appendChild(o); });
-    var hint = el('div', 'kefe-meta', 'Pick a starting point. Every control below stays editable.'); hint.id = 'kefeTypeHint'; hint.style.marginTop = '6px';
-    sel.addEventListener('change', function () { if (sel.value) applyType(sel.value); else hint.textContent = 'Pick a starting point. Every control below stays editable.'; });
-    wrap.append(sel, hint);
-    host.insertBefore(wrap, host.firstChild);
-  }
-
   /* ---------- Lyrics panel: timing editor ---------- */
   var history = [], listEl, statusEl, undoBtn, followBox, openWords = new Set(), renderTimer = null;
 
@@ -372,7 +338,7 @@
 
   /* ---------- wiring ---------- */
   function init() {
-    buildTypeUi(); buildDisplayUi(); buildLyricsUi(); buildExportUi();
+    buildDisplayUi(); buildLyricsUi(); buildExportUi();
     window.addEventListener('kefe-lyrics-changed', function (e) {
       if (e.detail && e.detail.source === 'studio') return;
       if (!(e.detail && e.detail.source === 'text')) history = [];
