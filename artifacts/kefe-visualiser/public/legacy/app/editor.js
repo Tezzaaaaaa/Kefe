@@ -287,7 +287,7 @@
     if(t<first){const x=(t-start)/Math.max(0.001,first-start);return {mode:'move',p:x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};}
     if(t<=finalEnd)return {mode:'header',p:1};
     const returnDuration=Math.min(1.0,Math.max(0.55,(finalEnd-lastStart)*0.35));
-    const x=linaClamp((t-finalEnd)/returnDuration);
+    const x=Math.max(0,Math.min(1,(t-finalEnd)/returnDuration));
     const eased=x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
     return {mode:'return',p:1-eased};
   }
