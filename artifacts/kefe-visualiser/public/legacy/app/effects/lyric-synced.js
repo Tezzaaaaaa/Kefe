@@ -55,7 +55,7 @@
     if(!Array.isArray(lines)||!lines.length){setActive(true);colorFill(ctx,w,h,imageFor(img));return;}
     setActive(true);img=imageFor(img);
     const stage=document.querySelector('.kefe-stage');
-    if(stage&&img&&img!==artwork){artwork=img;try{const c=document.createElement('canvas');c.width=c.height=32;const cctx=c.getContext('2d',{willReadFrequently:true});cctx.drawImage(img,0,0,32,32);const d=cctx.getImageData(0,0,32,32).data;let sums=[[0,0,0,0],[0,0,0,0]];for(let i=0;i<d.length;i+=4){if(d[i+3]<100)continue;const k=(d[i]+d[i+1]+d[i+2])>380?0:1;sums[k][0]+=d[i];sums[k][1]+=d[i+1];sums[k][2]+=d[i+2];sums[k][3]++;}palette=sums.filter(s=>s[3]).map(s=>'rgb('+s.slice(0,3).map(v=>Math.round(v/s[3])).join(',')+')');blobs=[];}catch(_){}}
+    if(stage&&img&&img!==artwork){artwork=img;try{const c=document.createElement('canvas');c.width=c.height=32;const cctx=c.getContext('2d',{willReadFrequently:true});cctx.drawImage(img,0,0,32,32);const d=cctx.getImageData(0,0,32,32).data;let sums=[[0,0,0,0],[0,0,0,0]];for(let i=0;i<d.length;i+=4){if(d[i+3]<100)continue;const k=(d[i]+d[i+1]+d[i+2])>380?0:1;sums[k][0]+=d[i];sums[k][1]+=d[i+1];sums[k][2]+=d[i+2];sums[k][3]++;}palette=sums.filter(s=>s[3]).map(s=>'#'+s.slice(0,3).map(v=>Math.round(v/s[3]).toString(16).padStart(2,'0')).join(''));blobs=[];}catch(_){}}
     colorFill(ctx,w,h,img);
     const title=document.getElementById('songTitle')?.value?.trim()||'Untitled';
     const artist=document.getElementById('songArtist')?.value?.trim()||'Unknown artist';
