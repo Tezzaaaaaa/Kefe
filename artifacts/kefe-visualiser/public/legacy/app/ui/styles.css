@@ -926,6 +926,9 @@ button{border:0;cursor:pointer}
 /* ───────── Media panel: steps + search carousel ───────── */
 #kefeSuggestions{display:none!important}
 .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--s3);align-items:start}
+.kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps>.kefe-find-step{grid-column:1/-1}
+.kefe-panel[data-panel-view="media"] .kefe-find-step{border-color:var(--accent);box-shadow:0 0 0 1px rgba(239,63,56,.12),0 0 24px rgba(239,63,56,.12),var(--lift)}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-step-head h3{font-size:15px}
 .kefe-media-col{display:grid;gap:var(--s3);min-width:0}
 .kefe-step{min-width:0;padding:14px;border:1px solid var(--line-soft);border-radius:var(--r3);background:var(--surface);box-shadow:var(--lift)}
 .kefe-step-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
