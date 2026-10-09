@@ -48,6 +48,7 @@
   const audio=document.getElementById('kefeAudio'),range=document.getElementById('kefeTime');
   const video=document.createElement('video');
   video.preload='metadata'; video.muted=true; video.playsInline=true; video.style.display='none'; document.body.appendChild(video);
+  window.kefeGetProjectVideo=()=>video;
   let mediaObjectUrl=''; let visualiserPreset='none',visualiserBackground='black',visualiserMotion='reactive';
   let previewAspectRatio='16:9';
   let titleArtImage=null,titleCardShownFor='';
