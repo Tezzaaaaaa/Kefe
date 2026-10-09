@@ -327,7 +327,7 @@
     ctx.clearRect(0,0,W,H);
     // The WebGL visualiser is the background; this canvas only composites lyrics/title card.
     const ph=titlePhase(state.time);
-    if(state.effect!=='none'&&state.lines.length&&ph.mode==='header'){
+    if(state.effect!=='none'&&state.lines.length&&(state.effect!=='apple'||ph.mode==='header'||ph.mode==='off')){
       const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
       if(typeof fn==='function'){
         try{
