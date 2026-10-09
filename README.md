@@ -79,6 +79,8 @@ Effects provide different animation and typography treatments. Available control
 - Preview playback, scrub through the timeline and view the composition fullscreen.
 - Switch the composition aspect ratio between 16:9, 9:16 and 1:1.
 - Use the Particles Swarm 3D visualiser and available scene presets.
+- Switch between the Particles, Gradient and dedicated Glitch visualiser panels.
+- The Glitch Visualiser provides audio-reactive signal tears, RGB separation, block displacement, colour trails and adjustable glitch, RGB split, feedback and zoom parameters.
 - Randomise a visualiser scene or use the prompt-based scene generation control.
 - Adjust particle count, speed, auto-spin and preset-specific parameters.
 - Configure background effects and optional audio-reactive overlays, including waveform, spectrum, radial and pulse treatments.
