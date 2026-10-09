@@ -60,7 +60,7 @@
     const title=document.getElementById('songTitle')?.value?.trim()||'Untitled';
     const artist=document.getElementById('songArtist')?.value?.trim()||'Unknown artist';
     const unit=Math.min(w,h),heroSize=layout===2?unit*.22:layout===1?unit*.32:unit*.28;
-    const wide=layout===2, maxW=w*(wide?.82:layout===1?.66:.8), padX=w*(wide?.07:.06);
+    const wide=layout===2, maxW=w*(wide ? .82 : layout===1 ? .66 : .8), padX=w*(wide ? .07 : .06);
     const active=activeIndex(lines,time),idx=Math.max(0,active);
     const headerY=h*.07, artX=wide?w*.5-heroSize*.95:w*.5-heroSize/2, artY=wide?h*.12:headerY;
     ctx.save();ctx.shadowColor='rgba(0,0,0,.65)';ctx.shadowBlur=unit*.07;
@@ -85,7 +85,7 @@
       const line=lines[i],rel=i-idx,y=baseline+rel*spacing;
       if(y<h*.12||y>h*.92)continue;
       const words=wordsFor(line,lines[i+1]),isActive=i===idx,prev=i<idx;
-      const f=lyricSize*(isActive?1.04:prev?.99:.97);
+      const f=lyricSize*(isActive ? 1.04 : prev ? .99 : .97);
       ctx.save();ctx.translate(wide?w/2:padX,y);ctx.scale(isActive ? 1.04 : prev ? .99 : .97,1);ctx.textAlign=wide?'center':'left';ctx.font='700 '+f+'px -apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif';
       const full=words.map(x=>x.text).join(' ');let text=full;while(ctx.measureText(text).width>maxW&&text.length>3)text=text.slice(0,-2)+'…';
       if(text!==full){ctx.globalAlpha=prev ? .20 : isActive ? .34 : .13;ctx.fillStyle='#fff';ctx.filter=prev?'blur(1.1px)':'none';ctx.fillText(text,0,0,maxW);}
