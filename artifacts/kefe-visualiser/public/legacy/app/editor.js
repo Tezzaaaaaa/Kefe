@@ -113,6 +113,8 @@
     songAlbum.dataset.artUrl=normalizeArtworkUrl(item.artworkUrl100);
     songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
     songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
+    const mediaTrack=document.getElementById('kefeMediaTrack');
+    if(mediaTrack)mediaTrack.classList.add('is-identified');
     updateMediaTrack();
     updateTitleCard();
     applyAppleAlbumGradient();
@@ -724,13 +726,20 @@
   function rankTrack(item,meta,duration){
     const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist);
     const itemTitle=normalizeSearchText(item.trackName),itemArtist=normalizeSearchText(item.artistName);
+    const versionPattern=/\\b(remix|rework|bootleg|mashup|nightcore|slowed|sped up|speed up|reverb|karaoke|cover|instrumental|live)\\b/;
+    const sourceHasVersion=versionPattern.test(title),resultHasVersion=versionPattern.test(itemTitle);
     let score=0;
     const itemCore=coreTitle(item.trackName);
-    if(title&&(itemTitle===title||(itemCore&&itemCore===coreTitle(meta.title))))score+=120;
-    else if(title&&itemTitle&&(itemTitle.includes(title)||title.includes(itemTitle)))score+=55;
-    if(artist&&itemArtist===artist)score+=120;
-    else if(artist&&itemArtist&&(itemArtist.includes(artist)||artist.includes(itemArtist)))score+=55;
-    if(duration&&item.trackTimeMillis)score+=Math.max(0,40-Math.abs(Number(item.trackTimeMillis)/1000-duration)*2);
+    if(title&&itemTitle===title)score+=150;
+    else if(title&&itemCore&&itemCore===coreTitle(meta.title))score+=85;
+    else if(title&&itemTitle&&(itemTitle.includes(title)||title.includes(itemTitle)))score+=35;
+    if(artist&&itemArtist===artist)score+=110;
+    else if(artist&&itemArtist&&(itemArtist.includes(artist)||artist.includes(itemArtist)))score+=35;
+    if(resultHasVersion&&!sourceHasVersion)score-=100;
+    if(duration&&item.trackTimeMillis){
+      const difference=Math.abs(Number(item.trackTimeMillis)/1000-duration);
+      score+=Math.max(-45,35-difference*2.5);
+    }
     return score;
   }
   function isConfidentMatch(item,meta,duration){
@@ -745,6 +754,8 @@
     songAlbum.dataset.artUrl=normalizeArtworkUrl(item.artworkUrl100);
     songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
     songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
+    const mediaTrack=document.getElementById('kefeMediaTrack');
+    if(mediaTrack)mediaTrack.classList.add('is-identified');
     updateMediaTrack();updateTitleCard();applyAppleAlbumGradient();syncAppleLyricsMetadata();
   }
   async function fetchItunesMatches(meta,duration){
@@ -777,7 +788,7 @@
     previewStage.classList.remove('is-empty');
     const status=document.getElementById('kefeLyricsStatus');
     if(status)status.textContent=source;
-    openEditorPanel('lyrics');syncAppleLyricsMetadata();draw();syncAppleLyrics(true);showTitleCard();
+    syncAppleLyricsMetadata();draw();syncAppleLyrics(true);showTitleCard();
     window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:'load'}}));
     return true;
   }
@@ -951,11 +962,13 @@
     try{songTitle.focus();}catch(_){}
   }
   function showLyricsMissing(){
-    setLyricsStatus('No synchronized lyrics found for this track. Check the song details, or upload an .lrc file in the Lyrics section.');
-    openEditorPanel('lyrics');
+    setLyricsStatus('No synchronized lyrics found for this track. Check the song details, or open the Lyrics section to upload an .lrc file.');
   }
   async function identifyAndLoadTrack(file){
     const uploadId=mediaObjectUrl;
+    const mediaTrack=document.getElementById('kefeMediaTrack');
+    if(mediaTrack)mediaTrack.classList.remove('is-identified');
+    songAlbum.dataset.platformId='';
     try{
       const embedded=await readEmbeddedMetadata(file);
       const named=filenameMetadata(file);
