@@ -4,7 +4,6 @@
  * typography contracts and the smoke test all read this list.
  */
 window.KEFE_EFFECTS = [
-  { key: 'syncedlyrics', label: 'Synced Lyrics', description: 'Word-synced lyrics with artwork backgrounds and layout modes' },
   { key: 'apple',       label: 'Apple',            description: 'Apple Music-style focus line' },
   { key: 'brat',        label: 'Brat',             description: 'Edge-to-edge album-cover typewriter' },
   { key: 'eternal',     label: 'Eternal Sunshine', description: 'Handwritten ink reveal' },
