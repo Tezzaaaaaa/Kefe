@@ -614,6 +614,7 @@ button{border:0;cursor:pointer}
 #kefeVisualiserCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;pointer-events:auto}
 .kefe-stage.is-empty #kefeVisualiserCanvas{visibility:hidden;pointer-events:none}
 #kefeGradientCanvas{position:absolute;inset:0;width:100%;height:100%;display:none;z-index:2;pointer-events:none;border-radius:0}
+#kefeFlutedGlassCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;pointer-events:none;border-radius:0}
 #kefeCanvas{position:absolute;inset:0;width:100%;height:100%;margin:0;border-radius:0;z-index:3;pointer-events:none}
 .kefe-title-card{z-index:4}.kefe-preview-fullscreen{z-index:5}
 .kefe-panel[data-panel-view="visualiser"] .kefe-panel-head{
@@ -1100,3 +1101,16 @@ button{border:0;cursor:pointer}
   border:1px solid rgba(239,63,56,.65);
   box-shadow:0 0 0 2px rgba(239,63,56,.18),0 0 16px rgba(239,63,56,.42);
 }
+
+.kefe-fluted-view{gap:12px}
+.kefe-fluted-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.kefe-fluted-source{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.kefe-fluted-source .kefe-btn{position:relative;display:grid;place-items:center;overflow:hidden}
+.kefe-fluted-source input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.kefe-fluted-video-controls{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center;margin-top:8px}
+.kefe-fluted-video-controls[hidden]{display:none}
+.kefe-fluted-meter{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;align-items:center;margin:8px 0}
+.kefe-fluted-track{height:5px;overflow:hidden;border-radius:99px;background:var(--surface-lo);box-shadow:var(--inner)}
+.kefe-fluted-fill{height:100%;width:0;background:var(--accent);transition:width .06s linear}
+.kefe-fluted-view .kefe-visualiser-control-group{display:grid;gap:8px}
+@media(max-width:520px){.kefe-fluted-modes{grid-template-columns:repeat(2,minmax(0,1fr))}}
