@@ -86,15 +86,15 @@
       if(y<h*.12||y>h*.92)continue;
       const words=wordsFor(line,lines[i+1]),isActive=i===idx,prev=i<idx;
       const f=lyricSize*(isActive?1.04:prev?.99:.97);
-      ctx.save();ctx.translate(wide?w/2:padX,y);ctx.scale(isActive?1.04:prev?.99:.97,1);ctx.textAlign=wide?'center':'left';ctx.font='700 '+f+'px -apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif';
+      ctx.save();ctx.translate(wide?w/2:padX,y);ctx.scale(isActive ? 1.04 : prev ? .99 : .97,1);ctx.textAlign=wide?'center':'left';ctx.font='700 '+f+'px -apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif';
       const full=words.map(x=>x.text).join(' ');let text=full;while(ctx.measureText(text).width>maxW&&text.length>3)text=text.slice(0,-2)+'…';
-      if(text!==full){ctx.globalAlpha=prev?.20:isActive?.34:.13;ctx.fillStyle='#fff';ctx.filter=prev?'blur(1.1px)':'none';ctx.fillText(text,0,0,maxW);}
+      if(text!==full){ctx.globalAlpha=prev ? .20 : isActive ? .34 : .13;ctx.fillStyle='#fff';ctx.filter=prev?'blur(1.1px)':'none';ctx.fillText(text,0,0,maxW);}
       else{
         let x=0;const total=words.reduce((s,word)=>s+ctx.measureText(word.text).width,0)+Math.max(0,words.length-1)*lyricSize*.28;
         if(wide)x=-total/2;
         words.forEach(word=>{
           const ww=ctx.measureText(word.text).width,ws=Number(word.start??(Number(line.time)||0)),we=Math.max(ws+.06,Number(word.end)||ws+.3),p=clamp((time-ws)/(we-ws));
-          ctx.globalAlpha=prev?.20:isActive?.34:.13;ctx.fillStyle='#fff';ctx.filter=prev?'blur(1.1px)':isActive?'none':'blur(1.4px)';ctx.fillText(word.text,x,0);
+          ctx.globalAlpha=prev ? .20 : isActive ? .34 : .13;ctx.fillStyle='#fff';ctx.filter=prev?'blur(1.1px)':isActive?'none':'blur(1.4px)';ctx.fillText(word.text,x,0);
           ctx.filter='none';if(p>0){ctx.save();ctx.beginPath();ctx.rect(x,-f,ww*p,f*2);ctx.clip();ctx.globalAlpha=1;ctx.fillStyle='#fff';ctx.shadowColor='rgba(255,255,255,.2)';ctx.shadowBlur=isActive?18:0;ctx.fillText(word.text,x,0);ctx.restore();}
           x+=ww+lyricSize*.28;
         });
