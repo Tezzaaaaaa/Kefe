@@ -536,6 +536,31 @@ body { letter-spacing: -.015em; }
   box-shadow: var(--lift);
 }
 
+
+.kefe-panel[data-panel-view="effects"] .kefe-background-effect-control {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r3);
+  background: var(--surface);
+  box-shadow: var(--lift);
+}
+.kefe-panel[data-panel-view="effects"] .kefe-background-effect-control .kefe-label {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-background-effect-control .kefe-select {
+  min-height: 52px;
+  font-size: 16px;
+  font-weight: 650;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-background-effect-control .kefe-meta {
+  margin: 0;
+  line-height: 1.45;
+}
 .kefe-panel[data-panel-view="effects"] .kefe-form {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
