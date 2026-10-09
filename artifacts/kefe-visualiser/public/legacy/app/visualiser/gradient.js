@@ -182,9 +182,17 @@
     sync();ui.syncs.push(sync);return row;
   }
   function toggle(label,get,set){
-    var row=el('div','kefe-visualiser-spin-row'),b=el('button','kefe-btn');b.type='button';
+    var row=el('div','kefe-visualiser-spin-row'),b=el('button','kefe-btn kefe-switch');
+    b.type='button';b.setAttribute('role','switch');
+    var state=el('span','kefe-switch-state'),track=el('span','kefe-switch-track');
+    track.setAttribute('aria-hidden','true');track.appendChild(el('span','kefe-switch-thumb'));
+    b.appendChild(state);b.appendChild(track);
     row.appendChild(el('span','kefe-label',label));row.appendChild(b);
-    function sync(){b.textContent=get()?'On':'Off';b.classList.toggle('primary',!!get());}
+    function sync(){
+      var on=!!get();state.textContent=on?'On':'Off';
+      b.classList.toggle('is-on',on);b.setAttribute('aria-checked',String(on));
+      b.setAttribute('aria-label',label);
+    }
     b.addEventListener('click',function(){set(!get());sync();update();});
     sync();ui.syncs.push(sync);return row;
   }
