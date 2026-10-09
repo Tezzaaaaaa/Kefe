@@ -241,9 +241,10 @@
     /* wrap existing particle controls so the two engines can be switched */
     var particles=el('div','kefe-vis-view');particles.id='kefeVisParticlesView';
     while(form.firstChild)particles.appendChild(form.firstChild);
-    particles.insertBefore(toggle('Show particles',function(){return window.kefeVisualiserEnabled!==false;},function(v){
+    var particleToggle=toggle('Show particles',function(){return window.kefeVisualiserEnabled!==false;},function(v){
       window.kefeVisualiserEnabled=v;var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
-    }),particles.firstChild);
+    });
+    particles.insertBefore(particleToggle,particles.firstChild);
     var gradient=el('div','kefe-vis-view kefe-gradient-view');gradient.id='kefeVisGradientView';gradient.hidden=true;
     var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');
     var tp=el('button','kefe-btn primary','Particles'),tg=el('button','kefe-btn','Gradient'),th=el('button','kefe-btn','How Bad');
@@ -261,6 +262,8 @@
       if(presetWrap)presetWrap.hidden=isHowBad;
       if(gridWrap)gridWrap.hidden=isHowBad;
       if(randomButton)randomButton.hidden=isHowBad;
+      var particleToggleLabel=particleToggle.querySelector('.kefe-label');
+      if(particleToggleLabel)particleToggleLabel.textContent=isHowBad?'Show How Bad':'Show particles';
       if(isHowBad)window.kefeParticleVisualiser?.selectPreset('how-bad-reflection');
       else if(which==='particles'&&window.kefeParticleVisualiser?.getPreset()==='how-bad-reflection')window.kefeParticleVisualiser.selectPreset('particles-swarm');
     }
@@ -273,8 +276,8 @@
     var intro=el('div','kefe-visualiser-intro');
     intro.innerHTML='<div><strong>Gradient Overlay</strong><span>Colour layer over the particles. Included in video export.</span></div>';
     var rnd=el('button','kefe-btn','Random');rnd.type='button';rnd.addEventListener('click',randomize);intro.appendChild(rnd);
-    gradient.appendChild(intro);
     gradient.appendChild(toggle('Show gradient',function(){return S.on;},function(v){S.on=v;}));
+    gradient.appendChild(intro);
 
     var look=group('Layer');
     look.appendChild(slider('Opacity',0,100,1,function(){return S.opacity;},function(v){S.opacity=v;},function(v){return v+'%';}));
