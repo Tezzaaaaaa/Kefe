@@ -325,12 +325,7 @@
     ctx.clearRect(0,0,W,H);
     // The WebGL visualiser is the background; this canvas only composites lyrics/title card.
     const ph=titlePhase(state.time);
-    const syncedEffect=state.effect==='syncedlyrics';
-    if(syncedEffect){
-      try{window.kefeEffects.syncedlyrics(ctx,W,H,currentStyle(),state.lines,state.time-lyricOffset(),titleArtImage);}
-      catch(err){console.error('[KEFE effect] syncedlyrics',err);}
-    }
-    if(!syncedEffect&&state.effect!=='none'&&state.lines.length&&ph.mode==='header'){
+    if(state.effect!=='none'&&state.lines.length&&ph.mode==='header'){
       const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
       if(typeof fn==='function'){
         try{
@@ -353,10 +348,8 @@
         }catch(err){console.error('[KEFE effect]',state.effect,err);}
       }
     }
-    if(!syncedEffect){
-      drawTitleCardCanvas(ctx,W,H,state.time);
-      if(window.kefeStyle)window.kefeStyle.drawOverlay(ctx,W,H,state.time);
-    }
+    drawTitleCardCanvas(ctx,W,H,state.time);
+    if(window.kefeStyle)window.kefeStyle.drawOverlay(ctx,W,H,state.time);
   }
   function appleTime(value){
     const text=String(value||'').trim();
@@ -464,7 +457,6 @@
   }
   function setEffect(id){
     state.effect=id;
-    window.kefeEffects.syncedlyrics?.setActive(id==='syncedlyrics');
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     if(appleLyrics){appleLyrics.style.display='none';if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();}}
     document.querySelectorAll('.kefe-card').forEach(b=>b.classList.toggle('active',b.dataset.effect===id));
