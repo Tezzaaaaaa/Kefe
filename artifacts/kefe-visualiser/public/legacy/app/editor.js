@@ -343,7 +343,7 @@
     ctx.clearRect(0,0,W,H);
     // The WebGL visualiser is the background; this canvas only composites lyrics/title card.
     const ph=titlePhase(state.time);
-    const useAppleComponent=state.effect==='apple'&&appleLyricsReady&&!window.kefeAppleCanvasExport;
+    const useAppleComponent=false;
     if(appleLyrics){
       const lyricsTop=Math.max(32,H*.07)+Math.min(W,H)*.173;
       appleLyrics.style.setProperty('--kefe-apple-lyrics-top',`${Math.min(0.92,lyricsTop/H)*100}%`);
