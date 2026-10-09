@@ -55,6 +55,24 @@
   window.kefeGetAlbumArt=()=>titleArtImage;
   const songTitle=document.getElementById('songTitle'),songArtist=document.getElementById('songArtist'),songAlbum=document.getElementById('songAlbum'),songYear=document.getElementById('songYear');
   const previewStage=document.querySelector('.kefe-stage');
+  const appleLyrics=document.createElement('am-lyrics');
+  appleLyrics.id='kefeAppleLyrics';
+  appleLyrics.setAttribute('highlight-color','#fff');
+  appleLyrics.setAttribute('font-family',"'Inter', Arial, sans-serif");
+  appleLyrics.setAttribute('autoscroll','');
+  previewStage.appendChild(appleLyrics);
+  let appleLyricsReady=false;
+  import('https://cdn.jsdelivr.net/npm/@uimaxbai/am-lyrics/dist/src/am-lyrics.min.js').then(()=>{
+    appleLyricsReady=true;
+    syncAppleLyricsMetadata();
+    draw();
+  }).catch(error=>console.warn('[KEFE am-lyrics]',error));
+  appleLyrics.addEventListener('line-click',event=>{
+    const timestamp=Number(event.detail?.timestamp);
+    if(!Number.isFinite(timestamp)||!audio.src)return;
+    audio.currentTime=Math.max(0,timestamp/1000);
+    audio.play().catch(()=>{});
+  });
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead');
   const lyricsTiming=document.getElementById('lyricsTiming'),lyricsTimingValue=document.getElementById('lyricsTimingValue'),lyricsTimingEarlier=document.getElementById('lyricsTimingEarlier'),lyricsTimingLater=document.getElementById('lyricsTimingLater'),lyricsTimingReset=document.getElementById('lyricsTimingReset');
 
@@ -328,7 +346,13 @@
     ctx.clearRect(0,0,W,H);
     // The WebGL visualiser is the background; this canvas only composites lyrics/title card.
     const ph=titlePhase(state.time);
-    if(state.effect!=='none'&&state.lines.length&&(state.effect!=='apple'||ph.mode==='header'||ph.mode==='move'||ph.mode==='off')){
+    const useAppleComponent=state.effect==='apple'&&appleLyricsReady&&!window.kefeAppleCanvasExport;
+    if(appleLyrics){
+      const hasTrack=!!(songTitle.value.trim()||songArtist.value.trim()||state.lines.length);
+      appleLyrics.style.display=useAppleComponent&&hasTrack&&(ph.mode==='header'||ph.mode==='off')?'block':'none';
+      if(appleLyricsReady)appleLyrics.currentTime=Math.round((Number(state.time)||0)*1000);
+    }
+    if(state.effect!=='none'&&state.lines.length&&!useAppleComponent&&(state.effect!=='apple'||ph.mode==='header'||ph.mode==='move'||ph.mode==='off')){
       const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
       if(typeof fn==='function'){
         try{
@@ -427,8 +451,7 @@
   }
   function setEffect(id){
     state.effect=id;
-    const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics){appleLyrics.style.display='none';if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();}}
+    if(appleLyrics){if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();}else appleLyrics.style.display='none';}
     document.querySelectorAll('.kefe-card').forEach(b=>b.classList.toggle('active',b.dataset.effect===id));
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
@@ -1122,20 +1145,24 @@
     else{state.time=state.time>=30?0:state.time+.05;updateTime();draw();}
   };
   function syncAppleLyricsMetadata(){
-    const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(!appleLyrics)return;
+    if(!appleLyrics||!appleLyricsReady)return;
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     appleLyrics.songTitle=title;
     appleLyrics.songArtist=artist;
     appleLyrics.songAlbum=album;
     appleLyrics.query=[title,artist].filter(Boolean).join(' - ');
-    appleLyrics.songDurationMs=Math.round((audio.duration||video.duration||0)*1000);
+    appleLyrics.musicId=songAlbum.dataset.platformId||'';
+    appleLyrics.songDurationMs=Math.round((audio.duration||video.duration||Number(songAlbum.dataset.trackDuration)||0)*1000);
+    appleLyrics.ttml=title||artist?'':state.lines.length?lyricsToTtml(state.lines):'';
     appleLyrics.currentTime=Math.round((audio.currentTime||state.time||0)*1000);
+    appleLyrics.highlightColor='#fff';
+    appleLyrics.fontFamily="'Inter', Arial, sans-serif";
+    appleLyrics.autoScroll=true;
+    appleLyrics.interpolate=true;
   }
   function syncAppleLyrics(seeking=false){
-    const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(!appleLyrics||!audio.src)return;
-    appleLyrics.currentTime=Math.round(audio.currentTime*1000);
+    if(!appleLyrics||!appleLyricsReady)return;
+    appleLyrics.currentTime=Math.round((audio.src?audio.currentTime:state.time)*1000);
     if(seeking&&typeof appleLyrics.seek==='function')appleLyrics.seek();
   }
   audio.addEventListener('timeupdate',()=>{
@@ -1236,7 +1263,7 @@
       compositeCtx.drawImage(canvas,0,0,dims[0],dims[1]);
     };
     const visExport=window.kefeVisualiserExport;
-    exporting=true;button.disabled=true;
+    exporting=true;window.kefeAppleCanvasExport=true;button.disabled=true;
     let recorder=null,ticker=null,frameTicker=null;
     try{
       audio.pause();
@@ -1284,7 +1311,7 @@
       if(frameTicker)clearInterval(frameTicker);
       canvas.width=prev.w;canvas.height=prev.h;
       if(visExport)visExport.end();
-      exporting=false;button.disabled=false;
+      exporting=false;window.kefeAppleCanvasExport=false;button.disabled=false;
       audio.pause();state.time=prev.time;range.value=prev.time;audio.currentTime=prev.time;updateTime();draw();
     }
   });
