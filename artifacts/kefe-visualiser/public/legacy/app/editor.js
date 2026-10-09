@@ -576,7 +576,8 @@
   syncPreviewFullscreen();
   document.querySelectorAll('.kefe-top-link').forEach(button=>button.addEventListener('click',()=>{
     const panel=button.dataset.topPanel;
-    if(panel==='media'||panel==='editor')openEditorPanel('media');
+    if(panel==='media')openEditorPanel('media');
+    else if(panel==='editor')openEditorPanel('effects');
   }));
   function updatePlayButton(){
     const button=document.getElementById('playButton');
