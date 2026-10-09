@@ -98,7 +98,8 @@
     caseBox.appendChild(caseSel);
 
     wrap.append(modeBox, caseBox);
-    var effectBlock = effectRow.parentNode;
+    var backgroundRow = document.getElementById('visualiserBackground');
+    var effectBlock = (backgroundRow && backgroundRow.closest('div')) || effectRow.parentNode;
     effectBlock.parentNode.insertBefore(wrap, effectBlock.nextSibling);
     sync();
   }
