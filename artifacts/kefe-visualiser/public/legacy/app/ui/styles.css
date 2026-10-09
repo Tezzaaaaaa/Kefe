@@ -617,7 +617,7 @@ button{border:0;cursor:pointer}
 #kefeGradientCanvas{position:absolute;inset:0;width:100%;height:100%;display:none;z-index:2;pointer-events:none;border-radius:0}
 #kefeFlutedGlassCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;pointer-events:none;border-radius:0}
 #kefeCanvas{position:absolute;inset:0;width:100%;height:100%;margin:0;border-radius:0;z-index:3;pointer-events:none}
-#kefeAppleLyrics{position:absolute;inset:var(--kefe-apple-lyrics-top,20%) 5% 4%;z-index:4;display:none;overflow:hidden;background:transparent;color:#fff;font-family:"Inter",Arial,sans-serif;--am-lyrics-highlight-color:#fff;--highlight-color:#fff}
+#kefeAppleLyrics{position:absolute;left:5%;right:5%;top:var(--kefe-apple-lyrics-top,20%);bottom:4%;width:auto;height:auto;min-width:0;min-height:0;max-width:90%;max-height:96%;box-sizing:border-box;contain:layout paint;overscroll-behavior:contain;z-index:4;display:none;overflow:hidden;background:transparent;color:#fff;font-family:"Inter",Arial,sans-serif;--am-lyrics-highlight-color:#fff;--highlight-color:#fff}
 .kefe-title-card{z-index:4}.kefe-preview-fullscreen{z-index:5}
 .kefe-panel[data-panel-view="visualiser"] .kefe-panel-head{
   margin-bottom:16px;
