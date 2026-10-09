@@ -66,7 +66,6 @@ The effect manifest currently lists 30 lyric effects:
 - Glitch
 - Analog TV
 - Split-Flap
-- Chromatica
 - Progressive Blur
 - CRT Computer Desktop
 - CRT TV Box
