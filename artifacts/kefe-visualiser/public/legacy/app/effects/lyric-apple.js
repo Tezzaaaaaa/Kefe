@@ -28,7 +28,8 @@
     const usable=lines.map((line,i)=>({...line,_words:wordsFor(line,lines[i+1]),_index:i})).filter(line=>String(line.text||'').trim());
     if(!usable.length)return;
     let active=-1;
-    for(let i=0;i<usable.length;i++){if(finite(usable[i].time)&&time>=Number(usable[i].time))active=i;else if(Number(usable[i].time)>time)break;}
+    const leadIn=1;
+    for(let i=0;i<usable.length;i++){if(finite(usable[i].time)&&time>=Number(usable[i].time)-leadIn)active=i;else if(Number(usable[i].time)-leadIn>time)break;}
     if(active<0)return;
     const unit=Math.min(w,h),portrait=w/h<.75,wide=w/h>1.25;
     const maxWidth=w*(wide?.76:portrait?.84:.78),left=(w-maxWidth)/2;
@@ -57,15 +58,17 @@
     const headerClearance=h*.18;
     const anchor=Math.max(h*.53,headerClearance+current._height*.5);
     const previous=measured[active-1];
-    const transitionDuration=clamp((Number(activeLine.endTime)-Number(activeLine.time))*.18,.20,.38);
-    const shift=(time-Number(activeLine.time))/transitionDuration;
+    const transitionDuration=leadIn;
+    const shift=(time-(Number(activeLine.time)-leadIn))/transitionDuration;
     const settle=springOut(shift);
     let offset=0;
     const positions=new Map([[active,anchor]]);
     for(let i=active+1;i<measured.length;i++){offset+=(measured[i-1]._height+measured[i]._height)/2+lineGap;positions.set(i,anchor+offset);}
     offset=0;
     for(let i=active-1;i>=0;i--){offset+=(measured[i+1]._height+measured[i]._height)/2+lineGap;positions.set(i,anchor-offset);}
-    if(previous)positions.set(active,anchor+(1-settle)*((previous._height+current._height)/2+lineGap));
+    const transitionDistance=previous?(previous._height+current._height)/2+lineGap:current._height+lineGap;
+    positions.set(active,anchor+(1-settle)*transitionDistance);
+    if(previous)positions.set(active-1,anchor-settle*transitionDistance);
     const from=Math.max(0,active-3),to=Math.min(measured.length-1,active+4);
     ctx.save();ctx.textBaseline='middle';ctx.textAlign='left';
     for(let i=from;i<=to;i++){
@@ -74,7 +77,7 @@
       if(y+line._height<h*.10||y-line._height>h*.94)continue;
       const alpha=isActive?1:clamp(.72-Math.abs(distance)*.14,.24,.62);
       const size=isActive?fontSize:inactiveSize;
-      ctx.save();ctx.globalAlpha=alpha;ctx.font=weight+' '+size+'px '+fontFamily;ctx.fillStyle=isActive?'#FFFFFF':'rgba(255,255,255,.78)';
+      ctx.save();ctx.globalAlpha=alpha;ctx.font=weight+' '+size+'px '+fontFamily;ctx.fillStyle=isActive?'rgba(255,255,255,.46)':'rgba(255,255,255,.78)';
       if(!isActive){ctx.filter='blur('+Math.min(2.4,Math.abs(distance)*.55)+'px)';}
       const rowHeight=size*1.18;
       line._rows.forEach((row,ri)=>{
