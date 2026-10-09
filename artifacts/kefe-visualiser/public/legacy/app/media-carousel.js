@@ -43,8 +43,8 @@
     left.appendChild(s3);
 
     var s2=step(2,'Find your song','Search songs and albums, then pick the right one.');
+    s2.classList.add('kefe-find-step');
     s2.body.appendChild(buildSearch());
-    right.appendChild(s2);
 
     var s4=step(4,'Song details','Edit anything the search got wrong.');
     var grid=mk('div','kefe-details-grid');fields.forEach(function(f){grid.appendChild(f);});
@@ -54,7 +54,7 @@
     if(sugg)sugg.hidden=true;
     if(empty)empty.remove();
     form.innerHTML='';
-    form.appendChild(left);form.appendChild(right);
+    form.appendChild(s2);form.appendChild(left);form.appendChild(right);
     if(sugg)form.appendChild(sugg);
     return true;
   }
