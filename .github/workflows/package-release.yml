@@ -6,6 +6,7 @@ on:
       version:
         description: "Release tag, for example v0.1.0-beta.1"
         required: true
+        default: "v0.1.0-beta.1"
         type: string
 
 permissions:
@@ -30,15 +31,17 @@ jobs:
           fi
 
       - name: Assemble browser app package
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
         run: |
           set -eu
           mkdir -p dist/kefe-visualiser
           cp -R artifacts/kefe-visualiser/public/legacy/. dist/kefe-visualiser/
           cp README.md LICENSE THIRD_PARTY_NOTICES.md dist/kefe-visualiser/
-          printf '%s\n' "${{ inputs.version }}" > dist/kefe-visualiser/VERSION
+          printf '%s\n' "$RELEASE_VERSION" > dist/kefe-visualiser/VERSION
           cd dist
-          zip -qr "kefe-visualiser-${{ inputs.version }}.zip" kefe-visualiser
-          tar -czf "kefe-visualiser-${{ inputs.version }}.tar.gz" kefe-visualiser
+          zip -qr "kefe-visualiser-$RELEASE_VERSION.zip" kefe-visualiser
+          tar -czf "kefe-visualiser-$RELEASE_VERSION.tar.gz" kefe-visualiser
 
       - name: Create draft GitHub prerelease
         uses: softprops/action-gh-release@v2
