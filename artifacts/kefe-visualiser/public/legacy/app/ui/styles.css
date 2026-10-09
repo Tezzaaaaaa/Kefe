@@ -1078,3 +1078,14 @@ button{border:0;cursor:pointer}
   .kefe-lyrics-timing-controls{grid-template-columns:1fr}
   .kefe-lyrics-timing-slider{grid-row:1}
 }
+
+/* Confirmed song identification highlight in Media */
+.kefe-panel[data-panel-view="media"] .kefe-media-track.is-identified{
+  border:1px solid var(--accent);
+  box-shadow:0 0 0 1px rgba(239,63,56,.2),0 0 22px rgba(239,63,56,.3),var(--lift);
+  transition:border-color .2s ease,box-shadow .2s ease;
+}
+.kefe-panel[data-panel-view="media"] .kefe-media-track.is-identified .kefe-media-track-art{
+  border:1px solid rgba(239,63,56,.65);
+  box-shadow:0 0 0 2px rgba(239,63,56,.18),0 0 16px rgba(239,63,56,.42);
+}
