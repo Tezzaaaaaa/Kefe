@@ -63,14 +63,21 @@
   function paint(g,w,h,t){
     g.save();g.fillStyle='#000';g.fillRect(0,0,w,h);
     if(mode==='off'){g.restore();return;}
-    if(useVideo()&&drawCover(g,vid,w,h)){g.restore();return;}
+    if(useVideo()&&drawCover(g,vid,w,h)){
+      var darkness=Number(document.getElementById('backgroundTransparency')?.value)||0;
+      if(darkness>0){g.fillStyle='rgba(0,0,0,'+(Math.max(0,Math.min(100,darkness))/100)+')';g.fillRect(0,0,w,h);}
+      g.restore();return;
+    }
     prepareArt(artImage());
     var lw=480,lh=Math.max(2,Math.round(480*h/w));
     if(h>w){lh=480;lw=Math.max(2,Math.round(480*w/h));}
     if(work.width!==lw||work.height!==lh){work.width=lw;work.height=lh;}
     drawApple(wctx,lw,lh,t);
     g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
-    g.drawImage(work,0,0,w,h);g.restore();
+    g.drawImage(work,0,0,w,h);
+    var darkness=Number(document.getElementById('backgroundTransparency')?.value)||0;
+    if(darkness>0){g.fillStyle='rgba(0,0,0,'+(Math.max(0,Math.min(100,darkness))/100)+')';g.fillRect(0,0,w,h);}
+    g.restore();
   }
 
   /* ── preview ── */
@@ -151,6 +158,11 @@
     if(window.ResizeObserver)new ResizeObserver(size).observe(stage);
     window.addEventListener('kefe-stage-resize',size);
     buildSelect();buildUpload();
+    var transparency=document.getElementById('backgroundTransparency'),transparencyValue=document.getElementById('backgroundTransparencyValue');
+    if(transparency&&transparencyValue){
+      var updateTransparency=function(){transparencyValue.value=transparency.value+'%';transparencyValue.textContent=transparency.value+'%';};
+      transparency.addEventListener('input',updateTransparency);updateTransparency();
+    }
     if(audio)['play','pause','seeked','ended'].forEach(function(e){audio.addEventListener(e,function(){syncVideo(e==='seeked');});});
     size();requestAnimationFrame(loop);
   }
