@@ -134,6 +134,16 @@ Important files:
 
 **Important:** Keep `app/effects/core.js` in place and loaded before the lyric renderers. Multiple effects depend on the shared utilities it defines.
 
+## Licensing
+
+KEFE-authored code and documentation are licensed under the [MIT License](LICENSE). This does **not** automatically cover third-party libraries, bundled fonts, artwork, trademarks or other assets. Review [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the current inventory and outstanding checks before redistribution.
+
+## Releases and downloadable packages
+
+The repository includes a GitHub Actions workflow that assembles the browser-based editor into **ZIP** and **tar.gz** packages and creates a **draft prerelease** for review. The draft is intentional: verify bundled-font ownership and third-party license notices in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) before publishing it publicly.
+
+To prepare a draft, open **Actions → Package KEFE release → Run workflow** and enter a version such as `v0.1.0-beta.1`. The workflow attaches both archives to the draft release. KEFE is currently distributed as a static browser application, not as a public npm package; the workspace package manifests remain private.
+
 ## Development status
 
 The next priority is verifying and refining the connected systems end to end: media identification, lyrics and artwork retrieval, consistent lyric/title-card layout across aspect ratios, effect controls, visualiser presets and parameters, mobile layout, and reliable export.
