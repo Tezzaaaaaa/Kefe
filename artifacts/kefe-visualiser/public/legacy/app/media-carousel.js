@@ -33,20 +33,18 @@
     }
     var left=mk('div','kefe-media-col'),right=mk('div','kefe-media-col');
 
-    var s1=step(1,'Upload','Audio or video is the master track.');
-    if(zone)s1.body.appendChild(zone);
-    if(track)s1.body.appendChild(track);
-    left.appendChild(s1);
+    var s2=step(1,'Find your song','Upload audio or video first, then confirm the identified track or choose another match.');
+    s2.classList.add('kefe-find-step');
+    if(zone)s2.body.appendChild(zone);
+    if(track)s2.body.appendChild(track);
+    if(sugg)s2.body.appendChild(sugg);
+    s2.body.appendChild(buildSearch());
 
-    var s3=step(3,'Background video','Optional. Loops behind the visualiser.');
+    var s3=step(2,'Background video','Optional. Loops behind the visualiser.');
     if(bgWrap)s3.body.appendChild(bgWrap);
     left.appendChild(s3);
 
-    var s2=step(2,'Find your song','Search songs and albums, then pick the right one.');
-    s2.classList.add('kefe-find-step');
-    s2.body.appendChild(buildSearch());
-
-    var s4=step(4,'Song details','Edit anything the search got wrong.');
+    var s4=step(3,'Song details','Edit anything the search got wrong.');
     var grid=mk('div','kefe-details-grid');fields.forEach(function(f){grid.appendChild(f);});
     s4.body.appendChild(grid);
     right.appendChild(s4);
@@ -55,7 +53,6 @@
     if(empty)empty.remove();
     form.innerHTML='';
     form.appendChild(s2);form.appendChild(left);form.appendChild(right);
-    if(sugg)form.appendChild(sugg);
     return true;
   }
 
