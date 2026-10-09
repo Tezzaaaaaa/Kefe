@@ -1234,7 +1234,7 @@ function setPreset(preset, opts) {
   document.getElementById('visualiserSceneDesc').textContent = preset.desc;
   compileInjection(preset);
   window.kefeParticleVisualiserActive = true;
-  canvas.style.visibility = 'visible';
+  canvas.style.visibility = window.kefeVisualiserEnabled === false ? 'hidden' : 'visible';
   rebuild(state.count);
   presetSelect.value = preset.key;
   renderParamSliders();
