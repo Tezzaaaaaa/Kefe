@@ -244,11 +244,13 @@
   }
 
   /* Called by the editor when an uploaded file is identified (or the song fields are searched). */
-  function showMatches(items,msg){
+  function showMatches(items,msg,query){
     if(!el.CarStack)return;
     S.mode='search';S.filter='song';syncFilters();el.CarBack.hidden=true;
+    if(query!=null){el.FindInput.value=query;el.FindBox.classList.toggle('has-text',!!query);}
     S.items=(items||[]).map(function(x){return x;});S.index=0;render();
     status(msg||(S.items.length?'Select the correct song':'No matches found'),'');
+    busy(false);
     if(S.items.length)el.Carousel.scrollIntoView({block:'nearest',behavior:'smooth'});
   }
 
