@@ -20,7 +20,8 @@
 
 
   window.kefeEffects = window.kefeEffects || {};
-  window.kefeEffectUtils = {
+  /* Fallback only: core.js owns the full utils (layoutText, wordProgress, sweepFill...). Overwriting them broke effects that read the global at call time. */
+  window.kefeEffectUtils = window.kefeEffectUtils || {
     clamp(v,a=0,b=1){return Math.max(a,Math.min(b,Number(v)||0));},
     activeLine(lines,time){
       let index=-1;
@@ -373,7 +374,7 @@
       const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
       if(typeof fn==='function'){
         try{
-          const effT=state.time+(state.effect==='apple'?0:1)-lyricOffset();
+          const effT=state.time+(state.effect==='apple'?0:0.06)-lyricOffset();
           const studio=window.kefeLyricStudio,styler=window.kefeStyle;
           // Display mode / case come from the lyric studio; colours, size, outline, glow and placement from the style layer.
           const shown=studio?studio.shape(state.lines,state.effect):state.lines;

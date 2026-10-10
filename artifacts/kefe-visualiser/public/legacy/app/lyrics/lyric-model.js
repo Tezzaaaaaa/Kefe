@@ -39,15 +39,38 @@
   }
 
   /* ---------- words ---------- */
-  function tokenWeight(token) {
-    return Math.max(1, Math.pow(Array.from(token.replace(/[^\p{L}\p{N}]/gu, '')).length, 0.72));
+  /* Rough syllable count (vowel groups, silent trailing e) so held/long words get proportionally more time than char count alone. */
+  function syllables(token) {
+    var w = String(token || '').toLowerCase().replace(/[^\p{L}]/gu, '');
+    if (!w) return 0;
+    if (/[^\u0000-\u024f]/.test(w)) return Math.max(1, Array.from(w).length * 0.7);   // non-Latin: ~0.7 syllable per glyph
+    var m = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, '').match(/[aeiouy]{1,2}/g);
+    return Math.max(1, m ? m.length : 1);
   }
-  /* Spread a line's words across [start, end] weighted by word length. Used when no real word timing exists. */
-  function estimateWords(text, start, end) {
+  function tokenWeight(token) {
+    var plain = String(token || '').replace(/[^\p{L}\p{N}]/gu, '');
+    var weight = 0.55 * syllables(token) + 0.45 * Math.pow(Math.max(1, Array.from(plain).length), 0.6);
+    if (/[,;:\u2014-]$/.test(token)) weight += 0.35;          // breath after clause punctuation
+    if (/[.!?\u2026]$/.test(token)) weight += 0.6;            // longer rest after a sentence end
+    return Math.max(0.8, weight);
+  }
+  /* How long a sung line naturally lasts, used so estimated words finish with the vocal instead of crawling across an instrumental gap. */
+  function naturalSpan(tokens) {
+    var t = 0;
+    tokens.forEach(function (tok) { t += 0.2 * syllables(tok) + 0.12; if (/[,;:]$/.test(tok)) t += 0.12; if (/[.!?\u2026]$/.test(tok)) t += 0.2; });
+    return t;
+  }
+  /* Spread a line's words across [start, end] weighted by syllables. Used when no real word timing exists.
+     `capToVocal` shortens the sung span when the gap to the next line is much longer than the text needs. */
+  function estimateWords(text, start, end, capToVocal) {
     var tokens = String(text || '').trim().split(/\s+/).filter(Boolean);
     if (!tokens.length) return [];
     start = num(start, 0);
     end = Math.max(start + tokens.length * MIN_WORD, num(end, start + DEFAULT_TAIL));
+    if (capToVocal) {
+      var natural = naturalSpan(tokens), gap = end - start;
+      end = start + (gap <= natural * 1.5 ? gap * 0.94 : Math.min(gap * 0.94, natural * 1.3));
+    }
     var weights = tokens.map(tokenWeight), total = weights.reduce(function (a, b) { return a + b; }, 0), cursor = 0;
     return tokens.map(function (t, i) {
       var a = start + (end - start) * cursor / total;
@@ -61,8 +84,9 @@
     if (line && Array.isArray(line.words) && line.words.length) return line.words;
     var start = num(line && line.time, 0);
     var end = num(line && line.endTime, NaN);
+    var manual = !!(line && line.manualEnd);
     if (!(end > start)) end = Number.isFinite(nextTime) && nextTime > start ? nextTime : start + DEFAULT_TAIL;
-    return estimateWords(line && line.text, start, end);
+    return estimateWords(line && line.text, start, end, !manual);
   }
   function hasRealWords(line) { return !!(line && Array.isArray(line.words) && line.words.length); }
 

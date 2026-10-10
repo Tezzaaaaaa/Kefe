@@ -27,28 +27,71 @@
       const exit=this.smoother((end-time)/Math.min(.28,duration*.16+tail));
       return {enter,exit,hold:this.clamp((time-start)/duration),opacity:enter*exit};
     },
+    /* ===== Karaoke timing engine (shared by every lyric effect) =====
+       wordsFor     -> [{text,time,endTime}] monotonic, gap-free-within-word, real word timing if present, else syllable-weighted estimate
+       wordProgress -> per-word phases (raw/sweep/pre/pulse/done/enter/active/exit)
+       charProgress -> staggered per-character progress inside a word
+       sweepFill    -> soft-edged left-to-right fill gradient (Apple Music / AMLL style) for fillStyle
+       glow/lift    -> eased emphasis curves so every effect pulses on the beat of the word, not just flips state */
     wordsFor(line,next){
+      const model=window.kefeLyricModel;
+      const key=(line?.text||'')+'|'+(line?.time)+'|'+(line?.endTime)+'|'+(next?.time)+'|'+(line?.words?line.words.length+':'+line.words[0].time+':'+line.words[line.words.length-1].time:'-');
+      const cache=(this._wc=this._wc||new Map());
+      const hit=cache.get(key); if(hit)return hit;
+      let out;
       if(Array.isArray(line?.words)&&line.words.length){
-        const base=Number(line.time)||0;
-        return line.words.map((word,i,all)=>{
+        const base=Number(line.time)||0,lineEnd=Number(line.endTime);
+        out=line.words.map((word,i,all)=>{
           const start=Number.isFinite(Number(word?.time))?Number(word.time):base;
           const nextWord=Number(all[i+1]?.time);
-          const lineEnd=Number(line.endTime);
-          const end=Number.isFinite(Number(word?.endTime))&&Number(word.endTime)>start ? Number(word.endTime) : (Number.isFinite(nextWord)&&nextWord>start ? nextWord : (Number.isFinite(lineEnd)&&lineEnd>start ? lineEnd : start+.12));
+          const end=Number.isFinite(Number(word?.endTime))&&Number(word.endTime)>start ? Number(word.endTime) : (Number.isFinite(nextWord)&&nextWord>start ? nextWord : (Number.isFinite(lineEnd)&&lineEnd>start ? lineEnd : start+.3));
           return {text:String(word.text||'').trim(),time:start,endTime:Math.max(start+.06,end)};
         }).filter(word=>word.text);
+      }else if(model&&model.wordsOf){
+        const nt=Number(next?.time);
+        out=model.wordsOf({...line,time:Number(line?.time)||0,endTime:Number(line?.endTime)},Number.isFinite(nt)?nt:NaN).map(w=>({text:String(w.text||'').trim(),time:Number(w.time),endTime:Number(w.endTime)})).filter(w=>w.text);
+      }else{
+        const tokens=String(line?.text||'').trim().split(/\s+/).filter(Boolean); if(!tokens.length)return [];
+        const start=Number(line.time)||0,end=Math.max(start+.25,Number(next?.time)||Number(line.endTime)||start+3);
+        const weights=tokens.map(token=>Math.max(1,Array.from(token.replace(/[^\p{L}\p{N}]/gu,'')).length**.72));
+        const total=weights.reduce((a,b)=>a+b,0)||tokens.length; let cursor=0;
+        out=tokens.map((text,i)=>{const time=start+(end-start)*cursor/total;cursor+=weights[i];const endTime=start+(end-start)*cursor/total;return{text,time,endTime:Math.max(time+.06,endTime)};});
       }
-      const tokens=String(line?.text||'').trim().split(/\s+/).filter(Boolean); if(!tokens.length)return [];
-      const start=Number(line.time)||0,end=Math.max(start+.25,Number(next?.time)||Number(line.endTime)||start+3);
-      const weights=tokens.map(token=>Math.max(1,Array.from(token.replace(/[^\p{L}\p{N}]/gu,'')).length**.72));
-      const total=weights.reduce((a,b)=>a+b,0)||tokens.length; let cursor=0;
-      return tokens.map((text,i)=>{const time=start+(end-start)*cursor/total;cursor+=weights[i];const endTime=start+(end-start)*cursor/total;return{text,time,endTime:Math.max(time+.06,endTime)};});
+      cache.set(key,out); if(cache.size>600){cache.delete(cache.keys().next().value);}
+      return out;
     },
-    wordProgress(word,time){
-      const start=Number(word?.time)||0,end=Math.max(start+.06,Number(word?.endTime)||start+.12);
-      const p=this.clamp((time-start)/(end-start));
-      return {raw:p,enter:this.smoother(p/.22),active:this.smoother((p-.08)/.35),exit:this.smoother((p-.72)/.28)};
+    /* Phase curves for one word at `time`. sweep is the linear-ish karaoke fill (0..1, slight ease so it feels sung not mechanical). */
+    wordProgress(word,time,pre=.1){
+      const start=Number(word?.time)||0,end=Math.max(start+.06,Number(word?.endTime)||start+.12),dur=end-start;
+      const p=this.clamp((time-start)/dur);
+      const ease=p*p*(3-2*p)*.35+p*.65;                         // 65% linear / 35% smoothstep
+      const preRoll=this.smoother((time-(start-pre))/pre);      // 0..1 over the `pre` seconds before the word starts (anticipation)
+      const pulse=time<start?0:Math.sin(Math.PI*this.clamp((time-start)/Math.max(.18,dur)))  // rises and falls once across the word (min .18s so short words still breathe)
+      return {raw:p,sweep:ease,pre:preRoll,pulse:Math.max(0,pulse),done:time>=end?1:0,started:time>=start?1:0,dur,
+        enter:this.smoother(p/.22),active:this.smoother((p-.08)/.35),exit:this.smoother((p-.72)/.28)};
     },
+    /* Per-character progress inside a word: chars start staggered across `spread` of the word duration and each takes `soft` of it. */
+    charProgress(word,i,n,time,spread=.8,soft=.35){
+      const start=Number(word?.time)||0,end=Math.max(start+.06,Number(word?.endTime)||start+.12),dur=end-start;
+      const a=start+dur*spread*(n>1?i/(n-1):0),len=Math.max(.05,dur*soft+.04);
+      return this.smoother((time-a)/len);
+    },
+    /* Soft-edged horizontal sweep as a canvas gradient. x = left of the text in the CURRENT transform, width = text width, p = 0..1. */
+    sweepFill(ctx,x,width,p,fill,dim,edge=.22){
+      p=this.clamp(p);
+      if(p<=0)return dim; if(p>=1)return fill;
+      const g=ctx.createLinearGradient(x,0,x+Math.max(1,width),0);
+      const head=p*(1+edge),tail=Math.max(0,head-edge);
+      g.addColorStop(0,fill);g.addColorStop(this.clamp(tail),fill);g.addColorStop(this.clamp(head),dim);g.addColorStop(1,dim);
+      return g;
+    },
+    /* Progress of a whole line in sung time: 0 at first word start, 1 at last word end. */
+    sungProgress(words,time){
+      if(!words.length)return 0;const a=words[0].time,b=words[words.length-1].endTime;
+      return this.clamp((time-a)/Math.max(.05,b-a));
+    },
+    /* Index of the word being sung (or last sung), -1 before the first. */
+    activeWordIndex(words,time){let k=-1;for(let i=0;i<words.length;i++){if(time>=words[i].time)k=i;else break;}return k;},
     contract(name,fallback={}){ return {...fallback,...(type()[name]||{})}; },
     setFont(ctx,family,size,weight=700){ctx.font=`${weight} ${Math.max(18,size)}px "${family}", Arial, sans-serif`;},
     setContractFont(ctx,name,size){const c=this.contract(name);this.setFont(ctx,c.family,Math.max(c.min,Math.min(c.max,Number(size)||c.max)),c.weight);return c;},
