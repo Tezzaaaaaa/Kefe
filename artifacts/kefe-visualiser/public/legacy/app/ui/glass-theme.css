@@ -1169,3 +1169,70 @@ html {
     transition: none;
   }
 }
+
+
+/* Persistent selection confirmation: subtle Kefe-green glow for active choices and edited controls. */
+:root {
+  --confirm-glow: rgba(112, 157, 135, .68);
+  --confirm-glow-soft: rgba(112, 157, 135, .22);
+}
+
+:is(
+  .kefe-section.active,
+  .kefe-card.active,
+  .kefe-chip.active,
+  .kefe-seg-btn.active,
+  .kefe-visualiser-preset.active,
+  .kefe-gradient-chip.active,
+  .kefe-btn.primary,
+  .kefe-media-track.is-identified,
+  [aria-pressed="true"],
+  [aria-checked="true"]
+) {
+  border-color: var(--confirm-glow) !important;
+  box-shadow: 0 0 0 1px var(--confirm-glow), 0 0 12px var(--confirm-glow-soft), var(--lift);
+}
+
+.kefe-control-confirmed {
+  border-color: var(--confirm-glow) !important;
+  box-shadow: 0 0 0 1px var(--confirm-glow), 0 0 10px var(--confirm-glow-soft), var(--inner) !important;
+}
+
+.kefe-confirmed-container,
+.kefe-upload-zone.kefe-confirmed-container,
+.kefe-media-track.is-identified {
+  border-color: var(--confirm-glow) !important;
+  box-shadow: 0 0 0 1px var(--confirm-glow), 0 0 16px var(--confirm-glow-soft), var(--lift) !important;
+}
+
+.kefe-upload-zone.kefe-confirmed-container::after {
+  content: "✓";
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+  background: #648f79;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 0 12px var(--confirm-glow-soft);
+}
+
+.kefe-upload-zone {
+  position: relative;
+}
+
+.kefe-confirmed-container {
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kefe-confirmed-container,
+  .kefe-control-confirmed {
+    transition: none;
+  }
+}
