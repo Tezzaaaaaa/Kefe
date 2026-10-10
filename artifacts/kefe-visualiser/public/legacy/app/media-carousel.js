@@ -34,6 +34,12 @@
     var s2=step(1,'Find your song','Upload audio or video, search for the correct track, then review its details.');
     s2.classList.add('kefe-find-step');
 
+    var details=mk('section','kefe-song-details');
+    details.innerHTML='<header class="kefe-song-details-head"><h4>Song details</h4><p>Review or edit the track information.</p></header>';
+    var grid=mk('div','kefe-details-grid');fields.forEach(function(f){grid.appendChild(f);});
+    details.appendChild(grid);
+    s2.body.appendChild(details);
+
     var uploads=mk('div','kefe-media-upload-row');
     if(zone)uploads.appendChild(zone);
     if(bgWrap)uploads.appendChild(bgWrap);
@@ -41,12 +47,6 @@
     if(track)s2.body.appendChild(track);
     if(sugg)s2.body.appendChild(sugg);
     s2.body.appendChild(buildSearch());
-
-    var details=mk('section','kefe-song-details');
-    details.innerHTML='<header class="kefe-song-details-head"><h4>Song details</h4><p>Review or edit the track information.</p></header>';
-    var grid=mk('div','kefe-details-grid');fields.forEach(function(f){grid.appendChild(f);});
-    details.appendChild(grid);
-    s2.body.appendChild(details);
 
     if(sugg)sugg.hidden=true;
     if(empty)empty.remove();
