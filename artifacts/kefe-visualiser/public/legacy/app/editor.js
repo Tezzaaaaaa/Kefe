@@ -324,7 +324,7 @@
     const bigTextH=bt*1.25+(artist?ba*1.35:0)+(meta?bm*1.4:0),bigTop=(h-(bigArt+bigGap+bigTextH))/2;
     // header layout – same column as the Apple lyrics
     const aspect=w/Math.max(1,h),landscape=aspect>=1.25,comp=landscape?w*.34:(aspect<.75?w*.84:w*.78);
-    const left=landscape?w*.22-comp/2:Math.max(0,(w-comp)/2)+comp*(31/390);
+    const left=landscape?w*.25-comp/2:Math.max(0,(w-comp)/2)+comp*(31/390);
     const ht=Math.max(13,unit*.036),hartist=Math.max(11,unit*.028),hm=Math.max(10,unit*.022);
     const hArt=landscape?Math.min(unit*.38,w*.24):unit*.11,hTop=landscape?h*.13:Math.max(32,h*.07),hGap=unit*(landscape?.035:.028);
     const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,landscape?left+(comp-hArt)/2:left),ay=lerp(bigTop,hTop),r=art*.08;
