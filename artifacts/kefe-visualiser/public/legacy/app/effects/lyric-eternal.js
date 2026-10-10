@@ -211,6 +211,16 @@ function getEternalLineAlpha(slot, group, time) {
     return 1 - fade * 0.84;
 }
 
+function getEternalSubjectParts(text) {
+    const stopWords = new Set(["about","after","again","against","being","could","every","from","have","into","just","like","more","most","only","over","said","some","than","that","them","then","there","these","they","this","those","through","very","what","when","where","which","while","with","would","your","you","are","and","but","for","not","the","was","were","will","his","her","she","him","our","out","all","can","did","does","had","has","how","its","let","may","off","one","who"]);
+    const matches = [...text.matchAll(/[\\p{L}’'-]+/gu)];
+    if (!matches.length) return { prefix: text, subject: "", suffix: "" };
+    const ranked = matches.map(m => ({ word: m[0], index: m.index, score: m[0].replace(/[^\\p{L}]/gu, "").length, common: stopWords.has(m[0].toLowerCase()) }));
+    const candidates = ranked.filter(x => !x.common && x.score >= 3);
+    const chosen = (candidates.length ? candidates : ranked).sort((a, b) => b.score - a.score || a.index - b.index)[0];
+    return { prefix: text.slice(0, chosen.index).trimEnd(), subject: chosen.word, suffix: text.slice(chosen.index + chosen.word.length).trimStart() };
+}
+
 function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
     if (!eternalFontReady) {
         ensureEternalFont();
@@ -252,17 +262,26 @@ function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
         if (!line || time < line.time) continue;
         const text = String(line.text || "").trim();
         if (!text) continue;
-        let targetSize = linaClamp(baseSize * sizes[slot], 20, 150);
-        const prepared = fitEternalText(text, targetSize, w - margin * 2.3);
-        if (!prepared) continue;
-        const cache = prepared.cache, fontSize = prepared.fontSize;
+        const parts = getEternalSubjectParts(text);
+        const targetSize = linaClamp(baseSize * sizes[slot], 20, 150);
         const duration = Math.max(0.001, line.endTime - line.time);
         const rawProgress = linaClamp((time - line.time) / (duration * Math.max(0.20, writeSpan)));
         const progress = linaSmoother(rawProgress);
-        const rendered = renderInkRow(cache, progress, { fontSize, inkColor, penWidth, glow });
-        if (!rendered) continue;
-        const vh = cache.ascent + cache.descent;
-        const placement = getEternalPlacement(positions[slot], w, h, cache.textWidth, vh, margin);
+        const inkOptions = { inkColor, penWidth, glow };
+        const maxWidth = Math.max(40, w - margin * 2.3);
+        const prefixFit = parts.prefix ? fitEternalText(parts.prefix, targetSize, maxWidth) : null;
+        const suffixFit = parts.suffix ? fitEternalText(parts.suffix, targetSize, maxWidth) : null;
+        const subjectFit = parts.subject ? fitEternalText(parts.subject, targetSize * 5, maxWidth) : null;
+        const normalWordFit = parts.subject ? fitEternalText(parts.subject, targetSize, maxWidth) : null;
+        if (!subjectFit || !normalWordFit) continue;
+        const prefixWidth = prefixFit ? prefixFit.cache.textWidth : 0;
+        const suffixWidth = suffixFit ? suffixFit.cache.textWidth : 0;
+        const wordSlotWidth = normalWordFit.cache.textWidth;
+        const fullWidth = prefixWidth + wordSlotWidth + suffixWidth;
+        const vh = Math.max(prefixFit ? prefixFit.cache.ascent + prefixFit.cache.descent : 0,
+            suffixFit ? suffixFit.cache.ascent + suffixFit.cache.descent : 0,
+            normalWordFit.cache.ascent + normalWordFit.cache.descent);
+        const placement = getEternalPlacement(positions[slot], w, h, fullWidth, vh, margin);
         let alpha = getEternalLineAlpha(slot, group, time);
         if (finalLine) {
             const fd = Math.max(0.20, finalLine.endTime - finalLine.time);
@@ -272,28 +291,36 @@ function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
         const isWriting = rawProgress > 0 && rawProgress < 1;
         const writeEnergy = isWriting ? Math.sin(rawProgress * Math.PI) : 0;
         const popScale = 1 + presence * 0.018 * writeEnergy;
-        const bloom = fontSize * (glow / 100 + presence * 0.055 * writeEnergy);
+        const bloom = targetSize * (glow / 100 + presence * 0.055 * writeEnergy);
         const echoAlpha = alpha * presence * 0.13 * writeEnergy;
-        const drawX = placement.x - cache.padding;
-        const drawY = placement.y - cache.padding;
-        const centreX = placement.x + cache.textWidth / 2;
-        const centreY = placement.y + vh / 2;
+        const lineX = linaClamp(placement.x, margin, Math.max(margin, w - margin - fullWidth));
+        const lineY = placement.y;
+        const subjectCentreX = lineX + prefixWidth + wordSlotWidth / 2;
+        const drawPiece = (fit, x, y) => {
+            if (!fit) return;
+            const cache = fit.cache;
+            const rendered = renderInkRow(cache, progress, { ...inkOptions, fontSize: fit.fontSize });
+            if (!rendered) return;
+            const drawX = x - cache.padding, drawY = y - cache.padding;
+            if (echoAlpha > 0.001) {
+                ctx.save(); ctx.globalAlpha = echoAlpha; ctx.shadowColor = inkColor;
+                ctx.shadowBlur = bloom * 1.7;
+                ctx.drawImage(rendered, drawX + fit.fontSize * 0.012, drawY + fit.fontSize * 0.010);
+                ctx.restore();
+            }
+            ctx.save(); ctx.globalAlpha = alpha; ctx.shadowColor = inkColor;
+            ctx.shadowBlur = fit.fontSize * (glow / 100 + presence * 0.055 * writeEnergy);
+            ctx.drawImage(rendered, drawX, drawY); ctx.restore();
+        };
         ctx.save();
-        ctx.translate(centreX, centreY);
+        ctx.translate(lineX + fullWidth / 2, lineY + vh / 2);
         ctx.scale(popScale, popScale);
-        ctx.translate(-centreX, -centreY);
-        if (echoAlpha > 0.001) {
-            ctx.save();
-            ctx.globalAlpha = echoAlpha;
-            ctx.shadowColor = inkColor;
-            ctx.shadowBlur = bloom * 1.7;
-            ctx.drawImage(rendered, drawX + fontSize * 0.012, drawY + fontSize * 0.010);
-            ctx.restore();
-        }
-        ctx.globalAlpha = alpha;
-        ctx.shadowColor = inkColor;
-        ctx.shadowBlur = bloom;
-        ctx.drawImage(rendered, drawX, drawY);
+        ctx.translate(-(lineX + fullWidth / 2), -(lineY + vh / 2));
+        drawPiece(prefixFit, lineX, lineY);
+        drawPiece(suffixFit, lineX + prefixWidth + wordSlotWidth, lineY);
+        const subjectCache = subjectFit.cache;
+        const subjectY = Math.max(margin, lineY - subjectCache.ascent * 0.88);
+        drawPiece(subjectFit, subjectCentreX - subjectCache.textWidth / 2, subjectY);
         ctx.restore();
     }
     ctx.restore();
