@@ -1076,8 +1076,11 @@ button{border:0;cursor:pointer}
 /* Responsive editor layout: mobile-only sizing and control grouping */
 @media(max-width:700px){
   .kefe-work{min-width:0}
-  .kefe-preview{min-width:0;padding:8px}
-  .kefe-panel{min-width:0;padding:14px}
+  .kefe-top{margin-left:0;margin-right:0;border-radius:0}
+  .kefe-preview{min-width:0;padding:8px 0}
+  .kefe-stage{width:100%;border-radius:0}
+  .kefe-panels{padding-left:0;padding-right:0}
+  .kefe-panel{min-width:0;padding:14px;border-left:0;border-right:0;border-radius:0}
   .kefe-panel-head{align-items:flex-start;gap:8px;flex-wrap:wrap}
   .kefe-panel-head .kefe-meta{max-width:100%;line-height:1.45}
   .kefe-panel .kefe-form{min-width:0;gap:14px}
