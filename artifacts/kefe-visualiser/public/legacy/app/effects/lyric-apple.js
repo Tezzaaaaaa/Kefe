@@ -120,8 +120,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
 
     const baseDimension = Math.min(w, h);
     const aspectRatio = w / Math.max(1, h);
-    const compositionWidth = aspectRatio < 0.75 ? w * 0.84 : (aspectRatio < 1.25 ? w * 0.78 : w * 0.72);
-    const horizontalPadding = compositionWidth * (31 / 390);
+    const landscapeSplit = aspectRatio >= 1.25;
+    const compositionWidth = landscapeSplit ? w * 0.52 : (aspectRatio < 0.75 ? w * 0.84 : w * 0.78);
+    const horizontalPadding = compositionWidth * (landscapeSplit ? 0.055 : (31 / 390));
     const contentWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
     const activeFontSize = baseDimension * (32 / 390);
     const inactiveFontSize = baseDimension * (29 / 390);
@@ -133,7 +134,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         document.fonts.load('700 48px "Inter Tight"').catch(() => {});
         document.fonts.load('600 48px "Inter Tight"').catch(() => {});
     }
-    const boundaryLeft = Math.max(0, (w - compositionWidth) / 2);
+    const boundaryLeft = landscapeSplit ? w * 0.035 : Math.max(0, (w - compositionWidth) / 2);
     const margin = boundaryLeft + horizontalPadding;
     const maxWidth = contentWidth;
     const displayLines = [];
@@ -240,12 +241,14 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
     const appleHeaderSize = baseDimension * 0.11;
     const appleHeaderTop = Math.max(baseDimension * 0.065, h * 0.035);
-    const appleHeaderBottom = appleHeaderTop + appleHeaderSize;
+    const appleHeaderBottom = landscapeSplit ? 0 : appleHeaderTop + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
-    const topAnchor = Math.max(
-        h * linaClamp(Number(style.appleTopOffset) || 0.50, 0.40, 0.60),
-        appleHeaderBottom + activeBlockHeight / 2 + blockGap
-    );
+    const topAnchor = landscapeSplit
+        ? h * 0.50
+        : Math.max(
+            h * linaClamp(Number(style.appleTopOffset) || 0.50, 0.40, 0.60),
+            appleHeaderBottom + activeBlockHeight / 2 + blockGap
+        );
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
