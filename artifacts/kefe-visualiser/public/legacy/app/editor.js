@@ -1123,6 +1123,7 @@
     if(file.type.startsWith('video/')){video.src=mediaObjectUrl;video.load();}else{video.removeAttribute('src');video.load();}
     const onDecodeError=()=>{
       if(mediaObjectUrl!==loadUrl)return;
+      uploadZone?.classList.remove('kefe-confirmed-container');
       setLyricsStatus('This browser cannot play that file. Try MP3, M4A, WAV or MP4.');
       if(uploadName)uploadName.textContent='Could not read '+file.name;
       previewStage.classList.add('is-empty');
@@ -1131,6 +1132,7 @@
     audio.addEventListener('loadedmetadata',async function identifyOnce(){
       audio.removeEventListener('loadedmetadata',identifyOnce);
       if(mediaObjectUrl!==loadUrl)return;
+      uploadZone?.classList.add('kefe-confirmed-container');
       audio.removeEventListener('error',onDecodeError);
       if(!Number.isFinite(audio.duration)){
         // Some WebM/streamed files report Infinity; seeking far forces the real duration.
