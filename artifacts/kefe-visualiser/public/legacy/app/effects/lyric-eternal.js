@@ -213,9 +213,9 @@ function getEternalLineAlpha(slot, group, time) {
 
 function getEternalSubjectParts(text) {
     const stopWords = new Set(["about","after","again","against","being","could","every","from","have","into","just","like","more","most","only","over","said","some","than","that","them","then","there","these","they","this","those","through","very","what","when","where","which","while","with","would","your","you","are","and","but","for","not","the","was","were","will","his","her","she","him","our","out","all","can","did","does","had","has","how","its","let","may","off","one","who"]);
-    const matches = [...text.matchAll(/[\\p{L}’'-]+/gu)];
+    const matches = [...text.matchAll(/[A-Za-zÀ-ž’'-]+/g)];
     if (!matches.length) return { prefix: text, subject: "", suffix: "" };
-    const ranked = matches.map(m => ({ word: m[0], index: m.index, score: m[0].replace(/[^\\p{L}]/gu, "").length, common: stopWords.has(m[0].toLowerCase()) }));
+    const ranked = matches.map(m => ({ word: m[0], index: m.index, score: m[0].replace(/[^A-Za-zÀ-ž]/g, "").length, common: stopWords.has(m[0].toLowerCase()) }));
     const candidates = ranked.filter(x => !x.common && x.score >= 3);
     const chosen = (candidates.length ? candidates : ranked).sort((a, b) => b.score - a.score || a.index - b.index)[0];
     return { prefix: text.slice(0, chosen.index).trimEnd(), subject: chosen.word, suffix: text.slice(chosen.index + chosen.word.length).trimStart() };
