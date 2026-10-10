@@ -238,11 +238,11 @@
     var logoRemove = el('button', 'kefe-btn', 'Remove logo'); logoRemove.type = 'button'; logoRemove.hidden = true;
     function setLogo(file) {
       if (logoUrl) { URL.revokeObjectURL(logoUrl); logoUrl = ''; }
-      if (!file) { logoImg = null; S.logo.on = false; logoName.textContent = 'Choose a logo (PNG, SVG, JPG)'; logoRemove.hidden = true; redraw(); return; }
+      if (!file) { logoImg = null; S.logo.on = false; logoZone.classList.remove('kefe-confirmed-container'); logoName.textContent = 'Choose a logo (PNG, SVG, JPG)'; logoRemove.hidden = true; redraw(); return; }
       logoUrl = URL.createObjectURL(file);
       var img = new Image();
-      img.onload = function () { logoImg = img; S.logo.on = true; logoName.textContent = file.name; logoRemove.hidden = false; redraw(); };
-      img.onerror = function () { logoName.textContent = 'Could not read that image'; };
+      img.onload = function () { logoImg = img; S.logo.on = true; logoName.textContent = file.name; logoZone.classList.add('kefe-confirmed-container'); logoRemove.hidden = false; redraw(); };
+      img.onerror = function () { logoZone.classList.remove('kefe-confirmed-container'); logoName.textContent = 'Could not read that image'; };
       img.src = logoUrl;
     }
     logoInput.addEventListener('change', function () { var f = logoInput.files && logoInput.files[0]; logoInput.value = ''; if (f) setLogo(f); });
