@@ -31,28 +31,27 @@
       s.innerHTML='<header class="kefe-step-head"><span class="kefe-step-num">'+n+'</span><div><h3>'+title+'</h3><p>'+hint+'</p></div></header>';
       var body=mk('div','kefe-step-body');s.appendChild(body);s.body=body;return s;
     }
-    var left=mk('div','kefe-media-col'),right=mk('div','kefe-media-col');
-
-    var s2=step(1,'Find your song','Upload audio or video first, then confirm the identified track or choose another match.');
+    var s2=step(1,'Find your song','Upload audio or video, search for the correct track, then review its details.');
     s2.classList.add('kefe-find-step');
-    if(zone)s2.body.appendChild(zone);
+
+    var uploads=mk('div','kefe-media-upload-row');
+    if(zone)uploads.appendChild(zone);
+    if(bgWrap)uploads.appendChild(bgWrap);
+    s2.body.appendChild(uploads);
     if(track)s2.body.appendChild(track);
     if(sugg)s2.body.appendChild(sugg);
     s2.body.appendChild(buildSearch());
 
-    var s3=step(2,'Background video','Optional. Loops behind the visualiser.');
-    if(bgWrap)s3.body.appendChild(bgWrap);
-    left.appendChild(s3);
-
-    var s4=step(3,'Song details','Edit anything the search got wrong.');
+    var details=mk('section','kefe-song-details');
+    details.innerHTML='<header class="kefe-song-details-head"><h4>Song details</h4><p>Review or edit the track information.</p></header>';
     var grid=mk('div','kefe-details-grid');fields.forEach(function(f){grid.appendChild(f);});
-    s4.body.appendChild(grid);
-    right.appendChild(s4);
+    details.appendChild(grid);
+    s2.body.appendChild(details);
 
     if(sugg)sugg.hidden=true;
     if(empty)empty.remove();
     form.innerHTML='';
-    form.appendChild(s2);form.appendChild(left);form.appendChild(right);
+    form.appendChild(s2);
     return true;
   }
 
