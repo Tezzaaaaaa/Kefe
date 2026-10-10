@@ -77,6 +77,15 @@ try {
   await page.locator('#lyricEffect').selectOption({ index: 1 });
   await page.locator('button.kefe-section[data-panel="export"]').click();
   await page.locator('#exportResolution').selectOption('720');
+  await page.evaluate(() => {
+    window.kefeParticleVisualiser?.selectPreset('glitch-visualiser');
+    window.kefeGradientLayer?.randomize();
+    window.kefeAudioOverlay?.setMode('waveform');
+  });
+  await page.waitForFunction(() => window.kefeParticleVisualiser?.getPreset?.() === 'glitch-visualiser'
+    && window.kefeGradientLayer?.isOn?.() === true
+    && window.kefeAudioOverlay?.mode?.() === 'waveform');
+  await page.waitForTimeout(500);
 
   const editorPixels = await page.evaluate(() => {
     const canvas = document.querySelector('#kefeCanvas');
@@ -93,13 +102,27 @@ try {
       backgroundPaintCalls: 0,
       videoFramesDrawnToExport: 0,
       lyricCanvasDrawnToExport: 0,
-      visualiserCanvasDrawnToExport: 0
+      visualiserCanvasDrawnToExport: 0,
+      gradientPaintCalls: 0,
+      audioOverlayPaintCalls: 0
     };
     const background = window.kefeBackground;
     const originalPaint = background.paint;
     background.paint = function (ctx, width, height, time) {
       probe.backgroundPaintCalls += 1;
       return originalPaint.call(this, ctx, width, height, time);
+    };
+    const gradient = window.kefeGradientLayer;
+    const originalGradientPaint = gradient.paint;
+    gradient.paint = function (...args) {
+      probe.gradientPaintCalls += 1;
+      return originalGradientPaint.apply(this, args);
+    };
+    const overlay = window.kefeAudioOverlay;
+    const originalOverlayPaint = overlay.paint;
+    overlay.paint = function (...args) {
+      probe.audioOverlayPaintCalls += 1;
+      return originalOverlayPaint.apply(this, args);
     };
     const originalDrawImage = CanvasRenderingContext2D.prototype.drawImage;
     CanvasRenderingContext2D.prototype.drawImage = function (source, ...args) {
@@ -125,6 +148,8 @@ try {
   assert.ok(probe.videoFramesDrawnToExport > 0, 'Uploaded background-video frames should be drawn into export frames');
   assert.ok(probe.lyricCanvasDrawnToExport > 0, 'The editor lyric/effect canvas should be included in export frames');
   assert.ok(probe.visualiserCanvasDrawnToExport > 0, 'The visualiser canvas should be included in export frames');
+  assert.ok(probe.gradientPaintCalls > 0, 'The enabled gradient effect should be painted into export frames');
+  assert.ok(probe.audioOverlayPaintCalls > 0, 'The enabled audio-reactive overlay should be painted into export frames');
 
   const exportStatus = await page.locator('#exportStatus').innerText();
   assert.match(exportStatus, /Export complete/i, `Unexpected export status: ${exportStatus}`);
