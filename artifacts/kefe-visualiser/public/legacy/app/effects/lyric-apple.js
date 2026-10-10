@@ -121,7 +121,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const baseDimension = Math.min(w, h);
     const aspectRatio = w / Math.max(1, h);
     const landscapeSplit = aspectRatio >= 1.25;
-    const compositionWidth = landscapeSplit ? w * 0.52 : (aspectRatio < 0.75 ? w * 0.84 : w * 0.78);
+    const compositionWidth = landscapeSplit ? w * 0.46 : (aspectRatio < 0.75 ? w * 0.84 : w * 0.78);
     const horizontalPadding = compositionWidth * (landscapeSplit ? 0.055 : (31 / 390));
     const contentWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
     const activeFontSize = baseDimension * (32 / 390);
@@ -134,7 +134,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         document.fonts.load('700 48px "Inter Tight"').catch(() => {});
         document.fonts.load('600 48px "Inter Tight"').catch(() => {});
     }
-    const boundaryLeft = landscapeSplit ? w * 0.035 : Math.max(0, (w - compositionWidth) / 2);
+    const boundaryLeft = landscapeSplit ? w * 0.50 : Math.max(0, (w - compositionWidth) / 2);
     const margin = boundaryLeft + horizontalPadding;
     const maxWidth = contentWidth;
     const displayLines = [];
