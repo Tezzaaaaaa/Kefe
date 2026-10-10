@@ -350,3 +350,206 @@
     font-size: 10px;
   }
 }
+
+
+/* Find your song: keep track details inside the same compact, responsive step. */
+.kefe-find-step {
+  border-color: var(--line-soft);
+  box-shadow: var(--lift);
+  gap: 9px;
+}
+.kefe-find-step .kefe-step-head {
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.kefe-find-step .kefe-step-num {
+  width: 23px;
+  height: 23px;
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--inner);
+}
+.kefe-find-step .kefe-step-body {
+  gap: 9px;
+}
+.kefe-find-step .kefe-media-upload-row {
+  gap: 8px;
+}
+.kefe-find-step .kefe-upload-zone {
+  border-radius: var(--r2);
+}
+.kefe-find-step .kefe-find {
+  gap: 8px;
+}
+.kefe-find-step .kefe-find-bar {
+  gap: 7px;
+}
+.kefe-find-step .kefe-search {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r2);
+  box-shadow: var(--inner);
+}
+.kefe-find-step .kefe-search input {
+  min-height: var(--control-h);
+  font-size: var(--font-sm);
+}
+.kefe-find-step .kefe-chips {
+  gap: 6px;
+}
+.kefe-find-step .kefe-chip {
+  min-height: 34px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r2);
+  font-size: var(--font-sm);
+  letter-spacing: 0;
+  box-shadow: var(--inner);
+}
+.kefe-find-step .kefe-chip.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--lift);
+}
+.kefe-find-step .kefe-find-status {
+  font-size: var(--font-sm);
+  line-height: 1.4;
+}
+.kefe-find-step .kefe-carousel {
+  min-width: 0;
+  border-radius: var(--r2);
+}
+.kefe-find-step .kefe-car-info {
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r2);
+  background: var(--surface);
+  box-shadow: var(--inner);
+}
+.kefe-find-step .kefe-car-actions {
+  gap: 7px;
+}
+.kefe-find-step .kefe-car-actions .kefe-btn {
+  min-height: 36px;
+  padding-inline: 12px;
+  border-radius: var(--r2);
+  font-size: var(--font-sm);
+}
+.kefe-find-step .kefe-song-details {
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+.kefe-find-step .kefe-song-details-head h4 {
+  font-size: var(--font-base);
+  line-height: 1.25;
+}
+.kefe-find-step .kefe-song-details-head p {
+  margin-top: 2px;
+  font-size: var(--font-sm);
+  line-height: 1.35;
+}
+.kefe-find-step .kefe-details-grid {
+  gap: 8px;
+}
+.kefe-find-step .kefe-details-grid > div {
+  min-width: 0;
+}
+.kefe-find-step .kefe-details-grid .kefe-label {
+  margin-bottom: 4px;
+  font-size: var(--font-sm);
+}
+.kefe-find-step .kefe-details-grid .kefe-input {
+  min-width: 0;
+  min-height: 38px;
+  padding-inline: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r2);
+  background: var(--surface);
+  box-shadow: var(--inner);
+  font-size: var(--font-sm);
+}
+.kefe-find-step .kefe-details-grid .kefe-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent), var(--inner);
+}
+.kefe-find-step .kefe-details-grid .kefe-input::placeholder {
+  color: var(--soft);
+  opacity: 1;
+}
+
+@media (max-width: 700px) {
+  .kefe-find-step {
+    padding: 11px;
+  }
+  .kefe-find-step .kefe-step-head {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .kefe-find-step .kefe-step-head p {
+    line-height: 1.35;
+  }
+  .kefe-find-step .kefe-step-body {
+    gap: 8px;
+  }
+  .kefe-find-step .kefe-media-upload-row {
+    gap: 7px;
+  }
+  .kefe-find-step .kefe-find-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+  }
+  .kefe-find-step .kefe-search {
+    width: 100%;
+  }
+  .kefe-find-step .kefe-search input {
+    min-height: 38px;
+  }
+  .kefe-find-step .kefe-chips {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    gap: 6px;
+  }
+  .kefe-find-step .kefe-chip {
+    width: 100%;
+    min-width: 0;
+    min-height: 32px;
+    height: 32px;
+    padding-inline: 6px;
+  }
+  .kefe-find-step .kefe-song-details {
+    gap: 7px;
+    padding-top: 9px;
+  }
+  .kefe-find-step .kefe-details-grid {
+    gap: 7px;
+  }
+  .kefe-find-step .kefe-details-grid .kefe-input {
+    min-height: 36px;
+    padding-inline: 8px;
+  }
+  .kefe-find-step .kefe-car-info {
+    gap: 8px;
+    padding: 9px;
+  }
+  .kefe-find-step .kefe-car-actions {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .kefe-find-step .kefe-car-actions .kefe-btn {
+    flex: 1 1 120px;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .kefe-find-step {
+    padding: 9px;
+  }
+  .kefe-find-step .kefe-details-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
