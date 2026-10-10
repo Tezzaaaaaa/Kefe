@@ -1,0 +1,31 @@
+name: KEFE legacy integrity
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'artifacts/kefe-visualiser/public/legacy/**'
+      - 'scripts/check-legacy-integrity.mjs'
+      - '.github/workflows/legacy-integrity.yml'
+  push:
+    branches: [main, 'safety/**']
+    paths:
+      - 'artifacts/kefe-visualiser/public/legacy/**'
+      - 'scripts/check-legacy-integrity.mjs'
+      - '.github/workflows/legacy-integrity.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  legacy-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify legacy app wiring
+        run: node scripts/check-legacy-integrity.mjs
