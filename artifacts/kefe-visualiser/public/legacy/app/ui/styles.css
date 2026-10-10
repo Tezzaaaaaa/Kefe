@@ -598,24 +598,26 @@ button{border:0;cursor:pointer}
 }
 @media(max-width:520px){
   .kefe-timeline{
-    grid-template-columns:36px 58px minmax(0,1fr) 72px;
+    grid-template-columns:36px 54px minmax(0,1fr) 64px;
     height:60px;
-    padding:7px 8px;
-    gap:7px;
+    padding:7px 6px;
+    gap:5px;
   }
   .kefe-timeline .kefe-time{
-    width:58px;
-    min-width:58px;
+    width:54px;
+    min-width:54px;
     font-size:10px;
   }
-  .kefe-aspect-controls{
-    width:72px;
-    min-width:72px;
+  .kefe-timeline .kefe-aspect-controls{
+    width:64px;
+    min-width:64px;
     height:38px;
     padding:3px;
   }
-  .kefe-aspect-select{
+  .kefe-timeline .kefe-aspect-select{
     height:30px;
+    padding-right:18px;
+    background-position:calc(100% - 9px) 12px,calc(100% - 5px) 12px;
     font-size:11px;
   }
 }
