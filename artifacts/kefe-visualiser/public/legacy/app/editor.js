@@ -1312,7 +1312,6 @@
   // applied by the export compositor so the exported framing matches the preview.
   const previewStage=document.querySelector('.kefe-stage');
   let visualiserZoom=1,visualiserPanX=0,visualiserPanY=0;
-  const activeVisualiserCanvas=()=>window.kefeFlutedGlassActive?document.getElementById('kefeFlutedGlassCanvas'):document.getElementById('kefeVisualiserCanvas');
   const applyVisualiserPreviewTransform=()=>{
     const transform=`translate3d(${visualiserPanX}px,${visualiserPanY}px,0) scale(${visualiserZoom})`;
     [document.getElementById('kefeVisualiserCanvas'),document.getElementById('kefeFlutedGlassCanvas')].forEach(el=>{if(el)el.style.transform=transform;});
