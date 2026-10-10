@@ -1337,7 +1337,7 @@
   }
   // Touch-friendly preview transform for the visualiser. The same transform is
   // applied by the export compositor so the exported framing matches the preview.
-  const previewStage=document.querySelector('.kefe-stage');
+
   let visualiserZoom=1,visualiserPanX=0,visualiserPanY=0;
   const applyVisualiserPreviewTransform=()=>{
     const transform=`translate3d(${visualiserPanX}px,${visualiserPanY}px,0) scale(${visualiserZoom})`;
