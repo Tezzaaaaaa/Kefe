@@ -16,10 +16,11 @@ let server;
 let browser;
 
 function run(command, args) {
-  const result = spawnSync(command, args, { encoding: 'utf8' });
+  const result = spawnSync(command, args, { encoding: null });
   if (result.status !== 0) {
-    throw new Error(`${command} failed: ${result.stderr || result.stdout}`);
+    throw new Error(`${command} failed: ${result.stderr?.toString() || result.stdout?.toString()}`);
   }
+  return result;
 }
 
 async function waitForServer(url) {
