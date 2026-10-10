@@ -1348,3 +1348,34 @@ html {
     font-size: 11px;
   }
 }
+
+
+/* Keep the preview boundary inside its mobile viewport without distorting aspect ratio. */
+@media (max-width: 700px) {
+  .kefe-preview {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .kefe-stage,
+  .kefe-stage.is-16x9,
+  .kefe-stage.is-9x16,
+  .kefe-stage.is-1x1 {
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+    max-height: 100%;
+    box-sizing: border-box;
+    flex: none;
+  }
+
+  .kefe-stage.is-16x9 { aspect-ratio: 16 / 9; }
+  .kefe-stage.is-9x16 { aspect-ratio: 9 / 16; }
+  .kefe-stage.is-1x1 { aspect-ratio: 1 / 1; }
+}
