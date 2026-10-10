@@ -70,10 +70,12 @@ try {
     return select && select.options.length > 1;
   }, null, { timeout: 15000 });
 
+  await page.locator('button.kefe-section[data-panel="lyrics"]').click();
   await page.locator('#lyricsInput').fill('Export regression test lyric');
+  await page.locator('button.kefe-section[data-panel="effects"]').click();
   await page.locator('#lyricEffect').selectOption({ index: 1 });
+  await page.locator('button.kefe-section[data-panel="export"]').click();
   await page.locator('#exportResolution').selectOption('720');
-  await page.locator('[data-panel="export"]').click();
 
   await page.evaluate(() => {
     const probe = window.__kefeExportProbe = {
