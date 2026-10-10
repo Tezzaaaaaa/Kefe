@@ -1,6 +1,24 @@
 (() => {
   'use strict';
 
+    /* Persistent selection confirmation: apply feedback to controls without changing their values or behaviour. */
+  document.addEventListener('change', event => {
+    const control = event.target;
+    if (!(control instanceof HTMLElement) || !control.matches('input, select, textarea')) return;
+    if (control.type === 'file') return;
+    control.classList.add('kefe-control-confirmed');
+    const container = control.closest('.kefe-background-effect-control, .kefe-visualiser-control-group, .kefe-font-card, .kefe-line, .kefe-timing-editor, .kefe-song-details, .kefe-step, .kefe-form > div');
+    if (container) container.classList.add('kefe-confirmed-container');
+  });
+  document.addEventListener('input', event => {
+    const control = event.target;
+    if (!(control instanceof HTMLElement) || !control.matches('input:not([type="file"]), select, textarea')) return;
+    control.classList.add('kefe-control-confirmed');
+    const container = control.closest('.kefe-background-effect-control, .kefe-visualiser-control-group, .kefe-font-card, .kefe-line, .kefe-timing-editor, .kefe-song-details, .kefe-step, .kefe-form > div');
+    if (container) container.classList.add('kefe-confirmed-container');
+  });
+
+
   window.kefeEffects = window.kefeEffects || {};
   window.kefeEffectUtils = {
     clamp(v,a=0,b=1){return Math.max(a,Math.min(b,Number(v)||0));},
