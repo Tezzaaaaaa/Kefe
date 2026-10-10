@@ -934,20 +934,24 @@ button{border:0;cursor:pointer}
 
 #kefeBackgroundCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none;border-radius:0}
 
-/* ───────── Media panel: steps + search carousel ───────── */
+/* ───────── Media panel: unified upload + song search ───────── */
 #kefeSuggestions{display:none!important}
-.kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--s3);align-items:start}
-.kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps>.kefe-find-step{grid-column:1/-1}
-.kefe-panel[data-panel-view="media"] .kefe-find-step{border-color:var(--accent);box-shadow:0 0 0 1px rgba(239,63,56,.12),0 0 24px rgba(239,63,56,.12),var(--lift)}
+.kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s3);align-items:start}
+.kefe-find-step{min-width:0;border-color:var(--accent);box-shadow:0 0 0 1px rgba(239,63,56,.12),0 0 24px rgba(239,63,56,.12),var(--lift)}
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-step-head h3{font-size:15px}
-.kefe-media-col{display:grid;gap:var(--s3);min-width:0}
 .kefe-step{min-width:0;padding:14px;border:1px solid var(--line-soft);border-radius:var(--r3);background:var(--surface);box-shadow:var(--lift)}
 .kefe-step-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .kefe-step-head h3{margin:0;font-size:13px;font-weight:800;letter-spacing:-.01em;color:var(--text)}
 .kefe-step-head p{margin:2px 0 0;font-size:11px;color:var(--muted)}
 .kefe-step-num{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:800;color:var(--text);background:var(--surface);box-shadow:var(--lift)}
 .kefe-step-body{display:grid;gap:10px;min-width:0}
-.kefe-step-body .kefe-upload-zone{grid-column:auto;min-height:92px}
+.kefe-media-upload-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}
+.kefe-media-upload-row>.kefe-upload-zone,.kefe-media-upload-row>div{min-width:0;width:100%;grid-column:auto!important;margin:0}
+.kefe-media-upload-row>.kefe-upload-zone{min-height:92px}
+.kefe-media-upload-row>div>.kefe-upload-zone{min-height:92px}
+.kefe-song-details{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--line-soft)}
+.kefe-song-details-head h4{margin:0;font-size:12px;font-weight:800;color:var(--text)}
+.kefe-song-details-head p{margin:3px 0 0;font-size:11px;color:var(--muted)}
 .kefe-details-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 
 .kefe-find{display:grid;gap:10px;min-width:0}
