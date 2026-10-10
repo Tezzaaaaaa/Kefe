@@ -323,12 +323,12 @@
     const bigArt=unit*.34,bigGap=unit*.04,bt=Math.max(20,unit*.06),ba=Math.max(14,unit*.038),bm=Math.max(12,unit*.03);
     const bigTextH=bt*1.25+(artist?ba*1.35:0)+(meta?bm*1.4:0),bigTop=(h-(bigArt+bigGap+bigTextH))/2;
     // header layout – same column as the Apple lyrics
-    const aspect=w/Math.max(1,h),comp=aspect<.75?w*.84:(aspect<1.25?w*.78:w*.72);
-    const left=Math.max(0,(w-comp)/2)+comp*(31/390);
-    const hArt=unit*.11,hTop=Math.max(32,h*.07),hGap=unit*.028;
+    const aspect=w/Math.max(1,h),landscape=aspect>=1.25,comp=landscape?w*.34:(aspect<.75?w*.84:w*.78);
+    const left=landscape?w*.78-comp/2:Math.max(0,(w-comp)/2)+comp*(31/390);
     const ht=Math.max(13,unit*.036),hartist=Math.max(11,unit*.028),hm=Math.max(10,unit*.022);
-    const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,left),ay=lerp(bigTop,hTop),r=art*.08;
-    const maxW=w*.82;
+    const hArt=landscape?Math.min(unit*.38,w*.24):unit*.11,hTop=landscape?h*.13:Math.max(32,h*.07),hGap=unit*(landscape?.035:.028);
+    const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,landscape?left+(comp-hArt)/2:left),ay=lerp(bigTop,hTop),r=art*.08;
+    const maxW=landscape?comp*.94:w*.82;
     const fit=(text,f,mw)=>{ctx.font=f;let out=text;while(ctx.measureText(out).width>mw&&out.length>3)out=out.slice(0,-2)+'…';return out;};
     ctx.save();
     ctx.textBaseline='top';
@@ -338,14 +338,15 @@
     if(hasArt){ctx.save();rr();ctx.clip();try{ctx.drawImage(img,ax,ay,art,art);}catch(err){console.warn('[KEFE title art]',err);}ctx.restore();}
     ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=unit*.02;
     // One title card morphs continuously from the centred opening layout into the pinned lyrics header.
-    const tx=ax+art+hGap,mw=Math.max(40,left+comp*(1-2*31/390)-tx);
-    const startY=ay+art+bigGap,blockH=ht*1.25+(artist?hartist*1.35:0)+(meta?hm*1.4:0),endY=ay+(art-blockH)/2;
+    const tx=ax+art+hGap,mw=landscape?comp*.94:Math.max(40,left+comp*(1-2*31/390)-tx);
+    const startY=ay+art+bigGap,blockH=ht*1.25+(artist?hartist*1.35:0)+(meta?hm*1.4:0),endY=landscape?startY:ay+(art-blockH)/2;
     let y=lerp(startY,endY);
     const drawCardLine=(text,weight,startSize,endSize,startStep,endStep,color)=>{
       if(!text)return;
-      const size=lerp(startSize,endSize),limit=lerp(maxW,mw),f=font(weight,size),value=fit(text,f,limit);
+      const size=lerp(startSize,endSize),limit=landscape?mw:lerp(maxW,mw),f=font(weight,size),value=fit(text,f,limit);
       ctx.font=f;
-      const x=lerp((w-ctx.measureText(value).width)/2,tx);
+      const textWidth=ctx.measureText(value).width;
+      const x=landscape?lerp((w-textWidth)/2,left+(comp-textWidth)/2):lerp((w-textWidth)/2,tx);
       ctx.fillStyle=color;ctx.fillText(value,x,y);
       y+=lerp(startStep,endStep);
     };
