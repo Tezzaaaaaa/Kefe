@@ -1226,6 +1226,56 @@
     updateTime();draw();
   });
   let exportTap=null,exporting=false;
+  let exportProgressModal=null,exportProgressFill=null,exportProgressValue=null,exportProgressStage=null;
+  function ensureExportProgressModal(){
+    if(exportProgressModal)return;
+    exportProgressModal=document.createElement('section');
+    exportProgressModal.className='kefe-export-overlay';
+    exportProgressModal.id='kefeExportProgress';
+    exportProgressModal.hidden=true;
+    exportProgressModal.setAttribute('role','dialog');
+    exportProgressModal.setAttribute('aria-modal','true');
+    exportProgressModal.setAttribute('aria-labelledby','kefeExportTitle');
+    exportProgressModal.innerHTML='<div class="kefe-export-card"><div class="kefe-export-eyebrow">KEFE · EXPORT</div><h2 id="kefeExportTitle">Rendering your video</h2><p class="kefe-export-intro">Keep this tab open while KEFE renders and packages your video.</p><div class="kefe-export-summary"><div class="kefe-export-summary-head"><span>EXPORT SUMMARY</span><span id="kefeExportState">Preparing</span></div><div class="kefe-export-track"><span id="kefeExportTrackTitle"></span><span id="kefeExportTrackArtist"></span></div><div class="kefe-export-details"><div><span>FORMAT</span><strong id="kefeExportFormat">—</strong></div><div><span>RESOLUTION</span><strong id="kefeExportResolution">—</strong></div><div><span>ASPECT RATIO</span><strong id="kefeExportAspect">—</strong></div><div><span>DURATION</span><strong id="kefeExportDuration">—</strong></div><div><span>FRAME RATE</span><strong>60 FPS</strong></div><div><span>AUDIO</span><strong id="kefeExportAudio">Included when supported</strong></div></div></div><div class="kefe-export-progress-label"><span id="kefeExportStage">Preparing render</span><strong id="kefeExportPercent">1%</strong></div><div class="kefe-export-progress" role="progressbar" aria-label="Video export progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="1"><span id="kefeExportFill"></span></div><p class="kefe-export-footnote" id="kefeExportFootnote">Progress follows the track render; final packaging may take a moment.</p><button type="button" class="kefe-export-close" id="kefeExportClose" hidden>Close</button></div>';
+    document.body.appendChild(exportProgressModal);
+    exportProgressFill=exportProgressModal.querySelector('#kefeExportFill');
+    exportProgressValue=exportProgressModal.querySelector('#kefeExportPercent');
+    exportProgressStage=exportProgressModal.querySelector('#kefeExportStage');
+    exportProgressModal.querySelector('#kefeExportClose').addEventListener('click',()=>{exportProgressModal.hidden=true;});
+  }
+  function setExportProgress(value,stage){
+    ensureExportProgressModal();
+    const percent=Math.max(1,Math.min(100,Math.round(Number(value)||1)));
+    exportProgressFill.style.width=percent+'%';
+    exportProgressValue.textContent=percent+'%';
+    exportProgressStage.textContent=stage||'Rendering video';
+    const bar=exportProgressModal.querySelector('[role="progressbar"]');
+    bar.setAttribute('aria-valuenow',String(percent));
+  }
+  function openExportProgress({title,artist,format,resolution,aspect,duration}){
+    ensureExportProgressModal();
+    exportProgressModal.hidden=false;
+    exportProgressModal.querySelector('#kefeExportTitle').textContent='Rendering your video';
+    exportProgressModal.querySelector('#kefeExportState').textContent='In progress';
+    exportProgressModal.querySelector('#kefeExportTrackTitle').textContent=title||'Untitled project';
+    exportProgressModal.querySelector('#kefeExportTrackArtist').textContent=artist||'Unknown artist';
+    exportProgressModal.querySelector('#kefeExportFormat').textContent=format.toUpperCase();
+    exportProgressModal.querySelector('#kefeExportResolution').textContent=resolution;
+    exportProgressModal.querySelector('#kefeExportAspect').textContent=aspect;
+    exportProgressModal.querySelector('#kefeExportDuration').textContent=duration;
+    exportProgressModal.querySelector('#kefeExportAudio').textContent='Audio track included';
+    exportProgressModal.querySelector('#kefeExportFootnote').textContent='Keep this tab open. The download will start automatically when rendering finishes.';
+    const close=exportProgressModal.querySelector('#kefeExportClose');close.hidden=true;
+    setExportProgress(1,'Preparing export');
+  }
+  function finishExportProgress(success,message){
+    if(!exportProgressModal)return;
+    exportProgressModal.querySelector('#kefeExportTitle').textContent=success?'Export complete':'Export failed';
+    exportProgressModal.querySelector('#kefeExportState').textContent=success?'Ready to download':'Needs attention';
+    exportProgressModal.querySelector('#kefeExportFootnote').textContent=message;
+    exportProgressModal.querySelector('#kefeExportClose').hidden=false;
+    setExportProgress(success?100:Math.max(1,parseInt(exportProgressValue.textContent,10)||1),success?'Export complete':'Export stopped');
+  }
   function getExportAudioStream(){
     if(window.kefeAudioGraph){const graph=window.kefeAudioGraph.ensure();if(graph)return graph.stream;}
     if(exportTap)return exportTap.stream;
@@ -1274,6 +1324,8 @@
     };
     const visExport=window.kefeVisualiserExport;
     exporting=true;window.kefeAppleCanvasExport=true;button.disabled=true;
+    const projectTitle=songTitle.value.trim()||'Untitled project',projectArtist=songArtist.value.trim()||'Unknown artist';
+    openExportProgress({title:projectTitle,artist:projectArtist,format:ext,resolution:dims[0]+' × '+dims[1]+' px',aspect,duration:fmt(audio.duration)});
     let recorder=null,ticker=null,frameTicker=null;
     try{
       audio.pause();
@@ -1300,7 +1352,7 @@
       recorder.start(1000);
       const ended=new Promise(resolve=>audio.addEventListener('ended',resolve,{once:true}));
       await audio.play();
-      ticker=setInterval(()=>{status.textContent='Exporting '+Math.min(99,Math.round(audio.currentTime/audio.duration*100))+'% — keep this tab open…';},500);
+      ticker=setInterval(()=>{const p=Math.max(1,Math.min(99,Math.round(audio.currentTime/audio.duration*100)));status.textContent='Exporting '+p+'% — keep this tab open…';setExportProgress(p,'Rendering video · '+fmt(audio.currentTime)+' of '+fmt(audio.duration));},250);
       await ended;
       clearInterval(ticker);ticker=null;
       clearInterval(frameTicker);frameTicker=null;
@@ -1312,9 +1364,11 @@
       a.href=url;a.download=name+'.'+ext;document.body.appendChild(a);a.click();a.remove();
       setTimeout(()=>URL.revokeObjectURL(url),10000);
       status.textContent='Export complete ('+dims[0]+'×'+dims[1]+' '+ext.toUpperCase()+').'+formatNote;
+      finishExportProgress(true,'Your video has been rendered and the download has started.'+formatNote);
     }catch(error){
       console.warn('[KEFE export]',error);
       status.textContent='Export failed: '+(error?.message||'unknown error');
+      finishExportProgress(false,'Export failed: '+(error?.message||'unknown error')+'. Close this panel and try again.');
       try{if(recorder&&recorder.state!=='inactive')recorder.stop();}catch(_){}
     }finally{
       if(ticker)clearInterval(ticker);
