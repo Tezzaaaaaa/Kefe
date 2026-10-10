@@ -1118,3 +1118,31 @@ button{border:0;cursor:pointer}
 @media(max-width:520px){.kefe-fluted-modes{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .kefe-fluted-seek{width:100%;min-width:0;accent-color:var(--accent);cursor:pointer}
+
+
+/* Centered neumorphic export progress */
+.kefe-export-overlay{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:22px;background:rgba(9,10,15,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.kefe-export-overlay[hidden]{display:none}
+.kefe-export-card{width:min(100%,620px);max-height:calc(100dvh - 44px);overflow:auto;padding:clamp(22px,4vw,38px);border:1px solid rgba(255,255,255,.09);border-radius:28px;background:linear-gradient(145deg,#202128,#17181e);box-shadow:18px 18px 44px rgba(0,0,0,.52),-10px -10px 28px rgba(255,255,255,.035);color:#f7f7fb}
+.kefe-export-eyebrow{font-size:11px;font-weight:800;letter-spacing:.2em;color:#ff625b;margin-bottom:12px}
+.kefe-export-card h2{font-size:clamp(24px,4vw,32px);letter-spacing:-.035em;margin:0 0 8px;font-weight:750}
+.kefe-export-intro{color:#a6a7b2;font-size:14px;line-height:1.55;margin:0 0 24px}
+.kefe-export-summary{padding:18px;border-radius:18px;background:#1b1c22;box-shadow:inset 5px 5px 12px rgba(0,0,0,.45),inset -4px -4px 10px rgba(255,255,255,.035);margin-bottom:24px}
+.kefe-export-summary-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px;font-size:10px;letter-spacing:.14em;font-weight:800;color:#9c9eaa}
+#kefeExportState{letter-spacing:0;color:#ff756e;text-transform:uppercase}
+.kefe-export-track{display:grid;gap:4px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:16px}
+#kefeExportTrackTitle{font-size:17px;font-weight:750;overflow-wrap:anywhere}
+#kefeExportTrackArtist{font-size:13px;color:#a4a6b1;overflow-wrap:anywhere}
+.kefe-export-details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px}
+.kefe-export-details div{display:grid;gap:5px;min-width:0}
+.kefe-export-details div span{font-size:9px;letter-spacing:.12em;font-weight:800;color:#898b97}
+.kefe-export-details strong{font-size:12px;line-height:1.4;overflow-wrap:anywhere;color:#f2f2f7}
+.kefe-export-progress-label{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+#kefeExportStage{font-size:13px;color:#c1c2cb}
+#kefeExportPercent{font-size:24px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.kefe-export-progress{height:18px;border-radius:999px;padding:4px;background:#191a20;box-shadow:inset 4px 4px 8px rgba(0,0,0,.68),inset -2px -2px 5px rgba(255,255,255,.045);overflow:hidden}
+.kefe-export-progress span{display:block;width:1%;height:100%;border-radius:999px;background:linear-gradient(90deg,#bd252b,#ff554d 72%,#ff8b7d);box-shadow:0 0 14px rgba(255,65,59,.38),inset 1px 1px 2px rgba(255,255,255,.38);transition:width .22s ease}
+.kefe-export-footnote{font-size:12px;line-height:1.55;color:#90929e;margin:14px 0 0}
+.kefe-export-close{display:block;margin:22px 0 0 auto;border:0;border-radius:12px;padding:11px 22px;background:#292a32;color:#fff;font:inherit;font-weight:700;cursor:pointer;box-shadow:5px 5px 12px rgba(0,0,0,.4),-3px -3px 8px rgba(255,255,255,.04)}
+.kefe-export-close:hover{background:#383943}
+@media(max-width:480px){.kefe-export-overlay{padding:12px}.kefe-export-card{padding:22px 18px;border-radius:22px;max-height:calc(100dvh - 24px)}.kefe-export-details{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 10px}.kefe-export-summary{padding:14px}.kefe-export-intro{margin-bottom:18px}}
