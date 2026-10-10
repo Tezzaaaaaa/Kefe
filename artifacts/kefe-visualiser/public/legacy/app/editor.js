@@ -1187,10 +1187,7 @@
     button.setAttribute('title',playing?'Pause':'Play');
     button.innerHTML=playing?'<svg class="kefe-pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>':'<svg class="kefe-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg>';
   }
-  document.getElementById('playButton').onclick=()=>{
-    if(audio.src){if(audio.paused)audio.play();else audio.pause();}
-    else{state.time=state.time>=30?0:state.time+.05;updateTime();draw();}
-  };
+  // Keep the earlier async play handler; it resumes suspended audio and reports playback errors.
   function syncAppleLyricsMetadata(){
     if(!appleLyrics||!appleLyricsReady)return;
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
