@@ -170,7 +170,7 @@
 
   .kefe-timeline {
     min-width: 0;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: 36px 58px minmax(0, 1fr) 58px;
     gap: 7px;
     padding: 6px 10px;
     overflow: hidden;
@@ -200,9 +200,20 @@
   }
 
   .kefe-time {
-    min-width: 0;
+    width: 58px;
+    min-width: 58px;
     font-size: 10px;
     white-space: nowrap;
+  }
+
+  .kefe-aspect-controls {
+    width: 58px;
+    min-width: 58px;
+  }
+
+  .kefe-aspect-button {
+    min-width: 28px;
+    padding-inline: 3px;
   }
 
   .kefe-editing {
@@ -319,7 +330,14 @@
   }
 
   .kefe-time {
+    width: 58px;
+    min-width: 58px;
     font-size: 9px;
+  }
+
+  .kefe-aspect-controls {
+    width: 58px;
+    min-width: 58px;
   }
 
   .kefe-tabs {
