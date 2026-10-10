@@ -1236,3 +1236,115 @@ html {
     transition: none;
   }
 }
+
+
+/* Mobile control density: keep related controls grouped and reduce vertical sprawl. */
+@media (max-width: 700px) {
+  .kefe-visualiser-control-group {
+    padding: 10px;
+    margin-block: 8px;
+  }
+
+  .kefe-visualiser-control-group #visualiserParameters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 10px;
+  }
+
+  .kefe-visualiser-control-group .kefe-label {
+    margin-bottom: 6px;
+  }
+
+  .kefe-visualiser-field {
+    min-width: 0;
+    margin-top: 4px;
+  }
+
+  .kefe-visualiser-field > span {
+    gap: 5px;
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+
+  .kefe-visualiser-field > span b {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .kefe-visualiser-field input[type="range"] {
+    min-width: 0;
+    height: 30px;
+  }
+
+  .kefe-visualiser-spin-row {
+    min-width: 0;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 12px;
+  }
+
+  .kefe-visualiser-spin-row > :first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .kefe-visualiser-spin-row .kefe-switch {
+    flex: 0 0 auto;
+  }
+
+  .kefe-settings-field input[type="range"] {
+    width: min(34vw, 140px);
+    max-width: 100%;
+  }
+
+  .kefe-settings-row {
+    gap: 10px;
+  }
+
+  .kefe-settings-field {
+    min-width: 0;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 420px) {
+  .kefe-visualiser-control-group {
+    padding: 9px;
+    border-radius: 12px;
+  }
+
+  .kefe-visualiser-control-group #visualiserParameters {
+    gap: 7px 8px;
+  }
+
+  .kefe-visualiser-field > span {
+    font-size: 10px;
+  }
+
+  .kefe-visualiser-field output {
+    flex: 0 0 auto;
+    font-size: 10px;
+  }
+
+  .kefe-visualiser-spin-row {
+    align-items: flex-start;
+  }
+
+  .kefe-visualiser-spin-row .kefe-switch {
+    min-width: 74px;
+    min-height: 32px;
+    padding: 4px 6px;
+  }
+
+  .kefe-settings {
+    padding: 12px;
+  }
+
+  .kefe-settings-field input[type="range"] {
+    width: 28vw;
+  }
+
+  .kefe-settings-value {
+    min-width: 42px;
+    font-size: 11px;
+  }
+}
