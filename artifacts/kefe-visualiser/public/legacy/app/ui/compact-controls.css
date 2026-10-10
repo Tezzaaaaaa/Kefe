@@ -1,0 +1,102 @@
+/* KEFE compact editor controls — mobile-first overrides.
+   Keep existing feature groups and their labels; reduce wasted space without hiding options. */
+:root {
+  --panel-pad: 8px;
+  --panel-pad-x: 10px;
+  --section-gap: 7px;
+  --control-gap: 5px;
+  --control-h: 34px;
+  --control-pad: 9px;
+  --grid-gap: 6px;
+}
+.kefe-panels { padding: 5px 8px 10px !important; }
+.kefe-panel { padding: 10px !important; border-radius: 14px !important; }
+.kefe-panel-head { min-height: 0; margin-bottom: 8px !important; padding-bottom: 7px !important; gap: 6px; }
+.kefe-panel h2 { font-size: 13px !important; }
+.kefe-panel-head .kefe-meta { font-size: 10px; }
+.kefe-form { gap: 7px !important; }
+.kefe-label { margin-bottom: 3px !important; font-size: 10px !important; line-height: 1.2; letter-spacing: .02em; }
+.kefe-select, .kefe-input, .kefe-btn, .kefe-control { min-height: 32px !important; border-radius: 9px !important; font-size: 12px; }
+.kefe-textarea { min-height: 110px !important; padding: 8px !important; }
+.kefe-visualiser-intro, .kefe-visualiser-control-group, .kefe-background-effect-control,
+.kefe-font-card, .kefe-lyrics-timing, .kefe-settings, .kefe-step {
+  padding: 8px !important;
+  margin-block: 0 !important;
+  border-radius: 11px !important;
+}
+.kefe-visualiser-control-group { display: grid; gap: 6px !important; align-content: start; }
+.kefe-visualiser-control-group > .kefe-label { margin-bottom: 0 !important; }
+.kefe-visualiser-control-group .kefe-meta { font-size: 10px; line-height: 1.3; }
+.kefe-visualiser-control-group input[type="range"],
+.kefe-background-effect-control input[type="range"],
+.kefe-panel input[type="range"] {
+  display: block;
+  width: 100%;
+  height: 22px !important;
+  min-height: 22px !important;
+  margin: 2px 0 !important;
+  padding: 0 !important;
+  accent-color: var(--accent);
+  touch-action: pan-y;
+}
+.kefe-panel input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 4px; background: var(--surface-lo);
+}
+.kefe-panel input[type="range"]::-webkit-slider-thumb {
+  width: 12px; height: 12px; margin-top: -4px;
+  appearance: none; -webkit-appearance: none; border: 0; border-radius: 50%;
+  background: var(--accent-deep); box-shadow: 0 1px 4px #0002;
+}
+.kefe-panel input[type="range"]::-moz-range-track {
+  height: 4px; border-radius: 4px; background: var(--surface-lo);
+}
+.kefe-panel input[type="range"]::-moz-range-thumb {
+  width: 12px; height: 12px; border: 0; border-radius: 50%;
+  background: var(--accent-deep);
+}
+.kefe-panel input[type="checkbox"], .kefe-panel input[type="radio"] {
+  width: 16px; height: 16px; accent-color: var(--accent-deep);
+}
+.kefe-panel input[type="color"] { width: 34px; height: 26px; }
+.kefe-panel .kefe-btn, .kefe-panel button { min-height: 30px; }
+.kefe-panel .kefe-grid { gap: 6px; }
+.kefe-panel[data-panel-view="effects"] .kefe-form { gap: 7px !important; }
+.kefe-panel[data-panel-view="effects"] .kefe-font-card { padding: 8px !important; }
+.kefe-panel[data-panel-view="visualiser"] .kefe-form { gap: 7px !important; }
+.kefe-panel[data-panel-view="lyrics"] .kefe-form { gap: 8px !important; }
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing { padding: 8px !important; }
+.kefe-timing-editor { gap: 6px !important; }
+.kefe-timing-editor-actions, .kefe-line-tools, .kefe-download-row { gap: 5px !important; }
+.kefe-line { gap: 5px !important; padding: 7px !important; }
+.kefe-word-list, .kefe-word { gap: 5px !important; }
+@media (min-width: 701px) {
+  .kefe-panels { padding: 8px 14px 12px !important; }
+  .kefe-panel { padding: 12px !important; }
+  .kefe-visualiser-control-group { padding: 9px !important; }
+}
+@media (max-width: 700px) {
+  .kefe-editing { grid-template-columns: minmax(0,1fr) !important; grid-template-rows: 42px minmax(0,1fr) !important; }
+  .kefe-tabs { width: calc(100% - 12px) !important; height: 38px !important; min-height: 38px !important; margin: 2px auto !important; padding: 3px !important; gap: 3px !important; }
+  .kefe-section { height: 30px !important; min-height: 30px !important; padding: 0 10px !important; font-size: 11px !important; }
+  .kefe-panel[data-panel-view="effects"] .kefe-form { grid-template-columns: minmax(0,1fr) !important; }
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card { grid-column: 1 / -1; }
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group > .kefe-label,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group > .kefe-meta,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group > #visualiserParameters { grid-column: 1 / -1; }
+  .kefe-panel[data-panel-view="lyrics"] .kefe-form { grid-template-columns: minmax(0,1fr) !important; }
+  .kefe-panel[data-panel-view="lyrics"] .kefe-textarea { min-height: 100px !important; }
+  .kefe-panel[data-panel-view="media"] .kefe-form { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  .kefe-panel[data-panel-view="media"] .kefe-upload-zone,
+  .kefe-panel[data-panel-view="media"] .kefe-media-track,
+  .kefe-panel[data-panel-view="media"] .kefe-suggestions { grid-column: 1 / -1 !important; grid-row: auto !important; }
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songTitle),
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songArtist),
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songAlbum),
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songYear) { grid-column: auto !important; grid-row: auto !important; }
+}
+@media (max-width: 380px) {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group { grid-template-columns: minmax(0,1fr); }
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group > * { grid-column: 1 / -1; }
+  .kefe-panel-head .kefe-meta { display: none; }
+}
