@@ -1115,8 +1115,24 @@
     state.appleLines=[];state.lines=[];lyricsInput.value='';clearManualNotice();
     window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:'reset'}}));
     delete songAlbum.dataset.artUrl;delete songAlbum.dataset.trackDuration;delete songAlbum.dataset.platformId;
-    const status=document.getElementById('kefeLyricsStatus');if(status)status.textContent='Reading track information…';
+    const status=document.getElementById('kefeLyricsStatus');if(status)status.textContent='Audio selected — loading track information…';
     const uploadName=document.querySelector('.kefe-upload-name');if(uploadName)uploadName.textContent=file.name;
+    /* Show the selected file immediately; metadata lookup must not control whether the upload appears. */
+    const mediaTrack=document.getElementById('kefeMediaTrack');
+    if(mediaTrack){
+      const trackTitle=document.getElementById('kefeMediaTrackTitle');
+      const trackArtist=document.getElementById('kefeMediaTrackArtist');
+      const trackAlbum=document.getElementById('kefeMediaTrackAlbum');
+      const trackYear=document.getElementById('kefeMediaTrackYear');
+      if(trackTitle)trackTitle.textContent=songTitle.value||file.name;
+      if(trackArtist)trackArtist.textContent='Reading artist…';
+      if(trackAlbum)trackAlbum.textContent='';
+      if(trackYear)trackYear.textContent='';
+      mediaTrack.hidden=false;
+      mediaTrack.classList.remove('is-identified');
+      mediaTrack.setAttribute('aria-live','polite');
+    }
+    updateMediaTrack();
     video.onplay=null;video.muted=true;
     const loadUrl=mediaObjectUrl;
     audio.src=mediaObjectUrl;audio.load();
@@ -1126,6 +1142,11 @@
       uploadZone?.classList.remove('kefe-confirmed-container');
       setLyricsStatus('This browser cannot play that file. Try MP3, M4A, WAV or MP4.');
       if(uploadName)uploadName.textContent='Could not read '+file.name;
+      if(mediaTrack){
+        mediaTrack.hidden=false;
+        const trackArtist=document.getElementById('kefeMediaTrackArtist');
+        if(trackArtist)trackArtist.textContent='File could not be decoded';
+      }
       previewStage.classList.add('is-empty');
     };
     audio.addEventListener('error',onDecodeError,{once:true});
@@ -1133,6 +1154,12 @@
       audio.removeEventListener('loadedmetadata',identifyOnce);
       if(mediaObjectUrl!==loadUrl)return;
       uploadZone?.classList.add('kefe-confirmed-container');
+      if(mediaTrack){
+        mediaTrack.hidden=false;
+        mediaTrack.classList.add('is-identified');
+        const trackArtist=document.getElementById('kefeMediaTrackArtist');
+        if(trackArtist&&(!trackArtist.textContent||trackArtist.textContent==='Reading artist…'))trackArtist.textContent='Audio ready';
+      }
       audio.removeEventListener('error',onDecodeError);
       if(!Number.isFinite(audio.duration)){
         // Some WebM/streamed files report Infinity; seeking far forces the real duration.
