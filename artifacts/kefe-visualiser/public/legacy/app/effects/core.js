@@ -104,6 +104,21 @@
       out.push({line:a.line,next:a.next,index:a.index,enter,leave,alpha:a.index>0?this.smoother((time-start-.06)/Math.max(.1,inDur-.06))*(1-leave):enter*(1-leave),role:'cur'});
       return out;
     },
+    /* Timing for each whitespace token of a line: [{time,endTime}] aligned 1:1 with `tokens` (real word timing when the counts line up,
+       otherwise the vocal-capped syllable estimate). */
+    tokenTimes(line,next,tokens){
+      const model=window.kefeLyricModel;let ws=this.wordsFor(line,next);
+      if(ws.length!==tokens.length){
+        const start=Number(line?.time)||0,end=Number(line?.endTime)||start+3;
+        ws=model?model.estimateWords(tokens.join(' '),start,end,true):tokens.map((t,i)=>({time:start+i*(end-start)/tokens.length,endTime:start+(i+1)*(end-start)/tokens.length}));
+      }
+      return tokens.map((t,i)=>({time:Number(ws[i].time),endTime:Number(ws[i].endTime)}));
+    },
+    /* Prefix-width char drawing keeps kerning: x of char k = measure(text.slice(0,k)). Draws left-aligned at x0. fn(ch,k,x,w) per char. */
+    eachChar(ctx,text,x0,fn){
+      const chars=Array.from(text);let acc='';
+      for(let k=0;k<chars.length;k++){const a=ctx.measureText(acc).width;acc+=chars[k];const b=ctx.measureText(acc).width;fn(chars[k],k,x0+a,b-a);}
+    },
     /* Map every character of the wrapped rows to its timed word. rowTexts = layoutText().lines. Returns one entry per row, each an array
        of {ch,word,j,n,space} (j = index inside the word, n = word char count; spaces carry the NEXT word so they can key off it).
        If the rows can't be matched to the timed words 1:1 (a very long word got broken), characters are spread linearly across the vocal. */

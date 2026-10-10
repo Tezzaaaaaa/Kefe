@@ -36,57 +36,55 @@
     return { size, rows: layout(ctx, text, maxWidth) };
   }
 
-  window.kefeEffects.blur = function(ctx, w, h, style, lines, time) {
-    const active = u.activeLine(lines, time);
-    if (!active) return;
-    const text = String(active.line.text || '').trim();
+  function drawBlur(ctx, w, h, style, line, next, time, phase) {
+    const text = String(line.text || '').trim().replace(/\s+/g, ' ');
     if (!text) return;
-
-    const start = Number(active.line.time) || 0;
-    const end = Math.max(start + 0.3, Number(active.line.endTime) || start + 3);
-    const elapsed = time - start;
-    const endFade = clamp((end - time) / 0.22, 0, 1);
-
     const setF = u.contractFontSetter('blur');
     const lay = u.layoutText(ctx, text, { setFont: setF, size: Math.min(140, Number(style.fontSize) || 74), minSize: 20, maxWidth: w * 0.84, maxHeight: h * 0.8, lineHeight: u.contract('blur').lineHeight || 1.14, maxLines: 5 });
-    const prepared = { size: lay.size, rows: lay.lines.map(l => l.split(' ')) };
-    const size = prepared.size;
+    const rows = lay.lines.map(l => l.split(' '));
+    const size = lay.size;
     const rowHeight = size * (u.contract('blur').lineHeight || 1.14);
-    const totalHeight = prepared.rows.length * rowHeight;
-    const top = h * 0.5 - totalHeight / 2 + rowHeight / 2;
+    const top = h * 0.5 - rows.length * rowHeight / 2 + rowHeight / 2 - phase.leave * size * 0.12;
+    const tokens = text.split(' ');
+    const times = u.tokenTimes(line, next, tokens);
+    const flatMatches = rows.reduce((n, r) => n + r.length, 0) === tokens.length;
 
+    ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = style.textColor || '#FFFFFF';
     setF(ctx, size);
     const space = ctx.measureText(' ').width;
-
-    let globalWordIndex = 0;
-    const totalWords = prepared.rows.reduce((sum, row) => sum + row.length, 0) || 1;
-
-    for (let rowIndex = 0; rowIndex < prepared.rows.length; rowIndex++) {
-      const row = prepared.rows[rowIndex];
-      const rowText = row.join(' ');
-      const rowWidth = ctx.measureText(rowText).width;
+    let gi = 0;
+    for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+      const row = rows[rowIndex];
+      const rowWidth = ctx.measureText(row.join(' ')).width;
       const y = top + rowIndex * rowHeight;
       let x = w / 2 - rowWidth / 2;
-
       for (const word of row) {
         const wordWidth = ctx.measureText(word).width;
-        const delay = (globalWordIndex / totalWords) * 0.42;
-        const p = smoother(clamp((elapsed - delay) / 0.42));
+        const tm = flatMatches ? times[gi] : times[Math.min(times.length - 1, gi)];
+        const dur = Math.max(0.06, tm.endTime - tm.time);
+        // each word resolves out of blur exactly as it is sung: starts 0.05s early, fully sharp within ~one word length
+        const p = u.smoother((time - (tm.time - 0.05)) / clamp(dur * 0.95, 0.26, 0.5));
         const cx = x + wordWidth / 2;
-
-        ctx.save();
-        ctx.globalAlpha = p * endFade;
-        ctx.filter = `blur(${Math.max(0, (1 - p) * size * 0.16)}px)`;
-        ctx.translate(cx, y + (1 - p) * size * 0.28);
-        ctx.fillText(word, 0, 0);
-        ctx.restore();
-
+        if (p > 0.002) {
+          ctx.save();
+          ctx.globalAlpha = p * clamp(phase.alpha);
+          ctx.filter = `blur(${Math.max(0, (1 - p) * size * 0.16)}px)`;
+          ctx.translate(cx, y + (1 - p) * size * 0.28);
+          ctx.fillText(word, 0, 0);
+          ctx.restore();
+        }
         x += wordWidth + space;
-        globalWordIndex++;
+        gi++;
       }
     }
+    ctx.restore();
+  }
+
+  window.kefeEffects.blur = function(ctx, w, h, style, lines, time) {
+    const stack = u.lineStack(lines, time, 0.10, 0.20);
+    for (const it of stack) drawBlur(ctx, w, h, style, it.line, it.next, time, it);
   };
 })();

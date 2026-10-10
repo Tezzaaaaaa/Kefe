@@ -17,32 +17,18 @@
     ctx.font = `${weight || 800} ${Math.max(16, size)}px ${family}`;
   }
 
-  // Word-level timing. If words[] is present and matches token count, use it.
-  // Otherwise split the line evenly.
-  function wordTimings(line) {
+  // Word-level timing, aligned 1:1 with the whitespace tokens: real word timing when it lines up, otherwise the engine's
+  // syllable-weighted estimate that finishes with the vocal (not spread across the whole instrumental gap).
+  function wordTimings(line, next) {
     const text = String(line.text || '').trim();
     const tokens = text.split(/\s+/).filter(Boolean);
     if (!tokens.length) return [];
-
-    if (Array.isArray(line.words) && line.words.length === tokens.length) {
-      return line.words.map((w, i) => ({
-        text: tokens[i],
-        start: Number(w.time) || 0,
-        end: Number(w.endTime) || Number(w.time) + 0.5
-      }));
+    let ws = u.wordsFor(line, next);
+    if (ws.length !== tokens.length) {
+      const model = window.kefeLyricModel, start = Number(line.time) || 0, end = Number(line.endTime) || start + 3;
+      ws = model ? model.estimateWords(text, start, end, true) : tokens.map((t, i) => ({ time: start + i * (end - start) / tokens.length, endTime: start + (i + 1) * (end - start) / tokens.length }));
     }
-
-    const start = Number(line.time) || 0;
-    const end = Number.isFinite(Number(line.endTime))
-      ? Number(line.endTime)
-      : (Number.isFinite(Number(line.nextLineTime)) ? Number(line.nextLineTime) : start + 3);
-    const span = Math.max(0.4, end - start);
-    const per = span / tokens.length;
-    return tokens.map((t, i) => ({
-      text: t,
-      start: start + i * per,
-      end: start + (i + 1) * per
-    }));
+    return tokens.map((t, i) => ({ text: t, start: Number(ws[i].time), end: Number(ws[i].endTime) }));
   }
 
   // Greedy wrap into up to N rows.
@@ -89,13 +75,8 @@
     return best ? best.rows : [words];
   }
 
-  window.kefeEffects.instagram = function(ctx, w, h, style, lines, time) {
-    if (!Array.isArray(lines) || !lines.length || !Number.isFinite(time)) return;
-    const active = u.activeLine(lines, time);
-    if (!active || !active.line) return;
-
-    const line = active.line;
-    const words = wordTimings(line);
+  function drawInstagram(ctx, w, h, style, line, next, time, phase) {
+    const words = wordTimings(line, next);
     if (!words.length) return;
 
     const upperWords = words.map(w => ({ ...w, upper: w.text.toUpperCase() }));
@@ -158,6 +139,7 @@
     const greyColour = 'rgba(255,255,255,0.36)';
 
     ctx.save();
+    ctx.globalAlpha = clamp(phase.alpha);   // blocks replace each other; a ~0.1s crossfade removes the hard pop
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     ctx.shadowColor = 'rgba(0,0,0,0.28)';
@@ -187,20 +169,18 @@
 
         // Grey → white based on whether the word has started being sung.
         // Instagram snaps to white at word start with a very short ramp.
-        const sinceStart = time - word.start;
-        let mix;
-        if (sinceStart <= 0) mix = 0;
-        else if (sinceStart >= 0.08) mix = 1;
-        else mix = sinceStart / 0.08;
+        // ramp over 0.12s starting 0.03s early so the word is fully white as it is sung (eased, no linear snap)
+        const sinceStart = time - (word.start - 0.03);
+        const mix = u.smoother(sinceStart / 0.12);
 
-        ctx.globalAlpha = 1;
+        ctx.globalAlpha = clamp(phase.alpha);
         ctx.fillStyle = mix >= 1 ? whiteColour : greyColour;
         if (mix > 0 && mix < 1) {
           // Blend the two opacities by drawing the white word over the grey one.
           ctx.fillStyle = greyColour;
           ctx.fillText(word.upper, x, baseline);
           ctx.save();
-          ctx.globalAlpha = mix;
+          ctx.globalAlpha = mix * clamp(phase.alpha);
           ctx.fillStyle = whiteColour;
           ctx.fillText(word.upper, x, baseline);
           ctx.restore();
@@ -213,5 +193,11 @@
     }
 
     ctx.restore();
+  }
+
+  window.kefeEffects.instagram = function(ctx, w, h, style, lines, time) {
+    if (!Array.isArray(lines) || !lines.length || !Number.isFinite(time)) return;
+    const stack = u.lineStack(lines, time, 0.10, 0.12);
+    for (const it of stack) drawInstagram(ctx, w, h, style, it.line, it.next, time, it);
   };
 })();
