@@ -121,8 +121,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const baseDimension = Math.min(w, h);
     const aspectRatio = w / Math.max(1, h);
     const landscapeSplit = aspectRatio >= 1.25;
-    const compositionWidth = landscapeSplit ? w * 0.46 : (aspectRatio < 0.75 ? w * 0.84 : w * 0.78);
-    const horizontalPadding = compositionWidth * (landscapeSplit ? 0.055 : (31 / 390));
+    const compositionWidth = landscapeSplit ? w * 0.40 : (aspectRatio < 0.75 ? w * 0.84 : w * 0.78);
+    const horizontalPadding = compositionWidth * (landscapeSplit ? 0.06 : (31 / 390));
     const contentWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
     const activeFontSize = baseDimension * (32 / 390);
     const inactiveFontSize = baseDimension * (29 / 390);
