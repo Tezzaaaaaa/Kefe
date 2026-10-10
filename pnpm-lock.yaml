@@ -157,10 +157,6 @@ overrides:
 importers:
 
   .:
-    dependencies:
-      '@replit/connectors-sdk':
-        specifier: ^0.4.3
-        version: 0.4.3
     devDependencies:
       prettier:
         specifier: ^3.9.6
