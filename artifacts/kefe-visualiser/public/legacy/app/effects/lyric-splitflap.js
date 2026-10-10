@@ -24,9 +24,8 @@
   }
   var ALPHABET='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-  window.kefeEffects.splitflap = function(ctx,w,h,style,lines,time){
-    var active=u.activeLine(lines,time);
-    if(!active) return;
+  function drawBoard(ctx,w,h,style,line,next,time,phase){
+    var active={line:line,next:next};
     var text=String(active.line.text||'').trim().toUpperCase();
     if(!text) return;
 
@@ -51,8 +50,9 @@
     }
     rowsArr=wr.rows;
     font(ctx,size);
-    var lineProg=u.lineProgress(active.line,time);
+    var lineProg={opacity:phase.alpha};
     if(lineProg.opacity<=0.01) return;
+    var map=u.charMap(rowsArr,u.wordsFor(active.line,active.next));
 
     var start=Number(active.line.time)||0;
     var elapsed=Math.max(0,time-start);
@@ -73,22 +73,29 @@
     var y=yTop+ri*rowStep;
     var rowW=rowText.length*cellWidth+Math.max(0,rowText.length-1)*gap;
     var x0=w/2-rowW/2;
+    var cells=map[ri]||[];
     for(var k=0;k<rowText.length;k++){
       var i=gi++;
       var target=rowText[k];
       if(target===' ') continue;
       var x=x0+cellWidth/2+k*(cellWidth+gap);
-      var charStart=i*0.055;
-      var p=clamp((elapsed-charStart)/0.72);
-      var settled=p>=1;
-      var frame=Math.floor(Math.max(0,elapsed-charStart)*16);
-      var current=target;
-      var next=target;
-
-      if(!settled){
-        current=ALPHABET[Math.floor(Math.abs(Math.sin((i+1)*91+frame*13))*ALPHABET.length)%ALPHABET.length];
-        next=ALPHABET[(Math.floor(Math.abs(Math.sin((i+1)*137+frame*17))*ALPHABET.length)+1)%ALPHABET.length];
+      /* Each cell flips when ITS word is sung: stagger across the first half of the word, three quick flaps (blank -> A -> B -> letter),
+         finishing inside the word's duration so the full word is readable by the time it ends. */
+      var cell=cells[k]||{word:{time:Number(active.line.time)||0,endTime:(Number(active.line.time)||0)+1},j:0,n:1};
+      var wd=cell.word, wdur=Math.max(0.06,wd.endTime-wd.time);
+      var cs=wd.time+wdur*0.5*(cell.j/Math.max(1,cell.n));
+      var fd=Math.min(0.56,Math.max(0.2,wd.endTime-cs));
+      var el=time-cs, FLAPS=3;
+      var settled=el>=fd, blank=el<0;
+      var cp=0, current=target, next=target;
+      if(blank){ current=' '; next=' '; }
+      else if(!settled){
+        var per=fd/FLAPS, c=Math.min(FLAPS-1,Math.floor(el/per));
+        cp=Math.min(1,(el-c*per)/per);
+        var L=function(n){ return n<=0?' ':n>=FLAPS?target:ALPHABET[Math.floor(Math.abs(Math.sin((i+1)*91+n*37.7))*ALPHABET.length)%ALPHABET.length]; };
+        current=L(c); next=L(c+1);
       }
+      var p=settled?1:cp;
 
       // Mechanical dark cell.
       ctx.save();
@@ -99,39 +106,28 @@
       ctx.strokeRect(x-cellWidth/2,y-cellHeight/2,cellWidth,cellHeight);
       ctx.restore();
 
-      var flip=smoother(p);
-      var topChar=settled?target:current;
-      var bottomChar=settled?target:next;
-
-      // Upper flap folds down.
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(x-cellWidth/2,y-cellHeight/2,cellWidth,cellHeight/2);
-      ctx.clip();
-      var topScale=settled?1:Math.max(0.08,1-flip);
-      ctx.save();
-      ctx.translate(x,y);
-      ctx.scale(1,topScale);
-      ctx.translate(-x,-y);
-      ctx.fillStyle=color;
-      ctx.fillText(topChar,x,y-cellHeight*0.25);
-      ctx.restore();
-      ctx.restore();
-
-      // Lower flap folds up to meet it.
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(x-cellWidth/2,y,cellWidth,cellHeight/2);
-      ctx.clip();
-      var bottomScale=settled?1:Math.max(0.08,flip);
-      ctx.save();
-      ctx.translate(x,y);
-      ctx.scale(1,bottomScale);
-      ctx.translate(-x,-y);
-      ctx.fillStyle=color;
-      ctx.fillText(bottomChar,x,y+cellHeight*0.25);
-      ctx.restore();
-      ctx.restore();
+      /* Real split-flap mechanics: the static upper half already shows the NEXT letter, the static lower half still shows the CURRENT one;
+         the current letter's upper flap falls (first half of the flap), then the next letter's lower flap lands (second half). */
+      var flip=smoother(p), animating=!settled&&!blank;
+      var half=function(ch,top,sy){
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x-cellWidth/2,top?y-cellHeight/2:y,cellWidth,cellHeight/2);
+        ctx.clip();
+        ctx.translate(x,y); ctx.scale(1,Math.max(0.001,sy)); ctx.translate(-x,-y);
+        ctx.fillStyle=color;
+        ctx.fillText(ch,x,y);
+        ctx.restore();
+      };
+      if(!animating){
+        half(target===' '?' ':(blank?' ':target),true,1);
+        half(target===' '?' ':(blank?' ':target),false,1);
+      } else {
+        half(next,true,1);                                   // upper half revealed behind the falling flap
+        half(current,false,1);                               // lower half not yet replaced
+        if(flip<0.5) half(current,true,1-flip*2);            // upper flap falling toward the hinge
+        else half(next,false,(flip-0.5)*2);                  // lower flap swinging down to land
+      }
 
       // Centre hinge/slot.
       ctx.save();
@@ -142,5 +138,11 @@
     });
 
     ctx.restore();
+  }
+
+  window.kefeEffects.splitflap = function(ctx,w,h,style,lines,time){
+    var stack=u.lineStack(lines,time,0.10,0.18);
+    for(var i=0;i<stack.length;i++) drawBoard(ctx,w,h,style,stack[i].line,stack[i].next,time,stack[i]);
   };
+
 })();

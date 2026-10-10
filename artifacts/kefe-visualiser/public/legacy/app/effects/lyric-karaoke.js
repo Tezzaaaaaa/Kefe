@@ -25,10 +25,10 @@
     return {rows:rows,gap:gap};
   }
 
-  window.kefeEffects.karaoke = function(ctx,w,h,style,lines,time){
-    var active=u.activeLine(lines,time);
-    if(!active) return;
-    var words=u.wordsFor(active.line,active.next);
+  /* Draw one karaoke line. phase: {enter,leave,alpha}. Words sweep with a soft edge across exactly word.time..word.endTime
+     (Apple-Music/AMLL style) and the sung word lifts + scales on its own pulse, settling by its end. */
+  function drawLine(ctx,w,h,style,line,next,time,phase){
+    var words=u.wordsFor(line,next);
     if(!words.length) return;
     var family='Boogaloo';
     var maxWidth=w*0.84;
@@ -46,9 +46,13 @@
     var top=h*0.52-((rows.length-1)*rowHeight)/2;
     var inactiveColor=style.karaokeInactiveColor||'rgba(255,255,255,.38)';
     var fillColor=style.accentColor||'#3DE28A';
-    var outlineColor=style.textColor||'#FFFFFF';
+    /* whole-line motion: rise in from below, drift up and out when replaced */
+    var lineY=(1-phase.enter)*size*0.32 - phase.leave*size*0.30;
+    var lineScale=0.96+0.04*phase.enter;
 
     ctx.save();
+    ctx.globalAlpha=Math.max(0,Math.min(1,phase.alpha));
+    ctx.translate(w/2,h*0.52+lineY); ctx.scale(lineScale,lineScale); ctx.translate(-w/2,-h*0.52);
     ctx.textAlign='left'; ctx.textBaseline='middle';
     ctx.globalCompositeOperation='source-over';
     ctx.filter='none';
@@ -58,33 +62,28 @@
       var x=(w-row.width)/2;
       var y=top+rowIndex*rowHeight;
       row.words.forEach(function(word){
-        var wordStart=Number(word.time)||0;
-        var wordEnd=Number(word.endTime)||wordStart+0.12;
-        var fillFrac=time<wordStart?0:time>=wordEnd?1:smoother((time-wordStart)/(wordEnd-wordStart));
-        var pop=time>=wordStart&&time<wordEnd?bounce((time-wordStart)/(wordEnd-wordStart)):1;
-
+        var wp=u.wordProgress(word,time,0.08);
+        /* pre-roll: an unsung word eases up a hair just before it is sung; the pulse peaks mid-word and is gone by endTime */
+        var lift=wp.pulse*size*0.055 + wp.pre*(1-wp.started)*size*0.012;
+        var pop=1+wp.pulse*0.055;
         ctx.save();
-        ctx.translate(x+word.width/2,y);
+        ctx.translate(x+word.width/2,y-lift);
         ctx.scale(pop,pop);
         ctx.translate(-word.width/2,0);
-
-        ctx.globalAlpha=1;
-        ctx.fillStyle=inactiveColor;
+        ctx.fillStyle=u.sweepFill(ctx,0,word.width,wp.sweep,fillColor,inactiveColor,0.28);
         ctx.fillText(word.text,0,0);
-
-        if(fillFrac>0){
-          ctx.save();
-          ctx.beginPath();
-          ctx.rect(0,-size,Math.max(1,word.width*fillFrac),size*2);
-          ctx.clip();
-          ctx.fillStyle=fillColor;
-          ctx.fillText(word.text,0,0);
-          ctx.restore();
-        }
         ctx.restore();
         x+=word.width+gap;
       });
     });
     ctx.restore();
+  }
+
+  window.kefeEffects.karaoke = function(ctx,w,h,style,lines,time){
+    var stack=u.lineStack(lines,time);
+    for(var i=0;i<stack.length;i++){
+      var it=stack[i];
+      drawLine(ctx,w,h,style,it.line,it.next,time,it);
+    }
   };
 })();

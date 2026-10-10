@@ -85,6 +85,57 @@
       g.addColorStop(0,fill);g.addColorStop(this.clamp(tail),fill);g.addColorStop(this.clamp(head),dim);g.addColorStop(1,dim);
       return g;
     },
+    /* Lines to draw right now with their transition phases. Current line eases in over inDur; the previous line eases out over outDur
+       (so line changes crossfade instead of hard-cutting); a line with an explicit early end fades out after its end.
+       -> [{line,next,index,enter,leave,alpha,role}] oldest first. enter/leave are eased 0..1. */
+    lineStack(lines,time,inDur=.34,outDur=.30){
+      const a=this.activeLine(lines,time); if(!a)return [];
+      const out=[],start=Number(a.line.time)||0,end=Number(a.line.endTime)||start+3;
+      const nextT=Number(a.next?.time);
+      if(a.index>0){
+        const prev=lines[a.index-1],pe=(time-start)/outDur;
+        const pl=Math.min(1,pe*1.7);   // outgoing line clears faster than the new one arrives so the two never pile up
+        if(pe<1)out.push({line:prev,next:a.line,index:a.index-1,enter:1,leave:this.smoother(pl),alpha:1-this.smoother(pl),role:'prev'});
+      }
+      let leave=0;
+      if(Number.isFinite(nextT)?end<nextT-.01:true){leave=this.smoother((time-end)/outDur);}
+      if(leave>=1)return out;
+      const enter=this.smoother((time-start)/inDur);
+      out.push({line:a.line,next:a.next,index:a.index,enter,leave,alpha:a.index>0?this.smoother((time-start-.06)/Math.max(.1,inDur-.06))*(1-leave):enter*(1-leave),role:'cur'});
+      return out;
+    },
+    /* Map every character of the wrapped rows to its timed word. rowTexts = layoutText().lines. Returns one entry per row, each an array
+       of {ch,word,j,n,space} (j = index inside the word, n = word char count; spaces carry the NEXT word so they can key off it).
+       If the rows can't be matched to the timed words 1:1 (a very long word got broken), characters are spread linearly across the vocal. */
+    charMap(rowTexts,words){
+      const parts=rowTexts.map(r=>r.split(' '));
+      const total=parts.reduce((n,p)=>n+p.length,0);
+      const ok=words.length>0&&words.length===total&&parts.every(p=>p.every(Boolean));
+      const out=[];
+      if(ok){
+        let ti=0;
+        parts.forEach(p=>{
+          const row=[];
+          p.forEach((part,k)=>{
+            const word=words[ti],chars=Array.from(part);
+            chars.forEach((ch,j)=>row.push({ch,word,j,n:chars.length,space:false}));
+            if(k<p.length-1)row.push({ch:' ',word:words[ti+1]||word,j:0,n:1,space:true});
+            ti++;
+          });
+          out.push(row);
+        });
+        return out;
+      }
+      const t0=words.length?words[0].time:0,t1=words.length?words[words.length-1].endTime:t0+2;
+      const n=rowTexts.reduce((a,r)=>a+Array.from(r).length,0)||1;let g=0;
+      rowTexts.forEach(r=>{
+        out.push(Array.from(r).map(ch=>{
+          const a=t0+(t1-t0)*.9*(g/n),b=t0+(t1-t0)*.9*((g+1)/n);g++;
+          return {ch,word:{time:a,endTime:Math.max(a+.06,b)},j:0,n:1,space:ch===' '};
+        }));
+      });
+      return out;
+    },
     /* Progress of a whole line in sung time: 0 at first word start, 1 at last word end. */
     sungProgress(words,time){
       if(!words.length)return 0;const a=words[0].time,b=words[words.length-1].endTime;

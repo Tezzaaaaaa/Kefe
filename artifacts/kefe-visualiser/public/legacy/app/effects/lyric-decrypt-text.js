@@ -36,64 +36,67 @@
     return { size, rows: wrap(ctx, text, maxWidth) };
   }
 
-  window.kefeEffects.decrypt = function(ctx, w, h, style, lines, time) {
-    const active = u.activeLine(lines, time);
-    if (!active) return;
-    const text = String(active.line.text || '').trim();
+  function drawLine(ctx, w, h, style, line, next, time, phase) {
+    const text = String(line.text || '').trim().replace(/\s+/g, ' ');
     if (!text) return;
-
-    const start = Number(active.line.time) || 0;
-    const end = Math.max(start + 0.3, Number(active.line.endTime) || start + 3);
-    const scrambleDuration = clamp(Math.min(0.9, (end - start) * 0.5), 0, 1) || 0.55;
-    const elapsed = time - start;
-
     const setF = u.contractFontSetter('decrypt');
-    const lay = u.layoutText(ctx, text, { setFont: setF, size: Math.min(140, Number(style.fontSize) || 72), minSize: 18, maxWidth: w * 0.84, maxHeight: h * 0.8, lineHeight: u.contract('decrypt').lineHeight || 1.1, maxLines: 6 });
-    const prepared = { size: lay.size, rows: lay.lines };
-    const size = prepared.size;
-    const rowHeight = size * (u.contract('decrypt').lineHeight || 1.1);
-    const totalHeight = prepared.rows.length * rowHeight;
-    const top = h * 0.5 - totalHeight / 2 + rowHeight / 2;
-
-    const endFade = clamp((end - time) / 0.22, 0, 1);
+    const lh = u.contract('decrypt').lineHeight || 1.1;
+    const lay = u.layoutText(ctx, text, { setFont: setF, size: Math.min(140, Number(style.fontSize) || 72), minSize: 18, maxWidth: w * 0.84, maxHeight: h * 0.8, lineHeight: lh, maxLines: 6 });
+    const size = lay.size;
+    const rowHeight = size * lh;
+    const top = h * 0.5 - lay.lines.length * rowHeight / 2 + rowHeight / 2;
+    const map = u.charMap(lay.lines, u.wordsFor(line, next));
+    const text0 = style.textColor || '#FFFFFF', accent = style.accentColor || '#7CFFB2';
+    // glyph flicker runs on a fixed 28 Hz grid so the scramble reads the same at preview and export frame rates
+    const tick = Math.floor(time * 28);
 
     ctx.save();
+    ctx.globalAlpha = clamp(phase.alpha);
+    ctx.translate(0, -phase.leave * size * 0.10);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     setF(ctx, size);
 
-    let globalCharIndex = 0;
-    for (let rowIndex = 0; rowIndex < prepared.rows.length; rowIndex++) {
-      const row = prepared.rows[rowIndex];
-      const chars = Array.from(row);
+    let gi = 0;
+    for (let rowIndex = 0; rowIndex < lay.lines.length; rowIndex++) {
+      const row = lay.lines[rowIndex];
       const y = top + rowIndex * rowHeight;
       const rowWidth = ctx.measureText(row).width;
       let x = w / 2 - rowWidth / 2;
-
-      for (let i = 0; i < chars.length; i++) {
-        const char = chars[i];
-        const charWidth = ctx.measureText(char).width;
-        const charCx = x + charWidth / 2;
-        // Stagger lock-in left to right across the whole line.
-        const totalChars = Math.max(1, text.length);
-        const charDelay = (globalCharIndex / totalChars) * scrambleDuration * 0.7;
-        const localProgress = clamp((elapsed - charDelay) / (scrambleDuration * 0.3));
-        const settled = localProgress >= 1 || char === ' ';
-
-        ctx.globalAlpha = clamp(elapsed / 0.08, 0, 1) * endFade;
-        if (settled) {
-          ctx.fillStyle = style.textColor || '#FFFFFF';
-          ctx.fillText(char, charCx, y);
-        } else if (elapsed > 0) {
-          ctx.fillStyle = style.accentColor || '#7CFFB2';
-          ctx.fillText(glyphFor(time * 34 + globalCharIndex * 7.13), charCx, y);
-        }
-
+      const cells = map[rowIndex];
+      let k = 0;
+      for (const ch of Array.from(row)) {
+        const cell = cells[k++] || { word: { time: 0, endTime: 0 }, j: 0, n: 1, space: ch === ' ' };
+        const charWidth = ctx.measureText(ch).width;
+        const cx = x + charWidth / 2;
         x += charWidth;
-        globalCharIndex++;
+        const idx = gi++;
+        if (ch === ' ') continue;
+        const wd = cell.word, dur = Math.max(0.06, wd.endTime - wd.time);
+        // each character scrambles from its word's start and locks in left-to-right, the last one landing before the word ends
+        const scr = clamp(dur * 0.35, 0.08, 0.24);
+        const lockAt = wd.time + scr + (dur - scr) * 0.85 * (cell.j / Math.max(1, cell.n));
+        if (time < wd.time - 0.02) continue;                                   // not sung yet
+        const appear = clamp((time - (wd.time - 0.02)) / 0.06);
+        if (time < lockAt) {
+          ctx.globalAlpha = clamp(phase.alpha) * appear;
+          ctx.fillStyle = accent;
+          ctx.fillText(glyphFor(tick * 13.7 + idx * 7.13), cx, y);
+        } else {
+          const settle = clamp((time - lockAt) / 0.14);                        // quick pop as the real letter locks in
+          const pop = 1 + 0.10 * (1 - u.smoother(settle));
+          ctx.globalAlpha = clamp(phase.alpha);
+          ctx.fillStyle = text0;
+          if (pop > 1.001) { ctx.save(); ctx.translate(cx, y); ctx.scale(pop, pop); ctx.fillText(ch, 0, 0); ctx.restore(); }
+          else ctx.fillText(ch, cx, y);
+        }
       }
     }
-
     ctx.restore();
+  }
+
+  window.kefeEffects.decrypt = function(ctx, w, h, style, lines, time) {
+    const stack = u.lineStack(lines, time, 0.10, 0.16);
+    for (const it of stack) drawLine(ctx, w, h, style, it.line, it.next, time, it);
   };
 })();

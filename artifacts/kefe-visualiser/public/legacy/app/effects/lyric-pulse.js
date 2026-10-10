@@ -34,38 +34,34 @@ function activeEffectLine(lines, time) {
     return index >= 0 ? linaNormaliseLine(lines, index) : null;
 }
 
-function drawPulseEffect(ctx, w, h, style, lines, time) {
-    const line = activeEffectLine(lines, time);
-    if (!line) return;
+/* Per-word timing aligned 1:1 with the whitespace tokens of the line. Real word timing when it lines up, else the engine's vocal-capped estimate. */
+function pulseWords(line, next, tokens) {
+    const U = window.kefeEffectUtils;
+    let words = U.wordsFor(line, next);
+    if (words.length !== tokens.length) {
+        const model = window.kefeLyricModel;
+        const start = Number(line.time) || 0, end = Number(line.endTime) || start + 3;
+        words = model ? model.estimateWords(line.text, start, end, true) : tokens.map((t, i) => ({ text: t, time: start + (i / tokens.length) * (end - start), endTime: start + ((i + 1) / tokens.length) * (end - start) }));
+    }
+    return tokens.map((t, i) => ({ text: t, start: Number(words[i].time), end: Number(words[i].endTime) }));
+}
+
+function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
     const text = String(line.text || '').trim();
     if (!text) return;
-
+    const U = window.kefeEffectUtils;
     const amplitude = linaClamp(Number(style.pulseAmplitude) || 0.4, 0.05, 1);
     const glowSize = Number(style.pulseGlowSize) || 1;
     const colour = style.accentColor || '#FFFFFF';
     const fontSize = Number(style.fontSize) || 76;
-    const lineStart = Number(line.time) || 0;
-    const lineEnd = Math.max(lineStart + 0.4, Number(line.endTime) || lineStart + 3);
     const tokens = text.split(/\s+/).filter(Boolean);
     if (!tokens.length) return;
-
-    const perWord = Array.isArray(line.words) && line.words.length === tokens.length
-        ? line.words.map((w, i) => ({
-            text: tokens[i],
-            start: Number(w.time) || lineStart + (i / tokens.length) * (lineEnd - lineStart),
-            end: Number(w.endTime) || lineStart + ((i + 1) / tokens.length) * (lineEnd - lineStart)
-        }))
-        : tokens.map((t, i) => ({
-            text: t,
-            start: lineStart + (i / tokens.length) * (lineEnd - lineStart),
-            end: lineStart + ((i + 1) / tokens.length) * (lineEnd - lineStart)
-        }));
+    const perWord = pulseWords(line, next, tokens);
 
     ctx.save();
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     const contract = window.KEFE_TYPE?.effects?.pulse || {};
-    const U = window.kefeEffectUtils;
     const face = `${contract.weight || 400}`, fam = contract.family || 'AuraSerif';
     const setF = (c, sz) => { c.font = `${face} ${sz}px "${fam}",Arial,sans-serif`; };
     const lay = U.layoutText(ctx, text, { setFont: setF, size: fontSize, minSize: 18, maxWidth: w * 0.86, maxHeight: h * 0.8, lineHeight: 1.12, maxLines: 6 });
@@ -79,22 +75,26 @@ function drawPulseEffect(ctx, w, h, style, lines, time) {
     if (flat === perWord.length) { let k = 0; rowsTokens.forEach(r => { rowsWords.push(r.map(() => perWord[k++])); }); }
     else rowsWords.push(perWord);
     const rowH = lay.lineH, cy = h * 0.46;
+    // whole-line motion: gentle rise in, drift up and out when replaced (crossfade with the next line)
+    const lineY = (1 - phase.enter) * size * 0.28 - phase.leave * size * 0.26;
+    ctx.globalAlpha = linaClamp(phase.alpha);
     rowsWords.forEach((rowWords, ri) => {
         const widths = rowWords.map(wd => ctx.measureText(wd.text).width);
         const totalW = widths.reduce((a, b) => a + b, 0) + spaceW * (rowWords.length - 1);
         let cursorX = (w - totalW) / 2;
-        const y = cy + (ri - (rowsWords.length - 1) / 2) * rowH;
+        const y = cy + lineY + (ri - (rowsWords.length - 1) / 2) * rowH;
         for (let i = 0; i < rowWords.length; i++) {
             const word = rowWords[i];
-            const duration = Math.max(0.001, word.end - word.start);
-            const local = linaClamp((time - word.start) / duration);
-            const pulse = linaSmoother(Math.sin(local * Math.PI));
+            const wp = U.wordProgress({ time: word.start, endTime: word.end }, time, 0.09);
+            // pulse peaks mid-word and is fully settled at the word's end; very short words still get a soft bump
+            const pulse = linaSmoother(wp.pulse);
             const scale = 1 + amplitude * 0.28 * pulse;
             const glow = size * 0.10 * glowSize * pulse;
-            const alpha = time < word.start ? 0.28 : time >= word.end ? 0.88 : 1.0;
+            // unsung 0.28 -> sung 1.0 (anticipated slightly before the word) -> settled 0.88, all eased (no stepped alpha)
+            const alpha = (0.28 + 0.72 * wp.pre) * 1 - 0.12 * linaSmoother((time - word.end) / 0.35) * (wp.started ? 1 : 0);
             const cx = cursorX + widths[i] / 2;
             ctx.save();
-            ctx.globalAlpha = alpha;
+            ctx.globalAlpha *= linaClamp(alpha);
             ctx.fillStyle = colour;
             ctx.shadowColor = colour;
             ctx.shadowBlur = glow;
@@ -106,6 +106,11 @@ function drawPulseEffect(ctx, w, h, style, lines, time) {
         }
     });
     ctx.restore();
+}
+
+function drawPulseEffect(ctx, w, h, style, lines, time) {
+    const stack = window.kefeEffectUtils.lineStack(lines, time);
+    for (const it of stack) drawPulseLine(ctx, w, h, style, it.line, it.next, time, it);
 }
 
   window.kefeEffects = window.kefeEffects || {};
