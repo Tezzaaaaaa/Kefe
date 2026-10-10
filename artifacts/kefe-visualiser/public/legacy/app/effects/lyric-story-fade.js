@@ -42,9 +42,8 @@ function fitMotionText(ctx,text,requested,tracking,maxWidth,family){
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFitCache.clear());
   function wrapWords(ctx,words,size,tracking,maxWidth,family){setMotionFont(ctx,family,size);const gap=Math.max(12,size*.16),rows=[];let row=[],width=0;for(const word of words){const wordWidth=trackedWidth(ctx,word.text,tracking),proposed=row.length?width+gap+wordWidth:wordWidth;if(row.length&&proposed>maxWidth){rows.push({words:row,width});row=[];width=0;}row.push({...word,width:wordWidth});width=row.length===1?wordWidth:width+gap+wordWidth;}if(row.length)rows.push({words:row,width});return rows;}
   function fit(ctx,words,requested,tracking,maxWidth,family){let size=Math.max(34,Math.min(150,Number(requested)||78));while(size>34){const rows=wrapWords(ctx,words,size,tracking*size,maxWidth,family);if(rows.length<=2)return{size,rows};size-=2;}return{size,rows:wrapWords(ctx,words,size,tracking*size,maxWidth,family)};}
-  window.kefeEffects.fadeup = function(ctx, w, h, style, lines, time) {
-    const active = u.activeLine(lines, time);
-    if (!active) return;
+  function drawFadeUp(ctx, w, h, style, line0, next0, time, phase) {
+    const active = { line: line0, next: next0 };
     const words = u.wordsFor(active.line, active.next);
     if (!words.length) return;
 
@@ -98,13 +97,8 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
     // Each word fades up with a short stagger so the line reads left-to-right.
     // The stagger is bounded so even a 12-word line finishes within ~45% of
     // the line's duration. No bouncing, no scaling, just a soft rise.
-    const start = Number(active.line.time) || 0;
-    const end = Math.max(start + 0.4, Number(active.line.endTime) || start + 3);
-    const duration = end - start;
-    const totalWords = rows.reduce((sum, r) => sum + r.words.length, 0);
-    const staggerWindow = Math.min(0.55, duration * 0.35);
-    const perWordDelay = totalWords > 1 ? staggerWindow / (totalWords - 1) : 0;
-    const fadeDur = Math.min(0.42, duration * 0.32);
+    // Each word fades up exactly as it is sung (word.time), settling by the end of the word - no line-level stagger guess.
+    const lineLift = -phase.leave * size * 0.12;
 
     ctx.save();
     ctx.textAlign = 'left';
@@ -112,7 +106,6 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
     ctx.globalCompositeOperation = 'source-over';
     ctx.filter = 'none';
 
-    let wordCursor = 0;
     for (let r = 0; r < rows.length; r++) {
       const row = rows[r];
       const y = topRow + r * rowHeight;
@@ -120,14 +113,12 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
       let x = rowLeft;
 
       for (const word of row.words) {
-        const delay = perWordDelay * (wordCursor++); // sequential across rows
-        const elapsed = time - start - delay;
-        let p = elapsed / fadeDur;
-        if (p < 0) p = 0;
-        if (p > 1) p = 1;
+        const wdur = Math.max(0.06, Number(word.endTime) - Number(word.time));
+        const fadeDur = clamp(wdur * 0.9, 0.2, 0.42);
+        const p = clamp((time - (Number(word.time) - 0.04)) / fadeDur);
         const eased = smoother(p);
 
-        const alpha = eased;
+        const alpha = eased * clamp(phase.alpha);
         // Small upward rise — 6% of font size, settles cleanly.
         const rise = (1 - eased) * size * 0.06;
         // Narrow glow that peaks in the middle of the entrance.
@@ -139,7 +130,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
         ctx.shadowColor = style.accentColor || style.textColor || '#FFFFFF';
         ctx.shadowBlur = glow;
         setMotionFont(ctx, family, size);
-        ctx.fillText(word.text, x, y + rise);
+        ctx.fillText(word.text, x, y + rise + lineLift);
         ctx.restore();
 
         x += word.width + spaceW;
@@ -147,6 +138,10 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
     }
 
     ctx.restore();
+  }
+  window.kefeEffects.fadeup = function(ctx, w, h, style, lines, time) {
+    const stack = u.lineStack(lines, time, 0.10, 0.20);
+    for (const it of stack) drawFadeUp(ctx, w, h, style, it.line, it.next, time, it);
   };
   const MOTION={
     rise:{label:'Rise — soft upward lift with a clean cinematic settle',tracking:-.006,distance:.72,direction:'up',rotation:0,overshoot:.018,ghost:.06},
@@ -154,8 +149,24 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFi
     drop:{label:'Drop — controlled downward arrival with a subtle weighty settle',tracking:-.006,distance:.70,direction:'down',rotation:0,overshoot:.024,ghost:.045},
     drift:{label:'Drift — gentle diagonal float with barely-there rotation',tracking:-.006,distance:.66,direction:'diagonal',rotation:.020,overshoot:.010,ghost:.075}
   };
+  /* Karaoke-aware block: each character brightens as its word is sung (left-to-right inside the word), unsung text rests at `dim`. */
+  function drawBlockK(ctx,lay,trackingPx,words,time,dim){
+    const n=lay.lines.length,map=u.charMap(lay.lines,words),prevAlign=ctx.textAlign,baseA=ctx.globalAlpha;
+    ctx.textAlign='left';
+    lay.lines.forEach((t,i)=>{
+      const chars=Array.from(t),widths=chars.map(c=>ctx.measureText(c).width);
+      const total=widths.reduce((a,b)=>a+b,0)+trackingPx*Math.max(0,chars.length-1);
+      let x=-total/2;const y=(i-(n-1)/2)*lay.lineH,cells=map[i]||[];
+      chars.forEach((ch,k)=>{
+        const cell=cells[k];let a=1;
+        if(cell&&!cell.space){a=dim+(1-dim)*u.charProgress(cell.word,cell.j,cell.n,time,.9,.3);}
+        ctx.globalAlpha=baseA*a;ctx.fillText(ch,x,y);x+=widths[k]+trackingPx;
+      });
+    });
+    ctx.globalAlpha=baseA;ctx.textAlign=prevAlign;
+  }
   function drawBlock(ctx,lay,trackingPx){const n=lay.lines.length;lay.lines.forEach((t,i)=>u.drawTrackedText(ctx,t,0,(i-(n-1)/2)*lay.lineH,trackingPx,'fillText'));}
-  function motionLine(ctx,w,h,style,active,time,mode){const line=String(active?.line?.text||'').trim();if(!line)return;const meta=MOTION[mode],family=u.contract(mode).family || getFont(style.kefeMotionFont).value,tracking=Number(meta?.tracking??-.006)||0,requested=Math.max(34,Math.min(150,Number(style.fontSize)||76)),lay=u.layoutText(ctx,line,{setFont:(c,s)=>setMotionFont(c,family,s),size:requested,minSize:20,maxWidth:w*.86,maxHeight:h*.5,tracking,lineHeight:1.2,maxLines:4}),size=lay.size,cy=Math.min(h-lay.blockH/2-h*.04,Math.max(lay.blockH/2+h*.04,h*.76)),trackingPx=tracking*size,start=Number(active.line.time)||0,end=Math.max(start+.35,Number(active.line.endTime)||start+3),duration=end-start,enterDuration=Math.min(.46,Math.max(.20,duration*.19)),exitDuration=Math.min(.34,Math.max(.18,duration*.14)),enter=smoother((time-start)/enterDuration),exit=smoother((end-time)/exitDuration),opacity=enter*exit,settle=smoother((time-start-enterDuration*.48)/Math.max(.16,enterDuration*.68)),anticipation=1-smoother((time-start)/Math.max(.08,enterDuration*.22)),distance=Math.min(w*.20,size*meta.distance);let dx=0,dy=0,rotation=0;if(meta.direction==='up')dy=(1-enter)*distance-anticipation*size*.035;else if(meta.direction==='left')dx=(1-enter)*distance-anticipation*size*.035;else if(meta.direction==='down')dy=-(1-enter)*distance+anticipation*size*.035;else{dx=(1-enter)*distance*.72-anticipation*size*.025;dy=(1-enter)*distance*.28-anticipation*size*.018;rotation=(1-enter)*meta.rotation;}const settleWave=Math.sin(clamp((time-start)/Math.max(.01,enterDuration))*Math.PI)*(1-enter)*meta.overshoot*size;if(meta.direction==='up')dy-=settleWave;else if(meta.direction==='down')dy+=settleWave;else dx-=settleWave*(meta.direction==='left'?1:.55);const scale=.985+.015*settle,colour=style.textColor||'#FFFFFF',accent=style.accentColor||colour,glow=size*(.010+.014*settle);ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.globalCompositeOperation='source-over';ctx.filter='none';setMotionFont(ctx,family,size);if(meta.ghost>0&&enter<.92&&opacity>.01){ctx.save();ctx.globalAlpha=opacity*meta.ghost*(1-enter);ctx.fillStyle=accent;ctx.shadowColor=accent;ctx.shadowBlur = 0;ctx.translate(w/2+dx*.35,cy+dy*.35);ctx.rotate(rotation*.35);ctx.scale(scale,scale);drawBlock(ctx,lay,trackingPx);ctx.restore();}ctx.globalAlpha=opacity;ctx.fillStyle=colour;ctx.shadowColor=accent;ctx.shadowBlur = 0;ctx.translate(w/2+dx,cy+dy);ctx.rotate(rotation);ctx.scale(scale,scale);drawBlock(ctx,lay,trackingPx);ctx.restore();}
+  function motionLine(ctx,w,h,style,active,time,mode){const line=String(active?.line?.text||'').trim();if(!line)return;const meta=MOTION[mode],family=u.contract(mode).family || getFont(style.kefeMotionFont).value,tracking=Number(meta?.tracking??-.006)||0,requested=Math.max(34,Math.min(150,Number(style.fontSize)||76)),lay=u.layoutText(ctx,line,{setFont:(c,s)=>setMotionFont(c,family,s),size:requested,minSize:20,maxWidth:w*.86,maxHeight:h*.5,tracking,lineHeight:1.2,maxLines:4}),size=lay.size,cy=Math.min(h-lay.blockH/2-h*.04,Math.max(lay.blockH/2+h*.04,h*.76)),trackingPx=tracking*size,start=Number(active.line.time)||0,end=Math.max(start+.35,Number(active.line.endTime)||start+3),duration=end-start,enterDuration=Math.min(.46,Math.max(.20,duration*.19)),words=u.wordsFor(active.line,active.next),vocalEnd=words.length?words[words.length-1].endTime:end,exitDuration=Math.min(.34,Math.max(.18,duration*.14),Math.max(.12,end-(vocalEnd+.08))),enter=smoother((time-start)/enterDuration),exit=smoother((end-time)/exitDuration),opacity=enter*exit,settle=smoother((time-start-enterDuration*.48)/Math.max(.16,enterDuration*.68)),anticipation=1-smoother((time-start)/Math.max(.08,enterDuration*.22)),distance=Math.min(w*.20,size*meta.distance);let dx=0,dy=0,rotation=0;if(meta.direction==='up')dy=(1-enter)*distance-anticipation*size*.035;else if(meta.direction==='left')dx=(1-enter)*distance-anticipation*size*.035;else if(meta.direction==='down')dy=-(1-enter)*distance+anticipation*size*.035;else{dx=(1-enter)*distance*.72-anticipation*size*.025;dy=(1-enter)*distance*.28-anticipation*size*.018;rotation=(1-enter)*meta.rotation;}const settleWave=Math.sin(clamp((time-start)/Math.max(.01,enterDuration))*Math.PI)*(1-enter)*meta.overshoot*size;if(meta.direction==='up')dy-=settleWave;else if(meta.direction==='down')dy+=settleWave;else dx-=settleWave*(meta.direction==='left'?1:.55);const scale=.985+.015*settle,colour=style.textColor||'#FFFFFF',accent=style.accentColor||colour,glow=size*(.010+.014*settle);ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.globalCompositeOperation='source-over';ctx.filter='none';setMotionFont(ctx,family,size);if(meta.ghost>0&&enter<.92&&opacity>.01){ctx.save();ctx.globalAlpha=opacity*meta.ghost*(1-enter);ctx.fillStyle=accent;ctx.shadowColor=accent;ctx.shadowBlur = 0;ctx.translate(w/2+dx*.35,cy+dy*.35);ctx.rotate(rotation*.35);ctx.scale(scale,scale);drawBlock(ctx,lay,trackingPx);ctx.restore();}ctx.globalAlpha=opacity;ctx.fillStyle=colour;ctx.shadowColor=accent;ctx.shadowBlur = 0;ctx.translate(w/2+dx,cy+dy);ctx.rotate(rotation);ctx.scale(scale,scale);drawBlockK(ctx,lay,trackingPx,words,time,.5);ctx.restore();}
   function __makeMotionRenderer(name) {
     return function(ctx, w, h, style, lines, time) {
       const active = u.activeLine(lines, time);

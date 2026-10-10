@@ -136,9 +136,8 @@
   function extractKicker(line){ var m=/\[kicker:(.+?)\]/i.exec(String((line&&line.text)||'')); return m?m[1]:null; }
   function cleanText(t){ return String(t||'').replace(/\[kicker:[^\]]+\]/gi,'').replace(/\s+/g,' ').trim(); }
 
-  window.kefeEffects.barbie = function(ctx,w,h,style,lines,time){
-    var active=u.activeLine(lines,time);
-    if(!active) return;
+  function drawBarbie(ctx,w,h,style,line,next,time,phase){
+    var active={line:line,next:next};
     var text=cleanText(active.line.text);
     if(!text) return;
     var words=u.wordsFor(active.line,active.next);
@@ -146,7 +145,7 @@
 
     var prepared=fit(ctx,words,style.fontSize,w*0.9);
     var baseSize=prepared.size;
-    var lineIndex=Array.isArray(lines)?Math.max(0,lines.indexOf(active.line)):0;
+    var lineIndex=Math.max(0,phase.index|0);   // palette follows the real line index (activeLine hands back a copy, so indexOf never matched)
     var palette=(Array.isArray(style.barbiePalette)&&style.barbiePalette.length)?style.barbiePalette:LINE_PALETTES[lineIndex%LINE_PALETTES.length];
 
     var heroFlatIdx=0, bestLen=-1, flat=0;
@@ -169,16 +168,15 @@
     var rowHeights=rowsWithSizes.map(function(r){ return Math.max.apply(null,r.sizes)*1.15; });
     var totalHeight=rowHeights.reduce(function(a,b){return a+b;},0);
     var cursorY=h*0.5-totalHeight/2;
-    var lineProg=u.lineProgress(active.line,time);
+    var lineProg={opacity:phase.alpha};
     var start=Number(active.line.time)||0;
-    var end=Math.max(start+0.4,Number(active.line.endTime)||start+3);
-    var exitFade=clamp((end-time)/Math.min(0.4,(end-start)*0.2));
+    var exitFade=1;   // line exit is handled by the shared line stack (crossfade into the next line)
 
     ctx.save();
     ctx.textAlign='left';
     ctx.textBaseline='middle';
 
-    drawAmbientGlitter(ctx,w,h,time,style.barbieGlitter==null?0.55:style.barbieGlitter,palette[0],palette[2]);
+    if(phase.role==='cur') drawAmbientGlitter(ctx,w,h,time,style.barbieGlitter==null?0.55:style.barbieGlitter,palette[0],palette[2]);
 
     var kickerText=extractKicker(active.line);
     if(kickerText){
@@ -230,7 +228,7 @@
 
         ctx.save();
         ctx.globalAlpha=lineProg.opacity*exitFade;
-        ctx.translate(centerX,y);
+        ctx.translate(centerX,y-phase.leave*baseSize*0.16);
         ctx.rotate(tilt);
         ctx.scale(scale,scale);
         ctx.translate(-wordWidth/2,0);
@@ -253,5 +251,10 @@
       cursorY+=rowHeight;
     });
     ctx.restore();
+  }
+
+  window.kefeEffects.barbie = function(ctx,w,h,style,lines,time){
+    var stack=u.lineStack(lines,time,0.10,0.2);
+    for(var i=0;i<stack.length;i++) drawBarbie(ctx,w,h,style,stack[i].line,stack[i].next,time,stack[i]);
   };
 })();

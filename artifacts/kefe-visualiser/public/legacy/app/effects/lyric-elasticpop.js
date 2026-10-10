@@ -39,9 +39,8 @@
     return {size:size,rows:wrapWords(ctx,words,maxWidth,gap2),gap:gap2};
   }
 
-  window.kefeEffects.elasticpop = function(ctx,w,h,style,lines,time){
-    var active=u.activeLine(lines,time);
-    if(!active) return;
+  function drawPop(ctx,w,h,style,line,next,time,phase){
+    var active={line:line,next:next};
     var text=String(active.line.text||'').trim();
     if(!text) return;
     var words=u.wordsFor(active.line,active.next);
@@ -51,7 +50,7 @@
     var rowHeight=size*1.24;
     var totalHeight=prepared.rows.length*rowHeight;
     var top=h*0.5-totalHeight/2+rowHeight/2;
-    var lineProg=u.lineProgress(active.line,time);
+    var lineProg={opacity:phase.alpha};
     var color=style.elasticpopColor||style.textColor||'#FFFFFF';
     var popDuration=0.42;
 
@@ -60,6 +59,9 @@
     setElasticFont(ctx,size);
     ctx.fillStyle=color;
     ctx.globalAlpha=lineProg.opacity;
+    // outgoing line settles back and drifts up a touch while the next line pops in
+    var lineShift=-phase.leave*size*0.14, lineScale=1-phase.leave*0.04;
+    ctx.translate(w/2,h*0.5+lineShift); ctx.scale(lineScale,lineScale); ctx.translate(-w/2,-h*0.5);
 
     prepared.rows.forEach(function(row,rowIdx){
       var y=top+rowIdx*rowHeight;
@@ -70,16 +72,23 @@
         if(time<Number(word.time)){ x+=wordWidth+prepared.gap; return; }
         var t=clamp((time-word.time)/popDuration);
         var scale=time>=Number(word.time)+popDuration?1:elasticOut(t);
+        var wordAlpha=clamp(t/0.18);                       // eased fade-in alongside the spring so words never flash on
         var rise=(1-clamp(t/0.6))*size*0.18;
         ctx.save();
         ctx.translate(centerX,y-rise);
         ctx.scale(scale,scale);
         ctx.translate(-centerX,-(y-rise));
+        ctx.globalAlpha=lineProg.opacity*wordAlpha;
         ctx.fillText(word.text,x,y-rise);
         ctx.restore();
         x+=wordWidth+prepared.gap;
       });
     });
     ctx.restore();
+  }
+
+  window.kefeEffects.elasticpop = function(ctx,w,h,style,lines,time){
+    var stack=u.lineStack(lines,time,0.10,0.18);
+    for(var i=0;i<stack.length;i++) drawPop(ctx,w,h,style,stack[i].line,stack[i].next,time,stack[i]);
   };
 })();

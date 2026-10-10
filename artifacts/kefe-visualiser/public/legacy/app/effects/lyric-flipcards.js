@@ -34,9 +34,8 @@
   var FLIP_DURATION=0.32;
   var CHAR_STAGGER=0.035;
 
-  window.kefeEffects.flipcards = function(ctx,w,h,style,lines,time){
-    var active=u.activeLine(lines,time);
-    if(!active) return;
+  function drawFlip(ctx,w,h,style,line,next,time,phase){
+    var active={line:line,next:next};
     var text=String(active.line.text||'').trim();
     if(!text) return;
     var sourceWords=u.wordsFor(active.line,active.next);
@@ -45,10 +44,14 @@
     var words=[];
     sourceWords.forEach(function(sourceWord){
       var chars=String(sourceWord.text||'').split('');
+      /* spread the character flips over (at most) the first half of the word's sung duration so the whole word has landed by its end */
+      var sd=Math.max(0.06,Number(sourceWord.endTime)-Number(sourceWord.time));
+      var stagger=Math.min(CHAR_STAGGER,(sd*0.5)/Math.max(1,chars.length));
+      var dur=clamp(sd*0.55,0.2,0.34);
       chars.forEach(function(char,charIdx){
-        words.push({text:char,time:Number(sourceWord.time)+charIdx*CHAR_STAGGER});
+        words.push({text:char,time:Number(sourceWord.time)+charIdx*stagger,dur:dur});
       });
-      words.push({text:' ',time:Number(sourceWord.time)+(chars.length*CHAR_STAGGER)});
+      words.push({text:' ',time:Number(sourceWord.time)+(chars.length*stagger),dur:dur});
     });
 
     // Wrap on whole words (never mid-word), then map the timed characters onto the rows.
@@ -62,7 +65,7 @@
       chars.forEach(function(ch){
         var tm=timed[cursor++];
         if(!tm){okMap=false;return;}
-        rowChars.push({text:ch,time:tm.time});
+        rowChars.push({text:ch,time:tm.time,dur:tm.dur});
         rw+=ctx.measureText(ch).width+prepared.gap;
       });
       cursor++; // the space consumed by the line break
@@ -73,7 +76,7 @@
     var rowHeight=size*1.26;
     var totalHeight=prepared.rows.length*rowHeight;
     var top=h*0.5-totalHeight/2+rowHeight/2;
-    var lineProg=u.lineProgress(active.line,time);
+    var lineProg={opacity:phase.alpha};
     var color=style.flipcardsColor||style.textColor||'#FFFFFF';
     var ghostColor=style.flipcardsAccent||'rgba(255,255,255,0.25)';
 
@@ -88,7 +91,7 @@
         var charWidth=ctx.measureText(char.text).width;
         var centerX=x+charWidth/2;
         if(time<Number(char.time)){ x+=charWidth+prepared.gap; return; }
-        var t=clamp((time-Number(char.time))/FLIP_DURATION);
+        var t=clamp((time-Number(char.time))/(char.dur||FLIP_DURATION));
         var angle=1-smoother(t);
         var scaleX=Math.max(0.02,Math.cos(angle*Math.PI/2));
         var skew=Math.sin(angle*Math.PI/2)*0.18;
@@ -116,5 +119,10 @@
       });
     });
     ctx.restore();
+  }
+
+  window.kefeEffects.flipcards = function(ctx,w,h,style,lines,time){
+    var stack=u.lineStack(lines,time,0.10,0.16);
+    for(var i=0;i<stack.length;i++) drawFlip(ctx,w,h,style,stack[i].line,stack[i].next,time,stack[i]);
   };
 })();
