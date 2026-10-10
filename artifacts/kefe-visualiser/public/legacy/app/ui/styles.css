@@ -1,28 +1,28 @@
 *{box-sizing:border-box}
 :root {
   color-scheme: light;
-  --bg: #dfe2de;
-  --surface: #e7e9e5;
-  --surface-hi: #eef0ec;
-  --surface-lo: #c7ccc7;
+  --bg: #eff0ed;
+  --surface: #f3f4f1;
+  --surface-hi: #fafbf9;
+  --surface-lo: #d9ddda;
   --preview: #171927;
-  --text: #20232b;
-  --muted: #626875;
-  --soft: #858b96;
-  --line: rgba(36, 41, 51, .28);
-  --line-soft: rgba(36, 41, 51, .19);
-  --accent: #789687;
-  --accent-hover: #698676;
-  --accent-pressed: #5c7667;
+  --text: #252837;
+  --muted: #747987;
+  --soft: #9ca1aa;
+  --line: rgba(58, 65, 82, .13);
+  --line-soft: rgba(58, 65, 82, .075);
+  --accent: #8fa99b;
+  --accent-hover: #809c8c;
+  --accent-pressed: #728b7d;
   --accent-deep: #292c3d;
-  --focus: #64899b;
-  --inner: inset 3px 3px 7px rgba(82, 89, 97, .2), inset -2px -2px 5px rgba(255, 255, 255, .42);
-  --lift: 5px 6px 12px rgba(66, 73, 81, .2), -3px -3px 8px rgba(255, 255, 255, .48);
-  --float: 8px 9px 18px rgba(55, 62, 70, .25), -4px -4px 10px rgba(255, 255, 255, .52);
-  --in-md: inset 3px 3px 7px rgba(66, 73, 81, .24), inset -2px -2px 5px rgba(255, 255, 255, .34);
+  --focus: #8eaab8;
+  --inner: inset 3px 3px 8px rgba(125, 133, 143, .16), inset -3px -3px 8px rgba(255, 255, 255, .88);
+  --lift: 6px 7px 16px rgba(125, 133, 143, .15), -5px -5px 14px rgba(255, 255, 255, .86);
+  --float: 10px 12px 24px rgba(125, 133, 143, .2), -8px -8px 20px rgba(255, 255, 255, .92);
+  --in-md: inset 3px 3px 7px rgba(125, 133, 143, .17), inset -3px -3px 7px rgba(255, 255, 255, .78);
   --r1: 8px;
-  --r2: 12px;
-  --r3: 18px;
+  --r2: 14px;
+  --r3: 24px;
   --s1: 4px;
   --s2: 8px;
   --s3: 16px;
@@ -34,15 +34,15 @@
   --font-xl: 20px;
   --line-tight: 1.25;
   --line-normal: 1.45;
-  --panel-pad: 16px;
+  --panel-pad: 14px;
   --panel-pad-x: 24px;
-  --section-gap: 14px;
+  --section-gap: 12px;
   --control-gap: 8px;
   --control-h: 42px;
   --control-pad: 14px;
   --tab-h: 38px;
   --timeline-h: 70px;
-  --grid-gap: 12px;
+  --grid-gap: 10px;
   --panel-max: 1360px;
 }
 html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font-family:"Inter","Inter Tight",system-ui,sans-serif}
@@ -259,28 +259,28 @@ button{border:0;cursor:pointer}
 /* KEFE REGAL NEOMORPHIC THEME */
 :root {
   color-scheme: light;
-  --bg: #dfe2de;
-  --surface: #e7e9e5;
-  --surface-hi: #eef0ec;
-  --surface-lo: #c7ccc7;
+  --bg: #eff0ed;
+  --surface: #f3f4f1;
+  --surface-hi: #fafbf9;
+  --surface-lo: #d9ddda;
   --preview: #171927;
-  --text: #20232b;
-  --muted: #626875;
-  --soft: #858b96;
-  --line: rgba(36, 41, 51, .28);
-  --line-soft: rgba(36, 41, 51, .19);
-  --accent: #789687;
-  --accent-hover: #698676;
-  --accent-pressed: #5c7667;
+  --text: #252837;
+  --muted: #747987;
+  --soft: #9ca1aa;
+  --line: rgba(58, 65, 82, .13);
+  --line-soft: rgba(58, 65, 82, .075);
+  --accent: #8fa99b;
+  --accent-hover: #809c8c;
+  --accent-pressed: #728b7d;
   --accent-deep: #292c3d;
-  --focus: #64899b;
-  --inner: inset 3px 3px 7px rgba(82, 89, 97, .2), inset -2px -2px 5px rgba(255, 255, 255, .42);
-  --lift: 5px 6px 12px rgba(66, 73, 81, .2), -3px -3px 8px rgba(255, 255, 255, .48);
-  --float: 8px 9px 18px rgba(55, 62, 70, .25), -4px -4px 10px rgba(255, 255, 255, .52);
-  --in-md: inset 3px 3px 7px rgba(66, 73, 81, .24), inset -2px -2px 5px rgba(255, 255, 255, .34);
+  --focus: #8eaab8;
+  --inner: inset 3px 3px 8px rgba(125, 133, 143, .16), inset -3px -3px 8px rgba(255, 255, 255, .88);
+  --lift: 6px 7px 16px rgba(125, 133, 143, .15), -5px -5px 14px rgba(255, 255, 255, .86);
+  --float: 10px 12px 24px rgba(125, 133, 143, .2), -8px -8px 20px rgba(255, 255, 255, .92);
+  --in-md: inset 3px 3px 7px rgba(125, 133, 143, .17), inset -3px -3px 7px rgba(255, 255, 255, .78);
   --r1: 8px;
-  --r2: 12px;
-  --r3: 18px;
+  --r2: 14px;
+  --r3: 24px;
   --s1: 4px;
   --s2: 8px;
   --s3: 16px;
@@ -292,25 +292,25 @@ button{border:0;cursor:pointer}
   --font-xl: 20px;
   --line-tight: 1.25;
   --line-normal: 1.45;
-  --panel-pad: 16px;
+  --panel-pad: 14px;
   --panel-pad-x: 24px;
-  --section-gap: 14px;
+  --section-gap: 12px;
   --control-gap: 8px;
   --control-h: 42px;
   --control-pad: 14px;
   --tab-h: 38px;
   --timeline-h: 70px;
-  --grid-gap: 12px;
+  --grid-gap: 10px;
   --panel-max: 1360px;
 }
 .kefe-top-nav,.kefe-top-profile{gap:6px}
 .kefe-btn.primary:hover{background:var(--accent-hover)}
 .kefe-play:hover{background:var(--surface-hi)}
 .kefe-song-search,.kefe-suggestions{
-  border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);box-shadow:var(--lift);
+  border:0;border-radius:var(--r2);background:var(--surface);box-shadow:var(--lift);
 }
 .kefe-font-card,.kefe-empty-panel{
-  border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);box-shadow:var(--lift);
+  border:0;border-radius:var(--r2);background:var(--surface);box-shadow:var(--lift);
 }
 /* KEFE EFFECTS PANEL CONSISTENCY */
 .kefe-panel[data-panel-view="effects"]{
