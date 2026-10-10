@@ -1315,7 +1315,7 @@
   const activeVisualiserCanvas=()=>window.kefeFlutedGlassActive?document.getElementById('kefeFlutedGlassCanvas'):document.getElementById('kefeVisualiserCanvas');
   const applyVisualiserPreviewTransform=()=>{
     const transform=`translate3d(${visualiserPanX}px,${visualiserPanY}px,0) scale(${visualiserZoom})`;
-    [document.getElementById('kefeVisualiserCanvas'),document.getElementById('kefeFlutedGlassCanvas')].forEach(el=>{if(el)el.style.transform=el===activeVisualiserCanvas()?transform:'';});
+    [document.getElementById('kefeVisualiserCanvas'),document.getElementById('kefeFlutedGlassCanvas')].forEach(el=>{if(el)el.style.transform=transform;});
   };
   if(previewStage){
     previewStage.style.touchAction='none';
