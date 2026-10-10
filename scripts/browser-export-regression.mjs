@@ -77,6 +77,16 @@ try {
   await page.locator('button.kefe-section[data-panel="export"]').click();
   await page.locator('#exportResolution').selectOption('720');
 
+  const editorPixels = await page.evaluate(() => {
+    const canvas = document.querySelector('#kefeCanvas');
+    if (!canvas || !canvas.width || !canvas.height) return 0;
+    const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    let visible = 0;
+    for (let i = 3; i < data.length; i += 4) if (data[i] > 16) visible += 1;
+    return visible;
+  });
+  assert.ok(editorPixels > 100, `Lyrics/effect canvas should contain visible pixels before export; got ${editorPixels}`);
+
   await page.evaluate(() => {
     const probe = window.__kefeExportProbe = {
       backgroundPaintCalls: 0,
@@ -117,7 +127,14 @@ try {
 
   const exportStatus = await page.locator('#exportStatus').innerText();
   assert.match(exportStatus, /Export complete/i, `Unexpected export status: ${exportStatus}`);
-  console.log(JSON.stringify({ result: 'passed', bytes: file.size, probe, pageErrors }, null, 2));
+  const decodedPixel = run('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-ss', '1', '-i', filePath,
+    '-frames:v', '1', '-vf', 'crop=20:20:0:0,scale=1:1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', 'pipe:1']);
+  const pixelBytes = decodedPixel.stdout;
+  assert.equal(pixelBytes.length, 3, `Expected one decoded RGB pixel; got ${pixelBytes.length} bytes`);
+  const [red, green, blue] = pixelBytes;
+  assert.ok(red > green * 1.5 && red > blue * 1.5 && red > 70,
+    `Top-left exported frame should retain the red uploaded video background; got RGB(${red}, ${green}, ${blue})`);
+  console.log(JSON.stringify({ result: 'passed', bytes: file.size, editorPixels, exportedCornerRgb: [red, green, blue], probe, pageErrors }, null, 2));
 } finally {
   if (browser) await browser.close();
   if (server) server.kill('SIGTERM');
