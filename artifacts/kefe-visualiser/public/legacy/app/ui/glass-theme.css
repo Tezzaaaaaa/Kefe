@@ -893,3 +893,38 @@ body {
     outline-offset: 3px;
   }
 }
+
+/* Effects panel: keep the two primary selectors prominent, then group controls compactly beneath. */
+.kefe-panel[data-panel-view="effects"] .kefe-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 8px;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-background-effect-control,
+.kefe-panel[data-panel-view="effects"] .kefe-form > div:has(> #lyricEffect),
+.kefe-panel[data-panel-view="effects"] .kefe-form > div:has(> #backgroundEffect),
+.kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card {
+  grid-column: 1 / -1;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-background-effect-control {
+  gap: 7px;
+  padding: 10px 12px;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-background-effect-control .kefe-select {
+  min-height: 42px;
+  font-size: 14px;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-form > * {
+  min-width: 0;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-form label,
+.kefe-panel[data-panel-view="effects"] .kefe-form .kefe-label {
+  margin-bottom: 3px;
+}
+@media (max-width: 560px) {
+  .kefe-panel[data-panel-view="effects"] .kefe-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+}
+
