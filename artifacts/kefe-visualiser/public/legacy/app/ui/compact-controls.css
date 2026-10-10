@@ -88,3 +88,247 @@
     grid-column: 1 / -1;
   }
 }
+
+
+/* Mobile viewport layout: keep the preview, timeline and editor within the visible screen. */
+@media (max-width: 700px) {
+  html,
+  body {
+    width: 100%;
+    min-width: 320px;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .kefe-editor {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    grid-template-rows: 60px minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .kefe-top {
+    min-width: 0;
+    margin: 6px 8px 0;
+    height: 46px;
+    padding-inline: 6px;
+    gap: 4px;
+    overflow: hidden;
+  }
+
+  .kefe-top-nav,
+  .kefe-top-actions,
+  .kefe-top-profile {
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .kefe-top-link {
+    min-width: 0;
+    padding-inline: 8px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .kefe-work {
+    min-height: 0;
+    grid-template-rows: minmax(0, 42dvh) 54px minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .kefe-preview {
+    min-height: 0;
+    padding: 8px;
+  }
+
+  .kefe-stage {
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0;
+  }
+
+  .kefe-stage.is-16x9 {
+    width: min(100%, calc((42dvh - 16px) * 16 / 9));
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .kefe-stage.is-1x1 {
+    width: min(100%, calc(42dvh - 16px));
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .kefe-stage.is-9x16 {
+    width: auto;
+    height: min(100%, calc(42dvh - 16px));
+    aspect-ratio: 9 / 16;
+  }
+
+  .kefe-timeline {
+    min-width: 0;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 7px;
+    padding: 6px 10px;
+    overflow: hidden;
+  }
+
+  .kefe-transport {
+    min-width: 0;
+    gap: 5px;
+  }
+
+  .kefe-play {
+    width: 36px;
+    height: 36px;
+  }
+
+  .kefe-wave {
+    min-width: 0;
+    height: 38px;
+    padding-inline: 8px;
+    border-radius: 12px;
+  }
+
+  .kefe-slider,
+  .kefe-slider::-webkit-slider-runnable-track,
+  .kefe-slider::-moz-range-track {
+    height: 38px;
+  }
+
+  .kefe-time {
+    min-width: 0;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .kefe-editing {
+    min-width: 0;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 44px minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .kefe-tabs {
+    min-width: 0;
+    min-height: 0;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 6px;
+    padding: 5px 8px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-soft);
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .kefe-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .kefe-section {
+    flex: 0 0 auto;
+    min-height: 32px;
+    height: 32px;
+    padding-inline: 12px;
+    font-size: 11px;
+  }
+
+  .kefe-panels {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    padding: 8px 10px max(14px, env(safe-area-inset-bottom));
+  }
+
+  .kefe-panel {
+    width: 100%;
+    min-width: 0;
+    margin: 0 auto;
+    padding: 12px;
+  }
+
+  .kefe-panel-head .kefe-meta {
+    text-align: left;
+  }
+
+  .kefe-panel .kefe-form,
+  .kefe-panel .kefe-form > *,
+  .kefe-panel .kefe-input,
+  .kefe-panel .kefe-select,
+  .kefe-panel .kefe-textarea {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .kefe-panel[data-panel-view="effects"] .kefe-form,
+  .kefe-panel[data-panel-view="lyrics"] .kefe-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .kefe-editor {
+    grid-template-rows: 56px minmax(0, 1fr);
+  }
+
+  .kefe-top {
+    margin-inline: 6px;
+    padding-inline: 4px;
+  }
+
+  .kefe-top-link {
+    padding-inline: 6px;
+    font-size: 10px;
+  }
+
+  .kefe-work {
+    grid-template-rows: minmax(0, 40dvh) 50px minmax(0, 1fr);
+  }
+
+  .kefe-stage.is-16x9 {
+    width: min(100%, calc((40dvh - 16px) * 16 / 9));
+  }
+
+  .kefe-stage.is-1x1 {
+    width: min(100%, calc(40dvh - 16px));
+  }
+
+  .kefe-stage.is-9x16 {
+    height: min(100%, calc(40dvh - 16px));
+  }
+
+  .kefe-timeline {
+    gap: 5px;
+    padding-inline: 7px;
+  }
+
+  .kefe-play {
+    width: 32px;
+    height: 32px;
+  }
+
+  .kefe-time {
+    font-size: 9px;
+  }
+
+  .kefe-tabs {
+    gap: 4px;
+    padding-inline: 6px;
+  }
+
+  .kefe-section {
+    padding-inline: 10px;
+    font-size: 10px;
+  }
+}
