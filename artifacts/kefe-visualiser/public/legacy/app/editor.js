@@ -1308,6 +1308,44 @@
       return exportTap.stream;
     }catch(error){console.warn('[KEFE export audio]',error);return null;}
   }
+  // Touch-friendly preview transform for the visualiser. The same transform is
+  // applied by the export compositor so the exported framing matches the preview.
+  const previewStage=document.querySelector('.kefe-stage');
+  let visualiserZoom=1,visualiserPanX=0,visualiserPanY=0;
+  const activeVisualiserCanvas=()=>window.kefeFlutedGlassActive?document.getElementById('kefeFlutedGlassCanvas'):document.getElementById('kefeVisualiserCanvas');
+  const applyVisualiserPreviewTransform=()=>{
+    const transform=`translate3d(${visualiserPanX}px,${visualiserPanY}px,0) scale(${visualiserZoom})`;
+    [document.getElementById('kefeVisualiserCanvas'),document.getElementById('kefeFlutedGlassCanvas')].forEach(el=>{if(el)el.style.transform=el===activeVisualiserCanvas()?transform:'';});
+  };
+  if(previewStage){
+    previewStage.style.touchAction='none';
+    const pointers=new Map();let gestureStart=null;
+    const point=e=>({x:e.clientX,y:e.clientY});
+    const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+    const midpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+    previewStage.addEventListener('pointerdown',e=>{
+      if(e.target.closest('button'))return;
+      if(e.pointerType!=='touch'&&e.pointerType!=='pen')return;
+      e.preventDefault();previewStage.setPointerCapture(e.pointerId);pointers.set(e.pointerId,point(e));
+      if(pointers.size===1)gestureStart={mode:'pan',point:point(e),x:visualiserPanX,y:visualiserPanY};
+      else if(pointers.size===2){const pts=[...pointers.values()];gestureStart={mode:'pinch',distance:Math.max(1,distance(pts[0],pts[1])),zoom:visualiserZoom,mid:midpoint(pts[0],pts[1]),x:visualiserPanX,y:visualiserPanY};}
+    },{passive:false});
+    previewStage.addEventListener('pointermove',e=>{
+      if(!pointers.has(e.pointerId)||!gestureStart)return;
+      e.preventDefault();pointers.set(e.pointerId,point(e));
+      if(pointers.size>=2&&gestureStart.mode==='pinch'){
+        const pts=[...pointers.values()],mid=midpoint(pts[0],pts[1]);
+        visualiserZoom=Math.max(.25,Math.min(4,gestureStart.zoom*distance(pts[0],pts[1])/gestureStart.distance));
+        visualiserPanX=gestureStart.x+(mid.x-gestureStart.mid.x);visualiserPanY=gestureStart.y+(mid.y-gestureStart.mid.y);
+      }else if(pointers.size===1&&gestureStart.mode==='pan'){
+        visualiserPanX=gestureStart.x+(e.clientX-gestureStart.point.x);visualiserPanY=gestureStart.y+(e.clientY-gestureStart.point.y);
+      }
+      applyVisualiserPreviewTransform();
+    },{passive:false});
+    const endGesture=e=>{pointers.delete(e.pointerId);if(!pointers.size)gestureStart=null;else if(pointers.size===1){const [id,p]=[...pointers.entries()][0];gestureStart={mode:'pan',point:p,x:visualiserPanX,y:visualiserPanY};}};
+    previewStage.addEventListener('pointerup',endGesture);previewStage.addEventListener('pointercancel',endGesture);
+    applyVisualiserPreviewTransform();
+  }
   document.getElementById('exportButton').addEventListener('click',async()=>{
     const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),visualiserCanvas=window.kefeFlutedGlassActive?document.getElementById('kefeFlutedGlassCanvas'):document.getElementById('kefeVisualiserCanvas');
     if(exporting)return;
@@ -1336,7 +1374,7 @@
       compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paint(compositeCtx,dims[0],dims[1],state.time);
       const vw=visualiserCanvas.width,vh=visualiserCanvas.height;
-      if(vw&&vh&&(window.kefeFlutedGlassActive?window.kefeFlutedGlassEnabled!==false:window.kefeVisualiserEnabled!==false)){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k;compositeCtx.save();compositeCtx.globalCompositeOperation=window.kefeFlutedGlassActive?'source-over':(window.kefeBackground?window.kefeBackground.blend():'source-over');compositeCtx.drawImage(visualiserCanvas,(dims[0]-dw)/2,(dims[1]-dh)/2,dw,dh);compositeCtx.restore();}
+      if(vw&&vh&&(window.kefeFlutedGlassActive?window.kefeFlutedGlassEnabled!==false:window.kefeVisualiserEnabled!==false)){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k,stageRect=previewStage?.getBoundingClientRect(),sx=stageRect?.width?dims[0]/stageRect.width:1,sy=stageRect?.height?dims[1]/stageRect.height:1;compositeCtx.save();compositeCtx.globalCompositeOperation=window.kefeFlutedGlassActive?'source-over':(window.kefeBackground?window.kefeBackground.blend():'source-over');compositeCtx.translate(dims[0]/2+visualiserPanX*sx,dims[1]/2+visualiserPanY*sy);compositeCtx.scale(visualiserZoom,visualiserZoom);compositeCtx.drawImage(visualiserCanvas,-dw/2,-dh/2,dw,dh);compositeCtx.restore();}
       if(window.kefeGradientLayer)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
       if(window.kefeAudioOverlay)window.kefeAudioOverlay.paint(compositeCtx,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paintTransparency(compositeCtx,dims[0],dims[1]);
