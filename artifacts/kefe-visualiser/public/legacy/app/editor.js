@@ -524,7 +524,7 @@
     previewAspectRatio=aspectSelect.value;
     // Preview canvas follows the chosen aspect so effects lay out for it instead of being stretched.
     if(!exporting){
-      const pd=previewAspectRatio==='9:16'?[720,1280]:previewAspectRatio==='1:1'?[720,720]:[1280,720];
+      const pd=previewAspectRatio==='9:16'?[1080,1920]:previewAspectRatio==='1:1'?[1080,1080]:[1920,1080];
       canvas.width=pd[0];canvas.height=pd[1];
     }
     previewStage?.classList.remove('is-16x9','is-9x16','is-1x1');
@@ -1170,10 +1170,18 @@
       state.time=audio.currentTime;range.value=state.time;updateTime();syncAppleLyrics();
     }
   });
+  /* audio.currentTime only advances in coarse steps; interpolate with the frame clock so line transitions animate smoothly. */
+  const clk={a:-1,p:0};
+  function smoothTime(){
+    const now=performance.now(),t=audio.currentTime;
+    if(t!==clk.a){clk.a=t;clk.p=now;}
+    const est=clk.a+(now-clk.p)/1000*(audio.playbackRate||1);
+    return Math.max(t,Math.min(est,t+0.12));
+  }
   function syncPreview(){
     const firstLyric=state.lines[0]?.time;
     if(audio.src&&!audio.paused){
-      state.time=audio.currentTime;
+      state.time=smoothTime();
       range.value=state.time;
       updateTime();
       syncAppleLyrics();
@@ -1182,7 +1190,7 @@
     }
   }
   audio.addEventListener('play',()=>{
-    updatePlayButton();
+    clk.a=-1;updatePlayButton();
     if(video.src){
       video.currentTime=audio.currentTime;
       video.play().catch(err=>console.warn('[KEFE video]',err));
@@ -1236,6 +1244,7 @@
     if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream||!visualiserCanvas){status.textContent='Video export is not supported by this browser.';return;}
     if(!audio.src||!Number.isFinite(audio.duration)){status.textContent='Upload a track first.';return;}
     if(window.KEFE_TYPE?.ready){try{await window.KEFE_TYPE.ready;}catch(_){} }
+    if(document.fonts?.load){try{await Promise.all([document.fonts.load('700 48px "Inter Tight"'),document.fonts.load('600 48px "Inter Tight"')]);}catch(_){} }
     if(document.fonts?.ready){try{await document.fonts.ready;}catch(_){} }
     const webmTypes=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
     const mp4Types=['video/mp4;codecs=avc1.640028,mp4a.40.2','video/mp4;codecs=avc1,mp4a.40.2','video/mp4;codecs=h264,aac','video/mp4'];
@@ -1285,7 +1294,7 @@
       if(audioStream)audioStream.getAudioTracks().forEach(t=>stream.addTrack(t));
       else status.textContent='Audio capture unavailable here; exporting video only…';
       const chunks=[];
-      recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:res>=1080?16000000:8000000});
+      recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:res>=2160?45000000:res>=1440?28000000:res>=1080?16000000:8000000});
       recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
       const stopped=new Promise(resolve=>{recorder.onstop=resolve});
       recorder.start(1000);
@@ -1508,7 +1517,7 @@
     },
     redraw:()=>draw()
   };
-  parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();ensureLyricsTools();applySettingsDefaults();
+  canvas.width=1920;canvas.height=1080;parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();ensureLyricsTools();applySettingsDefaults();
   syncAppleLyricsMetadata();
   syncAppleLyrics(true);
 })();

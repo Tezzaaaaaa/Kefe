@@ -13,7 +13,7 @@
     ]},
     { group: 'Defaults', items: [
       { key: 'aspect', label: 'Aspect ratio', hint: 'Used for the preview and exports.', type: 'select', def: '16:9', options: [['16:9', '16:9'], ['9:16', '9:16'], ['1:1', '1:1']] },
-      { key: 'exportResolution', label: 'Export resolution', type: 'select', def: '1080', options: [['720', '720p'], ['1080', '1080p']] }
+      { key: 'exportResolution', label: 'Export resolution', type: 'select', def: '1080', options: [['720', '720p'], ['1080', '1080p'], ['1440', '1440p (2K)'], ['2160', '2160p (4K)']] }
     ]},
   ];
 
