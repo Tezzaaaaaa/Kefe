@@ -1406,7 +1406,7 @@ html {
 }
 
 
-/* Shared neumorphic design standard: consistent UI typography and control geometry. */
+/* Shared neumorphic design standard: consistent UI typography, spacing and control geometry. */
 html, body {
   font-family: "Inter Tight", "Inter", system-ui, sans-serif;
   font-size: var(--font-base);
@@ -1417,31 +1417,48 @@ button, input, select, textarea {
   line-height: inherit;
 }
 .kefe-btn, .kefe-control, .kefe-input, .kefe-select, .kefe-textarea,
-.kefe-seg-btn, .kefe-style-mini, .kefe-mini, .kefe-nudge, .kefe-time-input {
+.kefe-seg-btn, .kefe-style-mini, .kefe-mini, .kefe-nudge, .kefe-time-input,
+.kefe-download-row button, .kefe-review button {
   font-size: var(--font-sm);
   border-radius: var(--r1);
 }
 .kefe-btn, .kefe-control, .kefe-input, .kefe-select, .kefe-textarea {
   min-height: var(--control-h);
 }
-.kefe-section, .kefe-top-link {
-  font-size: var(--font-sm);
-  line-height: var(--line-tight);
-}
-.kefe-panel h2 {
-  font-size: var(--font-lg);
-  line-height: var(--line-tight);
-}
-.kefe-label, .kefe-meta, .kefe-field label {
+.kefe-section, .kefe-top-link, .kefe-follow, .kefe-review-item {
   font-size: var(--font-sm);
   line-height: var(--line-normal);
 }
-.kefe-panel, .kefe-card, .kefe-car-art, .kefe-settings-project-icon {
+.kefe-panel h1, .kefe-panel h2, .kefe-panel h3,
+.kefe-card h1, .kefe-card h2, .kefe-card h3 {
+  line-height: var(--line-tight);
+}
+.kefe-panel h2, .kefe-card h2 {
+  font-size: var(--font-lg);
+}
+.kefe-panel h3, .kefe-card h3 {
+  font-size: var(--font-base);
+}
+.kefe-label, .kefe-meta, .kefe-field label, .kefe-visualiser-field > span {
+  font-size: var(--font-sm);
+  line-height: var(--line-normal);
+}
+.kefe-panel, .kefe-card, .kefe-car-art, .kefe-settings-project-icon,
+.kefe-line, .kefe-word {
   border-radius: var(--r2);
 }
 .kefe-btn:focus-visible, .kefe-control:focus-visible,
 .kefe-input:focus-visible, .kefe-select:focus-visible,
-.kefe-textarea:focus-visible {
+.kefe-textarea:focus-visible, .kefe-seg-btn:focus-visible,
+.kefe-mini:focus-visible, .kefe-nudge:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
