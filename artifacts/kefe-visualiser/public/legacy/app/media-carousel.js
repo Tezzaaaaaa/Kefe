@@ -87,15 +87,17 @@
   function busy(on){el.FindBox.classList.toggle('busy',on);el.Carousel.classList.toggle('busy',on);}
 
   async function itunes(query,entity){
-    var last=null;
+    var last=null,all=[];
     for(var i=0;i<COUNTRIES.length;i++){
       var c=new AbortController(),t=setTimeout(function(){c.abort();},9000);
       try{
-        var r=await fetch('https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity='+entity+'&limit=18&country='+COUNTRIES[i],{signal:c.signal});
+        var r=await fetch('https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity='+entity+'&limit=50&country='+COUNTRIES[i],{signal:c.signal});
         if(!r.ok)throw new Error('HTTP '+r.status);
-        var j=await r.json();if(j.results&&j.results.length)return j.results;
+        var j=await r.json();
+        if(Array.isArray(j.results))all=all.concat(j.results);
       }catch(e){last=e;}finally{clearTimeout(t);}
     }
+    if(all.length)return all;
     if(last)throw last;return [];
   }
   async function search(q){
@@ -109,7 +111,7 @@
       var songs=res[0].status==='fulfilled'?res[0].value:[],albums=res[1].status==='fulfilled'?res[1].value:[];
       if(res[0].status==='rejected'&&res[1].status==='rejected')throw res[0].reason;
       var seen={};
-      S.items=albums.slice(0,8).concat(songs).filter(function(it){
+      S.items=albums.concat(songs).filter(function(it){
         if(!it.artworkUrl100)return false;
         var k=kindOf(it)+'|'+titleOf(it)+'|'+it.artistName;if(seen[k])return false;seen[k]=1;return true;
       });
