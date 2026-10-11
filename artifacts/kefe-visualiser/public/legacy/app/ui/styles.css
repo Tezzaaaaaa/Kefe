@@ -708,6 +708,11 @@ button{border:0;cursor:pointer}
   background:var(--surface-hi);
   box-shadow:var(--inner);
 }
+.kefe-randomize-effect-settings{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--line-soft);
+}
 .kefe-visualiser-control-group #visualiserParameters{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
