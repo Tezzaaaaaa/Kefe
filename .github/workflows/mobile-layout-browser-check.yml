@@ -1,0 +1,157 @@
+name: Mobile layout browser verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "artifacts/kefe-visualiser/public/legacy/**"
+      - ".github/workflows/mobile-layout-browser-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Serve the actual legacy editor files
+        run: |
+          python3 -m http.server 4173 --directory artifacts/kefe-visualiser/public/legacy > /tmp/kefe-http.log 2>&1 &
+          echo $! > /tmp/kefe-http.pid
+
+      - name: Verify mobile controls in Chromium
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const assert = require('node:assert/strict');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const reports = [];
+            try {
+              for (const width of [390, 320]) {
+                const page = await browser.newPage({
+                  viewport: { width, height: 844 },
+                  deviceScaleFactor: 1,
+                  isMobile: true,
+                  hasTouch: true
+                });
+                const pageErrors = [];
+                page.on('pageerror', error => pageErrors.push(error.message));
+                await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
+                await page.locator('.kefe-section[data-panel="effects"]').waitFor();
+                await page.locator('.kefe-section[data-panel="effects"]').click();
+                await page.locator('.kefe-panel[data-panel-view="effects"].active').waitFor();
+                await page.waitForTimeout(500);
+
+                async function assertTwoColumns(formSelector, panelName) {
+                  const result = await page.locator(formSelector).evaluate(form => {
+                    const style = getComputedStyle(form);
+                    const columns = style.gridTemplateColumns.trim().split(/\\s+/).filter(Boolean);
+                    return { columns: columns.length, template: style.gridTemplateColumns, width: form.getBoundingClientRect().width };
+                  });
+                  assert.equal(result.columns, 2, `${panelName} at ${width}px must render exactly two form columns; got ${result.template}`);
+                  return result;
+                }
+
+                async function assertSelectsStayInOneColumn(panelSelector, panelName) {
+                  const details = page.locator(panelSelector + ' details.kefe-style-disclosure');
+                  for (let n = 0; n < await details.count(); n++) {
+                    const item = details.nth(n);
+                    if (!(await item.evaluate(el => el.open))) {
+                      await item.locator('summary').click();
+                    }
+                  }
+                  const result = await page.locator(panelSelector).evaluate(panel => {
+                    const form = panel.querySelector('.kefe-form');
+                    const formWidth = form.getBoundingClientRect().width;
+                    return [...panel.querySelectorAll('select')]
+                      .filter(el => el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden')
+                      .map(el => ({
+                        id: el.id || el.getAttribute('aria-label') || el.className,
+                        width: el.getBoundingClientRect().width,
+                        formWidth,
+                        parent: el.parentElement?.className || el.parentElement?.tagName
+                      }));
+                  });
+                  assert.ok(result.length > 0, `${panelName} at ${width}px should expose dropdown controls`);
+                  for (const item of result) {
+                    assert.ok(item.width <= item.formWidth * 0.62,
+                      `${panelName} dropdown ${item.id} spans too much of the form at ${width}px: ${item.width}px of ${item.formWidth}px (parent ${item.parent})`);
+                  }
+                  return result;
+                }
+
+                const effectsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
+                const effectsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="effects"]', 'Effects');
+
+                await page.locator('.kefe-section[data-panel="visualiser"]').click();
+                await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
+                await page.waitForTimeout(500);
+                const visualiserGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Visualiser');
+                const visualiserSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Visualiser');
+
+                const flutedTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /Fluted Glass/i }).first();
+                if (await flutedTab.count()) {
+                  await flutedTab.click();
+                  await page.locator('#kefeVisFlutedView:not([hidden])').waitFor();
+                  const flutedDisplay = await page.locator('#kefeVisFlutedView').evaluate(el => getComputedStyle(el).display);
+                  assert.equal(flutedDisplay, 'contents', `Fluted Glass wrapper must flatten into the same two-column form at ${width}px; got ${flutedDisplay}`);
+                  const flutedGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Fluted Glass');
+                  const sliderWidths = await page.locator('#flutedSliders > *').evaluateAll(nodes => nodes.filter(el => el.getClientRects().length).map(el => ({label: el.querySelector('b')?.textContent || el.textContent.trim().slice(0, 30), width: el.getBoundingClientRect().width})));
+                  for (const item of sliderWidths) {
+                    assert.ok(item.width <= flutedGrid.width * 0.62,
+                      `Fluted Glass slider ${item.label} spans too much width at ${width}px: ${item.width}px of ${flutedGrid.width}px`);
+                  }
+                  await page.screenshot({ path: `mobile-layout-${width}-fluted.png`, fullPage: false });
+                }
+
+                reports.push({
+                  viewport: width,
+                  effectsColumns: effectsGrid.template,
+                  effectsDropdownCount: effectsSelects.length,
+                  visualiserColumns: visualiserGrid.template,
+                  visualiserDropdownCount: visualiserSelects.length,
+                  pageErrors
+                });
+                await page.screenshot({ path: `mobile-layout-${width}-visualiser.png`, fullPage: false });
+                assert.deepEqual(pageErrors, [], `Browser runtime errors at ${width}px`);
+                await page.close();
+              }
+              console.log(JSON.stringify({ result: 'PASS', reports }, null, 2));
+            } finally {
+              await browser.close();
+            }
+          })().catch(error => {
+            console.error(error);
+            process.exitCode = 1;
+          });
+          NODE
+
+      - name: Save mobile screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kefe-mobile-layout-screenshots
+          path: mobile-layout-*.png
+          if-no-files-found: ignore
