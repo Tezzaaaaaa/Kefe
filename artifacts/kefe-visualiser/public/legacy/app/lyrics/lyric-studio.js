@@ -127,7 +127,7 @@
         caseBox.classList.add('kefe-case-control');
         fontBlock.classList.add('kefe-font-control');
         var pair = el('div', 'kefe-font-case-row');
-        fontBlock.parentNode.insertBefore(pair, fontBlock);
+        wrap.insertBefore(pair, caseBox);
         pair.append(fontBlock, caseBox);
       } else if (fontBlock) {
         fontBlock.classList.add('kefe-font-control');
