@@ -321,6 +321,15 @@ jobs:
 
                   await page.locator('.kefe-section[data-panel="media"]').click();
                   await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
+                  await page.route('https://api.audd.io/**', route => route.fulfill({
+                    status: 200, contentType: 'application/json',
+                    headers: { 'access-control-allow-origin': '*' },
+                    body: JSON.stringify({ status: 'success', result: {
+                      title: 'KEFE Recognition Verification', artist: 'KEFE Test Artist',
+                      album: 'KEFE Test Album', release_date: '2026-01-01',
+                      apple_music: { trackId: 928431, trackTimeMillis: 120000 }
+                    } })
+                  }));
                   await page.route('https://itunes.apple.com/**', route => route.fulfill({
                     status: 200, contentType: 'application/json',
                     headers: { 'access-control-allow-origin': '*' },
@@ -329,9 +338,14 @@ jobs:
                   await page.locator('#mediaInput').setInputFiles({
                     name: 'KEFE Local Upload Verification.wav', mimeType: 'audio/wav', buffer: makeTestWav()
                   });
-                  const localResult = page.locator('#kefeCarStack .kefe-car-card').filter({ hasText: 'KEFE Local Upload Verification' }).first();
+                  await page.waitForFunction(() =>
+                    document.getElementById('songTitle')?.value === 'KEFE Recognition Verification' &&
+                    document.getElementById('songArtist')?.value === 'KEFE Test Artist',
+                    { timeout: 15000 }
+                  );
+                  const localResult = page.locator('#kefeCarStack .kefe-car-card').filter({ hasText: 'KEFE Recognition Verification' }).first();
                   await localResult.waitFor({ state: 'visible', timeout: 15000 });
-                  await page.waitForFunction(() => (document.getElementById('kefeLyricsStatus')?.textContent || '').includes('Couldn’t identify this song automatically'), { timeout: 15000 });
+                  console.log('[audio-recognition-audit] recognized title and artist populated from fingerprint provider response');
                   await page.locator('#kefeFindInput').fill('KEFE query with no catalogue matches 928431');
                   await page.getByText('No catalogue matches. Your uploaded file is available below.', { exact: true }).waitFor({ timeout: 15000 });
                   await localResult.waitFor({ state: 'visible', timeout: 5000 });
@@ -339,7 +353,7 @@ jobs:
                   await page.locator('#kefeCarUse').filter({ hasText: 'Use uploaded file' }).waitFor({ state: 'visible' });
                   await page.locator('#kefeCarUse').click();
                   await page.waitForFunction(() => document.getElementById('kefeFindStatus')?.textContent === 'Using the uploaded file. Catalogue matches remain available.', { timeout: 5000 });
-                  console.log('[upload-search-audit] local upload remains visible, selectable, and preserved with zero catalogue matches');
+                  console.log('[audio-recognition-audit] recognized upload remains visible, selectable, and preserved with zero catalogue matches');
                 }
 
                 reports.push({
