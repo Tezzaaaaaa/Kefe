@@ -112,7 +112,7 @@ jobs:
                 const visualiserGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Visualiser');
                 const visualiserSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Visualiser');
                 const tabsLayout = await page.locator('.kefe-vis-tabs').evaluate(el => ({
-                  columns: getComputedStyle(el).gridTemplateColumns.trim().split(/\\s+/).filter(Boolean).length,
+                  columns: getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length,
                   width: el.getBoundingClientRect().width,
                   formWidth: el.closest('.kefe-form').getBoundingClientRect().width
                 }));
