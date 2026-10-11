@@ -118,6 +118,16 @@ jobs:
                 await page.locator('.kefe-panel[data-panel-view="lyrics"].active').waitFor();
                 const lyricsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="lyrics"] .kefe-form', 'Lyrics');
                 const lyricsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="lyrics"]', 'Lyrics', false);
+                const lyricsComponentWidths = await page.locator('#lyricsInput').evaluate(el => {
+                  const formWidth = el.closest('.kefe-form').getBoundingClientRect().width;
+                  return {
+                    textWidth: el.parentElement.getBoundingClientRect().width,
+                    timingWidth: document.querySelector('.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing').getBoundingClientRect().width,
+                    formWidth
+                  };
+                });
+                assert.ok(lyricsComponentWidths.textWidth >= lyricsComponentWidths.formWidth * 0.9, 'Lyrics textarea should remain full width');
+                assert.ok(lyricsComponentWidths.timingWidth >= lyricsComponentWidths.formWidth * 0.9, 'Lyrics timing control should remain full width');
                 if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-lyrics.png`, fullPage: false });
 
                 await page.locator('.kefe-section[data-panel="export"]').click();
@@ -199,6 +209,7 @@ jobs:
                   songDetailFieldCount: songDetailFields.length,
                   lyricsColumns: lyricsGrid.template,
                   lyricsDropdownCount: lyricsSelects.length,
+                  lyricsTextAndTimingFullWidth: true,
                   exportColumns: exportGrid.template,
                   exportDropdownCount: exportSelects.length,
                   effectsColumns: effectsGrid.template,
@@ -234,7 +245,7 @@ jobs:
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
           for attempt in $(seq 1 48); do
-            if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -q 'mobile-two-column-20261011-16' /tmp/kefe-live-index.html; then
+            if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -q 'mobile-two-column-20261011-17' /tmp/kefe-live-index.html; then
               echo 'Latest mobile stylesheet version is published.'
               exit 0
             fi
