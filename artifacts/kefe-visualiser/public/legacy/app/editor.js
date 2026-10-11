@@ -740,13 +740,13 @@
     const versionPattern=/\b(remix|rework|bootleg|mashup|nightcore|slowed|sped up|speed up|reverb|karaoke|cover|instrumental|live)\b/;
     const sourceHasVersion=versionPattern.test(title),resultHasVersion=versionPattern.test(itemTitle);
     let score=0;
-    const itemCore=coreTitle(item.trackName);
-    if(title&&itemTitle===title)score+=150;
-    else if(title&&itemCore&&itemCore===coreTitle(meta.title))score+=85;
-    else if(title&&itemTitle&&(itemTitle.includes(title)||title.includes(itemTitle)))score+=35;
-    if(artist&&itemArtist===artist)score+=110;
-    else if(artist&&itemArtist&&(itemArtist.includes(artist)||artist.includes(itemArtist)))score+=35;
-    if(resultHasVersion&&!sourceHasVersion)score-=100;
+    const itemCore=coreTitle(item.trackName),sourceCore=coreTitle(meta.title);
+    if(title&&itemTitle===title)score+=300;
+    else if(title&&itemCore&&itemCore===sourceCore)score+=220;
+    else if(title&&itemTitle&&(itemTitle.includes(title)||title.includes(itemTitle)))score+=60;
+    if(artist&&itemArtist===artist)score+=100;
+    else if(artist&&itemArtist&&(itemArtist.includes(artist)||artist.includes(itemArtist)))score+=30;
+    if(resultHasVersion&&!sourceHasVersion)score-=80;
     if(duration&&item.trackTimeMillis){
       const difference=Math.abs(Number(item.trackTimeMillis)/1000-duration);
       score+=Math.max(-45,35-difference*2.5);
@@ -754,15 +754,15 @@
     return score;
   }
   function isConfidentMatch(item,meta,duration){
-    if(!meta.title||!meta.artist)return false;
+    if(!String(meta.title||'').trim())return false;
     const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist);
     const candidateTitle=normalizeSearchText(item.trackName),candidateArtist=normalizeSearchText(item.artistName);
     if(!(candidateTitle===title||coreTitle(item.trackName)===coreTitle(meta.title)))return false;
-    if(candidateArtist!==artist)return false;
+    if(artist&&candidateArtist!==artist)return false;
     const versionPattern=/\b(remix|rework|bootleg|mashup|nightcore|slowed|sped up|speed up|reverb|karaoke|cover|instrumental|live)\b/;
     if(versionPattern.test(candidateTitle)&&!versionPattern.test(title))return false;
     if(duration&&item.trackTimeMillis&&Math.abs(Number(item.trackTimeMillis)/1000-duration)>12)return false;
-    return rankTrack(item,meta,duration)>=170;
+    return true;
   }
   function applyIdentifiedTrack(item){
     songTitle.value=item.trackName||songTitle.value;
@@ -778,7 +778,7 @@
   }
   async function fetchItunesMatches(meta,duration){
     const title=String(meta.title||'').trim(),artist=String(meta.artist||'').trim();
-    const queries=[ [title,artist].filter(Boolean).join(' ').trim(), title ].filter((query,index,all)=>query&&all.indexOf(query)===index);
+    const queries=[title,[title,artist].filter(Boolean).join(' ').trim()].filter((query,index,all)=>query&&all.indexOf(query)===index);
     if(!queries.length)return [];
     const countries=['AU','US'];
     const requests=queries.flatMap(query=>countries.map(async country=>{
