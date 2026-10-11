@@ -71,6 +71,7 @@
   let mediaObjectUrl=''; let visualiserPreset='none',visualiserBackground='black',visualiserMotion='reactive';
   let previewAspectRatio='16:9';
   let titleArtImage=null,titleCardShownFor='';
+  let titleArtworkRequest=0,titleArtworkTimer=null;
   window.kefeGetAlbumArt=()=>titleArtImage;
   const songTitle=document.getElementById('songTitle'),songArtist=document.getElementById('songArtist'),songAlbum=document.getElementById('songAlbum'),songYear=document.getElementById('songYear');
   const previewStage=document.querySelector('.kefe-stage');
@@ -230,6 +231,71 @@
       titleArtImage=image;
     }
     draw();
+  }
+  function scheduleTitleArtworkLookup(meta={title:songTitle.value.trim(),artist:songArtist.value.trim(),album:songAlbum.value.trim()}){
+    clearTimeout(titleArtworkTimer);
+    const request=++titleArtworkRequest;
+    const details={title:String(meta.title||'').trim(),artist:String(meta.artist||'').trim(),album:String(meta.album||'').trim()};
+    if(!details.title&&!details.album)return;
+    titleArtworkTimer=setTimeout(()=>{lookupTitleArtwork(details,request).catch(error=>console.warn('[KEFE title artwork]',error));},250);
+  }
+  async function lookupTitleArtwork(meta,request){
+    if(!meta.title&&!meta.album)return false;
+    const queries=[
+      {term:[meta.title,meta.artist,meta.album].filter(Boolean).join(' '),entity:'song'},
+      {term:[meta.title,meta.artist].filter(Boolean).join(' '),entity:'song'},
+      {term:meta.title,entity:'song'},
+      {term:meta.album,entity:'album'}
+    ].filter((q,i,all)=>q.term&&all.findIndex(v=>v.term.toLowerCase()===q.term.toLowerCase()&&v.entity===q.entity)===i);
+    const candidates=new Map();
+    for(const query of queries){
+      if(request!==titleArtworkRequest)return false;
+      try{
+        const response=await fetch('https://itunes.apple.com/search?term='+encodeURIComponent(query.term)+'&entity='+query.entity+'&limit=50&country=AU',{headers:{Accept:'application/json'}});
+        if(!response.ok)continue;
+        const payload=await response.json();
+        for(const item of Array.isArray(payload.results)?payload.results:[]){
+          const art=normalizeArtworkUrl(item.artworkUrl100);
+          if(!art)continue;
+          const key=item.trackId!=null?'id:'+item.trackId:[normalizeSearchText(item.trackName||item.collectionName),normalizeSearchText(item.artistName),normalizeSearchText(item.collectionName)].join('|');
+          if(!candidates.has(key))candidates.set(key,item);
+        }
+      }catch(error){console.warn('[KEFE artwork search]',query.entity,error?.name||error);}
+      if(candidates.size)break;
+    }
+    if(request!==titleArtworkRequest||songAlbum.dataset.artUrl)return false;
+    const matches=[...candidates.values()].filter(item=>{
+      const candidateTitle=normalizeSearchText(item.trackName),candidateAlbum=normalizeSearchText(item.collectionName),candidateArtist=normalizeSearchText(item.artistName);
+      if(meta.title){
+        const expected=normalizeSearchText(meta.title);
+        if(!candidateTitle||(candidateTitle!==expected&&coreTitle(item.trackName)!==coreTitle(meta.title)))return false;
+      }else if(meta.album){
+        const expectedAlbum=normalizeSearchText(meta.album);
+        if(!candidateAlbum||!(candidateAlbum===expectedAlbum||candidateAlbum.includes(expectedAlbum)||expectedAlbum.includes(candidateAlbum)))return false;
+      }else return false;
+      if(meta.artist){
+        const expectedArtist=normalizeSearchText(meta.artist);
+        if(!candidateArtist||!(candidateArtist===expectedArtist||candidateArtist.includes(expectedArtist)||expectedArtist.includes(candidateArtist)))return false;
+      }
+      if(meta.album&&candidateAlbum){
+        const expectedAlbum=normalizeSearchText(meta.album);
+        if(!(candidateAlbum===expectedAlbum||candidateAlbum.includes(expectedAlbum)||expectedAlbum.includes(candidateAlbum)))return false;
+      }
+      return true;
+    }).sort((a,b)=>rankTrack(b,meta,Number(audio.duration)||0)-rankTrack(a,meta,Number(audio.duration)||0));
+    const best=matches[0];
+    if(!best?.artworkUrl100)return false;
+    songAlbum.dataset.artUrl=normalizeArtworkUrl(best.artworkUrl100);
+    updateTitleCard();
+    applyAppleAlbumGradient();
+    return true;
+  }
+  function clearTitleArtwork(){
+    clearTimeout(titleArtworkTimer);
+    titleArtworkRequest++;
+    delete songAlbum.dataset.artUrl;
+    titleArtImage=null;
+    updateTitleCard();
   }
   function applyAppleAlbumGradient(){
     const appleLyrics=document.getElementById('kefeAppleLyrics'),artUrl=songAlbum?.dataset.artUrl;
@@ -1133,6 +1199,7 @@
         if(mediaTrack)mediaTrack.classList.add('is-identified');
       }
       updateMediaTrack();updateTitleCard();
+      if(!songAlbum.dataset.artUrl)scheduleTitleArtworkLookup(meta);
       if(!recognized)setLyricsStatus('Identifying track…');
       const duration=Number(audio.duration)||0;
       let matches=[],catalogueSearchFailed=false;
@@ -1247,9 +1314,9 @@
     lyricsRequest++;
     if(activeLyricsController){activeLyricsController.abort();activeLyricsController=null;}
   };
-  songTitle.addEventListener('input',()=>{manuallyEditedTrackFields.add('title');cancelLyricsForManualEdit();updateTitleCard();scheduleManualSearch();});
-  songArtist.addEventListener('input',()=>{manuallyEditedTrackFields.add('artist');cancelLyricsForManualEdit();updateTitleCard();scheduleManualSearch();});
-  songAlbum.addEventListener('input',()=>{manuallyEditedTrackFields.add('album');cancelLyricsForManualEdit();updateTitleCard();});
+  songTitle.addEventListener('input',()=>{manuallyEditedTrackFields.add('title');cancelLyricsForManualEdit();clearTitleArtwork();scheduleTitleArtworkLookup();updateTitleCard();scheduleManualSearch();});
+  songArtist.addEventListener('input',()=>{manuallyEditedTrackFields.add('artist');cancelLyricsForManualEdit();clearTitleArtwork();scheduleTitleArtworkLookup();updateTitleCard();scheduleManualSearch();});
+  songAlbum.addEventListener('input',()=>{manuallyEditedTrackFields.add('album');clearTitleArtwork();scheduleTitleArtworkLookup();updateTitleCard();});
   songYear.addEventListener('input',()=>{manuallyEditedTrackFields.add('year');updateTitleCard();});
   lyricsInput.addEventListener('input',parseLyrics);
   fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
@@ -1266,6 +1333,9 @@
     if(/\.(lrc|ttml|xml|txt)$/i.test(file.name)||file.type==='text/plain'){handleLrcFile(file);e.target.value='';return;}
     if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
     mediaObjectUrl=URL.createObjectURL(file);
+    /* Invalidate pending artwork work and remove the previous song's cover. */
+    clearTitleArtwork();
+    delete songAlbum.dataset.platformId;delete songAlbum.dataset.trackDuration;
     /* Invalidate pending work from the previous upload immediately. */
     manualSearchSeq++;
     clearTimeout(manualSearchTimer);
