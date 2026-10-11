@@ -13,7 +13,7 @@
   const DEFAULT = { speed: 1, density: 8, jitter: 18, contrast: 100, direction: 1, softness: 0 };
   let S = Object.assign({}, DEFAULT);
   try { S = Object.assign(S, JSON.parse(localStorage.getItem(KEY) || 'null')); } catch (_) {}
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, Number(v) || 0));
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, Number(v) || 0));
   const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (_) {} };
   const redraw = () => { try { window.kefeLyrics?.redraw(); } catch (_) {} };
 
