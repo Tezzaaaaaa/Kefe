@@ -1292,3 +1292,10 @@
     width: 100%;
   }
 }
+
+/* Flatten toggle wrappers so labels and switches each occupy one of the two mobile columns. */
+@media (max-width: 700px) {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-vis-view:not([hidden]) .kefe-visualiser-spin-row {
+    display: contents !important;
+  }
+}
