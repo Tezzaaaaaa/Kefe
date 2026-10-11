@@ -85,19 +85,50 @@
   function status(msg,cls){el.FindStatus.textContent=msg;el.FindStatus.className='kefe-find-status'+(cls?' '+cls:'');}
   function busy(on){el.FindBox.classList.toggle('busy',on);el.Carousel.classList.toggle('busy',on);}
 
+  function normalise(value){
+    return String(value||'').normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  }
+  function relevance(item,query){
+    var q=normalise(query),title=normalise(titleOf(item)),artist=normalise(item.artistName),album=normalise(item.collectionName);
+    if(!q)return 0;
+    var score=0;
+    if(title===q)score+=160;
+    else if(title.indexOf(q)===0)score+=95;
+    else if(title.indexOf(q)>=0)score+=65;
+    if(artist===q)score+=55;
+    else if(artist.indexOf(q)>=0)score+=25;
+    if(album===q)score+=45;
+    else if(album.indexOf(q)>=0)score+=20;
+    var terms=q.split(/\\s+/).filter(Boolean),haystack=(title+' '+artist+' '+album).trim();
+    var matched=terms.filter(function(term){return haystack.indexOf(term)>=0;}).length;
+    score+=terms.length?matched/terms.length*30:0;
+    if(kindOf(item)==='song')score+=12;
+    return score;
+  }
+  function dedupe(items){
+    var seen=new Set();
+    return items.filter(function(it){
+      var key=(kindOf(it)==='album'?'album':'song')+'|'+normalise(titleOf(it))+'|'+normalise(it.artistName)+'|'+normalise(it.collectionName);
+      if(seen.has(key))return false;seen.add(key);return true;
+    });
+  }
   async function itunes(query,entity){
-    var last=null,all=[];
-    for(var i=0;i<COUNTRIES.length;i++){
-      var c=new AbortController(),t=setTimeout(function(){c.abort();},9000);
+    var requests=COUNTRIES.map(async function(country){
+      var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},12000);
       try{
-        var r=await fetch('https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity='+entity+'&limit=50&country='+COUNTRIES[i],{signal:c.signal});
-        if(!r.ok)throw new Error('HTTP '+r.status);
-        var j=await r.json();
-        if(Array.isArray(j.results))all=all.concat(j.results);
-      }catch(e){last=e;}finally{clearTimeout(t);}
-    }
-    if(all.length)return all;
-    if(last)throw last;return [];
+        var url='https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity='+entity+'&limit=200&country='+country;
+        var response=await fetch(url,{signal:controller.signal,headers:{Accept:'application/json'}});
+        if(!response.ok)throw new Error('HTTP '+response.status);
+        var payload=await response.json();
+        return Array.isArray(payload.results)?payload.results:[];
+      }finally{clearTimeout(timer);}
+    });
+    var settled=await Promise.allSettled(requests),all=[],lastError=null;
+    settled.forEach(function(result){
+      if(result.status==='fulfilled')all=all.concat(result.value);else lastError=result.reason;
+    });
+    if(!all.length&&lastError)throw lastError;
+    return dedupe(all);
   }
   async function search(q){
     q=q.trim();var token=++S.token;
@@ -109,11 +140,11 @@
       if(token!==S.token)return;
       var songs=res[0].status==='fulfilled'?res[0].value:[],albums=res[1].status==='fulfilled'?res[1].value:[];
       if(res[0].status==='rejected'&&res[1].status==='rejected')throw res[0].reason;
-      var seen={};
-      S.items=albums.concat(songs).filter(function(it){
-        if(!it.artworkUrl100)return false;
-        var k=kindOf(it)+'|'+titleOf(it)+'|'+it.artistName;if(seen[k])return false;seen[k]=1;return true;
-      });
+      var seen=new Set();
+      S.items=songs.concat(albums).filter(function(it){
+        var key=(kindOf(it)==='album'?'album':'song')+'|'+normalise(titleOf(it))+'|'+normalise(it.artistName)+'|'+normalise(it.collectionName);
+        if(seen.has(key))return false;seen.add(key);return true;
+      }).sort(function(a,b){return relevance(b,q)-relevance(a,q);});
       S.index=0;render();
       status(S.items.length?(visible().length+' result'+(visible().length===1?'':'s')):'No results','');
     }catch(e){
