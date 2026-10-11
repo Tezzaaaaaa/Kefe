@@ -1064,8 +1064,9 @@ button{border:0;cursor:pointer}
 
 
 /* Project identity / repository information */
-.kefe-github-link{width:40px;padding:0;display:grid;place-items:center;text-decoration:none}
+.kefe-github-link{width:var(--control-h);flex:0 0 var(--control-h);padding:0;display:grid;place-items:center;text-decoration:none}
 .kefe-github-link svg{width:18px;height:18px;display:block}
+@media(max-width:900px){.kefe-github-link{width:34px;flex-basis:34px}}
 .kefe-site-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 24px;border-top:1px solid var(--line-soft);background:var(--surface);box-shadow:var(--lift);font-size:10px;min-height:52px}
 .kefe-site-footer-brand{display:flex;align-items:center;gap:10px;min-width:0}
 .kefe-site-footer-brand img{width:28px;height:28px;display:block;border-radius:8px;box-shadow:var(--inner)}
