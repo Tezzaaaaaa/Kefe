@@ -749,8 +749,8 @@
     return normalizeSearchText(String(value||'').replace(/\(.*?\)|\[.*?\]/g,' ').replace(/\s-\s.*$/,''));
   }
   function rankTrack(item,meta,duration){
-    const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist);
-    const itemTitle=normalizeSearchText(item.trackName),itemArtist=normalizeSearchText(item.artistName);
+    const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist),album=normalizeSearchText(meta.album);
+    const itemTitle=normalizeSearchText(item.trackName),itemArtist=normalizeSearchText(item.artistName),itemAlbum=normalizeSearchText(item.collectionName);
     const versionPattern=/\b(remix|rework|bootleg|mashup|nightcore|slowed|sped up|speed up|reverb|karaoke|cover|instrumental|live)\b/;
     const sourceHasVersion=versionPattern.test(title),resultHasVersion=versionPattern.test(itemTitle);
     let score=0;
@@ -761,6 +761,9 @@
     if(artist&&itemArtist===artist)score+=160;
     else if(artist&&itemArtist&&(itemArtist.includes(artist)||artist.includes(itemArtist)))score+=70;
     else if(artist&&itemArtist)score-=180;
+    if(album&&itemAlbum===album)score+=140;
+    else if(album&&itemAlbum&&(itemAlbum.includes(album)||album.includes(itemAlbum)))score+=80;
+    else if(album&&itemAlbum)score-=120;
     if(resultHasVersion&&!sourceHasVersion)score-=80;
     if(duration&&item.trackTimeMillis){
       const difference=Math.abs(Number(item.trackTimeMillis)/1000-duration);
@@ -769,19 +772,20 @@
     return score;
   }
   function isConfidentMatch(item,meta,duration){
-    const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist);
-    const candidateTitle=normalizeSearchText(item.trackName),candidateArtist=normalizeSearchText(item.artistName);
-    if(!title||!candidateTitle||!candidateArtist)return false;
-    if(!(candidateTitle===title||coreTitle(item.trackName)===coreTitle(meta.title)))return false;
+    const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist),album=normalizeSearchText(meta.album);
+    const candidateTitle=normalizeSearchText(item.trackName),candidateArtist=normalizeSearchText(item.artistName),candidateAlbum=normalizeSearchText(item.collectionName);
+    if(!candidateTitle||!candidateArtist)return false;
+    const titleMatches=!!title&&(candidateTitle===title||coreTitle(item.trackName)===coreTitle(meta.title));
     const artistMatches=!!artist&&(candidateArtist===artist||candidateArtist.includes(artist)||artist.includes(candidateArtist));
-    if(artist&&!artistMatches)return false;
+    const albumMatches=!!album&&!!candidateAlbum&&(candidateAlbum===album||candidateAlbum.includes(album)||album.includes(candidateAlbum));
+    const available=[title,artist,album].filter(Boolean).length;
+    if(!available||(title&&!titleMatches)||(artist&&!artistMatches)||(album&&!albumMatches))return false;
     const versionPattern=/\b(remix|rework|bootleg|mashup|nightcore|slowed|sped up|speed up|reverb|karaoke|cover|instrumental|live)\b/;
-    if(versionPattern.test(candidateTitle)&&!versionPattern.test(title))return false;
+    if(title&&versionPattern.test(candidateTitle)&&!versionPattern.test(title))return false;
     const durationDifference=duration&&item.trackTimeMillis?Math.abs(Number(item.trackTimeMillis)/1000-duration):null;
     if(durationDifference!==null&&durationDifference>12)return false;
-    /* When artist tags are absent, require duration evidence as well as the title;
-       otherwise leave the choice to the user rather than guessing between same-title tracks. */
-    if(!artist&&(durationDifference===null||durationDifference>5))return false;
+    /* Artist-only and album-only searches need close duration evidence; otherwise several tracks can match. */
+    if(available===1&&!title&&(durationDifference===null||durationDifference>5))return false;
     return true;
   }
   function applyIdentifiedTrack(item){
@@ -797,8 +801,14 @@
     updateMediaTrack();updateTitleCard();applyAppleAlbumGradient();syncAppleLyricsMetadata();
   }
   async function fetchItunesMatches(meta,duration){
-    const title=String(meta.title||'').trim(),artist=String(meta.artist||'').trim();
-    const queries=[title,[title,artist].filter(Boolean).join(' ').trim()].filter((query,index,all)=>query&&all.indexOf(query)===index);
+    const title=String(meta.title||'').trim(),artist=String(meta.artist||'').trim(),album=String(meta.album||'').trim();
+    const queries=[
+      title,artist,album,
+      [title,artist].filter(Boolean).join(' '),
+      [title,album].filter(Boolean).join(' '),
+      [artist,album].filter(Boolean).join(' '),
+      [title,artist,album].filter(Boolean).join(' ')
+    ].map(query=>query.trim()).filter((query,index,all)=>query&&all.indexOf(query)===index);
     if(!queries.length)return [];
     const countries=['AU','US'];
     const requests=queries.flatMap(query=>countries.map(async country=>{
@@ -1064,8 +1074,10 @@
       try{matches=await fetchItunesMatches(meta,duration);}
       catch(error){catalogueSearchFailed=true;console.warn('[KEFE iTunes identification]',error);}
       if(mediaObjectUrl!==uploadId)return;
-      const best=matches.find(item=>isConfidentMatch(item,meta,duration))||null;
-      if(best&&isConfidentMatch(best,meta,duration)){
+      const confidentMatches=matches.filter(item=>isConfidentMatch(item,meta,duration));
+      const availableIdentifiers=[meta.title,meta.artist,meta.album].filter(value=>String(value||'').trim()).length;
+      const best=availableIdentifiers===1&&confidentMatches.length!==1?null:(confidentMatches[0]||null);
+      if(best){
         applyIdentifiedTrack(best);
         renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
         setLyricsStatus('Track identified. Finding lyrics…');
