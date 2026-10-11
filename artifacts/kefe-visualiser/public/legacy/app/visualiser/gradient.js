@@ -274,8 +274,8 @@
     var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Choose visualiser');
     var tp=el('button','kefe-btn primary','Particles'),tg=el('button','kefe-btn','Gradient'),th=el('button','kefe-btn','Glitch');
     tp.type=tg.type=th.type='button';
-    [[tp,'particles','kefeVisParticlesView','Particle field'],[tg,'gradient','kefeVisGradientView','Gradient overlay'],[th,'glitch','kefeVisGlitchView','Glitch visualiser']].forEach(function(item){
-      item[0].setAttribute('role','tab');item[0].dataset.visualiser=item[1];item[0].setAttribute('aria-controls',item[2]);item[0].title=item[3];
+    [[tp,'particles','kefeVisParticlesView','Particle field','✦'],[tg,'gradient','kefeVisGradientView','Gradient overlay','◒'],[th,'glitch','kefeVisGlitchView','Glitch visualiser','▧']].forEach(function(item){
+      item[0].setAttribute('role','tab');item[0].dataset.visualiser=item[1];item[0].dataset.icon=item[4];item[0].setAttribute('aria-controls',item[2]);item[0].title=item[3];
     });
     var promptWrap=document.getElementById('visualiserPrompt')?.parentElement?.parentElement;
     var presetWrap=document.getElementById('visualiserPreset')?.parentElement;
