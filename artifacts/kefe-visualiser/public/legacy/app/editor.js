@@ -777,10 +777,11 @@
     updateMediaTrack();updateTitleCard();applyAppleAlbumGradient();syncAppleLyricsMetadata();
   }
   async function fetchItunesMatches(meta,duration){
-    const query=[meta.title,meta.artist].filter(Boolean).join(' ').trim();
-    if(!query)return [];
+    const title=String(meta.title||'').trim(),artist=String(meta.artist||'').trim();
+    const queries=[ [title,artist].filter(Boolean).join(' ').trim(), title ].filter((query,index,all)=>query&&all.indexOf(query)===index);
+    if(!queries.length)return [];
     const countries=['AU','US'];
-    const requests=countries.map(async country=>{
+    const requests=queries.flatMap(query=>countries.map(async country=>{
       const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
       try{
         const response=await fetch('https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=song&limit=200&country='+country,{signal:controller.signal,headers:{Accept:'application/json'}});
@@ -788,12 +789,12 @@
         const payload=await response.json();
         return Array.isArray(payload.results)?payload.results:[];
       }finally{clearTimeout(timer);}
-    });
+    }));
     const settled=await Promise.allSettled(requests);
     let results=[],lastError=null;
     settled.forEach((result,index)=>{
       if(result.status==='fulfilled')results=results.concat(result.value);
-      else{lastError=result.reason;console.warn('[KEFE iTunes search]',countries[index],result.reason?.name||result.reason);}
+      else{lastError=result.reason;console.warn('[KEFE iTunes search]',queries[Math.floor(index/countries.length)],countries[index%countries.length],result.reason?.name||result.reason);}
     });
     if(!results.length&&lastError)throw lastError;
     return results.sort((a,b)=>rankTrack(b,meta,duration)-rankTrack(a,meta,duration));
