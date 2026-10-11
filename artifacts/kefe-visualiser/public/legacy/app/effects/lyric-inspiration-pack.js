@@ -50,6 +50,22 @@
         ['range','speed','Speed',0.5,2,0.1,'×'],['range','stagger','Letter stagger',0.04,0.3,0.01,' s'],['range','dur','Transition duration',0.2,1.8,0.05,' s'],['range','hold','Rest between loops',0,3,0.1,' s'],['range','tracking','Letter spacing',0,0.35,0.01,' em'],['range','burst','Glitch burst point',0.1,0.9,0.05,'']
       ]
     }
+    },
+    inkscript: {
+      title: 'Ink Script',
+      defaults: {font:'Mr Dafoe',googleFont:'',weight:400,aspect:'match',sizing:'fit',ink:'#081a1a',bg:'#ff3334',transparent:false,speed:1,write:16,morph:23,hold:1.4,blank:0.28,splatter:1,exit:'cut',flourish:true,loop:true,uploadedFamily:''},
+      fields: [
+        ['select','font','Font',[['Mr Dafoe','Mr Dafoe'],['Kaushan Script','Kaushan Script'],['Yellowtail','Yellowtail'],['Pacifico','Pacifico'],['Lobster','Lobster'],['Damion','Damion'],['Caveat Brush','Caveat Brush'],['Sedgwick Ave Display','Sedgwick Ave Display'],['Permanent Marker','Permanent Marker'],['Satisfy','Satisfy'],['__google','Other Google font…'],['__upload','Uploaded font']]],
+        ['text','googleFont','Google Fonts family','e.g. Rock Salt'],['file','fontFile','Upload font file','.ttf,.otf,.woff,.woff2'],
+        ['range','weight','Weight',100,900,100,''],['select','aspect','Canvas shape',[['match','Match KEFE preview'],['4/3','Classic 4:3'],['16/9','Landscape 16:9'],['1/1','Square 1:1'],['9/16','Portrait 9:16']]],
+        ['select','sizing','Word size',[['fit','Every word fills same width'],['same','Same font size for every word']]],
+        ['color','ink','Ink'],['color','bg','Background'],['toggle','transparent','Transparent background'],
+        ['range','speed','Speed',0.25,2,0.05,'×'],['range','write','Write-on',6,48,1,' frames'],['range','morph','Melt into next word',8,60,1,' frames'],
+        ['range','hold','Hold',0,5,0.1,' s'],['range','blank','Blank before loop',0,2,0.04,' s'],['range','splatter','Splatter',0,2.5,0.1,'×'],
+        ['select','exit','End of loop',[['cut','Cut to blank'],['fade','Fade out']]],
+        ['toggle','flourish','Underline swoosh'],['toggle','loop','Loop']
+      ]
+    }
   };
   const storeKey = 'kefe.inspiration-effects.v1';
   const settings = {};
@@ -149,7 +165,99 @@
       const x=x0+i*adv+adv/2;ctx.save();ctx.beginPath();ctx.rect(x-adv/2,h/2-band/2,adv,band);ctx.clip();ctx.fillText(ch,x,h/2+off);ctx.restore();
     });ctx.restore();
   }
-  E.spin=renderSpin; E.premium=renderPremium; E.dustoff=renderDust; E.wrapslide=renderWrapSlide;
+  const inkFontFaces = new Map();
+  function inkFont(s){
+    if(s.font==='__upload' && s.uploadedFamily)return s.uploadedFamily;
+    if(s.font==='__google')return String(s.googleFont||'cursive').trim()||'cursive';
+    return s.font||'Mr Dafoe';
+  }
+  function renderInkScript(ctx,w,h,style,lines,time){
+    const s=settings.inkscript;
+    const source=Array.isArray(lines)?lines:[];
+    if(!source.length)return;
+    const first=Number(source[0]?.time)||0,last=source[source.length-1]||{};
+    const lastStart=Number(last.time)||0,lastEnd=Number(last.endTime)||lastStart+3;
+    let t=time;
+    if(t>lastEnd+Number(s.blank) && s.loop){
+      const span=Math.max(.5,lastEnd-first+Number(s.blank));
+      t=first+((t-first)%span);
+    }
+    const items=linesFor(source,t);
+    if(!items.length)return;
+    const item=items[items.length-1],line=item.line,txt=String(line.text||'').trim();
+    if(!txt)return;
+    if(!s.transparent){ctx.save();ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);ctx.restore();}
+    const family=inkFont(s),weight=Number(s.weight)||400;
+    if(s.font==='__google' && s.googleFont){
+      const key=s.googleFont.trim();
+      if(key&&!inkFontFaces.has(key)){
+        inkFontFaces.set(key,true);
+        const link=document.createElement('link');link.rel='stylesheet';
+        link.href='https://fonts.googleapis.com/css2?family='+encodeURIComponent(key).replace(/%20/g,'+')+'&display=swap';
+        link.onload=()=>{inkFontFaces.set(key,false);window.kefeLyrics?.redraw?.();};
+        document.head.appendChild(link);
+      }
+    }
+    const maxW=w*.82,maxH=h*.42;
+    const targetAspect=s.aspect==='match'?w/h:Number(s.aspect.split('/')[0])/Number(s.aspect.split('/')[1]);
+    const safeW=Math.min(maxW,maxH*targetAspect),safeH=Math.min(maxH,maxW/targetAspect);
+    const measure=ctx.measureText.bind(ctx);
+    let size=Math.max(18,Math.min(safeH*.72,safeW/(Math.max(1,Array.from(txt).length)*.58)));
+    ctx.save();ctx.font=weight+' '+size+'px "'+family+'", cursive';
+    if(s.sizing==='fit'){
+      const width=measure(txt).width;
+      if(width>0)size*=Math.min(1,safeW/width);
+    }else{
+      let sameSize=size;
+      source.forEach(row=>{ctx.font=weight+' '+sameSize+'px "'+family+'", cursive';const tw=measure(String(row.text||'').trim()).width;if(tw>safeW)sameSize=Math.min(sameSize,size*safeW/tw);});
+      size=sameSize;
+    }
+    ctx.font=weight+' '+size+'px "'+family+'", cursive';ctx.textAlign='center';ctx.textBaseline='middle';
+    const start=Number(line.time)||item.start,end=Math.max(start+.2,Number(line.endTime)||item.end),dur=end-start;
+    const elapsed=Math.max(0,t-start),writeDur=Math.max(.08,Number(s.write)/25/Math.max(.25,Number(s.speed)||1));
+    const morphDur=Math.max(.08,Number(s.morph)/25/Math.max(.25,Number(s.speed)||1));
+    const writeP=clamp(elapsed/Math.min(writeDur,Math.max(.08,dur*.62)));
+    const exitStart=Math.max(writeDur+Number(s.hold),dur-morphDur);
+    let alpha=1;
+    if(s.exit==='fade' && elapsed>exitStart)alpha=1-clamp((elapsed-exitStart)/Math.max(.08,morphDur));
+    const baseline=h*.5;
+    const metrics=ctx.measureText(txt),textW=Math.min(safeW,metrics.width);
+    const x=w/2,y=baseline;
+    const writing=elapsed<writeDur;
+    ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=s.ink;ctx.strokeStyle=s.ink;ctx.lineJoin='round';
+    if(writing){
+      const reveal=textW*writeP;
+      ctx.beginPath();ctx.rect(x-textW/2-2,y-size,Math.max(0,reveal+4),size*2);ctx.clip();
+    }
+    ctx.shadowColor=s.ink;ctx.shadowBlur=Math.max(0,size*.012);ctx.fillText(txt,x,y);
+    ctx.restore();
+    const transitionP=clamp((elapsed-exitStart)/Math.max(.08,morphDur));
+    if(s.splatter>0 && (transitionP>0 || writing)){
+      const p=transitionP>0?transitionP:writeP*.18;
+      const count=Math.min(180,Math.round(24*Number(s.splatter)));
+      ctx.save();ctx.fillStyle=s.ink;
+      for(let i=0;i<count;i++){
+        const seed=i+item.index*211,angle=hash(seed+4)*Math.PI*2;
+        const spread=(.15+p*1.8)*size*(.25+hash(seed+9)*1.8);
+        const px=x+Math.cos(angle)*spread,py=y+Math.sin(angle)*spread*.55;
+        const radius=Math.max(.7,size*(.003+hash(seed+15)*.014))*Number(s.splatter);
+        ctx.globalAlpha=(.2+.7*hash(seed+23))*(transitionP>0?1-transitionP*.55:.55);
+        ctx.beginPath();ctx.ellipse(px,py,radius*1.25,radius,angle,0,Math.PI*2);ctx.fill();
+      }
+      ctx.restore();
+    }
+    if(s.flourish && (elapsed>writeDur*.55 || source.length===1)){
+      const p=clamp((elapsed-writeDur*.55)/Math.max(.12,morphDur*.65));
+      if(p>0){
+        ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=s.ink;ctx.lineCap='round';ctx.lineWidth=Math.max(1.5,size*.055);
+        ctx.beginPath();ctx.moveTo(x-textW*.48,y+size*.48);
+        ctx.quadraticCurveTo(x-textW*.04,y+size*.7,x+textW*.52*p,y+size*.38);ctx.stroke();ctx.restore();
+      }
+    }
+    if(elapsed>dur && !s.loop && s.exit==='cut'){ctx.clearRect(0,0,w,h);}
+    ctx.restore();
+  }
+  E.spin=renderSpin; E.premium=renderPremium; E.dustoff=renderDust; E.wrapslide=renderWrapSlide; E.inkscript=renderInkScript;
 
   function buildControls(){
     const select=document.getElementById('lyricEffect'),host=select?.closest('[data-panel-view="effects"]')?.querySelector('.kefe-form');
@@ -164,7 +272,13 @@
         const [kind,id,label,...args]=field,row=document.createElement('label');row.className='kefe-inspiration-field';row.textContent='';
         const title=document.createElement('span');title.textContent=label;row.appendChild(title);
         let input,output;
-        if(kind==='range'){
+        if(kind==='text'){
+          input=document.createElement('input');input.type='text';input.placeholder=args[0]||'';input.value=settings[key][id]||'';row.appendChild(input);
+          input.addEventListener('change',()=>{settings[key][id]=input.value.trim();save();if(key==='inkscript'&&id==='googleFont'&&settings[key].googleFont){settings[key].font='__google';const fontSelect=grid.querySelector('select[aria-label="Font"]');if(fontSelect)fontSelect.value='__google';}redraw();});
+        }else if(kind==='file'){
+          input=document.createElement('input');input.type='file';input.accept=args[0]||'.ttf,.otf,.woff,.woff2';row.appendChild(input);
+          input.addEventListener('change',()=>{const file=input.files&&input.files[0];if(!file)return;file.arrayBuffer().then(buf=>{const family='KEFEInkFont'+Date.now();const face=new FontFace(family,buf);return face.load().then(()=>{document.fonts.add(face);settings[key].uploadedFamily=family;settings[key].font='__upload';save();const fontSelect=grid.querySelector('select[aria-label="Font"]');if(fontSelect)fontSelect.value='__upload';redraw();});}).catch(()=>{const note=document.createElement('span');note.textContent='Font could not be loaded.';row.appendChild(note);});});
+        }else if(kind==='range'){
           const [min,max,step,suffix]=args;input=document.createElement('input');input.type='range';input.min=min;input.max=max;input.step=step;input.value=settings[key][id];
           output=document.createElement('output');const fmt=()=>{output.textContent=String(input.value)+suffix;};fmt();row.appendChild(input);row.appendChild(output);
           input.addEventListener('input',()=>{settings[key][id]=Number(input.value);fmt();save();redraw();});
@@ -185,7 +299,7 @@
       reset.addEventListener('click',()=>{settings[key]=Object.assign({},def.defaults);save();panel.querySelectorAll('input,select').forEach(input=>{const id=input.getAttribute('aria-label');const field=def.fields.find(f=>f[2]===id);if(!field)return;const v=settings[key][field[1]];if(input.type==='checkbox')input.checked=!!v;else input.value=v;const out=input.parentElement.querySelector('output');if(out&&field[0]==='range')out.textContent=String(v)+field[6];});redraw();});
       panel.appendChild(reset);root.appendChild(panel);panels[key]=panel;
     });
-    const css=document.createElement('style');css.textContent='.kefe-inspiration-panel{margin-top:14px;padding:12px;border:1px solid var(--line,#34363d);border-radius:8px;background:var(--surface,transparent)}.kefe-inspiration-panel[hidden]{display:none!important}.kefe-inspiration-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kefe-inspiration-field{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;font-size:12px;min-width:0}.kefe-inspiration-field input[type=range],.kefe-inspiration-field select{grid-column:1/-1;width:100%;min-width:0}.kefe-inspiration-field input[type=color]{width:100%;grid-column:1/-1;min-height:30px}.kefe-inspiration-toggle{display:flex;align-items:center;justify-content:flex-start;gap:8px}.kefe-inspiration-toggle input{margin:0}.kefe-inspiration-panel>button{margin-top:10px}@media(max-width:600px){.kefe-inspiration-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}';
+    const css=document.createElement('style');css.textContent='.kefe-inspiration-panel{margin-top:14px;padding:12px;border:1px solid var(--line,#34363d);border-radius:8px;background:var(--surface,transparent)}.kefe-inspiration-panel[hidden]{display:none!important}.kefe-inspiration-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kefe-inspiration-field{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;font-size:12px;min-width:0}.kefe-inspiration-field input[type=range],.kefe-inspiration-field input[type=text],.kefe-inspiration-field input[type=file],.kefe-inspiration-field select{grid-column:1/-1;width:100%;min-width:0}.kefe-inspiration-field input[type=color]{width:100%;grid-column:1/-1;min-height:30px}.kefe-inspiration-toggle{display:flex;align-items:center;justify-content:flex-start;gap:8px}.kefe-inspiration-toggle input{margin:0}.kefe-inspiration-panel>button{margin-top:10px}@media(max-width:600px){.kefe-inspiration-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}';
     root.appendChild(css);host.appendChild(root);
     const sync=()=>Object.entries(panels).forEach(([key,panel])=>{panel.hidden=!active(key);});
     select.addEventListener('change',sync);window.addEventListener('kefe-effects-ready',sync);sync();
