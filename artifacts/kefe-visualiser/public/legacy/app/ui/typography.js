@@ -36,7 +36,8 @@
     drop:                'Frijole',
     slide:               'Momo Trust Display',
     drift:               'Georgia',
-    scrolllines:         'Trebuchet MS'
+    scrolllines:         'Trebuchet MS',
+    randomize:            'Open Sans'
   };
 
   /* ---------------------------------------------------------
@@ -178,7 +179,8 @@
     glitch:     { family: families.glitch,      weight: 400, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     analogtv:   { family: families.analogtv,    weight: 400, min: 34, max: 200, lineHeight: 1.12, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     splitflap:  { family: families.splitflap,   weight: 900, min: 44, max: 220, lineHeight: 1.02, tracking: 0.06,      align: 'center', case: 'upper', opticalScale: 1.00 },
-    progressiveblur: { family: families.ui, weight: 700, min: 36, max: 180, lineHeight: 1.00, tracking: 0, align: 'center', case: 'none', opticalScale: 1.00 }
+    progressiveblur: { family: families.ui, weight: 700, min: 36, max: 180, lineHeight: 1.00, tracking: 0, align: 'center', case: 'none', opticalScale: 1.00 },
+    randomize: { family: families.randomize, weight: 700, min: 36, max: 160, lineHeight: 1.08, tracking: 0, align: 'center', case: 'none', opticalScale: 1.00 }
   };
 
   /* ---------------------------------------------------------
