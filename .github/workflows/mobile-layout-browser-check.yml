@@ -145,6 +145,65 @@ jobs:
 
                 const effectsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
                 const effectsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="effects"]', 'Effects');
+
+                // Exercise every registered lyric effect in the real browser. Instrument the
+                // renderers in-page so a selection cannot silently fall back to another effect.
+                const effectAudit = await page.evaluate(async () => {
+                  const select = document.getElementById('lyricEffect');
+                  const canvas = document.getElementById('kefeCanvas');
+                  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                  const effects = window.KEFE_EFFECTS || [];
+                  const renderers = window.kefeEffects || {};
+                  const original = {};
+                  const calls = {};
+                  for (const [key, renderer] of Object.entries(renderers)) {
+                    if (typeof renderer !== 'function') continue;
+                    original[key] = renderer;
+                    renderers[key] = function (...args) {
+                      calls[key] = (calls[key] || 0) + 1;
+                      return renderer.apply(this, args);
+                    };
+                  }
+                  const failures = [];
+                  try {
+                    if (!window.kefeLyrics || !select || !ctx) throw new Error('Lyric renderer test prerequisites are missing');
+                    window.kefeLyrics.set([
+                      { text: 'KEFE VERIFICATION', time: 0, endTime: 2.5 },
+                      { text: 'SECOND TEST LINE', time: 2.5, endTime: 5 }
+                    ], 'browser-verification');
+                    window.kefeLyrics.seek(1);
+                    for (const effect of effects) {
+                      const key = effect.key;
+                      if (typeof original[key] !== 'function') {
+                        failures.push({ effect: key, issue: 'No renderer registered' });
+                        continue;
+                      }
+                      for (const key of Object.keys(calls)) calls[key] = 0;
+                      select.value = key;
+                      select.dispatchEvent(new Event('change', { bubbles: true }));
+                      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+                      const called = Object.entries(calls).filter(([, count]) => count > 0).map(([name]) => name);
+                      if (!called.includes(key)) failures.push({ effect: key, issue: 'Selected renderer was not called', called });
+                      const otherCalls = called.filter(name => name !== key);
+                      if (otherCalls.length) failures.push({ effect: key, issue: 'Other lyric renderers also ran', otherCalls });
+                      if (select.value !== key) failures.push({ effect: key, issue: 'Selection did not persist' });
+                      const fontMeta = document.getElementById('fontMeta')?.textContent || '';
+                      if (!fontMeta.startsWith('Locked effect font')) failures.push({ effect: key, issue: 'Effect font metadata did not update' });
+                      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                      let visiblePixels = 0;
+                      for (let i = 3; i < pixels.length; i += 4) if (pixels[i] > 0) visiblePixels++;
+                      if (!visiblePixels) failures.push({ effect: key, issue: 'Renderer produced an empty lyric canvas' });
+                    }
+                  } finally {
+                    for (const [key, renderer] of Object.entries(original)) renderers[key] = renderer;
+                    select.value = 'apple';
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                  }
+                  return { tested: effects.length, effectKeys: effects.map(effect => effect.key), failures };
+                });
+                assert.ok(effectAudit.tested > 0, 'Effect registry should not be empty');
+                assert.deepEqual(effectAudit.failures, [], `Lyric effect isolation/render audit failed at ${width}px`);
+                console.log(`[effect-audit] ${width}px verified ${effectAudit.tested} lyric effects`);
                 await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-effects.png`, fullPage: false, timeout: 15000 });
 
                 await page.locator('.kefe-section[data-panel="visualiser"]').click();
