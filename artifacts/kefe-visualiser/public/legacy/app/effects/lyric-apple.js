@@ -241,14 +241,11 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
     const appleHeaderSize = baseDimension * 0.11;
     const appleHeaderTop = Math.max(baseDimension * 0.065, h * 0.035);
-    const appleHeaderBottom = landscapeSplit ? 0 : appleHeaderTop + appleHeaderSize;
+    const appleHeaderBottom = landscapeSplit ? 0 : Math.max(32, h * 0.07) + baseDimension * 0.11;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = landscapeSplit
         ? h * 0.13 + Math.min(baseDimension * 0.38, w * 0.24) - activeBlockHeight / 2
-        : Math.max(
-            h * linaClamp(Number(style.appleTopOffset) || 0.50, 0.40, 0.60),
-            appleHeaderBottom + activeBlockHeight / 2 + blockGap
-        );
+        : appleHeaderBottom + activeBlockHeight / 2 + blockGap;
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
