@@ -137,8 +137,10 @@
   /* ---------- UI ---------- */
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function group(title) {
-    var g = el('div', 'kefe-visualiser-control-group');
-    g.appendChild(el('div', 'kefe-label', title));
+    var g = el('details', 'kefe-visualiser-control-group kefe-style-disclosure');
+    var summary = el('summary', null, title);
+    g.appendChild(summary);
+    if (title === 'Size and placement') g.open = true;
     return g;
   }
   function slider(label, get, set, min, max, step, fmt) {
