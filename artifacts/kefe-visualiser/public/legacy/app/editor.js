@@ -757,14 +757,17 @@
   function isConfidentMatch(item,meta,duration){
     const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist);
     const candidateTitle=normalizeSearchText(item.trackName),candidateArtist=normalizeSearchText(item.artistName);
-    /* A title alone is not enough: many unrelated recordings share song titles.
-       Require a usable artist match before automatically assigning catalogue metadata. */
-    if(!title||!artist||!candidateTitle||!candidateArtist)return false;
+    if(!title||!candidateTitle||!candidateArtist)return false;
     if(!(candidateTitle===title||coreTitle(item.trackName)===coreTitle(meta.title)))return false;
-    if(candidateArtist!==artist&&!candidateArtist.includes(artist)&&!artist.includes(candidateArtist))return false;
+    const artistMatches=!!artist&&(candidateArtist===artist||candidateArtist.includes(artist)||artist.includes(candidateArtist));
+    if(artist&&!artistMatches)return false;
     const versionPattern=/\b(remix|rework|bootleg|mashup|nightcore|slowed|sped up|speed up|reverb|karaoke|cover|instrumental|live)\b/;
     if(versionPattern.test(candidateTitle)&&!versionPattern.test(title))return false;
-    if(duration&&item.trackTimeMillis&&Math.abs(Number(item.trackTimeMillis)/1000-duration)>12)return false;
+    const durationDifference=duration&&item.trackTimeMillis?Math.abs(Number(item.trackTimeMillis)/1000-duration):null;
+    if(durationDifference!==null&&durationDifference>12)return false;
+    /* When artist tags are absent, require duration evidence as well as the title;
+       otherwise leave the choice to the user rather than guessing between same-title tracks. */
+    if(!artist&&(durationDifference===null||durationDifference>5))return false;
     return true;
   }
   function applyIdentifiedTrack(item){
