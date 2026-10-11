@@ -287,9 +287,13 @@
     var paramsGroup=document.getElementById('visualiserParameters')?.closest('.kefe-visualiser-control-group');
     function show(which){
       var isGradient=which==='gradient',isGlitch=which==='glitch';
-      particles.hidden=isGradient||isGlitch;glitch.hidden=!isGlitch;gradient.hidden=!isGradient;
-      tp.classList.toggle('primary',which==='particles');tg.classList.toggle('primary',isGradient);th.classList.toggle('primary',isGlitch);
-      tp.setAttribute('aria-selected',String(which==='particles'));tg.setAttribute('aria-selected',String(isGradient));th.setAttribute('aria-selected',String(isGlitch));
+      var activeView=which==='gradient'?gradient:which==='glitch'?glitch:particles;
+      panel.querySelectorAll('.kefe-vis-view').forEach(function(view){view.hidden=view!==activeView;});
+      tabs.querySelectorAll('button').forEach(function(tab){
+        var selected=tab.dataset.visualiser===which;
+        tab.classList.toggle('primary',selected);
+        tab.setAttribute('aria-selected',String(selected));
+      });
       window.kefeVisualiserEnabled=isGlitch?glitchEnabled:particleEnabled;
       var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=window.kefeVisualiserEnabled?'':'hidden';
       if(promptWrap)promptWrap.style.display=isGlitch?'none':'';
