@@ -251,6 +251,25 @@
     if(!details.title&&!details.album)return;
     titleArtworkTimer=setTimeout(()=>{lookupTitleArtwork(details,request).catch(error=>console.warn('[KEFE title artwork]',error));},250);
   }
+  function titleArtworkMatches(item,meta){
+    const candidateTitle=normalizeSearchText(item.trackName),candidateAlbum=normalizeSearchText(item.collectionName),candidateArtist=normalizeSearchText(item.artistName);
+    if(meta.title){
+      const expected=normalizeSearchText(meta.title);
+      if(!candidateTitle||(candidateTitle!==expected&&coreTitle(item.trackName)!==coreTitle(meta.title)))return false;
+    }else if(meta.album){
+      const expectedAlbum=normalizeSearchText(meta.album);
+      if(!candidateAlbum||!(candidateAlbum===expectedAlbum||candidateAlbum.includes(expectedAlbum)||expectedAlbum.includes(candidateAlbum)))return false;
+    }else return false;
+    if(meta.artist){
+      const expectedArtist=normalizeSearchText(meta.artist);
+      if(!candidateArtist||!(candidateArtist===expectedArtist||candidateArtist.includes(expectedArtist)||expectedArtist.includes(candidateArtist)))return false;
+    }
+    if(!meta.title&&meta.album&&candidateAlbum){
+      const expectedAlbum=normalizeSearchText(meta.album);
+      if(!(candidateAlbum===expectedAlbum||candidateAlbum.includes(expectedAlbum)||expectedAlbum.includes(candidateAlbum)))return false;
+    }
+    return true;
+  }
   async function lookupTitleArtwork(meta,request){
     if(!meta.title&&!meta.album)return false;
     const queries=[
@@ -273,27 +292,11 @@
           if(!candidates.has(key))candidates.set(key,item);
         }
       }catch(error){console.warn('[KEFE artwork search]',query.entity,error?.name||error);}
+      if([...candidates.values()].some(item=>titleArtworkMatches(item,meta)))break;
     }
     if(request!==titleArtworkRequest||songAlbum.dataset.artUrl)return false;
-    const matches=[...candidates.values()].filter(item=>{
-      const candidateTitle=normalizeSearchText(item.trackName),candidateAlbum=normalizeSearchText(item.collectionName),candidateArtist=normalizeSearchText(item.artistName);
-      if(meta.title){
-        const expected=normalizeSearchText(meta.title);
-        if(!candidateTitle||(candidateTitle!==expected&&coreTitle(item.trackName)!==coreTitle(meta.title)))return false;
-      }else if(meta.album){
-        const expectedAlbum=normalizeSearchText(meta.album);
-        if(!candidateAlbum||!(candidateAlbum===expectedAlbum||candidateAlbum.includes(expectedAlbum)||expectedAlbum.includes(candidateAlbum)))return false;
-      }else return false;
-      if(meta.artist){
-        const expectedArtist=normalizeSearchText(meta.artist);
-        if(!candidateArtist||!(candidateArtist===expectedArtist||candidateArtist.includes(expectedArtist)||expectedArtist.includes(candidateArtist)))return false;
-      }
-      if(!meta.title&&meta.album&&candidateAlbum){
-        const expectedAlbum=normalizeSearchText(meta.album);
-        if(!(candidateAlbum===expectedAlbum||candidateAlbum.includes(expectedAlbum)||expectedAlbum.includes(candidateAlbum)))return false;
-      }
-      return true;
-    }).sort((a,b)=>rankTrack(b,meta,Number(audio.duration)||0)-rankTrack(a,meta,Number(audio.duration)||0));
+    const matches=[...candidates.values()].filter(item=>titleArtworkMatches(item,meta))
+      .sort((a,b)=>rankTrack(b,meta,Number(audio.duration)||0)-rankTrack(a,meta,Number(audio.duration)||0));
     const best=matches[0];
     if(!best?.artworkUrl100)return false;
     songAlbum.dataset.artUrl=normalizeArtworkUrl(best.artworkUrl100);
