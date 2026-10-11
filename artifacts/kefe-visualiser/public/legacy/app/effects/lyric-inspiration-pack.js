@@ -226,11 +226,12 @@
     const x=w/2,y=baseline;
     const writing=elapsed<writeDur;
     ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=s.ink;ctx.strokeStyle=s.ink;ctx.lineJoin='round';
+    ctx.save();
     if(writing){
       const reveal=textW*writeP;
       ctx.beginPath();ctx.rect(x-textW/2-2,y-size,Math.max(0,reveal+4),size*2);ctx.clip();
     }
-    ctx.shadowColor=s.ink;ctx.shadowBlur=Math.max(0,size*.012);ctx.fillText(txt,x,y);
+    ctx.shadowColor=s.ink;ctx.shadowBlur=Math.max(0,size*.012);ctx.fillText(txt,x,y);ctx.restore();
     const transitionP=clamp((elapsed-exitStart)/Math.max(.08,morphDur));
     if(s.splatter>0 && (transitionP>0 || writing)){
       const p=transitionP>0?transitionP:writeP*.18;
