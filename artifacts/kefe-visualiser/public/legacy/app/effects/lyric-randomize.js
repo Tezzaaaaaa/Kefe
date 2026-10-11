@@ -102,9 +102,10 @@
         const n = hash(seed * 17 + gx * 13.37 + gy * 71.91);
         const local = phase * .9 + n * 3.5 + (gx - gy) * .035 * jitter;
         const state = Math.floor(((local % 4) + 4) % 4);
-        const tones = ['#000000', '#2F2F2F', '#565656', '#B5B5B5'];
-        const base = parseInt(tones[state].slice(1), 16);
-        const q = Math.max(0, Math.min(255, Math.round(128 + (base - 128) * contrast)));
+        const metallic=(Math.sin((x+y)*.012+phase*1.7)+1)*.5;
+        const tones=[Math.round(10+metallic*42),Math.round(28+metallic*62),Math.round(60+metallic*105),Math.round(130+metallic*120)];
+        const base=tones[state];
+        const q=Math.max(0,Math.min(255,Math.round(128+(base-128)*contrast)));
         const tone = '#' + q.toString(16).padStart(2, '0').repeat(3);
         const skew = (n - .5) * cell * .35 * jitter;
         g.fillStyle = tone;
@@ -117,14 +118,9 @@
     g.drawImage(maskCanvas, 0, 0);
     g.globalCompositeOperation = 'source-over';
 
-    if (S.softness > 0) {
-      ctx.save();
-      try { ctx.filter = 'blur(' + Math.min(2, Number(S.softness) || 0) + 'px)'; } catch (_) {}
-      ctx.drawImage(workCanvas, 0, 0);
-      ctx.restore();
-    } else {
-      ctx.drawImage(workCanvas, 0, 0);
-    }
+    ctx.save();ctx.shadowColor='rgba(235,245,255,.55)';ctx.shadowBlur=Math.min(12,Number(S.softness||0)*5);
+    if(S.softness>0){try{ctx.filter='blur('+Math.min(2,Number(S.softness)||0)+'px)';}catch(_){}}
+    ctx.drawImage(workCanvas,0,0);ctx.restore();
   }
 
   window.kefeEffects.randomize = function(ctx, w, h, style, lines, time) {

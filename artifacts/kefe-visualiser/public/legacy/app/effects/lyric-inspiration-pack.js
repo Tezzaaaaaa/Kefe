@@ -190,6 +190,7 @@
       const span=Math.max(.5,lastEnd-first+Number(s.blank));
       t=first+((t-first)%span);
     }
+    if(!s.loop && t>lastEnd){if(!s.transparent){ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);}return;}
     const items=linesFor(source,t);
     if(!items.length)return;
     const item=items[items.length-1],line=item.line,txt=String(line.text||'').trim();
@@ -227,8 +228,10 @@
     const morphDur=Math.max(.08,Number(s.morph)/25/Math.max(.25,Number(s.speed)||1));
     const writeP=clamp(elapsed/Math.min(writeDur,Math.max(.08,dur*.62)));
     const exitStart=Math.max(writeDur+Number(s.hold),dur-morphDur);
+    const transitionP=clamp((elapsed-exitStart)/Math.max(.08,morphDur));
     let alpha=1;
-    if(s.exit==='fade' && elapsed>exitStart)alpha=1-clamp((elapsed-exitStart)/Math.max(.08,morphDur));
+    if(source[item.index+1] && Number(source[item.index+1].time)<=end+.2 && elapsed>exitStart)alpha=1-transitionP;
+    else if(s.exit==='fade' && elapsed>exitStart)alpha=1-transitionP;
     const baseline=h*.5;
     const metrics=ctx.measureText(txt),textW=Math.min(safeW,metrics.width);
     const x=w/2,y=baseline;
@@ -240,7 +243,10 @@
       ctx.beginPath();ctx.rect(x-textW/2-2,y-size,Math.max(0,reveal+4),size*2);ctx.clip();
     }
     ctx.shadowColor=s.ink;ctx.shadowBlur=Math.max(0,size*.012);ctx.fillText(txt,x,y);ctx.restore();
-    const transitionP=clamp((elapsed-exitStart)/Math.max(.08,morphDur));
+    if(source[item.index+1] && Number(source[item.index+1].time)<=end+.2 && transitionP>0){
+      const nextText=String(source[item.index+1].text||'').trim();
+      if(nextText){ctx.save();ctx.globalAlpha=transitionP;ctx.fillStyle=s.ink;ctx.shadowColor=s.ink;ctx.shadowBlur=size*.035;ctx.translate(x,y+(1-transitionP)*size*.22);ctx.scale(.92+.08*transitionP,1);ctx.fillText(nextText,0,0);ctx.restore();}
+    }
     if(s.splatter>0 && (transitionP>0 || writing)){
       const p=transitionP>0?transitionP:writeP*.18;
       const count=Math.min(180,Math.round(24*Number(s.splatter)));
