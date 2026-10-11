@@ -1745,3 +1745,13 @@
     min-width: 0;
   }
 }
+
+
+/* Keep visualiser engine choices pinned while their settings scroll beneath them. */
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form > .kefe-vis-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--surface);
+  padding-block: 8px;
+}
