@@ -859,6 +859,12 @@
 
 
 /* Mobile-only compact paired controls. Desktop layout remains unchanged. */
+  /* Keep the font/dropdown card in the two-column mobile grid. */
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card {
+    grid-column: auto;
+  }
+
+
 @media (max-width: 700px) {
 /* Keep controls paired within each Effects and Visualiser feature group.
    CSS-only layout: existing control IDs and event handlers remain unchanged. */
