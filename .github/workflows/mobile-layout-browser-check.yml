@@ -183,7 +183,7 @@ jobs:
             process.exitCode = 1;
           });
           NODE
-          node /tmp/kefe-mobile-layout-check.cjs
+          NODE_PATH="$GITHUB_WORKSPACE/node_modules" node /tmp/kefe-mobile-layout-check.cjs
 
       - name: Wait for the latest GitHub Pages build
         run: |
@@ -201,7 +201,7 @@ jobs:
       - name: Verify the published GitHub Pages editor in Chromium
         env:
           KEFE_BASE_URL: https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy
-        run: node /tmp/kefe-mobile-layout-check.cjs
+        run: NODE_PATH="$GITHUB_WORKSPACE/node_modules" node /tmp/kefe-mobile-layout-check.cjs
 
       - name: Save mobile screenshots
         if: always()
