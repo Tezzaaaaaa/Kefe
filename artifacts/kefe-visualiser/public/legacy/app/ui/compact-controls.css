@@ -1094,3 +1094,55 @@
   }
 }
 }
+
+/* Mobile fix: place Effects controls directly in the panel's two columns.
+   Flatten wrappers that otherwise create a full-width nested control column. */
+@media (max-width: 700px) {
+  .kefe-panel[data-panel-view="effects"] .kefe-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .kefe-panel[data-panel-view="effects"] .kefe-form > * {
+    grid-column: auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-panel-head {
+    grid-column: 1 / -1;
+  }
+
+  .kefe-panel[data-panel-view="effects"] .kefe-form > #kefeDisplayGroup,
+  .kefe-panel[data-panel-view="effects"] .kefe-form > #kefeStyleGroup {
+    display: contents !important;
+  }
+
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > *,
+  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > * {
+    grid-column: auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-label {
+    grid-column: 1 / -1;
+  }
+
+  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+  }
+
+  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > summary {
+    grid-column: auto;
+  }
+
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-case-row {
+    grid-column: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
