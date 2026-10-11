@@ -33,4 +33,8 @@ window.KEFE_EFFECTS = [
   { key: 'crtdesktop', label: 'CRT Computer Desktop', description: 'Late-80s desktop CRT lyric screen' },
   { key: 'crttv', label: 'CRT TV Box', description: 'Late-80s/90s television lyric screen' },
   { key: 'randomize', label: 'Randomize', description: 'Animated stencil segmentation over any font' }
+  ,{ key: 'spin', label: 'Spin Lyrics', description: 'Staggered 3D flip, float and sparkle reveal' }
+  ,{ key: 'premium', label: 'Premium Circuit', description: 'Neon circuit paths, beams and luminous type' }
+  ,{ key: 'dustoff', label: 'Dust Off', description: 'Lyrics form from and disperse into dust' }
+  ,{ key: 'wrapslide', label: 'WrapSlide', description: 'Per-letter vertical wrap and slide' }
 ];
