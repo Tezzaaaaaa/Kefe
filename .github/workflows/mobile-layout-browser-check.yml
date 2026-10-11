@@ -205,11 +205,15 @@ jobs:
                       const randomizeControls = document.getElementById('kefeRandomizeControls');
                       const randomizeVisible = !!randomizeControls && !randomizeControls.hidden && getComputedStyle(randomizeControls).display !== 'none';
                       if (randomizeVisible !== (key === 'randomize')) failures.push({ effect: key, issue: 'Randomize settings visibility is incorrect', randomizeVisible });
-                      // Sample alpha across the entire canvas at a sparse interval. Some effects
-                      // intentionally animate text near the edges, so a centre-only check is invalid.
-                      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                      // Downsample the full canvas before checking alpha. This catches edge-positioned
+                      // effects while avoiding repeated full-resolution pixel reads during the audit.
+                      const sample = document.createElement('canvas');
+                      sample.width = 120; sample.height = 68;
+                      const sampleContext = sample.getContext('2d', { willReadFrequently: true });
+                      sampleContext.drawImage(canvas, 0, 0, sample.width, sample.height);
+                      const pixels = sampleContext.getImageData(0, 0, sample.width, sample.height).data;
                       let visiblePixels = 0;
-                      for (let i = 3; i < pixels.length; i += 64) if (pixels[i] > 0) visiblePixels++;
+                      for (let i = 3; i < pixels.length; i += 4) if (pixels[i] > 0) visiblePixels++;
                       if (!visiblePixels) failures.push({ effect: key, issue: 'Renderer produced no visible lyric pixels anywhere on the canvas' });
                     }
                   } finally {
