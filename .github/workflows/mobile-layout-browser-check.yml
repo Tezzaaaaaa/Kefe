@@ -103,6 +103,15 @@ jobs:
                 await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
                 const mediaGrid = await assertTwoColumns('.kefe-panel[data-panel-view="media"] .kefe-form', 'Media');
                 const mediaSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="media"]', 'Media', false);
+                const songDetailFields = await page.locator('#songTitle, #songArtist, #songAlbum, #songYear').evaluateAll(nodes => {
+                  const formWidth = document.querySelector('.kefe-panel[data-panel-view="media"] .kefe-form').getBoundingClientRect().width;
+                  return nodes.map(el => ({ id: el.id, width: el.parentElement.getBoundingClientRect().width, formWidth }));
+                });
+                assert.equal(songDetailFields.length, 4, 'Media should expose all four editable song detail fields');
+                for (const field of songDetailFields) {
+                  assert.ok(field.width <= field.formWidth * 0.62,
+                    `Media song detail ${field.id} spans too much width at ${width}px: ${field.width}px of ${field.formWidth}px`);
+                }
                 if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-media.png`, fullPage: false });
 
                 await page.locator('.kefe-section[data-panel="lyrics"]').click();
@@ -187,6 +196,7 @@ jobs:
                   viewport: width,
                   mediaColumns: mediaGrid.template,
                   mediaDropdownCount: mediaSelects.length,
+                  songDetailFieldCount: songDetailFields.length,
                   lyricsColumns: lyricsGrid.template,
                   lyricsDropdownCount: lyricsSelects.length,
                   exportColumns: exportGrid.template,
@@ -224,7 +234,7 @@ jobs:
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
           for attempt in $(seq 1 48); do
-            if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -q 'mobile-two-column-20261011-15' /tmp/kefe-live-index.html; then
+            if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -q 'mobile-two-column-20261011-16' /tmp/kefe-live-index.html; then
               echo 'Latest mobile stylesheet version is published.'
               exit 0
             fi
