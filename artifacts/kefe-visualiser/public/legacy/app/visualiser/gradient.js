@@ -249,21 +249,34 @@
     /* wrap existing particle controls so the two engines can be switched */
     var particles=el('div','kefe-vis-view');particles.id='kefeVisParticlesView';
     while(form.firstChild)particles.appendChild(form.firstChild);
-    var particleToggle=toggle('Show particles',function(){return window.kefeVisualiserEnabled!==false;},function(v){
-      window.kefeVisualiserEnabled=v;var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
+    var particleEnabled=window.kefeVisualiserEnabled!==false;
+    var glitchEnabled=true;
+    var particleToggle=toggle('Particles',function(){return particleEnabled;},function(v){
+      particleEnabled=v;
+      if(document.getElementById('kefeVisParticlesView')&&!document.getElementById('kefeVisParticlesView').hidden){
+        window.kefeVisualiserEnabled=v;
+        var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
+      }
     });
     particles.insertBefore(particleToggle,particles.firstChild);
     var glitch=el('div','kefe-vis-view kefe-glitch-view');glitch.id='kefeVisGlitchView';glitch.hidden=true;
-    glitch.appendChild(toggle('Show Glitch Visualiser',function(){return window.kefeVisualiserEnabled!==false;},function(v){
-      window.kefeVisualiserEnabled=v;var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
+    glitch.appendChild(toggle('Glitch Visualiser',function(){return glitchEnabled;},function(v){
+      glitchEnabled=v;
+      if(!glitch.hidden){
+        window.kefeVisualiserEnabled=v;
+        var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
+      }
     }));
     var glitchIntro=el('div','kefe-visualiser-intro');
     glitchIntro.innerHTML='<div><strong>The Glitch Visualiser</strong><span>Audio-reactive signal tears, RGB separation, block displacement and colour trails.</span></div>';
     glitch.appendChild(glitchIntro);
     var gradient=el('div','kefe-vis-view kefe-gradient-view');gradient.id='kefeVisGradientView';gradient.hidden=true;
-    var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');
+    var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Choose visualiser');
     var tp=el('button','kefe-btn primary','Particles'),tg=el('button','kefe-btn','Gradient'),th=el('button','kefe-btn','Glitch');
-    tp.type=tg.type=th.type='button';tp.setAttribute('role','tab');tg.setAttribute('role','tab');th.setAttribute('role','tab');
+    tp.type=tg.type=th.type='button';
+    [[tp,'particles','kefeVisParticlesView','Particle field'],[tg,'gradient','kefeVisGradientView','Gradient overlay'],[th,'glitch','kefeVisGlitchView','Glitch visualiser']].forEach(function(item){
+      item[0].setAttribute('role','tab');item[0].dataset.visualiser=item[1];item[0].setAttribute('aria-controls',item[2]);item[0].title=item[3];
+    });
     var promptWrap=document.getElementById('visualiserPrompt')?.parentElement?.parentElement;
     var presetWrap=document.getElementById('visualiserPreset')?.parentElement;
     var gridWrap=document.getElementById('visualiserPresetGrid')?.parentElement;
@@ -274,6 +287,8 @@
       particles.hidden=isGradient||isGlitch;glitch.hidden=!isGlitch;gradient.hidden=!isGradient;
       tp.classList.toggle('primary',which==='particles');tg.classList.toggle('primary',isGradient);th.classList.toggle('primary',isGlitch);
       tp.setAttribute('aria-selected',String(which==='particles'));tg.setAttribute('aria-selected',String(isGradient));th.setAttribute('aria-selected',String(isGlitch));
+      window.kefeVisualiserEnabled=isGlitch?glitchEnabled:particleEnabled;
+      var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=window.kefeVisualiserEnabled?'':'hidden';
       if(promptWrap)promptWrap.style.display=isGlitch?'none':'';
       if(presetWrap)presetWrap.style.display=isGlitch?'none':'';
       if(gridWrap)gridWrap.style.display=isGlitch?'none':'';
