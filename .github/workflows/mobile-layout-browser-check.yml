@@ -99,6 +99,28 @@ jobs:
                   return result;
                 }
 
+                await page.locator('.kefe-section[data-panel="media"]').click();
+                await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
+                const mediaGrid = await assertTwoColumns('.kefe-panel[data-panel-view="media"] .kefe-form', 'Media');
+                const mediaSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="media"]', 'Media', false);
+                if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-media.png`, fullPage: false });
+
+                await page.locator('.kefe-section[data-panel="lyrics"]').click();
+                await page.locator('.kefe-panel[data-panel-view="lyrics"].active').waitFor();
+                const lyricsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="lyrics"] .kefe-form', 'Lyrics');
+                const lyricsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="lyrics"]', 'Lyrics', false);
+                if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-lyrics.png`, fullPage: false });
+
+                await page.locator('.kefe-section[data-panel="export"]').click();
+                await page.locator('.kefe-panel[data-panel-view="export"].active').waitFor();
+                const exportGrid = await assertTwoColumns('.kefe-panel[data-panel-view="export"] .kefe-form', 'Export');
+                const exportSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="export"]', 'Export');
+                if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-export.png`, fullPage: false });
+
+                await page.locator('.kefe-section[data-panel="effects"]').click();
+                await page.locator('.kefe-panel[data-panel-view="effects"].active').waitFor();
+                await page.waitForTimeout(300);
+
                 const effectsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
                 const effectsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="effects"]', 'Effects');
                 await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-effects.png`, fullPage: false });
@@ -163,6 +185,12 @@ jobs:
 
                 reports.push({
                   viewport: width,
+                  mediaColumns: mediaGrid.template,
+                  mediaDropdownCount: mediaSelects.length,
+                  lyricsColumns: lyricsGrid.template,
+                  lyricsDropdownCount: lyricsSelects.length,
+                  exportColumns: exportGrid.template,
+                  exportDropdownCount: exportSelects.length,
                   effectsColumns: effectsGrid.template,
                   effectsDropdownCount: effectsSelects.length,
                   visualiserColumns: visualiserGrid.template,
@@ -196,7 +224,7 @@ jobs:
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
           for attempt in $(seq 1 48); do
-            if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -q 'mobile-two-column-20261011-14' /tmp/kefe-live-index.html; then
+            if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -q 'mobile-two-column-20261011-15' /tmp/kefe-live-index.html; then
               echo 'Latest mobile stylesheet version is published.'
               exit 0
             fi
