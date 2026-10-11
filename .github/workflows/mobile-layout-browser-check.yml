@@ -67,7 +67,7 @@ jobs:
                 async function assertTwoColumns(formSelector, panelName) {
                   const result = await page.locator(formSelector).evaluate(form => {
                     const style = getComputedStyle(form);
-                    const columns = style.gridTemplateColumns.trim().split(/\\s+/).filter(Boolean);
+                    const columns = style.gridTemplateColumns.trim().split(/\s+/).filter(Boolean);
                     return { columns: columns.length, template: style.gridTemplateColumns, width: form.getBoundingClientRect().width };
                   });
                   assert.equal(result.columns, 2, `${panelName} at ${width}px must render exactly two form columns; got ${result.template}`);
