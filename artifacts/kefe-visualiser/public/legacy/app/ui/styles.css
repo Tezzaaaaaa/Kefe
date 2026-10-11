@@ -1030,6 +1030,7 @@ button{border:0;cursor:pointer}
 .kefe-car-card{position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:0;border:0;background:none;text-align:left;font:inherit;color:inherit;cursor:pointer;transform-origin:center;transition:transform .7s cubic-bezier(.19,1,.22,1),opacity .5s cubic-bezier(.19,1,.22,1),filter .3s ease;will-change:transform,opacity}
 .kefe-car-art{position:relative;display:block;width:170px;height:170px;padding:6px;border-radius:var(--r3);background:var(--surface);box-shadow:var(--lift)}
 .kefe-car-art img{display:block;width:100%;height:100%;object-fit:cover;border-radius:var(--r2);background:var(--surface-lo)}
+.kefe-car-local-icon{display:grid;place-items:center;width:100%;height:100%;border-radius:var(--r2);background:var(--surface-lo);color:var(--muted);font-size:54px;font-weight:700}
 .kefe-car-tag{position:absolute;top:12px;right:12px;padding:2px 7px;border-radius:999px;font-size:8px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.92);color:var(--text);box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .kefe-car-tag.song{background:var(--text);color:var(--surface-hi)}
 .kefe-car-cap{display:grid;gap:1px;padding:0 4px;min-width:0}
