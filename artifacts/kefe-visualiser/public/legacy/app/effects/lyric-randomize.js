@@ -160,13 +160,13 @@
   }
 
   function buildControls() {
-    const form = document.querySelector('[data-panel-view="effects"] .kefe-form');
     const select = document.getElementById('lyricEffect');
-    if (!form || !select || document.getElementById('kefeRandomizeControls')) return;
+    const effectControl = select?.closest('.kefe-background-effect-control');
+    if (!effectControl || !select || document.getElementById('kefeRandomizeControls')) return;
     const group = document.createElement('div');
     group.id = 'kefeRandomizeControls';
-    group.className = 'kefe-visualiser-control-group';
-    const title = document.createElement('div'); title.className = 'kefe-label'; title.textContent = 'Randomize';
+    group.className = 'kefe-randomize-effect-settings';
+    const title = document.createElement('div'); title.className = 'kefe-label'; title.textContent = 'Randomize settings';
     group.appendChild(title);
     const syncers = [];
     syncers.push(makeControl(group, 'Animation speed', .1, 3, .05, () => S.speed, v => S.speed = v, v => v.toFixed(2) + '×'));
@@ -183,8 +183,7 @@
     const reset = document.createElement('button'); reset.type = 'button'; reset.className = 'kefe-btn'; reset.textContent = 'Reset Randomize';
     reset.addEventListener('click', () => { S = Object.assign({}, DEFAULT); syncers.forEach(fn => fn()); syncDir(); persist(); redraw(); });
     group.appendChild(reset);
-    const anchor = form.querySelector('.kefe-font-card');
-    if (anchor) form.insertBefore(group, anchor.nextSibling); else form.appendChild(group);
+    effectControl.appendChild(group);
     const updateVisibility = () => { group.hidden = select.value !== 'randomize'; };
     select.addEventListener('change', updateVisibility);
     updateVisibility();
