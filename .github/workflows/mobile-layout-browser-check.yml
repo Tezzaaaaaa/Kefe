@@ -41,13 +41,15 @@ jobs:
 
       - name: Verify mobile controls in Chromium
         run: |
-          node <<'NODE'
+          cat > /tmp/kefe-mobile-layout-check.cjs <<'NODE'
           const { chromium } = require('playwright');
           const assert = require('node:assert/strict');
 
           (async () => {
             const browser = await chromium.launch({ headless: true });
             const reports = [];
+            const baseUrl = process.env.KEFE_BASE_URL || 'http://127.0.0.1:4173';
+            const screenshotPrefix = process.env.KEFE_BASE_URL ? 'live' : 'local';
             try {
               for (const width of [390, 320]) {
                 const page = await browser.newPage({
@@ -58,7 +60,7 @@ jobs:
                 });
                 const pageErrors = [];
                 page.on('pageerror', error => pageErrors.push(error.message));
-                await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
+                await page.goto(`${baseUrl}/index.html`, { waitUntil: 'domcontentloaded' });
                 await page.locator('.kefe-section[data-panel="effects"]').waitFor();
                 await page.locator('.kefe-section[data-panel="effects"]').click();
                 await page.locator('.kefe-panel[data-panel-view="effects"].active').waitFor();
@@ -104,7 +106,7 @@ jobs:
 
                 const effectsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
                 const effectsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="effects"]', 'Effects');
-                await page.screenshot({ path: `mobile-layout-${width}-effects.png`, fullPage: false });
+                await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-effects.png`, fullPage: false });
 
                 await page.locator('.kefe-section[data-panel="visualiser"]').click();
                 await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
@@ -131,7 +133,7 @@ jobs:
                   const gradientSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Gradient');
                   const gradientGroups = await page.locator('#kefeVisGradientView > .kefe-visualiser-control-group').count();
                   assert.ok(gradientGroups > 0, 'Gradient view should contain its expected control groups');
-                  await page.screenshot({ path: `mobile-layout-${width}-gradient.png`, fullPage: false });
+                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-gradient.png`, fullPage: false });
                 }
 
                 const glitchTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /^Glitch$/i }).first();
@@ -142,7 +144,7 @@ jobs:
                   assert.equal(glitchDisplay, 'contents', `Glitch view must flatten into the two-column form at ${width}px; got ${glitchDisplay}`);
                   await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Glitch');
                   await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Glitch', false);
-                  await page.screenshot({ path: `mobile-layout-${width}-glitch.png`, fullPage: false });
+                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-glitch.png`, fullPage: false });
                 }
 
                 const flutedTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /Fluted Glass/i }).first();
@@ -157,7 +159,7 @@ jobs:
                     assert.ok(item.width <= flutedGrid.width * 0.62,
                       `Fluted Glass slider ${item.label} spans too much width at ${width}px: ${item.width}px of ${flutedGrid.width}px`);
                   }
-                  await page.screenshot({ path: `mobile-layout-${width}-fluted.png`, fullPage: false });
+                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-fluted.png`, fullPage: false });
                 }
 
                 reports.push({
@@ -168,7 +170,7 @@ jobs:
                   visualiserDropdownCount: visualiserSelects.length,
                   pageErrors
                 });
-                await page.screenshot({ path: `mobile-layout-${width}-visualiser.png`, fullPage: false });
+                await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-visualiser.png`, fullPage: false });
                 assert.deepEqual(pageErrors, [], `Browser runtime errors at ${width}px`);
                 await page.close();
               }
@@ -181,11 +183,30 @@ jobs:
             process.exitCode = 1;
           });
           NODE
+          node /tmp/kefe-mobile-layout-check.cjs
+
+      - name: Wait for the latest GitHub Pages build
+        run: |
+          live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
+          for attempt in $(seq 1 48); do
+            if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -q 'mobile-two-column-20261011-13' /tmp/kefe-live-index.html; then
+              echo 'Latest mobile stylesheet version is published.'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'GitHub Pages did not publish the expected mobile stylesheet version in time.' >&2
+          exit 1
+
+      - name: Verify the published GitHub Pages editor in Chromium
+        env:
+          KEFE_BASE_URL: https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy
+        run: node /tmp/kefe-mobile-layout-check.cjs
 
       - name: Save mobile screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: kefe-mobile-layout-screenshots
-          path: mobile-layout-*.png
+          path: '*-mobile-layout-*.png'
           if-no-files-found: ignore
