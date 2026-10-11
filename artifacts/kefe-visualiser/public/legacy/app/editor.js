@@ -157,6 +157,7 @@
     if(mediaTrack)mediaTrack.classList.add('is-identified');
     updateMediaTrack();
     updateTitleCard();
+    if(!songAlbum.dataset.artUrl)scheduleTitleArtworkLookup();
     applyAppleAlbumGradient();
     syncAppleLyricsMetadata();
     clearManualNotice();
@@ -176,7 +177,9 @@
     if(Number(item.durationSeconds)>0)songAlbum.dataset.trackDuration=String(Math.round(Number(item.durationSeconds)));
     const mediaTrack=document.getElementById('kefeMediaTrack');
     if(mediaTrack)mediaTrack.classList.remove('is-identified');
-    updateMediaTrack();updateTitleCard();applyAppleAlbumGradient();syncAppleLyricsMetadata();clearManualNotice();
+    updateMediaTrack();updateTitleCard();
+    if(!songAlbum.dataset.artUrl)scheduleTitleArtworkLookup();
+    applyAppleAlbumGradient();syncAppleLyricsMetadata();clearManualNotice();
     if(songTitle.value.trim()&&songArtist.value.trim())return loadAutomaticLyrics();
   };
   function renderSongSuggestions(results,opts={}){
@@ -907,7 +910,9 @@
     songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
     const mediaTrack=document.getElementById('kefeMediaTrack');
     if(mediaTrack)mediaTrack.classList.add('is-identified');
-    updateMediaTrack();updateTitleCard();applyAppleAlbumGradient();syncAppleLyricsMetadata();
+    updateMediaTrack();updateTitleCard();
+    if(!songAlbum.dataset.artUrl)scheduleTitleArtworkLookup();
+    applyAppleAlbumGradient();syncAppleLyricsMetadata();
   }
   async function fetchItunesMatches(meta,duration){
     const title=String(meta.title||'').trim(),artist=String(meta.artist||'').trim(),album=String(meta.album||'').trim();
