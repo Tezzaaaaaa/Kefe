@@ -31,11 +31,10 @@
       s.innerHTML='<header class="kefe-step-head"><span class="kefe-step-num">'+n+'</span><div><h3>'+title+'</h3><p>'+hint+'</p></div></header>';
       var body=mk('div','kefe-step-body');s.appendChild(body);s.body=body;return s;
     }
-    var s2=step(1,'Find your song','Upload audio or video, search for the correct track, then review its details.');
+    var s2=step(1,'Find your song','Upload a file or search for a track.');
     s2.classList.add('kefe-find-step');
 
-    var details=mk('section','kefe-song-details');
-    details.innerHTML='<header class="kefe-song-details-head"><h4>Song details</h4><p>Review or edit the track information.</p></header>';
+    var details=mk('div','kefe-song-details');
     var grid=mk('div','kefe-details-grid');fields.forEach(function(f){grid.appendChild(f);});
     details.appendChild(grid);
     s2.body.appendChild(details);
