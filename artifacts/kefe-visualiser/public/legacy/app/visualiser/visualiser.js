@@ -1040,6 +1040,7 @@ const addControlLive = (id, label, min, max, def) => {
 
 const clock = new THREE.Clock();
 let audioBins = null;
+let smoothedAudioLevel = 0;
 const audioElement = document.getElementById('kefeAudio');
 audioElement?.addEventListener('play', () => {
   const graph = window.kefeAudioGraph?.ensure?.();
@@ -1064,10 +1065,15 @@ function animate() {
     if (!audioBins || audioBins.length !== analyser.frequencyBinCount) audioBins = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(audioBins);
     const limit = Math.max(1, Math.floor(audioBins.length * 0.6));
-    let total = 0;
+    const bassLimit = Math.max(4, Math.floor(audioBins.length * 0.04));
+    let total = 0, bassTotal = 0;
     for (let i = 0; i < limit; i++) total += audioBins[i];
-    audioLevel = total / (limit * 255);
+    for (let i = 0; i < bassLimit; i++) bassTotal += audioBins[i];
+    audioLevel = Math.min(1, (total / (limit * 255)) * 1.4 + (bassTotal / (bassLimit * 255)) * 0.8);
   }
+  smoothedAudioLevel += (audioLevel - smoothedAudioLevel) * (audioLevel > smoothedAudioLevel ? 0.32 : 0.12);
+  audioLevel = smoothedAudioLevel;
+  const audioPulse = Math.min(1, audioLevel * 1.8);
   if (injectionFn && instancedMesh) {
     for (let i = 0; i < currentCount; i++) {
       try {
@@ -1077,6 +1083,10 @@ function animate() {
         console.error('[KEFE visualiser preset]', state.preset.key, e);
         break;
       }
+      // All particle presets breathe, ripple and brighten with the uploaded track.
+      const audioRipple = Math.sin(time * 7.5 + i * 0.035) * audioPulse;
+      target.multiplyScalar(1 + audioPulse * 0.2 + audioRipple * 0.06);
+      color.multiplyScalar(1 + audioPulse * 0.45);
       positions[i].lerp(target, 0.14);
       dummy.position.copy(positions[i]);
       dummy.updateMatrix();
