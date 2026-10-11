@@ -172,7 +172,7 @@
     list.innerHTML='';
     const currentTitle=songTitle.value.trim().toLowerCase();
     const currentArtist=songArtist.value.trim().toLowerCase();
-    const items=(Array.isArray(results)?results:[]).filter(item=>item.trackName).filter(item=>!opts.excludeCurrent||!(String(item.trackName||'').toLowerCase()===currentTitle&&String(item.artistName||'').toLowerCase()===currentArtist)).slice(0,opts.limit||5);
+    const items=(Array.isArray(results)?results:[]).filter(item=>item.trackName).filter(item=>!opts.excludeCurrent||!(String(item.trackName||'').toLowerCase()===currentTitle&&String(item.artistName||'').toLowerCase()===currentArtist)).slice(0,opts.limit||20);
     status.textContent=opts.excludeCurrent?(items.length?'Other matches':'No other matches'):(items.length?'Select the correct song':'No matches found');
     panel.hidden=true;
     if(window.kefeCarousel)window.kefeCarousel.showMatches(items,status.textContent,opts.query||[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' '));
@@ -779,22 +779,29 @@
   async function fetchItunesMatches(meta,duration){
     const query=[meta.title,meta.artist].filter(Boolean).join(' ').trim();
     if(!query)return [];
-    let lastError=null;
-    const run=async country=>{
-      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
+    const countries=['AU','US'];
+    const requests=countries.map(async country=>{
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
       try{
-        const response=await fetch('https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=song&limit=25&country='+country,{signal:controller.signal,headers:{Accept:'application/json'}});
+        const response=await fetch('https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=song&limit=200&country='+country,{signal:controller.signal,headers:{Accept:'application/json'}});
         if(!response.ok)throw new Error('iTunes search failed: '+response.status);
         const payload=await response.json();
         return Array.isArray(payload.results)?payload.results.filter(item=>item.trackName):[];
       }finally{clearTimeout(timer);}
-    };
-    let results=[];
-    for(const country of ['AU','US']){
-      try{results=await run(country);}catch(error){lastError=error;console.warn('[KEFE iTunes search]',country,error?.name||error);}
-      if(results.length)break;
-    }
+    });
+    const settled=await Promise.allSettled(requests);
+    let results=[],lastError=null;
+    settled.forEach((result,index)=>{
+      if(result.status==='fulfilled')results=results.concat(result.value);
+      else{lastError=result.reason;console.warn('[KEFE iTunes search]',countries[index],result.reason?.name||result.reason);}
+    });
     if(!results.length&&lastError)throw lastError;
+    const seen=new Set();
+    results=results.filter(item=>{
+      const key=[item.trackName,item.artistName,item.collectionName].map(value=>normalizeSearchText(value)).join('|');
+      if(seen.has(key))return false;
+      seen.add(key);return true;
+    });
     return results.sort((a,b)=>rankTrack(b,meta,duration)-rankTrack(a,meta,duration));
   }
   function setLyricsFromLines(lines,source){
@@ -1005,11 +1012,11 @@
       const best=matches[0];
       if(best&&isConfidentMatch(best,meta,duration)){
         applyIdentifiedTrack(best);
-        renderSongSuggestions(matches.slice(0,5),{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
+        renderSongSuggestions(matches.slice(0,20),{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
         setLyricsStatus('Track identified. Finding lyrics…');
         await loadAutomaticLyrics();
       }else if(meta.title&&meta.artist){
-        renderSongSuggestions(matches.slice(0,5),{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
+        renderSongSuggestions(matches.slice(0,20),{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
         setLyricsStatus('Using embedded song details. Finding lyrics…');
         const found=await loadAutomaticLyrics();
         if(!found&&mediaObjectUrl===uploadId)promptManualDetails(matches);
@@ -1034,7 +1041,7 @@
     try{
       const matches=await fetchItunesMatches(meta,Number(audio.duration)||0);
       if(seq!==manualSearchSeq)return;
-      renderSongSuggestions(matches.slice(0,5),{excludeCurrent:false});
+      renderSongSuggestions(matches.slice(0,20),{excludeCurrent:false});
       setLyricsStatus(matches.length?'Pick the correct song from the suggestions.':'No matches found. Check the spelling or add the artist.');
     }catch(error){
       if(seq!==manualSearchSeq)return;
