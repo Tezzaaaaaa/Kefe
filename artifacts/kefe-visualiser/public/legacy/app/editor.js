@@ -164,6 +164,19 @@
     return loadAutomaticLyrics();
   }
   window.kefeApplyTrack=item=>applyPickedTrack(item);
+  window.kefeUseLocalUpload=item=>{
+    if(!item?._kefeLocalUpload)return;
+    songTitle.value=item.trackName||item.fileName||'';
+    songArtist.value=item.artistName||'';
+    songAlbum.value=item.collectionName||'';
+    songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
+    delete songAlbum.dataset.artUrl;delete songAlbum.dataset.platformId;
+    if(item.durationSeconds)songAlbum.dataset.trackDuration=String(Math.round(Number(item.durationSeconds)));
+    const mediaTrack=document.getElementById('kefeMediaTrack');
+    if(mediaTrack)mediaTrack.classList.remove('is-identified');
+    updateMediaTrack();updateTitleCard();syncAppleLyricsMetadata();clearManualNotice();
+    if(songTitle.value.trim()&&songArtist.value.trim())return loadAutomaticLyrics();
+  };
   function renderSongSuggestions(results,opts={}){
     const panel=document.getElementById('kefeSuggestions');
     const list=document.getElementById('kefeSuggestionList');
@@ -1002,6 +1015,7 @@
       const embedded=await readEmbeddedMetadata(file);
       const named=filenameMetadata(file);
       const meta={title:embedded.title||named.title||'',artist:embedded.artist||named.artist||'',album:embedded.album||'',year:embedded.year||''};
+      if(window.kefeCarousel?.setLocalUpload)window.kefeCarousel.setLocalUpload({trackName:meta.title||file.name,artistName:meta.artist,collectionName:meta.album,releaseDate:meta.year,fileName:file.name,durationSeconds:Number(audio.duration)||0},false);
       songTitle.value=meta.title;
       songArtist.value=meta.artist;
       songAlbum.value=meta.album;
@@ -1148,6 +1162,7 @@
       mediaTrack.setAttribute('aria-live','polite');
     }
     updateMediaTrack();
+    if(window.kefeCarousel?.setLocalUpload)window.kefeCarousel.setLocalUpload({trackName:songTitle.value||file.name,artistName:'',collectionName:'',fileName:file.name},true);
     video.onplay=null;video.muted=true;
     const loadUrl=mediaObjectUrl;
     audio.src=mediaObjectUrl;audio.load();
