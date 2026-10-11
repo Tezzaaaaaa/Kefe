@@ -113,6 +113,12 @@ jobs:
                   return result;
                 }
 
+                async function assertOnlyVisualiserViewVisible(activeId, label) {
+                  const views = await page.locator('.kefe-panel[data-panel-view="visualiser"] .kefe-vis-view').evaluateAll(nodes => nodes.map(node => ({ id: node.id, hidden: node.hidden })));
+                  const visible = views.filter(view => !view.hidden).map(view => view.id);
+                  assert.deepEqual(visible, [activeId], `${label} must show only its own settings; visible views: ${JSON.stringify(visible)}`);
+                }
+
                 await page.locator('.kefe-section[data-panel="media"]').click();
                 await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
                 const mediaGrid = await assertTwoColumns('.kefe-panel[data-panel-view="media"] .kefe-form', 'Media');
@@ -258,6 +264,7 @@ jobs:
                 assert.ok(tabsLayout.width >= tabsLayout.formWidth * 0.9, `Visualiser engine tabs must span the form width at ${width}px`);
                 const particlesDisplay = await page.locator('#kefeVisParticlesView').evaluate(el => getComputedStyle(el).display);
                 assert.equal(particlesDisplay, 'contents', `Particles view must flatten into the two-column form at ${width}px; got ${particlesDisplay}`);
+                await assertOnlyVisualiserViewVisible('kefeVisParticlesView', 'Particles');
                 const particleToggleDisplay = await page.locator('#kefeVisParticlesView .kefe-visualiser-spin-row').first().evaluate(el => getComputedStyle(el).display);
                 assert.equal(particleToggleDisplay, 'contents', `Particles toggle labels and switches must flatten into the two-column form at ${width}px`);
 
@@ -267,6 +274,7 @@ jobs:
                   await page.locator('#kefeVisGradientView:not([hidden])').waitFor();
                   const gradientDisplay = await page.locator('#kefeVisGradientView').evaluate(el => getComputedStyle(el).display);
                   assert.equal(gradientDisplay, 'contents', `Gradient view must flatten into the two-column form at ${width}px; got ${gradientDisplay}`);
+                  await assertOnlyVisualiserViewVisible('kefeVisGradientView', 'Gradient');
                   const gradientGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Gradient');
                   const gradientSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Gradient');
                   const gradientGroups = await page.locator('#kefeVisGradientView > .kefe-visualiser-control-group').count();
@@ -282,6 +290,7 @@ jobs:
                   await page.locator('#kefeVisGlitchView:not([hidden])').waitFor();
                   const glitchDisplay = await page.locator('#kefeVisGlitchView').evaluate(el => getComputedStyle(el).display);
                   assert.equal(glitchDisplay, 'contents', `Glitch view must flatten into the two-column form at ${width}px; got ${glitchDisplay}`);
+                  await assertOnlyVisualiserViewVisible('kefeVisGlitchView', 'Glitch');
                   await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Glitch');
                   await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Glitch', false);
                   await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-glitch.png`, fullPage: false, timeout: 15000 });
@@ -293,6 +302,7 @@ jobs:
                   await page.locator('#kefeVisFlutedView:not([hidden])').waitFor();
                   const flutedDisplay = await page.locator('#kefeVisFlutedView').evaluate(el => getComputedStyle(el).display);
                   assert.equal(flutedDisplay, 'contents', `Fluted Glass wrapper must flatten into the same two-column form at ${width}px; got ${flutedDisplay}`);
+                  await assertOnlyVisualiserViewVisible('kefeVisFlutedView', 'Fluted Glass');
                   const flutedToggleDisplay = await page.locator('#kefeVisFlutedView .kefe-visualiser-spin-row').first().evaluate(el => getComputedStyle(el).display);
                   assert.equal(flutedToggleDisplay, 'contents', `Fluted Glass toggle labels and switches must flatten into two columns at ${width}px`);
                   const flutedGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Fluted Glass');
