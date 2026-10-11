@@ -245,7 +245,7 @@ jobs:
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
           for attempt in $(seq 1 48); do
-            if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -q 'mobile-two-column-20261011-17' /tmp/kefe-live-index.html; then
+            if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -q 'mobile-edge-align-20261011-19' /tmp/kefe-live-index.html; then
               echo 'Latest mobile stylesheet version is published.'
               exit 0
             fi
