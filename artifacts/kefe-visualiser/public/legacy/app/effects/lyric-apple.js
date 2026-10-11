@@ -134,7 +134,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         document.fonts.load('700 48px "Inter Tight"').catch(() => {});
         document.fonts.load('600 48px "Inter Tight"').catch(() => {});
     }
-    const boundaryLeft = landscapeSplit ? w * 0.55 : Math.max(0, (w - compositionWidth) / 2);
+    const boundaryLeft = landscapeSplit ? w * 0.396 : Math.max(0, (w - compositionWidth) / 2);
     const margin = boundaryLeft + horizontalPadding;
     const maxWidth = contentWidth;
     const displayLines = [];
