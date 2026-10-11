@@ -91,17 +91,19 @@
   function relevance(item,query){
     var q=normalise(query),title=normalise(titleOf(item)),artist=normalise(item.artistName),album=normalise(item.collectionName);
     if(!q)return 0;
-    var score=0;
-    if(title===q)score+=160;
-    else if(title.indexOf(q)===0)score+=95;
+    var score=0,terms=q.split(/\s+/).filter(Boolean);
+    if(title===q)score+=180;
+    else if(title&&q.indexOf(title+' ')===0)score+=145;
+    else if(title.indexOf(q)===0)score+=100;
     else if(title.indexOf(q)>=0)score+=65;
-    if(artist===q)score+=55;
+    if(artist===q)score+=65;
+    else if(artist&&q.indexOf(artist)>=0)score+=55;
     else if(artist.indexOf(q)>=0)score+=25;
     if(album===q)score+=45;
     else if(album.indexOf(q)>=0)score+=20;
-    var terms=q.split(/\\s+/).filter(Boolean),haystack=(title+' '+artist+' '+album).trim();
-    var matched=terms.filter(function(term){return haystack.indexOf(term)>=0;}).length;
-    score+=terms.length?matched/terms.length*30:0;
+    var titleWords=title.split(/\s+/).filter(Boolean),artistWords=artist.split(/\s+/).filter(Boolean),albumWords=album.split(/\s+/).filter(Boolean);
+    function coverage(words){return terms.length?terms.filter(function(term){return words.some(function(word){return word===term||word.indexOf(term)===0||term.indexOf(word)===0;});}).length/terms.length:0;}
+    score+=coverage(titleWords)*75+coverage(artistWords)*60+coverage(albumWords)*18;
     if(kindOf(item)==='song')score+=12;
     return score;
   }
