@@ -131,9 +131,8 @@ body { letter-spacing: -.015em; }
 .kefe-stage::before {
   z-index: 0;
   background:
-    radial-gradient(ellipse at 78% 18%, rgba(109,126,157,.18), transparent 38%),
     radial-gradient(ellipse at 18% 88%, rgba(116,150,145,.14), transparent 44%),
-    linear-gradient(145deg, #1b1e30, #11131f 72%);
+    linear-gradient(145deg, #191a1d, #111214 72%);
   border-radius: inherit;
 }
 
