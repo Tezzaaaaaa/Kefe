@@ -137,7 +137,8 @@
       if(res[0].status==='rejected'&&res[1].status==='rejected')throw res[0].reason;
       S.items=songs.concat(albums).sort(function(a,b){return relevance(b,q)-relevance(a,q);});
       S.index=0;render();
-      status(S.items.length?(visible().length+' result'+(visible().length===1?'':'s')):'No results','');
+      var count=visible().filter(function(item){return !item._kefeLocalUpload;}).length;
+      status(count?(count+' result'+(count===1?'':'s')):S.localUpload&&S.filter!=='album'?'No catalogue matches. Your uploaded file is available below.':'No results','');
     }catch(e){
       if(token!==S.token)return;
       S.items=[];render();status('Search failed — check your connection.','error');
@@ -277,7 +278,9 @@
     S.mode='search';S.filter='song';syncFilters();el.CarBack.hidden=true;
     if(query!=null){el.FindInput.value=query;el.FindBox.classList.toggle('has-text',!!query);}
     S.items=(items||[]).map(function(x){return x;});S.index=0;render();
-    status(msg||(S.items.length?'Select the correct song':'No matches found'),'');
+    var displayMsg=msg;
+    if(S.localUpload&&!(items||[]).length&&(!displayMsg||/no matches found/i.test(displayMsg)))displayMsg='No catalogue matches. Your uploaded file is available below.';
+    status(displayMsg||(S.items.length?'Select the correct song':'No matches found'),'');
     busy(false);
     if(S.items.length)el.Carousel.scrollIntoView({block:'nearest',behavior:'smooth'});
   }
