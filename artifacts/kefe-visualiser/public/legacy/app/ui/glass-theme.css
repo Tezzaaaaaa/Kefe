@@ -1462,3 +1462,154 @@ button, input, select, textarea {
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* KEFE day/night palette: keep the editor's existing layout and controls intact. */
+:root[data-theme="night"] {
+  color-scheme: dark;
+  --bg: #14171b;
+  --surface: #20242a;
+  --surface-hi: #2b3037;
+  --surface-lo: #101317;
+  --preview: #0c0e12;
+  --text: #edf0f3;
+  --muted: #b0b7c0;
+  --soft: #89929d;
+  --line: rgba(218, 226, 235, .16);
+  --line-soft: rgba(218, 226, 235, .10);
+  --accent: #91ad9d;
+  --accent-hover: #a4c0af;
+  --accent-pressed: #789784;
+  --accent-deep: #d8e5dd;
+  --focus: #a5c7d8;
+  --inner: inset 3px 3px 8px rgba(0, 0, 0, .26), inset -2px -2px 7px rgba(255, 255, 255, .025);
+  --lift: 5px 6px 14px rgba(0, 0, 0, .25), -2px -2px 8px rgba(255, 255, 255, .018);
+  --float: 8px 10px 20px rgba(0, 0, 0, .32), -2px -2px 8px rgba(255, 255, 255, .025);
+  --in-md: inset 3px 3px 7px rgba(0, 0, 0, .3), inset -2px -2px 6px rgba(255, 255, 255, .025);
+}
+html[data-theme="night"],
+html[data-theme="night"] body {
+  background: #14171b;
+  color: var(--text);
+}
+html[data-theme="night"] body {
+  background-image: radial-gradient(ellipse at 50% -30%, rgba(255,255,255,.035), transparent 65%);
+}
+html[data-theme="night"] .kefe-editor { background: var(--bg); }
+html[data-theme="night"] .kefe-top {
+  background: rgba(31,35,41,.94);
+  border-color: var(--line);
+  box-shadow: 0 6px 22px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.035);
+}
+html[data-theme="night"] .kefe-brand,
+html[data-theme="night"] .kefe-top-link {
+  color: var(--muted);
+}
+html[data-theme="night"] .kefe-brand { background: var(--surface); border-color: var(--line); }
+html[data-theme="night"] .kefe-brand:hover,
+html[data-theme="night"] .kefe-top-link:hover {
+  background: var(--surface-hi);
+  color: var(--text);
+}
+html[data-theme="night"] .kefe-btn,
+html[data-theme="night"] .kefe-control,
+html[data-theme="night"] .kefe-select,
+html[data-theme="night"] .kefe-input,
+html[data-theme="night"] .kefe-textarea,
+html[data-theme="night"] .kefe-section,
+html[data-theme="night"] .kefe-card,
+html[data-theme="night"] .kefe-song-search-button,
+html[data-theme="night"] .kefe-song-result,
+html[data-theme="night"] .kefe-suggestion,
+html[data-theme="night"] .kefe-visualiser-preset,
+html[data-theme="night"] .kefe-font-card,
+html[data-theme="night"] .kefe-empty-panel,
+html[data-theme="night"] .kefe-upload-zone,
+html[data-theme="night"] .kefe-media-track,
+html[data-theme="night"] .kefe-suggestions {
+  background-color: var(--surface);
+  color: var(--text);
+  border-color: var(--line);
+}
+html[data-theme="night"] .kefe-select,
+html[data-theme="night"] .kefe-input,
+html[data-theme="night"] .kefe-textarea {
+  background: #191d22;
+  color: var(--text);
+  border-color: rgba(218,226,235,.2);
+}
+html[data-theme="night"] .kefe-input::placeholder,
+html[data-theme="night"] .kefe-textarea::placeholder {
+  color: #89939e;
+}
+html[data-theme="night"] .kefe-label,
+html[data-theme="night"] .kefe-meta,
+html[data-theme="night"] .kefe-panel-head .kefe-meta,
+html[data-theme="night"] .kefe-visualiser-field > span,
+html[data-theme="night"] .kefe-upload-help,
+html[data-theme="night"] .kefe-upload-name {
+  color: var(--muted);
+}
+html[data-theme="night"] .kefe-panel,
+html[data-theme="night"] .kefe-settings {
+  color: var(--text);
+  background: rgba(31,35,41,.97);
+  border-color: rgba(218,226,235,.14);
+  box-shadow: 0 12px 30px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.025);
+}
+html[data-theme="night"] .kefe-panel h2,
+html[data-theme="night"] .kefe-card h2,
+html[data-theme="night"] .kefe-panel h3,
+html[data-theme="night"] .kefe-card h3,
+html[data-theme="night"] .kefe-card strong,
+html[data-theme="night"] .kefe-suggestion-name,
+html[data-theme="night"] .kefe-font-name,
+html[data-theme="night"] .kefe-media-track-info h3 {
+  color: var(--text);
+}
+html[data-theme="night"] .kefe-panel-head { border-bottom-color: var(--line); }
+html[data-theme="night"] .kefe-section.active {
+  background: #394b42;
+  border-color: rgba(145,173,157,.48);
+  color: #f5faf6;
+  box-shadow: 0 4px 12px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.06);
+}
+html[data-theme="night"] .kefe-card.active,
+html[data-theme="night"] .kefe-visualiser-preset.active,
+html[data-theme="night"] .kefe-song-result.active,
+html[data-theme="night"] .kefe-suggestion.active {
+  background: #2b3b32;
+  border-color: rgba(145,173,157,.55);
+}
+html[data-theme="night"] .kefe-wave {
+  background: rgba(24,28,33,.92);
+  border-color: rgba(218,226,235,.2);
+}
+html[data-theme="night"] .kefe-timeline,
+html[data-theme="night"] .kefe-editing,
+html[data-theme="night"] .kefe-panels {
+  scrollbar-color: rgba(185,197,208,.3) transparent;
+}
+html[data-theme="night"] .kefe-settings-backdrop { background: rgba(0,0,0,.62); }
+html[data-theme="night"] .kefe-settings,
+html[data-theme="night"] .kefe-settings-section,
+html[data-theme="night"] .kefe-settings-row,
+html[data-theme="night"] .kefe-settings-control {
+  border-color: var(--line);
+}
+html[data-theme="night"] .kefe-site-footer,
+html[data-theme="night"] .kefe-site-footer a,
+html[data-theme="night"] .kefe-site-footer span {
+  color: var(--muted);
+}
+html[data-theme="night"] .kefe-site-footer strong { color: var(--text); }
+html[data-theme="night"] .kefe-theme-icon { width: 15px; height: 15px; flex: 0 0 auto; }
+html[data-theme="day"] .kefe-theme-sun,
+html:not([data-theme="night"]) .kefe-theme-sun { display: none; }
+html[data-theme="night"] .kefe-theme-moon { display: none; }
+.kefe-theme-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.kefe-theme-label { white-space: nowrap; }
+@media (max-width: 420px) {
+  .kefe-theme-toggle { gap: 4px; padding-inline: 6px; }
+  .kefe-theme-icon { width: 14px; height: 14px; }
+}
