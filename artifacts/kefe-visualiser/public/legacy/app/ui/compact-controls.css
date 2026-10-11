@@ -1600,3 +1600,66 @@
     font-size: 8px;
   }
 }
+
+/* Mobile header navigation: share the available width without horizontal scrolling. */
+@media (max-width: 700px) {
+  .kefe-top {
+    box-sizing: border-box;
+    width: auto;
+    min-width: 0;
+    gap: 4px;
+  }
+  .kefe-top-nav,
+  .kefe-top-profile {
+    flex: 1 1 0;
+    min-width: 0;
+    gap: 3px;
+    overflow: hidden;
+  }
+  .kefe-top-nav > .kefe-brand {
+    flex: 0 0 30px;
+    width: 30px;
+    min-width: 30px;
+    height: 32px;
+    min-height: 32px;
+  }
+  .kefe-top-nav > .kefe-top-link,
+  .kefe-top-profile > .kefe-top-link:not(.kefe-github-link) {
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+    max-width: none;
+    padding-inline: 2px;
+    text-align: center;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .kefe-top-profile > .kefe-github-link {
+    flex: 0 0 28px;
+    width: 28px;
+    min-width: 28px;
+    height: 32px;
+    min-height: 32px;
+  }
+}
+@media (max-width: 360px) {
+  .kefe-top-nav,
+  .kefe-top-profile {
+    gap: 2px;
+  }
+  .kefe-top-nav > .kefe-brand {
+    flex-basis: 28px;
+    width: 28px;
+    min-width: 28px;
+  }
+  .kefe-top-nav > .kefe-top-link,
+  .kefe-top-profile > .kefe-top-link:not(.kefe-github-link) {
+    font-size: 9px;
+    padding-inline: 0;
+  }
+  .kefe-top-profile > .kefe-github-link {
+    flex-basis: 26px;
+    width: 26px;
+    min-width: 26px;
+  }
+}
