@@ -70,6 +70,7 @@
   const settings = {};
   try { Object.assign(settings, JSON.parse(localStorage.getItem(storeKey) || '{}')); } catch (_) {}
   Object.keys(defs).forEach(k => settings[k] = Object.assign({}, defs[k].defaults, settings[k] || {}));
+  if (settings.inkscript.font === '__upload') { settings.inkscript.font = 'Mr Dafoe'; settings.inkscript.uploadedFamily = ''; }
   const save = () => { try { localStorage.setItem(storeKey, JSON.stringify(settings)); } catch (_) {} };
   const redraw = () => { try { window.kefeLyrics?.redraw?.(); } catch (_) {} };
   const active = key => document.getElementById('lyricEffect')?.value === key;
@@ -199,7 +200,8 @@
     }
     const maxW=w*.82,maxH=h*.42;
     const targetAspect=s.aspect==='match'?w/h:Number(s.aspect.split('/')[0])/Number(s.aspect.split('/')[1]);
-    const safeW=Math.min(maxW,maxH*targetAspect),safeH=Math.min(maxH,maxW/targetAspect);
+    let safeW=maxW,safeH=maxH;
+    if(targetAspect<w/h)safeW=Math.min(maxW,maxH*targetAspect);else safeH=Math.min(maxH,maxW/targetAspect);
     const measure=ctx.measureText.bind(ctx);
     let size=Math.max(18,Math.min(safeH*.72,safeW/(Math.max(1,Array.from(txt).length)*.58)));
     ctx.save();ctx.font=weight+' '+size+'px "'+family+'", cursive';
