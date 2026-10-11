@@ -173,9 +173,10 @@
     const currentTitle=songTitle.value.trim().toLowerCase();
     const currentArtist=songArtist.value.trim().toLowerCase();
     const items=Array.isArray(results)?results:[];
-    status.textContent=opts.excludeCurrent?(items.length?'Other matches':'No other matches'):(items.length?'Select the correct song':'No matches found');
+    const message=opts.statusMessage||(opts.excludeCurrent?(items.length?'Other matches':'No other matches'):(items.length?'Select the correct song':'No matches found'));
+    status.textContent=message;
     panel.hidden=true;
-    if(window.kefeCarousel)window.kefeCarousel.showMatches(items,status.textContent,opts.query||[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' '));
+    if(window.kefeCarousel)window.kefeCarousel.showMatches(items,message,opts.query||[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' '));
     items.forEach(item=>{
       const button=document.createElement('button');
       button.type='button';
@@ -977,14 +978,16 @@
   }
   function clearManualNotice(){const n=document.getElementById('kefeManualNotice');if(n)n.hidden=true;}
   function setLyricsStatus(text){const el=document.getElementById('kefeLyricsStatus');if(el)el.textContent=text;}
-  function promptManualDetails(matches){
+  function promptManualDetails(matches,searchFailed=false){
     const list=Array.isArray(matches)?matches:[];
-    const msg=list.length
-      ?'Couldn’t confirm this song automatically. Pick the correct match below, or edit the title and artist.'
-      :'Couldn’t identify this song automatically. Enter the title and artist below, then pick the correct match.';
+    const msg=searchFailed
+      ?'Catalogue search failed. Your uploaded file is still available; check your connection and try again.'
+      :list.length
+        ?'Couldn’t confirm this song automatically. Pick the correct match below, or edit the title and artist.'
+        :'Couldn’t identify this song automatically. Enter the title and artist below, then pick the correct match.';
     showManualNotice(msg);setLyricsStatus(msg);
     openEditorPanel('media');
-    renderSongSuggestions(list,{excludeCurrent:false});
+    renderSongSuggestions(list,{excludeCurrent:false,statusMessage:searchFailed?msg:undefined});
     try{songTitle.focus();}catch(_){}
   }
   function showLyricsMissing(){
@@ -1006,9 +1009,9 @@
       updateMediaTrack();updateTitleCard();
       setLyricsStatus('Identifying track…');
       const duration=Number(audio.duration)||0;
-      let matches=[];
+      let matches=[],catalogueSearchFailed=false;
       try{matches=await fetchItunesMatches(meta,duration);}
-      catch(error){console.warn('[KEFE iTunes identification]',error);}
+      catch(error){catalogueSearchFailed=true;console.warn('[KEFE iTunes identification]',error);}
       if(mediaObjectUrl!==uploadId)return;
       const best=matches.find(item=>isConfidentMatch(item,meta,duration))||null;
       if(best&&isConfidentMatch(best,meta,duration)){
@@ -1017,12 +1020,13 @@
         setLyricsStatus('Track identified. Finding lyrics…');
         await loadAutomaticLyrics();
       }else if(meta.title&&meta.artist){
-        renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
-        setLyricsStatus('Using embedded song details. Finding lyrics…');
+        const searchMessage=catalogueSearchFailed?'Catalogue search failed. Your uploaded file is available below; check your connection and try again.':undefined;
+        renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' '),statusMessage:searchMessage});
+        setLyricsStatus(catalogueSearchFailed?'Catalogue search failed. Using embedded song details; check your connection and try again.':'Using embedded song details. Finding lyrics…');
         const found=await loadAutomaticLyrics();
-        if(!found&&mediaObjectUrl===uploadId)promptManualDetails(matches);
+        if(!found&&mediaObjectUrl===uploadId)promptManualDetails(matches,catalogueSearchFailed);
       }else{
-        promptManualDetails(matches);
+        promptManualDetails(matches,catalogueSearchFailed);
       }
     }catch(error){
       console.warn('[KEFE track identification]',error);
@@ -1047,6 +1051,7 @@
     }catch(error){
       if(seq!==manualSearchSeq)return;
       console.warn('[KEFE manual search]',error);
+      if(window.kefeCarousel)window.kefeCarousel.showMatches([],'Catalogue search failed. Your uploaded file remains available; check your connection and try again.',[meta.title,meta.artist].filter(Boolean).join(' '));
       setLyricsStatus('Song search failed. Check your connection and try again.');
     }
   }
