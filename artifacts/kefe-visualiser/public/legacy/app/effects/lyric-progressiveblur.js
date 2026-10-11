@@ -92,7 +92,7 @@
     const visibleRadius = Math.min(7, Math.ceil(w / 260));
 
     for (let offset = -visibleRadius; offset <= visibleRadius; offset++) {
-      const index = (activeIndex + offset + lyricLines.length) % lyricLines.length;
+      const index = ((activeIndex + offset) % lyricLines.length + lyricLines.length) % lyricLines.length;
       const line = lyricLines[index];
       const isActive = offset === 0;
       const size = fitFont(
