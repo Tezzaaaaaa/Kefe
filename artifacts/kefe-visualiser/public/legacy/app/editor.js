@@ -705,7 +705,10 @@
     return findAtom(0,bytes.byteLength);
   }
   async function readEmbeddedMetadata(file){
-    const head=await file.slice(0,1024*1024).arrayBuffer();
+    /* MP4/M4A metadata atoms can be stored near the end of the file. Read complete
+       small files; cap the buffer for large uploads to avoid duplicating huge media. */
+    const metadataReadLimit=32*1024*1024;
+    const head=await file.slice(0,Math.min(file.size,metadataReadLimit)).arrayBuffer();
     const bytes=new Uint8Array(head),out={};
     if(bytes[0]===0x49&&bytes[1]===0x44&&bytes[2]===0x33){
       const version=bytes[3]||3;
@@ -743,7 +746,13 @@
   function filenameMetadata(file){
     const raw=String(file.name||'').replace(/\.[^.]+$/,'').replace(/^[\s\d._)\-]+/,'').replace(/[._]+/g,' ').trim();
     const parts=raw.split(/\s+[-–—]\s+/).map(v=>v.trim()).filter(Boolean);
-    return parts.length>1?{artist:parts[0],title:parts.slice(1).join(' - ')}:{title:raw};
+    const generic=/^(?:audio|video|track|recording|unknown|untitled|download|media|file)(?:\s*\d+)?$/i;
+    if(!raw||generic.test(raw))return {};
+    if(parts.length>1){
+      if(generic.test(parts[0])||generic.test(parts.slice(1).join(' - ')))return {};
+      return {artist:parts[0],title:parts.slice(1).join(' - ')};
+    }
+    return {title:raw};
   }
   function coreTitle(value){
     return normalizeSearchText(String(value||'').replace(/\(.*?\)|\[.*?\]/g,' ').replace(/\s-\s.*$/,''));
@@ -789,10 +798,10 @@
     return true;
   }
   function applyIdentifiedTrack(item){
-    songTitle.value=item.trackName||songTitle.value;
-    songArtist.value=item.artistName||songArtist.value;
-    songAlbum.value=item.collectionName||songAlbum.value;
-    songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):songYear.value;
+    if(!manuallyEditedTrackFields.has('title'))songTitle.value=item.trackName||songTitle.value;
+    if(!manuallyEditedTrackFields.has('artist'))songArtist.value=item.artistName||songArtist.value;
+    if(!manuallyEditedTrackFields.has('album'))songAlbum.value=item.collectionName||songAlbum.value;
+    if(!manuallyEditedTrackFields.has('year'))songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):songYear.value;
     songAlbum.dataset.artUrl=normalizeArtworkUrl(item.artworkUrl100);
     songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
     songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
@@ -827,7 +836,18 @@
       else{lastError=result.reason;console.warn('[KEFE iTunes search]',queries[Math.floor(index/countries.length)],countries[index%countries.length],result.reason?.name||result.reason);}
     });
     if(!results.length&&lastError)throw lastError;
-    return results.sort((a,b)=>rankTrack(b,meta,duration)-rankTrack(a,meta,duration));
+    /* Query and country overlap is normal; deduplicate by catalogue identity. */
+    const unique=new Map();
+    results.forEach(item=>{
+      if(!item||!item.trackName||!item.artistName)return;
+      const key=item.trackId!=null?'id:'+String(item.trackId):[
+        normalizeSearchText(item.trackName),normalizeSearchText(item.artistName),
+        normalizeSearchText(item.collectionName),String(item.trackTimeMillis||'')
+      ].join('|');
+      const prior=unique.get(key);
+      if(!prior||rankTrack(item,meta,duration)>rankTrack(prior,meta,duration))unique.set(key,item);
+    });
+    return [...unique.values()].sort((a,b)=>rankTrack(b,meta,duration)-rankTrack(a,meta,duration));
   }
   function setLyricsFromLines(lines,source){
     if(!lines.length)return false;
@@ -843,6 +863,8 @@
     return true;
   }
   let lyricsRequest=0;
+  let activeLyricsController=null;
+  const manuallyEditedTrackFields=new Set();
   function parseLyricsPlus(payload){
     const items=Array.isArray(payload?.lyrics)?payload.lyrics:[];
     return items.map((line,index)=>{
@@ -865,13 +887,16 @@
     const status=document.getElementById('kefeLyricsStatus');
     if(!title||!artist){showManualNotice('Enter both the song title and artist so lyrics can be found.');return false;}
     const request=++lyricsRequest;
+    if(activeLyricsController)activeLyricsController.abort();
     let controller=new AbortController();
+    activeLyricsController=controller;
     let timeout=null;
     const params=new URLSearchParams({title,artist,...(album?{album}:{}),...(duration?{duration:String(duration)}:{})});
     let acceptJson={signal:controller.signal,headers:{Accept:'application/json'}};
     const freshRequest=()=>{
       clearTimeout(timeout);
       controller=new AbortController();
+      activeLyricsController=controller;
       timeout=setTimeout(()=>controller.abort(),8000);
       acceptJson={signal:controller.signal,headers:{Accept:'application/json'}};
     };
@@ -986,6 +1011,7 @@
       return false;
     }finally{
       clearTimeout(timeout);
+      if(activeLyricsController===controller)activeLyricsController=null;
     }
   }
   function showManualNotice(text){
@@ -1017,18 +1043,23 @@
     setLyricsStatus('No synchronized lyrics found for this track. Check the song details, or open the Lyrics section to upload an .lrc file.');
   }
   async function recognizeUploadedAudio(file){
-    /* AudD's published test token is limited to 10 requests/day. A deployment token
-       can be supplied as window.KEFE_AUDIO_RECOGNITION_TOKEN; keep production
-       credentials behind a server endpoint rather than committing a private key. */
-    if(!file||file.size>10*1024*1024)return null;
+    /* Prefer a server-side proxy so private provider credentials never ship to the
+       browser. The proxy accepts multipart "file" and returns AudD-compatible JSON.
+       Direct-token mode is for local testing only. */
+    if(!file)return null;
+    if(file.size>10*1024*1024){
+      setLyricsStatus('Audio recognition service accepts files up to 10 MB. Trying embedded metadata, filename and catalogue matching instead.');
+      return null;
+    }
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),15000);
     try{
       const body=new FormData();
-      body.append('api_token',String(window.KEFE_AUDIO_RECOGNITION_TOKEN||'test'));
+      const proxy=String(window.KEFE_AUDIO_RECOGNITION_ENDPOINT||'').trim();
+      if(!proxy)body.append('api_token',String(window.KEFE_AUDIO_RECOGNITION_TOKEN||'test'));
       body.append('file',file,file.name||'upload');
       body.append('return','apple_music');
-      const response=await fetch('https://api.audd.io/',{method:'POST',body,signal:controller.signal});
+      const response=await fetch(proxy||'https://api.audd.io/',{method:'POST',body,signal:controller.signal});
       if(!response.ok)throw new Error('Audio recognition failed: '+response.status);
       const payload=await response.json();
       if(payload.status!=='success')throw new Error(payload.error?.error_message||'Audio recognition service rejected the file');
@@ -1055,11 +1086,16 @@
         album:recognized?.album||embedded.album||'',
         year:(recognized?.release_date?String(recognized.release_date).slice(0,4):'')||embedded.year||''
       };
+      /* Manual edits made while lookup is in flight take precedence. */
+      if(manuallyEditedTrackFields.has('title'))meta.title=songTitle.value.trim();
+      if(manuallyEditedTrackFields.has('artist'))meta.artist=songArtist.value.trim();
+      if(manuallyEditedTrackFields.has('album'))meta.album=songAlbum.value.trim();
+      if(manuallyEditedTrackFields.has('year'))meta.year=songYear.value.trim();
       if(window.kefeCarousel?.setLocalUpload)window.kefeCarousel.setLocalUpload({trackName:meta.title||file.name,artistName:meta.artist,collectionName:meta.album,releaseDate:meta.year,fileName:file.name,durationSeconds:Number(audio.duration)||0},false);
-      songTitle.value=meta.title;
-      songArtist.value=meta.artist;
-      songAlbum.value=meta.album;
-      songYear.value=meta.year;
+      if(!manuallyEditedTrackFields.has('title'))songTitle.value=meta.title;
+      if(!manuallyEditedTrackFields.has('artist'))songArtist.value=meta.artist;
+      if(!manuallyEditedTrackFields.has('album'))songAlbum.value=meta.album;
+      if(!manuallyEditedTrackFields.has('year'))songYear.value=meta.year;
       if(recognized){
         const apple=recognized.apple_music||{};
         songAlbum.dataset.artUrl=normalizeArtworkUrl(apple.artworkUrl100||apple.artworkUrl||apple.artwork?.url||'');
@@ -1075,8 +1111,17 @@
       catch(error){catalogueSearchFailed=true;console.warn('[KEFE iTunes identification]',error);}
       if(mediaObjectUrl!==uploadId)return;
       const confidentMatches=matches.filter(item=>isConfidentMatch(item,meta,duration));
+      const uniqueConfident=new Map();
+      confidentMatches.forEach(item=>{
+        const key=item.trackId!=null?'id:'+String(item.trackId):[
+          normalizeSearchText(item.trackName),normalizeSearchText(item.artistName),
+          normalizeSearchText(item.collectionName),String(item.trackTimeMillis||'')
+        ].join('|');
+        if(!uniqueConfident.has(key))uniqueConfident.set(key,item);
+      });
+      const confidentTracks=[...uniqueConfident.values()];
       const availableIdentifiers=[meta.title,meta.artist,meta.album].filter(value=>String(value||'').trim()).length;
-      const best=availableIdentifiers===1&&confidentMatches.length!==1?null:(confidentMatches[0]||null);
+      const best=availableIdentifiers===1&&confidentTracks.length!==1?null:(confidentTracks[0]||null);
       if(best){
         applyIdentifiedTrack(best);
         renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
@@ -1168,10 +1213,14 @@
       if(file)handleLrcFile(file);
     });
   }
-  songTitle.addEventListener('input',()=>{updateTitleCard();scheduleManualSearch();});
-  songArtist.addEventListener('input',()=>{updateTitleCard();scheduleManualSearch();});
-  songAlbum.addEventListener('input',()=>updateTitleCard());
-  songYear.addEventListener('input',()=>updateTitleCard());
+  const cancelLyricsForManualEdit=()=>{
+    lyricsRequest++;
+    if(activeLyricsController){activeLyricsController.abort();activeLyricsController=null;}
+  };
+  songTitle.addEventListener('input',()=>{manuallyEditedTrackFields.add('title');cancelLyricsForManualEdit();updateTitleCard();scheduleManualSearch();});
+  songArtist.addEventListener('input',()=>{manuallyEditedTrackFields.add('artist');cancelLyricsForManualEdit();updateTitleCard();scheduleManualSearch();});
+  songAlbum.addEventListener('input',()=>{manuallyEditedTrackFields.add('album');cancelLyricsForManualEdit();updateTitleCard();});
+  songYear.addEventListener('input',()=>{manuallyEditedTrackFields.add('year');updateTitleCard();});
   lyricsInput.addEventListener('input',parseLyrics);
   fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
   lyricEffectSelect.addEventListener('change',()=>setEffect(lyricEffectSelect.value));
@@ -1187,6 +1236,12 @@
     if(/\.(lrc|ttml|xml|txt)$/i.test(file.name)||file.type==='text/plain'){handleLrcFile(file);e.target.value='';return;}
     if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
     mediaObjectUrl=URL.createObjectURL(file);
+    /* Invalidate pending work from the previous upload immediately. */
+    manualSearchSeq++;
+    clearTimeout(manualSearchTimer);
+    lyricsRequest++;
+    if(activeLyricsController){activeLyricsController.abort();activeLyricsController=null;}
+    manuallyEditedTrackFields.clear();
     previewStage.classList.remove('is-empty');
     songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
     songArtist.value='';songAlbum.value='';songYear.value='';
