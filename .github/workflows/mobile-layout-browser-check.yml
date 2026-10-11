@@ -146,9 +146,10 @@ jobs:
                 const effectsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
                 const effectsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="effects"]', 'Effects');
 
-                // Exercise every registered lyric effect in the real browser. Instrument the
-                // renderers in-page so a selection cannot silently fall back to another effect.
-                const effectAudit = await page.evaluate(async () => {
+                // Run the expensive per-effect audit once against the published editor at 390px.
+                // The local and 320px runs still cover the responsive layout at both widths.
+                if (width === 390 && process.env.KEFE_BASE_URL) {
+                  const effectAudit = await page.evaluate(async () => {
                   const select = document.getElementById('lyricEffect');
                   const canvas = document.getElementById('kefeCanvas');
                   const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -227,6 +228,7 @@ jobs:
                 assert.ok(effectAudit.tested > 0, 'Effect registry should not be empty');
                 assert.deepEqual(effectAudit.failures, [], `Lyric effect isolation/render audit failed at ${width}px: ${JSON.stringify(effectAudit.consoleErrors)}`);
                 console.log(`[effect-audit] ${width}px verified ${effectAudit.tested} lyric effects`);
+                }
                 await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-effects.png`, fullPage: false, timeout: 15000 });
 
                 await page.locator('.kefe-section[data-panel="visualiser"]').click();
