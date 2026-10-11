@@ -104,12 +104,20 @@ jobs:
 
                 const effectsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
                 const effectsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="effects"]', 'Effects');
+                await page.screenshot({ path: `mobile-layout-${width}-effects.png`, fullPage: false });
 
                 await page.locator('.kefe-section[data-panel="visualiser"]').click();
                 await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
                 await page.waitForTimeout(500);
                 const visualiserGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Visualiser');
                 const visualiserSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Visualiser');
+                const tabsLayout = await page.locator('.kefe-vis-tabs').evaluate(el => ({
+                  columns: getComputedStyle(el).gridTemplateColumns.trim().split(/\\s+/).filter(Boolean).length,
+                  width: el.getBoundingClientRect().width,
+                  formWidth: el.closest('.kefe-form').getBoundingClientRect().width
+                }));
+                assert.equal(tabsLayout.columns, 2, `Visualiser engine tabs must use two columns at ${width}px; got ${tabsLayout.columns}`);
+                assert.ok(tabsLayout.width >= tabsLayout.formWidth * 0.9, `Visualiser engine tabs must span the form width at ${width}px`);
                 const particlesDisplay = await page.locator('#kefeVisParticlesView').evaluate(el => getComputedStyle(el).display);
                 assert.equal(particlesDisplay, 'contents', `Particles view must flatten into the two-column form at ${width}px; got ${particlesDisplay}`);
 
