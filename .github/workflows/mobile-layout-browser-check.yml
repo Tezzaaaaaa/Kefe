@@ -74,7 +74,7 @@ jobs:
                   return result;
                 }
 
-                async function assertSelectsStayInOneColumn(panelSelector, panelName) {
+                async function assertSelectsStayInOneColumn(panelSelector, panelName, requireDropdowns = true) {
                   const details = page.locator(panelSelector + ' details.kefe-style-disclosure');
                   for (let n = 0; n < await details.count(); n++) {
                     const item = details.nth(n);
@@ -94,7 +94,7 @@ jobs:
                         parent: el.parentElement?.className || el.parentElement?.tagName
                       }));
                   });
-                  assert.ok(result.length > 0, `${panelName} at ${width}px should expose dropdown controls`);
+                  if (requireDropdowns) assert.ok(result.length > 0, `${panelName} at ${width}px should expose dropdown controls`);
                   for (const item of result) {
                     assert.ok(item.width <= item.formWidth * 0.62,
                       `${panelName} dropdown ${item.id} spans too much of the form at ${width}px: ${item.width}px of ${item.formWidth}px (parent ${item.parent})`);
@@ -110,6 +110,32 @@ jobs:
                 await page.waitForTimeout(500);
                 const visualiserGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Visualiser');
                 const visualiserSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Visualiser');
+                const particlesDisplay = await page.locator('#kefeVisParticlesView').evaluate(el => getComputedStyle(el).display);
+                assert.equal(particlesDisplay, 'contents', `Particles view must flatten into the two-column form at ${width}px; got ${particlesDisplay}`);
+
+                const gradientTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /^Gradient$/i }).first();
+                if (await gradientTab.count()) {
+                  await gradientTab.click();
+                  await page.locator('#kefeVisGradientView:not([hidden])').waitFor();
+                  const gradientDisplay = await page.locator('#kefeVisGradientView').evaluate(el => getComputedStyle(el).display);
+                  assert.equal(gradientDisplay, 'contents', `Gradient view must flatten into the two-column form at ${width}px; got ${gradientDisplay}`);
+                  const gradientGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Gradient');
+                  const gradientSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Gradient');
+                  const gradientGroups = await page.locator('#kefeVisGradientView > .kefe-visualiser-control-group').count();
+                  assert.ok(gradientGroups > 0, 'Gradient view should contain its expected control groups');
+                  await page.screenshot({ path: `mobile-layout-${width}-gradient.png`, fullPage: false });
+                }
+
+                const glitchTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /^Glitch$/i }).first();
+                if (await glitchTab.count()) {
+                  await glitchTab.click();
+                  await page.locator('#kefeVisGlitchView:not([hidden])').waitFor();
+                  const glitchDisplay = await page.locator('#kefeVisGlitchView').evaluate(el => getComputedStyle(el).display);
+                  assert.equal(glitchDisplay, 'contents', `Glitch view must flatten into the two-column form at ${width}px; got ${glitchDisplay}`);
+                  await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Glitch');
+                  await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Glitch', false);
+                  await page.screenshot({ path: `mobile-layout-${width}-glitch.png`, fullPage: false });
+                }
 
                 const flutedTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /Fluted Glass/i }).first();
                 if (await flutedTab.count()) {
