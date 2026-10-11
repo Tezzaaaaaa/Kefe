@@ -1041,7 +1041,7 @@
     try{
       const matches=await fetchItunesMatches(meta,Number(audio.duration)||0);
       if(seq!==manualSearchSeq)return;
-      renderSongSuggestions(matches.slice(0,20),{excludeCurrent:false});
+      renderSongSuggestions(matches,{excludeCurrent:false});
       setLyricsStatus(matches.length?'Pick the correct song from the suggestions.':'No matches found. Check the spelling or add the artist.');
     }catch(error){
       if(seq!==manualSearchSeq)return;
