@@ -72,6 +72,7 @@
   let previewAspectRatio='16:9';
   let titleArtImage=null,titleCardShownFor='';
   let titleArtworkRequest=0,titleArtworkTimer=null;
+  const failedTitleArtworkUrls=new Set();
   window.kefeGetAlbumArt=()=>titleArtImage;
   const songTitle=document.getElementById('songTitle'),songArtist=document.getElementById('songArtist'),songAlbum=document.getElementById('songAlbum'),songYear=document.getElementById('songYear');
   const previewStage=document.querySelector('.kefe-stage');
@@ -226,7 +227,15 @@
       const image=new Image();
       image.crossOrigin='anonymous';
       image.onload=()=>draw();
-      image.onerror=()=>draw();
+      image.onerror=()=>{
+        if(songAlbum.dataset.artUrl===cover){
+          failedTitleArtworkUrls.add(normalizeArtworkUrl(cover));
+          delete songAlbum.dataset.artUrl;
+          titleArtImage=null;
+          scheduleTitleArtworkLookup();
+        }
+        draw();
+      };
       image.src=normalizeArtworkUrl(cover);
       titleArtImage=image;
     }
@@ -256,7 +265,7 @@
         const payload=await response.json();
         for(const item of Array.isArray(payload.results)?payload.results:[]){
           const art=normalizeArtworkUrl(item.artworkUrl100);
-          if(!art)continue;
+          if(!art||failedTitleArtworkUrls.has(art))continue;
           const key=item.trackId!=null?'id:'+item.trackId:[normalizeSearchText(item.trackName||item.collectionName),normalizeSearchText(item.artistName),normalizeSearchText(item.collectionName)].join('|');
           if(!candidates.has(key))candidates.set(key,item);
         }
@@ -292,6 +301,7 @@
   function clearTitleArtwork(){
     clearTimeout(titleArtworkTimer);
     titleArtworkRequest++;
+    failedTitleArtworkUrls.clear();
     delete songAlbum.dataset.artUrl;
     titleArtImage=null;
     updateTitleCard();
