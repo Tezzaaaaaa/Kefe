@@ -195,10 +195,24 @@ jobs:
                       if (select.value !== key) failures.push({ effect: key, issue: 'Selection did not persist' });
                       const fontMeta = document.getElementById('fontMeta')?.textContent || '';
                       if (!fontMeta.startsWith('Locked effect font')) failures.push({ effect: key, issue: 'Effect font metadata did not update' });
-                      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                      const visiblePanels = [...document.querySelectorAll('.kefe-inspiration-panel')]
+                        .filter(panel => !panel.hidden && getComputedStyle(panel).display !== 'none')
+                        .map(panel => panel.dataset.effect).sort();
+                      const expectedPanels = document.querySelector(`.kefe-inspiration-panel[data-effect="${key}"]`) ? [key] : [];
+                      if (JSON.stringify(visiblePanels) !== JSON.stringify(expectedPanels)) {
+                        failures.push({ effect: key, issue: 'Effect-specific settings are not isolated', visiblePanels, expectedPanels });
+                      }
+                      const randomizeControls = document.getElementById('kefeRandomizeControls');
+                      const randomizeVisible = !!randomizeControls && !randomizeControls.hidden && getComputedStyle(randomizeControls).display !== 'none';
+                      if (randomizeVisible !== (key === 'randomize')) failures.push({ effect: key, issue: 'Randomize settings visibility is incorrect', randomizeVisible });
+                      // Sample the central lyric region only; this verifies visible output without
+                      // repeatedly reading the entire 1920×1080 canvas for every effect.
+                      const sampleX = Math.floor(canvas.width * 0.2), sampleY = Math.floor(canvas.height * 0.3);
+                      const sampleW = Math.floor(canvas.width * 0.6), sampleH = Math.floor(canvas.height * 0.4);
+                      const pixels = ctx.getImageData(sampleX, sampleY, sampleW, sampleH).data;
                       let visiblePixels = 0;
                       for (let i = 3; i < pixels.length; i += 4) if (pixels[i] > 0) visiblePixels++;
-                      if (!visiblePixels) failures.push({ effect: key, issue: 'Renderer produced an empty lyric canvas' });
+                      if (!visiblePixels) failures.push({ effect: key, issue: 'Renderer produced an empty central lyric region' });
                     }
                   } finally {
                     console.error = originalConsoleError;
