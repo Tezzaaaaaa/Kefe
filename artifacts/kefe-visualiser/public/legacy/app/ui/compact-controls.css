@@ -1256,3 +1256,29 @@
     min-width: 0;
   }
 }
+
+/* Flatten every active Visualiser engine view into the same two-column form. */
+@media (max-width: 700px) {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form > .kefe-vis-view:not([hidden]) {
+    display: contents !important;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-vis-view:not([hidden]) > .kefe-visualiser-control-group {
+    display: contents !important;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-gradient-view > .kefe-visualiser-intro,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-glitch-view > .kefe-visualiser-intro {
+    grid-column: 1 / -1;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-gradient-view > .kefe-visualiser-control-group > .kefe-label {
+    grid-column: 1 / -1;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-gradient-seg,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-gradient-palettes,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-gradient-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
