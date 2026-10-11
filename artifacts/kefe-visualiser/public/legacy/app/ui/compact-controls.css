@@ -1721,3 +1721,27 @@
   }
 }
 
+
+
+/* Keep the font and text-case selectors in their intended two-column row on mobile.
+   The row is nested inside #kefeDisplayGroup, not directly inside .kefe-form. */
+@media (max-width: 700px) {
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-font-case-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--section-gap, 12px);
+    min-width: 0;
+    width: 100%;
+  }
+
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-font-case-row > * {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-font-case-row .kefe-select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
