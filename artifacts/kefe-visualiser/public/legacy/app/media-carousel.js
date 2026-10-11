@@ -107,13 +107,6 @@
     if(kindOf(item)==='song')score+=12;
     return score;
   }
-  function dedupe(items){
-    var seen=new Set();
-    return items.filter(function(it){
-      var key=(kindOf(it)==='album'?'album':'song')+'|'+normalise(titleOf(it))+'|'+normalise(it.artistName)+'|'+normalise(it.collectionName);
-      if(seen.has(key))return false;seen.add(key);return true;
-    });
-  }
   async function itunes(query,entity){
     var requests=COUNTRIES.map(async function(country){
       var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},12000);
@@ -130,7 +123,7 @@
       if(result.status==='fulfilled')all=all.concat(result.value);else lastError=result.reason;
     });
     if(!all.length&&lastError)throw lastError;
-    return dedupe(all);
+    return all;
   }
   async function search(q){
     q=q.trim();var token=++S.token;
@@ -142,11 +135,7 @@
       if(token!==S.token)return;
       var songs=res[0].status==='fulfilled'?res[0].value:[],albums=res[1].status==='fulfilled'?res[1].value:[];
       if(res[0].status==='rejected'&&res[1].status==='rejected')throw res[0].reason;
-      var seen=new Set();
-      S.items=songs.concat(albums).filter(function(it){
-        var key=(kindOf(it)==='album'?'album':'song')+'|'+normalise(titleOf(it))+'|'+normalise(it.artistName)+'|'+normalise(it.collectionName);
-        if(seen.has(key))return false;seen.add(key);return true;
-      }).sort(function(a,b){return relevance(b,q)-relevance(a,q);});
+      S.items=songs.concat(albums).sort(function(a,b){return relevance(b,q)-relevance(a,q);});
       S.index=0;render();
       status(S.items.length?(visible().length+' result'+(visible().length===1?'':'s')):'No results','');
     }catch(e){
