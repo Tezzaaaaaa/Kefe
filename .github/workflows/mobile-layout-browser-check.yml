@@ -313,6 +313,7 @@ jobs:
                   await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
                   await page.route('https://itunes.apple.com/**', route => route.fulfill({
                     status: 200, contentType: 'application/json',
+                    headers: { 'access-control-allow-origin': '*' },
                     body: JSON.stringify({ resultCount: 0, results: [] })
                   }));
                   await page.locator('#mediaInput').setInputFiles({
