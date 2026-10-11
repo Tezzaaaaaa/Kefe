@@ -53,6 +53,9 @@ jobs:
                   isMobile: true,
                   hasTouch: true
                 });
+                page.setDefaultTimeout(15000);
+                page.setDefaultNavigationTimeout(20000);
+                console.log(`[mobile-check] viewport ${width}px started`);
                 const pageErrors = [];
                 page.on('pageerror', error => pageErrors.push(error.message));
                 await page.goto(`${baseUrl}/index.html`, { waitUntil: 'domcontentloaded' });
@@ -112,7 +115,7 @@ jobs:
                   assert.ok(field.width <= field.formWidth * 0.62,
                     `Media song detail ${field.id} spans too much width at ${width}px: ${field.width}px of ${field.formWidth}px`);
                 }
-                if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-media.png`, fullPage: false });
+                if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-media.png`, fullPage: false, timeout: 15000 });
 
                 await page.locator('.kefe-section[data-panel="lyrics"]').click();
                 await page.locator('.kefe-panel[data-panel-view="lyrics"].active').waitFor();
@@ -128,13 +131,13 @@ jobs:
                 });
                 assert.ok(lyricsComponentWidths.textWidth >= lyricsComponentWidths.formWidth * 0.9, 'Lyrics textarea should remain full width');
                 assert.ok(lyricsComponentWidths.timingWidth >= lyricsComponentWidths.formWidth * 0.9, 'Lyrics timing control should remain full width');
-                if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-lyrics.png`, fullPage: false });
+                if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-lyrics.png`, fullPage: false, timeout: 15000 });
 
                 await page.locator('.kefe-section[data-panel="export"]').click();
                 await page.locator('.kefe-panel[data-panel-view="export"].active').waitFor();
                 const exportGrid = await assertTwoColumns('.kefe-panel[data-panel-view="export"] .kefe-form', 'Export');
                 const exportSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="export"]', 'Export');
-                if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-export.png`, fullPage: false });
+                if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-export.png`, fullPage: false, timeout: 15000 });
 
                 await page.locator('.kefe-section[data-panel="effects"]').click();
                 await page.locator('.kefe-panel[data-panel-view="effects"].active').waitFor();
@@ -142,7 +145,7 @@ jobs:
 
                 const effectsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
                 const effectsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="effects"]', 'Effects');
-                await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-effects.png`, fullPage: false });
+                await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-effects.png`, fullPage: false, timeout: 15000 });
 
                 await page.locator('.kefe-section[data-panel="visualiser"]').click();
                 await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
@@ -171,7 +174,7 @@ jobs:
                   const gradientSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Gradient');
                   const gradientGroups = await page.locator('#kefeVisGradientView > .kefe-visualiser-control-group').count();
                   assert.ok(gradientGroups > 0, 'Gradient view should contain its expected control groups');
-                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-gradient.png`, fullPage: false });
+                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-gradient.png`, fullPage: false, timeout: 15000 });
                 }
 
                 const glitchTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /^Glitch$/i }).first();
@@ -182,7 +185,7 @@ jobs:
                   assert.equal(glitchDisplay, 'contents', `Glitch view must flatten into the two-column form at ${width}px; got ${glitchDisplay}`);
                   await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Glitch');
                   await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Glitch', false);
-                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-glitch.png`, fullPage: false });
+                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-glitch.png`, fullPage: false, timeout: 15000 });
                 }
 
                 const flutedTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /Fluted Glass/i }).first();
@@ -199,7 +202,7 @@ jobs:
                     assert.ok(item.width <= flutedGrid.width * 0.62,
                       `Fluted Glass slider ${item.label} spans too much width at ${width}px: ${item.width}px of ${flutedGrid.width}px`);
                   }
-                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-fluted.png`, fullPage: false });
+                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-fluted.png`, fullPage: false, timeout: 15000 });
                 }
 
                 reports.push({
@@ -218,7 +221,7 @@ jobs:
                   visualiserDropdownCount: visualiserSelects.length,
                   pageErrors
                 });
-                await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-visualiser.png`, fullPage: false });
+                await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-visualiser.png`, fullPage: false, timeout: 15000 });
                 assert.deepEqual(pageErrors, [], `Browser runtime errors at ${width}px`);
                 await page.close();
               }
