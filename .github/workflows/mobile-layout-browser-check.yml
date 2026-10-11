@@ -205,14 +205,12 @@ jobs:
                       const randomizeControls = document.getElementById('kefeRandomizeControls');
                       const randomizeVisible = !!randomizeControls && !randomizeControls.hidden && getComputedStyle(randomizeControls).display !== 'none';
                       if (randomizeVisible !== (key === 'randomize')) failures.push({ effect: key, issue: 'Randomize settings visibility is incorrect', randomizeVisible });
-                      // Sample the central lyric region only; this verifies visible output without
-                      // repeatedly reading the entire 1920×1080 canvas for every effect.
-                      const sampleX = Math.floor(canvas.width * 0.2), sampleY = Math.floor(canvas.height * 0.3);
-                      const sampleW = Math.floor(canvas.width * 0.6), sampleH = Math.floor(canvas.height * 0.4);
-                      const pixels = ctx.getImageData(sampleX, sampleY, sampleW, sampleH).data;
+                      // Sample alpha across the entire canvas at a sparse interval. Some effects
+                      // intentionally animate text near the edges, so a centre-only check is invalid.
+                      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
                       let visiblePixels = 0;
-                      for (let i = 3; i < pixels.length; i += 4) if (pixels[i] > 0) visiblePixels++;
-                      if (!visiblePixels) failures.push({ effect: key, issue: 'Renderer produced an empty central lyric region' });
+                      for (let i = 3; i < pixels.length; i += 64) if (pixels[i] > 0) visiblePixels++;
+                      if (!visiblePixels) failures.push({ effect: key, issue: 'Renderer produced no visible lyric pixels anywhere on the canvas' });
                     }
                   } finally {
                     console.error = originalConsoleError;
