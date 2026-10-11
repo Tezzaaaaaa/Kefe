@@ -172,7 +172,7 @@
     list.innerHTML='';
     const currentTitle=songTitle.value.trim().toLowerCase();
     const currentArtist=songArtist.value.trim().toLowerCase();
-    const items=(Array.isArray(results)?results:[]).filter(item=>item.trackName).filter(item=>!opts.excludeCurrent||!(String(item.trackName||'').toLowerCase()===currentTitle&&String(item.artistName||'').toLowerCase()===currentArtist));
+    const items=Array.isArray(results)?results:[];
     status.textContent=opts.excludeCurrent?(items.length?'Other matches':'No other matches'):(items.length?'Select the correct song':'No matches found');
     panel.hidden=true;
     if(window.kefeCarousel)window.kefeCarousel.showMatches(items,status.textContent,opts.query||[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' '));
@@ -786,7 +786,7 @@
         const response=await fetch('https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity=song&limit=200&country='+country,{signal:controller.signal,headers:{Accept:'application/json'}});
         if(!response.ok)throw new Error('iTunes search failed: '+response.status);
         const payload=await response.json();
-        return Array.isArray(payload.results)?payload.results.filter(item=>item.trackName):[];
+        return Array.isArray(payload.results)?payload.results:[];
       }finally{clearTimeout(timer);}
     });
     const settled=await Promise.allSettled(requests);
@@ -796,12 +796,6 @@
       else{lastError=result.reason;console.warn('[KEFE iTunes search]',countries[index],result.reason?.name||result.reason);}
     });
     if(!results.length&&lastError)throw lastError;
-    const seen=new Set();
-    results=results.filter(item=>{
-      const key=[item.trackName,item.artistName,item.collectionName].map(value=>normalizeSearchText(value)).join('|');
-      if(seen.has(key))return false;
-      seen.add(key);return true;
-    });
     return results.sort((a,b)=>rankTrack(b,meta,duration)-rankTrack(a,meta,duration));
   }
   function setLyricsFromLines(lines,source){
