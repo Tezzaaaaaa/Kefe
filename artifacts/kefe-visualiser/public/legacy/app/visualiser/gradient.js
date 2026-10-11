@@ -258,15 +258,18 @@
         var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
       }
     });
+    particleToggle.classList.add('kefe-vis-power-row');
     particles.insertBefore(particleToggle,particles.firstChild);
     var glitch=el('div','kefe-vis-view kefe-glitch-view');glitch.id='kefeVisGlitchView';glitch.hidden=true;
-    glitch.appendChild(toggle('Glitch Visualiser',function(){return glitchEnabled;},function(v){
+    var glitchToggle=toggle('Glitch Visualiser',function(){return glitchEnabled;},function(v){
       glitchEnabled=v;
       if(!glitch.hidden){
         window.kefeVisualiserEnabled=v;
         var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
       }
-    }));
+    });
+    glitchToggle.classList.add('kefe-vis-power-row');
+    glitch.appendChild(glitchToggle);
     var glitchIntro=el('div','kefe-visualiser-intro');
     glitchIntro.innerHTML='<div><strong>The Glitch Visualiser</strong><span>Audio-reactive signal tears, RGB separation, block displacement and colour trails.</span></div>';
     glitch.appendChild(glitchIntro);
@@ -311,7 +314,9 @@
     var intro=el('div','kefe-visualiser-intro');
     intro.innerHTML='<div><strong>Gradient Overlay</strong><span>Colour layer over the particles. Included in video export.</span></div>';
     var rnd=el('button','kefe-btn','Random');rnd.type='button';rnd.addEventListener('click',randomize);intro.appendChild(rnd);
-    gradient.appendChild(toggle('Show gradient',function(){return S.on;},function(v){S.on=v;}));
+    var gradientToggle=toggle('Gradient overlay',function(){return S.on;},function(v){S.on=v;});
+    gradientToggle.classList.add('kefe-vis-power-row');
+    gradient.appendChild(gradientToggle);
     gradient.appendChild(intro);
 
     var look=group('Layer');
