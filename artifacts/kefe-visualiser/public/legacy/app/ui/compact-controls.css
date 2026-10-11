@@ -1318,3 +1318,36 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Flatten the mobile Find your song steps so song details use the same two-column form. */
+@media (max-width: 700px) {
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps > * {
+    grid-column: auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps > .kefe-find-step,
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps .kefe-step-body,
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps .kefe-song-details,
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps .kefe-details-grid,
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps .kefe-media-upload-row {
+    display: contents !important;
+  }
+
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps .kefe-step-head,
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps .kefe-song-details-head,
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps .kefe-media-track,
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps .kefe-suggestions,
+  .kefe-panel[data-panel-view="media"] .kefe-form.kefe-media-steps .kefe-find {
+    grid-column: 1 / -1;
+    min-width: 0;
+    width: 100%;
+  }
+}
