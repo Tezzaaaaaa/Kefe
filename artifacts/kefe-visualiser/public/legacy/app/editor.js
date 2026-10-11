@@ -744,21 +744,24 @@
     if(title&&itemTitle===title)score+=300;
     else if(title&&itemCore&&itemCore===sourceCore)score+=220;
     else if(title&&itemTitle&&(itemTitle.includes(title)||title.includes(itemTitle)))score+=60;
-    if(artist&&itemArtist===artist)score+=100;
-    else if(artist&&itemArtist&&(itemArtist.includes(artist)||artist.includes(itemArtist)))score+=30;
+    if(artist&&itemArtist===artist)score+=160;
+    else if(artist&&itemArtist&&(itemArtist.includes(artist)||artist.includes(itemArtist)))score+=70;
+    else if(artist&&itemArtist)score-=180;
     if(resultHasVersion&&!sourceHasVersion)score-=80;
     if(duration&&item.trackTimeMillis){
       const difference=Math.abs(Number(item.trackTimeMillis)/1000-duration);
-      score+=Math.max(-45,35-difference*2.5);
+      score+=Math.max(-120,60-difference*4);
     }
     return score;
   }
   function isConfidentMatch(item,meta,duration){
-    if(!String(meta.title||'').trim())return false;
     const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist);
     const candidateTitle=normalizeSearchText(item.trackName),candidateArtist=normalizeSearchText(item.artistName);
+    /* A title alone is not enough: many unrelated recordings share song titles.
+       Require a usable artist match before automatically assigning catalogue metadata. */
+    if(!title||!artist||!candidateTitle||!candidateArtist)return false;
     if(!(candidateTitle===title||coreTitle(item.trackName)===coreTitle(meta.title)))return false;
-    if(artist&&candidateArtist!==artist)return false;
+    if(candidateArtist!==artist&&!candidateArtist.includes(artist)&&!artist.includes(candidateArtist))return false;
     const versionPattern=/\b(remix|rework|bootleg|mashup|nightcore|slowed|sped up|speed up|reverb|karaoke|cover|instrumental|live)\b/;
     if(versionPattern.test(candidateTitle)&&!versionPattern.test(title))return false;
     if(duration&&item.trackTimeMillis&&Math.abs(Number(item.trackTimeMillis)/1000-duration)>12)return false;
@@ -1004,7 +1007,7 @@
       try{matches=await fetchItunesMatches(meta,duration);}
       catch(error){console.warn('[KEFE iTunes identification]',error);}
       if(mediaObjectUrl!==uploadId)return;
-      const best=matches[0];
+      const best=matches.find(item=>isConfidentMatch(item,meta,duration))||null;
       if(best&&isConfidentMatch(best,meta,duration)){
         applyIdentifiedTrack(best);
         renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
