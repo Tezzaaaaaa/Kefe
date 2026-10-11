@@ -885,7 +885,7 @@
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     const duration=Math.round(Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0);
     const status=document.getElementById('kefeLyricsStatus');
-    if(!title||!artist){showManualNotice('Enter both the song title and artist so lyrics can be found.');return false;}
+    if(!title){showManualNotice('Enter the song title so lyrics can be searched. Adding the artist improves match accuracy.');return false;}
     const request=++lyricsRequest;
     if(activeLyricsController)activeLyricsController.abort();
     let controller=new AbortController();
@@ -973,6 +973,7 @@
     };
 
     const tryLrclib=async()=>{
+      if(!artist)return false;
       const response=await fetch('https://lrclib.net/api/get?'+new URLSearchParams({track_name:title,artist_name:artist,...(album?{album_name:album}:{}),...(duration?{duration:String(duration)}:{})}),acceptJson);
       if(!response.ok)return false;
       const payload=await response.json();
@@ -985,24 +986,26 @@
       let list=(await response.json()).filter(item=>{
         if(!item||!item.syncedLyrics)return false;
         const a=normalizeSearchText(item.artistName),t=coreTitle(item.trackName);
-        return a&&wantArtist&&(a.includes(wantArtist)||wantArtist.includes(a))&&t&&wantTitle&&(t===wantTitle||t.includes(wantTitle)||wantTitle.includes(t));
+        const artistMatches=!wantArtist||(a&&(a.includes(wantArtist)||wantArtist.includes(a)));
+        return artistMatches&&t&&wantTitle&&(t===wantTitle||t.includes(wantTitle)||wantTitle.includes(t));
       });
       if(duration)list=list.filter(item=>Math.abs((item.duration||0)-duration)<=8);
       if(!list.length)return false;
+      if(!wantArtist&&!duration&&list.length!==1)return false;
       if(duration)list.sort((a,b)=>Math.abs((a.duration||0)-duration)-Math.abs((b.duration||0)-duration));
       return tryLines(parseAppleLrc(String(list[0].syncedLyrics)));
     };
-    const tryLrclibSearch=()=>pickLrclib({track_name:title,artist_name:artist});
-    const tryLrclibQuery=()=>pickLrclib({q:title+' '+artist});
+    const tryLrclibSearch=()=>pickLrclib({track_name:title,...(artist?{artist_name:artist}:{})});
+    const tryLrclibQuery=()=>pickLrclib({q:[title,artist].filter(Boolean).join(' ')});
 
     try{
       if(status)status.textContent='Finding synchronized lyrics…';
-      if(await attempt('lrclib',tryLrclib))return true;
+      if(artist&&await attempt('lrclib',tryLrclib))return true;
       if(await attempt('lrclib-search',tryLrclibSearch))return true;
       if(await attempt('lrclib-query',tryLrclibQuery))return true;
-      if(await attempt('lyricsplus',tryLyricsPlus))return true;
-      if(await attempt('betterlyrics',tryBetterLyrics))return true;
-      if(await attempt('binimum',tryBini))return true;
+      if(artist&&await attempt('lyricsplus',tryLyricsPlus))return true;
+      if(artist&&await attempt('betterlyrics',tryBetterLyrics))return true;
+      if(artist&&await attempt('binimum',tryBini))return true;
       showLyricsMissing();
       return false;
     }catch(error){
