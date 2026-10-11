@@ -331,13 +331,14 @@ jobs:
                   });
                   const localResult = page.locator('#kefeCarStack .kefe-car-card').filter({ hasText: 'KEFE Local Upload Verification' }).first();
                   await localResult.waitFor({ state: 'visible', timeout: 15000 });
+                  await page.waitForFunction(() => (document.getElementById('kefeLyricsStatus')?.textContent || '').includes('Couldn’t identify this song automatically'), { timeout: 15000 });
                   await page.locator('#kefeFindInput').fill('KEFE query with no catalogue matches 928431');
                   await page.getByText('No catalogue matches. Your uploaded file is available below.', { exact: true }).waitFor({ timeout: 15000 });
                   await localResult.waitFor({ state: 'visible', timeout: 5000 });
                   await localResult.click();
                   await page.locator('#kefeCarUse').filter({ hasText: 'Use uploaded file' }).waitFor({ state: 'visible' });
                   await page.locator('#kefeCarUse').click();
-                  await page.getByText('Using the uploaded file. Catalogue matches remain available.', { exact: true }).waitFor({ timeout: 5000 });
+                  await page.waitForFunction(() => document.getElementById('kefeFindStatus')?.textContent === 'Using the uploaded file. Catalogue matches remain available.', { timeout: 5000 });
                   console.log('[upload-search-audit] local upload remains visible, selectable, and preserved with zero catalogue matches');
                 }
 
