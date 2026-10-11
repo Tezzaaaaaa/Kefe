@@ -1159,11 +1159,12 @@
       }else if(meta.title&&meta.artist){
         const searchMessage=catalogueSearchFailed?'Catalogue search failed. Your uploaded file is available below; check your connection and try again.':undefined;
         renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' '),statusMessage:searchMessage});
-        setLyricsStatus(recognized?'Song recognized. Finding lyrics…':(catalogueSearchFailed?'Catalogue search failed. Using embedded song details; check your connection and try again.':'Using embedded song details. Finding lyrics…'));
+        setLyricsStatus(recognized?'Song recognized. Finding lyrics…':(file.size>10*1024*1024?'Audio recognition skipped because the file exceeds 10 MB. Using available metadata and catalogue search.':(catalogueSearchFailed?'Catalogue search failed. Using embedded song details; check your connection and try again.':'Using embedded song details. Finding lyrics…')));
         const found=await loadAutomaticLyrics();
         if(!found&&mediaObjectUrl===uploadId)promptManualDetails(matches,catalogueSearchFailed);
       }else{
         promptManualDetails(matches,catalogueSearchFailed);
+        if(file.size>10*1024*1024&&!recognized)setLyricsStatus('Audio recognition was skipped because this file exceeds the provider’s 10 MB limit. Enter the song title and artist or choose a catalogue match.');
       }
     }catch(error){
       console.warn('[KEFE track identification]',error);
