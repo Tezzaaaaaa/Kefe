@@ -1,161 +1,139 @@
 (() => {
   'use strict';
-/* =========================================================================
- * BRAT EFFECT (Standalone Module)
- * ========================================================================= */
 
-const linaClamp = (value, min = 0, max = 1) => Math.max(min, Math.min(max, value));
-const hasFiniteNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
+  /* Brat lyric effect — canvas renderer adapted to KEFE's timed lyric pipeline. */
+  const clamp = (value, min = 0, max = 1) => Math.max(min, Math.min(max, value));
+  const finite = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
 
-function linaNormaliseLine(lines, index) {
-    if (!Array.isArray(lines) || index < 0 || index >= lines.length) return null;
+  function normaliseLine(lines, index) {
     const source = lines[index];
+    if (!source) return null;
     const start = Number(source.time) || 0;
-    const nextLineTime = hasFiniteNumber(lines[index + 1]?.time) ? Number(lines[index + 1].time) : null;
-    const end = hasFiniteNumber(source.endTime) ? Number(source.endTime) : (nextLineTime !== null ? nextLineTime : start + 3);
-    const vocalEnd = hasFiniteNumber(source.vocalEndTime) ? Number(source.vocalEndTime) :
-        (source.words && source.words.length > 0 && hasFiniteNumber(source.words[source.words.length - 1]?.endTime) ? Number(source.words[source.words.length - 1].endTime) : end);
-    return { ...source, time: start, endTime: end, vocalEndTime: vocalEnd, nextLineTime };
-}
+    const nextStart = finite(lines[index + 1]?.time) ? Number(lines[index + 1].time) : null;
+    const end = finite(source.endTime) ? Number(source.endTime) : (nextStart ?? start + 3);
+    return { ...source, time: start, endTime: end, nextLineTime: nextStart };
+  }
 
-function estimateLineVocalEnd(line, nextLine) {
-    const start = Number(line.time);
-    if (!Number.isFinite(start)) return null;
-    const tokens = String(line.text || "").trim().split(/\s+/).filter(Boolean);
-    if (!tokens.length) return start;
-    const nextStart = Number(nextLine?.time);
-    const estimated = tokens.reduce((total, token) => {
-        const letters = Array.from(token.replace(/[^\p{L}\p{N}]/gu, "")).length || 1;
-        return total + linaClamp(0.16 + letters * 0.045, 0.24, 0.78);
-    }, 0) + Math.max(0, tokens.length - 1) * 0.055;
-    let duration = linaClamp(estimated, 0.65, 5.0);
-    if (Number.isFinite(nextStart)) {
-        const available = Math.max(0.20, nextStart - start - 0.10);
-        duration = Math.min(duration, available);
+  function lineWords(line) {
+    if (Array.isArray(line.words) && line.words.length) {
+      return line.words.map(word => ({
+        text: String(word.text ?? ''),
+        time: finite(word.time) ? Number(word.time) : line.time,
+        endTime: finite(word.endTime) ? Number(word.endTime) : line.endTime
+      })).filter(word => word.text);
     }
-    return start + duration;
-}
-
-function appleWordsForLine(line, nextLine) {
-    if (Array.isArray(line?.words) && line.words.length) {
-        return line.words.map(w => ({ ...w, estimated: false }));
-    }
-    const tokens = String(line?.text || "").trim().split(/\s+/).filter(Boolean);
-    if (!tokens.length || !hasFiniteNumber(line?.time)) return [];
-    const start = Number(line.time);
-    const vocalEnd = estimateLineVocalEnd(line, nextLine);
-    const duration = Math.max(0.15, vocalEnd - start);
-    const weights = tokens.map(token => {
-        const letters = Array.from(token.replace(/[^\p{L}\p{N}]/gu, "")).length || 1;
-        const punctuation = /[,.!?;:]$/.test(token) ? 0.20 : 0;
-        return Math.max(0.75, Math.pow(letters, 0.72)) + punctuation;
-    });
-    const total = weights.reduce((s, v) => s + v, 0) || tokens.length;
+    const tokens = String(line.text || '').trim().split(/\s+/).filter(Boolean);
+    if (!tokens.length) return [];
+    const duration = Math.max(0.2, Math.min(1.8, (line.endTime - line.time) * 0.72));
+    const weights = tokens.map(token => Math.max(1, Array.from(token).length));
+    const total = weights.reduce((sum, value) => sum + value, 0);
     let cursor = 0;
-    return tokens.map((text, i) => {
-        const ws = start + duration * (cursor / total);
-        cursor += weights[i];
-        const we = start + duration * (cursor / total);
-        return { text, time: ws, endTime: Math.max(ws + 0.05, we), estimated: true };
+    return tokens.map((text, index) => {
+      const start = line.time + duration * cursor / total;
+      cursor += weights[index];
+      return { text, time: start, endTime: line.time + duration * cursor / total };
     });
-}
+  }
 
-function buildBratWords(lines) {
-    const output = [];
-    for (let i = 0; i < lines.length; i++) {
-        const line = linaNormaliseLine(lines, i);
-        if (!line) continue;
-        const words = appleWordsForLine(line, lines[i + 1] || null);
-        for (const w of words) output.push({ ...w, globalIndex: output.length });
-    }
-    return output;
-}
+  function drawBratEffect(ctx, w, h, style, lines, time) {
+    if (!Array.isArray(lines) || !lines.length || !(w > 0) || !(h > 0)) return;
 
-function setBratFont(ctx, fontSize) {
-    ctx.font = `700 ${fontSize}px "Archivo Narrow",Arial,sans-serif`;
-    ctx.textAlign = "left"; 
-    ctx.textBaseline = "alphabetic";
-}
+    const bg = style.bratBackgroundColor || '#8ace00';
+    const ink = style.bratTextColor || '#000000';
+    const speed = Math.max(0.005, Number(style.bratCharSpeed) || 0.025);
+    const pause = Math.max(0, Number(style.bratWordPause) || 0.1);
+    const blur = Math.max(0, Number(style.bratEntryBlur) || 14);
+    const stretch = Math.max(0.8, Number(style.bratVerticalStretch) || 1.35);
+    const softness = Math.max(0, Number(style.bratSoftness) || 0);
+    const align = style.bratAlignment || 'justify';
+    const side = w * (Number(style.bratSideMargin) || 6) / 100;
+    const top = h * 0.08;
+    const bottom = h * 0.08;
+    const usableWidth = Math.max(1, w - side * 2);
+    const fontSize = Math.max(12, Math.min(Number(style.fontSize) || 76, usableWidth / 5.5, (h - top - bottom) / 4.8));
+    const font = '400 ' + fontSize + 'px Arial, "Helvetica Neue", Helvetica, sans-serif';
+    const rowHeight = fontSize * 1.02;
+    const maxRows = Math.max(1, Math.floor((h - top - bottom) / (rowHeight * stretch)));
+    const normalised = lines.map((_, index) => normaliseLine(lines, index)).filter(Boolean);
+    const timed = normalised.map(line => ({ line, words: lineWords(line) }));
+    let active = -1;
+    for (let i = 0; i < timed.length; i++) {
+      if (time >= timed[i].line.time) active = i;
+      else break;
+    }
+    if (active < 0) return;
 
-function buildBratRows(ctx, words, w, h, style) {
-    const baseSize = Number(style.fontSize) || 76;
-    const side = w * (Number(style.bratSideMargin) || 4.5) / 100;
-    const top = h * (Number(style.bratTopMargin) || 4.5) / 100;
-    const bottom = h * 0.05;
-    const slotHeight = (h - top - bottom) / 5;
-    const sizePattern = [1.16, 0.91, 1.10, 0.96, 1.20];
-    const wordPattern = [3, 3, 2, 2, 3];
-    const rows = [];
-    let cursor = 0, rowNumber = 0;
-    while (cursor < words.length) {
-        const slot = rowNumber % 5;
-        const lineWords = words.slice(cursor, cursor + wordPattern[slot]);
-        cursor += lineWords.length;
-        let fontSize = Math.min(slotHeight * 0.72, baseSize * 1.75 * sizePattern[slot]);
-        fontSize = Math.max(34, fontSize);
-        const usableWidth = w - side * 2;
-        while (fontSize > 32) {
-            setBratFont(ctx, fontSize);
-            let total = 0;
-            for (const w of lineWords) total += ctx.measureText(w.text).width;
-            if (total + fontSize * 0.14 * Math.max(0, lineWords.length - 1) <= usableWidth) break;
-            fontSize -= 2;
-        }
-        setBratFont(ctx, fontSize);
-        let wordWidth = 0;
-        for (const w of lineWords) { w.renderWidth = ctx.measureText(w.text).width; wordWidth += w.renderWidth; }
-        const gap = lineWords.length > 1 ? (usableWidth - wordWidth) / (lineWords.length - 1) : 0;
-        rows.push({ words: lineWords, fontSize, gap, side, top, slot, page: Math.floor(rowNumber / 5) });
-        rowNumber++;
-    }
-    return rows;
-}
-
-function drawBratEffect(ctx, w, h, style, lines, time) {
-    const typingSpeed = Number(style.bratTypingSpeed) || 1;
-    const words = buildBratWords(lines);
-    if (!words.length) return;
-    let currentIndex = -1;
-    for (let i = 0; i < words.length; i++) {
-        if (time >= words[i].time) currentIndex = i; else break;
-    }
-    if (currentIndex < 0) return;
-    const rows = buildBratRows(ctx, words, w, h, style);
-    let activeRow = -1;
-    for (let i = 0; i < rows.length; i++) {
-        if (rows[i].words.some(w => w.globalIndex === currentIndex)) { activeRow = i; break; }
-    }
-    if (activeRow < 0) return;
-    const page = Math.floor(activeRow / 5);
-    const pageStart = page * 5;
-    const pageEnd = Math.min(rows.length, pageStart + 5);
-    const top = rows[pageStart].top;
-    const rowPitch = (h - top - h * 0.05) / 5;
+    const visibleLines = timed.slice(Math.max(0, active - maxRows + 1), active + 1);
     ctx.save();
-    ctx.globalAlpha = 1; ctx.shadowBlur = 0; ctx.filter = "none";
-    for (let ri = pageStart; ri < pageEnd; ri++) {
-        const row = rows[ri];
-        setBratFont(ctx, row.fontSize);
-        ctx.fillStyle = style.bratTextColor || style.textColor || "#FFFFFF";
-        const baseline = top + rowPitch * (ri - pageStart) + rowPitch * 0.70;
-        let x = row.side;
-        for (const word of row.words) {
-            if (word.globalIndex > currentIndex) break;
-            if (word.globalIndex < currentIndex) {
-                ctx.fillText(word.text, x, baseline);
-            } else {
-                const duration = Math.max(0.001, word.endTime - word.time);
-                const progress = linaClamp((time - word.time) / duration);
-                const typingProgress = linaClamp(progress / (0.88 / typingSpeed));
-                const chars = Array.from(word.text);
-                const count = Math.min(chars.length, Math.ceil(chars.length * typingProgress));
-                ctx.fillText(chars.slice(0, count).join(""), x, baseline);
-            }
-            x += word.renderWidth + row.gap;
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+    ctx.beginPath();
+    ctx.rect(0, 0, w, h);
+    ctx.clip();
+    ctx.filter = softness ? 'blur(' + softness + 'px)' : 'none';
+    ctx.fillStyle = ink;
+    ctx.font = font;
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+
+    const scaleX = usableWidth / Math.max(1, usableWidth);
+    void scaleX;
+    visibleLines.forEach((entry, rowIndex) => {
+      const rowTop = top + rowIndex * rowHeight * stretch;
+      const words = entry.words;
+      if (!words.length) return;
+      const shown = [];
+      let timeline = entry.line.time;
+      words.forEach((word, wi) => {
+        const chars = Array.from(word.text);
+        const wordStart = finite(word.time) ? word.time : timeline;
+        const wordEnd = finite(word.endTime) ? word.endTime : wordStart + chars.length * speed;
+        const elapsed = Math.max(0, time - wordStart);
+        const count = time < wordStart ? 0 : Math.min(chars.length, Math.ceil(elapsed / speed));
+        shown.push({ text: chars.slice(0, count).join(''), full: word.text, chars, wordStart, wordEnd, count });
+        timeline = Math.max(wordEnd, wordStart + chars.length * speed) + pause;
+        if (wi < words.length - 1 && !words[wi + 1].time) timeline += pause;
+      });
+
+      const widths = words.map(word => ctx.measureText(word.text).width);
+      const totalWidth = widths.reduce((sum, value) => sum + value, 0);
+      let gap = fontSize * 0.14;
+      if (align === 'justify' && words.length > 1) gap = Math.max(0, (usableWidth - totalWidth) / (words.length - 1));
+      const lineWidth = totalWidth + gap * Math.max(0, words.length - 1);
+      let x = side;
+      if (align === 'center') x = (w - lineWidth) / 2;
+      else if (align === 'right') x = w - side - lineWidth;
+      const baseline = rowTop + fontSize * 0.82;
+
+      words.forEach((word, wi) => {
+        const chars = Array.from(word.text);
+        const wordStart = finite(word.time) ? word.time : entry.line.time;
+        let charX = x;
+        for (let ci = 0; ci < chars.length; ci++) {
+          const charTime = wordStart + ci * speed;
+          if (time >= charTime) {
+            const progress = clamp((time - charTime) / 0.5);
+            const blurNow = blur * (1 - progress);
+            const alpha = clamp((time - charTime) / 0.08);
+            ctx.globalAlpha = alpha;
+            ctx.filter = (blurNow > 0.05 ? 'blur(' + blurNow + 'px) ' : '') +
+              (softness ? 'blur(' + softness + 'px)' : '');
+            ctx.save();
+            const scale = 0.9 + 0.1 * progress;
+            ctx.translate(charX, baseline);
+            ctx.scale(scale, 1);
+            ctx.fillText(chars[ci], 0, 0);
+            ctx.restore();
+          }
+          charX += ctx.measureText(chars[ci]).width;
         }
-    }
+        x += widths[wi] + gap;
+      });
+      ctx.globalAlpha = 1;
+      ctx.filter = softness ? 'blur(' + softness + 'px)' : 'none';
+    });
     ctx.restore();
-}
+  }
 
   window.kefeEffects = window.kefeEffects || {};
   window.kefeEffects.brat = drawBratEffect;
