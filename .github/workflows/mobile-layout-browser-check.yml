@@ -263,7 +263,9 @@ jobs:
 
                 const glitchTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /^Glitch$/i }).first();
                 if (await glitchTab.count()) {
-                  await glitchTab.click();
+                  // Switching to the Glitch preset rebuilds the renderer; allow this one
+                  // expensive transition more time than ordinary control clicks.
+                  await glitchTab.click({ timeout: 30000 });
                   await page.locator('#kefeVisGlitchView:not([hidden])').waitFor();
                   const glitchDisplay = await page.locator('#kefeVisGlitchView').evaluate(el => getComputedStyle(el).display);
                   assert.equal(glitchDisplay, 'contents', `Glitch view must flatten into the two-column form at ${width}px; got ${glitchDisplay}`);
