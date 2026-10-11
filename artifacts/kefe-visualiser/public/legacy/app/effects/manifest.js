@@ -27,9 +27,7 @@ window.KEFE_EFFECTS = [
   { key: 'trailer',     label: 'Trailer',          description: 'Condensed all-caps movie punch-in' },
   { key: 'fancy',       label: 'Fancy',            description: 'Chunky chromatic RGB-split' },
   { key: 'glitch',      label: 'Glitch',           description: 'Skew + blur + chromatic damage' },
-  { key: 'analogtv',    label: 'Analog TV',        description: 'VT323 scanlines and rolling tracking' },
   { key: 'splitflap',   label: 'Split-Flap',       description: 'Mechanical letter roll into place' },
-  { key: 'progressiveblur', label: 'Progressive Blur', description: 'Infinite lyric slider with soft edge blur' },
   { key: 'crtdesktop', label: 'CRT Computer Desktop', description: 'Late-80s desktop CRT lyric screen' },
   { key: 'crttv', label: 'CRT TV Box', description: 'Late-80s/90s television lyric screen' },
   { key: 'randomize', label: 'Randomize', description: 'Animated stencil segmentation over any font' }
