@@ -730,14 +730,39 @@
         offset+=10+frameSize;
       }
     }
-    const atom=(name)=>{
+    const atom=(source,name)=>{
       const marker=name==='title'?'©nam':name==='artist'?'©ART':name==='album'?'©alb':name==='year'?'©day':'';
-      return marker?readMp4AtomValue(bytes,marker):'';
+      return marker?readMp4AtomValue(source,marker):'';
     };
-    if(!out.title)out.title=atom('title');
-    if(!out.artist)out.artist=atom('artist');
-    if(!out.album)out.album=atom('album');
-    if(!out.year)out.year=atom('year').slice(0,4);
+    let tailBytes=null;
+    if(file.size>bytes.length){
+      const tail=await file.slice(Math.max(metadataReadLimit,file.size-metadataReadLimit),file.size).arrayBuffer();
+      tailBytes=new Uint8Array(tail);
+    }
+    const tailAtom=name=>{
+      if(!tailBytes)return '';
+      const type='moov';
+      for(let i=4;i+4<=tailBytes.length;i++){
+        if(tailBytes[i]!==type.charCodeAt(0)||tailBytes[i+1]!==type.charCodeAt(1)||tailBytes[i+2]!==type.charCodeAt(2)||tailBytes[i+3]!==type.charCodeAt(3))continue;
+        const start=i-4;
+        let size=(tailBytes[start]*16777216)+(tailBytes[start+1]<<16)+(tailBytes[start+2]<<8)+tailBytes[start+3],header=8;
+        if(size===1){
+          if(start+16>tailBytes.length)continue;
+          const high=(tailBytes[start+8]*16777216)+(tailBytes[start+9]<<16)+(tailBytes[start+10]<<8)+tailBytes[start+11];
+          const low=(tailBytes[start+12]*16777216)+(tailBytes[start+13]<<16)+(tailBytes[start+14]<<8)+tailBytes[start+15];
+          size=high*4294967296+low;header=16;
+        }
+        if(size<header||start+size>tailBytes.length)continue;
+        const moov=tailBytes.slice(start,start+size);
+        const value=atom(moov,name);
+        if(value)return value;
+      }
+      return '';
+    };
+    if(!out.title)out.title=atom(bytes,'title')||tailAtom('title');
+    if(!out.artist)out.artist=atom(bytes,'artist')||tailAtom('artist');
+    if(!out.album)out.album=atom(bytes,'album')||tailAtom('album');
+    if(!out.year)out.year=(atom(bytes,'year')||tailAtom('year')).slice(0,4);
     return out;
   }
   function normalizeSearchText(value){
@@ -1082,6 +1107,7 @@
       catch(error){console.warn('[KEFE audio recognition]',error);}
       if(mediaObjectUrl!==uploadId)return;
       const embedded=await readEmbeddedMetadata(file);
+      if(mediaObjectUrl!==uploadId)return;
       const named=filenameMetadata(file);
       const meta={
         title:recognized?.title||embedded.title||named.title||'',
