@@ -1006,22 +1006,59 @@
   function showLyricsMissing(){
     setLyricsStatus('No synchronized lyrics found for this track. Check the song details, or open the Lyrics section to upload an .lrc file.');
   }
+  async function recognizeUploadedAudio(file){
+    /* AudD's published test token is limited to 10 requests/day. A deployment token
+       can be supplied as window.KEFE_AUDIO_RECOGNITION_TOKEN; keep production
+       credentials behind a server endpoint rather than committing a private key. */
+    if(!file||file.size>10*1024*1024)return null;
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),15000);
+    try{
+      const body=new FormData();
+      body.append('api_token',String(window.KEFE_AUDIO_RECOGNITION_TOKEN||'test'));
+      body.append('file',file,file.name||'upload');
+      body.append('return','apple_music');
+      const response=await fetch('https://api.audd.io/',{method:'POST',body,signal:controller.signal});
+      if(!response.ok)throw new Error('Audio recognition failed: '+response.status);
+      const payload=await response.json();
+      if(payload.status!=='success')throw new Error(payload.error?.error_message||'Audio recognition service rejected the file');
+      const result=payload.result;
+      return result&&result.title&&result.artist?result:null;
+    }finally{clearTimeout(timeout);}
+  }
   async function identifyAndLoadTrack(file){
     const uploadId=mediaObjectUrl;
     const mediaTrack=document.getElementById('kefeMediaTrack');
     if(mediaTrack)mediaTrack.classList.remove('is-identified');
     songAlbum.dataset.platformId='';
     try{
+      setLyricsStatus('Recognizing song…');
+      let recognized=null;
+      try{recognized=await recognizeUploadedAudio(file);}
+      catch(error){console.warn('[KEFE audio recognition]',error);}
+      if(mediaObjectUrl!==uploadId)return;
       const embedded=await readEmbeddedMetadata(file);
       const named=filenameMetadata(file);
-      const meta={title:embedded.title||named.title||'',artist:embedded.artist||named.artist||'',album:embedded.album||'',year:embedded.year||''};
+      const meta={
+        title:recognized?.title||embedded.title||named.title||'',
+        artist:recognized?.artist||embedded.artist||named.artist||'',
+        album:recognized?.album||embedded.album||'',
+        year:(recognized?.release_date?String(recognized.release_date).slice(0,4):'')||embedded.year||''
+      };
       if(window.kefeCarousel?.setLocalUpload)window.kefeCarousel.setLocalUpload({trackName:meta.title||file.name,artistName:meta.artist,collectionName:meta.album,releaseDate:meta.year,fileName:file.name,durationSeconds:Number(audio.duration)||0},false);
       songTitle.value=meta.title;
       songArtist.value=meta.artist;
       songAlbum.value=meta.album;
       songYear.value=meta.year;
+      if(recognized){
+        const apple=recognized.apple_music||{};
+        songAlbum.dataset.artUrl=normalizeArtworkUrl(apple.artworkUrl100||apple.artworkUrl||apple.artwork?.url||'');
+        songAlbum.dataset.trackDuration=apple.trackTimeMillis?String(Math.round(Number(apple.trackTimeMillis)/1000)):'';
+        songAlbum.dataset.platformId=apple.trackId?String(apple.trackId):'';
+        if(mediaTrack)mediaTrack.classList.add('is-identified');
+      }
       updateMediaTrack();updateTitleCard();
-      setLyricsStatus('Identifying track…');
+      if(!recognized)setLyricsStatus('Identifying track…');
       const duration=Number(audio.duration)||0;
       let matches=[],catalogueSearchFailed=false;
       try{matches=await fetchItunesMatches(meta,duration);}
@@ -1036,7 +1073,7 @@
       }else if(meta.title&&meta.artist){
         const searchMessage=catalogueSearchFailed?'Catalogue search failed. Your uploaded file is available below; check your connection and try again.':undefined;
         renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' '),statusMessage:searchMessage});
-        setLyricsStatus(catalogueSearchFailed?'Catalogue search failed. Using embedded song details; check your connection and try again.':'Using embedded song details. Finding lyrics…');
+        setLyricsStatus(recognized?'Song recognized. Finding lyrics…':(catalogueSearchFailed?'Catalogue search failed. Using embedded song details; check your connection and try again.':'Using embedded song details. Finding lyrics…'));
         const found=await loadAutomaticLyrics();
         if(!found&&mediaObjectUrl===uploadId)promptManualDetails(matches,catalogueSearchFailed);
       }else{
