@@ -1205,3 +1205,38 @@
     grid-column: auto;
   }
 }
+
+
+/* The optional Fluted Glass view must follow the same flat two-column grid.
+   The hidden view stays hidden until its tab is selected. */
+@media (max-width: 700px) {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view:not([hidden]) {
+    display: contents !important;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view > .kefe-visualiser-intro {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view > .kefe-visualiser-control-group {
+    display: contents !important;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view > .kefe-visualiser-control-group > .kefe-label {
+    grid-column: 1 / -1;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view > .kefe-visualiser-control-group > .kefe-meta {
+    grid-column: 1 / -1;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view #flutedSliders,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-fluted-modes {
+    display: contents !important;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view > #flutedModeDesc {
+    grid-column: 1 / -1;
+  }
+}
