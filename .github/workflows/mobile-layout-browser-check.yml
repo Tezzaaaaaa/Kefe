@@ -40,6 +40,17 @@ jobs:
           const { chromium } = require('playwright');
           const assert = require('node:assert/strict');
 
+          function makeTestWav() {
+            const sampleRate = 8000, samples = sampleRate;
+            const buffer = Buffer.alloc(44 + samples * 2);
+            buffer.write('RIFF', 0); buffer.writeUInt32LE(36 + samples * 2, 4); buffer.write('WAVE', 8);
+            buffer.write('fmt ', 12); buffer.writeUInt32LE(16, 16); buffer.writeUInt16LE(1, 20);
+            buffer.writeUInt16LE(1, 22); buffer.writeUInt32LE(sampleRate, 24);
+            buffer.writeUInt32LE(sampleRate * 2, 28); buffer.writeUInt16LE(2, 32);
+            buffer.writeUInt16LE(16, 34); buffer.write('data', 36); buffer.writeUInt32LE(samples * 2, 40);
+            return buffer;
+          }
+
           (async () => {
             const browser = await chromium.launch({ headless: true });
             const reports = [];
@@ -238,10 +249,12 @@ jobs:
                 const visualiserSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Visualiser');
                 const tabsLayout = await page.locator('.kefe-vis-tabs').evaluate(el => ({
                   columns: getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length,
+                  position: getComputedStyle(el).position,
                   width: el.getBoundingClientRect().width,
                   formWidth: el.closest('.kefe-form').getBoundingClientRect().width
                 }));
                 assert.equal(tabsLayout.columns, 2, `Visualiser engine tabs must use two columns at ${width}px; got ${tabsLayout.columns}`);
+                assert.equal(tabsLayout.position, 'sticky', `Visualiser tabs must stay fixed in position while scrolling at ${width}px; got ${tabsLayout.position}`);
                 assert.ok(tabsLayout.width >= tabsLayout.formWidth * 0.9, `Visualiser engine tabs must span the form width at ${width}px`);
                 const particlesDisplay = await page.locator('#kefeVisParticlesView').evaluate(el => getComputedStyle(el).display);
                 assert.equal(particlesDisplay, 'contents', `Particles view must flatten into the two-column form at ${width}px; got ${particlesDisplay}`);
@@ -289,6 +302,32 @@ jobs:
                       `Fluted Glass slider ${item.label} spans too much width at ${width}px: ${item.width}px of ${flutedGrid.width}px`);
                   }
                   await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-fluted.png`, fullPage: false, timeout: 15000 });
+                }
+
+                if (width === 390) {
+                  const githubLink = page.locator('a.kefe-github-link[href="https://github.com/Tezzaaaaaa/Kefe"]');
+                  assert.equal(await githubLink.count(), 1, 'Header should contain one GitHub repository icon link');
+                  assert.ok(await githubLink.isVisible(), 'Header GitHub icon link should be visible');
+
+                  await page.locator('.kefe-section[data-panel="media"]').click();
+                  await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
+                  await page.route('https://itunes.apple.com/**', route => route.fulfill({
+                    status: 200, contentType: 'application/json',
+                    body: JSON.stringify({ resultCount: 0, results: [] })
+                  }));
+                  await page.locator('#mediaInput').setInputFiles({
+                    name: 'KEFE Local Upload Verification.wav', mimeType: 'audio/wav', buffer: makeTestWav()
+                  });
+                  const localResult = page.locator('#kefeCarStack .kefe-car-card').filter({ hasText: 'KEFE Local Upload Verification' }).first();
+                  await localResult.waitFor({ state: 'visible', timeout: 15000 });
+                  await page.locator('#kefeFindInput').fill('KEFE query with no catalogue matches 928431');
+                  await page.getByText('No catalogue matches. Your uploaded file is available below.', { exact: true }).waitFor({ timeout: 15000 });
+                  await localResult.waitFor({ state: 'visible', timeout: 5000 });
+                  await localResult.click();
+                  await page.locator('#kefeCarUse').filter({ hasText: 'Use uploaded file' }).waitFor({ state: 'visible' });
+                  await page.locator('#kefeCarUse').click();
+                  await page.getByText('Using the uploaded file. Catalogue matches remain available.', { exact: true }).waitFor({ timeout: 5000 });
+                  console.log('[upload-search-audit] local upload remains visible, selectable, and preserved with zero catalogue matches');
                 }
 
                 reports.push({
