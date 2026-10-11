@@ -123,10 +123,16 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const landscapeSplit = aspectRatio >= 1.25;
     const compositionWidth = landscapeSplit ? w * 0.40 : (aspectRatio < 0.75 ? w * 0.84 : w * 0.78);
     const horizontalPadding = compositionWidth * (landscapeSplit ? 0.06 : (31 / 390));
-    const contentWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
-    const activeFontSize = baseDimension * (32 / 390);
-    const inactiveFontSize = baseDimension * (29 / 390);
-    const lineSpacing = baseDimension * (5 / 390);
+    const headerArtSize = baseDimension * 0.11;
+    const headerArtTop = Math.max(32, h * 0.07);
+    const headerLeft = Math.max(0, (w - compositionWidth) / 2) + compositionWidth * (31 / 390);
+    const headerGap = baseDimension * 0.028;
+    const headerTextLeft = headerLeft + headerArtSize + headerGap;
+    const headerTextRight = headerLeft + compositionWidth * (1 - 2 * 31 / 390);
+    const contentWidth = Math.max(1, landscapeSplit ? compositionWidth - horizontalPadding * 2 : headerTextRight - headerTextLeft);
+    const activeFontSize = baseDimension * (landscapeSplit ? 32 / 390 : 12 / 390);
+    const inactiveFontSize = baseDimension * (landscapeSplit ? 29 / 390 : 11 / 390);
+    const lineSpacing = baseDimension * (landscapeSplit ? 5 / 390 : 2 / 390);
     const contract = window.KEFE_TYPE?.effects?.apple || {};
     const family = `"SF Pro Display","SF Pro Text","Inter Tight",system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
     if (!drawAppleEffect._fontReq && document.fonts && document.fonts.load) {
@@ -134,8 +140,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         document.fonts.load('700 48px "Inter Tight"').catch(() => {});
         document.fonts.load('600 48px "Inter Tight"').catch(() => {});
     }
-    const boundaryLeft = landscapeSplit ? w * 0.396 : Math.max(0, (w - compositionWidth) / 2);
-    const margin = boundaryLeft + horizontalPadding;
+    const boundaryLeft = landscapeSplit ? w * 0.396 : headerTextLeft;
+    const margin = landscapeSplit ? boundaryLeft + horizontalPadding : headerTextLeft;
     const maxWidth = contentWidth;
     const displayLines = [];
 
@@ -235,17 +241,17 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const appleLineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.58, 0.45, 1.10);
     const lineHeight = activeFontSize * 1.18 + appleLineSpacing;
     const rowHeight = activeFontSize * 1.18;
-    const blockGap = baseDimension * (24 / 390);
+    const blockGap = baseDimension * (landscapeSplit ? 24 / 390 : 4 / 390);
     const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.30, 0.20, 0.40);
     const pastOpacity = linaClamp(upcomingOpacity * 0.72, 0.20, 0.30);
     const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
     const appleHeaderSize = baseDimension * 0.11;
     const appleHeaderTop = Math.max(baseDimension * 0.065, h * 0.035);
-    const appleHeaderBottom = landscapeSplit ? 0 : Math.max(32, h * 0.07) + baseDimension * 0.11;
+    const appleHeaderBottom = landscapeSplit ? 0 : headerArtTop + headerArtSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = landscapeSplit
         ? h * 0.13 + Math.min(baseDimension * 0.38, w * 0.24) - activeBlockHeight / 2
-        : appleHeaderBottom + activeBlockHeight / 2 + blockGap;
+        : appleHeaderBottom - activeBlockHeight / 2 - baseDimension * 0.008;
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
@@ -275,6 +281,11 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     try { ctx.fontKerning = 'normal'; ctx.textRendering = 'geometricPrecision'; } catch (_) {}
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
+    if (!landscapeSplit) {
+        ctx.beginPath();
+        ctx.rect(headerTextLeft, headerArtTop, Math.max(1, headerTextRight - headerTextLeft), Math.max(1, headerArtSize));
+        ctx.clip();
+    }
 
     for (let i = Math.max(0, activeIndex - 2); i <= Math.min(displayLines.length - 1, activeIndex + visibleLines); i++) {
         const line = displayLines[i];
