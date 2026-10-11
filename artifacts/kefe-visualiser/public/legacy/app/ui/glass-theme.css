@@ -1613,3 +1613,40 @@ html[data-theme="night"] .kefe-theme-moon { display: none; }
   .kefe-theme-toggle { gap: 4px; padding-inline: 6px; }
   .kefe-theme-icon { width: 14px; height: 14px; }
 }
+
+
+html[data-theme="night"] .kefe-tabs,
+html[data-theme="night"] .kefe-song-search,
+html[data-theme="night"] .kefe-visualiser-intro,
+html[data-theme="night"] .kefe-visualiser-control-group,
+html[data-theme="night"] .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing,
+html[data-theme="night"] .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-value {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--line);
+}
+html[data-theme="night"] .kefe-tabs {
+  box-shadow: 0 5px 18px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.025);
+}
+html[data-theme="night"] .kefe-btn.primary,
+html[data-theme="night"] .kefe-btn.primary:hover,
+html[data-theme="night"] .kefe-btn.primary:active {
+  background: #496453;
+  color: #f6faf7;
+  border-color: rgba(164,192,175,.3);
+}
+html[data-theme="night"] .kefe-upload-zone:hover,
+html[data-theme="night"] .kefe-upload-zone.is-dragging {
+  background: #29332d;
+  border-color: var(--accent);
+}
+html[data-theme="night"] .kefe-panel[data-panel-view="media"] .kefe-input {
+  background: #191d22;
+  border-color: rgba(218,226,235,.2);
+}
+html[data-theme="night"] .kefe-lyrics-timing-step,
+html[data-theme="night"] .kefe-lyrics-timing-reset {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--line);
+}
