@@ -856,3 +856,116 @@
   .kefe-panel[data-panel-view="effects"] .kefe-font-case-row { gap: var(--s2, 8px); }
   .kefe-panel[data-panel-view="effects"] .kefe-font-case-row .kefe-select { font-size: var(--font-xs); }
 }
+
+
+/* Keep controls paired within each Effects and Visualiser feature group.
+   CSS-only layout: existing control IDs and event handlers remain unchanged. */
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup {
+  grid-template-columns: minmax(0, 1fr);
+}
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: var(--control-gap, 8px);
+  min-width: 0;
+}
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > summary {
+  grid-column: 1 / -1;
+}
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure[open] > summary {
+  margin-bottom: var(--control-gap, 8px);
+}
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > .kefe-visualiser-field,
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > .kefe-visualiser-spin-row,
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > input,
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > label,
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > .kefe-upload-zone,
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > .kefe-btn,
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > div {
+  min-width: 0;
+  margin-top: 0;
+}
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup .kefe-visualiser-spin-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--s1, 4px);
+}
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup .kefe-style-color-wrap {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup .kefe-upload-zone,
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > .kefe-btn {
+  width: 100%;
+}
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup .kefe-style-disclosure > .kefe-label {
+  grid-column: 1 / -1;
+}
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup .kefe-style-disclosure > .kefe-upload-zone {
+  grid-column: 1 / -1;
+}
+
+/* Visualiser feature groups: headings span both columns; controls flow in pairs. */
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: var(--control-gap, 8px);
+  min-width: 0;
+}
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group > .kefe-label {
+  grid-column: 1 / -1;
+}
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group #visualiserParameters {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--control-gap, 8px);
+  min-width: 0;
+}
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group #visualiserParameters > .field {
+  min-width: 0;
+}
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group .kefe-visualiser-field,
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group .kefe-visualiser-spin-row {
+  min-width: 0;
+  margin-top: 0;
+}
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group .kefe-visualiser-field input[type="range"] {
+  width: 100%;
+  min-width: 0;
+}
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group .kefe-visualiser-spin-row {
+  gap: var(--s1, 4px);
+}
+.kefe-panel[data-panel-view="visualiser"] #flutedSliders {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--control-gap, 8px);
+  min-width: 0;
+}
+.kefe-panel[data-panel-view="visualiser"] .kefe-fluted-modes {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view > .kefe-visualiser-spin-row,
+.kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view > #flutedModes,
+.kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view > #flutedModeDesc,
+.kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view > #flutedReset {
+  min-width: 0;
+}
+@media (max-width: 380px) {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group #visualiserParameters,
+  .kefe-panel[data-panel-view="visualiser"] #flutedSliders,
+  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup .kefe-visualiser-field > span {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+}
