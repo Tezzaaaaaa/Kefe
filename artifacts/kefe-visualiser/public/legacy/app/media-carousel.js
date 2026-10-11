@@ -7,15 +7,15 @@
 (function(){
   'use strict';
   var COUNTRIES=['AU','US'];
-  var S={items:[],filter:'all',index:0,mode:'search',albumTitle:'',token:0,drag:null,timer:0,renderStart:0,renderEnd:0};
+  var S={items:[],localUpload:null,filter:'all',index:0,mode:'search',albumTitle:'',token:0,drag:null,timer:0,renderStart:0,renderEnd:0};
   var el={};
 
   function $(id){return document.getElementById(id);}
   function mk(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
   function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
   function art(url,size){return String(url||'').replace(/\/\d+x\d+(bb)?\.(jpg|jpeg|png)$/i,'/'+(size||300)+'x'+(size||300)+'bb.$2');}
-  function kindOf(it){return it.wrapperType==='collection'||it.collectionType==='Album'&&!it.trackName?'album':'song';}
-  function titleOf(it){return kindOf(it)==='album'?(it.collectionName||'Untitled album'):(it.trackName||'Untitled');}
+  function kindOf(it){return it&&it._kefeLocalUpload?'local':it.wrapperType==='collection'||it.collectionType==='Album'&&!it.trackName?'album':'song';}
+  function titleOf(it){return kindOf(it)==='album'?(it.collectionName||'Untitled album'):(it.trackName||it.fileName||'Untitled');}
 
   /* ── layout ── */
   function restructure(){
@@ -81,7 +81,7 @@
   }
 
   /* ── data ── */
-  function visible(){return S.filter==='all'?S.items:S.items.filter(function(i){return kindOf(i)===S.filter;});}
+  function visible(){return S.filter==='all'?S.items:S.items.filter(function(i){return S.filter==='song'?(kindOf(i)==='song'||kindOf(i)==='local'):kindOf(i)===S.filter;});}
   function status(msg,cls){el.FindStatus.textContent=msg;el.FindStatus.className='kefe-find-status'+(cls?' '+cls:'');}
   function busy(on){el.FindBox.classList.toggle('busy',on);el.Carousel.classList.toggle('busy',on);}
 
@@ -128,20 +128,21 @@
   async function search(q){
     q=q.trim();var token=++S.token;
     S.mode='search';el.CarBack.hidden=true;
-    if(!q){S.items=[];S.index=0;render();status('Type a song or album name.');busy(false);return;}
+    if(!q){S.items=S.localUpload?[S.localUpload]:[];S.index=0;render();status(S.localUpload?'Uploaded file ready. Search for catalogue matches.':'Type a song or album name.');busy(false);return;}
     busy(true);status('Searching…','loading');
     try{
       var res=await Promise.allSettled([itunes(q,'song'),itunes(q,'album')]);
       if(token!==S.token)return;
       var songs=res[0].status==='fulfilled'?res[0].value:[],albums=res[1].status==='fulfilled'?res[1].value:[];
       if(res[0].status==='rejected'&&res[1].status==='rejected')throw res[0].reason;
-      S.items=songs.concat(albums).sort(function(a,b){return relevance(b,q)-relevance(a,q);});
+      var catalogue=songs.concat(albums).sort(function(a,b){return relevance(b,q)-relevance(a,q);});
+      S.items=(S.localUpload?[S.localUpload]:[]).concat(catalogue);
       S.index=0;render();
       var count=visible().filter(function(item){return !item._kefeLocalUpload;}).length;
       status(count?(count+' result'+(count===1?'':'s')):S.localUpload&&S.filter!=='album'?'No catalogue matches. Your uploaded file is available below.':'No results','');
     }catch(e){
       if(token!==S.token)return;
-      S.items=[];render();status('Search failed — check your connection.','error');
+      S.items=S.localUpload?[S.localUpload]:[];render();status('Search failed — check your connection.','error');
     }finally{if(token===S.token)busy(false);}
   }
   async function openAlbum(it){
@@ -175,8 +176,10 @@
     for(var i=start;i<end;i++){
       var it=list[i],k=kindOf(it),b=mk('button','kefe-car-card');b.type='button';b.dataset.i=i;
       b.setAttribute('aria-label',titleOf(it)+' by '+it.artistName);
-      b.innerHTML='<span class="kefe-car-art"><img src="'+esc(art(it.artworkUrl100,300))+'" alt="" loading="lazy"><span class="kefe-car-tag '+k+'">'+k+'</span></span>'+
-        '<span class="kefe-car-cap"><b>'+esc(titleOf(it))+'</b><i>'+esc(it.artistName)+'</i></span>';
+      var artwork=it._kefeLocalUpload?'<span class="kefe-car-local-icon" aria-hidden="true">♫</span>':'<img src="'+esc(art(it.artworkUrl100,300))+'" alt="" loading="lazy">';
+      var tag=k==='local'?'Uploaded':k;
+      b.innerHTML='<span class="kefe-car-art">'+artwork+'<span class="kefe-car-tag '+k+'">'+tag+'</span></span>'+
+        '<span class="kefe-car-cap"><b>'+esc(titleOf(it))+'</b><i>'+esc(it.artistName||(it._kefeLocalUpload?'Local audio file':''))+'</i></span>';
       b.addEventListener('click',function(){var index=Number(this.dataset.i);if(S.moved)return;if(index===S.index)activate();else go(index);});
       el.CarStack.appendChild(b);
     }
@@ -202,11 +205,11 @@
     el.CarPrev.disabled=!it||S.index<=0;el.CarNext.disabled=!it||S.index>=list.length-1;
     if(!it)return;
     var k=kindOf(it);
-    el.CarBadge.textContent=k==='song'?'Song':'Album';el.CarBadge.className='kefe-badge '+k;
-    el.CarTitle.textContent=titleOf(it);el.CarArtist.textContent=it.artistName||'';
-    var year=it.releaseDate?String(it.releaseDate).slice(0,4):'',bits=[year,it.primaryGenreName,k==='song'?it.collectionName:(it.trackCount?it.trackCount+' tracks':'')].filter(Boolean);
+    el.CarBadge.textContent=k==='local'?'Uploaded file':k==='song'?'Song':'Album';el.CarBadge.className='kefe-badge '+(k==='local'?'song':k);
+    el.CarTitle.textContent=titleOf(it);el.CarArtist.textContent=it.artistName||(k==='local'?'This file is already loaded':'');
+    var year=it.releaseDate?String(it.releaseDate).slice(0,4):'',bits=k==='local'?[it.fileName||'Local audio file']:[year,it.primaryGenreName,k==='song'?it.collectionName:(it.trackCount?it.trackCount+' tracks':'')].filter(Boolean);
     el.CarMeta.textContent=bits.join(' · ');
-    el.CarUse.textContent=k==='song'?'Use this song':'Open album';
+    el.CarUse.textContent=k==='local'?'Use uploaded file':k==='song'?'Use this song':'Open album';
   }
   function go(i){
     var n=visible().length;S.index=Math.max(0,Math.min(n-1,i));
@@ -214,6 +217,11 @@
   }
   function activate(){
     var it=visible()[S.index];if(!it)return;
+    if(kindOf(it)==='local'){
+      if(window.kefeUseLocalUpload)window.kefeUseLocalUpload(it);
+      status('Using the uploaded file. Catalogue matches remain available.','');
+      return;
+    }
     if(kindOf(it)==='album'){openAlbum(it);return;}
     if(window.kefeApplyTrack){
       el.CarUse.disabled=true;
@@ -272,12 +280,27 @@
     el.Carousel.addEventListener('touchend',function(e){if(e.changedTouches.length)up(e.changedTouches[0].clientX);},{passive:true});
   }
 
+  function setLocalUpload(item,reset){
+    S.localUpload=item?Object.assign({},item,{_kefeLocalUpload:true}):null;
+    if(!el.CarStack)return;
+    var catalogue=S.items.filter(function(existing){return !existing._kefeLocalUpload;});
+    if(reset){
+      S.items=S.localUpload?[S.localUpload]:[];S.mode='search';S.filter='song';S.index=0;syncFilters();el.CarBack.hidden=true;
+      if(S.localUpload){el.FindInput.value='';el.FindBox.classList.remove('has-text');}
+    }else{
+      S.items=(S.localUpload?[S.localUpload]:[]).concat(catalogue);
+      if(S.index>=S.items.length)S.index=0;
+    }
+    render();
+    if(reset)status(S.localUpload?'Uploaded file ready. Search for catalogue matches.':'Type a song or album name.','');
+  }
+
   /* Called by the editor when an uploaded file is identified (or the song fields are searched). */
   function showMatches(items,msg,query){
     if(!el.CarStack)return;
     S.mode='search';S.filter='song';syncFilters();el.CarBack.hidden=true;
     if(query!=null){el.FindInput.value=query;el.FindBox.classList.toggle('has-text',!!query);}
-    S.items=(items||[]).map(function(x){return x;});S.index=0;render();
+    S.items=(S.localUpload?[S.localUpload]:[]).concat((items||[]).filter(function(x){return !x._kefeLocalUpload;}).map(function(x){return x;}));S.index=0;render();
     var displayMsg=msg;
     if(S.localUpload&&!(items||[]).length&&(!displayMsg||/no matches found/i.test(displayMsg)))displayMsg='No catalogue matches. Your uploaded file is available below.';
     status(displayMsg||(S.items.length?'Select the correct song':'No matches found'),'');
@@ -288,7 +311,8 @@
   function init(){
     if(!restructure())return;
     refs();bind();
-    window.kefeCarousel={showMatches:showMatches,search:function(q){el.FindInput.value=q;el.FindBox.classList.toggle('has-text',!!q);return search(q);}};
+    window.kefeCarousel={showMatches:showMatches,setLocalUpload:setLocalUpload,search:function(q){el.FindInput.value=q;el.FindBox.classList.toggle('has-text',!!q);return search(q);}};
+    if(S.localUpload)setLocalUpload(S.localUpload,true);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
