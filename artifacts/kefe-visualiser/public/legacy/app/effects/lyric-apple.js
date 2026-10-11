@@ -244,7 +244,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const appleHeaderBottom = landscapeSplit ? 0 : appleHeaderTop + appleHeaderSize;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = landscapeSplit
-        ? h * 0.50
+        ? h * 0.13 + Math.min(baseDimension * 0.38, w * 0.24) / 2
         : Math.max(
             h * linaClamp(Number(style.appleTopOffset) || 0.50, 0.40, 0.60),
             appleHeaderBottom + activeBlockHeight / 2 + blockGap
