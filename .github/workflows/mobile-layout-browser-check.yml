@@ -117,6 +117,8 @@ jobs:
                 assert.ok(tabsLayout.width >= tabsLayout.formWidth * 0.9, `Visualiser engine tabs must span the form width at ${width}px`);
                 const particlesDisplay = await page.locator('#kefeVisParticlesView').evaluate(el => getComputedStyle(el).display);
                 assert.equal(particlesDisplay, 'contents', `Particles view must flatten into the two-column form at ${width}px; got ${particlesDisplay}`);
+                const particleToggleDisplay = await page.locator('#kefeVisParticlesView .kefe-visualiser-spin-row').first().evaluate(el => getComputedStyle(el).display);
+                assert.equal(particleToggleDisplay, 'contents', `Particles toggle labels and switches must flatten into the two-column form at ${width}px`);
 
                 const gradientTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /^Gradient$/i }).first();
                 if (await gradientTab.count()) {
@@ -148,6 +150,8 @@ jobs:
                   await page.locator('#kefeVisFlutedView:not([hidden])').waitFor();
                   const flutedDisplay = await page.locator('#kefeVisFlutedView').evaluate(el => getComputedStyle(el).display);
                   assert.equal(flutedDisplay, 'contents', `Fluted Glass wrapper must flatten into the same two-column form at ${width}px; got ${flutedDisplay}`);
+                  const flutedToggleDisplay = await page.locator('#kefeVisFlutedView .kefe-visualiser-spin-row').first().evaluate(el => getComputedStyle(el).display);
+                  assert.equal(flutedToggleDisplay, 'contents', `Fluted Glass toggle labels and switches must flatten into two columns at ${width}px`);
                   const flutedGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Fluted Glass');
                   const sliderWidths = await page.locator('#flutedSliders > *').evaluateAll(nodes => nodes.filter(el => el.getClientRects().length).map(el => ({label: el.querySelector('b')?.textContent || el.textContent.trim().slice(0, 30), width: el.getBoundingClientRect().width})));
                   for (const item of sliderWidths) {
