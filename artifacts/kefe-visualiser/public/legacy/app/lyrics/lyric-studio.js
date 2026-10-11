@@ -101,6 +101,40 @@
     var backgroundRow = document.getElementById('visualiserBackground');
     var effectBlock = (backgroundRow && backgroundRow.closest('div')) || effectRow.parentNode;
     effectBlock.parentNode.insertBefore(wrap, effectBlock.nextSibling);
+
+    /* Keep the Effects controls in the requested visual order without replacing their handlers. */
+    var form = wrap.parentNode;
+    var styleGroup = document.getElementById('kefeStyleGroup');
+    var placement = styleGroup && Array.prototype.find.call(styleGroup.children, function (node) {
+      return node.classList.contains('kefe-visualiser-control-group') &&
+        node.querySelector('summary') && node.querySelector('summary').textContent.trim() === 'Size and placement';
+    });
+    if (placement) form.insertBefore(placement, wrap);
+
+    var transparency = document.getElementById('backgroundTransparency');
+    if (transparency) {
+      var transparencyBlock = transparency.closest('.kefe-background-effect-control');
+      if (transparencyBlock) {
+        wrap.insertBefore(transparencyBlock, wrap.firstChild);
+        transparencyBlock.classList.add('kefe-transparency-control');
+      }
+    }
+
+    var fontSelect = document.getElementById('fontOverride');
+    if (fontSelect) {
+      var fontBlock = fontSelect.closest('div');
+      if (fontBlock && caseBox.parentNode !== fontBlock.parentNode) {
+        caseBox.classList.add('kefe-case-control');
+        fontBlock.classList.add('kefe-font-control');
+        var pair = el('div', 'kefe-font-case-row');
+        fontBlock.parentNode.insertBefore(pair, fontBlock);
+        pair.append(fontBlock, caseBox);
+      } else if (fontBlock) {
+        fontBlock.classList.add('kefe-font-control');
+        caseBox.classList.add('kefe-case-control');
+        fontBlock.parentNode.insertBefore(caseBox, fontBlock.nextSibling);
+      }
+    }
     sync();
   }
 
