@@ -1241,7 +1241,7 @@
   }
 }
 
-/* Mobile fix: keep Effects dropdown wrappers in one of the two actual grid tracks.
+/* Mobile fix: keep Effects dropdown wrappers in one of the two actual grid tracks. */
 @media (max-width: 700px) {
   .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-background-effect-control {
     grid-column: auto / span 1 !important;
