@@ -1539,7 +1539,7 @@
 }
 
 
-/* Editor section navigation: uniform tab geometry and spacing across screen sizes. */
+/* Editor section navigation: fit every section inside the mobile frame without horizontal scrolling. */
 .kefe-tabs {
   align-items: stretch;
   gap: 6px;
@@ -1552,7 +1552,7 @@
   align-items: center;
   justify-content: center;
   flex: 1 1 0;
-  min-width: 88px;
+  min-width: 0;
   height: 32px;
   min-height: 32px;
   margin: 0;
@@ -1562,37 +1562,41 @@
   white-space: nowrap;
 }
 @media (max-width: 700px) {
+  .kefe-editing {
+    grid-template-rows: 40px minmax(0, 1fr);
+  }
   .kefe-tabs {
-    width: calc(100% - 16px);
-    min-height: 42px;
-    height: 42px;
-    gap: 5px;
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    height: 40px;
+    gap: 3px;
     padding: 4px;
-    border-radius: 12px;
-    justify-content: flex-start;
+    border-radius: 10px;
+    justify-content: stretch;
+    overflow-x: hidden;
+    overflow-y: hidden;
   }
   .kefe-tabs > .kefe-section {
-    flex: 0 0 78px;
-    width: 78px;
-    min-width: 78px;
-    max-width: 78px;
-    height: 32px;
-    min-height: 32px;
-    padding-inline: 5px;
-    border-radius: 8px;
-    font-size: 10px;
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    height: 30px;
+    min-height: 30px;
+    padding-inline: 1px;
+    border-radius: 7px;
+    font-size: 9px;
     line-height: 1;
   }
 }
 @media (max-width: 360px) {
   .kefe-tabs {
-    gap: 4px;
-    padding: 4px;
+    gap: 2px;
+    padding: 3px;
   }
   .kefe-tabs > .kefe-section {
-    flex-basis: 74px;
-    width: 74px;
-    min-width: 74px;
-    max-width: 74px;
+    padding-inline: 0;
+    font-size: 8px;
   }
 }
