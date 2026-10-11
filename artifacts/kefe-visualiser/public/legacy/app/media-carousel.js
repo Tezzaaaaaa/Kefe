@@ -7,7 +7,7 @@
 (function(){
   'use strict';
   var COUNTRIES=['AU','US'];
-  var S={items:[],filter:'all',index:0,mode:'search',albumTitle:'',token:0,drag:null,timer:0};
+  var S={items:[],filter:'all',index:0,mode:'search',albumTitle:'',token:0,drag:null,timer:0,renderStart:0,renderEnd:0};
   var el={};
 
   function $(id){return document.getElementById(id);}
@@ -165,20 +165,26 @@
     el.CarEmpty.style.display=list.length?'none':'flex';
     el.Carousel.classList.toggle('has-items',list.length>0);
     if(S.index>=list.length)S.index=Math.max(0,list.length-1);
-    list.forEach(function(it,i){
-      var k=kindOf(it),b=mk('button','kefe-car-card');b.type='button';b.dataset.i=i;
+    /* Keep the full result set in memory, but only mount a small window of cards.
+       iTunes can return hundreds of AU/US matches; mounting every artwork image
+       at once can exhaust mobile Safari's rendering memory and reload the tab. */
+    var start=Math.max(0,S.index-4),end=Math.min(list.length,start+9);
+    start=Math.max(0,end-9);
+    S.renderStart=start;S.renderEnd=end;
+    for(var i=start;i<end;i++){
+      var it=list[i],k=kindOf(it),b=mk('button','kefe-car-card');b.type='button';b.dataset.i=i;
       b.setAttribute('aria-label',titleOf(it)+' by '+it.artistName);
       b.innerHTML='<span class="kefe-car-art"><img src="'+esc(art(it.artworkUrl100,300))+'" alt="" loading="lazy"><span class="kefe-car-tag '+k+'">'+k+'</span></span>'+
         '<span class="kefe-car-cap"><b>'+esc(titleOf(it))+'</b><i>'+esc(it.artistName)+'</i></span>';
-      b.addEventListener('click',function(){if(S.moved)return;if(i===S.index)activate();else go(i);});
+      b.addEventListener('click',function(){var index=Number(this.dataset.i);if(S.moved)return;if(index===S.index)activate();else go(index);});
       el.CarStack.appendChild(b);
-    });
+    }
     layout();
   }
   function layout(){
     var cards=el.CarStack.children,n=cards.length;
     for(var i=0;i<n;i++){
-      var off=i-S.index,abs=Math.abs(off),vis=abs<=4,c=cards[i];
+      var c=cards[i],cardIndex=Number(c.dataset.i),off=cardIndex-S.index,abs=Math.abs(off),vis=abs<=4;
       c.style.transform='translate3d('+(off*34)+'px,'+(abs*3)+'px,'+(-abs*38)+'px) rotateY('+(off*-6)+'deg) scale('+(1-abs*.05)+')';
       c.style.opacity=vis?Math.max(0,1-abs*.24):0;
       c.style.zIndex=50-abs;c.style.pointerEvents=vis?'auto':'none';
@@ -201,7 +207,10 @@
     el.CarMeta.textContent=bits.join(' · ');
     el.CarUse.textContent=k==='song'?'Use this song':'Open album';
   }
-  function go(i){var n=visible().length;S.index=Math.max(0,Math.min(n-1,i));layout();}
+  function go(i){
+    var n=visible().length;S.index=Math.max(0,Math.min(n-1,i));
+    if(S.index<S.renderStart+2||S.index>=S.renderEnd-2)render();else layout();
+  }
   function activate(){
     var it=visible()[S.index];if(!it)return;
     if(kindOf(it)==='album'){openAlbum(it);return;}
