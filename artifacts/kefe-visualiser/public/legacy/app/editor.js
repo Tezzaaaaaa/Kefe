@@ -172,7 +172,7 @@
     list.innerHTML='';
     const currentTitle=songTitle.value.trim().toLowerCase();
     const currentArtist=songArtist.value.trim().toLowerCase();
-    const items=(Array.isArray(results)?results:[]).filter(item=>item.trackName).filter(item=>!opts.excludeCurrent||!(String(item.trackName||'').toLowerCase()===currentTitle&&String(item.artistName||'').toLowerCase()===currentArtist)).slice(0,opts.limit||20);
+    const items=(Array.isArray(results)?results:[]).filter(item=>item.trackName).filter(item=>!opts.excludeCurrent||!(String(item.trackName||'').toLowerCase()===currentTitle&&String(item.artistName||'').toLowerCase()===currentArtist));
     status.textContent=opts.excludeCurrent?(items.length?'Other matches':'No other matches'):(items.length?'Select the correct song':'No matches found');
     panel.hidden=true;
     if(window.kefeCarousel)window.kefeCarousel.showMatches(items,status.textContent,opts.query||[songTitle.value.trim(),songArtist.value.trim()].filter(Boolean).join(' '));
@@ -1012,11 +1012,11 @@
       const best=matches[0];
       if(best&&isConfidentMatch(best,meta,duration)){
         applyIdentifiedTrack(best);
-        renderSongSuggestions(matches.slice(0,20),{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
+        renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
         setLyricsStatus('Track identified. Finding lyrics…');
         await loadAutomaticLyrics();
       }else if(meta.title&&meta.artist){
-        renderSongSuggestions(matches.slice(0,20),{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
+        renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
         setLyricsStatus('Using embedded song details. Finding lyrics…');
         const found=await loadAutomaticLyrics();
         if(!found&&mediaObjectUrl===uploadId)promptManualDetails(matches);
