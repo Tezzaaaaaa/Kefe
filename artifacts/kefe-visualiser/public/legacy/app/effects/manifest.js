@@ -37,4 +37,5 @@ window.KEFE_EFFECTS = [
   ,{ key: 'premium', label: 'Premium Circuit', description: 'Neon circuit paths, beams and luminous type' }
   ,{ key: 'dustoff', label: 'Dust Off', description: 'Lyrics form from and disperse into dust' }
   ,{ key: 'wrapslide', label: 'WrapSlide', description: 'Per-letter vertical wrap and slide' }
+  ,{ key: 'inkscript', label: 'Ink Script', description: 'Brush-ink write-on, melting transitions and splatter' }
 ];
