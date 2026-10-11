@@ -209,7 +209,7 @@
   }
   function go(i){
     var n=visible().length;S.index=Math.max(0,Math.min(n-1,i));
-    if(S.index<S.renderStart+2||S.index>=S.renderEnd-2)render();else layout();
+    if((S.renderStart>0&&S.index<S.renderStart+2)||S.index>=S.renderEnd-3)render();else layout();
   }
   function activate(){
     var it=visible()[S.index];if(!it)return;
