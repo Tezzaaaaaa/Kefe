@@ -170,11 +170,11 @@
     songArtist.value=item.artistName||'';
     songAlbum.value=item.collectionName||'';
     songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
-    delete songAlbum.dataset.artUrl;delete songAlbum.dataset.platformId;
-    if(item.durationSeconds)songAlbum.dataset.trackDuration=String(Math.round(Number(item.durationSeconds)));
+    delete songAlbum.dataset.artUrl;delete songAlbum.dataset.platformId;delete songAlbum.dataset.trackDuration;
+    if(Number(item.durationSeconds)>0)songAlbum.dataset.trackDuration=String(Math.round(Number(item.durationSeconds)));
     const mediaTrack=document.getElementById('kefeMediaTrack');
     if(mediaTrack)mediaTrack.classList.remove('is-identified');
-    updateMediaTrack();updateTitleCard();syncAppleLyricsMetadata();clearManualNotice();
+    updateMediaTrack();updateTitleCard();applyAppleAlbumGradient();syncAppleLyricsMetadata();clearManualNotice();
     if(songTitle.value.trim()&&songArtist.value.trim())return loadAutomaticLyrics();
   };
   function renderSongSuggestions(results,opts={}){
