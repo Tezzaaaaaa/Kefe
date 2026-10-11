@@ -845,6 +845,9 @@
   .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-case-row {
     grid-column: 1 / -1;
   }
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-style-disclosure {
+    grid-column: 1 / -1;
+  }
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup {
     grid-template-columns: minmax(0, 1fr);
   }
