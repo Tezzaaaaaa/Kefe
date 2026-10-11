@@ -1146,3 +1146,62 @@
   }
 }
 
+
+/* Mobile fix: flatten Visualiser control groups into the panel's two columns.
+   Keep every field in the form grid instead of nesting a second grid in a full-width card. */
+@media (max-width: 700px) {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-form > * {
+    grid-column: auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-form > .kefe-panel-head,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-form > .kefe-visualiser-intro {
+    grid-column: 1 / -1;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-form > .kefe-visualiser-control-group {
+    display: contents !important;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group > .kefe-label {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group > #visualiserParameters {
+    display: contents !important;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group > *,
+  .kefe-panel[data-panel-view="visualiser"] #visualiserParameters > * {
+    grid-column: auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group > .kefe-meta {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Keep the same two-column contract on the narrowest supported phones. */
+@media (max-width: 380px) {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group #visualiserParameters,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-style-disclosure {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group > *,
+  .kefe-panel[data-panel-view="visualiser"] #visualiserParameters > * {
+    grid-column: auto;
+  }
+}
