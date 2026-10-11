@@ -261,7 +261,6 @@
           if(!candidates.has(key))candidates.set(key,item);
         }
       }catch(error){console.warn('[KEFE artwork search]',query.entity,error?.name||error);}
-      if(candidates.size)break;
     }
     if(request!==titleArtworkRequest||songAlbum.dataset.artUrl)return false;
     const matches=[...candidates.values()].filter(item=>{
@@ -277,7 +276,7 @@
         const expectedArtist=normalizeSearchText(meta.artist);
         if(!candidateArtist||!(candidateArtist===expectedArtist||candidateArtist.includes(expectedArtist)||expectedArtist.includes(candidateArtist)))return false;
       }
-      if(meta.album&&candidateAlbum){
+      if(!meta.title&&meta.album&&candidateAlbum){
         const expectedAlbum=normalizeSearchText(meta.album);
         if(!(candidateAlbum===expectedAlbum||candidateAlbum.includes(expectedAlbum)||expectedAlbum.includes(candidateAlbum)))return false;
       }
