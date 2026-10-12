@@ -272,18 +272,26 @@ jobs:
                 assert.equal(tabsLayout.columns, 4, `Visualiser engine tabs must keep all four choices in one row at ${width}px; got ${tabsLayout.columns}`);
                 assert.notEqual(tabsLayout.position, 'static', `Visualiser tabs must retain an explicit layout position at ${width}px`);
                 assert.ok(tabsLayout.width >= tabsLayout.containerWidth * 0.9, `Visualiser engine tabs must span the editing container at ${width}px`);
+                const gradientTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /^Gradient$/i }).first();
+                await gradientTab.waitFor({ state: 'visible' });
+                await assertOnlyVisualiserViewVisible('kefeVisGradientView', 'Gradient default');
+                assert.equal(await page.locator('.kefe-vis-tabs [aria-selected="true"]').getAttribute('data-visualiser'), 'gradient',
+                  'Gradient must be the default visualiser at ' + width + 'px');
+
                 const tabsTop = await tabsElement.evaluate(el => el.getBoundingClientRect().top);
                 await page.locator('.kefe-panels').evaluate(el => { el.scrollTop = el.scrollHeight; });
                 await page.waitForTimeout(80);
                 assert.ok(Math.abs(await tabsElement.evaluate(el => el.getBoundingClientRect().top) - tabsTop) < 1,
                   `Visualiser tabs must stay fixed while the settings panel scrolls at ${width}px`);
+
+                await page.locator('.kefe-vis-tabs button').filter({ hasText: /^Particles$/i }).click();
+                await page.locator('#kefeVisParticlesView:not([hidden])').waitFor();
                 const particlesDisplay = await page.locator('#kefeVisParticlesView').evaluate(el => getComputedStyle(el).display);
                 assert.equal(particlesDisplay, 'contents', `Particles view must flatten into the two-column form at ${width}px; got ${particlesDisplay}`);
                 await assertOnlyVisualiserViewVisible('kefeVisParticlesView', 'Particles');
                 const particleToggleDisplay = await page.locator('#kefeVisParticlesView .kefe-visualiser-spin-row').first().evaluate(el => getComputedStyle(el).display);
                 assert.equal(particleToggleDisplay, 'contents', `Particles toggle labels and switches must flatten into the two-column form at ${width}px`);
 
-                const gradientTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /^Gradient$/i }).first();
                 if (await gradientTab.count()) {
                   await gradientTab.click();
                   await page.locator('#kefeVisGradientView:not([hidden])').waitFor();
