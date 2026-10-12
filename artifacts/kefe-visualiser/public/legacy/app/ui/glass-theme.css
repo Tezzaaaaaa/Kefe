@@ -366,9 +366,9 @@ body { letter-spacing: -.015em; }
 .kefe-select,
 .kefe-input,
 .kefe-textarea {
-  min-height: 40px;
+  min-height: var(--control-h);
   border: 1px solid rgba(255,255,255,.9);
-  border-radius: 12px;
+  border-radius: var(--r2);
   background: #f2f3f0;
   box-shadow: var(--inner);
   color: var(--text);
@@ -400,9 +400,9 @@ body { letter-spacing: -.015em; }
 .kefe-textarea::placeholder { color: #a3a8b0; }
 
 .kefe-btn {
-  min-height: 40px;
+  min-height: var(--control-h);
   border: 1px solid rgba(255,255,255,.78);
-  border-radius: 12px;
+  border-radius: var(--r2);
   background: var(--surface);
   box-shadow: var(--lift);
   font-size: var(--font-sm);
@@ -419,10 +419,9 @@ body { letter-spacing: -.015em; }
   font-size: var(--font-sm);
   font-family: inherit;}
 
-.kefe-btn.primary:hover { background: #383c52; 
+.kefe-btn.primary:hover { background: var(--accent-hover); 
   font-size: var(--font-sm);
-  font-family: inherit;
-  background: var(--accent-hover);}
+  font-family: inherit;}
 
 .kefe-upload-zone {
   min-height: 118px;
@@ -439,16 +438,13 @@ body { letter-spacing: -.015em; }
   box-shadow: var(--lift);
 }
 
-.kefe-upload-title { font-size: 12px; 
-  font-size: var(--font-base);
+.kefe-upload-title { font-size: var(--font-base); 
   font-family: inherit;
   color: var(--text);}
 .kefe-upload-name { color: var(--muted); font-size: var(--font-xs); 
-  font-family: inherit;
-  color: var(--muted);}
-.kefe-upload-help { color: var(--soft); font-size: var(--font-xs); 
-  font-family: inherit;
-  color: var(--muted);}
+  font-family: inherit;}
+.kefe-upload-help { color: var(--muted); font-size: var(--font-xs); 
+  font-family: inherit;}
 
 .kefe-media-track,
 .kefe-suggestions,
@@ -739,8 +735,7 @@ body { letter-spacing: -.015em; }
   .kefe-panels { padding: 6px 10px 14px; }
   .kefe-panel { padding: 14px 13px 15px; border-radius: 17px; }
   .kefe-panel-head { align-items: flex-start; gap: 8px; }
-  .kefe-panel-head .kefe-meta { font-size: 10px; 
-  font-size: var(--font-xs);
+  .kefe-panel-head .kefe-meta { font-size: var(--font-xs); 
   font-family: inherit;
   color: var(--muted);}
   .kefe-panel[data-panel-view="lyrics"] .kefe-form,
@@ -885,7 +880,9 @@ body {
 
   font-size: var(--font-sm);
   font-family: inherit;
-  color: var(--text);}
+  color: var(--text);
+  min-height: var(--control-h);
+  border-radius: var(--r2);}
 
 .kefe-select:focus-visible,
 .kefe-input:focus-visible,
@@ -1224,7 +1221,9 @@ html {
     font-size: var(--font-sm);
   
   font-family: inherit;
-  color: var(--text);}
+  color: var(--text);
+  min-height: var(--control-h);
+  border-radius: var(--r2);}
 
   .kefe-stage {
     width: 100%;
