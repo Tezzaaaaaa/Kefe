@@ -80,7 +80,7 @@ jobs:
                 const fontSize = 1080 * 32 / 390;
                 ctx.font = '700 ' + fontSize + 'px "SF Pro Display","SF Pro Text","Inter Tight",system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
                 const oldWidth = 1920 * 0.4048;
-                const newWidth = 1920 * 0.5948;
+                const newWidth = 1920 * 0.528;
                 const words = ['WE', 'KEEP', 'MOVING', 'ON', 'A', 'LONG', 'ROAD', 'TO', 'THE', 'OPEN', 'SKY', 'WHERE', 'EVERY', 'MOMENT', 'FEELS', 'ALIVE'];
                 let fitPhrase = '';
                 let measuredWidth = 0;
