@@ -1285,7 +1285,7 @@
 
 /* Keep Visualiser engine tabs full-width and strictly two columns on mobile. */
 @media (max-width: 700px) {
-  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form > .kefe-vis-tabs {
+  .kefe-editing > .kefe-vis-tabs {
     grid-column: 1 / -1 !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     min-width: 0;
@@ -1417,11 +1417,11 @@
 
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-label,
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-btn,
-  .kefe-panel[data-panel-view="visualiser"] .kefe-vis-tabs {
+  .kefe-editing > .kefe-vis-tabs {
     grid-column: 1 / -1;
   }
 
-  .kefe-panel[data-panel-view="visualiser"] .kefe-vis-tabs {
+  .kefe-editing > .kefe-vis-tabs {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     min-width: 0;
@@ -1748,10 +1748,77 @@
 
 
 /* Keep visualiser engine choices pinned while their settings scroll beneath them. */
-.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form > .kefe-vis-tabs {
+.kefe-editing > .kefe-vis-tabs {
   position: sticky;
   top: 0;
   z-index: 30;
   background: var(--surface);
   padding-block: 8px;
+}
+
+
+/* Pin the four visualiser choices directly below the editor navigation. */
+.kefe-editing {
+  grid-template-rows: 48px auto minmax(0, 1fr);
+}
+.kefe-editing > .kefe-vis-tabs {
+  display: none;
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  top: auto;
+  z-index: 12;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  width: min(1360px, calc(100% - 60px));
+  margin: 0 auto;
+  padding: 4px 0 8px;
+  background: var(--surface);
+}
+.kefe-editing:has(.kefe-panel[data-panel-view="visualiser"].active) > .kefe-vis-tabs {
+  display: grid;
+}
+.kefe-editing > .kefe-vis-tabs .kefe-btn {
+  min-height: 36px;
+  padding: 5px 10px;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.kefe-editing > .kefe-vis-tabs .kefe-btn::before {
+  flex-basis: 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  font-size: 14px;
+}
+@media (max-width: 900px) {
+  .kefe-editing { grid-template-rows: 46px auto minmax(0, 1fr); }
+  .kefe-editing > .kefe-vis-tabs { width: calc(100% - 32px); }
+}
+@media (max-width: 700px) {
+  .kefe-editing { grid-template-rows: 46px auto minmax(0, 1fr); }
+  .kefe-editing > .kefe-vis-tabs {
+    width: calc(100% - 20px);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    padding: 3px 0 6px;
+  }
+  .kefe-editing > .kefe-vis-tabs .kefe-btn {
+    min-height: 34px;
+    padding: 4px 2px;
+    gap: 3px;
+    font-size: 10px;
+  }
+  .kefe-editing > .kefe-vis-tabs .kefe-btn::before {
+    flex-basis: 18px;
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+  }
+}
+@media (max-width: 380px) {
+  .kefe-editing > .kefe-vis-tabs { gap: 2px; }
+  .kefe-editing > .kefe-vis-tabs .kefe-btn { font-size: 9px; }
+  .kefe-editing > .kefe-vis-tabs .kefe-btn::before { flex-basis: 15px; width: 15px; height: 15px; }
 }
