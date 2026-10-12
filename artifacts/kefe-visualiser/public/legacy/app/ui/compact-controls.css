@@ -96,14 +96,14 @@
 /* Mobile viewport layout: keep the preview, timeline and editor within the visible screen. */
 @media (max-width: 700px) {
   html,
-  body {
+  body{
     width: 100%;
     min-width: 320px;
     height: 100%;
     overflow: hidden;
   
   font-size: var(--font-base);
-  font-family: inherit;}
+  font-family: var(--font-ui);}
 
   .kefe-editor {
     height: 100vh;
@@ -392,7 +392,7 @@
 
   font-size: var(--font-xs);
   font-variant-numeric: tabular-nums;}
-.kefe-find-step .kefe-step-body {
+.kefe-find-step .kefe-step-body{
   gap: 9px;
 }
 .kefe-find-step .kefe-media-upload-row {
@@ -536,7 +536,7 @@
   font-size: var(--font-xs);
   font-family: inherit;
   color: var(--muted);}
-  .kefe-find-step .kefe-step-body {
+  .kefe-find-step .kefe-step-body{
     gap: 8px;
   }
   .kefe-find-step .kefe-media-upload-row {
