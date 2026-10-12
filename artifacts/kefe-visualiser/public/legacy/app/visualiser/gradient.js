@@ -17,7 +17,7 @@
     {name:'Mono',stops:['#1e1e22','#5a5a62','#a2a2ac','#e8e8ec']}
   ];
   var DEFAULT={
-    on:false, type:'linear', angle:108, pos:{x:50,y:50},
+    on:true, type:'linear', angle:108, pos:{x:50,y:50},
     stops:['#ff6ec7','#7c4dff','#1fa2c4','#ffe29a'].map(function(c,i,a){return {color:c,position:Math.round(i/(a.length-1)*100)};}),
     adjust:{hue:0,sat:0,light:0,temp:0,vibrance:0},
     grain:{on:true,amount:40,scale:1,blend:'overlay',opacity:60,seed:1234},
@@ -314,7 +314,7 @@
     var editing=panel.closest('.kefe-editing'),panels=editing?.querySelector('.kefe-panels');
      if(editing&&panels)editing.insertBefore(tabs,panels);else form.appendChild(tabs);
      form.appendChild(particles);form.appendChild(glitch);form.appendChild(gradient);
-    show('particles');
+    show('gradient');
 
     /* ── gradient view ── */
     var intro=el('div','kefe-visualiser-intro');
