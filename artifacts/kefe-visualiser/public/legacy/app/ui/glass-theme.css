@@ -1,18 +1,18 @@
 
 
 html,
-body {
+body{
   background:
     radial-gradient(ellipse at 50% -30%, rgba(255,255,255,.95), transparent 65%),
     var(--bg);
   color: var(--text);
-  font-family: inherit;
+  font-family: var(--font-ui);
 
   font-size: var(--font-base);}
 
-body { letter-spacing: -.015em; 
+body{ letter-spacing: -.01em; 
   font-size: var(--font-base);
-  font-family: inherit;}
+  font-family: var(--font-ui);}
 
 .kefe-editor {
   grid-template-rows: 68px minmax(0, 1fr);
@@ -768,13 +768,13 @@ body { letter-spacing: -.015em;
 }
 
 html,
-body {
+body{
   background:
     radial-gradient(ellipse at 50% -32%, rgba(255, 255, 255, .94), transparent 66%),
     var(--bg);
 
   font-size: var(--font-base);
-  font-family: inherit;}
+  font-family: var(--font-ui);}
 
 .kefe-top,
 .kefe-tabs {
@@ -1478,8 +1478,8 @@ html {
 
 
 /* Shared neumorphic design standard: consistent UI typography, spacing and control geometry. */
-html, body {
-  font-family: inherit;
+html, body{
+  font-family: var(--font-ui);
   font-size: var(--font-base);
   line-height: var(--line-normal);
 }
@@ -1570,11 +1570,11 @@ button, input, select, textarea {
   --in-md: inset 3px 3px 7px rgba(0, 0, 0, .3), inset -2px -2px 6px rgba(255, 255, 255, .025);
 }
 html[data-theme="night"],
-html[data-theme="night"] body {
+html[data-theme="night"] body{
   background: #14171b;
   color: var(--text);
 }
-html[data-theme="night"] body {
+html[data-theme="night"] body{
   background-image: radial-gradient(ellipse at 50% -30%, rgba(255,255,255,.035), transparent 65%);
 }
 html[data-theme="night"] .kefe-editor { background: var(--bg); }
