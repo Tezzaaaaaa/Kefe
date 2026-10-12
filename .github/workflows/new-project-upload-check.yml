@@ -79,6 +79,8 @@ jobs:
             try {
               await page.goto(baseUrl + '/index.html', { waitUntil: 'domcontentloaded' });
               await page.locator('.kefe-section[data-panel="media"]').waitFor();
+              const accept = await page.locator('#mediaInput').getAttribute('accept');
+              assert.ok(accept && accept.includes('audio/*') && accept.includes('video/*'), label + ': media input must accept audio and video files');
               await page.locator('button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
 
