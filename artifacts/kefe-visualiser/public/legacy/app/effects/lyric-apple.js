@@ -245,7 +245,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = landscapeSplit
         ? h * 0.13 + Math.min(baseDimension * 0.38, w * 0.24) - activeBlockHeight / 2
-        : appleHeaderBottom + activeBlockHeight / 2 + blockGap;
+        : appleHeaderBottom + activeBlockHeight / 2 + blockGap + (aspectRatio < 0.75 ? baseDimension * 0.07 : 0);
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
