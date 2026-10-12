@@ -114,7 +114,7 @@ jobs:
                 }, { phrase: aspect === '16:9' ? prepared.fitPhrase : 'A lyric line for aspect ratio verification' });
                 const rendered = await page.evaluate(() => {
                   const canvas = document.getElementById('kefeCanvas');
-                  const stage = document.getElementById('previewStage');
+                  const stage = document.querySelector('.kefe-stage');
                   const calls = window.__kefeLayoutAudit.calls;
                   return {
                     canvas: { width: canvas.width, height: canvas.height },
@@ -137,12 +137,12 @@ jobs:
                 await page.screenshot({ path: (label === 'local source' ? 'local' : 'live') + '-apple-lyrics-' + aspect.replace(':', '-') + '.png', fullPage: false });
                 await page.locator('#previewFullscreen').click();
                 await page.waitForFunction(() => {
-                  const stage = document.getElementById('previewStage');
+                  const stage = document.querySelector('.kefe-stage');
                   return document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
                 }, { timeout: 8000 });
                 const fullscreen = await page.evaluate(() => ({
-                  active: document.fullscreenElement === document.getElementById('previewStage') ||
-                    document.getElementById('previewStage').classList.contains('kefe-pseudo-fullscreen'),
+                  active: document.fullscreenElement === document.querySelector('.kefe-stage') ||
+                    document.querySelector('.kefe-stage').classList.contains('kefe-pseudo-fullscreen'),
                   canvasWidth: document.getElementById('kefeCanvas').width,
                   canvasHeight: document.getElementById('kefeCanvas').height
                 }));
@@ -151,7 +151,7 @@ jobs:
                   label + ': fullscreen changed the selected canvas ratio for ' + aspect);
                 await page.keyboard.press('Escape');
                 await page.waitForFunction(() => !document.fullscreenElement &&
-                  !document.getElementById('previewStage').classList.contains('kefe-pseudo-fullscreen'),
+                  !document.querySelector('.kefe-stage').classList.contains('kefe-pseudo-fullscreen'),
                   { timeout: 8000 });
                 results.push({ aspect, canvas: rendered.canvas, titleDrawn: rendered.titleDrawn, lyricDrawCalls: rendered.lyricCalls.length, fullscreen: 'PASS' });
               }
