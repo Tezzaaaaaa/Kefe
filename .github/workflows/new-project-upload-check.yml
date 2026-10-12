@@ -111,11 +111,11 @@ jobs:
                 mimeType: 'audio/wav',
                 buffer: makeTestWav()
               });
-              await page.waitForFunction(() => {
-                const input = document.getElementById('mediaInput');
-                return input && input.files && input.files.length === 1 &&
-                  input.files[0].name === 'KEFE New Project Upload Verification.wav';
-              });
+              await page.waitForFunction(() =>
+                document.getElementById('songTitle')?.value === 'KEFE New Project Upload Verification' &&
+                !document.querySelector('.kefe-stage')?.classList.contains('is-empty'),
+                { timeout: 10000 }
+              );
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
               console.log(JSON.stringify({
                 target: label,
