@@ -1,0 +1,163 @@
+name: Visualiser submenu browser verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "artifacts/kefe-visualiser/public/legacy/**"
+      - ".github/workflows/visualiser-subnav-browser-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visualiser-subnav:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Test visualiser submenu locally
+        run: |
+          cat > /tmp/kefe-visualiser-subnav-check.cjs <<'NODE'
+          const { chromium } = require('playwright');
+          const assert = require('node:assert/strict');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true, args: ['--use-gl=angle', '--use-angle=swiftshader'] });
+            const baseUrl = process.env.KEFE_BASE_URL || 'http://127.0.0.1:4173';
+            const label = process.env.KEFE_BASE_URL ? 'published GitHub Pages' : 'local source';
+            const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+            const errors = [];
+            page.on('pageerror', error => errors.push(error.message));
+            try {
+              await page.goto(baseUrl + '/index.html', { waitUntil: 'domcontentloaded' });
+              await page.waitForFunction(() => document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4, { timeout: 30000 });
+              const nav = page.locator('.kefe-tabs');
+              const submenu = page.locator('.kefe-editing > .kefe-vis-tabs');
+              const panels = page.locator('.kefe-panels');
+
+              assert.equal(await submenu.isVisible(), false, label + ': submenu must be hidden outside Visualiser section');
+              await page.locator('.kefe-section[data-panel="visualiser"]').click();
+              await page.waitForFunction(() => {
+                const row = document.querySelector('.kefe-editing > .kefe-vis-tabs');
+                return row && getComputedStyle(row).display !== 'none' &&
+                  document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4;
+              });
+
+              const order = ['particles', 'gradient', 'glitch', 'fluted'];
+              const viewIds = {
+                particles: 'kefeVisParticlesView',
+                gradient: 'kefeVisGradientView',
+                glitch: 'kefeVisGlitchView',
+                fluted: 'kefeVisFlutedView'
+              };
+              const layout = await page.evaluate(() => {
+                const nav = document.querySelector('.kefe-tabs').getBoundingClientRect();
+                const row = document.querySelector('.kefe-editing > .kefe-vis-tabs');
+                const rr = row.getBoundingClientRect();
+                const panel = document.querySelector('.kefe-panels').getBoundingClientRect();
+                const buttons = [...row.querySelectorAll('[role="tab"]')].map(b => {
+                  const r = b.getBoundingClientRect();
+                  return { id: b.dataset.visualiser, left: r.left, right: r.right, top: r.top, width: r.width };
+                });
+                return { navBottom: nav.bottom, rowTop: rr.top, rowBottom: rr.bottom, panelsTop: panel.top, buttons };
+              });
+              assert.ok(layout.rowTop >= layout.navBottom - 1, label + ': submenu must sit underneath editor navigation');
+              assert.ok(layout.rowBottom <= layout.panelsTop + 1, label + ': settings panel must start below the submenu');
+              assert.deepEqual(layout.buttons.map(b => b.id), order, label + ': four tabs must appear in the expected order');
+              assert.ok(layout.buttons.every(b => b.width > 0 && Math.abs(b.top - layout.buttons[0].top) < 2), label + ': all four tabs must occupy one horizontal row');
+              assert.ok(layout.buttons.every((b, i) => i === 0 || b.left > layout.buttons[i - 1].left), label + ': tabs must be arranged horizontally');
+
+              for (const id of order) {
+                await submenu.locator('[data-visualiser="' + id + '"]').click();
+                await page.waitForFunction(({ id, viewId }) => {
+                  const row = document.querySelector('.kefe-editing > .kefe-vis-tabs');
+                  const selected = row.querySelectorAll('[role="tab"][aria-selected="true"]');
+                  const view = document.getElementById(viewId);
+                  return selected.length === 1 && selected[0].dataset.visualiser === id && view && !view.hidden;
+                }, { id, viewId: viewIds[id] });
+                const selection = await page.evaluate(() => ({
+                  selected: document.querySelector('.kefe-editing > .kefe-vis-tabs [aria-selected="true"]')?.dataset.visualiser,
+                  visibleViews: [...document.querySelectorAll('.kefe-panel[data-panel-view="visualiser"] .kefe-vis-view')].filter(v => !v.hidden).map(v => v.id)
+                }));
+                assert.equal(selection.selected, id, label + ': selected tab must be highlighted: ' + id);
+                assert.deepEqual(selection.visibleViews, [viewIds[id]], label + ': only selected visualiser settings should be visible: ' + id);
+              }
+
+              const rowTop = await submenu.evaluate(el => el.getBoundingClientRect().top);
+              await panels.evaluate(el => { el.scrollTop = el.scrollHeight; });
+              await page.waitForTimeout(80);
+              assert.ok(Math.abs(await submenu.evaluate(el => el.getBoundingClientRect().top) - rowTop) < 1,
+                label + ': visualiser submenu must remain fixed while settings scroll');
+
+              await nav.locator('[data-panel="media"]').click();
+              assert.equal(await submenu.isVisible(), false, label + ': submenu must close when leaving Visualiser section');
+              assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
+              console.log(JSON.stringify({ result: 'PASS', label, layout, selectedViewsTested: order, runtimeErrors: errors }, null, 2));
+
+              await page.setViewportSize({ width: 390, height: 844 });
+              await nav.locator('[data-panel="visualiser"]').click();
+              await page.waitForFunction(() => {
+                const row = document.querySelector('.kefe-editing > .kefe-vis-tabs');
+                return row && getComputedStyle(row).display !== 'none';
+              });
+              const mobile = await submenu.evaluate(row => {
+                const r = row.getBoundingClientRect();
+                return { row: { left: r.left, right: r.right, top: r.top, bottom: r.bottom }, buttons: [...row.querySelectorAll('[role="tab"]')].map(b => {
+                  const x = b.getBoundingClientRect();
+                  return { id: b.dataset.visualiser, left: x.left, right: x.right, top: x.top, width: x.width };
+                }) };
+              });
+              assert.equal(mobile.buttons.length, 4, label + ': mobile must retain all four visualiser choices');
+              assert.ok(mobile.buttons.every(b => b.width > 0 && Math.abs(b.top - mobile.buttons[0].top) < 2), label + ': mobile visualiser choices must remain on one row');
+              assert.ok(mobile.buttons.every((b, i) => i === 0 || b.left > mobile.buttons[i - 1].left), label + ': mobile choices must remain horizontally ordered');
+              console.log(JSON.stringify({ result: 'PASS', label, mobile }, null, 2));
+            } finally {
+              await browser.close();
+            }
+          })().catch(error => {
+            console.error(error);
+            process.exitCode = 1;
+          });
+          NODE
+          python3 -m http.server 4173 --directory artifacts/kefe-visualiser/public/legacy > /tmp/kefe-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 15); do
+            if curl --fail --silent http://127.0.0.1:4173/index.html -o /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:4173/index.html -o /dev/null || { cat /tmp/kefe-http.log; exit 1; }
+          NODE_PATH="$GITHUB_WORKSPACE/node_modules" node /tmp/kefe-visualiser-subnav-check.cjs
+
+      - name: Wait for GitHub Pages to publish this change
+        run: |
+          live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
+          expected_marker='visualiser-subnav-20261013-1'
+          for attempt in $(seq 1 48); do
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
+              echo "Expected visualiser submenu assets are published: $expected_marker"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "GitHub Pages did not publish the expected asset marker ($expected_marker) in time." >&2
+          exit 1
+
+      - name: Test live GitHub Pages submenu
+        env:
+          KEFE_BASE_URL: https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy
+        run: NODE_PATH="$GITHUB_WORKSPACE/node_modules" node /tmp/kefe-visualiser-subnav-check.cjs
