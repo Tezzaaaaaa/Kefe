@@ -101,7 +101,9 @@
     min-width: 320px;
     height: 100%;
     overflow: hidden;
-  }
+  
+  font-size: var(--font-base);
+  font-family: inherit;}
 
   .kefe-editor {
     height: 100vh;
@@ -188,7 +190,9 @@
   .kefe-play {
     width: 36px;
     height: 36px;
-  }
+  
+  font-size: var(--font-sm);
+  font-family: inherit;}
 
   .kefe-wave {
     min-width: 0;
@@ -206,7 +210,7 @@
   .kefe-time {
     width: 58px;
     min-width: 58px;
-    font-size: var(--font-sm);
+    font-size: var(--font-xs);
     white-space: nowrap;
   
   font-family: inherit;
@@ -339,12 +343,14 @@
   .kefe-play {
     width: 32px;
     height: 32px;
-  }
+  
+  font-size: var(--font-sm);
+  font-family: inherit;}
 
   .kefe-time {
     width: 58px;
     min-width: 58px;
-    font-size: var(--font-sm);
+    font-size: var(--font-xs);
   
   font-family: inherit;
   font-variant-numeric: tabular-nums;
@@ -383,7 +389,9 @@
   height: 23px;
   border: 1px solid var(--line-soft);
   box-shadow: var(--inner);
-}
+
+  font-size: var(--font-xs);
+  font-variant-numeric: tabular-nums;}
 .kefe-find-step .kefe-step-body {
   gap: 9px;
 }
@@ -407,7 +415,8 @@
 .kefe-find-step .kefe-search input {
   min-height: var(--control-h);
   font-size: var(--font-sm);
-}
+
+  font-family: inherit;}
 .kefe-find-step .kefe-chips {
   gap: 6px;
 }
@@ -420,13 +429,16 @@
   font-size: var(--font-sm);
   letter-spacing: 0;
   box-shadow: var(--inner);
-}
+
+  font-family: inherit;}
 .kefe-find-step .kefe-chip.active {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-deep);
   box-shadow: var(--lift);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 .kefe-find-step .kefe-find-status {
   font-size: var(--font-sm);
   line-height: 1.4;
@@ -461,7 +473,9 @@
 .kefe-find-step .kefe-song-details-head h4 {
   font-size: var(--font-base);
   line-height: 1.25;
-}
+
+  font-family: inherit;
+  color: var(--text);}
 .kefe-find-step .kefe-song-details-head p {
   margin-top: 2px;
   font-size: var(--font-sm);
@@ -502,9 +516,11 @@
   font-family: inherit;
   color: var(--text);}
 .kefe-find-step .kefe-details-grid .kefe-input::placeholder {
-  color: var(--soft);
+  color: var(--text);
   opacity: 1;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 
 @media (max-width: 700px) {
   .kefe-find-step {
@@ -516,7 +532,10 @@
   }
   .kefe-find-step .kefe-step-head p {
     line-height: 1.35;
-  }
+  
+  font-size: var(--font-xs);
+  font-family: inherit;
+  color: var(--muted);}
   .kefe-find-step .kefe-step-body {
     gap: 8px;
   }
@@ -533,7 +552,9 @@
   }
   .kefe-find-step .kefe-search input {
     min-height: 38px;
-  }
+  
+  font-size: var(--font-sm);
+  font-family: inherit;}
   .kefe-find-step .kefe-chips {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -546,7 +567,9 @@
     min-height: 32px;
     height: 32px;
     padding-inline: 6px;
-  }
+  
+  font-size: var(--font-sm);
+  font-family: inherit;}
   .kefe-find-step .kefe-song-details {
     gap: 7px;
     padding-top: 9px;
@@ -718,7 +741,9 @@
     margin-bottom: var(--s1);
     font-size: var(--font-sm);
     line-height: var(--line-tight);
-  }
+  
+  font-family: inherit;
+  color: var(--muted);}
 
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup .kefe-visualiser-field b {
     min-width: 0;
@@ -727,7 +752,7 @@
 
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup .kefe-visualiser-field output {
     flex: 0 0 auto;
-    font-size: var(--font-sm);
+    font-size: var(--font-xs);
     font-variant-numeric: tabular-nums;
     color: var(--muted);
   
@@ -825,7 +850,10 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 2px;
-  }
+  
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--muted);}
 }
 
 
@@ -1063,7 +1091,10 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 2px;
-  }
+  
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--muted);}
 }
 
 
@@ -1180,7 +1211,10 @@
 .kefe-panel[data-panel-view="effects"] .kefe-visualiser-field > span,
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-field > span {
   gap: var(--s1, 4px);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--muted);}
 .kefe-panel[data-panel-view="effects"] .kefe-visualiser-field b,
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-field b {
   min-width: 0;
@@ -1946,8 +1980,9 @@
   width: 22px;
   height: 22px;
   border-radius: 7px;
-  font-size: 14px;
-}
+  font-size: var(--font-sm);
+
+  font-family: inherit;}
 @media (max-width: 900px) {
   .kefe-editing { grid-template-rows: 46px auto minmax(0, 1fr); }
   .kefe-editing > .kefe-vis-tabs { width: calc(100% - 32px); }
@@ -1971,12 +2006,15 @@
     flex-basis: 18px;
     width: 18px;
     height: 18px;
-    font-size: 12px;
-  }
+    font-size: var(--font-sm);
+  
+  font-family: inherit;}
 }
 @media (max-width: 380px) {
   .kefe-editing > .kefe-vis-tabs { gap: 2px; }
   .kefe-editing > .kefe-vis-tabs .kefe-btn { font-size: var(--font-sm); 
   font-family: inherit;}
-  .kefe-editing > .kefe-vis-tabs .kefe-btn::before { flex-basis: 15px; width: 15px; height: 15px; }
+  .kefe-editing > .kefe-vis-tabs .kefe-btn::before { flex-basis: 15px; width: 15px; height: 15px; 
+  font-size: var(--font-sm);
+  font-family: inherit;}
 }
