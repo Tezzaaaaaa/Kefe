@@ -1205,3 +1205,57 @@ button{border:0;cursor:pointer}
 .kefe-export-close{display:block;margin:22px 0 0 auto;border:0;border-radius:12px;padding:11px 22px;background:#292a32;color:#fff;font:inherit;font-weight:700;cursor:pointer;box-shadow:5px 5px 12px rgba(0,0,0,.4),-3px -3px 8px rgba(255,255,255,.04)}
 .kefe-export-close:hover{background:#383943}
 @media(max-width:480px){.kefe-export-overlay{padding:12px}.kefe-export-card{padding:22px 18px;border-radius:22px;max-height:calc(100dvh - 24px)}.kefe-export-details{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 10px}.kefe-export-summary{padding:14px}.kefe-export-intro{margin-bottom:18px}}
+
+
+/* Shared editor consistency layer: all section controls inherit the same design tokens. */
+.kefe-panel,
+.kefe-panel * { min-width: 0; }
+.kefe-panel .kefe-label {
+  color: var(--muted);
+  font-size: var(--font-sm);
+  font-weight: 700;
+  line-height: var(--line-tight);
+}
+.kefe-panel input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.kefe-panel select,
+.kefe-panel textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--inner);
+  font: inherit;
+}
+.kefe-panel input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.kefe-panel select {
+  min-height: var(--control-h);
+  padding: 0 var(--control-pad);
+}
+.kefe-panel textarea {
+  padding: var(--control-pad);
+  line-height: var(--line-normal);
+}
+.kefe-panel input:focus-visible,
+.kefe-panel select:focus-visible,
+.kefe-panel textarea:focus-visible,
+.kefe-panel button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.kefe-panel .kefe-btn {
+  min-height: var(--control-h);
+  border-radius: var(--r2);
+  font-size: var(--font-sm);
+  line-height: var(--line-tight);
+}
+.kefe-panel .kefe-panel-head { gap: var(--section-gap); }
+.kefe-panel .kefe-form { gap: var(--section-gap); }
+.kefe-panel .kefe-visualiser-control-group,
+.kefe-panel .kefe-visualiser-field { min-width: 0; }
+@media (max-width: 700px) {
+  .kefe-panel input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+  .kefe-panel select { min-height: 38px; padding-inline: 10px; }
+  .kefe-panel .kefe-btn { min-height: 36px; padding-inline: 10px; }
+}
