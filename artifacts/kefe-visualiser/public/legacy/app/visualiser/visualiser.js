@@ -947,6 +947,11 @@ color.setHSL(hue, 0.9, light);`
 const canvas = document.getElementById('kefeVisualiserCanvas');const stage = canvas?.closest('.kefe-stage');
 if (!canvas) throw new Error('KEFE visualiser canvas is missing from the preview stage.');
 canvas.style.visibility = 'hidden';
+window.kefeSyncVisualiserVisibility = () => {
+  const visible = window.kefeVisualiserEnabled !== false && !stage?.classList.contains('is-empty');
+  canvas.style.visibility = visible ? 'visible' : 'hidden';
+  canvas.style.pointerEvents = visible ? 'auto' : 'none';
+};
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x000000, 0.01);
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
@@ -1235,7 +1240,7 @@ function setPreset(preset, opts) {
   document.getElementById('visualiserSceneDesc').textContent = preset.desc;
   compileInjection(preset);
   window.kefeParticleVisualiserActive = true;
-  canvas.style.visibility = window.kefeVisualiserEnabled === false ? 'hidden' : 'visible';
+  window.kefeSyncVisualiserVisibility();
   rebuild(state.count);
   presetSelect.value = preset.key;
   renderParamSliders();
