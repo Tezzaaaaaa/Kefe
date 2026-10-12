@@ -267,11 +267,16 @@ jobs:
                   columns: getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length,
                   position: getComputedStyle(el).position,
                   width: el.getBoundingClientRect().width,
-                  formWidth: el.closest('.kefe-form').getBoundingClientRect().width
+                  containerWidth: el.closest('.kefe-editing').getBoundingClientRect().width
                 }));
-                assert.equal(tabsLayout.columns, 2, `Visualiser engine tabs must use two columns at ${width}px; got ${tabsLayout.columns}`);
-                assert.equal(tabsLayout.position, 'sticky', `Visualiser tabs must stay fixed in position while scrolling at ${width}px; got ${tabsLayout.position}`);
-                assert.ok(tabsLayout.width >= tabsLayout.formWidth * 0.9, `Visualiser engine tabs must span the form width at ${width}px`);
+                assert.equal(tabsLayout.columns, 4, `Visualiser engine tabs must keep all four choices in one row at ${width}px; got ${tabsLayout.columns}`);
+                assert.notEqual(tabsLayout.position, 'static', `Visualiser tabs must retain an explicit layout position at ${width}px`);
+                assert.ok(tabsLayout.width >= tabsLayout.containerWidth * 0.9, `Visualiser engine tabs must span the editing container at ${width}px`);
+                const tabsTop = await tabsElement.evaluate(el => el.getBoundingClientRect().top);
+                await page.locator('.kefe-panels').evaluate(el => { el.scrollTop = el.scrollHeight; });
+                await page.waitForTimeout(80);
+                assert.ok(Math.abs(await tabsElement.evaluate(el => el.getBoundingClientRect().top) - tabsTop) < 1,
+                  `Visualiser tabs must stay fixed while the settings panel scrolls at ${width}px`);
                 const particlesDisplay = await page.locator('#kefeVisParticlesView').evaluate(el => getComputedStyle(el).display);
                 assert.equal(particlesDisplay, 'contents', `Particles view must flatten into the two-column form at ${width}px; got ${particlesDisplay}`);
                 await assertOnlyVisualiserViewVisible('kefeVisParticlesView', 'Particles');
