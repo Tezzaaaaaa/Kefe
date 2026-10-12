@@ -1,5 +1,9 @@
 name: Apple lyric layout browser verification
 
+concurrency:
+  group: kefe-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main]
@@ -34,7 +38,7 @@ jobs:
       - name: Wait for the updated lyric scripts to publish
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
-          expected_marker='app/effects/lyric-apple.js?v=apple-lyrics-contrast-fit-20261012-1'
+          expected_marker='app/effects/lyric-apple.js?v=apple-lyrics-border-width-20261012-2'
           for attempt in $(seq 1 48); do
             if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
               echo "Updated Apple lyric scripts are published: $expected_marker"
