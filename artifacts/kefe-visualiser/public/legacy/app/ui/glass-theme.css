@@ -72,7 +72,9 @@ body { letter-spacing: -.015em; }
   min-height: 36px;
   background: transparent;
   box-shadow: none;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 
 .kefe-brand {
   width: 38px;
@@ -90,22 +92,27 @@ body { letter-spacing: -.015em; }
   color: var(--accent-deep);
   box-shadow: var(--lift);
   transform: translateY(-1px);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 
 .kefe-top-link {
   padding: 0 13px;
   border: 1px solid transparent;
   border-radius: 12px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--font-sm);
   font-weight: 650;
-}
+
+  font-family: inherit;}
 
 .kefe-top-link:focus-visible,
 .kefe-brand:focus-visible {
   outline: 2px solid rgba(142,170,184,.72);
   outline-offset: 2px;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 
 .kefe-work {
   grid-template-rows: minmax(270px, 1fr) var(--timeline-h) minmax(250px, 32vh);
@@ -199,9 +206,11 @@ body { letter-spacing: -.015em; }
 .kefe-time {
   min-width: 94px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--font-sm);
   font-weight: 600;
-}
+
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;}
 
 .kefe-wave {
   height: 42px;
@@ -237,7 +246,10 @@ body { letter-spacing: -.015em; }
   height: 32px;
   border-radius: 10px;
   background-color: var(--surface-hi);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
 .kefe-editing {
   grid-template-columns: minmax(0, 1fr);
@@ -276,19 +288,24 @@ body { letter-spacing: -.015em; }
   border-radius: 11px;
   background: transparent;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--font-sm);
   font-weight: 650;
   text-align: center;
   box-shadow: none;
-}
+
+  font-family: inherit;}
 
 .kefe-section:hover {
   background: rgba(255,255,255,.72);
   color: var(--text);
   box-shadow: var(--inner);
-}
 
-.kefe-section:active { box-shadow: var(--inner); }
+  font-size: var(--font-sm);
+  font-family: inherit;}
+
+.kefe-section:active { box-shadow: var(--inner); 
+  font-size: var(--font-sm);
+  font-family: inherit;}
 
 .kefe-section.active {
   border-color: rgba(255,255,255,.12);
@@ -326,27 +343,30 @@ body { letter-spacing: -.015em; }
 }
 
 .kefe-panel h2 {
-  color: var(--accent-deep);
-  font-size: 14px;
-  font-weight: 750;
+  color: var(--text);
+  font-size: var(--font-lg);
+  font-weight: 700;
   letter-spacing: -.025em;
-}
+
+  font-family: inherit;}
 
 .kefe-panel-head .kefe-meta {
   color: var(--muted);
-  font-size: 11px;
-}
+  font-size: var(--font-xs);
+
+  font-family: inherit;}
 
 .kefe-form { gap: 10px; }
 
 .kefe-label {
   margin-bottom: 6px;
-  color: #858b95;
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
+  color: var(--muted);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+
+  font-family: inherit;}
 
 .kefe-select,
 .kefe-input,
@@ -357,22 +377,29 @@ body { letter-spacing: -.015em; }
   background: #f2f3f0;
   box-shadow: var(--inner);
   color: var(--text);
-  font-size: 12px;
-}
+  font-size: var(--font-sm);
+
+  font-family: inherit;}
 
 .kefe-select:hover,
 .kefe-input:hover,
 .kefe-textarea:hover {
   background: var(--surface-hi);
   box-shadow: var(--lift);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
 .kefe-select:focus,
 .kefe-input:focus,
 .kefe-textarea:focus {
   border-color: transparent;
   box-shadow: 0 0 0 3px rgba(142,170,184,.23), var(--inner);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
 .kefe-input::placeholder,
 .kefe-textarea::placeholder { color: #a3a8b0; }
@@ -383,18 +410,24 @@ body { letter-spacing: -.015em; }
   border-radius: 12px;
   background: var(--surface);
   box-shadow: var(--lift);
-  font-size: 11px;
+  font-size: var(--font-sm);
   font-weight: 650;
-}
+
+  font-family: inherit;}
 
 .kefe-btn.primary {
   border-color: transparent;
-  background: #292c3d;
-  color: #f9fafb;
-  box-shadow: 0 6px 14px rgba(35,38,54,.18), inset 0 1px 0 rgba(255,255,255,.12);
-}
+  background: var(--accent);
+  color: var(--accent-deep);
+  box-shadow: var(--lift);
 
-.kefe-btn.primary:hover { background: #383c52; }
+  font-size: var(--font-sm);
+  font-family: inherit;}
+
+.kefe-btn.primary:hover { background: #383c52; 
+  font-size: var(--font-sm);
+  font-family: inherit;
+  background: var(--accent-hover);}
 
 .kefe-upload-zone {
   min-height: 118px;
@@ -411,9 +444,16 @@ body { letter-spacing: -.015em; }
   box-shadow: var(--lift);
 }
 
-.kefe-upload-title { font-size: 12px; }
-.kefe-upload-name { color: var(--muted); font-size: 10px; }
-.kefe-upload-help { color: var(--soft); font-size: 9px; }
+.kefe-upload-title { font-size: 12px; 
+  font-size: var(--font-base);
+  font-family: inherit;
+  color: var(--text);}
+.kefe-upload-name { color: var(--muted); font-size: var(--font-xs); 
+  font-family: inherit;
+  color: var(--muted);}
+.kefe-upload-help { color: var(--soft); font-size: var(--font-xs); 
+  font-family: inherit;
+  color: var(--muted);}
 
 .kefe-media-track,
 .kefe-suggestions,
@@ -499,7 +539,10 @@ body { letter-spacing: -.015em; }
 .kefe-panel[data-panel-view="media"] .kefe-input {
   background: #f2f3f0;
   border: 1px solid rgba(255,255,255,.9);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
 .kefe-panel[data-panel-view="lyrics"] .kefe-form {
   grid-template-columns: minmax(0, 1.35fr) minmax(270px, .85fr);
@@ -508,7 +551,10 @@ body { letter-spacing: -.015em; }
 .kefe-panel[data-panel-view="lyrics"] .kefe-textarea {
   min-height: 180px;
   line-height: 1.55;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing {
   align-self: start;
@@ -523,7 +569,11 @@ body { letter-spacing: -.015em; }
   border-radius: 11px;
   background: var(--surface);
   box-shadow: var(--lift);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);}
 
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-webkit-slider-thumb,
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-moz-range-thumb {
@@ -544,19 +594,27 @@ body { letter-spacing: -.015em; }
   box-shadow: var(--lift);
 }
 .kefe-panel[data-panel-view="effects"] .kefe-background-effect-control .kefe-label {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: .01em;
-}
+  font-size: var(--font-sm);
+  font-weight: 600;
+  letter-spacing: normal;
+
+  font-family: inherit;
+  color: var(--muted);
+  text-transform: none;}
 .kefe-panel[data-panel-view="effects"] .kefe-background-effect-control .kefe-select {
   min-height: 52px;
-  font-size: 16px;
+  font-size: var(--font-sm);
   font-weight: 650;
-}
+
+  font-family: inherit;
+  color: var(--text);}
 .kefe-panel[data-panel-view="effects"] .kefe-background-effect-control .kefe-meta {
   margin: 0;
   line-height: 1.45;
-}
+
+  font-size: var(--font-xs);
+  font-family: inherit;
+  color: var(--muted);}
 .kefe-panel[data-panel-view="effects"] .kefe-form {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -571,7 +629,10 @@ body { letter-spacing: -.015em; }
 .kefe-panel[data-panel-view="effects"] .kefe-select {
   background: #f2f3f0;
   border: 1px solid rgba(255,255,255,.9);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
 .kefe-font-name { color: var(--accent-deep); font-size: 15px; }
 
@@ -654,7 +715,8 @@ body { letter-spacing: -.015em; }
   .kefe-editor { grid-template-rows: 56px minmax(0, 1fr); }
   .kefe-work { grid-template-rows: minmax(150px, .72fr) 56px minmax(270px, 1fr); }
   .kefe-top { margin: 6px 10px 0; height: 44px; }
-  .kefe-top-link { height: 32px; min-height: 32px; padding: 0 9px; font-size: 11px; }
+  .kefe-top-link { height: 32px; min-height: 32px; padding: 0 9px; font-size: var(--font-sm); 
+  font-family: inherit;}
   .kefe-brand { width: 34px; height: 34px; min-height: 34px; }
   .kefe-brand img { width: 20px; height: 20px; }
   .kefe-preview { padding: 8px 10px 3px; }
@@ -663,41 +725,62 @@ body { letter-spacing: -.015em; }
   .kefe-preview-fullscreen { top: 8px; right: 8px; width: 32px; height: 32px; }
   .kefe-timeline { grid-template-columns: auto 65px minmax(0, 1fr) auto; height: 56px; padding: 6px 10px; gap: 7px; }
   .kefe-play { width: 36px; height: 36px; }
-  .kefe-time { min-width: 65px; width: 65px; font-size: 10px; }
+  .kefe-time { min-width: 65px; width: 65px; font-size: var(--font-sm); 
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);}
   .kefe-wave { height: 38px; border-radius: 13px; }
   .kefe-slider { height: 38px; }
   .kefe-slider::-webkit-slider-runnable-track,
   .kefe-slider::-moz-range-track { height: 38px; }
   .kefe-aspect-controls { width: 67px; min-width: 67px; height: 38px; }
-  .kefe-aspect-select { height: 28px; padding-left: 6px; font-size: 10px; }
+  .kefe-aspect-select { height: 28px; padding-left: 6px; font-size: var(--font-sm); 
+  font-family: inherit;
+  color: var(--text);}
   .kefe-editing { grid-template-rows: 46px minmax(0, 1fr); }
   .kefe-tabs { width: calc(100% - 20px); height: 38px; min-height: 38px; padding: 3px; }
-  .kefe-section { height: 30px; min-height: 30px; padding: 0 12px; font-size: 10px; }
+  .kefe-section { height: 30px; min-height: 30px; padding: 0 12px; font-size: var(--font-sm); 
+  font-family: inherit;}
   .kefe-panels { padding: 6px 10px 14px; }
   .kefe-panel { padding: 14px 13px 15px; border-radius: 17px; }
   .kefe-panel-head { align-items: flex-start; gap: 8px; }
-  .kefe-panel-head .kefe-meta { font-size: 10px; }
+  .kefe-panel-head .kefe-meta { font-size: 10px; 
+  font-size: var(--font-xs);
+  font-family: inherit;
+  color: var(--muted);}
   .kefe-panel[data-panel-view="lyrics"] .kefe-form,
   .kefe-panel[data-panel-view="effects"] .kefe-form,
   .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form,
   .kefe-panel[data-panel-view="export"] .kefe-form { grid-template-columns: 1fr; }
   .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-intro,
   .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card { grid-column: auto; }
-  .kefe-panel[data-panel-view="lyrics"] .kefe-textarea { min-height: 148px; }
+  .kefe-panel[data-panel-view="lyrics"] .kefe-textarea { min-height: 148px; 
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 }
 
 @media (max-width: 420px) {
   .kefe-top { padding: 0 6px; }
   .kefe-top-nav,
   .kefe-top-profile { gap: 2px; }
-  .kefe-top-link { padding: 0 7px; font-size: 10px; }
+  .kefe-top-link { padding: 0 7px; font-size: var(--font-sm); 
+  font-family: inherit;}
   .kefe-brand { width: 31px; }
   .kefe-timeline { grid-template-columns: 34px 58px minmax(0, 1fr) 58px; gap: 5px; padding: 6px; }
-  .kefe-time { width: 58px; min-width: 58px; font-size: 9px; }
+  .kefe-time { width: 58px; min-width: 58px; font-size: var(--font-sm); 
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);}
   .kefe-aspect-controls { width: 58px; min-width: 58px; }
-  .kefe-aspect-select { padding-right: 15px; font-size: 9px; }
+  .kefe-aspect-select { padding-right: 15px; font-size: var(--font-sm); 
+  font-family: inherit;
+  color: var(--text);}
   .kefe-panel-head { display: grid; }
-  .kefe-panel-head .kefe-meta { text-align: left; }
+  .kefe-panel-head .kefe-meta { text-align: left; 
+  font-size: var(--font-xs);
+  font-family: inherit;
+  color: var(--muted);}
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -735,8 +818,8 @@ body { letter-spacing: -.015em; }
   --s2: 8px;
   --s3: 16px;
   --s4: 24px;
-  --font-xs: 11px;
-  --font-sm: 12px;
+  --font-xs: 12px;
+  --font-sm: 13px;
   --font-base: 14px;
   --font-lg: 16px;
   --font-xl: 20px;
@@ -797,14 +880,20 @@ body {
 .kefe-meta,
 .kefe-panel-head .kefe-meta {
   font-variant-numeric: tabular-nums;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--muted);}
 
 .kefe-select,
 .kefe-input,
 .kefe-textarea {
   border-color: rgba(255, 255, 255, .9);
   background-color: #eff0ee;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
 .kefe-select:focus-visible,
 .kefe-input:focus-visible,
@@ -823,7 +912,10 @@ body {
 .kefe-lyrics-timing-reset:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
 .kefe-select,
 .kefe-input,
@@ -844,22 +936,33 @@ body {
     box-shadow .16s ease,
     color .16s ease,
     transform .16s ease;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
 .kefe-btn.primary {
-  background: var(--accent-deep);
-  color: #f8f9fc;
-}
+  background: var(--accent);
+  color: var(--accent-deep);
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  border-color: transparent;
+  box-shadow: var(--lift);}
 
 .kefe-btn.primary:hover {
-  background: #3a4058;
-}
+  background: var(--accent-hover);
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 
 .kefe-btn.primary:active {
   background: #25293b;
   box-shadow: inset 2px 2px 5px rgba(12, 15, 27, .32), inset -1px -1px 3px rgba(255, 255, 255, .08);
   transform: translateY(1px);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 
 .kefe-section.active {
   background: var(--accent-deep);
@@ -907,7 +1010,10 @@ body {
   .kefe-play,
   .kefe-preview-fullscreen {
     border: 1px solid ButtonText;
-  }
+  
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
   :focus-visible {
     outline: 2px solid Highlight !important;
@@ -933,15 +1039,23 @@ body {
 }
 .kefe-panel[data-panel-view="effects"] .kefe-background-effect-control .kefe-select {
   min-height: 42px;
-  font-size: 14px;
-}
+  font-size: var(--font-sm);
+
+  font-family: inherit;
+  color: var(--text);}
 .kefe-panel[data-panel-view="effects"] .kefe-form > * {
   min-width: 0;
 }
 .kefe-panel[data-panel-view="effects"] .kefe-form label,
 .kefe-panel[data-panel-view="effects"] .kefe-form .kefe-label {
   margin-bottom: 3px;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;}
 @media (max-width: 560px) {
   .kefe-panel[data-panel-view="effects"] .kefe-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -997,7 +1111,11 @@ html {
 .kefe-visualiser-intro,
 .kefe-visualiser-control-group {
   min-width: 0;
-}
+
+  font-size: var(--font-xs);
+  font-family: inherit;
+  color: var(--muted);
+  font-weight: 700;}
 
 .kefe-form {
   align-items: start;
@@ -1010,7 +1128,10 @@ html {
 .kefe-control,
 .kefe-song-search-button {
   max-width: 100%;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
 .kefe-stage {
   aspect-ratio: 16 / 9;
@@ -1042,7 +1163,10 @@ html {
 .kefe-play,
 .kefe-preview-fullscreen {
   -webkit-tap-highlight-color: transparent;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 
 @media (max-width: 900px) {
   :root {
@@ -1096,8 +1220,11 @@ html {
   }
 
   .kefe-panel h2 {
-    font-size: 14px;
-  }
+    font-size: var(--font-lg);
+  
+  font-family: inherit;
+  color: var(--text);
+  font-weight: 700;}
 
   .kefe-form {
     gap: 8px;
@@ -1124,8 +1251,10 @@ html {
   .kefe-select,
   .kefe-input,
   .kefe-textarea {
-    font-size: 16px;
-  }
+    font-size: var(--font-sm);
+  
+  font-family: inherit;
+  color: var(--text);}
 
   .kefe-stage {
     width: 100%;
@@ -1173,7 +1302,10 @@ html {
   .kefe-panel[data-panel-view="effects"] .kefe-select,
   .kefe-panel[data-panel-view="effects"] .kefe-input {
     min-width: 0;
-  }
+  
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1188,7 +1320,10 @@ html {
   .kefe-play,
   .kefe-preview-fullscreen {
     transition: none;
-  }
+  
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 }
 
 
@@ -1210,9 +1345,13 @@ html {
   [aria-pressed="true"],
   [aria-checked="true"]
 ) {
-  border-color: var(--confirm-glow) !important;
-  box-shadow: 0 0 0 1px var(--confirm-glow), 0 0 12px var(--confirm-glow-soft), var(--lift);
-}
+  border-color: transparent;
+  box-shadow: var(--lift);
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  background: var(--accent);
+  color: var(--accent-deep);}
 
 .kefe-control-confirmed {
   border-color: var(--confirm-glow) !important;
@@ -1273,7 +1412,13 @@ html {
 
   .kefe-visualiser-control-group .kefe-label {
     margin-bottom: 6px;
-  }
+  
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;}
 
   .kefe-visualiser-field {
     min-width: 0;
@@ -1343,8 +1488,11 @@ html {
 
   .kefe-visualiser-field output {
     flex: 0 0 auto;
-    font-size: 10px;
-  }
+    font-size: var(--font-sm);
+  
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);}
 
   .kefe-visualiser-spin-row {
     align-items: flex-start;
@@ -1366,8 +1514,11 @@ html {
 
   .kefe-settings-value {
     min-width: 42px;
-    font-size: 11px;
-  }
+    font-size: var(--font-sm);
+  
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);}
 }
 
 
@@ -1417,28 +1568,46 @@ button, input, select, textarea {
 .kefe-download-row button, .kefe-review button {
   font-size: var(--font-sm);
   border-radius: var(--r1);
-}
+
+  font-family: inherit;
+  color: var(--text);}
 .kefe-btn, .kefe-control, .kefe-input, .kefe-select, .kefe-textarea {
   min-height: var(--control-h);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 .kefe-section, .kefe-top-link, .kefe-follow, .kefe-review-item {
   font-size: var(--font-sm);
   line-height: var(--line-normal);
-}
+
+  font-family: inherit;}
 .kefe-panel h1, .kefe-panel h2, .kefe-panel h3,
 .kefe-card h1, .kefe-card h2, .kefe-card h3 {
   line-height: var(--line-tight);
-}
+
+  font-size: var(--font-lg);
+  font-family: inherit;
+  color: var(--text);
+  font-weight: 700;}
 .kefe-panel h2, .kefe-card h2 {
   font-size: var(--font-lg);
-}
+
+  font-family: inherit;
+  color: var(--text);
+  font-weight: 700;}
 .kefe-panel h3, .kefe-card h3 {
   font-size: var(--font-base);
 }
 .kefe-label, .kefe-meta, .kefe-field label, .kefe-visualiser-field > span {
-  font-size: var(--font-sm);
+  font-size: var(--font-xs);
   line-height: var(--line-normal);
-}
+
+  font-family: inherit;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;}
 .kefe-panel, .kefe-card, .kefe-car-art, .kefe-settings-project-icon,
 .kefe-line, .kefe-word {
   border-radius: var(--r2);
@@ -1449,7 +1618,10 @@ button, input, select, textarea {
 .kefe-mini:focus-visible, .kefe-nudge:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;
@@ -1500,13 +1672,17 @@ html[data-theme="night"] .kefe-top {
 html[data-theme="night"] .kefe-brand,
 html[data-theme="night"] .kefe-top-link {
   color: var(--muted);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 html[data-theme="night"] .kefe-brand { background: var(--surface); border-color: var(--line); }
 html[data-theme="night"] .kefe-brand:hover,
 html[data-theme="night"] .kefe-top-link:hover {
   background: var(--surface-hi);
   color: var(--text);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 html[data-theme="night"] .kefe-btn,
 html[data-theme="night"] .kefe-control,
 html[data-theme="night"] .kefe-select,
@@ -1526,14 +1702,18 @@ html[data-theme="night"] .kefe-suggestions {
   background-color: var(--surface);
   color: var(--text);
   border-color: var(--line);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 html[data-theme="night"] .kefe-select,
 html[data-theme="night"] .kefe-input,
 html[data-theme="night"] .kefe-textarea {
   background: #191d22;
   color: var(--text);
   border-color: rgba(218,226,235,.2);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 html[data-theme="night"] .kefe-input::placeholder,
 html[data-theme="night"] .kefe-textarea::placeholder {
   color: #89939e;
@@ -1545,7 +1725,12 @@ html[data-theme="night"] .kefe-visualiser-field > span,
 html[data-theme="night"] .kefe-upload-help,
 html[data-theme="night"] .kefe-upload-name {
   color: var(--muted);
-}
+
+  font-size: var(--font-xs);
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;}
 html[data-theme="night"] .kefe-panel,
 html[data-theme="night"] .kefe-settings {
   color: var(--text);
@@ -1562,7 +1747,10 @@ html[data-theme="night"] .kefe-suggestion-name,
 html[data-theme="night"] .kefe-font-name,
 html[data-theme="night"] .kefe-media-track-info h3 {
   color: var(--text);
-}
+
+  font-size: var(--font-lg);
+  font-family: inherit;
+  font-weight: 700;}
 html[data-theme="night"] .kefe-panel-head { border-bottom-color: var(--line); }
 html[data-theme="night"] .kefe-section.active {
   background: #394b42;
@@ -1618,19 +1806,24 @@ html[data-theme="night"] .kefe-visualiser-control-group,
 html[data-theme="night"] .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing,
 html[data-theme="night"] .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-value {
   background: var(--surface);
-  color: var(--text);
+  color: var(--muted);
   border-color: var(--line);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;}
 html[data-theme="night"] .kefe-tabs {
   box-shadow: 0 5px 18px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.025);
 }
 html[data-theme="night"] .kefe-btn.primary,
 html[data-theme="night"] .kefe-btn.primary:hover,
 html[data-theme="night"] .kefe-btn.primary:active {
-  background: #496453;
+  background: var(--accent-hover);
   color: #f6faf7;
   border-color: rgba(164,192,175,.3);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;}
 html[data-theme="night"] .kefe-upload-zone:hover,
 html[data-theme="night"] .kefe-upload-zone.is-dragging {
   background: #29332d;
@@ -1639,7 +1832,10 @@ html[data-theme="night"] .kefe-upload-zone.is-dragging {
 html[data-theme="night"] .kefe-panel[data-panel-view="media"] .kefe-input {
   background: #191d22;
   border-color: rgba(218,226,235,.2);
-}
+
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--text);}
 html[data-theme="night"] .kefe-lyrics-timing-step,
 html[data-theme="night"] .kefe-lyrics-timing-reset {
   background: var(--surface);
