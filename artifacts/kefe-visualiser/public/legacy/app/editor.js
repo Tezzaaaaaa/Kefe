@@ -481,9 +481,9 @@
           if(lyricLayer.width!==W||lyricLayer.height!==H){lyricLayer.width=W;lyricLayer.height=H;}
           const lc=lyricLayer.getContext('2d');lc.setTransform(1,0,0,1,0,0);lc.clearRect(0,0,W,H);
           if(styler)styler.post(lc,W,H,paintEffect);else paintEffect(lc);
-          const u=Math.min(W,H),edge=Math.max(32,H*.07)+u*.173,fade=u*.05;
+          const u=Math.min(W,H),edge=Math.max(32,H*.07)+u*.173,fade=u*.12;
           lc.save();lc.globalCompositeOperation='destination-in';
-          const g=lc.createLinearGradient(0,edge,0,edge+fade);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');
+          const g=lc.createLinearGradient(0,edge-fade,0,edge);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');
           lc.fillStyle=g;lc.fillRect(0,0,W,H);lc.restore();
           ctx.drawImage(lyricLayer,0,0);
         }catch(err){console.error('[KEFE effect]',state.effect,err);}
