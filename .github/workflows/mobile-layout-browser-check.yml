@@ -1,5 +1,9 @@
 name: Mobile layout browser verification
 
+concurrency:
+  group: kefe-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main]
@@ -68,7 +72,9 @@ jobs:
                 page.setDefaultNavigationTimeout(20000);
                 console.log(`[mobile-check] viewport ${width}px started`);
                 const pageErrors = [];
+                const pageConsoleErrors = [];
                 page.on('pageerror', error => pageErrors.push(error.message));
+                page.on('console', message => { if (message.type() === 'error') pageConsoleErrors.push(message.text()); });
                 await page.goto(`${baseUrl}/index.html`, { waitUntil: 'domcontentloaded' });
                 await page.locator('.kefe-section[data-panel="effects"]').waitFor();
                 await page.locator('.kefe-section[data-panel="effects"]').click();
@@ -253,7 +259,11 @@ jobs:
                 await page.waitForTimeout(500);
                 const visualiserGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Visualiser');
                 const visualiserSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Visualiser');
-                const tabsLayout = await page.locator('.kefe-vis-tabs').evaluate(el => ({
+                const tabsElement = page.locator('.kefe-editing > .kefe-vis-tabs');
+                await tabsElement.waitFor({ state: 'attached', timeout: 5000 }).catch(() => {
+                  throw new Error(`Visualiser engine tabs were not created at ${width}px. Browser errors: ${JSON.stringify(pageErrors)}; console errors: ${JSON.stringify(pageConsoleErrors)}`);
+                });
+                const tabsLayout = await tabsElement.evaluate(el => ({
                   columns: getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length,
                   position: getComputedStyle(el).position,
                   width: el.getBoundingClientRect().width,
