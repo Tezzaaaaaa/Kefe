@@ -1,0 +1,176 @@
+name: Apple lyric layout browser verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "artifacts/kefe-visualiser/public/legacy/app/editor.js"
+      - "artifacts/kefe-visualiser/public/legacy/app/effects/lyric-apple.js"
+      - "artifacts/kefe-visualiser/public/legacy/index.html"
+      - ".github/workflows/apple-lyrics-layout-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apple-lyrics-layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Chromium test runtime
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Test lyric layout across aspect ratios and fullscreen locally and live
+        run: |
+          cat > /tmp/kefe-apple-layout-check.cjs <<'NODE'
+          const { chromium } = require('playwright');
+          const assert = require('node:assert/strict');
+
+          async function verify(browser, baseUrl, label) {
+            const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+            page.setDefaultTimeout(15000);
+            const errors = [];
+            page.on('pageerror', error => errors.push(error.message));
+            await page.addInitScript(() => {
+              const original = CanvasRenderingContext2D.prototype.fillText;
+              CanvasRenderingContext2D.prototype.fillText = function (text, ...args) {
+                if (window.__kefeLayoutAudit) {
+                  const canvas = this.canvas;
+                  window.__kefeLayoutAudit.calls.push({
+                    text: String(text),
+                    id: canvas.id,
+                    width: canvas.width,
+                    height: canvas.height
+                  });
+                }
+                return original.call(this, text, ...args);
+              };
+            });
+            try {
+              await page.goto(baseUrl + '/index.html', { waitUntil: 'domcontentloaded' });
+              await page.locator('#kefeAspect').waitFor();
+              const prepared = await page.evaluate(async () => {
+                await document.fonts.ready;
+                const ctx = document.createElement('canvas').getContext('2d');
+                const fontSize = 1080 * 32 / 390;
+                ctx.font = '700 ' + fontSize + 'px "SF Pro Display","SF Pro Text","Inter Tight",system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+                const oldWidth = 1920 * 0.352;
+                const newWidth = 1920 * 0.4048;
+                const words = ['We', 'keep', 'moving', 'on', 'a', 'long', 'road', 'to', 'the', 'open', 'sky', 'where', 'every', 'moment', 'feels', 'alive'];
+                let phrase = '';
+                let fitPhrase = '';
+                for (const word of words) {
+                  const candidate = phrase ? phrase + ' ' + word : word;
+                  const width = ctx.measureText(candidate).width;
+                  if (width > newWidth) break;
+                  if (width > oldWidth) fitPhrase = candidate;
+                  phrase = candidate;
+                }
+                return { fitPhrase, oldWidth, newWidth, measuredWidth: ctx.measureText(fitPhrase).width };
+              });
+              assert.ok(prepared.fitPhrase, label + ': could not find a lyric line that fits the widened landscape area but not the old one');
+              assert.ok(prepared.measuredWidth > prepared.oldWidth && prepared.measuredWidth <= prepared.newWidth,
+                label + ': landscape regression phrase must exercise the added width');
+
+              const results = [];
+              for (const aspect of ['16:9', '1:1', '9:16']) {
+                await page.locator('#kefeAspect').selectOption(aspect);
+                await page.evaluate(async ({ phrase }) => {
+                  document.getElementById('songTitle').value = 'KEFE LAYOUT AUDIT';
+                  document.getElementById('songArtist').value = 'Test Artist';
+                  document.getElementById('songAlbum').value = 'Test Album';
+                  window.__kefeLayoutAudit = { calls: [] };
+                  window.kefeLyrics.set([{ text: phrase, time: 0, endTime: 5 }], 'layout-audit');
+                  window.kefeLyrics.seek(1);
+                  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+                }, { phrase: aspect === '16:9' ? prepared.fitPhrase : 'A lyric line for aspect ratio verification' });
+                const rendered = await page.evaluate(() => {
+                  const canvas = document.getElementById('kefeCanvas');
+                  const stage = document.getElementById('previewStage');
+                  const calls = window.__kefeLayoutAudit.calls;
+                  return {
+                    canvas: { width: canvas.width, height: canvas.height },
+                    stage: { width: stage.getBoundingClientRect().width, height: stage.getBoundingClientRect().height },
+                    titleDrawn: calls.some(call => call.id === 'kefeCanvas' && call.text === 'KEFE LAYOUT AUDIT'),
+                    lyricCalls: calls.filter(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height).map(call => call.text),
+                    fullLineDrawn: calls.some(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height && call.text.trim().toLowerCase() === (window.__kefeLayoutAudit.expectedPhrase || '').trim().toLowerCase())
+                  };
+                });
+                const expected = aspect === '16:9' ? [1920, 1080] : aspect === '1:1' ? [1080, 1080] : [1080, 1920];
+                assert.deepEqual([rendered.canvas.width, rendered.canvas.height], expected, label + ': wrong canvas dimensions for ' + aspect);
+                assert.ok(rendered.titleDrawn, label + ': title card text did not render for ' + aspect);
+                assert.ok(rendered.lyricCalls.length > 0, label + ': lyrics did not render for ' + aspect);
+                if (aspect === '16:9') {
+                  const normalized = rendered.lyricCalls.map(text => text.trim().toLowerCase());
+                  assert.ok(normalized.includes(prepared.fitPhrase.toLowerCase()),
+                    label + ': landscape lyric line still wraps instead of using the extra width');
+                }
+
+                await page.locator('#previewFullscreen').click();
+                await page.waitForFunction(() => {
+                  const stage = document.getElementById('previewStage');
+                  return document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
+                }, { timeout: 8000 });
+                const fullscreen = await page.evaluate(() => ({
+                  active: document.fullscreenElement === document.getElementById('previewStage') ||
+                    document.getElementById('previewStage').classList.contains('kefe-pseudo-fullscreen'),
+                  canvasWidth: document.getElementById('kefeCanvas').width,
+                  canvasHeight: document.getElementById('kefeCanvas').height
+                }));
+                assert.ok(fullscreen.active, label + ': fullscreen did not activate for ' + aspect);
+                assert.deepEqual([fullscreen.canvasWidth, fullscreen.canvasHeight], expected,
+                  label + ': fullscreen changed the selected canvas ratio for ' + aspect);
+                await page.keyboard.press('Escape');
+                await page.waitForFunction(() => !document.fullscreenElement &&
+                  !document.getElementById('previewStage').classList.contains('kefe-pseudo-fullscreen'),
+                  { timeout: 8000 });
+                results.push({ aspect, canvas: rendered.canvas, titleDrawn: rendered.titleDrawn, lyricDrawCalls: rendered.lyricCalls.length, fullscreen: 'PASS' });
+              }
+              assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
+              console.log(JSON.stringify({ target: label, result: 'PASS', landscapeRegressionPhrase: prepared.fitPhrase, aspects: results, runtimeErrors: errors }, null, 2));
+            } finally {
+              await page.close();
+            }
+          }
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            try {
+              await verify(browser, 'http://127.0.0.1:4173', 'local source');
+              await verify(browser, 'https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy', 'published GitHub Pages');
+            } finally {
+              await browser.close();
+            }
+          })().catch(error => {
+            console.error(error);
+            process.exitCode = 1;
+          });
+          NODE
+          python3 -m http.server 4173 --directory artifacts/kefe-visualiser/public/legacy > /tmp/kefe-apple-layout-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 15); do
+            if curl --fail --silent http://127.0.0.1:4173/index.html -o /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:4173/index.html -o /dev/null
+          NODE_PATH="$GITHUB_WORKSPACE/node_modules" node /tmp/kefe-apple-layout-check.cjs
+
+      - name: Save browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kefe-apple-lyrics-layout-screenshots
+          path: '*-apple-lyrics-*.png'
+          if-no-files-found: ignore
