@@ -149,10 +149,10 @@ jobs:
                 assert.ok(fullscreen.active, label + ': fullscreen did not activate for ' + aspect);
                 assert.deepEqual([fullscreen.canvasWidth, fullscreen.canvasHeight], expected,
                   label + ': fullscreen changed the selected canvas ratio for ' + aspect);
-                await page.keyboard.press('Escape');
+                await page.locator('#previewFullscreen').click();
                 await page.waitForFunction(() => !document.fullscreenElement &&
                   !document.querySelector('.kefe-stage').classList.contains('kefe-pseudo-fullscreen'),
-                  { timeout: 8000 });
+                  null, { timeout: 8000 });
                 results.push({ aspect, canvas: rendered.canvas, titleDrawn: rendered.titleDrawn, lyricDrawCalls: rendered.lyricCalls.length, fullscreen: 'PASS' });
               }
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
