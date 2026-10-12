@@ -297,10 +297,7 @@
     max-width: 100%;
   }
 
-  .kefe-panel[data-panel-view="effects"] .kefe-form,
-  .kefe-panel[data-panel-view="lyrics"] .kefe-form {
-    grid-template-columns: minmax(0, 1fr);
-  }
+  
 }
 
 @media (max-width: 420px) {
@@ -1862,15 +1859,7 @@
     grid-column: 1;
   }
 
-  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-label {
-    grid-column: 1 / -1;
   
-  font-size: var(--font-sm);
-  font-family: inherit;
-  color: var(--muted);
-  font-weight: 600;
-  letter-spacing: normal;
-  text-transform: none;}
 
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-transparency-control,
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > div,
