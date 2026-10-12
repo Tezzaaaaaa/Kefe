@@ -1646,3 +1646,49 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   color: var(--text);
   border-color: var(--line);
 }
+
+
+/* Desktop editor alignment: header, preview stage, timeline and editor share one centered column. */
+@media (min-width: 901px) {
+  .kefe-top {
+    width: min(1360px, calc(100% - 40px));
+    margin: 9px auto 0;
+    box-sizing: border-box;
+  }
+  .kefe-work {
+    width: min(1360px, calc(100% - 40px));
+    margin: 0 auto;
+  }
+  .kefe-preview {
+    width: 100%;
+    padding: 14px 0 6px;
+    box-sizing: border-box;
+  }
+  .kefe-stage {
+    width: min(100%, 1360px);
+    max-width: 100%;
+  }
+  .kefe-timeline {
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+    box-sizing: border-box;
+  }
+  .kefe-editing {
+    width: 100%;
+    min-width: 0;
+  }
+  .kefe-tabs {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .kefe-panels {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .kefe-panel {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
