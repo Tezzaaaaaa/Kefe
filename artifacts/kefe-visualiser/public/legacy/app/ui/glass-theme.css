@@ -632,8 +632,8 @@ body { letter-spacing: -.015em;
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-preset {
   min-height: 34px;
   padding: 7px 9px;
-  font-size: 10px;
-}
+  font-size: var(--font-xs);
+  color: var(--muted);}
 
 .kefe-panel[data-panel-view="export"] .kefe-form {
   grid-template-columns: repeat(4, minmax(0, 1fr));
