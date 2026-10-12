@@ -136,7 +136,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     }
     const boundaryLeft = landscapeSplit ? w * 0.35 : Math.max(0, (w - compositionWidth) / 2);
     const margin = boundaryLeft + horizontalPadding;
-    const maxWidth = contentWidth;
+    const maxWidth = landscapeSplit ? Math.max(1, w - margin - horizontalPadding) : contentWidth;
     const displayLines = [];
 
     for (let li = 0; li < lines.length; li++) {
@@ -158,7 +158,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         let row = '';
         for (const token of tokens) {
             const candidate = row ? `${row} ${token}` : token;
-            if (row && ctx.measureText(candidate).width > maxWidth) {
+            if (!landscapeSplit && row && ctx.measureText(candidate).width > maxWidth) {
                 rows.push(row);
                 row = token;
             } else {
@@ -169,6 +169,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         if (!rows.length) rows.push(String(line.text || ''));
         line.appleRows = rows;
         line.appleRowCount = rows.length;
+        line.appleFitScale = landscapeSplit ? Math.min(1, maxWidth / Math.max(1, ctx.measureText(rows.join(' ')).width)) : 1;
         line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
     }
     ctx.restore();
@@ -292,13 +293,14 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         const alphaAmt = linaClamp(appleKeyframeLerp(d, opacityPoints), 0, 1) * topFade;
         const blurAmt = Math.max(0, appleKeyframeLerp(d, blurPoints));
         const rowFontSize = inactiveFontSize + (activeFontSize - inactiveFontSize) * act;
-        const grey = Math.round(138 + 30 * act);
+        const grey = Math.round(224 + 10 * act);
 
         ctx.save();
         ctx.globalAlpha = alphaAmt;
         ctx.font = `${contract.weight || 700} ${rowFontSize.toFixed(2)}px ${family}`;
         ctx.translate(x, y);
-        ctx.scale(scaleAmt, scaleAmt);
+        const fitScale = landscapeSplit ? (line.appleFitScale || 1) : 1;
+        ctx.scale(scaleAmt * fitScale, scaleAmt * fitScale);
         ctx.translate(-x, -y);
         if (blurAmt > 0.08) {
             ctx.filter = 'blur(' + blurAmt.toFixed(2) + 'px)';
@@ -307,7 +309,13 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
         // base (un-highlighted) text
         ctx.fillStyle = 'rgb(' + grey + ',' + grey + ',' + grey + ')';
+        ctx.shadowColor = 'rgba(0,0,0,0.45)';
+        ctx.shadowBlur = Math.max(2, baseDimension * (1.2 / 390));
+        ctx.shadowOffsetY = Math.max(1, baseDimension * (0.5 / 390));
         rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
 
         // white highlight layer – fades in/out with focus
         if (act > 0.001) {
