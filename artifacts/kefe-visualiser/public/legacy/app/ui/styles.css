@@ -313,7 +313,7 @@ button{border:0;cursor:pointer;
   font-variant-numeric: tabular-nums;
   color: var(--muted);}}
 .kefe-font-card{padding:var(--control-pad);border:1px solid var(--line);border-radius:var(--r2);background:var(--surface-hi);box-shadow:var(--lift)}
-.kefe-font-name{font-size:18px;margin-bottom:3px}
+.kefe-font-name{font-size: var(--font-lg);margin-bottom:3px}
 .kefe-empty-panel{padding:var(--section-gap);border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);box-shadow:var(--inner);color:var(--muted)}
 .kefe-media-track{display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px;align-items:center;padding:12px;border:0;border-radius:var(--r2);background:var(--surface);box-shadow:var(--lift)}
 .kefe-media-track[hidden]{display:none}
@@ -424,8 +424,8 @@ button{border:0;cursor:pointer;
   box-shadow:var(--lift);
 }
 .kefe-panel[data-panel-view="effects"] .kefe-font-name{
-  color:var(--text);
-}
+  color:var(--text);;
+  font-size: var(--font-lg);}
 .kefe-panel[data-panel-view="effects"] .kefe-panel-head .kefe-meta{
   color: var(--muted);
 
