@@ -1,0 +1,136 @@
+name: Desktop editor container browser verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "artifacts/kefe-visualiser/public/legacy/**"
+      - ".github/workflows/desktop-editor-container-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  desktop-editor-container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Test empty preview and desktop container locally
+        run: |
+          cat > /tmp/kefe-desktop-container-check.cjs <<'NODE'
+          const { chromium } = require('playwright');
+          const assert = require('node:assert/strict');
+
+          function makeTestWav() {
+            const sampleRate = 8000, samples = sampleRate;
+            const buffer = Buffer.alloc(44 + samples * 2);
+            buffer.write('RIFF', 0); buffer.writeUInt32LE(36 + samples * 2, 4); buffer.write('WAVE', 8);
+            buffer.write('fmt ', 12); buffer.writeUInt32LE(16, 16); buffer.writeUInt16LE(1, 20);
+            buffer.writeUInt16LE(1, 22); buffer.writeUInt32LE(sampleRate, 24);
+            buffer.writeUInt32LE(sampleRate * 2, 28); buffer.writeUInt16LE(2, 32);
+            buffer.writeUInt16LE(16, 34); buffer.write('data', 36); buffer.writeUInt32LE(samples * 2, 40);
+            return buffer;
+          }
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true, args: ['--use-gl=angle', '--use-angle=swiftshader'] });
+            const baseUrl = process.env.KEFE_BASE_URL || 'http://127.0.0.1:4173';
+            const label = process.env.KEFE_BASE_URL ? 'published GitHub Pages' : 'local source';
+            const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+            const errors = [];
+            page.on('pageerror', error => errors.push(error.message));
+            try {
+              await page.goto(baseUrl + '/index.html', { waitUntil: 'domcontentloaded' });
+              await page.waitForFunction(() => typeof window.kefeSyncVisualiserVisibility === 'function', { timeout: 20000 });
+              await page.waitForSelector('.kefe-stage.is-empty');
+              await page.waitForTimeout(300);
+
+              const emptyState = await page.evaluate(() => {
+                const canvas = document.getElementById('kefeVisualiserCanvas');
+                const stage = document.querySelector('.kefe-stage');
+                return {
+                  stageEmpty: stage.classList.contains('is-empty'),
+                  canvasVisibility: getComputedStyle(canvas).visibility,
+                  canvasPointerEvents: getComputedStyle(canvas).pointerEvents,
+                  inlineVisibility: canvas.style.visibility
+                };
+              });
+              assert.equal(emptyState.stageEmpty, true, label + ': preview should start empty');
+              assert.equal(emptyState.canvasVisibility, 'hidden', label + ': visualiser canvas must be hidden while no media/lyrics are loaded');
+              assert.equal(emptyState.canvasPointerEvents, 'none', label + ': hidden canvas must not intercept pointer events');
+
+              const layout = await page.evaluate(() => {
+                const selectors = ['.kefe-top', '.kefe-work', '.kefe-stage', '.kefe-timeline', '.kefe-editing', '.kefe-tabs', '.kefe-panel.active'];
+                return Object.fromEntries(selectors.map(selector => {
+                  const element = document.querySelector(selector);
+                  const rect = element.getBoundingClientRect();
+                  return [selector, { left: rect.left, right: rect.right, width: rect.width }];
+                }));
+              });
+              const reference = layout['.kefe-work'];
+              for (const selector of ['.kefe-top', '.kefe-stage', '.kefe-timeline', '.kefe-editing', '.kefe-tabs', '.kefe-panel.active']) {
+                assert.ok(Math.abs(layout[selector].left - reference.left) <= 2,
+                  label + ': ' + selector + ' left edge (' + layout[selector].left + ') must align with shared container (' + reference.left + ')');
+                assert.ok(Math.abs(layout[selector].right - reference.right) <= 2,
+                  label + ': ' + selector + ' right edge (' + layout[selector].right + ') must align with shared container (' + reference.right + ')');
+              }
+
+              await page.locator('#mediaInput').setInputFiles({
+                name: 'KEFE Preview Visibility Verification.wav',
+                mimeType: 'audio/wav',
+                buffer: makeTestWav()
+              });
+              await page.waitForFunction(() => !document.querySelector('.kefe-stage')?.classList.contains('is-empty'));
+              await page.waitForFunction(() => getComputedStyle(document.getElementById('kefeVisualiserCanvas')).visibility === 'visible');
+              assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
+              console.log(JSON.stringify({ result: 'PASS', label, emptyState, layout, afterUpload: 'visualiser canvas visible after media selection', runtimeErrors: errors }, null, 2));
+            } finally {
+              await browser.close();
+            }
+          })().catch(error => {
+            console.error(error);
+            process.exitCode = 1;
+          });
+          NODE
+          python3 -m http.server 4173 --directory artifacts/kefe-visualiser/public/legacy > /tmp/kefe-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 15); do
+            if curl --fail --silent http://127.0.0.1:4173/index.html -o /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:4173/index.html -o /dev/null || { cat /tmp/kefe-http.log; exit 1; }
+          NODE_PATH="$GITHUB_WORKSPACE/node_modules" node /tmp/kefe-desktop-container-check.cjs
+
+      - name: Wait for the latest GitHub Pages build
+        run: |
+          live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
+          expected_marker='desktop-container-20261012-1'
+          for attempt in $(seq 1 48); do
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
+              echo "Expected desktop stylesheet marker is published: $expected_marker"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "GitHub Pages did not publish the expected stylesheet marker ($expected_marker) in time." >&2
+          exit 1
+
+      - name: Test published GitHub Pages desktop layout
+        env:
+          KEFE_BASE_URL: https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy
+        run: NODE_PATH="$GITHUB_WORKSPACE/node_modules" node /tmp/kefe-desktop-container-check.cjs
