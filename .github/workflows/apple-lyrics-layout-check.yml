@@ -82,16 +82,19 @@ jobs:
                 const oldWidth = 1920 * 0.352;
                 const newWidth = 1920 * 0.4048;
                 const words = ['WE', 'KEEP', 'MOVING', 'ON', 'A', 'LONG', 'ROAD', 'TO', 'THE', 'OPEN', 'SKY', 'WHERE', 'EVERY', 'MOMENT', 'FEELS', 'ALIVE'];
-                let phrase = '';
                 let fitPhrase = '';
-                for (const word of words) {
-                  const candidate = phrase ? phrase + ' ' + word : word;
-                  const width = ctx.measureText(candidate).width;
-                  if (width > newWidth) break;
-                  if (width > oldWidth) fitPhrase = candidate;
-                  phrase = candidate;
+                let measuredWidth = 0;
+                for (let start = 0; start < words.length; start++) {
+                  for (let end = start + 1; end <= words.length; end++) {
+                    const candidate = words.slice(start, end).join(' ');
+                    const width = ctx.measureText(candidate).width;
+                    if (width > oldWidth && width <= newWidth && width > measuredWidth) {
+                      fitPhrase = candidate;
+                      measuredWidth = width;
+                    }
+                  }
                 }
-                return { fitPhrase, oldWidth, newWidth, measuredWidth: ctx.measureText(fitPhrase).width };
+                return { fitPhrase, oldWidth, newWidth, measuredWidth };
               });
               assert.ok(prepared.fitPhrase, label + ': could not find a lyric line that fits the widened landscape area but not the old one');
               assert.ok(prepared.measuredWidth > prepared.oldWidth && prepared.measuredWidth <= prepared.newWidth,
