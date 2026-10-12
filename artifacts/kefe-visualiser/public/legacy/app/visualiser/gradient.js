@@ -295,7 +295,7 @@
         tab.setAttribute('aria-selected',String(selected));
       });
       window.kefeVisualiserEnabled=isGlitch?glitchEnabled:particleEnabled;
-      var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=window.kefeVisualiserEnabled?'':'hidden';
+      if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();else{var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=window.kefeVisualiserEnabled?'':'hidden';}
       if(promptWrap)promptWrap.style.display=isGlitch?'none':'';
       if(presetWrap)presetWrap.style.display=isGlitch?'none':'';
       if(gridWrap)gridWrap.style.display=isGlitch?'none':'';
