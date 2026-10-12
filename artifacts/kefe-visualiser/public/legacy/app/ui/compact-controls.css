@@ -1797,7 +1797,7 @@
   .kefe-editing > .kefe-vis-tabs { width: calc(100% - 32px); }
 }
 @media (max-width: 700px) {
-  .kefe-editing { grid-template-rows: 46px auto minmax(0, 1fr); }
+  .kefe-editing { grid-template-rows: 40px auto minmax(0, 1fr); }
   .kefe-editing > .kefe-vis-tabs {
     width: calc(100% - 20px);
     grid-template-columns: repeat(4, minmax(0, 1fr));
