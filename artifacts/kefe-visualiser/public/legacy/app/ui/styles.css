@@ -1322,9 +1322,7 @@ button{border:0;cursor:pointer;
   .kefe-vis-view{grid-template-columns:minmax(0,1fr);gap:12px}
   .kefe-visualiser-intro{align-items:center;gap:10px;flex-wrap:wrap}
   .kefe-visualiser-intro>div{min-width:0;flex:1 1 150px}
-  .kefe-visualiser-intro .kefe-btn{flex:0 0 auto;
-  font-size: var(--font-sm);
-  font-family: inherit;}
+  
   .kefe-visualiser-prompt{grid-template-columns:minmax(0,1fr) auto;gap:8px}
   .kefe-visualiser-prompt .kefe-input{min-width:0;
   font-size: var(--font-sm);
