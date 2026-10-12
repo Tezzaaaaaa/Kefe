@@ -255,7 +255,7 @@
       particleEnabled=v;
       if(document.getElementById('kefeVisParticlesView')&&!document.getElementById('kefeVisParticlesView').hidden){
         window.kefeVisualiserEnabled=v;
-        var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
+        if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();else{var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';}
       }
     });
     particleToggle.classList.add('kefe-vis-power-row');
@@ -265,7 +265,7 @@
       glitchEnabled=v;
       if(!glitch.hidden){
         window.kefeVisualiserEnabled=v;
-        var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';
+        if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();else{var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';}
       }
     });
     glitchToggle.classList.add('kefe-vis-power-row');
