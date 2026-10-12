@@ -121,7 +121,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const baseDimension = Math.min(w, h);
     const aspectRatio = w / Math.max(1, h);
     const landscapeSplit = aspectRatio >= 1.25;
-    const compositionWidth = landscapeSplit ? w * 0.46 : (aspectRatio < 0.75 ? w * 0.84 : w * 0.78);
+    const compositionWidth = landscapeSplit ? w * 0.60 : (aspectRatio < 0.75 ? w * 0.84 : w * 0.78);
     const horizontalPadding = compositionWidth * (landscapeSplit ? 0.06 : (31 / 390));
     const contentWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
     const activeFontSize = baseDimension * (32 / 390);
@@ -136,7 +136,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     }
     const boundaryLeft = landscapeSplit ? w * 0.35 : Math.max(0, (w - compositionWidth) / 2);
     const margin = boundaryLeft + horizontalPadding;
-    const maxWidth = landscapeSplit ? Math.max(1, w - margin - horizontalPadding) : contentWidth;
+    const maxWidth = contentWidth;
     const displayLines = [];
 
     for (let li = 0; li < lines.length; li++) {
@@ -158,7 +158,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         let row = '';
         for (const token of tokens) {
             const candidate = row ? `${row} ${token}` : token;
-            if (!landscapeSplit && row && ctx.measureText(candidate).width > maxWidth) {
+            if (row && ctx.measureText(candidate).width > maxWidth) {
                 rows.push(row);
                 row = token;
             } else {
@@ -169,7 +169,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         if (!rows.length) rows.push(String(line.text || ''));
         line.appleRows = rows;
         line.appleRowCount = rows.length;
-        line.appleFitScale = landscapeSplit ? Math.min(1, maxWidth / Math.max(1, ctx.measureText(rows.join(' ')).width)) : 1;
         line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
     }
     ctx.restore();
@@ -299,8 +298,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ctx.globalAlpha = alphaAmt;
         ctx.font = `${contract.weight || 700} ${rowFontSize.toFixed(2)}px ${family}`;
         ctx.translate(x, y);
-        const fitScale = landscapeSplit ? (line.appleFitScale || 1) : 1;
-        ctx.scale(scaleAmt * fitScale, scaleAmt * fitScale);
+        ctx.scale(scaleAmt, scaleAmt);
         ctx.translate(-x, -y);
         if (blurAmt > 0.08) {
             ctx.filter = 'blur(' + blurAmt.toFixed(2) + 'px)';
