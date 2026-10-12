@@ -31,6 +31,20 @@ jobs:
           npm install --no-save playwright
           npx playwright install --with-deps chromium
 
+      - name: Wait for the updated lyric scripts to publish
+        run: |
+          live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
+          expected_marker='landscape-lyrics-layout-20261012-1'
+          for attempt in $(seq 1 48); do
+            if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
+              echo "Updated Apple lyric scripts are published: $expected_marker"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "GitHub Pages did not publish the updated Apple lyric scripts in time." >&2
+          exit 1
+
       - name: Test lyric layout across aspect ratios and fullscreen locally and live
         run: |
           cat > /tmp/kefe-apple-layout-check.cjs <<'NODE'
@@ -67,7 +81,7 @@ jobs:
                 ctx.font = '700 ' + fontSize + 'px "SF Pro Display","SF Pro Text","Inter Tight",system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
                 const oldWidth = 1920 * 0.352;
                 const newWidth = 1920 * 0.4048;
-                const words = ['We', 'keep', 'moving', 'on', 'a', 'long', 'road', 'to', 'the', 'open', 'sky', 'where', 'every', 'moment', 'feels', 'alive'];
+                const words = ['WE', 'KEEP', 'MOVING', 'ON', 'A', 'LONG', 'ROAD', 'TO', 'THE', 'OPEN', 'SKY', 'WHERE', 'EVERY', 'MOMENT', 'FEELS', 'ALIVE'];
                 let phrase = '';
                 let fitPhrase = '';
                 for (const word of words) {
@@ -117,6 +131,7 @@ jobs:
                     label + ': landscape lyric line still wraps instead of using the extra width');
                 }
 
+                await page.screenshot({ path: (label === 'local source' ? 'local' : 'live') + '-apple-lyrics-' + aspect.replace(':', '-') + '.png', fullPage: false });
                 await page.locator('#previewFullscreen').click();
                 await page.waitForFunction(() => {
                   const stage = document.getElementById('previewStage');
