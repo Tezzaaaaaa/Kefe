@@ -243,7 +243,7 @@
 
   function buildPanel(){
     var panel=document.querySelector('[data-panel-view="visualiser"]');
-    if(!panel||panel.querySelector('.kefe-vis-tabs'))return;
+    if(!panel||document.querySelector('.kefe-vis-tabs'))return;
     var form=panel.querySelector('.kefe-visualiser-form');if(!form)return;
     ui.syncs=[];
     /* wrap existing particle controls so the two engines can be switched */
@@ -311,7 +311,9 @@
     }
     tp.addEventListener('click',function(){show('particles');});tg.addEventListener('click',function(){show('gradient');});th.addEventListener('click',function(){show('glitch');});
     tabs.appendChild(tp);tabs.appendChild(tg);tabs.appendChild(th);
-    form.appendChild(tabs);form.appendChild(particles);form.appendChild(glitch);form.appendChild(gradient);
+    var editing=panel.closest('.kefe-editing'),panels=editing?.querySelector('.kefe-panels');
+     if(editing&&panels)editing.insertBefore(tabs,panels);else form.appendChild(tabs);
+     form.appendChild(particles);form.appendChild(glitch);form.appendChild(gradient);
     show('particles');
 
     /* ── gradient view ── */
