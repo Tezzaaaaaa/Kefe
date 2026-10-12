@@ -106,7 +106,7 @@ body{ letter-spacing: -.01em;
   border-radius: inherit;
 }
 
-.kefe-stage::after {
+.kefe-stage::after{
   content: "LIVE PREVIEW";
   position: absolute;
   z-index: 4;
@@ -119,7 +119,7 @@ body{ letter-spacing: -.01em;
     radial-gradient(circle at 11px 50%, #a1cdb0 0 3px, transparent 3.5px),
     rgba(255,255,255,.085);
   color: rgba(248,249,255,.8);
-  font-size: 9px;
+  font-size: var(--font-xs);
   font-weight: 700;
   letter-spacing: .13em;
   line-height: 1;
@@ -696,7 +696,7 @@ body{ letter-spacing: -.01em;
   .kefe-brand img { width: 20px; height: 20px; }
   .kefe-preview { padding: 8px 10px 3px; }
   .kefe-stage { width: min(100%, calc(100vw - 20px)); border-radius: 18px; }
-  .kefe-stage::after { top: 10px; left: 10px; padding: 6px 8px 6px 19px; font-size: 8px; }
+  .kefe-stage::after{ top: 10px; left: 10px; padding: 6px 8px 6px 19px; font-size: var(--font-xs); }
   .kefe-preview-fullscreen { top: 8px; right: 8px; width: 32px; height: 32px; 
   font-size: var(--font-sm);
   font-family: inherit;}
@@ -1363,11 +1363,11 @@ html {
     height: 30px;
   }
 
-  .kefe-visualiser-spin-row {
+  .kefe-visualiser-spin-row{
     min-width: 0;
     gap: 8px;
     margin-top: 6px;
-    font-size: 12px;
+    font-size: var(--font-xs);
   }
 
   .kefe-visualiser-spin-row > :first-child {
