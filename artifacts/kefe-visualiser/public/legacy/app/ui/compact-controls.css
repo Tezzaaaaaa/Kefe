@@ -1420,7 +1420,7 @@
 
 /* Flatten every active Visualiser engine view into the same two-column form. */
 @media (max-width: 700px) {
-  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form > .kefe-vis-view:not([hidden]) {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-vis-view:not([hidden]) {
     display: contents !important;
   }
 
