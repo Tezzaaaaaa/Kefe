@@ -1,5 +1,9 @@
 name: Desktop editor container browser verification
 
+concurrency:
+  group: kefe-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main]
@@ -74,20 +78,30 @@ jobs:
               assert.equal(emptyState.canvasPointerEvents, 'none', label + ': hidden canvas must not intercept pointer events');
 
               const layout = await page.evaluate(() => {
-                const selectors = ['.kefe-top', '.kefe-work', '.kefe-stage', '.kefe-timeline', '.kefe-editing', '.kefe-tabs', '.kefe-panel.active'];
+                const selectors = ['.kefe-top', '.kefe-work', '.kefe-preview', '.kefe-stage', '.kefe-timeline', '.kefe-editing', '.kefe-tabs', '.kefe-panels', '.kefe-panel.active'];
                 return Object.fromEntries(selectors.map(selector => {
                   const element = document.querySelector(selector);
+                  if (!element) return [selector, null];
                   const rect = element.getBoundingClientRect();
-                  return [selector, { left: rect.left, right: rect.right, width: rect.width }];
+                  return [selector, { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: rect.width, centerX: rect.left + rect.width / 2 }];
                 }));
               });
-              const reference = layout['.kefe-work'];
-              for (const selector of ['.kefe-top', '.kefe-stage', '.kefe-timeline', '.kefe-editing', '.kefe-tabs', '.kefe-panel.active']) {
-                assert.ok(Math.abs(layout[selector].left - reference.left) <= 2,
-                  label + ': ' + selector + ' left edge (' + layout[selector].left + ') must align with shared container (' + reference.left + ')');
-                assert.ok(Math.abs(layout[selector].right - reference.right) <= 2,
-                  label + ': ' + selector + ' right edge (' + layout[selector].right + ') must align with shared container (' + reference.right + ')');
+              assert.ok(layout['.kefe-top'] && layout['.kefe-work'] && layout['.kefe-preview'] && layout['.kefe-stage'] &&
+                layout['.kefe-timeline'] && layout['.kefe-editing'] && layout['.kefe-tabs'] && layout['.kefe-panels'] && layout['.kefe-panel.active'],
+                label + ': required editor layout elements must exist');
+              assert.ok(Math.abs(layout['.kefe-stage'].centerX - layout['.kefe-preview'].centerX) <= 2,
+                label + ': preview stage must be horizontally centered within the preview area');
+              for (const selector of ['.kefe-timeline', '.kefe-editing']) {
+                assert.ok(layout[selector].left >= layout['.kefe-work'].left - 2 &&
+                  layout[selector].right <= layout['.kefe-work'].right + 2,
+                  label + ': ' + selector + ' must remain inside the editor work area');
               }
+              assert.ok(layout['.kefe-tabs'].left >= layout['.kefe-editing'].left - 2 &&
+                layout['.kefe-tabs'].right <= layout['.kefe-editing'].right + 2,
+                label + ': section tabs must remain inside the editing area');
+              assert.ok(layout['.kefe-panel.active'].left >= layout['.kefe-panels'].left - 2 &&
+                layout['.kefe-panel.active'].right <= layout['.kefe-panels'].right + 2,
+                label + ': active panel must remain inside the panels area');
 
               await page.locator('#mediaInput').setInputFiles({
                 name: 'KEFE Preview Visibility Verification.wav',
