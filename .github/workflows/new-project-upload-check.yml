@@ -38,7 +38,7 @@ jobs:
       - name: Wait for the changed editor to publish
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
-          expected_marker='media-library.js?v=20261012-3'
+          expected_marker='media-library.js?v=20261012-4'
           for attempt in $(seq 1 48); do
             if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
               echo "Published editor contains cache-busted library script: $expected_marker"
@@ -94,11 +94,15 @@ jobs:
 
               const uploadPosition = await page.locator('#kefeUploadZone').evaluate(el => {
                 const rect = el.getBoundingClientRect();
-                return { top: rect.top, bottom: rect.bottom, scrollY: window.scrollY };
+                const panels = el.closest('.kefe-panels');
+                const panelRect = panels.getBoundingClientRect();
+                return { top: rect.top, bottom: rect.bottom, panelTop: panelRect.top, panelBottom: panelRect.bottom, scrollTop: panels.scrollTop };
               });
-              assert.ok(uploadPosition.top >= -5 && uploadPosition.top < 140,
-                label + ': upload zone should be scrolled to the start of the visible media area; got top=' + uploadPosition.top);
-              assert.ok(uploadPosition.bottom > 0, label + ': upload zone should be visible');
+              assert.equal(uploadPosition.scrollTop, 0, label + ': media panel scroll must reset to the beginning');
+              assert.ok(uploadPosition.top >= uploadPosition.panelTop - 5 && uploadPosition.top < uploadPosition.panelTop + 140,
+                label + ': upload zone should be at the beginning of the media panel; got top=' + uploadPosition.top + ', panel top=' + uploadPosition.panelTop);
+              assert.ok(uploadPosition.bottom > uploadPosition.panelTop && uploadPosition.top < uploadPosition.panelBottom,
+                label + ': upload zone should be visible inside the media panel');
 
               await chooser.setFiles({
                 name: 'KEFE New Project Upload Verification.wav',
