@@ -88,7 +88,7 @@ jobs:
               await page.locator('.kefe-library-new').click();
               const chooser = await chooserPromise;
 
-              await page.locator('.kefe-library-shell[hidden]').waitFor();
+              await page.locator('.kefe-library-shell').waitFor({ state: 'hidden' });
               await page.locator('.kefe-section[data-panel="media"].active').waitFor();
               await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
 
