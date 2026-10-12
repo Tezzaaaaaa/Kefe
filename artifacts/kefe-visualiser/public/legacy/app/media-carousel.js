@@ -37,12 +37,12 @@
     var details=mk('div','kefe-song-details');
     var grid=mk('div','kefe-details-grid');fields.forEach(function(f){grid.appendChild(f);});
     details.appendChild(grid);
-    s2.body.appendChild(details);
 
     var uploads=mk('div','kefe-media-upload-row');
     if(zone)uploads.appendChild(zone);
     if(bgWrap)uploads.appendChild(bgWrap);
     s2.body.appendChild(uploads);
+    s2.body.appendChild(details);
     if(track)s2.body.appendChild(track);
     if(sugg)s2.body.appendChild(sugg);
     s2.body.appendChild(buildSearch());
