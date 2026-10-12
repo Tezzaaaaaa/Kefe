@@ -421,7 +421,7 @@
     const aspect=w/Math.max(1,h),landscape=aspect>=1.25,comp=landscape?w*.34:(aspect<.75?w*.84:w*.78);
     const left=landscape?w*.265-comp/2:Math.max(0,(w-comp)/2)+comp*(31/390);
     const ht=Math.max(13,unit*.036),hartist=Math.max(11,unit*.028),hm=Math.max(10,unit*.022);
-    const hArt=landscape?Math.min(unit*.38,w*.24):unit*.11,hTop=landscape?h*.13:Math.max(32,h*.07),hGap=unit*(landscape?.035:.028);
+    const hArt=landscape?Math.min(unit*.38,w*.24):unit*.11,hTop=landscape?h*.13:(aspect<.75?unit*.18:Math.max(32,h*.12)),hGap=unit*(landscape?.035:.028);
     const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,landscape?left+(comp-hArt)/2:left),ay=lerp(bigTop,hTop),r=art*.08;
     const maxW=landscape?comp*.94:w*.82;
     const fit=(text,f,mw)=>{ctx.font=f;let out=text;while(ctx.measureText(out).width>mw&&out.length>3)out=out.slice(0,-2)+'…';return out;};
