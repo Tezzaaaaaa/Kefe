@@ -288,7 +288,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         const y = topAnchor + cum[i] - focusY;
         const scaleAmt = appleKeyframeLerp(d, scalePoints);
         const lineHeightForFade = line.appleBlockHeight || rowHeight;
-        const topFade = landscapeSplit ? 1 : linaClamp((y + lineHeightForFade / 2 - appleHeaderBottom) / Math.max(1, lineHeightForFade * 0.72), 0, 1);
+        const topFade = landscapeSplit ? 1 : linaClamp((y + lineHeightForFade / 2 - (appleHeaderBottom - lineHeightForFade * 0.8)) / Math.max(1, lineHeightForFade * 0.72), 0, 1);
         const alphaAmt = linaClamp(appleKeyframeLerp(d, opacityPoints), 0, 1) * topFade;
         const blurAmt = Math.max(0, appleKeyframeLerp(d, blurPoints));
         const rowFontSize = inactiveFontSize + (activeFontSize - inactiveFontSize) * act;
