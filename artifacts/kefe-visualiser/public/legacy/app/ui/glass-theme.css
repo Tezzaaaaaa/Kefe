@@ -882,11 +882,7 @@ body{
   border-color: transparent;
   box-shadow: var(--lift);}
 
-.kefe-btn.primary:hover {
-  background: var(--accent-hover);
 
-  font-size: var(--font-sm);
-  font-family: inherit;}
 
 .kefe-btn.primary:active {
   background: #25293b;
