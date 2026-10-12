@@ -609,7 +609,7 @@ body { letter-spacing: -.015em;
   font-family: inherit;
   color: var(--text);}
 
-.kefe-font-name { color: var(--accent-deep); font-size: 15px; }
+.kefe-font-name { color: var(--accent-deep); font-size: var(--font-lg); }
 
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form {
   grid-template-columns: repeat(4, minmax(0, 1fr));
