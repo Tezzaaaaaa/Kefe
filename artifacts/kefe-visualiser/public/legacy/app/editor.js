@@ -419,7 +419,7 @@
     const bigTextH=bt*1.25+(artist?ba*1.35:0)+(meta?bm*1.4:0),bigTop=(h-(bigArt+bigGap+bigTextH))/2;
     // header layout – same column as the Apple lyrics
     const aspect=w/Math.max(1,h),landscape=aspect>=1.25,comp=landscape?w*.34:(aspect<.75?w*.84:w*.78);
-    const left=landscape?w*.25-comp/2:Math.max(0,(w-comp)/2)+comp*(31/390);
+    const left=landscape?w*.265-comp/2:Math.max(0,(w-comp)/2)+comp*(31/390);
     const ht=Math.max(13,unit*.036),hartist=Math.max(11,unit*.028),hm=Math.max(10,unit*.022);
     const hArt=landscape?Math.min(unit*.38,w*.24):unit*.11,hTop=landscape?h*.13:Math.max(32,h*.07),hGap=unit*(landscape?.035:.028);
     const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,landscape?left+(comp-hArt)/2:left),ay=lerp(bigTop,hTop),r=art*.08;
@@ -481,7 +481,7 @@
           if(lyricLayer.width!==W||lyricLayer.height!==H){lyricLayer.width=W;lyricLayer.height=H;}
           const lc=lyricLayer.getContext('2d');lc.setTransform(1,0,0,1,0,0);lc.clearRect(0,0,W,H);
           if(styler)styler.post(lc,W,H,paintEffect);else paintEffect(lc);
-          const u=Math.min(W,H),edge=Math.max(32,H*.07)+u*.173,fade=u*.12;
+          const u=Math.min(W,H),landscapeLyrics=W/Math.max(1,H)>=1.25,edge=landscapeLyrics?Math.max(32,H*.13):Math.max(32,H*.07)+u*.173,fade=u*.12;
           lc.save();lc.globalCompositeOperation='destination-in';
           const g=lc.createLinearGradient(0,edge-fade,0,edge);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');
           lc.fillStyle=g;lc.fillRect(0,0,W,H);lc.restore();
