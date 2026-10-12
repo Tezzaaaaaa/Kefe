@@ -347,6 +347,7 @@
     }
     state.appleLines=state.lines.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
     previewStage.classList.toggle('is-empty',!(audio.currentSrc||audio.src||video.currentSrc||video.src)&&state.lines.length===0);
+    window.kefeSyncVisualiserVisibility?.();
     window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:'text'}}));
     draw();
   }
@@ -964,6 +965,7 @@
     lyricsInput.value=state.appleLines.map(line=>fmtLrc(line.time)+' '+line.text).join('\n');
     clearManualNotice();
     previewStage.classList.remove('is-empty');
+    window.kefeSyncVisualiserVisibility?.();
     const status=document.getElementById('kefeLyricsStatus');
     if(status)status.textContent=source;
     syncAppleLyricsMetadata();draw();syncAppleLyrics(true);showTitleCard();
@@ -1360,6 +1362,7 @@
     if(activeLyricsController){activeLyricsController.abort();activeLyricsController=null;}
     manuallyEditedTrackFields.clear();
     previewStage.classList.remove('is-empty');
+    window.kefeSyncVisualiserVisibility?.();
     songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
     songArtist.value='';songAlbum.value='';songYear.value='';
     state.appleLines=[];state.lines=[];lyricsInput.value='';clearManualNotice();
@@ -1399,6 +1402,7 @@
         if(trackArtist)trackArtist.textContent='File could not be decoded';
       }
       previewStage.classList.add('is-empty');
+      window.kefeSyncVisualiserVisibility?.();
     };
     audio.addEventListener('error',onDecodeError,{once:true});
     audio.addEventListener('loadedmetadata',async function identifyOnce(){
@@ -1891,6 +1895,7 @@
       state.appleLines=next.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
       lyricsInput.value=model?model.toLrc(next):next.map(line=>fmtLrc(line.time)+' '+line.text).join('\n');
       previewStage.classList.toggle('is-empty',!(audio.currentSrc||audio.src||video.currentSrc||video.src)&&next.length===0);
+      window.kefeSyncVisualiserVisibility?.();
       window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:source||'api'}}));
       draw();
     },
