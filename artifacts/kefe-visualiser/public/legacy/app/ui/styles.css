@@ -310,53 +310,6 @@ button{border:0;cursor:pointer}
 .kefe-title-name{font-size:clamp(22px,7vw,38px)}
 .kefe-title-artist{margin-top:9px}
 .kefe-title-meta{margin-top:14px}}
-/* KEFE REGAL NEOMORPHIC THEME */
-:root {
-  color-scheme: light;
-  --bg: #eff0ed;
-  --surface: #f3f4f1;
-  --surface-hi: #fafbf9;
-  --surface-lo: #d9ddda;
-  --preview: #171927;
-  --text: #252837;
-  --muted: #747987;
-  --soft: #9ca1aa;
-  --line: rgba(58, 65, 82, .13);
-  --line-soft: rgba(58, 65, 82, .075);
-  --accent: #8fa99b;
-  --accent-hover: #809c8c;
-  --accent-pressed: #728b7d;
-  --accent-deep: #292c3d;
-  --focus: #8eaab8;
-  --inner: inset 3px 3px 8px rgba(125, 133, 143, .16), inset -3px -3px 8px rgba(255, 255, 255, .88);
-  --lift: 6px 7px 16px rgba(125, 133, 143, .15), -5px -5px 14px rgba(255, 255, 255, .86);
-  --float: 10px 12px 24px rgba(125, 133, 143, .2), -8px -8px 20px rgba(255, 255, 255, .92);
-  --in-md: inset 3px 3px 7px rgba(125, 133, 143, .17), inset -3px -3px 7px rgba(255, 255, 255, .78);
-  --r1: 8px;
-  --r2: 14px;
-  --r3: 24px;
-  --s1: 4px;
-  --s2: 8px;
-  --s3: 16px;
-  --s4: 24px;
-  --font-xs: 12px;
-  --font-sm: 13px;
-  --font-base: 14px;
-  --font-lg: 16px;
-  --font-xl: 20px;
-  --line-tight: 1.25;
-  --line-normal: 1.45;
-  --panel-pad: 14px;
-  --panel-pad-x: 24px;
-  --section-gap: 12px;
-  --control-gap: 8px;
-  --control-h: 42px;
-  --control-pad: 14px;
-  --tab-h: 38px;
-  --timeline-h: 70px;
-  --grid-gap: 10px;
-  --panel-max: 1360px;
-}
 .kefe-top-nav,.kefe-top-profile{gap:6px}
 .kefe-btn.primary:hover{background: var(--accent-hover);
   font-family: inherit;}
