@@ -250,7 +250,7 @@ button{border:0;cursor:pointer;
 .kefe-song-search{grid-column:1/-1;padding:var(--control-pad);border:1px solid var(--line);border-radius:var(--r2);background:var(--surface-hi);box-shadow:var(--inner)}
 .kefe-song-search-head{display:flex;align-items:center;justify-content:space-between;gap:var(--section-gap)}
 .kefe-song-search-copy{min-width:0}
-.kefe-song-search-title{font-size:12px;font-weight:700}
+.kefe-song-search-title{font-size: var(--font-sm);font-weight:700}
 .kefe-song-search-help{margin-top:3px;font-size: var(--font-xs);color: var(--muted);}
 .kefe-song-search-button{min-height:var(--control-h);padding:0 var(--control-pad);border:0;border-radius:var(--r2);background:var(--bg);box-shadow:var(--lift);font-weight:700;white-space:nowrap}
 .kefe-song-search-button:hover{transform:translateY(-1px);box-shadow:var(--float)}
@@ -260,8 +260,8 @@ button{border:0;cursor:pointer;
 .kefe-song-result{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:center;width:100%;padding:7px;border:0;border-radius:var(--r2);background:var(--bg);box-shadow:var(--lift);text-align:left;opacity:0;transform:translateY(6px);animation:kefeSongSearchResultIn .24s ease forwards}
 .kefe-song-result:hover{box-shadow:var(--float);transform:translateY(-1px)}
 .kefe-song-result img,.kefe-song-result-art{width:44px;height:44px;display:block;object-fit:cover;border-radius:3px;background:var(--surface-lo)}
-.kefe-song-result-art{display:grid;place-items:center;color:var(--muted);font-size:12px;font-weight:800}
-.kefe-song-result-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kefe-song-result-art{display:grid;place-items:center;color:var(--muted);font-size: var(--font-xs);font-weight:800}
+.kefe-song-result-name{font-size: var(--font-sm);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kefe-song-result-meta{margin-top:3px;font-size: var(--font-xs);color: var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kefe-song-search-status{margin-top:8px;font-size: var(--font-xs);color: var(--muted);min-height:15px}
 .kefe-song-search.is-searching .kefe-song-search-button{pointer-events:none}
@@ -326,7 +326,7 @@ button{border:0;cursor:pointer;
 .kefe-media-track-info h3{margin:0;font-size: var(--font-base);line-height:1.05;overflow-wrap:anywhere;
   font-family: inherit;
   color: var(--text);}
-.kefe-media-track-info p:not(.kefe-media-track-kicker){margin:5px 0 0;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.kefe-media-track-info p:not(.kefe-media-track-kicker){margin:5px 0 0;color:var(--muted);font-size: var(--font-xs);overflow-wrap:anywhere}
 .kefe-media-track-meta{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:8px;font-size: var(--font-xs);color: var(--muted);}
 .kefe-suggestions{grid-column:1/-1;min-width:0;display:block;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r2);background:var(--surface-hi);box-shadow:var(--inner)}
 .kefe-suggestion-list{display:grid;gap:6px;margin-top:9px;max-height:240px;overflow-y:auto;overflow-x:hidden}
@@ -796,7 +796,7 @@ button{border:0;cursor:pointer;
   box-shadow:var(--inner);
 }
 .kefe-visualiser-intro strong{display:block;font-size:14px}
-.kefe-visualiser-intro span{display:block;margin-top:3px;color:var(--muted);font-size:12px;line-height:1.35}
+.kefe-visualiser-intro span{display:block;margin-top:3px;color:var(--muted);font-size: var(--font-xs);line-height:1.35}
 .kefe-visualiser-prompt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
 .kefe-visualiser-prompt .kefe-btn{min-width:82px;
   font-size: var(--font-sm);
@@ -869,7 +869,7 @@ button{border:0;cursor:pointer;
 .kefe-switch.is-on .kefe-switch-thumb{transform:translateX(14px);background:#fff}
 .kefe-switch:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-.kefe-visualiser-empty{padding:10px 0;font-size:12px;opacity:.65}
+.kefe-visualiser-empty{padding:10px 0;font-size: var(--font-xs);opacity:.65}
 @media(max-width:700px){
   .kefe-visualiser-preset-grid{max-height:150px}
   .kefe-visualiser-prompt{grid-template-columns:1fr}
@@ -896,7 +896,7 @@ button{border:0;cursor:pointer;
 .kefe-settings-group-title{margin:0 0 var(--s2);font-size: var(--font-xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 .kefe-settings-row{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s2) 0}
 .kefe-settings-copy{min-width:0;flex:1}
-.kefe-settings-label{display:block;font-size:13px;font-weight:700}
+.kefe-settings-label{display:block;font-size: var(--font-sm);font-weight:700}
 .kefe-settings-hint{margin:2px 0 0;font-size: var(--font-xs);line-height:1.35;color: var(--muted);}
 .kefe-settings-field{display:flex;align-items:center;gap:var(--s2);flex:0 0 auto}
 .kefe-settings-field input[type=range]{width:140px;accent-color:var(--accent)}
@@ -1232,7 +1232,7 @@ button{border:0;cursor:pointer;
 .kefe-car-info-copy h4{margin:0;max-width:100%;font-size: var(--font-base);font-weight:800;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font-family: inherit;
   color: var(--text);}
-.kefe-car-info-copy p{margin:0;font-size:12px;color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kefe-car-info-copy p{margin:0;font-size: var(--font-xs);color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kefe-car-info-copy small{font-size: var(--font-xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color: var(--muted);}
 .kefe-badge{padding:2px 8px;border-radius:999px;font-size: var(--font-xs);font-weight:800;letter-spacing:.1em;text-transform:uppercase;background:var(--text);color:var(--surface-hi)}
 .kefe-badge.album{background:#c4a08f;color:#fff}
