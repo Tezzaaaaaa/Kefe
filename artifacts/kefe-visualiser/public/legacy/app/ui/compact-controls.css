@@ -2219,7 +2219,7 @@
 }
 
 
-/* Let the document grow with the editor instead of trapping settings in nested scroll areas. */
+/* Let the document and editor grow together; keep the header and work area in the correct two-row page grid. */
 html,
 body {
   height: auto;
@@ -2232,7 +2232,7 @@ body {
 .kefe-editor {
   height: auto;
   min-height: 100dvh;
-  grid-template-rows: 56px auto auto;
+  grid-template-rows: 56px auto;
 }
 .kefe-work {
   min-height: 0;
@@ -2261,7 +2261,7 @@ body {
 }
 @media (max-width: 900px) {
   .kefe-editor {
-    grid-template-rows: 52px auto auto;
+    grid-template-rows: 52px auto;
   }
   .kefe-work {
     grid-template-rows: auto 66px auto;
@@ -2273,7 +2273,7 @@ body {
 }
 @media (max-width: 700px) {
   .kefe-editor {
-    grid-template-rows: 40px auto auto;
+    grid-template-rows: 40px auto;
   }
   .kefe-work {
     grid-template-rows: auto 60px auto;
