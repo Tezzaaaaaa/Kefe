@@ -270,7 +270,8 @@
     });
     glitchToggle.classList.add('kefe-vis-power-row');
     var glitchIntro=el('div','kefe-visualiser-intro');
-    glitchIntro.innerHTML='<div><strong>dithr</strong><span>Animated procedural fields with Floyd–Steinberg, ordered and stochastic dithering.</span></div>';
+    glitchIntro.innerHTML='<div><strong>Dithr Visualiser</strong><span>Animated procedural fields with Floyd–Steinberg, ordered and stochastic dithering.</span></div>';
+    glitchIntro.appendChild(glitchToggle.querySelector('.kefe-switch'));
     glitch.appendChild(glitchIntro);
     var gradient=el('div','kefe-vis-view kefe-gradient-view');gradient.id='kefeVisGradientView';gradient.hidden=true;
     var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Choose visualiser');
@@ -279,6 +280,11 @@
     [[tp,'particles','kefeVisParticlesView','Particle field','✦'],[tg,'gradient','kefeVisGradientView','Gradient overlay','◒'],[th,'glitch','kefeVisGlitchView','Dithr visualiser','▦']].forEach(function(item){
       item[0].setAttribute('role','tab');item[0].dataset.visualiser=item[1];item[0].dataset.icon=item[4];item[0].setAttribute('aria-controls',item[2]);item[0].setAttribute('aria-label',item[3]);item[0].title=item[3];item[0].textContent='';
     });
+    var particleIntro=el('div','kefe-visualiser-intro');
+    particleIntro.innerHTML='<div><strong>Particle Visualiser</strong><span>Audio-reactive particle fields with customizable visual presets.</span></div>';
+    particleIntro.appendChild(particleToggle.querySelector('.kefe-switch'));
+    particles.insertBefore(particleIntro,particles.firstChild);
+    var gradientIntro=null;
     var promptWrap=document.getElementById('visualiserPrompt')?.parentElement?.parentElement;
     var randomButton=document.getElementById('visualiserRandom');
     var presetRow=el('div','kefe-visualiser-preset-row');presetRow.id='kefeVisualiserPresetRow';
@@ -320,7 +326,7 @@
       });
       window.kefeVisualiserEnabled=isGlitch?glitchEnabled:particleEnabled;
       if(isGlitch)window.kefeDithrSetEnabled?.(glitchEnabled);
-      var particlePower=particleOption.querySelector('.kefe-switch'),glitchPower=glitchOption.querySelector('.kefe-switch'),gradientPowerButton=gradientOption.querySelector('.kefe-switch');
+      var particlePower=particleIntro.querySelector('.kefe-switch'),glitchPower=glitchIntro.querySelector('.kefe-switch'),gradientPowerButton=gradientIntro&&gradientIntro.querySelector('.kefe-switch');
       [[particlePower,particleEnabled],[glitchPower,glitchEnabled],[gradientPowerButton,S.on]].forEach(function(pair){if(pair[0]){var state=pair[0].querySelector('.kefe-switch-state');if(state)state.textContent=pair[1]?'On':'Off';pair[0].classList.toggle('is-on',!!pair[1]);pair[0].setAttribute('aria-checked',String(!!pair[1]));}});
       if(particlePower)particlePower.setAttribute('aria-label','Particles');
       if(glitchPower)glitchPower.setAttribute('aria-label','Dithr Visualiser');
@@ -337,14 +343,12 @@
       syncAll();
     }
     tp.addEventListener('click',function(){show('particles');});tg.addEventListener('click',function(){show('gradient');});th.addEventListener('click',function(){show('glitch');});
-    function option(tab,powerRow){
+    function option(tab){
       var option=el('div','kefe-vis-option');
       option.appendChild(tab);
-      var powerButton=powerRow.querySelector('.kefe-switch');
-      if(powerButton){powerButton.classList.add('kefe-vis-option-power');powerButton.addEventListener('click',function(e){e.stopPropagation();});option.appendChild(powerButton);}
       return option;
     }
-    var particleOption=option(tp,particleToggle),gradientOption=option(tg,el('div')),glitchOption=option(th,glitchToggle);
+    var particleOption=option(tp),gradientOption=option(tg),glitchOption=option(th);
     tabs.appendChild(particleOption);tabs.appendChild(gradientOption);tabs.appendChild(glitchOption);
     var editing=panel.closest('.kefe-editing'),panels=editing?.querySelector('.kefe-panels');
      if(editing&&panels){editing.insertBefore(tabs,panels);editing.insertBefore(presetRow,panels);}else{form.appendChild(tabs);form.appendChild(presetRow);}
@@ -352,14 +356,13 @@
     show('gradient');
 
     /* ── gradient view ── */
-    var intro=el('div','kefe-visualiser-intro');
-    intro.innerHTML='<div><strong>Gradient Overlay</strong><span>Colour layer over the particles. Included in video export.</span></div>';
-    var rnd=el('button','kefe-btn','Random');rnd.type='button';rnd.addEventListener('click',randomize);intro.appendChild(rnd);
-    var gradientToggle=toggle('Gradient overlay',function(){return S.on;},function(v){S.on=v;});
-    gradientToggle.classList.add('kefe-vis-power-row');
-    var gradientPower=gradientToggle.querySelector('.kefe-switch');
-    if(gradientPower){gradientPower.classList.add('kefe-vis-option-power');gradientPower.addEventListener('click',function(e){e.stopPropagation();});gradientOption.appendChild(gradientPower);}
-    gradient.appendChild(intro);
+    gradientIntro=el('div','kefe-visualiser-intro');
+    gradientIntro.innerHTML='<div><strong>Gradient Visualiser</strong><span>Animated colour gradients with adjustable blending, palette and grain.</span></div>';
+    var gradientToggle=toggle('Gradient Visualiser',function(){return S.on;},function(v){S.on=v;});
+    gradientIntro.appendChild(gradientToggle.querySelector('.kefe-switch'));
+    var rnd=el('button','kefe-btn','Random');rnd.type='button';rnd.addEventListener('click',randomize);gradientIntro.appendChild(rnd);
+    gradient.appendChild(gradientIntro);
+    show('gradient');
 
     var look=group('Layer');
     look.appendChild(slider('Opacity',0,100,1,function(){return S.opacity;},function(v){S.opacity=v;},function(v){return v+'%';}));
