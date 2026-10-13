@@ -334,14 +334,24 @@ jobs:
                 if (await gradientTab.count()) {
                   await gradientTab.click();
                   await page.locator('#kefeVisGradientView:not([hidden])').waitFor();
-                  const gradientDisplay = await page.locator('#kefeVisGradientView').evaluate(el => getComputedStyle(el).display);
-                  assert.equal(gradientDisplay, 'contents', `Gradient view must flatten into the two-column form at ${width}px; got ${gradientDisplay}`);
-                  await assertOnlyVisualiserViewVisible('kefeVisGradientView', 'Gradient');
-                  const gradientGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Gradient');
-                  const gradientSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Gradient');
-                  const gradientGroups = await page.locator('#kefeVisGradientView > .kefe-visualiser-control-group').count();
-                  assert.ok(gradientGroups > 0, 'Gradient view should contain its expected control groups');
-                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-gradient.png`, fullPage: false, timeout: 15000 });
+                  const liquidFlowDisplay = await page.locator('#kefeVisGradientView').evaluate(el => getComputedStyle(el).display);
+                  assert.equal(liquidFlowDisplay, 'contents', `Liquid Flow view must flatten into the two-column form at ${width}px; got ${liquidFlowDisplay}`);
+                  await assertOnlyVisualiserViewVisible('kefeVisGradientView', 'Liquid Flow');
+                  await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Liquid Flow');
+                  const liquidFlowLayout = await page.locator('#kefeVisGradientView .kefe-liquid-flow-controls').evaluate(el => {
+                    const columns = node => new Set([...node.children].filter(child => getComputedStyle(child).display !== 'none').map(child => Math.round(child.getBoundingClientRect().left))).size;
+                    return {
+                      presetColumns: columns(el.querySelector('.kefe-liquid-presets')),
+                      mainColumns: columns(el.querySelector('.kefe-liquid-main-controls')),
+                      presetCount: el.querySelectorAll('[data-liquid-preset]').length,
+                      sliderCount: el.querySelectorAll('input[type="range"]').length
+                    };
+                  });
+                  assert.equal(liquidFlowLayout.presetColumns, 2, `Liquid Flow presets must occupy two columns: ${JSON.stringify(liquidFlowLayout)}`);
+                  assert.equal(liquidFlowLayout.mainColumns, 2, `Liquid Flow settings must occupy two columns: ${JSON.stringify(liquidFlowLayout)}`);
+                  assert.equal(liquidFlowLayout.presetCount, 4, 'Liquid Flow must retain all four presets');
+                  assert.ok(liquidFlowLayout.sliderCount > 0, 'Liquid Flow must retain its settings sliders');
+                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-liquid-flow.png`, fullPage: false, timeout: 15000 });
                 }
 
                 const glitchTab = page.locator('.kefe-vis-tabs button[data-visualiser="glitch"]').first();
