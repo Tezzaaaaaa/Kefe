@@ -2366,7 +2366,7 @@ body:not(.kefe-fullscreen-open) {
   }
 }
 
-/* Mobile two-column grids: let an unpaired final item use the full row. */
+/* Mobile two-column grids: only an unpaired final item uses the full row. */
 @media (max-width: 700px) {
   .kefe-panel .kefe-form > :nth-child(odd):last-child,
   .kefe-panel .kefe-visualiser-control-group #visualiserParameters > :nth-child(odd):last-child,
@@ -2378,6 +2378,16 @@ body:not(.kefe-fullscreen-open) {
   .kefe-panel .kefe-gradient-palettes > :nth-child(odd):last-child,
   .kefe-panel .kefe-export-details > :nth-child(odd):last-child {
     grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .kefe-panel #lyricEffectOptions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kefe-panel #lyricEffectOptions > .kefe-lyric-effect-option {
+    grid-column: auto;
+    width: 100%;
     min-width: 0;
   }
 }
