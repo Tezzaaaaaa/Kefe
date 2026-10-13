@@ -78,6 +78,7 @@
     var old=document.getElementById('kefeGradientCanvas');
     canvas=document.createElement('canvas');canvas.id='kefeLiquidFlowCanvas';canvas.setAttribute('aria-hidden','true');canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;';
     try{initGL();}catch(e){var error=document.createElement('p');error.className='kefe-liquid-error';error.textContent='Liquid Flow could not start: '+e.message;view.appendChild(error);return;}
+    window.kefeGradientLayer?.stopPreview?.();
     if(old)old.remove();stage.insertBefore(canvas,document.getElementById('kefeCanvas')||null);
     var intro=view.querySelector('.kefe-visualiser-intro');Array.from(view.children).forEach(function(child){if(child!==intro)child.remove();});
     buildControls(view);setPreset('silk');
