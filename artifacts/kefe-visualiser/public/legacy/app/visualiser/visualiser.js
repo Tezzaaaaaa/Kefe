@@ -896,6 +896,13 @@ const light = 0.42 + 0.18 * Math.abs(Math.sin(theta * 2.0 + time));
 color.setHSL(hue, 0.9, light);`
   }
 ];
+const PARTICLE_PRESET_KEYS = new Set([
+  'particles-swarm', 'cube', 'galaxy', 'aurora', 'supernova', 'binary',
+  'tesseract', 'saturn', 'earth', 'clifford', 'hyperfield'
+]);
+for (let i = PRESETS.length - 1; i >= 0; i--) {
+  if (!PARTICLE_PRESET_KEYS.has(PRESETS[i].key)) PRESETS.splice(i, 1);
+}
 /* ============================================================
    LIVE PREVIEW
    ============================================================ */
@@ -1033,7 +1040,7 @@ function animate() {
   }
   smoothedAudioLevel += (audioLevel - smoothedAudioLevel) * (audioLevel > smoothedAudioLevel ? 0.32 : 0.12);
   audioLevel = smoothedAudioLevel;
-  const audioPulse = Math.min(1, audioLevel * 1.8);
+  const audioPulse = Math.min(1, audioLevel * 3.2);
   if (injectionFn && instancedMesh) {
     for (let i = 0; i < currentCount; i++) {
       try {
@@ -1045,8 +1052,8 @@ function animate() {
       }
       // All particle presets breathe, ripple and brighten with the uploaded track.
       const audioRipple = Math.sin(time * 7.5 + i * 0.035) * audioPulse;
-      target.multiplyScalar(1 + audioPulse * 0.2 + audioRipple * 0.06);
-      color.multiplyScalar(1 + audioPulse * 0.45);
+      target.multiplyScalar(1 + audioPulse * 0.35 + audioRipple * 0.12);
+      color.multiplyScalar(1 + audioPulse * 0.75);
       positions[i].lerp(target, 0.14);
       dummy.position.copy(positions[i]);
       dummy.updateMatrix();
