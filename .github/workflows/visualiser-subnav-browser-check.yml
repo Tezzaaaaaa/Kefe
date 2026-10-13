@@ -122,7 +122,7 @@ jobs:
                 };
                 const expectedDescriptions = {
                   particles: 'Audio-reactive particle fields with customizable visual presets.',
-                  gradient: 'Animated colour gradients with adjustable blending, palette and grain.',
+                  gradient: 'Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.',
                   glitch: 'Animated procedural fields with Floyd–Steinberg, ordered and stochastic dithering.',
                   fluted: 'Six refractive glass treatments driven by audio.'
                 };
