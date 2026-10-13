@@ -173,7 +173,7 @@
     return row;
   }
   function selectRow(label, get, set, options) {
-    var wrap = el('div'), sel = el('select', 'kefe-select');
+    var wrap = el('div', 'kefe-visualiser-field'), sel = el('select', 'kefe-select');
     options.forEach(function (o) { var op = el('option', null, o[1]); op.value = o[0]; sel.appendChild(op); });
     wrap.appendChild(el('label', 'kefe-label', label)); wrap.appendChild(sel);
     function sync() { sel.value = get(); }
