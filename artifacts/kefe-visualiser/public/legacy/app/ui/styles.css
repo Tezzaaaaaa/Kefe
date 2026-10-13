@@ -798,8 +798,9 @@ button{border:0;cursor:pointer;
 .kefe-visualiser-intro strong{display:block;font-size:14px}
 .kefe-visualiser-intro span{display:block;margin-top:3px;color:var(--muted);font-size: var(--font-xs);line-height:1.35}
 .kefe-visualiser-intro>div{min-width:0;flex:1 1 auto}
-.kefe-visualiser-intro>.kefe-switch{flex:0 0 auto;min-width:82px;min-height:34px}
 .kefe-visualiser-intro>.kefe-btn:not(.kefe-switch){flex:0 0 auto}
+.kefe-visualiser-panel-head .kefe-meta{flex:1;text-align:left}
+.kefe-visualiser-panel-head>.kefe-switch{flex:0 0 auto;min-width:82px;min-height:34px}
 .kefe-visualiser-prompt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
 .kefe-visualiser-prompt .kefe-btn{min-width:82px;
   font-size: var(--font-sm);
