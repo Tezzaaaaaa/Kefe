@@ -120,8 +120,9 @@
   }
 
   /* ── preview canvas ── */
-  var stage=null,cv=null,cctx=null,raf=0,t0=performance.now(),resizeObserver=null;
+  var stage=null,cv=null,cctx=null,raf=0,t0=performance.now(),resizeObserver=null,legacyPreviewStopped=false;
   function mountCanvas(){
+    legacyPreviewStopped=false;
     stage=document.querySelector('.kefe-stage');if(!stage||cv)return;
     cv=document.createElement('canvas');cv.id='kefeGradientCanvas';cv.setAttribute('aria-hidden','true');
     var lyric=document.getElementById('kefeCanvas');
@@ -151,10 +152,12 @@
   }
   function update(){
     persist();
-    if(!raf){
-      if(S.on&&S.anim.on)raf=requestAnimationFrame(loop);else drawPreview();
+    if(!legacyPreviewStopped){
+      if(!raf){
+        if(S.on&&S.anim.on)raf=requestAnimationFrame(loop);else drawPreview();
+      }
+      if(!S.on||!S.anim.on)drawPreview();
     }
-    if(!S.on||!S.anim.on)drawPreview();
     window.dispatchEvent(new CustomEvent('kefe-gradient-change'));
   }
   document.addEventListener('visibilitychange',function(){if(!document.hidden)update();});
@@ -445,5 +448,5 @@
   function init(){mountCanvas();buildPanel();update();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
-  window.kefeGradientLayer={paint:paint,render:renderLayer,state:function(){return clone(S);},isOn:function(){return !!S.on;},randomize:randomize,stopPreview:function(){if(raf)cancelAnimationFrame(raf);raf=0;if(resizeObserver){resizeObserver.disconnect();resizeObserver=null;}if(cv){cv.remove();cv=null;cctx=null;}}};
+  window.kefeGradientLayer={paint:paint,render:renderLayer,state:function(){return clone(S);},isOn:function(){return !!S.on;},randomize:randomize,stopPreview:function(){legacyPreviewStopped=true;if(raf)cancelAnimationFrame(raf);raf=0;if(resizeObserver){resizeObserver.disconnect();resizeObserver=null;}if(cv){cv.remove();cv=null;cctx=null;}}};
 })();
