@@ -1432,3 +1432,12 @@ button{border:0;cursor:pointer;
 .kefe-export-close{display:block;margin:22px 0 0 auto;border:0;border-radius:12px;padding:11px 22px;background:#292a32;color:#fff;font:inherit;font-weight:700;cursor:pointer;box-shadow:5px 5px 12px rgba(0,0,0,.4),-3px -3px 8px rgba(255,255,255,.04)}
 .kefe-export-close:hover{background:#383943}
 @media(max-width:480px){.kefe-export-overlay{padding:12px}.kefe-export-card{padding:22px 18px;border-radius:22px;max-height:calc(100dvh - 24px)}.kefe-export-details{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 10px}.kefe-export-summary{padding:14px}.kefe-export-intro{margin-bottom:18px}}
+
+/* Lyric effect tabs */
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control{grid-column:1/-1;min-width:0}
+.kefe-lyric-effect-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0}
+.kefe-lyric-effect-option{display:flex;align-items:center;justify-content:flex-start;min-width:0;min-height:40px;padding:9px 12px;border:1px solid var(--line-soft);border-radius:var(--r2);background:var(--surface-hi);color:var(--muted);box-shadow:var(--inner);text-align:left;line-height:1.25;overflow-wrap:anywhere;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease}
+.kefe-lyric-effect-option:hover{background:var(--surface);color:var(--text);box-shadow:var(--lift)}
+.kefe-lyric-effect-option.active{background:var(--accent);border-color:var(--accent);color:var(--accent-deep);box-shadow:var(--lift);font-weight:700}
+.kefe-lyric-effect-option:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media(max-width:520px){.kefe-lyric-effect-grid{gap:6px}.kefe-lyric-effect-option{min-height:38px;padding:8px;font-size:12px}}
