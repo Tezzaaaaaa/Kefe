@@ -74,36 +74,6 @@ The effect manifest currently lists 32 lyric effects:
 - WrapSlide
 - Ink Script
 
-Effects provide different animation and typography treatments.- Apple Music-style focus lyrics
-- Brat
-- Eternal Sunshine
-- Aurora
-- Pulse
-- Typewriter
-- Instagram
-- Fade Up
-- Decrypt
-- Blur In
-- Shiny
-- Rise
-- Slide
-- Drop
-- Drift
-- Scroll Lines
-- Barbie
-- Elastic Pop
-- Flip Text
-- Karaoke
-- Trailer
-- Fancy
-- Glitch
-- Analog TV
-- Split-Flap
-- Progressive Blur
-- CRT Computer Desktop
-- CRT TV Box
-- Randomize
-
 Effects provide different animation and typography treatments. Available controls depend on the selected effect. Use the shared style controls for colours, text size, placement, outline, glow, custom text and logo, with font overrides where available.
 
 ### Preview and visualiser
