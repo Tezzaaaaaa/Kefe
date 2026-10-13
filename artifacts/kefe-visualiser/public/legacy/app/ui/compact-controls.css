@@ -2365,3 +2365,8 @@ body:not(.kefe-fullscreen-open) {
   }
 }
 
+/* Lyric effect buttons must span the full width of the Lyrics Effects panel. */
+.kefe-panel[data-panel-view="effects"] #kefeLyricsEffectsPanel{grid-template-columns:minmax(0,1fr);}
+.kefe-panel[data-panel-view="effects"] #kefeLyricsEffectsPanel>.kefe-lyric-effects-control{grid-column:1/-1;width:100%;min-width:0;}
+.kefe-panel[data-panel-view="effects"] #kefeLyricsEffectsPanel #lyricEffectOptions{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr);width:100%;min-width:0;}
+.kefe-panel[data-panel-view="effects"] #kefeLyricsEffectsPanel #lyricEffectOptions>.kefe-lyric-effect-option{grid-column:1/-1;width:100%;min-width:0;}
