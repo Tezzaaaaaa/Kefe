@@ -71,7 +71,6 @@ jobs:
               const presetSetIds = {
                 particles: 'kefeParticlePresetSet',
                 gradient: 'kefeGradientPresetSet',
-                glitch: 'kefeGlitchPresetSet',
                 fluted: 'kefeFlutedPresetSet'
               };
               const layout = await page.evaluate(() => {
@@ -115,8 +114,13 @@ jobs:
                   visibleSets: [...document.querySelectorAll('.kefe-editing > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set')].filter(set => !set.hidden && getComputedStyle(set).display !== 'none').map(set => set.id),
                   expectedSet: presetSetId
                 }), { id, presetSetId: presetSetIds[id] });
-                assert.equal(presetState.rowVisible, true, label + ': presets submenu must be visible for ' + id);
-                assert.deepEqual(presetState.visibleSets, [presetState.expectedSet], label + ': only the selected visualiser preset set should be visible: ' + id);
+                if (id === 'glitch') {
+                  assert.equal(presetState.rowVisible, false, label + ': Glitch must remain unchanged without a presets submenu');
+                  assert.deepEqual(presetState.visibleSets, [], label + ': no preset set should be shown for Glitch');
+                } else {
+                  assert.equal(presetState.rowVisible, true, label + ': presets submenu must be visible for ' + id);
+                  assert.deepEqual(presetState.visibleSets, [presetState.expectedSet], label + ': only the selected visualiser preset set should be visible: ' + id);
+                }
               }
 
               const rowTop = await submenu.evaluate(el => el.getBoundingClientRect().top);
@@ -171,7 +175,7 @@ jobs:
       - name: Wait for GitHub Pages to publish this change
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
-          expected_marker='app/ui/compact-controls.css?v=visualiser-presets-per-engine-20261014-3'
+          expected_marker='app/ui/compact-controls.css?v=visualiser-submenu-horizontal-20261014-4'
           for attempt in $(seq 1 48); do
             if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
               echo "Expected visualiser submenu assets are published: $expected_marker"
