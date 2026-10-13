@@ -146,8 +146,20 @@ jobs:
               }
 
               const rowTop = await submenu.evaluate(el => el.getBoundingClientRect().top);
-              await panels.evaluate(el => { el.scrollTop = el.scrollHeight; });
+              const scrollResult = await panels.evaluate(el => {
+                el.scrollTop = el.scrollHeight;
+                return {
+                  overflowY: getComputedStyle(el).overflowY,
+                  scrollHeight: el.scrollHeight,
+                  clientHeight: el.clientHeight,
+                  scrollTop: el.scrollTop
+                };
+              });
               await page.waitForTimeout(80);
+              assert.ok(['auto', 'scroll'].includes(scrollResult.overflowY),
+                label + ': editor settings section must allow vertical scrolling');
+              assert.ok(scrollResult.scrollTop >= Math.max(0, scrollResult.scrollHeight - scrollResult.clientHeight - 1),
+                label + ': editor settings must be able to scroll to the end of the section');
               assert.ok(Math.abs(await submenu.evaluate(el => el.getBoundingClientRect().top) - rowTop) < 1,
                 label + ': visualiser submenu must remain fixed while settings scroll');
 
@@ -197,7 +209,7 @@ jobs:
       - name: Wait for GitHub Pages to publish this change
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
-          expected_marker='app/ui/compact-controls.css?v=visualiser-submenu-horizontal-20261014-4'
+          expected_marker='app/ui/compact-controls.css?v=visualiser-submenu-horizontal-20261014-5'
           for attempt in $(seq 1 48); do
             if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
               echo "Expected visualiser submenu assets are published: $expected_marker"
