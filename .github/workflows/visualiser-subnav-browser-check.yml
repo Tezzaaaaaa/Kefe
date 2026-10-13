@@ -68,6 +68,12 @@ jobs:
                 glitch: 'kefeVisGlitchView',
                 fluted: 'kefeVisFlutedView'
               };
+              const presetSetIds = {
+                particles: 'kefeParticlePresetSet',
+                gradient: 'kefeGradientPresetSet',
+                glitch: 'kefeGlitchPresetSet',
+                fluted: 'kefeFlutedPresetSet'
+              };
               const layout = await page.evaluate(() => {
                 const nav = document.querySelector('.kefe-tabs').getBoundingClientRect();
                 const row = document.querySelector('.kefe-editing > .kefe-vis-tabs');
@@ -82,6 +88,7 @@ jobs:
               });
               assert.ok(layout.rowTop >= layout.navBottom - 1, label + ': submenu must sit underneath editor navigation');
               assert.ok(layout.rowBottom <= layout.panelsTop + 1, label + ': settings panel must start below the submenu');
+              assert.ok(await page.locator('.kefe-editing > .kefe-visualiser-preset-row').isVisible(), label + ': presets submenu must be visible beneath the visualiser options');
               assert.ok(Math.abs(layout.rowLeft - layout.presetLeft) < 2 && Math.abs(layout.rowRight - layout.presetRight) < 2,
                 label + ': visualiser options and presets must share the same full-width grid alignment');
               assert.ok(layout.rowRight - layout.rowLeft > 500, label + ': visualiser options must not be confined to the narrow sidebar column');
@@ -103,6 +110,13 @@ jobs:
                 }));
                 assert.equal(selection.selected, id, label + ': selected tab must be highlighted: ' + id);
                 assert.deepEqual(selection.visibleViews, [viewIds[id]], label + ': only selected visualiser settings should be visible: ' + id);
+                const presetState = await page.evaluate(({ id, presetSetId }) => ({
+                  rowVisible: (() => { const row = document.querySelector('.kefe-editing > .kefe-visualiser-preset-row'); return !!row && !row.hidden && getComputedStyle(row).display !== 'none' && row.getBoundingClientRect().height > 0; })(),
+                  visibleSets: [...document.querySelectorAll('.kefe-editing > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set')].filter(set => !set.hidden && getComputedStyle(set).display !== 'none').map(set => set.id),
+                  expectedSet: presetSetId
+                }), { id, presetSetId: presetSetIds[id] });
+                assert.equal(presetState.rowVisible, true, label + ': presets submenu must be visible for ' + id);
+                assert.deepEqual(presetState.visibleSets, [presetState.expectedSet], label + ': only the selected visualiser preset set should be visible: ' + id);
               }
 
               const rowTop = await submenu.evaluate(el => el.getBoundingClientRect().top);
@@ -157,7 +171,7 @@ jobs:
       - name: Wait for GitHub Pages to publish this change
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
-          expected_marker='app/ui/compact-controls.css?v=visualiser-grid-span-20261014-2'
+          expected_marker='app/ui/compact-controls.css?v=visualiser-presets-per-engine-20261014-3'
           for attempt in $(seq 1 48); do
             if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
               echo "Expected visualiser submenu assets are published: $expected_marker"
