@@ -151,10 +151,6 @@
   }
   function update(){
     persist();
-    if(!raf){
-      if(S.on&&S.anim.on)raf=requestAnimationFrame(loop);else drawPreview();
-    }
-    if(!S.on||!S.anim.on)drawPreview();
     window.dispatchEvent(new CustomEvent('kefe-gradient-change'));
   }
   document.addEventListener('visibilitychange',function(){if(!document.hidden)update();});
@@ -442,7 +438,7 @@
     buildStops();syncAll();
   }
 
-  function init(){mountCanvas();buildPanel();update();}
+  function init(){buildPanel();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
   window.kefeGradientLayer={paint:paint,render:renderLayer,state:function(){return clone(S);},isOn:function(){return !!S.on;},randomize:randomize};
