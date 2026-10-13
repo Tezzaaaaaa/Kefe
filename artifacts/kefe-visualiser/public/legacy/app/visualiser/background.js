@@ -24,30 +24,49 @@
     }catch(e){small=null;}
   }
 
-  /* Apple-style motion art, drawn at low resolution so it stays soft and cheap. */
+  /* Cover-aware motion artwork: a softly defocused environment plane and a
+     gently breathing, sharper cover plane create restrained perspective depth. */
   function drawApple(g,w,h,t){
-    var base='rgb('+Math.round(avg[0]*.35)+','+Math.round(avg[1]*.35)+','+Math.round(avg[2]*.35)+')';
-    g.save();g.fillStyle=base;g.fillRect(0,0,w,h);
-    var s=Math.max(w,h);
-    if(small){
-      try{g.filter='saturate(1.7) blur('+Math.round(s*.012)+'px)';}catch(e){}
-      for(var i=0;i<4;i++){
+    var img=artImage();
+    var base='rgb('+Math.round(avg[0]*.28)+','+Math.round(avg[1]*.28)+','+Math.round(avg[2]*.28)+')';
+    g.save();
+    g.fillStyle=base;g.fillRect(0,0,w,h);
+    if(img){
+      var vw=img.naturalWidth||img.width,vh=img.naturalHeight||img.height;
+      if(vw>0&&vh>0){
+        var coverScale=Math.max(w/vw,h/vh);
+        var dw=vw*coverScale,dh=vh*coverScale;
+        var breathe=(1-Math.cos(t*.42))*.5;
+        var zoom=1.045+breathe*.075;
+        var driftX=Math.sin(t*.24)*w*.012;
+        var driftY=Math.cos(t*.19)*h*.012;
+        /* Background plane: same artwork, enlarged and lightly blurred, never glowing. */
         g.save();
-        g.translate(w/2+Math.sin(t*.11+i*1.7)*w*.2,h/2+Math.cos(t*.09+i*2.3)*h*.2);
-        g.rotate(t*(.05+.03*i)*(i%2?-1:1)+i);
-        var sz=s*(1.15+.3*i);g.globalAlpha=i?.55:1;
-        g.drawImage(small,-sz/2,-sz/2,sz,sz);g.restore();
+        g.filter='blur('+Math.max(2,Math.min(7,Math.min(w,h)*.012))+'px) saturate(1.08)';
+        g.globalAlpha=.82;
+        var backZoom=1.16+breathe*.035;
+        var bw=dw*backZoom,bh=dh*backZoom;
+        g.drawImage(img,(w-bw)/2-driftX*.45,(h-bh)/2-driftY*.45,bw,bh);
+        g.restore();
+        /* Foreground plane: slow perspective push/pull keeps the artwork recognizable. */
+        g.save();
+        g.translate(w/2+driftX,h/2+driftY);
+        g.scale(zoom,zoom);
+        g.globalAlpha=.94;
+        g.filter='blur(.65px) saturate(1.03)';
+        g.drawImage(img,-dw/2,-dh/2,dw,dh);
+        g.restore();
       }
-      try{g.filter='none';}catch(e){}
     }else{
-      for(var j=0;j<4;j++){
-        var hue=(j*70+t*6+210)%360,x=w*(.5+.32*Math.sin(t*.13+j*1.9)),y=h*(.5+.32*Math.cos(t*.1+j*2.4));
-        var gr=g.createRadialGradient(x,y,0,x,y,s*.6);
-        gr.addColorStop(0,'hsla('+hue+',75%,52%,.85)');gr.addColorStop(1,'hsla('+hue+',75%,52%,0)');
-        g.fillStyle=gr;g.fillRect(0,0,w,h);
-      }
+      /* Neutral fallback until album artwork is available; no animated neon glow. */
+      g.fillStyle='rgba(0,0,0,.16)';g.fillRect(0,0,w,h);
     }
-    g.fillStyle='rgba(0,0,0,.28)';g.fillRect(0,0,w,h);
+    /* Keep the moving art subordinate to lyrics without washing out its detail. */
+    var shade=g.createLinearGradient(0,0,0,h);
+    shade.addColorStop(0,'rgba(0,0,0,.18)');
+    shade.addColorStop(.5,'rgba(0,0,0,.24)');
+    shade.addColorStop(1,'rgba(0,0,0,.32)');
+    g.fillStyle=shade;g.fillRect(0,0,w,h);
     g.restore();
   }
 
