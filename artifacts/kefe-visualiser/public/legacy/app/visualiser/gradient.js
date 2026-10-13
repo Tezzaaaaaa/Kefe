@@ -286,9 +286,11 @@
     var particlePresetSet=el('div','kefe-visualiser-preset-set');particlePresetSet.id='kefeParticlePresetSet';
     var gradientPresetSet=el('div','kefe-visualiser-preset-set');gradientPresetSet.id='kefeGradientPresetSet';gradientPresetSet.hidden=true;
     var flutedPresetSet=el('div','kefe-visualiser-preset-set');flutedPresetSet.id='kefeFlutedPresetSet';flutedPresetSet.hidden=true;
+    var glitchPresetSet=el('div','kefe-visualiser-preset-set');glitchPresetSet.id='kefeGlitchPresetSet';glitchPresetSet.hidden=true;
+    var glitchPreset=el('button','kefe-visualiser-preset active','Glitch');glitchPreset.type='button';glitchPreset.title='Glitch Visualiser preset';glitchPreset.addEventListener('click',function(){window.kefeParticleVisualiser?.selectPreset('glitch-visualiser');});glitchPresetSet.appendChild(glitchPreset);
     if(presetWrap)particlePresetSet.appendChild(presetWrap);
     if(gridWrap)particlePresetSet.appendChild(gridWrap);
-    presetRow.appendChild(particlePresetSet);presetRow.appendChild(gradientPresetSet);presetRow.appendChild(flutedPresetSet);
+    presetRow.appendChild(particlePresetSet);presetRow.appendChild(gradientPresetSet);presetRow.appendChild(glitchPresetSet);presetRow.appendChild(flutedPresetSet);
     var paramsGroup=document.getElementById('visualiserParameters')?.closest('.kefe-visualiser-control-group');
     function show(which){
       var isGradient=which==='gradient',isGlitch=which==='glitch';
@@ -310,7 +312,8 @@
       particlePresetSet.hidden=which!=='particles';
       gradientPresetSet.hidden=which!=='gradient';
       flutedPresetSet.hidden=which!=='fluted';
-      presetRow.hidden=isGlitch;
+      glitchPresetSet.hidden=which!=='glitch';
+      presetRow.hidden=false;
       if(randomButton)randomButton.style.display=isGlitch?'none':'';
       if(isGlitch){
         window.kefeParticleVisualiser?.selectPreset('glitch-visualiser');
