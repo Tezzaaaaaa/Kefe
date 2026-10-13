@@ -279,16 +279,23 @@
       item[0].setAttribute('role','tab');item[0].dataset.visualiser=item[1];item[0].dataset.icon=item[4];item[0].setAttribute('aria-controls',item[2]);item[0].setAttribute('aria-label',item[3]);item[0].title=item[3];item[0].textContent='';
     });
     var promptWrap=document.getElementById('visualiserPrompt')?.parentElement?.parentElement;
-    var presetWrap=document.getElementById('visualiserPreset')?.parentElement;
-    var gridWrap=document.getElementById('visualiserPresetGrid')?.parentElement;
+    var presetSelect=document.getElementById('visualiserPreset');
+    var presetGrid=document.getElementById('visualiserPresetGrid');
+    var presetSelectParent=presetSelect?.parentElement;
+    var presetGridParent=presetGrid?.parentElement;
     var randomButton=document.getElementById('visualiserRandom');
     var presetRow=el('div','kefe-visualiser-preset-row');presetRow.id='kefeVisualiserPresetRow';
     var particlePresetSet=el('div','kefe-visualiser-preset-set');particlePresetSet.id='kefeParticlePresetSet';
     var gradientPresetSet=el('div','kefe-visualiser-preset-set');gradientPresetSet.id='kefeGradientPresetSet';gradientPresetSet.hidden=true;
     var flutedPresetSet=el('div','kefe-visualiser-preset-set');flutedPresetSet.id='kefeFlutedPresetSet';flutedPresetSet.hidden=true;
-
-    if(presetWrap){presetWrap.classList.add('kefe-preset-select-wrap');particlePresetSet.appendChild(presetWrap);}
-    if(gridWrap){gridWrap.classList.add('kefe-preset-grid-wrap');particlePresetSet.appendChild(gridWrap);}
+    var presetWrap=el('div','kefe-preset-select-wrap');
+    var gridWrap=el('div','kefe-preset-grid-wrap');
+    if(presetSelect){presetWrap.appendChild(presetSelect);presetSelect.setAttribute('aria-label','Particle visualiser preset');}
+    if(presetGrid)gridWrap.appendChild(presetGrid);
+    if(presetSelectParent&&!presetSelectParent.children.length)presetSelectParent.remove();
+    if(presetGridParent&&!presetGridParent.children.length)presetGridParent.remove();
+    if(presetWrap.children.length)particlePresetSet.appendChild(presetWrap);
+    if(gridWrap.children.length)particlePresetSet.appendChild(gridWrap);
     presetRow.appendChild(particlePresetSet);presetRow.appendChild(gradientPresetSet);presetRow.appendChild(flutedPresetSet);
     var paramsGroup=document.getElementById('visualiserParameters')?.closest('.kefe-visualiser-control-group');
     function show(which){
