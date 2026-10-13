@@ -1683,16 +1683,7 @@ html[data-theme="night"] .kefe-site-footer span {
   color: var(--muted);
 }
 html[data-theme="night"] .kefe-site-footer strong { color: var(--text); }
-html[data-theme="night"] .kefe-theme-icon { width: 15px; height: 15px; flex: 0 0 auto; }
-html[data-theme="day"] .kefe-theme-sun,
-html:not([data-theme="night"]) .kefe-theme-sun { display: none; }
-html[data-theme="night"] .kefe-theme-moon { display: none; }
-.kefe-theme-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-.kefe-theme-label { white-space: nowrap; }
-@media (max-width: 420px) {
-  .kefe-theme-toggle { gap: 4px; padding-inline: 6px; }
-  .kefe-theme-icon { width: 14px; height: 14px; }
-}
+
 
 
 html[data-theme="night"] .kefe-tabs,
