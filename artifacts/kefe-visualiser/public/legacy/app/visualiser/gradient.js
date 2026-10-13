@@ -362,7 +362,7 @@
     var editing=panel.closest('.kefe-editing'),panels=editing?.querySelector('.kefe-panels');
      if(editing&&panels){editing.insertBefore(tabs,panels);editing.insertBefore(presetRow,panels);}else{form.appendChild(tabs);form.appendChild(presetRow);}
      form.appendChild(particles);form.appendChild(glitch);form.appendChild(gradient);
-    show('gradient');
+    show('particles');
 
     /* ── gradient view ── */
     gradientIntro=el('div','kefe-visualiser-intro');
@@ -371,7 +371,7 @@
     gradientPower=gradientToggle.querySelector('.kefe-switch');
     var rnd=el('button','kefe-btn','Random');rnd.type='button';rnd.addEventListener('click',randomize);gradientIntro.appendChild(rnd);
     gradient.appendChild(gradientIntro);
-    show('gradient');
+    show('particles');
 
     var look=group('Layer');
     look.appendChild(slider('Opacity',0,100,1,function(){return S.opacity;},function(v){S.opacity=v;},function(v){return v+'%';}));
