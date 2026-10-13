@@ -264,8 +264,8 @@
       glitchEnabled=v;
       window.kefeDithrSetEnabled?.(v);
       if(!glitch.hidden){
-        window.kefeVisualiserEnabled=v;
-        if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();else{var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=v?'':'hidden';}
+        window.kefeVisualiserEnabled=false;
+        if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();else{var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility='hidden';}
       }
     });
     glitchToggle.classList.add('kefe-vis-power-row');
@@ -322,7 +322,7 @@
         tab.classList.toggle('primary',selected);
         tab.setAttribute('aria-selected',String(selected));
       });
-      window.kefeVisualiserEnabled=isGlitch?glitchEnabled:particleEnabled;
+      window.kefeVisualiserEnabled=isGlitch?false:particleEnabled;
       if(isGlitch)window.kefeDithrSetEnabled?.(glitchEnabled);
       var gradientPowerButton=gradientPower;
       [[particlePower,particleEnabled],[glitchPower,glitchEnabled],[gradientPowerButton,S.on]].forEach(function(pair){if(pair[0]){var state=pair[0].querySelector('.kefe-switch-state');if(state)state.textContent=pair[1]?'On':'Off';pair[0].classList.toggle('is-on',!!pair[1]);pair[0].setAttribute('aria-checked',String(!!pair[1]));}});
