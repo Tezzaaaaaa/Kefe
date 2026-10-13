@@ -290,15 +290,28 @@
     var flutedPresetSet=el('div','kefe-visualiser-preset-set');flutedPresetSet.id='kefeFlutedPresetSet';flutedPresetSet.hidden=true;
     var presetWrap=el('div','kefe-preset-select-wrap');
     var gridWrap=el('div','kefe-preset-grid-wrap');
-    if(presetSelect){presetWrap.appendChild(presetSelect);presetSelect.setAttribute('aria-label','Particle visualiser preset');}
-    if(presetGrid)gridWrap.appendChild(presetGrid);
-    if(presetSelectParent)presetSelectParent.remove();
-    if(presetGridParent)presetGridParent.remove();
-    if(presetWrap.children.length)particlePresetSet.appendChild(presetWrap);
-    if(gridWrap.children.length)particlePresetSet.appendChild(gridWrap);
+    function attachParticlePresetControls(){
+      var select=document.getElementById('visualiserPreset');
+      var grid=document.getElementById('visualiserPresetGrid');
+      if(select&&!presetWrap.contains(select)){
+        var parent=select.parentElement;
+        presetWrap.appendChild(select);
+        select.setAttribute('aria-label','Particle visualiser preset');
+        if(parent&&parent!==presetWrap&&parent!==particles&&parent!==form)parent.remove();
+      }
+      if(grid&&!gridWrap.contains(grid)){
+        var parent=grid.parentElement;
+        gridWrap.appendChild(grid);
+        if(parent&&parent!==gridWrap&&parent!==particles&&parent!==form)parent.remove();
+      }
+      if(presetWrap.children.length&&presetWrap.parentElement!==particlePresetSet)particlePresetSet.appendChild(presetWrap);
+      if(gridWrap.children.length&&gridWrap.parentElement!==particlePresetSet)particlePresetSet.appendChild(gridWrap);
+    }
+    attachParticlePresetControls();
     presetRow.appendChild(particlePresetSet);presetRow.appendChild(gradientPresetSet);presetRow.appendChild(flutedPresetSet);
     var paramsGroup=document.getElementById('visualiserParameters')?.closest('.kefe-visualiser-control-group');
     function show(which){
+      attachParticlePresetControls();
       var isGradient=which==='gradient',isGlitch=which==='glitch';
       var activeView=which==='gradient'?gradient:which==='glitch'?glitch:particles;
       panel.querySelectorAll('.kefe-vis-view').forEach(function(view){view.hidden=view!==activeView;});
