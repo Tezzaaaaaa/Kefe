@@ -250,7 +250,7 @@
     var particles=el('div','kefe-vis-view');particles.id='kefeVisParticlesView';
     while(form.firstChild)particles.appendChild(form.firstChild);
     var particleEnabled=window.kefeVisualiserEnabled!==false;
-    var glitchEnabled=true;
+    var glitchEnabled=false;
     var particleToggle=toggle('Particles',function(){return particleEnabled;},function(v){
       particleEnabled=v;
       if(document.getElementById('kefeVisParticlesView')&&!document.getElementById('kefeVisParticlesView').hidden){
@@ -260,7 +260,7 @@
     });
     particleToggle.classList.add('kefe-vis-power-row');
     var glitch=el('div','kefe-vis-view kefe-glitch-view');glitch.id='kefeVisGlitchView';glitch.hidden=true;
-    var glitchToggle=toggle('Glitch Visualiser',function(){return glitchEnabled;},function(v){
+    var glitchToggle=toggle('Dithr Visualiser',function(){return glitchEnabled;},function(v){
       glitchEnabled=v;
       if(!glitch.hidden){
         window.kefeVisualiserEnabled=v;
@@ -269,13 +269,13 @@
     });
     glitchToggle.classList.add('kefe-vis-power-row');
     var glitchIntro=el('div','kefe-visualiser-intro');
-    glitchIntro.innerHTML='<div><strong>The Glitch Visualiser</strong><span>Audio-reactive signal tears, RGB separation, block displacement and colour trails.</span></div>';
+    glitchIntro.innerHTML='<div><strong>dithr</strong><span>Animated procedural fields with Floyd–Steinberg, ordered and stochastic dithering.</span></div>';
     glitch.appendChild(glitchIntro);
     var gradient=el('div','kefe-vis-view kefe-gradient-view');gradient.id='kefeVisGradientView';gradient.hidden=true;
     var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Choose visualiser');
-    var tp=el('button','kefe-btn primary','Particles'),tg=el('button','kefe-btn','Gradient'),th=el('button','kefe-btn','Glitch');
+    var tp=el('button','kefe-btn primary','Particles'),tg=el('button','kefe-btn','Gradient'),th=el('button','kefe-btn','Dithr');
     tp.type=tg.type=th.type='button';
-    [[tp,'particles','kefeVisParticlesView','Particle field','✦'],[tg,'gradient','kefeVisGradientView','Gradient overlay','◒'],[th,'glitch','kefeVisGlitchView','Glitch visualiser','▧']].forEach(function(item){
+    [[tp,'particles','kefeVisParticlesView','Particle field','✦'],[tg,'gradient','kefeVisGradientView','Gradient overlay','◒'],[th,'glitch','kefeVisGlitchView','Dithr visualiser','▦']].forEach(function(item){
       item[0].setAttribute('role','tab');item[0].dataset.visualiser=item[1];item[0].dataset.icon=item[4];item[0].setAttribute('aria-controls',item[2]);item[0].setAttribute('aria-label',item[3]);item[0].title=item[3];item[0].textContent='';
     });
     var promptWrap=document.getElementById('visualiserPrompt')?.parentElement?.parentElement;
@@ -320,7 +320,7 @@
       var particlePower=particleOption.querySelector('.kefe-switch'),glitchPower=glitchOption.querySelector('.kefe-switch'),gradientPowerButton=gradientOption.querySelector('.kefe-switch');
       [[particlePower,particleEnabled],[glitchPower,glitchEnabled],[gradientPowerButton,S.on]].forEach(function(pair){if(pair[0]){var state=pair[0].querySelector('.kefe-switch-state');if(state)state.textContent=pair[1]?'On':'Off';pair[0].classList.toggle('is-on',!!pair[1]);pair[0].setAttribute('aria-checked',String(!!pair[1]));}});
       if(particlePower)particlePower.setAttribute('aria-label','Particles');
-      if(glitchPower)glitchPower.setAttribute('aria-label','Glitch Visualiser');
+      if(glitchPower)glitchPower.setAttribute('aria-label','Dithr Visualiser');
       if(gradientPowerButton)gradientPowerButton.setAttribute('aria-label','Gradient Overlay');
       if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();else{var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=window.kefeVisualiserEnabled?'':'hidden';}
       if(promptWrap)promptWrap.style.display=isGlitch?'none':'';
@@ -329,13 +329,7 @@
       flutedPresetSet.hidden=which!=='fluted';
       presetRow.hidden=isGlitch;
       if(randomButton)randomButton.style.display=isGlitch?'none':'';
-      if(isGlitch){
-        window.kefeParticleVisualiser?.selectPreset('glitch-visualiser');
-        if(paramsGroup)glitch.appendChild(paramsGroup);
-      }else{
-        if(paramsGroup)particles.appendChild(paramsGroup);
-        if(which==='particles'&&window.kefeParticleVisualiser?.getPreset()==='glitch-visualiser')window.kefeParticleVisualiser.selectPreset('particles-swarm');
-      }
+      if(!isGlitch&&paramsGroup)particles.appendChild(paramsGroup);
       syncAll();
     }
     tp.addEventListener('click',function(){show('particles');});tg.addEventListener('click',function(){show('gradient');});th.addEventListener('click',function(){show('glitch');});
