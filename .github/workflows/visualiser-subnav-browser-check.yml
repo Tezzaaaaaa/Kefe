@@ -137,7 +137,9 @@ jobs:
                       clientWidth: el.clientWidth
                     };
                   }, { id, presetSetId: presetSetIds[id] });
-                  assert.ok(strip, label + ': selected visualiser must have a preset strip: ' + id);
+                  assert.ok(strip, label + ': selected visualiser must have a preset strip: ' + id +
+                    '; set=' + (document.querySelector('#' + presetSetId)?.outerHTML || 'missing') +
+                    '; liveGrid=' + (document.querySelector('#visualiserPresetGrid')?.outerHTML || 'missing'));
                   assert.equal(strip.display, 'flex', label + ': preset strip must use horizontal flex layout: ' + id);
                   assert.equal(strip.flexWrap, 'nowrap', label + ': preset choices must stay in one horizontal row: ' + id);
                   assert.ok(strip.count >= 2, label + ': preset strip must contain its real preset choices: ' + id);
