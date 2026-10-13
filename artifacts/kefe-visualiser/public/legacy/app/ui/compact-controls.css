@@ -1838,8 +1838,7 @@
   }
 }
 
-/* Effects mobile balance: distribute feature groups across the two parent columns.
-   Keep each disclosure's controls in one vertical track rather than nesting grids. */
+/* Effects mobile balance: keep disclosures full-width and pair their controls. */
 @media (max-width: 700px) {
   .kefe-panel[data-panel-view="effects"] .kefe-form > #kefeDisplayGroup,
   .kefe-panel[data-panel-view="effects"] .kefe-form > #kefeStyleGroup {
@@ -1850,14 +1849,14 @@
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure,
   .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-style-disclosure {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-content: start;
     min-width: 0;
   }
 
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > summary,
   .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-style-disclosure > summary {
-    grid-column: 1;
+    grid-column: 1 / -1;
   }
 
   
