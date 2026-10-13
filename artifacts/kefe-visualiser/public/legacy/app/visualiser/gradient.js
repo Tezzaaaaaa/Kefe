@@ -272,9 +272,9 @@
     var glitchPower=glitchToggle.querySelector('.kefe-switch');
     var gradient=el('div','kefe-vis-view kefe-gradient-view');gradient.id='kefeVisGradientView';gradient.hidden=true;
     var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Choose visualiser');
-    var tp=el('button','kefe-btn primary','Particles'),tg=el('button','kefe-btn','Gradient'),th=el('button','kefe-btn','Dithr');
+    var tp=el('button','kefe-btn primary','Particles'),tg=el('button','kefe-btn','Liquid Flow'),th=el('button','kefe-btn','Dithr');
     tp.type=tg.type=th.type='button';
-    [[tp,'particles','kefeVisParticlesView','Particle field','✦'],[tg,'gradient','kefeVisGradientView','Gradient overlay','◒'],[th,'glitch','kefeVisGlitchView','Dithr visualiser','▦']].forEach(function(item){
+    [[tp,'particles','kefeVisParticlesView','Particle field','✦'],[tg,'gradient','kefeVisGradientView','Liquid Flow visualiser','◒'],[th,'glitch','kefeVisGlitchView','Dithr visualiser','▦']].forEach(function(item){
       item[0].setAttribute('role','tab');item[0].dataset.visualiser=item[1];item[0].dataset.icon=item[4];item[0].setAttribute('aria-controls',item[2]);item[0].setAttribute('aria-label',item[3]);item[0].title=item[3];item[0].textContent='';
     });
     var particlePower=particleToggle.querySelector('.kefe-switch');
@@ -328,10 +328,10 @@
       [[particlePower,particleEnabled],[glitchPower,glitchEnabled],[gradientPowerButton,S.on]].forEach(function(pair){if(pair[0]){var state=pair[0].querySelector('.kefe-switch-state');if(state)state.textContent=pair[1]?'On':'Off';pair[0].classList.toggle('is-on',!!pair[1]);pair[0].setAttribute('aria-checked',String(!!pair[1]));}});
       if(particlePower)particlePower.setAttribute('aria-label','Particle Visualiser');
       if(glitchPower)glitchPower.setAttribute('aria-label','Dithr Visualiser');
-      if(gradientPowerButton)gradientPowerButton.setAttribute('aria-label','Gradient Visualiser');
+      if(gradientPowerButton)gradientPowerButton.setAttribute('aria-label','Liquid Flow Visualiser');
       var headerCopy={
         particles:['Particle Visualiser','Audio-reactive particle fields with customizable visual presets.'],
-        gradient:['Gradient Visualiser','Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.'],
+        gradient:['Liquid Flow Visualiser','Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.'],
         glitch:['Dithr Visualiser','Animated procedural fields with Floyd–Steinberg, ordered and stochastic dithering.']
       }[which];
       if(headerCopy&&visualiserHeading&&visualiserDescription){
@@ -366,8 +366,8 @@
 
     /* ── gradient view ── */
     gradientIntro=el('div','kefe-visualiser-intro');
-    gradientIntro.innerHTML='<div><strong>Gradient controls</strong><span>Randomize the active palette.</span></div>';
-    var gradientToggle=toggle('Gradient Visualiser',function(){return S.on;},function(v){S.on=v;});
+    gradientIntro.innerHTML='<div><strong>Liquid Flow controls</strong><span>Customize the liquid-glass effect.</span></div>';
+    var gradientToggle=toggle('Liquid Flow Visualiser',function(){return S.on;},function(v){S.on=v;});
     gradientPower=gradientToggle.querySelector('.kefe-switch');
     var rnd=el('button','kefe-btn','Random');rnd.type='button';rnd.addEventListener('click',randomize);gradientIntro.appendChild(rnd);
     gradient.appendChild(gradientIntro);
