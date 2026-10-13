@@ -331,7 +331,7 @@
       if(gradientPowerButton)gradientPowerButton.setAttribute('aria-label','Gradient Visualiser');
       var headerCopy={
         particles:['Particle Visualiser','Audio-reactive particle fields with customizable visual presets.'],
-        gradient:['Gradient Visualiser','Animated colour gradients with adjustable blending, palette and grain.'],
+        gradient:['Gradient Visualiser','Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.'],
         glitch:['Dithr Visualiser','Animated procedural fields with Floyd–Steinberg, ordered and stochastic dithering.']
       }[which];
       if(headerCopy&&visualiserHeading&&visualiserDescription){
