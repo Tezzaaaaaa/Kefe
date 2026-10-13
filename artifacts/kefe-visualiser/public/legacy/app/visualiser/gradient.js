@@ -120,13 +120,13 @@
   }
 
   /* ── preview canvas ── */
-  var stage=null,cv=null,cctx=null,raf=0,t0=performance.now();
+  var stage=null,cv=null,cctx=null,raf=0,t0=performance.now(),resizeObserver=null;
   function mountCanvas(){
     stage=document.querySelector('.kefe-stage');if(!stage||cv)return;
     cv=document.createElement('canvas');cv.id='kefeGradientCanvas';cv.setAttribute('aria-hidden','true');
     var lyric=document.getElementById('kefeCanvas');
     stage.insertBefore(cv,lyric||null);cctx=cv.getContext('2d');
-    if(window.ResizeObserver){var ro=new ResizeObserver(function(){sizeCanvas();drawPreview();});ro.observe(stage);ro.observe(cv);}
+    if(window.ResizeObserver){resizeObserver=new ResizeObserver(function(){sizeCanvas();drawPreview();});resizeObserver.observe(stage);resizeObserver.observe(cv);}
     window.addEventListener('kefe-stage-resize',function(){sizeCanvas();drawPreview();});
     sizeCanvas();
   }
@@ -151,6 +151,10 @@
   }
   function update(){
     persist();
+    if(!raf){
+      if(S.on&&S.anim.on)raf=requestAnimationFrame(loop);else drawPreview();
+    }
+    if(!S.on||!S.anim.on)drawPreview();
     window.dispatchEvent(new CustomEvent('kefe-gradient-change'));
   }
   document.addEventListener('visibilitychange',function(){if(!document.hidden)update();});
@@ -438,8 +442,8 @@
     buildStops();syncAll();
   }
 
-  function init(){buildPanel();}
+  function init(){mountCanvas();buildPanel();update();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
-  window.kefeGradientLayer={paint:paint,render:renderLayer,state:function(){return clone(S);},isOn:function(){return !!S.on;},randomize:randomize};
+  window.kefeGradientLayer={paint:paint,render:renderLayer,state:function(){return clone(S);},isOn:function(){return !!S.on;},randomize:randomize,stopPreview:function(){if(raf)cancelAnimationFrame(raf);raf=0;if(resizeObserver){resizeObserver.disconnect();resizeObserver=null;}if(cv){cv.remove();cv=null;cctx=null;}}};
 })();
