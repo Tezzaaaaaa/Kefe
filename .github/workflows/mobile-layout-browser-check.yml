@@ -287,9 +287,10 @@ jobs:
                 assert.ok(tabsLayout.width >= tabsLayout.containerWidth * 0.9, `Visualiser engine tabs must span the editing container at ${width}px`);
                 const gradientTab = page.locator('.kefe-vis-tabs button[data-visualiser="gradient"]').first();
                 await gradientTab.waitFor({ state: 'visible' });
-                await assertOnlyVisualiserViewVisible('kefeVisGradientView', 'Gradient default');
+                await gradientTab.click();
+                await assertOnlyVisualiserViewVisible('kefeVisGradientView', 'Liquid Flow selection');
                 assert.equal(await page.locator('.kefe-vis-tabs [aria-selected="true"]').getAttribute('data-visualiser'), 'gradient',
-                  'Gradient must be the default visualiser at ' + width + 'px');
+                  'Selecting Liquid Flow must activate its tab at ' + width + 'px');
 
                 const documentScroll = await page.evaluate(() => ({
                   clientHeight: document.documentElement.clientHeight,
