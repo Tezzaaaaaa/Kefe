@@ -2122,7 +2122,7 @@
   max-width: 100%;
   overflow: hidden;
 }
-.kefe-gradient-preset-strip .kefe-gradient-palettes {
+.kefe-panel[data-panel-view="visualiser"] .kefe-gradient-preset-strip .kefe-gradient-palettes {
   display: flex;
   flex: 1 1 auto;
   flex-wrap: nowrap;
@@ -2141,7 +2141,7 @@
   width: 72px;
   min-width: 72px;
 }
-.kefe-fluted-modes {
+.kefe-panel[data-panel-view="visualiser"] .kefe-fluted-modes {
   display: flex;
   flex: 1 1 auto;
   flex-wrap: nowrap;
@@ -2201,7 +2201,7 @@
   .kefe-visualiser-preset-set { gap: 6px; }
   .kefe-preset-select-wrap { flex-basis: 112px; max-width: 34%; }
   .kefe-preset-grid-wrap #visualiserPresetGrid { gap: 6px; }
-  .kefe-gradient-preset-strip .kefe-gradient-palettes { gap: 6px; }
+  .kefe-panel[data-panel-view="visualiser"] .kefe-gradient-preset-strip .kefe-gradient-palettes { gap: 6px; }
   .kefe-gradient-preset-strip .kefe-gradient-chip {
     flex-basis: 58px;
     width: 58px;
