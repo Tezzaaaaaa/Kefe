@@ -71,6 +71,7 @@ jobs:
               const presetSetIds = {
                 particles: 'kefeParticlePresetSet',
                 gradient: 'kefeGradientPresetSet',
+                glitch: 'kefeDithrPresetSet',
                 fluted: 'kefeFlutedPresetSet'
               };
               const layout = await page.evaluate(() => {
@@ -131,15 +132,11 @@ jobs:
                   visibleSets: [...document.querySelectorAll('.kefe-editing > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set')].filter(set => !set.hidden && getComputedStyle(set).display !== 'none').map(set => set.id),
                   expectedSet: presetSetId
                 }), { id, presetSetId: presetSetIds[id] });
-                if (id === 'glitch') {
-                  assert.equal(presetState.rowVisible, false, label + ': Glitch must remain unchanged without a presets submenu');
-                  assert.deepEqual(presetState.visibleSets, [], label + ': no preset set should be shown for Glitch');
-                } else {
-                  assert.equal(presetState.rowVisible, true, label + ': presets submenu must be visible for ' + id);
-                  assert.deepEqual(presetState.visibleSets, [presetState.expectedSet], label + ': only the selected visualiser preset set should be visible: ' + id);
-                  const strip = await page.evaluate(({ id, presetSetId }) => {
+                assert.equal(presetState.rowVisible, true, label + ': presets submenu must be visible for ' + id);
+                assert.deepEqual(presetState.visibleSets, [presetState.expectedSet], label + ': only the selected visualiser preset set should be visible: ' + id);
+                const strip = await page.evaluate(({ id, presetSetId }) => {
                     const set = document.getElementById(presetSetId);
-                    const selector = id === 'particles' ? '#visualiserPresetGrid' : id === 'gradient' ? '.kefe-gradient-palettes' : '#flutedModes';
+                    const selector = id === 'glitch' ? '#dithrPatterns' : id === 'particles' ? '#visualiserPresetGrid' : id === 'gradient' ? '.kefe-gradient-palettes' : '#flutedModes';
                     const el = set && set.querySelector(selector);
                     if (!el) return { missing: true, setHtml: set?.outerHTML || null, liveGridHtml: document.querySelector('#visualiserPresetGrid')?.outerHTML || null };
                     const style = getComputedStyle(el);
@@ -158,8 +155,7 @@ jobs:
                   assert.equal(strip.display, 'flex', label + ': preset strip must use horizontal flex layout: ' + id);
                   assert.equal(strip.flexWrap, 'nowrap', label + ': preset choices must stay in one horizontal row: ' + id);
                   assert.ok(strip.count >= 2, label + ': preset strip must contain its real preset choices: ' + id);
-                  assert.equal(strip.oneRow, true, label + ': preset choices must not stack into columns: ' + id);
-                }
+                assert.equal(strip.oneRow, true, label + ': preset choices must not stack into columns: ' + id);
               }
 
               const pageScroll = await page.evaluate(() => {
