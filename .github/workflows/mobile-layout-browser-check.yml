@@ -382,6 +382,7 @@ jobs:
 
                   await page.locator('.kefe-section[data-panel="media"]').click();
                   await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
+                  await page.evaluate(() => { window.KEFE_AUDIO_RECOGNITION_TOKEN = 'test-token'; });
                   await page.route('https://api.audd.io/**', route => route.fulfill({
                     status: 200, contentType: 'application/json',
                     headers: { 'access-control-allow-origin': '*' },
