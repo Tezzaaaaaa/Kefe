@@ -133,7 +133,7 @@
     tabs.append(lyricsButton,backgroundButton);
     var lyricsPanel=document.createElement('div');lyricsPanel.id='kefeLyricsEffectsPanel';lyricsPanel.className='kefe-effect-category-panel';
     var backgroundPanel=document.createElement('div');backgroundPanel.id='kefeBackgroundEffectsPanel';backgroundPanel.className='kefe-effect-category-panel';backgroundPanel.hidden=true;
-    form.insertBefore(tabs,form.firstChild);form.insertBefore(lyricsPanel,tabs.nextSibling);form.insertBefore(backgroundPanel,lyricsPanel.nextSibling);
+    form.parentNode.insertBefore(tabs,form);form.insertBefore(lyricsPanel,form.firstChild);form.insertBefore(backgroundPanel,lyricsPanel.nextSibling);
     if(lyricBlock)lyricsPanel.appendChild(lyricBlock);
     if(displayGroup)lyricsPanel.appendChild(displayGroup);
     if(styleGroup)lyricsPanel.appendChild(styleGroup);
