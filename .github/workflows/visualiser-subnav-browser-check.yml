@@ -145,29 +145,46 @@ jobs:
                 }
               }
 
-              const rowTop = await submenu.evaluate(el => el.getBoundingClientRect().top);
-              const scrollResult = await panels.evaluate(el => {
-                el.scrollTop = el.scrollHeight;
+              const pageScroll = await page.evaluate(() => {
+                const panels = document.querySelector('.kefe-panels');
+                const editor = document.querySelector('.kefe-editor');
+                const before = window.scrollY;
+                const pageHeight = document.scrollingElement.scrollHeight;
+                const panelStyle = getComputedStyle(panels);
+                const bodyStyle = getComputedStyle(document.body);
+                window.scrollTo(0, pageHeight);
                 return {
-                  overflowY: getComputedStyle(el).overflowY,
-                  scrollHeight: el.scrollHeight,
-                  clientHeight: el.clientHeight,
-                  scrollTop: el.scrollTop
+                  pageHeight,
+                  viewportHeight: window.innerHeight,
+                  before,
+                  after: window.scrollY,
+                  maxScroll: Math.max(0, pageHeight - window.innerHeight),
+                  bodyOverflowY: bodyStyle.overflowY,
+                  panelOverflowY: panelStyle.overflowY,
+                  panelClientHeight: panels.clientHeight,
+                  panelScrollHeight: panels.scrollHeight,
+                  editorBottom: editor.getBoundingClientRect().bottom,
+                  pageBottom: document.scrollingElement.scrollHeight
                 };
               });
               await page.waitForTimeout(80);
-              assert.ok(['auto', 'scroll'].includes(scrollResult.overflowY),
-                label + ': editor settings section must allow vertical scrolling');
-              assert.ok(scrollResult.scrollTop >= Math.max(0, scrollResult.scrollHeight - scrollResult.clientHeight - 1),
-                label + ': editor settings must be able to scroll to the end of the section');
-              assert.ok(Math.abs(await submenu.evaluate(el => el.getBoundingClientRect().top) - rowTop) < 1,
-                label + ': visualiser submenu must remain fixed while settings scroll');
+              assert.ok(pageScroll.pageHeight > pageScroll.viewportHeight,
+                label + ': full editor must expand the document beyond the viewport');
+              assert.ok(['auto', 'scroll'].includes(pageScroll.bodyOverflowY),
+                label + ': document must allow page-level vertical scrolling');
+              assert.equal(pageScroll.panelOverflowY, 'visible',
+                label + ': editor settings must not trap scrolling in the panels');
+              assert.ok(pageScroll.after >= pageScroll.maxScroll - 2,
+                label + ': user must be able to scroll to the bottom of the expanded editor');
+              assert.ok(pageScroll.panelScrollHeight <= pageScroll.panelClientHeight + 2,
+                label + ': editor panel must expand to its content instead of maintaining an inner scroll area');
 
               await nav.locator('[data-panel="media"]').click();
               assert.equal(await submenu.isVisible(), false, label + ': submenu must close when leaving Visualiser section');
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
               console.log(JSON.stringify({ result: 'PASS', label, layout, selectedViewsTested: order, runtimeErrors: errors }, null, 2));
 
+              await page.evaluate(() => window.scrollTo(0, 0));
               await page.setViewportSize({ width: 390, height: 844 });
               await nav.locator('[data-panel="visualiser"]').click();
               await page.waitForFunction(() => {
@@ -209,7 +226,7 @@ jobs:
       - name: Wait for GitHub Pages to publish this change
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
-          expected_marker='app/ui/compact-controls.css?v=visualiser-submenu-horizontal-20261014-8'
+          expected_marker='app/ui/compact-controls.css?v=editor-page-scroll-20261014-1'
           for attempt in $(seq 1 48); do
             if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
               echo "Expected visualiser submenu assets are published: $expected_marker"
