@@ -1940,7 +1940,7 @@
 }
 .kefe-editing > .kefe-vis-tabs {
   display: none;
-  grid-column: 1;
+  grid-column: 1 / -1;
   grid-row: 2;
   position: relative;
   top: auto;
