@@ -2217,3 +2217,71 @@
   }
   .kefe-vis-option-power .kefe-switch-state { font-size: 9px; }
 }
+
+
+/* Let the document grow with the editor instead of trapping settings in nested scroll areas. */
+html,
+body {
+  height: auto;
+  min-height: 100%;
+}
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.kefe-editor {
+  height: auto;
+  min-height: 100dvh;
+  grid-template-rows: 56px auto auto;
+}
+.kefe-work {
+  min-height: 0;
+  grid-template-rows: auto var(--timeline-h) auto;
+  overflow: visible;
+}
+.kefe-preview {
+  min-height: 0;
+  overflow: visible;
+}
+.kefe-stage {
+  max-height: none;
+}
+.kefe-editing {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  grid-template-rows: 48px auto auto auto;
+}
+.kefe-panels {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  overscroll-behavior: auto;
+  scrollbar-gutter: auto;
+}
+@media (max-width: 900px) {
+  .kefe-editor {
+    grid-template-rows: 52px auto auto;
+  }
+  .kefe-work {
+    grid-template-rows: auto 66px auto;
+    overflow: visible;
+  }
+  .kefe-editing {
+    grid-template-rows: 50px auto auto auto;
+  }
+}
+@media (max-width: 700px) {
+  .kefe-editor {
+    grid-template-rows: 40px auto auto;
+  }
+  .kefe-work {
+    grid-template-rows: auto 60px auto;
+  }
+  .kefe-editing {
+    grid-template-rows: 40px auto auto auto;
+  }
+}
+.kefe-fullscreen-open {
+  overflow: hidden !important;
+}
