@@ -109,9 +109,13 @@ jobs:
                 buffer: makeTestWav()
               });
               await page.waitForFunction(() => !document.querySelector('.kefe-stage')?.classList.contains('is-empty'));
+              await page.waitForFunction(() => getComputedStyle(document.getElementById('kefeVisualiserCanvas')).visibility === 'hidden');
+              await page.locator('.kefe-section[data-panel="visualiser"]').click();
+              await page.locator('#kefeVisParticlesView:not([hidden])').waitFor();
+              await page.locator('.kefe-panel[data-panel-view="visualiser"] .kefe-switch').first().click();
               await page.waitForFunction(() => getComputedStyle(document.getElementById('kefeVisualiserCanvas')).visibility === 'visible');
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
-              console.log(JSON.stringify({ result: 'PASS', label, emptyState, layout, afterUpload: 'visualiser canvas visible after media selection', runtimeErrors: errors }, null, 2));
+              console.log(JSON.stringify({ result: 'PASS', label, emptyState, layout, afterUpload: 'visualiser stayed off until explicitly enabled', runtimeErrors: errors }, null, 2));
             } finally {
               await browser.close();
             }
