@@ -1593,7 +1593,7 @@
   let visualiserZoom=1,visualiserPanX=0,visualiserPanY=0;
   const applyVisualiserPreviewTransform=()=>{
     const transform=`translate3d(${visualiserPanX}px,${visualiserPanY}px,0) scale(${visualiserZoom})`;
-    [document.getElementById('kefeVisualiserCanvas'),document.getElementById('kefeFlutedGlassCanvas')].forEach(el=>{if(el)el.style.transform=transform;});
+    [document.getElementById('kefeVisualiserCanvas'),document.getElementById('kefeFlutedGlassCanvas'),document.getElementById('kefeDithrCanvas')].forEach(el=>{if(el)el.style.transform=transform;});
   };
   if(previewStage){
     previewStage.style.touchAction='none';
@@ -1625,7 +1625,7 @@
     applyVisualiserPreviewTransform();
   }
   document.getElementById('exportButton').addEventListener('click',async()=>{
-    const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),visualiserCanvas=window.kefeFlutedGlassActive?document.getElementById('kefeFlutedGlassCanvas'):document.getElementById('kefeVisualiserCanvas');
+    const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),visualiserCanvas=window.kefeFlutedGlassActive?document.getElementById('kefeFlutedGlassCanvas'):window.kefeDithrActive?document.getElementById('kefeDithrCanvas'):document.getElementById('kefeVisualiserCanvas');
     if(exporting)return;
     if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream||!visualiserCanvas){status.textContent='Video export is not supported by this browser.';return;}
     if(!audio.src||!Number.isFinite(audio.duration)){status.textContent='Upload a track first.';return;}
