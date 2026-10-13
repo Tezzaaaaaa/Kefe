@@ -5,51 +5,6 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 const PRESETS = [
   {
-    key:'glitch-visualiser',
-    name:'The Glitch Visualiser',
-    desc:'Audio-reactive glitch field with row tears, RGB separation, block displacement and persistent-looking colour trails.',
-    keywords:['glitch','datamosh','rgb split','feedback','digital noise','signal tear','chromatic','corrupt'],
-    params:{glitch:0.25,rgb:0.35,feedback:0.94,zoom:0.999},
-    code:`const glitch = addControl("glitch", "Glitch", 0, 1, 0.25);
-const rgb = addControl("rgb", "RGB Split", 0, 1, 0.35);
-const feedback = addControl("feedback", "Feedback", 0.85, 0.995, 0.94);
-const zoom = addControl("zoom", "Zoom", 0.995, 1.005, 0.999);
-
-const safeCount = Math.max(count - 1, 1);
-const u = i / safeCount;
-const row = Math.floor(u * 60.0);
-const seed = Math.sin(i * 12.9898) * 43758.5453;
-const rnd = seed - Math.floor(seed);
-const seed2 = Math.sin(i * 78.233 + 4.7) * 24634.6345;
-const rnd2 = seed2 - Math.floor(seed2);
-const tick = Math.floor(time * 8.0);
-const audioBoost = Math.min(1.0, Math.max(0.0, audioLevel));
-const activeGlitch = Math.min(1.0, glitch + audioBoost * 0.45);
-const hash = Math.sin(row * 91.7 + tick * 13.1) * 43758.5453;
-const trigger = (hash - Math.floor(hash)) > 1.0 - activeGlitch * 0.62;
-const rowY = (0.5 - u) * 118.0;
-const block = Math.floor(rnd2 * 12.0) / 12.0;
-const displacement = trigger ? (rnd2 - 0.5) * 30.0 * activeGlitch : 0.0;
-const wave = Math.sin(time * 1.8 + u * 32.0 + rnd * 6.283) * (2.0 + activeGlitch * 4.0 + audioBoost * 5.0);
-const scaleZoom = 1.0 / zoom;
-const x = ((rnd2 - 0.5) * 112.0 + displacement + wave) * scaleZoom;
-const y = (rowY + (block - 0.5) * glitch * 8.0 + Math.sin(time * 0.8 + rnd * 9.0) * 3.0) * scaleZoom;
-const z = -18.0 + rnd * 36.0 + Math.sin(time * 0.7 + u * 24.0) * 5.0;
-target.set(x, y, z);
-
-const energy = 0.45 + 0.35 * (0.5 + 0.5 * Math.sin(time * 3.0 + row * 0.22));
-const fringe = rgb * (0.25 + activeGlitch * 0.75);
-const redBand = (i % 3) === 0;
-const blueBand = (i % 3) === 2;
-const feedbackGlow = Math.max(0.0, Math.min(1.0, (feedback - 0.85) / 0.145));
-const brightness = Math.min(1.0, energy * (0.72 + feedbackGlow * 0.65) + (trigger ? activeGlitch * 0.3 : 0.0) + audioBoost * 0.35);
-if (redBand) color.setRGB(Math.min(1.0, brightness), brightness * (0.08 + (1.0 - fringe) * 0.18), brightness * 0.12);
-else if (blueBand) color.setRGB(brightness * 0.12, brightness * (0.12 + (1.0 - fringe) * 0.2), Math.min(1.0, brightness * (0.55 + fringe * 0.45)));
-else color.setRGB(brightness * 0.38, Math.min(1.0, brightness * (0.55 + fringe * 0.45)), Math.min(1.0, brightness * (0.48 + fringe * 0.52)));
-const scale = 0.22 + activeGlitch * 0.35 + (trigger ? 0.55 : 0.0) + feedbackGlow * 0.2 + audioBoost * 0.3;`
-  },
-
-  {
     key:'particles-swarm', name:'Particles Swarm', desc:'A responsive swarm of particles flowing through a layered orbital field.',
     keywords:['particles','particle','swarm','field','flow','orb','cloud'],
     params:{radius:42,spread:1.2,flow:1.1,drift:0.65,twist:1.4,glow:0.8},
