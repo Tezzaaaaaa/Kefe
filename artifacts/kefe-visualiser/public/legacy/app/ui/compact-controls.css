@@ -1936,7 +1936,7 @@
 
 /* Pin the four visualiser choices directly below the editor navigation. */
 .kefe-editing {
-  grid-template-rows: 48px auto minmax(0, 1fr);
+  grid-template-rows: 48px auto auto minmax(0, 1fr);
 }
 .kefe-editing > .kefe-vis-tabs {
   display: none;
@@ -1973,11 +1973,11 @@
 
   font-family: inherit;}
 @media (max-width: 900px) {
-  .kefe-editing { grid-template-rows: 46px auto minmax(0, 1fr); }
+  .kefe-editing { grid-template-rows: 46px auto auto minmax(0, 1fr); }
   .kefe-editing > .kefe-vis-tabs { width: calc(100% - 32px); }
 }
 @media (max-width: 700px) {
-  .kefe-editing { grid-template-rows: 40px auto minmax(0, 1fr); }
+  .kefe-editing { grid-template-rows: 40px auto auto minmax(0, 1fr); }
   .kefe-editing > .kefe-vis-tabs {
     width: calc(100% - 20px);
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2060,4 +2060,44 @@
   .kefe-vis-tabs > [role="tab"] { min-height: 38px; }
   .kefe-vis-tabs > [role="tab"]::before { font-size: 20px; }
   .kefe-visualiser-preset-grid { gap: 6px; }
+}
+
+
+/* Keep the selected visualiser's presets in a dedicated horizontal row beneath the icon tabs. */
+.kefe-editing > .kefe-visualiser-preset-row {
+  display: none;
+  grid-column: 1;
+  grid-row: 3;
+  align-items: center;
+  width: min(1360px, calc(100% - 60px));
+  min-width: 0;
+  margin: 0 auto;
+  padding: 0 0 6px;
+  overflow: hidden;
+}
+.kefe-editing:has(.kefe-panel[data-panel-view="visualiser"].active) > .kefe-visualiser-preset-row:not([hidden]) {
+  display: flex;
+}
+.kefe-visualiser-preset-set {
+  display: flex;
+  flex: 1 1 100%;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.kefe-visualiser-preset-set[hidden],
+.kefe-visualiser-preset-row[hidden] { display: none !important; }
+.kefe-visualiser-preset-set > * { flex: 0 0 auto; min-width: 0; }
+.kefe-visualiser-preset-set .kefe-visualiser-preset-grid { flex: 1 1 auto; }
+@media (max-width: 900px) {
+  .kefe-editing > .kefe-visualiser-preset-row { width: calc(100% - 32px); }
+}
+@media (max-width: 700px) {
+  .kefe-editing > .kefe-visualiser-preset-row { width: calc(100% - 20px); }
+  .kefe-visualiser-preset-set { gap: 6px; }
 }
