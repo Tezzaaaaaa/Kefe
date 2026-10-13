@@ -284,6 +284,13 @@
     var presetWrap=document.getElementById('visualiserPreset')?.parentElement;
     var gridWrap=document.getElementById('visualiserPresetGrid')?.parentElement;
     var randomButton=document.getElementById('visualiserRandom');
+    var presetRow=el('div','kefe-visualiser-preset-row');presetRow.id='kefeVisualiserPresetRow';
+    var particlePresetSet=el('div','kefe-visualiser-preset-set');particlePresetSet.id='kefeParticlePresetSet';
+    var gradientPresetSet=el('div','kefe-visualiser-preset-set');gradientPresetSet.id='kefeGradientPresetSet';gradientPresetSet.hidden=true;
+    var flutedPresetSet=el('div','kefe-visualiser-preset-set');flutedPresetSet.id='kefeFlutedPresetSet';flutedPresetSet.hidden=true;
+    if(presetWrap)particlePresetSet.appendChild(presetWrap);
+    if(gridWrap)particlePresetSet.appendChild(gridWrap);
+    presetRow.appendChild(particlePresetSet);presetRow.appendChild(gradientPresetSet);presetRow.appendChild(flutedPresetSet);
     var paramsGroup=document.getElementById('visualiserParameters')?.closest('.kefe-visualiser-control-group');
     function show(which){
       var isGradient=which==='gradient',isGlitch=which==='glitch';
@@ -297,8 +304,10 @@
       window.kefeVisualiserEnabled=isGlitch?glitchEnabled:particleEnabled;
       if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();else{var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=window.kefeVisualiserEnabled?'':'hidden';}
       if(promptWrap)promptWrap.style.display=isGlitch?'none':'';
-      if(presetWrap)presetWrap.style.display=isGlitch?'none':'';
-      if(gridWrap)gridWrap.style.display=isGlitch?'none':'';
+      particlePresetSet.hidden=which!=='particles';
+      gradientPresetSet.hidden=which!=='gradient';
+      flutedPresetSet.hidden=which!=='fluted';
+      presetRow.hidden=isGlitch;
       if(randomButton)randomButton.style.display=isGlitch?'none':'';
       if(isGlitch){
         window.kefeParticleVisualiser?.selectPreset('glitch-visualiser');
@@ -312,7 +321,7 @@
     tp.addEventListener('click',function(){show('particles');});tg.addEventListener('click',function(){show('gradient');});th.addEventListener('click',function(){show('glitch');});
     tabs.appendChild(tp);tabs.appendChild(tg);tabs.appendChild(th);
     var editing=panel.closest('.kefe-editing'),panels=editing?.querySelector('.kefe-panels');
-     if(editing&&panels)editing.insertBefore(tabs,panels);else form.appendChild(tabs);
+     if(editing&&panels){editing.insertBefore(tabs,panels);editing.insertBefore(presetRow,panels);}else{form.appendChild(tabs);form.appendChild(presetRow);}
      form.appendChild(particles);form.appendChild(glitch);form.appendChild(gradient);
     show('gradient');
 
@@ -342,7 +351,7 @@
       b.addEventListener('click',function(){S.adjust=clone(DEFAULT.adjust);setStops(p.stops);syncAll();});
       chips.appendChild(b);
     });
-    pal.appendChild(chips);gradient.appendChild(pal);
+    pal.appendChild(chips);gradientPresetSet.appendChild(pal);
 
     var geo=group('Geometry');
     geo.appendChild(segmented([{label:'Linear',value:'linear'},{label:'Radial',value:'radial'},{label:'Conic',value:'conic'}],function(){return S.type;},function(v){S.type=v;}));
