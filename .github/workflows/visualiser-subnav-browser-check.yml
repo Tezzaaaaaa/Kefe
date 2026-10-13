@@ -93,6 +93,10 @@ jobs:
                 label + ': visualiser options and presets must share the same full-width grid alignment');
               assert.ok(layout.rowRight - layout.rowLeft > 500, label + ': visualiser options must not be confined to the narrow sidebar column');
               assert.deepEqual(layout.buttons.map(b => b.id), order, label + ': four tabs must appear in the expected order');
+              assert.equal(await submenu.locator('[aria-selected="true"]').getAttribute('data-visualiser'), 'particles',
+                label + ': Particles Swarm must remain the default visualiser');
+              assert.equal((await page.locator('#kefeVisualiserHeading').textContent()).trim(), 'Particle Visualiser',
+                label + ': default heading must identify the Particle Visualiser');
               assert.ok(layout.buttons.every(b => b.width > 0 && Math.abs(b.top - layout.buttons[0].top) < 2), label + ': all four tabs must occupy one horizontal row');
               assert.ok(layout.buttons.every((b, i) => i === 0 || b.left > layout.buttons[i - 1].left), label + ': tabs must be arranged horizontally');
 
