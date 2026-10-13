@@ -2066,7 +2066,7 @@
 /* Keep the selected visualiser's presets in a dedicated horizontal row beneath the icon tabs. */
 .kefe-editing > .kefe-visualiser-preset-row {
   display: none;
-  grid-column: 1;
+  grid-column: 1 / -1;
   grid-row: 3;
   align-items: center;
   width: min(1360px, calc(100% - 60px));
