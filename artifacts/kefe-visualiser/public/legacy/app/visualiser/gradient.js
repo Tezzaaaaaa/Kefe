@@ -292,8 +292,8 @@
     var gridWrap=el('div','kefe-preset-grid-wrap');
     if(presetSelect){presetWrap.appendChild(presetSelect);presetSelect.setAttribute('aria-label','Particle visualiser preset');}
     if(presetGrid)gridWrap.appendChild(presetGrid);
-    if(presetSelectParent&&!presetSelectParent.children.length)presetSelectParent.remove();
-    if(presetGridParent&&!presetGridParent.children.length)presetGridParent.remove();
+    if(presetSelectParent)presetSelectParent.remove();
+    if(presetGridParent)presetGridParent.remove();
     if(presetWrap.children.length)particlePresetSet.appendChild(presetWrap);
     if(gridWrap.children.length)particlePresetSet.appendChild(gridWrap);
     presetRow.appendChild(particlePresetSet);presetRow.appendChild(gradientPresetSet);presetRow.appendChild(flutedPresetSet);
