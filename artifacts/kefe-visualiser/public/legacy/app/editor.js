@@ -1175,7 +1175,9 @@
     try{
       const body=new FormData();
       const proxy=String(window.KEFE_AUDIO_RECOGNITION_ENDPOINT||'').trim();
-      if(!proxy)body.append('api_token',String(window.KEFE_AUDIO_RECOGNITION_TOKEN||'test'));
+      const token=String(window.KEFE_AUDIO_RECOGNITION_TOKEN||'').trim();
+      if(!proxy&&!token)return null;
+      if(!proxy)body.append('api_token',token);
       body.append('file',file,file.name||'upload');
       body.append('return','apple_music');
       const response=await fetch(proxy||'https://api.audd.io/',{method:'POST',body,signal:controller.signal});
