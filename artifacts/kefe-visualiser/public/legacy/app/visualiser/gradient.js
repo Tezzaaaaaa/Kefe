@@ -328,9 +328,9 @@
       if(isGlitch)window.kefeDithrSetEnabled?.(glitchEnabled);
       var particlePower=particleIntro.querySelector('.kefe-switch'),glitchPower=glitchIntro.querySelector('.kefe-switch'),gradientPowerButton=gradientIntro&&gradientIntro.querySelector('.kefe-switch');
       [[particlePower,particleEnabled],[glitchPower,glitchEnabled],[gradientPowerButton,S.on]].forEach(function(pair){if(pair[0]){var state=pair[0].querySelector('.kefe-switch-state');if(state)state.textContent=pair[1]?'On':'Off';pair[0].classList.toggle('is-on',!!pair[1]);pair[0].setAttribute('aria-checked',String(!!pair[1]));}});
-      if(particlePower)particlePower.setAttribute('aria-label','Particles');
+      if(particlePower)particlePower.setAttribute('aria-label','Particle Visualiser');
       if(glitchPower)glitchPower.setAttribute('aria-label','Dithr Visualiser');
-      if(gradientPowerButton)gradientPowerButton.setAttribute('aria-label','Gradient Overlay');
+      if(gradientPowerButton)gradientPowerButton.setAttribute('aria-label','Gradient Visualiser');
       if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();else{var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=window.kefeVisualiserEnabled?'':'hidden';}
       if(promptWrap)promptWrap.style.display=isGlitch?'none':'';
       particlePresetSet.hidden=which!=='particles';
