@@ -12,7 +12,7 @@ KEFE is a browser-based music visualiser and lyric-video editor for turning audi
 
 ## Current state
 
-The editor foundation, lyric-effect system, canvas-based lyric/title-card composition and default 3D visualiser are implemented. KEFE remains under active development: connected workflows still need verification and refinement, particularly song identification, automatic artwork and lyrics retrieval, lyric timing and rendering, effect controls, visualiser settings, responsive behaviour and export.
+The editor foundation, lyric-effect system, canvas-based lyric/title-card composition and visualiser engines are implemented. KEFE remains under active development: connected workflows still need verification and refinement, particularly song identification, automatic artwork and lyrics retrieval, lyric timing and rendering, effect controls, visualiser settings, responsive behaviour and export.
 
 The preview combines the lyric/title-card canvas with a dedicated visualiser canvas. The title card is designed to show the selected track's title, artist, album/year details and artwork, remain visible as the lyrics begin, and then move to a compact position above the lyrics. Behaviour can depend on the selected track, browser and available media services.
 
@@ -39,9 +39,42 @@ The preview combines the lyric/title-card canvas with a dedicated visualiser can
 
 ### Lyric effects
 
-The effect manifest currently lists 30 lyric effects:
+The effect manifest currently lists 32 lyric effects:
 
 - Apple Music-style focus lyrics
+- Brat
+- Eternal Sunshine
+- Aurora
+- Pulse
+- Typewriter
+- Instagram
+- Fade Up
+- Decrypt
+- Blur In
+- Shiny
+- Rise
+- Slide
+- Drop
+- Drift
+- Scroll Lines
+- Barbie
+- Elastic Pop
+- Flip Text
+- Karaoke
+- Trailer
+- Fancy
+- Glitch
+- Split-Flap
+- CRT Computer Desktop
+- CRT TV Box
+- Randomize
+- Spin Lyrics
+- Premium Circuit
+- Dust Off
+- WrapSlide
+- Ink Script
+
+Effects provide different animation and typography treatments.- Apple Music-style focus lyrics
 - Brat
 - Eternal Sunshine
 - Aurora
@@ -78,8 +111,8 @@ Effects provide different animation and typography treatments. Available control
 - Preview playback, scrub through the timeline and view the composition fullscreen.
 - Switch the composition aspect ratio between 16:9, 9:16 and 1:1.
 - Use the Particles Swarm 3D visualiser and available scene presets.
-- Switch between the Particles, Gradient and dedicated Glitch visualiser panels.
-- The Glitch Visualiser provides audio-reactive signal tears, RGB separation, block displacement, colour trails and adjustable glitch, RGB split, feedback and zoom parameters.
+- Switch between the Particles, Liquid Flow, Dithr and Fluted Glass visualiser panels.
+- The Dithr Visualiser provides audio-reactive dithering, colour separation, block displacement and adjustable rendering parameters.
 - Randomise a visualiser scene or use the prompt-based scene generation control.
 - Adjust particle count, speed, auto-spin and preset-specific parameters.
 - Configure background effects and optional audio-reactive overlays, including waveform, spectrum, radial and pulse treatments.
@@ -115,7 +148,7 @@ app/
 ├── brand/       # KEFE logos, wordmark and favicon
 ├── effects/     # Effect manifest, shared utilities and lyric renderers
 ├── lyrics/      # Lyric data model, timing tools and lyric downloads
-├── visualiser/  # 3D visualiser, backgrounds, gradient and audio overlays
+├── visualiser/  # 3D particles, Liquid Flow, Dithr, Fluted Glass, backgrounds and audio overlays
 └── ui/          # Editor structure, styling, typography and lyric style layer
 ```
 
