@@ -116,27 +116,36 @@ jobs:
                   glitch: 'Dithr Visualiser',
                   fluted: 'Fluted Glass Visualiser'
                 };
-                const intro = page.locator('#' + viewIds[id] + ' .kefe-visualiser-intro');
-                assert.equal((await intro.locator('strong').textContent()).trim(), expectedTitles[id],
+                const expectedDescriptions = {
+                  particles: 'Audio-reactive particle fields with customizable visual presets.',
+                  gradient: 'Animated colour gradients with adjustable blending, palette and grain.',
+                  glitch: 'Animated procedural fields with Floyd–Steinberg, ordered and stochastic dithering.',
+                  fluted: 'Six refractive glass treatments driven by audio.'
+                };
+                const heading = page.locator('#kefeVisualiserHeading');
+                const description = page.locator('#kefeVisualiserDescription');
+                assert.equal((await heading.textContent()).trim(), expectedTitles[id],
                   label + ': selected visualiser heading must match its title: ' + id);
-                const power = intro.locator('.kefe-switch');
+                assert.equal((await description.textContent()).trim(), expectedDescriptions[id],
+                  label + ': selected visualiser description must match its selected visualiser: ' + id);
+                const power = page.locator('.kefe-visualiser-panel-head .kefe-switch');
                 assert.equal(await power.count(), 1, label + ': selected visualiser toggle must sit beside its description: ' + id);
                 assert.equal(await submenu.locator('[data-visualiser="' + id + '"]').locator('xpath=..').locator('.kefe-switch').count(), 0,
                   label + ': power toggle must not remain beside the tab icon: ' + id);
                 const initialPower = await power.getAttribute('aria-checked');
                 await power.click();
-                await page.waitForFunction(({ viewId, initialPower }) => {
-                  const button = document.querySelector('#' + viewId + ' .kefe-visualiser-intro .kefe-switch');
+                await page.waitForFunction(({ initialPower }) => {
+                  const button = document.querySelector('.kefe-visualiser-panel-head .kefe-switch');
                   return button && button.getAttribute('aria-checked') === String(initialPower !== 'true');
-                }, { viewId: viewIds[id], initialPower });
+                }, { initialPower });
                 if (id === 'glitch') {
                   await page.waitForFunction(({ enabled }) => window.kefeDithrDiagnostics()?.enabled === enabled, { enabled: initialPower !== 'true' });
                 }
                 await power.click();
-                await page.waitForFunction(({ viewId, initialPower }) => {
-                  const button = document.querySelector('#' + viewId + ' .kefe-visualiser-intro .kefe-switch');
+                await page.waitForFunction(({ initialPower }) => {
+                  const button = document.querySelector('.kefe-visualiser-panel-head .kefe-switch');
                   return button && button.getAttribute('aria-checked') === initialPower;
-                }, { viewId: viewIds[id], initialPower });
+                }, { initialPower });
                 if (id === 'glitch') {
                   await page.waitForFunction(() => typeof window.kefeDithrDiagnostics === 'function');
                   assert.equal(await page.locator('#dithrPatterns [data-pattern]').count(), 10, label + ': Dithr must expose all ten pattern presets');
