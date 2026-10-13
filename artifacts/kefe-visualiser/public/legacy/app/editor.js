@@ -1442,14 +1442,7 @@
     updateTitleCard();syncAppleLyricsMetadata();
     queueMicrotask(()=>{e.target.value='';});
   });
-  function updatePlayButton(){
-    const button=document.getElementById('playButton');
-    if(!button)return;
-    const playing=!!audio.src&&!audio.paused;
-    button.setAttribute('aria-label',playing?'Pause':'Play');
-    button.setAttribute('title',playing?'Pause':'Play');
-    button.innerHTML=playing?'<svg class="kefe-pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>':'<svg class="kefe-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg>';
-  }
+
   // Keep the earlier async play handler; it resumes suspended audio and reports playback errors.
   function syncAppleLyricsMetadata(){
     if(!appleLyrics||!appleLyricsReady)return;
