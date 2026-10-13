@@ -264,15 +264,28 @@ jobs:
                   throw new Error(`Visualiser engine tabs were not created at ${width}px. Browser errors: ${JSON.stringify(pageErrors)}; console errors: ${JSON.stringify(pageConsoleErrors)}`);
                 });
                 const tabsLayout = await tabsElement.evaluate(el => ({
-                  columns: getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length,
+                  tabCount: el.querySelectorAll('[role="tab"]').length,
+                  direction: getComputedStyle(el).flexDirection,
                   position: getComputedStyle(el).position,
                   width: el.getBoundingClientRect().width,
                   containerWidth: el.closest('.kefe-editing').getBoundingClientRect().width
                 }));
-                assert.equal(tabsLayout.columns, 4, `Visualiser engine tabs must keep all four choices in one row at ${width}px; got ${tabsLayout.columns}`);
+                assert.equal(tabsLayout.tabCount, 4, `Visualiser engine tabs must expose all four choices at ${width}px; got ${tabsLayout.tabCount}`);
+                assert.equal(tabsLayout.direction, 'row', `Visualiser engine tabs must stay horizontal at ${width}px`);
+                const iconTabs = await tabsElement.locator('[role="tab"]').evaluateAll(nodes => nodes.map(node => ({
+                  visualiser: node.dataset.visualiser,
+                  icon: node.dataset.icon,
+                  label: node.getAttribute('aria-label'),
+                  text: node.textContent.trim()
+                })));
+                for (const tab of iconTabs) {
+                  assert.ok(tab.icon, `Visualiser ${tab.visualiser} must have an icon`);
+                  assert.ok(tab.label, `Visualiser ${tab.visualiser} must retain an accessible label`);
+                  assert.equal(tab.text, '', `Visualiser ${tab.visualiser} must not show its name as visible text`);
+                }
                 assert.notEqual(tabsLayout.position, 'static', `Visualiser tabs must retain an explicit layout position at ${width}px`);
                 assert.ok(tabsLayout.width >= tabsLayout.containerWidth * 0.9, `Visualiser engine tabs must span the editing container at ${width}px`);
-                const gradientTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /^Gradient$/i }).first();
+                const gradientTab = page.locator('.kefe-vis-tabs button[data-visualiser="gradient"]').first();
                 await gradientTab.waitFor({ state: 'visible' });
                 await assertOnlyVisualiserViewVisible('kefeVisGradientView', 'Gradient default');
                 assert.equal(await page.locator('.kefe-vis-tabs [aria-selected="true"]').getAttribute('data-visualiser'), 'gradient',
@@ -284,11 +297,20 @@ jobs:
                 assert.ok(Math.abs(await tabsElement.evaluate(el => el.getBoundingClientRect().top) - tabsTop) < 1,
                   `Visualiser tabs must stay fixed while the settings panel scrolls at ${width}px`);
 
-                await page.locator('.kefe-vis-tabs button').filter({ hasText: /^Particles$/i }).click();
+                await page.locator('.kefe-vis-tabs button[data-visualiser="particles"]').click();
                 await page.locator('#kefeVisParticlesView:not([hidden])').waitFor();
                 const particlesDisplay = await page.locator('#kefeVisParticlesView').evaluate(el => getComputedStyle(el).display);
                 assert.equal(particlesDisplay, 'contents', `Particles view must flatten into the two-column form at ${width}px; got ${particlesDisplay}`);
                 await assertOnlyVisualiserViewVisible('kefeVisParticlesView', 'Particles');
+                const presetLayout = await page.locator('#visualiserPresetGrid').evaluate(el => ({
+                  direction: getComputedStyle(el).flexDirection,
+                  wrap: getComputedStyle(el).flexWrap,
+                  overflowX: getComputedStyle(el).overflowX,
+                  visible: !!el.getClientRects().length && getComputedStyle(el).display !== 'none'
+                }));
+                assert.equal(presetLayout.direction, 'row', 'Preset options must be arranged horizontally');
+                assert.equal(presetLayout.wrap, 'nowrap', 'Preset options must remain on one horizontal row');
+                assert.equal(presetLayout.overflowX, 'auto', 'Preset row must scroll horizontally when needed');
                 const particleToggleDisplay = await page.locator('#kefeVisParticlesView .kefe-visualiser-spin-row').first().evaluate(el => getComputedStyle(el).display);
                 assert.equal(particleToggleDisplay, 'contents', `Particles toggle labels and switches must flatten into the two-column form at ${width}px`);
 
@@ -305,7 +327,7 @@ jobs:
                   await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-gradient.png`, fullPage: false, timeout: 15000 });
                 }
 
-                const glitchTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /^Glitch$/i }).first();
+                const glitchTab = page.locator('.kefe-vis-tabs button[data-visualiser="glitch"]').first();
                 if (await glitchTab.count()) {
                   // Switching to the Glitch preset rebuilds the renderer; allow this one
                   // expensive transition more time than ordinary control clicks.
@@ -319,7 +341,7 @@ jobs:
                   await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-glitch.png`, fullPage: false, timeout: 15000 });
                 }
 
-                const flutedTab = page.locator('.kefe-vis-tabs button').filter({ hasText: /Fluted Glass/i }).first();
+                const flutedTab = page.locator('.kefe-vis-tabs button[data-visualiser="fluted"]').first();
                 if (await flutedTab.count()) {
                   await flutedTab.click();
                   await page.locator('#kefeVisFlutedView:not([hidden])').waitFor();
