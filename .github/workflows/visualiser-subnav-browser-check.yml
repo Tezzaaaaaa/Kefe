@@ -72,15 +72,19 @@ jobs:
                 const nav = document.querySelector('.kefe-tabs').getBoundingClientRect();
                 const row = document.querySelector('.kefe-editing > .kefe-vis-tabs');
                 const rr = row.getBoundingClientRect();
+                const preset = document.querySelector('.kefe-editing > .kefe-visualiser-preset-row').getBoundingClientRect();
                 const panel = document.querySelector('.kefe-panels').getBoundingClientRect();
                 const buttons = [...row.querySelectorAll('[role="tab"]')].map(b => {
                   const r = b.getBoundingClientRect();
                   return { id: b.dataset.visualiser, left: r.left, right: r.right, top: r.top, width: r.width };
                 });
-                return { navBottom: nav.bottom, rowTop: rr.top, rowBottom: rr.bottom, panelsTop: panel.top, buttons };
+                return { navBottom: nav.bottom, rowLeft: rr.left, rowRight: rr.right, rowTop: rr.top, rowBottom: rr.bottom, presetLeft: preset.left, presetRight: preset.right, panelsTop: panel.top, buttons };
               });
               assert.ok(layout.rowTop >= layout.navBottom - 1, label + ': submenu must sit underneath editor navigation');
               assert.ok(layout.rowBottom <= layout.panelsTop + 1, label + ': settings panel must start below the submenu');
+              assert.ok(Math.abs(layout.rowLeft - layout.presetLeft) < 2 && Math.abs(layout.rowRight - layout.presetRight) < 2,
+                label + ': visualiser options and presets must share the same full-width grid alignment');
+              assert.ok(layout.rowRight - layout.rowLeft > 500, label + ': visualiser options must not be confined to the narrow sidebar column');
               assert.deepEqual(layout.buttons.map(b => b.id), order, label + ': four tabs must appear in the expected order');
               assert.ok(layout.buttons.every(b => b.width > 0 && Math.abs(b.top - layout.buttons[0].top) < 2), label + ': all four tabs must occupy one horizontal row');
               assert.ok(layout.buttons.every((b, i) => i === 0 || b.left > layout.buttons[i - 1].left), label + ': tabs must be arranged horizontally');
@@ -120,12 +124,15 @@ jobs:
               });
               const mobile = await submenu.evaluate(row => {
                 const r = row.getBoundingClientRect();
-                return { row: { left: r.left, right: r.right, top: r.top, bottom: r.bottom }, buttons: [...row.querySelectorAll('[role="tab"]')].map(b => {
+                const preset = document.querySelector('.kefe-editing > .kefe-visualiser-preset-row').getBoundingClientRect();
+                return { row: { left: r.left, right: r.right, top: r.top, bottom: r.bottom }, preset: { left: preset.left, right: preset.right }, buttons: [...row.querySelectorAll('[role="tab"]')].map(b => {
                   const x = b.getBoundingClientRect();
                   return { id: b.dataset.visualiser, left: x.left, right: x.right, top: x.top, width: x.width };
                 }) };
               });
               assert.equal(mobile.buttons.length, 4, label + ': mobile must retain all four visualiser choices');
+              assert.ok(Math.abs(mobile.row.left - mobile.preset.left) < 2 && Math.abs(mobile.row.right - mobile.preset.right) < 2,
+                label + ': mobile options and presets must share the same horizontal alignment');
               assert.ok(mobile.buttons.every(b => b.width > 0 && Math.abs(b.top - mobile.buttons[0].top) < 2), label + ': mobile visualiser choices must remain on one row');
               assert.ok(mobile.buttons.every((b, i) => i === 0 || b.left > mobile.buttons[i - 1].left), label + ': mobile choices must remain horizontally ordered');
               console.log(JSON.stringify({ result: 'PASS', label, mobile }, null, 2));
@@ -150,7 +157,7 @@ jobs:
       - name: Wait for GitHub Pages to publish this change
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
-          expected_marker='app/visualiser/gradient.js?v=visualiser-layout-spacing-20261014-1'
+          expected_marker='app/ui/compact-controls.css?v=visualiser-grid-span-20261014-2'
           for attempt in $(seq 1 48); do
             if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
               echo "Expected visualiser submenu assets are published: $expected_marker"
