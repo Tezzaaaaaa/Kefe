@@ -285,6 +285,7 @@
     var particlePresetSet=el('div','kefe-visualiser-preset-set');particlePresetSet.id='kefeParticlePresetSet';
     var gradientPresetSet=el('div','kefe-visualiser-preset-set');gradientPresetSet.id='kefeGradientPresetSet';gradientPresetSet.hidden=true;
     var flutedPresetSet=el('div','kefe-visualiser-preset-set');flutedPresetSet.id='kefeFlutedPresetSet';flutedPresetSet.hidden=true;
+    var dithrPresetSet=el('div','kefe-visualiser-preset-set');dithrPresetSet.id='kefeDithrPresetSet';dithrPresetSet.hidden=true;
     var presetWrap=el('div','kefe-preset-select-wrap');
     var gridWrap=el('div','kefe-preset-grid-wrap');
     function attachParticlePresetControls(){
@@ -305,7 +306,7 @@
       if(gridWrap.children.length&&gridWrap.parentElement!==particlePresetSet)particlePresetSet.appendChild(gridWrap);
     }
     attachParticlePresetControls();
-    presetRow.appendChild(particlePresetSet);presetRow.appendChild(gradientPresetSet);presetRow.appendChild(flutedPresetSet);
+    presetRow.appendChild(particlePresetSet);presetRow.appendChild(gradientPresetSet);presetRow.appendChild(flutedPresetSet);presetRow.appendChild(dithrPresetSet);
     var paramsGroup=document.getElementById('visualiserParameters')?.closest('.kefe-visualiser-control-group');
     function show(which){
       attachParticlePresetControls();
@@ -329,7 +330,8 @@
       particlePresetSet.hidden=which!=='particles';
       gradientPresetSet.hidden=which!=='gradient';
       flutedPresetSet.hidden=which!=='fluted';
-      presetRow.hidden=isGlitch;
+      dithrPresetSet.hidden=which!=='glitch';
+      presetRow.hidden=false;
       if(randomButton)randomButton.style.display=isGlitch?'none':'';
       if(!isGlitch&&paramsGroup)particles.appendChild(paramsGroup);
       syncAll();
