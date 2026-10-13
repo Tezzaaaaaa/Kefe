@@ -567,20 +567,26 @@
   function setEffect(id){
     state.effect=id;
     if(appleLyrics){if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();}else appleLyrics.style.display='none';}
-    document.querySelectorAll('.kefe-card').forEach(b=>b.classList.toggle('active',b.dataset.effect===id));
+    document.querySelectorAll('.kefe-lyric-effect-option').forEach(b=>{const active=b.dataset.effect===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
     document.getElementById('fontMeta').textContent='Locked effect font · '+(c.weight||400)+' weight';
     draw();
     return true;
   }
-  const lyricEffectSelect=document.getElementById('lyricEffect');
-  {const off=document.createElement('option');off.value='none';off.textContent='Off (no lyrics)';lyricEffectSelect.appendChild(off);}
-  effectDefinitions.forEach(([id,label])=>{
-    const o=document.createElement('option');
-    o.value=id;o.textContent=label;
-    lyricEffectSelect.appendChild(o);
-  });
+  const lyricEffectOptions=document.getElementById('lyricEffectOptions');
+  function addLyricEffectOption(id,label){
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='kefe-lyric-effect-option';
+    button.dataset.effect=id;
+    button.textContent=label;
+    button.setAttribute('aria-pressed','false');
+    button.addEventListener('click',()=>setEffect(id));
+    lyricEffectOptions.appendChild(button);
+  }
+  addLyricEffectOption('none','Off (no lyrics)');
+  effectDefinitions.forEach(([id,label])=>addLyricEffectOption(id,label));
 
   const kefeBrand=document.querySelector('.kefe-brand');
   let kefeBrandClickTimer=null;
@@ -1339,7 +1345,7 @@
   songYear.addEventListener('input',()=>{manuallyEditedTrackFields.add('year');updateTitleCard();});
   lyricsInput.addEventListener('input',parseLyrics);
   fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
-  lyricEffectSelect.addEventListener('change',()=>setEffect(lyricEffectSelect.value));
+
   const uploadZone=document.getElementById('kefeUploadZone');
   const mediaInput=document.getElementById('mediaInput');
   if(uploadZone&&mediaInput){
