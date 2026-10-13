@@ -746,11 +746,6 @@ body{ letter-spacing: -.01em;
   font-family: inherit;}
   .kefe-brand { width: 31px; }
   .kefe-timeline { grid-template-columns: 34px 58px minmax(0, 1fr) 58px; gap: 5px; padding: 6px; }
-  .kefe-time { width: 58px; min-width: 58px; font-size: var(--font-xs); 
-  font-family: inherit;
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);}
-  .kefe-aspect-controls { width: 58px; min-width: 58px; }
   .kefe-aspect-select { padding-right: 15px; font-size: var(--font-sm); 
   font-family: inherit;
   color: var(--text);}
