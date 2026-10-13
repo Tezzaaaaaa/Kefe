@@ -273,7 +273,7 @@ jobs:
       - name: Wait for GitHub Pages to publish this change
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
-          expected_marker='app/visualiser/dithr.js?v=dithr-20261014-2'
+          expected_marker='app/visualiser/gradient.js?v=visualiser-description-toggle-20261014-2'
           for attempt in $(seq 1 48); do
             if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
               echo "Expected visualiser submenu assets are published: $expected_marker"
