@@ -130,7 +130,7 @@ jobs:
                   return button && button.getAttribute('aria-checked') === String(initialPower !== 'true');
                 }, { viewId: viewIds[id], initialPower });
                 if (id === 'glitch') {
-                  await page.waitForFunction(() => window.kefeDithrDiagnostics()?.enabled === (initialPower !== 'true'));
+                  await page.waitForFunction(({ enabled }) => window.kefeDithrDiagnostics()?.enabled === enabled, { enabled: initialPower !== 'true' });
                 }
                 await power.click();
                 await page.waitForFunction(({ viewId, initialPower }) => {
