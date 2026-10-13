@@ -2101,3 +2101,41 @@
   .kefe-editing > .kefe-visualiser-preset-row { width: calc(100% - 20px); }
   .kefe-visualiser-preset-set { gap: 6px; }
 }
+
+
+/* Keep each visualiser's independent power switch in the top-right of its option. */
+.kefe-vis-tabs > .kefe-vis-option {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  align-items: stretch;
+}
+.kefe-vis-option > [role="tab"] {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 24px 4px 4px;
+}
+.kefe-vis-option > .kefe-vis-option-power {
+  position: absolute;
+  z-index: 2;
+  top: 2px;
+  right: 2px;
+  min-height: 19px;
+  height: 19px;
+  padding: 0 4px;
+  gap: 3px;
+  border-radius: 6px;
+  font-size: 10px;
+  line-height: 1;
+}
+.kefe-vis-option-power .kefe-switch-track { width: 22px; height: 12px; }
+.kefe-vis-option-power .kefe-switch-thumb { width: 8px; height: 8px; }
+.kefe-vis-option-power.is-on .kefe-switch-thumb { transform: translateX(10px); }
+@media (max-width: 700px) {
+  .kefe-vis-tabs > .kefe-vis-option { min-height: 42px; }
+  .kefe-vis-option > [role="tab"] { padding: 24px 1px 3px; }
+  .kefe-vis-option > .kefe-vis-option-power { top: 1px; right: 1px; }
+}
