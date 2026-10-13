@@ -124,7 +124,7 @@ jobs:
                     const set = document.getElementById(presetSetId);
                     const selector = id === 'particles' ? '#visualiserPresetGrid' : id === 'gradient' ? '.kefe-gradient-palettes' : '#flutedModes';
                     const el = set && set.querySelector(selector);
-                    if (!el) return null;
+                    if (!el) return { missing: true, setHtml: set?.outerHTML || null, liveGridHtml: document.querySelector('#visualiserPresetGrid')?.outerHTML || null };
                     const style = getComputedStyle(el);
                     const children = [...el.children].filter(child => child.getBoundingClientRect().width > 0);
                     const rects = children.map(child => child.getBoundingClientRect());
@@ -137,9 +137,7 @@ jobs:
                       clientWidth: el.clientWidth
                     };
                   }, { id, presetSetId: presetSetIds[id] });
-                  assert.ok(strip, label + ': selected visualiser must have a preset strip: ' + id +
-                    '; set=' + (document.querySelector('#' + presetSetId)?.outerHTML || 'missing') +
-                    '; liveGrid=' + (document.querySelector('#visualiserPresetGrid')?.outerHTML || 'missing'));
+                  assert.ok(strip && !strip.missing, label + ': selected visualiser must have a preset strip: ' + id + ' ' + JSON.stringify(strip));
                   assert.equal(strip.display, 'flex', label + ': preset strip must use horizontal flex layout: ' + id);
                   assert.equal(strip.flexWrap, 'nowrap', label + ': preset choices must stay in one horizontal row: ' + id);
                   assert.ok(strip.count >= 2, label + ': preset strip must contain its real preset choices: ' + id);
