@@ -2141,8 +2141,9 @@
   width: 72px;
   min-width: 72px;
 }
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluted-modes {
+.kefe-editing > .kefe-visualiser-preset-row #flutedModes {
   display: flex;
+  grid-template-columns: none;
   flex: 1 1 auto;
   flex-wrap: nowrap;
   align-items: center;
