@@ -110,6 +110,33 @@ jobs:
                 }));
                 assert.equal(selection.selected, id, label + ': selected tab must be highlighted: ' + id);
                 assert.deepEqual(selection.visibleViews, [viewIds[id]], label + ': only selected visualiser settings should be visible: ' + id);
+                const expectedTitles = {
+                  particles: 'Particle Visualiser',
+                  gradient: 'Gradient Visualiser',
+                  glitch: 'Dithr Visualiser',
+                  fluted: 'Fluted Glass Visualiser'
+                };
+                const intro = page.locator('#' + viewIds[id] + ' .kefe-visualiser-intro');
+                assert.equal((await intro.locator('strong').textContent()).trim(), expectedTitles[id],
+                  label + ': selected visualiser heading must match its title: ' + id);
+                const power = intro.locator('.kefe-switch');
+                assert.equal(await power.count(), 1, label + ': selected visualiser toggle must sit beside its description: ' + id);
+                assert.equal(await submenu.locator('[data-visualiser="' + id + '"]').locator('xpath=..').locator('.kefe-switch').count(), 0,
+                  label + ': power toggle must not remain beside the tab icon: ' + id);
+                const initialPower = await power.getAttribute('aria-checked');
+                await power.click();
+                await page.waitForFunction(({ viewId, initialPower }) => {
+                  const button = document.querySelector('#' + viewId + ' .kefe-visualiser-intro .kefe-switch');
+                  return button && button.getAttribute('aria-checked') === String(initialPower !== 'true');
+                }, { viewId: viewIds[id], initialPower });
+                if (id === 'glitch') {
+                  await page.waitForFunction(() => window.kefeDithrDiagnostics()?.enabled === (initialPower !== 'true'));
+                }
+                await power.click();
+                await page.waitForFunction(({ viewId, initialPower }) => {
+                  const button = document.querySelector('#' + viewId + ' .kefe-visualiser-intro .kefe-switch');
+                  return button && button.getAttribute('aria-checked') === initialPower;
+                }, { viewId: viewIds[id], initialPower });
                 if (id === 'glitch') {
                   await page.waitForFunction(() => typeof window.kefeDithrDiagnostics === 'function');
                   assert.equal(await page.locator('#dithrPatterns [data-pattern]').count(), 10, label + ': Dithr must expose all ten pattern presets');
@@ -119,13 +146,7 @@ jobs:
                   assert.equal(await page.locator('.kefe-dithr-toolbar button').count() >= 3, true, label + ': Dithr dithering modes must be available');
                   await page.locator('#dithrPatterns [data-pattern="cellular"]').click();
                   assert.equal((await page.evaluate(() => window.kefeDithrDiagnostics())).pattern, 'cellular', label + ': selecting a pattern must update the renderer');
-                  const power = submenu.locator('[data-visualiser="glitch"]').locator('xpath=..').locator('.kefe-switch');
-                  await power.click();
-                  await page.waitForFunction(() => window.kefeDithrDiagnostics()?.enabled === true);
-                  assert.equal(await page.locator('#kefeDithrCanvas').evaluate(el => getComputedStyle(el).visibility), 'visible', label + ': enabled Dithr canvas must be visible');
-                  await power.click();
-                  await page.waitForFunction(() => window.kefeDithrDiagnostics()?.enabled === false);
-                  assert.equal(await page.locator('#kefeDithrCanvas').evaluate(el => getComputedStyle(el).visibility), 'hidden', label + ': disabled Dithr canvas must be hidden');
+                  assert.equal(await page.locator('#kefeDithrCanvas').evaluate(el => getComputedStyle(el).visibility), 'hidden', label + ': disabled Dithr canvas must be hidden after the intro toggle is restored');
                 }
                 const presetState = await page.evaluate(({ id, presetSetId }) => ({
                   rowVisible: (() => { const row = document.querySelector('.kefe-editing > .kefe-visualiser-preset-row'); return !!row && !row.hidden && getComputedStyle(row).display !== 'none' && row.getBoundingClientRect().height > 0; })(),
