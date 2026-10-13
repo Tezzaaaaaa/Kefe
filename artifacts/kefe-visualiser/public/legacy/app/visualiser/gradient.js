@@ -279,10 +279,6 @@
       item[0].setAttribute('role','tab');item[0].dataset.visualiser=item[1];item[0].dataset.icon=item[4];item[0].setAttribute('aria-controls',item[2]);item[0].setAttribute('aria-label',item[3]);item[0].title=item[3];item[0].textContent='';
     });
     var promptWrap=document.getElementById('visualiserPrompt')?.parentElement?.parentElement;
-    var presetSelect=document.getElementById('visualiserPreset');
-    var presetGrid=document.getElementById('visualiserPresetGrid');
-    var presetSelectParent=presetSelect?.parentElement;
-    var presetGridParent=presetGrid?.parentElement;
     var randomButton=document.getElementById('visualiserRandom');
     var presetRow=el('div','kefe-visualiser-preset-row');presetRow.id='kefeVisualiserPresetRow';
     var particlePresetSet=el('div','kefe-visualiser-preset-set');particlePresetSet.id='kefeParticlePresetSet';
