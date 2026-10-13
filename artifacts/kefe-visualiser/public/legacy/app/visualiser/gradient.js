@@ -339,7 +339,7 @@
         visualiserDescription.textContent=headerCopy[1];
       }
       var selectedPower=which==='particles'?particlePower:which==='gradient'?gradientPowerButton:glitchPower;
-      if(selectedPower&&visualiserPanelHead)visualiserPanelHead.appendChild(selectedPower);
+      if(visualiserPanelHead){visualiserPanelHead.querySelectorAll('.kefe-switch').forEach(function(power){power.remove();});if(selectedPower)visualiserPanelHead.appendChild(selectedPower);}
       if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();else{var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.visibility=window.kefeVisualiserEnabled?'':'hidden';}
       if(promptWrap)promptWrap.style.display=isGlitch?'none':'';
       particlePresetSet.hidden=which!=='particles';
