@@ -116,7 +116,7 @@ jobs:
                 assert.deepEqual(selection.visibleViews, [viewIds[id]], label + ': only selected visualiser settings should be visible: ' + id);
                 const expectedTitles = {
                   particles: 'Particle Visualiser',
-                  gradient: 'Gradient Visualiser',
+                  gradient: 'Liquid Flow Visualiser',
                   glitch: 'Dithr Visualiser',
                   fluted: 'Fluted Glass Visualiser'
                 };
