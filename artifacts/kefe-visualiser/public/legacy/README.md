@@ -14,13 +14,14 @@ KEFE is in active development. The current editor includes:
 - Audio and video media input
 - 16:9, 9:16 and 1:1 preview modes
 - Preview playback, scrubbing and fullscreen
-- 29 lyric effects with effect-specific controls
+- 32 lyric effects with effect-specific controls
 - Apple Music-style lyric rendering
 - Album artwork, automatic song details and title-card rendering
 - Title card integrated into the lyric canvas for preview/export
-- Particles Swarm as the default 3D visualiser
+- Particles Swarm 3D visualiser, disabled until enabled
 - Visualiser preset selection, preset grid, randomisation and prompt generation
 - Visualiser particle count, speed, auto-spin and preset-specific parameters
+- Liquid Flow, Dithr and Fluted Glass visualiser panels
 - Background-effect controls
 - Export controls
 - Responsive mobile-friendly editor structure
@@ -49,7 +50,7 @@ app/
 ├── brand/          # KEFE logos, wordmark and favicon
 ├── effects/        # Lyric-effect manifest, shared core and renderers
 ├── lyrics/         # lyric-model.js (timing data, LRC/SRT/JSON) and lyric-studio.js (display modes, timing editor, downloads)
-├── visualiser/     # Particles Swarm visualiser, backgrounds, gradient layer, audio overlays
+├── visualiser/     # Particles Swarm, Liquid Flow, Dithr, Fluted Glass, backgrounds and audio overlays
 └── ui/             # Editor structure, styles, typography and the lyric style layer
 ```
 
