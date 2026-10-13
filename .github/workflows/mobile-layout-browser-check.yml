@@ -291,11 +291,27 @@ jobs:
                 assert.equal(await page.locator('.kefe-vis-tabs [aria-selected="true"]').getAttribute('data-visualiser'), 'gradient',
                   'Gradient must be the default visualiser at ' + width + 'px');
 
-                const tabsTop = await tabsElement.evaluate(el => el.getBoundingClientRect().top);
-                await page.locator('.kefe-panels').evaluate(el => { el.scrollTop = el.scrollHeight; });
+                const documentScroll = await page.evaluate(() => ({
+                  clientHeight: document.documentElement.clientHeight,
+                  scrollHeight: document.documentElement.scrollHeight,
+                  bodyOverflowY: getComputedStyle(document.body).overflowY,
+                  editorHeight: document.querySelector('.kefe-editor').getBoundingClientRect().height,
+                  panelsOverflowY: getComputedStyle(document.querySelector('.kefe-panels')).overflowY
+                }));
+                assert.ok(documentScroll.scrollHeight > documentScroll.clientHeight,
+                  `The whole editor page must extend beyond the viewport and scroll at ${width}px: ${JSON.stringify(documentScroll)}`);
+                assert.equal(documentScroll.bodyOverflowY, 'auto',
+                  `Document scrolling must be enabled at ${width}px`);
+                assert.notEqual(documentScroll.panelsOverflowY, 'auto',
+                  `Editor settings must expand with the page instead of using a nested scroll container at ${width}px`);
+                await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
                 await page.waitForTimeout(80);
-                assert.ok(Math.abs(await tabsElement.evaluate(el => el.getBoundingClientRect().top) - tabsTop) < 1,
-                  `Visualiser tabs must stay fixed while the settings panel scrolls at ${width}px`);
+                const pageScroll = await page.evaluate(() => ({
+                  scrollY: window.scrollY,
+                  maxScroll: document.documentElement.scrollHeight - document.documentElement.clientHeight
+                }));
+                assert.ok(pageScroll.scrollY > 0 && pageScroll.maxScroll > 0,
+                  `The document must actually scroll to the bottom of the editor at ${width}px: ${JSON.stringify(pageScroll)}`);
 
                 await page.locator('.kefe-vis-tabs button[data-visualiser="particles"]').click();
                 await page.locator('#kefeVisParticlesView:not([hidden])').waitFor();
