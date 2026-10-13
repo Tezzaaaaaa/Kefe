@@ -2304,7 +2304,7 @@
   align-items: center;
   overflow: hidden;
 }
-.kefe-gradient-preset-strip .kefe-gradient-palettes {
+.kefe-panel[data-panel-view="visualiser"] .kefe-gradient-preset-strip .kefe-gradient-palettes {
   display: flex;
   flex: 1 1 auto;
   flex-wrap: nowrap;
