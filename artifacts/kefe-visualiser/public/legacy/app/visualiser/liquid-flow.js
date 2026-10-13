@@ -65,7 +65,6 @@
     var wrap=document.createElement('div');wrap.className='kefe-liquid-flow-controls';
     var presetRow=document.createElement('div');presetRow.className='kefe-liquid-presets';
     [['silk','Silk','Smooth · flowing · iridescent'],['chrome','Chrome','Sharp glass · metallic highlights'],['nebula','Nebula','Dreamy · huge · warm'],['pulse','Pulse','Fast · punchy · colour flashing']].forEach(function(p){var b=document.createElement('button');b.type='button';b.className='kefe-btn';b.dataset.liquidPreset=p[0];b.innerHTML='<strong>'+p[1]+'</strong><small>'+p[2]+'</small>';b.addEventListener('click',function(){setPreset(p[0]);});presetRow.appendChild(b);});wrap.appendChild(presetRow);
-    var pal=document.createElement('div');pal.className='kefe-liquid-palettes';palettes.forEach(function(p,i){var b=document.createElement('button');b.type='button';b.title=p.name;b.setAttribute('aria-label',p.name+' palette');b.style.background='linear-gradient(90deg,'+p.c.join(',')+')';b.className='kefe-liquid-swatch';b.addEventListener('click',function(){paletteIndex=i;pal.querySelectorAll('button').forEach(function(x,j){x.classList.toggle('selected',j===i);});});pal.appendChild(b);});wrap.appendChild(pal);
     function addSliders(parent,defs){defs.forEach(function(d){var row=document.createElement('label');row.className='kefe-visualiser-field';var head=document.createElement('span'),title=document.createElement('b'),out=document.createElement('output'),input=document.createElement('input');title.textContent=d[1];input.type='range';input.min=d[2];input.max=d[3];input.step=d[4];input.dataset.liquidKey=d[0];out.dataset.liquidOut=d[0];head.appendChild(title);head.appendChild(out);input.addEventListener('input',function(){var key=d[0];values[key]=Number(input.value);out.textContent=Number(input.value).toFixed(d[4]<1?2:1);});row.appendChild(head);row.appendChild(input);parent.appendChild(row);});}
     var main=document.createElement('div');main.className='kefe-liquid-main-controls';addSliders(main,sliderDefs);wrap.appendChild(main);
     var advBtn=document.createElement('button');advBtn.type='button';advBtn.className='kefe-btn';advBtn.textContent='Advanced ▾';var adv=document.createElement('div');adv.className='kefe-liquid-advanced';adv.hidden=true;addSliders(adv,advDefs);advBtn.addEventListener('click',function(){advanced=!advanced;adv.hidden=!advanced;advBtn.textContent=advanced?'Advanced ▴':'Advanced ▾';});wrap.appendChild(advBtn);wrap.appendChild(adv);
@@ -80,6 +79,18 @@
     if(old)old.remove();stage.insertBefore(canvas,document.getElementById('kefeCanvas')||null);
     var intro=view.querySelector('.kefe-visualiser-intro');Array.from(view.children).forEach(function(child){if(child!==intro)child.remove();});
     buildControls(view);setPreset('silk');
+    var paletteStrip=document.querySelector('#kefeGradientPresetSet .kefe-gradient-palettes');
+    if(paletteStrip){
+      Array.from(paletteStrip.children).forEach(function(button,i){
+        if(!palettes[i])return;
+        button.style.background='linear-gradient(90deg,'+palettes[i].c.join(',')+')';
+        button.title=palettes[i].name;button.setAttribute('aria-label',palettes[i].name+' palette');
+        button.addEventListener('click',function(){paletteIndex=i;});
+      });
+    }
+    var randomButton=gradientIntro&&gradientIntro.querySelector('button');
+    if(randomButton)randomButton.addEventListener('click',function(){window.kefeGradientLayer.randomize();});
+    if(gradientIntro){var introTitle=gradientIntro.querySelector('strong'),introText=gradientIntro.querySelector('span');if(introTitle)introTitle.textContent='Liquid Flow';if(introText)introText.textContent='Audio-reactive liquid glass presets and controls.'}
     var style=document.createElement('style');style.textContent='.kefe-liquid-flow-controls{display:flex;flex-direction:column;gap:12px;margin-top:12px}.kefe-liquid-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.kefe-liquid-presets button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;min-width:0;height:auto;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);white-space:normal}.kefe-liquid-presets button strong{font-size:13px}.kefe-liquid-presets button small{font-size:11px;line-height:1.3;color:var(--muted)}.kefe-liquid-palettes{display:flex;gap:6px;padding:6px;border:1px solid var(--line-soft);border-radius:10px}.kefe-liquid-swatch{flex:1;min-width:0;height:18px;border:1px solid var(--line);border-radius:5px;padding:0}.kefe-liquid-swatch.selected{outline:2px solid var(--text);outline-offset:1px}.kefe-liquid-main-controls,.kefe-liquid-advanced{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.kefe-liquid-advanced{margin-top:10px}.kefe-liquid-advanced[hidden]{display:none}.kefe-liquid-flow-controls .kefe-btn{max-width:100%}.kefe-liquid-error{padding:10px;color:#a22}@media(max-width:560px){.kefe-liquid-main-controls,.kefe-liquid-advanced{grid-template-columns:minmax(0,1fr)}.kefe-liquid-presets button{padding:8px}.kefe-liquid-presets button small{font-size:10px}}';document.head.appendChild(style);
 
     window.kefeGradientLayer={
