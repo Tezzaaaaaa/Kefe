@@ -132,6 +132,26 @@ jobs:
                   label + ': selected visualiser heading must match its title: ' + id);
                 assert.equal((await description.textContent()).trim(), expectedDescriptions[id],
                   label + ': selected visualiser description must match its selected visualiser: ' + id);
+                if (id === 'gradient') {
+                  await page.waitForFunction(() => !!document.getElementById('kefeLiquidFlowCanvas') &&
+                    document.querySelectorAll('[data-liquid-preset]').length === 4);
+                  assert.equal(await page.locator('.kefe-liquid-error').count(), 0,
+                    label + ': Liquid Flow must initialise without WebGL errors');
+                  const renderer = await page.locator('#kefeLiquidFlowCanvas').evaluate(canvas => {
+                    const gl = canvas.getContext('webgl');
+                    const program = gl && gl.getParameter(gl.CURRENT_PROGRAM);
+                    return !!gl && canvas.width > 0 && canvas.height > 0 &&
+                      !!program && gl.getProgramParameter(program, gl.LINK_STATUS);
+                  });
+                  assert.equal(renderer, true, label + ': Liquid Flow WebGL renderer must be linked and sized');
+                  await page.locator('[data-liquid-preset="chrome"]').click();
+                  assert.equal((await page.evaluate(() => window.kefeGradientLayer.state())).preset, 'chrome',
+                    label + ': Liquid Flow presets must change the active renderer settings');
+                  await page.locator('#kefeGradientPresetSet .kefe-gradient-palettes button[aria-label="Ocean palette"]').click();
+                  assert.equal((await page.evaluate(() => window.kefeGradientLayer.state())).palette, 'Ocean',
+                    label + ': Liquid Flow palette buttons must update the renderer');
+                  await page.locator('[data-liquid-preset="silk"]').click();
+                }
                 const power = page.locator('.kefe-visualiser-panel-head .kefe-switch');
                 assert.equal(await power.count(), 1, label + ': selected visualiser toggle must sit beside its description: ' + id);
                 assert.equal(await submenu.locator('[data-visualiser="' + id + '"]').locator('xpath=..').locator('.kefe-switch').count(), 0,
