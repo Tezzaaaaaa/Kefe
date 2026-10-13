@@ -294,7 +294,7 @@
       var isGradient=which==='gradient',isGlitch=which==='glitch';
       var activeView=which==='gradient'?gradient:which==='glitch'?glitch:particles;
       panel.querySelectorAll('.kefe-vis-view').forEach(function(view){view.hidden=view!==activeView;});
-      tabs.querySelectorAll('button').forEach(function(tab){
+      tabs.querySelectorAll('[role="tab"]').forEach(function(tab){
         var selected=tab.dataset.visualiser===which;
         tab.classList.toggle('primary',selected);
         tab.setAttribute('aria-selected',String(selected));
