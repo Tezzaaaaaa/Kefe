@@ -1443,8 +1443,8 @@ button{border:0;cursor:pointer;
 @media(max-width:520px){.kefe-lyric-effect-grid{gap:6px}.kefe-lyric-effect-option{min-height:38px;padding:8px;font-size:12px}}
 
 /* Effects category layout */
-.kefe-effect-category-tabs{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:4px}
-.kefe-effect-category-tabs .kefe-btn{min-width:0;width:100%}
+.kefe-effect-category-tabs{display:flex;flex-direction:row;align-items:stretch;gap:5px;width:100%;min-width:0;margin:0 0 12px;padding:5px 6px;border-radius:var(--r2);background:var(--bg);overflow-x:auto;overflow-y:hidden}
+.kefe-effect-category-tabs .kefe-btn{flex:1 1 0;min-width:0;width:auto;white-space:nowrap;text-align:center;border-radius:999px;}
 .kefe-effect-category-panel{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:12px;min-width:0}
 .kefe-effect-category-panel[hidden]{display:none}
 .kefe-effect-category-panel>.kefe-lyric-effects-control,.kefe-effect-category-panel>#kefeDisplayGroup,.kefe-effect-category-panel>#kefeStyleGroup,.kefe-effect-category-panel>.kefe-background-effect-control,.kefe-effect-category-panel>div[style*="grid-column: 1 / -1"]{grid-column:1/-1;min-width:0}
@@ -1452,4 +1452,4 @@ button{border:0;cursor:pointer;
 .kefe-lyric-effect-option{grid-column:1/-1;width:100%}
 .kefe-background-effect-options .kefe-lyric-effect-option:disabled{opacity:.45;cursor:not-allowed}
 .kefe-effect-category-panel #visualiserBackground[hidden]{display:none}
-@media(max-width:520px){.kefe-effect-category-tabs,.kefe-effect-category-panel,.kefe-lyric-effect-grid,.kefe-background-effect-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.kefe-effect-category-tabs{display:flex;flex-direction:row}.kefe-effect-category-panel,.kefe-lyric-effect-grid,.kefe-background-effect-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
