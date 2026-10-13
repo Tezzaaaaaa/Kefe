@@ -2328,7 +2328,8 @@ body:not(.kefe-fullscreen-open) {
 .kefe-panels {
   height: auto;
   min-height: 0;
-  overflow: visible;
+  overflow-x: clip;
+  overflow-y: visible;
   overscroll-behavior-y: auto;
 }
 
@@ -2352,7 +2353,8 @@ body:not(.kefe-fullscreen-open) {
 
   .kefe-panels {
     height: auto;
-    overflow: visible;
+    overflow-x: clip;
+    overflow-y: visible;
     -webkit-overflow-scrolling: auto;
     overscroll-behavior-y: auto;
   }
