@@ -109,6 +109,23 @@ jobs:
                 }));
                 assert.equal(selection.selected, id, label + ': selected tab must be highlighted: ' + id);
                 assert.deepEqual(selection.visibleViews, [viewIds[id]], label + ': only selected visualiser settings should be visible: ' + id);
+                if (id === 'glitch') {
+                  await page.waitForFunction(() => typeof window.kefeDithrDiagnostics === 'function');
+                  assert.equal(await page.locator('#dithrPatterns [data-pattern]').count(), 10, label + ': Dithr must expose all ten pattern presets');
+                  for (const control of ['scale','complexity','density','seed','amount','levels','pixel','resIndex','fps']) {
+                    assert.equal(await page.locator('#dithr-' + control).count(), 1, label + ': missing Dithr setting ' + control);
+                  }
+                  assert.equal(await page.locator('.kefe-dithr-toolbar button').count() >= 3, true, label + ': Dithr dithering modes must be available');
+                  await page.locator('#dithrPatterns [data-pattern="cellular"]').click();
+                  assert.equal((await page.evaluate(() => window.kefeDithrDiagnostics())).pattern, 'cellular', label + ': selecting a pattern must update the renderer');
+                  const power = submenu.locator('[data-visualiser="glitch"]').locator('xpath=..').locator('.kefe-switch');
+                  await power.click();
+                  await page.waitForFunction(() => window.kefeDithrDiagnostics()?.enabled === true);
+                  assert.equal(await page.locator('#kefeDithrCanvas').evaluate(el => getComputedStyle(el).visibility), 'visible', label + ': enabled Dithr canvas must be visible');
+                  await power.click();
+                  await page.waitForFunction(() => window.kefeDithrDiagnostics()?.enabled === false);
+                  assert.equal(await page.locator('#kefeDithrCanvas').evaluate(el => getComputedStyle(el).visibility), 'hidden', label + ': disabled Dithr canvas must be hidden');
+                }
                 const presetState = await page.evaluate(({ id, presetSetId }) => ({
                   rowVisible: (() => { const row = document.querySelector('.kefe-editing > .kefe-visualiser-preset-row'); return !!row && !row.hidden && getComputedStyle(row).display !== 'none' && row.getBoundingClientRect().height > 0; })(),
                   visibleSets: [...document.querySelectorAll('.kefe-editing > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set')].filter(set => !set.hidden && getComputedStyle(set).display !== 'none').map(set => set.id),
@@ -226,7 +243,7 @@ jobs:
       - name: Wait for GitHub Pages to publish this change
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
-          expected_marker='app/ui/compact-controls.css?v=editor-page-scroll-fix-20261014-2'
+          expected_marker='app/ui/compact-controls.css?v=editor-page-scroll-fix-20261014-3'
           for attempt in $(seq 1 48); do
             if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
               echo "Expected visualiser submenu assets are published: $expected_marker"
