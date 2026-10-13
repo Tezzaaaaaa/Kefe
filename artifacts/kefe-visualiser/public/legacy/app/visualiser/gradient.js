@@ -249,7 +249,8 @@
     /* wrap existing particle controls so the two engines can be switched */
     var particles=el('div','kefe-vis-view');particles.id='kefeVisParticlesView';
     while(form.firstChild)particles.appendChild(form.firstChild);
-    var particleEnabled=window.kefeVisualiserEnabled!==false;
+    var particleEnabled=window.kefeVisualiserEnabled===true;
+    window.kefeVisualiserEnabled=particleEnabled;
     var glitchEnabled=false;
     var particleToggle=toggle('Particles',function(){return particleEnabled;},function(v){
       particleEnabled=v;
