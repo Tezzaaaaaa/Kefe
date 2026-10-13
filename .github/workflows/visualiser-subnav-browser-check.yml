@@ -120,6 +120,28 @@ jobs:
                 } else {
                   assert.equal(presetState.rowVisible, true, label + ': presets submenu must be visible for ' + id);
                   assert.deepEqual(presetState.visibleSets, [presetState.expectedSet], label + ': only the selected visualiser preset set should be visible: ' + id);
+                  const strip = await page.evaluate(({ id, presetSetId }) => {
+                    const set = document.getElementById(presetSetId);
+                    const selector = id === 'particles' ? '#visualiserPresetGrid' : id === 'gradient' ? '.kefe-gradient-palettes' : '#flutedModes';
+                    const el = set && set.querySelector(selector);
+                    if (!el) return null;
+                    const style = getComputedStyle(el);
+                    const children = [...el.children].filter(child => child.getBoundingClientRect().width > 0);
+                    const rects = children.map(child => child.getBoundingClientRect());
+                    return {
+                      display: style.display,
+                      flexWrap: style.flexWrap,
+                      count: children.length,
+                      oneRow: rects.length > 0 && rects.every(r => Math.abs(r.top - rects[0].top) < 3),
+                      scrollWidth: el.scrollWidth,
+                      clientWidth: el.clientWidth
+                    };
+                  }, { id, presetSetId: presetSetIds[id] });
+                  assert.ok(strip, label + ': selected visualiser must have a preset strip: ' + id);
+                  assert.equal(strip.display, 'flex', label + ': preset strip must use horizontal flex layout: ' + id);
+                  assert.equal(strip.flexWrap, 'nowrap', label + ': preset choices must stay in one horizontal row: ' + id);
+                  assert.ok(strip.count >= 2, label + ': preset strip must contain its real preset choices: ' + id);
+                  assert.equal(strip.oneRow, true, label + ': preset choices must not stack into columns: ' + id);
                 }
               }
 
