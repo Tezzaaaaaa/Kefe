@@ -133,10 +133,13 @@ jobs:
                 assert.equal((await description.textContent()).trim(), expectedDescriptions[id],
                   label + ': selected visualiser description must match its selected visualiser: ' + id);
                 if (id === 'gradient') {
-                  await page.waitForFunction(() => !!document.getElementById('kefeLiquidFlowCanvas') &&
-                    document.querySelectorAll('[data-liquid-preset]').length === 4);
+                  await page.waitForFunction(() => !!document.getElementById('kefeLiquidFlowCanvas') ||
+                    !!document.querySelector('.kefe-liquid-error'));
+                  const liquidError = await page.locator('.kefe-liquid-error').textContent().catch(() => '');
                   assert.equal(await page.locator('.kefe-liquid-error').count(), 0,
-                    label + ': Liquid Flow must initialise without WebGL errors');
+                    label + ': Liquid Flow must initialise without WebGL errors: ' + liquidError);
+                  assert.equal(await page.locator('[data-liquid-preset]').count(), 4,
+                    label + ': Liquid Flow must expose all four presets');
                   const renderer = await page.locator('#kefeLiquidFlowCanvas').evaluate(canvas => {
                     const gl = canvas.getContext('webgl');
                     const program = gl && gl.getParameter(gl.CURRENT_PROGRAM);
