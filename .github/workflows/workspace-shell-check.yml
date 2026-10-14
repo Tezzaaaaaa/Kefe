@@ -33,7 +33,7 @@ jobs:
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
           for attempt in $(seq 1 48); do
-            if curl --fail --silent "$live_url" -o /tmp/kefe-live-editor.html 2>/dev/null && grep -Fq 'workspace-shell.css?v=unified-workspace-20261014-5' /tmp/kefe-live-editor.html; then
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-editor.html 2>/dev/null && grep -Fq 'workspace-shell.css?v=unified-workspace-20261014-6' /tmp/kefe-live-editor.html; then
               echo 'Published editor contains the unified workspace shell.'
               exit 0
             fi
