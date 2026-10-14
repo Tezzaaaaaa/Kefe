@@ -145,7 +145,8 @@ function appleDrawWord(ctx, token, tm, x, y, fs, time, sungColor, dimA, P, shado
     const raw = linaClamp((time - Number(tm.time)) / dur);
     // Keep the sweep tied to the real word timestamps: short words move quickly,
     // sustained words naturally hold the torch for their full sung duration.
-    const progress = raw * 0.72 + linaSmooth(raw) * 0.28;
+    // Ease the torch smoothly across each word while preserving its real timing.
+    const progress = raw * 0.45 + linaSmoother(raw) * 0.55;
     const edge = linaClamp(0.18 + dur * 0.08, 0.18, 0.30);
     const front = progress * (1 + edge);
     const trail = front - edge;
@@ -161,11 +162,11 @@ function appleDrawWord(ctx, token, tm, x, y, fs, time, sungColor, dimA, P, shado
         const wd = Math.max(0.001, b - a), xc = (a + b) / 2;
         const arrival = tm.time + dur * (xc / (1 + edge));
         const sinceArrival = time - arrival;
-        // Each letter rises as the torch reaches it, holds briefly, then settles;
-        // every phase scales with this word's actual duration.
-        const rise = linaSmooth((sinceArrival + radius) / radius);
-        const settle = sinceArrival <= hold ? 1 : 1 - linaSmooth((sinceArrival - hold) / release);
-        const lift = Math.round(amp * rise * linaClamp(settle) * 500) / 500;
+        // Each letter forms its own smooth, staggered lift pulse as the highlight
+        // passes: eased rise, short hold, then eased return, without quantized steps.
+        const rise = linaSmoother((sinceArrival + radius) / radius);
+        const settle = 1 - linaSmoother((sinceArrival - hold) / release);
+        const lift = amp * rise * linaClamp(settle);
         const p1 = (trail - a) / wd, p2 = (front - a) / wd;
         ctx.save();
         if (lift > 0.002) {
