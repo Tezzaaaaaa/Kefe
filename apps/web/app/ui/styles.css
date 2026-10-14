@@ -20,9 +20,9 @@
   --lift: 6px 7px 16px rgba(125, 133, 143, .15), -5px -5px 14px rgba(255, 255, 255, .86);
   --float: 10px 12px 24px rgba(125, 133, 143, .2), -8px -8px 20px rgba(255, 255, 255, .92);
   --in-md: inset 3px 3px 7px rgba(125, 133, 143, .17), inset -3px -3px 7px rgba(255, 255, 255, .78);
-  --r1: 8px;
-  --r2: 14px;
-  --r3: 24px;
+  --r1: 4px;
+  --r2: 8px;
+  --r3: 12px;
   --s1: 4px;
   --s2: 8px;
   --s3: 16px;
