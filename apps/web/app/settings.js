@@ -192,6 +192,11 @@
     const btn = e.target.closest && e.target.closest('[data-top-panel="settings"]');
     if (btn) openSettings(btn);
   });
+  if (new URLSearchParams(window.location.search).get('panel') === 'settings') {
+    const settingsButton = document.querySelector('[data-top-panel="settings"]');
+    if (settingsButton) openSettings(settingsButton);
+  }
+
   document.addEventListener('keydown', e => {
     if (!backdrop || backdrop.hidden) return;
     if (e.key === 'Escape') { e.preventDefault(); closeSettings(); return; }
