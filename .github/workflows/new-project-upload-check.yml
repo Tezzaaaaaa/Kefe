@@ -136,7 +136,7 @@ jobs:
             page.on('pageerror', error => errors.push(error.message));
             try {
               await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
-              await page.locator('.kefe-section[data-panel="media"]').waitFor();
+              await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
               const accept = await page.locator('#mediaInput').getAttribute('accept');
               assert.ok(accept && accept.includes('audio/*') && accept.includes('video/*'), label + ': media input must accept audio and video files');
               await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
@@ -147,7 +147,6 @@ jobs:
               const chooser = await chooserPromise;
 
               await page.locator('.kefe-library-shell').waitFor({ state: 'hidden' });
-              await page.locator('.kefe-section[data-panel="media"].active').waitFor();
               await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
 
               const uploadPosition = await page.locator('#kefeUploadZone').evaluate(el => {
@@ -186,7 +185,7 @@ jobs:
                 window.kefeLyrics.set([{ text: 'KEFE EXPORT VERIFICATION', time: 0, endTime: 1 }], 'browser-export-verification');
                 window.kefeLyrics.seek(0.1);
               });
-              await page.locator('.kefe-section[data-panel="visualiser"]').click();
+              await page.locator('.kefe-sidebar [data-shell-panel="visualiser"]').click();
               await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
               const visualiserPower = page.locator('.kefe-visualiser-panel-head .kefe-switch');
               try {
@@ -209,7 +208,7 @@ jobs:
               }
               await page.waitForFunction(() => getComputedStyle(document.getElementById('kefeVisualiserCanvas')).visibility === 'visible', null, { timeout: 10000 });
 
-              await page.locator('.kefe-section[data-panel="export"]').click();
+              await page.locator('.kefe-sidebar [data-shell-panel="export"]').click();
               await page.locator('.kefe-panel[data-panel-view="export"].active').waitFor();
               await page.locator('#exportFormat').selectOption('webm');
               await page.locator('#exportResolution').selectOption('720');
@@ -246,15 +245,17 @@ jobs:
               assert.ok(exportAudit.status.startsWith('Export complete'), label + ': export status must report completion');
               await page.locator('#kefeExportClose').waitFor({ state: 'visible' });
               await page.locator('#kefeExportClose').click();
-              await page.locator('.kefe-section[data-panel="media"]').click();
+              await page.locator('.kefe-sidebar-link[href="./editor.html"]').click();
+              await page.locator('.kefe-panel[data-panel-view="media"].active").waitFor();
               const persistenceTitle = 'KEFE Media Library Persistence ' + Date.now();
               const persistenceArtist = 'KEFE Persistence Test Artist';
               const persistenceLyrics = 'KEFE MEDIA LIBRARY PERSISTENCE TEST';
               await page.locator('#songTitle').fill(persistenceTitle);
               await page.locator('#songArtist').fill(persistenceArtist);
-              await page.locator('.kefe-section[data-panel="lyrics"]').click();
+              await page.locator('.kefe-sidebar [data-shell-panel="lyrics"]').click();
               await page.locator('#lyricsInput').fill(persistenceLyrics);
-              await page.locator('.kefe-section[data-panel="media"]').click();
+              await page.locator('.kefe-sidebar-link[href="./editor.html"]').click();
+              await page.locator('.kefe-panel[data-panel-view="media"].active").waitFor();
               await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
               await page.waitForFunction(title => [...document.querySelectorAll('.kefe-library-card h2')].some(el => el.textContent === title), persistenceTitle, { timeout: 15000 });
