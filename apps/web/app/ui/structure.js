@@ -11,7 +11,9 @@ document.querySelectorAll('[data-shell-panel]').forEach(button => {
 });
 const initialSection = new URLSearchParams(window.location.search).get('section');
 if (['media', 'lyrics', 'effects', 'visualiser', 'export'].includes(initialSection)) {
-  const target = document.querySelector('.kefe-section[data-panel="' + initialSection + '"]');
-  if (target) target.click();
+  document.addEventListener('DOMContentLoaded', () => {
+    const target = document.querySelector('.kefe-section[data-panel="' + initialSection + '"]');
+    if (target) target.click();
+  }, { once: true });
 }
 
