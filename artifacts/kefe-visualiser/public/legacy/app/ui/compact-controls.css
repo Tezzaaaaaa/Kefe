@@ -2499,3 +2499,41 @@ body:not(.kefe-fullscreen-open) {
 .kefe-vis-option-power.is-on .kefe-switch-thumb {
   transform: translateX(11px);
 }
+
+
+/* Make visualiser power controls comfortable to read and operate. */
+.kefe-visualiser-panel-head > .kefe-switch,
+.kefe-visualiser-spin-row .kefe-switch {
+  min-width: 92px;
+  min-height: 40px;
+  gap: 9px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: var(--font-sm);
+  font-weight: 650;
+  touch-action: manipulation;
+}
+.kefe-visualiser-panel-head > .kefe-switch .kefe-switch-state,
+.kefe-visualiser-spin-row .kefe-switch .kefe-switch-state {
+  min-width: 26px;
+  font-size: var(--font-sm);
+  line-height: 1;
+}
+.kefe-visualiser-panel-head > .kefe-switch .kefe-switch-track,
+.kefe-visualiser-spin-row .kefe-switch .kefe-switch-track {
+  flex-basis: 36px;
+  width: 36px;
+  height: 21px;
+  border-radius: 999px;
+}
+.kefe-visualiser-panel-head > .kefe-switch .kefe-switch-thumb,
+.kefe-visualiser-spin-row .kefe-switch .kefe-switch-thumb {
+  top: 3px;
+  left: 3px;
+  width: 13px;
+  height: 13px;
+}
+.kefe-visualiser-panel-head > .kefe-switch.is-on .kefe-switch-thumb,
+.kefe-visualiser-spin-row .kefe-switch.is-on .kefe-switch-thumb {
+  transform: translateX(15px);
+}
