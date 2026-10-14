@@ -49,12 +49,11 @@ jobs:
             try {
               await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
               await page.waitForFunction(() => document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4, { timeout: 30000 });
-              const nav = page.locator('.kefe-tabs');
               const submenu = page.locator('.kefe-editing > .kefe-vis-tabs');
               const panels = page.locator('.kefe-panels');
 
               assert.equal(await submenu.isVisible(), false, label + ': submenu must be hidden outside Visualiser section');
-              await page.locator('.kefe-section[data-panel="visualiser"]').click();
+              await page.locator('.kefe-sidebar [data-shell-panel="visualiser"]').click();
               await page.waitForFunction(() => {
                 const row = document.querySelector('.kefe-editing > .kefe-vis-tabs');
                 return row && getComputedStyle(row).display !== 'none' &&
@@ -354,14 +353,15 @@ jobs:
               assert.ok(pageScroll.panelScrollHeight <= pageScroll.panelClientHeight + 2,
                 label + ': editor panel must expand to its content instead of maintaining an inner scroll area');
 
-              await nav.locator('[data-panel="media"]').click();
+              await page.locator('.kefe-sidebar-link[href="./editor.html"]').click();
+              await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
               assert.equal(await submenu.isVisible(), false, label + ': submenu must close when leaving Visualiser section');
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
               console.log(JSON.stringify({ result: 'PASS', label, layout, selectedViewsTested: order, runtimeErrors: errors }, null, 2));
 
               await page.evaluate(() => window.scrollTo(0, 0));
               await page.setViewportSize({ width: 390, height: 844 });
-              await nav.locator('[data-panel="visualiser"]').click();
+              await page.locator('.kefe-sidebar [data-shell-panel="visualiser"]').click();
               await page.waitForFunction(() => {
                 const row = document.querySelector('.kefe-editing > .kefe-vis-tabs');
                 return row && getComputedStyle(row).display !== 'none';
@@ -401,7 +401,7 @@ jobs:
       - name: Wait for GitHub Pages to publish this change
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
-          expected_marker=$(grep -o 'app/visualiser/liquid-flow.js?v=[^\"]*' apps/web/editor.html | head -n 1)
+          expected_marker=$(grep -o 'app/ui/workspace-shell.css?v=[^\"]*' apps/web/editor.html | head -n 1)
           if [ -z "$expected_marker" ]; then echo 'Could not determine the expected Liquid Flow asset marker.' >&2; exit 1; fi
           for attempt in $(seq 1 48); do
             if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
