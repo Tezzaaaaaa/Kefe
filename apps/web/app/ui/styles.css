@@ -3218,10 +3218,8 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 
 /* Consolidated studio controls (previously studio.css). Kept here before responsive overrides to preserve cascade order. */
 
-/* KEFE — studio controls: display mode, timing editor, lyric style, audio overlay, review checklist.
+/* KEFE — studio controls: display mode, timing editor, lyric style and review checklist.
    Uses the editor's existing tokens so it follows the active theme. */
-
-/* Audio overlay canvas sits between the visualiser layers and the lyric canvas. */
 #kefeOverlayCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;pointer-events:none;border-radius:0}
 .kefe-stage.is-empty #kefeOverlayCanvas{visibility:hidden}
 
