@@ -1611,9 +1611,9 @@ body{ letter-spacing: -.01em;
   font-size: var(--font-sm);
   font-family: inherit;}
 
-.kefe-play:hover { background: var(--surface-hi); 
-  font-size: var(--font-sm);
-  font-family: inherit;}
+.kefe-play:hover {
+  background: var(--surface-hi);
+}
 
 .kefe-time {
   min-width: 94px;
@@ -5532,10 +5532,7 @@ body {
   grid-template-rows: auto var(--timeline-h) auto;
   overflow: visible;
 }
-.kefe-preview {
-  min-height: 0;
-  overflow: visible;
-}
+
 .kefe-stage {
   max-height: none;
 }
