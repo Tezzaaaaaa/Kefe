@@ -1,0 +1,126 @@
+name: Unified workspace shell browser verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/workspace-shell-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workspace-shell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Verify workspace, editor navigation, themes and routes
+        run: |
+          python3 -m http.server 4173 --directory apps/web > /tmp/kefe-workspace-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 15); do
+            if curl --fail --silent http://127.0.0.1:4173/index.html -o /dev/null; then break; fi
+            sleep 1
+          done
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const path = require('node:path');
+
+          async function checkLocalReferences(page, label) {
+            const refs = await page.locator('a[href],link[href],script[src],img[src]').evaluateAll(nodes =>
+              nodes.map(node => node.getAttribute('href') || node.getAttribute('src'))
+                .filter(value => value && value.startsWith('./'))
+                .map(value => value.split(/[?#]/)[0])
+            );
+            const missing = [...new Set(refs)].filter(ref =>
+              !fs.existsSync(path.join(process.cwd(), 'apps/web', ref.slice(2)))
+            );
+            assert.deepEqual(missing, [], label + ': missing local files: ' + missing.join(', '));
+          }
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true, args: ['--use-gl=angle', '--use-angle=swiftshader'] });
+            const errors = [];
+            try {
+              const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+              page.on('pageerror', error => errors.push(error.message));
+
+              await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
+              await page.waitForURL(/workspace\.html$/);
+              await page.locator('.workspace-switch').waitFor();
+              await page.locator('#themeToggle').click();
+              assert.equal(await page.locator('html').getAttribute('data-theme'), 'day', 'workspace Day mode must change the active theme');
+              assert.equal(await page.evaluate(() => localStorage.getItem('kefe.theme')), 'day', 'workspace theme choice must persist');
+              await checkLocalReferences(page, 'workspace');
+
+              await page.getByRole('link', { name: 'Editor', exact: true }).click();
+              await page.locator('.kefe-sidebar').waitFor();
+              await page.locator('.kefe-stage').waitFor();
+              await page.locator('.kefe-section[data-panel="media"].active').waitFor();
+              await checkLocalReferences(page, 'editor');
+
+              const shellGeometry = await page.evaluate(() => {
+                const sidebar = document.querySelector('.kefe-sidebar').getBoundingClientRect();
+                const topbar = document.querySelector('.kefe-top').getBoundingClientRect();
+                return { sidebarWidth: sidebar.width, topbarLeft: topbar.left, viewportWidth: innerWidth, documentWidth: document.documentElement.scrollWidth };
+              });
+              assert.ok(shellGeometry.sidebarWidth >= 180 && shellGeometry.sidebarWidth <= 250, 'desktop sidebar should fit the workspace: ' + JSON.stringify(shellGeometry));
+              assert.ok(shellGeometry.topbarLeft >= shellGeometry.sidebarWidth - 1, 'editor header should sit beside the sidebar: ' + JSON.stringify(shellGeometry));
+              assert.ok(shellGeometry.documentWidth <= shellGeometry.viewportWidth, 'desktop layout must not overflow horizontally: ' + JSON.stringify(shellGeometry));
+
+              for (const section of ['lyrics', 'effects', 'visualiser', 'export']) {
+                await page.locator('.kefe-sidebar [data-shell-panel="' + section + '"]').click();
+                await page.locator('.kefe-panel[data-panel-view="' + section + '"].active').waitFor();
+                assert.equal(await page.locator('.kefe-sidebar [data-shell-panel="' + section + '"]').getAttribute('aria-current'), 'page', section + ' navigation should show the active section');
+              }
+
+              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
+              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
+              await page.locator('.kefe-library-close').click();
+              await page.locator('.kefe-library-shell:not([hidden])').waitFor({ state: 'hidden' });
+
+              await page.locator('.kefe-sidebar button[data-top-panel="settings"]').click();
+              await page.locator('.kefe-settings-backdrop:not([hidden])').waitFor();
+              await page.keyboard.press('Escape');
+              await page.locator('.kefe-settings-backdrop:not([hidden])').waitFor({ state: 'hidden' });
+
+              await page.goto('http://127.0.0.1:4173/editor.html?section=visualiser', { waitUntil: 'domcontentloaded' });
+              await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
+              assert.deepEqual(errors, [], 'desktop runtime errors: ' + errors.join('; '));
+
+              const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+              mobile.on('pageerror', error => errors.push(error.message));
+              await mobile.goto('http://127.0.0.1:4173/editor.html', { waitUntil: 'domcontentloaded' });
+              await mobile.locator('.kefe-sidebar').waitFor();
+              const mobileGeometry = await mobile.evaluate(() => ({ viewportWidth: innerWidth, documentWidth: document.documentElement.scrollWidth, sidebarHeight: document.querySelector('.kefe-sidebar').getBoundingClientRect().height }));
+              assert.ok(mobileGeometry.documentWidth <= mobileGeometry.viewportWidth, 'mobile layout must not overflow horizontally: ' + JSON.stringify(mobileGeometry));
+              assert.ok(mobileGeometry.sidebarHeight <= 56, 'mobile navigation should use a compact horizontal row: ' + JSON.stringify(mobileGeometry));
+              await mobile.locator('.kefe-sidebar [data-shell-panel="lyrics"]').click();
+              await mobile.locator('.kefe-panel[data-panel-view="lyrics"].active').waitFor();
+              assert.deepEqual(errors, [], 'browser runtime errors: ' + errors.join('; '));
+              console.log(JSON.stringify({ result: 'PASS', workspaceRedirect: 'PASS', dayNightPersistence: 'PASS', localReferences: 'PASS', desktopSidebar: shellGeometry, sidebarSections: 'PASS', libraryModal: 'PASS', settingsModal: 'PASS', deepLink: 'PASS', mobileLayout: mobileGeometry, runtimeErrors: errors }));
+              await mobile.close();
+              await page.close();
+            } finally {
+              await browser.close();
+            }
+          })().catch(error => { console.error(error); process.exitCode = 1; });
+          NODE
