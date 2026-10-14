@@ -380,9 +380,6 @@ body{overflow-x:hidden;overflow-y:auto}
 
 
 /* Integrated beUI workspace layer — native KEFE controls, no demo-only UI. */
-.kefe-editor{
-  --shell-accent:var(--shell-accent,#ef4444);
-}
 .kefe-top{
   background:color-mix(in srgb,var(--shell-panel) 82%,transparent);
   -webkit-backdrop-filter:blur(16px);
