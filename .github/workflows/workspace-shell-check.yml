@@ -84,6 +84,11 @@ jobs:
               assert.equal(await page.locator('html').getAttribute('data-theme'), 'day', 'workspace Day mode must change the active theme');
               assert.equal(await page.evaluate(() => localStorage.getItem('kefe.theme')), 'day', 'workspace theme choice must persist');
               await checkLocalReferences(page, 'workspace');
+              for (const section of ['lyrics', 'effects', 'visualiser', 'export']) {
+                await page.locator('.feature-card[href="./editor.html?section=' + section + '"]').click();
+                await page.locator('.kefe-panel[data-panel-view="' + section + '"].active').waitFor();
+                await page.goto(baseUrl + '/workspace.html', { waitUntil: 'domcontentloaded' });
+              }
 
               await page.getByRole('link', { name: 'Editor', exact: true }).click();
               await page.locator('.kefe-sidebar').waitFor();
