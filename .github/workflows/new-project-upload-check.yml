@@ -279,7 +279,7 @@ jobs:
               await page.goto(baseUrl + '/workspace.html', { waitUntil: 'domcontentloaded' });
               await page.locator('.workspace-switch').waitFor({ state: 'visible', timeout: 15000 });
               assert.match(page.url(), /\/workspace\.html$/, label + ': workspace route should load before testing saved projects');
-              await page.locator('#projectSearch').fill(persistenceTitle);
+              await page.locator('#projectSearchMobile').fill(persistenceTitle);
               const searchedProject = page.locator('.project-card').filter({ hasText: persistenceTitle });
               await searchedProject.waitFor({ state: 'visible', timeout: 15000 });
               assert.equal(await page.locator('.project-card').count(), 1, label + ': workspace search should filter recent projects');
