@@ -385,7 +385,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         const lineHeightForFade = line.appleBlockHeight || rowHeight;
         const topFade = landscapeSplit ? 1 : linaClamp((y + lineHeightForFade / 2 - (appleHeaderBottom - lineHeightForFade * 0.8)) / Math.max(1, lineHeightForFade * 0.72), 0, 1);
         const alphaAmt = linaClamp(appleKeyframeLerp(d, opacityPoints), 0, 1) * topFade;
-        const blurAmt = Math.max(0, appleKeyframeLerp(d, blurPoints));
+        const blurAmt = Math.abs(i - activeIndex) >= 1 ? Math.max(0, appleKeyframeLerp(d, blurPoints)) : 0;
         const rowFontSize = inactiveFontSize + (activeFontSize - inactiveFontSize) * act;
         const grey = Math.round(224 + 10 * act);
 
@@ -406,6 +406,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ctx.shadowBlur = Math.max(2, baseDimension * (1.2 / 390));
         ctx.shadowOffsetY = Math.max(1, baseDimension * (0.5 / 390));
         rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
+        // Keep the inactive-line blur on the base text only; the active word sweep stays crisp.
+        ctx.filter = 'none';
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;
@@ -433,7 +435,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                 dim: linaClamp(Number.isFinite(Number(style.appleUnsungOpacity)) ? Number(style.appleUnsungOpacity) : APPLE_WAVE.dim, 0.2, 0.9)
             };
             const sung = 'rgb(' + Math.round(224 + 31 * act) + ',' + Math.round(224 + 31 * act) + ',' + Math.round(224 + 31 * act) + ')';
-            const dimA = 1 - (1 - P.dim) * act;
+            const dimA = P.dim + (1 - P.dim) * act;
             const spaceWidth = ctx.measureText(' ').width;
             let ti = 0;
             const shadowBlur = Math.max(2, baseDimension * (1.2 / 390));
@@ -450,15 +452,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                 }
                 ti += rowTokens.length;
             }
-        } else {
-            if (act > 0.001) {
-                ctx.save();
-                ctx.globalAlpha = alphaAmt * act;
-                ctx.fillStyle = '#FFFFFF';
-                rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
-                ctx.restore();
-            }
         }
+        // Without reliable word timestamps, retain the dim base text rather than
+        // painting an entire line white and making multiple lines look highlighted.
         ctx.restore();
     }
     ctx.restore();
