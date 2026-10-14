@@ -1,25 +1,18 @@
-/* KEFE editor shell — one workspace navigation, one shared panel layout. */
+/* KEFE editor shell — layout rules use the shared KEFE design tokens.
+   Keep shell-specific names as aliases only; theme colours, radii and control
+   geometry must come from the single design system in styles.css. */
 :root{
-  --shell-bg:#09090b;
-  --shell-sidebar:#09090b;
-  --shell-panel:#121216;
-  --shell-line:rgba(255,255,255,.08);
-  --shell-text:#f4f4f5;
-  --shell-muted:#a1a1aa;
-  --shell-accent:#ef4444;
-  --shell-radius-sm:4px;
-  --shell-radius-md:8px;
-  --shell-radius-lg:12px;
-  --shell-control-height:40px;
-}
-:root[data-theme="day"]{
-  --shell-bg:#f4f4f6;
-  --shell-sidebar:#ededf0;
-  --shell-panel:#fff;
-  --shell-line:rgba(25,25,30,.12);
-  --shell-text:#242429;
-  --shell-muted:#666671;
-  --shell-accent:#d94e4b;
+  --shell-bg:var(--bg);
+  --shell-sidebar:var(--surface-lo);
+  --shell-panel:var(--surface);
+  --shell-line:var(--line);
+  --shell-text:var(--text);
+  --shell-muted:var(--muted);
+  --shell-accent:var(--accent);
+  --shell-radius-sm:var(--r1);
+  --shell-radius-md:var(--r2);
+  --shell-radius-lg:var(--r3);
+  --shell-control-height:var(--control-h);
 }
 html,body{min-height:100%;height:auto;background:var(--shell-bg);color:var(--shell-text)}
 body{overflow-x:hidden;overflow-y:auto}
