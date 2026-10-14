@@ -58,7 +58,7 @@ jobs:
             const errors = [];
             page.on('pageerror', error => errors.push(error.message));
             try {
-              await page.goto(baseUrl + '/index.html', { waitUntil: 'domcontentloaded' });
+              await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
               await page.waitForFunction(() => typeof window.kefeSyncVisualiserVisibility === 'function', { timeout: 20000 });
               await page.waitForSelector('.kefe-stage.is-empty');
               await page.waitForTimeout(300);
