@@ -377,3 +377,125 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-gradient-stop{grid-template-columns:36px minmax(0,1fr) 38px 32px}
 .kefe-gradient-stop-value{min-width:0;color:var(--shell-muted);font-size:11px;font-variant-numeric:tabular-nums;text-align:right}
 @media(max-width:640px){.kefe-gradient-stop{grid-template-columns:30px minmax(0,1fr) 34px 28px;gap:6px}}
+
+
+/* Integrated beUI workspace layer — native KEFE controls, no demo-only UI. */
+.kefe-editor{
+  --shell-accent:var(--shell-accent,#ef4444);
+}
+.kefe-top{
+  background:color-mix(in srgb,var(--shell-panel) 82%,transparent);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+  box-shadow:0 8px 28px rgba(0,0,0,.08);
+}
+.kefe-sidebar{
+  background:color-mix(in srgb,var(--shell-sidebar) 94%,transparent);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+}
+.kefe-sidebar-brand-row{display:flex;align-items:center;gap:8px;min-width:0}
+.kefe-sidebar-toggle{
+  display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;
+  border:1px solid var(--shell-line);border-radius:8px;background:var(--shell-panel);
+  color:var(--shell-muted);font-size:16px;cursor:pointer;
+  transition:background .16s ease,color .16s ease,border-color .16s ease;
+}
+.kefe-sidebar-toggle:hover{background:color-mix(in srgb,var(--shell-accent) 10%,var(--shell-panel));color:var(--shell-text);border-color:color-mix(in srgb,var(--shell-accent) 36%,var(--shell-line))}
+.kefe-sidebar-brand-row .kefe-sidebar-brand{min-width:0;flex:1}
+.kefe-sidebar-theme{display:grid;gap:9px;padding:12px 10px;border-top:1px solid var(--shell-line);border-bottom:1px solid var(--shell-line)}
+.kefe-theme-swatches{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.kefe-theme-swatches button{
+  display:grid;place-items:center;width:22px;height:22px;padding:0;border-radius:50%;
+  border:2px solid color-mix(in srgb,var(--shell-text) 18%,transparent);
+  background:var(--swatch);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;
+}
+.kefe-theme-swatches button:hover{transform:scale(1.1)}
+.kefe-theme-swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--shell-panel),0 0 0 4px var(--swatch)}
+.kefe-theme-swatches button:focus-visible,.kefe-sidebar-toggle:focus-visible{outline:2px solid var(--shell-accent);outline-offset:3px}
+.kefe-command-trigger{display:flex;align-items:center;gap:9px;border:1px solid var(--shell-line);border-radius:8px;padding-inline:10px;font-size:11px!important}
+.kefe-command-trigger kbd,.kefe-command-search kbd,.kefe-command-list kbd{
+  padding:2px 5px;border:1px solid var(--shell-line);border-radius:4px;
+  color:var(--shell-muted);font:10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.kefe-workspace-dock{
+  position:fixed;z-index:1000;left:50%;bottom:max(12px,env(safe-area-inset-bottom));
+  transform:translateX(-50%);display:flex;align-items:center;gap:5px;
+  padding:7px;border:1px solid var(--shell-line);border-radius:17px;
+  background:color-mix(in srgb,var(--shell-panel) 84%,transparent);
+  -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
+  box-shadow:0 12px 36px rgba(0,0,0,.22);
+}
+.kefe-workspace-dock button{
+  position:relative;display:grid;place-items:center;width:40px;height:40px;padding:0;
+  border:1px solid transparent;border-radius:11px;background:transparent;color:var(--shell-muted);
+  font-size:20px;cursor:pointer;transition:background .16s ease,color .16s ease,transform .16s ease;
+}
+.kefe-workspace-dock button:hover{background:color-mix(in srgb,var(--shell-accent) 12%,transparent);color:var(--shell-text);transform:translateY(-2px)}
+.kefe-workspace-dock button[aria-pressed="true"]{background:color-mix(in srgb,var(--shell-accent) 16%,transparent);border-color:color-mix(in srgb,var(--shell-accent) 30%,transparent);color:var(--shell-text);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--shell-accent) 12%,transparent)}
+.kefe-workspace-dock button:focus-visible{outline:2px solid var(--shell-accent);outline-offset:2px}
+.kefe-dock-separator{width:1px;height:24px;margin:0 3px;background:var(--shell-line)}
+.kefe-command-overlay[hidden]{display:none}
+.kefe-command-overlay{
+  position:fixed;inset:0;z-index:1100;display:flex;align-items:flex-start;justify-content:center;
+  padding:clamp(70px,15vh,150px) 16px 24px;background:rgba(0,0,0,.52);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+}
+.kefe-command-dialog{
+  width:min(100%,520px);max-height:min(70vh,560px);overflow:hidden;
+  border:1px solid var(--shell-line);border-radius:13px;background:var(--shell-panel);
+  color:var(--shell-text);box-shadow:0 24px 80px rgba(0,0,0,.32);
+}
+.kefe-command-search{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--shell-line);color:var(--shell-muted)}
+.kefe-command-search>span{font-size:20px}
+.kefe-command-search input{flex:1;min-width:0;height:34px;border:0;outline:0;background:transparent;color:var(--shell-text);font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+.kefe-command-list{display:grid;gap:3px;padding:8px;overflow:auto;max-height:calc(min(70vh,560px) - 62px)}
+.kefe-command-list button{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:38px;padding:0 11px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--shell-text);text-align:left;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer}
+.kefe-command-list button:hover,.kefe-command-list button:focus-visible{outline:0;background:color-mix(in srgb,var(--shell-accent) 12%,transparent);border-color:color-mix(in srgb,var(--shell-accent) 20%,transparent)}
+.kefe-command-list button[hidden]{display:none}
+.kefe-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.kefe-panel,.kefe-visualiser-control-group,.kefe-font-card,.kefe-media-track{
+  box-shadow:0 10px 30px rgba(0,0,0,.035);
+}
+.kefe-panel .kefe-btn.primary,.kefe-panel .kefe-btn.primary:hover{
+  background:var(--shell-accent);border-color:var(--shell-accent);color:#fff;
+}
+.kefe-panel .kefe-select:focus-visible,.kefe-panel .kefe-input:focus-visible,.kefe-panel .kefe-textarea:focus-visible{
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--shell-accent) 18%,transparent);
+}
+.kefe-sidebar-link.is-current{box-shadow:inset 2px 0 0 var(--shell-accent)}
+.kefe-editor.sidebar-collapsed{grid-template-columns:72px minmax(0,1fr)}
+.kefe-editor.sidebar-collapsed .kefe-sidebar{padding-inline:8px;gap:18px}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-brand-row{flex-direction:column;gap:9px}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-brand{justify-content:center;padding:0}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-brand span,
+.kefe-editor.sidebar-collapsed .kefe-sidebar-label{display:none}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-link{justify-content:center;gap:0;padding-inline:0;font-size:0}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-link>span{width:100%;flex-basis:100%;font-size:17px}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-theme{padding:10px 0}
+.kefe-editor.sidebar-collapsed .kefe-theme-swatches{justify-content:center;gap:7px}
+.kefe-editor.sidebar-collapsed .kefe-theme-swatches button{width:17px;height:17px}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-github{font-size:0}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-github>span{font-size:17px}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-toggle{transform:rotate(180deg)}
+body:has(.kefe-workspace-dock){padding-bottom:82px}
+@media(max-width:900px){
+  .kefe-editor.sidebar-collapsed{grid-template-columns:68px minmax(0,1fr)}
+  .kefe-editor.sidebar-collapsed .kefe-sidebar{padding-inline:7px}
+  .kefe-editor.sidebar-collapsed .kefe-theme-swatches{gap:5px}
+}
+@media(max-width:640px){
+  body:has(.kefe-workspace-dock){padding-bottom:74px}
+  .kefe-command-trigger span,.kefe-command-trigger kbd{display:none}
+  .kefe-command-trigger{width:34px;justify-content:center;padding:0;font-size:18px!important}
+  .kefe-workspace-dock{gap:2px;padding:6px;border-radius:14px}
+  .kefe-workspace-dock button{width:36px;height:36px}
+  .kefe-editor.sidebar-collapsed{grid-template-columns:minmax(0,1fr);grid-template-rows:0 52px auto}
+  .kefe-editor.sidebar-collapsed .kefe-sidebar{height:0;min-height:0;padding:0;border:0;overflow:hidden;gap:0}
+  .kefe-editor.sidebar-collapsed .kefe-top{grid-column:1;grid-row:2}
+  .kefe-editor.sidebar-collapsed .kefe-work{grid-column:1;grid-row:3}
+}
+@media(prefers-reduced-motion:reduce){
+  .kefe-sidebar-toggle,.kefe-theme-swatches button,.kefe-workspace-dock button{transition:none}
+}
+
