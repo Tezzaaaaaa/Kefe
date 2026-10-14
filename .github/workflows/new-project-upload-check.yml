@@ -248,7 +248,9 @@ jobs:
               const persistenceLyrics = 'KEFE MEDIA LIBRARY PERSISTENCE TEST';
               await page.locator('#songTitle').fill(persistenceTitle);
               await page.locator('#songArtist').fill(persistenceArtist);
+              await page.locator('.kefe-section[data-panel="lyrics"]').click();
               await page.locator('#lyricsInput').fill(persistenceLyrics);
+              await page.locator('.kefe-section[data-panel="media"]').click();
               await page.locator('button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
               await page.waitForFunction(title => [...document.querySelectorAll('.kefe-library-card h2')].some(el => el.textContent === title), persistenceTitle, { timeout: 15000 });
