@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="KEFE — browser-based lyric video and music visualiser editor.">
+<title>KEFE Visualiser</title>
+<script>document.documentElement.dataset.theme = 'night';</script>
+<link rel="icon" href="./app/brand/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./app/ui/styles.css?v=day-night-toggle-20261014-1">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<script src="./app/ui/typography.js"></script>
+<script src="./app/effects/manifest.js"></script>
+<script src="./app/effects/core.js"></script>
+
+<script src="./app/effects/lyric-apple.js?v=apple-continuous-sweep-20261014-2"></script>
+<script src="./app/effects/lyric-brat.js"></script>
+<script src="./app/effects/lyric-eternal.js"></script>
+<script src="./app/effects/lyric-aurora.js"></script>
+<script src="./app/effects/lyric-pulse.js"></script>
+<script src="./app/effects/lyric-typewriter.js"></script>
+<script src="./app/effects/lyric-instagram.js?v=instagram-stack-20261014-1"></script>
+<script src="./app/effects/lyric-story-fade.js"></script>
+<script src="./app/effects/lyric-decrypt-text.js"></script>
+<script src="./app/effects/lyric-blur-text.js"></script>
+<script src="./app/effects/lyric-shiny-text.js"></script>
+<script src="./app/effects/lyric-scroll-lines.js"></script>
+<script src="./app/effects/lyric-barbie.js"></script>
+<script src="./app/effects/lyric-elasticpop.js"></script>
+<script src="./app/effects/lyric-flipcards.js"></script>
+<script src="./app/effects/lyric-karaoke.js"></script>
+<script src="./app/effects/lyric-trailer.js"></script>
+<script src="./app/effects/lyric-fancy.js?v=button-controls-20261014-1"></script>
+<script src="./app/effects/lyric-glitch.js"></script>
+<script src="./app/effects/lyric-splitflap.js"></script>
+<script src="./app/effects/lyric-crt-computer.js?v=button-controls-20261014-1"></script>
+<script src="./app/effects/lyric-crt-tv.js?v=button-controls-20261014-1"></script>
+<script src="./app/effects/lyric-randomize.js?v=button-controls-20261014-1"></script>
+<script src="./app/effects/lyric-inspiration-pack.js?v=button-controls-20261014-1"></script>
+
+<script src="./app/lyrics/lyric-model.js?v=timestamp-validation-20261014-1"></script>
+<script src="./app/ui/structure.js?v=night-only-20261014-1"></script>
+<script src="./app/settings.js"></script>
+<script src="./app/editor.js?v=async-track-focus-20261014-1"></script>
+<script src="./app/ui/style-layer.js?v=style-dropdown-grid-20261014-1"></script>
+<script src="./app/lyrics/lyric-studio.js?v=button-controls-20261014-1"></script>
+<script src="./app/visualiser/background.js?v=apple-motion-depth-zoom-20261014-1"></script>
+<script src="./app/visualiser/audio-overlay.js?v=audio-overlay-removed-20261014-1"></script>
+<script src="./app/media-carousel.js?v=local-upload-search-20261012-2"></script>
+<script src="./app/visualiser/gradient.js?v=site-audit-20261014-1"></script>
+<script src="./app/visualiser/liquid-flow.js?v=liquid-glass-refraction-20261014-3"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"></script>
+<script src="./app/visualiser/dithr.js?v=dithr-20261014-3"></script>
+<script src="./app/visualiser/fluted-glass.js?v=visualiser-description-toggle-20261014-3"></script>
+<script type="module" src="./app/visualiser/visualiser.js?v=particle-presets-audio-reactivity-20261014-1"></script>
+<script src="./app/media-library.js?v=storage-resilience-20261014-2"></script>
+<script>
+(() => {
+  const root = document.documentElement;
+  const key = 'kefe.theme';
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved === 'day' || saved === 'night') root.dataset.theme = saved;
+  } catch (_) {}
+  function syncThemeToggle() {
+    const button = document.getElementById('kefeThemeToggle');
+    if (!button) return;
+    const isNight = root.dataset.theme === 'night';
+    button.textContent = isNight ? '☀ Day' : '☾ Night';
+    button.setAttribute('aria-label', isNight ? 'Switch to day mode' : 'Switch to night mode');
+    button.title = isNight ? 'Switch to day mode' : 'Switch to night mode';
+  }
+  document.addEventListener('click', event => {
+    const button = event.target.closest && event.target.closest('#kefeThemeToggle');
+    if (!button) return;
+    root.dataset.theme = root.dataset.theme === 'night' ? 'day' : 'night';
+    try { localStorage.setItem(key, root.dataset.theme); } catch (_) {}
+    syncThemeToggle();
+  });
+  document.addEventListener('DOMContentLoaded', syncThemeToggle);
+  syncThemeToggle();
+})();
+</script>
+</body>
+</html>
