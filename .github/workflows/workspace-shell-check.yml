@@ -163,7 +163,7 @@ jobs:
               assert.ok(mobileGeometry.documentWidth <= mobileGeometry.viewportWidth, 'mobile layout must not overflow horizontally: ' + JSON.stringify(mobileGeometry));
               assert.ok(mobileGeometry.sidebarHeight <= 56, 'mobile navigation should use a compact horizontal row: ' + JSON.stringify(mobileGeometry));
               assert.equal(await mobile.locator('.kefe-tabs').evaluate(node => getComputedStyle(node).display), 'none', 'mobile editor must not duplicate section navigation');
-              assert.equal(await mobile.locator('.kefe-panel[data-panel-view="media"] .kefe-form').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 1, 'mobile media metadata should use one column');
+              assert.equal(await mobile.locator('.kefe-panel[data-panel-view="media"] .kefe-form').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 2, 'mobile media metadata should use a balanced two-column grid');
               const mobileStage = await mobile.locator('.kefe-stage').boundingBox();
               assert.ok(mobileStage.width <= mobileGeometry.viewportWidth, 'mobile preview must fit the viewport: ' + JSON.stringify({mobileGeometry,mobileStage}));
               await mobile.locator('.kefe-sidebar [data-shell-panel="lyrics"]').click();
