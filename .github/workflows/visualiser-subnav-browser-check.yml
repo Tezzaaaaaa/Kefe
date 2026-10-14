@@ -75,7 +75,8 @@ jobs:
                 fluted: 'kefeFlutedPresetSet'
               };
               const layout = await page.evaluate(() => {
-                const nav = document.querySelector('.kefe-tabs').getBoundingClientRect();
+                const legacyNav = document.querySelector('.kefe-tabs');
+                const timeline = document.querySelector('.kefe-timeline').getBoundingClientRect();
                 const row = document.querySelector('.kefe-editing > .kefe-vis-tabs');
                 const rr = row.getBoundingClientRect();
                 const preset = document.querySelector('.kefe-editing > .kefe-visualiser-preset-row').getBoundingClientRect();
@@ -84,9 +85,10 @@ jobs:
                   const r = b.getBoundingClientRect();
                   return { id: b.dataset.visualiser, left: r.left, right: r.right, top: r.top, width: r.width };
                 });
-                return { navBottom: nav.bottom, rowLeft: rr.left, rowRight: rr.right, rowTop: rr.top, rowBottom: rr.bottom, presetLeft: preset.left, presetRight: preset.right, panelsTop: panel.top, buttons };
+                return { legacyNavVisible: getComputedStyle(legacyNav).display !== 'none', timelineBottom: timeline.bottom, rowLeft: rr.left, rowRight: rr.right, rowTop: rr.top, rowBottom: rr.bottom, presetLeft: preset.left, presetRight: preset.right, panelsTop: panel.top, buttons };
               });
-              assert.ok(layout.rowTop >= layout.navBottom - 1, label + ': submenu must sit underneath editor navigation');
+              assert.equal(layout.legacyNavVisible, false, label + ': duplicate legacy section navigation must remain hidden');
+              assert.ok(layout.rowTop >= layout.timelineBottom - 1, label + ': visualiser submenu must sit below the preview timeline');
               assert.ok(layout.rowBottom <= layout.panelsTop + 1, label + ': settings panel must start below the submenu');
               assert.ok(await page.locator('.kefe-editing > .kefe-visualiser-preset-row').isVisible(), label + ': presets submenu must be visible beneath the visualiser options');
               assert.ok(Math.abs(layout.rowLeft - layout.presetLeft) < 2 && Math.abs(layout.rowRight - layout.presetRight) < 2,
