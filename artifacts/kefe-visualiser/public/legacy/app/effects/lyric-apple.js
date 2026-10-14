@@ -167,10 +167,10 @@ function appleDrawWord(ctx, token, tm, x, y, fs, time, sungColor, dimA, P, shado
         else if (p2 <= 0) ctx.fillStyle = dimColor;
         else {
             const gradient = ctx.createLinearGradient(lx, 0, lx + lw, 0);
-            gradient.addColorStop(0, sungColor);
-            gradient.addColorStop(linaClamp(p1), sungColor);
-            gradient.addColorStop(linaClamp(p2), dimColor);
-            gradient.addColorStop(1, dimColor);
+            gradient.addColorStop(0, dimColor);
+            gradient.addColorStop(linaClamp(p1), dimColor);
+            gradient.addColorStop(linaClamp(p2), sungColor);
+            gradient.addColorStop(1, sungColor);
             ctx.fillStyle = gradient;
         }
         if (lift > 0.01) {
@@ -328,7 +328,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
 
     const scalePoints = [[-4, 0.97], [-3, 0.97], [-2, 0.97], [-1, 0.97], [0, activeScale], [1, 0.97], [2, 0.97], [3, 0.97], [4, 0.97]];
     const opacityPoints = [[-4, 0.40], [-3, 0.52], [-2, 0.66], [-1, 0.80], [0, 1], [1, 0.80], [2, 0.66], [3, 0.52], [4, 0.40]];
-    const blurPoints = [[-4, activeFontSize * 0.07], [-3, activeFontSize * 0.05], [-2, activeFontSize * 0.035], [-1, activeFontSize * 0.028], [0, 0], [1, activeFontSize * 0.028], [2, activeFontSize * 0.035], [3, activeFontSize * 0.05], [4, activeFontSize * 0.07]];
+    const blurPoints = [[-4, activeFontSize * 0.23], [-3, activeFontSize * 0.17], [-2, activeFontSize * 0.11], [-1, activeFontSize * 0.045], [0, 0], [1, activeFontSize * 0.045], [2, activeFontSize * 0.11], [3, activeFontSize * 0.17], [4, activeFontSize * 0.23]];
 
     /* Continuous scroll: every line is positioned and styled from one fractional "focus" index so
        nothing pops when the active line changes – position, size, opacity, blur and the white
