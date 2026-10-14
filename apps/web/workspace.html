@@ -78,7 +78,7 @@ try{var saved=localStorage.getItem(themeKey);root.dataset.theme=saved==='day'?'d
 function syncTheme(){var day=root.dataset.theme==='day';themeLabel.textContent=day?'Night mode':'Day mode';toggle.setAttribute('aria-label',day?'Switch to night mode':'Switch to day mode');}
 toggle.addEventListener('click',function(){root.dataset.theme=root.dataset.theme==='day'?'night':'day';try{localStorage.setItem(themeKey,root.dataset.theme);}catch(_){}syncTheme();});syncTheme();
 document.querySelector('.workspace-switch').addEventListener('click',function(){window.location.href='./workspace.html';});
-var search=document.getElementById('projectSearch'),grid=document.getElementById('projectGrid'),status=document.getElementById('storageStatus'),subtitle=document.getElementById('recentSubtitle');
+var search=document.getElementById('projectSearch'),mobileSearch=document.getElementById('projectSearchMobile'),grid=document.getElementById('projectGrid'),status=document.getElementById('storageStatus'),subtitle=document.getElementById('recentSubtitle');
 document.addEventListener('keydown',function(event){if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();(mobileSearch&&mobileSearch.getClientRects().length?mobileSearch:search).focus();}});
 function node(tag,cls,value){var el=document.createElement(tag);if(cls)el.className=cls;if(value!==undefined)el.textContent=value;return el;}
 var allProjects=[];
