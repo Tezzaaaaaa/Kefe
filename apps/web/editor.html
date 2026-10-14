@@ -8,7 +8,7 @@
 <script>document.documentElement.dataset.theme = 'night';</script>
 <link rel="icon" href="./app/brand/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="./app/ui/styles.css?v=day-night-toggle-20261014-1">
-<link rel="stylesheet" href="./app/ui/workspace-shell.css?v=aspect-ratio-motion-20261015-1">
+<link rel="stylesheet" href="./app/ui/workspace-shell.css?v=inline-settings-slider-20261015-1">
 <script type="importmap">
 {
   "imports": {
@@ -89,6 +89,30 @@
   });
   document.addEventListener('DOMContentLoaded', syncThemeToggle);
   syncThemeToggle();
+})();
+</script>
+
+<script>
+(() => {
+  const selector = '.kefe-panel input[type="range"]:not(#kefeTime)';
+  function syncSlider(input) {
+    const min = Number(input.min || 0);
+    const max = Number(input.max || 100);
+    const value = Number(input.value || 0);
+    const progress = max > min ? Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100)) : 0;
+    input.style.setProperty('--kefe-slider-progress', progress + '%');
+  }
+  function syncAllSliders() {
+    document.querySelectorAll(selector).forEach(syncSlider);
+  }
+  document.addEventListener('input', event => {
+    if (event.target instanceof HTMLInputElement && event.target.matches(selector)) syncSlider(event.target);
+  }, true);
+  document.addEventListener('change', event => {
+    if (event.target instanceof HTMLInputElement && event.target.matches(selector)) syncSlider(event.target);
+  }, true);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncAllSliders, { once: true });
+  else syncAllSliders();
 })();
 </script>
 </body>
