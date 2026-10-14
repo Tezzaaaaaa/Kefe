@@ -2,7 +2,7 @@
    Uses KEFE's existing audio graph and exposes the same paint API used by video export. */
 (function(){
   'use strict';
-  var canvas,gl,program,uniforms,raf=0,enabled=true,last=0,start=performance.now(),analyser=null,freq=null;
+  var canvas,gl,program,uniforms,raf=0,enabled=true,last=0,start=performance.now(),analyser=null,freq=null,sceneTexture=null,sceneCanvas=null,sceneCtx=null,sceneAvailable=false,sceneWidth=1,sceneHeight=1;
   var preset='silk',paletteIndex=0,advanced=false;
   var palettes=[
     {name:'Original',c:['#14020c','#5b003e','#e30f64','#fd362b','#fa7a24','#f2dc8c']},
@@ -20,13 +20,14 @@
   };
   var values=Object.assign({},presets.silk,{smooth:.42,drift:0,seed:17,fresnel:.04});
   var VS='attribute vec2 p; varying vec2 v; void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
-  var FS='precision highp float; varying vec2 v; uniform vec2 res; uniform float tm,speed,warp,scale,zoom,gloss,react,ior,disp,thick,irid,mixv,spread,offset,angle,contrast,hue,sat,energy,bass,mid,treble; uniform vec3 stops[6];'+
+  var FS='precision highp float; varying vec2 v; uniform vec2 res,sceneRes; uniform float tm,speed,warp,scale,zoom,gloss,react,ior,disp,thick,irid,mixv,spread,offset,angle,contrast,hue,sat,energy,bass,mid,treble,sceneOn; uniform sampler2D sceneTex; uniform vec3 stops[6];'+
   'float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}'+
   'float n(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),u.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),u.x),u.y);}'+
   'float f(vec2 p){float a=.5,z=0.;for(int i=0;i<4;i++){z+=n(p)*a;p=p*2.03+vec2(1.7,9.2);a*=.5;}return z;}'+
-  'float flow(vec2 p){float t=tm*speed;float warpA=f(p*1.35+vec2(t*.08,-t*.05));float warpB=f(p*1.7+vec2(4.2+t*.04,2.7-t*.06));vec2 q=p;q.x+=(warpA-.5)*.95+sin(p.y*1.7+t*.28)*.18;q.y+=(warpB-.5)*.52+sin(p.x*1.35-t*.23)*.14;float wave=sin(q.x*3.5+sin(q.y*1.8+t*.22)*.95+t*.35);float ridge=pow(max(0.,1.-abs(wave)),2.1);float detail=f(q*2.0+vec2(t*.06,-t*.045));return clamp(ridge*.68+detail*.32,0.,1.);}'+
+  'float flow(vec2 p){float t=tm*speed;float warpA=f(p*1.35+vec2(t*.08,-t*.05));float warpB=f(p*1.7+vec2(4.2+t*.04,2.7-t*.06));vec2 q=p;q.x+=(warpA-.5)*.95+sin(p.y*1.7+t*.28)*.18;q.y+=(warpB-.5)*.52+sin(p.x*1.35-t*.23)*.14;float wave=sin(q.x*3.5+sin(q.y*1.8+t*.22)*.95+t*.35);float ridge=pow(max(0.,1.-abs(wave)),2.1);float detail=f(q*2.0+vec2(t*.06,-t*.045));return clamp(ridge*.48+detail*.52,0.,1.);}'+
   'vec3 ramp(float t){t=clamp(t,0.,.9999)*5.;float x=clamp(t,0.,1.)*5.;if(x<1.)return mix(stops[0],stops[1],smoothstep(0.,1.,x));if(x<2.)return mix(stops[1],stops[2],smoothstep(0.,1.,x-1.));if(x<3.)return mix(stops[2],stops[3],smoothstep(0.,1.,x-2.));if(x<4.)return mix(stops[3],stops[4],smoothstep(0.,1.,x-3.));return mix(stops[4],stops[5],smoothstep(0.,1.,x-4.));}'+
-  'void main(){float ar=res.x/res.y;vec2 p=(v-.5)*vec2(ar,1.)*2./zoom;float t=tm*speed;float a=flow(p*scale);float b=flow(p*scale*1.65+vec2(3.1,7.4));vec2 e=vec2(.003,0.);float dx=flow((p+e)*scale)-a;float dy=flow((p+e.yx)*scale)-a;vec3 N=normalize(vec3(-dx*scale*warp*90.,-dy*scale*warp*90.,1.));vec3 V=normalize(vec3(p,2.));float fres=.04+.96*pow(1.-max(dot(N,V),0.),5.);float g=clamp(mixv+.3*energy,0.,1.);float tt=clamp((a*.6+b*.4)*spread+offset+.35,0.,1.);vec3 c=ramp(tt);float ang=angle*.0174533;float axis=clamp((p.x*cos(ang)-p.y*sin(ang))*.25+.5,0.,1.);c=mix(c,ramp(axis),.22);c*=mix(.75,1.25,smoothstep(.2,.8,a));vec2 ruv=v+N.xy*thick*(.28+disp*2.2)/max(ior,1.);float refr=f(ruv*vec2(ar,1.)*scale+vec2(t*.1));vec3 glass=mix(ramp(refr),c,g);glass=clamp((glass-.5)*contrast+.5,0.,1.);float phase=a*5.+t*.3+fres*2.+bass*2.;vec3 iri=.5+.5*cos(6.2831*(vec3(0.,.333,.667)+phase));glass+=iri*irid*fres*.28*(.35+treble*.35);glass+=vec3(1.)*pow(max(dot(N,normalize(V+vec3(0.,0.,1.))),0.),72.)*gloss*.14*(.35+energy*.2);glass+=stops[5]*pow(fres,2.)*gloss*.025*(.35+bass*.2);glass*=1.+.06*energy;float L=dot(glass,vec3(.299,.587,.114));glass=mix(glass,vec3(L),.04);float ca=cos(hue*.0174533),sa=sin(hue*.0174533);vec3 k=vec3(.57735);glass=glass*ca+cross(k,glass)*sa+k*dot(k,glass)*(1.-ca);glass=mix(vec3(L),glass,sat);gl_FragColor=vec4(clamp(glass,0.,1.),1.);}';
+   'vec2 sceneUV(vec2 uv){float ca=res.x/res.y,ia=sceneRes.x/sceneRes.y;vec2 s=vec2(1.);if(ca>ia)s.y=ia/ca;else s.x=ca/ia;return(uv-.5)*s+.5;}'+
+  'void main(){float ar=res.x/res.y;vec2 p=(v-.5)*vec2(ar,1.)*2./zoom;float t=tm*speed;float a=flow(p*scale);float b=flow(p*scale*1.65+vec2(3.1,7.4));vec2 e=vec2(.003,0.);float dx=flow((p+e)*scale)-a;float dy=flow((p+e.yx)*scale)-a;vec3 N=normalize(vec3(-dx*scale*warp*90.,-dy*scale*warp*90.,1.));vec3 V=normalize(vec3(p,2.));float fres=.04+.96*pow(1.-max(dot(N,V),0.),5.);float g=clamp(mixv+.3*energy,0.,1.);float tt=clamp((a*.6+b*.4)*spread+offset,0.,1.);vec3 c=ramp(tt);float ang=angle*.0174533;float axis=clamp((p.x*cos(ang)-p.y*sin(ang))*.25+.5,0.,1.);c=mix(c,ramp(axis),.22);c*=mix(.82,1.1,smoothstep(.2,.8,a));vec2 ruv=v+N.xy*thick*(.28+disp*2.2)/max(ior,1.);float refr=f(ruv*vec2(ar,1.)*scale+vec2(t*.1));vec3 glass=mix(ramp(refr),c,g);glass=clamp((glass-.5)*contrast+.5,0.,1.);float phase=a*5.+t*.3+fres*2.+bass*2.;vec3 iri=.5+.5*cos(6.2831*(vec3(0.,.333,.667)+phase));glass+=iri*irid*fres*.13*(.35+treble*.25);glass+=vec3(1.)*pow(max(dot(N,normalize(V+vec3(0.,0.,1.))),0.),72.)*gloss*.075*(.35+energy*.2);glass+=stops[5]*pow(fres,2.)*gloss*.01*(.35+bass*.2);glass*=1.+.025*energy;float L=dot(glass,vec3(.299,.587,.114));glass=mix(glass,vec3(L),.04);float ca=cos(hue*.0174533),sa=sin(hue*.0174533);vec3 k=vec3(.57735);glass=glass*ca+cross(k,glass)*sa+k*dot(k,glass)*(1.-ca);glass=mix(vec3(L),glass,sat);glass*=.9;vec2 baseUV=sceneUV(v);vec2 bend=N.xy*(.006+thick*.035+disp*.12)/max(ior,1.);vec2 redUV=clamp(baseUV+bend*(1.+disp*4.),vec2(.002),vec2(.998));vec2 greenUV=clamp(baseUV+bend,vec2(.002),vec2(.998));vec2 blueUV=clamp(baseUV+bend*(1.-disp*4.),vec2(.002),vec2(.998));vec3 sceneColor=vec3(texture2D(sceneTex,redUV).r,texture2D(sceneTex,greenUV).g,texture2D(sceneTex,blueUV).b);vec3 sceneGlass=sceneColor*mix(vec3(.96),ramp(tt),.1);float edge=clamp(fres*.12+pow(max(dot(N,normalize(V+vec3(0.,0.,1.))),0.),72.)*gloss*.07,0.,.2);sceneGlass+=vec3(edge);glass=mix(glass,sceneGlass,sceneOn);gl_FragColor=vec4(clamp(glass,0.,1.),1.);}';
   function rgb(hex){var n=parseInt(hex.slice(1),16);return [((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255];}
   function shader(type,src){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
   function initGL(){
@@ -37,7 +38,7 @@
     if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
     gl.useProgram(program);var b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
     var p=gl.getAttribLocation(program,'p');gl.enableVertexAttribArray(p);gl.vertexAttribPointer(p,2,gl.FLOAT,false,0,0);
-    ['res','tm','speed','warp','scale','zoom','gloss','react','ior','disp','thick','irid','mixv','spread','offset','angle','contrast','hue','sat','energy','bass','mid','treble','stops'].forEach(function(k){uniforms[k]=gl.getUniformLocation(program,k);});
+    ['res','sceneRes','sceneOn','sceneTex','tm','speed','warp','scale','zoom','gloss','react','ior','disp','thick','irid','mixv','spread','offset','angle','contrast','hue','sat','energy','bass','mid','treble','stops'].forEach(function(k){uniforms[k]=gl.getUniformLocation(program,k);});sceneTexture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,sceneTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([18,20,28,255]));gl.uniform1i(uniforms.sceneTex,0);sceneCanvas=document.createElement('canvas');sceneCtx=sceneCanvas.getContext('2d');
   }
   function readAudio(){
     try{
@@ -48,10 +49,39 @@
       return {bass:band(20,250),mid:band(250,2000),treble:band(2000,12000)};
     }catch(e){return {bass:0,mid:0,treble:0};}
   }
+  function updateSceneTexture(w,h){
+    var sources=[],background=document.getElementById('kefeBackgroundCanvas'),backgroundMode=window.kefeBackground?.mode?.()||'off',video=window.kefeGetProjectVideo?.(),art=window.kefeGetAlbumArt?.();
+    if(backgroundMode!=='off'&&background&&background.width>1&&background.height>1)sources.push({element:background,direct:true});
+    if(backgroundMode==='apple'&&art&&art.complete&&art.naturalWidth>0)sources.push({element:art,direct:true});
+    if(video&&video.src&&video.readyState>=2&&video.videoWidth>0)sources.push({element:video,direct:false});
+    sceneAvailable=false;
+    for(var i=0;i<sources.length;i++){
+      var source=sources[i].element;
+      try{
+        var sw=source.videoWidth||source.naturalWidth||source.width||0,sh=source.videoHeight||source.naturalHeight||source.height||0;
+        if(sw<1||sh<1)continue;
+        gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,sceneTexture);
+        if(sources[i].direct){
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+          gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
+          sceneWidth=sw;sceneHeight=sh;
+        }else{
+          if(sceneCanvas.width!==w||sceneCanvas.height!==h){sceneCanvas.width=w;sceneCanvas.height=h;}
+          sceneCtx.clearRect(0,0,w,h);
+          var cover=Math.max(w/sw,h/sh),dw=sw*cover,dh=sh*cover;
+          sceneCtx.drawImage(source,(w-dw)/2,(h-dh)/2,dw,dh);
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+          gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,sceneCanvas);
+          sceneWidth=w;sceneHeight=h;
+        }
+        sceneAvailable=true;return;
+      }catch(error){}
+    }
+  }
   function draw(w,h,t){
     if(!gl)return;w=Math.max(2,w|0);h=Math.max(2,h|0);
-    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
-    gl.viewport(0,0,w,h);gl.useProgram(program);
+    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}updateSceneTexture(w,h);
+    gl.viewport(0,0,w,h);gl.useProgram(program);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,sceneTexture);gl.uniform1i(uniforms.sceneTex,0);gl.uniform2f(uniforms.sceneRes,sceneWidth,sceneHeight);gl.uniform1f(uniforms.sceneOn,sceneAvailable?1.:0.);
     var a=readAudio(),energy=a.bass*.55+a.mid*.3+a.treble*.15;
     function f(k,v){gl.uniform1f(uniforms[k],v);}
     gl.uniform2f(uniforms.res,w,h);f('tm',t);({speed:'speed',warp:'warp',scale:'scale',zoom:'zoom',gloss:'gloss',react:'react',ior:'ior',disp:'dispersion',thick:'thickness',irid:'iridescence',mixv:'mix',spread:'spread',offset:'offset',angle:'angle',contrast:'contrast',hue:'hue',sat:'sat'} && Object.keys({speed:'speed',warp:'warp',scale:'scale',zoom:'zoom',gloss:'gloss',react:'react',ior:'ior',disp:'dispersion',thick:'thickness',irid:'iridescence',mixv:'mix',spread:'spread',offset:'offset',angle:'angle',contrast:'contrast',hue:'hue',sat:'sat'}).forEach(function(k){f(k,values[({speed:'speed',warp:'warp',scale:'scale',zoom:'zoom',gloss:'gloss',react:'react',ior:'ior',disp:'dispersion',thick:'thickness',irid:'iridescence',mixv:'mix',spread:'spread',offset:'offset',angle:'angle',contrast:'contrast',hue:'hue',sat:'sat'})[k]]);}));
@@ -99,7 +129,7 @@
     window.kefeGradientLayer={
       paint:function(ctx,w,h,t){if(!active()||!gl)return;draw(w,h,Number(t)||0);try{ctx.drawImage(canvas,0,0,w,h);}catch(e){}},
       render:function(ctx,w,h,t){if(gl)draw(w,h,Number(t)||0);if(ctx)ctx.drawImage(canvas,0,0,w,h);},
-      state:function(){return {on:active(),preset:preset,palette:palettes[paletteIndex].name,values:Object.assign({},values)};},
+      state:function(){return {on:active(),preset:preset,palette:palettes[paletteIndex].name,sceneActive:sceneAvailable,values:Object.assign({},values)};},
       isOn:active,randomize:function(){var ids=Object.keys(presets);setPreset(ids[Math.floor(Math.random()*ids.length)]);}
     };
     window.kefeLiquidFlow={setPreset:setPreset,paint:window.kefeGradientLayer.paint};

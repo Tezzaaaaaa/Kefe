@@ -201,6 +201,36 @@ jobs:
                   assert.equal((await page.evaluate(() => window.kefeGradientLayer.state())).palette, 'Ocean',
                     label + ': Liquid Flow palette buttons must update the renderer');
                   await page.locator('[data-liquid-preset="silk"]').click();
+                  const liquidPowerForSource = page.locator('.kefe-visualiser-panel-head .kefe-switch');
+                  const liquidWasEnabled = await liquidPowerForSource.getAttribute('aria-checked') === 'true';
+                  if (!liquidWasEnabled) await liquidPowerForSource.click();
+                  await page.evaluate(async () => {
+                    window.__kefeOriginalAlbumArtGetter = window.kefeGetAlbumArt;
+                    const source = document.createElement('canvas');
+                    source.width = 64; source.height = 64;
+                    const context = source.getContext('2d');
+                    context.fillStyle = '#13243a'; context.fillRect(0, 0, 64, 64);
+                    context.fillStyle = '#f4f7ff'; context.fillRect(0, 0, 32, 64);
+                    const image = new Image();
+                    image.src = source.toDataURL('image/png');
+                    await image.decode();
+                    window.kefeGetAlbumArt = () => image;
+                    const background = document.getElementById('visualiserBackground');
+                    background.value = 'apple';
+                    background.dispatchEvent(new Event('change', { bubbles: true }));
+                  });
+                  await page.waitForFunction(() => window.kefeGradientLayer?.state().sceneActive === true, null, { timeout: 10000 });
+                  assert.equal((await page.evaluate(() => window.kefeGradientLayer.state())).sceneActive, true,
+                    label + ': Liquid Flow must sample the active background as a refractive scene');
+                  await page.evaluate(() => {
+                    const background = document.getElementById('visualiserBackground');
+                    background.value = 'off';
+                    background.dispatchEvent(new Event('change', { bubbles: true }));
+                    window.kefeGetAlbumArt = window.__kefeOriginalAlbumArtGetter;
+                    delete window.__kefeOriginalAlbumArtGetter;
+                  });
+                  await page.waitForFunction(() => window.kefeGradientLayer?.state().sceneActive === false, null, { timeout: 10000 });
+                  if (!liquidWasEnabled) await liquidPowerForSource.click();
                 }
                 const power = page.locator('.kefe-visualiser-panel-head .kefe-switch');
                 assert.equal(await power.count(), 1, label + ': selected visualiser toggle must sit beside its description: ' + id);
