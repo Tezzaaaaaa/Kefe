@@ -148,7 +148,8 @@ function appleDrawWord(ctx, token, tm, x, y, fs, time, sungColor, dimA, P, shado
     const radius = linaClamp(dur * 0.4, 0.1, 0.55);
     const falloff = linaClamp(dur * 0.7 + 0.12, 0.2, 1);
     const amp = 0.65 + 0.35 * linaClamp(dur / 1.2);
-    const dimColor = 'rgba(255,255,255,' + dimA.toFixed(3) + ')';
+    const dimLevel = Math.round(255 * linaClamp(dimA, 0, 1));
+    const dimColor = 'rgb(' + dimLevel + ',' + dimLevel + ',' + dimLevel + ')';
     for (let k = 0; k < box.chars.length; k++) {
         const lx = x + box.xs[k], lw = box.ws[k];
         const a = box.xs[k] / box.W, b = (box.xs[k] + lw) / box.W;
