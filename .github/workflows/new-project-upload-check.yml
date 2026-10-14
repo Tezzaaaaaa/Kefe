@@ -79,7 +79,7 @@ jobs:
             });
             try {
               await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
-              await page.locator('button[data-top-panel="media"]').click();
+              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
               const status = await page.locator('#kefeLibraryStorage').textContent();
               const notice = await page.locator('#kefeLibraryNotice').textContent();
@@ -139,7 +139,7 @@ jobs:
               await page.locator('.kefe-section[data-panel="media"]').waitFor();
               const accept = await page.locator('#mediaInput').getAttribute('accept');
               assert.ok(accept && accept.includes('audio/*') && accept.includes('video/*'), label + ': media input must accept audio and video files');
-              await page.locator('button[data-top-panel="media"]').click();
+              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
 
               const chooserPromise = page.waitForEvent('filechooser');
@@ -255,11 +255,11 @@ jobs:
               await page.locator('.kefe-section[data-panel="lyrics"]').click();
               await page.locator('#lyricsInput').fill(persistenceLyrics);
               await page.locator('.kefe-section[data-panel="media"]').click();
-              await page.locator('button[data-top-panel="media"]').click();
+              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
               await page.waitForFunction(title => [...document.querySelectorAll('.kefe-library-card h2')].some(el => el.textContent === title), persistenceTitle, { timeout: 15000 });
               await page.reload({ waitUntil: 'domcontentloaded' });
-              await page.locator('button[data-top-panel="media"]').click();
+              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
               const savedProject = page.locator('.kefe-library-card').filter({ has: page.locator('h2', { hasText: persistenceTitle }) });
               await savedProject.waitFor({ state: 'visible' });
@@ -274,13 +274,13 @@ jobs:
                   !!audio?.src?.startsWith('blob:') &&
                   Number.isFinite(audio.duration) && audio.duration > 0;
               }, { title: persistenceTitle, artist: persistenceArtist, lyrics: persistenceLyrics, fileName: 'KEFE New Project Upload Verification.wav' }, { timeout: 20000 });
-              await page.locator('button[data-top-panel="media"]').click();
+              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
               page.once('dialog', dialog => dialog.accept());
               await page.locator('.kefe-library-card').filter({ has: page.locator('h2', { hasText: persistenceTitle }) }).getByRole('button', { name: 'Delete' }).click();
               await page.waitForFunction(title => ![...document.querySelectorAll('.kefe-library-card h2')].some(el => el.textContent === title), persistenceTitle, { timeout: 15000 });
               await page.reload({ waitUntil: 'domcontentloaded' });
-              await page.locator('button[data-top-panel="media"]').click();
+              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
               assert.equal(await page.locator('.kefe-library-card h2').filter({ hasText: persistenceTitle }).count(), 0, label + ': deleted project must remain deleted after reload');
               const mediaLibraryAudit = { save: 'PASS', reload: 'PASS', metadataRestore: 'PASS', originalMediaRestore: 'PASS', audioReload: 'PASS', delete: 'PASS', deletionPersistsAfterReload: 'PASS' };
