@@ -138,5 +138,5 @@ jobs:
             }
           })().catch(error => { console.error(error); process.exitCode = 1; });
           NODE
-          node /tmp/kefe-workspace-shell-check.cjs
-          KEFE_BASE_URL='https://tezzaaaaaa.github.io/Kefe/apps/web' node /tmp/kefe-workspace-shell-check.cjs
+          NODE_PATH="$GITHUB_WORKSPACE/node_modules" node /tmp/kefe-workspace-shell-check.cjs
+          KEFE_BASE_URL='https://tezzaaaaaa.github.io/Kefe/apps/web' NODE_PATH="$GITHUB_WORKSPACE/node_modules" node /tmp/kefe-workspace-shell-check.cjs
