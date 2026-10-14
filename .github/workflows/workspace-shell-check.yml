@@ -29,7 +29,20 @@ jobs:
           npm install --no-save playwright
           npx playwright install --with-deps chromium
 
-      - name: Verify workspace, editor navigation, themes and routes
+      - name: Wait for GitHub Pages to publish the workspace shell
+        run: |
+          live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
+          for attempt in $(seq 1 48); do
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-editor.html 2>/dev/null && grep -Fq 'workspace-shell.css?v=unified-workspace-20261014-1' /tmp/kefe-live-editor.html; then
+              echo 'Published editor contains the unified workspace shell.'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'GitHub Pages did not publish the unified workspace shell in time.' >&2
+          exit 1
+
+      - name: Verify workspace, editor navigation, themes and routes locally and live
         run: |
           python3 -m http.server 4173 --directory apps/web > /tmp/kefe-workspace-http.log 2>&1 &
           server_pid=$!
@@ -38,7 +51,7 @@ jobs:
             if curl --fail --silent http://127.0.0.1:4173/index.html -o /dev/null; then break; fi
             sleep 1
           done
-          node <<'NODE'
+          cat > /tmp/kefe-workspace-shell-check.cjs <<'NODE'
           const { chromium } = require('playwright');
           const assert = require('node:assert/strict');
           const fs = require('node:fs');
@@ -58,12 +71,13 @@ jobs:
 
           (async () => {
             const browser = await chromium.launch({ headless: true, args: ['--use-gl=angle', '--use-angle=swiftshader'] });
+            const baseUrl = process.env.KEFE_BASE_URL || 'http://127.0.0.1:4173';
             const errors = [];
             try {
               const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
               page.on('pageerror', error => errors.push(error.message));
 
-              await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
+              await page.goto(baseUrl + '/index.html', { waitUntil: 'domcontentloaded' });
               await page.waitForURL(/workspace\.html$/);
               await page.locator('.workspace-switch').waitFor();
               await page.locator('#themeToggle').click();
@@ -102,13 +116,13 @@ jobs:
               await page.keyboard.press('Escape');
               await page.locator('.kefe-settings-backdrop:not([hidden])').waitFor({ state: 'hidden' });
 
-              await page.goto('http://127.0.0.1:4173/editor.html?section=visualiser', { waitUntil: 'domcontentloaded' });
+              await page.goto(baseUrl + '/editor.html?section=visualiser', { waitUntil: 'domcontentloaded' });
               await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
               assert.deepEqual(errors, [], 'desktop runtime errors: ' + errors.join('; '));
 
               const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
               mobile.on('pageerror', error => errors.push(error.message));
-              await mobile.goto('http://127.0.0.1:4173/editor.html', { waitUntil: 'domcontentloaded' });
+              await mobile.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
               await mobile.locator('.kefe-sidebar').waitFor();
               const mobileGeometry = await mobile.evaluate(() => ({ viewportWidth: innerWidth, documentWidth: document.documentElement.scrollWidth, sidebarHeight: document.querySelector('.kefe-sidebar').getBoundingClientRect().height }));
               assert.ok(mobileGeometry.documentWidth <= mobileGeometry.viewportWidth, 'mobile layout must not overflow horizontally: ' + JSON.stringify(mobileGeometry));
@@ -124,3 +138,5 @@ jobs:
             }
           })().catch(error => { console.error(error); process.exitCode = 1; });
           NODE
+          node /tmp/kefe-workspace-shell-check.cjs
+          KEFE_BASE_URL='https://tezzaaaaaa.github.io/Kefe/apps/web' node /tmp/kefe-workspace-shell-check.cjs
