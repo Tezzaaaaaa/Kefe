@@ -3554,9 +3554,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
     scrollbar-width: none;
   }
 
-  .kefe-tabs::-webkit-scrollbar {
-    display: none;
-  }
+
 
   .kefe-section {
     flex: 0 0 auto;
@@ -4388,14 +4386,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup .kefe-visualiser-field > span {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 2px;
   
-  font-size: var(--font-sm);
-  font-family: inherit;
-  color: var(--muted);}
 }
 
 
@@ -4565,15 +4556,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
     width: 100%;
   }
 
-  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-label {
-    grid-column: 1 / -1;
-  
-  font-size: var(--font-sm);
-  font-family: inherit;
-  color: var(--muted);
-  font-weight: 600;
-  letter-spacing: normal;
-  text-transform: none;}
+
 
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure {
     display: grid;
@@ -4777,11 +4760,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
     align-items: start;
   }
 
-  .kefe-panel[data-panel-view="export"] .kefe-form > * {
-    grid-column: auto;
-    min-width: 0;
-    width: 100%;
-  }
+
 
   .kefe-panel[data-panel-view="export"] .kefe-form > .kefe-empty-panel {
     grid-column: 1 / -1;
