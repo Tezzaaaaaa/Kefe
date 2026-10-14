@@ -390,7 +390,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         // white highlight layer – fades in/out with focus
                 // Duration-aware per-letter fill and magnet-wave motion.
         const utils = window.kefeEffectUtils;
-        const tokens = String(line.text || '').split(/\\s+/).filter(Boolean);
+        const tokens = String(line.text || '').split(/\s+/).filter(Boolean);
         let times = null;
         if (utils?.tokenTimes && (i === activeIndex || i === activeIndex - 1)) {
             try {
