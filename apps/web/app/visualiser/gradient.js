@@ -203,14 +203,15 @@
   function buildStops(){
     var box=ui.stopBox;box.innerHTML='';
     S.stops.forEach(function(s,i){
-      var row=el('div','kefe-gradient-stop'),color=el('input'),pos=el('input'),del=el('button','kefe-btn','×');
+      var row=el('div','kefe-gradient-stop'),color=el('input'),pos=el('input'),value=el('output','kefe-gradient-stop-value'),del=el('button','kefe-btn','×');
       color.type='color';color.value=s.color;color.setAttribute('aria-label','Stop '+(i+1)+' colour');
       pos.type='range';pos.min=0;pos.max=100;pos.step=1;pos.value=s.position;pos.setAttribute('aria-label','Stop '+(i+1)+' position');
+      value.textContent=Number(s.position)+'%';value.setAttribute('aria-label','Stop '+(i+1)+' position value');
       del.type='button';del.title='Remove stop';del.disabled=S.stops.length<=MIN_STOPS;
       color.addEventListener('input',function(){s.color=color.value;update();});
-      pos.addEventListener('input',function(){s.position=Number(pos.value);update();});
+      pos.addEventListener('input',function(){s.position=Number(pos.value);value.textContent=pos.value+'%';update();});
       del.addEventListener('click',function(){if(S.stops.length>MIN_STOPS){S.stops.splice(i,1);buildStops();update();}});
-      row.appendChild(color);row.appendChild(pos);row.appendChild(del);box.appendChild(row);
+      row.appendChild(color);row.appendChild(pos);row.appendChild(value);row.appendChild(del);box.appendChild(row);
     });
     ui.stopCount.textContent=S.stops.length+' / '+MAX_STOPS;
     ui.addBtn.disabled=S.stops.length>=MAX_STOPS;
