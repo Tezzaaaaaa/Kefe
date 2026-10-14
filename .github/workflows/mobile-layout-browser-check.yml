@@ -76,8 +76,8 @@ jobs:
                 page.on('pageerror', error => pageErrors.push(error.message));
                 page.on('console', message => { if (message.type() === 'error') pageConsoleErrors.push(message.text()); });
                 await page.goto(`${baseUrl}/editor.html`, { waitUntil: 'domcontentloaded' });
-                await page.locator('.kefe-section[data-panel="effects"]').waitFor();
-                await page.locator('.kefe-section[data-panel="effects"]').click();
+                await page.locator('.kefe-sidebar [data-shell-panel="effects"]').waitFor();
+                await page.locator('.kefe-sidebar [data-shell-panel="effects"]').click();
                 await page.locator('.kefe-panel[data-panel-view="effects"].active').waitFor();
                 await page.waitForTimeout(500);
 
@@ -125,7 +125,7 @@ jobs:
                   assert.deepEqual(visible, [activeId], `${label} must show only its own settings; visible views: ${JSON.stringify(visible)}`);
                 }
 
-                await page.locator('.kefe-section[data-panel="media"]').click();
+                await page.locator('.kefe-sidebar-link[href="./editor.html"]').click();
                 await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
                 const mediaGrid = await assertTwoColumns('.kefe-panel[data-panel-view="media"] .kefe-form', 'Media');
                 const mediaSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="media"]', 'Media', false);
@@ -140,7 +140,7 @@ jobs:
                 }
                 if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-media.png`, fullPage: false, timeout: 15000 });
 
-                await page.locator('.kefe-section[data-panel="lyrics"]').click();
+                await page.locator('.kefe-sidebar [data-shell-panel="lyrics"]').click();
                 await page.locator('.kefe-panel[data-panel-view="lyrics"].active').waitFor();
                 const lyricsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="lyrics"] .kefe-form', 'Lyrics');
                 const lyricsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="lyrics"]', 'Lyrics', false);
@@ -156,13 +156,13 @@ jobs:
                 assert.ok(lyricsComponentWidths.timingWidth >= lyricsComponentWidths.formWidth * 0.9, 'Lyrics timing control should remain full width');
                 if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-lyrics.png`, fullPage: false, timeout: 15000 });
 
-                await page.locator('.kefe-section[data-panel="export"]').click();
+                await page.locator('.kefe-sidebar [data-shell-panel="export"]').click();
                 await page.locator('.kefe-panel[data-panel-view="export"].active').waitFor();
                 const exportGrid = await assertTwoColumns('.kefe-panel[data-panel-view="export"] .kefe-form', 'Export');
                 const exportSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="export"]', 'Export');
                 if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-export.png`, fullPage: false, timeout: 15000 });
 
-                await page.locator('.kefe-section[data-panel="effects"]').click();
+                await page.locator('.kefe-sidebar [data-shell-panel="effects"]').click();
                 await page.locator('.kefe-panel[data-panel-view="effects"].active').waitFor();
                 await page.waitForTimeout(300);
 
@@ -256,7 +256,7 @@ jobs:
                 }
                 await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-effects.png`, fullPage: false, timeout: 15000 });
 
-                await page.locator('.kefe-section[data-panel="visualiser"]').click();
+                await page.locator('.kefe-sidebar [data-shell-panel="visualiser"]').click();
                 await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
                 await page.waitForTimeout(500);
                 const visualiserGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Visualiser');
@@ -395,7 +395,7 @@ jobs:
                   assert.equal(await githubLink.count(), 1, 'Header should contain one GitHub repository icon link');
                   assert.ok(await githubLink.isVisible(), 'Header GitHub icon link should be visible');
 
-                  await page.locator('.kefe-section[data-panel="media"]').click();
+                  await page.locator('.kefe-sidebar-link[href="./editor.html"]').click();
                   await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
                   await page.evaluate(() => { window.KEFE_AUDIO_RECOGNITION_TOKEN = 'test-token'; });
                   await page.route('https://api.audd.io/**', route => route.fulfill({
