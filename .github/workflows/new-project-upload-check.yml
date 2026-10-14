@@ -259,6 +259,32 @@ jobs:
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
               const savedProject = page.locator('.kefe-library-card').filter({ has: page.locator('h2', { hasText: persistenceTitle }) });
               await savedProject.waitFor({ state: 'visible' });
+              const storedFileAudit = await page.evaluate(title => new Promise((resolve, reject) => {
+                const request = indexedDB.open('kefe-media-library');
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                  const database = request.result;
+                  const transaction = database.transaction('projects', 'readonly');
+                  const query = transaction.objectStore('projects').getAll();
+                  query.onerror = () => reject(query.error);
+                  query.onsuccess = () => {
+                    const project = query.result.find(item => item.title === title);
+                    const file = project?.file;
+                    resolve({
+                      projectFound: !!project,
+                      fileConstructor: file?.constructor?.name || null,
+                      isFile: typeof File !== 'undefined' && file instanceof File,
+                      isBlob: typeof Blob !== 'undefined' && file instanceof Blob,
+                      fileName: file?.name || null,
+                      storedFileName: project?.fileName || null,
+                      fileType: file?.type || null,
+                      fileSize: file?.size ?? null
+                    });
+                    database.close();
+                  };
+                };
+              }), persistenceTitle);
+              console.log('Media Library stored-file diagnostics:', JSON.stringify(storedFileAudit));
               await savedProject.getByRole('button', { name: 'Open project' }).click();
               const expectedRestore = { title: persistenceTitle, artist: persistenceArtist, lyrics: persistenceLyrics, fileName: 'KEFE New Project Upload Verification.wav' };
               try {
