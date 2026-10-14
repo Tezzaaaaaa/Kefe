@@ -95,6 +95,28 @@ jobs:
               await page.locator('.kefe-stage').waitFor();
               await page.locator('.kefe-section[data-panel="media"].active').waitFor();
               await checkLocalReferences(page, 'editor');
+              const editorLayout = await page.evaluate(() => {
+                const rail = document.querySelector('.kefe-tabs');
+                const editor = document.querySelector('.kefe-editing');
+                const panel = document.querySelector('.kefe-panel.active').getBoundingClientRect();
+                const stage = document.querySelector('.kefe-stage').getBoundingClientRect();
+                return {
+                  duplicateSectionRail: getComputedStyle(rail).display !== 'none',
+                  editorDisplay: getComputedStyle(editor).display,
+                  panelWidth: panel.width,
+                  panelRight: panel.right,
+                  stageWidth: stage.width,
+                  stageHeight: stage.height,
+                  viewportWidth: innerWidth,
+                  viewportHeight: innerHeight
+                };
+              });
+              assert.equal(editorLayout.duplicateSectionRail, false, 'editor must not show a second section navigation rail');
+              assert.equal(editorLayout.editorDisplay, 'block', 'editor controls must share one content column');
+              assert.ok(editorLayout.panelWidth <= 1200, 'editor panel should have a consistent maximum width: ' + JSON.stringify(editorLayout));
+              assert.ok(editorLayout.panelRight <= editorLayout.viewportWidth + 1, 'editor panel must fit the viewport: ' + JSON.stringify(editorLayout));
+              assert.ok(editorLayout.stageWidth <= 900, 'preview should be bounded rather than dominate the editor: ' + JSON.stringify(editorLayout));
+              assert.ok(editorLayout.stageHeight <= editorLayout.viewportHeight * 0.56, 'preview should be vertically bounded: ' + JSON.stringify(editorLayout));
 
               const shellGeometry = await page.evaluate(() => {
                 const sidebar = document.querySelector('.kefe-sidebar').getBoundingClientRect();
@@ -138,6 +160,9 @@ jobs:
               const mobileGeometry = await mobile.evaluate(() => ({ viewportWidth: innerWidth, documentWidth: document.documentElement.scrollWidth, sidebarHeight: document.querySelector('.kefe-sidebar').getBoundingClientRect().height }));
               assert.ok(mobileGeometry.documentWidth <= mobileGeometry.viewportWidth, 'mobile layout must not overflow horizontally: ' + JSON.stringify(mobileGeometry));
               assert.ok(mobileGeometry.sidebarHeight <= 56, 'mobile navigation should use a compact horizontal row: ' + JSON.stringify(mobileGeometry));
+              assert.equal(await mobile.locator('.kefe-tabs').evaluate(node => getComputedStyle(node).display), 'none', 'mobile editor must not duplicate section navigation');
+              const mobileStage = await mobile.locator('.kefe-stage').boundingBox();
+              assert.ok(mobileStage.width <= mobileGeometry.viewportWidth, 'mobile preview must fit the viewport: ' + JSON.stringify({mobileGeometry,mobileStage}));
               await mobile.locator('.kefe-sidebar [data-shell-panel="lyrics"]').click();
               await mobile.locator('.kefe-panel[data-panel-view="lyrics"].active').waitFor();
               await mobile.goto(baseUrl + '/workspace.html', { waitUntil: 'domcontentloaded' });
@@ -145,7 +170,7 @@ jobs:
               await mobile.locator('#projectSearchMobile').fill('no matching saved project');
               await mobile.getByText('No matching projects', { exact: true }).waitFor();
               assert.deepEqual(errors, [], 'browser runtime errors: ' + errors.join('; '));
-              console.log(JSON.stringify({ result: 'PASS', workspaceRedirect: 'PASS', dayNightPersistence: 'PASS', localReferences: 'PASS', desktopSidebar: shellGeometry, sidebarSections: 'PASS', libraryModal: 'PASS', settingsModal: 'PASS', deepLink: 'PASS', mobileLayout: mobileGeometry, runtimeErrors: errors }));
+              console.log(JSON.stringify({ result: 'PASS', workspaceRedirect: 'PASS', dayNightPersistence: 'PASS', localReferences: 'PASS', desktopSidebar: shellGeometry, integratedEditorLayout: editorLayout, sidebarSections: 'PASS', libraryModal: 'PASS', settingsModal: 'PASS', deepLink: 'PASS', mobileLayout: mobileGeometry, runtimeErrors: errors }));
               await mobile.close();
               await page.close();
             } finally {
