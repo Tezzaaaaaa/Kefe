@@ -624,10 +624,10 @@
       window.dispatchEvent(new Event('kefe-stage-resize'));
       return;
     }
-    const paneWidth=Math.max(0,previewPane.clientWidth-48);
-    const paneHeight=Math.max(0,previewPane.clientHeight-34);
+    const paneWidth=Math.max(0,previewPane.clientWidth-24);
+    const paneHeight=Math.max(0,Math.floor(window.innerHeight*0.52));
     if(paneWidth<=0||paneHeight<=0)return;
-    let width=Math.min(paneWidth,1180);
+    let width=Math.min(paneWidth,900);
     let height=width/ratio;
     const mobile=window.matchMedia('(max-width: 700px)').matches;
     if(mobile){
