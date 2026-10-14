@@ -118,7 +118,10 @@ document.querySelectorAll('[data-shell-panel]').forEach(button => {
   });
 });
 document.querySelectorAll('.kefe-section[data-panel]').forEach(button => {
-  button.addEventListener('click', () => syncShellSection(button.dataset.panel));
+  button.addEventListener('click', () => {
+    syncShellSection(button.dataset.panel);
+    document.querySelectorAll('[data-dock-panel]').forEach(dock => dock.setAttribute('aria-pressed', String(dock.dataset.dockPanel === button.dataset.panel)));
+  });
 });
 document.querySelectorAll('[data-top-panel="editor"]').forEach(button => {
   button.addEventListener('click', () => {
@@ -137,6 +140,7 @@ if (editorSectionLink && /\/editor\.html$/.test(window.location.pathname)) {
   });
 }
 syncShellSection(document.querySelector('.kefe-section.active')?.dataset.panel || 'media');
+document.querySelectorAll('[data-dock-panel]').forEach(dock => dock.setAttribute('aria-pressed', String(dock.dataset.dockPanel === (document.querySelector('.kefe-section.active')?.dataset.panel || 'media'))));
 const initialSection = new URLSearchParams(window.location.search).get('section');
 if (['media', 'lyrics', 'effects', 'visualiser', 'export'].includes(initialSection)) {
   document.addEventListener('DOMContentLoaded', () => {
