@@ -132,7 +132,23 @@ jobs:
               await page.locator('.kefe-section[data-panel="visualiser"]').click();
               await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
               const visualiserPower = page.locator('.kefe-visualiser-panel-head .kefe-switch');
-              await visualiserPower.waitFor({ state: 'visible' });
+              try {
+                await visualiserPower.waitFor({ state: 'visible', timeout: 5000 });
+              } catch (error) {
+                const diagnostics = await page.evaluate(() => {
+                  const panel = document.querySelector('.kefe-panel[data-panel-view="visualiser"]');
+                  const head = panel?.querySelector('.kefe-visualiser-panel-head');
+                  const button = head?.querySelector('.kefe-switch');
+                  const describe = el => {
+                    if (!el) return null;
+                    const style = getComputedStyle(el), rect = el.getBoundingClientRect();
+                    return { tag: el.tagName, className: el.className, hidden: el.hidden, display: style.display, visibility: style.visibility, opacity: style.opacity, width: rect.width, height: rect.height, ariaLabel: el.getAttribute('aria-label') };
+                  };
+                  return { panel: describe(panel), head: describe(head), button: describe(button), panelHtml: panel?.outerHTML.slice(0, 2400) };
+                });
+                console.error('Visualiser power-toggle visibility diagnostics:', JSON.stringify(diagnostics));
+                throw error;
+              }
               if (await visualiserPower.getAttribute('aria-checked') !== 'true') await visualiserPower.click();
               await page.waitForFunction(() => getComputedStyle(document.getElementById('kefeVisualiserCanvas')).visibility === 'visible', null, { timeout: 10000 });
 
