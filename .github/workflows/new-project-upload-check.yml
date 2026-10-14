@@ -246,7 +246,7 @@ jobs:
               await page.locator('#kefeExportClose').waitFor({ state: 'visible' });
               await page.locator('#kefeExportClose').click();
               await page.locator('.kefe-sidebar-link[href="./editor.html"]').click();
-              await page.locator('.kefe-panel[data-panel-view="media"].active").waitFor();
+              await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
               const persistenceTitle = 'KEFE Media Library Persistence ' + Date.now();
               const persistenceArtist = 'KEFE Persistence Test Artist';
               const persistenceLyrics = 'KEFE MEDIA LIBRARY PERSISTENCE TEST';
@@ -255,7 +255,7 @@ jobs:
               await page.locator('.kefe-sidebar [data-shell-panel="lyrics"]').click();
               await page.locator('#lyricsInput').fill(persistenceLyrics);
               await page.locator('.kefe-sidebar-link[href="./editor.html"]').click();
-              await page.locator('.kefe-panel[data-panel-view="media"].active").waitFor();
+              await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
               await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
               await page.waitForFunction(title => [...document.querySelectorAll('.kefe-library-card h2')].some(el => el.textContent === title), persistenceTitle, { timeout: 15000 });
