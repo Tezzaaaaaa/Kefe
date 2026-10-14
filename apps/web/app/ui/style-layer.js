@@ -16,6 +16,7 @@
     text: { on: false, value: '', pos: 'bottom-center', size: 4, color: '#ffffff', opacity: 90 },
     logo: { on: false, pos: 'top-right', size: 12, opacity: 100 }
   };
+  var COLOR_SWATCHES = ['#ffffff', '#171719', '#f16a67', '#f0a35e', '#e7cf63', '#77c7a5', '#69a8f4', '#a88be8'];
   var POSITIONS = [
     ['top-left', 'Top left'], ['top-center', 'Top centre'], ['top-right', 'Top right'],
     ['bottom-left', 'Bottom left'], ['bottom-center', 'Bottom centre'], ['bottom-right', 'Bottom right']
@@ -153,23 +154,35 @@
     return wrap;
   }
   function toggleRow(label, get, set) {
-    var row = el('div', 'kefe-visualiser-spin-row'), btn = el('button', 'kefe-btn', ''); btn.type = 'button';
+    var row = el('div', 'kefe-visualiser-spin-row'), btn = el('button', 'kefe-btn kefe-switch', ''); btn.type = 'button';
     row.appendChild(el('span', 'kefe-label', label));
-    function sync() { btn.textContent = get() ? 'On' : 'Off'; btn.setAttribute('aria-pressed', get() ? 'true' : 'false'); }
+    function sync() { btn.textContent = get() ? 'On' : 'Off'; btn.setAttribute('aria-label', label); btn.setAttribute('aria-pressed', get() ? 'true' : 'false'); }
     btn.addEventListener('click', function () { set(!get()); sync(); persist(); redraw(); });
     row.appendChild(btn); sync(); row.sync = sync;
     return row;
   }
   function colorRow(label, get, set, allowDefault) {
-    var row = el('div', 'kefe-visualiser-spin-row'), right = el('span', 'kefe-style-color-wrap');
-    var input = document.createElement('input'); input.type = 'color'; input.className = 'kefe-style-color'; input.setAttribute('aria-label', label);
+    var row = el('div', 'kefe-visualiser-spin-row kefe-style-color-row'), right = el('span', 'kefe-style-color-wrap');
+    var input = document.createElement('input'); input.type = 'color'; input.className = 'kefe-style-color'; input.setAttribute('aria-label', label + ' custom colour');
     var reset = el('button', 'kefe-btn kefe-style-mini', 'Auto'); reset.type = 'button'; reset.title = 'Use the effect colour';
-    function sync() { input.value = validColor(get()) ? get() : '#ffffff'; if (allowDefault) reset.hidden = !validColor(get()); }
-    input.addEventListener('input', function () { set(input.value); reset.hidden = !allowDefault; persist(); redraw(); });
+    var palette = el('div', 'kefe-style-color-swatches'); palette.setAttribute('role', 'group'); palette.setAttribute('aria-label', label + ' preset colours');
+    var swatches = COLOR_SWATCHES.map(function (color) {
+      var button = el('button', 'kefe-style-swatch'); button.type = 'button';
+      button.style.setProperty('--swatch-color', color); button.title = color; button.setAttribute('aria-label', label + ' ' + color);
+      button.addEventListener('click', function () { set(color); sync(); persist(); redraw(); });
+      palette.appendChild(button); return { color: color, button: button };
+    });
+    function sync() {
+      var current = validColor(get()) ? get().toLowerCase() : '';
+      input.value = current || '#ffffff';
+      if (allowDefault) reset.hidden = !current;
+      swatches.forEach(function (item) { item.button.setAttribute('aria-pressed', item.color === current ? 'true' : 'false'); });
+    }
+    input.addEventListener('input', function () { set(input.value); sync(); persist(); redraw(); });
     reset.addEventListener('click', function () { set(''); sync(); persist(); redraw(); });
     row.appendChild(el('span', 'kefe-label', label));
     right.appendChild(input); if (allowDefault) right.appendChild(reset);
-    row.appendChild(right); sync(); row.sync = sync;
+    row.append(right, palette); sync(); row.sync = sync;
     return row;
   }
   function selectRow(label, get, set, options) {
