@@ -90,6 +90,8 @@ body{overflow-x:hidden;overflow-y:auto}
   max-width:100%;max-height:none;margin-inline:auto;
   border:1px solid var(--shell-line);border-radius:10px;
   box-shadow:0 12px 36px rgba(0,0,0,.13);
+  transition:width 420ms cubic-bezier(.22,1,.36,1),height 420ms cubic-bezier(.22,1,.36,1),aspect-ratio 420ms cubic-bezier(.22,1,.36,1);
+  will-change:width,height;
 }
 .kefe-stage.is-16x9{width:min(100%,900px,92.45vh);aspect-ratio:16/9}
 .kefe-stage.is-9x16{width:min(100%,29.25vh);aspect-ratio:9/16}
@@ -291,6 +293,7 @@ body{overflow-x:hidden;overflow-y:auto}
   .kefe-aspect-controls{min-width:56px;flex-basis:56px}
 }
 @media(prefers-reduced-motion:reduce){
+  .kefe-stage{transition:none;will-change:auto}
   .kefe-sidebar-link{transition:none}
   .kefe-panel,.kefe-btn,.kefe-control,.kefe-style-swatch,.kefe-visualiser-spin-row .kefe-switch::after{transition:none}
 }
