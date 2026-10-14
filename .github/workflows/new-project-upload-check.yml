@@ -307,6 +307,7 @@ jobs:
               page.once('dialog', dialog => dialog.accept());
               await page.locator('.kefe-library-card').filter({ has: page.locator('h2', { hasText: persistenceTitle }) }).getByRole('button', { name: 'Delete' }).click();
               await page.waitForFunction(title => ![...document.querySelectorAll('.kefe-library-card h2')].some(el => el.textContent === title), persistenceTitle, { timeout: 15000 });
+              await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
               await page.reload({ waitUntil: 'domcontentloaded' });
               await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
