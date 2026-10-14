@@ -240,6 +240,8 @@ jobs:
               assert.ok(exportAudit.recorder?.videoTracks >= 1, label + ': export recorder must receive a video track');
               assert.ok(exportAudit.recorder?.audioTracks >= 1, label + ': export recorder must receive an audio track');
               assert.ok(exportAudit.status.startsWith('Export complete'), label + ': export status must report completion');
+              await page.locator('#kefeExportClose').waitFor({ state: 'visible' });
+              await page.locator('#kefeExportClose').click();
               await page.locator('.kefe-section[data-panel="media"]').click();
               const persistenceTitle = 'KEFE Media Library Persistence ' + Date.now();
               const persistenceArtist = 'KEFE Persistence Test Artist';
