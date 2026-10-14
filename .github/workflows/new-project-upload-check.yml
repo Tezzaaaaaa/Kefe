@@ -54,6 +54,7 @@ jobs:
           cat > /tmp/kefe-new-project-upload.cjs <<'NODE'
           const { chromium } = require('playwright');
           const assert = require('node:assert/strict');
+          const fs = require('node:fs');
 
           function makeTestWav() {
             const sampleRate = 8000, samples = sampleRate;
@@ -114,8 +115,62 @@ jobs:
               await page.waitForFunction(() =>
                 document.getElementById('songTitle')?.value === 'KEFE New Project Upload Verification' &&
                 !document.querySelector('.kefe-stage')?.classList.contains('is-empty'),
+                null,
                 { timeout: 10000 }
               );
+              await page.waitForFunction(() => {
+                const audio = document.getElementById('kefeAudio');
+                return audio && Number.isFinite(audio.duration) && audio.duration > 0;
+              }, null, { timeout: 10000 });
+
+              await page.evaluate(() => {
+                document.getElementById('songTitle').value = 'KEFE Export Verification';
+                document.getElementById('songArtist').value = 'KEFE Test Artist';
+                window.kefeLyrics.set([{ text: 'KEFE EXPORT VERIFICATION', time: 0, endTime: 1 }], 'browser-export-verification');
+                window.kefeLyrics.seek(0.1);
+              });
+              await page.locator('.kefe-section[data-panel="visualiser"]').click();
+              await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
+              const visualiserPower = page.locator('.kefe-visualiser-panel-head .kefe-switch');
+              await visualiserPower.waitFor({ state: 'visible' });
+              if (await visualiserPower.getAttribute('aria-checked') !== 'true') await visualiserPower.click();
+              await page.waitForFunction(() => getComputedStyle(document.getElementById('kefeVisualiserCanvas')).visibility === 'visible', null, { timeout: 10000 });
+
+              await page.locator('.kefe-section[data-panel="export"]').click();
+              await page.locator('.kefe-panel[data-panel-view="export"].active').waitFor();
+              await page.locator('#exportFormat').selectOption('webm');
+              await page.locator('#exportResolution').selectOption('720');
+              await page.evaluate(() => {
+                const NativeRecorder = window.MediaRecorder;
+                window.__kefeExportTrackAudit = null;
+                window.MediaRecorder = class extends NativeRecorder {
+                  constructor(stream, options) {
+                    window.__kefeExportTrackAudit = {
+                      audioTracks: stream.getAudioTracks().length,
+                      videoTracks: stream.getVideoTracks().length,
+                      mimeType: options?.mimeType || ''
+                    };
+                    super(stream, options);
+                  }
+                };
+              });
+              const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
+              await page.locator('#exportButton').click();
+              const download = await downloadPromise;
+              await page.waitForFunction(() => document.getElementById('exportStatus')?.textContent.startsWith('Export complete'), null, { timeout: 30000 });
+              const exportAudit = await page.evaluate(() => ({
+                status: document.getElementById('exportStatus')?.textContent || '',
+                recorder: window.__kefeExportTrackAudit
+              }));
+              const downloadPath = await download.path();
+              assert.ok(downloadPath, label + ': exported video download should have a readable file');
+              const exported = fs.readFileSync(downloadPath);
+              assert.ok(download.suggestedFilename().endsWith('.webm'), label + ': export should produce a WebM file; got ' + download.suggestedFilename());
+              assert.ok(exported.length > 1000, label + ': exported video must not be empty');
+              assert.deepEqual([...exported.subarray(0, 4)], [0x1a, 0x45, 0xdf, 0xa3], label + ': exported WebM must have a valid EBML header');
+              assert.ok(exportAudit.recorder?.videoTracks >= 1, label + ': export recorder must receive a video track');
+              assert.ok(exportAudit.recorder?.audioTracks >= 1, label + ': export recorder must receive an audio track');
+              assert.ok(exportAudit.status.startsWith('Export complete'), label + ': export status must report completion');
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
               console.log(JSON.stringify({
                 target: label,
@@ -124,6 +179,15 @@ jobs:
                 mediaTabActive: true,
                 uploadZonePosition: uploadPosition,
                 selectedFile: 'KEFE New Project Upload Verification.wav',
+                export: {
+                  result: 'PASS',
+                  filename: download.suggestedFilename(),
+                  bytes: exported.length,
+                  mimeType: exportAudit.recorder.mimeType,
+                  audioTracks: exportAudit.recorder.audioTracks,
+                  videoTracks: exportAudit.recorder.videoTracks,
+                  status: exportAudit.status
+                },
                 runtimeErrors: errors
               }));
             } finally {
