@@ -11,6 +11,8 @@ on:
       - "apps/web/app/editor.js"
       - "apps/web/app/effects/lyric-apple.js"
       - "apps/web/editor.html"
+      - "apps/web/app/ui/structure.js"
+      - "apps/web/app/ui/workspace-shell.css"
       - ".github/workflows/apple-lyrics-layout-check.yml"
   workflow_dispatch:
 
