@@ -47,7 +47,7 @@ jobs:
             const errors = [];
             page.on('pageerror', error => errors.push(error.message));
             try {
-              await page.goto(baseUrl + '/index.html', { waitUntil: 'domcontentloaded' });
+              await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
               await page.waitForFunction(() => document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4, { timeout: 30000 });
               const nav = page.locator('.kefe-tabs');
               const submenu = page.locator('.kefe-editing > .kefe-vis-tabs');
