@@ -33,7 +33,7 @@ jobs:
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
           for attempt in $(seq 1 48); do
-            if curl --fail --silent "$live_url" -o /tmp/kefe-live-editor.html 2>/dev/null && grep -Fq 'workspace-shell.css?v=unified-workspace-20261014-4' /tmp/kefe-live-editor.html; then
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-editor.html 2>/dev/null && grep -Fq 'workspace-shell.css?v=unified-workspace-20261014-5' /tmp/kefe-live-editor.html; then
               echo 'Published editor contains the unified workspace shell.'
               exit 0
             fi
@@ -107,6 +107,7 @@ jobs:
                   panelRight: panel.right,
                   stageWidth: stage.width,
                   stageHeight: stage.height,
+                  mediaFormColumns: getComputedStyle(document.querySelector('.kefe-panel[data-panel-view="media"] .kefe-form')).gridTemplateColumns.split(' ').length,
                   viewportWidth: innerWidth,
                   viewportHeight: innerHeight
                 };
@@ -117,6 +118,7 @@ jobs:
               assert.ok(editorLayout.panelRight <= editorLayout.viewportWidth + 1, 'editor panel must fit the viewport: ' + JSON.stringify(editorLayout));
               assert.ok(editorLayout.stageWidth <= 900, 'preview should be bounded rather than dominate the editor: ' + JSON.stringify(editorLayout));
               assert.ok(editorLayout.stageHeight <= editorLayout.viewportHeight * 0.56, 'preview should be vertically bounded: ' + JSON.stringify(editorLayout));
+              assert.equal(editorLayout.mediaFormColumns, 2, 'desktop media metadata should use a balanced two-column grid');
 
               const shellGeometry = await page.evaluate(() => {
                 const sidebar = document.querySelector('.kefe-sidebar').getBoundingClientRect();
@@ -161,6 +163,7 @@ jobs:
               assert.ok(mobileGeometry.documentWidth <= mobileGeometry.viewportWidth, 'mobile layout must not overflow horizontally: ' + JSON.stringify(mobileGeometry));
               assert.ok(mobileGeometry.sidebarHeight <= 56, 'mobile navigation should use a compact horizontal row: ' + JSON.stringify(mobileGeometry));
               assert.equal(await mobile.locator('.kefe-tabs').evaluate(node => getComputedStyle(node).display), 'none', 'mobile editor must not duplicate section navigation');
+              assert.equal(await mobile.locator('.kefe-panel[data-panel-view="media"] .kefe-form').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 1, 'mobile media metadata should use one column');
               const mobileStage = await mobile.locator('.kefe-stage').boundingBox();
               assert.ok(mobileStage.width <= mobileGeometry.viewportWidth, 'mobile preview must fit the viewport: ' + JSON.stringify({mobileGeometry,mobileStage}));
               await mobile.locator('.kefe-sidebar [data-shell-panel="lyrics"]').click();
