@@ -34,6 +34,15 @@ document.querySelectorAll('[data-top-panel="editor"]').forEach(button => {
     document.querySelector('.kefe-editing')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
+const editorSectionLink = document.querySelector('.kefe-sidebar-link[href="./editor.html"]');
+if (editorSectionLink && /\/editor\.html$/.test(window.location.pathname)) {
+  editorSectionLink.addEventListener('click', event => {
+    event.preventDefault();
+    const mediaTab = document.querySelector('.kefe-section[data-panel="media"]');
+    if (mediaTab) mediaTab.click();
+    document.querySelector('.kefe-editing')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
 syncShellSection(document.querySelector('.kefe-section.active')?.dataset.panel || 'media');
 const initialSection = new URLSearchParams(window.location.search).get('section');
 if (['media', 'lyrics', 'effects', 'visualiser', 'export'].includes(initialSection)) {
