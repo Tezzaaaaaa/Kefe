@@ -15,7 +15,7 @@
   }
   if (openReq) {
     openReq.onupgradeneeded = function(){ var d=openReq.result; if(!d.objectStoreNames.contains(STORE)){ var s=d.createObjectStore(STORE,{keyPath:'id'}); s.createIndex('updatedAt','updatedAt'); } };
-    openReq.onsuccess = function(){ db=openReq.result; db.onversionchange=function(){db.close();}; render(); updateEstimate(); };
+    openReq.onsuccess = function(){ db=openReq.result; db.onversionchange=function(){db.close();}; render(); updateEstimate(); var params=new URLSearchParams(window.location.search); var requestedProject=params.get('openProject'); if(requestedProject){var projectRequest=db.transaction(STORE,'readonly').objectStore(STORE).get(requestedProject);projectRequest.onsuccess=function(){if(projectRequest.result){restore(projectRequest.result);}else{show();message('That saved project could not be found.');}};projectRequest.onerror=function(){show();message('Could not open that saved project.');};}else if(params.get('panel')==='media'){show();} };
     openReq.onerror = function(){ storageError=openReq.error||new Error('IndexedDB is unavailable'); console.warn('[KEFE Media Library] IndexedDB unavailable',storageError); var status=el('kefeLibraryStorage'); if(status)status.textContent='Browser storage is unavailable in this session.'; message('Media Library cannot save projects because browser storage is unavailable.'); };
   }
   var root=document.createElement('section'); root.className='kefe-library-shell'; root.hidden=true; root.setAttribute('aria-label','Media Library');
