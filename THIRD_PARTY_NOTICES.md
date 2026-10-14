@@ -4,7 +4,7 @@ The root `LICENSE` applies to KEFE-authored code and documentation only. It does
 
 ## Bundled third-party fonts
 
-The applicable licence text is stored beside each bundled font file under `artifacts/kefe-visualiser/public/legacy/fonts/`.
+The applicable licence text is stored beside each bundled font file under `apps/web/fonts/`.
 
 | Font family | Bundled font directory | Licence file | Licence |
 |---|---|---|---|

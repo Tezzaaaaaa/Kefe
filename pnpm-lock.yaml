@@ -165,14 +165,14 @@ importers:
         specifier: ~5.9.3
         version: 5.9.3
 
-  artifacts/api-server:
+  apps/api:
     dependencies:
       '@workspace/api-zod':
         specifier: workspace:*
-        version: link:../../lib/api-zod
+        version: link:../../packages/api-zod
       '@workspace/db':
         specifier: workspace:*
-        version: link:../../lib/db
+        version: link:../../packages/db
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
@@ -217,26 +217,25 @@ importers:
         specifier: 3.1.0
         version: 3.1.0
 
-
-  lib/api-client-react:
+  packages/api-client-react:
     dependencies:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.102.8(react@19.1.0)
 
-  lib/api-spec:
+  packages/api-spec:
     devDependencies:
       orval:
         specifier: ^8.30.0
         version: 8.30.0(prettier@3.9.6)(typescript@5.9.3)
 
-  lib/api-zod:
+  packages/api-zod:
     dependencies:
       zod:
         specifier: 'catalog:'
         version: 3.25.76
 
-  lib/db:
+  packages/db:
     dependencies:
       drizzle-orm:
         specifier: 'catalog:'
@@ -260,15 +259,6 @@ importers:
       drizzle-kit:
         specifier: ^0.31.10
         version: 0.31.10
-
-  scripts:
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 25.9.6
-      tsx:
-        specifier: 'catalog:'
-        version: 4.23.13
 
 packages:
 
