@@ -572,6 +572,7 @@
     document.getElementById('fontName').textContent=c.family||'System UI';
     document.getElementById('fontMeta').textContent='Locked effect font · '+(c.weight||400)+' weight';
     draw();
+    window.dispatchEvent(new CustomEvent('kefe-effect-change',{detail:{effect:id}}));
     return true;
   }
   const lyricEffectOptions=document.getElementById('lyricEffectOptions');

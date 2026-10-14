@@ -81,7 +81,7 @@
     try { localStorage.setItem(migrationKey, '1'); } catch (_) {}
   }
   const redraw = () => { try { window.kefeLyrics?.redraw?.(); } catch (_) {} };
-  const active = key => document.getElementById('lyricEffect')?.value === key;
+  const active = key => !!document.querySelector('.kefe-lyric-effect-option.active[data-effect="' + key + '"]');
   const clamp = (v,a=0,b=1) => Math.max(a,Math.min(b,Number(v)||0));
   const hash = n => { const v=Math.sin(n*127.1+311.7)*43758.5453; return v-Math.floor(v); };
   const linesFor = (lines,time) => {
@@ -472,7 +472,7 @@
   E.spin=renderSpin; E.premium=renderPremium; E.dustoff=renderDust; E.wrapslide=renderWrapSlide; E.inkscript=renderInkScript;
 
   function buildControls(){
-    const select=document.getElementById('lyricEffect'),host=select?.closest('[data-panel-view="effects"]')?.querySelector('.kefe-form');
+    const host=document.querySelector('[data-panel-view="effects"] .kefe-form');
     if(!host||document.getElementById('kefeInspirationControls'))return;
     const root=document.createElement('div');root.id='kefeInspirationControls';root.className='kefe-inspiration-controls';
     const panels={};
@@ -514,7 +514,7 @@
     const css=document.createElement('style');css.textContent='.kefe-inspiration-panel{margin-top:14px;padding:12px;border:1px solid var(--line,#34363d);border-radius:8px;background:var(--surface,transparent)}.kefe-inspiration-panel[hidden]{display:none!important}.kefe-inspiration-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kefe-inspiration-field{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;font-size:12px;min-width:0}.kefe-inspiration-field input[type=range],.kefe-inspiration-field input[type=text],.kefe-inspiration-field input[type=file],.kefe-inspiration-field select{grid-column:1/-1;width:100%;min-width:0}.kefe-inspiration-field input[type=color]{width:100%;grid-column:1/-1;min-height:30px}.kefe-inspiration-toggle{display:flex;align-items:center;justify-content:flex-start;gap:8px}.kefe-inspiration-toggle input{margin:0}.kefe-inspiration-panel>button{margin-top:10px}@media(max-width:600px){.kefe-inspiration-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}';
     root.appendChild(css);host.appendChild(root);
     const sync=()=>Object.entries(panels).forEach(([key,panel])=>{panel.hidden=!active(key);});
-    select.addEventListener('change',sync);window.addEventListener('kefe-effects-ready',sync);sync();
+    window.addEventListener('kefe-effect-change',sync);window.addEventListener('kefe-effects-ready',sync);sync();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',buildControls);else buildControls();
 })();

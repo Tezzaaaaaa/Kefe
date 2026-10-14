@@ -33,8 +33,8 @@
     });ctx.restore();
   };
   function buildControls(){
-    const select=document.getElementById('lyricEffect'),host=select?.closest('.kefe-background-effect-control');
-    if(!select||!host||document.getElementById('kefeFancyControls'))return;
+    const host=document.querySelector('.kefe-lyric-effects-control');
+    if(!host||document.getElementById('kefeFancyControls'))return;
     const group=document.createElement('div');group.id='kefeFancyControls';group.className='kefe-randomize-effect-settings';
     const title=document.createElement('div');title.className='kefe-label';title.textContent='Fancy settings';group.appendChild(title);
     const fields=[['Animation speed','speed',.1,3,.05,v=>v.toFixed(2)+'×'],['RGB separation','rgbOffset',0,24,1,v=>v+'px'],['Horizontal displacement','displacement',0,40,1,v=>v+'px'],['Contrast','contrast',50,200,5,v=>v+'%'],['Text size','size',60,150,5,v=>v+'%']];
@@ -47,7 +47,7 @@
     });
     const reset=document.createElement('button');reset.type='button';reset.className='kefe-btn';reset.textContent='Reset Fancy';
     reset.addEventListener('click',()=>{S=Object.assign({},DEFAULT);syncers.forEach(fn=>fn());persist();redraw();});group.appendChild(reset);host.appendChild(group);
-    const sync=()=>{group.hidden=select.value!=='fancy';};select.addEventListener('change',sync);sync();
+    const sync=()=>{group.hidden=!document.querySelector('.kefe-lyric-effect-option.active[data-effect="fancy"]');};window.addEventListener('kefe-effect-change',sync);sync();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',buildControls);else buildControls();
 })();

@@ -156,9 +156,8 @@
   }
 
   function buildControls() {
-    const select = document.getElementById('lyricEffect');
-    const effectControl = select?.closest('.kefe-background-effect-control');
-    if (!effectControl || !select || document.getElementById('kefeRandomizeControls')) return;
+    const effectControl = document.querySelector('.kefe-lyric-effects-control');
+    if (!effectControl || document.getElementById('kefeRandomizeControls')) return;
     const group = document.createElement('div');
     group.id = 'kefeRandomizeControls';
     group.className = 'kefe-randomize-effect-settings';
@@ -180,8 +179,8 @@
     reset.addEventListener('click', () => { S = Object.assign({}, DEFAULT); syncers.forEach(fn => fn()); syncDir(); persist(); redraw(); });
     group.appendChild(reset);
     effectControl.appendChild(group);
-    const updateVisibility = () => { group.hidden = select.value !== 'randomize'; };
-    select.addEventListener('change', updateVisibility);
+    const updateVisibility = () => { group.hidden = !document.querySelector('.kefe-lyric-effect-option.active[data-effect="randomize"]'); };
+    window.addEventListener('kefe-effect-change', updateVisibility);
     updateVisibility();
   }
 

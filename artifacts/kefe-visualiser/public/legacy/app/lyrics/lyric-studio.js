@@ -55,7 +55,7 @@
   /* ---------- Effects panel: display mode + case ---------- */
   function buildDisplayUi() {
     var host = document.querySelector('[data-panel-view="effects"] .kefe-form');
-    var effectRow = document.getElementById('lyricEffect');
+    var effectRow = document.querySelector('.kefe-lyric-effects-control');
     if (!host || !effectRow || document.getElementById('kefeDisplayGroup')) return;
     var wrap = el('div'); wrap.id = 'kefeDisplayGroup'; wrap.style.display = 'grid'; wrap.style.gap = '12px';
 
@@ -82,8 +82,8 @@
     function setMode(mode) {
       S.mode = mode; persist(); sync();
       if (mode === 'karaoke') {
-        var sel = document.getElementById('lyricEffect');
-        if (sel && sel.value !== 'karaoke' && sel.querySelector('option[value="karaoke"]')) { sel.value = 'karaoke'; sel.dispatchEvent(new Event('change')); }
+        var karaokeButton = document.querySelector('.kefe-lyric-effect-option[data-effect="karaoke"]');
+        if (karaokeButton && !karaokeButton.classList.contains('active')) karaokeButton.click();
       }
       redraw();
     }

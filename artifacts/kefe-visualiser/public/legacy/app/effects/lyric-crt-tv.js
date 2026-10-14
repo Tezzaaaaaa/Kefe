@@ -438,7 +438,7 @@
   }
 
   var panel = null;
-  function isActive(){ var sel = document.getElementById('lyricEffect'); return !!sel && sel.value === 'crttv'; }
+  function isActive(){ return !!document.querySelector('.kefe-lyric-effect-option.active[data-effect="crttv"]'); }
   function sync(){
     if (!panel) panel = document.getElementById('crtTvControlsV3') || (buildPanel(), document.getElementById('crtTvControlsV3'));
     if (panel) {
@@ -447,8 +447,7 @@
       panel.classList.toggle('kefe-hidden', !show);
     }
   }
-  var sel = document.getElementById('lyricEffect');
-  if (sel) sel.addEventListener('change', sync);
+  window.addEventListener('kefe-effect-change', sync);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync); else sync();
   window.addEventListener('kefe-effects-ready', sync);
 })();

@@ -70,7 +70,9 @@ jobs:
                     text: String(text),
                     id: canvas.id,
                     width: canvas.width,
-                    height: canvas.height
+                    height: canvas.height,
+                    x: Number(args[0]),
+                    y: Number(args[1])
                   });
                 }
                 return original.call(this, text, ...args);
@@ -125,7 +127,7 @@ jobs:
                     canvas: { width: canvas.width, height: canvas.height },
                     stage: { width: stage.getBoundingClientRect().width, height: stage.getBoundingClientRect().height },
                     titleDrawn: calls.some(call => call.id === 'kefeCanvas' && call.text === 'KEFE LAYOUT AUDIT'),
-                    lyricCalls: calls.filter(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height).map(call => call.text),
+                    lyricCalls: calls.filter(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height).map(call => ({ text: call.text, x: call.x, y: call.y })),
                     fullLineDrawn: calls.some(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height && call.text.trim().toLowerCase() === (window.__kefeLayoutAudit.expectedPhrase || '').trim().toLowerCase())
                   };
                 });
@@ -134,9 +136,14 @@ jobs:
                 assert.ok(rendered.titleDrawn, label + ': title card text did not render for ' + aspect);
                 assert.ok(rendered.lyricCalls.length > 0, label + ': lyrics did not render for ' + aspect);
                 if (aspect === '16:9') {
-                  const normalized = rendered.lyricCalls.map(text => text.trim().toLowerCase());
-                  assert.ok(normalized.includes(prepared.fitPhrase.toLowerCase()),
-                    label + ': landscape lyric line still wraps instead of using the extra width');
+                  const expectedCompact = prepared.fitPhrase.replace(/\s+/g, '').toLowerCase();
+                  const drawnCompact = rendered.lyricCalls.map(call => call.text).join('').replace(/\s+/g, '').toLowerCase();
+                  const phraseOccurrences = drawnCompact.split(expectedCompact).length - 1;
+                  assert.ok(phraseOccurrences > 0, label + ': landscape lyric characters did not render in order');
+                  const rowBreaks = rendered.lyricCalls.reduce((count, call, index, calls) =>
+                    count + (index > 0 && call.x < calls[index - 1].x - rendered.canvas.width * 0.1 ? 1 : 0), 0);
+                  assert.equal(rowBreaks, phraseOccurrences - 1,
+                    label + ': landscape lyric line wrapped instead of using the extra width');
                 }
 
                 await page.screenshot({ path: (label === 'local source' ? 'local' : 'live') + '-apple-lyrics-' + aspect.replace(':', '-') + '.png', fullPage: false });
