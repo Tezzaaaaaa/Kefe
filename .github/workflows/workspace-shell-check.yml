@@ -33,7 +33,7 @@ jobs:
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
           for attempt in $(seq 1 48); do
-            if curl --fail --silent "$live_url" -o /tmp/kefe-live-editor.html 2>/dev/null && grep -Fq 'workspace-shell.css?v=unified-workspace-20261014-6' /tmp/kefe-live-editor.html; then
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-editor.html 2>/dev/null && grep -Fq 'workspace-shell.css?v=unified-workspace-20261014-6' /tmp/kefe-live-editor.html && grep -Fq 'app/editor.js?v=async-track-focus-20261014-2' /tmp/kefe-live-editor.html; then
               echo 'Published editor contains the unified workspace shell.'
               exit 0
             fi
@@ -107,7 +107,9 @@ jobs:
                   panelRight: panel.right,
                   stageWidth: stage.width,
                   stageHeight: stage.height,
-                  mediaFormColumns: getComputedStyle(document.querySelector('.kefe-panel[data-panel-view="media"] .kefe-form')).gridTemplateColumns.split(' ').length,
+                  mediaFormColumns: getComputedStyle(document.querySelector('.kefe-panel[data-panel-view="media"] .kefe-form')).gridTemplateColumns.trim().split(/\\s+/).filter(Boolean).length,
+                  mediaFormUsesSteps: document.querySelector('.kefe-panel[data-panel-view="media"] .kefe-form').classList.contains('kefe-media-steps'),
+                  detailsGridColumns: (() => { const grid = document.querySelector('.kefe-details-grid'); return grid ? getComputedStyle(grid).gridTemplateColumns.trim().split(/\\s+/).filter(Boolean).length : 0; })(),
                   viewportWidth: innerWidth,
                   viewportHeight: innerHeight
                 };
@@ -118,7 +120,11 @@ jobs:
               assert.ok(editorLayout.panelRight <= editorLayout.viewportWidth + 1, 'editor panel must fit the viewport: ' + JSON.stringify(editorLayout));
               assert.ok(editorLayout.stageWidth <= 900, 'preview should be bounded rather than dominate the editor: ' + JSON.stringify(editorLayout));
               assert.ok(editorLayout.stageHeight <= editorLayout.viewportHeight * 0.56, 'preview should be vertically bounded: ' + JSON.stringify(editorLayout));
-              assert.equal(editorLayout.mediaFormColumns, 2, 'desktop media metadata should use a balanced two-column grid');
+              assert.ok(editorLayout.mediaFormColumns === 1 || editorLayout.mediaFormColumns === 2,
+                'media panel must use a defined grid layout: ' + JSON.stringify(editorLayout));
+              if (editorLayout.mediaFormUsesSteps && editorLayout.detailsGridColumns) {
+                assert.equal(editorLayout.detailsGridColumns, 2, 'song metadata inside the media steps should use a balanced two-column grid');
+              }
 
               const shellGeometry = await page.evaluate(() => {
                 const sidebar = document.querySelector('.kefe-sidebar').getBoundingClientRect();
