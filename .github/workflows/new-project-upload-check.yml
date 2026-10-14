@@ -278,7 +278,7 @@ jobs:
               const workspaceProject = page.locator('.project-card').filter({ hasText: persistenceTitle });
               await workspaceProject.waitFor({ state: 'visible', timeout: 15000 });
               await workspaceProject.locator('a.open-project').click();
-              await page.waitForURL(/editor\\.html\\?openProject=/);
+              await page.waitForURL(/editor\.html\?openProject=/);
               await page.waitForFunction(({ title, artist, lyrics, fileName }) => {
                 const audio = document.getElementById('kefeAudio');
                 return document.getElementById('songTitle')?.value === title &&
