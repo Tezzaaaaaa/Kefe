@@ -240,6 +240,43 @@ jobs:
               assert.ok(exportAudit.recorder?.videoTracks >= 1, label + ': export recorder must receive a video track');
               assert.ok(exportAudit.recorder?.audioTracks >= 1, label + ': export recorder must receive an audio track');
               assert.ok(exportAudit.status.startsWith('Export complete'), label + ': export status must report completion');
+              await page.locator('.kefe-section[data-panel="media"]').click();
+              const persistenceTitle = 'KEFE Media Library Persistence ' + Date.now();
+              const persistenceArtist = 'KEFE Persistence Test Artist';
+              const persistenceLyrics = 'KEFE MEDIA LIBRARY PERSISTENCE TEST';
+              await page.locator('#songTitle').fill(persistenceTitle);
+              await page.locator('#songArtist').fill(persistenceArtist);
+              await page.locator('#lyricsInput').fill(persistenceLyrics);
+              await page.locator('button[data-top-panel="media"]').click();
+              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
+              await page.waitForFunction(title => [...document.querySelectorAll('.kefe-library-card h2')].some(el => el.textContent === title), persistenceTitle, { timeout: 15000 });
+              await page.reload({ waitUntil: 'domcontentloaded' });
+              await page.locator('button[data-top-panel="media"]').click();
+              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
+              const savedProject = page.locator('.kefe-library-card').filter({ has: page.locator('h2', { hasText: persistenceTitle }) });
+              await savedProject.waitFor({ state: 'visible' });
+              await savedProject.getByRole('button', { name: 'Open project' }).click();
+              await page.waitForFunction(({ title, artist, lyrics, fileName }) => {
+                const file = document.getElementById('mediaInput')?.files?.[0];
+                return document.getElementById('songTitle')?.value === title &&
+                  document.getElementById('songArtist')?.value === artist &&
+                  document.getElementById('lyricsInput')?.value === lyrics &&
+                  file?.name === fileName;
+              }, { title: persistenceTitle, artist: persistenceArtist, lyrics: persistenceLyrics, fileName: 'KEFE New Project Upload Verification.wav' }, { timeout: 20000 });
+              await page.waitForFunction(() => {
+                const audio = document.getElementById('kefeAudio');
+                return audio && Number.isFinite(audio.duration) && audio.duration > 0;
+              }, null, { timeout: 15000 });
+              await page.locator('button[data-top-panel="media"]').click();
+              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
+              page.once('dialog', dialog => dialog.accept());
+              await page.locator('.kefe-library-card').filter({ has: page.locator('h2', { hasText: persistenceTitle }) }).getByRole('button', { name: 'Delete' }).click();
+              await page.waitForFunction(title => ![...document.querySelectorAll('.kefe-library-card h2')].some(el => el.textContent === title), persistenceTitle, { timeout: 15000 });
+              await page.reload({ waitUntil: 'domcontentloaded' });
+              await page.locator('button[data-top-panel="media"]').click();
+              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
+              assert.equal(await page.locator('.kefe-library-card h2').filter({ hasText: persistenceTitle }).count(), 0, label + ': deleted project must remain deleted after reload');
+              const mediaLibraryAudit = { save: 'PASS', reload: 'PASS', metadataRestore: 'PASS', originalMediaRestore: 'PASS', audioReload: 'PASS', delete: 'PASS', deletionPersistsAfterReload: 'PASS' };
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
               console.log(JSON.stringify({
                 target: label,
@@ -257,6 +294,7 @@ jobs:
                   videoTracks: exportAudit.recorder.videoTracks,
                   status: exportAudit.status
                 },
+                mediaLibrary: mediaLibraryAudit,
                 runtimeErrors: errors
               }));
             } finally {
