@@ -373,3 +373,7 @@ body{overflow-x:hidden;overflow-y:auto}
   .kefe-panel input[type="range"]:not(#kefeTime)::-moz-range-thumb{transition:none}
 }
 
+
+.kefe-gradient-stop{grid-template-columns:36px minmax(0,1fr) 38px 32px}
+.kefe-gradient-stop-value{min-width:0;color:var(--shell-muted);font-size:11px;font-variant-numeric:tabular-nums;text-align:right}
+@media(max-width:640px){.kefe-gradient-stop{grid-template-columns:30px minmax(0,1fr) 34px 28px;gap:6px}}
