@@ -277,6 +277,8 @@ jobs:
                   Number.isFinite(audio.duration) && audio.duration > 0;
               }, { title: persistenceTitle, artist: persistenceArtist, lyrics: persistenceLyrics, fileName: 'KEFE New Project Upload Verification.wav' }, { timeout: 20000 });
               await page.goto(baseUrl + '/workspace.html', { waitUntil: 'domcontentloaded' });
+              await page.locator('.workspace-switch').waitFor({ state: 'visible', timeout: 15000 });
+              assert.match(page.url(), /\/workspace\.html$/, label + ': workspace route should load before testing saved projects');
               await page.locator('#projectSearch').fill(persistenceTitle);
               const searchedProject = page.locator('.project-card').filter({ hasText: persistenceTitle });
               await searchedProject.waitFor({ state: 'visible', timeout: 15000 });
