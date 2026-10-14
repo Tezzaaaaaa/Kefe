@@ -116,6 +116,9 @@ jobs:
               await page.locator('.kefe-library-close').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor({ state: 'hidden' });
 
+              await page.locator('.kefe-top [data-top-panel="editor"]').click();
+              await page.locator('.kefe-section[data-panel="media"].active').waitFor();
+
               await page.locator('.kefe-sidebar button[data-top-panel="settings"]').click();
               await page.locator('.kefe-settings-backdrop:not([hidden])').waitFor();
               await page.keyboard.press('Escape');
