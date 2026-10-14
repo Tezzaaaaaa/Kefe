@@ -82,13 +82,13 @@ body{overflow-x:hidden;overflow-y:auto}
   overflow:visible;
 }
 .kefe-stage{
-  position:relative;flex:none;width:min(100%,900px,calc(52vh * 16 / 9));
+  position:relative;flex:none;width:min(100%,900px,92.45vh);
   max-width:100%;max-height:none;margin-inline:auto;
   border:1px solid var(--shell-line);border-radius:10px;
   box-shadow:0 12px 36px rgba(0,0,0,.13);
 }
-.kefe-stage.is-16x9{width:min(100%,900px,calc(52vh * 16 / 9));aspect-ratio:16/9}
-.kefe-stage.is-9x16{width:min(100%,calc(52vh * 9 / 16));aspect-ratio:9/16}
+.kefe-stage.is-16x9{width:min(100%,900px,92.45vh);aspect-ratio:16/9}
+.kefe-stage.is-9x16{width:min(100%,29.25vh);aspect-ratio:9/16}
 .kefe-stage.is-1x1{width:min(100%,52vh);aspect-ratio:1/1}
 .kefe-timeline{padding:8px 18px;gap:10px}
 .kefe-editing{
@@ -179,8 +179,8 @@ body{overflow-x:hidden;overflow-y:auto}
   .kefe-top-profile .kefe-top-link{padding-inline:8px;font-size:11px}
   .kefe-work{grid-column:1;grid-row:3;grid-template-rows:auto 48px auto}
   .kefe-preview{padding:8px 8px 4px}
-  .kefe-stage.is-16x9{width:min(100%,calc(52vh * 16 / 9))}
-  .kefe-stage.is-9x16{width:min(100%,calc(52vh * 9 / 16))}
+  .kefe-stage.is-16x9{width:min(100%,92.45vh)}
+  .kefe-stage.is-9x16{width:min(100%,29.25vh)}
   .kefe-stage.is-1x1{width:min(100%,52vh)}
   .kefe-timeline{padding:5px 7px;gap:5px}
   .kefe-panels{padding:8px 8px 22px}
