@@ -78,7 +78,7 @@ jobs:
               assert.equal(emptyState.canvasPointerEvents, 'none', label + ': hidden canvas must not intercept pointer events');
 
               const layout = await page.evaluate(() => {
-                const selectors = ['.kefe-top', '.kefe-work', '.kefe-preview', '.kefe-stage', '.kefe-timeline', '.kefe-editing', '.kefe-tabs', '.kefe-panels', '.kefe-panel.active'];
+                const selectors = ['.kefe-top', '.kefe-work', '.kefe-preview', '.kefe-stage', '.kefe-timeline', '.kefe-sidebar', '.kefe-editing', '.kefe-tabs', '.kefe-panels', '.kefe-panel.active'];
                 return Object.fromEntries(selectors.map(selector => {
                   const element = document.querySelector(selector);
                   if (!element) return [selector, null];
@@ -87,7 +87,7 @@ jobs:
                 }));
               });
               assert.ok(layout['.kefe-top'] && layout['.kefe-work'] && layout['.kefe-preview'] && layout['.kefe-stage'] &&
-                layout['.kefe-timeline'] && layout['.kefe-editing'] && layout['.kefe-tabs'] && layout['.kefe-panels'] && layout['.kefe-panel.active'],
+                layout['.kefe-timeline'] && layout['.kefe-sidebar'] && layout['.kefe-editing'] && layout['.kefe-tabs'] && layout['.kefe-panels'] && layout['.kefe-panel.active'],
                 label + ': required editor layout elements must exist');
               assert.ok(Math.abs(layout['.kefe-stage'].centerX - layout['.kefe-preview'].centerX) <= 2,
                 label + ': preview stage must be horizontally centered within the preview area');
@@ -96,9 +96,10 @@ jobs:
                   layout[selector].right <= layout['.kefe-work'].right + 2,
                   label + ': ' + selector + ' must remain inside the editor work area');
               }
-              assert.ok(layout['.kefe-tabs'].left >= layout['.kefe-editing'].left - 2 &&
-                layout['.kefe-tabs'].right <= layout['.kefe-editing'].right + 2,
-                label + ': section tabs must remain inside the editing area');
+              assert.equal(await page.locator('.kefe-tabs').evaluate(el => getComputedStyle(el).display), 'none',
+                label + ': duplicate section tabs must stay hidden');
+              assert.ok(layout['.kefe-sidebar'].right <= layout['.kefe-editing'].left + 2,
+                label + ': workspace sidebar and editor content must occupy separate columns');
               assert.ok(layout['.kefe-panel.active'].left >= layout['.kefe-panels'].left - 2 &&
                 layout['.kefe-panel.active'].right <= layout['.kefe-panels'].right + 2,
                 label + ': active panel must remain inside the panels area');
@@ -110,7 +111,7 @@ jobs:
               });
               await page.waitForFunction(() => !document.querySelector('.kefe-stage')?.classList.contains('is-empty'));
               await page.waitForFunction(() => getComputedStyle(document.getElementById('kefeVisualiserCanvas')).visibility === 'hidden');
-              await page.locator('.kefe-section[data-panel="visualiser"]').click();
+              await page.locator('.kefe-sidebar [data-shell-panel="visualiser"]').click();
               await page.locator('#kefeVisParticlesView:not([hidden])').waitFor();
               await page.locator('.kefe-panel[data-panel-view="visualiser"] .kefe-switch').first().click();
               await page.waitForFunction(() => getComputedStyle(document.getElementById('kefeVisualiserCanvas')).visibility === 'visible');
