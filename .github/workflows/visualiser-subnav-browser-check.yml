@@ -132,6 +132,53 @@ jobs:
                   label + ': selected visualiser heading must match its title: ' + id);
                 assert.equal((await description.textContent()).trim(), expectedDescriptions[id],
                   label + ': selected visualiser description must match its selected visualiser: ' + id);
+                if (id === 'particles') {
+                  await page.waitForFunction(() => typeof window.kefeVisualiserDiagnostics === 'function' &&
+                    window.kefeVisualiserDiagnostics().rendererReady);
+                  const initialParticleState = await page.evaluate(() => window.kefeVisualiserDiagnostics());
+                  assert.ok(initialParticleState.cssWidth > 0 && initialParticleState.cssHeight > 0 &&
+                    initialParticleState.bufferWidth > 0 && initialParticleState.bufferHeight > 0,
+                    label + ': Particles Swarm WebGL renderer must initialise at a non-zero size');
+                  assert.ok(initialParticleState.drawCalls > 0 || initialParticleState.frame >= 0,
+                    label + ': Particles Swarm renderer diagnostics must be available');
+                  const alternateParticlePreset = page.locator('#visualiserPresetGrid [data-key]').nth(1);
+                  const alternateParticleKey = await alternateParticlePreset.getAttribute('data-key');
+                  assert.ok(alternateParticleKey, label + ': Particles Swarm must expose selectable presets');
+                  await alternateParticlePreset.click();
+                  await page.waitForFunction(key => window.kefeVisualiserDiagnostics()?.preset === key, alternateParticleKey);
+                  await page.locator('#visualiserPresetGrid [data-key="' + initialParticleState.preset + '"]').click();
+                  await page.waitForFunction(key => window.kefeVisualiserDiagnostics()?.preset === key, initialParticleState.preset);
+                }
+                if (id === 'fluted') {
+                  await page.waitForFunction(() => {
+                    const canvas = document.getElementById('kefeFlutedGlassCanvas');
+                    const gl = canvas && canvas.getContext('webgl');
+                    const program = gl && gl.getParameter(gl.CURRENT_PROGRAM);
+                    return !!gl && canvas.width > 0 && canvas.height > 0 && !!program &&
+                      gl.getProgramParameter(program, gl.LINK_STATUS);
+                  });
+                  const modeNames = ['Fluted', 'Grid chamfer', 'Grid flat', 'Water drops', 'Zigzag', 'Waves'];
+                  const modeDescriptions = [
+                    'Half-cylinders with clear centres and refracting edges.',
+                    'A flat grid with refracting chamfered edges.',
+                    'Sharp grid cells with edge-focused distortion.',
+                    'Rounded water droplets acting as small lenses.',
+                    'Reeds whose distortion follows a repeating zigzag.',
+                    'Smooth, rolling refractive waves.'
+                  ];
+                  assert.equal(await page.locator('#flutedModes button').count(), 6,
+                    label + ': Fluted Glass must expose all six refraction modes');
+                  for (let i = 0; i < modeNames.length; i++) {
+                    await page.locator('#flutedModes button').nth(i).click();
+                    const selectedModes = await page.locator('#flutedModes button[aria-pressed="true"]').allTextContents();
+                    assert.deepEqual(selectedModes, [modeNames[i]], label + ': Fluted Glass mode selection must be exclusive: ' + modeNames[i]);
+                    assert.equal((await page.locator('#flutedModeDesc').textContent()).trim(), modeDescriptions[i],
+                      label + ': Fluted Glass mode must update its description: ' + modeNames[i]);
+                    assert.ok(await page.locator('#flutedSliders input[type="range"]').count() >= 5,
+                      label + ': Fluted Glass mode must expose its parameter sliders: ' + modeNames[i]);
+                  }
+                  await page.locator('#flutedModes button').first().click();
+                }
                 if (id === 'gradient') {
                   await page.waitForFunction(() => !!document.getElementById('kefeLiquidFlowCanvas') ||
                     !!document.querySelector('.kefe-liquid-error'));
