@@ -407,8 +407,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ctx.shadowBlur = Math.max(2, baseDimension * (1.2 / 390));
         ctx.shadowOffsetY = Math.max(1, baseDimension * (0.5 / 390));
         rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
-        // Keep the inactive-line blur on the base text only; the active word sweep stays crisp.
-        ctx.filter = 'none';
+        // Keep inactive lines blurred across both the base text and the word-highlight overlay.
+        // Only the currently active line clears the filter for its crisp karaoke sweep.
+        ctx.filter = i === activeIndex ? 'none' : (blurAmt > 0.08 ? 'blur(' + blurAmt.toFixed(2) + 'px)' : 'none');
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;
