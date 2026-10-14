@@ -299,11 +299,9 @@
     function attachParticlePresetControls(){
       var select=document.getElementById('visualiserPreset');
       var grid=document.getElementById('visualiserPresetGrid');
-      if(select&&!presetWrap.contains(select)){
-        var parent=select.parentElement;
-        presetWrap.appendChild(select);
+      if(select){
+        select.hidden=true;
         select.setAttribute('aria-label','Particle visualiser preset');
-        if(parent&&parent!==presetWrap&&parent!==particles&&parent!==form)parent.remove();
       }
       if(grid&&!gridWrap.contains(grid)){
         var parent=grid.parentElement;
