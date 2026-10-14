@@ -260,7 +260,7 @@ jobs:
                 await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
                 await page.waitForTimeout(500);
                 const visualiserGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Visualiser');
-                const visualiserSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Visualiser');
+                const visualiserSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Visualiser', false);
                 const tabsElement = page.locator('.kefe-editing > .kefe-vis-tabs');
                 await tabsElement.waitFor({ state: 'attached', timeout: 5000 }).catch(() => {
                   throw new Error(`Visualiser engine tabs were not created at ${width}px. Browser errors: ${JSON.stringify(pageErrors)}; console errors: ${JSON.stringify(pageConsoleErrors)}`);
