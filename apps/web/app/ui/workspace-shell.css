@@ -496,3 +496,17 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   .kefe-sidebar-toggle,.kefe-theme-swatches button,.kefe-workspace-dock button{transition:none}
 }
 
+
+
+.kefe-volume-control{display:flex;align-items:center;gap:7px;min-width:140px;padding:0 8px;border:1px solid var(--shell-line);border-radius:8px;background:var(--shell-panel)}
+.kefe-volume-control button{display:grid;place-items:center;flex:0 0 24px;width:24px;height:28px;padding:0;border:0;background:transparent;color:var(--shell-muted);font-size:17px;cursor:pointer}
+.kefe-volume-control button:hover{color:var(--shell-accent)}
+.kefe-volume-control input[type="range"].beui-slider{appearance:none;-webkit-appearance:none;width:76px;min-width:48px;height:24px;margin:0;background:transparent;cursor:pointer;accent-color:var(--shell-accent)}
+.kefe-volume-control input[type="range"].beui-slider::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--shell-line)}
+.kefe-volume-control input[type="range"].beui-slider::-webkit-slider-thumb{-webkit-appearance:none;width:6px;height:14px;margin-top:-5px;border:0;border-radius:2px;background:var(--shell-accent);box-shadow:0 0 8px color-mix(in srgb,var(--shell-accent) 60%,transparent)}
+.kefe-volume-control input[type="range"].beui-slider::-moz-range-track{height:4px;border-radius:2px;background:var(--shell-line)}
+.kefe-volume-control input[type="range"].beui-slider::-moz-range-thumb{width:6px;height:14px;border:0;border-radius:2px;background:var(--shell-accent)}
+.kefe-volume-control output{min-width:30px;color:var(--shell-muted);font:10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;text-align:right;font-variant-numeric:tabular-nums}
+.kefe-volume-control button:focus-visible,.kefe-volume-control input:focus-visible{outline:2px solid var(--shell-accent);outline-offset:2px}
+@media(max-width:900px){.kefe-volume-control{min-width:116px;padding-inline:5px;gap:4px}.kefe-volume-control input[type="range"].beui-slider{width:56px}}
+@media(max-width:640px){.kefe-volume-control{min-width:0;gap:0;padding:0 3px;border:0;background:transparent}.kefe-volume-control input[type="range"].beui-slider{display:none}.kefe-volume-control output{display:none}.kefe-volume-control button{width:28px;height:32px}}
