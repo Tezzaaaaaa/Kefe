@@ -2425,15 +2425,15 @@ body:not(.kefe-fullscreen-open) {
 }
 
 
-/* Match visualiser choices to the site's standard compact tab sizing. */
+/* Match visualiser choices to the site's standard compact pill-tab sizing. */
 .kefe-vis-tabs > .kefe-vis-option {
-  min-height: 48px;
+  min-height: var(--control-h);
 }
 .kefe-vis-option > [role="tab"] {
-  min-height: 48px;
-  padding: 24px 5px 4px;
-  border-radius: var(--r2);
-  box-shadow: var(--lift);
+  min-height: var(--control-h);
+  padding: 0 8px;
+  border-radius: 999px;
+  box-shadow: var(--inner);
 }
 .kefe-vis-option > [role="tab"]::before {
   content: "";
