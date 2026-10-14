@@ -93,7 +93,7 @@ jobs:
               await page.getByRole('link', { name: 'Editor', exact: true }).click();
               await page.locator('.kefe-sidebar').waitFor();
               await page.locator('.kefe-stage').waitFor();
-              await page.locator('.kefe-section[data-panel="media"].active').waitFor();
+              await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
               await checkLocalReferences(page, 'editor');
               const editorLayout = await page.evaluate(() => {
                 const rail = document.querySelector('.kefe-tabs');
