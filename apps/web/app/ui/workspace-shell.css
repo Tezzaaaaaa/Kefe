@@ -297,3 +297,79 @@ body{overflow-x:hidden;overflow-y:auto}
   .kefe-sidebar-link{transition:none}
   .kefe-panel,.kefe-btn,.kefe-control,.kefe-style-swatch,.kefe-visualiser-spin-row .kefe-switch::after{transition:none}
 }
+
+/* KEFE inline settings slider — native range semantics, shared visual treatment. */
+.kefe-panel input[type="range"]:not(#kefeTime){
+  --kefe-slider-progress:0%;
+  appearance:none;
+  -webkit-appearance:none;
+  display:block;
+  width:100%;
+  min-width:0;
+  height:28px;
+  min-height:28px;
+  margin:8px 0 2px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  accent-color:var(--shell-accent);
+  cursor:pointer;
+  touch-action:pan-y;
+}
+.kefe-panel input[type="range"]:not(#kefeTime)::-webkit-slider-runnable-track{
+  height:6px;
+  border:1px solid var(--shell-line);
+  border-radius:999px;
+  background:
+    repeating-linear-gradient(to right,transparent 0,transparent calc(10% - 1px),color-mix(in srgb,var(--shell-muted) 38%,transparent) calc(10% - 1px),color-mix(in srgb,var(--shell-muted) 38%,transparent) 10%),
+    linear-gradient(to right,var(--shell-accent) 0,var(--shell-accent) var(--kefe-slider-progress),var(--shell-line) var(--kefe-slider-progress),var(--shell-line) 100%);
+  transition:background .12s ease;
+}
+.kefe-panel input[type="range"]:not(#kefeTime)::-moz-range-track{
+  height:6px;
+  border:1px solid var(--shell-line);
+  border-radius:999px;
+  background:
+    repeating-linear-gradient(to right,transparent 0,transparent calc(10% - 1px),color-mix(in srgb,var(--shell-muted) 38%,transparent) calc(10% - 1px),color-mix(in srgb,var(--shell-muted) 38%,transparent) 10%),
+    linear-gradient(to right,var(--shell-accent) 0,var(--shell-accent) var(--kefe-slider-progress),var(--shell-line) var(--kefe-slider-progress),var(--shell-line) 100%);
+}
+.kefe-panel input[type="range"]:not(#kefeTime)::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:16px;
+  height:16px;
+  margin-top:-6px;
+  border:2px solid var(--shell-panel);
+  border-radius:50%;
+  background:var(--shell-accent);
+  box-shadow:0 0 0 1px var(--shell-accent),0 2px 5px rgba(0,0,0,.18);
+  transition:box-shadow .16s ease,transform .16s ease;
+}
+.kefe-panel input[type="range"]:not(#kefeTime)::-moz-range-thumb{
+  width:12px;
+  height:12px;
+  border:2px solid var(--shell-panel);
+  border-radius:50%;
+  background:var(--shell-accent);
+  box-shadow:0 0 0 1px var(--shell-accent),0 2px 5px rgba(0,0,0,.18);
+  transition:box-shadow .16s ease,transform .16s ease;
+}
+.kefe-panel input[type="range"]:not(#kefeTime):hover::-webkit-slider-thumb,
+.kefe-panel input[type="range"]:not(#kefeTime):focus-visible::-webkit-slider-thumb{
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--shell-accent) 18%,transparent),0 2px 5px rgba(0,0,0,.18);
+}
+.kefe-panel input[type="range"]:not(#kefeTime):hover::-moz-range-thumb,
+.kefe-panel input[type="range"]:not(#kefeTime):focus-visible::-moz-range-thumb{
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--shell-accent) 18%,transparent),0 2px 5px rgba(0,0,0,.18);
+}
+.kefe-panel input[type="range"]:not(#kefeTime):focus-visible{
+  outline:2px solid var(--shell-accent);
+  outline-offset:4px;
+}
+@media(prefers-reduced-motion:reduce){
+  .kefe-panel input[type="range"]:not(#kefeTime)::-webkit-slider-runnable-track,
+  .kefe-panel input[type="range"]:not(#kefeTime)::-webkit-slider-thumb,
+  .kefe-panel input[type="range"]:not(#kefeTime)::-moz-range-thumb{transition:none}
+}
+
