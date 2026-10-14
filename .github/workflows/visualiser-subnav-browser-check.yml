@@ -398,8 +398,8 @@ jobs:
 
       - name: Wait for GitHub Pages to publish this change
         run: |
-          live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/index.html'
-          expected_marker=$(grep -o 'app/visualiser/liquid-flow.js?v=[^\"]*' apps/web/index.html | head -n 1)
+          live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
+          expected_marker=$(grep -o 'app/visualiser/liquid-flow.js?v=[^\"]*' apps/web/editor.html | head -n 1)
           if [ -z "$expected_marker" ]; then echo 'Could not determine the expected Liquid Flow asset marker.' >&2; exit 1; fi
           for attempt in $(seq 1 48); do
             if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
