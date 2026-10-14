@@ -141,22 +141,32 @@ function appleLetterBox(ctx, token) {
 
 function appleDrawWord(ctx, token, tm, x, y, fs, time, sungColor, dimA, P, shadowBlur, shadowOff) {
     const box = appleLetterBox(ctx, token);
-    const dur = Math.max(0.05, tm.endTime - tm.time);
-    const f = linaClamp((time - tm.time) / dur);
-    const softness = P.soft * (0.7 + 0.6 * linaClamp(dur / 1.2));
-    const front = f * (1 + softness), start = front - softness;
-    const radius = linaClamp(dur * 0.4, 0.1, 0.55);
-    const falloff = linaClamp(dur * 0.7 + 0.12, 0.2, 1);
-    const amp = 0.65 + 0.35 * linaClamp(dur / 1.2);
+    const dur = Math.max(0.06, Number(tm.endTime) - Number(tm.time));
+    const raw = linaClamp((time - Number(tm.time)) / dur);
+    // Keep the sweep tied to the real word timestamps: short words move quickly,
+    // sustained words naturally hold the torch for their full sung duration.
+    const progress = raw * 0.72 + linaSmooth(raw) * 0.28;
+    const edge = linaClamp(0.18 + dur * 0.08, 0.18, 0.30);
+    const front = progress * (1 + edge);
+    const trail = front - edge;
+    const radius = Math.max(0.055, dur * 0.12);
+    const hold = Math.max(0.045, dur * 0.14);
+    const release = Math.max(0.09, dur * 0.24);
+    const amp = 0.72 + 0.28 * linaClamp(dur / 0.9);
     const dimLevel = Math.round(255 * linaClamp(dimA, 0, 1));
     const dimColor = 'rgb(' + dimLevel + ',' + dimLevel + ',' + dimLevel + ')';
     for (let k = 0; k < box.chars.length; k++) {
         const lx = x + box.xs[k], lw = box.ws[k];
         const a = box.xs[k] / box.W, b = (box.xs[k] + lw) / box.W;
         const wd = Math.max(0.001, b - a), xc = (a + b) / 2;
-        const tau = time - (tm.time + dur * xc / (1 + softness));
-        const lift = Math.round(amp * (tau < 0 ? linaSmooth(1 + tau / radius) : (1 + Math.cos(Math.PI * Math.min(1, tau / falloff))) / 2) * 500) / 500;
-        const p1 = (start - a) / wd, p2 = (front - a) / wd;
+        const arrival = tm.time + dur * (xc / (1 + edge));
+        const sinceArrival = time - arrival;
+        // Each letter rises as the torch reaches it, holds briefly, then settles;
+        // every phase scales with this word's actual duration.
+        const rise = linaSmooth((sinceArrival + radius) / radius);
+        const settle = sinceArrival <= hold ? 1 : 1 - linaSmooth((sinceArrival - hold) / release);
+        const lift = Math.round(amp * rise * linaClamp(settle) * 500) / 500;
+        const p1 = (trail - a) / wd, p2 = (front - a) / wd;
         ctx.save();
         if (lift > 0.002) {
             const cx = lx + lw / 2, py = y + fs * 0.2, scale = 1 + lift * P.pop;
@@ -164,19 +174,31 @@ function appleDrawWord(ctx, token, tm, x, y, fs, time, sungColor, dimA, P, shado
             ctx.scale(scale, scale);
             ctx.translate(-cx, -py - lift * P.lift * fs);
         }
-        if (p1 >= 1) ctx.fillStyle = sungColor;
-        else if (p2 <= 0) ctx.fillStyle = dimColor;
-        else {
+        if (p1 >= 1) {
+            ctx.fillStyle = sungColor;
+        } else if (p2 <= 0) {
+            ctx.fillStyle = dimColor;
+        } else {
             const gradient = ctx.createLinearGradient(lx, 0, lx + lw, 0);
+            const left = linaClamp(p1), right = linaClamp(p2);
             gradient.addColorStop(0, dimColor);
-            gradient.addColorStop(linaClamp(p1), dimColor);
-            gradient.addColorStop(linaClamp(p2), sungColor);
+            gradient.addColorStop(left, dimColor);
+            gradient.addColorStop(right, sungColor);
+            // A narrow, brighter torch edge rides the sweep front without
+            // re-highlighting letters that have already been sung.
+            const headCenter = (front - a) / wd;
+            const headHalf = linaClamp(0.075 / wd, 0.035, 0.32);
+            const headStart = linaClamp(headCenter - headHalf);
+            const headEnd = linaClamp(headCenter + headHalf);
+            if (headStart > right) gradient.addColorStop(right, sungColor);
+            gradient.addColorStop(headStart, 'rgb(255,255,255)');
+            gradient.addColorStop(headEnd, 'rgb(255,255,255)');
             gradient.addColorStop(1, sungColor);
             ctx.fillStyle = gradient;
         }
         if (lift > 0.01) {
-            ctx.shadowColor = 'rgba(255,255,255,' + Math.min(1, 0.85 * P.glow * lift).toFixed(3) + ')';
-            ctx.shadowBlur = P.glowSize * fs * lift * 1.2;
+            ctx.shadowColor = 'rgba(255,255,255,' + Math.min(1, 0.9 * P.glow * lift).toFixed(3) + ')';
+            ctx.shadowBlur = P.glowSize * fs * lift * 1.35;
             ctx.shadowOffsetY = 0;
         } else {
             ctx.shadowColor = 'rgba(0,0,0,0.45)';
