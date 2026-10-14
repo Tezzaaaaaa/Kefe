@@ -124,9 +124,9 @@ jobs:
               await page.goto(baseUrl + '/editor.html?section=visualiser', { waitUntil: 'domcontentloaded' });
               await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
               if (process.env.KEFE_BASE_URL) {
-                const siteRoot = baseUrl.replace(/\\/apps\\/web\\/?$/, '');
+                const siteRoot = baseUrl.replace(/\/apps\/web\/?$/, '');
                 await page.goto(siteRoot + '/', { waitUntil: 'domcontentloaded' });
-                await page.waitForURL(/\\/Kefe\\/apps\\/web\\/workspace\\.html$/);
+                await page.waitForURL(/\/Kefe\/apps\/web\/workspace\.html$/);
                 await page.locator('.workspace-switch').waitFor();
               }
               assert.deepEqual(errors, [], 'desktop runtime errors: ' + errors.join('; '));
