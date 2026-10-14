@@ -129,8 +129,6 @@ body{ letter-spacing: -.01em;
   height: 38px;
 }
 
-.kefe-preview-fullscreen:hover {
-}
 
 .kefe-stage:fullscreen,
 .kefe-stage.kefe-pseudo-fullscreen {
