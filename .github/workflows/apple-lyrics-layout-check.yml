@@ -38,7 +38,8 @@ jobs:
       - name: Wait for the updated lyric scripts to publish
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/artifacts/kefe-visualiser/public/legacy/index.html'
-          expected_marker='app/effects/lyric-apple.js?v=apple-lyrics-border-width-20261012-2'
+          expected_marker=$(grep -o 'app/effects/lyric-apple.js?v=[^\"]*' artifacts/kefe-visualiser/public/legacy/index.html | head -n 1)
+          if [ -z "$expected_marker" ]; then echo 'Could not determine the expected Apple lyrics asset marker.' >&2; exit 1; fi
           for attempt in $(seq 1 48); do
             if curl --fail --silent --show-error "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -Fq "$expected_marker" /tmp/kefe-live-index.html; then
               echo "Updated Apple lyric scripts are published: $expected_marker"

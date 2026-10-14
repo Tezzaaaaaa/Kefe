@@ -173,7 +173,6 @@ jobs:
                 // The local and 320px runs still cover the responsive layout at both widths.
                 if (width === 390 && process.env.KEFE_BASE_URL) {
                   const effectAudit = await page.evaluate(async () => {
-                  const select = document.getElementById('lyricEffect');
                   const canvas = document.getElementById('kefeCanvas');
                   const ctx = canvas.getContext('2d', { willReadFrequently: true });
                   const effects = window.KEFE_EFFECTS || [];
@@ -196,7 +195,7 @@ jobs:
                     originalConsoleError.apply(console, args);
                   };
                   try {
-                    if (!window.kefeLyrics || !select || !ctx) throw new Error('Lyric renderer test prerequisites are missing');
+                    if (!window.kefeLyrics || !ctx || !document.querySelector('.kefe-lyric-effect-option[data-effect="apple"]')) throw new Error('Lyric renderer test prerequisites are missing');
                     window.kefeLyrics.set([
                       { text: 'KEFE VERIFICATION', time: 0, endTime: 2.5 },
                       { text: 'SECOND TEST LINE', time: 2.5, endTime: 5 }
@@ -209,14 +208,18 @@ jobs:
                         continue;
                       }
                       for (const key of Object.keys(calls)) calls[key] = 0;
-                      select.value = key;
-                      select.dispatchEvent(new Event('change', { bubbles: true }));
+                      const option = document.querySelector('.kefe-lyric-effect-option[data-effect="' + key + '"]');
+                      if (!option) {
+                        failures.push({ effect: key, issue: 'No selectable lyric effect option registered' });
+                        continue;
+                      }
+                      option.click();
                       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
                       const called = Object.entries(calls).filter(([, count]) => count > 0).map(([name]) => name);
                       if (!called.includes(key)) failures.push({ effect: key, issue: 'Selected renderer was not called', called });
                       const otherCalls = called.filter(name => name !== key);
                       if (otherCalls.length) failures.push({ effect: key, issue: 'Other lyric renderers also ran', otherCalls });
-                      if (select.value !== key) failures.push({ effect: key, issue: 'Selection did not persist' });
+                      if (option.getAttribute('aria-pressed') !== 'true') failures.push({ effect: key, issue: 'Selection did not persist' });
                       const fontMeta = document.getElementById('fontMeta')?.textContent || '';
                       if (!fontMeta.startsWith('Locked effect font')) failures.push({ effect: key, issue: 'Effect font metadata did not update' });
                       const visiblePanels = [...document.querySelectorAll('.kefe-inspiration-panel')]
@@ -243,8 +246,7 @@ jobs:
                   } finally {
                     console.error = originalConsoleError;
                     for (const [key, renderer] of Object.entries(original)) renderers[key] = renderer;
-                    select.value = 'apple';
-                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    document.querySelector('.kefe-lyric-effect-option[data-effect="apple"]')?.click();
                   }
                   return { tested: effects.length, effectKeys: effects.map(effect => effect.key), failures, consoleErrors };
                 });
