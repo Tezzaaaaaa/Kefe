@@ -27,7 +27,7 @@ app/
   brand/          Logos, wordmark and favicon
   effects/        Effect manifest, shared core and lyric renderers
   lyrics/         Lyric data model, timing editor and downloads
-  visualiser/     3D particles, Liquid Flow, Dithr, Fluted Glass, backgrounds, audio overlays
+  visualiser/     3D particles, Liquid Flow, Dithr, Fluted Glass, backgrounds and audio-reactive rendering
   ui/             Editor structure, styles, typography and lyric style layer
 fonts/            Bundled fonts, each with its own licence file
 ```
@@ -38,7 +38,7 @@ fonts/            Bundled fonts, each with its own licence file
 - `app/effects/manifest.js` - single source of truth for lyric effects
 - `app/effects/core.js` - shared utilities (`window.kefeEffectUtils`)
 - `app/visualiser/visualiser.js` - visualiser engine, presets and parameters
-- `app/visualiser/audio-overlay.js` - shared WebAudio graph and 2D overlays
+- `app/visualiser/audio-overlay.js` - shared WebAudio graph for audio-reactive rendering and video export
 - `app/lyrics/lyric-model.js` - pure lyric data model (parse, edit, display modes, exports); no DOM
 - `app/lyrics/lyric-studio.js` - display modes, timing editor and downloads
 - `app/ui/style-layer.js` - colours, size, placement, outline, glow, custom text and logo
