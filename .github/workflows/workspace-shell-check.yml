@@ -129,14 +129,15 @@ jobs:
               mobile.on('pageerror', error => errors.push(error.message));
               await mobile.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
               await mobile.locator('.kefe-sidebar').waitFor();
-              await mobile.locator('#projectSearchMobile').waitFor({ state: 'visible' });
-              await mobile.locator('#projectSearchMobile').fill('no matching saved project');
-              await mobile.getByText('No matching projects', { exact: true }).waitFor();
               const mobileGeometry = await mobile.evaluate(() => ({ viewportWidth: innerWidth, documentWidth: document.documentElement.scrollWidth, sidebarHeight: document.querySelector('.kefe-sidebar').getBoundingClientRect().height }));
               assert.ok(mobileGeometry.documentWidth <= mobileGeometry.viewportWidth, 'mobile layout must not overflow horizontally: ' + JSON.stringify(mobileGeometry));
               assert.ok(mobileGeometry.sidebarHeight <= 56, 'mobile navigation should use a compact horizontal row: ' + JSON.stringify(mobileGeometry));
               await mobile.locator('.kefe-sidebar [data-shell-panel="lyrics"]').click();
               await mobile.locator('.kefe-panel[data-panel-view="lyrics"].active').waitFor();
+              await mobile.goto(baseUrl + '/workspace.html', { waitUntil: 'domcontentloaded' });
+              await mobile.locator('#projectSearchMobile').waitFor({ state: 'visible' });
+              await mobile.locator('#projectSearchMobile').fill('no matching saved project');
+              await mobile.getByText('No matching projects', { exact: true }).waitFor();
               assert.deepEqual(errors, [], 'browser runtime errors: ' + errors.join('; '));
               console.log(JSON.stringify({ result: 'PASS', workspaceRedirect: 'PASS', dayNightPersistence: 'PASS', localReferences: 'PASS', desktopSidebar: shellGeometry, sidebarSections: 'PASS', libraryModal: 'PASS', settingsModal: 'PASS', deepLink: 'PASS', mobileLayout: mobileGeometry, runtimeErrors: errors }));
               await mobile.close();
