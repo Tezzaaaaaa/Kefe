@@ -90,7 +90,7 @@ Effects provide different animation and typography treatments. Available control
 ### Video formats and export
 
 - Choose a video type preset, including lyric video, full-song visualiser, cover-art video and vertical release cut.
-- Choose 720p or 1080p output.
+- Choose 720p, 1080p, 1440p (2K) or 2160p (4K) output, subject to browser and device limits.
 - Export as WebM or MP4 (H.264/AAC where supported).
 - Review the composition with the pre-export checklist and phone-size preview.
 
