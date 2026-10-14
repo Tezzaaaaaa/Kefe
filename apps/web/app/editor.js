@@ -1155,9 +1155,13 @@
         ?'Couldn’t confirm this song automatically. Pick the correct match below, or edit the title and artist.'
         :'Couldn’t identify this song automatically. Enter the title and artist below, then pick the correct match.';
     showManualNotice(msg);setLyricsStatus(msg);
-    openEditorPanel('media');
+    const mediaPanel=document.querySelector('.kefe-panel[data-panel-view="media"]');
+    const mediaWasActive=!!mediaPanel&&mediaPanel.classList.contains('active');
     renderSongSuggestions(list,{excludeCurrent:false,statusMessage:searchFailed?msg:undefined});
-    try{songTitle.focus();}catch(_){}
+    if(mediaWasActive){
+      openEditorPanel('media');
+      try{songTitle.focus();}catch(_){}
+    }
   }
   function showLyricsMissing(){
     setLyricsStatus('No synchronized lyrics found for this track. Check the song details, or open the Lyrics section to upload an .lrc file.');
