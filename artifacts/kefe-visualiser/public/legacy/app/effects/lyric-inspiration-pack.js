@@ -230,38 +230,145 @@
     for(let y=0;y<canvas.height;y+=4)for(let x=0;x<canvas.width;x+=4){if(data[(y*canvas.width+x)*4+3]>80)points.push({x,y});}
     const result=points.length?points:[{x:w/2,y:h/2}];dustPointCache.set(key,result);if(dustPointCache.size>8)dustPointCache.delete(dustPointCache.keys().next().value);return result;
   }
-  function renderDust(ctx,w,h,style,lines,time){
-    const s=settings.dustoff,items=linesFor(lines,time);if(!s.transparent){ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);}if(!items.length)return;
-    const item=items[items.length-1],txt=String(item.line.text||'').toUpperCase(),family=style.kefeMotionFont||s.font,size=Math.min(h*.24,w*.82/Math.max(1,txt.length*.62));
-    ctx.font=s.weight+' '+size+'px "'+family+'", system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    const rawP=Math.max(0,(time-item.start)*s.speed),inEnd=.7,hold=Number(s.hold),outDur=Math.max(.2,Number(s.dis)/30),tailDur=Math.max(0,Number(s.tail)/30),cycle=inEnd+hold+outDur+tailDur+Number(s.blank),p=s.mode==='both'&&cycle>0?rawP%cycle:rawP,outStart=inEnd+hold,isOut=s.mode==='out',isIn=s.mode==='in';
-    const form=clamp(p/inEnd),scatter=clamp((p-outStart)/outDur),opacity=isOut?1-scatter:isIn?form:p<inEnd?form:p<outStart?1:1-scatter;
-    if(opacity>.02){ctx.save();ctx.globalAlpha=opacity;ctx.fillStyle=s.text;ctx.shadowColor=s.text;ctx.shadowBlur=2;ctx.fillText(txt,w/2,h/2,w*.84);ctx.restore();}
-    const points=dustTextPoints(w,h,txt,family,size,s.weight),count=Math.min(1800,Math.max(1,Math.round(points.length*Number(s.density))));
-    for(let i=0;i<count;i++){
-      const seed=i+item.index*2137,pt=points[(i*17+Math.floor(hash(seed+1)*points.length))%points.length]||{x:w/2,y:h/2},direction=s.wind==='left'?-1:1,travel=scatter*w*(.2+hash(seed+4)*.9);
-      let x=pt.x+direction*travel,y=pt.y+Math.sin(p*2+seed)*h*.018+scatter*(hash(seed+5)-.5)*h*.55;
-      const reverse=s.enter==='reverse',amount=reverse?1-form:form;
-      if(isIn||(s.mode==='both'&&p<outStart)){x=pt.x+direction*(reverse?1:-1)*amount*w*(.25+hash(seed+6)*.5);y=pt.y+(hash(seed+7)-.5)*h*.5*amount;}
-      if(isIn&&p>inEnd)continue;if(scatter>=1&&p>outStart+outDur+tailDur)continue;
-      const linger=tailDur?1-clamp((p-outStart-outDur)/tailDur):1;
-      ctx.globalAlpha=(isOut?Math.max(0,1-scatter*.25):opacity<.05?0:1)*(.25+.65*(1-scatter*.45))*linger;ctx.fillStyle=i%4===0?'#ffffff':s.text;ctx.fillRect(x,y,Math.max(1,size*.009),Math.max(1,size*.009));
-    }ctx.globalAlpha=1;
+  /* Dust Off: the line is solid text that dissolves into wind-blown dust (and/or forms from dust). A soft front sweeps
+     through the letters in the wind direction; particles are released as it passes, drift downwind with turbulence and fade.
+     Timeline is fitted to the line: forms at the start, rests solid, blows away so it is gone as the line ends. */
+  const dustRasterCache=new Map();
+  let dustMaskCanvas=null;
+  const easeOut3=q=>1-Math.pow(1-clamp(q),3);
+  function dustRaster(ctx,w,h,txt,family,weight,color){
+    const lay=spinLayout(ctx,txt,family,weight,w,h,h*.26);
+    const key=[w,h,txt,family,weight,color,Math.round(lay.size)].join('|');
+    const hit=dustRasterCache.get(key);if(hit)return hit;
+    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.ceil(w));canvas.height=Math.max(1,Math.ceil(h));
+    const c=canvas.getContext('2d',{willReadFrequently:true});
+    c.font=weight+' '+lay.size+'px "'+String(family).replace(/"/g,'')+'", system-ui, sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillStyle=color;
+    const top=h/2-(lay.rows.length*lay.lineH)/2+lay.lineH/2;
+    lay.rows.forEach((row,ri)=>c.fillText(row,w/2,top+ri*lay.lineH));
+    const data=c.getImageData(0,0,canvas.width,canvas.height).data,pts=[];
+    const step=Math.max(2,Math.min(6,Math.round(lay.size/26)));
+    let minX=1e9,maxX=-1e9;
+    for(let y=0;y<canvas.height;y+=step)for(let x=0;x<canvas.width;x+=step){if(data[(y*canvas.width+x)*4+3]>90){pts.push({x,y});if(x<minX)minX=x;if(x>maxX)maxX=x;}}
+    if(!pts.length){pts.push({x:w/2,y:h/2});minX=w/2-1;maxX=w/2+1;}
+    const out={canvas,pts,step,minX,maxX,W:Math.max(1,maxX-minX),size:lay.size};
+    dustRasterCache.set(key,out);if(dustRasterCache.size>6)dustRasterCache.delete(dustRasterCache.keys().next().value);
+    return out;
   }
+  function renderDust(ctx,w,h,style,lines,time){
+    const s=settings.dustoff,items=linesFor(lines,time);
+    if(!s.transparent){ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);}
+    if(!items.length)return;
+    const item=items[items.length-1],txt=String(item.line.text||'').trim().toUpperCase();if(!txt)return;
+    const family=style.kefeMotionFont||s.font;
+    if(document.fonts&&document.fonts.load&&!spinFontReq['d'+family+s.weight]){spinFontReq['d'+family+s.weight]=1;document.fonts.load(s.weight+' 48px "'+family+'"').catch(()=>{});}
+    const R=dustRaster(ctx,w,h,txt,family,s.weight,s.text);
+    const speed=Math.max(.25,Number(s.speed)||1);
+    const L=Math.max(.8,(Math.max(item.end,item.start+.8)-item.start)*speed),t=Math.max(0,(time-item.start)*speed);
+    const mode=s.mode,doIn=mode!=='out',doOut=mode!=='in',dir=s.wind==='left'?-1:1,reverse=s.enter==='reverse';
+    // timings (seconds on the line's clock), shrunk if the line is too short for them
+    let cross=Math.max(.3,Number(s.dis)/30),life=Math.max(.3,.35+Number(s.tail)/60);
+    let inTot=cross+life,outTot=cross+life;
+    const need=(doIn?inTot:0)+(doOut?outTot:0),room=L*.92;
+    if(need>room){const k=room/need;cross*=k;life*=k;inTot=cross+life;outTot=cross+life;}
+    const outStart=doOut?Math.max(doIn?inTot+.05:0,L-outTot-.05):Infinity;
+    const uOf=x=>dir>0?(x-R.minX)/R.W:(R.maxX-x)/R.W;
+    const xAt=u=>dir>0?R.minX+u*R.W:R.maxX-u*R.W;
+    // phase: 'in' (forming), 'hold', 'out' (dissolving)
+    let phase='hold',tt=0;
+    if(doOut&&t>=outStart){phase='out';tt=t-outStart;}
+    else if(doIn&&t<inTot){phase='in';tt=t;}
+    const inv=1/Math.max(.05,cross);
+    // ---- solid layer, masked by the sweeping front
+    if(!dustMaskCanvas)dustMaskCanvas=document.createElement('canvas');
+    if(dustMaskCanvas.width!==R.canvas.width||dustMaskCanvas.height!==R.canvas.height){dustMaskCanvas.width=R.canvas.width;dustMaskCanvas.height=R.canvas.height;}
+    const mc=dustMaskCanvas.getContext('2d');
+    mc.globalCompositeOperation='source-over';mc.clearRect(0,0,dustMaskCanvas.width,dustMaskCanvas.height);
+    let solid=true;
+    if(phase==='out'||(phase==='in'&&reverse)){
+      const tq=phase==='out'?tt:Math.max(0,inTot-t),uT=tq*inv;      // dissolved for u < uT
+      const g=mc.createLinearGradient(xAt(uT-.12),0,xAt(uT),0);
+      mc.drawImage(R.canvas,0,0);mc.globalCompositeOperation='destination-out';
+      g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');mc.fillStyle=g;mc.fillRect(0,0,dustMaskCanvas.width,dustMaskCanvas.height);
+    }else if(phase==='in'){
+      const uT=(t-life)*inv;                                            // formed for u < uT
+      if(uT<=-.12)solid=false;else{
+        const g=mc.createLinearGradient(xAt(uT-.12),0,xAt(uT),0);
+        mc.drawImage(R.canvas,0,0);mc.globalCompositeOperation='destination-out';
+        g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');mc.fillStyle=g;mc.fillRect(0,0,dustMaskCanvas.width,dustMaskCanvas.height);
+      }
+    }else mc.drawImage(R.canvas,0,0);
+    if(solid){ctx.save();ctx.shadowColor=s.text;ctx.shadowBlur=2;ctx.drawImage(dustMaskCanvas,0,0);ctx.restore();}
+    // ---- dust
+    const n=R.pts.length,count=Math.min(5200,Math.max(1,Math.round(n*Number(s.density)*.9)));
+    const sz=R.step,size=R.size,seedBase=item.index*2137;
+    ctx.save();
+    for(let i=0;i<count;i++){
+      const pt=R.pts[Math.floor(i*n/count)%n],seed=i*7.13+seedBase;
+      const u=clamp(uOf(pt.x)),jit=hash(seed+1)*.12,travel=R.W*(.14+hash(seed+4)*.5)+size*.6;
+      let a=-1,mv=0;                         // a = progress 0..1 of this particle's flight, mv = displacement amount
+      if(phase==='out'||(phase==='in'&&reverse)){
+        const tq=phase==='out'?tt:Math.max(0,inTot-t);
+        a=(tq-(u+jit)*cross)/life;           // released when the front passes
+        if(a<=0||a>=1)continue;
+        mv=easeOut3(a)*dir;
+      }else if(phase==='in'){
+        const g=(t-(u+jit)*cross)/life;      // arrives from upwind and settles into place
+        if(g<=0||g>=1)continue;
+        a=1-g;mv=-easeOut3(a)*dir;
+      }else continue;
+      const turb=Math.sin(a*5+seed)*size*.06+(hash(seed+5)-.5)*size*.9*Math.pow(clamp(a),1.4);
+      const x=pt.x+mv*travel,y=pt.y+turb-Math.pow(clamp(a),2)*size*.15;
+      const alpha=(phase==='out'||reverse?Math.pow(1-a,.85):Math.pow(1-a,.85))*.95;
+      const px=Math.max(1,sz*(.5+hash(seed+8)*.7)*(1-.35*a));
+      ctx.globalAlpha=clamp(alpha);ctx.fillStyle=i%4===0?'#ffffff':s.text;ctx.fillRect(x,y,px,px);
+    }
+    ctx.restore();ctx.globalAlpha=1;
+  }
+  /* WrapSlide: each letter lives in its own clipped cell. A letter slides out of its cell while a copy slides in from the
+     opposite side, so the glyph wraps around seamlessly (like a slot/odometer). Lyric mode: letters wrap in, rest, a
+     glitch burst wraps a few through, then they slide out as the line ends. */
   function renderWrapSlide(ctx,w,h,style,lines,time){
-    const s=settings.wrapslide,items=linesFor(lines,time);if(!items.length)return;if(!s.transparent){ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);}
-    const item=items[items.length-1],txt=String(item.line.text||'').toUpperCase(),family=style.kefeMotionFont||s.font,aspect=s.aspect==='16/9'?16/9:s.aspect==='9/16'?9/16:1;
-    const boxW=Math.min(w*.88,h*.78*aspect),boxH=Math.min(h*.78,w*.88/aspect);let size=Math.max(14,Math.min(boxH*.3,boxW*.84/Math.max(1,txt.length*.62)));
-    ctx.save();ctx.font=s.weight+' '+size+'px "'+String(family).replace(/"/g,'')+'", monospace';
-    const chars=Array.from(txt);let widths=chars.map(ch=>ctx.measureText(ch).width),tracking=size*Number(s.tracking),totalW=widths.reduce((a,b)=>a+b,0)+tracking*Math.max(0,chars.length-1);
-    if(totalW>boxW*.94){size*=boxW*.94/totalW;ctx.font=s.weight+' '+size+'px "'+String(family).replace(/"/g,'')+'", monospace';widths=chars.map(ch=>ctx.measureText(ch).width);tracking=size*Number(s.tracking);totalW=widths.reduce((a,b)=>a+b,0)+tracking*Math.max(0,chars.length-1);}
-    const advances=widths.map(width=>width+tracking),cycle=Math.max(.5,Number(s.stagger)*chars.length+Number(s.dur)+Number(s.hold)),elapsed=Math.max(0,(time-item.start)*s.speed),t=s.mode==='loop'&&cycle>0?elapsed%cycle:elapsed,L=Math.max(.5,item.end-item.start);
-    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=s.color;const x0=w/2-totalW/2,band=Math.min(size*1.06,boxH*.42),ease=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
-    chars.forEach((ch,i)=>{if(ch===' ')return;const dir=hash(i+1)>.5?1:-1,delay=hash(i+9)*Number(s.stagger)*chars.length;let off=0;
-      if(s.mode==='loop'){const p=clamp((t-delay)/Math.max(.1,Number(s.dur)));off=dir*band*ease(p);}
-      else{const inp=clamp((t-delay)/Math.max(.1,Number(s.dur))),outp=clamp((t-(L-Number(s.stagger)*chars.length-Number(s.dur))-delay)/Math.max(.1,Number(s.dur))),bp=clamp((t-(Number(s.burst)*L)-delay)/Math.max(.1,Number(s.dur)));off=-dir*band*(1-ease(inp))+dir*band*ease(outp);if(bp>0&&bp<1)off+=dir*band*ease(bp);}
-      const x=x0+advances.slice(0,i).reduce((a,b)=>a+b,0)+widths[i]/2;ctx.save();ctx.beginPath();ctx.rect(x-advances[i]/2,h/2-band/2,advances[i],band);ctx.clip();ctx.fillText(ch,x,h/2+off);ctx.restore();
-    });ctx.restore();
+    const s=settings.wrapslide,items=linesFor(lines,time);if(!items.length)return;
+    if(!s.transparent){ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);}
+    const item=items[items.length-1],txt=String(item.line.text||'').trim().toUpperCase();if(!txt)return;
+    const family=String(style.kefeMotionFont||s.font).replace(/"/g,''),aspect=s.aspect==='16/9'?16/9:s.aspect==='9/16'?9/16:1;
+    if(document.fonts&&document.fonts.load&&!spinFontReq['w'+family+s.weight]){spinFontReq['w'+family+s.weight]=1;document.fonts.load(s.weight+' 48px "'+family+'"').catch(()=>{});}
+    const boxW=Math.min(w*.88,h*.78*aspect),boxH=Math.min(h*.78,w*.88/aspect);
+    const lay=spinLayout(ctx,txt,family,s.weight,boxW/.86,boxH/.84,Math.min(boxH*.3,boxW*.17));
+    let size=lay.size,fam='"'+family+'", monospace',trackK=Number(s.tracking)||0;
+    const rowsMeasure=sz=>{ctx.font=s.weight+' '+sz+'px '+fam;return lay.rows.map(r=>{const cs=Array.from(r),ws=cs.map(c=>ctx.measureText(c).width),tr=sz*trackK;return{cs,ws,tr,total:ws.reduce((a,b)=>a+b,0)+tr*Math.max(0,cs.length-1)};});};
+    let rows=rowsMeasure(size);const widest=Math.max(...rows.map(r=>r.total));
+    if(widest>boxW*.94){size*=boxW*.94/widest;rows=rowsMeasure(size);}
+    const band=Math.min(size*1.12,boxH/lay.rows.length*.95),rowGap=band*1.1;
+    const speed=Math.max(.5,Number(s.speed)||1),L=Math.max(.8,(Math.max(item.end,item.start+.8)-item.start)*speed),t=Math.max(0,(time-item.start)*speed);
+    const N=rows.reduce((a,r)=>a+r.cs.length,0)||1,dur=Math.max(.15,Number(s.dur)||.9);
+    const stag=Math.max(.01,Math.min(Number(s.stagger)||.14,(L*.32-dur)/N)),spread=stag*N;
+    const ease=q=>q<.5?4*q*q*q:1-Math.pow(-2*q+2,3)/2;
+    const cycle=Math.max(.5,(Number(s.stagger)||.14)*N+dur+(Number(s.hold)||0)),tl=s.mode==='loop'?t%cycle:t;
+    ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=s.color;ctx.font=s.weight+' '+size+'px '+fam;
+    let g=0;
+    rows.forEach((row,ri)=>{
+      const rowY=h/2+(ri-(rows.length-1)/2)*rowGap;let xCursor=w/2-row.total/2;
+      row.cs.forEach((ch,i)=>{
+        const idx=g++,adv=row.ws[i]+row.tr,cx=xCursor+row.ws[i]/2;xCursor+=adv;
+        if(ch===' ')return;
+        const dir=hash(idx+1)>.5?1:-1,delay=hash(idx+9)*(s.mode==='loop'?(Number(s.stagger)||.14)*N:spread);
+        let off=0,wrapOff=null;
+        if(s.mode==='loop'){
+          const q=ease(clamp((tl-delay)/dur));off=dir*band*q;wrapOff=off-dir*band;     // slides out, copy slides in
+        }else{
+          const inp=ease(clamp((tl-delay)/dur)),outp=ease(clamp((tl-(L-spread-dur)-delay)/dur));
+          off=-dir*band*(1-inp)+dir*band*outp;
+          const bq=clamp((tl-Number(s.burst)*L-delay)/dur);
+          if(bq>0&&bq<1&&outp<=0&&inp>=1){const bo=dir*band*ease(bq);off=bo;wrapOff=bo-dir*band;}   // glitch: wraps through the cell
+        }
+        ctx.save();ctx.beginPath();ctx.rect(cx-adv/2-size*.05,rowY-band/2,adv+size*.1,band);ctx.clip();
+        if(Math.abs(off)<band*.99)ctx.fillText(ch,cx,rowY+off);
+        if(wrapOff!==null&&Math.abs(wrapOff)<band*.99)ctx.fillText(ch,cx,rowY+wrapOff);
+        ctx.restore();
+      });
+    });
+    ctx.restore();
   }
   const inkFontFaces = new Map();
   function inkFont(s){
