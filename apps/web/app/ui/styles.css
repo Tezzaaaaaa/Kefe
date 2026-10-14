@@ -5551,9 +5551,7 @@ body {
     grid-template-rows: 40px auto auto auto;
   }
 }
-.kefe-fullscreen-open {
-  overflow: hidden !important;
-}
+
 
 /* Document-level scrolling: override the legacy fixed-viewport editor and nested panel scroller. */
 /* The editor must contribute its full content height to the document, not trap it in a viewport-sized grid. */
