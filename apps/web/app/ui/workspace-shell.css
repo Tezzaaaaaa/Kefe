@@ -96,7 +96,7 @@ body{overflow-x:hidden;overflow-y:auto}
   background:transparent;
 }
 /* Section navigation is in the workspace sidebar; keep the legacy buttons wired but not duplicated visually. */
-.kefe-editing>.kefe-tabs{display:none!important}
+.kefe-editor .kefe-editing>.kefe-tabs{display:none}
 .kefe-panels{
   min-width:0;min-height:0;padding:16px clamp(12px,2vw,28px) 30px;
   overflow:visible;
