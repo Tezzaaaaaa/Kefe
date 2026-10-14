@@ -115,6 +115,78 @@ function appleSpringOut(t) {
     return 1 + c3 * u * u * u + c1 * u * u;
 }
 
+
+/* Per-letter magnet wave and duration-aware lyric fill. */
+const APPLE_WAVE = { lift: 0.10, pop: 0.04, glow: 0.8, glowSize: 0.38, soft: 0.35, dim: 0.55, cascade: 0.045 };
+const appleLetterCache = new Map();
+
+function appleLetterBox(ctx, token) {
+    const key = ctx.font + '|' + token;
+    let hit = appleLetterCache.get(key);
+    if (hit) return hit;
+    const chars = Array.from(token), xs = [], ws = [];
+    let acc = '';
+    for (const ch of chars) {
+        const a = ctx.measureText(acc).width;
+        acc += ch;
+        const b = ctx.measureText(acc).width;
+        xs.push(a);
+        ws.push(Math.max(0.001, b - a));
+    }
+    hit = { chars, xs, ws, W: Math.max(1, ctx.measureText(token).width) };
+    appleLetterCache.set(key, hit);
+    if (appleLetterCache.size > 2500) appleLetterCache.delete(appleLetterCache.keys().next().value);
+    return hit;
+}
+
+function appleDrawWord(ctx, token, tm, x, y, fs, time, sungColor, dimA, P, shadowBlur, shadowOff) {
+    const box = appleLetterBox(ctx, token);
+    const dur = Math.max(0.05, tm.endTime - tm.time);
+    const f = linaClamp((time - tm.time) / dur);
+    const softness = P.soft * (0.7 + 0.6 * linaClamp(dur / 1.2));
+    const front = f * (1 + softness), start = front - softness;
+    const radius = linaClamp(dur * 0.4, 0.1, 0.55);
+    const falloff = linaClamp(dur * 0.7 + 0.12, 0.2, 1);
+    const amp = 0.65 + 0.35 * linaClamp(dur / 1.2);
+    const dimColor = 'rgba(255,255,255,' + dimA.toFixed(3) + ')';
+    for (let k = 0; k < box.chars.length; k++) {
+        const lx = x + box.xs[k], lw = box.ws[k];
+        const a = box.xs[k] / box.W, b = (box.xs[k] + lw) / box.W;
+        const wd = Math.max(0.001, b - a), xc = (a + b) / 2;
+        const tau = time - (tm.time + dur * xc / (1 + softness));
+        const lift = Math.round(amp * (tau < 0 ? linaSmooth(1 + tau / radius) : (1 + Math.cos(Math.PI * Math.min(1, tau / falloff))) / 2) * 500) / 500;
+        const p1 = (start - a) / wd, p2 = (front - a) / wd;
+        ctx.save();
+        if (lift > 0.002) {
+            const cx = lx + lw / 2, py = y + fs * 0.2, scale = 1 + lift * P.pop;
+            ctx.translate(cx, py);
+            ctx.scale(scale, scale);
+            ctx.translate(-cx, -py - lift * P.lift * fs);
+        }
+        if (p1 >= 1) ctx.fillStyle = sungColor;
+        else if (p2 <= 0) ctx.fillStyle = dimColor;
+        else {
+            const gradient = ctx.createLinearGradient(lx, 0, lx + lw, 0);
+            gradient.addColorStop(0, sungColor);
+            gradient.addColorStop(linaClamp(p1), sungColor);
+            gradient.addColorStop(linaClamp(p2), dimColor);
+            gradient.addColorStop(1, dimColor);
+            ctx.fillStyle = gradient;
+        }
+        if (lift > 0.01) {
+            ctx.shadowColor = 'rgba(255,255,255,' + Math.min(1, 0.85 * P.glow * lift).toFixed(3) + ')';
+            ctx.shadowBlur = P.glowSize * fs * lift * 1.2;
+            ctx.shadowOffsetY = 0;
+        } else {
+            ctx.shadowColor = 'rgba(0,0,0,0.45)';
+            ctx.shadowBlur = shadowBlur;
+            ctx.shadowOffsetY = shadowOff;
+        }
+        ctx.fillText(box.chars[k], lx, y);
+        ctx.restore();
+    }
+}
+
 function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     if (!Array.isArray(lines) || !lines.length) return;
 
@@ -316,57 +388,53 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ctx.shadowOffsetY = 0;
 
         // white highlight layer – fades in/out with focus
-        if (act > 0.001) {
-            ctx.save();
-            ctx.globalAlpha = alphaAmt * act;
-            const isPast = i < activeIndex;
-            if (!words.length) {
+                // Duration-aware per-letter fill and magnet-wave motion.
+        const utils = window.kefeEffectUtils;
+        const tokens = String(line.text || '').split(/\\s+/).filter(Boolean);
+        let times = null;
+        if (utils?.tokenTimes && (i === activeIndex || i === activeIndex - 1)) {
+            try {
+                const timed = utils.tokenTimes(line, displayLines[i + 1], tokens);
+                if (timed.length === tokens.length && timed.every(v => Number.isFinite(v.time) && Number.isFinite(v.endTime))) {
+                    if (i === activeIndex || time < timed[timed.length - 1].endTime + 1.15) times = timed;
+                }
+            } catch (_) { times = null; }
+        }
+        if (times) {
+            const P = {
+                lift: Number.isFinite(Number(style.appleLetterLift)) ? Number(style.appleLetterLift) : APPLE_WAVE.lift,
+                pop: APPLE_WAVE.pop,
+                glow: APPLE_WAVE.glow,
+                glowSize: APPLE_WAVE.glowSize,
+                soft: APPLE_WAVE.soft,
+                dim: linaClamp(Number.isFinite(Number(style.appleUnsungOpacity)) ? Number(style.appleUnsungOpacity) : APPLE_WAVE.dim, 0.2, 0.9)
+            };
+            const sung = 'rgb(' + Math.round(224 + 31 * act) + ',' + Math.round(224 + 31 * act) + ',' + Math.round(224 + 31 * act) + ')';
+            const dimA = 1 - (1 - P.dim) * act;
+            const spaceWidth = ctx.measureText(' ').width;
+            let ti = 0;
+            const shadowBlur = Math.max(2, baseDimension * (1.2 / 390));
+            const shadowOff = Math.max(1, baseDimension * (0.5 / 390));
+            for (let ri = 0; ri < rows.length; ri++) {
+                const rowTokens = rows[ri].split(' ').filter(Boolean);
+                let cursorX = x;
+                for (let k = 0; k < rowTokens.length; k++) {
+                    const token = rowTokens[k];
+                    const timing = times[ti + k];
+                    if (timing) appleDrawWord(ctx, token, timing, cursorX, rowYs[ri], rowFontSize, time, sung, dimA, P, shadowBlur, shadowOff);
+                    else ctx.fillText(token, cursorX, rowYs[ri]);
+                    cursorX += appleLetterBox(ctx, token).W + spaceWidth;
+                }
+                ti += rowTokens.length;
+            }
+        } else {
+            if (act > 0.001) {
+                ctx.save();
+                ctx.globalAlpha = alphaAmt * act;
                 ctx.fillStyle = '#FFFFFF';
                 rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
-            } else {
-                let wordIndex = 0;
-                const easeWindow = 0.10;
-                const spaceWidth = ctx.measureText(' ').width;
-                for (let ri = 0; ri < rows.length; ri++) {
-                    const rowTokens = rows[ri].split(/\s+/).filter(Boolean);
-                    let cursorX = x;
-                    for (let ti = 0; ti < rowTokens.length; ti++) {
-                        const word = words[wordIndex + ti];
-                        const wordText = String(word?.text || rowTokens[ti]);
-                        const wordWidth = ctx.measureText(wordText).width;
-                        const wordTime = Number(word?.time);
-                        const wordEndTime = Number(word?.endTime);
-                        let progress = 0;
-                        if (isPast) progress = 1;
-                        else if (Number.isFinite(wordTime) && time >= wordTime) {
-                            progress = Number.isFinite(wordEndTime) && wordEndTime > wordTime
-                                ? linaSmooth((time - wordTime) / Math.min(easeWindow, wordEndTime - wordTime))
-                                : 1;
-                        }
-                        if (progress > 0) {
-                            const wipeEnd = cursorX + wordWidth * progress;
-                            const feather = Math.min(ctx.measureText('M').width * 0.75, Math.max(1, wordWidth * 0.18));
-                            const wipeStart = Math.max(cursorX, wipeEnd - feather);
-                            ctx.save();
-                            ctx.beginPath();
-                            ctx.rect(cursorX - 2, rowYs[ri] - rowHeight * 0.62, wordWidth * progress + 4, rowHeight * 1.24);
-                            ctx.clip();
-                            if (progress >= 0.999) ctx.fillStyle = '#FFFFFF';
-                            else {
-                                const wipe = ctx.createLinearGradient(wipeStart, 0, wipeEnd, 0);
-                                wipe.addColorStop(0, '#FFFFFF');
-                                wipe.addColorStop(1, 'rgba(255,255,255,0)');
-                                ctx.fillStyle = wipe;
-                            }
-                            ctx.fillText(wordText, cursorX, rowYs[ri]);
-                            ctx.restore();
-                        }
-                        cursorX += wordWidth + spaceWidth;
-                    }
-                    wordIndex += rowTokens.length;
-                }
+                ctx.restore();
             }
-            ctx.restore();
         }
         ctx.restore();
     }
