@@ -204,6 +204,32 @@ jobs:
                   const liquidPowerForSource = page.locator('.kefe-visualiser-panel-head .kefe-switch');
                   const liquidWasEnabled = await liquidPowerForSource.getAttribute('aria-checked') === 'true';
                   if (!liquidWasEnabled) await liquidPowerForSource.click();
+                  await page.waitForTimeout(120);
+                  const paletteSpread = await page.evaluate(() => {
+                    const canvas = document.getElementById('kefeLiquidFlowCanvas');
+                    const gl = canvas && canvas.getContext('webgl');
+                    if (!gl || canvas.width < 2 || canvas.height < 2) return { ranges: [], sceneActive: null };
+                    const samples = [];
+                    for (let row = 1; row <= 5; row++) {
+                      for (let column = 1; column <= 5; column++) {
+                        const pixel = new Uint8Array(4);
+                        gl.readPixels(
+                          Math.floor((column / 6) * (canvas.width - 1)),
+                          Math.floor((row / 6) * (canvas.height - 1)),
+                          1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel
+                        );
+                        samples.push([...pixel.slice(0, 3)]);
+                      }
+                    }
+                    const ranges = [0, 1, 2].map(channel => {
+                      const values = samples.map(pixel => pixel[channel]);
+                      return Math.max(...values) - Math.min(...values);
+                    });
+                    return { ranges, sceneActive: window.kefeGradientLayer.state().sceneActive };
+                  });
+                  assert.equal(paletteSpread.sceneActive, false, label + ': Liquid Flow fallback test must have no scene texture');
+                  assert.ok(paletteSpread.ranges.some(range => range > 40),
+                    label + ': Liquid Flow palette ramp must retain colour variation instead of collapsing to the final colour stop');
                   await page.evaluate(async () => {
                     window.__kefeOriginalAlbumArtGetter = window.kefeGetAlbumArt;
                     const source = document.createElement('canvas');
