@@ -36,7 +36,7 @@ jobs:
         run: |
           set -eu
           mkdir -p dist/kefe-visualiser
-          cp -R artifacts/kefe-visualiser/public/legacy/. dist/kefe-visualiser/
+          cp -R apps/web/. dist/kefe-visualiser/
           cp README.md LICENSE THIRD_PARTY_NOTICES.md dist/kefe-visualiser/
           printf '%s\n' "$RELEASE_VERSION" > dist/kefe-visualiser/VERSION
           cd dist

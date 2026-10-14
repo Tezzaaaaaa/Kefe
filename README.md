@@ -111,30 +111,15 @@ Song matches, artwork and synchronized lyrics depend on the selected track and t
 
 ## Project structure
 
-The deployed editor lives under `artifacts/kefe-visualiser/public/legacy/`.
-
 ```text
-app/
-├── brand/       # KEFE logos, wordmark and favicon
-├── effects/     # Effect manifest, shared utilities and lyric renderers
-├── lyrics/      # Lyric data model, timing tools and lyric downloads
-├── visualiser/  # 3D particles, Liquid Flow, Dithr, Fluted Glass, backgrounds and audio overlays
-└── ui/          # Editor structure, styling, typography and lyric style layer
+apps/web/       Static editor (deployed via GitHub Pages)
+apps/api/       Express API
+packages/       Shared API spec, schemas, client and database packages
+docs/           Architecture notes and design references
 ```
 
-Important files:
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the editor's file layout, key files and development commands.
 
-- `app/editor.js` — editor state, media and lyric handling, canvas rendering and effect dispatch
-- `app/effects/manifest.js` — central list of lyric effects
-- `app/effects/core.js` — shared utilities used by multiple lyric renderers
-- `app/visualiser/visualiser.js` — visualiser engine, presets and parameters
-- `app/lyrics/lyric-model.js` — lyric timing data, parsing, editing and export formats
-- `app/lyrics/lyric-studio.js` — lyric display modes, timing editor and downloads
-- `app/ui/style-layer.js` — shared lyric styling controls
-- `app/visualiser/audio-overlay.js` — audio analysis and 2D overlays
-- `app/ui/structure.js` — editor sections and controls
-
-**Important:** Keep `app/effects/core.js` in place and loaded before the lyric renderers. Multiple effects depend on the shared utilities it defines.
 
 ## Licensing
 
