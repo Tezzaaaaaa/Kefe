@@ -274,6 +274,21 @@ jobs:
                   !!audio?.src?.startsWith('blob:') &&
                   Number.isFinite(audio.duration) && audio.duration > 0;
               }, { title: persistenceTitle, artist: persistenceArtist, lyrics: persistenceLyrics, fileName: 'KEFE New Project Upload Verification.wav' }, { timeout: 20000 });
+              await page.goto(baseUrl + '/workspace.html', { waitUntil: 'domcontentloaded' });
+              const workspaceProject = page.locator('.project-card').filter({ hasText: persistenceTitle });
+              await workspaceProject.waitFor({ state: 'visible', timeout: 15000 });
+              await workspaceProject.locator('a.open-project').click();
+              await page.waitForURL(/editor\\.html\\?openProject=/);
+              await page.waitForFunction(({ title, artist, lyrics, fileName }) => {
+                const audio = document.getElementById('kefeAudio');
+                return document.getElementById('songTitle')?.value === title &&
+                  document.getElementById('songArtist')?.value === artist &&
+                  document.getElementById('lyricsInput')?.value === lyrics &&
+                  document.querySelector('.kefe-upload-name')?.textContent === fileName &&
+                  !!audio?.src?.startsWith('blob:') &&
+                  Number.isFinite(audio.duration) && audio.duration > 0;
+              }, { title: persistenceTitle, artist: persistenceArtist, lyrics: persistenceLyrics, fileName: 'KEFE New Project Upload Verification.wav' }, { timeout: 20000 });
+              const workspaceProjectOpen = 'PASS';
               await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
               page.once('dialog', dialog => dialog.accept());
@@ -283,7 +298,7 @@ jobs:
               await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
               await page.locator('.kefe-library-shell:not([hidden])').waitFor();
               assert.equal(await page.locator('.kefe-library-card h2').filter({ hasText: persistenceTitle }).count(), 0, label + ': deleted project must remain deleted after reload');
-              const mediaLibraryAudit = { save: 'PASS', reload: 'PASS', metadataRestore: 'PASS', originalMediaRestore: 'PASS', audioReload: 'PASS', delete: 'PASS', deletionPersistsAfterReload: 'PASS' };
+              const mediaLibraryAudit = { save: 'PASS', reload: 'PASS', metadataRestore: 'PASS', originalMediaRestore: 'PASS', audioReload: 'PASS', workspaceRecentProject: workspaceProjectOpen, delete: 'PASS', deletionPersistsAfterReload: 'PASS' };
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
               console.log(JSON.stringify({
                 target: label,
