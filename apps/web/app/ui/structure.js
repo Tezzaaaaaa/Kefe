@@ -11,7 +11,6 @@ function syncKefeVolume() {
   if (!kefeAudioElement || !kefeVolumeSlider) return;
   const value = Math.max(0, Math.min(100, Number(kefeVolumeSlider.value) || 0));
   kefeAudioElement.volume = value / 100;
-  if (value > 0) kefeAudioElement.muted = false;
   if (kefeVolumeValue) kefeVolumeValue.textContent = value + '%';
   if (kefeMuteToggle) {
     const muted = kefeAudioElement.muted || value === 0;
@@ -21,7 +20,7 @@ function syncKefeVolume() {
     kefeMuteToggle.setAttribute('aria-pressed', String(muted));
   }
 }
-kefeVolumeSlider?.addEventListener('input', syncKefeVolume);
+kefeVolumeSlider?.addEventListener('input', () => { if (kefeAudioElement) kefeAudioElement.muted = false; syncKefeVolume(); });
 kefeMuteToggle?.addEventListener('click', () => {
   if (!kefeAudioElement) return;
   kefeAudioElement.muted = !kefeAudioElement.muted;
