@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="KEFE workspace — continue your lyric video and music visualiser projects.">
+<title>KEFE Workspace</title>
+<link rel="icon" href="./app/brand/favicon.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:dark;--bg:#171717;--side:#1d1d1d;--surface:#222;--surface2:#292929;--text:#f5f5f5;--muted:#a4a4a4;--line:#393939;--accent:#e9e9e9;--accentText:#171717;--preview:#292638}
+:root[data-theme="day"]{color-scheme:light;--bg:#f4f5f2;--side:#fff;--surface:#fff;--surface2:#f0f1ee;--text:#252721;--muted:#74786f;--line:#dedfd9;--accent:#252721;--accentText:#fff;--preview:#e6e3ee}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}button,a{font:inherit}a{color:inherit;text-decoration:none}button{cursor:pointer;color:inherit}.app{min-height:100vh;display:grid;grid-template-columns:220px minmax(0,1fr);grid-template-rows:64px 1fr}.top{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:0 24px;border-bottom:1px solid var(--line);background:var(--side)}.brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:-.03em}.brand img{width:30px;height:30px}.top-spacer{flex:1}.icon-button,.nav-link,.button{border:1px solid var(--line);background:transparent;border-radius:9px;padding:9px 12px}.button.primary{background:var(--accent);color:var(--accentText);border-color:var(--accent);font-weight:600}.sidebar{background:var(--side);border-right:1px solid var(--line);padding:24px 14px;display:flex;flex-direction:column;gap:8px}.side-label{color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.12em;padding:8px 10px}.side-link{display:flex;align-items:center;gap:11px;border-radius:9px;padding:10px;color:var(--muted)}.side-link.active{background:var(--surface2);color:var(--text)}.side-link svg{width:17px;height:17px;flex:none}.side-foot{margin-top:auto;padding:10px;color:var(--muted);font-size:12px}.main{min-width:0;max-width:1440px;width:100%;padding:36px clamp(22px,4vw,60px) 56px;margin:0 auto}.eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--muted);margin:0 0 7px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:28px}.hero h1{font-size:clamp(27px,3vw,38px);letter-spacing:-.055em;line-height:1.1;margin:0 0 10px}.hero p:last-child{margin:0;color:var(--muted);max-width:620px}.hero-actions{display:flex;gap:9px;flex-wrap:wrap}.section{margin-top:30px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}.section-head h2{font-size:16px;letter-spacing:-.02em;margin:0}.muted{color:var(--muted)}.quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.quick-card{display:flex;gap:16px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;min-width:0}.quick-icon{width:40px;height:40px;border:1px solid var(--line);border-radius:11px;display:grid;place-items:center;flex:none}.quick-icon svg{width:20px;height:20px}.quick-card h3{font-size:15px;margin:1px 0 5px}.quick-card p{font-size:13px;color:var(--muted);margin:0 0 14px}.text-link{font-weight:600;font-size:12px}.text-link span{margin-left:5px}.project-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.project{min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}.thumb{height:130px;background:var(--preview);display:grid;place-items:center;position:relative;overflow:hidden}.thumb .track-title{font-size:clamp(15px,2vw,22px);font-weight:750;letter-spacing:.13em;text-align:center;max-width:85%;overflow-wrap:anywhere}.thumb .track-artist{font-size:10px;letter-spacing:.16em;opacity:.7}.thumb svg{width:78%;max-height:65px}.thumb.empty{color:var(--muted);font-size:30px}.project-info{padding:13px}.project-title{font-weight:650;overflow-wrap:anywhere;margin:0 0 4px}.project-meta{font-size:11px;color:var(--muted);min-height:17px;overflow-wrap:anywhere}.project-actions{display:flex;gap:8px;margin-top:12px}.project-actions .button{font-size:12px;padding:7px 10px}.empty{border:1px dashed var(--line);border-radius:12px;padding:30px;text-align:center;color:var(--muted);background:var(--surface)}.empty strong{display:block;color:var(--text);font-size:14px;margin-bottom:4px}.empty p{margin:0 0 14px}.status{font-size:12px;color:var(--muted);margin-top:14px;min-height:18px}.footer{border-top:1px solid var(--line);margin-top:38px;padding-top:18px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px}.footer a{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:850px){.app{grid-template-columns:66px minmax(0,1fr)}.sidebar{padding:20px 8px}.side-label,.side-link span,.side-foot{display:none}.side-link{justify-content:center;padding:12px}.main{padding:28px 22px}.project-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{align-items:flex-start;flex-direction:column}.hero-actions{width:100%}}
+@media(max-width:560px){.app{display:flex;flex-direction:column}.top{height:58px;padding:0 15px}.sidebar{order:0;flex-direction:row;border-right:0;border-bottom:1px solid var(--line);padding:7px 10px;gap:4px}.side-link{flex:1;padding:8px}.side-link span{display:inline;font-size:11px}.side-label,.side-foot{display:none}.main{padding:25px 15px 38px}.quick-grid,.project-grid{grid-template-columns:1fr}.quick-card{padding:16px}.thumb{height:150px}.hero-actions .button{flex:1;text-align:center}.footer{margin-top:28px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+<a class="brand" href="./workspace.html" aria-label="KEFE workspace"><img src="./app/brand/favicon.svg" alt=""><span>KEFE</span></a>
+<div class="top-spacer"></div>
+<a class="nav-link" href="./index.html">Open Editor</a>
+<button class="icon-button" id="themeToggle" type="button" aria-label="Switch theme">☀ Day</button>
+<a class="icon-button" href="./index.html?panel=settings">Settings</a>
+</header>
+<aside class="sidebar" aria-label="Workspace navigation">
+<div class="side-label">WORKSPACE</div>
+<a class="side-link active" href="./workspace.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Overview</span></a>
+<a class="side-link" href="./index.html?panel=media"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/></svg><span>Library</span></a>
+<a class="side-link" href="./index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m10 8 6 4-6 4z"/></svg><span>Editor</span></a>
+<div class="side-label" style="margin-top:12px">PREFERENCES</div>
+<a class="side-link" href="./index.html?panel=settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="m19 13.5 1.5 1.2-1.5 2.6-1.9-.5-1.4 1v2.1h-3.2l-.5-2-1.7-.8-1.8.7-1.7-2.8 1.3-1.5-.2-1.8-1.7-1V7.5l2-.5 1-1.5-.4-2h3.2l.8 1.8 1.8.6 1.6-.8 1.9 2.7-1.1 1.6z"/></svg><span>Settings</span></a>
+<div class="side-foot">Projects are saved locally in this browser.</div>
+</aside>
+<main class="main">
+<section class="hero">
+<div><p class="eyebrow">YOUR WORKSPACE</p><h1>Create with KEFE.</h1><p>Pick up a saved project or open the editor to build a lyric video or music visualiser.</p></div>
+<div class="hero-actions"><a class="button primary" href="./index.html">Open Editor <span aria-hidden="true">↗</span></a><a class="button" href="./index.html?panel=media">View Library</a></div>
+</section>
+<section class="quick-grid" aria-label="Create and manage projects">
+<article class="quick-card"><div class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 5v14l11-7z"/></svg></div><div><h3>Continue creating</h3><p>Use KEFE’s existing editor, preview, timeline and editing controls.</p><a class="text-link" href="./index.html">Open Editor <span>↗</span></a></div></article>
+<article class="quick-card"><div class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/></svg></div><div><h3>Your Library</h3><p>Open projects saved on this device using KEFE’s existing browser storage.</p><a class="text-link" href="./index.html?panel=media">View Library <span>↗</span></a></div></article>
+</section>
+<section class="section" aria-labelledby="recentTitle">
+<div class="section-head"><h2 id="recentTitle">Recent projects</h2><a class="text-link" href="./index.html?panel=media">View all <span>↗</span></a></div>
+<div class="project-grid" id="projectGrid" aria-live="polite"></div>
+<div class="empty" id="emptyState" hidden><strong>Your library is empty</strong><p>Upload audio or video in the editor to start a project. Saved projects will appear here.</p><a class="button primary" href="./index.html">Open Editor</a></div>
+<p class="status" id="storageStatus" role="status">Loading saved projects from this browser…</p>
+</section>
+<section class="section">
+<div class="section-head"><h2>In the editor</h2><span class="muted" style="font-size:12px">Existing KEFE tools</span></div>
+<div class="quick-grid">
+<article class="quick-card"><div class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12h2l2-7 4 14 3-10 2 6h5"/></svg></div><div><h3>Visualiser</h3><p>Choose existing presets and adjust the available visualiser controls.</p><a class="text-link" href="./index.html">Open in Editor <span>↗</span></a></div></article>
+<article class="quick-card"><div class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5h16M4 12h16M4 19h10"/><path d="M8 2v6M15 9v6"/></svg></div><div><h3>Lyrics & Effects</h3><p>Edit synchronized lyrics and choose the effects already available in KEFE.</p><a class="text-link" href="./index.html">Open in Editor <span>↗</span></a></div></article>
+</div>
+</section>
+<footer class="footer"><span>KEFE Visualiser · Projects remain in this browser</span><span><a href="https://github.com/Tezzaaaaaa/Kefe" target="_blank" rel="noopener noreferrer">GitHub repository</a> · <a href="./index.html">Editor</a></span></footer>
+</main>
+</div>
+<script>
+(function(){
+'use strict';
+var root=document.documentElement,themeKey='kefe.theme';
+try{var saved=localStorage.getItem(themeKey);if(saved==='day'||saved==='night')root.dataset.theme=saved;else root.dataset.theme='night';}catch(_){root.dataset.theme='night';}
+var toggle=document.getElementById('themeToggle');
+function syncTheme(){var night=root.dataset.theme!=='day';toggle.textContent=night?'☀ Day':'☾ Night';toggle.setAttribute('aria-label',night?'Switch to day mode':'Switch to night mode');}
+toggle.addEventListener('click',function(){root.dataset.theme=root.dataset.theme==='night'?'day':'night';try{localStorage.setItem(themeKey,root.dataset.theme);}catch(_){}syncTheme();});syncTheme();
+var grid=document.getElementById('projectGrid'),empty=document.getElementById('emptyState'),status=document.getElementById('storageStatus');
+function text(tag,cls,value){var e=document.createElement(tag);if(cls)e.className=cls;e.textContent=value||'';return e;}
+function draw(projects){grid.textContent='';projects=projects.sort(function(a,b){return (b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0);}).slice(0,6);empty.hidden=projects.length>0;projects.forEach(function(p,index){var card=text('article','project',''),thumb=text('div','thumb','');if(p.values&&p.values.artUrl){var img=document.createElement('img');img.src=p.values.artUrl;img.alt='';img.style.cssText='width:100%;height:100%;object-fit:cover';img.onerror=function(){img.remove();thumb.textContent='♪';};thumb.appendChild(img);}else if(p.title&&p.title!=='Untitled project'){var title=text('div','track-title',p.title);thumb.appendChild(title);if(p.artist)thumb.appendChild(text('div','track-artist',p.artist));}else{thumb.classList.add('empty');thumb.textContent='♪';}var info=text('div','project-info','');info.appendChild(text('p','project-title',p.title||'Untitled project'));info.appendChild(text('div','project-meta',[p.artist,p.fileName,new Date(p.updatedAt||p.createdAt||Date.now()).toLocaleDateString()].filter(Boolean).join(' · ')));var actions=text('div','project-actions','');var open=text('a','button primary','Open project');open.href='./index.html?openProject='+encodeURIComponent(p.id);actions.appendChild(open);info.appendChild(actions);card.appendChild(thumb);card.appendChild(info);grid.appendChild(card);});status.textContent=projects.length?'Showing '+projects.length+' most recently updated saved project'+(projects.length===1?'':'s')+'.':'No saved projects found.';}
+try{var request=indexedDB.open('kefe-media-library',1);request.onupgradeneeded=function(){var db=request.result;if(!db.objectStoreNames.contains('projects')){var store=db.createObjectStore('projects',{keyPath:'id'});store.createIndex('updatedAt','updatedAt');}};request.onsuccess=function(){var db=request.result;db.onversionchange=function(){db.close();};var tx=db.transaction('projects','readonly'),get=tx.objectStore('projects').getAll();get.onsuccess=function(){draw(get.result||[]);};get.onerror=function(){status.textContent='Could not read saved projects from this browser.';};};request.onerror=function(){status.textContent='Browser storage is unavailable. Open KEFE’s editor to check the Library.';};}catch(_){status.textContent='Browser storage is unavailable. Open KEFE’s editor to check the Library.';}
+}());
+</script>
+</body>
+</html>
