@@ -107,9 +107,9 @@ jobs:
                   panelRight: panel.right,
                   stageWidth: stage.width,
                   stageHeight: stage.height,
-                  mediaFormColumns: getComputedStyle(document.querySelector('.kefe-panel[data-panel-view="media"] .kefe-form')).gridTemplateColumns.trim().split(/\\s+/).filter(Boolean).length,
+                  mediaFormColumns: getComputedStyle(document.querySelector('.kefe-panel[data-panel-view="media"] .kefe-form')).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length,
                   mediaFormUsesSteps: document.querySelector('.kefe-panel[data-panel-view="media"] .kefe-form').classList.contains('kefe-media-steps'),
-                  detailsGridColumns: (() => { const grid = document.querySelector('.kefe-details-grid'); return grid ? getComputedStyle(grid).gridTemplateColumns.trim().split(/\\s+/).filter(Boolean).length : 0; })(),
+                  detailsGridColumns: (() => { const grid = document.querySelector('.kefe-details-grid'); return grid ? getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length : 0; })(),
                   viewportWidth: innerWidth,
                   viewportHeight: innerHeight
                 };
