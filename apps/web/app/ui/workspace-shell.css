@@ -191,15 +191,13 @@ body{overflow-x:hidden;overflow-y:auto}
   .kefe-panel{padding:14px;border-radius:10px}
   .kefe-panel-head{display:flex;align-items:flex-start;flex-direction:column;gap:6px;margin-bottom:14px}
   .kefe-panel-head .kefe-meta{text-align:left}
-  .kefe-form{grid-template-columns:minmax(0,1fr);gap:14px}
+  .kefe-form{gap:14px}
   .kefe-panel[data-panel-view="media"] .kefe-form,
+  .kefe-panel[data-panel-view="lyrics"] .kefe-form,
   .kefe-panel[data-panel-view="effects"] .kefe-form,
-  .kefe-panel[data-panel-view="export"] .kefe-form,
+  .kefe-panel[data-panel-view="export"] .kefe-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kefe-panel[data-panel-view="lyrics"] .kefe-form>*{grid-column:1/-1}
   .kefe-panel[data-panel-view="visualiser"] .kefe-form{grid-template-columns:minmax(0,1fr)}
-  .kefe-panel[data-panel-view="media"] .kefe-upload-zone,
-  .kefe-panel[data-panel-view="media"] .kefe-media-track,
-  .kefe-panel[data-panel-view="media"] .kefe-suggestions,
-  .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control{grid-column:auto}
   .kefe-site-footer{display:none}
   .kefe-time{min-width:58px}
   .kefe-aspect-controls{min-width:56px;flex-basis:56px}
