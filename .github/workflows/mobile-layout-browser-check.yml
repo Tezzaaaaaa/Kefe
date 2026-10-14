@@ -75,7 +75,7 @@ jobs:
                 const pageConsoleErrors = [];
                 page.on('pageerror', error => pageErrors.push(error.message));
                 page.on('console', message => { if (message.type() === 'error') pageConsoleErrors.push(message.text()); });
-                await page.goto(`${baseUrl}/index.html`, { waitUntil: 'domcontentloaded' });
+                await page.goto(`${baseUrl}/editor.html`, { waitUntil: 'domcontentloaded' });
                 await page.locator('.kefe-section[data-panel="effects"]').waitFor();
                 await page.locator('.kefe-section[data-panel="effects"]').click();
                 await page.locator('.kefe-panel[data-panel-view="effects"].active').waitFor();
@@ -474,7 +474,7 @@ jobs:
 
       - name: Wait for the latest GitHub Pages build
         run: |
-          live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/index.html'
+          live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
           expected_marker=$(grep -o 'app/ui/styles\.css?v=[^"]*' apps/web/index.html | head -n 1)
           expected_editor=$(grep -o 'app/editor\.js?v=[^"]*' apps/web/index.html | head -n 1)
           expected_visualiser=$(grep -o 'app/visualiser/gradient\.js?v=[^"]*' apps/web/index.html | head -n 1)
