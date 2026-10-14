@@ -475,7 +475,7 @@ jobs:
       - name: Wait for the latest GitHub Pages build
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/index.html'
-          expected_marker=$(grep -o 'compact-controls\.css?v=[^"]*' apps/web/index.html | head -n 1)
+          expected_marker=$(grep -o 'app/ui/styles\.css?v=[^"]*' apps/web/index.html | head -n 1)
           if [ -z "$expected_marker" ]; then
             echo 'Could not determine the expected mobile stylesheet version from the checked-out source.' >&2
             exit 1
