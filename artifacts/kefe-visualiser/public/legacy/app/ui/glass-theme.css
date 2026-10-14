@@ -99,10 +99,6 @@ body{ letter-spacing: -.01em;
 
 .kefe-stage::before {
   z-index: 0;
-  background:
-    radial-gradient(ellipse at 78% 18%, rgba(109,126,157,.18), transparent 38%),
-    radial-gradient(ellipse at 18% 88%, rgba(116,150,145,.14), transparent 44%),
-    linear-gradient(145deg, #1b1e30, #11131f 72%);
   border-radius: inherit;
 }
 
@@ -131,20 +127,10 @@ body{ letter-spacing: -.01em;
   right: 17px;
   width: 38px;
   height: 38px;
-  border: 1px solid rgba(255,255,255,.2);
-  background: rgba(255,255,255,.11);
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(0,0,0,.18);
-
-  font-size: var(--font-sm);
-  font-family: inherit;}
+}
 
 .kefe-preview-fullscreen:hover {
-  background: rgba(255,255,255,.19);
-  box-shadow: 0 8px 22px rgba(0,0,0,.24);
-
-  font-size: var(--font-sm);
-  font-family: inherit;}
+}
 
 .kefe-stage:fullscreen,
 .kefe-stage.kefe-pseudo-fullscreen {
