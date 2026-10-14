@@ -119,6 +119,7 @@ function appleSpringOut(t) {
 /* Per-letter magnet wave and duration-aware lyric fill. */
 const APPLE_WAVE = { lift: 0.10, pop: 0.04, glow: 0.8, glowSize: 0.38, soft: 0.35, dim: 0.55, cascade: 0.045 };
 const appleLetterCache = new Map();
+const appleRowCache = new Map();
 
 function appleLetterBox(ctx, token) {
     const key = ctx.font + '|' + token;
@@ -184,17 +185,19 @@ function appleDrawWord(ctx, token, tm, x, y, fs, time, sungColor, dimA, P, shado
             const left = linaClamp(p1), right = linaClamp(p2);
             gradient.addColorStop(0, dimColor);
             gradient.addColorStop(left, dimColor);
-            gradient.addColorStop(right, sungColor);
-            // A narrow, brighter torch edge rides the sweep front without
-            // re-highlighting letters that have already been sung.
-            const headCenter = (front - a) / wd;
+            // A narrow, brighter torch edge rides the sweep front. Stops are kept
+            // strictly ordered so the edge never re-brightens already-sung letters.
             const headHalf = linaClamp(0.075 / wd, 0.035, 0.32);
-            const headStart = linaClamp(headCenter - headHalf);
-            const headEnd = linaClamp(headCenter + headHalf);
-            if (headStart > right) gradient.addColorStop(right, sungColor);
-            gradient.addColorStop(headStart, 'rgb(255,255,255)');
-            gradient.addColorStop(headEnd, 'rgb(255,255,255)');
-            gradient.addColorStop(1, sungColor);
+            if (p2 - headHalf < 1) {
+                const hs = linaClamp(p2 - headHalf, left, 1);
+                const he = linaClamp(p2 + headHalf, hs, 1);
+                gradient.addColorStop(hs, 'rgb(255,255,255)');
+                gradient.addColorStop(he, 'rgb(255,255,255)');
+                gradient.addColorStop(1, sungColor);
+            } else {
+                gradient.addColorStop(right, sungColor);
+                gradient.addColorStop(1, sungColor);
+            }
             ctx.fillStyle = gradient;
         }
         if (lift > 0.01) {
@@ -247,22 +250,30 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     ctx.font = `${contract.weight || 700} ${activeFontSize}px ${family}`;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
+    const rowCacheFont = ctx.font;
     for (const line of displayLines) {
-        const words = appleWordsForLine(line);
-        const tokens = words.length ? words.map(word => String(word.text || '').trim()).filter(Boolean) : String(line.text || '').split(' ').filter(Boolean);
-        const rows = [];
-        let row = '';
-        for (const token of tokens) {
-            const candidate = row ? `${row} ${token}` : token;
-            if (row && ctx.measureText(candidate).width > maxWidth) {
-                rows.push(row);
-                row = token;
-            } else {
-                row = candidate;
+        // Tokens come from line.text (same split the word-timing uses) so rows and
+        // timings always line up 1:1.
+        const cacheKey = rowCacheFont + '|' + maxWidth.toFixed(1) + '|' + line.text;
+        let rows = appleRowCache.get(cacheKey);
+        if (!rows) {
+            const tokens = line.text.split(' ').filter(Boolean);
+            rows = [];
+            let row = '';
+            for (const token of tokens) {
+                const candidate = row ? `${row} ${token}` : token;
+                if (row && ctx.measureText(candidate).width > maxWidth) {
+                    rows.push(row);
+                    row = token;
+                } else {
+                    row = candidate;
+                }
             }
+            if (row) rows.push(row);
+            if (!rows.length) rows.push(line.text);
+            appleRowCache.set(cacheKey, rows);
+            if (appleRowCache.size > 800) appleRowCache.delete(appleRowCache.keys().next().value);
         }
-        if (row) rows.push(row);
-        if (!rows.length) rows.push(String(line.text || ''));
         line.appleRows = rows;
         line.appleRowCount = rows.length;
         line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
@@ -328,13 +339,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const displayLine = activeIndex >= 0 ? displayLines[activeIndex] : null;
     if (activeIndex < 0 || !displayLine) return;
 
-    const appleLineSpacing = linaClamp(Number(style.appleLineSpacing) || 0.58, 0.45, 1.10);
-    const lineHeight = activeFontSize * 1.18 + appleLineSpacing;
     const rowHeight = activeFontSize * 1.18;
     const blockGap = baseDimension * (24 / 390);
-    const upcomingOpacity = linaClamp(Number(style.appleInactiveOpacity) ?? 0.30, 0.20, 0.40);
-    const pastOpacity = linaClamp(upcomingOpacity * 0.72, 0.20, 0.30);
-    const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
+        const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
     const appleHeaderSize = baseDimension * 0.11;
     const appleHeaderTop = Math.max(baseDimension * 0.065, h * 0.035);
     const appleHeaderBottom = landscapeSplit ? 0 : Math.max(32, h * 0.07) + baseDimension * 0.11;
@@ -401,23 +408,12 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         }
 
         const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
-        // base (un-highlighted) text
-        ctx.fillStyle = 'rgb(' + grey + ',' + grey + ',' + grey + ')';
-        ctx.shadowColor = 'rgba(0,0,0,0.45)';
-        ctx.shadowBlur = Math.max(2, baseDimension * (1.2 / 390));
-        ctx.shadowOffsetY = Math.max(1, baseDimension * (0.5 / 390));
-        rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
-        // Keep inactive lines blurred across both the base text and the word-highlight overlay.
-        // Only the currently active line clears the filter for its crisp karaoke sweep.
-        ctx.filter = i === activeIndex ? 'none' : (blurAmt > 0.08 ? 'blur(' + blurAmt.toFixed(2) + 'px)' : 'none');
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetY = 0;
+        const baseShadowBlur = Math.max(2, baseDimension * (1.2 / 390));
+        const baseShadowOff = Math.max(1, baseDimension * (0.5 / 390));
 
-        // white highlight layer – fades in/out with focus
-                // Duration-aware per-letter fill and magnet-wave motion.
+        // Per-letter timing for the lines that are being sung (and the one just finished).
         const utils = window.kefeEffectUtils;
-        const tokens = String(line.text || '').split(/\s+/).filter(Boolean);
+        const tokens = line.text.split(' ').filter(Boolean);
         let times = null;
         if (utils?.tokenTimes && (i === activeIndex || i === activeIndex - 1)) {
             try {
@@ -427,7 +423,17 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                 }
             } catch (_) { times = null; }
         }
-        if (times) {
+
+        ctx.fillStyle = 'rgb(' + grey + ',' + grey + ',' + grey + ')';
+        ctx.shadowColor = 'rgba(0,0,0,0.45)';
+        ctx.shadowBlur = baseShadowBlur;
+        ctx.shadowOffsetY = baseShadowOff;
+        if (!times) {
+            // Plain line (upcoming / older / no usable word timing).
+            rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
+        } else {
+            // Drawn only per letter: painting the full row first left a bright ghost
+            // under the dimmed unsung letters.
             const P = {
                 lift: Number.isFinite(Number(style.appleLetterLift)) ? Number(style.appleLetterLift) : APPLE_WAVE.lift,
                 pop: APPLE_WAVE.pop,
@@ -440,23 +446,19 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
             const dimA = P.dim + (1 - P.dim) * act;
             const spaceWidth = ctx.measureText(' ').width;
             let ti = 0;
-            const shadowBlur = Math.max(2, baseDimension * (1.2 / 390));
-            const shadowOff = Math.max(1, baseDimension * (0.5 / 390));
             for (let ri = 0; ri < rows.length; ri++) {
                 const rowTokens = rows[ri].split(' ').filter(Boolean);
                 let cursorX = x;
                 for (let k = 0; k < rowTokens.length; k++) {
                     const token = rowTokens[k];
                     const timing = times[ti + k];
-                    if (timing) appleDrawWord(ctx, token, timing, cursorX, rowYs[ri], rowFontSize, time, sung, dimA, P, shadowBlur, shadowOff);
+                    if (timing) appleDrawWord(ctx, token, timing, cursorX, rowYs[ri], rowFontSize, time, sung, dimA, P, baseShadowBlur, baseShadowOff);
                     else ctx.fillText(token, cursorX, rowYs[ri]);
                     cursorX += appleLetterBox(ctx, token).W + spaceWidth;
                 }
                 ti += rowTokens.length;
             }
         }
-        // Without reliable word timestamps, retain the dim base text rather than
-        // painting an entire line white and making multiple lines look highlighted.
         ctx.restore();
     }
     ctx.restore();
