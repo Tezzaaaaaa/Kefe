@@ -30,6 +30,9 @@
     if (/^\d+(\.\d+)?$/.test(s)) return Number(s);
     var parts = s.split(':');
     if (parts.length < 2 || parts.length > 3 || parts.some(function (p) { return !/^\d+(\.\d+)?$/.test(p); })) return NaN;
+    if (parts.slice(0, -1).some(function (p) { return !/^\d+$/.test(p); })) return NaN;
+    if (Number(parts[parts.length - 1]) >= 60) return NaN;
+    if (parts.length === 3 && Number(parts[1]) >= 60) return NaN;
     return parts.reduce(function (acc, p) { return acc * 60 + Number(p); }, 0);
   }
   function srtStamp(t) {
