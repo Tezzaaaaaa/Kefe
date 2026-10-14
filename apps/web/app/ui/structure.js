@@ -27,6 +27,13 @@ document.querySelectorAll('[data-shell-panel]').forEach(button => {
 document.querySelectorAll('.kefe-section[data-panel]').forEach(button => {
   button.addEventListener('click', () => syncShellSection(button.dataset.panel));
 });
+document.querySelectorAll('[data-top-panel="editor"]').forEach(button => {
+  button.addEventListener('click', () => {
+    const mediaTab = document.querySelector('.kefe-section[data-panel="media"]');
+    if (mediaTab) mediaTab.click();
+    document.querySelector('.kefe-editing')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
 syncShellSection(document.querySelector('.kefe-section.active')?.dataset.panel || 'media');
 const initialSection = new URLSearchParams(window.location.search).get('section');
 if (['media', 'lyrics', 'effects', 'visualiser', 'export'].includes(initialSection)) {
