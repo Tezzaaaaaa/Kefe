@@ -85,8 +85,7 @@ Effects provide different animation and typography treatments. Available control
 - The Dithr Visualiser provides audio-reactive dithering, colour separation, block displacement and adjustable rendering parameters.
 - Randomise a visualiser scene or use the prompt-based scene generation control.
 - Adjust particle count, speed, auto-spin and preset-specific parameters.
-- Configure background effects and optional audio-reactive overlays, including waveform, spectrum, radial and pulse treatments.
-- Audio overlays are designed to be included in exports.
+- The Particles Swarm visualiser responds to source audio; visualiser output is included in supported video exports.
 
 ### Video formats and export
 
