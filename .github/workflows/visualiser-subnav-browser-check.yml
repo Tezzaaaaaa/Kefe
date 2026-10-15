@@ -426,6 +426,7 @@ jobs:
           NODE_PATH="$GITHUB_WORKSPACE/node_modules" node /tmp/kefe-visualiser-subnav-check.cjs
 
       - name: Wait for GitHub Pages to publish this change
+        if: github.event_name == 'push'
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
           expected_marker=$(grep -o 'app/ui/workspace-shell.css?v=[^\"]*' apps/web/editor.html | head -n 1)
@@ -442,6 +443,7 @@ jobs:
           exit 1
 
       - name: Test live GitHub Pages submenu
+        if: github.event_name == 'push'
         env:
           KEFE_BASE_URL: https://tezzaaaaaa.github.io/Kefe/apps/web
         run: NODE_PATH="$GITHUB_WORKSPACE/node_modules" node /tmp/kefe-visualiser-subnav-check.cjs
