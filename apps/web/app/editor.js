@@ -1599,7 +1599,7 @@
   let visualiserZoom=1,visualiserPanX=0,visualiserPanY=0;
   const applyVisualiserPreviewTransform=()=>{
     const transform=`translate3d(${visualiserPanX}px,${visualiserPanY}px,0) scale(${visualiserZoom})`;
-    [document.getElementById('kefeVisualiserCanvas'),document.getElementById('kefeFlutedGlassCanvas'),document.getElementById('kefeDithrCanvas')].forEach(el=>{if(el)el.style.transform=transform;});
+    [document.getElementById('kefeVisualiserCanvas'),document.getElementById('kefeFlutedGlassCanvas'),document.getElementById('kefeDithrCanvas'),document.getElementById('kefeSlowLightCanvas')].forEach(el=>{if(el)el.style.transform=transform;});
   };
   if(previewStage){
     previewStage.style.touchAction='none';
@@ -1631,7 +1631,7 @@
     applyVisualiserPreviewTransform();
   }
   document.getElementById('exportButton').addEventListener('click',async()=>{
-    const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),visualiserCanvas=window.kefeFlutedGlassActive?document.getElementById('kefeFlutedGlassCanvas'):window.kefeDithrActive?document.getElementById('kefeDithrCanvas'):document.getElementById('kefeVisualiserCanvas');
+    const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),visualiserCanvas=window.kefeSlowLight?.getState?.().enabled?document.getElementById('kefeSlowLightCanvas'):window.kefeFlutedGlassActive?document.getElementById('kefeFlutedGlassCanvas'):window.kefeDithrActive?document.getElementById('kefeDithrCanvas'):document.getElementById('kefeVisualiserCanvas');
     if(exporting)return;
     if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream||!visualiserCanvas){status.textContent='Video export is not supported by this browser.';return;}
     if(!audio.src||!Number.isFinite(audio.duration)){status.textContent='Upload a track first.';return;}
@@ -1658,7 +1658,7 @@
       compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paint(compositeCtx,dims[0],dims[1],state.time);
       const vw=visualiserCanvas.width,vh=visualiserCanvas.height;
-      if(vw&&vh&&(window.kefeFlutedGlassActive?window.kefeFlutedGlassEnabled!==false:window.kefeVisualiserEnabled!==false)){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k,stageRect=previewStage?.getBoundingClientRect(),sx=stageRect?.width?dims[0]/stageRect.width:1,sy=stageRect?.height?dims[1]/stageRect.height:1;compositeCtx.save();compositeCtx.globalCompositeOperation=window.kefeFlutedGlassActive?'source-over':(window.kefeBackground?window.kefeBackground.blend():'source-over');compositeCtx.translate(dims[0]/2+visualiserPanX*sx,dims[1]/2+visualiserPanY*sy);compositeCtx.scale(visualiserZoom,visualiserZoom);compositeCtx.drawImage(visualiserCanvas,-dw/2,-dh/2,dw,dh);compositeCtx.restore();}
+      if(vw&&vh&&(window.kefeFlutedGlassActive?window.kefeFlutedGlassEnabled!==false:window.kefeVisualiserEnabled!==false)){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k,stageRect=previewStage?.getBoundingClientRect(),sx=stageRect?.width?dims[0]/stageRect.width:1,sy=stageRect?.height?dims[1]/stageRect.height:1;compositeCtx.save();compositeCtx.globalCompositeOperation=(window.kefeFlutedGlassActive||window.kefeSlowLight?.getState?.().enabled)?'source-over':(window.kefeBackground?window.kefeBackground.blend():'source-over');compositeCtx.translate(dims[0]/2+visualiserPanX*sx,dims[1]/2+visualiserPanY*sy);compositeCtx.scale(visualiserZoom,visualiserZoom);compositeCtx.drawImage(visualiserCanvas,-dw/2,-dh/2,dw,dh);compositeCtx.restore();}
       if(window.kefeGradientLayer)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
       if(window.kefeAudioOverlay)window.kefeAudioOverlay.paint(compositeCtx,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paintTransparency(compositeCtx,dims[0],dims[1]);
