@@ -61,7 +61,7 @@ jobs:
               await page.waitForFunction(() => {
                 const row = document.querySelector('.kefe-editing > .kefe-vis-tabs');
                 return row && getComputedStyle(row).display !== 'none' &&
-                  document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4;
+                  document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 5;
               });
 
               const order = ['particles', 'gradient', 'glitch', 'fluted', 'slow-light'];
