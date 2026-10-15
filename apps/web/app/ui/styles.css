@@ -496,18 +496,7 @@ button{border:0;cursor:pointer;
   color: var(--text);}
 }
 
-/* KEFE MEDIA PANEL CONSISTENCY */
-.kefe-panel[data-panel-view="media"]{
-  background:var(--surface);
-  border:1px solid var(--line-soft);
-  border-radius:var(--r3);
-  box-shadow:var(--lift);
-}
-.kefe-panel[data-panel-view="media"] .kefe-panel-head{
-  margin-bottom:16px;
-  padding-bottom:12px;
-  border-bottom:1px solid var(--line-soft);
-}
+/* Media uses the shared editor panel and heading rules; remaining selectors style Media-specific controls. */
 .kefe-panel[data-panel-view="media"] .kefe-form{
   gap:12px;
 }
