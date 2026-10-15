@@ -156,8 +156,9 @@
     const tab=document.createElement('button');tab.type='button';tab.className='kefe-btn';tab.setAttribute('role','tab');tab.dataset.visualiser='slow-light';tab.dataset.icon='◌';tab.setAttribute('aria-controls',view.id);tab.setAttribute('aria-label','Slow Light visualiser');tab.title='Slow Light visualiser';tab.textContent='';tabsList.appendChild(tab);
     const option=document.createElement('div');option.className='kefe-vis-option';option.appendChild(tab);tabsList.appendChild(option);tab.remove();
     form.appendChild(view);
-    tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab){if(!view.hidden)setEnabled(false);sceneSet.hidden=true;}});
+    tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab){setEnabled(false);sceneSet.hidden=true;}});
     tab.addEventListener('click',()=>{
+      const wasEnabled=enabled;
       const reset=tabs.querySelector('[data-visualiser="particles"]');if(reset)reset.click();
       form.querySelectorAll('.kefe-vis-view').forEach(v=>v.hidden=v!==view);
       tabs.querySelectorAll('[role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
@@ -170,7 +171,7 @@
       const glCanvas=document.getElementById('kefeDithrCanvas');if(glCanvas)glCanvas.style.display='none';
       const fluted=document.getElementById('kefeFlutedGlassCanvas');if(fluted)fluted.style.display='none';
       const gradient=document.getElementById('kefeGradientCanvas');if(gradient)gradient.style.display='none';
-      setEnabled(enabled);
+      setEnabled(wasEnabled);
     });
     tabsList.appendChild(option);
     ui.sceneName.textContent=SCENES[0].name;current=blend(from,to,1);syncScene();resize();
