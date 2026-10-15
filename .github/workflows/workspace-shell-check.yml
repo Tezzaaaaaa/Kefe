@@ -141,10 +141,8 @@ jobs:
                 assert.equal(await page.locator('.kefe-sidebar [data-shell-panel="' + section + '"]').getAttribute('aria-current'), 'page', section + ' navigation should show the active section');
               }
 
-              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
-              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
-              await page.locator('.kefe-library-close').click();
-              await page.locator('.kefe-library-shell:not([hidden])').waitFor({ state: 'hidden' });
+              await page.locator('.kefe-sidebar [data-shell-panel="media"]').click();
+              await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
 
               await page.locator('.kefe-sidebar button[data-top-panel="settings"]').click();
               await page.locator('.kefe-settings-backdrop:not([hidden])').waitFor();
@@ -175,11 +173,11 @@ jobs:
               await mobile.locator('.kefe-sidebar [data-shell-panel="lyrics"]').click();
               await mobile.locator('.kefe-panel[data-panel-view="lyrics"].active').waitFor();
               await mobile.goto(baseUrl + '/workspace.html', { waitUntil: 'domcontentloaded' });
-              await mobile.locator('#projectSearchMobile').waitFor({ state: 'visible' });
-              await mobile.locator('#projectSearchMobile').fill('no matching saved project');
-              await mobile.getByText('No matching projects', { exact: true }).waitFor();
+              await mobile.locator('section[aria-labelledby="mediaTitle"]').waitFor({ state: 'visible' });
+              await mobile.getByRole('link', { name: 'Open Media', exact: true }).waitFor({ state: 'visible' });
+              assert.equal(await mobile.getByText('Project library', { exact: true }).count(), 0, 'workspace must not expose the removed Library');
               assert.deepEqual(errors, [], 'browser runtime errors: ' + errors.join('; '));
-              console.log(JSON.stringify({ result: 'PASS', workspaceRedirect: 'PASS', dayNightPersistence: 'PASS', localReferences: 'PASS', desktopSidebar: shellGeometry, integratedEditorLayout: editorLayout, sidebarSections: 'PASS', libraryModal: 'PASS', settingsModal: 'PASS', deepLink: 'PASS', mobileLayout: mobileGeometry, runtimeErrors: errors }));
+              console.log(JSON.stringify({ result: 'PASS', workspaceRedirect: 'PASS', dayNightPersistence: 'PASS', localReferences: 'PASS', desktopSidebar: shellGeometry, integratedEditorLayout: editorLayout, sidebarSections: 'PASS', mediaNavigation: 'PASS', settingsModal: 'PASS', deepLink: 'PASS', mobileLayout: mobileGeometry, runtimeErrors: errors }));
               await mobile.close();
               await page.close();
             } finally {
