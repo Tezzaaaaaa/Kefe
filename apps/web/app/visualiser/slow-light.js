@@ -76,7 +76,7 @@
     if(analyser){
       if(!audioBins||audioBins.length!==analyser.frequencyBinCount)audioBins=new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteFrequencyData(audioBins);
-      const hz=(window.kefeAudioGraph?.ensure?.()?.ac?.sampleRate||48000)/(analyser.fftSize||2048);
+      const hz=(analyser.context?.sampleRate||48000)/(analyser.fftSize||2048);
       const band=(lo,hi)=>{const a=Math.max(1,Math.floor(lo/hz)),b=Math.min(audioBins.length-1,Math.ceil(hi/hz));let sum=0;for(let i=a;i<=b;i++)sum+=audioBins[i];return sum/(Math.max(1,b-a+1)*255);};
       const raw={bass:band(30,140),low:band(140,500),mid:band(500,2200),high:band(2200,9000)};
       const centroidBins=Math.min(audioBins.length,Math.floor(8000/hz));let num=0,den=0;
@@ -140,10 +140,11 @@
     const power=document.createElement('button');power.type='button';power.className='kefe-btn kefe-slow-light-power';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.textContent='Off';power.setAttribute('aria-label','Enable Slow Light visualiser');
     power.addEventListener('click',()=>setEnabled(!enabled));intro.appendChild(power);view.appendChild(intro);
     ui={sceneName:document.createElement('span'),sceneButtons:[],powerText:power};
-    const sceneGroup=document.createElement('div');sceneGroup.className='kefe-visualiser-control-group';const sceneHead=document.createElement('div');sceneHead.className='kefe-label';sceneHead.textContent='Colour scenes';sceneGroup.appendChild(sceneHead);
+    const presetRow=document.querySelector('.kefe-editing > .kefe-visualiser-preset-row');
+    const sceneSet=document.createElement('div');sceneSet.className='kefe-visualiser-preset-set';sceneSet.id='kefeSlowLightPresetSet';sceneSet.hidden=true;
     const sceneRow=document.createElement('div');sceneRow.className='kefe-slow-light-scenes';
-    SCENES.forEach((scene,i)=>{const b=document.createElement('button');b.type='button';b.className='kefe-btn';b.textContent=scene.name;b.addEventListener('click',()=>goTo(i,6));sceneRow.appendChild(b);ui.sceneButtons.push(b);});
-    sceneGroup.appendChild(sceneRow);view.appendChild(sceneGroup);
+    SCENES.forEach((scene,i)=>{const b=document.createElement('button');b.type='button';b.className='kefe-btn';b.dataset.scene=scene.name.toLowerCase().replace(/\\s+/g,'-');b.textContent=scene.name;b.addEventListener('click',()=>goTo(i,6));sceneRow.appendChild(b);ui.sceneButtons.push(b);});
+    sceneSet.appendChild(sceneRow);if(presetRow)presetRow.appendChild(sceneSet);
     const motion=document.createElement('div');motion.className='kefe-visualiser-control-group';const motionHead=document.createElement('div');motionHead.className='kefe-label';motionHead.textContent='Motion and texture';motion.appendChild(motionHead);
     motion.append(field('Audio reactivity','react',0,2,.05,v=>v.toFixed(2)+'×'));
     motion.append(field('Flow speed','flow',0,2,.05,v=>v.toFixed(2)+'×'));
@@ -155,12 +156,13 @@
     const tab=document.createElement('button');tab.type='button';tab.className='kefe-btn';tab.setAttribute('role','tab');tab.dataset.visualiser='slow-light';tab.dataset.icon='◌';tab.setAttribute('aria-controls',view.id);tab.setAttribute('aria-label','Slow Light visualiser');tab.title='Slow Light visualiser';tab.textContent='';tabsList.appendChild(tab);
     const option=document.createElement('div');option.className='kefe-vis-option';option.appendChild(tab);tabsList.appendChild(option);tab.remove();
     form.appendChild(view);
-    tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab&&!view.hidden)setEnabled(false);});
+    tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab&&!view.hidden){setEnabled(false);sceneSet.hidden=true;}});
     tab.addEventListener('click',()=>{
       const reset=tabs.querySelector('[data-visualiser="particles"]');if(reset)reset.click();
       form.querySelectorAll('.kefe-vis-view').forEach(v=>v.hidden=v!==view);
       tabs.querySelectorAll('[role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
-      document.querySelectorAll('.kefe-visualiser-preset-row').forEach(row=>row.hidden=true);
+      const presetRow=document.querySelector('.kefe-editing > .kefe-visualiser-preset-row');if(presetRow)presetRow.hidden=false;
+      presetRow?.querySelectorAll('.kefe-visualiser-preset-set').forEach(set=>set.hidden=set!==sceneSet);
       const heading=document.getElementById('kefeVisualiserHeading'),description=document.getElementById('kefeVisualiserDescription');
       if(heading)heading.textContent='Slow Light Visualiser';if(description)description.textContent='Original WebGL colour fields, continuous scene morphing, film grain and audio-reactive movement.';
       window.kefeVisualiserEnabled=false;window.kefeDithrSetEnabled?.(false);
