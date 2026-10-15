@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
     paths:
-      - "apps/web/app/media-library.js"
       - "apps/web/index.html"
       - "apps/web/editor.html"
       - "apps/web/workspace.html"
