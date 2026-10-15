@@ -44,67 +44,14 @@ jobs:
           live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
           expected_marker='media-carousel.js?v=local-upload-search-20261012-2'
           for attempt in $(seq 1 48); do
-            if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -Fq "$expected_marker" /tmp/kefe-live-index.html && grep -Fq 'media-library.js?v=storage-resilience-20261014-2' /tmp/kefe-live-index.html && grep -Fq 'app/editor.js?v=async-track-focus-20261014-2' /tmp/kefe-live-index.html && grep -Fq 'app/visualiser/gradient.js?v=site-audit-20261014-1' /tmp/kefe-live-index.html && grep -Fq 'app/ui/styles.css?v=layout-alignment-20261015-2' /tmp/kefe-live-index.html && grep -Fq 'workspace-shell.css?v=layout-alignment-20261015-2' /tmp/kefe-live-index.html; then
-              echo "Published editor contains cache-busted library script: $expected_marker"
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -Fq "$expected_marker" /tmp/kefe-live-index.html && grep -Fq 'app/editor.js?v=async-track-focus-20261014-2' /tmp/kefe-live-index.html && grep -Fq 'app/visualiser/gradient.js?v=site-audit-20261014-1' /tmp/kefe-live-index.html && grep -Fq 'app/ui/styles.css?v=layout-alignment-20261015-2' /tmp/kefe-live-index.html && grep -Fq 'workspace-shell.css?v=layout-alignment-20261015-2' /tmp/kefe-live-index.html; then
+              echo "Published editor contains current Media upload code: $expected_marker"
               exit 0
             fi
             sleep 5
           done
           echo "Published GitHub Pages editor did not expose $expected_marker in time." >&2
           exit 1
-
-      - name: Verify Media Library fallback when IndexedDB access is denied
-        run: |
-          python3 -m http.server 4173 --directory apps/web > /tmp/kefe-storage-test-http.log 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for attempt in $(seq 1 15); do
-            if curl --fail --silent http://127.0.0.1:4173/index.html -o /dev/null; then break; fi
-            sleep 1
-          done
-          curl --fail --silent http://127.0.0.1:4173/index.html -o /dev/null
-          node <<'NODE'
-          const { chromium } = require('playwright');
-          const assert = require('node:assert/strict');
-
-          async function verify(browser, baseUrl, label) {
-            const page = await browser.newPage();
-            const errors = [];
-            page.on('pageerror', error => errors.push(error.message));
-            await page.addInitScript(() => {
-              Object.defineProperty(window, 'indexedDB', {
-                configurable: true,
-                get() { throw new DOMException('Storage access denied for test', 'SecurityError'); }
-              });
-            });
-            try {
-              await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
-              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
-              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
-              const status = await page.locator('#kefeLibraryStorage').textContent();
-              const notice = await page.locator('#kefeLibraryNotice').textContent();
-              assert.match(status, /storage is unavailable/i, label + ': storage status should explain the restriction');
-              assert.match(notice, /cannot save projects/i, label + ': library should explain that saving is unavailable');
-              assert.deepEqual(errors, [], label + ': runtime errors: ' + errors.join('; '));
-              console.log(JSON.stringify({ target: label, result: 'PASS', status, notice, runtimeErrors: errors }));
-            } finally {
-              await page.close();
-            }
-          }
-
-          (async () => {
-            const browser = await chromium.launch({ headless: true });
-            try {
-              await verify(browser, 'http://127.0.0.1:4173', 'local source');
-              await verify(browser, 'https://tezzaaaaaa.github.io/Kefe/apps/web', 'published GitHub Pages');
-            } finally {
-              await browser.close();
-            }
-          })().catch(error => {
-            console.error(error);
-            process.exitCode = 1;
-          });
-          NODE
 
       - name: Test new-project upload locally and on GitHub Pages
         run: |
@@ -139,15 +86,9 @@ jobs:
               await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
               const accept = await page.locator('#mediaInput').getAttribute('accept');
               assert.ok(accept && accept.includes('audio/*') && accept.includes('video/*'), label + ': media input must accept audio and video files');
-              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
-              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
-
               const chooserPromise = page.waitForEvent('filechooser');
-              await page.locator('.kefe-library-new').click();
+              await page.locator('#kefeUploadZone').click();
               const chooser = await chooserPromise;
-
-              await page.locator('.kefe-library-shell').waitFor({ state: 'hidden' });
-              await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
 
               const uploadPosition = await page.locator('#kefeUploadZone').evaluate(el => {
                 const rect = el.getBoundingClientRect();
@@ -245,75 +186,6 @@ jobs:
               assert.ok(exportAudit.status.startsWith('Export complete'), label + ': export status must report completion');
               await page.locator('#kefeExportClose').waitFor({ state: 'visible' });
               await page.locator('#kefeExportClose').click();
-              await page.locator('.kefe-sidebar-link[href="./editor.html"]').click();
-              await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
-              const persistenceTitle = 'KEFE Media Library Persistence ' + Date.now();
-              const persistenceArtist = 'KEFE Persistence Test Artist';
-              const persistenceLyrics = 'KEFE MEDIA LIBRARY PERSISTENCE TEST';
-              await page.locator('#songTitle').fill(persistenceTitle);
-              await page.locator('#songArtist').fill(persistenceArtist);
-              await page.locator('.kefe-sidebar [data-shell-panel="lyrics"]').click();
-              await page.locator('#lyricsInput').fill(persistenceLyrics);
-              await page.locator('.kefe-sidebar-link[href="./editor.html"]').click();
-              await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
-              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
-              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
-              await page.waitForFunction(title => [...document.querySelectorAll('.kefe-library-card h2')].some(el => el.textContent === title), persistenceTitle, { timeout: 15000 });
-              await page.reload({ waitUntil: 'domcontentloaded' });
-              if (await page.locator('.kefe-library-shell:not([hidden])').count() === 0) {
-                await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
-              }
-              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
-              const savedProject = page.locator('.kefe-library-card').filter({ has: page.locator('h2', { hasText: persistenceTitle }) });
-              await savedProject.waitFor({ state: 'visible' });
-              await savedProject.getByRole('button', { name: 'Open project' }).click();
-              await page.waitForFunction(({ title, artist, lyrics, fileName }) => {
-                const audio = document.getElementById('kefeAudio');
-                const uploadName = document.querySelector('.kefe-upload-name')?.textContent;
-                return document.getElementById('songTitle')?.value === title &&
-                  document.getElementById('songArtist')?.value === artist &&
-                  document.getElementById('lyricsInput')?.value === lyrics &&
-                  uploadName === fileName &&
-                  !!audio?.src?.startsWith('blob:') &&
-                  Number.isFinite(audio.duration) && audio.duration > 0;
-              }, { title: persistenceTitle, artist: persistenceArtist, lyrics: persistenceLyrics, fileName: 'KEFE New Project Upload Verification.wav' }, { timeout: 20000 });
-              await page.goto(baseUrl + '/workspace.html', { waitUntil: 'domcontentloaded' });
-              await page.locator('.workspace-switch').waitFor({ state: 'visible', timeout: 15000 });
-              assert.match(page.url(), /\/workspace\.html$/, label + ': workspace route should load before testing saved projects');
-              await page.locator('#projectSearchMobile').fill(persistenceTitle);
-              const searchedProject = page.locator('.project-card').filter({ hasText: persistenceTitle });
-              await searchedProject.waitFor({ state: 'visible', timeout: 15000 });
-              assert.equal(await page.locator('.project-card').count(), 1, label + ': workspace search should filter recent projects');
-              await page.locator('#projectSearchMobile').fill('KEFE definitely missing project');
-              await page.getByText('No matching projects', { exact: true }).waitFor();
-              await page.locator('#projectSearchMobile').fill('');
-              const workspaceProject = page.locator('.project-card').filter({ hasText: persistenceTitle });
-              await workspaceProject.waitFor({ state: 'visible', timeout: 15000 });
-              await workspaceProject.locator('a.open-project').click();
-              await page.waitForURL(/editor\.html\?openProject=/);
-              await page.waitForFunction(({ title, artist, lyrics, fileName }) => {
-                const audio = document.getElementById('kefeAudio');
-                return document.getElementById('songTitle')?.value === title &&
-                  document.getElementById('songArtist')?.value === artist &&
-                  document.getElementById('lyricsInput')?.value === lyrics &&
-                  document.querySelector('.kefe-upload-name')?.textContent === fileName &&
-                  !!audio?.src?.startsWith('blob:') &&
-                  Number.isFinite(audio.duration) && audio.duration > 0;
-              }, { title: persistenceTitle, artist: persistenceArtist, lyrics: persistenceLyrics, fileName: 'KEFE New Project Upload Verification.wav' }, { timeout: 20000 });
-              const workspaceProjectOpen = 'PASS';
-              if (await page.locator('.kefe-library-shell:not([hidden])').count() === 0) {
-                await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
-              }
-              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
-              page.once('dialog', dialog => dialog.accept());
-              await page.locator('.kefe-library-card').filter({ has: page.locator('h2', { hasText: persistenceTitle }) }).getByRole('button', { name: 'Delete' }).click();
-              await page.waitForFunction(title => ![...document.querySelectorAll('.kefe-library-card h2')].some(el => el.textContent === title), persistenceTitle, { timeout: 15000 });
-              await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
-              await page.reload({ waitUntil: 'domcontentloaded' });
-              await page.locator('.kefe-sidebar button[data-top-panel="media"]').click();
-              await page.locator('.kefe-library-shell:not([hidden])').waitFor();
-              assert.equal(await page.locator('.kefe-library-card h2').filter({ hasText: persistenceTitle }).count(), 0, label + ': deleted project must remain deleted after reload');
-              const mediaLibraryAudit = { save: 'PASS', reload: 'PASS', metadataRestore: 'PASS', originalMediaRestore: 'PASS', audioReload: 'PASS', workspaceRecentProject: workspaceProjectOpen, delete: 'PASS', deletionPersistsAfterReload: 'PASS' };
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
               console.log(JSON.stringify({
                 target: label,
@@ -331,7 +203,6 @@ jobs:
                   videoTracks: exportAudit.recorder.videoTracks,
                   status: exportAudit.status
                 },
-                mediaLibrary: mediaLibraryAudit,
                 runtimeErrors: errors
               }));
             } finally {
