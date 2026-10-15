@@ -154,7 +154,7 @@
     const auto=document.createElement('label');auto.className='kefe-slow-light-auto';const check=document.createElement('input');check.type='checkbox';check.checked=!!cfg.auto;const copy=document.createElement('span');copy.textContent='Change scenes automatically';check.addEventListener('change',()=>{cfg.auto=check.checked;hold=0;persist();});auto.append(check,copy);motion.append(auto);view.appendChild(motion);
     const tabsList=tabs.querySelector('[role="tablist"]')||tabs;
     const tab=document.createElement('button');tab.type='button';tab.className='kefe-btn';tab.setAttribute('role','tab');tab.dataset.visualiser='slow-light';tab.dataset.icon='◌';tab.setAttribute('aria-controls',view.id);tab.setAttribute('aria-label','Slow Light visualiser');tab.title='Slow Light visualiser';tab.textContent='';tabsList.appendChild(tab);
-    const option=document.createElement('div');option.className='kefe-vis-option';option.appendChild(tab);tabsList.appendChild(option);tab.remove();
+    const option=document.createElement('div');option.className='kefe-vis-option';option.appendChild(tab);tabsList.appendChild(option);
     form.appendChild(view);
     tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab){setEnabled(false);sceneSet.hidden=true;}});
     tab.addEventListener('click',()=>{
