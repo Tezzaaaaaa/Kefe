@@ -15,6 +15,23 @@
 @media(max-width:700px){.layout{grid-template-columns:58px minmax(0,1fr)}.mobile-search-wrap{display:block}.sidebar{padding:14px 6px}.workspace-switch{justify-content:center;padding:7px 0}.brand-copy,.chevron,.search-wrap,.nav-label,.nav-text,.nav-end,.sidebar-bottom .user-copy{display:none}.nav-group{margin-bottom:14px}.nav-item{justify-content:center;padding:9px 0}.nav-icon{width:18px;height:18px}.sidebar-bottom{padding-top:10px}.user-row{justify-content:center;padding:5px 0}.main{padding:0 18px 30px}.topbar{height:50px}.hero{padding:30px 0 18px}.prompt-shell{margin-top:21px}.quick-actions{gap:6px}.quick-actions .btn{font-size:10px;padding:0 8px}.section{margin-top:23px}}
 @media(max-width:480px){.window-chrome{height:32px}.layout{min-height:calc(100vh - 32px)}.main{padding-left:13px;padding-right:13px}.project-grid,.feature-grid{grid-template-columns:1fr}.project-card{display:grid;grid-template-columns:100px minmax(0,1fr)}.project-art{height:100%;min-height:100px}.project-body{padding:11px}.project-foot{margin-top:8px}.hero h1{font-size:30px}.hero-subtitle{font-size:12px}.prompt-shell{padding:10px}.prompt-bottom{flex-wrap:wrap}.prompt-note{flex-basis:100%;order:2}.empty-state{align-items:flex-start;flex-wrap:wrap}.empty-copy{min-width:calc(100% - 60px)}.empty-state .btn{margin-left:53px}.top-action .action-label{display:none}.footer{font-size:9px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Consistent page and section boundaries across desktop and mobile. */
+.sidebar{border-right:1px solid var(--line)}
+.topbar{border-bottom:1px solid var(--line)}
+.section{padding:18px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.section-heading{padding-bottom:10px;border-bottom:1px solid var(--line)}
+.project-card,.feature-card{min-width:0;border:1px solid var(--line);border-radius:10px;background:var(--panel);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.prompt-shell{border-color:color-mix(in srgb,var(--text) 20%,var(--line))}
+.quick-actions{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.footer{border-top:1px solid var(--line);padding-top:14px}
+@media(max-width:700px){
+  .main{min-width:0}
+  .section{padding:13px;margin-top:18px}
+  .project-card,.feature-card{border-radius:9px}
+  .quick-actions{padding:8px;gap:6px}
+}
+
 </style>
 </head>
 <body>
