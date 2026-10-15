@@ -5820,14 +5820,11 @@ body:not(.kefe-fullscreen-open) {
 .kefe-preview,
 .kefe-panels,
 .kefe-panel,
-.kefe-settings,
-.kefe-library,
-.kefe-library-shell {
+.kefe-settings {
   min-width: 0;
 }
 .kefe-timeline,
 .kefe-panel,
-.kefe-library-card,
 .kefe-visualiser-control-group,
 .kefe-style-disclosure,
 .kefe-panel[data-panel-view="effects"] .kefe-background-effect-control,
