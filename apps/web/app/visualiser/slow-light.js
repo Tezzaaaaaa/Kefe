@@ -87,7 +87,7 @@
     }else{
       target={bass:.48+.28*Math.sin(t*.48),low:.45+.25*Math.sin(t*.37+1.3),mid:.42+.2*Math.sin(t*.31+2.1),high:.34+.15*Math.sin(t*.53+.4),cent:.5+.2*Math.sin(t*.11)};
     }
-    Object.keys(smoothed).forEach(k=>{const tc=target[k]>smoothed[k]?.9:2.4;smoothed[k]+= (target[k]-smoothed[k])*(1-Math.exp(-dt/tc));});
+    Object.keys(smoothed).forEach(k=>{const tc=target[k] > smoothed[k] ? 0.9 : 2.4;smoothed[k]+= (target[k]-smoothed[k])*(1-Math.exp(-dt/tc));});
   }
   function goTo(next,duration=6){if(next===index&&morph>=1)return;from=current;to=SCENES[next];index=next;morph=0;hold=0;morphDuration=reducedMotion?duration*1.6:duration;syncScene();}
   function syncScene(){if(!ui)return;ui.sceneName.textContent=SCENES[index].name;ui.sceneButtons.forEach((b,i)=>{b.classList.toggle('primary',i===index);b.setAttribute('aria-pressed',String(i===index));});}
@@ -96,7 +96,7 @@
     const dt=Math.min(.1,Math.max(0,(now-(last||now))/1000));last=now;t+=dt;audio(dt);
     if(morph<1){morph=Math.min(1,morph+dt/morphDuration);current=blend(from,to,morph);}
     else if(cfg.auto){hold+=dt;if(hold>=cfg.len)goTo((index+1)%SCENES.length,Math.min(16,Math.max(8,cfg.len*.5)));}
-    const b=smoothed,re=cfg.react,dr=cfg.drift,mo=reducedMotion?.5:1,level=b.bass*.4+b.low*.3+b.mid*.2+b.high*.1;
+    const b=smoothed,re=cfg.react,dr=cfg.drift,mo=reducedMotion ? 0.5 : 1,level=b.bass*.4+b.low*.3+b.mid*.2+b.high*.1;
     t+=dt*cfg.flow*mo*(.55+.75*re*(b.low*.6+b.mid*.4))*.8;colourTime+=dt*cfg.flow*mo*(.8+.9*re*b.cent);
     const c=current,U=Math.min(width,height)*(width<height?1:.85),aspect=Math.max(1,width/U);
     for(let i=0;i<6;i++){
@@ -140,7 +140,7 @@
     const intro=document.createElement('div');intro.className='kefe-visualiser-intro';intro.innerHTML='<div><strong>Slow Light</strong><span>Original shader-driven colour fields with film grain and audio-reactive motion.</span></div>';
     const power=document.createElement('button');power.type='button';power.className='kefe-btn kefe-slow-light-power';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.textContent='Off';power.setAttribute('aria-label','Enable Slow Light visualiser');
     power.addEventListener('click',()=>setEnabled(!enabled));intro.appendChild(power);view.appendChild(intro);
-    ui={sceneName:document.createElement('span'),sceneButtons:[]};
+    ui={sceneName:document.createElement('span'),sceneButtons:[],powerText:power};
     const sceneGroup=document.createElement('div');sceneGroup.className='kefe-visualiser-control-group';const sceneHead=document.createElement('div');sceneHead.className='kefe-label';sceneHead.textContent='Colour scenes';sceneGroup.appendChild(sceneHead);
     const sceneRow=document.createElement('div');sceneRow.className='kefe-slow-light-scenes';
     SCENES.forEach((scene,i)=>{const b=document.createElement('button');b.type='button';b.className='kefe-btn';b.textContent=scene.name;b.addEventListener('click',()=>goTo(i,6));sceneRow.appendChild(b);ui.sceneButtons.push(b);});
@@ -155,8 +155,7 @@
     const tabsList=tabs.querySelector('[role="tablist"]')||tabs;
     const tab=document.createElement('button');tab.type='button';tab.className='kefe-btn';tab.setAttribute('role','tab');tab.dataset.visualiser='slow-light';tab.dataset.icon='◌';tab.setAttribute('aria-controls',view.id);tab.setAttribute('aria-label','Slow Light visualiser');tab.title='Slow Light visualiser';tab.textContent='';tabsList.appendChild(tab);
     const option=document.createElement('div');option.className='kefe-vis-option';option.appendChild(tab);tabsList.appendChild(option);tab.remove();
-    const presetRow=document.getElementById('kefeVisualiserPresetRow');if(presetRow)form.insertBefore(view,presetRow.nextSibling);else form.appendChild(view);
-    tabsList.addEventListener('click',e=>{if(!tab.isConnected)return;});
+    form.appendChild(view);
     tab.addEventListener('click',()=>{
       const reset=tabs.querySelector('[data-visualiser="particles"]');if(reset)reset.click();
       form.querySelectorAll('.kefe-vis-view').forEach(v=>v.hidden=v!==view);
