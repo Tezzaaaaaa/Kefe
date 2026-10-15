@@ -272,7 +272,7 @@ jobs:
                   width: el.getBoundingClientRect().width,
                   containerWidth: el.closest('.kefe-editing').getBoundingClientRect().width
                 }));
-                assert.equal(tabsLayout.tabCount, 4, `Visualiser engine tabs must expose all four choices at ${width}px; got ${tabsLayout.tabCount}`);
+                assert.equal(tabsLayout.tabCount, 5, `Visualiser engine tabs must expose all five choices at ${width}px; got ${tabsLayout.tabCount}`);
                 assert.equal(tabsLayout.direction, 'row', `Visualiser engine tabs must stay horizontal at ${width}px`);
                 const iconTabs = await tabsElement.locator('[role="tab"]').evaluateAll(nodes => nodes.map(node => ({
                   visualiser: node.dataset.visualiser,
