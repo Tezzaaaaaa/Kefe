@@ -31,7 +31,7 @@
   try { const saved=JSON.parse(localStorage.getItem('kefe.slowLight.v1')||'null'); if(saved)cfg={...cfg,...saved}; } catch (_) {}
   const reducedMotion = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   let stage,canvas,gl,program,locations={},enabled=false,raf=0,last=0,t=0,colourTime=0,hold=0,index=0,from=SCENES[0],to=SCENES[0],morph=1,morphDuration=12,current;
-  let width=2,height=2,dpr=1,audioBins=null,smoothed={bass:.4,low:.4,mid:.4,high:.3,cent:.5},peak={bass:.1,low:.1,mid:.1,high:.1};
+  let width=2,height=2,dpr=1,tick=0,audioBins=null,smoothed={bass:.4,low:.4,mid:.4,high:.3,cent:.5},peak={bass:.1,low:.1,mid:.1,high:.1};
   const pBuffer=new Float32Array(18),cBuffer=new Float32Array(18);
   const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
   const ease=x=>{x=clamp(x);return x*x*x*(x*(x*6-15)+10)};
@@ -85,7 +85,7 @@
       target={cent:clamp(Math.log(Math.max(den?num/den:400,1)/200)/Math.log(2)/4)};
       Object.keys(raw).forEach(k=>{peak[k]=Math.max(raw[k],peak[k]*Math.exp(-dt/30),.06);target[k]=Math.pow(clamp(raw[k]/peak[k]),1.3);});
     }else{
-      target={bass:.48+.28*Math.sin(t*.48),low:.45+.25*Math.sin(t*.37+1.3),mid:.42+.2*Math.sin(t*.31+2.1),high:.34+.15*Math.sin(t*.53+.4),cent:.5+.2*Math.sin(t*.11)};
+      target={bass:.48+.28*Math.sin(tick*.48),low:.45+.25*Math.sin(tick*.37+1.3),mid:.42+.2*Math.sin(tick*.31+2.1),high:.34+.15*Math.sin(tick*.53+.4),cent:.5+.2*Math.sin(tick*.11)};
     }
     Object.keys(smoothed).forEach(k=>{const tc=target[k] > smoothed[k] ? 0.9 : 2.4;smoothed[k]+= (target[k]-smoothed[k])*(1-Math.exp(-dt/tc));});
   }
@@ -93,7 +93,7 @@
   function syncScene(){if(!ui)return;ui.sceneName.textContent=SCENES[index].name;ui.sceneButtons.forEach((b,i)=>{b.classList.toggle('primary',i===index);b.setAttribute('aria-pressed',String(i===index));});}
   function frame(now){
     raf=0;if(!enabled||!gl||!program||document.hidden)return;
-    const dt=Math.min(.1,Math.max(0,(now-(last||now))/1000));last=now;t+=dt;audio(dt);
+    const dt=Math.min(.1,Math.max(0,(now-(last||now))/1000));last=now;tick+=dt;audio(dt);
     if(morph<1){morph=Math.min(1,morph+dt/morphDuration);current=blend(from,to,morph);}
     else if(cfg.auto){hold+=dt;if(hold>=cfg.len)goTo((index+1)%SCENES.length,Math.min(16,Math.max(8,cfg.len*.5)));}
     const b=smoothed,re=cfg.react,dr=cfg.drift,mo=reducedMotion ? 0.5 : 1,level=b.bass*.4+b.low*.3+b.mid*.2+b.high*.1;
@@ -111,7 +111,7 @@
     gl.useProgram(program);gl.uniform2f(locations.uRes,width,height);gl.uniform1f(locations.uUnit,U);gl.uniform1f(locations.uDpr,dpr);gl.uniform1f(locations.uT,t);
     gl.uniform3fv(locations.uP,pBuffer);gl.uniform3fv(locations.uCol,cBuffer);
     gl.uniform3f(locations.uOrb,(c.orb[0]+.05*Math.sin(t*.07))*aspect,c.orb[1]+.04*Math.cos(t*.06),c.orb[2]*(1+re*.25*(level-.4)));
-    gl.uniform3f(locations.uOrbCol,...c.orbCol.map(clamp));gl.uniform1f(locations.uGlow,c.glow*.75*(.8+re*.5*level));
+    gl.uniform3f(locations.uOrbCol,...c.orbCol.map(v=>clamp(v)));gl.uniform1f(locations.uGlow,c.glow*.75*(.8+re*.5*level));
     gl.uniform1f(locations.uSwirl,c.swirl*(1+re*.6*(b.low-.3)));gl.uniform1f(locations.uWarp,Math.max(0,c.warp*(1+re*.6*(b.bass-.35)));
     gl.uniform1f(locations.uScale,c.scale);gl.uniform1f(locations.uSharp,c.sharp);gl.uniform1f(locations.uExp,1+re*.06*(level-.4));gl.uniform1f(locations.uGrain,c.grain*cfg.grain);
     gl.drawArrays(gl.TRIANGLES,0,3);raf=requestAnimationFrame(frame);
