@@ -147,7 +147,7 @@
     sceneSet.appendChild(sceneRow);if(presetRow)presetRow.appendChild(sceneSet);
     const motion=document.createElement('div');motion.className='kefe-visualiser-control-group';const motionHead=document.createElement('div');motionHead.className='kefe-label';motionHead.textContent='Motion and texture';motion.appendChild(motionHead);
     motion.append(field('Audio reactivity','react',0,2,.05,v=>v.toFixed(2)+'×'));
-    motion.append(field('Flow speed','flow',0,2,.05,v=>v.toFixed(2)+'×'));
+    motion.append(field('Flow speed','flow',0.2,2,.05,v=>v.toFixed(2)+'×'));
     motion.append(field('Colour drift','drift',0,2,.05,v=>v.toFixed(2)+'×'));
     motion.append(field('Film grain','grain',0,1.6,.05,v=>v.toFixed(2)+'×'));
     motion.append(field('Seconds per scene','len',10,120,2,v=>Math.round(v)+'s'));
