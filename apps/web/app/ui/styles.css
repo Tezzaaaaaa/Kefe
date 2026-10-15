@@ -5814,3 +5814,82 @@ body:not(.kefe-fullscreen-open) {
   .kefe-top-profile { gap: 5px; }
   .kefe-theme-toggle { min-width: 0; padding-inline: 8px; }
 }
+
+
+/* Unified section boundaries — desktop and mobile.
+   Reuse the existing design tokens; this block defines separation, not a new visual style. */
+.kefe-editor,
+.kefe-work,
+.kefe-editing,
+.kefe-preview,
+.kefe-timeline,
+.kefe-panels,
+.kefe-panel,
+.kefe-settings,
+.kefe-library,
+.kefe-library-shell {
+  min-width: 0;
+  border-color: var(--line);
+}
+.kefe-work,
+.kefe-editing,
+.kefe-preview,
+.kefe-timeline,
+.kefe-panels,
+.kefe-panel,
+.kefe-settings,
+.kefe-library-card,
+.kefe-visualiser-control-group,
+.kefe-style-disclosure,
+.kefe-panel[data-panel-view="effects"] .kefe-background-effect-control,
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup,
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-visualiser-control-group {
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+}
+.kefe-work,
+.kefe-editing,
+.kefe-preview,
+.kefe-timeline,
+.kefe-panels,
+.kefe-panel,
+.kefe-settings,
+.kefe-library-card {
+  background-clip: padding-box;
+}
+.kefe-panels {
+  padding: var(--s2, 8px);
+  gap: var(--section-gap, 12px);
+}
+.kefe-panels > .kefe-panel {
+  width: 100%;
+  margin-inline: 0;
+}
+.kefe-panel > .kefe-panel-head,
+.kefe-visualiser-panel-head {
+  padding-bottom: var(--s2, 8px);
+  border-bottom: 1px solid var(--line);
+}
+.kefe-tabs {
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+}
+.kefe-panel .kefe-form > * {
+  min-width: 0;
+}
+@media (max-width: 700px) {
+  .kefe-panels {
+    padding: 6px;
+    gap: 10px;
+  }
+  .kefe-panel,
+  .kefe-work,
+  .kefe-editing,
+  .kefe-preview,
+  .kefe-timeline {
+    border-radius: var(--r2);
+  }
+  .kefe-panel {
+    padding: 10px;
+  }
+}
