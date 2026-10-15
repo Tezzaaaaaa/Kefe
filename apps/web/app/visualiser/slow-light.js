@@ -112,7 +112,7 @@
     gl.uniform3fv(locations.uP,pBuffer);gl.uniform3fv(locations.uCol,cBuffer);
     gl.uniform3f(locations.uOrb,(c.orb[0]+.05*Math.sin(t*.07))*aspect,c.orb[1]+.04*Math.cos(t*.06),c.orb[2]*(1+re*.25*(level-.4)));
     gl.uniform3f(locations.uOrbCol,...c.orbCol.map(v=>clamp(v)));gl.uniform1f(locations.uGlow,c.glow*.75*(.8+re*.5*level));
-    gl.uniform1f(locations.uSwirl,c.swirl*(1+re*.6*(b.low-.3)));gl.uniform1f(locations.uWarp,Math.max(0,c.warp*(1+re*.6*(b.bass-.35)));
+    gl.uniform1f(locations.uSwirl,c.swirl*(1+re*.6*(b.low-.3)));gl.uniform1f(locations.uWarp,Math.max(0,c.warp*(1+re*.6*(b.bass-.35))));
     gl.uniform1f(locations.uScale,c.scale);gl.uniform1f(locations.uSharp,c.sharp);gl.uniform1f(locations.uExp,1+re*.06*(level-.4));gl.uniform1f(locations.uGrain,c.grain*cfg.grain);
     gl.drawArrays(gl.TRIANGLES,0,3);raf=requestAnimationFrame(frame);
   }
