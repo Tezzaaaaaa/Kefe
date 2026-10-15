@@ -910,7 +910,7 @@ const canvas = document.getElementById('kefeVisualiserCanvas');const stage = can
 if (!canvas) throw new Error('KEFE visualiser canvas is missing from the preview stage.');
 canvas.style.visibility = 'hidden';
 window.kefeSyncVisualiserVisibility = () => {
-  const visible = window.kefeVisualiserEnabled !== false && !stage?.classList.contains('is-empty');
+  const visible = window.kefeVisualiserEnabled === true;
   canvas.style.visibility = visible ? 'visible' : 'hidden';
   canvas.style.pointerEvents = visible ? 'auto' : 'none';
 };
