@@ -44,7 +44,7 @@ jobs:
           live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
           expected_marker='media-carousel.js?v=local-upload-search-20261012-2'
           for attempt in $(seq 1 48); do
-            if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -Fq "$expected_marker" /tmp/kefe-live-index.html && grep -Fq 'media-library.js?v=storage-resilience-20261014-2' /tmp/kefe-live-index.html && grep -Fq 'app/editor.js?v=async-track-focus-20261014-2' /tmp/kefe-live-index.html && grep -Fq 'app/visualiser/gradient.js?v=site-audit-20261014-1' /tmp/kefe-live-index.html && grep -Fq 'app/ui/styles.css?v=day-night-toggle-20261014-1' /tmp/kefe-live-index.html && grep -Fq 'workspace-shell.css?v=unified-workspace-20261014-6' /tmp/kefe-live-index.html; then
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -Fq "$expected_marker" /tmp/kefe-live-index.html && grep -Fq 'media-library.js?v=storage-resilience-20261014-2' /tmp/kefe-live-index.html && grep -Fq 'app/editor.js?v=async-track-focus-20261014-2' /tmp/kefe-live-index.html && grep -Fq 'app/visualiser/gradient.js?v=site-audit-20261014-1' /tmp/kefe-live-index.html && grep -Fq 'app/ui/styles.css?v=layout-alignment-20261015-1' /tmp/kefe-live-index.html && grep -Fq 'workspace-shell.css?v=layout-alignment-20261015-1' /tmp/kefe-live-index.html; then
               echo "Published editor contains cache-busted library script: $expected_marker"
               exit 0
             fi
