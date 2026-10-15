@@ -174,7 +174,7 @@
     });
     tabsList.appendChild(option);
     ui.sceneName.textContent=SCENES[0].name;current=blend(from,to,1);syncScene();resize();
-    const style=document.createElement('style');style.textContent='.kefe-slow-light-scenes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.kefe-slow-light-scenes .kefe-btn{min-width:0}.kefe-slow-light-auto{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text)}.kefe-slow-light-power{margin-left:auto;min-width:58px}.kefe-slow-light-view{gap:12px}.kefe-slow-light-view[hidden]{display:none}';document.head.appendChild(style);
+    const style=document.createElement('style');style.textContent='.kefe-slow-light-scenes{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;min-width:0}.kefe-slow-light-scenes .kefe-btn{flex:0 0 auto;min-width:0}.kefe-slow-light-auto{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text)}.kefe-slow-light-power{margin-left:auto;min-width:58px}.kefe-slow-light-view{gap:12px}.kefe-slow-light-view[hidden]{display:none}';document.head.appendChild(style);
     window.addEventListener('resize',resize);window.addEventListener('kefe-stage-resize',resize);
     document.addEventListener('visibilitychange',()=>{if(document.hidden){if(raf)cancelAnimationFrame(raf);raf=0;}else if(enabled)start();});
     window.kefeSlowLight={setEnabled,setScene:i=>goTo(clamp(Math.floor(i),0,SCENES.length-1)),getState:()=>({enabled,scene:SCENES[index].name,settings:{...cfg}}),canvas:()=>canvas};
