@@ -10,6 +10,10 @@ on:
     paths:
       - "apps/web/**"
       - ".github/workflows/visualiser-subnav-browser-check.yml"
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/visualiser-subnav-browser-check.yml"
   workflow_dispatch:
 
 permissions:
@@ -48,7 +52,7 @@ jobs:
             page.on('pageerror', error => errors.push(error.message));
             try {
               await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
-              await page.waitForFunction(() => document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4, { timeout: 30000 });
+              await page.waitForFunction(() => document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 5, { timeout: 30000 });
               const submenu = page.locator('.kefe-editing > .kefe-vis-tabs');
               const panels = page.locator('.kefe-panels');
 
@@ -60,18 +64,20 @@ jobs:
                   document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4;
               });
 
-              const order = ['particles', 'gradient', 'glitch', 'fluted'];
+              const order = ['particles', 'gradient', 'glitch', 'fluted', 'slow-light'];
               const viewIds = {
                 particles: 'kefeVisParticlesView',
                 gradient: 'kefeVisGradientView',
                 glitch: 'kefeVisGlitchView',
-                fluted: 'kefeVisFlutedView'
+                fluted: 'kefeVisFlutedView',
+                'slow-light': 'kefeVisSlowLightView'
               };
               const presetSetIds = {
                 particles: 'kefeParticlePresetSet',
                 gradient: 'kefeGradientPresetSet',
                 glitch: 'kefeDithrPresetSet',
-                fluted: 'kefeFlutedPresetSet'
+                fluted: 'kefeFlutedPresetSet',
+                'slow-light': 'kefeSlowLightPresetSet'
               };
               const layout = await page.evaluate(() => {
                 const legacyNav = document.querySelector('.kefe-tabs');
@@ -93,12 +99,12 @@ jobs:
               assert.ok(Math.abs(layout.rowLeft - layout.presetLeft) < 2 && Math.abs(layout.rowRight - layout.presetRight) < 2,
                 label + ': visualiser options and presets must share the same full-width grid alignment');
               assert.ok(layout.rowRight - layout.rowLeft > 500, label + ': visualiser options must not be confined to the narrow sidebar column');
-              assert.deepEqual(layout.buttons.map(b => b.id), order, label + ': four tabs must appear in the expected order');
+              assert.deepEqual(layout.buttons.map(b => b.id), order, label + ': five tabs must appear in the expected order');
               assert.equal(await submenu.locator('[aria-selected="true"]').getAttribute('data-visualiser'), 'particles',
                 label + ': Particles Swarm must remain the default visualiser');
               assert.equal((await page.locator('#kefeVisualiserHeading').textContent()).trim(), 'Particle Visualiser',
                 label + ': default heading must identify the Particle Visualiser');
-              assert.ok(layout.buttons.every(b => b.width > 0 && Math.abs(b.top - layout.buttons[0].top) < 2), label + ': all four tabs must occupy one horizontal row');
+              assert.ok(layout.buttons.every(b => b.width > 0 && Math.abs(b.top - layout.buttons[0].top) < 2), label + ': all five tabs must occupy one horizontal row');
               assert.ok(layout.buttons.every((b, i) => i === 0 || b.left > layout.buttons[i - 1].left), label + ': tabs must be arranged horizontally');
 
               for (const id of order) {
@@ -119,13 +125,15 @@ jobs:
                   particles: 'Particle Visualiser',
                   gradient: 'Liquid Flow Visualiser',
                   glitch: 'Dithr Visualiser',
-                  fluted: 'Fluted Glass Visualiser'
+                  fluted: 'Fluted Glass Visualiser',
+                  'slow-light': 'Slow Light Visualiser'
                 };
                 const expectedDescriptions = {
                   particles: 'Audio-reactive particle fields with customizable visual presets.',
                   gradient: 'Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.',
                   glitch: 'Animated procedural fields with Floyd–Steinberg, ordered and stochastic dithering.',
-                  fluted: 'Six refractive glass treatments driven by audio.'
+                  fluted: 'Six refractive glass treatments driven by audio.',
+                  'slow-light': 'Original WebGL colour fields, continuous scene morphing, film grain and audio-reactive movement.'
                 };
                 const heading = page.locator('#kefeVisualiserHeading');
                 const description = page.locator('#kefeVisualiserDescription');
@@ -149,6 +157,25 @@ jobs:
                   await page.waitForFunction(key => window.kefeVisualiserDiagnostics()?.preset === key, alternateParticleKey);
                   await page.locator('#visualiserPresetGrid [data-key="' + initialParticleState.preset + '"]').click();
                   await page.waitForFunction(key => window.kefeVisualiserDiagnostics()?.preset === key, initialParticleState.preset);
+                }
+                if (id === 'slow-light') {
+                  await page.waitForFunction(() => {
+                    const canvas = document.getElementById('kefeSlowLightCanvas');
+                    const gl = canvas && canvas.getContext('webgl');
+                    const program = gl && gl.getParameter(gl.CURRENT_PROGRAM);
+                    return !!window.kefeSlowLight && !!gl && canvas.width > 0 && canvas.height > 0 && !!program && gl.getProgramParameter(program, gl.LINK_STATUS);
+                  });
+                  assert.equal((await page.evaluate(() => window.kefeSlowLight.getState())).enabled, false,
+                    label + ': Slow Light must remain disabled until explicitly enabled');
+                  await page.locator('.kefe-slow-light-power').click();
+                  await page.waitForFunction(() => window.kefeSlowLight?.getState().enabled === true &&
+                    getComputedStyle(document.getElementById('kefeSlowLightCanvas')).display === 'block');
+                  await page.locator('[data-scene="cobalt"]').click();
+                  await page.waitForFunction(() => window.kefeSlowLight?.getState().scene === 'Cobalt');
+                  const slider = page.locator('#kefeVisSlowLightView input[type="range"]').first();
+                  await slider.evaluate(el => { el.value = '1.5'; el.dispatchEvent(new Event('input', { bubbles: true })); });
+                  assert.equal((await page.evaluate(() => window.kefeSlowLight.getState())).settings.react, 1.5,
+                    label + ': Slow Light controls must update the renderer state');
                 }
                 if (id === 'fluted') {
                   await page.waitForFunction(() => {
@@ -297,7 +324,7 @@ jobs:
                 assert.deepEqual(presetState.visibleSets, [presetState.expectedSet], label + ': only the selected visualiser preset set should be visible: ' + id);
                 const strip = await page.evaluate(({ id, presetSetId }) => {
                     const set = document.getElementById(presetSetId);
-                    const selector = id === 'glitch' ? '#dithrPatterns' : id === 'particles' ? '#visualiserPresetGrid' : id === 'gradient' ? '.kefe-gradient-palettes' : '#flutedModes';
+                    const selector = id === 'glitch' ? '#dithrPatterns' : id === 'particles' ? '#visualiserPresetGrid' : id === 'gradient' ? '.kefe-gradient-palettes' : id === 'slow-light' ? '.kefe-slow-light-scenes' : '#flutedModes';
                     const el = set && set.querySelector(selector);
                     if (!el) return { missing: true, setHtml: set?.outerHTML || null, liveGridHtml: document.querySelector('#visualiserPresetGrid')?.outerHTML || null };
                     const style = getComputedStyle(el);
@@ -374,7 +401,7 @@ jobs:
                   return { id: b.dataset.visualiser, left: x.left, right: x.right, top: x.top, width: x.width };
                 }) };
               });
-              assert.equal(mobile.buttons.length, 4, label + ': mobile must retain all four visualiser choices');
+              assert.equal(mobile.buttons.length, 5, label + ': mobile must retain all five visualiser choices');
               assert.ok(Math.abs(mobile.row.left - mobile.preset.left) < 2 && Math.abs(mobile.row.right - mobile.preset.right) < 2,
                 label + ': mobile options and presets must share the same horizontal alignment');
               assert.ok(mobile.buttons.every(b => b.width > 0 && Math.abs(b.top - mobile.buttons[0].top) < 2), label + ': mobile visualiser choices must remain on one row');
