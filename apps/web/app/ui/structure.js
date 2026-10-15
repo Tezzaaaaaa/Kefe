@@ -36,7 +36,7 @@ kefeMuteToggle?.addEventListener('click', () => {
 
 const shellRoot = document.querySelector('.kefe-editor');
 const shellSidebar = document.querySelector('.kefe-sidebar');
-function setSidebarCollapsed(collapsed) {
+function setSidebarCollapsed(collapsed, persist = true) {
   if (!shellRoot || !shellSidebar) return;
   shellRoot.classList.toggle('sidebar-collapsed', collapsed);
   document.querySelectorAll('[data-sidebar-toggle]').forEach(button => {
@@ -44,12 +44,20 @@ function setSidebarCollapsed(collapsed) {
     button.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
     button.setAttribute('aria-expanded', String(!collapsed));
   });
-  try { localStorage.setItem('kefe.sidebarCollapsed', collapsed ? '1' : '0'); } catch (_) {}
+  if (persist) { try { localStorage.setItem('kefe.sidebarCollapsed', collapsed ? '1' : '0'); } catch (_) {} }
 }
 document.querySelectorAll('[data-sidebar-toggle]').forEach(button => {
   button.addEventListener('click', () => setSidebarCollapsed(!shellRoot?.classList.contains('sidebar-collapsed')));
 });
-try { setSidebarCollapsed(localStorage.getItem('kefe.sidebarCollapsed') === '1'); } catch (_) {}
+const mobileNavQuery = window.matchMedia ? window.matchMedia('(max-width: 640px)') : null;
+function restoreSidebarState() {
+  if (mobileNavQuery && mobileNavQuery.matches) { setSidebarCollapsed(false, false); return; }
+  let stored = false;
+  try { stored = localStorage.getItem('kefe.sidebarCollapsed') === '1'; } catch (_) {}
+  setSidebarCollapsed(stored, false);
+}
+restoreSidebarState();
+if (mobileNavQuery && mobileNavQuery.addEventListener) mobileNavQuery.addEventListener('change', restoreSidebarState);
 
 const accentKey = 'kefe.accent';
 function setAccentColor(color) {

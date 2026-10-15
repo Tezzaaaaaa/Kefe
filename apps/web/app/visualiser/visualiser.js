@@ -1013,8 +1013,13 @@ audioElement?.addEventListener('play', () => {
   const graph = window.kefeAudioGraph?.ensure?.();
   if (graph?.ac?.state === 'suspended') graph.ac.resume().catch(() => {});
 });
+let lastRenderAt = 0;
 function animate() {
   if (window.kefeVisualiserEnabled === false) { clock.getDelta(); requestAnimationFrame(animate); return; }
+  const fpsTarget = Number(window.kefeSettings?.get('fpsTarget')) || 60;
+  const renderNow = performance.now();
+  if (renderNow - lastRenderAt < 1000 / fpsTarget - 2) { requestAnimationFrame(animate); return; }
+  lastRenderAt = renderNow;
   const dt = Math.min(clock.getDelta(), 0.05);
   state.time += dt * state.speed;
   const time = state.time;

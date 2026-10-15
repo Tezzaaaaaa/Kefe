@@ -43,6 +43,7 @@
   function readAudio(){
     try{
       if(!analyser&&window.kefeAudioGraph){var graph=window.kefeAudioGraph.ensure();if(graph){analyser=graph.analyser;freq=new Uint8Array(analyser.frequencyBinCount);}}
+      if(analyser&&(!freq||freq.length!==analyser.frequencyBinCount))freq=new Uint8Array(analyser.frequencyBinCount);
       if(!analyser||!freq)return {bass:0,mid:0,treble:0};
       analyser.getByteFrequencyData(freq);var nyq=(window.kefeAudioGraph.context()?.sampleRate||44100)/2;
       function band(lo,hi){var a=Math.max(0,Math.floor(lo/nyq*freq.length)),b=Math.min(freq.length-1,Math.ceil(hi/nyq*freq.length)),sum=0;for(var i=a;i<=b;i++)sum+=freq[i];return Math.min(1,Math.pow((sum/Math.max(1,b-a+1))/255*2.6,1.3));}

@@ -5,6 +5,11 @@
   'use strict';
   var graph = null;
 
+  function fftSize() {
+    var p = window.kefeSettings ? Math.round(Number(window.kefeSettings.get('fftPower'))) : 11;
+    return Math.pow(2, p >= 9 && p <= 12 ? p : 11);
+  }
+
   function ensureGraph() {
     if (graph) return graph;
     var audio = document.getElementById('kefeAudio');
@@ -16,7 +21,7 @@
       var src = ac.createMediaElementSource(audio);
       var analyser = ac.createAnalyser();
       var dest = ac.createMediaStreamDestination();
-      analyser.fftSize = 2048;
+      analyser.fftSize = fftSize();
       analyser.smoothingTimeConstant = 0.78;
       src.connect(analyser);
       src.connect(ac.destination);
@@ -27,6 +32,13 @@
       graph = null;
     }
     return graph;
+  }
+
+  if (window.kefeSettings && window.kefeSettings.onChange) {
+    window.kefeSettings.onChange(function (key) {
+      if (key !== 'fftPower' || !graph) return;
+      try { graph.analyser.fftSize = fftSize(); } catch (e) { console.warn('[KEFE audio graph]', e); }
+    });
   }
 
   window.kefeAudioGraph = {

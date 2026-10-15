@@ -11,6 +11,10 @@
     { group: 'Lyrics', items: [
       { key: 'lyricOffset', label: 'Lyric offset', hint: 'Positive shows lyrics later, negative shows them earlier.', type: 'range', def: 0, min: -3, max: 3, step: 0.05, fmt: v => (v > 0 ? '+' : '') + v.toFixed(2) + 's' }
     ]},
+    { group: 'Engine', items: [
+      { key: 'fpsTarget', label: 'FPS target', hint: 'Caps how often the visualiser renders in the preview and in exports. Lower it on slower devices.', type: 'range', def: 60, min: 30, max: 120, step: 10, fmt: v => String(v) },
+      { key: 'fftPower', label: 'FFT size', hint: 'Audio analysis detail for audio-reactive visuals. Larger is more precise but heavier.', type: 'range', def: 11, min: 9, max: 12, step: 1, fmt: v => String(Math.pow(2, v)) }
+    ]},
     { group: 'Defaults', items: [
       { key: 'aspect', label: 'Aspect ratio', hint: 'Used for the preview and exports.', type: 'select', def: '16:9', options: [['16:9', '16:9'], ['9:16', '9:16'], ['1:1', '1:1']] },
       { key: 'exportResolution', label: 'Export resolution', type: 'select', def: '1080', options: [['720', '720p'], ['1080', '1080p'], ['1440', '1440p (2K)'], ['2160', '2160p (4K)']] }
