@@ -296,6 +296,12 @@ jobs:
                   const button = document.querySelector('.kefe-visualiser-panel-head .kefe-switch');
                   return button && button.getAttribute('aria-checked') === String(initialPower !== 'true');
                 }, { initialPower });
+                if (id === 'particles' && initialPower !== 'true') {
+                  assert.equal(await page.locator('.kefe-stage').evaluate(stage => stage.classList.contains('is-empty')), true,
+                    label + ': preview visibility regression test requires an empty preview stage');
+                  assert.equal(await page.locator('#kefeVisualiserCanvas').evaluate(canvas => getComputedStyle(canvas).visibility), 'visible',
+                    label + ': enabled Particles Swarm must render on the preview even before media or lyrics are added');
+                }
                 if (id === 'glitch') {
                   await page.waitForFunction(({ enabled }) => window.kefeDithrDiagnostics()?.enabled === enabled, { enabled: initialPower !== 'true' });
                 }
