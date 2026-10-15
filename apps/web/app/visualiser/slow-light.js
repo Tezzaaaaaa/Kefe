@@ -156,7 +156,7 @@
     const tab=document.createElement('button');tab.type='button';tab.className='kefe-btn';tab.setAttribute('role','tab');tab.dataset.visualiser='slow-light';tab.dataset.icon='◌';tab.setAttribute('aria-controls',view.id);tab.setAttribute('aria-label','Slow Light visualiser');tab.title='Slow Light visualiser';tab.textContent='';tabsList.appendChild(tab);
     const option=document.createElement('div');option.className='kefe-vis-option';option.appendChild(tab);tabsList.appendChild(option);tab.remove();
     form.appendChild(view);
-    tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab&&!view.hidden){setEnabled(false);sceneSet.hidden=true;}});
+    tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab){if(!view.hidden)setEnabled(false);sceneSet.hidden=true;}});
     tab.addEventListener('click',()=>{
       const reset=tabs.querySelector('[data-visualiser="particles"]');if(reset)reset.click();
       form.querySelectorAll('.kefe-vis-view').forEach(v=>v.hidden=v!==view);
