@@ -57,7 +57,8 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-top{
   grid-column:2;grid-row:1;min-width:0;
   display:flex;align-items:center;justify-content:space-between;
-  margin:7px 10px 0;padding:0 10px;height:45px;
+  width:calc(100% - clamp(24px,4vw,56px));max-width:1200px;
+  margin:7px auto 0;padding:0 10px;height:45px;
   border:1px solid var(--shell-line);border-radius:10px;
   background:var(--shell-panel);box-shadow:none;z-index:20;
 }
@@ -89,7 +90,7 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-stage.is-16x9{width:min(100%,900px,92.45vh);aspect-ratio:16/9}
 .kefe-stage.is-9x16{width:min(100%,29.25vh);aspect-ratio:9/16}
 .kefe-stage.is-1x1{width:min(100%,52vh);aspect-ratio:1/1}
-.kefe-timeline{padding:8px 18px;gap:10px}
+.kefe-timeline{width:calc(100% - clamp(24px,4vw,56px));max-width:1200px;margin-inline:auto;padding:8px 18px;gap:10px}
 .kefe-editing{
   display:block;min-width:0;min-height:0;overflow:visible;
   background:transparent;
@@ -107,8 +108,8 @@ body{overflow-x:hidden;overflow-y:auto}
   background:var(--shell-panel);box-shadow:none;
 }
 .kefe-panel-head{
-  align-items:center;margin-bottom:20px;padding-bottom:14px;
-  border-bottom:1px solid var(--shell-line);
+  display:flex;flex-wrap:wrap;align-items:center;min-width:0;
+  margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--shell-line);
 }
 .kefe-panel-head h2{
   min-width:0;margin:0;font-size:clamp(18px,1.8vw,22px);
@@ -221,13 +222,15 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-btn,.kefe-control,.kefe-play{box-shadow:none}
 .kefe-btn:hover,.kefe-control:hover,.kefe-play:hover{box-shadow:0 5px 14px rgba(0,0,0,.09)}
 .kefe-site-footer{
-  grid-column:2;grid-row:3;margin:0;padding:8px 18px;
+  grid-column:2;grid-row:3;width:calc(100% - clamp(24px,4vw,56px));max-width:1200px;
+  margin:0 auto;padding:8px 18px;
   border-top:1px solid var(--shell-line);background:var(--shell-bg);
 }
 /* The editor inherits the shared day/night palette from styles.css.
    Do not redefine core design tokens inside .kefe-editor. */
 @media(max-width:900px){
   .kefe-editor{grid-template-columns:190px minmax(0,1fr)}
+  .kefe-top,.kefe-timeline,.kefe-site-footer{width:calc(100% - 24px)}
   .kefe-sidebar{padding-inline:9px}
   .kefe-sidebar-link{gap:7px;padding-inline:8px}
   .kefe-panels{padding:12px 12px 24px}
@@ -249,10 +252,12 @@ body{overflow-x:hidden;overflow-y:auto}
   .kefe-sidebar-link{width:auto;min-height:32px;height:32px;white-space:nowrap;padding:0 8px;font-size:11px}
   .kefe-sidebar-link>span{width:auto;flex-basis:auto;font-size:14px}
   .kefe-sidebar-bottom{display:flex;gap:3px;margin:0;padding:0;border:0;flex:0 0 auto}
-  .kefe-top{grid-column:1;grid-row:2;margin:3px 6px 0;height:46px;padding-inline:5px}
+  .kefe-top{grid-column:1;grid-row:2;width:calc(100% - 12px);margin:3px auto 0;height:46px;padding-inline:5px}
   .kefe-top-profile{gap:2px}
   .kefe-top-profile .kefe-top-link{padding-inline:8px;font-size:11px}
   .kefe-work{grid-column:1;grid-row:3;grid-template-rows:auto 48px auto}
+  .kefe-timeline{width:calc(100% - 12px);padding-inline:5px}
+  .kefe-site-footer{width:calc(100% - 12px)}
   .kefe-preview{padding:8px 8px 4px}
   .kefe-stage.is-16x9{width:min(100%,92.45vh)}
   .kefe-stage.is-9x16{width:min(100%,29.25vh)}
