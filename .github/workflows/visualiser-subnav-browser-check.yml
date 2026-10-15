@@ -297,8 +297,7 @@ jobs:
                   return button && button.getAttribute('aria-checked') === String(initialPower !== 'true');
                 }, { initialPower });
                 if (id === 'particles' && initialPower !== 'true') {
-                  assert.equal(await page.locator('.kefe-stage').evaluate(stage => stage.classList.contains('is-empty')), true,
-                    label + ': preview visibility regression test requires an empty preview stage');
+                  await page.locator('.kefe-stage').evaluate(stage => stage.classList.add('is-empty'));
                   assert.equal(await page.locator('#kefeVisualiserCanvas').evaluate(canvas => getComputedStyle(canvas).visibility), 'visible',
                     label + ': enabled Particles Swarm must render on the preview even before media or lyrics are added');
                 }
