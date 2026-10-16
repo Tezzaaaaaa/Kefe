@@ -5268,40 +5268,49 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 .kefe-vis-option > .kefe-vis-option-power {
   position: absolute;
   z-index: 2;
-  top: 5px;
-  right: 5px;
+  top: 6px;
+  right: 6px;
   display: inline-flex;
   box-sizing: border-box;
-  width: auto;
-  min-width: 0;
-  max-width: calc(100% - 8px);
-  height: 22px;
-  min-height: 22px;
+  width: 64px;
+  min-width: 64px;
+  max-width: calc(100% - 12px);
+  height: 28px;
+  min-height: 28px;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 2px 5px;
-  border-radius: var(--r1);
-  font-size: 10px;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-hi);
+  color: var(--muted);
+  box-shadow: var(--inner);
+  font-size: 11px;
+  font-weight: 650;
   line-height: 1;
   white-space: nowrap;
 }
 .kefe-vis-option-power .kefe-switch-state {
   display: inline-block;
-  min-width: 0;
-  font-size: 10px;
+  min-width: 17px;
+  font-size: 11px;
   line-height: 1;
 }
 .kefe-vis-option-power .kefe-switch-track {
-  flex: 0 0 22px;
-  width: 22px;
-  height: 12px;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 14px;
 }
 .kefe-vis-option-power .kefe-switch-thumb {
-  top: 1px;
-  left: 1px;
-  width: 8px;
-  height: 8px;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+}
+.kefe-vis-option-power.is-on {
+  border-color: var(--accent);
+  color: var(--text);
 }
 .kefe-vis-option-power.is-on .kefe-switch-thumb {
   transform: translateX(10px);
