@@ -322,7 +322,7 @@
     gradientPower=gradientToggle.querySelector('.kefe-switch');
     var rnd=el('button','kefe-btn','Random');rnd.type='button';rnd.addEventListener('click',randomize);gradientIntro.appendChild(rnd);
     gradient.appendChild(gradientIntro);
-    show('particles');
+    show('gradient');
 
     var look=group('Layer');
     look.appendChild(slider('Opacity',0,100,1,function(){return S.opacity;},function(v){S.opacity=v;},function(v){return v+'%';}));
