@@ -32,8 +32,13 @@
   function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
   function idx(x,y){return x+(gridW+2)*y;}
   function allocate(){
-    gridW=clamp(Math.round(96*values.quality),56,144);
-    gridH=clamp(Math.round(gridW*(canvas.height/Math.max(1,canvas.width))),32,100);
+    /* Scale the fluid grid with the actual render target. The former fixed 96×54
+       grid was enlarged to fill the preview/export canvas, creating visible blocks.
+       Adaptive 320–640px simulation width keeps detail high without making the
+       iterative CPU solver prohibitively expensive on mobile devices. */
+    var targetWidth=Math.max(960,Math.min(canvas.width||960,1920));
+    gridW=clamp(Math.round(targetWidth/3*values.quality),320,640);
+    gridH=clamp(Math.round(gridW*(canvas.height/Math.max(1,canvas.width))),80,360);
     size=(gridW+2)*(gridH+2);
     function field(){return new Float32Array(size);}
     u=field();v=field();u0=field();v0=field();p=field();div=field();
@@ -177,8 +182,8 @@
     lastTime=now;
     simulate(now,dt);paintPixels();
     ctx.clearRect(0,0,w,h);ctx.fillStyle='rgba(2,3,7,.12)';ctx.fillRect(0,0,w,h);ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=.45+values.bloom*.18;ctx.filter='blur('+(5+values.bloom*11)+'px)';
-    ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
-    ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=1;ctx.imageSmoothingEnabled=true;ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
+    ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
+    ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=1;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
   }
   function active(){
     var h=document.getElementById('kefeVisualiserHeading'),tab=document.querySelector('.kefe-vis-tabs [data-visualiser="gradient"]'),power=tab&&tab.parentNode.querySelector('.kefe-vis-option-power');
@@ -259,7 +264,7 @@
       if(rect.width>1&&rect.height>1){
         canvas.style.display=active()?'block':'none';
         if(active()){
-          var scale=Math.min(window.devicePixelRatio||1,1200/Math.max(rect.width,rect.height));
+          var scale=Math.min(window.devicePixelRatio||1,1920/Math.max(rect.width,rect.height));
           draw(Math.round(rect.width*scale),Math.round(rect.height*scale),(now-start)/1000);
         }
       }
