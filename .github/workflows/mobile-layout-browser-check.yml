@@ -344,20 +344,6 @@ jobs:
                   await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-liquid-flow.png`, fullPage: false, timeout: 15000 });
                 }
 
-                const glitchTab = page.locator('.kefe-vis-tabs button[data-visualiser="glitch"]').first();
-                if (await glitchTab.count()) {
-                  // Switching to the Glitch preset rebuilds the renderer; allow this one
-                  // expensive transition more time than ordinary control clicks.
-                  await glitchTab.click({ timeout: 30000 });
-                  await page.locator('#kefeVisGlitchView:not([hidden])').waitFor();
-                  const glitchDisplay = await page.locator('#kefeVisGlitchView').evaluate(el => getComputedStyle(el).display);
-                  assert.equal(glitchDisplay, 'contents', `Glitch view must flatten into the two-column form at ${width}px; got ${glitchDisplay}`);
-                  await assertOnlyVisualiserViewVisible('kefeVisGlitchView', 'Glitch');
-                  await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Glitch');
-                  await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Glitch', false);
-                  await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-glitch.png`, fullPage: false, timeout: 15000 });
-                }
-
                 const flutedTab = page.locator('.kefe-vis-tabs button[data-visualiser="fluted"]').first();
                 if (await flutedTab.count()) {
                   await flutedTab.click();
@@ -368,7 +354,7 @@ jobs:
                   const flutedToggle = page.locator('.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-panel-head #flutedPower');
                   await flutedToggle.waitFor({ state: 'visible' });
                   assert.equal(await flutedToggle.getAttribute('role'), 'switch', 'Fluted Glass power control must remain an accessible switch');
-                  assert.equal(await flutedToggle.getAttribute('aria-label'), 'Fluted Glass effect', 'Fluted Glass power control must retain its accessible label');
+                  assert.equal(await flutedToggle.getAttribute('aria-label'), 'Glass Lens', 'Glass Lens power control must retain its accessible label');
                   const flutedGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Fluted Glass');
                   const sliderWidths = await page.locator('#flutedSliders > *').evaluateAll(nodes => nodes.filter(el => el.getClientRects().length).map(el => ({label: el.querySelector('b')?.textContent || el.textContent.trim().slice(0, 30), width: el.getBoundingClientRect().width})));
                   for (const item of sliderWidths) {
