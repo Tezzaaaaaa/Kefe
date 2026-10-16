@@ -193,7 +193,7 @@ function appleDrawRow(ctx, entries, y, fs, time, act, sungA, unsungA, P, scale, 
     const glyphFill = (left, width) => {
         const reached = linaSmooth((p - left) / Math.max(1, width));
         const alpha = unsungA + (sungA - unsungA) * reached;
-        const channel = Math.round(120 + (210 - 120) * reached);
+        const channel = Math.round(58 + (210 - 58) * reached);
         return 'rgba(' + channel + ',' + channel + ',' + channel + ',' + alpha.toFixed(3) + ')';
     };
     const actK = linaSmooth(act);
@@ -471,7 +471,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                 dim: linaClamp(Number.isFinite(Number(style.appleUnsungOpacity)) ? Number(style.appleUnsungOpacity) : APPLE_WAVE.dim, 0.15, 0.9)
             });
             const sungA = alphaAmt;
-            const unsungA = Math.min(alphaAmt, P.dim);
+            const unsungA = Math.min(alphaAmt, P.dim * 0.3);
             const spaceWidth = ctx.measureText(' ').width;
             let ti = 0;
             for (let ri = 0; ri < rows.length; ri++) {
@@ -491,9 +491,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
             // Upcoming / older lines (or no usable word timing): grey, blurred by distance.
             ctx.globalAlpha = alphaAmt;
             if (blurAmt > 0.08) {
-                rows.forEach((rowText, ri) => appleBlurText(ctx, rowText, x, rowYs[ri], blurAmt, 'rgb(120,120,120)', scaleAmt));
+                rows.forEach((rowText, ri) => appleBlurText(ctx, rowText, x, rowYs[ri], blurAmt, 'rgb(58,58,58)', scaleAmt));
             } else {
-                ctx.fillStyle = 'rgb(120,120,120)';
+                ctx.fillStyle = 'rgb(68,68,68)';
                 ctx.shadowColor = 'rgba(0,0,0,0.45)';
                 ctx.shadowBlur = baseShadowBlur;
                 ctx.shadowOffsetY = baseShadowOff;
