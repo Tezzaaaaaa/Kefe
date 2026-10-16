@@ -101,14 +101,14 @@ jobs:
               const uploadPosition = await page.locator('#kefeUploadZone').evaluate(el => {
                 const rect = el.getBoundingClientRect();
                 const panels = el.closest('.kefe-panels');
-                const panelRect = panels.getBoundingClientRect();
+                const panelRect = el.closest('.kefe-panel[data-panel-view="media"]').getBoundingClientRect();
                 const details = el.closest('.kefe-step-body')?.querySelector('.kefe-song-details');
                 return { top: rect.top, bottom: rect.bottom, panelTop: panelRect.top, panelBottom: panelRect.bottom, scrollTop: panels.scrollTop, uploadBeforeDetails: !!details && !!(el.compareDocumentPosition(details) & Node.DOCUMENT_POSITION_FOLLOWING) };
               });
               assert.equal(uploadPosition.scrollTop, 0, label + ': media panel scroll must reset to the beginning');
               assert.equal(uploadPosition.uploadBeforeDetails, true, label + ': audio/video upload must appear before song details');
               assert.ok(uploadPosition.top >= uploadPosition.panelTop - 5 && uploadPosition.top < uploadPosition.panelTop + 140,
-                label + ': upload zone should be at the beginning of the media panel; got top=' + uploadPosition.top + ', panel top=' + uploadPosition.panelTop);
+                label + ': upload zone should be near the beginning of the active Media panel; got top=' + uploadPosition.top + ', panel top=' + uploadPosition.panelTop);
               assert.ok(uploadPosition.bottom > uploadPosition.panelTop && uploadPosition.top < uploadPosition.panelBottom,
                 label + ': upload zone should be visible inside the media panel');
 
