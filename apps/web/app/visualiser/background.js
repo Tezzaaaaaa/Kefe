@@ -2,7 +2,7 @@
    Exactly two background effects:
      apple – Apple Music-style motion backdrop built from the album artwork (slow drifting, blurred, saturated art)
      video – a video the user uploads in Media → Background video (looped, kept in sync with playback)
-   The particle canvas is blended with `screen` over this layer, and the same layer is composited into video export. */
+   Visualiser layers are composited into video export. */
 (function(){
   'use strict';
   var stage,cv,cctx,sel,audio,mode='off',vid=null,vidUrl='',vidName='',small=null,smallKey='',avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
