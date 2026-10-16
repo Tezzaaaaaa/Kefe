@@ -5979,8 +5979,8 @@ body:not(.kefe-fullscreen-open) {
   min-width:0;
 }
 .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-font-case-row{
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  align-items:start;
+  grid-template-columns:minmax(0,1fr);
+  align-items:stretch;
   padding-bottom:12px;
   border-bottom:1px solid var(--line);
 }
@@ -5992,6 +5992,12 @@ body:not(.kefe-fullscreen-open) {
   min-width:0;
 }
 .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  align-content:start;
+  gap:10px;
+  box-sizing:border-box;
+  width:100%;
   min-width:0;
   margin:0;
   border:0;
@@ -6001,6 +6007,12 @@ body:not(.kefe-fullscreen-open) {
   background:transparent;
   box-shadow:none;
 }
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement > *{
+  grid-column:1 / -1;
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
 .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement > summary{
   padding:0 0 10px;
   font-weight:650;
@@ -6009,5 +6021,4 @@ body:not(.kefe-fullscreen-open) {
 .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement .kefe-visualiser-field{min-width:0}
 @media(max-width:520px){
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup.kefe-lyric-settings{padding:11px;gap:12px}
-  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-font-case-row{grid-template-columns:minmax(0,1fr)}
 }
