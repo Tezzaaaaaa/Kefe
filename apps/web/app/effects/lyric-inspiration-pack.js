@@ -377,24 +377,21 @@
     return s.font||'Mr Dafoe';
   }
   function renderInkScript(ctx,w,h,style,lines,time){
-    const s=settings.inkscript;
-    const source=Array.isArray(lines)?lines:[];
+    const s=settings.inkscript,source=Array.isArray(lines)?lines:[];
     if(!source.length)return;
     const first=Number(source[0]?.time)||0,last=source[source.length-1]||{};
     const lastStart=Number(last.time)||0,lastEnd=Number(last.endTime)||lastStart+3;
     let t=time;
-    if(t>lastEnd+Number(s.blank) && s.loop){
+    if(t>lastEnd+Number(s.blank)&&s.loop){
       const span=Math.max(.5,lastEnd-first+Number(s.blank));
       t=first+((t-first)%span);
     }
-    if(!s.loop && t>lastEnd){if(!s.transparent){ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);}return;}
-    const items=linesFor(source,t);
-    if(!items.length)return;
-    const item=items[items.length-1],line=item.line,txt=String(line.text||'').trim();
-    if(!txt)return;
-    if(!s.transparent){ctx.save();ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);ctx.restore();}
+    if(!s.loop&&t>lastEnd){if(!s.transparent){ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);}return;}
+    const items=linesFor(source,t);if(!items.length)return;
+    const item=items[items.length-1],line=item.line,txt=String(line.text||'').trim();if(!txt)return;
+    if(!s.transparent){ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);}
     const family=inkFont(s),weight=Number(s.weight)||400;
-    if(s.font==='__google' && s.googleFont){
+    if(s.font==='__google'&&s.googleFont){
       const key=s.googleFont.trim();
       if(key&&!inkFontFaces.has(key)){
         inkFontFaces.set(key,true);
@@ -404,69 +401,89 @@
         document.head.appendChild(link);
       }
     }
-    const maxW=w*.82,maxH=h*.42;
-    const targetAspect=s.aspect==='match'?w/h:Number(s.aspect.split('/')[0])/Number(s.aspect.split('/')[1]);
-    let safeW=maxW,safeH=maxH;
-    if(targetAspect<w/h)safeW=Math.min(maxW,maxH*targetAspect);else safeH=Math.min(maxH,maxW/targetAspect);
-    const measure=ctx.measureText.bind(ctx);
-    let size=Math.max(18,Math.min(safeH*.72,safeW/(Math.max(1,Array.from(txt).length)*.58)));
-    ctx.save();ctx.font=weight+' '+size+'px "'+family+'", cursive';
-    if(s.sizing==='fit'){
-      const width=measure(txt).width;
-      if(width>0)size*=Math.min(1,safeW/width);
-    }else{
-      let sameSize=size;
-      source.forEach(row=>{ctx.font=weight+' '+sameSize+'px "'+family+'", cursive';const tw=measure(String(row.text||'').trim()).width;if(tw>safeW)sameSize=Math.min(sameSize,size*safeW/tw);});
-      size=sameSize;
+    if(document.fonts&&document.fonts.load){
+      const fontKey='ink'+family+weight;
+      if(!spinFontReq[fontKey]){spinFontReq[fontKey]=1;document.fonts.load(weight+' 48px "'+family+'"').then(()=>window.kefeLyrics?.redraw?.()).catch(()=>{});}
     }
-    ctx.font=weight+' '+size+'px "'+family+'", cursive';ctx.textAlign='center';ctx.textBaseline='middle';
-    const start=Number(line.time)||item.start,end=Math.max(start+.2,Number(line.endTime)||item.end),dur=end-start;
-    const elapsed=Math.max(0,t-start),writeDur=Math.max(.08,Number(s.write)/25/Math.max(.25,Number(s.speed)||1));
-    const morphDur=Math.max(.08,Number(s.morph)/25/Math.max(.25,Number(s.speed)||1));
-    const writeP=clamp(elapsed/Math.min(writeDur,Math.max(.08,dur*.62)));
+    const maxW=w*.84,maxH=h*.46;
+    const ratio=s.aspect==='match'?w/h:Number(s.aspect.split('/')[0])/Number(s.aspect.split('/')[1]);
+    const boxW=ratio<w/h?Math.min(maxW,maxH*ratio):maxW;
+    const boxH=ratio>w/h?Math.min(maxH,maxW/ratio):maxH;
+    ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=weight+' 100px "'+family+'", cursive';
+    let size=Math.min(boxH*.78,100*boxW/Math.max(1,ctx.measureText(txt).width));
+    if(s.sizing==='same'){
+      for(const row of source){const rowText=String(row.text||'').trim();if(rowText){const width=ctx.measureText(rowText).width;if(width>0)size=Math.min(size,100*boxW/width);}}
+    }
+    size=Math.max(12,size);
+    ctx.font=weight+' '+size+'px "'+family+'", cursive';
+    const textW=Math.min(boxW,ctx.measureText(txt).width),x=w/2,y=h/2;
+    const startTime=Number(line.time)||item.start,endTime=Math.max(startTime+.2,Number(line.endTime)||item.end);
+    const dur=endTime-startTime,elapsed=Math.max(0,t-startTime);
+    const speed=Math.max(.25,Number(s.speed)||1);
+    const writeDur=Math.max(.12,Math.min(Number(s.write)/25/speed,dur*.72));
+    const morphDur=Math.max(.12,Number(s.morph)/25/speed);
+    const writeP=clamp(elapsed/writeDur);
     const exitStart=Math.max(writeDur+Number(s.hold),dur-morphDur);
     const transitionP=clamp((elapsed-exitStart)/Math.max(.08,morphDur));
-    let alpha=1;
-    if(source[item.index+1] && Number(source[item.index+1].time)<=end+.2 && elapsed>exitStart)alpha=1-transitionP;
-    else if(s.exit==='fade' && elapsed>exitStart)alpha=1-transitionP;
-    const baseline=h*.5;
-    const metrics=ctx.measureText(txt),textW=Math.min(safeW,metrics.width);
-    const x=w/2,y=baseline;
+    const hasNext=!!source[item.index+1]&&Number(source[item.index+1].time)<=endTime+.2;
+    const fadeOut=(hasNext||s.exit==='fade')?transitionP:0;
+    const alpha=1-fadeOut;
     const writing=elapsed<writeDur;
-    ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=s.ink;ctx.strokeStyle=s.ink;ctx.lineJoin='round';
-    ctx.save();
-    if(writing){
-      const reveal=textW*writeP;
-      ctx.beginPath();ctx.rect(x-textW/2-2,y-size,Math.max(0,reveal+4),size*2);ctx.clip();
-    }
-    ctx.shadowColor=s.ink;ctx.shadowBlur=Math.max(0,size*.012);ctx.fillText(txt,x,y);ctx.restore();
-    if(source[item.index+1] && Number(source[item.index+1].time)<=end+.2 && transitionP>0){
+    const reveal=textW*writeP;
+    const ink=s.ink||'#081a1a';
+    const rgb=hex=>{const v=parseInt(String(hex).replace('#',''),16);return Number.isFinite(v)?[(v>>16)&255,(v>>8)&255,v&255]:[8,26,26];};
+    const shade=(hex,k)=>{const c=rgb(hex);return 'rgb('+c.map(v=>Math.max(0,Math.min(255,Math.round(v*k))).join(',')+')';};
+    const clipReveal=()=>{
+      if(!writing)return;
+      ctx.beginPath();
+      const left=x-textW/2-3,right=left+Math.max(0,reveal+6),top=y-size*.78,bottom=y+size*.78;
+      const ripple=size*.025;
+      ctx.moveTo(left,top);ctx.lineTo(right-ripple,top);
+      ctx.quadraticCurveTo(right+ripple, y-size*.2, right-ripple*.3,y);
+      ctx.quadraticCurveTo(right+ripple,y+size*.22,right-ripple,bottom);
+      ctx.lineTo(left,bottom);ctx.closePath();ctx.clip();
+    };
+    ctx.save();ctx.globalAlpha=alpha;
+    clipReveal();
+    // Deep, restrained extrusion gives the lettering physical thickness without a cartoon outline.
+    ctx.save();ctx.fillStyle=shade(ink,.28);ctx.shadowColor='rgba(0,0,0,.38)';ctx.shadowBlur=size*.12;ctx.shadowOffsetX=size*.035;ctx.shadowOffsetY=size*.075;
+    for(let d=8;d>=1;d--){ctx.globalAlpha=alpha*(.42+d*.045);ctx.fillText(txt,x+d*size*.0025,y+d*size*.004);}
+    ctx.restore();
+    // Wet-ink face: a soft contact shadow, rich pigment, then a fine upper-left reflected edge.
+    ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor=shade(ink,.45);ctx.shadowBlur=size*.055;ctx.fillStyle=ink;ctx.fillText(txt,x,y);ctx.restore();
+    ctx.save();ctx.globalAlpha=alpha*.22;ctx.fillStyle='#ffffff';ctx.shadowColor='#ffffff';ctx.shadowBlur=size*.035;
+    ctx.fillText(txt,x-size*.006,y-size*.012);ctx.restore();
+    // Narrow specular edge and subtle inner pigment variation create a beveled, inked surface.
+    ctx.save();ctx.globalAlpha=alpha*.42;ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=Math.max(.6,size*.006);
+    ctx.lineJoin='round';ctx.strokeText(txt,x-size*.006,y-size*.012);ctx.restore();
+    ctx.restore();
+    if(hasNext&&transitionP>0){
       const nextText=String(source[item.index+1].text||'').trim();
-      if(nextText){ctx.save();ctx.globalAlpha=transitionP;ctx.fillStyle=s.ink;ctx.shadowColor=s.ink;ctx.shadowBlur=size*.035;ctx.translate(x,y+(1-transitionP)*size*.22);ctx.scale(.92+.08*transitionP,1);ctx.fillText(nextText,0,0);ctx.restore();}
+      if(nextText){ctx.save();ctx.globalAlpha=transitionP;ctx.font=weight+' '+size+'px "'+family+'", cursive';ctx.fillStyle=ink;ctx.shadowColor=ink;ctx.shadowBlur=size*.06;ctx.translate(x,y+(1-transitionP)*size*.16);ctx.scale(.96+.04*transitionP,1);ctx.fillText(nextText,0,0);ctx.restore();}
     }
-    if(s.splatter>0 && (transitionP>0 || writing)){
-      const p=transitionP>0?transitionP:writeP*.18;
-      const count=Math.min(180,Math.round(24*Number(s.splatter)));
-      ctx.save();ctx.fillStyle=s.ink;
+    // Small, deterministic ink flecks emerge near the advancing wet edge, not across the whole canvas.
+    if(Number(s.splatter)>0&&(writing||transitionP>0)){
+      const p=writing?writeP:transitionP,count=Math.min(96,Math.round(16*Number(s.splatter)));
+      ctx.save();ctx.fillStyle=ink;
       for(let i=0;i<count;i++){
-        const seed=i+item.index*211,angle=hash(seed+4)*Math.PI*2;
-        const spread=(.15+p*1.8)*size*(.25+hash(seed+9)*1.8);
-        const px=x+Math.cos(angle)*spread,py=y+Math.sin(angle)*spread*.55;
-        const radius=Math.max(.7,size*(.003+hash(seed+15)*.014))*Number(s.splatter);
-        ctx.globalAlpha=(.2+.7*hash(seed+23))*(transitionP>0?1-transitionP*.55:.55);
-        ctx.beginPath();ctx.ellipse(px,py,radius*1.25,radius,angle,0,Math.PI*2);ctx.fill();
+        const seed=i+item.index*211,edge=x-textW/2+reveal;
+        const px=edge+(hash(seed+4)-.5)*size*.22;
+        const py=y+(hash(seed+9)-.5)*size*.95;
+        const radius=Math.max(.5,size*(.002+hash(seed+15)*.008))*Number(s.splatter);
+        ctx.globalAlpha=alpha*(.08+.38*hash(seed+23))*p;
+        ctx.beginPath();ctx.ellipse(px,py,radius*1.4,radius,hash(seed+12),0,Math.PI*2);ctx.fill();
       }
       ctx.restore();
     }
-    if(s.flourish && (elapsed>writeDur*.55 || source.length===1)){
-      const p=clamp((elapsed-writeDur*.55)/Math.max(.12,morphDur*.65));
-      if(p>0){
-        ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=s.ink;ctx.lineCap='round';ctx.lineWidth=Math.max(1.5,size*.055);
-        ctx.beginPath();ctx.moveTo(x-textW*.48,y+size*.48);
-        ctx.quadraticCurveTo(x-textW*.04,y+size*.7,x+textW*.52*p,y+size*.38);ctx.stroke();ctx.restore();
-      }
+    if(s.flourish){
+      const p=clamp((elapsed-writeDur*.58)/Math.max(.12,morphDur*.65));
+      if(p>0){ctx.save();ctx.globalAlpha=alpha*.82;ctx.strokeStyle=ink;ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=Math.max(1,size*.025);
+        ctx.shadowColor=ink;ctx.shadowBlur=size*.025;ctx.beginPath();
+        ctx.moveTo(x-textW*.46,y+size*.48);
+        ctx.bezierCurveTo(x-textW*.2,y+size*.76,x+textW*.08,y+size*.67,x+textW*.5*p,y+size*.38);
+        ctx.stroke();ctx.restore();}
     }
-    if(elapsed>dur && !s.loop && s.exit==='cut'){ctx.clearRect(0,0,w,h);}
+    if(elapsed>dur&&!s.loop&&s.exit==='cut')ctx.clearRect(0,0,w,h);
     ctx.restore();
   }
   E.spin=renderSpin; E.premium=renderPremium; E.dustoff=renderDust; E.wrapslide=renderWrapSlide; E.inkscript=renderInkScript;
