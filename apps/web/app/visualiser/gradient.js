@@ -34,7 +34,11 @@
     tabs.setAttribute('role', 'tablist');
     tabs.setAttribute('aria-label', 'Choose visualiser');
 
-    const tab = element('button', 'kefe-btn primary', 'Fluid Ink');
+    const tab = element('button', 'kefe-btn primary kefe-visualiser-tab', '');
+    const tabIcon = element('span', 'kefe-visualiser-tab-icon', '≈');
+    tabIcon.setAttribute('aria-hidden', 'true');
+    const tabLabel = element('span', 'kefe-visualiser-tab-label', 'Fluid Ink');
+    tab.append(tabIcon, tabLabel);
     tab.type = 'button';
     tab.setAttribute('role', 'tab');
     tab.dataset.visualiser = 'gradient';
