@@ -687,7 +687,7 @@
       return;
     }
     const paneWidth=Math.max(0,previewPane.clientWidth-24);
-    const paneHeight=Math.max(0,Math.floor(window.innerHeight*0.52));
+    const paneHeight=Math.max(0,previewPane.clientHeight-24)||Math.max(0,Math.floor(window.innerHeight*0.52));
     if(paneWidth<=0||paneHeight<=0)return;
     let width=Math.min(paneWidth,900);
     let height=width/ratio;
@@ -781,6 +781,7 @@
     }
   });
   syncAspectSelector();
+  fitPreviewStage();
   const previewFullscreen=document.getElementById('previewFullscreen');
   function syncPreviewFullscreen(){
     if(!previewFullscreen||!previewStage)return;
