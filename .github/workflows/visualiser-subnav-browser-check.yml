@@ -95,12 +95,12 @@ jobs:
               assert.ok(Math.abs(layout.rowLeft - layout.presetLeft) < 2 && Math.abs(layout.rowRight - layout.presetRight) < 2,
                 label + ': visualiser options and presets must share the same full-width grid alignment');
               assert.ok(layout.rowRight - layout.rowLeft > 500, label + ': visualiser options must not be confined to the narrow sidebar column');
-              assert.deepEqual(layout.buttons.map(b => b.id), order, label + ': four tabs must appear in the expected order');
+              assert.deepEqual(layout.buttons.map(b => b.id), order, label + ': three tabs must appear in the expected order');
               assert.equal(await submenu.locator('[aria-selected="true"]').getAttribute('data-visualiser'), 'gradient',
                 label + ': Fluid Ink must be the default visualiser');
               assert.equal((await page.locator('#kefeVisualiserHeading').textContent()).trim(), 'Fluid Ink Visualiser',
                 label + ': default heading must identify Fluid Ink');
-              assert.ok(layout.buttons.every(b => b.width > 0 && Math.abs(b.top - layout.buttons[0].top) < 2), label + ': all four tabs must occupy one horizontal row');
+              assert.ok(layout.buttons.every(b => b.width > 0 && Math.abs(b.top - layout.buttons[0].top) < 2), label + ': all three tabs must occupy one horizontal row');
               assert.ok(layout.buttons.every((b, i) => i === 0 || b.left > layout.buttons[i - 1].left), label + ': tabs must be arranged horizontally');
 
               for (const id of order) {
@@ -186,7 +186,7 @@ jobs:
                     label + ': visualiser tab must use the Glass Lens name');
                   assert.equal(await page.locator('#kefeFlutedGlassCanvas').getAttribute('aria-label'), 'Glass Lens preview',
                     label + ': preview canvas must expose the Glass Lens accessible name');
-                  const glassPower = page.locator('[data-visualiser="fluted"]').locator('xpath=..').locator('.kefe-vis-option-power');
+                  const glassPower = page.locator('#kefeVisualiserPowerSlot .kefe-switch');
                   if (await glassPower.getAttribute('aria-checked') !== 'true') await glassPower.click();
                   await page.waitForTimeout(180);
                   const glassRender = await page.locator('#kefeFlutedGlassCanvas').evaluate(canvas => {
@@ -234,7 +234,7 @@ jobs:
                   assert.equal((await page.evaluate(() => window.kefeGradientLayer.state())).palette, 'Ocean',
                     label + ': Fluid Ink palette buttons must update the renderer');
                   await page.locator('[data-fluid-preset="ink-bloom"]').click();
-                  const fluidPower = page.locator('[data-visualiser="gradient"]').locator('xpath=..').locator('.kefe-vis-option-power');
+                  const fluidPower = page.locator('#kefeVisualiserPowerSlot .kefe-switch');
                   const wasEnabled = await fluidPower.getAttribute('aria-checked') === 'true';
                   if (!wasEnabled) await fluidPower.click();
                   await page.waitForTimeout(400);
@@ -270,23 +270,21 @@ jobs:
                     label + ': Fluid Ink must render colour variation rather than a flat fill');
                   if (!wasEnabled) await fluidPower.click();
                 }
-                const power = submenu.locator('[data-visualiser="' + id + '"]').locator('xpath=..').locator('.kefe-vis-option-power');
-                assert.equal(await power.count(), 1, label + ': each visualiser toggle must sit beside its name: ' + id);
-                assert.equal(await page.locator('.kefe-visualiser-panel-head .kefe-switch').count(), 0,
-                  label + ': visualiser power toggles must not be placed in the shared heading: ' + id);
+                const power = page.locator('#kefeVisualiserPowerSlot .kefe-switch');
+                assert.equal(await power.count(), 1, label + ': exactly one power toggle must exist in the shared visualiser heading: ' + id);
+                assert.equal(await page.locator('.kefe-visualiser-panel-head .kefe-switch').count(), 1,
+                  label + ': the selected visualiser power toggle must be in the shared heading: ' + id);
                 const initialPower = await power.getAttribute('aria-checked');
                 await power.click();
-                await page.waitForFunction(({ id, initialPower }) => {
-                  const tab = document.querySelector('[data-visualiser="' + id + '"]');
-                  const button = tab && tab.parentElement.querySelector('.kefe-vis-option-power');
+                await page.waitForFunction(initialPower => {
+                  const button = document.querySelector('#kefeVisualiserPowerSlot .kefe-switch');
                   return button && button.getAttribute('aria-checked') === String(initialPower !== 'true');
-                }, { id, initialPower });
+                }, initialPower);
                 await power.click();
-                await page.waitForFunction(({ id, initialPower }) => {
-                  const tab = document.querySelector('[data-visualiser="' + id + '"]');
-                  const button = tab && tab.parentElement.querySelector('.kefe-vis-option-power');
+                await page.waitForFunction(initialPower => {
+                  const button = document.querySelector('#kefeVisualiserPowerSlot .kefe-switch');
                   return button && button.getAttribute('aria-checked') === initialPower;
-                }, { id, initialPower });
+                }, initialPower);
                 const presetState = await page.evaluate(({ id, presetSetId }) => ({
                   rowVisible: (() => { const row = document.querySelector('.kefe-editing > .kefe-visualiser-preset-row'); return !!row && !row.hidden && getComputedStyle(row).display !== 'none' && row.getBoundingClientRect().height > 0; })(),
                   visibleSets: [...document.querySelectorAll('.kefe-editing > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set')].filter(set => !set.hidden && getComputedStyle(set).display !== 'none').map(set => set.id),

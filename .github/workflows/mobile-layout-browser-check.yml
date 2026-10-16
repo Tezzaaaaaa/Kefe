@@ -324,19 +324,23 @@ jobs:
                   assert.equal(liquidFlowDisplay, 'contents', `Liquid Flow view must flatten into the two-column form at ${width}px; got ${liquidFlowDisplay}`);
                   await assertOnlyVisualiserViewVisible('kefeVisGradientView', 'Liquid Flow');
                   await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Liquid Flow');
-                  const liquidFlowLayout = await page.locator('#kefeVisGradientView .kefe-liquid-flow-controls').evaluate(el => {
-                    const columns = node => new Set([...node.children].filter(child => getComputedStyle(child).display !== 'none').map(child => Math.round(child.getBoundingClientRect().left))).size;
+                  const liquidFlowLayout = await page.locator('#kefeVisGradientView .kefe-fluid-ink-controls').evaluate(el => {
+                    const columns = (node, excludeTitle = false) => new Set([...node.children]
+                      .filter(child => getComputedStyle(child).display !== 'none' &&
+                        !(excludeTitle && child.classList.contains('kefe-fluid-settings-title')))
+                      .map(child => Math.round(child.getBoundingClientRect().left))).size;
+                    const settings = el.querySelector('.kefe-fluid-settings');
                     return {
-                      presetColumns: columns(el.querySelector('.kefe-liquid-presets')),
-                      mainColumns: columns(el.querySelector('.kefe-liquid-main-controls')),
-                      presetCount: el.querySelectorAll('[data-liquid-preset]').length,
-                      sliderCount: el.querySelectorAll('input[type="range"]').length
+                      presetColumns: columns(el.querySelector('.kefe-fluid-presets')),
+                      settingsColumns: columns(settings, true),
+                      presetCount: el.querySelectorAll('[data-fluid-preset]').length,
+                      sliderCount: settings.querySelectorAll('input[type="range"]').length
                     };
                   });
-                  assert.equal(liquidFlowLayout.presetColumns, 2, `Liquid Flow presets must occupy two columns: ${JSON.stringify(liquidFlowLayout)}`);
-                  assert.equal(liquidFlowLayout.mainColumns, 2, `Liquid Flow settings must occupy two columns: ${JSON.stringify(liquidFlowLayout)}`);
-                  assert.equal(liquidFlowLayout.presetCount, 4, 'Liquid Flow must retain all four presets');
-                  assert.ok(liquidFlowLayout.sliderCount > 0, 'Liquid Flow must retain its settings sliders');
+                  assert.equal(liquidFlowLayout.presetColumns, 2, `Fluid Ink presets must occupy two columns: ${JSON.stringify(liquidFlowLayout)}`);
+                  assert.equal(liquidFlowLayout.settingsColumns, 2, `Fluid Ink settings must occupy two columns: ${JSON.stringify(liquidFlowLayout)}`);
+                  assert.equal(liquidFlowLayout.presetCount, 6, 'Fluid Ink must retain all six presets');
+                  assert.ok(liquidFlowLayout.sliderCount > 0, 'Fluid Ink must retain its settings sliders');
                   await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-liquid-flow.png`, fullPage: false, timeout: 15000 });
                 }
 
