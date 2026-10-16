@@ -140,7 +140,7 @@ jobs:
                 assert.ok(rendered.lyricCalls.length > 0, label + ': lyrics did not render for ' + aspect);
                 if (aspect === '16:9') {
                   const glyphAlphas = rendered.lyricCalls.map(call => {
-                    const match = String(call.fillStyle).match(/rgba?\\([^)]*,\\s*([0-9.]+)\\s*\\)$/);
+                    const match = String(call.fillStyle).match(/rgba?\([^)]*,\s*([0-9.]+)\s*\)$/);
                     return match ? Number(match[1]) : NaN;
                   }).filter(Number.isFinite);
                   assert.ok(glyphAlphas.some(alpha => alpha <= 0.35), label + ': unreached lyric glyphs are not dimmed');
