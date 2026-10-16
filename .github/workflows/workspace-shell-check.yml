@@ -38,18 +38,19 @@ jobs:
           live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
           expected_shell=$(grep -o 'app/ui/workspace-shell.css?v=[^"]*' apps/web/editor.html | head -n 1)
           expected_editor=$(grep -o 'app/editor.js?v=[^"]*' apps/web/editor.html | head -n 1)
-          if [ -z "$expected_shell" ] || [ -z "$expected_editor" ]; then
+          expected_styles=$(grep -o 'app/ui/styles.css?v=[^"]*' apps/web/editor.html | head -n 1)
+          if [ -z "$expected_shell" ] || [ -z "$expected_editor" ] || [ -z "$expected_styles" ]; then
             echo 'Could not determine the expected workspace shell assets.' >&2
             exit 1
           fi
           for attempt in $(seq 1 48); do
-            if curl --fail --silent "$live_url" -o /tmp/kefe-live-editor.html 2>/dev/null && grep -Fq "$expected_shell" /tmp/kefe-live-editor.html && grep -Fq "$expected_editor" /tmp/kefe-live-editor.html; then
-              echo "Published editor contains the expected workspace shell assets: $expected_shell and $expected_editor"
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-editor.html 2>/dev/null && grep -Fq "$expected_shell" /tmp/kefe-live-editor.html && grep -Fq "$expected_editor" /tmp/kefe-live-editor.html && grep -Fq "$expected_styles" /tmp/kefe-live-editor.html; then
+              echo "Published editor contains the expected assets: $expected_shell, $expected_editor and $expected_styles"
               exit 0
             fi
             sleep 5
           done
-          echo "GitHub Pages did not publish the expected workspace shell assets ($expected_shell; $expected_editor) in time." >&2
+          echo "GitHub Pages did not publish the expected editor assets ($expected_shell; $expected_editor; $expected_styles) in time." >&2
           exit 1
 
       - name: Verify workspace, editor navigation, themes and routes locally and live
