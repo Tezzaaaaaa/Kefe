@@ -5836,3 +5836,13 @@ body:not(.kefe-fullscreen-open) {
 .kefe-vis-tabs .kefe-btn::before,.kefe-vis-option>[role="tab"]::before{display:none;content:none}
 .kefe-vis-tabs .kefe-vis-option{flex:1 1 0;min-width:0}
 .kefe-vis-tabs .kefe-vis-option>[role="tab"]{width:100%;min-width:0;min-height:40px;padding:8px 12px;gap:0;justify-content:center;white-space:nowrap;font-size:13px;line-height:1.2}
+
+
+/* Shared karaoke overlay controls; Apple Music remains excluded by the renderer. */
+.kefe-karaoke-control[hidden]{display:none!important}
+.kefe-karaoke-control-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.kefe-karaoke-toggle{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:650;white-space:nowrap}
+.kefe-karaoke-toggle input{width:18px;height:18px;accent-color:var(--accent)}
+.kefe-karaoke-control-options{display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:12px;align-items:end;margin-top:10px}
+.kefe-karaoke-color{display:block;width:100px;height:40px;padding:3px;border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);cursor:pointer}
+.kefe-karaoke-control .kefe-meta{margin:8px 0 0}
