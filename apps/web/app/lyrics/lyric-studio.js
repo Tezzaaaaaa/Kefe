@@ -95,22 +95,27 @@
     caseSel.addEventListener('change', function () { S.caseMode = caseSel.value; persist(); redraw(); });
     caseBox.appendChild(caseSel);
 
-    caseBox.classList.add('kefe-case-control');
-    wrap.appendChild(caseBox);
     wrap.appendChild(modeBox);
-    /* Place the single settings container immediately after the effect gallery. */
+    /* Place the single display container immediately after the effect gallery. */
     effectRow.parentNode.insertBefore(wrap, effectRow.nextSibling);
 
     var styleGroup = document.getElementById('kefeStyleGroup');
+    if (styleGroup) {
+      caseBox.classList.add('kefe-case-control');
+      var styleHead = styleGroup.firstElementChild;
+      styleGroup.insertBefore(caseBox, styleHead ? styleHead.nextSibling : styleGroup.firstChild);
+    }
     var placement = styleGroup && Array.prototype.find.call(styleGroup.children, function (node) {
       return node.classList.contains('kefe-visualiser-control-group') &&
         node.querySelector('summary') && node.querySelector('summary').textContent.trim() === 'Size and placement';
     });
 
-    /* Keep size and placement directly beneath the display/chunk controls. */
+    /* Keep the placement sliders in the same group, directly below Words per chunk. */
     if (placement) {
       placement.classList.add('kefe-lyric-placement');
-      wrap.appendChild(placement);
+      var placementTitle = placement.querySelector(':scope > summary');
+      if (placementTitle) placementTitle.remove();
+      modeBox.appendChild(placement);
     }
 
     var fontSelect = document.getElementById('fontOverride');
