@@ -156,6 +156,7 @@ jobs:
                       .map(call => call.fillStyle);
                   });
                   const completedAlphas = completedStyles.map(alphaOf).filter(Number.isFinite);
+                  console.log(JSON.stringify({ target: label, initialAlphas: [...new Set(initialAlphas)], completedStyles: [...new Set(completedStyles)].slice(0, 20), completedAlphas: [...new Set(completedAlphas)] }));
                   assert.ok(completedAlphas.some(alpha => alpha >= 0.95), label + ': reached lyric glyphs never become highlighted');
                 }
                 if (aspect === '16:9') {
