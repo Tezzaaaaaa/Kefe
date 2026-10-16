@@ -18,19 +18,53 @@
     const lay=u.layoutText(ctx,text,{setFont:font,size:Math.min(220,(style.fontSize||140)*1.15*S.size/100),minSize:16,maxWidth:w*.84,maxHeight:h*.82,lineHeight:1.05,maxLines:5});
     const progress=u.lineProgress(active.line,time);if(progress.opacity<=.01)return;
     font(ctx,lay.size);ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.globalAlpha=progress.opacity;
-    const t=(time-(Number(active.line.time)||0))*S.speed,frame=Math.floor(t*24),offset=Number(S.rgbOffset),disp=Number(S.displacement);
-    ctx.filter='contrast('+Number(S.contrast)+'%)';const y0=h*.5-(lay.lines.length-1)*lay.lineH/2;
+    const t=Math.max(0,(time-(Number(active.line.time)||0))*S.speed);
+    const frame=Math.floor(t*30),offset=Number(S.rgbOffset),disp=Number(S.displacement);
+    const y0=h*.5-(lay.lines.length-1)*lay.lineH/2;
+    // Fancy is a deliberate editorial RGB treatment: crisp hero type, restrained colour fringes,
+    // and short signal-tear bursts rather than permanent jitter.
+    const burstGate=hash(Math.floor(t*3.2)+Math.floor(t*17)*.37);
+    const burst=burstGate>.76?Math.min(1,(burstGate-.76)/.24):0;
+    const settle=1-burst*.72;
+    ctx.filter='contrast('+Number(S.contrast)+'%)';
     lay.lines.forEach((line,li)=>{
-      const y=y0+li*lay.lineH,phase=t*30+li*1.7,jitter=Math.sin(phase)*disp*.18;
-      ctx.save();ctx.globalCompositeOperation='lighter';ctx.fillStyle='rgba(255,0,30,.9)';ctx.fillText(line,w/2-offset+jitter,y);
-      ctx.fillStyle='rgba(0,235,255,.9)';ctx.fillText(line,w/2+offset-jitter,y);ctx.restore();
-      ctx.save();ctx.beginPath();ctx.rect(0,y-lay.lineH*.52,w,lay.lineH*1.04);ctx.clip();
-      for(let b=0;b<4;b++){const seed=frame*31+li*11+b;if(hash(seed)<=.62)continue;
-        const bh=Math.max(1,lay.lineH*(.035+hash(seed+5)*.16)),by=y-lay.lineH/2+hash(seed+7)*lay.lineH,dx=(hash(seed+9)-.5)*disp*2;
-        ctx.save();ctx.beginPath();ctx.rect(0,by,w,bh);ctx.clip();ctx.fillStyle=style.textColor||'#fff';ctx.fillText(line,w/2+dx,y);ctx.restore();
+      const y=y0+li*lay.lineH;
+      const jitter=Math.sin(t*5.4+li*1.7)*disp*.025*settle;
+      const chroma=offset*(.42+burst*.58);
+      // Low-intensity chromatic edges stay behind the readable foreground.
+      ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=progress.opacity*(.24+burst*.38);
+      ctx.fillStyle='#FF4FC8';ctx.fillText(line,w/2-chroma+jitter,y);
+      ctx.fillStyle='#46E8FF';ctx.fillText(line,w/2+chroma-jitter,y);
+      ctx.restore();
+      // Only brief bursts break the glyphs into offset horizontal signal slices.
+      if(burst>.05){
+        ctx.save();ctx.beginPath();ctx.rect(0,y-lay.lineH*.52,w,lay.lineH*1.04);ctx.clip();
+        for(let b=0;b<5;b++){
+          const seed=frame*31+li*11+b;
+          if(hash(seed)<.48+burst*.12)continue;
+          const bh=Math.max(1,lay.lineH*(.025+hash(seed+5)*.11));
+          const by=y-lay.lineH/2+hash(seed+7)*lay.lineH;
+          const dx=(hash(seed+9)-.5)*disp*2.1*burst;
+          ctx.save();ctx.beginPath();ctx.rect(0,by,w,bh);ctx.clip();
+          ctx.globalAlpha=progress.opacity*(.18+burst*.32);
+          ctx.fillStyle=b%2?'#46E8FF':'#FF4FC8';
+          ctx.fillText(line,w/2+dx,y);ctx.restore();
+        }
+        ctx.restore();
       }
-      ctx.fillStyle=style.textColor||'#fff';ctx.fillText(line,w/2+jitter*.25,y);ctx.restore();
-    });ctx.restore();
+      // Fine highlight and soft shadow give the display face depth without a heavy neon halo.
+      ctx.save();ctx.globalAlpha=progress.opacity;ctx.fillStyle=style.textColor||'#F8FAFF';
+      ctx.shadowColor='rgba(70,232,255,0.22)';ctx.shadowBlur=Math.max(2,lay.size*.045);
+      ctx.fillText(line,w/2+jitter*.12,y);ctx.restore();
+      // Occasional thin scan tear; kept within the lyric line's own bounds.
+      if(burst>.35&&hash(frame+li*19)>.52){
+        const yy=y+(hash(frame+li*23)-.5)*lay.lineH*.72;
+        const ww=Math.min(w*.72,ctx.measureText(line).width*(.18+hash(frame+li*29)*.45));
+        ctx.save();ctx.globalAlpha=progress.opacity*burst*.48;ctx.fillStyle='#46E8FF';
+        ctx.fillRect(w/2-ww/2+(hash(frame+li*31)-.5)*disp*2,yy,ww,Math.max(1,lay.size*.012));ctx.restore();
+      }
+    });
+    ctx.restore();
   };
   function buildControls(){
     const host=document.querySelector('.kefe-lyric-effects-control');
