@@ -204,17 +204,20 @@
       button.appendChild(strong);button.appendChild(small);button.addEventListener('click',function(){setPreset(id);});presetList.appendChild(button);
     });
     wrap.appendChild(presetList);
+    var settings=document.createElement('section');settings.className='kefe-fluid-settings';
+    var settingsTitle=document.createElement('div');settingsTitle.className='kefe-fluid-settings-title';settingsTitle.textContent='Settings';settings.appendChild(settingsTitle);
     function addSlider(key,label,min,max,step){
       var row=document.createElement('label');row.className='kefe-visualiser-field';
       var head=document.createElement('span'),title=document.createElement('b'),out=document.createElement('output'),input=document.createElement('input');
       title.textContent=label;input.type='range';input.min=min;input.max=max;input.step=step;input.value=values[key];input.dataset.fluidKey=key;
       out.textContent=Number(values[key]).toFixed(step<1?2:1);head.appendChild(title);head.appendChild(out);
       input.addEventListener('input',function(){values[key]=Number(input.value);out.textContent=Number(input.value).toFixed(step<1?2:1);if(key==='quality')allocate();});
-      row.appendChild(head);row.appendChild(input);wrap.appendChild(row);
+      row.appendChild(head);row.appendChild(input);settings.appendChild(row);
     }
     addSlider('speed','Flow speed',.2,2.5,.05);addSlider('swirl','Swirl strength',.2,3,.05);
     addSlider('react','Audio response',0,3,.05);addSlider('bloom','Glow',0,1.5,.05);
     addSlider('density','Ink persistence',.96,.999,.001);addSlider('quality','Simulation quality',.6,1.5,.05);
+    wrap.appendChild(settings);
     var random=document.createElement('button');random.type='button';random.className='kefe-btn';random.textContent='Randomise fluid';random.addEventListener('click',function(){
       var ids=Object.keys(presets);setPreset(ids[Math.floor(Math.random()*ids.length)]);
       paletteIndex=Math.floor(Math.random()*palettes.length);resetDye();
@@ -248,7 +251,7 @@
     var title=intro&&intro.querySelector('strong'),description=intro&&intro.querySelector('span');
     if(title)title.textContent='Fluid Ink controls';
     if(description)description.textContent='Audio-reactive fluid simulation and ink presets.';
-    var style=document.createElement('style');style.textContent='.kefe-fluid-ink-controls{display:flex;flex-direction:column;align-items:stretch;gap:14px;margin-top:14px;min-width:0}.kefe-fluid-description{margin:0;color:var(--muted);font-size:12px;line-height:1.5}.kefe-fluid-presets{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:100%;padding:12px;border:1px solid var(--line-soft);border-radius:var(--r2);background:var(--surface)}.kefe-fluid-presets button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;min-width:0;min-height:56px;height:auto;padding:10px 12px;white-space:normal;border-radius:var(--r2)}.kefe-fluid-ink-controls>.kefe-btn{align-self:flex-start;max-width:100%}.kefe-fluid-ink-controls .kefe-visualiser-field{display:block;width:100%;min-width:0;margin:0;padding:12px;border:1px solid var(--line-soft);border-radius:var(--r2);background:var(--surface)}.kefe-fluid-ink-controls .kefe-visualiser-field>span{gap:10px;overflow-wrap:anywhere;margin-bottom:9px}.kefe-fluid-ink-controls .kefe-visualiser-field input[type=range]{display:block;width:100%;margin:0}.kefe-fluid-presets button strong{font-size:13px}.kefe-fluid-presets button small{font-size:11px;line-height:1.4;color:var(--muted)}';document.head.appendChild(style);
+    var style=document.createElement('style');style.textContent='.kefe-fluid-ink-controls{display:flex;flex-direction:column;align-items:stretch;gap:14px;margin-top:14px;min-width:0}.kefe-fluid-description{margin:0;color:var(--muted);font-size:12px;line-height:1.5}.kefe-fluid-presets{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:100%;padding:12px;border:1px solid var(--line-soft);border-radius:var(--r2);background:var(--surface)}.kefe-fluid-presets button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;min-width:0;min-height:56px;height:auto;padding:10px 12px;white-space:normal;border-radius:var(--r2)}.kefe-fluid-ink-controls>.kefe-btn{align-self:flex-start;max-width:100%}.kefe-fluid-ink-controls .kefe-visualiser-field{display:block;width:100%;min-width:0;margin:0;padding:12px;border:1px solid var(--line-soft);border-radius:var(--r2);background:var(--surface)}.kefe-fluid-ink-controls .kefe-visualiser-field>span{gap:10px;overflow-wrap:anywhere;margin-bottom:9px}.kefe-fluid-ink-controls .kefe-visualiser-field input[type=range]{display:block;width:100%;margin:0}.kefe-fluid-settings{display:flex;flex-direction:column;gap:0;min-width:0;width:100%;padding:4px 12px;border:1px solid var(--line-soft);border-radius:var(--r2);background:var(--surface)}.kefe-fluid-settings-title{padding:9px 2px 10px;font-size:13px;font-weight:650;letter-spacing:-.01em;border-bottom:1px solid var(--line-soft)}.kefe-fluid-settings .kefe-visualiser-field{padding:13px 2px;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;background:transparent}.kefe-fluid-settings .kefe-visualiser-field:last-child{border-bottom:0}.kefe-fluid-presets button strong{font-size:13px}.kefe-fluid-presets button small{font-size:11px;line-height:1.4;color:var(--muted)}';document.head.appendChild(style);
     buildControls(view);setPreset(preset);
     window.kefeGradientLayer={
       paint:function(target,w,h,t){if(!active())return;draw(w,h,Number(t)||0);if(target)target.drawImage(canvas,0,0,w,h);},
