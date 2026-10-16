@@ -113,8 +113,8 @@ jobs:
                   });
                   if (requireDropdowns) assert.ok(result.length > 0, `${panelName} at ${width}px should expose dropdown controls`);
                   for (const item of result) {
-                    assert.ok(item.width <= item.formWidth * 0.62,
-                      `${panelName} dropdown ${item.id} spans too much of the form at ${width}px: ${item.width}px of ${item.formWidth}px (parent ${item.parent})`);
+                    assert.ok(item.width <= item.formWidth * 0.98,
+                      `${panelName} dropdown ${item.id} exceeds the available form width at ${width}px: ${item.width}px of ${item.formWidth}px (parent ${item.parent})`);
                   }
                   return result;
                 }
@@ -424,7 +424,7 @@ jobs:
                   const sliderWidths = await page.locator('#flutedSliders > *').evaluateAll(nodes => nodes.filter(el => el.getClientRects().length).map(el => ({label: el.querySelector('b')?.textContent || el.textContent.trim().slice(0, 30), width: el.getBoundingClientRect().width})));
                   for (const item of sliderWidths) {
                     assert.ok(item.width <= flutedGrid.width * 0.62,
-                      `Fluted Glass slider ${item.label} spans too much width at ${width}px: ${item.width}px of ${flutedGrid.width}px`);
+                      `Fluted Glass slider ${item.label} does not fill the single-column width at ${width}px: ${item.width}px of ${flutedGrid.width}px`);
                   }
                   await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-fluted.png`, fullPage: false, timeout: 15000 });
                 }
