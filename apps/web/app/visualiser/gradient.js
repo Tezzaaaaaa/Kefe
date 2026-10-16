@@ -252,10 +252,10 @@
     ui.syncs=[];
     var gradient=el('div','kefe-vis-view kefe-gradient-view');gradient.id='kefeVisGradientView';gradient.hidden=true;
     var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Choose visualiser');
-    var tg=el('button','kefe-btn primary','Fluid Ink');tg.type='button';
-    tg.setAttribute('role','tab');tg.dataset.visualiser='gradient';
+    var tg=el('button','kefe-btn primary','');tg.type='button';
+    tg.setAttribute('role','tab');tg.dataset.visualiser='gradient';tg.dataset.icon='≈';
     tg.setAttribute('aria-controls','kefeVisGradientView');tg.setAttribute('aria-label','Fluid Ink visualiser');
-    tg.title='Fluid Ink visualiser';tg.textContent='Fluid Ink';
+    tg.title='Fluid Ink visualiser';tg.textContent='';
     var gradientPower=null,gradientToggle;
     var visualiserPanelHead=panel.querySelector('.kefe-visualiser-panel-head');
     var visualiserHeading=panel.querySelector('#kefeVisualiserHeading');
