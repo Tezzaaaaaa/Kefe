@@ -187,14 +187,11 @@ function appleDrawRow(ctx, entries, y, fs, time, act, sungA, unsungA, P, scale, 
     const first = entries[0], last = entries[entries.length - 1];
     const xs = first.x, xe = last.x + last.box.W;
     const p = appleFrontPos(entries, time);
-    const fade = fs * P.fade;
     const sungColor = 'rgba(255,255,255,' + sungA.toFixed(3) + ')';
-    // Calculate opacity per glyph from its position relative to the moving front.
-    // This avoids CanvasGradient coordinate-space differences after the per-line/per-letter
-    // transforms used by the effect, which can make the unsung side render as fully highlighted.
-    const softness = Math.max(1, fade);
-    const glyphFill = cx => {
-        const reached = linaSmooth((p - cx + softness) / (2 * softness));
+    // Do not brighten a glyph before the moving front reaches it. Progress is
+    // measured only across that glyph's own bounds, never in a wide look-ahead fade.
+    const glyphFill = (left, width) => {
+        const reached = linaSmooth((p - left) / Math.max(1, width));
         const alpha = unsungA + (sungA - unsungA) * reached;
         return 'rgba(255,255,255,' + alpha.toFixed(3) + ')';
     };
@@ -217,7 +214,7 @@ function appleDrawRow(ctx, entries, y, fs, time, act, sungA, unsungA, P, scale, 
             if (blurPx > 0.08) {
                 appleBlurText(ctx, en.box.chars[k], lx, y, blurPx, sungColor, scale);
             } else {
-                ctx.fillStyle = glyphFill(cx);
+                ctx.fillStyle = glyphFill(lx, lw);
                 if (glowK > 0 && lift > 0.01) {
                     ctx.shadowColor = 'rgba(255,255,255,' + (0.55 * glowK * lift).toFixed(3) + ')';
                     ctx.shadowBlur = fs * 0.35 * glowK * lift;
