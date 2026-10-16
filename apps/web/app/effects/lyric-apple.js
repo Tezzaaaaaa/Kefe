@@ -259,6 +259,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
 
     ctx.save();
     ctx.font = `${contract.weight || 700} ${activeFontSize}px ${family}`;
+    // Offset by the width of two glyphs, not a fixed pixel value, so the adjustment scales with the lyric typography.
+    const twoLetterOffset = ctx.measureText('MM').width;
+    const horizontalLyricShift = landscapeSplit ? -twoLetterOffset : (aspectRatio < 0.75 ? twoLetterOffset : 0);
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     const rowCacheFont = ctx.font;
@@ -410,7 +413,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         const d = i - focus;
         const act = linaClamp(1 - Math.abs(d), 0, 1);           // 1 = fully focused, 0 = fully inactive
         const rows = line.appleRows || [String(line.text || '').trim()];
-        const x = margin;
+        const x = margin + horizontalLyricShift;
         const y = topAnchor + cum[i] - focusY;
         const scaleAmt = appleKeyframeLerp(d, scalePoints);
         const lineHeightForFade = line.appleBlockHeight || rowHeight;
