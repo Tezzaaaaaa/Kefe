@@ -121,7 +121,7 @@ function appleSpringOut(t) {
    across the space to the next), so there is no per-word stop/start. Letters float up as the
    highlight reaches them (eased, driven by the same front position, so the lift and the fill are
    always in sync) and settle back as the line scrolls away. Sustained words get a soft glow. */
-const APPLE_WAVE = { lift: 0.075, pop: 0.02, dim: 0.42, fade: 0.55, riseSpan: 0.9, glowDur: 0.9 };
+const APPLE_WAVE = { lift: 0.1, pop: 0.04, dim: 0.32, fade: 1, riseSpan: 0.9, glowDur: 0.8 };
 const appleLetterCache = new Map();
 const appleRowCache = new Map();
 const APPLE_OFFSCREEN = 20000;
@@ -436,6 +436,27 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                 const timed = utils.tokenTimes(line, displayLines[i + 1], tokens);
                 if (timed.length === tokens.length && timed.every(v => Number.isFinite(v.time) && Number.isFinite(v.endTime))) times = timed;
             } catch (_) { times = null; }
+        }
+        // The replacement's standalone player animates untimed lyrics by distributing
+        // each line's duration across its words. Keep that behaviour in KEFE's shared
+        // audio clock when the source only supplies line-level timing.
+        if (!times && i === activeIndex && tokens.length) {
+            const start = Number(line.time) || 0;
+            const nextStart = Number(displayLines[i + 1]?.time);
+            const endValue = Number(line.endTime);
+            const end = Number.isFinite(endValue) && endValue > start
+                ? endValue
+                : (Number.isFinite(nextStart) && nextStart > start ? nextStart : start + 3.4);
+            const duration = Math.max(0.5, end - start);
+            const fillDuration = duration * 0.9;
+            const weights = tokens.map((token, index) => (token.length + 1) * (index === tokens.length - 1 ? 2.2 : 1));
+            const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+            let cursor = start;
+            times = tokens.map((token, index) => {
+                const wordStart = cursor;
+                cursor += fillDuration * weights[index] / totalWeight;
+                return { time: wordStart, endTime: Math.max(wordStart + 0.06, cursor) };
+            });
         }
 
         if (times) {
