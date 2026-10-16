@@ -134,15 +134,20 @@
   }
   function simulate(t,dt){
     var audio=readAudio(),energy=audio.bass*.58+audio.mid*.3+audio.treble*.12;
-    var colors=palettesRgb[paletteIndex],phase=t*values.speed;
-    var pulse=.22+energy*values.react;
-    var x1=.5+.24*Math.sin(phase*.31),y1=.5+.22*Math.cos(phase*.43);
-    var x2=.5+.25*Math.cos(phase*.23+1.8),y2=.5+.22*Math.sin(phase*.37+1.2);
-    var x3=.5+.28*Math.sin(phase*.19+3.4),y3=.5+.2*Math.cos(phase*.29+2.1);
-    var f=values.swirl*(.25+energy*values.react);
-    splat(x1,y1,Math.cos(phase*.8)*f+audio.bass*values.react*2,Math.sin(phase*.7)*f,colors[2],.075,.18+pulse*.16);
-    splat(x2,y2,Math.sin(phase*.65)*f,Math.cos(phase*.55)*f+audio.mid*values.react,colors[4],.065,.14+pulse*.12);
-    if(audio.treble>.04||Math.sin(phase*1.8)>.72)splat(x3,y3,Math.cos(phase)*f*.8,Math.sin(phase*1.1)*f*.8,colors[3],.035,.06+audio.treble*values.react*.2);
+    /* Emitters enter from beyond the frame and travel across it instead of
+       continuously injecting colour around the centre. At the default speed,
+       each sweep takes roughly 12.5 seconds for a slow, ink-like drift. */
+    var colors=palettesRgb[paletteIndex],phase=t*values.speed*.08;
+    var pulse=.14+energy*values.react*.55;
+    var travel=(t*values.speed*.08)%1;
+    var reverse=1-travel;
+    var x1=travel*1.24-.12,y1=.18+.64*(.5+.5*Math.sin(phase*1.7));
+    var x2=reverse*1.24-.12,y2=.2+.62*(.5+.5*Math.sin(phase*1.25+2.1));
+    var x3=.16+.68*(.5+.5*Math.sin(phase*1.15+4.2)),y3=travel*1.24-.12;
+    var f=values.swirl*(.12+energy*values.react*.42);
+    splat(x1,y1,Math.cos(phase*.8)*f+audio.bass*values.react*.75,Math.sin(phase*.7)*f,colors[2],.06,.09+pulse*.09);
+    splat(x2,y2,Math.sin(phase*.65)*f,Math.cos(phase*.55)*f+audio.mid*values.react*.45,colors[4],.052,.07+pulse*.07);
+    if(audio.treble>.04||Math.sin(phase*1.8)>.72)splat(x3,y3,Math.cos(phase)*f*.55,Math.sin(phase*1.1)*f*.55,colors[3],.03,.035+audio.treble*values.react*.1);
     velocityStep(dt);dyeStep(dt);
   }
   function paintPixels(){
