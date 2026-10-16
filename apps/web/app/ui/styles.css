@@ -5809,3 +5809,8 @@ body:not(.kefe-fullscreen-open) {
     gap: 10px;
   }
 }
+
+/* Visualiser selector tabs use readable names rather than decorative glyphs. */
+.kefe-vis-tabs .kefe-btn::before,.kefe-vis-option>[role="tab"]::before{display:none!important;content:none!important}
+.kefe-vis-tabs .kefe-vis-option{flex:1 1 0;min-width:0}
+.kefe-vis-tabs .kefe-vis-option>[role="tab"]{width:100%;min-width:0;min-height:40px;padding:8px 12px;gap:0;justify-content:center;white-space:nowrap;font-size:13px;line-height:1.2}
