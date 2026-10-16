@@ -212,7 +212,7 @@
     var paletteStrip=document.querySelector('#kefeGradientPresetSet .kefe-gradient-palettes');
     if(paletteStrip)Array.from(paletteStrip.children).forEach(function(button,i){
       if(!palettes[i])return;
-      button.title=palettes[i].name;button.setAttribute('aria-label',palettes[i].name+' fluid palette');
+      button.title=palettes[i].name;button.setAttribute('aria-label',palettes[i].name+' palette');
       button.style.background='linear-gradient(90deg,'+palettes[i].c.join(',')+')';
       button.addEventListener('click',function(){paletteIndex=i;});
     });
