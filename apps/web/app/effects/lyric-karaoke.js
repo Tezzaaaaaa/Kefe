@@ -27,7 +27,7 @@
 
   /* Draw one karaoke line. phase: {enter,leave,alpha}. Words sweep with a soft edge across exactly word.time..word.endTime
      (Apple-Music/AMLL style) and the sung word lifts + scales on its own pulse, settling by its end. */
-  function drawLine(ctx,w,h,style,line,next,time,phase){
+  function drawLine(ctx,w,h,style,line,next,time,phase,bounceMode){
     var words=u.wordsFor(line,next);
     if(!words.length) return;
     var family='Boogaloo';
@@ -67,11 +67,24 @@
         var lift=wp.pulse*size*0.055 + wp.pre*(1-wp.started)*size*0.012;
         var pop=1+wp.pulse*0.055;
         ctx.save();
-        ctx.translate(x+word.width/2,y-lift);
-        ctx.scale(pop,pop);
+        ctx.translate(x+word.width/2,y-(bounceMode?0:lift));
+        if(!bounceMode)ctx.scale(pop,pop);
         ctx.translate(-word.width/2,0);
-        ctx.fillStyle=u.sweepFill(ctx,0,word.width,wp.sweep,fillColor,inactiveColor,0.28);
-        ctx.fillText(word.text,0,0);
+        if(bounceMode){
+          ctx.fillStyle=wp.started?fillColor:inactiveColor;
+          ctx.fillText(word.text,0,0);
+          if(time>=word.time&&time<word.endTime){
+            var progress=u.clamp((time-word.time)/Math.max(.06,word.endTime-word.time));
+            var bounceY=Math.abs(Math.sin(progress*Math.PI*2.5))*size*.32;
+            ctx.shadowColor=fillColor;ctx.shadowBlur=size*.2;
+            ctx.beginPath();
+            ctx.arc(word.width/2,-size*.58-bounceY,Math.max(4,size*.065),0,Math.PI*2);
+            ctx.fillStyle=fillColor;ctx.fill();
+          }
+        }else{
+          ctx.fillStyle=u.sweepFill(ctx,0,word.width,wp.sweep,fillColor,inactiveColor,0.28);
+          ctx.fillText(word.text,0,0);
+        }
         ctx.restore();
         x+=word.width+gap;
       });
@@ -79,11 +92,17 @@
     ctx.restore();
   }
 
-  window.kefeEffects.karaoke = function(ctx,w,h,style,lines,time){
+  function renderKaraoke(ctx,w,h,style,lines,time,bounceMode){
     var stack=u.lineStack(lines,time);
     for(var i=0;i<stack.length;i++){
       var it=stack[i];
-      drawLine(ctx,w,h,style,it.line,it.next,time,it);
+      drawLine(ctx,w,h,style,it.line,it.next,time,it,!!bounceMode);
     }
+  }
+  window.kefeEffects.karaoke = function(ctx,w,h,style,lines,time){
+    renderKaraoke(ctx,w,h,style,lines,time,false);
+  };
+  window.kefeEffects.bounce = function(ctx,w,h,style,lines,time){
+    renderKaraoke(ctx,w,h,style,lines,time,true);
   };
 })();
