@@ -410,7 +410,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 @media(max-width:640px){.kefe-volume-popover{right:0;bottom:calc(100% + 8px);width:min(210px,calc(100vw - 20px));gap:8px;padding:10px}.kefe-volume-control>button{width:30px;height:34px}}
 
 
-.kefe-editor .kefe-timeline{grid-template-columns:auto minmax(0,1fr) 76px 30px;align-items:center}
+.kefe-editor .kefe-timeline{position:relative;z-index:20;overflow:visible;grid-template-columns:auto minmax(0,1fr) 76px 30px;align-items:center}
 @media(max-width:700px){
   .kefe-editor .kefe-timeline{grid-template-columns:68px minmax(0,1fr) 58px 30px;gap:6px;padding:6px 8px}
   .kefe-editor .kefe-timeline .kefe-wave{height:40px;padding:0 10px}
