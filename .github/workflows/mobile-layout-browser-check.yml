@@ -81,13 +81,13 @@ jobs:
                 await page.locator('.kefe-panel[data-panel-view="effects"].active').waitFor();
                 await page.waitForTimeout(500);
 
-                async function assertTwoColumns(formSelector, panelName) {
+                async function assertSingleColumn(formSelector, panelName) {
                   const result = await page.locator(formSelector).evaluate(form => {
                     const style = getComputedStyle(form);
                     const columns = style.gridTemplateColumns.trim().split(/\s+/).filter(Boolean);
                     return { columns: columns.length, template: style.gridTemplateColumns, width: form.getBoundingClientRect().width };
                   });
-                  assert.equal(result.columns, 2, `${panelName} at ${width}px must render exactly two form columns; got ${result.template}`);
+                  assert.equal(result.columns, 1, `${panelName} at ${width}px must render exactly one form column; got ${result.template}`);
                   return result;
                 }
 
@@ -127,7 +127,7 @@ jobs:
 
                 await page.locator('.kefe-sidebar-link[href="./editor.html"]').click();
                 await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
-                const mediaGrid = await assertTwoColumns('.kefe-panel[data-panel-view="media"] .kefe-form', 'Media');
+                const mediaGrid = await assertSingleColumn('.kefe-panel[data-panel-view="media"] .kefe-form', 'Media');
                 const mediaSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="media"]', 'Media', false);
                 const songDetailFields = await page.locator('#songTitle, #songArtist, #songAlbum, #songYear').evaluateAll(nodes => {
                   const formWidth = document.querySelector('.kefe-panel[data-panel-view="media"] .kefe-form').getBoundingClientRect().width;
@@ -142,7 +142,7 @@ jobs:
 
                 await page.locator('.kefe-sidebar [data-shell-panel="lyrics"]').click();
                 await page.locator('.kefe-panel[data-panel-view="lyrics"].active').waitFor();
-                const lyricsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="lyrics"] .kefe-form', 'Lyrics');
+                const lyricsGrid = await assertSingleColumn('.kefe-panel[data-panel-view="lyrics"] .kefe-form', 'Lyrics');
                 const lyricsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="lyrics"]', 'Lyrics', false);
                 const lyricsComponentWidths = await page.locator('#lyricsInput').evaluate(el => {
                   const formWidth = el.closest('.kefe-form').getBoundingClientRect().width;
@@ -158,7 +158,7 @@ jobs:
 
                 await page.locator('.kefe-sidebar [data-shell-panel="export"]').click();
                 await page.locator('.kefe-panel[data-panel-view="export"].active').waitFor();
-                const exportGrid = await assertTwoColumns('.kefe-panel[data-panel-view="export"] .kefe-form', 'Export');
+                const exportGrid = await assertSingleColumn('.kefe-panel[data-panel-view="export"] .kefe-form', 'Export');
                 const exportSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="export"]', 'Export');
                 if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-export.png`, fullPage: false, timeout: 15000 });
 
@@ -166,7 +166,7 @@ jobs:
                 await page.locator('.kefe-panel[data-panel-view="effects"].active').waitFor();
                 await page.waitForTimeout(300);
 
-                const effectsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
+                const effectsGrid = await assertSingleColumn('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
                 const effectsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="effects"]', 'Effects');
                 const lyricEffectGridLayout = await page.locator('#lyricEffectOptions').evaluate(el => {
                   const style = getComputedStyle(el);
@@ -283,7 +283,7 @@ jobs:
                 await page.locator('.kefe-sidebar [data-shell-panel="visualiser"]').click();
                 await page.locator('.kefe-panel[data-panel-view="visualiser"].active').waitFor();
                 await page.waitForTimeout(500);
-                const visualiserGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Visualiser');
+                const visualiserGrid = await assertSingleColumn('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Visualiser');
                 const visualiserSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="visualiser"]', 'Visualiser', false);
                 const tabsElement = page.locator('.kefe-editing > .kefe-vis-tabs');
                 await tabsElement.waitFor({ state: 'attached', timeout: 5000 }).catch(() => {
@@ -345,9 +345,9 @@ jobs:
                   await gradientTab.click();
                   await page.locator('#kefeVisGradientView:not([hidden])').waitFor();
                   const liquidFlowDisplay = await page.locator('#kefeVisGradientView').evaluate(el => getComputedStyle(el).display);
-                  assert.equal(liquidFlowDisplay, 'contents', `Liquid Flow view must flatten into the two-column form at ${width}px; got ${liquidFlowDisplay}`);
+                  assert.equal(liquidFlowDisplay, 'contents', `Liquid Flow view must flatten into the single-column form at ${width}px; got ${liquidFlowDisplay}`);
                   await assertOnlyVisualiserViewVisible('kefeVisGradientView', 'Liquid Flow');
-                  await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Liquid Flow');
+                  await assertSingleColumn('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Liquid Flow');
                   const liquidFlowLayout = await page.locator('#kefeVisGradientView .kefe-fluid-ink-controls').evaluate(el => {
                     const columns = (node, excludeTitle = false) => new Set([...node.children]
                       .filter(child => getComputedStyle(child).display !== 'none' &&
@@ -379,13 +379,13 @@ jobs:
                   await flutedTab.click();
                   await page.locator('#kefeVisFlutedView:not([hidden])').waitFor();
                   const flutedDisplay = await page.locator('#kefeVisFlutedView').evaluate(el => getComputedStyle(el).display);
-                  assert.equal(flutedDisplay, 'contents', `Fluted Glass wrapper must flatten into the same two-column form at ${width}px; got ${flutedDisplay}`);
+                  assert.equal(flutedDisplay, 'contents', `Fluted Glass wrapper must flatten into the same single-column form at ${width}px; got ${flutedDisplay}`);
                   await assertOnlyVisualiserViewVisible('kefeVisFlutedView', 'Fluted Glass');
                   const flutedToggle = page.locator('.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-panel-head #flutedPower');
                   await flutedToggle.waitFor({ state: 'visible' });
                   assert.equal(await flutedToggle.getAttribute('role'), 'switch', 'Fluted Glass power control must remain an accessible switch');
                   assert.equal(await flutedToggle.getAttribute('aria-label'), 'Glass Lens', 'Glass Lens power control must retain its accessible label');
-                  const flutedGrid = await assertTwoColumns('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Fluted Glass');
+                  const flutedGrid = await assertSingleColumn('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Fluted Glass');
                   const sliderWidths = await page.locator('#flutedSliders > *').evaluateAll(nodes => nodes.filter(el => el.getClientRects().length).map(el => ({label: el.querySelector('b')?.textContent || el.textContent.trim().slice(0, 30), width: el.getBoundingClientRect().width})));
                   for (const item of sliderWidths) {
                     assert.ok(item.width <= flutedGrid.width * 0.62,
