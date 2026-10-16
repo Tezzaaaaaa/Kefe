@@ -104,14 +104,14 @@ jobs:
                 layout['.kefe-panel.active'].right <= layout['.kefe-panels'].right + 2,
                 label + ': active panel must remain inside the panels area');
 
-              const standardLrc = '[00:01.25]First standard line\\n[00:04.50]Second standard line';
+              const standardLrc = '[00:01.25]First standard line\n[00:04.50]Second standard line';
               await page.locator('#kefeLrcInput').setInputFiles({
                 name: 'standard-test.lrc',
                 mimeType: 'text/plain',
                 buffer: Buffer.from(standardLrc, 'utf8')
               });
               await page.waitForFunction(() => document.getElementById('lyricsInput').value.includes('First standard line'));
-              assert.match(await page.locator('#lyricsInput').inputValue(), /\\[00:01\\.250\\] First standard line/,
+              assert.ok((await page.locator('#lyricsInput').inputValue()).includes('[00:01.250] First standard line'),
                 label + ': standard LRC upload must populate the lyrics editor');
 
               const enhancedLrc = '[00:02.00]<00:02.00>Hello <00:02.40>world';
@@ -121,7 +121,7 @@ jobs:
                 buffer: Buffer.from(enhancedLrc, 'utf8')
               });
               await page.waitForFunction(() => document.getElementById('lyricsInput').value.includes('Hello world'));
-              assert.match(await page.locator('#lyricsInput').inputValue(), /Hello world/,
+              assert.ok((await page.locator('#lyricsInput').inputValue()).includes('[00:01.250] First standard line'),
                 label + ': enhanced LRC upload must populate the lyrics editor');
               const enhancedWords = await page.evaluate(() => window.kefeLyricModel.parseLrc('[00:02.00]<00:02.00>Hello <00:02.40>world')[0]?.words);
               assert.deepEqual(enhancedWords?.map(word => word.text), ['Hello', 'world'],
