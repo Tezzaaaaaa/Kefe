@@ -172,9 +172,6 @@
       if(heading)heading.textContent='Slow Light Visualiser';if(description)description.textContent='Original WebGL colour fields, continuous scene morphing, film grain and audio-reactive movement.';
       const header=document.querySelector('.kefe-visualiser-panel-head');
       if(header){header.querySelectorAll('.kefe-switch').forEach(b=>{if(b!==power)b.remove();});if(!header.contains(power))header.appendChild(power);}
-      /* Other visualisers hide themselves when their tab is left, so their canvases are never
-         forced to display:none here (that left Dithr and Fluted Glass blank after a visit). */
-      window.kefeDithrActive=false;
       setActive(true);
     });
     tabsList.appendChild(option);
