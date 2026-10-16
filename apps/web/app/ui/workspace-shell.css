@@ -572,3 +572,22 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 @media(prefers-reduced-motion:reduce){
   .kefe-editor .kefe-play.beui-button,.kefe-editor .kefe-restart.beui-button,.kefe-editor .kefe-aspect-trigger.beui-button{transition:none}
 }
+
+
+/* Keep the KEFE brand pinned while the active workspace section tracks horizontally on mobile. */
+@media(max-width:640px){
+  .kefe-sidebar-brand-row{
+    position:sticky;left:0;z-index:5;flex:0 0 auto;
+    background:var(--shell-sidebar);
+    box-shadow:8px 0 12px -12px var(--shell-text);
+  }
+  .kefe-sidebar-group{scroll-margin-inline:120px}
+  .kefe-sidebar-link.is-current{
+    background:color-mix(in srgb,var(--shell-accent) 18%,var(--shell-panel));
+    border-color:color-mix(in srgb,var(--shell-accent) 52%,var(--shell-line));
+    color:var(--shell-text);
+    box-shadow:inset 0 -2px 0 var(--shell-accent);
+  }
+  .kefe-sidebar{scroll-behavior:smooth;scrollbar-width:none}
+  .kefe-sidebar::-webkit-scrollbar{display:none}
+}
