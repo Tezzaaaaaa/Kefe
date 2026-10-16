@@ -717,6 +717,70 @@
     fitPreviewStage();
     window.dispatchEvent(new Event('resize'));
   });
+  const aspectTrigger=document.getElementById('kefeAspectTrigger');
+  const aspectValue=document.getElementById('kefeAspectValue');
+  const aspectOptions=document.getElementById('kefeAspectOptions');
+  const aspectOptionButtons=[...(aspectOptions?.querySelectorAll('[data-aspect]')||[])];
+  function closeAspectOptions(returnFocus=false){
+    if(!aspectOptions||!aspectTrigger)return;
+    aspectOptions.hidden=true;
+    aspectTrigger.setAttribute('aria-expanded','false');
+    if(returnFocus)aspectTrigger.focus();
+  }
+  function syncAspectSelector(){
+    if(!aspectSelect)return;
+    if(aspectValue)aspectValue.textContent=aspectSelect.value;
+    aspectOptionButtons.forEach((option,index)=>{
+      const selected=option.dataset.aspect===aspectSelect.value;
+      option.setAttribute('aria-selected',String(selected));
+      option.tabIndex=selected?0:-1;
+    });
+  }
+  aspectTrigger?.addEventListener('click',()=>{
+    if(!aspectOptions)return;
+    const open=aspectOptions.hidden;
+    aspectOptions.hidden=!open;
+    aspectTrigger.setAttribute('aria-expanded',String(open));
+    if(open){
+      syncAspectSelector();
+      aspectOptions.querySelector('[aria-selected="true"]')?.focus();
+    }
+  });
+  aspectOptions?.addEventListener('click',event=>{
+    const option=event.target.closest('[data-aspect]');
+    if(!option||!aspectSelect)return;
+    aspectSelect.value=option.dataset.aspect;
+    aspectSelect.dispatchEvent(new Event('change',{bubbles:true}));
+    closeAspectOptions(true);
+  });
+  aspectOptions?.addEventListener('keydown',event=>{
+    const current=aspectOptionButtons.indexOf(document.activeElement);
+    let next=current;
+    if(event.key==='ArrowDown')next=(current+1+aspectOptionButtons.length)%aspectOptionButtons.length;
+    else if(event.key==='ArrowUp')next=(current-1+aspectOptionButtons.length)%aspectOptionButtons.length;
+    else if(event.key==='Home')next=0;
+    else if(event.key==='End')next=aspectOptionButtons.length-1;
+    else if(event.key==='Escape'){event.preventDefault();closeAspectOptions(true);return;}
+    else return;
+    event.preventDefault();
+    aspectOptionButtons[next]?.focus();
+  });
+  document.addEventListener('pointerdown',event=>{
+    if(aspectOptions&&!aspectOptions.hidden&&!event.target.closest('[data-beui-select]'))closeAspectOptions();
+  });
+  aspectSelect?.addEventListener('change',syncAspectSelector);
+  aspectTrigger?.addEventListener('keydown',event=>{
+    if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+      event.preventDefault();
+      if(aspectOptions){
+        aspectOptions.hidden=false;
+        aspectTrigger.setAttribute('aria-expanded','true');
+        syncAspectSelector();
+        aspectOptions.querySelector('[aria-selected="true"]')?.focus();
+      }
+    }
+  });
+  syncAspectSelector();
   const previewFullscreen=document.getElementById('previewFullscreen');
   function syncPreviewFullscreen(){
     if(!previewFullscreen||!previewStage)return;
@@ -783,6 +847,16 @@
       }else audio.pause();
     }else{state.time=state.time>=30?0:state.time+.05;updateTime();draw();}
   };
+  document.getElementById('restartButton')?.addEventListener('click',()=>{
+    if(audio.src)audio.currentTime=0;
+    if(video.src)video.currentTime=0;
+    state.time=0;
+    range.value='0';
+    updateTime();
+    syncAppleLyrics(true);
+    draw();
+    updatePlayButton();
+  });
   function decodeText(bytes){
     try{return new TextDecoder('utf-8').decode(bytes).replace(/\0/g,'').trim();}catch(_){return '';}
   }
