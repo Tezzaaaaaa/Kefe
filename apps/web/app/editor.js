@@ -452,6 +452,7 @@
     ctx.restore();
     ctx.restore();
   }
+  let lyricsEnabled=true;
   let lyricLayer=null;
   function draw(){
     const W=canvas.width,H=canvas.height;
@@ -463,10 +464,10 @@
       const lyricsTop=Math.max(32,H*.07)+Math.min(W,H)*.173;
       appleLyrics.style.setProperty('--kefe-apple-lyrics-top',`${Math.min(0.92,lyricsTop/H)*100}%`);
       const hasTrack=!!(songTitle.value.trim()||songArtist.value.trim()||state.lines.length);
-      appleLyrics.style.display=useAppleComponent&&hasTrack&&(ph.mode==='header'||ph.mode==='off')?'block':'none';
+      appleLyrics.style.display=lyricsEnabled&&useAppleComponent&&hasTrack&&(ph.mode==='header'||ph.mode==='off')?'block':'none';
       if(appleLyricsReady)appleLyrics.currentTime=Math.round(((Number(state.time)||0)-lyricOffset())*1000);
     }
-    if(state.effect!=='none'&&state.lines.length&&!useAppleComponent&&(state.effect!=='apple'||ph.mode==='header'||ph.mode==='move'||ph.mode==='off')){
+    if(lyricsEnabled&&state.effect!=='none'&&state.lines.length&&!useAppleComponent&&(state.effect!=='apple'||ph.mode==='header'||ph.mode==='move'||ph.mode==='off')){
       const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
       if(typeof fn==='function'){
         try{
@@ -587,7 +588,10 @@
   }
   addLyricEffectOption('karaoke','Karaoke');
   addLyricEffectOption('bounce','Bounce Karaoke');
-  addLyricEffectOption('none','Off (no lyrics)');
+  const lyricsEnabledToggle=document.getElementById('lyricsEnabledToggle');
+  function syncLyricsEnabledToggle(){if(!lyricsEnabledToggle)return;lyricsEnabledToggle.classList.toggle('is-on',lyricsEnabled);lyricsEnabledToggle.setAttribute('aria-checked',String(lyricsEnabled));lyricsEnabledToggle.title=lyricsEnabled?'Turn lyrics off':'Turn lyrics on';}
+  lyricsEnabledToggle?.addEventListener('click',()=>{lyricsEnabled=!lyricsEnabled;syncLyricsEnabledToggle();draw();});
+  syncLyricsEnabledToggle();
   effectDefinitions.filter(([id])=>id!=='karaoke'&&id!=='bounce').forEach(([id,label])=>addLyricEffectOption(id,label));
   const kefeBrand=document.querySelector('.kefe-brand');
   if(kefeBrand){
