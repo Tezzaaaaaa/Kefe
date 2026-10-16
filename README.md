@@ -80,12 +80,10 @@ Effects provide different animation and typography treatments. Available control
 
 - Preview playback, scrub through the timeline and view the composition fullscreen.
 - Switch the composition aspect ratio between 16:9, 9:16 and 1:1.
-- Use the Particles Swarm 3D visualiser and available scene presets.
-- Switch between the Particles, Liquid Flow, Dithr and Fluted Glass visualiser panels.
+- Switch between the Liquid Flow, Dithr, Fluted Glass and Slow Light visualisers.
 - The Dithr Visualiser provides audio-reactive dithering, colour separation, block displacement and adjustable rendering parameters.
-- Randomise a visualiser scene or use the prompt-based scene generation control.
-- Adjust particle count, speed, auto-spin and preset-specific parameters.
-- The Particles Swarm visualiser responds to source audio; visualiser output is included in supported video exports.
+- Use the available presets and controls for each visualiser.
+- Visualiser output responds to source audio where supported and is included in video exports.
 
 ### Video formats and export
 
