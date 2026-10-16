@@ -1423,14 +1423,24 @@ button{border:0;cursor:pointer;
 .kefe-export-close:hover{background:#383943}
 @media(max-width:480px){.kefe-export-overlay{padding:12px}.kefe-export-card{padding:22px 18px;border-radius:var(--r3);max-height:calc(100dvh - 24px)}.kefe-export-details{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 10px}.kefe-export-summary{padding:14px}.kefe-export-intro{margin-bottom:18px}}
 
-/* Lyric effect tabs */
+/* Scrollable lyric-effect gallery: browse horizontally while the main canvas stays in the same workspace. */
 .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control{grid-column:1/-1;min-width:0}
-.kefe-lyric-effect-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0}
-.kefe-lyric-effect-option{display:flex;align-items:center;justify-content:flex-start;min-width:0;min-height:40px;padding:9px 12px;border:1px solid var(--line-soft);border-radius:var(--r2);background:var(--surface-hi);color:var(--muted);box-shadow:var(--inner);text-align:left;line-height:1.25;overflow-wrap:anywhere;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease}
-.kefe-lyric-effect-option:hover{background:var(--surface);color:var(--text);box-shadow:var(--lift)}
-.kefe-lyric-effect-option.active{background:var(--accent);border-color:var(--accent);color:var(--accent-deep);box-shadow:var(--lift);font-weight:700}
+.kefe-lyric-effect-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(112px,136px);gap:10px;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:3px 2px 12px;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent;-webkit-overflow-scrolling:touch}
+.kefe-lyric-effect-option{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:10px;min-width:0;min-height:108px;padding:8px;border:1px solid var(--line-soft);border-radius:var(--r2);background:var(--surface-hi);color:var(--muted);box-shadow:var(--inner);text-align:left;line-height:1.25;scroll-snap-align:start;cursor:pointer;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease,transform .16s ease}
+.kefe-lyric-effect-option:hover{background:var(--surface);color:var(--text);box-shadow:var(--lift);transform:translateY(-1px)}
+.kefe-lyric-effect-option.active{background:var(--surface);border-color:var(--accent);color:var(--text);box-shadow:0 0 0 1px var(--accent),var(--lift)}
 .kefe-lyric-effect-option:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-@media(max-width:520px){.kefe-lyric-effect-grid{gap:6px}.kefe-lyric-effect-option{min-height:38px;padding:8px;font-size:12px}}
+.kefe-lyric-effect-sample{display:flex;align-items:center;justify-content:center;min-height:62px;border:1px solid var(--line-soft);border-radius:var(--r1);background:var(--surface);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:34px;font-weight:750;letter-spacing:-.06em;line-height:1;overflow:hidden}
+.kefe-lyric-effect-name{display:block;min-height:2.4em;font-size:12px;font-weight:650;line-height:1.2;overflow-wrap:anywhere}
+.kefe-lyric-effect-option[data-effect="apple"] .kefe-lyric-effect-sample{font-family:Inter,system-ui,sans-serif;font-weight:650;letter-spacing:-.045em}
+.kefe-lyric-effect-option[data-effect="brat"] .kefe-lyric-effect-sample{font-family:Arial,sans-serif;font-weight:900;letter-spacing:-.08em;color:#111;background:#b8f34a}
+.kefe-lyric-effect-option[data-effect="karaoke"] .kefe-lyric-effect-sample{color:var(--accent);text-shadow:0 0 12px color-mix(in srgb,var(--accent) 45%,transparent)}
+.kefe-lyric-effect-option[data-effect="bounce"] .kefe-lyric-effect-sample{transform:translateY(-2px);color:var(--accent);text-shadow:0 3px 0 color-mix(in srgb,var(--accent) 25%,transparent)}
+.kefe-lyric-effect-option[data-effect="typewriter"] .kefe-lyric-effect-sample{font-family:monospace;letter-spacing:-.1em}
+.kefe-lyric-effect-option[data-effect="decrypt"] .kefe-lyric-effect-sample{font-family:monospace;letter-spacing:.02em}
+.kefe-lyric-effect-option[data-effect="blur"] .kefe-lyric-effect-sample{filter:blur(.65px)}
+.kefe-lyric-effect-option[data-effect="shiny"] .kefe-lyric-effect-sample{background:linear-gradient(110deg,var(--surface) 25%,var(--text) 45%,var(--surface) 65%);background-clip:text;-webkit-background-clip:text;color:transparent}
+@media(max-width:520px){.kefe-lyric-effect-grid{grid-auto-columns:minmax(104px,118px);gap:8px;padding-bottom:10px}.kefe-lyric-effect-option{min-height:100px;padding:7px;gap:8px}.kefe-lyric-effect-sample{min-height:58px;font-size:31px}.kefe-lyric-effect-name{font-size:11px}}
 
 /* Effects category layout */
 .kefe-effect-category-tabs{display:flex;flex-direction:row;align-items:stretch;gap:5px;width:100%;min-width:0;margin:0 0 12px;padding:5px 6px;border-radius:var(--r2);background:var(--bg);overflow-x:auto;overflow-y:hidden}
