@@ -61,7 +61,7 @@
     settingsHead.append(el('div', 'kefe-label', 'Lyric settings'), el('div', 'kefe-meta', 'Choose how lyrics appear, then refine their typography and placement.'));
     wrap.appendChild(settingsHead);
 
-    var modeBox = el('div');
+    var modeBox = el('div', 'kefe-lyric-mode-box');
     modeBox.appendChild(el('label', 'kefe-label', 'Lyric display'));
     var seg = el('div', 'kefe-seg'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', 'Lyric display mode');
     var hint = el('div', 'kefe-meta'); hint.style.marginTop = '6px';
