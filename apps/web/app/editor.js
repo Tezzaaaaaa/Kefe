@@ -581,8 +581,16 @@
     button.type='button';
     button.className='kefe-lyric-effect-option';
     button.dataset.effect=id;
-    button.textContent=label;
+    button.setAttribute('aria-label','Preview '+label+' lyric effect');
     button.setAttribute('aria-pressed','false');
+    const sample=document.createElement('span');
+    sample.className='kefe-lyric-effect-sample';
+    sample.setAttribute('aria-hidden','true');
+    sample.textContent='Aa';
+    const name=document.createElement('span');
+    name.className='kefe-lyric-effect-name';
+    name.textContent=label;
+    button.append(sample,name);
     button.addEventListener('click',()=>setEffect(id));
     lyricEffectOptions.appendChild(button);
   }
