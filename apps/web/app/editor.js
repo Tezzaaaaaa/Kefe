@@ -347,7 +347,6 @@
     }
     state.appleLines=state.lines.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
     previewStage.classList.toggle('is-empty',!(audio.currentSrc||audio.src||video.currentSrc||video.src)&&state.lines.length===0);
-    window.kefeSyncVisualiserVisibility?.();
     window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:'text'}}));
     draw();
   }
@@ -972,7 +971,6 @@
     lyricsInput.value=state.appleLines.map(line=>fmtLrc(line.time)+' '+line.text).join('\n');
     clearManualNotice();
     previewStage.classList.remove('is-empty');
-    window.kefeSyncVisualiserVisibility?.();
     const status=document.getElementById('kefeLyricsStatus');
     if(status)status.textContent=source;
     syncAppleLyricsMetadata();draw();syncAppleLyrics(true);showTitleCard();
@@ -1393,7 +1391,6 @@
     if(activeLyricsController){activeLyricsController.abort();activeLyricsController=null;}
     manuallyEditedTrackFields.clear();
     previewStage.classList.remove('is-empty');
-    window.kefeSyncVisualiserVisibility?.();
     songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
     songArtist.value='';songAlbum.value='';songYear.value='';
     state.appleLines=[];state.lines=[];lyricsInput.value='';clearManualNotice();
@@ -1675,7 +1672,7 @@
       compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paint(compositeCtx,dims[0],dims[1],state.time);
       const vw=visualiserCanvas.width,vh=visualiserCanvas.height;
-      if(vw&&vh&&visualiserCanvas&&((window.kefeFlutedGlassActive&&window.kefeFlutedGlassEnabled!==false)||(window.kefeDithrActive&&window.kefeDithrEnabled!==false)||(window.kefeSlowLight?.getState?.().enabled)||(window.kefeLiquidFlow?.state?.().on))){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k,stageRect=previewStage?.getBoundingClientRect(),sx=stageRect?.width?dims[0]/stageRect.width:1,sy=stageRect?.height?dims[1]/stageRect.height:1;compositeCtx.save();compositeCtx.globalCompositeOperation=(window.kefeFlutedGlassActive||window.kefeSlowLight?.getState?.().enabled)?'source-over':(window.kefeBackground?window.kefeBackground.blend():'source-over');compositeCtx.translate(dims[0]/2+visualiserPanX*sx,dims[1]/2+visualiserPanY*sy);compositeCtx.scale(visualiserZoom,visualiserZoom);compositeCtx.drawImage(visualiserCanvas,-dw/2,-dh/2,dw,dh);compositeCtx.restore();}
+      if(vw&&vh&&visualiserCanvas&&((window.kefeFlutedGlassActive&&window.kefeFlutedGlassEnabled!==false)||(window.kefeDithrActive&&window.kefeDithrEnabled!==false)||(window.kefeSlowLight?.getState?.().enabled)||(window.kefeGradientLayer?.state?.().on))){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k,stageRect=previewStage?.getBoundingClientRect(),sx=stageRect?.width?dims[0]/stageRect.width:1,sy=stageRect?.height?dims[1]/stageRect.height:1;compositeCtx.save();compositeCtx.globalCompositeOperation=(window.kefeFlutedGlassActive||window.kefeSlowLight?.getState?.().enabled)?'source-over':(window.kefeBackground?window.kefeBackground.blend():'source-over');compositeCtx.translate(dims[0]/2+visualiserPanX*sx,dims[1]/2+visualiserPanY*sy);compositeCtx.scale(visualiserZoom,visualiserZoom);compositeCtx.drawImage(visualiserCanvas,-dw/2,-dh/2,dw,dh);compositeCtx.restore();}
       if(window.kefeGradientLayer)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
       if(window.kefeAudioOverlay)window.kefeAudioOverlay.paint(compositeCtx,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paintTransparency(compositeCtx,dims[0],dims[1]);
