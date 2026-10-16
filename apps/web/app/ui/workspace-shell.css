@@ -63,6 +63,8 @@ body{overflow-x:hidden;overflow-y:auto}
   background:var(--shell-panel);box-shadow:none;z-index:20;
 }
 .kefe-top-nav,.kefe-top-profile{display:flex;align-items:center;gap:6px}
+.kefe-top-nav{position:relative;z-index:2;flex:0 0 auto;min-width:0}
+.kefe-top-profile{position:relative;z-index:1;min-width:0}
 .kefe-top-nav{gap:0}
 .kefe-top-nav .kefe-top-link{display:none}
 .kefe-brand,.kefe-top-link{box-shadow:none;background:transparent}
