@@ -192,8 +192,10 @@ function appleDrawRow(ctx, entries, y, fs, time, act, sungA, unsungA, P, scale, 
     const sungColor = 'rgba(255,255,255,' + sungA.toFixed(3) + ')';
     const unsungColor = 'rgba(255,255,255,' + unsungA.toFixed(3) + ')';
     const grad = ctx.createLinearGradient(e - fade, 0, Math.max(e, e - fade + 0.01), 0);
-    grad.addColorStop(0, sungColor);
-    grad.addColorStop(1, unsungColor);
+    // Text to the left of the moving highlight front must remain dim; only
+    // glyphs reached by the front become white. The old stop order inverted this.
+    grad.addColorStop(0, unsungColor);
+    grad.addColorStop(1, sungColor);
     const actK = linaSmooth(act);
     for (const en of entries) {
         const dur = Math.max(0.06, en.t1 - en.t0);
