@@ -1167,7 +1167,7 @@ button{border:0;cursor:pointer;
 .kefe-song-details{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--line-soft)}
 .kefe-song-details-head h4{margin:0;font-size: var(--font-base);font-weight:800;color: var(--text);}
 .kefe-song-details-head p{margin:3px 0 0;font-size: var(--font-xs);color: var(--muted);}
-.kefe-details-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kefe-details-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
 
 .kefe-find{display:grid;gap:10px;min-width:0}
 .kefe-find-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -3874,9 +3874,6 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 @media (max-width: 360px) {
   .kefe-find-step {
     padding: 9px;
-  }
-  .kefe-find-step .kefe-details-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
