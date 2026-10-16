@@ -365,9 +365,9 @@ jobs:
                 }
 
                 if (width === 390) {
-                  const githubLink = page.locator('a.kefe-github-link[href="https://github.com/Tezzaaaaaa/Kefe"]');
-                  assert.equal(await githubLink.count(), 1, 'Header should contain one GitHub repository icon link');
-                  assert.ok(await githubLink.isVisible(), 'Header GitHub icon link should be visible');
+                  const githubLink = page.locator('.kefe-sidebar-github[href="https://github.com/Tezzaaaaaa/Kefe"]');
+                  assert.equal(await githubLink.count(), 1, 'Workspace sidebar should contain one GitHub repository link');
+                  assert.ok(await githubLink.isVisible(), 'Workspace sidebar GitHub link should be visible');
 
                   await page.locator('.kefe-sidebar-link[href="./editor.html"]').click();
                   await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
