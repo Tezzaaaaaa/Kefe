@@ -6046,3 +6046,99 @@ body:not(.kefe-fullscreen-open) {
 
 
 
+
+
+/* Unified workspace spacing rhythm: consistent panel edges, control groups, and horizontal rails. */
+.kefe-panels{
+  min-width:0;
+  padding:18px 20px 24px;
+}
+.kefe-panels .kefe-panel[data-panel-view]{
+  width:100%;
+  min-width:0;
+  margin-inline:auto;
+  padding:20px;
+  border-radius:var(--r3);
+}
+.kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head{
+  min-width:0;
+  gap:12px;
+  margin:0 0 18px;
+  padding:0 0 14px;
+}
+.kefe-panels .kefe-panel[data-panel-view] .kefe-form{
+  min-width:0;
+  gap:16px;
+}
+.kefe-panels .kefe-panel[data-panel-view] .kefe-form > *{
+  min-width:0;
+  max-width:100%;
+}
+.kefe-panels .kefe-panel[data-panel-view] .kefe-label{
+  margin:0 0 7px;
+  line-height:1.35;
+}
+.kefe-panels .kefe-panel[data-panel-view] .kefe-select,
+.kefe-panels .kefe-panel[data-panel-view] .kefe-input,
+.kefe-panels .kefe-panel[data-panel-view] .kefe-textarea{
+  box-sizing:border-box;
+  max-width:100%;
+}
+.kefe-panels .kefe-panel[data-panel-view] .kefe-visualiser-control-group,
+.kefe-panels .kefe-panel[data-panel-view] .kefe-lyric-settings,
+.kefe-panels .kefe-panel[data-panel-view] .kefe-lyric-effects-control,
+.kefe-panels .kefe-panel[data-panel-view] .kefe-font-selector-control,
+.kefe-panels .kefe-panel[data-panel-view] .kefe-background-effect-options{
+  min-width:0;
+  max-width:100%;
+}
+.kefe-panels .kefe-panel[data-panel-view] .kefe-visualiser-control-group{
+  padding:16px;
+  gap:14px;
+}
+.kefe-panels .kefe-panel[data-panel-view] .kefe-visualiser-control-group + .kefe-visualiser-control-group{
+  margin-top:16px;
+}
+.kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head h2{
+  line-height:1.3;
+}
+.kefe-panels .kefe-panel[data-panel-view] input[type="range"]:not(#kefeTime):not(.kefe-slider){
+  margin:4px 0 0;
+}
+.kefe-panels .kefe-panel[data-panel-view] .kefe-lyric-effect-grid,
+.kefe-panels .kefe-panel[data-panel-view] .kefe-font-selector-strip,
+.kefe-panels .kefe-panel[data-panel-view] .kefe-background-effect-options{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+}
+@media(max-width:700px){
+  .kefe-panels{
+    padding:12px 10px calc(92px + env(safe-area-inset-bottom));
+  }
+  .kefe-panels .kefe-panel[data-panel-view]{
+    padding:16px;
+    border-radius:12px;
+  }
+  .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head{
+    margin-bottom:16px;
+    padding-bottom:12px;
+    gap:8px;
+  }
+  .kefe-panels .kefe-panel[data-panel-view] .kefe-form{
+    gap:14px;
+  }
+  .kefe-panels .kefe-panel[data-panel-view] .kefe-visualiser-control-group{
+    padding:13px;
+    gap:12px;
+  }
+  .kefe-panels .kefe-panel[data-panel-view] .kefe-visualiser-control-group + .kefe-visualiser-control-group{
+    margin-top:14px;
+  }
+}
+@media(max-width:380px){
+  .kefe-panels{padding-inline:8px}
+  .kefe-panels .kefe-panel[data-panel-view]{padding:12px}
+  .kefe-panels .kefe-panel[data-panel-view] .kefe-form{gap:12px}
+  .kefe-panels .kefe-panel[data-panel-view] .kefe-visualiser-control-group{padding:11px}
+}
