@@ -106,17 +106,13 @@
     });
 
     var fontSelect = document.getElementById('fontOverride');
-    if (fontSelect) {
-      var fontBlock = fontSelect.closest('div');
-      caseBox.classList.add('kefe-case-control');
-      if (fontBlock) {
-        fontBlock.classList.add('kefe-font-control');
-        var pair = el('div', 'kefe-font-case-row');
-        pair.append(fontBlock, caseBox);
-        wrap.appendChild(pair);
-      } else {
-        wrap.appendChild(caseBox);
-      }
+    var fontBlock = fontSelect && !fontSelect.closest('[hidden]') ? fontSelect.closest('div') : null;
+    caseBox.classList.add('kefe-case-control');
+    if (fontBlock) {
+      fontBlock.classList.add('kefe-font-control');
+      var pair = el('div', 'kefe-font-case-row');
+      pair.append(fontBlock, caseBox);
+      wrap.appendChild(pair);
     } else {
       wrap.appendChild(caseBox);
     }
