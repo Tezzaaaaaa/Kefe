@@ -5950,3 +5950,64 @@ body:not(.kefe-fullscreen-open) {
 .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-option[data-effect="brat"] .kefe-lyric-effect-sample{border-color:#b8f34a}
 .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-option:focus-visible{outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-option{transition:none}}
+
+
+/* Unified lyric settings: display first, typography next, placement last. */
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup.kefe-lyric-settings{
+  display:grid;
+  gap:14px;
+  min-width:0;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:var(--r2);
+  background:var(--surface);
+  box-shadow:var(--inner);
+}
+.kefe-lyric-settings-head{
+  display:grid;
+  gap:3px;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--line);
+}
+.kefe-lyric-settings-head .kefe-label{font-size:14px;font-weight:700;letter-spacing:-.02em}
+.kefe-lyric-settings-head .kefe-meta{line-height:1.4}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-lyric-mode-box,
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-font-case-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:8px;
+  min-width:0;
+}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-font-case-row{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:start;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--line);
+}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-font-control,
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-case-control{
+  display:grid;
+  align-content:start;
+  gap:6px;
+  min-width:0;
+}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement{
+  min-width:0;
+  margin:0;
+  border:0;
+  border-top:1px solid var(--line);
+  border-radius:0;
+  padding:12px 0 0;
+  background:transparent;
+  box-shadow:none;
+}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement > summary{
+  padding:0 0 10px;
+  font-weight:650;
+}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement[open] > summary{margin-bottom:8px}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement .kefe-visualiser-field{min-width:0}
+@media(max-width:520px){
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup.kefe-lyric-settings{padding:11px;gap:12px}
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-font-case-row{grid-template-columns:minmax(0,1fr)}
+}
