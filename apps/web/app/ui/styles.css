@@ -6057,3 +6057,8 @@ body:not(.kefe-fullscreen-open) {
     overflow-y: hidden;
   }
 }
+
+/* The editor uses one control column in every section; horizontal galleries scroll inside their full-width controls. */
+.kefe-panel[data-panel-view] .kefe-form {
+  grid-template-columns: minmax(0, 1fr);
+}
