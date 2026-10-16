@@ -39,7 +39,7 @@ The preview combines the lyric/title-card canvas with a dedicated visualiser can
 
 ### Lyric effects
 
-The effect manifest currently lists 31 lyric effects:
+The effect manifest currently lists 32 lyric effects:
 
 - Apple Music-style focus lyrics
 - Brat
@@ -71,6 +71,7 @@ The effect manifest currently lists 31 lyric effects:
 - Premium Circuit
 - Dust Off
 - WrapSlide
+- Eternal Sunshine
 - Ink Script
 
 Effects provide different animation and typography treatments. Available controls depend on the selected effect. Use the shared style controls for colours, text size, placement, outline, glow, custom text and logo, with font overrides where available.
