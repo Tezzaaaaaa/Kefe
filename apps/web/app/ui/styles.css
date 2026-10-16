@@ -6022,3 +6022,19 @@ body:not(.kefe-fullscreen-open) {
 @media(max-width:520px){
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup.kefe-lyric-settings{padding:11px;gap:12px}
 }
+
+
+/* Horizontal font selector rail directly beneath the lyric-effect gallery. */
+.kefe-panel[data-panel-view="effects"] .kefe-font-selector-control{grid-column:1/-1;min-width:0;width:100%;max-width:100%}
+.kefe-font-selector-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;min-width:0}
+.kefe-font-selector-heading .kefe-label,.kefe-font-selector-heading .kefe-meta{margin:0}
+.kefe-font-selector-heading .kefe-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kefe-panel[data-panel-view="effects"] .kefe-font-selector-strip{display:flex;flex-flow:row nowrap;align-items:stretch;gap:10px;width:100%;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:3px 3px 10px;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent;-webkit-overflow-scrolling:touch}
+.kefe-font-option{position:relative;flex:0 0 124px;width:124px;min-width:124px;min-height:90px;padding:8px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:8px;overflow:hidden;border:1px solid var(--line-soft);border-radius:10px;background:var(--surface);color:var(--text);box-shadow:0 2px 7px rgba(30,35,45,.045);cursor:pointer;scroll-snap-align:start;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease}
+.kefe-font-option:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 18px rgba(30,35,45,.10)}
+.kefe-font-option.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));box-shadow:inset 0 0 0 1px var(--accent),0 6px 16px rgba(30,35,45,.09)}
+.kefe-font-option:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.kefe-font-option-sample{display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid var(--line-soft);border-radius:var(--r1);background:var(--surface-hi);color:var(--text);font-size:34px;font-weight:650;letter-spacing:-.06em;line-height:1;overflow:hidden}
+.kefe-font-option-name{display:block;min-height:2.4em;font-size:12px;font-weight:600;line-height:1.2;overflow-wrap:anywhere;text-align:left}
+.kefe-font-option.active .kefe-font-option-name{color:var(--accent)}
+@media(prefers-reduced-motion:reduce){.kefe-font-option{transition:none}}
