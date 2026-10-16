@@ -1294,10 +1294,27 @@
   }
   async function handleLrcFile(file){
     try{
-      const text=String(await file.text()).replace(/^﻿/,'').trim();
-      const lines=text.startsWith('<')?parseAppleTTML(text):parseLrcText(text);
+      const bytes=new Uint8Array(await file.arrayBuffer());
+      let encoding='utf-8',start=0;
+      if(bytes.length>=3&&bytes[0]===0xef&&bytes[1]===0xbb&&bytes[2]===0xbf)start=3;
+      else if(bytes.length>=2&&bytes[0]===0xff&&bytes[1]===0xfe){encoding='utf-16le';start=2;}
+      else if(bytes.length>=2&&bytes[0]===0xfe&&bytes[1]===0xff){encoding='utf-16be';start=2;}
+      else{
+        const sample=bytes.slice(0,Math.min(bytes.length,4096));
+        let evenNulls=0,oddNulls=0;
+        for(let i=0;i<sample.length;i++)if(sample[i]===0){if(i%2)oddNulls++;else evenNulls++;}
+        if(oddNulls>sample.length*.15)encoding='utf-16le';
+        else if(evenNulls>sample.length*.15)encoding='utf-16be';
+      }
+      let text=new TextDecoder(encoding).decode(bytes.slice(start)).replace(/^\uFEFF/,'').replace(/\0/g,'').trim();
+      if(text.includes('\uFFFD')){
+        try{text=new TextDecoder('windows-1252').decode(bytes.slice(start)).replace(/^\uFEFF/,'').replace(/\0/g,'').trim();}catch(_){}
+      }
+      const model=window.kefeLyricModel;
+      const isTtml=/^<(?:\?xml\b|!?DOCTYPE\b|[\w.-]+:)?[\s\S]*$/i.test(text)&&/<(?:[\w.-]+:)?tt(?:\s|>)/i.test(text);
+      const lines=isTtml?parseAppleTTML(text):(model?.parseLrc(text)||parseLrcText(text));
       if(!lines.length){
-        setLyricsStatus('No timed lyrics found in '+file.name+'. Expected lines like [01:23.45] text.');
+        setLyricsStatus('No timed lyrics found in '+file.name+'. Check that it contains LRC timestamps such as [01:23.45] or enhanced word timestamps such as <01:23.45>.');
         openEditorPanel('lyrics');
         return false;
       }
@@ -1306,6 +1323,7 @@
     }catch(error){
       console.warn('[KEFE LRC upload]',error);
       setLyricsStatus('Could not read that lyrics file.');
+      openEditorPanel('lyrics');
       return false;
     }
   }
