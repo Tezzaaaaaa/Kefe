@@ -86,7 +86,8 @@ jobs:
               assert.equal(await page.locator('#kefeVisualiserCanvas').count(), 0, label + ': particle canvas must remain absent after upload');
               await page.locator('.kefe-sidebar [data-shell-panel="visualiser"]').click();
               await page.locator('#kefeVisGradientView:not([hidden])').waitFor();
-              await page.locator('.kefe-panel[data-panel-view="visualiser"] .kefe-switch').first().click();
+              const visualiserPower = page.locator('.kefe-panel[data-panel-view="visualiser"] .kefe-switch').first();
+              if (await visualiserPower.getAttribute('aria-checked') !== 'true') await visualiserPower.click();
               await page.waitForFunction(() => window.kefeGradientLayer?.state?.().on === true);
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
               console.log(JSON.stringify({ result: 'PASS', label, emptyState, layout, afterUpload: 'particle renderer absent; Liquid Flow enabled explicitly', runtimeErrors: errors }, null, 2));
