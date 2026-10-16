@@ -502,3 +502,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 /* Modal layers sit above the floating dock. */
 .kefe-settings-backdrop{z-index:1100}
 
+
+/* beUI dock icon system: consistent 18px Lucide-style outline icons. */
+.kefe-workspace-dock button{font-size:0}
+.kefe-workspace-dock button svg{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
