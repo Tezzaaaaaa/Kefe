@@ -168,6 +168,41 @@ jobs:
 
                 const effectsGrid = await assertSingleColumn('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
                 const effectsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="effects"]', 'Effects');
+
+                const lyricSettingsLayout = await page.locator('#kefeDisplayGroup').evaluate(group => {
+                  const form = group.closest('.kefe-form');
+                  const mode = group.querySelector('.kefe-lyric-mode-box');
+                  const placement = group.querySelector('.kefe-lyric-placement');
+                  const gridColumns = node => getComputedStyle(node).gridTemplateColumns.trim().split(/\\s+/).filter(Boolean).length;
+                  return {
+                    formWidth: form.getBoundingClientRect().width,
+                    modeWidth: mode.getBoundingClientRect().width,
+                    modeColumns: gridColumns(mode),
+                    displayControlWidth: mode.querySelector('.kefe-seg').getBoundingClientRect().width,
+                    placementWidth: placement.getBoundingClientRect().width,
+                    placementColumns: gridColumns(placement),
+                    placementFields: [...placement.querySelectorAll('.kefe-visualiser-field')].map(node => ({
+                      label: node.querySelector('b')?.textContent || '',
+                      width: node.getBoundingClientRect().width
+                    }))
+                  };
+                });
+                assert.equal(lyricSettingsLayout.modeColumns, 1,
+                  `Lyric display settings must stack in one column at ${width}px: ${JSON.stringify(lyricSettingsLayout)}`);
+                assert.equal(lyricSettingsLayout.placementColumns, 1,
+                  `Size and placement settings must stack in one column at ${width}px: ${JSON.stringify(lyricSettingsLayout)}`);
+                assert.ok(lyricSettingsLayout.modeWidth >= lyricSettingsLayout.formWidth * 0.9,
+                  `Lyric display settings must use the full Effects form width at ${width}px: ${JSON.stringify(lyricSettingsLayout)}`);
+                assert.ok(lyricSettingsLayout.displayControlWidth >= lyricSettingsLayout.modeWidth * 0.9,
+                  `Lyric display selector must use the full settings width at ${width}px: ${JSON.stringify(lyricSettingsLayout)}`);
+                assert.ok(lyricSettingsLayout.placementWidth >= lyricSettingsLayout.formWidth * 0.9,
+                  `Size and placement settings must use the full Effects form width at ${width}px: ${JSON.stringify(lyricSettingsLayout)}`);
+                assert.equal(lyricSettingsLayout.placementFields.length, 3,
+                  'Size and placement must retain Text size, Horizontal, and Vertical sliders');
+                for (const field of lyricSettingsLayout.placementFields) {
+                  assert.ok(field.width >= lyricSettingsLayout.placementWidth * 0.9,
+                    `Size/placement slider ${field.label} must use the full placement width at ${width}px: ${JSON.stringify(lyricSettingsLayout)}`);
+                }
                 const lyricEffectGridLayout = await page.locator('#lyricEffectOptions').evaluate(el => {
                   const style = getComputedStyle(el);
                   const rect = el.getBoundingClientRect();
