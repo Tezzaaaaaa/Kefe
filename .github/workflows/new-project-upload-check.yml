@@ -45,15 +45,20 @@ jobs:
       - name: Wait for the changed editor to publish
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
-          expected_marker='media-carousel.js?v=local-upload-search-20261012-2'
+          expected_marker=$(grep -o 'media-carousel.js?v=[^"]*' apps/web/editor.html | head -n 1)
+          expected_editor=$(grep -o 'app/editor.js?v=[^"]*' apps/web/editor.html | head -n 1)
+          expected_visualiser=$(grep -o 'app/visualiser/gradient.js?v=[^"]*' apps/web/editor.html | head -n 1)
+          expected_styles=$(grep -o 'app/ui/styles.css?v=[^"]*' apps/web/editor.html | head -n 1)
+          expected_shell=$(grep -o 'app/ui/workspace-shell.css?v=[^"]*' apps/web/editor.html | head -n 1)
+          if [ -z "$expected_marker" ] || [ -z "$expected_editor" ] || [ -z "$expected_visualiser" ] || [ -z "$expected_styles" ] || [ -z "$expected_shell" ]; then echo 'Could not determine current editor asset markers.' >&2; exit 1; fi
           for attempt in $(seq 1 48); do
-            if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -Fq "$expected_marker" /tmp/kefe-live-index.html && grep -Fq 'app/editor.js?v=async-track-focus-20261014-2' /tmp/kefe-live-index.html && grep -Fq 'app/visualiser/gradient.js?v=site-audit-20261014-1' /tmp/kefe-live-index.html && grep -Fq 'app/ui/styles.css?v=layout-alignment-20261015-2' /tmp/kefe-live-index.html && grep -Fq 'workspace-shell.css?v=layout-alignment-20261015-2' /tmp/kefe-live-index.html; then
-              echo "Published editor contains current Media upload code: $expected_marker"
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html 2>/dev/null && grep -Fq "$expected_marker" /tmp/kefe-live-index.html && grep -Fq "$expected_editor" /tmp/kefe-live-index.html && grep -Fq "$expected_visualiser" /tmp/kefe-live-index.html && grep -Fq "$expected_styles" /tmp/kefe-live-index.html && grep -Fq "$expected_shell" /tmp/kefe-live-index.html; then
+              echo "Published editor contains current Media and layout assets: $expected_marker, $expected_editor, $expected_visualiser, $expected_styles and $expected_shell"
               exit 0
             fi
             sleep 5
           done
-          echo "Published GitHub Pages editor did not expose $expected_marker in time." >&2
+          echo "Published GitHub Pages editor did not expose the current asset markers ($expected_marker; $expected_editor; $expected_visualiser; $expected_styles; $expected_shell) in time." >&2
           exit 1
 
       - name: Test new-project upload locally and on GitHub Pages
