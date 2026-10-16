@@ -46,7 +46,7 @@
     const rowHeight = size * lh;
     const top = h * 0.5 - lay.lines.length * rowHeight / 2 + rowHeight / 2;
     const map = u.charMap(lay.lines, u.wordsFor(line, next));
-    const text0 = style.textColor || '#FFFFFF', accent = style.accentColor || '#7CFFB2';
+    const text0 = style.textColor || '#F4FBFF', accent = style.accentColor || '#58E6D4';
     // glyph flicker runs on a fixed 28 Hz grid so the scramble reads the same at preview and export frame rates
     const tick = Math.floor(time * 28);
 
@@ -81,12 +81,16 @@
         if (time < lockAt) {
           ctx.globalAlpha = clamp(phase.alpha) * appear;
           ctx.fillStyle = accent;
+          ctx.shadowColor = accent;
+          ctx.shadowBlur = size * 0.10;
           ctx.fillText(glyphFor(tick * 13.7 + idx * 7.13), cx, y);
         } else {
           const settle = clamp((time - lockAt) / 0.14);                        // quick pop as the real letter locks in
           const pop = 1 + 0.10 * (1 - u.smoother(settle));
           ctx.globalAlpha = clamp(phase.alpha);
           ctx.fillStyle = text0;
+          ctx.shadowColor = 'rgba(88,230,212,0.24)';
+          ctx.shadowBlur = size * 0.035;
           if (pop > 1.001) { ctx.save(); ctx.translate(cx, y); ctx.scale(pop, pop); ctx.fillText(ch, 0, 0); ctx.restore(); }
           else ctx.fillText(ch, cx, y);
         }
