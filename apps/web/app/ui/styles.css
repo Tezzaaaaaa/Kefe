@@ -6038,3 +6038,5 @@ body:not(.kefe-fullscreen-open) {
 .kefe-font-option-name{display:block;min-height:2.4em;font-size:12px;font-weight:600;line-height:1.2;overflow-wrap:anywhere;text-align:left}
 .kefe-font-option.active .kefe-font-option-name{color:var(--accent)}
 @media(prefers-reduced-motion:reduce){.kefe-font-option{transition:none}}
+
+.kefe-font-selector-control > div[hidden]{display:none}
