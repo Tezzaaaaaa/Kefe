@@ -13,6 +13,7 @@
     apple:               'SF Pro Display',
     brat:                'Archivo Narrow',
     eternal:             'Homemade Apple',
+    tracklist:           'Kefe Tracklist Cursive',
     aurora:              'Bricolage Grotesque',
     typewriter:          'Courier Prime',
     pulse:               'AuraSerif', // * KEFE original merged font
@@ -73,6 +74,8 @@
     { family: 'Archivo Narrow', weight: 900, style: 'italic', file: 'fonts/archivo-narrow/ArchivoNarrow-Italic-VariableFont_wght.woff2' },
     // Homemade Apple
     { family: 'Homemade Apple',    weight: 400, style: 'normal', file: 'fonts/homemade-apple/HomemadeApple-Regular.woff2' },
+    // Kefe Tracklist Cursive
+    { family: 'Kefe Tracklist Cursive', weight: 400, style: 'normal', file: 'fonts/kefe-tracklist-cursive/KefeTracklistCursive-Regular.woff2' },
     // Courier Prime
     { family: 'Courier Prime',     weight: 400, style: 'normal', file: 'fonts/courier-prime/CourierPrime-Regular.woff2' },
     { family: 'Courier Prime',     weight: 700, style: 'normal', file: 'fonts/courier-prime/CourierPrime-Bold.woff2' },
