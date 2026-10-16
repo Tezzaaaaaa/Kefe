@@ -239,7 +239,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     // Match the replacement's 100 × 216.4 portrait layout and 384 × 216.4 landscape split,
     // scaled to KEFE's canvas instead of relying on its standalone HTML/CSS viewport.
     const compositionWidth = landscapeSplit ? w * (186 / 384) : w * 0.836;
-    const horizontalPadding = landscapeSplit ? 0 : 0;
+    const horizontalPadding = 0;
     const contentWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
     const activeFontSize = landscapeSplit ? h * (10.5 / 216.4) : w * (7.9 / 100);
     const inactiveFontSize = activeFontSize * (29 / 32);
