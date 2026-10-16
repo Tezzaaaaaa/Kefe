@@ -139,13 +139,24 @@ document.querySelector('[data-dock-export]')?.addEventListener('click', () => {
 });
 
 
-function syncShellSection(panel) {
+function syncShellSection(panel, scrollActive = true) {
+  let activeButton = null;
   document.querySelectorAll('[data-shell-panel]').forEach(button => {
     const active = button.dataset.shellPanel === panel;
     button.classList.toggle('is-current', active);
-    if (active) button.setAttribute('aria-current', 'page');
-    else button.removeAttribute('aria-current');
+    if (active) {
+      button.setAttribute('aria-current', 'page');
+      activeButton = button;
+    } else button.removeAttribute('aria-current');
   });
+  if (scrollActive && activeButton) {
+    const nav = document.querySelector('.kefe-sidebar');
+    if (nav && window.matchMedia('(max-width: 640px)').matches) {
+      requestAnimationFrame(() => {
+        activeButton.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      });
+    }
+  }
 }
 document.querySelectorAll('[data-shell-panel]').forEach(button => {
   button.addEventListener('click', () => {
