@@ -88,6 +88,9 @@
       const section = el('section', 'kefe-settings-group');
       section.appendChild(el('h3', 'kefe-settings-group-title', group.group));
       group.items.forEach(item => {
+        // Aspect ratio is controlled only by the preview timeline dropdown.
+        // Keep its setting value for compatibility, but do not render a second control here.
+        if (item.key === 'aspect') return;
         const row = el('div', 'kefe-settings-row');
         const copy = el('div', 'kefe-settings-copy');
         const label = el('label', 'kefe-settings-label', item.label);
