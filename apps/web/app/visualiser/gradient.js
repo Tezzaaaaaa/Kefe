@@ -253,9 +253,9 @@
     var gradient=el('div','kefe-vis-view kefe-gradient-view');gradient.id='kefeVisGradientView';gradient.hidden=true;
     var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Choose visualiser');
     var tg=el('button','kefe-btn primary','Liquid Flow');tg.type='button';
-    tg.setAttribute('role','tab');tg.dataset.visualiser='gradient';tg.dataset.icon='◒';
+    tg.setAttribute('role','tab');tg.dataset.visualiser='gradient';
     tg.setAttribute('aria-controls','kefeVisGradientView');tg.setAttribute('aria-label','Liquid Flow visualiser');
-    tg.title='Liquid Flow visualiser';tg.textContent='';
+    tg.title='Liquid Flow visualiser';tg.textContent='Liquid Flow';
     var gradientPower=null,gradientToggle;
     var visualiserPanelHead=panel.querySelector('.kefe-visualiser-panel-head');
     var visualiserHeading=panel.querySelector('#kefeVisualiserHeading');
