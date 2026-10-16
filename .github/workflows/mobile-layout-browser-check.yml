@@ -251,7 +251,7 @@ jobs:
                   return { tested: effects.length, effectKeys: effects.map(effect => effect.key), failures, consoleErrors };
                 });
                 assert.ok(effectAudit.tested > 0, 'Effect registry should not be empty');
-                assert.deepEqual(effectAudit.failures, [], `Lyric effect isolation/render audit failed at ${width}px: ${JSON.stringify(effectAudit.consoleErrors)}`);
+                assert.deepEqual(effectAudit.failures, [], `Lyric effect isolation/render audit failed at ${width}px; failures: ${JSON.stringify(effectAudit.failures)}; console errors: ${JSON.stringify(effectAudit.consoleErrors)}`);
                 console.log(`[effect-audit] ${width}px verified ${effectAudit.tested} lyric effects`);
                 }
                 await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-effects.png`, fullPage: false, timeout: 15000 });
