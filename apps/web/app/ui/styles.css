@@ -1446,7 +1446,13 @@ button{border:0;cursor:pointer;
 .kefe-effect-category-panel{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:12px;min-width:0}
 .kefe-effect-category-panel[hidden]{display:none}
 .kefe-effect-category-panel>.kefe-lyric-effects-control,.kefe-effect-category-panel>#kefeDisplayGroup,.kefe-effect-category-panel>#kefeStyleGroup,.kefe-effect-category-panel>.kefe-background-effect-control,.kefe-effect-category-panel>div[style*="grid-column: 1 / -1"]{grid-column:1/-1;min-width:0}
-.kefe-lyric-effect-grid,.kefe-background-effect-options{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0}
+.kefe-lyric-effect-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0}
+/* Background-effect choices use the same horizontal card rail as the lyric-effect gallery. */
+.kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options{grid-column:1/-1;display:flex;flex-flow:row nowrap;align-items:stretch;gap:10px;width:100%;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:3px 3px 10px;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent;-webkit-overflow-scrolling:touch}
+.kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options>.kefe-lyric-effect-option{flex:0 0 156px;grid-column:auto;width:156px;min-width:156px;min-height:72px;display:flex;align-items:center;justify-content:center;padding:12px;text-align:center;white-space:normal;overflow-wrap:anywhere;scroll-snap-align:start}
+.kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options::-webkit-scrollbar{height:5px}
+.kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options::-webkit-scrollbar-thumb{border-radius:999px;background:var(--line)}
+@media(max-width:520px){.kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options{gap:8px;padding-bottom:8px}.kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options>.kefe-lyric-effect-option{flex-basis:136px;width:136px;min-width:136px;min-height:68px;padding:9px;font-size:12px}}
 .kefe-panel[data-panel-view="effects"] .kefe-effect-category-panel .kefe-background-effect-options>.kefe-lyric-effect-option{grid-column:auto;width:100%;min-width:0;}
 .kefe-lyric-effect-option{grid-column:auto;width:100%}
 .kefe-background-effect-options .kefe-lyric-effect-option:disabled{opacity:.45;cursor:not-allowed}
