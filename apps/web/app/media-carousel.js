@@ -86,7 +86,7 @@
   function busy(on){el.FindBox.classList.toggle('busy',on);el.Carousel.classList.toggle('busy',on);}
 
   function normalise(value){
-    return String(value||'').normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+    return String(value||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
   }
   function relevance(item,query){
     var q=normalise(query),title=normalise(titleOf(item)),artist=normalise(item.artistName),album=normalise(item.collectionName);
@@ -297,6 +297,9 @@
   /* Called by the editor when an uploaded file is identified (or the song fields are searched). */
   function showMatches(items,msg,query){
     if(!el.CarStack)return;
+    /* Invalidate any older live search so late responses cannot overwrite the supplied matches. */
+    S.token++;
+    clearTimeout(S.timer);
     S.mode='search';S.filter='song';syncFilters();el.CarBack.hidden=true;
     if(query!=null){el.FindInput.value=query;el.FindBox.classList.toggle('has-text',!!query);}
     var catalogue=(items||[]).filter(function(x){return !x._kefeLocalUpload;}).slice();
