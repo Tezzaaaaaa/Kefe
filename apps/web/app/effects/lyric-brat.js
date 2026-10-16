@@ -61,8 +61,14 @@
     }
     if (active < 0) return;
 
-    const fontSize = Math.max(12, Math.min(Number(style.fontSize) || 76, usableWidth / 5.5, (h - top - bottom) / 4.8));
-    const font = '400 ' + fontSize + 'px "Arial Narrow", "Liberation Sans Narrow", Arial, "Helvetica Neue", sans-serif';
+    let fontSize = Math.max(12, Math.min(Number(style.fontSize) || 76, (h - top - bottom) / 4.8));
+    const fontFamily = '"Arial Narrow", "Liberation Sans Narrow", Arial, "Helvetica Neue", sans-serif';
+    ctx.save();
+    ctx.font = '400 100px ' + fontFamily;
+    const widestLine = Math.max(1, ...timed.map(entry => ctx.measureText(entry.line.text).width));
+    fontSize = Math.max(12, Math.min(fontSize, 100 * usableWidth / widestLine));
+    ctx.restore();
+    const font = '400 ' + fontSize + 'px ' + fontFamily;
     const rowHeight = fontSize * 1.02;
     const maxRows = Math.max(1, Math.floor((h - top - bottom) / (rowHeight * stretch)));
     const visibleLines = timed.slice(Math.max(0, active - maxRows + 1), active + 1);
@@ -103,8 +109,8 @@
             const alpha = clamp((time - charTime) / 0.055);
             ctx.save();
             ctx.globalAlpha = alpha;
-            ctx.filter = (blurNow > 0.05 ? 'blur(' + blurNow + 'px) ' : '') +
-              (softness ? 'blur(' + softness + 'px)' : 'none');
+            const totalBlur = blurNow + softness;
+            ctx.filter = totalBlur > 0.05 ? 'blur(' + totalBlur + 'px)' : 'none';
             // The narrow face and slight vertical exaggeration echo the intentionally awkward cover typography.
             ctx.translate(charX, baseline);
             ctx.scale(0.88 + 0.12 * progress, stretch);
