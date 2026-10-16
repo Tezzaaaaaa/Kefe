@@ -259,6 +259,7 @@ body{overflow-x:hidden;overflow-y:auto}
   .kefe-top-profile{gap:2px}
   .kefe-top-profile .kefe-top-link{padding-inline:8px;font-size:11px}
   .kefe-work{grid-column:1;grid-row:2;grid-template-rows:auto 48px auto}
+  .kefe-site-footer{grid-row:3}
   .kefe-timeline{width:calc(100% - 16px);padding-inline:5px}
   .kefe-site-footer{width:calc(100% - 16px)}
   .kefe-preview{padding:8px 8px 4px}
