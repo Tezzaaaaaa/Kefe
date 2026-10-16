@@ -1433,8 +1433,7 @@
         if(trackArtist)trackArtist.textContent='File could not be decoded';
       }
       previewStage.classList.add('is-empty');
-      window.kefeSyncVisualiserVisibility?.();
-    };
+     };
     audio.addEventListener('error',onDecodeError,{once:true});
     audio.addEventListener('loadedmetadata',async function identifyOnce(){
       audio.removeEventListener('loadedmetadata',identifyOnce);
@@ -1919,8 +1918,7 @@
       state.appleLines=next.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
       lyricsInput.value=model?model.toLrc(next):next.map(line=>fmtLrc(line.time)+' '+line.text).join('\n');
       previewStage.classList.toggle('is-empty',!(audio.currentSrc||audio.src||video.currentSrc||video.src)&&next.length===0);
-      window.kefeSyncVisualiserVisibility?.();
-      window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:source||'api'}}));
+       window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:source||'api'}}));
       draw();
     },
     seek(time){
