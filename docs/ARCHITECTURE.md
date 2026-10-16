@@ -27,7 +27,7 @@ app/
   brand/          Logos, wordmark and favicon
   effects/        Effect manifest, shared core and lyric renderers
   lyrics/         Lyric data model, timing editor and downloads
-  visualiser/     3D particles, Liquid Flow, Dithr, Fluted Glass, backgrounds and audio-reactive rendering
+  visualiser/     Liquid Flow, Dithr, Fluted Glass, Slow Light, backgrounds and audio-reactive rendering
   ui/             Editor structure, styles, typography and lyric style layer
 fonts/            Bundled fonts, each with its own licence file
 ```
