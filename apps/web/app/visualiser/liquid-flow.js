@@ -184,8 +184,10 @@
     ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=1;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
   }
   function active(){
-    var h=document.getElementById('kefeVisualiserHeading'),tab=document.querySelector('.kefe-vis-tabs [data-visualiser="gradient"]'),power=tab&&tab.parentNode.querySelector('.kefe-vis-option-power');
-    return (!power||power.getAttribute('aria-checked')!=='false')&&(!h||h.textContent.indexOf('Fluid Ink')!==-1);
+    var h=document.getElementById('kefeVisualiserHeading');
+    var power=document.querySelector('#kefeVisualiserPowerSlot .kefe-switch')||
+      document.querySelector('.kefe-vis-tabs [data-visualiser="gradient"] .kefe-vis-option-power');
+    return (!power||power.getAttribute('aria-checked')==='true')&&(!h||h.textContent.indexOf('Fluid Ink')!==-1);
   }
   function setPreset(id){
     if(!presets[id])return;preset=id;Object.assign(values,presets[id]);
