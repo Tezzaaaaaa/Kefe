@@ -93,10 +93,11 @@ jobs:
               const prepared = await page.evaluate(async () => {
                 await document.fonts.ready;
                 const ctx = document.createElement('canvas').getContext('2d');
-                const fontSize = 1080 * 32 / 390;
+                // Match drawAppleEffect's actual landscape typography and right-column width.
+                const fontSize = 1080 * (12.6 / 216.4);
                 ctx.font = '700 ' + fontSize + 'px "SF Pro Display","SF Pro Text","Inter Tight",system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
                 const oldWidth = 1920 * 0.4048;
-                const newWidth = 1920 * 0.528;
+                const newWidth = 1920 * (186 / 384);
                 const words = ['WE', 'KEEP', 'MOVING', 'ON', 'A', 'LONG', 'ROAD', 'TO', 'THE', 'OPEN', 'SKY', 'WHERE', 'EVERY', 'MOMENT', 'FEELS', 'ALIVE'];
                 let fitPhrase = '';
                 let measuredWidth = 0;
