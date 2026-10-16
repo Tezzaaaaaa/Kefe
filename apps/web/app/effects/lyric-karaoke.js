@@ -30,7 +30,7 @@
   function drawLine(ctx,w,h,style,line,next,time,phase,bounceMode){
     var words=u.wordsFor(line,next);
     if(!words.length) return;
-    var family='Boogaloo';
+    var family='Inter';
     var maxWidth=w*0.84;
     var size=Math.max(16,Math.min(150,Number(style.fontSize)||84));
     var layout;
