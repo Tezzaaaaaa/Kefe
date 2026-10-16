@@ -5984,8 +5984,7 @@ body:not(.kefe-fullscreen-open) {
   padding-bottom:12px;
   border-bottom:1px solid var(--line);
 }
-.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-font-control,
-.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-case-control{
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-font-control{
   display:grid;
   align-content:start;
   gap:6px;
@@ -6001,9 +6000,8 @@ body:not(.kefe-fullscreen-open) {
   min-width:0;
   margin:0;
   border:0;
-  border-top:1px solid var(--line);
   border-radius:0;
-  padding:12px 0 0;
+  padding:0;
   background:transparent;
   box-shadow:none;
 }
@@ -6013,12 +6011,13 @@ body:not(.kefe-fullscreen-open) {
   min-width:0;
   box-sizing:border-box;
 }
-.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement > summary{
-  padding:0 0 10px;
-  font-weight:650;
-}
-.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement[open] > summary{margin-bottom:8px}
 .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement .kefe-visualiser-field{min-width:0}
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup .kefe-case-control{
+  display:grid;
+  align-content:start;
+  gap:6px;
+  min-width:0;
+}
 @media(max-width:520px){
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup.kefe-lyric-settings{padding:11px;gap:12px}
 }
