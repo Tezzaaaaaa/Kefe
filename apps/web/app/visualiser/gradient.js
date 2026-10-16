@@ -299,7 +299,6 @@
       if(headerCopy&&visualiserHeading&&visualiserDescription){visualiserHeading.textContent=headerCopy[0];visualiserDescription.textContent=headerCopy[1];}
       var selectedPower=isGradient?gradientPowerButton:glitchPower;
       if(visualiserPanelHead){visualiserPanelHead.querySelectorAll('.kefe-switch').forEach(function(power){power.remove();});if(selectedPower)visualiserPanelHead.appendChild(selectedPower);}
-      if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();
       gradientPresetSet.hidden=!isGradient;
       flutedPresetSet.hidden=which!=='fluted';
       dithrPresetSet.hidden=!isGlitch;
