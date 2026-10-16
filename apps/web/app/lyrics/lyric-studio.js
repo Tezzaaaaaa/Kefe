@@ -1,6 +1,6 @@
 /* KEFE — lyric studio UI.
    Everything about how timed lyrics are shown, edited and exported, built on app/lyrics/lyric-model.js:
-     • Display mode (Line / Word / Karaoke / Chunk) and text case — Effects panel
+     • Display mode (Line / Word / Chunk) and text case — Effects panel
      • Line and word timing editor with undo — Lyrics panel
      • LRC / SRT / timed-JSON downloads and the pre-export review checklist — Lyrics and Export panels
    The editor (editor.js) owns the canvas and exposes window.kefeLyrics; this file never draws. */
@@ -15,7 +15,6 @@
   var MODES = [
     ['line', 'Line', 'Whole line at a time.'],
     ['word', 'Word', 'One word at a time. Suits slower songs.'],
-    ['karaoke', 'Karaoke', 'Whole line with the active word highlighted. Uses the Karaoke effect.'],
     ['chunk', 'Chunk', 'Short phrases. Suits quick, dense lyrics.']
   ];
   var CASES = [['asis', 'As written'], ['upper', 'UPPERCASE'], ['lower', 'lowercase'], ['title', 'Title Case'], ['sentence', 'Sentence case']];
@@ -81,10 +80,6 @@
     }
     function setMode(mode) {
       S.mode = mode; persist(); sync();
-      if (mode === 'karaoke') {
-        var karaokeButton = document.querySelector('.kefe-lyric-effect-option[data-effect="karaoke"]');
-        if (karaokeButton && !karaokeButton.classList.contains('active')) karaokeButton.click();
-      }
       redraw();
     }
     chunk.addEventListener('input', function () { S.chunk = Number(chunk.value); persist(); sync(); redraw(); });
