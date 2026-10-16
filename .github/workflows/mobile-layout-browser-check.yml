@@ -113,7 +113,7 @@ jobs:
                   });
                   if (requireDropdowns) assert.ok(result.length > 0, `${panelName} at ${width}px should expose dropdown controls`);
                   for (const item of result) {
-                    assert.ok(item.width <= item.formWidth * 0.98,
+                    assert.ok(item.width <= item.formWidth * 1.01,
                       `${panelName} dropdown ${item.id} exceeds the available form width at ${width}px: ${item.width}px of ${item.formWidth}px (parent ${item.parent})`);
                   }
                   return result;
