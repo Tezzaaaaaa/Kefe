@@ -191,11 +191,17 @@ function appleDrawRow(ctx, entries, y, fs, time, act, sungA, unsungA, P, scale, 
     const e = p + fade * linaClamp((p - xs) / Math.max(1, xe - xs));
     const sungColor = 'rgba(255,255,255,' + sungA.toFixed(3) + ')';
     const unsungColor = 'rgba(255,255,255,' + unsungA.toFixed(3) + ')';
-    const grad = ctx.createLinearGradient(e - fade, 0, Math.max(e, e - fade + 0.01), 0);
-    // Text to the left of the moving highlight front must remain dim; only
-    // glyphs reached by the front become white. The old stop order inverted this.
-    grad.addColorStop(0, unsungColor);
-    grad.addColorStop(1, sungColor);
+    // Span the whole row. A gradient confined to the moving edge clamps its
+    // final colour across the rest of the line, making every word look highlighted.
+    // Keep already-reached text white and unreached text dim, with a soft moving edge.
+    const rowWidth = Math.max(1, xe - xs);
+    const front = linaClamp((p - xs) / rowWidth);
+    const softness = linaClamp(fade / rowWidth, 0.002, 0.12);
+    const grad = ctx.createLinearGradient(xs, 0, xe, 0);
+    grad.addColorStop(0, sungColor);
+    grad.addColorStop(Math.max(0, front - softness), sungColor);
+    grad.addColorStop(Math.min(1, front + softness), unsungColor);
+    grad.addColorStop(1, unsungColor);
     const actK = linaSmooth(act);
     for (const en of entries) {
         const dur = Math.max(0.06, en.t1 - en.t0);
