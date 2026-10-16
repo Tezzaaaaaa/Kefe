@@ -129,7 +129,7 @@
     stage=document.querySelector('.kefe-stage');
     if(!tabs||!form||!stage){console.error('[KEFE Slow Light] Required preview or controls are missing.');return;}
     canvas=document.createElement('canvas');canvas.id='kefeSlowLightCanvas';canvas.setAttribute('aria-label','Slow Light visualiser output');
-    Object.assign(canvas.style,{position:'absolute',inset:'0',width:'100%',height:'100%',display:'none',zIndex:'2',pointerEvents:'none',borderRadius:'0'});
+    Object.assign(canvas.style,{position:'absolute',inset:'0',width:'100%',height:'100%',display:'none',opacity:'0.56',zIndex:'2',pointerEvents:'none',borderRadius:'0'});
     const lyric=document.getElementById('kefeCanvas');stage.insertBefore(canvas,lyric||null);
     gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'});
     if(!gl||!build()){canvas.remove();console.error('[KEFE Slow Light] WebGL initialization failed.');return;}
