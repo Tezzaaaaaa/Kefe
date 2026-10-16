@@ -1939,7 +1939,7 @@ body{ letter-spacing: -.01em;
   color: var(--text);}
 
 .kefe-panel[data-panel-view="lyrics"] .kefe-form {
-  grid-template-columns: minmax(0, 1.35fr) minmax(270px, .85fr);
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .kefe-panel[data-panel-view="lyrics"] .kefe-textarea {
@@ -2010,7 +2010,7 @@ body{ letter-spacing: -.01em;
   font-family: inherit;
   color: var(--muted);}
 .kefe-panel[data-panel-view="effects"] .kefe-form {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card {
@@ -2031,7 +2031,7 @@ body{ letter-spacing: -.01em;
 .kefe-font-name { color: var(--accent-deep); font-size: var(--font-lg); }
 
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-intro {
@@ -2068,7 +2068,7 @@ body{ letter-spacing: -.01em;
 }
 
 @media (max-width: 1080px) {
-  .kefe-panel[data-panel-view="media"] .kefe-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kefe-panel[data-panel-view="media"] .kefe-form { grid-template-columns: minmax(0, 1fr); }
   .kefe-panel[data-panel-view="media"] .kefe-upload-zone { grid-column: 1 / -1; grid-row: auto; }
   .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songTitle),
   .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songArtist),
@@ -2366,7 +2366,7 @@ body{
 
 /* Effects panel: keep the two primary selectors prominent, then group controls compactly beneath. */
 .kefe-panel[data-panel-view="effects"] .kefe-form {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   gap: 8px;
 }
@@ -2395,7 +2395,7 @@ body{
 }
 @media (max-width: 560px) {
   .kefe-panel[data-panel-view="effects"] .kefe-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 6px;
   }
 }
@@ -5610,7 +5610,7 @@ body:not(.kefe-fullscreen-open) {
 /* Keep Export options side by side at every viewport width. */
 .kefe-panel[data-panel-view="export"] .kefe-form {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
 }
 .kefe-panel[data-panel-view="export"] .kefe-form > * {
