@@ -186,7 +186,7 @@ jobs:
                     label + ': visualiser tab must use the Glass Lens name');
                   assert.equal(await page.locator('#kefeFlutedGlassCanvas').getAttribute('aria-label'), 'Glass Lens preview',
                     label + ': preview canvas must expose the Glass Lens accessible name');
-                  const glassPower = page.locator('.kefe-visualiser-panel-head .kefe-switch');
+                  const glassPower = page.locator('[data-visualiser="fluted"]').locator('xpath=..').locator('.kefe-vis-option-power');
                   if (await glassPower.getAttribute('aria-checked') !== 'true') await glassPower.click();
                   await page.waitForTimeout(180);
                   const glassRender = await page.locator('#kefeFlutedGlassCanvas').evaluate(canvas => {
@@ -234,7 +234,7 @@ jobs:
                   assert.equal((await page.evaluate(() => window.kefeGradientLayer.state())).palette, 'Ocean',
                     label + ': Fluid Ink palette buttons must update the renderer');
                   await page.locator('[data-fluid-preset="ink-bloom"]').click();
-                  const fluidPower = page.locator('.kefe-visualiser-panel-head .kefe-switch');
+                  const fluidPower = page.locator('[data-visualiser="gradient"]').locator('xpath=..').locator('.kefe-vis-option-power');
                   const wasEnabled = await fluidPower.getAttribute('aria-checked') === 'true';
                   if (!wasEnabled) await fluidPower.click();
                   await page.waitForTimeout(400);
@@ -270,21 +270,23 @@ jobs:
                     label + ': Fluid Ink must render colour variation rather than a flat fill');
                   if (!wasEnabled) await fluidPower.click();
                 }
-                const power = page.locator('.kefe-visualiser-panel-head .kefe-switch');
-                assert.equal(await power.count(), 1, label + ': selected visualiser toggle must sit beside its description: ' + id);
-                assert.equal(await submenu.locator('[data-visualiser="' + id + '"]').locator('xpath=..').locator('.kefe-switch').count(), 0,
-                  label + ': power toggle must not remain beside the tab icon: ' + id);
+                const power = submenu.locator('[data-visualiser="' + id + '"]').locator('xpath=..').locator('.kefe-vis-option-power');
+                assert.equal(await power.count(), 1, label + ': each visualiser toggle must sit beside its name: ' + id);
+                assert.equal(await page.locator('.kefe-visualiser-panel-head .kefe-switch').count(), 0,
+                  label + ': visualiser power toggles must not be placed in the shared heading: ' + id);
                 const initialPower = await power.getAttribute('aria-checked');
                 await power.click();
-                await page.waitForFunction(({ initialPower }) => {
-                  const button = document.querySelector('.kefe-visualiser-panel-head .kefe-switch');
+                await page.waitForFunction(({ id, initialPower }) => {
+                  const tab = document.querySelector('[data-visualiser="' + id + '"]');
+                  const button = tab && tab.parentElement.querySelector('.kefe-vis-option-power');
                   return button && button.getAttribute('aria-checked') === String(initialPower !== 'true');
-                }, { initialPower });
+                }, { id, initialPower });
                 await power.click();
-                await page.waitForFunction(({ initialPower }) => {
-                  const button = document.querySelector('.kefe-visualiser-panel-head .kefe-switch');
+                await page.waitForFunction(({ id, initialPower }) => {
+                  const tab = document.querySelector('[data-visualiser="' + id + '"]');
+                  const button = tab && tab.parentElement.querySelector('.kefe-vis-option-power');
                   return button && button.getAttribute('aria-checked') === initialPower;
-                }, { initialPower });
+                }, { id, initialPower });
                 const presetState = await page.evaluate(({ id, presetSetId }) => ({
                   rowVisible: (() => { const row = document.querySelector('.kefe-editing > .kefe-visualiser-preset-row'); return !!row && !row.hidden && getComputedStyle(row).display !== 'none' && row.getBoundingClientRect().height > 0; })(),
                   visibleSets: [...document.querySelectorAll('.kefe-editing > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set')].filter(set => !set.hidden && getComputedStyle(set).display !== 'none').map(set => set.id),
