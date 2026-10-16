@@ -456,37 +456,70 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   .kefe-top-profile .kefe-top-link:not(.kefe-command-trigger):not(.kefe-github-link){flex:0 0 auto;width:auto;min-width:0;overflow:visible;white-space:nowrap}
 }
 
-/* beUI range slider: the default for every slider in the editor and settings dialog.
-   The transport scrubber (.kefe-slider) and the lyric timing slider draw their own thumb. */
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(.kefe-lyrics-timing-slider), .kefe-settings input[type="range"], input[type="range"].beui-slider){
-  -webkit-appearance:none;appearance:none;background:transparent;
-  min-height:24px;margin:0;cursor:pointer;accent-color:var(--shell-accent);
+/* beUI Motion Range Slider styling shared by every editor/settings range control.
+   Only the media transport scrubber stays on its dedicated timeline styling. */
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider){
+  -webkit-appearance:none;appearance:none;display:block;width:100%;height:40px;min-height:40px;
+  margin:0;padding:0;border:0;border-radius:8px;overflow:visible;background:transparent;
+  cursor:pointer;accent-color:var(--shell-accent);touch-action:pan-y;
 }
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(.kefe-lyrics-timing-slider), .kefe-settings input[type="range"], input[type="range"].beui-slider)::-webkit-slider-runnable-track{
-  height:4px;border-radius:2px;background:color-mix(in srgb,var(--shell-text) 16%,transparent);
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-webkit-slider-runnable-track{
+  height:40px;border:0;border-radius:8px;
+  background:
+    radial-gradient(circle,color-mix(in srgb,var(--shell-text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc((100% - 16px)/9) 4px repeat-x,
+    linear-gradient(to right,color-mix(in srgb,var(--shell-accent) 20%,var(--shell-panel)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--shell-text) 7%,var(--shell-panel)) var(--kefe-slider-progress,0%) 100%);
+  box-shadow:inset 0 1px 2px color-mix(in srgb,var(--shell-text) 5%,transparent);
 }
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(.kefe-lyrics-timing-slider), .kefe-settings input[type="range"], input[type="range"].beui-slider)::-webkit-slider-thumb{
-  -webkit-appearance:none;appearance:none;width:6px;height:14px;margin-top:-5px;border:0;border-radius:2px;
-  background:var(--shell-accent);cursor:pointer;
-  box-shadow:0 0 8px color-mix(in srgb,var(--shell-accent) 60%,transparent);
-  transition:transform .1s ease;
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:4px;height:24px;margin-top:8px;border:0;border-radius:999px;
+  background:var(--shell-text);cursor:grab;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--shell-panel) 35%,transparent);
+  transition:transform .16s cubic-bezier(.2,.8,.2,1);
 }
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(.kefe-lyrics-timing-slider), .kefe-settings input[type="range"], input[type="range"].beui-slider)::-moz-range-track{
-  height:4px;border-radius:2px;background:color-mix(in srgb,var(--shell-text) 16%,transparent);
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-moz-range-track{
+  height:40px;border:0;border-radius:8px;
+  background:
+    radial-gradient(circle,color-mix(in srgb,var(--shell-text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc((100% - 16px)/9) 4px repeat-x,
+    linear-gradient(to right,color-mix(in srgb,var(--shell-accent) 20%,var(--shell-panel)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--shell-text) 7%,var(--shell-panel)) var(--kefe-slider-progress,0%) 100%);
+  box-shadow:inset 0 1px 2px color-mix(in srgb,var(--shell-text) 5%,transparent);
 }
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(.kefe-lyrics-timing-slider), .kefe-settings input[type="range"], input[type="range"].beui-slider)::-moz-range-thumb{
-  width:6px;height:14px;border:0;border-radius:2px;background:var(--shell-accent);cursor:pointer;
-  box-shadow:0 0 8px color-mix(in srgb,var(--shell-accent) 60%,transparent);
-  transition:transform .1s ease;
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-moz-range-thumb{
+  width:4px;height:24px;border:0;border-radius:999px;background:var(--shell-text);cursor:grab;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--shell-panel) 35%,transparent);
+  transition:transform .16s cubic-bezier(.2,.8,.2,1);
 }
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(.kefe-lyrics-timing-slider), .kefe-settings input[type="range"], input[type="range"].beui-slider):hover::-webkit-slider-thumb,
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(.kefe-lyrics-timing-slider), .kefe-settings input[type="range"], input[type="range"].beui-slider):active::-webkit-slider-thumb{transform:scaleY(1.3)}
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(.kefe-lyrics-timing-slider), .kefe-settings input[type="range"], input[type="range"].beui-slider):hover::-moz-range-thumb,
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(.kefe-lyrics-timing-slider), .kefe-settings input[type="range"], input[type="range"].beui-slider):active::-moz-range-thumb{transform:scaleY(1.3)}
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(.kefe-lyrics-timing-slider), .kefe-settings input[type="range"], input[type="range"].beui-slider):focus-visible{outline:2px solid var(--shell-accent);outline-offset:3px;border-radius:4px}
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(.kefe-lyrics-timing-slider), .kefe-settings input[type="range"], input[type="range"].beui-slider):disabled{opacity:.45;cursor:not-allowed}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):hover::-webkit-slider-thumb,
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):active::-webkit-slider-thumb{transform:scaleY(1.3)}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):hover::-moz-range-thumb,
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):active::-moz-range-thumb{transform:scaleY(1.3)}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):focus-visible{outline:2px solid var(--shell-accent);outline-offset:3px;border-radius:8px}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):disabled{opacity:.45;cursor:not-allowed}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider{
+  height:40px;min-height:40px;border-radius:8px;touch-action:pan-x;
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-webkit-slider-runnable-track{
+  height:40px;border:0;border-radius:8px;
+  background:
+    radial-gradient(circle,color-mix(in srgb,var(--shell-text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc((100% - 16px)/9) 4px repeat-x,
+    linear-gradient(to right,color-mix(in srgb,var(--shell-accent) 20%,var(--shell-panel)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--shell-text) 7%,var(--shell-panel)) var(--kefe-slider-progress,0%) 100%);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-moz-range-track{
+  height:40px;border:0;border-radius:8px;
+  background:
+    radial-gradient(circle,color-mix(in srgb,var(--shell-text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc((100% - 16px)/9) 4px repeat-x,
+    linear-gradient(to right,color-mix(in srgb,var(--shell-accent) 20%,var(--shell-panel)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--shell-text) 7%,var(--shell-panel)) var(--kefe-slider-progress,0%) 100%);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:4px;height:24px;margin-top:8px;border:0;border-radius:999px;background:var(--shell-text);box-shadow:none;
+  transition:transform .16s cubic-bezier(.2,.8,.2,1);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-moz-range-thumb{
+  width:4px;height:24px;border:0;border-radius:999px;background:var(--shell-text);box-shadow:none;
+  transition:transform .16s cubic-bezier(.2,.8,.2,1);
+}
 @media(prefers-reduced-motion:reduce){
   :is(.kefe-editor input[type="range"], .kefe-settings input[type="range"])::-webkit-slider-thumb{transition:none}
+  :is(.kefe-editor input[type="range"], .kefe-settings input[type="range"])::-moz-range-thumb{transition:none}
 }
 
 /* Single-column editor controls across every workspace panel. */
