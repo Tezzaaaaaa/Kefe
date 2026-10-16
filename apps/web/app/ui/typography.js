@@ -19,7 +19,7 @@
     rise:                'Boulder', // * KEFE original merged font
     instagram:           'Inter Tight',
     fadeup:              'BlockParty', // * KEFE original merged font
-    decrypt:             'Kefe Tracklist Cursive', // * KEFE original merged font
+    decrypt:             'Inter',
     blur:                'VogueNoir', // * KEFE original merged font
     shiny:               'BubblegumDisplay', // * KEFE original merged font
     // New lyric effects
@@ -162,7 +162,7 @@
     typewriter: { family: families.typewriter,  weight: 400, min: 32, max: 140, lineHeight: 1.02, tracking: .020,  align: 'center', case: 'none',  opticalScale: .98 },
     instagram:  { family: families.instagram,   weight: 800, min: 48, max: 150, lineHeight: .78,  tracking: -.035, align: 'center', case: 'upper', opticalScale: 1.00 },
     fadeup:     { family: families.fadeup,      weight: 400, min: 34, max: 150, lineHeight: 1.08, tracking: -.006, align: 'center', case: 'none',  opticalScale: .98 },
-    decrypt:    { family: families.decrypt,     weight: 700, min: 30, max: 140, lineHeight: 1.10, tracking: .010,  align: 'center', case: 'none',  opticalScale: .98 },
+    decrypt:    { family: families.decrypt,     weight: 650, min: 30, max: 140, lineHeight: 1.10, tracking: -.012, align: 'center', case: 'none', opticalScale: 1.00 },
     blur:       { family: families.blur,        weight: 600, min: 30, max: 140, lineHeight: 1.14, tracking: -.010, align: 'center', case: 'none',  opticalScale: 1.00 },
     shiny:      { family: families.shiny,       weight: 800, min: 30, max: 150, lineHeight: 1.10, tracking: -.020, align: 'center', case: 'none',  opticalScale: 1.00 },
     drop:       { family: families.drop,        weight: 400, min: 36, max: 160, lineHeight: 1.06, tracking: -.006, align: 'center', case: 'none',  opticalScale: 1.00 },
