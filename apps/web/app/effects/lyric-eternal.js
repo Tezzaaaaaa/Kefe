@@ -208,7 +208,35 @@ function getEternalLineAlpha(slot, group, time) {
     if (!next) return 1;
     if (time < next.time) return 1;
     const fade = linaSmooth((time - next.time) / Math.max(0.8, Math.min(2.3, (next.endTime - next.time) * 0.90)));
-    return 1 - fade * 0.84;
+    return 1 - fade * 0.62;
+}
+
+/* 0..1 amount of the line that should be written at `time`, driven by real
+ * word timings when present (weighted by letters), else by the line span. */
+function getEternalWriteProgress(line, text, time, writeSpan) {
+    const words = Array.isArray(line.words) ? line.words.filter(w => hasFiniteNumber(w?.time) && String(w.text || '').trim()) : [];
+    if (words.length >= 2) {
+        const total = words.reduce((s, w) => s + String(w.text).trim().length + 1, 0);
+        let done = 0;
+        for (let i = 0; i < words.length; i++) {
+            const w = words[i];
+            const len = String(w.text).trim().length + 1;
+            const start = Number(w.time);
+            const nextStart = i < words.length - 1 ? Number(words[i + 1].time) : line.vocalEndTime;
+            const end = hasFiniteNumber(w.endTime) ? Math.min(Number(w.endTime), nextStart) : nextStart;
+            const span = Math.max(0.12, Math.min(0.9, end - start));
+            if (time >= start + span) { done += len; continue; }
+            if (time > start) done += len * linaSmooth((time - start) / span);
+            break;
+        }
+        return linaClamp(done / total);
+    }
+    const duration = Math.max(0.001, line.endTime - line.time);
+    return linaClamp((time - line.time) / (duration * Math.max(0.20, writeSpan)));
+}
+
+function eternalBlurFilter(ctx, px) {
+    try { ctx.filter = px > 0.15 ? 'blur(' + px.toFixed(2) + 'px)' : 'none'; } catch (e) {}
 }
 
 function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
@@ -250,15 +278,14 @@ function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
     for (let slot = 0; slot < 3; slot++) {
         const line = group[slot];
         if (!line || time < line.time) continue;
-        const text = String(line.text || "").trim();
+        const text = String(line.text || "").trim().toLowerCase();
         if (!text) continue;
         let targetSize = linaClamp(baseSize * sizes[slot], 20, 150);
         const prepared = fitEternalText(text, targetSize, w - margin * 2.3);
         if (!prepared) continue;
         const cache = prepared.cache, fontSize = prepared.fontSize;
-        const duration = Math.max(0.001, line.endTime - line.time);
-        const rawProgress = linaClamp((time - line.time) / (duration * Math.max(0.20, writeSpan)));
-        const progress = linaSmoother(rawProgress);
+        const rawProgress = getEternalWriteProgress(line, text, time, writeSpan);
+        const progress = rawProgress;
         const rendered = renderInkRow(cache, progress, { fontSize, inkColor, penWidth, glow });
         if (!rendered) continue;
         const vh = cache.ascent + cache.descent;
@@ -290,10 +317,17 @@ function drawEternalSunshineEffect(ctx, w, h, style, lines, time) {
             ctx.drawImage(rendered, drawX + fontSize * 0.012, drawY + fontSize * 0.010);
             ctx.restore();
         }
+        // older lines soften out of focus as the next one is written
+        const nextLine = group[slot + 1];
+        let softness = 0;
+        if (nextLine && time > nextLine.time) softness = linaSmooth((time - nextLine.time) / 1.6) * fontSize * 0.035;
+        if (finalLine && alpha < 1 && !nextLine) softness = Math.max(softness, (1 - alpha) * fontSize * 0.06);
         ctx.globalAlpha = alpha;
         ctx.shadowColor = inkColor;
         ctx.shadowBlur = bloom;
+        eternalBlurFilter(ctx, softness);
         ctx.drawImage(rendered, drawX, drawY);
+        eternalBlurFilter(ctx, 0);
         ctx.restore();
     }
     ctx.restore();
