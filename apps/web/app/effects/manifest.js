@@ -23,7 +23,6 @@ window.KEFE_EFFECTS = [
   { key: 'barbie',      label: 'Barbie',           description: 'Pink gradient glow with hero word' },
   { key: 'elasticpop',  label: 'Elastic Pop',      description: 'Spring/overshoot word-by-word punch' },
   { key: 'flipcards',   label: 'Flip Text',        description: 'FlipText-style character reveal' },
-  { key: 'karaoke',     label: 'Karaoke',          description: 'Word-by-word colour-fill sweep' },
   { key: 'trailer',     label: 'Trailer',          description: 'Condensed all-caps movie punch-in' },
   { key: 'fancy',       label: 'Fancy',            description: 'Chunky chromatic RGB-split' },
   { key: 'glitch',      label: 'Glitch',           description: 'Skew + blur + chromatic damage' },
