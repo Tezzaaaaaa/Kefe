@@ -1094,7 +1094,7 @@ button{border:0;cursor:pointer;
 }
 
 /* Visualiser panel: one selected engine, clear tab identities and a shared power-control language. */
-.kefe-vis-tabs{position:relative;top:auto;z-index:12;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:8px 0;background:var(--surface)}
+.kefe-vis-tabs{position:relative;top:auto;z-index:12;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:8px 0;background:var(--surface)}
 .kefe-visualiser-form>.kefe-vis-view{grid-column:1/-1}
 .kefe-vis-tabs .kefe-btn{position:relative;display:flex;align-items:center;justify-content:center;gap:0;min-width:0;min-height:var(--control-h);padding:0 8px;border:1px solid color-mix(in srgb,var(--vis-accent) 30%,var(--line-soft));border-radius:999px;background:var(--surface);color:var(--text);box-shadow:var(--inner);font-size: var(--font-sm);font-weight:650;text-align:center;white-space:normal;transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease;
   font-family: inherit;}
@@ -1121,7 +1121,7 @@ button{border:0;cursor:pointer;
 .kefe-vis-power-row .kefe-switch{min-width:82px;min-height:34px}
 .kefe-vis-power-row .kefe-switch-state{min-width:22px}
 @media(max-width:900px){.kefe-vis-view{grid-template-columns:1fr}}
-@media(max-width:700px){.kefe-vis-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.kefe-vis-tabs .kefe-btn{min-height:48px;padding:7px 8px;font-size: var(--font-sm);
+@media(max-width:700px){.kefe-vis-tabs{grid-template-columns:repeat(3,minmax(150px,1fr));gap:6px;overflow-x:auto;scrollbar-width:thin}.kefe-vis-tabs .kefe-btn{min-height:56px;padding:8px 76px 8px 9px;font-size:11px;
   font-family: inherit;}.kefe-vis-tabs .kefe-btn::before{flex-basis:27px;width:27px;height:27px;border-radius:var(--r2);
   font-size: var(--font-sm);
   font-family: inherit;}.kefe-vis-power-row{padding:9px 10px}}
@@ -5238,7 +5238,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   display: flex;
   flex: 1 1 0;
   min-width: 0;
-  min-height: 76px;
+  min-height: 56px;
   align-items: stretch;
   overflow: visible;
 }
@@ -5248,21 +5248,25 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   flex: 1 1 auto;
   width: 100%;
   min-width: 0;
-  min-height: 76px;
+  min-height: 56px;
   align-items: center;
-  justify-content: center;
-  padding: 34px 6px 7px;
-  overflow: visible;
-  font-size: 0;
+  justify-content: flex-start;
+  gap: 7px;
+  padding: 8px 76px 8px 10px;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: left;
   white-space: nowrap;
 }
 .kefe-vis-option > [role="tab"]::before {
   content: attr(data-icon);
   display: block;
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
-  font-size: 22px;
+  flex: 0 0 23px;
+  width: 23px;
+  height: 23px;
+  font-size: 20px;
   line-height: 1;
 }
 .kefe-vis-option > .kefe-vis-option-power {
