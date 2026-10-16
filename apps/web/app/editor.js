@@ -51,13 +51,57 @@
     }
   };
 
-  const baseFonts=Object.values(window.KEFE_TYPE?.families||{});
   const fontSelect=document.getElementById('fontOverride');
-  [...new Set(baseFonts)].forEach(f=>{
+  const fontOptions=document.getElementById('kefeFontOptions');
+  const baseFonts=[
+    ...Object.values(window.KEFE_TYPE?.families||{}),
+    'Kefe Tracklist Cursive',
+    'Arial','Arial Narrow','Helvetica','Helvetica Neue','Verdana','Tahoma',
+    'Trebuchet MS','Georgia','Times New Roman','Garamond','Palatino Linotype',
+    'Impact','Courier New','system-ui'
+  ];
+  const availableFonts=[...new Set(baseFonts)];
+  availableFonts.forEach(f=>{
     const o=document.createElement('option');
     o.value=f;o.textContent=f;o.style.fontFamily='"'+f+'",sans-serif';
     fontSelect.appendChild(o);
   });
+  function syncFontOptions(){
+    if(!fontOptions)return;
+    const selected=fontSelect.value;
+    fontOptions.querySelectorAll('[data-font]').forEach(button=>{
+      const active=button.dataset.font===selected;
+      button.classList.toggle('active',active);
+      button.setAttribute('aria-pressed',String(active));
+    });
+  }
+  function addFontOption(value,label,family){
+    if(!fontOptions)return;
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='kefe-font-option';
+    button.dataset.font=value;
+    button.setAttribute('aria-label',value?('Use '+label+' font'):'Use the selected lyric effect font');
+    button.setAttribute('aria-pressed','false');
+    const sample=document.createElement('span');
+    sample.className='kefe-font-option-sample';
+    sample.textContent='Aa';
+    sample.style.fontFamily=family;
+    const name=document.createElement('span');
+    name.className='kefe-font-option-name';
+    name.textContent=label;
+    button.append(sample,name);
+    button.addEventListener('click',()=>{
+      fontSelect.value=value;
+      fontSelect.dispatchEvent(new Event('change',{bubbles:true}));
+      syncFontOptions();
+    });
+    fontOptions.appendChild(button);
+  }
+  addFontOption('','Effect default','inherit');
+  availableFonts.forEach(f=>addFontOption(f,f,'"'+f+'",sans-serif'));
+  syncFontOptions();
+  fontSelect.addEventListener('change',syncFontOptions);
 
   const effectDefinitions=Array.isArray(window.KEFE_EFFECTS)?window.KEFE_EFFECTS.map(e=>[e.key,e.label]):[];
 
@@ -1382,7 +1426,7 @@
   songAlbum.addEventListener('input',()=>{manuallyEditedTrackFields.add('album');clearTitleArtwork();scheduleTitleArtworkLookup();updateTitleCard();});
   songYear.addEventListener('input',()=>{manuallyEditedTrackFields.add('year');updateTitleCard();});
   lyricsInput.addEventListener('input',parseLyrics);
-  fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw()});
+  fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw();syncFontOptions()});
 
   const uploadZone=document.getElementById('kefeUploadZone');
   const mediaInput=document.getElementById('mediaInput');
