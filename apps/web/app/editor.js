@@ -534,7 +534,6 @@
       }
     }
     drawTitleCardCanvas(ctx,W,H,state.time);
-    if(window.kefeStyle)window.kefeStyle.drawOverlay(ctx,W,H,state.time);
   }
   function appleTime(value){
     const text=String(value||'').trim();
