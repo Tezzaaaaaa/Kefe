@@ -80,8 +80,7 @@ Effects provide different animation and typography treatments. Available control
 
 - Preview playback, scrub through the timeline and view the composition fullscreen.
 - Switch the composition aspect ratio between 16:9, 9:16 and 1:1.
-- Switch between the Liquid Flow, Dithr, Fluted Glass and Slow Light visualisers.
-- The Dithr Visualiser provides audio-reactive dithering, colour separation, block displacement and adjustable rendering parameters.
+- Switch between the Liquid Flow, Fluted Glass and Slow Light visualisers.
 - Use the available presets and controls for each visualiser.
 - Visualiser output responds to source audio where supported and is included in video exports.
 
