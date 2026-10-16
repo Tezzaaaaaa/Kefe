@@ -4594,7 +4594,8 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   }
 
   .kefe-panel[data-panel-view="visualiser"] .kefe-form > .kefe-panel-head,
-  .kefe-panel[data-panel-view="visualiser"] .kefe-form > .kefe-visualiser-intro {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-form > .kefe-visualiser-intro,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-form > .kefe-vis-view {
     grid-column: 1 / -1;
   }
 
