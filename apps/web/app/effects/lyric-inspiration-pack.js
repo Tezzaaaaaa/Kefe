@@ -432,7 +432,7 @@
     const reveal=textW*writeP;
     const ink=s.ink||'#081a1a';
     const rgb=hex=>{const v=parseInt(String(hex).replace('#',''),16);return Number.isFinite(v)?[(v>>16)&255,(v>>8)&255,v&255]:[8,26,26];};
-    const shade=(hex,k)=>{const c=rgb(hex);return 'rgb('+c.map(v=>Math.max(0,Math.min(255,Math.round(v*k))).join(',')+')';};
+    const shade=(hex,k)=>{const c=rgb(hex);return 'rgb('+c.map(v=>Math.max(0,Math.min(255,Math.round(v*k)))).join(',')+')';};
     const clipReveal=()=>{
       if(!writing)return;
       ctx.beginPath();
