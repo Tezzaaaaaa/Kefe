@@ -171,19 +171,27 @@ jobs:
                 const lyricEffectGridLayout = await page.locator('#lyricEffectOptions').evaluate(el => {
                   const style = getComputedStyle(el);
                   const rect = el.getBoundingClientRect();
+                  const form = el.closest('.kefe-form');
                   return {
                     display: style.display,
+                    direction: style.flexDirection,
+                    wrap: style.flexWrap,
                     width: rect.width,
+                    formWidth: form.getBoundingClientRect().width,
                     height: rect.height,
-                    columns: style.gridTemplateColumns.trim().split(/\s+/).length
+                    overflowX: style.overflowX
                   };
                 });
-                assert.equal(lyricEffectGridLayout.display, 'grid',
-                  `Lyric effect options must use a grid at ${width}px; got ${lyricEffectGridLayout.display}`);
-                assert.ok(lyricEffectGridLayout.width > 0 && lyricEffectGridLayout.height > 0,
-                  `Lyric effect options must be visible at ${width}px: ${JSON.stringify(lyricEffectGridLayout)}`);
-                assert.equal(lyricEffectGridLayout.columns, 2,
-                  `Lyric effect options must occupy two columns at ${width}px: ${JSON.stringify(lyricEffectGridLayout)}`);
+                assert.equal(lyricEffectGridLayout.display, 'flex',
+                  `Lyric effect options must remain a horizontal strip at ${width}px; got ${lyricEffectGridLayout.display}`);
+                assert.equal(lyricEffectGridLayout.direction, 'row',
+                  `Lyric effect options must flow horizontally at ${width}px: ${JSON.stringify(lyricEffectGridLayout)}`);
+                assert.equal(lyricEffectGridLayout.wrap, 'nowrap',
+                  `Lyric effect options must not wrap into columns at ${width}px: ${JSON.stringify(lyricEffectGridLayout)}`);
+                assert.ok(lyricEffectGridLayout.width >= lyricEffectGridLayout.formWidth * 0.9,
+                  `Lyric effect strip must span the full form width at ${width}px: ${JSON.stringify(lyricEffectGridLayout)}`);
+                assert.ok(lyricEffectGridLayout.height > 0 && lyricEffectGridLayout.overflowX === 'auto',
+                  `Lyric effect strip must be visible and horizontally scrollable at ${width}px: ${JSON.stringify(lyricEffectGridLayout)}`);
 
                 // Run the expensive per-effect audit once against the published editor at 390px.
                 // The local and 320px runs still cover the responsive layout at both widths.
