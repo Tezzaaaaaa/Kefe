@@ -119,7 +119,7 @@ jobs:
                   document.getElementById('songAlbum').value = 'Test Album';
                   window.__kefeLayoutAudit = { calls: [] };
                   window.kefeLyrics.set([{ text: phrase, time: 0, endTime: 5 }], 'layout-audit');
-                  window.kefeLyrics.seek(1);
+                  window.kefeLyrics.seek(0);
                   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
                 }, { phrase: aspect === '16:9' ? prepared.fitPhrase : 'A lyric line for aspect ratio verification' });
                 const rendered = await page.evaluate(() => {
@@ -139,12 +139,24 @@ jobs:
                 assert.ok(rendered.titleDrawn, label + ': title card text did not render for ' + aspect);
                 assert.ok(rendered.lyricCalls.length > 0, label + ': lyrics did not render for ' + aspect);
                 if (aspect === '16:9') {
-                  const glyphAlphas = rendered.lyricCalls.map(call => {
-                    const match = String(call.fillStyle).match(/rgba?\([^)]*,\s*([0-9.]+)\s*\)$/);
+                  const alphaOf = value => {
+                    const match = String(value).match(/rgba?\([^)]*,\s*([0-9.]+)\s*\)$/);
                     return match ? Number(match[1]) : NaN;
-                  }).filter(Number.isFinite);
-                  assert.ok(glyphAlphas.some(alpha => alpha <= 0.35), label + ': unreached lyric glyphs are not dimmed');
-                  assert.ok(glyphAlphas.some(alpha => alpha >= 0.95), label + ': reached lyric glyphs are not highlighted');
+                  };
+                  const initialAlphas = rendered.lyricCalls.map(call => alphaOf(call.fillStyle)).filter(Number.isFinite);
+                  assert.ok(initialAlphas.length > 0, label + ': could not inspect Apple lyric glyph opacity');
+                  assert.ok(initialAlphas.every(alpha => alpha <= 0.35), label + ': unreached lyric glyphs brighten before the highlight reaches them');
+                  const completedStyles = await page.evaluate(async () => {
+                    window.__kefeLayoutAudit.calls = [];
+                    window.kefeLyrics.seek(5);
+                    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+                    const canvas = document.getElementById('kefeCanvas');
+                    return window.__kefeLayoutAudit.calls
+                      .filter(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height)
+                      .map(call => call.fillStyle);
+                  });
+                  const completedAlphas = completedStyles.map(alphaOf).filter(Number.isFinite);
+                  assert.ok(completedAlphas.some(alpha => alpha >= 0.95), label + ': reached lyric glyphs never become highlighted');
                 }
                 if (aspect === '16:9') {
                   const expectedCompact = prepared.fitPhrase.replace(/\s+/g, '').toLowerCase();
