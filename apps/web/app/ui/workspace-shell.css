@@ -488,6 +488,17 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   :is(.kefe-editor input[type="range"], .kefe-settings input[type="range"])::-webkit-slider-thumb{transition:none}
 }
 
+/* Single-column editor controls across every workspace panel. */
+.kefe-panel[data-panel-view="media"] .kefe-form,
+.kefe-panel[data-panel-view="lyrics"] .kefe-form,
+.kefe-panel[data-panel-view="effects"] .kefe-form,
+.kefe-panel[data-panel-view="background-effects"] .kefe-form,
+.kefe-panel[data-panel-view="visualiser"] .kefe-form,
+.kefe-panel[data-panel-view="export"] .kefe-form{
+  grid-template-columns:minmax(0,1fr);
+}
+.kefe-panel[data-panel-view="export"] .kefe-form{max-width:720px}
+
 /* Modal layers sit above the floating dock. */
 .kefe-settings-backdrop{z-index:1100}
 
