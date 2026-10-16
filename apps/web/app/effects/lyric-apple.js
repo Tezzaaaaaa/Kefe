@@ -244,7 +244,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const horizontalPadding = 0;
     const contentWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
     // The landscape title card is confined to the left ~34% of the canvas; lyrics use the separate right column (x=180/384, width=186/384). Size lyrics against that column's height/width balance, not against the title-card artwork itself.
-    const activeFontSize = landscapeSplit ? Math.min(h * (12.6 / 216.4), contentWidth * 0.072) : (aspectRatio >= 0.9 ? w * (5.6 / 100) : w * (5.2 / 100));
+    const activeFontSize = landscapeSplit ? Math.min(h * (12.6 / 216.4), contentWidth * 0.10) : (aspectRatio >= 0.9 ? w * (5.6 / 100) : w * (5.2 / 100));
     const inactiveFontSize = activeFontSize * (29 / 32);
     const lineSpacing = baseDimension * (aspectRatio < 0.9 ? 3.5 / 390 : aspectRatio < 1.25 ? 4 / 390 : 5 / 390);
     const contract = window.KEFE_TYPE?.effects?.apple || {};
