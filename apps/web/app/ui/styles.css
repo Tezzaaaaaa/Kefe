@@ -5295,6 +5295,8 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   line-height: 1;
   white-space: nowrap;
 }
+.kefe-vis-tabs .kefe-vis-option-power::before{content:none;display:none}
+.kefe-vis-tabs .kefe-vis-option-power:hover{transform:none;box-shadow:var(--inner)}
 .kefe-vis-option-power .kefe-switch-state {
   display: inline-block;
   min-width: 17px;
