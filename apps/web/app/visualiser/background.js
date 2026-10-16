@@ -151,32 +151,19 @@
     sel.addEventListener('change',function(){setMode(sel.value==='video'&&!vid?'apple':sel.value);});
   }
   function buildEffectCategories(){
-    var form=document.querySelector('[data-panel-view="effects"] .kefe-form');
+    var backgroundForm=document.querySelector('[data-panel-view="background-effects"] .kefe-form');
     var select=document.getElementById('visualiserBackground');
     var lyricOptions=document.getElementById('lyricEffectOptions');
-    if(!form||!select||!lyricOptions||document.getElementById('kefeEffectCategoryTabs'))return;
-    var lyricBlock=lyricOptions.closest('.kefe-lyric-effects-control');
+    if(!backgroundForm||!select||!lyricOptions||document.getElementById('kefeBackgroundEffectOptions'))return;
     var backgroundBlock=select.closest('.kefe-background-effect-control');
-    var displayGroup=document.getElementById('kefeDisplayGroup');
-    var styleGroup=document.getElementById('kefeStyleGroup');
     var transparency=document.getElementById('backgroundTransparency');
     var transparencyBlock=transparency&&transparency.closest('.kefe-background-effect-control');
     var upload=document.getElementById('kefeBgVideoZone');
     var uploadWrap=upload&&upload.parentElement;
-    var tabs=document.createElement('div');tabs.id='kefeEffectCategoryTabs';tabs.className='kefe-effect-category-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Effect category');
-    var lyricsButton=document.createElement('button');lyricsButton.type='button';lyricsButton.className='kefe-btn primary';lyricsButton.textContent='Lyrics Effects';lyricsButton.setAttribute('role','tab');lyricsButton.setAttribute('aria-selected','true');
-    var backgroundButton=document.createElement('button');backgroundButton.type='button';backgroundButton.className='kefe-btn';backgroundButton.textContent='Background Effects';backgroundButton.setAttribute('role','tab');backgroundButton.setAttribute('aria-selected','false');
-    tabs.append(lyricsButton,backgroundButton);
-    var lyricsPanel=document.createElement('div');lyricsPanel.id='kefeLyricsEffectsPanel';lyricsPanel.className='kefe-effect-category-panel';
-    var backgroundPanel=document.createElement('div');backgroundPanel.id='kefeBackgroundEffectsPanel';backgroundPanel.className='kefe-effect-category-panel';backgroundPanel.hidden=true;
-    form.parentNode.insertBefore(tabs,form);form.insertBefore(lyricsPanel,form.firstChild);form.insertBefore(backgroundPanel,lyricsPanel.nextSibling);
-    if(lyricBlock)lyricsPanel.appendChild(lyricBlock);
-    if(displayGroup)lyricsPanel.appendChild(displayGroup);
-    if(styleGroup)lyricsPanel.appendChild(styleGroup);
-    if(backgroundBlock)backgroundPanel.appendChild(backgroundBlock);
-    if(transparencyBlock)backgroundPanel.appendChild(transparencyBlock);
-    if(uploadWrap)backgroundPanel.appendChild(uploadWrap);
-    var choiceWrap=document.createElement('div');choiceWrap.className='kefe-background-effect-options';choiceWrap.setAttribute('role','group');choiceWrap.setAttribute('aria-label','Background effect options');
+    if(backgroundBlock)backgroundForm.appendChild(backgroundBlock);
+    if(transparencyBlock&&transparencyBlock.parentNode!==backgroundForm)backgroundForm.appendChild(transparencyBlock);
+    if(uploadWrap)backgroundForm.appendChild(uploadWrap);
+    var choiceWrap=document.createElement('div');choiceWrap.id='kefeBackgroundEffectOptions';choiceWrap.className='kefe-background-effect-options';choiceWrap.setAttribute('role','group');choiceWrap.setAttribute('aria-label','Background effect options');
     [['off','Off'],['apple','Apple Motion Art'],['gradient','Album Palette Gradient'],['video','Uploaded video']].forEach(function(item){
       var button=document.createElement('button');button.type='button';button.className='kefe-lyric-effect-option';button.dataset.backgroundMode=item[0];button.textContent=item[1];button.setAttribute('aria-pressed',String(select.value===item[0]));
       button.addEventListener('click',function(){if(item[0]==='video'&&button.disabled)return;select.value=item[0];select.dispatchEvent(new Event('change',{bubbles:true}));syncBackgroundOptions();});
@@ -186,16 +173,8 @@
     function syncBackgroundOptions(){
       choiceWrap.querySelectorAll('[data-background-mode]').forEach(function(button){var selected=button.dataset.backgroundMode===select.value;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));if(button.dataset.backgroundMode==='video')button.disabled=!vid;});
     }
-    function show(which){
-      var isLyrics=which==='lyrics';lyricsPanel.hidden=!isLyrics;backgroundPanel.hidden=isLyrics;
-      lyricsButton.classList.toggle('primary',isLyrics);backgroundButton.classList.toggle('primary',!isLyrics);
-      lyricsButton.setAttribute('aria-selected',String(isLyrics));backgroundButton.setAttribute('aria-selected',String(!isLyrics));
-      syncBackgroundOptions();
-    }
-    lyricsButton.addEventListener('click',function(){show('lyrics');});
-    backgroundButton.addEventListener('click',function(){show('background');});
     select.addEventListener('change',syncBackgroundOptions);
-    show('lyrics');
+    syncBackgroundOptions();
   }
   function buildUpload(){
     var zone=document.getElementById('kefeUploadZone');if(!zone||document.getElementById('kefeBgVideoZone'))return;
