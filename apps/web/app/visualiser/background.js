@@ -48,8 +48,8 @@
         var driftY=Math.cos(t*.19)*h*.012;
         /* Background plane: same artwork, enlarged and lightly blurred, never glowing. */
         g.save();
-        g.filter='blur('+Math.max(2,Math.min(7,Math.min(w,h)*.012))+'px) saturate(1.08)';
-        g.globalAlpha=.82;
+        g.filter='blur('+Math.max(2,Math.min(7,Math.min(w,h)*.0132))+'px) saturate(1.08)';
+        g.globalAlpha=.574;
         var backZoom=1.16+breathe*.035;
         var bw=dw*backZoom,bh=dh*backZoom;
         g.drawImage(img,(w-bw)/2-driftX*.45,(h-bh)/2-driftY*.45,bw,bh);
@@ -58,8 +58,8 @@
         g.save();
         g.translate(w/2+driftX,h/2+driftY);
         g.scale(zoom,zoom);
-        g.globalAlpha=.94;
-        g.filter='blur(.65px) saturate(1.03)';
+        g.globalAlpha=.658;
+        g.filter='blur(.715px) saturate(1.03)';
         g.drawImage(img,-dw/2,-dh/2,dw,dh);
         g.restore();
       }
