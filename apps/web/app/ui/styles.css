@@ -752,10 +752,9 @@ button{border:0;cursor:pointer;
 @media(max-width:700px){.crt-controls{grid-template-columns:1fr}.crt-row{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) 36px}}
 
 
-/* Particles Swarm visualiser integration */
+/* Visualiser canvas layers */
 .kefe-stage{position:relative;overflow:hidden}
 .kefe-stage::before{content:"";position:absolute;inset:0;z-index:0;background:var(--bg);border-radius:inherit;pointer-events:none}
-#kefeVisualiserCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;pointer-events:auto}
 #kefeGradientCanvas{position:absolute;inset:0;width:100%;height:100%;display:none;z-index:2;pointer-events:none;border-radius:0}
 #kefeFlutedGlassCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;pointer-events:none;border-radius:0}
 #kefeCanvas{position:absolute;inset:0;width:100%;height:100%;margin:0;border-radius:0;z-index:3;pointer-events:none}
@@ -1107,7 +1106,6 @@ button{border:0;cursor:pointer;
 .kefe-vis-tabs .kefe-btn[aria-selected="true"]{border-color:var(--vis-accent);background:linear-gradient(135deg,color-mix(in srgb,var(--vis-accent) 19%,var(--surface)),var(--surface));box-shadow:var(--lift),inset 0 0 0 1px color-mix(in srgb,var(--vis-accent) 24%,transparent);
   font-size: var(--font-sm);
   font-family: inherit;}
-.kefe-vis-tabs [data-visualiser="particles"]{--vis-accent:#729b8a}
 .kefe-vis-tabs [data-visualiser="gradient"]{--vis-accent:#8b8ed1}
 .kefe-vis-tabs [data-visualiser="glitch"]{--vis-accent:#d18b68}
 .kefe-vis-tabs [data-visualiser="fluted"]{--vis-accent:#65a9bd}
@@ -4837,11 +4835,9 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup,
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup,
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-visualiser-control-group,
-  .kefe-panel[data-panel-view="visualiser"] #kefeVisParticlesView,
   .kefe-panel[data-panel-view="visualiser"] #kefeVisGradientView,
   .kefe-panel[data-panel-view="visualiser"] #kefeVisGlitchView,
   .kefe-panel[data-panel-view="visualiser"] #kefeVisFlutedView,
-  .kefe-panel[data-panel-view="visualiser"] #kefeVisParticlesView .kefe-visualiser-spin-row,
   .kefe-panel[data-panel-view="visualiser"] #kefeVisFlutedView .kefe-visualiser-spin-row {
     display: contents;
   }
@@ -5704,10 +5700,6 @@ body:not(.kefe-fullscreen-open) {
   mask-position: center;
   -webkit-mask-size: contain;
   mask-size: contain;
-}
-.kefe-vis-option > [role="tab"][data-visualiser="particles"]::before {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 1.8 14.2 9.8 22.2 12 14.2 14.2 12 22.2 9.8 14.2 1.8 12 9.8 9.8Z'/%3E%3Ccircle cx='19' cy='4' r='1.4' fill='white'/%3E%3Ccircle cx='5' cy='19' r='1.2' fill='white'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 1.8 14.2 9.8 22.2 12 14.2 14.2 12 22.2 9.8 14.2 1.8 12 9.8 9.8Z'/%3E%3Ccircle cx='19' cy='4' r='1.4' fill='white'/%3E%3Ccircle cx='5' cy='19' r='1.2' fill='white'/%3E%3C/svg%3E");
 }
 .kefe-vis-option > [role="tab"][data-visualiser="gradient"]::before {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 14c3-8 6 8 9 0s6-8 9 0' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M3 19c3-8 6 8 9 0s6-8 9 0' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
