@@ -717,32 +717,7 @@
     fitPreviewStage();
     window.dispatchEvent(new Event('resize'));
   });
-  const aspectTrigger=document.getElementById('kefeAspectTrigger');
-  const aspectValue=document.getElementById('kefeAspectValue');
-  const aspectOptions=document.getElementById('kefeAspectOptions');
-  const aspectOptionButtons=[...(aspectOptions?.querySelectorAll('[data-aspect]')||[])];
-  function closeAspectOptions(returnFocus=false){
-    if(!aspectOptions||!aspectTrigger)return;
-    aspectOptions.hidden=true;
-    aspectTrigger.setAttribute('aria-expanded','false');
-    if(returnFocus)aspectTrigger.focus();
-  }
-  function syncAspectSelector(){
-    if(!aspectSelect)return;
-    if(aspectValue)aspectValue.textContent=aspectSelect.value;
-    aspectOptionButtons.forEach((option,index)=>{
-      const selected=option.dataset.aspect===aspectSelect.value;
-      option.setAttribute('aria-selected',String(selected));
-      option.tabIndex=selected?0:-1;
-    });
-  }
-  aspectTrigger?.addEventListener('click',()=>{
-    if(!aspectOptions)return;
-    const open=aspectOptions.hidden;
-    aspectOptions.hidden=!open;
-    aspectTrigger.setAttribute('aria-expanded',String(open));
-    if(open){
-      syncAspectSelector();
+
       aspectOptions.querySelector('[aria-selected="true"]')?.focus();
     }
   });
