@@ -4835,7 +4835,6 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup,
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-visualiser-control-group,
   .kefe-panel[data-panel-view="visualiser"] #kefeVisGradientView,
-  .kefe-panel[data-panel-view="visualiser"] #kefeVisGlitchView,
   .kefe-panel[data-panel-view="visualiser"] #kefeVisFlutedView,
   .kefe-panel[data-panel-view="visualiser"] #kefeVisFlutedView .kefe-visualiser-spin-row {
     display: contents;
