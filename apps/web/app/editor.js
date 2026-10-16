@@ -1323,17 +1323,16 @@
       const confidentTracks=[...uniqueConfident.values()];
       const availableIdentifiers=[meta.title,meta.artist,meta.album].filter(value=>String(value||'').trim()).length;
       const best=availableIdentifiers===1&&confidentTracks.length!==1?null:(confidentTracks[0]||null);
-      if(best){
-        applyIdentifiedTrack(best);
-        renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' ')});
-        setLyricsStatus('Track identified. Finding lyrics…');
-        await loadAutomaticLyrics();
-      }else if(meta.title&&meta.artist){
+      if(meta.title||meta.artist||meta.album){
         const searchMessage=catalogueSearchFailed?'Catalogue search failed. Your uploaded file is available below; check your connection and try again.':undefined;
-        renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist].filter(Boolean).join(' '),statusMessage:searchMessage});
-        setLyricsStatus(recognized?'Song recognized. Finding lyrics…':(file.size>10*1024*1024?'Audio recognition skipped because the file exceeds 10 MB. Using available metadata and catalogue search.':(catalogueSearchFailed?'Catalogue search failed. Using embedded song details; check your connection and try again.':'Using embedded song details. Finding lyrics…')));
-        const found=await loadAutomaticLyrics();
-        if(!found&&mediaObjectUrl===uploadId)promptManualDetails(matches,catalogueSearchFailed);
+        renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist,meta.album].filter(Boolean).join(' '),statusMessage:searchMessage});
+        setLyricsStatus(best
+          ?'Metadata read from your upload. The strongest catalogue match is first; select it to confirm the song.'
+          :recognized
+            ?'Audio recognition returned metadata. Review the possible matches and confirm the correct song below.'
+            :catalogueSearchFailed
+              ?'Upload metadata is available, but catalogue matching failed. Confirm the song in Song details.'
+              :'Upload metadata is available. Review the possible matches and confirm the song in Song details.');
       }else{
         promptManualDetails(matches,catalogueSearchFailed);
         if(file.size>10*1024*1024&&!recognized)setLyricsStatus('Audio recognition was skipped because this file exceeds the provider’s 10 MB limit. Enter the song title and artist or choose a catalogue match.');
