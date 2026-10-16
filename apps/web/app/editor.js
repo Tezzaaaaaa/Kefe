@@ -58,7 +58,12 @@
     'Kefe Tracklist Cursive',
     'Arial','Arial Narrow','Helvetica','Helvetica Neue','Verdana','Tahoma',
     'Trebuchet MS','Georgia','Times New Roman','Garamond','Palatino Linotype',
-    'Impact','Courier New','system-ui'
+    'Impact','Courier New',
+    'system-ui','ui-sans-serif','ui-serif','ui-monospace','ui-rounded',
+    '-apple-system','BlinkMacSystemFont','Segoe UI','Roboto','Oxygen',
+    'Ubuntu','Cantarell','Noto Sans','Noto Serif','Liberation Sans',
+    'Liberation Serif','DejaVu Sans','DejaVu Serif',
+    'sans-serif','serif','monospace','cursive','fantasy'
   ];
   const availableFonts=[...new Set(baseFonts)];
   availableFonts.forEach(f=>{
