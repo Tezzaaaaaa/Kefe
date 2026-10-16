@@ -247,7 +247,7 @@
     var intro=view.querySelector('.kefe-visualiser-intro');
     Array.from(view.children).forEach(function(child){if(child!==intro)child.remove();});
     var tab=document.querySelector('.kefe-vis-tabs [data-visualiser="gradient"]');
-    if(tab){tab.textContent='Fluid Ink';tab.title='Fluid Ink visualiser';tab.setAttribute('aria-label','Fluid Ink visualiser');}
+    if(tab){tab.textContent='';tab.dataset.icon='≈';tab.title='Fluid Ink visualiser';tab.setAttribute('aria-label','Fluid Ink visualiser');}
     var title=intro&&intro.querySelector('strong'),description=intro&&intro.querySelector('span');
     if(title)title.textContent='Fluid Ink controls';
     if(description)description.textContent='Audio-reactive fluid simulation and ink presets.';
