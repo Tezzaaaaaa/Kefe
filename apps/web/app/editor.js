@@ -589,19 +589,21 @@
   effectDefinitions.forEach(([id,label])=>addLyricEffectOption(id,label));
 
   const kefeBrand=document.querySelector('.kefe-brand');
-  let kefeBrandClickTimer=null;
-  kefeBrand.addEventListener('click',()=>{
-    if(kefeBrandClickTimer)clearTimeout(kefeBrandClickTimer);
-    kefeBrandClickTimer=setTimeout(()=>{
+  if(kefeBrand){
+    let kefeBrandClickTimer=null;
+    kefeBrand.addEventListener('click',()=>{
+      if(kefeBrandClickTimer)clearTimeout(kefeBrandClickTimer);
+      kefeBrandClickTimer=setTimeout(()=>{
+        kefeBrandClickTimer=null;
+        window.location.reload();
+      },260);
+    });
+    kefeBrand.addEventListener('dblclick',()=>{
+      if(kefeBrandClickTimer)clearTimeout(kefeBrandClickTimer);
       kefeBrandClickTimer=null;
       window.location.reload();
-    },260);
-  });
-  kefeBrand.addEventListener('dblclick',()=>{
-    if(kefeBrandClickTimer)clearTimeout(kefeBrandClickTimer);
-    kefeBrandClickTimer=null;
-    window.location.reload();
-  });
+    });
+  }
 
   function openEditorPanel(panel){
     document.querySelectorAll('.kefe-section').forEach(b=>b.classList.toggle('active',b.dataset.panel===panel));
