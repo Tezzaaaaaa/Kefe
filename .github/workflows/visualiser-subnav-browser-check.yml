@@ -52,7 +52,7 @@ jobs:
             page.on('pageerror', error => errors.push(error.message));
             try {
               await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
-              await page.waitForFunction(() => document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 5, { timeout: 30000 });
+              await page.waitForFunction(() => document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4, { timeout: 30000 });
               const submenu = page.locator('.kefe-editing > .kefe-vis-tabs');
               const panels = page.locator('.kefe-panels');
 
@@ -61,19 +61,17 @@ jobs:
               await page.waitForFunction(() => {
                 const row = document.querySelector('.kefe-editing > .kefe-vis-tabs');
                 return row && getComputedStyle(row).display !== 'none' &&
-                  document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 5;
+                  document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4;
               });
 
-              const order = ['particles', 'gradient', 'glitch', 'fluted', 'slow-light'];
+              const order = ['gradient', 'glitch', 'fluted', 'slow-light'];
               const viewIds = {
-                particles: 'kefeVisParticlesView',
                 gradient: 'kefeVisGradientView',
                 glitch: 'kefeVisGlitchView',
                 fluted: 'kefeVisFlutedView',
                 'slow-light': 'kefeVisSlowLightView'
               };
               const presetSetIds = {
-                particles: 'kefeParticlePresetSet',
                 gradient: 'kefeGradientPresetSet',
                 glitch: 'kefeDithrPresetSet',
                 fluted: 'kefeFlutedPresetSet',
@@ -100,10 +98,10 @@ jobs:
                 label + ': visualiser options and presets must share the same full-width grid alignment');
               assert.ok(layout.rowRight - layout.rowLeft > 500, label + ': visualiser options must not be confined to the narrow sidebar column');
               assert.deepEqual(layout.buttons.map(b => b.id), order, label + ': five tabs must appear in the expected order');
-              assert.equal(await submenu.locator('[aria-selected="true"]').getAttribute('data-visualiser'), 'particles',
-                label + ': Particles Swarm must remain the default visualiser');
-              assert.equal((await page.locator('#kefeVisualiserHeading').textContent()).trim(), 'Particle Visualiser',
-                label + ': default heading must identify the Particle Visualiser');
+              assert.equal(await submenu.locator('[aria-selected="true"]').getAttribute('data-visualiser'), 'gradient',
+                label + ': Liquid Flow must be the default visualiser');
+              assert.equal((await page.locator('#kefeVisualiserHeading').textContent()).trim(), 'Liquid Flow Visualiser',
+                label + ': default heading must identify Liquid Flow');
               assert.ok(layout.buttons.every(b => b.width > 0 && Math.abs(b.top - layout.buttons[0].top) < 2), label + ': all five tabs must occupy one horizontal row');
               assert.ok(layout.buttons.every((b, i) => i === 0 || b.left > layout.buttons[i - 1].left), label + ': tabs must be arranged horizontally');
 
@@ -122,14 +120,12 @@ jobs:
                 assert.equal(selection.selected, id, label + ': selected tab must be highlighted: ' + id);
                 assert.deepEqual(selection.visibleViews, [viewIds[id]], label + ': only selected visualiser settings should be visible: ' + id);
                 const expectedTitles = {
-                  particles: 'Particle Visualiser',
                   gradient: 'Liquid Flow Visualiser',
                   glitch: 'Dithr Visualiser',
                   fluted: 'Fluted Glass Visualiser',
                   'slow-light': 'Slow Light Visualiser'
                 };
                 const expectedDescriptions = {
-                  particles: 'Audio-reactive particle fields with customizable visual presets.',
                   gradient: 'Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.',
                   glitch: 'Animated procedural fields with Floyd–Steinberg, ordered and stochastic dithering.',
                   fluted: 'Six refractive glass treatments driven by audio.',
@@ -141,23 +137,6 @@ jobs:
                   label + ': selected visualiser heading must match its title: ' + id);
                 assert.equal((await description.textContent()).trim(), expectedDescriptions[id],
                   label + ': selected visualiser description must match its selected visualiser: ' + id);
-                if (id === 'particles') {
-                  await page.waitForFunction(() => typeof window.kefeVisualiserDiagnostics === 'function' &&
-                    window.kefeVisualiserDiagnostics().rendererReady);
-                  const initialParticleState = await page.evaluate(() => window.kefeVisualiserDiagnostics());
-                  assert.ok(initialParticleState.cssWidth > 0 && initialParticleState.cssHeight > 0 &&
-                    initialParticleState.bufferWidth > 0 && initialParticleState.bufferHeight > 0,
-                    label + ': Particles Swarm WebGL renderer must initialise at a non-zero size');
-                  assert.ok(initialParticleState.drawCalls > 0 || initialParticleState.frame >= 0,
-                    label + ': Particles Swarm renderer diagnostics must be available');
-                  const alternateParticlePreset = page.locator('#visualiserPresetGrid [data-key]').nth(1);
-                  const alternateParticleKey = await alternateParticlePreset.getAttribute('data-key');
-                  assert.ok(alternateParticleKey, label + ': Particles Swarm must expose selectable presets');
-                  await alternateParticlePreset.click();
-                  await page.waitForFunction(key => window.kefeVisualiserDiagnostics()?.preset === key, alternateParticleKey);
-                  await page.locator('#visualiserPresetGrid [data-key="' + initialParticleState.preset + '"]').click();
-                  await page.waitForFunction(key => window.kefeVisualiserDiagnostics()?.preset === key, initialParticleState.preset);
-                }
                 if (id === 'slow-light') {
                   await page.waitForFunction(() => {
                     const canvas = document.getElementById('kefeSlowLightCanvas');
@@ -296,11 +275,6 @@ jobs:
                   const button = document.querySelector('.kefe-visualiser-panel-head .kefe-switch');
                   return button && button.getAttribute('aria-checked') === String(initialPower !== 'true');
                 }, { initialPower });
-                if (id === 'particles' && initialPower !== 'true') {
-                  await page.locator('.kefe-stage').evaluate(stage => stage.classList.add('is-empty'));
-                  assert.equal(await page.locator('#kefeVisualiserCanvas').evaluate(canvas => getComputedStyle(canvas).visibility), 'visible',
-                    label + ': enabled Particles Swarm must render on the preview even before media or lyrics are added');
-                }
                 if (id === 'glitch') {
                   await page.waitForFunction(({ enabled }) => window.kefeDithrDiagnostics()?.enabled === enabled, { enabled: initialPower !== 'true' });
                 }
@@ -329,9 +303,9 @@ jobs:
                 assert.deepEqual(presetState.visibleSets, [presetState.expectedSet], label + ': only the selected visualiser preset set should be visible: ' + id);
                 const strip = await page.evaluate(({ id, presetSetId }) => {
                     const set = document.getElementById(presetSetId);
-                    const selector = id === 'glitch' ? '#dithrPatterns' : id === 'particles' ? '#visualiserPresetGrid' : id === 'gradient' ? '.kefe-gradient-palettes' : id === 'slow-light' ? '.kefe-slow-light-scenes' : '#flutedModes';
+                    const selector = id === 'glitch' ? '#dithrPatterns' : id === 'gradient' ? '.kefe-gradient-palettes' : id === 'slow-light' ? '.kefe-slow-light-scenes' : '#flutedModes';
                     const el = set && set.querySelector(selector);
-                    if (!el) return { missing: true, setHtml: set?.outerHTML || null, liveGridHtml: document.querySelector('#visualiserPresetGrid')?.outerHTML || null };
+                    if (!el) return { missing: true, setHtml: set?.outerHTML || null };
                     const style = getComputedStyle(el);
                     const children = [...el.children].filter(child => child.getBoundingClientRect().width > 0);
                     const rects = children.map(child => child.getBoundingClientRect());
