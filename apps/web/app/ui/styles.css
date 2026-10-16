@@ -6013,3 +6013,76 @@ body:not(.kefe-fullscreen-open) {
   -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='white'/%3E%3Cpath d='M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
   mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4' fill='white'/%3E%3Cpath d='M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
 }
+
+/* Final responsive balance: pair settings across both columns instead of stacking them. */
+@media (max-width: 700px) {
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-lyric-mode-box,
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-font-case-row,
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement,
+  .kefe-panel[data-panel-view="effects"] .kefe-effect-category-panel .kefe-lyric-effect-grid,
+  .kefe-panel[data-panel-view="effects"] #lyricEffectOptions,
+  .kefe-panel[data-panel-view="effects"] .kefe-background-effect-options,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group #visualiserParameters,
+  .kefe-panel[data-panel-view="media"] .kefe-details-grid,
+  .kefe-panel[data-panel-view="export"] .kefe-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-lyric-mode-box > *,
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement > *,
+  .kefe-panel[data-panel-view="effects"] .kefe-effect-category-panel .kefe-lyric-effect-grid > .kefe-lyric-effect-option,
+  .kefe-panel[data-panel-view="effects"] #lyricEffectOptions > .kefe-lyric-effect-option {
+    grid-column: auto;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-font-case-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kefe-panel[data-panel-view="effects"] .kefe-effect-category-panel .kefe-lyric-effect-grid,
+  .kefe-panel[data-panel-view="effects"] #lyricEffectOptions {
+    display: grid;
+    grid-auto-flow: row;
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .kefe-panel[data-panel-view="effects"] .kefe-effect-category-panel .kefe-lyric-effect-grid > .kefe-lyric-effect-option,
+  .kefe-panel[data-panel-view="effects"] #lyricEffectOptions > .kefe-lyric-effect-option {
+    min-width: 0;
+    min-height: 100px;
+  }
+
+  .kefe-panel[data-panel-view="media"] .kefe-form > .kefe-upload-zone,
+  .kefe-panel[data-panel-view="media"] .kefe-form > .kefe-media-track,
+  .kefe-panel[data-panel-view="media"] .kefe-form > .kefe-suggestions {
+    grid-column: 1 / -1;
+  }
+
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songTitle),
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songArtist),
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songAlbum),
+  .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songYear) {
+    grid-column: auto;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-lyric-mode-box,
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-font-case-row,
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement,
+  .kefe-panel[data-panel-view="effects"] .kefe-effect-category-panel .kefe-lyric-effect-grid,
+  .kefe-panel[data-panel-view="effects"] #lyricEffectOptions,
+  .kefe-panel[data-panel-view="effects"] .kefe-background-effect-options,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group #visualiserParameters,
+  .kefe-panel[data-panel-view="media"] .kefe-details-grid,
+  .kefe-panel[data-panel-view="export"] .kefe-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
