@@ -283,7 +283,7 @@
       }
       if(visualiserHeading&&visualiserDescription){
         visualiserHeading.textContent='Fluid Ink Visualiser';
-        visualiserDescription.textContent='Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.';
+        visualiserDescription.textContent='Audio-reactive fluid dynamics with swirling ink, luminous colour and customizable presets.';
       }
       if(visualiserPanelHead){
         visualiserPanelHead.querySelectorAll('.kefe-switch').forEach(function(button){button.remove();});
