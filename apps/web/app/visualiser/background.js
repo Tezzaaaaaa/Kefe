@@ -118,7 +118,7 @@
   function size(){
     if(!cv||!stage)return;
     var cw=(cv.clientWidth>2?cv.clientWidth:stage.clientWidth)||640,ch=(cv.clientHeight>2?cv.clientHeight:stage.clientHeight)||360;
-    var limit=mode==='gradient'?3840:960,sc=Math.min(1,limit/Math.max(cw,ch)),w=Math.max(2,Math.round(cw*sc)),h=Math.max(2,Math.round(ch*sc));
+    var sc=mode==='gradient'?Math.min(3,3840/Math.max(cw,ch)):Math.min(1,960/Math.max(cw,ch)),w=Math.max(2,Math.round(cw*sc)),h=Math.max(2,Math.round(ch*sc));
     if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
   }
   var last=0;
