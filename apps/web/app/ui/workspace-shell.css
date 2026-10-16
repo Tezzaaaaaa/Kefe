@@ -538,8 +538,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 .kefe-editor .kefe-aspect-trigger.beui-button:active{transform:scale(.96)}
 .kefe-editor .kefe-play.beui-button:focus-visible,
 .kefe-editor .kefe-restart.beui-button:focus-visible,
-.kefe-editor .kefe-aspect-trigger.beui-button:focus-visible,
-.kefe-editor .kefe-aspect-option:focus-visible{outline:2px solid var(--shell-accent);outline-offset:2px}
+.kefe-editor .kefe-aspect-trigger.beui-button:focus-visible{outline:2px solid var(--shell-accent);outline-offset:2px}
 .kefe-editor .kefe-aspect-controls.beui-select{
   position:relative;z-index:12;display:flex;align-items:center;justify-content:center;
   width:76px;min-width:76px;flex:0 0 76px;overflow:visible;
@@ -571,7 +570,5 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   .kefe-editor .kefe-aspect-trigger.beui-button{width:52px;min-width:52px;padding-inline:4px}
 }
 @media(prefers-reduced-motion:reduce){
-  .kefe-editor .kefe-play.beui-button,.kefe-editor .kefe-restart.beui-button,.kefe-editor .kefe-aspect-trigger.beui-button,
-  .kefe-editor .kefe-aspect-trigger svg,.kefe-editor .kefe-aspect-option{transition:none}
-  .kefe-editor .kefe-aspect-options{animation:none}
+  .kefe-editor .kefe-play.beui-button,.kefe-editor .kefe-restart.beui-button,.kefe-editor .kefe-aspect-trigger.beui-button{transition:none}
 }
