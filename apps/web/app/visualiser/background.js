@@ -5,7 +5,7 @@
    The particle canvas is blended with `screen` over this layer, and the same layer is composited into video export. */
 (function(){
   'use strict';
-  var stage,cv,cctx,sel,audio,mode='off',vid=null,vidUrl='',vidName='',small=null,smallKey='',avg=[20,22,30];
+  var stage,cv,cctx,sel,audio,mode='off',vid=null,vidUrl='',vidName='',small=null,smallKey='',avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
   var work=document.createElement('canvas'),wctx=work.getContext('2d');
   var t0=performance.now();
 
@@ -20,7 +20,13 @@
       g.drawImage(img,0,0,64,64);
       var d=g.getImageData(0,0,64,64).data,r=0,gg=0,b=0,n=0;
       for(var i=0;i<d.length;i+=4){r+=d[i];gg+=d[i+1];b+=d[i+2];n++;}
-      avg=[r/n,gg/n,b/n];small=c;
+      avg=[r/n,gg/n,b/n];
+       var buckets=Array.from({length:12},function(){return {r:0,g:0,b:0,n:0};});
+       for(var j=0;j<d.length;j+=4){var rr=d[j],gr=d[j+1],bb=d[j+2],mx=Math.max(rr,gr,bb),mn=Math.min(rr,gr,bb),sat=mx?(mx-mn)/mx:0,hue=Math.atan2(Math.sqrt(3)*(gr-bb),2*rr-gr-bb),idx=sat<.12?11:Math.min(10,Math.floor(((hue+Math.PI)/(Math.PI*2))*11)),weight=.4+sat;buckets[idx].r+=rr*weight;buckets[idx].g+=gr*weight;buckets[idx].b+=bb*weight;buckets[idx].n+=weight;}
+       var ranked=buckets.filter(function(v){return v.n>0;}).sort(function(a,b){return b.n-a.n;}),picked=[];
+       ranked.forEach(function(v){if(picked.length>=5)return;var col=[v.r/v.n,v.g/v.n,v.b/v.n];if(picked.every(function(q){return Math.hypot(col[0]-q[0],col[1]-q[1],col[2]-q[2])>32;}))picked.push(col);});
+       if(picked.length>=2)palette=picked.map(function(c){return 'rgb('+Math.round(c[0])+','+Math.round(c[1])+','+Math.round(c[2])+')';});
+       small=c;
     }catch(e){small=null;}
   }
 
@@ -70,6 +76,18 @@
     g.restore();
   }
 
+  /* Artwork-derived animated gradient. Native canvas gradients stay smooth at 4K export dimensions. */
+  function drawAlbumGradient(g,w,h,t){
+    prepareArt(artImage());
+    var colors=palette&&palette.length?palette:['#18212d','#30485b','#597c8b','#a7c3c9'];
+    var dark=function(value){var m=String(value).match(/rgb\((\d+),(\d+),(\d+)\)/);if(!m)return value;return 'rgb('+Math.round(Number(m[1])*.52)+','+Math.round(Number(m[2])*.52)+','+Math.round(Number(m[3])*.52)+')';};
+    g.save();g.globalCompositeOperation='source-over';g.globalAlpha=1;
+    var base=g.createLinearGradient(0,0,w,h);base.addColorStop(0,dark(colors[0]));base.addColorStop(.52,dark(colors[1%colors.length]));base.addColorStop(1,dark(colors[2%colors.length]));g.fillStyle=base;g.fillRect(0,0,w,h);
+    var spots=[{x:.22+Math.sin(t*.16)*.10,y:.28+Math.cos(t*.13)*.08,c:colors[0]},{x:.78+Math.cos(t*.12)*.10,y:.34+Math.sin(t*.15)*.09,c:colors[1%colors.length]},{x:.52+Math.sin(t*.10)*.12,y:.82+Math.cos(t*.11)*.06,c:colors[2%colors.length]},{x:.84+Math.sin(t*.08)*.05,y:.78+Math.cos(t*.09)*.06,c:colors[3%colors.length]}];
+    spots.forEach(function(p,i){var x=p.x*w,y=p.y*h,r=Math.max(w,h)*(.58+(i%2)*.12),rad=g.createRadialGradient(x,y,0,x,y,r);rad.addColorStop(0,p.c);rad.addColorStop(.42,p.c);rad.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.56;g.fillStyle=rad;g.fillRect(0,0,w,h);});
+    var shade=g.createLinearGradient(0,0,0,h);shade.addColorStop(0,'rgba(0,0,0,.12)');shade.addColorStop(.55,'rgba(0,0,0,.18)');shade.addColorStop(1,'rgba(0,0,0,.28)');g.globalAlpha=1;g.fillStyle=shade;g.fillRect(0,0,w,h);g.restore();
+  }
+
   function drawCover(g,el,w,h){
     var vw=el.videoWidth,vh=el.videoHeight;if(!vw||!vh)return false;
     var k=Math.max(w/vw,h/vh),dw=vw*k,dh=vh*k;
@@ -82,6 +100,7 @@
   function paint(g,w,h,t){
     g.save();g.fillStyle='#000';g.fillRect(0,0,w,h);
     if(mode==='off'){g.restore();return;}
+    if(mode==='gradient'){drawAlbumGradient(g,w,h,t);g.restore();return;}
     if(useVideo()&&drawCover(g,vid,w,h)){
       g.restore();return;
     }
@@ -99,7 +118,7 @@
   function size(){
     if(!cv||!stage)return;
     var cw=(cv.clientWidth>2?cv.clientWidth:stage.clientWidth)||640,ch=(cv.clientHeight>2?cv.clientHeight:stage.clientHeight)||360;
-    var sc=Math.min(1,960/Math.max(cw,ch)),w=Math.max(2,Math.round(cw*sc)),h=Math.max(2,Math.round(ch*sc));
+    var limit=mode==='gradient'?3840:960,sc=Math.min(1,limit/Math.max(cw,ch)),w=Math.max(2,Math.round(cw*sc)),h=Math.max(2,Math.round(ch*sc));
     if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
   }
   var last=0;
@@ -129,7 +148,7 @@
   }
   function buildSelect(){
     sel=document.getElementById('visualiserBackground');if(!sel)return;
-    sel.innerHTML='<option value="off">Off</option><option value="apple">Apple Motion Art</option><option value="video" disabled>Uploaded video</option>';
+    sel.innerHTML='<option value="off">Off</option><option value="apple">Apple Motion Art</option><option value="gradient">Album Palette Gradient</option><option value="video" disabled>Uploaded video</option>';
     sel.value='off';
     sel.addEventListener('change',function(){setMode(sel.value==='video'&&!vid?'apple':sel.value);});
   }
@@ -160,7 +179,7 @@
     if(transparencyBlock)backgroundPanel.appendChild(transparencyBlock);
     if(uploadWrap)backgroundPanel.appendChild(uploadWrap);
     var choiceWrap=document.createElement('div');choiceWrap.className='kefe-background-effect-options';choiceWrap.setAttribute('role','group');choiceWrap.setAttribute('aria-label','Background effect options');
-    [['off','Off'],['apple','Apple Motion Art'],['video','Uploaded video']].forEach(function(item){
+    [['off','Off'],['apple','Apple Motion Art'],['gradient','Album Palette Gradient'],['video','Uploaded video']].forEach(function(item){
       var button=document.createElement('button');button.type='button';button.className='kefe-lyric-effect-option';button.dataset.backgroundMode=item[0];button.textContent=item[1];button.setAttribute('aria-pressed',String(select.value===item[0]));
       button.addEventListener('click',function(){if(item[0]==='video'&&button.disabled)return;select.value=item[0];select.dispatchEvent(new Event('change',{bubbles:true}));syncBackgroundOptions();});
       choiceWrap.appendChild(button);
