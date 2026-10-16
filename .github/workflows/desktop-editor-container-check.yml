@@ -124,15 +124,16 @@ jobs:
           expected_marker=$(grep -o 'app/ui/workspace-shell.css?v=[^\"]*' apps/web/editor.html | head -n 1)
           expected_editor=$(grep -o 'app/editor.js?v=[^\"]*' apps/web/editor.html | head -n 1)
           expected_visualiser=$(grep -o 'app/visualiser/gradient.js?v=[^\"]*' apps/web/editor.html | head -n 1)
-          if [ -z "$expected_marker" ] || [ -z "$expected_editor" ] || [ -z "$expected_visualiser" ]; then echo 'Could not determine the expected desktop asset markers.' >&2; exit 1; fi
+          expected_styles=$(grep -o 'app/ui/styles.css?v=[^\"]*' apps/web/editor.html | head -n 1)
+          if [ -z "$expected_marker" ] || [ -z "$expected_editor" ] || [ -z "$expected_visualiser" ] || [ -z "$expected_styles" ]; then echo 'Could not determine the expected desktop asset markers.' >&2; exit 1; fi
           for attempt in $(seq 1 48); do
-            if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html && grep -Fq "$expected_editor" /tmp/kefe-live-index.html && grep -Fq "$expected_visualiser" /tmp/kefe-live-index.html; then
-              echo "Expected desktop stylesheet marker is published: $expected_marker"
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-index.html && grep -Fq "$expected_marker" /tmp/kefe-live-index.html && grep -Fq "$expected_editor" /tmp/kefe-live-index.html && grep -Fq "$expected_visualiser" /tmp/kefe-live-index.html && grep -Fq "$expected_styles" /tmp/kefe-live-index.html; then
+              echo "Expected desktop assets are published: $expected_marker and $expected_styles"
               exit 0
             fi
             sleep 5
           done
-          echo "GitHub Pages did not publish the expected stylesheet marker ($expected_marker) in time." >&2
+          echo "GitHub Pages did not publish the expected editor assets ($expected_marker; $expected_editor; $expected_visualiser; $expected_styles) in time." >&2
           exit 1
 
       - name: Test published GitHub Pages desktop layout
