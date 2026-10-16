@@ -125,9 +125,9 @@
     return wrap;
   }
   function init(){
-    const tabs=document.querySelector('.kefe-vis-tabs'),form=document.querySelector('.kefe-visualiser-form'),particleView=document.getElementById('kefeVisParticlesView');
+    const tabs=document.querySelector('.kefe-vis-tabs'),form=document.querySelector('.kefe-visualiser-form');
     stage=document.querySelector('.kefe-stage');
-    if(!tabs||!form||!particleView||!stage)return;
+    if(!tabs||!form||!stage){console.error('[KEFE Slow Light] Required preview or controls are missing.');return;}
     canvas=document.createElement('canvas');canvas.id='kefeSlowLightCanvas';canvas.setAttribute('aria-label','Slow Light visualiser output');
     Object.assign(canvas.style,{position:'absolute',inset:'0',width:'100%',height:'100%',display:'none',zIndex:'2',pointerEvents:'none',borderRadius:'0'});
     const lyric=document.getElementById('kefeCanvas');stage.insertBefore(canvas,lyric||null);
