@@ -6171,3 +6171,43 @@ body:not(.kefe-fullscreen-open) {
   .kefe-panels .kefe-panel[data-panel-view] .kefe-form{gap:12px}
   .kefe-panels .kefe-panel[data-panel-view] .kefe-visualiser-control-group{padding:11px}
 }
+
+
+/* Keep the Fluid Ink tab name visible even when legacy icon-only tab rules apply. */
+.kefe-vis-tabs .kefe-visualiser-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+  font-size: 13px;
+  line-height: 1.2;
+  text-indent: 0;
+}
+.kefe-vis-tabs .kefe-visualiser-tab .kefe-visualiser-tab-icon {
+  display: inline-grid;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+  font-size: 18px;
+}
+.kefe-vis-tabs .kefe-visualiser-tab .kefe-visualiser-tab-label {
+  display: inline-block;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: visible;
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+  font-size: 13px;
+  font-weight: 700;
+  text-indent: 0;
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .kefe-vis-tabs .kefe-visualiser-tab { justify-content: flex-start; gap: 6px; padding-inline: 10px; }
+  .kefe-vis-tabs .kefe-visualiser-tab .kefe-visualiser-tab-label { font-size: 12px; }
+}
