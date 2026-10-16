@@ -114,7 +114,7 @@
     if (placement) {
       placement.classList.add('kefe-lyric-placement');
       var placementTitle = placement.querySelector(':scope > summary');
-      if (placementTitle) placementTitle.remove();
+      if (placementTitle) placementTitle.hidden = true;
       modeBox.appendChild(placement);
     }
 
