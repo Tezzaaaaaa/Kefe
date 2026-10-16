@@ -285,9 +285,9 @@
         visualiserHeading.textContent='Fluid Ink Visualiser';
         visualiserDescription.textContent='Audio-reactive fluid dynamics with swirling ink, luminous colour and customizable presets.';
       }
-      if(visualiserPanelHead){
-        visualiserPanelHead.querySelectorAll('.kefe-switch').forEach(function(button){button.remove();});
-        if(power)visualiserPanelHead.appendChild(power);
+      if(power&&gradientOption){
+        power.classList.add('kefe-vis-option-power');
+        if(!gradientOption.contains(power))gradientOption.appendChild(power);
       }
       gradientPresetSet.hidden=false;
       flutedPresetSet.hidden=true;
@@ -295,7 +295,7 @@
       syncAll();
     }
     function option(tab){var item=el('div','kefe-vis-option');item.appendChild(tab);return item;}
-    tabs.appendChild(option(tg));
+    var gradientOption=option(tg);tabs.appendChild(gradientOption);
     var editing=panel.closest('.kefe-editing'),panels=editing?.querySelector('.kefe-panels');
     if(editing&&panels){editing.insertBefore(tabs,panels);editing.insertBefore(presetRow,panels);}else{form.appendChild(tabs);form.appendChild(presetRow);}
     form.replaceChildren();
@@ -308,6 +308,7 @@
     gradientIntro.innerHTML='<div><strong>Fluid Ink controls</strong><span>Customize the liquid-glass effect.</span></div>';
     var gradientToggle=toggle('Fluid Ink Visualiser',function(){return S.on;},function(v){S.on=v;});
     gradientPower=gradientToggle.querySelector('.kefe-switch');
+    gradientPower.classList.add('kefe-vis-option-power');gradientPower.setAttribute('aria-label','Fluid Ink');gradientOption.appendChild(gradientPower);
     var rnd=el('button','kefe-btn','Random');rnd.type='button';rnd.addEventListener('click',randomize);gradientIntro.appendChild(rnd);
     gradient.appendChild(gradientIntro);
     show('gradient');
