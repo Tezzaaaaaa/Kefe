@@ -299,7 +299,8 @@
     if(!el.CarStack)return;
     S.mode='search';S.filter='song';syncFilters();el.CarBack.hidden=true;
     if(query!=null){el.FindInput.value=query;el.FindBox.classList.toggle('has-text',!!query);}
-    S.items=(S.localUpload?[S.localUpload]:[]).concat((items||[]).filter(function(x){return !x._kefeLocalUpload;}).map(function(x){return x;}));S.index=0;render();
+    var catalogue=(items||[]).filter(function(x){return !x._kefeLocalUpload;}).slice();
+    S.items=catalogue.concat(S.localUpload?[S.localUpload]:[]);S.index=0;render();
     var displayMsg=msg;
     if(S.localUpload&&!(items||[]).length&&(!displayMsg||/no matches found/i.test(displayMsg)))displayMsg='No catalogue matches. Your uploaded file is available below.';
     status(displayMsg||(S.items.length?'Select the correct song':'No matches found'),'');
