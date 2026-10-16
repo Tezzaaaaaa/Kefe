@@ -423,7 +423,7 @@ jobs:
                   const flutedGrid = await assertSingleColumn('.kefe-panel[data-panel-view="visualiser"] .kefe-form', 'Fluted Glass');
                   const sliderWidths = await page.locator('#flutedSliders > *').evaluateAll(nodes => nodes.filter(el => el.getClientRects().length).map(el => ({label: el.querySelector('b')?.textContent || el.textContent.trim().slice(0, 30), width: el.getBoundingClientRect().width})));
                   for (const item of sliderWidths) {
-                    assert.ok(item.width <= flutedGrid.width * 0.62,
+                    assert.ok(item.width >= flutedGrid.width * 0.9,
                       `Fluted Glass slider ${item.label} does not fill the single-column width at ${width}px: ${item.width}px of ${flutedGrid.width}px`);
                   }
                   await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-fluted.png`, fullPage: false, timeout: 15000 });
