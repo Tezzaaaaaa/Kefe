@@ -124,7 +124,7 @@ jobs:
                 };
                 const expectedDescriptions = {
                   gradient: 'Audio-reactive fluid dynamics with swirling ink, luminous colour and customizable presets.',
-                  fluted: 'A real-time refractive lens with six glass surfaces, spectral dispersion and audio-reactive highlights.',
+                  fluted: 'A real-time refractive lens with six precision glass surfaces, spectral dispersion and audio-reactive highlights.',
                   'slow-light': 'Original WebGL colour fields, continuous scene morphing, film grain and audio-reactive movement.'
                 };
                 const heading = page.locator('#kefeVisualiserHeading');
@@ -182,8 +182,8 @@ jobs:
                   }
                   await page.locator('#flutedModes button').first().click();
                   const glassTab = page.locator('[data-visualiser="fluted"]');
-                  assert.equal((await glassTab.textContent()).trim(), 'Glass Lens',
-                    label + ': visualiser tab must use the Glass Lens name');
+                  assert.equal(glassTab.getAttribute('aria-label'), 'Glass Lens',
+                    label + ': icon-only visualiser tab must retain its accessible Glass Lens name');
                   assert.equal(await page.locator('#kefeFlutedGlassCanvas').getAttribute('aria-label'), 'Glass Lens preview',
                     label + ': preview canvas must expose the Glass Lens accessible name');
                   const glassPower = page.locator('#kefeVisualiserPowerSlot .kefe-switch');
