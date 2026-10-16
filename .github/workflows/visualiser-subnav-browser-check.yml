@@ -182,7 +182,7 @@ jobs:
                   }
                   await page.locator('#flutedModes button').first().click();
                   const glassTab = page.locator('[data-visualiser="fluted"]');
-                  assert.equal(glassTab.getAttribute('aria-label'), 'Glass Lens',
+                  assert.equal(await glassTab.getAttribute('aria-label'), 'Glass Lens',
                     label + ': icon-only visualiser tab must retain its accessible Glass Lens name');
                   assert.equal(await page.locator('#kefeFlutedGlassCanvas').getAttribute('aria-label'), 'Glass Lens preview',
                     label + ': preview canvas must expose the Glass Lens accessible name');
