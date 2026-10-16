@@ -4,7 +4,7 @@ KEFE is a browser-based music visualiser and lyric-video editor for turning audi
 
 ## Open KEFE
 
-**[Launch the KEFE workspace](https://tezzaaaaaa.github.io/Kefe/)** · [Open the editor directly](https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html)
+**[Launch KEFE Editor](https://tezzaaaaaa.github.io/Kefe/)**
 
 - **Repository:** [Tezzaaaaaa/Kefe](https://github.com/Tezzaaaaaa/Kefe)
 - **Deployment:** GitHub Pages
@@ -95,7 +95,7 @@ Export formats and encoding options depend on browser APIs, codec support, devic
 
 ## Quick start
 
-1. Open the [KEFE workspace](https://tezzaaaaaa.github.io/Kefe/), then choose Media, Editor, or Settings from the workspace navigation. The editor is also available [directly](https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html).
+1. Open [KEFE Editor](https://tezzaaaaaa.github.io/Kefe/). Media, lyrics, effects, visualisers, settings and export are all part of this single workspace.
 2. In **Media**, load an audio or video file.
 3. Use **Find your song** to search for and select the correct track, then check the metadata and artwork.
 4. Load or review the lyrics and correct their timing where needed.
@@ -108,7 +108,7 @@ Song matches, artwork and synchronized lyrics depend on the selected track and t
 ## Project structure
 
 ```text
-apps/web/       Workspace and static editor (deployed via GitHub Pages)
+apps/web/       Unified static editor/workspace (deployed via GitHub Pages)
 apps/api/       Express API
 packages/       Shared API spec, schemas, client and database packages
 docs/           Architecture notes and design references
