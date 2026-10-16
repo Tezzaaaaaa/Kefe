@@ -523,6 +523,19 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   :is(.kefe-editor input[type="range"], .kefe-settings input[type="range"])::-moz-range-thumb{transition:none}
 }
 
+/* Preserve the existing single-column panel layout outside phone widths.
+   Mobile panel grids are defined by the responsive rules in styles.css. */
+@media (min-width: 641px) {
+  .kefe-panel[data-panel-view="media"] .kefe-form,
+  .kefe-panel[data-panel-view="lyrics"] .kefe-form,
+  .kefe-panel[data-panel-view="effects"] .kefe-form,
+  .kefe-panel[data-panel-view="background-effects"] .kefe-form,
+  .kefe-panel[data-panel-view="visualiser"] .kefe-form,
+  .kefe-panel[data-panel-view="export"] .kefe-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Modal layers sit above the floating dock. */
 .kefe-settings-backdrop{z-index:1100}
 
