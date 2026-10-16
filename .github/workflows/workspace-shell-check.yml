@@ -135,12 +135,16 @@ jobs:
               assert.ok(shellGeometry.topbarLeft >= shellGeometry.sidebarWidth - 1, 'editor header should sit beside the sidebar: ' + JSON.stringify(shellGeometry));
               assert.ok(shellGeometry.documentWidth <= shellGeometry.viewportWidth, 'desktop layout must not overflow horizontally: ' + JSON.stringify(shellGeometry));
 
-              for (const section of ['lyrics', 'effects', 'visualiser', 'export']) {
+              for (const section of ['lyrics', 'effects', 'background-effects', 'visualiser', 'export']) {
                 await page.locator('.kefe-sidebar [data-shell-panel="' + section + '"]').click();
                 await page.locator('.kefe-panel[data-panel-view="' + section + '"].active').waitFor();
                 assert.equal(await page.locator('.kefe-sidebar [data-shell-panel="' + section + '"]').getAttribute('aria-current'), 'page', section + ' navigation should show the active section');
               }
 
+              await page.locator('[data-dock-panel="background-effects"]').click();
+              await page.locator('.kefe-panel[data-panel-view="background-effects"].active').waitFor();
+              assert.equal(await page.locator('[data-dock-panel="background-effects"]').getAttribute('aria-pressed'), 'true',
+                'Background Effects dock shortcut should open and mark its panel active');
               await page.locator('.kefe-sidebar [data-shell-panel="media"]').click();
               await page.locator('.kefe-panel[data-panel-view="media"].active').waitFor();
 
