@@ -62,21 +62,17 @@
     if (active < 0) return;
 
     const fontFamily = '"Arial Narrow", "Liberation Sans Narrow", Arial, "Helvetica Neue", sans-serif';
-    // Brat-style lyrics are a single oversized line that switches abruptly with the lyric.
-    const requestedSize = Number(style.fontSize) || 76;
-    let fontSize = Math.max(requestedSize, h * (w / h > 1.5 ? 0.19 : w / h < 0.8 ? 0.145 : 0.22));
-    const entry = timed[active];
-    const words = entry.words;
-    if (!words.length) return;
+    // Keep four consecutive lyric lines visible, with the active line near the visual centre.
+    const visibleCount = 4;
+    const first = Math.max(0, Math.min(active - 1, timed.length - visibleCount));
+    const visible = timed.slice(first, first + visibleCount);
+    if (!visible.length) return;
     const gapForSize = size => size * 0.22;
-    ctx.save();
-    ctx.font = '400 ' + fontSize + 'px ' + fontFamily;
-    const wordWidths = words.map(word => ctx.measureText(word.text).width);
-    const naturalWidth = wordWidths.reduce((sum, value) => sum + value, 0) + gapForSize(fontSize) * Math.max(0, words.length - 1);
-    if (naturalWidth > usableWidth) fontSize *= usableWidth / naturalWidth;
-    const font = '400 ' + fontSize + 'px ' + fontFamily;
-    const gap = gapForSize(fontSize);
-    ctx.restore();
+    const requestedSize = Number(style.fontSize) || 76;
+    const baseSize = Math.min(requestedSize, h * (w / h > 1.5 ? 0.105 : w / h < 0.8 ? 0.072 : 0.09));
+    const lineHeight = Math.min(h * 0.205, baseSize * 1.55);
+    const blockHeight = lineHeight * visible.length;
+    const firstBaseline = (h - blockHeight) / 2 + lineHeight / 2;
 
     // Transparent overlay: preserve the user's video or visualiser behind the lyrics.
     ctx.save();
@@ -84,18 +80,30 @@
     ctx.rect(0, 0, w, h);
     ctx.clip();
     ctx.fillStyle = ink;
-    ctx.font = font;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     ctx.filter = 'none';
     ctx.globalAlpha = 1;
 
-    const lineWidth = words.reduce((sum, word) => sum + ctx.measureText(word.text).width, 0) + gap * Math.max(0, words.length - 1);
-    let x = Math.max(side, (w - lineWidth) / 2);
-    const baseline = h / 2;
-    words.forEach(word => {
-      ctx.fillText(word.text, x, baseline);
-      x += ctx.measureText(word.text).width + gap;
+    visible.forEach((entry, row) => {
+      const words = entry.words;
+      if (!words.length) return;
+      let fontSize = baseSize;
+      ctx.font = '400 ' + fontSize + 'px ' + fontFamily;
+      let gap = gapForSize(fontSize);
+      let lineWidth = words.reduce((sum, word) => sum + ctx.measureText(word.text).width, 0) + gap * Math.max(0, words.length - 1);
+      if (lineWidth > usableWidth) {
+        fontSize *= usableWidth / lineWidth;
+        ctx.font = '400 ' + fontSize + 'px ' + fontFamily;
+        gap = gapForSize(fontSize);
+        lineWidth = words.reduce((sum, word) => sum + ctx.measureText(word.text).width, 0) + gap * Math.max(0, words.length - 1);
+      }
+      let x = Math.max(side, (w - lineWidth) / 2);
+      const baseline = firstBaseline + row * lineHeight;
+      words.forEach(word => {
+        ctx.fillText(word.text, x, baseline);
+        x += ctx.measureText(word.text).width + gap;
+      });
     });
     ctx.restore();
   }
