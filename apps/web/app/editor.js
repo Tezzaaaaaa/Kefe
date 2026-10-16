@@ -1486,6 +1486,9 @@
     if(/\.(lrc|ttml|xml|txt)$/i.test(file.name)||file.type==='text/plain'){handleLrcFile(file);e.target.value='';return;}
     if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
     mediaObjectUrl=URL.createObjectURL(file);
+    // Load the default album-palette gradient as soon as a new audio upload is selected.
+    // The background layer reads the album artwork asynchronously when identification finishes.
+    if(window.kefeBackground?.setMode)window.kefeBackground.setMode('gradient');
     /* Invalidate pending artwork work and remove the previous song's cover. */
     clearTitleArtwork();
     delete songAlbum.dataset.platformId;delete songAlbum.dataset.trackDuration;
