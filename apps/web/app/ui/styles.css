@@ -4703,8 +4703,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
     display: contents !important;
   }
 
-  .kefe-panel[data-panel-view="visualiser"] .kefe-gradient-view > .kefe-visualiser-intro,
-  .kefe-panel[data-panel-view="visualiser"] .kefe-glitch-view > .kefe-visualiser-intro {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-gradient-view > .kefe-visualiser-intro {
     grid-column: 1 / -1;
   }
 
