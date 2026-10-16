@@ -159,7 +159,7 @@
     const auto=document.createElement('label');auto.className='kefe-slow-light-auto';const check=document.createElement('input');check.type='checkbox';check.checked=!!cfg.auto;const copy=document.createElement('span');copy.textContent='Change scenes automatically';check.addEventListener('change',()=>{cfg.auto=check.checked;hold=0;persist();});auto.append(check,copy);motion.append(auto);view.appendChild(motion);
     const tabsList=tabs.querySelector('[role="tablist"]')||tabs;
     const tab=document.createElement('button');tab.type='button';tab.className='kefe-btn';tab.setAttribute('role','tab');tab.dataset.visualiser='slow-light';tab.setAttribute('aria-controls',view.id);tab.setAttribute('aria-label','Slow Light visualiser');tab.title='Slow Light visualiser';tab.textContent='Slow Light';tabsList.appendChild(tab);
-    const option=document.createElement('div');option.className='kefe-vis-option';option.appendChild(tab);tabsList.appendChild(option);
+    const option=document.createElement('div');option.className='kefe-vis-option';option.appendChild(tab);power.classList.add('kefe-vis-option-power');option.appendChild(power);tabsList.appendChild(option);
     form.appendChild(view);
     tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab){setActive(false);sceneSet.hidden=true;}});
     tab.addEventListener('click',()=>{
@@ -170,8 +170,6 @@
       presetRow?.querySelectorAll('.kefe-visualiser-preset-set').forEach(set=>set.hidden=set!==sceneSet);
       const heading=document.getElementById('kefeVisualiserHeading'),description=document.getElementById('kefeVisualiserDescription');
       if(heading)heading.textContent='Slow Light Visualiser';if(description)description.textContent='Original WebGL colour fields, continuous scene morphing, film grain and audio-reactive movement.';
-      const header=document.querySelector('.kefe-visualiser-panel-head');
-      if(header){header.querySelectorAll('.kefe-switch').forEach(b=>{if(b!==power)b.remove();});if(!header.contains(power))header.appendChild(power);}
       setActive(true);
     });
     tabsList.appendChild(option);
