@@ -90,7 +90,7 @@ jobs:
               if (await visualiserPower.getAttribute('aria-checked') !== 'true') await visualiserPower.click();
               await page.waitForFunction(() => window.kefeGradientLayer?.state?.().on === true);
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
-              console.log(JSON.stringify({ result: 'PASS', label, emptyState, layout, afterUpload: 'particle renderer absent; Liquid Flow enabled explicitly', runtimeErrors: errors }, null, 2));
+              console.log(JSON.stringify({ result: 'PASS', label, emptyState, afterUpload: 'particle renderer absent; Liquid Flow enabled explicitly', runtimeErrors: errors }, null, 2));
             } finally {
               await browser.close();
             }
