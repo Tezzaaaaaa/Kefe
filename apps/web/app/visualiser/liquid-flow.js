@@ -148,9 +148,9 @@
     var x2=reverse*1.24-.12,y2=.2+.62*(.5+.5*Math.sin(phase*1.25+2.1));
     var x3=.16+.68*(.5+.5*Math.sin(phase*1.15+4.2)),y3=travel*1.24-.12;
     var f=values.swirl*(.12+energy*values.react*.42);
-    splat(x1,y1,Math.cos(phase*.8)*f+audio.bass*values.react*.75,Math.sin(phase*.7)*f,colors[2],.06,.09+pulse*.09);
-    splat(x2,y2,Math.sin(phase*.65)*f,Math.cos(phase*.55)*f+audio.mid*values.react*.45,colors[4],.052,.07+pulse*.07);
-    if(audio.treble>.04||Math.sin(phase*1.8)>.72)splat(x3,y3,Math.cos(phase)*f*.55,Math.sin(phase*1.1)*f*.55,colors[3],.03,.035+audio.treble*values.react*.1);
+    splat(x1,y1,Math.cos(phase*.8)*f+audio.bass*values.react*.75,Math.sin(phase*.7)*f,colors[2],.08,.16+pulse*.16);
+    splat(x2,y2,Math.sin(phase*.65)*f,Math.cos(phase*.55)*f+audio.mid*values.react*.45,colors[4],.072,.13+pulse*.12);
+    if(audio.treble>.04||Math.sin(phase*1.8)>.72)splat(x3,y3,Math.cos(phase)*f*.55,Math.sin(phase*1.1)*f*.55,colors[3],.045,.07+audio.treble*values.react*.14);
     velocityStep(dt);dyeStep(dt);
   }
   function paintPixels(){
@@ -166,7 +166,7 @@
         var glint=Math.pow(lum,2.2)*lift*.18;
         data[at]=Math.min(255,(r+glint)*255);data[at+1]=Math.min(255,(g+glint)*255);data[at+2]=Math.min(255,(b+glint)*255);
       }else{data[at]=2;data[at+1]=3;data[at+2]=7;}
-      data[at+3]=max>0.012?Math.round(clamp(Math.max(r,g,b)*1.85,0,.94)*255):0;
+      data[at+3]=max>0.012?Math.round(clamp(Math.max(r,g,b)*2.8,0,.98)*255):0;
     }
     simCtx.putImageData(imageData,0,0);
   }
@@ -179,7 +179,7 @@
     if(lastTime!==null&&now<lastTime)dt=1/60;
     lastTime=now;
     simulate(now,dt);paintPixels();
-    ctx.clearRect(0,0,w,h);ctx.fillStyle='rgba(2,3,7,.12)';ctx.fillRect(0,0,w,h);ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=.45+values.bloom*.18;ctx.filter='blur('+(5+values.bloom*11)+'px)';
+    ctx.clearRect(0,0,w,h);ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=.45+values.bloom*.18;ctx.filter='blur('+(5+values.bloom*11)+'px)';
     ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
     ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=1;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
   }
