@@ -6009,9 +6009,6 @@ body:not(.kefe-fullscreen-open) {
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-lyric-mode-box,
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-font-case-row,
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement,
-  .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-grid,
-  .kefe-panel[data-panel-view="effects"] .kefe-effect-category-panel .kefe-lyric-effect-grid,
-  .kefe-panel[data-panel-view="effects"] #lyricEffectOptions,
   .kefe-panel[data-panel-view="effects"] .kefe-background-effect-options {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -6022,8 +6019,6 @@ body:not(.kefe-fullscreen-open) {
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-lyric-mode-box > *,
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-font-case-row > *,
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-placement > *,
-  .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-grid > *,
-  .kefe-panel[data-panel-view="effects"] #lyricEffectOptions > .kefe-lyric-effect-option,
   .kefe-panel[data-panel-view="effects"] .kefe-background-effect-options > * {
     grid-column: auto;
     min-width: 0;
@@ -6032,26 +6027,13 @@ body:not(.kefe-fullscreen-open) {
     box-sizing: border-box;
   }
 
-  .kefe-panel[data-panel-view="effects"] .kefe-effect-category-panel .kefe-lyric-effect-grid > .kefe-lyric-effect-option {
-    grid-column: auto;
-    width: 100%;
-    min-width: 0;
-  }
-
   .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup > .kefe-font-case-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-grid,
-  .kefe-panel[data-panel-view="effects"] .kefe-effect-category-panel .kefe-lyric-effect-grid,
-  .kefe-panel[data-panel-view="effects"] #lyricEffectOptions,
   .kefe-panel[data-panel-view="effects"] .kefe-background-effect-options {
     grid-auto-flow: row;
     gap: 8px;
     overflow: visible;
-  }
-
-  .kefe-panel[data-panel-view="effects"] #lyricEffectOptions > .kefe-lyric-effect-option {
-    min-height: 100px;
   }
 }
