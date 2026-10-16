@@ -6037,3 +6037,26 @@ body:not(.kefe-fullscreen-open) {
     overflow: visible;
   }
 }
+
+
+/* Horizontal galleries must cross the complete Effects form, not occupy one grid column. */
+@media (max-width: 700px) {
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-lyric-effects-control,
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-selector-control {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-grid,
+  .kefe-panel[data-panel-view="effects"] .kefe-font-selector-strip {
+    display: flex;
+    flex-flow: row nowrap;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+}
