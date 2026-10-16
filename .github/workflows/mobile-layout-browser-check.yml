@@ -316,23 +316,10 @@ jobs:
                 assert.ok(pageScroll.scrollY > 0 && pageScroll.maxScroll > 0,
                   `The document must actually scroll to the bottom of the editor at ${width}px: ${JSON.stringify(pageScroll)}`);
 
-                await page.locator('.kefe-vis-tabs button[data-visualiser="particles"]').click();
-                await page.locator('#kefeVisParticlesView:not([hidden])').waitFor();
-                const particlesDisplay = await page.locator('#kefeVisParticlesView').evaluate(el => getComputedStyle(el).display);
-                assert.equal(particlesDisplay, 'contents', `Particles view must flatten into the two-column form at ${width}px; got ${particlesDisplay}`);
-                await assertOnlyVisualiserViewVisible('kefeVisParticlesView', 'Particles');
-                const presetLayout = await page.locator('#visualiserPresetGrid').evaluate(el => ({
-                  direction: getComputedStyle(el).flexDirection,
-                  wrap: getComputedStyle(el).flexWrap,
-                  overflowX: getComputedStyle(el).overflowX,
-                  visible: !!el.getClientRects().length && getComputedStyle(el).display !== 'none'
-                }));
-                assert.equal(presetLayout.direction, 'row', 'Preset options must be arranged horizontally');
-                assert.equal(presetLayout.wrap, 'nowrap', 'Preset options must remain on one horizontal row');
-                assert.equal(presetLayout.overflowX, 'auto', 'Preset row must scroll horizontally when needed');
-                const particleToggleDisplay = await page.locator('#kefeVisParticlesView .kefe-visualiser-spin-row').first().evaluate(el => getComputedStyle(el).display);
-                assert.equal(particleToggleDisplay, 'contents', `Particles toggle labels and switches must flatten into the two-column form at ${width}px`);
-
+                await page.locator('.kefe-vis-tabs button[data-visualiser="gradient"]').click();
+                await page.locator('#kefeVisGradientView:not([hidden])').waitFor();
+                await assertOnlyVisualiserViewVisible('kefeVisGradientView', 'Liquid Flow');
+                assert.equal(await page.locator('#visualiserPresetGrid').count(), 0, `Particle preset controls must be removed at ${width}px`);
                 if (await gradientTab.count()) {
                   await gradientTab.click();
                   await page.locator('#kefeVisGradientView:not([hidden])').waitFor();
