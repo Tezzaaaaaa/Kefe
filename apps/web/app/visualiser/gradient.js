@@ -252,10 +252,10 @@
     ui.syncs=[];
     var gradient=el('div','kefe-vis-view kefe-gradient-view');gradient.id='kefeVisGradientView';gradient.hidden=true;
     var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Choose visualiser');
-    var tg=el('button','kefe-btn primary','Liquid Flow');tg.type='button';
+    var tg=el('button','kefe-btn primary','Fluid Ink');tg.type='button';
     tg.setAttribute('role','tab');tg.dataset.visualiser='gradient';
-    tg.setAttribute('aria-controls','kefeVisGradientView');tg.setAttribute('aria-label','Liquid Flow visualiser');
-    tg.title='Liquid Flow visualiser';tg.textContent='Liquid Flow';
+    tg.setAttribute('aria-controls','kefeVisGradientView');tg.setAttribute('aria-label','Fluid Ink visualiser');
+    tg.title='Fluid Ink visualiser';tg.textContent='Fluid Ink';
     var gradientPower=null,gradientToggle;
     var visualiserPanelHead=panel.querySelector('.kefe-visualiser-panel-head');
     var visualiserHeading=panel.querySelector('#kefeVisualiserHeading');
@@ -279,10 +279,10 @@
         if(state)state.textContent=S.on?'On':'Off';
         power.classList.toggle('is-on',!!S.on);
         power.setAttribute('aria-checked',String(!!S.on));
-        power.setAttribute('aria-label','Liquid Flow Visualiser');
+        power.setAttribute('aria-label','Fluid Ink Visualiser');
       }
       if(visualiserHeading&&visualiserDescription){
-        visualiserHeading.textContent='Liquid Flow Visualiser';
+        visualiserHeading.textContent='Fluid Ink Visualiser';
         visualiserDescription.textContent='Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.';
       }
       if(visualiserPanelHead){
@@ -305,8 +305,8 @@
 
     /* ── gradient view ── */
     gradientIntro=el('div','kefe-visualiser-intro');
-    gradientIntro.innerHTML='<div><strong>Liquid Flow controls</strong><span>Customize the liquid-glass effect.</span></div>';
-    var gradientToggle=toggle('Liquid Flow Visualiser',function(){return S.on;},function(v){S.on=v;});
+    gradientIntro.innerHTML='<div><strong>Fluid Ink controls</strong><span>Customize the liquid-glass effect.</span></div>';
+    var gradientToggle=toggle('Fluid Ink Visualiser',function(){return S.on;},function(v){S.on=v;});
     gradientPower=gradientToggle.querySelector('.kefe-switch');
     var rnd=el('button','kefe-btn','Random');rnd.type='button';rnd.addEventListener('click',randomize);gradientIntro.appendChild(rnd);
     gradient.appendChild(gradientIntro);
