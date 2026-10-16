@@ -137,8 +137,32 @@ jobs:
                 assert.equal(editorLayout.detailsGridColumns, 1, 'song metadata inside the media steps must use a single column');
               }
               for (const section of ['media', 'lyrics', 'effects', 'background-effects', 'visualiser', 'export']) {
-                const columns = await page.locator('.kefe-panel[data-panel-view="' + section + '"] .kefe-form').evaluate(node => getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length);
-                assert.equal(columns, 1, section + ' panel must use a single-column layout');
+                const layout = await page.locator('.kefe-panel[data-panel-view="' + section + '"] .kefe-form').evaluate(node => {
+                  const matchedRules = [];
+                  const collect = rules => {
+                    for (const rule of rules) {
+                      if (rule.cssRules) collect(rule.cssRules);
+                      if (!rule.selectorText || !rule.style?.getPropertyValue('grid-template-columns')) continue;
+                      try {
+                        if (node.matches(rule.selectorText)) matchedRules.push({
+                          selector: rule.selectorText,
+                          value: rule.style.getPropertyValue('grid-template-columns'),
+                          important: rule.style.getPropertyPriority('grid-template-columns')
+                        });
+                      } catch (_) {}
+                    }
+                  };
+                  for (const sheet of document.styleSheets) { try { collect(sheet.cssRules); } catch (_) {} }
+                  const template = getComputedStyle(node).gridTemplateColumns;
+                  return {
+                    template,
+                    columns: template.trim().split(/\\s+/).filter(Boolean).length,
+                    insidePanelStack: !!node.closest('.kefe-panels'),
+                    stylesheet: [...document.styleSheets].map(sheet => sheet.href).filter(Boolean),
+                    matchedRules: matchedRules.slice(-12)
+                  };
+                });
+                assert.equal(layout.columns, 1, section + ' panel must use a single-column layout: ' + JSON.stringify(layout));
               }
 
               const shellGeometry = await page.evaluate(() => {
