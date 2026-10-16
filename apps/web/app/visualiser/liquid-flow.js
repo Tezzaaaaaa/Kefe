@@ -181,7 +181,7 @@
   }
   function setPreset(id){
     if(!presets[id])return;preset=id;Object.assign(values,presets[id]);
-    document.querySelectorAll('[data-fluid-preset]').forEach(function(b){b.classList.toggle('primary',b.dataset.fluidPreset===id);b.setAttribute('aria-pressed',String(b.dataset.fluidPreset===id));});
+    document.querySelectorAll('[data-fluid-preset]').forEach(function(b){b.classList.toggle('primary',b.dataset.fluidPreset===id);b.setAttribute('aria-pressed',String(b.dataset.fluidPreset===id));});document.querySelectorAll('[data-fluid-key]').forEach(function(input){if(Object.prototype.hasOwnProperty.call(values,input.dataset.fluidKey))input.value=values[input.dataset.fluidKey];var output=input.parentNode.querySelector('output');if(output)output.textContent=Number(input.value).toFixed(Number(input.step)<1?2:1);});
   }
   function buildControls(view){
     var wrap=document.createElement('div');wrap.className='kefe-fluid-ink-controls';
