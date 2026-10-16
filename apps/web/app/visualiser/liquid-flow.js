@@ -176,7 +176,7 @@
     ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=1;ctx.imageSmoothingEnabled=true;ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
   }
   function active(){
-    var h=document.getElementById('kefeVisualiserHeading'),power=document.querySelector('.kefe-visualiser-panel-head .kefe-switch');
+    var h=document.getElementById('kefeVisualiserHeading'),tab=document.querySelector('.kefe-vis-tabs [data-visualiser="gradient"]'),power=tab&&tab.parentNode.querySelector('.kefe-vis-option-power');
     return (!power||power.getAttribute('aria-checked')!=='false')&&(!h||h.textContent.indexOf('Fluid Ink')!==-1);
   }
   function setPreset(id){
