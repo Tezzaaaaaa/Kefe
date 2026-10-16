@@ -97,9 +97,9 @@ jobs:
               assert.ok(layout.rowRight - layout.rowLeft > 500, label + ': visualiser options must not be confined to the narrow sidebar column');
               assert.deepEqual(layout.buttons.map(b => b.id), order, label + ': four tabs must appear in the expected order');
               assert.equal(await submenu.locator('[aria-selected="true"]').getAttribute('data-visualiser'), 'gradient',
-                label + ': Liquid Flow must be the default visualiser');
-              assert.equal((await page.locator('#kefeVisualiserHeading').textContent()).trim(), 'Liquid Flow Visualiser',
-                label + ': default heading must identify Liquid Flow');
+                label + ': Fluid Ink must be the default visualiser');
+              assert.equal((await page.locator('#kefeVisualiserHeading').textContent()).trim(), 'Fluid Ink Visualiser',
+                label + ': default heading must identify Fluid Ink');
               assert.ok(layout.buttons.every(b => b.width > 0 && Math.abs(b.top - layout.buttons[0].top) < 2), label + ': all four tabs must occupy one horizontal row');
               assert.ok(layout.buttons.every((b, i) => i === 0 || b.left > layout.buttons[i - 1].left), label + ': tabs must be arranged horizontally');
 
@@ -118,12 +118,12 @@ jobs:
                 assert.equal(selection.selected, id, label + ': selected tab must be highlighted: ' + id);
                 assert.deepEqual(selection.visibleViews, [viewIds[id]], label + ': only selected visualiser settings should be visible: ' + id);
                 const expectedTitles = {
-                  gradient: 'Liquid Flow Visualiser',
+                  gradient: 'Fluid Ink Visualiser',
                   fluted: 'Fluted Glass Visualiser',
                   'slow-light': 'Slow Light Visualiser'
                 };
                 const expectedDescriptions = {
-                  gradient: 'Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.',
+                  gradient: 'Audio-reactive fluid dynamics with swirling ink, luminous colour and customizable presets.',
                   fluted: 'Six refractive glass treatments driven by audio.',
                   'slow-light': 'Original WebGL colour fields, continuous scene morphing, film grain and audio-reactive movement.'
                 };
@@ -183,83 +183,60 @@ jobs:
                   await page.locator('#flutedModes button').first().click();
                 }
                 if (id === 'gradient') {
-                  await page.waitForFunction(() => !!document.getElementById('kefeLiquidFlowCanvas') ||
+                  await page.waitForFunction(() => !!document.getElementById('kefeFluidInkCanvas') ||
                     !!document.querySelector('.kefe-liquid-error'));
-                  const liquidError = await page.locator('.kefe-liquid-error').textContent().catch(() => '');
+                  const fluidError = await page.locator('.kefe-liquid-error').textContent().catch(() => '');
                   assert.equal(await page.locator('.kefe-liquid-error').count(), 0,
-                    label + ': Liquid Flow must initialise without WebGL errors: ' + liquidError);
-                  assert.equal(await page.locator('[data-liquid-preset]').count(), 4,
-                    label + ': Liquid Flow must expose all four presets');
-                  const renderer = await page.locator('#kefeLiquidFlowCanvas').evaluate(canvas => {
-                    const gl = canvas.getContext('webgl');
-                    const program = gl && gl.getParameter(gl.CURRENT_PROGRAM);
-                    return !!gl && canvas.width > 0 && canvas.height > 0 &&
-                      !!program && gl.getProgramParameter(program, gl.LINK_STATUS);
+                    label + ': Fluid Ink must initialise without canvas errors: ' + fluidError);
+                  assert.equal(await page.locator('[data-fluid-preset]').count(), 6,
+                    label + ': Fluid Ink must expose all six simulation presets');
+                  const renderer = await page.locator('#kefeFluidInkCanvas').evaluate(canvas => {
+                    const ctx = canvas.getContext('2d');
+                    return !!ctx && canvas.width > 0 && canvas.height > 0;
                   });
-                  assert.equal(renderer, true, label + ': Liquid Flow WebGL renderer must be linked and sized');
-                  await page.locator('[data-liquid-preset="chrome"]').click();
-                  assert.equal((await page.evaluate(() => window.kefeGradientLayer.state())).preset, 'chrome',
-                    label + ': Liquid Flow presets must change the active renderer settings');
+                  assert.equal(renderer, true, label + ': Fluid Ink canvas renderer must be linked and sized');
+                  await page.locator('[data-fluid-preset="liquid-chrome"]').click();
+                  assert.equal((await page.evaluate(() => window.kefeGradientLayer.state())).preset, 'liquid-chrome',
+                    label + ': Fluid Ink presets must change the active simulation settings');
                   await page.locator('#kefeGradientPresetSet .kefe-gradient-palettes button[aria-label="Ocean palette"]').click();
                   assert.equal((await page.evaluate(() => window.kefeGradientLayer.state())).palette, 'Ocean',
-                    label + ': Liquid Flow palette buttons must update the renderer');
-                  await page.locator('[data-liquid-preset="silk"]').click();
-                  const liquidPowerForSource = page.locator('.kefe-visualiser-panel-head .kefe-switch');
-                  const liquidWasEnabled = await liquidPowerForSource.getAttribute('aria-checked') === 'true';
-                  if (!liquidWasEnabled) await liquidPowerForSource.click();
-                  await page.waitForTimeout(120);
-                  const paletteSpread = await page.evaluate(() => {
-                    const canvas = document.getElementById('kefeLiquidFlowCanvas');
-                    const gl = canvas && canvas.getContext('webgl');
-                    if (!gl || canvas.width < 2 || canvas.height < 2) return { ranges: [], sceneActive: null };
-                    const samples = [];
-                    for (let row = 1; row <= 5; row++) {
-                      for (let column = 1; column <= 5; column++) {
-                        const pixel = new Uint8Array(4);
-                        gl.readPixels(
-                          Math.floor((column / 6) * (canvas.width - 1)),
-                          Math.floor((row / 6) * (canvas.height - 1)),
-                          1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel
-                        );
-                        samples.push([...pixel.slice(0, 3)]);
+                    label + ': Fluid Ink palette buttons must update the renderer');
+                  await page.locator('[data-fluid-preset="ink-bloom"]').click();
+                  const fluidPower = page.locator('.kefe-visualiser-panel-head .kefe-switch');
+                  const wasEnabled = await fluidPower.getAttribute('aria-checked') === 'true';
+                  if (!wasEnabled) await fluidPower.click();
+                  await page.waitForTimeout(400);
+                  const renderCheck = await page.evaluate(() => {
+                    const canvas = document.getElementById('kefeFluidInkCanvas');
+                    const context = canvas && canvas.getContext('2d');
+                    if (!context || canvas.width < 2 || canvas.height < 2) return null;
+                    const pixels = [];
+                    for (let row = 1; row <= 9; row++) {
+                      for (let column = 1; column <= 9; column++) {
+                        const pixel = context.getImageData(
+                          Math.floor((column / 10) * (canvas.width - 1)),
+                          Math.floor((row / 10) * (canvas.height - 1)), 1, 1
+                        ).data;
+                        pixels.push([...pixel]);
                       }
                     }
-                    const ranges = [0, 1, 2].map(channel => {
-                      const values = samples.map(pixel => pixel[channel]);
-                      return Math.max(...values) - Math.min(...values);
-                    });
-                    return { ranges, sceneActive: window.kefeGradientLayer.state().sceneActive };
+                    return {
+                      minAlpha: Math.min(...pixels.map(pixel => pixel[3])),
+                      maxAlpha: Math.max(...pixels.map(pixel => pixel[3])),
+                      visiblePixels: pixels.filter(pixel => pixel[3] > 80).length,
+                      colourRanges: [0, 1, 2].map(channel => {
+                        const values = pixels.map(pixel => pixel[channel]);
+                        return Math.max(...values) - Math.min(...values);
+                      })
+                    };
                   });
-                  assert.equal(paletteSpread.sceneActive, false, label + ': Liquid Flow fallback test must have no scene texture');
-                  assert.ok(paletteSpread.ranges.some(range => range > 40),
-                    label + ': Liquid Flow palette ramp must retain colour variation instead of collapsing to the final colour stop');
-                  await page.evaluate(async () => {
-                    window.__kefeOriginalAlbumArtGetter = window.kefeGetAlbumArt;
-                    const source = document.createElement('canvas');
-                    source.width = 64; source.height = 64;
-                    const context = source.getContext('2d');
-                    context.fillStyle = '#13243a'; context.fillRect(0, 0, 64, 64);
-                    context.fillStyle = '#f4f7ff'; context.fillRect(0, 0, 32, 64);
-                    const image = new Image();
-                    image.src = source.toDataURL('image/png');
-                    await image.decode();
-                    window.kefeGetAlbumArt = () => image;
-                    const background = document.getElementById('visualiserBackground');
-                    background.value = 'apple';
-                    background.dispatchEvent(new Event('change', { bubbles: true }));
-                  });
-                  await page.waitForFunction(() => window.kefeGradientLayer?.state().sceneActive === true, null, { timeout: 10000 });
-                  assert.equal((await page.evaluate(() => window.kefeGradientLayer.state())).sceneActive, true,
-                    label + ': Liquid Flow must sample the active background as a refractive scene');
-                  await page.evaluate(() => {
-                    const background = document.getElementById('visualiserBackground');
-                    background.value = 'off';
-                    background.dispatchEvent(new Event('change', { bubbles: true }));
-                    window.kefeGetAlbumArt = window.__kefeOriginalAlbumArtGetter;
-                    delete window.__kefeOriginalAlbumArtGetter;
-                  });
-                  await page.waitForFunction(() => window.kefeGradientLayer?.state().sceneActive === false, null, { timeout: 10000 });
-                  if (!liquidWasEnabled) await liquidPowerForSource.click();
+                  assert.ok(renderCheck, label + ': Fluid Ink must render a readable canvas');
+                  assert.ok(renderCheck.visiblePixels > 0, label + ': Fluid Ink must produce visible fluid colour');
+                  assert.ok(renderCheck.maxAlpha > renderCheck.minAlpha + 15,
+                    label + ': Fluid Ink must retain transparent areas for KEFE background effects');
+                  assert.ok(renderCheck.colourRanges.some(range => range > 25),
+                    label + ': Fluid Ink must render colour variation rather than a flat fill');
+                  if (!wasEnabled) await fluidPower.click();
                 }
                 const power = page.locator('.kefe-visualiser-panel-head .kefe-switch');
                 assert.equal(await power.count(), 1, label + ': selected visualiser toggle must sit beside its description: ' + id);
