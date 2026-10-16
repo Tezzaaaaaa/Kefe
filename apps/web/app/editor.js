@@ -614,7 +614,7 @@
     document.querySelectorAll('.kefe-lyric-effect-option').forEach(b=>{const active=b.dataset.effect===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
-    document.getElementById('fontMeta').textContent='Locked effect font · '+(c.weight||400)+' weight';
+    document.getElementById('fontMeta').textContent=fontSelect.value ? 'Selected font · '+fontSelect.value : 'Effect font · '+(c.family||'System UI');
     draw();
     window.dispatchEvent(new CustomEvent('kefe-effect-change',{detail:{effect:id}}));
     return true;
@@ -1426,7 +1426,12 @@
   songAlbum.addEventListener('input',()=>{manuallyEditedTrackFields.add('album');clearTitleArtwork();scheduleTitleArtworkLookup();updateTitleCard();});
   songYear.addEventListener('input',()=>{manuallyEditedTrackFields.add('year');updateTitleCard();});
   lyricsInput.addEventListener('input',parseLyrics);
-  fontSelect.addEventListener('change',()=>{state.fontOverride=fontSelect.value;draw();syncFontOptions()});
+  fontSelect.addEventListener('change',()=>{
+    state.fontOverride=fontSelect.value;
+    const effectFont=window.KEFE_TYPE?.effects?.[state.effect]?.family||'System UI';
+    document.getElementById('fontMeta').textContent=fontSelect.value?'Selected font · '+fontSelect.value:'Effect font · '+effectFont;
+    draw();syncFontOptions();
+  });
 
   const uploadZone=document.getElementById('kefeUploadZone');
   const mediaInput=document.getElementById('mediaInput');
