@@ -126,7 +126,7 @@ jobs:
                 assert.equal(editorLayout.detailsGridColumns, 1, 'song metadata inside the media steps must use a single column');
               }
               for (const section of ['media', 'lyrics', 'effects', 'background-effects', 'visualiser', 'export']) {
-                const columns = await page.locator('.kefe-panel[data-panel-view="' + section + '"] .kefe-form').evaluate(node => getComputedStyle(node).gridTemplateColumns.trim().split(/\\s+/).filter(Boolean).length);
+                const columns = await page.locator('.kefe-panel[data-panel-view="' + section + '"] .kefe-form').evaluate(node => getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length);
                 assert.equal(columns, 1, section + ' panel must use a single-column layout');
               }
 
@@ -176,7 +176,7 @@ jobs:
               assert.ok(mobileGeometry.sidebarHeight <= 56, 'mobile navigation should use a compact horizontal row: ' + JSON.stringify(mobileGeometry));
               assert.equal(await mobile.locator('.kefe-tabs').evaluate(node => getComputedStyle(node).display), 'none', 'mobile editor must not duplicate section navigation');
               for (const section of ['media', 'lyrics', 'effects', 'background-effects', 'visualiser', 'export']) {
-                const columns = await mobile.locator('.kefe-panel[data-panel-view="' + section + '"] .kefe-form').evaluate(node => getComputedStyle(node).gridTemplateColumns.trim().split(/\\s+/).filter(Boolean).length);
+                const columns = await mobile.locator('.kefe-panel[data-panel-view="' + section + '"] .kefe-form').evaluate(node => getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length);
                 assert.equal(columns, 1, 'mobile ' + section + ' panel must use a single-column layout');
               }
               const mobileStage = await mobile.locator('.kefe-stage').boundingBox();
