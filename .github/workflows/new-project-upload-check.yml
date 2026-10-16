@@ -146,7 +146,7 @@ jobs:
                 console.error('Visualiser power-toggle interaction diagnostics:', JSON.stringify(diagnostics));
                 throw error;
               }
-              await page.waitForFunction(() => window.kefeLiquidFlow?.state?.().on === true, null, { timeout: 10000 });
+              await page.waitForFunction(() => window.kefeGradientLayer?.state?.().on === true, null, { timeout: 10000 });
 
               await page.locator('.kefe-sidebar [data-shell-panel="export"]').click();
               await page.locator('.kefe-panel[data-panel-view="export"].active').waitFor();
