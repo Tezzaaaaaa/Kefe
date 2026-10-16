@@ -168,10 +168,22 @@ jobs:
 
                 const effectsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
                 const effectsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="effects"]', 'Effects');
-                const lyricEffectGridColumns = await page.locator('#lyricEffectOptions').evaluate(el =>
-                  getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length);
-                assert.equal(lyricEffectGridColumns, 2,
-                  `Lyric effect options must occupy two columns at ${width}px; got ${lyricEffectGridColumns}`);
+                const lyricEffectGridLayout = await page.locator('#lyricEffectOptions').evaluate(el => {
+                  const style = getComputedStyle(el);
+                  const rect = el.getBoundingClientRect();
+                  return {
+                    display: style.display,
+                    width: rect.width,
+                    height: rect.height,
+                    columns: style.gridTemplateColumns.trim().split(/\s+/).length
+                  };
+                });
+                assert.equal(lyricEffectGridLayout.display, 'grid',
+                  `Lyric effect options must use a grid at ${width}px; got ${lyricEffectGridLayout.display}`);
+                assert.ok(lyricEffectGridLayout.width > 0 && lyricEffectGridLayout.height > 0,
+                  `Lyric effect options must be visible at ${width}px: ${JSON.stringify(lyricEffectGridLayout)}`);
+                assert.equal(lyricEffectGridLayout.columns, 2,
+                  `Lyric effect options must occupy two columns at ${width}px: ${JSON.stringify(lyricEffectGridLayout)}`);
 
                 // Run the expensive per-effect audit once against the published editor at 390px.
                 // The local and 320px runs still cover the responsive layout at both widths.
