@@ -254,7 +254,7 @@
     simCanvas=document.createElement('canvas');simCtx=simCanvas.getContext('2d',{alpha:true});
     if(!ctx||!simCtx){var error=document.createElement('p');error.className='kefe-liquid-error';error.textContent='Fluid Ink could not start because this browser does not support canvas rendering.';view.appendChild(error);return;}
     if(window.kefeGradientLayer&&window.kefeGradientLayer.stopPreview)window.kefeGradientLayer.stopPreview();
-    if(old)old.remove();stage.insertBefore(canvas,document.getElementById('kefeCanvas')||null);
+    stage.insertBefore(canvas,document.getElementById('kefeCanvas')||null);
     var intro=view.querySelector('.kefe-visualiser-intro');
     Array.from(view.children).forEach(function(child){if(child!==intro)child.remove();});
     var tab=document.querySelector('.kefe-vis-tabs [data-visualiser="gradient"]');
