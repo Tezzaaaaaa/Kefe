@@ -158,7 +158,7 @@
         var glint=Math.pow(lum,2.2)*lift*.18;
         data[at]=Math.min(255,(r+glint)*255);data[at+1]=Math.min(255,(g+glint)*255);data[at+2]=Math.min(255,(b+glint)*255);
       }else{data[at]=2;data[at+1]=3;data[at+2]=7;}
-      data[at+3]=255;
+      data[at+3]=max>0.012?Math.round(clamp(Math.max(r,g,b)*1.85,0,.94)*255):0;
     }
     simCtx.putImageData(imageData,0,0);
   }
@@ -171,7 +171,7 @@
     if(lastTime!==null&&now<lastTime)dt=1/60;
     lastTime=now;
     simulate(now,dt);paintPixels();
-    ctx.save();ctx.globalCompositeOperation='source-over';ctx.globalAlpha=.45+values.bloom*.18;ctx.filter='blur('+(5+values.bloom*11)+'px)';
+    ctx.clearRect(0,0,w,h);ctx.fillStyle='rgba(2,3,7,.12)';ctx.fillRect(0,0,w,h);ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=.45+values.bloom*.18;ctx.filter='blur('+(5+values.bloom*11)+'px)';
     ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
     ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=1;ctx.imageSmoothingEnabled=true;ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
   }
@@ -226,8 +226,8 @@
     var old=document.getElementById('kefeGradientCanvas');
     canvas=document.createElement('canvas');canvas.id='kefeFluidInkCanvas';canvas.setAttribute('aria-hidden','true');
     canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;';
-    ctx=canvas.getContext('2d',{alpha:false});
-    simCanvas=document.createElement('canvas');simCtx=simCanvas.getContext('2d',{alpha:false});
+    ctx=canvas.getContext('2d',{alpha:true});
+    simCanvas=document.createElement('canvas');simCtx=simCanvas.getContext('2d',{alpha:true});
     if(!ctx||!simCtx){var error=document.createElement('p');error.className='kefe-liquid-error';error.textContent='Fluid Ink could not start because this browser does not support canvas rendering.';view.appendChild(error);return;}
     if(window.kefeGradientLayer&&window.kefeGradientLayer.stopPreview)window.kefeGradientLayer.stopPreview();
     if(old)old.remove();stage.insertBefore(canvas,document.getElementById('kefeCanvas')||null);
