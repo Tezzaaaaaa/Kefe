@@ -5846,3 +5846,11 @@ body:not(.kefe-fullscreen-open) {
 .kefe-karaoke-control-options{display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:12px;align-items:end;margin-top:10px}
 .kefe-karaoke-color{display:block;width:100px;height:40px;padding:3px;border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);cursor:pointer}
 .kefe-karaoke-control .kefe-meta{margin:8px 0 0}
+
+/* Lyrics power switch beside the Effects heading */
+.kefe-effects-panel-head{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.kefe-effects-heading{display:flex;align-items:baseline;gap:12px;min-width:0}
+.kefe-effects-heading .kefe-meta{margin:0}
+.kefe-lyrics-power{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex:none;font-size:12px;font-weight:700;color:var(--text)}
+.kefe-lyrics-power .kefe-switch{flex:none}
+@media(max-width:520px){.kefe-effects-panel-head{gap:10px}.kefe-effects-heading{display:block}.kefe-lyrics-power{gap:6px}}
