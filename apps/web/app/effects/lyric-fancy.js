@@ -23,8 +23,8 @@
     const y0=h*.5-(lay.lines.length-1)*lay.lineH/2;
     // Fancy is a deliberate editorial RGB treatment: crisp hero type, restrained colour fringes,
     // and short signal-tear bursts rather than permanent jitter.
-    const burstGate=hash(Math.floor(t*3.2)+Math.floor(t*17)*.37);
-    const burst=burstGate>.76?Math.min(1,(burstGate-.76)/.24):0;
+    const burstCycle=Math.floor(t*2.4),burstPhase=(t*2.4)%1;
+    const burst=hash(burstCycle+17)>.55&&burstPhase<.24?Math.sin(Math.PI*clamp((burstPhase-.015)/.225)):0;
     const settle=1-burst*.72;
     ctx.filter='contrast('+Number(S.contrast)+'%)';
     lay.lines.forEach((line,li)=>{
