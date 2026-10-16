@@ -39,11 +39,10 @@ The preview combines the lyric/title-card canvas with a dedicated visualiser can
 
 ### Lyric effects
 
-The effect manifest currently lists 32 lyric effects:
+The effect manifest currently lists 31 lyric effects:
 
 - Apple Music-style focus lyrics
 - Brat
-- Eternal Sunshine
 - Aurora
 - Pulse
 - Typewriter
