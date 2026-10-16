@@ -33,7 +33,7 @@ jobs:
         run: |
           live_url='https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html'
           for attempt in $(seq 1 48); do
-            if curl --fail --silent "$live_url" -o /tmp/kefe-live-editor.html 2>/dev/null && grep -Fq 'workspace-shell.css?v=single-column-controls-20261016-1' /tmp/kefe-live-editor.html && grep -Fq 'app/editor.js?v=lrc-upload-encoding-20261016-1' /tmp/kefe-live-editor.html; then
+            if curl --fail --silent "$live_url" -o /tmp/kefe-live-editor.html 2>/dev/null && grep -Fq 'workspace-shell.css?v=remove-duplicate-header-20261016-1' /tmp/kefe-live-editor.html && grep -Fq 'app/editor.js?v=remove-duplicate-header-20261016-1' /tmp/kefe-live-editor.html; then
               echo 'Published editor contains the unified workspace shell.'
               exit 0
             fi
@@ -132,11 +132,13 @@ jobs:
 
               const shellGeometry = await page.evaluate(() => {
                 const sidebar = document.querySelector('.kefe-sidebar').getBoundingClientRect();
-                const topbar = document.querySelector('.kefe-top').getBoundingClientRect();
-                return { sidebarWidth: sidebar.width, topbarLeft: topbar.left, viewportWidth: innerWidth, documentWidth: document.documentElement.scrollWidth };
+                const work = document.querySelector('.kefe-work').getBoundingClientRect();
+                return { sidebarWidth: sidebar.width, workLeft: work.left, hasDuplicateHeader: !!document.querySelector('.kefe-top'), hasSearchHeader: !!document.querySelector('.kefe-command-trigger'), viewportWidth: innerWidth, documentWidth: document.documentElement.scrollWidth };
               });
               assert.ok(shellGeometry.sidebarWidth >= 180 && shellGeometry.sidebarWidth <= 250, 'desktop sidebar should fit the workspace: ' + JSON.stringify(shellGeometry));
-              assert.ok(shellGeometry.topbarLeft >= shellGeometry.sidebarWidth - 1, 'editor header should sit beside the sidebar: ' + JSON.stringify(shellGeometry));
+              assert.equal(shellGeometry.hasDuplicateHeader, false, 'duplicate top header must be removed');
+              assert.equal(shellGeometry.hasSearchHeader, false, 'search-bar header must be removed');
+              assert.ok(shellGeometry.workLeft >= shellGeometry.sidebarWidth - 1, 'editor workspace should sit beside the sidebar: ' + JSON.stringify(shellGeometry));
               assert.ok(shellGeometry.documentWidth <= shellGeometry.viewportWidth, 'desktop layout must not overflow horizontally: ' + JSON.stringify(shellGeometry));
 
               for (const section of ['lyrics', 'effects', 'background-effects', 'visualiser', 'export']) {
