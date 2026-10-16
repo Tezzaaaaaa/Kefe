@@ -410,15 +410,15 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 @media(max-width:640px){.kefe-volume-popover{right:0;bottom:calc(100% + 8px);width:min(210px,calc(100vw - 20px));gap:8px;padding:10px}.kefe-volume-control>button{width:30px;height:34px}}
 
 
-.kefe-editor .kefe-timeline{position:relative;z-index:20;overflow:visible;grid-template-columns:auto minmax(0,1fr) 76px 30px;align-items:center}
+.kefe-editor .kefe-timeline{position:relative;z-index:20;overflow:visible;grid-template-columns:auto minmax(0,1fr) 64px 30px;align-items:center}
 @media(max-width:700px){
-  .kefe-editor .kefe-timeline{grid-template-columns:68px minmax(0,1fr) 58px 30px;gap:6px;padding:6px 8px}
+  .kefe-editor .kefe-timeline{grid-template-columns:68px minmax(0,1fr) 52px 30px;gap:6px;padding:6px 8px}
   .kefe-editor .kefe-timeline .kefe-wave{height:40px;padding:0 10px}
   .kefe-editor .kefe-timeline .kefe-slider{height:40px}
 }
 @media(max-width:380px){
-  .kefe-editor .kefe-timeline{grid-template-columns:60px minmax(0,1fr) 48px 30px;gap:4px;padding:5px 6px}
-  .kefe-editor .kefe-timeline .kefe-aspect-controls{width:48px;min-width:48px;flex-basis:48px}
+  .kefe-editor .kefe-timeline{grid-template-columns:60px minmax(0,1fr) 44px 30px;gap:4px;padding:5px 6px}
+  .kefe-editor .kefe-timeline .kefe-aspect-controls{width:44px;min-width:44px;flex-basis:44px}
 }
 
 /* Migration fixes: one source order for the transport row, a mobile nav strip that
@@ -548,15 +548,15 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 .kefe-editor .kefe-aspect-trigger.beui-button:focus-visible{outline:2px solid var(--shell-accent);outline-offset:2px}
 .kefe-editor .kefe-aspect-controls.beui-select{
   position:relative;z-index:12;display:flex;align-items:center;justify-content:center;
-  width:76px;min-width:76px;flex:0 0 76px;overflow:visible;
+  width:64px;min-width:64px;flex:0 0 64px;overflow:visible;
 }
 .kefe-editor select.kefe-aspect-trigger.kefe-aspect-native{
   display:block;appearance:none;-webkit-appearance:none;
-  width:76px;min-width:76px;height:40px;padding:0 23px 0 9px;border-radius:10px;
+  width:64px;min-width:64px;height:34px;padding:0 19px 0 7px;border-radius:8px;
   font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1;
   color:var(--shell-text);background-color:var(--shell-panel);
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath d='m7 10 5 5 5-5' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 7px center;background-size:14px;
+  background-repeat:no-repeat;background-position:right 5px center;background-size:12px;
   cursor:pointer;touch-action:manipulation;
 }
 .kefe-editor select.kefe-aspect-trigger.kefe-aspect-native:focus-visible{
@@ -566,13 +566,13 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   .kefe-editor .kefe-transport{gap:4px}
   .kefe-editor .kefe-play.beui-button{width:36px;height:36px;min-width:36px}
   .kefe-editor .kefe-restart.beui-button{width:28px;height:30px;min-width:28px}
-  .kefe-editor .kefe-aspect-controls.beui-select{width:58px;min-width:58px;flex-basis:58px}
-  .kefe-editor .kefe-aspect-trigger.beui-button{width:58px;min-width:58px;height:36px;padding:0 6px;gap:3px;font-size:11px}
+  .kefe-editor .kefe-aspect-controls.beui-select{width:52px;min-width:52px;flex-basis:52px}
+  .kefe-editor .kefe-aspect-trigger.beui-button{width:52px;min-width:52px;height:32px;padding:0 4px;gap:2px;font-size:10px}
   .kefe-editor .kefe-aspect-trigger svg{width:12px;height:12px}
 }
 @media(max-width:380px){
   .kefe-editor .kefe-aspect-controls.beui-select{width:48px;min-width:48px;flex-basis:48px}
-  .kefe-editor .kefe-aspect-trigger.beui-button{width:48px;min-width:48px;padding-inline:3px}
+  .kefe-editor .kefe-aspect-trigger.beui-button{width:44px;min-width:44px;height:30px;padding-inline:2px}
 }
 @media(prefers-reduced-motion:reduce){
   .kefe-editor .kefe-play.beui-button,.kefe-editor .kefe-restart.beui-button,.kefe-editor .kefe-aspect-trigger.beui-button{transition:none}
