@@ -89,7 +89,7 @@
       power.classList.toggle('is-on', enabled);
       powerState.textContent = enabled ? 'On' : 'Off';
     });
-    powerSlot.replaceChildren(power);
+    if(power.parentNode!==powerSlot)powerSlot.prepend(power);
 
     const editing = panel.closest('.kefe-editing');
     const panels = editing?.querySelector('.kefe-panels');
