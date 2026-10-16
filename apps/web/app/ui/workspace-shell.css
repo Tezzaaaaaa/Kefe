@@ -167,25 +167,9 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-panel .kefe-control:hover{box-shadow:0 3px 10px rgba(0,0,0,.08);transform:none}
 .kefe-panel .kefe-btn:focus-visible,
 .kefe-panel .kefe-control:focus-visible{outline:2px solid var(--shell-accent);outline-offset:2px}
-.kefe-panel[data-panel-view="media"] .kefe-form,
-.kefe-panel[data-panel-view="effects"] .kefe-form,
-.kefe-panel[data-panel-view="background-effects"] .kefe-form,
-.kefe-panel[data-panel-view="export"] .kefe-form{
-  grid-template-columns:repeat(2,minmax(0,1fr));
-}
-.kefe-panel[data-panel-view="export"] .kefe-form{max-width:720px}
-.kefe-panel[data-panel-view="media"] .kefe-upload-zone,
-.kefe-panel[data-panel-view="media"] .kefe-media-track,
-.kefe-panel[data-panel-view="media"] .kefe-suggestions,
-.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control{grid-column:1/-1}
-.kefe-panel[data-panel-view="lyrics"] .kefe-form{grid-template-columns:minmax(0,1fr)}
 .kefe-panel[data-panel-view="lyrics"] .kefe-textarea{min-height:220px}
-.kefe-panel[data-panel-view="visualiser"] .kefe-form{
-  grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;
-}
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group,
 .kefe-panel[data-panel-view="visualiser"] #visualiserPresetGrid{min-width:0}
-.kefe-panel[data-panel-view="export"] .kefe-form{max-width:720px}
 .kefe-panel .kefe-visualiser-spin-row .kefe-btn.kefe-switch{
   position:relative;width:34px;min-width:34px;height:20px;min-height:20px;padding:0;
   overflow:hidden;border:0;border-radius:999px;background:var(--surface-lo);color:transparent;
@@ -238,7 +222,6 @@ body{overflow-x:hidden;overflow-y:auto}
   .kefe-sidebar-link{gap:7px;padding-inline:8px}
   .kefe-panels{padding:12px 12px 24px}
   .kefe-panel{padding:16px}
-  .kefe-panel[data-panel-view="visualiser"] .kefe-form{grid-template-columns:minmax(0,1fr)}
   .kefe-preview{padding:10px 12px 6px}
 }
 @media(max-width:640px){
@@ -272,14 +255,6 @@ body{overflow-x:hidden;overflow-y:auto}
   .kefe-panel-head{display:flex;align-items:flex-start;flex-direction:column;gap:6px;margin-bottom:14px}
   .kefe-panel-head .kefe-meta{text-align:left}
   .kefe-form{gap:14px}
-  .kefe-panel[data-panel-view="media"] .kefe-form,
-  .kefe-panel[data-panel-view="lyrics"] .kefe-form,
-  .kefe-panel[data-panel-view="effects"] .kefe-form,
-  .kefe-panel[data-panel-view="background-effects"] .kefe-form,
-  .kefe-panel[data-panel-view="export"] .kefe-form{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .kefe-panel[data-panel-view="lyrics"] .kefe-form > div:has(.kefe-textarea),
-  .kefe-panel[data-panel-view="lyrics"] .kefe-form > .kefe-lyrics-timing{grid-column:1/-1}
-  .kefe-panel[data-panel-view="visualiser"] .kefe-form{grid-template-columns:minmax(0,1fr)}
   .kefe-site-footer{display:none}
   .kefe-time{min-width:58px}
   .kefe-aspect-controls{min-width:56px;flex-basis:56px}
@@ -521,19 +496,6 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 @media(prefers-reduced-motion:reduce){
   :is(.kefe-editor input[type="range"], .kefe-settings input[type="range"])::-webkit-slider-thumb{transition:none}
   :is(.kefe-editor input[type="range"], .kefe-settings input[type="range"])::-moz-range-thumb{transition:none}
-}
-
-/* Preserve the existing single-column panel layout outside phone widths.
-   Mobile panel grids are defined by the responsive rules in styles.css. */
-@media (min-width: 641px) {
-  .kefe-panel[data-panel-view="media"] .kefe-form,
-  .kefe-panel[data-panel-view="lyrics"] .kefe-form,
-  .kefe-panel[data-panel-view="effects"] .kefe-form,
-  .kefe-panel[data-panel-view="background-effects"] .kefe-form,
-  .kefe-panel[data-panel-view="visualiser"] .kefe-form,
-  .kefe-panel[data-panel-view="export"] .kefe-form {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 /* Modal layers sit above the floating dock. */
