@@ -220,15 +220,27 @@
     wrap.appendChild(settings);
     var random=document.createElement('button');random.type='button';random.className='kefe-btn';random.textContent='Randomise fluid';random.addEventListener('click',function(){
       var ids=Object.keys(presets);setPreset(ids[Math.floor(Math.random()*ids.length)]);
-      paletteIndex=Math.floor(Math.random()*palettes.length);resetDye();
+      paletteIndex=Math.floor(Math.random()*palettes.length);resetDye();syncPaletteButtons();
     });wrap.appendChild(random);view.appendChild(wrap);
-    var paletteStrip=document.querySelector('#kefeGradientPresetSet .kefe-gradient-palettes');
-    if(paletteStrip)Array.from(paletteStrip.children).forEach(function(button,i){
-      if(!palettes[i])return;
-      button.title=palettes[i].name;button.setAttribute('aria-label',palettes[i].name+' palette');
-      button.style.background='linear-gradient(90deg,'+palettes[i].c.join(',')+')';
-      button.addEventListener('click',function(){paletteIndex=i;});
-    });
+
+    function syncPaletteButtons(){
+      var buttons=document.querySelectorAll('#kefeGradientPresetSet .kefe-gradient-chip');
+      buttons.forEach(function(button,i){button.setAttribute('aria-pressed',String(i===paletteIndex));});
+    }
+    var paletteSet=document.getElementById('kefeGradientPresetSet');
+    if(paletteSet){
+      var paletteStrip=document.createElement('div');paletteStrip.className='kefe-gradient-preset-strip';
+      var chips=document.createElement('div');chips.className='kefe-gradient-palettes';
+      palettes.forEach(function(palette,i){
+        var button=document.createElement('button');button.type='button';button.className='kefe-gradient-chip';
+        button.title=palette.name;button.setAttribute('aria-label',palette.name+' palette');
+        button.setAttribute('aria-pressed',String(i===paletteIndex));
+        button.style.background='linear-gradient(90deg,'+palette.c.join(',')+')';
+        button.addEventListener('click',function(){paletteIndex=i;resetDye();syncPaletteButtons();});
+        chips.appendChild(button);
+      });
+      paletteStrip.appendChild(chips);paletteSet.appendChild(paletteStrip);
+    }
   }
   function resetDye(){
     [u,v,u0,v0,dyeR,dyeG,dyeB,dyeR0,dyeG0,dyeB0].forEach(function(a){if(a)a.fill(0);});
