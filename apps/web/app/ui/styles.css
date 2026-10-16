@@ -390,11 +390,7 @@ button{border:0;cursor:pointer;
 }
 .kefe-panel[data-panel-view="effects"] .kefe-form{
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
   gap:12px;
-}
-.kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card{
-  grid-column:1 / -1;
 }
 .kefe-panel[data-panel-view="effects"] .kefe-select{
   background:var(--surface-hi);
@@ -2059,10 +2055,6 @@ body{ letter-spacing: -.01em;
   padding: 7px 9px;
   font-size: var(--font-xs);
   color: var(--muted);}
-
-.kefe-panel[data-panel-view="export"] .kefe-form {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
 
 .kefe-panel[data-panel-view="export"] .kefe-empty-panel {
   grid-column: 1 / -1;
