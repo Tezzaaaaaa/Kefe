@@ -1426,10 +1426,10 @@ button{border:0;cursor:pointer;
 .kefe-export-close:hover{background:#383943}
 @media(max-width:480px){.kefe-export-overlay{padding:12px}.kefe-export-card{padding:22px 18px;border-radius:var(--r3);max-height:calc(100dvh - 24px)}.kefe-export-details{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 10px}.kefe-export-summary{padding:14px}.kefe-export-intro{margin-bottom:18px}}
 
-/* Scrollable lyric-effect gallery: browse horizontally while the main canvas stays in the same workspace. */
-.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control{grid-column:1/-1;min-width:0}
-.kefe-lyric-effect-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,128px),1fr));gap:8px;min-width:0;max-width:100%;padding:3px 2px 4px;align-items:stretch}
-.kefe-lyric-effect-option{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:10px;min-width:0;min-height:108px;padding:8px;border:1px solid var(--line-soft);border-radius:var(--r2);background:var(--surface-hi);color:var(--muted);box-shadow:var(--inner);text-align:left;line-height:1.25;scroll-snap-align:start;cursor:pointer;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease,transform .16s ease}
+/* Lyric-effect gallery: one compact horizontal rail with fixed-width cards and its own scroll area. */
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control{grid-column:1/-1;min-width:0;width:100%;max-width:100%}
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-grid{display:flex;flex-flow:row nowrap;align-items:stretch;gap:10px;width:100%;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:3px 3px 10px;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent;-webkit-overflow-scrolling:touch}
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-option{flex:0 0 124px;grid-column:auto;width:124px;min-width:124px;min-height:108px;padding:8px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:10px;scroll-snap-align:start}
 .kefe-lyric-effect-option:hover{background:var(--surface);color:var(--text);box-shadow:var(--lift);transform:translateY(-1px)}
 .kefe-lyric-effect-option.active{background:var(--surface);border-color:var(--accent);color:var(--text);box-shadow:0 0 0 1px var(--accent),var(--lift)}
 .kefe-lyric-effect-option:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
@@ -1443,7 +1443,7 @@ button{border:0;cursor:pointer;
 .kefe-lyric-effect-option[data-effect="decrypt"] .kefe-lyric-effect-sample{font-family:monospace;letter-spacing:.02em}
 .kefe-lyric-effect-option[data-effect="blur"] .kefe-lyric-effect-sample{filter:blur(.65px)}
 .kefe-lyric-effect-option[data-effect="shiny"] .kefe-lyric-effect-sample{background:linear-gradient(110deg,var(--surface) 25%,var(--text) 45%,var(--surface) 65%);background-clip:text;-webkit-background-clip:text;color:transparent}
-@media(max-width:520px){.kefe-lyric-effect-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-bottom:2px}.kefe-lyric-effect-option{min-height:100px;padding:7px;gap:8px}.kefe-lyric-effect-sample{min-height:58px;font-size:31px}.kefe-lyric-effect-name{font-size:11px}}
+@media(max-width:520px){.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-grid{gap:8px;padding-bottom:8px}.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-option{flex-basis:112px;width:112px;min-width:112px;min-height:100px;padding:7px;gap:8px}.kefe-lyric-effect-sample{min-height:58px;font-size:31px}.kefe-lyric-effect-name{font-size:11px}}
 
 /* Effects category layout */
 .kefe-effect-category-tabs{display:flex;flex-direction:row;align-items:stretch;gap:5px;width:100%;min-width:0;margin:0 0 12px;padding:5px 6px;border-radius:var(--r2);background:var(--bg);overflow-x:auto;overflow-y:hidden}
