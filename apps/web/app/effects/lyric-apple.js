@@ -236,11 +236,13 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const baseDimension = Math.min(w, h);
     const aspectRatio = w / Math.max(1, h);
     const landscapeSplit = aspectRatio >= 1.25;
-    const compositionWidth = landscapeSplit ? w * 0.60 : (aspectRatio < 0.75 ? w * 0.84 : w * 0.78);
-    const horizontalPadding = compositionWidth * (landscapeSplit ? 0.06 : (31 / 390));
+    // Match the replacement's 100 × 216.4 portrait layout and 384 × 216.4 landscape split,
+    // scaled to KEFE's canvas instead of relying on its standalone HTML/CSS viewport.
+    const compositionWidth = landscapeSplit ? w * (186 / 384) : w * 0.836;
+    const horizontalPadding = landscapeSplit ? 0 : 0;
     const contentWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
-    const activeFontSize = baseDimension * (32 / 390);
-    const inactiveFontSize = baseDimension * (29 / 390);
+    const activeFontSize = landscapeSplit ? h * (10.5 / 216.4) : w * (7.9 / 100);
+    const inactiveFontSize = activeFontSize * (29 / 32);
     const lineSpacing = baseDimension * (5 / 390);
     const contract = window.KEFE_TYPE?.effects?.apple || {};
     const family = `"SF Pro Display","SF Pro Text","Inter Tight",system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
@@ -249,7 +251,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         document.fonts.load('700 48px "Inter Tight"').catch(() => {});
         document.fonts.load('600 48px "Inter Tight"').catch(() => {});
     }
-    const boundaryLeft = landscapeSplit ? w * 0.35 : Math.max(0, (w - compositionWidth) / 2);
+    const boundaryLeft = landscapeSplit ? w * (180 / 384) : w * 0.082;
     const margin = boundaryLeft + horizontalPadding;
     const maxWidth = contentWidth;
     const displayLines = [];
@@ -363,8 +365,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const appleHeaderBottom = landscapeSplit ? 0 : Math.max(32, h * 0.07) + baseDimension * 0.11;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = landscapeSplit
-        ? h * 0.13 + Math.min(baseDimension * 0.38, w * 0.24) - activeBlockHeight / 2
-        : appleHeaderBottom + activeBlockHeight / 2 + blockGap + (aspectRatio < 0.75 ? baseDimension * 0.07 : 0);
+        ? h * 0.355
+        : (aspectRatio >= 0.9 ? h * 0.495 : h * 0.255);
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
