@@ -121,7 +121,7 @@ function appleSpringOut(t) {
    across the space to the next), so there is no per-word stop/start. Letters float up as the
    highlight reaches them (eased, driven by the same front position, so the lift and the fill are
    always in sync) and settle back as the line scrolls away. Sustained words get a soft glow. */
-const APPLE_WAVE = { lift: 0.075, pop: 0.02, dim: 0.18, fade: 0.55, riseSpan: 0.9, glowDur: 0.9 };
+const APPLE_WAVE = { lift: 0.075, pop: 0.02, dim: 0.42, fade: 0.55, riseSpan: 0.9, glowDur: 0.9 };
 const appleLetterCache = new Map();
 const appleRowCache = new Map();
 const APPLE_OFFSCREEN = 20000;
@@ -370,17 +370,22 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const active = linaNormaliseLine(displayLines, activeIndex);
     if (!active) return;
 
-    const transitionDuration = linaClamp((Number(active.nextLineTime) - Number(active.time)) * 0.16, 0.18, 0.30);
-    const posT = linaSmooth((time - active.time) / transitionDuration);
+    const nextLineTime = hasFiniteNumber(active.nextLineTime) ? Number(active.nextLineTime) : null;
+    const transitionDuration = nextLineTime !== null
+        ? linaClamp((nextLineTime - Number(active.time)) * 0.16, 0.18, 0.30)
+        : 0;
+    const posT = nextLineTime !== null
+        ? linaSmooth((time - (nextLineTime - transitionDuration)) / transitionDuration)
+        : 0;
 
     const scalePoints = [[-4, 0.97], [-3, 0.97], [-2, 0.97], [-1, 0.97], [0, activeScale], [1, 0.97], [2, 0.97], [3, 0.97], [4, 0.97]];
-    const opacityPoints = [[-4, 0.06], [-3, 0.07], [-2, 0.08], [-1, 0.10], [0, 1], [1, 0.10], [2, 0.08], [3, 0.07], [4, 0.06]];
+    const opacityPoints = [[-4, 0.24], [-3, 0.28], [-2, 0.33], [-1, 0.40], [0, 1], [1, 0.42], [2, 0.36], [3, 0.30], [4, 0.26]];
     const blurPoints = [[-4, activeFontSize * 0.26], [-3, activeFontSize * 0.2], [-2, activeFontSize * 0.14], [-1, activeFontSize * 0.075], [0, 0], [1, activeFontSize * 0.075], [2, activeFontSize * 0.14], [3, activeFontSize * 0.2], [4, activeFontSize * 0.26]];
 
     /* Continuous scroll: every line is positioned and styled from one fractional "focus" index so
        nothing pops when the active line changes – position, size, opacity, blur and the white
        highlight all interpolate together (like Apple Music). */
-    const focus = activeIndex > 0 ? activeIndex - 1 + posT : 0;
+    const focus = activeIndex + posT;
     const heightOf = i => (displayLines[i]?.appleBlockHeight || rowHeight);
     const cum = [0];
     for (let i = 1; i < displayLines.length; i++) cum[i] = cum[i - 1] + heightOf(i - 1) / 2 + heightOf(i) / 2 + blockGap;
