@@ -163,7 +163,7 @@
     form.appendChild(view);
     tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab){setActive(false);sceneSet.hidden=true;}});
     tab.addEventListener('click',()=>{
-      const reset=tabs.querySelector('[data-visualiser="particles"]');if(reset)reset.click();
+      
       form.querySelectorAll('.kefe-vis-view').forEach(v=>v.hidden=v!==view);
       tabs.querySelectorAll('[role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
       const presetRow=document.querySelector('.kefe-editing > .kefe-visualiser-preset-row');if(presetRow)presetRow.hidden=false;
@@ -174,9 +174,7 @@
       if(header){header.querySelectorAll('.kefe-switch').forEach(b=>{if(b!==power)b.remove();});if(!header.contains(power))header.appendChild(power);}
       /* Other visualisers hide themselves when their tab is left, so their canvases are never
          forced to display:none here (that left Dithr and Fluted Glass blank after a visit). */
-      window.kefeVisualiserEnabled=false;
-      if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();
-      else{const particleCanvas=document.getElementById('kefeVisualiserCanvas');if(particleCanvas)particleCanvas.style.visibility='hidden';}
+      window.kefeDithrActive=false;
       setActive(true);
     });
     tabsList.appendChild(option);
