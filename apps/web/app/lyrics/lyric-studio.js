@@ -95,6 +95,8 @@
     caseSel.addEventListener('change', function () { S.caseMode = caseSel.value; persist(); redraw(); });
     caseBox.appendChild(caseSel);
 
+    caseBox.classList.add('kefe-case-control');
+    wrap.appendChild(caseBox);
     wrap.appendChild(modeBox);
     /* Place the single settings container immediately after the effect gallery. */
     effectRow.parentNode.insertBefore(wrap, effectRow.nextSibling);
@@ -105,22 +107,17 @@
         node.querySelector('summary') && node.querySelector('summary').textContent.trim() === 'Size and placement';
     });
 
-    var fontSelect = document.getElementById('fontOverride');
-    var fontBlock = fontSelect && !fontSelect.closest('[hidden]') ? fontSelect.closest('div') : null;
-    caseBox.classList.add('kefe-case-control');
-    if (fontBlock) {
-      fontBlock.classList.add('kefe-font-control');
-      var pair = el('div', 'kefe-font-case-row');
-      pair.append(fontBlock, caseBox);
-      wrap.appendChild(pair);
-    } else {
-      wrap.appendChild(caseBox);
-    }
-
-    /* Size and placement is the final step: tune scale and position after choosing the lyric format and typography. */
+    /* Keep size and placement directly beneath the display/chunk controls. */
     if (placement) {
       placement.classList.add('kefe-lyric-placement');
       wrap.appendChild(placement);
+    }
+
+    var fontSelect = document.getElementById('fontOverride');
+    var fontBlock = fontSelect && !fontSelect.closest('[hidden]') ? fontSelect.closest('div') : null;
+    if (fontBlock) {
+      fontBlock.classList.add('kefe-font-control');
+      wrap.appendChild(fontBlock);
     }
     sync();
   }
