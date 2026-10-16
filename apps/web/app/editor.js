@@ -478,6 +478,7 @@
     // Portrait-only optical alignment: shift the whole title card right by two glyph widths.
     // The Apple lyrics renderer already handles its own aspect-specific two-letter offset.
     if(aspect<0.75){ctx.font=font(750,ht);ctx.translate(ctx.measureText('MM').width,0);}
+    else if(aspect>=0.9&&aspect<1.25){ctx.font=font(750,ht);ctx.translate(ctx.measureText('M').width*1.5,0);}
     ctx.textBaseline='top';
     // artwork
     const rr=()=>{ctx.beginPath();ctx.moveTo(ax+r,ay);ctx.arcTo(ax+art,ay,ax+art,ay+art,r);ctx.arcTo(ax+art,ay+art,ax,ay+art,r);ctx.arcTo(ax,ay+art,ax,ay,r);ctx.arcTo(ax,ay,ax+art,ay,r);ctx.closePath();};
@@ -528,7 +529,19 @@
           // Display mode / case come from the lyric studio; colours, size, outline, glow and placement from the style layer.
           const shown=studio?studio.shape(state.lines,state.effect):state.lines;
           const style=styler?styler.style(currentStyle()):currentStyle();
-          const paintEffect=g=>fn(g,W,H,style,shown,effT,titleArtImage);
+          const paintEffect=g=>{
+            if(state.effect!=='apple'){fn(g,W,H,style,shown,effT,titleArtImage);return;}
+            const aspect=W/Math.max(1,H);
+            if(aspect<0.75){
+              // Reposition the rendered Apple lyrics output only; leave the effect implementation untouched.
+              g.save();g.translate(0,W*0.104);fn(g,W,H,style,shown,effT,titleArtImage);g.restore();
+            }else if(aspect>=0.9&&aspect<1.25){
+              // Square layout: shift Apple lyrics right by one and a half glyph widths.
+              const size=W*0.056,family='"SF Pro Display","SF Pro Text","Inter Tight",system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+              g.save();g.font=`${window.KEFE_TYPE?.effects?.apple?.weight||700} ${size}px ${family}`;
+              g.translate(g.measureText('M').width*1.5,0);fn(g,W,H,style,shown,effT,titleArtImage);g.restore();
+            }else fn(g,W,H,style,shown,effT,titleArtImage);
+          };
           // Lyrics scroll underneath the pinned header: render them on a scratch layer and fade/clip at the header's bottom edge.
           if(!lyricLayer)lyricLayer=document.createElement('canvas');
           if(lyricLayer.width!==W||lyricLayer.height!==H){lyricLayer.width=W;lyricLayer.height=H;}
