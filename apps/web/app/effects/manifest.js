@@ -4,6 +4,8 @@
  * typography contracts and the smoke test all read this list.
  */
 window.KEFE_EFFECTS = [
+  { key: 'karaoke',     label: 'Karaoke',          description: 'Standard timed word-colour sweep' },
+  { key: 'bounce',      label: 'Bounce Karaoke',   description: 'Timed bouncing-ball karaoke lyrics' },
   { key: 'apple',       label: 'Apple',            description: 'Apple Music-style focus line' },
   { key: 'brat',        label: 'Brat',             description: 'Edge-to-edge album-cover typewriter' },
   { key: 'eternal',     label: 'Eternal Sunshine', description: 'Handwritten ink reveal' },
