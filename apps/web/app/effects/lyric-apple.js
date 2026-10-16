@@ -187,13 +187,13 @@ function appleDrawRow(ctx, entries, y, fs, time, act, sungA, unsungA, P, scale, 
     const first = entries[0], last = entries[entries.length - 1];
     const xs = first.x, xe = last.x + last.box.W;
     const p = appleFrontPos(entries, time);
-    const sungColor = 'rgba(255,255,255,' + sungA.toFixed(3) + ')';
+    const sungColor = 'rgba(210,210,210,' + sungA.toFixed(3) + ')';
     // Unreached glyphs must be visibly grey, not white with reduced opacity.
     // Alpha alone made them look highlighted over bright or changing backgrounds.
     const glyphFill = (left, width) => {
         const reached = linaSmooth((p - left) / Math.max(1, width));
         const alpha = unsungA + (sungA - unsungA) * reached;
-        const channel = Math.round(160 + (255 - 160) * reached);
+        const channel = Math.round(120 + (210 - 120) * reached);
         return 'rgba(' + channel + ',' + channel + ',' + channel + ',' + alpha.toFixed(3) + ')';
     };
     const actK = linaSmooth(act);
@@ -217,7 +217,7 @@ function appleDrawRow(ctx, entries, y, fs, time, act, sungA, unsungA, P, scale, 
             } else {
                 ctx.fillStyle = glyphFill(lx, lw);
                 if (glowK > 0 && lift > 0.01) {
-                    ctx.shadowColor = 'rgba(255,255,255,' + (0.55 * glowK * lift).toFixed(3) + ')';
+                    ctx.shadowColor = 'rgba(210,210,210,' + (0.32 * glowK * lift).toFixed(3) + ')';
                     ctx.shadowBlur = fs * 0.35 * glowK * lift;
                     ctx.shadowOffsetY = 0;
                 } else {
@@ -491,9 +491,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
             // Upcoming / older lines (or no usable word timing): grey, blurred by distance.
             ctx.globalAlpha = alphaAmt;
             if (blurAmt > 0.08) {
-                rows.forEach((rowText, ri) => appleBlurText(ctx, rowText, x, rowYs[ri], blurAmt, 'rgb(160,160,160)', scaleAmt));
+                rows.forEach((rowText, ri) => appleBlurText(ctx, rowText, x, rowYs[ri], blurAmt, 'rgb(120,120,120)', scaleAmt));
             } else {
-                ctx.fillStyle = 'rgb(160,160,160)';
+                ctx.fillStyle = 'rgb(120,120,120)';
                 ctx.shadowColor = 'rgba(0,0,0,0.45)';
                 ctx.shadowBlur = baseShadowBlur;
                 ctx.shadowOffsetY = baseShadowOff;
