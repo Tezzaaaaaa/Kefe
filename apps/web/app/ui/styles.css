@@ -5279,10 +5279,12 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   grid-column: 1 / -1;
   grid-row: 3;
   align-items: center;
+  gap: 10px;
   width: min(1360px, calc(100% - 60px));
   min-width: 0;
   margin: 0 auto;
-  padding: 0 0 8px;
+  padding: 8px 0 12px;
+  border-top: 1px solid var(--line-soft);
   overflow: hidden;
 }
 .kefe-editing:has(.kefe-panel[data-panel-view="visualiser"].active) > .kefe-visualiser-preset-row:not([hidden]) {
@@ -5296,7 +5298,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   display: flex;
   flex: 1 1 100%;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
   min-width: 0;
   max-width: 100%;
@@ -5389,16 +5391,43 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
     width: calc(100% - 20px);
   }
   .kefe-editing > .kefe-vis-tabs {
-    gap: 6px;
-    padding-block: 5px 8px;
+    gap: 8px;
+    padding-block: 6px 10px;
+  }
+  .kefe-vis-option > [role="tab"] {
+    min-height: 68px;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 6px 32px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
   .kefe-vis-option > .kefe-vis-option-power {
-    top: 3px;
-    right: 2px;
-    height: 20px;
-    min-height: 20px;
-    gap: 3px;
-    padding: 2px 3px;
+    top: auto;
+    right: 50%;
+    bottom: 4px;
+    transform: translateX(50%);
+    width: 60px;
+    min-width: 60px;
+    height: 22px;
+    min-height: 22px;
+    gap: 4px;
+    padding: 2px 5px;
+  }
+  .kefe-vis-option-power .kefe-switch-track {
+    flex-basis: 22px;
+    width: 22px;
+    height: 13px;
+  }
+  .kefe-vis-option-power .kefe-switch-thumb {
+    width: 9px;
+    height: 9px;
+  }
+  .kefe-visualiser-preset-row {
+    gap: 8px;
+    padding-top: 10px;
   }
   .kefe-visualiser-preset-set { gap: 6px; }
   .kefe-preset-select-wrap { flex-basis: 112px; max-width: 34%; }
