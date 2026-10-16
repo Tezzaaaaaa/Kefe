@@ -104,6 +104,31 @@ jobs:
                 layout['.kefe-panel.active'].right <= layout['.kefe-panels'].right + 2,
                 label + ': active panel must remain inside the panels area');
 
+              const standardLrc = '[00:01.25]First standard line\\n[00:04.50]Second standard line';
+              await page.locator('#kefeLrcInput').setInputFiles({
+                name: 'standard-test.lrc',
+                mimeType: 'text/plain',
+                buffer: Buffer.from(standardLrc, 'utf8')
+              });
+              await page.waitForFunction(() => document.getElementById('lyricsInput').value.includes('First standard line'));
+              assert.match(await page.locator('#lyricsInput').inputValue(), /\\[00:01\\.250\\] First standard line/,
+                label + ': standard LRC upload must populate the lyrics editor');
+
+              const enhancedLrc = '[00:02.00]<00:02.00>Hello <00:02.40>world';
+              await page.locator('#kefeLrcInput').setInputFiles({
+                name: 'enhanced-test.lrc',
+                mimeType: 'text/plain',
+                buffer: Buffer.from(enhancedLrc, 'utf8')
+              });
+              await page.waitForFunction(() => document.getElementById('lyricsInput').value.includes('Hello world'));
+              assert.match(await page.locator('#lyricsInput').inputValue(), /Hello world/,
+                label + ': enhanced LRC upload must populate the lyrics editor');
+              const enhancedWords = await page.evaluate(() => window.kefeLyricModel.parseLrc('[00:02.00]<00:02.00>Hello <00:02.40>world')[0]?.words);
+              assert.deepEqual(enhancedWords?.map(word => word.text), ['Hello', 'world'],
+                label + ': enhanced LRC word timestamps must be parsed');
+              assert.deepEqual(enhancedWords?.map(word => word.time), [2, 2.4],
+                label + ': enhanced LRC word timestamps must retain their timing');
+
               await page.locator('#mediaInput').setInputFiles({
                 name: 'KEFE Preview Visibility Verification.wav',
                 mimeType: 'audio/wav',
