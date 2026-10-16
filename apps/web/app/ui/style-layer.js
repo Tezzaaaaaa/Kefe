@@ -1,9 +1,5 @@
 /* KEFE — lyric style layer.
-   One place for the text styling the studio exposes: colours, size, placement, outline, glow, plus the custom-text and logo overlay.
-   It works on every lyric effect without touching them:
-     style(base)        – merges the user's colour/size choices into the style object an effect receives
-     post(ctx,w,h,fn)   – renders an effect through a scratch layer, adding placement, outline and glow
-     drawOverlay(ctx…)  – custom text + logo, drawn over the lyric canvas (so previews and exports match)
+   Shared colour, size, placement, outline and glow controls for lyric effects.
    Settings persist in localStorage. An empty colour means "use the effect's own colour". */
 (function () {
   'use strict';
@@ -12,15 +8,9 @@
     textColor: '', accentColor: '', inactiveColor: '',
     scale: 100, offsetX: 0, offsetY: 0,
     outline: { on: false, color: '#000000', width: 4 },
-    glow: { on: false, color: '#ffffff', blur: 24, strength: 70 },
-    text: { on: false, value: '', pos: 'bottom-center', size: 4, color: '#ffffff', opacity: 90 },
-    logo: { on: false, pos: 'top-right', size: 12, opacity: 100 }
+    glow: { on: false, color: '#ffffff', blur: 24, strength: 70 }
   };
   var COLOR_SWATCHES = ['#ffffff', '#171719', '#f16a67', '#f0a35e', '#e7cf63', '#77c7a5', '#69a8f4', '#a88be8'];
-  var POSITIONS = [
-    ['top-left', 'Top left'], ['top-center', 'Top centre'], ['top-right', 'Top right'],
-    ['bottom-left', 'Bottom left'], ['bottom-center', 'Bottom centre'], ['bottom-right', 'Bottom right']
-  ];
 
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
   function merge(base, extra) {
@@ -97,42 +87,6 @@
     }
     ctx.drawImage(layerA, 0, 0);
     ctx.restore();
-  }
-
-  /* ---------- overlay: custom text + logo ---------- */
-  var logoImg = null, logoUrl = '';
-  function anchor(pos, w, h, bw, bh, margin) {
-    var x = pos.indexOf('left') >= 0 ? margin : pos.indexOf('right') >= 0 ? w - margin - bw : (w - bw) / 2;
-    var y = pos.indexOf('top') === 0 ? margin : h - margin - bh;
-    return { x: x, y: y };
-  }
-  function drawOverlay(ctx, w, h) {
-    var margin = Math.min(w, h) * 0.04;
-    if (S.logo.on && logoImg && logoImg.complete && logoImg.naturalWidth) {
-      var lw = w * S.logo.size / 100, lh = lw * logoImg.naturalHeight / logoImg.naturalWidth;
-      var maxH = h * 0.4;
-      if (lh > maxH) { lw *= maxH / lh; lh = maxH; }
-      var p = anchor(S.logo.pos, w, h, lw, lh, margin);
-      ctx.save(); ctx.globalAlpha = S.logo.opacity / 100;
-      try { ctx.drawImage(logoImg, p.x, p.y, lw, lh); } catch (e) { /* tainted or broken image */ }
-      ctx.restore();
-    }
-    var txt = String(S.text.value || '').trim();
-    if (S.text.on && txt) {
-      var size = Math.max(10, Math.min(w, h) * S.text.size / 100);
-      var family = (window.KEFE_TYPE && window.KEFE_TYPE.families && window.KEFE_TYPE.families.default) || 'Inter Tight';
-      ctx.save();
-      ctx.font = '700 ' + size + 'px "' + family + '",system-ui,sans-serif';
-      ctx.textBaseline = 'alphabetic';
-      var tw = Math.min(ctx.measureText(txt).width, w - margin * 2);
-      var q = anchor(S.text.pos, w, h, tw, size, margin);
-      ctx.textAlign = 'left';
-      ctx.globalAlpha = S.text.opacity / 100;
-      ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = size * 0.25;
-      ctx.fillStyle = validColor(S.text.color) ? S.text.color : '#ffffff';
-      ctx.fillText(txt, q.x, q.y + size * 0.82, w - margin * 2);
-      ctx.restore();
-    }
   }
 
   /* ---------- UI ---------- */
@@ -233,59 +187,22 @@
       reg(slider('Glow strength', function () { return S.glow.strength; }, function (v) { S.glow.strength = v; }, 10, 100, 1, function (v) { return v + '%'; }))
     );
 
-    var text = group('Custom text');
-    var textInput = el('input', 'kefe-input'); textInput.type = 'text'; textInput.maxLength = 80; textInput.placeholder = 'Artist handle, release date, “Out now”…';
-    textInput.setAttribute('aria-label', 'Custom text');
-    textInput.addEventListener('input', function () { S.text.value = textInput.value; S.text.on = !!textInput.value.trim(); persist(); redraw(); });
-    syncers.push(function () { textInput.value = S.text.value; });
-    text.append(
-      textInput,
-      reg(selectRow('Text position', function () { return S.text.pos; }, function (v) { S.text.pos = v; }, POSITIONS)),
-      reg(slider('Text size', function () { return S.text.size; }, function (v) { S.text.size = v; }, 2, 12, 0.5, function (v) { return v + '%'; })),
-      reg(colorRow('Text colour', function () { return S.text.color; }, function (v) { S.text.color = v; }, false))
-    );
-
-    var logo = group('Logo');
-    var logoZone = el('label', 'kefe-upload-zone'); logoZone.setAttribute('for', 'kefeLogoInput');
-    var logoName = el('span', 'kefe-upload-name', 'Choose a logo (PNG, SVG, JPG)');
-    var logoInput = el('input', 'kefe-file'); logoInput.type = 'file'; logoInput.id = 'kefeLogoInput'; logoInput.accept = 'image/*';
-    logoZone.append(el('span', 'kefe-upload-title', 'Logo'), logoName, logoInput);
-    var logoRemove = el('button', 'kefe-btn', 'Remove logo'); logoRemove.type = 'button'; logoRemove.hidden = true;
-    function setLogo(file) {
-      if (logoUrl) { URL.revokeObjectURL(logoUrl); logoUrl = ''; }
-      if (!file) { logoImg = null; S.logo.on = false; logoZone.classList.remove('kefe-confirmed-container'); logoName.textContent = 'Choose a logo (PNG, SVG, JPG)'; logoRemove.hidden = true; redraw(); return; }
-      logoUrl = URL.createObjectURL(file);
-      var img = new Image();
-      img.onload = function () { logoImg = img; S.logo.on = true; logoName.textContent = file.name; logoZone.classList.add('kefe-confirmed-container'); logoRemove.hidden = false; redraw(); };
-      img.onerror = function () { logoZone.classList.remove('kefe-confirmed-container'); logoName.textContent = 'Could not read that image'; };
-      img.src = logoUrl;
-    }
-    logoInput.addEventListener('change', function () { var f = logoInput.files && logoInput.files[0]; logoInput.value = ''; if (f) setLogo(f); });
-    logoRemove.addEventListener('click', function () { setLogo(null); });
-    logo.append(
-      logoZone, logoRemove,
-      reg(selectRow('Logo position', function () { return S.logo.pos; }, function (v) { S.logo.pos = v; }, POSITIONS)),
-      reg(slider('Logo size', function () { return S.logo.size; }, function (v) { S.logo.size = v; }, 4, 40, 1, function (v) { return v + '%'; })),
-      reg(slider('Logo opacity', function () { return S.logo.opacity; }, function (v) { S.logo.opacity = v; }, 10, 100, 1, function (v) { return v + '%'; }))
-    );
-
     var resetBtn = el('button', 'kefe-btn', 'Reset lyric style'); resetBtn.type = 'button';
     resetBtn.addEventListener('click', function () {
-      var keepText = S.text.value; S = clone(DEFAULT); S.text.value = keepText; S.text.on = !!keepText.trim();
-      if (logoImg) S.logo.on = true;
+      S = clone(DEFAULT);
       syncers.forEach(function (fn) { fn(); }); persist(); redraw();
     });
 
     var head = el('div', 'kefe-label', 'Lyric style');
     head.style.marginTop = '4px';
-    wrap.append(head, colours, place, out, glow, text, logo, resetBtn);
+    wrap.append(head, colours, place, out, glow, resetBtn);
     var anchorEl = panel.querySelector('.kefe-font-card');
     if (anchorEl && anchorEl.nextSibling) panel.insertBefore(wrap, anchorEl.nextSibling); else panel.appendChild(wrap);
     syncers.forEach(function (fn) { fn(); });
   }
 
   window.kefeStyle = {
-    style: style, post: post, drawOverlay: drawOverlay,
+    style: style, post: post,
     state: function () { return clone(S); },
     isActive: function () { return active(); }
   };
