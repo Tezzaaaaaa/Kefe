@@ -71,6 +71,15 @@ jobs:
               assert.equal(emptyState.stageEmpty, true, label + ': preview should start empty');
               assert.equal(emptyState.particleCanvasRemoved, true, label + ': particle renderer canvas must be removed');
               assert.equal(emptyState.particleControlsRemoved, true, label + ': particle preset controls must be removed');
+
+              const aspect = page.locator('#kefeAspect');
+              assert.equal(await aspect.isVisible(), true, label + ': aspect ratio selector must be visible and clickable');
+              await aspect.selectOption('9:16');
+              await page.waitForFunction(() => document.querySelector('.kefe-stage')?.classList.contains('is-9x16') && document.getElementById('kefeCanvas')?.width === 1080 && document.getElementById('kefeCanvas')?.height === 1920);
+              await aspect.selectOption('1:1');
+              await page.waitForFunction(() => document.querySelector('.kefe-stage')?.classList.contains('is-1x1') && document.getElementById('kefeCanvas')?.width === 1080 && document.getElementById('kefeCanvas')?.height === 1080);
+              await aspect.selectOption('16:9');
+              await page.waitForFunction(() => document.querySelector('.kefe-stage')?.classList.contains('is-16x9') && document.getElementById('kefeCanvas')?.width === 1920 && document.getElementById('kefeCanvas')?.height === 1080);
               const enhancedWords = await page.evaluate(() => window.kefeLyricModel.parseLrc('[00:02.00]<00:02.00>Hello <00:02.40>world')[0]?.words);
               assert.deepEqual(enhancedWords?.map(word => word.text), ['Hello', 'world'],
                 label + ': enhanced LRC word timestamps must be parsed');
