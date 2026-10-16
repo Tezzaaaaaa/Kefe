@@ -168,6 +168,10 @@ jobs:
 
                 const effectsGrid = await assertTwoColumns('.kefe-panel[data-panel-view="effects"] .kefe-form', 'Effects');
                 const effectsSelects = await assertSelectsStayInOneColumn('.kefe-panel[data-panel-view="effects"]', 'Effects');
+                const lyricEffectGridColumns = await page.locator('#lyricEffectOptions').evaluate(el =>
+                  getComputedStyle(el).gridTemplateColumns.trim().split(/\\s+/).length);
+                assert.equal(lyricEffectGridColumns, 2,
+                  `Lyric effect options must occupy two columns at ${width}px; got ${lyricEffectGridColumns}`);
 
                 // Run the expensive per-effect audit once against the published editor at 390px.
                 // The local and 320px runs still cover the responsive layout at both widths.
