@@ -243,7 +243,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const compositionWidth = landscapeSplit ? w * (186 / 384) : w * 0.836;
     const horizontalPadding = 0;
     const contentWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
-    const activeFontSize = landscapeSplit ? h * (10.5 / 216.4) : (aspectRatio >= 0.9 ? w * (6.6 / 100) : w * (6.2 / 100));
+    const activeFontSize = landscapeSplit ? h * (13.2 / 216.4) : (aspectRatio >= 0.9 ? w * (5.6 / 100) : w * (5.2 / 100));
     const inactiveFontSize = activeFontSize * (29 / 32);
     const lineSpacing = baseDimension * (aspectRatio < 0.9 ? 3.5 / 390 : aspectRatio < 1.25 ? 4 / 390 : 5 / 390);
     const contract = window.KEFE_TYPE?.effects?.apple || {};
