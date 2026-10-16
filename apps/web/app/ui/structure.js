@@ -110,7 +110,9 @@ commandList?.addEventListener('click', event => {
   } else if (command === 'sidebar') {
     setSidebarCollapsed(!shellRoot?.classList.contains('sidebar-collapsed'));
   } else if (command === 'theme') {
-    document.getElementById('kefeThemeToggle')?.click();
+    const root=document.documentElement;
+    root.dataset.theme=root.dataset.theme==='night'?'day':'night';
+    try{localStorage.setItem('kefe.theme',root.dataset.theme);}catch(_){}
   } else if (command === 'fullscreen') {
     document.getElementById('previewFullscreen')?.click();
   }
