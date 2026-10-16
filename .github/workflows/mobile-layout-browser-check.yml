@@ -173,7 +173,7 @@ jobs:
                   const form = group.closest('.kefe-form');
                   const mode = group.querySelector('.kefe-lyric-mode-box');
                   const placement = group.querySelector('.kefe-lyric-placement');
-                  const gridColumns = node => getComputedStyle(node).gridTemplateColumns.trim().split(/\\s+/).filter(Boolean).length;
+                  const gridColumns = node => getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length;
                   return {
                     formWidth: form.getBoundingClientRect().width,
                     modeWidth: mode.getBoundingClientRect().width,
