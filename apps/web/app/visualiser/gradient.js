@@ -260,6 +260,14 @@
     var visualiserPanelHead=panel.querySelector('.kefe-visualiser-panel-head');
     var visualiserHeading=panel.querySelector('#kefeVisualiserHeading');
     var visualiserDescription=panel.querySelector('#kefeVisualiserDescription');
+    var visualiserPowerSlot=panel.querySelector('#kefeVisualiserPowerSlot');
+    if(visualiserPanelHead&&!visualiserPowerSlot){
+      visualiserPowerSlot=el('div','kefe-visualiser-power-slot');
+      visualiserPowerSlot.id='kefeVisualiserPowerSlot';
+      visualiserPowerSlot.setAttribute('aria-label','Selected visualiser power');
+      if(visualiserDescription)visualiserPanelHead.insertBefore(visualiserPowerSlot,visualiserDescription);
+      else visualiserPanelHead.appendChild(visualiserPowerSlot);
+    }
     var gradientIntro=null;
     var presetRow=el('div','kefe-visualiser-preset-row');presetRow.id='kefeVisualiserPresetRow';
     var gradientPresetSet=el('div','kefe-visualiser-preset-set');gradientPresetSet.id='kefeGradientPresetSet';
@@ -285,9 +293,9 @@
         visualiserHeading.textContent='Fluid Ink Visualiser';
         visualiserDescription.textContent='Audio-reactive fluid dynamics with swirling ink, luminous colour and customizable presets.';
       }
-      if(power&&gradientOption){
-        power.classList.add('kefe-vis-option-power');
-        if(!gradientOption.contains(power))gradientOption.appendChild(power);
+      if(power&&visualiserPowerSlot&&!visualiserPowerSlot.contains(power)){
+        power.classList.remove('kefe-vis-option-power');
+        visualiserPowerSlot.replaceChildren(power);
       }
       gradientPresetSet.hidden=false;
       flutedPresetSet.hidden=true;
@@ -308,7 +316,7 @@
     gradientIntro.innerHTML='<div><strong>Fluid Ink controls</strong><span>Customize the liquid-glass effect.</span></div>';
     var gradientToggle=toggle('Fluid Ink Visualiser',function(){return S.on;},function(v){S.on=v;});
     gradientPower=gradientToggle.querySelector('.kefe-switch');
-    gradientPower.classList.add('kefe-vis-option-power');gradientPower.setAttribute('aria-label','Fluid Ink');gradientOption.appendChild(gradientPower);
+    gradientPower.setAttribute('aria-label','Fluid Ink');
     var rnd=el('button','kefe-btn','Random');rnd.type='button';rnd.addEventListener('click',randomize);gradientIntro.appendChild(rnd);
     gradient.appendChild(gradientIntro);
     show('gradient');
