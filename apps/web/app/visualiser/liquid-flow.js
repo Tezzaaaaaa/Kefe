@@ -248,7 +248,6 @@
   function init(){
     var stage=document.querySelector('.kefe-stage'),view=document.getElementById('kefeVisGradientView');
     if(!stage||!view)return;
-    var old=document.getElementById('kefeGradientCanvas');
     canvas=document.createElement('canvas');canvas.id='kefeFluidInkCanvas';canvas.setAttribute('aria-hidden','true');
     canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;';
     ctx=canvas.getContext('2d',{alpha:true});
