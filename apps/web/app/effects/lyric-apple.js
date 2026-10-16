@@ -188,15 +188,7 @@ function appleDrawRow(ctx, entries, y, fs, time, act, sungA, unsungA, P, scale, 
     const xs = first.x, xe = last.x + last.box.W;
     const p = appleFrontPos(entries, time);
     const fade = fs * P.fade;
-    const e = p + fade * linaClamp((p - xs) / Math.max(1, xe - xs));
     const sungColor = 'rgba(255,255,255,' + sungA.toFixed(3) + ')';
-    const unsungColor = 'rgba(255,255,255,' + unsungA.toFixed(3) + ')';
-    // Span the whole row. A gradient confined to the moving edge clamps its
-    // final colour across the rest of the line, making every word look highlighted.
-    // Keep already-reached text white and unreached text dim, with a soft moving edge.
-    const rowWidth = Math.max(1, xe - xs);
-    const front = linaClamp((p - xs) / rowWidth);
-    const softness = linaClamp(fade / rowWidth, 0.002, 0.12);
     // Calculate opacity per glyph from its position relative to the moving front.
     // This avoids CanvasGradient coordinate-space differences after the per-line/per-letter
     // transforms used by the effect, which can make the unsung side render as fully highlighted.
