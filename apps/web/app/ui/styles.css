@@ -1563,26 +1563,6 @@ body{ letter-spacing: -.01em;
   border-radius: inherit;
 }
 
-.kefe-stage::after{
-  content: "LIVE PREVIEW";
-  position: absolute;
-  z-index: 4;
-  top: 18px;
-  left: 19px;
-  padding: 7px 11px 7px 23px;
-  border: 1px solid rgba(255,255,255,.13);
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 11px 50%, #a1cdb0 0 3px, transparent 3.5px),
-    rgba(255,255,255,.085);
-  color: rgba(248,249,255,.8);
-  font-size: var(--font-xs);
-  font-weight: 700;
-  letter-spacing: .13em;
-  line-height: 1;
-  pointer-events: none;
-}
-
 .kefe-preview-fullscreen {
   top: 16px;
   right: 17px;
