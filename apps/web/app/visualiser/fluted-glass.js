@@ -1,4 +1,4 @@
-/* KEFE Fluted Glass — dedicated WebGL layer and fourth visualiser tab. */
+/* KEFE Glass Lens — dedicated WebGL layer and fourth visualiser tab. */
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
@@ -14,11 +14,13 @@ const D={cellSize:['Cell size',10,300,79],relief:['Relief',0,300,130],depth:['De
 const P=MODES.map(m=>Object.fromEntries(m.keys.map(k=>[k,D[k][3]])));
 const VERT='attribute vec2 a_pos;varying vec2 v_uv;void main(){v_uv=a_pos*.5+.5;gl_Position=vec4(a_pos,0.,1.);}';
 const FRAG=String.raw`precision highp float;
-varying vec2 v_uv;uniform sampler2D uImg;uniform vec2 uRes,uSiz;
-uniform int uMod;uniform float uCel,uRel,uDep,uAng,uDis,uShe,uDrp,uTim,uBas,uMid,uTre,uPun,uEne,uRea,uMot;
+varying vec2 v_uv;
+uniform sampler2D uImg;
+uniform vec2 uRes,uSiz;
+uniform int uMod;
+uniform float uCel,uRel,uDep,uAng,uDis,uShe,uDrp,uTim,uBas,uMid,uTre,uPun,uEne,uRea,uMot;
 mat2 rot(float a){float s=sin(a),c=cos(a);return mat2(c,-s,s,c);}
 vec2 fit(vec2 uv){float ca=uRes.x/uRes.y,ia=uSiz.x/uSiz.y;vec2 s=vec2(1.);if(ca>ia)s.y=ia/ca;else s.x=ca/ia;return(uv-.5)*s+.5;}
-float fd(float s){float ax=abs(s);return clamp(s/sqrt(max(.02,1.-ax*ax)),-3.5,3.5);}
 float sdB(vec2 p,vec2 b,float r){vec2 d=abs(p)-b+r;return min(max(d.x,d.y),0.)+length(max(d,0.))-r;}
 vec2 mv(vec2 uv,float t){vec2 c=uv-.5;float M=uMot,R=uRea,bp=uBas*R,pp=uPun*R,ms=uMid*R,tj=uTre*R,ea=uEne*R;float bz=(sin(t*.62)*.55+sin(t*.29+1.7)*.3+sin(t*1.13+.4)*.15)*.12*M;float B=0.,P=0.;
 if(uMod==0){c.x+=sin(t*.55)*.045*M+bp*.10*M;c.y+=cos(t*.42)*.03*M;B=.16;P=.22;}
@@ -29,14 +31,55 @@ else if(uMod==4){c.x+=sin(t*.48)*.055*M+pp*.08*M;c.y+=sin(t*.48+1.5707)*.055*M;c
 else{c.y+=sin(t*.95)*.055*M*(.5+bp);c.x+=cos(t*.62)*.045*M*(.5+ms*.5);c=rot(sin(t*.28)*.35*M+ms*.12*M)*c;B=.2;P=.15;}
 c/=max(1.,1.12+bp*B*M+pp*P*M+bz);
 if(uMod==0){c.x+=sin(t*42.)*tj*.006;c.y+=cos(t*38.)*tj*.006;}else if(uMod==1)c.x+=sin(t*44.)*tj*.005;else if(uMod==2)c*=1.+sin(length(c)*55.+t*5.)*tj*.008;else if(uMod==3)c.x+=sin(t*36.+c.y*3.)*tj*.007;else if(uMod==4)c.y+=cos(t*50.)*tj*.01;else c.y+=sin(c.x*8.+t*3.)*tj*.008;return c+.5;}
-void main(){vec2 base=fit(v_uv);float a=radians(uAng);vec2 p=rot(a)*(base-.5);float fp=max(2.,uSiz.x/max(1.,uCel)),R=uRea;float bb=1.+uBas*R*1.8,tj=uTre*R,pb=uPun*R,ed=uEne*R;vec2 o=vec2(0.);
-if(uMod==0){float s=fract(p.x*fp)*2.-1.;o=vec2(fd(s)*uDep*.0006*bb,0.);o.y+=sin(p.y*32.+uTim*9.)*tj*.0018;}
-else if(uMod==1){vec2 g=fract(p*fp)-.5;float d=sdB(g,vec2(.5),.14+uBas*R*.14),e=smoothstep(0.,.16+uBas*R*.10,-d);o=normalize(g+.0001)*uDep*.0004*e*(1.+pb*1.1);}
-else if(uMod==2){vec2 g=fract(p*fp)-.5;o=normalize(g+.0001)*max(abs(g.x),abs(g.y))*uDep*.0003*(1.+uBas*R*2.2);o+=vec2(sin(p.x*60.+uTim*14.),cos(p.y*60.+uTim*12.))*tj*.0009;}
-else if(uMod==3){float dp=max(2.,uSiz.x/max(1.,uDrp));vec2 g=p*dp,id=floor(g),l=fract(g)-.5;vec2 sd=fract(sin(vec2(dot(id,vec2(127.1,311.7)),dot(id,vec2(269.5,183.3))))*43758.5453);vec2 rel=l-(sd-.5)*.4;float di=length(rel),dr=(.22+sd.x*.12)*bb,inf=smoothstep(dr,0.,di);vec2 dir=normalize(rel+.0001);o=dir*inf*(1.-inf)*4.*uDep*.0006*bb;o+=dir*smoothstep(.04,0.,abs(di-dr*1.35))*pb*uDep*.0008;}
-else if(uMod==4){vec2 g=p*fp;float za=1.+uBas*R*2.,zf=1.+uTre*R*1.4;o=vec2(sin(g.x*3.14159*zf)*za,sin(g.y*3.14159*zf)*za)*uDep*.0004;}
-else{vec2 g=p*fp;float wa=1.+uBas*R*2.2,ph=uTim*.5+uMid*R*.6;o=vec2(cos(g.x*3.14159*2.+ph)*cos(g.y*3.14159*2.),-sin(g.x*3.14159*2.)*sin(g.y*3.14159*2.+ph))*wa*uDep*.0004;}
-o=rot(-a)*o;vec2 m=mv(base,uTim);float da=uDis*.0004;vec3 col;col.r=texture2D(uImg,m+o*(1.-da)).r;col.g=texture2D(uImg,m+o).g;col.b=texture2D(uImg,m+o*(1.+da)).b;float e=clamp(length(o)*220.,0.,1.);col*=mix(1.,.72,e*(.4+uRel*.003));col+=vec3(e*uShe*.0018)*vec3(1.,.97,.92);col*=1.03+pb*.35+ed*.08;col+=vec3(pb*pb*.12);col*=1.-length((v_uv-.5)*1.25)*.32;gl_FragColor=vec4(col,1.);}`;
+float surfaceHeight(vec2 uv){
+float a=radians(uAng);vec2 p=rot(a)*(uv-.5);float fp=max(2.,uSiz.x/max(1.,uCel));float R=uRea;
+float h=0.;
+if(uMod==0){float s=fract(p.x*fp)*2.-1.;h=cos(s*1.5707963);h+=.08*sin(p.y*fp*.55+uTim*.22)*uMid*R;}
+else if(uMod==1){vec2 g=fract(p*fp)-.5;float d=sdB(g,vec2(.5),.14+uBas*R*.08);h=1.-smoothstep(.08,.36,abs(d));}
+else if(uMod==2){vec2 g=fract(p*fp)-.5;float edge=max(abs(g.x),abs(g.y));h=1.-smoothstep(.29,.49,edge);h-=.22*smoothstep(.25,.49,edge);}
+else if(uMod==3){float dp=max(2.,uSiz.x/max(1.,uDrp));vec2 g=p*dp,id=floor(g);vec2 sd=fract(sin(vec2(dot(id,vec2(127.1,311.7)),dot(id,vec2(269.5,183.3))))*43758.5453);vec2 rel=fract(g)-.5-(sd-.5)*.4;float d=length(rel);h=1.-smoothstep(.12,.48,d);h+=.12*exp(-pow((d-.39)*28.,2.));}
+else if(uMod==4){float x=p.x*fp*3.1415926;float z=p.y*fp*3.1415926;h=sin(x+sin(z)*.8);h*=.72+.28*cos(z*.5);}
+else{float x=p.x*fp*6.2831853;float z=p.y*fp*6.2831853;h=sin(x+sin(z+uTim*.12)*.8+uTim*.18)*.7+cos(z-x*.45-uTim*.14)*.3;}
+h+=(sin(uv.x*37.+uTim*1.6)+cos(uv.y*31.-uTim*1.2))*.012*uTre*R;
+return h;}
+void main(){
+vec2 base=fit(v_uv);float a=radians(uAng);float eps=max(.0018,2.5/max(uRes.x,uRes.y));
+float h=surfaceHeight(base);
+float hx=surfaceHeight(base+vec2(eps,0.))-surfaceHeight(base-vec2(eps,0.));
+float hy=surfaceHeight(base+vec2(0.,eps))-surfaceHeight(base-vec2(0.,eps));
+vec2 grad=vec2(hx,hy)/(2.*eps);
+vec2 n2=rot(-a)*(-grad*.032*(uRel/100.));
+n2+=vec2(sin(uTim*.7+base.y*9.),cos(uTim*.53+base.x*8.))*.012*uBas*uRea;
+n2=clamp(n2,vec2(-1.4),vec2(1.4));
+vec3 normal=normalize(vec3(n2,1.));
+vec2 warped=mv(base,uTim);
+float depth=uDep*.00048;
+vec2 refractUV=warped+n2*depth;
+float da=uDis*.00012;
+vec2 split=n2*da;
+vec3 col;
+col.r=texture2D(uImg,refractUV-split).r;
+col.g=texture2D(uImg,refractUV).g;
+col.b=texture2D(uImg,refractUV+split).b;
+vec3 lightA=normalize(vec3(-.48,.62,.62));
+vec3 lightB=normalize(vec3(.72,-.32,.61));
+float specA=pow(max(dot(normal,lightA),0.),22.);
+float specB=pow(max(dot(normal,lightB),0.),38.);
+float fresnel=pow(1.-clamp(normal.z,0.,1.),3.);
+float bevel=clamp(length(n2)*.72,0.,1.);
+float sheen=clamp(uShe*.006,0.,1.2);
+vec3 reflection=mix(vec3(.68,.84,1.),vec3(1.,.76,.54),clamp(base.y+.25,0.,1.));
+col=mix(col,col*vec3(.82,.91,1.)+reflection*.08,fresnel*.62);
+col+=reflection*(specA*.44+specB*.3)*(.35+sheen);
+col+=vec3(.72,.9,1.)*bevel*sheen*.045;
+col*=1.-fresnel*.12;
+col=pow(max(col,vec3(0.)),vec3(.96));
+float vignette=1.-length((v_uv-.5)*1.15)*.18;
+col*=vignette;
+float pulse=clamp(uPun*uRea,0.,1.);
+col+=reflection*(specA+specB)*pulse*.08;
+gl_FragColor=vec4(clamp(col,0.,1.),1.);
+}`;
 let stage,canvas,gl,prog,tex,un={},active=false,on=false,mode=0,react=1,motion=1,t=0,last=performance.now(),analyser=null,fallbackTexture=null,lastStillSource=null;
 const L={bass:0,mid:0,treble:0,punch:0,energy:0};
 function el(tag,cls,txt){const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;return n;}
@@ -51,7 +94,7 @@ function slider(label,min,max,step,value,id,onInput){const wrap=el('label','kefe
 function buildSliders(){const c=$('flutedSliders');if(!c)return;c.innerHTML='';MODES[mode].keys.forEach(k=>{const d=D[k];c.appendChild(slider(d[0],d[1],d[2],1,P[mode][k],'fluted-'+k,v=>P[mode][k]=v));});}
 function setMode(i){mode=i;document.querySelectorAll('#flutedModes button').forEach((b,j)=>{b.classList.toggle('primary',i===j);b.setAttribute('aria-pressed',String(i===j));});$('flutedModeDesc').textContent=MODES[i].desc;buildSliders();}
 function buildUI(){const form=document.querySelector('[data-panel-view="visualiser"] .kefe-visualiser-form'),tabs=document.querySelector('.kefe-editing > .kefe-vis-tabs');if(!form||!tabs)return;const view=el('div','kefe-vis-view kefe-fluted-view');view.id='kefeVisFlutedView';view.hidden=true;
-const powerRow=el('div','kefe-visualiser-spin-row');powerRow.classList.add('kefe-vis-power-row');powerRow.appendChild(el('span','kefe-label','Fluted Glass effect'));const power=el('button','kefe-btn kefe-switch','');power.type='button';power.id='flutedPower';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.setAttribute('aria-label','Fluted Glass effect');const powerState=el('span','kefe-switch-state','Off'),powerTrack=el('span','kefe-switch-track');powerTrack.setAttribute('aria-hidden','true');powerTrack.appendChild(el('span','kefe-switch-thumb'));power.appendChild(powerState);power.appendChild(powerTrack);powerRow.appendChild(power);
+const powerRow=el('div','kefe-visualiser-spin-row');powerRow.classList.add('kefe-vis-power-row');powerRow.appendChild(el('span','kefe-label','Glass Lens effect'));const power=el('button','kefe-btn kefe-switch','');power.type='button';power.id='flutedPower';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.setAttribute('aria-label','Glass Lens effect');const powerState=el('span','kefe-switch-state','Off'),powerTrack=el('span','kefe-switch-track');powerTrack.setAttribute('aria-hidden','true');powerTrack.appendChild(el('span','kefe-switch-thumb'));power.appendChild(powerState);power.appendChild(powerTrack);powerRow.appendChild(power);
 
 const modes=el('div','kefe-fluted-modes');modes.id='flutedModes';MODES.forEach((m,i)=>{const b=el('button','kefe-btn'+(!i?' primary':''),m.name);b.type='button';b.dataset.mode=i;b.setAttribute('aria-pressed',String(!i));b.addEventListener('click',()=>setMode(i));modes.appendChild(b);});const presetSet=$('kefeFlutedPresetSet');if(presetSet)presetSet.appendChild(modes);else view.appendChild(modes);const desc=el('p','kefe-meta',MODES[0].desc);desc.id='flutedModeDesc';view.appendChild(desc);
 const src=el('div','kefe-visualiser-control-group');src.appendChild(el('div','kefe-label','Glass source'));const empty=el('p','kefe-meta','Uses KEFE’s uploaded video as the glass source, with album artwork when available. Audio uploads drive the effect automatically.');empty.id='flutedEmpty';src.appendChild(empty);const res=el('div','kefe-meta','1200 × 1200');res.id='flutedResolution';src.appendChild(res);view.appendChild(src);
@@ -59,16 +102,16 @@ const ag=el('div','kefe-visualiser-control-group');ag.appendChild(el('div','kefe
 [['bass','Bass'],['mid','Mid'],['treble','High'],['punch','Punch']].forEach(([k,l])=>{const r=el('div','kefe-fluted-meter');r.appendChild(el('span','kefe-meta',l));const tr=el('div','kefe-fluted-track'),f=el('div','kefe-fluted-fill');f.id='flutedMeter-'+k;tr.appendChild(f);r.appendChild(tr);ag.appendChild(r);});
 ag.appendChild(slider('Reactivity',0,2,.05,1,'flutedReact',v=>react=v));ag.appendChild(slider('Motion',0,2.5,.05,1,'flutedMotion',v=>motion=v));view.appendChild(ag);
 const pg=el('div','kefe-visualiser-control-group');pg.appendChild(el('div','kefe-label','Glass parameters'));const sl=el('div');sl.id='flutedSliders';pg.appendChild(sl);view.appendChild(pg);const reset=el('button','kefe-btn','Reset');reset.type='button';reset.id='flutedReset';view.appendChild(reset);form.appendChild(view);
-const tab=el('button','kefe-btn','Fluted Glass');tab.type='button';tab.id='kefeFlutedTab';tab.dataset.visualiser='fluted';tab.title='Fluted Glass refraction';tab.setAttribute('aria-label','Fluted Glass');tab.textContent='Fluted Glass';tab.setAttribute('role','tab');tab.setAttribute('aria-controls','kefeVisFlutedView');tab.setAttribute('aria-selected','false');const option=el('div','kefe-vis-option');option.appendChild(tab);power.addEventListener('click',e=>e.stopPropagation());tabs.appendChild(option);
+const tab=el('button','kefe-btn','Glass Lens');tab.type='button';tab.id='kefeFlutedTab';tab.dataset.visualiser='fluted';tab.title='Glass Lens refraction';tab.setAttribute('aria-label','Glass Lens');tab.textContent='Glass Lens';tab.setAttribute('role','tab');tab.setAttribute('aria-controls','kefeVisFlutedView');tab.setAttribute('aria-selected','false');const option=el('div','kefe-vis-option');option.appendChild(tab);power.addEventListener('click',e=>e.stopPropagation());tabs.appendChild(option);
 function hide(){active=false;view.hidden=true;tab.classList.remove('primary');tab.setAttribute('aria-selected','false');canvas.style.visibility='hidden';window.kefeFlutedGlassActive=false;}
 tabs.querySelectorAll('[role="tab"]').forEach(b=>{if(b===tab)return;b.addEventListener('click',hide);});
-tab.addEventListener('click',()=>{active=true;view.hidden=false;tabs.querySelectorAll('[role="tab"]').forEach(b=>{b.classList.toggle('primary',b===tab);b.setAttribute('aria-selected',String(b===tab));});const header=document.querySelector('.kefe-visualiser-panel-head'),heading=$('kefeVisualiserHeading'),description=$('kefeVisualiserDescription');if(heading)heading.textContent='Fluted Glass Visualiser';if(description)description.textContent='Six refractive glass treatments driven by audio.';if(header){header.querySelectorAll('.kefe-switch').forEach(b=>b.remove());header.appendChild(power);}['kefeGradientPresetSet'].forEach(id=>{const n=$(id);if(n)n.hidden=true;});const presetRow=$('kefeVisualiserPresetRow'),presetSet=$('kefeFlutedPresetSet');if(presetRow)presetRow.hidden=false;if(presetSet)presetSet.hidden=false;['kefeVisGradientView','kefeVisHowBadView'].forEach(id=>{const n=$(id);if(n)n.hidden=true;});const g=$('kefeGradientCanvas');if(g)g.style.display='none';window.kefeFlutedGlassActive=true;canvas.style.visibility=on?'visible':'hidden';resize();});
+tab.addEventListener('click',()=>{active=true;view.hidden=false;tabs.querySelectorAll('[role="tab"]').forEach(b=>{b.classList.toggle('primary',b===tab);b.setAttribute('aria-selected',String(b===tab));});const header=document.querySelector('.kefe-visualiser-panel-head'),heading=$('kefeVisualiserHeading'),description=$('kefeVisualiserDescription');if(heading)heading.textContent='Glass Lens Visualiser';if(description)description.textContent='A real-time refractive lens with six glass surfaces, spectral dispersion and audio-reactive highlights.';if(header){header.querySelectorAll('.kefe-switch').forEach(b=>b.remove());header.appendChild(power);}['kefeGradientPresetSet'].forEach(id=>{const n=$(id);if(n)n.hidden=true;});const presetRow=$('kefeVisualiserPresetRow'),presetSet=$('kefeFlutedPresetSet');if(presetRow)presetRow.hidden=false;if(presetSet)presetSet.hidden=false;['kefeVisGradientView','kefeVisHowBadView'].forEach(id=>{const n=$(id);if(n)n.hidden=true;});const g=$('kefeGradientCanvas');if(g)g.style.display='none';window.kefeFlutedGlassActive=true;canvas.style.visibility=on?'visible':'hidden';resize();});
 power.addEventListener('click',()=>{on=!on;powerState.textContent=on?'On':'Off';power.classList.toggle('is-on',on);power.setAttribute('aria-checked',String(on));canvas.style.visibility=active&&on?'visible':'hidden';window.kefeFlutedGlassEnabled=on;window.kefeFlutedGlassActive=active;});
 
 reset.addEventListener('click',()=>{P.forEach((p,i)=>MODES[i].keys.forEach(k=>p[k]=D[k][3]));react=1;motion=1;setMode(0);$('flutedReact').value=1;$('flutedMotion').value=1;});
 buildSliders();}
 function frame(now){requestAnimationFrame(frame);if(!gl||!canvas)return;const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;if(!active||!on)return;t+=dt;resize();const backgroundCanvas=document.getElementById('kefeBackgroundCanvas');if(window.kefeBackground?.mode?.()==='video'&&backgroundCanvas){try{setTex(backgroundCanvas);}catch(_){}}else{const projectVideo=window.kefeGetProjectVideo?.();if(projectVideo?.src){if(projectVideo.readyState>=2&&projectVideo.videoWidth){try{setTex(projectVideo);}catch(_){}}}else{const art=window.kefeGetAlbumArt?.();if(art&&art.complete&&art.naturalWidth){if(lastStillSource!==art)setTex(art);}else if(lastStillSource!==fallbackTexture&&fallbackTexture)setTex(fallbackTexture);}}
 analyze();const p=P[mode];gl.viewport(0,0,canvas.width,canvas.height);gl.useProgram(prog);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(un.uImg,0);gl.uniform2f(un.uRes,canvas.width,canvas.height);gl.uniform2f(un.uSiz,Number(canvas.dataset.sw)||1200,Number(canvas.dataset.sh)||1200);gl.uniform1i(un.uMod,mode);const vals={uCel:p.cellSize??79,uRel:p.relief??130,uDep:p.depth??152,uAng:p.angle??110,uDis:p.dispersion??54,uShe:p.sheen??32,uDrp:p.dropSize??87,uTim:t,uBas:L.bass,uMid:L.mid,uTre:L.treble,uPun:L.punch,uEne:L.energy,uRea:react,uMot:motion};Object.entries(vals).forEach(([k,v])=>gl.uniform1f(un[k],v));gl.drawArrays(gl.TRIANGLE_STRIP,0,4);}
-function init(){stage=document.querySelector('.kefe-stage');if(!stage||!document.querySelector('.kefe-vis-tabs'))return;canvas=document.createElement('canvas');canvas.id='kefeFlutedGlassCanvas';canvas.setAttribute('aria-label','Fluted Glass preview');canvas.style.visibility='hidden';stage.insertBefore(canvas,$('kefeCanvas')||null);try{initGL();buildUI();window.kefeFlutedGlassActive=false;window.kefeFlutedGlassEnabled=false;window.kefeFlutedGlassExport={canvas};window.addEventListener('resize',resize);window.addEventListener('kefe-stage-resize',resize);requestAnimationFrame(frame);}catch(e){console.error('[KEFE Fluted Glass]',e);}}
+function init(){stage=document.querySelector('.kefe-stage');if(!stage||!document.querySelector('.kefe-vis-tabs'))return;canvas=document.createElement('canvas');canvas.id='kefeFlutedGlassCanvas';canvas.setAttribute('aria-label','Glass Lens preview');canvas.style.visibility='hidden';stage.insertBefore(canvas,$('kefeCanvas')||null);try{initGL();buildUI();window.kefeFlutedGlassActive=false;window.kefeFlutedGlassEnabled=false;window.kefeFlutedGlassExport={canvas};window.addEventListener('resize',resize);window.addEventListener('kefe-stage-resize',resize);requestAnimationFrame(frame);}catch(e){console.error('[KEFE Glass Lens]',e);}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
