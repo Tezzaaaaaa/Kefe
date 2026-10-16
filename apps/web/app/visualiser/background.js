@@ -141,8 +141,6 @@
   /* ── UI ── */
   function setMode(m){
     mode=m;if(sel&&sel.value!==m)sel.value=m;
-    /* Particles keep their own colours when no background is shown; only blend over a background. */
-    var vc=document.getElementById('kefeVisualiserCanvas');if(vc)vc.style.mixBlendMode=m==='off'?'normal':'screen';
     var o=sel&&sel.querySelector('option[value="video"]');if(o)o.disabled=!vid;
     syncVideo(true);
   }
