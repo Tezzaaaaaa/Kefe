@@ -213,8 +213,16 @@ jobs:
               assert.ok(mobileGeometry.sidebarHeight <= 56, 'mobile navigation should use a compact horizontal row: ' + JSON.stringify(mobileGeometry));
               assert.equal(await mobile.locator('.kefe-tabs').evaluate(node => getComputedStyle(node).display), 'none', 'mobile editor must not duplicate section navigation');
               for (const section of ['media', 'lyrics', 'effects', 'background-effects', 'visualiser', 'export']) {
-                const columns = await mobile.locator('.kefe-panel[data-panel-view="' + section + '"] .kefe-form').evaluate(node => getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length);
-                assert.equal(columns, 1, 'mobile ' + section + ' panel must use a single-column layout');
+                const layout = await mobile.locator('.kefe-panel[data-panel-view="' + section + '"] .kefe-form').evaluate(node => {
+                  const template = getComputedStyle(node).gridTemplateColumns;
+                  return {
+                    template,
+                    columns: template.trim().split(/\\s+/).filter(Boolean).length,
+                    stylesheet: [...document.styleSheets].map(sheet => sheet.href).filter(Boolean),
+                    panelStack: !!node.closest('.kefe-panels')
+                  };
+                });
+                assert.equal(layout.columns, 1, (process.env.KEFE_BASE_URL ? 'live ' : 'local ') + 'mobile ' + section + ' panel must use a single-column layout: ' + JSON.stringify(layout));
               }
               const mobileStage = await mobile.locator('.kefe-stage').boundingBox();
               assert.ok(mobileStage.width <= mobileGeometry.viewportWidth, 'mobile preview must fit the viewport: ' + JSON.stringify({mobileGeometry,mobileStage}));
