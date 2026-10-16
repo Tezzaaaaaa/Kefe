@@ -181,6 +181,38 @@ jobs:
                       label + ': Glass Lens mode must expose its parameter sliders: ' + modeNames[i]);
                   }
                   await page.locator('#flutedModes button').first().click();
+                  const glassTab = page.locator('[data-visualiser="fluted"]');
+                  assert.equal((await glassTab.textContent()).trim(), 'Glass Lens',
+                    label + ': visualiser tab must use the Glass Lens name');
+                  assert.equal(await page.locator('#kefeFlutedGlassCanvas').getAttribute('aria-label'), 'Glass Lens preview',
+                    label + ': preview canvas must expose the Glass Lens accessible name');
+                  const glassPower = page.locator('.kefe-visualiser-panel-head .kefe-switch');
+                  if (await glassPower.getAttribute('aria-checked') !== 'true') await glassPower.click();
+                  await page.waitForTimeout(180);
+                  const glassRender = await page.locator('#kefeFlutedGlassCanvas').evaluate(canvas => {
+                    const gl = canvas.getContext('webgl');
+                    if (!gl || canvas.width < 2 || canvas.height < 2) return null;
+                    const pixels = [];
+                    for (let row = 1; row <= 7; row++) {
+                      for (let column = 1; column <= 7; column++) {
+                        const pixel = new Uint8Array(4);
+                        gl.readPixels(Math.floor(column / 8 * (canvas.width - 1)),
+                          Math.floor(row / 8 * (canvas.height - 1)), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+                        pixels.push([...pixel]);
+                      }
+                    }
+                    return {
+                      error: gl.getError(),
+                      ranges: [0, 1, 2].map(channel => {
+                        const values = pixels.map(pixel => pixel[channel]);
+                        return Math.max(...values) - Math.min(...values);
+                      })
+                    };
+                  });
+                  assert.ok(glassRender, label + ': Glass Lens must render to its WebGL canvas');
+                  assert.equal(glassRender.error, 0, label + ': Glass Lens must render without WebGL errors');
+                  assert.ok(glassRender.ranges.some(range => range > 20),
+                    label + ': Glass Lens must retain visible refractive image detail');
                 }
                 if (id === 'gradient') {
                   await page.waitForFunction(() => !!document.getElementById('kefeFluidInkCanvas') ||
