@@ -361,7 +361,7 @@
   function currentStyle(){
     const contract=window.KEFE_TYPE?.effects?.[state.effect]||{};
     return {
-      effect:state.effect,fontSize:Math.min(canvas.width,canvas.height)*.13,textColor:'#fff',accentColor:'#ef3f38',
+      effect:state.effect,fontSize:Math.min(canvas.width,canvas.height)*.13,textColor:'#fff',accentColor:state.effect==='decrypt'?'#58E6D4':'#ef3f38',
       flipcardsColor:'#fff',flipcardsAccent:'rgba(255,255,255,.25)',kefeMotionFont:state.fontOverride||contract.family||'Open Sans'
     };
   }
