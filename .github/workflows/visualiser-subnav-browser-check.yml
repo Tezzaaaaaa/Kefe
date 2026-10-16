@@ -119,12 +119,12 @@ jobs:
                 assert.deepEqual(selection.visibleViews, [viewIds[id]], label + ': only selected visualiser settings should be visible: ' + id);
                 const expectedTitles = {
                   gradient: 'Fluid Ink Visualiser',
-                  fluted: 'Fluted Glass Visualiser',
+                  fluted: 'Glass Lens Visualiser',
                   'slow-light': 'Slow Light Visualiser'
                 };
                 const expectedDescriptions = {
                   gradient: 'Audio-reactive fluid dynamics with swirling ink, luminous colour and customizable presets.',
-                  fluted: 'Six refractive glass treatments driven by audio.',
+                  fluted: 'A real-time refractive lens with six glass surfaces, spectral dispersion and audio-reactive highlights.',
                   'slow-light': 'Original WebGL colour fields, continuous scene morphing, film grain and audio-reactive movement.'
                 };
                 const heading = page.locator('#kefeVisualiserHeading');
@@ -170,15 +170,15 @@ jobs:
                     'Smooth, rolling refractive waves.'
                   ];
                   assert.equal(await page.locator('#flutedModes button').count(), 6,
-                    label + ': Fluted Glass must expose all six refraction modes');
+                    label + ': Glass Lens must expose all six refraction modes');
                   for (let i = 0; i < modeNames.length; i++) {
                     await page.locator('#flutedModes button').nth(i).click();
                     const selectedModes = await page.locator('#flutedModes button[aria-pressed="true"]').allTextContents();
-                    assert.deepEqual(selectedModes, [modeNames[i]], label + ': Fluted Glass mode selection must be exclusive: ' + modeNames[i]);
+                    assert.deepEqual(selectedModes, [modeNames[i]], label + ': Glass Lens mode selection must be exclusive: ' + modeNames[i]);
                     assert.equal((await page.locator('#flutedModeDesc').textContent()).trim(), modeDescriptions[i],
-                      label + ': Fluted Glass mode must update its description: ' + modeNames[i]);
+                      label + ': Glass Lens mode must update its description: ' + modeNames[i]);
                     assert.ok(await page.locator('#flutedSliders input[type="range"]').count() >= 5,
-                      label + ': Fluted Glass mode must expose its parameter sliders: ' + modeNames[i]);
+                      label + ': Glass Lens mode must expose its parameter sliders: ' + modeNames[i]);
                   }
                   await page.locator('#flutedModes button').first().click();
                 }
