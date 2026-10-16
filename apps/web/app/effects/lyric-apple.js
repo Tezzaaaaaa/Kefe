@@ -121,7 +121,7 @@ function appleSpringOut(t) {
    across the space to the next), so there is no per-word stop/start. Letters float up as the
    highlight reaches them (eased, driven by the same front position, so the lift and the fill are
    always in sync) and settle back as the line scrolls away. Sustained words get a soft glow. */
-const APPLE_WAVE = { lift: 0.075, pop: 0.02, dim: 0.42, fade: 0.55, riseSpan: 0.9, glowDur: 0.9 };
+const APPLE_WAVE = { lift: 0.075, pop: 0.02, dim: 0.18, fade: 0.55, riseSpan: 0.9, glowDur: 0.9 };
 const appleLetterCache = new Map();
 const appleRowCache = new Map();
 const APPLE_OFFSCREEN = 20000;
@@ -370,8 +370,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const active = linaNormaliseLine(displayLines, activeIndex);
     if (!active) return;
 
-    const transitionDuration = linaClamp((Number(active.nextLineTime) - Number(active.time)) * 0.22, 0.30, 0.55);
-    const posT = appleSpringOut((time - active.time) / transitionDuration);
+    const transitionDuration = linaClamp((Number(active.nextLineTime) - Number(active.time)) * 0.16, 0.18, 0.30);
+    const posT = linaSmooth((time - active.time) / transitionDuration);
 
     const scalePoints = [[-4, 0.97], [-3, 0.97], [-2, 0.97], [-1, 0.97], [0, activeScale], [1, 0.97], [2, 0.97], [3, 0.97], [4, 0.97]];
     const opacityPoints = [[-4, 0.24], [-3, 0.28], [-2, 0.33], [-1, 0.40], [0, 1], [1, 0.42], [2, 0.36], [3, 0.30], [4, 0.26]];
@@ -426,7 +426,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         const utils = window.kefeEffectUtils;
         const tokens = line.text.split(' ').filter(Boolean);
         let times = null;
-        if (utils?.tokenTimes && (i === activeIndex || i === activeIndex - 1)) {
+        if (utils?.tokenTimes && i === activeIndex) {
             try {
                 const timed = utils.tokenTimes(line, displayLines[i + 1], tokens);
                 if (timed.length === tokens.length && timed.every(v => Number.isFinite(v.time) && Number.isFinite(v.endTime))) times = timed;
