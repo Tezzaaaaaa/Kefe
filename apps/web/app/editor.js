@@ -718,44 +718,6 @@
     window.dispatchEvent(new Event('resize'));
   });
 
-      aspectOptions.querySelector('[aria-selected="true"]')?.focus();
-    }
-  });
-  aspectOptions?.addEventListener('click',event=>{
-    const option=event.target.closest('[data-aspect]');
-    if(!option||!aspectSelect)return;
-    aspectSelect.value=option.dataset.aspect;
-    aspectSelect.dispatchEvent(new Event('change',{bubbles:true}));
-    closeAspectOptions(true);
-  });
-  aspectOptions?.addEventListener('keydown',event=>{
-    const current=aspectOptionButtons.indexOf(document.activeElement);
-    let next=current;
-    if(event.key==='ArrowDown')next=(current+1+aspectOptionButtons.length)%aspectOptionButtons.length;
-    else if(event.key==='ArrowUp')next=(current-1+aspectOptionButtons.length)%aspectOptionButtons.length;
-    else if(event.key==='Home')next=0;
-    else if(event.key==='End')next=aspectOptionButtons.length-1;
-    else if(event.key==='Escape'){event.preventDefault();closeAspectOptions(true);return;}
-    else return;
-    event.preventDefault();
-    aspectOptionButtons[next]?.focus();
-  });
-  document.addEventListener('pointerdown',event=>{
-    if(aspectOptions&&!aspectOptions.hidden&&!event.target.closest('[data-beui-select]'))closeAspectOptions();
-  });
-  aspectSelect?.addEventListener('change',syncAspectSelector);
-  aspectTrigger?.addEventListener('keydown',event=>{
-    if(event.key==='ArrowDown'||event.key==='ArrowUp'){
-      event.preventDefault();
-      if(aspectOptions){
-        aspectOptions.hidden=false;
-        aspectTrigger.setAttribute('aria-expanded','true');
-        syncAspectSelector();
-        aspectOptions.querySelector('[aria-selected="true"]')?.focus();
-      }
-    }
-  });
-  syncAspectSelector();
   fitPreviewStage();
   const previewFullscreen=document.getElementById('previewFullscreen');
   function syncPreviewFullscreen(){
