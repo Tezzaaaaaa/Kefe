@@ -316,9 +316,6 @@ jobs:
                 assert.ok(pageScroll.scrollY > 0 && pageScroll.maxScroll > 0,
                   `The document must actually scroll to the bottom of the editor at ${width}px: ${JSON.stringify(pageScroll)}`);
 
-                await page.locator('.kefe-vis-tabs button[data-visualiser="gradient"]').click();
-                await page.locator('#kefeVisGradientView:not([hidden])').waitFor();
-                await assertOnlyVisualiserViewVisible('kefeVisGradientView', 'Liquid Flow');
                 assert.equal(await page.locator('#visualiserPresetGrid').count(), 0, `Particle preset controls must be removed at ${width}px`);
                 if (await gradientTab.count()) {
                   await gradientTab.click();
