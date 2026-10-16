@@ -8,7 +8,6 @@ window.KEFE_EFFECTS = [
   { key: 'bounce',      label: 'Bounce Karaoke',   description: 'Timed bouncing-ball karaoke lyrics' },
   { key: 'apple',       label: 'Apple',            description: 'Apple Music-style focus line' },
   { key: 'brat',        label: 'Brat',             description: 'Edge-to-edge album-cover typewriter' },
-  { key: 'eternal',     label: 'Eternal Sunshine', description: 'Handwritten ink reveal' },
   { key: 'aurora',      label: 'Aurora',           description: 'Atmospheric gradient lyrics' },
   { key: 'pulse',       label: 'Pulse',            description: 'Rhythmic pulse and glow' },
   { key: 'typewriter',  label: 'Typewriter',       description: 'Character-by-character reveal' },

@@ -221,7 +221,7 @@ jobs:
                       if (otherCalls.length) failures.push({ effect: key, issue: 'Other lyric renderers also ran', otherCalls });
                       if (option.getAttribute('aria-pressed') !== 'true') failures.push({ effect: key, issue: 'Selection did not persist' });
                       const fontMeta = document.getElementById('fontMeta')?.textContent || '';
-                      if (!fontMeta.startsWith('Locked effect font')) failures.push({ effect: key, issue: 'Effect font metadata did not update' });
+                      if (!/^(Effect font|Selected font) · .+/.test(fontMeta)) failures.push({ effect: key, issue: 'Effect font metadata is missing or stale' });
                       const visiblePanels = [...document.querySelectorAll('.kefe-inspiration-panel')]
                         .filter(panel => !panel.hidden && getComputedStyle(panel).display !== 'none')
                         .map(panel => panel.dataset.effect).sort();
