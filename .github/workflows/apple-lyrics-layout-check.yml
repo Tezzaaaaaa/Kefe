@@ -149,6 +149,7 @@ jobs:
                   const completedStyles = await page.evaluate(async () => {
                     window.__kefeLayoutAudit.calls = [];
                     document.getElementById('songTitle').value = '';
+                    Object.defineProperty(document.querySelector('audio'), 'duration', { configurable: true, value: 10 });
                     window.kefeLyrics.set([{ text: 'A', time: 0, endTime: 1, words: [{ text: 'A', time: 0, endTime: 1 }] }], 'highlight-audit');
                     window.kefeLyrics.seek(1);
                     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
