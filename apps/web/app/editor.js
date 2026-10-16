@@ -1693,7 +1693,7 @@
   let visualiserZoom=1,visualiserPanX=0,visualiserPanY=0;
   const applyVisualiserPreviewTransform=()=>{
     const transform=`translate3d(${visualiserPanX}px,${visualiserPanY}px,0) scale(${visualiserZoom})`;
-    [document.getElementById('kefeLiquidFlowCanvas'),document.getElementById('kefeFlutedGlassCanvas'),document.getElementById('kefeSlowLightCanvas')].forEach(el=>{if(el)el.style.transform=transform;});
+    [document.getElementById('kefeFluidInkCanvas'),document.getElementById('kefeFlutedGlassCanvas'),document.getElementById('kefeSlowLightCanvas')].forEach(el=>{if(el)el.style.transform=transform;});
   };
   if(previewStage){
     previewStage.style.touchAction='none';
