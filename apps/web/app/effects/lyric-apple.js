@@ -243,9 +243,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const compositionWidth = landscapeSplit ? w * (186 / 384) : w * 0.836;
     const horizontalPadding = 0;
     const contentWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
-    const activeFontSize = landscapeSplit ? h * (10.5 / 216.4) : w * (7.9 / 100);
+    const activeFontSize = landscapeSplit ? h * (10.5 / 216.4) : (aspectRatio >= 0.9 ? w * (6.6 / 100) : w * (6.2 / 100));
     const inactiveFontSize = activeFontSize * (29 / 32);
-    const lineSpacing = baseDimension * (5 / 390);
+    const lineSpacing = baseDimension * (aspectRatio < 0.9 ? 3.5 / 390 : aspectRatio < 1.25 ? 4 / 390 : 5 / 390);
     const contract = window.KEFE_TYPE?.effects?.apple || {};
     const family = `"SF Pro Display","SF Pro Text","Inter Tight",system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
     if (!drawAppleEffect._fontReq && document.fonts && document.fonts.load) {
@@ -253,7 +253,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         document.fonts.load('700 48px "Inter Tight"').catch(() => {});
         document.fonts.load('600 48px "Inter Tight"').catch(() => {});
     }
-    const boundaryLeft = landscapeSplit ? w * (180 / 384) : w * 0.082;
+    const boundaryLeft = landscapeSplit ? w * (180 / 384) : w * (aspectRatio < 0.9 ? 0.07 : aspectRatio < 1.25 ? 0.08 : 0.082);
     const margin = boundaryLeft + horizontalPadding;
     const maxWidth = contentWidth;
     const displayLines = [];
@@ -368,7 +368,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = landscapeSplit
         ? h * 0.355
-        : (aspectRatio >= 0.9 ? h * 0.495 : h * 0.255);
+        : (aspectRatio >= 0.9 ? h * (aspectRatio < 1.25 ? 0.47 : 0.495) : h * 0.255);
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
