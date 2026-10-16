@@ -4662,7 +4662,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 
 /* Mobile fix: keep Effects dropdown wrappers in one of the two actual grid tracks. */
 @media (max-width: 700px) {
-  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-background-effect-control {
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-background-effect-control:not(.kefe-lyric-effects-control):not(.kefe-font-selector-control) {
     grid-column: auto / span 1 !important;
     width: 100%;
     min-width: 0;
