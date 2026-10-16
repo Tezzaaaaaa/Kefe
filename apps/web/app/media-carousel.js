@@ -136,7 +136,7 @@
       var songs=res[0].status==='fulfilled'?res[0].value:[],albums=res[1].status==='fulfilled'?res[1].value:[];
       if(res[0].status==='rejected'&&res[1].status==='rejected')throw res[0].reason;
       var catalogue=songs.concat(albums).sort(function(a,b){return relevance(b,q)-relevance(a,q);});
-      S.items=(S.localUpload?[S.localUpload]:[]).concat(catalogue);
+      S.items=catalogue.concat(S.localUpload?[S.localUpload]:[]);
       S.index=0;render();
       var count=visible().filter(function(item){return !item._kefeLocalUpload;}).length;
       status(count?(count+' result'+(count===1?'':'s')):S.localUpload&&S.filter!=='album'?'No catalogue matches. Your uploaded file is available below.':'No results','');
