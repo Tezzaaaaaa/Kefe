@@ -2154,9 +2154,12 @@ body{ letter-spacing: -.01em;
   .kefe-panel[data-panel-view="lyrics"] .kefe-form,
   .kefe-panel[data-panel-view="effects"] .kefe-form,
   .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form,
-  .kefe-panel[data-panel-view="export"] .kefe-form { grid-template-columns: 1fr; }
+  .kefe-panel[data-panel-view="export"] .kefe-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kefe-panel[data-panel-view="lyrics"] .kefe-form > div:has(.kefe-textarea),
+  .kefe-panel[data-panel-view="lyrics"] .kefe-form > .kefe-lyrics-timing,
   .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-intro,
-  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card { grid-column: auto; }
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card,
+  .kefe-panel[data-panel-view="export"] .kefe-form > .kefe-empty-panel { grid-column: 1 / -1; }
   .kefe-panel[data-panel-view="lyrics"] .kefe-textarea { min-height: 148px; 
   font-size: var(--font-sm);
   font-family: inherit;
@@ -3322,7 +3325,11 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 
   .kefe-panel[data-panel-view="effects"] .kefe-form,
   .kefe-panel[data-panel-view="lyrics"] .kefe-form {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .kefe-panel[data-panel-view="lyrics"] .kefe-form > div:has(.kefe-textarea),
+  .kefe-panel[data-panel-view="lyrics"] .kefe-form > .kefe-lyrics-timing {
+    grid-column: 1 / -1;
   }
 
   .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-card {
@@ -5605,7 +5612,7 @@ body:not(.kefe-fullscreen-open) {
 
 /* Mobile two-column grids: only an unpaired final item uses the full row. */
 @media (max-width: 700px) {
-  .kefe-panel .kefe-form > :nth-child(odd):last-child,
+  .kefe-panel .kefe-form > :nth-child(odd):last-child:not(:has(select)),
   .kefe-panel .kefe-visualiser-control-group #visualiserParameters > :nth-child(odd):last-child,
   .kefe-panel .kefe-details-grid > :nth-child(odd):last-child,
   .kefe-panel .kefe-visualiser-preset-grid > :nth-child(odd):last-child,
