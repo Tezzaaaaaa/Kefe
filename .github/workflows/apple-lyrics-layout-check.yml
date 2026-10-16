@@ -171,18 +171,21 @@ jobs:
                   // Apple renders the active lyric one glyph at a time, with multiple glow/fill passes
                   // per glyph. Reconstruct glyph order from on-canvas positions instead of concatenating
                   // every paint pass (which duplicates letters and makes this assertion fail falsely).
-                  const glyphsByX = new Map();
+                  const glyphs = [];
+                  let previousGlyphKey = '';
                   for (const call of rendered.lyricCalls) {
                     if (call.text.length !== 1 || call.x < 0 || call.x >= rendered.canvas.width) continue;
-                    const x = Math.round(call.x);
-                    if (!glyphsByX.has(x)) glyphsByX.set(x, call.text);
+                    const key = Math.round(call.x) + ':' + call.text;
+                    // Glow and gradient passes paint the same glyph at the same x; count it once.
+                    if (key === previousGlyphKey) continue;
+                    glyphs.push({ x: call.x, text: call.text });
+                    previousGlyphKey = key;
                   }
-                  const drawnCompact = [...glyphsByX.entries()].sort((a, b) => a[0] - b[0])
-                    .map(([, glyph]) => glyph).join('').replace(/\s+/g, '').toLowerCase();
+                  const drawnCompact = glyphs.map(glyph => glyph.text).join('').replace(/\s+/g, '').toLowerCase();
                   assert.ok(drawnCompact.includes(expectedCompact),
                     label + ': landscape lyric characters did not render in order: ' + drawnCompact);
-                  const rowBreaks = rendered.lyricCalls.reduce((count, call, index, calls) =>
-                    count + (index > 0 && call.x >= 0 && calls[index - 1].x >= 0 && call.x < calls[index - 1].x - rendered.canvas.width * 0.1 ? 1 : 0), 0);
+                  const rowBreaks = glyphs.reduce((count, glyph, index, calls) =>
+                    count + (index > 0 && glyph.x < calls[index - 1].x - rendered.canvas.width * 0.1 ? 1 : 0), 0);
                   assert.equal(rowBreaks, 0,
                     label + ': landscape lyric line wrapped instead of using the extra width');
                 }
