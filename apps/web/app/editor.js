@@ -1678,7 +1678,6 @@
       if(window.kefeBackground)window.kefeBackground.paintTransparency(compositeCtx,dims[0],dims[1]);
       compositeCtx.drawImage(canvas,0,0,dims[0],dims[1]);
     };
-    const visExport=window.kefeVisualiserExport;
     exporting=true;window.kefeAppleCanvasExport=true;button.disabled=true;
     const projectTitle=songTitle.value.trim()||'Untitled project',projectArtist=songArtist.value.trim()||'Unknown artist';
     openExportProgress({title:projectTitle,artist:projectArtist,format:ext,resolution:dims[0]+' × '+dims[1]+' px',aspect,duration:fmt(audio.duration)});
@@ -1686,7 +1685,6 @@
     try{
       audio.pause();
       canvas.width=dims[0];canvas.height=dims[1];
-      if(visExport)visExport.begin(dims[0],dims[1]);
       await new Promise(resolve=>{
         if(audio.currentTime===0){resolve();return;}
         audio.addEventListener('seeked',resolve,{once:true});audio.currentTime=0;
@@ -1730,7 +1728,6 @@
       if(ticker)clearInterval(ticker);
       if(frameTicker)clearInterval(frameTicker);
       canvas.width=prev.w;canvas.height=prev.h;
-      if(visExport)visExport.end();
       exporting=false;window.kefeAppleCanvasExport=false;button.disabled=false;
       audio.pause();state.time=prev.time;range.value=prev.time;audio.currentTime=prev.time;updateTime();draw();
     }
