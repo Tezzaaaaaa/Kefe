@@ -30,7 +30,7 @@
   let cfg = {...defaults};
   try { const saved=JSON.parse(localStorage.getItem('kefe.slowLight.v1')||'null'); if(saved)cfg={...cfg,...saved}; } catch (_) {}
   const reducedMotion = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  let stage,canvas,gl,program,locations={},enabled=false,raf=0,last=0,t=0,colourTime=0,hold=0,index=0,from=SCENES[0],to=SCENES[0],morph=1,morphDuration=12,current;
+  let stage,canvas,gl,program,locations={},enabled=false,active=false,raf=0,last=0,t=0,colourTime=0,hold=0,index=0,from=SCENES[0],to=SCENES[0],morph=1,morphDuration=12,current;
   let width=2,height=2,dpr=1,tick=0,audioBins=null,smoothed={bass:.4,low:.4,mid:.4,high:.3,cent:.5},peak={bass:.1,low:.1,mid:.1,high:.1};
   const pBuffer=new Float32Array(18),cBuffer=new Float32Array(18);
   const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
@@ -91,7 +91,7 @@
   function goTo(next,duration=6){if(next===index&&morph>=1)return;from=current;to=SCENES[next];index=next;morph=0;hold=0;morphDuration=reducedMotion?duration*1.6:duration;syncScene();}
   function syncScene(){if(!ui)return;ui.sceneName.textContent=SCENES[index].name;ui.sceneButtons.forEach((b,i)=>{b.classList.toggle('primary',i===index);b.setAttribute('aria-pressed',String(i===index));});}
   function frame(now){
-    raf=0;if(!enabled||!gl||!program||document.hidden)return;
+    raf=0;if(!shown()||!gl||!program||document.hidden)return;
     const dt=Math.min(.1,Math.max(0,(now-(last||now))/1000));last=now;tick+=dt;audio(dt);
     if(morph<1){morph=Math.min(1,morph+dt/morphDuration);current=blend(from,to,morph);}
     else if(cfg.auto){hold+=dt;if(hold>=cfg.len)goTo((index+1)%SCENES.length,Math.min(16,Math.max(8,cfg.len*.5)));}
@@ -134,12 +134,17 @@
     gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'});
     if(!gl||!build()){canvas.remove();console.error('[KEFE Slow Light] WebGL initialization failed.');return;}
     canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();if(raf)cancelAnimationFrame(raf);raf=0;gl=null;});
-    canvas.addEventListener('webglcontextrestored',()=>{gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'});if(gl&&build()){resize();if(enabled)start();}});
+    canvas.addEventListener('webglcontextrestored',()=>{gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'});if(gl&&build()){resize();if(shown())start();}});
     const view=document.createElement('section');view.className='kefe-vis-view kefe-slow-light-view';view.id='kefeVisSlowLightView';view.hidden=true;
     const intro=document.createElement('div');intro.className='kefe-visualiser-intro';intro.innerHTML='<div><strong>Slow Light</strong><span>Original shader-driven colour fields with film grain and audio-reactive motion.</span></div>';
-    const power=document.createElement('button');power.type='button';power.className='kefe-btn kefe-slow-light-power';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.textContent='Off';power.setAttribute('aria-label','Enable Slow Light visualiser');
-    power.addEventListener('click',()=>setEnabled(!enabled));intro.appendChild(power);view.appendChild(intro);
-    ui={sceneName:document.createElement('span'),sceneButtons:[],powerText:power};
+    /* The power switch lives in the panel header (same pattern as Fluted Glass) so the header
+       switch always controls the visualiser that is actually selected. */
+    const power=document.createElement('button');power.type='button';power.className='kefe-btn kefe-switch kefe-slow-light-power';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.setAttribute('aria-label','Slow Light Visualiser');
+    const powerState=document.createElement('span');powerState.className='kefe-switch-state';powerState.textContent='Off';
+    const powerTrack=document.createElement('span');powerTrack.className='kefe-switch-track';powerTrack.setAttribute('aria-hidden','true');
+    const powerThumb=document.createElement('span');powerThumb.className='kefe-switch-thumb';powerTrack.appendChild(powerThumb);power.append(powerState,powerTrack);
+    power.addEventListener('click',e=>{e.stopPropagation();setEnabled(!enabled);});view.appendChild(intro);
+    ui={sceneName:document.createElement('span'),sceneButtons:[],power,powerState};
     const presetRow=document.querySelector('.kefe-editing > .kefe-visualiser-preset-row');
     const sceneSet=document.createElement('div');sceneSet.className='kefe-visualiser-preset-set';sceneSet.id='kefeSlowLightPresetSet';sceneSet.hidden=true;
     const sceneRow=document.createElement('div');sceneRow.className='kefe-slow-light-scenes';
@@ -156,9 +161,8 @@
     const tab=document.createElement('button');tab.type='button';tab.className='kefe-btn';tab.setAttribute('role','tab');tab.dataset.visualiser='slow-light';tab.dataset.icon='◌';tab.setAttribute('aria-controls',view.id);tab.setAttribute('aria-label','Slow Light visualiser');tab.title='Slow Light visualiser';tab.textContent='';tabsList.appendChild(tab);
     const option=document.createElement('div');option.className='kefe-vis-option';option.appendChild(tab);tabsList.appendChild(option);
     form.appendChild(view);
-    tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab){setEnabled(false);sceneSet.hidden=true;}});
+    tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab){setActive(false);sceneSet.hidden=true;}});
     tab.addEventListener('click',()=>{
-      const wasEnabled=enabled;
       const reset=tabs.querySelector('[data-visualiser="particles"]');if(reset)reset.click();
       form.querySelectorAll('.kefe-vis-view').forEach(v=>v.hidden=v!==view);
       tabs.querySelectorAll('[role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
@@ -166,28 +170,32 @@
       presetRow?.querySelectorAll('.kefe-visualiser-preset-set').forEach(set=>set.hidden=set!==sceneSet);
       const heading=document.getElementById('kefeVisualiserHeading'),description=document.getElementById('kefeVisualiserDescription');
       if(heading)heading.textContent='Slow Light Visualiser';if(description)description.textContent='Original WebGL colour fields, continuous scene morphing, film grain and audio-reactive movement.';
-      window.kefeVisualiserEnabled=false;window.kefeDithrSetEnabled?.(false);
-      const particleCanvas=document.getElementById('kefeVisualiserCanvas');if(particleCanvas)particleCanvas.style.visibility='hidden';
-      const glCanvas=document.getElementById('kefeDithrCanvas');if(glCanvas)glCanvas.style.display='none';
-      const fluted=document.getElementById('kefeFlutedGlassCanvas');if(fluted)fluted.style.display='none';
-      const gradient=document.getElementById('kefeGradientCanvas');if(gradient)gradient.style.display='none';
-      setEnabled(wasEnabled);
+      const header=document.querySelector('.kefe-visualiser-panel-head');
+      if(header){header.querySelectorAll('.kefe-switch').forEach(b=>{if(b!==power)b.remove();});if(!header.contains(power))header.appendChild(power);}
+      /* Other visualisers hide themselves when their tab is left, so their canvases are never
+         forced to display:none here (that left Dithr and Fluted Glass blank after a visit). */
+      window.kefeVisualiserEnabled=false;
+      if(window.kefeSyncVisualiserVisibility)window.kefeSyncVisualiserVisibility();
+      else{const particleCanvas=document.getElementById('kefeVisualiserCanvas');if(particleCanvas)particleCanvas.style.visibility='hidden';}
+      setActive(true);
     });
     tabsList.appendChild(option);
     ui.sceneName.textContent=SCENES[0].name;current=blend(from,to,1);syncScene();resize();
     const style=document.createElement('style');style.textContent='.kefe-slow-light-scenes{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;min-width:0}.kefe-slow-light-scenes .kefe-btn{flex:0 0 auto;min-width:0}.kefe-slow-light-auto{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text)}.kefe-slow-light-power{margin-left:auto;min-width:58px}.kefe-slow-light-view{gap:12px}.kefe-slow-light-view[hidden]{display:none}';document.head.appendChild(style);
     window.addEventListener('resize',resize);window.addEventListener('kefe-stage-resize',resize);
-    document.addEventListener('visibilitychange',()=>{if(document.hidden){if(raf)cancelAnimationFrame(raf);raf=0;}else if(enabled)start();});
-    window.kefeSlowLight={setEnabled,setScene:i=>goTo(clamp(Math.floor(i),0,SCENES.length-1)),getState:()=>({enabled,scene:SCENES[index].name,settings:{...cfg}}),canvas:()=>canvas};
+    document.addEventListener('visibilitychange',()=>{if(document.hidden){if(raf)cancelAnimationFrame(raf);raf=0;}else if(shown())start();});
+    /* getState().enabled means "Slow Light is the visible preview" (export picks its canvas from it). */
+    window.kefeSlowLight={setEnabled,setActive,setScene:i=>goTo(clamp(Math.floor(i),0,SCENES.length-1)),getState:()=>({enabled:shown(),power:enabled,active,scene:SCENES[index].name,settings:{...cfg}}),canvas:()=>canvas};
   }
-  function start(){if(!enabled||!gl||raf||document.hidden)return;last=performance.now();raf=requestAnimationFrame(frame);}
-  function setEnabled(value){
-    enabled=!!value;
-    if(canvas)canvas.style.display=enabled?'block':'none';
-    if(ui){ui.powerText.textContent=enabled?'On':'Off';}
-    if(enabled)start();else{if(raf)cancelAnimationFrame(raf);raf=0;last=0;}
-    const power=document.querySelector('.kefe-slow-light-power');if(power){power.textContent=enabled?'On':'Off';power.classList.toggle('primary',enabled);power.setAttribute('aria-checked',String(enabled));}
-    window.dispatchEvent(new CustomEvent('kefe-slow-light-change',{detail:{enabled}}));
+  function shown(){return enabled&&active;}
+  function start(){if(!shown()||!gl||raf||document.hidden)return;last=performance.now();raf=requestAnimationFrame(frame);}
+  function sync(){
+    if(canvas)canvas.style.display=shown()?'block':'none';
+    if(ui){ui.powerState.textContent=enabled?'On':'Off';ui.power.classList.toggle('is-on',enabled);ui.power.setAttribute('aria-checked',String(enabled));}
+    if(shown()){resize();start();}else{if(raf)cancelAnimationFrame(raf);raf=0;last=0;}
+    window.dispatchEvent(new CustomEvent('kefe-slow-light-change',{detail:{enabled:shown(),power:enabled,active}}));
   }
+  function setEnabled(value){enabled=!!value;sync();}
+  function setActive(value){active=!!value;sync();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
