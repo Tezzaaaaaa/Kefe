@@ -70,6 +70,7 @@ jobs:
                   const canvas = this.canvas;
                   window.__kefeLayoutAudit.calls.push({
                     text: String(text),
+                    fillStyle: String(this.fillStyle),
                     id: canvas.id,
                     width: canvas.width,
                     height: canvas.height,
@@ -129,7 +130,7 @@ jobs:
                     canvas: { width: canvas.width, height: canvas.height },
                     stage: { width: stage.getBoundingClientRect().width, height: stage.getBoundingClientRect().height },
                     titleDrawn: calls.some(call => call.id === 'kefeCanvas' && call.text === 'KEFE LAYOUT AUDIT'),
-                    lyricCalls: calls.filter(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height).map(call => ({ text: call.text, x: call.x, y: call.y })),
+                    lyricCalls: calls.filter(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height).map(call => ({ text: call.text, x: call.x, y: call.y, fillStyle: call.fillStyle })),
                     fullLineDrawn: calls.some(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height && call.text.trim().toLowerCase() === (window.__kefeLayoutAudit.expectedPhrase || '').trim().toLowerCase())
                   };
                 });
@@ -137,6 +138,14 @@ jobs:
                 assert.deepEqual([rendered.canvas.width, rendered.canvas.height], expected, label + ': wrong canvas dimensions for ' + aspect);
                 assert.ok(rendered.titleDrawn, label + ': title card text did not render for ' + aspect);
                 assert.ok(rendered.lyricCalls.length > 0, label + ': lyrics did not render for ' + aspect);
+                if (aspect === '16:9') {
+                  const glyphAlphas = rendered.lyricCalls.map(call => {
+                    const match = String(call.fillStyle).match(/rgba?\\([^)]*,\\s*([0-9.]+)\\s*\\)$/);
+                    return match ? Number(match[1]) : NaN;
+                  }).filter(Number.isFinite);
+                  assert.ok(glyphAlphas.some(alpha => alpha <= 0.35), label + ': unreached lyric glyphs are not dimmed');
+                  assert.ok(glyphAlphas.some(alpha => alpha >= 0.95), label + ': reached lyric glyphs are not highlighted');
+                }
                 if (aspect === '16:9') {
                   const expectedCompact = prepared.fitPhrase.replace(/\s+/g, '').toLowerCase();
                   const drawnCompact = rendered.lyricCalls.map(call => call.text).join('').replace(/\s+/g, '').toLowerCase();
