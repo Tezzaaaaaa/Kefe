@@ -287,7 +287,7 @@
       S.items=S.localUpload?[S.localUpload]:[];S.mode='search';S.filter='song';S.index=0;syncFilters();el.CarBack.hidden=true;
       if(S.localUpload){el.FindInput.value='';el.FindBox.classList.remove('has-text');}
     }else{
-      S.items=(S.localUpload?[S.localUpload]:[]).concat(catalogue);
+      S.items=catalogue.concat(S.localUpload?[S.localUpload]:[]);
       if(S.index>=S.items.length)S.index=0;
     }
     render();
