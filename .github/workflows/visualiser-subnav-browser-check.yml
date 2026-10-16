@@ -380,7 +380,7 @@ jobs:
                   return { id: b.dataset.visualiser, left: x.left, right: x.right, top: x.top, width: x.width };
                 }) };
               });
-              assert.equal(mobile.buttons.length, 5, label + ': mobile must retain all five visualiser choices');
+              assert.equal(mobile.buttons.length, 4, label + ': mobile must retain all four remaining visualiser choices');
               assert.ok(Math.abs(mobile.row.left - mobile.preset.left) < 2 && Math.abs(mobile.row.right - mobile.preset.right) < 2,
                 label + ': mobile options and presets must share the same horizontal alignment');
               assert.ok(mobile.buttons.every(b => b.width > 0 && Math.abs(b.top - mobile.buttons[0].top) < 2), label + ': mobile visualiser choices must remain on one row');
