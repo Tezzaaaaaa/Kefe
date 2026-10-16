@@ -9,8 +9,9 @@
   function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
   function bounceHeight(elapsed,period,amplitude){
     var phase=((Math.max(0,elapsed)%period)/period);
-    // A smooth parabolic hop: zero vertical velocity at take-off and landing.
-    return 4*amplitude*phase*(1-phase);
+    // A smooth hop with eased take-off and landing, avoiding sharp reversals.
+    var arc=Math.sin(Math.PI*phase);
+    return amplitude*arc*arc;
   }
 
   function font(ctx,family,size,weight){ ctx.font=(weight||800)+' '+Math.max(14,size)+'px "'+(family||'Inter Tight')+'",system-ui,sans-serif'; }
