@@ -22,80 +22,72 @@
     if(!active) return;
     var text=String(active.line.text||'').trim().toUpperCase();
     if(!text) return;
-
     var lay=u.layoutText(ctx,text,{setFont:font,size:Math.min(220,style.fontSize||150),minSize:16,maxWidth:w*0.8,maxHeight:h*0.82,lineHeight:1.12,maxLines:5});
     var size=lay.size;
     var lineProg=u.lineProgress(active.line,time);
     if(lineProg.opacity<=0.01) return;
-
-    var start=Number(active.line.time)||0;
-    var end=Math.max(start+0.5,Number(active.line.endTime)||start+3);
-    var elapsed=time-start;
-    var remaining=end-time;
-    var entryChaos=1-smoother(elapsed/0.42);
-    var exitChaos=smoother(1-clamp(remaining/0.32));
-    var chaos=clamp(Math.max(entryChaos,exitChaos));
-    var frame=Math.floor(time*18);
-    var x=w/2;
+    var startTime=Number(active.line.time)||0;
+    var end=Math.max(startTime+0.5,Number(active.line.endTime)||startTime+3);
+    var elapsed=Math.max(0,time-startTime),remaining=Math.max(0,end-time);
+    var entry=1-smoother(elapsed/0.30),exit=smoother(1-clamp(remaining/0.24));
+    var frame=Math.floor(time*30),x=w/2;
+    // Real signal corruption is intermittent: a clean, readable base interrupted by short tearing bursts.
+    var cycle=Math.floor(elapsed*2.8),pulse= pseudoRand(cycle*17+Math.floor(elapsed*11));
+    var burst=(pulse>.70)?clamp((pulse-.70)/.30):0;
+    var chaos=clamp(Math.max(entry,exit,burst*.88));
     var y0=h*0.5-(lay.lines.length-1)*lay.lineH/2;
-
     font(ctx,size);
-    var sliceHeight=Math.max(8,size*0.11);
-
-    ctx.save();
-    ctx.textAlign='center';
-    ctx.textBaseline='middle';
-    ctx.globalAlpha=lineProg.opacity;
-
-    lay.lines.forEach(function(txt,li){ var y=y0+li*lay.lineH; font(ctx,size); var textWidth=ctx.measureText(txt).width;
-    // Main text remains stable between damage bursts.
-    ctx.fillStyle=style.textColor||'#FFFFFF';
-    ctx.fillText(txt,x,y);
-
-    // Horizontal data slices: each band gets its own deterministic displacement.
-    if(chaos>0.02){
-      for(var i=0;i<9;i++){
-        var r=pseudoRand(frame*31+i*17);
-        if(r<0.28) continue;
-        var sliceY=y-size*0.55+i*sliceHeight;
-        var sliceOffset=(pseudoRand(frame*47+i*9)*2-1)*(8+size*0.10)*chaos;
-        var sliceWidth=textWidth+size*0.18;
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(x-sliceWidth/2,sliceY,sliceWidth,sliceHeight);
-        ctx.clip();
-        ctx.globalAlpha=lineProg.opacity*(0.45+0.35*r)*chaos;
-        ctx.fillStyle=(i%2===0)?'rgba(255,0,70,0.95)':'rgba(0,220,255,0.95)';
-        ctx.fillText(txt,x+sliceOffset,y);
-        ctx.restore();
-      }
-
-      // Chromatic edge separation.
-      var chroma=(3+10*chaos);
+    ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.globalAlpha=lineProg.opacity;
+    lay.lines.forEach(function(txt,li){
+      var y=y0+li*lay.lineH;
+      font(ctx,size);
+      var textWidth=ctx.measureText(txt).width;
+      // Clean text is the visual anchor; corruption should never make the lyric unreadable.
       ctx.save();
-      ctx.globalCompositeOperation='screen';
-      ctx.globalAlpha=lineProg.opacity*(0.22+0.45*chaos);
-      ctx.fillStyle='rgba(255,0,70,0.9)';
-      ctx.fillText(txt,x-chroma,y);
-      ctx.fillStyle='rgba(0,220,255,0.9)';
-      ctx.fillText(txt,x+chroma,y);
-      ctx.restore();
-
-      // Small rectangular signal tears above/below the glyphs.
-      for(var j=0;j<6;j++){
-        var tear=pseudoRand(frame*19+j*23);
-        if(tear<0.42) continue;
-        var tearW=Math.max(8,textWidth*(0.04+tear*0.14));
-        var tearX=x+(pseudoRand(frame*29+j*7)*2-1)*(textWidth*0.42);
-        var tearY=y+(pseudoRand(frame*37+j*11)*2-1)*size*0.52;
-        ctx.save();
-        ctx.globalAlpha=lineProg.opacity*(0.25+0.55*chaos);
-        ctx.fillStyle=j%2?'rgba(255,255,255,0.75)':'rgba(255,0,70,0.8)';
-        ctx.fillRect(tearX,tearY,tearW,Math.max(2,size*0.018));
+      ctx.globalAlpha=lineProg.opacity*(1-burst*.10);
+      ctx.fillStyle=style.textColor||'#F4F7FF';
+      ctx.shadowColor='rgba(0,220,255,0.14)';ctx.shadowBlur=size*.018;
+      ctx.fillText(txt,x,y);ctx.restore();
+      if(chaos>0.035){
+        var chroma=(2+size*.035+size*.065*chaos);
+        ctx.save();ctx.globalCompositeOperation='screen';
+        ctx.globalAlpha=lineProg.opacity*(.12+.28*chaos);
+        ctx.fillStyle='#FF3EA5';ctx.fillText(txt,x-chroma,y);
+        ctx.fillStyle='#36E7FF';ctx.fillText(txt,x+chroma,y);
         ctx.restore();
+        // Uneven horizontal slices, with gaps and independent displacement like a damaged signal.
+        var sliceCount=8;
+        for(var i=0;i<sliceCount;i++){
+          var seed=frame*31+li*101+i*17;
+          var r=pseudoRand(seed);
+          if(r<.36-chaos*.14) continue;
+          var sliceY=y-size*.56+i*(size*1.12/sliceCount);
+          var sliceH=Math.max(1,size*(.035+pseudoRand(seed+5)*.075));
+          var dx=(pseudoRand(seed+9)*2-1)*(size*.025+size*.13*chaos);
+          ctx.save();ctx.beginPath();ctx.rect(x-textWidth*.58,sliceY,textWidth*1.16,sliceH);ctx.clip();
+          ctx.globalAlpha=lineProg.opacity*(.14+.48*chaos)*(.65+r*.35);
+          ctx.fillStyle=(i%2===0)?'#FF3EA5':'#36E7FF';
+          if(chaos>.55&&r>.78)ctx.filter='blur('+Math.max(.2,size*.008)+'px)';
+          ctx.fillText(txt,x+dx,y);
+          ctx.restore();
+        }
+        // Short dropout/scan tears are confined to the text zone, never full-screen noise.
+        for(var j=0;j<4;j++){
+          var tear=pseudoRand(frame*19+li*53+j*23);
+          if(tear<.67-chaos*.22) continue;
+          var tearW=Math.max(5,textWidth*(.05+tear*.17));
+          var tearX=x+(pseudoRand(frame*29+li*41+j*7)*2-1)*(textWidth*.40);
+          var tearY=y+(pseudoRand(frame*37+li*37+j*11)*2-1)*size*.52;
+          ctx.save();ctx.globalAlpha=lineProg.opacity*(.16+.45*chaos);
+          ctx.fillStyle=j%2?'rgba(245,250,255,.72)':'#36E7FF';
+          ctx.fillRect(tearX,tearY,tearW,Math.max(1,size*.014));ctx.restore();
+        }
       }
-    }
-
+      // Faint scanline detail makes the stable state feel like a display, not a static text preset.
+      if(li===0&&pseudoRand(Math.floor(elapsed*7))>.62){
+        ctx.save();ctx.globalAlpha=lineProg.opacity*.12;ctx.fillStyle='#8BEFFF';
+        ctx.fillRect(x-textWidth*.52,y-size*.43,textWidth*1.04,Math.max(1,size*.006));ctx.restore();
+      }
     });
     ctx.restore();
   };
