@@ -148,7 +148,9 @@ jobs:
                   assert.ok(initialAlphas.every(alpha => alpha <= 0.35), label + ': unreached lyric glyphs brighten before the highlight reaches them');
                   const completedStyles = await page.evaluate(async () => {
                     window.__kefeLayoutAudit.calls = [];
-                    window.kefeLyrics.seek(2);
+                    document.getElementById('songTitle').value = '';
+                    window.kefeLyrics.set([{ text: 'A', time: 0, endTime: 1, words: [{ text: 'A', time: 0, endTime: 1 }] }], 'highlight-audit');
+                    window.kefeLyrics.seek(1);
                     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
                     const canvas = document.getElementById('kefeCanvas');
                     return window.__kefeLayoutAudit.calls
