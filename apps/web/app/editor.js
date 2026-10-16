@@ -1349,10 +1349,17 @@
       const confidentTracks=[...uniqueConfident.values()];
       const availableIdentifiers=[meta.title,meta.artist,meta.album].filter(value=>String(value||'').trim()).length;
       const best=availableIdentifiers===1&&confidentTracks.length!==1?null:(confidentTracks[0]||null);
+      /* Auto-confirm only a unique, high-confidence catalogue match supported by title,
+         artist and close runtime evidence. Ambiguous or partial matches still require a choice. */
+      const autoConfirmMatch=!!best&&!manuallyEditedTrackFields.size&&!!meta.title&&!!meta.artist&&duration>0&&
+        Number(best.trackTimeMillis)>0&&Math.abs(Number(best.trackTimeMillis)/1000-duration)<=8;
       if(meta.title||meta.artist||meta.album){
         const searchMessage=catalogueSearchFailed?'Catalogue search failed. Your uploaded file is available below; check your connection and try again.':undefined;
         renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist,meta.album].filter(Boolean).join(' '),statusMessage:searchMessage});
-        setLyricsStatus(best
+        if(autoConfirmMatch){
+          applyPickedTrack(best);
+          setLyricsStatus('Song automatically confirmed — the uploaded audio matches '+best.trackName+' by '+best.artistName+'.');
+        }else setLyricsStatus(best
           ?'Metadata read from your upload. The strongest catalogue match is first; select it to confirm the song.'
           :recognized
             ?'Audio recognition returned metadata. Review the possible matches and confirm the correct song below.'
