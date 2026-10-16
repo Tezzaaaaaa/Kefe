@@ -58,7 +58,7 @@
         g.save();
         g.translate(w/2+driftX,h/2+driftY);
         g.scale(zoom,zoom);
-        g.globalAlpha=.658;
+        g.globalAlpha=.94;
         g.filter='blur(.715px) saturate(1.03)';
         g.drawImage(img,-dw/2,-dh/2,dw,dh);
         g.restore();
