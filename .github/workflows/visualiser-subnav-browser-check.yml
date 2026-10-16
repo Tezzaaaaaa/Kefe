@@ -52,7 +52,7 @@ jobs:
             page.on('pageerror', error => errors.push(error.message));
             try {
               await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
-              await page.waitForFunction(() => document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4, { timeout: 30000 });
+              await page.waitForFunction(() => document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 3, { timeout: 30000 });
               const submenu = page.locator('.kefe-editing > .kefe-vis-tabs');
               const panels = page.locator('.kefe-panels');
 
@@ -64,16 +64,14 @@ jobs:
                   document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4;
               });
 
-              const order = ['gradient', 'glitch', 'fluted', 'slow-light'];
+              const order = ['gradient', 'fluted', 'slow-light'];
               const viewIds = {
                 gradient: 'kefeVisGradientView',
-                glitch: 'kefeVisGlitchView',
                 fluted: 'kefeVisFlutedView',
                 'slow-light': 'kefeVisSlowLightView'
               };
               const presetSetIds = {
                 gradient: 'kefeGradientPresetSet',
-                glitch: 'kefeDithrPresetSet',
                 fluted: 'kefeFlutedPresetSet',
                 'slow-light': 'kefeSlowLightPresetSet'
               };
@@ -121,13 +119,11 @@ jobs:
                 assert.deepEqual(selection.visibleViews, [viewIds[id]], label + ': only selected visualiser settings should be visible: ' + id);
                 const expectedTitles = {
                   gradient: 'Liquid Flow Visualiser',
-                  glitch: 'Dithr Visualiser',
                   fluted: 'Fluted Glass Visualiser',
                   'slow-light': 'Slow Light Visualiser'
                 };
                 const expectedDescriptions = {
                   gradient: 'Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.',
-                  glitch: 'Animated procedural fields with Floyd–Steinberg, ordered and stochastic dithering.',
                   fluted: 'Six refractive glass treatments driven by audio.',
                   'slow-light': 'Original WebGL colour fields, continuous scene morphing, film grain and audio-reactive movement.'
                 };
@@ -275,25 +271,11 @@ jobs:
                   const button = document.querySelector('.kefe-visualiser-panel-head .kefe-switch');
                   return button && button.getAttribute('aria-checked') === String(initialPower !== 'true');
                 }, { initialPower });
-                if (id === 'glitch') {
-                  await page.waitForFunction(({ enabled }) => window.kefeDithrDiagnostics()?.enabled === enabled, { enabled: initialPower !== 'true' });
-                }
                 await power.click();
                 await page.waitForFunction(({ initialPower }) => {
                   const button = document.querySelector('.kefe-visualiser-panel-head .kefe-switch');
                   return button && button.getAttribute('aria-checked') === initialPower;
                 }, { initialPower });
-                if (id === 'glitch') {
-                  await page.waitForFunction(() => typeof window.kefeDithrDiagnostics === 'function');
-                  assert.equal(await page.locator('#dithrPatterns [data-pattern]').count(), 10, label + ': Dithr must expose all ten pattern presets');
-                  for (const control of ['scale','complexity','density','seed','amount','levels','pixel','resIndex','fps']) {
-                    assert.equal(await page.locator('#dithr-' + control).count(), 1, label + ': missing Dithr setting ' + control);
-                  }
-                  assert.equal(await page.locator('.kefe-dithr-toolbar button').count() >= 3, true, label + ': Dithr dithering modes must be available');
-                  await page.locator('#dithrPatterns [data-pattern="cellular"]').click();
-                  assert.equal((await page.evaluate(() => window.kefeDithrDiagnostics())).pattern, 'cellular', label + ': selecting a pattern must update the renderer');
-                  assert.equal(await page.locator('#kefeDithrCanvas').evaluate(el => getComputedStyle(el).visibility), 'hidden', label + ': disabled Dithr canvas must be hidden after the intro toggle is restored');
-                }
                 const presetState = await page.evaluate(({ id, presetSetId }) => ({
                   rowVisible: (() => { const row = document.querySelector('.kefe-editing > .kefe-visualiser-preset-row'); return !!row && !row.hidden && getComputedStyle(row).display !== 'none' && row.getBoundingClientRect().height > 0; })(),
                   visibleSets: [...document.querySelectorAll('.kefe-editing > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set')].filter(set => !set.hidden && getComputedStyle(set).display !== 'none').map(set => set.id),
@@ -303,7 +285,7 @@ jobs:
                 assert.deepEqual(presetState.visibleSets, [presetState.expectedSet], label + ': only the selected visualiser preset set should be visible: ' + id);
                 const strip = await page.evaluate(({ id, presetSetId }) => {
                     const set = document.getElementById(presetSetId);
-                    const selector = id === 'glitch' ? '#dithrPatterns' : id === 'gradient' ? '.kefe-gradient-palettes' : id === 'slow-light' ? '.kefe-slow-light-scenes' : '#flutedModes';
+                    const selector = id === 'gradient' ? '.kefe-gradient-palettes' : id === 'slow-light' ? '.kefe-slow-light-scenes' : '#flutedModes';
                     const el = set && set.querySelector(selector);
                     if (!el) return { missing: true, setHtml: set?.outerHTML || null };
                     const style = getComputedStyle(el);
@@ -380,7 +362,7 @@ jobs:
                   return { id: b.dataset.visualiser, left: x.left, right: x.right, top: x.top, width: x.width };
                 }) };
               });
-              assert.equal(mobile.buttons.length, 4, label + ': mobile must retain all four remaining visualiser choices');
+              assert.equal(mobile.buttons.length, 3, label + ': mobile must retain all three remaining visualiser choices');
               assert.ok(Math.abs(mobile.row.left - mobile.preset.left) < 2 && Math.abs(mobile.row.right - mobile.preset.right) < 2,
                 label + ': mobile options and presets must share the same horizontal alignment');
               assert.ok(mobile.buttons.every(b => b.width > 0 && Math.abs(b.top - mobile.buttons[0].top) < 2), label + ': mobile visualiser choices must remain on one row');
