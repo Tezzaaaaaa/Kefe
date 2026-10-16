@@ -374,7 +374,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const posT = linaSmooth((time - active.time) / transitionDuration);
 
     const scalePoints = [[-4, 0.97], [-3, 0.97], [-2, 0.97], [-1, 0.97], [0, activeScale], [1, 0.97], [2, 0.97], [3, 0.97], [4, 0.97]];
-    const opacityPoints = [[-4, 0.24], [-3, 0.28], [-2, 0.33], [-1, 0.40], [0, 1], [1, 0.42], [2, 0.36], [3, 0.30], [4, 0.26]];
+    const opacityPoints = [[-4, 0.06], [-3, 0.07], [-2, 0.08], [-1, 0.10], [0, 1], [1, 0.10], [2, 0.08], [3, 0.07], [4, 0.06]];
     const blurPoints = [[-4, activeFontSize * 0.26], [-3, activeFontSize * 0.2], [-2, activeFontSize * 0.14], [-1, activeFontSize * 0.075], [0, 0], [1, activeFontSize * 0.075], [2, activeFontSize * 0.14], [3, activeFontSize * 0.2], [4, activeFontSize * 0.26]];
 
     /* Continuous scroll: every line is positioned and styled from one fractional "focus" index so
