@@ -64,6 +64,11 @@ jobs:
             const errors = [];
             page.on('pageerror', error => errors.push(error.message));
             await page.addInitScript(() => {
+              const originalAddStop = CanvasGradient.prototype.addColorStop;
+              CanvasGradient.prototype.addColorStop = function (offset, color) {
+                (this.__kefeStops = this.__kefeStops || []).push(String(color));
+                return originalAddStop.call(this, offset, color);
+              };
               const original = CanvasRenderingContext2D.prototype.fillText;
               CanvasRenderingContext2D.prototype.fillText = function (text, ...args) {
                 if (window.__kefeLayoutAudit) {
@@ -71,6 +76,7 @@ jobs:
                   window.__kefeLayoutAudit.calls.push({
                     text: String(text),
                     fillStyle: String(this.fillStyle),
+                    stops: (this.fillStyle && typeof this.fillStyle === 'object' && this.fillStyle.__kefeStops) ? this.fillStyle.__kefeStops.slice() : null,
                     id: canvas.id,
                     width: canvas.width,
                     height: canvas.height,
@@ -130,7 +136,7 @@ jobs:
                     canvas: { width: canvas.width, height: canvas.height },
                     stage: { width: stage.getBoundingClientRect().width, height: stage.getBoundingClientRect().height },
                     titleDrawn: calls.some(call => call.id === 'kefeCanvas' && call.text === 'KEFE LAYOUT AUDIT'),
-                    lyricCalls: calls.filter(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height).map(call => ({ text: call.text, x: call.x, y: call.y, fillStyle: call.fillStyle })),
+                    lyricCalls: calls.filter(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height).map(call => ({ text: call.text, x: call.x, y: call.y, fillStyle: call.fillStyle, stops: call.stops })),
                     fullLineDrawn: calls.some(call => call.id !== 'kefeCanvas' && call.width === canvas.width && call.height === canvas.height && call.text.trim().toLowerCase() === (window.__kefeLayoutAudit.expectedPhrase || '').trim().toLowerCase())
                   };
                 });
@@ -139,21 +145,25 @@ jobs:
                 assert.ok(rendered.titleDrawn, label + ': title card text did not render for ' + aspect);
                 assert.ok(rendered.lyricCalls.length > 0, label + ': lyrics did not render for ' + aspect);
                 if (aspect === '16:9') {
-                  const alphaOf = value => {
-                    const match = String(value).match(/rgba?\([^)]*,\s*([0-9.]+)\s*\)$/);
-                    return match ? Number(match[1]) : NaN;
+                  // Reference look: every lyric glyph is WHITE and only its alpha changes (unsung ~0.32, sung 1.0).
+                  // Grey RGB values and high-alpha unsung text were what made the old renderer look dark / all-white.
+                  const parseColour = value => {
+                    const match = String(value).match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([0-9.]+)\s*)?\)/);
+                    return match ? { r: Number(match[1]), g: Number(match[2]), b: Number(match[3]), a: match[4] === undefined ? 1 : Number(match[4]) } : null;
                   };
-                  const initialAlphas = rendered.lyricCalls.map(call => alphaOf(call.fillStyle)).filter(Number.isFinite);
-                  assert.ok(initialAlphas.length > 0, label + ': could not inspect Apple lyric glyph opacity');
-                  assert.ok(initialAlphas.every(alpha => alpha <= 0.35), label + ': unreached lyric glyphs brighten before the highlight reaches them');
-                  const initialRgb = rendered.lyricCalls.map(call => {
-                    const match = String(call.fillStyle).match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
-                    return match ? match.slice(1, 4).map(Number) : null;
-                  }).filter(Boolean);
-                  assert.ok(initialRgb.length > 0, label + ': could not inspect Apple lyric glyph colour');
-                  assert.ok(initialRgb.every(rgb => rgb.every(channel => channel <= 170)),
-                    label + ': unreached lyric glyphs are still being painted white instead of grey');
-                  console.log(JSON.stringify({ target: label, initialAlphas: [...new Set(initialAlphas)], initialRgb: [...new Set(initialRgb.map(rgb => rgb.join(',')))] }));
+                  const flat = rendered.lyricCalls.map(call => parseColour(call.fillStyle)).filter(Boolean);
+                  const gradientStops = rendered.lyricCalls.flatMap(call => (call.stops || []).map(parseColour)).filter(Boolean);
+                  assert.ok(flat.length + gradientStops.length > 0, label + ': could not inspect Apple lyric glyph colours');
+                  assert.ok(gradientStops.length > 0, label + ': timed lyric letters should be filled with a soft-edged gradient');
+                  assert.ok([...flat, ...gradientStops].every(c => c.r === 255 && c.g === 255 && c.b === 255),
+                    label + ': lyric glyphs must be white with alpha, not grey RGB');
+                  // The unsung end of every letter gradient must sit at the dim level: readable (>= 0.2) but clearly
+                  // lower than the sung white (<= 0.35). A frame of playback may already have lit the first letters.
+                  const unsungAlpha = Math.min(...gradientStops.map(c => c.a));
+                  assert.ok(unsungAlpha >= 0.2, label + ': unsung lyric glyphs are too dark to read (alpha ' + unsungAlpha + ')');
+                  assert.ok(unsungAlpha <= 0.35, label + ': unreached lyric glyphs are too bright (alpha ' + unsungAlpha + ')');
+                  assert.ok(flat.every(c => c.a <= 0.5), label + ': lyric glow/inactive text is too bright');
+                  console.log(JSON.stringify({ target: label, gradientStopAlphas: [...new Set(gradientStops.map(c => c.a))], flatAlphas: [...new Set(flat.map(c => c.a))] }));
                 }
                 if (aspect === '16:9') {
                   const expectedCompact = prepared.fitPhrase.replace(/\s+/g, '').toLowerCase();

@@ -116,12 +116,16 @@ function appleSpringOut(t) {
 }
 
 
-/* Apple Music-style lyric fill.
-   One soft-edged highlight glides continuously across each row (linear within a word, short glide
-   across the space to the next), so there is no per-word stop/start. Letters float up as the
-   highlight reaches them (eased, driven by the same front position, so the lift and the fill are
-   always in sync) and settle back as the line scrolls away. Sustained words get a soft glow. */
-const APPLE_WAVE = { lift: 0.1, pop: 0.04, dim: 0.32, fade: 1, riseSpan: 0.9, glowDur: 0.8 };
+/* Apple Music-style lyric fill — a 1:1 port of the reference player (apple-lyrics-standalone.html).
+   Everything is WHITE; only alpha changes:
+     sung part of the active line  = white @ 1.0
+     unsung part / every other line = white @ dim (0.32), then multiplied by the line's distance fade
+   No grey RGB values and no drop shadows (both made the old version look dark and muddy).
+   Each letter is filled with its own soft-edged horizontal gradient whose front is driven by the
+   word's timing, so the sweep is sub-pixel smooth instead of stepping letter by letter.
+   Lift / pop / glow are pure functions of time per letter (rise before the front arrives, cosine
+   settle after), so nothing is driven by hard per-word switches. */
+const APPLE_WAVE = { lift: 0.1, pop: 0.04, glow: 0.8, glowSize: 0.38, soft: 0.35, fall: 0.28, dim: 0.32 };
 const appleLetterCache = new Map();
 const appleRowCache = new Map();
 const APPLE_OFFSCREEN = 20000;
@@ -146,86 +150,72 @@ function appleLetterBox(ctx, token) {
 }
 
 /* Blur that works everywhere (ctx.filter is missing on Safari/iOS): draw the glyph far off-canvas and
-   let its blurred shadow land back in place. shadowBlur ~= 2 x CSS blur radius. */
-function appleBlurText(ctx, text, x, y, blurPx, color, scale) {
+   let its blurred shadow land back in place. `blurRadius` is the CSS-equivalent radius, in the glyph's
+   own (pre-transform) pixels. Shadow offset/blur are device-space, so both are scaled by the current
+   transform; this keeps it correct under the row scale and the per-letter pop scale. */
+function appleShadowText(ctx, text, x, y, blurRadius, color, cssFilterBlur) {
+    const m = ctx.getTransform ? ctx.getTransform() : null;
+    const sx = m ? (Math.hypot(m.a, m.b) || 1) : 1;
     ctx.save();
     ctx.shadowColor = color;
-    ctx.shadowBlur = blurPx * 2;
+    // filter: blur(r) has sigma = r, canvas shadowBlur has sigma = shadowBlur / 2.
+    // text-shadow radius R has sigma = R / 2, so shadowBlur = R.
+    ctx.shadowBlur = (cssFilterBlur ? blurRadius * 2 : blurRadius) * sx;
     ctx.shadowOffsetX = APPLE_OFFSCREEN;
     ctx.shadowOffsetY = 0;
     ctx.fillStyle = '#000';
-    ctx.fillText(text, x - APPLE_OFFSCREEN / Math.max(0.01, scale), y);
+    ctx.fillText(text, x - APPLE_OFFSCREEN / sx, y);
     ctx.restore();
 }
 
-/* Position of the highlight front (px) for one row of timed tokens at `time`. */
-function appleFrontPos(entries, time) {
-    const first = entries[0];
-    if (time <= first.t0) return first.x;
-    for (let k = 0; k < entries.length; k++) {
-        const en = entries[k];
-        const endX = en.x + en.box.W;
-        if (time < en.t1) {
-            if (time >= en.t0) return en.x + en.box.W * linaClamp((time - en.t0) / Math.max(0.05, en.t1 - en.t0));
-            const prev = entries[k - 1];
-            const prevEnd = prev.x + prev.box.W;
-            const w = Math.min(0.14, Math.max(0.02, en.t0 - prev.t1));
-            return prevEnd + (en.x - prevEnd) * linaSmooth((time - (en.t0 - w)) / w);
-        }
-        const next = entries[k + 1];
-        if (!next) return endX;
-        if (time < next.t0) {
-            const w = Math.min(0.14, Math.max(0.02, next.t0 - en.t1));
-            return endX + (next.x - endX) * linaSmooth((time - (next.t0 - w)) / w);
-        }
-    }
-    const last = entries[entries.length - 1];
-    return last.x + last.box.W;
-}
+const appleWhite = alpha => 'rgba(255,255,255,' + linaClamp(alpha).toFixed(4) + ')';
 
-function appleDrawRow(ctx, entries, y, fs, time, act, sungA, unsungA, P, scale, shadowBlur, shadowOff, blurPx) {
-    const first = entries[0], last = entries[entries.length - 1];
-    const xs = first.x, xe = last.x + last.box.W;
-    const p = appleFrontPos(entries, time);
-    const sungColor = 'rgba(210,210,210,' + sungA.toFixed(3) + ')';
-    // Unreached glyphs must be visibly grey, not white with reduced opacity.
-    // Alpha alone made them look highlighted over bright or changing backgrounds.
-    const glyphFill = (left, width) => {
-        const reached = linaSmooth((p - left) / Math.max(1, width));
-        const alpha = unsungA + (sungA - unsungA) * reached;
-        const channel = Math.round(58 + (210 - 58) * reached);
-        return 'rgba(' + channel + ',' + channel + ',' + channel + ',' + alpha.toFixed(3) + ')';
-    };
-    const actK = linaSmooth(act);
+/* One row of timed words. `entries`: [{x, box, t0, t1}] (t0/t1 = the word's own start/end).
+   lineA = distance fade of the whole line, hi = alpha of the sung part (1 while live, eases to dim after). */
+function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
+    const dim = P.dim;
+    const useBlur = blurPx > 0.35;
     for (const en of entries) {
-        const dur = Math.max(0.06, en.t1 - en.t0);
-        const glowK = linaClamp((dur - P.glowDur) / 1.2);
+        const dur = Math.max(0.05, en.t1 - en.t0);
+        const f = linaClamp((time - en.t0) / dur);
+        const s = P.soft * (0.7 + 0.6 * linaClamp(dur / 1.2));
+        const front = f * (1 + s), sa = front - s;
+        const rise = linaClamp(dur * 0.4, 0.1, 0.55);
+        const settle = linaClamp(dur * 0.7 + 0.12, 0.2, 1);
+        const amp = 0.65 + 0.35 * linaClamp(dur / 1.2);
+        const W = en.box.W;
         for (let k = 0; k < en.box.chars.length; k++) {
-            const lx = en.x + en.box.xs[k], lw = en.box.ws[k], cx = lx + lw / 2;
-            const q = linaSmoother((p - cx) / (fs * P.riseSpan) + 0.25);
-            const lift = q * actK;
+            const lx = en.x + en.box.xs[k], lw = en.box.ws[k];
+            const a = en.box.xs[k] / W, b = (en.box.xs[k] + lw) / W, wd = Math.max(0.0005, b - a);
+            const tau = time - (en.t0 + dur * ((a + b) / 2) / (1 + s));
+            const lift = amp * (tau < 0 ? linaSmooth(1 + tau / rise) : (1 + Math.cos(Math.PI * Math.min(1, tau / settle))) / 2);
+            const A = (sa - a) / wd, B = (front - a) / wd;     // soft edge, in letter-local 0..1 coordinates
+            const alphaAt = u => (u <= A ? hi : u >= B ? dim : hi + (dim - hi) * ((u - A) / Math.max(1e-6, B - A))) * lineA;
+            const ch = en.box.chars[k];
             ctx.save();
             if (lift > 0.002) {
-                const py = y + fs * 0.2;
-                const sc = 1 + lift * P.pop;
-                ctx.translate(cx, py);
+                const ox = lx + lw / 2, oy = y + fs * 0.46, sc = 1 + lift * P.pop;
+                ctx.translate(0, -lift * P.lift * fs);
+                ctx.translate(ox, oy);
                 ctx.scale(sc, sc);
-                ctx.translate(-cx, -py - lift * P.lift * fs);
+                ctx.translate(-ox, -oy);
             }
-            if (blurPx > 0.08) {
-                appleBlurText(ctx, en.box.chars[k], lx, y, blurPx, sungColor, scale);
+            if (useBlur) {
+                appleShadowText(ctx, ch, lx, y, blurPx, appleWhite(alphaAt(0.5)), true);
             } else {
-                ctx.fillStyle = glyphFill(lx, lw);
-                if (glowK > 0 && lift > 0.01) {
-                    ctx.shadowColor = 'rgba(210,210,210,' + (0.32 * glowK * lift).toFixed(3) + ')';
-                    ctx.shadowBlur = fs * 0.35 * glowK * lift;
-                    ctx.shadowOffsetY = 0;
-                } else {
-                    ctx.shadowColor = 'rgba(0,0,0,0.35)';
-                    ctx.shadowBlur = shadowBlur;
-                    ctx.shadowOffsetY = shadowOff;
+                // glow layer sits underneath the letter (same as the reference's .lg layer)
+                if (lift > 0.004 && P.glow > 0) {
+                    ctx.fillStyle = appleWhite(lift * 0.55 * P.glow * lineA);
+                    ctx.fillText(ch, lx, y);
+                    if (lift >= 0.01) appleShadowText(ctx, ch, lx, y, P.glowSize * lift * fs, appleWhite(Math.min(1, 0.85 * P.glow * lift) * lineA), false);
                 }
-                ctx.fillText(en.box.chars[k], lx, y);
+                const g = ctx.createLinearGradient(lx, 0, lx + lw, 0);
+                g.addColorStop(0, appleWhite(alphaAt(0)));
+                if (A > 0 && A < 1) g.addColorStop(A, appleWhite(hi * lineA));
+                if (B > 0 && B < 1) g.addColorStop(B, appleWhite(dim * lineA));
+                g.addColorStop(1, appleWhite(alphaAt(1)));
+                ctx.fillStyle = g;
+                ctx.fillText(ch, lx, y);
             }
             ctx.restore();
         }
@@ -384,8 +374,11 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         : 0;
 
     const scalePoints = [[-4, 0.97], [-3, 0.97], [-2, 0.97], [-1, 0.97], [0, activeScale], [1, 0.97], [2, 0.97], [3, 0.97], [4, 0.97]];
-    const opacityPoints = [[-4, 0.18], [-3, 0.21], [-2, 0.25], [-1, 0.30], [0, 1], [1, 0.31], [2, 0.27], [3, 0.23], [4, 0.20]];
-    const blurPoints = [[-4, activeFontSize * 0.31], [-3, activeFontSize * 0.25], [-2, activeFontSize * 0.18], [-1, activeFontSize * 0.10], [0, 0], [1, activeFontSize * 0.10], [2, activeFontSize * 0.18], [3, activeFontSize * 0.25], [4, activeFontSize * 0.31]];
+    // Per-line fade + blur by distance from the focused line — same table as the reference player (dState).
+    // Text is white; this only scales its alpha, so a line 1 away from focus reads ~0.30 white, far lines ~0.15.
+    const opacityPoints = [[-5, 0], [-4, 0.3], [-3, 0.45], [-2, 0.6], [-1, 0.8], [0, 1], [1, 0.95], [2, 0.8], [3, 0.66], [4, 0.55], [5, 0.46]];
+    const blurUnit = activeFontSize / (landscapeSplit ? 12.6 : 7.9);
+    const blurPoints = [[-5, 1.2], [-4, 1.2], [-3, 1.2], [-2, 0.7], [-1, 0.25], [0, 0], [1, 0.17], [2, 0.5], [3, 0.85], [4, 1.2], [5, 1.5]].map(([dd, m]) => [dd, m * blurUnit]);
 
     /* Continuous scroll: every line is positioned and styled from one fractional "focus" index so
        nothing pops when the active line changes – position, size, opacity, blur and the white
@@ -405,22 +398,29 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
-    for (let i = Math.max(0, activeIndex - 2); i <= Math.min(displayLines.length - 1, activeIndex + visibleLines); i++) {
+    const wave = Object.assign({}, APPLE_WAVE, {
+        lift: Number.isFinite(Number(style.appleLetterLift)) ? Number(style.appleLetterLift) : APPLE_WAVE.lift,
+        dim: linaClamp(Number.isFinite(Number(style.appleUnsungOpacity)) ? Number(style.appleUnsungOpacity) : APPLE_WAVE.dim, 0.15, 0.9)
+    });
+
+    for (let i = Math.max(0, activeIndex - 4); i <= Math.min(displayLines.length - 1, activeIndex + visibleLines); i++) {
         const line = displayLines[i];
         if (!line || !String(line.text || '').trim()) continue;
 
         const d = i - focus;
         const act = linaClamp(1 - Math.abs(d), 0, 1);           // 1 = fully focused, 0 = fully inactive
-        const words = appleWordsForLine(line);
         const rows = line.appleRows || [String(line.text || '').trim()];
         const x = margin;
         const y = topAnchor + cum[i] - focusY;
         const scaleAmt = appleKeyframeLerp(d, scalePoints);
         const lineHeightForFade = line.appleBlockHeight || rowHeight;
         const topFade = landscapeSplit ? 1 : linaClamp((y + lineHeightForFade / 2 - (appleHeaderBottom - lineHeightForFade * 0.8)) / Math.max(1, lineHeightForFade * 0.72), 0, 1);
-        const alphaAmt = linaClamp(appleKeyframeLerp(d, opacityPoints), 0, 1) * topFade;
-        const blurAmt = i === activeIndex ? 0 : Math.max(0, appleKeyframeLerp(d, blurPoints));
+        const lineA = linaClamp(appleKeyframeLerp(d, opacityPoints), 0, 1) * topFade;
+        // Blur follows the same continuous curve for every line (including the one being sung), so
+        // nothing snaps when the active line changes.
+        const blurAmt = Math.max(0, appleKeyframeLerp(d, blurPoints));
         const rowFontSize = inactiveFontSize + (activeFontSize - inactiveFontSize) * act;
+        if (lineA < 0.004) continue;
 
         ctx.save();
         ctx.font = `${contract.weight || 700} ${rowFontSize.toFixed(2)}px ${family}`;
@@ -429,25 +429,27 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ctx.translate(-x, -y);
 
         const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
-        const baseShadowBlur = Math.max(2, baseDimension * (1.2 / 390));
-        const baseShadowOff = Math.max(1, baseDimension * (0.5 / 390));
 
-        // Word timing for the line being sung and the one that just finished.
+        // The line being sung stays "live" (timed fill + letter lift) until its highlight has faded
+        // back to the unsung level and its letters have settled, then it becomes a plain dim line.
+        // The old code dropped the previous line out of the timed renderer the instant the next line
+        // began, which snapped it from bright to near-black.
+        const nextStart = Number(displayLines[i + 1]?.time);
+        const lineEnd = Number.isFinite(nextStart) ? nextStart : Number(line.endTime);
+        const live = i === activeIndex || (i === activeIndex - 1 && time < lineEnd + wave.fall + 1.2);
+
         const utils = window.kefeEffectUtils;
         const tokens = line.text.split(' ').filter(Boolean);
         let times = null;
-        if (utils?.tokenTimes && i === activeIndex) {
+        if (live && utils?.tokenTimes) {
             try {
                 const timed = utils.tokenTimes(line, displayLines[i + 1], tokens);
                 if (timed.length === tokens.length && timed.every(v => Number.isFinite(v.time) && Number.isFinite(v.endTime))) times = timed;
             } catch (_) { times = null; }
         }
-        // The replacement's standalone player animates untimed lyrics by distributing
-        // each line's duration across its words. Keep that behaviour in KEFE's shared
-        // audio clock when the source only supplies line-level timing.
-        if (!times && i === activeIndex && tokens.length) {
+        // Line-level timing only: spread the line's duration across its words (same as the reference player).
+        if (!times && live && tokens.length) {
             const start = Number(line.time) || 0;
-            const nextStart = Number(displayLines[i + 1]?.time);
             const endValue = Number(line.endTime);
             const end = Number.isFinite(endValue) && endValue > start
                 ? endValue
@@ -465,14 +467,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         }
 
         if (times) {
-            // Alpha is baked into the colours (not globalAlpha) so the unsung/sung contrast stays right
-            // while the line fades in as it becomes active.
-            const P = Object.assign({}, APPLE_WAVE, {
-                lift: Number.isFinite(Number(style.appleLetterLift)) ? Number(style.appleLetterLift) : APPLE_WAVE.lift,
-                dim: linaClamp(Number.isFinite(Number(style.appleUnsungOpacity)) ? Number(style.appleUnsungOpacity) : APPLE_WAVE.dim, 0.15, 0.9)
-            });
-            const sungA = alphaAmt;
-            const unsungA = Math.min(alphaAmt, P.dim * 0.3);
+            // Sung part eases from 1 down to the unsung level after the line ends (reference: --hi over `fall`).
+            const hi = 1 - (1 - wave.dim) * linaSmooth((time - lineEnd) / wave.fall);
             const spaceWidth = ctx.measureText(' ').width;
             let ti = 0;
             for (let ri = 0; ri < rows.length; ri++) {
@@ -482,25 +478,19 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                 for (let k = 0; k < rowTokens.length; k++) {
                     const box = appleLetterBox(ctx, rowTokens[k]);
                     const tm = times[ti + k];
-                    const wordDuration = Math.max(0.06, tm.endTime - tm.time);
-                    // Finish the visual sweep before the word's full timing window ends;
-                    // the remaining beat lets the highlight settle instead of lagging into the next line.
-                    entries.push({ x: cursorX, box, t0: tm.time, t1: tm.time + wordDuration * 0.72 });
+                    entries.push({ x: cursorX, box, t0: tm.time, t1: Math.max(tm.time + 0.05, tm.endTime) });
                     cursorX += box.W + spaceWidth;
                 }
                 ti += rowTokens.length;
-                if (entries.length) appleDrawRow(ctx, entries, rowYs[ri], rowFontSize, time, act, sungA, unsungA, P, scaleAmt, baseShadowBlur, baseShadowOff, blurAmt);
+                if (entries.length) appleDrawRow(ctx, entries, rowYs[ri], rowFontSize, time, wave, lineA, hi, blurAmt);
             }
         } else {
-            // Upcoming / older lines (or no usable word timing): grey, blurred by distance.
-            ctx.globalAlpha = alphaAmt;
+            // Every other line: white at the unsung alpha, softened by distance. No grey RGB, no drop shadow.
+            const color = appleWhite(wave.dim * lineA);
             if (blurAmt > 0.08) {
-                rows.forEach((rowText, ri) => appleBlurText(ctx, rowText, x, rowYs[ri], blurAmt, 'rgb(58,58,58)', scaleAmt));
+                rows.forEach((rowText, ri) => appleShadowText(ctx, rowText, x, rowYs[ri], blurAmt, color, true));
             } else {
-                ctx.fillStyle = 'rgb(68,68,68)';
-                ctx.shadowColor = 'rgba(0,0,0,0.45)';
-                ctx.shadowBlur = baseShadowBlur;
-                ctx.shadowOffsetY = baseShadowOff;
+                ctx.fillStyle = color;
                 rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
             }
         }
