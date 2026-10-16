@@ -500,12 +500,14 @@
           if(lyricLayer.width!==W||lyricLayer.height!==H){lyricLayer.width=W;lyricLayer.height=H;}
           const lc=lyricLayer.getContext('2d');lc.setTransform(1,0,0,1,0,0);lc.clearRect(0,0,W,H);
           if(styler)styler.post(lc,W,H,paintEffect);else paintEffect(lc);
+          // Karaoke is a shared treatment composited into the selected effect's lyric layer.
+          // Apple Music is deliberately excluded; its renderer remains untouched.
+          if(state.effect!=='apple')drawKaraokeOverlay(lc,W,H,effT);
           const u=Math.min(W,H),landscapeLyrics=W/Math.max(1,H)>=1.25,edge=landscapeLyrics?Math.max(32,H*.13):Math.max(32,H*.07)+u*.173,fade=u*.12;
           lc.save();lc.globalCompositeOperation='destination-in';
           const g=lc.createLinearGradient(0,edge-fade,0,edge);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');
           lc.fillStyle=g;lc.fillRect(0,0,W,H);lc.restore();
           ctx.drawImage(lyricLayer,0,0);
-          if(state.effect!=='apple')drawKaraokeOverlay(ctx,W,H,effT);
         }catch(err){console.error('[KEFE effect]',state.effect,err);}
       }
     }
