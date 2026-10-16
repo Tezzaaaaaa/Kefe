@@ -56,7 +56,10 @@
     var host = document.querySelector('[data-panel-view="effects"] .kefe-form');
     var effectRow = document.querySelector('.kefe-lyric-effects-control');
     if (!host || !effectRow || document.getElementById('kefeDisplayGroup')) return;
-    var wrap = el('div'); wrap.id = 'kefeDisplayGroup'; wrap.style.display = 'grid'; wrap.style.gap = '12px';
+    var wrap = el('div', 'kefe-lyric-settings'); wrap.id = 'kefeDisplayGroup';
+    var settingsHead = el('div', 'kefe-lyric-settings-head');
+    settingsHead.append(el('div', 'kefe-label', 'Lyric settings'), el('div', 'kefe-meta', 'Choose how lyrics appear, then refine their typography and placement.'));
+    wrap.appendChild(settingsHead);
 
     var modeBox = el('div');
     modeBox.appendChild(el('label', 'kefe-label', 'Lyric display'));
@@ -92,43 +95,37 @@
     caseSel.addEventListener('change', function () { S.caseMode = caseSel.value; persist(); redraw(); });
     caseBox.appendChild(caseSel);
 
-    wrap.append(modeBox, caseBox);
+    wrap.appendChild(modeBox);
     var backgroundRow = document.getElementById('visualiserBackground');
-    var effectBlock = (backgroundRow && backgroundRow.closest('div')) || effectRow.parentNode;
-    effectBlock.parentNode.insertBefore(wrap, effectBlock.nextSibling);
+    /* Place the single settings container immediately after the effect gallery. */
+    effectRow.parentNode.insertBefore(wrap, effectRow.nextSibling);
 
-    /* Keep the Effects controls in the requested visual order without replacing their handlers. */
-    var form = wrap.parentNode;
     var styleGroup = document.getElementById('kefeStyleGroup');
     var placement = styleGroup && Array.prototype.find.call(styleGroup.children, function (node) {
       return node.classList.contains('kefe-visualiser-control-group') &&
         node.querySelector('summary') && node.querySelector('summary').textContent.trim() === 'Size and placement';
     });
-    if (placement) form.insertBefore(placement, wrap);
-
-    var transparency = document.getElementById('backgroundTransparency');
-    if (transparency) {
-      var transparencyBlock = transparency.closest('.kefe-background-effect-control');
-      if (transparencyBlock) {
-        wrap.insertBefore(transparencyBlock, wrap.firstChild);
-        transparencyBlock.classList.add('kefe-transparency-control');
-      }
-    }
 
     var fontSelect = document.getElementById('fontOverride');
     if (fontSelect) {
       var fontBlock = fontSelect.closest('div');
-      if (fontBlock && caseBox.parentNode !== fontBlock.parentNode) {
-        caseBox.classList.add('kefe-case-control');
+      caseBox.classList.add('kefe-case-control');
+      if (fontBlock) {
         fontBlock.classList.add('kefe-font-control');
         var pair = el('div', 'kefe-font-case-row');
-        wrap.insertBefore(pair, caseBox);
         pair.append(fontBlock, caseBox);
-      } else if (fontBlock) {
-        fontBlock.classList.add('kefe-font-control');
-        caseBox.classList.add('kefe-case-control');
-        fontBlock.parentNode.insertBefore(caseBox, fontBlock.nextSibling);
+        wrap.appendChild(pair);
+      } else {
+        wrap.appendChild(caseBox);
       }
+    } else {
+      wrap.appendChild(caseBox);
+    }
+
+    /* Size and placement is the final step: tune scale and position after choosing the lyric format and typography. */
+    if (placement) {
+      placement.classList.add('kefe-lyric-placement');
+      wrap.appendChild(placement);
     }
     sync();
   }
