@@ -87,7 +87,7 @@ jobs:
               await page.locator('.kefe-sidebar [data-shell-panel="visualiser"]').click();
               await page.locator('#kefeVisGradientView:not([hidden])').waitFor();
               await page.locator('.kefe-panel[data-panel-view="visualiser"] .kefe-switch').first().click();
-              await page.waitForFunction(() => window.kefeLiquidFlow?.state?.().on === true);
+              await page.waitForFunction(() => window.kefeGradientLayer?.state?.().on === true);
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
               console.log(JSON.stringify({ result: 'PASS', label, emptyState, layout, afterUpload: 'particle renderer absent; Liquid Flow enabled explicitly', runtimeErrors: errors }, null, 2));
             } finally {
