@@ -475,6 +475,9 @@
     const maxW=landscape?comp*.94:w*.82;
     const fit=(text,f,mw)=>{ctx.font=f;let out=text;while(ctx.measureText(out).width>mw&&out.length>3)out=out.slice(0,-2)+'…';return out;};
     ctx.save();
+    // Portrait-only optical alignment: shift the whole title card right by two glyph widths.
+    // The Apple lyrics renderer already handles its own aspect-specific two-letter offset.
+    if(aspect<0.75){ctx.font=font(750,ht);ctx.translate(ctx.measureText('MM').width,0);}
     ctx.textBaseline='top';
     // artwork
     const rr=()=>{ctx.beginPath();ctx.moveTo(ax+r,ay);ctx.arcTo(ax+art,ay,ax+art,ay+art,r);ctx.arcTo(ax+art,ay+art,ax,ay+art,r);ctx.arcTo(ax,ay+art,ax,ay,r);ctx.arcTo(ax,ay,ax+art,ay,r);ctx.closePath();};
