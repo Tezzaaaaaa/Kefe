@@ -96,7 +96,6 @@
     caseBox.appendChild(caseSel);
 
     wrap.appendChild(modeBox);
-    var backgroundRow = document.getElementById('visualiserBackground');
     /* Place the single settings container immediately after the effect gallery. */
     effectRow.parentNode.insertBefore(wrap, effectRow.nextSibling);
 
