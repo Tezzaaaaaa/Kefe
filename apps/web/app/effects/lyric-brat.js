@@ -38,24 +38,22 @@
   function drawBratEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length || !(w > 0) || !(h > 0)) return;
 
-    const bg = style.bratBackgroundColor || '#8ace00';
     const ink = style.bratTextColor || '#000000';
     const speed = Math.max(0.005, Number(style.bratCharSpeed) || 0.025);
     const pause = Math.max(0, Number(style.bratWordPause) || 0.1);
     const blur = Math.max(0, Number(style.bratEntryBlur) || 14);
-    const stretch = Math.max(0.8, Number(style.bratVerticalStretch) || 1.35);
+    const stretch = Math.max(0.8, Number(style.bratVerticalStretch) || 1.15);
     const softness = Math.max(0, Number(style.bratSoftness) || 0);
     const align = style.bratAlignment || 'justify';
     const side = w * (Number(style.bratSideMargin) || 6) / 100;
     const top = h * 0.08;
     const bottom = h * 0.08;
     const usableWidth = Math.max(1, w - side * 2);
-    const fontSize = Math.max(12, Math.min(Number(style.fontSize) || 76, usableWidth / 5.5, (h - top - bottom) / 4.8));
-    const font = '400 ' + fontSize + 'px Arial, "Helvetica Neue", Helvetica, sans-serif';
-    const rowHeight = fontSize * 1.02;
-    const maxRows = Math.max(1, Math.floor((h - top - bottom) / (rowHeight * stretch)));
     const normalised = lines.map((_, index) => normaliseLine(lines, index)).filter(Boolean);
-    const timed = normalised.map(line => ({ line, words: lineWords(line) }));
+    const timed = normalised.map(line => ({
+      line: { ...line, text: String(line.text || '').toLowerCase() },
+      words: lineWords(line).map(word => ({ ...word, text: String(word.text || '').toLowerCase() }))
+    }));
     let active = -1;
     for (let i = 0; i < timed.length; i++) {
       if (time >= timed[i].line.time) active = i;
@@ -63,38 +61,26 @@
     }
     if (active < 0) return;
 
+    const fontSize = Math.max(12, Math.min(Number(style.fontSize) || 76, usableWidth / 5.5, (h - top - bottom) / 4.8));
+    const font = '400 ' + fontSize + 'px "Arial Narrow", "Liberation Sans Narrow", Arial, "Helvetica Neue", sans-serif';
+    const rowHeight = fontSize * 1.02;
+    const maxRows = Math.max(1, Math.floor((h - top - bottom) / (rowHeight * stretch)));
     const visibleLines = timed.slice(Math.max(0, active - maxRows + 1), active + 1);
+
+    // Intentionally do not paint a background: the Brat-style type sits over the user's existing video or visualiser.
     ctx.save();
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, w, h);
     ctx.beginPath();
     ctx.rect(0, 0, w, h);
     ctx.clip();
-    ctx.filter = softness ? 'blur(' + softness + 'px)' : 'none';
     ctx.fillStyle = ink;
     ctx.font = font;
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'left';
 
-    const scaleX = usableWidth / Math.max(1, usableWidth);
-    void scaleX;
     visibleLines.forEach((entry, rowIndex) => {
       const rowTop = top + rowIndex * rowHeight * stretch;
       const words = entry.words;
       if (!words.length) return;
-      const shown = [];
-      let timeline = entry.line.time;
-      words.forEach((word, wi) => {
-        const chars = Array.from(word.text);
-        const wordStart = finite(word.time) ? word.time : timeline;
-        const wordEnd = finite(word.endTime) ? word.endTime : wordStart + chars.length * speed;
-        const elapsed = Math.max(0, time - wordStart);
-        const count = time < wordStart ? 0 : Math.min(chars.length, Math.ceil(elapsed / speed));
-        shown.push({ text: chars.slice(0, count).join(''), full: word.text, chars, wordStart, wordEnd, count });
-        timeline = Math.max(wordEnd, wordStart + chars.length * speed) + pause;
-        if (wi < words.length - 1 && !words[wi + 1].time) timeline += pause;
-      });
-
       const widths = words.map(word => ctx.measureText(word.text).width);
       const totalWidth = widths.reduce((sum, value) => sum + value, 0);
       let gap = fontSize * 0.14;
@@ -112,16 +98,16 @@
         for (let ci = 0; ci < chars.length; ci++) {
           const charTime = wordStart + ci * speed;
           if (time >= charTime) {
-            const progress = clamp((time - charTime) / 0.5);
+            const progress = clamp((time - charTime) / 0.42);
             const blurNow = blur * (1 - progress);
-            const alpha = clamp((time - charTime) / 0.08);
+            const alpha = clamp((time - charTime) / 0.055);
+            ctx.save();
             ctx.globalAlpha = alpha;
             ctx.filter = (blurNow > 0.05 ? 'blur(' + blurNow + 'px) ' : '') +
-              (softness ? 'blur(' + softness + 'px)' : '');
-            ctx.save();
-            const scale = 0.9 + 0.1 * progress;
+              (softness ? 'blur(' + softness + 'px)' : 'none');
+            // The narrow face and slight vertical exaggeration echo the intentionally awkward cover typography.
             ctx.translate(charX, baseline);
-            ctx.scale(scale, 1);
+            ctx.scale(0.88 + 0.12 * progress, stretch);
             ctx.fillText(chars[ci], 0, 0);
             ctx.restore();
           }
@@ -129,8 +115,6 @@
         }
         x += widths[wi] + gap;
       });
-      ctx.globalAlpha = 1;
-      ctx.filter = softness ? 'blur(' + softness + 'px)' : 'none';
     });
     ctx.restore();
   }
