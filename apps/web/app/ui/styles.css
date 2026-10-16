@@ -5353,11 +5353,6 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   max-width: 34%;
   align-items: center;
 }
-.kefe-preset-select-wrap #visualiserPreset {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-}
 .kefe-preset-grid-wrap {
   display: flex;
   flex: 1 1 auto;
@@ -5365,24 +5360,6 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   min-width: 0;
   max-width: none;
   align-items: center;
-}
-.kefe-preset-grid-wrap #visualiserPresetGrid {
-  display: flex;
-  flex: 1 1 auto;
-  flex-wrap: nowrap;
-  gap: 8px;
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 3px 2px 8px;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-.kefe-preset-grid-wrap #visualiserPresetGrid > * {
-  flex: 0 0 auto;
-  min-width: max-content;
 }
 .kefe-gradient-preset-strip {
   display: flex;
@@ -5461,8 +5438,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   }
   .kefe-visualiser-preset-set { gap: 6px; }
   .kefe-preset-select-wrap { flex-basis: 112px; max-width: 34%; }
-  .kefe-preset-grid-wrap #visualiserPresetGrid { gap: 6px; }
-  .kefe-editing > .kefe-visualiser-preset-row .kefe-gradient-preset-strip .kefe-gradient-palettes { gap: 6px; }
+    .kefe-editing > .kefe-visualiser-preset-row .kefe-gradient-preset-strip .kefe-gradient-palettes { gap: 6px; }
   .kefe-gradient-preset-strip .kefe-gradient-chip {
     flex-basis: 58px;
     width: 58px;
