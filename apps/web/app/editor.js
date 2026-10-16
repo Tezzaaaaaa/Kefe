@@ -669,6 +669,16 @@
   function openEditorPanel(panel){
     document.querySelectorAll('.kefe-section').forEach(b=>b.classList.toggle('active',b.dataset.panel===panel));
     document.querySelectorAll('.kefe-panel').forEach(p=>p.classList.toggle('active',p.dataset.panelView===panel));
+    document.querySelectorAll('[data-shell-panel]').forEach(button=>{
+      const active=button.dataset.shellPanel===panel;
+      button.classList.toggle('is-current',active);
+      if(active)button.setAttribute('aria-current','page');
+      else button.removeAttribute('aria-current');
+      if(active&&window.matchMedia('(max-width: 640px)').matches){
+        requestAnimationFrame(()=>button.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}));
+      }
+    });
+    document.querySelectorAll('[data-dock-panel]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.dockPanel===panel)));
   }
   document.querySelectorAll('.kefe-section').forEach(button=>button.addEventListener('click',()=>openEditorPanel(button.dataset.panel)));
   const previewPane=document.querySelector('.kefe-preview');
