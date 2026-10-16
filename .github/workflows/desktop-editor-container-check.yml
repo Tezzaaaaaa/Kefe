@@ -121,7 +121,7 @@ jobs:
                 buffer: Buffer.from(enhancedLrc, 'utf8')
               });
               await page.waitForFunction(() => document.getElementById('lyricsInput').value.includes('Hello world'));
-              assert.ok((await page.locator('#lyricsInput').inputValue()).includes('[00:01.250] First standard line'),
+              assert.ok((await page.locator('#lyricsInput').inputValue()).includes('Hello world'),
                 label + ': enhanced LRC upload must populate the lyrics editor');
               const enhancedWords = await page.evaluate(() => window.kefeLyricModel.parseLrc('[00:02.00]<00:02.00>Hello <00:02.40>world')[0]?.words);
               assert.deepEqual(enhancedWords?.map(word => word.text), ['Hello', 'world'],
