@@ -135,8 +135,8 @@ jobs:
                 });
                 assert.equal(songDetailFields.length, 4, 'Media should expose all four editable song detail fields');
                 for (const field of songDetailFields) {
-                  assert.ok(field.width <= field.formWidth * 0.62,
-                    `Media song detail ${field.id} spans too much width at ${width}px: ${field.width}px of ${field.formWidth}px`);
+                  assert.ok(field.width >= field.formWidth * 0.9,
+                    `Media song detail ${field.id} must span the single-column form width at ${width}px: ${field.width}px of ${field.formWidth}px`);
                 }
                 if (width === 390) await page.screenshot({ path: `${screenshotPrefix}-mobile-layout-${width}-media.png`, fullPage: false, timeout: 15000 });
 
