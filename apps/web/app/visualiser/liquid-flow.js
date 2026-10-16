@@ -6,7 +6,7 @@
 (function(){
   'use strict';
   var canvas,ctx,simCanvas,simCtx,imageData,raf=0,start=performance.now(),lastTime=null;
-  var analyser=null,freq=null,gridW=96,gridH=54,size=0;
+  var analyser=null,freq=null,gridW=384,gridH=216,size=0;
   var u,v,u0,v0,p,div,dyeR,dyeG,dyeB,dyeR0,dyeG0,dyeB0;
   var preset='ink-bloom',paletteIndex=0;
   var palettes=[
@@ -32,12 +32,10 @@
   function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
   function idx(x,y){return x+(gridW+2)*y;}
   function allocate(){
-    /* Scale the fluid grid with the actual render target. The former fixed 96×54
-       grid was enlarged to fill the preview/export canvas, creating visible blocks.
-       Adaptive 320–640px simulation width keeps detail high without making the
-       iterative CPU solver prohibitively expensive on mobile devices. */
-    var targetWidth=Math.max(960,Math.min(canvas.width||960,1920));
-    gridW=clamp(Math.round(targetWidth/3*values.quality),320,640);
+    /* The former 96×54 solver grid was enlarged to fill the preview/export canvas,
+       causing obvious pixel blocks. Use a substantially denser simulation grid and
+       preserve the output aspect ratio; cap density to keep the CPU solver responsive. */
+    gridW=clamp(Math.round(384*values.quality),256,640);
     gridH=clamp(Math.round(gridW*(canvas.height/Math.max(1,canvas.width))),80,360);
     size=(gridW+2)*(gridH+2);
     function field(){return new Float32Array(size);}
@@ -249,7 +247,7 @@
     if(title)title.textContent='Fluid Ink controls';
     if(description)description.textContent='Audio-reactive fluid simulation and ink presets.';
     var style=document.createElement('style');style.textContent='.kefe-fluid-ink-controls{display:flex;flex-direction:column;gap:10px;margin-top:12px;min-width:0}.kefe-fluid-description{margin:0;color:var(--muted);font-size:12px;line-height:1.5}.kefe-fluid-presets{display:flex;flex-direction:column;gap:6px}.kefe-fluid-presets button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;min-width:0;height:auto;padding:9px 11px;white-space:normal}.kefe-fluid-presets button strong{font-size:13px}.kefe-fluid-presets button small{font-size:11px;line-height:1.35;color:var(--muted)}.kefe-fluid-ink-controls .kefe-visualiser-field{width:100%;min-width:0}.kefe-fluid-ink-controls>.kefe-btn{align-self:flex-start}';document.head.appendChild(style);
-    buildControls(view);setPreset(preset);allocate();
+    buildControls(view);setPreset(preset);
     window.kefeGradientLayer={
       paint:function(target,w,h,t){if(!active())return;draw(w,h,Number(t)||0);if(target)target.drawImage(canvas,0,0,w,h);},
       render:function(target,w,h,t){draw(w,h,Number(t)||0);if(target)target.drawImage(canvas,0,0,w,h);},
