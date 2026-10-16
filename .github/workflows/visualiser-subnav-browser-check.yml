@@ -160,12 +160,12 @@ jobs:
                     return !!gl && canvas.width > 0 && canvas.height > 0 && !!program &&
                       gl.getProgramParameter(program, gl.LINK_STATUS);
                   });
-                  const modeNames = ['Fluted', 'Grid chamfer', 'Grid flat', 'Water drops', 'Zigzag', 'Waves'];
+                  const modeNames = ['Prism facets', 'Grid chamfer', 'Grid flat', 'Satin crystal', 'Zigzag', 'Waves'];
                   const modeDescriptions = [
-                    'Half-cylinders with clear centres and refracting edges.',
+                    'Precision-cut crystalline facets with angular light splitting.',
                     'A flat grid with refracting chamfered edges.',
                     'Sharp grid cells with edge-focused distortion.',
-                    'Rounded water droplets acting as small lenses.',
+                    'Fine etched glass with controlled frosted diffusion and soft refraction.',
                     'Reeds whose distortion follows a repeating zigzag.',
                     'Smooth, rolling refractive waves.'
                   ];
