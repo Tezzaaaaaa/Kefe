@@ -42,10 +42,10 @@
     if(zone)uploads.appendChild(zone);
     if(bgWrap)uploads.appendChild(bgWrap);
     s2.body.appendChild(uploads);
-    s2.body.appendChild(details);
     if(track)s2.body.appendChild(track);
     if(sugg)s2.body.appendChild(sugg);
     s2.body.appendChild(buildSearch());
+    s2.body.appendChild(details);
 
     if(sugg)sugg.hidden=true;
     if(empty)empty.remove();
@@ -209,7 +209,7 @@
     el.CarTitle.textContent=titleOf(it);el.CarArtist.textContent=it.artistName||(k==='local'?'This file is already loaded':'');
     var year=it.releaseDate?String(it.releaseDate).slice(0,4):'',bits=k==='local'?[it.fileName||'Local audio file']:[year,it.primaryGenreName,k==='song'?it.collectionName:(it.trackCount?it.trackCount+' tracks':'')].filter(Boolean);
     el.CarMeta.textContent=bits.join(' · ');
-    el.CarUse.textContent=k==='local'?'Use uploaded file':k==='song'?'Use this song':'Open album';
+    el.CarUse.textContent=k==='local'?'Confirm file metadata':k==='song'?'Confirm song':'Open album';
   }
   function go(i){
     var n=visible().length;S.index=Math.max(0,Math.min(n-1,i));
@@ -218,8 +218,7 @@
   function activate(){
     var it=visible()[S.index];if(!it)return;
     if(kindOf(it)==='local'){
-      if(window.kefeUseLocalUpload)window.kefeUseLocalUpload(it);
-      status('Using the uploaded file. Catalogue matches remain available.','');
+      status('File metadata confirmed. Confirm the actual song in Song details or choose a catalogue match above.','');
       return;
     }
     if(kindOf(it)==='album'){openAlbum(it);return;}
