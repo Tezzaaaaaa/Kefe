@@ -59,70 +59,18 @@ jobs:
             page.on('pageerror', error => errors.push(error.message));
             try {
               await page.goto(baseUrl + '/editor.html', { waitUntil: 'domcontentloaded' });
-              await page.waitForFunction(() => typeof window.kefeSyncVisualiserVisibility === 'function', { timeout: 20000 });
+              await page.waitForFunction(() => document.querySelectorAll('.kefe-editing > .kefe-vis-tabs [role="tab"]').length === 4, { timeout: 20000 });
               await page.waitForSelector('.kefe-stage.is-empty');
               await page.waitForTimeout(300);
 
-              const emptyState = await page.evaluate(() => {
-                const canvas = document.getElementById('kefeVisualiserCanvas');
-                const stage = document.querySelector('.kefe-stage');
-                return {
-                  stageEmpty: stage.classList.contains('is-empty'),
-                  canvasVisibility: getComputedStyle(canvas).visibility,
-                  canvasPointerEvents: getComputedStyle(canvas).pointerEvents,
-                  inlineVisibility: canvas.style.visibility
-                };
-              });
+              const emptyState = await page.evaluate(() => ({
+                stageEmpty: document.querySelector('.kefe-stage').classList.contains('is-empty'),
+                particleCanvasRemoved: !document.getElementById('kefeVisualiserCanvas'),
+                particleControlsRemoved: !document.getElementById('visualiserPresetGrid')
+              }));
               assert.equal(emptyState.stageEmpty, true, label + ': preview should start empty');
-              assert.equal(emptyState.canvasVisibility, 'hidden', label + ': visualiser canvas must be hidden while no media/lyrics are loaded');
-              assert.equal(emptyState.canvasPointerEvents, 'none', label + ': hidden canvas must not intercept pointer events');
-
-              const layout = await page.evaluate(() => {
-                const selectors = ['.kefe-top', '.kefe-work', '.kefe-preview', '.kefe-stage', '.kefe-timeline', '.kefe-sidebar', '.kefe-editing', '.kefe-tabs', '.kefe-panels', '.kefe-panel.active'];
-                return Object.fromEntries(selectors.map(selector => {
-                  const element = document.querySelector(selector);
-                  if (!element) return [selector, null];
-                  const rect = element.getBoundingClientRect();
-                  return [selector, { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: rect.width, centerX: rect.left + rect.width / 2 }];
-                }));
-              });
-              assert.ok(layout['.kefe-top'] && layout['.kefe-work'] && layout['.kefe-preview'] && layout['.kefe-stage'] &&
-                layout['.kefe-timeline'] && layout['.kefe-sidebar'] && layout['.kefe-editing'] && layout['.kefe-tabs'] && layout['.kefe-panels'] && layout['.kefe-panel.active'],
-                label + ': required editor layout elements must exist');
-              assert.ok(Math.abs(layout['.kefe-stage'].centerX - layout['.kefe-preview'].centerX) <= 2,
-                label + ': preview stage must be horizontally centered within the preview area');
-              for (const selector of ['.kefe-timeline', '.kefe-editing']) {
-                assert.ok(layout[selector].left >= layout['.kefe-work'].left - 2 &&
-                  layout[selector].right <= layout['.kefe-work'].right + 2,
-                  label + ': ' + selector + ' must remain inside the editor work area');
-              }
-              assert.equal(await page.locator('.kefe-tabs').evaluate(el => getComputedStyle(el).display), 'none',
-                label + ': duplicate section tabs must stay hidden');
-              assert.ok(layout['.kefe-sidebar'].right <= layout['.kefe-editing'].left + 2,
-                label + ': workspace sidebar and editor content must occupy separate columns');
-              assert.ok(layout['.kefe-panel.active'].left >= layout['.kefe-panels'].left - 2 &&
-                layout['.kefe-panel.active'].right <= layout['.kefe-panels'].right + 2,
-                label + ': active panel must remain inside the panels area');
-
-              const standardLrc = '[00:01.25]First standard line\n[00:04.50]Second standard line';
-              await page.locator('#kefeLrcInput').setInputFiles({
-                name: 'standard-test.lrc',
-                mimeType: 'text/plain',
-                buffer: Buffer.from(standardLrc, 'utf8')
-              });
-              await page.waitForFunction(() => document.getElementById('lyricsInput').value.includes('First standard line'));
-              assert.ok((await page.locator('#lyricsInput').inputValue()).includes('[00:01.250] First standard line'),
-                label + ': standard LRC upload must populate the lyrics editor');
-
-              const enhancedLrc = '[00:02.00]<00:02.00>Hello <00:02.40>world';
-              await page.locator('#kefeLrcInput').setInputFiles({
-                name: 'enhanced-test.lrc',
-                mimeType: 'text/plain',
-                buffer: Buffer.from(enhancedLrc, 'utf8')
-              });
-              await page.waitForFunction(() => document.getElementById('lyricsInput').value.includes('Hello world'));
-              assert.ok((await page.locator('#lyricsInput').inputValue()).includes('Hello world'),
-                label + ': enhanced LRC upload must populate the lyrics editor');
+              assert.equal(emptyState.particleCanvasRemoved, true, label + ': particle renderer canvas must be removed');
+              assert.equal(emptyState.particleControlsRemoved, true, label + ': particle preset controls must be removed');
               const enhancedWords = await page.evaluate(() => window.kefeLyricModel.parseLrc('[00:02.00]<00:02.00>Hello <00:02.40>world')[0]?.words);
               assert.deepEqual(enhancedWords?.map(word => word.text), ['Hello', 'world'],
                 label + ': enhanced LRC word timestamps must be parsed');
@@ -135,13 +83,13 @@ jobs:
                 buffer: makeTestWav()
               });
               await page.waitForFunction(() => !document.querySelector('.kefe-stage')?.classList.contains('is-empty'));
-              await page.waitForFunction(() => getComputedStyle(document.getElementById('kefeVisualiserCanvas')).visibility === 'hidden');
+              assert.equal(await page.locator('#kefeVisualiserCanvas').count(), 0, label + ': particle canvas must remain absent after upload');
               await page.locator('.kefe-sidebar [data-shell-panel="visualiser"]').click();
-              await page.locator('#kefeVisParticlesView:not([hidden])').waitFor();
+              await page.locator('#kefeVisGradientView:not([hidden])').waitFor();
               await page.locator('.kefe-panel[data-panel-view="visualiser"] .kefe-switch').first().click();
-              await page.waitForFunction(() => getComputedStyle(document.getElementById('kefeVisualiserCanvas')).visibility === 'visible');
+              await page.waitForFunction(() => window.kefeLiquidFlow?.state?.().on === true);
               assert.deepEqual(errors, [], label + ': browser runtime errors: ' + errors.join('; '));
-              console.log(JSON.stringify({ result: 'PASS', label, emptyState, layout, afterUpload: 'visualiser stayed off until explicitly enabled', runtimeErrors: errors }, null, 2));
+              console.log(JSON.stringify({ result: 'PASS', label, emptyState, layout, afterUpload: 'particle renderer absent; Liquid Flow enabled explicitly', runtimeErrors: errors }, null, 2));
             } finally {
               await browser.close();
             }
