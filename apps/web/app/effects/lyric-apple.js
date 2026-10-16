@@ -482,7 +482,10 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                 for (let k = 0; k < rowTokens.length; k++) {
                     const box = appleLetterBox(ctx, rowTokens[k]);
                     const tm = times[ti + k];
-                    entries.push({ x: cursorX, box, t0: tm.time, t1: Math.max(tm.endTime, tm.time + 0.06) });
+                    const wordDuration = Math.max(0.06, tm.endTime - tm.time);
+                    // Finish the visual sweep before the word's full timing window ends;
+                    // the remaining beat lets the highlight settle instead of lagging into the next line.
+                    entries.push({ x: cursorX, box, t0: tm.time, t1: tm.time + wordDuration * 0.72 });
                     cursorX += box.W + spaceWidth;
                 }
                 ti += rowTokens.length;
