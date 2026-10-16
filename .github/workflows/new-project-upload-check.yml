@@ -177,7 +177,26 @@ jobs:
               });
               const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
               await page.locator('#exportButton').click();
-              const download = await downloadPromise;
+              let download;
+              try {
+                download = await downloadPromise;
+              } catch (error) {
+                const diagnostics = await page.evaluate(() => {
+                  const audio = document.getElementById('kefeAudio');
+                  const canvas = document.getElementById('kefeLiquidFlowCanvas');
+                  return {
+                    exportStatus: document.getElementById('exportStatus')?.textContent || '',
+                    buttonDisabled: document.getElementById('exportButton')?.disabled,
+                    audio: { duration: audio?.duration, currentTime: audio?.currentTime, paused: audio?.paused, error: audio?.error?.message || audio?.error?.code || null },
+                    recorder: window.__kefeExportTrackAudit,
+                    mediaRecorder: !!window.MediaRecorder,
+                    captureStream: !!HTMLCanvasElement.prototype.captureStream,
+                    gradientOn: window.kefeGradientLayer?.state?.().on,
+                    canvas: canvas ? { width: canvas.width, height: canvas.height, display: getComputedStyle(canvas).display } : null
+                  };
+                });
+                throw new Error('Export did not trigger a download: ' + JSON.stringify(diagnostics) + '; ' + error.message);
+              }
               await page.waitForFunction(() => document.getElementById('exportStatus')?.textContent.startsWith('Export complete'), null, { timeout: 30000 });
               const exportAudit = await page.evaluate(() => ({
                 status: document.getElementById('exportStatus')?.textContent || '',
