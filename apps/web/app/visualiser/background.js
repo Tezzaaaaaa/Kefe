@@ -244,6 +244,8 @@
     if(window.ResizeObserver)new ResizeObserver(size).observe(stage);
     window.addEventListener('kefe-stage-resize',size);
     buildSelect();buildUpload();buildEffectCategories();
+    window.addEventListener('kefe-effect-change',function(event){if(event.detail&&event.detail.effect==='apple')setMode('gradient');});
+    var appleLyrics=document.getElementById('kefeAppleLyrics');if(appleLyrics&&appleLyrics.style.display!=='none')setMode('gradient');
     var transparency=document.getElementById('backgroundTransparency'),transparencyValue=document.getElementById('backgroundTransparencyValue');
     if(transparency&&transparencyValue){
       var updateTransparency=function(){var amount=Math.max(0,Math.min(100,Number(transparency.value)||0))/100;transparencyValue.value=transparency.value+'%';transparencyValue.textContent=transparency.value+'%';transparencyLayer.style.opacity=String(amount);};
@@ -255,5 +257,5 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
   function paintTransparency(g,w,h){var amount=Math.max(0,Math.min(100,Number(document.getElementById('backgroundTransparency')?.value)||0))/100;if(amount>0){g.save();g.fillStyle='rgba(0,0,0,'+amount+')';g.fillRect(0,0,w,h);g.restore();}}
-  window.kefeBackground={paint:paint,paintTransparency:paintTransparency,mode:function(){return mode;},blend:function(){return mode==='off'?'source-over':'screen';},hasVideo:function(){return !!vid;}};
+  window.kefeBackground={paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return mode==='off'?'source-over':'screen';},hasVideo:function(){return !!vid;}};
 })();
