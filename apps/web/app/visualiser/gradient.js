@@ -250,22 +250,12 @@
     if(!panel||document.querySelector('.kefe-vis-tabs'))return;
     var form=panel.querySelector('.kefe-visualiser-form');if(!form)return;
     ui.syncs=[];
-    var glitchEnabled=false;
-    var glitch=el('div','kefe-vis-view kefe-glitch-view');glitch.id='kefeVisGlitchView';glitch.hidden=true;
-    var glitchToggle=toggle('Dithr Visualiser',function(){return glitchEnabled;},function(v){
-      glitchEnabled=v;
-      window.kefeDithrSetEnabled?.(v);
-      if(!glitch.hidden){window.kefeFlutedGlassActive=false;window.kefeDithrActive=!!v;}
-    });
-    glitchToggle.classList.add('kefe-vis-power-row');
-    var glitchPower=glitchToggle.querySelector('.kefe-switch');
     var gradient=el('div','kefe-vis-view kefe-gradient-view');gradient.id='kefeVisGradientView';gradient.hidden=true;
     var tabs=el('div','kefe-vis-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Choose visualiser');
-    var tg=el('button','kefe-btn primary','Liquid Flow'),th=el('button','kefe-btn','Dithr');
-    tg.type=th.type='button';
-    [[tg,'gradient','kefeVisGradientView','Liquid Flow visualiser','◒'],[th,'glitch','kefeVisGlitchView','Dithr visualiser','▦']].forEach(function(item){
-      item[0].setAttribute('role','tab');item[0].dataset.visualiser=item[1];item[0].dataset.icon=item[4];item[0].setAttribute('aria-controls',item[2]);item[0].setAttribute('aria-label',item[3]);item[0].title=item[3];item[0].textContent='';
-    });
+    var tg=el('button','kefe-btn primary','Liquid Flow');tg.type='button';
+    tg.setAttribute('role','tab');tg.dataset.visualiser='gradient';tg.dataset.icon='◒';
+    tg.setAttribute('aria-controls','kefeVisGradientView');tg.setAttribute('aria-label','Liquid Flow visualiser');
+    tg.title='Liquid Flow visualiser';tg.textContent='';
     var gradientPower=null,gradientToggle;
     var visualiserPanelHead=panel.querySelector('.kefe-visualiser-panel-head');
     var visualiserHeading=panel.querySelector('#kefeVisualiserHeading');
@@ -274,44 +264,43 @@
     var presetRow=el('div','kefe-visualiser-preset-row');presetRow.id='kefeVisualiserPresetRow';
     var gradientPresetSet=el('div','kefe-visualiser-preset-set');gradientPresetSet.id='kefeGradientPresetSet';
     var flutedPresetSet=el('div','kefe-visualiser-preset-set');flutedPresetSet.id='kefeFlutedPresetSet';flutedPresetSet.hidden=true;
-    var dithrPresetSet=el('div','kefe-visualiser-preset-set');dithrPresetSet.id='kefeDithrPresetSet';dithrPresetSet.hidden=true;
-    presetRow.appendChild(gradientPresetSet);presetRow.appendChild(flutedPresetSet);presetRow.appendChild(dithrPresetSet);
+    presetRow.appendChild(gradientPresetSet);presetRow.appendChild(flutedPresetSet);
     function show(which){
-      var isGradient=which==='gradient',isGlitch=which==='glitch';
-      var activeView=isGradient?gradient:glitch;
-      panel.querySelectorAll('.kefe-vis-view').forEach(function(view){view.hidden=view!==activeView;});
+      panel.querySelectorAll('.kefe-vis-view').forEach(function(view){view.hidden=view!==gradient;});
       tabs.querySelectorAll('[role="tab"]').forEach(function(tab){
-        var selected=tab.dataset.visualiser===which;
+        var selected=tab.dataset.visualiser==='gradient';
         tab.classList.toggle('primary',selected);
         tab.setAttribute('aria-selected',String(selected));
       });
       window.kefeFlutedGlassActive=false;
-      window.kefeDithrActive=isGlitch&&glitchEnabled;
-      if(isGlitch)window.kefeDithrSetEnabled?.(glitchEnabled);
-      var gradientPowerButton=gradientPower;
-      [[glitchPower,glitchEnabled],[gradientPowerButton,S.on]].forEach(function(pair){if(pair[0]){var state=pair[0].querySelector('.kefe-switch-state');if(state)state.textContent=pair[1]?'On':'Off';pair[0].classList.toggle('is-on',!!pair[1]);pair[0].setAttribute('aria-checked',String(!!pair[1]));}});
-      if(glitchPower)glitchPower.setAttribute('aria-label','Dithr Visualiser');
-      if(gradientPowerButton)gradientPowerButton.setAttribute('aria-label','Liquid Flow Visualiser');
-      var headerCopy={
-        gradient:['Liquid Flow Visualiser','Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.'],
-        glitch:['Dithr Visualiser','Animated procedural fields with Floyd–Steinberg, ordered and stochastic dithering.']
-      }[which];
-      if(headerCopy&&visualiserHeading&&visualiserDescription){visualiserHeading.textContent=headerCopy[0];visualiserDescription.textContent=headerCopy[1];}
-      var selectedPower=isGradient?gradientPowerButton:glitchPower;
-      if(visualiserPanelHead){visualiserPanelHead.querySelectorAll('.kefe-switch').forEach(function(power){power.remove();});if(selectedPower)visualiserPanelHead.appendChild(selectedPower);}
-      gradientPresetSet.hidden=!isGradient;
-      flutedPresetSet.hidden=which!=='fluted';
-      dithrPresetSet.hidden=!isGlitch;
+      var power=gradientPower;
+      if(power){
+        var state=power.querySelector('.kefe-switch-state');
+        if(state)state.textContent=S.on?'On':'Off';
+        power.classList.toggle('is-on',!!S.on);
+        power.setAttribute('aria-checked',String(!!S.on));
+        power.setAttribute('aria-label','Liquid Flow Visualiser');
+      }
+      if(visualiserHeading&&visualiserDescription){
+        visualiserHeading.textContent='Liquid Flow Visualiser';
+        visualiserDescription.textContent='Audio-reactive liquid glass with flowing gradients, refractive highlights and customizable presets.';
+      }
+      if(visualiserPanelHead){
+        visualiserPanelHead.querySelectorAll('.kefe-switch').forEach(function(button){button.remove();});
+        if(power)visualiserPanelHead.appendChild(power);
+      }
+      gradientPresetSet.hidden=false;
+      flutedPresetSet.hidden=true;
       presetRow.hidden=false;
       syncAll();
     }
-    tg.addEventListener('click',function(){show('gradient');});th.addEventListener('click',function(){show('glitch');});
     function option(tab){var item=el('div','kefe-vis-option');item.appendChild(tab);return item;}
-    tabs.appendChild(option(tg));tabs.appendChild(option(th));
+    tabs.appendChild(option(tg));
     var editing=panel.closest('.kefe-editing'),panels=editing?.querySelector('.kefe-panels');
     if(editing&&panels){editing.insertBefore(tabs,panels);editing.insertBefore(presetRow,panels);}else{form.appendChild(tabs);form.appendChild(presetRow);}
     form.replaceChildren();
-    form.appendChild(glitch);form.appendChild(gradient);
+    form.appendChild(gradient);
+    tg.addEventListener('click',function(){show('gradient');});
     show('gradient');
 
     /* ── gradient view ── */
