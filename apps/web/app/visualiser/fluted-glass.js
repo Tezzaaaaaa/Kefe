@@ -37,7 +37,7 @@ float h=0.;
 if(uMod==0){float s=fract(p.x*fp)*2.-1.;h=cos(s*1.5707963);h+=.08*sin(p.y*fp*.55+uTim*.22)*uMid*R;}
 else if(uMod==1){vec2 g=fract(p*fp)-.5;float d=sdB(g,vec2(.5),.14+uBas*R*.08);h=1.-smoothstep(.08,.36,abs(d));}
 else if(uMod==2){vec2 g=fract(p*fp)-.5;float edge=max(abs(g.x),abs(g.y));h=1.-smoothstep(.29,.49,edge);h-=.22*smoothstep(.25,.49,edge);}
-else if(uMod==3){float dp=max(2.,uSiz.x/max(1.,uDrp));vec2 g=p*dp,id=floor(g);vec2 sd=fract(sin(vec2(dot(id,vec2(127.1,311.7)),dot(id,vec2(269.5,183.3))))*43758.5453);vec2 rel=fract(g)-.5-(sd-.5)*.4;float d=length(rel);h=1.-smoothstep(.12,.48,d);h+=.12*exp(-pow((d-.39)*28.,2.));}
+else if(uMod==3){float dp=max(2.,uSiz.x/max(1.,uDrp));vec2 g=p*dp,id=floor(g);vec2 sd=fract(sin(vec2(dot(id,vec2(127.1,311.7)),dot(id,vec2(269.5,183.3))))*43758.5453);vec2 rel=fract(g)-.5-(sd-.5)*.4;float d=length(rel);h=1.-smoothstep(.12,.48,d);float ring=abs(d-.39)*28.;h+=.12*exp(-ring*ring);}
 else if(uMod==4){float x=p.x*fp*3.1415926;float z=p.y*fp*3.1415926;h=sin(x+sin(z)*.8);h*=.72+.28*cos(z*.5);}
 else{float x=p.x*fp*6.2831853;float z=p.y*fp*6.2831853;h=sin(x+sin(z+uTim*.12)*.8+uTim*.18)*.7+cos(z-x*.45-uTim*.14)*.3;}
 h+=(sin(uv.x*37.+uTim*1.6)+cos(uv.y*31.-uTim*1.2))*.012*uTre*R;
