@@ -510,6 +510,13 @@
   function draw(){
     const W=canvas.width,H=canvas.height;
     ctx.clearRect(0,0,W,H);
+    // Keep all rendered lyrics and title-card text inside an invisible 5% safe margin,
+    // matching the inset content area used by standard document/presentation layouts.
+    const safeX=Math.round(W*.05),safeY=Math.round(H*.05);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(safeX,safeY,Math.max(0,W-safeX*2),Math.max(0,H-safeY*2));
+    ctx.clip();
     // The WebGL visualiser is the background; this canvas only composites lyrics/title card.
     const ph=titlePhase(state.time);
     const useAppleComponent=false;
@@ -555,6 +562,7 @@
       }
     }
     drawTitleCardCanvas(ctx,W,H,state.time);
+    ctx.restore();
   }
   function appleTime(value){
     const text=String(value||'').trim();
