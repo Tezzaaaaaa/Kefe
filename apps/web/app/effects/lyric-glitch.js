@@ -32,8 +32,8 @@
     var entry=1-smoother(elapsed/0.30),exit=smoother(1-clamp(remaining/0.24));
     var frame=Math.floor(time*30),x=w/2;
     // Real signal corruption is intermittent: a clean, readable base interrupted by short tearing bursts.
-    var cycle=Math.floor(elapsed*2.8),pulse= pseudoRand(cycle*17+Math.floor(elapsed*11));
-    var burst=(pulse>.70)?clamp((pulse-.70)/.30):0;
+    var cycle=Math.floor(elapsed*2.4),burstPhase=(elapsed*2.4)%1;
+    var burst=pseudoRand(cycle*17)>.58&&burstPhase<.22?Math.sin(Math.PI*clamp(burstPhase/.22)):0;
     var chaos=clamp(Math.max(entry,exit,burst*.88));
     var y0=h*0.5-(lay.lines.length-1)*lay.lineH/2;
     font(ctx,size);
