@@ -7,7 +7,11 @@
   if (!u) { console.error('[lyric-karaoke] requires core.js'); return; }
   function clamp(v,a,b){ a=a==null?0:a; b=b==null?1:b; return Math.max(a,Math.min(b,Number(v)||0)); }
   function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
-  function bounce(v){ var t=clamp(v); return t<1?1-Math.pow(1-t,3)*Math.cos(t*6)*0.12:1; }
+  function bounceHeight(elapsed,period,amplitude){
+    var phase=((Math.max(0,elapsed)%period)/period);
+    // A smooth parabolic hop: zero vertical velocity at take-off and landing.
+    return 4*amplitude*phase*(1-phase);
+  }
 
   function font(ctx,family,size,weight){ ctx.font=(weight||800)+' '+Math.max(14,size)+'px "'+(family||'Inter Tight')+'",system-ui,sans-serif'; }
   function layoutRows(ctx,words,family,size,maxWidth){
@@ -42,6 +46,14 @@
       size-=2;
     }
     var rows=layout.rows, gap=layout.gap;
+    var ballWord=null;
+    if(bounceMode){
+      ballWord=words[0];
+      for(var wi=0;wi<words.length;wi++){
+        if(Number(time)>=Number(words[wi].time)) ballWord=words[wi];
+        else break;
+      }
+    }
     var rowHeight=size*1.18;
     var top=h*0.52-((rows.length-1)*rowHeight)/2;
     var inactiveColor=style.karaokeInactiveColor||'rgba(255,255,255,.38)';
@@ -73,13 +85,22 @@
         if(bounceMode){
           ctx.fillStyle=wp.started?fillColor:inactiveColor;
           ctx.fillText(word.text,0,0);
-          if(time>=word.time&&time<word.endTime){
-            var progress=u.clamp((time-word.time)/Math.max(.06,word.endTime-word.time));
-            var bounceY=Math.abs(Math.sin(progress*Math.PI*2.5))*size*.32;
-            ctx.shadowColor=fillColor;ctx.shadowBlur=size*.2;
+          if(ballWord && word.time===ballWord.time && word.text===ballWord.text){
+            var wordStart=Number(word.time)||0;
+            var wordEnd=Math.max(wordStart+.06,Number(word.endTime)||wordStart+.3);
+            var inWord=time>=wordStart&&time<wordEnd;
+            var hopPeriod=.52;
+            var bounceY=inWord?bounceHeight(time-wordStart,hopPeriod,size*.30):0;
+            var hoverY=inWord?0:Math.sin(time*2.4)*size*.012;
+            var ballRadius=Math.max(4,size*.065);
+            ctx.save();
+            ctx.shadowColor=fillColor;
+            ctx.shadowBlur=size*.13;
             ctx.beginPath();
-            ctx.arc(word.width/2,-size*.58-bounceY,Math.max(4,size*.065),0,Math.PI*2);
-            ctx.fillStyle=fillColor;ctx.fill();
+            ctx.arc(word.width/2,-size*.62-bounceY-hoverY,ballRadius,0,Math.PI*2);
+            ctx.fillStyle=fillColor;
+            ctx.fill();
+            ctx.restore();
           }
         }else{
           ctx.fillStyle=u.sweepFill(ctx,0,word.width,wp.sweep,fillColor,inactiveColor,0.28);
