@@ -146,7 +146,14 @@ jobs:
                   const initialAlphas = rendered.lyricCalls.map(call => alphaOf(call.fillStyle)).filter(Number.isFinite);
                   assert.ok(initialAlphas.length > 0, label + ': could not inspect Apple lyric glyph opacity');
                   assert.ok(initialAlphas.every(alpha => alpha <= 0.35), label + ': unreached lyric glyphs brighten before the highlight reaches them');
-                  console.log(JSON.stringify({ target: label, initialAlphas: [...new Set(initialAlphas)] }));
+                  const initialRgb = rendered.lyricCalls.map(call => {
+                    const match = String(call.fillStyle).match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+                    return match ? match.slice(1, 4).map(Number) : null;
+                  }).filter(Boolean);
+                  assert.ok(initialRgb.length > 0, label + ': could not inspect Apple lyric glyph colour');
+                  assert.ok(initialRgb.every(rgb => rgb.every(channel => channel <= 170)),
+                    label + ': unreached lyric glyphs are still being painted white instead of grey');
+                  console.log(JSON.stringify({ target: label, initialAlphas: [...new Set(initialAlphas)], initialRgb: [...new Set(initialRgb.map(rgb => rgb.join(',')))] }));
                 }
                 if (aspect === '16:9') {
                   const expectedCompact = prepared.fitPhrase.replace(/\s+/g, '').toLowerCase();
