@@ -61,13 +61,11 @@
     }
     if (active < 0) return;
 
-    let fontSize = Math.max(12, Math.min(Number(style.fontSize) || 76, (h - top - bottom) / 4.8));
     const fontFamily = '"Arial Narrow", "Liberation Sans Narrow", Arial, "Helvetica Neue", sans-serif';
-    ctx.save();
-    ctx.font = '400 100px ' + fontFamily;
-    const widestLine = Math.max(1, ...timed.map(entry => ctx.measureText(entry.line.text).width));
-    fontSize = Math.max(12, Math.min(fontSize, 100 * usableWidth / widestLine));
-    ctx.restore();
+    // Let the canvas height determine the type scale; width is handled per line below.
+    // This keeps the lettering oversized in landscape, square, and portrait exports.
+    const requestedSize = Number(style.fontSize) || 76;
+    const fontSize = Math.max(requestedSize, h * (w / h > 1.5 ? 0.19 : w / h < 0.8 ? 0.145 : 0.22));
     const font = '400 ' + fontSize + 'px ' + fontFamily;
     const rowHeight = fontSize * 1.02;
     const maxRows = Math.max(1, Math.floor((h - top - bottom) / (rowHeight * stretch)));
@@ -92,15 +90,14 @@
       let gap = fontSize * 0.14;
       if (align === 'justify' && words.length > 1) gap = Math.max(0, (usableWidth - totalWidth) / (words.length - 1));
       const lineWidth = totalWidth + gap * Math.max(0, words.length - 1);
-      let x = side;
-      if (align === 'center') x = (w - lineWidth) / 2;
-      else if (align === 'right') x = w - side - lineWidth;
+      const lineScale = lineWidth > 0 ? usableWidth / lineWidth : 1;
       const baseline = rowTop + fontSize * 0.82;
+      let lineOffset = 0;
 
       words.forEach((word, wi) => {
         const chars = Array.from(word.text);
         const wordStart = finite(word.time) ? word.time : entry.line.time;
-        let charX = x;
+        let charX = side + lineOffset * lineScale;
         for (let ci = 0; ci < chars.length; ci++) {
           const charTime = wordStart + ci * speed;
           if (time >= charTime) {
@@ -111,15 +108,15 @@
             ctx.globalAlpha = alpha;
             const totalBlur = blurNow + softness;
             ctx.filter = totalBlur > 0.05 ? 'blur(' + totalBlur + 'px)' : 'none';
-            // The narrow face and slight vertical exaggeration echo the intentionally awkward cover typography.
+            // Scale both glyphs and their positions so each lyric line fills the canvas width.
             ctx.translate(charX, baseline);
-            ctx.scale(0.88 + 0.12 * progress, stretch);
+            ctx.scale((0.88 + 0.12 * progress) * lineScale, stretch);
             ctx.fillText(chars[ci], 0, 0);
             ctx.restore();
           }
-          charX += ctx.measureText(chars[ci]).width;
+          charX += ctx.measureText(chars[ci]).width * lineScale;
         }
-        x += widths[wi] + gap;
+        lineOffset += widths[wi] + gap;
       });
     });
     ctx.restore();
