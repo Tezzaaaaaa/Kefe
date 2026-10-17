@@ -43,9 +43,9 @@ const server = http.createServer((req, res) => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
-    await page.waitForSelector(".beui-tabs-host [role=tab]", { timeout: 20000 });
-    await page.waitForSelector(".beui-sidebar-nav-host button", { timeout: 20000 });
-    await page.waitForSelector(".beui-range-host", { timeout: 20000 });
+    await page.waitForSelector(".beui-tabs-host [role=tab]", { state: "attached", timeout: 20000 });
+    await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
+    await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
     await page.waitForFunction(() => {
       const ranges = [...document.querySelectorAll('input[type="range"]')].filter((input) => input.id !== "kefeTime");
       const selects = [...document.querySelectorAll("select")];
@@ -54,6 +54,8 @@ const server = http.createServer((req, res) => {
     }, null, { timeout: 20000 });
 
     const tabCount = await page.locator(".beui-tabs-host [role=tab]").count();
+    const tabDebug = await page.locator(".beui-tabs-host [role=tab]").first().evaluate((el) => ({display:getComputedStyle(el).display,visibility:getComputedStyle(el).visibility,opacity:getComputedStyle(el).opacity,rect:el.getBoundingClientRect().toJSON(),parent:el.parentElement?.getBoundingClientRect().toJSON(),host:el.closest(".beui-tabs-host")?.getBoundingClientRect().toJSON()}));
+    console.log("beUI tab render diagnostics:", JSON.stringify(tabDebug));
     assert.ok(tabCount >= 5, `expected editor section tabs, found ${tabCount}`);
     const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
     assert.ok(sidebarCount >= 7, `expected sidebar actions, found ${sidebarCount}`);
