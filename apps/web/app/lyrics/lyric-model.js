@@ -119,11 +119,11 @@
   /* Parses standard and enhanced LRC. Enhanced tags retain one timestamp per spoken word;
      untagged text before the first word tag is timed between the line stamp and that first tag. */
   function parseLrc(text) {
-    var src = String(text || '').replace(/^\\uFEFF/, '').replace(/\\r/g, '');
-    var off = src.match(/^\\[offset:\\s*(-?\\d+)\\s*\\]/mi);
+    var src = String(text || '').replace(/^\uFEFF/, '').replace(/\r/g, '');
+    var off = src.match(/^\[offset:\s*(-?\d+)\s*\]/mi);
     var offset = off ? Number(off[1]) / 1000 : 0;
     var out = [];
-    src.split('\\n').forEach(function (raw) {
+    src.split('\n').forEach(function (raw) {
       var line = raw.trim(), m, stamps = [];
       while ((m = line.match(LINE_STAMP))) {
         stamps.push(stampSeconds(m));
@@ -157,7 +157,7 @@
           });
         });
         segments.forEach(function (segment) {
-          var tokens = segment.text.trim().split(/\\s+/).filter(Boolean);
+          var tokens = segment.text.trim().split(/\s+/).filter(Boolean);
           if (!tokens.length) return;
           var startTime = Number.isFinite(segment.start) ? segment.start : stamps[0];
           var endTime = Number.isFinite(segment.end) && segment.end > startTime
@@ -175,7 +175,7 @@
         if (pieces.length) words = pieces;
       }
 
-      var clean = line.replace(WORD_STAMP, '').replace(/\\s+/g, ' ').trim();
+      var clean = line.replace(WORD_STAMP, '').replace(/\s+/g, ' ').trim();
       if (!clean) return;
       stamps.forEach(function (t) {
         var time = Math.max(0, t - offset);
