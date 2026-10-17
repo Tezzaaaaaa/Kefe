@@ -52,6 +52,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     ripple = false,
     className,
     children,
+    dangerouslySetInnerHTML,
     onPointerDown,
     ...rest
   },
@@ -91,8 +92,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         className,
       )}
       {...rest}
+      dangerouslySetInnerHTML={dangerouslySetInnerHTML}
     >
-      {ripple && !reduce ? (
+      {!dangerouslySetInnerHTML && ripple && !reduce ? (
         <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
           <AnimatePresence>
             {ripples.map((r) => (
@@ -110,7 +112,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
           </AnimatePresence>
         </span>
       ) : null}
-      {children}
+      {!dangerouslySetInnerHTML ? children : undefined}
     </motion.button>
   );
 });
