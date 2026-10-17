@@ -53,6 +53,7 @@ beUI's current web components target React 19, Tailwind CSS 4, and Motion. Compo
 - Added two controlled slider cases to exercise integer values and 0.05-second lyric timing steps.
 - Connected the actual beUI Range Slider to production range inputs through a compatibility bridge. It preserves the existing native inputs and their event contracts for the legacy editor engine, while the dedicated playback timeline remains on its custom waveform control.
 - Added the actual beUI Select and bridged existing native select controls to it, preserving change events for the preview aspect-ratio control and other legacy editor handlers.
+- Migrated the visible editor section tabs to the actual beUI Tabs component while retaining the original tab buttons as hidden event-compatible adapters for existing panel logic.
 - Migrated the Settings dialog to React using the actual beUI Button, Switch, and Range Slider components; settings still read/write through the existing persisted settings API, and the superseded imperative dialog generator has been removed from the beUI build-specific settings API; the legacy settings file remains intact until deployment cutover.
 - Added a post-build asset-copy step for the legacy effect/runtime files and a frozen-lockfile GitHub Actions build check.
 
