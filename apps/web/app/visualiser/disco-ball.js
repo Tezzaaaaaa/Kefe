@@ -62,39 +62,64 @@
     ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
     const bg=ctx.createRadialGradient(cx-r*.25,cy-r*.35,r*.02,cx,cy,r*1.2);
     bg.addColorStop(0,'#24245f');bg.addColorStop(.52,'#11142f');bg.addColorStop(1,'#02030a');ctx.fillStyle=bg;ctx.fillRect(cx-r,cy-r,r*2,r*2);
-    const cols=18, rows=18, tileW=2*Math.PI*r/cols, tileH=Math.PI*r/rows;
+    // Project each mirror tile from a true sphere surface. Curved latitude bands and
+    // longitude spacing create the round silhouette instead of a flat square grid.
+    const cols=32, rows=24;
     for(let row=0;row<rows;row++){
       for(let col=0;col<cols;col++){
-        const u=(col+.5)/cols,v=(row+.5)/rows;
+        const u0=col/cols,u1=(col+1)/cols,v0=row/rows,v1=(row+1)/rows;
+        const u=(u0+u1)*.5,v=(v0+v1)*.5;
         const p=spherePoint(u,v,cx,cy,r,rot);
-        if(p.z<-.12)continue;
-        const lat=(v-.5)*Math.PI, lon=(u-.5)*Math.PI*2+rot;
-        const vis=Math.pow(Math.max(0,p.z),.48);
+        if(p.z<.015)continue;
+        const corners=[
+          spherePoint(u0+.002,v0+.002,cx,cy,r,rot),
+          spherePoint(u1-.002,v0+.002,cx,cy,r,rot),
+          spherePoint(u1-.002,v1-.002,cx,cy,r,rot),
+          spherePoint(u0+.002,v1-.002,cx,cy,r,rot)
+        ];
+        const lat=(v-.5)*Math.PI,lon=(u-.5)*Math.PI*2+rot;
+        const vis=Math.pow(clamp(p.z),.42);
         const light=Math.max(0,Math.sin(lon*2.3+t*.22)*Math.cos(lat*2.8-t*.16));
         const beat=Math.max(0,Math.sin(t*2.5+col*.9+row*.48));
-        const spot1=Math.exp(-(((u-.22)/.12)**2+((v-.39)/.09)**2));
-        const spot2=Math.exp(-(((u-.73)/.12)**2+((v-.36)/.085)**2));
-        const white=clamp(Math.max(spot1,spot2)*1.45*(.78+highs*.5)+beat*.12*highs);
-        const purple=clamp(.42+light*.34+mids*.12+Math.sin(col*.85+row*.3+t*.55)*.1);
-        const blue=clamp(.44+Math.cos(col*.48-row*.38-t*.27)*.22+bass*.15);
-        const rr=Math.round(18+purple*67+white*200),gg=Math.round(15+blue*32+white*207),bb=Math.round(50+blue*142+purple*92+white*205);
-        const px=cx+(u-.5)*2*r,py=cy+(v-.5)*2*r;
-        const ww=tileW*Math.max(.15,Math.cos(lat))*.94,hh=tileH*.91;
-        const depth=clamp((p.z+.15)/1.15);
-        ctx.fillStyle='rgba(0,0,0,'+(0.12+(1-vis)*.25)+')';
-        ctx.fillRect(px-ww*.5+2*dpr,py-hh*.5+2*dpr,ww,hh);
-        ctx.fillStyle='rgb('+Math.round(rr*vis)+','+Math.round(gg*vis)+','+Math.round(bb*vis)+')';
-        ctx.fillRect(px-ww*.5,py-hh*.5,ww,hh);
-        const shine=clamp((light*.4+highs*.25+spot1*.7+spot2*.72+beat*bass*.2)*vis);
-        if(shine>.14){
-          const sg=ctx.createLinearGradient(px-ww*.5,py-hh*.5,px+ww*.5,py+hh*.5);
-          sg.addColorStop(0,'rgba(255,255,255,'+(shine*.75)+')');sg.addColorStop(.35,'rgba(202,197,255,'+(shine*.2)+')');sg.addColorStop(1,'rgba(91,83,255,0)');
-          ctx.fillStyle=sg;ctx.fillRect(px-ww*.5,py-hh*.5,ww,hh);
+        // Two large, soft studio sources are reflected across the tile field.
+        const spot1=Math.exp(-(((p.x-cx+r*.30)/(r*.24))**2+((p.y-cy+r*.22)/(r*.31))**2));
+        const spot2=Math.exp(-(((p.x-cx-r*.35)/(r*.20))**2+((p.y-cy+r*.27)/(r*.27))**2));
+        const sparkle=clamp((beat*highs*.7+(spot1+spot2)*.38)*vis);
+        const purple=clamp(.34+light*.34+mids*.12+Math.sin(col*.85+row*.3+t*.55)*.08);
+        const blue=clamp(.48+Math.cos(col*.48-row*.38-t*.27)*.2+bass*.16);
+        const white=clamp(Math.max(spot1,spot2)*1.15*(.68+highs*.55)+beat*.16*highs);
+        const rr=Math.round((18+purple*64+white*215)*vis);
+        const gg=Math.round((13+blue*30+white*220)*vis);
+        const bb=Math.round((48+blue*142+purple*88+white*205)*vis);
+        const cxTile=corners.reduce((s,q)=>s+q.x,0)/4,cyTile=corners.reduce((s,q)=>s+q.y,0)/4;
+        // Tiny dark offset beneath each facet gives the ball depth and distinct grout.
+        ctx.beginPath();
+        corners.forEach((q,i)=>{const x=q.x+1.2*dpr,y=q.y+1.5*dpr;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+        ctx.closePath();ctx.fillStyle='rgba(0,0,0,'+(.42+(1-vis)*.22)+')';ctx.fill();
+        ctx.beginPath();
+        corners.forEach((q,i)=>{i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);});
+        ctx.closePath();
+        ctx.fillStyle='rgb('+rr+','+gg+','+bb+')';ctx.fill();
+        // Directional reflected light follows each projected facet, not a flat grid.
+        const q0=corners[0],q2=corners[2];
+        const sg=ctx.createLinearGradient(q0.x,q0.y,q2.x,q2.y);
+        sg.addColorStop(0,'rgba(255,255,255,'+clamp(.05+white*.72+spot1*.3)+')');
+        sg.addColorStop(.32,'rgba(207,202,255,'+clamp(.025+light*.17+sparkle*.15)+')');
+        sg.addColorStop(1,'rgba(65,70,180,'+clamp(.04+(1-vis)*.22)+')');
+        ctx.fillStyle=sg;ctx.fill();
+        ctx.strokeStyle='rgba(3,4,15,'+(.74+(1-vis)*.16)+')';
+        ctx.lineWidth=Math.max(.65*dpr,.75);ctx.stroke();
+        // Sparse pinprick glints make the mirror finish catch the beat.
+        if(sparkle>.25&&((col*7+row*11)%5===0)){
+          const size=(.7+sparkle*2.2)*dpr;
+          const gl=ctx.createRadialGradient(cxTile,cyTile,0,cxTile,cyTile,size*2.8);
+          gl.addColorStop(0,'rgba(255,255,255,'+clamp(sparkle*.95)+')');
+          gl.addColorStop(1,'rgba(190,165,255,0)');
+          ctx.fillStyle=gl;ctx.fillRect(cxTile-size*3,cyTile-size*3,size*6,size*6);
         }
-        ctx.strokeStyle='rgba(5,5,20,'+(.72+(1-vis)*.2)+')';ctx.lineWidth=Math.max(.7*dpr,1);
-        ctx.strokeRect(px-ww*.5,py-hh*.5,ww,hh);
-        if(((col*7+row*11)%53===0)&&p.z>.1){
-          ctx.fillStyle='rgba(255,48,148,'+(.35+bass*.55)+')';ctx.fillRect(px-ww*.28,py-hh*.28,ww*.56,hh*.56);
+        if(((col*7+row*11)%71===0)&&p.z>.15){
+          ctx.fillStyle='rgba(255,48,148,'+(.3+bass*.5)+')';
+          ctx.beginPath();ctx.arc(cxTile,cyTile,Math.max(1.1*dpr,2.1*dpr),0,Math.PI*2);ctx.fill();
         }
       }
     }
