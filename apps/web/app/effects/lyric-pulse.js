@@ -48,7 +48,7 @@ function pulseWords(line, next, tokens) {
 
 function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
     const text = String(line.text || '').trim();
-    if (!text) return;
+    if (!text || !w || !h) return;
     const U = window.kefeEffectUtils;
     const amplitude = linaClamp(Number(style.pulseAmplitude) || 0.4, 0.05, 1);
     const glowSize = Number(style.pulseGlowSize) || 1;
@@ -56,6 +56,7 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
     const fontSize = Number(style.fontSize) || 76;
     const tokens = text.split(/\s+/).filter(Boolean);
     if (!tokens.length) return;
+
     const perWord = pulseWords(line, next, tokens);
     const contract = window.KEFE_TYPE?.effects?.pulse || {};
     const face = String(contract.weight || 400), fam = contract.family || 'AuraSerif';
@@ -72,105 +73,141 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
     if (flattened === perWord.length) {
         let k = 0;
         rows.forEach(row => timedRows.push(row.map(() => perWord[k++])));
-    } else timedRows.push(perWord);
+    } else {
+        timedRows.push(perWord);
+    }
 
-    ctx.save();
-    ctx.globalAlpha = linaClamp(phase.alpha);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    const cy = h * 0.43;
-    const rowH = size * 1.12;
+    const rowHeight = size * 1.12;
     const rowCount = timedRows.length;
+    const cy = h * 0.43;
     const lineY = (1 - phase.enter) * size * 0.18 - phase.leave * size * 0.2;
-    const traceY = cy + lineY + rowH * (rowCount - 1) * 0.5 + size * 0.72;
+    const firstY = cy + lineY - ((rowCount - 1) * rowHeight) / 2;
     const beatPeriod = 1.05;
     const beatPhase = ((time % beatPeriod) + beatPeriod) % beatPeriod / beatPeriod;
     const traceAmplitude = Math.min(h * 0.17, size * (0.44 + amplitude * 0.38));
-    const xStep = Math.max(2, Math.min(4, w / 300));
-    const points = [];
-    for (let x = 0; x <= w + xStep; x += xStep) {
-        const p = ((x / w) + beatPhase) % 1;
-        const bump = (center, width, height) => height * Math.exp(-0.5 * Math.pow((p - center) / width, 2));
-        let y = traceY;
-        y -= bump(0.19, 0.035, traceAmplitude * 0.16);
-        y += bump(0.385, 0.012, traceAmplitude * 0.18);
-        y -= bump(0.415, 0.009, traceAmplitude);
-        y += bump(0.447, 0.014, traceAmplitude * 0.38);
-        y -= bump(0.64, 0.065, traceAmplitude * 0.29);
-        points.push([x, y]);
-    }
-    const drawTrace = (blur, alpha, width, stroke) => {
-        ctx.save();
-        ctx.globalAlpha *= alpha;
-        ctx.strokeStyle = stroke;
-        ctx.lineWidth = width;
-        ctx.shadowColor = colour;
-        ctx.shadowBlur = blur;
-        ctx.beginPath();
-        points.forEach((point, i) => i ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1]));
-        ctx.stroke();
-        ctx.restore();
-    };
-    drawTrace(size * 0.22 * glowSize, 0.22, size * 0.12, colour);
-    drawTrace(size * 0.08 * glowSize, 0.85, Math.max(1.4, size * 0.025), colour);
+    const step = Math.max(1, Math.min(3, w / 900));
 
-    const headX = ((time * 0.42) % 1) * w;
-    const headWidth = Math.max(w * 0.1, size * 1.5);
-    const gradient = ctx.createLinearGradient(Math.max(0, headX - headWidth), 0, Math.max(1, headX), 0);
-    gradient.addColorStop(0, 'rgba(255,255,255,0)');
-    gradient.addColorStop(1, 'rgba(255,255,255,0.95)');
     ctx.save();
-    ctx.strokeStyle = gradient;
-    ctx.lineWidth = Math.max(1.5, size * 0.035);
-    ctx.shadowColor = '#ffffff';
-    ctx.shadowBlur = size * 0.16 * glowSize;
-    ctx.beginPath();
-    points.forEach((point, i) => i ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1]));
-    ctx.stroke();
-    ctx.restore();
+    ctx.globalAlpha *= linaClamp(phase.alpha);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.miterLimit = 8;
 
-    timedRows.forEach((rowWords, ri) => {
-        const widths = rowWords.map(word => ctx.measureText(word.text).width);
-        const spaceW = ctx.measureText(' ').width;
-        const totalW = widths.reduce((a, b) => a + b, 0) + spaceW * (rowWords.length - 1);
-        let cursorX = (w - totalW) / 2;
-        const y = cy + lineY + (ri - (rowCount - 1) / 2) * rowH;
-        for (let i = 0; i < rowWords.length; i++) {
-            const word = rowWords[i];
-            const wp = U.wordProgress({ time: word.start, endTime: word.end }, time, 0.09);
-            const pulse = linaSmoother(wp.pulse);
-            const scale = 1 + amplitude * 0.12 * pulse;
-            const alpha = linaClamp((0.3 + 0.7 * wp.pre) * (1 - 0.1 * linaSmoother((time - word.end) / 0.35) * (wp.started ? 1 : 0)));
-            const cx = cursorX + widths[i] / 2;
-            ctx.save();
-            ctx.globalAlpha *= alpha;
-            ctx.translate(cx, y);
-            ctx.scale(scale, scale);
-            ctx.strokeStyle = colour;
-            ctx.lineWidth = Math.max(1.1, size * 0.018);
-            ctx.shadowColor = colour;
-            ctx.shadowBlur = size * (0.09 + pulse * 0.1) * glowSize;
-            ctx.strokeText(word.text, -widths[i] / 2, 0);
-            ctx.globalAlpha *= 0.16 + pulse * 0.12;
-            ctx.fillStyle = colour;
-            ctx.fillText(word.text, -widths[i] / 2, 0);
-            ctx.restore();
-            cursorX += widths[i] + spaceW;
+    timedRows.forEach((rowWords, rowIndex) => {
+        if (!rowWords.length) return;
+        const mask = document.createElement('canvas');
+        mask.width = Math.max(1, Math.ceil(w));
+        mask.height = Math.max(1, Math.ceil(size * 1.55));
+        const mctx = mask.getContext('2d', { willReadFrequently: true });
+        if (!mctx) return;
+        setF(mctx, size);
+        mctx.textBaseline = 'alphabetic';
+        mctx.textAlign = 'left';
+        const baseline = mask.height * 0.72;
+        const widths = rowWords.map(word => mctx.measureText(word.text).width);
+        const spaceWidth = mctx.measureText(' ').width;
+        const totalWidth = widths.reduce((sum, value) => sum + value, 0) + spaceWidth * (rowWords.length - 1);
+        let cursor = Math.max(0, (w - totalWidth) / 2);
+
+        // The offscreen surface is geometry only; it is never composited as visible text.
+        // Glyph pixels steer the ECG trace itself, so the line becomes the letterforms.
+        rowWords.forEach((word, i) => {
+            const timing = U.wordProgress({ time: word.start, endTime: word.end }, time, 0.09);
+            if (timing.pre > 0.015) {
+                mctx.save();
+                mctx.globalAlpha = linaClamp(0.25 + 0.75 * timing.pre);
+                mctx.fillStyle = '#FFFFFF';
+                mctx.fillText(word.text, cursor, baseline);
+                mctx.restore();
+            }
+            cursor += widths[i] + spaceWidth;
+        });
+
+        let pixels;
+        try {
+            pixels = mctx.getImageData(0, 0, mask.width, mask.height).data;
+        } catch (_) {
+            return;
         }
-    });
+        const traceY = firstY + rowIndex * rowHeight + size * 0.18;
+        const points = [];
+        let lastGlyphY = baseline;
+        for (let x = 0; x <= w; x += step) {
+            const ix = Math.min(mask.width - 1, Math.max(0, Math.floor(x)));
+            let bestY = -1;
+            let bestDistance = Infinity;
+            let runStart = -1;
+            for (let y = 0; y <= mask.height; y++) {
+                const ink = y < mask.height && pixels[(y * mask.width + ix) * 4 + 3] > 24;
+                if (ink && runStart < 0) runStart = y;
+                if (!ink && runStart >= 0) {
+                    const center = (runStart + y - 1) / 2;
+                    const distance = Math.abs(center - lastGlyphY);
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        bestY = center;
+                    }
+                    runStart = -1;
+                }
+            }
 
-    const beatX = ((0.415 - beatPhase + 1) % 1) * w;
-    const beatY = traceY - traceAmplitude;
-    const beatStrength = 0.55 + 0.45 * Math.sin(time * Math.PI * 2 / beatPeriod) ** 2;
-    ctx.save();
-    ctx.globalAlpha *= beatStrength;
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = colour;
-    ctx.shadowBlur = size * 0.24 * glowSize;
-    ctx.beginPath();
-    ctx.arc(beatX, beatY, Math.max(1.5, size * 0.025), 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+            const p = ((x / Math.max(1, w)) + beatPhase) % 1;
+            const bump = (center, width, height) => height * Math.exp(-0.5 * Math.pow((p - center) / width, 2));
+            let ecg = 0;
+            ecg -= bump(0.19, 0.035, traceAmplitude * 0.16);
+            ecg += bump(0.385, 0.012, traceAmplitude * 0.18);
+            ecg -= bump(0.415, 0.009, traceAmplitude);
+            ecg += bump(0.447, 0.014, traceAmplitude * 0.38);
+            ecg -= bump(0.64, 0.065, traceAmplitude * 0.29);
+
+            let y = traceY + ecg * 0.22;
+            if (bestY >= 0) {
+                // Track the glyph ink contour, with the heartbeat motion coupled into it.
+                lastGlyphY = bestY;
+                y = traceY + (bestY - baseline) * 0.72 + ecg * 0.12;
+            }
+            points.push([x, y]);
+        }
+        if (points.length < 2) return;
+
+        const strokePath = () => {
+            ctx.beginPath();
+            points.forEach((point, i) => i ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1]));
+            ctx.stroke();
+        };
+
+        // All glow and highlight passes reuse the exact same lyric-shaped path.
+        ctx.save();
+        ctx.strokeStyle = colour;
+        ctx.lineWidth = Math.max(2, size * 0.035);
+        ctx.shadowColor = colour;
+        ctx.shadowBlur = size * 0.2 * glowSize;
+        ctx.globalAlpha *= 0.18;
+        strokePath();
+        ctx.restore();
+
+        ctx.save();
+        ctx.strokeStyle = colour;
+        ctx.lineWidth = Math.max(1.5, size * 0.018);
+        ctx.shadowColor = colour;
+        ctx.shadowBlur = size * 0.08 * glowSize;
+        ctx.globalAlpha *= 0.92;
+        strokePath();
+        ctx.restore();
+
+        const headX = ((time * 0.42) % 1) * w;
+        const headWidth = Math.max(w * 0.1, size * 1.5);
+        const gradient = ctx.createLinearGradient(Math.max(0, headX - headWidth), 0, Math.max(1, headX), 0);
+        gradient.addColorStop(0, 'rgba(255,255,255,0)');
+        gradient.addColorStop(1, 'rgba(255,255,255,0.95)');
+        ctx.save();
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = Math.max(1.5, size * 0.026);
+        ctx.shadowColor = '#FFFFFF';
+        ctx.shadowBlur = size * 0.13 * glowSize;
+        strokePath();
+        ctx.restore();
+    });
     ctx.restore();
 }
 function drawPulseEffect(ctx, w, h, style, lines, time) {
