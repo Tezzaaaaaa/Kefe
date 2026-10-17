@@ -1,5 +1,5 @@
 /* KEFE Visualiser — Trailer lyric effect.
-   Cold rain-covered glass; lyrics clear the condensation as if traced by a fingertip. */
+   Cold rain-covered glass; handwritten lyric strokes cut through condensation to reveal the exterior behind the pane. */
 (function(){
   'use strict';
   var u=window.kefeEffectUtils;
@@ -243,7 +243,7 @@
         Array.from(row).forEach(function(ch){
           var cw=charWidth(ctx,ch),wt=weights[count]||1;
           var reveal=clamp((target-progressUsed)/wt,0,1);
-          if(ch!==' '&&reveal>0)strokeHandwrittenGlyph(ctx,ch,offset,cw,rowX,y,size,reveal,alpha,x+y+count*7);
+          // Deliberately do not paint a font over the glass: the matching centreline mask above cuts through condensation so the real exterior is visible inside each handwritten stroke.
           if(!headFound&&ch!==' '&&remaining>=0&&remaining<=wt){
             var strokeEngine=window.KEFETrailerStrokeEngine,tip=strokeEngine&&strokeEngine.pointAt(ch,reveal);
             if(tip){var unit=size/1000;headX=x+tip.x*unit;headY=y+tip.y*unit;}
