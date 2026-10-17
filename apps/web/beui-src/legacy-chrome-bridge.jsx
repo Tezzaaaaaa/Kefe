@@ -67,7 +67,49 @@ function AccentSwatches({ backingButtons }) {
   );
 }
 
+
+function DockButton({ backing }) {
+  const [attrs, setAttrs] = useState({
+    label: backing.getAttribute("aria-label") || "Workspace action",
+    title: backing.title || backing.getAttribute("aria-label") || "Workspace action",
+    pressed: backing.getAttribute("aria-pressed"),
+  });
+  useEffect(() => {
+    const observer = new MutationObserver(() => setAttrs({
+      label: backing.getAttribute("aria-label") || "Workspace action",
+      title: backing.title || backing.getAttribute("aria-label") || "Workspace action",
+      pressed: backing.getAttribute("aria-pressed"),
+    }));
+    observer.observe(backing, { attributes: true, attributeFilter: ["aria-label", "title", "aria-pressed"] });
+    return () => observer.disconnect();
+  }, [backing]);
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="beui-dock-button"
+      aria-label={attrs.label}
+      title={attrs.title}
+      aria-pressed={attrs.pressed === null ? undefined : attrs.pressed === "true"}
+      onClick={() => backing.click()}
+    >
+      <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: backing.innerHTML }} />
+    </Button>
+  );
+}
+
 function start() {
+  const dock = document.querySelector(".kefe-workspace-dock");
+  dock?.querySelectorAll("[data-dock-panel], [data-dock-export], [data-command-open]").forEach((backing) => {
+    if (backing.dataset.beuiMounted) return;
+    const host = document.createElement("div");
+    host.className = "beui-dock-host";
+    backing.insertAdjacentElement("beforebegin", host);
+    backing.classList.add("beui-native-sidebar-control");
+    backing.dataset.beuiMounted = "true";
+    createRoot(host).render(<DockButton backing={backing} />);
+  });
+
   const toggle = document.querySelector("[data-sidebar-toggle]");
   if (toggle && !toggle.dataset.beuiMounted) {
     const host = document.createElement("div");
