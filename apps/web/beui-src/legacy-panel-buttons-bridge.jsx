@@ -108,7 +108,7 @@ function mount(button) {
 
 function scan(root = document) {
   if (root instanceof HTMLButtonElement) mount(root);
-  root.querySelectorAll?.(".kefe-panel button, .kefe-command-list button").forEach(mount);
+  root.querySelectorAll?.("button").forEach(mount);
 }
 
 function start() {
