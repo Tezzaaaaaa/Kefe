@@ -160,7 +160,11 @@ let cursor = centeredStart;
         if (nearestWord < 0) continue;
         contours.push({ wordIndex: nearestWord, points: simplified.map(p => [centeredStart + p[0] / scale - maskMargin, p[1] / scale - baseline]) });
     }
-    const geometry = { contours, wordRanges, baseline, size };
+    const contoursByWord = Array.from({ length: words.length }, () => []);
+    for (const contour of contours) {
+        if (contoursByWord[contour.wordIndex]) contoursByWord[contour.wordIndex].push(contour);
+    }
+    const geometry = { contours, contoursByWord, wordRanges, baseline, size };
     pulseGeometryCache.set(key, geometry);
     while (pulseGeometryCache.size > PULSE_GEOMETRY_CACHE_LIMIT) pulseGeometryCache.delete(pulseGeometryCache.keys().next().value);
     return geometry;
@@ -218,7 +222,8 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
         const geometry = pulseGlyphGeometry(ctx, rowWords, w, size, setF);
         if (!geometry) return;
         const traceY = firstY + rowIndex * rowHeight + size * 0.18;
-        const contours = geometry.contours, ranges = geometry.wordRanges;
+        const contoursByWord = geometry.contoursByWord || [];
+        const ranges = geometry.wordRanges;
         rowWords.forEach((word, wordIndex) => {
             const timing = U.wordProgress({ time: word.start, endTime: word.end }, time, 0.09);
             const reveal = linaClamp(timing.sweep);
@@ -239,16 +244,21 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
             };
             const traceY = firstY + rowIndex * rowHeight + size * 0.18;
             const tracePath = new Path2D();
-            for (const contour of contours) {
-                if (contour.wordIndex !== wordIndex || contour.points.length < 4) continue;
-                const pts = contour.points, transformed = pts.map(point => ({
-                    x: point[0], y: traceY + point[1] * 0.76 + beatAt(point[0]) * 0.24
-                }));
-                const first = transformed[0], last = transformed[transformed.length - 1];
-                tracePath.moveTo((last.x + first.x) * 0.5, (last.y + first.y) * 0.5);
-                for (let i = 0; i < transformed.length; i++) {
-                    const current = transformed[i], nextPoint = transformed[(i + 1) % transformed.length];
-                    tracePath.quadraticCurveTo(current.x, current.y, (current.x + nextPoint.x) * 0.5, (current.y + nextPoint.y) * 0.5);
+            // Geometry is bucketed by word once; avoid rescanning every contour for
+            // every token and avoid allocating a transformed point array each frame.
+            for (const contour of (contoursByWord[wordIndex] || [])) {
+                const pts = contour.points;
+                if (pts.length < 4) continue;
+                const pointY = point => traceY + point[1] * 0.76 + beatAt(point[0]) * 0.24;
+                const first = pts[0], last = pts[pts.length - 1];
+                tracePath.moveTo((last[0] + first[0]) * 0.5, (pointY(last) + pointY(first)) * 0.5);
+                for (let i = 0; i < pts.length; i++) {
+                    const current = pts[i], nextPoint = pts[(i + 1) % pts.length];
+                    tracePath.quadraticCurveTo(
+                        current[0], pointY(current),
+                        (current[0] + nextPoint[0]) * 0.5,
+                        (pointY(current) + pointY(nextPoint)) * 0.5
+                    );
                 }
                 tracePath.closePath();
             }
