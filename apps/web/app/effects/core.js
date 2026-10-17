@@ -185,7 +185,19 @@
       const minSize=Math.max(12,o.minSize||18);
       const build=size=>{
         set(ctx,size);const gap=size*gapEm,rows=[];let row=[],rw=0,tooWide=false;
+        /* Keep every timed word inside the safe width. A single unbroken token is
+           split only when it cannot fit by itself, with its original timing retained. */
+        const fittedWords=[];
         for(const wd of words){
+          if(ctx.measureText(wd.text).width<=maxW){fittedWords.push(wd);continue;}
+          const chars=Array.from(String(wd.text||''));let chunk='';
+          for(const ch of chars){
+            if(chunk&&ctx.measureText(chunk+ch).width>maxW){fittedWords.push({...wd,text:chunk});chunk=ch;}
+            else chunk+=ch;
+          }
+          if(chunk)fittedWords.push({...wd,text:chunk});
+        }
+        for(const wd of fittedWords){
           const ww=ctx.measureText(wd.text).width;if(ww>maxW)tooWide=true;
           const proposed=row.length?rw+gap+ww:ww;
           if(row.length&&proposed>maxW){rows.push({words:row,width:rw});row=[wd];rw=ww;}else{row.push(wd);rw=proposed;}
