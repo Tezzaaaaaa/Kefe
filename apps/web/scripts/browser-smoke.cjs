@@ -165,7 +165,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.locator("#mediaInput").setInputFiles({
       name: "beui-smoke.lrc",
       mimeType: "text/plain",
-      buffer: Buffer.from("[00:00.00]Smoke line one\\n[00:02.00]Smoke line two\\n", "utf8"),
+      buffer: Buffer.from("[00:00.00]Smoke line one\n[00:02.00]Smoke line two\n", "utf8"),
     });
     await page.waitForFunction(() => document.getElementById("kefeLyricsStatus")?.textContent.includes("Loaded lyrics from beui-smoke.lrc"), null, { timeout: 10000 });
     assert.deepEqual(pageErrors, [], `browser runtime errors: ${pageErrors.join("; ")}`);
