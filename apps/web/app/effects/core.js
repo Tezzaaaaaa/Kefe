@@ -185,22 +185,14 @@
       const minSize=Math.max(12,o.minSize||18);
       const build=size=>{
         set(ctx,size);const gap=size*gapEm,rows=[];let row=[],rw=0,tooWide=false;
-        /* Keep every timed word inside the safe width. A single unbroken token is
-           split only when it cannot fit by itself, with its original timing retained. */
-        const fittedWords=[];
+        /* Keep words intact: when a word cannot fit after shrinking, place that
+           whole word on its own row rather than splitting it into fragments. */
         for(const wd of words){
-          if(ctx.measureText(wd.text).width<=maxW){fittedWords.push(wd);continue;}
-          const chars=Array.from(String(wd.text||''));let chunk='';
-          for(const ch of chars){
-            if(chunk&&ctx.measureText(chunk+ch).width>maxW){fittedWords.push({...wd,text:chunk});chunk=ch;}
-            else chunk+=ch;
-          }
-          if(chunk)fittedWords.push({...wd,text:chunk});
-        }
-        for(const wd of fittedWords){
-          const ww=ctx.measureText(wd.text).width;if(ww>maxW)tooWide=true;
+          const ww=ctx.measureText(wd.text).width;
+          if(ww>maxW)tooWide=true;
           const proposed=row.length?rw+gap+ww:ww;
-          if(row.length&&proposed>maxW){rows.push({words:row,width:rw});row=[wd];rw=ww;}else{row.push(wd);rw=proposed;}
+          if(row.length&&proposed>maxW){rows.push({words:row,width:rw});row=[wd];rw=ww;}
+          else{row.push(wd);rw=proposed;}
         }
         if(row.length)rows.push({words:row,width:rw});
         return {rows,gap,tooWide};
@@ -224,28 +216,19 @@
       const words=str?str.split(' '):[];
       const meas=(t,size)=>ctx.measureText(t).width+track*size*Math.max(0,Array.from(t).length-1);
       const wrap=size=>{
-        set(ctx,size);const rows=[];let cur='',broken=false;
+        set(ctx,size);const rows=[];let cur='',tooWide=false;
         for(const word of words){
-          if(meas(word,size)>maxW)broken=true;
+          if(meas(word,size)>maxW)tooWide=true;
           const test=cur?cur+' '+word:word;
           if(cur&&meas(test,size)>maxW){rows.push(cur);cur=word;}else cur=test;
         }
         if(cur)rows.push(cur);
-        return {rows,broken};
+        return {rows,tooWide};
       };
       let size=Math.max(minSize,Number(o.size)||76),res=wrap(size);
-      const fits=r=>!r.broken&&r.rows.length<=maxLines&&r.rows.length*size*lh<=maxH;
+      const fits=r=>!r.tooWide&&r.rows.length<=maxLines&&r.rows.length*size*lh<=maxH;
       while(!fits(res)&&size>minSize){size=Math.max(minSize,size-Math.max(1,Math.round(size*.04)));res=wrap(size);}
-      let rows=res.rows;
-      if(res.broken||rows.length>maxLines){
-        // last resort: break over-long words by character
-        set(ctx,size);const out=[];let cur='';
-        for(const ch of Array.from(str)){
-          if(cur&&meas(cur+ch,size)>maxW){out.push(cur.trim());cur=ch===' '?'':ch;}else cur+=ch;
-        }
-        if(cur.trim())out.push(cur.trim());
-        rows=out;
-      }
+      const rows=res.rows;
       set(ctx,size);
       const lineH=size*lh;
       return {size,lines:rows,lineH,blockH:rows.length*lineH,text:str};
