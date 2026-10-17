@@ -21,14 +21,6 @@
     view.id = 'kefeVisGradientView';
     view.hidden = true;
 
-    const intro = element('div', 'kefe-visualiser-intro');
-    const introContent = element('div');
-    introContent.append(
-      element('strong', '', 'Fluid Ink controls'),
-      element('span', '', 'Audio-reactive fluid simulation and ink presets.')
-    );
-    intro.appendChild(introContent);
-    view.appendChild(intro);
 
     const tabs = element('div', 'kefe-vis-tabs');
     tabs.setAttribute('role', 'tablist');
