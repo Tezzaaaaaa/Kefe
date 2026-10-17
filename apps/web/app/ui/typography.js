@@ -28,7 +28,7 @@
     elasticpop:          'Bangers',
     flipcards:           'Urbanist',
     karaoke:             'Boogaloo',
-    trailer:             'Monoton',
+    trailer:             'Homemade Apple',
     // Next batch (effects coming next)
     analogtv:            'VT323',
     fancy:               'Anton',
@@ -122,7 +122,7 @@
     { family: 'Baloo 2',           weight: 800, style: 'normal', file: 'fonts/baloo2/Baloo2-800.woff2' },
     // Bangers — elasticpop
     { family: 'Bangers',        weight: 400, style: 'normal', file: 'fonts/bangers/Bangers-Regular.woff2' },
-    // Monoton — trailer
+    // Monoton — retained for other typography choices; Trailer uses the handwritten Homemade Apple face
     { family: 'Monoton',        weight: 400, style: 'normal', file: 'fonts/monoton/Monoton-Regular.woff2' },
     // Big Shoulders Stencil Display — splitflap
     { family: 'Big Shoulders Stencil Display', weight: 900, style: 'normal', file: 'fonts/big-shoulders-stencil/BigShouldersStencil-Black.woff2' },
@@ -177,7 +177,7 @@
     elasticpop: { family: families.elasticpop,  weight: 400, min: 36, max: 160, lineHeight: 1.1, tracking: 0.01,      align: 'center', case: 'none',  opticalScale: 1.00 },
     flipcards:  { family: families.flipcards,   weight: 800, min: 30, max: 140, lineHeight: 1.2, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
     karaoke:    { family: families.karaoke,     weight: 400, min: 40, max: 170, lineHeight: 1.05, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
-    trailer:    { family: families.trailer,     weight: 400, min: 52, max: 220, lineHeight: 1.05, tracking: 0.04,      align: 'center', case: 'upper', opticalScale: 1.00 },
+    trailer:    { family: families.trailer,     weight: 400, min: 42, max: 150, lineHeight: 1.12, tracking: 0.004,     align: 'center', case: 'none', opticalScale: 1.00 },
     fancy:      { family: families.fancy,       weight: 900, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     glitch:     { family: families.glitch,      weight: 400, min: 40, max: 220, lineHeight: 1.02, tracking: 0,      align: 'center', case: 'upper', opticalScale: 1.00 },
     analogtv:   { family: families.analogtv,    weight: 400, min: 34, max: 200, lineHeight: 1.12, tracking: 0,      align: 'center', case: 'none',  opticalScale: 1.00 },
