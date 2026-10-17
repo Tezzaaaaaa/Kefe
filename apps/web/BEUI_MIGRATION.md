@@ -47,7 +47,7 @@ beUI's current web components target React 19, Tailwind CSS 4, and Motion. Compo
 ### Foundation slice added on `feature/full-beui-conversion`
 
 - Added the public `@beui` shadcn-compatible registry configuration.
-- Added a Vite + React + Tailwind CSS 4 build that includes the production editor, workbench, and site entry points.
+- Added a Vite + React + Tailwind CSS 4 build that includes the React-enabled editor entry, workbench, and site entry points. The existing static editor.html stays unchanged until a verified Pages deployment cutover.
 - Copied the upstream beUI Range Slider and its shared slider/touch/motion utilities into `apps/web/beui-src/`, retaining MIT attribution in `NOTICE.md`.
 - Adapted the component's motion import to the existing workspace `framer-motion` dependency to avoid adding an unrecorded lockfile dependency.
 - Added two controlled slider cases to exercise integer values and 0.05-second lyric timing steps.
@@ -57,7 +57,7 @@ beUI's current web components target React 19, Tailwind CSS 4, and Motion. Compo
 
 ### Not yet complete
 
-The production interface is still largely assembled from existing HTML and imperative JavaScript. Production range controls and the Settings dialog now use actual beUI components, but navigation, tabs, the rest of the buttons, selects, editor panels, and other dialogs still require migration. The Vite build and asset smoke check pass in GitHub Actions; browser-level regression testing is still outstanding.
+The currently published static entry is intentionally unchanged; the separate Vite-built editor output now mounts actual beUI components for range controls and Settings. Navigation, tabs, remaining buttons, selects, editor panels, and other dialogs still require migration. The build and asset smoke check passed on an earlier revision; the current revision is awaiting its CI run, and browser-level regression testing is still outstanding.
 
 The conversion is not complete until the acceptance criteria above are checked against the implemented application and tested.
 
