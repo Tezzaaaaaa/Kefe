@@ -43,11 +43,14 @@ The following are identified in the KEFE typography registry with an asterisk (`
 
 See [the KEFE custom-font notice](fonts/CUSTOM-FONTS-LICENSE.md) for the scope of the attribution and permissions. These fonts were made by merging or modifying other font designs. The applicable source-font licences still govern the merged font files; this notice does not override upstream terms. Keep the source-font identities and required notices with the project.
 
-## Other software
+## Other software and externally loaded code
 
-Three.js is loaded from jsDelivr in the legacy browser editor and is distributed under the MIT License: https://github.com/mrdoob/three.js/blob/dev/LICENSE
+The browser editor currently loads `gif.js@0.2.0` from jsDelivr. The editor source also dynamically imports `@uimaxbai/am-lyrics@1.8.2` from jsDelivr for the Apple-style lyric component.
 
-Other dependencies declared in workspace package manifests and lockfiles retain their own licences.
+- Verify the exact licence text and redistribution/attribution requirements for both packages before release. This notice does not assert that their licences have been verified.
+- Review the dynamic lyric component's network behaviour and data transfers before publishing the privacy policy or asserting lyric rights clearance.
+- Consider bundling dependencies and pinning integrity hashes (Subresource Integrity where supported) after checking compatibility.
+- Do not list Three.js as a current runtime dependency unless a fresh audit confirms it is loaded by the release build.
 
 ## System font fallback
 
