@@ -28,7 +28,7 @@
     elasticpop:          'Bangers',
     flipcards:           'Urbanist',
     karaoke:             'Boogaloo',
-    trailer:             'Open Sans',
+    trailer:             'Kefe Tracklist Cursive',
     // Next batch (effects coming next)
     analogtv:            'VT323',
     fancy:               'Anton',
