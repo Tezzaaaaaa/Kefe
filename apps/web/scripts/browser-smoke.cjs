@@ -51,7 +51,7 @@ const server = http.createServer((req, res) => {
       const selects = [...document.querySelectorAll("select")];
       return ranges.every((input) => input.nextElementSibling?.classList.contains("beui-range-host"))
         && selects.every((input) => input.nextElementSibling?.classList.contains("beui-select-host"));
-    }, { timeout: 20000 });
+    }, null, { timeout: 20000 });
 
     const tabCount = await page.locator(".beui-tabs-host [role=tab]").count();
     assert.ok(tabCount >= 5, `expected editor section tabs, found ${tabCount}`);
@@ -63,14 +63,20 @@ const server = http.createServer((req, res) => {
     await dialog.waitFor({ state: "visible", timeout: 10000 });
     assert.ok(await dialog.locator('[role="slider"]').count() > 0, "settings should use beUI sliders");
     assert.ok(await dialog.getByRole("switch").count() > 0, "settings should use the beUI switch");
+    const switchControl = dialog.getByRole("switch").first();
+    const beforeSwitch = await switchControl.getAttribute("aria-checked");
+    await switchControl.click();
+    assert.notEqual(await switchControl.getAttribute("aria-checked"), beforeSwitch, "beUI Switch should toggle");
     const selectTrigger = dialog.locator('button[aria-haspopup="listbox"]').first();
     await selectTrigger.click();
-    assert.ok(await page.getByRole("option").count() > 0, "beUI Select should expose its options");
-    await page.keyboard.press("Escape");
+    const options = page.getByRole("option");
+    assert.ok(await options.count() > 0, "beUI Select should expose its options");
+    await options.first().click();
+    await dialog.getByRole("button", { name: "Done" }).click();
     await dialog.waitFor({ state: "hidden", timeout: 5000 });
 
     await page.locator(".beui-tabs-host [role=tab]").filter({ hasText: "Lyrics" }).click();
-    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", { timeout: 5000 });
+    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
 
     const firstCount = await page.locator(".beui-panel-button-host").count();
     await page.waitForTimeout(300);
