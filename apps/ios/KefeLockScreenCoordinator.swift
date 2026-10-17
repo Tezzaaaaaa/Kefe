@@ -13,6 +13,7 @@ final class KefeLockScreenCoordinator {
     private var playbackTask: Task<Void, Never>?
     private var anchorTime: TimeInterval = 0
     private var anchorDate = Date()
+    private var anchorRate: Double = 1
     private var isPlaying = false
     private var title = "KEFE"
     private var artist = ""
@@ -56,6 +57,7 @@ final class KefeLockScreenCoordinator {
         // It advances through the imported lyric schedule without relying on requestAnimationFrame.
         anchorTime = currentTime
         anchorDate = Date()
+        anchorRate = max(0.1, message["playbackRate"] as? Double ?? 1)
         isPlaying = true
         lastPublishedIndex = index(at: currentTime)
         if activity == nil {
@@ -81,7 +83,7 @@ final class KefeLockScreenCoordinator {
             while !Task.isCancelled {
                 guard let self, self.isPlaying else { return }
                 let elapsed = Date().timeIntervalSince(self.anchorDate)
-                let time = max(0, self.anchorTime + elapsed)
+                let time = max(0, self.anchorTime + elapsed * self.anchorRate)
                 let currentIndex = self.index(at: time)
                 if currentIndex != self.lastPublishedIndex {
                     self.lastPublishedIndex = currentIndex
