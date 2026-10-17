@@ -135,7 +135,7 @@
   function init(){
     stage=document.querySelector('.kefe-stage');const tabs=document.querySelector('.kefe-vis-tabs'),form=document.querySelector('.kefe-visualiser-form');
     if(!stage||!tabs||!form)return;
-    canvas=document.createElement('canvas');canvas.id='kefeDiscoBallCanvas';canvas.setAttribute('aria-label','Disco Ball audio visualiser');canvas.style.cssText='position:absolute;inset:0;z-index:4;pointer-events:none;visibility:hidden;';stage.appendChild(canvas);ctx=canvas.getContext('2d',{alpha:true});
+    canvas=document.createElement('canvas');canvas.id='kefeDiscoBallCanvas';canvas.setAttribute('aria-label','Disco Ball audio visualiser');canvas.style.cssText='position:absolute;inset:0;z-index:2;pointer-events:none;visibility:hidden;';stage.appendChild(canvas);ctx=canvas.getContext('2d',{alpha:true});
     view=el('div','kefe-vis-view');view.id='kefeVisDiscoBallView';view.hidden=true;
     view.appendChild(el('p','kefe-meta','A rotating mirror-ball sphere with beat-responsive reflections, violet-blue tiles and magenta sparkles.'));
     const info=el('p','kefe-meta','Audio input: KEFE shared audio analyser. The visualiser follows the loaded track; without an analyser, it uses a subtle ambient motion fallback.');
