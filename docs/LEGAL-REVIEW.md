@@ -11,12 +11,12 @@ Originally `apps/web/app/editor.js` auto-fetched lyrics from LRCLIB, BetterLyric
 **Still open:**
 - Lyrics are copyrighted (the words, separately from the music). Displaying and exporting them in videos without a licence is infringement risk. LRCLIB is community-contributed and, as far as I know, does not claim to hold licences for the lyrics; its terms need a written check.
 - Wording in the terms must put lyric rights on the user (drafted in `apps/web/legal/terms.html`).
-- Removing fetched word-level timing means Word and Karaoke modes use estimated timing for fetched lyrics.
+- Because automatic catalogue retrieval is paused in this branch, KEFE no longer obtains catalogue lyric timing through LRCLIB. User-supplied LRC/SRT/JSON or manually entered lyrics remain available; imported timing still needs regression testing.
 
 Further options if you want to go beyond LRCLIB, strongest first:
-1. Remove auto-fetch entirely. Users load their own lyrics (LRC, SRT, JSON, paste), and KEFE hosts none.
+1. **Current branch mitigation:** keep automatic catalogue retrieval disabled. Users load their own lyrics (LRC, SRT, JSON, paste); KEFE does not host a lyrics catalogue.
 2. Auto-time user-supplied lyrics against the audio in the browser, or draft lyrics from the audio with an on-device speech model. Neither stores lyric text on a KEFE service.
-3. License lyrics from a provider (Musixmatch and LyricFind run commercial APIs).
+3. If catalogue lookup is a required product feature, obtain a written licence from a provider and verify it covers timed display and user video exports before re-enabling it.
 
 Do not build a KEFE-hosted lyric database: storing and serving lyrics makes KEFE the host.
 
@@ -71,7 +71,7 @@ When accounts and billing arrive (`apps/api`, `packages/db`, Stripe packages in 
 
 ## Decisions needed from the owner
 
-1. Keep LRCLIB as the only lyric source, or remove auto-fetch / license lyrics? (item 1)
+1. Keep automatic catalogue lookup disabled, or pursue a written commercial lyrics licence before considering re-enablement? (item 1)
 2. Operator identity for Terms and Privacy: legal name or business name, ABN if any, contact email.
 3. Will accounts or payments ship? (changes items 2 and 5)
 4. Are you happy to rename the brand-named effects? (item 4)
