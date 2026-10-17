@@ -78,6 +78,8 @@ function canBridge(textarea) {
     && !textarea.hidden
     && !textarea.dataset.beuiTextareaMounted
     && !textarea.closest("#beui-settings-root")
+    && !textarea.closest(".beui-textarea-host")
+    && !textarea.classList.contains("beui-textarea-control")
     && !textarea.closest("label");
 }
 
