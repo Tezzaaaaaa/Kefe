@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { RangeSlider } from "@/components/motion/range-slider";
 import "./legacy-bridge.css";
 
-const EXCLUDED = "#kefeTime, .kefe-slider";
+const EXCLUDED = "#kefeTime";
 const roots = new Map();
 
 function readInput(input) {
