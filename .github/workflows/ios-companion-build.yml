@@ -1,0 +1,29 @@
+name: iOS Companion Build
+
+on:
+  push:
+    paths:
+      - "apps/ios/**"
+      - "apps/web/app/editor.js"
+      - ".github/workflows/ios-companion-build.yml"
+  pull_request:
+    paths:
+      - "apps/ios/**"
+      - "apps/web/app/editor.js"
+      - ".github/workflows/ios-companion-build.yml"
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        working-directory: apps/ios
+        run: xcodegen generate
+      - name: Build for iOS Simulator
+        working-directory: apps/ios
+        run: xcodebuild -project KEFE.xcodeproj -scheme KEFE -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
