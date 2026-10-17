@@ -39,8 +39,8 @@ function start() {
   createRoot(host).render(<UploadCard originalNodes={originalNodes} />);
 }
 
-if (document.readyState === "complete") {
-  start();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", start, { once: true });
 } else {
-  window.addEventListener("load", start, { once: true });
+  start();
 }
