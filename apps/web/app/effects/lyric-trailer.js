@@ -180,7 +180,7 @@
     ctx.globalAlpha=alpha;ctx.lineJoin='round';ctx.lineCap='round';
     // A fine damp edge and soft ink-like body make each glyph emerge as if written onto the glass.
     ctx.strokeStyle='rgba(8,25,35,.36)';ctx.lineWidth=Math.max(.75,size*.022);ctx.strokeText(row,-offset,0);
-    ctx.strokeStyle='rgba(219,241,247,.18)';ctx.lineWidth=Math.max(.45,size*.010);ctx.strokeText(ch,0,0);
+    ctx.strokeStyle='rgba(219,241,247,.18)';ctx.lineWidth=Math.max(.45,size*.010);ctx.strokeText(row,-offset,0);
     ctx.fillStyle='rgba(229,244,247,.82)';ctx.shadowColor='rgba(210,238,246,.12)';ctx.shadowBlur=size*.016;
     ctx.fillText(row,-offset,0);
     if(progress<.995){
