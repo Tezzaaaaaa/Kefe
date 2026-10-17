@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, type TextareaHTMLAttributes } from "react";
+import { forwardRef, type ChangeEvent, type TextareaHTMLAttributes } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
   ref,
 ) {
   const reduce = useReducedMotion();
-  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => onChange?.(event.currentTarget.value);
+  const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => onChange?.(event.currentTarget.value);
 
   return (
     <motion.textarea
