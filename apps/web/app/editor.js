@@ -132,7 +132,7 @@
   appleLyrics.setAttribute('autoscroll','');
   previewStage.appendChild(appleLyrics);
   let appleLyricsReady=false;
-  import('https://cdn.jsdelivr.net/npm/@uimaxbai/am-lyrics/dist/src/am-lyrics.min.js').then(()=>{
+  import('https://cdn.jsdelivr.net/npm/@uimaxbai/am-lyrics@1.8.2/dist/src/am-lyrics.min.js').then(()=>{
     appleLyricsReady=true;
     syncAppleLyricsMetadata();
     draw();
@@ -1509,14 +1509,16 @@
   // Keep the earlier async play handler; it resumes suspended audio and reports playback errors.
   function syncAppleLyricsMetadata(){
     if(!appleLyrics||!appleLyricsReady)return;
-    const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
-    appleLyrics.songTitle=title;
-    appleLyrics.songArtist=artist;
-    appleLyrics.songAlbum=album;
-    appleLyrics.query=[title,artist].filter(Boolean).join(' - ');
-    appleLyrics.musicId=songAlbum.dataset.platformId||'';
-    appleLyrics.songDurationMs=Math.round((audio.duration||video.duration||Number(songAlbum.dataset.trackDuration)||0)*1000);
-    appleLyrics.ttml=title||artist?'':state.lines.length?lyricsToTtml(state.lines):'';
+    /* Never give the am-lyrics component track metadata: when it has a title, artist, query or music id and no
+       lyrics of its own it searches several third-party lyric services itself. KEFE passes only the lyrics it
+       already holds (LRCLIB or the user's own file), so the component makes no lyric requests. */
+    appleLyrics.songTitle='';
+    appleLyrics.songArtist='';
+    appleLyrics.songAlbum='';
+    appleLyrics.query='';
+    appleLyrics.musicId='';
+    appleLyrics.songDurationMs=0;
+    appleLyrics.ttml=state.lines.length?lyricsToTtml(state.lines):'';
     appleLyrics.currentTime=Math.round(((audio.currentTime||state.time||0)-lyricOffset())*1000);
     appleLyrics.highlightColor='#fff';
     appleLyrics.fontFamily="'Inter', Arial, sans-serif";
