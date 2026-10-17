@@ -184,7 +184,12 @@
     if(!row||progress<=0)return;
     var engine=window.KEFETrailerStrokeEngine;if(!engine)return;
     ctx.save();ctx.globalAlpha=alpha;ctx.lineCap='round';ctx.lineJoin='round';
-    engine.draw(ctx,row,x+offset,y,size,progress,'ink');ctx.restore();
+    var drawn=engine.draw(ctx,row,x+offset,y,size,progress,'ink');
+    if(!drawn){
+      // Keep uncommon Unicode and unsupported symbols visible; common Latin glyphs use real centreline strokes.
+      ctx.save();ctx.translate(x+offset,y);glyphRevealClip(ctx,cw,size,progress,seed);ctx.fillText(row,0,0);ctx.restore();
+    }
+    ctx.restore();
   }
   function render(ctx,w,h,style,lines,time){
     if(!(w>0&&h>0))return;
@@ -220,7 +225,9 @@
           var cw=charWidth(maskCtx,ch),wt=weights[index]||1;
           var reveal=clamp((target-used)/wt,0,1);
           if(ch!==' '&&reveal>0){
-            maskCtx.save();var strokeEngine=window.KEFETrailerStrokeEngine;if(strokeEngine)strokeEngine.draw(maskCtx,ch,rowX+offset,y,size,reveal,'mask');maskCtx.restore();
+            maskCtx.save();var strokeEngine=window.KEFETrailerStrokeEngine;var cleared=strokeEngine&&strokeEngine.draw(maskCtx,ch,rowX+offset,y,size,reveal,'mask');
+            if(!cleared){maskCtx.save();maskCtx.translate(rowX+offset,y);glyphRevealClip(maskCtx,cw,size,reveal,x+y);maskCtx.fillStyle='#fff';maskCtx.fillText(ch,0,0);maskCtx.restore();}
+            maskCtx.restore();
           }
           x+=cw+tracking;offset+=cw+tracking;used+=wt;index++;
         });
