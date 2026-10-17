@@ -28,7 +28,7 @@
 <p>KEFE Visualiser ("KEFE") is a browser-based lyric video and music visualiser editor operated by [PLACEHOLDER: legal name or business name, ABN if any], Queensland, Australia. Contact: [PLACEHOLDER: email address].</p>
 
 <h2>The short version</h2>
-<p>KEFE runs in your browser. Your audio, video, lyrics and projects are processed on your device and are not uploaded to KEFE servers. KEFE has no accounts, no advertising and no analytics. Some features send limited information to third-party services, listed below.</p>
+<p>KEFE is designed to process loaded media and projects in your browser rather than upload them to KEFE servers. KEFE has no accounts, advertising or analytics in this editor. Some features load third-party code or contact external services, as described below. This draft has not been validated against production network traffic; do not rely on it as a final account of data handling until that review is complete.</p>
 
 <h2>What stays on your device</h2>
 <p>Media files you load and the videos you export are handled locally in your browser. KEFE saves editor settings (such as effect and style choices) in your browser's local storage. Clearing your browser data removes them. We do not receive them.</p>
@@ -38,7 +38,7 @@
 <thead><tr><th>Service</th><th>When</th><th>What is sent</th></tr></thead>
 <tbody>
 <tr><td>Apple iTunes Search API</td><td>When you search for a song or album</td><td>Your search text and country code, plus your IP address</td></tr>
-<tr><td>LRCLIB (lyrics lookup)</td><td>When you ask KEFE to find lyrics</td><td>Track title, artist, album, duration, plus your IP address</td></tr>
+<tr><td>LRCLIB (lyrics lookup)</td><td>Automatic catalogue lookup is disabled in this release branch pending licensing review</td><td>The disabled lookup feature does not send track details to LRCLIB from this branch</td></tr>
 <tr><td>Google Fonts</td><td>Only if you choose a custom Google font in an effect</td><td>The font name, plus your IP address and browser details</td></tr>
 <tr><td>jsDelivr (code delivery)</td><td>When the editor loads. It serves the GIF export library (gif.js) and the Apple-style lyrics component (am-lyrics)</td><td>Your IP address and browser details</td></tr>
 <tr><td>Apple-style lyrics component (am-lyrics)</td><td>[PLACEHOLDER: when the Apple lyric effect is shown]</td><td>[PLACEHOLDER: verify what this third-party component requests, such as track title and artist, and from which server]</td></tr>
