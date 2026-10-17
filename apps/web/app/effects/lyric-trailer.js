@@ -155,18 +155,39 @@
     ctx.fillStyle=sheen;ctx.fillRect(0,0,w,h);
     ctx.restore();
   }
+  function glyphRevealClip(ctx,gw,size,progress,seed){
+    var edge=gw*clamp(progress,0,1),amp=Math.min(size*.055,Math.max(.8,gw*.035));
+    var phase=seed*.017;
+    ctx.beginPath();
+    ctx.moveTo(-2,-size*1.12);
+    ctx.lineTo(edge-amp,-size*1.12);
+    ctx.bezierCurveTo(edge+Math.sin(phase)*amp,-size*.78,edge-amp*.75,-size*.38,edge+Math.cos(phase*1.7)*amp,-size*.08);
+    ctx.bezierCurveTo(edge+Math.sin(phase*2.1)*amp,size*.22,edge-amp*.5,size*.62,edge+Math.cos(phase*.8)*amp,size*.98);
+    ctx.lineTo(-2,size*.98);ctx.closePath();ctx.clip();
+  }
   function strokeGlyph(ctx,ch,x,y,size,progress,alpha){
     if(!ch||ch===' ')return;
     var jitter=Math.sin(x*.071+y*.037)*size*.009;
     ctx.save();ctx.translate(x,y+jitter);
     var gw=ctx.measureText(ch).width;
-    ctx.beginPath();ctx.rect(-1,-size*1.08,Math.max(.1,gw*clamp(progress,0,1)+1),size*1.42);ctx.clip();
+    glyphRevealClip(ctx,gw,size,progress,x+y);
     ctx.globalAlpha=alpha;ctx.lineJoin='round';ctx.lineCap='round';
-    // The cleared track is slightly irregular and darker at its damp edges.
-    ctx.strokeStyle='rgba(13,34,45,.78)';ctx.lineWidth=Math.max(2,size*.075);ctx.strokeText(ch,0,0);
-    ctx.strokeStyle='rgba(231,246,249,.30)';ctx.lineWidth=Math.max(1,size*.028);ctx.strokeText(ch,0,0);
-    ctx.fillStyle='rgba(228,244,247,.88)';ctx.shadowColor='rgba(230,249,252,.28)';ctx.shadowBlur=size*.035;
-    ctx.fillText(ch,0,0);ctx.restore();
+    // Layered damp edges give the cleared glass a soft, uneven moisture boundary.
+    ctx.strokeStyle='rgba(8,25,35,.64)';ctx.lineWidth=Math.max(2,size*.09);ctx.strokeText(ch,0,0);
+    ctx.strokeStyle='rgba(13,34,45,.84)';ctx.lineWidth=Math.max(1.2,size*.052);ctx.strokeText(ch,0,0);
+    ctx.strokeStyle='rgba(231,246,249,.38)';ctx.lineWidth=Math.max(.8,size*.024);ctx.strokeText(ch,0,0);
+    ctx.fillStyle='rgba(228,244,247,.90)';ctx.shadowColor='rgba(230,249,252,.24)';ctx.shadowBlur=size*.045;
+    ctx.fillText(ch,0,0);
+    // A fine moving wet edge catches the light at the active end of the reveal.
+    if(progress<.995){
+      var edge=gw*clamp(progress,0,1),amp=Math.min(size*.055,Math.max(.8,gw*.035)),phase=(x+y)*.017;
+      ctx.globalAlpha=alpha*.48;ctx.strokeStyle='rgba(248,255,255,.92)';ctx.lineWidth=Math.max(.7,size*.012);
+      ctx.shadowColor='rgba(198,237,248,.7)';ctx.shadowBlur=size*.055;
+      ctx.beginPath();ctx.moveTo(edge-amp,-size*.82);
+      ctx.bezierCurveTo(edge+Math.sin(phase)*amp,-size*.38,edge-amp*.7,size*.05,edge+Math.cos(phase*1.7)*amp,size*.52);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
   function render(ctx,w,h,style,lines,time){
     if(!(w>0&&h>0))return;
@@ -202,7 +223,7 @@
           var cw=maskCtx.measureText(ch).width,wt=weights[index]||1;
           var reveal=clamp((target-used)/wt,0,1);
           if(ch!==' '&&reveal>0){
-            maskCtx.save();maskCtx.beginPath();maskCtx.rect(x-1,y-size*1.08,Math.max(.1,cw*reveal+1),size*1.42);maskCtx.clip();
+            maskCtx.save();glyphRevealClip(maskCtx,cw,size,reveal,x+y);
             maskCtx.fillStyle='#fff';maskCtx.fillText(ch,x,y);maskCtx.restore();
           }
           x+=cw+tracking;used+=wt;index++;
@@ -214,13 +235,15 @@
       // Freshly displaced moisture makes each stroke visible against the still-fogged pane.
       var headX=w*.5,headY=top,remaining=target,count=0,headFound=false;
       font(ctx,size,style);ctx.textAlign='left';ctx.textBaseline='alphabetic';
+      var progressUsed=0;
       rows.forEach(function(row,ri){
         var rowWidth=width(ctx,row,tracking),x=(w-rowWidth)*.5,y=top+ri*rowHeight;
         Array.from(row).forEach(function(ch){
-          var cw=ctx.measureText(ch).width,wt=weights[count]||1,reveal=clamp((target-(count?weights.slice(0,count).reduce(function(a,b){return a+b;},0):0))/wt,0,1);
+          var cw=ctx.measureText(ch).width,wt=weights[count]||1;
+          var reveal=clamp((target-progressUsed)/wt,0,1);
           if(ch!==' '&&reveal>0)strokeGlyph(ctx,ch,x,y,size,reveal,alpha);
           if(!headFound&&remaining<=wt){headX=x+cw*clamp(remaining/wt,0,1);headY=y-size*.34;headFound=true;}
-          remaining-=wt;x+=cw+tracking;count++;
+          remaining-=wt;progressUsed+=wt;x+=cw+tracking;count++;
         });
       });
       if(p<.998&&totalChars>0&&headFound){
