@@ -56,9 +56,11 @@
       }
     }
     var rowHeight=size*1.18;
-    var top=h*0.52-((rows.length-1)*rowHeight)/2;
-    var inactiveColor=style.karaokeInactiveColor||'rgba(255,255,255,.38)';
-    var fillColor=style.accentColor||'#3DE28A';
+    /* Karaoke lines sit in the lower safe area, like a conventional sing-along display. */
+    var top=h*0.835-((rows.length-1)*rowHeight);
+    var inactiveColor='rgba(255,255,255,.48)';
+    /* Classic karaoke palette: neutral upcoming lyrics, fixed high-contrast yellow sweep/ball. */
+    var fillColor='#FFE14A';
     /* whole-line motion: rise in from below, drift up and out when replaced */
     var lineY=(1-phase.enter)*size*0.32 - phase.leave*size*0.30;
     var lineScale=0.96+0.04*phase.enter;
@@ -90,15 +92,25 @@
             var wordStart=Number(word.time)||0;
             var wordEnd=Math.max(wordStart+.06,Number(word.endTime)||wordStart+.3);
             var inWord=time>=wordStart&&time<wordEnd;
-            var hopPeriod=.52;
-            var bounceY=inWord?bounceHeight(time-wordStart,hopPeriod,size*.30):0;
-            var hoverY=inWord?0:Math.sin(time*2.4)*size*.012;
-            var ballRadius=Math.max(4,size*.065);
+            /* With word-level timing, travel across timed sections of the active word; when
+               the next word starts, the ball relocates to it and continues the same sweep. */
+            var wordProgress=clamp((time-wordStart)/(wordEnd-wordStart),0,1);
+            var letterCount=Math.max(1,Array.from(word.text.replace(/[^\\p{L}\\p{N}]/gu,'')).length);
+            var sections=Math.max(1,Math.min(8,letterCount));
+            var sectionPosition=wordProgress*sections;
+            var sectionPhase=sectionPosition-Math.floor(sectionPosition);
+            if(wordProgress>=1)sectionPhase=1;
+            var sectionEase=sectionPhase*sectionPhase*(3-2*sectionPhase);
+            var ballX=word.width*(Math.min(sections-1,Math.floor(sectionPosition))+sectionEase)/sections;
+            var bounceY=inWord?bounceHeight(sectionPhase,1,size*.34):0;
+            var hoverY=inWord?0:0;
+            /* Roughly 60% larger than the previous ball; scale tracks the rendered font. */
+            var ballRadius=Math.max(6,size*.105);
             ctx.save();
             ctx.shadowColor=fillColor;
-            ctx.shadowBlur=size*.13;
+            ctx.shadowBlur=size*.16;
             ctx.beginPath();
-            ctx.arc(word.width/2,-size*.62-bounceY-hoverY,ballRadius,0,Math.PI*2);
+            ctx.arc(ballX,-size*.68-bounceY-hoverY,ballRadius,0,Math.PI*2);
             ctx.fillStyle=fillColor;
             ctx.fill();
             ctx.restore();
