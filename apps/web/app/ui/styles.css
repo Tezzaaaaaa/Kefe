@@ -6550,8 +6550,8 @@ body:not(.kefe-fullscreen-open) {
 /* Visualiser tabs are text-only: remove decorative pseudo-icons and icon markup. */
 .kefe-vis-option > [role="tab"]::before,
 .kefe-vis-option > [role="tab"] .kefe-visualiser-tab-icon {
-  display:none !important;
-  content:none !important;
+  display:none;
+  content:none;
 }
 .kefe-vis-option > [role="tab"] {
   justify-content:center;
