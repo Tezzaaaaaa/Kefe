@@ -136,7 +136,7 @@
     canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();if(raf)cancelAnimationFrame(raf);raf=0;gl=null;});
     canvas.addEventListener('webglcontextrestored',()=>{gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'});if(gl&&build()){resize();if(shown())start();}});
     const view=document.createElement('section');view.className='kefe-vis-view kefe-slow-light-view';view.id='kefeVisSlowLightView';view.hidden=true;
-    const intro=document.createElement('div');intro.className='kefe-visualiser-intro';intro.innerHTML='<div><strong>Slow Light</strong><span>Original shader-driven colour fields with film grain and audio-reactive motion.</span></div>';
+    const intro=document.createElement('div');intro.className='kefe-visualiser-intro';intro.hidden=true;
     /* The power switch lives in the panel header (same pattern as Fluted Glass) so the header
        switch always controls the visualiser that is actually selected. */
     const power=document.createElement('button');power.type='button';power.className='kefe-btn kefe-switch kefe-slow-light-power';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.setAttribute('aria-label','Slow Light Visualiser');
@@ -169,7 +169,7 @@
       const presetRow=document.querySelector('.kefe-editing > .kefe-visualiser-preset-row');if(presetRow)presetRow.hidden=false;
       presetRow?.querySelectorAll('.kefe-visualiser-preset-set').forEach(set=>set.hidden=set!==sceneSet);
       const heading=document.getElementById('kefeVisualiserHeading'),description=document.getElementById('kefeVisualiserDescription');
-      if(heading)heading.textContent='Slow Light Visualiser';if(description)description.textContent='Original WebGL colour fields, continuous scene morphing, film grain and audio-reactive movement.';
+      if(heading)heading.textContent='Slow Light';if(description)description.textContent='';
       setActive(true);
     });
     tabsList.appendChild(option);
