@@ -16,9 +16,14 @@ on:
       - "apps/web/app/effects/trailer-stroke-engine.test.cjs"
       - ".github/workflows/trailer-stroke-tests.yml"
 
+permissions:
+  contents: read
+
 jobs:
   stroke-engine:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
