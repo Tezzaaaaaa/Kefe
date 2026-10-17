@@ -77,6 +77,14 @@ const server = http.createServer((req, res) => {
     await dialog.getByRole("button", { name: "Done" }).click();
     await dialog.waitFor({ state: "hidden", timeout: 5000 });
 
+    await page.locator("#kefeMuteToggle").click();
+    const volumePopover = page.locator("#kefeVolumePopover");
+    await volumePopover.waitFor({ state: "visible", timeout: 5000 });
+    assert.equal(await volumePopover.locator(".beui-volume-card").count(), 1, "volume popover should use the beUI Card shell");
+    await volumePopover.getByRole("slider", { name: "Audio volume" }).waitFor({ state: "visible", timeout: 5000 });
+    await page.keyboard.press("Escape");
+    await volumePopover.waitFor({ state: "hidden", timeout: 5000 });
+
     await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
     await page.locator("#beui-lyricsInput").fill("beUI lyric smoke");
