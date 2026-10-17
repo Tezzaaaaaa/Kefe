@@ -54,7 +54,7 @@ const server = http.createServer((req, res) => {
     }, null, { timeout: 20000 });
 
     const tabCount = await page.locator(".beui-tabs-host [role=tab]").count();
-    const tabDebug = await page.locator(".beui-tabs-host [role=tab]").first().evaluate((el) => ({display:getComputedStyle(el).display,visibility:getComputedStyle(el).visibility,opacity:getComputedStyle(el).opacity,rect:el.getBoundingClientRect().toJSON(),parent:el.parentElement?.getBoundingClientRect().toJSON(),host:el.closest(".beui-tabs-host")?.getBoundingClientRect().toJSON()}));
+    const tabDebug = await page.locator(".beui-tabs-host [role=tab]").first().evaluate((el) => ({display:getComputedStyle(el).display,visibility:getComputedStyle(el).visibility,opacity:getComputedStyle(el).opacity,rect:el.getBoundingClientRect().toJSON(),parent:el.parentElement?.getBoundingClientRect().toJSON(),host:el.closest(".beui-tabs-host")?.getBoundingClientRect().toJSON(),ancestors:[...(()=>{const a=[];let n=el;while(n&&a.length<12){a.push({tag:n.tagName,id:n.id,className:typeof n.className==="string"?n.className:"",display:getComputedStyle(n).display,visibility:getComputedStyle(n).visibility,rect:n.getBoundingClientRect().toJSON()});n=n.parentElement;}return a;})()]}));
     console.log("beUI tab render diagnostics:", JSON.stringify(tabDebug));
     assert.ok(tabCount >= 5, `expected editor section tabs, found ${tabCount}`);
     const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
