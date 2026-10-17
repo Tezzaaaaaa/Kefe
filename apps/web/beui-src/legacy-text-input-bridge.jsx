@@ -102,6 +102,8 @@ function mount(input) {
   host.className = "beui-input-host";
   input.insertAdjacentElement("afterend", host);
   input.classList.add("beui-native-input");
+  input.setAttribute("aria-hidden", "true");
+  input.tabIndex = -1;
   input.dataset.beuiInputMounted = "true";
   if (input.id) {
     document.querySelectorAll("label[for]").forEach((label) => {
