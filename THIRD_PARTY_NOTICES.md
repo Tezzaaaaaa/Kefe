@@ -47,9 +47,24 @@ See [the KEFE custom-font notice](fonts/CUSTOM-FONTS-LICENSE.md) for the scope o
 
 The browser editor currently loads `gif.js@0.2.0` from jsDelivr. The editor source also dynamically imports `@uimaxbai/am-lyrics@1.8.2` from jsDelivr for the Apple-style lyric component.
 
-- Verify the exact licence text and redistribution/attribution requirements for both packages before release. This notice does not assert that their licences have been verified.
-- Review the dynamic lyric component's network behaviour and data transfers before publishing the privacy policy or asserting lyric rights clearance.
-- Consider bundling dependencies and pinning integrity hashes (Subresource Integrity where supported) after checking compatibility.
+### `gif.js@0.2.0`
+
+- Upstream: https://github.com/jnordberg/gif.js
+- Licence: MIT, confirmed against the upstream `LICENSE` file and `package.json`.
+- Copyright notice in the upstream licence: Copyright (c) 2013–2018 Johan Nordberg.
+- Include the upstream MIT copyright and permission notice with copies or substantial portions of the software.
+
+### `@uimaxbai/am-lyrics@1.8.2`
+
+- Upstream: https://github.com/binimum/am-lyrics
+- Licence: MPL-2.0, confirmed against the exact upstream `package.json` version 1.8.2 and repository `LICENSE`.
+- The component documentation says it can request lyrics from third-party providers when title, artist, query, music ID or related metadata is supplied. KEFE's current integration clears those lookup properties and supplies its existing TTML lyrics only; this is a source-level observation, not a substitute for testing actual network traffic.
+- Preserve the MPL-2.0 notices and comply with its conditions if distributing or modifying covered source. The component's bundled/runtime dependency licence obligations still need a release-specific review.
+
+### Remaining checks
+
+- Verify actual network behaviour and data transfers for the Apple-style lyric component before finalising the privacy policy or claiming lyric rights clearance.
+- Review transitive/bundled dependency notices and consider bundling dependencies and pinning integrity hashes (Subresource Integrity where supported) after checking compatibility.
 - Do not list Three.js as a current runtime dependency unless a fresh audit confirms it is loaded by the release build.
 
 ## System font fallback
