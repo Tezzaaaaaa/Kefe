@@ -32,11 +32,11 @@
   function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
   function idx(x,y){return x+(gridW+2)*y;}
   function allocate(){
-    /* The former 96×54 solver grid was enlarged to fill the preview/export canvas,
-       causing obvious pixel blocks. Use a substantially denser simulation grid and
-       preserve the output aspect ratio; cap density to keep the CPU solver responsive. */
-    gridW=clamp(Math.round(384*values.quality),256,640);
-    gridH=clamp(Math.round(gridW*(canvas.height/Math.max(1,canvas.width))),80,360);
+    /* Keep the simulation dense enough for high-resolution preview and export.
+       Resolution scales with the quality control, while the bounded grid prevents
+       the CPU fluid solver from exploding in cost on large 4K output canvases. */
+    gridW=clamp(Math.round(512*values.quality),320,768);
+    gridH=clamp(Math.round(gridW*(canvas.height/Math.max(1,canvas.width))),120,432);
     size=(gridW+2)*(gridH+2);
     function field(){return new Float32Array(size);}
     u=field();v=field();u0=field();v0=field();p=field();div=field();
