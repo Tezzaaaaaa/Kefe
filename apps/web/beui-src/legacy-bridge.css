@@ -367,3 +367,9 @@ textarea.beui-native-textarea {
 }
 .kefe-panel.beui-panel-card-hosted { padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
 .beui-editor-panel-card { display: flex; flex-direction: column; }
+
+.beui-upload-card-root { display: contents; }
+.kefe-upload-zone.beui-upload-card-hosted { min-height: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.kefe-upload-zone.beui-upload-card-hosted:hover .beui-upload-card,
+.kefe-upload-zone.beui-upload-card-hosted.is-dragging .beui-upload-card { border-color: var(--accent); background: var(--surface-hi); box-shadow: var(--lift); }
+.beui-upload-card { display: grid; place-items: center; }
