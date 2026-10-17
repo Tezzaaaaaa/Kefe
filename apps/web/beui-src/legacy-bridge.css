@@ -232,8 +232,3 @@ select.beui-native-select {
   align-items: center;
   justify-content: center;
 }
-.beui-react-transport svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
