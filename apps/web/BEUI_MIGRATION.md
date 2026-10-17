@@ -8,12 +8,12 @@ beUI's current web components target React 19, Tailwind CSS 4, and Motion. Compo
 
 ## Current-state audit
 
-- [ ] The editor is currently assembled from static HTML and imperative JavaScript.
-- [ ] The main workspace markup is generated from `apps/web/app/ui/structure.js`.
-- [ ] Settings controls are generated imperatively in `apps/web/app/settings.js`.
-- [ ] The editor has a large existing CSS surface in `apps/web/app/ui/styles.css` and `workspace-shell.css`.
-- [ ] The lyric/effect runtime is separate from the interface and must not be rewritten as part of UI conversion.
-- [ ] The Apple Music lyrics effect lives in `apps/web/app/effects/lyric-apple.js` and is explicitly out of scope for this migration.
+- [x] The editor is currently assembled from static HTML and imperative JavaScript.
+- [x] The main workspace markup is generated from `apps/web/app/ui/structure.js`.
+- [x] Settings controls are generated imperatively in `apps/web/app/settings.js`.
+- [x] The editor has a large existing CSS surface in `apps/web/app/ui/styles.css` and `workspace-shell.css`.
+- [x] The lyric/effect runtime is separate from the interface and must not be rewritten as part of UI conversion.
+- [x] The Apple Music lyrics effect lives in `apps/web/app/effects/lyric-apple.js` and is explicitly out of scope for this migration.
 
 ## Required architecture
 
@@ -55,12 +55,12 @@ beUI's current web components target React 19, Tailwind CSS 4, and Motion. Compo
 - Added the actual beUI Select and bridged existing native select controls to it, preserving change events for the preview aspect-ratio control and other legacy editor handlers.
 - Migrated the visible editor section tabs to the actual beUI Tabs component while retaining the original tab buttons as hidden event-compatible adapters for existing panel logic.
 - Migrated the main sidebar section navigation, Settings entry, collapse toggle, accent swatches, bottom workspace dock, preview fullscreen, playback, restart, volume, and editor-panel action buttons to actual beUI Buttons, including dynamically generated buttons in the editor panels. Hidden originals remain as event adapters so existing handlers and state updates continue to work.
-- Migrated the Settings dialog to React using the actual beUI Button, Switch, and Range Slider components; settings still read/write through the existing persisted settings API, and the superseded imperative dialog generator has been removed from the beUI build-specific settings API; the legacy settings file remains intact until deployment cutover.
-- Added a post-build asset-copy step for the legacy effect/runtime files and a frozen-lockfile GitHub Actions build check.
+- Migrated the Settings dialog layout to the actual beUI Card and implemented its controls with actual beUI Button, Switch, Select, and Range Slider components. It uses a build-specific settings API adapter; the legacy settings file and dialog remain intact until deployment cutover.
+- Added a post-build asset-copy step for legacy effect/runtime files, a frozen-lockfile GitHub Actions build, asset and settings-API smoke tests, and a Chromium browser smoke test for control mounting, Settings, Select, and tab navigation.
 
 ### Not yet complete
 
-The currently published static entry and its settings implementation are intentionally unchanged; the separate Vite-built editor output uses a build-specific settings API and mounts actual beUI components for range and select controls and Settings. Navigation, tabs, remaining buttons, selects, editor panels, and other dialogs still require migration. The build and asset smoke check passed on an earlier revision; the current revision is awaiting its CI run, and browser-level regression testing is still outstanding.
+The currently published static entry and its settings implementation are intentionally unchanged; the separate Vite-built editor output uses a build-specific settings API and mounts actual beUI components for range and select controls, tabs, sidebar navigation, transport/dock controls, editor-panel action buttons, and Settings. Remaining work includes converting editor layout surfaces and other dialogs, and validating all media/lyrics/effect/export flows. The full build and asset smoke check passed on an earlier revision; the latest additions still need a fresh CI run, and the broader browser regression suite remains outstanding.
 
 The conversion is not complete until the acceptance criteria above are checked against the implemented application and tested.
 
