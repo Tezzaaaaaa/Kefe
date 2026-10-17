@@ -52,6 +52,8 @@ const server = http.createServer((req, res) => {
       const panels = [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")];
       return panels.length >= 5 && panels.every((panel) => panel.querySelector(".beui-editor-panel-card"));
     }, null, { timeout: 20000 });
+    await page.waitForSelector("#kefeUploadZone .beui-upload-card", { state: "attached", timeout: 20000 });
+    assert.equal(await page.locator("#mediaInput").getAttribute("type"), "file", "upload Card must preserve the native file input");
     await page.waitForFunction(() => {
       const ranges = [...document.querySelectorAll('input[type="range"]')].filter((input) => input.id !== "kefeTime");
       const selects = [...document.querySelectorAll("select")];
