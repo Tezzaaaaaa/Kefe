@@ -41,12 +41,12 @@ The preview combines the lyric/title-card canvas with a dedicated visualiser can
 
 The effect manifest currently lists 32 lyric effects:
 
-- Apple Music-style focus lyrics
-- Brat
+- Focus Lines
+- Edge Type
 - Aurora
 - Pulse
 - Typewriter
-- Instagram
+- Story Stack
 - Fade Up
 - Decrypt
 - Blur In
@@ -56,7 +56,7 @@ The effect manifest currently lists 32 lyric effects:
 - Drop
 - Drift
 - Scroll Lines
-- Barbie
+- Pink Glow
 - Elastic Pop
 - Flip Text
 - Karaoke

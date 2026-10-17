@@ -34,7 +34,7 @@ Users load their own audio/video and export lyric videos. Copyright in the music
 
 ## 4. Trademarks and brand references
 
-Effect labels and descriptions name third-party brands: "Apple" (Apple Music-style), "Instagram" (Story-style), "Barbie", "Brat" (album-cover style), plus SF Pro Display as a system-font fallback. Risks are low if the effects are original code that only evoke a style, but:
+Effect labels and descriptions named third-party brands (now renamed in the UI to Focus Lines, Edge Type, Story Stack, Pink Glow; internal effect keys are unchanged): "Apple" (Apple Music-style), "Instagram" (Story-style), "Barbie", "Brat" (album-cover style), plus SF Pro Display as a system-font fallback. Risks are low if the effects are original code that only evoke a style, but:
 - Rename or soften brand names in the UI (for example "Focus Lines", "Story Stack", "Pink Glow", "Edge Type").
 - Do not use brand logos or imply affiliation. Add a non-affiliation line to the footer/terms (drafted).
 - Check that no effect copies trade dress, fonts that are not licensed, or protected artwork.
