@@ -1,0 +1,33 @@
+name: Trailer handwriting regression tests
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/app/effects/trailer-stroke-data.js"
+      - "apps/web/app/effects/trailer-stroke-engine.js"
+      - "apps/web/app/effects/trailer-stroke-engine.test.cjs"
+      - ".github/workflows/trailer-stroke-tests.yml"
+  push:
+    branches:
+      - "feat/trailer-centreline-handwriting"
+    paths:
+      - "apps/web/app/effects/trailer-stroke-data.js"
+      - "apps/web/app/effects/trailer-stroke-engine.js"
+      - "apps/web/app/effects/trailer-stroke-engine.test.cjs"
+      - ".github/workflows/trailer-stroke-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  stroke-engine:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run deterministic handwriting regression tests
+        run: node --test apps/web/app/effects/trailer-stroke-engine.test.cjs
