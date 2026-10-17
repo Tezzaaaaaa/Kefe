@@ -5,7 +5,8 @@
    Visualiser layers are composited into video export. */
 (function(){
   'use strict';
-  var stage,cv,cctx,sel,audio,mode='off',vid=null,vidUrl='',vidName='',small=null,smallKey='',avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
+  var stage,cv,cctx,sel,audio,mode='off',lastMode='apple',enabled=false,vid=null,vidUrl='',vidName='',small=null,smallKey='',avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
+  var syncBackgroundOptionsUI=null,syncBackgroundToggleUI=null;
   var work=document.createElement('canvas'),wctx=work.getContext('2d');
   var t0=performance.now();
 
@@ -99,7 +100,7 @@
   /* paint(ctx,w,h,t) – used by the preview loop and by video export */
   function paint(g,w,h,t){
     g.save();g.fillStyle='#000';g.fillRect(0,0,w,h);
-    if(mode==='off'){g.restore();return;}
+    if(!enabled){g.restore();return;}
     if(mode==='gradient'){drawAlbumGradient(g,w,h,t);g.restore();return;}
     if(useVideo()&&drawCover(g,vid,w,h)){
       g.restore();return;
@@ -140,9 +141,12 @@
 
   /* ── UI ── */
   function setMode(m){
-    mode=m;if(sel&&sel.value!==m)sel.value=m;
+    if(m==='off'){enabled=false;mode='off';if(sel&&sel.value!=='off')sel.value='off';}
+    else{mode=m;lastMode=m;enabled=true;if(sel&&sel.value!==m)sel.value=m;}
     var o=sel&&sel.querySelector('option[value="video"]');if(o)o.disabled=!vid;
     syncVideo(true);
+    if(syncBackgroundOptionsUI)syncBackgroundOptionsUI();
+    if(syncBackgroundToggleUI)syncBackgroundToggleUI();
   }
   function buildSelect(){
     sel=document.getElementById('visualiserBackground');if(!sel)return;
@@ -155,6 +159,18 @@
     var select=document.getElementById('visualiserBackground');
     var lyricOptions=document.getElementById('lyricEffectOptions');
     if(!backgroundForm||!select||!lyricOptions||document.getElementById('kefeBackgroundEffectOptions'))return;
+    var panel=document.querySelector('[data-panel-view="background-effects"]');
+    var panelHead=panel&&panel.querySelector('.kefe-panel-head');
+    var heading=panelHead&&panelHead.querySelector('h2');
+    if(heading&&!document.getElementById('kefeBackgroundEffectToggle')){
+      var titleRow=document.createElement('div');titleRow.className='kefe-background-effect-heading';
+      heading.parentNode.insertBefore(titleRow,heading);titleRow.appendChild(heading);
+      var toggle=document.createElement('button');toggle.id='kefeBackgroundEffectToggle';toggle.type='button';toggle.className='kefe-background-effect-toggle kefe-switch';toggle.setAttribute('aria-label','Background effects');
+      toggle.addEventListener('click',function(){setMode(enabled?'off':(lastMode||'apple'));});
+      titleRow.appendChild(toggle);
+      syncBackgroundToggleUI=function(){toggle.textContent=enabled?'On':'Off';toggle.setAttribute('aria-pressed',String(enabled));toggle.classList.toggle('active',enabled);};
+      syncBackgroundToggleUI();
+    }
     var backgroundBlock=select.closest('.kefe-background-effect-control');
     var transparency=document.getElementById('backgroundTransparency');
     var transparencyBlock=transparency&&transparency.closest('.kefe-background-effect-control');
@@ -164,20 +180,21 @@
     if(transparencyBlock&&transparencyBlock.parentNode!==backgroundForm)backgroundForm.appendChild(transparencyBlock);
     if(uploadWrap)backgroundForm.appendChild(uploadWrap);
     var choiceWrap=document.createElement('div');choiceWrap.id='kefeBackgroundEffectOptions';choiceWrap.className='kefe-background-effect-options';choiceWrap.setAttribute('role','group');choiceWrap.setAttribute('aria-label','Background effect options');
-    [['off','Off'],['apple','Apple Motion Art'],['gradient','Album Palette Gradient'],['video','Uploaded Video']].forEach(function(item){
-      var button=document.createElement('button');button.type='button';button.className='kefe-lyric-effect-option kefe-background-effect-card';button.dataset.backgroundMode=item[0];button.setAttribute('aria-pressed',String(select.value===item[0]));
+    [['apple','Apple Motion Art'],['gradient','Album Palette Gradient'],['video','Uploaded Video']].forEach(function(item){
+      var button=document.createElement('button');button.type='button';button.className='kefe-lyric-effect-option kefe-background-effect-card';button.dataset.backgroundMode=item[0];button.setAttribute('aria-pressed',String(lastMode===item[0]));
       var preview=document.createElement('span');preview.className='kefe-background-effect-preview';preview.setAttribute('aria-hidden','true');
       var previewCore=document.createElement('span');previewCore.className='kefe-background-effect-preview-core';preview.appendChild(previewCore);
       var label=document.createElement('span');label.className='kefe-background-effect-name';label.textContent=item[1];
       button.appendChild(preview);button.appendChild(label);
-      button.addEventListener('click',function(){if(item[0]==='video'&&button.disabled)return;select.value=item[0];select.dispatchEvent(new Event('change',{bubbles:true}));syncBackgroundOptions();});
+      button.addEventListener('click',function(){if(item[0]==='video'&&button.disabled)return;setMode(item[0]);});
       choiceWrap.appendChild(button);
     });
     select.parentNode.insertBefore(choiceWrap,select);select.hidden=true;select.setAttribute('aria-hidden','true');select.tabIndex=-1;
     function syncBackgroundOptions(){
-      choiceWrap.querySelectorAll('[data-background-mode]').forEach(function(button){var selected=button.dataset.backgroundMode===select.value;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));if(button.dataset.backgroundMode==='video')button.disabled=!vid;});
+      choiceWrap.querySelectorAll('[data-background-mode]').forEach(function(button){var selected=button.dataset.backgroundMode===lastMode;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));if(button.dataset.backgroundMode==='video')button.disabled=!vid;});
     }
-    select.addEventListener('change',syncBackgroundOptions);
+    syncBackgroundOptionsUI=syncBackgroundOptions;
+    select.addEventListener('change',function(){setMode(select.value==='video'&&!vid?'off':select.value);});
     syncBackgroundOptions();
   }
   function buildUpload(){
@@ -238,5 +255,5 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
   function paintTransparency(g,w,h){var amount=Math.max(0,Math.min(100,Number(document.getElementById('backgroundTransparency')?.value)||0))/100;if(amount>0){g.save();g.fillStyle='rgba(0,0,0,'+amount+')';g.fillRect(0,0,w,h);g.restore();}}
-  window.kefeBackground={paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return mode==='off'?'source-over':'screen';},hasVideo:function(){return !!vid;}};
+  window.kefeBackground={paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return !enabled?'source-over':'screen';},hasVideo:function(){return !!vid;}};
 })();
