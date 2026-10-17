@@ -4,11 +4,10 @@ import { Button } from "@/components/motion/button";
 import "./legacy-bridge.css";
 
 const SKIP_ANCESTORS = [
-  '[role="dialog"]',
-  ".kefe-command-overlay",
   "#beui-settings-root",
   ".beui-button-host",
   ".beui-panel-button-host",
+  ".beui-command-button-host",
   ".beui-transport-host",
   ".beui-dock-host",
   ".beui-accent-host",
@@ -51,7 +50,7 @@ function readButton(backing) {
   };
 }
 
-function PanelButton({ backing }) {
+function PanelButton({ backing, isCommand = false }) {
   const [attrs, setAttrs] = useState(() => readButton(backing));
   useEffect(() => {
     const observer = new MutationObserver(() => setAttrs(readButton(backing)));
@@ -61,13 +60,13 @@ function PanelButton({ backing }) {
 
   useEffect(() => {
     const host = backing.previousElementSibling;
-    if (host?.classList.contains("beui-panel-button-host")) host.hidden = attrs.hidden;
+    if (host?.classList.contains("beui-panel-button-host") || host?.classList.contains("beui-command-button-host")) host.hidden = attrs.hidden;
   }, [attrs.hidden, backing]);
 
   return (
     <Button
       variant="ghost"
-      className={`${attrs.className} beui-panel-action`}
+      className={`${attrs.className} ${isCommand ? "beui-command-action" : "beui-panel-action"}`}
       title={attrs.title}
       role={attrs.role}
       tabIndex={attrs.tabIndex}
@@ -85,7 +84,7 @@ function PanelButton({ backing }) {
 
 function canBridge(button) {
   return button instanceof HTMLButtonElement
-    && button.closest(".kefe-panel")
+    && (button.closest(".kefe-panel") || button.closest(".kefe-command-list"))
     && !button.hidden
     && !button.classList.contains("beui-native-panel-button")
     && !button.classList.contains("beui-native-sidebar-control")
@@ -96,17 +95,18 @@ function canBridge(button) {
 
 function mount(button) {
   if (!canBridge(button) || button.dataset.beuiPanelMounted) return;
+  const isCommand = Boolean(button.closest(".kefe-command-list"));
   const host = document.createElement("div");
-  host.className = "beui-panel-button-host";
+  host.className = isCommand ? "beui-command-button-host" : "beui-panel-button-host";
   button.insertAdjacentElement("beforebegin", host);
   button.classList.add("beui-native-panel-button");
   button.dataset.beuiPanelMounted = "true";
-  createRoot(host).render(<PanelButton backing={button} />);
+  createRoot(host).render(<PanelButton backing={button} isCommand={isCommand} />);
 }
 
 function scan(root = document) {
   if (root instanceof HTMLButtonElement) mount(root);
-  root.querySelectorAll?.(".kefe-panel button").forEach(mount);
+  root.querySelectorAll?.(".kefe-panel button, .kefe-command-list button").forEach(mount);
 }
 
 function start() {
@@ -116,7 +116,7 @@ function start() {
       if (record.type === "attributes" && record.target instanceof HTMLButtonElement) {
         if (record.target.dataset.beuiPanelMounted) {
           const host = record.target.previousElementSibling;
-          if (host?.classList.contains("beui-panel-button-host")) host.hidden = record.target.hidden;
+          if (host?.classList.contains("beui-panel-button-host") || host?.classList.contains("beui-command-button-host")) host.hidden = record.target.hidden;
         } else if (!record.target.hidden) {
           mount(record.target);
         }
