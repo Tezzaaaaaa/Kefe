@@ -32,6 +32,30 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(file).pipe(res);
 });
 
+function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
+  const samples = Math.floor(durationSeconds * sampleRate);
+  const dataBytes = samples * 2;
+  const buffer = Buffer.alloc(44 + dataBytes);
+  buffer.write("RIFF", 0);
+  buffer.writeUInt32LE(36 + dataBytes, 4);
+  buffer.write("WAVE", 8);
+  buffer.write("fmt ", 12);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(1, 22);
+  buffer.writeUInt32LE(sampleRate, 24);
+  buffer.writeUInt32LE(sampleRate * 2, 28);
+  buffer.writeUInt16LE(2, 32);
+  buffer.writeUInt16LE(16, 34);
+  buffer.write("data", 36);
+  buffer.writeUInt32LE(dataBytes, 40);
+  for (let i = 0; i < samples; i += 1) {
+    const sample = Math.round(Math.sin((2 * Math.PI * 440 * i) / sampleRate) * 0.2 * 32767);
+    buffer.writeInt16LE(sample, 44 + i * 2);
+  }
+  return buffer;
+}
+
 (async () => {
   let browser;
   try {
@@ -121,8 +145,31 @@ const server = http.createServer((req, res) => {
     await page.waitForTimeout(300);
     const secondCount = await page.locator(".beui-panel-button-host").count();
     assert.equal(secondCount, firstCount, "panel bridge must not recursively mount its own buttons");
+
+    await page.locator("#mediaInput").setInputFiles({
+      name: "beui-smoke.wav",
+      mimeType: "audio/wav",
+      buffer: makeWavBuffer(),
+    });
+    await page.waitForFunction(() => {
+      const audio = document.getElementById("kefeAudio");
+      const track = document.getElementById("kefeMediaTrack");
+      return audio && audio.readyState >= 1 && Number.isFinite(audio.duration) && audio.duration > 0 && track && !track.hidden;
+    }, null, { timeout: 15000 });
+    assert.ok(Number(await page.locator("#kefeTime").getAttribute("max")) >= 4.9, "timeline should use decoded media duration");
+    await page.getByRole("button", { name: "Play" }).click();
+    await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === false, null, { timeout: 5000 });
+    await page.getByRole("button", { name: "Pause" }).click();
+    await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === true, null, { timeout: 5000 });
+
+    await page.locator("#mediaInput").setInputFiles({
+      name: "beui-smoke.lrc",
+      mimeType: "text/plain",
+      buffer: Buffer.from("[00:00.00]Smoke line one\\n[00:02.00]Smoke line two\\n", "utf8"),
+    });
+    await page.waitForFunction(() => document.getElementById("kefeLyricsStatus")?.textContent.includes("Loaded lyrics from beui-smoke.lrc"), null, { timeout: 10000 });
     assert.deepEqual(pageErrors, [], `browser runtime errors: ${pageErrors.join("; ")}`);
-    console.log("beUI browser smoke passed: built entry, controls, Settings dialog, Select, sidebar navigation, command palette, and panel bridge.");
+    console.log("beUI browser smoke passed: component conversion, media loading/playback, and LRC upload.");
     await context.close();
   } finally {
     if (browser) await browser.close();
