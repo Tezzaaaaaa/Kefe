@@ -52,15 +52,16 @@
     },
     inkscript: {
       title: 'Ink Script',
-      defaults: {font:'Mr Dafoe',googleFont:'',weight:400,aspect:'match',sizing:'fit',ink:'#081a1a',bg:'#ff3334',transparent:true,speed:1,write:16,morph:23,hold:1.4,blank:0.28,splatter:1,exit:'cut',loop:true,uploadedFamily:''},
+      defaults: {font:'Mr Dafoe',googleFont:'',weight:400,aspect:'match',sizing:'fit',ink:'#17201d',bg:'#f0eee7',transparent:false,paper:true,tracking:0,lineSpacing:1.12,speed:1,write:24,morph:23,hold:1.4,blank:0.28,splatter:0.45,exit:'cut',loop:true,uploadedFamily:''},
       fields: [
-        ['select','font','Font',[['Mr Dafoe','Mr Dafoe'],['Kaushan Script','Kaushan Script'],['Yellowtail','Yellowtail'],['Pacifico','Pacifico'],['Lobster','Lobster'],['Damion','Damion'],['Caveat Brush','Caveat Brush'],['Sedgwick Ave Display','Sedgwick Ave Display'],['Permanent Marker','Permanent Marker'],['Satisfy','Satisfy'],['__google','Other Google font…'],['__upload','Uploaded font']]],
-        ['text','googleFont','Google Fonts family','e.g. Rock Salt'],['file','fontFile','Upload font file','.ttf,.otf,.woff,.woff2'],
+        ['select','font','Handwriting',[['Mr Dafoe','Mr Dafoe'],['Kaushan Script','Kaushan Script'],['Yellowtail','Yellowtail'],['Pacifico','Pacifico'],['Lobster','Lobster'],['Damion','Damion'],['Caveat Brush','Caveat Brush'],['Sedgwick Ave Display','Sedgwick Ave Display'],['Permanent Marker','Permanent Marker'],['Satisfy','Satisfy'],['__google','Other Google font…'],['__upload','Uploaded font']]],
+        ['text','googleFont','Google font','e.g. Rock Salt'],['file','fontFile','Upload font','.ttf,.otf,.woff,.woff2'],
         ['range','weight','Weight',100,900,100,''],['select','aspect','Composition shape',[['match','Match KEFE preview'],['4/3','Classic 4:3'],['16/9','Landscape 16:9'],['1/1','Square 1:1'],['9/16','Portrait 9:16']]],
-        ['select','sizing','Word size',[['fit','Every word fills same width'],['same','Same font size for every word']]],
-        ['color','ink','Ink'],['color','bg','Background'],['toggle','transparent','Transparent background'],
-        ['range','speed','Speed',0.25,2,0.05,'×'],['range','write','Write-on',6,48,1,' frames'],['range','morph','Melt into next word',8,60,1,' frames'],
-        ['range','hold','Hold',0,5,0.1,' s'],['range','blank','Blank before loop',0,2,0.04,' s'],['range','splatter','Splatter',0,2.5,0.1,'×'],
+        ['select','sizing','Text sizing',[['fit','Fit each lyric line'],['same','Consistent size']]],
+        ['color','ink','Ink colour'],['color','bg','Paper colour'],['toggle','transparent','Transparent background'],['toggle','paper','Paper texture'],
+        ['range','tracking','Letter spacing',-0.04,0.16,0.01,' em'],['range','lineSpacing','Line spacing',0.9,1.6,0.05,'×'],
+        ['range','speed','Speed',0.25,2,0.05,'×'],['range','write','Write-on',6,48,1,' frames'],['range','morph','Ink transition',8,48,1,' frames'],
+        ['range','hold','Hold',0,5,0.1,' s'],['range','blank','Blank before loop',0,2,0.04,' s'],['range','splatter','Ink flecks',0,1.5,0.05,'×'],
         ['select','exit','End of loop',[['cut','Cut to blank'],['fade','Fade out']]],
         ['toggle','loop','Loop']
       ]
@@ -72,11 +73,12 @@
   Object.keys(defs).forEach(k => settings[k] = Object.assign({}, defs[k].defaults, settings[k] || {}));
   if (settings.inkscript.font === '__upload') { settings.inkscript.font = 'Mr Dafoe'; settings.inkscript.uploadedFamily = ''; }
   const save = () => { try { localStorage.setItem(storeKey, JSON.stringify(settings)); } catch (_) {} };
-  const migrationKey = 'kefe.inspiration-effects.transparent-default.v1';
+  const migrationKey = 'kefe.inspiration-effects.transparent-default.v2';
   let migrated = false;
   try { migrated = localStorage.getItem(migrationKey) === '1'; } catch (_) {}
   if (!migrated) {
-    Object.keys(defs).forEach(key => { settings[key].transparent = true; });
+    Object.keys(defs).forEach(key => { if(key!=='inkscript') settings[key].transparent = true; });
+    if(!Object.prototype.hasOwnProperty.call(settings.inkscript,'paper'))settings.inkscript.paper=true;
     save();
     try { localStorage.setItem(migrationKey, '1'); } catch (_) {}
   }
@@ -376,6 +378,49 @@
     if(s.font==='__google')return String(s.googleFont||'cursive').trim()||'cursive';
     return s.font||'Mr Dafoe';
   }
+  const inkPaperCache = new Map();
+  function paintInkPaper(ctx,w,h,color,texture){
+    const key=[Math.round(w),Math.round(h),color,texture?'grain':'plain'].join('|');
+    let paper=inkPaperCache.get(key);
+    if(!paper){
+      paper=document.createElement('canvas');paper.width=Math.max(1,Math.round(w));paper.height=Math.max(1,Math.round(h));
+      const p=paper.getContext('2d');p.fillStyle=color||'#f0eee7';p.fillRect(0,0,paper.width,paper.height);
+      if(texture){
+        const shade=p.createLinearGradient(0,0,paper.width,paper.height);
+        shade.addColorStop(0,'rgba(255,255,255,.23)');shade.addColorStop(.5,'rgba(255,255,255,0)');shade.addColorStop(1,'rgba(77,65,48,.09)');
+        p.fillStyle=shade;p.fillRect(0,0,paper.width,paper.height);
+        const area=paper.width*paper.height,grainCount=Math.min(18000,Math.max(700,Math.round(area/420)));
+        for(let i=0;i<grainCount;i++){
+          const seed=i+paper.width*.37+paper.height*.71;
+          const x=hash(seed+1)*paper.width,y=hash(seed+2)*paper.height;
+          const alpha=.018+hash(seed+3)*.065;
+          p.fillStyle='rgba(67,59,46,'+alpha.toFixed(3)+')';
+          const r=.35+hash(seed+4)*1.25;p.fillRect(x,y,r,r*.7);
+        }
+        const fiberCount=Math.min(1200,Math.max(100,Math.round(area/8000)));
+        for(let i=0;i<fiberCount;i++){
+          const seed=i+paper.height*1.91,x=hash(seed+31)*paper.width,y=hash(seed+32)*paper.height;
+          p.strokeStyle='rgba(87,77,62,'+(0.025+hash(seed+33)*.045).toFixed(3)+')';
+          p.lineWidth=.4+hash(seed+34)*.7;p.beginPath();p.moveTo(x,y);p.lineTo(x+(hash(seed+35)-.5)*14,y+(hash(seed+36)-.5)*2.4);p.stroke();
+        }
+        const vignette=p.createRadialGradient(paper.width*.5,paper.height*.48,Math.min(paper.width,paper.height)*.12,paper.width*.5,paper.height*.5,Math.max(paper.width,paper.height)*.72);
+        vignette.addColorStop(0,'rgba(255,255,255,0)');vignette.addColorStop(1,'rgba(62,52,38,.10)');p.fillStyle=vignette;p.fillRect(0,0,paper.width,paper.height);
+      }
+      inkPaperCache.set(key,paper);if(inkPaperCache.size>4)inkPaperCache.delete(inkPaperCache.keys().next().value);
+    }
+    ctx.drawImage(paper,0,0,w,h);
+  }
+  function inkTextRows(ctx,text,maxW,family,weight,tracking){
+    const words=String(text||'').trim().replace(/\\s+/g,' ').split(' ').filter(Boolean),rows=[];let row='';
+    const measure=value=>{if(!tracking)return ctx.measureText(value).width;return ctx.measureText(value).width+Math.max(0,Array.from(value).length-1)*tracking;};
+    for(const word of words){
+      const test=row?row+' '+word:word;
+      if(row&&measure(test)>maxW){rows.push(row);row=word;}else row=test;
+    }
+    if(row)rows.push(row);
+    while(rows.length>4){let best=0;for(let i=1;i<rows.length;i++)if(rows[i].length<rows[best].length)best=i;rows.splice(best-1,2,rows[best-1]+' '+rows[best]);}
+    return rows;
+  }
   function renderInkScript(ctx,w,h,style,lines,time){
     const s=settings.inkscript,source=Array.isArray(lines)?lines:[];
     if(!source.length)return;
@@ -387,12 +432,12 @@
       t=first+((t-first)%span);
     }
     if(!s.loop&&t>lastEnd){
-      if(!s.transparent){ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);}
+      if(!s.transparent)paintInkPaper(ctx,w,h,s.bg,s.paper);
       return;
     }
     const items=linesFor(source,t);if(!items.length)return;
     const item=items[items.length-1],line=item.line,txt=String(line.text||'').trim();if(!txt)return;
-    if(!s.transparent){ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);}
+    if(!s.transparent)paintInkPaper(ctx,w,h,s.bg,s.paper);
     const family=inkFont(s),weight=Number(s.weight)||400;
     if(s.font==='__google'&&s.googleFont){
       const key=s.googleFont.trim();
@@ -411,105 +456,75 @@
         document.fonts.load(weight+' 48px "'+family+'"').then(()=>window.kefeLyrics?.redraw?.()).catch(()=>{});
       }
     }
-
-    const maxW=w*.88,maxH=h*.48;
+    const maxW=w*.84,maxH=h*.62,tracking=(Number(s.tracking)||0)*Math.min(w,h),lineScale=Math.max(.9,Math.min(1.6,Number(s.lineSpacing)||1.12));
     const ratio=s.aspect==='match'?w/h:Number(s.aspect.split('/')[0])/Number(s.aspect.split('/')[1]);
-    const boxW=ratio<w/h?Math.min(maxW,maxH*ratio):maxW;
-    const boxH=ratio>w/h?Math.min(maxH,maxW/ratio):maxH;
-    ctx.save();
-    ctx.textAlign='center';
-    ctx.textBaseline='middle';
+    const boxW=ratio<w/h?Math.min(maxW,maxH*ratio):maxW,boxH=ratio>w/h?Math.min(maxH,maxW/ratio):maxH;
+    ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.lineCap='round';
     ctx.font=weight+' 100px "'+family+'", cursive';
-    let size=Math.min(boxH*.78,100*boxW/Math.max(1,ctx.measureText(txt).width));
+    let size=Math.min(boxH*.55,100*boxW/Math.max(1,ctx.measureText(txt).width));
     if(s.sizing==='same'){
-      for(const row of source){
-        const rowText=String(row.text||'').trim();
-        if(rowText){
-          const width=ctx.measureText(rowText).width;
-          if(width>0)size=Math.min(size,100*boxW/width);
-        }
-      }
+      for(const row of source){const rowText=String(row.text||'').trim();if(rowText){const width=ctx.measureText(rowText).width;if(width>0)size=Math.min(size,100*boxW/width);}}
     }
     size=Math.max(12,size);
-    ctx.font=weight+' '+size+'px "'+family+'", cursive';
-    const textW=Math.min(boxW,ctx.measureText(txt).width),x=w/2,y=h/2;
-    const startTime=Number(line.time)||item.start,endTime=Math.max(startTime+.2,Number(line.endTime)||item.end);
-    const duration=endTime-startTime,elapsed=Math.max(0,t-startTime);
-    const speed=Math.max(.25,Number(s.speed)||1);
-    const writeDur=Math.max(.18,Math.min(Number(s.write)/25/speed,duration*.78));
-    const morphDur=Math.max(.12,Number(s.morph)/25/speed);
-    const writeProgress=clamp(elapsed/writeDur);
-    const easedWrite=writeProgress*writeProgress*(3-2*writeProgress);
-    const exitStart=Math.max(writeDur+Number(s.hold),duration-morphDur);
-    const transitionProgress=clamp((elapsed-exitStart)/Math.max(.08,morphDur));
-    const hasNext=!!source[item.index+1]&&Number(source[item.index+1].time)<=endTime+.2;
-    const fadeOut=(hasNext||s.exit==='fade')?transitionProgress:0;
-    const alpha=1-fadeOut;
-    const writing=elapsed<writeDur;
-    const reveal=textW*easedWrite;
-    const ink=s.ink||'#081a1a';
-
-    // Reveal the real cursive glyphs from left to right, with a gently irregular wet edge.
-    // The mask follows the writing progress; no decorative line or underline is drawn.
-    ctx.save();
-    ctx.globalAlpha=alpha;
-    ctx.fillStyle=ink;
-    ctx.shadowColor=ink;
-    ctx.shadowBlur=size*.018;
-    if(writing){
-      const left=x-textW/2-size*.06;
-      const right=left+reveal+size*.08;
-      const top=y-size*.9,bottom=y+size*.9;
-      const wobble=size*.018;
-      ctx.beginPath();
-      ctx.moveTo(left,top);
-      ctx.lineTo(right-wobble,top);
-      ctx.bezierCurveTo(right+wobble,y-size*.55,right-wobble,y-size*.2,right+wobble*.35,y);
-      ctx.bezierCurveTo(right-wobble,y+size*.24,right+wobble,y+size*.6,right-wobble,bottom);
-      ctx.lineTo(left,bottom);
-      ctx.closePath();
-      ctx.clip();
+    let rows;
+    for(let attempt=0;attempt<5;attempt++){
+      ctx.font=weight+' '+size+'px "'+family+'", cursive';
+      rows=inkTextRows(ctx,txt,boxW*.96,family,weight,tracking);
+      const widest=Math.max(1,...rows.map(row=>ctx.measureText(row).width+Math.max(0,Array.from(row).length-1)*tracking));
+      const totalH=size*lineScale*rows.length;
+      if((widest<=boxW&&totalH<=boxH)||size<=12)break;
+      size*=Math.min(.96,boxW/widest,boxH/totalH);
     }
-    ctx.fillText(txt,x,y);
+    ctx.font=weight+' '+size+'px "'+family+'", cursive';
+    const widths=rows.map(row=>ctx.measureText(row).width+Math.max(0,Array.from(row).length-1)*tracking);
+    const textW=Math.max(...widths),lineH=size*lineScale,totalH=lineH*rows.length;
+    const x=w/2,y=h/2,startTime=Number(line.time)||item.start,endTime=Math.max(startTime+.2,Number(line.endTime)||item.end);
+    const duration=endTime-startTime,elapsed=Math.max(0,t-startTime),speed=Math.max(.25,Number(s.speed)||1);
+    const writeDur=Math.max(.18,Math.min(Number(s.write)/25/speed,duration*.78)),morphDur=Math.max(.12,Number(s.morph)/25/speed);
+    const writeProgress=clamp(elapsed/writeDur),easedWrite=writeProgress*writeProgress*(3-2*writeProgress);
+    const exitStart=Math.max(writeDur+Number(s.hold),duration-morphDur),transitionProgress=clamp((elapsed-exitStart)/Math.max(.08,morphDur));
+    const hasNext=!!source[item.index+1]&&Number(source[item.index+1].time)<=endTime+.2;
+    const alpha=1-((hasNext||s.exit==='fade')?transitionProgress:0),writing=elapsed<writeDur;
+    const ink=s.ink||'#17201d',top=y-totalH/2+lineH/2;
+    ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=ink;ctx.shadowColor=ink;ctx.shadowBlur=size*.012;
+    rows.forEach((row,ri)=>{
+      const rowW=widths[ri],rowY=top+ri*lineH,progress=clamp(easedWrite*rows.length-ri);
+      const reveal=rowW*progress,left=x-rowW/2;
+      if(writing){
+        ctx.save();ctx.beginPath();
+        const edge=left+reveal,amp=size*.012;
+        ctx.moveTo(left-size*.02,rowY-size*.8);ctx.lineTo(edge-amp,rowY-size*.8);
+        ctx.bezierCurveTo(edge+amp,rowY-size*.4,edge-amp,rowY-size*.15,edge+amp*.25,rowY);
+        ctx.bezierCurveTo(edge-amp,rowY+size*.22,edge+amp,rowY+size*.55,edge-amp,rowY+size*.8);
+        ctx.lineTo(left-size*.02,rowY+size*.8);ctx.closePath();ctx.clip();
+      }
+      if(Math.abs(tracking)<.001||typeof ctx.letterSpacing==='string'){
+        if('letterSpacing' in ctx)ctx.letterSpacing=tracking+'px';
+        ctx.fillText(row,x,rowY);
+      }else{
+        const chars=Array.from(row);let cx=x-(rowW/2);
+        chars.forEach(ch=>{ctx.fillText(ch,cx+ctx.measureText(ch).width/2,rowY);cx+=ctx.measureText(ch).width+tracking;});
+      }
+      if(writing)ctx.restore();
+    });
     ctx.restore();
-
-    // Fine ink droplets follow the wet edge, then settle; fixed seeds keep preview and export stable.
-    const splatter=clamp(Number(s.splatter)||0,0,2.5);
+    const splatter=clamp(Number(s.splatter)||0,0,1.5);
     if(splatter>0&&(writing||writeProgress>=1)){
-      const count=Math.min(84,Math.round(38*splatter));
-      const edge=x-textW/2+reveal;
+      const count=Math.min(64,Math.round(24*splatter)),edge=x-textW/2+textW*easedWrite;
       ctx.save();
       for(let i=0;i<count;i++){
-        const seed=i+item.index*211;
-        const birth=.08+.84*hash(seed+2);
-        const age=writeProgress-birth;
+        const seed=i+item.index*211,birth=.08+.84*hash(seed+2),age=writeProgress-birth;
         if(age<0||age>.42)continue;
-        const spread=size*(.045+hash(seed+4)*.22)*splatter;
-        const px=edge+(hash(seed+6)-.5)*spread*1.5;
-        const py=y+(hash(seed+8)-.5)*size*.72+(hash(seed+10)-.5)*spread;
-        const radius=Math.max(.45,size*(.0015+hash(seed+12)*.0045))*splatter;
-        const settle=clamp(1-age/.42);
-        ctx.globalAlpha=alpha*(.12+.3*hash(seed+14))*settle;
-        ctx.fillStyle=ink;
-        ctx.beginPath();
-        ctx.ellipse(px,py,radius*(1+hash(seed+16)*1.8),radius*(.7+hash(seed+18)*.8),hash(seed+20)*Math.PI,0,Math.PI*2);
-        ctx.fill();
+        const spread=size*(.035+hash(seed+4)*.16)*splatter,px=edge+(hash(seed+6)-.5)*spread*1.4,py=y+(hash(seed+8)-.5)*size*.6;
+        const radius=Math.max(.35,size*(.001+hash(seed+12)*.003))*splatter;
+        ctx.globalAlpha=alpha*(.1+.22*hash(seed+14))*clamp(1-age/.42);ctx.fillStyle=ink;ctx.beginPath();
+        ctx.ellipse(px,py,radius*(1+hash(seed+16)),radius*(.7+hash(seed+18)*.8),hash(seed+20)*Math.PI,0,Math.PI*2);ctx.fill();
       }
       ctx.restore();
     }
-
     if(hasNext&&transitionProgress>0){
       const nextText=String(source[item.index+1].text||'').trim();
-      if(nextText){
-        ctx.save();
-        ctx.globalAlpha=transitionProgress;
-        ctx.font=weight+' '+size+'px "'+family+'", cursive';
-        ctx.fillStyle=ink;
-        ctx.shadowColor=ink;
-        ctx.shadowBlur=size*.018;
-        ctx.fillText(nextText,x,y);
-        ctx.restore();
-      }
+      if(nextText){ctx.save();ctx.globalAlpha=transitionProgress;ctx.font=weight+' '+size+'px "'+family+'", cursive';ctx.fillStyle=ink;ctx.shadowColor=ink;ctx.shadowBlur=size*.012;ctx.fillText(nextText,x,y);ctx.restore();}
     }
     if(elapsed>duration&&!s.loop&&s.exit==='cut')ctx.clearRect(0,0,w,h);
     ctx.restore();
