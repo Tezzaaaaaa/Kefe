@@ -90,29 +90,23 @@ function pulseGlyphGeometry(ctx, words, width, size, setFont) {
         return null;
     }
 
-    const step = 1;
+    // Sub-pixel sampling plus an ink-weighted centroid avoids the abrupt jumps caused by
+    // choosing a single vertical ink run (especially around counters in a, e, o, and R).
+    const step = 0.5;
     const points = [];
-    let lastGlyphY = baseline;
+    let lastGlyphY = 0;
     for (let x = 0; x <= width; x += step) {
         const ix = Math.min(mask.width - 1, Math.max(0, Math.floor(x * scale)));
-        let bestY = -1;
-        let bestDistance = Infinity;
-        let runStart = -1;
-        for (let y = 0; y <= mask.height; y++) {
-            const ink = y < mask.height && pixels[(y * mask.width + ix) * 4 + 3] > 24;
-            if (ink && runStart < 0) runStart = y;
-            if (!ink && runStart >= 0) {
-                const center = (runStart + y - 1) / (2 * scale);
-                const distance = Math.abs(center - lastGlyphY);
-                if (distance < bestDistance) {
-                    bestDistance = distance;
-                    bestY = center;
-                }
-                runStart = -1;
-            }
+        let weightedY = 0;
+        let weight = 0;
+        for (let y = 0; y < mask.height; y++) {
+            const alpha = pixels[(y * mask.width + ix) * 4 + 3];
+            if (alpha <= 24) continue;
+            weightedY += (y / scale) * alpha;
+            weight += alpha;
         }
-        if (bestY >= 0) lastGlyphY = bestY;
-        points.push({ x, y: bestY >= 0 ? bestY - baseline : null });
+        if (weight > 0) lastGlyphY = weightedY / weight - baseline;
+        points.push({ x, y: weight > 0 ? lastGlyphY : null });
     }
 
     const geometry = { points, wordRanges, baseline, size };
@@ -245,9 +239,12 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
             // Keep the specular sweep locked to the travelling R-wave instead of drifting out of sync.
             const headX = (((0.415 - beatPhase) + 1) % 1) * w;
             const headWidth = Math.max(w * 0.1, size * 1.5);
-            const gradient = ctx.createLinearGradient(Math.max(0, headX - headWidth), 0, Math.max(1, headX), 0);
+            const gradient = ctx.createLinearGradient(headX - headWidth * 0.5, 0, headX + headWidth * 0.5, 0);
             gradient.addColorStop(0, 'rgba(255,255,255,0)');
-            gradient.addColorStop(1, 'rgba(255,255,255,0.95)');
+            gradient.addColorStop(0.38, 'rgba(255,255,255,0.12)');
+            gradient.addColorStop(0.5, 'rgba(255,255,255,0.96)');
+            gradient.addColorStop(0.62, 'rgba(255,255,255,0.12)');
+            gradient.addColorStop(1, 'rgba(255,255,255,0)');
             ctx.save();
             ctx.strokeStyle = gradient;
             ctx.lineWidth = Math.max(1.4, size * 0.022);
