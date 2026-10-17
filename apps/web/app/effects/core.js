@@ -197,7 +197,10 @@
         if(row.length)rows.push({words:row,width:rw});
         return {rows,gap,tooWide};
       };
-      const size=Math.max(minSize,Number(o.size)||76),r=build(size);
+      let size=Math.max(minSize,Number(o.size)||76),r=build(size);
+      while((r.rows.length>maxLines||r.rows.length*size*lh>maxH)&&size>minSize){
+        size=Math.max(minSize,size-Math.max(1,Math.round(size*.04)));r=build(size);
+      }
       set(ctx,size);
       return {size,gap:r.gap,rows:r.rows,lineH:size*lh};
     },
@@ -222,7 +225,9 @@
         if(cur)rows.push(cur);
         return {rows,tooWide};
       };
-      const size=Math.max(minSize,Number(o.size)||76),res=wrap(size);
+      let size=Math.max(minSize,Number(o.size)||76),res=wrap(size);
+      const fits=r=>r.rows.length<=maxLines&&r.rows.length*size*lh<=maxH;
+      while(!fits(res)&&size>minSize){size=Math.max(minSize,size-Math.max(1,Math.round(size*.04)));res=wrap(size);}
       const rows=res.rows;
       set(ctx,size);
       const lineH=size*lh;
