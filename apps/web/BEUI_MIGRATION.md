@@ -47,14 +47,16 @@ beUI's current web components target React 19, Tailwind CSS 4, and Motion. Compo
 ### Foundation slice added on `feature/full-beui-conversion`
 
 - Added the public `@beui` shadcn-compatible registry configuration.
-- Added a dedicated Vite + React + Tailwind CSS 4 workbench without changing the production editor entry point.
+- Added a Vite + React + Tailwind CSS 4 build that includes the production editor, workbench, and site entry points.
 - Copied the upstream beUI Range Slider and its shared slider/touch/motion utilities into `apps/web/beui-src/`, retaining MIT attribution in `NOTICE.md`.
 - Adapted the component's motion import to the existing workspace `framer-motion` dependency to avoid adding an unrecorded lockfile dependency.
 - Added two controlled slider cases to exercise integer values and 0.05-second lyric timing steps.
+- Connected the actual beUI Range Slider to production range inputs through a compatibility bridge. It preserves the existing native inputs and their event contracts for the legacy editor engine, while the dedicated playback timeline remains on its custom waveform control.
+- Added a post-build asset-copy step for the legacy effect/runtime files and a frozen-lockfile GitHub Actions build check.
 
 ### Not yet complete
 
-The production editor still runs through its existing HTML/imperative-JavaScript entry point. The new workbench is an isolated foundation and is not evidence that the production UI has been converted. The next migration step is to move the production entry point onto the React/Vite build and connect the first beUI components to the existing editor state without changing effect-engine behaviour.
+The production interface is still largely assembled from existing HTML and imperative JavaScript. The first actual beUI component is now connected to production range inputs through React, but navigation, tabs, buttons, selects, toggles, dialogs, settings layout, and editor panels still require migration. The Vite production build and browser regression suite have not yet been verified in this environment.
 
 The conversion is not complete until the acceptance criteria above are checked against the implemented application and tested.
 
