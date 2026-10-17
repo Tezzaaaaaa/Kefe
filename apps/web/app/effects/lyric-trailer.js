@@ -235,30 +235,8 @@
       fogCtx.save();fogCtx.globalCompositeOperation='destination-out';fogCtx.drawImage(maskLayer,0,0,w,h);fogCtx.restore();
       ctx.drawImage(fogLayer,0,0,w,h);
 
-      // Freshly displaced moisture makes each stroke visible against the still-fogged pane.
-      var headX=w*.5,headY=top,remaining=target,count=0,headFound=false,progressUsed=0;
-      font(ctx,size,style);ctx.textAlign='left';ctx.textBaseline='alphabetic';
-      rows.forEach(function(row,ri){
-        var rowWidth=width(ctx,row,tracking),rowX=(w-rowWidth)*.5,x=rowX,y=top+ri*rowHeight,offset=0;
-        Array.from(row).forEach(function(ch){
-          var cw=charWidth(ctx,ch),wt=weights[count]||1;
-          var reveal=clamp((target-progressUsed)/wt,0,1);
-          // Deliberately do not paint a font over the glass: the matching centreline mask above cuts through condensation so the real exterior is visible inside each handwritten stroke.
-          if(!headFound&&ch!==' '&&remaining>=0&&remaining<=wt){
-            var strokeEngine=window.KEFETrailerStrokeEngine,tip=strokeEngine&&strokeEngine.pointAt(ch,reveal);
-            if(tip){var unit=size/1000;headX=x+tip.x*unit;headY=y+tip.y*unit;}
-            else{headX=x+cw*clamp(remaining/wt,0,1);headY=y-size*.34;}
-            headFound=true;
-          }
-          remaining-=wt;progressUsed+=wt;x+=cw+tracking;offset+=cw+tracking;count++;
-        });
-      });
-      if(p<.998&&totalChars>0&&headFound){
-        // Tiny contact glint with a soft moisture halo, not a cursor or visible hand.
-        ctx.save();ctx.globalAlpha=alpha*(.35+.2*Math.sin(time*7)**2);
-        ctx.fillStyle='rgba(247,255,255,.94)';ctx.shadowColor='rgba(210,244,252,.85)';ctx.shadowBlur=size*.14;
-        ctx.beginPath();ctx.ellipse(headX,headY,Math.max(1.2,size*.016),Math.max(1.4,size*.026),-.24,0,Math.PI*2);ctx.fill();ctx.restore();
-      }
+      // No white glyph, glow, cursor, or frost is painted over the lyric. The exterior is the lyric:
+      // only the completed centreline path removes condensation; unfinished strokes remain fogged.
     }
     // Pane reflections and raised droplets remain in front of the cleared writing.
     ctx.save();
