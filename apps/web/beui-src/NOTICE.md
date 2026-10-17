@@ -1,11 +1,11 @@
 # beUI source attribution
 
-The range slider, motion button, switch, Select, Tabs, Card, and supporting utility source in this directory are adapted from the public beUI component source:
+The range slider, motion button, switch, Select, Tabs, Card, Input, and supporting utility source in this directory are adapted from the public beUI component source:
 
 - Public library: https://beui.dev/
-- Component source pages: https://beui.dev/components/motion/range-slider, https://beui.dev/components/motion/button, https://beui.dev/components/motion/switch, https://beui.dev/components/motion/select, https://beui.dev/components/motion/tabs, https://beui.dev/components/motion/card
+- Component source pages: https://beui.dev/components/motion/range-slider, https://beui.dev/components/motion/button, https://beui.dev/components/motion/switch, https://beui.dev/components/motion/select, https://beui.dev/components/motion/tabs, https://beui.dev/components/motion/card, https://beui.dev/components/motion/input
 - Public source repository: https://github.com/starc007/ui-components
-- Copied components: `components/motion/range-slider.tsx`, `components/motion/button/base.tsx`, and `components/motion/switch.tsx`, and `components/motion/select.tsx`, and `components/motion/tabs.tsx`, and `components/motion/card.tsx`
+- Copied components: `components/motion/range-slider.tsx`, `components/motion/button/base.tsx`, `components/motion/switch.tsx`, `components/motion/select.tsx`, `components/motion/tabs.tsx`, `components/motion/card.tsx`, and `components/motion/input.tsx`
 - Shared source: `lib/hooks/use-slider.ts`, `lib/hooks/use-hover-capable.ts`, `lib/touch.ts`, `lib/ease.ts`, and `lib/utils.ts`
 - Import paths were adapted from `motion/react` to the workspace-compatible `framer-motion` package.
 - Upstream copyright: Copyright (c) 2026 Saurabh Chauhan
