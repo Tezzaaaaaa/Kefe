@@ -1685,10 +1685,10 @@
   document.getElementById('exportButton').addEventListener('click',async()=>{
     const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),visualiserCanvas=window.kefeSlowLight?.getState?.().enabled?document.getElementById('kefeSlowLightCanvas'):window.kefeFlutedGlassActive?document.getElementById('kefeFlutedGlassCanvas'):document.getElementById('kefeLiquidFlowCanvas');
     if(exporting)return;
-    const rightsConfirmed=window.confirm('Before exporting: confirm that you own or have permission to use the audio, lyrics, artwork and other material in this video, and that your planned sharing or commercial use is allowed. KEFE does not grant those rights. Continue with export?');
-    if(!rightsConfirmed){status.textContent='Export cancelled. Check permissions for all material before exporting.';return;}
     if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream||!visualiserCanvas){status.textContent='Video export is not supported by this browser.';return;}
     if(!audio.src||!Number.isFinite(audio.duration)){status.textContent='Upload a track first.';return;}
+    const rightsConfirmed=window.confirm('Before exporting: confirm that you own or have permission to use the audio, lyrics, artwork and other material in this video, and that your planned sharing or commercial use is allowed. KEFE does not grant those rights. Continue with export?');
+    if(!rightsConfirmed){status.textContent='Export cancelled. Check permissions for all material before exporting.';return;}
     if(window.KEFE_TYPE?.ready){try{await window.KEFE_TYPE.ready;}catch(_){} }
     if(document.fonts?.load){try{await Promise.all([document.fonts.load('700 48px "Inter Tight"'),document.fonts.load('600 48px "Inter Tight"')]);}catch(_){} }
     if(document.fonts?.ready){try{await document.fonts.ready;}catch(_){} }
