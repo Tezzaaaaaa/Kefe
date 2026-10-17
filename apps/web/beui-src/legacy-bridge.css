@@ -232,3 +232,30 @@ select.beui-native-select {
   align-items: center;
   justify-content: center;
 }
+
+.beui-panel-button-host {
+  --beui-background: var(--shell-bg, #171719);
+  --beui-foreground: var(--shell-text, #f5f5f5);
+  --beui-muted: var(--shell-panel, #29292d);
+  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
+  --beui-border: var(--shell-line, #39393f);
+  --beui-ring: var(--shell-accent, #ef4444);
+  --beui-primary: var(--shell-accent, #ef4444);
+  --beui-primary-foreground: #ffffff;
+  --beui-card: var(--shell-panel, #222225);
+  display: contents;
+}
+.beui-native-panel-button {
+  display: none !important;
+}
+.beui-panel-action {
+  min-width: 0;
+}
+.beui-panel-action > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.beui-panel-button-host[hidden] {
+  display: none !important;
+}
