@@ -180,17 +180,6 @@
     ctx.bezierCurveTo(edge+Math.sin(phase*2.2)*amp,size*.38,edge-amp*.4,size*.72,edge+Math.cos(phase*.8)*amp,size*1.0);
     ctx.lineTo(-2,size);ctx.closePath();ctx.clip();
   }
-  function strokeHandwrittenGlyph(ctx,row,offset,cw,x,y,size,progress,alpha,seed){
-    if(!row||progress<=0)return;
-    var engine=window.KEFETrailerStrokeEngine;if(!engine)return;
-    ctx.save();ctx.globalAlpha=alpha;ctx.lineCap='round';ctx.lineJoin='round';
-    var drawn=engine.draw(ctx,row,x+offset,y,size,progress,'ink');
-    if(!drawn){
-      // Keep uncommon Unicode and unsupported symbols visible; common Latin glyphs use real centreline strokes.
-      ctx.save();ctx.translate(x+offset,y);glyphRevealClip(ctx,cw,size,progress,seed);ctx.fillText(row,0,0);ctx.restore();
-    }
-    ctx.restore();
-  }
   function render(ctx,w,h,style,lines,time){
     if(!(w>0&&h>0))return;
     ensureLayers(w,h);
