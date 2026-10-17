@@ -179,13 +179,14 @@
       if (!clean) return;
       stamps.forEach(function (t) {
         var time = Math.max(0, t - offset);
+        var wordShift = t - stamps[0];
         var item = { text: clean, time: time };
         if (words) {
           item.words = words.map(function (word) {
             return {
               text: word.text,
-              time: Math.max(0, word.time - offset),
-              endTime: Number.isFinite(word.endTime) ? Math.max(0, word.endTime - offset) : NaN
+              time: Math.max(0, word.time + wordShift - offset),
+              endTime: Number.isFinite(word.endTime) ? Math.max(0, word.endTime + wordShift - offset) : NaN
             };
           });
         }
