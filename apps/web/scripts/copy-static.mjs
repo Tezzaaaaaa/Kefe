@@ -7,7 +7,8 @@ const output = resolve(webRoot, "dist-beui");
 mkdirSync(output, { recursive: true });
 
 // The built React editor becomes editor.html only inside the build output.
-// Keep apps/web/editor.html untouched until a verified Pages cutover.\ncpSync(resolve(output, "editor.beui.html"), resolve(output, "editor.html"), { force: true });
+// Keep apps/web/editor.html untouched until a verified Pages cutover.
+cpSync(resolve(output, "editor.beui.html"), resolve(output, "editor.html"), { force: true });
 
 for (const entry of ["app", "fonts", "legal"]) {
   const source = resolve(webRoot, entry);
