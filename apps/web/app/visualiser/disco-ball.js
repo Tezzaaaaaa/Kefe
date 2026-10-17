@@ -74,15 +74,37 @@
       float radius=.405*(1.0+u_bass*.009);
       vec3 ro=vec3(0.0,0.0,2.7),rd=normalize(vec3(p,-2.7));
       float b=dot(ro,rd),c=dot(ro,ro)-radius*radius,disc=b*b-c;
-      vec3 bg=vec3(.006,.008,.021);
-      float vignette=1.0-smoothstep(.12,.82,length(p));
-      float aura=exp(-max(0.0,length(p)-radius)*18.0)*(.10+u_energy*.13);
-      float haze=exp(-length(p-vec2(-.22,.16))/.42)*.035;
-      bg+=vec3(.12,.055,.32)*aura+vec3(.025,.075,.23)*haze;
+      vec3 bg=vec3(.004,.006,.016);
+      float vignette=1.0-smoothstep(.12,.94,length(p));
+      float distanceFromBall=length(p);
+      float aura=exp(-max(0.0,distanceFromBall-radius)*15.0)*(.12+u_energy*.16);
+      float haze=exp(-length(p-vec2(-.22,.16))/.48)*.045;
+      // Soft, moving spot beams radiate from behind the ball and react to the music.
+      float angle=atan(p.y,p.x);
+      float beamField=0.0;
+      vec3 beamColor=vec3(0.0);
+      for(int i=0;i<7;i++){
+        float fi=float(i);
+        float direction=mod(fi,2.0)<1.0?1.0:-1.0;
+        float beamAngle=fi*.8975979+u_time*(.055+u_bass*.035)*direction;
+        float delta=atan(sin(angle-beamAngle),cos(angle-beamAngle));
+        float width=.018+u_energy*.009;
+        float beam=exp(-(delta*delta)/(width*width))*smoothstep(radius+.025,radius+.16,distanceFromBall);
+        beam*=(.13+.13*sin(u_time*.7+fi*2.1)+u_energy*.22);
+        vec3 c=vec3(.25,.42,1.0);
+        if(mod(fi,3.0)<1.0)c=vec3(.72,.24,1.0);
+        else if(mod(fi,3.0)<2.0)c=vec3(.12,.72,1.0);
+        beamField+=beam;
+        beamColor+=c*beam;
+      }
+      float floorGlow=exp(-pow((p.y-.57)/.20,2.0))*exp(-abs(p.x)*1.65)*(.035+u_energy*.045);
+      bg+=vec3(.12,.055,.32)*aura+vec3(.025,.075,.23)*haze+beamColor*vignette;
+      bg+=vec3(.12,.17,.42)*floorGlow;
       float grain=noise(gl_FragCoord.xy*.42+u_time*.08);
       float dust=step(.997,grain)*(.05+.12*u_highs);
       bg+=vec3(.26,.29,.8)*dust*vignette;
-      vec4 result=vec4(bg,clamp(aura+haze*.7+dust*.3,0.0,.42));
+      float bgAlpha=clamp(aura+haze*.7+dust*.3+beamField*.28+floorGlow*.55,0.0,.58);
+      vec4 result=vec4(bg,bgAlpha);
       if(disc>0.0){
         float hit=-b-sqrt(disc);
         if(hit>0.0){
