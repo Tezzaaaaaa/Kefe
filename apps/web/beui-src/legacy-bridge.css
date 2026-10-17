@@ -8,6 +8,9 @@
   --color-muted-foreground: var(--beui-muted-foreground);
   --color-border: var(--beui-border);
   --color-ring: var(--beui-ring);
+  --color-primary: var(--beui-primary);
+  --color-primary-foreground: var(--beui-primary-foreground);
+  --color-card: var(--beui-card);
 }
 
 .beui-range-host {
@@ -35,4 +38,21 @@ input.beui-native-range {
   clip: rect(0, 0, 0, 0) !important;
   white-space: nowrap !important;
   border: 0 !important;
+}
+
+.beui-settings-root {
+  --beui-background: var(--shell-bg, #171719);
+  --beui-foreground: var(--shell-text, #f5f5f5);
+  --beui-muted: var(--shell-panel, #29292d);
+  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
+  --beui-border: var(--shell-line, #39393f);
+  --beui-ring: var(--shell-accent, #ef4444);
+  --beui-primary: var(--shell-accent, #ef4444);
+  --beui-primary-foreground: #ffffff;
+  --beui-card: var(--shell-panel, #222225);
+  color-scheme: dark;
+}
+.beui-settings-root select option {
+  background: var(--beui-background);
+  color: var(--beui-foreground);
 }
