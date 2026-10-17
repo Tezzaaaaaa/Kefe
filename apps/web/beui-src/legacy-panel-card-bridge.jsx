@@ -42,8 +42,8 @@ function start() {
   document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]").forEach(mount);
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", start, { once: true });
-} else {
+if (document.readyState === "complete") {
   start();
+} else {
+  document.addEventListener("DOMContentLoaded", start, { once: true });
 }
