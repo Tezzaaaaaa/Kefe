@@ -119,4 +119,5 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ) : null}
       {children}
     </motion.button>
+  );
 });
