@@ -76,25 +76,30 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     onPointerDown?.(event);
   }, [ripple, reduce, onPointerDown]);
 
+  const buttonProps = {
+    ref,
+    type: "button" as const,
+    whileTap: reduce ? undefined : { scale: pressScale },
+    whileHover: reduce || !canHover ? undefined : { scale: 1.02 },
+    transition: SPRING_PRESS,
+    onPointerDown: handlePointerDown,
+    className: cn(
+      "inline-flex items-center justify-center font-medium select-none transition-colors disabled:pointer-events-none disabled:opacity-50",
+      ripple && "relative overflow-hidden",
+      VARIANT_CLASS[variant],
+      SIZE_CLASS[size],
+      className,
+    ),
+    ...rest,
+  };
+
+  if (dangerouslySetInnerHTML) {
+    return <motion.button {...buttonProps} dangerouslySetInnerHTML={dangerouslySetInnerHTML} />;
+  }
+
   return (
-    <motion.button
-      ref={ref}
-      type="button"
-      whileTap={reduce ? undefined : { scale: pressScale }}
-      whileHover={reduce || !canHover ? undefined : { scale: 1.02 }}
-      transition={SPRING_PRESS}
-      onPointerDown={handlePointerDown}
-      className={cn(
-        "inline-flex items-center justify-center font-medium select-none transition-colors disabled:pointer-events-none disabled:opacity-50",
-        ripple && "relative overflow-hidden",
-        VARIANT_CLASS[variant],
-        SIZE_CLASS[size],
-        className,
-      )}
-      {...rest}
-      dangerouslySetInnerHTML={dangerouslySetInnerHTML}
-    >
-      {!dangerouslySetInnerHTML && ripple && !reduce ? (
+    <motion.button {...buttonProps}>
+      {ripple && !reduce ? (
         <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
           <AnimatePresence>
             {ripples.map((r) => (
@@ -112,7 +117,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
           </AnimatePresence>
         </span>
       ) : null}
-      {!dangerouslySetInnerHTML ? children : undefined}
+      {children}
     </motion.button>
-  );
 });
