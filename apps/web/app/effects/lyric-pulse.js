@@ -162,7 +162,8 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
     const beatPeriod = 1.05;
     const beatPhase = ((time % beatPeriod) + beatPeriod) % beatPeriod / beatPeriod;
     const traceAmplitude = Math.min(h * 0.17, size * (0.44 + amplitude * 0.38));
-    const beatPulse = Math.pow(Math.max(0, Math.sin(Math.PI * 2 * beatPhase)), 8);
+    const beatOffset = ((beatPhase - 0.415 + 1.5) % 1) - 0.5;
+    const beatPulse = Math.exp(-0.5 * Math.pow(beatOffset / 0.035, 2));
 
     ctx.save();
     ctx.globalAlpha *= linaClamp(phase.alpha);
@@ -180,7 +181,8 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
 
         rowWords.forEach((word, wordIndex) => {
             const timing = U.wordProgress({ time: word.start, endTime: word.end }, time, 0.09);
-            const reveal = linaClamp(timing.pulse);
+            // Reveal follows the monotonic karaoke sweep. `pulse` is an emphasis envelope and would make the word disappear again mid-syllable.
+            const reveal = linaClamp(timing.sweep);
             if (reveal <= 0.002) return;
             const range = ranges[wordIndex];
             if (!range) return;
@@ -192,20 +194,32 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
                 const p = ((point.x / Math.max(1, w)) + beatPhase) % 1;
                 const bump = (center, width, height) => height * Math.exp(-0.5 * Math.pow((p - center) / width, 2));
                 let ecg = 0;
-                ecg -= bump(0.19, 0.035, traceAmplitude * 0.12);
-                ecg += bump(0.385, 0.012, traceAmplitude * 0.16);
-                ecg -= bump(0.415, 0.009, traceAmplitude * (0.48 + beatPulse * 0.28));
-                ecg += bump(0.447, 0.014, traceAmplitude * 0.28);
-                ecg -= bump(0.64, 0.065, traceAmplitude * 0.2);
+                ecg += bump(0.19, 0.035, traceAmplitude * 0.12);
+                ecg -= bump(0.385, 0.012, traceAmplitude * 0.16);
+                const qrsOffset = ((p - 0.415 + 1.5) % 1) - 0.5;
+                const qrsPulse = Math.exp(-0.5 * Math.pow(qrsOffset / 0.026, 2));
+                ecg += bump(0.415, 0.009, traceAmplitude * (0.48 + qrsPulse * 0.3));
+                ecg -= bump(0.447, 0.014, traceAmplitude * 0.28);
+                ecg += bump(0.64, 0.065, traceAmplitude * 0.2);
                 const glyphY = point.y === null ? (pathPoints.length ? pathPoints[pathPoints.length - 1].y : 0) : point.y;
-                const y = traceY + glyphY * 0.76 + ecg * 0.11;
+                const y = traceY + glyphY * 0.76 + ecg * 0.24;
                 pathPoints.push({ x: point.x, y });
             }
             if (pathPoints.length < 2) return;
 
             const strokePath = () => {
                 ctx.beginPath();
-                pathPoints.forEach((point, i) => i ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+                if (pathPoints.length < 3) {
+                    pathPoints.forEach((point, i) => i ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+                    return;
+                }
+                ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
+                for (let i = 1; i < pathPoints.length - 1; i++) {
+                    const current = pathPoints[i], nextPoint = pathPoints[i + 1];
+                    ctx.quadraticCurveTo(current.x, current.y, (current.x + nextPoint.x) * 0.5, (current.y + nextPoint.y) * 0.5);
+                }
+                const last = pathPoints[pathPoints.length - 1];
+                ctx.lineTo(last.x, last.y);
                 ctx.stroke();
             };
 
@@ -228,7 +242,8 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
             strokePath();
             ctx.restore();
 
-            const headX = ((time * 0.42) % 1) * w;
+            // Keep the specular sweep locked to the travelling R-wave instead of drifting out of sync.
+            const headX = (((0.415 - beatPhase) + 1) % 1) * w;
             const headWidth = Math.max(w * 0.1, size * 1.5);
             const gradient = ctx.createLinearGradient(Math.max(0, headX - headWidth), 0, Math.max(1, headX), 0);
             gradient.addColorStop(0, 'rgba(255,255,255,0)');
