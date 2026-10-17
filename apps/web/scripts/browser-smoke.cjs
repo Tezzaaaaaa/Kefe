@@ -157,9 +157,9 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       return audio && audio.readyState >= 1 && Number.isFinite(audio.duration) && audio.duration > 0 && track && !track.hidden;
     }, null, { timeout: 15000 });
     assert.ok(Number(await page.locator("#kefeTime").getAttribute("max")) >= 4.9, "timeline should use decoded media duration");
-    await page.getByRole("button", { name: "Play" }).click();
+    await page.locator(".beui-transport-host button[aria-label=\"Play\"]").click();
     await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === false, null, { timeout: 5000 });
-    await page.getByRole("button", { name: "Pause" }).click();
+    await page.locator(".beui-transport-host button[aria-label=\"Pause\"]").click();
     await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === true, null, { timeout: 5000 });
 
     await page.locator("#mediaInput").setInputFiles({
