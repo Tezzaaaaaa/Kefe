@@ -45,12 +45,16 @@ const server = http.createServer((req, res) => {
     await page.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
     await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
+    await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
     await page.waitForFunction(() => {
       const ranges = [...document.querySelectorAll('input[type="range"]')].filter((input) => input.id !== "kefeTime");
       const selects = [...document.querySelectorAll("select")];
       return ranges.every((input) => input.nextElementSibling?.classList.contains("beui-range-host"))
         && selects.every((input) => input.nextElementSibling?.classList.contains("beui-select-host"));
     }, null, { timeout: 20000 });
+
+    await page.locator("#beui-songTitle").fill("beUI smoke track");
+    assert.equal(await page.locator("#songTitle").inputValue(), "beUI smoke track", "beUI Input should preserve the legacy metadata value and events");
 
     const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
     assert.ok(sidebarCount >= 7, `expected sidebar actions, found ${sidebarCount}`);
