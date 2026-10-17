@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Button } from "@/components/motion/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent, CardFooter } from "@/components/motion/card";
 import { RangeSlider } from "@/components/motion/range-slider";
 import { Switch } from "@/components/motion/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/motion/select";
@@ -108,22 +109,25 @@ function SettingsOverlay() {
       className="beui-settings-root fixed inset-0 z-[1000] flex items-center justify-center bg-black/65 p-3 backdrop-blur-sm sm:p-6"
       onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}
     >
-      <section
+      <Card
         ref={dialog}
         role="dialog"
         aria-modal="true"
         aria-labelledby="beui-settings-title"
         tabIndex={-1}
-        className="w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-background text-foreground shadow-2xl outline-none"
+        className="w-full max-w-3xl gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 text-foreground shadow-2xl outline-none"
       >
-        <header className="flex items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-7">
+        <CardHeader className="grid-cols-[1fr_auto] items-center gap-4 border-b border-border px-5 py-4 sm:px-7">
           <div>
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">KEFE workspace</p>
-            <h2 id="beui-settings-title" className="m-0 text-xl font-semibold tracking-tight">Settings</h2>
+            <CardTitle as="h2" id="beui-settings-title" className="m-0 text-xl tracking-tight">Settings</CardTitle>
+            <CardDescription className="text-xs">Tune your workspace and export preferences.</CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Done</Button>
-        </header>
-        <div className="max-h-[68vh] overflow-y-auto px-5 sm:px-7">
+          <CardAction className="row-start-1">
+            <Button variant="outline" size="sm" onClick={() => setOpen(false)}>Done</Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="max-h-[68vh] overflow-y-auto py-0">
           {groups.map((group) => {
             const items = group.items.filter((item) => item.key !== "aspect");
             if (!items.length) return null;
@@ -142,11 +146,11 @@ function SettingsOverlay() {
               <Button variant="outline" size="sm" onClick={() => window.open("https://github.com/Tezzaaaaaa/Kefe", "_blank", "noopener,noreferrer")}>Open GitHub</Button>
             </div>
           </section>
-        </div>
-        <footer className="flex justify-end border-t border-border px-5 py-4 sm:px-7">
+        </CardContent>
+        <CardFooter className="justify-end border-t border-border px-5 py-4 sm:px-7">
           <Button variant="outline" size="sm" onClick={() => settings()?.reset?.()}>Reset to defaults</Button>
-        </footer>
-      </section>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
