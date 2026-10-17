@@ -6547,6 +6547,31 @@ body:not(.kefe-fullscreen-open) {
   }
 }
 
+/* Keep text-based preset controls the same size across visualiser tabs.
+   Colour palette swatches remain compact because they are visual choices, not text buttons. */
+.kefe-visualiser-preset-set > button,
+.kefe-visualiser-preset-set > .kefe-btn,
+.kefe-visualiser-preset-set #flutedModes > .kefe-btn {
+  box-sizing:border-box;
+  flex:0 0 136px;
+  width:136px;
+  min-width:136px;
+  max-width:136px;
+  height:40px;
+  min-height:40px;
+  padding:4px 8px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  border-radius:var(--r2);
+  font-size:var(--font-sm);
+  line-height:1.2;
+  text-align:center;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+
 /* Visualiser tabs are text-only: remove decorative pseudo-icons and icon markup. */
 .kefe-vis-option > [role="tab"]::before,
 .kefe-vis-option > [role="tab"] .kefe-visualiser-tab-icon {
