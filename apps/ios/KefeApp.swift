@@ -53,6 +53,7 @@ struct KefeWebEditor: UIViewRepresentable {
         coordinator.clearRemoteCommands()
     }
 
+    @MainActor
     final class Coordinator: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
         private let lockScreen = KefeLockScreenCoordinator()
         weak var webView: WKWebView?
