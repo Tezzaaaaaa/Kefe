@@ -9,6 +9,7 @@ This is an engineering remediation record, not legal advice or a legal clearance
 - Disabled KEFE's automatic LRCLIB lyric lookup in `apps/web/app/editor.js` pending documented rights clearance.
 - Left manual lyric entry and user-imported lyric files available.
 - Added an in-product notice explaining why automatic lookup is paused and directing users to lyrics they have permission to use.
+- Added an export-time confirmation reminding users to secure rights for audio, lyrics, artwork and other included material; it explicitly says KEFE does not grant those rights.
 
 ## Release blockers that cannot honestly be marked resolved by code changes alone
 
@@ -19,7 +20,7 @@ This is an engineering remediation record, not legal advice or a legal clearance
 5. **Third-party dependencies:** Verify the actual licences and required notices for `gif.js@0.2.0`, `@uimaxbai/am-lyrics@1.8.2`, all dependencies, and any CDN-delivered code. Pinning versions and using Subresource Integrity or bundling should be assessed.
 6. **Merged fonts:** Identify the two upstream source fonts and preserve the required copyright/licence notices for each of the six merged fonts; check Reserved Font Names and rename or remove fonts where necessary.
 7. **Artwork and metadata:** Verify current Apple iTunes Search API terms, attribution and artwork-use limits; do not redistribute or cache artwork unless permitted.
-8. **Exports:** Add and verify an export-time rights reminder. Review the applicable rights for audio recordings, compositions, lyrics, artwork and target platforms. The warning is not a substitute for licences.
+8. **Exports:** The code now displays an export-time rights reminder, but the interaction still needs runtime testing. Review the applicable rights for audio recordings, compositions, lyrics, artwork and target platforms. The warning is not a substitute for licences.
 9. **Policies and consumer law:** Complete and publish the terms and privacy policy, make them accessible from the editor, and have Australian counsel review them before commercial launch. Reassess obligations before adding accounts, cloud storage, sharing or payments.
 10. **Brand references:** Review effect names and visuals for misleading affiliation, trademark issues, trade dress and font restrictions; update notices if needed.
 
