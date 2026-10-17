@@ -1,12 +1,12 @@
 # KEFE legal review (first pass)
 
-Engineering audit of the repo as of `372ec41`, not legal advice. Have a lawyer (an Australian one, since the operator is in Queensland) review before launch, especially items 1 and 2. Items are ordered by exposure.
+Engineering audit and remediation log, not legal advice. See [LEGAL-REMEDIATION-STATUS.md](LEGAL-REMEDIATION-STATUS.md) for the current release blockers. The automatic LRCLIB lookup has since been disabled in the `legal-remediation-2026-10` branch pending rights clearance; this does not resolve the remaining blockers. Have an Australian lawyer review before commercial launch.
 
 ## 1. Lyrics sources (highest risk; partly addressed)
 
 Originally `apps/web/app/editor.js` auto-fetched lyrics from LRCLIB, BetterLyrics, binimum and four LyricsPlus mirrors. LyricsPlus was asked for lyrics sourced from Apple, Musixmatch and Spotify (`source=apple,lyricsplus,musixmatch,spotify,musixmatch-word`), whose terms do not allow this use.
 
-**Done (PR #57):** BetterLyrics, binimum and LyricsPlus are removed. Only LRCLIB remains, with an on-screen note that the lyrics come from a community database and the user must have the right to use them.
+**Mitigation in branch `legal-remediation-2026-10`:** BetterLyrics, binimum and LyricsPlus were removed previously. Automatic LRCLIB lookup is now disabled pending rights clearance; user-supplied lyrics remain supported. This is a risk reduction, not a determination that all lyric uses are lawful.
 
 **Still open:**
 - Lyrics are copyrighted (the words, separately from the music). Displaying and exporting them in videos without a licence is infringement risk. LRCLIB is community-contributed and, as far as I know, does not claim to hold licences for the lyrics; its terms need a written check.
@@ -83,4 +83,4 @@ When accounts and billing arrive (`apps/api`, `packages/db`, Stripe packages in 
 - `apps/web/legal/terms.html`: draft terms of use.
 - This review.
 
-Both pages have `[PLACEHOLDER]` fields and a draft banner. They are not linked from the editor yet.
+Both pages still have `[PLACEHOLDER]` fields and a draft banner. They must not be treated as final legal documents; operator identity and contact details must be supplied, network behaviour verified, and the pages linked from the editor before launch.
