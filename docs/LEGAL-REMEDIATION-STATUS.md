@@ -15,7 +15,7 @@ This is an engineering remediation record, not legal advice or a legal clearance
 - Added a per-upload consent prompt before optional AudD/configured-proxy audio recognition; declined recognition skips the upload.
 - Blocked direct browser-side recognition tokens outside localhost/loopback development hosts, requiring a server-side proxy for deployed use.
 - Added clearly labelled Terms (draft) and Privacy (draft) links in the editor sidebar so the drafts are discoverable without presenting them as final policies.
-- Added a CI guard that checks the automatic LRCLIB endpoint is absent and that the paused-lookup notice and manual lyric import control remain in the source. The guard also checks that the Apple-style component receives blank lookup metadata and only the local TTML lyric data, and that audio-recognition consent and the production token guard remain in source.
+- Added a CI guard that checks the automatic LRCLIB endpoint is absent and that the paused-lookup notice and manual lyric import control remain in the source. The guard also checks that the Apple-style component receives blank lookup metadata and only the local TTML lyric data, that audio-recognition consent and the production token guard remain in source, that the export rights reminder and policy links remain present, that known policy placeholders stay absent, and that draft banners remain visible.
 
 ## Release blockers that cannot honestly be marked resolved by code changes alone
 
