@@ -616,5 +616,22 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   padding-top:0;
 }
 .kefe-editor .kefe-panel{
+  padding:clamp(12px,2vw,24px);
   border-radius:var(--shell-radius-lg);
+}
+.kefe-editor .kefe-panel-head{
+  margin-bottom:var(--s3);
+  padding-bottom:var(--s3);
+}
+.kefe-editor .kefe-form{
+  gap:var(--s3);
+}
+@media(max-width:640px){
+  .kefe-editor .kefe-panel-head{
+    margin-bottom:var(--s2);
+    padding-bottom:var(--s2);
+  }
+  .kefe-editor .kefe-form{
+    gap:var(--section-gap);
+  }
 }
