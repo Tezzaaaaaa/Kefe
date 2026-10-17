@@ -87,6 +87,7 @@ function BeUIInput({ backing, visualId }) {
 function canBridge(input) {
   return input instanceof HTMLInputElement
     && SUPPORTED_TYPES.has(input.type)
+    && input.closest(".kefe-editor")
     && input.id !== "kefeCommandInput"
     && !input.hidden
     && !input.closest("#beui-settings-root")
@@ -115,7 +116,7 @@ function mount(input) {
 
 function scan(root = document) {
   if (root instanceof HTMLInputElement) mount(root);
-  root.querySelectorAll?.(".kefe-editor input").forEach(mount);
+  root.querySelectorAll?.("input").forEach(mount);
 }
 
 function start() {
