@@ -28,7 +28,7 @@
     elasticpop:          'Bangers',
     flipcards:           'Urbanist',
     karaoke:             'Boogaloo',
-    trailer:             'Homemade Apple',
+    trailer:             'Open Sans',
     // Next batch (effects coming next)
     analogtv:            'VT323',
     fancy:               'Anton',
@@ -122,7 +122,7 @@
     { family: 'Baloo 2',           weight: 800, style: 'normal', file: 'fonts/baloo2/Baloo2-800.woff2' },
     // Bangers — elasticpop
     { family: 'Bangers',        weight: 400, style: 'normal', file: 'fonts/bangers/Bangers-Regular.woff2' },
-    // Monoton — retained for other typography choices; Trailer uses the handwritten Homemade Apple face
+    // Monoton — retained for other typography choices; Trailer uses simple Open Sans lettering
     { family: 'Monoton',        weight: 400, style: 'normal', file: 'fonts/monoton/Monoton-Regular.woff2' },
     // Big Shoulders Stencil Display — splitflap
     { family: 'Big Shoulders Stencil Display', weight: 900, style: 'normal', file: 'fonts/big-shoulders-stencil/BigShouldersStencil-Black.woff2' },
