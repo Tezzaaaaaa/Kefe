@@ -1091,76 +1091,16 @@
   let activeLyricsController=null;
   const manuallyEditedTrackFields=new Set();
   async function loadAutomaticLyrics(){
-    const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
-    const duration=Math.round(Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0);
+    // Legal release gate: do not retrieve copyrighted lyrics from an unlicensed
+    // third-party catalogue. User-supplied LRC/SRT/JSON and manually entered
+    // lyrics remain available. Re-enable only after written rights clearance.
     const status=document.getElementById('kefeLyricsStatus');
-    if(!title){showManualNotice('Enter the song title so lyrics can be searched. Adding the artist improves match accuracy.');return false;}
-    const request=++lyricsRequest;
     if(activeLyricsController)activeLyricsController.abort();
-    let controller=new AbortController();
-    activeLyricsController=controller;
-    let timeout=null;
-    let acceptJson={signal:controller.signal,headers:{Accept:'application/json'}};
-    const freshRequest=()=>{
-      clearTimeout(timeout);
-      controller=new AbortController();
-      activeLyricsController=controller;
-      timeout=setTimeout(()=>controller.abort(),8000);
-      acceptJson={signal:controller.signal,headers:{Accept:'application/json'}};
-    };
-    const attempt=async(name,fn)=>{
-      if(request!==lyricsRequest)return true;
-      freshRequest();
-      try{return await fn();}
-      catch(error){console.warn('[KEFE lyrics] '+name+' failed:',error?.name||error);return false;}
-    };
-
-    const tryLines=lines=>{
-      if(request!==lyricsRequest)return true;
-      return setLyricsFromLines(lines,'Synchronized lyrics fetched from LRCLIB, a community lyrics database. Check you have the right to use them.');
-    };
-
-    const tryLrclib=async()=>{
-      if(!artist)return false;
-      const response=await fetch('https://lrclib.net/api/get?'+new URLSearchParams({track_name:title,artist_name:artist,...(album?{album_name:album}:{}),...(duration?{duration:String(duration)}:{})}),acceptJson);
-      if(!response.ok)return false;
-      const payload=await response.json();
-      return tryLines(parseAppleLrc(String(payload?.syncedLyrics||'')));
-    };
-    const pickLrclib=async query=>{
-      const response=await fetch('https://lrclib.net/api/search?'+new URLSearchParams(query),acceptJson);
-      if(!response.ok)return false;
-      const wantArtist=normalizeSearchText(artist),wantTitle=coreTitle(title);
-      let list=(await response.json()).filter(item=>{
-        if(!item||!item.syncedLyrics)return false;
-        const a=normalizeSearchText(item.artistName),t=coreTitle(item.trackName);
-        const artistMatches=!wantArtist||(a&&(a.includes(wantArtist)||wantArtist.includes(a)));
-        return artistMatches&&t&&wantTitle&&(t===wantTitle||t.includes(wantTitle)||wantTitle.includes(t));
-      });
-      if(duration)list=list.filter(item=>Math.abs((item.duration||0)-duration)<=8);
-      if(!list.length)return false;
-      if(!wantArtist&&!duration&&list.length!==1)return false;
-      if(duration)list.sort((a,b)=>Math.abs((a.duration||0)-duration)-Math.abs((b.duration||0)-duration));
-      return tryLines(parseAppleLrc(String(list[0].syncedLyrics)));
-    };
-    const tryLrclibSearch=()=>pickLrclib({track_name:title,...(artist?{artist_name:artist}:{})});
-    const tryLrclibQuery=()=>pickLrclib({q:[title,artist].filter(Boolean).join(' ')});
-
-    try{
-      if(status)status.textContent='Finding synchronized lyrics…';
-      if(artist&&await attempt('lrclib',tryLrclib))return true;
-      if(await attempt('lrclib-search',tryLrclibSearch))return true;
-      if(await attempt('lrclib-query',tryLrclibQuery))return true;
-      showLyricsMissing();
-      return false;
-    }catch(error){
-      if(request===lyricsRequest&&status)status.textContent=error?.name==='AbortError'?'Lyrics search timed out.':'Could not fetch synchronized lyrics.';
-      console.warn('[KEFE automatic lyrics]',error);
-      return false;
-    }finally{
-      clearTimeout(timeout);
-      if(activeLyricsController===controller)activeLyricsController=null;
-    }
+    lyricsRequest++;
+    activeLyricsController=null;
+    if(status)status.textContent='Automatic lyrics lookup is temporarily unavailable while licensing is reviewed. Import a lyric file or enter lyrics you have permission to use.';
+    showManualNotice('Automatic lyrics lookup is paused pending licensing review. You can still import your own LRC/SRT/JSON file or enter lyrics you have permission to use.');
+    return false;
   }
   function showManualNotice(text){
     let n=document.getElementById('kefeManualNotice');
