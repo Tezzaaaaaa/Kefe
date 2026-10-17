@@ -6211,3 +6211,74 @@ body:not(.kefe-fullscreen-open) {
   .kefe-vis-tabs .kefe-visualiser-tab { justify-content: flex-start; gap: 6px; padding-inline: 10px; }
   .kefe-vis-tabs .kefe-visualiser-tab .kefe-visualiser-tab-label { font-size: 12px; }
 }
+
+
+/* Unified aspect-ratio control: one native select styled like the rest of KEFE. */
+.kefe-timeline .kefe-aspect-controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 76px;
+  width:76px;
+  min-width:76px;
+  height:var(--control-h);
+  padding:3px;
+  border:1px solid var(--line);
+  border-radius:var(--r2);
+  background:var(--surface);
+  box-shadow:var(--inner);
+  overflow:hidden;
+}
+.kefe-timeline .kefe-aspect-controls .kefe-aspect-trigger,
+.kefe-timeline .kefe-aspect-controls .kefe-aspect-native{
+  display:block;
+  appearance:none;
+  -webkit-appearance:none;
+  width:100%;
+  min-width:0;
+  height:100%;
+  margin:0;
+  padding:0 18px 0 7px;
+  border:0;
+  border-radius:5px;
+  outline-offset:-2px;
+  background-color:transparent;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23747987' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 4px center;
+  color:var(--text);
+  box-shadow:none;
+  font:600 var(--font-sm)/1 var(--font-ui);
+  text-align:center;
+  cursor:pointer;
+}
+.kefe-timeline .kefe-aspect-controls .kefe-aspect-trigger:hover,
+.kefe-timeline .kefe-aspect-controls .kefe-aspect-native:hover{
+  background-color:var(--surface-hi);
+  transform:none;
+  box-shadow:none;
+}
+.kefe-timeline .kefe-aspect-controls .kefe-aspect-trigger:active,
+.kefe-timeline .kefe-aspect-controls .kefe-aspect-native:active{
+  transform:none;
+  box-shadow:none;
+}
+.kefe-timeline .kefe-aspect-controls .kefe-aspect-trigger:focus-visible,
+.kefe-timeline .kefe-aspect-controls .kefe-aspect-native:focus-visible{
+  outline:2px solid var(--focus);
+  outline-offset:-2px;
+}
+@media(max-width:520px){
+  .kefe-timeline .kefe-aspect-controls{
+    flex:0 0 70px;
+    width:70px;
+    min-width:70px;
+    height:34px;
+  }
+  .kefe-timeline .kefe-aspect-controls .kefe-aspect-trigger,
+  .kefe-timeline .kefe-aspect-controls .kefe-aspect-native{
+    padding-left:5px;
+    padding-right:16px;
+    font-size:var(--font-xs);
+  }
+}
