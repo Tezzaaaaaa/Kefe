@@ -20,6 +20,16 @@
     if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
     canvas.style.width=r.width+'px';canvas.style.height=r.height+'px';
   }
+  function connectAudio(){
+    try{
+      const graph=window.kefeAudioGraph?.ensure?.();
+      if(graph?.ac?.state==='suspended')graph.ac.resume().catch(()=>{});
+      return graph?.analyser||null;
+    }catch(error){
+      console.warn('[KEFE Disco Ball] Audio analyser unavailable.',error);
+      return null;
+    }
+  }
   function analyse(dt){
     const a=window.kefeAudioGraph?.analyser?.();
     if(a){
@@ -252,6 +262,7 @@
   function schedule(){if(!raf&&active&&!document.hidden)raf=requestAnimationFrame(paint);}
   function activate(){
     active=true;enabled=true;view.hidden=false;canvas.style.visibility='visible';
+    connectAudio();
     document.querySelectorAll('.kefe-vis-tabs [role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
     ['kefeVisGradientView','kefeVisFlutedView','kefeVisSlowLightView','kefeVisHowBadView'].forEach(id=>{const n=$(id);if(n)n.hidden=true;});
     const powerSlot=$('kefeVisualiserPowerSlot');
