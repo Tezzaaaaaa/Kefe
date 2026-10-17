@@ -217,6 +217,37 @@ importers:
         specifier: 3.1.0
         version: 3.1.0
 
+  apps/web:
+    dependencies:
+      clsx:
+        specifier: 'catalog:'
+        version: 2.1.1
+      framer-motion:
+        specifier: 'catalog:'
+        version: 12.43.0
+      react:
+        specifier: 'catalog:'
+        version: 19.1.0
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.1.0(react@19.1.0)
+      tailwind-merge:
+        specifier: 'catalog:'
+        version: 3.6.0
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: 'catalog:'
+        version: 4.3.3
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 5.2.0
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.3.3
+      vite:
+        specifier: 'catalog:'
+        version: 7.3.6
+
   packages/api-client-react:
     dependencies:
       '@tanstack/react-query':
