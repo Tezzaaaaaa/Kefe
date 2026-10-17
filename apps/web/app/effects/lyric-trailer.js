@@ -223,8 +223,8 @@
           var cw=maskCtx.measureText(ch).width,wt=weights[index]||1;
           var reveal=clamp((target-used)/wt,0,1);
           if(ch!==' '&&reveal>0){
-            maskCtx.save();glyphRevealClip(maskCtx,cw,size,reveal,x+y);
-            maskCtx.fillStyle='#fff';maskCtx.fillText(ch,x,y);maskCtx.restore();
+            maskCtx.save();maskCtx.translate(x,y);glyphRevealClip(maskCtx,cw,size,reveal,x+y);
+            maskCtx.fillStyle='#fff';maskCtx.fillText(ch,0,0);maskCtx.restore();
           }
           x+=cw+tracking;used+=wt;index++;
         });
