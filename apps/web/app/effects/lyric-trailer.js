@@ -221,12 +221,12 @@
       // Remove condensation only where the lyric has actually been written, exposing the exterior through the letters.
       maskCtx.clearRect(0,0,w,h);maskCtx.textAlign='left';maskCtx.textBaseline='alphabetic';font(maskCtx,size,style);
       rows.forEach(function(row,ri){
-        var x=(w-width(maskCtx,row,tracking))*.5,y=top+ri*rowHeight;
+        var rowWidth=maskCtx.measureText(row).width,x=(w-rowWidth)*.5,y=top+ri*rowHeight;
         var rowWeight=0;
         Array.from(row).forEach(function(ch){rowWeight+=weights[index++]||1;});
         var reveal=clamp((target-used)/Math.max(1,rowWeight),0,1);
         if(reveal>0){
-          maskCtx.save();maskCtx.translate(x,y);rowRevealClip(maskCtx,width(maskCtx,row,tracking),size,reveal,x+y);
+          maskCtx.save();maskCtx.translate(x,y);rowRevealClip(maskCtx,rowWidth,size,reveal,x+y);
           maskCtx.fillStyle='#fff';maskCtx.fillText(row,0,0);maskCtx.restore();
         }
         used+=rowWeight;
@@ -238,7 +238,7 @@
       var headX=w*.5,headY=top,remaining=target,count=0,headFound=false,progressUsed=0;
       font(ctx,size,style);ctx.textAlign='left';ctx.textBaseline='alphabetic';
       rows.forEach(function(row,ri){
-        var rowWidth=width(ctx,row,tracking),x=(w-rowWidth)*.5,y=top+ri*rowHeight,rowWeight=0;
+        var rowWidth=ctx.measureText(row).width,x=(w-rowWidth)*.5,y=top+ri*rowHeight,rowWeight=0;
         Array.from(row).forEach(function(ch){rowWeight+=weights[count++]||1;});
         var reveal=clamp((target-progressUsed)/Math.max(1,rowWeight),0,1);
         if(reveal>0)strokeHandwrittenRow(ctx,row,x,y,size,reveal,alpha,x+y);
