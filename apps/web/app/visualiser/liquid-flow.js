@@ -195,13 +195,11 @@
   }
   function buildControls(view){
     var wrap=document.createElement('div');wrap.className='kefe-fluid-ink-controls';
-    var heading=document.createElement('p');heading.className='kefe-fluid-description';heading.textContent='Real fluid motion with audio-driven currents, swirling ink and luminous colour.';wrap.appendChild(heading);
     var presetList=document.createElement('div');presetList.className='kefe-fluid-presets';
     Object.keys(presets).forEach(function(id){
       var pset=presets[id],button=document.createElement('button');button.type='button';button.className='kefe-btn';button.dataset.fluidPreset=id;
       var strong=document.createElement('strong');strong.textContent=pset.label;
-      var small=document.createElement('small');small.textContent=({'ink-bloom':'Colourful ink plumes and soft glow',vortex:'Fast rotating currents',marbling:'Slow, flowing colour ribbons','liquid-chrome':'High contrast and bright highlights','deep-ocean':'Deep blues and slow movement',kaleidoscope:'Mirrored, symmetrical fluid'}[id]);
-      button.appendChild(strong);button.appendChild(small);button.addEventListener('click',function(){setPreset(id);});presetList.appendChild(button);
+      button.appendChild(strong);button.addEventListener('click',function(){setPreset(id);});presetList.appendChild(button);
     });
     var presetSet=document.getElementById('kefeGradientPresetSet');
     if(presetSet){presetSet.appendChild(presetList);}
