@@ -185,8 +185,8 @@
       const minSize=Math.max(12,o.minSize||18);
       const build=size=>{
         set(ctx,size);const gap=size*gapEm,rows=[];let row=[],rw=0,tooWide=false;
-        /* Keep words intact: when a word cannot fit after shrinking, place that
-           whole word on its own row rather than splitting it into fragments. */
+        /* Keep words intact: move a whole word to the next row when it cannot
+           fit on the current row. Never shrink or split the word to force a fit. */
         for(const wd of words){
           const ww=ctx.measureText(wd.text).width;
           if(ww>maxW)tooWide=true;
@@ -197,13 +197,7 @@
         if(row.length)rows.push({words:row,width:rw});
         return {rows,gap,tooWide};
       };
-      let size=Math.max(minSize,Number(o.size)||76),r=build(size);
-      while((r.tooWide||r.rows.length>maxLines||r.rows.length*size*lh>maxH)&&size>minSize){
-        size=Math.max(minSize,size-Math.max(1,Math.round(size*.04)));r=build(size);
-      }
-      /* Extremely long single words remain intact; shrink further only if one
-         still exceeds the safe width at the effect's normal minimum size. */
-      while(r.tooWide&&size>8){size=Math.max(8,size-1);r=build(size);}
+      const size=Math.max(minSize,Number(o.size)||76),r=build(size);
       set(ctx,size);
       return {size,gap:r.gap,rows:r.rows,lineH:size*lh};
     },
@@ -228,12 +222,7 @@
         if(cur)rows.push(cur);
         return {rows,tooWide};
       };
-      let size=Math.max(minSize,Number(o.size)||76),res=wrap(size);
-      const fits=r=>!r.tooWide&&r.rows.length<=maxLines&&r.rows.length*size*lh<=maxH;
-      while(!fits(res)&&size>minSize){size=Math.max(minSize,size-Math.max(1,Math.round(size*.04)));res=wrap(size);}
-      /* Never split a token. Only unusually long single words may shrink below
-         the requested minimum, and only enough to fit the safe width. */
-      while(res.tooWide&&size>8){size=Math.max(8,size-1);res=wrap(size);}
+      const size=Math.max(minSize,Number(o.size)||76),res=wrap(size);
       const rows=res.rows;
       set(ctx,size);
       const lineH=size*lh;
