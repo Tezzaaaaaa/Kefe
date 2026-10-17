@@ -14,6 +14,7 @@ import {
 import {
   createContext,
   type ReactNode,
+  type ButtonHTMLAttributes,
   useCallback,
   useContext,
   useEffect,
@@ -228,7 +229,7 @@ export interface SelectTriggerProps {
   children: ReactNode;
 }
 
-export function SelectTrigger({ className, children, ...props }: SelectTriggerProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+export function SelectTrigger({ className, children, ...props }: SelectTriggerProps & ButtonHTMLAttributes<HTMLButtonElement>) {
   const ctx = useSelectContext("SelectTrigger");
   const isTop = ctx.placement === "top";
   // The edge facing the panel flattens while the panel is attached to it and
