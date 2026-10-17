@@ -22,8 +22,6 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.kefe.app
         PRODUCT_NAME: KEFE
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_NSSupportsLiveActivities: YES
-        INFOPLIST_KEY_UIBackgroundModes: audio
     dependencies:
       - target: KEFELockScreenWidget
         embed: true
@@ -42,5 +40,4 @@ targets:
         PRODUCT_NAME: KEFELockScreenWidget
         APPLICATION_EXTENSION_API_ONLY: YES
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_NSSupportsLiveActivities: YES
         SKIP_INSTALL: YES
