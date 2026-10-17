@@ -76,7 +76,7 @@ final class KefeLockScreenCoordinator {
 
     private func schedulePlaybackUpdates() {
         playbackTask?.cancel()
-        guard isPlaying, !lyrics.isEmpty else { return }
+        guard isPlaying, activity != nil, !lyrics.isEmpty else { return }
         playbackTask = Task { @MainActor [weak self] in
             while !Task.isCancelled {
                 guard let self, self.isPlaying else { return }
