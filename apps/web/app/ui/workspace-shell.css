@@ -598,3 +598,23 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   .kefe-sidebar{scroll-behavior:smooth;scrollbar-width:none}
   .kefe-sidebar::-webkit-scrollbar{display:none}
 }
+
+/* Final workspace rhythm normalization.
+   Keep the three primary rows separated by one shared gap; vertical padding
+   belongs inside each component, not on both sides of the same boundary. */
+.kefe-editor .kefe-work{
+  row-gap:var(--section-gap);
+}
+.kefe-editor .kefe-preview{
+  padding-bottom:0;
+}
+.kefe-editor .kefe-timeline{
+  padding-top:0;
+  padding-bottom:0;
+}
+.kefe-editor .kefe-panels{
+  padding-top:0;
+}
+.kefe-editor .kefe-panel{
+  border-radius:var(--shell-radius-lg);
+}
