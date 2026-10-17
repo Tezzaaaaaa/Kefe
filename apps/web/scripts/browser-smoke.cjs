@@ -78,6 +78,7 @@ const server = http.createServer((req, res) => {
     await page.keyboard.press("Control+k");
     const commandPalette = page.locator("#kefeCommandPalette");
     await commandPalette.waitFor({ state: "visible", timeout: 5000 });
+    assert.equal(await commandPalette.locator(".beui-command-dialog").count(), 1, "command palette should use the beUI Card shell");
     await page.locator("#kefeCommandInput").fill("Open Effects");
     const commandButton = page.locator(".beui-command-button-host button").filter({ hasText: "Open Effects" });
     await commandButton.waitFor({ state: "visible", timeout: 5000 });
