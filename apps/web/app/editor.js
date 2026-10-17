@@ -1151,7 +1151,7 @@
   function showLyricsMissing(){
     setLyricsStatus('No synchronized lyrics found for this track. Check the song details, or open the Lyrics section to upload an .lrc file.');
   }
-  let audioRecognitionConsent=false;
+  let audioRecognitionSkipReason='';
   async function recognizeUploadedAudio(file){
     /* Prefer a server-side proxy so private provider credentials never ship to the
        browser. Direct-token mode is restricted to local development. */
@@ -1165,16 +1165,15 @@
     if(!proxy&&!token)return null;
     const localHosts=['localhost','127.0.0.1','::1','[::1]'];
     if(!proxy&&token&&!localHosts.includes(location.hostname)){
-      setLyricsStatus('Audio recognition is disabled outside local development when only a browser-side token is configured. Set up a server-side proxy instead.');
+      audioRecognitionSkipReason='Audio recognition is disabled outside local development when only a browser-side token is configured. Set up a server-side proxy instead.';
+      setLyricsStatus(audioRecognitionSkipReason);
       return null;
     }
-    if(!audioRecognitionConsent){
-      const confirmed=window.confirm('KEFE can send this audio file to the configured third-party song-recognition service (AudD or your configured proxy) to identify the track. The audio will leave your device. Continue?');
-      if(!confirmed){
-        setLyricsStatus('Song recognition cancelled; no audio was sent to the recognition service.');
-        return null;
-      }
-      audioRecognitionConsent=true;
+    const confirmed=window.confirm('KEFE can send this audio file to the configured third-party song-recognition service (AudD or your configured proxy) to identify the track. The audio will leave your device. Continue?');
+    if(!confirmed){
+      audioRecognitionSkipReason='Song recognition cancelled; no audio was sent to the recognition service.';
+      setLyricsStatus(audioRecognitionSkipReason);
+      return null;
     }
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),15000);
@@ -1192,6 +1191,7 @@
     }finally{clearTimeout(timeout);}
   }
   async function identifyAndLoadTrack(file){
+    audioRecognitionSkipReason='';
     const uploadId=mediaObjectUrl;
     const mediaTrack=document.getElementById('kefeMediaTrack');
     if(mediaTrack)mediaTrack.classList.remove('is-identified');
@@ -1230,7 +1230,7 @@
       }
       updateMediaTrack();updateTitleCard();
       if(!songAlbum.dataset.artUrl)scheduleTitleArtworkLookup(meta);
-      if(!recognized)setLyricsStatus('Identifying track…');
+      if(!recognized&&!audioRecognitionSkipReason)setLyricsStatus('Identifying track…');
       const duration=Number(audio.duration)||0;
       let matches=[],catalogueSearchFailed=false;
       try{matches=await fetchItunesMatches(meta,duration);}
