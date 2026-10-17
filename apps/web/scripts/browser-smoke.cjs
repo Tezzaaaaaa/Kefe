@@ -46,6 +46,7 @@ const server = http.createServer((req, res) => {
     await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
+    await page.waitForSelector("#beui-lyricsInput", { state: "attached", timeout: 20000 });
     await page.waitForFunction(() => {
       const ranges = [...document.querySelectorAll('input[type="range"]')].filter((input) => input.id !== "kefeTime");
       const selects = [...document.querySelectorAll("select")];
@@ -78,6 +79,8 @@ const server = http.createServer((req, res) => {
 
     await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
+    await page.locator("#beui-lyricsInput").fill("beUI lyric smoke");
+    assert.equal(await page.locator("#lyricsInput").inputValue(), "beUI lyric smoke", "beUI Textarea should preserve the legacy lyrics value and events");
 
     await page.keyboard.press("Control+k");
     const commandPalette = page.locator("#kefeCommandPalette");
