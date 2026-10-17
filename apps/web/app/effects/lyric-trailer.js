@@ -53,16 +53,32 @@
       ctx.fillStyle=['#f0c98d','#9dc8dd','#e9e4d8','#7199b1'][i%4];
       ctx.beginPath();ctx.ellipse(x,y,r*1.5,r,seeded(i+17)*.5,0,Math.PI*2);ctx.fill();ctx.restore();
     }
-    // Vertical rainfall on the outside face of the pane; streak speed varies naturally.
+    // Dense near/far rain layers: fine silver threads plus heavier, clearly visible runnels.
     ctx.save();ctx.lineCap='round';
-    for(var j=0;j<Math.max(48,Math.round(w/9));j++){
-      var rx=seeded(j+120)*w,rate=15+seeded(j+390)*49;
-      var ry=((seeded(j+250)*h+time*rate)%(h+55))-25;
-      var len=5+seeded(j+510)*Math.min(44,h*.12),bend=(seeded(j+610)-.5)*4;
-      ctx.strokeStyle=j%5===0?'rgba(218,238,247,.29)':'rgba(3,13,20,.28)';
-      ctx.lineWidth=.45+seeded(j+710)*1.45;
-      ctx.beginPath();ctx.moveTo(rx,ry);ctx.bezierCurveTo(rx+bend,ry+len*.35,rx-bend*.35,ry+len*.72,rx+bend*.2,ry+len);ctx.stroke();
-      if(j%7===0){ctx.fillStyle='rgba(222,241,248,.25)';ctx.beginPath();ctx.ellipse(rx+bend*.2,ry+len,ctx.lineWidth*.8,ctx.lineWidth*1.8,0,0,Math.PI*2);ctx.fill();}
+    for(var j=0;j<Math.max(76,Math.round(w/6.5));j++){
+      var rx=seeded(j+120)*w,rate=12+seeded(j+390)*57;
+      var ry=((seeded(j+250)*h+time*rate)%(h+95))-45;
+      var heavy=j%6===0;
+      var len=heavy?24+seeded(j+510)*Math.min(104,h*.24):7+seeded(j+510)*Math.min(48,h*.13);
+      var bend=(seeded(j+610)-.5)*(heavy?3.2:5);
+      ctx.strokeStyle=heavy?'rgba(195,225,237,.36)':(j%3===0?'rgba(218,239,248,.30)':'rgba(3,13,20,.31)');
+      ctx.lineWidth=heavy?1.1+seeded(j+710)*1.65:.45+seeded(j+710)*1.15;
+      ctx.beginPath();ctx.moveTo(rx,ry);
+      ctx.bezierCurveTo(rx+bend,ry+len*.25,rx-bend*.32,ry+len*.73,rx+bend*.2,ry+len);
+      ctx.stroke();
+      if(heavy){
+        var dropR=ctx.lineWidth*(.9+seeded(j+810)*.6),dropX=rx+bend*.2,dropY=ry+len;
+        ctx.fillStyle='rgba(7,22,31,.32)';ctx.beginPath();ctx.ellipse(dropX,dropY,dropR*.72,dropR*1.9,.08,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(231,247,252,.55)';ctx.beginPath();ctx.ellipse(dropX-dropR*.25,dropY-dropR*.35,dropR*.22,dropR*.7,-.12,0,Math.PI*2);ctx.fill();
+      }
+    }
+    // Long, slow beads merge into vertical rivulets instead of reading as uniform rain lines.
+    for(var m=0;m<Math.max(10,Math.round(w/48));m++){
+      var mx=seeded(m+2210)*w,my=((seeded(m+2310)*h+time*(3+seeded(m+2410)*8))%(h+150))-70;
+      var ml=48+seeded(m+2510)*Math.min(150,h*.32),mw=1.1+seeded(m+2610)*2.1;
+      ctx.strokeStyle='rgba(202,231,241,.24)';ctx.lineWidth=mw;
+      ctx.beginPath();ctx.moveTo(mx,my);ctx.bezierCurveTo(mx+1.5,my+ml*.28,mx-1.8,my+ml*.7,mx+.3,my+ml);ctx.stroke();
+      ctx.fillStyle='rgba(235,249,253,.40)';ctx.beginPath();ctx.ellipse(mx+.3,my+ml,mw*.7,mw*1.7,0,0,Math.PI*2);ctx.fill();
     }
     ctx.restore();
   }
@@ -81,12 +97,20 @@
     frost.addColorStop(.22,'rgba(218,237,243,0)');frost.addColorStop(.78,'rgba(218,237,243,0)');
     frost.addColorStop(.92,'rgba(218,237,243,.12)');frost.addColorStop(1,'rgba(230,245,249,.29)');
     ctx.fillStyle=frost;ctx.fillRect(0,0,w,h);
-    // Fine, stationary condensation beads give the fog a physical surface.
-    for(var k=0;k<Math.max(34,Math.round(w/13));k++){
-      var dx=seeded(k+710)*w,dy=seeded(k+810)*h,dr=.55+seeded(k+910)*Math.max(1,Math.min(w,h)*.0032);
-      ctx.beginPath();ctx.fillStyle='rgba(236,248,251,'+(.08+seeded(k+1010)*.16)+')';ctx.arc(dx,dy,dr,0,Math.PI*2);ctx.fill();
-      ctx.beginPath();ctx.strokeStyle='rgba(250,255,255,.22)';ctx.lineWidth=.65;
-      ctx.arc(dx-dr*.22,dy-dr*.22,dr*.72,Math.PI*1.05,Math.PI*1.8);ctx.stroke();
+    // Visible dew: a broad field of beads with cool specular rims and shaded lower edges.
+    for(var k=0;k<Math.max(58,Math.round(w/9));k++){
+      var dx=seeded(k+710)*w,dy=seeded(k+810)*h;
+      var dr=.65+seeded(k+910)*Math.max(1.2,Math.min(w,h)*.0046);
+      var bead=ctx.createRadialGradient(dx-dr*.34,dy-dr*.42,.1,dx,dy,dr*1.5);
+      bead.addColorStop(0,'rgba(250,255,255,.56)');
+      bead.addColorStop(.24,'rgba(219,242,249,.27)');
+      bead.addColorStop(.72,'rgba(97,143,162,.10)');
+      bead.addColorStop(1,'rgba(20,47,61,.04)');
+      ctx.fillStyle=bead;ctx.beginPath();ctx.ellipse(dx,dy,dr*.82,dr*1.12,-.1,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.strokeStyle='rgba(250,255,255,'+(.18+seeded(k+1010)*.23)+')';ctx.lineWidth=.65;
+      ctx.arc(dx-dr*.22,dy-dr*.22,dr*.72,Math.PI*1.02,Math.PI*1.82);ctx.stroke();
+      ctx.beginPath();ctx.strokeStyle='rgba(18,45,59,.18)';ctx.lineWidth=.7;
+      ctx.arc(dx+dr*.1,dy+dr*.15,dr*.82,.1,Math.PI*.78);ctx.stroke();
     }
     // Condensation streaks creep downward at different speeds.
     ctx.save();ctx.lineCap='round';
@@ -99,19 +123,37 @@
     ctx.restore();
   }
   function drawDroplets(ctx,w,h,time){
-    // Drawn above the cleared lettering: raised beads catch a cool edge highlight.
-    for(var k=0;k<Math.max(22,Math.round(w/23));k++){
+    // Foreground glass beads and running drops stay visibly in motion over the scene.
+    for(var k=0;k<Math.max(34,Math.round(w/15));k++){
       var x=seeded(k+1710)*w;
       var y=((seeded(k+1810)*h+time*(1.3+seeded(k+1910)*4))%(h+30))-15;
-      var r=.7+seeded(k+2010)*Math.max(1,Math.min(w,h)*.004);
-      ctx.save();ctx.globalAlpha=.24+seeded(k+2110)*.28;
+      var r=.85+seeded(k+2010)*Math.max(1.2,Math.min(w,h)*.0055);
+      ctx.save();ctx.globalAlpha=.34+seeded(k+2110)*.34;
       var g=ctx.createRadialGradient(x-r*.32,y-r*.42,.2,x,y,r*1.4);
-      g.addColorStop(0,'rgba(255,255,255,.8)');g.addColorStop(.32,'rgba(211,237,246,.38)');
+      g.addColorStop(0,'rgba(255,255,255,.92)');g.addColorStop(.32,'rgba(211,237,246,.48)');
       g.addColorStop(1,'rgba(28,64,82,.08)');
       ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(x,y,r*.82,r*1.25,-.16,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle='rgba(248,254,255,.42)';ctx.lineWidth=.55;
       ctx.beginPath();ctx.arc(x-r*.15,y-r*.2,r*.68,Math.PI*1.05,Math.PI*1.72);ctx.stroke();ctx.restore();
     }
+  }
+  function drawPaneDetails(ctx,w,h,time){
+    // Subtle window mullions make the wet surface read as real panes, not a full-screen overlay.
+    var pulse=.5+.5*Math.sin(time*.32);
+    ctx.save();
+    ctx.lineWidth=Math.max(2,Math.min(w,h)*.004);
+    ctx.strokeStyle='rgba(3,12,19,.24)';
+    ctx.beginPath();ctx.moveTo(w*.5,0);ctx.lineTo(w*.5,h);ctx.moveTo(0,h*.49);ctx.lineTo(w,h*.49);ctx.stroke();
+    ctx.lineWidth=Math.max(.7,Math.min(w,h)*.0011);
+    ctx.strokeStyle='rgba(213,237,245,.10)';
+    ctx.beginPath();ctx.moveTo(w*.5+ctx.lineWidth*1.5,0);ctx.lineTo(w*.5+ctx.lineWidth*1.5,h);ctx.moveTo(0,h*.49+ctx.lineWidth*1.5);ctx.lineTo(w,h*.49+ctx.lineWidth*1.5);ctx.stroke();
+    // Faint moving cold reflections imply a gloomy, rain-blurred exterior.
+    var sheen=ctx.createLinearGradient(w*(.12+Math.sin(time*.11)*.035),0,w*.48,h);
+    sheen.addColorStop(0,'rgba(191,220,233,0)');
+    sheen.addColorStop(.44,'rgba(191,220,233,'+(.018+pulse*.018)+')');
+    sheen.addColorStop(1,'rgba(3,13,21,.12)');
+    ctx.fillStyle=sheen;ctx.fillRect(0,0,w,h);
+    ctx.restore();
   }
   function strokeGlyph(ctx,ch,x,y,size,progress,alpha){
     if(!ch||ch===' ')return;
@@ -193,7 +235,7 @@
     var reflection=ctx.createLinearGradient(0,0,w,h);
     reflection.addColorStop(0,'rgba(255,255,255,.045)');reflection.addColorStop(.25,'rgba(255,255,255,0)');
     reflection.addColorStop(.68,'rgba(210,237,245,.025)');reflection.addColorStop(1,'rgba(0,0,0,.10)');
-    ctx.fillStyle=reflection;ctx.fillRect(0,0,w,h);drawDroplets(ctx,w,h,time);ctx.restore();
+    ctx.fillStyle=reflection;ctx.fillRect(0,0,w,h);drawPaneDetails(ctx,w,h,time);drawDroplets(ctx,w,h,time);ctx.restore();
     ctx.restore();
   }
   window.kefeEffects.trailer=render;
