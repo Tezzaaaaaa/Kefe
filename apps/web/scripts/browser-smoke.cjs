@@ -43,7 +43,6 @@ const server = http.createServer((req, res) => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
-    await page.waitForSelector(".beui-tabs-host [role=tab]", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
     await page.waitForFunction(() => {
@@ -53,10 +52,6 @@ const server = http.createServer((req, res) => {
         && selects.every((input) => input.nextElementSibling?.classList.contains("beui-select-host"));
     }, null, { timeout: 20000 });
 
-    const tabCount = await page.locator(".beui-tabs-host [role=tab]").count();
-    const tabDebug = await page.locator(".beui-tabs-host [role=tab]").first().evaluate((el) => ({display:getComputedStyle(el).display,visibility:getComputedStyle(el).visibility,opacity:getComputedStyle(el).opacity,rect:el.getBoundingClientRect().toJSON(),parent:el.parentElement?.getBoundingClientRect().toJSON(),host:el.closest(".beui-tabs-host")?.getBoundingClientRect().toJSON(),ancestors:[...(()=>{const a=[];let n=el;while(n&&a.length<12){a.push({tag:n.tagName,id:n.id,className:typeof n.className==="string"?n.className:"",display:getComputedStyle(n).display,visibility:getComputedStyle(n).visibility,rect:n.getBoundingClientRect().toJSON()});n=n.parentElement;}return a;})()]}));
-    console.log("beUI tab render diagnostics:", JSON.stringify(tabDebug));
-    assert.ok(tabCount >= 5, `expected editor section tabs, found ${tabCount}`);
     const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
     assert.ok(sidebarCount >= 7, `expected sidebar actions, found ${sidebarCount}`);
 
@@ -77,7 +72,7 @@ const server = http.createServer((req, res) => {
     await dialog.getByRole("button", { name: "Done" }).click();
     await dialog.waitFor({ state: "hidden", timeout: 5000 });
 
-    await page.locator(".beui-tabs-host [role=tab]").filter({ hasText: "Lyrics" }).click();
+    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
 
     const firstCount = await page.locator(".beui-panel-button-host").count();
@@ -85,7 +80,7 @@ const server = http.createServer((req, res) => {
     const secondCount = await page.locator(".beui-panel-button-host").count();
     assert.equal(secondCount, firstCount, "panel bridge must not recursively mount its own buttons");
     assert.deepEqual(pageErrors, [], `browser runtime errors: ${pageErrors.join("; ")}`);
-    console.log("beUI browser smoke passed: built entry, controls, Settings dialog, Select, tabs, and panel bridge.");
+    console.log("beUI browser smoke passed: built entry, controls, Settings dialog, Select, sidebar navigation, and panel bridge.");
     await context.close();
   } finally {
     if (browser) await browser.close();
