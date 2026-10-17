@@ -24,7 +24,7 @@ Do not build a KEFE-hosted lyric database: storing and serving lyrics makes KEFE
 
 Users load their own audio/video and export lyric videos. Copyright in the music and lyrics stays with the rightsholders, and posting an export to YouTube/Instagram/TikTok may need sync and master licences. KEFE is not the uploader, but:
 - Terms of Use must put responsibility for rights on the user (draft in `apps/web/legal/terms.html`).
-- Add a short notice at export: "Only export media you have the right to use."
+- **Implemented in this branch:** the export flow asks users to confirm they own or have permission to use the included audio, lyrics, artwork and other material, and that their intended sharing/commercial use is allowed. This is a reminder, not a licence or legal defence.
 - If accounts, cloud storage or sharing are added, KEFE starts hosting user content: that needs a takedown process (Australian Copyright Act safe-harbour requirements for carriage service providers) and a designated contact.
 
 ## 3. Third-party artwork and metadata
@@ -41,9 +41,8 @@ Effect labels and descriptions name third-party brands: "Apple" (Apple Music-sty
 
 ## 5. Privacy
 
-KEFE runs in the browser. Data leaves the device only through these requests, which the privacy policy discloses:
+KEFE runs in the browser, but external requests and third-party code still need production network verification. In this branch, automatic LRCLIB lyric lookup is disabled and should not send track details to LRCLIB. The draft privacy policy has been updated to reflect this branch, but is not final until actual network behaviour is checked:
 - iTunes Search (search text)
-- LRCLIB (title, artist, album, duration)
 - Google Fonts (`fonts.googleapis.com`), only when a user picks a custom Google font (`lyric-inspiration-pack.js`)
 - jsDelivr, on every editor load: `gif.js` (`editor.html`) and `@uimaxbai/am-lyrics` (`editor.js`, the Apple-style lyric component). These run third-party code in the page from a CDN. Pin versions and add Subresource Integrity, or bundle them. I have not verified what `am-lyrics` requests over the network (likely lyrics for the current track); check before publishing the privacy policy.
 - GitHub Pages hosting (visitor IP, logged by GitHub)
@@ -79,8 +78,9 @@ When accounts and billing arrive (`apps/api`, `packages/db`, Stripe packages in 
 
 ## What is in this change
 
-- `apps/web/legal/privacy.html`: draft privacy policy matching today's behaviour.
-- `apps/web/legal/terms.html`: draft terms of use.
+- `apps/web/legal/privacy.html`: draft privacy policy, updated to describe the disabled LRCLIB lookup and explicitly note that network behaviour still needs verification.
+- `apps/web/legal/terms.html`: draft terms of use, updated to describe the paused automatic lyrics-catalogue feature.
+- Export-time rights confirmation added in `apps/web/app/editor.js`.
 - This review.
 
 Both pages still have `[PLACEHOLDER]` fields and a draft banner. They must not be treated as final legal documents; operator identity and contact details must be supplied, network behaviour verified, and the pages linked from the editor before launch.
