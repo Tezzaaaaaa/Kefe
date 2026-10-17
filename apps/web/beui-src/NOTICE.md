@@ -1,10 +1,13 @@
 # beUI source attribution
 
-The range slider and supporting utility source in this directory are adapted from the public beUI component source repository:
+The range slider, motion button, switch, and supporting utility source in this directory are adapted from the public beUI component source:
 
-- Source: https://github.com/starc007/ui-components
-- Component: `components/motion/range-slider.tsx`
-- Shared source: `lib/hooks/use-slider.ts`, `lib/touch.ts`, `lib/ease.ts`, and `lib/utils.ts`
+- Public library: https://beui.dev/
+- Component source pages: https://beui.dev/components/motion/range-slider, https://beui.dev/components/motion/button, https://beui.dev/components/motion/switch
+- Public source repository: https://github.com/starc007/ui-components
+- Copied components: `components/motion/range-slider.tsx`, `components/motion/button/base.tsx`, and `components/motion/switch.tsx`
+- Shared source: `lib/hooks/use-slider.ts`, `lib/hooks/use-hover-capable.ts`, `lib/touch.ts`, `lib/ease.ts`, and `lib/utils.ts`
+- Import paths were adapted from `motion/react` to the workspace-compatible `framer-motion` package.
 - Upstream copyright: Copyright (c) 2026 Saurabh Chauhan
 - License: MIT
 
