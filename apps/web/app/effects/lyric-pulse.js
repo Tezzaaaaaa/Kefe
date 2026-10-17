@@ -47,7 +47,7 @@ function pulseWords(line, next, tokens) {
 }
 
 const pulseGeometryCache = new Map();
-const PULSE_GEOMETRY_CACHE_LIMIT = 96;
+const PULSE_GEOMETRY_CACHE_LIMIT = 32;
 
 function pulseGlyphGeometry(ctx, words, width, size, setFont) {
     const key = [width, size, ctx.font, words.map(word => word.text).join(' ')].join('|');
@@ -57,10 +57,8 @@ function pulseGlyphGeometry(ctx, words, width, size, setFont) {
         pulseGeometryCache.set(key, cached);
         return cached;
     }
-
-    // Supersampled glyph mask is built only when text/layout changes, never per animation frame.
-    const scale = 2;
-    const mask = document.createElement('canvas');
+    // Trace a supersampled mask rendered with the actual selected browser font.
+    const scale = 1.25, mask = document.createElement('canvas');
     mask.width = Math.max(1, Math.ceil(width * scale));
     mask.height = Math.max(1, Math.ceil(size * 1.55 * scale));
     const mctx = mask.getContext('2d', { willReadFrequently: true });
@@ -69,7 +67,6 @@ function pulseGlyphGeometry(ctx, words, width, size, setFont) {
     setFont(mctx, size);
     mctx.textBaseline = 'alphabetic';
     mctx.textAlign = 'left';
-
     const baseline = mask.height / scale * 0.72;
     const widths = words.map(word => mctx.measureText(word.text).width);
     const spaceWidth = mctx.measureText(' ').width;
@@ -82,41 +79,78 @@ function pulseGlyphGeometry(ctx, words, width, size, setFont) {
         cursor += widths[i] + spaceWidth;
         return range;
     });
-
     let pixels;
-    try {
-        pixels = mctx.getImageData(0, 0, mask.width, mask.height).data;
-    } catch (_) {
-        return null;
-    }
+    try { pixels = mctx.getImageData(0, 0, mask.width, mask.height).data; }
+    catch (_) { return null; }
+    const mw = mask.width, mh = mask.height, ink = new Uint8Array(mw * mh);
+    for (let i = 0; i < ink.length; i++) ink[i] = pixels[i * 4 + 3] > 100 ? 1 : 0;
+    pixels = null;
 
-    // Sub-pixel sampling plus an ink-weighted centroid avoids the abrupt jumps caused by
-    // choosing a single vertical ink run (especially around counters in a, e, o, and R).
-    const step = 0.5;
-    const points = [];
-    let lastGlyphY = 0;
-    for (let x = 0; x <= width; x += step) {
-        const ix = Math.min(mask.width - 1, Math.max(0, Math.floor(x * scale)));
-        let weightedY = 0;
-        let weight = 0;
-        for (let y = 0; y < mask.height; y++) {
-            const alpha = pixels[(y * mask.width + ix) * 4 + 3];
-            if (alpha <= 24) continue;
-            weightedY += (y / scale) * alpha;
-            weight += alpha;
+    // Marching squares follows the real letter silhouette, preserving counters.
+    const segments = [];
+    const edge = (x, y, side) => side === 0 ? [x + 0.5, y]
+        : side === 1 ? [x + 1, y + 0.5]
+        : side === 2 ? [x + 0.5, y + 1] : [x, y + 0.5];
+    const pairs = [[], [[3,0]], [[0,1]], [[3,1]], [[1,2]], [], [[0,2]], [[3,2]],
+        [[2,3]], [[0,2]], [], [[1,2]], [[3,1]], [[0,1]], [[3,0]], []];
+    for (let y = 0; y < mh - 1; y++) {
+        let idx = y * mw;
+        for (let x = 0; x < mw - 1; x++, idx++) {
+            const code = ink[idx] | (ink[idx + 1] << 1) | (ink[idx + mw + 1] << 2) | (ink[idx + mw] << 3);
+            if (!code || code === 15) continue;
+            const cellPairs = code === 5 ? [[0,1],[2,3]] : code === 10 ? [[0,3],[1,2]] : pairs[code];
+            for (const pair of cellPairs) segments.push([edge(x, y, pair[0]), edge(x, y, pair[1])]);
         }
-        if (weight > 0) lastGlyphY = weightedY / weight - baseline;
-        points.push({ x, y: weight > 0 ? lastGlyphY : null });
     }
-
-    const geometry = { points, wordRanges, baseline, size };
+    const pointKey = p => Math.round(p[0] * 2) + ',' + Math.round(p[1] * 2);
+    const adjacency = new Map();
+    segments.forEach((seg, i) => {
+        for (let e = 0; e < 2; e++) {
+            const k = pointKey(seg[e]);
+            if (!adjacency.has(k)) adjacency.set(k, []);
+            adjacency.get(k).push([i, e]);
+        }
+    });
+    const used = new Uint8Array(segments.length), contours = [];
+    for (let i = 0; i < segments.length; i++) {
+        if (used[i]) continue;
+        used[i] = 1;
+        const points = [segments[i][0], segments[i][1]];
+        let current = segments[i][1], guard = 0;
+        while (guard++ < segments.length) {
+            const options = adjacency.get(pointKey(current)) || [];
+            let nextSegment = -1, nextEnd = -1;
+            for (const option of options) {
+                if (!used[option[0]]) { nextSegment = option[0]; nextEnd = option[1]; break; }
+            }
+            if (nextSegment < 0) break;
+            used[nextSegment] = 1;
+            current = segments[nextSegment][1 - nextEnd];
+            if (pointKey(current) === pointKey(points[0])) break;
+            points.push(current);
+        }
+        if (points.length < 5) continue;
+        const simplified = [points[0]];
+        let last = points[0];
+        for (let p = 1; p < points.length - 1; p++) {
+            const candidate = points[p];
+            if (Math.hypot(candidate[0] - last[0], candidate[1] - last[1]) >= 0.8) {
+                simplified.push(candidate);
+                last = candidate;
+            }
+        }
+        simplified.push(points[points.length - 1]);
+        if (simplified.length < 4) continue;
+        const avgX = simplified.reduce((sum, p) => sum + p[0] / scale, 0) / simplified.length;
+        const wordIndex = wordRanges.findIndex(r => avgX >= r.startX - 1 && avgX <= r.endX + 1);
+        if (wordIndex < 0) continue;
+        contours.push({ wordIndex, points: simplified.map(p => [p[0] / scale, p[1] / scale - baseline]) });
+    }
+    const geometry = { contours, wordRanges, baseline, size };
     pulseGeometryCache.set(key, geometry);
-    while (pulseGeometryCache.size > PULSE_GEOMETRY_CACHE_LIMIT) {
-        pulseGeometryCache.delete(pulseGeometryCache.keys().next().value);
-    }
+    while (pulseGeometryCache.size > PULSE_GEOMETRY_CACHE_LIMIT) pulseGeometryCache.delete(pulseGeometryCache.keys().next().value);
     return geometry;
 }
-
 function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
     const text = String(line.text || '').trim();
     if (!text || !w || !h) return;
@@ -170,75 +204,66 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
         const geometry = pulseGlyphGeometry(ctx, rowWords, w, size, setF);
         if (!geometry) return;
         const traceY = firstY + rowIndex * rowHeight + size * 0.18;
-        const points = geometry.points;
-        const ranges = geometry.wordRanges;
-
+        const contours = geometry.contours, ranges = geometry.wordRanges;
         rowWords.forEach((word, wordIndex) => {
             const timing = U.wordProgress({ time: word.start, endTime: word.end }, time, 0.09);
-            // Reveal follows the monotonic karaoke sweep. `pulse` is an emphasis envelope and would make the word disappear again mid-syllable.
             const reveal = linaClamp(timing.sweep);
             if (reveal <= 0.002) return;
             const range = ranges[wordIndex];
             if (!range) return;
             const startX = Math.max(0, range.startX);
             const endX = Math.min(w, range.startX + (range.endX - range.startX) * reveal);
-            const pathPoints = [];
-            for (const point of points) {
-                if (point.x < startX || point.x > endX) continue;
-                const p = ((point.x / Math.max(1, w)) + beatPhase) % 1;
+            if (endX <= startX) return;
+            const beatAt = x => {
+                const p = ((x / Math.max(1, w)) + beatPhase) % 1;
                 const bump = (center, width, height) => height * Math.exp(-0.5 * Math.pow((p - center) / width, 2));
-                let ecg = 0;
-                ecg += bump(0.19, 0.035, traceAmplitude * 0.12);
-                ecg -= bump(0.385, 0.012, traceAmplitude * 0.16);
                 const qrsOffset = ((p - 0.415 + 1.5) % 1) - 0.5;
                 const qrsPulse = Math.exp(-0.5 * Math.pow(qrsOffset / 0.026, 2));
-                ecg += bump(0.415, 0.009, traceAmplitude * (0.48 + qrsPulse * 0.3));
-                ecg -= bump(0.447, 0.014, traceAmplitude * 0.28);
-                ecg += bump(0.64, 0.065, traceAmplitude * 0.2);
-                const glyphY = point.y === null ? (pathPoints.length ? pathPoints[pathPoints.length - 1].y : 0) : point.y;
-                const y = traceY + glyphY * 0.76 + ecg * 0.24;
-                pathPoints.push({ x: point.x, y });
-            }
-            if (pathPoints.length < 2) return;
-
-            const strokePath = () => {
-                ctx.beginPath();
-                if (pathPoints.length < 3) {
-                    pathPoints.forEach((point, i) => i ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
-                    return;
-                }
-                ctx.moveTo(pathPoints[0].x, pathPoints[0].y);
-                for (let i = 1; i < pathPoints.length - 1; i++) {
-                    const current = pathPoints[i], nextPoint = pathPoints[i + 1];
-                    ctx.quadraticCurveTo(current.x, current.y, (current.x + nextPoint.x) * 0.5, (current.y + nextPoint.y) * 0.5);
-                }
-                const last = pathPoints[pathPoints.length - 1];
-                ctx.lineTo(last.x, last.y);
-                ctx.stroke();
+                return bump(0.19, 0.035, traceAmplitude * 0.12) - bump(0.385, 0.012, traceAmplitude * 0.16)
+                    + bump(0.415, 0.009, traceAmplitude * (0.48 + qrsPulse * 0.3))
+                    - bump(0.447, 0.014, traceAmplitude * 0.28) + bump(0.64, 0.065, traceAmplitude * 0.2);
             };
+            const traceY = firstY + rowIndex * rowHeight + size * 0.18;
+            const tracePath = new Path2D();
+            for (const contour of contours) {
+                if (contour.wordIndex !== wordIndex || contour.points.length < 4) continue;
+                const pts = contour.points, transformed = pts.map(point => ({
+                    x: point[0], y: traceY + point[1] * 0.76 + beatAt(point[0]) * 0.24
+                }));
+                const first = transformed[0], last = transformed[transformed.length - 1];
+                tracePath.moveTo((last.x + first.x) * 0.5, (last.y + first.y) * 0.5);
+                for (let i = 0; i < transformed.length; i++) {
+                    const current = transformed[i], nextPoint = transformed[(i + 1) % transformed.length];
+                    tracePath.quadraticCurveTo(current.x, current.y, (current.x + nextPoint.x) * 0.5, (current.y + nextPoint.y) * 0.5);
+                }
+                tracePath.closePath();
+            }
 
-            // Fine core + restrained halo + moving specular highlight all share one lyric-shaped trace.
+            // One cached path keeps the glow, core and specular pass geometrically identical.
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(startX - 1, -h, Math.max(1, endX - startX + 2), h * 3);
+            ctx.clip();
+
             ctx.save();
             ctx.strokeStyle = colour;
-            ctx.lineWidth = Math.max(2, size * 0.032);
+            ctx.lineWidth = Math.max(1.6, size * 0.026);
             ctx.shadowColor = colour;
-            ctx.shadowBlur = size * 0.16 * glowSize;
-            ctx.globalAlpha *= 0.16 + beatPulse * 0.08;
-            strokePath();
+            ctx.shadowBlur = size * 0.12 * glowSize;
+            ctx.globalAlpha *= 0.2 + beatPulse * 0.08;
+            ctx.stroke(tracePath);
             ctx.restore();
 
             ctx.save();
             ctx.strokeStyle = colour;
-            ctx.lineWidth = Math.max(1.35, size * 0.016);
+            ctx.lineWidth = Math.max(1.1, size * 0.012);
             ctx.shadowColor = colour;
-            ctx.shadowBlur = size * 0.045 * glowSize;
-            ctx.globalAlpha *= 0.82 + 0.18 * timing.pulse;
-            strokePath();
+            ctx.shadowBlur = size * 0.035 * glowSize;
+            ctx.globalAlpha *= 0.78 + 0.22 * timing.pulse;
+            ctx.stroke(tracePath);
             ctx.restore();
 
-            // Keep the specular sweep locked to the travelling R-wave instead of drifting out of sync.
-            const headX = (((0.415 - beatPhase) + 1) % 1) * w;
-            const headWidth = Math.max(w * 0.1, size * 1.5);
+            const headX = (((0.415 - beatPhase) + 1) % 1) * w, headWidth = Math.max(w * 0.1, size * 1.5);
             const gradient = ctx.createLinearGradient(headX - headWidth * 0.5, 0, headX + headWidth * 0.5, 0);
             gradient.addColorStop(0, 'rgba(255,255,255,0)');
             gradient.addColorStop(0.38, 'rgba(255,255,255,0.12)');
@@ -247,10 +272,11 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
             gradient.addColorStop(1, 'rgba(255,255,255,0)');
             ctx.save();
             ctx.strokeStyle = gradient;
-            ctx.lineWidth = Math.max(1.4, size * 0.022);
+            ctx.lineWidth = Math.max(1.2, size * 0.018);
             ctx.shadowColor = '#FFFFFF';
-            ctx.shadowBlur = size * 0.09 * glowSize;
-            strokePath();
+            ctx.shadowBlur = size * 0.075 * glowSize;
+            ctx.stroke(tracePath);
+            ctx.restore();
             ctx.restore();
         });
     });
