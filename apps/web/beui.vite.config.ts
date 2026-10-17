@@ -18,7 +18,11 @@ export default defineConfig({
     outDir: "dist-beui",
     emptyOutDir: true,
     rollupOptions: {
-      input: resolve(here, "beui.html"),
+      input: {
+        index: resolve(here, "index.html"),
+        editor: resolve(here, "editor.html"),
+        beui: resolve(here, "beui.html"),
+      },
     },
   },
 });
