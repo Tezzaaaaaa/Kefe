@@ -106,6 +106,7 @@ function TransportButton({ backing, variant = "ghost" }) {
     content: backing.innerHTML,
     pressed: backing.getAttribute("aria-pressed"),
     expanded: backing.getAttribute("aria-expanded"),
+    controls: backing.getAttribute("aria-controls"),
     disabled: backing.disabled,
   });
   const [attrs, setAttrs] = useState(read);
@@ -116,7 +117,7 @@ function TransportButton({ backing, variant = "ghost" }) {
       childList: true,
       characterData: true,
       subtree: true,
-      attributeFilter: ["aria-label", "title", "class", "aria-pressed", "aria-expanded", "disabled"],
+      attributeFilter: ["aria-label", "title", "class", "aria-pressed", "aria-expanded", "aria-controls", "disabled"],
     });
     return () => observer.disconnect();
   }, [backing]);
@@ -129,6 +130,7 @@ function TransportButton({ backing, variant = "ghost" }) {
       title={attrs.title}
       aria-pressed={attrs.pressed === null ? undefined : attrs.pressed === "true"}
       aria-expanded={attrs.expanded === null ? undefined : attrs.expanded === "true"}
+      aria-controls={attrs.controls || undefined}
       disabled={attrs.disabled}
       onClick={() => backing.click()}
       dangerouslySetInnerHTML={{ __html: attrs.content }}
