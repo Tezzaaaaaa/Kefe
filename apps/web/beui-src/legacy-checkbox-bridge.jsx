@@ -3,11 +3,13 @@ import { createRoot } from "react-dom/client";
 import { Checkbox } from "@/components/motion/checkbox";
 import "./legacy-bridge.css";
 
+let nextCheckboxId = 0;
+
 function BeUICheckbox({ backing, backingLabel, host }) {
   const [checked, setChecked] = useState(backing.checked);
   const [disabled, setDisabled] = useState(backing.disabled);
   const [label, setLabel] = useState(() => backingLabel?.textContent.trim() || backing.getAttribute("aria-label") || backing.title || "Option");
-  const visualId = `beui-${backing.id || "checkbox"}`;
+  const visualId = `beui-${backing.id || `checkbox-${++nextCheckboxId}`}`;
 
   useEffect(() => {
     const sync = () => {
