@@ -41,11 +41,11 @@
     return {x:cx+x*r,y:cy+y*r,z,nx:x,ny:y};
   }
   let gl=null, glProgram=null, glBuffer=null, glUniforms=null;
-  const vertexShaderSource = \`#version 300 es
+  const vertexShaderSource = `#version 300 es
     in vec2 a_position;
     void main(){ gl_Position=vec4(a_position,0.0,1.0); }
-  \`;
-  const fragmentShaderSource = \`#version 300 es
+  `;
+  const fragmentShaderSource = `#version 300 es
     precision highp float;
     uniform vec2 u_resolution;
     uniform float u_time;
@@ -115,7 +115,7 @@
       }
       outColor=result;
     }
-  \`;
+  `;
   function compileShader(type,source){
     const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);
     if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){const message=gl.getShaderInfoLog(shader);gl.deleteShader(shader);throw new Error(message||'Disco Ball shader compilation failed');}
