@@ -277,3 +277,6 @@ select.beui-native-select {
 .beui-command-button-host[hidden] { display: none !important; }
 .beui-command-action { width: 100%; justify-content: space-between; text-align: left; }
 .beui-command-action > span { display: inline-flex; align-items: center; justify-content: center; }
+
+.beui-command-dialog-root { display: contents; }
+.beui-command-dialog { flex: 0 1 520px; }
