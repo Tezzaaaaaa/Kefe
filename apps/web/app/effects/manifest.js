@@ -38,4 +38,5 @@ window.KEFE_EFFECTS = [
   ,{ key: 'eternal', label: 'Eternal Sunshine', description: 'Handwritten ink reveal' }
   ,{ key: 'inkscript', label: 'Ink Script', description: 'Brush-ink write-on, melting transitions and splatter' }
   ,{ key: 'chrome', label: 'Liquid Chrome', description: 'Reflective liquid-metal lettering with steel extrusion and moving glints' }
+  ,{ key: 'gel', label: 'Gel Script', description: 'Glossy inflated lettering with word-by-word balloon bounce' }
 ];
