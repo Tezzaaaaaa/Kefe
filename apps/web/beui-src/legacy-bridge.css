@@ -348,3 +348,7 @@ textarea.beui-native-textarea {
   border: 0 !important;
 }
 .beui-textarea-control { width: 100%; min-width: 0; }
+
+.beui-volume-card-root { display: contents; }
+.kefe-volume-popover.beui-volume-popover-native { padding: 0; border: 0; background: transparent; box-shadow: none; }
+.beui-volume-card { display: flex; flex-direction: column; }
