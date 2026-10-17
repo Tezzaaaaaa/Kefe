@@ -218,7 +218,7 @@
     addSlider('react','Audio response',0,3,.05);addSlider('bloom','Glow',0,1.5,.05);
     addSlider('density','Ink persistence',.96,.999,.001);addSlider('quality','Simulation quality',.6,1.5,.05);
     wrap.appendChild(settings);
-    var random=document.createElement('button');random.type='button';random.className='kefe-btn';random.textContent='Randomise fluid';random.addEventListener('click',function(){
+    var random=document.createElement('button');random.type='button';random.className='kefe-btn';random.textContent='Randomise';random.addEventListener('click',function(){
       var ids=Object.keys(presets);setPreset(ids[Math.floor(Math.random()*ids.length)]);
       paletteIndex=Math.floor(Math.random()*palettes.length);resetDye();syncPaletteButtons();
     });wrap.appendChild(random);view.appendChild(wrap);
