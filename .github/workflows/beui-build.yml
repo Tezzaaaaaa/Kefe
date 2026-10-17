@@ -44,3 +44,11 @@ jobs:
           test -s apps/web/dist-beui/beui.html
           node apps/web/scripts/smoke-build.mjs
           node apps/web/scripts/smoke-settings-api.mjs
+      - name: Install Playwright browser runner
+        run: npm install --prefix /tmp/kefe-browser --no-save --no-package-lock playwright@1.56.1
+      - name: Install Chromium
+        run: /tmp/kefe-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Run built-editor browser smoke test
+        env:
+          NODE_PATH: /tmp/kefe-browser/node_modules
+        run: node apps/web/scripts/browser-smoke.cjs
