@@ -2024,9 +2024,7 @@ body{ letter-spacing: -.01em;
   font-size: var(--font-sm);
   font-family: inherit;}
   .kefe-timeline { grid-template-columns: auto 65px minmax(0, 1fr) auto; height: 56px; padding: 6px 10px; gap: 7px; }
-  .kefe-play { width: 36px; height: 36px; 
-  font-size: var(--font-sm);
-  font-family: inherit;}
+
   .kefe-time { min-width: 65px; width: 65px; font-size: var(--font-xs); 
   font-family: inherit;
   font-variant-numeric: tabular-nums;
