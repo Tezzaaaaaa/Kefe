@@ -75,6 +75,7 @@ function BeUITextarea({ backing, visualId }) {
 
 function canBridge(textarea) {
   return textarea instanceof HTMLTextAreaElement
+    && textarea.closest(".kefe-editor")
     && !textarea.hidden
     && !textarea.dataset.beuiTextareaMounted
     && !textarea.closest("#beui-settings-root")
@@ -103,7 +104,7 @@ function mount(textarea) {
 
 function scan(root = document) {
   if (root instanceof HTMLTextAreaElement) mount(root);
-  root.querySelectorAll?.(".kefe-editor textarea").forEach(mount);
+  root.querySelectorAll?.("textarea").forEach(mount);
 }
 
 function start() {
