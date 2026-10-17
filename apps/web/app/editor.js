@@ -397,6 +397,7 @@
     state.appleLines=state.lines.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
     previewStage.classList.toggle('is-empty',!(audio.currentSrc||audio.src||video.currentSrc||video.src)&&state.lines.length===0);
     window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:'text'}}));
+    publishKefeLockScreen('update');
     draw();
   }
   function lyricsToTtml(lines){
@@ -1607,6 +1608,37 @@
     appleLyrics.currentTime=Math.round(((audio.src?audio.currentTime:state.time)-lyricOffset())*1000);
     if(seeking&&typeof appleLyrics.seek==='function')appleLyrics.seek();
   }
+  /* Native iOS bridge is separate from the Apple Music renderer. It sends only track metadata
+     and the currently timed lyric to the host app; Safari ignores this when no bridge exists. */
+  let lockScreenLastKey='';
+  function publishKefeLockScreen(action='update'){
+    const bridge=window.webkit?.messageHandlers?.kefeLockScreen;
+    if(!bridge||typeof bridge.postMessage!=='function')return;
+    const time=Math.max(0,(audio.src?audio.currentTime:state.time)-lyricOffset());
+    let activeIndex=-1;
+    for(let i=0;i<state.lines.length;i++){
+      if(time>=Number(state.lines[i]?.time||0))activeIndex=i;
+      else break;
+    }
+    const current=activeIndex>=0?state.lines[activeIndex]:null;
+    const next=activeIndex>=0?state.lines[activeIndex+1]:state.lines[0];
+    const payload={
+      action,
+      title:songTitle.value.trim()||'KEFE',
+      artist:songArtist.value.trim()||'',
+      album:songAlbum.value.trim()||'',
+      currentLine:String(current?.text||''),
+      nextLine:String(next?.text||''),
+      currentTime:time,
+      duration:Number.isFinite(audio.duration)?audio.duration:0,
+      isPlaying:!audio.paused&&!audio.ended
+    };
+    const key=[payload.title,payload.artist,payload.currentLine,payload.nextLine,payload.isPlaying,action].join('\u001f');
+    if(action==='update'&&key===lockScreenLastKey)return;
+    lockScreenLastKey=key;
+    try{bridge.postMessage(payload);}catch(error){console.warn('[KEFE native Lock Screen bridge]',error);}
+  }
+  window.kefePublishLockScreen=publishKefeLockScreen;
   audio.addEventListener('timeupdate',()=>{
     if(audio.paused){
       state.time=audio.currentTime;range.value=state.time;updateTime();syncAppleLyrics();
@@ -1627,6 +1659,7 @@
       range.value=state.time;
       updateTime();
       syncAppleLyrics();
+      publishKefeLockScreen('update');
       draw();
       requestAnimationFrame(syncPreview);
     }
@@ -1639,13 +1672,14 @@
     }
     if(audio.currentTime<=0.08&&titleCardShownFor!==mediaObjectUrl)showTitleCard();
     syncAppleLyrics();
+    publishKefeLockScreen('start');
     requestAnimationFrame(syncPreview);
   });
   audio.addEventListener('pause',()=>{
     updatePlayButton();
     if(video.src&&!video.paused)video.pause();
     syncAppleLyrics();
-    
+    publishKefeLockScreen('pause');
   });
   audio.addEventListener('ended',()=>{
     updatePlayButton();
@@ -1653,6 +1687,7 @@
     syncAppleLyrics(true);
     const appleLyrics=document.getElementById('kefeAppleLyrics');
     if(appleLyrics&&typeof appleLyrics.pause==='function')appleLyrics.pause();
+    publishKefeLockScreen('end');
   });
   audio.addEventListener('seeking',()=>syncAppleLyrics(true));
   audio.addEventListener('seeked',()=>{
