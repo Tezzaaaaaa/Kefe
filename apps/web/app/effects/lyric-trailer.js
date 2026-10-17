@@ -212,8 +212,7 @@
           var cw=maskCtx.measureText(ch).width,wt=weights[index]||1;
           var reveal=clamp((target-used)/wt,0,1);
           if(ch!==' '&&reveal>0){
-            maskCtx.save();maskCtx.translate(rowX+offset,y);glyphRevealClip(maskCtx,cw,size,reveal,x+y);
-            maskCtx.fillStyle='#fff';var strokeEngine=window.KEFETrailerStrokeEngine;if(strokeEngine)strokeEngine.draw(maskCtx,ch,rowX+offset,y,size,reveal,'mask');maskCtx.restore();
+            maskCtx.save();var strokeEngine=window.KEFETrailerStrokeEngine;if(strokeEngine)strokeEngine.draw(maskCtx,ch,rowX+offset,y,size,reveal,'mask');maskCtx.restore();
           }
           x+=cw+tracking;offset+=cw+tracking;used+=wt;index++;
         });
@@ -229,7 +228,7 @@
         Array.from(row).forEach(function(ch){
           var cw=ctx.measureText(ch).width,wt=weights[count]||1;
           var reveal=clamp((target-progressUsed)/wt,0,1);
-          if(ch!==' '&&reveal>0)strokeHandwrittenGlyph(ctx,row,offset,cw,rowX,y,size,reveal,alpha,x+y+count*7);
+          if(ch!==' '&&reveal>0)strokeHandwrittenGlyph(ctx,ch,offset,cw,rowX,y,size,reveal,alpha,x+y+count*7);
           if(!headFound&&remaining<=wt){headX=x+cw*clamp(remaining/wt,0,1);headY=y-size*.34;headFound=true;}
           remaining-=wt;progressUsed+=wt;x+=cw+tracking;offset+=cw+tracking;count++;
         });
