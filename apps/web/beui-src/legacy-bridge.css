@@ -145,3 +145,41 @@ select.beui-native-select {
 .kefe-editor.sidebar-collapsed .beui-sidebar-nav .kefe-sidebar-link-label {
   display: none;
 }
+
+.beui-sidebar-toggle-host {
+  --beui-background: var(--shell-bg, #171719);
+  --beui-foreground: var(--shell-text, #f5f5f5);
+  --beui-muted: var(--shell-panel, #29292d);
+  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
+  --beui-border: var(--shell-line, #39393f);
+  --beui-ring: var(--shell-accent, #ef4444);
+  --beui-primary: var(--shell-accent, #ef4444);
+  --beui-primary-foreground: #ffffff;
+  --beui-card: var(--shell-panel, #222225);
+  display: inline-flex;
+}
+.beui-sidebar-toggle-host .kefe-sidebar-toggle {
+  display: inline-flex;
+}
+.beui-accent-host {
+  --beui-background: var(--shell-bg, #171719);
+  --beui-foreground: var(--shell-text, #f5f5f5);
+  --beui-muted: var(--shell-panel, #29292d);
+  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
+  --beui-border: var(--shell-line, #39393f);
+  --beui-ring: var(--shell-accent, #ef4444);
+  --beui-primary: var(--shell-accent, #ef4444);
+  --beui-primary-foreground: #ffffff;
+  --beui-card: var(--shell-panel, #222225);
+}
+.beui-accent-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.beui-accent-swatch {
+  min-width: 28px;
+  min-height: 28px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 16%);
+}
