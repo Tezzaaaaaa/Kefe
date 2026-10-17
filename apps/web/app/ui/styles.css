@@ -6176,19 +6176,19 @@ body:not(.kefe-fullscreen-open) {
 .kefe-visualiser-preset-set > button,
 .kefe-visualiser-preset-set > .kefe-btn,
 .kefe-visualiser-preset-grid > button,
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets > button,
+.kefe-fluid-presets > button,
 .kefe-editing > .kefe-visualiser-preset-row #flutedModes > .kefe-btn{
   box-sizing:border-box;min-width:0;min-height:40px;padding:8px 12px;
   border-radius:var(--r2);font:inherit;font-size:var(--font-sm);line-height:1.25
 }
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets > button{
+.kefe-fluid-presets > button{
   flex:0 0 136px;width:136px;min-width:136px;max-width:136px;height:40px;
   align-items:center;justify-content:center;overflow:hidden;text-align:center;white-space:nowrap
 }
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets > button strong{
+.kefe-fluid-presets > button strong{
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:inherit
 }
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets > button small,
+.kefe-fluid-presets > button small,
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-intro,
 .kefe-panel[data-panel-view="visualiser"] #kefeVisualiserDescription{display:none!important}
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group,
@@ -6220,7 +6220,7 @@ body:not(.kefe-fullscreen-open) {
   padding:var(--s3) 0;border-radius:0
 }
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-spin-row{min-width:0;margin:0;gap:var(--s2);border-radius:var(--r2)}
-.kefe-panel[data-panel-view="visualiser"] .kefe-gradient-chip,
+.kefe-visualiser-preset-row .kefe-gradient-chip,
 .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-palette-under-power .kefe-gradient-chip{border-radius:var(--r1)}
 @media(max-width:700px){
   .kefe-editing > .kefe-vis-tabs,
@@ -6232,7 +6232,7 @@ body:not(.kefe-fullscreen-open) {
   .kefe-visualiser-preset-row{padding-block:var(--s2)}
   .kefe-visualiser-preset-set{gap:var(--s1)}
   .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group{padding:var(--s2);gap:var(--s2)}
-  .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets > button{
+  .kefe-fluid-presets > button{
     flex-basis:136px;width:136px;min-width:136px;max-width:136px;height:40px;min-height:40px;padding:8px
   }
 }
