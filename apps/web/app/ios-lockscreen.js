@@ -59,7 +59,7 @@
     try {
       session.setPositionState({
         duration: audio.duration,
-        playbackRate: audio.paused ? 0 : (audio.playbackRate || 1),
+        playbackRate: audio.playbackRate || 1,
         position: Math.min(audio.currentTime, audio.duration)
       });
     } catch (_) {}
