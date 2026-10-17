@@ -31,6 +31,28 @@ jobs:
         run: |
           node --check apps/web/app/editor.js
           node --check apps/web/app/ios-lockscreen.js
+      - name: Check lyric licensing gate and manual import remain
+        run: |
+          if grep -Eq 'https://lrclib\.net/api' apps/web/app/editor.js; then
+            echo "Automatic LRCLIB catalogue requests must remain disabled until licensing is documented."
+            exit 1
+          fi
+          grep -q 'Automatic lyrics lookup is paused pending licensing review' apps/web/app/editor.js
+          grep -q 'kefeUploadLrc' apps/web/app/editor.js
+          for property in songTitle songArtist songAlbum query musicId; do
+            grep -Fq "appleLyrics.$property='';" apps/web/app/editor.js
+          done
+          grep -Fq "appleLyrics.ttml=state.lines.length?lyricsToTtml(state.lines):'';" apps/web/app/editor.js
+          grep -q 'Song recognition cancelled; no audio was sent to the recognition service' apps/web/app/editor.js
+          grep -q 'Audio recognition is disabled outside local development' apps/web/app/editor.js
+          grep -q 'Before exporting: confirm that you own or have permission' apps/web/app/editor.js
+          grep -q 'kefeLegalDraftLinks' apps/web/app/editor.js
+          if grep -Fq '[PLACEHOLDER' apps/web/legal/terms.html apps/web/legal/privacy.html; then
+            echo "Legal policy drafts must not contain unresolved placeholders for supplied operator details."
+            exit 1
+          fi
+          grep -q 'Draft — not for commercial release' apps/web/legal/terms.html
+          grep -q 'Draft — not for commercial release' apps/web/legal/privacy.html
       - name: Generate Xcode project
         working-directory: apps/ios
         run: xcodegen generate
