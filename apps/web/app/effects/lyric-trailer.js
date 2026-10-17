@@ -174,23 +174,9 @@
   }
   function strokeHandwrittenGlyph(ctx,row,offset,cw,x,y,size,progress,alpha,seed){
     if(!row||progress<=0)return;
-    var jitter=Math.sin(seed*.071)*size*.004;
-    ctx.save();ctx.translate(x+offset,y+jitter);
-    glyphRevealClip(ctx,cw,size,progress,seed);
-    ctx.globalAlpha=alpha;ctx.lineJoin='round';ctx.lineCap='round';
-    // A fine damp edge and soft ink-like body make each glyph emerge as if written onto the glass.
-    ctx.strokeStyle='rgba(8,25,35,.36)';ctx.lineWidth=Math.max(.75,size*.022);ctx.strokeText(row,-offset,0);
-    ctx.strokeStyle='rgba(219,241,247,.18)';ctx.lineWidth=Math.max(.45,size*.010);ctx.strokeText(row,-offset,0);
-    ctx.fillStyle='rgba(229,244,247,.82)';ctx.shadowColor='rgba(210,238,246,.12)';ctx.shadowBlur=size*.016;
-    ctx.fillText(row,-offset,0);
-    if(progress<.995){
-      var edge=cw*clamp(progress,0,1),amp=Math.min(size*.045,Math.max(.6,cw*.045)),phase=seed*.017;
-      ctx.globalAlpha=alpha*.30;ctx.strokeStyle='rgba(248,255,255,.86)';ctx.lineWidth=Math.max(.5,size*.008);
-      ctx.shadowColor='rgba(198,237,248,.4)';ctx.shadowBlur=size*.032;
-      ctx.beginPath();ctx.moveTo(edge-amp,-size*.76);
-      ctx.bezierCurveTo(edge+Math.sin(phase)*amp,-size*.32,edge-amp*.7,size*.06,edge+Math.cos(phase*1.7)*amp,size*.52);ctx.stroke();
-    }
-    ctx.restore();
+    var engine=window.KEFETrailerStrokeEngine;if(!engine)return;
+    ctx.save();ctx.globalAlpha=alpha;ctx.lineCap='round';ctx.lineJoin='round';
+    engine.draw(ctx,row,x+offset,y,size,progress,'ink');ctx.restore();
   }
   function render(ctx,w,h,style,lines,time){
     if(!(w>0&&h>0))return;
@@ -227,7 +213,7 @@
           var reveal=clamp((target-used)/wt,0,1);
           if(ch!==' '&&reveal>0){
             maskCtx.save();maskCtx.translate(rowX+offset,y);glyphRevealClip(maskCtx,cw,size,reveal,x+y);
-            maskCtx.fillStyle='#fff';maskCtx.fillText(row,-offset,0);maskCtx.restore();
+            maskCtx.fillStyle='#fff';var strokeEngine=window.KEFETrailerStrokeEngine;if(strokeEngine)strokeEngine.draw(maskCtx,ch,rowX+offset,y,size,reveal,'mask');maskCtx.restore();
           }
           x+=cw+tracking;offset+=cw+tracking;used+=wt;index++;
         });
