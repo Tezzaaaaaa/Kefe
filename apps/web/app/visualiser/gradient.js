@@ -114,7 +114,7 @@
       power.setAttribute('aria-label', 'Fluid Ink Visualiser');
       power.title = 'Fluid Ink Visualiser';
       if (heading) heading.textContent = 'Fluid Ink Visualiser';
-      if (description) description.textContent = 'Audio-reactive fluid dynamics with swirling ink, luminous colour and customizable presets.';
+      if (description) description.textContent = '';
       presetRow.hidden = false;
       presetRow.querySelectorAll('.kefe-visualiser-preset-set').forEach(set => {
         set.hidden = set !== gradientPresetSet;
