@@ -6240,3 +6240,39 @@ body:not(.kefe-fullscreen-open) {
   .kefe-editing > .kefe-vis-tabs{gap:var(--s1)}
   .kefe-vis-option > [role="tab"]{font-size:var(--font-xs)}
 }
+
+
+/* Background Effects heading toggle: keep it inline with the section title. */
+.kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-heading{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-heading h2{
+  min-width:0;
+  margin:0;
+}
+.kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-toggle{
+  flex:0 0 auto;
+  min-width:52px;
+  min-height:30px;
+  padding:5px 10px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--surface);
+  color:var(--text);
+  font:inherit;
+  font-size:12px;
+  font-weight:700;
+  line-height:1;
+  cursor:pointer;
+}
+.kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-toggle.active{
+  border-color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 10%,var(--surface));
+}
+.kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-toggle:focus-visible{
+  outline:2px solid var(--focus);
+  outline-offset:2px;
+}
