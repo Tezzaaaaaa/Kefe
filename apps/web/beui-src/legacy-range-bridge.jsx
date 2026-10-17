@@ -22,9 +22,11 @@ function BeUIRangeBridge({ input }) {
     const sync = () => setValue(readInput(input));
     input.addEventListener("input", sync);
     input.addEventListener("change", sync);
+    input.addEventListener("beui-sync", sync);
     return () => {
       input.removeEventListener("input", sync);
       input.removeEventListener("change", sync);
+      input.removeEventListener("beui-sync", sync);
     };
   }, [input]);
 
@@ -79,9 +81,7 @@ function syncMountedValues() {
       roots.delete(input);
       continue;
     }
-    input.dispatchEvent(new Event("beui-sync", { bubbles: false }));
-    // Trigger the bridge's native sync listener without invoking legacy input handlers.
-    input.dispatchEvent(new Event("change", { bubbles: false }));
+    input.dispatchEvent(new Event("beui-sync"));
   }
 }
 
