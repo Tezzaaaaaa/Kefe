@@ -46,6 +46,11 @@
       ctx.lineWidth=.5+seeded(j+610)*1.1;
       ctx.beginPath();ctx.moveTo(rx,ry);ctx.bezierCurveTo(rx-1,ry+len*.35,rx+1.5,ry+len*.7,rx+.5,ry+len);ctx.stroke();
     }
+    // Cold frost gathers at the pane edges, while the centre stays clear enough to write.
+    var frost=ctx.createLinearGradient(0,0,w,0);
+    frost.addColorStop(0,'rgba(221,237,242,.23)');frost.addColorStop(.12,'rgba(221,237,242,.07)');
+    frost.addColorStop(.5,'rgba(221,237,242,0)');frost.addColorStop(.88,'rgba(221,237,242,.07)');frost.addColorStop(1,'rgba(221,237,242,.23)');
+    ctx.fillStyle=frost;ctx.fillRect(0,0,w,h);
     // Condensation haze, brighter around the centre where the finger clears the glass.
     var fog=ctx.createRadialGradient(w*.5,h*.48,Math.min(w,h)*.05,w*.5,h*.5,Math.max(w,h)*.76);
     fog.addColorStop(0,'rgba(218,232,235,.24)');fog.addColorStop(.55,'rgba(193,213,220,.12)');fog.addColorStop(1,'rgba(4,14,22,.36)');
@@ -63,8 +68,11 @@
     if(!ch||ch===' ')return;
     var jitter=Math.sin(x*.071+y*.037)*size*.012;
     ctx.save();ctx.translate(x,y+jitter);
+    // Reveal each glyph progressively, so the writing head advances through the stroke.
+    var glyphWidth=ctx.measureText(ch).width;
+    ctx.beginPath();ctx.rect(0,-size,glyphWidth*clamp(progress,0,1)+.5,size*1.35);ctx.clip();
     // Dark wet edge where a fingertip has pushed condensation aside.
-    ctx.globalAlpha=alpha*progress;
+    ctx.globalAlpha=alpha;
     ctx.lineJoin='round';ctx.lineCap='round';
     ctx.font=ctx.font;
     ctx.strokeStyle='rgba(18,38,48,.62)';ctx.lineWidth=Math.max(1.8,size*.055);
