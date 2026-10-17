@@ -6,7 +6,7 @@ import {
   useReducedMotion,
   useSpring,
   useTransform,
-} from "motion/react";
+} from "framer-motion";
 import { useEffect, useLayoutEffect, useState } from "react";
 
 import { SPRING_GLIDE } from "@/lib/ease";
