@@ -5,11 +5,17 @@ on:
     paths:
       - "apps/ios/**"
       - "apps/web/app/editor.js"
+      - "apps/web/app/ios-lockscreen.js"
+      - "apps/web/editor.html"
+      - "apps/web/app/lyrics/lyric-studio.js"
       - ".github/workflows/ios-companion-build.yml"
   pull_request:
     paths:
       - "apps/ios/**"
       - "apps/web/app/editor.js"
+      - "apps/web/app/ios-lockscreen.js"
+      - "apps/web/editor.html"
+      - "apps/web/app/lyrics/lyric-studio.js"
       - ".github/workflows/ios-companion-build.yml"
   workflow_dispatch:
 
