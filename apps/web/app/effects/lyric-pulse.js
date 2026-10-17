@@ -57,16 +57,19 @@ function pulseGlyphGeometry(ctx, words, width, size, setFont) {
         pulseGeometryCache.set(key, cached);
         return cached;
     }
-    // Trace a supersampled mask rendered with the actual selected browser font.
-    const scale = 1.5, mask = document.createElement('canvas');
-    const baseline = Math.ceil(size * 1.55 * scale) / scale * 0.72;
-    mask.height = Math.max(1, Math.ceil(size * 1.55 * scale));
+    // Build a 2x mask so contour geometry retains smooth curves at large export sizes.
+    const scale = 2, mask = document.createElement('canvas');
+    const maskHeight = Math.max(1, Math.ceil(size * 1.55 * scale));
+    const baseline = maskHeight / scale * 0.72;
+    mask.height = maskHeight;
     const maskMargin = 6;
-    const textWidths = words.map(word => {
-        setFont(ctx, size);
-        return ctx.measureText(word.text).width;
-    });
-    const spaceWidth = (() => { setFont(ctx, size); return ctx.measureText(' ').width; })();
+    // Measure offscreen: geometry generation must not mutate the live render context.
+    const measureCanvas = document.createElement('canvas');
+    const measureCtx = measureCanvas.getContext('2d');
+    if (!measureCtx) return null;
+    setFont(measureCtx, size);
+    const textWidths = words.map(word => measureCtx.measureText(word.text).width);
+    const spaceWidth = measureCtx.measureText(' ').width;
     const totalWidth = textWidths.reduce((sum, value) => sum + value, 0) + spaceWidth * (words.length - 1);
     const centeredStart = Math.max(0, (width - totalWidth) / 2);
     mask.width = Math.max(1, Math.ceil((totalWidth + maskMargin * 2) * scale));
@@ -148,8 +151,14 @@ let cursor = centeredStart;
         if (simplified.length < 4) continue;
         const avgX = centeredStart + simplified.reduce((sum, p) => sum + p[0] / scale - maskMargin, 0) / simplified.length;
         const wordIndex = wordRanges.findIndex(r => avgX >= r.startX - 1 && avgX <= r.endX + 1);
-        if (wordIndex < 0) continue;
-        contours.push({ wordIndex, points: simplified.map(p => [centeredStart + p[0] / scale - maskMargin, p[1] / scale - baseline]) });
+        // Tiny detached details (for example the dot on an i) are assigned by
+        // their horizontal centre; retain the nearest word rather than dropping ink.
+        const nearestWord = wordIndex >= 0 ? wordIndex : wordRanges.reduce((best, range, index) => {
+            const distance = avgX < range.startX ? range.startX - avgX : avgX > range.endX ? avgX - range.endX : 0;
+            return distance < best.distance ? { index, distance } : best;
+        }, { index: -1, distance: Infinity }).index;
+        if (nearestWord < 0) continue;
+        contours.push({ wordIndex: nearestWord, points: simplified.map(p => [centeredStart + p[0] / scale - maskMargin, p[1] / scale - baseline]) });
     }
     const geometry = { contours, wordRanges, baseline, size };
     pulseGeometryCache.set(key, geometry);
