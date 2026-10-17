@@ -43,7 +43,7 @@
 <tr><td>jsDelivr (code delivery)</td><td>When the editor loads. It serves the GIF export library (gif.js) and the Apple-style lyrics component (am-lyrics)</td><td>Your IP address and browser details</td></tr>
 <tr><td>Apple-style lyrics component (am-lyrics)</td><td>When the Apple-style lyrics effect loads or runs; exact request timing is not yet verified</td><td>Not yet verified. The component is third-party code; its outbound requests, destinations and any track or lyric data transferred must be audited before this policy can be finalised.</td></tr>
 <tr><td>GitHub Pages (hosting)</td><td>Whenever you open KEFE</td><td>Your IP address and browser details, logged by GitHub</td></tr>
-<tr><td>Song recognition (AudD)</td><td>Only if enabled by the operator of a particular KEFE deployment, and only when you use it</td><td>The audio file you chose</td></tr>
+<tr><td>Song recognition (AudD or configured proxy)</td><td>Only if enabled by the operator of a particular KEFE deployment and after you confirm the in-product consent prompt</td><td>The selected audio file is sent to the configured recognition service or proxy to identify the track. Direct browser-token mode is blocked outside local development.</td></tr>
 </tbody>
 </table>
 <p>These services have their own privacy policies. We do not control what they do with information they receive. This service inventory is provisional and must be reconciled against the exact production build and its observed network traffic before publication.</p>
