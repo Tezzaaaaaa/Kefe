@@ -5644,7 +5644,7 @@ body:not(.kefe-fullscreen-open) {
   width: min(100%, 1200px);
   margin-inline: auto;
 }
-.kefe-panel > .kefe-panel-head,
+.kefe-panel .kefe-panel-head,
 .kefe-visualiser-panel-head {
   padding-bottom: var(--s2, 8px);
   border-bottom: 1px solid var(--line);
