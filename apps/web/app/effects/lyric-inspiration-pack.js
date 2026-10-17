@@ -64,6 +64,24 @@
         ['range','speed','Animation speed',0.25,2,0.05,'×']
       ]
     },
+    gel: {
+      title: 'Gel Script',
+      defaults: {font:'Pacifico',weight:400,color:'#e8325f',depth:8,gloss:1,inflate:1,spacing:0,bg:'black',transparent:true,upper:false,speed:1,sway:1},
+      fields: [
+        ['select','font','Handwriting',[['Pacifico','Pacifico'],['Lobster','Lobster'],['Satisfy','Satisfy'],['Yellowtail','Yellowtail'],['Damion','Damion'],['Caveat','Caveat'],['Playfair Display','Playfair Display'],['Georgia','Georgia']]],
+        ['range','weight','Font weight',100,900,100,''],
+        ['color','color','Gel colour'],
+        ['range','depth','Gel depth',0,20,1,' px'],
+        ['range','gloss','Gloss highlights',0,2,0.05,'×'],
+        ['range','inflate','Inflation',0.5,1.8,0.05,'×'],
+        ['range','spacing','Letter spacing',-5,12,0.5,'%'],
+        ['select','bg','Background',[['black','Black'],['none','Transparent']]],
+        ['toggle','transparent','Transparent background'],
+        ['toggle','upper','Uppercase lettering'],
+        ['range','speed','Animation speed',0.25,2,0.05,'×'],
+        ['range','sway','Motion',0,2,0.05,'×']
+      ]
+    },
     inkscript: {
       title: 'Ink Script',
       defaults: {font:'Mr Dafoe',googleFont:'',weight:400,aspect:'match',sizing:'fit',ink:'#17201d',bg:'#f0eee7',transparent:false,paper:true,tracking:0,lineSpacing:1.12,speed:1,write:24,morph:23,hold:1.4,blank:0.28,splatter:0.45,exit:'cut',loop:true,uploadedFamily:''},
@@ -450,6 +468,73 @@
       const r=Math.max(1,size*.012*tw);ctx.globalAlpha=.45*tw;ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=Math.max(1,size*.006);ctx.beginPath();ctx.moveTo(x-r*3,y);ctx.lineTo(x+r*3,y);ctx.moveTo(x,y-r*3);ctx.lineTo(x,y+r*3);ctx.stroke();}
     ctx.restore();ctx.restore();
   }
+  /* Gel Script: glossy inflated word-by-word lettering on KEFE's shared lyric timeline. */
+  const gelLayouts=new Map(),gelFonts=new Set();
+  function renderGel(ctx,w,h,style,lines,time){
+    const s=settings.gel,items=linesFor(lines,time);if(!items.length)return;
+    const item=items[items.length-1],line=item.line,raw=String(line.text||'').trim();if(!raw)return;
+    const text=s.upper?raw.toLocaleUpperCase():raw,family=style.kefeMotionFont||s.font||'Pacifico',weight=Number(s.weight)||400;
+    const fk=family+'|'+weight;
+    if(document.fonts&&document.fonts.load&&!gelFonts.has(fk)){gelFonts.add(fk);document.fonts.load(weight+' 72px "'+family+'"').then(()=>window.kefeLyrics?.redraw?.()).catch(()=>{});}
+    const cacheKey=[text,family,weight,Math.round(w),Math.round(h),s.spacing].join('|');
+    let lay=gelLayouts.get(cacheKey);
+    if(!lay){
+      const m=document.createElement('canvas').getContext('2d');let size=Math.min(h*.34,w*.17),rows=[],words=[];
+      for(let pass=0;pass<30;pass++){
+        m.font=weight+' '+size+'px "'+family+'", cursive';rows=[];let row='';
+        for(const word of text.split(/\s+/)){const test=row?row+' '+word:word;if(row&&m.measureText(test).width>w*.84){rows.push(row);row=word;}else row=test;}
+        if(row)rows.push(row);
+        const widths=rows.map(r=>m.measureText(r).width);
+        if(Math.max(1,...widths)<=w*.84&&rows.length*size*1.18<=h*.56)break;size*=.92;
+      }
+      m.font=weight+' '+size+'px "'+family+'", cursive';
+      const lineH=size*1.18,totalH=rows.length*lineH,top=(h-totalH)/2+lineH/2;
+      rows.forEach((r,ri)=>{
+        const tokens=r.split(/\s+/),widths=tokens.map(t=>m.measureText(t).width),space=m.measureText(' ').width+size*(Number(s.spacing)||0)/100;
+        const total=widths.reduce((a,b)=>a+b,0)+space*Math.max(0,tokens.length-1);let x=(w-total)/2;
+        tokens.forEach((word)=>{const ww=m.measureText(word).width;words.push({text:word,x:x,y:top+ri*lineH,width:ww,ri});x+=ww+space;});
+      });
+      lay={words,size,lineH};gelLayouts.set(cacheKey,lay);if(gelLayouts.size>90)gelLayouts.delete(gelLayouts.keys().next().value);
+    }
+    const size=lay.size,start=item.start,end=Math.max(start+.3,item.end),duration=end-start,speed=Math.max(.25,Number(s.speed)||1);
+    const enter=clamp((time-start)*speed/Math.min(.65,Math.max(.22,duration*.22))),exit=clamp((end-time)/Math.max(.2,Math.min(.55,duration*.18)));
+    const rgbHex=/^#[0-9a-f]{6}$/i.test(s.color||'')?s.color:'#e8325f';
+    const n=parseInt(rgbHex.slice(1),16),base=[n>>16&255,n>>8&255,n&255];
+    const shade=(k)=>'rgb('+base.map(v=>Math.round(Math.max(0,Math.min(255,v*k))).toString()).join(',')+')';
+    if(!s.transparent&&s.bg!=='none'){ctx.fillStyle=s.bg||'#000';ctx.fillRect(0,0,w,h);}
+    ctx.save();ctx.globalAlpha=exit<1?Math.min(1,exit*1.25):1;
+    const count=lay.words.length,span=Math.max(.3,duration*.62),elapsed=Math.max(0,time-start)*speed;
+    lay.words.forEach((wd,i)=>{
+      const delay=span*i/Math.max(1,count),u=(elapsed-delay)/Math.max(.28,span/Math.max(1,count)*1.5);
+      let pop=clamp(u),scale=.18+.82*(1-Math.pow(1-pop,3));
+      if(u>=0&&u<1){scale+=.18*Math.sin(Math.PI*clamp(u/.7))*Math.exp(-u*2.1);}
+      const wobble=(u>=0&&u<1?Math.sin(u*18+i)*.035*(1-u):0)*(Number(s.sway)||0);
+      const inflate=Math.max(.35,Number(s.inflate)||1),sx=scale*(1+(inflate-1)*.16),sy=scale*inflate;
+      const alpha=enter*Math.min(1,Math.max(.12,pop*2.2));if(alpha<=.005)return;
+      ctx.save();ctx.globalAlpha*=alpha;ctx.translate(wd.x+wd.width/2,wd.y);ctx.rotate(wobble);ctx.scale(sx,sy);
+      ctx.translate(-(wd.x+wd.width/2),-wd.y);
+      const d=Math.max(0,Math.min(20,Number(s.depth)||0));
+      ctx.shadowColor='rgba(32,0,12,.65)';ctx.shadowBlur=size*.12;ctx.shadowOffsetX=d*.25;ctx.shadowOffsetY=d*.55;
+      ctx.font=weight+' '+size+'px "'+family+'", cursive';ctx.textAlign='left';ctx.textBaseline='middle';ctx.lineJoin='round';
+      for(let z=Math.ceil(d);z>=1;z--){ctx.fillStyle=shade(.35+.32*(1-z/Math.max(1,d)));ctx.fillText(wd.text,wd.x+z*.3,wd.y+z*.55);}
+      ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
+      ctx.lineWidth=Math.max(1,size*.035);ctx.strokeStyle=shade(.38);ctx.strokeText(wd.text,wd.x,wd.y);
+      const g=ctx.createLinearGradient(0,wd.y-size*.52,0,wd.y+size*.55),gloss=Number(s.gloss)||0;
+      g.addColorStop(0,shade(1.42));g.addColorStop(.12,shade(1.75));g.addColorStop(.23,shade(1.2));
+      g.addColorStop(.39,shade(.94));g.addColorStop(.58,shade(.78));g.addColorStop(.72,shade(1.12));g.addColorStop(.86,shade(.65));g.addColorStop(1,shade(.48));
+      ctx.fillStyle=g;ctx.fillText(wd.text,wd.x,wd.y);
+      if(gloss>0){ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha*=Math.min(.95,gloss*.72);
+        ctx.beginPath();ctx.ellipse(wd.x+wd.width*.46,wd.y-size*.22,Math.max(2,wd.width*.29),Math.max(1,size*.055),-.06,Math.PI,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.9)';ctx.fill();
+        const band=ctx.createLinearGradient(wd.x,wd.y-size*.3,wd.x,wd.y+size*.02);band.addColorStop(0,'rgba(255,255,255,0)');band.addColorStop(.5,'rgba(255,255,255,.6)');band.addColorStop(1,'rgba(255,255,255,0)');
+        ctx.fillStyle=band;ctx.fillRect(wd.x,wd.y-size*.31,wd.width,size*.34);ctx.restore();}
+      ctx.restore();
+    });
+    // Wet-plastic bounce-light glints and a subtle moving highlight across the line.
+    ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=Math.min(.5,(Number(s.gloss)||0)*.22);
+    const sweep=((time-start)*.24%1)*w,sg=ctx.createLinearGradient(sweep-size*.4,0,sweep+size*.4,0);
+    sg.addColorStop(0,'rgba(255,255,255,0)');sg.addColorStop(.5,'rgba(255,255,255,.32)');sg.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=sg;ctx.fillRect(0,h*.25,w,h*.5);ctx.restore();ctx.restore();
+  }
   const inkFontFaces = new Map();
   function inkFont(s){
     if(s.font==='__upload' && s.uploadedFamily)return s.uploadedFamily;
@@ -607,7 +692,7 @@
     if(elapsed>duration&&!s.loop&&s.exit==='cut')ctx.clearRect(0,0,w,h);
     ctx.restore();
   }
-  E.spin=renderSpin; E.premium=renderPremium; E.dustoff=renderDust; E.wrapslide=renderWrapSlide; E.inkscript=renderInkScript; E.chrome=renderChrome;
+  E.spin=renderSpin; E.premium=renderPremium; E.dustoff=renderDust; E.wrapslide=renderWrapSlide; E.inkscript=renderInkScript; E.chrome=renderChrome; E.gel=renderGel;
 
   function buildControls(){
     const host=document.querySelector('[data-panel-view="effects"] .kefe-form');
