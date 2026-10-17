@@ -58,7 +58,7 @@ function AccentSwatches({ backingButtons }) {
             aria-pressed={selected}
             title={backing.title || backing.getAttribute("aria-label") || "Accent colour"}
             className="beui-accent-swatch h-7 w-7 rounded-full border-2 p-0"
-            style={{ backgroundColor: color, borderColor: selected ? "var(--shell-text, #fff)" : "transparent" }}
+            style={{ backgroundColor: color, borderColor: selected ? "var(--shell-text, #fff)" : "transparent", "--swatch": color }}
             onClick={() => backing.click()}
           />
         );
