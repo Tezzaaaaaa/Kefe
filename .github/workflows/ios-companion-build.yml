@@ -33,7 +33,7 @@ jobs:
           node --check apps/web/app/ios-lockscreen.js
       - name: Check lyric licensing gate and manual import remain
         run: |
-          if grep -Eq 'https://lrclib\\.net/api' apps/web/app/editor.js; then
+          if grep -Eq 'https://lrclib\.net/api' apps/web/app/editor.js; then
             echo "Automatic LRCLIB catalogue requests must remain disabled until licensing is documented."
             exit 1
           fi
