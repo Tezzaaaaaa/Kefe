@@ -45,6 +45,12 @@ jobs:
           grep -Fq "appleLyrics.ttml=state.lines.length?lyricsToTtml(state.lines):'';" apps/web/app/editor.js
           grep -q 'Song recognition cancelled; no audio was sent to the recognition service' apps/web/app/editor.js
           grep -q 'Audio recognition is disabled outside local development' apps/web/app/editor.js
+          grep -q 'Before exporting: confirm that you own or have permission' apps/web/app/editor.js
+          grep -q 'kefeLegalDraftLinks' apps/web/app/editor.js
+          grep -Fq '[PLACEHOLDER' apps/web/legal/terms.html && { echo "Terms still contains placeholders."; exit 1; } || true
+          grep -Fq '[PLACEHOLDER' apps/web/legal/privacy.html && { echo "Privacy policy still contains placeholders."; exit 1; } || true
+          grep -q 'Draft — not for commercial release' apps/web/legal/terms.html
+          grep -q 'Draft — not for commercial release' apps/web/legal/privacy.html
       - name: Generate Xcode project
         working-directory: apps/ios
         run: xcodegen generate
