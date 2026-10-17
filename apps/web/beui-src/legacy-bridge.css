@@ -352,3 +352,18 @@ textarea.beui-native-textarea {
 .beui-volume-card-root { display: contents; }
 .kefe-volume-popover.beui-volume-popover-native { padding: 0; border: 0; background: transparent; box-shadow: none; }
 .beui-volume-card { display: flex; flex-direction: column; }
+
+.beui-panel-card-root {
+  --beui-background: var(--shell-bg, #171719);
+  --beui-foreground: var(--shell-text, #f5f5f5);
+  --beui-muted: var(--shell-panel, #29292d);
+  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
+  --beui-border: var(--shell-line, #39393f);
+  --beui-ring: var(--shell-accent, #ef4444);
+  --beui-primary: var(--shell-accent, #ef4444);
+  --beui-primary-foreground: #ffffff;
+  --beui-card: var(--shell-panel, #222225);
+  display: contents;
+}
+.kefe-panel.beui-panel-card-hosted { padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+.beui-editor-panel-card { display: flex; flex-direction: column; }
