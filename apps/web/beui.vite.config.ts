@@ -20,7 +20,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: resolve(here, "index.html"),
-        editor: resolve(here, "editor.html"),
+        editor: resolve(here, "editor.beui.html"),
         beui: resolve(here, "beui.html"),
       },
     },
