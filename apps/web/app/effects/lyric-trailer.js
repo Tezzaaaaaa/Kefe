@@ -162,6 +162,7 @@
 
       // Freshly displaced moisture makes each stroke visible against the still-fogged pane.
       var headX=w*.5,headY=top,remaining=target,count=0,headFound=false;
+      font(ctx,size);ctx.textAlign='left';ctx.textBaseline='alphabetic';
       rows.forEach(function(row,ri){
         var rowWidth=width(ctx,row,tracking),x=(w-rowWidth)*.5,y=top+ri*rowHeight;
         Array.from(row).forEach(function(ch){
