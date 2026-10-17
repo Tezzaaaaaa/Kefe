@@ -52,12 +52,12 @@ beUI's current web components target React 19, Tailwind CSS 4, and Motion. Compo
 - Adapted the component's motion import to the existing workspace `framer-motion` dependency to avoid adding an unrecorded lockfile dependency.
 - Added two controlled slider cases to exercise integer values and 0.05-second lyric timing steps.
 - Connected the actual beUI Range Slider to production range inputs through a compatibility bridge. It preserves the existing native inputs and their event contracts for the legacy editor engine, while the dedicated playback timeline remains on its custom waveform control.
-- Migrated the Settings dialog to React using the actual beUI Button, Switch, and Range Slider components; settings still read/write through the existing persisted settings API, and the superseded imperative dialog generator has been removed.
+- Migrated the Settings dialog to React using the actual beUI Button, Switch, and Range Slider components; settings still read/write through the existing persisted settings API, and the superseded imperative dialog generator has been removed from the beUI build-specific settings API; the legacy settings file remains intact until deployment cutover.
 - Added a post-build asset-copy step for the legacy effect/runtime files and a frozen-lockfile GitHub Actions build check.
 
 ### Not yet complete
 
-The currently published static entry is intentionally unchanged; the separate Vite-built editor output now mounts actual beUI components for range controls and Settings. Navigation, tabs, remaining buttons, selects, editor panels, and other dialogs still require migration. The build and asset smoke check passed on an earlier revision; the current revision is awaiting its CI run, and browser-level regression testing is still outstanding.
+The currently published static entry and its settings implementation are intentionally unchanged; the separate Vite-built editor output uses a build-specific settings API and mounts actual beUI components for range controls and Settings. Navigation, tabs, remaining buttons, selects, editor panels, and other dialogs still require migration. The build and asset smoke check passed on an earlier revision; the current revision is awaiting its CI run, and browser-level regression testing is still outstanding.
 
 The conversion is not complete until the acceptance criteria above are checked against the implemented application and tested.
 
