@@ -92,9 +92,8 @@ function DockButton({ backing }) {
       title={attrs.title}
       aria-pressed={attrs.pressed === null ? undefined : attrs.pressed === "true"}
       onClick={() => backing.click()}
-    >
-      <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: backing.innerHTML }} />
-    </Button>
+      dangerouslySetInnerHTML={{ __html: backing.innerHTML }}
+    />
   );
 }
 
@@ -132,9 +131,8 @@ function TransportButton({ backing, variant = "ghost" }) {
       aria-expanded={attrs.expanded === null ? undefined : attrs.expanded === "true"}
       disabled={attrs.disabled}
       onClick={() => backing.click()}
-    >
-      <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: attrs.content }} />
-    </Button>
+      dangerouslySetInnerHTML={{ __html: attrs.content }}
+    />
   );
 }
 
