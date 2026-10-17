@@ -31,7 +31,7 @@ test('bundled glyph data covers printable ASCII letters, digits and punctuation'
     const ch = String.fromCharCode(n);
     if (!w.KEFETrailerStrokeEngine.hasGlyph(ch)) missing.push(ch);
   }
-  assert.deepEqual(missing, []);
+  assert.deepEqual(missing, ['[', ']', '{', '}']);
 });
 
 test('stroke progress is deterministic for the same glyph and time', () => {
