@@ -74,6 +74,7 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-work{
   grid-column:2;grid-row:1;min-width:0;min-height:0;
   display:grid;grid-template-rows:auto 58px auto;
+  row-gap:var(--section-gap,12px);
   overflow:visible;
 }
 .kefe-preview{
