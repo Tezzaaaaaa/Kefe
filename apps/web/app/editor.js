@@ -395,6 +395,7 @@
       }
     }
     state.appleLines=state.lines.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
+    cacheLockScreenLyrics();
     previewStage.classList.toggle('is-empty',!(audio.currentSrc||audio.src||video.currentSrc||video.src)&&state.lines.length===0);
     window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:'text'}}));
     publishKefeLockScreen('update');
@@ -1611,6 +1612,12 @@
   /* Native iOS bridge is separate from the Apple Music renderer. It sends only track metadata
      and the currently timed lyric to the host app; Safari ignores this when no bridge exists. */
   let lockScreenLastKey='';
+  let lockScreenLyricsVersion=0;
+  let lockScreenLines=[];
+  function cacheLockScreenLyrics(){
+    lockScreenLines=state.lines.map(line=>({text:String(line?.text||''),time:Number(line?.time)||0}));
+    lockScreenLyricsVersion++;
+  }
   function publishKefeLockScreen(action='update'){
     const bridge=window.webkit?.messageHandlers?.kefeLockScreen;
     if(!bridge||typeof bridge.postMessage!=='function')return;
@@ -1629,11 +1636,13 @@
       album:songAlbum.value.trim()||'',
       currentLine:String(current?.text||''),
       nextLine:String(next?.text||''),
+      lines:lockScreenLines,
+      lyricsVersion:lockScreenLyricsVersion,
       currentTime:time,
       duration:Number.isFinite(audio.duration)?audio.duration:0,
       isPlaying:!audio.paused&&!audio.ended
     };
-    const key=[payload.title,payload.artist,payload.currentLine,payload.nextLine,payload.isPlaying,action].join('\u001f');
+    const key=[payload.title,payload.artist,payload.currentLine,payload.nextLine,payload.isPlaying,payload.lyricsVersion,action].join('\u001f');
     if(action==='update'&&key===lockScreenLastKey)return;
     lockScreenLastKey=key;
     try{bridge.postMessage(payload);}catch(error){console.warn('[KEFE native Lock Screen bridge]',error);}
@@ -1693,6 +1702,7 @@
   audio.addEventListener('seeked',()=>{
     if(video.src)video.currentTime=audio.currentTime;
     syncAppleLyrics(true);draw();
+    publishKefeLockScreen('seek');
   });
   range.addEventListener('input',()=>{
     state.time=Number(range.value);
