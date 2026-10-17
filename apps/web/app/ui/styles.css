@@ -143,9 +143,7 @@ button{border:0;cursor:pointer;
 .kefe-wave .kefe-time{left:12px;right:12px;font-size: var(--font-xs);
   font-family: inherit;
   font-variant-numeric: tabular-nums;
-  color: var(--muted);}
-.kefe-timeline .kefe-aspect-controls{min-width:58px;flex-basis:58px}
-.kefe-timeline .kefe-aspect-button{min-width:32px;padding:0 5px}}
+  color: var(--muted);}}
 
 .kefe-empty.is-hidden,.kefe-empty[hidden]{display:none}
 .kefe-empty-logo{filter:none;opacity:.58}
@@ -604,63 +602,6 @@ button{border:0;cursor:pointer;
     height:64px;
   }
 }
-
-/* KEFE TIMELINE WAVEFORM REDESIGN */
-/* KEFE ASPECT DROPDOWN */
-.kefe-aspect-controls{
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:76px;
-  min-width:76px;
-  height:40px;
-  padding:4px;
-  border:1px solid var(--line-soft);
-  border-radius:var(--r2);
-  background:var(--surface);
-  box-shadow:var(--lift);
-  overflow:hidden;
-}
-.kefe-aspect-label{display:none}
-.kefe-aspect-select{
-  appearance:none;
-  -webkit-appearance:none;
-  width:100%;
-  min-width:0;
-  height:30px;
-  margin:0;
-  padding:0 24px 0 9px;
-  border:0;
-  border-radius:var(--r1);
-  background:var(--bg);
-  color: var(--text);
-  font:700 11px/1 system-ui,sans-serif;
-  box-shadow:var(--inner);
-  cursor:pointer;
-  outline:none;
-  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
-  background-position:calc(100% - 11px) 12px,calc(100% - 7px) 12px;
-  background-size:4px 4px,4px 4px;
-  background-repeat:no-repeat;
-
-  font-size: var(--font-sm);
-  font-family: inherit;}
-.kefe-aspect-select:hover{background-color:var(--surface-hi);
-  font-size: var(--font-sm);
-  font-family: inherit;
-  color: var(--text);}
-.kefe-aspect-select:active{box-shadow:var(--inner);
-  font-size: var(--font-sm);
-  font-family: inherit;
-  color: var(--text);}
-.kefe-aspect-select:focus-visible{
-  outline:2px solid rgba(143,175,193,.72);
-  outline-offset:1px;
-
-  font-size: var(--font-sm);
-  font-family: inherit;
-  color: var(--text);}
 .kefe-timeline{
   grid-template-columns:auto auto minmax(0,1fr) auto;
   gap:8px;
@@ -690,12 +631,6 @@ button{border:0;cursor:pointer;
   .kefe-timeline .kefe-wave{
     order:3;
   }
-  .kefe-timeline .kefe-aspect-controls{
-    order:4;
-    width:72px;
-    min-width:72px;
-    flex:0 0 72px;
-  }
 }
 @media(max-width:520px){
   .kefe-timeline{
@@ -712,20 +647,6 @@ button{border:0;cursor:pointer;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
   color: var(--muted);}
-  .kefe-timeline .kefe-aspect-controls{
-    width:64px;
-    min-width:64px;
-    height:38px;
-    padding:3px;
-  }
-  .kefe-timeline .kefe-aspect-select{
-    height:30px;
-    padding-right:18px;
-    background-position:calc(100% - 9px) 12px,calc(100% - 5px) 12px;
-    font-size: var(--font-sm);
-  
-  font-family: inherit;
-  color: var(--text);}
 }
 
 
@@ -1627,25 +1548,6 @@ body{ letter-spacing: -.01em;
   opacity: .8;
 }
 
-.kefe-aspect-controls {
-  width: 82px;
-  min-width: 82px;
-  height: 42px;
-  border: 1px solid rgba(255,255,255,.8);
-  border-radius: var(--r3);
-  background: var(--surface);
-  box-shadow: var(--lift);
-}
-
-.kefe-aspect-select {
-  height: 32px;
-  border-radius: var(--r2);
-  background-color: var(--surface-hi);
-
-  font-size: var(--font-sm);
-  font-family: inherit;
-  color: var(--text);}
-
 .kefe-editing {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 48px minmax(0, 1fr);
@@ -2133,10 +2035,6 @@ body{ letter-spacing: -.01em;
   .kefe-slider { height: 38px; }
   .kefe-slider::-webkit-slider-runnable-track,
   .kefe-slider::-moz-range-track { height: 38px; }
-  .kefe-aspect-controls { width: 67px; min-width: 67px; height: 38px; }
-  .kefe-aspect-select { height: 28px; padding-left: 6px; font-size: var(--font-sm); 
-  font-family: inherit;
-  color: var(--text);}
   .kefe-editing { grid-template-rows: 46px minmax(0, 1fr); }
   .kefe-tabs { width: calc(100% - 20px); height: 38px; min-height: 38px; padding: 3px; }
   .kefe-section { height: 30px; min-height: 30px; padding: 0 12px; font-size: var(--font-sm); 
@@ -2170,9 +2068,6 @@ body{ letter-spacing: -.01em;
   font-family: inherit;}
   .kefe-brand { width: 31px; }
   .kefe-timeline { grid-template-columns: 34px 58px minmax(0, 1fr) 58px; gap: 5px; padding: 6px; }
-  .kefe-aspect-select { padding-right: 15px; font-size: var(--font-sm); 
-  font-family: inherit;
-  color: var(--text);}
   .kefe-panel-head { display: grid; }
   .kefe-panel-head .kefe-meta { text-align: left; 
   font-size: var(--font-xs);
@@ -3633,11 +3528,6 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   font-variant-numeric: tabular-nums;
   color: var(--muted);}
 
-  .kefe-aspect-controls {
-    width: 58px;
-    min-width: 58px;
-  }
-
   .kefe-tabs {
     gap: 4px;
     padding-inline: 6px;
@@ -4919,10 +4809,6 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
     grid-template-columns: 30px 54px minmax(0, 1fr) 48px;
     gap: 4px;
     padding-inline: 6px;
-  }
-
-  .kefe-timeline .kefe-aspect-controls {
-    width: 48px;
   }
 
   .kefe-panels {
