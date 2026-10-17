@@ -43,3 +43,4 @@ jobs:
           test -s apps/web/dist-beui/index.html
           test -s apps/web/dist-beui/beui.html
           node apps/web/scripts/smoke-build.mjs
+          node apps/web/scripts/smoke-settings-api.mjs
