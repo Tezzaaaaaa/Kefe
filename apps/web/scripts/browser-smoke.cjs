@@ -46,7 +46,8 @@ const server = http.createServer((req, res) => {
     await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
-    await page.waitForSelector("#beui-lyricsInput", { state: "attached", timeout: 20000 });
+    await page.waitForSelector(".beui-textarea-host #beui-lyricsInput", { state: "attached", timeout: 20000 });
+    assert.equal(await page.locator(".beui-textarea-host #beui-lyricsInput").count(), 1, "textarea bridge must not recursively mount its own component");
     await page.waitForFunction(() => {
       const panels = [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")];
       return panels.length >= 5 && panels.every((panel) => panel.querySelector(".beui-editor-panel-card"));
@@ -94,7 +95,7 @@ const server = http.createServer((req, res) => {
 
     await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
-    await page.locator("#beui-lyricsInput").fill("beUI lyric smoke");
+    await page.locator(".beui-textarea-host #beui-lyricsInput").fill("beUI lyric smoke");
     assert.equal(await page.locator("#lyricsInput").inputValue(), "beUI lyric smoke", "beUI Textarea should preserve the legacy lyrics value and events");
 
     await page.keyboard.press("Control+k");
