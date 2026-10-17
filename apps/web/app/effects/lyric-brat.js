@@ -61,18 +61,52 @@
     }
     if (active < 0) return;
 
+    // Brat-inspired fan lyric treatment: lowercase, plain condensed sans-serif,
+    // consistent typography, natural word wrapping, and no per-line scaling.
     const fontFamily = '"Arial Narrow", "Liberation Sans Narrow", Arial, "Helvetica Neue", sans-serif';
-    // Keep four consecutive lyric lines visible, with the active line near the visual centre.
     const visibleCount = 4;
     const first = Math.max(0, Math.min(active - 1, timed.length - visibleCount));
     const visible = timed.slice(first, first + visibleCount);
     if (!visible.length) return;
-    const gapForSize = size => size * 0.22;
+
     const requestedSize = Number(style.fontSize) || 76;
-    const baseSize = Math.min(requestedSize, h * (w / h > 1.5 ? 0.105 : w / h < 0.8 ? 0.072 : 0.09));
-    const lineHeight = Math.min(h * 0.205, baseSize * 1.55);
-    const blockHeight = lineHeight * visible.length;
-    const firstBaseline = (h - blockHeight) / 2 + lineHeight / 2;
+    const ratio = w / h;
+    const ratioScale = ratio > 1.5 ? 0.105 : ratio < 0.8 ? 0.072 : 0.09;
+    const fontSize = Math.min(requestedSize, h * ratioScale);
+    const gap = fontSize * 0.22;
+    const lineHeight = fontSize * 1.42;
+    const maxRows = Math.max(1, Math.floor((h * 0.84) / lineHeight));
+    const rows = [];
+    ctx.font = '400 ' + fontSize + 'px ' + fontFamily;
+
+    // Wrap only at spaces. Every row shares the same font size and natural glyph proportions.
+    visible.forEach((entry, entryIndex) => {
+      const words = entry.words;
+      if (!words.length) return;
+      let rowWords = [];
+      let rowWidth = 0;
+      words.forEach(word => {
+        const wordWidth = ctx.measureText(word.text).width;
+        const nextWidth = rowWords.length ? rowWidth + gap + wordWidth : wordWidth;
+        if (rowWords.length && nextWidth > usableWidth) {
+          rows.push({ words: rowWords, width: rowWidth, entryIndex });
+          rowWords = [word];
+          rowWidth = wordWidth;
+        } else {
+          rowWords.push(word);
+          rowWidth = nextWidth;
+        }
+      });
+      if (rowWords.length) rows.push({ words: rowWords, width: rowWidth, entryIndex });
+    });
+
+    // Keep the active lyric visible when wrapping creates more rows than the frame can hold.
+    const activeVisibleIndex = Math.max(0, active - first);
+    const activeRow = Math.max(0, rows.findIndex(row => row.entryIndex === activeVisibleIndex));
+    let rowStart = Math.max(0, activeRow - Math.floor(maxRows / 2));
+    if (rowStart + maxRows > rows.length) rowStart = Math.max(0, rows.length - maxRows);
+    const displayRows = rows.slice(rowStart, rowStart + maxRows);
+    const firstBaseline = (h - displayRows.length * lineHeight) / 2 + lineHeight / 2;
 
     // Transparent overlay: preserve the user's video or visualiser behind the lyrics.
     ctx.save();
@@ -85,22 +119,10 @@
     ctx.filter = 'none';
     ctx.globalAlpha = 1;
 
-    visible.forEach((entry, row) => {
-      const words = entry.words;
-      if (!words.length) return;
-      let fontSize = baseSize;
-      ctx.font = '400 ' + fontSize + 'px ' + fontFamily;
-      let gap = gapForSize(fontSize);
-      let lineWidth = words.reduce((sum, word) => sum + ctx.measureText(word.text).width, 0) + gap * Math.max(0, words.length - 1);
-      if (lineWidth > usableWidth) {
-        fontSize *= usableWidth / lineWidth;
-        ctx.font = '400 ' + fontSize + 'px ' + fontFamily;
-        gap = gapForSize(fontSize);
-        lineWidth = words.reduce((sum, word) => sum + ctx.measureText(word.text).width, 0) + gap * Math.max(0, words.length - 1);
-      }
-      let x = Math.max(side, (w - lineWidth) / 2);
-      const baseline = firstBaseline + row * lineHeight;
-      words.forEach(word => {
+    displayRows.forEach((row, rowIndex) => {
+      let x = Math.max(side, (w - row.width) / 2);
+      const baseline = firstBaseline + rowIndex * lineHeight;
+      row.words.forEach(word => {
         ctx.fillText(word.text, x, baseline);
         x += ctx.measureText(word.text).width + gap;
       });
