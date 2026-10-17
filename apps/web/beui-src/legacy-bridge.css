@@ -92,3 +92,15 @@ select.beui-native-select {
   --beui-primary-foreground: #ffffff;
   --beui-card: var(--shell-panel, #222225);
 }
+
+.beui-tabs-host {
+  width: 100%;
+  min-width: 0;
+}
+.beui-native-tab {
+  display: none !important;
+}
+.beui-tabs-host > div {
+  width: 100%;
+  min-width: 0;
+}
