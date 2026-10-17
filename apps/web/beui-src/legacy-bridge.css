@@ -12,6 +12,7 @@
   --color-primary-foreground: var(--beui-primary-foreground);
   --color-card: var(--beui-card);
   --color-card-foreground: var(--beui-foreground);
+  --color-border-strong: var(--beui-border);
 }
 
 .beui-range-host {
