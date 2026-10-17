@@ -77,19 +77,19 @@ struct KefeWebEditor: UIViewRepresentable {
             center.skipBackwardCommand.preferredIntervals = [10]
             center.changePlaybackPositionCommand.isEnabled = true
 
-            add(center.playCommand) { [weak self] in
+            add(center.playCommand) { [weak self] _ in
                 self?.runJavaScript("(async()=>{const g=window.kefeAudioGraph?.context?.();if(g&&g.state==='suspended')await g.resume();const a=document.getElementById('kefeAudio');if(a)await a.play()})()")
             }
-            add(center.pauseCommand) { [weak self] in
+            add(center.pauseCommand) { [weak self] _ in
                 self?.runJavaScript("document.getElementById('kefeAudio')?.pause()")
             }
-            add(center.stopCommand) { [weak self] in
+            add(center.stopCommand) { [weak self] _ in
                 self?.runJavaScript("(()=>{const a=document.getElementById('kefeAudio');if(a){a.pause();a.currentTime=0}})()")
             }
-            add(center.skipForwardCommand) { [weak self] in
+            add(center.skipForwardCommand) { [weak self] _ in
                 self?.runJavaScript("(()=>{const a=document.getElementById('kefeAudio');if(a)a.currentTime=Math.min(a.duration||Infinity,a.currentTime+10)})()")
             }
-            add(center.skipBackwardCommand) { [weak self] in
+            add(center.skipBackwardCommand) { [weak self] _ in
                 self?.runJavaScript("(()=>{const a=document.getElementById('kefeAudio');if(a)a.currentTime=Math.max(0,a.currentTime-10)})()")
             }
             add(center.changePlaybackPositionCommand) { [weak self] event in
