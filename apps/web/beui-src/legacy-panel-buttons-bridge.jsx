@@ -6,6 +6,8 @@ import "./legacy-bridge.css";
 const SKIP_ANCESTORS = [
   "#beui-settings-root",
   ".beui-button-host",
+  ".beui-input-host",
+  ".beui-checkbox-host",
   ".beui-panel-button-host",
   ".beui-command-button-host",
   ".beui-transport-host",
