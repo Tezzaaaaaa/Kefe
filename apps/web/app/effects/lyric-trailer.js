@@ -18,7 +18,17 @@
     fogLayer.height=maskLayer.height=Math.max(1,Math.ceil(h));
     fogCtx=fogLayer.getContext('2d');maskCtx=maskLayer.getContext('2d');
   }
-  function font(ctx,size){ctx.font='500 '+size+'px "Segoe Print","Bradley Hand","Comic Sans MS",cursive';}
+  function font(ctx,size,style){
+    style=style||{};
+    var typography=window.KEFE_TYPE&&window.KEFE_TYPE.effects&&window.KEFE_TYPE.effects.trailer;
+    var family=style.fontFamily||style.family||style.typeface||(typeof style.font==='string'?style.font:'')||(typography&&typography.family)||'sans-serif';
+    family=String(family).trim()||'sans-serif';
+    // Preserve supplied CSS font stacks; quote a single family so spaces and punctuation remain valid.
+    if(family.indexOf(',')<0&&family.charAt(0)!=='"'&&family.charAt(0)!=="'")family=JSON.stringify(family);
+    var weight=style.fontWeight||style.weight||(typography&&typography.weight)||500;
+    var fontStyle=style.fontStyle||style.style||'normal';
+    ctx.font=fontStyle+' '+weight+' '+size+'px '+family+', sans-serif';
+  }
   function width(ctx,text,tracking){
     var chars=Array.from(text||'');if(!chars.length)return 0;
     return chars.reduce(function(n,ch){return n+ctx.measureText(ch).width;},0)+Math.max(0,chars.length-1)*tracking;
@@ -132,9 +142,9 @@
     }
     if(raw&&alpha>.002){
       size=clamp(Math.min(w*.09,h*.17,Number(style&&style.fontSize)||76),22,112);
-      tracking=size*.012;font(fogCtx,size);rows=wrap(fogCtx,raw,w*.80,tracking);
+      tracking=size*.012;font(fogCtx,size,style);rows=wrap(fogCtx,raw,w*.80,tracking);
       while((rows.length>4||rows.some(function(r){return width(fogCtx,r,tracking)>w*.82;}))&&size>22){
-        size-=2;tracking=size*.012;font(fogCtx,size);rows=wrap(fogCtx,raw,w*.80,tracking);
+        size-=2;tracking=size*.012;font(fogCtx,size,style);rows=wrap(fogCtx,raw,w*.80,tracking);
       }
       rowHeight=size*1.3;top=h*.5-(rows.length*rowHeight)*.5+size*.34;
       var weights=[],totalChars=0;
@@ -143,7 +153,7 @@
       });
       var totalWeight=weights.reduce(function(a,b){return a+b;},0)||1,target=p*totalWeight,used=0,index=0;
       // Remove condensation only where the lyric has actually been written, exposing the exterior through the letters.
-      maskCtx.clearRect(0,0,w,h);maskCtx.textAlign='left';maskCtx.textBaseline='alphabetic';font(maskCtx,size);
+      maskCtx.clearRect(0,0,w,h);maskCtx.textAlign='left';maskCtx.textBaseline='alphabetic';font(maskCtx,size,style);
       rows.forEach(function(row,ri){
         var x=(w-width(maskCtx,row,tracking))*.5,y=top+ri*rowHeight;
         Array.from(row).forEach(function(ch){
@@ -161,7 +171,7 @@
 
       // Freshly displaced moisture makes each stroke visible against the still-fogged pane.
       var headX=w*.5,headY=top,remaining=target,count=0,headFound=false;
-      font(ctx,size);ctx.textAlign='left';ctx.textBaseline='alphabetic';
+      font(ctx,size,style);ctx.textAlign='left';ctx.textBaseline='alphabetic';
       rows.forEach(function(row,ri){
         var rowWidth=width(ctx,row,tracking),x=(w-rowWidth)*.5,y=top+ri*rowHeight;
         Array.from(row).forEach(function(ch){
