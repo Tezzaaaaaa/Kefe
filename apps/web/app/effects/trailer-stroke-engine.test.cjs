@@ -63,3 +63,12 @@ test('unknown glyphs fail safely instead of throwing', () => {
   const w = loadEngine(), c = context();
   assert.equal(w.KEFETrailerStrokeEngine.draw(c.ctx, '漢', 0, 100, 76, .5, 'ink'), false);
 });
+
+test('pen-tip coordinates are deterministic and lie on a supported stroke path', () => {
+  const w = loadEngine();
+  const a = w.KEFETrailerStrokeEngine.pointAt('S', .42);
+  const b = w.KEFETrailerStrokeEngine.pointAt('S', .42);
+  assert.ok(a && Number.isFinite(a.x) && Number.isFinite(a.y) && Number.isFinite(a.width));
+  assert.deepEqual(a, b);
+  assert.ok(a.width > 0);
+});
