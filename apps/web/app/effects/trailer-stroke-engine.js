@@ -24,5 +24,15 @@ if(mode!=='mask'&&local<1&&last){ctx.globalAlpha=.24;ctx.fillStyle='rgba(248,255
 });
 ctx.restore();return true;
 }
-window.KEFETrailerStrokeEngine={draw:draw,hasGlyph:function(ch){return !!(glyphs[ch]||bracketPaths[ch]||glyphs[String(ch||'').toLowerCase()]);},glyphs:Object.assign({},glyphs,bracketPaths)};
+function pointAt(ch,progress){
+ var g=glyphs[ch]||bracketPaths[ch]||glyphs[String(ch||'').toLowerCase()];
+ if(!g||!g.s||progress<=0)return null;
+ var timeline=plan(g),now=clamp(progress,0,1)*(g.t||.5),active=null;
+ for(var i=0;i<timeline.length;i++){if(now>=timeline[i].start&&now<=timeline[i].end){active=timeline[i];break;}}
+ if(!active){if(now>=timeline[timeline.length-1].end){var last=timeline[timeline.length-1],pts=last.measure.segments;return pts.length?{x:pts[pts.length-1].b[0],y:pts[pts.length-1].b[1],width:pts[pts.length-1].b[2]}:null;}return null;}
+ var m=active.measure,local=clamp((now-active.start)/Math.max(.0001,active.end-active.start),0,1),distance=local*m.total;
+ for(var j=0;j<m.segments.length;j++){var seg=m.segments[j];if(distance<=seg.end){var t=clamp((distance-seg.start)/Math.max(.00001,seg.length),0,1);return{x:seg.a[0]+(seg.b[0]-seg.a[0])*t,y:seg.a[1]+(seg.b[1]-seg.a[1])*t,width:seg.a[2]+(seg.b[2]-seg.a[2])*t};}}
+ return null;
+}
+window.KEFETrailerStrokeEngine={draw:draw,pointAt:pointAt,hasGlyph:function(ch){return !!(glyphs[ch]||bracketPaths[ch]||glyphs[String(ch||'').toLowerCase()]);},glyphs:Object.assign({},glyphs,bracketPaths)};
 })();
