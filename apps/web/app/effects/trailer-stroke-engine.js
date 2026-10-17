@@ -24,5 +24,5 @@ if(mode!=='mask'&&local<1&&last){ctx.globalAlpha=.24;ctx.fillStyle='rgba(248,255
 });
 ctx.restore();return true;
 }
-window.KEFETrailerStrokeEngine={draw:draw,hasGlyph:function(ch){return !!(glyphs[ch]||bracketPaths[ch]||glyphs[String(ch||'').toLowerCase()]);},glyphs:glyphs};
+window.KEFETrailerStrokeEngine={draw:draw,hasGlyph:function(ch){return !!(glyphs[ch]||bracketPaths[ch]||glyphs[String(ch||'').toLowerCase()]);},glyphs:Object.assign({},glyphs,bracketPaths)};
 })();
