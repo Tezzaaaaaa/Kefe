@@ -47,7 +47,7 @@ function pulseWords(line, next, tokens) {
 }
 
 const pulseGeometryCache = new Map();
-const PULSE_GEOMETRY_CACHE_LIMIT = 32;
+const PULSE_GEOMETRY_CACHE_LIMIT = 12;
 
 function pulseGlyphGeometry(ctx, words, width, size, setFont) {
     const key = [width, size, ctx.font, words.map(word => word.text).join(' ')].join('|');
@@ -59,24 +59,29 @@ function pulseGlyphGeometry(ctx, words, width, size, setFont) {
     }
     // Trace a supersampled mask rendered with the actual selected browser font.
     const scale = 1.25, mask = document.createElement('canvas');
-    mask.width = Math.max(1, Math.ceil(width * scale));
+    const baseline = Math.ceil(size * 1.55 * scale) / scale * 0.72;
     mask.height = Math.max(1, Math.ceil(size * 1.55 * scale));
+    const maskMargin = 6;
+    const textWidths = words.map(word => {
+        setFont(ctx, size);
+        return ctx.measureText(word.text).width;
+    });
+    const spaceWidth = (() => { setFont(ctx, size); return ctx.measureText(' ').width; })();
+    const totalWidth = textWidths.reduce((sum, value) => sum + value, 0) + spaceWidth * (words.length - 1);
+    const centeredStart = Math.max(0, (width - totalWidth) / 2);
+    mask.width = Math.max(1, Math.ceil((totalWidth + maskMargin * 2) * scale));
     const mctx = mask.getContext('2d', { willReadFrequently: true });
     if (!mctx) return null;
     mctx.scale(scale, scale);
     setFont(mctx, size);
     mctx.textBaseline = 'alphabetic';
     mctx.textAlign = 'left';
-    const baseline = mask.height / scale * 0.72;
-    const widths = words.map(word => mctx.measureText(word.text).width);
-    const spaceWidth = mctx.measureText(' ').width;
-    const totalWidth = widths.reduce((sum, value) => sum + value, 0) + spaceWidth * (words.length - 1);
-    let cursor = Math.max(0, (width - totalWidth) / 2);
+let cursor = centeredStart;
     const wordRanges = words.map((word, i) => {
-        const range = { startX: cursor, endX: cursor + widths[i], text: word.text };
+        const range = { startX: cursor, endX: cursor + textWidths[i], text: word.text };
         mctx.fillStyle = '#FFFFFF';
-        mctx.fillText(word.text, cursor, baseline);
-        cursor += widths[i] + spaceWidth;
+        mctx.fillText(word.text, cursor - centeredStart + maskMargin, baseline);
+        cursor += textWidths[i] + spaceWidth;
         return range;
     });
     let pixels;
@@ -141,10 +146,10 @@ function pulseGlyphGeometry(ctx, words, width, size, setFont) {
         }
         simplified.push(points[points.length - 1]);
         if (simplified.length < 4) continue;
-        const avgX = simplified.reduce((sum, p) => sum + p[0] / scale, 0) / simplified.length;
+        const avgX = centeredStart + simplified.reduce((sum, p) => sum + p[0] / scale - maskMargin, 0) / simplified.length;
         const wordIndex = wordRanges.findIndex(r => avgX >= r.startX - 1 && avgX <= r.endX + 1);
         if (wordIndex < 0) continue;
-        contours.push({ wordIndex, points: simplified.map(p => [p[0] / scale, p[1] / scale - baseline]) });
+        contours.push({ wordIndex, points: simplified.map(p => [centeredStart + p[0] / scale - maskMargin, p[1] / scale - baseline]) });
     }
     const geometry = { contours, wordRanges, baseline, size };
     pulseGeometryCache.set(key, geometry);
