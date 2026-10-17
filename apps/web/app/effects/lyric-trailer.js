@@ -6,17 +6,17 @@
   window.kefeEffects=window.kefeEffects||{};
   if(!u){console.error('[lyric-trailer] requires core.js');return;}
 
-  var sceneLayer=null,sceneCtx=null,fogLayer=null,fogCtx=null,maskLayer=null,maskCtx=null,layerW=0,layerH=0;
+  var fogLayer=null,fogCtx=null,maskLayer=null,maskCtx=null,layerW=0,layerH=0;
   function clamp(v,a,b){return Math.max(a,Math.min(b,Number(v)||0));}
   function smooth(v){var t=clamp(v,0,1);return t*t*(3-2*t);}
   function seeded(n){var x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x);}
   function ensureLayers(w,h){
-    if(sceneLayer&&layerW===w&&layerH===h)return;
+    if(fogLayer&&maskLayer&&layerW===w&&layerH===h)return;
     layerW=w;layerH=h;
-    sceneLayer=document.createElement('canvas');fogLayer=document.createElement('canvas');maskLayer=document.createElement('canvas');
-    sceneLayer.width=fogLayer.width=maskLayer.width=Math.max(1,Math.ceil(w));
-    sceneLayer.height=fogLayer.height=maskLayer.height=Math.max(1,Math.ceil(h));
-    sceneCtx=sceneLayer.getContext('2d');fogCtx=fogLayer.getContext('2d');maskCtx=maskLayer.getContext('2d');
+    fogLayer=document.createElement('canvas');maskLayer=document.createElement('canvas');
+    fogLayer.width=maskLayer.width=Math.max(1,Math.ceil(w));
+    fogLayer.height=maskLayer.height=Math.max(1,Math.ceil(h));
+    fogCtx=fogLayer.getContext('2d');maskCtx=maskLayer.getContext('2d');
   }
   function font(ctx,size){ctx.font='500 '+size+'px "Segoe Print","Bradley Hand","Comic Sans MS",cursive';}
   function width(ctx,text,tracking){
@@ -120,9 +120,8 @@
     if(!(w>0&&h>0))return;
     ensureLayers(w,h);
     ctx.save();ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';
-    drawExterior(sceneCtx,w,h,time);
+    drawExterior(ctx,w,h,time);
     drawFog(fogCtx,w,h,time);
-    ctx.drawImage(sceneLayer,0,0,w,h);
 
     var active=u.activeLine(lines,time),raw='',rows=[],size=0,tracking=0,top=0,rowHeight=0,alpha=0,p=0;
     if(active&&active.line){
