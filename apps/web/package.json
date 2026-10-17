@@ -7,7 +7,7 @@
     "dev": "vite --config beui.vite.config.ts",
     "build": "vite build --config beui.vite.config.ts && node scripts/copy-static.mjs",
     "beui:dev": "vite --config beui.vite.config.ts",
-    "beui:build": "vite build --config beui.vite.config.ts"
+    "beui:build": "vite build --config beui.vite.config.ts && node scripts/copy-static.mjs"
   },
   "dependencies": {
     "clsx": "catalog:",
