@@ -1,0 +1,90 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const http = require("node:http");
+const path = require("node:path");
+const { chromium } = require("playwright");
+
+const root = path.resolve(__dirname, "..", "dist-beui");
+const mime = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".webp": "image/webp",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".webmanifest": "application/manifest+json",
+  ".json": "application/json",
+};
+
+const server = http.createServer((req, res) => {
+  const url = new URL(req.url, "http://127.0.0.1");
+  const pathname = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname);
+  const file = path.resolve(root, `.${pathname}`);
+  if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+    res.writeHead(404);
+    res.end("Not found");
+    return;
+  }
+  res.writeHead(200, { "content-type": mime[path.extname(file)] || "application/octet-stream" });
+  fs.createReadStream(file).pipe(res);
+});
+
+(async () => {
+  let browser;
+  try {
+    await new Promise((resolve) => server.listen(4173, "127.0.0.1", resolve));
+    browser = await chromium.launch({ headless: true });
+    const context = await browser.newContext({ serviceWorkers: "block" });
+    const page = await context.newPage();
+    const pageErrors = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+
+    await page.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
+    await page.waitForSelector(".beui-tabs-host [role=tab]", { timeout: 20000 });
+    await page.waitForSelector(".beui-sidebar-nav-host button", { timeout: 20000 });
+    await page.waitForSelector(".beui-range-host", { timeout: 20000 });
+    await page.waitForFunction(() => {
+      const ranges = [...document.querySelectorAll('input[type="range"]')].filter((input) => input.id !== "kefeTime");
+      const selects = [...document.querySelectorAll("select")];
+      return ranges.every((input) => input.nextElementSibling?.classList.contains("beui-range-host"))
+        && selects.every((input) => input.nextElementSibling?.classList.contains("beui-select-host"));
+    }, { timeout: 20000 });
+
+    const tabCount = await page.locator(".beui-tabs-host [role=tab]").count();
+    assert.ok(tabCount >= 5, `expected editor section tabs, found ${tabCount}`);
+    const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
+    assert.ok(sidebarCount >= 7, `expected sidebar actions, found ${sidebarCount}`);
+
+    const settingsButton = page.locator(".beui-sidebar-settings-host button");
+    await settingsButton.click();
+    const dialog = page.getByRole("dialog", { name: "Settings" });
+    await dialog.waitFor({ state: "visible", timeout: 10000 });
+    assert.ok(await dialog.locator('[role="slider"]').count() > 0, "settings should use beUI sliders");
+    assert.ok(await dialog.getByRole("switch").count() > 0, "settings should use the beUI switch");
+    const selectTrigger = dialog.locator('button[aria-haspopup="listbox"]').first();
+    await selectTrigger.click();
+    assert.ok(await page.getByRole("option").count() > 0, "beUI Select should expose its options");
+    await page.keyboard.press("Escape");
+    await dialog.waitFor({ state: "hidden", timeout: 5000 });
+
+    await page.locator(".beui-tabs-host [role=tab]").filter({ hasText: "Lyrics" }).click();
+    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", { timeout: 5000 });
+
+    const firstCount = await page.locator(".beui-panel-button-host").count();
+    await page.waitForTimeout(300);
+    const secondCount = await page.locator(".beui-panel-button-host").count();
+    assert.equal(secondCount, firstCount, "panel bridge must not recursively mount its own buttons");
+    assert.deepEqual(pageErrors, [], `browser runtime errors: ${pageErrors.join("; ")}`);
+    console.log("beUI browser smoke passed: built entry, controls, Settings dialog, Select, tabs, and panel bridge.");
+    await context.close();
+  } finally {
+    if (browser) await browser.close();
+    await new Promise((resolve) => server.close(resolve));
+  }
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
