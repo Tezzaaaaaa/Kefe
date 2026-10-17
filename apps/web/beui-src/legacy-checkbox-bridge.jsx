@@ -46,7 +46,7 @@ function BeUICheckbox({ backing, backingLabel, host }) {
       disabled={disabled}
       label={label}
       aria-label={label}
-      className={`beui-checkbox-control ${backingLabel?.className || ""}`}
+      className={`beui-checkbox-control ${backingLabel ? [...backingLabel.classList].filter((name) => name !== "beui-native-checkbox-label").join(" ") : ""}`}
     />
   );
 }
