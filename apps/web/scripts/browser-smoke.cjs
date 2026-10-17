@@ -75,12 +75,22 @@ const server = http.createServer((req, res) => {
     await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
 
+    await page.keyboard.press("Control+k");
+    const commandPalette = page.locator("#kefeCommandPalette");
+    await commandPalette.waitFor({ state: "visible", timeout: 5000 });
+    await page.locator("#kefeCommandInput").fill("Open Effects");
+    const commandButton = page.locator(".beui-command-button-host button").filter({ hasText: "Open Effects" });
+    await commandButton.waitFor({ state: "visible", timeout: 5000 });
+    await commandButton.click();
+    await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
+    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "effects", null, { timeout: 5000 });
+
     const firstCount = await page.locator(".beui-panel-button-host").count();
     await page.waitForTimeout(300);
     const secondCount = await page.locator(".beui-panel-button-host").count();
     assert.equal(secondCount, firstCount, "panel bridge must not recursively mount its own buttons");
     assert.deepEqual(pageErrors, [], `browser runtime errors: ${pageErrors.join("; ")}`);
-    console.log("beUI browser smoke passed: built entry, controls, Settings dialog, Select, sidebar navigation, and panel bridge.");
+    console.log("beUI browser smoke passed: built entry, controls, Settings dialog, Select, sidebar navigation, command palette, and panel bridge.");
     await context.close();
   } finally {
     if (browser) await browser.close();
