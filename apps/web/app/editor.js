@@ -1151,22 +1151,35 @@
   function showLyricsMissing(){
     setLyricsStatus('No synchronized lyrics found for this track. Check the song details, or open the Lyrics section to upload an .lrc file.');
   }
+  let audioRecognitionConsent=false;
   async function recognizeUploadedAudio(file){
     /* Prefer a server-side proxy so private provider credentials never ship to the
-       browser. The proxy accepts multipart "file" and returns AudD-compatible JSON.
-       Direct-token mode is for local testing only. */
+       browser. Direct-token mode is restricted to local development. */
     if(!file)return null;
     if(file.size>10*1024*1024){
       setLyricsStatus('Audio recognition service accepts files up to 10 MB. Trying embedded metadata, filename and catalogue matching instead.');
       return null;
     }
+    const proxy=String(window.KEFE_AUDIO_RECOGNITION_ENDPOINT||'').trim();
+    const token=String(window.KEFE_AUDIO_RECOGNITION_TOKEN||'').trim();
+    if(!proxy&&!token)return null;
+    const localHosts=['localhost','127.0.0.1','::1','[::1]'];
+    if(!proxy&&token&&!localHosts.includes(location.hostname)){
+      setLyricsStatus('Audio recognition is disabled outside local development when only a browser-side token is configured. Set up a server-side proxy instead.');
+      return null;
+    }
+    if(!audioRecognitionConsent){
+      const confirmed=window.confirm('KEFE can send this audio file to the configured third-party song-recognition service (AudD or your configured proxy) to identify the track. The audio will leave your device. Continue?');
+      if(!confirmed){
+        setLyricsStatus('Song recognition cancelled; no audio was sent to the recognition service.');
+        return null;
+      }
+      audioRecognitionConsent=true;
+    }
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),15000);
     try{
       const body=new FormData();
-      const proxy=String(window.KEFE_AUDIO_RECOGNITION_ENDPOINT||'').trim();
-      const token=String(window.KEFE_AUDIO_RECOGNITION_TOKEN||'').trim();
-      if(!proxy&&!token)return null;
       if(!proxy)body.append('api_token',token);
       body.append('file',file,file.name||'upload');
       body.append('return','apple_music');
