@@ -48,6 +48,10 @@ const server = http.createServer((req, res) => {
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#beui-lyricsInput", { state: "attached", timeout: 20000 });
     await page.waitForFunction(() => {
+      const panels = [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")];
+      return panels.length >= 5 && panels.every((panel) => panel.querySelector(".beui-editor-panel-card"));
+    }, null, { timeout: 20000 });
+    await page.waitForFunction(() => {
       const ranges = [...document.querySelectorAll('input[type="range"]')].filter((input) => input.id !== "kefeTime");
       const selects = [...document.querySelectorAll("select")];
       return ranges.every((input) => input.nextElementSibling?.classList.contains("beui-range-host"))
@@ -56,6 +60,9 @@ const server = http.createServer((req, res) => {
 
     await page.locator("#beui-songTitle").fill("beUI smoke track");
     assert.equal(await page.locator("#songTitle").inputValue(), "beUI smoke track", "beUI Input should preserve the legacy metadata value and events");
+
+    const panelCardCount = await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count();
+    assert.ok(panelCardCount >= 5, `expected beUI Card surfaces for editor panels, found ${panelCardCount}`);
 
     const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
     assert.ok(sidebarCount >= 7, `expected sidebar actions, found ${sidebarCount}`);
