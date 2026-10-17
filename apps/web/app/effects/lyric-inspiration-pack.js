@@ -78,7 +78,7 @@
   try { migrated = localStorage.getItem(migrationKey) === '1'; } catch (_) {}
   if (!migrated) {
     Object.keys(defs).forEach(key => { if(key!=='inkscript') settings[key].transparent = true; });
-    if(!Object.prototype.hasOwnProperty.call(settings.inkscript,'paper'))settings.inkscript.paper=true;
+    settings.inkscript.transparent=false;settings.inkscript.paper=true;
     save();
     try { localStorage.setItem(migrationKey, '1'); } catch (_) {}
   }
@@ -418,7 +418,7 @@
       if(row&&measure(test)>maxW){rows.push(row);row=word;}else row=test;
     }
     if(row)rows.push(row);
-    while(rows.length>4){let best=0;for(let i=1;i<rows.length;i++)if(rows[i].length<rows[best].length)best=i;rows.splice(best-1,2,rows[best-1]+' '+rows[best]);}
+    while(rows.length>4)rows.splice(3,2,rows[3]+' '+rows[4]);
     return rows;
   }
   function renderInkScript(ctx,w,h,style,lines,time){
