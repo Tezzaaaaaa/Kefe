@@ -1090,22 +1090,6 @@
   let lyricsRequest=0;
   let activeLyricsController=null;
   const manuallyEditedTrackFields=new Set();
-  function parseLyricsPlus(payload){
-    const items=Array.isArray(payload?.lyrics)?payload.lyrics:[];
-    return items.map((line,index)=>{
-      const startMs=Number(line?.time);
-      if(!Number.isFinite(startMs))return null;
-      const durationMs=Number(line?.duration);
-      const nextMs=Number(items[index+1]?.time);
-      const endMs=Number.isFinite(durationMs)&&durationMs>0?startMs+durationMs:(Number.isFinite(nextMs)?nextMs:startMs+3000);
-      const words=Array.isArray(line?.syllabus)?line.syllabus.map(word=>{
-        const time=Number(word?.time),duration=Number(word?.duration);
-        if(!Number.isFinite(time))return null;
-        return {text:String(word?.text||'').trim(),time:time/1000,endTime:(Number.isFinite(duration)&&duration>0?time+duration:time+300)/1000};
-      }).filter(word=>word&&word.text):[];
-      return {text:String(line?.text||'').trim(),time:startMs/1000,end:endMs/1000,words};
-    }).filter(line=>line&&line.text);
-  }
   async function loadAutomaticLyrics(){
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     const duration=Math.round(Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0);
@@ -1116,7 +1100,6 @@
     let controller=new AbortController();
     activeLyricsController=controller;
     let timeout=null;
-    const params=new URLSearchParams({title,artist,...(album?{album}:{}),...(duration?{duration:String(duration)}:{})});
     let acceptJson={signal:controller.signal,headers:{Accept:'application/json'}};
     const freshRequest=()=>{
       clearTimeout(timeout);
@@ -1134,67 +1117,7 @@
 
     const tryLines=lines=>{
       if(request!==lyricsRequest)return true;
-      return setLyricsFromLines(lines,'Synchronized lyrics fetched.');
-    };
-
-    const tryBini=async()=>{
-      const response=await fetch('https://lyrics-api.binimum.org/getLyrics?'+params,acceptJson);
-      if(!response.ok)return false;
-      const payload=await response.json();
-      const urls=[];
-      const collect=value=>{
-        if(!value)return;
-        if(typeof value==='string'){
-          if(/^https?:\/\//i.test(value)||value.trim().startsWith('<'))urls.push(value);
-          return;
-        }
-        if(Array.isArray(value)){value.forEach(collect);return;}
-        if(typeof value==='object'){
-          collect(value.url);collect(value.ttml);collect(value.lyrics);collect(value.lyricsUrl);collect(value.ttmlUrl);
-        }
-      };
-      collect(payload);
-      for(const value of urls){
-        if(value.trim().startsWith('<')){
-          if(tryLines(parseAppleTTML(value)))return true;
-          continue;
-        }
-        const lyricResponse=await fetch(value,{signal:controller.signal,headers:{Accept:'application/xml,text/xml,text/plain'}});
-        if(!lyricResponse.ok)continue;
-        if(tryLines(parseAppleTTML(await lyricResponse.text())))return true;
-      }
-      return false;
-    };
-
-    const tryLyricsPlus=async()=>{
-      const mirrors=[
-        'https://lyricsplus.binimum.org',
-        'https://lyricsplus.atomix.one',
-        'https://lyricsplus.prjktla.workers.dev',
-        'https://lyricsplus-seven.vercel.app'
-      ];
-      const query=new URLSearchParams({title,artist,...(album?{album}:{}),...(duration?{duration:String(duration)}:{}),source:'apple,lyricsplus,musixmatch,spotify,musixmatch-word'});
-      for(const base of mirrors){
-        const response=await fetch(base+'/v2/lyrics/get?'+query,acceptJson);
-        if(!response.ok)continue;
-        if(tryLines(parseLyricsPlus(await response.json())))return true;
-      }
-      return false;
-    };
-
-    const tryBetterLyrics=async()=>{
-      const bl=()=>new URLSearchParams({s:title,a:artist,...(album?{al:album}:{}),...(duration?{d:String(duration)}:{})});
-      let response=await fetch('https://api.betterlyrics.org/getLyrics?'+bl(),acceptJson);
-      if(response.ok){
-        const payload=await response.json();
-        if(tryLines(parseAppleTTML(String(payload?.ttml||''))))return true;
-      }
-      response=await fetch('https://api.betterlyrics.org/kugou/getLyrics?'+bl(),acceptJson);
-      if(response.ok){
-        const payload=await response.json();
-        if(tryLines(parseAppleLrc(String(payload?.lyrics||''))))return true;
-      }
-      return false;
+      return setLyricsFromLines(lines,'Synchronized lyrics fetched from LRCLIB, a community lyrics database. Check you have the right to use them.');
     };
 
     const tryLrclib=async()=>{
@@ -1228,9 +1151,6 @@
       if(artist&&await attempt('lrclib',tryLrclib))return true;
       if(await attempt('lrclib-search',tryLrclibSearch))return true;
       if(await attempt('lrclib-query',tryLrclibQuery))return true;
-      if(artist&&await attempt('lyricsplus',tryLyricsPlus))return true;
-      if(artist&&await attempt('betterlyrics',tryBetterLyrics))return true;
-      if(artist&&await attempt('binimum',tryBini))return true;
       showLyricsMissing();
       return false;
     }catch(error){
