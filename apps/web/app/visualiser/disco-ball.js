@@ -40,11 +40,119 @@
     const cl=Math.cos(lat), x=cl*Math.sin(lon), y=Math.sin(lat), z=cl*Math.cos(lon);
     return {x:cx+x*r,y:cy+y*r,z,nx:x,ny:y};
   }
+  let gl=null, glProgram=null, glBuffer=null, glUniforms=null;
+  const vertexShaderSource = \`#version 300 es
+    in vec2 a_position;
+    void main(){ gl_Position=vec4(a_position,0.0,1.0); }
+  \`;
+  const fragmentShaderSource = \`#version 300 es
+    precision highp float;
+    uniform vec2 u_resolution;
+    uniform float u_time;
+    uniform float u_bass;
+    uniform float u_mids;
+    uniform float u_highs;
+    uniform float u_energy;
+    out vec4 outColor;
+    const float PI=3.141592653589793;
+    float hash21(vec2 p){ p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y); }
+    float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash21(i),hash21(i+vec2(1,0)),f.x),mix(hash21(i+vec2(0,1)),hash21(i+vec2(1,1)),f.x),f.y);}
+    vec3 rotateBall(vec3 p,float a,float b){float ca=cos(a),sa=sin(a),cb=cos(b),sb=sin(b);p=vec3(ca*p.x+sa*p.z,p.y,-sa*p.x+ca*p.z);return vec3(p.x,cb*p.y-sb*p.z,sb*p.y+cb*p.z);}
+    float softBox(vec2 p,vec2 center,vec2 size,float blur){vec2 d=abs(p-center)-size;return 1.0-smoothstep(-blur,blur,length(max(d,0.0))+min(max(d.x,d.y),0.0));}
+    void main(){
+      vec2 p=(gl_FragCoord.xy-.5*u_resolution)/min(u_resolution.x,u_resolution.y);
+      float radius=.405*(1.0+u_bass*.009);
+      vec3 ro=vec3(0.0,0.0,2.7),rd=normalize(vec3(p,-2.7));
+      float b=dot(ro,rd),c=dot(ro,ro)-radius*radius,disc=b*b-c;
+      vec3 bg=vec3(.006,.008,.021);
+      float vignette=1.0-smoothstep(.12,.82,length(p));
+      float aura=exp(-max(0.0,length(p)-radius)*18.0)*(.10+u_energy*.13);
+      float haze=exp(-length(p-vec2(-.22,.16))/.42)*.035;
+      bg+=vec3(.12,.055,.32)*aura+vec3(.025,.075,.23)*haze;
+      float grain=noise(gl_FragCoord.xy*.42+u_time*.08);
+      float dust=step(.997,grain)*(.05+.12*u_highs);
+      bg+=vec3(.26,.29,.8)*dust*vignette;
+      vec4 result=vec4(bg,clamp(aura+haze*.7+dust*.3,0.0,.42));
+      if(disc>0.0){
+        float hit=-b-sqrt(disc);
+        if(hit>0.0){
+          vec3 pos=ro+rd*hit,n=normalize(pos);
+          vec3 rn=normalize(rotateBall(n,u_time*(.105+u_bass*.12),.10*sin(u_time*.23)));
+          float longitude=atan(rn.x,rn.z)/(2.0*PI)+.5;
+          float latitude=asin(clamp(rn.y,-1.0,1.0))/PI+.5;
+          vec2 grid=vec2(longitude*32.0,latitude*24.0),cell=fract(grid),edge=min(cell,1.0-cell);
+          float edgeDistance=min(edge.x,edge.y),bevel=smoothstep(.0,.052,edgeDistance);
+          vec2 tile=floor(grid);float tileRnd=hash21(tile);
+          vec3 viewDir=normalize(ro-pos),refl=reflect(-viewDir,n);
+          float facing=clamp(dot(n,normalize(vec3(-.36,.48,1.0))),0.0,1.0);
+          float key=softBox(rn.xy,vec2(-.31,.28),vec2(.105,.20),.035);
+          float fill=softBox(rn.xy,vec2(.38,.18),vec2(.075,.16),.028);
+          float strip=softBox(rn.xy,vec2(-.02,-.48),vec2(.32,.035),.024);
+          float environment=pow(max(0.0,1.0-abs(refl.y-.36)),7.0)*.22;
+          float caustic=pow(max(0.0,dot(reflect(-normalize(vec3(-.4,.6,.8)),n),viewDir)),28.0);
+          float wave=.5+.5*sin(tile.x*.71-tile.y*.44+u_time*.7);
+          vec3 palette=mix(vec3(.035,.045,.13),vec3(.12,.16,.42),.35+.35*wave);
+          palette=mix(palette,vec3(.23,.08,.42),clamp(.30+u_mids*.35+sin(tile.x*.13+tile.y*.2)*.15,0.0,1.0));
+          float hue=fract(tileRnd*.42+tile.x*.017+tile.y*.009+u_time*.008);
+          vec3 spectral=vec3(.18+.28*sin(6.283*hue),.17+.25*sin(6.283*(hue+.33)),.32+.30*sin(6.283*(hue+.67)));
+          palette=mix(palette,spectral,.14+u_highs*.13);
+          float tilePulse=1.0+u_bass*.32*(.5+.5*sin(tile.x*.8+tile.y*.5));
+          vec3 color=palette*tilePulse;color*=.38+.42*facing+.24*environment;
+          color+=vec3(1.0,.91,1.0)*(key*.95+fill*.70+strip*.16);
+          float micro=hash21(tile+floor(u_time*7.0));
+          float glint=pow(max(0.0,caustic),1.5)*.6+step(.91,micro)*pow(u_highs,1.2)*.22;
+          color+=vec3(.72,.83,1.0)*glint;
+          color+=vec3(.28,.035,.22)*step(.985,tileRnd)*(.15+u_bass*.48);
+          color*=mix(.22,1.0,bevel);
+          color+=vec3(.24,.29,.55)*exp(-edgeDistance*85.0)*(.16+.18*facing);
+          float centerGlow=exp(-dot(rn.xy-vec2(-.02,.12),rn.xy-vec2(-.02,.12))*5.0);
+          color+=vec3(.09,.10,.25)*centerGlow;
+          float fresnel=pow(1.0-max(dot(n,viewDir),0.0),4.0);
+          color+=vec3(.16,.19,.55)*fresnel*.55;
+          color=color/(vec3(1.0)+color*.48);
+          result=vec4(color,1.0);
+        }
+      }
+      outColor=result;
+    }
+  \`;
+  function compileShader(type,source){
+    const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);
+    if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){const message=gl.getShaderInfoLog(shader);gl.deleteShader(shader);throw new Error(message||'Disco Ball shader compilation failed');}
+    return shader;
+  }
+  function initGL(target){
+    try{
+      gl=target.getContext('webgl2',{alpha:true,antialias:true,premultipliedAlpha:false,powerPreference:'high-performance'});
+      if(!gl)return false;
+      const vs=compileShader(gl.VERTEX_SHADER,vertexShaderSource),fs=compileShader(gl.FRAGMENT_SHADER,fragmentShaderSource);
+      glProgram=gl.createProgram();gl.attachShader(glProgram,vs);gl.attachShader(glProgram,fs);gl.linkProgram(glProgram);
+      gl.deleteShader(vs);gl.deleteShader(fs);
+      if(!gl.getProgramParameter(glProgram,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(glProgram)||'Disco Ball shader link failed');
+      glBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,glBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+      glUniforms={resolution:gl.getUniformLocation(glProgram,'u_resolution'),time:gl.getUniformLocation(glProgram,'u_time'),bass:gl.getUniformLocation(glProgram,'u_bass'),mids:gl.getUniformLocation(glProgram,'u_mids'),highs:gl.getUniformLocation(glProgram,'u_highs'),energy:gl.getUniformLocation(glProgram,'u_energy')};
+      gl.useProgram(glProgram);const position=gl.getAttribLocation(glProgram,'a_position');gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
+      gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.clearColor(0,0,0,0);
+      return true;
+    }catch(error){console.warn('[KEFE Disco Ball] WebGL renderer unavailable; using Canvas fallback.',error);gl=null;glProgram=null;return false;}
+  }
+  function drawGL(){
+    if(!gl||!glProgram)return false;
+    gl.viewport(0,0,canvas.width,canvas.height);gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(glProgram);gl.bindBuffer(gl.ARRAY_BUFFER,glBuffer);
+    gl.uniform2f(glUniforms.resolution,canvas.width,canvas.height);
+    gl.uniform1f(glUniforms.time,t);gl.uniform1f(glUniforms.bass,bass);gl.uniform1f(glUniforms.mids,mids);
+    gl.uniform1f(glUniforms.highs,highs);gl.uniform1f(glUniforms.energy,smooth);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);return true;
+  }
   function paint(now){
     raf=0;
     if(!active||!enabled||document.hidden){schedule();return;}
     const dt=Math.min(.05,Math.max(0,(now-(last||now))/1000));last=now;t+=dt;analyse(dt);
     const w=canvas.width,h=canvas.height,dpr=Math.min(window.devicePixelRatio||1,2);
+    if(drawGL()){schedule();return;}
+    if(!ctx){schedule();return;}
     ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,w,h);
     const unit=Math.min(w,h),cx=w*.5,cy=h*.5,r=unit*.405*(1+smooth*.012);
     const rot=reduced?t*.025:t*(.11+bass*.22);
@@ -160,7 +268,7 @@
   function init(){
     stage=document.querySelector('.kefe-stage');const tabs=document.querySelector('.kefe-vis-tabs'),form=document.querySelector('.kefe-visualiser-form');
     if(!stage||!tabs||!form)return;
-    canvas=document.createElement('canvas');canvas.id='kefeDiscoBallCanvas';canvas.setAttribute('aria-label','Disco Ball audio visualiser');canvas.style.cssText='position:absolute;inset:0;z-index:2;pointer-events:none;visibility:hidden;';stage.appendChild(canvas);ctx=canvas.getContext('2d',{alpha:true});
+    canvas=document.createElement('canvas');canvas.id='kefeDiscoBallCanvas';canvas.setAttribute('aria-label','Disco Ball audio visualiser');canvas.style.cssText='position:absolute;inset:0;z-index:2;pointer-events:none;visibility:hidden;';stage.appendChild(canvas);if(!initGL(canvas)){canvas.remove();canvas=document.createElement('canvas');canvas.id='kefeDiscoBallCanvas';canvas.setAttribute('aria-label','Disco Ball audio visualiser');canvas.style.cssText='position:absolute;inset:0;z-index:2;pointer-events:none;visibility:hidden;';stage.appendChild(canvas);ctx=canvas.getContext('2d',{alpha:true});}
     view=el('div','kefe-vis-view');view.id='kefeVisDiscoBallView';view.hidden=true;
     view.appendChild(el('p','kefe-meta','A rotating mirror-ball sphere with beat-responsive reflections, violet-blue tiles and magenta sparkles.'));
     const info=el('p','kefe-meta','Audio input: KEFE shared audio analyser. The visualiser follows the loaded track; without an analyser, it uses a subtle ambient motion fallback.');
