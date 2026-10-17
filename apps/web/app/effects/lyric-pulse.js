@@ -249,15 +249,18 @@ function drawPulseLine(ctx, w, h, style, line, next, time, phase) {
             for (const contour of (contoursByWord[wordIndex] || [])) {
                 const pts = contour.points;
                 if (pts.length < 4) continue;
-                const pointY = point => traceY + point[1] * 0.76 + beatAt(point[0]) * 0.24;
-                const first = pts[0], last = pts[pts.length - 1];
-                tracePath.moveTo((last[0] + first[0]) * 0.5, (pointY(last) + pointY(first)) * 0.5);
+                const ys = new Float32Array(pts.length);
                 for (let i = 0; i < pts.length; i++) {
-                    const current = pts[i], nextPoint = pts[(i + 1) % pts.length];
+                    ys[i] = traceY + pts[i][1] * 0.76 + beatAt(pts[i][0]) * 0.24;
+                }
+                const first = pts[0], lastIndex = pts.length - 1;
+                tracePath.moveTo((pts[lastIndex][0] + first[0]) * 0.5, (ys[lastIndex] + ys[0]) * 0.5);
+                for (let i = 0; i < pts.length; i++) {
+                    const next = (i + 1) % pts.length;
                     tracePath.quadraticCurveTo(
-                        current[0], pointY(current),
-                        (current[0] + nextPoint[0]) * 0.5,
-                        (pointY(current) + pointY(nextPoint)) * 0.5
+                        pts[i][0], ys[i],
+                        (pts[i][0] + pts[next][0]) * 0.5,
+                        (ys[i] + ys[next]) * 0.5
                     );
                 }
                 tracePath.closePath();
