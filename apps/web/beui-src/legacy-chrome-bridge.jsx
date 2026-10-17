@@ -98,7 +98,68 @@ function DockButton({ backing }) {
   );
 }
 
+
+function TransportButton({ backing, variant = "ghost" }) {
+  const read = () => ({
+    label: backing.getAttribute("aria-label") || backing.title || "Media control",
+    title: backing.title || backing.getAttribute("aria-label") || "Media control",
+    className: [...backing.classList].filter((name) => name !== "beui-native-transport").join(" "),
+    content: backing.innerHTML,
+    pressed: backing.getAttribute("aria-pressed"),
+    expanded: backing.getAttribute("aria-expanded"),
+    disabled: backing.disabled,
+  });
+  const [attrs, setAttrs] = useState(read);
+  useEffect(() => {
+    const observer = new MutationObserver(() => setAttrs(read()));
+    observer.observe(backing, {
+      attributes: true,
+      childList: true,
+      characterData: true,
+      subtree: true,
+      attributeFilter: ["aria-label", "title", "class", "aria-pressed", "aria-expanded", "disabled"],
+    });
+    return () => observer.disconnect();
+  }, [backing]);
+  return (
+    <Button
+      variant={variant}
+      size="icon"
+      className={`${attrs.className} beui-react-transport`}
+      aria-label={attrs.label}
+      title={attrs.title}
+      aria-pressed={attrs.pressed === null ? undefined : attrs.pressed === "true"}
+      aria-expanded={attrs.expanded === null ? undefined : attrs.expanded === "true"}
+      disabled={attrs.disabled}
+      onClick={() => backing.click()}
+    >
+      <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: attrs.content }} />
+    </Button>
+  );
+}
+
+function mountTransportControls() {
+  const configs = [
+    ["#previewFullscreen", "ghost"],
+    ["#playButton", "primary"],
+    ["#restartButton", "ghost"],
+    ["#kefeMuteToggle", "ghost"],
+  ];
+  for (const [selector, variant] of configs) {
+    const backing = document.querySelector(selector);
+    if (!backing || backing.dataset.beuiMounted) continue;
+    const host = document.createElement("div");
+    host.className = "beui-transport-host";
+    backing.insertAdjacentElement("beforebegin", host);
+    backing.classList.add("beui-native-transport");
+    backing.dataset.beuiMounted = "true";
+    createRoot(host).render(<TransportButton backing={backing} variant={variant} />);
+  }
+}
+
 function start() {
+  mountTransportControls();
+
   const dock = document.querySelector(".kefe-workspace-dock");
   dock?.querySelectorAll("[data-dock-panel], [data-dock-export], [data-command-open]").forEach((backing) => {
     if (backing.dataset.beuiMounted) return;
