@@ -395,7 +395,6 @@
       }
     }
     state.appleLines=state.lines.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
-    cacheLockScreenLyrics();
     previewStage.classList.toggle('is-empty',!(audio.currentSrc||audio.src||video.currentSrc||video.src)&&state.lines.length===0);
     window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:'text'}}));
     publishKefeLockScreen('update');
@@ -1649,6 +1648,10 @@
     try{bridge.postMessage(payload);}catch(error){console.warn('[KEFE native Lock Screen bridge]',error);}
   }
   window.kefePublishLockScreen=publishKefeLockScreen;
+  window.addEventListener('kefe-lyrics-changed',()=>{
+    cacheLockScreenLyrics();
+    publishKefeLockScreen('update');
+  });
   audio.addEventListener('timeupdate',()=>{
     if(audio.paused){
       state.time=audio.currentTime;range.value=state.time;updateTime();syncAppleLyrics();
