@@ -21,7 +21,7 @@
   function font(ctx,size,style){
     style=style||{};
     var typography=window.KEFE_TYPE&&window.KEFE_TYPE.effects&&window.KEFE_TYPE.effects.trailer;
-    var family=style.fontFamily||style.family||style.typeface||(typeof style.font==='string'?style.font:'')||(typography&&typography.family)||'sans-serif';
+    var family=style.fontFamily||style.family||style.typeface||(typeof style.font==='string'?style.font:'')||(typography&&typography.family)||'Homemade Apple';
     family=String(family).trim()||'sans-serif';
     // Preserve supplied CSS font stacks; quote a single family so spaces and punctuation remain valid.
     if(family.indexOf(',')<0&&family.charAt(0)!=='"'&&family.charAt(0)!=="'")family=JSON.stringify(family);
@@ -165,27 +165,30 @@
     ctx.bezierCurveTo(edge+Math.sin(phase*2.1)*amp,size*.22,edge-amp*.5,size*.62,edge+Math.cos(phase*.8)*amp,size*.98);
     ctx.lineTo(-2,size*.98);ctx.closePath();ctx.clip();
   }
-  function strokeGlyph(ctx,ch,x,y,size,progress,alpha){
-    if(!ch||ch===' ')return;
-    var jitter=Math.sin(x*.071+y*.037)*size*.009;
+  function rowRevealClip(ctx,rowWidth,size,progress,seed){
+    var edge=rowWidth*clamp(progress,0,1),amp=Math.min(size*.035,Math.max(.7,rowWidth*.012)),phase=seed*.013;
+    ctx.beginPath();ctx.moveTo(-2,-size*1.1);ctx.lineTo(edge-amp,-size*1.1);
+    ctx.bezierCurveTo(edge+Math.sin(phase)*amp,-size*.68,edge-amp*.7,-size*.25,edge+Math.cos(phase*1.7)*amp,size*.08);
+    ctx.bezierCurveTo(edge+Math.sin(phase*2.2)*amp,size*.38,edge-amp*.4,size*.72,edge+Math.cos(phase*.8)*amp,size*1.0);
+    ctx.lineTo(-2,size);ctx.closePath();ctx.clip();
+  }
+  function strokeHandwrittenRow(ctx,row,x,y,size,progress,alpha,seed){
+    if(!row||progress<=0)return;
+    var jitter=Math.sin(seed*.071)*size*.006;
     ctx.save();ctx.translate(x,y+jitter);
-    var gw=ctx.measureText(ch).width;
-    glyphRevealClip(ctx,gw,size,progress,x+y);
+    var rw=ctx.measureText(row).width;rowRevealClip(ctx,rw,size,progress,seed);
     ctx.globalAlpha=alpha;ctx.lineJoin='round';ctx.lineCap='round';
-    // Layered damp edges give the cleared glass a soft, uneven moisture boundary.
-    ctx.strokeStyle='rgba(8,25,35,.64)';ctx.lineWidth=Math.max(2,size*.09);ctx.strokeText(ch,0,0);
-    ctx.strokeStyle='rgba(13,34,45,.84)';ctx.lineWidth=Math.max(1.2,size*.052);ctx.strokeText(ch,0,0);
-    ctx.strokeStyle='rgba(231,246,249,.38)';ctx.lineWidth=Math.max(.8,size*.024);ctx.strokeText(ch,0,0);
-    ctx.fillStyle='rgba(228,244,247,.90)';ctx.shadowColor='rgba(230,249,252,.24)';ctx.shadowBlur=size*.045;
-    ctx.fillText(ch,0,0);
-    // A fine moving wet edge catches the light at the active end of the reveal.
+    // Fine dark moisture edge and a restrained pale fill read as lettering cleared into wet glass.
+    ctx.strokeStyle='rgba(8,25,35,.42)';ctx.lineWidth=Math.max(.9,size*.026);ctx.strokeText(row,0,0);
+    ctx.strokeStyle='rgba(219,241,247,.22)';ctx.lineWidth=Math.max(.55,size*.012);ctx.strokeText(row,0,0);
+    ctx.fillStyle='rgba(229,244,247,.82)';ctx.shadowColor='rgba(210,238,246,.13)';ctx.shadowBlur=size*.018;
+    ctx.fillText(row,0,0);
     if(progress<.995){
-      var edge=gw*clamp(progress,0,1),amp=Math.min(size*.055,Math.max(.8,gw*.035)),phase=(x+y)*.017;
-      ctx.globalAlpha=alpha*.48;ctx.strokeStyle='rgba(248,255,255,.92)';ctx.lineWidth=Math.max(.7,size*.012);
-      ctx.shadowColor='rgba(198,237,248,.7)';ctx.shadowBlur=size*.055;
-      ctx.beginPath();ctx.moveTo(edge-amp,-size*.82);
-      ctx.bezierCurveTo(edge+Math.sin(phase)*amp,-size*.38,edge-amp*.7,size*.05,edge+Math.cos(phase*1.7)*amp,size*.52);
-      ctx.stroke();
+      var edge=rw*clamp(progress,0,1),amp=Math.min(size*.035,Math.max(.7,rw*.012)),phase=seed*.013;
+      ctx.globalAlpha=alpha*.28;ctx.strokeStyle='rgba(248,255,255,.86)';ctx.lineWidth=Math.max(.55,size*.008);
+      ctx.shadowColor='rgba(198,237,248,.42)';ctx.shadowBlur=size*.035;
+      ctx.beginPath();ctx.moveTo(edge-amp,-size*.78);
+      ctx.bezierCurveTo(edge+Math.sin(phase)*amp,-size*.35,edge-amp*.7,size*.04,edge+Math.cos(phase*1.7)*amp,size*.52);ctx.stroke();
     }
     ctx.restore();
   }
@@ -219,32 +222,28 @@
       maskCtx.clearRect(0,0,w,h);maskCtx.textAlign='left';maskCtx.textBaseline='alphabetic';font(maskCtx,size,style);
       rows.forEach(function(row,ri){
         var x=(w-width(maskCtx,row,tracking))*.5,y=top+ri*rowHeight;
-        Array.from(row).forEach(function(ch){
-          var cw=maskCtx.measureText(ch).width,wt=weights[index]||1;
-          var reveal=clamp((target-used)/wt,0,1);
-          if(ch!==' '&&reveal>0){
-            maskCtx.save();maskCtx.translate(x,y);glyphRevealClip(maskCtx,cw,size,reveal,x+y);
-            maskCtx.fillStyle='#fff';maskCtx.fillText(ch,0,0);maskCtx.restore();
-          }
-          x+=cw+tracking;used+=wt;index++;
-        });
+        var rowWeight=0;
+        Array.from(row).forEach(function(ch){rowWeight+=weights[index++]||1;});
+        var reveal=clamp((target-used)/Math.max(1,rowWeight),0,1);
+        if(reveal>0){
+          maskCtx.save();maskCtx.translate(x,y);rowRevealClip(maskCtx,width(maskCtx,row,tracking),size,reveal,x+y);
+          maskCtx.fillStyle='#fff';maskCtx.fillText(row,0,0);maskCtx.restore();
+        }
+        used+=rowWeight;
       });
       fogCtx.save();fogCtx.globalCompositeOperation='destination-out';fogCtx.drawImage(maskLayer,0,0,w,h);fogCtx.restore();
       ctx.drawImage(fogLayer,0,0,w,h);
 
       // Freshly displaced moisture makes each stroke visible against the still-fogged pane.
-      var headX=w*.5,headY=top,remaining=target,count=0,headFound=false;
+      var headX=w*.5,headY=top,remaining=target,count=0,headFound=false,progressUsed=0;
       font(ctx,size,style);ctx.textAlign='left';ctx.textBaseline='alphabetic';
-      var progressUsed=0;
       rows.forEach(function(row,ri){
-        var rowWidth=width(ctx,row,tracking),x=(w-rowWidth)*.5,y=top+ri*rowHeight;
-        Array.from(row).forEach(function(ch){
-          var cw=ctx.measureText(ch).width,wt=weights[count]||1;
-          var reveal=clamp((target-progressUsed)/wt,0,1);
-          if(ch!==' '&&reveal>0)strokeGlyph(ctx,ch,x,y,size,reveal,alpha);
-          if(!headFound&&remaining<=wt){headX=x+cw*clamp(remaining/wt,0,1);headY=y-size*.34;headFound=true;}
-          remaining-=wt;progressUsed+=wt;x+=cw+tracking;count++;
-        });
+        var rowWidth=width(ctx,row,tracking),x=(w-rowWidth)*.5,y=top+ri*rowHeight,rowWeight=0;
+        Array.from(row).forEach(function(ch){rowWeight+=weights[count++]||1;});
+        var reveal=clamp((target-progressUsed)/Math.max(1,rowWeight),0,1);
+        if(reveal>0)strokeHandwrittenRow(ctx,row,x,y,size,reveal,alpha,x+y);
+        if(!headFound&&remaining<=rowWeight){headX=x+rowWidth*clamp(remaining/Math.max(1,rowWeight),0,1);headY=y-size*.34;headFound=true;}
+        remaining-=rowWeight;progressUsed+=rowWeight;
       });
       if(p<.998&&totalChars>0&&headFound){
         // Tiny contact glint with a soft moisture halo, not a cursor or visible hand.
