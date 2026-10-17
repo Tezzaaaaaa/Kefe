@@ -12,6 +12,8 @@ This is an engineering remediation record, not legal advice or a legal clearance
 - Left manual lyric entry and user-imported lyric files available.
 - Added an in-product notice explaining why automatic lookup is paused and directing users to lyrics they have permission to use.
 - Added an export-time confirmation reminding users to secure rights for audio, lyrics, artwork and other included material; it explicitly says KEFE does not grant those rights.
+- Added clearly labelled Terms (draft) and Privacy (draft) links in the editor sidebar so the drafts are discoverable without presenting them as final policies.
+- Added a CI guard that checks the automatic LRCLIB endpoint is absent and that the paused-lookup notice and manual lyric import control remain in the source.
 
 ## Release blockers that cannot honestly be marked resolved by code changes alone
 
