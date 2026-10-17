@@ -116,6 +116,20 @@
             ctx.restore();
           }
         }else{
+          /* A restrained, timing-driven bloom trails the sung fill. Clip it to the
+             revealed glyph area so the upcoming letters stay quiet and readable. */
+          if(wp.started && wp.sweep>0.015 && wp.sweep<1.015 && wp.pulse>0.015){
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0,-size*.52,Math.max(1,word.width*wp.sweep),size*1.04);
+            ctx.clip();
+            ctx.globalAlpha*=0.24+wp.pulse*0.28;
+            ctx.shadowColor=fillColor;
+            ctx.shadowBlur=size*(0.055+wp.pulse*0.075);
+            ctx.fillStyle=fillColor;
+            ctx.fillText(word.text,0,0);
+            ctx.restore();
+          }
           ctx.fillStyle=u.sweepFill(ctx,0,word.width,wp.sweep,fillColor,inactiveColor,0.28);
           ctx.fillText(word.text,0,0);
         }
