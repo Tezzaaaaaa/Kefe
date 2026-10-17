@@ -104,3 +104,44 @@ select.beui-native-select {
   width: 100%;
   min-width: 0;
 }
+
+.beui-sidebar-nav-host {
+  --beui-background: var(--shell-bg, #171719);
+  --beui-foreground: var(--shell-text, #f5f5f5);
+  --beui-muted: var(--shell-panel, #29292d);
+  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
+  --beui-border: var(--shell-line, #39393f);
+  --beui-ring: var(--shell-accent, #ef4444);
+  --beui-primary: var(--shell-accent, #ef4444);
+  --beui-primary-foreground: #ffffff;
+  --beui-card: var(--shell-panel, #222225);
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+.beui-sidebar-nav-host > div {
+  width: 100%;
+}
+.beui-sidebar-nav {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+}
+.beui-sidebar-nav .kefe-sidebar-link {
+  min-width: 0;
+  height: 38px;
+}
+.beui-sidebar-nav .kefe-sidebar-link.is-current {
+  color: var(--shell-text, #f5f5f5);
+}
+.beui-sidebar-nav .kefe-sidebar-link-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.beui-native-sidebar-control {
+  display: none !important;
+}
+.kefe-editor.sidebar-collapsed .beui-sidebar-nav .kefe-sidebar-link-label {
+  display: none;
+}
