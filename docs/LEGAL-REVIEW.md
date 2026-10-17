@@ -2,24 +2,23 @@
 
 Engineering audit of the repo as of `372ec41`, not legal advice. Have a lawyer (an Australian one, since the operator is in Queensland) review before launch, especially items 1 and 2. Items are ordered by exposure.
 
-## 1. Lyrics from unlicensed sources (highest risk)
+## 1. Lyrics sources (highest risk; partly addressed)
 
-`apps/web/app/editor.js` auto-fetches lyrics from third-party services:
+Originally `apps/web/app/editor.js` auto-fetched lyrics from LRCLIB, BetterLyrics, binimum and four LyricsPlus mirrors. LyricsPlus was asked for lyrics sourced from Apple, Musixmatch and Spotify (`source=apple,lyricsplus,musixmatch,spotify,musixmatch-word`), whose terms do not allow this use.
 
-| Source | Where | Concern |
-|---|---|---|
-| LRCLIB (`lrclib.net`) | `tryLrclib*` | Community database; licensing of the lyrics is not guaranteed by the service |
-| BetterLyrics (`api.betterlyrics.org`) | `tryBetterLyrics` | Unofficial aggregator |
-| LyricsPlus mirrors (4 hosts) | `tryLyricsPlus` | Requested with `source=apple,lyricsplus,musixmatch,spotify,musixmatch-word`, i.e. lyrics originating from Apple, Musixmatch and Spotify, whose terms do not allow this use |
+**Done (PR #57):** BetterLyrics, binimum and LyricsPlus are removed. Only LRCLIB remains, with an on-screen note that the lyrics come from a community database and the user must have the right to use them.
 
-Lyrics are copyrighted (words and, separately, the musical work). Fetching, storing, displaying and exporting them in videos without a licence is infringement risk, and using unofficial mirrors of licensed catalogues also breaches those platforms' terms. The mirrors are not under KEFE's control and can disappear.
+**Still open:**
+- Lyrics are copyrighted (the words, separately from the music). Displaying and exporting them in videos without a licence is infringement risk. LRCLIB is community-contributed and, as far as I know, does not claim to hold licences for the lyrics; its terms need a written check.
+- Wording in the terms must put lyric rights on the user (drafted in `apps/web/legal/terms.html`).
+- Removing fetched word-level timing means Word and Karaoke modes use estimated timing for fetched lyrics.
 
-Options, strongest first:
-1. Remove the auto-fetch. The user loads their own lyrics (LRC, SRT, JSON, paste). KEFE is then a tool, and the user supplies the content.
-2. Keep only sources whose terms permit it, and show attribution. Needs a written check of each service's terms.
-3. License lyrics through a provider (Musixmatch and LyricFind both run commercial APIs).
+Further options if you want to go beyond LRCLIB, strongest first:
+1. Remove auto-fetch entirely. Users load their own lyrics (LRC, SRT, JSON, paste), and KEFE hosts none.
+2. Auto-time user-supplied lyrics against the audio in the browser, or draft lyrics from the audio with an on-device speech model. Neither stores lyric text on a KEFE service.
+3. License lyrics from a provider (Musixmatch and LyricFind run commercial APIs).
 
-Recommendation: option 1 now, option 3 if auto-fetch is a core feature.
+Do not build a KEFE-hosted lyric database: storing and serving lyrics makes KEFE the host.
 
 ## 2. User media and exported videos
 
@@ -44,7 +43,7 @@ Effect labels and descriptions name third-party brands: "Apple" (Apple Music-sty
 
 KEFE runs in the browser. Data leaves the device only through these requests, which the privacy policy discloses:
 - iTunes Search (search text)
-- Lyric services (title, artist, album, duration)
+- LRCLIB (title, artist, album, duration)
 - Google Fonts (`fonts.googleapis.com`), only when a user picks a custom Google font (`lyric-inspiration-pack.js`)
 - jsDelivr, on every editor load: `gif.js` (`editor.html`) and `@uimaxbai/am-lyrics` (`editor.js`, the Apple-style lyric component). These run third-party code in the page from a CDN. Pin versions and add Subresource Integrity, or bundle them. I have not verified what `am-lyrics` requests over the network (likely lyrics for the current track); check before publishing the privacy policy.
 - GitHub Pages hosting (visitor IP, logged by GitHub)
@@ -73,7 +72,7 @@ When accounts and billing arrive (`apps/api`, `packages/db`, Stripe packages in 
 
 ## Decisions needed from the owner
 
-1. Remove lyrics auto-fetch, or license lyrics? (item 1)
+1. Keep LRCLIB as the only lyric source, or remove auto-fetch / license lyrics? (item 1)
 2. Operator identity for Terms and Privacy: legal name or business name, ABN if any, contact email.
 3. Will accounts or payments ship? (changes items 2 and 5)
 4. Are you happy to rename the brand-named effects? (item 4)
