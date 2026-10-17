@@ -38,98 +38,98 @@
   function drawBratEffect(ctx, w, h, style, lines, time) {
     if (!Array.isArray(lines) || !lines.length || !(w > 0) || !(h > 0)) return;
 
-    const ink = style.bratTextColor || '#000000';
+    const background = '#8ACE00';
+    const ink = '#FFFFFF';
     const speed = Math.max(0.005, Number(style.bratCharSpeed) || 0.025);
-    const pause = Math.max(0, Number(style.bratWordPause) || 0.1);
-    const blur = Math.max(0, Number(style.bratEntryBlur) || 14);
-    const stretch = Math.max(0.8, Number(style.bratVerticalStretch) || 1.15);
-    const softness = Math.max(0, Number(style.bratSoftness) || 0);
-    const align = style.bratAlignment || 'justify';
-    const side = w * (Number(style.bratSideMargin) || 6) / 100;
-    const top = h * 0.08;
-    const bottom = h * 0.08;
+    const blur = Math.max(0, Number(style.bratEntryBlur) || 1.1);
+    const side = w * 0.065;
     const usableWidth = Math.max(1, w - side * 2);
     const normalised = lines.map((_, index) => normaliseLine(lines, index)).filter(Boolean);
-    const timed = normalised.map(line => ({
-      line: { ...line, text: String(line.text || '').toLowerCase() },
-      words: lineWords(line).map(word => ({ ...word, text: String(word.text || '').toLowerCase() }))
-    }));
     let active = -1;
-    for (let i = 0; i < timed.length; i++) {
-      if (time >= timed[i].line.time) active = i;
+    for (let i = 0; i < normalised.length; i++) {
+      if (time >= normalised[i].time) active = i;
       else break;
     }
-    if (active < 0) return;
 
-    // Brat-inspired fan lyric treatment: lowercase, plain condensed sans-serif,
-    // consistent typography, natural word wrapping, and no per-line scaling.
-    const fontFamily = '"Arial Narrow", "Liberation Sans Narrow", Arial, "Helvetica Neue", sans-serif';
-    const visibleCount = 4;
-    const first = Math.max(0, Math.min(active - 1, timed.length - visibleCount));
-    const visible = timed.slice(first, first + visibleCount);
-    if (!visible.length) return;
-
-    const requestedSize = Number(style.fontSize) || 76;
-    const ratio = w / h;
-    const ratioScale = ratio > 1.5 ? 0.105 : ratio < 0.8 ? 0.072 : 0.09;
-    const fontSize = Math.min(requestedSize, h * ratioScale);
-    const gap = fontSize * 0.22;
-    const lineHeight = fontSize * 1.42;
-    const maxRows = Math.max(1, Math.floor((h * 0.84) / lineHeight));
-    const rows = [];
-    ctx.font = '400 ' + fontSize + 'px ' + fontFamily;
-
-    // Wrap only at spaces. Every row shares the same font size and natural glyph proportions.
-    visible.forEach((entry, entryIndex) => {
-      const words = entry.words;
-      if (!words.length) return;
-      let rowWords = [];
-      let rowWidth = 0;
-      words.forEach(word => {
-        const wordWidth = ctx.measureText(word.text).width;
-        const nextWidth = rowWords.length ? rowWidth + gap + wordWidth : wordWidth;
-        if (rowWords.length && nextWidth > usableWidth) {
-          rows.push({ words: rowWords, width: rowWidth, entryIndex });
-          rowWords = [word];
-          rowWidth = wordWidth;
-        } else {
-          rowWords.push(word);
-          rowWidth = nextWidth;
-        }
-      });
-      if (rowWords.length) rows.push({ words: rowWords, width: rowWidth, entryIndex });
-    });
-
-    // Keep the active lyric visible when wrapping creates more rows than the frame can hold.
-    const activeVisibleIndex = Math.max(0, active - first);
-    const activeRow = Math.max(0, rows.findIndex(row => row.entryIndex === activeVisibleIndex));
-    let rowStart = Math.max(0, activeRow - Math.floor(maxRows / 2));
-    if (rowStart + maxRows > rows.length) rowStart = Math.max(0, rows.length - maxRows);
-    const displayRows = rows.slice(rowStart, rowStart + maxRows);
-    const firstBaseline = (h - displayRows.length * lineHeight) / 2 + lineHeight / 2;
-
-    // Transparent overlay: preserve the user's video or visualiser behind the lyrics.
+    // The Brat cover's visual language: one flat acid-green field, lowercase
+    // Arial-style condensed lettering, slightly stretched and intentionally soft.
     ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, 0, w, h);
-    ctx.clip();
-    ctx.fillStyle = ink;
+    ctx.globalAlpha = 1;
+    ctx.filter = 'none';
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, w, h);
+
+    if (active < 0) {
+      ctx.restore();
+      return;
+    }
+
+    const line = normalised[active];
+    const lyric = String(line.text || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    if (!lyric) {
+      ctx.restore();
+      return;
+    }
+
+    const family = '"Arial Narrow", "Liberation Sans Narrow", Arial, "Helvetica Neue", sans-serif';
+    const ratio = w / h;
+    const baseSize = Math.min(h * (ratio > 1.45 ? 0.17 : ratio < 0.8 ? 0.105 : 0.145), w * 0.15);
+    const fontSize = Math.max(20, baseSize);
+    const lineHeight = fontSize * 1.12;
+    const maxRows = Math.max(1, Math.min(7, Math.floor(h * 0.78 / lineHeight)));
+    let shownChars = Math.floor(Math.max(0, time - line.time) / speed);
+    const visibleText = lyric.slice(0, Math.min(lyric.length, shownChars));
+    const words = visibleText.split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      ctx.restore();
+      return;
+    }
+
+    ctx.font = '400 ' + fontSize + 'px ' + family;
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
-    ctx.filter = 'none';
-    ctx.globalAlpha = 1;
-
-    displayRows.forEach((row, rowIndex) => {
-      let x = Math.max(side, (w - row.width) / 2);
-      const baseline = firstBaseline + rowIndex * lineHeight;
-      row.words.forEach(word => {
-        ctx.fillText(word.text, x, baseline);
-        x += ctx.measureText(word.text).width + gap;
+    const rows = [];
+    let row = [];
+    let rowWidth = 0;
+    const space = ctx.measureText(' ').width;
+    words.forEach(word => {
+      const wordWidth = ctx.measureText(word).width;
+      const nextWidth = row.length ? rowWidth + space + wordWidth : wordWidth;
+      if (row.length && nextWidth > usableWidth) {
+        rows.push({ words: row, width: rowWidth });
+        row = [word];
+        rowWidth = wordWidth;
+      } else {
+        row.push(word);
+        rowWidth = nextWidth;
+      }
+    });
+    if (row.length) rows.push({ words: row, width: rowWidth });
+    const displayRows = rows.slice(-maxRows);
+    const blockHeight = displayRows.length * lineHeight;
+    // Slightly imperfect placement and stretched word spacing echo the source cover,
+    // while fitting actual lyric phrases instead of forcing them into a square title.
+    const firstY = h * 0.5 - blockHeight * 0.5 + lineHeight * 0.5;
+    displayRows.forEach((item, rowIndex) => {
+      const isLast = rowIndex === displayRows.length - 1;
+      const totalWordsWidth = item.words.reduce((sum, word) => sum + ctx.measureText(word).width, 0);
+      const gap = !isLast && item.words.length > 1
+        ? Math.max(space, (usableWidth - totalWordsWidth) / (item.words.length - 1))
+        : space;
+      let x = side + (rowIndex % 2 ? w * 0.006 : 0);
+      const y = firstY + rowIndex * lineHeight;
+      item.words.forEach(word => {
+        // Low-resolution softness is subtle and applied only to the white type.
+        ctx.save();
+        ctx.filter = blur > 0 ? 'blur(' + Math.min(2.5, blur * (w / 1000)) + 'px)' : 'none';
+        ctx.fillStyle = ink;
+        ctx.fillText(word, x, y);
+        ctx.restore();
+        x += ctx.measureText(word).width + gap;
       });
     });
     ctx.restore();
   }
-
   window.kefeEffects = window.kefeEffects || {};
   window.kefeEffects.brat = drawBratEffect;
 })();
