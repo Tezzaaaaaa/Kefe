@@ -1,6 +1,23 @@
 (() => {
   'use strict';
 
+  // Make the current draft legal documents discoverable from the editor.
+  // These links are deliberately labelled as drafts; they are not launch clearance.
+  const legalNav=document.querySelector('.kefe-sidebar-bottom');
+  if(legalNav&&!document.getElementById('kefeLegalDraftLinks')){
+    const legalLinks=document.createElement('div');
+    legalLinks.id='kefeLegalDraftLinks';
+    legalLinks.setAttribute('aria-label','Legal information');
+    legalLinks.style.cssText='display:flex;flex-wrap:wrap;gap:8px;padding:8px 12px;font-size:12px;opacity:.8';
+    [['Terms (draft)','./legal/terms.html'],['Privacy (draft)','./legal/privacy.html']].forEach(([label,href])=>{
+      const link=document.createElement('a');
+      link.href=href;link.textContent=label;
+      link.style.cssText='color:inherit;text-decoration:underline;text-underline-offset:3px';
+      legalLinks.appendChild(link);
+    });
+    legalNav.appendChild(legalLinks);
+  }
+
     /* Persistent selection confirmation: apply feedback to controls without changing their values or behaviour. */
   document.addEventListener('change', event => {
     const control = event.target;
