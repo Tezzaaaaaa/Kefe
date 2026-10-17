@@ -244,7 +244,12 @@
           var cw=charWidth(ctx,ch),wt=weights[count]||1;
           var reveal=clamp((target-progressUsed)/wt,0,1);
           if(ch!==' '&&reveal>0)strokeHandwrittenGlyph(ctx,ch,offset,cw,rowX,y,size,reveal,alpha,x+y+count*7);
-          if(!headFound&&remaining<=wt){headX=x+cw*clamp(remaining/wt,0,1);headY=y-size*.34;headFound=true;}
+          if(!headFound&&ch!==' '&&remaining>=0&&remaining<=wt){
+            var strokeEngine=window.KEFETrailerStrokeEngine,tip=strokeEngine&&strokeEngine.pointAt(ch,reveal);
+            if(tip){var unit=size/1000;headX=x+tip.x*unit;headY=y+tip.y*unit;}
+            else{headX=x+cw*clamp(remaining/wt,0,1);headY=y-size*.34;}
+            headFound=true;
+          }
           remaining-=wt;progressUsed+=wt;x+=cw+tracking;offset+=cw+tracking;count++;
         });
       });
