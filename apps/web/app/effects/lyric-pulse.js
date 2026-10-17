@@ -47,7 +47,7 @@ function pulseWords(line, next, tokens) {
 }
 
 const pulseGeometryCache = new Map();
-const PULSE_GEOMETRY_CACHE_LIMIT = 12;
+const PULSE_GEOMETRY_CACHE_LIMIT = 8;
 
 function pulseGlyphGeometry(ctx, words, width, size, setFont) {
     const key = [width, size, ctx.font, words.map(word => word.text).join(' ')].join('|');
@@ -58,7 +58,7 @@ function pulseGlyphGeometry(ctx, words, width, size, setFont) {
         return cached;
     }
     // Trace a supersampled mask rendered with the actual selected browser font.
-    const scale = 1.25, mask = document.createElement('canvas');
+    const scale = 1.5, mask = document.createElement('canvas');
     const baseline = Math.ceil(size * 1.55 * scale) / scale * 0.72;
     mask.height = Math.max(1, Math.ceil(size * 1.55 * scale));
     const maskMargin = 6;
@@ -88,7 +88,7 @@ let cursor = centeredStart;
     try { pixels = mctx.getImageData(0, 0, mask.width, mask.height).data; }
     catch (_) { return null; }
     const mw = mask.width, mh = mask.height, ink = new Uint8Array(mw * mh);
-    for (let i = 0; i < ink.length; i++) ink[i] = pixels[i * 4 + 3] > 100 ? 1 : 0;
+    for (let i = 0; i < ink.length; i++) ink[i] = pixels[i * 4 + 3] > 64 ? 1 : 0;
     pixels = null;
 
     // Marching squares follows the real letter silhouette, preserving counters.
