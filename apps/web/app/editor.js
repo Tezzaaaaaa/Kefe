@@ -1652,6 +1652,8 @@
     cacheLockScreenLyrics();
     publishKefeLockScreen('update');
   });
+  [songTitle,songArtist,songAlbum].forEach(input=>input?.addEventListener('change',()=>publishKefeLockScreen('metadata')));
+  if(songAlbum)new MutationObserver(()=>publishKefeLockScreen('metadata')).observe(songAlbum,{attributes:true,attributeFilter:['data-art-url']});
   audio.addEventListener('timeupdate',()=>{
     if(audio.paused){
       state.time=audio.currentTime;range.value=state.time;updateTime();syncAppleLyrics();
