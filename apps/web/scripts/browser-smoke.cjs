@@ -77,7 +77,7 @@ const server = http.createServer((req, res) => {
     await dialog.getByRole("button", { name: "Done" }).click();
     await dialog.waitFor({ state: "hidden", timeout: 5000 });
 
-    await page.locator("#kefeMuteToggle").click();
+    await page.locator(".beui-transport-host button[aria-controls=\"kefeVolumePopover\"]").click();
     const volumePopover = page.locator("#kefeVolumePopover");
     await volumePopover.waitFor({ state: "visible", timeout: 5000 });
     assert.equal(await volumePopover.locator(".beui-volume-card").count(), 1, "volume popover should use the beUI Card shell");
