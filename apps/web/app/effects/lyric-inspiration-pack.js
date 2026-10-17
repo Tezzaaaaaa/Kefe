@@ -114,6 +114,16 @@
     save();
     try { localStorage.setItem(migrationKey, '1'); } catch (_) {}
   }
+  // Restore the signature environments for users who already had the first adapted defaults saved.
+  const signatureKey='kefe.inspiration-effects.signature-design.v1';
+  let signatureMigrated=false;
+  try { signatureMigrated=localStorage.getItem(signatureKey)==='1'; } catch (_) {}
+  if(!signatureMigrated){
+    if(settings.chrome.bg==='none'&&settings.chrome.transparent===true){settings.chrome.bg='storm';settings.chrome.transparent=false;}
+    if(settings.gel.bg==='black'&&settings.gel.transparent===true&&settings.gel.color==='#e8325f'){settings.gel.transparent=false;}
+    save();
+    try { localStorage.setItem(signatureKey,'1'); } catch (_) {}
+  }
   const redraw = () => { try { window.kefeLyrics?.redraw?.(); } catch (_) {} };
   const active = key => !!document.querySelector('.kefe-lyric-effect-option.active[data-effect="' + key + '"]');
   const clamp = (v,a=0,b=1) => Math.max(a,Math.min(b,Number(v)||0));
