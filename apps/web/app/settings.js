@@ -51,6 +51,7 @@
     set,
     all: () => ({ ...values }),
     defaults: () => ({ ...defaults }),
+    schema: () => SCHEMA.map(group => ({ group: group.group, items: group.items.map(({ key, label, hint, type, def, min, max, step, options }) => ({ key, label, hint, type, def, min, max, step, options })) })),
     reset() { Object.keys(defaults).forEach(k => set(k, defaults[k])); },
     onChange(fn) { if (typeof fn === 'function') listeners.push(fn); }
   };
@@ -197,9 +198,9 @@
 
   document.addEventListener('click', e => {
     const btn = e.target.closest && e.target.closest('[data-top-panel="settings"]');
-    if (btn) openSettings(btn);
+    if (btn && !window.KEFE_BEUI_SETTINGS) openSettings(btn);
   });
-  if (new URLSearchParams(window.location.search).get('panel') === 'settings') {
+  if (!window.KEFE_BEUI_SETTINGS && new URLSearchParams(window.location.search).get('panel') === 'settings') {
     const settingsButton = document.querySelector('[data-top-panel="settings"]');
     if (settingsButton) openSettings(settingsButton);
   }
