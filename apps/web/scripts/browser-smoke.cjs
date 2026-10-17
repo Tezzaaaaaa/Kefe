@@ -90,6 +90,12 @@ const server = http.createServer((req, res) => {
     await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "effects", null, { timeout: 5000 });
 
+    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Export" }).click();
+    const reviewCheckbox = page.locator("#beui-kefeReview0[role=checkbox]");
+    await reviewCheckbox.waitFor({ state: "visible", timeout: 10000 });
+    await reviewCheckbox.click();
+    assert.equal(await page.locator("#kefeReview0").evaluate((input) => input.checked), true, "beUI Checkbox should preserve the legacy checklist value");
+
     const firstCount = await page.locator(".beui-panel-button-host").count();
     await page.waitForTimeout(300);
     const secondCount = await page.locator(".beui-panel-button-host").count();
