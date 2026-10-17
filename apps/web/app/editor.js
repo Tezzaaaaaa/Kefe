@@ -1634,6 +1634,7 @@
       title:songTitle.value.trim()||'KEFE',
       artist:songArtist.value.trim()||'',
       album:songAlbum.value.trim()||'',
+      artworkURL:songAlbum.dataset.artUrl||'',
       currentLine:String(current?.text||''),
       nextLine:String(next?.text||''),
       lines:lockScreenLines,
