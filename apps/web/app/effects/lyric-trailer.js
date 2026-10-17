@@ -29,9 +29,17 @@
     var fontStyle=style.fontStyle||style.style||'normal';
     ctx.font=fontStyle+' '+weight+' '+size+'px '+family+', sans-serif';
   }
+  function charWidth(ctx,ch){
+    var engine=window.KEFETrailerStrokeEngine;
+    var glyph=engine&&engine.glyphs&&(engine.glyphs[ch]||engine.glyphs[ch.toLowerCase()]);
+    var match=String(ctx.font||'').match(/([0-9.]+)px/),fontSize=match?Number(match[1]):0;
+    // Layout against the exact centreline font metrics so drawn strokes and wrapping agree.
+    if(glyph&&fontSize>0&&Number(glyph.w)>0)return Number(glyph.w)*fontSize/1000;
+    return ctx.measureText(ch).width;
+  }
   function width(ctx,text,tracking){
     var chars=Array.from(text||'');if(!chars.length)return 0;
-    return chars.reduce(function(n,ch){return n+ctx.measureText(ch).width;},0)+Math.max(0,chars.length-1)*tracking;
+    return chars.reduce(function(n,ch){return n+charWidth(ctx,ch);},0)+Math.max(0,chars.length-1)*tracking;
   }
   function wrap(ctx,text,maxWidth,tracking){
     var words=String(text||'').trim().split(/\s+/).filter(Boolean),rows=[],row='';
@@ -209,7 +217,7 @@
       rows.forEach(function(row,ri){
         var rowWidth=width(maskCtx,row,tracking),rowX=(w-rowWidth)*.5,y=top+ri*rowHeight,x=rowX,offset=0;
         Array.from(row).forEach(function(ch){
-          var cw=maskCtx.measureText(ch).width,wt=weights[index]||1;
+          var cw=charWidth(maskCtx,ch),wt=weights[index]||1;
           var reveal=clamp((target-used)/wt,0,1);
           if(ch!==' '&&reveal>0){
             maskCtx.save();var strokeEngine=window.KEFETrailerStrokeEngine;if(strokeEngine)strokeEngine.draw(maskCtx,ch,rowX+offset,y,size,reveal,'mask');maskCtx.restore();
@@ -226,7 +234,7 @@
       rows.forEach(function(row,ri){
         var rowWidth=width(ctx,row,tracking),rowX=(w-rowWidth)*.5,x=rowX,y=top+ri*rowHeight,offset=0;
         Array.from(row).forEach(function(ch){
-          var cw=ctx.measureText(ch).width,wt=weights[count]||1;
+          var cw=charWidth(ctx,ch),wt=weights[count]||1;
           var reveal=clamp((target-progressUsed)/wt,0,1);
           if(ch!==' '&&reveal>0)strokeHandwrittenGlyph(ctx,ch,offset,cw,rowX,y,size,reveal,alpha,x+y+count*7);
           if(!headFound&&remaining<=wt){headX=x+cw*clamp(remaining/wt,0,1);headY=y-size*.34;headFound=true;}
