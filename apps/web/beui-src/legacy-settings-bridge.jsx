@@ -63,7 +63,6 @@ function SettingsOverlay() {
       opener.current = button;
       setOpen(true);
     };
-    const onSettingsChange = () => setValues(settings()?.all?.() || {});
     const onKeyDown = (event) => {
       if (!open) return;
       if (event.key === "Escape") {
@@ -84,12 +83,15 @@ function SettingsOverlay() {
     };
     document.addEventListener("click", onClick);
     document.addEventListener("keydown", onKeyDown);
-    settings()?.onChange?.(onSettingsChange);
     return () => {
       document.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
+
+  useEffect(() => {
+    settings()?.onChange?.(() => setValues(settings()?.all?.() || {}));
+  }, []);
 
   useEffect(() => {
     if (open) dialog.current?.focus();
