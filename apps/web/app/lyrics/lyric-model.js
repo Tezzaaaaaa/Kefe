@@ -116,39 +116,79 @@
     var frac = m[3] ? Number(m[3]) / Math.pow(10, m[3].length) : 0;
     return Number(m[1]) * 60 + Number(m[2]) + frac;
   }
-  /* Parses standard and enhanced LRC. Enhanced word tags (<mm:ss.xx>word) become `words`. Returns [] if no stamps found. */
+  /* Parses standard and enhanced LRC. Enhanced tags retain one timestamp per spoken word;
+     untagged text before the first word tag is timed between the line stamp and that first tag. */
   function parseLrc(text) {
-    var src = String(text || '').replace(/^﻿/, '').replace(/\r/g, '');
-    var off = src.match(/^\[offset:\s*(-?\d+)\s*\]/mi);
+    var src = String(text || '').replace(/^\\uFEFF/, '').replace(/\\r/g, '');
+    var off = src.match(/^\\[offset:\\s*(-?\\d+)\\s*\\]/mi);
     var offset = off ? Number(off[1]) / 1000 : 0;
     var out = [];
-    src.split('\n').forEach(function (raw) {
+    src.split('\\n').forEach(function (raw) {
       var line = raw.trim(), m, stamps = [];
-      while ((m = line.match(LINE_STAMP))) { stamps.push(stampSeconds(m)); line = line.slice(m[0].length).trim(); }
+      while ((m = line.match(LINE_STAMP))) {
+        stamps.push(stampSeconds(m));
+        line = line.slice(m[0].length).trim();
+      }
       if (!stamps.length) return;
+
       var words = null;
-      if (/<\d{1,3}:\d{1,2}/.test(line)) {
-        var pieces = [], last = 0, tag;
-        WORD_STAMP.lastIndex = 0;
-        var marks = [];
-        while ((tag = WORD_STAMP.exec(line))) marks.push({ at: tag.index, end: WORD_STAMP.lastIndex, t: stampSeconds(tag) });
-        marks.forEach(function (mk, i) {
-          var chunk = line.slice(mk.end, i + 1 < marks.length ? marks[i + 1].at : line.length);
-          var toks = chunk.trim().split(/\s+/).filter(Boolean);
-          /* A tag may cover several words: spread them evenly up to the next tag. The last tag has no known end yet, so use a natural 0.3s per word. */
-          var span = i + 1 < marks.length ? Math.max(MIN_WORD * toks.length, marks[i + 1].t - mk.t) : 0.3 * toks.length;
-          toks.forEach(function (tok, k) {
-            pieces.push({ text: tok, time: mk.t + span * k / toks.length, endTime: NaN });
+      var marks = [], tag;
+      WORD_STAMP.lastIndex = 0;
+      while ((tag = WORD_STAMP.exec(line))) {
+        marks.push({ at: tag.index, end: WORD_STAMP.lastIndex, t: stampSeconds(tag) });
+      }
+      if (marks.length) {
+        var pieces = [];
+        /* Treat the text before the first enhanced tag as a real segment too. */
+        var segments = [];
+        var first = marks[0];
+        if (line.slice(0, first.at).trim()) {
+          segments.push({
+            text: line.slice(0, first.at),
+            start: stamps[0],
+            end: first.t
+          });
+        }
+        marks.forEach(function (mark, i) {
+          segments.push({
+            text: line.slice(mark.end, i + 1 < marks.length ? marks[i + 1].at : line.length),
+            start: mark.t,
+            end: i + 1 < marks.length ? marks[i + 1].t : NaN
+          });
+        });
+        segments.forEach(function (segment) {
+          var tokens = segment.text.trim().split(/\\s+/).filter(Boolean);
+          if (!tokens.length) return;
+          var startTime = Number.isFinite(segment.start) ? segment.start : stamps[0];
+          var endTime = Number.isFinite(segment.end) && segment.end > startTime
+            ? segment.end
+            : startTime + 0.3 * tokens.length;
+          var span = Math.max(0, endTime - startTime);
+          tokens.forEach(function (token, index) {
+            pieces.push({
+              text: token,
+              time: startTime + span * index / tokens.length,
+              endTime: index + 1 < tokens.length && Number.isFinite(segment.end) ? startTime + span * (index + 1) / tokens.length : NaN
+            });
           });
         });
         if (pieces.length) words = pieces;
       }
-      var clean = line.replace(WORD_STAMP, '').replace(/\s+/g, ' ').trim();
+
+      var clean = line.replace(WORD_STAMP, '').replace(/\\s+/g, ' ').trim();
       if (!clean) return;
       stamps.forEach(function (t) {
         var time = Math.max(0, t - offset);
         var item = { text: clean, time: time };
-        if (words) item.words = words.map(function (w) { return { text: w.text, time: Math.max(0, w.time - offset), endTime: NaN }; });
+        if (words) {
+          item.words = words.map(function (word) {
+            return {
+              text: word.text,
+              time: Math.max(0, word.time - offset),
+              endTime: Number.isFinite(word.endTime) ? Math.max(0, word.endTime - offset) : NaN
+            };
+          });
+        }
         out.push(item);
       });
     });
