@@ -37,4 +37,5 @@ window.KEFE_EFFECTS = [
   ,{ key: 'wrapslide', label: 'WrapSlide', description: 'Per-letter vertical wrap and slide' }
   ,{ key: 'eternal', label: 'Eternal Sunshine', description: 'Handwritten ink reveal' }
   ,{ key: 'inkscript', label: 'Ink Script', description: 'Brush-ink write-on, melting transitions and splatter' }
+  ,{ key: 'chrome', label: 'Liquid Chrome', description: 'Reflective liquid-metal lettering with steel extrusion and moving glints' }
 ];
