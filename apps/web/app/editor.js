@@ -1639,6 +1639,7 @@
       lines:lockScreenLines,
       lyricsVersion:lockScreenLyricsVersion,
       currentTime:time,
+      playbackRate:audio.playbackRate||1,
       duration:Number.isFinite(audio.duration)?audio.duration:0,
       isPlaying:!audio.paused&&!audio.ended
     };
@@ -1654,6 +1655,7 @@
   });
   [songTitle,songArtist,songAlbum].forEach(input=>input?.addEventListener('change',()=>publishKefeLockScreen('metadata')));
   if(songAlbum)new MutationObserver(()=>publishKefeLockScreen('metadata')).observe(songAlbum,{attributes:true,attributeFilter:['data-art-url']});
+  audio.addEventListener('ratechange',()=>publishKefeLockScreen('seek'));
   audio.addEventListener('timeupdate',()=>{
     if(audio.paused){
       state.time=audio.currentTime;range.value=state.time;updateTime();syncAppleLyrics();
