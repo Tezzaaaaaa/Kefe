@@ -4,8 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "beui:dev": "vite --config vite.beui.config.ts",
-    "beui:build": "vite build --config vite.beui.config.ts"
+    "dev": "vite --config beui.vite.config.ts",
+    "build": "vite build --config beui.vite.config.ts",
+    "beui:dev": "vite --config beui.vite.config.ts",
+    "beui:build": "vite build --config beui.vite.config.ts"
   },
   "dependencies": {
     "clsx": "catalog:",
