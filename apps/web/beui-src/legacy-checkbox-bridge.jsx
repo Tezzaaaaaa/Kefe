@@ -54,6 +54,7 @@ function BeUICheckbox({ backing, backingLabel, host }) {
 function canBridge(input) {
   return input instanceof HTMLInputElement
     && input.type === "checkbox"
+    && input.closest(".kefe-editor")
     && !input.hidden
     && !input.dataset.beuiCheckboxMounted
     && !input.closest("#beui-settings-root")
@@ -83,7 +84,7 @@ function mount(input) {
 
 function scan(root = document) {
   if (root instanceof HTMLInputElement) mount(root);
-  root.querySelectorAll?.(".kefe-editor input[type=checkbox]").forEach(mount);
+  root.querySelectorAll?.('input[type="checkbox"]').forEach(mount);
 }
 
 function start() {
