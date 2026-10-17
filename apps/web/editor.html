@@ -7,6 +7,13 @@
 <title>KEFE Visualiser</title>
 <script>document.documentElement.dataset.theme = 'night';</script>
 <link rel="icon" href="./app/brand/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./app/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#171719">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KEFE">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="./app/ui/styles.css?v=visualiser-consistency-20261017-1">
 <link rel="stylesheet" href="./app/ui/workspace-shell.css?v=workspace-rhythm-20261017-1">
 </head>
@@ -145,6 +152,14 @@
   });
   syncVolume();
 })();
+</script>
+<script>
+// PWA: register the service worker (HTTPS or localhost only; skipped inside the iOS WKWebView companion).
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    try { navigator.serviceWorker.register('./sw.js').catch(() => {}); } catch (error) { /* ignore */ }
+  });
+}
 </script>
 </body>
 </html>
