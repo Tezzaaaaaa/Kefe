@@ -44,4 +44,17 @@ beUI's current web components target React 19, Tailwind CSS 4, and Motion. Compo
 
 ## Progress
 
-This document records the migration contract only. The conversion is not complete until the acceptance criteria above are checked against the implemented application and tested.
+### Foundation slice added on `feature/full-beui-conversion`
+
+- Added the public `@beui` shadcn-compatible registry configuration.
+- Added a dedicated Vite + React + Tailwind CSS 4 workbench without changing the production editor entry point.
+- Copied the upstream beUI Range Slider and its shared slider/touch/motion utilities into `apps/web/beui-src/`, retaining MIT attribution in `NOTICE.md`.
+- Adapted the component's motion import to the existing workspace `framer-motion` dependency to avoid adding an unrecorded lockfile dependency.
+- Added two controlled slider cases to exercise integer values and 0.05-second lyric timing steps.
+
+### Not yet complete
+
+The production editor still runs through its existing HTML/imperative-JavaScript entry point. The new workbench is an isolated foundation and is not evidence that the production UI has been converted. The next migration step is to move the production entry point onto the React/Vite build and connect the first beUI components to the existing editor state without changing effect-engine behaviour.
+
+The conversion is not complete until the acceptance criteria above are checked against the implemented application and tested.
+
