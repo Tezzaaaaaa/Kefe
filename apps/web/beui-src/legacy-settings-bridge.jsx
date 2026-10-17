@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Button } from "@/components/motion/button";
 import { RangeSlider } from "@/components/motion/range-slider";
 import { Switch } from "@/components/motion/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/motion/select";
 
 const settings = () => window.kefeSettings;
 const schema = () => settings()?.schema?.() || [];
@@ -35,14 +36,16 @@ function SettingRow({ item, value }) {
           </div>
         ) : null}
         {item.type === "select" ? (
-          <select
-            value={String(current)}
-            aria-label={item.label}
-            onChange={(event) => set(event.target.value)}
-            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {item.options?.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
+          <Select value={String(current)} onValueChange={set} className="w-full">
+            <SelectTrigger aria-label={item.label} className="h-10 w-full rounded-xl">
+              <SelectValue placeholder={item.label} />
+            </SelectTrigger>
+            <SelectContent className="max-h-64 overflow-y-auto">
+              {item.options?.map(([value, label]) => (
+                <SelectItem key={value} value={String(value)}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         ) : null}
       </div>
     </div>
@@ -71,7 +74,7 @@ function SettingsOverlay() {
         return;
       }
       if (event.key !== "Tab") return;
-      const nodes = [...(dialog.current?.querySelectorAll('button, input, select, a[href]') || [])].filter((node) => !node.disabled);
+      const nodes = [...(dialog.current?.querySelectorAll('button, input, select, a[href], [tabindex="0"], [role="slider"]') || [])].filter((node) => !node.disabled && node.getClientRects().length > 0);
       if (!nodes.length) return;
       if (event.shiftKey && document.activeElement === nodes[0]) {
         event.preventDefault();
