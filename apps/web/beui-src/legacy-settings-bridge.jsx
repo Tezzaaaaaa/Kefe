@@ -138,14 +138,18 @@ function SettingsOverlay() {
               </section>
             );
           })}
-          <section className="my-4 rounded-xl border border-border bg-card p-4">
-            <h3 className="m-0 text-sm font-semibold">KEFE Visualiser</h3>
-            <p className="mb-4 mt-1 text-xs leading-5 text-muted-foreground">Browser-based music visualiser and lyric-video editor.</p>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={() => window.open("https://tezzaaaaaa.github.io/Kefe/", "_blank", "noopener,noreferrer")}>Open live site</Button>
-              <Button variant="outline" size="sm" onClick={() => window.open("https://github.com/Tezzaaaaaa/Kefe", "_blank", "noopener,noreferrer")}>Open GitHub</Button>
-            </div>
-          </section>
+          <Card variant="muted" size="compact" className="my-4 rounded-xl border border-border p-4">
+            <CardHeader className="px-0 py-0">
+              <CardTitle as="h3" className="m-0 text-sm">KEFE Visualiser</CardTitle>
+              <CardDescription className="text-xs">Browser-based music visualiser and lyric-video editor.</CardDescription>
+            </CardHeader>
+            <CardContent className="px-0 py-0">
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => window.open("https://tezzaaaaaa.github.io/Kefe/", "_blank", "noopener,noreferrer")}>Open live site</Button>
+                <Button variant="outline" size="sm" onClick={() => window.open("https://github.com/Tezzaaaaaa/Kefe", "_blank", "noopener,noreferrer")}>Open GitHub</Button>
+              </div>
+            </CardContent>
+          </Card>
         </CardContent>
         <CardFooter className="justify-end border-t border-border px-5 py-4 sm:px-7">
           <Button variant="outline" size="sm" onClick={() => settings()?.reset?.()}>Reset to defaults</Button>
