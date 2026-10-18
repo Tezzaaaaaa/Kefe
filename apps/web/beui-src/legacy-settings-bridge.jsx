@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { BouncyAccordion } from "@/components/motion/bouncy-accordion";
 import { createRoot } from "react-dom/client";
 import { Button } from "@/components/motion/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent, CardFooter } from "@/components/motion/card";
@@ -128,16 +129,26 @@ function SettingsOverlay() {
           </CardAction>
         </CardHeader>
         <CardContent className="max-h-[68vh] overflow-y-auto py-0">
-          {groups.map((group) => {
-            const items = group.items.filter((item) => item.key !== "aspect");
-            if (!items.length) return null;
-            return (
-              <section key={group.group} className="py-3">
-                <h3 className="mb-1 mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{group.group}</h3>
-                {items.map((item) => <SettingRow key={item.key} item={item} value={values[item.key]} />)}
-              </section>
-            );
-          })}
+          <BouncyAccordion
+            items={groups.map((group) => ({
+              id: group.group.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+              title: group.group,
+              description: (
+                <div className="py-1">
+                  {group.items
+                    .filter((item) => item.key !== "aspect")
+                    .map((item) => <SettingRow key={item.key} item={item} value={values[item.key]} />)}
+                </div>
+              ),
+            })).filter((group) => group.description)}
+            defaultValue="title-card"
+            className="space-y-2"
+            classNames={{
+              item: "border border-border/70 bg-card",
+              trigger: "min-h-12 px-4",
+              description: "px-0 pb-3",
+            }}
+          />
           <Card variant="muted" size="compact" className="my-4 rounded-xl border border-border p-4">
             <CardHeader className="px-0 py-0">
               <CardTitle as="h3" className="m-0 text-sm">KEFE Visualiser</CardTitle>
