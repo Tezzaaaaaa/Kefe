@@ -70,7 +70,7 @@
     }
     panels().forEach(p => {
       p.classList.add('kefe-pane-shown');
-      const head = p.querySelector(':scope > .kefe-panel-head');
+      const head = p.querySelector(':scope > .kefe-panel-head, :scope > .kefe-form > .kefe-panel-head');
       if (head) head.hidden = false;
       installAccordion(p);
     });
