@@ -7421,3 +7421,127 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
     transition:none;
   }
 }
+
+/* Fluid Ink controls use the same beUI control geometry as every other editor section. */
+.kefe-fluid-ink-controls {
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:var(--s3);
+  margin-top:var(--s3);
+  min-width:0;
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+  grid-column:1 / -1;
+  justify-self:stretch;
+  align-self:stretch;
+}
+#visualiserParameters .kefe-fluid-ink-controls,
+#visualiserParameters .kefe-fluid-settings {
+  grid-column:1 / -1;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  justify-self:stretch;
+  align-self:stretch;
+  box-sizing:border-box;
+}
+.kefe-fluid-description {
+  margin:0;
+  color:var(--muted);
+  font-size:var(--font-sm);
+  line-height:1.5;
+}
+.kefe-fluid-presets {
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:stretch;
+  gap:var(--s2);
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  overflow-x:auto;
+  overflow-y:hidden;
+}
+.kefe-fluid-presets > button {
+  box-sizing:border-box;
+  flex:1 0 112px;
+  min-width:112px;
+  min-height:var(--control-h);
+  padding:8px 12px;
+  border-radius:var(--r2);
+  font:inherit;
+  font-size:var(--font-sm);
+  line-height:1.25;
+  white-space:nowrap;
+}
+.kefe-fluid-presets > button strong {
+  font:inherit;
+  font-weight:600;
+}
+.kefe-fluid-palette-options {
+  display:flex;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  margin:0;
+}
+.kefe-fluid-palette-options .kefe-gradient-palettes {
+  justify-content:flex-start;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+}
+.kefe-visualiser-power-slot:has(.kefe-fluid-palette-under-power) {
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:flex-start;
+  gap:var(--s2);
+  min-width:0;
+}
+.kefe-fluid-palette-label {
+  align-self:flex-start;
+  margin:0;
+  color:var(--muted);
+  font-size:var(--font-xs);
+  line-height:1.2;
+}
+.kefe-fluid-palette-under-power {
+  width:180px;
+  max-width:min(180px,calc(100vw - 40px));
+}
+.kefe-fluid-palette-under-power .kefe-gradient-palettes {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-start;
+  gap:5px;
+}
+.kefe-fluid-palette-under-power .kefe-gradient-chip {
+  box-sizing:border-box;
+  flex:0 0 24px;
+  width:24px;
+  height:24px;
+  min-width:24px;
+  padding:0;
+}
+.kefe-fluid-ink-controls > .kefe-btn {
+  align-self:flex-start;
+  max-width:100%;
+}
+@media(max-width:700px) {
+  .kefe-fluid-ink-controls {
+    grid-column:1 / -1;
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+  }
+  .kefe-fluid-palette-options .kefe-gradient-palettes {
+    gap:6px;
+  }
+}
+
