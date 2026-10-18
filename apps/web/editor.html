@@ -71,8 +71,24 @@
     const saved = localStorage.getItem(key);
     if (saved === 'day' || saved === 'night') root.dataset.theme = saved;
   } catch (_) {}
+  function ensureThemeToggle() {
+    let button = document.getElementById('kefeThemeToggle');
+    if (button) return button;
+    const headerActions = document.querySelector('.kefe-top-actions');
+    const headerNav = document.querySelector('.kefe-top-nav');
+    const headerProfile = document.querySelector('.kefe-top-profile');
+    const headerSlot = headerActions || headerNav || headerProfile;
+    if (!headerSlot) return null;
+    button = document.createElement('button');
+    button.type = 'button';
+    button.id = 'kefeThemeToggle';
+    button.className = 'kefe-top-link kefe-theme-toggle';
+    button.setAttribute('data-top-panel', 'theme');
+    headerSlot.appendChild(button);
+    return button;
+  }
   function syncThemeToggle() {
-    const button = document.getElementById('kefeThemeToggle');
+    const button = ensureThemeToggle();
     if (!button) return;
     const isNight = root.dataset.theme === 'night';
     button.textContent = isNight ? '☀ Day' : '☾ Night';
