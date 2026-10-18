@@ -116,6 +116,9 @@
 
     tab.addEventListener('click', showFluidInk);
     showFluidInk();
+    const showVisualiserNavigation = editing?.querySelector('.kefe-section.active')?.dataset.panel === 'visualiser';
+    tabs.hidden = !showVisualiserNavigation;
+    presetRow.hidden = !showVisualiserNavigation;
   }
 
   if (document.readyState === 'loading') {
