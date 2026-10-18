@@ -8237,7 +8237,14 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
     transition: border-color 180ms ease, box-shadow 180ms ease;
   }
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed {
-    padding-bottom: 0;
+    min-height: 0;
+    padding: 8px 12px;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head {
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border-bottom: 0;
   }
   .kefe-editor .kefe-editing .kefe-panels {
     display: flex;
