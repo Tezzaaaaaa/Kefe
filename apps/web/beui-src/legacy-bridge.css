@@ -373,3 +373,21 @@ textarea.beui-native-textarea {
 .kefe-upload-zone.beui-upload-card-hosted:hover .beui-upload-card,
 .kefe-upload-zone.beui-upload-card-hosted.is-dragging .beui-upload-card { border-color: var(--accent); background: var(--surface-hi); box-shadow: var(--lift); }
 .beui-upload-card { display: grid; place-items: center; }
+
+
+/* beUI Tabs adapters for the legacy editor and visualiser navigation. */
+.beui-native-vis-tab {
+  display: none !important;
+}
+.beui-vis-tabs-host {
+  width: 100%;
+  min-width: 0;
+}
+.beui-vis-tabs-host > div {
+  width: 100%;
+  min-width: 0;
+}
+.beui-vis-tabs-host [role="tablist"] {
+  width: 100%;
+  flex-wrap: wrap;
+}
