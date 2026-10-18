@@ -8304,3 +8304,10 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   .beui-accordion-trigger, .beui-accordion-chevron, .kefe-tabs .kefe-section { transition: none; }
   .beui-accordion-enter > :not(.kefe-panel-head) { animation: none; }
 }
+
+/* Ensure accordion content collapses even when component styles set display:grid/flex. */
+@media (min-width: 900px) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head) {
+    display: none;
+  }
+}
