@@ -139,16 +139,7 @@
   /* ---------------------------------------------------------
      3. Inject @font-face rules once
      --------------------------------------------------------- */
-  function injectFontFaces() {
-    if (document.getElementById('kefe-font-faces')) return;
-    const style = document.createElement('style');
-    style.id = 'kefe-font-faces';
-    style.textContent = FONT_FACES.map(f =>
-      `@font-face{font-family:"${f.family}";font-weight:${f.weight};font-style:${f.style};font-display:swap;src:url("${f.file}") format("woff2");}`
-    ).join('\n');
-    document.head.appendChild(style);
-  }
-  injectFontFaces();
+
 
   /* ---------------------------------------------------------
      4. Effect typography contracts
