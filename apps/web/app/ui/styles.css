@@ -7573,3 +7573,55 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   display:none;
 }
 
+/* Lyric inspiration settings use the same beUI panel, field and control tokens. */
+.kefe-inspiration-panel {
+  margin-top:var(--s3);
+  padding:var(--s3);
+  border:1px solid var(--line);
+  border-radius:var(--r2);
+  background:var(--surface);
+}
+.kefe-inspiration-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:var(--s2);
+}
+.kefe-inspiration-field {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:var(--s1);
+  min-width:0;
+  font-size:var(--font-sm);
+}
+.kefe-inspiration-field input[type="range"],
+.kefe-inspiration-field input[type="text"],
+.kefe-inspiration-field input[type="file"],
+.kefe-inspiration-field select {
+  grid-column:1 / -1;
+  width:100%;
+  min-width:0;
+}
+.kefe-inspiration-field input[type="color"] {
+  grid-column:1 / -1;
+  width:100%;
+  min-height:var(--control-h);
+}
+.kefe-inspiration-toggle {
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:var(--s2);
+}
+.kefe-inspiration-toggle input {
+  margin:0;
+}
+.kefe-inspiration-panel > button {
+  margin-top:var(--s2);
+}
+@media(max-width:600px) {
+  .kefe-inspiration-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
