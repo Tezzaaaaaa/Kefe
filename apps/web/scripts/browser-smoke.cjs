@@ -97,6 +97,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.locator(".beui-sidebar-settings-host button").click();
     const dialog = page.getByRole("dialog", { name: "Settings" });
     await dialog.waitFor({ state: "visible", timeout: 10000 });
+    const settingAccordions = dialog.locator('button[aria-controls$="-content"]');
+    assert.ok(await settingAccordions.count() >= 4, "settings groups should use the beUI Bouncy Accordion");
+    await settingAccordions.filter({ hasText: "Engine" }).click();
+    assert.equal(await settingAccordions.filter({ hasText: "Engine" }).getAttribute("aria-expanded"), "true", "settings accordion should open the selected group");
     assert.ok(await dialog.locator('[role="slider"]').count() > 0, "settings should use beUI sliders");
     assert.ok(await dialog.getByRole("switch").count() > 0, "settings should use the beUI switch");
     const switchControl = dialog.getByRole("switch").first();
@@ -119,6 +123,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.keyboard.press("Escape");
     await volumePopover.waitFor({ state: "hidden", timeout: 5000 });
 
+    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Visualisers" }).click();
+    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "visualiser", null, { timeout: 5000 });
+    await page.waitForSelector(".beui-vis-tabs-host [role='tab']", { state: "attached", timeout: 10000 });
+    assert.ok(await page.locator(".beui-vis-tabs-host [role='tab']").count() >= 1, "visualiser navigation should use beUI Tabs");
     await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
     await page.locator(".beui-textarea-host #beui-lyricsInput").fill("beUI lyric smoke");
