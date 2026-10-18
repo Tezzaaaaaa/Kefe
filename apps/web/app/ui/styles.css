@@ -8311,3 +8311,57 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
     display: none;
   }
 }
+
+/* Desktop workspace sizing: comfortable control panels and a truly centred, usable preview. */
+@media (min-width: 1400px) {
+  .kefe-editor {
+    grid-template-columns: minmax(360px, 26vw) minmax(520px, 1fr) minmax(380px, 28vw);
+  }
+}
+@media (min-width: 1100px) and (max-width: 1399px) {
+  .kefe-editor {
+    grid-template-columns: minmax(330px, 350px) minmax(420px, 1fr) minmax(350px, 370px);
+  }
+}
+@media (min-width: 900px) and (max-width: 1099px) {
+  .kefe-editor {
+    grid-template-columns: minmax(280px, 29vw) minmax(320px, 1fr) minmax(300px, 31vw);
+  }
+}
+@media (min-width: 900px) {
+  .kefe-editor > .kefe-work {
+    justify-self: stretch;
+    align-self: stretch;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .kefe-work > .kefe-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 12px;
+  }
+  .kefe-work > .kefe-preview > .kefe-stage,
+  .kefe-work > .kefe-preview > .kefe-stage.is-16x9 {
+    width: min(100%, 1100px, calc((100dvh - 190px) * 1.7777778));
+    max-width: 100%;
+    max-height: calc(100% - 8px);
+    aspect-ratio: 16 / 9;
+    margin-inline: auto;
+    justify-self: center;
+  }
+  .kefe-work > .kefe-preview > .kefe-stage.is-9x16 {
+    width: min(100%, 48vh);
+    max-height: calc(100% - 8px);
+    aspect-ratio: 9 / 16;
+  }
+  .kefe-work > .kefe-preview > .kefe-stage.is-1x1 {
+    width: min(100%, 72vh);
+    max-height: calc(100% - 8px);
+    aspect-ratio: 1 / 1;
+  }
+}
