@@ -692,6 +692,7 @@
   }
 
   function openEditorPanel(panel){
+    document.querySelector('.kefe-editing')?.setAttribute('data-active-panel',panel);
     document.querySelectorAll('.kefe-section').forEach(b=>b.classList.toggle('active',b.dataset.panel===panel));
     document.querySelectorAll('.kefe-panel').forEach(p=>p.classList.toggle('active',p.dataset.panelView===panel));
     document.querySelectorAll('[data-shell-panel]').forEach(button=>{
@@ -706,6 +707,7 @@
     document.querySelectorAll('[data-dock-panel]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.dockPanel===panel)));
   }
   document.querySelectorAll('.kefe-section').forEach(button=>button.addEventListener('click',()=>openEditorPanel(button.dataset.panel)));
+  openEditorPanel(document.querySelector('.kefe-section.active')?.dataset.panel || 'media');
   const previewPane=document.querySelector('.kefe-preview');
   function fitPreviewStage(){
     if(!previewPane||!previewStage)return;
