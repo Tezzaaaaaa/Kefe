@@ -18,41 +18,42 @@ html,body{min-height:100%;height:auto;background:var(--shell-bg);color:var(--she
 body{overflow-x:hidden;overflow-y:auto}
 .kefe-editor{
   height:auto;min-height:100vh;min-height:100dvh;
-  grid-template-columns:232px minmax(0,1fr);
-  grid-template-rows:auto auto;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr) auto;
   background:var(--shell-bg);
 }
 .kefe-sidebar{
-  grid-column:1;grid-row:1/-1;min-width:0;
-  display:flex;flex-direction:column;gap:22px;
-  padding:18px 12px 14px;background:var(--shell-sidebar);
-  border-right:1px solid var(--shell-line);overflow-y:auto;z-index:30;
+  grid-column:1;grid-row:1;min-width:0;min-height:56px;
+  display:flex;flex-direction:row;align-items:center;gap:8px;
+  box-sizing:border-box;width:100%;padding:8px 12px;background:var(--shell-sidebar);
+  border-right:0;border-bottom:1px solid var(--shell-line);
+  overflow-x:auto;overflow-y:hidden;z-index:30;scrollbar-width:thin;
 }
 .kefe-sidebar-brand{
   display:flex;align-items:center;gap:10px;height:40px;
   padding:0 10px;font-size:18px;font-weight:750;letter-spacing:-.045em;
 }
 .kefe-sidebar-brand img{width:27px;height:27px;object-fit:contain}
-.kefe-sidebar-group{display:grid;gap:4px}
+.kefe-sidebar-group{display:flex;align-items:center;gap:4px;flex:0 0 auto}
 .kefe-sidebar-label{
-  padding:0 10px 6px;color:var(--shell-muted);font-size:10px;
+  display:none;padding:0 10px 6px;color:var(--shell-muted);font-size:10px;
   font-weight:750;letter-spacing:.11em;text-transform:uppercase;
 }
 .kefe-sidebar-link{
-  width:100%;min-height:38px;display:flex;align-items:center;gap:10px;
-  padding:0 11px;border:1px solid transparent;border-radius:8px;
+  width:auto;min-height:36px;height:36px;display:flex;align-items:center;gap:8px;
+  flex:0 0 auto;white-space:nowrap;padding:0 10px;border:1px solid transparent;border-radius:8px;
   background:transparent;color:var(--shell-muted);text-align:left;
   text-decoration:none;font:600 13px/1.3 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,sans-serif;
   cursor:pointer;transition:background .14s ease,color .14s ease,border-color .14s ease;
 }
 .kefe-sidebar-link>span{
-  width:18px;flex:0 0 18px;display:inline-grid;place-items:center;
+  width:auto;flex:0 0 auto;display:inline-grid;place-items:center;
   color:inherit;font-size:17px;
 }
 .kefe-sidebar-link:hover{background:rgba(128,128,140,.12);color:var(--shell-text)}
 .kefe-sidebar-link:focus-visible,.kefe-sidebar-brand:focus-visible{outline:2px solid var(--shell-accent);outline-offset:2px}
 .kefe-sidebar-link.is-current{background:color-mix(in srgb,var(--shell-accent) 12%,transparent);border-color:color-mix(in srgb,var(--shell-accent) 22%,transparent);color:var(--shell-text)}
-.kefe-sidebar-bottom{display:grid;gap:4px;margin-top:auto;padding-top:14px;border-top:1px solid var(--shell-line)}
+.kefe-sidebar-bottom{display:flex;align-items:center;gap:4px;flex:0 0 auto;margin:0 0 0 auto;padding:0;border:0}
 .kefe-sidebar-github{font-size:12px}
 .kefe-top{
   grid-column:2;grid-row:1;min-width:0;
@@ -72,7 +73,7 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-top-profile{gap:6px}
 .kefe-top-profile .kefe-top-link{min-height:34px;height:34px}
 .kefe-work{
-  grid-column:2;grid-row:1;min-width:0;min-height:0;
+  grid-column:1;grid-row:2;min-width:0;min-height:0;
   display:grid;grid-template-rows:auto 58px auto;
   row-gap:var(--section-gap,12px);
   overflow:visible;
@@ -210,14 +211,14 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-btn,.kefe-control,.kefe-play{box-shadow:none}
 .kefe-btn:hover,.kefe-control:hover,.kefe-play:hover{box-shadow:0 5px 14px rgba(0,0,0,.09)}
 .kefe-site-footer{
-  grid-column:2;grid-row:2;width:calc(100% - clamp(24px,4vw,56px));max-width:1200px;
+  grid-column:1;grid-row:3;width:calc(100% - clamp(24px,4vw,56px));max-width:1200px;
   margin:0 auto;padding:8px 18px;
   border-top:1px solid var(--shell-line);background:var(--shell-bg);
 }
 /* The editor inherits the shared day/night palette from styles.css.
    Do not redefine core design tokens inside .kefe-editor. */
 @media(max-width:900px){
-  .kefe-editor{grid-template-columns:190px minmax(0,1fr)}
+  .kefe-editor{grid-template-columns:minmax(0,1fr)}
   .kefe-top,.kefe-timeline,.kefe-site-footer{width:calc(100% - 24px)}
   .kefe-sidebar{padding-inline:9px}
   .kefe-sidebar-link{gap:7px;padding-inline:8px}
@@ -290,17 +291,17 @@ body{overflow-x:hidden;overflow-y:auto}
   -webkit-backdrop-filter:blur(16px);
   backdrop-filter:blur(16px);
 }
-.kefe-sidebar-brand-row{display:flex;align-items:center;gap:8px;min-width:0}
+.kefe-sidebar-brand-row{display:flex;align-items:center;gap:6px;flex:0 0 auto;min-width:0}
 .kefe-sidebar-toggle{
-  display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;
+  display:none;place-items:center;flex:0 0 32px;width:32px;height:32px;
   border:1px solid var(--shell-line);border-radius:8px;background:var(--shell-panel);
   color:var(--shell-muted);font-size:16px;cursor:pointer;
   transition:background .16s ease,color .16s ease,border-color .16s ease;
 }
 .kefe-sidebar-toggle:hover{background:color-mix(in srgb,var(--shell-accent) 10%,var(--shell-panel));color:var(--shell-text);border-color:color-mix(in srgb,var(--shell-accent) 36%,var(--shell-line))}
-.kefe-sidebar-brand-row .kefe-sidebar-brand{min-width:0;flex:1}
-.kefe-sidebar-theme{display:grid;gap:9px;padding:12px 10px;border-top:1px solid var(--shell-line);border-bottom:1px solid var(--shell-line)}
-.kefe-theme-swatches{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.kefe-sidebar-brand-row .kefe-sidebar-brand{min-width:0;flex:0 0 auto;width:auto;height:36px;padding:0 5px;gap:5px;font-size:15px}
+.kefe-sidebar-theme{display:flex;align-items:center;gap:8px;flex:0 0 auto;padding:0 8px;border-top:0;border-bottom:0;border-left:1px solid var(--shell-line);border-right:1px solid var(--shell-line)}
+.kefe-theme-swatches{display:flex;align-items:center;gap:7px;flex-wrap:nowrap}
 .kefe-theme-swatches button{
   display:grid;place-items:center;width:22px;height:22px;padding:0;border-radius:50%;
   border:2px solid color-mix(in srgb,var(--shell-text) 18%,transparent);
