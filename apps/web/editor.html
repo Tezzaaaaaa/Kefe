@@ -77,14 +77,18 @@
     const headerActions = document.querySelector('.kefe-top-actions');
     const headerNav = document.querySelector('.kefe-top-nav');
     const headerProfile = document.querySelector('.kefe-top-profile');
-    const headerSlot = headerActions || headerNav || headerProfile;
+    const headerSlot = headerActions || headerNav || headerProfile || document.querySelector('.kefe-sidebar-bottom');
     if (!headerSlot) return null;
     button = document.createElement('button');
     button.type = 'button';
     button.id = 'kefeThemeToggle';
-    button.className = 'kefe-top-link kefe-theme-toggle';
+    button.className = headerSlot.matches('.kefe-sidebar-bottom')
+      ? 'kefe-sidebar-link kefe-theme-toggle'
+      : 'kefe-top-link kefe-theme-toggle';
     button.setAttribute('data-top-panel', 'theme');
-    headerSlot.appendChild(button);
+    const githubLink = headerSlot.querySelector('.kefe-sidebar-github');
+    if (githubLink) headerSlot.insertBefore(button, githubLink);
+    else headerSlot.appendChild(button);
     return button;
   }
   function syncThemeToggle() {
