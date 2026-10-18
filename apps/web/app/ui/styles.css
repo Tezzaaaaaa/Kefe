@@ -6181,13 +6181,6 @@ body:not(.kefe-fullscreen-open) {
   box-sizing:border-box;min-width:0;min-height:40px;padding:8px 12px;
   border-radius:var(--r2);font:inherit;font-size:var(--font-sm);line-height:1.25
 }
-.kefe-fluid-presets > button{
-  flex:0 0 136px;width:136px;min-width:136px;max-width:136px;height:40px;
-  align-items:center;justify-content:center;overflow:hidden;text-align:center;white-space:nowrap
-}
-.kefe-fluid-presets > button strong{
-  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:inherit
-}
 .kefe-fluid-presets > button small,
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-intro,
 .kefe-panel[data-panel-view="visualiser"] #kefeVisualiserDescription{display:none!important}
@@ -6232,9 +6225,6 @@ body:not(.kefe-fullscreen-open) {
   .kefe-visualiser-preset-row{padding-block:var(--s2)}
   .kefe-visualiser-preset-set{gap:var(--s1)}
   .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group{padding:var(--s2);gap:var(--s2)}
-  .kefe-fluid-presets > button{
-    flex-basis:136px;width:136px;min-width:136px;max-width:136px;height:40px;min-height:40px;padding:8px
-  }
 }
 @media(max-width:380px){
   .kefe-editing > .kefe-vis-tabs{gap:var(--s1)}
@@ -6486,31 +6476,6 @@ body:not(.kefe-fullscreen-open) {
   padding:var(--s2) 0;
   border-bottom:1px solid var(--line-soft);
 }
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets {
-  display:flex;
-  flex-wrap:wrap;
-  width:100%;
-  min-width:0;
-  max-width:100%;
-  gap:var(--s2);
-  overflow:visible;
-}
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets > button {
-  flex:1 1 136px;
-  width:auto;
-  min-width:0;
-  max-width:100%;
-  height:auto;
-  min-height:40px;
-  padding:var(--s2) var(--s3);
-  border-radius:var(--r2);
-  white-space:normal;
-}
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets > button strong {
-  white-space:normal;
-  overflow-wrap:anywhere;
-  text-overflow:clip;
-}
 @media(max-width:700px) {
   .kefe-editing > .kefe-vis-tabs {
     grid-template-columns:repeat(4,minmax(0,1fr));
@@ -6551,7 +6516,9 @@ body:not(.kefe-fullscreen-open) {
    Colour palette swatches remain compact because they are visual choices, not text buttons. */
 .kefe-visualiser-preset-set > button,
 .kefe-visualiser-preset-set > .kefe-btn,
-.kefe-visualiser-preset-set #flutedModes > .kefe-btn {
+.kefe-visualiser-preset-set #flutedModes > .kefe-btn,
+.kefe-fluid-presets > button,
+.kefe-slow-light-scenes > .kefe-btn {
   box-sizing:border-box;
   flex:0 0 136px;
   width:136px;
