@@ -8295,3 +8295,199 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
     border-top: 1px solid var(--line);
   }
 }
+
+
+/* Desktop header + three-column editor: section navigation | preview | controls. */
+@media (min-width: 900px) {
+  .kefe-editor {
+    grid-template-columns: 208px minmax(0, 1fr) minmax(320px, 370px);
+    grid-template-rows: 56px auto auto minmax(0, 1fr) auto;
+    height: 100dvh;
+    min-height: 640px;
+    overflow: hidden;
+  }
+  .kefe-sidebar {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    height: 56px;
+    min-height: 56px;
+    padding: 4px 14px;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .kefe-sidebar-brand-row {
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  .kefe-sidebar-brand-row .kefe-sidebar-brand {
+    width: auto;
+    min-width: 0;
+    height: 40px;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    padding: 0 8px;
+    gap: 8px;
+    font-size: 18px;
+  }
+  .kefe-sidebar-label { display: none; }
+  .kefe-sidebar-group,
+  .kefe-sidebar-bottom {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .kefe-sidebar-link {
+    width: auto;
+    min-width: 0;
+    min-height: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    gap: 7px;
+    padding: 0 9px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .kefe-sidebar-link > span { width: 16px; flex: 0 0 16px; }
+  .kefe-sidebar-theme {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+  }
+  .kefe-theme-swatches { flex-wrap: nowrap; }
+  .kefe-sidebar-toggle { display: none; }
+  .kefe-sidebar-bottom { margin-left: auto; }
+  .kefe-work {
+    grid-column: 2;
+    grid-row: 2 / 5;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) 64px;
+    row-gap: 8px;
+    overflow: hidden;
+  }
+  .kefe-preview {
+    min-width: 0;
+    min-height: 0;
+    padding: 16px 12px 4px;
+    overflow: hidden;
+  }
+  .kefe-stage { width: min(100%, 900px, 88vh); max-height: 100%; }
+  .kefe-stage.is-16x9 { width: min(100%, 900px, 88vh); }
+  .kefe-stage.is-9x16 { width: min(100%, 34vh); }
+  .kefe-stage.is-1x1 { width: min(100%, 54vh); }
+  .kefe-timeline {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+    padding: 6px 12px;
+    gap: 8px;
+  }
+  .kefe-editing {
+    display: contents;
+  }
+  .kefe-editing > .kefe-tabs {
+    display: flex;
+    grid-column: 1;
+    grid-row: 2 / 5;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--control-gap);
+    min-width: 0;
+    min-height: 0;
+    padding: 14px 10px;
+    border-right: 1px solid var(--line);
+    border-radius: 0;
+    background: var(--surface);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .kefe-section {
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+    height: auto;
+    padding: 0 12px;
+    text-align: left;
+    white-space: normal;
+  }
+  .kefe-panels {
+    grid-column: 3;
+    grid-row: 2 / 5;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    padding: 12px;
+    border-left: 1px solid var(--line);
+    background: var(--surface);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .kefe-panel {
+    max-width: none;
+    margin: 0;
+    padding: 16px;
+    border-radius: var(--r3);
+  }
+  .kefe-panel-head {
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+  .kefe-panel-head .kefe-meta { max-width: none; text-align: left; }
+  .kefe-form { gap: 14px; }
+  .kefe-editing > .kefe-vis-tabs {
+    grid-column: 3;
+    grid-row: 2;
+    z-index: 2;
+    min-width: 0;
+    width: auto;
+    margin: 8px 12px 0;
+  }
+  .kefe-editing > .kefe-visualiser-preset-row {
+    grid-column: 3;
+    grid-row: 3;
+    z-index: 2;
+    min-width: 0;
+    width: auto;
+    margin: 4px 12px;
+  }
+  .kefe-editing[data-active-panel="visualiser"] .kefe-panels {
+    grid-row: 4;
+  }
+  .kefe-editing[data-active-panel="visualiser"] .kefe-panels {
+    padding-top: 12px;
+  }
+  .kefe-site-footer {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    display: flex;
+    width: 100%;
+    max-width: none;
+    min-height: 40px;
+    margin: 0;
+    padding: 6px 16px;
+    border-top: 1px solid var(--line);
+  }
+}
