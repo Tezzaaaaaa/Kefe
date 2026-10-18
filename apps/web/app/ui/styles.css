@@ -6501,3 +6501,44 @@ body:not(.kefe-fullscreen-open) {
     text-align:center;
   }
 }
+
+
+/* Shared beUI document shell for KEFE's public policy pages. */
+html:has(body.kefe-legal-page),body.kefe-legal-page{height:auto;min-height:100%;overflow:auto}
+body.kefe-legal-page{
+  min-height:100vh;
+  padding:0;
+  background:var(--bg);
+  color:var(--text);
+  font:16px/1.6 var(--font-ui);
+  letter-spacing:0;
+}
+.kefe-legal-page main{
+  box-sizing:border-box;
+  width:min(100% - 32px,760px);
+  margin:clamp(24px,6vh,64px) auto;
+  padding:clamp(20px,4vw,36px);
+  border:1px solid var(--line);
+  border-radius:var(--r3);
+  background:var(--surface);
+  box-shadow:var(--lift);
+}
+.kefe-legal-page h1{margin:0 0 8px;color:var(--text);font-size:clamp(26px,4vw,34px);line-height:1.15;letter-spacing:-.04em}
+.kefe-legal-page h2{margin:28px 0 8px;color:var(--text);font-size:var(--font-lg);line-height:1.3;letter-spacing:-.02em}
+.kefe-legal-page p,.kefe-legal-page li{color:var(--text)}
+.kefe-legal-page a{color:var(--focus);text-underline-offset:3px}
+.kefe-legal-page .meta{margin:0 0 16px;color:var(--muted);font-size:var(--font-sm)}
+.kefe-legal-page .draft{
+  margin:16px 0 24px;
+  padding:12px 14px;
+  border:1px solid color-mix(in srgb,#d6a64a 48%,var(--line));
+  border-radius:var(--r2);
+  background:color-mix(in srgb,#d6a64a 12%,var(--surface));
+  color:var(--text);
+}
+.kefe-legal-page table{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+.kefe-legal-page th,.kefe-legal-page td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+@media(max-width:520px){
+  .kefe-legal-page main{width:calc(100% - 20px);margin:10px auto;padding:16px;border-radius:var(--r2)}
+  .kefe-legal-page h2{margin-top:22px}
+}
