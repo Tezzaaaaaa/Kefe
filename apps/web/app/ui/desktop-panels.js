@@ -27,14 +27,46 @@
     }
   }
 
+  function installAccordion(panel) {
+    if (panel.dataset.beuiAccordionReady === 'true') return;
+    const head = panel.querySelector(':scope > .kefe-panel-head');
+    if (!head) return;
+    const key = panel.dataset.panelView;
+    const content = Array.from(panel.children).filter(node => node !== head);
+    if (!content.length) return;
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'beui-accordion-trigger';
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Collapse ' + (head.querySelector('h2')?.textContent.trim() || key) + ' section');
+    toggle.innerHTML = '<span class="beui-accordion-chevron" aria-hidden="true"></span>';
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      toggle.setAttribute('aria-expanded', String(open));
+      panel.classList.toggle('beui-accordion-collapsed', !open);
+      toggle.setAttribute('aria-label', (open ? 'Collapse ' : 'Expand ') + (head.querySelector('h2')?.textContent.trim() || key) + ' section');
+      content.forEach(node => { node.hidden = !open; });
+      if (open) {
+        panel.classList.remove('beui-accordion-enter');
+        void panel.offsetWidth;
+        panel.classList.add('beui-accordion-enter');
+      }
+    });
+    head.append(toggle);
+    panel.dataset.beuiAccordionReady = 'true';
+  }
+
   function sync() {
     const active = document.querySelector('.kefe-section.active')?.dataset.panel || 'media';
     if (!mq.matches) {
       panels().forEach(p => p.classList.remove('kefe-pane-shown'));
       return;
     }
-    if (LEFT.includes(active)) leftPanel = active; else rightPanel = active;
-    panels().forEach(p => p.classList.toggle('kefe-pane-shown', p.dataset.panelView === leftPanel || p.dataset.panelView === rightPanel));
+    panels().forEach(p => {
+      p.classList.add('kefe-pane-shown');
+      installAccordion(p);
+    });
+    rightPanel = LEFT.includes(active) ? rightPanel : active;
     editing.setAttribute('data-active-panel', rightPanel);
     document.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(el => { el.hidden = rightPanel !== 'visualiser'; });
   }
