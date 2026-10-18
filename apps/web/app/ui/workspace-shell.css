@@ -675,3 +675,215 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   .kefe-work{grid-column:1;grid-row:2}
   .kefe-site-footer{grid-column:1;grid-row:3}
 }
+
+
+/* KEFE beUI — site-wide component consistency contract.
+   One token system owns spacing, surfaces, control geometry and typography.
+   Purpose-specific previews and artwork keep their own visual treatment. */
+.kefe-editor,
+.kefe-editor button,
+.kefe-editor input,
+.kefe-editor select,
+.kefe-editor textarea,
+.kefe-settings,
+.kefe-settings button,
+.kefe-settings input,
+.kefe-settings select,
+.kefe-settings textarea{
+  font-family:var(--font-ui);
+}
+.kefe-editor{
+  color:var(--shell-text);
+  gap:0;
+}
+.kefe-editor .kefe-top,
+.kefe-editor .kefe-panel,
+.kefe-editor .kefe-song-search,
+.kefe-editor .kefe-lyric-settings,
+.kefe-editor .kefe-lyric-effects-control,
+.kefe-editor .kefe-font-selector-control,
+.kefe-editor .kefe-visualiser-control-group,
+.kefe-editor .kefe-fluid-ink-controls,
+.kefe-editor .kefe-slow-light-settings{
+  border-color:var(--shell-line);
+  border-radius:var(--shell-radius-lg);
+}
+.kefe-editor .kefe-panel{
+  background:var(--shell-panel);
+  box-shadow:none;
+}
+.kefe-editor .kefe-panel-head{
+  gap:var(--s3);
+  border-color:var(--shell-line);
+}
+.kefe-editor .kefe-panel-head h2,
+.kefe-editor .kefe-label,
+.kefe-editor .kefe-visualiser-field > span,
+.kefe-editor .kefe-meta{
+  font-family:var(--font-ui);
+}
+.kefe-editor .kefe-panel .kefe-form{
+  align-items:start;
+  gap:var(--s3);
+}
+.kefe-editor .kefe-panel .kefe-select,
+.kefe-editor .kefe-panel .kefe-input,
+.kefe-editor .kefe-panel .kefe-textarea,
+.kefe-editor .kefe-panel input[type="text"],
+.kefe-editor .kefe-panel input[type="number"],
+.kefe-editor .kefe-panel input[type="search"],
+.kefe-editor .kefe-panel input[type="url"],
+.kefe-editor .kefe-panel select,
+.kefe-editor .kefe-panel textarea{
+  box-sizing:border-box;
+  max-width:100%;
+  border:1px solid var(--shell-line);
+  border-radius:var(--shell-radius-md);
+  background:var(--shell-sidebar);
+  color:var(--shell-text);
+  box-shadow:none;
+  font:inherit;
+}
+.kefe-editor .kefe-panel .kefe-select,
+.kefe-editor .kefe-panel .kefe-input,
+.kefe-editor .kefe-panel input[type="text"],
+.kefe-editor .kefe-panel input[type="number"],
+.kefe-editor .kefe-panel input[type="search"],
+.kefe-editor .kefe-panel input[type="url"],
+.kefe-editor .kefe-panel select{
+  min-height:var(--shell-control-height);
+  padding-inline:var(--control-pad);
+}
+.kefe-editor .kefe-panel .kefe-textarea,
+.kefe-editor .kefe-panel textarea{
+  padding:var(--control-pad);
+}
+.kefe-editor .kefe-panel .kefe-select:focus-visible,
+.kefe-editor .kefe-panel .kefe-input:focus-visible,
+.kefe-editor .kefe-panel .kefe-textarea:focus-visible,
+.kefe-editor .kefe-panel input:focus-visible,
+.kefe-editor .kefe-panel select:focus-visible,
+.kefe-editor .kefe-panel textarea:focus-visible{
+  outline:2px solid var(--shell-accent);
+  outline-offset:2px;
+}
+.kefe-editor .kefe-panel .kefe-btn,
+.kefe-editor .kefe-panel .kefe-control,
+.kefe-editor .kefe-panel .kefe-song-search-button,
+.kefe-editor .kefe-panel .kefe-style-mini{
+  box-sizing:border-box;
+  border-radius:var(--shell-radius-md);
+  font:inherit;
+  transition:background-color .14s ease,border-color .14s ease,box-shadow .14s ease,transform .14s ease;
+}
+.kefe-editor .kefe-panel .kefe-btn:not(.kefe-switch):not(.kefe-style-swatch):not(.kefe-style-color),
+.kefe-editor .kefe-panel .kefe-control,
+.kefe-editor .kefe-panel .kefe-song-search-button{
+  min-height:var(--shell-control-height);
+}
+.kefe-editor .kefe-panel .kefe-btn:focus-visible,
+.kefe-editor .kefe-panel .kefe-control:focus-visible,
+.kefe-editor .kefe-panel .kefe-song-search-button:focus-visible,
+.kefe-editor .kefe-panel .kefe-style-mini:focus-visible,
+.kefe-editor .kefe-panel .kefe-background-effect-card:focus-visible,
+.kefe-editor .kefe-panel .kefe-lyric-effect-option:focus-visible,
+.kefe-editor .kefe-panel .kefe-font-option:focus-visible{
+  outline:2px solid var(--shell-accent);
+  outline-offset:2px;
+}
+.kefe-editor .kefe-panel .kefe-visualiser-control-group,
+.kefe-editor .kefe-panel .kefe-lyric-settings,
+.kefe-editor .kefe-panel .kefe-lyric-effects-control,
+.kefe-editor .kefe-panel .kefe-font-selector-control,
+.kefe-editor .kefe-panel .kefe-fluid-ink-controls,
+.kefe-editor .kefe-panel .kefe-slow-light-settings{
+  box-sizing:border-box;
+  min-width:0;
+  max-width:100%;
+  padding:var(--s3);
+  border:1px solid var(--shell-line);
+  border-radius:var(--shell-radius-md);
+  background:var(--shell-sidebar);
+  box-shadow:none;
+}
+.kefe-editor .kefe-panel .kefe-visualiser-control-group + .kefe-visualiser-control-group,
+.kefe-editor .kefe-panel .kefe-lyric-settings + .kefe-lyric-settings,
+.kefe-editor .kefe-panel .kefe-lyric-effects-control + .kefe-lyric-effects-control{
+  margin-top:0;
+}
+.kefe-editor .kefe-panel .kefe-visualiser-field{
+  min-width:0;
+  max-width:100%;
+  gap:var(--s2);
+}
+.kefe-editor .kefe-panel .kefe-visualiser-field output,
+.kefe-editor .kefe-panel .kefe-time,
+.kefe-editor .kefe-panel output{
+  font-variant-numeric:tabular-nums;
+}
+.kefe-editor .kefe-panel .kefe-upload-zone{
+  border-color:var(--shell-line);
+  border-radius:var(--shell-radius-md);
+  background:var(--shell-panel);
+}
+.kefe-editor .kefe-panel .kefe-upload-zone:hover,
+.kefe-editor .kefe-panel .kefe-upload-zone.is-dragging{
+  border-color:var(--shell-accent);
+}
+.kefe-editor .kefe-panel .kefe-song-search{
+  padding:var(--s3);
+  background:var(--shell-sidebar);
+}
+.kefe-editor .kefe-panel .kefe-grid,
+.kefe-editor .kefe-panel .kefe-lyric-effect-grid,
+.kefe-editor .kefe-panel .kefe-background-effect-options{
+  gap:var(--grid-gap);
+}
+.kefe-editor .kefe-panel .kefe-card{
+  box-sizing:border-box;
+  min-width:0;
+  border-radius:var(--shell-radius-md);
+}
+.kefe-editor .kefe-panel .kefe-lyric-effect-option,
+.kefe-editor .kefe-panel .kefe-font-option,
+.kefe-editor .kefe-panel .kefe-background-effect-card{
+  box-sizing:border-box;
+  min-width:0;
+  border-radius:var(--shell-radius-md);
+}
+.kefe-editor .kefe-panel .kefe-style-color{
+  border-radius:var(--shell-radius-sm);
+}
+.kefe-editor .kefe-panel input[type="range"]:not(#kefeTime):not(.kefe-slider){
+  max-width:100%;
+  accent-color:var(--shell-accent);
+}
+@media(max-width:700px){
+  .kefe-editor .kefe-panels{
+    padding-inline:var(--s2);
+  }
+  .kefe-editor .kefe-panel{
+    padding:var(--s3);
+  }
+  .kefe-editor .kefe-panel .kefe-form{
+    gap:var(--s2);
+  }
+  .kefe-editor .kefe-panel .kefe-visualiser-control-group,
+  .kefe-editor .kefe-panel .kefe-lyric-settings,
+  .kefe-editor .kefe-panel .kefe-lyric-effects-control,
+  .kefe-editor .kefe-panel .kefe-font-selector-control,
+  .kefe-editor .kefe-panel .kefe-fluid-ink-controls,
+  .kefe-editor .kefe-panel .kefe-slow-light-settings{
+    padding:var(--s2);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .kefe-editor .kefe-panel .kefe-btn,
+  .kefe-editor .kefe-panel .kefe-control,
+  .kefe-editor .kefe-panel .kefe-card,
+  .kefe-editor .kefe-panel .kefe-lyric-effect-option,
+  .kefe-editor .kefe-panel .kefe-font-option,
+  .kefe-editor .kefe-panel .kefe-background-effect-card{
+    transition:none;
+  }
+}
