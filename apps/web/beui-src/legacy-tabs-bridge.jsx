@@ -33,9 +33,9 @@ function SectionTabs({ backingButtons }) {
 
   return (
     <Tabs value={active} onValueChange={select} variant="segment" className="w-full">
-      <TabsList aria-label="Editor sections" wrapperClassName="w-full" className="gap-1">
+      <TabsList aria-label="Editor sections" wrapperClassName="w-full" className="beui-section-tabs-list w-full flex-col items-stretch gap-1">
         {PANELS.map(([value, label]) => (
-          <TabsTrigger key={value} value={value} className="min-h-9 shrink-0 px-3 text-xs">
+          <TabsTrigger key={value} value={value} className="beui-section-tab min-h-10 w-full justify-start rounded-xl px-3 text-left text-sm">
             {label}
           </TabsTrigger>
         ))}
