@@ -391,3 +391,28 @@ textarea.beui-native-textarea {
   width: 100%;
   flex-wrap: wrap;
 }
+
+
+/* Section tabs are vertical in the desktop navigation panel and horizontal on narrow screens. */
+.beui-tabs-host .beui-section-tabs-list {
+  align-items: stretch;
+  flex-direction: column;
+}
+.beui-tabs-host .beui-section-tab {
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+}
+@media (max-width: 640px) {
+  .beui-tabs-host .beui-section-tabs-list {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .beui-tabs-host .beui-section-tab {
+    width: auto;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
