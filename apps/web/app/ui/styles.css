@@ -8123,7 +8123,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
     height: 100dvh;
     min-height: 640px;
     display: grid;
-    grid-template-columns: 208px minmax(0, 1fr) minmax(320px, 370px);
+    grid-template-columns: minmax(320px, 370px) minmax(0, 1fr) minmax(320px, 370px);
     grid-template-rows: 56px auto auto minmax(0, 1fr) auto;
     overflow: hidden;
   }
@@ -8157,9 +8157,6 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   .kefe-sidebar .kefe-sidebar-link > span { width: 16px; flex: 0 0 16px; }
   .kefe-sidebar .kefe-sidebar-theme { display: flex; flex: 0 0 auto; align-items: center; gap: 6px; padding: 0; border: 0; }
   .kefe-sidebar .kefe-theme-swatches { flex-wrap: nowrap; }
-  /* Section links live in the left panel; the header keeps brand, accent and utilities. */
-  .kefe-sidebar [data-shell-panel] { display: none; }
-  .kefe-sidebar .kefe-sidebar-group:not(:has(> a.kefe-sidebar-link)) { display: none; }
 
   /* Centre: preview + timeline */
   .kefe-editor > .kefe-work {
@@ -8179,30 +8176,25 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   .kefe-stage.is-1x1 { width: min(100%, 54vh); }
   .kefe-timeline { width: 100%; max-width: none; min-width: 0; margin: 0; padding: 6px 12px; gap: 8px; }
 
-  /* Left + right panels share the grid through .kefe-editing */
+  /* Left + right editor panels share the grid through .kefe-editing */
   .kefe-editor > .kefe-editing { display: contents; }
-  .kefe-editor .kefe-editing > .kefe-tabs {
-    display: flex;
+  .kefe-editor .kefe-editing > .kefe-tabs { display: none; }
+  .kefe-editor .kefe-editing > .kefe-panels-left {
     grid-column: 1;
     grid-row: 2 / 5;
-    flex-direction: column;
-    align-items: stretch;
-    align-self: stretch;
-    gap: var(--control-gap);
-    width: auto;
-    height: auto;
     min-width: 0;
     min-height: 0;
-    margin: 0;
-    padding: 14px 10px;
+    height: auto;
+    padding: 12px;
+    border-left: 0;
     border-right: 1px solid var(--line);
-    border-radius: 0;
     background: var(--surface);
     overflow-x: hidden;
     overflow-y: auto;
+    overscroll-behavior: contain;
   }
-  .kefe-editor .kefe-editing > .kefe-tabs .kefe-section { flex: 0 0 auto; width: 100%; min-width: 0; min-height: 38px; height: auto; padding: 0 12px; text-align: left; white-space: normal; }
-  .kefe-editor .kefe-editing > .kefe-panels {
+  .kefe-panel.kefe-pane-shown { display: block; }
+  .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left) {
     grid-column: 3;
     grid-row: 2 / 5;
     min-width: 0;
@@ -8223,7 +8215,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   /* Visualiser sub-tabs + presets sit at the top of the right panel */
   .kefe-editing > .kefe-vis-tabs { grid-column: 3; grid-row: 2; z-index: 2; min-width: 0; width: auto; margin: 8px 12px 0; }
   .kefe-editing > .kefe-visualiser-preset-row { grid-column: 3; grid-row: 3; z-index: 2; min-width: 0; width: auto; margin: 4px 12px; }
-  .kefe-editing[data-active-panel="visualiser"] > .kefe-panels { grid-row: 4; }
+  .kefe-editing[data-active-panel="visualiser"] > .kefe-panels:not(.kefe-panels-left) { grid-row: 4; }
 
   /* The floating dock duplicated the left nav and covered the timeline */
   .kefe-workspace-dock { display: none; }
