@@ -6505,11 +6505,6 @@ body:not(.kefe-fullscreen-open) {
   .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-settings .kefe-visualiser-field {
     padding-block:var(--s2);
   }
-  .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets > button {
-    flex:1 1 120px;
-    min-height:40px;
-    padding:var(--s2);
-  }
 }
 
 /* Keep text-based preset controls the same size across visualiser tabs.
