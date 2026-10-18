@@ -260,8 +260,6 @@ body{overflow-x:hidden;overflow-y:auto}
   .kefe-time{min-width:58px}
   .kefe-aspect-controls{min-width:56px;flex-basis:56px}
 }
-
-
 @media(prefers-reduced-motion:reduce){
   .kefe-stage{transition:none;will-change:auto}
   .kefe-sidebar-link{transition:none}
