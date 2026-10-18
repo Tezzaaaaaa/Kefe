@@ -5041,6 +5041,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   scrollbar-width: none;
   overscroll-behavior-x: contain;
 }
+.kefe-editing > .kefe-vis-tabs[hidden] { display: none; }
 .kefe-editing[data-active-panel="visualiser"] > .kefe-vis-tabs {
   display: flex;
 }
