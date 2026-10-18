@@ -32,7 +32,7 @@
     const head = panel.querySelector(':scope > .kefe-panel-head');
     if (!head) return;
     const key = panel.dataset.panelView;
-    const content = Array.from(panel.children).filter(node => node !== head);
+    const content = Array.from(panel.children).filter(node => node !== head && !node.matches('.kefe-panel[data-panel-view]'));
     if (!content.length) return;
     const toggle = document.createElement('button');
     toggle.type = 'button';
