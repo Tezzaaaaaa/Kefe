@@ -8225,26 +8225,42 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
 }
 
 
-/* beUI-aligned editor cards, section tabs and bouncy accordion controls */
+/* beUI editor accordion containers: preserve the heading row and collapse the
+   content wrapper as a whole so nested grid/flex/display:contents rules cannot leak. */
 @media (min-width: 900px) {
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view] {
     display: block;
     min-width: 0;
-    overflow: clip;
+    overflow: visible;
     border: 1px solid var(--line-soft);
     background: var(--surface);
     box-shadow: var(--lift);
     transition: border-color 180ms ease, box-shadow 180ms ease;
   }
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed {
+    height: auto;
     min-height: 0;
     padding: 8px 12px;
+    overflow: hidden;
   }
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head {
-    min-height: 0;
+    display: flex;
+    visibility: visible;
+    align-items: center;
+    min-height: 36px;
+    height: auto;
     margin: 0;
     padding: 0;
-    border-bottom: 0;
+    border: 0;
+    overflow: visible;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head h2,
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head .kefe-meta {
+    visibility: visible;
+    opacity: 1;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-form {
+    display: none;
   }
   .kefe-editor .kefe-editing .kefe-panels {
     display: flex;
@@ -8312,17 +8328,17 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   .beui-accordion-enter > :not(.kefe-panel-head) { animation: none; }
 }
 
-/* Ensure accordion content collapses even when component styles set display:grid/flex. */
+/* Keep the accordion heading independent from the content's layout rules.
+   Hiding the complete form prevents nested display:contents controls from leaking. */
 @media (min-width: 900px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head):not(.kefe-panel[data-panel-view]):not(.kefe-form) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head):not(.kefe-form):not(.kefe-panel[data-panel-view]) {
     display: none;
   }
-  /* Some panels place their title inside the form. Keep that form/header path
-     rendered while hiding the form's actual controls when the panel collapses. */
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-form {
-    display: block;
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head {
+    display: flex;
+    visibility: visible;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-form > :not(.kefe-panel-head) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-form {
     display: none;
   }
 }
