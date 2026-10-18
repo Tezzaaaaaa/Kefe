@@ -59,7 +59,13 @@
   function sync() {
     const active = document.querySelector('.kefe-section.active')?.dataset.panel || 'media';
     if (!mq.matches) {
-      panels().forEach(p => p.classList.remove('kefe-pane-shown'));
+      panels().forEach(p => {
+        p.classList.remove('kefe-pane-shown', 'beui-accordion-collapsed', 'beui-accordion-enter');
+        const head = p.querySelector(':scope > .kefe-panel-head');
+        p.querySelector(':scope > .kefe-panel-head > .beui-accordion-trigger')?.remove();
+        Array.from(p.children).forEach(node => { if (node !== head) node.hidden = false; });
+        delete p.dataset.beuiAccordionReady;
+      });
       return;
     }
     panels().forEach(p => {
