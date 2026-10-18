@@ -174,7 +174,7 @@
     });
     tabsList.appendChild(option);
     ui.sceneName.textContent=SCENES[0].name;current=blend(from,to,1);syncScene();resize();
-    const style=document.createElement('style');style.textContent='.kefe-slow-light-scenes{display:flex;flex-wrap:nowrap;gap:var(--s2);overflow-x:auto;overflow-y:hidden;min-width:0}.kefe-slow-light-auto{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;color:var(--text)}.kefe-slow-light-power{margin-left:auto;min-width:58px}.kefe-slow-light-view{gap:12px}.kefe-slow-light-view[hidden]{display:none}';document.head.appendChild(style);
+
     window.addEventListener('resize',resize);window.addEventListener('kefe-stage-resize',resize);
     document.addEventListener('visibilitychange',()=>{if(document.hidden){if(raf)cancelAnimationFrame(raf);raf=0;}else if(shown())start();});
     /* getState().enabled means "Slow Light is the visible preview" (export picks its canvas from it). */
