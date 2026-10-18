@@ -7472,7 +7472,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   box-sizing:border-box;
   flex:1 0 112px;
   min-width:112px;
-  min-height:var(--control-h);
+  min-height:40px;
   padding:8px 12px;
   border-radius:var(--r2);
   font:inherit;
