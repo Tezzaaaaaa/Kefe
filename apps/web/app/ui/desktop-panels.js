@@ -29,12 +29,11 @@
 
   function installAccordion(panel) {
     if (panel.dataset.beuiAccordionReady === 'true') return;
-    const head = panel.querySelector(':scope > .kefe-panel-head');
+    const head = panel.querySelector(':scope > .kefe-panel-head, :scope > .kefe-form > .kefe-panel-head');
     if (!head) return;
     const key = panel.dataset.panelView;
     head.hidden = false;
-    const content = Array.from(panel.children).filter(node => node !== head && !node.matches('.kefe-panel[data-panel-view]'));
-    if (!content.length) return;
+    if (!Array.from(panel.children).some(node => node !== head && !node.matches('.kefe-panel[data-panel-view]'))) return;
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'beui-accordion-trigger';
@@ -47,7 +46,6 @@
       toggle.setAttribute('aria-expanded', String(open));
       panel.classList.toggle('beui-accordion-collapsed', !open);
       toggle.setAttribute('aria-label', (open ? 'Collapse ' : 'Expand ') + (head.querySelector('h2')?.textContent.trim() || key) + ' section');
-      content.forEach(node => { node.hidden = !open; });
       if (open) {
         panel.classList.remove('beui-accordion-enter');
         void panel.offsetWidth;
@@ -63,10 +61,9 @@
     if (!mq.matches) {
       panels().forEach(p => {
         p.classList.remove('kefe-pane-shown', 'beui-accordion-collapsed', 'beui-accordion-enter');
-        const head = p.querySelector(':scope > .kefe-panel-head');
+        const head = p.querySelector(':scope > .kefe-panel-head, :scope > .kefe-form > .kefe-panel-head');
         if (head) head.hidden = false;
         p.querySelector(':scope > .kefe-panel-head > .beui-accordion-trigger')?.remove();
-        Array.from(p.children).forEach(node => { if (node !== head) node.hidden = false; });
         delete p.dataset.beuiAccordionReady;
       });
       return;
