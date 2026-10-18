@@ -63,7 +63,7 @@
         p.classList.remove('kefe-pane-shown', 'beui-accordion-collapsed', 'beui-accordion-enter');
         const head = p.querySelector(':scope > .kefe-panel-head, :scope > .kefe-form > .kefe-panel-head');
         if (head) head.hidden = false;
-        p.querySelector(':scope > .kefe-panel-head > .beui-accordion-trigger')?.remove();
+        head?.querySelector(':scope > .beui-accordion-trigger')?.remove();
         delete p.dataset.beuiAccordionReady;
       });
       return;
