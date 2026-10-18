@@ -53,10 +53,8 @@ document.querySelectorAll('[data-sidebar-toggle]').forEach(button => {
 });
 const mobileNavQuery = window.matchMedia ? window.matchMedia('(max-width: 640px)') : null;
 function restoreSidebarState() {
-  if (mobileNavQuery && mobileNavQuery.matches) { setSidebarCollapsed(false, false); return; }
-  let stored = false;
-  try { stored = localStorage.getItem('kefe.sidebarCollapsed') === '1'; } catch (_) {}
-  setSidebarCollapsed(stored, false);
+  // Navigation is horizontal at every viewport size; do not restore the legacy desktop sidebar state.
+  setSidebarCollapsed(false, false);
 }
 restoreSidebarState();
 if (mobileNavQuery && mobileNavQuery.addEventListener) mobileNavQuery.addEventListener('change', restoreSidebarState);
