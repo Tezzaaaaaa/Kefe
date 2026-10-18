@@ -6185,7 +6185,6 @@ body:not(.kefe-fullscreen-open) {
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-intro,
 .kefe-panel[data-panel-view="visualiser"] #kefeVisualiserDescription{display:none!important}
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group,
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-settings,
 .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-ink-controls .kefe-visualiser-field{
   box-sizing:border-box;min-width:0;max-width:100%;border-radius:var(--r2)
 }
@@ -6374,7 +6373,6 @@ body:not(.kefe-fullscreen-open) {
   box-shadow:var(--lift);
 }
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group,
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-settings,
 .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-ink-controls,
 .kefe-panel[data-panel-view="visualiser"] .kefe-slow-light-settings,
 .kefe-panel[data-panel-view="visualiser"] .kefe-vis-view > #visualiserParameters {
@@ -6403,8 +6401,7 @@ body:not(.kefe-fullscreen-open) {
   border-bottom:1px solid var(--line-soft);
   line-height:1.35;
 }
-.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-field,
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-settings .kefe-visualiser-field {
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-field {
   display:block;
   box-sizing:border-box;
   width:100%;
@@ -6416,8 +6413,7 @@ body:not(.kefe-fullscreen-open) {
   border-radius:0;
   background:transparent;
 }
-.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-field:last-child,
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-settings .kefe-visualiser-field:last-child {
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-field:last-child {
   border-bottom:0;
 }
 .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-field > span {
@@ -6476,13 +6472,11 @@ body:not(.kefe-fullscreen-open) {
   }
   .kefe-vis-option > [role="tab"]::before { flex-basis:22px; width:22px; height:22px; }
   .kefe-vis-option > [role="tab"] .kefe-visualiser-tab-icon { display:none; }
-  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group,
-  .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-settings {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group {
     padding:var(--s2);
     gap:var(--s2);
   }
-  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-field,
-  .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-settings .kefe-visualiser-field {
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-field {
     padding-block:var(--s2);
   }
 }
