@@ -6542,3 +6542,882 @@ body.kefe-legal-page{
   .kefe-legal-page main{width:calc(100% - 20px);margin:10px auto;padding:16px;border-radius:var(--r2)}
   .kefe-legal-page h2{margin-top:22px}
 }
+
+/* Editor workspace layout — consolidated into the canonical KEFE stylesheet. */
+/* KEFE editor shell — layout rules use the shared KEFE design tokens.
+   Keep shell-specific names as aliases only; theme colours, radii and control
+   geometry must come from the single design system in styles.css. */
+/* KEFE editor shell — layout rules consume canonical tokens from styles.css. */
+html,body{min-height:100%;height:auto;background:var(--bg);color:var(--text)}
+body{overflow-x:hidden;overflow-y:auto}
+.kefe-editor{
+  height:auto;min-height:100vh;min-height:100dvh;
+  grid-template-columns:232px minmax(0,1fr);
+  grid-template-rows:auto auto;
+  background:var(--bg);
+}
+.kefe-sidebar{
+  grid-column:1;grid-row:1/-1;min-width:0;
+  display:flex;flex-direction:column;gap:22px;
+  padding:18px 12px 14px;background:var(--surface-lo);
+  border-right:1px solid var(--line);overflow-y:auto;z-index:30;
+}
+.kefe-sidebar-brand{
+  display:flex;align-items:center;gap:10px;height:40px;
+  padding:0 10px;font-size:18px;font-weight:750;letter-spacing:-.045em;
+}
+.kefe-sidebar-brand img{width:27px;height:27px;object-fit:contain}
+.kefe-sidebar-group{display:grid;gap:4px}
+.kefe-sidebar-label{
+  padding:0 10px 6px;color:var(--muted);font-size:10px;
+  font-weight:750;letter-spacing:.11em;text-transform:uppercase;
+}
+.kefe-sidebar-link{
+  width:100%;min-height:38px;display:flex;align-items:center;gap:10px;
+  padding:0 11px;border:1px solid transparent;border-radius:8px;
+  background:transparent;color:var(--muted);text-align:left;
+  text-decoration:none;font:600 13px/1.3 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,sans-serif;
+  cursor:pointer;transition:background .14s ease,color .14s ease,border-color .14s ease;
+}
+.kefe-sidebar-link>span{
+  width:18px;flex:0 0 18px;display:inline-grid;place-items:center;
+  color:inherit;font-size:17px;
+}
+.kefe-sidebar-link:hover{background:rgba(128,128,140,.12);color:var(--text)}
+.kefe-sidebar-link:focus-visible,.kefe-sidebar-brand:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kefe-sidebar-link.is-current{background:color-mix(in srgb,var(--accent) 12%,transparent);border-color:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text)}
+.kefe-sidebar-bottom{display:grid;gap:4px;margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+.kefe-sidebar-github{font-size:12px}
+.kefe-top{
+  grid-column:2;grid-row:1;min-width:0;
+  display:flex;align-items:center;justify-content:space-between;
+  width:calc(100% - clamp(24px,4vw,56px));max-width:1200px;
+  margin:7px auto 0;padding:0 10px;height:45px;
+  border:1px solid var(--line);border-radius:10px;
+  background:var(--surface);box-shadow:none;z-index:20;
+}
+.kefe-top-nav,.kefe-top-profile{display:flex;align-items:center;gap:6px}
+.kefe-top-nav{position:relative;z-index:2;flex:0 0 auto;min-width:0}
+.kefe-top-profile{position:relative;z-index:1;min-width:0}
+.kefe-top-nav{gap:0}
+.kefe-top-nav .kefe-top-link{display:none}
+.kefe-brand,.kefe-top-link{box-shadow:none;background:transparent}
+.kefe-brand:hover,.kefe-top-link:hover{box-shadow:none;background:rgba(128,128,140,.12);transform:none}
+.kefe-top-profile{gap:6px}
+.kefe-top-profile .kefe-top-link{min-height:34px;height:34px}
+.kefe-work{
+  grid-column:2;grid-row:1;min-width:0;min-height:0;
+  display:grid;grid-template-rows:auto 58px auto;
+  row-gap:var(--section-gap,12px);
+  overflow:visible;
+}
+.kefe-preview{
+  display:flex;align-items:center;justify-content:center;
+  min-width:0;min-height:0;padding:12px clamp(12px,2vw,28px) 8px;
+  overflow:visible;
+}
+.kefe-stage{
+  position:relative;flex:none;width:min(100%,900px,92.45vh);
+  max-width:100%;max-height:none;margin-inline:auto;
+  border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 12px 36px rgba(0,0,0,.13);
+  transition:width 420ms cubic-bezier(.22,1,.36,1),height 420ms cubic-bezier(.22,1,.36,1),aspect-ratio 420ms cubic-bezier(.22,1,.36,1);
+  will-change:width,height;
+}
+.kefe-stage.is-16x9{width:min(100%,900px,92.45vh);aspect-ratio:16/9}
+.kefe-stage.is-9x16{width:min(100%,29.25vh);aspect-ratio:9/16}
+.kefe-stage.is-1x1{width:min(100%,52vh);aspect-ratio:1/1}
+.kefe-timeline{width:calc(100% - clamp(24px,4vw,56px));max-width:1200px;margin-inline:auto;padding:8px 18px;gap:10px}
+.kefe-editing{
+  display:block;min-width:0;min-height:0;overflow:visible;
+  background:transparent;
+}
+/* Section navigation is in the workspace sidebar; keep the legacy buttons wired but not duplicated visually. */
+.kefe-editor .kefe-editing>.kefe-tabs{display:none}
+.kefe-panels{
+  min-width:0;min-height:0;padding:16px clamp(12px,2vw,28px) 30px;
+  overflow:visible;
+}
+.kefe-panel{
+  width:100%;max-width:1200px;margin:0 auto;
+  padding:clamp(16px,2vw,24px);
+  border:1px solid var(--line);border-radius:var(--r3);
+  background:var(--surface);box-shadow:none;
+}
+.kefe-panel-head{
+  display:flex;flex-wrap:wrap;align-items:center;min-width:0;
+  margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--line);
+}
+.kefe-panel-head h2{
+  min-width:0;margin:0;font-size:clamp(18px,1.8vw,22px);
+  line-height:1.25;letter-spacing:-.025em;
+}
+.kefe-panel-head .kefe-meta{max-width:58ch;text-align:right}
+.kefe-form{gap:16px}
+.kefe-panel .kefe-select,
+.kefe-panel .kefe-input,
+.kefe-panel .kefe-textarea{
+  border:1px solid var(--line);border-radius:var(--r2);
+  background:var(--surface-lo);color:var(--text);box-shadow:none;
+  transition:border-color .14s ease,background .14s ease;
+}
+.kefe-panel .kefe-select,.kefe-panel .kefe-input{min-height:var(--control-h)}
+.kefe-panel .kefe-select:focus-visible,
+.kefe-panel .kefe-input:focus-visible,
+.kefe-panel .kefe-textarea:focus-visible{
+  outline:2px solid var(--accent);outline-offset:1px;
+  border-color:var(--accent);box-shadow:none;
+}
+.kefe-panel input[type="range"]{accent-color:var(--accent);cursor:pointer}
+.kefe-panel .kefe-visualiser-control-group{
+  padding:12px;border:1px solid var(--line);
+  border-radius:var(--r2);background:var(--surface-lo);box-shadow:none;
+}
+.kefe-panel .kefe-visualiser-field{margin-top:10px}
+.kefe-panel .kefe-visualiser-field>span{
+  margin-bottom:6px;color:var(--muted);font-size:12px;font-weight:500;
+}
+.kefe-panel .kefe-visualiser-field output{color:var(--text);font-size:11px;font-variant-numeric:tabular-nums}
+.kefe-panel .kefe-visualiser-spin-row{
+  min-width:0;min-height:40px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:6px 8px;border:1px solid var(--line);
+  border-radius:var(--r2);background:var(--surface);
+}
+.kefe-panel .kefe-visualiser-spin-row .kefe-label{min-width:0;color:var(--text);font-size:12px}
+.kefe-panel .kefe-visualiser-spin-row .kefe-btn{
+  min-height:28px;padding:0 10px;border-radius:6px;border:1px solid var(--line);
+  background:var(--surface-lo);color:var(--text);box-shadow:none;font-size:11px;
+}
+.kefe-panel .kefe-style-color{
+  width:38px;height:32px;padding:3px;border:1px solid var(--line);
+  border-radius:6px;background:var(--surface-lo);overflow:hidden;
+}
+.kefe-panel .kefe-style-color::-webkit-color-swatch-wrapper{padding:0}
+.kefe-panel .kefe-style-color::-webkit-color-swatch{border:0;border-radius:3px}
+.kefe-panel .kefe-style-color::-moz-color-swatch{border:0;border-radius:3px}
+.kefe-panel .kefe-style-mini{min-height:28px;border-radius:6px;box-shadow:none}
+.kefe-panel .kefe-btn,
+.kefe-panel .kefe-control{border-radius:var(--r2);box-shadow:none}
+.kefe-panel .kefe-btn:hover,
+.kefe-panel .kefe-control:hover{box-shadow:0 3px 10px rgba(0,0,0,.08);transform:none}
+.kefe-panel .kefe-btn:focus-visible,
+.kefe-panel .kefe-control:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kefe-panel[data-panel-view="lyrics"] .kefe-textarea{min-height:220px}
+.kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group,
+.kefe-panel[data-panel-view="visualiser"] #visualiserPresetGrid{min-width:0}
+.kefe-panel .kefe-visualiser-spin-row .kefe-btn.kefe-switch{
+  position:relative;width:34px;min-width:34px;height:20px;min-height:20px;padding:0;
+  overflow:hidden;border:0;border-radius:999px;background:var(--surface-lo);color:transparent;
+  font-size:0;line-height:0;box-shadow:none;
+}
+.kefe-panel .kefe-visualiser-spin-row .kefe-btn.kefe-switch::after{
+  content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;
+  border-radius:50%;background:var(--muted);transition:transform .16s ease,background .16s ease;
+}
+.kefe-panel .kefe-visualiser-spin-row .kefe-btn.kefe-switch[aria-pressed="true"]{background:var(--accent)}
+.kefe-panel .kefe-visualiser-spin-row .kefe-btn.kefe-switch[aria-pressed="true"]::after{
+  background:var(--surface-hi);transform:translateX(14px);
+}
+.kefe-panel .kefe-style-color-row{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;
+}
+.kefe-panel .kefe-style-color-row>.kefe-label{grid-column:1;grid-row:1;align-self:center}
+.kefe-panel .kefe-style-color-row>.kefe-style-color-wrap{grid-column:2;grid-row:1;min-width:0}
+.kefe-panel .kefe-style-color-swatches{
+  grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+}
+.kefe-panel .kefe-style-swatch{
+  display:grid;place-items:center;width:22px;height:22px;flex:0 0 22px;padding:0;
+  border:1px solid transparent;border-radius:50%;background:transparent;cursor:pointer;
+}
+.kefe-panel .kefe-style-swatch::before{
+  content:"";display:block;width:18px;height:18px;border:1px solid rgba(127,127,135,.4);
+  border-radius:50%;background:var(--swatch-color);
+}
+.kefe-panel .kefe-style-swatch[aria-pressed="true"]{
+  border-color:var(--accent);box-shadow:0 0 0 1px var(--surface),0 0 0 2px var(--accent);
+}
+.kefe-panel .kefe-style-swatch:focus-visible,
+.kefe-panel .kefe-visualiser-spin-row .kefe-btn.kefe-switch:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;
+}
+.kefe-btn,.kefe-control,.kefe-play{box-shadow:none}
+.kefe-btn:hover,.kefe-control:hover,.kefe-play:hover{box-shadow:0 5px 14px rgba(0,0,0,.09)}
+.kefe-site-footer{
+  grid-column:2;grid-row:2;width:calc(100% - clamp(24px,4vw,56px));max-width:1200px;
+  margin:0 auto;padding:8px 18px;
+  border-top:1px solid var(--line);background:var(--bg);
+}
+/* The editor inherits the shared day/night palette from styles.css.
+   Do not redefine core design tokens inside .kefe-editor. */
+@media(max-width:900px){
+  .kefe-editor{grid-template-columns:190px minmax(0,1fr)}
+  .kefe-top,.kefe-timeline,.kefe-site-footer{width:calc(100% - 24px)}
+  .kefe-sidebar{padding-inline:9px}
+  .kefe-sidebar-link{gap:7px;padding-inline:8px}
+  .kefe-panels{padding:12px 12px 24px}
+  .kefe-panel{padding:16px}
+  .kefe-preview{padding:10px 12px 6px}
+}
+@media(max-width:640px){
+  .kefe-editor{height:auto;min-height:100vh;min-height:100dvh;grid-template-columns:minmax(0,1fr);grid-template-rows:48px auto auto}
+  .kefe-sidebar{
+    grid-column:1;grid-row:1;min-height:48px;height:48px;flex-direction:row;
+    align-items:center;gap:6px;padding:4px 8px;border-right:0;
+    border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden;
+  }
+  .kefe-sidebar-brand{flex:0 0 auto;width:auto;height:36px;padding:0 5px;gap:5px;font-size:15px}
+  .kefe-sidebar-brand img{width:23px;height:23px}
+  .kefe-sidebar-group{display:flex;align-items:center;gap:3px;flex:0 0 auto}
+  .kefe-sidebar-label{display:none}
+  .kefe-sidebar-link{width:auto;min-height:32px;height:32px;white-space:nowrap;padding:0 8px;font-size:11px}
+  .kefe-sidebar-link>span{width:auto;flex-basis:auto;font-size:14px}
+  .kefe-sidebar-bottom{display:flex;gap:3px;margin:0;padding:0;border:0;flex:0 0 auto}
+  .kefe-top{grid-column:1;grid-row:2;width:calc(100% - 16px);margin:3px auto 0;height:46px;padding-inline:5px}
+  .kefe-top-profile{gap:2px}
+  .kefe-top-profile .kefe-top-link{padding-inline:8px;font-size:11px}
+  .kefe-work{grid-column:1;grid-row:2;grid-template-rows:auto 48px auto}
+  .kefe-site-footer{grid-row:3}
+  .kefe-timeline{width:calc(100% - 16px);padding-inline:5px}
+  .kefe-site-footer{width:calc(100% - 16px)}
+  .kefe-preview{padding:8px 8px 4px}
+  .kefe-stage.is-16x9{width:min(100%,92.45vh)}
+  .kefe-stage.is-9x16{width:min(100%,29.25vh)}
+  .kefe-stage.is-1x1{width:min(100%,52vh)}
+  .kefe-timeline{padding:5px 7px;gap:5px}
+  .kefe-panels{padding:8px 8px 22px}
+  .kefe-panel{padding:14px;border-radius:10px}
+  .kefe-panel-head{display:flex;align-items:flex-start;flex-direction:column;gap:6px;margin-bottom:14px}
+  .kefe-panel-head .kefe-meta{text-align:left}
+  .kefe-form{gap:14px}
+  .kefe-site-footer{display:none}
+  .kefe-time{min-width:58px}
+  .kefe-aspect-controls{min-width:56px;flex-basis:56px}
+}
+@media(prefers-reduced-motion:reduce){
+  .kefe-stage{transition:none;will-change:auto}
+  .kefe-sidebar-link{transition:none}
+  .kefe-panel,.kefe-btn,.kefe-control,.kefe-style-swatch,.kefe-visualiser-spin-row .kefe-switch::after{transition:none}
+}
+
+/* Slider layout inside editor panels. The track and thumb come from the beUI slider block at the end of this file. */
+.kefe-panel input[type="range"]:not(#kefeTime){
+  display:block;width:100%;min-width:0;height:28px;min-height:28px;
+  margin:8px 0 2px;padding:0;border:0;border-radius:0;touch-action:pan-y;
+}
+
+
+.kefe-gradient-stop{grid-template-columns:36px minmax(0,1fr) 38px 32px}
+.kefe-gradient-stop-value{min-width:0;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums;text-align:right}
+@media(max-width:640px){.kefe-gradient-stop{grid-template-columns:30px minmax(0,1fr) 34px 28px;gap:6px}}
+
+
+/* Integrated beUI workspace layer — native KEFE controls, no demo-only UI. */
+.kefe-top{
+  background:color-mix(in srgb,var(--surface) 82%,transparent);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+  box-shadow:0 8px 28px rgba(0,0,0,.08);
+}
+.kefe-sidebar{
+  background:color-mix(in srgb,var(--surface-lo) 94%,transparent);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+}
+.kefe-sidebar-brand-row{display:flex;align-items:center;gap:8px;min-width:0}
+.kefe-sidebar-toggle{
+  display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;
+  border:1px solid var(--line);border-radius:8px;background:var(--surface);
+  color:var(--muted);font-size:16px;cursor:pointer;
+  transition:background .16s ease,color .16s ease,border-color .16s ease;
+}
+.kefe-sidebar-toggle:hover{background:color-mix(in srgb,var(--accent) 10%,var(--surface));color:var(--text);border-color:color-mix(in srgb,var(--accent) 36%,var(--line))}
+.kefe-sidebar-brand-row .kefe-sidebar-brand{min-width:0;flex:1}
+.kefe-sidebar-theme{display:grid;gap:9px;padding:12px 10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kefe-theme-swatches{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.kefe-theme-swatches button{
+  display:grid;place-items:center;width:22px;height:22px;padding:0;border-radius:50%;
+  border:2px solid color-mix(in srgb,var(--text) 18%,transparent);
+  background:var(--swatch);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;
+}
+.kefe-theme-swatches button:hover{transform:scale(1.1)}
+.kefe-theme-swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--swatch)}
+.kefe-theme-swatches button:focus-visible,.kefe-sidebar-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.kefe-command-trigger{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:8px;padding-inline:10px;font-size:11px!important}
+.kefe-command-trigger kbd,.kefe-command-search kbd,.kefe-command-list kbd{
+  padding:2px 5px;border:1px solid var(--line);border-radius:4px;
+  color:var(--muted);font:10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.kefe-workspace-dock{
+  position:fixed;z-index:1000;left:50%;bottom:max(12px,env(safe-area-inset-bottom));
+  transform:translateX(-50%);display:flex;align-items:center;gap:5px;
+  padding:7px;border:1px solid var(--line);border-radius:17px;
+  background:color-mix(in srgb,var(--surface) 84%,transparent);
+  -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
+  box-shadow:0 12px 36px rgba(0,0,0,.22);
+}
+.kefe-workspace-dock button{
+  position:relative;display:grid;place-items:center;width:40px;height:40px;padding:0;
+  border:1px solid transparent;border-radius:11px;background:transparent;color:var(--muted);
+  font-size:20px;cursor:pointer;transition:background .16s ease,color .16s ease,transform .16s ease;
+}
+.kefe-workspace-dock button:hover{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--text);transform:translateY(-2px)}
+.kefe-workspace-dock button[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 16%,transparent);border-color:color-mix(in srgb,var(--accent) 30%,transparent);color:var(--text);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 12%,transparent)}
+.kefe-workspace-dock button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kefe-dock-separator{width:1px;height:24px;margin:0 3px;background:var(--line)}
+.kefe-command-overlay[hidden]{display:none}
+.kefe-command-overlay{
+  position:fixed;inset:0;z-index:1100;display:flex;align-items:flex-start;justify-content:center;
+  padding:clamp(70px,15vh,150px) 16px 24px;background:rgba(0,0,0,.52);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+}
+.kefe-command-dialog{
+  width:min(100%,520px);max-height:min(70vh,560px);overflow:hidden;
+  border:1px solid var(--line);border-radius:13px;background:var(--surface);
+  color:var(--text);box-shadow:0 24px 80px rgba(0,0,0,.32);
+}
+.kefe-command-search{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line);color:var(--muted)}
+.kefe-command-search>span{font-size:20px}
+.kefe-command-search input{flex:1;min-width:0;height:34px;border:0;outline:0;background:transparent;color:var(--text);font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+.kefe-command-list{display:grid;gap:3px;padding:8px;overflow:auto;max-height:calc(min(70vh,560px) - 62px)}
+.kefe-command-list button{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:38px;padding:0 11px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--text);text-align:left;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer}
+.kefe-command-list button:hover,.kefe-command-list button:focus-visible{outline:0;background:color-mix(in srgb,var(--accent) 12%,transparent);border-color:color-mix(in srgb,var(--accent) 20%,transparent)}
+.kefe-command-list button[hidden]{display:none}
+.kefe-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.kefe-panel,.kefe-visualiser-control-group,.kefe-font-card,.kefe-media-track{
+  box-shadow:0 10px 30px rgba(0,0,0,.035);
+}
+.kefe-panel .kefe-btn.primary,.kefe-panel .kefe-btn.primary:hover{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+}
+.kefe-panel .kefe-select:focus-visible,.kefe-panel .kefe-input:focus-visible,.kefe-panel .kefe-textarea:focus-visible{
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent);
+}
+.kefe-sidebar-link.is-current{box-shadow:inset 2px 0 0 var(--accent)}
+@media(min-width:641px){
+.kefe-editor.sidebar-collapsed{grid-template-columns:72px minmax(0,1fr)}
+.kefe-editor.sidebar-collapsed .kefe-sidebar{padding-inline:8px;gap:18px}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-brand-row{flex-direction:column;gap:9px}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-brand{justify-content:center;padding:0}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-brand span,
+.kefe-editor.sidebar-collapsed .kefe-sidebar-label{display:none}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-link{justify-content:center;gap:0;padding-inline:0;font-size:0}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-link>span{width:100%;flex-basis:100%;font-size:17px}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-theme{padding:10px 0}
+.kefe-editor.sidebar-collapsed .kefe-theme-swatches{justify-content:center;gap:7px}
+.kefe-editor.sidebar-collapsed .kefe-theme-swatches button{width:17px;height:17px}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-github{font-size:0}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-github>span{font-size:17px}
+.kefe-editor.sidebar-collapsed .kefe-sidebar-toggle{transform:rotate(180deg)}
+}
+body:has(.kefe-workspace-dock){padding-bottom:82px}
+@media(min-width:641px) and (max-width:900px){
+  .kefe-editor.sidebar-collapsed{grid-template-columns:68px minmax(0,1fr)}
+  .kefe-editor.sidebar-collapsed .kefe-sidebar{padding-inline:7px}
+  .kefe-editor.sidebar-collapsed .kefe-theme-swatches{gap:5px}
+}
+@media(max-width:640px){
+  body:has(.kefe-workspace-dock){padding-bottom:74px}
+  .kefe-command-trigger span,.kefe-command-trigger kbd{display:none}
+  .kefe-command-trigger{width:34px;justify-content:center;padding:0;font-size:18px!important}
+  .kefe-workspace-dock{gap:2px;padding:6px;border-radius:14px}
+  .kefe-workspace-dock button{width:36px;height:36px}
+}
+@media(prefers-reduced-motion:reduce){
+  .kefe-sidebar-toggle,.kefe-theme-swatches button,.kefe-workspace-dock button{transition:none}
+}
+
+
+
+.kefe-volume-control{position:relative;display:flex;align-items:center;justify-content:center;min-width:30px;flex:0 0 30px;overflow:visible}
+.kefe-volume-control>button{display:grid;place-items:center;width:30px;height:34px;padding:0;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font-size:18px;cursor:pointer;touch-action:manipulation}
+.kefe-volume-control>button:hover,.kefe-volume-control>button[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+.kefe-volume-popover{position:absolute;right:0;bottom:calc(100% + 10px);z-index:100;display:flex;align-items:center;gap:10px;width:min(220px,calc(100vw - 24px));padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 12px 34px rgba(0,0,0,.28)}
+.kefe-volume-popover[hidden]{display:none!important}
+.kefe-volume-popover label{flex:0 0 auto;color:var(--muted);font-size:12px;font-weight:650}
+.kefe-volume-popover input[type="range"].beui-slider{appearance:none;-webkit-appearance:none;flex:1;min-width:0;width:100%;height:24px;margin:0;background:transparent;cursor:pointer;accent-color:var(--accent)}
+.kefe-volume-popover input[type="range"].beui-slider::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line)}
+.kefe-volume-popover input[type="range"].beui-slider::-webkit-slider-thumb{-webkit-appearance:none;width:6px;height:14px;margin-top:-5px;border:0;border-radius:2px;background:var(--accent);box-shadow:0 0 8px color-mix(in srgb,var(--accent) 60%,transparent)}
+.kefe-volume-popover input[type="range"].beui-slider::-moz-range-track{height:4px;border-radius:2px;background:var(--line)}
+.kefe-volume-popover input[type="range"].beui-slider::-moz-range-thumb{width:6px;height:14px;border:0;border-radius:2px;background:var(--accent)}
+.kefe-volume-popover output{flex:0 0 34px;color:var(--muted);font:11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;text-align:right;font-variant-numeric:tabular-nums}
+.kefe-volume-control button:focus-visible,.kefe-volume-control input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:640px){.kefe-volume-popover{right:0;bottom:calc(100% + 8px);width:min(210px,calc(100vw - 20px));gap:8px;padding:10px}.kefe-volume-control>button{width:30px;height:34px}}
+
+
+.kefe-editor .kefe-timeline{position:relative;z-index:20;overflow:visible;grid-template-columns:auto minmax(0,1fr) 64px 30px;align-items:center}
+@media(max-width:700px){
+  .kefe-editor .kefe-timeline{grid-template-columns:68px minmax(0,1fr) 52px 30px;gap:6px;padding:6px 8px}
+  .kefe-editor .kefe-timeline .kefe-wave{height:40px;padding:0 10px}
+  .kefe-editor .kefe-timeline .kefe-slider{height:40px}
+}
+@media(max-width:380px){
+  .kefe-editor .kefe-timeline{grid-template-columns:60px minmax(0,1fr) 44px 30px;gap:4px;padding:5px 6px}
+  .kefe-editor .kefe-timeline .kefe-aspect-controls{width:44px;min-width:44px;flex-basis:44px}
+}
+
+/* Migration fixes: one source order for the transport row, a mobile nav strip that
+   never spills, and top-bar actions that keep their labels. */
+.kefe-sidebar-brand{color:var(--text);text-decoration:none}
+.kefe-editor .kefe-timeline>.kefe-transport{order:1}
+.kefe-editor .kefe-timeline>.kefe-wave{order:2;min-width:0}
+.kefe-editor .kefe-timeline>.kefe-aspect-controls{order:3}
+.kefe-editor .kefe-timeline>.kefe-volume-control{order:4}
+.kefe-editor .kefe-timeline .kefe-wave .kefe-time{position:absolute;inset:0 12px;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:5px;min-width:0;width:auto;text-align:left;pointer-events:none;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text)}
+.kefe-editor .kefe-timeline .kefe-wave .kefe-time span{padding:2px 4px;border-radius:5px;background:color-mix(in srgb,var(--surface) 82%,transparent);white-space:nowrap}
+.kefe-editor .kefe-timeline .kefe-wave .kefe-time span[aria-hidden="true"]{display:none}
+.kefe-editor .kefe-timeline .kefe-wave .playhead{z-index:2}
+.kefe-editor .kefe-timeline .kefe-wave #kefeTime{z-index:4}
+@media(max-width:640px){
+  .kefe-sidebar-toggle,.kefe-sidebar-theme,.kefe-sidebar-label{display:none}
+  .kefe-sidebar-brand-row{flex:0 0 auto}
+  .kefe-top-profile .kefe-top-link:not(.kefe-command-trigger):not(.kefe-github-link){flex:0 0 auto;width:auto;min-width:0;overflow:visible;white-space:nowrap}
+}
+
+/* beUI Motion Range Slider styling shared by every editor/settings range control.
+   Only the media transport scrubber stays on its dedicated timeline styling. */
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider){
+  -webkit-appearance:none;appearance:none;display:block;width:100%;height:40px;min-height:40px;
+  margin:0;padding:0;border:0;border-radius:8px;overflow:visible;background:transparent;
+  cursor:pointer;accent-color:var(--accent);touch-action:pan-y;
+}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-webkit-slider-runnable-track{
+  height:40px;border:0;border-radius:8px;
+  background:
+    radial-gradient(circle,color-mix(in srgb,var(--text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc(11.111% - 1.78px) 4px repeat-x,
+    linear-gradient(to right,color-mix(in srgb,var(--accent) 20%,var(--surface)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--text) 7%,var(--surface)) var(--kefe-slider-progress,0%) 100%);
+  box-shadow:inset 0 1px 2px color-mix(in srgb,var(--text) 5%,transparent);
+}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:4px;height:24px;margin-top:8px;border:0;border-radius:999px;
+  background:var(--text);cursor:grab;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--surface) 35%,transparent);
+  transition:transform .16s cubic-bezier(.2,.8,.2,1);
+}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-moz-range-track{
+  height:40px;border:0;border-radius:8px;
+  background:
+    radial-gradient(circle,color-mix(in srgb,var(--text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc(11.111% - 1.78px) 4px repeat-x,
+    linear-gradient(to right,color-mix(in srgb,var(--accent) 20%,var(--surface)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--text) 7%,var(--surface)) var(--kefe-slider-progress,0%) 100%);
+  box-shadow:inset 0 1px 2px color-mix(in srgb,var(--text) 5%,transparent);
+}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-moz-range-thumb{
+  width:4px;height:24px;border:0;border-radius:999px;background:var(--text);cursor:grab;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--surface) 35%,transparent);
+  transition:transform .16s cubic-bezier(.2,.8,.2,1);
+}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):hover::-webkit-slider-thumb,
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):active::-webkit-slider-thumb{transform:scaleY(1.3)}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):hover::-moz-range-thumb,
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):active::-moz-range-thumb{transform:scaleY(1.3)}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):disabled{opacity:.45;cursor:not-allowed}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider{
+  height:40px;min-height:40px;border-radius:8px;touch-action:pan-x;
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-webkit-slider-runnable-track{
+  height:40px;border:0;border-radius:8px;
+  background:
+    radial-gradient(circle,color-mix(in srgb,var(--text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc(11.111% - 1.78px) 4px repeat-x,
+    linear-gradient(to right,color-mix(in srgb,var(--accent) 20%,var(--surface)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--text) 7%,var(--surface)) var(--kefe-slider-progress,0%) 100%);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-moz-range-track{
+  height:40px;border:0;border-radius:8px;
+  background:
+    radial-gradient(circle,color-mix(in srgb,var(--text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc(11.111% - 1.78px) 4px repeat-x,
+    linear-gradient(to right,color-mix(in srgb,var(--accent) 20%,var(--surface)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--text) 7%,var(--surface)) var(--kefe-slider-progress,0%) 100%);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:4px;height:24px;margin-top:8px;border:0;border-radius:999px;background:var(--text);box-shadow:none;
+  transition:transform .16s cubic-bezier(.2,.8,.2,1);
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-moz-range-thumb{
+  width:4px;height:24px;border:0;border-radius:999px;background:var(--text);box-shadow:none;
+  transition:transform .16s cubic-bezier(.2,.8,.2,1);
+}
+@media(prefers-reduced-motion:reduce){
+  :is(.kefe-editor input[type="range"], .kefe-settings input[type="range"])::-webkit-slider-thumb{transition:none}
+  :is(.kefe-editor input[type="range"], .kefe-settings input[type="range"])::-moz-range-thumb{transition:none}
+}
+
+/* Modal layers sit above the floating dock. */
+.kefe-settings-backdrop{z-index:1100}
+
+
+/* beUI dock icon system: consistent 18px Lucide-style outline icons. */
+.kefe-workspace-dock button{font-size:0}
+.kefe-workspace-dock button svg{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+
+/* beUI-inspired transport controls: spring press feedback, animated aspect menu,
+   and a dedicated restart action beside play/pause. */
+.kefe-editor .kefe-transport{gap:6px}
+.kefe-editor .kefe-play.beui-button,
+.kefe-editor .kefe-restart.beui-button{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid var(--line);background:var(--surface);color:var(--text);
+  transition:transform .18s cubic-bezier(.2,.8,.2,1),background .18s ease,border-color .18s ease,box-shadow .18s ease;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.kefe-editor .kefe-aspect-trigger.kefe-aspect-native{
+  border:1px solid var(--line);background-color:var(--surface);color:var(--text);
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.kefe-editor .kefe-play.beui-button{
+  width:40px;height:40px;min-width:40px;padding:0;border-radius:999px;
+  background:var(--text);color:var(--bg);border-color:transparent;
+}
+.kefe-editor .kefe-restart.beui-button{
+  width:34px;height:34px;min-width:34px;padding:0;border-radius:999px;
+  background:var(--surface);color:var(--muted);
+}
+.kefe-editor .kefe-restart svg{width:17px;height:17px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kefe-editor .kefe-play.beui-button svg{width:18px;height:18px;display:block}
+.kefe-editor .kefe-play.beui-button:hover,
+.kefe-editor .kefe-restart.beui-button:hover{
+  transform:scale(1.02);border-color:color-mix(in srgb,var(--text) 22%,var(--line));
+}
+.kefe-editor .kefe-play.beui-button:active,
+.kefe-editor .kefe-restart.beui-button:active{transform:scale(.96)}
+.kefe-editor .kefe-play.beui-button:focus-visible,
+.kefe-editor .kefe-restart.beui-button:focus-visible,
+.kefe-editor select.kefe-aspect-trigger.kefe-aspect-native:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kefe-editor .kefe-aspect-controls{
+  position:relative;z-index:12;display:flex;align-items:center;justify-content:center;
+  width:64px;min-width:64px;flex:0 0 64px;overflow:visible;
+}
+.kefe-editor select.kefe-aspect-trigger.kefe-aspect-native{
+  display:block;appearance:none;-webkit-appearance:none;
+  width:64px;min-width:64px;height:34px;padding:0 19px 0 7px;border-radius:8px;
+  font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1;
+  color:var(--text);background-color:var(--surface);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath d='m7 10 5 5 5-5' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 5px center;background-size:12px;
+  cursor:pointer;touch-action:manipulation;
+}
+.kefe-editor select.kefe-aspect-trigger.kefe-aspect-native:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;
+}
+@media(max-width:700px){
+  .kefe-editor .kefe-transport{gap:4px}
+  .kefe-editor .kefe-play.beui-button{width:36px;height:36px;min-width:36px}
+  .kefe-editor .kefe-restart.beui-button{width:28px;height:30px;min-width:28px}
+  .kefe-editor .kefe-aspect-controls{width:52px;min-width:52px;flex-basis:52px}
+  .kefe-editor select.kefe-aspect-trigger.kefe-aspect-native{width:52px;min-width:52px;height:32px;padding:0 16px 0 5px;font-size:10px;background-position:right 3px center;background-size:10px}
+  .kefe-editor .kefe-aspect-trigger svg{width:12px;height:12px}
+}
+@media(max-width:380px){
+  .kefe-editor .kefe-aspect-controls{width:44px;min-width:44px;flex-basis:44px}
+  .kefe-editor select.kefe-aspect-trigger.kefe-aspect-native{width:44px;min-width:44px;height:30px;padding:0 13px 0 3px;font-size:9px;background-position:right 2px center;background-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .kefe-editor .kefe-play.beui-button,.kefe-editor .kefe-restart.beui-button{transition:none}
+}
+
+
+/* Keep the KEFE brand pinned while the active workspace section tracks horizontally on mobile. */
+@media(max-width:640px){
+  .kefe-sidebar-brand-row{
+    position:sticky;left:0;z-index:5;flex:0 0 auto;
+    background:var(--surface-lo);
+    box-shadow:8px 0 12px -12px var(--text);
+  }
+  .kefe-sidebar-group{scroll-margin-inline:120px}
+  .kefe-sidebar-link.is-current{
+    background:color-mix(in srgb,var(--accent) 18%,var(--surface));
+    border-color:color-mix(in srgb,var(--accent) 52%,var(--line));
+    color:var(--text);
+    box-shadow:inset 0 -2px 0 var(--accent);
+  }
+  .kefe-sidebar{scroll-behavior:smooth;scrollbar-width:none}
+  .kefe-sidebar::-webkit-scrollbar{display:none}
+}
+
+/* Final workspace rhythm normalization.
+   Keep the three primary rows separated by one shared gap; vertical padding
+   belongs inside each component, not on both sides of the same boundary. */
+.kefe-editor .kefe-work{
+  row-gap:var(--section-gap);
+}
+.kefe-editor .kefe-preview{
+  padding-bottom:0;
+}
+.kefe-editor .kefe-timeline{
+  padding-top:0;
+  padding-bottom:0;
+}
+.kefe-editor .kefe-panels{
+  padding-top:0;
+}
+.kefe-editor .kefe-panel{
+  padding:clamp(12px,2vw,24px);
+  border-radius:var(--r3);
+}
+.kefe-editor .kefe-panel-head{
+  margin-bottom:var(--s3);
+  padding-bottom:var(--s3);
+}
+.kefe-editor .kefe-form{
+  gap:var(--s3);
+}
+@media(max-width:640px){
+  .kefe-editor .kefe-panel-head{
+    margin-bottom:var(--s2);
+    padding-bottom:var(--s2);
+  }
+  .kefe-editor .kefe-form{
+    gap:var(--section-gap);
+  }
+}
+
+/* Desktop navigation: reuse the mobile horizontal navigation pattern without
+   changing the mobile rules or the editor's internal layout. */
+@media(min-width:641px){
+  .kefe-editor{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto auto;
+  }
+  .kefe-sidebar{
+    grid-column:1;grid-row:1;min-width:0;min-height:56px;height:auto;
+    flex-direction:row;align-items:center;gap:8px;
+    box-sizing:border-box;width:100%;padding:8px 12px;
+    border-right:0;border-bottom:1px solid var(--line);
+    overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;
+  }
+  .kefe-sidebar-brand-row{flex:0 0 auto;gap:6px}
+  .kefe-sidebar-brand-row .kefe-sidebar-brand{
+    min-width:0;flex:0 0 auto;width:auto;height:36px;padding:0 5px;gap:5px;font-size:15px;
+  }
+  .kefe-sidebar-group{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+  .kefe-sidebar-label{display:none}
+  .kefe-sidebar-link{
+    width:auto;min-height:36px;height:36px;flex:0 0 auto;
+    gap:8px;padding:0 10px;white-space:nowrap;
+  }
+  .kefe-sidebar-link>span{width:auto;flex:0 0 auto}
+  .kefe-sidebar-theme{
+    display:flex;align-items:center;gap:8px;flex:0 0 auto;padding:0 8px;
+    border-top:0;border-bottom:0;border-left:1px solid var(--line);
+    border-right:1px solid var(--line);
+  }
+  .kefe-theme-swatches{flex-wrap:nowrap;gap:7px}
+  .kefe-sidebar-toggle{display:none}
+  .kefe-sidebar-bottom{
+    display:flex;align-items:center;gap:4px;flex:0 0 auto;
+    margin:0 0 0 auto;padding:0;border:0;
+  }
+  .kefe-work{grid-column:1;grid-row:2}
+  .kefe-site-footer{grid-column:1;grid-row:3}
+}
+
+
+/* KEFE beUI — site-wide component consistency contract.
+   One token system owns spacing, surfaces, control geometry and typography.
+   Purpose-specific previews and artwork keep their own visual treatment. */
+.kefe-editor,
+.kefe-editor button,
+.kefe-editor input,
+.kefe-editor select,
+.kefe-editor textarea,
+.kefe-settings,
+.kefe-settings button,
+.kefe-settings input,
+.kefe-settings select,
+.kefe-settings textarea{
+  font-family:var(--font-ui);
+}
+.kefe-editor{
+  color:var(--text);
+  gap:0;
+}
+.kefe-editor .kefe-top,
+.kefe-editor .kefe-panel,
+.kefe-editor .kefe-song-search,
+.kefe-editor .kefe-lyric-settings,
+.kefe-editor .kefe-lyric-effects-control,
+.kefe-editor .kefe-font-selector-control,
+.kefe-editor .kefe-visualiser-control-group,
+.kefe-editor .kefe-fluid-ink-controls,
+.kefe-editor .kefe-slow-light-settings{
+  border-color:var(--line);
+  border-radius:var(--r3);
+}
+.kefe-editor .kefe-panel{
+  background:var(--surface);
+  box-shadow:none;
+}
+.kefe-editor .kefe-panel-head{
+  gap:var(--s3);
+  border-color:var(--line);
+}
+.kefe-editor .kefe-panel-head h2,
+.kefe-editor .kefe-label,
+.kefe-editor .kefe-visualiser-field > span,
+.kefe-editor .kefe-meta{
+  font-family:var(--font-ui);
+}
+.kefe-editor .kefe-panel .kefe-form{
+  align-items:start;
+  gap:var(--s3);
+}
+.kefe-editor .kefe-panel .kefe-select,
+.kefe-editor .kefe-panel .kefe-input,
+.kefe-editor .kefe-panel .kefe-textarea,
+.kefe-editor .kefe-panel input[type="text"],
+.kefe-editor .kefe-panel input[type="number"],
+.kefe-editor .kefe-panel input[type="search"],
+.kefe-editor .kefe-panel input[type="url"],
+.kefe-editor .kefe-panel select,
+.kefe-editor .kefe-panel textarea{
+  box-sizing:border-box;
+  max-width:100%;
+  border:1px solid var(--line);
+  border-radius:var(--r2);
+  background:var(--surface-lo);
+  color:var(--text);
+  box-shadow:none;
+  font:inherit;
+}
+.kefe-editor .kefe-panel .kefe-select,
+.kefe-editor .kefe-panel .kefe-input,
+.kefe-editor .kefe-panel input[type="text"],
+.kefe-editor .kefe-panel input[type="number"],
+.kefe-editor .kefe-panel input[type="search"],
+.kefe-editor .kefe-panel input[type="url"],
+.kefe-editor .kefe-panel select{
+  min-height:var(--control-h);
+  padding-inline:var(--control-pad);
+}
+.kefe-editor .kefe-panel .kefe-textarea,
+.kefe-editor .kefe-panel textarea{
+  padding:var(--control-pad);
+}
+.kefe-editor .kefe-panel .kefe-select:focus-visible,
+.kefe-editor .kefe-panel .kefe-input:focus-visible,
+.kefe-editor .kefe-panel .kefe-textarea:focus-visible,
+.kefe-editor .kefe-panel input:focus-visible,
+.kefe-editor .kefe-panel select:focus-visible,
+.kefe-editor .kefe-panel textarea:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+.kefe-editor .kefe-panel .kefe-btn,
+.kefe-editor .kefe-panel .kefe-control,
+.kefe-editor .kefe-panel .kefe-song-search-button,
+.kefe-editor .kefe-panel .kefe-style-mini{
+  box-sizing:border-box;
+  border-radius:var(--r2);
+  font:inherit;
+  transition:background-color .14s ease,border-color .14s ease,box-shadow .14s ease,transform .14s ease;
+}
+.kefe-editor .kefe-panel .kefe-btn:not(.kefe-switch):not(.kefe-style-swatch):not(.kefe-style-color),
+.kefe-editor .kefe-panel .kefe-control,
+.kefe-editor .kefe-panel .kefe-song-search-button{
+  min-height:var(--control-h);
+}
+.kefe-editor .kefe-panel .kefe-btn:focus-visible,
+.kefe-editor .kefe-panel .kefe-control:focus-visible,
+.kefe-editor .kefe-panel .kefe-song-search-button:focus-visible,
+.kefe-editor .kefe-panel .kefe-style-mini:focus-visible,
+.kefe-editor .kefe-panel .kefe-background-effect-card:focus-visible,
+.kefe-editor .kefe-panel .kefe-lyric-effect-option:focus-visible,
+.kefe-editor .kefe-panel .kefe-font-option:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+.kefe-editor .kefe-panel .kefe-visualiser-control-group,
+.kefe-editor .kefe-panel .kefe-lyric-settings,
+.kefe-editor .kefe-panel .kefe-lyric-effects-control,
+.kefe-editor .kefe-panel .kefe-font-selector-control,
+.kefe-editor .kefe-panel .kefe-fluid-ink-controls,
+.kefe-editor .kefe-panel .kefe-slow-light-settings{
+  box-sizing:border-box;
+  min-width:0;
+  max-width:100%;
+  padding:var(--s3);
+  border:1px solid var(--line);
+  border-radius:var(--r2);
+  background:var(--surface-lo);
+  box-shadow:none;
+}
+.kefe-editor .kefe-panel .kefe-visualiser-control-group + .kefe-visualiser-control-group,
+.kefe-editor .kefe-panel .kefe-lyric-settings + .kefe-lyric-settings,
+.kefe-editor .kefe-panel .kefe-lyric-effects-control + .kefe-lyric-effects-control{
+  margin-top:0;
+}
+.kefe-editor .kefe-panel .kefe-visualiser-field{
+  min-width:0;
+  max-width:100%;
+  gap:var(--s2);
+}
+.kefe-editor .kefe-panel .kefe-visualiser-field output,
+.kefe-editor .kefe-panel .kefe-time,
+.kefe-editor .kefe-panel output{
+  font-variant-numeric:tabular-nums;
+}
+.kefe-editor .kefe-panel .kefe-upload-zone{
+  border-color:var(--line);
+  border-radius:var(--r2);
+  background:var(--surface);
+}
+.kefe-editor .kefe-panel .kefe-upload-zone:hover,
+.kefe-editor .kefe-panel .kefe-upload-zone.is-dragging{
+  border-color:var(--accent);
+}
+.kefe-editor .kefe-panel .kefe-song-search{
+  padding:var(--s3);
+  background:var(--surface-lo);
+}
+.kefe-editor .kefe-panel .kefe-grid,
+.kefe-editor .kefe-panel .kefe-lyric-effect-grid,
+.kefe-editor .kefe-panel .kefe-background-effect-options{
+  gap:var(--grid-gap);
+}
+.kefe-editor .kefe-panel .kefe-card{
+  box-sizing:border-box;
+  min-width:0;
+  border-radius:var(--r2);
+}
+.kefe-editor .kefe-panel .kefe-lyric-effect-option,
+.kefe-editor .kefe-panel .kefe-font-option,
+.kefe-editor .kefe-panel .kefe-background-effect-card{
+  box-sizing:border-box;
+  min-width:0;
+  border-radius:var(--r2);
+}
+.kefe-editor .kefe-panel .kefe-style-color{
+  border-radius:var(--r1);
+}
+.kefe-editor .kefe-panel input[type="range"]:not(#kefeTime):not(.kefe-slider){
+  max-width:100%;
+  accent-color:var(--accent);
+}
+@media(max-width:700px){
+  .kefe-editor .kefe-panels{
+    padding-inline:var(--s2);
+  }
+  .kefe-editor .kefe-panel{
+    padding:var(--s3);
+  }
+  .kefe-editor .kefe-panel .kefe-form{
+    gap:var(--s2);
+  }
+  .kefe-editor .kefe-panel .kefe-visualiser-control-group,
+  .kefe-editor .kefe-panel .kefe-lyric-settings,
+  .kefe-editor .kefe-panel .kefe-lyric-effects-control,
+  .kefe-editor .kefe-panel .kefe-font-selector-control,
+  .kefe-editor .kefe-panel .kefe-fluid-ink-controls,
+  .kefe-editor .kefe-panel .kefe-slow-light-settings{
+    padding:var(--s2);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .kefe-editor .kefe-panel .kefe-btn,
+  .kefe-editor .kefe-panel .kefe-control,
+  .kefe-editor .kefe-panel .kefe-card,
+  .kefe-editor .kefe-panel .kefe-lyric-effect-option,
+  .kefe-editor .kefe-panel .kefe-font-option,
+  .kefe-editor .kefe-panel .kefe-background-effect-card{
+    transition:none;
+  }
+}
