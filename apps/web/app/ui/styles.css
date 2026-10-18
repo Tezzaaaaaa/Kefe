@@ -7545,3 +7545,31 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   }
 }
 
+/* Slow Light controls share the canonical editor layout and typography tokens. */
+.kefe-slow-light-scenes {
+  display:flex;
+  flex-wrap:nowrap;
+  gap:var(--s2);
+  min-width:0;
+  overflow-x:auto;
+  overflow-y:hidden;
+}
+.kefe-slow-light-auto {
+  display:flex;
+  align-items:center;
+  gap:var(--s2);
+  padding:var(--s2) 0;
+  color:var(--text);
+  font-size:var(--font-sm);
+}
+.kefe-slow-light-power {
+  margin-left:auto;
+  min-width:58px;
+}
+.kefe-slow-light-view {
+  gap:var(--s3);
+}
+.kefe-slow-light-view[hidden] {
+  display:none;
+}
+
