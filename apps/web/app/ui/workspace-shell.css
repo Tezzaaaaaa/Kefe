@@ -887,3 +887,68 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
     transition:none;
   }
 }
+
+
+/* Canonical component contract: every editor control uses the same KEFE tokens.
+   Individual effects may style their artwork, never their surrounding UI geometry. */
+.kefe-editor {
+  --component-radius: var(--r2);
+  --component-control-height: var(--control-h);
+  --component-tab-height: var(--tab-h);
+  --component-gap: var(--control-gap);
+}
+.kefe-editor :is(button, input, select, textarea) {
+  font-family: var(--font-ui);
+}
+.kefe-editor :is(.kefe-btn, .kefe-control, .kefe-top-link, .kefe-sidebar-link,
+  .kefe-vis-option > [role="tab"], .kefe-tabs [role="tab"],
+  .kefe-subtabs [role="tab"], .kefe-lyric-tabs [role="tab"]) {
+  box-sizing: border-box;
+  border-radius: var(--component-radius);
+  font-family: var(--font-ui);
+}
+.kefe-editor :is(.kefe-btn, .kefe-control) {
+  min-height: var(--component-control-height);
+}
+.kefe-editor :is(.kefe-vis-option > [role="tab"], .kefe-tabs [role="tab"],
+  .kefe-subtabs [role="tab"], .kefe-lyric-tabs [role="tab"]) {
+  min-width: 0;
+  min-height: var(--component-tab-height);
+  height: var(--component-tab-height);
+  padding: 0 var(--control-pad);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--component-gap);
+  line-height: var(--line-tight);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.kefe-editor :is(.kefe-vis-option, .kefe-lyric-effect-option,
+  .kefe-background-effect-card, .kefe-font-option, .kefe-card) {
+  box-sizing: border-box;
+  min-width: 0;
+}
+.kefe-editor :is(.kefe-visualiser-control-group, .kefe-fluid-ink-controls,
+  .kefe-slow-light-settings, .kefe-lyric-settings, .kefe-lyric-effects-control,
+  .kefe-font-selector-control) {
+  gap: var(--component-gap);
+  border-radius: var(--component-radius);
+}
+.kefe-editor :is(.kefe-vis-tabs, .kefe-tabs, .kefe-subtabs, .kefe-lyric-tabs) {
+  gap: var(--component-gap);
+}
+.kefe-editor :is(button, [role="tab"], input, select, textarea):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+@media (max-width: 700px) {
+  .kefe-editor :is(.kefe-vis-option > [role="tab"], .kefe-tabs [role="tab"],
+    .kefe-subtabs [role="tab"], .kefe-lyric-tabs [role="tab"]) {
+    min-height: var(--component-tab-height);
+    height: auto;
+    padding: var(--s1) var(--s2);
+  }
+}
