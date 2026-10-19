@@ -26,12 +26,12 @@
     var empty=form.querySelector('.kefe-empty-panel');
     form.classList.add('kefe-media-steps');
 
-    function step(n,title,hint){
+    function step(title,hint){
       var s=mk('section','kefe-step');
-      s.innerHTML='<header class="kefe-step-head"><span class="kefe-step-num">'+n+'</span><div><h3>'+title+'</h3><p>'+hint+'</p></div></header>';
+      s.innerHTML='<header class="kefe-step-head"><div><h3>'+title+'</h3><p>'+hint+'</p></div></header>';
       var body=mk('div','kefe-step-body');s.appendChild(body);s.body=body;return s;
     }
-    var s2=step(1,'Find your song','Upload a file or search for a track.');
+    var s2=step('Find your song','Upload audio or video, then search for the matching track.');
     s2.classList.add('kefe-find-step');
 
     var details=mk('div','kefe-song-details');
@@ -58,12 +58,12 @@
     var w=mk('div','kefe-find');
     w.innerHTML=
       '<div class="kefe-find-bar">'+
-        '<div class="kefe-search" id="kefeFindBox"><input type="text" id="kefeFindInput" placeholder="Search artists, albums, songs…" autocomplete="off" spellcheck="false" aria-label="Search songs and albums"><button type="button" class="kefe-search-clear" id="kefeFindClear" aria-label="Clear search">✕</button></div>'+
-        '<div class="kefe-chips" id="kefeFindFilters" role="group" aria-label="Result type"><button type="button" class="kefe-chip active" data-f="all">All</button><button type="button" class="kefe-chip" data-f="song">Songs</button><button type="button" class="kefe-chip" data-f="album">Albums</button></div>'+
+        '<div class="kefe-search" id="kefeFindBox"><input type="text" id="kefeFindInput" placeholder="Search artists, albums or tracks…" autocomplete="off" spellcheck="false" aria-label="Search tracks and albums"><button type="button" class="kefe-search-clear" id="kefeFindClear" aria-label="Clear search">✕</button></div>'+
+        '<div class="kefe-chips" id="kefeFindFilters" role="group" aria-label="Filter results by type"><button type="button" class="kefe-chip active" data-f="all">All</button><button type="button" class="kefe-chip" data-f="song">Songs</button><button type="button" class="kefe-chip" data-f="album">Albums</button></div>'+
       '</div>'+
-      '<div class="kefe-find-status" id="kefeFindStatus" aria-live="polite">Type a song or album name.</div>'+
+      '<div class="kefe-find-status" id="kefeFindStatus" aria-live="polite">Enter a track or album name.</div>'+
       '<div class="kefe-carousel" id="kefeCarousel" tabindex="0" aria-label="Search results carousel">'+
-        '<div class="kefe-car-empty" id="kefeCarEmpty"><div class="kefe-car-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></svg></div><span>Results appear here</span></div>'+
+        '<div class="kefe-car-empty" id="kefeCarEmpty"><div class="kefe-car-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></svg></div><span>Search results will appear here</span></div>'+
         '<div class="kefe-car-stack" id="kefeCarStack"></div>'+
         '<button type="button" class="kefe-car-nav prev" id="kefeCarPrev" aria-label="Previous result">‹</button>'+
         '<button type="button" class="kefe-car-nav next" id="kefeCarNext" aria-label="Next result">›</button>'+
@@ -128,7 +128,7 @@
   async function search(q){
     q=q.trim();var token=++S.token;
     S.mode='search';el.CarBack.hidden=true;
-    if(!q){S.items=S.localUpload?[S.localUpload]:[];S.index=0;render();status(S.localUpload?'Uploaded file ready. Search for catalogue matches.':'Type a song or album name.');busy(false);return;}
+    if(!q){S.items=S.localUpload?[S.localUpload]:[];S.index=0;render();status(S.localUpload?'Uploaded file ready. Search for a matching track.':'Type a song or album name.');busy(false);return;}
     busy(true);status('Searching…','loading');
     try{
       var res=await Promise.allSettled([itunes(q,'song'),itunes(q,'album')]);
@@ -139,7 +139,7 @@
       S.items=catalogue.concat(S.localUpload?[S.localUpload]:[]);
       S.index=0;render();
       var count=visible().filter(function(item){return !item._kefeLocalUpload;}).length;
-      status(count?(count+' result'+(count===1?'':'s')):S.localUpload&&S.filter!=='album'?'No catalogue matches. Your uploaded file is available below.':'No results','');
+      status(count?(count+' result'+(count===1?'':'s')):S.localUpload&&S.filter!=='album'?'No matching tracks or albums found. Your uploaded file is still available.':'No results','');
     }catch(e){
       if(token!==S.token)return;
       S.items=S.localUpload?[S.localUpload]:[];render();status('Search failed — check your connection.','error');
@@ -179,7 +179,7 @@
       var artwork=it._kefeLocalUpload?'<span class="kefe-car-local-icon" aria-hidden="true">♫</span>':'<img src="'+esc(art(it.artworkUrl100,300))+'" alt="" loading="lazy">';
       var tag=k==='local'?'Uploaded':k;
       b.innerHTML='<span class="kefe-car-art">'+artwork+'<span class="kefe-car-tag '+k+'">'+tag+'</span></span>'+
-        '<span class="kefe-car-cap"><b>'+esc(titleOf(it))+'</b><i>'+esc(it.artistName||(it._kefeLocalUpload?'Local audio file':''))+'</i></span>';
+        '<span class="kefe-car-cap"><b>'+esc(titleOf(it))+'</b><i>'+esc(it.artistName||(it._kefeLocalUpload?'Uploaded audio or video':''))+'</i></span>';
       b.addEventListener('click',function(){var index=Number(this.dataset.i);if(S.moved)return;if(index===S.index)activate();else go(index);});
       el.CarStack.appendChild(b);
     }
@@ -206,10 +206,10 @@
     if(!it)return;
     var k=kindOf(it);
     el.CarBadge.textContent=k==='local'?'Uploaded file':k==='song'?'Song':'Album';el.CarBadge.className='kefe-badge '+(k==='local'?'song':k);
-    el.CarTitle.textContent=titleOf(it);el.CarArtist.textContent=it.artistName||(k==='local'?'This file is already loaded':'');
+    el.CarTitle.textContent=titleOf(it);el.CarArtist.textContent=it.artistName||(k==='local'?'Uploaded file is ready to use':'');
     var year=it.releaseDate?String(it.releaseDate).slice(0,4):'',bits=k==='local'?[it.fileName||'Local audio file']:[year,it.primaryGenreName,k==='song'?it.collectionName:(it.trackCount?it.trackCount+' tracks':'')].filter(Boolean);
     el.CarMeta.textContent=bits.join(' · ');
-    el.CarUse.textContent=k==='local'?'Confirm file metadata':k==='song'?'Confirm song':'Open album';
+    el.CarUse.textContent=k==='local'?'Confirm track details':k==='song'?'Use this track':'View album tracks';
   }
   function go(i){
     var n=visible().length;S.index=Math.max(0,Math.min(n-1,i));
@@ -218,7 +218,7 @@
   function activate(){
     var it=visible()[S.index];if(!it)return;
     if(kindOf(it)==='local'){
-      status('File metadata confirmed. Confirm the actual song in Song details or choose a catalogue match above.','');
+      status('Your file is already loaded. Check the track details below or choose a matching track above.','');
       return;
     }
     if(kindOf(it)==='album'){openAlbum(it);return;}
@@ -305,8 +305,8 @@
     var catalogue=(items||[]).filter(function(x){return !x._kefeLocalUpload;}).slice();
     S.items=catalogue.concat(S.localUpload?[S.localUpload]:[]);S.index=0;render();
     var displayMsg=msg;
-    if(S.localUpload&&!(items||[]).length&&(!displayMsg||/no matches found/i.test(displayMsg)))displayMsg='No catalogue matches. Your uploaded file is available below.';
-    status(displayMsg||(S.items.length?'Select the correct song':'No matches found'),'');
+    if(S.localUpload&&!(items||[]).length&&(!displayMsg||/no matches found/i.test(displayMsg)))displayMsg='No matching tracks or albums found. Your uploaded file is still available.';
+    status(displayMsg||(S.items.length?'Select a matching track':'No matching tracks found'),'');
     busy(false);
     if(S.items.length)el.Carousel.scrollIntoView({block:'nearest',behavior:'smooth'});
   }
