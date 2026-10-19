@@ -139,7 +139,7 @@
       S.items=catalogue.concat(S.localUpload?[S.localUpload]:[]);
       S.index=0;render();
       var count=visible().filter(function(item){return !item._kefeLocalUpload;}).length;
-      status(count?(count+' result'+(count===1?'':'s')):S.localUpload&&S.filter!=='album'?'No matching tracks or albums found. Your uploaded file is still available.':'No results','');
+      status(count?(count+' result'+(count===1?'':'s')):S.localUpload&&S.filter!=='album'?'No matching tracks or albums found. Your uploaded file is still available.':'No matching tracks or albums found.','');
     }catch(e){
       if(token!==S.token)return;
       S.items=S.localUpload?[S.localUpload]:[];render();status('Search failed — check your connection.','error');
@@ -305,8 +305,8 @@
     var catalogue=(items||[]).filter(function(x){return !x._kefeLocalUpload;}).slice();
     S.items=catalogue.concat(S.localUpload?[S.localUpload]:[]);S.index=0;render();
     var displayMsg=msg;
-    if(S.localUpload&&!(items||[]).length&&(!displayMsg||/no matches found/i.test(displayMsg)))displayMsg='No matching tracks or albums found. Your uploaded file is still available.';
-    status(displayMsg||(S.items.length?'Select a matching track':'No matching tracks found'),'');
+    if(S.localUpload&&!(items||[]).length&&(!displayMsg||/no (?:matches|matching tracks(?: or albums)?) found/i.test(displayMsg)))displayMsg='No matching tracks or albums found. Your uploaded file is still available.';
+    status(displayMsg||(S.items.length?'Select a matching track':'No matching tracks or albums found'),'');
     busy(false);
     if(S.items.length)el.Carousel.scrollIntoView({block:'nearest',behavior:'smooth'});
   }
