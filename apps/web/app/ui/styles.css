@@ -1078,8 +1078,7 @@ button{border:0;cursor:pointer;
 .kefe-step-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .kefe-step-head h3{margin:0;font-size: var(--font-base);font-weight:800;letter-spacing:-.01em;color: var(--text);}
 .kefe-step-head p{margin:2px 0 0;font-size: var(--font-xs);color: var(--muted);}
-.kefe-step-num{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;font-size: var(--font-xs);font-weight:800;color:var(--text);background:var(--surface);box-shadow:var(--lift);
-  font-variant-numeric: tabular-nums;}
+
 .kefe-step-body{display:grid;gap:10px;min-width:0}
 .kefe-media-upload-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}
 .kefe-media-upload-row>.kefe-upload-zone,.kefe-media-upload-row>div{min-width:0;width:100%;grid-column:auto!important;margin:0}
@@ -3536,14 +3535,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   gap: 8px;
   margin-bottom: 2px;
 }
-.kefe-find-step .kefe-step-num {
-  width: 23px;
-  height: 23px;
-  border: 1px solid var(--line-soft);
-  box-shadow: var(--inner);
 
-  font-size: var(--font-xs);
-  font-variant-numeric: tabular-nums;}
 .kefe-find-step .kefe-step-body{
   gap: 9px;
 }
