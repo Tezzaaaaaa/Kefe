@@ -2,7 +2,7 @@
 /* Desktop workspace: header nav on top, two editor panels (left = Media + Lyrics,
    right = Effects, Background Effects, Visualiser, Export). The header buttons choose
    the section; each section opens in the panel it belongs to. Mobile keeps one panel. */
-(() => {
+function initDesktopPanels() {
   const LEFT = ['media', 'lyrics'];
   const editing = document.querySelector('.kefe-editing');
   const rightWrap = editing && editing.querySelector('.kefe-panels');
@@ -101,4 +101,10 @@
   mq.addEventListener('change', () => { place(); sync(); });
   place();
   sync();
-})();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDesktopPanels, { once: true });
+} else {
+  initDesktopPanels();
+}
