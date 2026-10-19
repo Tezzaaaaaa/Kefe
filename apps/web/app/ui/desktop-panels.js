@@ -76,7 +76,6 @@ function initDesktopPanels() {
     });
     rightPanel = LEFT.includes(active) ? rightPanel : active;
     editing.setAttribute('data-active-panel', rightPanel);
-    document.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(el => { el.hidden = rightPanel !== 'visualiser'; });
   }
 
   // Bring the chosen section into view inside its panel column (and open it if collapsed).
