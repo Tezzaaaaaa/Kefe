@@ -138,8 +138,8 @@
     projectIcon.src = './app/brand/favicon.svg';
     projectIcon.alt = 'KEFE';
     const projectCopy = el('div', 'kefe-settings-project-copy');
-    projectCopy.appendChild(el('strong', '', 'KEFE Visualiser'));
-    projectCopy.appendChild(el('span', '', 'Browser-based music visualiser and lyric-video editor'));
+    projectCopy.appendChild(el('strong', '', 'KEFE — Lyric Visualiser'));
+    projectCopy.appendChild(el('span', '', 'Browser-based lyric visualiser and lyric-video editor'));
     projectHead.append(projectIcon, projectCopy);
     project.appendChild(projectHead);
     const projectGrid = el('div', 'kefe-settings-project-grid');
@@ -149,7 +149,7 @@
       ['Branch', 'main'],
       ['Status', 'Active development'],
       ['Commits', '1,799+'],
-      ['Editor', 'KEFE Visualiser'],
+      ['Editor', 'KEFE — Lyric Visualiser'],
       ['Site', 'tezzaaaaaa.github.io/Kefe'],
       ['Hosting', 'GitHub Pages'],
       ['Stack', 'HTML · CSS · JavaScript · Three.js'],
