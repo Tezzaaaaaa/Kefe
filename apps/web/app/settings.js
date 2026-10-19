@@ -103,9 +103,12 @@
         if (item.type === 'toggle') {
           const sw = el('button', 'kefe-switch');
           sw.type = 'button'; sw.id = id; sw.setAttribute('role', 'switch');
-          sw.appendChild(el('span', 'kefe-switch-knob'));
+          sw.setAttribute('aria-checked', values[item.key] ? 'true' : 'false');
+          sw.setAttribute('aria-label', item.label);
+          sw.append(el('span', 'kefe-switch-state', values[item.key] ? 'On' : 'Off'), el('span', 'kefe-switch-track'));
+          sw.querySelector('.kefe-switch-track').appendChild(el('span', 'kefe-switch-thumb'));
           sw.addEventListener('click', () => set(item.key, !values[item.key]));
-          controls[item.key] = () => sw.setAttribute('aria-checked', values[item.key] ? 'true' : 'false');
+          controls[item.key] = () => { sw.setAttribute('aria-checked', values[item.key] ? 'true' : 'false'); sw.classList.toggle('is-on', values[item.key]); sw.querySelector('.kefe-switch-state').textContent = values[item.key] ? 'On' : 'Off'; };
           field.appendChild(sw);
         } else if (item.type === 'range') {
           const out = el('output', 'kefe-settings-value');
