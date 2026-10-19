@@ -23,7 +23,7 @@ The preview combines the lyric/title-card canvas with a dedicated visualiser can
 - Load an audio or video file as the source media.
 - Supported formats include MP3, M4A, WAV, AAC, FLAC, OGG, Opus, AIFF, CAF, MP4, MOV, M4V, WebM and AVI, subject to browser support.
 - Add an optional background video.
-- Search for songs and albums, review results and select the intended recording.
+- Search for tracks and albums, review the results and select the correct recording.
 - Review or edit the track title, artist, album and year.
 - Use available track metadata and album artwork when supplied by search results or external services.
 
