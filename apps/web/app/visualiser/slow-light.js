@@ -145,7 +145,7 @@
     const powerThumb=document.createElement('span');powerThumb.className='kefe-switch-thumb';powerTrack.appendChild(powerThumb);power.append(powerState,powerTrack);
     power.addEventListener('click',e=>{e.stopPropagation();setEnabled(!enabled);});view.appendChild(intro);
     ui={sceneName:document.createElement('span'),sceneButtons:[],power,powerState};
-    const presetRow=document.querySelector('.kefe-editing > .kefe-visualiser-preset-row');
+    const presetRow=document.querySelector('.kefe-visualiser-preset-row');
     const sceneSet=document.createElement('div');sceneSet.className='kefe-visualiser-preset-set';sceneSet.id='kefeSlowLightPresetSet';sceneSet.hidden=true;
     const sceneRow=document.createElement('div');sceneRow.className='kefe-slow-light-scenes';
     SCENES.forEach((scene,i)=>{const b=document.createElement('button');b.type='button';b.className='kefe-btn';b.dataset.scene=scene.name.toLowerCase().replace(/\\s+/g,'-');b.textContent=scene.name;b.addEventListener('click',()=>goTo(i,6));sceneRow.appendChild(b);ui.sceneButtons.push(b);});
