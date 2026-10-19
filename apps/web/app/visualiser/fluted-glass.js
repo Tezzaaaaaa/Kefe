@@ -28,7 +28,7 @@ else if(uMod==1){c=rot(t*.06)*c;c.x+=sin(t*.33)*.035*M;c.y+=cos(t*.27)*.035*M;B=
 else if(uMod==2){float r=length(c);c*=1.+sin(r*14.-t*2.8)*.028*M;B=.26;P=.38;}
 else if(uMod==3){c.x+=sin(t*.42+c.y*3.)*.012*M;c.y+=cos(t*.35+c.x*3.)*.012*M;c=rot(sin(t*.12)*.12*M)*c;B=.12;P=.16;}
 else if(uMod==4){c.x+=sin(t*.48)*.055*M;c.y+=sin(t*.48+1.5707)*.055*M;c=rot(sin(t*.7)*.15*M)*c;B=.1;P=.24;}
-else{c.y+=sin(t*.95)*.055*M;c.x+=cos(t*.62)*.045*M;c=rot(sin(t*.28)*.35*M+ms*.12*M)*c;B=.2;P=.15;}
+else{c.y+=sin(t*.95)*.055*M;c.x+=cos(t*.62)*.045*M;c=rot(sin(t*.28)*.35*M)*c;B=.2;P=.15;}
 c/=max(1.,1.12+bz);
 if(uMod==0){c.x+=sin(t*42.)*M*.006;c.y+=cos(t*38.)*M*.006;}else if(uMod==1)c.x+=sin(t*44.)*M*.005;else if(uMod==2)c*=1.+sin(length(c)*55.+t*5.)*M*.008;else if(uMod==3)c.x+=sin(t*36.+c.y*3.)*M*.007;else if(uMod==4)c.y+=cos(t*50.)*M*.01;else c.y+=sin(c.x*8.+t*3.)*M*.008;return c+.5;}
 float surfaceHeight(vec2 uv){
