@@ -205,7 +205,7 @@
     var wrap=document.createElement('div');wrap.style.cssText='grid-column:1/-1;display:grid;gap:8px';
     wrap.innerHTML='<label class="kefe-upload-zone" id="kefeBgVideoZone" for="bgVideoInput">'+
       '<span class="kefe-upload-title">Drop a background video</span>'+
-      '<span class="kefe-upload-name" id="bgVideoName">or choose a file</span>'+
+      '<span class="kefe-upload-name" id="bgVideoName">or browse files</span>'+
       '<span class="kefe-upload-help">MP4, MOV, WebM</span>'+
       '<input class="kefe-file" id="bgVideoInput" type="file" accept=".mp4,.mov,.m4v,.webm,video/*"></label>'+
       '<button class="kefe-btn" id="bgVideoRemove" type="button" hidden>Remove background video</button>';
@@ -218,14 +218,14 @@
       vid=document.createElement('video');vid.muted=true;vid.loop=true;vid.playsInline=true;vid.preload='auto';vid.style.display='none';
       vid.src=vidUrl;document.body.appendChild(vid);
       vid.addEventListener('loadeddata',function(){name.textContent=vidName;z.classList.add('kefe-confirmed-container');rm.hidden=false;setMode('video');syncVideo(true);if(audio&&!audio.paused)vid.play().catch(function(){});});
-      vid.addEventListener('error',function(){name.textContent='Could not read that video';z.classList.remove('kefe-confirmed-container');clearVideo();});
+      vid.addEventListener('error',function(){name.textContent='Could not load this video';z.classList.remove('kefe-confirmed-container');clearVideo();});
       vid.load();
     }
     input.addEventListener('change',function(){load(input.files&&input.files[0]);});
     ['dragenter','dragover'].forEach(function(e){z.addEventListener(e,function(ev){ev.preventDefault();z.classList.add('is-dragging');});});
     ['dragleave','drop'].forEach(function(e){z.addEventListener(e,function(ev){ev.preventDefault();z.classList.remove('is-dragging');});});
     z.addEventListener('drop',function(ev){var f=ev.dataTransfer&&ev.dataTransfer.files&&ev.dataTransfer.files[0];if(f)load(f);});
-    rm.addEventListener('click',function(){clearVideo();z.classList.remove('kefe-confirmed-container');input.value='';name.textContent='or choose a file';rm.hidden=true;setMode('apple');});
+    rm.addEventListener('click',function(){clearVideo();z.classList.remove('kefe-confirmed-container');input.value='';name.textContent='or browse files';rm.hidden=true;setMode('apple');});
   }
   function clearVideo(){
     if(vid){vid.pause();vid.removeAttribute('src');vid.load();vid.remove();vid=null;}
