@@ -105,7 +105,7 @@
       powerSlot.replaceChildren(power);
       power.setAttribute('aria-label', 'Fluid Ink Visualiser');
       power.title = 'Fluid Ink Visualiser';
-      if (heading) heading.textContent = 'Fluid Ink';
+      if (heading) heading.textContent = 'Visualisers';
       if (description) description.textContent = '';
       presetRow.hidden = false;
       presetRow.querySelectorAll('.kefe-visualiser-preset-set').forEach(set => {
