@@ -165,10 +165,13 @@
     if(heading&&!document.getElementById('kefeBackgroundEffectToggle')){
       var titleRow=document.createElement('div');titleRow.className='kefe-background-effect-heading';
       heading.parentNode.insertBefore(titleRow,heading);titleRow.appendChild(heading);
-      var toggle=document.createElement('button');toggle.id='kefeBackgroundEffectToggle';toggle.type='button';toggle.className='kefe-background-effect-toggle kefe-switch';toggle.setAttribute('aria-label','Background effects');
+      var toggle=document.createElement('button');toggle.id='kefeBackgroundEffectToggle';toggle.type='button';toggle.className='kefe-background-effect-toggle kefe-switch';toggle.setAttribute('role','switch');toggle.setAttribute('aria-label','Background effects');toggle.setAttribute('aria-checked',String(enabled));
+      var toggleState=document.createElement('span');toggleState.className='kefe-switch-state';
+      var toggleTrack=document.createElement('span');toggleTrack.className='kefe-switch-track';toggleTrack.setAttribute('aria-hidden','true');
+      var toggleThumb=document.createElement('span');toggleThumb.className='kefe-switch-thumb';toggleTrack.appendChild(toggleThumb);toggle.append(toggleState,toggleTrack);
       toggle.addEventListener('click',function(){setMode(enabled?'off':(lastMode||'apple'));});
       titleRow.appendChild(toggle);
-      syncBackgroundToggleUI=function(){toggle.textContent=enabled?'On':'Off';toggle.setAttribute('aria-pressed',String(enabled));toggle.classList.toggle('active',enabled);};
+      syncBackgroundToggleUI=function(){toggleState.textContent=enabled?'On':'Off';toggle.setAttribute('aria-checked',String(enabled));toggle.classList.toggle('is-on',enabled);};
       syncBackgroundToggleUI();
     }
     var backgroundBlock=select.closest('.kefe-background-effect-control');
