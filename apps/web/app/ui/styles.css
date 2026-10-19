@@ -4223,7 +4223,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   gap: var(--control-gap, 8px);
   min-width: 0;
 }
-.kefe-editing > .kefe-visualiser-preset-row .kefe-fluted-modes {
+.kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row .kefe-fluted-modes {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .kefe-panel[data-panel-view="visualiser"] .kefe-fluted-view > .kefe-visualiser-spin-row,
@@ -4594,7 +4594,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 
 /* Keep Visualiser engine tabs full-width and strictly two columns on mobile. */
 @media (max-width: 700px) {
-  .kefe-editing > .kefe-vis-tabs {
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
     grid-column: 1 / -1 !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     min-width: 0;
@@ -4686,11 +4686,11 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-label,
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-btn,
-  .kefe-editing > .kefe-vis-tabs {
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
     grid-column: 1 / -1;
   }
 
-  .kefe-editing > .kefe-vis-tabs {
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     min-width: 0;
@@ -5023,7 +5023,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
-.kefe-editing > .kefe-vis-tabs {
+.kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
   display: none;
   grid-column: 1 / -1;
   grid-row: 2;
@@ -5038,7 +5038,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   scrollbar-width: none;
   overscroll-behavior-x: contain;
 }
-.kefe-editing > .kefe-vis-tabs[hidden] { display: none; }
+.kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs[hidden] { display: none; }
 .kefe-editing[data-active-panel="visualiser"] > .kefe-vis-tabs {
   display: flex;
 }
@@ -5134,7 +5134,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 }
 
 /* The submenu occupies its own grid row; only the selected engine's set is shown. */
-.kefe-editing > .kefe-visualiser-preset-row {
+.kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row {
   display: none;
   grid-column: 1 / -1;
   grid-row: 3;
@@ -5196,7 +5196,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   max-width: 100%;
   overflow: hidden;
 }
-.kefe-editing > .kefe-visualiser-preset-row .kefe-gradient-preset-strip .kefe-gradient-palettes {
+.kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row .kefe-gradient-preset-strip .kefe-gradient-palettes {
   display: flex;
   flex: 1 1 auto;
   flex-wrap: nowrap;
@@ -5215,7 +5215,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   width: 72px;
   min-width: 72px;
 }
-.kefe-editing > .kefe-visualiser-preset-row #flutedModes {
+.kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row #flutedModes {
   display: flex;
   grid-template-columns: none;
   flex: 1 1 auto;
@@ -5239,18 +5239,18 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 
 @media (max-width: 900px) {
   .kefe-editing { grid-template-rows: 46px auto auto minmax(0, 1fr); }
-  .kefe-editing > .kefe-vis-tabs,
-  .kefe-editing > .kefe-visualiser-preset-row {
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs,
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row {
     width: calc(100% - 32px);
   }
 }
 @media (max-width: 700px) {
   .kefe-editing { grid-template-rows: 40px auto auto minmax(0, 1fr); }
-  .kefe-editing > .kefe-vis-tabs,
-  .kefe-editing > .kefe-visualiser-preset-row {
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs,
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row {
     width: calc(100% - 20px);
   }
-  .kefe-editing > .kefe-vis-tabs {
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
     gap: 8px;
     padding-block: 6px 10px;
   }
@@ -5291,7 +5291,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   }
   .kefe-visualiser-preset-set { gap: 6px; }
   .kefe-preset-select-wrap { flex-basis: 112px; max-width: 34%; }
-    .kefe-editing > .kefe-visualiser-preset-row .kefe-gradient-preset-strip .kefe-gradient-palettes { gap: 6px; }
+    .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row .kefe-gradient-preset-strip .kefe-gradient-palettes { gap: 6px; }
   .kefe-gradient-preset-strip .kefe-gradient-chip {
     flex-basis: 58px;
     width: 58px;
@@ -5299,7 +5299,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   }
 }
 @media (max-width: 380px) {
-  .kefe-editing > .kefe-vis-tabs { gap: 4px; }
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs { gap: 4px; }
   .kefe-vis-option > .kefe-vis-option-power {
     gap: 2px;
     padding-inline: 2px;
@@ -6147,12 +6147,12 @@ body:not(.kefe-fullscreen-open) {
 
 
 /* Visualiser section: shared geometry for tabs, presets and controls. */
-.kefe-editing > .kefe-vis-tabs,
-.kefe-editing > .kefe-visualiser-preset-row{
+.kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs,
+.kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row{
   width:min(1200px,calc(100% - 32px));
   min-width:0;
 }
-.kefe-editing > .kefe-vis-tabs{gap:var(--s2);padding:var(--s2) 0}
+.kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs{gap:var(--s2);padding:var(--s2) 0}
 .kefe-vis-tabs > .kefe-vis-option{min-width:0;min-height:44px}
 .kefe-vis-option > [role="tab"]{
   box-sizing:border-box;min-width:0;min-height:44px;padding:8px 12px;gap:8px;
@@ -6175,7 +6175,7 @@ body:not(.kefe-fullscreen-open) {
 .kefe-visualiser-preset-set > .kefe-btn,
 .kefe-visualiser-preset-grid > button,
 .kefe-fluid-presets > button,
-.kefe-editing > .kefe-visualiser-preset-row #flutedModes > .kefe-btn{
+.kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row #flutedModes > .kefe-btn{
   box-sizing:border-box;min-width:0;min-height:40px;padding:8px 12px;
   border-radius:var(--r2);font:inherit;font-size:var(--font-sm);line-height:1.25
 }
@@ -6206,9 +6206,9 @@ body:not(.kefe-fullscreen-open) {
 .kefe-visualiser-preset-row .kefe-gradient-chip,
 .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-palette-under-power .kefe-gradient-chip{border-radius:var(--r1)}
 @media(max-width:700px){
-  .kefe-editing > .kefe-vis-tabs,
-  .kefe-editing > .kefe-visualiser-preset-row{width:calc(100% - 20px)}
-  .kefe-editing > .kefe-vis-tabs{gap:var(--s1);padding-block:var(--s2)}
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs,
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row{width:calc(100% - 20px)}
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs{gap:var(--s1);padding-block:var(--s2)}
   .kefe-vis-option > [role="tab"]{
     min-height:68px;padding:8px 6px 30px;border-radius:var(--r2);justify-content:center
   }
@@ -6217,7 +6217,7 @@ body:not(.kefe-fullscreen-open) {
   .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group{padding:var(--s2);gap:var(--s2)}
 }
 @media(max-width:380px){
-  .kefe-editing > .kefe-vis-tabs{gap:var(--s1)}
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs{gap:var(--s1)}
   .kefe-vis-option > [role="tab"]{font-size:var(--font-xs)}
 }
 
@@ -6316,7 +6316,7 @@ body:not(.kefe-fullscreen-open) {
   min-width:0;
   max-width:none;
 }
-.kefe-editing > .kefe-vis-tabs {
+.kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
   align-items:stretch;
@@ -6451,7 +6451,7 @@ body:not(.kefe-fullscreen-open) {
   border-top:1px solid var(--line-soft);
 }
 @media(max-width:700px) {
-  .kefe-editing > .kefe-vis-tabs {
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
     grid-template-columns:repeat(4,minmax(0,1fr));
     gap:var(--s1);
     width:calc(100% - 20px);
@@ -8210,8 +8210,8 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   .kefe-form { gap: 14px; }
 
   /* Visualiser sub-tabs + presets sit at the top of the right panel */
-  .kefe-editing > .kefe-vis-tabs { grid-column: 3; grid-row: 2; z-index: 2; min-width: 0; width: auto; margin: 8px 12px 0; }
-  .kefe-editing > .kefe-visualiser-preset-row { grid-column: 3; grid-row: 3; z-index: 2; min-width: 0; width: auto; margin: 4px 12px; }
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs { grid-column: 3; grid-row: 2; z-index: 2; min-width: 0; width: auto; margin: 8px 12px 0; }
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row { grid-column: 3; grid-row: 3; z-index: 2; min-width: 0; width: auto; margin: 4px 12px; }
   .kefe-editing[data-active-panel="visualiser"] > .kefe-panels:not(.kefe-panels-left) { grid-row: 4; }
 
   /* The floating dock duplicated the left nav and covered the timeline */
