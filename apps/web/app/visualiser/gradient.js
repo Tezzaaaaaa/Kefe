@@ -85,12 +85,8 @@
 
     const editing = panel.closest('.kefe-editing');
     const panels = editing?.querySelector('.kefe-panels');
-    if (editing && panels) {
-      editing.insertBefore(tabs, panels);
-      editing.insertBefore(presetRow, panels);
-    } else {
-      form.append(tabs, presetRow);
-    }
+    panel.insertBefore(tabs, form);
+    panel.insertBefore(presetRow, form);
     form.replaceChildren(view);
 
     function showFluidInk() {
