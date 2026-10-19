@@ -103,6 +103,7 @@
       power.title = 'Fluid Ink Visualiser';
       if (heading) heading.textContent = 'Visualisers';
       if (description) description.textContent = '';
+      tabs.hidden = false;
       presetRow.hidden = false;
       presetRow.querySelectorAll('.kefe-visualiser-preset-set').forEach(set => {
         set.hidden = set !== gradientPresetSet;
@@ -112,9 +113,6 @@
 
     tab.addEventListener('click', showFluidInk);
     showFluidInk();
-    const showVisualiserNavigation = editing?.querySelector('.kefe-section.active')?.dataset.panel === 'visualiser';
-    tabs.hidden = !showVisualiserNavigation;
-    presetRow.hidden = !showVisualiserNavigation;
   }
 
   if (document.readyState === 'loading') {
