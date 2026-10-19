@@ -670,7 +670,7 @@
   addLyricEffectOption('karaoke','Karaoke');
   addLyricEffectOption('bounce','Bounce Karaoke');
   const lyricsEnabledToggle=document.getElementById('lyricsEnabledToggle');
-  function syncLyricsEnabledToggle(){if(!lyricsEnabledToggle)return;lyricsEnabledToggle.classList.toggle('is-on',lyricsEnabled);lyricsEnabledToggle.setAttribute('aria-checked',String(lyricsEnabled));lyricsEnabledToggle.title=lyricsEnabled?'Turn lyrics off':'Turn lyrics on';}
+  function syncLyricsEnabledToggle(){if(!lyricsEnabledToggle)return;lyricsEnabledToggle.classList.toggle('is-on',lyricsEnabled);lyricsEnabledToggle.setAttribute('aria-checked',String(lyricsEnabled));const state=lyricsEnabledToggle.querySelector('.kefe-switch-state');if(state)state.textContent=lyricsEnabled?'On':'Off';lyricsEnabledToggle.title=lyricsEnabled?'Turn lyrics off':'Turn lyrics on';}
   lyricsEnabledToggle?.addEventListener('click',()=>{lyricsEnabled=!lyricsEnabled;syncLyricsEnabledToggle();draw();});
   syncLyricsEnabledToggle();
   effectDefinitions.filter(([id])=>id!=='karaoke'&&id!=='bounce').forEach(([id,label])=>addLyricEffectOption(id,label));
