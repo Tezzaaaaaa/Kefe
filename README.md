@@ -1,6 +1,6 @@
-# KEFE Visualiser
+# KEFE — Lyric Visualiser
 
-KEFE is a browser-based music visualiser and lyric-video editor for turning audio or video into customised music-led visuals. It combines a playback preview, timed lyric treatments, song artwork and metadata, visualiser scenes, and video export in one editor.
+KEFE is a browser-based music visualiser and lyric-video editor for creating lyric videos and audio-reactive visualisations from your own audio or video. It combines a playback preview, timed lyric treatments, song artwork and metadata, visualiser scenes, and video export in one editor.
 
 ## Open KEFE
 
@@ -35,13 +35,15 @@ The preview combines the lyric/title-card canvas with a dedicated visualiser can
 - Import enhanced LRC files with word-level timing tags.
 - Download lyrics as LRC, SRT or timed JSON.
 - Choose a lyric display mode: Line, Word, Karaoke or Chunk.
-- Apply text-case options and a shared lyric style layer across effects.
+- Apply capitalisation options and a shared lyric style layer across effects.
 
 ### Lyric effects
 
-The effect manifest currently lists 32 lyric effects:
+The editor includes 35 lyric effects:
 
-- Apple Music-style focus lyrics
+- Karaoke
+- Bounce Karaoke
+- Apple
 - Brat
 - Aurora
 - Pulse
@@ -59,20 +61,21 @@ The effect manifest currently lists 32 lyric effects:
 - Barbie
 - Elastic Pop
 - Flip Text
-- Karaoke
 - Trailer
 - Fancy
 - Glitch
 - Split-Flap
 - CRT Computer Desktop
 - CRT TV Box
-- Randomize
+- Randomise
 - Spin Lyrics
 - Premium Circuit
 - Dust Off
 - WrapSlide
 - Eternal Sunshine
 - Ink Script
+- Liquid Chrome
+- Gel Script
 
 Effects provide different animation and typography treatments. Available controls depend on the selected effect. Use the shared style controls for colours, text size, placement, outline, glow, custom text and logo, with font overrides where available.
 
@@ -103,7 +106,7 @@ Export formats and encoding options depend on browser APIs, codec support, devic
 6. Select a visualiser scene, adjust its parameters and set the aspect ratio.
 7. Preview the composition, open **Export**, review the settings and render the video.
 
-Song matches, artwork and synchronized lyrics depend on the selected track and the availability of external services or data. Automatic retrieval should be checked rather than assumed to have succeeded.
+Track matches, artwork and synchronised lyrics depend on the selected track and the availability of external services or data. Automatic retrieval should be checked rather than assumed to have succeeded.
 
 ## Project structure
 
