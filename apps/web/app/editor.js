@@ -1184,10 +1184,10 @@
   function promptManualDetails(matches,searchFailed=false){
     const list=Array.isArray(matches)?matches:[];
     const msg=searchFailed
-      ?'Catalogue search failed. Your uploaded file is still available; check your connection and try again.'
+      ?'Track search failed. Your uploaded file is still available. Check your connection and try again.'
       :list.length
-        ?'Couldn’t confirm this song automatically. Pick the correct match below, or edit the title and artist.'
-        :'Couldn’t identify this song automatically. Enter the title and artist below, then pick the correct match.';
+        ?'Track identification was inconclusive. Select the correct match below or edit the track title and artist.'
+        :'Track identification was unsuccessful. Enter the track title and artist below, then select a matching result.';
     showManualNotice(msg);setLyricsStatus(msg);
     const mediaPanel=document.querySelector('.kefe-panel[data-panel-view="media"]');
     const mediaWasActive=!!mediaPanel&&mediaPanel.classList.contains('active');
@@ -1233,7 +1233,7 @@
     if(mediaTrack)mediaTrack.classList.remove('is-identified');
     songAlbum.dataset.platformId='';
     try{
-      setLyricsStatus('Recognizing song…');
+      setLyricsStatus('Identifying track…');
       let recognized=null;
       try{recognized=await recognizeUploadedAudio(file);}
       catch(error){console.warn('[KEFE audio recognition]',error);}
