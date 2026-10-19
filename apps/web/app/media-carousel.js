@@ -128,7 +128,7 @@
   async function search(q){
     q=q.trim();var token=++S.token;
     S.mode='search';el.CarBack.hidden=true;
-    if(!q){S.items=S.localUpload?[S.localUpload]:[];S.index=0;render();status(S.localUpload?'Uploaded file ready. Search for a matching track.':'Type a song or album name.');busy(false);return;}
+    if(!q){S.items=S.localUpload?[S.localUpload]:[];S.index=0;render();status(S.localUpload?'Uploaded file ready. Search for a matching track.':'Enter a track or album name.');busy(false);return;}
     busy(true);status('Searching…','loading');
     try{
       var res=await Promise.allSettled([itunes(q,'song'),itunes(q,'album')]);
@@ -207,7 +207,7 @@
     var k=kindOf(it);
     el.CarBadge.textContent=k==='local'?'Uploaded file':k==='song'?'Song':'Album';el.CarBadge.className='kefe-badge '+(k==='local'?'song':k);
     el.CarTitle.textContent=titleOf(it);el.CarArtist.textContent=it.artistName||(k==='local'?'Uploaded file is ready to use':'');
-    var year=it.releaseDate?String(it.releaseDate).slice(0,4):'',bits=k==='local'?[it.fileName||'Local audio file']:[year,it.primaryGenreName,k==='song'?it.collectionName:(it.trackCount?it.trackCount+' tracks':'')].filter(Boolean);
+    var year=it.releaseDate?String(it.releaseDate).slice(0,4):'',bits=k==='local'?[it.fileName||'Uploaded audio or video']:[year,it.primaryGenreName,k==='song'?it.collectionName:(it.trackCount?it.trackCount+' tracks':'')].filter(Boolean);
     el.CarMeta.textContent=bits.join(' · ');
     el.CarUse.textContent=k==='local'?'Confirm track details':k==='song'?'Use this track':'View album tracks';
   }
@@ -291,7 +291,7 @@
       if(S.index>=S.items.length)S.index=0;
     }
     render();
-    if(reset)status(S.localUpload?'Uploaded file ready. Search for catalogue matches.':'Type a song or album name.','');
+    if(reset)status(S.localUpload?'Uploaded file ready. Search for a matching track.':'Enter a track or album name.','');
   }
 
   /* Called by the editor when an uploaded file is identified (or the song fields are searched). */
