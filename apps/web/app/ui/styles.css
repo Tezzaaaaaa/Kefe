@@ -5039,7 +5039,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   overscroll-behavior-x: contain;
 }
 .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs[hidden] { display: none; }
-.kefe-editing[data-active-panel="visualiser"] > .kefe-vis-tabs {
+.kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
   display: flex;
 }
 .kefe-vis-tabs::-webkit-scrollbar,
@@ -5147,7 +5147,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   border-top: 1px solid var(--line-soft);
   overflow: hidden;
 }
-.kefe-editing[data-active-panel="visualiser"] > .kefe-visualiser-preset-row:not([hidden]) {
+.kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row:not([hidden]) {
   display: flex;
 }
 .kefe-visualiser-preset-row[hidden],
