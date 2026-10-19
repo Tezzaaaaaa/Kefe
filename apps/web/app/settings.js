@@ -6,17 +6,17 @@
   // key, label, hint, type, default, options
   const SCHEMA = [
     { group: 'Title card', items: [
-      { key: 'titleCard', label: 'Show title card', hint: 'Apple Music effect only: artwork and details on their own until 1s before the first lyric, then they move up into the header. Included in exports.', type: 'toggle', def: true }
+      { key: 'titleCard', label: 'Show title card', hint: 'Available with the Apple lyric effect. Artwork and track details appear before the first lyric, then move into the header. Included in exports.', type: 'toggle', def: true }
     ]},
     { group: 'Lyrics', items: [
-      { key: 'lyricOffset', label: 'Lyric offset', hint: 'Positive shows lyrics later, negative shows them earlier.', type: 'range', def: 0, min: -3, max: 3, step: 0.05, fmt: v => (v > 0 ? '+' : '') + v.toFixed(2) + 's' }
+      { key: 'lyricOffset', label: 'Lyric offset', hint: 'Positive values delay the lyrics; negative values bring them forward.', type: 'range', def: 0, min: -3, max: 3, step: 0.05, fmt: v => (v > 0 ? '+' : '') + v.toFixed(2) + 's' }
     ]},
     { group: 'Engine', items: [
-      { key: 'fpsTarget', label: 'FPS target', hint: 'Caps how often the visualiser renders in the preview and in exports. Lower it on slower devices.', type: 'range', def: 60, min: 30, max: 120, step: 10, fmt: v => String(v) },
-      { key: 'fftPower', label: 'FFT size', hint: 'Audio analysis detail for audio-reactive visuals. Larger is more precise but heavier.', type: 'range', def: 11, min: 9, max: 12, step: 1, fmt: v => String(Math.pow(2, v)) }
+      { key: 'fpsTarget', label: 'Frame rate target', hint: 'Limits rendering speed in the preview and exports. Lower values can improve performance on slower devices.', type: 'range', def: 60, min: 30, max: 120, step: 10, fmt: v => String(v) },
+      { key: 'fftPower', label: 'FFT size', hint: 'Controls the detail of audio-reactive visuals. Higher values are more precise but require more processing.', type: 'range', def: 11, min: 9, max: 12, step: 1, fmt: v => String(Math.pow(2, v)) }
     ]},
     { group: 'Defaults', items: [
-      { key: 'aspect', label: 'Aspect ratio', hint: 'Used for the preview and exports.', type: 'select', def: '16:9', options: [['16:9', '16:9'], ['9:16', '9:16'], ['1:1', '1:1']] },
+      { key: 'aspect', label: 'Aspect ratio', hint: 'Applies to the preview and exported video.', type: 'select', def: '16:9', options: [['16:9', '16:9'], ['9:16', '9:16'], ['1:1', '1:1']] },
       { key: 'exportResolution', label: 'Export resolution', type: 'select', def: '1080', options: [['720', '720p'], ['1080', '1080p'], ['1440', '1440p (2K)'], ['2160', '2160p (4K)']] }
     ]},
   ];
