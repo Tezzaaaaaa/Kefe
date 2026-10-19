@@ -166,7 +166,7 @@
       const powerSlot=document.getElementById('kefeVisualiserPowerSlot');if(powerSlot)powerSlot.replaceChildren(power);
       form.querySelectorAll('.kefe-vis-view').forEach(v=>v.hidden=v!==view);
       tabs.querySelectorAll('[role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
-      const presetRow=document.querySelector('.kefe-editing > .kefe-visualiser-preset-row');if(presetRow)presetRow.hidden=false;
+      const presetRow=document.querySelector('.kefe-visualiser-preset-row');if(presetRow)presetRow.hidden=false;
       presetRow?.querySelectorAll('.kefe-visualiser-preset-set').forEach(set=>set.hidden=set!==sceneSet);
       const heading=document.getElementById('kefeVisualiserHeading'),description=document.getElementById('kefeVisualiserDescription');
       if(heading)heading.textContent='Slow Light';if(description)description.textContent='';
