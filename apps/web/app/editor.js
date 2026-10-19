@@ -1123,7 +1123,7 @@
 
     const tryLines=lines=>{
       if(request!==lyricsRequest)return true;
-      return setLyricsFromLines(lines,'Synchronized lyrics fetched from LRCLIB, a community lyrics database. Check you have the right to use them.');
+      return setLyricsFromLines(lines,'Synchronised lyrics found in LRCLIB, a community lyrics database. Check that you have the right to use them.');
     };
 
     const tryLrclib=async()=>{
@@ -1153,14 +1153,14 @@
     const tryLrclibQuery=()=>pickLrclib({q:[title,artist].filter(Boolean).join(' ')});
 
     try{
-      if(status)status.textContent='Finding synchronized lyrics…';
+      if(status)status.textContent='Finding synchronised lyrics…';
       if(artist&&await attempt('lrclib',tryLrclib))return true;
       if(await attempt('lrclib-search',tryLrclibSearch))return true;
       if(await attempt('lrclib-query',tryLrclibQuery))return true;
       showLyricsMissing();
       return false;
     }catch(error){
-      if(request===lyricsRequest&&status)status.textContent=error?.name==='AbortError'?'Lyrics search timed out.':'Could not fetch synchronized lyrics.';
+      if(request===lyricsRequest&&status)status.textContent=error?.name==='AbortError'?'Lyrics search timed out.':'Could not retrieve synchronised lyrics.';
       console.warn('[KEFE automatic lyrics]',error);
       return false;
     }finally{
@@ -1198,7 +1198,7 @@
     }
   }
   function showLyricsMissing(){
-    setLyricsStatus('No synchronized lyrics found for this track. Check the song details, or open the Lyrics section to upload an .lrc file.');
+    setLyricsStatus('No synchronised lyrics found for this track. Check the track details or open Lyrics to upload an .lrc file.');
   }
   async function recognizeUploadedAudio(file){
     /* Prefer a server-side proxy so private provider credentials never ship to the
@@ -1289,21 +1289,21 @@
       const autoConfirmMatch=!!best&&!manuallyEditedTrackFields.size&&!!meta.title&&!!meta.artist&&duration>0&&
         Number(best.trackTimeMillis)>0&&Math.abs(Number(best.trackTimeMillis)/1000-duration)<=8;
       if(meta.title||meta.artist||meta.album){
-        const searchMessage=catalogueSearchFailed?'Catalogue search failed. Your uploaded file is available below; check your connection and try again.':undefined;
+        const searchMessage=catalogueSearchFailed?'Track search failed. Your uploaded file is still available. Check your connection and try again.':undefined;
         renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist,meta.album].filter(Boolean).join(' '),statusMessage:searchMessage});
         if(autoConfirmMatch){
           applyPickedTrack(best);
-          setLyricsStatus('Song automatically confirmed — the uploaded audio matches '+best.trackName+' by '+best.artistName+'.');
+          setLyricsStatus('Track identified automatically — the uploaded audio matches '+best.trackName+' by '+best.artistName+'.');
         }else setLyricsStatus(best
-          ?'Metadata read from your upload. The strongest catalogue match is first; select it to confirm the song.'
+          ?'Track details were read from your file. The closest matching result appears first; select it to confirm the track.'
           :recognized
-            ?'Audio recognition returned metadata. Review the possible matches and confirm the correct song below.'
+            ?'Audio recognition found track details. Review the matches and select the correct track below.'
             :catalogueSearchFailed
-              ?'Upload metadata is available, but catalogue matching failed. Confirm the song in Song details.'
-              :'Upload metadata is available. Review the possible matches and confirm the song in Song details.');
+              ?'Track details were read from your file, but matching failed. Review the title and artist below.'
+              :'Track details were read from your file. Review the matches and select the correct track.');
       }else{
         promptManualDetails(matches,catalogueSearchFailed);
-        if(file.size>10*1024*1024&&!recognized)setLyricsStatus('Audio recognition was skipped because this file exceeds the provider’s 10 MB limit. Enter the song title and artist or choose a catalogue match.');
+        if(file.size>10*1024*1024&&!recognized)setLyricsStatus('Audio recognition was skipped because this file exceeds the provider’s 10 MB limit. Enter the track title and artist or choose a matching result.');
       }
     }catch(error){
       console.warn('[KEFE track identification]',error);
