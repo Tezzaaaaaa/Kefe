@@ -109,8 +109,9 @@
   }
   function toggleRow(label, get, set) {
     var row = el('div', 'kefe-visualiser-spin-row'), btn = el('button', 'kefe-btn kefe-switch', ''); btn.type = 'button';
+    var state = el('span', 'kefe-switch-state'), track = el('span', 'kefe-switch-track'); track.setAttribute('aria-hidden', 'true'); track.appendChild(el('span', 'kefe-switch-thumb')); btn.append(state, track);
     row.appendChild(el('span', 'kefe-label', label));
-    function sync() { btn.textContent = get() ? 'On' : 'Off'; btn.setAttribute('aria-label', label); btn.setAttribute('aria-pressed', get() ? 'true' : 'false'); }
+    function sync() { var on = !!get(); state.textContent = on ? 'On' : 'Off'; btn.setAttribute('role', 'switch'); btn.setAttribute('aria-label', label); btn.setAttribute('aria-checked', String(on)); btn.classList.toggle('is-on', on); }
     btn.addEventListener('click', function () { set(!get()); sync(); persist(); redraw(); });
     row.appendChild(btn); sync(); row.sync = sync;
     return row;
