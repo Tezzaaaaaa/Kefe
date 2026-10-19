@@ -242,15 +242,10 @@
       });
       paletteStrip.appendChild(chips);
       var paletteLabel=document.createElement('p');paletteLabel.className='kefe-fluid-description';paletteLabel.textContent='Colour palette';
-      var powerSlot=document.getElementById('kefeVisualiserPowerSlot');
-      if(powerSlot){
-        paletteLabel.className='kefe-fluid-palette-label';
-        paletteStrip.classList.add('kefe-fluid-palette-under-power');
-        powerSlot.appendChild(paletteLabel);
-        powerSlot.appendChild(paletteStrip);
-      }else{
-        wrap.appendChild(paletteLabel);wrap.appendChild(paletteStrip);
-      }
+      paletteLabel.className='kefe-fluid-palette-label';
+      paletteStrip.classList.add('kefe-fluid-palette-in-controls');
+      view.insertBefore(paletteLabel,wrap);
+      view.insertBefore(paletteStrip,wrap);
     }
   }
   function resetDye(){
