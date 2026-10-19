@@ -79,8 +79,24 @@
     document.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(el => { el.hidden = rightPanel !== 'visualiser'; });
   }
 
+  // Bring the chosen section into view inside its panel column (and open it if collapsed).
+  function reveal() {
+    if (!mq.matches) return;
+    const key = document.querySelector('.kefe-section.active')?.dataset.panel;
+    const panel = key && document.querySelector('.kefe-panel[data-panel-view="' + key + '"]');
+    const wrap = panel && panel.parentElement;
+    if (!panel || !wrap) return;
+    const trigger = panel.querySelector('.beui-accordion-trigger');
+    if (trigger && trigger.getAttribute('aria-expanded') === 'false') trigger.click();
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const top = panel.getBoundingClientRect().top - wrap.getBoundingClientRect().top + wrap.scrollTop - 12;
+    wrap.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' });
+  }
+
   document.addEventListener('click', event => {
-    if (event.target.closest && event.target.closest('.kefe-section, [data-shell-panel], [data-dock-panel]')) setTimeout(sync, 0);
+    if (event.target.closest && event.target.closest('.kefe-section, [data-shell-panel], [data-dock-panel]')) {
+      setTimeout(() => { sync(); reveal(); }, 0);
+    }
   });
   mq.addEventListener('change', () => { place(); sync(); });
   place();

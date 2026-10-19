@@ -180,7 +180,7 @@ button{border:0;cursor:pointer;
 .kefe-background-transparency{display:block;width:100%;height:24px;margin:0;accent-color:var(--accent);cursor:pointer;touch-action:pan-y}
 .kefe-editing{min-height:0;min-width:0;display:grid;grid-template-columns:160px minmax(0,1fr);background:var(--bg);box-shadow:none;overflow:hidden}
 .kefe-tabs{display:flex;flex-direction:column;align-items:stretch;gap:var(--control-gap);padding:var(--panel-pad) 12px;border-right:0;overflow:auto;background:var(--bg)}
-.kefe-section{position:relative;height:var(--tab-h);min-height:var(--tab-h);padding:0 14px;text-align:left;border:0;border-radius:999px;background:var(--bg);color:var(--muted);white-space:nowrap;box-shadow:var(--lift);transition:transform .18s ease,box-shadow .18s ease,background .18s ease,color .18s ease;
+.kefe-section{position:relative;height:var(--tab-h);min-height:var(--tab-h);padding:0 14px;text-align:left;border:0;border-radius:999px;background:var(--bg);color:var(--muted);white-space:nowrap;box-shadow:var(--lift);transition:transform .16s ease,box-shadow .16s ease,background .16s ease,color .16s ease;
   font-size: var(--font-sm);
   font-family: inherit;}
 .kefe-section:hover{background:var(--surface-hi);color:var(--text);box-shadow:var(--float);
@@ -1290,7 +1290,7 @@ button{border:0;cursor:pointer;
 .kefe-panel[data-panel-view="media"] .kefe-media-track.is-identified{
   border:1px solid var(--accent);
   box-shadow:0 0 0 1px rgba(239,63,56,.2),0 0 22px rgba(239,63,56,.3),var(--lift);
-  transition:border-color .2s ease,box-shadow .2s ease;
+  transition:border-color .16s ease,box-shadow .16s ease;
 }
 .kefe-panel[data-panel-view="media"] .kefe-media-track.is-identified .kefe-media-track-art{
   border:1px solid rgba(239,63,56,.65);
@@ -2558,22 +2558,19 @@ html {
 :root {
   --confirm-glow: rgba(112, 157, 135, .68);
   --confirm-glow-soft: rgba(112, 157, 135, .22);
+  --select-ring: color-mix(in srgb, var(--accent) 72%, transparent);
+  --select-glow: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 :is(
   .kefe-section.active,
   .kefe-card.active,
-  .kefe-chip.active,
-  .kefe-seg-btn.active,
   .kefe-visualiser-preset.active,
   .kefe-gradient-chip.active,
-  .kefe-btn.primary,
-  .kefe-media-track.is-identified,
-  [aria-pressed="true"],
-  [aria-checked="true"]
+  .kefe-media-track.is-identified
 ) {
-  border-color: var(--confirm-glow) !important;
-  box-shadow: 0 0 0 1px var(--confirm-glow), 0 0 12px var(--confirm-glow-soft), var(--lift);
+  border-color: var(--select-ring);
+  box-shadow: 0 0 0 1px var(--select-ring), 0 0 12px var(--select-glow), var(--lift);
 }
 
 .kefe-control-confirmed {
@@ -2612,7 +2609,7 @@ html {
 }
 
 .kefe-confirmed-container {
-  transition: border-color .18s ease, box-shadow .18s ease;
+  transition: border-color .16s ease, box-shadow .16s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -5690,10 +5687,10 @@ body:not(.kefe-fullscreen-open) {
   position:relative;
   overflow:hidden;
   border:1px solid var(--line-soft);
-  border-radius:10px;
+  border-radius:var(--r2);
   background:var(--surface);
   box-shadow:0 2px 7px rgba(30,35,45,.045);
-  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease;
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,background .16s ease;
 }
 .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-option:hover{
   transform:translateY(-2px);
@@ -5713,7 +5710,7 @@ body:not(.kefe-fullscreen-open) {
   color:var(--effect-ink,var(--text));
   text-shadow:var(--effect-glow,none);
   filter:none;
-  transition:background .18s ease,border-color .18s ease;
+  transition:background .16s ease,border-color .16s ease;
 }
 .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-name{
   color:var(--text);
@@ -5845,7 +5842,7 @@ body:not(.kefe-fullscreen-open) {
 .kefe-font-selector-heading .kefe-label,.kefe-font-selector-heading .kefe-meta{margin:0}
 .kefe-font-selector-heading .kefe-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kefe-panel[data-panel-view="effects"] .kefe-font-selector-strip{display:flex;flex-flow:row nowrap;align-items:stretch;gap:10px;width:100%;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:3px 3px 10px;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent;-webkit-overflow-scrolling:touch}
-.kefe-font-option{position:relative;flex:0 0 124px;width:124px;min-width:124px;min-height:90px;padding:8px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:8px;overflow:hidden;border:1px solid var(--line-soft);border-radius:10px;background:var(--surface);color:var(--text);box-shadow:0 2px 7px rgba(30,35,45,.045);cursor:pointer;scroll-snap-align:start;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease}
+.kefe-font-option{position:relative;flex:0 0 124px;width:124px;min-width:124px;min-height:90px;padding:8px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:8px;overflow:hidden;border:1px solid var(--line-soft);border-radius:var(--r2);background:var(--surface);color:var(--text);box-shadow:0 2px 7px rgba(30,35,45,.045);cursor:pointer;scroll-snap-align:start;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,background .16s ease}
 .kefe-font-option:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 18px rgba(30,35,45,.10)}
 .kefe-font-option.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface));box-shadow:inset 0 0 0 1px var(--accent),0 6px 16px rgba(30,35,45,.09)}
 .kefe-font-option:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
@@ -6009,7 +6006,7 @@ body:not(.kefe-fullscreen-open) {
   }
   .kefe-panels .kefe-panel[data-panel-view]{
     padding:16px;
-    border-radius:12px;
+    border-radius:var(--r3);
   }
   .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head{
     margin-bottom:16px;
@@ -6128,7 +6125,7 @@ body:not(.kefe-fullscreen-open) {
   background:var(--surface-2,var(--surface));
   border:1px solid color-mix(in srgb,var(--line) 70%,transparent);
 }
-.kefe-background-effect-preview-core{display:block;width:44%;height:62%;border-radius:7px;background:var(--line);opacity:.7}
+.kefe-background-effect-preview-core{display:block;width:44%;height:62%;border-radius:var(--r2);background:var(--line);opacity:.7}
 .kefe-background-effect-card[data-background-mode="off"] .kefe-background-effect-preview{background:repeating-linear-gradient(135deg,var(--surface) 0 8px,var(--surface-2,var(--line)) 8px 9px)}
 .kefe-background-effect-card[data-background-mode="off"] .kefe-background-effect-preview-core{width:28%;height:2px;border-radius:999px;background:var(--text);opacity:.6}
 .kefe-background-effect-card[data-background-mode="apple"] .kefe-background-effect-preview{background:radial-gradient(ellipse at 22% 25%,#9bd9e7 0,transparent 36%),radial-gradient(ellipse at 76% 70%,#b6a5f6 0,transparent 42%),linear-gradient(125deg,#17253d,#36546c 55%,#22213f)}
@@ -6575,10 +6572,10 @@ body{overflow-x:hidden;overflow-y:auto}
 }
 .kefe-sidebar-link{
   width:100%;min-height:38px;display:flex;align-items:center;gap:10px;
-  padding:0 11px;border:1px solid transparent;border-radius:8px;
+  padding:0 11px;border:1px solid transparent;border-radius:var(--r2);
   background:transparent;color:var(--muted);text-align:left;
   text-decoration:none;font:600 13px/1.3 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,sans-serif;
-  cursor:pointer;transition:background .14s ease,color .14s ease,border-color .14s ease;
+  cursor:pointer;transition:background .16s ease,color .16s ease,border-color .16s ease;
 }
 .kefe-sidebar-link>span{
   width:18px;flex:0 0 18px;display:inline-grid;place-items:center;
@@ -6594,7 +6591,7 @@ body{overflow-x:hidden;overflow-y:auto}
   display:flex;align-items:center;justify-content:space-between;
   width:calc(100% - clamp(24px,4vw,56px));max-width:1200px;
   margin:7px auto 0;padding:0 10px;height:45px;
-  border:1px solid var(--line);border-radius:10px;
+  border:1px solid var(--line);border-radius:var(--r2);
   background:var(--surface);box-shadow:none;z-index:20;
 }
 .kefe-top-nav,.kefe-top-profile{display:flex;align-items:center;gap:6px}
@@ -6620,7 +6617,7 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-stage{
   position:relative;flex:none;width:min(100%,900px,92.45vh);
   max-width:100%;max-height:none;margin-inline:auto;
-  border:1px solid var(--line);border-radius:10px;
+  border:1px solid var(--line);border-radius:var(--r2);
   box-shadow:0 12px 36px rgba(0,0,0,.13);
   transition:width 420ms cubic-bezier(.22,1,.36,1),height 420ms cubic-bezier(.22,1,.36,1),aspect-ratio 420ms cubic-bezier(.22,1,.36,1);
   will-change:width,height;
@@ -6660,7 +6657,7 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-panel .kefe-textarea{
   border:1px solid var(--line);border-radius:var(--r2);
   background:var(--surface-lo);color:var(--text);box-shadow:none;
-  transition:border-color .14s ease,background .14s ease;
+  transition:border-color .16s ease,background .16s ease;
 }
 .kefe-panel .kefe-select,.kefe-panel .kefe-input{min-height:var(--control-h)}
 .kefe-panel .kefe-select:focus-visible,
@@ -6787,7 +6784,7 @@ body{overflow-x:hidden;overflow-y:auto}
   .kefe-stage.is-1x1{width:min(100%,52vh)}
   .kefe-timeline{padding:5px 7px;gap:5px}
   .kefe-panels{padding:8px 8px 22px}
-  .kefe-panel{padding:14px;border-radius:10px}
+  .kefe-panel{padding:14px;border-radius:var(--r2)}
   .kefe-panel-head{display:flex;align-items:flex-start;flex-direction:column;gap:6px;margin-bottom:14px}
   .kefe-panel-head .kefe-meta{text-align:left}
   .kefe-form{gap:14px}
@@ -6828,7 +6825,7 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-sidebar-brand-row{display:flex;align-items:center;gap:8px;min-width:0}
 .kefe-sidebar-toggle{
   display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;
-  border:1px solid var(--line);border-radius:8px;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);
   color:var(--muted);font-size:16px;cursor:pointer;
   transition:background .16s ease,color .16s ease,border-color .16s ease;
 }
@@ -6839,12 +6836,12 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-theme-swatches button{
   display:grid;place-items:center;width:22px;height:22px;padding:0;border-radius:50%;
   border:2px solid color-mix(in srgb,var(--text) 18%,transparent);
-  background:var(--swatch);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;
+  background:var(--swatch);cursor:pointer;transition:transform .16s ease,box-shadow .16s ease;
 }
 .kefe-theme-swatches button:hover{transform:scale(1.1)}
 .kefe-theme-swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--swatch)}
 .kefe-theme-swatches button:focus-visible,.kefe-sidebar-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-.kefe-command-trigger{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:8px;padding-inline:10px;font-size:11px!important}
+.kefe-command-trigger{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:var(--r2);padding-inline:10px;font-size:11px!important}
 .kefe-command-trigger kbd,.kefe-command-search kbd,.kefe-command-list kbd{
   padding:2px 5px;border:1px solid var(--line);border-radius:4px;
   color:var(--muted);font:10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -6852,14 +6849,14 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-workspace-dock{
   position:fixed;z-index:1000;left:50%;bottom:max(12px,env(safe-area-inset-bottom));
   transform:translateX(-50%);display:flex;align-items:center;gap:5px;
-  padding:7px;border:1px solid var(--line);border-radius:17px;
+  padding:7px;border:1px solid var(--line);border-radius:var(--r3);
   background:color-mix(in srgb,var(--surface) 84%,transparent);
   -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
   box-shadow:0 12px 36px rgba(0,0,0,.22);
 }
 .kefe-workspace-dock button{
   position:relative;display:grid;place-items:center;width:40px;height:40px;padding:0;
-  border:1px solid transparent;border-radius:11px;background:transparent;color:var(--muted);
+  border:1px solid transparent;border-radius:var(--r2);background:transparent;color:var(--muted);
   font-size:20px;cursor:pointer;transition:background .16s ease,color .16s ease,transform .16s ease;
 }
 .kefe-workspace-dock button:hover{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--text);transform:translateY(-2px)}
@@ -6874,14 +6871,14 @@ body{overflow-x:hidden;overflow-y:auto}
 }
 .kefe-command-dialog{
   width:min(100%,520px);max-height:min(70vh,560px);overflow:hidden;
-  border:1px solid var(--line);border-radius:13px;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r3);background:var(--surface);
   color:var(--text);box-shadow:0 24px 80px rgba(0,0,0,.32);
 }
 .kefe-command-search{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line);color:var(--muted)}
 .kefe-command-search>span{font-size:20px}
 .kefe-command-search input{flex:1;min-width:0;height:34px;border:0;outline:0;background:transparent;color:var(--text);font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
 .kefe-command-list{display:grid;gap:3px;padding:8px;overflow:auto;max-height:calc(min(70vh,560px) - 62px)}
-.kefe-command-list button{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:38px;padding:0 11px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--text);text-align:left;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer}
+.kefe-command-list button{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:38px;padding:0 11px;border:1px solid transparent;border-radius:var(--r2);background:transparent;color:var(--text);text-align:left;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer}
 .kefe-command-list button:hover,.kefe-command-list button:focus-visible{outline:0;background:color-mix(in srgb,var(--accent) 12%,transparent);border-color:color-mix(in srgb,var(--accent) 20%,transparent)}
 .kefe-command-list button[hidden]{display:none}
 .kefe-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -6921,7 +6918,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   body:has(.kefe-workspace-dock){padding-bottom:74px}
   .kefe-command-trigger span,.kefe-command-trigger kbd{display:none}
   .kefe-command-trigger{width:34px;justify-content:center;padding:0;font-size:18px!important}
-  .kefe-workspace-dock{gap:2px;padding:6px;border-radius:14px}
+  .kefe-workspace-dock{gap:2px;padding:6px;border-radius:var(--r3)}
   .kefe-workspace-dock button{width:36px;height:36px}
 }
 @media(prefers-reduced-motion:reduce){
@@ -6931,9 +6928,9 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 
 
 .kefe-volume-control{position:relative;display:flex;align-items:center;justify-content:center;min-width:30px;flex:0 0 30px;overflow:visible}
-.kefe-volume-control>button{display:grid;place-items:center;width:30px;height:34px;padding:0;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font-size:18px;cursor:pointer;touch-action:manipulation}
+.kefe-volume-control>button{display:grid;place-items:center;width:30px;height:34px;padding:0;border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);color:var(--text);font-size:18px;cursor:pointer;touch-action:manipulation}
 .kefe-volume-control>button:hover,.kefe-volume-control>button[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
-.kefe-volume-popover{position:absolute;right:0;bottom:calc(100% + 10px);z-index:100;display:flex;align-items:center;gap:10px;width:min(220px,calc(100vw - 24px));padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 12px 34px rgba(0,0,0,.28)}
+.kefe-volume-popover{position:absolute;right:0;bottom:calc(100% + 10px);z-index:100;display:flex;align-items:center;gap:10px;width:min(220px,calc(100vw - 24px));padding:12px;border:1px solid var(--line);border-radius:var(--r3);background:var(--surface);box-shadow:0 12px 34px rgba(0,0,0,.28)}
 .kefe-volume-popover[hidden]{display:none!important}
 .kefe-volume-popover label{flex:0 0 auto;color:var(--muted);font-size:12px;font-weight:650}
 .kefe-volume-popover input[type="range"].beui-slider{appearance:none;-webkit-appearance:none;flex:1;min-width:0;width:100%;height:24px;margin:0;background:transparent;cursor:pointer;accent-color:var(--accent)}
@@ -6979,11 +6976,11 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
    Only the media transport scrubber stays on its dedicated timeline styling. */
 :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider){
   -webkit-appearance:none;appearance:none;display:block;width:100%;height:40px;min-height:40px;
-  margin:0;padding:0;border:0;border-radius:8px;overflow:visible;background:transparent;
+  margin:0;padding:0;border:0;border-radius:var(--r2);overflow:visible;background:transparent;
   cursor:pointer;accent-color:var(--accent);touch-action:pan-y;
 }
 :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-webkit-slider-runnable-track{
-  height:40px;border:0;border-radius:8px;
+  height:40px;border:0;border-radius:var(--r2);
   background:
     radial-gradient(circle,color-mix(in srgb,var(--text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc(11.111% - 1.78px) 4px repeat-x,
     linear-gradient(to right,color-mix(in srgb,var(--accent) 20%,var(--surface)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--text) 7%,var(--surface)) var(--kefe-slider-progress,0%) 100%);
@@ -6996,7 +6993,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   transition:transform .16s cubic-bezier(.2,.8,.2,1);
 }
 :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-moz-range-track{
-  height:40px;border:0;border-radius:8px;
+  height:40px;border:0;border-radius:var(--r2);
   background:
     radial-gradient(circle,color-mix(in srgb,var(--text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc(11.111% - 1.78px) 4px repeat-x,
     linear-gradient(to right,color-mix(in srgb,var(--accent) 20%,var(--surface)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--text) 7%,var(--surface)) var(--kefe-slider-progress,0%) 100%);
@@ -7011,19 +7008,19 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):active::-webkit-slider-thumb{transform:scaleY(1.3)}
 :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):hover::-moz-range-thumb,
 :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):active::-moz-range-thumb{transform:scaleY(1.3)}
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:var(--r2)}
 :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):disabled{opacity:.45;cursor:not-allowed}
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider{
-  height:40px;min-height:40px;border-radius:8px;touch-action:pan-x;
+  height:40px;min-height:40px;border-radius:var(--r2);touch-action:pan-x;
 }
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-webkit-slider-runnable-track{
-  height:40px;border:0;border-radius:8px;
+  height:40px;border:0;border-radius:var(--r2);
   background:
     radial-gradient(circle,color-mix(in srgb,var(--text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc(11.111% - 1.78px) 4px repeat-x,
     linear-gradient(to right,color-mix(in srgb,var(--accent) 20%,var(--surface)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--text) 7%,var(--surface)) var(--kefe-slider-progress,0%) 100%);
 }
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider::-moz-range-track{
-  height:40px;border:0;border-radius:8px;
+  height:40px;border:0;border-radius:var(--r2);
   background:
     radial-gradient(circle,color-mix(in srgb,var(--text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc(11.111% - 1.78px) 4px repeat-x,
     linear-gradient(to right,color-mix(in srgb,var(--accent) 20%,var(--surface)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--text) 7%,var(--surface)) var(--kefe-slider-progress,0%) 100%);
@@ -7057,7 +7054,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 .kefe-editor .kefe-restart.beui-button{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   border:1px solid var(--line);background:var(--surface);color:var(--text);
-  transition:transform .18s cubic-bezier(.2,.8,.2,1),background .18s ease,border-color .18s ease,box-shadow .18s ease;
+  transition:transform .16s cubic-bezier(.2,.8,.2,1),background .16s ease,border-color .16s ease,box-shadow .16s ease;
   -webkit-tap-highlight-color:transparent;touch-action:manipulation;
 }
 .kefe-editor .kefe-aspect-trigger.kefe-aspect-native{
@@ -7089,7 +7086,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 }
 .kefe-editor select.kefe-aspect-trigger.kefe-aspect-native{
   display:block;appearance:none;-webkit-appearance:none;
-  width:64px;min-width:64px;height:34px;padding:0 19px 0 7px;border-radius:8px;
+  width:64px;min-width:64px;height:34px;padding:0 19px 0 7px;border-radius:var(--r2);
   font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1;
   color:var(--text);background-color:var(--surface);
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath d='m7 10 5 5 5-5' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -7309,7 +7306,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   box-sizing:border-box;
   border-radius:var(--r2);
   font:inherit;
-  transition:background-color .14s ease,border-color .14s ease,box-shadow .14s ease,transform .14s ease;
+  transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease;
 }
 .kefe-editor .kefe-panel .kefe-btn:not(.kefe-switch):not(.kefe-style-swatch):not(.kefe-style-color),
 .kefe-editor .kefe-panel .kefe-control,
@@ -7627,7 +7624,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 }
 
 /* Standalone synced-lyrics presentation, scoped to its own page. */
-html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html:has(body.kefe-standalone-lyrics){height:100%}body.kefe-standalone-lyrics{margin:0;min-height:100%;background:#0b0b0b;color:#fff;font:14px system-ui,sans-serif;display:flex;flex-direction:column;align-items:center}body.kefe-standalone-lyrics #phone{--u:5px;--sz:1;--dim:.32;--ar:.4622;position:relative;width:min(100vw,calc(92vh*var(--ar)));aspect-ratio:var(--ar);overflow:hidden;background:#1e1e1e;border-radius:calc(var(--u)*6);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Helvetica Neue',Arial,sans-serif;font-weight:700;user-select:none;-webkit-user-select:none;touch-action:pan-y}body.kefe-standalone-lyrics #bg, body.kefe-standalone-lyrics #bg div{position:absolute;inset:0}body.kefe-standalone-lyrics #bg div{inset:auto;width:130%;aspect-ratio:1;left:-15%;top:0;border-radius:50%;will-change:transform}body.kefe-standalone-lyrics #shade{position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.22),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 60%,rgba(0,0,0,.4))}body.kefe-standalone-lyrics #hdr{position:absolute;left:0;right:0;top:0;height:calc(var(--u)*40);z-index:3;color:#fff}body.kefe-standalone-lyrics #grab{position:absolute;left:50%;top:calc(var(--u)*14.2);width:calc(var(--u)*15.4);height:calc(var(--u)*1);margin-left:calc(var(--u)*-7.7);border-radius:9px;background:rgba(255,255,255,.35)}body.kefe-standalone-lyrics #art{position:absolute;left:calc(var(--u)*8.2);top:calc(var(--u)*20.5);width:calc(var(--u)*18.3);height:calc(var(--u)*18.3);border-radius:calc(var(--u)*2.7);object-fit:cover;background:#444}body.kefe-standalone-lyrics #ttl{position:absolute;left:calc(var(--u)*29.9);top:calc(var(--u)*23.2);font-size:calc(var(--u)*4.1);font-weight:600;white-space:nowrap;max-width:calc(var(--u)*38)}body.kefe-standalone-lyrics #art2{position:absolute;left:calc(var(--u)*29.9);top:calc(var(--u)*28.6);font-size:calc(var(--u)*3.6);font-weight:500;color:rgba(255,255,255,.55);white-space:nowrap;max-width:calc(var(--u)*38);overflow:hidden}body.kefe-standalone-lyrics #vp{position:absolute;inset:0;z-index:2;-webkit-mask-image:linear-gradient(to bottom,transparent 0,transparent 16%,#000 27%,#000 91%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,transparent 16%,#000 27%,#000 91%,transparent 100%)}body.kefe-standalone-lyrics .ln{position:absolute;left:calc(var(--u)*8.2);top:0;width:calc(var(--u)*83.6);font-size:calc(var(--u)*7.9*var(--sz));line-height:1.32;letter-spacing:-.012em;transition:opacity .45s cubic-bezier(.3,.7,.2,1),filter .45s cubic-bezier(.3,.7,.2,1);cursor:pointer;color:#fff;will-change:transform,opacity}body.kefe-standalone-lyrics .w{display:inline-block;white-space:nowrap}body.kefe-standalone-lyrics .lt i{font-style:normal;display:inline-block;--a:-50%;--b:-1%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;background-image:linear-gradient(90deg,rgba(255,255,255,var(--hi,1)) var(--a),rgba(255,255,255,var(--dim)) var(--b));transform-origin:50% 85%}body.kefe-standalone-lyrics .past .lt i{--a:-50%;--b:-1%}body.kefe-standalone-lyrics .lg{position:absolute;left:0;top:0;width:100%;pointer-events:none}body.kefe-standalone-lyrics .lg i{font-style:normal;display:inline-block;color:rgba(255,255,255,0);transform-origin:50% 85%}body.kefe-standalone-lyrics .ln:not(.live) .lg{display:none}body.kefe-standalone-lyrics .bgv{position:absolute;left:0;font-size:.6em;line-height:1.3;color:rgba(255,255,255,.55);opacity:0;transition:opacity .5s ease}body.kefe-standalone-lyrics .ln.act .bgv{opacity:1}body.kefe-standalone-lyrics #tp{display:flex;gap:8px;align-items:center;width:min(100vw,640px);padding:10px 12px 0}body.kefe-standalone-lyrics #tp input[type=range]{flex:1;min-width:0}body.kefe-standalone-lyrics #tm{font-variant-numeric:tabular-nums;min-width:84px;text-align:right;opacity:.8}body.kefe-standalone-lyrics #ui{width:100%;max-width:640px;padding:8px 12px 28px}body.kefe-standalone-lyrics .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}body.kefe-standalone-lyrics button{background:#e9e9ee;color:#000;border:0;border-radius:8px;padding:10px 14px;font:inherit;font-weight:700}body.kefe-standalone-lyrics input[type=text], body.kefe-standalone-lyrics textarea{background:#1c1c1e;color:#fff;border:1px solid #333;border-radius:8px;padding:9px;font:inherit;min-width:0}body.kefe-standalone-lyrics textarea{width:100%;height:150px;font-size:13px;resize:vertical}body.kefe-standalone-lyrics details{background:#161618;border-radius:10px;padding:8px 12px;margin-bottom:8px}body.kefe-standalone-lyrics summary{font-weight:700;cursor:pointer}body.kefe-standalone-lyrics .g2{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:8px}@media(max-width:520px){body.kefe-standalone-lyrics .g2{grid-template-columns:1fr}}body.kefe-standalone-lyrics label{display:flex;align-items:center;gap:8px;justify-content:space-between}body.kefe-standalone-lyrics label span{min-width:96px}body.kefe-standalone-lyrics label input[type=range]{flex:1;min-width:0}body.kefe-standalone-lyrics select{max-width:150px}body.kefe-standalone-lyrics .hz #hdr{height:100%;right:auto;width:44%}body.kefe-standalone-lyrics .hz #grab{display:none}body.kefe-standalone-lyrics .hz #art{left:calc(var(--u)*28);top:calc(var(--u)*28);width:calc(var(--u)*108);height:calc(var(--u)*108);border-radius:calc(var(--u)*3.2);box-shadow:0 calc(var(--u)*2.5) calc(var(--u)*9) rgba(0,0,0,.45)}body.kefe-standalone-lyrics .hz #ttl{left:calc(var(--u)*28);top:calc(var(--u)*143);font-size:calc(var(--u)*8.6);max-width:calc(var(--u)*108)}body.kefe-standalone-lyrics .hz #art2{left:calc(var(--u)*28);top:calc(var(--u)*155.5);font-size:calc(var(--u)*7.6);max-width:calc(var(--u)*108)}body.kefe-standalone-lyrics .hz .ln{left:calc(var(--u)*180);width:calc(var(--u)*186);font-size:calc(var(--u)*10.5*var(--sz))}body.kefe-standalone-lyrics #ctl{display:none;position:absolute}body.kefe-standalone-lyrics .hz #ctl{display:block;left:calc(var(--u)*28);top:calc(var(--u)*177);width:calc(var(--u)*108)}body.kefe-standalone-lyrics #pb{height:calc(var(--u)*1.5);border-radius:9px;background:rgba(255,255,255,.28);overflow:hidden;cursor:pointer}body.kefe-standalone-lyrics #pf{display:block;height:100%;width:0;background:rgba(255,255,255,.88);border-radius:9px}body.kefe-standalone-lyrics #pts{display:flex;justify-content:space-between;margin-top:calc(var(--u)*2.2);font-size:calc(var(--u)*4.2);font-weight:500;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}body.kefe-standalone-lyrics #pcs{display:flex;justify-content:center;align-items:center;gap:calc(var(--u)*17);margin-top:calc(var(--u)*6)}body.kefe-standalone-lyrics #pcs svg{width:calc(var(--u)*11);height:calc(var(--u)*11);fill:#fff;cursor:pointer}body.kefe-standalone-lyrics #pcs svg#pcp{width:calc(var(--u)*14);height:calc(var(--u)*14)}body.kefe-standalone-lyrics .hz #vp{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16%,#000 84%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 16%,#000 84%,transparent 100%)}body.kefe-standalone-lyrics .sq #vp{-webkit-mask-image:linear-gradient(to bottom,transparent 0,transparent 34%,#000 46%,#000 92%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,transparent 34%,#000 46%,#000 92%,transparent 100%)}
+html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html:has(body.kefe-standalone-lyrics){height:100%}body.kefe-standalone-lyrics{margin:0;min-height:100%;background:#0b0b0b;color:#fff;font:14px system-ui,sans-serif;display:flex;flex-direction:column;align-items:center}body.kefe-standalone-lyrics #phone{--u:5px;--sz:1;--dim:.32;--ar:.4622;position:relative;width:min(100vw,calc(92vh*var(--ar)));aspect-ratio:var(--ar);overflow:hidden;background:#1e1e1e;border-radius:calc(var(--u)*6);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Helvetica Neue',Arial,sans-serif;font-weight:700;user-select:none;-webkit-user-select:none;touch-action:pan-y}body.kefe-standalone-lyrics #bg, body.kefe-standalone-lyrics #bg div{position:absolute;inset:0}body.kefe-standalone-lyrics #bg div{inset:auto;width:130%;aspect-ratio:1;left:-15%;top:0;border-radius:50%;will-change:transform}body.kefe-standalone-lyrics #shade{position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.22),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 60%,rgba(0,0,0,.4))}body.kefe-standalone-lyrics #hdr{position:absolute;left:0;right:0;top:0;height:calc(var(--u)*40);z-index:3;color:#fff}body.kefe-standalone-lyrics #grab{position:absolute;left:50%;top:calc(var(--u)*14.2);width:calc(var(--u)*15.4);height:calc(var(--u)*1);margin-left:calc(var(--u)*-7.7);border-radius:var(--r2);background:rgba(255,255,255,.35)}body.kefe-standalone-lyrics #art{position:absolute;left:calc(var(--u)*8.2);top:calc(var(--u)*20.5);width:calc(var(--u)*18.3);height:calc(var(--u)*18.3);border-radius:calc(var(--u)*2.7);object-fit:cover;background:#444}body.kefe-standalone-lyrics #ttl{position:absolute;left:calc(var(--u)*29.9);top:calc(var(--u)*23.2);font-size:calc(var(--u)*4.1);font-weight:600;white-space:nowrap;max-width:calc(var(--u)*38)}body.kefe-standalone-lyrics #art2{position:absolute;left:calc(var(--u)*29.9);top:calc(var(--u)*28.6);font-size:calc(var(--u)*3.6);font-weight:500;color:rgba(255,255,255,.55);white-space:nowrap;max-width:calc(var(--u)*38);overflow:hidden}body.kefe-standalone-lyrics #vp{position:absolute;inset:0;z-index:2;-webkit-mask-image:linear-gradient(to bottom,transparent 0,transparent 16%,#000 27%,#000 91%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,transparent 16%,#000 27%,#000 91%,transparent 100%)}body.kefe-standalone-lyrics .ln{position:absolute;left:calc(var(--u)*8.2);top:0;width:calc(var(--u)*83.6);font-size:calc(var(--u)*7.9*var(--sz));line-height:1.32;letter-spacing:-.012em;transition:opacity .45s cubic-bezier(.3,.7,.2,1),filter .45s cubic-bezier(.3,.7,.2,1);cursor:pointer;color:#fff;will-change:transform,opacity}body.kefe-standalone-lyrics .w{display:inline-block;white-space:nowrap}body.kefe-standalone-lyrics .lt i{font-style:normal;display:inline-block;--a:-50%;--b:-1%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;background-image:linear-gradient(90deg,rgba(255,255,255,var(--hi,1)) var(--a),rgba(255,255,255,var(--dim)) var(--b));transform-origin:50% 85%}body.kefe-standalone-lyrics .past .lt i{--a:-50%;--b:-1%}body.kefe-standalone-lyrics .lg{position:absolute;left:0;top:0;width:100%;pointer-events:none}body.kefe-standalone-lyrics .lg i{font-style:normal;display:inline-block;color:rgba(255,255,255,0);transform-origin:50% 85%}body.kefe-standalone-lyrics .ln:not(.live) .lg{display:none}body.kefe-standalone-lyrics .bgv{position:absolute;left:0;font-size:.6em;line-height:1.3;color:rgba(255,255,255,.55);opacity:0;transition:opacity .5s ease}body.kefe-standalone-lyrics .ln.act .bgv{opacity:1}body.kefe-standalone-lyrics #tp{display:flex;gap:8px;align-items:center;width:min(100vw,640px);padding:10px 12px 0}body.kefe-standalone-lyrics #tp input[type=range]{flex:1;min-width:0}body.kefe-standalone-lyrics #tm{font-variant-numeric:tabular-nums;min-width:84px;text-align:right;opacity:.8}body.kefe-standalone-lyrics #ui{width:100%;max-width:640px;padding:8px 12px 28px}body.kefe-standalone-lyrics .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}body.kefe-standalone-lyrics button{background:#e9e9ee;color:#000;border:0;border-radius:var(--r2);padding:10px 14px;font:inherit;font-weight:700}body.kefe-standalone-lyrics input[type=text], body.kefe-standalone-lyrics textarea{background:#1c1c1e;color:#fff;border:1px solid #333;border-radius:var(--r2);padding:9px;font:inherit;min-width:0}body.kefe-standalone-lyrics textarea{width:100%;height:150px;font-size:13px;resize:vertical}body.kefe-standalone-lyrics details{background:#161618;border-radius:var(--r2);padding:8px 12px;margin-bottom:8px}body.kefe-standalone-lyrics summary{font-weight:700;cursor:pointer}body.kefe-standalone-lyrics .g2{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:8px}@media(max-width:520px){body.kefe-standalone-lyrics .g2{grid-template-columns:1fr}}body.kefe-standalone-lyrics label{display:flex;align-items:center;gap:8px;justify-content:space-between}body.kefe-standalone-lyrics label span{min-width:96px}body.kefe-standalone-lyrics label input[type=range]{flex:1;min-width:0}body.kefe-standalone-lyrics select{max-width:150px}body.kefe-standalone-lyrics .hz #hdr{height:100%;right:auto;width:44%}body.kefe-standalone-lyrics .hz #grab{display:none}body.kefe-standalone-lyrics .hz #art{left:calc(var(--u)*28);top:calc(var(--u)*28);width:calc(var(--u)*108);height:calc(var(--u)*108);border-radius:calc(var(--u)*3.2);box-shadow:0 calc(var(--u)*2.5) calc(var(--u)*9) rgba(0,0,0,.45)}body.kefe-standalone-lyrics .hz #ttl{left:calc(var(--u)*28);top:calc(var(--u)*143);font-size:calc(var(--u)*8.6);max-width:calc(var(--u)*108)}body.kefe-standalone-lyrics .hz #art2{left:calc(var(--u)*28);top:calc(var(--u)*155.5);font-size:calc(var(--u)*7.6);max-width:calc(var(--u)*108)}body.kefe-standalone-lyrics .hz .ln{left:calc(var(--u)*180);width:calc(var(--u)*186);font-size:calc(var(--u)*10.5*var(--sz))}body.kefe-standalone-lyrics #ctl{display:none;position:absolute}body.kefe-standalone-lyrics .hz #ctl{display:block;left:calc(var(--u)*28);top:calc(var(--u)*177);width:calc(var(--u)*108)}body.kefe-standalone-lyrics #pb{height:calc(var(--u)*1.5);border-radius:var(--r2);background:rgba(255,255,255,.28);overflow:hidden;cursor:pointer}body.kefe-standalone-lyrics #pf{display:block;height:100%;width:0;background:rgba(255,255,255,.88);border-radius:var(--r2)}body.kefe-standalone-lyrics #pts{display:flex;justify-content:space-between;margin-top:calc(var(--u)*2.2);font-size:calc(var(--u)*4.2);font-weight:500;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}body.kefe-standalone-lyrics #pcs{display:flex;justify-content:center;align-items:center;gap:calc(var(--u)*17);margin-top:calc(var(--u)*6)}body.kefe-standalone-lyrics #pcs svg{width:calc(var(--u)*11);height:calc(var(--u)*11);fill:#fff;cursor:pointer}body.kefe-standalone-lyrics #pcs svg#pcp{width:calc(var(--u)*14);height:calc(var(--u)*14)}body.kefe-standalone-lyrics .hz #vp{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16%,#000 84%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 16%,#000 84%,transparent 100%)}body.kefe-standalone-lyrics .sq #vp{-webkit-mask-image:linear-gradient(to bottom,transparent 0,transparent 34%,#000 46%,#000 92%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,transparent 34%,#000 46%,#000 92%,transparent 100%)}
 
 /* Local KEFE font faces — registered here with the shared design stylesheet. */
 @font-face {
@@ -8235,7 +8232,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
     border: 1px solid var(--line-soft);
     background: var(--surface);
     box-shadow: var(--lift);
-    transition: border-color 180ms ease, box-shadow 180ms ease;
+    transition: border-color .16s ease, box-shadow .16s ease;
   }
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed {
     height: auto;
@@ -8289,11 +8286,11 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   height: 32px;
   padding: 0;
   border: 1px solid var(--line-soft);
-  border-radius: 10px;
+  border-radius:var(--r2);
   color: var(--text);
   background: var(--surface-raised, var(--surface));
   cursor: pointer;
-  transition: background 160ms ease, transform 220ms cubic-bezier(.2, .9, .25, 1.35), border-color 160ms ease;
+  transition: background .16s ease, transform 220ms cubic-bezier(.2, .9, .25, 1.35), border-color .16s ease;
 }
 .beui-accordion-trigger:hover { transform: translateY(-1px); border-color: var(--line); }
 .beui-accordion-trigger:active { transform: scale(.94); }
@@ -8318,8 +8315,8 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .kefe-tabs .kefe-section {
-  border-radius: 12px;
-  transition: background 160ms ease, color 160ms ease, transform 200ms cubic-bezier(.2, .9, .25, 1.25);
+  border-radius:var(--r3);
+  transition: background .16s ease, color .16s ease, transform .16s cubic-bezier(.2, .9, .25, 1.25);
 }
 .kefe-tabs .kefe-section:active { transform: scale(.97); }
 .kefe-tabs .kefe-section:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -8459,4 +8456,221 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
     min-height: 36px;
     padding-right: 42px;
   }
+}
+
+
+/* ==========================================================================
+   KEFE premium finish — the final, authoritative layer.
+   One accent, one selection language, one focus ring, one motion curve.
+   Everything above is structure; this block owns colour, shape and state so
+   the editor reads as a single designed system in both day and night.
+   ========================================================================== */
+:root,
+:root[data-theme="day"],
+:root[data-theme="night"] {
+  --accent: #d92f33;
+  --accent-hover: #e6393d;
+  --accent-pressed: #c22a2e;
+  --on-accent: #fff;
+  --accent-soft: color-mix(in srgb, var(--accent) 13%, transparent);
+  --accent-ring: color-mix(in srgb, var(--accent) 72%, transparent);
+  --focus-ring: var(--accent);
+  --select-ring: var(--accent-ring);
+  --select-glow: color-mix(in srgb, var(--accent) 20%, transparent);
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --dur: .16s;
+  --r1: 6px;
+  --r2: 10px;
+  --r3: 14px;
+}
+:root[data-theme="night"] {
+  --focus-ring: #ff8a8d;
+  --accent-soft: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); color: inherit; }
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--text) 22%, transparent) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 999px; background: color-mix(in srgb, var(--text) 22%, transparent) padding-box; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--text) 38%, transparent) padding-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* One focus ring everywhere (keyboard only). */
+html:root :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+html:root :is(a, button, input, select, textarea, [tabindex]):focus:not(:focus-visible) { outline: 0; }
+
+/* Accent-filled controls: identical fill, ink, depth and states. */
+html:root :is(
+  .kefe-btn.primary, #exportButton, .kefe-section.active, .kefe-seg-btn.active, .kefe-chip.active,
+  .kefe-vis-tabs .kefe-btn[aria-selected="true"], .kefe-vis-tabs .kefe-btn.primary
+) {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: transparent;
+  text-shadow: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 6px 16px -8px color-mix(in srgb, var(--accent) 75%, transparent);
+}
+html:root :is(
+  .kefe-btn.primary, #exportButton, .kefe-seg-btn.active, .kefe-chip.active,
+  .kefe-vis-tabs .kefe-btn[aria-selected="true"], .kefe-vis-tabs .kefe-btn.primary
+):is(:hover, :focus-visible) {
+  background: var(--accent-hover);
+  color: var(--on-accent);
+  border-color: transparent;
+}
+html:root :is(.kefe-btn.primary, #exportButton, .kefe-seg-btn.active, .kefe-chip.active):active {
+  background: var(--accent-pressed);
+  transform: translateY(0);
+}
+html:root :is(.kefe-vis-tabs .kefe-btn[aria-selected="true"], .kefe-vis-tabs .kefe-btn.primary) * { color: inherit; }
+
+/* Selection rings on outline-style choices (cards, rails, presets). */
+html:root :is(
+  .kefe-lyric-effect-option.active, .kefe-lyric-effect-option[aria-pressed="true"],
+  .kefe-font-option.active, .kefe-font-option[aria-pressed="true"],
+  .kefe-background-effect-card.active, .kefe-background-effect-card[aria-pressed="true"],
+  .kefe-visualiser-preset.active, .kefe-gradient-chip.active
+) {
+  border-color: var(--accent-ring);
+  background-color: var(--accent-soft);
+  box-shadow: 0 0 0 1px var(--accent-ring), 0 8px 20px -10px var(--select-glow);
+}
+/* Switches: accent track, no extra halo. */
+html:root .kefe-switch[aria-checked="true"], html:root .kefe-switch.is-on { box-shadow: none; border-color: transparent; }
+
+/* Header navigation: quiet pill with a clear current-page indicator. */
+html:root .kefe-sidebar-link, html:root .kefe-top-link { transition: background var(--dur) var(--ease), color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+html:root .kefe-sidebar-link:hover { background: color-mix(in srgb, var(--text) 7%, transparent); color: var(--text); }
+html:root .kefe-sidebar-link.is-current {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--text);
+  box-shadow: none;
+  font-weight: 650;
+}
+html:root .kefe-sidebar-link.is-current > span { color: var(--accent); }
+html:root[data-theme="night"] .kefe-sidebar-link.is-current > span { color: #ff8a8d; }
+
+/* Search: icon and text never collide; placeholders are legible in both themes. */
+html:root .kefe-search > input { padding-left: 42px; padding-right: 14px; }
+html:root :is(.kefe-input, .kefe-textarea, .kefe-search > input, #kefeCommandInput)::placeholder { color: var(--soft); opacity: 1; }
+
+/* Upload zones: one consistent dashed target. */
+html:root .kefe-upload-zone {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
+  min-height: 132px;
+  padding: 14px 10px;
+  text-align: center;
+  border: 1px dashed color-mix(in srgb, var(--text) 24%, transparent);
+  border-radius: var(--r2);
+  background: color-mix(in srgb, var(--text) 3%, transparent);
+  box-shadow: none;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+html:root .kefe-upload-zone:hover, html:root .kefe-upload-zone.is-dragging {
+  border-color: var(--accent-ring);
+  background: var(--accent-soft);
+}
+html:root .kefe-upload-title { font-size: var(--font-sm); font-weight: 650; line-height: 1.25; text-wrap: balance; }
+html:root .kefe-upload-name { font-size: var(--font-xs); color: var(--muted); }
+html:root .kefe-upload-help { font-size: 11px; color: var(--soft); text-wrap: balance; }
+
+/* Preview stage and transport. */
+html:root .kefe-stage { border-radius: var(--r3); box-shadow: 0 0 0 1px var(--line), 0 24px 56px -24px rgba(0, 0, 0, .55); }
+html:root .kefe-timeline { border: 0; border-radius: 0; }
+html:root .kefe-volume-control > button { display: grid; place-items: center; font-size: 0; }
+html:root .kefe-volume-control > button svg {
+  width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+html:root .kefe-sidebar-link > span svg, html:root .kefe-theme-toggle > span svg {
+  width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+html:root .kefe-command-search > span svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Footer: quiet, flat, no raised-button depth. */
+html:root .kefe-site-footer { box-shadow: none; background: var(--bg); color: var(--muted); }
+html:root .kefe-site-footer-brand strong { font-size: var(--font-sm); font-weight: 650; color: var(--text); }
+html:root .kefe-site-footer-brand span { font-size: var(--font-xs); color: var(--muted); }
+html:root .kefe-site-footer-meta a { color: var(--text); text-decoration: none; transition: color var(--dur) var(--ease); }
+html:root .kefe-site-footer-meta a:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html:root * { scroll-behavior: auto; }
+}
+
+
+/* --- finish pass 2: shape, nesting, native controls, empty state ----------- */
+html:root #kefeFindInput, html:root .kefe-search > input { padding-left: 42px; padding-right: 14px; }
+
+/* Preset choices read as a softer tier than engine tabs. */
+html:root :is(.kefe-visualiser-preset.active, .kefe-visualiser-preset[aria-pressed="true"]) {
+  background: var(--accent-soft);
+  color: var(--text);
+  border-color: var(--accent-ring);
+  box-shadow: 0 0 0 1px var(--accent-ring);
+}
+
+/* Every button shares one corner radius. */
+html:root .kefe-btn:not(.kefe-switch):not(.kefe-play) { border-radius: var(--r2); }
+
+/* Native checkboxes: custom, accent-filled. */
+html:root input[type="checkbox"]:not(.kefe-sr-only) {
+  appearance: none; -webkit-appearance: none;
+  flex: none; width: 18px; height: 18px; margin: 0; display: inline-grid; place-content: center;
+  border: 1.5px solid color-mix(in srgb, var(--text) 38%, transparent);
+  border-radius: 5px; background: transparent; cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+html:root input[type="checkbox"]:not(.kefe-sr-only)::after {
+  content: ""; width: 10px; height: 10px; transform: scale(0); transition: transform var(--dur) var(--ease);
+  background: #fff;
+  clip-path: polygon(14% 52%, 0 66%, 38% 100%, 100% 22%, 86% 8%, 38% 70%);
+}
+html:root input[type="checkbox"]:not(.kefe-sr-only):checked { background: var(--accent); border-color: var(--accent); }
+html:root input[type="checkbox"]:not(.kefe-sr-only):checked::after { transform: scale(1); }
+html:root input[type="checkbox"]:not(.kefe-sr-only):hover { border-color: var(--accent); }
+html:root input[type="checkbox"]:not(.kefe-sr-only):disabled { opacity: .45; cursor: not-allowed; }
+html:root input[type="radio"] { accent-color: var(--accent); }
+
+/* One card level: the nested settings group inside a visualiser card is flat. */
+html:root .kefe-fluid-ink-controls > .kefe-fluid-settings.kefe-visualiser-control-group {
+  border: 0; background: transparent; box-shadow: none; padding-inline: 0;
+}
+
+/* Desktop visualiser header: title + power on one row, then description and palette. */
+@media (min-width: 900px) {
+  html:root .kefe-visualiser-panel-head {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+    column-gap: 12px; row-gap: 8px; padding-right: 44px;
+  }
+  html:root .kefe-visualiser-panel-head > h2 { grid-column: 1; grid-row: 1; margin: 0; }
+  html:root .kefe-visualiser-panel-head > .kefe-visualiser-power-slot { display: contents; }
+  html:root .kefe-visualiser-panel-head .kefe-switch { grid-column: 2; grid-row: 1; }
+  html:root .kefe-visualiser-panel-head > .kefe-meta { grid-column: 1 / -1; grid-row: 2; }
+  html:root .kefe-visualiser-panel-head .kefe-fluid-palette-label { grid-column: 1 / -1; grid-row: 3; margin: 4px 0 0; }
+  html:root .kefe-visualiser-panel-head .kefe-fluid-palette-options { grid-column: 1 / -1; grid-row: 4; }
+}
+
+/* Empty preview: an inviting poster instead of a bare black rectangle. */
+html:root .kefe-stage.is-empty {
+  background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--accent) 16%, #0c0d12), #05060a 72%);
+}
+html:root .kefe-stage.is-empty::before,
+html:root .kefe-stage.is-empty::after { position: absolute; left: 0; right: 0; z-index: 1; pointer-events: none; }
+html:root .kefe-stage.is-empty::before {
+  content: ""; top: 50%; left: 50%; right: auto; width: 40px; height: 40px; margin: -44px 0 0 -20px;
+  background: rgba(255, 255, 255, .72);
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M9 18V5l12-2v13'/><circle cx='6' cy='18' r='3'/><circle cx='18' cy='16' r='3'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M9 18V5l12-2v13'/><circle cx='6' cy='18' r='3'/><circle cx='18' cy='16' r='3'/></svg>") center / contain no-repeat;
+}
+html:root .kefe-stage.is-empty::after {
+  content: "Add a track to begin"; top: 50%; margin-top: 10px; text-align: center;
+  color: rgba(255, 255, 255, .8); font-size: 15px; font-weight: 600; letter-spacing: -.01em;
 }
