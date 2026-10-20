@@ -1,0 +1,68 @@
+name: Publish beUI editor to GitHub Pages source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/app/**"
+      - "apps/web/beui-src/**"
+      - "apps/web/editor.beui.html"
+      - "apps/web/beui.vite.config.ts"
+      - "apps/web/package.json"
+      - "apps/web/scripts/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/beui-publish.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: beui-publish-main
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build beUI editor
+        run: pnpm --filter @kefe/web build
+      - name: Verify built output
+        run: |
+          test -s apps/web/dist-beui/editor.html
+          node apps/web/scripts/smoke-build.mjs
+          node apps/web/scripts/smoke-settings-api.mjs
+          node apps/web/scripts/smoke-section-card-coverage.mjs
+      - name: Browser regression smoke test
+        run: |
+          npm install --prefix /tmp/kefe-browser --no-save --no-package-lock playwright@1.56.1
+          /tmp/kefe-browser/node_modules/.bin/playwright install --with-deps chromium
+          NODE_PATH=/tmp/kefe-browser/node_modules node apps/web/scripts/browser-smoke.cjs
+      - name: Publish generated editor assets to Pages source
+        run: |
+          cp apps/web/dist-beui/editor.html apps/web/editor.html
+          rm -rf apps/web/assets
+          cp -R apps/web/dist-beui/assets apps/web/assets
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/editor.html apps/web/assets
+          if git diff --cached --quiet; then
+            echo "Built editor assets are already current."
+          else
+            git commit -m "Publish verified beUI editor build"
+            git push origin HEAD:main
+          fi
