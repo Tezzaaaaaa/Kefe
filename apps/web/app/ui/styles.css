@@ -9824,11 +9824,12 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 
 /* The desktop workspace splits Media/Lyrics and Effects/Visualisers into narrow columns.
    Adapt each section to its actual column width, not only the viewport width. */
-.kefe-editor .kefe-panel[data-panel-view] {
+.kefe-editor .kefe-editing>.kefe-panels-left,
+.kefe-editor .kefe-editing>.kefe-panels:not(.kefe-panels-left) {
   container-type: inline-size;
-  container-name: kefe-section-panel;
+  container-name: kefe-editor-column;
 }
-@container kefe-section-panel (max-width: 500px) {
+@container kefe-editor-column (max-width: 500px) {
   .kefe-panel[data-panel-view="media"] .kefe-details-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -9866,7 +9867,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     grid-column: 1;
   }
 }
-@container kefe-section-panel (max-width: 360px) {
+@container kefe-editor-column (max-width: 420px) {
   .kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options {
     grid-template-columns: minmax(0, 1fr);
   }
