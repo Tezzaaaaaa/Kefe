@@ -1457,12 +1457,14 @@
 
   const uploadZone=document.getElementById('kefeUploadZone');
   const mediaInput=document.getElementById('mediaInput');
+  let mediaUploadRow=null;
   if(uploadZone&&mediaInput){
+    uploadZone.classList.add('beui-upload-dropzone');
     if(!uploadZone.querySelector('.beui-upload-symbol')){
       uploadZone.insertAdjacentHTML('afterbegin','<span class="beui-upload-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 16V4m-5 5 5-5 5 5M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>');
       uploadZone.insertAdjacentHTML('beforeend','<span class="beui-upload-browse">Browse files</span>');
     }
-    let mediaUploadRow=uploadZone.parentElement.querySelector('.beui-upload-file');
+    mediaUploadRow=uploadZone.parentElement.querySelector('.beui-upload-file');
     if(!mediaUploadRow){
       mediaUploadRow=document.createElement('div');
       mediaUploadRow.className='beui-upload-file';
