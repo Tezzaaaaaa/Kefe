@@ -42,6 +42,15 @@ function initDesktopPanels() {
     row.className = 'kefe-section-heading-row';
     head.prepend(row);
     const description = head.querySelector('.kefe-meta');
+    const defaults = {
+      media: 'Import audio or video, identify the track, and confirm its details.',
+      lyrics: 'Find, import, and edit synchronised lyrics for your track.',
+      effects: 'Choose a lyric effect, font, and typography.',
+      'background-effects': 'Choose a canvas background or add a background video.',
+      visualiser: 'Choose and configure an audio-reactive visualiser.',
+      export: 'Export your lyric video with the selected visualiser.'
+    };
+    if (description && !description.textContent.trim()) description.textContent = defaults[key] || ('Configure ' + heading.textContent.trim() + '.');
     const oldHeadingGroup = heading.closest('.kefe-effects-heading');
     const titleGroup = document.createElement('div');
     titleGroup.className = 'kefe-section-title-group';
@@ -55,15 +64,17 @@ function initDesktopPanels() {
       info.className = 'kefe-section-info';
       info.setAttribute('aria-label', 'About ' + heading.textContent.trim());
       info.setAttribute('aria-describedby', description.id);
-      info.dataset.tooltip = description.textContent.trim() || ('Information about ' + heading.textContent.trim() + '.');
+      info.dataset.tooltip = description.textContent.trim() || defaults[key] || ('Information about ' + heading.textContent.trim() + '.');
       info.innerHTML = '<span aria-hidden="true">i</span>';
       titleGroup.appendChild(info);
       row.appendChild(description);
     }
     if (oldHeadingGroup && !oldHeadingGroup.children.length) oldHeadingGroup.remove();
 
-    const lyricsPower = head.querySelector('.kefe-lyrics-power');
-    if (lyricsPower) row.appendChild(lyricsPower);
+    // Keep each section's switch in the shared right-hand control lane.
+    head.querySelectorAll('.kefe-lyrics-power, .kefe-visualiser-power-slot, .kefe-background-effect-toggle').forEach(control => {
+      if (control.parentElement !== row) row.appendChild(control);
+    });
     panel.dataset.beuiSectionHeaderReady = 'true';
   }
 
