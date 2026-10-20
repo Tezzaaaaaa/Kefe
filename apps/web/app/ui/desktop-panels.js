@@ -43,6 +43,8 @@ function initDesktopPanels() {
     head.prepend(row);
     const description = head.querySelector('.kefe-meta');
     const oldHeadingGroup = heading.closest('.kefe-effects-heading');
+    const backgroundHeadingGroup = heading.closest('.kefe-background-effect-heading');
+    const backgroundToggle = backgroundHeadingGroup?.querySelector('.kefe-background-effect-toggle');
     const titleGroup = document.createElement('div');
     titleGroup.className = 'kefe-section-title-group';
     row.appendChild(titleGroup);
@@ -64,6 +66,9 @@ function initDesktopPanels() {
 
     const lyricsPower = head.querySelector('.kefe-lyrics-power');
     if (lyricsPower) row.appendChild(lyricsPower);
+    if (backgroundToggle) row.appendChild(backgroundToggle);
+    if (oldHeadingGroup && !oldHeadingGroup.children.length) oldHeadingGroup.remove();
+    if (backgroundHeadingGroup && !backgroundHeadingGroup.children.length) backgroundHeadingGroup.remove();
     panel.dataset.beuiSectionHeaderReady = 'true';
   }
 
