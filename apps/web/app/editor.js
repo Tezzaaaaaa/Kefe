@@ -433,8 +433,8 @@
   if(lyricsTimingReset)lyricsTimingReset.addEventListener('click',()=>window.kefeSettings?.set('lyricOffset',0));
   syncLyricsTimingControl();
   /* Title card: Apple Music effect only.
-     hold   – card centred, nothing else on screen, until 1s before the first lyric
-     move   – card recedes to the top and becomes the landscape Apple Music header (art left, text right)
+     hold   – card centred before the two-second entrance
+     move   – card recedes to its aspect-ratio-specific lyrics header
      header – header stays pinned above the lyrics; lyrics are only drawn from here on */
   function titlePhase(t){
     if(state.effect!=='apple'||!state.lines.length)return {mode:'off'};
@@ -446,7 +446,7 @@
     const lastEnd=Number.isFinite(Number(last?.vocalEndTime)) ? Number(last.vocalEndTime)+lyricOffset() : Number(last?.endTime)+lyricOffset();
     const finalEnd=Number.isFinite(lastEnd) ? Math.max(lastEnd,lastStart+0.25) : lastStart+3;
     if(!Number.isFinite(first)||!Number.isFinite(lastStart))return {mode:'off'};
-    const start=Math.max(0,first-1);
+    const start=Math.max(0,first-2);
     if(t<start)return {mode:'hold',p:0};
     if(t<first){const x=(t-start)/Math.max(0.001,first-start);return {mode:'move',p:x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};}
     if(t<=finalEnd)return {mode:'header',p:1};
@@ -454,6 +454,30 @@
     const x=Math.max(0,Math.min(1,(t-finalEnd)/returnDuration));
     const eased=x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
     return {mode:'return',p:1-eased};
+  }
+  function drawTitleCardTimer(ctx,w,h,t){
+    const ph=titlePhase(t);
+    if(ph.mode==='off'||ph.mode==='header'||ph.mode==='return')return;
+    const first=Number(state.lines[0]?.time)+lyricOffset();
+    if(!Number.isFinite(first)||first<=t)return;
+    const remaining=Math.max(0,Math.min(1,(first-t)/2));
+    const p=ph.mode==='move'?ph.p:0;
+    const unit=Math.min(w,h),aspect=w/Math.max(1,h),landscape=aspect>=1.25;
+    const barW=landscape?w*.24:w*.54,barH=Math.max(5,unit*.007);
+    const centerX=w/2;
+    const titleArt=unit*(landscape?.34:.34),titleGap=unit*.04;
+    const barY=ph.mode==='hold'?Math.min(h*.88,(h+titleArt+titleGap+unit*.20)/2+unit*.025):h*(landscape?.13:(aspect<.75?.18:.12))+unit*.11+unit*.035;
+    const y=barY+unit*.055;
+    const x=centerX-barW/2;
+    ctx.save();
+    ctx.globalAlpha=ph.mode==='move'?Math.max(.35,1-p*.4):1;
+    ctx.lineWidth=barH;
+    ctx.lineCap='round';
+    ctx.strokeStyle='rgba(255,255,255,.28)';
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+barW,y);ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.9)';
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+barW*(1-remaining),y);ctx.stroke();
+    ctx.restore();
   }
   function drawTitleCardCanvas(ctx,w,h,t){
     const ph=titlePhase(t);
@@ -562,6 +586,7 @@
       }
     }
     drawTitleCardCanvas(ctx,W,H,state.time);
+    drawTitleCardTimer(ctx,W,H,state.time);
     ctx.restore();
   }
   function appleTime(value){
