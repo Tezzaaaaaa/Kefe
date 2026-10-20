@@ -323,7 +323,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
 
     // Replace an explicit musical-note marker in the lyric line with the same in-effect ellipsis cue.
     const currentLine = displayLines[activeIndex];
-    if (/[\\u2669-\\u266f]/u.test(String(currentLine?.text || ''))) {
+    if (/[\u2669-\u266f]/u.test(String(currentLine?.text || ''))) {
         drawMusicBreakCue(cueY);
         return;
     }
