@@ -9416,8 +9416,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .kefe-editor .kefe-sidebar .kefe-sidebar-group { min-width: 0; }
 
 /* One section-header system for desktop and mobile. */
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view] > .kefe-panel-head,
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view] > .kefe-form > .kefe-panel-head {
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head {
   display: flex; align-items: center; min-width: 0; min-height: 40px;
   margin: 0 0 14px; padding: 0 0 12px; gap: 0; border-bottom: 1px solid var(--line-soft);
 }
