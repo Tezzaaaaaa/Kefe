@@ -9770,9 +9770,27 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     grid-column: 1 / -1;
     grid-row: 1;
   }
+  .kefe-panel[data-panel-view="lyrics"] #lyricsTimingEarlier {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .kefe-panel[data-panel-view="lyrics"] #lyricsTimingLater {
+    grid-column: 2;
+    grid-row: 2;
+  }
   .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-step {
     min-width: 0;
     width: 100%;
+  }
+  .kefe-panel[data-panel-view="background-effects"] .kefe-form > .beui-upload-wrap {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .kefe-panel[data-panel-view="background-effects"] .kefe-form > .beui-upload-wrap .kefe-upload-zone {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
   }
   .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-lyric-effects-control,
   .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-font-selector-control,
