@@ -307,26 +307,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
     }
     ctx.restore();
-    const drawMusicBreakCue = cueY => {
-        // Part of Apple Lyrics itself: three restrained dots fade in from left to right.
-        const cueX = margin + horizontalLyricShift;
-        const dotRadius = Math.max(1.8, activeFontSize * 0.055);
-        const dotGap = dotRadius * 3.8;
-        const cycle = ((Math.max(0, time) * 1.15) % 1.35) / 1.35;
-        ctx.save();
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'left';
-        ctx.fillStyle = '#fff';
-        for (let i = 0; i < 3; i++) {
-            const phase = cycle - i * 0.18;
-            const alpha = 0.22 + 0.78 * linaSmooth(linaClamp(phase / 0.22));
-            ctx.globalAlpha = alpha;
-            ctx.beginPath();
-            ctx.arc(cueX + dotRadius + i * dotGap, cueY, dotRadius, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.restore();
-    };
     const activeIndex = linaFindActiveLine(displayLines, time);
     if (activeIndex < 0) return;
 
