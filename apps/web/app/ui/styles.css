@@ -5242,42 +5242,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row {
     width: calc(100% - 20px);
   }
-  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
-    gap: 8px;
-    padding-block: 6px 10px;
-  }
-  .kefe-vis-option > [role="tab"] {
-    min-height: 68px;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 6px 32px;
-    line-height: 1.2;
-    text-align: center;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-  .kefe-vis-option > .kefe-vis-option-power {
-    top: auto;
-    right: 50%;
-    bottom: 4px;
-    transform: translateX(50%);
-    width: 60px;
-    min-width: 60px;
-    height: 22px;
-    min-height: 22px;
-    gap: 4px;
-    padding: 2px 5px;
-  }
-  .kefe-vis-option-power .kefe-switch-track {
-    flex-basis: 22px;
-    width: 22px;
-    height: 13px;
-  }
-  .kefe-vis-option-power .kefe-switch-thumb {
-    width: 9px;
-    height: 9px;
-  }
-  .kefe-visualiser-preset-row {
+    .kefe-visualiser-preset-row {
     gap: 8px;
     padding-top: 10px;
   }
@@ -6443,25 +6408,6 @@ body:not(.kefe-fullscreen-open) {
   border-top:1px solid var(--line-soft);
 }
 @media(max-width:700px) {
-  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:var(--s1);
-    width:calc(100% - 20px);
-    padding-block:var(--s2);
-    overflow:visible;
-  }
-  .kefe-vis-option > [role="tab"] {
-    justify-content:center;
-    gap:4px;
-    height:48px;
-    min-height:48px;
-    padding:4px;
-    border-radius:var(--r2);
-    text-align:center;
-    font-size:var(--font-xs);
-  }
-  .kefe-vis-option > [role="tab"]::before { flex-basis:22px; width:22px; height:22px; }
-  .kefe-vis-option > [role="tab"] .kefe-visualiser-tab-icon { display:none; }
   .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group {
     padding:var(--s2);
     gap:var(--s2);
