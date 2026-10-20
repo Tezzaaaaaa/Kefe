@@ -495,7 +495,7 @@ button{border:0;cursor:pointer;
 .kefe-panel[data-panel-view="media"] .kefe-form{
   gap:12px;
 }
-.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.beui-upload-card-hosted){
+.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.beui-upload-card-hosted):not(.beui-upload-dropzone){
   min-height:104px;
   padding:16px;
   border:1px dashed var(--line);
@@ -504,8 +504,8 @@ button{border:0;cursor:pointer;
   box-shadow:var(--inner);
   transition:transform .16s ease,box-shadow .16s ease,background .16s ease,border-color .16s ease;
 }
-.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.beui-upload-card-hosted):hover,
-.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.beui-upload-card-hosted).is-dragging{
+.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.beui-upload-card-hosted):not(.beui-upload-dropzone):hover,
+.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.beui-upload-card-hosted):not(.beui-upload-dropzone).is-dragging{
   transform:translateY(-1px);
   border-color:var(--accent);
   background:var(--surface-hi);
@@ -1083,15 +1083,16 @@ button{border:0;cursor:pointer;
 .kefe-step-body{display:grid;gap:10px;min-width:0}
 .kefe-find-step .kefe-step-body{container-type:inline-size;container-name:kefe-media-step}
 .kefe-media-upload-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}
-.kefe-media-upload-row>.kefe-upload-zone,.kefe-media-upload-row>div{align-self:stretch;min-width:0;width:100%;grid-column:auto!important;grid-row:auto!important;margin:0}
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.kefe-upload-zone,
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>div{align-self:stretch;min-width:0;width:100%;grid-column:auto;grid-row:auto;margin:0}
 @container kefe-media-step (max-width: 500px){.kefe-media-upload-row{grid-template-columns:minmax(0,1fr)}}
 .kefe-media-upload-row>.kefe-upload-zone{min-height:92px}
 .kefe-media-upload-row>div>.kefe-upload-zone{min-height:92px}
-.kefe-media-upload-row>.beui-upload-wrap{display:grid;grid-template-columns:minmax(0,1fr);align-self:stretch;min-width:0;width:100%;height:auto;grid-row:auto!important;gap:8px}
-.kefe-media-upload-row>.beui-upload-wrap>.kefe-upload-zone{box-sizing:border-box;grid-column:1;grid-row:auto!important;align-self:stretch;width:100%;min-width:0;max-width:100%;min-height:192px;height:auto;max-height:none;padding:12px 16px;border-radius:var(--r2)}
-.kefe-media-upload-row>.kefe-upload-zone.beui-upload-card-hosted{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;min-height:0;height:auto;align-self:stretch;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;transition:none}
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.beui-upload-wrap{display:grid;grid-template-columns:minmax(0,1fr);align-self:stretch;min-width:0;width:100%;height:auto;grid-column:auto;grid-row:auto;gap:8px}
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.beui-upload-wrap>.kefe-upload-zone{box-sizing:border-box;grid-column:1;grid-row:auto;align-self:stretch;width:100%;min-width:0;max-width:100%;min-height:192px;height:auto;max-height:none;padding:12px 16px;border-radius:var(--r2)}
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.kefe-upload-zone.beui-upload-card-hosted{box-sizing:border-box;display:block;min-height:0;height:auto;align-self:stretch;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;transition:none}
 .kefe-media-upload-row>.kefe-upload-zone.beui-upload-card-hosted>.beui-upload-card-root{width:100%;height:100%}
-.kefe-media-upload-row>.kefe-upload-zone.beui-upload-card-hosted .beui-upload-card{box-sizing:border-box;width:100%;height:100%;min-height:192px}
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.kefe-upload-zone.beui-upload-card-hosted .beui-upload-card{box-sizing:border-box;width:100%;height:auto;min-height:192px}
 .kefe-song-details{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--line-soft)}
 .kefe-song-details-head h4{margin:0;font-size: var(--font-base);font-weight:800;color: var(--text);}
 .kefe-song-details-head p{margin:3px 0 0;font-size: var(--font-xs);color: var(--muted);}
@@ -1806,7 +1807,7 @@ body{ letter-spacing: -.01em;
   grid-auto-rows: minmax(40px, auto);
 }
 
-.kefe-panel[data-panel-view="media"] .kefe-upload-zone {
+.kefe-panel[data-panel-view="media"] > .kefe-form:not(.kefe-media-steps) > .kefe-upload-zone {
   grid-column: 1 / span 2;
   grid-row: 1 / span 2;
   min-height: 112px;
@@ -9596,7 +9597,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   align-content: start;
   min-width: 0;
 }
-.kefe-panel[data-panel-view="media"] .kefe-upload-zone,
 .kefe-panel[data-panel-view="media"] .kefe-media-track,
 .kefe-panel[data-panel-view="media"] .kefe-suggestions {
   grid-column: 1 / -1;
