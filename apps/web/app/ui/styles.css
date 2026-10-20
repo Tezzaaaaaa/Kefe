@@ -9636,3 +9636,16 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   border-width: 1px;
   transform: none;
 }
+
+
+/* Normalize every heading node in every section, including legacy Background Effects markup. */
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head .kefe-section-heading-row h2 {
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 20px;
+  letter-spacing: -.02em;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger:hover,
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger:focus-visible {
+  transform: none;
+}
