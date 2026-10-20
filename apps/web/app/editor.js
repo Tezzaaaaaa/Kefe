@@ -1474,7 +1474,6 @@
       uploadZone.insertAdjacentElement('afterend',mediaUploadRow);
     }
     uploadZone.addEventListener('dragover',event=>{event.preventDefault();uploadZone.classList.add('is-dragging')});
-    uploadZone.addEventListener('dragover',event=>{event.preventDefault();uploadZone.classList.add('is-dragging')});
     uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('is-dragging'));
     uploadZone.addEventListener('drop',event=>{event.preventDefault();uploadZone.classList.remove('is-dragging');const file=event.dataTransfer?.files?.[0];if(!file)return;mediaInput.files=event.dataTransfer.files;mediaInput.dispatchEvent(new Event('change',{bubbles:true}))});
   }
