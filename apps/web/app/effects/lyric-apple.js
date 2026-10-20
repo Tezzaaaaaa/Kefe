@@ -294,7 +294,32 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     }
     ctx.restore();
     const activeIndex = linaFindActiveLine(displayLines, time);
-    if (activeIndex < 0) return;
+    if (activeIndex < 0) {
+        // Apple Music-style pre-lyric cue: three restrained dots fade in from left to right.
+        // This is isolated to the waiting state; the established lyric renderer remains untouched.
+        const firstTime = Number(displayLines[0]?.time);
+        if (Number.isFinite(firstTime) && time < firstTime) {
+            const cueY = aspectRatio >= 1.25 ? h * 0.50 : (aspectRatio >= 0.9 ? h * (aspectRatio < 1.25 ? 0.47 : 0.495) : h * 0.255);
+            const cueX = margin + horizontalLyricShift;
+            const dotRadius = Math.max(1.8, activeFontSize * 0.055);
+            const dotGap = dotRadius * 3.8;
+            const cycle = ((Math.max(0, time) * 1.15) % 1.35) / 1.35;
+            ctx.save();
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#fff';
+            for (let i = 0; i < 3; i++) {
+                const phase = (cycle - i * 0.18 + 1) % 1;
+                const alpha = 0.22 + 0.78 * linaSmooth(linaClamp(phase / 0.48));
+                ctx.globalAlpha = alpha;
+                ctx.beginPath();
+                ctx.arc(cueX + dotRadius + i * dotGap, cueY, dotRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+        return;
+    }
 
     const source = albumArtworkImage;
     let palette = source?.__kefeApplePalette;
