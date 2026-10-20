@@ -85,6 +85,22 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       `desktop navigation must sit above the workspace, got nav bottom ${desktopLayout.navBottom} and workspace top ${desktopLayout.workspaceTop}`);
     assert.ok(desktopLayout.navWidth >= desktopLayout.viewportWidth * 0.8,
       `desktop navigation should span the workspace width, got ${desktopLayout.navWidth}/${desktopLayout.viewportWidth}`);
+    const headerNavigation = await page.evaluate(() => {
+      const header = document.querySelector(".kefe-sidebar");
+      const headerRect = header.getBoundingClientRect();
+      const navs = [...header.querySelectorAll(".beui-sidebar-nav")];
+      const links = [...header.querySelectorAll(".beui-sidebar-nav .kefe-sidebar-link")];
+      return {
+        navDisplays: navs.map((nav) => getComputedStyle(nav).display),
+        linksWithinHeader: links.every((link) => {
+          const rect = link.getBoundingClientRect();
+          return rect.left >= headerRect.left - 1 && rect.right <= headerRect.right + 1;
+        }),
+      };
+    });
+    assert.ok(headerNavigation.navDisplays.length >= 2 && headerNavigation.navDisplays.every((display) => display === "flex"),
+      `desktop beUI navigation groups must be horizontal flex rows: ${JSON.stringify(headerNavigation.navDisplays)}`);
+    assert.ok(headerNavigation.linksWithinHeader, "desktop navigation links must not be clipped outside the header");
     const desktopColumns = await page.evaluate(() => {
       const left = document.querySelector(".kefe-panels-left").getBoundingClientRect();
       const centre = document.querySelector(".kefe-work").getBoundingClientRect();
@@ -104,6 +120,12 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
         && expected.every((name) => panels.some((panel) => panel.dataset.panelView === name && panel.querySelector(".beui-editor-panel-card")));
     }, null, { timeout: 20000 });
     await page.waitForSelector("#kefeUploadZone .beui-upload-card", { state: "attached", timeout: 20000 });
+    await page.waitForSelector("#kefeBgVideoZone", { state: "attached", timeout: 20000 });
+    assert.equal(await page.locator("#kefeUploadZone").count(), 1, "there must be exactly one primary audio/video uploader");
+    assert.equal(await page.locator("#kefeBgVideoZone").count(), 1, "there must be exactly one separate optional background-video uploader");
+    assert.equal(await page.locator("#kefeUploadZone .beui-upload-card").count(), 1, "the primary uploader must not render duplicate Card shells");
+    assert.equal(await page.locator("#kefeUploadZone .kefe-upload-title").textContent(), "Audio or video", "the primary uploader label must remain distinct");
+    assert.match(await page.locator("#kefeBgVideoZone .kefe-upload-title").textContent(), /Optional background video/, "the second uploader must be clearly identified as optional background footage");
     const initialVisualiserTabs = page.locator(".beui-vis-tabs-host");
     assert.ok((await initialVisualiserTabs.count()) === 0 || !(await initialVisualiserTabs.isVisible()),
       "visualiser tabs must not appear on the initial Media section");
