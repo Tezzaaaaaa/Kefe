@@ -151,6 +151,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
 
     const panelCardCount = await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count();
     assert.equal(panelCardCount, 6, `all six editor sections must use beUI Card surfaces, found ${panelCardCount}`);
+    assert.equal(await page.locator('.kefe-panel[data-panel-view="effects"] .kefe-effects-background-group').count(), 0,
+      "Effects must not retain the empty duplicate Background treatment container; background controls belong to Background Effects");
+    assert.equal(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option').count() > 0, true,
+      "Effects must retain its lyric-effect gallery after background-treatment cleanup");
     const mediaPanel = page.locator(".kefe-panels-left .kefe-panel[data-panel-view='media']");
     const mediaHeading = mediaPanel.getByRole("heading", { name: "Media" });
     const mediaAccordion = mediaPanel.locator(".beui-accordion-trigger:not(.beui-native-panel-button)");
