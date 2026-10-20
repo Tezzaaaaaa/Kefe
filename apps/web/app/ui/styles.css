@@ -9212,20 +9212,24 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 }
 
 
-/* Desktop workspace navigation is a full-width top bar, matching mobile. */
-@media (min-width: 641px) {
+
+/* Keep the two side panels and central preview on wide desktops. At tablet
+   widths, retain the horizontal navigation but stack the editor below the
+   preview instead of forcing a narrow three-column workspace. */
+@media (min-width: 641px) and (max-width: 899px) {
   .kefe-editor {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto auto;
   }
   .kefe-sidebar {
     grid-column: 1;
     grid-row: 1;
     min-height: 52px;
+    height: auto;
     flex-direction: row;
     align-items: center;
-    gap: clamp(8px, 1.5vw, 22px);
-    padding: 7px clamp(12px, 2vw, 24px);
+    gap: 8px;
+    padding: 7px 12px;
     border-right: 0;
     border-bottom: 1px solid var(--line);
     overflow-x: auto;
@@ -9235,7 +9239,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     display: flex;
     flex: 0 0 auto;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
   .kefe-sidebar-brand {
     flex: 0 0 auto;
@@ -9248,9 +9252,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     align-items: center;
     gap: 4px;
   }
-  .kefe-sidebar-label {
-    display: none;
-  }
+  .kefe-sidebar-label { display: none; }
   .kefe-sidebar-bottom {
     display: flex;
     flex: 0 0 auto;
@@ -9266,7 +9268,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     height: 36px;
     flex: 0 0 auto;
     white-space: nowrap;
-    padding-inline: 10px;
+    padding-inline: 9px;
   }
   .beui-sidebar-nav-host {
     width: auto;
@@ -9293,43 +9295,10 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   .kefe-editing {
     grid-column: 1;
     grid-row: 3;
+    display: block;
   }
   .kefe-site-footer {
     grid-column: 1;
     grid-row: 4;
-  }
-  .kefe-editor.sidebar-collapsed {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .kefe-editor.sidebar-collapsed .kefe-sidebar {
-    gap: 8px;
-    padding-inline: 10px;
-  }
-  .kefe-editor.sidebar-collapsed .kefe-sidebar-brand-row {
-    flex-direction: row;
-    gap: 6px;
-  }
-  .kefe-editor.sidebar-collapsed .kefe-sidebar-link {
-    width: auto;
-    justify-content: center;
-    padding-inline: 8px;
-  }
-}
-@media (max-width: 640px) {
-  .kefe-editor {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 48px auto auto;
-  }
-  .kefe-sidebar {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .kefe-work {
-    grid-column: 1;
-    grid-row: 2;
-  }
-  .kefe-editing {
-    grid-column: 1;
-    grid-row: 3;
   }
 }
