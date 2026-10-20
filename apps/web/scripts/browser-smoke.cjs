@@ -223,7 +223,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const collapsedHeights = await page.evaluate(() => [...document.querySelectorAll(".kefe-panel[data-panel-view]")].map((panel) => panel.getBoundingClientRect().height));
     assert.ok(Math.max(...collapsedHeights) - Math.min(...collapsedHeights) <= 1,
       `all collapsed section cards should have the same height: ${JSON.stringify(collapsedHeights)}`);
-    await mediaPanel.locator(".kefe-section-heading-row .beui-accordion-trigger:not(.beui-native-panel-button)").click();
+    for (const accordion of await sectionAccordions.all()) {
+      if (await accordion.getAttribute("aria-expanded") === "false") await accordion.click();
+    }
+    await page.waitForFunction(() => [...document.querySelectorAll(".kefe-panel[data-panel-view]")].every((panel) => !panel.style.height), null, { timeout: 5000 });
     await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "visible", timeout: 5000 });
 
     const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
