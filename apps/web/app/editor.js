@@ -1879,159 +1879,25 @@
   function updateTime(){
     timeNow.textContent=fmt(state.time);timeEnd.textContent=fmt(Number(range.max)||30);
     const p=(state.time/(Number(range.max)||30))*100;
-    range.style.setProperty('--progress',p+'%');playhead.style.left=p+'%';
+    range.style.setProperty('--progress',p+'%');playhead.style.left=p+'%';window.kefeLiquidTimelineUpdate?.();
   }
 
-  (function initWaveform(){
-    var host = document.getElementById('waveform');
-    if (!host) return;
-    var cv = document.createElement('canvas');
-    cv.id = 'kefeWaveCanvas';
-    cv.style.cssText = 'position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:100%;pointer-events:none;z-index:1;';
-    host.appendChild(cv);
-    var g = cv.getContext('2d');
-    var BAR_COUNT = 140;
-    var peaks = placeholder();
-    var dpr = window.devicePixelRatio || 1;
-    var lastW = 0, lastH = 0;
-    function placeholder(){
-      var out = new Float32Array(BAR_COUNT);
-      var seed = 1337;
-      function rnd(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
-      for (var i = 0; i < BAR_COUNT; i++) {
-        var t = i / (BAR_COUNT - 1);
-        out[i] = Math.sin(t * Math.PI) * (0.18 + rnd() * 0.26);
-      }
-      return out;
-    }
-    function computePeaks(buffer, done){
-      var AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return done(null);
-      var actx = new AC();
-      actx.decodeAudioData(buffer.slice(0), function(decoded){
-        var a = decoded.getChannelData(0);
-        if (decoded.numberOfChannels > 1) {
-          var b = decoded.getChannelData(1);
-          var m = new Float32Array(a.length);
-          for (var i = 0; i < a.length; i++) m[i] = (a[i] + b[i]) * 0.5;
-          a = m;
-        }
-        var block = Math.max(1, Math.floor(a.length / BAR_COUNT));
-        var out = new Float32Array(BAR_COUNT), max = 0;
-        for (var k = 0; k < BAR_COUNT; k++) {
-          var s = k * block, e = Math.min(a.length, s + block), pk = 0;
-          for (var j = s; j < e; j++) { var v = a[j] < 0 ? -a[j] : a[j]; if (v > pk) pk = v; }
-          out[k] = pk; if (pk > max) max = pk;
-        }
-        if (max > 0) for (var z = 0; z < BAR_COUNT; z++) out[z] /= max;
-        try { actx.close(); } catch (err) {}
-        done(out);
-      }, function(){ try { actx.close(); } catch (err) {} done(null); });
-    }
-    function roundRect(c, x, y, w, h, r){
-      r = Math.min(r, h / 2, w / 2);
-      c.beginPath();
-      c.moveTo(x + r, y);
-      c.arcTo(x + w, y, x + w, y + h, r);
-      c.arcTo(x + w, y + h, x, y + h, r);
-      c.arcTo(x, y + h, x, y, r);
-      c.arcTo(x, y, x + w, y, r);
-      c.closePath();
-    }
-    function resizeIfNeeded(){
-      var r = host.getBoundingClientRect();
-      if (r.width !== lastW || r.height !== lastH) {
-        lastW = r.width; lastH = r.height;
-        dpr = window.devicePixelRatio || 1;
-        cv.width = Math.max(1, Math.round(r.width * dpr));
-        cv.height = Math.max(1, Math.round(r.height * dpr));
-      }
-    }
-    function draw(){
-      resizeIfNeeded();
-      var w = cv.width, h = cv.height;
-      if (!w || !h) return;
-      g.clearRect(0, 0, w, h);
-      var barW = Math.max(dpr, w / (BAR_COUNT * 2.6));
-      var gap = (w - barW * BAR_COUNT) / (BAR_COUNT - 1);
-      var midY = h / 2;
-      var dur = Number(range.max) || 30;
-      var frac = Math.max(0, Math.min(1, (Number(range.value) || 0) / dur));
-      var splitX = frac * w;
-      var radius = h / 2;
-      var liquidHeight = h * 0.72;
-      var liquidTop = midY - liquidHeight / 2;
-
-      // The waveform is the liquid itself: a translucent, softly undulating fill
-      // that rises across the tube with playback instead of rendering as separate bars.
-      g.save();
-      g.beginPath();
-      g.moveTo(0, h);
-      g.lineTo(0, midY + h * 0.08);
-      for (var lx = 0; lx <= splitX; lx += Math.max(2 * dpr, w / 90)) {
-        var li = Math.min(BAR_COUNT - 1, Math.floor((lx / Math.max(1, w)) * BAR_COUNT));
-        var lv = peaks[li] || 0;
-        var ly = midY + h * 0.05 - lv * h * 0.30;
-        g.lineTo(lx, ly);
-      }
-      g.lineTo(splitX, h);
-      g.closePath();
-
-      var liquidGrad = g.createLinearGradient(0, liquidTop, 0, h);
-      liquidGrad.addColorStop(0, 'rgba(164,181,155,0.12)');
-      liquidGrad.addColorStop(0.38, 'rgba(164,181,155,0.28)');
-      liquidGrad.addColorStop(0.72, 'rgba(164,181,155,0.42)');
-      liquidGrad.addColorStop(1, 'rgba(164,181,155,0.16)');
-      g.fillStyle = liquidGrad;
-      g.shadowColor = 'rgba(164,181,155,0.28)';
-      g.shadowBlur = 10 * dpr;
-      g.fill();
-
-      // Keep the waveform visible inside the liquid as a subtle glass texture.
-      g.beginPath();
-      g.moveTo(0, midY);
-      for (var wx = 0; wx <= splitX; wx += Math.max(2 * dpr, w / 120)) {
-        var wi = Math.min(BAR_COUNT - 1, Math.floor((wx / Math.max(1, w)) * BAR_COUNT));
-        var wv = peaks[wi] || 0;
-        g.lineTo(wx, midY - wv * h * 0.34);
-      }
-      g.strokeStyle = 'rgba(255,255,255,0.34)';
-      g.lineWidth = Math.max(1, dpr);
-      g.shadowColor = 'rgba(255,255,255,0.18)';
-      g.shadowBlur = 5 * dpr;
-      g.stroke();
-      g.restore();
-
-      // A faint unplayed waveform remains recessed in the tube.
-      g.save();
-      g.globalAlpha = 0.22;
-      g.beginPath();
-      g.moveTo(splitX, midY);
-      for (var ux = splitX; ux <= w; ux += Math.max(2 * dpr, w / 120)) {
-        var ui = Math.min(BAR_COUNT - 1, Math.floor((ux / Math.max(1, w)) * BAR_COUNT));
-        var uv = peaks[ui] || 0;
-        g.lineTo(ux, midY - uv * h * 0.30);
-      }
-      g.strokeStyle = 'rgba(90,80,70,0.55)';
-      g.lineWidth = Math.max(1, dpr);
-      g.stroke();
-      g.restore();
-    }
-    function loop(){ draw(); requestAnimationFrame(loop); }
-    loop();
-    var input = document.getElementById('mediaInput');
-    if (input) {
-      input.addEventListener('change', function(ev){
-        var file = ev.target.files && ev.target.files[0];
-        if (!file || /\.(lrc|ttml|xml|txt)$/i.test(file.name)) return;
-        var reader = new FileReader();
-        reader.onload = function(){
-          computePeaks(reader.result, function(p){ peaks = p || placeholder(); });
-        };
-        reader.readAsArrayBuffer(file);
-      });
-    }
-    window.addEventListener('resize', function(){ lastW = 0; lastH = 0; });
+  (function initLiquidTimeline(){
+    const host=document.getElementById('waveform'),svg=document.getElementById('kefeLiquidSvg'),fill=document.getElementById('kefeLiquidFillPath'),head=document.getElementById('kefeLiquidHeadPath'),swirls=document.getElementById('kefeLiquidSwirls'),range=document.getElementById('kefeTime');
+    if(!host||!svg||!fill||!head||!swirls||!range)return;
+    const reduced=matchMedia('(prefers-reduced-motion: reduce)'),clamp=(v,a,b)=>Math.min(b,Math.max(a,v)),state=[];
+    for(let i=0;i<3;i++){const el=document.createElement('span');el.className='kefe-liquid-swirl';swirls.appendChild(el);state.push({el,y:.3+Math.random()*.4,p:Math.random()*6.28,s:.16+Math.random()*.18,dx:6+Math.random()*10,dy:2+Math.random()*4,size:34+Math.random()*20});}
+    let vw=1000,vh=100,ih=40,t=0,last=0,merge=0,target=0,raf=0;
+    function resize(){const r=host.getBoundingClientRect();ih=Math.max(1,r.height-6);vw=Math.max(1,r.width-6)/ih*vh;svg.setAttribute('viewBox','0 0 '+vw+' '+vh);}
+    function draw(){const pct=clamp((Number(range.value)||0)/Math.max(.01,Number(range.max)||30),0,1),w=pct*vw,rad=vh/2,amp=4*(1-merge);let d='';
+      if(w>0){const r=Math.min(rad,w/2);d='M '+r+' 0 L '+Math.max(r,w-r)+' 0 ';if(w>r*2)d+='A '+r+' '+r+' 0 0 1 '+w+' '+r+' ';
+      for(let i=0;i<3;i++){const y0=r+i/3*(vh-2*r),y1=r+(i+1)/3*(vh-2*r),dx=reduced.matches?0:Math.sin(t*1.4+i*1.3)*amp*(i%2?-.6:1),cy=reduced.matches?0:Math.cos(t*1.4+i*1.3)*amp*.3;d+='C '+(w+dx)+' '+(y0+cy)+', '+(w-dx)+' '+(y1+cy)+', '+w+' '+y1+' ';}
+      if(w>r*2)d+='A '+r+' '+r+' 0 0 1 '+(w-r)+' '+vh+' ';d+='L '+r+' '+vh+' A '+r+' '+r+' 0 0 1 '+r+' 0 Z';}
+      fill.setAttribute('d',d);const strip=1.2/Math.max(1,ih)*vh,left=Math.max(0,w-strip);head.setAttribute('d',w?'M '+left+' 0 H '+(w+strip)+' V '+vh+' H '+left+' Z':'');head.setAttribute('opacity',String(merge));
+      const rect=host.getBoundingClientRect();state.forEach((q,i)=>{const x=rect.width*pct-20-i*13+(reduced.matches?0:Math.cos(t*q.s+q.p)*q.dx),y=q.y*rect.height+(reduced.matches?0:Math.sin(t*q.s*1.2+q.p)*q.dy);q.el.style.width=q.size+'px';q.el.style.height=q.size+'px';q.el.style.transform='translate('+x+'px,'+y+'px) translate(-50%,-50%)';q.el.style.opacity=String(.3+.4*pct);});}
+    function loop(now){if(!reduced.matches){if(last)t+=Math.min(.05,(now-last)/1000);merge+=(target-merge)*.18;}else merge=target;last=now;draw();raf=requestAnimationFrame(loop);}
+    window.kefeLiquidTimelineUpdate=draw;host.addEventListener('pointerenter',()=>target=1);host.addEventListener('pointerleave',()=>target=0);host.addEventListener('focusin',()=>target=1);host.addEventListener('focusout',()=>target=0);
+    resize();draw();raf=requestAnimationFrame(loop);if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{resize();draw();}).observe(host);addEventListener('pagehide',()=>cancelAnimationFrame(raf),{once:true});
   })();
 
   function applySettingsDefaults(){
