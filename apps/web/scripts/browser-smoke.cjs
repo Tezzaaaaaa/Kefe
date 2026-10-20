@@ -146,21 +146,25 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       const backgroundCard = document.querySelector("#kefeBgVideoZone");
       if (!primaryHost || !primaryCard || !backgroundCard) return null;
       const hostStyle = getComputedStyle(primaryHost);
+      const row = primaryHost.parentElement;
+      const wrap = backgroundCard.parentElement;
       const primary = primaryCard.getBoundingClientRect();
       const background = backgroundCard.getBoundingClientRect();
+      const rect = node => { const r = node.getBoundingClientRect(); const s = getComputedStyle(node); return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,display:s.display,position:s.position,gridColumn:s.gridColumn,gridRow:s.gridRow,heightCss:s.height,minHeight:s.minHeight,marginTop:s.marginTop,transform:s.transform}; };
       const overlapX = Math.max(0, Math.min(primary.right, background.right) - Math.max(primary.left, background.left));
       const overlapY = Math.max(0, Math.min(primary.bottom, background.bottom) - Math.max(primary.top, background.top));
       return {
         hostBorderWidth: hostStyle.borderTopWidth,
         hostPadding: hostStyle.paddingTop,
-        primaryGridRow: getComputedStyle(primaryHost).gridRow,
-        backgroundGridRow: getComputedStyle(backgroundCard.parentElement).gridRow,
+        primaryGridRow: hostStyle.gridRow,
+        backgroundGridRow: getComputedStyle(wrap).gridRow,
         primaryHeight: primary.height,
         backgroundHeight: background.height,
         overlapArea: overlapX * overlapY,
-        rowWidth: primaryHost.parentElement.getBoundingClientRect().width,
-        rowColumns: getComputedStyle(primaryHost.parentElement).gridTemplateColumns,
-        rowColumnCount: getComputedStyle(primaryHost.parentElement).gridTemplateColumns.split(" ").length
+        rowWidth: row.getBoundingClientRect().width,
+        rowColumns: getComputedStyle(row).gridTemplateColumns,
+        rowColumnCount: getComputedStyle(row).gridTemplateColumns.split(" ").length,
+        row: rect(row), primaryHost: rect(primaryHost), primaryCard: rect(primaryCard), backgroundWrap: rect(wrap), backgroundCard: rect(backgroundCard)
       };
     });
     assert.ok(mediaUploadGeometry, "both Media upload cards must be mounted");
