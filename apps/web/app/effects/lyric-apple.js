@@ -252,7 +252,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     for (let li = 0; li < lines.length; li++) {
         const original = linaNormaliseLine(lines, li);
         if (!original) continue;
-        const text = String(original.text || '').replace(/\s+/g, ' ').trim();
+        const text = String(original.text || '').replace(/[\u2669-\u266f]/gu, '…').replace(/\s+/g, ' ').trim();
         if (!text) continue;
         displayLines.push({ ...original, text });
     }
@@ -332,13 +332,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     if (activeIndex < 0) {
         const firstTime = Number(displayLines[0]?.time);
         if (Number.isFinite(firstTime) && time < firstTime) drawMusicBreakCue(cueY);
-        return;
-    }
-
-    // Replace an explicit musical-note marker in the lyric line with the same in-effect ellipsis cue.
-    const currentLine = displayLines[activeIndex];
-    if (/[\u2669-\u266f]/u.test(String(currentLine?.text || ''))) {
-        drawMusicBreakCue(cueY);
         return;
     }
 
