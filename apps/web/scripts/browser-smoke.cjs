@@ -71,6 +71,15 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
+    await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
+    assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
+      "the editor must start in Media, not switch itself to Visualisers");
+    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
+      "visualiser tabs must stay hidden until the Visualisers section is opened");
+    assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
+      "initialisation must not select Fluid Ink or change the visualiser heading");
+    assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
+      "Fluid Ink must not be selected automatically on startup");
     const desktopLayout = await page.evaluate(() => {
       const nav = document.querySelector(".kefe-sidebar").getBoundingClientRect();
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
@@ -223,6 +232,11 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "Liquid Glass must be available in the visualiser tab list");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
       "visualiser tabs must be visible while the Visualisers section is active");
+    assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
+      "opening the Visualisers section must not automatically activate Fluid Ink");
+    await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
+    assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "true",
+      "Fluid Ink must activate only after the user selects its tab");
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
     const lyricsNavButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" });
