@@ -461,16 +461,15 @@
     const first=Number(state.lines[0]?.time)+lyricOffset();
     if(!Number.isFinite(first)||first<=t)return;
     const progress=first>0?Math.max(0,Math.min(1,t/first)):1;
-    const p=ph.mode==='move'?ph.p:0;
     const unit=Math.min(w,h),aspect=w/Math.max(1,h),landscape=aspect>=1.25;
-    const barW=landscape?w*.24:w*.54,barH=Math.max(5,unit*.007);
+    const barW=landscape?w*.24:w*.54,barH=Math.max(8,unit*.012);
     const centerX=w/2;
-    const titleArt=unit*(landscape?.34:.34),titleGap=unit*.04;
-    const barY=ph.mode==='hold'?Math.min(h*.88,(h+titleArt+titleGap+unit*.20)/2+unit*.025):h*(landscape?.13:(aspect<.75?.18:.12))+unit*.11+unit*.035;
+    const titleArt=unit*.34,titleGap=unit*.04;
+    // Keep the cue anchored to its opening-card position; it must not follow the title-card morph.
+    const barY=Math.min(h*.88,(h+titleArt+titleGap+unit*.20)/2+unit*.025);
     const y=barY+unit*.055;
     const x=centerX-barW/2;
     ctx.save();
-    ctx.globalAlpha=ph.mode==='move'?Math.max(.35,1-p*.4):1;
     ctx.lineWidth=barH;
     ctx.lineCap='round';
     ctx.strokeStyle='rgba(255,255,255,.28)';
