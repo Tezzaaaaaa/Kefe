@@ -230,16 +230,16 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       const accordion = row?.querySelector(".beui-accordion-trigger:not(.beui-native-panel-button)");
       const titleStyle = title && getComputedStyle(title);
       const rowRect = row?.getBoundingClientRect();
-      const infoRect = info?.getBoundingClientRect();
-      const accordionRect = accordion?.getBoundingClientRect();
+      const infoSize = info ? [info.offsetWidth, info.offsetHeight] : null;
+      const accordionSize = accordion ? [accordion.offsetWidth, accordion.offsetHeight] : null;
       return {
         section: panel.dataset.panelView,
         titleSize: titleStyle?.fontSize,
         titleWeight: titleStyle?.fontWeight,
         titleLineHeight: titleStyle?.lineHeight,
         rowHeight: Math.round(rowRect?.height || 0),
-        infoSize: infoRect ? [Math.round(infoRect.width), Math.round(infoRect.height)] : null,
-        accordionSize: accordionRect ? [Math.round(accordionRect.width), Math.round(accordionRect.height)] : null,
+        infoSize,
+        accordionSize,
       };
     }));
     assert.equal(new Set(uniformHeaderGeometry.map(x => [x.titleSize,x.titleWeight,x.titleLineHeight,x.rowHeight,JSON.stringify(x.infoSize),JSON.stringify(x.accordionSize)].join("|"))).size, 1,
