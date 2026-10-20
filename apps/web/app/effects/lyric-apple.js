@@ -328,12 +328,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ctx.restore();
     };
     const activeIndex = linaFindActiveLine(displayLines, time);
-    const cueY = aspectRatio >= 1.25 ? h * 0.50 : (aspectRatio >= 0.9 ? h * (aspectRatio < 1.25 ? 0.47 : 0.495) : h * 0.43);
-    if (activeIndex < 0) {
-        const firstTime = Number(displayLines[0]?.time);
-        if (Number.isFinite(firstTime) && time < firstTime) drawMusicBreakCue(cueY);
-        return;
-    }
+    if (activeIndex < 0) return;
 
     const source = albumArtworkImage;
     let palette = source?.__kefeApplePalette;
@@ -471,6 +466,37 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ctx.translate(-x, -y);
 
         const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
+
+        // Source musical-note markers become three dots, timed evenly across
+        // the cue line's actual interval to the next lyric timestamp.
+        if (/^(?:…|\\.\\.\\.)$/u.test(String(line.text || '').trim())) {
+            const cueStart = Number(line.time);
+            const nextCueTime = Number(displayLines[i + 1]?.time);
+            const declaredCueEnd = Number(line.endTime);
+            const cueEnd = Number.isFinite(nextCueTime) && nextCueTime > cueStart
+                ? nextCueTime
+                : (Number.isFinite(declaredCueEnd) && declaredCueEnd > cueStart ? declaredCueEnd : cueStart);
+            const cueDuration = Math.max(0, cueEnd - cueStart);
+            const dotRadius = Math.max(1.8, rowFontSize * 0.055);
+            const dotGap = dotRadius * 3.8;
+            const cueX = x + dotRadius;
+            const cueY = rowYs[0];
+            ctx.save();
+            ctx.globalAlpha = lineA;
+            for (let dot = 0; dot < 3; dot++) {
+                const dotStart = cueStart + cueDuration * dot / 3;
+                const dotEnd = cueStart + cueDuration * (dot + 1) / 3;
+                const progress = cueDuration > 0 ? linaClamp((time - dotStart) / Math.max(0.001, dotEnd - dotStart)) : 0;
+                const alpha = wave.dim + (1 - wave.dim) * linaSmooth(progress);
+                ctx.fillStyle = appleWhite(alpha);
+                ctx.beginPath();
+                ctx.arc(cueX + dot * dotGap, cueY, dotRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+            ctx.restore();
+            continue;
+        }
 
         // The line being sung stays "live" (timed fill + letter lift) until its highlight has faded
         // back to the unsung level and its letters have settled, then it becomes a plain dim line.
