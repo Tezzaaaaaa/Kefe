@@ -9028,3 +9028,21 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 @media(prefers-reduced-motion:reduce){
   .kefe-upload-zone.beui-upload-dropzone,.beui-upload-browse{transition:none}
 }
+
+
+/* Match both media importers to one compact, shared beUI geometry. */
+.kefe-upload-zone.beui-upload-dropzone{
+  box-sizing:border-box;width:100%;height:154px;min-height:154px;max-height:154px;
+  gap:6px;padding:12px 16px;border-radius:16px;
+}
+.kefe-upload-zone.beui-upload-dropzone .beui-upload-symbol{
+  flex:0 0 38px;width:38px;height:38px;margin:0;border-radius:12px;
+}
+.kefe-upload-zone.beui-upload-dropzone .beui-upload-symbol svg{width:20px;height:20px}
+.kefe-upload-zone.beui-upload-dropzone .kefe-upload-title{margin:0;font-size:var(--font-sm)}
+.kefe-upload-zone.beui-upload-dropzone .kefe-upload-name{font-size:var(--font-xs);line-height:1.3}
+.kefe-upload-zone.beui-upload-dropzone .beui-upload-browse{min-height:30px;margin-top:1px;padding:0 12px;border-radius:9px}
+@media(max-width:600px){
+  .kefe-upload-zone.beui-upload-dropzone{height:146px;min-height:146px;max-height:146px;padding:10px 12px;border-radius:14px}
+  .kefe-upload-zone.beui-upload-dropzone .beui-upload-symbol{flex-basis:34px;width:34px;height:34px}
+}
