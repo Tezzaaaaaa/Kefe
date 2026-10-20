@@ -9867,7 +9867,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     grid-column: 1;
   }
 }
-@container kefe-editor-column (max-width: 360px) {
+@container kefe-editor-column (max-width: 420px) {
   .kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options {
     grid-template-columns: minmax(0, 1fr);
   }
