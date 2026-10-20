@@ -9,6 +9,7 @@ const SKIP_ANCESTORS = [
   "#beui-settings-root",
   ".beui-button-host",
   ".beui-panel-button-host",
+  ".kefe-section-info",
   ".beui-checkbox-host",
   ".beui-command-button-host",
   ".beui-input-host",
