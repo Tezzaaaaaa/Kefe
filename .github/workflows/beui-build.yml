@@ -45,6 +45,7 @@ jobs:
           test -s apps/web/dist-beui/beui.html
           node apps/web/scripts/smoke-build.mjs
           node apps/web/scripts/smoke-settings-api.mjs
+          node apps/web/scripts/smoke-section-card-coverage.mjs
       - name: Install Playwright browser runner
         run: npm install --prefix /tmp/kefe-browser --no-save --no-package-lock playwright@1.56.1
       - name: Install Chromium
