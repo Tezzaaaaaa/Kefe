@@ -9493,3 +9493,125 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   .kefe-section-heading-row .beui-accordion-chevron { transition: none; }
   .beui-accordion-enter > :not(.kefe-panel-head) { animation: none; }
 }
+
+
+/* Final shared geometry: no section-specific heading overrides after this point. */
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 48px;
+  margin: 0 0 14px;
+  padding: 0 0 10px;
+  border: 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-title-group {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-title-group > h2 {
+  margin: 0;
+  min-width: 0;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-info {
+  box-sizing: border-box;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-radius: 50%;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-lyrics-power,
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-visualiser-power-slot,
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-background-effect-heading .kefe-background-effect-toggle {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-lyrics-power,
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-visualiser-power-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger {
+  position: static !important;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  margin: 0 0 0 2px;
+  padding: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed .kefe-panel-head {
+  min-height: 38px;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom-color: transparent;
+}
+.kefe-editor .kefe-editing:not([data-selected-section="visualiser"]) .kefe-vis-tabs,
+.kefe-editor .kefe-editing:not([data-selected-section="visualiser"]) .beui-vis-tabs-host {
+  display: none !important;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 12px;
+  padding: 0;
+  background: transparent;
+  overflow: visible;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] {
+  flex: 1 1 112px;
+  min-width: 0;
+  min-height: 38px;
+  justify-content: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head {
+    min-height: 44px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-title-group > h2 {
+    font-size: 16px;
+  }
+}
