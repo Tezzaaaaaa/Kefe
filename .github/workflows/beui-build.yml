@@ -9,7 +9,7 @@ on:
       - "pnpm-workspace.yaml"
       - ".github/workflows/beui-build.yml"
   push:
-    branches: [main, "feature/full-beui-conversion"]
+    branches: [main, "feature/full-beui-conversion", "feature/beui-conversion-mainline"]
     paths:
       - "apps/web/**"
       - "pnpm-lock.yaml"
