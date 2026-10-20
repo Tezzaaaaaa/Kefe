@@ -460,7 +460,7 @@
     if(ph.mode==='off'||ph.mode==='header'||ph.mode==='return')return;
     const first=Number(state.lines[0]?.time)+lyricOffset();
     if(!Number.isFinite(first)||first<=t)return;
-    const remaining=Math.max(0,Math.min(1,(first-t)/2));
+    const progress=first>0?Math.max(0,Math.min(1,t/first)):1;
     const p=ph.mode==='move'?ph.p:0;
     const unit=Math.min(w,h),aspect=w/Math.max(1,h),landscape=aspect>=1.25;
     const barW=landscape?w*.24:w*.54,barH=Math.max(5,unit*.007);
@@ -476,7 +476,7 @@
     ctx.strokeStyle='rgba(255,255,255,.28)';
     ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+barW,y);ctx.stroke();
     ctx.strokeStyle='rgba(255,255,255,.9)';
-    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+barW*(1-remaining),y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+barW*progress,y);ctx.stroke();
     ctx.restore();
   }
   function drawTitleCardCanvas(ctx,w,h,t){
