@@ -99,7 +99,8 @@ select.beui-native-select {
   width: 100%;
   min-width: 0;
 }
-.beui-native-tab {
+.beui-native-tab,
+.beui-native-command-button {
   display: none !important;
 }
 .beui-tabs-host > div {
