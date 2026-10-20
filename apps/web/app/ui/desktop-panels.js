@@ -44,7 +44,10 @@ function initDesktopPanels() {
     head.prepend(row);
     const description = head.querySelector('.kefe-meta');
     const oldHeadingGroup = heading.closest('.kefe-effects-heading');
-    row.appendChild(heading);
+    const titleGroup = document.createElement('div');
+    titleGroup.className = 'kefe-section-title-group';
+    row.appendChild(titleGroup);
+    titleGroup.appendChild(heading);
     if (description) {
       description.classList.add('kefe-section-description');
       if (!description.id) description.id = 'kefe-' + key.replace(/[^a-z0-9]+/gi, '-') + '-description';
@@ -53,14 +56,9 @@ function initDesktopPanels() {
       info.className = 'kefe-section-info';
       info.setAttribute('aria-label', 'About ' + heading.textContent.trim());
       info.setAttribute('aria-describedby', description.id);
-      const syncTooltip = () => {
-        info.dataset.tooltip = description.textContent.trim() || ('Information about ' + heading.textContent.trim() + '.');
-      };
-      syncTooltip();
-      info.addEventListener('pointerenter', syncTooltip);
-      info.addEventListener('focus', syncTooltip);
+      info.dataset.tooltip = description.textContent.trim() || ('Information about ' + heading.textContent.trim() + '.');
       info.innerHTML = '<span aria-hidden="true">i</span>';
-      row.appendChild(info);
+      titleGroup.appendChild(info);
       row.appendChild(description);
     }
     if (oldHeadingGroup && !oldHeadingGroup.children.length) oldHeadingGroup.remove();
