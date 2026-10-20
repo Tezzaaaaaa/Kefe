@@ -9415,3 +9415,155 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .kefe-editor .kefe-sidebar .kefe-sidebar-group {
   min-width: 0;
 }
+
+
+/* Consistent beUI section headers, compact inline switches, and accessible hover help. */
+@media (min-width: 1280px) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] > .kefe-panel-head,
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head {
+    min-height: 42px;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head,
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head {
+    min-height: 36px;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+}
+.kefe-panel[data-panel-view] .kefe-panel-head {
+  min-width: 0;
+}
+.kefe-section-heading-row {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  gap: 9px;
+}
+.kefe-section-heading-row > h2 {
+  flex: 0 0 auto;
+  min-width: 0;
+  margin: 0;
+  white-space: nowrap;
+}
+.kefe-section-description {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.kefe-section-info {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+.kefe-section-info:hover,
+.kefe-section-info:focus-visible {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.kefe-section-info:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.kefe-section-info::after {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 9px);
+  left: 0;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 36px));
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: var(--surface-hi);
+  box-shadow: var(--float);
+  color: var(--text);
+  content: attr(data-tooltip);
+  font-size: var(--font-xs);
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
+}
+.kefe-section-info:hover::after,
+.kefe-section-info:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.kefe-section-heading-row .kefe-lyrics-power {
+  flex: 0 0 auto;
+  margin-left: 0;
+  white-space: nowrap;
+}
+.kefe-section-heading-row .kefe-visualiser-power-slot {
+  flex: 0 0 auto;
+  margin-left: 0;
+}
+.kefe-section-heading-row .kefe-background-effect-heading {
+  display: contents;
+}
+.kefe-section-heading-row .kefe-background-effect-heading .kefe-background-effect-toggle {
+  flex: 0 0 auto;
+  margin-left: 0;
+}
+.kefe-section-heading-row > .beui-panel-button-host {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  margin-left: auto;
+}
+.kefe-section-heading-row .beui-accordion-trigger,
+.kefe-section-heading-row .beui-panel-button-host > .beui-accordion-trigger {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  margin: 0;
+}
+.kefe-section-heading-row .beui-accordion-chevron {
+  transition: transform 220ms cubic-bezier(.22, .61, .36, 1);
+}
+.beui-accordion-enter > :not(.kefe-panel-head) {
+  animation: beui-accordion-content-in 220ms cubic-bezier(.22, .61, .36, 1) both;
+}
+@keyframes beui-accordion-content-in {
+  from { opacity: .65; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kefe-section-info::after,
+  .kefe-section-heading-row .beui-accordion-chevron {
+    transition: none;
+  }
+  .beui-accordion-enter > :not(.kefe-panel-head) {
+    animation: none;
+  }
+}
