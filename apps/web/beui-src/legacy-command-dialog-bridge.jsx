@@ -1,13 +1,53 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Card } from "@/components/motion/card";
+import { Button } from "@/components/motion/button";
 import "./legacy-bridge.css";
+
+function CommandButton({ backing }) {
+  const [hidden, setHidden] = useState(backing.hidden);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => setHidden(backing.hidden));
+    observer.observe(backing, { attributes: true, attributeFilter: ["hidden"] });
+    return () => observer.disconnect();
+  }, [backing]);
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      className="beui-command-button w-full justify-between gap-4 rounded-lg px-3 py-2 text-left text-sm"
+      hidden={hidden}
+      disabled={backing.disabled}
+      title={backing.title || undefined}
+      aria-label={backing.getAttribute("aria-label") || undefined}
+      onClick={() => backing.click()}
+    >
+      <span dangerouslySetInnerHTML={{ __html: backing.innerHTML }} />
+    </Button>
+  );
+}
 
 function CommandDialog({ originalNodes }) {
   const card = useRef(null);
 
   useEffect(() => {
-    if (card.current) card.current.append(...originalNodes);
+    if (!card.current) return;
+    card.current.append(...originalNodes);
+
+    const roots = [];
+    card.current.querySelectorAll("#kefeCommandList > button").forEach((backing) => {
+      const host = document.createElement("div");
+      host.className = "beui-command-button-host";
+      backing.insertAdjacentElement("beforebegin", host);
+      backing.classList.add("beui-native-command-button");
+      const root = createRoot(host);
+      root.render(<CommandButton backing={backing} />);
+      roots.push(root);
+    });
+
+    return () => roots.forEach((root) => root.unmount());
   }, [originalNodes]);
 
   return (
