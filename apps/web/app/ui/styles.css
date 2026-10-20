@@ -9055,3 +9055,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .kefe-panel[data-panel-view="media"] .kefe-carousel{height:232px}
 .kefe-panel[data-panel-view="media"] .kefe-car-stack{width:150px;height:184px}
 .kefe-panel[data-panel-view="media"] .kefe-car-art{width:150px;height:150px}
+
+/* Font picker uses the shared beUI select control, not a horizontal card rail. */
+.kefe-panel[data-panel-view="effects"] .kefe-font-dropdown{display:block;width:100%;min-width:0;max-width:100%;margin-top:8px}
+.kefe-panel[data-panel-view="effects"] .kefe-font-selector-control .kefe-font-selector-strip[hidden]{display:none}
