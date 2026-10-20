@@ -9819,3 +9819,55 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   .kefe-section-heading-row .beui-accordion-chevron { transition: none; }
   .beui-accordion-enter > :not(.kefe-panel-head) { animation: none; }
 }
+
+
+/* The desktop workspace splits Media/Lyrics and Effects/Visualisers into narrow columns.
+   Adapt each section to its actual column width, not only the viewport width. */
+.kefe-editor .kefe-editing>.kefe-panels-left,
+.kefe-editor .kefe-editing>.kefe-panels:not(.kefe-panels-left) {
+  container-type: inline-size;
+  container-name: kefe-editor-column;
+}
+@container kefe-editor-column (max-width: 500px) {
+  .kefe-panel[data-panel-view="media"] .kefe-media-metadata-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .kefe-panel[data-panel-view="lyrics"] #lyricsTimingEarlier {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .kefe-panel[data-panel-view="lyrics"] #lyricsTimingLater {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-step {
+    min-width: 0;
+    width: 100%;
+  }
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group {
+    padding: 12px;
+  }
+  .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group #visualiserParameters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .kefe-panel[data-panel-view="export"] .kefe-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .kefe-panel[data-panel-view="export"] .kefe-form > #exportButton,
+  .kefe-panel[data-panel-view="export"] .kefe-form > #exportStatus {
+    grid-column: 1;
+  }
+}
+@container kefe-editor-column (max-width: 360px) {
+  .kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
