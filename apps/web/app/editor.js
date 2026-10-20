@@ -489,7 +489,7 @@
     const font=(wt,size)=>wt+' '+size+'px "Inter Tight",system-ui,sans-serif';
     // centred (hold) layout
     const bigArt=unit*.34,bigGap=unit*.04,bt=Math.max(20,unit*.06),ba=Math.max(14,unit*.038),bm=Math.max(12,unit*.03);
-    const wrapText=(text,f,mw)=>{ctx.font=f;const words=String(text||'').split(/\s+/).filter(Boolean),lines=[];let line='';for(const word of words){const candidate=line?line+' '+word:word;if(line&&ctx.measureText(candidate).width>mw){lines.push(line);line=word;}else line=candidate;}if(line)lines.push(line);return lines;};
+    const wrapText=(text,f,mw)=>{ctx.font=f;const words=String(text||'').split(/\s+/).filter(Boolean),lines=[];let line='';for(const word of words){const candidate=line?line+' '+word:word;if(line&&ctx.measureText(candidate).width>mw){lines.push(line);line='';}if(ctx.measureText(word).width<=mw){line=line?(line+' '+word):word;continue;}for(const glyph of Array.from(word)){const next=line+glyph;if(line&&ctx.measureText(next).width>mw){lines.push(line);line=glyph;}else line=next;}}if(line)lines.push(line);return lines;};
     // Header layout – same column as the Apple lyrics.
     const aspect=w/Math.max(1,h),landscape=aspect>=1.25,comp=landscape?w*.34:(aspect<.75?w*.84:w*.78);
     const left=landscape?w*.20-comp/2:w*(aspect<.75?.07:aspect<1.25?.08:.082);
@@ -499,10 +499,7 @@
     const bigTextH=titleStartLines*bt*1.15+(artist?ba*1.35:0)+(meta?bm*1.4:0)+(yearText?bm*1.4:0),bigTop=(h-(bigArt+bigGap+bigTextH))/2;
     const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,landscape?left+(comp-hArt)/2:left),ay=lerp(bigTop,hTop),r=art*.08;
     ctx.save();
-    // Portrait-only optical alignment: shift the whole title card right by two glyph widths.
-    // The Apple lyrics renderer already handles its own aspect-specific two-letter offset.
-    if(aspect<0.75){ctx.font=font(750,ht);ctx.translate(ctx.measureText('MM').width,0);}
-    else if(aspect>=0.9&&aspect<1.25){ctx.font=font(750,ht);ctx.translate(ctx.measureText('M').width*1.5,0);}
+    // Keep the opening title card geometrically centred at every aspect ratio.
     ctx.textBaseline='top';
     // artwork
     const rr=()=>{ctx.beginPath();ctx.moveTo(ax+r,ay);ctx.arcTo(ax+art,ay,ax+art,ay+art,r);ctx.arcTo(ax+art,ay+art,ax,ay+art,r);ctx.arcTo(ax,ay+art,ax,ay,r);ctx.arcTo(ax,ay,ax+art,ay,r);ctx.closePath();};
