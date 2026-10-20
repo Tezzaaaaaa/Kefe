@@ -120,6 +120,18 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
 
     const panelCardCount = await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count();
     assert.equal(panelCardCount, 6, `all six editor sections must use beUI Card surfaces, found ${panelCardCount}`);
+    const mediaPanel = page.locator(".kefe-panels-left .kefe-panel[data-panel-view='media']");
+    const mediaHeading = mediaPanel.getByRole("heading", { name: "Media" });
+    const mediaAccordion = mediaPanel.locator(".beui-accordion-trigger");
+    await mediaHeading.waitFor({ state: "visible", timeout: 10000 });
+    await mediaAccordion.waitFor({ state: "visible", timeout: 10000 });
+    await mediaAccordion.click();
+    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "false", "section accordion should enter collapsed state");
+    await mediaHeading.waitFor({ state: "visible", timeout: 5000 });
+    await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "hidden", timeout: 5000 });
+    await mediaAccordion.click();
+    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true", "section accordion should expand again");
+    await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "visible", timeout: 5000 });
 
     const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
     assert.ok(sidebarCount >= 7, `expected sidebar actions, found ${sidebarCount}`);
