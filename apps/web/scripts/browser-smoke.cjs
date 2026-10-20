@@ -70,6 +70,20 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
+    const desktopLayout = await page.evaluate(() => {
+      const nav = document.querySelector(".kefe-sidebar").getBoundingClientRect();
+      const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
+      return {
+        navBottom: nav.bottom,
+        workspaceTop: workspace.top,
+        navWidth: nav.width,
+        viewportWidth: document.documentElement.clientWidth,
+      };
+    });
+    assert.ok(desktopLayout.navBottom <= desktopLayout.workspaceTop + 1,
+      `desktop navigation must sit above the workspace, got nav bottom ${desktopLayout.navBottom} and workspace top ${desktopLayout.workspaceTop}`);
+    assert.ok(desktopLayout.navWidth >= desktopLayout.viewportWidth * 0.8,
+      `desktop navigation should span the workspace width, got ${desktopLayout.navWidth}/${desktopLayout.viewportWidth}`);
     await page.waitForSelector(".beui-textarea-host #beui-lyricsInput", { state: "attached", timeout: 20000 });
     assert.equal(await page.locator(".beui-textarea-host #beui-lyricsInput").count(), 1, "textarea bridge must not recursively mount its own component");
     await page.waitForFunction(() => {
@@ -133,12 +147,18 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "visualiser", null, { timeout: 5000 });
     await page.waitForSelector(".beui-vis-tabs-host [role='tab']", { state: "attached", timeout: 10000 });
     assert.ok(await page.locator(".beui-vis-tabs-host [role='tab']").count() >= 1, "visualiser navigation should use beUI Tabs");
+    assert.equal(await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Liquid Glass" }).count(), 1,
+      "Liquid Glass must be available in the visualiser tab list");
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
+      "visualiser tabs must be visible while the Visualisers section is active");
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
     const lyricsNavButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" });
     await lyricsNavButton.evaluate((button) => button.scrollIntoView({ block: "center", inline: "nearest" }));
     await lyricsNavButton.evaluate((button) => button.click());
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
+      "visualiser tabs must not appear on the Lyrics section");
     await page.locator(".beui-textarea-host #beui-lyricsInput").fill("beUI lyric smoke");
     assert.equal(await page.locator("#lyricsInput").inputValue(), "beUI lyric smoke", "beUI Textarea should preserve the legacy lyrics value and events");
 
