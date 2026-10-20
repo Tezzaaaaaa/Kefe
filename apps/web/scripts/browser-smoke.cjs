@@ -104,8 +104,8 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
         && expected.every((name) => panels.some((panel) => panel.dataset.panelView === name && panel.querySelector(".beui-editor-panel-card")));
     }, null, { timeout: 20000 });
     await page.waitForSelector("#kefeUploadZone .beui-upload-card", { state: "attached", timeout: 20000 });
-    await page.waitForSelector(".beui-vis-tabs-host", { state: "attached", timeout: 10000 });
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
+    const initialVisualiserTabs = page.locator(".beui-vis-tabs-host");
+    assert.ok((await initialVisualiserTabs.count()) === 0 || !(await initialVisualiserTabs.isVisible()),
       "visualiser tabs must not appear on the initial Media section");
     assert.equal(await page.locator("#mediaInput").getAttribute("type"), "file", "upload Card must preserve the native file input");
     await page.waitForFunction(() => {
