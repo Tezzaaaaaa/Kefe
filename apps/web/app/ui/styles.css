@@ -9059,3 +9059,142 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 /* Font picker uses the shared beUI select control, not a horizontal card rail. */
 .kefe-panel[data-panel-view="effects"] .kefe-font-dropdown{display:block;width:100%;min-width:0;max-width:100%;margin-top:8px}
 .kefe-panel[data-panel-view="effects"] .kefe-font-selector-control .kefe-font-selector-strip[hidden]{display:none}
+
+
+/* Effects panel: shared spacing, clear grouping, compact beUI controls. */
+.kefe-panel[data-panel-view="effects"] .kefe-form{
+  grid-template-columns:minmax(0,1fr);
+  align-content:start;
+  gap:var(--s3);
+}
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control{
+  padding:var(--s3);
+  border:1px solid var(--line);
+  border-radius:var(--r2);
+  background:var(--surface-lo);
+  box-shadow:none;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control > .kefe-label{
+  margin:0 0 var(--s2);
+}
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-grid{
+  gap:var(--s2);
+  padding:2px 2px 8px;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-option{
+  min-height:98px;
+  padding:var(--s2);
+  gap:var(--s2);
+  border-radius:var(--r2);
+}
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-sample{
+  min-height:56px;
+  border-radius:var(--r1);
+}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup.kefe-lyric-settings{
+  gap:var(--s3);
+  padding:var(--s3);
+  border-color:var(--line);
+  border-radius:var(--r2);
+  background:var(--surface-lo);
+  box-shadow:none;
+}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-settings-head{
+  gap:4px;
+  padding-bottom:var(--s2);
+  border-color:var(--line);
+}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-lyric-mode-box,
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-case-control,
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-font-control{
+  gap:var(--s2);
+  min-width:0;
+}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-seg{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:var(--s2);
+}
+.kefe-panel[data-panel-view="effects"] #kefeDisplayGroup .kefe-seg-btn{
+  min-width:0;
+  padding-inline:8px;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-font-dropdown{
+  margin-top:0;
+  min-height:var(--control-h);
+}
+.kefe-panel[data-panel-view="effects"] .kefe-effects-background-group{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:var(--s3);
+  grid-column:1/-1;
+  min-width:0;
+  padding:var(--s3);
+  border:1px solid var(--line);
+  border-radius:var(--r2);
+  background:var(--surface-lo);
+  box-shadow:none;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-effects-group-heading{
+  grid-column:1/-1;
+  display:grid;
+  gap:3px;
+  padding-bottom:var(--s2);
+  border-bottom:1px solid var(--line-soft);
+}
+.kefe-panel[data-panel-view="effects"] .kefe-effects-group-heading h3{
+  margin:0;
+  color:var(--text);
+  font-size:var(--font-sm);
+  font-weight:700;
+  line-height:1.3;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-effects-group-heading .kefe-meta{
+  margin:0;
+  line-height:1.4;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-effects-background-group > .kefe-background-effect-control{
+  display:grid;
+  align-content:start;
+  gap:var(--s2);
+  min-width:0;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-effects-background-group .kefe-label{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:var(--s2);
+  margin:0;
+  color:var(--text);
+}
+.kefe-panel[data-panel-view="effects"] .kefe-effects-background-group .kefe-select{
+  min-height:var(--control-h);
+  font-weight:500;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-effects-background-group .kefe-meta{
+  margin:0;
+  line-height:1.4;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-effects-background-group input[type="range"]{
+  width:100%;
+  min-width:0;
+  margin:0;
+}
+@media(max-width:520px){
+  .kefe-panel[data-panel-view="effects"] .kefe-effects-background-group{
+    grid-template-columns:minmax(0,1fr);
+    gap:var(--s3);
+    padding:var(--s2);
+  }
+  .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control,
+  .kefe-panel[data-panel-view="effects"] #kefeDisplayGroup.kefe-lyric-settings{
+    padding:var(--s2);
+  }
+}
