@@ -8,6 +8,8 @@ const SKIP_ANCESTORS = [
   ".kefe-command-overlay",
   "#beui-settings-root",
   ".beui-button-host",
+  ".beui-checkbox-host",
+  ".beui-command-button-host",
   ".beui-transport-host",
   ".beui-dock-host",
   ".beui-accent-host",
