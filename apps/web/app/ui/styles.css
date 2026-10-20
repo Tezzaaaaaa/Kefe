@@ -8271,7 +8271,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
 /* Keep the accordion heading independent from the content's layout rules.
    Hiding the complete form prevents nested display:contents controls from leaking. */
 @media (min-width: 900px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head):not(.kefe-form):not(.kefe-panel[data-panel-view]) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head):not(.kefe-form):not(.kefe-panel[data-panel-view]):not(.beui-panel-card-root) {
     display: none;
   }
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head {
