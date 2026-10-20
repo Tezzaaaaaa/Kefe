@@ -15,7 +15,7 @@ function UploadCard({ originalNodes }) {
       className="beui-upload-card w-full gap-1 rounded-xl border border-dashed p-0 text-center"
       style={{
         width: "100%",
-        minHeight: "146px",
+        minHeight: "192px",
         padding: "18px",
         borderStyle: "dashed",
         borderColor: "var(--line)",
