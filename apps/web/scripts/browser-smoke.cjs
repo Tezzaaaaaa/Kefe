@@ -80,6 +80,8 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "initialisation must not select Fluid Ink or change the visualiser heading");
     assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
       "Fluid Ink must not be selected automatically on startup");
+    assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").evaluate(tab => tab.classList.contains("primary")), false,
+      "Fluid Ink must not have the selected visual style on startup");
     const desktopLayout = await page.evaluate(() => {
       const nav = document.querySelector(".kefe-sidebar").getBoundingClientRect();
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
