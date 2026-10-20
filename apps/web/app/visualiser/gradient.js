@@ -27,7 +27,7 @@
     tabs.setAttribute('role', 'tablist');
     tabs.setAttribute('aria-label', 'Choose visualiser');
 
-    const tab = element('button', 'kefe-btn primary kefe-visualiser-tab', '');
+    const tab = element('button', 'kefe-btn kefe-visualiser-tab', '');
     const tabIcon = element('span', 'kefe-visualiser-tab-icon', '≈');
     tabIcon.setAttribute('aria-hidden', 'true');
     const tabLabel = element('span', 'kefe-visualiser-tab-label', 'Fluid Ink');
