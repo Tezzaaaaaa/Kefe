@@ -9308,3 +9308,32 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .kefe-editing:not([data-selected-section="visualiser"]) .kefe-vis-tabs {
   display: none;
 }
+
+/* The beUI Card bridge wraps each legacy panel's heading and form. Keep the
+   accordion contract working through that wrapper so collapsed sections retain
+   a visible title without leaving the controls expanded underneath it. */
+@media (min-width: 900px) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed {
+    --beui-panel-padding: 8px 12px;
+    padding: 0;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head {
+    display: flex;
+    visibility: visible;
+    align-items: center;
+    min-height: 36px;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: visible;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head h2,
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head .kefe-meta {
+    visibility: visible;
+    opacity: 1;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-form {
+    display: none;
+  }
+}
