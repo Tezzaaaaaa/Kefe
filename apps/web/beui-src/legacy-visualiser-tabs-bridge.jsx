@@ -6,7 +6,6 @@ import "./legacy-bridge.css";
 function VisualiserTabs({ backingButtons }) {
   const [active, setActive] = useState(
     [...backingButtons.values()].find((button) => button.getAttribute("aria-selected") === "true")?.dataset.visualiser
-      || backingButtons.keys().next().value
       || "",
   );
 
