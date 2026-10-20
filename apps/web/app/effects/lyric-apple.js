@@ -309,8 +309,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
             ctx.textAlign = 'left';
             ctx.fillStyle = '#fff';
             for (let i = 0; i < 3; i++) {
-                const phase = (cycle - i * 0.18 + 1) % 1;
-                const alpha = 0.22 + 0.78 * linaSmooth(linaClamp(phase / 0.48));
+                const phase = cycle - i * 0.18;
+                const alpha = 0.22 + 0.78 * linaSmooth(linaClamp(phase / 0.22));
                 ctx.globalAlpha = alpha;
                 ctx.beginPath();
                 ctx.arc(cueX + dotRadius + i * dotGap, cueY, dotRadius, 0, Math.PI * 2);
