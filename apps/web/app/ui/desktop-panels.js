@@ -27,32 +27,92 @@ function initDesktopPanels() {
     }
   }
 
+  const accordionAnimations = new WeakMap();
+
   function installAccordion(panel) {
     if (panel.dataset.beuiAccordionReady === 'true') return;
     const head = panel.querySelector(':scope > .kefe-panel-head, :scope > .kefe-form > .kefe-panel-head');
     if (!head) return;
     const key = panel.dataset.panelView;
+    const heading = head.querySelector('h2');
+    if (!heading) return;
     head.hidden = false;
     if (!Array.from(panel.children).some(node => node !== head && !node.matches('.kefe-panel[data-panel-view]'))) return;
+
+    const row = document.createElement('div');
+    row.className = 'kefe-section-heading-row';
+    head.prepend(row);
+    const description = head.querySelector('.kefe-meta');
+    const oldHeadingGroup = heading.closest('.kefe-effects-heading');
+    row.appendChild(heading);
+    if (description) {
+      description.classList.add('kefe-section-description');
+      if (!description.id) description.id = 'kefe-' + key.replace(/[^a-z0-9]+/gi, '-') + '-description';
+      const info = document.createElement('button');
+      info.type = 'button';
+      info.className = 'kefe-section-info';
+      info.setAttribute('aria-label', 'About ' + heading.textContent.trim());
+      info.setAttribute('aria-describedby', description.id);
+      const syncTooltip = () => {
+        info.dataset.tooltip = description.textContent.trim() || ('Information about ' + heading.textContent.trim() + '.');
+      };
+      syncTooltip();
+      info.addEventListener('pointerenter', syncTooltip);
+      info.addEventListener('focus', syncTooltip);
+      info.innerHTML = '<span aria-hidden="true">i</span>';
+      row.appendChild(info);
+      row.appendChild(description);
+    }
+    if (oldHeadingGroup && !oldHeadingGroup.children.length) oldHeadingGroup.remove();
+
+    const lyricsPower = head.querySelector('.kefe-lyrics-power');
+    if (lyricsPower) row.appendChild(lyricsPower);
+
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'beui-accordion-trigger';
     toggle.setAttribute('aria-expanded', 'true');
-    toggle.setAttribute('aria-label', 'Collapse ' + (head.querySelector('h2')?.textContent.trim() || key) + ' section');
+    toggle.setAttribute('aria-label', 'Collapse ' + heading.textContent.trim() + ' section');
     toggle.innerHTML = '<span class="beui-accordion-chevron" aria-hidden="true"></span>';
     toggle.addEventListener('click', () => {
       const open = toggle.getAttribute('aria-expanded') !== 'true';
+      const previousAnimation = accordionAnimations.get(panel);
+      if (previousAnimation) {
+        previousAnimation.cancel();
+        accordionAnimations.delete(panel);
+      }
+      panel.style.removeProperty('height');
+      panel.style.removeProperty('overflow');
+      const currentHeight = panel.getBoundingClientRect().height;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      panel.style.height = currentHeight + 'px';
+      panel.style.overflow = 'hidden';
       head.hidden = false;
       toggle.setAttribute('aria-expanded', String(open));
       panel.classList.toggle('beui-accordion-collapsed', !open);
-      toggle.setAttribute('aria-label', (open ? 'Collapse ' : 'Expand ') + (head.querySelector('h2')?.textContent.trim() || key) + ' section');
+      toggle.setAttribute('aria-label', (open ? 'Collapse ' : 'Expand ') + heading.textContent.trim() + ' section');
+      const targetHeight = panel.scrollHeight;
+      const animation = panel.animate(
+        [{ height: currentHeight + 'px' }, { height: targetHeight + 'px' }],
+        { duration: reduceMotion ? 0 : 260, easing: 'cubic-bezier(.22, .61, .36, 1)', fill: 'forwards' }
+      );
+      accordionAnimations.set(panel, animation);
+      animation.finished.then(() => {
+        if (accordionAnimations.get(panel) !== animation) return;
+        accordionAnimations.delete(panel);
+        panel.style.removeProperty('height');
+        panel.style.removeProperty('overflow');
+        animation.cancel();
+      }).catch(() => {});
       if (open) {
         panel.classList.remove('beui-accordion-enter');
         void panel.offsetWidth;
         panel.classList.add('beui-accordion-enter');
+      } else {
+        panel.classList.remove('beui-accordion-enter');
       }
     });
-    head.append(toggle);
+    row.appendChild(toggle);
     panel.dataset.beuiAccordionReady = 'true';
   }
 
