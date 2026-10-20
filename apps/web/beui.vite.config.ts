@@ -8,6 +8,7 @@ const here = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   root: here,
+  base: "./",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
