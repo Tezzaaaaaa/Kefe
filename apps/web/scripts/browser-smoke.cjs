@@ -168,7 +168,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(mediaUploadGeometry.hostPadding, "0px", "the primary uploader host must not add a second layer of padding around the beUI Card");
     assert.equal(mediaUploadGeometry.primaryGridRow, "auto", "the primary uploader must not span rows from the legacy Media grid");
     assert.equal(mediaUploadGeometry.backgroundGridRow, "auto", "the optional uploader wrapper must not span rows from the legacy Media grid");
-    assert.equal(mediaUploadGeometry.overlapArea, 0, "the primary and background upload cards must never overlap");
+    assert.equal(mediaUploadGeometry.overlapArea, 0, `the primary and background upload cards must never overlap: ${JSON.stringify(mediaUploadGeometry)}`);
     if (mediaUploadGeometry.rowWidth <= 500) {
       assert.equal(mediaUploadGeometry.rowColumnCount, 1, `narrow Media panels must stack upload cards instead of compressing them: ${JSON.stringify(mediaUploadGeometry)}`);
     }
