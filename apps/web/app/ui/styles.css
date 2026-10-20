@@ -9598,6 +9598,45 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger:focus-visible {
   transform: none;
 }
+
+/* Shared section layout: consistent breathing room and full-width field alignment. */
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  align-items: stretch;
+  gap: 16px;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-form > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-form > :is(div, fieldset, .kefe-background-effect-control, .kefe-lyrics-timing, .kefe-find-step, .kefe-upload-zone, .kefe-media-track, .kefe-suggestions) {
+  margin-block: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-form :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea) {
+  max-width: 100%;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-form > :is(.kefe-background-effect-control, .kefe-lyric-effects-control, .kefe-font-selector-control, .kefe-lyrics-timing, .kefe-find-step, .kefe-suggestions, .kefe-fluid-ink-controls, .kefe-visualiser-control-group) {
+  box-sizing: border-box;
+  padding: 14px;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .kefe-vis-tabs {
+  margin-bottom: 16px;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-form {
+  gap: 16px;
+}
+@media (max-width: 600px) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-form {
+    gap: 14px;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-form > :is(.kefe-background-effect-control, .kefe-lyric-effects-control, .kefe-font-selector-control, .kefe-lyrics-timing, .kefe-find-step, .kefe-suggestions, .kefe-fluid-ink-controls, .kefe-visualiser-control-group) {
+    padding: 12px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .kefe-section-info::after,
   .kefe-section-heading-row .beui-accordion-chevron { transition: none; }
