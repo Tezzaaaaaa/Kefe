@@ -13,16 +13,17 @@
 
   function buildPanel() {
     const panel = document.querySelector('[data-panel-view="visualiser"]');
-    if (!panel || document.querySelector('.kefe-vis-tabs')) return;
+    if (!panel) return;
     const form = panel.querySelector('.kefe-visualiser-form');
     if (!form) return;
+    const existingTabs = panel.querySelector('.kefe-vis-tabs');
 
     const view = element('div', 'kefe-vis-view kefe-gradient-view');
     view.id = 'kefeVisGradientView';
     view.hidden = true;
 
 
-    const tabs = element('div', 'kefe-vis-tabs');
+    const tabs = existingTabs || element('div', 'kefe-vis-tabs');
     tabs.setAttribute('role', 'tablist');
     tabs.setAttribute('aria-label', 'Choose visualiser');
 
@@ -85,7 +86,7 @@
 
     const editing = panel.closest('.kefe-editing');
     const panels = editing?.querySelector('.kefe-panels');
-    panel.insertBefore(tabs, form);
+    if (!existingTabs) panel.insertBefore(tabs, form);
     panel.insertBefore(presetRow, form);
     form.replaceChildren(view);
 
