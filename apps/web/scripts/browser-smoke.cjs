@@ -137,6 +137,35 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(await page.locator("#kefeUploadZone .beui-upload-card").count(), 1, "the primary uploader must not render duplicate Card shells");
     assert.equal(await page.locator("#kefeUploadZone .kefe-upload-title").textContent(), "Audio or video", "the primary uploader label must remain distinct");
     assert.match(await page.locator("#kefeBgVideoZone .kefe-upload-title").textContent(), /Optional background video/, "the second uploader must be clearly identified as optional background footage");
+    const mediaUploadGeometry = await page.evaluate(() => {
+      const primaryHost = document.querySelector("#kefeUploadZone");
+      const primaryCard = primaryHost && primaryHost.querySelector(".beui-upload-card");
+      const backgroundCard = document.querySelector("#kefeBgVideoZone");
+      if (!primaryHost || !primaryCard || !backgroundCard) return null;
+      const hostStyle = getComputedStyle(primaryHost);
+      const primary = primaryCard.getBoundingClientRect();
+      const background = backgroundCard.getBoundingClientRect();
+      const overlapX = Math.max(0, Math.min(primary.right, background.right) - Math.max(primary.left, background.left));
+      const overlapY = Math.max(0, Math.min(primary.bottom, background.bottom) - Math.max(primary.top, background.top));
+      return {
+        hostBorderWidth: hostStyle.borderTopWidth,
+        hostPadding: hostStyle.paddingTop,
+        primaryGridRow: getComputedStyle(primaryHost).gridRow,
+        backgroundGridRow: getComputedStyle(backgroundCard.parentElement).gridRow,
+        primaryHeight: primary.height,
+        backgroundHeight: background.height,
+        overlapArea: overlapX * overlapY,
+        rowColumns: getComputedStyle(primaryHost.parentElement).gridTemplateColumns
+      };
+    });
+    assert.ok(mediaUploadGeometry, "both Media upload cards must be mounted");
+    assert.equal(mediaUploadGeometry.hostBorderWidth, "0px", "the primary uploader host must not add a duplicate outer border around the beUI Card");
+    assert.equal(mediaUploadGeometry.hostPadding, "0px", "the primary uploader host must not add a second layer of padding around the beUI Card");
+    assert.equal(mediaUploadGeometry.primaryGridRow, "auto", "the primary uploader must not span rows from the legacy Media grid");
+    assert.equal(mediaUploadGeometry.backgroundGridRow, "auto", "the optional uploader wrapper must not span rows from the legacy Media grid");
+    assert.equal(mediaUploadGeometry.overlapArea, 0, "the primary and background upload cards must never overlap");
+    assert.ok(Math.abs(mediaUploadGeometry.primaryHeight - mediaUploadGeometry.backgroundHeight) <= 2,
+      "the two Media upload cards must have matching heights");
     const initialVisualiserTabs = page.locator(".beui-vis-tabs-host");
     assert.ok((await initialVisualiserTabs.count()) === 0 || !(await initialVisualiserTabs.isVisible()),
       "visualiser tabs must not appear on the initial Media section");
