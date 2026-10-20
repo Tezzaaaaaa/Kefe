@@ -5238,6 +5238,10 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 }
 @media (max-width: 700px) {
   .kefe-editing { grid-template-rows: 40px auto auto minmax(0, 1fr); }
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs,
   .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row {
     width: calc(100% - 20px);
