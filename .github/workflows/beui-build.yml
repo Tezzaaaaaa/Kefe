@@ -1,0 +1,56 @@
+name: beUI migration build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/beui-build.yml"
+  push:
+    branches: [main, "feature/full-beui-conversion"]
+    paths:
+      - "apps/web/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/beui-build.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beui-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @kefe/web build
+      - name: Verify production editor and workbench outputs
+        run: |
+          test -s apps/web/dist-beui/editor.html
+          test -s apps/web/dist-beui/editor.beui.html
+          test -s apps/web/dist-beui/index.html
+          test -s apps/web/dist-beui/beui.html
+          node apps/web/scripts/smoke-build.mjs
+          node apps/web/scripts/smoke-settings-api.mjs
+          node apps/web/scripts/smoke-section-card-coverage.mjs
+      - name: Install Playwright browser runner
+        run: npm install --prefix /tmp/kefe-browser --no-save --no-package-lock playwright@1.56.1
+      - name: Install Chromium
+        run: /tmp/kefe-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Run built-editor browser smoke test
+        env:
+          NODE_PATH: /tmp/kefe-browser/node_modules
+        run: node apps/web/scripts/browser-smoke.cjs

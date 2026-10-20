@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="KEFE — browser-based lyric video and music visualiser editor.">
+<title>KEFE Visualiser</title>
+<script>document.documentElement.dataset.theme = 'night';</script>
+<link rel="icon" href="./app/brand/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./app/brand/apple-touch-icon.png">
+<meta name="theme-color" content="#171719">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KEFE">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="./app/ui/styles.css?v=visualiser-consistency-20261017-1">
+<link rel="stylesheet" href="./app/ui/workspace-shell.css?v=workspace-rhythm-20261017-1">
+</head>
+<body>
+<script src="./app/ui/typography.js?v=trailer-live-handwriting-20261017-1"></script>
+<script src="./app/effects/manifest.js"></script>
+<script src="./app/effects/core.js?v=wrap-intact-words-20261017-1"></script>
+
+<script src="./app/effects/lyric-apple.js?v=apple-layout-alignment-20261017-1"></script>
+<script src="./app/effects/lyric-brat.js?v=brat-consistent-wrap-20261017-1"></script>
+<script src="./app/effects/lyric-aurora.js"></script>
+<script src="./app/effects/lyric-pulse.js"></script>
+<script src="./app/effects/lyric-typewriter.js"></script>
+<script src="./app/effects/lyric-instagram.js?v=instagram-stack-20261014-1"></script>
+<script src="./app/effects/lyric-story-fade.js"></script>
+<script src="./app/effects/lyric-decrypt-text.js"></script>
+<script src="./app/effects/lyric-blur-text.js"></script>
+<script src="./app/effects/lyric-shiny-text.js"></script>
+<script src="./app/effects/lyric-scroll-lines.js"></script>
+<script src="./app/effects/lyric-barbie.js"></script>
+<script src="./app/effects/lyric-elasticpop.js"></script>
+<script src="./app/effects/lyric-flipcards.js"></script>
+<script src="./app/effects/lyric-karaoke.js?v=classic-bottom-karaoke-yellow-ball-20261017-2"></script>
+<script src="./app/effects/lyric-trailer.js?v=live-handwriting-reveal-20261017-2"></script>
+<script src="./app/effects/lyric-fancy.js?v=button-controls-20261014-1"></script>
+<script src="./app/effects/lyric-glitch.js"></script>
+<script src="./app/effects/lyric-splitflap.js"></script>
+<script src="./app/effects/lyric-crt-computer.js?v=button-controls-20261014-1"></script>
+<script src="./app/effects/lyric-crt-tv.js?v=button-controls-20261014-1"></script>
+<script src="./app/effects/lyric-randomize.js?v=button-controls-20261014-1"></script>
+<script src="./app/effects/lyric-eternal.js"></script>
+<script src="./app/effects/lyric-inspiration-pack.js?v=button-controls-20261014-1"></script>
+
+<script src="./app/lyrics/lyric-model.js?v=enhanced-lrc-word-timing-20261017-1"></script>
+<script src="./app/ui/structure.js?v=single-editor-workspace-navigation-20261017-1"></script>
+<script src="./app/settings.beui.js?v=beui-settings-react-20261017-1"></script>
+<script src="./app/editor.js?v=lrclib-only-20261017-2"></script>
+<script src="./app/ios-lockscreen.js?v=ios-lockscreen-mediasession-20261017-1"></script>
+<script src="./app/ui/style-layer.js?v=remove-custom-text-logo-20261017-1"></script>
+<script src="./app/lyrics/lyric-studio.js?v=lyric-style-case-placement-20261017-1"></script>
+<script src="./app/visualiser/background.js?v=background-effect-cards-20261017-1"></script>
+<script src="./app/visualiser/audio-overlay.js?v=engine-fft-20261015-1"></script>
+<script src="./app/media-carousel.js?v=search-ranking-race-fix-20261017-1"></script>
+<script src="./app/visualiser/gradient.js?v=visualiser-consistency-20261017-1"></script>
+<script src="./app/visualiser/liquid-flow.js?v=fluid-ink-higher-resolution-20261017-1"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"></script>
+<script src="./app/visualiser/fluted-glass.js?v=visualiser-consistency-20261017-1"></script>
+<script src="./app/visualiser/slow-light.js?v=visualiser-consistency-20261017-1"></script>
+<script>
+(() => {
+  const root = document.documentElement;
+  const key = 'kefe.theme';
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved === 'day' || saved === 'night') root.dataset.theme = saved;
+  } catch (_) {}
+  function syncThemeToggle() {
+    const button = document.getElementById('kefeThemeToggle');
+    if (!button) return;
+    const isNight = root.dataset.theme === 'night';
+    button.textContent = isNight ? '☀ Day' : '☾ Night';
+    button.setAttribute('aria-label', isNight ? 'Switch to day mode' : 'Switch to night mode');
+    button.title = isNight ? 'Switch to day mode' : 'Switch to night mode';
+  }
+  document.addEventListener('click', event => {
+    const button = event.target.closest && event.target.closest('#kefeThemeToggle');
+    if (!button) return;
+    root.dataset.theme = root.dataset.theme === 'night' ? 'day' : 'night';
+    try { localStorage.setItem(key, root.dataset.theme); } catch (_) {}
+    syncThemeToggle();
+  });
+  document.addEventListener('DOMContentLoaded', syncThemeToggle);
+  syncThemeToggle();
+})();
+</script>
+
+<script>
+(() => {
+  const selector = 'input[type="range"]:not(#kefeTime):not(.kefe-slider)';
+  function syncSlider(input) {
+    const min = Number(input.min || 0);
+    const max = Number(input.max || 100);
+    const value = Number(input.value || 0);
+    const progress = max > min ? Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100)) : 0;
+    input.style.setProperty('--kefe-slider-progress', progress + '%');
+  }
+  function syncAllSliders() {
+    document.querySelectorAll(selector).forEach(syncSlider);
+  }
+  document.addEventListener('input', event => {
+    if (event.target instanceof HTMLInputElement && event.target.matches(selector)) syncSlider(event.target);
+  }, true);
+  document.addEventListener('change', event => {
+    if (event.target instanceof HTMLInputElement && event.target.matches(selector)) syncSlider(event.target);
+  }, true);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncAllSliders, { once: true });
+  else syncAllSliders();
+})();
+</script>
+
+<script>
+(() => {
+  const button = document.getElementById('kefeMuteToggle');
+  const popover = document.getElementById('kefeVolumePopover');
+  const slider = document.getElementById('kefeVolume');
+  const output = document.getElementById('kefeVolumeValue');
+  const audio = document.getElementById('kefeAudio');
+  if (!button || !popover || !slider || !output || !audio) return;
+  let lastVolume = 1;
+  const setOpen = open => {
+    popover.hidden = !open;
+    button.setAttribute('aria-expanded', String(open));
+    if (open) slider.focus({ preventScroll: true });
+  };
+  const syncVolume = () => {
+    const volume = Math.max(0, Math.min(100, Number(slider.value) || 0));
+    audio.volume = volume / 100;
+    if (volume > 0) lastVolume = volume / 100;
+    output.value = volume + '%';
+    output.textContent = volume + '%';
+    button.textContent = volume === 0 ? '◖̸' : '◖';
+    button.setAttribute('aria-label', volume === 0 ? 'Volume muted; open volume options' : 'Open volume options');
+    button.title = volume === 0 ? 'Muted — open volume options' : 'Volume options';
+  };
+  button.addEventListener('click', () => setOpen(popover.hidden));
+  slider.addEventListener('input', syncVolume);
+  document.addEventListener('pointerdown', event => {
+    if (!popover.hidden && !popover.contains(event.target) && !button.contains(event.target)) setOpen(false);
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !popover.hidden) { setOpen(false); button.focus({ preventScroll: true }); }
+  });
+  audio.addEventListener('volumechange', () => {
+    if (!audio.muted) slider.value = String(Math.round(audio.volume * 100));
+    syncVolume();
+  });
+  syncVolume();
+})();
+</script>
+<script>
+// PWA: register the service worker (HTTPS or localhost only; skipped inside the iOS WKWebView companion).
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    try { navigator.serviceWorker.register('./sw.js').catch(() => {}); } catch (error) { /* ignore */ }
+  });
+}
+</script>
+<script type="module" src="./beui-src/legacy-range-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-volume-card-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-text-input-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-textarea-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-checkbox-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-panel-card-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-upload-card-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-settings-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-tabs-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-visualiser-tabs-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-select-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-sidebar-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-chrome-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-panel-buttons-bridge.jsx"></script>
+<script type="module" src="./beui-src/legacy-command-dialog-bridge.jsx"></script>
+</body>
+</html>
