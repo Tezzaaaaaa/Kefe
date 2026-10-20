@@ -466,7 +466,7 @@
     const font=(wt,size)=>wt+' '+size+'px "Inter Tight",system-ui,sans-serif';
     // centred (hold) layout
     const bigArt=unit*.34,bigGap=unit*.04,bt=Math.max(20,unit*.06),ba=Math.max(14,unit*.038),bm=Math.max(12,unit*.03);
-    const wrapText=(text,f,mw)=>{ctx.font=f;const words=String(text||'').split(/\\s+/).filter(Boolean),lines=[];let line='';for(const word of words){const candidate=line?line+' '+word:word;if(line&&ctx.measureText(candidate).width>mw){lines.push(line);line=word;}else line=candidate;}if(line)lines.push(line);return lines;};
+    const wrapText=(text,f,mw)=>{ctx.font=f;const words=String(text||'').split(/\s+/).filter(Boolean),lines=[];let line='';for(const word of words){const candidate=line?line+' '+word:word;if(line&&ctx.measureText(candidate).width>mw){lines.push(line);line=word;}else line=candidate;}if(line)lines.push(line);return lines;};
     // Header layout – same column as the Apple lyrics.
     const aspect=w/Math.max(1,h),landscape=aspect>=1.25,comp=landscape?w*.34:(aspect<.75?w*.84:w*.78);
     const left=landscape?w*.20-comp/2:w*(aspect<.75?.07:aspect<1.25?.08:.082);
