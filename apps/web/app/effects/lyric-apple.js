@@ -293,31 +293,42 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
     }
     ctx.restore();
-    const activeIndex = linaFindActiveLine(displayLines, time);
-    if (activeIndex < 0) {
-        // Apple Music-style pre-lyric cue: three restrained dots fade in from left to right.
-        // This is isolated to the waiting state; the established lyric renderer remains untouched.
-        const firstTime = Number(displayLines[0]?.time);
-        if (Number.isFinite(firstTime) && time < firstTime) {
-            const cueY = aspectRatio >= 1.25 ? h * 0.50 : (aspectRatio >= 0.9 ? h * (aspectRatio < 1.25 ? 0.47 : 0.495) : h * 0.255);
-            const cueX = margin + horizontalLyricShift;
-            const dotRadius = Math.max(1.8, activeFontSize * 0.055);
-            const dotGap = dotRadius * 3.8;
-            const cycle = ((Math.max(0, time) * 1.15) % 1.35) / 1.35;
-            ctx.save();
-            ctx.textBaseline = 'middle';
-            ctx.textAlign = 'left';
-            ctx.fillStyle = '#fff';
-            for (let i = 0; i < 3; i++) {
-                const phase = cycle - i * 0.18;
-                const alpha = 0.22 + 0.78 * linaSmooth(linaClamp(phase / 0.22));
-                ctx.globalAlpha = alpha;
-                ctx.beginPath();
-                ctx.arc(cueX + dotRadius + i * dotGap, cueY, dotRadius, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.restore();
+    const drawMusicBreakCue = cueY => {
+        // Part of Apple Lyrics itself: three restrained dots fade in from left to right.
+        const cueX = margin + horizontalLyricShift;
+        const dotRadius = Math.max(1.8, activeFontSize * 0.055);
+        const dotGap = dotRadius * 3.8;
+        const cycle = ((Math.max(0, time) * 1.15) % 1.35) / 1.35;
+        ctx.save();
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#fff';
+        for (let i = 0; i < 3; i++) {
+            const phase = cycle - i * 0.18;
+            const alpha = 0.22 + 0.78 * linaSmooth(linaClamp(phase / 0.22));
+            ctx.globalAlpha = alpha;
+            ctx.beginPath();
+            ctx.arc(cueX + dotRadius + i * dotGap, cueY, dotRadius, 0, Math.PI * 2);
+            ctx.fill();
         }
+        ctx.restore();
+    };
+    const activeIndex = linaFindActiveLine(displayLines, time);
+    const cueY = aspectRatio >= 1.25 ? h * 0.50 : (aspectRatio >= 0.9 ? h * (aspectRatio < 1.25 ? 0.47 : 0.495) : h * 0.255);
+    if (activeIndex < 0) {
+        const firstTime = Number(displayLines[0]?.time);
+        if (Number.isFinite(firstTime) && time < firstTime) drawMusicBreakCue(cueY);
+        return;
+    }
+
+    // Replace silent musical gaps with the same cue, inside this effect renderer—not a separate effect.
+    const currentLine = displayLines[activeIndex];
+    const nextLine = displayLines[activeIndex + 1];
+    const vocalEnd = Number(currentLine?.vocalEndTime);
+    const nextStart = Number(nextLine?.time);
+    if (Number.isFinite(vocalEnd) && Number.isFinite(nextStart) &&
+        nextStart - vocalEnd >= 0.45 && time >= vocalEnd && time < nextStart) {
+        drawMusicBreakCue(cueY);
         return;
     }
 
