@@ -154,6 +154,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "effects", null, { timeout: 5000 });
 
     await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Export" }).click();
+    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "export", null, { timeout: 5000 });
     const reviewCheckbox = page.locator("#beui-kefeReview0[role=checkbox]");
     await reviewCheckbox.waitFor({ state: "visible", timeout: 10000 });
     await reviewCheckbox.click();
