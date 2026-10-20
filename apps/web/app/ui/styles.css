@@ -9409,7 +9409,13 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   display: inline-flex;
   flex: 0 0 auto;
   width: auto;
-  min-widt/* Section headers: clear title hierarchy, controls aligned to the same baseline. */
+  min-width: max-content;
+  max-width: none;
+  white-space: nowrap;
+}
+.kefe-editor .kefe-sidebar .kefe-sidebar-group { min-width: 0; }
+
+/* Section headers: clear title hierarchy, controls aligned to the same baseline. */
 .kefe-panel[data-panel-view] .kefe-panel-head {
   display: flex;
   align-items: center;
