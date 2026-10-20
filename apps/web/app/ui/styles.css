@@ -9425,9 +9425,12 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     padding-bottom: 10px;
     margin-bottom: 14px;
   }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed {
+    overflow: visible;
+  }
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head,
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head {
-    min-height: 36px;
+    min-height: 40px;
     padding-bottom: 0;
     margin-bottom: 0;
   }
@@ -9524,6 +9527,13 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   margin-left: 0;
   white-space: nowrap;
 }
+html:root .kefe-panel .kefe-section-heading-row .kefe-switch {
+  height: 32px;
+  min-height: 32px;
+  min-width: 76px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
 .kefe-section-heading-row .kefe-visualiser-power-slot {
   flex: 0 0 auto;
   margin-left: 0;
@@ -9531,7 +9541,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .kefe-section-heading-row .kefe-background-effect-heading {
   display: contents;
 }
-.kefe-section-heading-row .kefe-background-effect-heading .kefe-background-effect-toggle {
+.kefe-editor .kefe-panel[data-panel-view="background-effects"] .kefe-section-heading-row .kefe-background-effect-heading .kefe-background-effect-toggle {
   flex: 0 0 auto;
   margin-left: 0;
 }
