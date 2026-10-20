@@ -8790,3 +8790,48 @@ html:root .kefe-panel[data-panel-view="visualiser"] :is(.kefe-fluid-presets, .ke
   border-color: var(--accent-ring);
   box-shadow: 0 0 0 1px var(--accent-ring);
 }
+
+/* --- compact desktop density: tighter controls, narrower panels, bigger preview --- */
+@media (min-width: 900px) {
+  :root,
+  :root[data-theme="day"],
+  :root[data-theme="night"] {
+    --control-h: 36px;
+    --control-pad: 12px;
+    --font-sm: 13px;
+    --section-gap: 10px;
+    --grid-gap: 8px;
+  }
+  html:root .kefe-editor {
+    grid-template-columns: minmax(310px, 340px) minmax(0, 1fr) minmax(310px, 340px);
+  }
+  html:root .kefe-editor .kefe-editing > .kefe-panels-left,
+  html:root .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left) { padding: 10px; }
+  html:root .kefe-panel { padding: 12px; }
+  html:root .kefe-panel-head { margin-bottom: 12px; padding-bottom: 10px; }
+  html:root .kefe-panel h2, html:root .kefe-panel-head h2 { font-size: 18px; letter-spacing: -.02em; }
+  html:root .kefe-form { gap: 10px; }
+
+  /* Sliders */
+  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider) {
+    height: 32px; min-height: 32px;
+  }
+  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-webkit-slider-runnable-track { height: 32px; }
+  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-moz-range-track { height: 32px; }
+  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-webkit-slider-thumb { height: 20px; margin-top: 6px; }
+  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-moz-range-thumb { height: 20px; }
+
+  /* Keep rows from wrapping or overflowing in the narrower panels */
+  html:root .kefe-seg-btn { padding-inline: 12px; white-space: nowrap; }
+  html:root .kefe-lyrics-timing-controls { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  html:root .kefe-lyrics-timing-controls .kefe-lyrics-timing-step { min-width: 0; padding: 0 10px; white-space: nowrap; }
+
+  /* Footer */
+  html:root .kefe-site-footer { min-height: 32px; padding: 4px 14px; }
+  html:root .kefe-site-footer-brand img { width: 20px; height: 20px; }
+  html:root .kefe-site-footer-brand > div { display: flex; align-items: baseline; gap: 10px; }
+  html:root .kefe-site-footer-brand span { white-space: nowrap; }
+
+  /* Preview gets the freed space */
+  html:root .kefe-stage, html:root .kefe-stage.is-16x9 { width: min(100%, 1100px, 92vh); }
+}
