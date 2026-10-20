@@ -11,7 +11,7 @@ const expected = ["media", "lyrics", "effects", "background-effects", "visualise
 const failures = [];
 
 for (const panel of expected) {
-  const panelPattern = new RegExp(`data-panel-view=["']${panel}["']`);
+  const panelPattern = new RegExp(`data-panel-view=\\\\?["']${panel}\\\\?["']`);
   if (!panelPattern.test(structure)) failures.push(`Missing ${panel} editor section in structure.js`);
 }
 
