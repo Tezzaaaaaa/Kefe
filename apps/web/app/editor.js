@@ -19,6 +19,26 @@
   });
 
 
+  /* Shared accessible alert surface for actionable editor feedback. */
+  (() => {
+    let host;
+    const paths={default:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/>',success:'<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>',warning:'<path d="m12 3 9 17H3z"/><path d="M12 9v4m0 3h.01"/>',destructive:'<circle cx="12" cy="12" r="9"/><path d="m9 9 6 6m0-6-6 6"/>'};
+    window.kefeAlert=(message,options={})=>{
+      const variant=Object.hasOwn(paths,options.variant)?options.variant:'info';
+      if(!host){host=document.createElement('div');host.className='kefe-alert-stack';host.setAttribute('aria-label','Notifications');document.body.appendChild(host);}
+      const item=document.createElement('section');item.className='kefe-alert kefe-alert-'+variant;item.setAttribute('role',variant==='warning'||variant==='destructive'?'alert':'status');item.setAttribute('aria-live',variant==='warning'||variant==='destructive'?'assertive':'polite');
+      const icon=document.createElement('span');icon.className='kefe-alert-icon';icon.setAttribute('aria-hidden','true');icon.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+paths[variant]+'</svg>';
+      const content=document.createElement('div');content.className='kefe-alert-content';
+      if(options.title){const title=document.createElement('strong');title.className='kefe-alert-title';title.textContent=String(options.title);content.appendChild(title);}
+      const description=document.createElement('p');description.className='kefe-alert-description';description.textContent=String(message??'');content.appendChild(description);
+      const close=document.createElement('button');close.type='button';close.className='kefe-alert-close';close.setAttribute('aria-label','Dismiss notification');close.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
+      let timer;const dismiss=()=>{clearTimeout(timer);item.classList.remove('is-visible');item.setAttribute('aria-hidden','true');setTimeout(()=>item.remove(),matchMedia('(prefers-reduced-motion: reduce)').matches?0:220);};
+      close.addEventListener('click',dismiss);item.append(icon,content,close);host.appendChild(item);requestAnimationFrame(()=>item.classList.add('is-visible'));
+      if(options.duration!==0)timer=setTimeout(dismiss,Math.max(2500,Number(options.duration)||6000));
+      return {dismiss,element:item};
+    };
+  })();
+
   window.kefeEffects = window.kefeEffects || {};
   /* Fallback only: core.js owns the full utils (layoutText, wordProgress, sweepFill...). Overwriting them broke effects that read the global at call time. */
   window.kefeEffectUtils = window.kefeEffectUtils || {
