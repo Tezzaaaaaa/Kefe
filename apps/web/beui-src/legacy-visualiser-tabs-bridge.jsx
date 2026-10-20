@@ -67,4 +67,9 @@ function start() {
 // The legacy visualiser modules create their tabs during DOMContentLoaded.
 // Mount after those initialisers so every existing visualiser is represented.
 window.addEventListener("load", start, { once: true });
+document.addEventListener("click", (event) => {
+  if (event.target?.closest?.('[data-shell-panel="visualiser"], .kefe-section[data-panel="visualiser"]')) {
+    window.setTimeout(start, 0);
+  }
+});
 if (document.readyState === "complete") start();
