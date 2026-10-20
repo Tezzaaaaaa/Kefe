@@ -163,14 +163,18 @@
     var panelHead=panel&&panel.querySelector('.kefe-panel-head');
     var heading=panelHead&&panelHead.querySelector('h2');
     if(heading&&!document.getElementById('kefeBackgroundEffectToggle')){
-      var titleRow=document.createElement('div');titleRow.className='kefe-background-effect-heading';
-      heading.parentNode.insertBefore(titleRow,heading);titleRow.appendChild(heading);
+      var titleRow=panelHead.querySelector('.kefe-section-heading-row');
+      if(!titleRow){
+        titleRow=document.createElement('div');titleRow.className='kefe-background-effect-heading';
+        heading.parentNode.insertBefore(titleRow,heading);titleRow.appendChild(heading);
+      }
       var toggle=document.createElement('button');toggle.id='kefeBackgroundEffectToggle';toggle.type='button';toggle.className='kefe-background-effect-toggle kefe-switch';toggle.setAttribute('role','switch');toggle.setAttribute('aria-label','Background effects');toggle.setAttribute('aria-checked',String(enabled));
       var toggleState=document.createElement('span');toggleState.className='kefe-switch-state';
       var toggleTrack=document.createElement('span');toggleTrack.className='kefe-switch-track';toggleTrack.setAttribute('aria-hidden','true');
       var toggleThumb=document.createElement('span');toggleThumb.className='kefe-switch-thumb';toggleTrack.appendChild(toggleThumb);toggle.append(toggleState,toggleTrack);
       toggle.addEventListener('click',function(){setMode(enabled?'off':(lastMode||'apple'));});
-      titleRow.appendChild(toggle);
+      var accordion=titleRow.querySelector(':scope > .beui-accordion-trigger');
+      if(accordion)titleRow.insertBefore(toggle,accordion);else titleRow.appendChild(toggle);
       syncBackgroundToggleUI=function(){toggleState.textContent=enabled?'On':'Off';toggle.setAttribute('aria-checked',String(enabled));toggle.classList.toggle('is-on',enabled);};
       syncBackgroundToggleUI();
     }
