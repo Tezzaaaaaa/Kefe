@@ -8803,7 +8803,7 @@ html:root .kefe-panel[data-panel-view="visualiser"] :is(.kefe-fluid-presets, .ke
     --grid-gap: 8px;
   }
   html:root .kefe-editor {
-    grid-template-columns: minmax(310px, 340px) minmax(0, 1fr) minmax(310px, 340px);
+    grid-template-columns: minmax(340px, 390px) minmax(0, 1fr) minmax(340px, 390px);
   }
   html:root .kefe-editor .kefe-editing > .kefe-panels-left,
   html:root .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left) { padding: 10px; }
