@@ -58,6 +58,7 @@ function initDesktopPanels() {
 
   function sync() {
     const active = document.querySelector('.kefe-section.active')?.dataset.panel || 'media';
+    editing.setAttribute('data-selected-section', active);
     if (!mq.matches) {
       panels().forEach(p => {
         p.classList.remove('kefe-pane-shown', 'beui-accordion-collapsed', 'beui-accordion-enter');

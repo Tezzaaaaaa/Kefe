@@ -8271,7 +8271,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
 /* Keep the accordion heading independent from the content's layout rules.
    Hiding the complete form prevents nested display:contents controls from leaking. */
 @media (min-width: 900px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head):not(.kefe-form):not(.kefe-panel[data-panel-view]) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head):not(.kefe-form):not(.kefe-panel[data-panel-view]):not(.beui-panel-card-root) {
     display: none;
   }
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head {
@@ -9209,4 +9209,143 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .kefe-vis-option > [role="tab"][data-visualiser="night-tunnel"]::before{
   -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 20V12a9 9 0 0 1 18 0v8'/%3E%3Cpath d='M8 20v-7a4 4 0 0 1 8 0v7'/%3E%3C/svg%3E");
   mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 20V12a9 9 0 0 1 18 0v8'/%3E%3Cpath d='M8 20v-7a4 4 0 0 1 8 0v7'/%3E%3C/svg%3E");
+}
+
+
+
+/* Keep the two side panels and central preview on wide desktops. At tablet
+   widths, retain the horizontal navigation but stack the editor below the
+   preview instead of forcing a narrow three-column workspace. */
+@media (min-width: 641px) and (max-width: 899px) {
+  .kefe-editor {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+  }
+  .kefe-sidebar {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 52px;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .kefe-sidebar-brand-row {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+  }
+  .kefe-sidebar-brand {
+    flex: 0 0 auto;
+    width: auto;
+    padding-inline: 4px;
+  }
+  .kefe-sidebar-group {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+  }
+  .kefe-sidebar-label { display: none; }
+  .kefe-sidebar-bottom {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 0;
+  }
+  .kefe-sidebar-link {
+    width: auto;
+    min-height: 36px;
+    height: 36px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding-inline: 9px;
+  }
+  .beui-sidebar-nav-host {
+    width: auto;
+    flex: 0 0 auto;
+  }
+  .beui-sidebar-nav-host > div,
+  .beui-sidebar-nav {
+    display: flex;
+    width: auto;
+    align-items: center;
+    gap: 4px;
+  }
+  .beui-sidebar-nav .kefe-sidebar-link {
+    width: auto;
+    min-height: 36px;
+    height: 36px;
+  }
+  .kefe-work {
+    grid-column: 1;
+    grid-row: 2;
+    grid-template-rows: auto 58px;
+    min-width: 0;
+  }
+  .kefe-editing {
+    grid-column: 1;
+    grid-row: 3;
+    display: block;
+  }
+  .kefe-site-footer {
+    grid-column: 1;
+    grid-row: 4;
+  }
+}
+
+/* Visualiser-specific navigation belongs only to the selected Visualisers section,
+   even while the desktop workspace keeps multiple accordion panels mounted. */
+.kefe-editing:not([data-selected-section="visualiser"]) .kefe-vis-tabs {
+  display: none;
+}
+
+/* The beUI Card bridge wraps each legacy panel's heading and form. Keep the
+   accordion contract working through that wrapper so collapsed sections retain
+   a visible title without leaving the controls expanded underneath it. */
+@media (min-width: 900px) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed {
+    --beui-panel-padding: 8px 12px;
+    padding: 0;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head {
+    display: flex;
+    visibility: visible;
+    align-items: center;
+    min-height: 36px;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: visible;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head h2,
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head .kefe-meta {
+    visibility: visible;
+    opacity: 1;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-form {
+    display: none;
+  }
+}
+
+@media (min-width: 900px) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head > .beui-panel-button-host > .beui-accordion-trigger {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed .kefe-panel-head > .beui-panel-button-host > .beui-accordion-trigger {
+    top: 50%;
+    margin-top: -16px;
+  }
 }
