@@ -153,6 +153,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(panelCardCount, 6, `all six editor sections must use beUI Card surfaces, found ${panelCardCount}`);
     assert.equal(await page.locator('.kefe-panel[data-panel-view="effects"] .kefe-effects-background-group').count(), 0,
       "Effects must not retain the empty duplicate Background treatment container; background controls belong to Background Effects");
+    assert.equal(await page.locator('#visualiserBackground').evaluate(el => el.closest('.kefe-panel[data-panel-view]')?.dataset.panelView), "background-effects",
+      "the background selector must remain in Background Effects after removing the empty Effects container");
+    assert.equal(await page.locator('#backgroundTransparency').evaluate(el => el.closest('.kefe-panel[data-panel-view]')?.dataset.panelView), "background-effects",
+      "background darkness control must remain in Background Effects after cleanup");
     assert.equal(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option').count() > 0, true,
       "Effects must retain its lyric-effect gallery after background-treatment cleanup");
     const mediaPanel = page.locator(".kefe-panels-left .kefe-panel[data-panel-view='media']");
