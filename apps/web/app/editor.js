@@ -460,21 +460,21 @@
     if(ph.mode==='off')return;
     const p=ph.p;
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim(),year=songYear.value.trim();
-    const meta=[album,year].filter(Boolean).join(' · ');
+    const meta=album,yearText=year;
     const img=titleArtImage,hasArt=!!(img&&img.complete&&img.naturalWidth>0);
     const unit=Math.min(w,h),lerp=(a,b)=>a+(b-a)*p;
     const font=(wt,size)=>wt+' '+size+'px "Inter Tight",system-ui,sans-serif';
     // centred (hold) layout
     const bigArt=unit*.34,bigGap=unit*.04,bt=Math.max(20,unit*.06),ba=Math.max(14,unit*.038),bm=Math.max(12,unit*.03);
-    const bigTextH=bt*1.25+(artist?ba*1.35:0)+(meta?bm*1.4:0),bigTop=(h-(bigArt+bigGap+bigTextH))/2;
-    // header layout – same column as the Apple lyrics
+    const wrapText=(text,f,mw)=>{ctx.font=f;const words=String(text||'').split(/\\s+/).filter(Boolean),lines=[];let line='';for(const word of words){const candidate=line?line+' '+word:word;if(line&&ctx.measureText(candidate).width>mw){lines.push(line);line=word;}else line=candidate;}if(line)lines.push(line);return lines;};
+    // Header layout – same column as the Apple lyrics.
     const aspect=w/Math.max(1,h),landscape=aspect>=1.25,comp=landscape?w*.34:(aspect<.75?w*.84:w*.78);
     const left=landscape?w*.20-comp/2:w*(aspect<.75?.07:aspect<1.25?.08:.082);
     const ht=Math.max(13,unit*.036),hartist=Math.max(11,unit*.028),hm=Math.max(10,unit*.022);
     const hArt=landscape?Math.min(unit*.38,w*.24):unit*.11,hTop=landscape?h*.13:(aspect<.75?unit*.18:Math.max(32,h*.12)),hGap=unit*(landscape?.035:.028);
+    const maxW=landscape?comp*.94:w*.82,titleStartLines=wrapText(title,font(750,bt),maxW).length;
+    const bigTextH=titleStartLines*bt*1.15+(artist?ba*1.35:0)+(meta?bm*1.4:0)+(yearText?bm*1.4:0),bigTop=(h-(bigArt+bigGap+bigTextH))/2;
     const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,landscape?left+(comp-hArt)/2:left),ay=lerp(bigTop,hTop),r=art*.08;
-    const maxW=landscape?comp*.94:w*.82;
-    const fit=(text,f,mw)=>{ctx.font=f;let out=text;while(ctx.measureText(out).width>mw&&out.length>3)out=out.slice(0,-2)+'…';return out;};
     ctx.save();
     // Portrait-only optical alignment: shift the whole title card right by two glyph widths.
     // The Apple lyrics renderer already handles its own aspect-specific two-letter offset.
@@ -488,21 +488,20 @@
     ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=unit*.02;
     // One title card morphs continuously from the centred opening layout into the pinned lyrics header.
     const tx=ax+art+hGap,mw=landscape?comp*.94:Math.max(40,left+comp*(1-2*31/390)-tx);
-    const startY=ay+art+bigGap,blockH=ht*1.25+(artist?hartist*1.35:0)+(meta?hm*1.4:0),endY=landscape?startY:ay+(art-blockH)/2;
+    const titleEndLines=wrapText(title,font(750,ht),mw).length;
+    const startY=ay+art+bigGap,blockH=titleEndLines*ht*1.15+(artist?hartist*1.35:0)+(meta?hm*1.4:0)+(yearText?hm*1.4:0),endY=landscape?startY:ay+(art-blockH)/2;
     let y=lerp(startY,endY);
     const drawCardLine=(text,weight,startSize,endSize,startStep,endStep,color)=>{
       if(!text)return;
-      const size=lerp(startSize,endSize),limit=landscape?mw:lerp(maxW,mw),f=font(weight,size),value=fit(text,f,limit);
-      ctx.font=f;
-      const textWidth=ctx.measureText(value).width;
-      const x=landscape?lerp((w-textWidth)/2,left+(comp-textWidth)/2):lerp((w-textWidth)/2,tx);
-      ctx.fillStyle=color;ctx.fillText(value,x,y);
-      y+=lerp(startStep,endStep);
+      const size=lerp(startSize,endSize),limit=landscape?mw:lerp(maxW,mw),f=font(weight,size),lines=wrapText(text,f,limit);
+      ctx.font=f;ctx.fillStyle=color;
+      for(const value of lines){const textWidth=ctx.measureText(value).width;const x=landscape?lerp((w-textWidth)/2,left+(comp-textWidth)/2):lerp((w-textWidth)/2,tx);ctx.fillText(value,x,y);y+=lerp(startStep,endStep);}
     };
     ctx.save();
     drawCardLine(title,750,bt,ht,bt*1.25,ht*1.25,'#fff');
     drawCardLine(artist,600,ba,hartist,ba*1.35,hartist*1.35,'rgba(255,255,255,.85)');
     drawCardLine(meta,500,bm,hm,bm*1.4,hm*1.4,'rgba(255,255,255,.6)');
+    drawCardLine(yearText,500,bm,hm,bm*1.4,hm*1.4,'rgba(255,255,255,.6)');
     ctx.restore();
     ctx.restore();
   }
