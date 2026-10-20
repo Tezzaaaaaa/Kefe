@@ -11,8 +11,11 @@ const expected = ["media", "lyrics", "effects", "background-effects", "visualise
 const failures = [];
 
 for (const panel of expected) {
-  const panelPattern = new RegExp(`data-panel-view=\\\\?["']${panel}\\\\?["']`);
-  if (!panelPattern.test(structure)) failures.push(`Missing ${panel} editor section in structure.js`);
+  const escapedAttribute = `data-panel-view=\\"${panel}\\"`;
+  const plainAttribute = `data-panel-view="${panel}"`;
+  if (!structure.includes(escapedAttribute) && !structure.includes(plainAttribute)) {
+    failures.push(`Missing ${panel} editor section in structure.js`);
+  }
 }
 
 if (!editor.includes('src="./beui-src/legacy-panel-card-bridge.jsx"')) {
@@ -27,9 +30,12 @@ if (!cardBridge.includes('.kefe-panel[data-panel-view]')) {
 if (!cardBridge.includes('panel.replaceChildren(host)') || !cardBridge.includes('originalNodes')) {
   failures.push("The Card bridge does not preserve and reattach existing section content");
 }
+if (!cardBridge.includes('panel.classList.add("beui-panel-card-hosted")')) {
+  failures.push("The panel host marker needed for beUI card styling is missing");
+}
 
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("All six editor sections are covered by the actual beUI Card bridge; original section content is preserved.");
+console.log("PASS: all six editor sections are covered by the actual beUI Card bridge; original section content is preserved.");
