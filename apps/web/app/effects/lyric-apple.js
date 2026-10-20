@@ -321,13 +321,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         return;
     }
 
-    // Replace silent musical gaps with the same cue, inside this effect renderer—not a separate effect.
+    // Replace an explicit musical-note marker in the lyric line with the same in-effect ellipsis cue.
     const currentLine = displayLines[activeIndex];
-    const nextLine = displayLines[activeIndex + 1];
-    const vocalEnd = Number(currentLine?.vocalEndTime);
-    const nextStart = Number(nextLine?.time);
-    if (Number.isFinite(vocalEnd) && Number.isFinite(nextStart) &&
-        nextStart - vocalEnd >= 0.45 && time >= vocalEnd && time < nextStart) {
+    if (/[\\u2669-\\u266f]/u.test(String(currentLine?.text || ''))) {
         drawMusicBreakCue(cueY);
         return;
     }
