@@ -8,27 +8,22 @@ if (kefePercentLoader) {
   const value = kefePercentLoader.querySelector('.kefe-percent-value');
   const fill = kefePercentLoader.querySelector('.kefe-percent-fill');
   let progress = 0;
-  let direction = 1;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let timer = 0;
   const tick = () => {
-    if (!kefePercentLoader.isConnected) { stop(); return; }
-    if (kefePercentLoader.closest('[hidden]')) { stop(); return; }
-    progress += direction;
-    if (progress >= 100) { progress = 100; direction = -1; }
-    else if (progress <= 0) { progress = 0; direction = 1; }
+    if (!kefePercentLoader.isConnected || kefePercentLoader.closest('[hidden]')) { stop(); return; }
+    progress = progress >= 100 ? 0 : progress + 1;
     if (value) value.textContent = progress + '%';
     if (fill) fill.style.width = progress + '%';
   };
-  const start = () => { if (!timer && !reducedMotion) timer = window.setInterval(tick, 20); };
+  const start = () => { if (!timer) timer = window.setInterval(tick, reducedMotion ? 20 : 10); };
   function stop() { if (timer) { window.clearInterval(timer); timer = 0; } }
   const observer = new MutationObserver(() => {
     if (!kefePercentLoader.isConnected || kefePercentLoader.closest('[hidden]')) stop();
     else start();
   });
   observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
-  if (reducedMotion) { if (value) value.textContent = '…'; if (fill) fill.style.width = '100%'; }
-  else start();
+  start();
 }
 
 const kefeAudioElement = document.getElementById('kefeAudio');
