@@ -222,6 +222,29 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.match(sectionHeaderAudit.find((item) => item.section === "media").tooltip, /Import audio or video/,
       "the Media instructions should be available through the info tooltip");
 
+    const uniformHeaderGeometry = await page.evaluate(() => [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")].map(panel => {
+      const head = panel.querySelector(".kefe-panel-head");
+      const row = head?.querySelector(".kefe-section-heading-row");
+      const title = row?.querySelector("h2");
+      const info = row?.querySelector(".kefe-section-info");
+      const accordion = row?.querySelector(".beui-accordion-trigger:not(.beui-native-panel-button)");
+      const titleStyle = title && getComputedStyle(title);
+      const rowRect = row?.getBoundingClientRect();
+      const infoRect = info?.getBoundingClientRect();
+      const accordionRect = accordion?.getBoundingClientRect();
+      return {
+        section: panel.dataset.panelView,
+        titleSize: titleStyle?.fontSize,
+        titleWeight: titleStyle?.fontWeight,
+        titleLineHeight: titleStyle?.lineHeight,
+        rowHeight: Math.round(rowRect?.height || 0),
+        infoSize: infoRect ? [Math.round(infoRect.width), Math.round(infoRect.height)] : null,
+        accordionSize: accordionRect ? [Math.round(accordionRect.width), Math.round(accordionRect.height)] : null,
+      };
+    }));
+    assert.equal(new Set(uniformHeaderGeometry.map(x => [x.titleSize,x.titleWeight,x.titleLineHeight,x.rowHeight,JSON.stringify(x.infoSize),JSON.stringify(x.accordionSize)].join("|"))).size, 1,
+      `all six section headers must have identical typography and control geometry: ${JSON.stringify(uniformHeaderGeometry)}`);
+
     const sectionAccordions = page.locator(".kefe-panel[data-panel-view] .kefe-section-heading-row .beui-accordion-trigger:not(.beui-native-panel-button)");
     assert.equal(await sectionAccordions.count(), 6, "each section should have one visible accordion control");
     for (const accordion of await sectionAccordions.all()) {
