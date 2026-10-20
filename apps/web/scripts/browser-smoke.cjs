@@ -104,11 +104,15 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await settingAccordions.filter({ hasText: "Engine" }).click();
     assert.equal(await settingAccordions.filter({ hasText: "Engine" }).getAttribute("aria-expanded"), "true", "settings accordion should open the selected group");
     assert.ok(await dialog.locator('[role="slider"]').count() > 0, "settings should use beUI sliders");
+    await settingAccordions.filter({ hasText: "Title card" }).click();
+    assert.equal(await settingAccordions.filter({ hasText: "Title card" }).getAttribute("aria-expanded"), "true", "the toggle-bearing settings group should open");
     assert.ok(await dialog.getByRole("switch").count() > 0, "settings should use the beUI switch");
     const switchControl = dialog.getByRole("switch").first();
     const beforeSwitch = await switchControl.getAttribute("aria-checked");
     await switchControl.click();
     assert.notEqual(await switchControl.getAttribute("aria-checked"), beforeSwitch, "beUI Switch should toggle");
+    await settingAccordions.filter({ hasText: "Defaults" }).click();
+    assert.equal(await settingAccordions.filter({ hasText: "Defaults" }).getAttribute("aria-expanded"), "true", "the select-bearing settings group should open");
     const selectTrigger = dialog.locator('button[aria-haspopup="listbox"]').first();
     await selectTrigger.click();
     const options = page.getByRole("option");
