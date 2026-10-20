@@ -39,7 +39,7 @@
     tab.setAttribute('aria-controls', view.id);
     tab.setAttribute('aria-label', 'Fluid Ink visualiser');
     tab.title = 'Fluid Ink visualiser';
-    tab.setAttribute('aria-selected', 'true');
+    tab.setAttribute('aria-selected', 'false');
     const option = element('div', 'kefe-vis-option');
     option.appendChild(tab);
     tabs.appendChild(option);
@@ -113,7 +113,10 @@
     }
 
     tab.addEventListener('click', showFluidInk);
-    showFluidInk();
+    // Do not select a visualiser during startup. The user must choose one explicitly.
+    view.hidden = true;
+    tabs.hidden = true;
+    presetRow.hidden = true;
   }
 
   if (document.readyState === 'loading') {

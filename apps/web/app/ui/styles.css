@@ -9380,3 +9380,38 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     margin-top: -16px;
   }
 }
+
+
+/* Stable header navigation layout: the React Button utility classes must not
+   stretch each item to the width of its group or reintroduce a vertical grid. */
+.kefe-editor .kefe-sidebar .kefe-sidebar-group .beui-sidebar-nav-host {
+  display: flex;
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 0;
+}
+.kefe-editor .kefe-sidebar .kefe-sidebar-group .beui-sidebar-nav-host > div {
+  display: flex;
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 0;
+}
+.kefe-editor .kefe-sidebar .beui-sidebar-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  width: auto;
+  min-width: 0;
+}
+.kefe-editor .kefe-sidebar .beui-sidebar-nav .kefe-sidebar-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: max-content;
+  max-width: none;
+  white-space: nowrap;
+}
+.kefe-editor .kefe-sidebar .kefe-sidebar-group {
+  min-width: 0;
+}

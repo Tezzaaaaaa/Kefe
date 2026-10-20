@@ -31,7 +31,7 @@ function SidebarItems({ items, trackActive = true }) {
             title={item.label}
             aria-label={item.label}
             aria-current={active ? "page" : undefined}
-            className={`kefe-sidebar-link w-full justify-start gap-3 rounded-xl px-3 text-left text-sm ${active ? "is-current" : ""}`}
+            className={`kefe-sidebar-link justify-start gap-2 rounded-xl px-2 text-left text-xs ${active ? "is-current" : ""}`}
             onClick={() => item.backing.click()}
           >
             <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon }} />
