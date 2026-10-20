@@ -76,6 +76,7 @@ function initDesktopPanels() {
     toggle.innerHTML = '<span class="beui-accordion-chevron" aria-hidden="true"></span>';
     toggle.addEventListener('click', () => {
       const open = toggle.getAttribute('aria-expanded') !== 'true';
+      const currentHeight = panel.getBoundingClientRect().height;
       const previousAnimation = accordionAnimations.get(panel);
       if (previousAnimation) {
         previousAnimation.cancel();
@@ -83,7 +84,6 @@ function initDesktopPanels() {
       }
       panel.style.removeProperty('height');
       panel.style.removeProperty('overflow');
-      const currentHeight = panel.getBoundingClientRect().height;
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       panel.style.height = currentHeight + 'px';
       panel.style.overflow = 'hidden';
