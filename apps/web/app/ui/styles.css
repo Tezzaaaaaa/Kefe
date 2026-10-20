@@ -1081,8 +1081,10 @@ button{border:0;cursor:pointer;
 .kefe-step-head p{margin:2px 0 0;font-size: var(--font-xs);color: var(--muted);}
 
 .kefe-step-body{display:grid;gap:10px;min-width:0}
+.kefe-find-step .kefe-step-body{container-type:inline-size;container-name:kefe-media-step}
 .kefe-media-upload-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}
 .kefe-media-upload-row>.kefe-upload-zone,.kefe-media-upload-row>div{align-self:stretch;min-width:0;width:100%;grid-column:auto!important;grid-row:auto!important;margin:0}
+@container kefe-media-step (max-width: 500px){.kefe-media-upload-row{grid-template-columns:minmax(0,1fr)}}
 .kefe-media-upload-row>.kefe-upload-zone{min-height:92px}
 .kefe-media-upload-row>div>.kefe-upload-zone{min-height:92px}
 .kefe-media-upload-row>.beui-upload-wrap{display:grid;grid-template-columns:minmax(0,1fr);align-self:stretch;min-width:0;width:100%;height:auto;grid-row:auto!important;gap:8px}
