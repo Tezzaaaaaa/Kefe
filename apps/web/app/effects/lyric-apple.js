@@ -252,7 +252,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     for (let li = 0; li < lines.length; li++) {
         const original = linaNormaliseLine(lines, li);
         if (!original) continue;
-        const text = String(original.text || '').replace(/[\u2669-\u266f]/gu, '…').replace(/\s+/g, ' ').trim();
+        const sourceText = String(original.text || '').replace(/\s+/g, ' ').trim();
+        // A musical-note marker denotes a cue line, not lyric text: route it to the existing animated three-dot renderer.
+        const text = /[\u2669-\u266f]/u.test(sourceText) ? '…' : sourceText;
         if (!text) continue;
         displayLines.push({ ...original, text });
     }
