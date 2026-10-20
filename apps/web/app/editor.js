@@ -1173,7 +1173,7 @@
     if(!n){
       n=document.createElement('div');
       n.id='kefeManualNotice';n.setAttribute('role','status');
-      n.style.cssText='margin:0 0 12px;padding:10px 12px;border-radius:10px;background:rgba(239,63,56,.14);border:1px solid rgba(239,63,56,.45);font-size:13px;line-height:1.4';
+      n.className='kefe-notice';
       const anchor=songTitle.closest('label,.kefe-field,.kefe-row,div')||songTitle;
       anchor.parentNode.insertBefore(n,anchor);
     }
@@ -1371,18 +1371,17 @@
     if(document.getElementById('kefeLyricsTools')||!lyricsInput.parentNode)return;
     const bar=document.createElement('div');
     bar.id='kefeLyricsTools';
-    bar.style.cssText='display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px';
-    const btnStyle='padding:8px 12px;border-radius:999px;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer;font:inherit;font-size:13px';
+    bar.className='kefe-lyrics-tools';
     const find=document.createElement('button');
-    find.type='button';find.id='kefeFindLyrics';find.textContent='Find lyrics';find.style.cssText=btnStyle;
+    find.type='button';find.id='kefeFindLyrics';find.textContent='Find lyrics';find.className='kefe-btn';
     const upload=document.createElement('button');
-    upload.type='button';upload.id='kefeUploadLrc';upload.textContent='Upload .lrc';upload.style.cssText=btnStyle;
+    upload.type='button';upload.id='kefeUploadLrc';upload.textContent='Upload .lrc';upload.className='kefe-btn';
     const input=document.createElement('input');
     input.type='file';input.id='kefeLrcInput';input.accept='.lrc,.ttml,.xml,.txt,text/plain';input.hidden=true;
     bar.append(find,upload,input);
     if(!document.getElementById('kefeLyricsStatus')){
       const st=document.createElement('span');
-      st.id='kefeLyricsStatus';st.style.cssText='font-size:13px;opacity:.8';
+      st.id='kefeLyricsStatus';st.className='kefe-meta';
       bar.appendChild(st);
     }
     lyricsInput.parentNode.insertBefore(bar,lyricsInput);

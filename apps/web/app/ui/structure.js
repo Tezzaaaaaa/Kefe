@@ -71,7 +71,9 @@ function setAccentColor(color) {
   try { localStorage.setItem(accentKey, color); } catch (_) {}
 }
 document.querySelectorAll('[data-accent]').forEach(button => button.addEventListener('click', () => setAccentColor(button.dataset.accent)));
-try { const savedAccent = localStorage.getItem(accentKey); if (savedAccent) setAccentColor(savedAccent); else setAccentColor('#ef4444'); } catch (_) { setAccentColor('#ef4444'); }
+// Default brand red (white-on-accent text passes WCAG AA). The old default, #ef4444, was auto-saved for everyone, so it counts as "unset".
+const defaultAccent = '#d92f33';
+try { const savedAccent = localStorage.getItem(accentKey); setAccentColor(savedAccent && savedAccent.toLowerCase() !== '#ef4444' ? savedAccent : defaultAccent); } catch (_) { setAccentColor(defaultAccent); }
 
 const commandOverlay = document.getElementById('kefeCommandPalette');
 const commandInput = document.getElementById('kefeCommandInput');
