@@ -8986,3 +8986,45 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline{background:rgba(5
 html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time{color:rgba(27,32,43,.82);text-shadow:0 1px 2px rgba(255,255,255,.7)}
 html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{background:rgba(255,255,255,.32)}
 @media(prefers-reduced-motion:reduce){.kefe-liquid-swirl{will-change:auto}}
+
+
+/* beUI file-upload component, adapted for local-only KEFE media imports. */
+.kefe-upload-zone.beui-upload-dropzone{
+  position:relative;display:flex;grid-column:1/-1;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  min-height:168px;padding:22px 18px;border:1px dashed var(--line);border-radius:18px;
+  background:linear-gradient(145deg,var(--surface-hi),var(--surface));box-shadow:var(--inner);
+  text-align:center;cursor:pointer;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.kefe-upload-zone.beui-upload-dropzone:hover,.kefe-upload-zone.beui-upload-dropzone.is-dragging{
+  border-color:var(--accent);background:var(--surface-hi);box-shadow:var(--lift);transform:translateY(-1px);
+}
+.kefe-upload-zone.beui-upload-dropzone.has-selected-file{border-style:solid}
+.beui-upload-symbol{display:grid;place-items:center;width:48px;height:48px;margin-bottom:2px;border:1px solid var(--line);border-radius:15px;background:var(--surface);box-shadow:var(--lift);color:var(--muted)}
+.beui-upload-symbol svg{display:block;width:23px;height:23px}
+.kefe-upload-zone.beui-upload-dropzone .kefe-upload-title{font-size:var(--font-base);font-weight:750;line-height:1.35}
+.kefe-upload-zone.beui-upload-dropzone .kefe-upload-name{max-width:100%;overflow-wrap:anywhere;font-size:var(--font-sm);color:var(--muted)}
+.kefe-upload-zone.beui-upload-dropzone .kefe-upload-help{font-size:var(--font-xs);color:var(--muted)}
+.beui-upload-browse{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin-top:3px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:var(--lift);font-size:var(--font-sm);font-weight:700;color:var(--text);transition:box-shadow .16s ease,transform .16s ease}
+.kefe-upload-zone.beui-upload-dropzone:hover .beui-upload-browse{box-shadow:var(--float)}
+.beui-upload-wrap{display:grid;grid-column:1/-1;gap:9px;min-width:0}
+.beui-upload-file{display:flex;align-items:center;gap:11px;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--inner)}
+.beui-upload-file[hidden]{display:none}
+.beui-upload-file-icon{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border:1px solid var(--line-soft);border-radius:11px;background:var(--surface-hi);color:var(--muted)}
+.beui-upload-file-icon svg{width:20px;height:20px;display:block}
+.beui-upload-file-copy{display:grid;gap:3px;flex:1;min-width:0}
+.beui-upload-file-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--font-sm);font-weight:700;color:var(--text)}
+.beui-upload-file-meta{font-size:var(--font-xs);color:var(--muted)}
+.beui-upload-file-status{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;font-size:var(--font-xs);font-weight:650;color:var(--muted)}
+.beui-upload-status-dot{width:7px;height:7px;border-radius:50%;background:#38a873;box-shadow:0 0 0 3px rgba(56,168,115,.12)}
+.beui-upload-file .kefe-btn{min-height:32px;padding:0 10px;font-size:var(--font-xs)}
+.kefe-upload-zone.beui-upload-dropzone:focus-within{outline:2px solid var(--focus);outline-offset:3px}
+@media(max-width:600px){
+  .kefe-upload-zone.beui-upload-dropzone{min-height:152px;padding:18px 12px;border-radius:15px}
+  .beui-upload-file{gap:8px;padding:9px}
+  .beui-upload-file-icon{flex-basis:34px;width:34px;height:34px}
+  .beui-upload-file-status{display:none}
+  .beui-upload-file .kefe-btn{padding:0 8px}
+}
+@media(prefers-reduced-motion:reduce){
+  .kefe-upload-zone.beui-upload-dropzone,.beui-upload-browse{transition:none}
+}
