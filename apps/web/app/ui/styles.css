@@ -9046,3 +9046,12 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   .kefe-upload-zone.beui-upload-dropzone{height:146px;min-height:146px;max-height:146px;padding:10px 12px;border-radius:14px}
   .kefe-upload-zone.beui-upload-dropzone .beui-upload-symbol{flex-basis:34px;width:34px;height:34px}
 }
+
+/* Compact Find your song card while preserving comfortable spacing. */
+.kefe-panel[data-panel-view="media"] .kefe-find-step{padding:12px}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-step-head{margin-bottom:8px}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-step-body{gap:8px}
+.kefe-panel[data-panel-view="media"] .kefe-find{gap:8px}
+.kefe-panel[data-panel-view="media"] .kefe-carousel{height:232px}
+.kefe-panel[data-panel-view="media"] .kefe-car-stack{width:150px;height:184px}
+.kefe-panel[data-panel-view="media"] .kefe-car-art{width:150px;height:150px}
