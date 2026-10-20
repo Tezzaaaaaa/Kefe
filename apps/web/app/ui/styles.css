@@ -1085,7 +1085,8 @@ button{border:0;cursor:pointer;
 .kefe-media-upload-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}
 .kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.kefe-upload-zone,
 .kefe-panel[data-panel-view="media"] .kefe-media-upload-row>div{align-self:stretch;min-width:0;width:100%;grid-column:auto;grid-row:auto;margin:0}
-@container kefe-media-step (max-width: 500px){.kefe-media-upload-row{grid-template-columns:minmax(0,1fr)}}
+@container kefe-media-step (max-width: 500px){.kefe-media-upload-row{grid-template-columns:minmax(0,1fr)}.kefe-panel[data-panel-view="media"] .kefe-details-grid{grid-template-columns:minmax(0,1fr)}}
+@container kefe-media-step (min-width: 501px){.kefe-panel[data-panel-view="media"] .kefe-details-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .kefe-media-upload-row>.kefe-upload-zone{min-height:92px}
 .kefe-media-upload-row>div>.kefe-upload-zone{min-height:92px}
 .kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.beui-upload-wrap{display:grid;grid-template-columns:minmax(0,1fr);align-self:stretch;min-width:0;width:100%;height:auto;grid-column:auto;grid-row:auto;gap:8px}
@@ -9604,20 +9605,20 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   min-width: 0;
   max-width: 100%;
 }
-.kefe-panel[data-panel-view="media"] .kefe-media-metadata-grid {
+.kefe-panel[data-panel-view="media"] .kefe-details-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   min-width: 0;
 }
-.kefe-panel[data-panel-view="media"] .kefe-media-metadata-grid > div {
+.kefe-panel[data-panel-view="media"] .kefe-details-grid > div {
   min-width: 0;
 }
-.kefe-panel[data-panel-view="media"] .kefe-media-metadata-grid .kefe-label {
+.kefe-panel[data-panel-view="media"] .kefe-details-grid .kefe-label {
   display: block;
   margin: 0 0 6px;
 }
-.kefe-panel[data-panel-view="media"] .kefe-media-metadata-grid .kefe-input {
+.kefe-panel[data-panel-view="media"] .kefe-details-grid .kefe-input {
   display: block;
   width: 100%;
   min-width: 0;
@@ -9829,7 +9830,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   container-name: kefe-editor-column;
 }
 @container kefe-editor-column (max-width: 500px) {
-  .kefe-panel[data-panel-view="media"] .kefe-media-metadata-grid {
+  .kefe-panel[data-panel-view="media"] .kefe-details-grid {
     grid-template-columns: minmax(0, 1fr);
   }
   .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-controls {
