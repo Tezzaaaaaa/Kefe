@@ -8097,7 +8097,8 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   .kefe-sidebar .kefe-sidebar-bottom { display: flex; flex: 0 1 auto; flex-direction: row; align-items: center; gap: 5px; min-width: 0; margin: 0; padding: 0; border: 0; }
   .kefe-sidebar .kefe-sidebar-bottom { margin-left: auto; }
   .kefe-sidebar .kefe-sidebar-link { width: auto; min-width: 0; min-height: 34px; height: 34px; flex: 0 0 auto; justify-content: flex-start; gap: 7px; padding: 0 9px; font-size: 12px; white-space: nowrap; }
-  .kefe-sidebar .kefe-sidebar-link > span { width: 16px; flex: 0 0 16px; }
+  .kefe-sidebar .kefe-sidebar-link > span[aria-hidden="true"] { width: 16px; flex: 0 0 16px; }
+  .kefe-sidebar .kefe-sidebar-link > .kefe-sidebar-link-label { width: auto; min-width: 0; flex: 0 1 auto; }
   .kefe-sidebar .kefe-sidebar-theme { display: flex; flex: 0 0 auto; align-items: center; gap: 6px; padding: 0; border: 0; }
   .kefe-sidebar .kefe-theme-swatches { flex-wrap: nowrap; }
 
@@ -9408,49 +9409,39 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   display: inline-flex;
   flex: 0 0 auto;
   width: auto;
-  min-width: max-content;
-  max-width: none;
-  white-space: nowrap;
-}
-.kefe-editor .kefe-sidebar .kefe-sidebar-group {
-  min-width: 0;
-}
-
-
-/* Consistent beUI section headers, compact inline switches, and accessible hover help. */
-@media (min-width: 1280px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] > .kefe-panel-head,
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head {
-    min-height: 42px;
-    padding-bottom: 10px;
-    margin-bottom: 14px;
-  }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed {
-    overflow: visible;
-  }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head,
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head {
-    min-height: 40px;
-    padding-bottom: 0;
-    margin-bottom: 0;
-  }
-}
+  min-widt/* Section headers: clear title hierarchy, controls aligned to the same baseline. */
 .kefe-panel[data-panel-view] .kefe-panel-head {
-  min-width: 0;
-}
-.kefe-section-heading-row {
-  position: relative;
   display: flex;
-  flex: 1 1 auto;
   align-items: center;
   min-width: 0;
-  gap: 9px;
+  gap: 0;
 }
-.kefe-section-heading-row > h2 {
-  flex: 0 0 auto;
+.kefe-section-heading-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  gap: 10px;
+}
+.kefe-section-title-group {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+}
+.kefe-section-title-group > h2 {
+  flex: 0 1 auto;
   min-width: 0;
   margin: 0;
-  white-space: nowrap;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .kefe-section-description {
   position: absolute !important;
@@ -9467,19 +9458,15 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   position: relative;
   display: inline-grid;
   place-items: center;
-  flex: 0 0 17px;
-  width: 17px;
-  height: 17px;
-  margin: 0;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
   padding: 0;
-  border: 1px solid var(--muted);
+  border: 1px solid color-mix(in srgb, var(--muted) 62%, transparent);
   border-radius: 50%;
   background: transparent;
   color: var(--muted);
-  font: inherit;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
+  font: 600 10px/1 var(--font-ui);
   cursor: help;
 }
 .kefe-section-info:hover,
@@ -9489,12 +9476,12 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 }
 .kefe-section-info:focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 .kefe-section-info::after {
   position: absolute;
   z-index: 1000;
-  top: calc(100% + 9px);
+  top: calc(100% + 8px);
   left: 0;
   width: max-content;
   max-width: min(280px, calc(100vw - 36px));
@@ -9512,9 +9499,9 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   white-space: normal;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(4px);
+  transform: translateY(3px);
   pointer-events: none;
-  transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
+  transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
 }
 .kefe-section-info:hover::after,
 .kefe-section-info:focus-visible::after {
@@ -9522,58 +9509,94 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   visibility: visible;
   transform: translateY(0);
 }
-.kefe-section-heading-row .kefe-lyrics-power {
+.kefe-section-heading-row .kefe-lyrics-power,
+.kefe-section-heading-row .kefe-visualiser-power-slot,
+.kefe-section-heading-row .kefe-background-effect-heading .kefe-background-effect-toggle {
   flex: 0 0 auto;
-  margin-left: 0;
-  white-space: nowrap;
-}
-html:root .kefe-panel .kefe-section-heading-row .kefe-switch {
-  height: 32px;
-  min-height: 32px;
-  min-width: 76px;
-  padding: 4px 8px;
-  font-size: 12px;
-}
-.kefe-section-heading-row .kefe-visualiser-power-slot {
-  flex: 0 0 auto;
-  margin-left: 0;
-}
-.kefe-section-heading-row .kefe-background-effect-heading {
-  display: contents;
-}
-.kefe-editor .kefe-panel[data-panel-view="background-effects"] .kefe-section-heading-row .kefe-background-effect-heading .kefe-background-effect-toggle {
-  flex: 0 0 auto;
-  margin-left: 0;
-}
-.kefe-section-heading-row > .beui-panel-button-host {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
   margin-left: auto;
 }
-.kefe-section-heading-row .beui-accordion-trigger,
-.kefe-section-heading-row .beui-panel-button-host > .beui-accordion-trigger {
+.kefe-section-heading-row .kefe-lyrics-power {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.kefe-section-heading-row .kefe-lyrics-power > span {
+  color: var(--muted);
+  font-size: var(--font-xs);
+  font-weight: 600;
+}
+.kefe-editor .kefe-panel .kefe-section-heading-row .kefe-switch {
+  min-width: 68px;
+  min-height: 30px;
+  height: 30px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+}
+.kefe-section-heading-row .beui-panel-button-host {
+  display: flex;
+  flex: 0 0 30px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0;
+}
+.kefe-section-heading-row .beui-panel-button-host > button,
+.kefe-section-heading-row > .beui-accordion-trigger {
   position: static !important;
-  top: auto !important;
-  right: auto !important;
-  margin: 0;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+}
+.kefe-section-heading-row .beui-panel-button-host > button:hover,
+.kefe-section-heading-row > .beui-accordion-trigger:hover {
+  background: var(--surface-lo);
+  color: var(--text);
+  transform: none;
 }
 .kefe-section-heading-row .beui-accordion-chevron {
-  transition: transform 220ms cubic-bezier(.22, .61, .36, 1);
+  width: 7px;
+  height: 7px;
+  transition: transform 180ms ease;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head {
+  min-height: 40px;
+  margin: 0 0 14px;
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed .kefe-panel-head {
+  min-height: 40px;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom-color: transparent;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed {
+  overflow: visible;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > :not(.kefe-panel-head) {
+  display: none;
 }
 .beui-accordion-enter > :not(.kefe-panel-head) {
-  animation: beui-accordion-content-in 220ms cubic-bezier(.22, .61, .36, 1) both;
+  animation: beui-accordion-content-in 200ms cubic-bezier(.22, .61, .36, 1) both;
 }
 @keyframes beui-accordion-content-in {
-  from { opacity: .65; transform: translateY(4px); }
+  from { opacity: .7; transform: translateY(3px); }
   to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 1279px) {
+  .kefe-section-heading-row { min-height: 36px; }
+  .kefe-section-title-group > h2 { font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .kefe-section-info::after,
-  .kefe-section-heading-row .beui-accordion-chevron {
-    transition: none;
-  }
-  .beui-accordion-enter > :not(.kefe-panel-head) {
-    animation: none;
-  }
+  .kefe-section-heading-row .beui-accordion-chevron { transition: none; }
+  .beui-accordion-enter > :not(.kefe-panel-head) { animation: none; }
 }
