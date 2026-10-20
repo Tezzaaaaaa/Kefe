@@ -136,6 +136,9 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(await page.locator("#kefeBgVideoZone").count(), 1, "there must be exactly one separate optional background-video uploader");
     assert.equal(await page.locator("#kefeUploadZone .beui-upload-card").count(), 1, "the primary uploader must not render duplicate Card shells");
     assert.equal(await page.locator("#kefeUploadZone .kefe-upload-title").textContent(), "Audio or video", "the primary uploader label must remain distinct");
+    assert.equal(await page.locator("#kefeUploadZone .beui-upload-symbol").count(), 1, "the primary uploader must have one upload icon");
+    assert.equal(await page.locator("#kefeUploadZone .kefe-upload-help").count(), 1, "the primary uploader must explain what the source media is used for");
+    assert.equal(await page.locator("#kefeUploadZone .beui-upload-browse").count(), 1, "the primary uploader must have a visible Browse files affordance");
     assert.match(await page.locator("#kefeBgVideoZone .kefe-upload-title").textContent(), /Optional background video/, "the second uploader must be clearly identified as optional background footage");
     const mediaUploadGeometry = await page.evaluate(() => {
       const primaryHost = document.querySelector("#kefeUploadZone");
