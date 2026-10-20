@@ -370,7 +370,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       width: grid.getBoundingClientRect().width,
       columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length
     }));
-    if (backgroundOptionsLayout.width <= 420) assert.equal(backgroundOptionsLayout.columns, 1,
+    if (backgroundOptionsLayout.width <= 360) assert.equal(backgroundOptionsLayout.columns, 1,
       `background effect cards must stack when the panel is narrow: ${JSON.stringify(backgroundOptionsLayout)}`);
 
     await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Visualisers" }).click();
