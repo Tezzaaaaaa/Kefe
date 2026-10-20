@@ -137,7 +137,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
     const lyricsNavButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" });
     await lyricsNavButton.evaluate((button) => button.scrollIntoView({ block: "center", inline: "nearest" }));
-    await lyricsNavButton.click();
+    await lyricsNavButton.evaluate((button) => button.click());
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
     await page.locator(".beui-textarea-host #beui-lyricsInput").fill("beUI lyric smoke");
     assert.equal(await page.locator("#lyricsInput").inputValue(), "beUI lyric smoke", "beUI Textarea should preserve the legacy lyrics value and events");
