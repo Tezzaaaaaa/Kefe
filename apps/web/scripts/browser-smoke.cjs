@@ -104,6 +104,9 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
         && expected.every((name) => panels.some((panel) => panel.dataset.panelView === name && panel.querySelector(".beui-editor-panel-card")));
     }, null, { timeout: 20000 });
     await page.waitForSelector("#kefeUploadZone .beui-upload-card", { state: "attached", timeout: 20000 });
+    await page.waitForSelector(".beui-vis-tabs-host", { state: "attached", timeout: 10000 });
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
+      "visualiser tabs must not appear on the initial Media section");
     assert.equal(await page.locator("#mediaInput").getAttribute("type"), "file", "upload Card must preserve the native file input");
     await page.waitForFunction(() => {
       const ranges = [...document.querySelectorAll('input[type="range"]')].filter((input) => input.id !== "kefeTime");
@@ -183,6 +186,8 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await commandButton.click();
     await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "effects", null, { timeout: 5000 });
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
+      "visualiser tabs must not appear on the Effects section");
 
     await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Export" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "export", null, { timeout: 5000 });
