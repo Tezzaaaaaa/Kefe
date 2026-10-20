@@ -29,15 +29,14 @@ function initDesktopPanels() {
 
   const accordionAnimations = new WeakMap();
 
-  function installAccordion(panel) {
-    if (panel.dataset.beuiAccordionReady === 'true') return;
+  function installSectionHeader(panel) {
+    if (panel.dataset.beuiSectionHeaderReady === 'true') return;
     const head = panel.querySelector(':scope > .kefe-panel-head, :scope > .kefe-form > .kefe-panel-head');
     if (!head) return;
     const key = panel.dataset.panelView;
     const heading = head.querySelector('h2');
     if (!heading) return;
     head.hidden = false;
-    if (!Array.from(panel.children).some(node => node !== head && !node.matches('.kefe-panel[data-panel-view]'))) return;
 
     const row = document.createElement('div');
     row.className = 'kefe-section-heading-row';
@@ -65,6 +64,18 @@ function initDesktopPanels() {
 
     const lyricsPower = head.querySelector('.kefe-lyrics-power');
     if (lyricsPower) row.appendChild(lyricsPower);
+    panel.dataset.beuiSectionHeaderReady = 'true';
+  }
+
+  function installAccordion(panel) {
+    installSectionHeader(panel);
+    if (panel.dataset.beuiAccordionReady === 'true') return;
+    const head = panel.querySelector(':scope > .kefe-panel-head, :scope > .kefe-form > .kefe-panel-head');
+    const row = head && head.querySelector(':scope > .kefe-section-heading-row');
+    if (!head || !row) return;
+    const heading = row.querySelector('h2');
+    if (!heading) return;
+    if (!Array.from(panel.children).some(node => node !== head && !node.matches('.kefe-panel[data-panel-view]'))) return;
 
     const toggle = document.createElement('button');
     toggle.type = 'button';
@@ -123,8 +134,11 @@ function initDesktopPanels() {
       panels().forEach(p => {
         p.classList.remove('kefe-pane-shown', 'beui-accordion-collapsed', 'beui-accordion-enter');
         const head = p.querySelector(':scope > .kefe-panel-head, :scope > .kefe-form > .kefe-panel-head');
-        if (head) head.hidden = false;
-        head?.querySelector(':scope > .beui-accordion-trigger')?.remove();
+        if (head) {
+          head.hidden = false;
+          installSectionHeader(p);
+          head.querySelector('.kefe-section-heading-row > .beui-accordion-trigger')?.remove();
+        }
         delete p.dataset.beuiAccordionReady;
       });
       return;
