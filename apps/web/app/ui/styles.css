@@ -8748,7 +8748,7 @@ html:root .kefe-notice {
   font-size: var(--font-sm); line-height: 1.4; color: var(--text);
 }
 
-/* Visualiser navigation: size controls to their real DOM, without reserving space for switches that live in the panel heading. */
+/* Visualiser tabs: responsive sizing follows the real tab markup; the existing preset rail keeps its horizontal-scroll layout. */
 html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 148px), 1fr));
@@ -8780,26 +8780,6 @@ html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs .kefe-vis-o
   overflow-wrap: normal;
   word-break: normal;
   line-height: 1.25;
-}
-html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row:not([hidden]) {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  margin: 0;
-  padding: 0 0 var(--s2);
-}
-html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set {
-  width: 100%;
-  min-width: 0;
-}
-html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row .kefe-btn {
-  box-sizing: border-box;
-  max-width: 100%;
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: normal;
-  word-break: normal;
 }
 @media (max-width: 700px) {
   html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
