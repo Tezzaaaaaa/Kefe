@@ -158,7 +158,9 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
         primaryHeight: primary.height,
         backgroundHeight: background.height,
         overlapArea: overlapX * overlapY,
-        rowColumns: getComputedStyle(primaryHost.parentElement).gridTemplateColumns
+        rowWidth: primaryHost.parentElement.getBoundingClientRect().width,
+        rowColumns: getComputedStyle(primaryHost.parentElement).gridTemplateColumns,
+        rowColumnCount: getComputedStyle(primaryHost.parentElement).gridTemplateColumns.split(" ").length
       };
     });
     assert.ok(mediaUploadGeometry, "both Media upload cards must be mounted");
@@ -167,6 +169,9 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(mediaUploadGeometry.primaryGridRow, "auto", "the primary uploader must not span rows from the legacy Media grid");
     assert.equal(mediaUploadGeometry.backgroundGridRow, "auto", "the optional uploader wrapper must not span rows from the legacy Media grid");
     assert.equal(mediaUploadGeometry.overlapArea, 0, "the primary and background upload cards must never overlap");
+    if (mediaUploadGeometry.rowWidth <= 500) {
+      assert.equal(mediaUploadGeometry.rowColumnCount, 1, `narrow Media panels must stack upload cards instead of compressing them: ${JSON.stringify(mediaUploadGeometry)}`);
+    }
     assert.ok(Math.abs(mediaUploadGeometry.primaryHeight - mediaUploadGeometry.backgroundHeight) <= 2,
       `the two Media upload cards must have matching heights: ${JSON.stringify(mediaUploadGeometry)}`);
     const initialVisualiserTabs = page.locator(".beui-vis-tabs-host");
