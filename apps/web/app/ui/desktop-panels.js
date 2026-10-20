@@ -7,7 +7,7 @@ function initDesktopPanels() {
   const editing = document.querySelector('.kefe-editing');
   const rightWrap = editing && editing.querySelector('.kefe-panels');
   if (!editing || !rightWrap) return;
-  const mq = window.matchMedia('(min-width: 900px)');
+  const mq = window.matchMedia('(min-width: 1280px)');
   const leftWrap = document.createElement('div');
   leftWrap.className = 'kefe-panels kefe-panels-left';
   leftWrap.setAttribute('aria-label', 'Content editor');
@@ -110,7 +110,7 @@ function initPanelResizers() {
   if (!editor || editor.querySelector('.kefe-resizer')) return;
   const KEY = 'kefe.panelWidths';
   const MIN = 300, MAX = 640, MIN_CENTRE = 420, STEP = 16;
-  const mq = window.matchMedia('(min-width: 900px)');
+  const mq = window.matchMedia('(min-width: 1280px)');
   const widths = { left: null, right: null };
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
