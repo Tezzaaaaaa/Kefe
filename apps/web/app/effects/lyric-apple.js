@@ -246,7 +246,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     }
     const boundaryLeft = landscapeSplit ? w * (180 / 384) : w * (aspectRatio < 0.9 ? 0.07 : aspectRatio < 1.25 ? 0.08 : 0.082);
     const margin = boundaryLeft + horizontalPadding;
-    const maxWidth = contentWidth;
+    let maxWidth = contentWidth;
     const displayLines = [];
 
     for (let li = 0; li < lines.length; li++) {
@@ -262,6 +262,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     // Offset by the width of two glyphs, not a fixed pixel value, so the adjustment scales with the lyric typography.
     const twoLetterOffset = ctx.measureText('MM').width;
     const horizontalLyricShift = landscapeSplit ? -twoLetterOffset : (aspectRatio < 0.75 ? twoLetterOffset : 0);
+    // Measure wrapping against the actual right safe boundary after the aspect-specific x offset.
+    maxWidth = Math.max(1, w * 0.95 - (margin + horizontalLyricShift));
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     const rowCacheFont = ctx.font;
@@ -278,9 +280,21 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                 const candidate = row ? `${row} ${token}` : token;
                 if (row && ctx.measureText(candidate).width > maxWidth) {
                     rows.push(row);
-                    row = token;
-                } else {
-                    row = candidate;
+                    row = '';
+                }
+                if (ctx.measureText(token).width <= maxWidth) {
+                    row = row ? row + ' ' + token : token;
+                    continue;
+                }
+                // A single overlong word must also wrap at glyph boundaries, never past the safe zone.
+                for (const glyph of Array.from(token)) {
+                    const next = row + glyph;
+                    if (row && ctx.measureText(next).width > maxWidth) {
+                        rows.push(row);
+                        row = glyph;
+                    } else {
+                        row = next;
+                    }
                 }
             }
             if (row) rows.push(row);
@@ -314,7 +328,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ctx.restore();
     };
     const activeIndex = linaFindActiveLine(displayLines, time);
-    const cueY = aspectRatio >= 1.25 ? h * 0.50 : (aspectRatio >= 0.9 ? h * (aspectRatio < 1.25 ? 0.47 : 0.495) : h * 0.255);
+    const cueY = aspectRatio >= 1.25 ? h * 0.50 : (aspectRatio >= 0.9 ? h * (aspectRatio < 1.25 ? 0.47 : 0.495) : h * 0.43);
     if (activeIndex < 0) {
         const firstTime = Number(displayLines[0]?.time);
         if (Number.isFinite(firstTime) && time < firstTime) drawMusicBreakCue(cueY);
@@ -394,7 +408,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = landscapeSplit
         ? h * 0.50
-        : (aspectRatio >= 0.9 ? h * (aspectRatio < 1.25 ? 0.47 : 0.495) : h * 0.255);
+        : (aspectRatio >= 0.9 ? h * (aspectRatio < 1.25 ? 0.47 : 0.495) : h * 0.43);
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
