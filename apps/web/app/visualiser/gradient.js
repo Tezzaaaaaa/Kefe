@@ -61,7 +61,7 @@
       powerSlot = element('div', 'kefe-visualiser-power-slot');
       powerSlot.id = 'kefeVisualiserPowerSlot';
       powerSlot.setAttribute('aria-label', 'Selected visualiser power');
-      if (header && description) header.insertBefore(powerSlot, description);
+      if (header && description) description.parentNode.insertBefore(powerSlot, description);
       else header?.appendChild(powerSlot);
     }
 
