@@ -179,7 +179,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.ok(Math.abs(mediaUploadGeometry.primaryHeight - mediaUploadGeometry.backgroundHeight) <= 2,
       `the two Media upload cards must have matching heights: ${JSON.stringify(mediaUploadGeometry)}`);
     await assertSectionFits("media");
-    const mediaMetadataColumns = await page.locator(".kefe-media-metadata-grid").evaluate(grid => ({
+    const mediaMetadataColumns = await page.locator(".kefe-details-grid").evaluate(grid => ({
       width: grid.getBoundingClientRect().width,
       columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length
     }));
