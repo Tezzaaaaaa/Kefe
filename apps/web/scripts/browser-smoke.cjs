@@ -178,6 +178,14 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     }
     assert.ok(Math.abs(mediaUploadGeometry.primaryHeight - mediaUploadGeometry.backgroundHeight) <= 2,
       `the two Media upload cards must have matching heights: ${JSON.stringify(mediaUploadGeometry)}`);
+    await assertSectionFits("media");
+    const mediaMetadataColumns = await page.locator(".kefe-media-metadata-grid").evaluate(grid => ({
+      width: grid.getBoundingClientRect().width,
+      columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length
+    }));
+    if (mediaMetadataColumns.width <= 500) assert.equal(mediaMetadataColumns.columns, 1,
+      `metadata fields must stack inside a narrow Media panel: ${JSON.stringify(mediaMetadataColumns)}`);
+
     const initialVisualiserTabs = page.locator(".beui-vis-tabs-host");
     assert.ok((await initialVisualiserTabs.count()) === 0 || !(await initialVisualiserTabs.isVisible()),
       "visualiser tabs must not appear on the initial Media section");
@@ -194,6 +202,22 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
 
     const panelCardCount = await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count();
     assert.equal(panelCardCount, 6, `all six editor sections must use beUI Card surfaces, found ${panelCardCount}`);
+
+    async function assertSectionFits(section) {
+      const geometry = await page.locator(`.kefe-panel[data-panel-view="${section}"]`).evaluate(panel => {
+        const form = panel.querySelector(".kefe-visualiser-form") || panel.querySelector(".kefe-form");
+        const formRect = form.getBoundingClientRect();
+        const children = [...form.children].filter(child => !child.hidden && getComputedStyle(child).display !== "none");
+        const overflow = children.map(child => {
+          const rect = child.getBoundingClientRect();
+          return {className: child.className, left: rect.left, right: rect.right, width: rect.width};
+        }).filter(item => item.left < formRect.left - 1 || item.right > formRect.right + 1);
+        return {formWidth: formRect.width, clientWidth: form.clientWidth, scrollWidth: form.scrollWidth, overflow};
+      });
+      assert.equal(geometry.overflow.length, 0, `${section} controls must stay inside their form: ${JSON.stringify(geometry)}`);
+      assert.ok(geometry.scrollWidth <= geometry.clientWidth + 1, `${section} form must not overflow horizontally: ${JSON.stringify(geometry)}`);
+    }
+
     assert.equal(await page.locator('.kefe-panel[data-panel-view="effects"] .kefe-effects-background-group').count(), 0,
       "Effects must not retain the empty duplicate Background treatment container; background controls belong to Background Effects");
     assert.equal(await page.locator('#visualiserBackground').evaluate(el => el.closest('.kefe-panel[data-panel-view]')?.dataset.panelView), "background-effects",
@@ -339,6 +363,16 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.keyboard.press("Escape");
     await volumePopover.waitFor({ state: "hidden", timeout: 5000 });
 
+    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Background Effects" }).click();
+    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "background-effects", null, { timeout: 5000 });
+    await assertSectionFits("background-effects");
+    const backgroundOptionsLayout = await page.locator("#kefeBackgroundEffectOptions").evaluate(grid => ({
+      width: grid.getBoundingClientRect().width,
+      columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length
+    }));
+    if (backgroundOptionsLayout.width <= 360) assert.equal(backgroundOptionsLayout.columns, 1,
+      `background effect cards must stack when the panel is narrow: ${JSON.stringify(backgroundOptionsLayout)}`);
+
     await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Visualisers" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "visualiser", null, { timeout: 5000 });
     await page.waitForSelector(".beui-vis-tabs-host [role='tab']", { state: "attached", timeout: 10000 });
@@ -352,6 +386,14 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
       "opening the Visualisers section must not automatically activate Fluid Ink");
     await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
+    await assertSectionFits("visualiser");
+    const visualiserParametersLayout = await page.locator("#visualiserParameters").evaluate(grid => ({
+      width: grid.getBoundingClientRect().width,
+      columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length
+    }));
+    if (visualiserParametersLayout.width <= 500) assert.equal(visualiserParametersLayout.columns, 1,
+      `visualiser parameters must use one column in a narrow panel: ${JSON.stringify(visualiserParametersLayout)}`);
+
     assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 1,
       "selecting a visualiser should activate exactly one beUI tab");
     assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").textContent().then((text) => text.includes("Fluid Ink")), true,
@@ -366,6 +408,20 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser tabs must not appear on the Lyrics section");
+    await assertSectionFits("lyrics");
+    const lyricsTimingLayout = await page.locator(".kefe-lyrics-timing-controls").evaluate(grid => ({
+      width: grid.getBoundingClientRect().width,
+      columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+      sliderRow: getComputedStyle(document.getElementById("lyricsTiming")).gridRow,
+      earlierRow: getComputedStyle(document.getElementById("lyricsTimingEarlier")).gridRow,
+      laterRow: getComputedStyle(document.getElementById("lyricsTimingLater")).gridRow
+    }));
+    if (lyricsTimingLayout.width <= 500) {
+      assert.equal(lyricsTimingLayout.columns, 2, `lyrics timing must stack slider and step buttons in a narrow panel: ${JSON.stringify(lyricsTimingLayout)}`);
+      assert.match(lyricsTimingLayout.sliderRow, /^1/);
+      assert.match(lyricsTimingLayout.earlierRow, /^2/);
+      assert.match(lyricsTimingLayout.laterRow, /^2/);
+    }
     await page.locator(".beui-textarea-host #beui-lyricsInput").fill("beUI lyric smoke");
     assert.equal(await page.locator("#lyricsInput").inputValue(), "beUI lyric smoke", "beUI Textarea should preserve the legacy lyrics value and events");
 
@@ -379,11 +435,21 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await commandButton.click();
     await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "effects", null, { timeout: 5000 });
+    await assertSectionFits("effects");
+
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser tabs must not appear on the Effects section");
 
     await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Export" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "export", null, { timeout: 5000 });
+    await assertSectionFits("export");
+    const exportLayout = await page.locator('.kefe-panel[data-panel-view="export"] .kefe-form').evaluate(form => ({
+      width: form.getBoundingClientRect().width,
+      columns: getComputedStyle(form).gridTemplateColumns.split(" ").length
+    }));
+    if (exportLayout.width <= 500) assert.equal(exportLayout.columns, 1,
+      `export options must stack in a narrow panel: ${JSON.stringify(exportLayout)}`);
+
     const reviewCheckbox = page.locator("#beui-kefeReview0[role=checkbox]");
     await reviewCheckbox.waitFor({ state: "visible", timeout: 10000 });
     await reviewCheckbox.click();
