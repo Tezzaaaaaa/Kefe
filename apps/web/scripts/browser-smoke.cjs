@@ -232,9 +232,15 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "Liquid Glass must be available in the visualiser tab list");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
       "visualiser tabs must be visible while the Visualisers section is active");
+    assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 0,
+      "no visualiser tab should appear selected until the user chooses one");
     assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
       "opening the Visualisers section must not automatically activate Fluid Ink");
     await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
+    assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 1,
+      "selecting a visualiser should activate exactly one beUI tab");
+    assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").textContent().then((text) => text.includes("Fluid Ink")), true,
+      "Fluid Ink should become selected only after an explicit click");
     assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "true",
       "Fluid Ink must activate only after the user selects its tab");
     await page.evaluate(() => window.scrollTo(0, 0));
