@@ -464,13 +464,12 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
             const cueX = x + dotRadius;
             const cueY = rowYs[0];
             ctx.save();
-            ctx.globalAlpha = lineA;
             for (let dot = 0; dot < 3; dot++) {
                 const dotStart = cueStart + cueDuration * dot / 3;
                 const dotEnd = cueStart + cueDuration * (dot + 1) / 3;
                 const progress = cueDuration > 0 ? linaClamp((time - dotStart) / Math.max(0.001, dotEnd - dotStart)) : 0;
                 const alpha = wave.dim + (1 - wave.dim) * linaSmooth(progress);
-                ctx.fillStyle = appleWhite(alpha);
+                ctx.fillStyle = appleWhite(alpha * lineA);
                 ctx.beginPath();
                 ctx.arc(cueX + dot * dotGap, cueY, dotRadius, 0, Math.PI * 2);
                 ctx.fill();
