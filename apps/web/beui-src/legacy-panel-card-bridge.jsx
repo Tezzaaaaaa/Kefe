@@ -17,7 +17,7 @@ function PanelCard({ originalNodes }) {
         width: "100%",
         maxWidth: "1200px",
         margin: "0 auto",
-        padding: "clamp(16px, 2vw, 24px)",
+        padding: "var(--beui-panel-padding, clamp(16px, 2vw, 24px))",
         background: "var(--shell-panel)",
         borderColor: "var(--shell-line)",
         color: "var(--shell-text)",
