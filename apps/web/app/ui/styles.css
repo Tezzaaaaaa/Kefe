@@ -9615,3 +9615,24 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     font-size: 16px;
   }
 }
+
+
+/* Specificity guard for the Background Effects title and exact shared control bounds. */
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="background-effects"] .kefe-section-heading-row .kefe-section-title-group > h2 {
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger {
+  box-sizing: border-box;
+  width: 30px;
+  min-width: 30px;
+  max-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  max-height: 30px;
+  padding: 0;
+  border-width: 1px;
+  transform: none;
+}
