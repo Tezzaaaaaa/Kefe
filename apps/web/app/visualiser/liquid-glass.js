@@ -3,7 +3,7 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const VERT='attribute vec2 p;varying vec2 uv;void main(){uv=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
-const FRAG=String.raw\`precision highp float;varying vec2 uv;uniform sampler2D img;uniform vec2 res,src;uniform float time,bass,mid,treble,react,opacity,style;
+const FRAG=String.raw`precision highp float;varying vec2 uv;uniform sampler2D img;uniform vec2 res,src;uniform float time,bass,mid,treble,react,opacity,style;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
 float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=noise(p)*a;p=p*2.03+vec2(7.1,3.7);a*=.5;}return v;}
@@ -46,7 +46,7 @@ void main(){
  col+=vec3(.68,.88,1.)*(spec*.45+edge)+vec3(.38,.12,.72)*fres*.12;
  col+=vec3(.8,.94,1.)*clamp(length(ripple)*2.,0.,.25)*(.2+treble*.3);
  gl_FragColor=vec4(clamp(col,0.,1.),opacity);
-}\`;
+}`;
 let stage,canvas,gl,program,texture,loc={},tab,view,active=false,on=true,style=0,raf=0,analyser=null,freq=null,t=0,last=0,smoothed={bass:0,mid:0,treble:0},react=1,opacity=.92,rendererError=null;
 function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
 function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
