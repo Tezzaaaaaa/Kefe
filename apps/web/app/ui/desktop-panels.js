@@ -102,8 +102,101 @@ function initDesktopPanels() {
   sync();
 }
 
+/* Drag the edge of either side panel to resize it. Double-click or Home resets; arrow keys nudge.
+   Widths are remembered in localStorage and applied through --kw-left / --kw-right. */
+function initPanelResizers() {
+  const editor = document.querySelector('.kefe-editor');
+  if (!editor || editor.querySelector('.kefe-resizer')) return;
+  const KEY = 'kefe.panelWidths';
+  const MIN = 300, MAX = 640, MIN_CENTRE = 420, STEP = 16;
+  const mq = window.matchMedia('(min-width: 900px)');
+  const widths = { left: null, right: null };
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+    ['left', 'right'].forEach(side => { if (Number.isFinite(saved[side])) widths[side] = saved[side]; });
+  } catch (_) {}
+
+  const clamp = (side, value) => {
+    const other = widths[side === 'left' ? 'right' : 'left'] ?? 390;
+    const max = Math.min(MAX, editor.clientWidth - other - MIN_CENTRE);
+    return Math.round(Math.max(MIN, Math.min(Math.max(MIN, max), value)));
+  };
+  const apply = () => {
+    ['left', 'right'].forEach(side => {
+      if (widths[side] == null) editor.style.removeProperty('--kw-' + side);
+      else editor.style.setProperty('--kw-' + side, widths[side] + 'px');
+    });
+  };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(widths)); } catch (_) {} };
+  const current = side => {
+    const panel = editor.querySelector(side === 'left' ? '.kefe-panels-left' : '.kefe-editing > .kefe-panels:not(.kefe-panels-left)');
+    return panel ? Math.round(panel.getBoundingClientRect().width) : 360;
+  };
+
+  function make(side) {
+    const bar = document.createElement('div');
+    bar.className = 'kefe-resizer kefe-resizer-' + side;
+    bar.setAttribute('role', 'separator');
+    bar.setAttribute('aria-orientation', 'vertical');
+    bar.setAttribute('aria-label', (side === 'left' ? 'Left' : 'Right') + ' panel width');
+    bar.tabIndex = 0;
+    bar.title = 'Drag to resize · double-click to reset';
+    const set = value => {
+      widths[side] = clamp(side, value);
+      apply();
+      bar.setAttribute('aria-valuenow', String(widths[side]));
+    };
+    bar.addEventListener('pointerdown', event => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      const startX = event.clientX, startW = current(side);
+      bar.setPointerCapture(event.pointerId);
+      bar.classList.add('is-dragging');
+      document.body.classList.add('kefe-resizing');
+      const move = e => set(startW + (side === 'left' ? e.clientX - startX : startX - e.clientX));
+      const up = () => {
+        bar.classList.remove('is-dragging');
+        document.body.classList.remove('kefe-resizing');
+        bar.removeEventListener('pointermove', move);
+        bar.removeEventListener('pointerup', up);
+        bar.removeEventListener('pointercancel', up);
+        save();
+      };
+      bar.addEventListener('pointermove', move);
+      bar.addEventListener('pointerup', up);
+      bar.addEventListener('pointercancel', up);
+    });
+    bar.addEventListener('dblclick', () => { widths[side] = null; apply(); save(); });
+    bar.addEventListener('keydown', event => {
+      const dir = side === 'left' ? 1 : -1;
+      if (event.key === 'ArrowRight') set(current(side) + STEP * dir);
+      else if (event.key === 'ArrowLeft') set(current(side) - STEP * dir);
+      else if (event.key === 'Home') { widths[side] = null; apply(); }
+      else return;
+      event.preventDefault();
+      save();
+    });
+    editor.appendChild(bar);
+  }
+  make('left');
+  make('right');
+  apply();
+  const refit = () => {
+    if (!mq.matches) return;
+    ['left', 'right'].forEach(side => { if (widths[side] != null) widths[side] = clamp(side, widths[side]); });
+    apply();
+  };
+  window.addEventListener('resize', refit);
+  refit();
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initDesktopPanels, { once: true });
 } else {
   initDesktopPanels();
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPanelResizers, { once: true });
+} else {
+  initPanelResizers();
 }
