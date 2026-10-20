@@ -122,7 +122,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(panelCardCount, 6, `all six editor sections must use beUI Card surfaces, found ${panelCardCount}`);
     const mediaPanel = page.locator(".kefe-panels-left .kefe-panel[data-panel-view='media']");
     const mediaHeading = mediaPanel.getByRole("heading", { name: "Media" });
-    const mediaAccordion = mediaPanel.locator(".beui-accordion-trigger");
+    const mediaAccordion = mediaPanel.locator(".beui-accordion-trigger:not(.beui-native-panel-button)");
     await mediaHeading.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.click();
