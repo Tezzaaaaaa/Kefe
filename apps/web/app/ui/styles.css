@@ -9302,3 +9302,9 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     grid-row: 4;
   }
 }
+
+/* Visualiser-specific navigation belongs only to the selected Visualisers section,
+   even while the desktop workspace keeps multiple accordion panels mounted. */
+.kefe-editing:not([data-selected-section="visualiser"]) .kefe-vis-tabs {
+  display: none;
+}
