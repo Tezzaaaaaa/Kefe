@@ -202,30 +202,33 @@
   }
   function buildUpload(){
     var zone=document.getElementById('kefeUploadZone');if(!zone||document.getElementById('kefeBgVideoZone'))return;
-    var wrap=document.createElement('div');wrap.style.cssText='grid-column:1/-1;display:grid;gap:8px';
-    wrap.innerHTML='<label class="kefe-upload-zone" id="kefeBgVideoZone" for="bgVideoInput">'+
-      '<span class="kefe-upload-title">Drop a background video</span>'+
-      '<span class="kefe-upload-name" id="bgVideoName">or choose a file</span>'+
-      '<span class="kefe-upload-help">MP4, MOV, WebM</span>'+
+    var wrap=document.createElement('div');wrap.className='beui-upload-wrap';
+    wrap.innerHTML='<label class="kefe-upload-zone beui-upload-dropzone" id="kefeBgVideoZone" for="bgVideoInput">'+
+      '<span class="beui-upload-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 16V4m-5 5 5-5 5 5M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'+
+      '<span class="kefe-upload-title">Add a background video</span>'+
+      '<span class="kefe-upload-name" id="bgVideoName">Drag a video here or browse files</span>'+
+      '<span class="kefe-upload-help">MP4, MOV or WebM · Stored locally in your browser</span>'+
+      '<span class="beui-upload-browse">Browse files</span>'+
       '<input class="kefe-file" id="bgVideoInput" type="file" accept=".mp4,.mov,.m4v,.webm,video/*"></label>'+
-      '<button class="kefe-btn" id="bgVideoRemove" type="button" hidden>Remove background video</button>';
+      '<div class="beui-upload-file" id="bgVideoFileRow" hidden aria-live="polite"><span class="beui-upload-file-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h4L13 6.5h4.5A2.5 2.5 0 0 1 20 9v8.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5zM9 11l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="beui-upload-file-copy"><span class="beui-upload-file-name" id="bgVideoFileName"></span><span class="beui-upload-file-meta">Background video</span></span><span class="beui-upload-file-status"><span class="beui-upload-status-dot"></span><span id="bgVideoFileStatus">Loading preview…</span></span><button class="kefe-btn" id="bgVideoRemove" type="button">Remove</button></div>';
     zone.parentNode.insertBefore(wrap,zone.nextSibling);
-    var input=wrap.querySelector('#bgVideoInput'),name=wrap.querySelector('#bgVideoName'),rm=wrap.querySelector('#bgVideoRemove'),z=wrap.querySelector('#kefeBgVideoZone');
+    var input=wrap.querySelector('#bgVideoInput'),name=wrap.querySelector('#bgVideoName'),rm=wrap.querySelector('#bgVideoRemove'),z=wrap.querySelector('#kefeBgVideoZone'),row=wrap.querySelector('#bgVideoFileRow'),rowName=wrap.querySelector('#bgVideoFileName'),rowStatus=wrap.querySelector('#bgVideoFileStatus');
     function load(file){
-      if(!file||!/^video\//.test(file.type)&&!/\.(mp4|mov|m4v|webm)$/i.test(file.name)){name.textContent='Choose a video file';return;}
+      if(!file||!/^video\//.test(file.type)&&! /\.(mp4|mov|m4v|webm)$/i.test(file.name)){name.textContent='Choose an MP4, MOV or WebM video';return;}
       clearVideo();
       vidUrl=URL.createObjectURL(file);vidName=file.name;
+      rowName.textContent=file.name;rowStatus.textContent='Loading preview…';row.hidden=false;z.classList.add('has-selected-file');
       vid=document.createElement('video');vid.muted=true;vid.loop=true;vid.playsInline=true;vid.preload='auto';vid.style.display='none';
       vid.src=vidUrl;document.body.appendChild(vid);
-      vid.addEventListener('loadeddata',function(){name.textContent=vidName;z.classList.add('kefe-confirmed-container');rm.hidden=false;setMode('video');syncVideo(true);if(audio&&!audio.paused)vid.play().catch(function(){});});
-      vid.addEventListener('error',function(){name.textContent='Could not load this video';z.classList.remove('kefe-confirmed-container');clearVideo();});
+      vid.addEventListener('loadeddata',function(){name.textContent=vidName;rowStatus.textContent='Ready to use';z.classList.add('kefe-confirmed-container');setMode('video');syncVideo(true);if(audio&&!audio.paused)vid.play().catch(function(){});});
+      vid.addEventListener('error',function(){name.textContent='Could not load this video';rowStatus.textContent='Could not read file';z.classList.remove('kefe-confirmed-container','has-selected-file');row.hidden=true;clearVideo();});
       vid.load();
     }
     input.addEventListener('change',function(){load(input.files&&input.files[0]);});
     ['dragenter','dragover'].forEach(function(e){z.addEventListener(e,function(ev){ev.preventDefault();z.classList.add('is-dragging');});});
     ['dragleave','drop'].forEach(function(e){z.addEventListener(e,function(ev){ev.preventDefault();z.classList.remove('is-dragging');});});
     z.addEventListener('drop',function(ev){var f=ev.dataTransfer&&ev.dataTransfer.files&&ev.dataTransfer.files[0];if(f)load(f);});
-    rm.addEventListener('click',function(){clearVideo();z.classList.remove('kefe-confirmed-container');input.value='';name.textContent='or choose a file';rm.hidden=true;setMode('apple');});
+    rm.addEventListener('click',function(){clearVideo();z.classList.remove('kefe-confirmed-container','has-selected-file');input.value='';name.textContent='Drag a video here or browse files';row.hidden=true;setMode('apple');});
   }
   function clearVideo(){
     if(vid){vid.pause();vid.removeAttribute('src');vid.load();vid.remove();vid=null;}
