@@ -344,10 +344,11 @@ button{border:0;cursor:pointer;
 .kefe-suggestions-title{font-size: var(--font-xs);font-weight:700;letter-spacing:.02em;
   color: var(--muted);}
 .kefe-suggestions-status{font-size: var(--font-xs);color: var(--muted);display:inline-flex;align-items:center}
-.kefe-suggestions-dots{display:inline-flex;gap:3px;margin-left:5px}
-.kefe-suggestions-dots i{width:4px;height:4px;border-radius:50%;background:currentColor;animation:kefeSongSearchPulse 1s ease-in-out infinite}
-.kefe-suggestions-dots i:nth-child(2){animation-delay:.14s}
-.kefe-suggestions-dots i:nth-child(3){animation-delay:.28s}
+.kefe-percent-loader{display:inline-flex;flex-direction:column;gap:4px;width:44px;margin-left:8px;vertical-align:middle;color:var(--text);font-variant-numeric:tabular-nums}
+.kefe-percent-value{font:600 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;text-align:right}
+.kefe-percent-track{display:block;width:100%;height:3px;overflow:hidden;border-radius:999px;background:var(--line)}
+.kefe-percent-fill{display:block;width:0;height:100%;border-radius:inherit;background:var(--accent);transition:width .08s linear}
+@media(prefers-reduced-motion:reduce){.kefe-percent-fill{transition:none}}
 .kefe-title-art{width:100%;aspect-ratio:1;background:var(--surface-lo);border:0;box-shadow:var(--float);overflow:hidden;border-radius:var(--r3)}
 .kefe-title-art img{width:100%;height:100%;display:block;object-fit:cover}
 .kefe-title-art-fallback{width:100%;height:100%;display:grid;place-items:center;font-size:clamp(54px,10vw,110px);font-weight:800;letter-spacing:-.08em;background:linear-gradient(145deg,var(--surface-lo),var(--surface-hi));color:var(--accent-deep)}
