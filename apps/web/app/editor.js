@@ -1458,6 +1458,20 @@
   const uploadZone=document.getElementById('kefeUploadZone');
   const mediaInput=document.getElementById('mediaInput');
   if(uploadZone&&mediaInput){
+    if(!uploadZone.querySelector('.beui-upload-symbol')){
+      uploadZone.insertAdjacentHTML('afterbegin','<span class="beui-upload-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 16V4m-5 5 5-5 5 5M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>');
+      uploadZone.insertAdjacentHTML('beforeend','<span class="beui-upload-browse">Browse files</span>');
+    }
+    let mediaUploadRow=uploadZone.parentElement.querySelector('.beui-upload-file');
+    if(!mediaUploadRow){
+      mediaUploadRow=document.createElement('div');
+      mediaUploadRow.className='beui-upload-file';
+      mediaUploadRow.hidden=true;
+      mediaUploadRow.setAttribute('aria-live','polite');
+      mediaUploadRow.innerHTML='<span class="beui-upload-file-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 3.75h8l4 4V20H6zM14 4v4h4M9 13h6M9 16h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="beui-upload-file-copy"><span class="beui-upload-file-name"></span><span class="beui-upload-file-meta"></span></span><span class="beui-upload-file-status"><span class="beui-upload-status-dot"></span><span>Ready to use</span></span>';
+      uploadZone.insertAdjacentElement('afterend',mediaUploadRow);
+    }
+    uploadZone.addEventListener('dragover',event=>{event.preventDefault();uploadZone.classList.add('is-dragging')});
     uploadZone.addEventListener('dragover',event=>{event.preventDefault();uploadZone.classList.add('is-dragging')});
     uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('is-dragging'));
     uploadZone.addEventListener('drop',event=>{event.preventDefault();uploadZone.classList.remove('is-dragging');const file=event.dataTransfer?.files?.[0];if(!file)return;mediaInput.files=event.dataTransfer.files;mediaInput.dispatchEvent(new Event('change',{bubbles:true}))});
@@ -1486,7 +1500,14 @@
     window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:'reset'}}));
     delete songAlbum.dataset.artUrl;delete songAlbum.dataset.trackDuration;delete songAlbum.dataset.platformId;
     const status=document.getElementById('kefeLyricsStatus');if(status)status.textContent='Audio selected — loading track information…';
-    const uploadName=document.querySelector('.kefe-upload-name');if(uploadName)uploadName.textContent=file.name;
+    const uploadName=uploadZone?.querySelector('.kefe-upload-name');if(uploadName)uploadName.textContent=file.name;
+    if(mediaUploadRow){
+      mediaUploadRow.querySelector('.beui-upload-file-name').textContent=file.name;
+      const size=file.size<1024*1024?(file.size/1024).toFixed(0)+' KB':(file.size/(1024*1024)).toFixed(1)+' MB';
+      mediaUploadRow.querySelector('.beui-upload-file-meta').textContent=(file.type.startsWith('video/')?'Video':'Audio')+' · '+size;
+      mediaUploadRow.hidden=false;
+      uploadZone.classList.add('has-selected-file');
+    }
     /* Show the selected file immediately; metadata lookup must not control whether the upload appears. */
     const mediaTrack=document.getElementById('kefeMediaTrack');
     if(mediaTrack){
