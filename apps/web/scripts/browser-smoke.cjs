@@ -188,6 +188,44 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true", "section accordion should expand again");
     await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "visible", timeout: 5000 });
 
+    const sectionHeaderAudit = await page.evaluate(() => {
+      const panels = [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")];
+      return panels.map((panel) => {
+        const row = panel.querySelector(".kefe-panel-head .kefe-section-heading-row");
+        const info = row?.querySelector(".kefe-section-info");
+        const accordion = row?.querySelector(".beui-accordion-trigger:not(.beui-native-panel-button)");
+        const featureSwitch = row?.querySelector(".kefe-switch");
+        return {
+          section: panel.dataset.panelView,
+          title: row?.querySelector("h2")?.textContent.trim(),
+          info: Boolean(info),
+          description: Boolean(row?.querySelector(".kefe-section-description")),
+          tooltip: info?.dataset.tooltip || "",
+          accordion: Boolean(accordion),
+          featureSwitchInline: !featureSwitch || featureSwitch.closest(".kefe-section-heading-row") === row,
+        };
+      });
+    });
+    assert.equal(sectionHeaderAudit.length, 6, "all six sections should retain their own heading row");
+    assert.ok(sectionHeaderAudit.every((item) => item.title && item.info && item.description && item.accordion),
+      `every section must have a clean title, info tooltip and accordion control: ${JSON.stringify(sectionHeaderAudit)}`);
+    assert.ok(sectionHeaderAudit.every((item) => item.featureSwitchInline),
+      "section on/off switches must remain inside their heading row");
+    assert.match(sectionHeaderAudit.find((item) => item.section === "media").tooltip, /Import audio or video/,
+      "the Media instructions should be available through the info tooltip");
+
+    const sectionAccordions = page.locator(".kefe-panel[data-panel-view] .kefe-section-heading-row .beui-accordion-trigger:not(.beui-native-panel-button)");
+    assert.equal(await sectionAccordions.count(), 6, "each section should have one visible accordion control");
+    for (const accordion of await sectionAccordions.all()) {
+      if (await accordion.getAttribute("aria-expanded") === "true") await accordion.click();
+    }
+    await page.waitForFunction(() => [...document.querySelectorAll(".kefe-panel[data-panel-view]")].every((panel) => !panel.style.height), null, { timeout: 5000 });
+    const collapsedHeights = await page.evaluate(() => [...document.querySelectorAll(".kefe-panel[data-panel-view]")].map((panel) => panel.getBoundingClientRect().height));
+    assert.ok(Math.max(...collapsedHeights) - Math.min(...collapsedHeights) <= 1,
+      `all collapsed section cards should have the same height: ${JSON.stringify(collapsedHeights)}`);
+    await mediaPanel.locator(".kefe-section-heading-row .beui-accordion-trigger:not(.beui-native-panel-button)").click();
+    await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "visible", timeout: 5000 });
+
     const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
     assert.ok(sidebarCount >= 7, `expected sidebar actions, found ${sidebarCount}`);
 
