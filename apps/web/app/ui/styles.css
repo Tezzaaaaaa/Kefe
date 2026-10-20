@@ -9521,6 +9521,8 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   flex: 0 0 auto;
   margin-left: auto;
 }
+.kefe-empty-panel:empty { display: none; }
+
 .kefe-section-heading-row .kefe-lyrics-power {
   display: inline-flex;
   align-items: center;
