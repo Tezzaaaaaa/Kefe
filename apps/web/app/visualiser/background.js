@@ -204,8 +204,8 @@
     var zone=document.getElementById('kefeUploadZone');if(!zone||document.getElementById('kefeBgVideoZone'))return;
     var wrap=document.createElement('div');wrap.className='beui-upload-wrap';
     wrap.innerHTML='<label class="kefe-upload-zone beui-upload-dropzone" id="kefeBgVideoZone" for="bgVideoInput">'+
-      '<span class="beui-upload-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 16V4m-5 5 5-5 5 5M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'+
-      '<span class="kefe-upload-title">Background video</span>'+
+      '<span class="beui-upload-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="m10 9 5 3-5 3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>'+
+      '<span class="kefe-upload-title">Optional background video</span><span class="kefe-upload-help">Use separate footage behind your lyrics.</span>'+
       '<span class="kefe-upload-name" id="bgVideoName">Drop file here or browse</span>'+
       '<span class="beui-upload-browse">Browse files</span>'+
       '<input class="kefe-file" id="bgVideoInput" type="file" accept=".mp4,.mov,.m4v,.webm,video/*"></label>'+

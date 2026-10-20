@@ -79,7 +79,7 @@ function start() {
     'button[data-shell-panel="export"]',
   ], [
     { key: "lyrics", label: "Lyrics", selector: 'button[data-shell-panel="lyrics"]', panel: "lyrics" },
-    { key: "effects", label: "Effects & type", selector: 'button[data-shell-panel="effects"]', panel: "effects" },
+    { key: "effects", label: "Effects", selector: 'button[data-shell-panel="effects"]', panel: "effects" },
     { key: "background-effects", label: "Background Effects", selector: 'button[data-shell-panel="background-effects"]', panel: "background-effects" },
     { key: "visualiser", label: "Visualisers", selector: 'button[data-shell-panel="visualiser"]', panel: "visualiser" },
     { key: "export", label: "Export", selector: 'button[data-shell-panel="export"]', panel: "export" },
