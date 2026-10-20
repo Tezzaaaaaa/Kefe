@@ -127,7 +127,31 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await mediaAccordion.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.click();
     assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "false", "section accordion should enter collapsed state");
-    await mediaHeading.waitFor({ state: "visible", timeout: 5000 });
+    const headingState = await mediaPanel.evaluate((panel) => {
+      const heading = panel.querySelector(".kefe-panel-head");
+      const title = heading?.querySelector("h2");
+      const rect = (node) => {
+        const box = node?.getBoundingClientRect();
+        return box ? { x: box.x, y: box.y, width: box.width, height: box.height } : null;
+      };
+      return {
+        panelClass: panel.className,
+        panelDisplay: getComputedStyle(panel).display,
+        panelRect: rect(panel),
+        parentClass: panel.parentElement?.className,
+        parentDisplay: panel.parentElement ? getComputedStyle(panel.parentElement).display : null,
+        headingExists: Boolean(heading),
+        headingHidden: heading?.hidden,
+        headingDisplay: heading ? getComputedStyle(heading).display : null,
+        headingVisibility: heading ? getComputedStyle(heading).visibility : null,
+        headingRect: rect(heading),
+        titleText: title?.textContent,
+        titleDisplay: title ? getComputedStyle(title).display : null,
+        titleVisibility: title ? getComputedStyle(title).visibility : null,
+        titleRect: rect(title),
+      };
+    });
+    assert.ok(await mediaHeading.isVisible(), `Media heading must remain visible in the desktop panel: ${JSON.stringify(headingState)}`);
     await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "hidden", timeout: 5000 });
     await mediaAccordion.click();
     assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true", "section accordion should expand again");
