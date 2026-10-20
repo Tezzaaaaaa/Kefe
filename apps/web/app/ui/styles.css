@@ -8965,3 +8965,24 @@ html:root[data-theme="day"] .kefe-editor .kefe-panel .kefe-style-color-row {
   border: 1px solid var(--line-soft);
   box-shadow: none;
 }
+
+/* Liquid Glass timeline visual layer; KEFE playback and range input remain authoritative. */
+.kefe-editor .kefe-liquid-timeline{height:42px;min-height:42px;padding:0;overflow:hidden;border:1px solid rgba(255,255,255,.13);border-radius:999px;background:rgba(255,255,255,.055);box-shadow:inset 0 1px 0 rgba(255,255,255,.48),inset 0 -1px 0 rgba(0,0,0,.32),inset 0 0 0 1px rgba(255,255,255,.06),0 8px 22px rgba(0,0,0,.2);isolation:isolate;backdrop-filter:blur(22px) saturate(1.7) brightness(1.08);-webkit-backdrop-filter:blur(22px) saturate(1.7) brightness(1.08)}
+.kefe-editor .kefe-liquid-timeline::before{content:"";position:absolute;inset:1px 10px auto;height:42%;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.035) 65%,transparent);pointer-events:none;z-index:2}
+.kefe-liquid-track{position:absolute;inset:3px;border-radius:999px;overflow:hidden;pointer-events:none;z-index:1}
+.kefe-liquid-shape{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.kefe-liquid-shape #kefeLiquidFillPath{fill:url(#kefeLiquidFillGrad)}
+.kefe-liquid-shape #kefeLiquidHeadPath{fill:url(#kefeLiquidHeadGrad);filter:drop-shadow(0 0 3px rgba(255,255,255,.7))}
+.kefe-liquid-swirls{position:absolute;inset:0;border-radius:inherit;overflow:hidden;mix-blend-mode:screen;opacity:.65;mask-image:radial-gradient(ellipse 100% 100% at 50% 50%,#000 0%,#000 60%,transparent 95%);-webkit-mask-image:radial-gradient(ellipse 100% 100% at 50% 50%,#000 0%,#000 60%,transparent 95%)}
+.kefe-liquid-swirl{position:absolute;left:0;top:0;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.48) 0%,rgba(255,255,255,.12) 50%,transparent 78%);filter:blur(6px);pointer-events:none;will-change:transform,opacity}
+.kefe-editor .kefe-liquid-timeline .kefe-time{z-index:3;inset:0 12px;display:flex;align-items:center;justify-content:space-between;gap:5px;min-width:0;width:auto;text-align:left;pointer-events:none;font-size:10px;font-weight:600;font-variant-numeric:tabular-nums;color:rgba(255,255,255,.78);text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.kefe-editor .kefe-liquid-timeline .kefe-time span{padding:2px 4px;border-radius:5px;background:rgba(12,13,19,.16);white-space:nowrap}
+.kefe-editor .kefe-liquid-timeline .kefe-time span[aria-hidden="true"]{display:none}
+.kefe-editor .kefe-liquid-timeline .kefe-time #timeNow{color:rgba(255,255,255,.98)}
+.kefe-editor .kefe-liquid-timeline .playhead{display:none}
+.kefe-editor .kefe-liquid-timeline #kefeTime{z-index:4;opacity:0;outline:none}
+.kefe-editor .kefe-liquid-timeline:focus-within{outline:2px solid var(--focus);outline-offset:2px}
+html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline{background:rgba(50,57,70,.12);border-color:rgba(55,63,78,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -1px 0 rgba(0,0,0,.1),0 6px 18px rgba(40,48,62,.12)}
+html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time{color:rgba(27,32,43,.82);text-shadow:0 1px 2px rgba(255,255,255,.7)}
+html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{background:rgba(255,255,255,.32)}
+@media(prefers-reduced-motion:reduce){.kefe-liquid-swirl{will-change:auto}}
