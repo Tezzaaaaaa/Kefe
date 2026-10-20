@@ -9337,3 +9337,15 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     display: none;
   }
 }
+
+@media (min-width: 900px) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head > .beui-panel-button-host > .beui-accordion-trigger {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed .kefe-panel-head > .beui-panel-button-host > .beui-accordion-trigger {
+    top: 50%;
+    margin-top: -16px;
+  }
+}
