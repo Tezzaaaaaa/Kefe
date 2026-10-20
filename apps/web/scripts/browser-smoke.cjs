@@ -70,6 +70,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
+    await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
     const desktopLayout = await page.evaluate(() => {
       const nav = document.querySelector(".kefe-sidebar").getBoundingClientRect();
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
@@ -84,6 +85,16 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       `desktop navigation must sit above the workspace, got nav bottom ${desktopLayout.navBottom} and workspace top ${desktopLayout.workspaceTop}`);
     assert.ok(desktopLayout.navWidth >= desktopLayout.viewportWidth * 0.8,
       `desktop navigation should span the workspace width, got ${desktopLayout.navWidth}/${desktopLayout.viewportWidth}`);
+    const desktopColumns = await page.evaluate(() => {
+      const left = document.querySelector(".kefe-panels-left").getBoundingClientRect();
+      const centre = document.querySelector(".kefe-work").getBoundingClientRect();
+      const right = document.querySelector(".kefe-editing > .kefe-panels:not(.kefe-panels-left)").getBoundingClientRect();
+      return { leftRight: left.right, centreLeft: centre.left, centreRight: centre.right, rightLeft: right.left };
+    });
+    assert.ok(desktopColumns.leftRight <= desktopColumns.centreLeft + 1,
+      "left editor panel must stay left of the central preview");
+    assert.ok(desktopColumns.centreRight <= desktopColumns.rightLeft + 1,
+      "right editor panel must stay right of the central preview");
     await page.waitForSelector(".beui-textarea-host #beui-lyricsInput", { state: "attached", timeout: 20000 });
     assert.equal(await page.locator(".beui-textarea-host #beui-lyricsInput").count(), 1, "textarea bridge must not recursively mount its own component");
     await page.waitForFunction(() => {
