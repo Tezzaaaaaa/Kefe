@@ -91,7 +91,9 @@ function initDesktopPanels() {
       toggle.setAttribute('aria-expanded', String(open));
       panel.classList.toggle('beui-accordion-collapsed', !open);
       toggle.setAttribute('aria-label', (open ? 'Collapse ' : 'Expand ') + heading.textContent.trim() + ' section');
-      const targetHeight = panel.scrollHeight;
+      panel.style.removeProperty('height');
+      const targetHeight = panel.getBoundingClientRect().height;
+      panel.style.height = currentHeight + 'px';
       const animation = panel.animate(
         [{ height: currentHeight + 'px' }, { height: targetHeight + 'px' }],
         { duration: reduceMotion ? 0 : 260, easing: 'cubic-bezier(.22, .61, .36, 1)', fill: 'forwards' }
