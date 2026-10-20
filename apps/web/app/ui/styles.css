@@ -9364,7 +9364,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     visibility: visible;
     opacity: 1;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-form {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > :not(.kefe-panel-head) {
     display: none;
   }
 }
