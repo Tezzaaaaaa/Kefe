@@ -4,14 +4,15 @@
 const $=id=>document.getElementById(id);
 const MODES=[
 {name:'Prism facets',desc:'Precision-cut crystalline facets with angular light splitting.',keys:['cellSize','relief','depth','angle','dispersion','sheen']},
-{name:'Grid chamfer',desc:'A flat grid with refracting chamfered edges.',keys:['cellSize','relief','depth','angle','dispersion','sheen']},
+{name:'Fluted reeds',desc:'Vertical reeded glass: every flute stretches the scene into a soft ribbon with a bright face and a dark shadowed edge.',keys:['cellSize','relief','depth','angle','dispersion','sheen']},
 {name:'Grid flat',desc:'Sharp grid cells with edge-focused distortion.',keys:['cellSize','relief','depth','angle','dispersion']},
 {name:'Satin crystal',desc:'Fine etched glass with controlled frosted diffusion and soft refraction.',keys:['cellSize','relief','depth','dispersion','sheen','grain']},
 {name:'Zigzag',desc:'Reeds whose distortion follows a repeating zigzag.',keys:['cellSize','relief','depth','angle','dispersion','sheen']},
 {name:'Waves',desc:'Smooth, rolling refractive waves.',keys:['cellSize','relief','depth','angle','dispersion','sheen']}
 ];
 const D={cellSize:['Cell size',10,300,79],relief:['Relief',0,300,130],depth:['Depth',0,200,152],angle:['Angle',0,360,110],dispersion:['Dispersion',0,200,54],sheen:['Sheen',0,200,32],grain:['Micro texture',0,200,68]};
-const P=MODES.map(m=>Object.fromEntries(m.keys.map(k=>[k,D[k][3]])));
+const DEF={1:{cellSize:34,relief:150,depth:160,angle:0,dispersion:40,sheen:60}};
+const P=MODES.map((m,i)=>Object.fromEntries(m.keys.map(k=>[k,(DEF[i]&&DEF[i][k]!==undefined)?DEF[i][k]:D[k][3]])));
 const VERT='attribute vec2 a_pos;varying vec2 v_uv;void main(){v_uv=a_pos*.5+.5;gl_Position=vec4(a_pos,0.,1.);}';
 const FRAG=String.raw`precision highp float;
 varying vec2 v_uv;
@@ -35,7 +36,7 @@ float surfaceHeight(vec2 uv){
 float a=radians(uAng);vec2 p=rot(a)*(uv-.5);float fp=max(2.,uSiz.x/max(1.,uCel));
 float h=0.;
 if(uMod==0){vec2 q=vec2(p.x*fp,p.y*fp*1.1547);q.x+=mod(floor(q.y),2.)*.5;vec2 g=fract(q)-.5;float d=max(abs(g.y),abs(g.x)*.8660254+abs(g.y)*.5);float facet=1.-smoothstep(.18,.48,d);float ridge=1.-smoothstep(.015,.065,abs(d-.29));h=facet*.78+ridge*.22;h+=.035*sin((g.x-g.y)*18.+uTim*.2);}
-else if(uMod==1){vec2 g=fract(p*fp)-.5;float d=sdB(g,vec2(.5),.14);h=1.-smoothstep(.08,.36,abs(d));}
+else if(uMod==1){h=.5;}
 else if(uMod==2){vec2 g=fract(p*fp)-.5;float edge=max(abs(g.x),abs(g.y));h=1.-smoothstep(.29,.49,edge);h-=.22*smoothstep(.25,.49,edge);}
 else if(uMod==3){float scale=max(3.,fp*.72);vec2 g=p*scale;float etched=sin(g.x*2.1+sin(g.y*1.3)*.7)*.42+cos(g.y*2.6-g.x*.8)*.34;float micro=sin(g.x*17.+sin(g.y*11.)*1.7)*cos(g.y*15.-g.x*9.);h=etched*.42+micro*(uGrn/200.)*.12;h+=.025*sin(g.x*31.+g.y*23.)*(uGrn/200.);}
 else if(uMod==4){float x=p.x*fp*3.1415926;float z=p.y*fp*3.1415926;h=sin(x+sin(z)*.8);h*=.72+.28*cos(z*.5);}
@@ -56,8 +57,10 @@ vec2 warped=mv(base,uTim);
 float thickness=.82+clamp(h,0.,1.)*.36;
 float depth=uDep*.00048*thickness;
 vec2 refractUV=warped+n2*depth;
+float reedG=0.;vec2 reedDelta=vec2(0.);
+if(uMod==1){float fpr=max(2.,uSiz.x/max(1.,uCel));vec2 pr=rot(a)*(base-.5);float xr=pr.x*fpr;float id=floor(xr);reedG=fract(xr)-.5;float k=mix(.85,.08,clamp(uDep/200.,0.,1.));float lens=reedG*k+sin(reedG*3.1415926)*.06*(uRel/150.);float xs=(id+.5+lens)/fpr;reedDelta=rot(-a)*vec2(xs-pr.x,0.);refractUV=warped+reedDelta+n2*depth*.15;}
 float da=uDis*.00012*(.72+clamp(h,0.,1.)*.42);
-vec2 split=n2*da;
+vec2 split=uMod==1?reedDelta*(uDis*.0045):n2*da;
 vec3 col;
 float frost=uMod==3?clamp(uRel/300.,0.,1.)*.48:0.;
 vec3 sharpR=texture2D(uImg,refractUV-split).rgb;
@@ -78,6 +81,7 @@ col+=reflection*(specA*.44+specB*.3)*(.35+sheen);
 col+=vec3(.72,.9,1.)*bevel*sheen*.045;
 col*=1.-fresnel*.12;
 col=pow(max(col,vec3(0.)),vec3(.96));
+if(uMod==1){float face=1.-smoothstep(-.5,.5,reedG);float lit=mix(.62,1.12,pow(face,.8));col*=mix(1.,lit,clamp(uRel/200.,0.,1.));float gap=smoothstep(.40,.5,abs(reedG));col*=1.-gap*.55;col+=reflection*smoothstep(.0,.12,.5-abs(reedG+.28))*clamp(uShe*.004,0.,.6)*.22;}
 float vignette=1.-length((v_uv-.5)*1.15)*.18;
 col*=vignette;
 float pulse=.5+.5*sin(uTim*.8);
@@ -106,7 +110,7 @@ tabs.querySelectorAll('[role="tab"]').forEach(b=>{if(b===tab)return;b.addEventLi
 tab.addEventListener('click',()=>{active=true;view.hidden=false;tabs.querySelectorAll('[role="tab"]').forEach(b=>{b.classList.toggle('primary',b===tab);b.setAttribute('aria-selected',String(b===tab));});const powerSlot=$('kefeVisualiserPowerSlot');if(powerSlot)powerSlot.replaceChildren(power);const header=document.querySelector('.kefe-visualiser-panel-head'),heading=$('kefeVisualiserHeading'),description=$('kefeVisualiserDescription');if(heading)heading.textContent='Visualisers';if(description)description.textContent='';['kefeGradientPresetSet'].forEach(id=>{const n=$(id);if(n)n.hidden=true;});const presetRow=$('kefeVisualiserPresetRow'),presetSet=$('kefeFlutedPresetSet');if(presetRow)presetRow.hidden=false;if(presetSet)presetSet.hidden=false;['kefeVisGradientView','kefeVisHowBadView'].forEach(id=>{const n=$(id);if(n)n.hidden=true;});const g=$('kefeGradientCanvas');if(g)g.style.display='none';window.kefeFlutedGlassActive=true;canvas.style.visibility=on?'visible':'hidden';resize();});
 power.addEventListener('click',()=>{on=!on;powerState.textContent=on?'On':'Off';power.classList.toggle('is-on',on);power.setAttribute('aria-checked',String(on));canvas.style.visibility=active&&on?'visible':'hidden';window.kefeFlutedGlassEnabled=on;window.kefeFlutedGlassActive=active;});
 
-reset.addEventListener('click',()=>{P.forEach((p,i)=>MODES[i].keys.forEach(k=>p[k]=D[k][3]));motion=1;setMode(0);$('flutedMotion').value=1;});
+reset.addEventListener('click',()=>{P.forEach((p,i)=>MODES[i].keys.forEach(k=>p[k]=(DEF[i]&&DEF[i][k]!==undefined)?DEF[i][k]:D[k][3]));motion=1;setMode(0);$('flutedMotion').value=1;});
 buildSliders();}
 function frame(now){requestAnimationFrame(frame);if(!gl||!canvas)return;const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;if(!active||!on)return;t+=dt;resize();const backgroundCanvas=document.getElementById('kefeBackgroundCanvas');if(window.kefeBackground?.mode?.()==='video'&&backgroundCanvas){try{setTex(backgroundCanvas);}catch(_){}}else{const projectVideo=window.kefeGetProjectVideo?.();if(projectVideo?.src){if(projectVideo.readyState>=2&&projectVideo.videoWidth){try{setTex(projectVideo);}catch(_){}}}else{const art=window.kefeGetAlbumArt?.();if(art&&art.complete&&art.naturalWidth){if(lastStillSource!==art)setTex(art);}else if(lastStillSource!==fallbackTexture&&fallbackTexture)setTex(fallbackTexture);}}
 const p=P[mode];gl.viewport(0,0,canvas.width,canvas.height);gl.useProgram(prog);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(un.uImg,0);gl.uniform2f(un.uRes,canvas.width,canvas.height);gl.uniform2f(un.uSiz,Number(canvas.dataset.sw)||1200,Number(canvas.dataset.sh)||1200);gl.uniform1i(un.uMod,mode);const vals={uCel:p.cellSize??79,uRel:p.relief??130,uDep:p.depth??152,uAng:p.angle??110,uDis:p.dispersion??54,uShe:p.sheen??32,uGrn:p.grain??68,uTim:t,uMot:motion};Object.entries(vals).forEach(([k,v])=>gl.uniform1f(un[k],v));gl.drawArrays(gl.TRIANGLE_STRIP,0,4);}
