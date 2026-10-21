@@ -736,6 +736,63 @@
   lyricsEnabledToggle?.addEventListener('click',()=>{lyricsEnabled=!lyricsEnabled;syncLyricsEnabledToggle();draw();});
   syncLyricsEnabledToggle();
   effectDefinitions.filter(([id])=>id!=='karaoke'&&id!=='bounce').forEach(([id,label])=>addLyricEffectOption(id,label));
+
+  /* Compact beUI-style horizontal lyric-effect carousel. Keep the existing effect
+     buttons and selection logic; only change how the gallery is presented/navigation works. */
+  (() => {
+    if (!lyricEffectOptions || lyricEffectOptions.dataset.carouselReady === 'true') return;
+    lyricEffectOptions.dataset.carouselReady = 'true';
+    const host = document.createElement('div');
+    host.className = 'kefe-lyric-effect-carousel';
+    const previous = document.createElement('button');
+    previous.type = 'button';
+    previous.className = 'kefe-lyric-effect-carousel-nav';
+    previous.setAttribute('aria-label', 'Scroll to previous lyric effects');
+    previous.textContent = '‹';
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.className = 'kefe-lyric-effect-carousel-nav';
+    next.setAttribute('aria-label', 'Scroll to more lyric effects');
+    next.textContent = '›';
+    lyricEffectOptions.parentNode.insertBefore(host, lyricEffectOptions);
+    host.append(previous, lyricEffectOptions, next);
+    const scroll = direction => lyricEffectOptions.scrollBy({ left: direction * Math.max(180, lyricEffectOptions.clientWidth * .72), behavior: 'smooth' });
+    previous.addEventListener('click', () => scroll(-1));
+    next.addEventListener('click', () => scroll(1));
+    const sync = () => {
+      previous.disabled = lyricEffectOptions.scrollLeft <= 2;
+      next.disabled = lyricEffectOptions.scrollLeft + lyricEffectOptions.clientWidth >= lyricEffectOptions.scrollWidth - 2;
+    };
+    lyricEffectOptions.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    lyricEffectOptions.addEventListener('keydown', event => {
+      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+        const direction = event.key === 'ArrowRight' ? 1 : -1;
+        const buttons = [...lyricEffectOptions.querySelectorAll('.kefe-lyric-effect-option')];
+        const current = buttons.indexOf(document.activeElement);
+        if (current >= 0) {
+          event.preventDefault();
+          buttons[Math.max(0, Math.min(buttons.length - 1, current + direction))]?.focus();
+          buttons[Math.max(0, Math.min(buttons.length - 1, current + direction))]?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+        } else scroll(direction);
+      }
+    });
+    const style = document.createElement('style');
+    style.dataset.kefeLyricCarousel = 'true';
+    style.textContent = `
+      .kefe-lyric-effect-carousel{display:grid;grid-template-columns:28px minmax(0,1fr) 28px;align-items:center;gap:6px;width:100%;min-width:0}
+      .kefe-lyric-effect-carousel-nav{display:grid;place-items:center;width:28px;height:34px;padding:0;border:1px solid var(--shell-line,var(--border,#39393f));border-radius:9px;background:var(--shell-panel,var(--surface,#242428));color:var(--shell-text,var(--text,#f5f5f5));font-size:22px;line-height:1;cursor:pointer;transition:background .15s,border-color .15s}
+      .kefe-lyric-effect-carousel-nav:hover:not(:disabled){border-color:var(--shell-accent,var(--accent,#888));background:var(--shell-bg,#171719)}
+      .kefe-lyric-effect-carousel-nav:disabled{opacity:.28;cursor:default}
+      .kefe-lyric-effect-carousel #lyricEffectOptions{display:flex;flex-flow:row nowrap;gap:8px;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;padding:3px 2px 8px;scroll-snap-type:x mandatory;scrollbar-width:thin;overscroll-behavior-x:contain;touch-action:pan-x; -webkit-overflow-scrolling:touch}
+      .kefe-lyric-effect-carousel #lyricEffectOptions>.kefe-lyric-effect-option{flex:0 0 104px;min-width:0;min-height:78px;scroll-snap-align:start}
+      .kefe-lyric-effect-carousel #lyricEffectOptions::-webkit-scrollbar{height:4px}
+      .kefe-lyric-effect-carousel #lyricEffectOptions::-webkit-scrollbar-thumb{background:var(--shell-line,#39393f);border-radius:8px}
+      @media(max-width:640px){.kefe-lyric-effect-carousel{grid-template-columns:24px minmax(0,1fr) 24px;gap:4px}.kefe-lyric-effect-carousel-nav{width:24px;height:32px}.kefe-lyric-effect-carousel #lyricEffectOptions>.kefe-lyric-effect-option{flex-basis:94px;min-height:72px}}
+    `;
+    document.head.appendChild(style);
+    requestAnimationFrame(sync);
+  })();
   const kefeBrand=document.querySelector('.kefe-brand');
   if(kefeBrand){
     let kefeBrandClickTimer=null;
