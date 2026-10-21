@@ -197,37 +197,47 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
     const useBlur = blurPx > 0.35;
     for (const en of entries) {
         const dur = Math.max(0.05, en.t1 - en.t0);
-        const f = linaClamp((time - en.t0) / dur);
-        const s = P.soft * (0.7 + 0.6 * linaClamp(dur / 1.2));
-        const front = f * (1 + s), sa = front - s;
+        const progress = linaClamp((time - en.t0) / dur);
+        const edgeSoft = linaClamp(P.soft * 0.16, 0.025, 0.10);
+        // Sweep the highlight continuously across the measured word width. The edge starts
+        // just before the first glyph and finishes just after the last, avoiding per-letter
+        // timing steps and keeping the timing independent of character count.
+        const front = progress * (1 + edgeSoft * 2) - edgeSoft;
         const W = en.box.W;
         const charCount = en.box.chars.length;
         const sustained = en.explicitTiming && dur >= 0.72;
-        // Untimed line-level estimates must not turn a long gap into a held note.
-        // Explicit sustained words get a low-frequency travelling wave; ordinary words get one short, eased lift.
-        const rise = sustained ? 0.16 : 0.10;
-        const settle = sustained ? 0.24 : 0.20;
-        const amp = sustained ? 0.92 : 0.68;
-        const waveCycles = sustained ? Math.max(1, dur * 1.05) : 0;
+        const rise = sustained ? 0.14 : 0.09;
+        const settle = sustained ? 0.22 : 0.18;
+        const amp = sustained ? 0.48 : 0.68;
         for (let k = 0; k < charCount; k++) {
             const lx = en.x + en.box.xs[k], lw = en.box.ws[k];
-            const a = en.box.xs[k] / W, b = (en.box.xs[k] + lw) / W, wd = Math.max(0.0005, b - a);
-            const charProgress = ((a + b) / 2) / (1 + s);
+            const a = en.box.xs[k] / W, b = (en.box.xs[k] + lw) / W;
+            const wd = Math.max(0.0005, b - a);
+            const charCenter = (a + b) / 2;
+            const alphaAt = u => {
+                const wordPosition = a + u * wd;
+                const sweep = linaSmooth((front - wordPosition + edgeSoft) / (2 * edgeSoft));
+                return (dim + (hi - dim) * sweep) * lineA;
+            };
+            const ch = en.box.chars[k];
             let lift;
             if (sustained) {
-                const progress = linaClamp((time - en.t0) / dur);
-                const envelope = linaSmoother(Math.min(1, progress * 7)) * linaSmoother(Math.min(1, (1 - progress) * 7));
-                const phase = progress * waveCycles * Math.PI * 2 - k * 0.78;
-                lift = amp * envelope * (0.24 + 0.76 * (0.5 + 0.5 * Math.sin(phase)));
+                // A restrained, continuous travelling wave while an explicitly timed note is held.
+                // Phase uses measured glyph position and elapsed seconds, not character-index jumps.
+                const noteEnvelope = linaSmoother(Math.min(1, progress * 5)) *
+                    linaSmoother(Math.min(1, (1 - progress) * 5));
+                const phase = time * Math.PI * 2 * 0.72 - charCenter * Math.PI * 2 * 1.15;
+                lift = amp * noteEnvelope * (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(phase)));
             } else {
-                const waveDelay = Math.min(0.028, dur / Math.max(5, charCount * 5));
-                const peak = en.t0 + Math.min(dur, 0.22) * charProgress + k * waveDelay;
-                const tau = time - peak;
-                lift = amp * (tau < 0 ? linaSmoother(1 + tau / rise) : 1 - linaSmoother(tau / settle));
+                // Each glyph peaks as the same continuous sweep passes its measured centre,
+                // then settles smoothly. Adjacent glyphs therefore form one connected wave.
+                const peakProgress = (charCenter + edgeSoft) / (1 + edgeSoft * 2);
+                const peakTime = en.t0 + dur * peakProgress;
+                const tau = time - peakTime;
+                lift = amp * (tau < 0
+                    ? linaSmoother(1 + tau / rise)
+                    : 1 - linaSmoother(tau / settle));
             }
-            const A = (sa - a) / wd, B = (front - a) / wd;     // soft edge, in letter-local 0..1 coordinates
-            const alphaAt = u => (u <= A ? hi : u >= B ? dim : hi + (dim - hi) * ((u - A) / Math.max(1e-6, B - A))) * lineA;
-            const ch = en.box.chars[k];
             ctx.save();
             if (lift > 0.002) {
                 const ox = lx + lw / 2, oy = y + fs * 0.46, sc = 1 + lift * P.pop;
@@ -239,13 +249,22 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
             if (useBlur) {
                 appleShadowText(ctx, ch, lx, y, blurPx, appleWhite(alphaAt(0.5)), true);
             } else {
-                // Draw the timed glyph once. The former extra glow fill and shadow re-drew
-                // the same character at a second alpha, making the active sweep look doubled.
                 const g = ctx.createLinearGradient(lx, 0, lx + lw, 0);
-                g.addColorStop(0, appleWhite(alphaAt(0)));
-                if (A > 0 && A < 1) g.addColorStop(A, appleWhite(hi * lineA));
-                if (B > 0 && B < 1) g.addColorStop(B, appleWhite(dim * lineA));
-                g.addColorStop(1, appleWhite(alphaAt(1)));
+                const stops = new Map();
+                const addStop = position => {
+                    const p = linaClamp(position);
+                    stops.set(p, alphaAt(p));
+                };
+                addStop(0);
+                addStop(1);
+                // Sample the smooth edge at five points so Canvas gradients approximate a
+                // smoothstep curve rather than a sharp, linear karaoke wipe.
+                for (const edge of [front - edgeSoft, front - edgeSoft * 0.5, front, front + edgeSoft * 0.5, front + edgeSoft]) {
+                    addStop((edge - a) / wd);
+                }
+                for (const [position, alpha] of [...stops.entries()].sort((left, right) => left[0] - right[0])) {
+                    g.addColorStop(position, appleWhite(alpha));
+                }
                 ctx.fillStyle = g;
                 ctx.fillText(ch, lx, y);
             }
