@@ -16,6 +16,45 @@ function initDesktopPanels() {
 
   const panels = () => Array.from(document.querySelectorAll('.kefe-panel[data-panel-view]'));
 
+  function installUniformSectionHeaderStyles() {
+    if (document.getElementById('kefe-uniform-section-header-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'kefe-uniform-section-header-styles';
+    style.textContent = `
+      .kefe-editor .kefe-panel[data-panel-view] > .kefe-panel-head .kefe-section-heading-row,
+      .kefe-editor .kefe-panel[data-panel-view] > .kefe-form > .kefe-panel-head .kefe-section-heading-row {
+        box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: center; column-gap: 10px; row-gap: 6px; width: 100%; min-width: 0;
+      }
+      .kefe-editor .kefe-panel[data-panel-view] .kefe-section-title-group { min-width: 0; display: flex; align-items: center; gap: 8px; }
+      .kefe-editor .kefe-panel[data-panel-view] .kefe-section-heading-row h2 {
+        margin: 0; padding: 0; min-width: 0; font-size: 16px; font-weight: 650;
+        line-height: 1.25; letter-spacing: normal; text-transform: none; overflow-wrap: anywhere;
+      }
+      .kefe-editor .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-section-description {
+        grid-column: 1 / -1; margin: 0; padding: 0; min-width: 0; font-size: 12px;
+        font-weight: 400; line-height: 1.45; letter-spacing: normal; text-transform: none;
+      }
+      .kefe-editor .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-section-info,
+      .kefe-editor .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger {
+        box-sizing: border-box; width: 32px; height: 32px; min-width: 32px; min-height: 32px;
+        max-width: 32px; max-height: 32px; display: inline-flex; align-items: center; justify-content: center;
+        justify-self: end; margin: 0; padding: 0; flex: none; border-radius: 10px;
+      }
+      .kefe-editor .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-section-info { grid-column: 2; grid-row: 1; }
+      .kefe-editor .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger { grid-column: 3; grid-row: 1; }
+      .kefe-editor .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-lyrics-power,
+      .kefe-editor .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-visualiser-power-slot,
+      .kefe-editor .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-background-effect-toggle {
+        grid-column: 1 / -1; justify-self: start; margin: 0;
+      }
+      @media (max-width: 1279px) {
+        .kefe-editor .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-section-description { grid-column: 1 / -1; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function place() {
     if (mq.matches) {
       if (!leftWrap.parentNode) editing.insertBefore(leftWrap, rightWrap);
@@ -184,6 +223,7 @@ function initDesktopPanels() {
     }
   });
   mq.addEventListener('change', () => { place(); sync(); });
+  installUniformSectionHeaderStyles();
   place();
   sync();
 }
