@@ -387,7 +387,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "opening the Visualisers section must not automatically activate Fluid Ink");
     await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
     await assertSectionFits("visualiser");
-    const visualiserParametersLayout = await page.locator("#visualiserParameters").evaluate(grid => ({
+    const visualiserParametersLayout = await page.locator(".kefe-fluid-settings").evaluate(grid => ({
       width: grid.getBoundingClientRect().width,
       columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length
     }));
