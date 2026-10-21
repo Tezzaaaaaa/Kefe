@@ -379,7 +379,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = landscapeSplit
         ? h * 0.50
-        : (aspectRatio >= 0.9 ? h * (aspectRatio < 1.25 ? 0.47 : 0.495) : h * 0.43);
+        : (aspectRatio < 0.9 ? w * 0.235 : h * 0.175);
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
