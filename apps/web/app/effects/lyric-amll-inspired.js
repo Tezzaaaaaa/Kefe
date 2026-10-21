@@ -124,21 +124,21 @@
             const progress=clamp((time-tm.time)/Math.max(.06,tm.endTime-tm.time));
             const front=progress*1.12-.06;
             const chars=Array.from(token);
-            let advance=0;
+            let prefix='';
             for(let ci=0;ci<chars.length;ci++){
-              const char=chars[ci],cw=measure(ctx,char,font);
-              const a=advance/Math.max(1,width),b=(advance+cw)/Math.max(1,width);
+              const char=chars[ci],before=measure(ctx,prefix,font);
+              prefix+=char;
+              const after=measure(ctx,prefix,font),gx=x+before,cw=Math.max(.01,after-before);
+              const a=before/Math.max(1,width),b=after/Math.max(1,width);
               const edge=.075;
-              const p=smoother((front-(a+b)/2+edge)/(edge*2));
               const lift=.10*smoother((front-(a+b)/2+edge+.035)/(edge*2));
-              const gx=x+advance,gy=baseline-lift*fs;
-              const g=ctx.createLinearGradient(gx,0,gx+Math.max(.01,cw),0);
+              const gy=baseline-lift*fs;
+              const g=ctx.createLinearGradient(gx,0,gx+cw,0);
               const fill=u=>white(.34+.66*smooth((front-(a+u*(b-a))+edge)/(edge*2)));
               g.addColorStop(0,fill(0));g.addColorStop(.5,fill(.5));g.addColorStop(1,fill(1));
               ctx.save();ctx.fillStyle=g;
               if(lift>.001){ctx.translate(gx+cw/2,gy);ctx.scale(1+lift*.025,1+lift*.025);ctx.translate(-(gx+cw/2),-gy);}
               ctx.fillText(char,gx,gy);ctx.restore();
-              advance+=cw;
             }
           });
         });
