@@ -601,10 +601,7 @@
           const paintEffect=g=>{
             if(state.effect!=='apple'){fn(g,W,H,style,shown,effT,titleArtImage);return;}
             const aspect=W/Math.max(1,H);
-            if(aspect<0.75){
-              // Reposition the rendered Apple lyrics output only; leave the effect implementation untouched.
-              g.save();g.translate(0,W*0.104);fn(g,W,H,style,shown,effT,titleArtImage);g.restore();
-            }else fn(g,W,H,style,shown,effT,titleArtImage);
+            fn(g,W,H,style,shown,effT,titleArtImage);
           };
           // Lyrics scroll underneath the pinned header: render them on a scratch layer and fade/clip at the header's bottom edge.
           if(!lyricLayer)lyricLayer=document.createElement('canvas');
