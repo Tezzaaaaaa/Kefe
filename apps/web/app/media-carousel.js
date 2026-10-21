@@ -188,7 +188,7 @@
   function layout(){
     var cards=el.CarStack.children,n=cards.length;
     var carouselWidth=el.Carousel.clientWidth||320;
-    var step=Math.max(92,Math.min(118,(carouselWidth-150)/2+12));
+    var step=Math.max(164,Math.min(190,(carouselWidth-150)/2+80));
     for(var i=0;i<n;i++){
       var c=cards[i],cardIndex=Number(c.dataset.i),off=cardIndex-S.index,abs=Math.abs(off),vis=abs<=4;
       c.style.transform='translate3d('+(off*step)+'px,'+(abs*3)+'px,'+(-abs*30)+'px) rotateY('+(off*-4)+'deg) scale('+(1-abs*.045)+')';
