@@ -265,7 +265,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const twoLetterOffset = ctx.measureText('MM').width;
     const horizontalLyricShift = landscapeSplit ? -twoLetterOffset : (aspectRatio < 0.75 ? twoLetterOffset : 0);
     // Measure wrapping against the actual right safe boundary after the aspect-specific x offset.
-    maxWidth = Math.max(1, w * 0.95 - (margin + horizontalLyricShift));
+    // Keep a rendering buffer inside the visible safety boundary for glyph overhang and per-letter lift.
+    maxWidth = Math.max(1, w * 0.92 - (margin + horizontalLyricShift));
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     const rowCacheFont = ctx.font;
