@@ -1085,7 +1085,7 @@ button{border:0;cursor:pointer;
 .kefe-media-upload-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}
 .kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.kefe-upload-zone,
 .kefe-panel[data-panel-view="media"] .kefe-media-upload-row>div{align-self:stretch;min-width:0;width:100%;grid-column:auto;grid-row:auto;margin:0}
-@container kefe-media-step (max-width: 500px){.kefe-media-upload-row{grid-template-columns:minmax(0,1fr)}.kefe-panel[data-panel-view="media"] .kefe-details-grid{grid-template-columns:minmax(0,1fr)}}
+@container kefe-media-step (max-width: 500px){.kefe-media-upload-row{grid-template-columns:minmax(0,1fr)}.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.kefe-upload-zone.beui-upload-card-hosted .beui-upload-card,.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.beui-upload-wrap>.kefe-upload-zone{min-height:209px}.kefe-panel[data-panel-view="media"] .kefe-details-grid{grid-template-columns:minmax(0,1fr)}}
 @container kefe-media-step (min-width: 501px){.kefe-panel[data-panel-view="media"] .kefe-details-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .kefe-media-upload-row>.kefe-upload-zone{min-height:92px}
 .kefe-media-upload-row>div>.kefe-upload-zone{min-height:92px}
