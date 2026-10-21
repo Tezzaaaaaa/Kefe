@@ -145,7 +145,7 @@ function appleSpringOut(t) {
    word's timing, so the sweep is sub-pixel smooth instead of stepping letter by letter.
    Lift / pop / glow are pure functions of time per letter (rise before the front arrives, cosine
    settle after), so nothing is driven by hard per-word switches. */
-const APPLE_WAVE = { lift: 0.34, pop: 0.04, glow: 0.8, glowSize: 0.38, soft: 0.35, fall: 0.28, dim: 0.32 };
+const APPLE_WAVE = { lift: 0.12, pop: 0.04, glow: 0.8, glowSize: 0.38, soft: 0.35, fall: 0.28, dim: 0.32 };
 const appleLetterCache = new Map();
 const appleRowCache = new Map();
 const APPLE_OFFSCREEN = 20000;
@@ -205,7 +205,6 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
         const front = progress * (1 + edgeSoft * 2) - edgeSoft;
         const W = en.box.W;
         const charCount = en.box.chars.length;
-        const amp = en.explicitTiming && dur >= 0.72 ? 0.48 : 0.68;
         for (let k = 0; k < charCount; k++) {
             const lx = en.x + en.box.xs[k], lw = en.box.ws[k];
             const a = en.box.xs[k] / W, b = (en.box.xs[k] + lw) / W;
@@ -221,9 +220,8 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
             // lifted position for the rest of the word. There is deliberately no settle,
             // drop, or oscillation after a glyph has been highlighted.
             const liftProgress = linaClamp((front - charCenter + edgeSoft) / (2 * edgeSoft));
-            // Use a full-strength eased rise. The previous double scaling (wave amplitude
-            // multiplied by the style lift) made the movement too easy to miss.
-            const lift = 0.55 * linaSmoother(liftProgress);
+            // A restrained, quintic-eased rise blends smoothly into place without a pronounced bounce.
+            const lift = P.lift * linaSmoother(liftProgress);
             ctx.save();
             if (lift > 0.002) {
                 const ox = lx + lw / 2, oy = y + fs * 0.46, sc = 1 + lift * P.pop;
@@ -506,9 +504,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     ctx.imageSmoothingQuality = 'high';
 
     const wave = Object.assign({}, APPLE_WAVE, {
-        // Keep the lift visibly present even if an old saved style supplies zero.
+        // Keep the letter rise subtle, including for older saved styles.
         lift: Number.isFinite(Number(style.appleLetterLift)) && Number(style.appleLetterLift) > 0
-            ? Math.max(0.3, Number(style.appleLetterLift))
+            ? linaClamp(Number(style.appleLetterLift), 0.06, 0.14)
             : APPLE_WAVE.lift,
         dim: linaClamp(Number.isFinite(Number(style.appleUnsungOpacity)) ? Number(style.appleUnsungOpacity) : APPLE_WAVE.dim, 0.15, 0.9)
     });
