@@ -378,6 +378,13 @@
   window.kefeLyricStudio = {
     shape: shape,
     settings: function () { return Object.assign({}, S); },
+    applySettings: function (value) {
+      if (!value || typeof value !== 'object') return Object.assign({}, S);
+      if (MODES.some(function (m) { return m[0] === value.mode; })) S.mode = value.mode;
+      if (CASES.some(function (c) { return c[0] === value.caseMode; })) S.caseMode = value.caseMode;
+      if (Number.isFinite(value.chunk)) S.chunk = Math.max(1, Math.min(12, Math.round(value.chunk)));
+      memo = { src: null, key: '', out: null }; persist(); redraw(); return Object.assign({}, S);
+    },
     download: function (kind) { downloadAs(kind); },
     exportText: function (kind) { return exporters[kind]().text; }
   };
