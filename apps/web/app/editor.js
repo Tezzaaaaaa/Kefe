@@ -920,28 +920,43 @@
   }
   async function togglePreviewFullscreen(){
     if(!previewStage)return;
-    try{
-      if(document.fullscreenElement===previewStage){
-        await document.exitFullscreen();
-      }else if(document.fullscreenElement){
-        await document.exitFullscreen();
-        await previewStage.requestFullscreen();
-      }else if(typeof previewStage.requestFullscreen==='function'){
-        await previewStage.requestFullscreen();
-      }else{
-        previewStage.classList.toggle('kefe-pseudo-fullscreen');
-        document.documentElement.classList.toggle('kefe-fullscreen-open',previewStage.classList.contains('kefe-pseudo-fullscreen'));
-        document.body.classList.toggle('kefe-fullscreen-open',previewStage.classList.contains('kefe-pseudo-fullscreen'));
-        fitPreviewStage();
-      }
-    }catch(error){
-      console.warn('[KEFE fullscreen]',error);
-      previewStage.classList.toggle('kefe-pseudo-fullscreen');
-      const active=previewStage.classList.contains('kefe-pseudo-fullscreen');
+    const pseudo=previewStage.classList.contains('kefe-pseudo-fullscreen');
+    const mobile=window.matchMedia('(max-width: 700px), (pointer: coarse)').matches;
+    const setPseudo=active=>{
+      previewStage.classList.toggle('kefe-pseudo-fullscreen',active);
       document.documentElement.classList.toggle('kefe-fullscreen-open',active);
       document.body.classList.toggle('kefe-fullscreen-open',active);
+      if(active){
+        previewStage.style.width='';
+        previewStage.style.height='';
+      }else{
+        previewStage.style.removeProperty('--fs-w');
+        previewStage.style.removeProperty('--fs-h');
+      }
+      fitPreviewStage();
+      syncPreviewFullscreen();
+      draw();
+    };
+    if(pseudo){setPseudo(false);return;}
+    if(document.fullscreenElement===previewStage){
+      try{await document.exitFullscreen();}catch(error){console.warn('[KEFE fullscreen exit]',error);}
+      return;
     }
-    fitPreviewStage();syncPreviewFullscreen();
+    // iOS Safari does not consistently support fullscreen on arbitrary elements.
+    // Use the viewport-fixed preview on touch devices instead of invoking a partial native fullscreen.
+    if(mobile||typeof previewStage.requestFullscreen!=='function'){
+      if(document.fullscreenElement){try{await document.exitFullscreen();}catch(error){console.warn('[KEFE fullscreen exit]',error);}}
+      setPseudo(true);
+      return;
+    }
+    try{
+      if(document.fullscreenElement)await document.exitFullscreen();
+      await previewStage.requestFullscreen();
+    }catch(error){
+      console.warn('[KEFE fullscreen]',error);
+      setPseudo(true);
+    }
+    fitPreviewStage();syncPreviewFullscreen();draw();
   }
   previewFullscreen?.addEventListener('click',togglePreviewFullscreen);
   document.addEventListener('fullscreenchange',()=>{
