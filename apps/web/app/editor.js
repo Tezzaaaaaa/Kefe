@@ -137,7 +137,7 @@
   const video=document.createElement('video');
   video.preload='metadata'; video.muted=true; video.playsInline=true; video.style.display='none'; document.body.appendChild(video);
   window.kefeGetProjectVideo=()=>video;
-  let mediaObjectUrl=''; let visualiserPreset='none',visualiserBackground='black',visualiserMotion='reactive';
+  let mediaObjectUrl=''; let embeddedArtworkObjectUrl=''; let visualiserPreset='none',visualiserBackground='black',visualiserMotion='reactive';
   let previewAspectRatio='16:9';
   let titleArtImage=null,titleCardShownFor='';
   let titleArtworkRequest=0,titleArtworkTimer=null;
@@ -172,6 +172,26 @@
     return value.replace(/^http:/i,'https:').replace(/\d+x\d+bb(?=[.-])/i,size);
   }
 
+  function ensureEmbeddedArtworkOption(track){
+    let label=document.getElementById('kefeEmbeddedArtworkOption');
+    if(!label){
+      label=document.createElement('label');label.id='kefeEmbeddedArtworkOption';label.className='kefe-embedded-art-option';
+      label.innerHTML='<input type="checkbox" id="kefeUseEmbeddedArtwork"><span>Use artwork embedded in uploaded audio</span>';
+      track.appendChild(label);
+      const style=document.createElement('style');style.id='kefe-embedded-art-option-style';style.textContent='#kefeMediaTrack .kefe-embedded-art-option{display:flex;align-items:center;gap:9px;margin:12px 0 0;padding:10px 12px;border:1px solid var(--beui-border,rgba(255,255,255,.14));border-radius:12px;font-size:13px;line-height:1.35;color:var(--beui-text,inherit);cursor:pointer}#kefeMediaTrack .kefe-embedded-art-option[hidden]{display:none}#kefeMediaTrack .kefe-embedded-art-option input{flex:0 0 auto;accent-color:var(--beui-accent,#a8a8ff)}';document.head.appendChild(style);
+      label.querySelector('input').addEventListener('change',event=>{
+        if(!songAlbum.dataset.embeddedArtUrl)return;
+        if(event.target.checked){songAlbum.dataset.artUrl=songAlbum.dataset.embeddedArtUrl;}
+        else{delete songAlbum.dataset.artUrl;}
+        updateTitleCard();applyAppleAlbumGradient();
+        if(!event.target.checked)scheduleTitleArtworkLookup();
+      });
+    }
+    const checkbox=label.querySelector('input');
+    const available=!!songAlbum.dataset.embeddedArtUrl;
+    label.hidden=!available;
+    checkbox.checked=available&&songAlbum.dataset.artUrl===songAlbum.dataset.embeddedArtUrl;
+  }
   function updateMediaTrack(){
     const track=document.getElementById('kefeMediaTrack');
     const art=document.getElementById('kefeMediaTrackArt');
@@ -181,6 +201,7 @@
     const album=document.getElementById('kefeMediaTrackAlbum');
     const year=document.getElementById('kefeMediaTrackYear');
     if(!track||!art||!fallback||!title||!artist||!album||!year)return;
+    ensureEmbeddedArtworkOption(track);
     const song=songTitle.value.trim();
     const cover=songAlbum.dataset.artUrl||'';
     title.textContent=song||'Untitled';
@@ -964,6 +985,17 @@
         if(!/^[A-Z0-9]{4}$/.test(id))break;
         let frameSize=version>=4?((bytes[offset+4]&127)<<21)|((bytes[offset+5]&127)<<14)|((bytes[offset+6]&127)<<7)|(bytes[offset+7]&127):((bytes[offset+4]<<24)|(bytes[offset+5]<<16)|(bytes[offset+6]<<8)|bytes[offset+7]);
         if(!frameSize||offset+10+frameSize>limit)break;
+        if(id==='APIC'&&!out.artworkBlob){
+          const frame=bytes.slice(offset+10,offset+10+frameSize);
+          try{
+            let p=1;while(p<frame.length&&frame[p]!==0)p++;
+            const mime=decodeLatin(frame.slice(1,p)).toLowerCase()||'image/jpeg';p+=2;
+            const encoding=frame[0];
+            if(encoding===1||encoding===2){while(p+1<frame.length&&!(frame[p]===0&&frame[p+1]===0))p+=2;p+=2;}
+            else{while(p<frame.length&&frame[p]!==0)p++;p++;}
+            if(p<frame.length){const imageBytes=frame.slice(p);if(imageBytes.length>8){const type=mime==='image/png'||imageBytes[0]===0x89&&imageBytes[1]===0x50?'image/png':mime==='image/webp'?'image/webp':'image/jpeg';out.artworkBlob=new Blob([imageBytes],{type});}}
+          }catch(error){console.warn('[KEFE embedded artwork]',error);}
+        }
         const value=readId3Text(bytes.slice(offset+10,offset+10+frameSize));
         if(value){
           if(id==='TIT2')out.title=value;
@@ -1280,6 +1312,9 @@
       if(mediaObjectUrl!==uploadId)return;
       const embedded=await readEmbeddedMetadata(file);
       if(mediaObjectUrl!==uploadId)return;
+      if(embeddedArtworkObjectUrl){URL.revokeObjectURL(embeddedArtworkObjectUrl);embeddedArtworkObjectUrl='';}
+      delete songAlbum.dataset.embeddedArtUrl;
+      if(embedded.artworkBlob){embeddedArtworkObjectUrl=URL.createObjectURL(embedded.artworkBlob);songAlbum.dataset.embeddedArtUrl=embeddedArtworkObjectUrl;}
       const named=filenameMetadata(file);
       const meta={
         title:recognized?.title||embedded.title||named.title||'',
@@ -1304,6 +1339,7 @@
         songAlbum.dataset.platformId=apple.trackId?String(apple.trackId):'';
         if(mediaTrack)mediaTrack.classList.add('is-identified');
       }
+      if(songAlbum.dataset.embeddedArtUrl){songAlbum.dataset.artUrl=songAlbum.dataset.embeddedArtUrl;}
       updateMediaTrack();updateTitleCard();
       if(!songAlbum.dataset.artUrl)scheduleTitleArtworkLookup(meta);
       if(!recognized)setLyricsStatus('Identifying track…');
@@ -1481,6 +1517,8 @@
     const file=e.target.files?.[0];if(!file)return;
     if(/\.(lrc|ttml|xml|txt)$/i.test(file.name)||file.type==='text/plain'){handleLrcFile(file);e.target.value='';return;}
     if(mediaObjectUrl)URL.revokeObjectURL(mediaObjectUrl);
+    if(embeddedArtworkObjectUrl){URL.revokeObjectURL(embeddedArtworkObjectUrl);embeddedArtworkObjectUrl='';}
+    delete songAlbum.dataset.embeddedArtUrl;
     mediaObjectUrl=URL.createObjectURL(file);
     // Load the default album-palette gradient as soon as a new audio upload is selected.
     // The background layer reads the album artwork asynchronously when identification finishes.
