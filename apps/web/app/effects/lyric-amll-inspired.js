@@ -24,7 +24,13 @@
     for(const word of words){
       const candidate=row?row+' '+word:word;
       if(!row||measure(ctx,candidate,font)<=maxWidth){row=candidate;continue;}
-      rows.push(row);row=word;
+      rows.push(row);row='';
+      if(measure(ctx,word,font)<=maxWidth){row=word;continue;}
+      for(const glyph of Array.from(word)){
+        const next=row+glyph;
+        if(row&&measure(ctx,next,font)>maxWidth){rows.push(row);row=glyph;}
+        else row=next;
+      }
     }
     if(row)rows.push(row);
     return rows;
@@ -63,7 +69,7 @@
     const ratio=w/h,portrait=ratio<.9,landscape=ratio>=1.25;
     const fontSize=landscape?h*.063:portrait?w*.064:Math.min(w*.058,h*.09);
     const inactiveSize=fontSize*.88;
-    const maxWidth=w*(landscape?.46:portrait?.86:.82);
+    const maxWidth=w*(landscape?.46:portrait?.86:.82);\n    const centerX=landscape?w*.75:w*.5;
     const family=style?.fontFamily||'"SF Pro Display","Inter Tight",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif';
     const weight=style?.fontWeight||700;
     const activeFont=weight+' '+fontSize+'px '+family;
@@ -101,7 +107,7 @@
         let tokenIndex=0;
         for(const row of rows){
           const rowWidth=measure(ctx,row,font);
-          let x=(w-rowWidth)/2;
+          let x=centerX-rowWidth/2;
           const entries=[];
           for(const token of row.split(' ')){
             const width=measure(ctx,token,font),tm=timings[tokenIndex]||{time:item.start,endTime:item.end};
@@ -138,7 +144,7 @@
         });
       }else{
         ctx.fillStyle=white(alpha);
-        rows.forEach((row,ri)=>ctx.fillText(row,w/2,centerY+(ri-(rows.length-1)/2)*rowHeight));
+        rows.forEach((row,ri)=>ctx.fillText(row,centerX,centerY+(ri-(rows.length-1)/2)*rowHeight));
       }
       y+=rows.length*rowHeight+lineGap;
     }
