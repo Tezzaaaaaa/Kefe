@@ -1907,12 +1907,13 @@
     const layoutUi=document.createElement('div');
     layoutUi.dataset.appleLayoutUi='true';
     layoutUi.style.cssText='position:absolute;z-index:30;top:8px;left:8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:calc(100% - 16px);padding:8px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(18,18,20,.88);color:#fff;font:12px system-ui,sans-serif;backdrop-filter:blur(12px);';
-    layoutUi.innerHTML='<label style="display:flex;align-items:center;gap:4px">Adjust <select data-layout-target style="max-width:125px;color:#fff;background:#333;border-radius:6px;padding:4px"><option value="lyrics">Lyrics</option><option value="card">Album artwork + title</option></select></label><label style="display:flex;align-items:center;gap:4px">Size <input data-layout-scale type="range" min="50" max="200" value="100" style="width:74px"></label><button type="button" data-layout-reset style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Reset</button><span data-layout-hint style="opacity:.8">Select a layer, then drag in preview</span>';
+    layoutUi.innerHTML='<label style="display:flex;align-items:center;gap:4px">Adjust <select data-layout-target style="max-width:125px;color:#fff;background:#333;border-radius:6px;padding:4px"><option value="lyrics">Lyrics</option><option value="card">Album artwork + title</option></select></label><label style="display:flex;align-items:center;gap:4px">Size <input data-layout-scale type="range" min="50" max="200" value="100" style="width:74px"></label><button type="button" data-layout-move aria-pressed="false" style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Move layer</button><button type="button" data-layout-reset style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Reset</button><span data-layout-hint style="opacity:.8">Enable Move layer, then drag in preview</span>';
     previewStage.appendChild(layoutUi);
-    const layoutTarget=layoutUi.querySelector('[data-layout-target]'),layoutScale=layoutUi.querySelector('[data-layout-scale]');
+    const layoutTarget=layoutUi.querySelector('[data-layout-target]'),layoutScale=layoutUi.querySelector('[data-layout-scale]'),layoutMove=layoutUi.querySelector('[data-layout-move]'),layoutHint=layoutUi.querySelector('[data-layout-hint]');
     const saveAppleLayout=()=>{try{localStorage.setItem(appleLayoutKey,JSON.stringify(appleLayout));}catch(_){}};
     const syncLayoutScale=()=>{layoutScale.value=String(Math.round(appleLayout[layoutTarget.value].scale*100));};
     layoutTarget.addEventListener('change',syncLayoutScale);
+    layoutMove.addEventListener('click',()=>{const enabled=layoutMove.getAttribute('aria-pressed')!=='true';layoutMove.setAttribute('aria-pressed',String(enabled));layoutMove.textContent=enabled?'Done moving':'Move layer';layoutMove.style.background=enabled?'#356caa':'#333';layoutHint.textContent=enabled?'Drag the selected layer in preview':'Preview gestures restored';});
     layoutScale.addEventListener('input',()=>{appleLayout[layoutTarget.value].scale=Number(layoutScale.value)/100;saveAppleLayout();draw();});
     layoutUi.querySelector('[data-layout-reset]').addEventListener('click',()=>{appleLayout[layoutTarget.value]={x:0,y:0,scale:1};saveAppleLayout();syncLayoutScale();draw();});
     syncLayoutScale();
@@ -1922,7 +1923,7 @@
     const midpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
     previewStage.addEventListener('pointerdown',e=>{
       if(e.target.closest('button,input,select,textarea,[data-apple-layout-ui]'))return;
-      if(e.button===0){
+      if(layoutMove.getAttribute('aria-pressed')==='true'&&e.button===0){
         const rect=previewStage.getBoundingClientRect(),target=layoutTarget.value;
         layoutDrag={target,x:e.clientX,y:e.clientY,baseX:appleLayout[target].x,baseY:appleLayout[target].y,width:Math.max(1,rect.width),height:Math.max(1,rect.height)};
         previewStage.setPointerCapture(e.pointerId);e.preventDefault();return;
