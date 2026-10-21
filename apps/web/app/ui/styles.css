@@ -9873,3 +9873,21 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   }
 }
 .kefe-visualiser-field[hidden]{display:none}
+
+
+/* Keep the desktop aspect-ratio menu above adjacent preview/timeline containers. */
+@media (min-width: 761px) {
+  .kefe-editor .kefe-work,
+  .kefe-editor .kefe-timeline,
+  .kefe-editor .kefe-aspect-controls {
+    overflow: visible;
+  }
+  .kefe-editor .kefe-timeline {
+    position: relative;
+    z-index: 80;
+  }
+  .kefe-editor .kefe-aspect-controls {
+    position: relative;
+    z-index: 81;
+  }
+}
