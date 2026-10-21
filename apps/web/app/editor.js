@@ -1921,7 +1921,7 @@
     const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
     const midpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
     previewStage.addEventListener('pointerdown',e=>{
-      if(e.target.closest('[data-apple-layout-ui]'))return;
+      if(e.target.closest('button,input,select,textarea,[data-apple-layout-ui]'))return;
       if(e.button===0){
         const rect=previewStage.getBoundingClientRect(),target=layoutTarget.value;
         layoutDrag={target,x:e.clientX,y:e.clientY,baseX:appleLayout[target].x,baseY:appleLayout[target].y,width:Math.max(1,rect.width),height:Math.max(1,rect.height)};
