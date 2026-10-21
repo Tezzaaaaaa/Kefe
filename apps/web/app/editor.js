@@ -520,6 +520,9 @@
     ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+barW*progress,y);ctx.stroke();
     ctx.restore();
   }
+  const appleLayoutKey='kefe.apple-layout.v1';
+  const appleLayout=(()=>{const defaults={lyrics:{x:0,y:0,scale:1},card:{x:0,y:0,scale:1}};try{const saved=JSON.parse(localStorage.getItem(appleLayoutKey)||'null');for(const key of ['lyrics','card'])if(saved?.[key])defaults[key]={x:Number(saved[key].x)||0,y:Number(saved[key].y)||0,scale:Math.max(.5,Math.min(2,Number(saved[key].scale)||1))};}catch(_){}return defaults;})();
+  window.kefeAppleLayout=appleLayout;
   function drawTitleCardCanvas(ctx,w,h,t){
     const ph=titlePhase(t);
     if(ph.mode==='off')return;
@@ -541,6 +544,9 @@
     const bigTextH=titleStartLines*bt*1.15+(artist?ba*1.35:0)+(meta?bm*1.4:0)+(yearText?bm*1.4:0),bigTop=(h-(bigArt+bigGap+bigTextH))/2;
     const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,landscape?left+(comp-hArt)/2:left),ay=lerp(bigTop,hTop),r=art*.08;
     ctx.save();
+    const cardLayout=appleLayout.card;
+    ctx.translate(cardLayout.x*w,cardLayout.y*h);
+    ctx.translate(ax,ay);ctx.scale(cardLayout.scale,cardLayout.scale);ctx.translate(-ax,-ay);
     // Keep the opening title card geometrically centred at every aspect ratio.
     ctx.textBaseline='top';
     // artwork
@@ -1898,11 +1904,30 @@
   };
   if(previewStage){
     previewStage.style.touchAction='none';
-    const pointers=new Map();let gestureStart=null;
+    const layoutUi=document.createElement('div');
+    layoutUi.dataset.appleLayoutUi='true';
+    layoutUi.style.cssText='position:absolute;z-index:30;top:8px;left:8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:calc(100% - 16px);padding:8px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(18,18,20,.88);color:#fff;font:12px system-ui,sans-serif;backdrop-filter:blur(12px);';
+    layoutUi.innerHTML='<label style="display:flex;align-items:center;gap:4px">Adjust <select data-layout-target style="max-width:125px;color:#fff;background:#333;border-radius:6px;padding:4px"><option value="lyrics">Lyrics</option><option value="card">Album artwork + title</option></select></label><label style="display:flex;align-items:center;gap:4px">Size <input data-layout-scale type="range" min="50" max="200" value="100" style="width:74px"></label><button type="button" data-layout-move aria-pressed="false" style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Move layer</button><button type="button" data-layout-reset style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Reset</button><span data-layout-hint style="opacity:.8">Enable Move layer, then drag in preview</span>';
+    previewStage.appendChild(layoutUi);
+    const layoutTarget=layoutUi.querySelector('[data-layout-target]'),layoutScale=layoutUi.querySelector('[data-layout-scale]'),layoutMove=layoutUi.querySelector('[data-layout-move]'),layoutHint=layoutUi.querySelector('[data-layout-hint]');
+    const saveAppleLayout=()=>{try{localStorage.setItem(appleLayoutKey,JSON.stringify(appleLayout));}catch(_){}};
+    const syncLayoutScale=()=>{layoutScale.value=String(Math.round(appleLayout[layoutTarget.value].scale*100));};
+    layoutTarget.addEventListener('change',syncLayoutScale);
+    layoutMove.addEventListener('click',()=>{const enabled=layoutMove.getAttribute('aria-pressed')!=='true';layoutMove.setAttribute('aria-pressed',String(enabled));layoutMove.textContent=enabled?'Done moving':'Move layer';layoutMove.style.background=enabled?'#356caa':'#333';layoutHint.textContent=enabled?'Drag the selected layer in preview':'Preview gestures restored';});
+    layoutScale.addEventListener('input',()=>{appleLayout[layoutTarget.value].scale=Number(layoutScale.value)/100;saveAppleLayout();draw();});
+    layoutUi.querySelector('[data-layout-reset]').addEventListener('click',()=>{appleLayout[layoutTarget.value]={x:0,y:0,scale:1};saveAppleLayout();syncLayoutScale();draw();});
+    syncLayoutScale();
+    const pointers=new Map();let gestureStart=null,layoutDrag=null;
     const point=e=>({x:e.clientX,y:e.clientY});
     const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
     const midpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
     previewStage.addEventListener('pointerdown',e=>{
+      if(e.target.closest('button,input,select,textarea,[data-apple-layout-ui]'))return;
+      if(layoutMove.getAttribute('aria-pressed')==='true'&&e.button===0){
+        const rect=previewStage.getBoundingClientRect(),target=layoutTarget.value;
+        layoutDrag={target,x:e.clientX,y:e.clientY,baseX:appleLayout[target].x,baseY:appleLayout[target].y,width:Math.max(1,rect.width),height:Math.max(1,rect.height)};
+        previewStage.setPointerCapture(e.pointerId);e.preventDefault();return;
+      }
       if(e.target.closest('button'))return;
       if(e.pointerType!=='touch'&&e.pointerType!=='pen')return;
       e.preventDefault();previewStage.setPointerCapture(e.pointerId);pointers.set(e.pointerId,point(e));
@@ -1910,6 +1935,12 @@
       else if(pointers.size===2){const pts=[...pointers.values()];gestureStart={mode:'pinch',distance:Math.max(1,distance(pts[0],pts[1])),zoom:visualiserZoom,mid:midpoint(pts[0],pts[1]),x:visualiserPanX,y:visualiserPanY};}
     },{passive:false});
     previewStage.addEventListener('pointermove',e=>{
+      if(layoutDrag){
+        const target=layoutDrag.target;
+        appleLayout[target].x=layoutDrag.baseX+(e.clientX-layoutDrag.x)/layoutDrag.width;
+        appleLayout[target].y=layoutDrag.baseY+(e.clientY-layoutDrag.y)/layoutDrag.height;
+        saveAppleLayout();draw();return;
+      }
       if(!pointers.has(e.pointerId)||!gestureStart)return;
       e.preventDefault();pointers.set(e.pointerId,point(e));
       if(pointers.size>=2&&gestureStart.mode==='pinch'){
@@ -1921,7 +1952,7 @@
       }
       applyVisualiserPreviewTransform();
     },{passive:false});
-    const endGesture=e=>{pointers.delete(e.pointerId);if(!pointers.size)gestureStart=null;else if(pointers.size===1){const [id,p]=[...pointers.entries()][0];gestureStart={mode:'pan',point:p,x:visualiserPanX,y:visualiserPanY};}};
+    const endGesture=e=>{if(layoutDrag){layoutDrag=null;return;}pointers.delete(e.pointerId);if(!pointers.size)gestureStart=null;else if(pointers.size===1){const [id,p]=[...pointers.entries()][0];gestureStart={mode:'pan',point:p,x:visualiserPanX,y:visualiserPanY};}};
     previewStage.addEventListener('pointerup',endGesture);previewStage.addEventListener('pointercancel',endGesture);
     applyVisualiserPreviewTransform();
   }

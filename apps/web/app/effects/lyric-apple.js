@@ -496,6 +496,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const focusY = cum[fl] + (cum[fn1] - cum[fl]) * (focus - fl);
 
     ctx.save();
+    const layout=window.kefeAppleLayout?.lyrics;
+    if(layout){ctx.translate(layout.x*w,layout.y*h);ctx.scale(layout.scale,layout.scale);}
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     try { ctx.fontKerning = 'normal'; ctx.textRendering = 'geometricPrecision'; } catch (_) {}
