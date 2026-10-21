@@ -180,21 +180,31 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
         const f = linaClamp((time - en.t0) / dur);
         const s = P.soft * (0.7 + 0.6 * linaClamp(dur / 1.2));
         const front = f * (1 + s), sa = front - s;
-        // Let each letter's lift breathe with the word's actual duration, especially sustained notes.
-        // Keep ordinary words quick; allow sustained notes to breathe without stretching every word.
-        const rise = linaClamp(dur * 0.34, 0.10, 0.48);
-        const settle = linaClamp(dur * 0.42 + 0.08, 0.18, 0.78);
-        const amp = 0.65 + 0.35 * linaClamp(dur / 1.2);
         const W = en.box.W;
         const charCount = en.box.chars.length;
-        // A short, duration-aware stagger keeps the lift connected without delaying every letter too far.
-        const waveDelay = Math.min(0.045, dur / Math.max(4, charCount * 3.5));
+        const sustained = en.explicitTiming && dur >= 0.72;
+        // Untimed line-level estimates must not turn a long gap into a held note.
+        // Explicit sustained words get a low-frequency travelling wave; ordinary words get one short, eased lift.
+        const rise = sustained ? 0.16 : 0.10;
+        const settle = sustained ? 0.24 : 0.20;
+        const amp = sustained ? 0.92 : 0.68;
+        const waveCycles = sustained ? Math.max(1, dur * 1.05) : 0;
         for (let k = 0; k < charCount; k++) {
             const lx = en.x + en.box.xs[k], lw = en.box.ws[k];
             const a = en.box.xs[k] / W, b = (en.box.xs[k] + lw) / W, wd = Math.max(0.0005, b - a);
             const charProgress = ((a + b) / 2) / (1 + s);
-            const tau = time - (en.t0 + dur * charProgress + k * waveDelay);
-            const lift = amp * (tau < 0 ? linaSmoother(1 + tau / rise) : 1 - linaSmoother(tau / settle));
+            let lift;
+            if (sustained) {
+                const progress = linaClamp((time - en.t0) / dur);
+                const envelope = linaSmoother(Math.min(1, progress * 7)) * linaSmoother(Math.min(1, (1 - progress) * 7));
+                const phase = progress * waveCycles * Math.PI * 2 - k * 0.78;
+                lift = amp * envelope * (0.24 + 0.76 * (0.5 + 0.5 * Math.sin(phase)));
+            } else {
+                const waveDelay = Math.min(0.028, dur / Math.max(5, charCount * 5));
+                const peak = en.t0 + Math.min(dur, 0.22) * charProgress + k * waveDelay;
+                const tau = time - peak;
+                lift = amp * (tau < 0 ? linaSmoother(1 + tau / rise) : 1 - linaSmoother(tau / settle));
+            }
             const A = (sa - a) / wd, B = (front - a) / wd;     // soft edge, in letter-local 0..1 coordinates
             const alphaAt = u => (u <= A ? hi : u >= B ? dim : hi + (dim - hi) * ((u - A) / Math.max(1e-6, B - A))) * lineA;
             const ch = en.box.chars[k];
@@ -555,7 +565,12 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                 for (let k = 0; k < rowTokens.length; k++) {
                     const box = appleLetterBox(ctx, rowTokens[k]);
                     const tm = times[ti + k];
-                    entries.push({ x: cursorX, box, t0: tm.time, t1: Math.max(tm.time + 0.05, tm.endTime) });
+                    const explicitTiming = Array.isArray(line.words) &&
+                        line.words.length === tokens.length &&
+                        hasFiniteNumber(line.words[ti + k]?.time) &&
+                        hasFiniteNumber(line.words[ti + k]?.endTime) &&
+                        Number(line.words[ti + k].endTime) > Number(line.words[ti + k].time);
+                    entries.push({ x: cursorX, box, t0: tm.time, t1: Math.max(tm.time + 0.05, tm.endTime), explicitTiming });
                     cursorX += box.W + spaceWidth;
                 }
                 ti += rowTokens.length;
