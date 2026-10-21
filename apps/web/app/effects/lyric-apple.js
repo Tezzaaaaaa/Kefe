@@ -275,7 +275,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         document.fonts.load('700 48px "Inter Tight"').catch(() => {});
         document.fonts.load('600 48px "Inter Tight"').catch(() => {});
     }
-    const boundaryLeft = landscapeSplit ? w * (180 / 384) : w * (aspectRatio < 0.9 ? 0.07 : aspectRatio < 1.25 ? 0.08 : 0.082);
+    const boundaryLeft = landscapeSplit
+        ? w * (180 / 384)
+        : (aspectRatio < 0.9 ? w * 0.07 : w * 0.08) + baseDimension * 0.183;
     const margin = boundaryLeft + horizontalPadding;
     let maxWidth = contentWidth;
     const displayLines = [];
@@ -294,7 +296,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     ctx.font = `${contract.weight || 700} ${activeFontSize}px ${family}`;
     // Offset by the width of two glyphs, not a fixed pixel value, so the adjustment scales with the lyric typography.
     const twoLetterOffset = ctx.measureText('MM').width;
-    const horizontalLyricShift = landscapeSplit ? -twoLetterOffset : (aspectRatio < 0.75 ? twoLetterOffset : 0);
+    const horizontalLyricShift = landscapeSplit ? -twoLetterOffset : 0;
     // Measure wrapping against the actual right safe boundary after the aspect-specific x offset.
     // Keep a rendering buffer inside the visible safety boundary for glyph overhang and per-letter lift.
     maxWidth = Math.max(1, w * 0.92 - (margin + horizontalLyricShift));
@@ -460,7 +462,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = landscapeSplit
         ? h * 0.50
-        : (aspectRatio < 0.9 ? w * 0.235 : h * 0.175);
+        : (aspectRatio < 0.9 ? w * 0.235 : h * 0.33);
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);

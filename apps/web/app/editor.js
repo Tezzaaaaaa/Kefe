@@ -604,11 +604,6 @@
             if(aspect<0.75){
               // Reposition the rendered Apple lyrics output only; leave the effect implementation untouched.
               g.save();g.translate(0,W*0.104);fn(g,W,H,style,shown,effT,titleArtImage);g.restore();
-            }else if(aspect>=0.9&&aspect<1.25){
-              // Square layout: shift Apple lyrics right by one and a half glyph widths.
-              const size=W*0.056,family='"SF Pro Display","SF Pro Text","Inter Tight",system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
-              g.save();g.font=`${window.KEFE_TYPE?.effects?.apple?.weight||700} ${size}px ${family}`;
-              g.translate(g.measureText('M').width*1.5,0);fn(g,W,H,style,shown,effT,titleArtImage);g.restore();
             }else fn(g,W,H,style,shown,effT,titleArtImage);
           };
           // Lyrics scroll underneath the pinned header: render them on a scratch layer and fade/clip at the header's bottom edge.
