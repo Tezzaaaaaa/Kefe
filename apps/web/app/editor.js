@@ -536,7 +536,7 @@
     const aspect=w/Math.max(1,h),landscape=aspect>=1.25,comp=landscape?w*.34:(aspect<.75?w*.84:w*.78);
     const left=landscape?w*.20-comp/2:w*(aspect<.75?.07:aspect<1.25?.08:.082);
     const ht=Math.max(13,unit*.036),hartist=Math.max(11,unit*.028),hm=Math.max(10,unit*.022);
-    const hArt=landscape?Math.min(unit*.38,w*.24):unit*.11,hTop=landscape?h*.13:(aspect<.75?unit*.18:Math.max(32,h*.12)),hGap=unit*(landscape?.035:.028);
+    const hArt=landscape?Math.min(unit*.38,w*.24):unit*.155,hTop=landscape?h*.13:(aspect<.75?unit*.18:Math.max(32,h*.12)),hGap=unit*(landscape?.035:.028);
     const maxW=landscape?comp*.94:w*.82,titleStartLines=wrapText(title,font(750,bt),maxW).length;
     const bigTextH=titleStartLines*bt*1.15+(artist?ba*1.35:0)+(meta?bm*1.4:0)+(yearText?bm*1.4:0),bigTop=(h-(bigArt+bigGap+bigTextH))/2;
     const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,landscape?left+(comp-hArt)/2:left),ay=lerp(bigTop,hTop),r=art*.08;
