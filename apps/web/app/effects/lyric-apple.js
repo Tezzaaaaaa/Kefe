@@ -199,12 +199,10 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
         const dur = Math.max(0.05, en.t1 - en.t0);
         const progress = linaClamp((time - en.t0) / dur);
         const edgeSoft = linaClamp(P.soft * 0.16, 0.025, 0.10);
-        // Sweep the highlight continuously across the measured word width. The edge starts
-        // just before the first glyph and finishes just after the last, avoiding per-letter
-        // timing steps and keeping the timing independent of character count.
         const front = progress * (1 + edgeSoft * 2) - edgeSoft;
         const W = en.box.W;
         const charCount = en.box.chars.length;
+        const amp = en.explicitTiming && dur >= 0.72 ? 0.48 : 0.68;
         for (let k = 0; k < charCount; k++) {
             const lx = en.x + en.box.xs[k], lw = en.box.ws[k];
             const a = en.box.xs[k] / W, b = (en.box.xs[k] + lw) / W;
@@ -216,14 +214,14 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
                 return (dim + (hi - dim) * sweep) * lineA;
             };
             const ch = en.box.chars[k];
-            // A restrained travelling pulse follows the highlight across the word:
-            // each glyph rises and eases back down as the wave moves to its neighbour.
-            // A wider phase window avoids a sharp, letter-by-letter twitch.
-            const liftWaveWidth = 0.13;
-            const liftProgress = linaClamp((front - charCenter + liftWaveWidth) / (2 * liftWaveWidth));
-            const lift = P.lift * Math.sin(Math.PI * linaSmoother(liftProgress));
+            // Mexican-wave timing: neighbouring glyphs rise with a small overlap,
+            // creating a connected travelling ripple rather than isolated letter jumps.
+            // The wave changes only the approach timing; once lifted, each glyph stays up.
+            const waveLead = 0.035;
+            const liftProgress = linaClamp((front - charCenter + edgeSoft + waveLead) / (2 * edgeSoft));
+            const lift = P.lift * linaSmoother(liftProgress);
             ctx.save();
-            if (lift > 0.002) {
+            if (lift > 0.001) {
                 const ox = lx + lw / 2, oy = y + fs * 0.46, sc = 1 + lift * P.pop;
                 ctx.translate(0, -lift * fs);
                 ctx.translate(ox, oy);
@@ -241,8 +239,6 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
                 };
                 addStop(0);
                 addStop(1);
-                // Sample the smooth edge at five points so Canvas gradients approximate a
-                // smoothstep curve rather than a sharp, linear karaoke wipe.
                 for (const edge of [front - edgeSoft, front - edgeSoft * 0.5, front, front + edgeSoft * 0.5, front + edgeSoft]) {
                     addStop((edge - a) / wd);
                 }
