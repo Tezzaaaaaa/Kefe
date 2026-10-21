@@ -523,6 +523,27 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         }
 
         if (times) {
+            // A line's end timestamp is not necessarily the end of its final sung word.
+            // If the final word has no explicit end time, estimate its vocal end from the line's cadence
+            // instead of letting a long silent gap stretch its letter lift.
+            const finalWordIndex = times.length - 1;
+            const sourceWords = Array.isArray(line.words) ? line.words : null;
+            const hasExplicitFinalEnd = sourceWords?.length
+                ? hasFiniteNumber(sourceWords[sourceWords.length - 1]?.endTime) &&
+                  Number(sourceWords[sourceWords.length - 1].endTime) > Number(sourceWords[sourceWords.length - 1].time)
+                : false;
+            if (finalWordIndex >= 0 && !hasExplicitFinalEnd) {
+                const estimatedEnd = estimateFinalVocalWordEnd(
+                    tokens.map((text, index) => ({ text, time: times[index]?.time, endTime: times[index]?.endTime })),
+                    Number.isFinite(nextStart) ? nextStart : Infinity
+                );
+                if (Number.isFinite(estimatedEnd) && estimatedEnd > times[finalWordIndex].time) {
+                    times[finalWordIndex] = {
+                        ...times[finalWordIndex],
+                        endTime: Math.min(times[finalWordIndex].endTime, estimatedEnd)
+                    };
+                }
+            }
             // Sung part eases from 1 down to the unsung level after the line ends (reference: --hi over `fall`).
             const hi = 1 - (1 - wave.dim) * linaSmooth((time - lineEnd) / wave.fall);
             const spaceWidth = ctx.measureText(' ').width;
