@@ -52,3 +52,7 @@ Other dependencies declared in workspace package manifests and lockfiles retain 
 ## System font fallback
 
 SF Pro Display, Georgia, and Trebuchet MS are referenced as system font fallbacks; KEFE does not bundle those font files here. This notice does not grant rights to Apple's font software or trademarks.
+
+## Scenic background photographs
+
+`apps/web/app/assets/scenic/` holds stock photographs (3 tunnel photos, 2 hibiscus photos) supplied by the project owner as free-to-use stock images. Re-confirm each photo's licence and add attribution if its source requires it.

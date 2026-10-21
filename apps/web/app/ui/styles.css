@@ -9872,3 +9872,4 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.kefe-visualiser-field[hidden]{display:none}
