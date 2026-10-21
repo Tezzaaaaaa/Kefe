@@ -187,9 +187,11 @@
   }
   function layout(){
     var cards=el.CarStack.children,n=cards.length;
+    var carouselWidth=el.Carousel.clientWidth||320;
+    var step=Math.max(12,Math.min(34,(carouselWidth-170)/8));
     for(var i=0;i<n;i++){
       var c=cards[i],cardIndex=Number(c.dataset.i),off=cardIndex-S.index,abs=Math.abs(off),vis=abs<=4;
-      c.style.transform='translate3d('+(off*34)+'px,'+(abs*3)+'px,'+(-abs*38)+'px) rotateY('+(off*-6)+'deg) scale('+(1-abs*.05)+')';
+      c.style.transform='translate3d('+(off*step)+'px,'+(abs*3)+'px,'+(-abs*30)+'px) rotateY('+(off*-4)+'deg) scale('+(1-abs*.045)+')';
       c.style.opacity=vis?Math.max(0,1-abs*.24):0;
       c.style.zIndex=50-abs;c.style.pointerEvents=vis?'auto':'none';
       c.style.filter=off===0?'none':'brightness('+Math.max(.72,1-abs*.08)+') saturate('+Math.max(.55,1-abs*.12)+')';
