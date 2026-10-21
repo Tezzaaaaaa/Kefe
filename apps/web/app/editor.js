@@ -178,7 +178,7 @@
       label=document.createElement('label');label.id='kefeEmbeddedArtworkOption';label.className='kefe-embedded-art-option';
       label.innerHTML='<input type="checkbox" id="kefeUseEmbeddedArtwork"><span>Use artwork embedded in uploaded audio</span>';
       track.appendChild(label);
-      const style=document.createElement('style');style.id='kefe-embedded-art-option-style';style.textContent='#kefeMediaTrack .kefe-embedded-art-option{display:flex;align-items:center;gap:9px;margin:12px 0 0;padding:10px 12px;border:1px solid var(--beui-border,rgba(255,255,255,.14));border-radius:12px;font-size:13px;line-height:1.35;color:var(--beui-text,inherit);cursor:pointer}#kefeMediaTrack .kefe-embedded-art-option[hidden]{display:none}#kefeMediaTrack .kefe-embedded-art-option input{flex:0 0 auto;accent-color:var(--beui-accent,#a8a8ff)}';document.head.appendChild(style);
+
       label.querySelector('input').addEventListener('change',event=>{
         if(!songAlbum.dataset.embeddedArtUrl)return;
         if(event.target.checked){songAlbum.dataset.artUrl=songAlbum.dataset.embeddedArtUrl;}
@@ -754,7 +754,9 @@
   }
 
   function openEditorPanel(panel){
-    document.querySelector('.kefe-editing')?.setAttribute('data-active-panel',panel);
+    const editingRoot=document.querySelector('.kefe-editing');
+    editingRoot?.setAttribute('data-active-panel',panel);
+    editingRoot?.setAttribute('data-selected-section',panel);
     const showVisualiserNavigation = panel === 'visualiser';
     document.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(element => {
       element.hidden = !showVisualiserNavigation;
