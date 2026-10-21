@@ -145,7 +145,7 @@ function appleSpringOut(t) {
    word's timing, so the sweep is sub-pixel smooth instead of stepping letter by letter.
    Lift / pop / glow are pure functions of time per letter (rise before the front arrives, cosine
    settle after), so nothing is driven by hard per-word switches. */
-const APPLE_WAVE = { lift: 0.12, pop: 0.04, glow: 0.8, glowSize: 0.38, soft: 0.35, fall: 0.28, dim: 0.32 };
+const APPLE_WAVE = { lift: 0.10, pop: 0.04, glow: 0.8, glowSize: 0.38, soft: 0.35, fall: 0.28, dim: 0.32 };
 const appleLetterCache = new Map();
 const appleRowCache = new Map();
 const APPLE_OFFSCREEN = 20000;
@@ -216,12 +216,12 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
                 return (dim + (hi - dim) * sweep) * lineA;
             };
             const ch = en.box.chars[k];
-            // Lift each glyph smoothly as the highlight reaches it, then hold that
-            // lifted position for the rest of the word. There is deliberately no settle,
-            // drop, or oscillation after a glyph has been highlighted.
-            const liftProgress = linaClamp((front - charCenter + edgeSoft) / (2 * edgeSoft));
-            // A restrained, quintic-eased rise blends smoothly into place without a pronounced bounce.
-            const lift = P.lift * linaSmoother(liftProgress);
+            // A restrained travelling pulse follows the highlight across the word:
+            // each glyph rises and eases back down as the wave moves to its neighbour.
+            // A wider phase window avoids a sharp, letter-by-letter twitch.
+            const liftWaveWidth = 0.13;
+            const liftProgress = linaClamp((front - charCenter + liftWaveWidth) / (2 * liftWaveWidth));
+            const lift = P.lift * Math.sin(Math.PI * linaSmoother(liftProgress));
             ctx.save();
             if (lift > 0.002) {
                 const ox = lx + lw / 2, oy = y + fs * 0.46, sc = 1 + lift * P.pop;
