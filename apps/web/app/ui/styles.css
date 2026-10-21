@@ -1094,6 +1094,8 @@ button{border:0;cursor:pointer;
 .kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.kefe-upload-zone.beui-upload-card-hosted{box-sizing:border-box;display:block;min-height:192px;height:auto;align-self:stretch;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;transition:none}
 .kefe-media-upload-row>.kefe-upload-zone.beui-upload-card-hosted>.beui-upload-card-root{width:100%;height:100%}
 .kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.kefe-upload-zone.beui-upload-card-hosted .beui-upload-card{box-sizing:border-box;width:100%;height:auto;min-height:209px}
+
+@container kefe-media-step (max-width: 500px){.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.beui-upload-wrap>.kefe-upload-zone{min-height:209px}}
 .kefe-song-details{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--line-soft)}
 .kefe-song-details-head h4{margin:0;font-size: var(--font-base);font-weight:800;color: var(--text);}
 .kefe-song-details-head p{margin:3px 0 0;font-size: var(--font-xs);color: var(--muted);}
