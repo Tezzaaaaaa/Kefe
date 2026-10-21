@@ -180,15 +180,16 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
         const f = linaClamp((time - en.t0) / dur);
         const s = P.soft * (0.7 + 0.6 * linaClamp(dur / 1.2));
         const front = f * (1 + s), sa = front - s;
-        const rise = linaClamp(dur * 0.4, 0.1, 0.55);
-        const settle = linaClamp(dur * 0.7 + 0.12, 0.2, 1);
+        // Let each letter's lift breathe with the word's actual duration, especially sustained notes.
+        const rise = linaClamp(dur * 0.4, 0.14, 0.85);
+        const settle = linaClamp(dur * 0.7 + 0.12, 0.3, 1.8);
         const amp = 0.65 + 0.35 * linaClamp(dur / 1.2);
         const W = en.box.W;
         for (let k = 0; k < en.box.chars.length; k++) {
             const lx = en.x + en.box.xs[k], lw = en.box.ws[k];
             const a = en.box.xs[k] / W, b = (en.box.xs[k] + lw) / W, wd = Math.max(0.0005, b - a);
             const tau = time - (en.t0 + dur * ((a + b) / 2) / (1 + s));
-            const lift = amp * (tau < 0 ? linaSmooth(1 + tau / rise) : (1 + Math.cos(Math.PI * Math.min(1, tau / settle))) / 2);
+            const lift = amp * (tau < 0 ? linaSmoother(1 + tau / rise) : 1 - linaSmoother(tau / settle));
             const A = (sa - a) / wd, B = (front - a) / wd;     // soft edge, in letter-local 0..1 coordinates
             const alphaAt = u => (u <= A ? hi : u >= B ? dim : hi + (dim - hi) * ((u - A) / Math.max(1e-6, B - A))) * lineA;
             const ch = en.box.chars[k];
