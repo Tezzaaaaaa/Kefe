@@ -236,11 +236,12 @@
     if(suggestions)suggestions.hidden=!song;
   }
   function applyPickedTrack(item){
+    const preferEmbeddedArtwork=!!document.getElementById('kefeUseEmbeddedArtwork')?.checked&&!!songAlbum.dataset.embeddedArtUrl;
     songTitle.value=item.trackName||'';
     songArtist.value=item.artistName||'';
     songAlbum.value=item.collectionName||'';
     songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
-    songAlbum.dataset.artUrl=normalizeArtworkUrl(item.artworkUrl100);
+    songAlbum.dataset.artUrl=preferEmbeddedArtwork?songAlbum.dataset.embeddedArtUrl:normalizeArtworkUrl(item.artworkUrl100);
     songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
     songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
     const mediaTrack=document.getElementById('kefeMediaTrack');
@@ -1099,11 +1100,12 @@
     return true;
   }
   function applyIdentifiedTrack(item){
+    const preferEmbeddedArtwork=!!document.getElementById('kefeUseEmbeddedArtwork')?.checked&&!!songAlbum.dataset.embeddedArtUrl;
     if(!manuallyEditedTrackFields.has('title'))songTitle.value=item.trackName||songTitle.value;
     if(!manuallyEditedTrackFields.has('artist'))songArtist.value=item.artistName||songArtist.value;
     if(!manuallyEditedTrackFields.has('album'))songAlbum.value=item.collectionName||songAlbum.value;
     if(!manuallyEditedTrackFields.has('year'))songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):songYear.value;
-    songAlbum.dataset.artUrl=normalizeArtworkUrl(item.artworkUrl100);
+    songAlbum.dataset.artUrl=preferEmbeddedArtwork?songAlbum.dataset.embeddedArtUrl:normalizeArtworkUrl(item.artworkUrl100);
     songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
     songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
     const mediaTrack=document.getElementById('kefeMediaTrack');
