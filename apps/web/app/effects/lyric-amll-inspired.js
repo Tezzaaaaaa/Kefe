@@ -76,7 +76,14 @@
     const lineGap=fontSize*.25;
     const lineHeight=fontSize*1.14;
     const stack=[];
-    for(let i=Math.max(0,activeIndex-1);i<=Math.min(lines.length-1,activeIndex+1);i++){
+    const activeStart=Number(lines[activeIndex]?.time)||0;
+    const nextStart=Number(lines[activeIndex+1]?.time);
+    const transitionDuration=Number.isFinite(nextStart)&&nextStart>activeStart
+      ?clamp((nextStart-activeStart)*.16,.18,.30):0;
+    const scrollProgress=transitionDuration
+      ?smoother((time-(nextStart-transitionDuration))/transitionDuration):0;
+    const focus=activeIndex+scrollProgress;
+    for(let i=Math.max(0,activeIndex-4);i<=Math.min(lines.length-1,activeIndex+5);i++){
       const line=lines[i]||{},text=String(line.text??line.lyric??'').replace(/\s+/gu,' ').trim();
       if(!text)continue;
       const isActive=i===activeIndex,fs=isActive?fontSize:inactiveSize,font=weight+' '+fs+'px '+family;
@@ -85,21 +92,36 @@
       const end=Number(line.endTime)>(start)?Number(line.endTime):(Number(lines[i+1]?.time)>start?Number(lines[i+1].time):start+3);
       const entering=smoother((time-start)/.28);
       const leaving=i<activeIndex?smoother((time-end+.48)/.48):1;
-      const alpha=isActive?entering:clamp(.34*(i<activeIndex?1-leaving:1));
-      const yOffset=isActive?(1-entering)*fontSize*.24:(i<activeIndex?-fontSize*.16:fontSize*.2);
-      stack.push({line,text,rows,fs,font,isActive,alpha,yOffset,i,start,end});
+      const distance=i-focus;
+      const alpha=isActive?entering:clamp(.34*Math.max(0,1-Math.max(0,Math.abs(distance)-1)*.22)*(i<activeIndex?1-leaving:1));
+      const yOffset=isActive?(1-entering)*fontSize*.12:0;
+      stack.push({line,text,rows,fs,font,isActive,alpha,yOffset,i,start,end,distance});
     }
     if(!stack.length)return;
-    const totalHeight=stack.reduce((n,item)=>n+item.rows.length*item.fs*1.14,0)+lineGap*(stack.length-1);
-    let y=(h-totalHeight)/2+stack[0].fs*.58;
-    if(landscape)y=Math.max(fontSize,h*.5-totalHeight*.5+fontSize*.58);
+    let cursor=0;
+    for(let i=0;i<stack.length;i++){
+      const item=stack[i];
+      item.blockHeight=item.rows.length*item.fs*1.14;
+      item.offset=cursor+item.blockHeight/2;
+      cursor+=item.blockHeight+lineGap;
+    }
+    const offsetFor=index=>{
+      if(index<=stack[0].i)return stack[0].offset;
+      if(index>=stack[stack.length-1].i)return stack[stack.length-1].offset;
+      const left=stack.find(item=>item.i===Math.floor(index));
+      const right=stack.find(item=>item.i===Math.ceil(index));
+      if(!left)return right?.offset||0;
+      if(!right)return left.offset;
+      return left.offset+(right.offset-left.offset)*(index-Math.floor(index));
+    };
+    const focusOffset=offsetFor(focus);
     ctx.save();
     ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';
     for(const item of stack){
       const {line,rows,fs,font,isActive,alpha,yOffset,i}=item;
       ctx.font=font;
       const rowHeight=fs*1.14;
-      const centerY=y+(rows.length-1)*rowHeight/2+yOffset;
+      const centerY=h*.5+item.offset-focusOffset+yOffset;
       if(isActive){
         const tokens=item.text.split(/\s+/u).filter(Boolean);
         const timings=wordsFor(line,lines[i+1],tokens);
@@ -146,7 +168,7 @@
         ctx.fillStyle=white(alpha);
         rows.forEach((row,ri)=>ctx.fillText(row,centerX,centerY+(ri-(rows.length-1)/2)*rowHeight));
       }
-      y+=rows.length*rowHeight+lineGap;
+      
     }
     ctx.restore();
   }
