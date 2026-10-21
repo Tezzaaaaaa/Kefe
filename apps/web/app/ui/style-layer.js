@@ -205,6 +205,7 @@
   window.kefeStyle = {
     style: style, post: post,
     state: function () { return clone(S); },
+    applyState: function (value) { S = merge(DEFAULT, value); syncers.forEach(function (fn) { fn(); }); persist(); redraw(); return clone(S); },
     isActive: function () { return active(); }
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', buildUi); else buildUi();
