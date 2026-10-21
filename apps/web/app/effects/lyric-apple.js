@@ -221,11 +221,13 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
             // lifted position for the rest of the word. There is deliberately no settle,
             // drop, or oscillation after a glyph has been highlighted.
             const liftProgress = linaClamp((front - charCenter + edgeSoft) / (2 * edgeSoft));
-            const lift = amp * linaSmoother(liftProgress);
+            // Use a full-strength eased rise. The previous double scaling (wave amplitude
+            // multiplied by the style lift) made the movement too easy to miss.
+            const lift = 0.55 * linaSmoother(liftProgress);
             ctx.save();
             if (lift > 0.002) {
                 const ox = lx + lw / 2, oy = y + fs * 0.46, sc = 1 + lift * P.pop;
-                ctx.translate(0, -lift * P.lift * fs);
+                ctx.translate(0, -lift * fs);
                 ctx.translate(ox, oy);
                 ctx.scale(sc, sc);
                 ctx.translate(-ox, -oy);
