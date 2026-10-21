@@ -520,9 +520,30 @@
     ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+barW*progress,y);ctx.stroke();
     ctx.restore();
   }
-  const appleLayoutKey='kefe.apple-layout.v1';
-  const appleLayout=(()=>{const defaults={lyrics:{x:0,y:0,scale:1},card:{x:0,y:0,scale:1}};try{const saved=JSON.parse(localStorage.getItem(appleLayoutKey)||'null');for(const key of ['lyrics','card'])if(saved?.[key])defaults[key]={x:Number(saved[key].x)||0,y:Number(saved[key].y)||0,scale:Math.max(.5,Math.min(2,Number(saved[key].scale)||1))};}catch(_){}return defaults;})();
-  window.kefeAppleLayout=appleLayout;
+  const appleLayoutKey='kefe.apple-layout.v2';
+  const createAppleLayout=()=>({lyrics:{x:0,y:0,scale:1},card:{x:0,y:0,scale:1}});
+  const normalizeAppleLayout=(source,defaults=createAppleLayout())=>{
+    for(const key of ['lyrics','card'])if(source?.[key])defaults[key]={x:Number(source[key].x)||0,y:Number(source[key].y)||0,scale:Math.max(.5,Math.min(2,Number(source[key].scale)||1))};
+    return defaults;
+  };
+  const appleLayouts=(()=>{
+    const layouts={'16:9':createAppleLayout(),'9:16':createAppleLayout(),'1:1':createAppleLayout()};
+    try{
+      const saved=JSON.parse(localStorage.getItem(appleLayoutKey)||'null');
+      if(saved&&typeof saved==='object'){
+        for(const ratio of Object.keys(layouts))if(saved[ratio])normalizeAppleLayout(saved[ratio],layouts[ratio]);
+      }else{
+        // Migrate the old shared layout into landscape only; portrait and square start independently.
+        const legacy=JSON.parse(localStorage.getItem('kefe.apple-layout.v1')||'null');
+        if(legacy)normalizeAppleLayout(legacy,layouts['16:9']);
+      }
+    }catch(_){}
+    return layouts;
+  })();
+  let appleLayout=appleLayouts[previewAspectRatio]||appleLayouts['16:9'];
+  const setActiveAppleLayout=()=>{appleLayout=appleLayouts[previewAspectRatio]||appleLayouts['16:9'];window.kefeAppleLayout=appleLayout;};
+  const saveAppleLayoutState=()=>{try{localStorage.setItem(appleLayoutKey,JSON.stringify(appleLayouts));}catch(_){}};
+  setActiveAppleLayout();
   function drawTitleCardCanvas(ctx,w,h,t){
     const ph=titlePhase(t);
     if(ph.mode==='off')return;
@@ -703,10 +724,9 @@
     if(saved.style&&window.kefeStyle?.applyState)window.kefeStyle.applyState(saved.style);
     if(saved.lyricStudio&&window.kefeLyricStudio?.applySettings)window.kefeLyricStudio.applySettings(saved.lyricStudio);
     if(saved.appleLayout&&id==='apple'){
-      for(const key of ['lyrics','card'])if(saved.appleLayout[key]){
-        appleLayout[key]={x:Number(saved.appleLayout[key].x)||0,y:Number(saved.appleLayout[key].y)||0,scale:Math.max(.5,Math.min(2,Number(saved.appleLayout[key].scale)||1))};
-      }
-      try{localStorage.setItem(appleLayoutKey,JSON.stringify(appleLayout));}catch(_){}
+      const savedLayout=saved.appleLayout[previewAspectRatio]||((saved.appleLayout.lyrics||saved.appleLayout.card)&&previewAspectRatio==='16:9'?saved.appleLayout:null);
+      if(savedLayout)normalizeAppleLayout(savedLayout,appleLayout);
+      saveAppleLayoutState();
       window.kefeAppleLayout=appleLayout;
     }
     return true;
@@ -716,7 +736,7 @@
     defaults[state.effect]={
       style:window.kefeStyle?.state?.()||null,
       lyricStudio:window.kefeLyricStudio?.settings?.()||null,
-      appleLayout:state.effect==='apple'?JSON.parse(JSON.stringify(appleLayout)):null
+      appleLayout:state.effect==='apple'?{...(readEffectDefaults()[state.effect]?.appleLayout||{}),[previewAspectRatio]:JSON.parse(JSON.stringify(appleLayout))}:null
     };
     try{localStorage.setItem(effectDefaultsKey,JSON.stringify(defaults));return true;}catch(_){return false;}
   }
@@ -892,6 +912,7 @@
   const aspectSelect=document.getElementById('kefeAspect');
   aspectSelect?.addEventListener('change',()=>{
     previewAspectRatio=aspectSelect.value;
+    setActiveAppleLayout();
     // Preview canvas follows the chosen aspect so effects lay out for it instead of being stretched.
     if(!exporting){
       const pd=previewAspectRatio==='9:16'?[1080,1920]:previewAspectRatio==='1:1'?[1080,1080]:[1920,1080];
@@ -1948,14 +1969,14 @@
     previewStage.style.touchAction='none';
     const layoutUi=document.createElement('div');
     layoutUi.dataset.appleLayoutUi='true';
-    layoutUi.style.cssText='position:relative;z-index:1;display:flex;flex:0 0 auto;flex-wrap:nowrap;align-items:center;gap:6px;width:min(900px,100%);max-width:100%;overflow-x:auto;overflow-y:hidden;padding:6px 8px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(18,18,20,.88);color:#fff;font:12px system-ui,sans-serif;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);';
+    layoutUi.style.cssText='position:relative;z-index:5;display:flex;flex:0 0 auto;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;width:min(900px,100%);max-width:100%;box-sizing:border-box;overflow:visible;padding:8px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(18,18,20,.94);color:#fff;font:12px system-ui,sans-serif;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);';
     if(previewPane){previewPane.style.display='flex';previewPane.style.flexDirection='column';previewPane.style.alignItems='center';previewPane.style.justifyContent='center';previewPane.style.gap='8px';}
     layoutUi.innerHTML='<label style="display:flex;align-items:center;gap:4px">Adjust <select data-layout-target style="max-width:125px;color:#fff;background:#333;border-radius:6px;padding:4px"><option value="lyrics">Lyrics</option><option value="card">Album artwork + title</option></select></label><label style="display:flex;align-items:center;gap:4px">Size <input data-layout-scale type="range" min="50" max="200" value="100" style="width:74px"></label><button type="button" data-layout-move aria-pressed="false" style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Move layer</button><button type="button" data-layout-reset style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Reset</button><button type="button" data-effect-default title="Save current look and behaviour as this effect’s default" style="color:#fff;background:#356caa;border:0;border-radius:6px;padding:5px 8px">Lock as default</button><button type="button" data-effect-default-clear title="Remove this effect’s saved default" style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Unlock</button><span data-layout-hint role="status" style="opacity:.8">Move a layer, adjust size, then lock this effect’s defaults</span>';
     previewPane?.insertBefore(layoutUi,previewStage);
     const layoutTarget=layoutUi.querySelector('[data-layout-target]'),layoutScale=layoutUi.querySelector('[data-layout-scale]'),layoutMove=layoutUi.querySelector('[data-layout-move]'),layoutHint=layoutUi.querySelector('[data-layout-hint]');
     layoutUi.querySelector('[data-effect-default]').addEventListener('click',()=>{layoutHint.textContent=saveCurrentEffectDefault()?'Locked: this look and behaviour will load whenever '+state.effect+' is selected.':'Could not save defaults in this browser.';});
     layoutUi.querySelector('[data-effect-default-clear]').addEventListener('click',()=>{layoutHint.textContent=clearCurrentEffectDefault()?'Saved default cleared for '+state.effect+'.':'Could not clear this effect’s default.';});
-    const saveAppleLayout=()=>{try{localStorage.setItem(appleLayoutKey,JSON.stringify(appleLayout));}catch(_){}};
+    const saveAppleLayout=saveAppleLayoutState;
     const syncLayoutScale=()=>{layoutScale.value=String(Math.round(appleLayout[layoutTarget.value].scale*100));};
     layoutTarget.addEventListener('change',syncLayoutScale);
     layoutMove.addEventListener('click',()=>{const enabled=layoutMove.getAttribute('aria-pressed')!=='true';layoutMove.setAttribute('aria-pressed',String(enabled));layoutMove.textContent=enabled?'Done moving':'Move layer';layoutMove.style.background=enabled?'#356caa':'#333';layoutHint.textContent=enabled?'Drag the selected layer in preview':'Preview gestures restored';});
