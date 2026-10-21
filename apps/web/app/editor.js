@@ -696,8 +696,37 @@
     if(typeof lyrics!=='string'||!lyrics.trim())return [];
     return parseLrcText(lyrics);
   }
+  const effectDefaultsKey='kefe.effect-defaults.v1';
+  function readEffectDefaults(){try{const saved=JSON.parse(localStorage.getItem(effectDefaultsKey)||'{}');return saved&&typeof saved==='object'?saved:{};}catch(_){return {};}}
+  function applyEffectDefault(id){
+    const saved=readEffectDefaults()[id];if(!saved)return false;
+    if(saved.style&&window.kefeStyle?.applyState)window.kefeStyle.applyState(saved.style);
+    if(saved.lyricStudio&&window.kefeLyricStudio?.applySettings)window.kefeLyricStudio.applySettings(saved.lyricStudio);
+    if(saved.appleLayout&&id==='apple'){
+      for(const key of ['lyrics','card'])if(saved.appleLayout[key]){
+        appleLayout[key]={x:Number(saved.appleLayout[key].x)||0,y:Number(saved.appleLayout[key].y)||0,scale:Math.max(.5,Math.min(2,Number(saved.appleLayout[key].scale)||1))};
+      }
+      try{localStorage.setItem(appleLayoutKey,JSON.stringify(appleLayout));}catch(_){}
+      window.kefeAppleLayout=appleLayout;
+    }
+    return true;
+  }
+  function saveCurrentEffectDefault(){
+    const defaults=readEffectDefaults();
+    defaults[state.effect]={
+      style:window.kefeStyle?.state?.()||null,
+      lyricStudio:window.kefeLyricStudio?.settings?.()||null,
+      appleLayout:state.effect==='apple'?JSON.parse(JSON.stringify(appleLayout)):null
+    };
+    try{localStorage.setItem(effectDefaultsKey,JSON.stringify(defaults));return true;}catch(_){return false;}
+  }
+  function clearCurrentEffectDefault(){
+    const defaults=readEffectDefaults();delete defaults[state.effect];
+    try{localStorage.setItem(effectDefaultsKey,JSON.stringify(defaults));return true;}catch(_){return false;}
+  }
   function setEffect(id){
     state.effect=id;
+    applyEffectDefault(id);
     if(typeof syncKaraokeControls==='function')syncKaraokeControls();
     if(appleLyrics){if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();}else appleLyrics.style.display='none';}
     document.querySelectorAll('.kefe-lyric-effect-option').forEach(b=>{const active=b.dataset.effect===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
@@ -1907,9 +1936,11 @@
     const layoutUi=document.createElement('div');
     layoutUi.dataset.appleLayoutUi='true';
     layoutUi.style.cssText='position:absolute;z-index:30;top:8px;left:8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:calc(100% - 16px);padding:8px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(18,18,20,.88);color:#fff;font:12px system-ui,sans-serif;backdrop-filter:blur(12px);';
-    layoutUi.innerHTML='<label style="display:flex;align-items:center;gap:4px">Adjust <select data-layout-target style="max-width:125px;color:#fff;background:#333;border-radius:6px;padding:4px"><option value="lyrics">Lyrics</option><option value="card">Album artwork + title</option></select></label><label style="display:flex;align-items:center;gap:4px">Size <input data-layout-scale type="range" min="50" max="200" value="100" style="width:74px"></label><button type="button" data-layout-move aria-pressed="false" style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Move layer</button><button type="button" data-layout-reset style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Reset</button><span data-layout-hint style="opacity:.8">Enable Move layer, then drag in preview</span>';
+    layoutUi.innerHTML='<label style="display:flex;align-items:center;gap:4px">Adjust <select data-layout-target style="max-width:125px;color:#fff;background:#333;border-radius:6px;padding:4px"><option value="lyrics">Lyrics</option><option value="card">Album artwork + title</option></select></label><label style="display:flex;align-items:center;gap:4px">Size <input data-layout-scale type="range" min="50" max="200" value="100" style="width:74px"></label><button type="button" data-layout-move aria-pressed="false" style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Move layer</button><button type="button" data-layout-reset style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Reset</button><button type="button" data-effect-default title="Save current look and behaviour as this effect’s default" style="color:#fff;background:#356caa;border:0;border-radius:6px;padding:5px 8px">Lock as default</button><button type="button" data-effect-default-clear title="Remove this effect’s saved default" style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Unlock</button><span data-layout-hint role="status" style="opacity:.8">Move a layer, adjust size, then lock this effect’s defaults</span>';
     previewStage.appendChild(layoutUi);
     const layoutTarget=layoutUi.querySelector('[data-layout-target]'),layoutScale=layoutUi.querySelector('[data-layout-scale]'),layoutMove=layoutUi.querySelector('[data-layout-move]'),layoutHint=layoutUi.querySelector('[data-layout-hint]');
+    layoutUi.querySelector('[data-effect-default]').addEventListener('click',()=>{layoutHint.textContent=saveCurrentEffectDefault()?'Locked: this look and behaviour will load whenever '+state.effect+' is selected.':'Could not save defaults in this browser.';});
+    layoutUi.querySelector('[data-effect-default-clear]').addEventListener('click',()=>{layoutHint.textContent=clearCurrentEffectDefault()?'Saved default cleared for '+state.effect+'.':'Could not clear this effect’s default.';});
     const saveAppleLayout=()=>{try{localStorage.setItem(appleLayoutKey,JSON.stringify(appleLayout));}catch(_){}};
     const syncLayoutScale=()=>{layoutScale.value=String(Math.round(appleLayout[layoutTarget.value].scale*100));};
     layoutTarget.addEventListener('change',syncLayoutScale);
