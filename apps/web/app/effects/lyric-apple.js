@@ -469,10 +469,16 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const active = linaNormaliseLine(displayLines, activeIndex);
     if (!active) return;
 
-    // Keep the active/highlight line anchored to one fixed vertical position.
-    // Moving the focus continuously toward the next line made the highlight drift
-    // vertically throughout each cue instead of staying in a stable reading lane.
-    const posT = 0;
+    // Smoothly scroll between lyric lines only at the cue boundary. Keeping this
+    // transition short preserves the fixed reading lane without drifting throughout
+    // the whole cue.
+    const nextLineTime = hasFiniteNumber(active.nextLineTime) ? Number(active.nextLineTime) : null;
+    const transitionDuration = nextLineTime !== null
+        ? linaClamp((nextLineTime - Number(active.time)) * 0.16, 0.18, 0.30)
+        : 0;
+    const posT = nextLineTime !== null && transitionDuration > 0
+        ? linaSmooth((time - (nextLineTime - transitionDuration)) / transitionDuration)
+        : 0;
 
     const scalePoints = [[-4, 0.97], [-3, 0.97], [-2, 0.97], [-1, 0.97], [0, activeScale], [1, 0.97], [2, 0.97], [3, 0.97], [4, 0.97]];
     // Per-line fade + blur by distance from the focused line — same table as the reference player (dState).
