@@ -474,7 +474,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     // the whole cue.
     const nextLineTime = hasFiniteNumber(active.nextLineTime) ? Number(active.nextLineTime) : null;
     const transitionDuration = nextLineTime !== null
-        ? linaClamp((nextLineTime - Number(active.time)) * 0.16, 0.18, 0.30)
+        ? linaClamp((nextLineTime - Number(active.time)) * 0.42, 0.48, 0.72)
         : 0;
     const posT = nextLineTime !== null && transitionDuration > 0
         ? linaSmooth((time - (nextLineTime - transitionDuration)) / transitionDuration)
