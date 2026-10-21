@@ -360,6 +360,22 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
             for (const text of secondaryText) {
                 let secondaryRow = '';
                 for (const token of text.split(' ').filter(Boolean)) {
+                    if (ctx.measureText(token).width > maxWidth) {
+                        if (secondaryRow) {
+                            secondaryRows.push(secondaryRow);
+                            secondaryRow = '';
+                        }
+                        for (const glyph of Array.from(token)) {
+                            const glyphCandidate = secondaryRow + glyph;
+                            if (secondaryRow && ctx.measureText(glyphCandidate).width > maxWidth) {
+                                secondaryRows.push(secondaryRow);
+                                secondaryRow = glyph;
+                            } else {
+                                secondaryRow = glyphCandidate;
+                            }
+                        }
+                        continue;
+                    }
                     const candidate = secondaryRow ? `${secondaryRow} ${token}` : token;
                     if (secondaryRow && ctx.measureText(candidate).width > maxWidth) {
                         secondaryRows.push(secondaryRow);
