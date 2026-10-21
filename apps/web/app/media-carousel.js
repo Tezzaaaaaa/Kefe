@@ -7,7 +7,7 @@
 (function(){
   'use strict';
   var COUNTRIES=['AU','US'];
-  var S={items:[],localUpload:null,filter:'all',index:0,mode:'search',albumTitle:'',token:0,drag:null,timer:0,renderStart:0,renderEnd:0};
+  var S={items:[],localUpload:null,filter:'all',index:0,mode:'search',albumTitle:'',token:0,timer:0,scrollTimer:0,renderStart:0,renderEnd:0};
   var el={};
 
   function $(id){return document.getElementById(id);}
@@ -185,18 +185,18 @@
     }
     layout();
   }
-  function layout(){
-    var cards=el.CarStack.children,n=cards.length;
-    var carouselWidth=el.Carousel.clientWidth||320;
-    var step=Math.max(92,Math.min(132,(carouselWidth-150)/2+12));
-    for(var i=0;i<n;i++){
-      var c=cards[i],cardIndex=Number(c.dataset.i),off=cardIndex-S.index,abs=Math.abs(off),vis=abs<=4;
-      c.style.transform='translate3d('+(off*step)+'px,'+(abs*3)+'px,'+(-abs*30)+'px) rotateY('+(off*-4)+'deg) scale('+(1-abs*.045)+')';
-      c.style.opacity=vis?Math.max(0,1-abs*.24):0;
-      c.style.zIndex=50-abs;c.style.pointerEvents=vis?'auto':'none';
-      c.style.filter=off===0?'none':'brightness('+Math.max(.72,1-abs*.08)+') saturate('+Math.max(.55,1-abs*.12)+')';
-      c.tabIndex=off===0?0:-1;
-      var cap=c.lastChild;if(cap)cap.style.opacity=off===0?'1':'0';
+  function layout(center){
+    var cards=el.CarStack.children,active=null;
+    for(var i=0;i<cards.length;i++){
+      var c=cards[i],selected=Number(c.dataset.i)===S.index;
+      c.classList.toggle('active',selected);
+      c.setAttribute('aria-pressed',selected?'true':'false');
+      c.tabIndex=selected?0:-1;
+      if(selected)active=c;
+    }
+    if(center!==false&&active){
+      var left=active.offsetLeft-(el.CarStack.clientWidth-active.offsetWidth)/2;
+      el.CarStack.scrollTo({left:Math.max(0,left),behavior:window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
     }
     info();
   }
@@ -258,27 +258,22 @@
       else if(e.key==='ArrowLeft'){e.preventDefault();go(S.index-1);}
       else if(e.key==='Enter'){e.preventDefault();activate();}
     });
-    /* horizontal wheel/trackpad only – vertical scroll keeps scrolling the panel */
-    var acc=0,cool=false;
-    el.Carousel.addEventListener('wheel',function(e){
-      if(Math.abs(e.deltaX)<=Math.abs(e.deltaY))return;
-      e.preventDefault();if(cool)return;acc+=e.deltaX;
-      if(Math.abs(acc)>50){go(S.index+(acc>0?1:-1));acc=0;cool=true;setTimeout(function(){cool=false;},170);}
-    },{passive:false});
-    /* drag / swipe */
-    function down(x){S.drag=x;S.moved=false;}
-    function move(x){if(S.drag!=null&&Math.abs(x-S.drag)>8)S.moved=true;}
-    function up(x){
-      if(S.drag==null)return;var dx=x-S.drag;S.drag=null;
-      if(dx<-50)go(S.index+1);else if(dx>50)go(S.index-1);
-      setTimeout(function(){S.moved=false;},30);
-    }
-    el.Carousel.addEventListener('mousedown',function(e){down(e.clientX);});
-    window.addEventListener('mousemove',function(e){move(e.clientX);});
-    window.addEventListener('mouseup',function(e){up(e.clientX);});
-    el.Carousel.addEventListener('touchstart',function(e){if(e.touches.length)down(e.touches[0].clientX);},{passive:true});
-    el.Carousel.addEventListener('touchmove',function(e){if(e.touches.length)move(e.touches[0].clientX);},{passive:true});
-    el.Carousel.addEventListener('touchend',function(e){if(e.changedTouches.length)up(e.changedTouches[0].clientX);},{passive:true});
+    /* Native horizontal scrolling owns touch and trackpad gestures. Keep the selected
+       result and detail panel in sync after a user scrolls between snap points. */
+    el.CarStack.addEventListener('scroll',function(){
+      clearTimeout(S.scrollTimer);
+      S.scrollTimer=setTimeout(function(){
+        var cards=el.CarStack.children,center=el.CarStack.getBoundingClientRect().left+el.CarStack.clientWidth/2,best=null,distance=Infinity;
+        for(var i=0;i<cards.length;i++){
+          var rect=cards[i].getBoundingClientRect(),d=Math.abs((rect.left+rect.right)/2-center);
+          if(d<distance){distance=d;best=cards[i];}
+        }
+        if(best){
+          var index=Number(best.dataset.i);
+          if(index!==S.index){S.index=index;layout(false);}
+        }
+      },90);
+    });
   }
 
   function setLocalUpload(item,reset){

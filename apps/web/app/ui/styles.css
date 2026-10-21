@@ -9942,21 +9942,43 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   border-radius: var(--r2, 12px);
 }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-stack {
-  position: absolute;
-  inset: 0;
-  width: auto;
-  height: auto;
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
   margin: 0;
+  padding: 10px max(12px, calc(50% - 75px));
+  overflow-x: auto;
+  overflow-y: hidden;
   transform: none;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: calc(50% - 75px);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-stack::-webkit-scrollbar { display: none; }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card {
+  position: relative;
   inset: auto;
-  left: 50%;
-  top: 50%;
+  display: flex;
+  flex: 0 0 150px;
   width: 150px;
   height: 190px;
-  margin: -95px 0 0 -75px;
-  transform-origin: center center;
+  margin: 0;
+  transform: none;
+  opacity: 1;
+  filter: none;
+  pointer-events: auto;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card.active .kefe-car-art {
+  box-shadow: var(--float, var(--lift));
 }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-art {
   box-sizing: border-box;
