@@ -582,6 +582,12 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         const nextStart = Number(displayLines[i + 1]?.time);
         const lineEnd = Number.isFinite(nextStart) ? nextStart : Number(line.endTime);
         const live = i === activeIndex || (i === activeIndex - 1 && time < lineEnd + wave.fall + 1.2);
+        // The previous cue may finish fading, but its letter lift must not keep
+        // running alongside the new cue. Fade that lift with the same end-of-line
+        // window so there is only one active lifting wave at a time.
+        const lineWave = i === activeIndex ? wave : Object.assign({}, wave, {
+            lift: wave.lift * (1 - linaSmooth((time - lineEnd) / wave.fall))
+        });
 
         const utils = window.kefeEffectUtils;
         const tokens = line.text.split(' ').filter(Boolean);
@@ -653,7 +659,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                     cursorX += box.W + spaceWidth;
                 }
                 ti += rowTokens.length;
-                if (entries.length) appleDrawRow(ctx, entries, rowYs[ri], rowFontSize, time, wave, lineA, hi, blurAmt);
+                if (entries.length) appleDrawRow(ctx, entries, rowYs[ri], rowFontSize, time, lineWave, lineA, hi, blurAmt);
             }
         } else {
             // Every other line: white at the unsung alpha, softened by distance. No grey RGB, no drop shadow.
