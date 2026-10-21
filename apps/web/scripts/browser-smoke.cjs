@@ -207,7 +207,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       const geometry = await page.locator(`.kefe-panel[data-panel-view="${section}"]`).evaluate(panel => {
         const form = panel.querySelector(".kefe-visualiser-form") || panel.querySelector(".kefe-form");
         const formRect = form.getBoundingClientRect();
-        const children = [...form.children].filter(child => !child.hidden && getComputedStyle(child).display !== "none");
+        const children = [...form.children].filter(child => {
+          const style = getComputedStyle(child);
+          return !child.hidden && style.display !== "none" && style.display !== "contents";
+        });
         const overflow = children.map(child => {
           const rect = child.getBoundingClientRect();
           return {className: child.className, left: rect.left, right: rect.right, width: rect.width};
