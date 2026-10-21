@@ -205,10 +205,7 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
         const front = progress * (1 + edgeSoft * 2) - edgeSoft;
         const W = en.box.W;
         const charCount = en.box.chars.length;
-        const sustained = en.explicitTiming && dur >= 0.72;
-        const rise = sustained ? 0.14 : 0.09;
-        const settle = sustained ? 0.22 : 0.18;
-        const amp = sustained ? 0.48 : 0.68;
+        const amp = en.explicitTiming && dur >= 0.72 ? 0.48 : 0.68;
         for (let k = 0; k < charCount; k++) {
             const lx = en.x + en.box.xs[k], lw = en.box.ws[k];
             const a = en.box.xs[k] / W, b = (en.box.xs[k] + lw) / W;
@@ -220,24 +217,11 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
                 return (dim + (hi - dim) * sweep) * lineA;
             };
             const ch = en.box.chars[k];
-            let lift;
-            if (sustained) {
-                // A restrained, continuous travelling wave while an explicitly timed note is held.
-                // Phase uses measured glyph position and elapsed seconds, not character-index jumps.
-                const noteEnvelope = linaSmoother(Math.min(1, progress * 5)) *
-                    linaSmoother(Math.min(1, (1 - progress) * 5));
-                const phase = time * Math.PI * 2 * 0.72 - charCenter * Math.PI * 2 * 1.15;
-                lift = amp * noteEnvelope * (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(phase)));
-            } else {
-                // Each glyph peaks as the same continuous sweep passes its measured centre,
-                // then settles smoothly. Adjacent glyphs therefore form one connected wave.
-                const peakProgress = (charCenter + edgeSoft) / (1 + edgeSoft * 2);
-                const peakTime = en.t0 + dur * peakProgress;
-                const tau = time - peakTime;
-                lift = amp * (tau < 0
-                    ? linaSmoother(1 + tau / rise)
-                    : 1 - linaSmoother(tau / settle));
-            }
+            // Lift each glyph smoothly as the highlight reaches it, then hold that
+            // lifted position for the rest of the word. There is deliberately no settle,
+            // drop, or oscillation after a glyph has been highlighted.
+            const liftProgress = linaClamp((front - charCenter + edgeSoft) / (2 * edgeSoft));
+            const lift = amp * linaSmoother(liftProgress);
             ctx.save();
             if (lift > 0.002) {
                 const ox = lx + lw / 2, oy = y + fs * 0.46, sc = 1 + lift * P.pop;
