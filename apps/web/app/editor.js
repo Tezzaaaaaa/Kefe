@@ -875,18 +875,14 @@
       window.dispatchEvent(new Event('kefe-stage-resize'));
       return;
     }
+    const layoutControls=document.querySelector('[data-apple-layout-ui]');
+    const controlsHeight=layoutControls&&layoutControls.style.display!=='none'?layoutControls.getBoundingClientRect().height+8:0;
     const paneWidth=Math.max(0,previewPane.clientWidth-24);
-    const paneHeight=Math.max(0,previewPane.clientHeight-24)||Math.max(0,Math.floor(window.innerHeight*0.52));
+    const paneHeight=Math.max(0,previewPane.clientHeight-24-controlsHeight)||Math.max(0,Math.floor(window.innerHeight*0.52)-controlsHeight);
     if(paneWidth<=0||paneHeight<=0)return;
     let width=Math.min(paneWidth,900);
     let height=width/ratio;
-    const mobile=window.matchMedia('(max-width: 700px)').matches;
-    if(mobile){
-      const mobileHeight=Math.max(1,Math.floor((window.innerHeight-52)/2-90));
-      height=Math.min(height,mobileHeight);
-      width=height*ratio;
-      if(width>paneWidth){width=paneWidth;height=width/ratio;}
-    }else if(height>paneHeight){
+    if(height>paneHeight){
       height=paneHeight;width=height*ratio;
     }
     previewStage.style.width=Math.max(1,Math.floor(width))+'px';
@@ -914,6 +910,8 @@
     const active=document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen');
     previewFullscreen.setAttribute('aria-label',active?'Exit fullscreen':'Enter fullscreen');
     previewFullscreen.title=active?'Exit fullscreen':'Enter fullscreen';
+    const layoutControls=document.querySelector('[data-apple-layout-ui]');
+    if(layoutControls)layoutControls.style.display=active?'none':'flex';
     previewFullscreen.innerHTML=active
       ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
       : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -1950,9 +1948,11 @@
     previewStage.style.touchAction='none';
     const layoutUi=document.createElement('div');
     layoutUi.dataset.appleLayoutUi='true';
-    layoutUi.style.cssText='position:absolute;z-index:30;top:8px;left:8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:calc(100% - 16px);padding:8px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(18,18,20,.88);color:#fff;font:12px system-ui,sans-serif;backdrop-filter:blur(12px);';
+    layoutUi.style.cssText='position:relative;z-index:1;display:flex;flex:0 0 auto;flex-wrap:nowrap;align-items:center;gap:6px;width:min(900px,100%);max-width:100%;overflow-x:auto;overflow-y:hidden;padding:6px 8px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(18,18,20,.88);color:#fff;font:12px system-ui,sans-serif;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);';
+    const previewPane=document.querySelector('.kefe-preview');
+    if(previewPane){previewPane.style.display='flex';previewPane.style.flexDirection='column';previewPane.style.alignItems='center';previewPane.style.justifyContent='center';previewPane.style.gap='8px';}
     layoutUi.innerHTML='<label style="display:flex;align-items:center;gap:4px">Adjust <select data-layout-target style="max-width:125px;color:#fff;background:#333;border-radius:6px;padding:4px"><option value="lyrics">Lyrics</option><option value="card">Album artwork + title</option></select></label><label style="display:flex;align-items:center;gap:4px">Size <input data-layout-scale type="range" min="50" max="200" value="100" style="width:74px"></label><button type="button" data-layout-move aria-pressed="false" style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Move layer</button><button type="button" data-layout-reset style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Reset</button><button type="button" data-effect-default title="Save current look and behaviour as this effect’s default" style="color:#fff;background:#356caa;border:0;border-radius:6px;padding:5px 8px">Lock as default</button><button type="button" data-effect-default-clear title="Remove this effect’s saved default" style="color:#fff;background:#333;border:0;border-radius:6px;padding:5px 8px">Unlock</button><span data-layout-hint role="status" style="opacity:.8">Move a layer, adjust size, then lock this effect’s defaults</span>';
-    previewStage.appendChild(layoutUi);
+    previewPane?.insertBefore(layoutUi,previewStage);
     const layoutTarget=layoutUi.querySelector('[data-layout-target]'),layoutScale=layoutUi.querySelector('[data-layout-scale]'),layoutMove=layoutUi.querySelector('[data-layout-move]'),layoutHint=layoutUi.querySelector('[data-layout-hint]');
     layoutUi.querySelector('[data-effect-default]').addEventListener('click',()=>{layoutHint.textContent=saveCurrentEffectDefault()?'Locked: this look and behaviour will load whenever '+state.effect+' is selected.':'Could not save defaults in this browser.';});
     layoutUi.querySelector('[data-effect-default-clear]').addEventListener('click',()=>{layoutHint.textContent=clearCurrentEffectDefault()?'Saved default cleared for '+state.effect+'.':'Could not clear this effect’s default.';});
