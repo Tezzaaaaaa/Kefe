@@ -461,7 +461,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const appleHeaderBottom = landscapeSplit ? 0 : Math.max(32, h * 0.07) + baseDimension * 0.11;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const topAnchor = landscapeSplit
-        ? h * 0.50
+        ? h * 0.50 - activeBlockHeight - blockGap
         : h * (aspectRatio < 0.75 ? 0.42 : aspectRatio < 1.25 ? 0.42 : 0.33);
     const activeScale = 1;
 
