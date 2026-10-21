@@ -9424,7 +9424,12 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   gap: 8px;
   width: 100%;
   min-width: 0;
-  min-height: 38px;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: var(--surface);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--surface-lo) 68%, transparent), 0 4px 9px rgba(0, 0, 0, .12), inset 0 1px 0 color-mix(in srgb, var(--surface-hi) 75%, transparent);
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-title-group {
   display: flex;
