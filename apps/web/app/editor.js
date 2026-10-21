@@ -1392,20 +1392,25 @@
         if(autoConfirmMatch){
           applyPickedTrack(best);
           setLyricsStatus('Track identified automatically — the uploaded audio matches '+best.trackName+' by '+best.artistName+'.');
-        }else setLyricsStatus(best
-          ?'Track details were read from your file. The closest matching result appears first; select it to confirm the track.'
-          :recognized
-            ?'Audio recognition found track details. Review the matches and select the correct track below.'
-            :catalogueSearchFailed
-              ?'Track details were read from your file, but matching failed. Review the title and artist below.'
-              :'Track details were read from your file. Review the matches and select the correct track.');
+        }else{
+          /* A catalogue match is optional: keep the uploaded file's own metadata in the preview. */
+          updateMediaTrack();updateTitleCard();showTitleCard();
+          setLyricsStatus(best
+            ?'Track details were read from your file. The closest matching result appears first; select it to confirm the track.'
+            :recognized
+              ?'Audio recognition found track details. No confirmed catalogue match — previewing the uploaded file using its metadata.'
+              :catalogueSearchFailed
+                ?'Track details were read from your file, but matching failed. Previewing the uploaded file using its metadata.'
+                :'No confirmed catalogue match. Previewing the uploaded file using its metadata.');
+        }
       }else{
         promptManualDetails(matches,catalogueSearchFailed);
+        updateMediaTrack();updateTitleCard();showTitleCard();
         if(file.size>10*1024*1024&&!recognized)setLyricsStatus('Audio recognition was skipped because this file exceeds the provider’s 10 MB limit. Enter the track title and artist or choose a matching result.');
       }
     }catch(error){
       console.warn('[KEFE track identification]',error);
-      if(mediaObjectUrl===uploadId)promptManualDetails([]);
+      if(mediaObjectUrl===uploadId){updateMediaTrack();updateTitleCard();showTitleCard();promptManualDetails([]);}
     }
   }
   let manualSearchTimer=null,manualSearchSeq=0;
