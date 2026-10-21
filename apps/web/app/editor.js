@@ -1036,6 +1036,26 @@
       }
       return '';
     };
+    const extractMp4Artwork=source=>{
+      if(!source)return null;
+      const textAt=(index,value)=>index>=0&&index+value.length<=source.length&&value.split('').every((ch,n)=>source[index+n]===ch.charCodeAt(0));
+      for(let i=0;i+4<=source.length;i++){
+        if(!textAt(i,'covr'))continue;
+        const searchEnd=Math.min(source.length,i+1024*1024);
+        for(let j=i+4;j+4<=searchEnd;j++){
+          if(!textAt(j,'data')||j<4)continue;
+          const start=j-4,size=(source[start]*16777216)+(source[start+1]<<16)+(source[start+2]<<8)+source[start+3];
+          const imageStart=j+12,imageEnd=start+size;
+          if(size<16||imageEnd>source.length||imageStart>=imageEnd)continue;
+          const imageBytes=source.slice(imageStart,imageEnd);
+          if(imageBytes.length<8)continue;
+          const type=imageBytes[0]===0x89&&imageBytes[1]===0x50&&imageBytes[2]===0x4e&&imageBytes[3]===0x47?'image/png':imageBytes[0]===0x52&&imageBytes[1]===0x49&&imageBytes[2]===0x46&&imageBytes[3]===0x46?'image/webp':'image/jpeg';
+          return new Blob([imageBytes],{type});
+        }
+      }
+      return null;
+    };
+    if(!out.artworkBlob)out.artworkBlob=extractMp4Artwork(bytes)||extractMp4Artwork(tailBytes);
     if(!out.title)out.title=atom(bytes,'title')||tailAtom('title');
     if(!out.artist)out.artist=atom(bytes,'artist')||tailAtom('artist');
     if(!out.album)out.album=atom(bytes,'album')||tailAtom('album');
