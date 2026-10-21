@@ -356,11 +356,11 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         const secondaryRows = [];
         if (secondaryText.length) {
             ctx.save();
-            ctx.font = \`${contract.weight || 700} ${secondaryFontSize}px ${family}\`;
+            ctx.font = `${contract.weight || 700} ${secondaryFontSize}px ${family}`;
             for (const text of secondaryText) {
                 let secondaryRow = '';
                 for (const token of text.split(' ').filter(Boolean)) {
-                    const candidate = secondaryRow ? \`${secondaryRow} ${token}\` : token;
+                    const candidate = secondaryRow ? `${secondaryRow} ${token}` : token;
                     if (secondaryRow && ctx.measureText(candidate).width > maxWidth) {
                         secondaryRows.push(secondaryRow);
                         secondaryRow = token;
@@ -646,7 +646,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         if (line.appleSecondaryRows?.length) {
             const secondaryCenterY = y + (line.appleMainHeight + secondaryGap) / 2;
             const secondaryRowHeight = line.appleSecondaryRowHeight || activeFontSize * 0.55;
-            ctx.font = \`${contract.weight || 600} ${line.appleSecondaryFontSize}px ${family}\`;
+            ctx.font = `${contract.weight || 600} ${line.appleSecondaryFontSize}px ${family}`;
             ctx.fillStyle = appleWhite(Math.min(0.78, 0.62 * lineA));
             line.appleSecondaryRows.forEach((secondaryText, secondaryIndex) => {
                 const secondaryY = secondaryCenterY + (secondaryIndex - (line.appleSecondaryRows.length - 1) / 2) * (secondaryRowHeight + lineSpacing * 0.45);
