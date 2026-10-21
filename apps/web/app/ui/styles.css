@@ -9942,12 +9942,22 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   border-radius: var(--r2, 12px);
 }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-stack {
-  width: 150px;
-  height: 190px;
-  margin-top: 0;
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  margin: 0;
   transform: none;
 }
-.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card { width: 150px; }
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card {
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  width: 150px;
+  height: 190px;
+  margin: -95px 0 0 -75px;
+  transform-origin: center center;
+}
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-art {
   box-sizing: border-box;
   width: 150px;
