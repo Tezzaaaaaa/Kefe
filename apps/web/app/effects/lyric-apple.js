@@ -460,9 +460,10 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const appleHeaderTop = Math.max(baseDimension * 0.065, h * 0.035);
     const appleHeaderBottom = landscapeSplit ? 0 : Math.max(32, h * 0.07) + baseDimension * 0.11;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
+    const artworkTop = aspectRatio < 0.75 ? baseDimension * 0.18 : Math.max(32, h * 0.12);
     const topAnchor = landscapeSplit
         ? h * 0.50 - activeBlockHeight - blockGap
-        : h * (aspectRatio < 0.75 ? 0.42 : aspectRatio < 1.25 ? 0.42 : 0.33);
+        : artworkTop + activeFontSize * 0.5 + (aspectRatio >= 0.9 ? activeBlockHeight + blockGap : 0);
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
