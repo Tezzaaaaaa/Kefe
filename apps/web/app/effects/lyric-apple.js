@@ -239,12 +239,8 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
             if (useBlur) {
                 appleShadowText(ctx, ch, lx, y, blurPx, appleWhite(alphaAt(0.5)), true);
             } else {
-                // glow layer sits underneath the letter (same as the reference's .lg layer)
-                if (lift > 0.004 && P.glow > 0) {
-                    ctx.fillStyle = appleWhite(lift * 0.55 * P.glow * lineA);
-                    ctx.fillText(ch, lx, y);
-                    if (lift >= 0.01) appleShadowText(ctx, ch, lx, y, P.glowSize * lift * fs, appleWhite(Math.min(1, 0.85 * P.glow * lift) * lineA), false);
-                }
+                // Draw the timed glyph once. The former extra glow fill and shadow re-drew
+                // the same character at a second alpha, making the active sweep look doubled.
                 const g = ctx.createLinearGradient(lx, 0, lx + lw, 0);
                 g.addColorStop(0, appleWhite(alphaAt(0)));
                 if (A > 0 && A < 1) g.addColorStop(A, appleWhite(hi * lineA));
