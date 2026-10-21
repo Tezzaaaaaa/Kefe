@@ -10,12 +10,32 @@ const hasFiniteNumber = value => value !== null && value !== undefined && value 
 function linaNormaliseLine(lines, index) {
     if (!Array.isArray(lines) || index < 0 || index >= lines.length) return null;
     const source = lines[index];
-    const start = Number(source.time) || 0;
-    const nextLineTime = hasFiniteNumber(lines[index + 1]?.time) ? Number(lines[index + 1].time) : null;
-    const end = hasFiniteNumber(source.endTime) ? Number(source.endTime) : (nextLineTime !== null ? nextLineTime : start + 3);
+    const startValue = source.time ?? source.startTime;
+    const start = Number(startValue) || 0;
+    const nextSource = lines[index + 1];
+    const nextStartValue = nextSource?.time ?? nextSource?.startTime;
+    const nextLineTime = hasFiniteNumber(nextStartValue) ? Number(nextStartValue) : null;
+    const endValue = source.endTime ?? source.end;
+    const end = hasFiniteNumber(endValue) ? Number(endValue) : (nextLineTime !== null ? nextLineTime : start + 3);
+    const words = Array.isArray(source.words) ? source.words.map(word => ({
+        ...word,
+        text: String(word.text ?? word.word ?? '').trim(),
+        time: word.time ?? word.startTime,
+        endTime: word.endTime ?? word.end
+    })) : source.words;
     const vocalEnd = hasFiniteNumber(source.vocalEndTime) ? Number(source.vocalEndTime) :
-        (source.words && source.words.length > 0 && hasFiniteNumber(source.words[source.words.length - 1]?.endTime) ? Number(source.words[source.words.length - 1].endTime) : end);
-    return { ...source, time: start, endTime: end, vocalEndTime: vocalEnd, nextLineTime };
+        (words && words.length > 0 && hasFiniteNumber(words[words.length - 1]?.endTime) ? Number(words[words.length - 1].endTime) : end);
+    return {
+        ...source,
+        text: String(source.text ?? source.lyric ?? ''),
+        time: start,
+        endTime: end,
+        words,
+        translation: source.translation ?? source.translatedLyric ?? source.translationText ?? '',
+        romanization: source.romanization ?? source.romanLyric ?? source.romanizedLyric ?? '',
+        vocalEndTime: vocalEnd,
+        nextLineTime
+    };
 }
 
 function linaFindActiveLine(lines, time) {
@@ -268,7 +288,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     for (let li = 0; li < lines.length; li++) {
         const original = linaNormaliseLine(lines, li);
         if (!original) continue;
-        const sourceText = String(original.text || '').replace(/\s+/g, ' ').trim();
+        const sourceText = String(original.text || (Array.isArray(original.words) ? original.words.map(word => word.text).join(' ') : '')).replace(/\s+/g, ' ').trim();
         // A musical-note marker denotes a cue line, not lyric text: route it to the existing animated three-dot renderer.
         const text = /[\u2669-\u266f]/u.test(sourceText) ? '…' : sourceText;
         if (!text) continue;
@@ -323,7 +343,57 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         }
         line.appleRows = rows;
         line.appleRowCount = rows.length;
-        line.appleBlockHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
+        line.appleMainHeight = rows.length * activeFontSize * 1.18 + Math.max(0, rows.length - 1) * lineSpacing;
+
+        // Optional translation and romanization are rendered as a compact secondary block.
+        // They are only shown when the supplied lyric data actually contains them.
+        const secondaryText = [line.translation, line.romanization]
+            .map(value => String(value || '').replace(/\s+/g, ' ').trim())
+            .filter(Boolean);
+        const secondaryFontSize = activeFontSize * 0.42;
+        const secondaryRowHeight = secondaryFontSize * 1.3;
+        const secondaryGap = secondaryText.length ? secondaryFontSize * 0.7 : 0;
+        const secondaryRows = [];
+        if (secondaryText.length) {
+            ctx.save();
+            ctx.font = `${contract.weight || 700} ${secondaryFontSize}px ${family}`;
+            for (const text of secondaryText) {
+                let secondaryRow = '';
+                for (const token of text.split(' ').filter(Boolean)) {
+                    if (ctx.measureText(token).width > maxWidth) {
+                        if (secondaryRow) {
+                            secondaryRows.push(secondaryRow);
+                            secondaryRow = '';
+                        }
+                        for (const glyph of Array.from(token)) {
+                            const glyphCandidate = secondaryRow + glyph;
+                            if (secondaryRow && ctx.measureText(glyphCandidate).width > maxWidth) {
+                                secondaryRows.push(secondaryRow);
+                                secondaryRow = glyph;
+                            } else {
+                                secondaryRow = glyphCandidate;
+                            }
+                        }
+                        continue;
+                    }
+                    const candidate = secondaryRow ? `${secondaryRow} ${token}` : token;
+                    if (secondaryRow && ctx.measureText(candidate).width > maxWidth) {
+                        secondaryRows.push(secondaryRow);
+                        secondaryRow = token;
+                    } else {
+                        secondaryRow = candidate;
+                    }
+                }
+                if (secondaryRow) secondaryRows.push(secondaryRow);
+            }
+            ctx.restore();
+        }
+        line.appleSecondaryRows = secondaryRows;
+        line.appleSecondaryFontSize = secondaryFontSize;
+        line.appleSecondaryRowHeight = secondaryRowHeight;
+        line.appleSecondaryGap = secondaryRows.length ? secondaryGap : 0;
+        line.appleSecondaryHeight = secondaryRows.length * secondaryRowHeight + Math.max(0, secondaryRows.length - 1) * lineSpacing * 0.45;
+        line.appleBlockHeight = line.appleMainHeight + (secondaryRows.length ? secondaryGap + line.appleSecondaryHeight : 0);
     }
     ctx.restore();
     const activeIndex = linaFindActiveLine(displayLines, time);
@@ -464,7 +534,10 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ctx.scale(scaleAmt, scaleAmt);
         ctx.translate(-x, -y);
 
-        const rowYs = rows.map((_, ri) => y + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
+        const secondaryHeight = line.appleSecondaryHeight || 0;
+        const secondaryGap = line.appleSecondaryGap || 0;
+        const mainCenterY = y - (secondaryHeight + secondaryGap) / 2;
+        const rowYs = rows.map((_, ri) => mainCenterY + (ri - (rows.length - 1) / 2) * (rowHeight + lineSpacing));
 
         // Source musical-note markers become three dots, timed evenly across
         // the cue line's actual interval to the next lyric timestamp.
@@ -585,6 +658,20 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                 ctx.fillStyle = color;
                 rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
             }
+        }
+        if (line.appleSecondaryRows?.length) {
+            const secondaryCenterY = y + (line.appleMainHeight + secondaryGap) / 2;
+            const secondaryRowHeight = line.appleSecondaryRowHeight || activeFontSize * 0.55;
+            ctx.font = `${contract.weight || 600} ${line.appleSecondaryFontSize}px ${family}`;
+            ctx.fillStyle = appleWhite(Math.min(0.78, 0.62 * lineA));
+            line.appleSecondaryRows.forEach((secondaryText, secondaryIndex) => {
+                const secondaryY = secondaryCenterY + (secondaryIndex - (line.appleSecondaryRows.length - 1) / 2) * (secondaryRowHeight + lineSpacing * 0.45);
+                if (blurAmt > 0.08) {
+                    appleShadowText(ctx, secondaryText, x, secondaryY, blurAmt * 0.6, appleWhite(Math.min(0.78, 0.62 * lineA)), true);
+                } else {
+                    ctx.fillText(secondaryText, x, secondaryY);
+                }
+            });
         }
         ctx.restore();
     }
