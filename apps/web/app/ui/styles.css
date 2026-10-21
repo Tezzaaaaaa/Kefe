@@ -9891,3 +9891,189 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     z-index: 81;
   }
 }
+
+
+/* 2026-10-22 layout repair: keep media artwork choice, song carousel and effect galleries
+   within their cards, and keep the Visualisers navigation tied to the selected section. */
+#kefeMediaTrack .kefe-embedded-art-option {
+  box-sizing: border-box;
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line, rgba(255,255,255,.16));
+  border-radius: var(--r2, 12px);
+  background: var(--surface-lo, rgba(255,255,255,.04));
+  color: var(--text, inherit);
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+#kefeMediaTrack .kefe-embedded-art-option[hidden] { display: none; }
+#kefeMediaTrack .kefe-embedded-art-option input {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent, #a8a8ff);
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step,
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-step-body,
+.kefe-panel[data-panel-view="media"] .kefe-find {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-carousel {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 236px;
+  min-height: 236px;
+  margin: 10px 0;
+  overflow: hidden;
+  border: 1px solid var(--line, rgba(255,255,255,.12));
+  border-radius: var(--r2, 12px);
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-stack {
+  width: 150px;
+  height: 184px;
+  margin-top: 0;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card { width: 150px; }
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-art {
+  box-sizing: border-box;
+  width: 150px;
+  height: 150px;
+  padding: 5px;
+  border-radius: var(--r2, 12px);
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-cap {
+  width: 100%;
+  padding-inline: 3px;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-nav { z-index: 70; }
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-info {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-info-copy { flex: 1 1 150px; min-width: 0; }
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-actions { flex: 0 1 auto; min-width: 0; flex-wrap: wrap; }
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-actions .kefe-btn { min-width: 0; white-space: normal; }
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 118px), 1fr));
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+  padding: 4px 2px;
+  scroll-snap-type: none;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-option {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 104px;
+  padding: 10px;
+  border-radius: var(--r2, 12px);
+  text-align: center;
+}
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-sample {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  margin: 0;
+  border-radius: var(--r1, 8px);
+}
+.kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+.kefe-panel[data-panel-view="background-effects"] .kefe-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+}
+.kefe-panel[data-panel-view="background-effects"] .kefe-form > .kefe-background-effect-control {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line, rgba(255,255,255,.12));
+  border-radius: var(--r2, 12px);
+  background: var(--surface-lo, rgba(255,255,255,.035));
+}
+.kefe-panel[data-panel-view="background-effects"] .kefe-form > .kefe-background-effect-control > * {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+.kefe-panel[data-panel-view="background-effects"] .kefe-form > .kefe-background-effect-control .kefe-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+}
+.kefe-panel[data-panel-view="background-effects"] .kefe-form > .kefe-background-effect-control select,
+.kefe-panel[data-panel-view="background-effects"] .kefe-form > .kefe-background-effect-control input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+.kefe-editor .kefe-editing[data-selected-section="visualiser"] .kefe-panel[data-panel-view="visualiser"] {
+  display: block;
+  visibility: visible;
+  opacity: 1;
+}
+.kefe-editor .kefe-editing:not([data-selected-section="visualiser"]) .kefe-vis-tabs,
+.kefe-editor .kefe-editing:not([data-selected-section="visualiser"]) .beui-vis-tabs-host {
+  display: none !important;
+}
+@media (max-width: 520px) {
+  .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-info {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-actions { width: 100%; }
+  .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-actions .kefe-btn { flex: 1 1 120px; }
+  .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+}
