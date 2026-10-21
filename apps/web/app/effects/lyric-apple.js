@@ -181,14 +181,14 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
         const s = P.soft * (0.7 + 0.6 * linaClamp(dur / 1.2));
         const front = f * (1 + s), sa = front - s;
         // Let each letter's lift breathe with the word's actual duration, especially sustained notes.
-        const rise = linaClamp(dur * 0.62, 0.22, 1.15);
-        const settle = linaClamp(dur * 0.9 + 0.18, 0.42, 2.2);
+        // Keep ordinary words quick; allow sustained notes to breathe without stretching every word.
+        const rise = linaClamp(dur * 0.34, 0.10, 0.48);
+        const settle = linaClamp(dur * 0.42 + 0.08, 0.18, 0.78);
         const amp = 0.65 + 0.35 * linaClamp(dur / 1.2);
         const W = en.box.W;
         const charCount = en.box.chars.length;
-        // Slightly overlap adjacent letter envelopes so the lift travels as one continuous wave,
-        // rather than each glyph completing its own isolated bounce.
-        const waveDelay = Math.min(0.12, dur / Math.max(3, charCount * 2.4));
+        // A short, duration-aware stagger keeps the lift connected without delaying every letter too far.
+        const waveDelay = Math.min(0.045, dur / Math.max(4, charCount * 3.5));
         for (let k = 0; k < charCount; k++) {
             const lx = en.x + en.box.xs[k], lw = en.box.ws[k];
             const a = en.box.xs[k] / W, b = (en.box.xs[k] + lw) / W, wd = Math.max(0.0005, b - a);
