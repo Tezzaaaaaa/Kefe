@@ -9943,8 +9943,9 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-stack {
   width: 150px;
-  height: 184px;
+  height: 190px;
   margin-top: 0;
+  transform: none;
 }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card { width: 150px; }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-art {
