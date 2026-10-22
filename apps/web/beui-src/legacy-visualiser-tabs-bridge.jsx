@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs";
+import { Switch } from "@/components/motion/switch";
 import "./legacy-bridge.css";
 
 const ENABLED_STORAGE_KEY = "kefe.visualiser-enabled.v1";
@@ -65,42 +65,40 @@ function VisualiserTabs({ backingButtons }) {
   }
 
   return (
-    <Tabs value={active} onValueChange={select} variant="segment" className="w-full min-w-0">
-      <TabsList aria-label="Choose visualiser" wrapperClassName="w-full" className="grid w-full grid-cols-2 gap-2">
-        {[...backingButtons.entries()].map(([value, backing]) => {
-          const icon = backing.querySelector(".kefe-visualiser-tab-icon")?.textContent || backing.dataset.icon || "";
-          const label = backing.querySelector(".kefe-visualiser-tab-label")?.textContent
-            || backing.getAttribute("aria-label")
-            || backing.title
-            || value;
-          const enabled = enabledByVisualiser[value] !== false;
-          return (
-            <div
-              key={value}
-              className="kefe-vis-option beui-vis-option"
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", minWidth: 0 }}
+    <div role="tablist" aria-label="Choose visualiser" className="kv-grid">
+      {[...backingButtons.entries()].map(([value, backing]) => {
+        const icon = backing.querySelector(".kefe-visualiser-tab-icon")?.textContent || backing.dataset.icon || "";
+        const rawLabel = backing.querySelector(".kefe-visualiser-tab-label")?.textContent
+          || backing.textContent
+          || backing.getAttribute("aria-label")
+          || backing.title
+          || value;
+        const label = rawLabel.replace(/^[^\p{L}\p{N}]+/u, "").replace(/\s+visuali[sz]er$/i, "").trim() || value;
+        const enabled = enabledByVisualiser[value] !== false;
+        const selected = active === value;
+        return (
+          <div key={value} className={`kv-card${selected ? " is-active" : ""}${enabled ? "" : " is-off"}`}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              className="kv-tab"
+              title={`${label} visualiser`}
+              onClick={() => select(value)}
             >
-              <TabsTrigger value={value} className="min-h-16 flex-1 min-w-0 gap-2 whitespace-normal break-words px-2 text-xs">
-                {icon ? <span aria-hidden="true" className="text-sm">{icon}</span> : null}
-                <span>{label}</span>
-              </TabsTrigger>
-              <button
-                type="button"
-                className={`kefe-btn kefe-switch kefe-vis-option-power${enabled ? " is-on" : ""}`}
-                role="switch"
-                aria-checked={String(enabled)}
-                aria-label={`${label} visualiser ${enabled ? "on" : "off"}`}
-                title={`Turn ${label} ${enabled ? "off" : "on"}`}
-                onClick={(event) => toggleEnabled(value, event)}
-              >
-                <span className="kefe-switch-state">{enabled ? "On" : "Off"}</span>
-                <span className="kefe-switch-track" aria-hidden="true"><span className="kefe-switch-thumb" /></span>
-              </button>
-            </div>
-          );
-        })}
-      </TabsList>
-    </Tabs>
+              {icon ? <span aria-hidden="true" className="kv-icon">{icon}</span> : null}
+              <span className="kv-label">{label}</span>
+            </button>
+            <Switch
+              className="kv-switch"
+              checked={enabled}
+              ariaLabel={`${label} visualiser ${enabled ? "on" : "off"}`}
+              onCheckedChange={() => toggleEnabled(value, { stopPropagation() {}, preventDefault() {} })}
+            />
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

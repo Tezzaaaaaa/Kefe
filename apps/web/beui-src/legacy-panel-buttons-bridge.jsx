@@ -106,6 +106,9 @@ function canBridge(button) {
     && !button.classList.contains("beui-native-sidebar-control")
     && !button.classList.contains("beui-native-transport")
     && !button.classList.contains("beui-native-tab")
+    && !button.classList.contains("kefe-background-effect-card")
+    && !button.classList.contains("kefe-lyric-effect-option")
+    && !button.classList.contains("kefe-lyric-effect-carousel-nav")
     && !button.closest(SKIP_ANCESTORS);
 }
 
