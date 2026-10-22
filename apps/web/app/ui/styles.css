@@ -10505,7 +10505,14 @@ textarea.beui-native-textarea {
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs[data-beui-mounted="true"] > .kefe-vis-option {
   display: none;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs > .beui-vis-tabs-host,
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs > .beui-vis-tabs-host {
+  display: block;
+  grid-column: 1 / -1;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host > div {
   display: block;
   box-sizing: border-box;
