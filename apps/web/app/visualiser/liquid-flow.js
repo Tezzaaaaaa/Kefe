@@ -185,9 +185,8 @@
   }
   function active(){
     var tab=document.querySelector('.kefe-vis-tabs [data-visualiser="gradient"]');
-    var power=document.querySelector('#kefeVisualiserPowerSlot .kefe-switch')||
-      document.querySelector('.kefe-vis-tabs [data-visualiser="gradient"] .kefe-vis-option-power');
-    return !!tab&&tab.getAttribute('aria-selected')==='true'&&(!power||power.getAttribute('aria-checked')==='true');
+    var power=tab&&tab.parentElement.querySelector('.kefe-vis-option-power');
+    return !!tab&&tab.getAttribute('aria-selected')==='true'&&!!power&&power.getAttribute('aria-checked')==='true';
   }
   function setPreset(id){
     if(!presets[id])return;preset=id;Object.assign(values,presets[id]);
