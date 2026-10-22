@@ -24,6 +24,15 @@ function VisualiserTabs({ backingButtons }) {
   }
 
   useEffect(() => {
+    for (const [value, backing] of backingButtons) {
+      const power = backing.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
+      if (power) {
+        setPowerStates((current) => ({ ...current, [value]: power.getAttribute("aria-checked") === "true" }));
+      }
+    }
+  }, [backingButtons]);
+
+  useEffect(() => {
     const sync = (event) => {
       const button = event.target?.closest?.(".kefe-vis-tabs button[data-visualiser]");
       if (button && backingButtons.has(button.dataset.visualiser)) {
