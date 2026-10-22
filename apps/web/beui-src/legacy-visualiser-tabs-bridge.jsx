@@ -19,7 +19,13 @@ function VisualiserTabs({ backingButtons }) {
   }, [backingButtons]);
 
   function select(value) {
-    backingButtons.get(value)?.click();
+    const backing = backingButtons.get(value);
+    const option = backing?.closest(".kefe-vis-option");
+    const power = option?.querySelector(".kefe-switch");
+    backing?.click();
+    const slot = document.getElementById("kefeVisualiserPowerSlot");
+    const selectedPower = power || slot?.querySelector(".kefe-switch");
+    if (slot && selectedPower && selectedPower.parentElement !== slot) slot.replaceChildren(selectedPower);
   }
 
   return (
