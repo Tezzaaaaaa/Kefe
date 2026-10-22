@@ -16,6 +16,7 @@ export default defineConfig({
     },
   },
   build: {
+    cssCodeSplit: false,
     outDir: "dist-beui",
     emptyOutDir: true,
     rollupOptions: {
