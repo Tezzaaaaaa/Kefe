@@ -905,10 +905,11 @@
     if(height>paneHeight){
       height=paneHeight;width=height*ratio;
     }
+    if(height<160&&paneHeight>=160&&paneWidth>=160*ratio){height=160;width=height*ratio;}
     width=Math.max(1,Math.floor(width));
     height=Math.max(1,Math.floor(height));
     previewStage.style.flexShrink='0';
-    previewStage.style.minHeight=Math.min(200,height)+'px';
+    previewStage.style.minHeight='160px';
     previewStage.style.width=width+'px';
     previewStage.style.height=height+'px';
   }
