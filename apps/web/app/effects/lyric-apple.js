@@ -289,7 +289,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     }
     const boundaryLeft = landscapeSplit
         ? w * (180 / 384)
-        : (aspectRatio < 0.9 ? w * 0.07 : w * 0.08) + baseDimension * 0.183;
+        : w * (aspectRatio < 0.9 ? 0.07 : aspectRatio < 1.25 ? 0.08 : 0.082);
     const margin = boundaryLeft + horizontalPadding;
     let maxWidth = contentWidth;
     const displayLines = [];
@@ -309,7 +309,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     try { ctx.fontKerning = 'normal'; } catch (_) {}
     // Offset by the width of two glyphs, not a fixed pixel value, so the adjustment scales with the lyric typography.
     const twoLetterOffset = appleTextWidth(ctx, 'MM');
-    const horizontalLyricShift = landscapeSplit ? -twoLetterOffset : 0;
+    const horizontalLyricShift = landscapeSplit ? -twoLetterOffset : (aspectRatio < 0.75 ? twoLetterOffset : 0);
     // Measure wrapping against the actual right safe boundary after the aspect-specific x offset.
     // Keep a rendering buffer inside the visible safety boundary for glyph overhang and per-letter lift.
     maxWidth = Math.max(1, w * 0.92 - (margin + horizontalLyricShift));
@@ -472,12 +472,10 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const appleHeaderSize = baseDimension * 0.11;
     const appleHeaderTop = Math.max(baseDimension * 0.065, h * 0.035);
     const appleHeaderBottom = landscapeSplit ? 0 : Math.max(32, h * 0.07) + baseDimension * 0.11;
-    const artworkTop = aspectRatio < 0.75 ? baseDimension * 0.18 : Math.max(32, h * 0.12);
-    // Keep each aspect ratio anchored to its own composition rather than to the
-    // active lyric block's changing wrap height.
+    // Fixed anchors preserve each ratio's established composition regardless of lyric wrapping.
     const topAnchor = landscapeSplit
-        ? h * 0.50
-        : artworkTop + activeFontSize * 0.5 + (aspectRatio >= 0.9 ? rowHeight + blockGap : 0);
+        ? h * 0.50 - rowHeight - blockGap
+        : h * (aspectRatio < 0.75 ? 0.42 : aspectRatio < 1.25 ? 0.42 : 0.33);
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
