@@ -153,9 +153,7 @@ const appleRowCache = new Map();
 const APPLE_OFFSCREEN = 20000;
 
 function appleTextWidth(ctx, text) {
-    let width = 0;
-    for (const ch of Array.from(String(text || ''))) width += ctx.measureText(ch).width;
-    return width;
+    return ctx.measureText(String(text || '')).width;
 }
 
 function appleLetterBox(ctx, token) {
@@ -163,14 +161,15 @@ function appleLetterBox(ctx, token) {
     let hit = appleLetterCache.get(key);
     if (hit) return hit;
     const chars = Array.from(token), xs = [], ws = [];
-    let width = 0;
+    let prefix = '';
     for (const ch of chars) {
-        const advance = Math.max(0.001, ctx.measureText(ch).width);
-        xs.push(width);
-        ws.push(advance);
-        width += advance;
+        const start = ctx.measureText(prefix).width;
+        prefix += ch;
+        const end = ctx.measureText(prefix).width;
+        xs.push(start);
+        ws.push(Math.max(0.001, end - start));
     }
-    hit = { chars, xs, ws, W: Math.max(1, width) };
+    hit = { chars, xs, ws, W: Math.max(1, ctx.measureText(token).width) };
     appleLetterCache.set(key, hit);
     if (appleLetterCache.size > 2500) appleLetterCache.delete(appleLetterCache.keys().next().value);
     return hit;
@@ -307,7 +306,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
 
     ctx.save();
     ctx.font = `${contract.weight || 700} ${activeFontSize}px ${family}`;
-    try { ctx.fontKerning = 'none'; } catch (_) {}
+    try { ctx.fontKerning = 'normal'; } catch (_) {}
     // Offset by the width of two glyphs, not a fixed pixel value, so the adjustment scales with the lyric typography.
     const twoLetterOffset = appleTextWidth(ctx, 'MM');
     const horizontalLyricShift = landscapeSplit ? -twoLetterOffset : 0;
@@ -548,7 +547,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     if(layout){ctx.translate(layout.x*w,layout.y*h);ctx.scale(layout.scale,layout.scale);}
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
-    try { ctx.fontKerning = 'none'; ctx.textRendering = 'geometricPrecision'; } catch (_) {}
+    try { ctx.fontKerning = 'normal'; ctx.textRendering = 'geometricPrecision'; } catch (_) {}
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
