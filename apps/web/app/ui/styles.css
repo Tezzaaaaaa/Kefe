@@ -10508,6 +10508,98 @@ textarea.beui-native-textarea {
 }
 
 
+/* One visualiser-card layout: name selection and its independent power toggle share one row. */
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 1px solid var(--shell-line, #39393f);
+  border-radius: var(--radius-md, 12px);
+  background: var(--shell-panel, #222225);
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-tab {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-card.is-active {
+  border-color: var(--shell-accent, #ef4444);
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-power-switch {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 3px 5px;
+  border: 1px solid var(--shell-line, #39393f);
+  border-radius: 999px;
+  background: var(--shell-bg, #171719);
+  color: var(--shell-muted, #a1a1aa);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-power-switch.is-on {
+  color: var(--shell-text, #f5f5f5);
+  border-color: var(--shell-accent, #ef4444);
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-power-track {
+  display: inline-flex;
+  align-items: center;
+  width: 24px;
+  height: 14px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--shell-line, #39393f);
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-power-track > span {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--shell-muted, #a1a1aa);
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-power-switch.is-on .kv-power-track {
+  background: var(--shell-accent, #ef4444);
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-power-switch.is-on .kv-power-track > span {
+  transform: translateX(10px);
+  background: #fff;
+}
+@media (max-width: 700px) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+
 /* Lyrics mobile layout: keep the fixed dock clear of the scrollable panel. */
 @media (max-width: 640px) {
   .kefe-editor .kefe-panels { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
