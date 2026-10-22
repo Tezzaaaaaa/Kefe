@@ -12,7 +12,7 @@ function VisualiserTabs({ backingButtons }) {
     const backing = backingButtons.get(value);
     const optionPower = backing?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
     if (optionPower) return optionPower;
-    if (active === value) return document.querySelector("#kefeVisualiserPowerSlot .kefe-switch");
+    if (backing?.getAttribute("aria-selected") === "true") return document.querySelector("#kefeVisualiserPowerSlot .kefe-switch");
     return null;
   }
 
