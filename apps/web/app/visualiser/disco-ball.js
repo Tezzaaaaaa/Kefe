@@ -283,7 +283,7 @@
   }
   function schedule(){if(!raf&&active&&!document.hidden)raf=requestAnimationFrame(paint);}
   function activate(){
-    active=true;enabled=true;view.hidden=false;canvas.style.visibility='visible';
+    active=true;view.hidden=false;canvas.style.visibility=enabled?'visible':'hidden';
     connectAudio();
     document.querySelectorAll('.kefe-vis-tabs [role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
     ['kefeVisGradientView','kefeVisFlutedView','kefeVisSlowLightView','kefeVisHowBadView'].forEach(id=>{const n=$(id);if(n)n.hidden=true;});
