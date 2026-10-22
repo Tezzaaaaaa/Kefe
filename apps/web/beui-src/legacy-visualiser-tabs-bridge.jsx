@@ -9,11 +9,7 @@ function VisualiserTabs({ backingButtons }) {
   const [powerStates, setPowerStates] = useState({});
 
   function nativePower(value) {
-    const backing = backingButtons.get(value);
-    const optionPower = backing?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
-    if (optionPower) return optionPower;
-    if (backing?.getAttribute("aria-selected") === "true") return document.querySelector("#kefeVisualiserPowerSlot .kefe-switch");
-    return null;
+    return backingButtons.get(value)?.closest(".kefe-vis-option")?.querySelector(".kefe-switch") || null;
   }
 
   function syncPower(value) {
@@ -52,16 +48,10 @@ function VisualiserTabs({ backingButtons }) {
 
   function toggle(value, event) {
     event.stopPropagation();
-    backingButtons.get(value)?.click();
-    setActive(value);
-    window.setTimeout(() => {
-      const backing = backingButtons.get(value);
-      const power = backing?.closest(".kefe-vis-option")?.querySelector(".kefe-switch")
-        || document.querySelector("#kefeVisualiserPowerSlot .kefe-switch");
-      if (!power) return;
-      power.click();
-      setPowerStates((current) => ({ ...current, [value]: power.getAttribute("aria-checked") === "true" }));
-    }, 0);
+    const power = nativePower(value);
+    if (!power) return;
+    power.click();
+    setPowerStates((current) => ({ ...current, [value]: power.getAttribute("aria-checked") === "true" }));
   }
 
   return (
@@ -77,6 +67,7 @@ function VisualiserTabs({ backingButtons }) {
             <button
               type="button"
               role="tab"
+              data-visualiser={value}
               aria-selected={selected}
               className="kv-tab"
               title={`${label} visualiser`}
