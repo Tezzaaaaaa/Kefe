@@ -69,7 +69,8 @@
     const ratio=w/h,portrait=ratio<.9,landscape=ratio>=1.25;
     const fontSize=landscape?h*.063:portrait?w*.064:Math.min(w*.058,h*.09);
     const inactiveSize=fontSize*.88;
-    const maxWidth=w*(landscape?.46:portrait?.86:.82);\n    const centerX=landscape?w*.75:w*.5;
+    const maxWidth=w*(landscape?.46:portrait?.86:.82);
+    const centerX=landscape?w*.75:w*.5;
     const family=style?.fontFamily||'"SF Pro Display","Inter Tight",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif';
     const weight=style?.fontWeight||700;
     const activeFont=weight+' '+fontSize+'px '+family;
