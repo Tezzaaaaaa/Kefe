@@ -9,7 +9,7 @@
  * (song search, artwork and lyrics services) and Range requests (audio and
  * video seeking), which all go straight to the network.
  */
-const CACHE = 'kefe-shell-v1';
+const CACHE = 'kefe-shell-v2';
 
 const PRECACHE = [
   './editor.html',
@@ -43,6 +43,11 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  // Content-hashed bundles and vendored fonts never change under the same URL: serve them from cache instantly.
+  if (/\/assets\/[^/]+-[A-Za-z0-9_-]{8}\.(js|css|woff2?|png|svg|webmanifest)$/.test(url.pathname) || /\/fonts\/.+\.woff2$/.test(url.pathname)) {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
   event.respondWith(networkFirst(request));
 });
 
@@ -63,4 +68,13 @@ async function networkFirst(request) {
     }
     throw error;
   }
+}
+
+async function cacheFirst(request) {
+  const cache = await caches.open(CACHE);
+  const hit = await cache.match(request);
+  if (hit) return hit;
+  const response = await fetch(request);
+  if (response && response.ok && response.type === 'basic') cache.put(request, response.clone()).catch(() => {});
+  return response;
 }
