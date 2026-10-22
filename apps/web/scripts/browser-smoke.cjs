@@ -64,7 +64,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const context = await browser.newContext({ serviceWorkers: "block" });
     const page = await context.newPage();
     const pageErrors = [];
-    page.on("pageerror", (error) => pageErrors.push(error.message));
+    page.on("pageerror", (error) => pageErrors.push(error.stack || error.message));
 
     await page.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
     await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
