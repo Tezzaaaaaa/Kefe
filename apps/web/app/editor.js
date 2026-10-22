@@ -1836,12 +1836,20 @@
     }
   });
   /* audio.currentTime only advances in coarse steps; interpolate with the frame clock so line transitions animate smoothly. */
-  const clk={a:-1,p:0};
+  const clk={est:-1,last:0};
   function smoothTime(){
-    const now=performance.now(),t=audio.currentTime;
-    if(t!==clk.a){clk.a=t;clk.p=now;}
-    const est=clk.a+(now-clk.p)/1000*(audio.playbackRate||1);
-    return Math.max(t,Math.min(est,t+0.12));
+    /* Monotonic frame clock: advances with the display, gently steered toward audio.currentTime (which is stepped
+       and slightly jittery) so it never rewinds mid-transition; snaps only on a real seek. */
+    const now=performance.now(),t=audio.currentTime,rate=audio.playbackRate||1;
+    if(clk.est<0||Math.abs(t-clk.est)>0.3){clk.est=t;}
+    else{
+      const prev=clk.est;
+      clk.est+=Math.min(0.1,(now-clk.last)/1000)*rate;
+      clk.est+=(t-clk.est)*0.06;
+      if(clk.est<prev)clk.est=prev;
+    }
+    clk.last=now;
+    return clk.est;
   }
   function syncPreview(){
     const firstLyric=state.lines[0]?.time;
@@ -1856,7 +1864,7 @@
     }
   }
   audio.addEventListener('play',()=>{
-    clk.a=-1;updatePlayButton();
+    clk.est=-1;updatePlayButton();
     if(video.src){
       video.currentTime=audio.currentTime;
       video.play().catch(err=>console.warn('[KEFE video]',err));

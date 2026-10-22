@@ -196,7 +196,7 @@ const appleWhite = alpha => 'rgba(255,255,255,' + linaClamp(alpha).toFixed(4) + 
    lineA = distance fade of the whole line, hi = alpha of the sung part (1 while live, eases to dim after). */
 function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
     const dim = P.dim;
-    const useBlur = blurPx > 0.35;
+    const useBlur = blurPx > 0.04;
     for (const en of entries) {
         const dur = Math.max(0.05, en.t1 - en.t0);
         const progress = linaClamp((time - en.t0) / dur);
@@ -542,7 +542,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         dim: linaClamp(Number.isFinite(Number(style.appleUnsungOpacity)) ? Number(style.appleUnsungOpacity) : APPLE_WAVE.dim, 0.15, 0.9)
     });
 
-    for (let i = Math.max(0, activeIndex - 4); i <= Math.min(displayLines.length - 1, activeIndex + visibleLines); i++) {
+    for (let i = Math.max(0, activeIndex - 4); i <= Math.min(displayLines.length - 1, activeIndex + visibleLines + 1); i++) {
         const line = displayLines[i];
         if (!line || !String(line.text || '').trim()) continue;
 
@@ -557,7 +557,9 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         const scaleAmt = appleKeyframeLerp(d, scalePoints);
         const lineHeightForFade = line.appleBlockHeight || rowHeight;
         const topFade = landscapeSplit ? 1 : linaClamp((y + lineHeightForFade / 2 - (appleHeaderBottom - lineHeightForFade * 0.8)) / Math.max(1, lineHeightForFade * 0.72), 0, 1);
-        const lineA = linaClamp(appleKeyframeLerp(d, opacityPoints), 0, 1) * topFade;
+        // The last visible line fades in as it scrolls into range instead of popping in when the active line changes.
+        const edgeFade = linaClamp(visibleLines + 1 - d, 0, 1);
+        const lineA = linaClamp(appleKeyframeLerp(d, opacityPoints), 0, 1) * topFade * edgeFade;
         // Blur follows the same continuous curve for every line (including the one being sung), so
         // nothing snaps when the active line changes.
         const blurAmt = Math.max(0, appleKeyframeLerp(d, blurPoints));
