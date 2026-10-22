@@ -41,6 +41,9 @@
     tab.title = 'Fluid Ink visualiser';
     tab.setAttribute('aria-selected', 'false');
     const option = element('div', 'kefe-vis-option');
+    option.style.cssText = 'display:flex;align-items:center;gap:8px;min-width:0';
+    tab.style.flex = '1 1 auto';
+    tab.style.minWidth = '0';
     option.appendChild(tab);
     tabs.appendChild(option);
 
@@ -84,6 +87,7 @@
       powerState.textContent = enabled ? 'On' : 'Off';
       power.title = enabled ? 'Turn Fluid Ink off' : 'Turn Fluid Ink on';
     });
+    power.style.flex = '0 0 auto';
     option.appendChild(power);
 
     const editing = panel.closest('.kefe-editing');
