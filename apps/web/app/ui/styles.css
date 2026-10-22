@@ -1031,7 +1031,7 @@ button{border:0;cursor:pointer;
 }
 
 /* Visualiser panel: one selected engine, clear tab identities and a shared power-control language. */
-.kefe-vis-tabs{position:relative;top:auto;z-index:12;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:8px 0;background:var(--surface)}
+.kefe-vis-tabs{position:relative;top:auto;z-index:12;min-width:0;background:var(--surface)}
 .kefe-visualiser-form>.kefe-vis-view{grid-column:1/-1}
 .kefe-vis-tabs .kefe-btn{position:relative;display:flex;align-items:center;justify-content:center;gap:0;min-width:0;min-height:var(--control-h);padding:0 8px;border:1px solid color-mix(in srgb,var(--vis-accent) 30%,var(--line-soft));border-radius:999px;background:var(--surface);color:var(--text);box-shadow:var(--inner);font-size: var(--font-sm);font-weight:650;text-align:center;white-space:normal;transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease;
   font-family: inherit;}
@@ -1058,7 +1058,7 @@ button{border:0;cursor:pointer;
 .kefe-vis-power-row .kefe-switch{min-width:82px;min-height:34px}
 .kefe-vis-power-row .kefe-switch-state{min-width:22px}
 @media(max-width:900px){.kefe-vis-view{grid-template-columns:1fr}}
-@media(max-width:700px){.kefe-vis-tabs{grid-template-columns:repeat(3,minmax(150px,1fr));gap:6px;overflow-x:auto;scrollbar-width:thin}.kefe-vis-tabs .kefe-btn{min-height:56px;padding:8px 76px 8px 9px;font-size:11px;
+@media(max-width:700px){.kefe-vis-tabs{gap:6px;overflow:visible}.kefe-vis-tabs .kefe-btn{min-height:56px;padding:8px 76px 8px 9px;font-size:11px;
   font-family: inherit;}.kefe-vis-tabs .kefe-btn::before{flex-basis:27px;width:27px;height:27px;border-radius:var(--r2);
   font-size: var(--font-sm);
   font-family: inherit;}.kefe-vis-power-row{padding:9px 10px}}
@@ -1255,7 +1255,7 @@ button{border:0;cursor:pointer;
   font-family: inherit;}
   .kefe-panel[data-panel-view="visualiser"] .kefe-panel-head{margin-bottom:12px;padding-bottom:10px}
   .kefe-panel[data-panel-view="visualiser"] .kefe-form.kefe-visualiser-form{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
-  .kefe-vis-tabs{position:sticky;top:0;z-index:8;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:4px 0 8px;background:var(--surface)}
+  .kefe-vis-tabs{position:relative;top:auto;z-index:8;grid-template-columns:none;gap:6px;padding:4px 0 8px;background:var(--surface)}
   .kefe-vis-tabs .kefe-btn{min-width:0;padding:9px 4px;font-size: var(--font-sm);white-space:normal;
   font-family: inherit;}
   .kefe-vis-view{grid-template-columns:minmax(0,1fr);gap:12px}
@@ -4611,16 +4611,6 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   }
 }
 
-/* Keep Visualiser engine tabs full-width and strictly two columns on mobile. */
-@media (max-width: 700px) {
-  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
-    grid-column: 1 / -1 !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    min-width: 0;
-    width: 100%;
-  }
-}
-
 /* Flatten toggle wrappers so labels and switches each occupy one of the two mobile columns. */
 @media (max-width: 700px) {
   .kefe-panel[data-panel-view="visualiser"] .kefe-vis-view:not([hidden]) .kefe-visualiser-spin-row {
@@ -4704,15 +4694,8 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   }
 
   .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-label,
-  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-btn,
-  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
+  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-btn {
     grid-column: 1 / -1;
-  }
-
-  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    min-width: 0;
   }
 
   .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group {
@@ -5058,9 +5041,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   overscroll-behavior-x: contain;
 }
 .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs[hidden] { display: none; }
-.kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
-  display: flex;
-}
+
 .kefe-vis-tabs::-webkit-scrollbar,
 .kefe-visualiser-preset-set::-webkit-scrollbar,
 .kefe-visualiser-preset-grid::-webkit-scrollbar,
@@ -6114,14 +6095,7 @@ body:not(.kefe-fullscreen-open) {
 @media(prefers-reduced-motion:reduce){.kefe-background-effect-card{transition:none}}
 
 
-/* Visualiser section: shared geometry for tabs, presets and controls. */
-.kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs,
-.kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row{
-  width:min(1200px,calc(100% - 32px));
-  min-width:0;
-}
-.kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs{gap:var(--s2);padding:var(--s2) 0}
-.kefe-vis-tabs > .kefe-vis-option{min-width:0;min-height:44px}
+/* Visualiser control appearance; layout is owned by the beUI bridge section below. */
 .kefe-vis-option > [role="tab"]{
   box-sizing:border-box;min-width:0;min-height:44px;padding:8px 12px;gap:8px;
   border:1px solid var(--line);border-radius:var(--r2);background:var(--surface);
@@ -6174,19 +6148,9 @@ body:not(.kefe-fullscreen-open) {
 .kefe-visualiser-preset-row .kefe-gradient-chip,
 .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-palette-under-power .kefe-gradient-chip{border-radius:var(--r1)}
 @media(max-width:700px){
-  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs,
-  .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row{width:calc(100% - 20px)}
-  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs{gap:var(--s1);padding-block:var(--s2)}
-  .kefe-vis-option > [role="tab"]{
-    min-height:68px;padding:8px 6px 30px;border-radius:var(--r2);justify-content:center
-  }
   .kefe-visualiser-preset-row{padding-block:var(--s2)}
   .kefe-visualiser-preset-set{gap:var(--s1)}
   .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-control-group{padding:var(--s2);gap:var(--s2)}
-}
-@media(max-width:380px){
-  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs{gap:var(--s1)}
-  .kefe-vis-option > [role="tab"]{font-size:var(--font-xs)}
 }
 
 
@@ -7399,37 +7363,6 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   color:var(--muted);
   font-size:var(--font-sm);
   line-height:1.5;
-}
-.kefe-fluid-presets {
-  display:flex;
-  flex-wrap:nowrap;
-  align-items:stretch;
-  gap:var(--s2);
-  width:100%;
-  min-width:0;
-  max-width:100%;
-  padding:0;
-  border:0;
-  border-radius:0;
-  background:transparent;
-  overflow-x:auto;
-  overflow-y:hidden;
-}
-.kefe-fluid-presets > button {
-  box-sizing:border-box;
-  flex:1 0 112px;
-  min-width:112px;
-  min-height:40px;
-  padding:8px 12px;
-  border-radius:var(--r2);
-  font:inherit;
-  font-size:var(--font-sm);
-  line-height:1.25;
-  white-space:nowrap;
-}
-.kefe-fluid-presets > button strong {
-  font:inherit;
-  font-weight:600;
 }
 .kefe-fluid-palette-options {
   display:flex;
@@ -8757,7 +8690,7 @@ html:root .kefe-notice {
 }
 
 /* One predictable visualiser-tab layout: four columns on desktop, two equal columns on mobile. */
-html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
+html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-beui-mounted="true"]):not([hidden]) {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: stretch;
@@ -8768,12 +8701,12 @@ html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden
   margin: 0;
   padding: var(--s2) 0;
 }
-html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs > .kefe-vis-option {
+html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-beui-mounted="true"]) > .kefe-vis-option {
   display: flex;
   min-width: 0;
   width: 100%;
 }
-html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs .kefe-vis-option > [role="tab"] {
+html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-beui-mounted="true"]) .kefe-vis-option > [role="tab"] {
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -8790,12 +8723,12 @@ html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs .kefe-vis-o
   line-height: 1.25;
 }
 @media (max-width: 700px) {
-  html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
+  html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-beui-mounted="true"]):not([hidden]) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--s2);
     padding-block: var(--s2);
   }
-  html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs .kefe-vis-option > [role="tab"] {
+  html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-beui-mounted="true"]) .kefe-vis-option > [role="tab"] {
     min-height: 48px;
     padding: 10px 7px;
     font-size: var(--font-sm);
@@ -10543,15 +10476,26 @@ textarea.beui-native-textarea {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   width: 100%;
   min-width: 0;
   min-height: 44px;
   height: auto;
   padding: 8px;
+  overflow: hidden;
   text-align: center;
-  white-space: normal;
-  overflow-wrap: anywhere;
   line-height: 1.25;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] > span[aria-hidden="true"] {
+  flex: 0 0 auto;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] > span:not([aria-hidden="true"]) {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row:not([hidden]) {
   display: flex;
@@ -10573,6 +10517,37 @@ textarea.beui-native-textarea {
   width: 100%;
   max-width: 100%;
   min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets {
+  display: grid;
+  flex: 1 1 100%;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 80px), 1fr));
+  align-items: stretch;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0;
+  overflow: visible;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets > button {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets > button > strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row[hidden],
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set[hidden] {
