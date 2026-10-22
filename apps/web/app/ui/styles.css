@@ -10371,7 +10371,7 @@ textarea.beui-native-textarea {
   }
 }
 
-/* Visualiser layout — single authority for the tab rail and preset carousel. */
+/* Visualiser section container and preset rows. Tab cards use the single beUI card system below. */
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
   display: block;
   grid-template-columns: none;
@@ -10392,57 +10392,6 @@ textarea.beui-native-textarea {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host > div {
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
-  display: grid;
-  box-sizing: border-box;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 112px), 1fr));
-  align-items: stretch;
-  gap: 8px;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  overflow: visible;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] > div {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  min-width: 0;
-  min-height: 44px;
-  height: auto;
-  padding: 8px;
-  overflow: hidden;
-  text-align: center;
-  line-height: 1.25;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] > span[aria-hidden="true"] {
-  flex: 0 0 auto;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] > span:not([aria-hidden="true"]) {
-  display: block;
-  flex: 0 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row:not([hidden]) {
   display: flex;
@@ -10500,13 +10449,6 @@ textarea.beui-native-textarea {
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set[hidden] {
   display: none !important;
 }
-@media (max-width: 700px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-}
-
 
 /* One visualiser-card layout: name selection and its independent power toggle share one row. */
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-grid {
@@ -10527,6 +10469,13 @@ textarea.beui-native-textarea {
   border: 1px solid var(--shell-line, #39393f);
   border-radius: var(--radius-md, 12px);
   background: var(--shell-panel, #222225);
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-card:hover {
+  border-color: var(--shell-line-strong, #56565e);
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-card.is-active {
+  border-color: var(--shell-accent, #ef4444);
+  background: color-mix(in srgb, var(--shell-accent, #ef4444) 14%, var(--shell-panel, #222225));
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-tab {
   display: flex;
@@ -10597,14 +10546,6 @@ textarea.beui-native-textarea {
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] {
-  width: auto;
-  min-height: 32px;
-  height: auto;
-  padding: 4px 2px;
-  justify-content: flex-start;
-  text-align: left;
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] #kefeVisualiserPowerSlot {
   display: none;
@@ -10709,108 +10650,9 @@ textarea.beui-native-textarea {
   min-width: 0;
   overflow: visible;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: stretch;
-  gap: 8px;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  overflow: visible;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .beui-vis-option {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  min-height: 76px;
-  padding: 8px;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--r2);
-  background: var(--surface);
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .beui-vis-option > [role="tab"] {
-  display: flex;
-  flex: 1 1 auto;
-  box-sizing: border-box;
-  width: auto;
-  min-width: 0;
-  min-height: 58px;
-  height: auto;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 7px;
-  padding: 8px;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--r2);
-  background: var(--surface-hi);
-  text-align: left;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .beui-vis-option > [role="tab"] > span:not([aria-hidden="true"]) {
-  min-width: 0;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  white-space: normal;
-  text-overflow: ellipsis;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .beui-vis-option > .kefe-vis-option-power {
-  position: static;
-  display: flex;
-  flex: 0 0 72px;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  width: 72px;
-  min-width: 72px;
-  max-width: 100%;
-  height: 26px;
-  min-height: 26px;
-  padding: 4px 7px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface-hi);
-  color: var(--muted);
-  box-shadow: var(--inner);
-  font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kefe-vis-option-power.is-on {
-  border-color: var(--accent);
-  color: var(--text);
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kefe-vis-option-power .kefe-switch-state { min-width: 18px; }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kefe-vis-option-power .kefe-switch-track { flex: 0 0 24px; width: 24px; height: 14px; }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kefe-vis-option-power .kefe-switch-thumb { top: 2px; left: 2px; width: 10px; height: 10px; }
-
 /* ===== Visualiser panel: card grid + preset rows (final layout) ===== */
 .kefe-vis-tabs { display: block; width: 100%; min-width: 0; }
 .kefe-vis-tabs .beui-vis-tabs-host { width: 100%; min-width: 0; }
-.kv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; min-width: 0; }
-.kv-card {
-  display: flex; min-width: 0; min-height: 48px; border: 1px solid var(--line, rgba(255,255,255,.12));
-  border-radius: 12px; background: var(--surface, rgba(255,255,255,.04));
-  transition: border-color .15s, background-color .15s;
-}
-.kv-card:hover { border-color: var(--line-strong, rgba(255,255,255,.22)); }
-.kv-card.is-active { border-color: var(--accent, #d92f33); background: color-mix(in srgb, var(--accent, #d92f33) 14%, transparent); }
-.kv-tab {
-  display: flex; align-items: center; flex: 1 1 auto; min-width: 0; align-self: stretch;
-  padding: 10px 12px; border: 0; background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600;
-  text-align: left; cursor: pointer; border-radius: 12px; white-space: normal; overflow-wrap: anywhere;
-}
-.kv-tab:focus-visible { outline: 2px solid var(--accent, #d92f33); outline-offset: -2px; }
-.kv-label { min-width: 0; line-height: 1.25; }
-@media (max-width: 360px) { .kv-grid { grid-template-columns: minmax(0, 1fr); } }
-
 .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets,
 .kefe-panel[data-panel-view="visualiser"] .kefe-slow-light-scenes,
 .kefe-panel[data-panel-view="visualiser"] #flutedModes {
