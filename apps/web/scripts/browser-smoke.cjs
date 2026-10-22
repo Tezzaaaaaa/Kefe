@@ -433,10 +433,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const fluidInkNativePower = page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").locator("xpath=..").locator(".kefe-switch");
     const fluidInkBefore = await fluidInkNativePower.getAttribute("aria-checked");
     await fluidInkToggle.click();
-    await page.waitForFunction(() => {
+    await page.waitForFunction((before) => {
       const native = document.querySelector(".beui-vis-backing-controls [data-visualiser='gradient']")?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
-      return native && native.getAttribute("aria-checked") !== null;
-    });
+      return native && native.getAttribute("aria-checked") !== before;
+    }, fluidInkBefore);
     assert.notEqual(await fluidInkNativePower.getAttribute("aria-checked"), fluidInkBefore,
       "the Fluid Ink tab toggle must control Fluid Ink's existing power handler");
     assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 1,
