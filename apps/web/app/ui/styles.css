@@ -10450,9 +10450,6 @@ textarea.beui-native-textarea {
 
 
 /* beUI Tabs adapters for the legacy editor and visualiser navigation. */
-.beui-native-vis-tab {
-  display: none !important;
-}
 .beui-vis-tabs-host {
   width: 100%;
   min-width: 0;
@@ -10494,6 +10491,7 @@ textarea.beui-native-textarea {
 /* Visualiser layout — single authority for the tab rail and preset carousel. */
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
   display: block;
+  grid-template-columns: none;
   position: relative;
   box-sizing: border-box;
   width: 100%;
@@ -10503,6 +10501,9 @@ textarea.beui-native-textarea {
   padding: 0;
   background: transparent;
   overflow: visible;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs[data-beui-mounted="true"] > .kefe-vis-option {
+  display: none;
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs > .beui-vis-tabs-host,
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host > div {

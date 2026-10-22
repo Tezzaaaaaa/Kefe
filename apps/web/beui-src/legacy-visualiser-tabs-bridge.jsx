@@ -52,7 +52,6 @@ function start() {
   const backingButtons = new Map();
   nav.querySelectorAll('button[role="tab"][data-visualiser]').forEach((button) => {
     backingButtons.set(button.dataset.visualiser, button);
-    button.classList.add("beui-native-vis-tab");
   });
   if (!backingButtons.size) return;
 
