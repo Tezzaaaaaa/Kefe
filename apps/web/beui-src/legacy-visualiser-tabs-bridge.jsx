@@ -4,14 +4,31 @@ import "./legacy-bridge.css";
 
 function VisualiserTabs({ backingButtons }) {
   const [active, setActive] = useState(
-    [...backingButtons.values()].find((button) => button.getAttribute("aria-selected") === "true")?.dataset.visualiser
-      || "",
+    [...backingButtons.values()].find((button) => button.getAttribute("aria-selected") === "true")?.dataset.visualiser || "",
   );
+  const [powerStates, setPowerStates] = useState({});
+
+  function nativePower(value) {
+    const backing = backingButtons.get(value);
+    const optionPower = backing?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
+    if (optionPower) return optionPower;
+    if (active === value) return document.querySelector("#kefeVisualiserPowerSlot .kefe-switch");
+    return null;
+  }
+
+  function syncPower(value) {
+    const power = nativePower(value);
+    if (power) {
+      setPowerStates((current) => ({ ...current, [value]: power.getAttribute("aria-checked") === "true" }));
+    }
+  }
+
   useEffect(() => {
     const sync = (event) => {
       const button = event.target?.closest?.(".kefe-vis-tabs button[data-visualiser]");
       if (button && backingButtons.has(button.dataset.visualiser)) {
         setActive(button.dataset.visualiser);
+        window.setTimeout(() => syncPower(button.dataset.visualiser), 0);
       }
     };
     document.addEventListener("click", sync);
@@ -19,25 +36,33 @@ function VisualiserTabs({ backingButtons }) {
   }, [backingButtons]);
 
   function select(value) {
-    const backing = backingButtons.get(value);
-    const option = backing?.closest(".kefe-vis-option");
-    const power = option?.querySelector(".kefe-switch");
-    backing?.click();
-    const slot = document.getElementById("kefeVisualiserPowerSlot");
-    const selectedPower = power || slot?.querySelector(".kefe-switch");
-    if (slot && selectedPower && selectedPower.parentElement !== slot) slot.replaceChildren(selectedPower);
+    backingButtons.get(value)?.click();
+    setActive(value);
+    window.setTimeout(() => syncPower(value), 0);
+  }
+
+  function toggle(value, event) {
+    event.stopPropagation();
+    backingButtons.get(value)?.click();
+    setActive(value);
+    window.setTimeout(() => {
+      const backing = backingButtons.get(value);
+      const power = backing?.closest(".kefe-vis-option")?.querySelector(".kefe-switch")
+        || document.querySelector("#kefeVisualiserPowerSlot .kefe-switch");
+      if (!power) return;
+      power.click();
+      setPowerStates((current) => ({ ...current, [value]: power.getAttribute("aria-checked") === "true" }));
+    }, 0);
   }
 
   return (
     <div role="tablist" aria-label="Choose visualiser" className="kv-grid">
       {[...backingButtons.entries()].map(([value, backing]) => {
         const rawLabel = backing.querySelector(".kefe-visualiser-tab-label")?.textContent
-          || backing.textContent
-          || backing.getAttribute("aria-label")
-          || backing.title
-          || value;
+          || backing.textContent || backing.getAttribute("aria-label") || backing.title || value;
         const label = rawLabel.replace(/^[^\p{L}\p{N}]+/u, "").replace(/\s+visuali[sz]er$/i, "").trim() || value;
         const selected = active === value;
+        const enabled = powerStates[value] === true;
         return (
           <div key={value} className={`kv-card${selected ? " is-active" : ""}`}>
             <button
@@ -49,6 +74,18 @@ function VisualiserTabs({ backingButtons }) {
               onClick={() => select(value)}
             >
               <span className="kv-label">{label}</span>
+            </button>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={enabled}
+              aria-label={`${label} visualiser`}
+              className={`kv-power-switch${enabled ? " is-on" : ""}`}
+              title={`Turn ${label} ${enabled ? "off" : "on"}`}
+              onClick={(event) => toggle(value, event)}
+            >
+              <span className="kv-power-state">{enabled ? "On" : "Off"}</span>
+              <span className="kv-power-track" aria-hidden="true"><span /></span>
             </button>
           </div>
         );
@@ -67,14 +104,9 @@ function start() {
   });
   if (!backingButtons.size) return;
 
-  // The legacy Fluid Ink initializer marks this shared tab container hidden at startup.
-  // Clear that local hidden state so the React tabs can render when their parent panel is active.
   nav.hidden = false;
   nav.dataset.beuiMounted = "true";
 
-  // Keep legacy buttons only as hidden backing controls for existing effect modules.
-  // Move their full option wrappers before mounting React so duplicate labels/toggles
-  // never remain in the visible tab list.
   const backingHost = document.createElement("div");
   backingHost.className = "beui-vis-backing-controls";
   backingHost.hidden = true;
@@ -91,8 +123,6 @@ function start() {
   createRoot(host).render(<VisualiserTabs backingButtons={backingButtons} />);
 }
 
-// The legacy visualiser modules create their tabs during DOMContentLoaded.
-// Mount after those initialisers so every existing visualiser is represented.
 window.addEventListener("load", start, { once: true });
 document.addEventListener("click", (event) => {
   if (event.target?.closest?.('[data-shell-panel="visualiser"], .kefe-section[data-panel="visualiser"]')) {
