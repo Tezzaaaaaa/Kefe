@@ -39,12 +39,7 @@
     var starts = lines.map(function (_, i) {
       var found = [];
       tokens.forEach(function (t, k) { if (t.line === i && Number.isFinite(timings[k])) found.push(timings[k]); });
-      if (found.length) return found[0];
-      var before = i - 1; while (before >= 0 && !Number.isFinite(startsafe(before))) before--;
-      function startsafe(x) { return lineStarts[x]; }
-      var lineStarts = arguments.callee._starts || [];
-      var previous = before >= 0 ? lineStarts[before] : 0;
-      return previous + Math.max(1.1, lines[i].split(/\s+/).length * 0.32);
+      return found.length ? found[0] : null;
     });
     // Fill unsupported lines between measured anchors using line length as a timing weight.
     var known = starts.map(function (t, i) { return tokens.some(function (w, k) { return w.line === i && Number.isFinite(timings[k]); }) ? i : -1; }).filter(function (i) { return i >= 0; });
