@@ -10337,14 +10337,6 @@ textarea.beui-native-textarea {
   width: 100%;
   min-width: 0;
 }
-.beui-vis-tabs-host > div {
-  width: 100%;
-  min-width: 0;
-}
-.beui-vis-tabs-host [role="tablist"] {
-  width: 100%;
-  flex-wrap: wrap;
-}
 
 
 /* Section tabs are vertical in the desktop navigation panel and horizontal on narrow screens. */
@@ -10488,6 +10480,10 @@ textarea.beui-native-textarea {
   border: 0;
   background: transparent;
   text-align: left;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-tab:focus-visible {
+  outline: 2px solid var(--shell-accent, #ef4444);
+  outline-offset: -2px;
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .kv-label {
   min-width: 0;
