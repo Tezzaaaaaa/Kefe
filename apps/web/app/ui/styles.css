@@ -10534,6 +10534,15 @@ textarea.beui-native-textarea {
 .kefe-panel[data-panel-view="lyrics"] #lyricsTimingEarlier { grid-column: 1; grid-row: 2; }
 .kefe-panel[data-panel-view="lyrics"] #lyricsTimingLater { grid-column: 2; grid-row: 2; }
 .kefe-panel[data-panel-view="lyrics"] #lyricsTimingReset { grid-column: 1 / -1; grid-row: 3; }
+@container kefe-editor-column (min-width: 501px) {
+  .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-controls {
+    grid-template-columns: minmax(76px, auto) minmax(0, 1fr) minmax(76px, auto);
+    gap: 10px;
+  }
+  .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider { grid-column: 2; grid-row: 1; }
+  .kefe-panel[data-panel-view="lyrics"] #lyricsTimingEarlier { grid-column: 1; grid-row: 1; }
+  .kefe-panel[data-panel-view="lyrics"] #lyricsTimingLater { grid-column: 3; grid-row: 1; }
+}
 /* Lyrics layout controls: separate placement actions from saved-default actions. */
 .kefe-editor [data-apple-layout-ui] { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; justify-content: stretch; }
 .kefe-editor [data-apple-layout-ui] .kefe-layout-primary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; gap: 8px; min-width: 0; }
