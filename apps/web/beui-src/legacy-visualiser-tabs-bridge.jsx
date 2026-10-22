@@ -20,7 +20,8 @@ function readEnabledState(backingButtons) {
 
 function syncSelectedPower(backingButtons, value, enabled) {
   if (backingButtons.get(value)?.getAttribute("aria-selected") !== "true") return;
-  const power = document.querySelector("#kefeVisualiserPowerSlot .kefe-switch") || backingButtons.get(value)?.parentElement.querySelector(".kefe-vis-option-power");
+  const backingPower = backingButtons.get(value)?.parentElement.querySelector(".kefe-vis-option-power");
+  const power = backingPower || document.querySelector("#kefeVisualiserPowerSlot .kefe-switch");
   if (!power) return;
   const current = power.getAttribute("aria-checked") === "true";
   if (current !== enabled) power.click();
@@ -110,6 +111,20 @@ function start() {
   if (!backingButtons.size) return;
 
   nav.dataset.beuiMounted = "true";
+
+  // Keep legacy buttons only as hidden backing controls for existing effect modules.
+  // Move their full option wrappers before mounting React so duplicate labels/toggles
+  // never remain in the visible tab list.
+  const backingHost = document.createElement("div");
+  backingHost.className = "beui-vis-backing-controls";
+  backingHost.hidden = true;
+  backingHost.setAttribute("aria-hidden", "true");
+  for (const button of backingButtons.values()) {
+    const option = button.closest(".kefe-vis-option");
+    backingHost.appendChild(option || button);
+  }
+  nav.appendChild(backingHost);
+
   const host = document.createElement("div");
   host.className = "beui-vis-tabs-host";
   nav.prepend(host);
