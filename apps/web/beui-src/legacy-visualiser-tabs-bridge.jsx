@@ -26,7 +26,7 @@ function VisualiserTabs({ backingButtons }) {
 
   return (
     <Tabs value={active} onValueChange={select} variant="segment" className="w-full min-w-0">
-      <TabsList aria-label="Choose visualiser" wrapperClassName="w-full" className="flex-wrap gap-1">
+      <TabsList aria-label="Choose visualiser" wrapperClassName="w-full" className="grid w-full grid-cols-4 gap-2 max-[700px]:grid-cols-2">
         {[...backingButtons.entries()].map(([value, backing]) => {
           const icon = backing.querySelector(".kefe-visualiser-tab-icon")?.textContent || backing.dataset.icon || "";
           const label = backing.querySelector(".kefe-visualiser-tab-label")?.textContent
@@ -34,7 +34,7 @@ function VisualiserTabs({ backingButtons }) {
             || backing.title
             || value;
           return (
-            <TabsTrigger key={value} value={value} className="min-h-9 shrink-0 gap-2 px-3 text-xs">
+            <TabsTrigger key={value} value={value} className="min-h-11 w-full min-w-0 shrink gap-2 whitespace-normal break-words px-2 text-xs">
               {icon ? <span aria-hidden="true" className="text-sm">{icon}</span> : null}
               <span>{label}</span>
             </TabsTrigger>
