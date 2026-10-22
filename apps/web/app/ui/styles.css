@@ -97,7 +97,7 @@ button{border:0;cursor:pointer;
 .kefe-btn.primary{font-weight:700;background: var(--accent);border-color: transparent;box-shadow: var(--lift);color: var(--accent-deep);
   font-family: inherit;
   font-size: var(--font-sm);}
-.kefe-work{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) minmax(220px,40vh);overflow:hidden}
+.kefe-work{min-height:0;display:grid;grid-template-rows:minmax(0,1fr);overflow:hidden}
 .kefe-preview{min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);align-items:stretch;justify-items:stretch;gap:10px;padding:18px 24px 12px;overflow:hidden}
 
 .kefe-preview-toolbar{position:relative;z-index:20;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px 12px;width:min(100%,1280px);min-width:0;min-height:48px;margin:0 auto;padding:7px 10px;border:1px solid var(--line-soft);border-radius:14px;background:var(--surface);box-shadow:var(--lift);color:var(--text)}
@@ -305,7 +305,7 @@ button{border:0;cursor:pointer;
 .kefe-song-search-head{align-items:flex-start}
 .kefe-editor{grid-template-rows:52px minmax(0,1fr)}
 .kefe-preview{padding:12px}
-.kefe-work{position:relative;grid-template-rows:minmax(0,1fr) minmax(0,1fr);overflow:hidden}
+.kefe-work{position:relative;grid-template-rows:minmax(0,1fr);overflow:hidden}
 .kefe-timeline{position:static;grid-row:2;grid-template-columns:auto auto minmax(0,1fr) auto;left:auto;right:auto;top:auto;height:66px;padding:8px 12px;gap:8px;transform:none;z-index:10}
 .kefe-timeline .kefe-wave{min-width:0;overflow:hidden}
 .kefe-timeline .kefe-time{width:66px;min-width:66px;overflow:hidden;white-space:nowrap;order:2;
