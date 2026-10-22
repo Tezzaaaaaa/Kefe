@@ -287,8 +287,6 @@
     connectAudio();
     document.querySelectorAll('.kefe-vis-tabs [role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
     ['kefeVisGradientView','kefeVisFlutedView','kefeVisSlowLightView','kefeVisHowBadView'].forEach(id=>{const n=$(id);if(n)n.hidden=true;});
-    const powerSlot=$('kefeVisualiserPowerSlot');
-    if(powerSlot)powerSlot.replaceChildren(power);
     const heading=$('kefeVisualiserHeading'),description=$('kefeVisualiserDescription');
     if(heading)heading.textContent='Disco Ball';
     if(description)description.textContent='Audio-reactive mirror tiles and prismatic reflections';
@@ -308,8 +306,9 @@
     view.appendChild(info);form.appendChild(view);
     tab=el('button','kefe-btn','Disco Ball');tab.type='button';tab.id='kefeDiscoBallTab';tab.dataset.visualiser='disco-ball';tab.dataset.icon='✦';tab.title='Disco Ball visualiser';tab.setAttribute('role','tab');tab.setAttribute('aria-controls',view.id);tab.setAttribute('aria-selected','false');
     const option=el('div','kefe-vis-option');option.appendChild(tab);tabs.appendChild(option);
-    power=el('button','kefe-btn kefe-switch','');power.type='button';power.setAttribute('role','switch');power.setAttribute('aria-checked','true');power.setAttribute('aria-label','Disco Ball visualiser');power.title='Disco Ball visualiser';
+    power=el('button','kefe-btn kefe-switch kefe-vis-option-power','');power.type='button';power.setAttribute('role','switch');power.setAttribute('aria-checked','true');power.setAttribute('aria-label','Disco Ball visualiser');power.title='Disco Ball visualiser';
     const state=el('span','kefe-switch-state','On'),track=el('span','kefe-switch-track'),thumb=el('span','kefe-switch-thumb');track.appendChild(thumb);power.append(state,track);
+    option.appendChild(power);
     power.addEventListener('click',e=>{e.stopPropagation();enabled=!enabled;power.setAttribute('aria-checked',String(enabled));power.classList.toggle('is-on',enabled);state.textContent=enabled?'On':'Off';canvas.style.visibility=active&&enabled?'visible':'hidden';window.kefeDiscoBallEnabled=enabled;if(enabled)schedule();});
     tabs.querySelectorAll('[role="tab"]').forEach(b=>{if(b!==tab)b.addEventListener('click',deactivate);});
     tab.addEventListener('click',activate);
