@@ -5981,46 +5981,6 @@ body:not(.kefe-fullscreen-open) {
 }
 
 
-/* Keep the Fluid Ink tab name visible even when legacy icon-only tab rules apply. */
-.kefe-vis-tabs .kefe-visualiser-tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  color: var(--text);
-  -webkit-text-fill-color: var(--text);
-  font-size: 13px;
-  line-height: 1.2;
-  text-indent: 0;
-}
-.kefe-vis-tabs .kefe-visualiser-tab .kefe-visualiser-tab-icon {
-  display: inline-grid;
-  flex: 0 0 26px;
-  width: 26px;
-  height: 26px;
-  place-items: center;
-  color: inherit;
-  -webkit-text-fill-color: currentColor;
-  font-size: 18px;
-}
-.kefe-vis-tabs .kefe-visualiser-tab .kefe-visualiser-tab-label {
-  display: inline-block;
-  flex: 0 1 auto;
-  min-width: 0;
-  overflow: visible;
-  color: inherit;
-  -webkit-text-fill-color: currentColor;
-  font-size: 13px;
-  font-weight: 700;
-  text-indent: 0;
-  white-space: nowrap;
-}
-@media (max-width: 700px) {
-  .kefe-vis-tabs .kefe-visualiser-tab { justify-content: flex-start; gap: 6px; padding-inline: 10px; }
-  .kefe-vis-tabs .kefe-visualiser-tab .kefe-visualiser-tab-label { font-size: 12px; }
-}
-
-
 /* Background effect choices: selectable preview cards following the beUI card pattern. */
 .kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options{
   display:grid;
@@ -10434,9 +10394,6 @@ textarea.beui-native-textarea {
   padding: 0;
   background: transparent;
   overflow: visible;
-}
-.kefe-vis-tabs[data-beui-mounted="true"] > .kefe-vis-option {
-  display: none;
 }
 .kefe-vis-tabs[data-beui-mounted="true"] > .beui-vis-tabs-host {
   display: block;
