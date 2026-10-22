@@ -8174,8 +8174,8 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   }
 
   /* Visualiser sub-tabs + presets sit at the top of the right panel */
-  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs { grid-column: 3; grid-row: 2; z-index: 2; min-width: 0; width: auto; margin: 8px 12px 0; }
-  .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row { grid-column: 3; grid-row: 3; z-index: 2; min-width: 0; width: auto; margin: 4px 12px; }
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs { grid-column: 1 / -1; grid-row: 2; z-index: 2; min-width: 0; width: 100%; margin: 8px 0 0; }
+  .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row { grid-column: 1 / -1; grid-row: 3; z-index: 2; box-sizing: border-box; min-width: 0; width: 100%; margin: 4px 0; }
   .kefe-editing[data-active-panel="visualiser"] > .kefe-panels:not(.kefe-panels-left) { grid-row: 4; }
 
   /* The floating dock duplicated the left nav and covered the timeline */
@@ -9554,9 +9554,11 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host {
   display: block;
+  grid-column: 1 / -1;
   width: 100%;
   min-width: 0;
 }
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host > div,
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 112px), 1fr));
@@ -10122,5 +10124,48 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
+  }
+}
+
+/* Final visualiser geometry: the beUI tab host spans the full tab rail and
+   the selected preset set uses the full panel width instead of a narrow grid cell. */
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 0 12px;
+  padding: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs > .beui-vis-tabs-host {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row:not([hidden]) {
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 0 14px;
+  padding: 8px 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set:not([hidden]) {
+  display: flex;
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row .kefe-visualiser-preset-set[hidden] {
+  display: none !important;
+}
+@media (max-width: 600px) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
   }
 }
