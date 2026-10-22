@@ -139,7 +139,7 @@
     const intro=document.createElement('div');intro.className='kefe-visualiser-intro';intro.hidden=true;
     /* The power switch lives in the panel header (same pattern as Fluted Glass) so the header
        switch always controls the visualiser that is actually selected. */
-    const power=document.createElement('button');power.type='button';power.className='kefe-btn kefe-switch kefe-slow-light-power';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.setAttribute('aria-label','Slow Light Visualiser');
+    const power=document.createElement('button');power.type='button';power.className='kefe-btn kefe-switch kefe-vis-option-power kefe-slow-light-power';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.setAttribute('aria-label','Slow Light Visualiser');
     const powerState=document.createElement('span');powerState.className='kefe-switch-state';powerState.textContent='Off';
     const powerTrack=document.createElement('span');powerTrack.className='kefe-switch-track';powerTrack.setAttribute('aria-hidden','true');
     const powerThumb=document.createElement('span');powerThumb.className='kefe-switch-thumb';powerTrack.appendChild(powerThumb);power.append(powerState,powerTrack);
@@ -159,11 +159,10 @@
     const auto=document.createElement('label');auto.className='kefe-slow-light-auto';const check=document.createElement('input');check.type='checkbox';check.checked=!!cfg.auto;const copy=document.createElement('span');copy.textContent='Change scenes automatically';check.addEventListener('change',()=>{cfg.auto=check.checked;hold=0;persist();});auto.append(check,copy);motion.append(auto);view.appendChild(motion);
     const tabsList=tabs.querySelector('[role="tablist"]')||tabs;
     const tab=document.createElement('button');tab.type='button';tab.className='kefe-btn';tab.setAttribute('role','tab');tab.dataset.visualiser='slow-light';tab.dataset.icon='☼';tab.setAttribute('aria-controls',view.id);tab.setAttribute('aria-label','Slow Light visualiser');tab.title='Slow Light visualiser';tab.textContent='Slow Light';tabsList.appendChild(tab);
-    const option=document.createElement('div');option.className='kefe-vis-option';option.appendChild(tab);tabsList.appendChild(option);
+    const option=document.createElement('div');option.className='kefe-vis-option';option.append(tab,power);tabsList.appendChild(option);
     form.appendChild(view);
     tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab){setActive(false);sceneSet.hidden=true;}});
     tab.addEventListener('click',()=>{
-      const powerSlot=document.getElementById('kefeVisualiserPowerSlot');if(powerSlot)powerSlot.replaceChildren(power);
       form.querySelectorAll('.kefe-vis-view').forEach(v=>v.hidden=v!==view);
       tabs.querySelectorAll('[role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
       const presetRow=document.querySelector('.kefe-visualiser-preset-row');if(presetRow)presetRow.hidden=false;
