@@ -198,5 +198,4 @@
 
   window.KEFE_TYPE = Object.freeze({ scale, families, effects, ready, fontFaces: FONT_FACES });
   window.kefeTypographyReady = ready;
-  console.log('[KEFE] typography loaded,', FONT_FACES.length, 'font faces registered');
 })();
