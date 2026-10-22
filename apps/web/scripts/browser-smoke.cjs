@@ -77,6 +77,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
+    await page.waitForSelector(".beui-vis-backing-controls [data-visualiser='gradient']", { state: "attached", timeout: 10000 });
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "the editor must start in Media, not switch itself to Visualisers");
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
