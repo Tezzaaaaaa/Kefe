@@ -75,8 +75,12 @@ function VisualiserTabs({ backingButtons }) {
             || value;
           const enabled = enabledByVisualiser[value] !== false;
           return (
-            <div key={value} className="kefe-vis-option beui-vis-option">
-              <TabsTrigger value={value} className="min-h-16 w-full min-w-0 gap-2 whitespace-normal break-words px-2 text-xs">
+            <div
+              key={value}
+              className="kefe-vis-option beui-vis-option"
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", minWidth: 0 }}
+            >
+              <TabsTrigger value={value} className="min-h-16 flex-1 min-w-0 gap-2 whitespace-normal break-words px-2 text-xs">
                 {icon ? <span aria-hidden="true" className="text-sm">{icon}</span> : null}
                 <span>{label}</span>
               </TabsTrigger>
