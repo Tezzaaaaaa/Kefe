@@ -56,17 +56,8 @@
     flutedPresetSet.hidden = true;
     presetRow.append(gradientPresetSet, flutedPresetSet);
 
-    const header = panel.querySelector('.kefe-visualiser-panel-head');
     const heading = panel.querySelector('#kefeVisualiserHeading');
     const description = panel.querySelector('#kefeVisualiserDescription');
-    let powerSlot = panel.querySelector('#kefeVisualiserPowerSlot');
-    if (!powerSlot) {
-      powerSlot = element('div', 'kefe-visualiser-power-slot');
-      powerSlot.id = 'kefeVisualiserPowerSlot';
-      powerSlot.setAttribute('aria-label', 'Selected visualiser power');
-      if (header && description) description.parentNode.insertBefore(powerSlot, description);
-      else header?.appendChild(powerSlot);
-    }
 
     const power = element('button', 'kefe-btn kefe-switch kefe-vis-option-power', '');
     power.type = 'button';
