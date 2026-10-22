@@ -221,7 +221,11 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
             // The wave changes only the approach timing; once lifted, each glyph stays up.
             const waveLead = 0.035;
             const liftProgress = linaClamp((front - charCenter + edgeSoft + waveLead) / (2 * edgeSoft));
-            const lift = P.lift * linaSmoother(liftProgress);
+            // Slow, sustained sweeps keep the glyph rise almost imperceptible; quicker
+            // sweeps recover the normal Apple-style lift without a threshold snap.
+            const slowSweep = linaSmooth((dur - 0.34) / 0.86);
+            const liftStrength = 1 - slowSweep * 0.82;
+            const lift = P.lift * liftStrength * linaSmoother(liftProgress);
             ctx.save();
             if (lift > 0.001) {
                 const ox = lx + lw / 2, oy = y + fs * 0.46, sc = 1 + lift * P.pop;
