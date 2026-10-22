@@ -418,7 +418,7 @@
 
     /* ---- controls ---- */
     const view = el('section', 'kefe-vis-view kefe-slow-light-view kefe-scenic-view'); view.id = 'kefeVis' + scene.label.replace(/\s+/g, '') + 'View'; view.hidden = true;
-    const power = el('button', 'kefe-btn kefe-switch kefe-slow-light-power'); power.type = 'button'; power.setAttribute('role', 'switch'); power.setAttribute('aria-checked', 'false'); power.setAttribute('aria-label', scene.label + ' background');
+    const power = el('button', 'kefe-btn kefe-switch kefe-vis-option-power kefe-slow-light-power'); power.type = 'button'; power.setAttribute('role', 'switch'); power.setAttribute('aria-checked', 'false'); power.setAttribute('aria-label', scene.label + ' background');
     const powerState = el('span', 'kefe-switch-state', 'Off'), powerTrack = el('span', 'kefe-switch-track'); powerTrack.setAttribute('aria-hidden', 'true'); powerTrack.appendChild(el('span', 'kefe-switch-thumb'));
     power.append(powerState, powerTrack);
     power.addEventListener('click', e => { e.stopPropagation(); enabled = !enabled; sync(); });
@@ -454,14 +454,13 @@
 
     const tab = el('button', 'kefe-btn', scene.label); tab.type = 'button'; tab.setAttribute('role', 'tab'); tab.dataset.visualiser = scene.key; tab.dataset.icon = scene.icon;
     tab.setAttribute('aria-controls', view.id); tab.setAttribute('aria-label', scene.label + ' background'); tab.title = scene.label + ' background'; tab.setAttribute('aria-selected', 'false');
-    const option = el('div', 'kefe-vis-option'); option.appendChild(tab); tabsList.appendChild(option);
+    const option = el('div', 'kefe-vis-option'); option.append(tab, power); tabsList.appendChild(option);
 
     tabsList.addEventListener('click', e => {
       const clicked = e.target.closest('[role="tab"]');
       if (clicked && clicked !== tab) { active = false; view.hidden = true; presetSet.hidden = true; tab.classList.remove('primary'); tab.setAttribute('aria-selected', 'false'); sync(); }
     });
     tab.addEventListener('click', () => {
-      const slot = document.getElementById('kefeVisualiserPowerSlot'); if (slot) slot.replaceChildren(power);
       form.querySelectorAll('.kefe-vis-view').forEach(v => v.hidden = v !== view);
       tabs.querySelectorAll('[role="tab"]').forEach(b => { const sel = b === tab; b.classList.toggle('primary', sel); b.setAttribute('aria-selected', String(sel)); });
       const pr = document.querySelector('.kefe-visualiser-preset-row'); if (pr) { pr.hidden = false; pr.querySelectorAll('.kefe-visualiser-preset-set').forEach(set => set.hidden = set !== presetSet); }
