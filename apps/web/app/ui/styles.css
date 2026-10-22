@@ -3189,7 +3189,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 }
 
 /* Downloads and review checklist */
-.kefe-download-row{display:flex;flex-wrap:wrap;gap:8px}
+.kefe-download-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0}.kefe-download-row>button{width:100%;min-width:0;max-width:100%;padding-inline:8px;white-space:normal;overflow-wrap:anywhere}
 .kefe-review{display:grid;gap:8px}
 .kefe-review-item{display:flex;gap:8px;align-items:flex-start;font-size:var(--font-sm);line-height:1.4;cursor:pointer}
 .kefe-review-item input{margin-top:3px;accent-color:var(--accent)}
@@ -6828,7 +6828,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   .kefe-editor.sidebar-collapsed .kefe-theme-swatches{gap:5px}
 }
 @media(max-width:640px){
-  body:has(.kefe-workspace-dock){padding-bottom:74px}
+  body:has(.kefe-workspace-dock){padding-bottom:calc(112px + env(safe-area-inset-bottom))}
   .kefe-command-trigger span,.kefe-command-trigger kbd{display:none}
   .kefe-command-trigger{width:34px;justify-content:center;padding:0;font-size:18px!important}
   .kefe-workspace-dock{gap:2px;padding:6px;border-radius:var(--r3)}
@@ -10558,4 +10558,46 @@ textarea.beui-native-textarea {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
   }
+}
+
+
+/* Lyrics mobile layout: keep the fixed dock clear of the scrollable panel. */
+@media (max-width: 640px) {
+  .kefe-editor .kefe-panels { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
+}
+/* Lyrics timing controls: full-width slider with evenly distributed controls below. */
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider {
+  grid-column: 1 / -1;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-controls > button {
+  width: 100%;
+  min-width: 0;
+}
+@media (max-width: 420px) {
+  .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* Lyrics layout controls: separate placement actions from saved-default actions. */
+.kefe-editor [data-apple-layout-ui] { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; justify-content: stretch; }
+.kefe-editor [data-apple-layout-ui] .kefe-layout-primary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; gap: 8px; min-width: 0; }
+.kefe-editor [data-apple-layout-ui] .kefe-layout-defaults { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; min-width: 0; }
+.kefe-editor [data-apple-layout-ui] .kefe-layout-primary > label { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
+.kefe-editor [data-apple-layout-ui] .kefe-layout-primary select { width: min(100%, 125px); min-width: 0; }
+.kefe-editor [data-apple-layout-ui] .kefe-layout-primary input[type="range"] { width: min(74px, 100%); min-width: 0; }
+.kefe-editor [data-apple-layout-ui] button { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.kefe-editor [data-apple-layout-ui] [data-layout-hint] { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+  .kefe-editor [data-apple-layout-ui] .kefe-layout-primary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kefe-editor [data-apple-layout-ui] .kefe-layout-defaults { justify-content: stretch; }
+  .kefe-editor [data-apple-layout-ui] .kefe-layout-defaults > button { flex: 1 1 0; }
 }
