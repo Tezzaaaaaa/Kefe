@@ -20,7 +20,7 @@ function readEnabledState(backingButtons) {
 
 function syncSelectedPower(backingButtons, value, enabled) {
   if (backingButtons.get(value)?.getAttribute("aria-selected") !== "true") return;
-  const power = document.querySelector("#kefeVisualiserPowerSlot .kefe-switch");
+  const power = document.querySelector("#kefeVisualiserPowerSlot .kefe-switch") || backingButtons.get(value)?.parentElement.querySelector(".kefe-vis-option-power");
   if (!power) return;
   const current = power.getAttribute("aria-checked") === "true";
   if (current !== enabled) power.click();
