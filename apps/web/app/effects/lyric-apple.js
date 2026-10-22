@@ -465,7 +465,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const appleHeaderBottom = landscapeSplit ? 0 : Math.max(32, h * 0.07) + baseDimension * 0.11;
     const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const artworkTop = aspectRatio < 0.75 ? baseDimension * 0.18 : Math.max(32, h * 0.12);
-    const topAnchor = landscapeSplit
+    let topAnchor = landscapeSplit
         ? h * 0.50 - activeBlockHeight - blockGap
         : artworkTop + activeFontSize * 0.5 + (aspectRatio >= 0.9 ? activeBlockHeight + blockGap : 0);
     const activeScale = 1;
@@ -484,6 +484,14 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ? linaSmooth((time - (nextLineTime - transitionDuration)) / transitionDuration)
         : 0;
 
+    // Square and landscape layouts anchor against the active block's height; blend it with the next line's
+    // height over the scroll so the whole stack doesn't snap when row counts differ between lines.
+    {
+        const nextBlockHeight = displayLines[activeIndex + 1]?.appleBlockHeight ?? activeBlockHeight;
+        const heightDelta = (nextBlockHeight - activeBlockHeight) * posT;
+        if (landscapeSplit) topAnchor -= heightDelta;
+        else if (aspectRatio >= 0.9) topAnchor += heightDelta;
+    }
     const scalePoints = [[-4, 1], [-3, 1], [-2, 1], [-1, 1], [0, activeScale], [1, 1], [2, 1], [3, 1], [4, 1]];
     // Per-line fade + blur by distance from the focused line. Text is white; this scales the unsung alpha
     // (~0.28), so lines below read ~0.26 white and fade slowly with distance, matching the recording.
@@ -675,7 +683,10 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
             // Sung part eases from 1 down to the unsung level after the line ends (reference: --hi over `fall`).
             const hi = 1 - (1 - lineDim) * linaSmooth((time - lineEnd) / wave.fall);
             const spaceWidth = ctx.measureText(' ').width;
-            let ti = 0;
+            // Rows are built by wrapping, and a word wider than the column is split at glyph boundaries, so a row
+            // piece is either a whole token or a fragment of one. Walk the tokens by character so every piece
+            // gets the right word timing (fragments share their word's window, in order).
+            let tokIdx = 0, charOff = 0;
             for (let ri = 0; ri < rows.length; ri++) {
                 const rowTokens = rows[ri].split(' ').filter(Boolean);
                 const entries = [];
@@ -687,17 +698,28 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                     cursorX = rightEdge - Math.max(0, rowW - spaceWidth);
                 }
                 for (let k = 0; k < rowTokens.length; k++) {
-                    const box = appleLetterBox(ctx, rowTokens[k]);
-                    const tm = times[ti + k];
+                    const piece = rowTokens[k];
+                    const box = appleLetterBox(ctx, piece);
+                    const ix = Math.min(tokIdx, times.length - 1);
+                    const tok = tokens[ix] || piece;
+                    const tm = times[ix];
+                    const pieceLen = Array.from(piece).length, tokLen = Math.max(1, Array.from(tok).length);
+                    const isFragment = pieceLen < tokLen && (charOff > 0 || Array.from(tok).slice(0, pieceLen).join('') === piece);
+                    const f0 = isFragment ? Math.min(1, charOff / tokLen) : 0;
+                    const f1 = isFragment ? Math.min(1, (charOff + pieceLen) / tokLen) : 1;
+                    const span = tm.endTime - tm.time;
                     const explicitTiming = Array.isArray(line.words) &&
                         line.words.length === tokens.length &&
-                        hasFiniteNumber(line.words[ti + k]?.time) &&
-                        hasFiniteNumber(line.words[ti + k]?.endTime) &&
-                        Number(line.words[ti + k].endTime) > Number(line.words[ti + k].time);
-                    entries.push({ x: cursorX, box, t0: tm.time, t1: Math.max(tm.time + 0.05, tm.endTime), explicitTiming });
+                        hasFiniteNumber(line.words[ix]?.time) &&
+                        hasFiniteNumber(line.words[ix]?.endTime) &&
+                        Number(line.words[ix].endTime) > Number(line.words[ix].time);
+                    entries.push({ x: cursorX, box, t0: tm.time + span * f0, t1: Math.max(tm.time + span * f0 + 0.05, tm.time + span * f1), explicitTiming });
                     cursorX += box.W + spaceWidth;
+                    if (isFragment) {
+                        charOff += pieceLen;
+                        if (charOff >= tokLen) { tokIdx++; charOff = 0; }
+                    } else { tokIdx++; charOff = 0; }
                 }
-                ti += rowTokens.length;
                 if (entries.length) appleDrawRow(ctx, entries, rowYs[ri], rowFontSize, time, lineWave, lineA, hi, blurAmt);
             }
         } else {
