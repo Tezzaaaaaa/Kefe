@@ -77,16 +77,15 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
-    await page.waitForSelector(".beui-vis-backing-controls [data-visualiser='gradient']", { state: "attached", timeout: 10000 });
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "the editor must start in Media, not switch itself to Visualisers");
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
       "visualiser tabs must stay hidden until the Visualisers section is opened");
     assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
       "initialisation must not select Fluid Ink or change the visualiser heading");
-    assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
+    assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient'][aria-label='Fluid Ink visualiser']").getAttribute("aria-selected"), "false",
       "Fluid Ink must not be selected automatically on startup");
-    assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").evaluate(tab => tab.classList.contains("primary")), false,
+    assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient'][aria-label='Fluid Ink visualiser']").evaluate(tab => tab.classList.contains("primary")), false,
       "Fluid Ink must not have the selected visual style on startup");
     const desktopLayout = await page.evaluate(() => {
       const nav = document.querySelector(".kefe-sidebar").getBoundingClientRect();
