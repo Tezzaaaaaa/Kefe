@@ -10502,10 +10502,10 @@ textarea.beui-native-textarea {
   background: transparent;
   overflow: visible;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs[data-beui-mounted="true"] > .kefe-vis-option {
+.kefe-vis-tabs[data-beui-mounted="true"] > .kefe-vis-option {
   display: none;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs > .beui-vis-tabs-host {
+.kefe-vis-tabs[data-beui-mounted="true"] > .beui-vis-tabs-host {
   display: block;
   grid-column: 1 / -1;
   box-sizing: border-box;
