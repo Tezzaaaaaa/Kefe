@@ -472,11 +472,12 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const appleHeaderSize = baseDimension * 0.11;
     const appleHeaderTop = Math.max(baseDimension * 0.065, h * 0.035);
     const appleHeaderBottom = landscapeSplit ? 0 : Math.max(32, h * 0.07) + baseDimension * 0.11;
-    const activeBlockHeight = displayLine.appleBlockHeight || rowHeight;
     const artworkTop = aspectRatio < 0.75 ? baseDimension * 0.18 : Math.max(32, h * 0.12);
-    let topAnchor = landscapeSplit
-        ? h * 0.50 - activeBlockHeight - blockGap
-        : artworkTop + activeFontSize * 0.5 + (aspectRatio >= 0.9 ? activeBlockHeight + blockGap : 0);
+    // Keep each aspect ratio anchored to its own composition rather than to the
+    // active lyric block's changing wrap height.
+    const topAnchor = landscapeSplit
+        ? h * 0.50
+        : artworkTop + activeFontSize * 0.5 + (aspectRatio >= 0.9 ? rowHeight + blockGap : 0);
     const activeScale = 1;
 
     const active = linaNormaliseLine(displayLines, activeIndex);
@@ -493,14 +494,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ? linaSmooth((time - (nextLineTime - transitionDuration)) / transitionDuration)
         : 0;
 
-    // Square and landscape layouts anchor against the active block's height; blend it with the next line's
-    // height over the scroll so the whole stack doesn't snap when row counts differ between lines.
-    {
-        const nextBlockHeight = displayLines[activeIndex + 1]?.appleBlockHeight ?? activeBlockHeight;
-        const heightDelta = (nextBlockHeight - activeBlockHeight) * posT;
-        if (landscapeSplit) topAnchor -= heightDelta;
-        else if (aspectRatio >= 0.9) topAnchor += heightDelta;
-    }
     const scalePoints = [[-4, 1], [-3, 1], [-2, 1], [-1, 1], [0, activeScale], [1, 1], [2, 1], [3, 1], [4, 1]];
     // Per-line fade + blur by distance from the focused line. Text is white; this scales the unsung alpha
     // (~0.28), so lines below read ~0.26 white and fade slowly with distance, matching the recording.
