@@ -3,11 +3,35 @@ import { createRoot } from "react-dom/client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs";
 import "./legacy-bridge.css";
 
+const ENABLED_STORAGE_KEY = "kefe.visualiser-enabled.v1";
+
+function readEnabledState(backingButtons) {
+  let saved = {};
+  try {
+    saved = JSON.parse(window.localStorage.getItem(ENABLED_STORAGE_KEY) || "{}") || {};
+  } catch {
+    saved = {};
+  }
+  return Object.fromEntries([...backingButtons.keys()].map((value) => [
+    value,
+    typeof saved[value] === "boolean" ? saved[value] : true,
+  ]));
+}
+
+function syncSelectedPower(backingButtons, value, enabled) {
+  if (backingButtons.get(value)?.getAttribute("aria-selected") !== "true") return;
+  const power = document.querySelector("#kefeVisualiserPowerSlot .kefe-switch");
+  if (!power) return;
+  const current = power.getAttribute("aria-checked") === "true";
+  if (current !== enabled) power.click();
+}
+
 function VisualiserTabs({ backingButtons }) {
   const [active, setActive] = useState(
     [...backingButtons.values()].find((button) => button.getAttribute("aria-selected") === "true")?.dataset.visualiser
       || "",
   );
+  const [enabledByVisualiser, setEnabledByVisualiser] = useState(() => readEnabledState(backingButtons));
 
   useEffect(() => {
     const sync = (event) => {
@@ -22,22 +46,52 @@ function VisualiserTabs({ backingButtons }) {
 
   function select(value) {
     backingButtons.get(value)?.click();
+    syncSelectedPower(backingButtons, value, enabledByVisualiser[value] !== false);
+  }
+
+  function toggleEnabled(value, event) {
+    event.stopPropagation();
+    event.preventDefault();
+    const next = !(enabledByVisualiser[value] !== false);
+    const updated = { ...enabledByVisualiser, [value]: next };
+    setEnabledByVisualiser(updated);
+    try {
+      window.localStorage.setItem(ENABLED_STORAGE_KEY, JSON.stringify(updated));
+    } catch {
+      // Keep the toggle usable for this session if storage is unavailable.
+    }
+    syncSelectedPower(backingButtons, value, next);
   }
 
   return (
     <Tabs value={active} onValueChange={select} variant="segment" className="w-full min-w-0">
-      <TabsList aria-label="Choose visualiser" wrapperClassName="w-full" className="grid w-full grid-cols-4 gap-2 max-[700px]:grid-cols-2">
+      <TabsList aria-label="Choose visualiser" wrapperClassName="w-full" className="grid w-full grid-cols-2 gap-2">
         {[...backingButtons.entries()].map(([value, backing]) => {
           const icon = backing.querySelector(".kefe-visualiser-tab-icon")?.textContent || backing.dataset.icon || "";
           const label = backing.querySelector(".kefe-visualiser-tab-label")?.textContent
             || backing.getAttribute("aria-label")
             || backing.title
             || value;
+          const enabled = enabledByVisualiser[value] !== false;
           return (
-            <TabsTrigger key={value} value={value} className="min-h-11 w-full min-w-0 shrink gap-2 whitespace-normal break-words px-2 text-xs">
-              {icon ? <span aria-hidden="true" className="text-sm">{icon}</span> : null}
-              <span>{label}</span>
-            </TabsTrigger>
+            <div key={value} className="kefe-vis-option beui-vis-option">
+              <TabsTrigger value={value} className="min-h-16 w-full min-w-0 gap-2 whitespace-normal break-words px-2 text-xs">
+                {icon ? <span aria-hidden="true" className="text-sm">{icon}</span> : null}
+                <span>{label}</span>
+              </TabsTrigger>
+              <button
+                type="button"
+                className={`kefe-btn kefe-switch kefe-vis-option-power${enabled ? " is-on" : ""}`}
+                role="switch"
+                aria-checked={String(enabled)}
+                aria-label={`${label} visualiser ${enabled ? "on" : "off"}`}
+                title={`Turn ${label} ${enabled ? "off" : "on"}`}
+                onClick={(event) => toggleEnabled(value, event)}
+              >
+                <span className="kefe-switch-state">{enabled ? "On" : "Off"}</span>
+                <span className="kefe-switch-track" aria-hidden="true"><span className="kefe-switch-thumb" /></span>
+              </button>
+            </div>
           );
         })}
       </TabsList>
