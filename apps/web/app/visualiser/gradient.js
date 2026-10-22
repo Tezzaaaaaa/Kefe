@@ -65,24 +65,26 @@
       else header?.appendChild(powerSlot);
     }
 
-    const power = element('button', 'kefe-btn kefe-switch', '');
+    const power = element('button', 'kefe-btn kefe-switch kefe-vis-option-power', '');
     power.type = 'button';
     power.setAttribute('role', 'switch');
     power.setAttribute('aria-checked', 'false');
-    power.setAttribute('aria-label', 'Fluid Ink Visualiser');
-    power.title = 'Fluid Ink Visualiser';
+    power.setAttribute('aria-label', 'Fluid Ink visualiser');
+    power.title = 'Turn Fluid Ink on';
     const powerState = element('span', 'kefe-switch-state', 'Off');
     const powerTrack = element('span', 'kefe-switch-track');
     powerTrack.setAttribute('aria-hidden', 'true');
     powerTrack.appendChild(element('span', 'kefe-switch-thumb'));
     power.append(powerState, powerTrack);
-    power.addEventListener('click', () => {
+    power.addEventListener('click', (event) => {
+      event.stopPropagation();
       const enabled = power.getAttribute('aria-checked') !== 'true';
       power.setAttribute('aria-checked', String(enabled));
       power.classList.toggle('is-on', enabled);
       powerState.textContent = enabled ? 'On' : 'Off';
+      power.title = enabled ? 'Turn Fluid Ink off' : 'Turn Fluid Ink on';
     });
-    if(power.parentNode!==powerSlot)powerSlot.prepend(power);
+    option.appendChild(power);
 
     const editing = panel.closest('.kefe-editing');
     const panels = editing?.querySelector('.kefe-panels');
@@ -99,9 +101,7 @@
         item.classList.toggle('primary', selected);
         item.setAttribute('aria-selected', String(selected));
       });
-      powerSlot.replaceChildren(power);
-      power.setAttribute('aria-label', 'Fluid Ink Visualiser');
-      power.title = 'Fluid Ink Visualiser';
+      power.setAttribute('aria-label', 'Fluid Ink visualiser');
       if (heading) heading.textContent = 'Visualisers';
       if (description) description.textContent = '';
       tabs.hidden = false;
