@@ -145,7 +145,9 @@ function appleSpringOut(t) {
    word's timing, so the sweep is sub-pixel smooth instead of stepping letter by letter.
    Lift / pop / glow are pure functions of time per letter (rise before the front arrives, cosine
    settle after), so nothing is driven by hard per-word switches. */
-const APPLE_WAVE = { lift: 0.10, pop: 0.04, glow: 0.8, glowSize: 0.38, soft: 0.35, fall: 0.28, dim: 0.32 };
+// Measured from an iOS Apple Music screen recording: unsung words of the line being sung sit at ~46% white,
+// every other line at ~28% (then blurred by distance); sung letters rise ~7% of the font size.
+const APPLE_WAVE = { lift: 0.07, pop: 0.04, glow: 0.8, glowSize: 0.38, soft: 0.35, fall: 0.28, dim: 0.28, activeDim: 0.46 };
 const appleLetterCache = new Map();
 const appleRowCache = new Map();
 const APPLE_OFFSCREEN = 20000;
@@ -266,8 +268,10 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const contentWidth = Math.max(1, compositionWidth - horizontalPadding * 2);
     // The landscape title card is confined to the left ~34% of the canvas; lyrics use the separate right column (x=180/384, width=186/384). Size lyrics against that column's height/width balance, not against the title-card artwork itself.
     const activeFontSize = landscapeSplit ? h * (13.6 / 216.4) : (aspectRatio >= 0.9 ? w * (5.6 / 100) : w * (5.2 / 100));
-    const inactiveFontSize = activeFontSize * (29 / 32);
-    const lineSpacing = baseDimension * (aspectRatio < 0.9 ? 3.5 / 390 : aspectRatio < 1.25 ? 4 / 390 : 5 / 390);
+    // Apple Music keeps every lyric line at (almost) the same size; only blur/opacity change with distance.
+    const inactiveFontSize = activeFontSize * 0.98;
+    // Row pitch inside a line is ~1.25 x font size on iOS.
+    const lineSpacing = activeFontSize * 0.07;
     const contract = window.KEFE_TYPE?.effects?.apple || {};
     const family = `"SF Pro Display","SF Pro Text","Inter Tight",system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
     if (!drawAppleEffect._fontReq && document.fonts && document.fonts.load) {
@@ -454,7 +458,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     if (activeIndex < 0 || !displayLine) return;
 
     const rowHeight = activeFontSize * 1.18;
-    const blockGap = baseDimension * (24 / 390);
+    const blockGap = activeFontSize * 0.74;
         const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
     const appleHeaderSize = baseDimension * 0.11;
     const appleHeaderTop = Math.max(baseDimension * 0.065, h * 0.035);
@@ -480,10 +484,10 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         ? linaSmooth((time - (nextLineTime - transitionDuration)) / transitionDuration)
         : 0;
 
-    const scalePoints = [[-4, 0.97], [-3, 0.97], [-2, 0.97], [-1, 0.97], [0, activeScale], [1, 0.97], [2, 0.97], [3, 0.97], [4, 0.97]];
-    // Per-line fade + blur by distance from the focused line — same table as the reference player (dState).
-    // Text is white; this only scales its alpha, so a line 1 away from focus reads ~0.30 white, far lines ~0.15.
-    const opacityPoints = [[-5, 0], [-4, 0.3], [-3, 0.45], [-2, 0.6], [-1, 0.8], [0, 1], [1, 0.95], [2, 0.8], [3, 0.66], [4, 0.55], [5, 0.46]];
+    const scalePoints = [[-4, 1], [-3, 1], [-2, 1], [-1, 1], [0, activeScale], [1, 1], [2, 1], [3, 1], [4, 1]];
+    // Per-line fade + blur by distance from the focused line. Text is white; this scales the unsung alpha
+    // (~0.28), so lines below read ~0.26 white and fade slowly with distance, matching the recording.
+    const opacityPoints = [[-5, 0], [-4, 0.35], [-3, 0.55], [-2, 0.75], [-1, 0.9], [0, 1], [1, 1], [2, 0.95], [3, 0.85], [4, 0.7], [5, 0.55]];
     const blurUnit = activeFontSize / (landscapeSplit ? 12.6 : 7.9);
     const blurPoints = [[-5, 1.2], [-4, 1.2], [-3, 1.2], [-2, 0.7], [-1, 0.25], [0, 0], [1, 0.17], [2, 0.5], [3, 0.85], [4, 1.2], [5, 1.5]].map(([dd, m]) => [dd, m * blurUnit]);
 
@@ -497,6 +501,29 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const fl = Math.max(0, Math.min(displayLines.length - 1, Math.floor(focus)));
     const fn1 = Math.min(displayLines.length - 1, fl + 1);
     const focusY = cum[fl] + (cum[fn1] - cum[fl]) * (focus - fl);
+    /* iOS scroll: every line rides the same ease, but lines further below the sung line start a beat later,
+       so the stack "unfurls" instead of moving as one slab. Each line's scroll offset is the sum of the last
+       few line-to-line steps, each with its own per-line delay, so nothing jumps when the active line changes. */
+    const stepWindowStart = Math.max(0, activeIndex - 3);
+    const stepWindowEnd = Math.min(displayLines.length - 2, activeIndex);
+    const scrollOffsetFor = (i) => {
+        let offset = cum[stepWindowStart];
+        for (let j = stepWindowStart; j <= stepWindowEnd; j++) {
+            const t0 = Number(displayLines[j].time), t1 = Number(displayLines[j + 1].time);
+            if (!Number.isFinite(t0) || !Number.isFinite(t1)) { offset += cum[j + 1] - cum[j]; continue; }
+            const dur = linaClamp((t1 - t0) * 0.42, 0.48, 0.72);
+            const delay = Math.min(0.24, Math.max(0, i - (j + 1)) * 0.045);
+            const p = linaSmooth((time - (t1 - dur) - delay) / dur);
+            offset += (cum[j + 1] - cum[j]) * p;
+        }
+        return offset;
+    };
+    const isRightAligned = (line) => {
+        const v = line.align ?? line.alignment ?? line.side ?? line.singer ?? line.agent ?? line.voice;
+        return line.opposite === true || line.oppositeTurn === true || line.duet === true ||
+            (typeof v === 'string' && /^(right|r|v2|2|secondary|opposite)$/i.test(v.trim())) || v === 2;
+    };
+    const rightEdge = w * 0.92;
 
     ctx.save();
     const layout=window.kefeAppleLayout?.lyrics;
@@ -523,7 +550,10 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         const act = linaClamp(1 - Math.abs(d), 0, 1);           // 1 = fully focused, 0 = fully inactive
         const rows = line.appleRows || [String(line.text || '').trim()];
         const x = margin + horizontalLyricShift;
-        const y = topAnchor + cum[i] - focusY;
+        const y = topAnchor + cum[i] - scrollOffsetFor(i);
+        const alignRight = isRightAligned(line);
+        // Unsung alpha: the sung line's unsung words are brighter than the lines around it.
+        const lineDim = wave.dim + (Math.min(0.9, wave.dim * (APPLE_WAVE.activeDim / APPLE_WAVE.dim)) - wave.dim) * act;
         const scaleAmt = appleKeyframeLerp(d, scalePoints);
         const lineHeightForFade = line.appleBlockHeight || rowHeight;
         const topFade = landscapeSplit ? 1 : linaClamp((y + lineHeightForFade / 2 - (appleHeaderBottom - lineHeightForFade * 0.8)) / Math.max(1, lineHeightForFade * 0.72), 0, 1);
@@ -585,7 +615,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         // The previous cue may finish fading, but its letter lift must not keep
         // running alongside the new cue. Fade that lift with the same end-of-line
         // window so there is only one active lifting wave at a time.
-        const lineWave = i === activeIndex ? wave : Object.assign({}, wave, {
+        const lineWave = i === activeIndex ? Object.assign({}, wave, { dim: lineDim }) : Object.assign({}, wave, {
+            dim: lineDim,
             lift: wave.lift * (1 - linaSmooth((time - lineEnd) / wave.fall))
         });
 
@@ -640,13 +671,19 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                 }
             }
             // Sung part eases from 1 down to the unsung level after the line ends (reference: --hi over `fall`).
-            const hi = 1 - (1 - wave.dim) * linaSmooth((time - lineEnd) / wave.fall);
+            const hi = 1 - (1 - lineDim) * linaSmooth((time - lineEnd) / wave.fall);
             const spaceWidth = ctx.measureText(' ').width;
             let ti = 0;
             for (let ri = 0; ri < rows.length; ri++) {
                 const rowTokens = rows[ri].split(' ').filter(Boolean);
                 const entries = [];
                 let cursorX = x;
+                if (alignRight) {
+                    // Opposite-voice lines hug the right edge of the lyric column, like Apple Music duets.
+                    let rowW = 0;
+                    for (const tk of rowTokens) rowW += appleLetterBox(ctx, tk).W + spaceWidth;
+                    cursorX = rightEdge - Math.max(0, rowW - spaceWidth);
+                }
                 for (let k = 0; k < rowTokens.length; k++) {
                     const box = appleLetterBox(ctx, rowTokens[k]);
                     const tm = times[ti + k];
@@ -663,13 +700,16 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
             }
         } else {
             // Every other line: white at the unsung alpha, softened by distance. No grey RGB, no drop shadow.
-            const color = appleWhite(wave.dim * lineA);
+            const color = appleWhite(lineDim * lineA);
+            const rowX = alignRight ? rightEdge : x;
+            if (alignRight) ctx.textAlign = 'right';
             if (blurAmt > 0.08) {
-                rows.forEach((rowText, ri) => appleShadowText(ctx, rowText, x, rowYs[ri], blurAmt, color, true));
+                rows.forEach((rowText, ri) => appleShadowText(ctx, rowText, rowX, rowYs[ri], blurAmt, color, true));
             } else {
                 ctx.fillStyle = color;
-                rows.forEach((rowText, ri) => ctx.fillText(rowText, x, rowYs[ri]));
+                rows.forEach((rowText, ri) => ctx.fillText(rowText, rowX, rowYs[ri]));
             }
+            ctx.textAlign = 'left';
         }
         if (line.appleSecondaryRows?.length) {
             const secondaryCenterY = y + (line.appleMainHeight + secondaryGap) / 2;
