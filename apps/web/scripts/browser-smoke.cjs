@@ -401,8 +401,13 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     });
     assert.equal(visualiserTabGeometry.display, "grid",
       `visualiser presets must use the shared grid layout: ${JSON.stringify(visualiserTabGeometry)}`);
-    assert.ok(visualiserTabGeometry.columns >= 2,
-      `visualiser presets must display across multiple columns: ${JSON.stringify(visualiserTabGeometry)}`);
+    if (visualiserTabGeometry.width >= 388) {
+      assert.ok(visualiserTabGeometry.columns >= 2,
+        `visualiser cards must use multiple columns when two complete cards fit: ${JSON.stringify(visualiserTabGeometry)}`);
+    } else {
+      assert.equal(visualiserTabGeometry.columns, 1,
+        `visualiser cards must keep each name and its toggle together when the panel is narrow: ${JSON.stringify(visualiserTabGeometry)}`);
+    }
     assert.ok(visualiserTabGeometry.minWidth > 0 && visualiserTabGeometry.maxWidth - visualiserTabGeometry.minWidth < 8,
       `visualiser preset tabs must have consistent widths rather than bunching on one side: ${JSON.stringify(visualiserTabGeometry)}`);
     assert.ok(visualiserTabGeometry.tabs.every(tab => tab.left >= 0 && tab.right <= visualiserTabGeometry.viewportWidth + 1),
