@@ -114,6 +114,9 @@ function start() {
   });
   if (!backingButtons.size) return;
 
+  // The legacy Fluid Ink initializer marks this shared tab container hidden at startup.
+  // Clear that local hidden state so the React tabs can render when their parent panel is active.
+  nav.hidden = false;
   nav.dataset.beuiMounted = "true";
 
   // Keep legacy buttons only as hidden backing controls for existing effect modules.
