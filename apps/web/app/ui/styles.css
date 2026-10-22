@@ -10598,6 +10598,17 @@ textarea.beui-native-textarea {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] {
+  width: auto;
+  min-height: 32px;
+  height: auto;
+  padding: 4px 2px;
+  justify-content: flex-start;
+  text-align: left;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] #kefeVisualiserPowerSlot {
+  display: none;
+}
 
 
 /* Lyrics mobile layout: keep the fixed dock clear of the scrollable panel. */
