@@ -10591,3 +10591,85 @@ textarea.beui-native-textarea {
     white-space: nowrap;
   }
 }
+
+
+/* Canonical visualiser layout. This block is the only authority for tab/preset geometry. */
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
+  display: block;
+  box-sizing: border-box;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 0 12px;
+  padding: 0;
+  overflow: visible;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs > .beui-vis-tabs-host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
+  display: grid;
+  box-sizing: border-box;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] {
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  height: auto;
+  padding: 8px;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  line-height: 1.25;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row:not([hidden]) {
+  display: flex;
+  box-sizing: border-box;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 0 14px;
+  padding: 8px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set:not([hidden]) {
+  display: flex;
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row .kefe-visualiser-preset-set[hidden],
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row[hidden] {
+  display: none !important;
+}
+@media (max-width: 700px) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+}
