@@ -10565,10 +10565,10 @@ textarea.beui-native-textarea {
 @media (max-width: 640px) {
   .kefe-editor .kefe-panels { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
 }
-/* Lyrics timing controls: full-width slider with evenly distributed controls below. */
+/* Lyrics timing: full-width slider, two even nudge actions, then Reset. */
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-controls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -10584,9 +10584,9 @@ textarea.beui-native-textarea {
   width: 100%;
   min-width: 0;
 }
-@media (max-width: 420px) {
-  .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
+.kefe-panel[data-panel-view="lyrics"] #lyricsTimingEarlier { grid-column: 1; grid-row: 2; }
+.kefe-panel[data-panel-view="lyrics"] #lyricsTimingLater { grid-column: 2; grid-row: 2; }
+.kefe-panel[data-panel-view="lyrics"] #lyricsTimingReset { grid-column: 1 / -1; grid-row: 3; }
 /* Lyrics layout controls: separate placement actions from saved-default actions. */
 .kefe-editor [data-apple-layout-ui] { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; justify-content: stretch; }
 .kefe-editor [data-apple-layout-ui] .kefe-layout-primary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; gap: 8px; min-width: 0; }
