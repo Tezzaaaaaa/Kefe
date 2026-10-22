@@ -10605,34 +10605,51 @@ textarea.beui-native-textarea {
 }
 
 
-/* Visualiser workspace stability: let the stage's aspect ratio determine its height. */
+/* Keep the preview's intrinsic ratio independent of the panel content below it. */
 .kefe-editor .kefe-work {
-  grid-template-rows: minmax(180px, auto) var(--timeline-h) minmax(220px, auto);
   min-width: 0;
   min-height: 0;
+  grid-template-rows: minmax(180px, auto) var(--timeline-h) minmax(220px, auto);
 }
 .kefe-editor .kefe-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
   min-height: 180px;
   height: auto;
-  align-self: stretch;
+  overflow: visible;
 }
 .kefe-editor .kefe-stage {
+  flex: 0 0 auto;
+  align-self: center;
+  width: min(100%, 1280px);
   height: auto;
+  max-width: 100%;
   max-height: none;
+  min-width: 0;
   min-height: 0;
   aspect-ratio: 16 / 9;
 }
 .kefe-editor .kefe-stage.is-9x16 { aspect-ratio: 9 / 16; }
 .kefe-editor .kefe-stage.is-1x1 { aspect-ratio: 1 / 1; }
 
-/* Reserve scroll space for the fixed bottom dock in every workspace panel. */
+/* Keep the visualiser list scrollable and preserve the fixed dock's clear space. */
 .kefe-editor .kefe-panels {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   scroll-padding-bottom: calc(104px + env(safe-area-inset-bottom));
   padding-bottom: calc(104px + env(safe-area-inset-bottom));
 }
-
-/* Uniform two-column visualiser cards with a separate, non-overlapping switch row. */
+.kefe-editor .kefe-panel[data-panel-view="visualiser"] {
+  min-width: 0;
+  overflow: visible;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host {
+  min-width: 0;
+  overflow: visible;
+}
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -10642,34 +10659,36 @@ textarea.beui-native-textarea {
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  overflow: visible;
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .beui-vis-option {
-  display: grid;
-  grid-template-rows: minmax(64px, 1fr) auto;
-  align-items: stretch;
-  gap: 6px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
-  min-height: 100px;
-  padding: 6px;
+  min-height: 76px;
+  padding: 8px;
   border: 1px solid var(--line-soft);
   border-radius: var(--r2);
   background: var(--surface);
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .beui-vis-option > [role="tab"] {
   display: flex;
+  flex: 1 1 auto;
   box-sizing: border-box;
-  width: 100%;
+  width: auto;
   min-width: 0;
-  min-height: 64px;
-  height: 100%;
+  min-height: 58px;
+  height: auto;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 7px;
   padding: 8px;
   border: 1px solid var(--line-soft);
   border-radius: var(--r2);
   background: var(--surface-hi);
-  text-align: center;
+  text-align: left;
   white-space: normal;
   overflow-wrap: anywhere;
 }
@@ -10685,11 +10704,11 @@ textarea.beui-native-textarea {
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host .beui-vis-option > .kefe-vis-option-power {
   position: static;
   display: flex;
+  flex: 0 0 72px;
   box-sizing: border-box;
-  justify-self: center;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   width: 72px;
   min-width: 72px;
   max-width: 100%;
