@@ -426,6 +426,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "Fluid Ink should become selected only after an explicit click");
     assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "true",
       "Fluid Ink must activate only after the user selects its tab");
+    assert.equal(await page.locator(".beui-vis-tabs-host .kv-switch").count(), 0,
+      "visualiser tabs must not duplicate the selected visualiser's power switch");
+    assert.equal(await page.locator("#kefeVisualiserPowerSlot .kefe-switch").count(), 1,
+      "the selected visualiser must expose exactly one power switch in the shared heading");
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
     const lyricsNavButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" });
