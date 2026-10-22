@@ -64,7 +64,12 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const context = await browser.newContext({ serviceWorkers: "block" });
     const page = await context.newPage();
     const pageErrors = [];
-    page.on("pageerror", (error) => pageErrors.push(error.stack || error.message));
+    page.on("pageerror", (error) => pageErrors.push({ type: "pageerror", name: error.name, message: error.message, stack: error.stack || null }));
+    page.on("console", (message) => {
+      if (message.type() === "error" && /SyntaxError|Invalid or unexpected token/.test(message.text())) {
+        pageErrors.push({ type: "console", message: message.text(), location: message.location() });
+      }
+    });
 
     await page.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
     await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
@@ -503,7 +508,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       buffer: Buffer.from("[00:00.00]Smoke line one\n[00:02.00]Smoke line two\n", "utf8"),
     });
     await page.waitForFunction(() => document.getElementById("kefeLyricsStatus")?.textContent.includes("Loaded lyrics from beui-smoke.lrc"), null, { timeout: 10000 });
-    assert.deepEqual(pageErrors, [], `browser runtime errors: ${pageErrors.join("; ")}`);
+    assert.deepEqual(pageErrors, [], `browser runtime errors: ${JSON.stringify(pageErrors)}`);
     console.log("beUI browser smoke passed: component conversion, media loading/playback, and LRC upload.");
     await context.close();
   } finally {

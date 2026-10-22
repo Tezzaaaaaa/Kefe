@@ -9559,63 +9559,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .kefe-editor .kefe-editing:not([data-selected-section="visualiser"]) .beui-vis-tabs-host {
   display: none !important;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
-  display: block;
-  position: relative;
-  width: 100%;
-  min-width: 0;
-  margin: 0 0 12px;
-  padding: 0;
-  background: transparent;
-  overflow: visible;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host {
-  display: block;
-  grid-column: 1 / -1;
-  width: 100%;
-  min-width: 0;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host > div,
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 112px), 1fr));
-  align-items: stretch;
-  gap: 8px;
-  width: 100%;
-  min-width: 0;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-width: 0;
-  min-height: 40px;
-  height: auto;
-  padding: 8px 10px;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  text-align: center;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] > span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-@media (max-width: 600px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head {
-    min-height: 44px;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-  }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-title-group > h2 {
-    font-size: 16px;
-  }
-}
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger:hover,
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger:focus-visible {
   transform: none;
@@ -10144,50 +10087,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   }
 }
 
-/* Final visualiser geometry: the beUI tab host spans the full tab rail and
-   the selected preset set uses the full panel width instead of a narrow grid cell. */
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  margin: 0 0 12px;
-  padding: 0;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs > .beui-vis-tabs-host {
-  grid-column: 1 / -1;
-  width: 100%;
-  min-width: 0;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row:not([hidden]) {
-  display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  margin: 0 0 14px;
-  padding: 8px 0;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set:not([hidden]) {
-  display: flex;
-  flex: 1 1 100%;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row .kefe-visualiser-preset-set[hidden] {
-  display: none !important;
-}
-@media (max-width: 600px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-}
-
-
 /* beUI component styling consolidated into this stylesheet. */
 .beui-range-host {
   --beui-background: var(--shell-bg, #171719);
@@ -10592,22 +10491,23 @@ textarea.beui-native-textarea {
   }
 }
 
-
-/* Canonical visualiser layout. This block is the only authority for tab/preset geometry. */
+/* Visualiser layout — single authority for the tab rail and preset carousel. */
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
   display: block;
+  position: relative;
   box-sizing: border-box;
-  grid-column: 1 / -1;
-  grid-row: 2;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   margin: 0 0 12px;
   padding: 0;
+  background: transparent;
   overflow: visible;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs > .beui-vis-tabs-host {
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs > .beui-vis-tabs-host,
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host > div {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -10615,7 +10515,7 @@ textarea.beui-native-textarea {
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] {
   display: grid;
   box-sizing: border-box;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 112px), 1fr));
   align-items: stretch;
   gap: 8px;
   width: 100%;
@@ -10625,9 +10525,14 @@ textarea.beui-native-textarea {
   padding: 0;
   overflow: visible;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] {
-  display: flex;
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] > div {
   box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] {
+  box-sizing: border-box;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -10637,15 +10542,12 @@ textarea.beui-native-textarea {
   padding: 8px;
   text-align: center;
   white-space: normal;
-  overflow-wrap: normal;
-  word-break: normal;
+  overflow-wrap: anywhere;
   line-height: 1.25;
 }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row:not([hidden]) {
   display: flex;
   box-sizing: border-box;
-  grid-column: 1 / -1;
-  grid-row: 3;
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -10659,12 +10561,13 @@ textarea.beui-native-textarea {
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set:not([hidden]) {
   display: flex;
   flex: 1 1 100%;
+  box-sizing: border-box;
   width: 100%;
   max-width: 100%;
   min-width: 0;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row .kefe-visualiser-preset-set[hidden],
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row[hidden] {
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row[hidden],
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-visualiser-preset-row > .kefe-visualiser-preset-set[hidden] {
   display: none !important;
 }
 @media (max-width: 700px) {
@@ -10672,18 +10575,4 @@ textarea.beui-native-textarea {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
   }
-}
-
-
-/* Visualiser tabs: grid items must be allowed to shrink inside equal columns. */
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] > div {
-  width: 100%;
-  min-width: 0;
-}
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] {
-  width: 100%;
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  text-align: center;
 }
