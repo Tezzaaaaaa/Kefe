@@ -83,9 +83,9 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "visualiser tabs must stay hidden until the Visualisers section is opened");
     assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
       "initialisation must not select Fluid Ink or change the visualiser heading");
-    assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
+    assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
       "Fluid Ink must not be selected automatically on startup");
-    assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").evaluate(tab => tab.classList.contains("primary")), false,
+    assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").evaluate(tab => tab.classList.contains("primary")), false,
       "Fluid Ink must not have the selected visual style on startup");
     const desktopLayout = await page.evaluate(() => {
       const nav = document.querySelector(".kefe-sidebar").getBoundingClientRect();
@@ -414,7 +414,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       `visualiser preset tabs must stay inside the viewport: ${JSON.stringify(visualiserTabGeometry)}`);
     assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 0,
       "no visualiser tab should appear selected until the user chooses one");
-    assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
+    assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
       "opening the Visualisers section must not automatically activate Fluid Ink");
     await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
     await assertSectionFits("visualiser");
@@ -429,7 +429,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "selecting a visualiser should activate exactly one beUI tab");
     assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").textContent().then((text) => text.includes("Fluid Ink")), true,
       "Fluid Ink should become selected only after an explicit click");
-    assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "true",
+    assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "true",
       "Fluid Ink must activate only after the user selects its tab");
     const visualiserCards = page.locator(".beui-vis-tabs-host .kv-card");
     const visualiserCount = await visualiserCards.count();
