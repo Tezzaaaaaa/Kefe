@@ -6826,15 +6826,14 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 @media(max-width:640px){.kefe-volume-popover{right:0;bottom:calc(100% + 8px);width:min(210px,calc(100vw - 20px));gap:8px;padding:10px}.kefe-volume-control>button{width:30px;height:34px}}
 
 
-.kefe-editor .kefe-timeline{position:relative;z-index:20;overflow:visible;grid-template-columns:auto minmax(0,1fr) 64px 30px;align-items:center}
+.kefe-editor .kefe-timeline{position:relative;z-index:20;overflow:visible;grid-template-columns:auto minmax(0,1fr) 30px;align-items:center}
 @media(max-width:700px){
-  .kefe-editor .kefe-timeline{grid-template-columns:68px minmax(0,1fr) 52px 30px;gap:6px;padding:6px 8px}
+  .kefe-editor .kefe-timeline{grid-template-columns:68px minmax(0,1fr) 30px;gap:6px;padding:6px 8px}
   .kefe-editor .kefe-timeline .kefe-wave{height:40px;padding:0 10px}
   .kefe-editor .kefe-timeline .kefe-slider{height:40px}
 }
 @media(max-width:380px){
-  .kefe-editor .kefe-timeline{grid-template-columns:60px minmax(0,1fr) 44px 30px;gap:4px;padding:5px 6px}
-  .kefe-editor .kefe-timeline .kefe-aspect-controls{width:44px;min-width:44px;flex-basis:44px}
+  .kefe-editor .kefe-timeline{grid-template-columns:68px minmax(0,1fr) 30px;gap:4px;padding:5px 6px}
 }
 
 /* Migration fixes: one source order for the transport row, a mobile nav strip that
@@ -7024,8 +7023,18 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   padding-bottom:0;
 }
 .kefe-editor .kefe-timeline{
-  padding-top:0;
-  padding-bottom:0;
+  margin:4px 12px;
+  padding:0 12px;
+  border:1px solid var(--line-soft);
+  border-radius:var(--r3);
+  background:var(--surface);
+  box-shadow:var(--lift);
+}
+@media(max-width:700px){
+  .kefe-editor .kefe-timeline{margin:4px 8px;padding:0 8px;border-radius:12px}
+}
+@media(max-width:380px){
+  .kefe-editor .kefe-timeline{margin:4px 6px;padding:0 6px}
 }
 .kefe-editor .kefe-panels{
   padding-top:0;
