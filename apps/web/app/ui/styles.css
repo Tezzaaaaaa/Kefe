@@ -10594,7 +10594,9 @@ textarea.beui-native-textarea {
 .kefe-editor [data-apple-layout-ui] .kefe-layout-primary > label { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
 .kefe-editor [data-apple-layout-ui] .kefe-layout-primary select { width: min(100%, 125px); min-width: 0; }
 .kefe-editor [data-apple-layout-ui] .kefe-layout-primary input[type="range"] { width: min(74px, 100%); min-width: 0; }
-.kefe-editor [data-apple-layout-ui] button { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.kefe-editor [data-apple-layout-ui] button { min-width: 0; max-width: 100%; min-height: 30px; padding: 5px 8px; border: 0; border-radius: 6px; background: #333; color: #fff; overflow-wrap: anywhere; }
+.kefe-editor [data-apple-layout-ui] [data-effect-default] { background: #356caa; }
+.kefe-editor [data-apple-layout-ui] select { color: #fff; background: #333; border: 1px solid rgba(255,255,255,.18); border-radius: 6px; padding: 4px; }
 .kefe-editor [data-apple-layout-ui] [data-layout-hint] { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 520px) {
   .kefe-editor [data-apple-layout-ui] .kefe-layout-primary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
