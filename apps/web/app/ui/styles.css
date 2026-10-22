@@ -10673,3 +10673,17 @@ textarea.beui-native-textarea {
     gap: 6px;
   }
 }
+
+
+/* Visualiser tabs: grid items must be allowed to shrink inside equal columns. */
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tablist"] > div {
+  width: 100%;
+  min-width: 0;
+}
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host [role="tab"] {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
