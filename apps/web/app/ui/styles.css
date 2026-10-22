@@ -9731,11 +9731,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     grid-column: 1;
   }
 }
-@container kefe-editor-column (max-width: 420px) {
-  .kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 .kefe-visualiser-field[hidden]{display:none}
 
 
@@ -10689,24 +10684,19 @@ textarea.beui-native-textarea {
 .kefe-vis-tabs .beui-vis-tabs-host { width: 100%; min-width: 0; }
 .kv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; min-width: 0; }
 .kv-card {
-  display: flex; align-items: center; justify-content: space-between; gap: 6px;
-  min-width: 0; min-height: 48px; padding: 0 8px 0 0;
-  border: 1px solid var(--line, rgba(255,255,255,.12)); border-radius: 12px;
-  background: var(--surface, rgba(255,255,255,.04));
+  display: flex; min-width: 0; min-height: 48px; border: 1px solid var(--line, rgba(255,255,255,.12));
+  border-radius: 12px; background: var(--surface, rgba(255,255,255,.04));
   transition: border-color .15s, background-color .15s;
 }
 .kv-card:hover { border-color: var(--line-strong, rgba(255,255,255,.22)); }
 .kv-card.is-active { border-color: var(--accent, #d92f33); background: color-mix(in srgb, var(--accent, #d92f33) 14%, transparent); }
-.kv-card.is-off .kv-tab { opacity: .55; }
 .kv-tab {
-  display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; align-self: stretch;
-  padding: 0 4px 0 12px; border: 0; background: none; color: inherit; font: inherit; font-size: 13px; font-weight: 600;
-  text-align: left; cursor: pointer; border-radius: 12px 0 0 12px; white-space: normal; text-overflow: clip; overflow: visible;
+  display: flex; align-items: center; flex: 1 1 auto; min-width: 0; align-self: stretch;
+  padding: 10px 12px; border: 0; background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600;
+  text-align: left; cursor: pointer; border-radius: 12px; white-space: normal; overflow-wrap: anywhere;
 }
 .kv-tab:focus-visible { outline: 2px solid var(--accent, #d92f33); outline-offset: -2px; }
-.kv-icon { flex: 0 0 auto; width: 16px; text-align: center; font-size: 14px; opacity: .85; }
-.kv-label { min-width: 0; white-space: normal; text-overflow: clip; overflow: visible; overflow-wrap: normal; word-break: normal; hyphens: none; line-height: 1.2; }
-.kv-switch { flex: 0 0 auto; transform: scale(.72); transform-origin: right center; margin-left: -10px; }
+.kv-label { min-width: 0; line-height: 1.25; }
 @media (max-width: 360px) { .kv-grid { grid-template-columns: minmax(0, 1fr); } }
 
 .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets,
