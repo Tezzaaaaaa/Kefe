@@ -384,6 +384,24 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "Liquid Glass must be available in the visualiser tab list");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
       "visualiser tabs must be visible while the Visualisers section is active");
+    const visualiserTabGeometry = await page.locator(".beui-vis-tabs-host [role='tablist']").evaluate(list => {
+      const rect = list.getBoundingClientRect();
+      const tabs = [...list.querySelectorAll("[role='tab']")].map(tab => {
+        const r = tab.getBoundingClientRect();
+        return { text: tab.textContent.trim(), left: r.left, right: r.right, width: r.width, top: r.top, bottom: r.bottom };
+      });
+      const widths = tabs.map(tab => tab.width);
+      return { display: getComputedStyle(list).display, width: rect.width, columns: getComputedStyle(list).gridTemplateColumns.split(" ").length, tabs,
+        minWidth: Math.min(...widths), maxWidth: Math.max(...widths), viewportWidth: document.documentElement.clientWidth };
+    });
+    assert.equal(visualiserTabGeometry.display, "grid",
+      `visualiser presets must use the shared grid layout: ${JSON.stringify(visualiserTabGeometry)}`);
+    assert.ok(visualiserTabGeometry.columns >= 2,
+      `visualiser presets must display across multiple columns: ${JSON.stringify(visualiserTabGeometry)}`);
+    assert.ok(visualiserTabGeometry.minWidth > 0 && visualiserTabGeometry.maxWidth - visualiserTabGeometry.minWidth < 8,
+      `visualiser preset tabs must have consistent widths rather than bunching on one side: ${JSON.stringify(visualiserTabGeometry)}`);
+    assert.ok(visualiserTabGeometry.tabs.every(tab => tab.left >= 0 && tab.right <= visualiserTabGeometry.viewportWidth + 1),
+      `visualiser preset tabs must stay inside the viewport: ${JSON.stringify(visualiserTabGeometry)}`);
     assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 0,
       "no visualiser tab should appear selected until the user chooses one");
     assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
