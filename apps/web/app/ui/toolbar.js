@@ -64,7 +64,7 @@
   status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
 
   toolbar.append(grip, divider(), effect, font, color, sizeLabel, divider(), aspect, lyrics, fullscreen, locked, reset, help, status);
-  stage.appendChild(toolbar);
+  document.body.appendChild(toolbar);
 
   const existingEffectGallery = document.getElementById('lyricEffectOptions');
   const existingFont = document.getElementById('fontOverride');
@@ -160,10 +160,8 @@
     if (saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)) position = saved;
   } catch (_) {}
   function clampPosition(x, y) {
-    const stageRect = stage.getBoundingClientRect();
-    const toolbarRect = toolbar.getBoundingClientRect();
-    const maxX = Math.max(0, stageRect.width - toolbarRect.width - 8);
-    const maxY = Math.max(0, stageRect.height - Math.min(toolbarRect.height, stageRect.height) - 8);
+    const maxX = Math.max(8, window.innerWidth - toolbar.offsetWidth - 8);
+    const maxY = Math.max(8, window.innerHeight - toolbar.offsetHeight - 8);
     return { x: Math.max(8, Math.min(maxX, x)), y: Math.max(8, Math.min(maxY, y)) };
   }
   function applyPosition() {
@@ -182,8 +180,7 @@
   });
   grip.addEventListener('pointermove', event => {
     if (!dragging || event.pointerId !== dragging.id) return;
-    const rect = stage.getBoundingClientRect();
-    position = clampPosition(event.clientX - rect.left - dragging.dx, event.clientY - rect.top - dragging.dy);
+    position = clampPosition(event.clientX - dragging.dx, event.clientY - dragging.dy);
     toolbar.style.left = position.x + 'px'; toolbar.style.top = position.y + 'px';
   });
   function stopDrag(event) {
@@ -205,6 +202,7 @@
     position = { x: 12, y: 12 }; applyPosition(); savePosition(); emit('reset-position', position);
   });
   window.addEventListener('resize', applyPosition);
+  window.addEventListener('scroll', applyPosition, { passive: true });
   document.addEventListener('kefe-effect-change', event => { if (event.detail?.effect) effect.value = event.detail.effect; });
   existingFont?.addEventListener('change', () => { font.value = existingFont.value; });
   existingAspect?.addEventListener('change', () => { aspect.value = existingAspect.value; });
