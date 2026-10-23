@@ -119,3 +119,91 @@
   .kefe-floating-toolbar { transition: box-shadow 160ms ease, border-color 160ms ease; }
   .kefe-floating-toolbar:hover { box-shadow: 0 16px 42px rgb(0 0 0 / 28%), inset 0 1px 0 rgb(255 255 255 / 10%); }
 }
+
+
+/* Keep the default toolbar compact; secondary controls open in a panel below. */
+.kefe-floating-toolbar {
+  display: block;
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  padding: 7px;
+}
+.kefe-floating-toolbar__primary {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.kefe-floating-toolbar__advanced {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  max-width: min(720px, calc(100vw - 32px));
+  min-width: 0;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid rgb(255 255 255 / 14%);
+}
+.kefe-floating-toolbar__advanced[hidden] { display: none; }
+.kefe-floating-toolbar__more {
+  width: auto;
+  min-width: 62px;
+  padding: 0 9px;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.kefe-floating-toolbar__advanced > .kefe-floating-toolbar__divider {
+  display: none;
+}
+.kefe-floating-toolbar__advanced .kefe-floating-toolbar__adjust-group {
+  flex: 0 1 auto;
+}
+.kefe-floating-toolbar.is-expanded {
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+}
+:root[data-theme="day"] .kefe-floating-toolbar__advanced {
+  border-top-color: rgb(20 22 30 / 14%);
+}
+@media (max-width: 760px) {
+  .kefe-floating-toolbar {
+    width: max-content;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+  .kefe-floating-toolbar__primary {
+    gap: 4px;
+  }
+  .kefe-floating-toolbar__primary > .kefe-floating-toolbar__divider {
+    height: 22px;
+  }
+  .kefe-floating-toolbar__primary > .kefe-floating-toolbar__control {
+    max-width: min(36vw, 128px);
+  }
+  .kefe-floating-toolbar__advanced {
+    width: 100%;
+    max-width: 100%;
+    gap: 6px;
+  }
+  .kefe-floating-toolbar__advanced .kefe-floating-toolbar__adjust-group {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .kefe-floating-toolbar__advanced .kefe-floating-toolbar__adjust-secondary {
+    padding: 6px 0 0;
+    border-left: 0;
+    border-top: 1px solid rgb(255 255 255 / 14%);
+  }
+}
+@media (max-width: 390px) {
+  .kefe-floating-toolbar__primary { gap: 3px; }
+  .kefe-floating-toolbar__primary .kefe-floating-toolbar__button {
+    width: 29px;
+    min-width: 29px;
+    height: 30px;
+  }
+  .kefe-floating-toolbar__more { min-width: 57px; padding-inline: 6px; }
+}
