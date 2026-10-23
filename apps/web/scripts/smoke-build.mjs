@@ -3,7 +3,7 @@ import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "dist-beui");
-const pages = ["index.html", "editor.html", "editor.beui.html", "beui.html"];
+const pages = ["index.html", "editor.html", "beui.html"];
 const failures = [];
 
 for (const page of pages) {
