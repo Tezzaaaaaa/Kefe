@@ -101,6 +101,7 @@
     if (rangeInput) size.value = rangeInput.value;
   }
   fillOptions();
+  document.addEventListener('DOMContentLoaded', fillOptions, { once: true });
 
   effect.addEventListener('change', () => {
     const target = existingEffectGallery?.querySelector('[data-effect="' + CSS.escape(effect.value) + '"]');
