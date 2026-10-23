@@ -40,7 +40,7 @@ jobs:
       - name: Verify production editor and workbench outputs
         run: |
           test -s apps/web/dist-beui/editor.html
-          test -s apps/web/dist-beui/editor.beui.html
+          test ! -e apps/web/dist-beui/editor.source.html
           test -s apps/web/dist-beui/index.html
           test -s apps/web/dist-beui/beui.html
           node apps/web/scripts/smoke-build.mjs
