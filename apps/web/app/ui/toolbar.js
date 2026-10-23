@@ -33,7 +33,7 @@
   const grip = button('drag', svg.grip, 'Drag toolbar to reposition');
   grip.className = 'kefe-floating-toolbar__grip';
   grip.setAttribute('aria-label', 'Drag toolbar to reposition');
-  grip.innerHTML = svg.grip;
+  grip.innerHTML = svg.grip + '<span>DRAG</span>';
   grip.setAttribute('aria-describedby', 'kefeToolbarHelp');
   const help = el('span', 'kefe-floating-toolbar__status');
   help.id = 'kefeToolbarHelp'; help.textContent = 'Drag to move. Use arrow keys to nudge.';
@@ -49,6 +49,10 @@
   [['16:9','16:9'],['9:16','9:16'],['1:1','1:1']].forEach(([label,value]) => aspect.add(new Option(label,value)));
   const color = el('input', 'kefe-floating-toolbar__color', 'Lyric text colour');
   color.type = 'color'; color.value = '#ffffff'; color.setAttribute('aria-label', 'Lyric text colour');
+  const colorValue = el('output', 'kefe-floating-toolbar__color-value');
+  colorValue.textContent = color.value.toUpperCase();
+  const colorField = el('label', 'kefe-floating-toolbar__color-field', 'Text colour');
+  colorField.append(color, colorValue);
   const sizeLabel = el('label', 'kefe-floating-toolbar__label', 'Size');
   const size = el('input', 'kefe-floating-toolbar__size');
   size.type = 'range'; size.min = '50'; size.max = '160'; size.step = '1'; size.value = '100';
@@ -114,16 +118,18 @@
   more.textContent = 'See more';
   more.setAttribute('aria-expanded', 'false');
   more.setAttribute('aria-controls', advanced.id);
+  const moreIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>';
+  more.innerHTML = 'See more ' + moreIcon;
 
   const adjustGroups = Array.from(toolbar.querySelectorAll(':scope > .kefe-floating-toolbar__adjust-group'));
   primary.append(grip, divider(), effect, lyrics, fullscreen, more);
-  advanced.append(font, color, sizeLabel, divider(), aspect, locked, reset, ...adjustGroups, help, status);
+  advanced.append(font, colorField, sizeLabel, divider(), aspect, locked, reset, ...adjustGroups, help, status);
   toolbar.replaceChildren(primary, advanced);
   more.addEventListener('click', () => {
     const expanded = more.getAttribute('aria-expanded') !== 'true';
     advanced.hidden = !expanded;
     more.setAttribute('aria-expanded', String(expanded));
-    more.textContent = expanded ? 'See less' : 'See more';
+    more.innerHTML = (expanded ? 'See less ' : 'See more ') + moreIcon;
     more.setAttribute('aria-label', expanded ? 'Show fewer toolbar controls' : 'Show more toolbar controls');
     toolbar.classList.toggle('is-expanded', expanded);
     applyPosition();
@@ -161,7 +167,10 @@
     }
     if (existingAspect) aspect.value = existingAspect.value;
     const colorInput = styleColor();
-    if (colorInput) color.value = colorInput.value;
+    if (colorInput) {
+      color.value = colorInput.value;
+      colorValue.textContent = color.value.toUpperCase();
+    }
     const rangeInput = styleScale();
     if (rangeInput) size.value = rangeInput.value;
   }
@@ -191,6 +200,7 @@
     target.value = color.value;
     target.dispatchEvent(new Event('input', { bubbles: true }));
     target.dispatchEvent(new Event('change', { bubbles: true }));
+    colorValue.textContent = color.value.toUpperCase();
     emit('text-colour', color.value);
   });
   size.addEventListener('input', () => {
