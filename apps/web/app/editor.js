@@ -2026,6 +2026,7 @@
       }
     });
     syncLayoutScale();
+    document.addEventListener('kefe-layout-controls-ready',syncLayoutScale,{once:true});
     const pointers=new Map();let gestureStart=null,layoutDrag=null;
     const point=e=>({x:e.clientX,y:e.clientY});
     const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
