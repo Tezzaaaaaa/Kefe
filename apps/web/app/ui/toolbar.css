@@ -1,8 +1,8 @@
 /* KEFE floating lyric toolbar — scoped to the preview stage; never participates in canvas sizing. */
 .kefe-floating-toolbar {
   --kefe-toolbar-bg: color-mix(in srgb, #171719 82%, transparent);
-  position: absolute;
-  z-index: 30;
+  position: fixed;
+  z-index: 10000;
   top: 12px;
   left: 12px;
   display: flex;
@@ -66,7 +66,6 @@
 :root[data-theme="day"] .kefe-floating-toolbar__button,
 :root[data-theme="day"] .kefe-floating-toolbar__color { border-color: rgb(20 22 30 / 12%); background: rgb(20 22 30 / 5%); }
 :root[data-theme="day"] .kefe-floating-toolbar__label { color: rgb(32 33 38 / 65%); }
-.kefe-stage { position: relative; }
 .kefe-floating-toolbar[hidden] { display: none; }
 @media (max-width: 760px) {
   .kefe-floating-toolbar { gap: 5px; padding: 5px; border-radius: 12px; top: 8px; left: 8px; max-width: calc(100% - 16px); flex-wrap: wrap; }
