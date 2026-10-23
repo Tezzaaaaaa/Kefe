@@ -196,6 +196,23 @@ function appleShadowText(ctx, text, x, y, blurRadius, color, cssFilterBlur) {
 
 const appleWhite = alpha => 'rgba(255,255,255,' + linaClamp(alpha).toFixed(4) + ')';
 
+/* AMLL (applemusic-like-lyrics) emphasis port: words sung for >= 1s with 2-7 characters get a per-letter
+   scale + glow + drift, staggered across the word, plus a sine float that starts 400ms earlier. */
+const appleBezIn = t => appleCubicBezier(t, 0.2, 0.4, 0.58, 1.0);
+const appleBezOut = t => appleCubicBezier(t, 0.3, 0.0, 0.58, 1.0);
+const appleEmpEasing = x => x < 0.5 ? appleBezIn(linaClamp(x / 0.5)) : 1 - appleBezOut(linaClamp((x - 0.5) / 0.5));
+function appleShouldEmphasize(en, dur, tokenLength) {
+    return !!en.explicitTiming && !en.isFragment && dur >= 1 && tokenLength > 1 && tokenLength <= 7;
+}
+function appleEmphasisParams(durSec, isLastWord) {
+    let du = Math.max(1000, durSec * 1000);
+    let amount = du / 2000; amount = amount > 1 ? Math.sqrt(amount) : amount ** 3;
+    let blur = du / 3000; blur = blur > 1 ? Math.sqrt(blur) : blur ** 3;
+    amount *= 0.6; blur *= 0.5;
+    if (isLastWord) { amount *= 1.6; blur *= 1.5; du *= 1.2; }
+    return { amount: Math.min(1.2, amount), blur: Math.min(0.8, blur), du };
+}
+
 /* One row of timed words. `entries`: [{x, box, t0, t1}] (t0/t1 = the word's own start/end).
    lineA = distance fade of the whole line, hi = alpha of the sung part (1 while live, eases to dim after). */
 function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
@@ -204,11 +221,13 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
     for (const en of entries) {
         const dur = Math.max(0.05, en.t1 - en.t0);
         const progress = linaClamp((time - en.t0) / dur);
-        const edgeSoft = linaClamp(P.soft * 0.16, 0.025, 0.10);
+        const edgeSoft = linaClamp((0.5 * fs) / Math.max(1, en.box.W) / 2, 0.03, 0.5);
         const front = progress * (1 + edgeSoft * 2) - edgeSoft;
         const W = en.box.W;
         const charCount = en.box.chars.length;
         const amp = en.explicitTiming && dur >= 0.72 ? 0.48 : 0.68;
+        const emphasise = appleShouldEmphasize(en, dur, en.tokenLength || charCount);
+        const emp = emphasise ? appleEmphasisParams(dur, en.isLastWord) : null;
         for (let k = 0; k < charCount; k++) {
             const lx = en.x + en.box.xs[k], lw = en.box.ws[k];
             const a = en.box.xs[k] / W, b = (en.box.xs[k] + lw) / W;
@@ -237,6 +256,29 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
                 ctx.translate(ox, oy);
                 ctx.scale(sc, sc);
                 ctx.translate(-ox, -oy);
+            }
+            let glowAlpha = 0;
+            if (emp && !useBlur) {
+                const settle = P.settle === undefined ? 1 : P.settle;
+                const delayMs = (emp.du / 2.5 / Math.max(1, charCount)) * k;
+                const tMs = (time - en.t0) * 1000 - delayMs;
+                const glowT = linaClamp(tMs / emp.du);
+                const trans = appleEmpEasing(glowT) * settle;
+                const floatT = linaClamp((tMs + 400) / (emp.du * 1.4));
+                const floatY = Math.sin(floatT * Math.PI) * 0.05 * settle;
+                if (trans > 0.001 || floatY > 0.0005) {
+                    const sc = 1 + trans * 0.1 * emp.amount;
+                    const ox = lx + lw / 2, oy = y + fs * 0.46;
+                    ctx.translate(-trans * 0.03 * emp.amount * (charCount / 2 - k) * fs, (-trans * 0.025 * emp.amount - floatY) * fs);
+                    ctx.translate(ox, oy);
+                    ctx.scale(sc, sc);
+                    ctx.translate(-ox, -oy);
+                    glowAlpha = trans * emp.blur;
+                    if (glowAlpha > 0.004) {
+                        ctx.shadowColor = appleWhite(glowAlpha * lineA);
+                        ctx.shadowBlur = Math.min(0.3, emp.blur * 0.3) * fs;
+                    }
+                }
             }
             if (useBlur) {
                 appleShadowText(ctx, ch, lx, y, blurPx, appleWhite(alphaAt(0.5)), true);
@@ -627,7 +669,8 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
         // window so there is only one active lifting wave at a time.
         const lineWave = i === activeIndex ? Object.assign({}, wave, { dim: lineDim }) : Object.assign({}, wave, {
             dim: lineDim,
-            lift: wave.lift * (1 - linaSmooth((time - lineEnd) / wave.fall))
+            lift: wave.lift * (1 - linaSmooth((time - lineEnd) / wave.fall)),
+            settle: 1 - linaSmooth((time - lineEnd) / wave.fall)
         });
 
         const utils = window.kefeEffectUtils;
@@ -713,7 +756,7 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
                         hasFiniteNumber(line.words[ix]?.time) &&
                         hasFiniteNumber(line.words[ix]?.endTime) &&
                         Number(line.words[ix].endTime) > Number(line.words[ix].time);
-                    entries.push({ x: cursorX, box, t0: tm.time + span * f0, t1: Math.max(tm.time + span * f0 + 0.05, tm.time + span * f1), explicitTiming });
+                    entries.push({ x: cursorX, box, t0: tm.time + span * f0, t1: Math.max(tm.time + span * f0 + 0.05, tm.time + span * f1), explicitTiming, isFragment, tokenLength: tokLen, isLastWord: ix === tokens.length - 1 });
                     cursorX += box.W + spaceWidth;
                     if (isFragment) {
                         charOff += pieceLen;
