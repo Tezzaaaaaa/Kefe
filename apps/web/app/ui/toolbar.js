@@ -133,7 +133,6 @@
     more.setAttribute('aria-expanded', String(expanded));
     more.innerHTML = (expanded ? 'See less ' : 'See more ') + moreIcon;
     more.setAttribute('aria-label', expanded ? 'Show fewer toolbar controls' : 'Show more toolbar controls');
-    toolbar.classList.toggle('is-expanded', expanded);
     applyPosition();
   });
 
@@ -288,7 +287,6 @@
     }
     applyPosition();
   });
-  window.addEventListener('scroll', applyPosition, { passive: true });
   document.addEventListener('kefe-effect-change', event => { if (event.detail?.effect) effect.value = event.detail.effect; });
   existingFont?.addEventListener('change', () => { font.value = existingFont.value; });
   existingAspect?.addEventListener('change', () => { aspect.value = existingAspect.value; });
