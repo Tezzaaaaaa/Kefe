@@ -1,15 +1,18 @@
-/* KEFE floating lyric toolbar — viewport-level controls; never participates in canvas sizing. */
+/* KEFE consolidated floating toolbar: responsive, draggable, viewport-safe. */
 .kefe-floating-toolbar {
-  --kefe-toolbar-bg: color-mix(in srgb, #171719 82%, transparent);
+  --kefe-toolbar-bg: color-mix(in srgb, #171719 84%, transparent);
   position: fixed;
   z-index: 10000;
-  top: 12px;
-  left: 12px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 7px;
-  max-width: calc(100% - 24px);
-  padding: 7px;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
   border: 1px solid color-mix(in srgb, var(--kefe-border, #ffffff) 15%, transparent);
   border-radius: 15px;
   color: var(--kefe-text, #f6f6f7);
@@ -17,82 +20,102 @@
   -webkit-backdrop-filter: blur(24px) saturate(150%);
   backdrop-filter: blur(24px) saturate(150%);
   box-shadow: 0 12px 36px rgb(0 0 0 / 24%), inset 0 1px 0 rgb(255 255 255 / 8%);
-  font: 500 12px/1.2 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font: 500 12px/1.25 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   touch-action: manipulation;
   user-select: none;
 }
 .kefe-floating-toolbar, .kefe-floating-toolbar * { box-sizing: border-box; }
 .kefe-floating-toolbar__grip {
-  display: grid; place-items: center; width: 25px; min-width: 25px; height: 30px;
+  display: grid; place-items: center; flex: 0 0 28px; width: 28px; height: 32px;
   padding: 0; border: 0; border-radius: 8px; color: inherit; background: transparent;
   cursor: grab; touch-action: none; opacity: .8;
 }
 .kefe-floating-toolbar__grip:active { cursor: grabbing; }
 .kefe-floating-toolbar__grip svg { width: 16px; height: 16px; }
-.kefe-floating-toolbar__divider { width: 1px; height: 22px; background: rgb(255 255 255 / 16%); flex: 0 0 1px; }
+.kefe-floating-toolbar__divider { width: 1px; height: 24px; background: rgb(255 255 255 / 16%); flex: 0 0 1px; }
 .kefe-floating-toolbar__control {
-  min-width: 0; height: 30px; border: 1px solid rgb(255 255 255 / 12%);
+  min-width: 0; max-width: 100%; height: 32px; border: 1px solid rgb(255 255 255 / 12%);
   border-radius: 9px; padding: 0 9px; color: inherit; background: rgb(255 255 255 / 6%);
   font: inherit; outline-offset: 2px;
 }
 .kefe-floating-toolbar__control:focus-visible, .kefe-floating-toolbar__button:focus-visible, .kefe-floating-toolbar__grip:focus-visible { outline: 2px solid #9bafff; }
-.kefe-floating-toolbar__select { max-width: 132px; }
+.kefe-floating-toolbar__select { width: auto; max-width: 142px; }
 .kefe-floating-toolbar__select option { color: #171719; background: #fff; }
 .kefe-floating-toolbar__button {
-  display: grid; place-items: center; width: 30px; min-width: 30px; height: 30px;
-  padding: 0; border: 1px solid rgb(255 255 255 / 12%); border-radius: 9px;
-  color: inherit; background: rgb(255 255 255 / 6%); cursor: pointer;
+  display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center;
+  min-width: 32px; width: 32px; height: 32px; padding: 0;
+  border: 1px solid rgb(255 255 255 / 12%); border-radius: 9px;
+  color: inherit; background: rgb(255 255 255 / 6%); cursor: pointer; font: inherit;
 }
 .kefe-floating-toolbar__button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .kefe-floating-toolbar__button[aria-pressed="true"] { background: rgb(255 255 255 / 17%); border-color: rgb(255 255 255 / 27%); }
 .kefe-floating-toolbar__color {
-  width: 30px; min-width: 30px; height: 30px; padding: 3px; border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 9px; background: rgb(255 255 255 / 6%); cursor: pointer;
+  flex: 0 0 32px; width: 32px; min-width: 32px; height: 32px; padding: 3px;
+  border: 1px solid rgb(255 255 255 / 12%); border-radius: 9px; background: rgb(255 255 255 / 6%); cursor: pointer;
 }
 .kefe-floating-toolbar__color::-webkit-color-swatch-wrapper { padding: 1px; }
 .kefe-floating-toolbar__color::-webkit-color-swatch { border: 0; border-radius: 5px; }
-.kefe-floating-toolbar__label { color: rgb(255 255 255 / 68%); white-space: nowrap; }
+.kefe-floating-toolbar__label { display: inline-flex; align-items: center; gap: 7px; color: rgb(255 255 255 / 68%); white-space: nowrap; }
 .kefe-floating-toolbar__size { width: 84px; accent-color: #b9c6ff; }
 .kefe-floating-toolbar__status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .kefe-floating-toolbar.is-locked .kefe-floating-toolbar__grip { cursor: default; opacity: .45; }
+.kefe-floating-toolbar__adjust-group {
+  display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; gap: 7px;
+  width: auto; max-width: 100%; min-width: 0; margin: 0; padding: 0;
+  border: 0; background: transparent; color: inherit; font: inherit;
+}
+.kefe-floating-toolbar__adjust-group label { display: inline-flex; flex: 0 1 auto; align-items: center; gap: 6px; min-width: 0; color: inherit; font: inherit; white-space: nowrap; }
+.kefe-floating-toolbar__adjust-group [data-layout-scale], .kefe-floating-toolbar__layer-size { width: 76px; min-width: 60px; accent-color: #b9c6ff; }
+.kefe-floating-toolbar__text-button { width: auto; min-width: 0; min-height: 32px; padding: 0 10px; white-space: nowrap; }
+.kefe-floating-toolbar__hint { max-width: 200px; color: var(--kefe-text-muted, currentColor); opacity: .72; font-size: 11px; line-height: 1.35; }
+.kefe-floating-toolbar__adjust-secondary { padding-left: 8px; border-left: 1px solid rgb(255 255 255 / 14%); }
 :root[data-theme="day"] .kefe-floating-toolbar {
-  --kefe-toolbar-bg: color-mix(in srgb, #f9f9fb 88%, transparent);
-  color: #202126;
-  border-color: rgb(24 26 32 / 12%);
+  --kefe-toolbar-bg: color-mix(in srgb, #f9f9fb 90%, transparent);
+  color: #202126; border-color: rgb(24 26 32 / 12%);
   box-shadow: 0 12px 32px rgb(20 22 30 / 14%), inset 0 1px 0 rgb(255 255 255 / 80%);
 }
 :root[data-theme="day"] .kefe-floating-toolbar__divider { background: rgb(20 22 30 / 15%); }
 :root[data-theme="day"] .kefe-floating-toolbar__control,
 :root[data-theme="day"] .kefe-floating-toolbar__button,
 :root[data-theme="day"] .kefe-floating-toolbar__color { border-color: rgb(20 22 30 / 12%); background: rgb(20 22 30 / 5%); }
-:root[data-theme="day"] .kefe-floating-toolbar__label { color: rgb(32 33 38 / 65%); }
+:root[data-theme="day"] .kefe-floating-toolbar__label { color: rgb(32 33 38 / 72%); }
 .kefe-floating-toolbar[hidden] { display: none; }
+@media (min-width: 761px) {
+  .kefe-floating-toolbar { gap: 7px; }
+  .kefe-floating-toolbar__adjust-secondary { margin-left: 2px; }
+}
 @media (max-width: 760px) {
-  .kefe-floating-toolbar { gap: 5px; padding: 5px; border-radius: 12px; top: 8px; left: 8px; max-width: calc(100% - 16px); flex-wrap: wrap; }
-  .kefe-floating-toolbar__select { max-width: 108px; }
-  .kefe-floating-toolbar__label, .kefe-floating-toolbar__size, .kefe-floating-toolbar__divider--optional { display: none; }
+  .kefe-floating-toolbar {
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+    gap: 5px; padding: 6px; border-radius: 13px;
+    align-content: flex-start;
+  }
+  .kefe-floating-toolbar__adjust-group {
+    flex: 1 1 100%; width: 100%; gap: 6px;
+  }
+  .kefe-floating-toolbar__adjust-group label { flex: 1 1 auto; }
+  .kefe-floating-toolbar__select { max-width: min(42vw, 180px); }
+  .kefe-floating-toolbar__adjust-secondary {
+    padding: 6px 0 0; border-left: 0; border-top: 1px solid rgb(255 255 255 / 14%);
+  }
+  .kefe-floating-toolbar__hint { flex: 1 1 100%; max-width: 100%; }
+  .kefe-floating-toolbar__label { display: inline-flex; }
+  .kefe-floating-toolbar__size { display: inline-block; width: clamp(56px, 18vw, 90px); }
 }
 @media (max-width: 390px) {
-  .kefe-floating-toolbar { gap: 4px; }
-  .kefe-floating-toolbar__select { max-width: 88px; padding-inline: 6px; }
-  .kefe-floating-toolbar__control, .kefe-floating-toolbar__button, .kefe-floating-toolbar__color { height: 28px; }
-  .kefe-floating-toolbar__button, .kefe-floating-toolbar__color { width: 28px; min-width: 28px; }
+  .kefe-floating-toolbar { gap: 4px; padding: 5px; }
+  .kefe-floating-toolbar__control, .kefe-floating-toolbar__button, .kefe-floating-toolbar__color { height: 30px; }
+  .kefe-floating-toolbar__button, .kefe-floating-toolbar__color { width: 30px; min-width: 30px; }
+  .kefe-floating-toolbar__select { max-width: 39vw; padding-inline: 6px; }
+  .kefe-floating-toolbar__text-button { padding-inline: 7px; font-size: 11px; }
+}
+@media (max-height: 560px) {
+  .kefe-floating-toolbar { max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); overflow-y: auto; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .kefe-floating-toolbar { transition: box-shadow 160ms ease, border-color 160ms ease; }
   .kefe-floating-toolbar:hover { box-shadow: 0 16px 42px rgb(0 0 0 / 28%), inset 0 1px 0 rgb(255 255 255 / 10%); }
-}
-
-/* Adjust lyric controls share the same draggable toolbar and visual system. */
-.kefe-floating-toolbar { flex-wrap: wrap; }
-.kefe-floating-toolbar__adjust-group { flex: 0 1 auto; }
-.kefe-floating-toolbar__adjust-group label { font: inherit; }
-.kefe-floating-toolbar__adjust-group [data-layout-scale], .kefe-floating-toolbar__layer-size { width: 76px; min-width: 60px; }
-.kefe-floating-toolbar__text-button { width: auto; min-width: 0; padding: 0 9px; white-space: nowrap; font: inherit; }
-.kefe-floating-toolbar__hint { max-width: 210px; color: var(--kefe-text-muted, currentColor); opacity: .72; font-size: 11px; line-height: 1.35; }
-.kefe-floating-toolbar__adjust-secondary { padding-left: 7px; border-left: 1px solid rgb(255 255 255 / 14%); }
-:root[data-theme="day"] .kefe-floating-toolbar__adjust-secondary { border-left-color: rgb(20 22 30 / 15%); }
-@media (max-width: 760px) {
-  .kefe-floating-toolbar__adjust-group { flex: 1 1 100%; }
-  .kefe-floating-toolbar__hint { max-width: 100%; }
 }
