@@ -948,7 +948,7 @@
     const active=document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen');
     previewFullscreen.setAttribute('aria-label',active?'Exit fullscreen':'Enter fullscreen');
     previewFullscreen.title=active?'Exit fullscreen':'Enter fullscreen';
-    const layoutControls=document.querySelector('[data-apple-layout-ui]');
+    const layoutControls=document.getElementById('kefeFloatingToolbar');
     if(layoutControls)layoutControls.style.display=active?'none':'flex';
     previewFullscreen.innerHTML=active
       ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -1992,69 +1992,50 @@
   };
   if(previewStage){
     previewStage.style.touchAction='none';
-    const layoutUi=document.createElement('div');
-    layoutUi.dataset.appleLayoutUi='true';
-    layoutUi.style.cssText='position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:5;display:grid;grid-template-columns:minmax(0,1fr);flex:0 0 auto;align-items:stretch;gap:8px;width:min(900px,100%);max-width:100%;min-width:0;box-sizing:border-box;overflow:visible;padding:8px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(18,18,20,.94);color:#fff;font:12px system-ui,sans-serif;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);';
-    if(previewPane){previewPane.style.position='relative';previewPane.style.display='flex';previewPane.style.flexDirection='column';previewPane.style.alignItems='center';previewPane.style.justifyContent='center';previewPane.style.gap='8px';}
-    layoutUi.innerHTML='<div class="kefe-layout-primary" style="display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);align-items:center;gap:8px;width:100%;min-width:0"><button class="kefe-layout-drag-handle" type="button" data-layout-drag-handle aria-label="Drag Adjust lyric toolbar" title="Drag to move toolbar; use arrow keys to nudge" style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;min-height:30px;padding:6px;border:1px solid rgba(255,255,255,.24);border-radius:8px;background:#29292e;color:inherit;touch-action:none;cursor:grab"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><circle cx="5" cy="3" r="1.2"/><circle cx="11" cy="3" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="5" cy="13" r="1.2"/><circle cx="11" cy="13" r="1.2"/></svg></button><label style="display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap">Adjust <select data-layout-target style="flex:1;min-width:0;width:100%;padding:7px 9px;border:1px solid rgba(255,255,255,.24);border-radius:8px;background:#29292e;color:inherit"> <option value="lyrics">Lyrics</option><option value="card">Album artwork + title</option></select></label><label style="display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap">Size <input data-layout-scale type="range" min="50" max="200" value="100" style="flex:1;min-width:0;width:100%;margin:0"></label></div><div class="kefe-layout-actions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0"><button class="kefe-btn" type="button" data-layout-move aria-pressed="false" style="display:inline-flex;align-items:center;justify-content:center;min-width:0;padding:8px 12px;border:1px solid rgba(255,255,255,.24);border-radius:8px;background:#29292e;color:inherit;font:inherit;font-weight:600;white-space:normal">Move layer</button><button class="kefe-btn" type="button" data-layout-reset style="display:inline-flex;align-items:center;justify-content:center;min-width:0;padding:8px 12px;border:1px solid rgba(255,255,255,.24);border-radius:8px;background:#29292e;color:inherit;font:inherit;font-weight:600;white-space:normal">Reset</button></div><div class="kefe-layout-defaults" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0"><button class="kefe-btn" type="button" data-effect-default title="Save current look and behaviour as this effect’s default" style="display:inline-flex;align-items:center;justify-content:center;min-width:0;padding:8px 12px;border:1px solid rgba(255,255,255,.24);border-radius:8px;background:#29292e;color:inherit;font:inherit;font-weight:600;white-space:normal">Lock as default</button><button class="kefe-btn" type="button" data-effect-default-clear title="Remove this effect’s saved default" style="display:inline-flex;align-items:center;justify-content:center;min-width:0;padding:8px 12px;border:1px solid rgba(255,255,255,.24);border-radius:8px;background:#29292e;color:inherit;font:inherit;font-weight:600;white-space:normal">Unlock</button></div><span data-layout-hint role="status" style="display:block;min-width:0;line-height:1.4;overflow-wrap:anywhere">Move a layer, adjust size, then lock this effect’s defaults</span>';
-    previewPane?.insertBefore(layoutUi,previewStage);
-    const layoutTarget=layoutUi.querySelector('[data-layout-target]'),layoutScale=layoutUi.querySelector('[data-layout-scale]'),layoutMove=layoutUi.querySelector('[data-layout-move]'),layoutHint=layoutUi.querySelector('[data-layout-hint]');
-    const layoutDragHandle=layoutUi.querySelector('[data-layout-drag-handle]');
-    const moveLayoutToolbar=(left,top)=>{
-      const bounds=previewPane.getBoundingClientRect(),toolbar=layoutUi.getBoundingClientRect();
-      const maxLeft=Math.max(0,bounds.width-toolbar.width),maxTop=Math.max(0,bounds.height-toolbar.height);
-      layoutUi.style.left=Math.max(0,Math.min(maxLeft,left))+'px';
-      layoutUi.style.top=Math.max(0,Math.min(maxTop,top))+'px';
-      layoutUi.style.transform='none';
+    const syncLayoutScale=()=>{
+      const target=document.querySelector('[data-layout-target]'),scale=document.querySelector('[data-layout-scale]');
+      if(target&&scale)scale.value=String(Math.round(appleLayout[target.value].scale*100));
     };
-    layoutDragHandle.addEventListener('pointerdown',event=>{
-      if(event.button!==0&&event.pointerType!=='touch'&&event.pointerType!=='pen')return;
-      event.preventDefault();event.stopPropagation();
-      const bounds=previewPane.getBoundingClientRect(),toolbar=layoutUi.getBoundingClientRect();
-      const start={x:event.clientX,y:event.clientY,left:toolbar.left-bounds.left,top:toolbar.top-bounds.top};
-      layoutDragHandle.setPointerCapture(event.pointerId);
-      layoutDragHandle.style.cursor='grabbing';
-      const move=moveEvent=>{
-        if(!layoutDragHandle.hasPointerCapture(moveEvent.pointerId))return;
-        moveLayoutToolbar(start.left+moveEvent.clientX-start.x,start.top+moveEvent.clientY-start.y);
-      };
-      const end=endEvent=>{
-        if(endEvent.pointerId!==event.pointerId)return;
-        layoutDragHandle.removeEventListener('pointermove',move);
-        layoutDragHandle.removeEventListener('pointerup',end);
-        layoutDragHandle.removeEventListener('pointercancel',end);
-        layoutDragHandle.style.cursor='grab';
-      };
-      layoutDragHandle.addEventListener('pointermove',move);
-      layoutDragHandle.addEventListener('pointerup',end);
-      layoutDragHandle.addEventListener('pointercancel',end);
+    document.addEventListener('change',event=>{
+      if(event.target.matches('[data-layout-target]'))syncLayoutScale();
     });
-    layoutDragHandle.addEventListener('keydown',event=>{
-      const delta=event.shiftKey?24:8;
-      if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key))return;
-      event.preventDefault();
-      const bounds=previewPane.getBoundingClientRect(),toolbar=layoutUi.getBoundingClientRect();
-      const left=layoutUi.style.transform==='none'?toolbar.left-bounds.left:Math.max(0,(bounds.width-toolbar.width)/2);
-      const top=toolbar.top-bounds.top;
-      moveLayoutToolbar(left+(event.key==='ArrowRight'?delta:event.key==='ArrowLeft'?-delta:0),top+(event.key==='ArrowDown'?delta:event.key==='ArrowUp'?-delta:0));
+    document.addEventListener('input',event=>{
+      const control=event.target;
+      if(!control.matches('[data-layout-scale]'))return;
+      const target=document.querySelector('[data-layout-target]')?.value||'lyrics';
+      appleLayout[target].scale=Number(control.value)/100;
+      saveAppleLayoutState();draw();
     });
-    layoutUi.querySelector('[data-effect-default]').addEventListener('click',()=>{layoutHint.textContent=saveCurrentEffectDefault()?'Locked: this look and behaviour will load whenever '+state.effect+' is selected.':'Could not save defaults in this browser.';});
-    layoutUi.querySelector('[data-effect-default-clear]').addEventListener('click',()=>{layoutHint.textContent=clearCurrentEffectDefault()?'Saved default cleared for '+state.effect+'.':'Could not clear this effect’s default.';});
-    const saveAppleLayout=saveAppleLayoutState;
-    const syncLayoutScale=()=>{layoutScale.value=String(Math.round(appleLayout[layoutTarget.value].scale*100));};
-    layoutTarget.addEventListener('change',syncLayoutScale);
-    layoutMove.addEventListener('click',()=>{const enabled=layoutMove.getAttribute('aria-pressed')!=='true';layoutMove.setAttribute('aria-pressed',String(enabled));layoutMove.textContent=enabled?'Done moving':'Move layer';layoutMove.style.background=enabled?'#356caa':'#333';layoutHint.textContent=enabled?'Drag the selected layer in preview':'Preview gestures restored';});
-    layoutScale.addEventListener('input',()=>{appleLayout[layoutTarget.value].scale=Number(layoutScale.value)/100;saveAppleLayout();draw();});
-    layoutUi.querySelector('[data-layout-reset]').addEventListener('click',()=>{appleLayout[layoutTarget.value]={x:0,y:0,scale:1};saveAppleLayout();syncLayoutScale();draw();});
+    document.addEventListener('click',event=>{
+      const control=event.target.closest('[data-layout-move],[data-layout-reset],[data-effect-default],[data-effect-default-clear]');
+      if(!control)return;
+      const hint=document.querySelector('[data-layout-hint]');
+      if(control.matches('[data-layout-move]')){
+        const enabled=control.getAttribute('aria-pressed')!=='true';
+        control.setAttribute('aria-pressed',String(enabled));
+        control.textContent=enabled?'Done moving':'Move layer';
+        if(hint)hint.textContent=enabled?'Drag the selected layer in preview':'Preview gestures restored';
+      }else if(control.matches('[data-layout-reset]')){
+        const target=document.querySelector('[data-layout-target]')?.value||'lyrics';
+        appleLayout[target]={x:0,y:0,scale:1};saveAppleLayoutState();syncLayoutScale();draw();
+        if(hint)hint.textContent='Selected layer reset';
+      }else if(control.matches('[data-effect-default]')){
+        if(hint)hint.textContent=saveCurrentEffectDefault()?'Locked: this look and behaviour will load whenever '+state.effect+' is selected.':'Could not save defaults in this browser.';
+      }else if(control.matches('[data-effect-default-clear]')){
+        if(hint)hint.textContent=clearCurrentEffectDefault()?'Saved default cleared for '+state.effect+'.':'Could not clear this effect’s default.';
+      }
+    });
     syncLayoutScale();
     const pointers=new Map();let gestureStart=null,layoutDrag=null;
     const point=e=>({x:e.clientX,y:e.clientY});
     const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
     const midpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
     previewStage.addEventListener('pointerdown',e=>{
-      if(e.target.closest('button,input,select,textarea,[data-apple-layout-ui]'))return;
-      if(layoutMove.getAttribute('aria-pressed')==='true'&&e.button===0){
-        const rect=previewStage.getBoundingClientRect(),target=layoutTarget.value;
+      if(e.target.closest('button,input,select,textarea,[data-apple-layout-ui],#kefeFloatingToolbar'))return;
+      const layoutMove=document.querySelector('[data-layout-move]');
+      const layoutTarget=document.querySelector('[data-layout-target]');
+      if(layoutMove?.getAttribute('aria-pressed')==='true'&&e.button===0){
+        const rect=previewStage.getBoundingClientRect(),target=layoutTarget?.value||'lyrics';
         layoutDrag={target,x:e.clientX,y:e.clientY,baseX:appleLayout[target].x,baseY:appleLayout[target].y,width:Math.max(1,rect.width),height:Math.max(1,rect.height)};
         previewStage.setPointerCapture(e.pointerId);e.preventDefault();return;
       }
@@ -2069,7 +2050,7 @@
         const target=layoutDrag.target;
         appleLayout[target].x=layoutDrag.baseX+(e.clientX-layoutDrag.x)/layoutDrag.width;
         appleLayout[target].y=layoutDrag.baseY+(e.clientY-layoutDrag.y)/layoutDrag.height;
-        saveAppleLayout();draw();return;
+        saveAppleLayoutState();draw();return;
       }
       if(!pointers.has(e.pointerId)||!gestureStart)return;
       e.preventDefault();pointers.set(e.pointerId,point(e));
