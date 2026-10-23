@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, unlinkSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -6,9 +6,10 @@ const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const output = resolve(webRoot, "dist-beui");
 mkdirSync(output, { recursive: true });
 
-// The built React editor becomes editor.html only inside the build output.
-// Keep apps/web/editor.html untouched until a verified Pages cutover.
-cpSync(resolve(output, "editor.beui.html"), resolve(output, "editor.html"), { force: true });
+// Publish one editor page from the source template; do not ship the template as a second page.
+const editorSource = resolve(output, "editor.source.html");
+cpSync(editorSource, resolve(output, "editor.html"), { force: true });
+unlinkSync(editorSource);
 
 for (const entry of ["app", "fonts", "legal"]) {
   const source = resolve(webRoot, entry);
