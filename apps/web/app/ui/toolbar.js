@@ -28,7 +28,6 @@
   toolbar.setAttribute('role', 'toolbar');
   toolbar.setAttribute('aria-label', 'Floating lyric editor toolbar');
   toolbar.addEventListener('pointerdown', event => event.stopPropagation());
-  toolbar.addEventListener('click', event => event.stopPropagation());
 
   const grip = button('drag', svg.grip, 'Drag toolbar to reposition');
   grip.className = 'kefe-floating-toolbar__grip';
