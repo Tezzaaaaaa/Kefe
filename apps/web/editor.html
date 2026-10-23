@@ -15,9 +15,49 @@
 <meta name="apple-mobile-web-app-title" content="KEFE">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+<style>
+/* Keep the beUI volume action visible against both preview and transport surfaces. */
+.beui-transport-host .beui-react-transport[aria-label*="volume" i] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--shell-line, #45454d);
+  border-radius: 10px;
+  color: var(--shell-text, #f5f5f7);
+  background: linear-gradient(145deg, var(--shell-panel, #29292f), var(--shell-bg, #171719));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 2px 8px rgb(0 0 0 / 18%);
+  opacity: 1;
+}
+.beui-transport-host .beui-react-transport[aria-label*="volume" i] > svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 1;
+}
+.beui-transport-host .beui-react-transport[aria-label*="volume" i]:hover,
+.beui-transport-host .beui-react-transport[aria-label*="volume" i][aria-expanded="true"] {
+  border-color: var(--shell-accent, #ef4444);
+  color: var(--shell-text, #ffffff);
+  background: var(--shell-panel, #29292f);
+}
+:root[data-theme="day"] .beui-transport-host .beui-react-transport[aria-label*="volume" i] {
+  border-color: var(--shell-line, #d5d7de);
+  color: var(--shell-text, #202126);
+  background: linear-gradient(145deg, #ffffff, #eceef3);
+}
+</style>
   <script type="module" crossorigin src="./assets/editor-Qn09rXeI.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/range-slider-BkiNa7YC.js">
-  <link rel="stylesheet" crossorigin href="./assets/style-BUky6-H7.css">
+  <link rel="stylesheet" crossorigin href="./assets/style-J3Im4nDE.css">
 </head>
 <body>
 <script src="./app/ui/structure.js?v=early-shell-render-20261021-2"></script>
@@ -54,6 +94,7 @@
 <script src="./app/lyrics/lyric-model.js?v=enhanced-lrc-word-timing-20261017-1"></script>
 <script src="./app/settings.beui.js?v=beui-settings-react-20261017-1"></script>
 <script src="./app/editor.js?v=smooth-clock-20261022-2"></script>
+<script src="./app/ui/toolbar.js?v=premium-expandable-toolbar-20261023-3"></script>
 <script defer src="./app/ui/desktop-panels.js?v=uniform-section-geometry-20261021-2"></script>
 <script defer src="./app/ios-lockscreen.js?v=ios-lockscreen-mediasession-20261017-1"></script>
 <script defer src="./app/ui/style-layer.js?v=effect-defaults-20261022-1"></script>
