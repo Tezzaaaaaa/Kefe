@@ -10704,3 +10704,31 @@ textarea.beui-native-textarea {
 @media (max-width: 1279px) {
   .kefe-editor .kefe-work { grid-template-rows: auto auto; }
 }
+
+/* Main editor navigation is one continuous horizontal toolbar on desktop and mobile. */
+.kefe-editor .kefe-sidebar-group,
+.kefe-editor .kefe-sidebar-bottom {
+  display: contents;
+}
+.kefe-editor .kefe-sidebar {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+.kefe-editor .kefe-sidebar-brand-row {
+  flex: 0 0 auto;
+}
+.kefe-editor .kefe-sidebar-link {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 36px;
+  height: 36px;
+  white-space: nowrap;
+}
+.kefe-editor .kefe-sidebar-label {
+  display: none;
+}
