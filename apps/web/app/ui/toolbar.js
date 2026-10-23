@@ -197,7 +197,11 @@
   });
 
   const STORE = 'kefe.floating-toolbar.position.v1';
-  let position = { x: 12, y: 12 }, dragging = null;
+  const mobileViewport = window.matchMedia('(max-width: 760px)');
+  let position = mobileViewport.matches
+    ? { x: 8, y: Math.max(8, window.innerHeight - toolbar.offsetHeight - 8) }
+    : { x: 12, y: 12 };
+  let dragging = null;
   try {
     const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
     if (saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)) position = saved;
@@ -244,7 +248,12 @@
   reset.addEventListener('click', () => {
     position = { x: 12, y: 12 }; applyPosition(); savePosition(); emit('reset-position', position);
   });
-  window.addEventListener('resize', applyPosition);
+  window.addEventListener('resize', () => {
+    if (mobileViewport.matches && position.y < window.innerHeight * .35) {
+      position.y = window.innerHeight - toolbar.offsetHeight - 8;
+    }
+    applyPosition();
+  });
   window.addEventListener('scroll', applyPosition, { passive: true });
   document.addEventListener('kefe-effect-change', event => { if (event.detail?.effect) effect.value = event.detail.effect; });
   existingFont?.addEventListener('change', () => { font.value = existingFont.value; });
