@@ -244,11 +244,9 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
             // The wave changes only the approach timing; once lifted, each glyph stays up.
             const waveLead = 0.035;
             const liftProgress = linaClamp((front - charCenter + edgeSoft + waveLead) / (2 * edgeSoft));
-            // Slow, sustained sweeps keep the glyph rise almost imperceptible; quicker
-            // sweeps recover the normal Apple-style lift without a threshold snap.
-            const slowSweep = linaSmooth((dur - 0.34) / 0.86);
-            const liftStrength = 1 - slowSweep * 0.82;
-            const lift = P.lift * liftStrength * linaSmoother(liftProgress);
+            // Every sung glyph in a row rises by the same amount so the row keeps one common baseline.
+            // (Per-word strength based on sweep duration left slow words sitting lower than fast ones.)
+            const lift = P.lift * linaSmoother(liftProgress);
             ctx.save();
             if (lift > 0.001) {
                 const ox = lx + lw / 2, oy = y + fs * 0.46, sc = 1 + lift * P.pop;
@@ -264,12 +262,12 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
                 const tMs = (time - en.t0) * 1000 - delayMs;
                 const glowT = linaClamp(tMs / emp.du);
                 const trans = appleEmpEasing(glowT) * settle;
-                const floatT = linaClamp((tMs + 400) / (emp.du * 1.4));
-                const floatY = Math.sin(floatT * Math.PI) * 0.05 * settle;
-                if (trans > 0.001 || floatY > 0.0005) {
-                    const sc = 1 + trans * 0.1 * emp.amount;
+                // Letters must stay on their baseline and in their own advance slot: emphasis is scale + glow only,
+                // scaled about each glyph's own centre. (The earlier per-letter x drift / staggered float pushed
+                // glyphs off position and made words look scattered.)
+                if (trans > 0.001) {
+                    const sc = 1 + trans * 0.06 * Math.min(1, emp.amount);
                     const ox = lx + lw / 2, oy = y + fs * 0.46;
-                    ctx.translate(-trans * 0.03 * emp.amount * (charCount / 2 - k) * fs, (-trans * 0.025 * emp.amount - floatY) * fs);
                     ctx.translate(ox, oy);
                     ctx.scale(sc, sc);
                     ctx.translate(-ox, -oy);
