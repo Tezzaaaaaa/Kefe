@@ -52,7 +52,9 @@
   const colorValue = el('output', 'kefe-floating-toolbar__color-value');
   colorValue.textContent = color.value.toUpperCase();
   const colorField = el('label', 'kefe-floating-toolbar__color-field', 'Text colour');
-  colorField.append(color, colorValue);
+  const colorName = el('span', 'kefe-floating-toolbar__color-name');
+  colorName.textContent = 'Text';
+  colorField.append(colorName, color, colorValue);
   const sizeLabel = el('label', 'kefe-floating-toolbar__label', 'Size');
   const size = el('input', 'kefe-floating-toolbar__size');
   size.type = 'range'; size.min = '50'; size.max = '160'; size.step = '1'; size.value = '100';
