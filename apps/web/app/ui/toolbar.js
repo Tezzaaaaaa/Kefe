@@ -95,7 +95,7 @@
     });
     const layerScale = adjustUi.querySelector('[data-layout-scale]');
     if (layerScale) {
-      layerScale.classList.add('kefe-floating-toolbar__size');
+      layerScale.classList.add('kefe-floating-toolbar__layer-size');
       layerScale.setAttribute('aria-label', 'Selected layer size');
     }
     const targetSelect = adjustUi.querySelector('[data-layout-target]');
