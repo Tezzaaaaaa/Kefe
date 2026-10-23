@@ -10605,7 +10605,7 @@ textarea.beui-native-textarea {
 }
 /* Lyrics layout controls: separate placement actions from saved-default actions. */
 .kefe-editor [data-apple-layout-ui] { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; justify-content: stretch; }
-.kefe-editor [data-apple-layout-ui] .kefe-layout-primary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; gap: 8px; min-width: 0; }
+.kefe-editor [data-apple-layout-ui] .kefe-layout-primary { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 8px; min-width: 0; }
 .kefe-editor [data-apple-layout-ui] .kefe-layout-defaults { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; min-width: 0; }
 .kefe-editor [data-apple-layout-ui] .kefe-layout-primary > label { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
 .kefe-editor [data-apple-layout-ui] .kefe-layout-primary select { width: min(100%, 125px); min-width: 0; }
@@ -10717,4 +10717,21 @@ textarea.beui-native-textarea {
   border-color: var(--line-soft);
   border-radius: var(--r2);
   background: var(--surface);
+}
+
+
+/* Figma-inspired floating Adjust lyric toolbar: drag from the grip, not from controls. */
+.kefe-editor [data-apple-layout-ui] .kefe-layout-drag-handle {
+  flex: 0 0 auto;
+  cursor: grab;
+  touch-action: none;
+}
+.kefe-editor [data-apple-layout-ui] .kefe-layout-drag-handle:active { cursor: grabbing; }
+.kefe-editor [data-apple-layout-ui] .kefe-layout-drag-handle:focus-visible {
+  outline: 2px solid var(--shell-accent, #ef4444);
+  outline-offset: 2px;
+}
+@media (max-width: 520px) {
+  .kefe-editor [data-apple-layout-ui] .kefe-layout-primary { grid-template-columns: auto minmax(0, 1fr); }
+  .kefe-editor [data-apple-layout-ui] .kefe-layout-primary > label { min-width: 0; }
 }
