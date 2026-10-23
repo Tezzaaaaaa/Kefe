@@ -895,23 +895,35 @@
       window.dispatchEvent(new Event('kefe-stage-resize'));
       return;
     }
-    const layoutControls=document.querySelector('[data-apple-layout-ui]');
-    const controlsHeight=layoutControls&&layoutControls.style.display!=='none'?layoutControls.getBoundingClientRect().height+8:0;
-    const paneWidth=Math.max(0,previewPane.clientWidth-24);
-    const paneHeight=Math.max(0,previewPane.clientHeight-24-controlsHeight)||Math.max(0,Math.floor(window.innerHeight*0.52)-controlsHeight);
+    // Windowed: fit the largest box of the chosen aspect inside the pane's free area.
+    // The pane is sized by the layout grid (see "Stable preview stage" in styles.css), never by the stage,
+    // so this measurement cannot feed back into itself.
+    const cs=getComputedStyle(previewPane);
+    const padX=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
+    const padY=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+    const gap=parseFloat(cs.rowGap)||0;
+    const bar=previewPane.querySelector('.kefe-preview-toolbar');
+    const barH=bar?bar.getBoundingClientRect().height+gap:0;
+    const paneWidth=Math.max(0,previewPane.clientWidth-padX);
+    let paneHeight=Math.max(0,previewPane.clientHeight-padY-barH);
+    if(!paneHeight)paneHeight=Math.max(0,Math.floor(window.innerHeight*0.52)-barH);
     if(paneWidth<=0||paneHeight<=0)return;
-    let width=Math.min(paneWidth,900);
+    let width=Math.min(paneWidth,1280);
     let height=width/ratio;
-    if(height>paneHeight){
-      height=paneHeight;width=height*ratio;
-    }
-    if(height<160&&paneHeight>=160&&paneWidth>=160*ratio){height=160;width=height*ratio;}
+    if(height>paneHeight){height=paneHeight;width=height*ratio;}
     width=Math.max(1,Math.floor(width));
     height=Math.max(1,Math.floor(height));
     previewStage.style.flexShrink='0';
-    previewStage.style.minHeight='160px';
-    previewStage.style.width=width+'px';
-    previewStage.style.height=height+'px';
+    previewStage.style.minHeight='0';
+    if(previewStage.style.width!==width+'px')previewStage.style.width=width+'px';
+    if(previewStage.style.height!==height+'px')previewStage.style.height=height+'px';
+  }
+  let fitQueued=false;
+  const queueFit=()=>{if(fitQueued)return;fitQueued=true;requestAnimationFrame(()=>{fitQueued=false;fitPreviewStage();});};
+  if(typeof ResizeObserver!=='undefined'&&previewPane){
+    const fitObserver=new ResizeObserver(queueFit);
+    fitObserver.observe(previewPane);
+    const workHost=previewPane.parentElement;if(workHost)fitObserver.observe(workHost);
   }
   window.addEventListener('resize',fitPreviewStage);
   const aspectSelect=document.getElementById('kefeAspect');

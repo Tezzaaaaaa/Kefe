@@ -10735,3 +10735,42 @@ textarea.beui-native-textarea {
   .kefe-editor [data-apple-layout-ui] .kefe-layout-primary { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); }
   .kefe-editor [data-apple-layout-ui] .kefe-layout-primary > label { min-width: 0; gap: 4px; }
 }
+
+
+/* ===== Stable preview stage (final authority) =====
+   The preview pane is sized by the layout grid, never by its content, and the stage is fitted inside it by
+   fitPreviewStage() in editor.js. Earlier rules let pane height depend on the stage, which made it resize on
+   every toolbar/panel/aspect change. Keep this block last. */
+.kefe-editor .kefe-work > .kefe-preview{
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  align-items:center;
+  justify-items:center;
+  align-content:stretch;
+  gap:10px;
+  min-width:0;
+  min-height:0;
+  height:auto;
+  padding:12px;
+  overflow:hidden;
+  box-sizing:border-box;
+}
+.kefe-editor .kefe-work > .kefe-preview > .kefe-stage:not(.kefe-pseudo-fullscreen):not(:fullscreen),
+.kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-16x9:not(.kefe-pseudo-fullscreen):not(:fullscreen),
+.kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-9x16:not(.kefe-pseudo-fullscreen):not(:fullscreen),
+.kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-1x1:not(.kefe-pseudo-fullscreen):not(:fullscreen){
+  grid-row:2;
+  align-self:center;
+  justify-self:center;
+  flex:none;
+  min-width:0;
+  min-height:0;
+  max-width:100%;
+  max-height:100%;
+  margin:0;
+  box-sizing:border-box;
+}
+.kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-16x9:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:16/9}
+.kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-9x16:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:9/16}
+.kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-1x1:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:1/1}
+.kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar{grid-row:1;width:min(100%,1280px)}
