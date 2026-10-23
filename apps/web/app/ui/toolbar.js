@@ -77,11 +77,9 @@
       adjustUi.querySelector('[data-layout-hint]')
     ].filter(Boolean);
     groups.forEach((group, index) => {
-      group.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;gap:7px;width:auto;max-width:100%;min-width:0;margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;backdrop-filter:none';
+      group.removeAttribute('style');
       group.classList.add('kefe-floating-toolbar__adjust-group');
-      group.querySelectorAll('label').forEach(label => {
-        label.style.cssText = 'display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;color:inherit';
-      });
+      group.querySelectorAll('label').forEach(label => label.removeAttribute('style'));
       group.querySelectorAll('button').forEach(control => {
         control.removeAttribute('style');
         control.classList.add('kefe-floating-toolbar__button', 'kefe-floating-toolbar__text-button');
@@ -118,8 +116,8 @@
   more.setAttribute('aria-controls', advanced.id);
 
   const adjustGroups = Array.from(toolbar.querySelectorAll(':scope > .kefe-floating-toolbar__adjust-group'));
-  primary.append(grip, divider(), effect, lyrics, fullscreen, locked, more, help, status);
-  advanced.append(reset, font, color, sizeLabel, divider(), aspect, ...adjustGroups);
+  primary.append(grip, divider(), effect, lyrics, fullscreen, more);
+  advanced.append(font, color, sizeLabel, divider(), aspect, locked, reset, ...adjustGroups, help, status);
   toolbar.replaceChildren(primary, advanced);
   more.addEventListener('click', () => {
     const expanded = more.getAttribute('aria-expanded') !== 'true';
