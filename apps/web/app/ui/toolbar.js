@@ -64,6 +64,49 @@
   status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
 
   toolbar.append(grip, divider(), effect, font, color, sizeLabel, divider(), aspect, lyrics, fullscreen, locked, reset, help, status);
+
+  // Merge the existing Adjust lyric controls into this toolbar; moving the
+  // original nodes preserves their editor event handlers and saved defaults.
+  const adjustUi = document.querySelector('[data-apple-layout-ui]');
+  if (adjustUi) {
+    adjustUi.querySelector('[data-layout-drag-handle]')?.remove();
+    const groups = [
+      adjustUi.querySelector('.kefe-layout-primary'),
+      adjustUi.querySelector('.kefe-layout-actions'),
+      adjustUi.querySelector('.kefe-layout-defaults'),
+      adjustUi.querySelector('[data-layout-hint]')
+    ].filter(Boolean);
+    groups.forEach((group, index) => {
+      group.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;gap:7px;width:auto;max-width:100%;min-width:0;margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;backdrop-filter:none';
+      group.classList.add('kefe-floating-toolbar__adjust-group');
+      group.querySelectorAll('label').forEach(label => {
+        label.style.cssText = 'display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;color:inherit';
+      });
+      group.querySelectorAll('button').forEach(control => {
+        control.removeAttribute('style');
+        control.classList.add('kefe-floating-toolbar__button', 'kefe-floating-toolbar__text-button');
+      });
+      group.querySelectorAll('select,input').forEach(control => {
+        control.removeAttribute('style');
+        control.classList.add('kefe-floating-toolbar__control');
+      });
+      if (index > 0) group.classList.add('kefe-floating-toolbar__adjust-secondary');
+      toolbar.appendChild(group);
+    });
+    const layerScale = adjustUi.querySelector('[data-layout-scale]');
+    if (layerScale) {
+      layerScale.classList.add('kefe-floating-toolbar__size');
+      layerScale.setAttribute('aria-label', 'Selected layer size');
+    }
+    const targetSelect = adjustUi.querySelector('[data-layout-target]');
+    if (targetSelect) targetSelect.setAttribute('aria-label', 'Adjust selected layer');
+    const hint = adjustUi.querySelector('[data-layout-hint]');
+    if (hint) {
+      hint.className = 'kefe-floating-toolbar__hint';
+      hint.style.cssText = '';
+    }
+    adjustUi.remove();
+  }
   document.body.appendChild(toolbar);
 
   const existingEffectGallery = document.getElementById('lyricEffectOptions');
