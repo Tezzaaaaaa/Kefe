@@ -6,7 +6,7 @@ on:
     paths:
       - "apps/web/app/**"
       - "apps/web/beui-src/**"
-      - "apps/web/editor.beui.html"
+      - "apps/web/editor.source.html"
       - "apps/web/beui.vite.config.ts"
       - "apps/web/package.json"
       - "apps/web/scripts/**"
