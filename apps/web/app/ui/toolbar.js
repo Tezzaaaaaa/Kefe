@@ -125,6 +125,7 @@
   });
 
   document.body.appendChild(toolbar);
+  document.dispatchEvent(new Event('kefe-layout-controls-ready'));
 
   const existingEffectGallery = document.getElementById('lyricEffectOptions');
   const existingFont = document.getElementById('fontOverride');
