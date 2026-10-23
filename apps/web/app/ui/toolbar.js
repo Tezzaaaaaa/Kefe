@@ -107,6 +107,31 @@
     }
     adjustUi.remove();
   }
+  const primary = el('div', 'kefe-floating-toolbar__primary');
+  const advanced = el('div', 'kefe-floating-toolbar__advanced');
+  advanced.id = 'kefeToolbarAdvanced';
+  advanced.hidden = true;
+  const more = el('button', 'kefe-floating-toolbar__button kefe-floating-toolbar__more', 'Show more toolbar controls');
+  more.type = 'button';
+  more.textContent = 'See more';
+  more.setAttribute('aria-expanded', 'false');
+  more.setAttribute('aria-controls', advanced.id);
+
+  const adjustGroups = Array.from(toolbar.querySelectorAll(':scope > .kefe-floating-toolbar__adjust-group'));
+  adjustGroups.forEach(group => advanced.appendChild(group));
+  primary.append(grip, divider(), effect, lyrics, fullscreen, locked, reset, more, help, status);
+  advanced.append(font, color, sizeLabel, divider(), aspect);
+  toolbar.replaceChildren(primary, advanced);
+  more.addEventListener('click', () => {
+    const expanded = more.getAttribute('aria-expanded') !== 'true';
+    advanced.hidden = !expanded;
+    more.setAttribute('aria-expanded', String(expanded));
+    more.textContent = expanded ? 'See less' : 'See more';
+    more.setAttribute('aria-label', expanded ? 'Show fewer toolbar controls' : 'Show more toolbar controls');
+    toolbar.classList.toggle('is-expanded', expanded);
+    applyPosition();
+  });
+
   document.body.appendChild(toolbar);
 
   const existingEffectGallery = document.getElementById('lyricEffectOptions');
