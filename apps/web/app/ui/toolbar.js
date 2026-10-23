@@ -118,9 +118,8 @@
   more.setAttribute('aria-controls', advanced.id);
 
   const adjustGroups = Array.from(toolbar.querySelectorAll(':scope > .kefe-floating-toolbar__adjust-group'));
-  adjustGroups.forEach(group => advanced.appendChild(group));
   primary.append(grip, divider(), effect, lyrics, fullscreen, locked, reset, more, help, status);
-  advanced.append(font, color, sizeLabel, divider(), aspect);
+  advanced.append(font, color, sizeLabel, divider(), aspect, ...adjustGroups);
   toolbar.replaceChildren(primary, advanced);
   more.addEventListener('click', () => {
     const expanded = more.getAttribute('aria-expanded') !== 'true';
