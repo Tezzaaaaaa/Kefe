@@ -10732,6 +10732,6 @@ textarea.beui-native-textarea {
   outline-offset: 2px;
 }
 @media (max-width: 520px) {
-  .kefe-editor [data-apple-layout-ui] .kefe-layout-primary { grid-template-columns: auto minmax(0, 1fr); }
-  .kefe-editor [data-apple-layout-ui] .kefe-layout-primary > label { min-width: 0; }
+  .kefe-editor [data-apple-layout-ui] .kefe-layout-primary { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); }
+  .kefe-editor [data-apple-layout-ui] .kefe-layout-primary > label { min-width: 0; gap: 4px; }
 }
