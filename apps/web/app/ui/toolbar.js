@@ -71,46 +71,36 @@
 
   toolbar.append(grip, divider(), effect, font, color, sizeLabel, divider(), aspect, lyrics, fullscreen, locked, reset, help, status);
 
-  // Merge the existing Adjust lyric controls into this toolbar; moving the
-  // original nodes preserves their editor event handlers and saved defaults.
-  const adjustUi = document.querySelector('[data-apple-layout-ui]');
-  if (adjustUi) {
-    adjustUi.querySelector('[data-layout-drag-handle]')?.remove();
-    const groups = [
-      adjustUi.querySelector('.kefe-layout-primary'),
-      adjustUi.querySelector('.kefe-layout-actions'),
-      adjustUi.querySelector('.kefe-layout-defaults'),
-      adjustUi.querySelector('[data-layout-hint]')
-    ].filter(Boolean);
-    groups.forEach((group, index) => {
-      group.removeAttribute('style');
-      group.classList.add('kefe-floating-toolbar__adjust-group');
-      group.querySelectorAll('label').forEach(label => label.removeAttribute('style'));
-      group.querySelectorAll('button').forEach(control => {
-        control.removeAttribute('style');
-        control.classList.add('kefe-floating-toolbar__button', 'kefe-floating-toolbar__text-button');
-      });
-      group.querySelectorAll('select,input').forEach(control => {
-        control.removeAttribute('style');
-        control.classList.add('kefe-floating-toolbar__control');
-      });
-      if (index > 0) group.classList.add('kefe-floating-toolbar__adjust-secondary');
-      toolbar.appendChild(group);
-    });
-    const layerScale = adjustUi.querySelector('[data-layout-scale]');
-    if (layerScale) {
-      layerScale.classList.add('kefe-floating-toolbar__layer-size');
-      layerScale.setAttribute('aria-label', 'Selected layer size');
-    }
-    const targetSelect = adjustUi.querySelector('[data-layout-target]');
-    if (targetSelect) targetSelect.setAttribute('aria-label', 'Adjust selected layer');
-    const hint = adjustUi.querySelector('[data-layout-hint]');
-    if (hint) {
-      hint.className = 'kefe-floating-toolbar__hint';
-      hint.style.cssText = '';
-    }
-    adjustUi.remove();
-  }
+  const layerControls = el('div', 'kefe-floating-toolbar__adjust-group kefe-floating-toolbar__layer-controls');
+  const layerTargetLabel = el('label', 'kefe-floating-toolbar__layer-label');
+  layerTargetLabel.append(document.createTextNode('Adjust '));
+  const layerTarget = el('select', 'kefe-floating-toolbar__control kefe-floating-toolbar__select');
+  layerTarget.setAttribute('data-layout-target', '');
+  layerTarget.setAttribute('aria-label', 'Adjust selected layer');
+  layerTarget.add(new Option('Lyrics', 'lyrics'));
+  layerTarget.add(new Option('Album artwork + title', 'card'));
+  layerTargetLabel.appendChild(layerTarget);
+  const layerScaleLabel = el('label', 'kefe-floating-toolbar__layer-label');
+  layerScaleLabel.append(document.createTextNode('Layer size '));
+  const layerScale = el('input', 'kefe-floating-toolbar__layer-size');
+  layerScale.type = 'range'; layerScale.min = '50'; layerScale.max = '200'; layerScale.step = '1'; layerScale.value = '100';
+  layerScale.setAttribute('data-layout-scale', '');
+  layerScale.setAttribute('aria-label', 'Selected layer size');
+  layerScaleLabel.appendChild(layerScale);
+  const layerMove = button('move-layer', '', 'Move selected layer in preview');
+  layerMove.textContent = 'Move layer'; layerMove.classList.add('kefe-floating-toolbar__text-button');
+  layerMove.setAttribute('data-layout-move', ''); layerMove.setAttribute('aria-pressed', 'false');
+  const layerReset = button('reset-layer', svg.reset, 'Reset selected layer');
+  layerReset.classList.add('kefe-floating-toolbar__text-button'); layerReset.setAttribute('data-layout-reset', '');
+  const saveDefault = button('save-default', '', 'Save current effect look and behaviour as default');
+  saveDefault.textContent = 'Lock as default'; saveDefault.classList.add('kefe-floating-toolbar__text-button'); saveDefault.setAttribute('data-effect-default', '');
+  const clearDefault = button('clear-default', '', 'Clear saved default for current effect');
+  clearDefault.textContent = 'Unlock default'; clearDefault.classList.add('kefe-floating-toolbar__text-button'); clearDefault.setAttribute('data-effect-default-clear', '');
+  const layerHint = el('span', 'kefe-floating-toolbar__hint');
+  layerHint.setAttribute('data-layout-hint', ''); layerHint.setAttribute('role', 'status');
+  layerHint.textContent = 'Move a layer, adjust size, then lock this effect’s defaults';
+  layerControls.append(layerTargetLabel, layerScaleLabel, layerMove, layerReset, saveDefault, clearDefault, layerHint);
+
   const primary = el('div', 'kefe-floating-toolbar__primary');
   const advanced = el('div', 'kefe-floating-toolbar__advanced');
   advanced.id = 'kefeToolbarAdvanced';
@@ -123,9 +113,8 @@
   const moreIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>';
   more.innerHTML = 'See more ' + moreIcon;
 
-  const adjustGroups = Array.from(toolbar.querySelectorAll(':scope > .kefe-floating-toolbar__adjust-group'));
   primary.append(grip, divider(), effect, lyrics, fullscreen, more);
-  advanced.append(font, colorField, sizeLabel, divider(), aspect, locked, reset, ...adjustGroups, help, status);
+  advanced.append(font, colorField, sizeLabel, divider(), aspect, locked, reset, layerControls, help, status);
   toolbar.replaceChildren(primary, advanced);
   more.addEventListener('click', () => {
     const expanded = more.getAttribute('aria-expanded') !== 'true';
