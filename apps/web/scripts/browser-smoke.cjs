@@ -77,6 +77,68 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
+
+    // Exercise the floating quick-edit toolbar against the real editor controls.
+    const quickToolbar = page.locator("#kefeFloatingToolbar");
+    assert.equal(await quickToolbar.count(), 1, "there must be exactly one floating toolbar");
+    await page.waitForSelector("#kefeStyleGroup input[type=color]", { state: "attached", timeout: 10000 });
+    const textMenuButton = quickToolbar.getByRole("button", { name: "Text", exact: true });
+    await textMenuButton.click();
+    const textMenu = page.locator("#kefeToolbarTextPopover");
+    await textMenu.waitFor({ state: "visible", timeout: 5000 });
+    const quickSize = textMenu.locator('input[type="range"][aria-label="Lyric text size"]');
+    await quickSize.evaluate(input => { input.value = "115"; input.dispatchEvent(new Event("input", { bubbles: true })); });
+    assert.equal(await page.locator("#kefeStyleGroup input[type=range]").first().inputValue(), "115",
+      "toolbar text-size control must update the canonical lyric-style setting");
+    await page.keyboard.press("Escape");
+    await textMenu.waitFor({ state: "hidden", timeout: 5000 });
+    assert.equal(await textMenuButton.getAttribute("aria-expanded"), "false", "Escape must close the text popover");
+
+    await quickToolbar.getByRole("button", { name: "Colour", exact: true }).click();
+    const colourMenu = page.locator("#kefeToolbarColourPopover");
+    await colourMenu.waitFor({ state: "visible", timeout: 5000 });
+    await colourMenu.getByRole("button", { name: "Rose #FFB7D5" }).click();
+    assert.equal((await page.locator("#kefeStyleGroup input[type=color]").first().inputValue()).toLowerCase(), "#ffb7d5",
+      "colour swatches must update the canonical lyric text colour");
+    const hex = colourMenu.locator(".kefe-floating-toolbar__hex-input");
+    await hex.fill("#A7E7FF");
+    await hex.dispatchEvent("change");
+    assert.equal((await page.locator("#kefeStyleGroup input[type=color]").first().inputValue()).toLowerCase(), "#a7e7ff",
+      "valid hex entry must update the canonical lyric text colour");
+    await hex.fill("not-a-colour");
+    await hex.dispatchEvent("change");
+    assert.equal(await hex.inputValue(), "#A7E7FF", "invalid hex input must preserve the last valid colour");
+    await page.keyboard.press("Escape");
+
+    await quickToolbar.getByRole("button", { name: "Position", exact: true }).click();
+    const positionMenu = page.locator("#kefeToolbarPositionPopover");
+    await positionMenu.waitFor({ state: "visible", timeout: 5000 });
+    assert.equal(await positionMenu.locator("[data-layout-target]").count(), 1, "position menu must expose one canonical layer selector");
+    assert.equal(await positionMenu.locator("[data-layout-scale]").count(), 1, "position menu must expose one canonical layer scale control");
+    assert.equal(await positionMenu.locator("[data-layout-move]").count(), 1, "position menu must expose one layer-move toggle");
+    const layerScale = positionMenu.locator("[data-layout-scale]");
+    await layerScale.evaluate(input => { input.value = "110"; input.dispatchEvent(new Event("input", { bubbles: true })); });
+    assert.equal(await layerScale.inputValue(), "110", "layer size control must accept changes");
+    const moveLayer = positionMenu.locator("[data-layout-move]");
+    await moveLayer.click();
+    assert.equal(await moveLayer.getAttribute("aria-pressed"), "true", "Move layer must enter its active state");
+    await moveLayer.click();
+    assert.equal(await moveLayer.getAttribute("aria-pressed"), "false", "Move layer must return to its inactive state");
+    await positionMenu.locator("[data-layout-reset]").click();
+    await page.keyboard.press("Escape");
+
+    const seeMore = quickToolbar.getByRole("button", { name: "Show more toolbar controls" });
+    await seeMore.click();
+    assert.equal(await quickToolbar.locator("#kefeToolbarAdvanced").isVisible(), true, "See more must reveal advanced toolbar actions");
+    await quickToolbar.getByRole("button", { name: "Show fewer toolbar controls" }).click();
+    assert.equal(await quickToolbar.locator("#kefeToolbarAdvanced").isVisible(), false, "See less must collapse advanced toolbar actions");
+    const lockToolbar = quickToolbar.getByRole("button", { name: "Lock toolbar position" });
+    await lockToolbar.click();
+    assert.equal(await lockToolbar.getAttribute("aria-pressed"), "true", "toolbar lock must engage");
+    await quickToolbar.getByRole("button", { name: "Unlock toolbar position" }).click();
+    assert.equal(await quickToolbar.locator('[aria-label="Unlock toolbar position"]').count(), 0, "toolbar lock must disengage");
+    assert.ok(await quickToolbar.locator('select[aria-label="Lyric effect"] option').count() > 1,
+      "effect selector must be populated from the existing lyric effect gallery");
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "the editor must start in Media, not switch itself to Visualisers");
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
