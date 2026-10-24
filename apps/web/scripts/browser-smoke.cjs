@@ -141,6 +141,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const seeMore = quickToolbar.getByRole("button", { name: "Show more toolbar controls" });
     await seeMore.click();
     assert.equal(await quickToolbar.locator("#kefeToolbarAdvanced").isVisible(), true, "See more must reveal the grouped advanced tray");
+    assert.deepEqual(await quickToolbar.locator(".kefe-floating-toolbar__group-title").allTextContents(), ["Lyrics & Sync", "FX & Style", "Canvas & BG"], "expanded tray must follow the reference section order");
     assert.equal(await quickToolbar.locator("[data-layout-target]").count(), 1, "expanded tray must expose one canonical layer selector");
     assert.equal(await quickToolbar.locator("[data-layout-scale]").count(), 1, "expanded tray must expose one canonical layer scale control");
     assert.equal(await quickToolbar.locator("[data-layout-move]").count(), 1, "main rail must expose one layer-move toggle");
