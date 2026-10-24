@@ -117,18 +117,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.setViewportSize(desktopViewport);
     await page.waitForTimeout(100);
     await page.waitForSelector("#kefeStyleGroup input[type=color]", { state: "attached", timeout: 10000 });
-    const textMenuButton = quickToolbar.getByRole("button", { name: "Text", exact: true });
-    await textMenuButton.click();
-    const textMenu = page.locator("#kefeToolbarTextPopover");
-    await textMenu.waitFor({ state: "visible", timeout: 5000 });
-    const quickSize = textMenu.locator('input[type="range"][aria-label="Lyric text size"]');
+    const quickSize = quickToolbar.locator('#kefeToolbarAdvanced input[type="range"][aria-label="Lyric text size"]');
     await quickSize.evaluate(input => { input.value = "115"; input.dispatchEvent(new Event("input", { bubbles: true })); });
-    const canonicalTextSize = page.locator('#kefeStyleGroup label.kefe-visualiser-field').filter({ hasText: "Text size" }).locator('input[type="range"]');
     assert.equal(await page.evaluate(() => window.kefeStyle.state().scale), 115,
       "toolbar text-size control must update the canonical lyric-style setting");
-    await page.keyboard.press("Escape");
-    await textMenu.waitFor({ state: "hidden", timeout: 5000 });
-    assert.equal(await textMenuButton.getAttribute("aria-expanded"), "false", "Escape must close the text popover");
 
     await quickToolbar.getByRole("button", { name: "Colour", exact: true }).click();
     const colourMenu = page.locator("#kefeToolbarColourPopover");
@@ -146,26 +138,22 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(await hex.inputValue(), "#A7E7FF", "invalid hex input must preserve the last valid colour");
     await page.keyboard.press("Escape");
 
-    await quickToolbar.getByRole("button", { name: "Position", exact: true }).click();
-    const positionMenu = page.locator("#kefeToolbarPositionPopover");
-    await positionMenu.waitFor({ state: "visible", timeout: 5000 });
-    assert.equal(await positionMenu.locator("[data-layout-target]").count(), 1, "position menu must expose one canonical layer selector");
-    assert.equal(await positionMenu.locator("[data-layout-scale]").count(), 1, "position menu must expose one canonical layer scale control");
-    assert.equal(await positionMenu.locator("[data-layout-move]").count(), 1, "position menu must expose one layer-move toggle");
-    const layerScale = positionMenu.locator("[data-layout-scale]");
-    await layerScale.evaluate(input => { input.value = "110"; input.dispatchEvent(new Event("input", { bubbles: true })); });
-    assert.equal(await layerScale.inputValue(), "110", "layer size control must accept changes");
-    const moveLayer = positionMenu.locator("[data-layout-move]");
-    await moveLayer.click();
-    assert.equal(await moveLayer.getAttribute("aria-pressed"), "true", "Move layer must enter its active state");
-    await moveLayer.click();
-    assert.equal(await moveLayer.getAttribute("aria-pressed"), "false", "Move layer must return to its inactive state");
-    await positionMenu.locator("[data-layout-reset]").click();
-    await page.keyboard.press("Escape");
-
     const seeMore = quickToolbar.getByRole("button", { name: "Show more toolbar controls" });
     await seeMore.click();
-    assert.equal(await quickToolbar.locator("#kefeToolbarAdvanced").isVisible(), true, "See more must reveal advanced toolbar actions");
+    assert.equal(await quickToolbar.locator("#kefeToolbarAdvanced").isVisible(), true, "See more must reveal the grouped advanced tray");
+    assert.equal(await quickToolbar.locator("[data-layout-target]").count(), 1, "expanded tray must expose one canonical layer selector");
+    assert.equal(await quickToolbar.locator("[data-layout-scale]").count(), 1, "expanded tray must expose one canonical layer scale control");
+    assert.equal(await quickToolbar.locator("[data-layout-move]").count(), 1, "main rail must expose one layer-move toggle");
+    const layerScale = quickToolbar.locator("[data-layout-scale]");
+    await layerScale.evaluate(input => { input.value = "110"; input.dispatchEvent(new Event("input", { bubbles: true })); });
+    assert.equal(await layerScale.inputValue(), "110", "layer size control must accept changes");
+    const moveLayer = quickToolbar.locator("[data-layout-move]");
+    await moveLayer.click();
+    assert.equal(await moveLayer.getAttribute("aria-pressed"), "true", "Move must enter its active state");
+    await moveLayer.click();
+    assert.equal(await moveLayer.getAttribute("aria-pressed"), "false", "Move must return to its inactive state");
+    await quickToolbar.locator("[data-layout-reset]").click();
+
     const lockToolbar = quickToolbar.getByRole("button", { name: "Lock toolbar position" });
     await lockToolbar.click();
     assert.equal(await lockToolbar.getAttribute("aria-pressed"), "true", "toolbar lock must engage");
