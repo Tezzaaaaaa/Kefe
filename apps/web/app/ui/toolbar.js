@@ -145,7 +145,7 @@
   colorPopover.appendChild(palette); positionPopover.append(aspect, layerControls);
   primary.append(grip, divider(), effect, textTrigger, colorTrigger, positionTrigger, lyrics, fullscreen, more);
   advanced.append(locked, reset, help, status);
-  toolbar.replaceChildren(primary, advanced, textPopover, colorPopover, positionPopover);
+  toolbar.replaceChildren(primary, advanced);
   const popoverPairs = [[textTrigger, textPopover], [colorTrigger, colorPopover], [positionTrigger, positionPopover]];
   function closePopover(pop, restoreFocus) {
     if (!pop || pop.hidden) return; pop.hidden = true;
@@ -198,6 +198,7 @@
   });
 
   document.body.appendChild(toolbar);
+  document.body.append(textPopover, colorPopover, positionPopover);
   document.dispatchEvent(new Event('kefe-layout-controls-ready'));
 
   const existingEffectGallery = document.getElementById('lyricEffectOptions');
