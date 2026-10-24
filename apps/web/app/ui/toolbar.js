@@ -163,7 +163,11 @@
   popoverPairs.forEach(([trigger, pop]) => trigger.addEventListener('click', () => {
     const opening = pop.hidden; closePopovers(); if (!opening) return;
     if (pop === textPopover) fillOptions();
-    if (pop === colorPopover) { const target = styleColor(); if (target) { color.value = target.value; colorValue.textContent = target.value.toUpperCase(); hexInput.value = target.value.toUpperCase(); } }
+    if (pop === colorPopover) {
+      const target = styleColor();
+      if (target) { color.value = target.value; colorValue.textContent = target.value.toUpperCase(); hexInput.value = target.value.toUpperCase(); }
+      palette.querySelectorAll('.kefe-floating-toolbar__swatch').forEach(swatch => swatch.setAttribute('aria-pressed', String(swatch.style.getPropertyValue('--swatch-color').toUpperCase() === color.value.toUpperCase())));
+    }
     trigger.setAttribute('aria-expanded', 'true'); placePopover(pop, trigger);
     pop.querySelector('input, select, button')?.focus({ preventScroll: true });
   }));
