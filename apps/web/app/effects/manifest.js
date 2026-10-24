@@ -32,7 +32,7 @@ window.KEFE_EFFECTS = [
   { key: 'crttv', label: 'CRT TV Box', description: 'Late-1980s and 1990s CRT television lyric screen' },
   { key: 'randomize', label: 'Randomise', description: 'Animated stencil segmentation for any font' }
   ,{ key: 'spin', label: 'Spin Lyrics', description: 'Staggered 3D flip, float and sparkle reveal' }
-  ,{ key: 'premium', label: 'Premium Circuit', description: 'Neon circuit paths, light beams and luminous lettering' }
+  ,{ key: 'premium', label: 'Devotion', description: 'Softly fading typography over animated glass-chrome light and shadow' }
   ,{ key: 'dustoff', label: 'Dust Off', description: 'Lyrics form from and disperse into dust particles' }
   ,{ key: 'wrapslide', label: 'WrapSlide', description: 'Per-letter vertical wrap-and-slide animation' }
   ,{ key: 'eternal', label: 'Eternal Sunshine', description: 'Handwritten ink reveal' }
