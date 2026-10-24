@@ -1,5 +1,5 @@
-/* KEFE lyric effects adapted from the supplied Spin, Premium Circuit, Dust Off and WrapSlide demos.
-   All renderers are pure canvas draws driven by KEFE's shared lyric timeline, so preview and export stay in sync. */
+/* KEFE lyric effects adapted from the supplied Spin, Devotion, Dust Off and WrapSlide demos.
+   Renderers use KEFE's shared lyric timeline so preview and export stay in sync. */
 (() => {
   'use strict';
   const U = window.kefeEffectUtils;
@@ -105,6 +105,16 @@
   Object.keys(defs).forEach(k => settings[k] = Object.assign({}, defs[k].defaults, settings[k] || {}));
   if (settings.inkscript.font === '__upload') { settings.inkscript.font = 'Mr Dafoe'; settings.inkscript.uploadedFamily = ''; }
   const save = () => { try { localStorage.setItem(storeKey, JSON.stringify(settings)); } catch (_) {} };
+  // Premium Circuit settings do not describe Devotion. Reset only this effect once
+  // so existing users receive the new typography defaults without losing other presets.
+  const devotionMigrationKey = 'kefe.inspiration-effects.devotion.v1';
+  let devotionMigrated = false;
+  try { devotionMigrated = localStorage.getItem(devotionMigrationKey) === '1'; } catch (_) {}
+  if (!devotionMigrated) {
+    settings.premium = Object.assign({}, defs.premium.defaults);
+    save();
+    try { localStorage.setItem(devotionMigrationKey, '1'); } catch (_) {}
+  }
   const migrationKey = 'kefe.inspiration-effects.transparent-default.v2';
   let migrated = false;
   try { migrated = localStorage.getItem(migrationKey) === '1'; } catch (_) {}
