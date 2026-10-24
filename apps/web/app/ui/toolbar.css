@@ -121,6 +121,30 @@
   cursor: pointer;
 }
 .kefe-floating-toolbar__select option { color: #171719; background: #fff; }
+
+/* The shared beUI bridge wraps native selects in a 100%-width host.
+   Constrain those wrappers only inside this compact toolbar. */
+.kefe-floating-toolbar .beui-select-host {
+  flex: 0 0 108px;
+  width: 108px;
+  min-width: 0;
+}
+.kefe-floating-toolbar .beui-select-host > div { width: 100%; }
+.kefe-floating-toolbar .beui-select-host button {
+  width: 100%;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid #333340;
+  border-radius: 4px;
+  color: inherit;
+  background: #1e1e24;
+  font: inherit;
+}
+.kefe-floating-toolbar__group .beui-select-host {
+  flex: 0 0 100%;
+  width: 100%;
+}
 .kefe-floating-toolbar__color-trigger { width: 28px; min-width: 28px; padding: 0; }
 .kefe-floating-toolbar__color-chip {
   display: block;
