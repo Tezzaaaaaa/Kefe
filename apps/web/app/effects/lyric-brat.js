@@ -190,11 +190,26 @@
     ctx.translate(-lw / 2, -lh / 2);
 
     ctx.font = font;
-    ctx.textAlign = 'center';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = fgColor;
+    const maxWidth = lw * cfg.wrapRatio;
+    const left = (lw - maxWidth) / 2;
     for (let i = 0; i < wrapped.length; i++) {
-      ctx.fillText(wrapped[i], lw / 2, startY + i * lineH);
+      const words = wrapped[i].split(/\\s+/).filter(Boolean);
+      const y = startY + i * lineH;
+      if (words.length < 2) {
+        ctx.fillText(wrapped[i], (lw - ctx.measureText(wrapped[i]).width) / 2, y, maxWidth);
+        continue;
+      }
+      const wordWidths = words.map(word => ctx.measureText(word).width);
+      const totalWordWidth = wordWidths.reduce((sum, width) => sum + width, 0);
+      const gap = Math.max(0, (maxWidth - totalWordWidth) / (words.length - 1));
+      let x = left;
+      words.forEach((word, index) => {
+        ctx.fillText(word, x, y);
+        x += wordWidths[index] + gap;
+      });
     }
     ctx.restore();
   }
