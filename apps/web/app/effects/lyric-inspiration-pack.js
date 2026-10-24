@@ -19,12 +19,12 @@
       ]
     },
     premium: {
-      title: 'Premium Circuit',
-      defaults: {font:'Orbitron',weight:900,bg:'#01000f',ink:'#ffffff',glow:'#6a4cff',cyan:'#4fd8ff',pink:'#ff5fa8',mint:'#6ee7d8',transparent:true,speed:1,glowAmount:48,beam:70,circuits:34,bokeh:26,loop:true},
+      title: 'Devotion',
+      defaults: {font:'SF Pro Display',weight:200,background:'dark',letterSpacing:0.02},
       fields: [
-        ['select','font','Font',[['Orbitron','Orbitron'],['Arial Black','Arial Black'],['Arial','Arial']]],
-        ['range','weight','Weight',100,900,100,''],['color','bg','Background'],['toggle','transparent','Transparent background'],['color','ink','Text'],['color','glow','Glow'],['color','cyan','Circuit cyan'],['color','pink','Circuit pink'],['color','mint','Circuit mint'],
-        ['range','speed','Speed',0.25,2,0.05,'×'],['range','glowAmount','Glow strength',0,80,1,''],['range','beam','Beam intensity',0,100,1,'%'],['range','circuits','Circuit paths',0,60,1,''],['range','bokeh','Floating lights',0,50,1,''],['toggle','loop','Loop']
+        ['select','background','Background',[['dark','Dark chrome'],['light','Soft light']]],
+        ['range','weight','Font weight',100,400,10,''],
+        ['range','letterSpacing','Letter spacing',0,0.08,0.005,' em']
       ]
     },
     dustoff: {
@@ -250,20 +250,136 @@
     }
     ctx.restore();ctx.globalAlpha=1;
   }
-  function renderPremium(ctx,w,h,style,lines,time){
+  const devotionShader = (() => {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl', { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true })
+      || canvas.getContext('experimental-webgl');
+    if (!gl) return null;
+    const vertexSource = 'attribute vec2 a_position; void main(){ gl_Position=vec4(a_position,0.0,1.0); }';
+    const fragmentSource = [
+      'precision highp float;',
+      'uniform vec2 u_resolution;',
+      'uniform float u_time;',
+      'float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }',
+      'float noise(vec2 p){ vec2 i=floor(p); vec2 f=fract(p); vec2 u=f*f*(3.0-2.0*f); return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x),u.y); }',
+      'float fbm(vec2 p){ float v=0.0; float a=0.5; mat2 rot=mat2(0.866,-0.5,0.5,0.866); for(int i=0;i<4;i++){ v+=a*noise(p); p=rot*p*2.0; a*=0.5; } return v; }',
+      'void main(){',
+      ' vec2 uv=gl_FragCoord.xy/u_resolution.xy;',
+      ' vec2 p=(gl_FragCoord.xy-u_resolution.xy*0.5)/min(u_resolution.x,u_resolution.y);',
+      ' float t=u_time*0.15;',
+      ' vec2 q=vec2(fbm(p+t),fbm(p+vec2(5.2,1.3)-t));',
+      ' vec2 r=vec2(fbm(p+4.0*q+vec2(1.7,9.2)+t*0.5),fbm(p+4.0*q+vec2(8.3,2.8)-t*0.5));',
+      ' float f=fbm(p+4.0*r);',
+      ' vec2 warpedUV=uv+(r-0.5)*0.4;',
+      ' float band=sin(warpedUV.x*15.0+warpedUV.y*10.0+f*8.0+t*2.0);',
+      ' band=smoothstep(-0.1,0.1,band)-smoothstep(0.1,0.3,band);',
+      ' float lum=clamp(f*0.8+band*0.6,0.0,1.0);',
+      ' float shift=(r.x-0.5)*0.08;',
+      ' float rC=clamp(lum+shift,0.0,1.0); float gC=clamp(lum,0.0,1.0); float bC=clamp(lum-shift,0.0,1.0);',
+      ' float spec=smoothstep(0.8,1.0,band)*smoothstep(0.5,1.0,f);',
+      ' rC+=spec; gC+=spec; bC+=spec;',
+      ' float shadowMask=smoothstep(0.2,0.6,f);',
+      ' gl_FragColor=vec4(rC*shadowMask,gC*shadowMask,bC*shadowMask,1.0);',
+      '}'
+    ].join('\n');
+    function compile(type, source) {
+      const shader = gl.createShader(type);
+      if (!shader) return null;
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.warn('[KEFE Devotion] Shader compilation failed:', gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    }
+    const vertex = compile(gl.VERTEX_SHADER, vertexSource);
+    const fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
+    if (!vertex || !fragment) return null;
+    const program = gl.createProgram();
+    gl.attachShader(program, vertex);
+    gl.attachShader(program, fragment);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.warn('[KEFE Devotion] Shader link failed:', gl.getProgramInfoLog(program));
+      return null;
+    }
+    gl.useProgram(program);
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]), gl.STATIC_DRAW);
+    const position = gl.getAttribLocation(program, 'a_position');
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+    return {canvas,gl,program,resolution:gl.getUniformLocation(program,'u_resolution'),time:gl.getUniformLocation(program,'u_time')};
+  })();
+  function devotionEase(value) {
+    const t=clamp(value);
+    return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+  }
+  function devotionRows(ctx,text,maxWidth,fontSize,letterSpacing) {
+    const words=String(text||'').trim().split(/\s+/).filter(Boolean),rows=[];
+    const measure=value=>Array.from(value).reduce((sum,ch)=>sum+ctx.measureText(ch).width+letterSpacing,0)-letterSpacing;
+    let row='';
+    for(const word of words){
+      const candidate=row?row+' '+word:word;
+      if(row&&measure(candidate)>maxWidth){rows.push(row);row=word;}else row=candidate;
+    }
+    if(row)rows.push(row);
+    return rows;
+  }
+  function devotionDrawSpaced(ctx,text,cx,y,letterSpacing) {
+    const chars=Array.from(text);
+    const total=chars.reduce((sum,ch)=>sum+ctx.measureText(ch).width+letterSpacing,0)-letterSpacing;
+    let x=cx-total/2;
+    chars.forEach(ch=>{ctx.fillText(ch,x,y);x+=ctx.measureText(ch).width+letterSpacing;});
+  }
+  function renderDevotion(ctx,w,h,style,lines,time) {
     const s=settings.premium;
-    const t=time*s.speed;
-    if(!s.transparent){ctx.fillStyle=s.bg;ctx.fillRect(0,0,w,h);const g=ctx.createRadialGradient(w*.5,h*.5,0,w*.5,h*.5,Math.max(w,h)*.8);g.addColorStop(0,'#1d10a6');g.addColorStop(.55,'#08035a');g.addColorStop(1,s.bg);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
-    ctx.save();ctx.globalCompositeOperation='lighter';
-    for(let i=0;i<2;i++){ctx.save();ctx.translate(w/2,0);ctx.rotate(Math.sin(t*.15+i*2)*.25+(i?.35:-.35));const b=ctx.createLinearGradient(-w*.08,0,w*.08,0);b.addColorStop(0,'transparent');b.addColorStop(.5,'rgba(120,100,255,'+(Number(s.beam)/1400)+')');b.addColorStop(1,'transparent');ctx.fillStyle=b;ctx.fillRect(-w*.08,-h*.1,w*.16,h*1.2);ctx.restore();}
-    const cols=[s.cyan,s.pink,s.mint,s.glow];
-    for(let i=0;i<Number(s.circuits);i++){const x=hash(i+1)*w,y=hash(i+17)*h,xx=x+(hash(i+61)-.5)*w*.35,yy=y+(hash(i+71)-.5)*h*.3;ctx.strokeStyle=cols[i%cols.length];ctx.globalAlpha=.12+.18*hash(i+101);ctx.lineWidth=Math.max(1,w/1200);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(xx,y);ctx.lineTo(xx,yy);ctx.stroke();const px=((t*(.06+hash(i+9)*.1)+hash(i+3))%1);ctx.globalAlpha=.8;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+(xx-x)*px,y,Math.max(1,w/500),0,Math.PI*2);ctx.fill();}
-    for(let i=0;i<Number(s.bokeh);i++){const x=hash(i+141)*w+Math.sin(t*.3+i)*w*.01,y=(hash(i+151)*h-t*(6+hash(i+161)*14)+h*20)%h;ctx.globalAlpha=.08+.16*hash(i+171);ctx.fillStyle=cols[i%4];ctx.beginPath();ctx.arc(x,y,Math.max(1,w/350*(.2+hash(i+181))),0,Math.PI*2);ctx.fill();}
-    ctx.restore();ctx.globalAlpha=1;
-    const items=linesFor(lines,time);if(!items.length)return;
-    const item=items[items.length-1],txt=String(item.line.text||'').toUpperCase(),size=Math.min(h*.25,w*.82/Math.max(1,txt.length*.7));
-    ctx.save();ctx.font=s.weight+' '+size+'px "'+s.font+'", "Arial Black", sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor=s.glow;ctx.shadowBlur=Number(s.glowAmount)*w/1200;ctx.fillStyle=s.ink;
-    const elapsed=Math.max(0,(time-item.start)*s.speed),cycle=Math.max(.8,item.end-item.start),p=s.loop?clamp((elapsed%cycle)/.45):clamp(elapsed/.45);ctx.globalAlpha=p;ctx.fillText(txt,w/2,h*.52);ctx.restore();
+    if(s.background==='light'){
+      ctx.fillStyle='#f2f0ed';ctx.fillRect(0,0,w,h);
+    }else if(devotionShader){
+      const sh=devotionShader,gl=sh.gl;
+      if(sh.canvas.width!==Math.max(1,Math.round(w))||sh.canvas.height!==Math.max(1,Math.round(h))){
+        sh.canvas.width=Math.max(1,Math.round(w));sh.canvas.height=Math.max(1,Math.round(h));
+        gl.viewport(0,0,sh.canvas.width,sh.canvas.height);
+      }
+      gl.useProgram(sh.program);
+      gl.uniform2f(sh.resolution,sh.canvas.width,sh.canvas.height);
+      gl.uniform1f(sh.time,Math.max(0,Number(time)||0));
+      gl.drawArrays(gl.TRIANGLES,0,6);
+      ctx.drawImage(sh.canvas,0,0,w,h);
+    }else{
+      ctx.fillStyle='#000000';ctx.fillRect(0,0,w,h);
+      const fallback=ctx.createLinearGradient(0,0,w,h);
+      fallback.addColorStop(0,'#08090c');fallback.addColorStop(0.5,'#30343a');fallback.addColorStop(1,'#050506');
+      ctx.fillStyle=fallback;ctx.fillRect(0,0,w,h);
+    }
+    const items=linesFor(lines,time);
+    if(!items.length)return;
+    const item=items[items.length-1],text=String(item.line.text||'').trim();
+    if(!text)return;
+    const elapsedIn=Math.max(0,(time-item.start)*1000),elapsedOut=Math.max(0,(item.end-time)*1000);
+    const fadeIn=devotionEase(elapsedIn/420),fadeOut=devotionEase(elapsedOut/520);
+    const alpha=Math.min(fadeIn,fadeOut);
+    if(alpha<=0.001)return;
+    const blur=Math.max((1-fadeIn)*14,(1-fadeOut)*10);
+    const scale=0.96+0.04*fadeIn;
+    const fontSize=Math.min(w*0.072,h*0.10,96);
+    const letterSpacing=Math.max(0,Number(s.letterSpacing)||0)*fontSize;
+    const textColor=s.background==='light'?'#0b0c0e':'#f2f0ed';
+    ctx.save();
+    ctx.fillStyle=textColor;
+    ctx.font=Math.max(100,Math.min(400,Number(s.weight)||200))+' '+fontSize+'px "SF Pro Display", "Inter", -apple-system, "Helvetica Neue", "Segoe UI", sans-serif';
+    ctx.textAlign='left';ctx.textBaseline='middle';
+    const rows=devotionRows(ctx,text,w*0.82,fontSize,letterSpacing);
+    const lineHeight=fontSize*1.18,totalHeight=rows.length*lineHeight,startY=h/2-totalHeight/2+lineHeight/2;
+    if(blur>0.15)ctx.filter='blur('+blur.toFixed(2)+'px)';
+    ctx.translate(w/2,h/2);ctx.scale(scale,scale);ctx.translate(-w/2,-h/2);
+    ctx.globalAlpha=alpha;
+    rows.forEach((row,index)=>devotionDrawSpaced(ctx,row,w/2,startY+index*lineHeight,letterSpacing));
+    ctx.restore();
   }
   const dustPointCache=new Map();
   function dustTextPoints(w,h,text,family,size,weight){
@@ -705,7 +821,7 @@
     if(elapsed>duration&&!s.loop&&s.exit==='cut')ctx.clearRect(0,0,w,h);
     ctx.restore();
   }
-  E.spin=renderSpin; E.premium=renderPremium; E.dustoff=renderDust; E.wrapslide=renderWrapSlide; E.inkscript=renderInkScript; E.chrome=renderChrome; E.gel=renderGel;
+  E.spin=renderSpin; E.premium=renderDevotion; E.dustoff=renderDust; E.wrapslide=renderWrapSlide; E.inkscript=renderInkScript; E.chrome=renderChrome; E.gel=renderGel;
 
   function buildControls(){
     const host=document.querySelector('[data-panel-view="effects"] .kefe-form');
