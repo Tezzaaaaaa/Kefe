@@ -289,11 +289,17 @@
     emit('lock', on);
   });
 
-  const STORE = 'kefe.floating-toolbar.position.v1';
+  const STORE = 'kefe.floating-toolbar.position.v2';
   const mobileViewport = window.matchMedia('(max-width: 760px)');
+  const stageBounds = () => stage.getBoundingClientRect();
+  const stageRect = stageBounds();
+  const defaultPosition = {
+    x: Math.max(8, stageRect.left + 12),
+    y: Math.max(8, stageRect.top + 12)
+  };
   let position = mobileViewport.matches
-    ? { x: 8, y: Math.max(8, window.innerHeight - toolbar.offsetHeight - 8) }
-    : { x: 12, y: 12 };
+    ? { x: Math.max(8, stageRect.left + 8), y: Math.max(stageRect.top + 8, Math.min(stageRect.bottom - toolbar.offsetHeight - 8, window.innerHeight - toolbar.offsetHeight - 8)) }
+    : { ...defaultPosition };
   let dragging = null;
   try {
     const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
@@ -334,16 +340,17 @@
     if (!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(event.key)) return;
     event.preventDefault();
     const step = event.shiftKey ? 20 : 5;
-    if (event.key === 'Home') position = { x: 12, y: 12 };
+    if (event.key === 'Home') position = { ...defaultPosition };
     else { position.x += event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0; position.y += event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0; }
     applyPosition(); savePosition(); emit('position', position);
   });
   reset.addEventListener('click', () => {
-    position = { x: 12, y: 12 }; applyPosition(); savePosition(); emit('reset-position', position);
+    position = { ...defaultPosition }; applyPosition(); savePosition(); emit('reset-position', position);
   });
   window.addEventListener('resize', () => {
-    if (mobileViewport.matches && position.y < window.innerHeight * .35) {
-      position.y = window.innerHeight - toolbar.offsetHeight - 8;
+    const bounds = stageBounds();
+    if (mobileViewport.matches && (position.y < bounds.top || position.y > bounds.bottom)) {
+      position.y = Math.max(bounds.top + 8, Math.min(bounds.bottom - toolbar.offsetHeight - 8, window.innerHeight - toolbar.offsetHeight - 8));
     }
     applyPosition();
   });

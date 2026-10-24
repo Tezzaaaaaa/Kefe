@@ -81,6 +81,41 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     // Exercise the floating quick-edit toolbar against the real editor controls.
     const quickToolbar = page.locator("#kefeFloatingToolbar");
     assert.equal(await quickToolbar.count(), 1, "there must be exactly one floating toolbar");
+    const initialToolbarPlacement = await page.evaluate(() => {
+      const stage = document.querySelector(".kefe-stage").getBoundingClientRect();
+      const toolbar = document.querySelector("#kefeFloatingToolbar").getBoundingClientRect();
+      return { stage: { left: stage.left, right: stage.right, top: stage.top, bottom: stage.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom } };
+    });
+    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.stage.left - 1
+      && initialToolbarPlacement.toolbar.left < initialToolbarPlacement.stage.right,
+      `toolbar should initially sit over the preview horizontally: ${JSON.stringify(initialToolbarPlacement)}`);
+    assert.ok(initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.stage.top - 1
+      && initialToolbarPlacement.toolbar.top < initialToolbarPlacement.stage.bottom,
+      `toolbar should initially sit over the preview vertically: ${JSON.stringify(initialToolbarPlacement)}`);
+    const desktopViewport = page.viewportSize();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(100);
+    const mobileToolbarBounds = await quickToolbar.evaluate(node => {
+      const r = node.getBoundingClientRect();
+      return { left: r.left, right: r.right, scrollWidth: node.scrollWidth, clientWidth: node.clientWidth, viewportWidth: document.documentElement.clientWidth };
+    });
+    assert.ok(mobileToolbarBounds.left >= 0 && mobileToolbarBounds.right <= mobileToolbarBounds.viewportWidth + 1,
+      `mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarBounds)}`);
+    assert.ok(mobileToolbarBounds.scrollWidth <= mobileToolbarBounds.clientWidth + 1,
+      `mobile toolbar must not overflow horizontally: ${JSON.stringify(mobileToolbarBounds)}`);
+    await quickToolbar.getByRole("button", { name: "Colour", exact: true }).click();
+    const mobileColourPopover = page.locator("#kefeToolbarColourPopover");
+    await mobileColourPopover.waitFor({ state: "visible", timeout: 5000 });
+    const mobilePopoverBounds = await mobileColourPopover.evaluate(node => {
+      const r = node.getBoundingClientRect();
+      return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, viewportWidth: document.documentElement.clientWidth, viewportHeight: document.documentElement.clientHeight };
+    });
+    assert.ok(mobilePopoverBounds.left >= 0 && mobilePopoverBounds.right <= mobilePopoverBounds.viewportWidth + 1
+      && mobilePopoverBounds.top >= 0 && mobilePopoverBounds.bottom <= mobilePopoverBounds.viewportHeight + 1,
+      `mobile colour popover must stay inside the viewport: ${JSON.stringify(mobilePopoverBounds)}`);
+    await page.keyboard.press("Escape");
+    await page.setViewportSize(desktopViewport);
+    await page.waitForTimeout(100);
     await page.waitForSelector("#kefeStyleGroup input[type=color]", { state: "attached", timeout: 10000 });
     const textMenuButton = quickToolbar.getByRole("button", { name: "Text", exact: true });
     await textMenuButton.click();
