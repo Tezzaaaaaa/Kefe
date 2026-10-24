@@ -451,7 +451,10 @@
   function currentStyle(){
     const contract=window.KEFE_TYPE?.effects?.[state.effect]||{};
     return {
-      effect:state.effect,fontSize:Math.min(canvas.width,canvas.height)*.13,textColor:'#fff',accentColor:state.effect==='decrypt'?'#58E6D4':'#ef3f38',
+      effect:state.effect,
+      // BRAT EFFECT — HOST INTEGRATION
+      bratMode:readEffectDefaults().brat?.mode||'green',
+      fontSize:Math.min(canvas.width,canvas.height)*.13,textColor:'#fff',accentColor:state.effect==='decrypt'?'#58E6D4':'#ef3f38',
       flipcardsColor:'#fff',flipcardsAccent:'rgba(255,255,255,.25)',kefeMotionFont:state.fontOverride||contract.family||'Open Sans'
     };
   }
@@ -599,6 +602,11 @@
   function draw(){
     const W=canvas.width,H=canvas.height;
     ctx.clearRect(0,0,W,H);
+    // BRAT EFFECT — HOST INTEGRATION
+    if(state.effect==='brat'&&(readEffectDefaults().brat?.mode||'green')==='green'){
+      ctx.fillStyle='#8ACE00';
+      ctx.fillRect(0,0,W,H);
+    }
     // Keep all rendered lyrics and title-card text inside an invisible 5% safe margin,
     // matching the inset content area used by standard document/presentation layouts.
     const safeX=Math.round(W*.05),safeY=Math.round(H*.05);
@@ -782,6 +790,50 @@
   function syncLyricsEnabledToggle(){if(!lyricsEnabledToggle)return;lyricsEnabledToggle.classList.toggle('is-on',lyricsEnabled);lyricsEnabledToggle.setAttribute('aria-checked',String(lyricsEnabled));const state=lyricsEnabledToggle.querySelector('.kefe-switch-state');if(state)state.textContent=lyricsEnabled?'On':'Off';lyricsEnabledToggle.title=lyricsEnabled?'Turn lyrics off':'Turn lyrics on';}
   lyricsEnabledToggle?.addEventListener('click',()=>{lyricsEnabled=!lyricsEnabled;syncLyricsEnabledToggle();draw();});
   syncLyricsEnabledToggle();
+
+  // BRAT EFFECT — HOST INTEGRATION
+  const bratModeControl=document.createElement('div');
+  bratModeControl.className='kefe-visualiser-spin-row';
+  const bratModeLabel=document.createElement('span');
+  bratModeLabel.className='kefe-label';
+  bratModeLabel.textContent='Brat background';
+  const bratModeButton=document.createElement('button');
+  bratModeButton.type='button';
+  bratModeButton.className='kefe-btn kefe-switch';
+  bratModeButton.setAttribute('role','switch');
+  const bratModeState=document.createElement('span');
+  bratModeState.className='kefe-switch-state';
+  const bratModeTrack=document.createElement('span');
+  bratModeTrack.className='kefe-switch-track';
+  bratModeTrack.setAttribute('aria-hidden','true');
+  const bratModeThumb=document.createElement('span');
+  bratModeThumb.className='kefe-switch-thumb';
+  bratModeTrack.appendChild(bratModeThumb);
+  bratModeButton.append(bratModeState,bratModeTrack);
+  bratModeControl.append(bratModeLabel,bratModeButton);
+  function syncBratModeControl(){
+    const mode=readEffectDefaults().brat?.mode||'green';
+    const green=mode==='green';
+    bratModeControl.hidden=state.effect!=='brat';
+    bratModeState.textContent=green?'Green':'Transparent';
+    bratModeButton.setAttribute('aria-label','Brat background mode');
+    bratModeButton.setAttribute('aria-checked',String(green));
+    bratModeButton.classList.toggle('is-on',green);
+    bratModeButton.title=green?'Switch to transparent mode':'Switch to green mode';
+  }
+  bratModeButton.addEventListener('click',()=>{
+    const defaults=readEffectDefaults();
+    const brat=defaults.brat&&typeof defaults.brat==='object'?defaults.brat:{};
+    defaults.brat={...brat,mode:(brat.mode||'green')==='green'?'transparent':'green'};
+    try{localStorage.setItem(effectDefaultsKey,JSON.stringify(defaults));}catch(_){}
+    syncBratModeControl();
+    draw();
+    window.dispatchEvent(new CustomEvent('kefe-effect-change',{detail:{effect:state.effect}}));
+  });
+  lyricEffectOptions.parentNode.insertBefore(bratModeControl,lyricEffectOptions.nextSibling);
+  window.addEventListener('kefe-effect-change',syncBratModeControl);
+  syncBratModeControl();
+
   effectDefinitions.filter(([id])=>id!=='karaoke'&&id!=='bounce').forEach(([id,label])=>addLyricEffectOption(id,label));
 
   /* Compact beUI-style horizontal lyric-effect carousel. Keep the existing effect
