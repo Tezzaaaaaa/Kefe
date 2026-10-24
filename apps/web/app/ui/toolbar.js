@@ -164,8 +164,10 @@
     const opening = pop.hidden; closePopovers(); if (!opening) return;
     if (pop === textPopover) fillOptions();
     if (pop === colorPopover) {
-      const target = styleColor();
-      if (target) { color.value = target.value; colorValue.textContent = target.value.toUpperCase(); hexInput.value = target.value.toUpperCase(); }
+      const style = styleState();
+      if (style && /^#[0-9a-f]{6}$/i.test(style.textColor || '')) color.value = style.textColor;
+      colorValue.textContent = color.value.toUpperCase();
+      hexInput.value = color.value.toUpperCase();
       palette.querySelectorAll('.kefe-floating-toolbar__swatch').forEach(swatch => swatch.setAttribute('aria-pressed', String(swatch.style.getPropertyValue('--swatch-color').toUpperCase() === color.value.toUpperCase())));
     }
     trigger.setAttribute('aria-expanded', 'true'); placePopover(pop, trigger);
@@ -197,9 +199,13 @@
   const existingAspect = document.getElementById('kefeAspect');
   const existingFullscreen = document.getElementById('previewFullscreen');
   const existingLyrics = document.getElementById('lyricsEnabledToggle');
-  const styleColor = () => document.querySelector('#kefeStyleGroup input[type="color"]');
-  const styleScale = () => Array.from(document.querySelectorAll('#kefeStyleGroup input[type="range"]'))
-    .find(input => input.closest('label.kefe-visualiser-field')?.textContent.includes('Text size')) || null;
+  const styleState = () => window.kefeStyle?.state?.() || null;
+  const applyStyleState = patch => {
+    const current = styleState();
+    if (!current || typeof window.kefeStyle?.applyState !== 'function') return false;
+    window.kefeStyle.applyState({ ...current, ...patch });
+    return true;
+  };
 
   function emit(action, value) {
     window.dispatchEvent(new CustomEvent('kefe-toolbar-change', { detail: { action, value, source: 'floating-toolbar' } }));
@@ -222,13 +228,12 @@
       font.value = existingFont.value;
     }
     if (existingAspect) aspect.value = existingAspect.value;
-    const colorInput = styleColor();
-    if (colorInput) {
-      color.value = colorInput.value;
+    const style = styleState();
+    if (style) {
+      color.value = /^#[0-9a-f]{6}$/i.test(style.textColor || '') ? style.textColor : '#ffffff';
       colorValue.textContent = color.value.toUpperCase();
+      size.value = String(Number(style.scale) || 100);
     }
-    const rangeInput = styleScale();
-    if (rangeInput) size.value = rangeInput.value;
   }
   fillOptions();
   document.addEventListener('DOMContentLoaded', fillOptions, { once: true });
@@ -251,11 +256,7 @@
     emit('aspect', aspect.value);
   });
   color.addEventListener('input', () => {
-    const target = styleColor();
-    if (!target) { status.textContent = 'Open Effects → Lyric style → Colour to enable custom text colour.'; return; }
-    target.value = color.value;
-    target.dispatchEvent(new Event('input', { bubbles: true }));
-    target.dispatchEvent(new Event('change', { bubbles: true }));
+    if (!applyStyleState({ textColor: color.value })) { status.textContent = 'Lyric style controls are still loading.'; return; }
     colorValue.textContent = color.value.toUpperCase();
     hexInput.value = color.value.toUpperCase();
     palette.querySelectorAll('.kefe-floating-toolbar__swatch').forEach(swatch => swatch.setAttribute('aria-pressed', String(swatch.style.getPropertyValue('--swatch-color').toUpperCase() === color.value.toUpperCase())));
@@ -267,10 +268,7 @@
     color.value = value.toLowerCase(); color.dispatchEvent(new Event('input', { bubbles: true }));
   });
   size.addEventListener('input', () => {
-    const target = styleScale();
-    if (!target) { status.textContent = 'Open Effects → Lyric style → Size and placement to enable text sizing.'; return; }
-    target.value = size.value;
-    target.dispatchEvent(new Event('input', { bubbles: true }));
+    if (!applyStyleState({ scale: Number(size.value) })) { status.textContent = 'Lyric style controls are still loading.'; return; }
     emit('text-size', Number(size.value));
   });
   lyrics.addEventListener('click', () => {

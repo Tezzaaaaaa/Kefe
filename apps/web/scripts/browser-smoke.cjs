@@ -89,7 +89,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const quickSize = textMenu.locator('input[type="range"][aria-label="Lyric text size"]');
     await quickSize.evaluate(input => { input.value = "115"; input.dispatchEvent(new Event("input", { bubbles: true })); });
     const canonicalTextSize = page.locator('#kefeStyleGroup label.kefe-visualiser-field').filter({ hasText: "Text size" }).locator('input[type="range"]');
-    assert.equal(await canonicalTextSize.inputValue(), "115",
+    assert.equal(await page.evaluate(() => window.kefeStyle.state().scale), 115,
       "toolbar text-size control must update the canonical lyric-style setting");
     await page.keyboard.press("Escape");
     await textMenu.waitFor({ state: "hidden", timeout: 5000 });
@@ -99,12 +99,12 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const colourMenu = page.locator("#kefeToolbarColourPopover");
     await colourMenu.waitFor({ state: "visible", timeout: 5000 });
     await colourMenu.getByRole("button", { name: "Rose #FFB7D5" }).click();
-    assert.equal((await page.locator("#kefeStyleGroup input[type=color]").first().inputValue()).toLowerCase(), "#ffb7d5",
+    assert.equal((await page.evaluate(() => window.kefeStyle.state().textColor)).toLowerCase(), "#ffb7d5",
       "colour swatches must update the canonical lyric text colour");
     const hex = colourMenu.locator(".kefe-floating-toolbar__hex-input");
     await hex.fill("#A7E7FF");
     await hex.dispatchEvent("change");
-    assert.equal((await page.locator("#kefeStyleGroup input[type=color]").first().inputValue()).toLowerCase(), "#a7e7ff",
+    assert.equal((await page.evaluate(() => window.kefeStyle.state().textColor)).toLowerCase(), "#a7e7ff",
       "valid hex entry must update the canonical lyric text colour");
     await hex.fill("not-a-colour");
     await hex.dispatchEvent("change");
