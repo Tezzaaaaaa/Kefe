@@ -3,7 +3,7 @@ import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "dist-beui");
-const pages = ["index.html", "editor.html", "beui.html"];
+const pages = ["index.html", "editor.html"];
 const failures = [];
 
 for (const page of pages) {
@@ -30,4 +30,4 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("Built entry points and their local assets are present.");
+console.log("Production entry points and their local assets are present.");

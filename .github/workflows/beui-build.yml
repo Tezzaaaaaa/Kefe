@@ -37,12 +37,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @kefe/web build
-      - name: Verify production editor and workbench outputs
+      - name: Verify production editor outputs
         run: |
           test -s apps/web/dist-beui/editor.html
           test ! -e apps/web/dist-beui/editor.source.html
           test -s apps/web/dist-beui/index.html
-          test -s apps/web/dist-beui/beui.html
+          test ! -e apps/web/dist-beui/beui.html
           node apps/web/scripts/smoke-build.mjs
           node apps/web/scripts/smoke-settings-api.mjs
           node apps/web/scripts/smoke-section-card-coverage.mjs

@@ -23,7 +23,6 @@ export default defineConfig({
       input: {
         index: resolve(here, "index.html"),
         editor: resolve(here, "editor.source.html"),
-        beui: resolve(here, "beui.html"),
       },
     },
   },
