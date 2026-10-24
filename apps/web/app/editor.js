@@ -454,7 +454,7 @@
       effect:state.effect,
       // BRAT EFFECT — HOST INTEGRATION
       bratMode:readEffectDefaults().brat?.mode||'green',
-      fontSize:Math.min(canvas.width,canvas.height)*.13,textColor:'#fff',accentColor:state.effect==='decrypt'?'#58E6D4':'#ef3f38',
+      fontSize:Math.min(canvas.width,canvas.height)*.13,textColor:state.effect==='brat'?'#000000':'#fff',accentColor:state.effect==='decrypt'?'#58E6D4':'#ef3f38',
       flipcardsColor:'#fff',flipcardsAccent:'rgba(255,255,255,.25)',kefeMotionFont:state.fontOverride||contract.family||'Open Sans'
     };
   }
