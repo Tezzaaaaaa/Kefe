@@ -164,10 +164,10 @@
     children.forEach(child => node.appendChild(child));
     return node;
   };
-  const styleGroup = group('Text style', sizeLabel, lyrics, saveDefault, clearDefault);
-  const layerGroup = group('Layer', layerTargetLabel, layerScaleLabel, layerHint);
-  const ratioGroup = group('Canvas ratio', aspect);
-  advancedGroups.append(styleGroup, layerGroup, ratioGroup);
+  const syncGroup = group('Lyrics & Sync', lyrics, saveDefault, clearDefault);
+  const styleGroup = group('FX & Style', sizeLabel, layerTargetLabel, layerScaleLabel, layerHint);
+  const ratioGroup = group('Canvas & BG', aspect);
+  advancedGroups.append(syncGroup, styleGroup, ratioGroup);
   primary.append(grip, divider(), layerMove, layerReset, locked, divider(), font, colorTrigger, effect, divider(), timing, divider(), visualiser, divider(), more);
   advanced.append(advancedGroups, help, status);
   toolbar.replaceChildren(primary, advanced);
