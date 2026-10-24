@@ -130,13 +130,13 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const seeMore = quickToolbar.getByRole("button", { name: "Show more toolbar controls" });
     await seeMore.click();
     assert.equal(await quickToolbar.locator("#kefeToolbarAdvanced").isVisible(), true, "See more must reveal advanced toolbar actions");
-    await quickToolbar.getByRole("button", { name: "Show fewer toolbar controls" }).click();
-    assert.equal(await quickToolbar.locator("#kefeToolbarAdvanced").isVisible(), false, "See less must collapse advanced toolbar actions");
     const lockToolbar = quickToolbar.getByRole("button", { name: "Lock toolbar position" });
     await lockToolbar.click();
     assert.equal(await lockToolbar.getAttribute("aria-pressed"), "true", "toolbar lock must engage");
     await quickToolbar.getByRole("button", { name: "Unlock toolbar position" }).click();
     assert.equal(await quickToolbar.locator('[aria-label="Unlock toolbar position"]').count(), 0, "toolbar lock must disengage");
+    await quickToolbar.getByRole("button", { name: "Show fewer toolbar controls" }).click();
+    assert.equal(await quickToolbar.locator("#kefeToolbarAdvanced").isVisible(), false, "See less must collapse advanced toolbar actions");
     assert.ok(await quickToolbar.locator('select[aria-label="Lyric effect"] option').count() > 1,
       "effect selector must be populated from the existing lyric effect gallery");
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
