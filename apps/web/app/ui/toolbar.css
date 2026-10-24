@@ -291,3 +291,24 @@
   .kefe-floating-toolbar { transition: box-shadow 160ms ease, border-color 160ms ease; }
   .kefe-floating-toolbar:hover { box-shadow: 0 16px 42px rgb(0 0 0 / 28%), inset 0 1px 0 rgb(255 255 255 / 10%); }
 }
+
+/* Connected toolbar menus: viewport-anchored to avoid clipping inside the preview. */
+.kefe-floating-toolbar__menu-trigger{width:auto;min-width:60px;padding:0 10px;font-size:11px;font-weight:650;white-space:nowrap}
+.kefe-floating-toolbar__menu-trigger[aria-expanded="true"]{border-color:rgb(185 165 255 / 75%);background:rgb(185 165 255 / 17%)}
+.kefe-floating-toolbar__popover{position:fixed;z-index:10002;display:grid;gap:11px;width:min(320px,calc(100vw - 20px));max-height:min(70dvh,480px);overflow:auto;padding:13px;border:1px solid rgb(255 255 255 / 14%);border-radius:16px;color:var(--kefe-text,#f6f6f7);background:color-mix(in srgb,#202126 94%,transparent);-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);box-shadow:0 20px 55px rgb(0 0 0 / 38%),inset 0 1px 0 rgb(255 255 255 / 7%);user-select:auto}
+.kefe-floating-toolbar__popover[hidden]{display:none}
+.kefe-floating-toolbar__popover-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:1px solid rgb(255 255 255 / 12%);font-size:12px}
+.kefe-floating-toolbar__popover-close{width:28px;height:28px;border:1px solid rgb(255 255 255 / 12%);border-radius:8px;color:inherit;background:rgb(255 255 255 / 6%);font-size:18px;line-height:1;cursor:pointer}
+.kefe-floating-toolbar__popover .kefe-floating-toolbar__control,.kefe-floating-toolbar__popover .kefe-floating-toolbar__select{width:100%;max-width:100%;min-height:36px}
+.kefe-floating-toolbar__popover .kefe-floating-toolbar__label{display:flex;justify-content:space-between;gap:12px}
+.kefe-floating-toolbar__popover .kefe-floating-toolbar__size{width:100%}
+.kefe-floating-toolbar__hex-field{display:grid;gap:6px;color:rgb(255 255 255 / 70%);font-size:10px;font-weight:650}
+.kefe-floating-toolbar__hex-input{width:100%;min-height:36px;padding:0 10px;border:1px solid rgb(255 255 255 / 15%);border-radius:9px;color:inherit;background:rgb(255 255 255 / 6%);font:600 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase}
+.kefe-floating-toolbar__palette{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
+.kefe-floating-toolbar__swatch{width:100%;aspect-ratio:1;min-width:0;border:2px solid transparent;border-radius:9px;background:var(--swatch-color);box-shadow:inset 0 0 0 1px rgb(0 0 0 / 18%);cursor:pointer}
+.kefe-floating-toolbar__swatch[aria-pressed="true"]{outline:2px solid #b9a5ff;outline-offset:2px}
+:root[data-theme="day"] .kefe-floating-toolbar__popover{color:#202126;background:color-mix(in srgb,#fafafd 96%,transparent);border-color:rgb(24 26 32 / 12%);box-shadow:0 20px 50px rgb(20 22 30 / 18%),inset 0 1px 0 rgb(255 255 255 / 85%)}
+:root[data-theme="day"] .kefe-floating-toolbar__popover-head{border-bottom-color:rgb(20 22 30 / 12%)}
+:root[data-theme="day"] .kefe-floating-toolbar__popover-close,:root[data-theme="day"] .kefe-floating-toolbar__hex-input{border-color:rgb(20 22 30 / 12%);background:rgb(20 22 30 / 4%)}
+@media(max-width:760px){.kefe-floating-toolbar__primary{flex-wrap:wrap;white-space:normal;max-width:calc(100vw - 30px)}}
+@media(max-width:560px){.kefe-floating-toolbar__popover{width:min(320px,calc(100vw - 20px));max-height:68dvh;border-radius:18px;padding:14px}.kefe-floating-toolbar__palette{grid-template-columns:repeat(7,minmax(0,1fr))}}

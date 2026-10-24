@@ -27,7 +27,10 @@
   toolbar.id = 'kefeFloatingToolbar';
   toolbar.setAttribute('role', 'toolbar');
   toolbar.setAttribute('aria-label', 'Floating lyric editor toolbar');
-  toolbar.addEventListener('pointerdown', event => event.stopPropagation());
+  toolbar.addEventListener('pointerdown', event => {
+    if (!event.target.closest?.('.kefe-floating-toolbar__popover, .kefe-floating-toolbar__menu-trigger')) closePopovers();
+    event.stopPropagation();
+  });
 
   const grip = button('drag', svg.grip, 'Drag toolbar to reposition');
   grip.className = 'kefe-floating-toolbar__grip';
@@ -112,9 +115,67 @@
   const moreIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>';
   more.innerHTML = 'See more ' + moreIcon;
 
-  primary.append(grip, divider(), effect, lyrics, fullscreen, more);
-  advanced.append(font, colorField, sizeLabel, divider(), aspect, locked, reset, layerControls, help, status);
-  toolbar.replaceChildren(primary, advanced);
+  const menuTrigger = (label, key) => {
+    const node = el('button', 'kefe-floating-toolbar__button kefe-floating-toolbar__menu-trigger', label);
+    node.type = 'button'; node.textContent = label; node.setAttribute('aria-expanded', 'false');
+    node.setAttribute('aria-controls', 'kefeToolbar' + key + 'Popover'); return node;
+  };
+  const textTrigger = menuTrigger('Text', 'Text'), colorTrigger = menuTrigger('Colour', 'Colour'), positionTrigger = menuTrigger('Position', 'Position');
+  const makePopover = (key, title) => {
+    const pop = el('section', 'kefe-floating-toolbar__popover'); pop.id = 'kefeToolbar' + key + 'Popover'; pop.hidden = true;
+    pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', title);
+    const head = el('div', 'kefe-floating-toolbar__popover-head'); head.appendChild(el('strong', '', title));
+    const close = el('button', 'kefe-floating-toolbar__popover-close', 'Close ' + title); close.type = 'button'; close.textContent = '×';
+    close.addEventListener('click', () => closePopover(pop, true)); head.appendChild(close); pop.appendChild(head); return pop;
+  };
+  const textPopover = makePopover('Text', 'Text settings'), colorPopover = makePopover('Colour', 'Text colour'), positionPopover = makePopover('Position', 'Preview position');
+  textPopover.append(font, sizeLabel); colorPopover.appendChild(colorField);
+  const hexField = el('label', 'kefe-floating-toolbar__hex-field', 'Hex');
+  const hexInput = el('input', 'kefe-floating-toolbar__hex-input');
+  hexInput.type = 'text'; hexInput.value = color.value.toUpperCase(); hexInput.maxLength = 7; hexInput.autocomplete = 'off'; hexInput.spellcheck = false;
+  hexInput.setAttribute('aria-label', 'Text colour hex value'); hexField.appendChild(hexInput); colorPopover.appendChild(hexField);
+  const palette = el('div', 'kefe-floating-toolbar__palette'); palette.setAttribute('role', 'group'); palette.setAttribute('aria-label', 'Preset text colours');
+  [['#FFFFFF','White'],['#B9A5FF','Lavender'],['#FFB7D5','Rose'],['#A7E7FF','Ice blue'],['#C8F7B8','Mint'],['#FFD58A','Amber'],['#F3A5FF','Orchid'],['#171719','Near black']].forEach(([value, label]) => {
+    const swatch = el('button', 'kefe-floating-toolbar__swatch', label); swatch.type = 'button';
+    swatch.style.setProperty('--swatch-color', value); swatch.setAttribute('aria-label', label + ' ' + value);
+    swatch.setAttribute('aria-pressed', String(color.value.toUpperCase() === value));
+    swatch.addEventListener('click', () => { color.value = value.toLowerCase(); color.dispatchEvent(new Event('input', { bubbles: true })); hexInput.value = value; });
+    palette.appendChild(swatch);
+  });
+  colorPopover.appendChild(palette); positionPopover.append(aspect, layerControls);
+  primary.append(grip, divider(), effect, textTrigger, colorTrigger, positionTrigger, lyrics, fullscreen, more);
+  advanced.append(locked, reset, help, status);
+  toolbar.replaceChildren(primary, advanced, textPopover, colorPopover, positionPopover);
+  const popoverPairs = [[textTrigger, textPopover], [colorTrigger, colorPopover], [positionTrigger, positionPopover]];
+  function closePopover(pop, restoreFocus) {
+    if (!pop || pop.hidden) return; pop.hidden = true;
+    const pair = popoverPairs.find(item => item[1] === pop);
+    if (pair) { pair[0].setAttribute('aria-expanded', 'false'); if (restoreFocus) pair[0].focus({ preventScroll: true }); }
+  }
+  function closePopovers() { popoverPairs.forEach(([, pop]) => closePopover(pop, false)); }
+  function placePopover(pop, trigger) {
+    pop.style.visibility = 'hidden'; pop.hidden = false;
+    const tr = trigger.getBoundingClientRect(), pr = pop.getBoundingClientRect();
+    const left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, tr.left));
+    const below = tr.bottom + 8, top = below + pr.height <= window.innerHeight - 8 ? below : Math.max(8, tr.top - pr.height - 8);
+    pop.style.left = left + 'px'; pop.style.top = top + 'px'; pop.style.visibility = '';
+  }
+  popoverPairs.forEach(([trigger, pop]) => trigger.addEventListener('click', () => {
+    const opening = pop.hidden; closePopovers(); if (!opening) return;
+    if (pop === textPopover) fillOptions();
+    if (pop === colorPopover) { const target = styleColor(); if (target) { color.value = target.value; colorValue.textContent = target.value.toUpperCase(); hexInput.value = target.value.toUpperCase(); } }
+    trigger.setAttribute('aria-expanded', 'true'); placePopover(pop, trigger);
+    pop.querySelector('input, select, button')?.focus({ preventScroll: true });
+  }));
+  document.addEventListener('pointerdown', event => {
+    if (event.target.closest?.('.kefe-floating-toolbar__popover, .kefe-floating-toolbar__menu-trigger, #kefeFloatingToolbar')) return;
+    closePopovers();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return; const open = popoverPairs.find(([, pop]) => !pop.hidden); if (!open) return;
+    event.preventDefault(); closePopover(open[1], true);
+  });
+  window.addEventListener('resize', () => { const open = popoverPairs.find(([, pop]) => !pop.hidden); if (open) placePopover(open[1], open[0]); });
   more.addEventListener('click', () => {
     const expanded = more.getAttribute('aria-expanded') !== 'true';
     advanced.hidden = !expanded;
@@ -191,7 +252,14 @@
     target.dispatchEvent(new Event('input', { bubbles: true }));
     target.dispatchEvent(new Event('change', { bubbles: true }));
     colorValue.textContent = color.value.toUpperCase();
+    hexInput.value = color.value.toUpperCase();
+    palette.querySelectorAll('.kefe-floating-toolbar__swatch').forEach(swatch => swatch.setAttribute('aria-pressed', String(swatch.style.getPropertyValue('--swatch-color').toUpperCase() === color.value.toUpperCase())));
     emit('text-colour', color.value);
+  });
+  hexInput.addEventListener('change', () => {
+    const value = hexInput.value.trim();
+    if (!/^#[0-9a-f]{6}$/i.test(value)) { hexInput.value = color.value.toUpperCase(); status.textContent = 'Enter a valid six-digit hex colour, such as #B9A5FF.'; return; }
+    color.value = value.toLowerCase(); color.dispatchEvent(new Event('input', { bubbles: true }));
   });
   size.addEventListener('input', () => {
     const target = styleScale();
