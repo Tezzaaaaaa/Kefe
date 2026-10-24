@@ -165,6 +165,16 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await quickToolbar.getByRole("button", { name: /^Lyric effect/ }).click();
     assert.ok(await page.locator('.kft-popover [role="option"]').count() > 1,
       "effect menu must be populated from the existing lyric effect gallery");
+    assert.match(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option[data-effect="premium"]').textContent(), /Devotion/,
+      "the former Premium Circuit effect must be named Devotion");
+    await page.evaluate(() => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 320; canvas.height = 180;
+      const ctx = canvas.getContext("2d");
+      if (typeof window.kefeEffects?.premium !== "function") throw new Error("Devotion renderer is not registered");
+      window.kefeEffects.premium(ctx, 320, 180, {}, [{ text: "Devotion smoke", time: 0, endTime: 3 }], 1);
+      if (ctx.getImageData(0, 0, 1, 1).data[3] !== 255) throw new Error("Devotion did not render its background");
+    });
     await page.keyboard.press("Escape");
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "the editor must start in Media, not switch itself to Visualisers");
@@ -633,18 +643,6 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     });
     await page.waitForFunction(() => document.getElementById("kefeLyricsStatus")?.textContent.includes("Loaded lyrics from beui-smoke.lrc"), null, { timeout: 10000 });
 
-    // Verify Devotion replaced Premium Circuit in the real effect gallery and can render against loaded lyrics.
-    await page.locator('.kefe-section[data-panel="effects"]').click();
-    const devotionOption = page.locator('#lyricEffectOptions .kefe-lyric-effect-option[data-effect="premium"]');
-    await devotionOption.waitFor({ state: "visible", timeout: 5000 });
-    assert.match(await devotionOption.innerText(), /Devotion/, "the former Premium Circuit effect must be named Devotion");
-    await devotionOption.click();
-    await page.waitForFunction(() => document.querySelector('#lyricEffectOptions .kefe-lyric-effect-option.active[data-effect="premium"]') !== null, null, { timeout: 5000 });
-    await page.locator("#kefeAudio").evaluate((audio) => {
-      audio.currentTime = Math.min(1, audio.duration || 1);
-      audio.dispatchEvent(new Event("timeupdate"));
-    });
-    await page.waitForTimeout(200);
     assert.deepEqual(pageErrors, [], `browser runtime errors: ${JSON.stringify(pageErrors)}`);
     console.log("beUI browser smoke passed: component conversion, media loading/playback, and LRC upload.");
     await context.close();
