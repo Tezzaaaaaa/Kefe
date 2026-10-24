@@ -69,8 +69,6 @@
   const status = el('span', 'kefe-floating-toolbar__status');
   status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
 
-  toolbar.append(grip, divider(), effect, font, color, sizeLabel, divider(), aspect, lyrics, fullscreen, locked, reset, help, status);
-
   const layerTargetLabel = el('label', 'kefe-floating-toolbar__layer-label');
   layerTargetLabel.append(document.createTextNode('Adjust '));
   const layerTarget = el('select', 'kefe-floating-toolbar__control kefe-floating-toolbar__select');
