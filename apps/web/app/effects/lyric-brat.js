@@ -196,7 +196,7 @@
     const maxWidth = lw * cfg.wrapRatio;
     const left = (lw - maxWidth) / 2;
     for (let i = 0; i < wrapped.length; i++) {
-      const words = wrapped[i].split(/\\s+/).filter(Boolean);
+      const words = wrapped[i].split(/\s+/).filter(Boolean);
       const y = startY + i * lineH;
       if (words.length < 2) {
         ctx.fillText(wrapped[i], (lw - ctx.measureText(wrapped[i]).width) / 2, y, maxWidth);
