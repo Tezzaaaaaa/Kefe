@@ -8,7 +8,6 @@
     grip: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="18" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="18" r="1" fill="currentColor" stroke="none"/></svg>',
     lock: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>',
     reset: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 6.4M3 4v7h7"/></svg>',
-    full: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5"/></svg>',
     lyrics: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h8"/></svg>'
   };
   const el = (tag, cls, label) => {
@@ -229,7 +228,6 @@
   const existingEffectGallery = document.getElementById('lyricEffectOptions');
   const existingFont = document.getElementById('fontOverride');
   const existingAspect = document.getElementById('kefeAspect');
-  const existingFullscreen = document.getElementById('previewFullscreen');
   const existingLyrics = document.getElementById('lyricsEnabledToggle');
   const styleState = () => window.kefeStyle?.state?.() || null;
   const applyStyleState = patch => {
@@ -325,7 +323,7 @@
     window.setTimeout(() => { timingValue.textContent = document.getElementById('lyricsTimingValue')?.textContent?.trim() || ((Number(window.kefeSettings?.get('lyricOffset')) || 0).toFixed(2) + 's'); }, 0);
   });
   visualiser.addEventListener('click', () => {
-    const nav = Array.from(document.querySelectorAll('.beui-sidebar-nav-host button, .kefe-sidebar-nav button, [data-panel]'))
+    const nav = Array.from(document.querySelectorAll('.beui-sidebar-nav-host button, button[data-panel]'))
       .find(node => /visualisers/i.test((node.textContent || '') + ' ' + (node.getAttribute('aria-label') || '') + ' ' + (node.getAttribute('data-panel') || '')));
     nav?.click();
   });
