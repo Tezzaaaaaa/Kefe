@@ -42,7 +42,7 @@
 
   const effect = el('select', 'kefe-floating-toolbar__control kefe-floating-toolbar__select', 'Lyric effect');
   effect.setAttribute('aria-label', 'Lyric effect');
-  effect.add(new Option('Lyric effect', ''));
+  effect.add(new Option('Effect', ''));
   const font = el('select', 'kefe-floating-toolbar__control kefe-floating-toolbar__select', 'Lyric font');
   font.setAttribute('aria-label', 'Lyric font');
   font.add(new Option('Effect font', ''));
@@ -64,16 +64,13 @@
   sizeLabel.appendChild(size);
   const lyrics = button('lyrics', svg.lyrics, 'Toggle lyrics');
   lyrics.setAttribute('aria-pressed', 'true');
-  const fullscreen = button('fullscreen', svg.full, 'Toggle preview fullscreen');
   const locked = button('lock', svg.lock, 'Lock toolbar position');
   locked.setAttribute('aria-pressed', 'false');
-  const reset = button('reset', svg.reset, 'Reset toolbar position');
   const status = el('span', 'kefe-floating-toolbar__status');
   status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
 
   toolbar.append(grip, divider(), effect, font, color, sizeLabel, divider(), aspect, lyrics, fullscreen, locked, reset, help, status);
 
-  const layerControls = el('div', 'kefe-floating-toolbar__adjust-group kefe-floating-toolbar__layer-controls');
   const layerTargetLabel = el('label', 'kefe-floating-toolbar__layer-label');
   layerTargetLabel.append(document.createTextNode('Adjust '));
   const layerTarget = el('select', 'kefe-floating-toolbar__control kefe-floating-toolbar__select');
@@ -101,7 +98,6 @@
   const layerHint = el('span', 'kefe-floating-toolbar__hint');
   layerHint.setAttribute('data-layout-hint', ''); layerHint.setAttribute('role', 'status');
   layerHint.textContent = 'Move a layer, adjust size, then lock this effect’s defaults';
-  layerControls.append(layerTargetLabel, layerScaleLabel, layerMove, layerReset, saveDefault, clearDefault, layerHint);
 
   const primary = el('div', 'kefe-floating-toolbar__primary');
   const advanced = el('div', 'kefe-floating-toolbar__advanced');
@@ -120,7 +116,10 @@
     node.type = 'button'; node.textContent = label; node.setAttribute('aria-expanded', 'false');
     node.setAttribute('aria-controls', 'kefeToolbar' + key + 'Popover'); return node;
   };
-  const textTrigger = menuTrigger('Text', 'Text'), colorTrigger = menuTrigger('Colour', 'Colour'), positionTrigger = menuTrigger('Position', 'Position');
+  const colorTrigger = menuTrigger('Colour', 'Colour');
+  colorTrigger.classList.add('kefe-floating-toolbar__color-trigger');
+  colorTrigger.innerHTML = '<span class="kefe-floating-toolbar__color-chip" aria-hidden="true"></span>';
+  colorTrigger.setAttribute('aria-label', 'Colour');
   const makePopover = (key, title) => {
     const pop = el('section', 'kefe-floating-toolbar__popover'); pop.id = 'kefeToolbar' + key + 'Popover'; pop.hidden = true;
     pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', title);
@@ -128,8 +127,8 @@
     const close = el('button', 'kefe-floating-toolbar__popover-close', 'Close ' + title); close.type = 'button'; close.textContent = '×';
     close.addEventListener('click', () => closePopover(pop, true)); head.appendChild(close); pop.appendChild(head); return pop;
   };
-  const textPopover = makePopover('Text', 'Text settings'), colorPopover = makePopover('Colour', 'Text colour'), positionPopover = makePopover('Position', 'Preview position');
-  textPopover.append(font, sizeLabel); colorPopover.appendChild(colorField);
+  const colorPopover = makePopover('Colour', 'Text colour');
+  colorPopover.appendChild(colorField);
   const hexField = el('label', 'kefe-floating-toolbar__hex-field', 'Hex');
   const hexInput = el('input', 'kefe-floating-toolbar__hex-input');
   hexInput.type = 'text'; hexInput.value = color.value.toUpperCase(); hexInput.maxLength = 7; hexInput.autocomplete = 'off'; hexInput.spellcheck = false;
@@ -142,11 +141,40 @@
     swatch.addEventListener('click', () => { color.value = value.toLowerCase(); color.dispatchEvent(new Event('input', { bubbles: true })); hexInput.value = value; });
     palette.appendChild(swatch);
   });
-  colorPopover.appendChild(palette); positionPopover.append(aspect, layerControls);
-  primary.append(grip, divider(), effect, textTrigger, colorTrigger, positionTrigger, lyrics, fullscreen, more);
-  advanced.append(locked, reset, help, status);
+  colorPopover.appendChild(palette);
+  const moveIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M2 12h20M8 6l4-4 4 4M8 18l4 4 4-4M6 8l-4 4 4 4M18 8l4 4-4 4"/></svg>';
+  const visualiserIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h2l2-6 4 12 4-12 2 6h6"/></svg>';
+  layerMove.innerHTML = moveIcon;
+  layerMove.classList.remove('kefe-floating-toolbar__text-button');
+  layerReset.innerHTML = svg.reset;
+  layerReset.classList.remove('kefe-floating-toolbar__text-button');
+  const timing = el('div', 'kefe-floating-toolbar__timing');
+  const timingEarlier = button('timing-earlier', '', 'Move lyrics 0.10 seconds earlier');
+  timingEarlier.textContent = '−';
+  const timingValue = el('output', 'kefe-floating-toolbar__timing-value');
+  timingValue.setAttribute('aria-live', 'polite');
+  const timingLater = button('timing-later', '', 'Move lyrics 0.10 seconds later');
+  timingLater.textContent = '+';
+  timing.append(timingEarlier, timingValue, timingLater);
+  const visualiser = button('visualiser', visualiserIcon, 'Open visualiser controls');
+  visualiser.setAttribute('aria-label', 'Open visualiser controls');
+  const advancedGroups = el('div', 'kefe-floating-toolbar__advanced-grid');
+  const group = (title, ...children) => {
+    const node = el('section', 'kefe-floating-toolbar__group');
+    const heading = el('h3', 'kefe-floating-toolbar__group-title');
+    heading.textContent = title;
+    node.appendChild(heading);
+    children.forEach(child => node.appendChild(child));
+    return node;
+  };
+  const styleGroup = group('Text style', sizeLabel, lyrics, saveDefault, clearDefault);
+  const layerGroup = group('Layer', layerTargetLabel, layerScaleLabel, layerHint);
+  const ratioGroup = group('Canvas ratio', aspect);
+  advancedGroups.append(styleGroup, layerGroup, ratioGroup);
+  primary.append(grip, divider(), layerMove, layerReset, locked, divider(), font, colorTrigger, effect, divider(), timing, divider(), visualiser, divider(), more);
+  advanced.append(advancedGroups, help, status);
   toolbar.replaceChildren(primary, advanced);
-  const popoverPairs = [[textTrigger, textPopover], [colorTrigger, colorPopover], [positionTrigger, positionPopover]];
+  const popoverPairs = [[colorTrigger, colorPopover]];
   function closePopover(pop, restoreFocus) {
     if (!pop || pop.hidden) return; pop.hidden = true;
     const pair = popoverPairs.find(item => item[1] === pop);
@@ -168,7 +196,6 @@
   }
   popoverPairs.forEach(([trigger, pop]) => trigger.addEventListener('click', () => {
     const opening = pop.hidden; closePopovers(); if (!opening) return;
-    if (pop === textPopover) fillOptions();
     if (pop === colorPopover) {
       const style = styleState();
       if (style && /^#[0-9a-f]{6}$/i.test(style.textColor || '')) color.value = style.textColor;
@@ -198,7 +225,7 @@
   });
 
   document.body.appendChild(toolbar);
-  document.body.append(textPopover, colorPopover, positionPopover);
+  document.body.appendChild(colorPopover);
   document.dispatchEvent(new Event('kefe-layout-controls-ready'));
 
   const existingEffectGallery = document.getElementById('lyricEffectOptions');
@@ -241,6 +268,9 @@
       colorValue.textContent = color.value.toUpperCase();
       size.value = String(Number(style.scale) || 100);
     }
+    const swatch = colorTrigger.querySelector('.kefe-floating-toolbar__color-chip');
+    if (swatch) swatch.style.background = color.value;
+    timingValue.textContent = document.getElementById('lyricsTimingValue')?.textContent?.trim() || ((Number(window.kefeSettings?.get('lyricOffset')) || 0).toFixed(2) + 's');
   }
   fillOptions();
   document.addEventListener('DOMContentLoaded', fillOptions, { once: true });
@@ -265,6 +295,8 @@
   color.addEventListener('input', () => {
     if (!applyStyleState({ textColor: color.value })) { status.textContent = 'Lyric style controls are still loading.'; return; }
     colorValue.textContent = color.value.toUpperCase();
+    const swatch = colorTrigger.querySelector('.kefe-floating-toolbar__color-chip');
+    if (swatch) swatch.style.background = color.value;
     hexInput.value = color.value.toUpperCase();
     palette.querySelectorAll('.kefe-floating-toolbar__swatch').forEach(swatch => swatch.setAttribute('aria-pressed', String(swatch.style.getPropertyValue('--swatch-color').toUpperCase() === color.value.toUpperCase())));
     emit('text-colour', color.value);
@@ -286,7 +318,19 @@
     lyrics.title = on ? 'Turn lyrics off' : 'Turn lyrics on';
     emit('lyrics', on);
   });
-  fullscreen.addEventListener('click', () => existingFullscreen?.click());
+  timingEarlier.addEventListener('click', () => {
+    document.getElementById('lyricsTimingEarlier')?.click();
+    window.setTimeout(() => { timingValue.textContent = document.getElementById('lyricsTimingValue')?.textContent?.trim() || ((Number(window.kefeSettings?.get('lyricOffset')) || 0).toFixed(2) + 's'); }, 0);
+  });
+  timingLater.addEventListener('click', () => {
+    document.getElementById('lyricsTimingLater')?.click();
+    window.setTimeout(() => { timingValue.textContent = document.getElementById('lyricsTimingValue')?.textContent?.trim() || ((Number(window.kefeSettings?.get('lyricOffset')) || 0).toFixed(2) + 's'); }, 0);
+  });
+  visualiser.addEventListener('click', () => {
+    const nav = Array.from(document.querySelectorAll('.beui-sidebar-nav-host button, .kefe-sidebar-nav button, [data-panel]'))
+      .find(node => /visualisers/i.test((node.textContent || '') + ' ' + (node.getAttribute('aria-label') || '') + ' ' + (node.getAttribute('data-panel') || '')));
+    nav?.click();
+  });
   locked.addEventListener('click', () => {
     const on = locked.getAttribute('aria-pressed') !== 'true';
     locked.setAttribute('aria-pressed', String(on));
@@ -351,9 +395,6 @@
     else { position.x += event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0; position.y += event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0; }
     applyPosition(); savePosition(); emit('position', position);
   });
-  reset.addEventListener('click', () => {
-    position = { ...defaultPosition }; applyPosition(); savePosition(); emit('reset-position', position);
-  });
   window.addEventListener('resize', () => {
     const bounds = stageBounds();
     if (mobileViewport.matches && (position.y < bounds.top || position.y > bounds.bottom)) {
@@ -362,6 +403,7 @@
     applyPosition();
   });
   document.addEventListener('kefe-effect-change', event => { if (event.detail?.effect) effect.value = event.detail.effect; });
+  window.addEventListener('kefe-settings-change', () => { timingValue.textContent = document.getElementById('lyricsTimingValue')?.textContent?.trim() || ((Number(window.kefeSettings?.get('lyricOffset')) || 0).toFixed(2) + 's'); });
   existingFont?.addEventListener('change', () => { font.value = existingFont.value; });
   existingAspect?.addEventListener('change', () => { aspect.value = existingAspect.value; });
   existingLyrics?.addEventListener('click', () => lyrics.setAttribute('aria-pressed', existingLyrics.getAttribute('aria-checked') === 'true' ? 'true' : 'false'));
