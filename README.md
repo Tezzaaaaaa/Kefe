@@ -69,7 +69,7 @@ The editor includes 35 lyric effects:
 - CRT TV Box
 - Randomise
 - Spin Lyrics
-- Premium Circuit
+- Devotion
 - Dust Off
 - WrapSlide
 - Eternal Sunshine
