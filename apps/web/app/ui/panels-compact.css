@@ -355,3 +355,56 @@
 .kefe-panels .beui-vis-tabs-host .kv-power-switch { min-height: 20px !important; padding: 0 !important; border: 0 !important; background: transparent !important; font-size: 10px !important; gap: 5px !important; }
 .kefe-panels .beui-vis-tabs-host .kv-power-state { font-size: 10px; font-weight: 600; }
 .kefe-panels .beui-vis-tabs-host .kv-power-track { width: 24px !important; height: 14px !important; }
+
+/* ==========================================================================
+   Shared panel alignment contract
+   Keep every section on one compact, predictable grid like the floating toolbar.
+   This aligns controls and content; it deliberately does not justify paragraph
+   letter/word spacing, which harms readability.
+   ========================================================================== */
+.kefe-panels,
+.kefe-panels .kefe-panel,
+.kefe-panels .kefe-panel :where(.kefe-form, .kefe-step-body, .kefe-panel-head, .kefe-section-heading-row, .kefe-section-title-group, .kefe-visualiser-control-group, .kefe-visualiser-control-group > *, .kefe-lyric-settings, .kefe-lyric-mode-box, .kefe-lyrics-timing, .kefe-timing-editor, .kefe-review, .kefe-media-upload-row, .kefe-song-details, .kefe-find, .kefe-vis-view, .kefe-vis-tabs, .kefe-lyric-effect-grid, .kefe-background-effect-options) {
+  min-width: 0;
+  box-sizing: border-box;
+}
+.kefe-panels .kefe-panel :where(.kefe-form, .kefe-step-body, .kefe-visualiser-control-group, .kefe-vis-view) {
+  align-content: start;
+  justify-items: stretch;
+}
+.kefe-panels .kefe-panel :where(.kefe-label, label, .kefe-meta, p, h2, h3, .kefe-step-head) {
+  min-width: 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.kefe-panels .kefe-panel :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea, .beui-input-host, .beui-select-host) {
+  min-width: 0;
+  max-width: 100%;
+}
+.kefe-panels .kefe-panel :where(.kefe-btn, .beui-panel-action, .beui-upload-browse, .kefe-chip) {
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.kefe-panels .kefe-panel :where(.kefe-visualiser-field, .kefe-lyrics-timing-head, .kefe-timing-editor-head, .kefe-lyric-settings-head, .kefe-visualiser-spin-row, .kefe-visualiser-toggle-row, .kefe-vis-option) {
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+.kefe-panels .kefe-panel .kefe-visualiser-spin-row,
+.kefe-panels .kefe-panel .kefe-visualiser-toggle-row,
+.kefe-panels .kefe-panel .kefe-lyrics-timing-head,
+.kefe-panels .kefe-panel .kefe-lyric-settings-head {
+  justify-content: space-between;
+}
+.kefe-panels .kefe-panel .kefe-vis-option :where(.kefe-visualiser-tab, .kefe-btn:not(.kefe-switch)) {
+  justify-content: flex-start;
+  text-align: left;
+}
+.kefe-panels .kefe-panel :where(.kefe-song-details, .kefe-lyric-effect-grid, .kefe-background-effect-options, .kefe-download-row) > * {
+  min-width: 0;
+  max-width: 100%;
+}
