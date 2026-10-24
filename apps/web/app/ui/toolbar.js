@@ -156,8 +156,14 @@
   function placePopover(pop, trigger) {
     pop.style.visibility = 'hidden'; pop.hidden = false;
     const tr = trigger.getBoundingClientRect(), pr = pop.getBoundingClientRect();
-    const left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, tr.left));
-    const below = tr.bottom + 8, top = below + pr.height <= window.innerHeight - 8 ? below : Math.max(8, tr.top - pr.height - 8);
+    const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+    const viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+    const maxLeft = Math.max(8, viewportWidth - pr.width - 8);
+    const left = Math.max(8, Math.min(maxLeft, tr.left));
+    const below = tr.bottom + 8;
+    const preferredTop = below + pr.height <= viewportHeight - 8 ? below : tr.top - pr.height - 8;
+    const maxTop = Math.max(8, viewportHeight - pr.height - 8);
+    const top = Math.max(8, Math.min(maxTop, preferredTop));
     pop.style.left = left + 'px'; pop.style.top = top + 'px'; pop.style.visibility = '';
   }
   popoverPairs.forEach(([trigger, pop]) => trigger.addEventListener('click', () => {
