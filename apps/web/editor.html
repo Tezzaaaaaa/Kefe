@@ -5,7 +5,56 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="KEFE — a browser-based lyric visualiser for creating lyric videos and audio-reactive visuals.">
 <title>KEFE — Lyric Visualiser</title>
-<script>document.documentElement.dataset.theme = 'night';</script>
+<script>
+/* Boot gate: the legacy shell is built synchronously and the beUI bridges swap its controls in afterwards.
+   Keep the page hidden until the DOM stops gaining elements, then reveal it once, so the old toolbar/nav
+   is never painted. The saved theme is applied here so day mode never flashes night first. */
+(function () {
+  var root = document.documentElement;
+  root.dataset.theme = 'night';
+  try { var saved = localStorage.getItem('kefe.theme'); if (saved === 'day' || saved === 'night') root.dataset.theme = saved; } catch (_) {}
+  root.classList.add('kefe-booting');
+  var done = false, quiet = 0, observer = null;
+  function reveal() {
+    if (done) return;
+    done = true;
+    if (observer) observer.disconnect();
+    clearTimeout(quiet);
+    requestAnimationFrame(function () {
+      root.classList.remove('kefe-booting');
+      root.classList.add('kefe-ready');
+      window.dispatchEvent(new Event('kefe-shell-ready'));
+    });
+  }
+  function mounted() { return !!(document.querySelector('.beui-sidebar-nav-host button') && document.querySelector('.beui-range-host')); }
+  function arm() { clearTimeout(quiet); quiet = setTimeout(function () { if (mounted()) reveal(); else arm(); }, 140); }
+  function begin() {
+    observer = new MutationObserver(function (records) {
+      for (var i = 0; i < records.length; i++) {
+        for (var j = 0; j < records[i].addedNodes.length; j++) {
+          if (records[i].addedNodes[j].nodeType === 1) { arm(); return; }
+        }
+      }
+    });
+    observer.observe(root, { childList: true, subtree: true });
+    arm();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', begin, { once: true }); else begin();
+  setTimeout(reveal, 2500); // never leave the page hidden if a bridge fails
+})();
+</script>
+<style>
+html.kefe-booting { background: #171719; }
+html.kefe-booting[data-theme="day"] { background: #f3f4f7; }
+html.kefe-booting body > *:not(script):not(style) { visibility: hidden !important; }
+@keyframes kefeReveal { from { opacity: 0; } to { opacity: 1; } }
+html.kefe-ready body > .kefe-editor,
+html.kefe-ready body > .kefe-workspace-dock,
+html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubic-bezier(.2, .8, .2, 1) both; }
+@media (prefers-reduced-motion: reduce) { html.kefe-ready body > * { animation: none !important; } }
+/* The legacy "Canvas" status label sat underneath the fullscreen button. */
+.kefe-preview-toolbar .kefe-toolbar-status { display: none; }
+</style>
 <link rel="icon" href="./assets/favicon-BWppFTml.svg" type="image/svg+xml">
 <link rel="manifest" href="./assets/manifest-DQX3PXta.webmanifest">
 <link rel="apple-touch-icon" href="./assets/apple-touch-icon-CvxSW47T.png">
@@ -57,7 +106,7 @@
 </style>
   <script type="module" crossorigin src="./assets/editor-Qn09rXeI.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/range-slider-BkiNa7YC.js">
-  <link rel="stylesheet" crossorigin href="./assets/style-BcT5p3O6.css">
+  <link rel="stylesheet" crossorigin href="./assets/style-D8aTXezE.css">
 </head>
 <body>
 <script src="./app/ui/structure.js?v=early-shell-render-20261021-2"></script>
@@ -93,7 +142,7 @@
 <script src="./app/lyrics/lyric-model.js?v=enhanced-lrc-word-timing-20261017-1"></script>
 <script src="./app/settings.beui.js?v=beui-settings-react-20261017-1"></script>
 <script src="./app/editor.js?v=smooth-clock-20261022-2"></script>
-<script src="./app/ui/toolbar.js?v=reference-matched-toolbar-20261024-6"></script>
+<script src="./app/ui/toolbar.js?v=editor-toolbar-20261024-1"></script>
 <script defer src="./app/ui/desktop-panels.js?v=uniform-section-geometry-20261021-2"></script>
 <script defer src="./app/ios-lockscreen.js?v=ios-lockscreen-mediasession-20261017-1"></script>
 <script defer src="./app/ui/style-layer.js?v=effect-defaults-20261022-1"></script>
