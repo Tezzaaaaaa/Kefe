@@ -214,14 +214,16 @@
 }
 .kefe-floating-toolbar__label,
 .kefe-floating-toolbar__layer-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
   min-width: 0;
   color: #8b8b9a;
   font-size: 10px;
-  white-space: nowrap;
+  white-space: normal;
 }
 .kefe-floating-toolbar__size { width: 100%; min-width: 0; accent-color: #06b6d4; }
 .kefe-floating-toolbar__layer-size { width: 100%; min-width: 0; accent-color: #06b6d4; }
