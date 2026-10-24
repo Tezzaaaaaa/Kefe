@@ -632,6 +632,19 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       buffer: Buffer.from("[00:00.00]Smoke line one\n[00:02.00]Smoke line two\n", "utf8"),
     });
     await page.waitForFunction(() => document.getElementById("kefeLyricsStatus")?.textContent.includes("Loaded lyrics from beui-smoke.lrc"), null, { timeout: 10000 });
+
+    // Verify Devotion replaced Premium Circuit in the real effect gallery and can render against loaded lyrics.
+    await page.locator('.kefe-section[data-panel="effects"]').click();
+    const devotionOption = page.locator('#lyricEffectOptions .kefe-lyric-effect-option[data-effect="premium"]');
+    await devotionOption.waitFor({ state: "visible", timeout: 5000 });
+    assert.match(await devotionOption.innerText(), /Devotion/, "the former Premium Circuit effect must be named Devotion");
+    await devotionOption.click();
+    await page.waitForFunction(() => document.querySelector('#lyricEffectOptions .kefe-lyric-effect-option.active[data-effect="premium"]') !== null, null, { timeout: 5000 });
+    await page.locator("#kefeAudio").evaluate((audio) => {
+      audio.currentTime = Math.min(1, audio.duration || 1);
+      audio.dispatchEvent(new Event("timeupdate"));
+    });
+    await page.waitForTimeout(200);
     assert.deepEqual(pageErrors, [], `browser runtime errors: ${JSON.stringify(pageErrors)}`);
     console.log("beUI browser smoke passed: component conversion, media loading/playback, and LRC upload.");
     await context.close();
