@@ -88,7 +88,8 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await textMenu.waitFor({ state: "visible", timeout: 5000 });
     const quickSize = textMenu.locator('input[type="range"][aria-label="Lyric text size"]');
     await quickSize.evaluate(input => { input.value = "115"; input.dispatchEvent(new Event("input", { bubbles: true })); });
-    assert.equal(await page.locator("#kefeStyleGroup input[type=range]").first().inputValue(), "115",
+    const canonicalTextSize = page.locator('#kefeStyleGroup label.kefe-visualiser-field').filter({ hasText: "Text size" }).locator('input[type="range"]');
+    assert.equal(await canonicalTextSize.inputValue(), "115",
       "toolbar text-size control must update the canonical lyric-style setting");
     await page.keyboard.press("Escape");
     await textMenu.waitFor({ state: "hidden", timeout: 5000 });

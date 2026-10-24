@@ -194,7 +194,8 @@
   const existingFullscreen = document.getElementById('previewFullscreen');
   const existingLyrics = document.getElementById('lyricsEnabledToggle');
   const styleColor = () => document.querySelector('#kefeStyleGroup input[type="color"]');
-  const styleScale = () => document.querySelector('#kefeStyleGroup input[type="range"]');
+  const styleScale = () => Array.from(document.querySelectorAll('#kefeStyleGroup input[type="range"]'))
+    .find(input => input.closest('label.kefe-visualiser-field')?.textContent.includes('Text size')) || null;
 
   function emit(action, value) {
     window.dispatchEvent(new CustomEvent('kefe-toolbar-change', { detail: { action, value, source: 'floating-toolbar' } }));
