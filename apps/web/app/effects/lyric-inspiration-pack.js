@@ -20,9 +20,9 @@
     },
     premium: {
       title: 'Devotion',
-      defaults: {font:'SF Pro Display',weight:200,background:'dark',letterSpacing:0.02},
+      defaults: {font:'SF Pro Display',weight:200,background:'black',letterSpacing:0.02},
       fields: [
-        ['select','background','Background',[['dark','Dark chrome'],['light','Soft light']]],
+        ['select','background','Background',[['black','Solid black'],['white','Solid white']]],
         ['range','weight','Font weight',100,400,10,''],
         ['range','letterSpacing','Letter spacing',0,0.08,0.005,' em']
       ]
@@ -107,7 +107,7 @@
   const save = () => { try { localStorage.setItem(storeKey, JSON.stringify(settings)); } catch (_) {} };
   // Premium Circuit settings do not describe Devotion. Reset only this effect once
   // so existing users receive the new typography defaults without losing other presets.
-  const devotionMigrationKey = 'kefe.inspiration-effects.devotion.v1';
+  const devotionMigrationKey = 'kefe.inspiration-effects.devotion.solid-background.v2';
   let devotionMigrated = false;
   try { devotionMigrated = localStorage.getItem(devotionMigrationKey) === '1'; } catch (_) {}
   if (!devotionMigrated) {
@@ -260,70 +260,6 @@
     }
     ctx.restore();ctx.globalAlpha=1;
   }
-  const devotionShader = (() => {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl', { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true })
-      || canvas.getContext('experimental-webgl');
-    if (!gl) return null;
-    const vertexSource = 'attribute vec2 a_position; void main(){ gl_Position=vec4(a_position,0.0,1.0); }';
-    const fragmentSource = [
-      'precision highp float;',
-      'uniform vec2 u_resolution;',
-      'uniform float u_time;',
-      'float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }',
-      'float noise(vec2 p){ vec2 i=floor(p); vec2 f=fract(p); vec2 u=f*f*(3.0-2.0*f); return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x),u.y); }',
-      'float fbm(vec2 p){ float v=0.0; float a=0.5; mat2 rot=mat2(0.866,-0.5,0.5,0.866); for(int i=0;i<4;i++){ v+=a*noise(p); p=rot*p*2.0; a*=0.5; } return v; }',
-      'void main(){',
-      ' vec2 uv=gl_FragCoord.xy/u_resolution.xy;',
-      ' vec2 p=(gl_FragCoord.xy-u_resolution.xy*0.5)/min(u_resolution.x,u_resolution.y);',
-      ' float t=u_time*0.15;',
-      ' vec2 q=vec2(fbm(p+t),fbm(p+vec2(5.2,1.3)-t));',
-      ' vec2 r=vec2(fbm(p+4.0*q+vec2(1.7,9.2)+t*0.5),fbm(p+4.0*q+vec2(8.3,2.8)-t*0.5));',
-      ' float f=fbm(p+4.0*r);',
-      ' vec2 warpedUV=uv+(r-0.5)*0.4;',
-      ' float band=sin(warpedUV.x*15.0+warpedUV.y*10.0+f*8.0+t*2.0);',
-      ' band=smoothstep(-0.1,0.1,band)-smoothstep(0.1,0.3,band);',
-      ' float lum=clamp(f*0.8+band*0.6,0.0,1.0);',
-      ' float shift=(r.x-0.5)*0.08;',
-      ' float rC=clamp(lum+shift,0.0,1.0); float gC=clamp(lum,0.0,1.0); float bC=clamp(lum-shift,0.0,1.0);',
-      ' float spec=smoothstep(0.8,1.0,band)*smoothstep(0.5,1.0,f);',
-      ' rC+=spec; gC+=spec; bC+=spec;',
-      ' float shadowMask=smoothstep(0.2,0.6,f);',
-      ' gl_FragColor=vec4(rC*shadowMask,gC*shadowMask,bC*shadowMask,1.0);',
-      '}'
-    ].join('\n');
-    function compile(type, source) {
-      const shader = gl.createShader(type);
-      if (!shader) return null;
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.warn('[KEFE Devotion] Shader compilation failed:', gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
-      }
-      return shader;
-    }
-    const vertex = compile(gl.VERTEX_SHADER, vertexSource);
-    const fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
-    if (!vertex || !fragment) return null;
-    const program = gl.createProgram();
-    gl.attachShader(program, vertex);
-    gl.attachShader(program, fragment);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.warn('[KEFE Devotion] Shader link failed:', gl.getProgramInfoLog(program));
-      return null;
-    }
-    gl.useProgram(program);
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]), gl.STATIC_DRAW);
-    const position = gl.getAttribLocation(program, 'a_position');
-    gl.enableVertexAttribArray(position);
-    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-    return {canvas,gl,program,resolution:gl.getUniformLocation(program,'u_resolution'),time:gl.getUniformLocation(program,'u_time')};
-  })();
   function devotionEase(value) {
     const t=clamp(value);
     return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
@@ -347,25 +283,8 @@
   }
   function renderDevotion(ctx,w,h,style,lines,time) {
     const s=settings.premium;
-    if(s.background==='light'){
-      ctx.fillStyle='#f2f0ed';ctx.fillRect(0,0,w,h);
-    }else if(devotionShader){
-      const sh=devotionShader,gl=sh.gl;
-      if(sh.canvas.width!==Math.max(1,Math.round(w))||sh.canvas.height!==Math.max(1,Math.round(h))){
-        sh.canvas.width=Math.max(1,Math.round(w));sh.canvas.height=Math.max(1,Math.round(h));
-        gl.viewport(0,0,sh.canvas.width,sh.canvas.height);
-      }
-      gl.useProgram(sh.program);
-      gl.uniform2f(sh.resolution,sh.canvas.width,sh.canvas.height);
-      gl.uniform1f(sh.time,Math.max(0,Number(time)||0));
-      gl.drawArrays(gl.TRIANGLES,0,6);
-      ctx.drawImage(sh.canvas,0,0,w,h);
-    }else{
-      ctx.fillStyle='#000000';ctx.fillRect(0,0,w,h);
-      const fallback=ctx.createLinearGradient(0,0,w,h);
-      fallback.addColorStop(0,'#08090c');fallback.addColorStop(0.5,'#30343a');fallback.addColorStop(1,'#050506');
-      ctx.fillStyle=fallback;ctx.fillRect(0,0,w,h);
-    }
+    ctx.fillStyle=s.background==='white'?'#ffffff':'#000000';
+    ctx.fillRect(0,0,w,h);
     const items=linesFor(lines,time);
     if(!items.length)return;
     const item=items[items.length-1],text=String(item.line.text||'').trim();
@@ -378,7 +297,7 @@
     const scale=0.96+0.04*fadeIn;
     const fontSize=Math.min(w*0.072,h*0.10,96);
     const letterSpacing=Math.max(0,Number(s.letterSpacing)||0)*fontSize;
-    const textColor=s.background==='light'?'#0b0c0e':'#f2f0ed';
+    const textColor=s.background==='white'?'#000000':'#ffffff';
     ctx.save();
     ctx.fillStyle=textColor;
     ctx.font=Math.max(100,Math.min(400,Number(s.weight)||200))+' '+fontSize+'px "SF Pro Display", "Inter", -apple-system, "Helvetica Neue", "Segoe UI", sans-serif';
