@@ -1,5 +1,6 @@
 @import "../app/ui/styles.css";
 @import "../app/ui/panels-compact.css";
+@import "../app/settings/panel.css";
 
 .kefe-upload-zone.beui-upload-card-hosted,
 .kefe-panel.beui-panel-card-hosted,
