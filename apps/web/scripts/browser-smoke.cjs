@@ -77,6 +77,12 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
+    await page.waitForFunction(() => {
+      const root = document.querySelector("#kefe-settings-panel");
+      const slots = root && [...root.querySelectorAll(".kefe-slot")];
+      return root && root.closest(".kefe-editing.kefe-settings-layout") &&
+        slots.length === 6 && slots.every(slot => slot.querySelector(".kefe-panel"));
+    }, null, { timeout: 10000 });
 
     // Exercise the editor toolbar against the real editor controls.
     const quickToolbar = page.locator("#kefeFloatingToolbar");
