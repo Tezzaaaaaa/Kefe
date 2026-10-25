@@ -596,8 +596,8 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const commandPalette = page.locator("#kefeCommandPalette");
     await commandPalette.waitFor({ state: "visible", timeout: 5000 });
     assert.equal(await commandPalette.locator(".beui-command-dialog").count(), 1, "command palette should use the beUI Card shell");
-    await page.locator("#kefeCommandInput").fill("Open Effects");
-    const commandButton = page.locator(".beui-command-button-host button").filter({ hasText: "Open Effects" });
+    await page.locator("#kefeCommandInput").fill("Open Lyric Effects");
+    const commandButton = page.locator(".beui-command-button-host button").filter({ hasText: "Open Lyric Effects" });
     await commandButton.waitFor({ state: "visible", timeout: 5000 });
     await commandButton.click();
     await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
