@@ -175,7 +175,7 @@
 .kefe-panels .kefe-download-row .kefe-btn { width: 100%; padding: 0 4px !important; }
 
 /* ---- Media ---- */
-.kefe-panels .kefe-upload-zone { padding: 10px 8px !important; gap: 2px !important; min-height: 0 !important; border-radius: 6px; }
+.kefe-panels .kefe-upload-zone:not(.beui-upload-card-hosted) { padding: 10px 8px !important; gap: 2px !important; min-height: 0 !important; border-radius: 6px; }
 .kefe-panels .kefe-upload-title { font-size: 11px !important; font-weight: 600; }
 .kefe-panels .kefe-upload-help { display: none; }
 .kefe-panels .kefe-upload-name { font-size: 10px !important; color: var(--pc-muted); }
@@ -289,7 +289,7 @@
 .kefe-panels .kefe-media-upload-row .beui-upload-card,
 .kefe-panels .kefe-media-upload-row .beui-upload-card-hosted,
 .kefe-panels .kefe-media-upload-row .beui-upload-wrap { min-height: 0 !important; height: auto !important; }
-.kefe-panels .kefe-media-upload-row .kefe-upload-zone { padding: 8px 6px !important; }
+.kefe-panels .kefe-media-upload-row .kefe-upload-zone:not(.beui-upload-card-hosted) { padding: 8px 6px !important; }
 .kefe-panels .kefe-media-upload-row .beui-upload-card { padding: 8px 6px !important; gap: 2px !important; }
 .kefe-panels .kefe-media-upload-row .beui-upload-card > *, .kefe-panels .kefe-media-upload-row .kefe-upload-zone > * { margin: 0; }
 .kefe-panels .kefe-media-upload-row .kefe-upload-title,
