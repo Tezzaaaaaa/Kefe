@@ -79,10 +79,10 @@
     let writingToLegacy = false;
 
     function readPanelValues() {
-      const defaults = api.defaults();
+      const defaults = window.kefeSettings.defaults();
       const values = {};
       Object.entries(PANEL_TO_LEGACY).forEach(([panelKey, legacyKey]) => {
-        const current = api.get(legacyKey);
+        const current = window.kefeSettings.get(legacyKey);
         values[panelKey] = typeof current === typeof defaults[legacyKey]
           ? current
           : defaults[legacyKey];
@@ -117,13 +117,13 @@
       }
     });
 
-    api.onChange((legacyKey) => {
+    window.kefeSettings.onChange((legacyKey) => {
       if (writingToLegacy) return;
       const panelKey = LEGACY_TO_PANEL[legacyKey];
       if (!panelKey) return;
       applyLegacyValues();
       root.dispatchEvent(new CustomEvent('kefe:change', {
-        detail: { key: panelKey, value: api.get(legacyKey), values: panel.getValues() }
+        detail: { key: panelKey, value: window.kefeSettings.get(legacyKey), values: panel.getValues() }
       }));
     });
 
