@@ -408,3 +408,12 @@
   min-width: 0;
   max-width: 100%;
 }
+
+
+/* Shared section-header order: accordion, optional switch, title and info. */
+.kefe-panels .kefe-panel .kefe-section-heading-row { justify-content: flex-start; }
+.kefe-panels .kefe-panel .kefe-section-heading-row > .beui-accordion-trigger { order: 0; flex: 0 0 24px; width: 24px; min-width: 24px; height: 24px; min-height: 24px; margin: 0; }
+.kefe-panels .kefe-panel .kefe-section-heading-row > .kefe-lyrics-power,
+.kefe-panels .kefe-panel .kefe-section-heading-row > .kefe-visualiser-power-slot,
+.kefe-panels .kefe-panel .kefe-section-heading-row > .kefe-background-effect-toggle { order: 1; flex: 0 0 auto; margin: 0; }
+.kefe-panels .kefe-panel .kefe-section-heading-row > .kefe-section-title-group { order: 2; flex: 0 1 auto; }
