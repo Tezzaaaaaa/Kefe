@@ -74,7 +74,7 @@ function initDesktopPanels() {
 
     // Keep each section's switch in the shared right-hand control lane.
     head.querySelectorAll('.kefe-lyrics-power, .kefe-visualiser-power-slot, .kefe-background-effect-toggle').forEach(control => {
-      if (control.parentElement !== row) row.appendChild(control);
+      row.insertBefore(control, row.querySelector('.kefe-section-title-group'));
     });
     panel.dataset.beuiSectionHeaderReady = 'true';
   }
@@ -135,7 +135,7 @@ function initDesktopPanels() {
         panel.classList.remove('beui-accordion-enter');
       }
     });
-    row.appendChild(toggle);
+    row.insertBefore(toggle, row.querySelector('.kefe-section-title-group'));
     panel.dataset.beuiAccordionReady = 'true';
   }
 
