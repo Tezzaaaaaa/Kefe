@@ -57,7 +57,7 @@
     if (!inputGroup || !outputGroup || !topbar) {
       throw new Error('Settings panel input/output groups are unavailable.');
     }
-    inputGroup.prepend(topbar);
+    inputGroup.append(topbar);
     inputGroup.setAttribute('role', 'region');
     inputGroup.setAttribute('aria-label', 'KEFE settings');
     outputGroup.setAttribute('role', 'region');
