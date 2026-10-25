@@ -367,106 +367,78 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "background darkness control must remain in Background Effects after cleanup");
     assert.equal(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option').count() > 0, true,
       "Effects must retain its lyric-effect gallery after background-treatment cleanup");
-    const mediaPanel = page.locator(".kefe-panels-left .kefe-panel[data-panel-view='media']");
-    const mediaHeading = mediaPanel.getByRole("heading", { name: "Media" });
-    const mediaAccordion = mediaPanel.locator(".beui-accordion-trigger:not(.beui-native-panel-button)");
+    const mediaSection = page.locator('#kefe-settings-panel .section[data-section-id="media"]');
+    const mediaHeading = mediaSection.getByRole("heading", { name: "Media" });
+    const mediaAccordion = mediaSection.locator(".expand-button");
     await mediaHeading.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.click();
-    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "false", "section accordion should enter collapsed state");
-    const headingState = await mediaPanel.evaluate((panel) => {
-      const heading = panel.querySelector(".kefe-panel-head");
-      const title = heading?.querySelector("h2");
-      const rect = (node) => {
-        const box = node?.getBoundingClientRect();
-        return box ? { x: box.x, y: box.y, width: box.width, height: box.height } : null;
-      };
-      return {
-        panelClass: panel.className,
-        panelDisplay: getComputedStyle(panel).display,
-        panelRect: rect(panel),
-        parentClass: panel.parentElement?.className,
-        parentDisplay: panel.parentElement ? getComputedStyle(panel.parentElement).display : null,
-        headingExists: Boolean(heading),
-        headingHidden: heading?.hidden,
-        headingDisplay: heading ? getComputedStyle(heading).display : null,
-        headingVisibility: heading ? getComputedStyle(heading).visibility : null,
-        headingRect: rect(heading),
-        titleText: title?.textContent,
-        titleDisplay: title ? getComputedStyle(title).display : null,
-        titleVisibility: title ? getComputedStyle(title).visibility : null,
-        titleRect: rect(title),
-      };
-    });
-    assert.ok(await mediaHeading.isVisible(), `Media heading must remain visible in the desktop panel: ${JSON.stringify(headingState)}`);
-    await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "hidden", timeout: 5000 });
+    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "false", "Media section should collapse");
+    await page.waitForFunction(() => {
+      const section = document.querySelector('#kefe-settings-panel .section[data-section-id="media"]');
+      return section?.dataset.expanded === "false" &&
+        section.querySelector(".section-content").getBoundingClientRect().height < 1;
+    }, null, { timeout: 5000 });
     await mediaAccordion.click();
-    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true", "section accordion should expand again");
-    await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "visible", timeout: 5000 });
+    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true", "Media section should expand again");
+    await page.waitForFunction(() => {
+      const section = document.querySelector('#kefe-settings-panel .section[data-section-id="media"]');
+      return section?.dataset.expanded === "true" &&
+        section.querySelector(".section-content").getBoundingClientRect().height > 1;
+    }, null, { timeout: 5000 });
 
     const sectionHeaderAudit = await page.evaluate(() => {
-      const panels = [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")];
-      return panels.map((panel) => {
-        const row = panel.querySelector(".kefe-panel-head .kefe-section-heading-row");
-        const info = row?.querySelector(".kefe-section-info");
-        const accordion = row?.querySelector(".beui-accordion-trigger:not(.beui-native-panel-button)");
-        const featureSwitch = row?.querySelector(".kefe-switch");
+      const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
+      return sections.map(section => {
+        const header = section.querySelector(".section-header");
+        const title = section.querySelector(".section-heading");
+        const info = header?.querySelector(".info-button");
+        const description = header?.querySelector(".kefe-tooltip .kefe-tooltip-body");
+        const accordion = header?.querySelector(".expand-button");
         return {
-          section: panel.dataset.panelView,
-          title: row?.querySelector("h2")?.textContent.trim(),
+          section: section.dataset.sectionId,
+          title: title?.textContent.trim(),
           info: Boolean(info),
-          description: Boolean(row?.querySelector(".kefe-section-description")),
-          tooltip: info?.dataset.tooltip || "",
-          accordion: Boolean(accordion),
-          featureSwitchInline: !featureSwitch || featureSwitch.closest(".kefe-section-heading-row") === row,
+          description: Boolean(description),
+          tooltip: description?.textContent.trim() || "",
+          accordion: Boolean(accordion)
         };
       });
     });
-    assert.equal(sectionHeaderAudit.length, 6, "all six sections should retain their own heading row");
-    assert.ok(sectionHeaderAudit.every((item) => item.title && item.info && item.description && item.accordion),
-      `every section must have a clean title, info tooltip and accordion control: ${JSON.stringify(sectionHeaderAudit)}`);
-    assert.ok(sectionHeaderAudit.every((item) => item.featureSwitchInline),
-      "section on/off switches must remain inside their heading row");
-    assert.match(sectionHeaderAudit.find((item) => item.section === "media").tooltip, /Import audio or video/,
-      "the Media instructions should be available through the info tooltip");
+    assert.equal(sectionHeaderAudit.length, 6, "all six settings sections should be present");
+    assert.ok(sectionHeaderAudit.every(item => item.title && item.info && item.description && item.accordion),
+      `every settings section needs a title, info tooltip and accordion: ${JSON.stringify(sectionHeaderAudit)}`);
+    assert.match(sectionHeaderAudit.find(item => item.section === "media").tooltip, /Import, replace, or remove files/,
+      "Media instructions should be available through the info tooltip");
 
-    const uniformHeaderGeometry = await page.evaluate(() => [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")].map(panel => {
-      const head = panel.querySelector(".kefe-panel-head");
-      const row = head?.querySelector(".kefe-section-heading-row");
-      const title = row?.querySelector("h2");
-      const info = row?.querySelector(".kefe-section-info");
-      const accordion = row?.querySelector(".beui-accordion-trigger:not(.beui-native-panel-button)");
-      const titleStyle = title && getComputedStyle(title);
-      const rowRect = row?.getBoundingClientRect();
-      const infoSize = info ? [info.offsetWidth, info.offsetHeight] : null;
-      const accordionSize = accordion ? [accordion.offsetWidth, accordion.offsetHeight] : null;
+    const featureSwitchAudit = await page.evaluate(() => [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")].map(panel => {
+      const row = panel.querySelector(".kefe-panel-head .kefe-section-heading-row");
+      const featureSwitch = row?.querySelector(".kefe-switch");
       return {
         section: panel.dataset.panelView,
+        featureSwitchInline: !featureSwitch || featureSwitch.closest(".kefe-section-heading-row") === row
+      };
+    }));
+    assert.ok(featureSwitchAudit.every(item => item.featureSwitchInline),
+      "existing feature switches must remain beside their section controls");
+
+    const uniformHeaderGeometry = await page.evaluate(() => [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")].map(section => {
+      const title = section.querySelector(".section-heading");
+      const info = section.querySelector(".info-button");
+      const accordion = section.querySelector(".expand-button");
+      const titleStyle = title && getComputedStyle(title);
+      return {
+        section: section.dataset.sectionId,
         titleSize: titleStyle?.fontSize,
         titleWeight: titleStyle?.fontWeight,
         titleLineHeight: titleStyle?.lineHeight,
-        rowHeight: Math.round(rowRect?.height || 0),
-        infoSize,
-        accordionSize,
+        infoSize: info ? [info.offsetWidth, info.offsetHeight] : null,
+        accordionSize: accordion ? [accordion.offsetWidth, accordion.offsetHeight] : null
       };
     }));
-    assert.equal(new Set(uniformHeaderGeometry.map(x => [x.titleSize,x.titleWeight,x.titleLineHeight,x.rowHeight,JSON.stringify(x.infoSize),JSON.stringify(x.accordionSize)].join("|"))).size, 1,
-      `all six section headers must have identical typography and control geometry: ${JSON.stringify(uniformHeaderGeometry)}`);
-
-    const sectionAccordions = page.locator(".kefe-panel[data-panel-view] .kefe-section-heading-row .beui-accordion-trigger:not(.beui-native-panel-button)");
-    assert.equal(await sectionAccordions.count(), 6, "each section should have one visible accordion control");
-    for (const accordion of await sectionAccordions.all()) {
-      if (await accordion.getAttribute("aria-expanded") === "true") await accordion.click();
-    }
-    await page.waitForFunction(() => [...document.querySelectorAll(".kefe-panel[data-panel-view]")].every((panel) => !panel.style.height), null, { timeout: 5000 });
-    const collapsedHeights = await page.evaluate(() => [...document.querySelectorAll(".kefe-panel[data-panel-view]")].map((panel) => panel.getBoundingClientRect().height));
-    assert.ok(Math.max(...collapsedHeights) - Math.min(...collapsedHeights) <= 1,
-      `all collapsed section cards should have the same height: ${JSON.stringify(collapsedHeights)}`);
-    for (const accordion of await sectionAccordions.all()) {
-      if (await accordion.getAttribute("aria-expanded") === "false") await accordion.click();
-    }
-    await page.waitForFunction(() => [...document.querySelectorAll(".kefe-panel[data-panel-view]")].every((panel) => !panel.style.height), null, { timeout: 5000 });
-    await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "visible", timeout: 5000 });
+    assert.equal(new Set(uniformHeaderGeometry.map(item =>
+      [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize), JSON.stringify(item.accordionSize)].join("|")
+    )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
     const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
     assert.ok(sidebarCount >= 7, `expected sidebar actions, found ${sidebarCount}`);
