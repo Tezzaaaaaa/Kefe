@@ -3,61 +3,45 @@ import { createRoot } from "react-dom/client";
 import { Card } from "@/components/motion/card";
 import "./legacy-bridge.css";
 
-function PanelCard({ originalNodes }) {
+function UploadCard({ originalNodes }) {
   const card = useRef(null);
   useEffect(() => {
-    if (card.current) {
-      card.current.append(...originalNodes);
-      const panel = card.current.closest(".kefe-panel[data-panel-view]");
-      if (panel?.classList.contains("kefe-settings-embedded-panel")) {
-        Object.assign(card.current.style, {
-          maxWidth: "none",
-          margin: "0",
-          padding: "0",
-          background: "transparent",
-          borderColor: "transparent",
-          boxShadow: "none",
-        });
-      }
-    }
+    if (card.current) card.current.append(...originalNodes);
   }, [originalNodes]);
 
   return (
     <Card
       ref={card}
-      className="beui-editor-panel-card w-full max-w-[1200px] gap-0 rounded-xl border p-0 text-foreground shadow-none"
+      className="beui-upload-card w-full gap-1 rounded-xl border border-dashed p-0 text-center"
       style={{
         width: "100%",
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "var(--beui-panel-padding, clamp(16px, 2vw, 24px))",
-        background: "var(--shell-panel)",
-        borderColor: "var(--shell-line)",
-        color: "var(--shell-text)",
-        boxShadow: "none",
+        minHeight: "192px",
+        padding: "18px",
+        borderStyle: "dashed",
+        borderColor: "var(--line)",
+        background: "var(--surface)",
+        color: "var(--text)",
+        boxShadow: "var(--inner)",
       }}
     />
   );
 }
 
-function mount(panel) {
-  if (panel.dataset.beuiCardMounted || !panel.matches(".kefe-panel[data-panel-view]")) return;
-  const originalNodes = [...panel.childNodes];
-  const host = document.createElement("div");
-  host.className = "beui-panel-card-root";
-  panel.replaceChildren(host);
-  panel.classList.add("beui-panel-card-hosted");
-  panel.dataset.beuiCardMounted = "true";
-  createRoot(host).render(<PanelCard originalNodes={originalNodes} />);
-}
-
 function start() {
-  document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]").forEach(mount);
+  const label = document.getElementById("kefeUploadZone");
+  if (!label || label.dataset.beuiCardMounted) return;
+  const originalNodes = [...label.childNodes];
+  const host = document.createElement("div");
+  host.className = "beui-upload-card-root";
+  label.replaceChildren(host);
+  label.classList.add("beui-upload-card-hosted");
+  label.dataset.beuiCardMounted = "true";
+  createRoot(host).render(<UploadCard originalNodes={originalNodes} />);
 }
 
-if (document.readyState === "complete") {
-  start();
-} else {
+if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", start, { once: true });
+} else {
+  start();
 }
 

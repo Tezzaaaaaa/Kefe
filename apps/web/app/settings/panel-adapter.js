@@ -65,6 +65,9 @@
 
     placements.forEach(({ slot, panel }) => {
       panel.classList.add('kefe-settings-embedded-panel', 'active');
+      panel.classList.remove('beui-accordion-collapsed', 'kefe-pane-shown', 'beui-accordion-enter');
+      panel.style.removeProperty('height');
+      panel.style.removeProperty('overflow');
       slot.appendChild(panel);
       const card = panel.querySelector('.beui-editor-panel-card');
       if (card) flattenCard(card);
