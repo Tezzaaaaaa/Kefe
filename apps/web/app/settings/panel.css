@@ -433,7 +433,33 @@
   box-shadow: none;
 }
 .kefe-settings-panel .kefe-slot .kefe-panel-head {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.kefe-settings-panel .kefe-slot .kefe-panel-head > h2,
+.kefe-settings-panel .kefe-slot .kefe-panel-head > .kefe-meta,
+.kefe-settings-panel .kefe-slot .kefe-section-title-group,
+.kefe-settings-panel .kefe-slot .kefe-section-description,
+.kefe-settings-panel .kefe-slot .beui-accordion-trigger,
+.kefe-settings-panel .kefe-slot .kefe-effects-heading {
   display: none;
+}
+.kefe-settings-panel .kefe-slot .kefe-section-heading-row {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.kefe-settings-panel .kefe-slot .kefe-lyrics-power,
+.kefe-settings-panel .kefe-slot .kefe-background-effect-toggle,
+.kefe-settings-panel .kefe-slot .kefe-visualiser-power-slot {
+  display: flex;
 }
 .kefe-settings-panel .kefe-slot .beui-panel-card-root,
 .kefe-settings-panel .kefe-slot .beui-editor-panel-card,
