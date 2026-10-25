@@ -113,7 +113,7 @@ For the other old containers, no `data-panel-view` attribute is changed and no D
 
 ## CSS/layout stop condition that prevented container moves
 
-The inspected production stylesheet includes shared rules such as `.kefe-editor .kefe-editing .kefe-panel[data-panel-view]`, `.kefe-editor .kefe-editing .kefe-panels>.kefe-panel[data-panel-view]`, and heading/accordion rules scoped below `.kefe-editor .kefe-editing`. Moving a panel into a slot removes the original direct-child relationship with the old `.kefe-panels` and would remove the `.kefe-editing` ancestry if mounted beside the editor. The Visualisers panel has 24 additional selectors specifically scoped to `.kefe-editor .kefe-editing .kefe-panel[data-panel-view=visualiser]`. This pass does not change those selectors or restyle the old panels. The four non-layout-managed moves are deferred until a separate, explicitly authorized layout-compatible plan.
+The inspected production stylesheet includes shared rules such as `.kefe-editor .kefe-editing .kefe-panel[data-panel-view]`, `.kefe-editor .kefe-editing .kefe-panels>.kefe-panel[data-panel-view]`, and heading/accordion rules scoped below `.kefe-editor .kefe-editing`. Moving a panel into a slot removes the original direct-child relationship with the old `.kefe-panels` and, because the new panel is mounted beside the editor, removes both the `.kefe-editor` and `.kefe-editing` ancestors. The Visualisers panel has 24 additional selectors specifically scoped to `.kefe-editor .kefe-editing .kefe-panel[data-panel-view=visualiser]`. This pass does not change those selectors or restyle the old panels. The four non-layout-managed moves are deferred until a separate, explicitly authorized layout-compatible plan.
 
 ## Scope boundary
 
