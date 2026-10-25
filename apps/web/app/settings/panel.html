@@ -16,11 +16,11 @@
   </div>
 
   <!-- Panels -->
-  <div class="kefe-panels" data-accordion="multi">
+  <div class="kefe-settings-columns" data-accordion="multi">
 
     <!-- ══════════ LEFT: Input ══════════ -->
     <div class="kefe-panel" data-group="input">
-      <h1 class="kefe-panel-label">Input</h1>
+      <h1 class="kefe-panel-label">KEFE</h1>
 
       <!-- Media -->
       <section class="section" data-expanded="true" data-section-id="media">
@@ -28,10 +28,10 @@
           <h2 class="section-title-wrap">
             <button class="expand-button" type="button"
                     aria-expanded="false"
-                    aria-controls="panel-media">
+                    aria-controls="settings-panel-media">
               <span class="expand-indicator" aria-hidden="true"></span>
               <span class="title-group">
-                <span id="title-media" class="section-heading">Media</span>
+                <span id="settings-title-media" class="section-heading">Media</span>
                 <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
                 <span class="format-note" aria-hidden="true">Supports <code>MP4</code> <code>MOV</code> <code>MP3</code> <code>WAV</code> <code>PNG</code> <code>JPG</code></span>
               </span>
@@ -48,7 +48,7 @@
             <p class="kefe-tooltip-body">Manage the audio, video, and image sources used in your project. Import, replace, or remove files from here.</p>
           </div>
         </div>
-        <div class="section-content" id="panel-media">
+        <div class="section-content" id="settings-panel-media">
           <div class="content-inner">
             <div class="kefe-slot" data-kefe-slot="media"></div>
             <div class="kefe-empty" data-kefe-fallback="media">
@@ -64,10 +64,10 @@
           <h2 class="section-title-wrap">
             <button class="expand-button" type="button"
                     aria-expanded="false"
-                    aria-controls="panel-lyric-sync">
+                    aria-controls="settings-panel-lyric-sync">
               <span class="expand-indicator" aria-hidden="true"></span>
               <span class="title-group">
-                <span id="title-lyric-sync" class="section-heading">Lyric Sync</span>
+                <span id="settings-title-lyric-sync" class="section-heading">Lyric Sync</span>
                 <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
                 <span class="format-note" aria-hidden="true">Accepts <code>LRC</code> <code>SRT</code> <code>ASS</code> <code>TXT</code></span>
               </span>
@@ -84,7 +84,7 @@
             <p class="kefe-tooltip-body">Fine-tune how each lyric line aligns to the audio timing. Nudge individual lines or shift the whole track at once.</p>
           </div>
         </div>
-        <div class="section-content" id="panel-lyric-sync">
+        <div class="section-content" id="settings-panel-lyric-sync">
           <div class="content-inner">
             <div class="setting-row">
               <span class="setting-label" id="nudge-label">
@@ -109,10 +109,10 @@
           <h2 class="section-title-wrap">
             <button class="expand-button" type="button"
                     aria-expanded="false"
-                    aria-controls="panel-background">
+                    aria-controls="settings-panel-background">
               <span class="expand-indicator" aria-hidden="true"></span>
               <span class="title-group">
-                <span id="title-background" class="section-heading">Background</span>
+                <span id="settings-title-background" class="section-heading">Background</span>
                 <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
                 <span class="format-note" aria-hidden="true">Uses <code>PNG</code> <code>JPG</code> <code>WEBP</code> <code>MP4</code></span>
               </span>
@@ -129,7 +129,7 @@
             <p class="kefe-tooltip-body">Controls the animated backdrop behind your lyrics — gradients, particles, and motion that pulse with the music.</p>
           </div>
         </div>
-        <div class="section-content" id="panel-background">
+        <div class="section-content" id="settings-panel-background">
           <div class="content-inner">
             <div class="setting-row">
               <span class="setting-label" id="background-label">Enable Background</span>
@@ -164,10 +164,10 @@
           <h2 class="section-title-wrap">
             <button class="expand-button" type="button"
                     aria-expanded="false"
-                    aria-controls="panel-lyric-effects">
+                    aria-controls="settings-panel-lyric-effects">
               <span class="expand-indicator" aria-hidden="true"></span>
               <span class="title-group">
-                <span id="title-lyric-effects" class="section-heading">Lyric Effects</span>
+                <span id="settings-title-lyric-effects" class="section-heading">Lyric Effects</span>
                 <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
                 <span class="format-note" aria-hidden="true">Works with <code>LRC</code> <code>SRT</code> <code>ASS</code></span>
               </span>
@@ -184,7 +184,7 @@
             <p class="kefe-tooltip-body">Adds animated motion, glow, and color shifts that react to your lyrics in real time. Great for music videos and karaoke-style visuals.</p>
           </div>
         </div>
-        <div class="section-content" id="panel-lyric-effects">
+        <div class="section-content" id="settings-panel-lyric-effects">
           <div class="content-inner">
             <div class="setting-row">
               <span class="setting-label" id="lyric-effects-label">Enable Lyric Effects</span>
@@ -211,10 +211,10 @@
           <h2 class="section-title-wrap">
             <button class="expand-button" type="button"
                     aria-expanded="false"
-                    aria-controls="panel-visualisers">
+                    aria-controls="settings-panel-visualisers">
               <span class="expand-indicator" aria-hidden="true"></span>
               <span class="title-group">
-                <span id="title-visualisers" class="section-heading">Visualisers</span>
+                <span id="settings-title-visualisers" class="section-heading">Visualisers</span>
                 <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
                 <span class="format-note" aria-hidden="true">Reads <code>MP3</code> <code>WAV</code> <code>FLAC</code> <code>AAC</code></span>
               </span>
@@ -231,7 +231,7 @@
             <p class="kefe-tooltip-body">Audio-reactive bars, waveforms, and shapes that respond to the beat and frequency of your track.</p>
           </div>
         </div>
-        <div class="section-content" id="panel-visualisers">
+        <div class="section-content" id="settings-panel-visualisers">
           <div class="content-inner">
             <div class="setting-row">
               <span class="setting-label" id="visualiser-style-label">Style</span>
@@ -260,10 +260,10 @@
           <h2 class="section-title-wrap">
             <button class="expand-button" type="button"
                     aria-expanded="false"
-                    aria-controls="panel-export">
+                    aria-controls="settings-panel-export">
               <span class="expand-indicator" aria-hidden="true"></span>
               <span class="title-group">
-                <span id="title-export" class="section-heading">Export</span>
+                <span id="settings-title-export" class="section-heading">Export</span>
                 <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
                 <span class="format-note" aria-hidden="true">Outputs <code>MP4</code> <code>MOV</code> <code>WEBM</code> <code>GIF</code></span>
               </span>
@@ -280,7 +280,7 @@
             <p class="kefe-tooltip-body">Save your finished project as video or image files. Choose resolution, format, and quality before rendering.</p>
           </div>
         </div>
-        <div class="section-content" id="panel-export">
+        <div class="section-content" id="settings-panel-export">
           <div class="content-inner">
             <div class="setting-row">
               <span class="setting-label" id="export-ratio-label">Canvas ratio</span>

@@ -1,56 +1,47 @@
-@import "../app/ui/styles.css";
-@import "../app/ui/panels-compact.css";
+import { useEffect, useRef } from "react";
+import { createRoot } from "react-dom/client";
+import { Card } from "@/components/motion/card";
+import "./legacy-bridge.css";
 
-.kefe-upload-zone.beui-upload-card-hosted,
-.kefe-panel.beui-panel-card-hosted,
-.kefe-panel[data-panel-view].beui-panel-card-hosted {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  min-height: 0;
+function UploadCard({ originalNodes }) {
+  const card = useRef(null);
+  useEffect(() => {
+    if (card.current) card.current.append(...originalNodes);
+  }, [originalNodes]);
+
+  return (
+    <Card
+      ref={card}
+      className="beui-upload-card w-full gap-1 rounded-xl border border-dashed p-0 text-center"
+      style={{
+        width: "100%",
+        minHeight: "192px",
+        padding: "18px",
+        borderStyle: "dashed",
+        borderColor: "var(--line)",
+        background: "var(--surface)",
+        color: "var(--text)",
+        boxShadow: "var(--inner)",
+      }}
+    />
+  );
 }
 
-.beui-upload-card-root,
-.beui-panel-card-root {
-  display: block;
-  width: 100%;
+function start() {
+  const label = document.getElementById("kefeUploadZone");
+  if (!label || label.dataset.beuiCardMounted) return;
+  const originalNodes = [...label.childNodes];
+  const host = document.createElement("div");
+  host.className = "beui-upload-card-root";
+  label.replaceChildren(host);
+  label.classList.add("beui-upload-card-hosted");
+  label.dataset.beuiCardMounted = "true";
+  createRoot(host).render(<UploadCard originalNodes={originalNodes} />);
 }
 
-.beui-upload-card-root > *,
-.beui-panel-card-root > * {
-  width: 100%;
-}
-
-.kefe-upload-zone.beui-upload-card-hosted .beui-upload-symbol,
-.kefe-upload-zone.beui-upload-card-hosted .beui-upload-browse,
-.kefe-upload-zone.beui-upload-card-hosted .kefe-upload-help,
-.kefe-upload-zone.beui-upload-card-hosted .kefe-upload-name,
-.kefe-upload-zone.beui-upload-card-hosted .kefe-upload-title {
-  display: none;
-}
-
-.kefe-upload-zone.beui-upload-card-hosted {
-  overflow: hidden;
-}
-
-.kefe-panel[data-panel-view].beui-panel-card-hosted > .beui-panel-card-root {
-  width: 100%;
-}
-
-.kefe-panel[data-panel-view].beui-panel-card-hosted .beui-editor-panel-card {
-  width: 100%;
-  max-width: 1200px;
-}
-
-.kefe-upload-zone.beui-upload-card-hosted .beui-upload-card {
-  width: 100%;
-  min-height: 192px;
-}
-
-@media (max-width: 640px) {
-  .kefe-upload-zone.beui-upload-card-hosted {
-    padding: 0;
-  }
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", start, { once: true });
+} else {
+  start();
 }
 

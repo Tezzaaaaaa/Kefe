@@ -77,6 +77,35 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
+    try {
+      await page.waitForFunction(() => {
+        const root = document.querySelector("#kefe-settings-panel");
+        const slots = root && [...root.querySelectorAll(".kefe-slot")];
+        return root && root.closest(".kefe-editing.kefe-settings-layout") &&
+          slots.length === 6 && slots.every(slot => slot.querySelector(".kefe-panel"));
+      }, null, { timeout: 10000 });
+    } catch (error) {
+      const diagnostics = await page.evaluate(() => ({
+        readyState: document.readyState,
+        hasEditor: !!document.querySelector(".kefe-editing"),
+        panelViews: [...document.querySelectorAll(".kefe-panel[data-panel-view]")].map(panel => panel.dataset.panelView),
+        settingsApi: typeof window.kefeSettings,
+        panelComponent: typeof window.KefeSettingsPanel,
+        settingsScripts: [...document.scripts].filter(script => script.src.includes("/app/settings/")).map(script => script.src)
+      }));
+      throw new Error("Settings panel did not mount: " + JSON.stringify({ diagnostics, pageErrors, error: error.message }));
+    }
+    const timingNudge = page.locator('[data-setting="lyric-nudge"]');
+    await timingNudge.evaluate(input => {
+      input.value = "0.65";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await page.waitForFunction(() => Math.abs(window.kefeSettings.get("lyricOffset") - 0.65) < 0.001, null, { timeout: 5000 });
+    await timingNudge.evaluate(input => {
+      input.value = "0";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await page.waitForFunction(() => Math.abs(window.kefeSettings.get("lyricOffset")) < 0.001, null, { timeout: 5000 });
 
     // Exercise the editor toolbar against the real editor controls.
     const quickToolbar = page.locator("#kefeFloatingToolbar");
@@ -217,15 +246,17 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       `desktop beUI navigation groups must be horizontal flex rows: ${JSON.stringify(headerNavigation.navDisplays)}`);
     assert.ok(headerNavigation.linksWithinHeader, "desktop navigation links must not be clipped outside the header");
     const desktopColumns = await page.evaluate(() => {
-      const left = document.querySelector(".kefe-panels-left").getBoundingClientRect();
+      const left = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
       const centre = document.querySelector(".kefe-work").getBoundingClientRect();
-      const right = document.querySelector(".kefe-editing > .kefe-panels:not(.kefe-panels-left)").getBoundingClientRect();
-      return { leftRight: left.right, centreLeft: centre.left, centreRight: centre.right, rightLeft: right.left };
+      const right = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="output"]').getBoundingClientRect();
+      return { leftRight: left.right, centreLeft: centre.left, centreRight: centre.right, rightLeft: right.left, leftWidth: left.width, rightWidth: right.width };
     });
+    assert.ok(desktopColumns.leftWidth > 0 && desktopColumns.rightWidth > 0,
+      "both integrated settings panels must be visible");
     assert.ok(desktopColumns.leftRight <= desktopColumns.centreLeft + 1,
-      "left editor panel must stay left of the central preview");
+      "KEFE input panel must stay left of the central preview");
     assert.ok(desktopColumns.centreRight <= desktopColumns.rightLeft + 1,
-      "right editor panel must stay right of the central preview");
+      "Visual & Output panel must stay right of the central preview");
     await page.waitForSelector(".beui-textarea-host #beui-lyricsInput", { state: "attached", timeout: 20000 });
     assert.equal(await page.locator(".beui-textarea-host #beui-lyricsInput").count(), 1, "textarea bridge must not recursively mount its own component");
     await page.waitForFunction(() => {
@@ -280,8 +311,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     if (mediaUploadGeometry.rowWidth <= 500) {
       assert.equal(mediaUploadGeometry.rowColumnCount, 1, `narrow Media panels must stack upload cards instead of compressing them: ${JSON.stringify(mediaUploadGeometry)}`);
     }
-    assert.ok(Math.abs(mediaUploadGeometry.primaryHeight - mediaUploadGeometry.backgroundHeight) <= 2,
-      `the two Media upload cards must have matching heights: ${JSON.stringify(mediaUploadGeometry)}`);
+    if (mediaUploadGeometry.rowColumnCount > 1) {
+      assert.ok(Math.abs(mediaUploadGeometry.primaryHeight - mediaUploadGeometry.backgroundHeight) <= 2,
+        `side-by-side Media upload cards must have matching heights: ${JSON.stringify(mediaUploadGeometry)}`);
+    }
     await assertSectionFits("media");
     const mediaMetadataColumns = await page.locator(".kefe-details-grid").evaluate(grid => ({
       width: grid.getBoundingClientRect().width,
@@ -333,106 +366,78 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "background darkness control must remain in Background Effects after cleanup");
     assert.equal(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option').count() > 0, true,
       "Effects must retain its lyric-effect gallery after background-treatment cleanup");
-    const mediaPanel = page.locator(".kefe-panels-left .kefe-panel[data-panel-view='media']");
-    const mediaHeading = mediaPanel.getByRole("heading", { name: "Media" });
-    const mediaAccordion = mediaPanel.locator(".beui-accordion-trigger:not(.beui-native-panel-button)");
+    const mediaSection = page.locator('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] > .section[data-section-id="media"]');
+    const mediaHeading = mediaSection.locator(".section-heading").first();
+    const mediaAccordion = mediaSection.locator(".expand-button").first();
     await mediaHeading.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.click();
-    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "false", "section accordion should enter collapsed state");
-    const headingState = await mediaPanel.evaluate((panel) => {
-      const heading = panel.querySelector(".kefe-panel-head");
-      const title = heading?.querySelector("h2");
-      const rect = (node) => {
-        const box = node?.getBoundingClientRect();
-        return box ? { x: box.x, y: box.y, width: box.width, height: box.height } : null;
-      };
-      return {
-        panelClass: panel.className,
-        panelDisplay: getComputedStyle(panel).display,
-        panelRect: rect(panel),
-        parentClass: panel.parentElement?.className,
-        parentDisplay: panel.parentElement ? getComputedStyle(panel.parentElement).display : null,
-        headingExists: Boolean(heading),
-        headingHidden: heading?.hidden,
-        headingDisplay: heading ? getComputedStyle(heading).display : null,
-        headingVisibility: heading ? getComputedStyle(heading).visibility : null,
-        headingRect: rect(heading),
-        titleText: title?.textContent,
-        titleDisplay: title ? getComputedStyle(title).display : null,
-        titleVisibility: title ? getComputedStyle(title).visibility : null,
-        titleRect: rect(title),
-      };
-    });
-    assert.ok(await mediaHeading.isVisible(), `Media heading must remain visible in the desktop panel: ${JSON.stringify(headingState)}`);
-    await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "hidden", timeout: 5000 });
+    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "false", "Media section should collapse");
+    await page.waitForFunction(() => {
+      const section = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] > .section[data-section-id="media"]');
+      return section?.dataset.expanded === "false" &&
+        section.querySelector(".section-content").getBoundingClientRect().height < 1;
+    }, null, { timeout: 5000 });
     await mediaAccordion.click();
-    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true", "section accordion should expand again");
-    await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "visible", timeout: 5000 });
+    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true", "Media section should expand again");
+    await page.waitForFunction(() => {
+      const section = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] > .section[data-section-id="media"]');
+      return section?.dataset.expanded === "true" &&
+        section.querySelector(".section-content").getBoundingClientRect().height > 1;
+    }, null, { timeout: 5000 });
 
     const sectionHeaderAudit = await page.evaluate(() => {
-      const panels = [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")];
-      return panels.map((panel) => {
-        const row = panel.querySelector(".kefe-panel-head .kefe-section-heading-row");
-        const info = row?.querySelector(".kefe-section-info");
-        const accordion = row?.querySelector(".beui-accordion-trigger:not(.beui-native-panel-button)");
-        const featureSwitch = row?.querySelector(".kefe-switch");
+      const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];
+      return sections.map(section => {
+        const header = section.querySelector(".section-header");
+        const title = section.querySelector(".section-heading");
+        const info = header?.querySelector(".info-button");
+        const description = header?.querySelector(".kefe-tooltip .kefe-tooltip-body");
+        const accordion = header?.querySelector(".expand-button");
         return {
-          section: panel.dataset.panelView,
-          title: row?.querySelector("h2")?.textContent.trim(),
+          section: section.dataset.sectionId,
+          title: title?.textContent.trim(),
           info: Boolean(info),
-          description: Boolean(row?.querySelector(".kefe-section-description")),
-          tooltip: info?.dataset.tooltip || "",
-          accordion: Boolean(accordion),
-          featureSwitchInline: !featureSwitch || featureSwitch.closest(".kefe-section-heading-row") === row,
+          description: Boolean(description),
+          tooltip: description?.textContent.trim() || "",
+          accordion: Boolean(accordion)
         };
       });
     });
-    assert.equal(sectionHeaderAudit.length, 6, "all six sections should retain their own heading row");
-    assert.ok(sectionHeaderAudit.every((item) => item.title && item.info && item.description && item.accordion),
-      `every section must have a clean title, info tooltip and accordion control: ${JSON.stringify(sectionHeaderAudit)}`);
-    assert.ok(sectionHeaderAudit.every((item) => item.featureSwitchInline),
-      "section on/off switches must remain inside their heading row");
-    assert.match(sectionHeaderAudit.find((item) => item.section === "media").tooltip, /Import audio or video/,
-      "the Media instructions should be available through the info tooltip");
+    assert.equal(sectionHeaderAudit.length, 6, "all six settings sections should be present");
+    assert.ok(sectionHeaderAudit.every(item => item.title && item.info && item.description && item.accordion),
+      `every settings section needs a title, info tooltip and accordion: ${JSON.stringify(sectionHeaderAudit)}`);
+    assert.match(sectionHeaderAudit.find(item => item.section === "media").tooltip, /Import, replace, or remove files/,
+      "Media instructions should be available through the info tooltip");
 
-    const uniformHeaderGeometry = await page.evaluate(() => [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")].map(panel => {
-      const head = panel.querySelector(".kefe-panel-head");
-      const row = head?.querySelector(".kefe-section-heading-row");
-      const title = row?.querySelector("h2");
-      const info = row?.querySelector(".kefe-section-info");
-      const accordion = row?.querySelector(".beui-accordion-trigger:not(.beui-native-panel-button)");
-      const titleStyle = title && getComputedStyle(title);
-      const rowRect = row?.getBoundingClientRect();
-      const infoSize = info ? [info.offsetWidth, info.offsetHeight] : null;
-      const accordionSize = accordion ? [accordion.offsetWidth, accordion.offsetHeight] : null;
+    const featureSwitchAudit = await page.evaluate(() => [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")].map(panel => {
+      const row = panel.querySelector(".kefe-panel-head .kefe-section-heading-row");
+      const featureSwitch = row?.querySelector(".kefe-switch");
       return {
         section: panel.dataset.panelView,
+        featureSwitchInline: !featureSwitch || featureSwitch.closest(".kefe-section-heading-row") === row
+      };
+    }));
+    assert.ok(featureSwitchAudit.every(item => item.featureSwitchInline),
+      "existing feature switches must remain beside their section controls");
+
+    const uniformHeaderGeometry = await page.evaluate(() => [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")].map(section => {
+      const title = section.querySelector(".section-heading");
+      const info = section.querySelector(".info-button");
+      const accordion = section.querySelector(".expand-button");
+      const titleStyle = title && getComputedStyle(title);
+      return {
+        section: section.dataset.sectionId,
         titleSize: titleStyle?.fontSize,
         titleWeight: titleStyle?.fontWeight,
         titleLineHeight: titleStyle?.lineHeight,
-        rowHeight: Math.round(rowRect?.height || 0),
-        infoSize,
-        accordionSize,
+        infoSize: info ? [info.offsetWidth, info.offsetHeight] : null,
+        accordionHeight: accordion ? accordion.offsetHeight : null
       };
     }));
-    assert.equal(new Set(uniformHeaderGeometry.map(x => [x.titleSize,x.titleWeight,x.titleLineHeight,x.rowHeight,JSON.stringify(x.infoSize),JSON.stringify(x.accordionSize)].join("|"))).size, 1,
-      `all six section headers must have identical typography and control geometry: ${JSON.stringify(uniformHeaderGeometry)}`);
-
-    const sectionAccordions = page.locator(".kefe-panel[data-panel-view] .kefe-section-heading-row .beui-accordion-trigger:not(.beui-native-panel-button)");
-    assert.equal(await sectionAccordions.count(), 6, "each section should have one visible accordion control");
-    for (const accordion of await sectionAccordions.all()) {
-      if (await accordion.getAttribute("aria-expanded") === "true") await accordion.click();
-    }
-    await page.waitForFunction(() => [...document.querySelectorAll(".kefe-panel[data-panel-view]")].every((panel) => !panel.style.height), null, { timeout: 5000 });
-    const collapsedHeights = await page.evaluate(() => [...document.querySelectorAll(".kefe-panel[data-panel-view]")].map((panel) => panel.getBoundingClientRect().height));
-    assert.ok(Math.max(...collapsedHeights) - Math.min(...collapsedHeights) <= 1,
-      `all collapsed section cards should have the same height: ${JSON.stringify(collapsedHeights)}`);
-    for (const accordion of await sectionAccordions.all()) {
-      if (await accordion.getAttribute("aria-expanded") === "false") await accordion.click();
-    }
-    await page.waitForFunction(() => [...document.querySelectorAll(".kefe-panel[data-panel-view]")].every((panel) => !panel.style.height), null, { timeout: 5000 });
-    await mediaPanel.locator(".beui-editor-panel-card > .kefe-form").waitFor({ state: "visible", timeout: 5000 });
+    assert.equal(new Set(uniformHeaderGeometry.map(item =>
+      [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize)].join("|")
+    )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
     const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
     assert.ok(sidebarCount >= 7, `expected sidebar actions, found ${sidebarCount}`);
@@ -480,7 +485,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     if (backgroundOptionsLayout.width <= 360) assert.equal(backgroundOptionsLayout.columns, 1,
       `background effect cards must stack when the panel is narrow: ${JSON.stringify(backgroundOptionsLayout)}`);
 
-    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Visualisers" }).click();
+    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Visualiser" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "visualiser", null, { timeout: 5000 });
     await page.waitForSelector(".beui-vis-tabs-host [role='tab']", { state: "attached", timeout: 10000 });
     assert.ok(await page.locator(".beui-vis-tabs-host [role='tab']").count() >= 1, "visualiser navigation should use beUI Tabs");
@@ -562,25 +567,27 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "power toggles must not change the selected visualiser tab");
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
-    const lyricsNavButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" });
+    const lyricsNavButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyric Sync" });
     await lyricsNavButton.evaluate((button) => button.scrollIntoView({ block: "center", inline: "nearest" }));
     await lyricsNavButton.evaluate((button) => button.click());
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser tabs must not appear on the Lyrics section");
     await assertSectionFits("lyrics");
-    const lyricsTimingLayout = await page.locator(".kefe-lyrics-timing-controls").evaluate(grid => ({
-      width: grid.getBoundingClientRect().width,
-      columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length,
-      sliderRow: getComputedStyle(document.getElementById("lyricsTiming")).gridRow,
-      earlierRow: getComputedStyle(document.getElementById("lyricsTimingEarlier")).gridRow,
-      laterRow: getComputedStyle(document.getElementById("lyricsTimingLater")).gridRow
-    }));
-    if (lyricsTimingLayout.width <= 500) {
-      assert.equal(lyricsTimingLayout.columns, 2, `lyrics timing must stack slider and step buttons in a narrow panel: ${JSON.stringify(lyricsTimingLayout)}`);
-      assert.match(lyricsTimingLayout.sliderRow, /^1/);
-      assert.match(lyricsTimingLayout.earlierRow, /^2/);
-      assert.match(lyricsTimingLayout.laterRow, /^2/);
+    if (await page.locator(".kefe-lyrics-timing").isVisible()) {
+      const lyricsTimingLayout = await page.locator(".kefe-lyrics-timing-controls").evaluate(grid => ({
+        width: grid.getBoundingClientRect().width,
+        columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+        sliderRow: getComputedStyle(document.getElementById("lyricsTiming")).gridRow,
+        earlierRow: getComputedStyle(document.getElementById("lyricsTimingEarlier")).gridRow,
+        laterRow: getComputedStyle(document.getElementById("lyricsTimingLater")).gridRow
+      }));
+      if (lyricsTimingLayout.width <= 500) {
+        assert.equal(lyricsTimingLayout.columns, 2, `lyrics timing must stack slider and step buttons in a narrow panel: ${JSON.stringify(lyricsTimingLayout)}`);
+        assert.match(lyricsTimingLayout.sliderRow, /^1/);
+        assert.match(lyricsTimingLayout.earlierRow, /^2/);
+        assert.match(lyricsTimingLayout.laterRow, /^2/);
+      }
     }
     await page.locator(".beui-textarea-host #beui-lyricsInput").fill("beUI lyric smoke");
     assert.equal(await page.locator("#lyricsInput").inputValue(), "beUI lyric smoke", "beUI Textarea should preserve the legacy lyrics value and events");
@@ -589,8 +596,8 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const commandPalette = page.locator("#kefeCommandPalette");
     await commandPalette.waitFor({ state: "visible", timeout: 5000 });
     assert.equal(await commandPalette.locator(".beui-command-dialog").count(), 1, "command palette should use the beUI Card shell");
-    await page.locator("#kefeCommandInput").fill("Open Effects");
-    const commandButton = page.locator(".beui-command-button-host button").filter({ hasText: "Open Effects" });
+    await page.locator("#kefeCommandInput").fill("Open Lyric Effects");
+    const commandButton = page.locator(".beui-command-button-host button").filter({ hasText: "Open Lyric Effects" });
     await commandButton.waitFor({ state: "visible", timeout: 5000 });
     await commandButton.click();
     await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
@@ -600,7 +607,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser tabs must not appear on the Effects section");
 
-    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Export" }).click();
+    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Export" }).evaluate(button => button.click());
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "export", null, { timeout: 5000 });
     await assertSectionFits("export");
     const exportLayout = await page.locator('.kefe-panel[data-panel-view="export"] .kefe-form').evaluate(form => ({

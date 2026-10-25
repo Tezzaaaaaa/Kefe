@@ -89,12 +89,12 @@
     background: transparent;
     pointer-events: none;
     gap: 6px;
-  }.kefe-settings-panel .kefe-btn--ksp-saved:not(.kefe-slot *)::before{ content: "✓"; font-size: 13px; font-weight: 700; }.kefe-settings-panel .kefe-panels:not(.kefe-slot *){
+  }.kefe-settings-panel .kefe-btn--ksp-saved:not(.kefe-slot *)::before{ content: "✓"; font-size: 13px; font-weight: 700; }.kefe-settings-panel .kefe-settings-columns:not(.kefe-slot *){
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
     align-items: start;
-  }@container kefe-settings (min-width: 760px){.kefe-settings-panel .kefe-panels:not(.kefe-slot *){ grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  }@container kefe-settings (min-width: 760px){.kefe-settings-panel .kefe-settings-columns:not(.kefe-slot *){ grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   }.kefe-settings-panel .kefe-panel:not(.kefe-slot *){ display: flex; flex-direction: column; gap: var(--ksp-gap); }.kefe-settings-panel .kefe-panel-label:not(.kefe-slot *){
     margin: 0 0 4px;
     font-size: 11px;
@@ -399,3 +399,145 @@
     }
   }
 
+
+
+/* Integrated editor layout: the standalone panel owns section layout; legacy panel
+   containers are moved into its slots so their existing controls and handlers remain authoritative. */
+.kefe-editor .kefe-editing.kefe-settings-layout {
+  min-width: 0;
+  width: 100%;
+}
+.kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+@media (min-width: 1280px) {
+  .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount,
+  .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount > .kefe-settings-panel,
+  .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount > .kefe-settings-panel > .kefe-settings-columns[data-accordion="multi"] {
+    display: contents;
+  }
+  .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] {
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 12px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    container-type: inline-size;
+    container-name: kefe-settings;
+    background: var(--surface);
+  }
+  .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] {
+    grid-column: 1;
+    grid-row: 2 / 5;
+    border-right: 1px solid var(--line);
+  }
+  .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="output"] {
+    grid-column: 3;
+    grid-row: 2 / 5;
+    border-left: 1px solid var(--line);
+  }
+}
+.kefe-editor .kefe-editing.kefe-settings-layout > .kefe-tabs,
+.kefe-editor .kefe-editing.kefe-settings-layout > .beui-tabs-host,
+.kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-columns,
+.kefe-editor .kefe-editing.kefe-settings-layout .kefe-resizer {
+  display: none;
+}
+.kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel {
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.kefe-settings-panel .kefe-slot .kefe-panel-head {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.kefe-settings-panel .kefe-slot .kefe-panel-head > h2,
+.kefe-settings-panel .kefe-slot .kefe-panel-head > .kefe-meta,
+.kefe-settings-panel .kefe-slot .kefe-section-title-group,
+.kefe-settings-panel .kefe-slot .kefe-section-description,
+.kefe-settings-panel .kefe-slot .beui-accordion-trigger,
+.kefe-settings-panel .kefe-slot .kefe-effects-heading {
+  display: none;
+}
+.kefe-settings-panel .kefe-slot .kefe-section-heading-row {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.kefe-settings-panel .kefe-slot .kefe-lyrics-power,
+.kefe-settings-panel .kefe-slot .kefe-background-effect-toggle,
+.kefe-settings-panel .kefe-slot .kefe-visualiser-power-slot {
+  display: flex;
+}
+.kefe-settings-panel .kefe-slot .beui-panel-card-root,
+.kefe-settings-panel .kefe-slot .beui-editor-panel-card,
+.kefe-settings-panel .kefe-slot .kefe-form {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+.kefe-settings-panel .kefe-slot .kefe-lyrics-timing {
+  display: none;
+}
+.kefe-settings-panel .kefe-slot .kefe-vis-tabs {
+  display: block;
+}
+.kefe-settings-panel .kefe-slot .beui-vis-tabs-host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+
+@container kefe-settings (max-width: 500px) {
+  .kefe-settings-panel .kefe-slot .kefe-media-upload-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .kefe-settings-panel .kefe-slot .kefe-details-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@container kefe-settings (min-width: 501px) {
+  .kefe-settings-panel .kefe-slot .kefe-details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+.kefe-settings-panel,
+.kefe-settings-panel > .kefe-settings-columns,
+.kefe-settings-panel > .kefe-settings-columns > .kefe-panel {
+  min-width: 0;
+}
+.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] {
+  min-width: 0;
+  container-type: inline-size;
+  container-name: kefe-settings;
+}
+@media (min-width: 1280px) {
+  .kefe-settings-panel .kefe-slot .kefe-media-upload-row,
+  .kefe-settings-panel .kefe-slot .kefe-details-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
