@@ -89,12 +89,12 @@
     background: transparent;
     pointer-events: none;
     gap: 6px;
-  }.kefe-settings-panel .kefe-btn--ksp-saved:not(.kefe-slot *)::before{ content: "✓"; font-size: 13px; font-weight: 700; }.kefe-settings-panel .kefe-panels:not(.kefe-slot *){
+  }.kefe-settings-panel .kefe-btn--ksp-saved:not(.kefe-slot *)::before{ content: "✓"; font-size: 13px; font-weight: 700; }.kefe-settings-panel .kefe-settings-columns:not(.kefe-slot *){
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
     align-items: start;
-  }@container kefe-settings (min-width: 760px){.kefe-settings-panel .kefe-panels:not(.kefe-slot *){ grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  }@container kefe-settings (min-width: 760px){.kefe-settings-panel .kefe-settings-columns:not(.kefe-slot *){ grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   }.kefe-settings-panel .kefe-panel:not(.kefe-slot *){ display: flex; flex-direction: column; gap: var(--ksp-gap); }.kefe-settings-panel .kefe-panel-label:not(.kefe-slot *){
     margin: 0 0 4px;
     font-size: 11px;
@@ -417,10 +417,10 @@
 @media (min-width: 1280px) {
   .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount,
   .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount > .kefe-settings-panel,
-  .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount > .kefe-settings-panel > .kefe-panels[data-accordion="multi"] {
+  .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount > .kefe-settings-panel > .kefe-settings-columns[data-accordion="multi"] {
     display: contents;
   }
-  .kefe-settings-panel > .kefe-panels > .kefe-panel[data-group] {
+  .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] {
     min-width: 0;
     min-height: 0;
     margin: 0;
@@ -432,12 +432,12 @@
     container-name: kefe-settings;
     background: var(--surface);
   }
-  .kefe-settings-panel > .kefe-panels > .kefe-panel[data-group="input"] {
+  .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] {
     grid-column: 1;
     grid-row: 2 / 5;
     border-right: 1px solid var(--line);
   }
-  .kefe-settings-panel > .kefe-panels > .kefe-panel[data-group="visual-output"] {
+  .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="visual-output"] {
     grid-column: 3;
     grid-row: 2 / 5;
     border-left: 1px solid var(--line);
@@ -445,7 +445,7 @@
 }
 .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-tabs,
 .kefe-editor .kefe-editing.kefe-settings-layout > .beui-tabs-host,
-.kefe-editor .kefe-editing.kefe-settings-layout > .kefe-panels,
+.kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-columns,
 .kefe-editor .kefe-editing.kefe-settings-layout .kefe-resizer {
   display: none;
 }
@@ -526,11 +526,11 @@
 
 
 .kefe-settings-panel,
-.kefe-settings-panel > .kefe-panels,
-.kefe-settings-panel > .kefe-panels > .kefe-panel {
+.kefe-settings-panel > .kefe-settings-columns,
+.kefe-settings-panel > .kefe-settings-columns > .kefe-panel {
   min-width: 0;
 }
-.kefe-settings-panel > .kefe-panels > .kefe-panel[data-group] {
+.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] {
   min-width: 0;
   container-type: inline-size;
   container-name: kefe-settings;
