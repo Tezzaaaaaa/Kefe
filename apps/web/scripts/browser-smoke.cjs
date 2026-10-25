@@ -77,12 +77,24 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
-    await page.waitForFunction(() => {
-      const root = document.querySelector("#kefe-settings-panel");
-      const slots = root && [...root.querySelectorAll(".kefe-slot")];
-      return root && root.closest(".kefe-editing.kefe-settings-layout") &&
-        slots.length === 6 && slots.every(slot => slot.querySelector(".kefe-panel"));
-    }, null, { timeout: 10000 });
+    try {
+      await page.waitForFunction(() => {
+        const root = document.querySelector("#kefe-settings-panel");
+        const slots = root && [...root.querySelectorAll(".kefe-slot")];
+        return root && root.closest(".kefe-editing.kefe-settings-layout") &&
+          slots.length === 6 && slots.every(slot => slot.querySelector(".kefe-panel"));
+      }, null, { timeout: 10000 });
+    } catch (error) {
+      const diagnostics = await page.evaluate(() => ({
+        readyState: document.readyState,
+        hasEditor: !!document.querySelector(".kefe-editing"),
+        panelViews: [...document.querySelectorAll(".kefe-panel[data-panel-view]")].map(panel => panel.dataset.panelView),
+        settingsApi: typeof window.kefeSettings,
+        panelComponent: typeof window.KefeSettingsPanel,
+        settingsScripts: [...document.scripts].filter(script => script.src.includes("/app/settings/")).map(script => script.src)
+      }));
+      throw new Error("Settings panel did not mount: " + JSON.stringify({ diagnostics, pageErrors, error: error.message }));
+    }
     const timingNudge = page.locator('[data-setting="lyric-nudge"]');
     await timingNudge.evaluate(input => {
       input.value = "0.65";
