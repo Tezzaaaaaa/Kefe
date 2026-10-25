@@ -74,6 +74,7 @@
     });
 
     editing.querySelectorAll('.kefe-tabs, .beui-tabs-host, .kefe-panels').forEach(element => {
+      if (root.contains(element)) return;
       element.hidden = true;
       element.setAttribute('aria-hidden', 'true');
     });
