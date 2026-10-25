@@ -215,6 +215,7 @@
     }
 
     _updateStatus() {
+      if (!this.$status) return;
       const values = this.getValues();
       const defaults = this.getDefaults();
       let changed = 0, active = 0;
@@ -250,6 +251,7 @@
     }
 
     _syncSaveVisibility() {
+      if (!this.$save) return;
       if (this.options.autoPersist) {
         this.$save.classList.add('kefe-btn--hidden');
         return;
@@ -258,17 +260,18 @@
     }
 
     _showDirty() {
-      if (this.options.autoPersist) return;
+      if (this.options.autoPersist || !this.$save || !this.$saved) return;
       this.$save.classList.remove('kefe-btn--hidden');
       this.$saved.classList.add('kefe-btn--hidden');
       clearTimeout(this._savedTimer);
     }
 
     _hideDirty() {
-      this.$save.classList.add('kefe-btn--hidden');
+      this.$save?.classList.add('kefe-btn--hidden');
     }
 
     _flashSaved() {
+      if (!this.$saved) return;
       this.$saved.classList.remove('kefe-btn--hidden');
       clearTimeout(this._savedTimer);
       this._savedTimer = setTimeout(() => {
@@ -411,7 +414,7 @@
     /* ── Top bar ──────────────────────────────────────────── */
 
     _bindTopbar() {
-      this.$save.addEventListener('click', () => {
+      this.$save?.addEventListener('click', () => {
         this._persist();
         this._flashSaved();
         this._hideDirty();
@@ -420,7 +423,7 @@
         this.root.dispatchEvent(new CustomEvent('kefe:save', { detail: { values } }));
       });
 
-      this.$reset.addEventListener('click', () => {
+      this.$reset?.addEventListener('click', () => {
         this.reset({ persist: true, confirm: true });
       });
     }
@@ -445,7 +448,7 @@
         this.root.dispatchEvent(new CustomEvent('kefe:save', { detail: { values } }));
         return this;
       }
-      this.$save.click();
+      this.$save?.click();
       return this;
     }
 
@@ -558,7 +561,7 @@
         const mod = e.metaKey || e.ctrlKey;
         if (this.options.bindShortcuts !== false && mod && (e.key === 's' || e.key === 'S')) {
           e.preventDefault();
-          if (!this.options.autoPersist &&
+          if (!this.options.autoPersist && this.$save &&
               !this.$save.classList.contains('kefe-btn--hidden')) {
             this.$save.click();
           } else if (this.options.autoPersist) {
