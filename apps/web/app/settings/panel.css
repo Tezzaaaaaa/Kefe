@@ -415,24 +415,32 @@
   padding: 0;
 }
 @media (min-width: 1280px) {
-  .kefe-editor {
-    grid-template-columns: minmax(480px, 1fr) minmax(300px, clamp(300px, 25vw, 380px));
+  .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount,
+  .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount > .kefe-settings-panel,
+  .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount > .kefe-settings-panel > .kefe-panels[data-accordion="multi"] {
+    display: contents;
   }
-  .kefe-editor > .kefe-work {
-    grid-column: 1;
-    grid-row: 2 / 5;
-  }
-  .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount {
-    grid-column: 2;
-    grid-row: 2 / 5;
+  .kefe-settings-panel > .kefe-panels > .kefe-panel[data-group] {
+    min-width: 0;
     min-height: 0;
-    height: auto;
+    margin: 0;
     padding: 12px;
-    border-left: 1px solid var(--line);
-    background: var(--surface);
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
+    container-type: inline-size;
+    container-name: kefe-settings;
+    background: var(--surface);
+  }
+  .kefe-settings-panel > .kefe-panels > .kefe-panel[data-group="input"] {
+    grid-column: 1;
+    grid-row: 2 / 5;
+    border-right: 1px solid var(--line);
+  }
+  .kefe-settings-panel > .kefe-panels > .kefe-panel[data-group="visual-output"] {
+    grid-column: 3;
+    grid-row: 2 / 5;
+    border-left: 1px solid var(--line);
   }
 }
 .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-tabs,
@@ -523,9 +531,6 @@
   min-width: 0;
 }
 @media (min-width: 1280px) {
-  .kefe-settings-panel > .kefe-panels[data-accordion="multi"] {
-    grid-template-columns: minmax(0, 1fr);
-  }
   .kefe-settings-panel .kefe-slot .kefe-media-upload-row,
   .kefe-settings-panel .kefe-slot .kefe-details-grid {
     grid-template-columns: minmax(0, 1fr);
