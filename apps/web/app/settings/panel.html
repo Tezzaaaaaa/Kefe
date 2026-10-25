@@ -1,0 +1,318 @@
+<div class="kefe-settings-panel" id="kefe-settings-panel">
+
+  <!-- Top bar -->
+  <div class="kefe-topbar">
+    <div class="kefe-status" aria-live="polite">
+      <span class="kefe-status-dot" aria-hidden="true"></span>
+      <span id="kefe-status-text">All settings at defaults</span>
+    </div>
+    <div class="kefe-actions">
+      <span class="kefe-btn kefe-btn--saved kefe-btn--hidden" id="kefe-saved" role="status">
+        Saved
+      </span>
+      <button class="kefe-btn" type="button" id="kefe-reset">Reset</button>
+      <button class="kefe-btn kefe-btn--primary kefe-btn--hidden" type="button" id="kefe-save">Save</button>
+    </div>
+  </div>
+
+  <!-- Panels -->
+  <div class="kefe-panels" data-accordion="multi">
+
+    <!-- ══════════ LEFT: Input ══════════ -->
+    <div class="kefe-panel" data-group="input">
+      <h1 class="kefe-panel-label">Input</h1>
+
+      <!-- Media -->
+      <section class="section" data-expanded="true" data-section-id="media">
+        <div class="section-header">
+          <h2 class="section-title-wrap">
+            <button class="expand-button" type="button"
+                    aria-expanded="false"
+                    aria-controls="panel-media">
+              <span class="expand-indicator" aria-hidden="true"></span>
+              <span class="title-group">
+                <span id="title-media" class="section-heading">Media</span>
+                <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
+                <span class="format-note" aria-hidden="true">Supports <code>MP4</code> <code>MOV</code> <code>MP3</code> <code>WAV</code> <code>PNG</code> <code>JPG</code></span>
+              </span>
+            </button>
+          </h2>
+          <button class="info-button" type="button"
+                  aria-label="About Media"
+                  aria-haspopup="dialog"
+                  aria-expanded="false"
+                  popovertarget="tooltip-media"
+                  aria-describedby="tooltip-media">i</button>
+          <div class="kefe-tooltip" id="tooltip-media" popover role="tooltip">
+            <span class="kefe-tooltip-title">Media</span>
+            <p class="kefe-tooltip-body">Manage the audio, video, and image sources used in your project. Import, replace, or remove files from here.</p>
+          </div>
+        </div>
+        <div class="section-content" id="panel-media">
+          <div class="content-inner">
+            <div class="kefe-slot" data-kefe-slot="media"></div>
+            <div class="kefe-empty" data-kefe-fallback="media">
+              Media browser is provided by the editor shell.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lyric Sync -->
+      <section class="section" data-expanded="true" data-section-id="lyric-sync">
+        <div class="section-header">
+          <h2 class="section-title-wrap">
+            <button class="expand-button" type="button"
+                    aria-expanded="false"
+                    aria-controls="panel-lyric-sync">
+              <span class="expand-indicator" aria-hidden="true"></span>
+              <span class="title-group">
+                <span id="title-lyric-sync" class="section-heading">Lyric Sync</span>
+                <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
+                <span class="format-note" aria-hidden="true">Accepts <code>LRC</code> <code>SRT</code> <code>ASS</code> <code>TXT</code></span>
+              </span>
+            </button>
+          </h2>
+          <button class="info-button" type="button"
+                  aria-label="About Lyric Sync"
+                  aria-haspopup="dialog"
+                  aria-expanded="false"
+                  popovertarget="tooltip-lyric-sync"
+                  aria-describedby="tooltip-lyric-sync">i</button>
+          <div class="kefe-tooltip" id="tooltip-lyric-sync" popover role="tooltip">
+            <span class="kefe-tooltip-title">Lyric Sync</span>
+            <p class="kefe-tooltip-body">Fine-tune how each lyric line aligns to the audio timing. Nudge individual lines or shift the whole track at once.</p>
+          </div>
+        </div>
+        <div class="section-content" id="panel-lyric-sync">
+          <div class="content-inner">
+            <div class="setting-row">
+              <span class="setting-label" id="nudge-label">
+                Timing nudge
+                <span class="setting-hint">Shift all lyrics forward or back.</span>
+              </span>
+              <input class="kefe-range" type="range" min="-3" max="3" step="0.05" value="0"
+                     data-setting="lyric-nudge" data-default="0"
+                     aria-labelledby="nudge-label" />
+            </div>
+            <div class="kefe-slot" data-kefe-slot="lyric-sync"></div>
+            <div class="kefe-empty" data-kefe-fallback="lyric-sync">
+              Timing editor is provided by the editor shell.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Background -->
+      <section class="section" data-expanded="false" data-section-id="background">
+        <div class="section-header">
+          <h2 class="section-title-wrap">
+            <button class="expand-button" type="button"
+                    aria-expanded="false"
+                    aria-controls="panel-background">
+              <span class="expand-indicator" aria-hidden="true"></span>
+              <span class="title-group">
+                <span id="title-background" class="section-heading">Background</span>
+                <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
+                <span class="format-note" aria-hidden="true">Uses <code>PNG</code> <code>JPG</code> <code>WEBP</code> <code>MP4</code></span>
+              </span>
+            </button>
+          </h2>
+          <button class="info-button" type="button"
+                  aria-label="About Background"
+                  aria-haspopup="dialog"
+                  aria-expanded="false"
+                  popovertarget="tooltip-background"
+                  aria-describedby="tooltip-background">i</button>
+          <div class="kefe-tooltip" id="tooltip-background" popover role="tooltip">
+            <span class="kefe-tooltip-title">Background</span>
+            <p class="kefe-tooltip-body">Controls the animated backdrop behind your lyrics — gradients, particles, and motion that pulse with the music.</p>
+          </div>
+        </div>
+        <div class="section-content" id="panel-background">
+          <div class="content-inner">
+            <div class="setting-row">
+              <span class="setting-label" id="background-label">Enable Background</span>
+              <button class="toggle-switch" type="button" role="switch"
+                      aria-checked="false" aria-labelledby="background-label"
+                      data-default="false" data-setting="background-enabled">
+                <span class="toggle-thumb"></span>
+              </button>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label" id="background-mode-label">Mode</span>
+              <select class="kefe-select" data-setting="background-mode" data-default="gradient"
+                      aria-labelledby="background-mode-label">
+                <option value="gradient">Gradient</option>
+                <option value="particles">Particles</option>
+                <option value="media">Media loop</option>
+              </select>
+            </div>
+            <div class="kefe-slot" data-kefe-slot="background"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ══════════ RIGHT: Output ══════════ -->
+    <div class="kefe-panel" data-group="output">
+      <h1 class="kefe-panel-label">Output</h1>
+
+      <!-- Lyric Effects -->
+      <section class="section" data-expanded="false" data-section-id="lyric-effects">
+        <div class="section-header">
+          <h2 class="section-title-wrap">
+            <button class="expand-button" type="button"
+                    aria-expanded="false"
+                    aria-controls="panel-lyric-effects">
+              <span class="expand-indicator" aria-hidden="true"></span>
+              <span class="title-group">
+                <span id="title-lyric-effects" class="section-heading">Lyric Effects</span>
+                <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
+                <span class="format-note" aria-hidden="true">Works with <code>LRC</code> <code>SRT</code> <code>ASS</code></span>
+              </span>
+            </button>
+          </h2>
+          <button class="info-button" type="button"
+                  aria-label="About Lyric Effects"
+                  aria-haspopup="dialog"
+                  aria-expanded="false"
+                  popovertarget="tooltip-lyric-effects"
+                  aria-describedby="tooltip-lyric-effects">i</button>
+          <div class="kefe-tooltip" id="tooltip-lyric-effects" popover role="tooltip">
+            <span class="kefe-tooltip-title">Lyric Effects</span>
+            <p class="kefe-tooltip-body">Adds animated motion, glow, and color shifts that react to your lyrics in real time. Great for music videos and karaoke-style visuals.</p>
+          </div>
+        </div>
+        <div class="section-content" id="panel-lyric-effects">
+          <div class="content-inner">
+            <div class="setting-row">
+              <span class="setting-label" id="lyric-effects-label">Enable Lyric Effects</span>
+              <button class="toggle-switch" type="button" role="switch"
+                      aria-checked="true" aria-labelledby="lyric-effects-label"
+                      data-default="true" data-setting="lyric-effects-enabled">
+                <span class="toggle-thumb"></span>
+              </button>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label" id="lyric-colour-label">Accent colour</span>
+              <input class="kefe-color" type="color" value="#4f9eff"
+                     data-setting="lyric-accent" data-default="#4f9eff"
+                     aria-labelledby="lyric-colour-label" />
+            </div>
+            <div class="kefe-slot" data-kefe-slot="lyric-effects"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Visualisers -->
+      <section class="section" data-expanded="false" data-section-id="visualisers">
+        <div class="section-header">
+          <h2 class="section-title-wrap">
+            <button class="expand-button" type="button"
+                    aria-expanded="false"
+                    aria-controls="panel-visualisers">
+              <span class="expand-indicator" aria-hidden="true"></span>
+              <span class="title-group">
+                <span id="title-visualisers" class="section-heading">Visualisers</span>
+                <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
+                <span class="format-note" aria-hidden="true">Reads <code>MP3</code> <code>WAV</code> <code>FLAC</code> <code>AAC</code></span>
+              </span>
+            </button>
+          </h2>
+          <button class="info-button" type="button"
+                  aria-label="About Visualisers"
+                  aria-haspopup="dialog"
+                  aria-expanded="false"
+                  popovertarget="tooltip-visualisers"
+                  aria-describedby="tooltip-visualisers">i</button>
+          <div class="kefe-tooltip" id="tooltip-visualisers" popover role="tooltip">
+            <span class="kefe-tooltip-title">Visualisers</span>
+            <p class="kefe-tooltip-body">Audio-reactive bars, waveforms, and shapes that respond to the beat and frequency of your track.</p>
+          </div>
+        </div>
+        <div class="section-content" id="panel-visualisers">
+          <div class="content-inner">
+            <div class="setting-row">
+              <span class="setting-label" id="visualiser-style-label">Style</span>
+              <select class="kefe-select" data-setting="visualiser-style" data-default="bars"
+                      aria-labelledby="visualiser-style-label">
+                <option value="bars">Bars</option>
+                <option value="wave">Waveform</option>
+                <option value="rings">Rings</option>
+                <option value="off">Off</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label" id="visualiser-intensity-label">Intensity</span>
+              <input class="kefe-range" type="range" min="0" max="100" step="1" value="60"
+                     data-setting="visualiser-intensity" data-default="60"
+                     aria-labelledby="visualiser-intensity-label" />
+            </div>
+            <div class="kefe-slot" data-kefe-slot="visualisers"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Export -->
+      <section class="section" data-expanded="false" data-section-id="export">
+        <div class="section-header">
+          <h2 class="section-title-wrap">
+            <button class="expand-button" type="button"
+                    aria-expanded="false"
+                    aria-controls="panel-export">
+              <span class="expand-indicator" aria-hidden="true"></span>
+              <span class="title-group">
+                <span id="title-export" class="section-heading">Export</span>
+                <span class="modified-dot" aria-hidden="true" title="Modified from default"></span>
+                <span class="format-note" aria-hidden="true">Outputs <code>MP4</code> <code>MOV</code> <code>WEBM</code> <code>GIF</code></span>
+              </span>
+            </button>
+          </h2>
+          <button class="info-button" type="button"
+                  aria-label="About Export"
+                  aria-haspopup="dialog"
+                  aria-expanded="false"
+                  popovertarget="tooltip-export"
+                  aria-describedby="tooltip-export">i</button>
+          <div class="kefe-tooltip" id="tooltip-export" popover role="tooltip">
+            <span class="kefe-tooltip-title">Export</span>
+            <p class="kefe-tooltip-body">Save your finished project as video or image files. Choose resolution, format, and quality before rendering.</p>
+          </div>
+        </div>
+        <div class="section-content" id="panel-export">
+          <div class="content-inner">
+            <div class="setting-row">
+              <span class="setting-label" id="export-ratio-label">Canvas ratio</span>
+              <select class="kefe-select" data-setting="export-ratio" data-default="16:9"
+                      aria-labelledby="export-ratio-label">
+                <option value="16:9">16:9</option>
+                <option value="9:16">9:16</option>
+                <option value="1:1">1:1</option>
+                <option value="4:3">4:3</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label" id="export-format-label">Format</span>
+              <select class="kefe-select" data-setting="export-format" data-default="mp4"
+                      aria-labelledby="export-format-label">
+                <option value="mp4">MP4</option>
+                <option value="mov">MOV</option>
+                <option value="webm">WEBM</option>
+                <option value="gif">GIF</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label" id="export-scale-label">Scale</span>
+              <input class="kefe-range" type="range" min="50" max="200" step="10" value="100"
+                     data-setting="export-scale" data-default="100"
+                     aria-labelledby="export-scale-label" />
+            </div>
+            <div class="kefe-slot" data-kefe-slot="export"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+</div>
