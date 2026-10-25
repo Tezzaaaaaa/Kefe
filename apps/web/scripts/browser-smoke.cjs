@@ -91,6 +91,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
         panelViews: [...document.querySelectorAll(".kefe-panel[data-panel-view]")].map(panel => panel.dataset.panelView),
         settingsApi: typeof window.kefeSettings,
         panelComponent: typeof window.KefeSettingsPanel,
+        adapterError: window.kefeSettingsPanelAdapterError || null,
         settingsScripts: [...document.scripts].filter(script => script.src.includes("/app/settings/")).map(script => script.src)
       }));
       throw new Error("Settings panel did not mount: " + JSON.stringify({ diagnostics, pageErrors, error: error.message }));
