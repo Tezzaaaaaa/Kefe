@@ -399,3 +399,57 @@
     }
   }
 
+
+
+/* Integrated editor layout: the standalone panel owns section layout; legacy panel
+   containers are moved into its slots so their existing controls and handlers remain authoritative. */
+.kefe-editor .kefe-editing.kefe-settings-layout {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+.kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+.kefe-editor .kefe-editing.kefe-settings-layout > .kefe-tabs,
+.kefe-editor .kefe-editing.kefe-settings-layout > .beui-tabs-host,
+.kefe-editor .kefe-editing.kefe-settings-layout > .kefe-panels,
+.kefe-editor .kefe-editing.kefe-settings-layout .kefe-resizer {
+  display: none;
+}
+.kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel {
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.kefe-settings-panel .kefe-slot .kefe-panel-head {
+  display: none;
+}
+.kefe-settings-panel .kefe-slot .beui-panel-card-root,
+.kefe-settings-panel .kefe-slot .beui-editor-panel-card,
+.kefe-settings-panel .kefe-slot .kefe-form {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+.kefe-settings-panel .kefe-slot .kefe-lyrics-timing {
+  display: none;
+}
+.kefe-settings-panel .kefe-slot .kefe-vis-tabs {
+  display: block;
+}
+.kefe-settings-panel .kefe-slot .beui-vis-tabs-host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
