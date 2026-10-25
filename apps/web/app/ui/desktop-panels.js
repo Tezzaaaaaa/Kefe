@@ -135,7 +135,7 @@ function initDesktopPanels() {
         panel.classList.remove('beui-accordion-enter');
       }
     });
-    row.insertBefore(toggle, row.querySelector('.kefe-section-title-group'));
+    row.insertBefore(toggle, row.firstChild);
     panel.dataset.beuiAccordionReady = 'true';
   }
 
