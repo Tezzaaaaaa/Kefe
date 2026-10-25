@@ -249,7 +249,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const desktopColumns = await page.evaluate(() => {
       const left = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
       const centre = document.querySelector(".kefe-work").getBoundingClientRect();
-      const right = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="visual-output"]').getBoundingClientRect();
+      const right = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="output"]').getBoundingClientRect();
       return { leftRight: left.right, centreLeft: centre.left, centreRight: centre.right, rightLeft: right.left, leftWidth: left.width, rightWidth: right.width };
     });
     assert.ok(desktopColumns.leftWidth > 0 && desktopColumns.rightWidth > 0,
