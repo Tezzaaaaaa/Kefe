@@ -437,7 +437,7 @@
     grid-row: 2 / 5;
     border-right: 1px solid var(--line);
   }
-  .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="visual-output"] {
+  .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="output"] {
     grid-column: 3;
     grid-row: 2 / 5;
     border-left: 1px solid var(--line);
