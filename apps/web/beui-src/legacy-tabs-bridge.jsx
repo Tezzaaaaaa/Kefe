@@ -5,8 +5,8 @@ import "./legacy-bridge.css";
 
 const PANELS = [
   ["media", "Media"],
-  ["lyrics", "Lyrics"],
-  ["effects", "Effects"],
+  ["lyrics", "Lyric Sync"],
+  ["effects", "Lyric Effects"],
   ["background-effects", "Background Effects"],
   ["visualiser", "Visualiser"],
   ["export", "Export"],
