@@ -52,7 +52,7 @@
     }
 
     const inputGroup = root.querySelector('.kefe-panel[data-group="input"]');
-    const outputGroup = root.querySelector('.kefe-panel[data-group="visual-output"]');
+    const outputGroup = root.querySelector('.kefe-panel[data-group="output"]');
     const topbar = root.querySelector('.kefe-topbar');
     if (!inputGroup || !outputGroup || !topbar) {
       throw new Error('Settings panel input/output groups are unavailable.');
