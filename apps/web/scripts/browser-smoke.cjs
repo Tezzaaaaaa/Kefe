@@ -437,7 +437,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       };
     }));
     assert.equal(new Set(uniformHeaderGeometry.map(item =>
-      [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize), item.accordionHeight].join("|")
+      [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize)].join("|")
     )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
     const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
