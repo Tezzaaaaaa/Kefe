@@ -299,8 +299,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     if (mediaUploadGeometry.rowWidth <= 500) {
       assert.equal(mediaUploadGeometry.rowColumnCount, 1, `narrow Media panels must stack upload cards instead of compressing them: ${JSON.stringify(mediaUploadGeometry)}`);
     }
-    assert.ok(Math.abs(mediaUploadGeometry.primaryHeight - mediaUploadGeometry.backgroundHeight) <= 2,
-      `the two Media upload cards must have matching heights: ${JSON.stringify(mediaUploadGeometry)}`);
+    if (mediaUploadGeometry.rowColumnCount > 1) {
+      assert.ok(Math.abs(mediaUploadGeometry.primaryHeight - mediaUploadGeometry.backgroundHeight) <= 2,
+        `side-by-side Media upload cards must have matching heights: ${JSON.stringify(mediaUploadGeometry)}`);
+    }
     await assertSectionFits("media");
     const mediaMetadataColumns = await page.locator(".kefe-details-grid").evaluate(grid => ({
       width: grid.getBoundingClientRect().width,
