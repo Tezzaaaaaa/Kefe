@@ -607,7 +607,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser tabs must not appear on the Effects section");
 
-    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Export" }).click();
+    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Export" }).evaluate(button => button.click());
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "export", null, { timeout: 5000 });
     await assertSectionFits("export");
     const exportLayout = await page.locator('.kefe-panel[data-panel-view="export"] .kefe-form').evaluate(form => ({
