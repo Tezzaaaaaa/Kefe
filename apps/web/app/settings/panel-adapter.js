@@ -185,7 +185,10 @@
   }
 
   function start() {
-    mount().catch(error => console.error('[KEFE settings panel adapter]', error));
+    mount().catch(error => {
+      window.kefeSettingsPanelAdapterError = error instanceof Error ? error.message : String(error);
+      console.error('[KEFE settings panel adapter]', error);
+    });
   }
 
   function startWhenReady() {
