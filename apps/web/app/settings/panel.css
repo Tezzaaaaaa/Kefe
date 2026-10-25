@@ -404,15 +404,36 @@
 /* Integrated editor layout: the standalone panel owns section layout; legacy panel
    containers are moved into its slots so their existing controls and handlers remain authoritative. */
 .kefe-editor .kefe-editing.kefe-settings-layout {
-  display: block;
   min-width: 0;
   width: 100%;
 }
 .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount {
   width: 100%;
   max-width: none;
+  min-width: 0;
   margin: 0;
   padding: 0;
+}
+@media (min-width: 1280px) {
+  .kefe-editor {
+    grid-template-columns: minmax(480px, 1fr) minmax(300px, clamp(300px, 25vw, 380px));
+  }
+  .kefe-editor > .kefe-work {
+    grid-column: 1;
+    grid-row: 2 / 5;
+  }
+  .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount {
+    grid-column: 2;
+    grid-row: 2 / 5;
+    min-height: 0;
+    height: auto;
+    padding: 12px;
+    border-left: 1px solid var(--line);
+    background: var(--surface);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 }
 .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-tabs,
 .kefe-editor .kefe-editing.kefe-settings-layout > .beui-tabs-host,
