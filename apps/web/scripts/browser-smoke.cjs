@@ -234,15 +234,13 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       `desktop beUI navigation groups must be horizontal flex rows: ${JSON.stringify(headerNavigation.navDisplays)}`);
     assert.ok(headerNavigation.linksWithinHeader, "desktop navigation links must not be clipped outside the header");
     const desktopColumns = await page.evaluate(() => {
-      const left = document.querySelector(".kefe-panels-left").getBoundingClientRect();
       const centre = document.querySelector(".kefe-work").getBoundingClientRect();
-      const right = document.querySelector(".kefe-editing > .kefe-panels:not(.kefe-panels-left)").getBoundingClientRect();
-      return { leftRight: left.right, centreLeft: centre.left, centreRight: centre.right, rightLeft: right.left };
+      const settings = document.querySelector(".kefe-settings-mount").getBoundingClientRect();
+      return { centreRight: centre.right, settingsLeft: settings.left, settingsWidth: settings.width };
     });
-    assert.ok(desktopColumns.leftRight <= desktopColumns.centreLeft + 1,
-      "left editor panel must stay left of the central preview");
-    assert.ok(desktopColumns.centreRight <= desktopColumns.rightLeft + 1,
-      "right editor panel must stay right of the central preview");
+    assert.ok(desktopColumns.settingsWidth > 0, "integrated settings panel must be visible");
+    assert.ok(desktopColumns.centreRight <= desktopColumns.settingsLeft + 1,
+      "integrated settings panel must stay right of the central preview");
     await page.waitForSelector(".beui-textarea-host #beui-lyricsInput", { state: "attached", timeout: 20000 });
     assert.equal(await page.locator(".beui-textarea-host #beui-lyricsInput").count(), 1, "textarea bridge must not recursively mount its own component");
     await page.waitForFunction(() => {
