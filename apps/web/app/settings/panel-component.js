@@ -129,7 +129,7 @@
       this.$saved     = $('#kefe-saved');
       this.$reset     = $('#kefe-reset');
       this.$status    = $('#kefe-status-text');
-      this.$panels    = $('.kefe-panels');
+      this.$panels    = $('.kefe-settings-columns');
       this._exclusive = this.$panels?.dataset.accordion === 'single' || this.options.exclusive;
     }
 
