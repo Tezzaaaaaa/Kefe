@@ -188,9 +188,22 @@
     mount().catch(error => console.error('[KEFE settings panel adapter]', error));
   }
 
-  if (document.readyState === 'complete') {
-    start();
-  } else {
-    document.addEventListener('DOMContentLoaded', start, { once: true });
+  function startWhenReady() {
+    const requiredViews = ['media', 'lyrics', 'background-effects', 'effects', 'visualiser', 'export'];
+    const editorReady = !!document.querySelector('.kefe-editing') &&
+      requiredViews.every(view => document.querySelector('.kefe-panel[data-panel-view="' + view + '"]'));
+    if (editorReady && window.KefeSettingsPanel && window.kefeSettings) {
+      start();
+      return;
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startWhenReady, { once: true });
+    } else if (document.readyState !== 'complete') {
+      window.addEventListener('load', startWhenReady, { once: true });
+    } else {
+      start();
+    }
   }
+
+  startWhenReady();
 })();
