@@ -523,7 +523,7 @@
   min-width: 0;
 }
 @media (min-width: 1280px) {
-  .kefe-settings-panel > .kefe-panels {
+  .kefe-settings-panel > .kefe-panels[data-accordion="multi"] {
     grid-template-columns: minmax(0, 1fr);
   }
   .kefe-settings-panel .kefe-slot .kefe-media-upload-row,
