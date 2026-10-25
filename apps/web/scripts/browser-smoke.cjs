@@ -485,7 +485,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     if (backgroundOptionsLayout.width <= 360) assert.equal(backgroundOptionsLayout.columns, 1,
       `background effect cards must stack when the panel is narrow: ${JSON.stringify(backgroundOptionsLayout)}`);
 
-    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Visualisers" }).click();
+    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Visualiser" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "visualiser", null, { timeout: 5000 });
     await page.waitForSelector(".beui-vis-tabs-host [role='tab']", { state: "attached", timeout: 10000 });
     assert.ok(await page.locator(".beui-vis-tabs-host [role='tab']").count() >= 1, "visualiser navigation should use beUI Tabs");
@@ -567,7 +567,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "power toggles must not change the selected visualiser tab");
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
-    const lyricsNavButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyrics" });
+    const lyricsNavButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyric Sync" });
     await lyricsNavButton.evaluate((button) => button.scrollIntoView({ block: "center", inline: "nearest" }));
     await lyricsNavButton.evaluate((button) => button.click());
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
