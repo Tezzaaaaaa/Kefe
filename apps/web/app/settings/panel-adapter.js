@@ -3,8 +3,8 @@
 
   const scriptSrc = document.currentScript && document.currentScript.src;
   const MARKUP_URL = scriptSrc
-    ? new URL('./panel.html', scriptSrc)
-    : new URL('./app/settings/panel.html', window.location.href);
+    ? new URL('./panel.html?v=settings-panel-replacement-20261025-2', scriptSrc)
+    : new URL('./app/settings/panel.html?v=settings-panel-replacement-20261025-2', window.location.href);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
     'lyric-sync': 'lyrics',
@@ -50,6 +50,18 @@
     if (placements.some(item => !item.slot || !item.panel)) {
       throw new Error('Settings panel integration requires all six existing editor panels and slots.');
     }
+
+    const inputGroup = root.querySelector('.kefe-panel[data-group="input"]');
+    const outputGroup = root.querySelector('.kefe-panel[data-group="visual-output"]');
+    const topbar = root.querySelector('.kefe-topbar');
+    if (!inputGroup || !outputGroup || !topbar) {
+      throw new Error('Settings panel input/output groups are unavailable.');
+    }
+    inputGroup.prepend(topbar);
+    inputGroup.setAttribute('role', 'region');
+    inputGroup.setAttribute('aria-label', 'KEFE settings');
+    outputGroup.setAttribute('role', 'region');
+    outputGroup.setAttribute('aria-label', 'Visual and output settings');
 
     root.querySelectorAll('[data-setting]').forEach(control => {
       if (PANEL_TO_LEGACY[control.dataset.setting]) return;
