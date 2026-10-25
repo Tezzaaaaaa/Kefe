@@ -530,6 +530,11 @@
 .kefe-settings-panel > .kefe-panels > .kefe-panel {
   min-width: 0;
 }
+.kefe-settings-panel > .kefe-panels > .kefe-panel[data-group] {
+  min-width: 0;
+  container-type: inline-size;
+  container-name: kefe-settings;
+}
 @media (min-width: 1280px) {
   .kefe-settings-panel .kefe-slot .kefe-media-upload-row,
   .kefe-settings-panel .kefe-slot .kefe-details-grid {
