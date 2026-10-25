@@ -83,6 +83,17 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       return root && root.closest(".kefe-editing.kefe-settings-layout") &&
         slots.length === 6 && slots.every(slot => slot.querySelector(".kefe-panel"));
     }, null, { timeout: 10000 });
+    const timingNudge = page.locator('[data-setting="lyric-nudge"]');
+    await timingNudge.evaluate(input => {
+      input.value = "0.65";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await page.waitForFunction(() => Math.abs(window.kefeSettings.get("lyricOffset") - 0.65) < 0.001, null, { timeout: 5000 });
+    await timingNudge.evaluate(input => {
+      input.value = "0";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await page.waitForFunction(() => Math.abs(window.kefeSettings.get("lyricOffset")) < 0.001, null, { timeout: 5000 });
 
     // Exercise the editor toolbar against the real editor controls.
     const quickToolbar = page.locator("#kefeFloatingToolbar");
@@ -575,18 +586,20 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser tabs must not appear on the Lyrics section");
     await assertSectionFits("lyrics");
-    const lyricsTimingLayout = await page.locator(".kefe-lyrics-timing-controls").evaluate(grid => ({
-      width: grid.getBoundingClientRect().width,
-      columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length,
-      sliderRow: getComputedStyle(document.getElementById("lyricsTiming")).gridRow,
-      earlierRow: getComputedStyle(document.getElementById("lyricsTimingEarlier")).gridRow,
-      laterRow: getComputedStyle(document.getElementById("lyricsTimingLater")).gridRow
-    }));
-    if (lyricsTimingLayout.width <= 500) {
-      assert.equal(lyricsTimingLayout.columns, 2, `lyrics timing must stack slider and step buttons in a narrow panel: ${JSON.stringify(lyricsTimingLayout)}`);
-      assert.match(lyricsTimingLayout.sliderRow, /^1/);
-      assert.match(lyricsTimingLayout.earlierRow, /^2/);
-      assert.match(lyricsTimingLayout.laterRow, /^2/);
+    if (await page.locator(".kefe-lyrics-timing").isVisible()) {
+      const lyricsTimingLayout = await page.locator(".kefe-lyrics-timing-controls").evaluate(grid => ({
+        width: grid.getBoundingClientRect().width,
+        columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+        sliderRow: getComputedStyle(document.getElementById("lyricsTiming")).gridRow,
+        earlierRow: getComputedStyle(document.getElementById("lyricsTimingEarlier")).gridRow,
+        laterRow: getComputedStyle(document.getElementById("lyricsTimingLater")).gridRow
+      }));
+      if (lyricsTimingLayout.width <= 500) {
+        assert.equal(lyricsTimingLayout.columns, 2, `lyrics timing must stack slider and step buttons in a narrow panel: ${JSON.stringify(lyricsTimingLayout)}`);
+        assert.match(lyricsTimingLayout.sliderRow, /^1/);
+        assert.match(lyricsTimingLayout.earlierRow, /^2/);
+        assert.match(lyricsTimingLayout.laterRow, /^2/);
+      }
     }
     await page.locator(".beui-textarea-host #beui-lyricsInput").fill("beUI lyric smoke");
     assert.equal(await page.locator("#lyricsInput").inputValue(), "beUI lyric smoke", "beUI Textarea should preserve the legacy lyrics value and events");
