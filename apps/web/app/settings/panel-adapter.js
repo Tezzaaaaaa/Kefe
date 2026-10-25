@@ -1,6 +1,11 @@
 (() => {
   'use strict';
 
+  const scriptSrc = document.currentScript && document.currentScript.src;
+  const MARKUP_URL = scriptSrc
+    ? new URL('./panel.html', scriptSrc)
+    : new URL('./app/settings/panel.html', window.location.href);
+
   const PANEL_TO_LEGACY = Object.freeze({
     'lyric-nudge': 'lyricOffset'
   });
@@ -21,7 +26,7 @@
 
   async function mount() {
     if (document.getElementById('kefe-settings-panel')) return;
-    const response = await fetch(new URL('./panel.html', document.currentScript.src), { credentials: 'same-origin' });
+    const response = await fetch(MARKUP_URL, { credentials: 'same-origin' });
     if (!response.ok) throw new Error('Settings panel markup request failed: ' + response.status);
     const template = document.createElement('template');
     template.innerHTML = await response.text();
