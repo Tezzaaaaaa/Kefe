@@ -10817,3 +10817,59 @@ textarea.beui-native-textarea {
     flex-basis:42px;
   }
 }
+
+
+/* Mobile section headings: keep the title and section action aligned, with
+   supporting text on its own row so headings never collide or overflow. */
+@media (max-width: 640px) {
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] > .kefe-panel-head,
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 6px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    margin: 0 0 14px;
+    padding: 0 0 10px;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head > h2 {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    font-size: clamp(17px, 4.6vw, 20px);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head > .kefe-meta {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    text-align: left;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head > .beui-panel-button-host,
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head > .kefe-visualiser-power-slot {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    justify-self: end;
+    align-self: center;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head > .beui-panel-button-host button {
+    max-width: 100%;
+    white-space: nowrap;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view="visualiser"] .kefe-panel-head {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+  }
+}
