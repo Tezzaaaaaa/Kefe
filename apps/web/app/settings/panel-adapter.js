@@ -188,9 +188,9 @@
     mount().catch(error => console.error('[KEFE settings panel adapter]', error));
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start, { once: true });
-  } else {
+  if (document.readyState === 'complete') {
     start();
+  } else {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
   }
 })();
