@@ -366,28 +366,28 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "background darkness control must remain in Background Effects after cleanup");
     assert.equal(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option').count() > 0, true,
       "Effects must retain its lyric-effect gallery after background-treatment cleanup");
-    const mediaSection = page.locator('#kefe-settings-panel .section[data-section-id="media"]');
-    const mediaHeading = mediaSection.locator(":scope > .section-header .section-heading");
+    const mediaSection = page.locator('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] > .section[data-section-id="media"]');
+    const mediaHeading = mediaSection.locator(".section-heading").first();
     const mediaAccordion = mediaSection.locator(".expand-button");
     await mediaHeading.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.click();
     assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "false", "Media section should collapse");
     await page.waitForFunction(() => {
-      const section = document.querySelector('#kefe-settings-panel .section[data-section-id="media"]');
+      const section = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] > .section[data-section-id="media"]');
       return section?.dataset.expanded === "false" &&
         section.querySelector(".section-content").getBoundingClientRect().height < 1;
     }, null, { timeout: 5000 });
     await mediaAccordion.click();
     assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true", "Media section should expand again");
     await page.waitForFunction(() => {
-      const section = document.querySelector('#kefe-settings-panel .section[data-section-id="media"]');
+      const section = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] > .section[data-section-id="media"]');
       return section?.dataset.expanded === "true" &&
         section.querySelector(".section-content").getBoundingClientRect().height > 1;
     }, null, { timeout: 5000 });
 
     const sectionHeaderAudit = await page.evaluate(() => {
-      const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
+      const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];
       return sections.map(section => {
         const header = section.querySelector(".section-header");
         const title = section.querySelector(".section-heading");
@@ -421,7 +421,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.ok(featureSwitchAudit.every(item => item.featureSwitchInline),
       "existing feature switches must remain beside their section controls");
 
-    const uniformHeaderGeometry = await page.evaluate(() => [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")].map(section => {
+    const uniformHeaderGeometry = await page.evaluate(() => [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")].map(section => {
       const title = section.querySelector(".section-heading");
       const info = section.querySelector(".info-button");
       const accordion = section.querySelector(".expand-button");
