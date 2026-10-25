@@ -157,8 +157,11 @@
       if (!sectionId) return;
       const section = root.querySelector('.section[data-section-id="' + sectionId + '"]');
       if (!section) return;
-      section.dataset.expanded = 'true';
-      section.querySelector('.expand-button')?.setAttribute('aria-expanded', 'true');
+      root.querySelectorAll('.section').forEach(item => {
+        const expanded = item === section;
+        item.dataset.expanded = String(expanded);
+        item.querySelector('.expand-button')?.setAttribute('aria-expanded', String(expanded));
+      });
     });
 
     window.kefeSettingsPanelAdapter = Object.freeze({
