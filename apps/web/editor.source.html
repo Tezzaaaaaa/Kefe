@@ -105,6 +105,7 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
   background: linear-gradient(145deg, #ffffff, #eceef3);
 }
 </style>
+  <link rel="stylesheet" href="./app/settings/panel.css?v=settings-adapter-20261025-1">
 </head>
 <body>
 <script src="./app/ui/structure.js?v=section-labels-20261025-2"></script>
@@ -288,5 +289,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 <script type="module" src="./beui-src/legacy-chrome-bridge.jsx"></script>
 <script type="module" src="./beui-src/legacy-panel-buttons-bridge.jsx"></script>
 <script type="module" src="./beui-src/legacy-command-dialog-bridge.jsx"></script>
+  <script defer src="./app/settings/panel-component.js?v=settings-adapter-20261025-1"></script>
+  <script defer src="./app/settings/panel-adapter.js?v=settings-adapter-20261025-1"></script>
 </body>
 </html>
