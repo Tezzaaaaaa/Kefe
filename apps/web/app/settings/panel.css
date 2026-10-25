@@ -515,3 +515,19 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+.kefe-settings-panel,
+.kefe-settings-panel > .kefe-panels,
+.kefe-settings-panel > .kefe-panels > .kefe-panel {
+  min-width: 0;
+}
+@media (min-width: 1280px) {
+  .kefe-settings-panel > .kefe-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .kefe-settings-panel .kefe-slot .kefe-media-upload-row,
+  .kefe-settings-panel .kefe-slot .kefe-details-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
