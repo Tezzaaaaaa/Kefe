@@ -368,7 +368,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       "Effects must retain its lyric-effect gallery after background-treatment cleanup");
     const mediaSection = page.locator('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] > .section[data-section-id="media"]');
     const mediaHeading = mediaSection.locator(".section-heading").first();
-    const mediaAccordion = mediaSection.locator(".section-header .expand-button");
+    const mediaAccordion = mediaSection.locator(".expand-button").first();
     await mediaHeading.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.click();
