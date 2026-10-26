@@ -8977,6 +8977,41 @@ html:root[data-theme="day"] [role="menu"] {
 html:root[data-theme="day"] .kefe-liquid-timeline .kefe-time { color: rgba(32, 38, 51, .86); text-shadow: none; }
 html:root[data-theme="day"] .kefe-liquid-timeline .kefe-time span { background: rgba(255, 255, 255, .58); }
 html:root[data-theme="day"] .kefe-liquid-timeline .kefe-time #timeNow { color: var(--text); }
+/* Day mode: remove legacy dark inset surfaces from nested editor containers. */
+html:root[data-theme="day"] .kefe-editor :is(
+  .kefe-tabs, .kefe-song-search, .kefe-visualiser-intro, .kefe-visualiser-control-group,
+  .kefe-lyrics-timing, .kefe-lyrics-timing-value, .kefe-lyrics-timing-step, .kefe-lyrics-timing-reset,
+  .kefe-line, .kefe-word, .kefe-effect-category-tabs, .kefe-lyric-settings,
+  .kefe-lyric-effects-control, .kefe-fluid-ink-controls, .kefe-background-effect-control,
+  .kefe-timing-editor, .kefe-song-details, .kefe-find-step, .kefe-review,
+  .kefe-lyric-mode-box, .kefe-font-selector-control, .kefe-empty-panel, .kefe-suggestions
+) {
+  color: var(--text);
+  background-color: var(--surface-lo);
+  border-color: var(--line);
+  box-shadow: none;
+}
+html:root[data-theme="day"] .kefe-editor :is(
+  .kefe-lyrics-timing-value, .kefe-lyrics-timing-step, .kefe-lyrics-timing-reset,
+  .kefe-line, .kefe-word, .kefe-effect-category-tabs
+) {
+  background-color: var(--surface-hi);
+}
+html:root[data-theme="day"] .kefe-editor :is(
+  .kefe-export-summary, .kefe-export-progress, .kefe-export-close
+) {
+  color: var(--text);
+  background: var(--surface-hi);
+  border: 1px solid var(--line);
+  box-shadow: var(--lift);
+}
+html:root[data-theme="day"] .kefe-editor .kefe-export-progress {
+  background: var(--surface-lo);
+  box-shadow: var(--inner);
+}
+html:root[data-theme="day"] .kefe-editor .kefe-export-close {
+  color: var(--text);
+}
 html:root[data-theme="day"] .beui-settings-root,
 html:root[data-theme="day"] .beui-range-host {
   color-scheme: light;
