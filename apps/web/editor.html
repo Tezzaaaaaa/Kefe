@@ -147,6 +147,24 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
   font-size: 16px;
 }
 .kefe-sidebar-brand img { width: 24px; height: 24px; }
+.beui-sidebar-nav-host {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-width: 0;
+}
+.beui-sidebar-nav-host .beui-sidebar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+.beui-sidebar-nav-host .kefe-sidebar-link-label {
+  width: auto;
+  min-width: 0;
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
 .kefe-sidebar-group {
   display: flex;
   flex: 0 0 auto;
@@ -180,38 +198,11 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
   border-left: 1px solid var(--line);
 }
 .kefe-sidebar-github { font-size: 12px; }
-.kefe-header-search {
-  flex: 0 0 190px;
-  justify-content: flex-start;
-  margin-left: auto;
-  border-color: var(--line);
-  background: var(--bg);
-  color: var(--muted);
-}
-.kefe-header-search:hover { color: var(--text); border-color: var(--line-soft); }
-.kefe-header-search > span:first-child { display: inline-grid; place-items: center; }
-.kefe-header-search > span.kefe-header-search-label { width: auto; flex: 1 1 auto; }
-.kefe-header-search > span:first-child svg {
-  width: 14px; height: 14px; fill: none; stroke: currentColor;
-  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
-}
-.kefe-header-search kbd {
-  margin-left: auto;
-  padding: 1px 4px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  color: var(--muted);
-  font-family: inherit; font-size: 10px; font-weight: 600; line-height: 1.4;
-}
 .kefe-sidebar-bottom { margin-left: 0; }
 @media (max-width: 900px) {
-  .kefe-header-search { flex-basis: 150px; }
-}
+  }
 @media (max-width: 640px) {
-  .kefe-header-search { flex-basis: 112px; margin-left: 0; }
-  .kefe-header-search-label { display: none; }
-  .kefe-header-search kbd { margin-left: 0; }
-}
+      }
 
 .kefe-work { grid-column: 1; grid-row: 2; min-width: 0; }
 .kefe-editing { grid-column: 1; grid-row: 3; }
@@ -254,7 +245,7 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
 
 </head>
 <body>
-<script src="./app/ui/structure.js?v=header-nav-20261027-1"></script>
+<script src="./app/ui/structure.js?v=header-nav-integration-20261027-2"></script>
 <script src="./app/ui/typography.js?v=shared-fonts-20261018-1trailer-live-handwriting-20261017-1"></script>
 <script src="./app/effects/manifest.js?v=devotion-solid-background-20261025-1"></script>
 <script src="./app/effects/core.js?v=wrap-intact-words-20261017-1"></script>
