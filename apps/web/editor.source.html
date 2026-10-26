@@ -179,6 +179,38 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
   border-left: 1px solid var(--line);
 }
 .kefe-sidebar-github { font-size: 12px; }
+.kefe-header-search {
+  flex: 0 0 190px;
+  justify-content: flex-start;
+  margin-left: auto;
+  border-color: var(--line);
+  background: var(--bg);
+  color: var(--muted);
+}
+.kefe-header-search:hover { color: var(--text); border-color: var(--line-soft); }
+.kefe-header-search > span:first-child { display: inline-grid; place-items: center; }
+.kefe-header-search > span:first-child svg {
+  width: 14px; height: 14px; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+.kefe-header-search kbd {
+  margin-left: auto;
+  padding: 1px 4px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--muted);
+  font: 600 10px/1.4 inherit;
+}
+.kefe-sidebar-bottom { margin-left: 0; }
+@media (max-width: 900px) {
+  .kefe-header-search { flex-basis: 150px; }
+}
+@media (max-width: 640px) {
+  .kefe-header-search { flex-basis: 112px; margin-left: 0; }
+  .kefe-header-search-label { display: none; }
+  .kefe-header-search kbd { margin-left: 0; }
+}
+
 .kefe-work { grid-column: 1; grid-row: 2; min-width: 0; }
 .kefe-editing { grid-column: 1; grid-row: 3; }
 .kefe-site-footer { grid-column: 1; grid-row: 4; }
