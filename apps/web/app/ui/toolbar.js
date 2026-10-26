@@ -394,7 +394,7 @@
   expandBtn.innerHTML = icon('chevron');
   bindTip(expandBtn, 'More tools');
 
-  main.append(grip, moveBtn, lockBtn, divider(), effectMenu.trigger, fontMenu.trigger, swatchBtn, divider(), nudge, divider(), lyricsBtn, fullBtn, divider(), expandBtn);
+  main.append(grip, moveBtn, lockBtn, divider(), effectMenu.trigger, fontMenu.trigger, swatchBtn, divider(), nudge, divider(), lyricsBtn, fullBtn);
 
   /* Expanded tray */
   const tray = h('div', 'kft-tray', { id: 'kefeToolbarTray', role: 'group', 'aria-label': 'More toolbar tools' });
@@ -503,7 +503,9 @@
     label: 'Background darkness', bare: true, min: 0, max: 100, step: 1,
     onInput: v => { const t = bgDarkness(); if (!t) return; t.value = String(v); fire(t, 'input', 'change'); emit('background-darkness', v); }
   });
-  grid.append(group('Canvas & background', field('Canvas ratio', aspectSeg.el), field('Background', bgMenu.trigger), field('Visualiser', visMenu.trigger), field('Darkness', darkScrub.el)));
+  aspectSeg.el.classList.add('kft-aspect-control');
+  main.append(divider(), aspectSeg.el, divider(), expandBtn);
+  grid.append(group('Canvas & background', field('Background', bgMenu.trigger), field('Visualiser', visMenu.trigger), field('Darkness', darkScrub.el)));
 
   tray.appendChild(grid);
   const foot = h('div', 'kft-tray__foot');
@@ -608,15 +610,9 @@
       const d = dockEl.getBoundingClientRect();
       if (d.height > 0 && d.top > vh * 0.5) dockTop = d.top;
     }
-    if (mobile.matches) return { x: (vw - w) / 2, y: dockTop - hgt - 10 };
     const s = stage.getBoundingClientRect();
-    if (!s.width || !s.height) return { x: (vw - w) / 2, y: vh - hgt - 24 };
-    const timeline = document.querySelector('.kefe-timeline')?.getBoundingClientRect();
-    const limit = timeline && timeline.height > 0 ? timeline.top - 10 : vh - 10;
-    const mainH = main.offsetHeight + 2;
-    let y = s.bottom + 14;
-    if (y + mainH > limit) y = s.bottom - mainH - 12;
-    return { x: s.left + (s.width - w) / 2, y };
+    if (!s.width || !s.height) return { x: (vw - w) / 2, y: 8 };
+    return { x: s.left + (s.width - w) / 2, y: s.top - hgt - 10 };
   }
   function apply() {
     tray.style.maxHeight = Math.max(160, window.innerHeight - main.offsetHeight - 28) + 'px';
