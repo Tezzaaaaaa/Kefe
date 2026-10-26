@@ -35,7 +35,7 @@ function SidebarItems({ items, trackActive = true }) {
             onClick={() => item.backing.click()}
           >
             {icon && <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon }} />}
-            <span className="kefe-sidebar-link-label">{item.label}</span>
+            {item.key !== "settings" && <span className="kefe-sidebar-link-label">{item.label}</span>}
           </Button>
         );
       })}
