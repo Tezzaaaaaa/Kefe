@@ -8977,6 +8977,21 @@ html:root[data-theme="day"] [role="menu"] {
 html:root[data-theme="day"] .kefe-liquid-timeline .kefe-time { color: rgba(32, 38, 51, .86); text-shadow: none; }
 html:root[data-theme="day"] .kefe-liquid-timeline .kefe-time span { background: rgba(255, 255, 255, .58); }
 html:root[data-theme="day"] .kefe-liquid-timeline .kefe-time #timeNow { color: var(--text); }
+html:root[data-theme="day"] .beui-settings-root,
+html:root[data-theme="day"] .beui-range-host {
+  color-scheme: light;
+}
+html:root[data-theme="day"] .beui-settings-root {
+  --beui-background: var(--shell-bg);
+  --beui-foreground: var(--shell-text);
+  --beui-muted: #e8ecf3;
+  --beui-muted-foreground: var(--shell-muted);
+  --beui-border: var(--shell-line);
+  --beui-ring: var(--shell-accent);
+  --beui-primary: var(--shell-accent);
+  --beui-primary-foreground: #ffffff;
+  --beui-card: var(--shell-panel);
+}
 /* Liquid Glass timeline visual layer; KEFE playback and range input remain authoritative. */
 .kefe-editor .kefe-liquid-timeline{height:42px;min-height:42px;padding:0;overflow:hidden;border:1px solid rgba(255,255,255,.13);border-radius:999px;background:rgba(255,255,255,.055);box-shadow:inset 0 1px 0 rgba(255,255,255,.48),inset 0 -1px 0 rgba(0,0,0,.32),inset 0 0 0 1px rgba(255,255,255,.06),0 8px 22px rgba(0,0,0,.2);isolation:isolate;backdrop-filter:blur(22px) saturate(1.7) brightness(1.08);-webkit-backdrop-filter:blur(22px) saturate(1.7) brightness(1.08)}
 .kefe-editor .kefe-liquid-timeline::before{content:"";position:absolute;inset:1px 10px auto;height:42%;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.035) 65%,transparent);pointer-events:none;z-index:2}
