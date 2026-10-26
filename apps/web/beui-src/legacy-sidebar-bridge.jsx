@@ -22,7 +22,7 @@ function SidebarItems({ items, trackActive = true }) {
     <div className="beui-sidebar-nav">
       {items.map((item) => {
         const active = trackActive && item.panel === activePanel;
-        const icon = item.backing.querySelector("span")?.innerHTML || "";
+        const icon = item.key === "settings" ? item.backing.querySelector("span")?.innerHTML || "" : "";
         return (
           <Button
             key={item.key}
@@ -34,8 +34,8 @@ function SidebarItems({ items, trackActive = true }) {
             className={`kefe-sidebar-link justify-start gap-2 rounded-xl px-2 text-left text-xs ${active ? "is-current" : ""}`}
             onClick={() => item.backing.click()}
           >
-            <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon }} />
-            <span className="kefe-sidebar-link-label">{item.label}</span>
+            {icon && <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon }} />}
+            {item.key !== "settings" && <span className="kefe-sidebar-link-label">{item.label}</span>}
           </Button>
         );
       })}
