@@ -532,7 +532,34 @@
   const previewBgLabel = h('label', 'kft-pref kft-pref--colour');
   const previewBgText = h('span'); previewBgText.textContent = 'Preview background';
   previewBgLabel.append(previewBgText, previewBg);
-  const prefRow = h('div', 'kft-preferences'); prefRow.append(safeAreaLabel, compactLabel, previewBgLabel);
+  const outlineToggle = h('input', '', { type: 'checkbox', 'aria-label': 'Enable lyric outline' });
+  const outlineLabel = h('label', 'kft-pref');
+  const outlineText = h('span'); outlineText.textContent = 'Outline';
+  outlineLabel.append(outlineToggle, outlineText);
+  const glowToggle = h('input', '', { type: 'checkbox', 'aria-label': 'Enable lyric glow' });
+  const glowLabel = h('label', 'kft-pref');
+  const glowText = h('span'); glowText.textContent = 'Glow';
+  glowLabel.append(glowToggle, glowText);
+  function syncStyleToggles() {
+    const style = window.kefeStyle?.state?.();
+    if (style) {
+      outlineToggle.checked = !!style.outline?.on;
+      glowToggle.checked = !!style.glow?.on;
+    }
+  }
+  function setStyleToggle(key, enabled) {
+    const api = window.kefeStyle;
+    if (!api?.state || !api?.applyState) { setHint('Lyric style controls are still loading.'); return; }
+    const style = api.state();
+    style[key].on = enabled;
+    api.applyState(style);
+    syncStyleToggles();
+  }
+  outlineToggle.addEventListener('change', () => setStyleToggle('outline', outlineToggle.checked));
+  glowToggle.addEventListener('change', () => setStyleToggle('glow', glowToggle.checked));
+  window.addEventListener('kefe-style-change', syncStyleToggles);
+  const prefRow = h('div', 'kft-preferences'); prefRow.append(safeAreaLabel, compactLabel, previewBgLabel, outlineLabel, glowLabel);
+  syncStyleToggles();
   grid.append(group('Preview & toolbar', prefRow));
   const prefKey = 'kefe.toolbar.preferences.v1';
   const previewHost = document.querySelector('.kefe-preview, .kefe-preview-stage, .kefe-stage');
