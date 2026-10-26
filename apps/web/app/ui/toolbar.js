@@ -520,7 +520,80 @@
   const resetPos = chip('reset', 'Re-dock', () => redock(), 'kft-chip--quiet');
   const hint = h('p', 'kft-hint', { role: 'status', 'aria-live': 'polite' });
   function setHint(text) { hint.textContent = text || ''; }
-  foot.append(lockPos, resetPos, hint);
+  const safeAreaToggle = h('input', '', { type: 'checkbox', 'aria-label': 'Show preview safe area' });
+  const safeAreaLabel = h('label', 'kft-pref');
+  const safeAreaText = h('span'); safeAreaText.textContent = 'Safe area';
+  safeAreaLabel.append(safeAreaToggle, safeAreaText);
+  const compactToggle = h('input', '', { type: 'checkbox', 'aria-label': 'Compact toolbar' });
+  const compactLabel = h('label', 'kft-pref');
+  const compactText = h('span'); compactText.textContent = 'Compact toolbar';
+  compactLabel.append(compactToggle, compactText);
+  const previewBg = h('input', '', { type: 'color', value: '#171719', 'aria-label': 'Preview background colour' });
+  const previewBgLabel = h('label', 'kft-pref kft-pref--colour');
+  const previewBgText = h('span'); previewBgText.textContent = 'Preview background';
+  previewBgLabel.append(previewBgText, previewBg);
+  const outlineToggle = h('input', '', { type: 'checkbox', 'aria-label': 'Enable lyric outline' });
+  const outlineLabel = h('label', 'kft-pref');
+  const outlineText = h('span'); outlineText.textContent = 'Outline';
+  outlineLabel.append(outlineToggle, outlineText);
+  const glowToggle = h('input', '', { type: 'checkbox', 'aria-label': 'Enable lyric glow' });
+  const glowLabel = h('label', 'kft-pref');
+  const glowText = h('span'); glowText.textContent = 'Glow';
+  glowLabel.append(glowToggle, glowText);
+  function syncStyleToggles() {
+    const style = window.kefeStyle?.state?.();
+    if (style) {
+      outlineToggle.checked = !!style.outline?.on;
+      glowToggle.checked = !!style.glow?.on;
+    }
+  }
+  function setStyleToggle(key, enabled) {
+    const api = window.kefeStyle;
+    if (!api?.state || !api?.applyState) { setHint('Lyric style controls are still loading.'); return; }
+    const style = api.state();
+    style[key].on = enabled;
+    api.applyState(style);
+    syncStyleToggles();
+  }
+  outlineToggle.addEventListener('change', () => setStyleToggle('outline', outlineToggle.checked));
+  glowToggle.addEventListener('change', () => setStyleToggle('glow', glowToggle.checked));
+  window.addEventListener('kefe-style-change', syncStyleToggles);
+  const prefRow = h('div', 'kft-preferences'); prefRow.append(safeAreaLabel, compactLabel, previewBgLabel, outlineLabel, glowLabel);
+  syncStyleToggles();
+  grid.append(group('Preview & toolbar', prefRow));
+  const prefKey = 'kefe.toolbar.preferences.v1';
+  const previewHost = document.querySelector('.kefe-preview, .kefe-preview-stage, .kefe-stage');
+  try {
+    const saved = JSON.parse(localStorage.getItem(prefKey) || 'null');
+    if (saved) {
+      safeAreaToggle.checked = saved.safeArea === true;
+      compactToggle.checked = saved.compact === true;
+      if (typeof saved.background === 'string' && /^#[0-9a-f]{6}$/i.test(saved.background)) {
+        previewBg.value = saved.background;
+        previewBg.dataset.changed = 'true';
+      }
+    }
+  } catch (_) {}
+  function syncPreferences() {
+    root.classList.toggle('is-compact', compactToggle.checked);
+    previewHost?.classList.toggle('kft-safe-area-on', safeAreaToggle.checked);
+    if (previewHost && previewBg.dataset.changed === 'true') previewHost.style.backgroundColor = previewBg.value;
+    try {
+      localStorage.setItem(prefKey, JSON.stringify({
+        safeArea: safeAreaToggle.checked,
+        compact: compactToggle.checked,
+        background: previewBg.dataset.changed === 'true' ? previewBg.value : ''
+      }));
+    } catch (_) {}
+  }
+  [safeAreaToggle, compactToggle].forEach(input => input.addEventListener('change', syncPreferences));
+  previewBg.addEventListener('input', () => { previewBg.dataset.changed = 'true'; syncPreferences(); });
+  syncPreferences();
+  const revealBtn = h('button', 'kft-reveal', { type: 'button', 'aria-label': 'Show toolbar' });
+  revealBtn.textContent = 'Show toolbar'; revealBtn.hidden = true; document.body.appendChild(revealBtn);
+  const hideToolbar = chip(null, 'Hide toolbar', () => { root.hidden = true; revealBtn.hidden = false; closePopover(false); tray.hidden = true; expandBtn.setAttribute('aria-expanded', 'false'); }, 'kft-chip--quiet');
+  revealBtn.addEventListener('click', () => { root.hidden = false; revealBtn.hidden = true; queueDock(true); expandBtn.focus({ preventScroll: true }); });
+  foot.append(lockPos, resetPos, hideToolbar, hint);
   tray.appendChild(foot);
 
   bar.append(main, tray);
