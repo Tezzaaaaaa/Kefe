@@ -590,11 +590,11 @@
   });
 
   /* ───────── Position, docking, dragging ───────── */
-  const STORE = 'kefe.floating-toolbar.position.v3';
+  const STORE = 'kefe.floating-toolbar.position.v4';
   const mobile = window.matchMedia('(max-width: 760px)');
   let pos = { x: 12, y: 12 }, custom = false, dragging = null;
   try {
-    ['kefe.floating-toolbar.position.v1', 'kefe.floating-toolbar.position.v2'].forEach(k => localStorage.removeItem(k));
+    ['kefe.floating-toolbar.position.v1', 'kefe.floating-toolbar.position.v2', 'kefe.floating-toolbar.position.v3'].forEach(k => localStorage.removeItem(k));
     const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
     if (saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)) { pos = saved; custom = true; }
   } catch (_) {}
