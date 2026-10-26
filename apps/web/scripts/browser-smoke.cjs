@@ -599,7 +599,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.locator("#kefeCommandInput").fill("Open Lyric Effects");
     const commandButton = page.locator(".beui-command-button-host button").filter({ hasText: "Open Lyric Effects" });
     await commandButton.waitFor({ state: "visible", timeout: 5000 });
-    await commandButton.click();
+    await commandButton.evaluate(button => button.click());
     await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "effects", null, { timeout: 5000 });
     await assertSectionFits("effects");
@@ -616,6 +616,62 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     }));
     if (exportLayout.width <= 500) assert.equal(exportLayout.columns, 1,
       `export options must stack in a narrow panel: ${JSON.stringify(exportLayout)}`);
+
+    // Verify all six real settings-shell headings and embedded panels at phone widths.
+    const panelDesktopViewport = page.viewportSize();
+    const shellSectionIds = {
+      media: "media",
+      lyrics: "lyric-sync",
+      effects: "lyric-effects",
+      "background-effects": "background",
+      visualiser: "visualisers",
+      export: "export"
+    };
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.waitForTimeout(100);
+      for (const [section, label] of [
+        ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Effects"],
+        ["background-effects", "Background Effects"], ["visualiser", "Visualiser"], ["export", "Export"]
+      ]) {
+        const navButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: label }).first();
+        await navButton.evaluate(button => button.click());
+        await page.waitForFunction(expected => document.querySelector(".kefe-section.active")?.dataset.panel === expected, section, { timeout: 5000 });
+        await assertSectionFits(section);
+        const geometry = await page.locator(`.kefe-panel[data-panel-view="${section}"]`).evaluate((panel, shellId) => {
+          const viewportWidth = document.documentElement.clientWidth;
+          const panelRect = panel.getBoundingClientRect();
+          const shellSection = document.querySelector(`#kefe-settings-panel .section[data-section-id="${shellId}"]`);
+          const row = shellSection?.querySelector(".section-header");
+          const title = shellSection?.querySelector(".section-heading");
+          const control = shellSection?.querySelector(".info-button");
+          const rect = node => {
+            if (!node) return null;
+            const r = node.getBoundingClientRect();
+            return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width };
+          };
+          const t = title?.getBoundingClientRect();
+          const c = control?.getBoundingClientRect();
+          return {
+            viewportWidth, panel: rect(panel), panelScrollWidth: panel.scrollWidth, panelClientWidth: panel.clientWidth,
+            row: rect(row), title: rect(title), control: rect(control),
+            titleControlOverlap: Boolean(t && c && t.right > c.left + 1 && t.left < c.right - 1)
+          };
+        }, shellSectionIds[section]);
+        assert.ok(geometry.panel.left >= -1 && geometry.panel.right <= width + 1,
+          `${section} panel must stay within the ${width}px viewport: ${JSON.stringify(geometry)}`);
+        assert.ok(geometry.panelScrollWidth <= geometry.panelClientWidth + 1,
+          `${section} panel must not overflow horizontally at ${width}px: ${JSON.stringify(geometry)}`);
+        assert.ok(geometry.row && geometry.title && geometry.title.width > 0,
+          `${section} settings heading must render at ${width}px: ${JSON.stringify(geometry)}`);
+        assert.ok(geometry.row.left >= -1 && geometry.row.right <= width + 1,
+          `${section} settings heading row must stay inside the ${width}px viewport: ${JSON.stringify(geometry)}`);
+        assert.equal(geometry.titleControlOverlap, false,
+          `${section} title and info control must not overlap at ${width}px: ${JSON.stringify(geometry)}`);
+      }
+    }
+    await page.setViewportSize(panelDesktopViewport);
+    await page.waitForTimeout(100);
 
     const reviewCheckbox = page.locator("#beui-kefeReview0[role=checkbox]");
     await reviewCheckbox.waitFor({ state: "visible", timeout: 10000 });
