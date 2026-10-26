@@ -599,7 +599,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.locator("#kefeCommandInput").fill("Open Lyric Effects");
     const commandButton = page.locator(".beui-command-button-host button").filter({ hasText: "Open Lyric Effects" });
     await commandButton.waitFor({ state: "visible", timeout: 5000 });
-    await commandButton.click();
+    await commandButton.evaluate(button => button.click());
     await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "effects", null, { timeout: 5000 });
     await assertSectionFits("effects");
