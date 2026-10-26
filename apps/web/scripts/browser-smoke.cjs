@@ -617,8 +617,16 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     if (exportLayout.width <= 500) assert.equal(exportLayout.columns, 1,
       `export options must stack in a narrow panel: ${JSON.stringify(exportLayout)}`);
 
-    // Verify every editor side-panel at phone widths, including the generated heading row.
+    // Verify all six real settings-shell headings and embedded panels at phone widths.
     const panelDesktopViewport = page.viewportSize();
+    const shellSectionIds = {
+      media: "media",
+      lyrics: "lyric-sync",
+      effects: "lyric-effects",
+      "background-effects": "background",
+      visualiser: "visualisers",
+      export: "export"
+    };
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       await page.waitForTimeout(100);
@@ -630,13 +638,13 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
         await navButton.evaluate(button => button.click());
         await page.waitForFunction(expected => document.querySelector(".kefe-section.active")?.dataset.panel === expected, section, { timeout: 5000 });
         await assertSectionFits(section);
-        const geometry = await page.locator(`.kefe-panel[data-panel-view="${section}"]`).evaluate(panel => {
+        const geometry = await page.locator(`.kefe-panel[data-panel-view="${section}"]`).evaluate((panel, shellId) => {
           const viewportWidth = document.documentElement.clientWidth;
           const panelRect = panel.getBoundingClientRect();
-          const row = panel.querySelector(".kefe-section-heading-row");
-          const title = row?.querySelector(".kefe-section-title-group");
-          const description = row?.querySelector(".kefe-section-description");
-          const control = row?.querySelector(":scope > .kefe-lyrics-power, :scope > .kefe-visualiser-power-slot, :scope > .kefe-background-effect-toggle");
+          const shellSection = document.querySelector(`#kefe-settings-panel .section[data-section-id="${shellId}"]`);
+          const row = shellSection?.querySelector(".section-header");
+          const title = shellSection?.querySelector(".section-heading");
+          const control = shellSection?.querySelector(".info-button");
           const rect = node => {
             if (!node) return null;
             const r = node.getBoundingClientRect();
@@ -646,22 +654,20 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
           const c = control?.getBoundingClientRect();
           return {
             viewportWidth, panel: rect(panel), panelScrollWidth: panel.scrollWidth, panelClientWidth: panel.clientWidth,
-            row: rect(row), title: rect(title), description: rect(description), control: rect(control),
+            row: rect(row), title: rect(title), control: rect(control),
             titleControlOverlap: Boolean(t && c && t.right > c.left + 1 && t.left < c.right - 1)
           };
-        });
+        }, shellSectionIds[section]);
         assert.ok(geometry.panel.left >= -1 && geometry.panel.right <= width + 1,
           `${section} panel must stay within the ${width}px viewport: ${JSON.stringify(geometry)}`);
         assert.ok(geometry.panelScrollWidth <= geometry.panelClientWidth + 1,
           `${section} panel must not overflow horizontally at ${width}px: ${JSON.stringify(geometry)}`);
         assert.ok(geometry.row && geometry.title && geometry.title.width > 0,
-          `${section} heading must use its responsive heading row at ${width}px: ${JSON.stringify(geometry)}`);
+          `${section} settings heading must render at ${width}px: ${JSON.stringify(geometry)}`);
         assert.ok(geometry.row.left >= -1 && geometry.row.right <= width + 1,
-          `${section} heading row must stay inside the ${width}px viewport: ${JSON.stringify(geometry)}`);
+          `${section} settings heading row must stay inside the ${width}px viewport: ${JSON.stringify(geometry)}`);
         assert.equal(geometry.titleControlOverlap, false,
-          `${section} title and section switch must not overlap at ${width}px: ${JSON.stringify(geometry)}`);
-        if (geometry.description) assert.ok(geometry.description.left >= -1 && geometry.description.right <= width + 1,
-          `${section} description must stay inside the ${width}px viewport: ${JSON.stringify(geometry)}`);
+          `${section} title and info control must not overlap at ${width}px: ${JSON.stringify(geometry)}`);
       }
     }
     await page.setViewportSize(panelDesktopViewport);
