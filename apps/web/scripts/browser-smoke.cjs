@@ -163,7 +163,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const trayToggle = quickToolbar.locator('button[aria-controls="kefeToolbarTray"]');
     await trayToggle.click();
     assert.equal(await quickToolbar.locator("#kefeToolbarTray").isVisible(), true, "More tools must reveal the grouped tray");
-    assert.deepEqual(await quickToolbar.locator(".kft-group > .kft-label").allTextContents(), ["Lyrics", "Layer", "Canvas & background"],
+    assert.deepEqual(await quickToolbar.locator(".kft-group > .kft-label").allTextContents(), ["Lyrics", "Layer", "Canvas & background", "Preview & toolbar"],
       "the tray must group lyrics, layer and canvas/background controls");
     const quickSize = quickToolbar.locator('.kft-scrub[aria-label="Text size"]');
     await quickSize.focus();
