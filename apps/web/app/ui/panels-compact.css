@@ -525,3 +525,90 @@
 }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-card .kefe-background-effect-preview { width: 64px !important; height: 38px !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-card .kefe-background-effect-name { font-size: var(--pc-fs) !important; line-height: 14px; }
+
+
+/* Mobile side panels: size cards to the available column and lay out the
+   generated section-heading row (the legacy h2 is moved into this row). */
+@media (max-width: 640px) {
+  .kefe-editor .kefe-editing > .kefe-panels {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding-inline: clamp(8px, 2.5vw, 12px);
+  }
+  .kefe-editor .kefe-panels > .kefe-panel[data-panel-view] {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-inline: 0;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] :where(.beui-panel-card-root, .beui-editor-panel-card, .kefe-form) {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] > .kefe-panel-head,
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-heading-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 6px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-title-group {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-title-group > h2 {
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+    text-align: left;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-info {
+    flex: 0 0 14px;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-heading-row > :is(.kefe-lyrics-power, .kefe-visualiser-power-slot, .kefe-background-effect-toggle) {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-section-description {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] :where(.kefe-form, .kefe-visualiser-form) > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
