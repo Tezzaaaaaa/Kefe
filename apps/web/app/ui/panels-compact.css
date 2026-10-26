@@ -527,88 +527,66 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-card .kefe-background-effect-name { font-size: var(--pc-fs) !important; line-height: 14px; }
 
 
-/* Mobile side panels: size cards to the available column and lay out the
-   generated section-heading row (the legacy h2 is moved into this row). */
+/* Mobile settings shell and embedded side panels: constrain the real shell
+   and its nested editor content to the available viewport width. */
 @media (max-width: 640px) {
-  .kefe-editor .kefe-editing > .kefe-panels {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding-inline: clamp(8px, 2.5vw, 12px);
-  }
-  .kefe-editor .kefe-panels > .kefe-panel[data-panel-view] {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    box-sizing: border-box;
-    margin-inline: 0;
-  }
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] :where(.beui-panel-card-root, .beui-editor-panel-card, .kefe-form) {
+  .kefe-editor .kefe-editing.kefe-settings-layout,
+  .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount,
+  .kefe-editor .kefe-editing.kefe-settings-layout #kefe-settings-panel,
+  .kefe-editor .kefe-editing.kefe-settings-layout .kefe-settings-columns,
+  .kefe-editor .kefe-editing.kefe-settings-layout .kefe-settings-columns > .kefe-panel {
     width: 100%;
     min-width: 0;
     max-width: 100%;
     box-sizing: border-box;
   }
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] > .kefe-panel-head,
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head {
-    display: block;
+  .kefe-editor .kefe-editing.kefe-settings-layout #kefe-settings-panel .section {
     width: 100%;
     min-width: 0;
     max-width: 100%;
     box-sizing: border-box;
   }
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-heading-row {
+  .kefe-editor .kefe-editing.kefe-settings-layout #kefe-settings-panel .section-header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto auto;
     align-items: center;
-    column-gap: 8px;
-    row-gap: 6px;
+    gap: 8px;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .kefe-editor .kefe-editing.kefe-settings-layout #kefe-settings-panel .section-title-wrap {
+    grid-column: 1;
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .kefe-editor .kefe-editing.kefe-settings-layout #kefe-settings-panel .expand-button,
+  .kefe-editor .kefe-editing.kefe-settings-layout #kefe-settings-panel .title-group,
+  .kefe-editor .kefe-editing.kefe-settings-layout #kefe-settings-panel .section-heading {
     min-width: 0;
     max-width: 100%;
     box-sizing: border-box;
   }
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-title-group {
-    grid-column: 1;
-    grid-row: 1;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 5px;
-    min-width: 0;
-    max-width: 100%;
-  }
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-title-group > h2 {
-    min-width: 0;
-    max-width: 100%;
-    margin: 0;
+  .kefe-editor .kefe-editing.kefe-settings-layout #kefe-settings-panel .section-heading {
     overflow-wrap: anywhere;
-    line-height: 1.25;
-    text-align: left;
+    white-space: normal;
+    line-height: 1.3;
   }
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-info {
-    flex: 0 0 14px;
-  }
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-heading-row > :is(.kefe-lyrics-power, .kefe-visualiser-power-slot, .kefe-background-effect-toggle) {
+  .kefe-editor .kefe-editing.kefe-settings-layout #kefe-settings-panel .info-button {
     grid-column: 2;
     grid-row: 1;
     justify-self: end;
     min-width: 0;
-    max-width: 100%;
   }
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-section-description {
-    grid-column: 1 / -1;
-    grid-row: 2;
+  .kefe-editor .kefe-editing.kefe-settings-layout #kefe-settings-panel :where(.section-content, .content-inner, .kefe-slot, .kefe-panel.kefe-settings-embedded-panel, .beui-panel-card-root, .beui-editor-panel-card, .kefe-form, .kefe-visualiser-form, .beui-vis-tabs-host) {
+    width: 100%;
     min-width: 0;
     max-width: 100%;
-    margin: 0;
-    overflow-wrap: anywhere;
-    text-align: left;
+    box-sizing: border-box;
   }
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] :where(.kefe-form, .kefe-visualiser-form) > * {
+  .kefe-editor .kefe-editing.kefe-settings-layout #kefe-settings-panel :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea) {
     min-width: 0;
     max-width: 100%;
+    box-sizing: border-box;
   }
 }
