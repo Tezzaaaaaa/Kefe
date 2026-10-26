@@ -319,3 +319,26 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
   .kft-tray, .kft-popover { animation: none; }
   .kefe-floating-toolbar *, .kft-popover * { transition-duration: 0ms !important; }
 }
+
+
+/* Dock the unified toolbar in the preview's top control lane; keep aspect ratio beside fullscreen. */
+.kft-aspect-control {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: auto;
+  grid-auto-columns: auto;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--kt-border);
+  border-radius: 5px;
+  background: var(--kt-input);
+}
+.kft-aspect-control .kft-seg__item {
+  min-width: 32px;
+  padding: 0 5px;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .kft-aspect-control .kft-seg__item { min-width: 28px; padding-inline: 4px; }
+  .kefe-floating-toolbar .kft-main { gap: 4px; }
+}
