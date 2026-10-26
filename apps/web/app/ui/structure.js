@@ -119,7 +119,7 @@ function filterCommands(query) {
     button.hidden = !button.textContent.toLowerCase().includes(q);
   });
 }
-document.querySelectorAll('[data-command-open]').forEach(button => button.addEventListener('click', openCommandPalette));
+document.querySelectorAll('[data-command-open], [data-open-command-palette]').forEach(button => button.addEventListener('click', openCommandPalette));
 commandInput?.addEventListener('input', () => filterCommands(commandInput.value));
 commandOverlay?.addEventListener('click', event => { if (event.target === commandOverlay) closeCommandPalette(); });
 commandList?.addEventListener('click', event => {
@@ -164,8 +164,7 @@ document.querySelector('[data-dock-export]')?.addEventListener('click', () => {
 
 function syncShellSection(panel, scrollActive = true) {
   let activeButton = null;
-  document.querySelector('[data-open-command-palette]')?.addEventListener('click', openCommandPalette);
-document.querySelectorAll('[data-shell-panel]').forEach(button => {
+  document.querySelectorAll('[data-shell-panel]').forEach(button => {
     const active = button.dataset.shellPanel === panel;
     button.classList.toggle('is-current', active);
     if (active) {
