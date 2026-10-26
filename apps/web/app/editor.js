@@ -523,6 +523,28 @@
     ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+barW*progress,y);ctx.stroke();
     ctx.restore();
   }
+  /* Match the Apple opening countdown for every other lyric effect without changing Apple's renderer. */
+  function drawEffectStartTimer(ctx,w,h,t){
+    if(state.effect==='apple'||!lyricsEnabled||!state.lines.length)return;
+    const first=Number(state.lines[0]?.time)+lyricOffset();
+    if(!Number.isFinite(first)||first<=t)return;
+    const progress=first>0?Math.max(0,Math.min(1,t/first)):1;
+    const unit=Math.min(w,h),aspect=w/Math.max(1,h),landscape=aspect>=1.25;
+    const barW=landscape?w*.24:w*.54,barH=Math.max(8,unit*.012);
+    const centerX=w/2;
+    const titleArt=unit*.34,titleGap=unit*.04;
+    const barY=Math.min(h*.88,(h+titleArt+titleGap+unit*.20)/2+unit*.025);
+    const y=barY+unit*.055;
+    const x=centerX-barW/2;
+    ctx.save();
+    ctx.lineWidth=barH;
+    ctx.lineCap='round';
+    ctx.strokeStyle='rgba(255,255,255,.28)';
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+barW,y);ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.9)';
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+barW*progress,y);ctx.stroke();
+    ctx.restore();
+  }
   const appleLayoutKey='kefe.apple-layout.v2';
   const createAppleLayout=()=>({lyrics:{x:0,y:0,scale:1},card:{x:0,y:0,scale:1}});
   const normalizeAppleLayout=(source,defaults=createAppleLayout())=>{
@@ -652,6 +674,7 @@
     }
     drawTitleCardCanvas(ctx,W,H,state.time);
     drawTitleCardTimer(ctx,W,H,state.time);
+    drawEffectStartTimer(ctx,W,H,state.time);
     ctx.restore();
   }
   function appleTime(value){
