@@ -75,6 +75,16 @@ jobs:
           pattern: kefe-browser-screenshots-*
           path: /tmp/kefe-baseline-screenshots
           merge-multiple: true
+      - name: Build main editor for direct layout comparison
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --depth=1 origin main
+          mkdir -p /tmp/kefe-main
+          git archive origin/main | tar -x -C /tmp/kefe-main
+          ln -s "$GITHUB_WORKSPACE/node_modules" /tmp/kefe-main/node_modules
+          ln -s "$GITHUB_WORKSPACE/apps/web/node_modules" /tmp/kefe-main/apps/web/node_modules
+          cd /tmp/kefe-main
+          pnpm --filter @kefe/web build
       - name: Install Chromium
         run: /tmp/kefe-browser/node_modules/.bin/playwright install --with-deps chromium
       - name: Run built-editor browser smoke test
@@ -97,6 +107,15 @@ jobs:
             const diagnostic = fs.existsSync(diagnosticPath) ? fs.readFileSync(diagnosticPath, "utf8") : "No structured browser diagnostic was written.";
             const log = fs.existsSync(logPath) ? fs.readFileSync(logPath, "utf8").slice(-8000) : "No browser smoke log was written.";
             core.error(`Browser smoke failed. Diagnostic:\n${diagnostic}\n\nLog tail:\n${log}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+      - name: Compare baseline and current day-theme DOM layouts
+        if: github.event_name == 'pull_request'
+        env:
+          NODE_PATH: /tmp/kefe-browser/node_modules
+        run: |
+          mkdir -p /tmp/kefe-layout-main /tmp/kefe-layout-current
+          KEFE_LAYOUT_ONLY=1 KEFE_EDITOR_DIST=/tmp/kefe-main/apps/web/dist-beui KEFE_SCREENSHOT_DIR=/tmp/kefe-layout-main node apps/web/scripts/browser-smoke.cjs
+          KEFE_LAYOUT_ONLY=1 KEFE_EDITOR_DIST="$GITHUB_WORKSPACE/apps/web/dist-beui" KEFE_SCREENSHOT_DIR=/tmp/kefe-layout-current node apps/web/scripts/browser-smoke.cjs
+          node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-layout-current | tee /tmp/kefe-screenshots/layout-comparison.log
       - name: Compare editor and volume screenshots against main
         if: steps.screenshot-baseline.outputs.run_id != ''
         env:
@@ -117,6 +136,13 @@ jobs:
             }
             const comparison = fs.readFileSync(logPath, "utf8").trim();
             core.notice(`Editor and volume screenshot comparison:\n${comparison}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+            const layoutPath = "/tmp/kefe-screenshots/layout-comparison.log";
+            if (fs.existsSync(layoutPath)) {
+              const layoutLines = fs.readFileSync(layoutPath, "utf8").trim().split(/\r?\n/).filter(Boolean);
+              for (const line of layoutLines.slice(0, 24)) {
+                core.notice(`Baseline/current DOM: ${line}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              }
+            }
       - name: Upload desktop/mobile day/night screenshots and diffs
         if: always()
         uses: actions/upload-artifact@v4

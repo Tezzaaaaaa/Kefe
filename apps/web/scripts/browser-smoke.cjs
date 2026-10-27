@@ -4,7 +4,7 @@ const http = require("node:http");
 const path = require("node:path");
 const { chromium } = require("playwright");
 
-const root = path.resolve(__dirname, "..", "dist-beui");
+const root = path.resolve(process.env.KEFE_EDITOR_DIST || path.resolve(__dirname, "..", "dist-beui"));
 const mime = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -58,6 +58,38 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
   return buffer;
 }
 
+async function captureEditorLayout(page) {
+  return page.evaluate(() => {
+    const viewport = { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight };
+    const describe = (node) => {
+      const rect = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      const section = node.closest(".section[data-section-id]");
+      const panel = node.closest(".kefe-panel[data-panel-view]");
+      const chain = [];
+      for (let current = node; current && current !== document.body && chain.length < 6; current = current.parentElement) {
+        const id = current.id ? `#${current.id}` : "";
+        const classes = [...current.classList].slice(0, 4).map(name => `.${name}`).join("");
+        chain.push(`${current.tagName.toLowerCase()}${id}${classes}`);
+      }
+      return {
+        path: chain.join(" < "), tag: node.tagName.toLowerCase(), id: node.id || "", classes: [...node.classList].join(" "),
+        section: section?.dataset.sectionId || "", panel: panel?.dataset.panelView || "",
+        text: (node.innerText || node.getAttribute("aria-label") || node.getAttribute("title") || "").trim().replace(/\s+/g, " ").slice(0, 100),
+        childCount: node.children.length, x: rect.x, y: rect.y, width: rect.width, height: rect.height,
+        display: style.display, visibility: style.visibility, position: style.position, boxSizing: style.boxSizing,
+        color: style.color, background: style.backgroundColor, font: style.font, lineHeight: style.lineHeight,
+        border: `${style.borderTopWidth} ${style.borderTopStyle} ${style.borderTopColor}`, radius: style.borderTopLeftRadius,
+        padding: style.padding, gap: style.gap,
+      };
+    };
+    return [...document.querySelectorAll(".kefe-editor, .kefe-editor *")].map(describe).filter(item =>
+      item.width > 0 && item.height > 0 && item.display !== "none" && item.visibility !== "hidden"
+      && item.x < viewport.width && item.y < viewport.height && item.x + item.width > 0 && item.y + item.height > 0
+    );
+  });
+}
+
 (async () => {
   let browser;
   let page;
@@ -98,6 +130,23 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
         settingsScripts: [...document.scripts].filter(script => script.src.includes("/app/settings/")).map(script => script.src)
       }));
       throw new Error("Settings panel did not mount: " + JSON.stringify({ diagnostics, pageErrors, error: error.message }));
+    }
+    if (process.env.KEFE_LAYOUT_ONLY === "1") {
+      const screenshotDir = process.env.KEFE_SCREENSHOT_DIR || "/tmp/kefe-layout-only";
+      fs.mkdirSync(screenshotDir, { recursive: true });
+      const originalViewport = page.viewportSize();
+      for (const viewport of [originalViewport, { width: 390, height: 844 }]) {
+        await page.setViewportSize(viewport);
+        const size = viewport.width <= 640 ? "mobile" : "desktop";
+        for (const theme of ["night", "day"]) {
+          await page.evaluate(nextTheme => { document.documentElement.dataset.theme = nextTheme; }, theme);
+          await page.waitForTimeout(300);
+          const layout = await captureEditorLayout(page);
+          fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(layout));
+        }
+      }
+      console.log(`Layout-only inventory captured from ${root}.`);
+      return;
     }
     const timingNudge = page.locator('[data-setting="lyric-nudge"]');
     await timingNudge.evaluate(input => {
@@ -611,33 +660,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
             assert.equal(geometry.background, "rgba(0, 0, 0, 0)", "night volume Card must preserve the legacy transparent fallback");
           }
           if (size === "desktop") desktopThemeSurfaces.set(theme, geometry.background);
-          const editorLayout = await page.evaluate(() => {
-            const viewport = { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight };
-            const describe = (node) => {
-              const rect = node.getBoundingClientRect();
-              const style = getComputedStyle(node);
-              const section = node.closest(".section[data-section-id]");
-              const panel = node.closest(".kefe-panel[data-panel-view]");
-              const chain = [];
-              for (let current = node; current && current !== document.body && chain.length < 6; current = current.parentElement) {
-                const id = current.id ? `#${current.id}` : "";
-                const classes = [...current.classList].slice(0, 4).map(name => `.${name}`).join("");
-                chain.push(`${current.tagName.toLowerCase()}${id}${classes}`);
-              }
-              return {
-                path: chain.join(" < "), tag: node.tagName.toLowerCase(), id: node.id || "", classes: [...node.classList].join(" "),
-                section: section?.dataset.sectionId || "", panel: panel?.dataset.panelView || "",
-                text: (node.innerText || node.getAttribute("aria-label") || node.getAttribute("title") || "").trim().replace(/\s+/g, " ").slice(0, 100),
-                x: rect.x, y: rect.y, width: rect.width, height: rect.height,
-                display: style.display, visibility: style.visibility, color: style.color, background: style.backgroundColor,
-                border: `${style.borderTopWidth} ${style.borderTopStyle} ${style.borderTopColor}`, padding: style.padding,
-              };
-            };
-            return [...document.querySelectorAll(".kefe-editor, .kefe-editor *")].map(describe).filter(item =>
-              item.width > 0 && item.height > 0 && item.display !== "none" && item.visibility !== "hidden"
-              && item.x < viewport.width && item.y < viewport.height && item.x + item.width > 0 && item.y + item.height > 0
-            );
-          });
+          const editorLayout = await captureEditorLayout(page);
           fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
           await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
           await volumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
