@@ -150,7 +150,7 @@ async function captureEditorScreenState(page) {
     });
 
     await page.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
-    await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
+    await page.waitForSelector(".kefe-sidebar [data-shell-panel]", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#songTitle", { state: "visible", timeout: 20000 });
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
@@ -285,6 +285,26 @@ async function captureEditorScreenState(page) {
     await page.keyboard.press("Escape");
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "the editor must start in Media, not switch itself to Visualisers");
+    const lyricsSidebarAction = page.locator('.kefe-sidebar [data-shell-panel="lyrics"]');
+    await lyricsSidebarAction.focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "lyrics",
+      "keyboard activation of the native sidebar button should open Lyric Sync");
+    assert.equal(await lyricsSidebarAction.getAttribute("aria-current"), "page",
+      "the native sidebar should expose its active section to assistive technology");
+    const mediaSidebarAction = page.locator('.kefe-sidebar [data-shell-panel="media"]');
+    await mediaSidebarAction.focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
+      "keyboard activation of the native Media button should restore the initial section");
+    const aspectSelect = page.locator("#kefeAspect");
+    assert.equal(await aspectSelect.getAttribute("aria-hidden"), null, "the preview aspect select must remain exposed to assistive technology");
+    await aspectSelect.selectOption("9:16");
+    await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-9x16"), null, { timeout: 5000 });
+    assert.deepEqual(await page.locator("#kefeCanvas").evaluate(canvas => [canvas.width, canvas.height]), [1080, 1920],
+      "the native aspect select should update KEFE's canvas dimensions");
+    await aspectSelect.selectOption("16:9");
+    await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-16x9"), null, { timeout: 5000 });
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
       "visualiser tabs must stay hidden until the Visualisers section is opened");
     assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
@@ -310,8 +330,8 @@ async function captureEditorScreenState(page) {
     const headerNavigation = await page.evaluate(() => {
       const header = document.querySelector(".kefe-sidebar");
       const headerRect = header.getBoundingClientRect();
-      const navs = [...header.querySelectorAll(".beui-sidebar-nav")];
-      const links = [...header.querySelectorAll(".beui-sidebar-nav .kefe-sidebar-link")];
+      const navs = [...header.querySelectorAll(".kefe-sidebar-group")];
+      const links = [...header.querySelectorAll(".kefe-sidebar-group > .kefe-sidebar-link")];
       return {
         navDisplays: navs.map((nav) => getComputedStyle(nav).display),
         linksWithinHeader: links.every((link) => {
@@ -321,7 +341,7 @@ async function captureEditorScreenState(page) {
       };
     });
     assert.ok(headerNavigation.navDisplays.length >= 2 && headerNavigation.navDisplays.every((display) => display === "flex"),
-      `desktop beUI navigation groups must be horizontal flex rows: ${JSON.stringify(headerNavigation.navDisplays)}`);
+      `native navigation groups must be horizontal flex rows: ${JSON.stringify(headerNavigation.navDisplays)}`);
     assert.ok(headerNavigation.linksWithinHeader, "desktop navigation links must not be clipped outside the header");
     const desktopColumns = await page.evaluate(() => {
       const left = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
@@ -441,10 +461,12 @@ async function captureEditorScreenState(page) {
       "visualiser tabs must not appear on the initial Media section");
     assert.equal(await page.locator("#mediaInput").getAttribute("type"), "file", "upload Card must preserve the native file input");
     await page.waitForFunction(() => {
-      const ranges = [...document.querySelectorAll('input[type="range"]')].filter((input) => input.id !== "kefeTime");
-      const selects = [...document.querySelectorAll("select")];
-      return ranges.every((input) => input.nextElementSibling?.classList.contains("beui-range-host"))
-        && selects.every((input) => input.nextElementSibling?.classList.contains("beui-select-host"));
+      const ranges = [...document.querySelectorAll('.kefe-editor input[type="range"]')].filter((input) => input.id !== "kefeTime");
+      const selects = [...document.querySelectorAll('.kefe-editor select')];
+      return ranges.length > 0
+        && ranges.every((input) => input.nextElementSibling?.classList.contains("beui-range-host"))
+        && selects.length >= 5
+        && selects.every((input) => !input.hasAttribute("aria-hidden") && input.tabIndex !== -1 && input.nextElementSibling?.classList.contains("beui-select-host") !== true);
     }, null, { timeout: 20000 });
 
     const nativeSongTitle = page.locator("#songTitle");
@@ -572,10 +594,10 @@ async function captureEditorScreenState(page) {
       [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize)].join("|")
     )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
-    const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
-    assert.ok(sidebarCount >= 7, `expected sidebar actions, found ${sidebarCount}`);
+    const sidebarCount = await page.locator('.kefe-sidebar [data-shell-panel], .kefe-sidebar [data-top-panel="settings"], .kefe-sidebar a.kefe-sidebar-link[href="./editor.html"]').count();
+    assert.ok(sidebarCount >= 8, `expected native workspace, section, and Settings actions, found ${sidebarCount}`);
 
-    await page.locator(".beui-sidebar-settings-host button").click();
+    await page.locator('[data-top-panel="settings"]').click();
     const dialog = page.getByRole("dialog", { name: "Settings" });
     await dialog.waitFor({ state: "visible", timeout: 10000 });
     const settingAccordions = dialog.locator('button[aria-controls$="-content"]');
@@ -600,7 +622,7 @@ async function captureEditorScreenState(page) {
     await dialog.getByRole("button", { name: "Done" }).click();
     await dialog.waitFor({ state: "hidden", timeout: 5000 });
 
-    await page.locator(".beui-transport-host button[aria-controls=\"kefeVolumePopover\"]").click();
+    await page.locator("#kefeMuteToggle[aria-controls=\"kefeVolumePopover\"]").click();
     const volumePopover = page.locator("#kefeVolumePopover");
     await volumePopover.waitFor({ state: "visible", timeout: 5000 });
     const volumeCardGeometry = await page.evaluate(() => {
@@ -750,7 +772,7 @@ async function captureEditorScreenState(page) {
     await page.keyboard.press("Escape");
     await volumePopover.waitFor({ state: "hidden", timeout: 5000 });
 
-    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Background Effects" }).click();
+    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Background Effects" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "background-effects", null, { timeout: 5000 });
     await assertSectionFits("background-effects");
     const backgroundOptionsLayout = await page.locator("#kefeBackgroundEffectOptions").evaluate(grid => ({
@@ -760,7 +782,7 @@ async function captureEditorScreenState(page) {
     if (backgroundOptionsLayout.width <= 360) assert.equal(backgroundOptionsLayout.columns, 1,
       `background effect cards must stack when the panel is narrow: ${JSON.stringify(backgroundOptionsLayout)}`);
 
-    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Visualiser" }).click();
+    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Visualiser" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "visualiser", null, { timeout: 5000 });
     await page.waitForSelector(".beui-vis-tabs-host [role='tab']", { state: "attached", timeout: 10000 });
     assert.ok(await page.locator(".beui-vis-tabs-host [role='tab']").count() >= 1, "visualiser navigation should use beUI Tabs");
@@ -842,7 +864,7 @@ async function captureEditorScreenState(page) {
       "power toggles must not change the selected visualiser tab");
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
-    const lyricsNavButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyric Sync" });
+    const lyricsNavButton = page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Lyric Sync" });
     await lyricsNavButton.evaluate((button) => button.scrollIntoView({ block: "center", inline: "nearest" }));
     await lyricsNavButton.evaluate((button) => button.click());
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
@@ -886,7 +908,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser tabs must not appear on the Effects section");
 
-    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Export" }).evaluate(button => button.click());
+    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Export" }).evaluate(button => button.click());
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "export", null, { timeout: 5000 });
     await assertSectionFits("export");
     const exportLayout = await page.locator('.kefe-panel[data-panel-view="export"] .kefe-form').evaluate(form => ({
@@ -913,7 +935,7 @@ async function captureEditorScreenState(page) {
         ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Effects"],
         ["background-effects", "Background Effects"], ["visualiser", "Visualiser"], ["export", "Export"]
       ]) {
-        const navButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: label }).first();
+        const navButton = page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: label }).first();
         await navButton.evaluate(button => button.click());
         await page.waitForFunction(expected => document.querySelector(".kefe-section.active")?.dataset.panel === expected, section, { timeout: 5000 });
         await assertSectionFits(section);
@@ -961,10 +983,12 @@ async function captureEditorScreenState(page) {
     await page.keyboard.press("Space");
     assert.equal(await reviewCheckbox.isChecked(), true, "native checkbox Space activation should update KEFE checklist state");
 
-    const firstCount = await page.locator(".beui-panel-button-host").count();
+    const firstCount = await page.locator(".kefe-panel-action").count();
     await page.waitForTimeout(300);
-    const secondCount = await page.locator(".beui-panel-button-host").count();
-    assert.equal(secondCount, firstCount, "panel bridge must not recursively mount its own buttons");
+    const secondCount = await page.locator(".kefe-panel-action").count();
+    assert.ok(firstCount > 0, "native panel actions should be styled directly on KEFE buttons");
+    assert.equal(secondCount, firstCount, "native panel buttons must not be duplicated as controls");
+    assert.equal(await page.locator(".beui-panel-button-host").count(), 0, "panel actions must not use mirrored host wrappers");
 
     await page.locator("#mediaInput").setInputFiles({
       name: "beui-smoke.wav",
@@ -977,9 +1001,9 @@ async function captureEditorScreenState(page) {
       return audio && audio.readyState >= 1 && Number.isFinite(audio.duration) && audio.duration > 0 && track && !track.hidden;
     }, null, { timeout: 15000 });
     assert.ok(Number(await page.locator("#kefeTime").getAttribute("max")) >= 4.9, "timeline should use decoded media duration");
-    await page.locator(".beui-transport-host button[aria-label=\"Play\"]").click();
+    await page.locator("#playButton").click();
     await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === false, null, { timeout: 5000 });
-    await page.locator(".beui-transport-host button[aria-label=\"Pause\"]").click();
+    await page.locator("#playButton").click();
     await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === true, null, { timeout: 5000 });
 
     await page.locator("#mediaInput").setInputFiles({

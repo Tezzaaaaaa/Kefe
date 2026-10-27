@@ -34,7 +34,7 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-panel h2 { font-size: 13px !important; line-height: 16px; font-weight: 650; letter-spacing: .01em; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-section-info { width: 14px; height: 14px; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-section-info svg { width: 12px; height: 12px; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-accordion-trigger.beui-panel-action { width: 24px; height: 24px; min-width: 24px; padding: 0; }
+:is(.kefe-panels, .kefe-settings-columns) .beui-accordion-trigger.kefe-panel-action { width: 24px; height: 24px; min-width: 24px; padding: 0; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-form { gap: var(--pc-gap) !important; padding-top: 6px !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-step-head { padding: 0 0 4px !important; min-height: 0; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-step-body { gap: var(--pc-gap) !important; padding: 0 !important; }
@@ -86,7 +86,7 @@
 
 /* ---- Buttons, inputs, selects (28px) ---- */
 :is(.kefe-panels, .kefe-settings-columns) .kefe-btn,
-:is(.kefe-panels, .kefe-settings-columns) .beui-panel-action.kefe-btn,
+:is(.kefe-panels, .kefe-settings-columns) .kefe-panel-action.kefe-btn,
 :is(.kefe-panels, .kefe-settings-columns) .beui-upload-browse,
 :is(.kefe-panels, .kefe-settings-columns) .kefe-chip {
   height: var(--pc-h) !important; min-height: 0 !important;
@@ -98,7 +98,7 @@
 }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-btn:hover { background: var(--pc-surface-hover); border-color: var(--pc-border-hover); }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-btn.primary,
-:is(.kefe-panels, .kefe-settings-columns) .beui-panel-action.kefe-btn.primary { background: var(--pc-accent); border-color: var(--pc-accent); color: #fff; font-weight: 600 !important; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-panel-action.kefe-btn.primary { background: var(--pc-accent); border-color: var(--pc-accent); color: #fff; font-weight: 600 !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-btn.primary:hover { filter: brightness(1.08); background: var(--pc-accent); }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-btn svg { width: 12px; height: 12px; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-input,
@@ -112,13 +112,11 @@
   height: 120px !important; min-height: 0 !important; padding: 6px 8px !important; border-radius: 4px;
   border: 1px solid var(--pc-border); background: var(--pc-input); font-size: var(--pc-fs) !important; line-height: 1.45;
 }
-:is(.kefe-panels, .kefe-settings-columns) .beui-select-host > div,
-:is(.kefe-panels, .kefe-settings-columns) .beui-select-host button[id$="-trigger"] {
+:is(.kefe-panels, .kefe-settings-columns) .kefe-panel select {
   height: var(--pc-h) !important; min-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important;
   border-radius: 4px; font-size: var(--pc-fs) !important; font-weight: 500;
   background: var(--pc-surface); border-color: var(--pc-border);
 }
-:is(.kefe-panels, .kefe-settings-columns) .beui-select-host { height: var(--pc-h); min-height: 0; }
 
 /* ---- Segmented control ---- */
 :is(.kefe-panels, .kefe-settings-columns) .kefe-seg {
@@ -160,7 +158,6 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-value { font-size: var(--pc-fs-sm) !important; font-weight: 600; padding: 0 !important; min-width: 0 !important; height: auto !important; border: 0 !important; background: transparent !important; font-variant-numeric: tabular-nums; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls { display: grid !important; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px; padding: 0 !important; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls .beui-panel-button-host { display: contents; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-step { min-width: 0; padding: 0 6px !important; font-variant-numeric: tabular-nums; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-foot { display: flex; align-items: center; justify-content: space-between; padding: 0 !important; font-size: var(--pc-fs-xs); color: var(--pc-muted); }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-foot .kefe-btn { height: 22px !important; }
@@ -172,7 +169,7 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-line-list { max-height: 160px; padding: 0 !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-empty-panel { padding: 8px !important; font-size: var(--pc-fs-sm) !important; line-height: 13px; border-radius: 4px; min-height: 0 !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-download-row { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px !important; padding: 0 !important; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-download-row .beui-panel-button-host { width: auto !important; min-width: 0; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-download-row .kefe-panel-action { width: auto !important; min-width: 0; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-download-row .kefe-btn { width: 100%; padding: 0 4px !important; }
 
 /* ---- Media ---- */
@@ -268,15 +265,15 @@
 
 /* Lyrics timing: [−0.10s] [slider] [+0.10s] on one row */
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls { grid-template-columns: auto minmax(0, 1fr) auto !important; margin: 0 !important; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls .beui-panel-button-host { display: block !important; width: auto !important; height: auto !important; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls .beui-panel-button-host:first-of-type { grid-column: 1; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls > .kefe-panel-action { display: inline-flex !important; width: auto !important; height: auto !important; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls > .kefe-panel-action:first-of-type { grid-column: 1; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls .beui-range-host { grid-column: 2; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls .beui-panel-button-host:last-of-type { grid-column: 3; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls > .kefe-panel-action:last-of-type { grid-column: 3; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls .kefe-lyrics-timing-step { width: auto !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-head > div:first-child { display: flex; flex-direction: column; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-foot { display: grid !important; grid-template-columns: 1fr auto 1fr; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-foot > span:last-child { text-align: right; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-foot .beui-panel-button-host { display: block !important; width: auto !important; height: auto !important; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-foot > .kefe-panel-action { display: inline-flex !important; width: auto !important; height: auto !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-timing-editor > .kefe-meta,
 :is(.kefe-panels, .kefe-settings-columns) .kefe-timing-editor-head .kefe-meta { display: block; }
 
@@ -333,7 +330,7 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-fluid-palette-label { font-size: var(--pc-fs-xs); font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--pc-muted); margin: 0 0 3px; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-vis-view { display: grid; gap: 4px; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-vis-view button.kefe-btn,
-:is(.kefe-panels, .kefe-settings-columns) .kefe-vis-view .beui-panel-action:not(.kefe-gradient-chip):not(.kefe-switch) { height: 26px !important; padding: 0 8px !important; font-size: var(--pc-fs-sm) !important; border-radius: 4px !important; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-vis-view .kefe-panel-action:not(.kefe-gradient-chip):not(.kefe-switch) { height: 26px !important; padding: 0 8px !important; font-size: var(--pc-fs-sm) !important; border-radius: 4px !important; }
 
 /* Background effect cards: 3-up, short */
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-options { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
@@ -373,11 +370,11 @@
   text-align: left;
   overflow-wrap: anywhere;
 }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-panel :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea, .beui-select-host) {
+:is(.kefe-panels, .kefe-settings-columns) .kefe-panel :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea) {
   min-width: 0;
   max-width: 100%;
 }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-panel :where(.kefe-btn, .beui-panel-action, .beui-upload-browse, .kefe-chip) {
+:is(.kefe-panels, .kefe-settings-columns) .kefe-panel :where(.kefe-btn, .kefe-panel-action, .beui-upload-browse, .kefe-chip) {
   min-width: 0;
   max-width: 100%;
   align-items: center;
@@ -442,16 +439,16 @@
 .kefe-settings-columns .kefe-slot .kefe-section-heading-row:has(.kefe-lyrics-power, .kefe-visualiser-power-slot, .kefe-background-effect-toggle) { min-height: 24px !important; justify-content: flex-end; border: 0; }
 .kefe-settings-columns .kefe-slot .kefe-panel-head { border: 0 !important; }
 
-/* Segmented control: buttons are wrapped by the beUI host, so target them there */
-:is(.kefe-panels, .kefe-settings-columns) .kefe-seg > .beui-panel-button-host { display: block; min-width: 0; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-seg .beui-panel-button-host > button.kefe-seg-btn {
+/* Segmented control: style the original native buttons directly. */
+:is(.kefe-panels, .kefe-settings-columns) .kefe-seg > .kefe-panel-action { display: inline-flex; min-width: 0; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-seg > .kefe-panel-action.kefe-seg-btn {
   width: 100%; height: 24px !important; min-height: 0 !important; padding: 0 6px !important; gap: 4px;
   border: 0 !important; border-radius: 3px !important; background: transparent !important;
   color: var(--pc-muted) !important; font-size: var(--pc-fs) !important; font-weight: 600 !important; box-shadow: none !important;
 }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-seg .beui-panel-button-host > button.kefe-seg-btn:hover { color: var(--pc-text) !important; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-seg .beui-panel-button-host > button.kefe-seg-btn[aria-checked="true"],
-:is(.kefe-panels, .kefe-settings-columns) .kefe-seg .beui-panel-button-host > button.kefe-seg-btn.active {
+:is(.kefe-panels, .kefe-settings-columns) .kefe-seg > .kefe-panel-action.kefe-seg-btn:hover { color: var(--pc-text) !important; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-seg > .kefe-panel-action.kefe-seg-btn[aria-checked="true"],
+:is(.kefe-panels, .kefe-settings-columns) .kefe-seg > .kefe-panel-action.kefe-seg-btn.active {
   background: var(--pc-accent-bg) !important; color: var(--pc-accent-fg) !important; box-shadow: inset 0 0 0 1px var(--pc-accent) !important;
 }
 

@@ -95,12 +95,11 @@ button{border:0;cursor:pointer;
 .kefe-toolbar-status{color:var(--muted);font-size:var(--font-xs);font-weight:600}
 .kefe-preview-toolbar #previewFullscreen{position:static;top:auto;right:auto;z-index:auto;width:32px;height:32px;flex:0 0 32px;border-radius:9px;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
 .kefe-preview-toolbar #previewFullscreen svg{width:16px;height:16px}
-.kefe-preview-toolbar .beui-transport-host{display:flex;flex:0 0 auto;align-items:center;justify-content:center;min-width:0}
-.kefe-preview-toolbar .beui-transport-host .beui-react-transport.kefe-preview-fullscreen{position:static;inset:auto;z-index:auto;display:inline-flex;align-items:center;justify-content:center;width:32px;min-width:32px;height:32px;flex:0 0 32px;padding:0;border-radius:9px;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
-.kefe-preview-toolbar .beui-transport-host .beui-react-transport.kefe-preview-fullscreen svg{display:block;width:16px;height:16px}
-.kefe-preview-toolbar .beui-transport-host .beui-react-transport.kefe-preview-fullscreen:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kefe-preview-toolbar #previewFullscreen{position:static;inset:auto;z-index:auto;display:inline-flex;align-items:center;justify-content:center;width:32px;min-width:32px;height:32px;flex:0 0 32px;padding:0;border-radius:9px;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.kefe-preview-toolbar #previewFullscreen svg{display:block;width:16px;height:16px}
+.kefe-preview-toolbar #previewFullscreen:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .kefe-preview > .kefe-stage{justify-self:center;align-self:center;max-height:100%}
-@media(max-width:520px){.kefe-preview{gap:7px;min-height:0;grid-template-rows:auto minmax(0,1fr);padding:10px 8px 8px}.kefe-preview-toolbar{grid-template-columns:minmax(0,1fr) auto auto;gap:6px;min-height:42px;padding:5px 7px;border-radius:11px}.kefe-toolbar-workspace{gap:6px}.kefe-toolbar-format{grid-column:2;grid-row:1;justify-self:end;gap:4px;padding:0;border:0;background:transparent}.kefe-toolbar-format label{font-size:10px}.kefe-toolbar-format select{min-height:28px;width:62px;max-width:62px;padding:0 3px;font-size:12px}.kefe-toolbar-actions{grid-column:3;grid-row:1;display:flex;min-width:32px;justify-content:flex-end}.kefe-toolbar-status{display:none}.kefe-toolbar-title{font-size:12px}.kefe-toolbar-live-dot{width:6px;height:6px;flex-basis:6px}.kefe-preview-toolbar #previewFullscreen{position:static;width:29px;height:29px;flex:0 0 29px;padding:0}.kefe-preview-toolbar .beui-transport-host .beui-react-transport.kefe-preview-fullscreen{width:29px;min-width:29px;height:29px;flex-basis:29px}}
+@media(max-width:520px){.kefe-preview{gap:7px;min-height:0;grid-template-rows:auto minmax(0,1fr);padding:10px 8px 8px}.kefe-preview-toolbar{grid-template-columns:minmax(0,1fr) auto auto;gap:6px;min-height:42px;padding:5px 7px;border-radius:11px}.kefe-toolbar-workspace{gap:6px}.kefe-toolbar-format{grid-column:2;grid-row:1;justify-self:end;gap:4px;padding:0;border:0;background:transparent}.kefe-toolbar-format label{font-size:10px}.kefe-toolbar-format select{min-height:28px;width:62px;max-width:62px;padding:0 3px;font-size:12px}.kefe-toolbar-actions{grid-column:3;grid-row:1;display:flex;min-width:32px;justify-content:flex-end}.kefe-toolbar-status{display:none}.kefe-toolbar-title{font-size:12px}.kefe-toolbar-live-dot{width:6px;height:6px;flex-basis:6px}.kefe-preview-toolbar #previewFullscreen{position:static;width:29px;height:29px;flex:0 0 29px;padding:0}.kefe-preview-toolbar #previewFullscreen{width:29px;min-width:29px;height:29px;flex-basis:29px}}
 
 .kefe-stage{position:relative;width:min(1280px,calc(100% - 16px));height:auto;max-width:100%;max-height:calc(100% - 16px);min-width:0;min-height:0;aspect-ratio:16/9;overflow:hidden;background:var(--bg);border:1px solid var(--line-soft);border-radius:var(--r3);box-shadow:var(--lift)}
 @keyframes kefeAppleGradient{0%{background-position:0% 0%,100% 0%,50% 100%,center}50%{background-position:16% 10%,84% 18%,58% 88%,center}100%{background-position:8% 20%,92% 8%,42% 78%,center}}
@@ -7978,22 +7977,16 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   .kefe-sidebar .kefe-sidebar-theme { display: flex; flex: 0 0 auto; align-items: center; gap: 6px; padding: 0; border: 0; }
   .kefe-sidebar .kefe-theme-swatches { flex-wrap: nowrap; }
 
-  /* React-backed beUI navigation hosts must become horizontal flex rows inside
-     the desktop header; their default full-width grid layout clips the header. */
-  .kefe-editor > .kefe-sidebar .beui-sidebar-nav-host {
+  /* Native workspace groups stay horizontal in the desktop header. */
+  .kefe-editor > .kefe-sidebar .kefe-sidebar-group {
     width: auto;
     min-width: 0;
     flex: 0 1 auto;
-  }
-  .kefe-editor > .kefe-sidebar .beui-sidebar-nav-host > div,
-  .kefe-editor > .kefe-sidebar .beui-sidebar-nav {
     display: flex;
-    width: auto;
-    min-width: 0;
     align-items: center;
     gap: 4px;
   }
-  .kefe-editor > .kefe-sidebar .beui-sidebar-nav .kefe-sidebar-link {
+  .kefe-editor > .kefe-sidebar .kefe-sidebar-group > .kefe-sidebar-link {
     width: auto;
     min-width: 0;
     min-height: 34px;
@@ -8867,7 +8860,7 @@ html:root[data-theme="day"] :is(
   .kefe-btn:not(.primary), .kefe-chip:not(.active), .kefe-seg-btn:not(.active),
   .kefe-lyric-effect-option, .kefe-font-option, .kefe-card, .kefe-song-result,
   .kefe-suggestion, .kefe-visualiser-preset, .kefe-font-card, .kefe-media-track,
-  .beui-button, .beui-panel-action, .beui-segmented-control button
+  .beui-button, .kefe-panel-action, .beui-segmented-control button
 ) {
   color: var(--text);
   background-color: var(--surface-hi);
@@ -9278,18 +9271,13 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     white-space: nowrap;
     padding-inline: 9px;
   }
-  .beui-sidebar-nav-host {
-    width: auto;
-    flex: 0 0 auto;
-  }
-  .beui-sidebar-nav-host > div,
-  .beui-sidebar-nav {
+  .kefe-sidebar .kefe-sidebar-group {
     display: flex;
-    width: auto;
+    flex: 0 0 auto;
     align-items: center;
     gap: 4px;
   }
-  .beui-sidebar-nav .kefe-sidebar-link {
+  .kefe-sidebar .kefe-sidebar-group > .kefe-sidebar-link {
     width: auto;
     min-height: 36px;
     height: 36px;
@@ -9344,41 +9332,28 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   }
 }
 @media (min-width: 1280px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head > .beui-panel-button-host > .beui-accordion-trigger {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head > .beui-accordion-trigger {
     position: absolute;
     top: 0;
     right: 0;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed .kefe-panel-head > .beui-panel-button-host > .beui-accordion-trigger {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed .kefe-panel-head > .beui-accordion-trigger {
     top: 50%;
     margin-top: -16px;
   }
 }
 
 
-/* Stable header navigation layout: the React Button utility classes must not
-   stretch each item to the width of its group or reintroduce a vertical grid. */
-.kefe-editor .kefe-sidebar .kefe-sidebar-group .beui-sidebar-nav-host {
+/* Native sidebar links sit directly in the workspace groups. */
+.kefe-editor .kefe-sidebar .kefe-sidebar-group {
   display: flex;
   flex: 0 1 auto;
-  width: auto;
-  min-width: 0;
-}
-.kefe-editor .kefe-sidebar .kefe-sidebar-group .beui-sidebar-nav-host > div {
-  display: flex;
-  flex: 0 1 auto;
-  width: auto;
-  min-width: 0;
-}
-.kefe-editor .kefe-sidebar .beui-sidebar-nav {
-  display: flex;
-  flex-wrap: nowrap;
   align-items: center;
   gap: 4px;
   width: auto;
   min-width: 0;
 }
-.kefe-editor .kefe-sidebar .beui-sidebar-nav .kefe-sidebar-link {
+.kefe-editor .kefe-sidebar .kefe-sidebar-group > .kefe-sidebar-link {
   display: inline-flex;
   flex: 0 0 auto;
   width: auto;
@@ -9386,7 +9361,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   max-width: none;
   white-space: nowrap;
 }
-.kefe-editor .kefe-sidebar .kefe-sidebar-group { min-width: 0; }
 
 /* Final shared geometry: no section-specific heading overrides after this point. */
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head {
@@ -10090,6 +10064,8 @@ input.beui-native-range {
   border: 0 !important;
 }
 
+.beui-native-command-button { display: none !important; }
+
 .beui-settings-root {
   --beui-background: var(--shell-bg, #171719);
   --beui-foreground: var(--shell-text, #f5f5f5);
@@ -10107,19 +10083,7 @@ input.beui-native-range {
   color: var(--beui-foreground);
 }
 
-.beui-select-host {
-  width: 100%;
-  min-width: 0;
-}
-.beui-select-host > div {
-  width: 100%;
-}
-.beui-select-host.is-aspect {
-  min-width: 0;
-  width: 100%;
-}
-input.beui-native-range,
-select.beui-native-select {
+input.beui-native-range {
   position: absolute !important;
   width: 1px !important;
   height: 1px !important;
@@ -10131,185 +10095,33 @@ select.beui-native-select {
   border: 0 !important;
 }
 
-.beui-select-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
-}
 
-.beui-tabs-host {
-  width: 100%;
-  min-width: 0;
-}
-.beui-native-tab,
-.beui-native-command-button {
-  display: none !important;
-}
-.beui-tabs-host > div {
-  width: 100%;
-  min-width: 0;
-}
 
-.beui-sidebar-nav-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
-  display: block;
-  width: 100%;
-  min-width: 0;
-}
-.beui-sidebar-nav-host > div {
-  width: 100%;
-}
-.beui-sidebar-nav {
-  display: grid;
-  gap: 4px;
-  width: 100%;
-}
-.beui-sidebar-nav .kefe-sidebar-link {
-  min-width: 0;
-  height: 38px;
-}
-.beui-sidebar-nav .kefe-sidebar-link.is-current {
-  color: var(--shell-text, #f5f5f5);
-}
-.beui-sidebar-nav .kefe-sidebar-link-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.beui-native-sidebar-control {
-  display: none !important;
-}
-.kefe-editor.sidebar-collapsed .beui-sidebar-nav .kefe-sidebar-link-label {
-  display: none;
-}
-
-.beui-sidebar-toggle-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
+.kefe-panel-action { min-width: 0; }
+.kefe-panel-action:not(.kefe-btn):not(.kefe-switch):not(.beui-accordion-trigger):not(.kefe-seg-btn):not(.kefe-gradient-chip):not(.kefe-chip):not(.kefe-lyrics-timing-step):not(.kefe-lyrics-timing-reset) {
   display: inline-flex;
-}
-.beui-sidebar-toggle-host .kefe-sidebar-toggle {
-  display: inline-flex;
-}
-.beui-accent-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
-}
-.beui-accent-swatches {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  min-height: 40px;
+  height: 40px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  user-select: none;
+  transition: color .15s ease, background-color .15s ease, border-color .15s ease;
 }
-.beui-accent-swatch {
-  min-width: 28px;
-  min-height: 28px;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 16%);
+.kefe-panel-action:not(.kefe-btn):not(.kefe-switch):not(.beui-accordion-trigger):not(.kefe-seg-btn):not(.kefe-gradient-chip):not(.kefe-chip):not(.kefe-lyrics-timing-step):not(.kefe-lyrics-timing-reset):hover:not(:disabled) {
+  color: var(--text);
+  background: color-mix(in srgb, var(--muted) 60%, transparent);
 }
-
-.beui-dock-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
-  display: contents;
-}
-.beui-dock-button {
-  flex: 0 0 auto;
-}
-.beui-dock-button > span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.beui-dock-button svg {
-  width: 18px;
-  height: 18px;
-}
-
-.beui-transport-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
-  display: contents;
-}
-.beui-native-transport {
-  display: none !important;
-}
-.beui-react-transport {
-  flex: 0 0 auto;
-}
-.beui-react-transport > span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.beui-panel-button-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
-  display: contents;
-}
-.beui-native-panel-button {
-  display: none !important;
-}
-.beui-panel-action {
-  min-width: 0;
-}
-.beui-panel-action > span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.beui-panel-button-host[hidden] {
-  display: none !important;
-}
+.kefe-panel-action:disabled { cursor: not-allowed; opacity: .5; }
+.kefe-panel-action[hidden] { display: none !important; }
 
 .beui-command-button-host {
   --beui-background: var(--shell-bg, #171719);
@@ -10330,8 +10142,7 @@ select.beui-native-select {
 .beui-command-dialog-root { display: contents; }
 .beui-command-dialog { flex: 0 1 520px; }
 
-/* The former Card bridge root carried the beUI theme tokens used by mirrored
-   controls inside each native section. Keep those tokens on the native panel. */
+/* Native panel controls keep their own semantic classes and behavior. */
 .kefe-panel[data-panel-view] {
   --beui-background: var(--shell-bg, #171719);
   --beui-foreground: var(--shell-text, #f5f5f5);
@@ -10352,29 +10163,6 @@ select.beui-native-select {
 }
 
 
-/* Section tabs are vertical in the desktop navigation panel and horizontal on narrow screens. */
-.beui-tabs-host .beui-section-tabs-list {
-  align-items: stretch;
-  flex-direction: column;
-}
-.beui-tabs-host .beui-section-tab {
-  justify-content: flex-start;
-  text-align: left;
-  white-space: normal;
-}
-@media (max-width: 640px) {
-  .beui-tabs-host .beui-section-tabs-list {
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-  }
-  .beui-tabs-host .beui-section-tab {
-    width: auto;
-    flex: 0 0 auto;
-    white-space: nowrap;
-  }
-}
 
 /* Visualiser section container and preset rows. Tab cards use the single beUI card system below. */
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
@@ -10667,14 +10455,14 @@ select.beui-native-select {
 .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets > .kefe-btn,
 .kefe-panel[data-panel-view="visualiser"] .kefe-slow-light-scenes > .kefe-btn,
 .kefe-panel[data-panel-view="visualiser"] #flutedModes > .kefe-btn,
-.kefe-panel[data-panel-view="visualiser"] .beui-panel-button-host button {
+.kefe-panel[data-panel-view="visualiser"] .kefe-panel-action {
   min-width: 0; white-space: normal; overflow-wrap: normal; word-break: normal; hyphens: none;
   line-height: 1.15; text-align: center;
 }
-.kefe-panel[data-panel-view="visualiser"] .beui-panel-button-host { min-width: 0; display: flex; }
-.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets .beui-panel-button-host > button,
-.kefe-panel[data-panel-view="visualiser"] .kefe-slow-light-scenes .beui-panel-button-host > button,
-.kefe-panel[data-panel-view="visualiser"] #flutedModes .beui-panel-button-host > button {
+.kefe-panel[data-panel-view="visualiser"] .kefe-panel-action { min-width: 0; display: flex; }
+.kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets .kefe-panel-action,
+.kefe-panel[data-panel-view="visualiser"] .kefe-slow-light-scenes .kefe-panel-action,
+.kefe-panel[data-panel-view="visualiser"] #flutedModes .kefe-panel-action {
   width: 100%; min-height: 40px; height: auto; padding: 8px 6px; font-size: 12.5px;
 }
 
@@ -10685,8 +10473,8 @@ select.beui-native-select {
 
 /* ===== Lyric downloads + export status ===== */
 .kefe-download-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.kefe-download-row .beui-panel-button-host { flex: 1 1 auto; min-width: 0; display: flex; }
-.kefe-download-row .beui-panel-button-host > button { width: 100%; white-space: nowrap; font-size: 12.5px; padding-inline: 10px; }
+.kefe-download-row .kefe-panel-action { flex: 1 1 auto; min-width: 0; display: flex; }
+.kefe-download-row .kefe-panel-action { width: 100%; white-space: nowrap; font-size: 12.5px; padding-inline: 10px; }
 #exportStatus:empty { display: none; }
 
 /* Below the three-panel breakpoint the work area has only preview + timeline; drop the phantom third row. */
@@ -10765,8 +10553,8 @@ select.beui-native-select {
 .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar{grid-row:1;width:min(100%,1280px)}
 
 /* Keep the visible beUI fullscreen action attached to the preview while fullscreen is active. */
-.kefe-stage:fullscreen .beui-transport-host .beui-react-transport.kefe-preview-fullscreen,
-.kefe-stage.kefe-pseudo-fullscreen .beui-transport-host .beui-react-transport.kefe-preview-fullscreen{
+.kefe-stage:fullscreen #previewFullscreen,
+.kefe-stage.kefe-pseudo-fullscreen #previewFullscreen{
   position:absolute;
   inset:auto;
   top:max(12px,env(safe-area-inset-top));
@@ -10788,11 +10576,11 @@ select.beui-native-select {
   backdrop-filter:blur(16px);
   -webkit-backdrop-filter:blur(16px);
 }
-.kefe-stage:fullscreen .beui-transport-host .beui-react-transport.kefe-preview-fullscreen svg,
-.kefe-stage.kefe-pseudo-fullscreen .beui-transport-host .beui-react-transport.kefe-preview-fullscreen svg{width:18px;height:18px}
+.kefe-stage:fullscreen #previewFullscreen svg,
+.kefe-stage.kefe-pseudo-fullscreen #previewFullscreen svg{width:18px;height:18px}
 @media(max-width:520px){
-  .kefe-stage:fullscreen .beui-transport-host .beui-react-transport.kefe-preview-fullscreen,
-  .kefe-stage.kefe-pseudo-fullscreen .beui-transport-host .beui-react-transport.kefe-preview-fullscreen{
+  .kefe-stage:fullscreen #previewFullscreen,
+  .kefe-stage.kefe-pseudo-fullscreen #previewFullscreen{
     top:max(10px,env(safe-area-inset-top));
     right:max(10px,env(safe-area-inset-right));
     width:42px;
@@ -10840,7 +10628,7 @@ select.beui-native-select {
     line-height: 1.4;
     overflow-wrap: anywhere;
   }
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head > .beui-panel-button-host,
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head > .kefe-panel-action,
   .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head > .kefe-visualiser-power-slot {
     grid-column: 2;
     grid-row: 1;
@@ -10848,7 +10636,7 @@ select.beui-native-select {
     justify-self: end;
     align-self: center;
   }
-  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head > .beui-panel-button-host button {
+  .kefe-editor .kefe-panels .kefe-panel[data-panel-view] .kefe-panel-head > .kefe-panel-action {
     max-width: 100%;
     white-space: nowrap;
   }
@@ -11044,11 +10832,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-
   background: var(--bg-secondary);
 }
 
-/* Keep beUI mount roots from painting their dark fallback over the themed columns. */
-html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-sidebar-nav-host,
-html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-button-host {
-  background-color: var(--bg-secondary);
-}
 
 
 /* ==========================================================================
@@ -11061,7 +10844,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-button-host {
 .kefe-preview-toolbar .kefe-toolbar-status { display: none; }
 
 /* Keep the beUI volume action visible against both preview and transport surfaces. */
-.beui-transport-host .beui-react-transport[aria-label*="volume" i] {
+#kefeMuteToggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -11076,7 +10859,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-button-host {
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 2px 8px rgb(0 0 0 / 18%);
   opacity: 1;
 }
-.beui-transport-host .beui-react-transport[aria-label*="volume" i] > svg {
+#kefeMuteToggle > svg {
   display: block;
   width: 18px;
   height: 18px;
@@ -11087,13 +10870,13 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-button-host {
   stroke-linejoin: round;
   opacity: 1;
 }
-.beui-transport-host .beui-react-transport[aria-label*="volume" i]:hover,
-.beui-transport-host .beui-react-transport[aria-label*="volume" i][aria-expanded="true"] {
+#kefeMuteToggle:hover,
+#kefeMuteToggle[aria-expanded="true"] {
   border-color: var(--shell-accent, #ef4444);
   color: var(--shell-text, #ffffff);
   background: var(--shell-panel, #29292f);
 }
-:root[data-theme="day"] .beui-transport-host .beui-react-transport[aria-label*="volume" i] {
+:root[data-theme="day"] #kefeMuteToggle {
   border-color: var(--shell-line, #d5d7de);
   color: var(--shell-text, #202126);
   background: linear-gradient(145deg, #ffffff, #eceef3);
@@ -11137,24 +10920,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-button-host {
   border-radius: 6px;
   font-size: 16px;
 }
-.beui-sidebar-nav-host {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  min-width: 0;
-}
-.beui-sidebar-nav-host .beui-sidebar-nav {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  white-space: nowrap;
-}
-.beui-sidebar-nav-host .kefe-sidebar-link-label {
-  width: auto;
-  min-width: 0;
-  flex: 0 1 auto;
-  white-space: nowrap;
-}
 .kefe-sidebar-group {
   display: flex;
   flex: 0 0 auto;
@@ -11188,8 +10953,8 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-button-host {
   border-left: 1px solid var(--line);
 }
 .kefe-sidebar-github { font-size: 12px; }
-.beui-sidebar-settings-host .kefe-sidebar-link { width: 32px; min-width: 32px; padding: 0; justify-content: center; }
 .kefe-sidebar-github { width: 32px; min-width: 32px; padding: 0; justify-content: center; }
+.kefe-sidebar-bottom > [data-top-panel="settings"] { width: 32px; min-width: 32px; padding: 0; justify-content: center; font-size: 0; }
 .kefe-sidebar-github > span { width: 16px; flex: 0 0 16px; }
 .kefe-header-search { width: 32px; min-width: 32px; padding: 0; justify-content: center; }
 .kefe-header-search > span { width: 16px; flex: 0 0 16px; }

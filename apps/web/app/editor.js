@@ -1019,19 +1019,13 @@
   fitPreviewStage();
   const previewFullscreen=document.getElementById('previewFullscreen');
   const previewToolbarActions=previewFullscreen?.parentElement;
-  let previewFullscreenHost=null;
   function syncPreviewFullscreen(){
     if(!previewFullscreen||!previewStage)return;
-    if(!previewFullscreenHost){
-      previewFullscreenHost=previewToolbarActions?.querySelector('.beui-transport-host')||null;
-    }
     const active=document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen');
     if(active){
-      if(previewFullscreenHost&&previewFullscreenHost.parentElement!==previewStage)previewStage.appendChild(previewFullscreenHost);
       if(previewFullscreen.parentElement!==previewStage)previewStage.appendChild(previewFullscreen);
     }else{
       if(previewFullscreen.parentElement!==previewToolbarActions&&previewToolbarActions)previewToolbarActions.appendChild(previewFullscreen);
-      if(previewFullscreenHost&&previewFullscreenHost.parentElement!==previewToolbarActions&&previewToolbarActions)previewToolbarActions.insertBefore(previewFullscreenHost,previewFullscreen);
     }
     previewFullscreen.setAttribute('aria-label',active?'Exit fullscreen':'Enter fullscreen');
     previewFullscreen.title=active?'Exit fullscreen':'Enter fullscreen';
