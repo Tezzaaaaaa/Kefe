@@ -349,6 +349,12 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       return style.display !== "none" && style.borderRadius !== "0px" && style.borderTopWidth !== "0px";
     }).length);
     assert.equal(nativePanelSurfaceCount, 6, "all six native settings sections must retain their designed panel surfaces");
+    const embeddedPanelPadding = await page.locator("#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]").evaluateAll(panels =>
+      panels.map(panel => getComputedStyle(panel).padding)
+    );
+    assert.equal(embeddedPanelPadding.length, 6, "all six editor panels should remain embedded once in their native settings slots");
+    assert.ok(embeddedPanelPadding.every(padding => padding === "10px"),
+      `embedded native panels must retain the 10px Card-equivalent content inset: ${JSON.stringify(embeddedPanelPadding)}`);
     assert.equal(await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count(), 0,
       "editor panels must not create parallel React Card wrappers");
 

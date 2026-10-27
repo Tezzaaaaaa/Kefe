@@ -7,6 +7,7 @@ const structure = readFileSync(resolve(root, "app/ui/structure.js"), "utf8");
 const editor = readFileSync(resolve(root, "editor.source.html"), "utf8");
 const panelStyles = readFileSync(resolve(root, "app/ui/styles.css"), "utf8");
 const compactPanelStyles = readFileSync(resolve(root, "app/ui/panels-compact.css"), "utf8");
+const settingsPanelStyles = readFileSync(resolve(root, "app/settings/panel.css"), "utf8");
 
 const expected = ["media", "lyrics", "effects", "background-effects", "visualiser", "export"];
 const failures = [];
@@ -27,6 +28,10 @@ if (panelStyles.includes("beui-panel-card-root") || panelStyles.includes("beui-e
 }
 if (!panelStyles.includes(".kefe-panel{display:none") || !compactPanelStyles.includes(".kefe-panel[data-panel-view]:not(.kefe-settings-embedded-panel)")) {
   failures.push("Native editor panel surface styling is missing");
+}
+if (!settingsPanelStyles.includes(".kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel") ||
+    !settingsPanelStyles.includes("padding: 10px;")) {
+  failures.push("Embedded native panels must retain the compact spacing previously supplied by the Card wrapper");
 }
 
 if (failures.length) {
