@@ -78,9 +78,13 @@ async function captureEditorLayout(page) {
         text: (node.innerText || node.getAttribute("aria-label") || node.getAttribute("title") || "").trim().replace(/\s+/g, " ").slice(0, 100),
         childCount: node.children.length, x: rect.x, y: rect.y, width: rect.width, height: rect.height,
         display: style.display, visibility: style.visibility, position: style.position, boxSizing: style.boxSizing,
-        color: style.color, background: style.backgroundColor, font: style.font, lineHeight: style.lineHeight,
+        color: style.color, background: style.backgroundColor, boxShadow: style.boxShadow, opacity: style.opacity,
+        font: style.font, fontWeight: style.fontWeight, lineHeight: style.lineHeight, letterSpacing: style.letterSpacing,
+        textTransform: style.textTransform, alignItems: style.alignItems, justifyContent: style.justifyContent,
+        overflow: `${style.overflowX}/${style.overflowY}`, gridTemplateColumns: style.gridTemplateColumns,
         border: `${style.borderTopWidth} ${style.borderTopStyle} ${style.borderTopColor}`, radius: style.borderTopLeftRadius,
-        padding: style.padding, gap: style.gap,
+        padding: style.padding, margin: style.margin, gap: style.gap,
+        minWidth: style.minWidth, minHeight: style.minHeight, maxWidth: style.maxWidth, maxHeight: style.maxHeight,
       };
     };
     return [...document.querySelectorAll(".kefe-editor, .kefe-editor *")].map(describe).filter(item =>
