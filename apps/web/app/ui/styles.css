@@ -8995,17 +8995,22 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 @media(prefers-reduced-motion:reduce){.kefe-liquid-swirl{will-change:auto}}
 
 
-/* The native upload label now owns the same surface/box the former Card wrapped around it. */
-.kefe-upload-zone.beui-upload-dropzone{
-  position:relative;display:flex;grid-column:1/-1;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-  box-sizing:border-box;width:100%;height:auto;min-height:192px;max-height:none;padding:18px;
-  border:1px dashed var(--line);border-radius:12px;background:var(--surface);box-shadow:var(--inner);
-  text-align:center;cursor:pointer;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,transform .18s ease;
+/* Keep the label as the native file/drop target; its inner Card owns the surface. */
+#kefeUploadZone.beui-upload-dropzone{
+  position:relative;display:block;box-sizing:border-box;width:100%;height:auto;min-height:0;max-height:154px;padding:0;
+  overflow:hidden;border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--text);
+  text-align:center;cursor:pointer;transition:none;
 }
-.kefe-upload-zone.beui-upload-dropzone:hover,.kefe-upload-zone.beui-upload-dropzone.is-dragging{
-  border-color:var(--accent);background:var(--surface-hi);box-shadow:var(--lift);transform:translateY(-1px);
+#kefeUploadZone .kefe-upload-card{
+  display:grid;place-items:center;gap:4px;box-sizing:border-box;width:100%;min-height:192px;padding:18px;
+  border:1px dashed var(--line);border-radius:12px;background:var(--surface);color:var(--text);box-shadow:var(--inner);
+  text-align:center;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;
 }
-.kefe-upload-zone.beui-upload-dropzone.has-selected-file{border-style:solid}
+#kefeUploadZone.beui-upload-dropzone:hover .kefe-upload-card,
+#kefeUploadZone.beui-upload-dropzone.is-dragging .kefe-upload-card{
+  border-color:var(--accent);background:var(--surface-hi);box-shadow:var(--lift);
+}
+#kefeUploadZone.beui-upload-dropzone.has-selected-file .kefe-upload-card{border-style:solid}
 .beui-upload-symbol{display:grid;place-items:center;width:48px;height:48px;margin-bottom:2px;border:1px solid var(--line);border-radius:15px;background:var(--surface);box-shadow:var(--lift);color:var(--muted)}
 .beui-upload-symbol svg{display:block;width:23px;height:23px}
 .kefe-upload-zone.beui-upload-dropzone .kefe-upload-title{font-size:var(--font-base);font-weight:750;line-height:1.35}
@@ -9024,7 +9029,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .beui-upload-file-status{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;font-size:var(--font-xs);font-weight:650;color:var(--muted)}
 .beui-upload-status-dot{width:7px;height:7px;border-radius:50%;background:#38a873;box-shadow:0 0 0 3px rgba(56,168,115,.12)}
 .beui-upload-file .kefe-btn{min-height:32px;padding:0 10px;font-size:var(--font-xs)}
-.kefe-upload-zone.beui-upload-dropzone:focus-within{outline:2px solid var(--focus);outline-offset:3px}
+#kefeUploadZone.beui-upload-dropzone:focus-within{outline:2px solid var(--focus);outline-offset:3px}
 @media(max-width:600px){
   .beui-upload-file{gap:8px;padding:9px}
   .beui-upload-file-icon{flex-basis:34px;width:34px;height:34px}

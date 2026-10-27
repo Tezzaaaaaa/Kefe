@@ -385,6 +385,8 @@ async function captureEditorScreenState(page) {
       const backgroundCard = document.querySelector("#kefeBgVideoZone");
       if (!primaryHost || !primaryInput || !backgroundCard) return null;
       const hostStyle = getComputedStyle(primaryHost);
+      const nativeCard = primaryHost.querySelector(".kefe-upload-card");
+      const cardStyle = nativeCard ? getComputedStyle(nativeCard) : null;
       const row = primaryHost.parentElement;
       const wrap = backgroundCard.parentElement;
       const primary = primaryHost.getBoundingClientRect();
@@ -396,8 +398,9 @@ async function captureEditorScreenState(page) {
         isLabel: primaryHost.tagName === "LABEL",
         inputRemainsAssociated: primaryInput.closest("label") === primaryHost,
         hasBridgeCard: !!primaryHost.querySelector(".beui-upload-card, .beui-upload-card-root"),
-        hostBorderWidth: hostStyle.borderTopWidth,
-        hostPadding: hostStyle.paddingTop,
+        hasNativeCard: !!nativeCard,
+        cardBorderWidth: cardStyle?.borderTopWidth || "0px",
+        cardPadding: cardStyle?.paddingTop || "0px",
         primaryGridRow: hostStyle.gridRow,
         backgroundGridRow: getComputedStyle(wrap).gridRow,
         primaryHeight: primary.height,
@@ -413,8 +416,9 @@ async function captureEditorScreenState(page) {
     assert.equal(mediaUploadGeometry.isLabel, true, "the original upload label remains the visible drop target");
     assert.equal(mediaUploadGeometry.inputRemainsAssociated, true, "the native file input remains associated with the upload label");
     assert.equal(mediaUploadGeometry.hasBridgeCard, false, "the native upload zone must not contain a React Card wrapper");
-    assert.ok(Number.parseFloat(mediaUploadGeometry.hostBorderWidth) > 0, "the visible native upload zone must own its dashed border");
-    assert.ok(Number.parseFloat(mediaUploadGeometry.hostPadding) > 0, "the visible native upload zone must own its content spacing");
+    assert.equal(mediaUploadGeometry.hasNativeCard, true, "the native upload label must preserve its inner Card surface");
+    assert.ok(Number.parseFloat(mediaUploadGeometry.cardBorderWidth) > 0, "the native Card surface must own its dashed border");
+    assert.ok(Number.parseFloat(mediaUploadGeometry.cardPadding) > 0, "the native Card surface must own its content spacing");
     assert.equal(mediaUploadGeometry.primaryGridRow, "auto", "the primary uploader must not span rows from the legacy Media grid");
     assert.equal(mediaUploadGeometry.backgroundGridRow, "auto", "the optional uploader wrapper must not span rows from the legacy Media grid");
     assert.equal(mediaUploadGeometry.overlapArea, 0, `the primary and background upload zones must never overlap: ${JSON.stringify(mediaUploadGeometry)}`);
