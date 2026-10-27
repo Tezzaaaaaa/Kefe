@@ -730,17 +730,33 @@ async function captureEditorScreenState(page) {
     if (screenshotDir) {
       fs.mkdirSync(screenshotDir, { recursive: true });
       const screenshotLabel = process.env.KEFE_SCREENSHOT_LABEL || process.env.GITHUB_SHA?.slice(0, 12) || "local";
-      const originalTheme = await page.locator("html").getAttribute("data-theme") || "night";
-      const originalViewport = page.viewportSize();
+      // Capture from a fresh browser context so interaction checks above (file drops,
+      // panel navigation, settings and toolbar edits) cannot leak into visual baselines.
+      const screenshotContext = await browser.newContext({ serviceWorkers: "block" });
+      const screenshotPage = await screenshotContext.newPage();
+      screenshotPage.on("pageerror", (error) => pageErrors.push({ type: "pageerror", name: error.name, message: error.message, stack: error.stack || null }));
+      screenshotPage.on("console", (message) => {
+        if (message.type() === "error" && /SyntaxError|Invalid or unexpected token/.test(message.text())) {
+          pageErrors.push({ type: "console", message: message.text(), location: message.location() });
+        }
+      });
+      await screenshotPage.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
+      await screenshotPage.waitForSelector('#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view="media"]', { state: "attached", timeout: 20000 });
+      await screenshotPage.waitForSelector('#kefeBackgroundEffectOptions [data-background-mode="apple"]', { state: "attached", timeout: 10000 });
+      const screenshotVolumePopover = screenshotPage.locator("#kefeVolumePopover");
+      await screenshotPage.locator("#kefeMuteToggle").click();
+      await screenshotVolumePopover.waitFor({ state: "visible", timeout: 5000 });
+      const originalTheme = await screenshotPage.locator("html").getAttribute("data-theme") || "night";
+      const originalViewport = screenshotPage.viewportSize();
       const desktopThemeSurfaces = new Map();
       for (const viewport of [originalViewport, { width: 390, height: 844 }]) {
-        await page.setViewportSize(viewport);
+        await screenshotPage.setViewportSize(viewport);
         for (const theme of ["night", "day"]) {
-          await page.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, theme);
-          await page.waitForTimeout(400);
+          await screenshotPage.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, theme);
+          await screenshotPage.waitForTimeout(400);
           const size = viewport.width <= 640 ? "mobile" : "desktop";
           const suffix = `${screenshotLabel}-${size}-${theme}`;
-          const geometry = await volumePopover.evaluate((node) => {
+          const geometry = await screenshotVolumePopover.evaluate((node) => {
             const rect = node.getBoundingClientRect();
             const style = getComputedStyle(node);
             return { left: rect.left, right: rect.right, viewportWidth: document.documentElement.clientWidth, background: style.backgroundColor };
@@ -753,20 +769,21 @@ async function captureEditorScreenState(page) {
             assert.equal(geometry.background, "rgba(0, 0, 0, 0)", "night volume Card must preserve the legacy transparent fallback");
           }
           if (size === "desktop") desktopThemeSurfaces.set(theme, geometry.background);
-          await normalizeEditorScrollState(page);
-          const editorLayout = await captureEditorLayout(page);
+          await normalizeEditorScrollState(screenshotPage);
+          const editorLayout = await captureEditorLayout(screenshotPage);
           fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
-          const editorScreenState = await captureEditorScreenState(page);
+          const editorScreenState = await captureEditorScreenState(screenshotPage);
           fs.writeFileSync(path.join(screenshotDir, `editor-screen-state-${size}-${theme}.json`), JSON.stringify(editorScreenState));
-          await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
-          await volumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
+          await screenshotPage.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
+          await screenshotVolumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
         }
       }
       assert.notEqual(desktopThemeSurfaces.get("night"), desktopThemeSurfaces.get("day"),
         "volume Card should use the distinct KEFE day and night panel surfaces");
-      await page.setViewportSize(originalViewport);
-      await page.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, originalTheme);
-      await page.waitForTimeout(120);
+      await screenshotPage.setViewportSize(originalViewport);
+      await screenshotPage.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, originalTheme);
+      await screenshotPage.waitForTimeout(120);
+      await screenshotContext.close();
 
       await volumeSlider.focus();
       await page.keyboard.press("ArrowLeft");
