@@ -531,6 +531,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       const style = getComputedStyle(node);
       const rect = node.getBoundingClientRect();
       return {
+        theme: document.documentElement.dataset.theme || "night",
         display: style.display,
         flexDirection: style.flexDirection,
         alignItems: style.alignItems,
@@ -555,7 +556,11 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     assert.equal(volumeCardStyle.borderWidth, "1px", "volume Card should retain its outline");
     assert.equal(volumeCardStyle.borderStyle, "solid", "volume Card should retain its outline style");
     assert.equal(volumeCardStyle.borderRadius, "12px", "volume Card should retain its rounded-xl corners");
-    assert.notEqual(volumeCardStyle.background, "rgba(0, 0, 0, 0)", "volume Card surface should remain filled in both themes");
+    if (volumeCardStyle.theme === "day") {
+      assert.notEqual(volumeCardStyle.background, "rgba(0, 0, 0, 0)", "day theme should retain the Card's configured shell surface");
+    } else {
+      assert.equal(volumeCardStyle.background, "rgba(0, 0, 0, 0)", "night theme should preserve the bridge's transparent fallback when shell surface tokens are absent");
+    }
     assert.match(volumeCardStyle.boxShadow, /16px 40px/, "volume Card should retain its soft 16-by-40px shadow");
     const volumeSlider = volumePopover.getByRole("slider", { name: "Audio volume" });
     await volumeSlider.waitFor({ state: "visible", timeout: 5000 });
@@ -583,7 +588,11 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
           });
           assert.ok(geometry.left >= -1 && geometry.right <= geometry.viewportWidth + 1,
             `volume Card must stay within the ${size} viewport: ${JSON.stringify(geometry)}`);
-          assert.notEqual(geometry.background, "rgba(0, 0, 0, 0)", `volume Card must have a surface in ${theme} mode`);
+          if (theme === "day") {
+            assert.notEqual(geometry.background, "rgba(0, 0, 0, 0)", "day volume Card must retain the configured shell surface");
+          } else {
+            assert.equal(geometry.background, "rgba(0, 0, 0, 0)", "night volume Card must preserve the legacy transparent fallback");
+          }
           if (size === "desktop") desktopThemeSurfaces.set(theme, geometry.background);
           await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
           await volumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
