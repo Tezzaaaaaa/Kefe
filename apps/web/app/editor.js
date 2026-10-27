@@ -2088,7 +2088,7 @@
       saveAppleLayoutState();draw();
     });
     document.addEventListener('click',event=>{
-      const control=event.target.closest('[data-layout-move],[data-layout-reset],[data-effect-default],[data-effect-default-clear]');
+      const control=event.target.closest('[data-layout-move],[data-layout-reset],[data-layout-nudge],[data-effect-default],[data-effect-default-clear]');
       if(!control)return;
       const hint=document.querySelector('[data-layout-hint]');
       if(control.matches('[data-layout-move]')){
@@ -2100,6 +2100,10 @@
         const target=document.querySelector('[data-layout-target]')?.value||'lyrics';
         appleLayout[target]={x:0,y:0,scale:1};saveAppleLayoutState();syncLayoutScale();draw();
         if(hint)hint.textContent='Selected layer reset';
+      }else if(control.matches('[data-layout-nudge]')){
+        const [dx,dy]=(control.dataset.layoutNudge||'0,0').split(',').map(Number);
+        const target=document.querySelector('[data-layout-target]')?.value||'lyrics',rect=previewStage.getBoundingClientRect();
+        if(appleLayout[target]&&(dx||dy)){appleLayout[target].x+=dx/Math.max(1,rect.width);appleLayout[target].y+=dy/Math.max(1,rect.height);saveAppleLayoutState();draw();}
       }else if(control.matches('[data-effect-default]')){
         if(hint)hint.textContent=saveCurrentEffectDefault()?'Locked: this look and behaviour will load whenever '+state.effect+' is selected.':'Could not save defaults in this browser.';
       }else if(control.matches('[data-effect-default-clear]')){
