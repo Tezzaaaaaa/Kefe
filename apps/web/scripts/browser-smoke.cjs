@@ -58,12 +58,13 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
 
 (async () => {
   let browser;
+  let page;
+  let pageErrors = [];
   try {
     await new Promise((resolve) => server.listen(4173, "127.0.0.1", resolve));
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ serviceWorkers: "block" });
-    const page = await context.newPage();
-    const pageErrors = [];
+    page = await context.newPage();
     page.on("pageerror", (error) => pageErrors.push({ type: "pageerror", name: error.name, message: error.message, stack: error.stack || null }));
     page.on("console", (message) => {
       if (message.type() === "error" && /SyntaxError|Invalid or unexpected token/.test(message.text())) {
@@ -792,7 +793,27 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     if (browser) await browser.close();
     await new Promise((resolve) => server.close(resolve));
   }
-})().catch((error) => {
+})().catch(async (error) => {
+  const diagnosticDir = process.env.KEFE_SCREENSHOT_DIR;
+  if (diagnosticDir) {
+    try {
+      fs.mkdirSync(diagnosticDir, { recursive: true });
+      const diagnostics = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack || null,
+        url: page?.url() || null,
+        pageErrors,
+      };
+      fs.writeFileSync(path.join(diagnosticDir, "browser-smoke-error.json"), JSON.stringify(diagnostics, null, 2));
+      if (page && !page.isClosed()) {
+        await page.screenshot({ path: path.join(diagnosticDir, "browser-smoke-error.png"), fullPage: true, animations: "disabled" })
+          .catch((screenshotError) => console.error("Could not capture failure screenshot:", screenshotError));
+      }
+    } catch (diagnosticError) {
+      console.error("Could not write browser smoke diagnostics:", diagnosticError);
+    }
+  }
   console.error(error);
   process.exit(1);
 });
