@@ -59,6 +59,8 @@ function explainEditorDifferences(before, after, size, theme, currentDir) {
     return { changed, area, changedPercent: Number((changed * 100 / area).toFixed(2)), ...item };
   }).filter(item => item && item.changed > 0);
   reports.sort((a, b) => b.changed - a.changed || b.area - a.area);
+  const diagnosticPath = path.join(currentDir, `editor-region-diagnostics-${size}-${theme}.json`);
+  fs.writeFileSync(diagnosticPath, JSON.stringify(reports.slice(0, 30)));
   console.log(`Largest changed-pixel regions by current DOM element (${size}/${theme}; thresholded RGB count):`);
   for (const item of reports.slice(0, 30)) {
     console.log(JSON.stringify({ changed: item.changed, area: item.area, changedPercent: item.changedPercent,
@@ -112,7 +114,7 @@ for (const [size, theme] of states) {
   const diffPath = path.join(currentDir, `${subject}-diff-${size}-${theme}.png`);
   fs.writeFileSync(diffPath, PNG.sync.write(diff));
   results.push({ subject, size, theme, width: before.width, height: before.height, changedPixels, totalPixels, changedPercent: Number((changedRatio * 100).toFixed(3)), changedBounds, samples, diffPath });
-  if (subject === "editor" && theme === "day") explainEditorDifferences(before, after, size, theme, currentDir);
+  if (subject === "editor") explainEditorDifferences(before, after, size, theme, currentDir);
 }
 }
 

@@ -7,6 +7,7 @@ assert.ok(baselineDir && currentDir, "usage: compare-layout-inventories.cjs <bas
 
 const fields = ["x", "y", "width", "height", "display", "position", "boxSizing", "color", "background", "boxShadow", "opacity", "font", "fontWeight", "lineHeight", "letterSpacing", "textTransform", "alignItems", "justifyContent", "overflow", "gridTemplateColumns", "border", "radius", "padding", "margin", "gap", "minWidth", "minHeight", "maxWidth", "maxHeight"];
 const geometryFields = new Set(["x", "y", "width", "height"]);
+const summaries = [];
 const normalize = (item) => {
   if (item.id) return `#${item.id}`;
   const stateClasses = item.classes.split(" ").filter(name => name && !["active", "collapsed", "selected"].includes(name)).join(" ");
@@ -58,6 +59,7 @@ for (const size of ["desktop", "mobile"]) {
   const unmatchedKeys = (source, target) => [...source].flatMap(([key, items]) => Array(Math.max(0, items.length - (target.get(key)?.length || 0))).fill(key));
   const missingCurrent = unmatchedKeys(newMap, oldMap).slice(0, 4);
   const missingBaseline = unmatchedKeys(oldMap, newMap).slice(0, 4);
+  summaries.push({ size, counts, unmatchedCurrent, unmatchedBaseline, changes });
   console.log(`${size}/day DOM diff: ${changes.length} matched elements; fields=${JSON.stringify(counts)}; unmatched current/baseline=${unmatchedCurrent}/${unmatchedBaseline}; samples=${JSON.stringify({current: missingCurrent, baseline: missingBaseline})}`);
   const relevant = changes.filter(item => item.section === "media" || item.panel === "media")
     .sort((a, b) => Object.keys(b.changedFields).length - Object.keys(a.changedFields).length);
@@ -65,3 +67,4 @@ for (const size of ["desktop", "mobile"]) {
     console.log(JSON.stringify({ section: item.section, panel: item.panel, tag: item.tag, classes: item.classes, fields: item.changedFields }));
   }
 }
+fs.writeFileSync(path.join(currentDir, "layout-comparison.json"), JSON.stringify(summaries));

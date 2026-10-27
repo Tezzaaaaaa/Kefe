@@ -17,7 +17,7 @@ function findCapture(dir, size, theme) {
 
 function makeThumbnail(filename) {
   const source = PNG.sync.read(fs.readFileSync(filename));
-  const scale = Math.min(256 / source.width, 320 / source.height, 1);
+  const scale = Math.min(160 / source.width, 200 / source.height, 1);
   const width = Math.max(1, Math.round(source.width * scale));
   const height = Math.max(1, Math.round(source.height * scale));
   const data = Buffer.alloc(width * height * 4);
@@ -33,7 +33,7 @@ function makeThumbnail(filename) {
       data[to + 3] = source.data[from + 3];
     }
   }
-  return jpeg.encode({ data, width, height }, 26).data.toString("base64");
+  return jpeg.encode({ data, width, height }, 20).data.toString("base64");
 }
 
 const thumbnails = [];
@@ -48,5 +48,23 @@ for (const [size, theme] of states) {
     thumbnails.push({ key: `${size}-${theme}`, kind, jpegBase64: makeThumbnail(filename) });
   }
 }
-fs.writeFileSync(outputPath, JSON.stringify(thumbnails));
-console.log(`Encoded ${thumbnails.length} visual diagnostic thumbnails at ${outputPath}`);
+const regions = states.map(([size, theme]) => {
+  const filename = path.join(currentDir, `editor-region-diagnostics-${size}-${theme}.json`);
+  assert.ok(fs.existsSync(filename), `missing changed-region diagnostics: ${filename}`);
+  const report = JSON.parse(fs.readFileSync(filename, "utf8"));
+  return { key: `${size}-${theme}`, regions: report.slice(0, 5).map(({ changed, changedPercent, section, panel, tag, id, classes, text, bounds }) => ({ changed, changedPercent, section, panel, tag, id, classes, text, bounds })) };
+});
+const layoutPath = path.join(currentDir, "layout-comparison.json");
+assert.ok(fs.existsSync(layoutPath), `missing baseline/current layout comparison: ${layoutPath}`);
+const layout = JSON.parse(fs.readFileSync(layoutPath, "utf8")).map(({ size, counts, unmatchedCurrent, unmatchedBaseline, changes }) => ({
+  size, counts, unmatchedCurrent, unmatchedBaseline,
+  changes: changes.filter(item => item.tag === "select" || /kefe-(upload|sidebar|section|panel-action|section-heading|vis-tabs|toolbar)/.test(item.classes))
+    .sort((a, b) => Object.keys(b.changedFields).length - Object.keys(a.changedFields).length)
+    .slice(0, 5)
+    .map(({ key, section, panel, tag, classes, changedFields }) => ({
+      key, section, panel, tag, classes,
+      changedFields: Object.fromEntries(Object.entries(changedFields).filter(([field]) => ["x", "y", "width", "height", "display", "color", "background", "fontWeight", "lineHeight", "border", "radius", "padding", "gap", "gridTemplateColumns", "overflow"].includes(field))),
+    })),
+}));
+fs.writeFileSync(outputPath, JSON.stringify({ thumbnails, regions, layout }));
+console.log(`Encoded ${thumbnails.length} visual thumbnails, ${regions.length} region reports, and ${layout.length} layout reports at ${outputPath}`);

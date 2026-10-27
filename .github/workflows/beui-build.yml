@@ -166,7 +166,7 @@ jobs:
               core.warning("Screenshot thumbnails are unavailable.", {file: ".github/workflows/beui-build.yml", startLine: 22});
               return;
             }
-            const thumbnails = JSON.parse(fs.readFileSync(filename, "utf8"));
+            const {thumbnails, regions, layout} = JSON.parse(fs.readFileSync(filename, "utf8"));
             const chunkSize = 3500;
             const levels = ["notice", "warning", "error"];
             let emitted = 0;
@@ -178,6 +178,12 @@ jobs:
                 core[level](`KEFE_VISUAL_CHUNK:${thumbnail.key}:${thumbnail.kind}:${index + 1}/${total}:${chunk}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
                 emitted += 1;
               }
+            }
+            for (const report of regions) {
+              core.notice(`KEFE_VISUAL_REGIONS:${report.key}:${JSON.stringify(report.regions)}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+            }
+            for (const report of layout) {
+              core.warning(`KEFE_LAYOUT_DIFF:${report.size}:counts=${JSON.stringify(report.counts)}:unmatched=${report.unmatchedCurrent}/${report.unmatchedBaseline}:elements=${JSON.stringify(report.changes)}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
             }
       - name: Upload desktop/mobile day/night screenshots and diffs
         if: always()
