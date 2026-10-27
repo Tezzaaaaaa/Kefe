@@ -53,4 +53,14 @@ jobs:
       - name: Run built-editor browser smoke test
         env:
           NODE_PATH: /tmp/kefe-browser/node_modules
+          KEFE_SCREENSHOT_DIR: /tmp/kefe-screenshots
+          KEFE_SCREENSHOT_LABEL: ${{ github.sha }}
         run: node apps/web/scripts/browser-smoke.cjs
+      - name: Upload desktop/mobile day/night screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kefe-browser-screenshots-${{ github.sha }}
+          path: /tmp/kefe-screenshots/
+          if-no-files-found: ignore
+          retention-days: 14

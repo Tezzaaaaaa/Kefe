@@ -472,6 +472,31 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await volumePopover.waitFor({ state: "visible", timeout: 5000 });
     assert.equal(await volumePopover.locator(".beui-volume-card").count(), 1, "volume popover should use the beUI Card shell");
     await volumePopover.getByRole("slider", { name: "Audio volume" }).waitFor({ state: "visible", timeout: 5000 });
+
+    // Save repeatable before/after images of the component and its surrounding layout.
+    // CI uploads these per-commit so a native translation can be compared to this baseline.
+    const screenshotDir = process.env.KEFE_SCREENSHOT_DIR;
+    if (screenshotDir) {
+      fs.mkdirSync(screenshotDir, { recursive: true });
+      const screenshotLabel = process.env.KEFE_SCREENSHOT_LABEL || process.env.GITHUB_SHA?.slice(0, 12) || "local";
+      const originalTheme = await page.locator("html").getAttribute("data-theme") || "night";
+      const originalViewport = page.viewportSize();
+      for (const viewport of [originalViewport, { width: 390, height: 844 }]) {
+        await page.setViewportSize(viewport);
+        for (const theme of ["night", "day"]) {
+          await page.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, theme);
+          await page.waitForTimeout(120);
+          const size = viewport.width <= 640 ? "mobile" : "desktop";
+          const suffix = `${screenshotLabel}-${size}-${theme}`;
+          await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
+          await volumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
+        }
+      }
+      await page.setViewportSize(originalViewport);
+      await page.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, originalTheme);
+      await page.waitForTimeout(120);
+    }
+
     await page.keyboard.press("Escape");
     await volumePopover.waitFor({ state: "hidden", timeout: 5000 });
 
