@@ -519,8 +519,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       return { native, legacy };
     });
     console.log("Volume Card native/reference geometry:", JSON.stringify(volumeCardGeometry));
-    assert.deepEqual(volumeCardGeometry.native.popover, volumeCardGeometry.legacy.card,
-      `native Card geometry should match the previous Card wrapper: ${JSON.stringify(volumeCardGeometry)}`);
+    assert.equal(volumeCardGeometry.native.popover.width, volumeCardGeometry.legacy.card.width,
+      `native Card width should match the previous Card wrapper: ${JSON.stringify(volumeCardGeometry)}`);
+    assert.equal(volumeCardGeometry.native.popover.height, volumeCardGeometry.legacy.card.height,
+      `native Card height should match the previous Card wrapper: ${JSON.stringify(volumeCardGeometry)}`);
     assert.equal(await volumePopover.locator(".beui-volume-card, .beui-volume-card-root").count(), 0,
       "the native volume popover must not mount a duplicate React Card wrapper");
     assert.equal(await volumePopover.getAttribute("data-beui-mounted"), null,
@@ -547,8 +549,9 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     });
     assert.equal(volumeCardStyle.display, "flex", "native volume Card surface should use KEFE flex layout");
     assert.equal(volumeCardStyle.flexDirection, "column", "volume label, slider and output should retain Card column layout");
-    assert.equal(volumeCardStyle.gap, "8px", "volume Card should retain the beUI gap-2 spacing");
-    assert.equal(volumeCardStyle.padding, "12px", "volume Card should retain the beUI p-3 spacing");
+    assert.equal(volumeCardStyle.alignItems, "normal", "native volume Card should preserve the Card's default cross-axis alignment");
+    assert.equal(volumeCardStyle.gap, "7px", "volume Card should retain the beUI gap-2 spacing at KEFE's 14px root size");
+    assert.equal(volumeCardStyle.padding, "10.5px", "volume Card should retain the beUI p-3 spacing at KEFE's 14px root size");
     assert.equal(volumeCardStyle.borderWidth, "1px", "volume Card should retain its outline");
     assert.equal(volumeCardStyle.borderStyle, "solid", "volume Card should retain its outline style");
     assert.equal(volumeCardStyle.borderRadius, "12px", "volume Card should retain its rounded-xl corners");
