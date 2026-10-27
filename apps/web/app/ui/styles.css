@@ -10495,6 +10495,8 @@ input.beui-native-range {
   border-radius: var(--r2);
   background: var(--surface);
 }
+.kefe-aspect-select-host { display: block; width: 100%; min-width: 0; }
+.kefe-aspect-select-host > #kefeAspect { width: 100%; min-width: 0; }
 
 
 /* Figma-inspired floating Adjust lyric toolbar: drag from the grip, not from controls. */
