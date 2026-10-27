@@ -167,8 +167,13 @@ jobs:
               return;
             }
             const thumbnails = JSON.parse(fs.readFileSync(filename, "utf8"));
+            const chunkSize = 3500;
             for (const thumbnail of thumbnails) {
-              core.notice(`KEFE_VISUAL_PREVIEW:${thumbnail.key}:${thumbnail.kind}:${thumbnail.jpegBase64}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              const total = Math.ceil(thumbnail.jpegBase64.length / chunkSize);
+              for (let index = 0; index < total; index += 1) {
+                const chunk = thumbnail.jpegBase64.slice(index * chunkSize, (index + 1) * chunkSize);
+                core.notice(`KEFE_VISUAL_CHUNK:${thumbnail.key}:${thumbnail.kind}:${index + 1}/${total}:${chunk}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              }
             }
       - name: Upload desktop/mobile day/night screenshots and diffs
         if: always()

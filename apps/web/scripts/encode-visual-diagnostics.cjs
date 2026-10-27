@@ -17,7 +17,7 @@ function findCapture(dir, size, theme) {
 
 function makeThumbnail(filename) {
   const source = PNG.sync.read(fs.readFileSync(filename));
-  const scale = Math.min(480 / source.width, 520 / source.height, 1);
+  const scale = Math.min(320 / source.width, 400 / source.height, 1);
   const width = Math.max(1, Math.round(source.width * scale));
   const height = Math.max(1, Math.round(source.height * scale));
   const data = Buffer.alloc(width * height * 4);
@@ -33,7 +33,7 @@ function makeThumbnail(filename) {
       data[to + 3] = source.data[from + 3];
     }
   }
-  return jpeg.encode({ data, width, height }, 45).data.toString("base64");
+  return jpeg.encode({ data, width, height }, 32).data.toString("base64");
 }
 
 const thumbnails = [];
