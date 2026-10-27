@@ -357,3 +357,70 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
   .kft-aspect-control .kft-seg__item { min-width: 28px; padding-inline: 4px; }
   .kefe-floating-toolbar .kft-main { gap: 4px; }
 }
+
+
+/* ───────── KEFE toolbar v2 (concept layout): 32px cells, popover panels, nudge pad ───────── */
+.kefe-floating-toolbar,
+.kft-popover { --kt-h: 32px; --kt-gap: 2px; }
+.kft-bar { border-radius: 12px; backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); }
+.kft-main { padding: 4px; }
+.kft-cell {
+  width: 32px; height: 32px; padding: 0;
+  border-color: transparent; border-radius: 8px; background: transparent;
+}
+.kft-cell .kft-icon { width: 16px; height: 16px; }
+.kft-cell:hover:not(:disabled) { background: var(--kt-surface-hover); border-color: transparent; }
+.kft-cell:disabled { opacity: .35; cursor: not-allowed; }
+.kft-cell.is-open,
+.kft-cell.is-active,
+.kft-cell[aria-pressed="true"] { background: var(--kt-surface-hover); border-color: var(--kt-border); color: var(--kt-text); }
+.kft-btn--toggle[aria-pressed="false"].kft-cell { color: var(--kt-muted); }
+.kft-cell--ratio { width: auto; min-width: 52px; padding: 0 8px; gap: 5px; font-size: 12px; font-weight: 600; letter-spacing: -.02em; }
+.kft-cell--ratio .kft-icon { width: 14px; height: 14px; opacity: .8; }
+.kft-grip { width: 20px; height: 32px; border-color: transparent; background: transparent; box-shadow: none; }
+.kft-grip .kft-icon { width: 14px; height: 14px; }
+.kft-divider { height: 18px; margin: 0 2px; }
+.kft-swatch { width: 14px; height: 14px; }
+
+.kft-panel { gap: 10px; padding: 12px; border-radius: 10px; background: var(--kt-surface); overflow-y: auto; }
+.kft-panel .kft-chip { width: 100%; justify-content: flex-start; }
+.kft-panel .kft-hint { order: 0; padding-top: 2px; }
+.kft-panel .kft-pref { color: var(--kt-text); font-size: 12px; }
+.kft-panel .kft-nudge { width: 100%; justify-content: space-between; }
+.kft-panel .kft-nudge button { width: 32px; }
+.kft-panel .kft-colour,
+.kft-panel .kft-presets { margin-bottom: 0; }
+.kft-rule { height: 1px; margin: 2px 0; background: var(--kt-border); }
+
+.kft-pad {
+  display: grid; grid-template-columns: repeat(3, 32px); grid-template-rows: repeat(3, 32px);
+  width: max-content; margin: 0 auto; overflow: hidden;
+  border: 1px solid var(--kt-border); border-radius: 6px; background: var(--kt-input);
+}
+.kft-padbtn {
+  display: grid; place-items: center; width: 32px; height: 32px; padding: 0;
+  border: 0; border-right: 1px solid var(--kt-border); border-bottom: 1px solid var(--kt-border);
+  background: transparent; color: var(--kt-text); cursor: pointer;
+}
+.kft-padbtn:hover { background: var(--kt-surface-hover); }
+.kft-padbtn:active { background: var(--kt-border); }
+.kft-pad--up { grid-column: 2; grid-row: 1; }
+.kft-pad--left { grid-column: 1; grid-row: 2; }
+.kft-pad--dot { grid-column: 2; grid-row: 2; }
+.kft-pad--right { grid-column: 3; grid-row: 2; }
+.kft-pad--down { grid-column: 2; grid-row: 3; }
+.kft-pad--up, .kft-pad--dot, .kft-pad--down { border-right: 1px solid var(--kt-border); }
+.kft-pad--right { border-right: 0; }
+.kft-pad--down, .kft-pad--left, .kft-pad--right { border-bottom: 0; }
+
+.kefe-floating-toolbar.is-compact { --kt-h: 28px; }
+.kefe-floating-toolbar.is-compact .kft-cell { width: 28px; height: 28px; }
+.kefe-floating-toolbar.is-compact .kft-grip { height: 28px; }
+@media (max-width: 520px) { .kft-main { flex-wrap: wrap; justify-content: center; width: auto; overflow: visible; } }
+.kft-panel > * { flex-shrink: 0; }
+.kefe-floating-toolbar .kft-cell.kft-btn--toggle[aria-pressed="true"] { background: transparent; border-color: transparent; color: var(--kt-text); }
+.kefe-floating-toolbar .kft-cell.kft-btn--toggle[aria-pressed="false"] { background: var(--kt-surface-hover); border-color: var(--kt-border); color: var(--kt-muted); }
+.kft-pad { gap: 2px; padding: 2px; }
+.kft-padbtn, .kft-pad--up, .kft-pad--dot, .kft-pad--down, .kft-pad--left, .kft-pad--right { border: 0; border-radius: 6px; }
+.kft-pad { grid-template-columns: repeat(3, 30px); grid-template-rows: repeat(3, 30px); }
+.kft-padbtn { width: 30px; height: 30px; }
