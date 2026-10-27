@@ -11072,6 +11072,15 @@ textarea.beui-native-textarea {
   border-color: var(--border-color);
 }
 :root[data-theme="day"] .kefe-panel-head { border-bottom-color: var(--border-color); }
+/* The removed Card wrapper supplied this day-surface to embedded native panels.
+   Keep the same beUI card treatment on the native panel owner itself. */
+html:root[data-theme="day"] .kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--line);
+  border-radius: 12px;
+  box-shadow: var(--lift);
+}
 :root[data-theme="day"] .kefe-card {
   background: var(--bg-secondary);
   color: var(--text-primary);
