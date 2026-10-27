@@ -32,6 +32,8 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(file).pipe(res);
 });
 
+let failureContext = { pageErrors: [] };
+
 function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
   const samples = Math.floor(durationSeconds * sampleRate);
   const dataBytes = samples * 2;
@@ -58,12 +60,14 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
 
 (async () => {
   let browser;
+  let page;
+  let pageErrors = [];
   try {
     await new Promise((resolve) => server.listen(4173, "127.0.0.1", resolve));
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ serviceWorkers: "block" });
-    const page = await context.newPage();
-    const pageErrors = [];
+    page = await context.newPage();
+    failureContext = { page, pageErrors };
     page.on("pageerror", (error) => pageErrors.push({ type: "pageerror", name: error.name, message: error.message, stack: error.stack || null }));
     page.on("console", (message) => {
       if (message.type() === "error" && /SyntaxError|Invalid or unexpected token/.test(message.text())) {
@@ -470,8 +474,145 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.locator(".beui-transport-host button[aria-controls=\"kefeVolumePopover\"]").click();
     const volumePopover = page.locator("#kefeVolumePopover");
     await volumePopover.waitFor({ state: "visible", timeout: 5000 });
-    assert.equal(await volumePopover.locator(".beui-volume-card").count(), 1, "volume popover should use the beUI Card shell");
-    await volumePopover.getByRole("slider", { name: "Audio volume" }).waitFor({ state: "visible", timeout: 5000 });
+    const volumeCardGeometry = await page.evaluate(() => {
+      const popover = document.getElementById("kefeVolumePopover");
+      const legacyPopover = document.createElement("div");
+      legacyPopover.className = "kefe-volume-popover beui-volume-popover-native";
+      legacyPopover.style.cssText = "position:fixed;left:-10000px;top:0;right:auto;bottom:auto;z-index:-1;display:flex;align-items:center;gap:10px;width:min(220px,calc(100vw - 24px));padding:0;border:0;border-radius:12px;background:transparent;color:inherit;box-shadow:none;visibility:hidden";
+      const legacyCard = document.createElement("div");
+      legacyCard.style.cssText = "position:relative;display:flex;flex-direction:column;align-items:normal;width:100%;gap:7px;padding:10.5px;border:1px solid var(--shell-line,currentColor);border-radius:12px;background:var(--shell-panel,transparent);color:var(--shell-text,var(--text));box-shadow:0 16px 40px rgba(0,0,0,.28)";
+      [...popover.childNodes].forEach((node) => legacyCard.append(node.cloneNode(true)));
+      legacyPopover.appendChild(legacyCard);
+      document.body.appendChild(legacyPopover);
+      const measure = (node) => {
+        const rect = node.getBoundingClientRect();
+        const style = getComputedStyle(node);
+        return {
+          width: rect.width,
+          height: rect.height,
+          boxSizing: style.boxSizing,
+          gap: style.gap,
+          padding: style.padding,
+          borderWidth: style.borderTopWidth,
+          display: style.display,
+          flexDirection: style.flexDirection,
+          alignItems: style.alignItems,
+          lineHeight: style.lineHeight,
+          minHeight: style.minHeight,
+        };
+      };
+      const legacy = {
+        popover: measure(legacyPopover),
+        card: measure(legacyCard),
+        label: measure(legacyCard.querySelector("label")),
+        slider: measure(legacyCard.querySelector("input[type=range]")),
+        output: measure(legacyCard.querySelector("output")),
+      };
+      const native = {
+        popover: measure(popover),
+        label: measure(popover.querySelector("label")),
+        slider: measure(popover.querySelector("input[type=range]")),
+        output: measure(popover.querySelector("output")),
+      };
+      legacyPopover.remove();
+      return { native, legacy };
+    });
+    console.log("Volume Card native/reference geometry:", JSON.stringify(volumeCardGeometry));
+    assert.equal(volumeCardGeometry.native.popover.width, volumeCardGeometry.legacy.card.width,
+      `native Card width should match the previous Card wrapper: ${JSON.stringify(volumeCardGeometry)}`);
+    assert.equal(volumeCardGeometry.native.popover.height, volumeCardGeometry.legacy.card.height,
+      `native Card height should match the previous Card wrapper: ${JSON.stringify(volumeCardGeometry)}`);
+    assert.equal(await volumePopover.locator(".beui-volume-card, .beui-volume-card-root").count(), 0,
+      "the native volume popover must not mount a duplicate React Card wrapper");
+    assert.equal(await volumePopover.getAttribute("data-beui-mounted"), null,
+      "the native volume popover must not retain a React bridge mount marker");
+    const volumeCardStyle = await volumePopover.evaluate((node) => {
+      const style = getComputedStyle(node);
+      const rect = node.getBoundingClientRect();
+      return {
+        theme: document.documentElement.dataset.theme || "night",
+        display: style.display,
+        flexDirection: style.flexDirection,
+        alignItems: style.alignItems,
+        gap: style.gap,
+        padding: style.padding,
+        borderWidth: style.borderTopWidth,
+        borderStyle: style.borderTopStyle,
+        borderRadius: style.borderTopLeftRadius,
+        background: style.backgroundColor,
+        color: style.color,
+        boxShadow: style.boxShadow,
+        left: rect.left,
+        right: rect.right,
+        width: rect.width,
+      };
+    });
+    assert.equal(volumeCardStyle.display, "flex", "native volume Card surface should use KEFE flex layout");
+    assert.equal(volumeCardStyle.flexDirection, "column", "volume label, slider and output should retain Card column layout");
+    assert.equal(volumeCardStyle.alignItems, "normal", "native volume Card should preserve the Card's default cross-axis alignment");
+    assert.equal(volumeCardStyle.gap, "7px", "volume Card should retain the beUI gap-2 spacing at KEFE's 14px root size");
+    assert.equal(volumeCardStyle.padding, "10.5px", "volume Card should retain the beUI p-3 spacing at KEFE's 14px root size");
+    assert.equal(volumeCardStyle.borderWidth, "1px", "volume Card should retain its outline");
+    assert.equal(volumeCardStyle.borderStyle, "solid", "volume Card should retain its outline style");
+    assert.equal(volumeCardStyle.borderRadius, "12px", "volume Card should retain its rounded-xl corners");
+    if (volumeCardStyle.theme === "day") {
+      assert.notEqual(volumeCardStyle.background, "rgba(0, 0, 0, 0)", "day theme should retain the Card's configured shell surface");
+    } else {
+      assert.equal(volumeCardStyle.background, "rgba(0, 0, 0, 0)", "night theme should preserve the bridge's transparent fallback when shell surface tokens are absent");
+    }
+    assert.match(volumeCardStyle.boxShadow, /16px 40px/, "volume Card should retain its soft 16-by-40px shadow");
+    const volumeSlider = volumePopover.getByRole("slider", { name: "Audio volume" });
+    await volumeSlider.waitFor({ state: "visible", timeout: 5000 });
+
+    // Save repeatable before/after images of the component and its surrounding layout.
+    // CI uploads these per-commit so a native translation can be compared to this baseline.
+    const screenshotDir = process.env.KEFE_SCREENSHOT_DIR;
+    if (screenshotDir) {
+      fs.mkdirSync(screenshotDir, { recursive: true });
+      const screenshotLabel = process.env.KEFE_SCREENSHOT_LABEL || process.env.GITHUB_SHA?.slice(0, 12) || "local";
+      const originalTheme = await page.locator("html").getAttribute("data-theme") || "night";
+      const originalViewport = page.viewportSize();
+      const desktopThemeSurfaces = new Map();
+      for (const viewport of [originalViewport, { width: 390, height: 844 }]) {
+        await page.setViewportSize(viewport);
+        for (const theme of ["night", "day"]) {
+          await page.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, theme);
+          await page.waitForTimeout(400);
+          const size = viewport.width <= 640 ? "mobile" : "desktop";
+          const suffix = `${screenshotLabel}-${size}-${theme}`;
+          const geometry = await volumePopover.evaluate((node) => {
+            const rect = node.getBoundingClientRect();
+            const style = getComputedStyle(node);
+            return { left: rect.left, right: rect.right, viewportWidth: document.documentElement.clientWidth, background: style.backgroundColor };
+          });
+          assert.ok(geometry.left >= -1 && geometry.right <= geometry.viewportWidth + 1,
+            `volume Card must stay within the ${size} viewport: ${JSON.stringify(geometry)}`);
+          if (theme === "day") {
+            assert.notEqual(geometry.background, "rgba(0, 0, 0, 0)", "day volume Card must retain the configured shell surface");
+          } else {
+            assert.equal(geometry.background, "rgba(0, 0, 0, 0)", "night volume Card must preserve the legacy transparent fallback");
+          }
+          if (size === "desktop") desktopThemeSurfaces.set(theme, geometry.background);
+          await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
+          await volumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
+        }
+      }
+      assert.notEqual(desktopThemeSurfaces.get("night"), desktopThemeSurfaces.get("day"),
+        "volume Card should use the distinct KEFE day and night panel surfaces");
+      await page.setViewportSize(originalViewport);
+      await page.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, originalTheme);
+      await page.waitForTimeout(120);
+
+      await volumeSlider.focus();
+      await page.keyboard.press("ArrowLeft");
+      await page.waitForFunction(() => document.getElementById("kefeVolume")?.value === "99", null, { timeout: 3000 });
+      assert.equal(await page.locator("#kefeVolumeValue").textContent(), "99%", "volume slider keyboard input should update the native output");
+      assert.ok(Math.abs(await page.locator("#kefeAudio").evaluate((audio) => audio.volume) - 0.99) < 0.001,
+        "volume slider keyboard input should update native audio volume");
+      await page.keyboard.press("End");
+      await page.waitForFunction(() => document.getElementById("kefeVolume")?.value === "100", null, { timeout: 3000 });
+    }
+
     await page.keyboard.press("Escape");
     await volumePopover.waitFor({ state: "hidden", timeout: 5000 });
 
@@ -713,7 +854,27 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     if (browser) await browser.close();
     await new Promise((resolve) => server.close(resolve));
   }
-})().catch((error) => {
+})().catch(async (error) => {
+  const diagnosticDir = process.env.KEFE_SCREENSHOT_DIR;
+  if (diagnosticDir) {
+    try {
+      fs.mkdirSync(diagnosticDir, { recursive: true });
+      const diagnostics = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack || null,
+        url: failureContext.page?.url() || null,
+        pageErrors: failureContext.pageErrors || [],
+      };
+      fs.writeFileSync(path.join(diagnosticDir, "browser-smoke-error.json"), JSON.stringify(diagnostics, null, 2));
+      if (failureContext.page && !failureContext.page.isClosed()) {
+        await failureContext.page.screenshot({ path: path.join(diagnosticDir, "browser-smoke-error.png"), fullPage: true, animations: "disabled" })
+          .catch((screenshotError) => console.error("Could not capture failure screenshot:", screenshotError));
+      }
+    } catch (diagnosticError) {
+      console.error("Could not write browser smoke diagnostics:", diagnosticError);
+    }
+  }
   console.error(error);
   process.exit(1);
 });

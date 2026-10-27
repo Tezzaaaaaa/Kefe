@@ -1,10 +1,14 @@
-# KEFE beUI conversion
+# Historical KEFE beUI conversion notes
 
-## Goal
+> **Direction correction (2026-10-27):** This document records an earlier conversion experiment. Its goal, “required architecture,” and acceptance criteria below are superseded. KEFE's existing HTML/CSS/JavaScript, modules, dependencies, production entry and coding conventions remain authoritative. Do not migrate KEFE to React, beUI, Vite, or a parallel application architecture. Audit beUI sources for designs and behavior that can be translated into KEFE-native implementations. Preserve behavior, appearance, APIs and persisted preferences. See [`BEUI_COMPONENT_INVENTORY.md`](./BEUI_COMPONENT_INVENTORY.md) for the audited bridge-to-runtime map and validation limits. No infrastructure removal is approved by that inventory alone.
 
-Replace the web editor's hand-authored UI with real, source-owned beUI components. Matching beUI's visual style with custom HTML/CSS is not considered completion.
+The sections below are historical context, not current requirements. In particular, “Required architecture,” “Acceptance criteria,” and branch/progress references describe the earlier experiment and must not be used to override the direction correction above.
 
-beUI's current web components target React 19, Tailwind CSS 4, and Motion. Components are installed from the public beUI shadcn-compatible registry and copied into this repository so KEFE owns the code.
+## Historical goal
+
+Replace the web editor's hand-authored UI with real, source-owned beUI components. Matching beUI's visual style with custom HTML/CSS was not considered completion in that experiment.
+
+beUI's copied web components target React 19, Tailwind CSS 4, and Motion. They were copied into this repository so KEFE owns that source.
 
 ## Current-state audit
 

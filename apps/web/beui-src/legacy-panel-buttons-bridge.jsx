@@ -15,7 +15,6 @@ const SKIP_ANCESTORS = [
   ".beui-input-host",
   ".beui-textarea-host",
   ".beui-upload-card-root",
-  ".beui-volume-card-root",
   ".kefe-vis-tabs",
   ".kefe-visualiser-power-slot",
   ".beui-vis-tabs-host",
