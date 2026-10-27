@@ -8,10 +8,10 @@ const [baselineDir, currentDir, outputPath] = process.argv.slice(2);
 assert.ok(baselineDir && currentDir && outputPath, "usage: encode-visual-diagnostics.cjs <baseline-dir> <current-dir> <output-json>");
 const states = [["desktop", "night"], ["desktop", "day"], ["mobile", "night"], ["mobile", "day"]];
 
-function findCapture(dir, prefix, size, theme) {
+function findCapture(dir, size, theme) {
   const suffix = `-${size}-${theme}.png`;
-  const matches = fs.readdirSync(dir).filter(name => name.startsWith(`${prefix}-`) && name.endsWith(suffix));
-  assert.equal(matches.length, 1, `expected one ${prefix} ${size}/${theme} screenshot in ${dir}, found ${matches.length}`);
+  const matches = fs.readdirSync(dir).filter(name => name.startsWith("editor-") && !name.startsWith("editor-diff-") && name.endsWith(suffix));
+  assert.equal(matches.length, 1, `expected one editor ${size}/${theme} screenshot in ${dir}, found ${matches.length}`);
   return path.join(dir, matches[0]);
 }
 
@@ -38,10 +38,9 @@ function makeThumbnail(filename) {
 
 const thumbnails = [];
 for (const [size, theme] of states) {
-  const currentPrefix = process.env.GITHUB_SHA || "current";
   const candidates = [
-    ["baseline", findCapture(baselineDir, "editor", size, theme)],
-    ["current", findCapture(currentDir, `editor-${currentPrefix.slice(0, 12)}`, size, theme)],
+    ["baseline", findCapture(baselineDir, size, theme)],
+    ["current", findCapture(currentDir, size, theme)],
     ["diff", path.join(currentDir, `editor-diff-${size}-${theme}.png`)],
   ];
   for (const [kind, filename] of candidates) {
