@@ -5,6 +5,16 @@
    the lyrics switch, fullscreen, and the "Adjust layer" controls created by editor.js (kept in a hidden host). */
 (() => {
   'use strict';
+  // Load our own stylesheet last so the toolbar never depends on the bundled editor CSS being republished.
+  try {
+    const src = document.currentScript && document.currentScript.src;
+    if (src && !document.getElementById('kefeToolbarCss')) {
+      const link = document.createElement('link');
+      link.id = 'kefeToolbarCss'; link.rel = 'stylesheet';
+      link.href = src.replace(/toolbar\.js(\?.*)?$/, 'toolbar.css$1');
+      document.head.appendChild(link);
+    }
+  } catch (_) {}
   const stage = document.querySelector('.kefe-stage');
   if (!stage || document.getElementById('kefeFloatingToolbar')) return;
 
@@ -598,6 +608,8 @@
   /* Actions panel */
   const actionsBtn = panelBtn('menu', 'More actions');
   const compactToggle = h('input', '', { type: 'checkbox', 'aria-label': 'Compact toolbar' });
+  const safeOverlay = h('div', 'kft-safe-overlay', { 'aria-hidden': 'true' });
+  safeOverlay.style.cssText = 'position:absolute;z-index:5;pointer-events:none;box-sizing:border-box;border:1px dashed rgba(255,255,255,.75);outline:1px solid rgba(0,0,0,.3);display:none';
   const prefKey = 'kefe.toolbar.preferences.v1';
   const previewHost = document.querySelector('.kefe-preview, .kefe-preview-stage, .kefe-stage');
   try {
@@ -614,8 +626,9 @@
   } catch (_) {}
   function syncPreferences() {
     root.classList.toggle('is-compact', compactToggle.checked);
-    stage.classList.toggle('kft-safe-area-on', safeAreaToggle.checked);
-    stage.style.setProperty('--kft-safe', safeInset + '%');
+    if (!safeOverlay.isConnected) { if (getComputedStyle(stage).position === 'static') stage.style.position = 'relative'; stage.appendChild(safeOverlay); }
+    safeOverlay.style.display = safeAreaToggle.checked ? 'block' : 'none';
+    safeOverlay.style.inset = safeInset + '%';
     safeScrub.set(safeInset);
     if (previewHost && previewBg.dataset.changed === 'true') previewHost.style.backgroundColor = previewBg.value;
     try {
