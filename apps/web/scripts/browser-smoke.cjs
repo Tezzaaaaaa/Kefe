@@ -152,7 +152,12 @@ async function captureEditorScreenState(page) {
     await page.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
     await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
-    await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
+    await page.waitForFunction(() => {
+      const native = document.querySelector("#songTitle");
+      const mirrored = document.querySelector("#beui-songTitle");
+      return (native && getComputedStyle(native).visibility !== "hidden" && getComputedStyle(native).display !== "none") ||
+        (mirrored && getComputedStyle(mirrored).visibility !== "hidden" && getComputedStyle(mirrored).display !== "none");
+    }, null, { timeout: 20000 });
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
     try {
@@ -335,8 +340,13 @@ async function captureEditorScreenState(page) {
       "KEFE input panel must stay left of the central preview");
     assert.ok(desktopColumns.centreRight <= desktopColumns.rightLeft + 1,
       "Visual & Output panel must stay right of the central preview");
-    await page.waitForSelector(".beui-textarea-host #beui-lyricsInput", { state: "attached", timeout: 20000 });
-    assert.equal(await page.locator(".beui-textarea-host #beui-lyricsInput").count(), 1, "textarea bridge must not recursively mount its own component");
+    await page.waitForFunction(() => {
+      const native = document.querySelector("#lyricsInput");
+      const mirrored = document.querySelector("#beui-lyricsInput");
+      return (native && getComputedStyle(native).visibility !== "hidden" && getComputedStyle(native).display !== "none") ||
+        (mirrored && getComputedStyle(mirrored).visibility !== "hidden" && getComputedStyle(mirrored).display !== "none");
+    }, null, { timeout: 20000 });
+    assert.equal(await page.locator('label[for="lyricsInput"]').count(), 1, "original lyrics label association must remain in the DOM");
     await page.waitForFunction(() => {
       const expected = ["media", "lyrics", "effects", "background-effects", "visualiser", "export"];
       const panels = [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")];
@@ -415,8 +425,17 @@ async function captureEditorScreenState(page) {
         && selects.every((input) => input.nextElementSibling?.classList.contains("beui-select-host"));
     }, null, { timeout: 20000 });
 
-    await page.locator("#beui-songTitle").fill("beUI smoke track");
-    assert.equal(await page.locator("#songTitle").inputValue(), "beUI smoke track", "beUI Input should preserve the legacy metadata value and events");
+    const nativeSongTitle = page.locator("#songTitle");
+    const mirroredSongTitle = page.locator("#beui-songTitle");
+    const hasMirroredSongTitle = await mirroredSongTitle.count() > 0;
+    const titleControl = hasMirroredSongTitle ? mirroredSongTitle : nativeSongTitle;
+    if (!hasMirroredSongTitle) {
+      assert.equal(await nativeSongTitle.getAttribute("aria-hidden"), null, "native metadata input must remain exposed to assistive technology");
+      assert.equal(await nativeSongTitle.getAttribute("tabindex"), null, "native metadata input must remain in the normal keyboard sequence");
+    }
+    await titleControl.fill("KEFE native smoke track");
+    await page.waitForFunction(() => document.getElementById("kefeMediaTrackTitle")?.textContent === "KEFE native smoke track", null, { timeout: 5000 });
+    assert.equal(await nativeSongTitle.inputValue(), "KEFE native smoke track", "metadata input should update the original value and live track card");
 
     const nativePanelSurfaceCount = await page.locator("#kefe-settings-panel .section[data-section-id]").evaluateAll(sections => sections.filter(section => {
       const style = getComputedStyle(section);
@@ -827,8 +846,16 @@ async function captureEditorScreenState(page) {
         assert.match(lyricsTimingLayout.laterRow, /^2/);
       }
     }
-    await page.locator(".beui-textarea-host #beui-lyricsInput").fill("beUI lyric smoke");
-    assert.equal(await page.locator("#lyricsInput").inputValue(), "beUI lyric smoke", "beUI Textarea should preserve the legacy lyrics value and events");
+    const nativeLyrics = page.locator("#lyricsInput");
+    const mirroredLyrics = page.locator("#beui-lyricsInput");
+    const hasMirroredLyrics = await mirroredLyrics.count() > 0;
+    const lyricsControl = hasMirroredLyrics ? mirroredLyrics : nativeLyrics;
+    if (!hasMirroredLyrics) {
+      assert.equal(await nativeLyrics.getAttribute("aria-hidden"), null, "native lyric textarea must remain exposed to assistive technology");
+      assert.equal(await nativeLyrics.getAttribute("tabindex"), null, "native lyric textarea must remain in the normal keyboard sequence");
+    }
+    await lyricsControl.fill("KEFE lyric smoke");
+    assert.equal(await nativeLyrics.inputValue(), "KEFE lyric smoke", "lyrics textarea should own the value and native input events");
 
     await page.keyboard.press("Control+k");
     const commandPalette = page.locator("#kefeCommandPalette");
@@ -911,10 +938,19 @@ async function captureEditorScreenState(page) {
     await page.setViewportSize(panelDesktopViewport);
     await page.waitForTimeout(100);
 
-    const reviewCheckbox = page.locator("#beui-kefeReview0[role=checkbox]");
-    await reviewCheckbox.waitFor({ state: "visible", timeout: 10000 });
-    await reviewCheckbox.click();
-    assert.equal(await page.locator("#kefeReview0").evaluate((input) => input.checked), true, "beUI Checkbox should preserve the legacy checklist value");
+    const reviewCheckbox = page.locator("#kefeReview0");
+    const mirroredReviewCheckbox = page.locator("#beui-kefeReview0[role=checkbox]");
+    const hasMirroredReviewCheckbox = await mirroredReviewCheckbox.count() > 0;
+    await (hasMirroredReviewCheckbox ? mirroredReviewCheckbox : reviewCheckbox).waitFor({ state: "visible", timeout: 10000 });
+    if (hasMirroredReviewCheckbox) {
+      await mirroredReviewCheckbox.click();
+    } else {
+      assert.equal(await reviewCheckbox.getAttribute("type"), "checkbox", "review checklist must use the original native checkbox");
+      assert.equal(await reviewCheckbox.getAttribute("aria-hidden"), null, "native checklist checkbox must remain exposed to assistive technology");
+      await reviewCheckbox.focus();
+      await page.keyboard.press("Space");
+    }
+    assert.equal(await reviewCheckbox.isChecked(), true, "review checkbox activation should update KEFE checklist state");
 
     const firstCount = await page.locator(".beui-panel-button-host").count();
     await page.waitForTimeout(300);

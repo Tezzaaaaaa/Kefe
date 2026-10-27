@@ -108,10 +108,8 @@
   color: var(--pc-text); font-size: var(--pc-fs) !important;
 }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-input:focus { border-color: var(--pc-accent); outline: none; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-textarea-host,
-:is(.kefe-panels, .kefe-settings-columns) .beui-textarea-control { min-height: 0; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-textarea-control {
-  height: 120px !important; padding: 6px 8px !important; border-radius: 4px;
+:is(.kefe-panels, .kefe-settings-columns) .kefe-panel[data-panel-view="lyrics"] .kefe-textarea {
+  height: 120px !important; min-height: 0 !important; padding: 6px 8px !important; border-radius: 4px;
   border: 1px solid var(--pc-border); background: var(--pc-input); font-size: var(--pc-fs) !important; line-height: 1.45;
 }
 :is(.kefe-panels, .kefe-settings-columns) .beui-select-host > div,
@@ -247,7 +245,8 @@
 /* ---- Export ---- */
 :is(.kefe-panels, .kefe-settings-columns) #kefeExportExtras { display: grid; gap: var(--pc-gap); }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-review { gap: 3px; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-checkbox-host { min-height: 22px; font-size: var(--pc-fs); }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-review-item input[type="checkbox"] { width: 16px; height: 16px; margin-top: 1px; border-radius: 4px; }
+
 :is(.kefe-panels, .kefe-settings-columns) #exportStatus { margin: 0; }
 
 /* ---- Pass 2 fixes ---- */
@@ -317,14 +316,8 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-step-head h3 { font-size: 12px !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-step-head p { font-size: var(--pc-fs-sm) !important; margin: 0 !important; }
 
-/* ---- Pass 4: beUI-wrapped controls ---- */
+/* ---- Pass 4: native and custom panel controls ---- */
 :is(.kefe-panels, .kefe-settings-columns) .kefe-switch > span { display: inline-flex; align-items: center; gap: 6px; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-input-host { display: block; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-input-control { gap: 0 !important; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-input-control > div { height: var(--pc-h) !important; min-height: 0 !important; border-radius: 4px !important; background: var(--pc-input) !important; border-color: var(--pc-border) !important; box-shadow: none !important; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-input-control input { height: 100% !important; padding: 0 8px !important; font-size: var(--pc-fs) !important; background: transparent !important; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-input-control > div:focus-within { border-color: var(--pc-accent) !important; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-search .beui-input-control > div { border-radius: 4px !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-search { height: auto; min-height: 0; padding: 0; background: transparent; border: 0; box-shadow: none; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-song-details > div { display: grid; gap: 0; }
 
@@ -383,7 +376,7 @@
   text-align: left;
   overflow-wrap: anywhere;
 }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-panel :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea, .beui-input-host, .beui-select-host) {
+:is(.kefe-panels, .kefe-settings-columns) .kefe-panel :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea, .beui-select-host) {
   min-width: 0;
   max-width: 100%;
 }
@@ -469,11 +462,6 @@
 :is(.kefe-panels, .kefe-settings-columns) label.kefe-visualiser-field,
 :is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-field:not(select) { grid-template-columns: 78px minmax(0, 1fr) 40px; }
 
-/* Checkboxes */
-:is(.kefe-panels, .kefe-settings-columns) .beui-checkbox-control { gap: 8px !important; align-items: flex-start; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-checkbox-control button[role="checkbox"] { width: 16px !important; height: 16px !important; margin-top: 1px; border-width: 1.5px !important; border-radius: 4px !important; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-checkbox-control .text-sm { font-size: var(--pc-fs) !important; line-height: 1.35 !important; }
-
 /* Upload cards: short, with their labels visible */
 :is(.kefe-panels, .kefe-settings-columns) .beui-upload-card[data-slot="card"] { min-height: 0 !important; padding: 10px 8px !important; gap: 2px !important; border-radius: 6px !important; align-items: center; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-media-upload-row .kefe-upload-zone.beui-upload-card-hosted .beui-upload-symbol { display: block; }
@@ -500,9 +488,6 @@
 /* Slider labels: room for "Words per chunk" */
 :is(.kefe-panels, .kefe-settings-columns) label.kefe-visualiser-field,
 :is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-field:not(select) { grid-template-columns: 88px minmax(0, 1fr) 40px; }
-
-/* Checkbox outline visible on the dark surface */
-:is(.kefe-panels, .kefe-settings-columns) .beui-checkbox-control button[role="checkbox"][aria-checked="false"] { border-color: var(--pc-border-hover) !important; background: var(--pc-input) !important; }
 
 /* Shell setting rows (e.g. Lyric Sync > Timing nudge): label above a short slider */
 .kefe-settings-mount .kefe-settings-panel .setting-row:not(.kefe-slot *) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; align-items: stretch; min-height: 0; padding: 2px 0 6px; }

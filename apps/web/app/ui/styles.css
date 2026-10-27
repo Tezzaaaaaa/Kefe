@@ -8469,6 +8469,7 @@ html:root input[type="checkbox"]:not(.kefe-sr-only)::after {
 html:root input[type="checkbox"]:not(.kefe-sr-only):checked { background: var(--accent); border-color: var(--accent); }
 html:root input[type="checkbox"]:not(.kefe-sr-only):checked::after { transform: scale(1); }
 html:root input[type="checkbox"]:not(.kefe-sr-only):hover { border-color: var(--accent); }
+html:root input[type="checkbox"]:not(.kefe-sr-only):focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 html:root input[type="checkbox"]:not(.kefe-sr-only):disabled { opacity: .45; cursor: not-allowed; }
 html:root input[type="radio"] { accent-color: var(--accent); }
 
@@ -8858,8 +8859,7 @@ html:root[data-theme="day"] :is(
 }
 html:root[data-theme="day"] :is(
   .kefe-input, .kefe-select, .kefe-textarea, .kefe-search, .kefe-search > input,
-  .beui-select-control, .beui-textarea-control, .beui-input-control,
-  .beui-select-trigger, .beui-combobox-trigger
+  .beui-select-control, .beui-select-trigger, .beui-combobox-trigger
 ) {
   color: var(--text);
   background-color: var(--surface-hi);
@@ -8881,7 +8881,7 @@ html:root[data-theme="day"] :is(.kefe-btn:not(.primary), .kefe-chip, .kefe-card,
   background-color: #f9faff;
   border-color: var(--shell-line-strong);
 }
-html:root[data-theme="day"] :is(.kefe-input, .kefe-textarea, .kefe-search > input, .beui-input-control)::placeholder { color: var(--soft); }
+html:root[data-theme="day"] :is(.kefe-input, .kefe-textarea, .kefe-search > input)::placeholder { color: var(--soft); }
 html:root[data-theme="day"] :is(.kefe-label, .kefe-meta, .kefe-panel-head .kefe-meta, .kefe-upload-help, .kefe-upload-name) { color: var(--muted); }
 html:root[data-theme="day"] .kefe-upload-zone { color: var(--text); background: var(--surface-hi); border-color: #aab5c5; }
 html:root[data-theme="day"] .kefe-section { color: var(--muted); background: transparent; box-shadow: none; }
@@ -8913,7 +8913,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-panel .kefe-style-color-row {
   box-shadow: none;
 }
 html:root[data-theme="day"] .kefe-settings-backdrop { background: rgba(32, 38, 51, .28); }
-html:root[data-theme="day"] .beui-checkbox-control,
 html:root[data-theme="day"] .beui-radio-control,
 html:root[data-theme="day"] .beui-switch-control { color: var(--text); }
 html:root[data-theme="day"] .beui-select-content,
@@ -10334,74 +10333,6 @@ select.beui-native-select {
 .beui-command-dialog-root { display: contents; }
 .beui-command-dialog { flex: 0 1 520px; }
 
-.beui-input-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
-  width: 100%;
-  min-width: 0;
-}
-input.beui-native-input {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-}
-.beui-input-control { width: 100%; min-width: 0; }
-
-.beui-checkbox-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
-  display: contents;
-}
-.beui-native-checkbox { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
-.beui-native-checkbox-label { display: none !important; }
-.beui-checkbox-control { color: var(--shell-text, #f5f5f5); }
-
-.beui-textarea-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
-  width: 100%;
-  min-width: 0;
-}
-textarea.beui-native-textarea {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-}
-.beui-textarea-control { width: 100%; min-width: 0; }
-
 /* The former Card bridge root carried the beUI theme tokens used by mirrored
    controls inside each native section. Keep those tokens on the native panel. */
 .kefe-panel[data-panel-view] {
@@ -11029,10 +10960,6 @@ textarea.beui-native-textarea {
 :root[data-theme="day"] #songArtist,
 :root[data-theme="day"] #songAlbum,
 :root[data-theme="day"] #songYear,
-:root[data-theme="day"] #beui-songTitle,
-:root[data-theme="day"] #beui-songArtist,
-:root[data-theme="day"] #beui-songAlbum,
-:root[data-theme="day"] #beui-songYear,
 :root[data-theme="day"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
 :root[data-theme="day"] textarea,
 :root[data-theme="day"] select {

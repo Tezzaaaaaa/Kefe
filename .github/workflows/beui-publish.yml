@@ -48,6 +48,7 @@ jobs:
           node apps/web/scripts/smoke-build.mjs
           node apps/web/scripts/smoke-settings-api.mjs
           node apps/web/scripts/smoke-section-card-coverage.mjs
+          node apps/web/scripts/smoke-native-controls.mjs
       - name: Browser regression smoke test
         run: |
           npm install --prefix /tmp/kefe-browser --no-save --no-package-lock playwright@1.56.1
