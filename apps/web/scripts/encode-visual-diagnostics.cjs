@@ -8,6 +8,15 @@ const [baselineDir, currentDir, outputPath] = process.argv.slice(2);
 assert.ok(baselineDir && currentDir && outputPath, "usage: encode-visual-diagnostics.cjs <baseline-dir> <current-dir> <output-json>");
 const states = [["desktop", "night"], ["desktop", "day"], ["mobile", "night"], ["mobile", "day"]];
 
+// This is a secondary diagnostic step. If the smoke/comparison step failed before
+// producing its inputs, report the missing inputs without replacing that primary
+// CI failure with a noisy ENOENT/assertion failure.
+const missingInputs = [baselineDir, currentDir].filter(dir => !fs.existsSync(dir));
+if (missingInputs.length) {
+  console.warn(`Skipping visual diagnostics because required capture directory/directories are missing: ${missingInputs.join(", ")}`);
+  process.exit(0);
+}
+
 function findCapture(dir, size, theme) {
   const suffix = `-${size}-${theme}.png`;
   const matches = fs.readdirSync(dir).filter(name => name.startsWith("editor-") && !name.startsWith("editor-diff-") && name.endsWith(suffix));
