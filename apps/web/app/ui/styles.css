@@ -10402,6 +10402,20 @@ textarea.beui-native-textarea {
 }
 .beui-textarea-control { width: 100%; min-width: 0; }
 
+/* The former Card bridge root carried the beUI theme tokens used by mirrored
+   controls inside each native section. Keep those tokens on the native panel. */
+.kefe-panel[data-panel-view] {
+  --beui-background: var(--shell-bg, #171719);
+  --beui-foreground: var(--shell-text, #f5f5f5);
+  --beui-muted: var(--shell-panel, #29292d);
+  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
+  --beui-border: var(--shell-line, #39393f);
+  --beui-ring: var(--shell-accent, #ef4444);
+  --beui-primary: var(--shell-accent, #ef4444);
+  --beui-primary-foreground: #ffffff;
+  --beui-card: var(--shell-panel, #222225);
+}
+
 .beui-upload-card-root { display: contents; }
 .kefe-upload-zone.beui-upload-card-hosted { min-height: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
 .kefe-upload-zone.beui-upload-card-hosted:hover .beui-upload-card,
