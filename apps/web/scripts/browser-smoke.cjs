@@ -487,7 +487,20 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       document.body.appendChild(legacyPopover);
       const measure = (node) => {
         const rect = node.getBoundingClientRect();
-        return { width: rect.width, height: rect.height };
+        const style = getComputedStyle(node);
+        return {
+          width: rect.width,
+          height: rect.height,
+          boxSizing: style.boxSizing,
+          gap: style.gap,
+          padding: style.padding,
+          borderWidth: style.borderTopWidth,
+          display: style.display,
+          flexDirection: style.flexDirection,
+          alignItems: style.alignItems,
+          lineHeight: style.lineHeight,
+          minHeight: style.minHeight,
+        };
       };
       const legacy = {
         popover: measure(legacyPopover),
