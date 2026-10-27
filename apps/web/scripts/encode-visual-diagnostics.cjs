@@ -67,6 +67,14 @@ const layout = JSON.parse(fs.readFileSync(layoutPath, "utf8")).map(({ size, coun
       key, path, section, panel, tag, classes,
       changedFields: Object.fromEntries(Object.entries(changedFields).filter(([field]) => ["x", "y", "width", "height", "display", "color", "background", "font", "fontWeight", "lineHeight", "letterSpacing", "border", "radius", "padding", "gap", "gridTemplateColumns", "overflow", "minWidth", "minHeight", "maxWidth", "maxHeight"].includes(field))),
     })),
+  details: changes.filter(item => item.key === "#kefeAspect" || item.key === "#kefeUploadZone"
+      || /kefe-sidebar-(link|group|toggle)|kefe-toolbar-format/.test(item.classes)
+      || /(^| )(section-header|section-title-wrap|title-group|expand-button|expand-indicator|info-button)( |$)/.test(item.classes))
+    .slice(0, 32)
+    .map(({ key, path, section, panel, tag, classes, changedFields }) => ({
+      key, path, section, panel, tag, classes,
+      changedFields: Object.fromEntries(Object.entries(changedFields).filter(([field]) => ["x", "y", "width", "height", "display", "color", "background", "font", "fontWeight", "lineHeight", "letterSpacing", "border", "radius", "padding", "gap", "gridTemplateColumns", "overflow", "minWidth", "minHeight", "maxWidth", "maxHeight"].includes(field))),
+    })),
 }));
 fs.writeFileSync(outputPath, JSON.stringify({ thumbnails, regions, layout }));
 console.log(`Encoded ${thumbnails.length} visual thumbnails, ${regions.length} region reports, and ${layout.length} layout reports at ${outputPath}`);
