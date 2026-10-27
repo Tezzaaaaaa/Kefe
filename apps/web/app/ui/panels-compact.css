@@ -283,7 +283,7 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-switch.is-on .kefe-switch-thumb { transform: translateX(12px) !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-find-step { padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-media-upload-row { grid-template-columns: minmax(0, 1fr) !important; gap: 6px !important; }
-@container kefe-media-step (min-width: 501px) {
+@media (min-width: 521px) {
   :is(.kefe-panels, .kefe-settings-columns) .kefe-media-upload-row { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-media-upload-row > *:not(#kefeUploadZone),

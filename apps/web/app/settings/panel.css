@@ -542,7 +542,6 @@
   container-name: kefe-settings;
 }
 @media (min-width: 1280px) {
-  .kefe-settings-panel .kefe-slot .kefe-media-upload-row,
   .kefe-settings-panel .kefe-slot .kefe-details-grid {
     grid-template-columns: minmax(0, 1fr);
   }
