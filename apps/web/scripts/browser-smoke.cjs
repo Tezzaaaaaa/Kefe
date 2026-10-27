@@ -32,6 +32,8 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(file).pipe(res);
 });
 
+let failureContext = { pageErrors: [] };
+
 function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
   const samples = Math.floor(durationSeconds * sampleRate);
   const dataBytes = samples * 2;
@@ -65,6 +67,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ serviceWorkers: "block" });
     page = await context.newPage();
+    failureContext = { page, pageErrors };
     page.on("pageerror", (error) => pageErrors.push({ type: "pageerror", name: error.name, message: error.message, stack: error.stack || null }));
     page.on("console", (message) => {
       if (message.type() === "error" && /SyntaxError|Invalid or unexpected token/.test(message.text())) {
@@ -802,12 +805,12 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
         name: error.name,
         message: error.message,
         stack: error.stack || null,
-        url: page?.url() || null,
-        pageErrors,
+        url: failureContext.page?.url() || null,
+        pageErrors: failureContext.pageErrors || [],
       };
       fs.writeFileSync(path.join(diagnosticDir, "browser-smoke-error.json"), JSON.stringify(diagnostics, null, 2));
-      if (page && !page.isClosed()) {
-        await page.screenshot({ path: path.join(diagnosticDir, "browser-smoke-error.png"), fullPage: true, animations: "disabled" })
+      if (failureContext.page && !failureContext.page.isClosed()) {
+        await failureContext.page.screenshot({ path: path.join(diagnosticDir, "browser-smoke-error.png"), fullPage: true, animations: "disabled" })
           .catch((screenshotError) => console.error("Could not capture failure screenshot:", screenshotError));
       }
     } catch (diagnosticError) {

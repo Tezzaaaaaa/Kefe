@@ -109,7 +109,22 @@ jobs:
         if: steps.screenshot-baseline.outputs.run_id != ''
         env:
           NODE_PATH: /tmp/kefe-browser/node_modules
-        run: node apps/web/scripts/compare-visual-screenshots.cjs /tmp/kefe-baseline-screenshots /tmp/kefe-screenshots
+        run: |
+          set -o pipefail
+          node apps/web/scripts/compare-visual-screenshots.cjs /tmp/kefe-baseline-screenshots /tmp/kefe-screenshots 2>&1 | tee /tmp/kefe-screenshots/visual-comparison.log
+      - name: Report visual comparison results in check annotations
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const logPath = "/tmp/kefe-screenshots/visual-comparison.log";
+            if (!fs.existsSync(logPath)) {
+              core.info("No screenshot comparison log was produced in this run.");
+              return;
+            }
+            const comparison = fs.readFileSync(logPath, "utf8").trim();
+            core.notice(`Volume Card visual comparison:\n${comparison}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
       - name: Upload desktop/mobile day/night screenshots and diffs
         if: always()
         uses: actions/upload-artifact@v4
