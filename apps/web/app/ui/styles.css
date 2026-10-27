@@ -10996,3 +10996,177 @@ textarea.beui-native-textarea {
     padding-bottom: 10px;
   }
 }
+
+
+/* ===== Day Mode palette and WCAG AA contrast overrides ===== */
+:root[data-theme="day"] {
+  --bg-primary: #f3f5f8;
+  --bg-secondary: #edf0f5;
+  --bg-canvas: #171719;
+  --text-primary: #20242b;
+  --text-secondary: #555d6b;
+  --border-color: #c9ced8;
+  --accent-color: #245da8;
+  --input-bg: #ffffff;
+
+  /* Map the existing theme tokens to one semantic palette. */
+  --bg: var(--bg-primary);
+  --surface: #f7f8fa;
+  --surface-hi: #ffffff;
+  --surface-lo: #e4e8ef;
+  --preview: var(--bg-canvas);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --soft: var(--text-secondary);
+  --line: var(--border-color);
+  --line-soft: #d9dee6;
+  --accent: var(--accent-color);
+  --accent-hover: #1e4e8e;
+  --accent-pressed: #183f73;
+  --accent-deep: #ffffff;
+  --focus: var(--accent-color);
+
+  --shell-bg: var(--bg-primary);
+  --shell-panel: var(--bg-secondary);
+  --shell-text: var(--text-primary);
+  --shell-muted: var(--text-secondary);
+  --shell-line: var(--border-color);
+  --shell-line-strong: #8a95a5;
+  --shell-accent: var(--accent-color);
+
+  color-scheme: light;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Navigation and preview toolbar */
+:root[data-theme="day"] .kefe-top,
+:root[data-theme="day"] .kefe-preview-toolbar {
+  background: var(--surface);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+:root[data-theme="day"] .kefe-top-link,
+:root[data-theme="day"] .kefe-brand,
+:root[data-theme="day"] .kefe-toolbar-format select {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+:root[data-theme="day"] .kefe-top-link { color: var(--text-secondary); }
+
+/* Softer left navigation and clearly selected state */
+:root[data-theme="day"] .kefe-tabs,
+:root[data-theme="day"] .kefe-editing,
+:root[data-theme="day"] .kefe-section {
+  background: var(--bg-secondary);
+}
+:root[data-theme="day"] .kefe-section {
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+}
+:root[data-theme="day"] .kefe-section:hover {
+  background: #e2e8f1;
+  color: var(--text-primary);
+  border-color: #a9b4c4;
+}
+:root[data-theme="day"] .kefe-section.active {
+  background: var(--accent-color);
+  color: #ffffff;
+  border-color: var(--accent-color);
+}
+
+/* Labels, supporting text and input controls */
+:root[data-theme="day"] .kefe-label,
+:root[data-theme="day"] .kefe-meta,
+:root[data-theme="day"] .kefe-panel-head .kefe-meta,
+:root[data-theme="day"] .kefe-toolbar-format label {
+  color: var(--text-secondary);
+}
+:root[data-theme="day"] .kefe-input,
+:root[data-theme="day"] .kefe-select,
+:root[data-theme="day"] .kefe-textarea,
+:root[data-theme="day"] #songTitle,
+:root[data-theme="day"] #songArtist,
+:root[data-theme="day"] #songAlbum,
+:root[data-theme="day"] #songYear,
+:root[data-theme="day"] #beui-songTitle,
+:root[data-theme="day"] #beui-songArtist,
+:root[data-theme="day"] #beui-songAlbum,
+:root[data-theme="day"] #beui-songYear,
+:root[data-theme="day"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+:root[data-theme="day"] textarea,
+:root[data-theme="day"] select {
+  color: var(--text-primary);
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  opacity: 1;
+}
+:root[data-theme="day"] input::placeholder,
+:root[data-theme="day"] textarea::placeholder,
+:root[data-theme="day"] .kefe-input::placeholder,
+:root[data-theme="day"] .kefe-textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 1;
+}
+:root[data-theme="day"] input:disabled,
+:root[data-theme="day"] textarea:disabled,
+:root[data-theme="day"] select:disabled {
+  opacity: .65;
+}
+:root[data-theme="day"] .kefe-input:focus,
+:root[data-theme="day"] .kefe-select:focus,
+:root[data-theme="day"] .kefe-textarea:focus,
+:root[data-theme="day"] input:focus-visible,
+:root[data-theme="day"] textarea:focus-visible,
+:root[data-theme="day"] select:focus-visible,
+:root[data-theme="day"] button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Right-side panels and collapsible section cards */
+:root[data-theme="day"] .kefe-panels { background: var(--bg-primary); }
+:root[data-theme="day"] .kefe-panel {
+  background: var(--surface);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+:root[data-theme="day"] .kefe-panel-head { border-bottom-color: var(--border-color); }
+:root[data-theme="day"] .kefe-card {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+}
+:root[data-theme="day"] .kefe-card:hover,
+:root[data-theme="day"] .kefe-card.active {
+  background: #e2e8f1;
+  border-color: #a9b4c4;
+}
+:root[data-theme="day"] .kefe-card strong,
+:root[data-theme="day"] .kefe-panel h2,
+:root[data-theme="day"] .kefe-panel-head h2 {
+  color: var(--text-primary);
+}
+
+/* Preserve the dark canvas; define readable framing and controls around it. */
+:root[data-theme="day"] .kefe-stage {
+  background: var(--bg-canvas);
+  border-color: var(--border-color);
+  box-shadow: 0 4px 18px rgb(32 36 43 / 10%);
+}
+:root[data-theme="day"] .kefe-timeline {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+:root[data-theme="day"] .kefe-play,
+:root[data-theme="day"] .kefe-preview-fullscreen {
+  background: var(--surface);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+:root[data-theme="day"] .kefe-wave {
+  background: var(--surface-hi);
+  border-color: var(--border-color);
+}
