@@ -23,7 +23,8 @@ concurrency:
 
 jobs:
   build-and-publish:
-    runs-on: ubuntu-latest
+    # Match the build workflow's tested runner for Playwright's Chromium setup.
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out main
         uses: actions/checkout@v4
