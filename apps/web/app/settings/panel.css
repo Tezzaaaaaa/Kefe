@@ -450,6 +450,7 @@
   display: none;
 }
 .kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0;

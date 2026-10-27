@@ -352,11 +352,11 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     const embeddedPanelStyle = await page.locator("#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]").evaluateAll(panels =>
       panels.map(panel => {
         const style = getComputedStyle(panel);
-        return { display: style.display, flexDirection: style.flexDirection, gap: style.gap, padding: style.padding, borderWidth: style.borderTopWidth, borderColor: style.borderTopColor, borderRadius: style.borderTopLeftRadius };
+        return { position: style.position, display: style.display, flexDirection: style.flexDirection, gap: style.gap, padding: style.padding, borderWidth: style.borderTopWidth, borderColor: style.borderTopColor, borderRadius: style.borderTopLeftRadius };
       })
     );
     assert.equal(embeddedPanelStyle.length, 6, "all six editor panels should remain embedded once in their native settings slots");
-    assert.ok(embeddedPanelStyle.every(style => style.display === "flex" && style.flexDirection === "column" && style.gap === "0px"
+    assert.ok(embeddedPanelStyle.every(style => style.position === "relative" && style.display === "flex" && style.flexDirection === "column" && style.gap === "0px"
       && style.padding === "10px" && style.borderWidth === "1px" && style.borderColor === "rgba(0, 0, 0, 0)" && style.borderRadius === "8px"),
       `embedded native panels must retain the former Card's vertical flex layout, zero gap, 10px inset, transparent border and 8px radius: ${JSON.stringify(embeddedPanelStyle)}`);
     assert.equal(await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count(), 0,
