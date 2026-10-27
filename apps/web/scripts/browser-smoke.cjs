@@ -324,7 +324,9 @@ async function captureEditorScreenState(page) {
     assert.deepEqual(await page.locator("#kefeCanvas").evaluate(canvas => [canvas.width, canvas.height]), [1080, 1920],
       "the Canvas panel aspect control should update KEFE's dimensions");
     assert.equal(await aspectSelect.inputValue(), "9:16", "the Canvas panel must stay synchronized with its native aspect backing control");
-    await canvasPanel.getByRole("radio", { name: "16:9", exact: true }).click();
+    if (!(await canvasPanel.isVisible())) await canvasButton.click();
+    await canvasPanel.waitFor({ state: "visible", timeout: 5000 });
+    await canvasPanel.locator('[role="radio"][data-value="16:9"]').click();
     await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-16x9"), null, { timeout: 5000 });
     await page.keyboard.press("Escape");
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
