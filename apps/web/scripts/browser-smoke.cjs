@@ -410,13 +410,26 @@ async function captureEditorScreenState(page) {
     await nativeUploadZone.dispatchEvent("dragleave");
     assert.equal(await nativeUploadZone.evaluate(zone => zone.classList.contains("is-dragging")), false,
       "native upload drop target should clear drag-over state");
-    await nativeUploadZone.evaluate((zone, bytes) => {
+    await page.locator("#mediaInput").setInputFiles({
+      name: "drop-smoke.wav",
+      mimeType: "audio/wav",
+      buffer: makeWavBuffer(1),
+    });
+    const dropHandoff = await page.evaluate(() => {
+      const input = document.getElementById("mediaInput");
+      const zone = document.getElementById("kefeUploadZone");
       const transfer = new DataTransfer();
-      transfer.items.add(new File([new Uint8Array(bytes)], "drop-smoke.wav", { type: "audio/wav" }));
+      transfer.items.add(input.files[0]);
+      let changes = 0;
+      const observeChange = () => { changes += 1; };
+      input.addEventListener("change", observeChange);
       zone.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: transfer }));
-    }, [...makeWavBuffer(1)]);
-    await page.waitForFunction(() => document.getElementById("mediaInput")?.files?.[0]?.name === "drop-smoke.wav"
-      && document.getElementById("kefeUploadZone")?.classList.contains("has-selected-file"), null, { timeout: 5000 });
+      input.removeEventListener("change", observeChange);
+      return { changes, name: input.files[0]?.name, selected: zone.classList.contains("has-selected-file") };
+    });
+    assert.equal(dropHandoff.changes, 1, `native drop should forward a file change to KEFE: ${JSON.stringify(dropHandoff)}`);
+    assert.equal(dropHandoff.name, "drop-smoke.wav", "native drop should preserve the dropped file in the original input");
+    assert.equal(dropHandoff.selected, true, "native drop should update the original upload surface state");
     await assertSectionFits("media");
     const mediaMetadataColumns = await page.locator(".kefe-details-grid").evaluate(grid => ({
       width: grid.getBoundingClientRect().width,
