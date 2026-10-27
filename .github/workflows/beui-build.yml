@@ -132,6 +132,11 @@ jobs:
               baseline_source = baseline_source[:start] + current_aspect + baseline_source[end:]
           else:
               baseline_source = baseline_source[:end] + current_aspect + baseline_source[end:]
+          old_upload_breakpoint = 'if (mediaUploadGeometry.rowWidth <= 500) {'
+          new_upload_breakpoint = 'if (await page.evaluate(() => document.documentElement.clientWidth) <= 520) {'
+          if baseline_source.count(old_upload_breakpoint) != 1:
+              raise SystemExit("Baseline upload responsive check no longer has its expected panel-width condition")
+          baseline_source = baseline_source.replace(old_upload_breakpoint, new_upload_breakpoint)
           baseline.write_text(baseline_source)
           PY
           node /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs 2>&1 | tee /tmp/kefe-layout-main/baseline-browser-smoke.log

@@ -202,6 +202,9 @@ async function captureEditorScreenState(page) {
     const desktopViewport = page.viewportSize();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
+    const mobileUploadColumns = await page.locator(".kefe-media-upload-row").evaluate(node =>
+      getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length);
+    assert.equal(mobileUploadColumns, 1, "mobile Media upload zones must stack at the viewport breakpoint");
     const mobileToolbarBounds = await quickToolbar.evaluate(node => {
       const r = node.getBoundingClientRect();
       return { left: r.left, right: r.right, viewportWidth: document.documentElement.clientWidth };
@@ -444,8 +447,8 @@ async function captureEditorScreenState(page) {
     assert.equal(mediaUploadGeometry.primaryGridRow, "auto", "the primary uploader must not span rows from the legacy Media grid");
     assert.equal(mediaUploadGeometry.backgroundGridRow, "auto", "the optional uploader wrapper must not span rows from the legacy Media grid");
     assert.equal(mediaUploadGeometry.overlapArea, 0, `the primary and background upload zones must never overlap: ${JSON.stringify(mediaUploadGeometry)}`);
-    if (mediaUploadGeometry.rowWidth <= 500) {
-      assert.equal(mediaUploadGeometry.rowColumnCount, 1, `narrow Media panels must stack upload zones instead of compressing them: ${JSON.stringify(mediaUploadGeometry)}`);
+    if (await page.evaluate(() => document.documentElement.clientWidth) <= 520) {
+      assert.equal(mediaUploadGeometry.rowColumnCount, 1, `mobile Media panels must stack upload zones instead of compressing them: ${JSON.stringify(mediaUploadGeometry)}`);
     }
     if (mediaUploadGeometry.rowColumnCount > 1) {
       assert.ok(Math.abs(mediaUploadGeometry.primaryHeight - mediaUploadGeometry.backgroundHeight) <= 2,
