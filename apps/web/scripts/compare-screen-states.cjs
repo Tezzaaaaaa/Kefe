@@ -5,7 +5,10 @@ const path = require("node:path");
 const [baselineDir, currentDir] = process.argv.slice(2);
 assert.ok(baselineDir && currentDir, "usage: compare-screen-states.cjs <baseline-dir> <current-dir>");
 
-function signature(node) { return [node.id, node.classes, node.text].join("|"); }
+function signature(node) {
+  if (node.id) return `#${node.id}`;
+  return [node.tag, node.classes, node.section, node.group, node.panel].join("|");
+}
 function index(nodes) {
   const result = new Map();
   for (const node of nodes) {

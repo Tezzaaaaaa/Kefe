@@ -8,7 +8,7 @@ assert.ok(baselineDir && currentDir, "usage: compare-layout-inventories.cjs <bas
 const fields = ["x", "y", "width", "height", "display", "position", "boxSizing", "color", "background", "font", "lineHeight", "border", "radius", "padding", "gap"];
 const normalize = (item) => {
   if (item.id) return `#${item.id}`;
-  return [item.section, item.panel, item.tag, item.classes, item.text].join("|");
+  return [item.section, item.panel, item.tag, item.classes].join("|");
 };
 
 for (const size of ["desktop", "mobile"]) {

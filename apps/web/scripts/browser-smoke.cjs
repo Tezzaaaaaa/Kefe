@@ -96,6 +96,8 @@ async function captureEditorScreenState(page) {
       const rect = node.getBoundingClientRect();
       return {
         tag: node.tagName.toLowerCase(), id: node.id || "", classes: [...node.classList].join(" "),
+        section: node.dataset.sectionId || node.closest(".section[data-section-id]")?.dataset.sectionId || "",
+        group: node.dataset.group || "", panel: node.dataset.panelView || "",
         text: (node.innerText || node.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
         x: rect.x, y: rect.y, width: rect.width, height: rect.height, scrollTop: node.scrollTop,
         scrollLeft: node.scrollLeft, scrollHeight: node.scrollHeight, clientHeight: node.clientHeight,
@@ -110,7 +112,7 @@ async function captureEditorScreenState(page) {
       scrollables: [...document.querySelectorAll(".kefe-editor, .kefe-editor *")].filter(node =>
         node.scrollHeight > node.clientHeight + 2 && node.getBoundingClientRect().width > 0
       ).map(describe),
-      keyBounds: [...document.querySelectorAll("#kefe-settings-panel, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form")]
+      keyBounds: [...document.querySelectorAll(".kefe-settings-mount, #kefe-settings-panel, .kefe-settings-columns > .kefe-panel[data-group], .kefe-panel-label, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form")]
         .filter(node => node.getBoundingClientRect().width > 0).map(describe),
     };
   });
