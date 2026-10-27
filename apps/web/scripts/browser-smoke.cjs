@@ -430,24 +430,6 @@ async function captureEditorScreenState(page) {
     await nativeUploadZone.dispatchEvent("dragleave");
     assert.equal(await nativeUploadZone.evaluate(zone => zone.classList.contains("is-dragging")), false,
       "native upload drop target should clear drag-over state");
-    const dropHandoff = await page.evaluate((bytes) => {
-      const input = document.getElementById("mediaInput");
-      const zone = document.getElementById("kefeUploadZone");
-      const file = new File([new Uint8Array(bytes)], "drop-smoke.wav", { type: "audio/wav" });
-      const transfer = new DataTransfer();
-      transfer.items.add(file);
-      let changes = 0;
-      const observeChange = () => { changes += 1; };
-      input.addEventListener("change", observeChange);
-      zone.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: transfer }));
-      input.removeEventListener("change", observeChange);
-      return { changes, name: input.files[0]?.name, selected: zone.classList.contains("has-selected-file"), size: input.files[0]?.size, type: input.files[0]?.type };
-    }, Array.from(makeWavBuffer(1)));
-    assert.equal(dropHandoff.changes, 1, `native drop should forward a file change to KEFE: ${JSON.stringify(dropHandoff)}`);
-    assert.equal(dropHandoff.name, "drop-smoke.wav", "native drop should preserve the dropped file in the original input");
-    assert.equal(dropHandoff.size, makeWavBuffer(1).length, "native drop should preserve the dropped file bytes in the original input");
-    assert.equal(dropHandoff.type, "audio/wav", "native drop should preserve the dropped file MIME type");
-    assert.equal(dropHandoff.selected, true, "native drop should update the original upload surface state");
     await assertSectionFits("media");
     const mediaMetadataColumns = await page.locator(".kefe-details-grid").evaluate(grid => ({
       width: grid.getBoundingClientRect().width,
@@ -989,6 +971,25 @@ async function captureEditorScreenState(page) {
     assert.ok(firstCount > 0, "native panel actions should be styled directly on KEFE buttons");
     assert.equal(secondCount, firstCount, "native panel buttons must not be duplicated as controls");
     assert.equal(await page.locator(".beui-panel-button-host").count(), 0, "panel actions must not use mirrored host wrappers");
+
+    const dropHandoff = await page.evaluate((bytes) => {
+      const input = document.getElementById("mediaInput");
+      const zone = document.getElementById("kefeUploadZone");
+      const file = new File([new Uint8Array(bytes)], "drop-smoke.wav", { type: "audio/wav" });
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      let changes = 0;
+      const observeChange = () => { changes += 1; };
+      input.addEventListener("change", observeChange);
+      zone.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: transfer }));
+      input.removeEventListener("change", observeChange);
+      return { changes, name: input.files[0]?.name, selected: zone.classList.contains("has-selected-file"), size: input.files[0]?.size, type: input.files[0]?.type };
+    }, Array.from(makeWavBuffer(1)));
+    assert.equal(dropHandoff.changes, 1, `native drop should forward a file change to KEFE: ${JSON.stringify(dropHandoff)}`);
+    assert.equal(dropHandoff.name, "drop-smoke.wav", "native drop should preserve the dropped file in the original input");
+    assert.equal(dropHandoff.size, makeWavBuffer(1).length, "native drop should preserve the dropped file bytes in the original input");
+    assert.equal(dropHandoff.type, "audio/wav", "native drop should preserve the dropped file MIME type");
+    assert.equal(dropHandoff.selected, true, "native drop should update the original upload surface state");
 
     await page.locator("#mediaInput").setInputFiles({
       name: "beui-smoke.wav",
