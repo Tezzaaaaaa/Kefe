@@ -49,31 +49,23 @@ jobs:
           node apps/web/scripts/smoke-section-card-coverage.mjs
       - name: Install Playwright and PNG comparison tools
         run: npm install --prefix /tmp/kefe-browser --no-save --no-package-lock playwright@1.56.1 pngjs@7.0.0 pixelmatch@5.3.0
-      - name: Find previous successful browser screenshots for this PR
+      - name: Find latest successful main-branch browser screenshots
         id: screenshot-baseline
         uses: actions/github-script@v7
         with:
           script: |
-            const branch = context.payload.pull_request?.head?.ref;
-            if (!branch) {
-              core.setOutput("run_id", "");
-              return;
-            }
             const { data } = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: "beui-build.yml",
-              branch,
+              branch: "main",
               status: "success",
               per_page: 100,
             });
-            const previous = data.workflow_runs.find((run) =>
-              run.id !== context.runId &&
-              run.pull_requests?.some((pullRequest) => pullRequest.number === context.issue.number)
-            );
-            core.setOutput("run_id", previous ? String(previous.id) : "");
-            core.info(previous ? `Using screenshot baseline from run ${previous.id} (${previous.head_sha}).` : "No previous successful screenshot run for this PR; this run establishes the baseline.");
-      - name: Download previous successful browser screenshots
+            const baseline = data.workflow_runs.find((run) => run.id !== context.runId);
+            core.setOutput("run_id", baseline ? String(baseline.id) : "");
+            core.info(baseline ? `Using published-main screenshot baseline from run ${baseline.id} (${baseline.head_sha}).` : "No successful main-branch screenshot baseline is available; this run establishes one.");
+      - name: Download main-branch browser screenshot baseline
         if: steps.screenshot-baseline.outputs.run_id != ''
         uses: actions/download-artifact@v4
         with:
@@ -105,7 +97,7 @@ jobs:
             const diagnostic = fs.existsSync(diagnosticPath) ? fs.readFileSync(diagnosticPath, "utf8") : "No structured browser diagnostic was written.";
             const log = fs.existsSync(logPath) ? fs.readFileSync(logPath, "utf8").slice(-8000) : "No browser smoke log was written.";
             core.error(`Browser smoke failed. Diagnostic:\n${diagnostic}\n\nLog tail:\n${log}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
-      - name: Compare volume Card screenshots against the previous successful run
+      - name: Compare editor and volume screenshots against main
         if: steps.screenshot-baseline.outputs.run_id != ''
         env:
           NODE_PATH: /tmp/kefe-browser/node_modules

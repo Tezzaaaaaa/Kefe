@@ -63,13 +63,14 @@ On the clean starting tree at `f9fd5ced...`, installed the frozen workspace lock
 
 ## Change log
 
-### Native editor section surfaces (current branch; browser verification pending)
+### Native editor section surfaces (current branch; visual comparison pending)
 
 - Removed `legacy-panel-card-bridge.jsx` and its `editor.source.html` load. Six section elements, their child nodes, and behavior now remain under native KEFE DOM ownership.
 - Reapplied compact radius/padding to native `.kefe-panel` surfaces and converted desktop accordion/form selectors from Card-wrapper ancestry to direct panel children.
 - Removed Card-wrapper CSS and the settings adapter's no-longer-needed Card flattening step.
 - Replaced the static Card-presence assertion with native section/direct-child/no-React-wrapper assertions in build and browser smoke checks.
-- Remaining acceptance gate: production build/static checks, Playwright browser behavior, desktop/mobile and day/night screenshot comparison, and PR CI must pass before this slice is considered complete or the change is merged.
+- Post-change local checks passed (`pnpm typecheck`, web production build, build/settings/native-panel smokes, built-artifact scan, syntax and diff checks). GitHub Actions PR run `40495743357` passed production build, static smokes, Chromium browser smoke, and uploaded desktop/mobile day/night captures.
+- The first PR run had no prior PR screenshot artifact, so its visual-comparison step was skipped. The workflow is being updated to compare full-editor screenshots and volume crops against the latest successful `main` run (`40490755047`); that comparison remains the acceptance gate before this slice is considered complete or merged.
 
 ## Completion gates
 

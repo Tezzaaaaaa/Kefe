@@ -17,16 +17,17 @@ const threshold = 0.12;
 const maxChangedRatio = 0.025;
 const results = [];
 
-function findCapture(dir, size, theme) {
+function findCapture(dir, subject, size, theme) {
   const suffix = `-${size}-${theme}.png`;
-  const matches = fs.readdirSync(dir).filter((name) => name.startsWith("volume-card-") && name.endsWith(suffix));
-  assert.equal(matches.length, 1, `expected one ${size}/${theme} volume screenshot in ${dir}, found ${matches.length}`);
+  const matches = fs.readdirSync(dir).filter((name) => name.startsWith(`${subject}-`) && name.endsWith(suffix));
+  assert.equal(matches.length, 1, `expected one ${size}/${theme} ${subject} screenshot in ${dir}, found ${matches.length}`);
   return path.join(dir, matches[0]);
 }
 
+for (const subject of ["editor", "volume-card"]) {
 for (const [size, theme] of states) {
-  const before = PNG.sync.read(fs.readFileSync(findCapture(baselineDir, size, theme)));
-  const after = PNG.sync.read(fs.readFileSync(findCapture(currentDir, size, theme)));
+  const before = PNG.sync.read(fs.readFileSync(findCapture(baselineDir, subject, size, theme)));
+  const after = PNG.sync.read(fs.readFileSync(findCapture(currentDir, subject, size, theme)));
   assert.equal(after.width, before.width, `${size}/${theme} component width changed (${before.width} → ${after.width})`);
   assert.equal(after.height, before.height, `${size}/${theme} component height changed (${before.height} → ${after.height})`);
 
@@ -65,28 +66,29 @@ for (const [size, theme] of states) {
   const samples = samplePoints.map(([x, y]) => ({ x, y, before: sample(before, x, y), after: sample(after, x, y) }));
   const totalPixels = before.width * before.height;
   const changedRatio = changedPixels / totalPixels;
-  const diffPath = path.join(currentDir, `volume-diff-${size}-${theme}.png`);
+  const diffPath = path.join(currentDir, `${subject}-diff-${size}-${theme}.png`);
   fs.writeFileSync(diffPath, PNG.sync.write(diff));
-  results.push({ size, theme, width: before.width, height: before.height, changedPixels, totalPixels, changedPercent: Number((changedRatio * 100).toFixed(3)), changedBounds, samples, diffPath });
+  results.push({ subject, size, theme, width: before.width, height: before.height, changedPixels, totalPixels, changedPercent: Number((changedRatio * 100).toFixed(3)), changedBounds, samples, diffPath });
+}
 }
 
 const lines = [
-  "### Volume Card screenshot comparison",
-  "Compared Playwright component crops against the previous successful run; pixel threshold 0.12, antialias-only changes ignored, maximum changed-pixel budget 2.5%.",
+  "### Editor and volume screenshot comparison",
+  "Compared complete editor screenshots and focused volume popover crops against the successful main-branch baseline; pixel threshold 0.12, antialias-only changes ignored, maximum changed-pixel budget 2.5%.",
   "",
-  "| Viewport | Theme | Size | Changed pixels |",
-  "|---|---|---:|---:|",
-  ...results.map((item) => `| ${item.size} | ${item.theme} | ${item.width}×${item.height} | ${item.changedPercent}% (${item.changedPixels}/${item.totalPixels}) |`),
+  "| Subject | Viewport | Theme | Size | Changed pixels |",
+  "|---|---|---|---:|---:|",
+  ...results.map((item) => `| ${item.subject} | ${item.size} | ${item.theme} | ${item.width}×${item.height} | ${item.changedPercent}% (${item.changedPixels}/${item.totalPixels}) |`),
   "",
   "Diff images are included in the screenshot artifact for review.",
   "",
 ];
 if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n"));
 for (const item of results) {
-  console.log(`${item.size}/${item.theme}: ${item.changedPercent}% changed (${item.changedPixels}/${item.totalPixels}); ${item.diffPath}`);
+  console.log(`${item.subject} ${item.size}/${item.theme}: ${item.changedPercent}% changed (${item.changedPixels}/${item.totalPixels}); ${item.diffPath}`);
   if (item.changedBounds && item.changedPixels / item.totalPixels > 0.025) {
-    console.log(`${item.size}/${item.theme} changed-pixel bounds ${JSON.stringify(item.changedBounds)}; RGBA samples ${JSON.stringify(item.samples)}`);
+    console.log(`${item.subject} ${item.size}/${item.theme} changed-pixel bounds ${JSON.stringify(item.changedBounds)}; RGBA samples ${JSON.stringify(item.samples)}`);
   }
 }
 const outliers = results.filter((item) => item.changedPixels / item.totalPixels > maxChangedRatio);
-assert.equal(outliers.length, 0, `volume Card screenshot changed more than ${maxChangedRatio * 100}% in: ${outliers.map((item) => `${item.size}/${item.theme}=${item.changedPercent}%`).join(", ")}`);
+assert.equal(outliers.length, 0, `editor/volume screenshot changed more than ${maxChangedRatio * 100}% in: ${outliers.map((item) => `${item.subject}/${item.size}/${item.theme}=${item.changedPercent}%`).join(", ")}`);
