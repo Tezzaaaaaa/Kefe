@@ -292,6 +292,8 @@ async function captureEditorScreenState(page) {
       "keyboard activation of the native sidebar button should open Lyric Sync");
     assert.equal(await lyricsSidebarAction.getAttribute("aria-current"), "page",
       "the native sidebar should expose its active section to assistive technology");
+    assert.equal(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").count(), 7,
+      "native workspace links must expose their dedicated responsive text labels");
     const mediaSidebarAction = page.locator('.kefe-sidebar [data-shell-panel="media"]');
     await mediaSidebarAction.focus();
     await page.keyboard.press("Enter");

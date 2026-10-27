@@ -10989,6 +10989,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-
     gap: 5px;
   }
   .kefe-sidebar-brand { height: 34px; padding-inline: 5px; font-size: 14px; }
+  .kefe-sidebar .kefe-sidebar-toggle { display: inline-flex; align-items: center; justify-content: center; }
   .kefe-sidebar-link { height: 31px; min-height: 31px; padding-inline: 7px; font-size: 11px; }
   .kefe-sidebar-bottom { gap: 2px; margin-left: 4px; padding-left: 5px; }
   .kefe-work { grid-column: 1; grid-row: 2; grid-template-rows: auto 48px auto; }
