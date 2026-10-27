@@ -717,6 +717,14 @@
       const d = dockEl.getBoundingClientRect();
       if (d.height > 0 && d.top > vh * 0.5) dockTop = d.top;
     }
+    // Dock inside the preview bar, in the slot the old "Canvas ratio" control used to occupy.
+    const slot = document.querySelector('.kefe-toolbar-format');
+    if (slot && !mobile.matches) {
+      slot.classList.add('kft-dock-slot');
+      slot.style.width = w + 'px'; slot.style.height = hgt + 'px';
+      const sr = slot.getBoundingClientRect();
+      if (sr.width && sr.height) return { x: sr.left, y: sr.top };
+    } else if (slot) { slot.classList.remove('kft-dock-slot'); slot.style.width = slot.style.height = ''; }
     const s = stage.getBoundingClientRect();
     if (!s.width || !s.height) return { x: (vw - w) / 2, y: 8 };
     return { x: s.left + (s.width - w) / 2, y: s.top - hgt - 10 };
@@ -773,7 +781,7 @@
   grip.addEventListener('dblclick', redock);
 
   window.addEventListener('resize', () => queueDock());
-  if (window.ResizeObserver) { const ro = new ResizeObserver(() => queueDock()); ro.observe(stage); ro.observe(document.documentElement); ro.observe(root); }
+  if (window.ResizeObserver) { const ro = new ResizeObserver(() => queueDock()); ro.observe(stage); const dockBar = document.querySelector('.kefe-preview-toolbar'); if (dockBar) ro.observe(dockBar); ro.observe(document.documentElement); ro.observe(root); }
   mobile.addEventListener?.('change', () => queueDock());
 
   /* ───────── Undo / redo (toolbar-level history of look & canvas settings) ───────── */

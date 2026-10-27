@@ -424,3 +424,8 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
 .kft-padbtn, .kft-pad--up, .kft-pad--dot, .kft-pad--down, .kft-pad--left, .kft-pad--right { border: 0; border-radius: 6px; }
 .kft-pad { grid-template-columns: repeat(3, 30px); grid-template-rows: repeat(3, 30px); }
 .kft-padbtn { width: 30px; height: 30px; }
+
+/* The preview bar's old Canvas ratio control now lives in the toolbar's Canvas panel; its slot docks the toolbar. */
+.kft-dock-slot { flex: 0 0 auto; }
+.kft-dock-slot > * { display: none !important; }
+html .kefe-editor .kefe-preview-toolbar .kft-dock-slot { padding: 0; border: 0; background: transparent; box-shadow: none; min-width: 0; }
