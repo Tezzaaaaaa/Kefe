@@ -474,6 +474,40 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.locator(".beui-transport-host button[aria-controls=\"kefeVolumePopover\"]").click();
     const volumePopover = page.locator("#kefeVolumePopover");
     await volumePopover.waitFor({ state: "visible", timeout: 5000 });
+    const volumeCardGeometry = await page.evaluate(() => {
+      const popover = document.getElementById("kefeVolumePopover");
+      const legacyPopover = document.createElement("div");
+      legacyPopover.className = "kefe-volume-popover beui-volume-popover-native";
+      legacyPopover.style.cssText = "position:fixed;left:-10000px;top:0;right:auto;bottom:auto;z-index:-1;display:flex;align-items:center;gap:10px;width:min(220px,calc(100vw - 24px));padding:0;border:0;border-radius:12px;background:transparent;color:inherit;box-shadow:none;visibility:hidden";
+      const legacyCard = document.createElement("div");
+      legacyCard.className = "beui-volume-card relative flex flex-col w-full gap-2 rounded-xl border p-3 text-foreground shadow-xl";
+      legacyCard.style.cssText = "background:var(--shell-panel);border-color:var(--shell-line);color:var(--shell-text);box-shadow:0 16px 40px rgba(0,0,0,.28)";
+      [...popover.childNodes].forEach((node) => legacyCard.append(node.cloneNode(true)));
+      legacyPopover.appendChild(legacyCard);
+      document.body.appendChild(legacyPopover);
+      const measure = (node) => {
+        const rect = node.getBoundingClientRect();
+        return { width: rect.width, height: rect.height };
+      };
+      const legacy = {
+        popover: measure(legacyPopover),
+        card: measure(legacyCard),
+        label: measure(legacyCard.querySelector("label")),
+        slider: measure(legacyCard.querySelector("input[type=range]")),
+        output: measure(legacyCard.querySelector("output")),
+      };
+      const native = {
+        popover: measure(popover),
+        label: measure(popover.querySelector("label")),
+        slider: measure(popover.querySelector("input[type=range]")),
+        output: measure(popover.querySelector("output")),
+      };
+      legacyPopover.remove();
+      return { native, legacy };
+    });
+    console.log("Volume Card native/reference geometry:", JSON.stringify(volumeCardGeometry));
+    assert.deepEqual(volumeCardGeometry.native.popover, volumeCardGeometry.legacy.card,
+      `native Card geometry should match the previous Card wrapper: ${JSON.stringify(volumeCardGeometry)}`);
     assert.equal(await volumePopover.locator(".beui-volume-card, .beui-volume-card-root").count(), 0,
       "the native volume popover must not mount a duplicate React Card wrapper");
     assert.equal(await volumePopover.getAttribute("data-beui-mounted"), null,
