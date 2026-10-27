@@ -82,7 +82,9 @@ jobs:
             const logPath = "/tmp/kefe-screenshots/browser-smoke.log";
             const diagnostic = fs.existsSync(diagnosticPath) ? fs.readFileSync(diagnosticPath, "utf8") : "No structured browser diagnostic was written.";
             const log = fs.existsSync(logPath) ? fs.readFileSync(logPath, "utf8").slice(-8000) : "No browser smoke log was written.";
-            core.error(`Browser smoke failed. Diagnostic:\n${diagnostic}\n\nLog tail:\n${log}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+            const details = `Browser smoke failed. Diagnostic:\n${diagnostic}\n\nLog tail:\n${log}`;
+            core.error(details, {file: ".github/workflows/beui-build.yml", startLine: 22});
+            await core.summary.addHeading("Browser smoke diagnostic").addCodeBlock(details).write();
       - name: Compare baseline and current day-theme DOM layouts and scroll state
         if: github.event_name == 'pull_request'
         env:
