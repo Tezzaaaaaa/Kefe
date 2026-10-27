@@ -173,7 +173,7 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-download-row .kefe-btn { width: 100%; padding: 0 4px !important; }
 
 /* ---- Media ---- */
-:is(.kefe-panels, .kefe-settings-columns) .kefe-upload-zone:not(#kefeUploadZone) { padding: 10px 8px !important; gap: 2px !important; min-height: 0 !important; border-radius: 6px; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-upload-zone:not(#kefeUploadZone) { padding: 10px 8px !important; gap: 2px !important; min-height: 0 !important; border-radius: 10px; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-upload-title { font-size: var(--pc-fs) !important; font-weight: 600; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-upload-help { display: none; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-upload-name { font-size: var(--pc-fs-sm) !important; color: var(--pc-muted); }

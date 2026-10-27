@@ -554,8 +554,8 @@
 .kefe-settings-panel .section-title-wrap,
 .kefe-settings-panel .expand-button,
 .kefe-settings-panel .title-group { min-width: 0; }
-.kefe-settings-panel .title-group { gap: 8px; overflow: visible; }
-.kefe-settings-panel .section-heading { display: block; min-width: 0; overflow-wrap: anywhere; white-space: normal; font-weight: 600; }
+.kefe-settings-panel .title-group { gap: 8px; overflow: visible; font-weight: 600; }
+.kefe-settings-panel .section-heading { display: block; min-width: 0; overflow-wrap: anywhere; white-space: normal; }
 .kefe-settings-panel .format-note { display: none !important; }
 .kefe-settings-panel .info-button { flex: 0 0 auto; }
 @media (max-width: 600px) {
