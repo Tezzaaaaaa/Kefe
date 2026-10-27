@@ -24,6 +24,49 @@ function findCapture(dir, subject, size, theme) {
   return path.join(dir, matches[0]);
 }
 
+function explainEditorDifferences(before, after, size, theme, currentDir) {
+  const layoutPath = path.join(currentDir, `editor-layout-${size}-${theme}.json`);
+  if (!fs.existsSync(layoutPath)) {
+    console.log(`No editor layout inventory available for ${size}/${theme}.`);
+    return;
+  }
+  const layout = JSON.parse(fs.readFileSync(layoutPath, "utf8"));
+  const stride = before.width + 1;
+  const prefix = new Uint32Array((before.width + 1) * (before.height + 1));
+  for (let y = 0; y < before.height; y += 1) {
+    let row = 0;
+    for (let x = 0; x < before.width; x += 1) {
+      const offset = (y * before.width + x) * 4;
+      const delta = Math.max(
+        Math.abs(before.data[offset] - after.data[offset]),
+        Math.abs(before.data[offset + 1] - after.data[offset + 1]),
+        Math.abs(before.data[offset + 2] - after.data[offset + 2]),
+        Math.abs(before.data[offset + 3] - after.data[offset + 3]),
+      );
+      if (delta > threshold * 255) row += 1;
+      prefix[(y + 1) * stride + x + 1] = prefix[y * stride + x + 1] + row;
+    }
+  }
+  const reports = layout.map((item) => {
+    const left = Math.max(0, Math.floor(item.x));
+    const top = Math.max(0, Math.floor(item.y));
+    const right = Math.min(before.width, Math.ceil(item.x + item.width));
+    const bottom = Math.min(before.height, Math.ceil(item.y + item.height));
+    if (right <= left || bottom <= top) return null;
+    const changed = prefix[bottom * stride + right] - prefix[top * stride + right]
+      - prefix[bottom * stride + left] + prefix[top * stride + left];
+    const area = (right - left) * (bottom - top);
+    return { changed, area, changedPercent: Number((changed * 100 / area).toFixed(2)), ...item };
+  }).filter(item => item && item.changed > 0);
+  reports.sort((a, b) => b.changed - a.changed || b.area - a.area);
+  console.log(`Largest changed-pixel regions by current DOM element (${size}/${theme}; thresholded RGB count):`);
+  for (const item of reports.slice(0, 30)) {
+    console.log(JSON.stringify({ changed: item.changed, area: item.area, changedPercent: item.changedPercent,
+      section: item.section, panel: item.panel, tag: item.tag, id: item.id, classes: item.classes,
+      text: item.text, bounds: [Number(item.x.toFixed(1)), Number(item.y.toFixed(1)), Number(item.width.toFixed(1)), Number(item.height.toFixed(1))], path: item.path }));
+  }
+}
+
 for (const subject of ["editor", "volume-card"]) {
 for (const [size, theme] of states) {
   const before = PNG.sync.read(fs.readFileSync(findCapture(baselineDir, subject, size, theme)));
@@ -69,6 +112,7 @@ for (const [size, theme] of states) {
   const diffPath = path.join(currentDir, `${subject}-diff-${size}-${theme}.png`);
   fs.writeFileSync(diffPath, PNG.sync.write(diff));
   results.push({ subject, size, theme, width: before.width, height: before.height, changedPixels, totalPixels, changedPercent: Number((changedRatio * 100).toFixed(3)), changedBounds, samples, diffPath });
+  if (subject === "editor" && theme === "day") explainEditorDifferences(before, after, size, theme, currentDir);
 }
 }
 
