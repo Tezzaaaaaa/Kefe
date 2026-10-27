@@ -587,8 +587,13 @@
   const previewBgLabel = h('label', 'kft-pref kft-pref--colour');
   const previewBgText = h('span'); previewBgText.textContent = 'Preview background';
   previewBgLabel.append(previewBgText, previewBg);
+  let safeInset = 5;
+  const safeScrub = createScrubber({
+    label: 'Safe-area inset', bare: true, min: 2, max: 20, step: 1, format: v => Math.round(v) + '%',
+    onInput: v => { safeInset = v; syncPreferences(); emit('safe-inset', v); }
+  });
   const canvasPanel = makePanel(ratioBtn, 'Canvas', 264);
-  canvasPanel.append(field('Canvas ratio', aspectSeg.el), field('Background', bgMenu.trigger), field('Visualiser', visMenu.trigger), field('Background darkness', darkScrub.el), checkRow('Show safe area', safeAreaToggle), previewBgLabel);
+  canvasPanel.append(field('Canvas ratio', aspectSeg.el), field('Background', bgMenu.trigger), field('Visualiser', visMenu.trigger), field('Background darkness', darkScrub.el), checkRow('Show safe area', safeAreaToggle), field('Safe-area inset', safeScrub.el), previewBgLabel);
 
   /* Actions panel */
   const actionsBtn = panelBtn('menu', 'More actions');
@@ -600,6 +605,7 @@
     if (saved) {
       safeAreaToggle.checked = saved.safeArea === true;
       compactToggle.checked = saved.compact === true;
+      if (Number.isFinite(saved.safeInset)) safeInset = clamp(saved.safeInset, 2, 20);
       if (typeof saved.background === 'string' && /^#[0-9a-f]{6}$/i.test(saved.background)) {
         previewBg.value = saved.background;
         previewBg.dataset.changed = 'true';
@@ -608,12 +614,15 @@
   } catch (_) {}
   function syncPreferences() {
     root.classList.toggle('is-compact', compactToggle.checked);
-    previewHost?.classList.toggle('kft-safe-area-on', safeAreaToggle.checked);
+    stage.classList.toggle('kft-safe-area-on', safeAreaToggle.checked);
+    stage.style.setProperty('--kft-safe', safeInset + '%');
+    safeScrub.set(safeInset);
     if (previewHost && previewBg.dataset.changed === 'true') previewHost.style.backgroundColor = previewBg.value;
     try {
       localStorage.setItem(prefKey, JSON.stringify({
         safeArea: safeAreaToggle.checked,
         compact: compactToggle.checked,
+        safeInset,
         background: previewBg.dataset.changed === 'true' ? previewBg.value : ''
       }));
     } catch (_) {}
