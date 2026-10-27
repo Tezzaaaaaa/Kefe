@@ -168,11 +168,15 @@ jobs:
             }
             const thumbnails = JSON.parse(fs.readFileSync(filename, "utf8"));
             const chunkSize = 3500;
+            const levels = ["notice", "warning", "error"];
+            let emitted = 0;
             for (const thumbnail of thumbnails) {
               const total = Math.ceil(thumbnail.jpegBase64.length / chunkSize);
               for (let index = 0; index < total; index += 1) {
                 const chunk = thumbnail.jpegBase64.slice(index * chunkSize, (index + 1) * chunkSize);
-                core.notice(`KEFE_VISUAL_CHUNK:${thumbnail.key}:${thumbnail.kind}:${index + 1}/${total}:${chunk}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+                const level = levels[emitted % levels.length];
+                core[level](`KEFE_VISUAL_CHUNK:${thumbnail.key}:${thumbnail.kind}:${index + 1}/${total}:${chunk}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+                emitted += 1;
               }
             }
       - name: Upload desktop/mobile day/night screenshots and diffs
