@@ -115,6 +115,12 @@
     }
 
     applyLegacyValues();
+    root.querySelectorAll('.section[data-section-id]').forEach(section => {
+      section.querySelector('.expand-button')?.setAttribute(
+        'aria-expanded',
+        String(section.dataset.expanded === 'true')
+      );
+    });
 
     panel.onChange(({ key, value }) => {
       const legacyKey = PANEL_TO_LEGACY[key];

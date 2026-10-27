@@ -573,6 +573,7 @@
 @media (min-width: 601px) {
   .kefe-settings-panel .section-header { gap: 10px; }
   .kefe-settings-panel .section-heading { line-height: 1.35; }
+  .kefe-settings-panel .expand-button > .title-group { flex: 0 1 auto; }
 }
 
 /* Native settings buttons no longer have the React proxy's inner span. Keep the heading content flush to the indicator, as it was inside that wrapper. */

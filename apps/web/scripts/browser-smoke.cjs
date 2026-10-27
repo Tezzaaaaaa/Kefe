@@ -537,6 +537,8 @@ async function captureEditorScreenState(page) {
     const mediaAccordion = mediaSection.locator(".expand-button").first();
     await mediaHeading.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.waitFor({ state: "visible", timeout: 10000 });
+    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true",
+      "the initially expanded Media settings section must expose its expanded state");
     await mediaAccordion.click();
     assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "false", "Media section should collapse");
     await page.waitForFunction(() => {
