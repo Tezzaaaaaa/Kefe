@@ -107,15 +107,37 @@ jobs:
             const diagnostic = fs.existsSync(diagnosticPath) ? fs.readFileSync(diagnosticPath, "utf8") : "No structured browser diagnostic was written.";
             const log = fs.existsSync(logPath) ? fs.readFileSync(logPath, "utf8").slice(-8000) : "No browser smoke log was written.";
             core.error(`Browser smoke failed. Diagnostic:\n${diagnostic}\n\nLog tail:\n${log}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
-      - name: Compare baseline and current day-theme DOM layouts
+      - name: Compare baseline and current day-theme DOM layouts and scroll state
         if: github.event_name == 'pull_request'
         env:
           NODE_PATH: /tmp/kefe-browser/node_modules
+          KEFE_SCREENSHOT_DIR: /tmp/kefe-layout-main
+          KEFE_SCREENSHOT_LABEL: main-baseline
         run: |
-          mkdir -p /tmp/kefe-layout-main /tmp/kefe-layout-current
-          KEFE_LAYOUT_ONLY=1 KEFE_EDITOR_DIST=/tmp/kefe-main/apps/web/dist-beui KEFE_SCREENSHOT_DIR=/tmp/kefe-layout-main node apps/web/scripts/browser-smoke.cjs
-          KEFE_LAYOUT_ONLY=1 KEFE_EDITOR_DIST="$GITHUB_WORKSPACE/apps/web/dist-beui" KEFE_SCREENSHOT_DIR=/tmp/kefe-layout-current node apps/web/scripts/browser-smoke.cjs
-          node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-layout-current | tee /tmp/kefe-screenshots/layout-comparison.log
+          mkdir -p /tmp/kefe-layout-main
+          python3 - <<'PY'
+          from os import environ
+          from pathlib import Path
+          current = Path(environ["GITHUB_WORKSPACE"], "apps/web/scripts/browser-smoke.cjs").read_text()
+          helper_start = current.index("async function captureEditorLayout(page)")
+          helper_end = current.index("\n(async () =>", helper_start)
+          helpers = current[helper_start:helper_end]
+          baseline_path = Path("/tmp/kefe-main/apps/web/scripts/browser-smoke.cjs")
+          baseline = baseline_path.read_text()
+          baseline = baseline.replace("\n(async () => {", "\n" + helpers + "\n\n(async () => {", 1)
+          needle = '          await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });'
+          probe = '''          const editorLayout = await captureEditorLayout(page);
+          fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
+          const editorScreenState = await captureEditorScreenState(page);
+          fs.writeFileSync(path.join(screenshotDir, `editor-screen-state-${size}-${theme}.json`), JSON.stringify(editorScreenState));
+          await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });'''
+          if baseline.count(needle) != 1:
+              raise SystemExit(f"expected one baseline screenshot hook, found {baseline.count(needle)}")
+          baseline_path.write_text(baseline.replace(needle, probe, 1))
+          PY
+          node /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs
+          node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/layout-comparison.log
+          node apps/web/scripts/compare-screen-states.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/screen-state-comparison.log
       - name: Compare editor and volume screenshots against main
         if: steps.screenshot-baseline.outputs.run_id != ''
         env:
@@ -136,11 +158,14 @@ jobs:
             }
             const comparison = fs.readFileSync(logPath, "utf8").trim();
             core.notice(`Editor and volume screenshot comparison:\n${comparison}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
-            const layoutPath = "/tmp/kefe-screenshots/layout-comparison.log";
-            if (fs.existsSync(layoutPath)) {
-              const layoutLines = fs.readFileSync(layoutPath, "utf8").trim().split(/\r?\n/).filter(Boolean);
-              for (const line of layoutLines.slice(0, 24)) {
-                core.notice(`Baseline/current DOM: ${line}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+            for (const [kind, comparisonPath] of [
+              ["DOM", "/tmp/kefe-screenshots/layout-comparison.log"],
+              ["scroll state", "/tmp/kefe-screenshots/screen-state-comparison.log"],
+            ]) {
+              if (!fs.existsSync(comparisonPath)) continue;
+              const lines = fs.readFileSync(comparisonPath, "utf8").trim().split(/\r?\n/).filter(Boolean);
+              for (const line of lines.slice(0, 12)) {
+                core.notice(`Baseline/current ${kind}: ${line}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
               }
             }
       - name: Upload desktop/mobile day/night screenshots and diffs

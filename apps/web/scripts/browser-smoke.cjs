@@ -4,7 +4,7 @@ const http = require("node:http");
 const path = require("node:path");
 const { chromium } = require("playwright");
 
-const root = path.resolve(process.env.KEFE_EDITOR_DIST || path.resolve(__dirname, "..", "dist-beui"));
+const root = path.resolve(__dirname, "..", "dist-beui");
 const mime = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -90,6 +90,32 @@ async function captureEditorLayout(page) {
   });
 }
 
+async function captureEditorScreenState(page) {
+  return page.evaluate(() => {
+    const describe = node => {
+      const rect = node.getBoundingClientRect();
+      return {
+        tag: node.tagName.toLowerCase(), id: node.id || "", classes: [...node.classList].join(" "),
+        text: (node.innerText || node.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
+        x: rect.x, y: rect.y, width: rect.width, height: rect.height, scrollTop: node.scrollTop,
+        scrollLeft: node.scrollLeft, scrollHeight: node.scrollHeight, clientHeight: node.clientHeight,
+      };
+    };
+    return {
+      viewport: { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight },
+      windowScroll: { x: window.scrollX, y: window.scrollY },
+      documentScroll: { x: document.documentElement.scrollLeft, y: document.documentElement.scrollTop },
+      activeSection: document.querySelector(".kefe-section.active")?.dataset.panel || "",
+      expandedSettings: [...document.querySelectorAll(".section[data-section-id]")].filter(section => section.dataset.expanded !== "false").map(section => section.dataset.sectionId),
+      scrollables: [...document.querySelectorAll(".kefe-editor, .kefe-editor *")].filter(node =>
+        node.scrollHeight > node.clientHeight + 2 && node.getBoundingClientRect().width > 0
+      ).map(describe),
+      keyBounds: [...document.querySelectorAll("#kefe-settings-panel, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form")]
+        .filter(node => node.getBoundingClientRect().width > 0).map(describe),
+    };
+  });
+}
+
 (async () => {
   let browser;
   let page;
@@ -130,23 +156,6 @@ async function captureEditorLayout(page) {
         settingsScripts: [...document.scripts].filter(script => script.src.includes("/app/settings/")).map(script => script.src)
       }));
       throw new Error("Settings panel did not mount: " + JSON.stringify({ diagnostics, pageErrors, error: error.message }));
-    }
-    if (process.env.KEFE_LAYOUT_ONLY === "1") {
-      const screenshotDir = process.env.KEFE_SCREENSHOT_DIR || "/tmp/kefe-layout-only";
-      fs.mkdirSync(screenshotDir, { recursive: true });
-      const originalViewport = page.viewportSize();
-      for (const viewport of [originalViewport, { width: 390, height: 844 }]) {
-        await page.setViewportSize(viewport);
-        const size = viewport.width <= 640 ? "mobile" : "desktop";
-        for (const theme of ["night", "day"]) {
-          await page.evaluate(nextTheme => { document.documentElement.dataset.theme = nextTheme; }, theme);
-          await page.waitForTimeout(300);
-          const layout = await captureEditorLayout(page);
-          fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(layout));
-        }
-      }
-      console.log(`Layout-only inventory captured from ${root}.`);
-      return;
     }
     const timingNudge = page.locator('[data-setting="lyric-nudge"]');
     await timingNudge.evaluate(input => {
@@ -662,6 +671,8 @@ async function captureEditorLayout(page) {
           if (size === "desktop") desktopThemeSurfaces.set(theme, geometry.background);
           const editorLayout = await captureEditorLayout(page);
           fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
+          const editorScreenState = await captureEditorScreenState(page);
+          fs.writeFileSync(path.join(screenshotDir, `editor-screen-state-${size}-${theme}.json`), JSON.stringify(editorScreenState));
           await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
           await volumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
         }
