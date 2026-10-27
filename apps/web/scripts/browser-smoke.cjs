@@ -90,6 +90,16 @@ async function captureEditorLayout(page) {
   });
 }
 
+async function normalizeEditorScrollState(page) {
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    for (const node of document.querySelectorAll(".kefe-editor, .kefe-editor *")) {
+      node.scrollTop = 0;
+      node.scrollLeft = 0;
+    }
+  });
+}
+
 async function captureEditorScreenState(page) {
   return page.evaluate(() => {
     const describe = node => {
@@ -671,6 +681,7 @@ async function captureEditorScreenState(page) {
             assert.equal(geometry.background, "rgba(0, 0, 0, 0)", "night volume Card must preserve the legacy transparent fallback");
           }
           if (size === "desktop") desktopThemeSurfaces.set(theme, geometry.background);
+          await normalizeEditorScrollState(page);
           const editorLayout = await captureEditorLayout(page);
           fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
           const editorScreenState = await captureEditorScreenState(page);

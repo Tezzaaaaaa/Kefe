@@ -49,32 +49,6 @@ jobs:
           node apps/web/scripts/smoke-section-card-coverage.mjs
       - name: Install Playwright and PNG comparison tools
         run: npm install --prefix /tmp/kefe-browser --no-save --no-package-lock playwright@1.56.1 pngjs@7.0.0 pixelmatch@5.3.0
-      - name: Find latest successful main-branch browser screenshots
-        id: screenshot-baseline
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { data } = await github.rest.actions.listWorkflowRuns({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "beui-build.yml",
-              branch: "main",
-              status: "success",
-              per_page: 100,
-            });
-            const baseline = data.workflow_runs.find((run) => run.id !== context.runId);
-            core.setOutput("run_id", baseline ? String(baseline.id) : "");
-            core.info(baseline ? `Using published-main screenshot baseline from run ${baseline.id} (${baseline.head_sha}).` : "No successful main-branch screenshot baseline is available; this run establishes one.");
-      - name: Download main-branch browser screenshot baseline
-        if: steps.screenshot-baseline.outputs.run_id != ''
-        uses: actions/download-artifact@v4
-        with:
-          repository: ${{ github.repository }}
-          run-id: ${{ steps.screenshot-baseline.outputs.run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          pattern: kefe-browser-screenshots-*
-          path: /tmp/kefe-baseline-screenshots
-          merge-multiple: true
       - name: Build main editor for direct layout comparison
         if: github.event_name == 'pull_request'
         run: |
@@ -126,7 +100,8 @@ jobs:
           baseline = baseline_path.read_text()
           baseline = baseline.replace("\n(async () => {", "\n" + helpers + "\n\n(async () => {", 1)
           needle = '          await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });'
-          probe = '''          const editorLayout = await captureEditorLayout(page);
+          probe = '''          await normalizeEditorScrollState(page);
+          const editorLayout = await captureEditorLayout(page);
           fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
           const editorScreenState = await captureEditorScreenState(page);
           fs.writeFileSync(path.join(screenshotDir, `editor-screen-state-${size}-${theme}.json`), JSON.stringify(editorScreenState));
@@ -139,12 +114,12 @@ jobs:
           node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/layout-comparison.log
           node apps/web/scripts/compare-screen-states.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/screen-state-comparison.log
       - name: Compare editor and volume screenshots against main
-        if: steps.screenshot-baseline.outputs.run_id != ''
+        if: github.event_name == 'pull_request'
         env:
           NODE_PATH: /tmp/kefe-browser/node_modules
         run: |
           set -o pipefail
-          node apps/web/scripts/compare-visual-screenshots.cjs /tmp/kefe-baseline-screenshots /tmp/kefe-screenshots 2>&1 | tee /tmp/kefe-screenshots/visual-comparison.log
+          node apps/web/scripts/compare-visual-screenshots.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots 2>&1 | tee /tmp/kefe-screenshots/visual-comparison.log
       - name: Report visual comparison results in check annotations
         if: always()
         uses: actions/github-script@v7
