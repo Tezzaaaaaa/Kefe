@@ -480,8 +480,7 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       legacyPopover.className = "kefe-volume-popover beui-volume-popover-native";
       legacyPopover.style.cssText = "position:fixed;left:-10000px;top:0;right:auto;bottom:auto;z-index:-1;display:flex;align-items:center;gap:10px;width:min(220px,calc(100vw - 24px));padding:0;border:0;border-radius:12px;background:transparent;color:inherit;box-shadow:none;visibility:hidden";
       const legacyCard = document.createElement("div");
-      legacyCard.className = "beui-volume-card relative flex flex-col w-full gap-2 rounded-xl border p-3 text-foreground shadow-xl";
-      legacyCard.style.cssText = "background:var(--shell-panel);border-color:var(--shell-line);color:var(--shell-text);box-shadow:0 16px 40px rgba(0,0,0,.28)";
+      legacyCard.style.cssText = "position:relative;display:flex;flex-direction:column;align-items:normal;width:100%;gap:7px;padding:10.5px;border:1px solid var(--shell-line,currentColor);border-radius:12px;background:var(--shell-panel,transparent);color:var(--shell-text,var(--text));box-shadow:0 16px 40px rgba(0,0,0,.28)";
       [...popover.childNodes].forEach((node) => legacyCard.append(node.cloneNode(true)));
       legacyPopover.appendChild(legacyCard);
       document.body.appendChild(legacyPopover);
