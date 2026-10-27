@@ -81,8 +81,6 @@
       panel.style.removeProperty('height');
       panel.style.removeProperty('overflow');
       slot.appendChild(panel);
-      const card = panel.querySelector('.beui-editor-panel-card');
-      if (card) flattenCard(card);
     });
 
     editing.querySelectorAll('.kefe-tabs, .beui-tabs-host, .kefe-panels').forEach(element => {
@@ -114,17 +112,6 @@
 
     function applyLegacyValues() {
       panel.applyValues(readPanelValues(), { silent: true });
-    }
-
-    function flattenCard(card) {
-      Object.assign(card.style, {
-        maxWidth: 'none',
-        margin: '0',
-        padding: '0',
-        background: 'transparent',
-        borderColor: 'transparent',
-        boxShadow: 'none'
-      });
     }
 
     applyLegacyValues();

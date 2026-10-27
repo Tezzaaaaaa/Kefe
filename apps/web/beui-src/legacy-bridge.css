@@ -17,9 +17,7 @@
   --color-border-strong: var(--beui-border);
 }
 
-.kefe-upload-zone.beui-upload-card-hosted,
-.kefe-panel.beui-panel-card-hosted,
-.kefe-panel[data-panel-view].beui-panel-card-hosted {
+.kefe-upload-zone.beui-upload-card-hosted {
   padding: 0;
   border: 0;
   background: transparent;
@@ -27,14 +25,12 @@
   min-height: 0;
 }
 
-.beui-upload-card-root,
-.beui-panel-card-root {
+.beui-upload-card-root {
   display: block;
   width: 100%;
 }
 
-.beui-upload-card-root > *,
-.beui-panel-card-root > * {
+.beui-upload-card-root > * {
   width: 100%;
 }
 
@@ -48,15 +44,6 @@
 
 .kefe-upload-zone.beui-upload-card-hosted {
   overflow: hidden;
-}
-
-.kefe-panel[data-panel-view].beui-panel-card-hosted > .beui-panel-card-root {
-  width: 100%;
-}
-
-.kefe-panel[data-panel-view].beui-panel-card-hosted .beui-editor-panel-card {
-  width: 100%;
-  max-width: 1200px;
 }
 
 .kefe-upload-zone.beui-upload-card-hosted .beui-upload-card {

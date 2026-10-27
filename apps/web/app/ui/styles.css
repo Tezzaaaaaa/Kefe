@@ -8058,7 +8058,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   .kefe-panel-head { align-items: flex-start; gap: 8px; margin-bottom: 16px; padding-bottom: 12px; }
   .kefe-panel-head .kefe-meta { max-width: none; text-align: left; }
   .kefe-form { gap: 14px; }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] > .beui-panel-card-root > .beui-editor-panel-card > .kefe-form {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] > .kefe-form {
     grid-template-columns: minmax(0, 1fr);
     min-width: 0;
   }
@@ -8178,7 +8178,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
 /* Keep the accordion heading independent from the content's layout rules.
    Hiding the complete form prevents nested display:contents controls from leaking. */
 @media (min-width: 1280px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head):not(.kefe-form):not(.kefe-panel[data-panel-view]):not(.beui-panel-card-root) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head):not(.kefe-form):not(.kefe-panel[data-panel-view]) {
     display: none;
   }
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head {
@@ -8837,7 +8837,6 @@ html:root[data-theme="day"] .kefe-toolbar-format select {
 }
 html:root[data-theme="day"] .kefe-panel,
 html:root[data-theme="day"] .kefe-settings,
-html:root[data-theme="day"] .beui-editor-panel-card,
 html:root[data-theme="day"] .beui-panel,
 html:root[data-theme="day"] .beui-settings-card {
   color: var(--text);
@@ -9322,15 +9321,13 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   display: none;
 }
 
-/* The beUI Card bridge wraps each legacy panel's heading and form. Keep the
-   accordion contract working through that wrapper so collapsed sections retain
-   a visible title without leaving the controls expanded underneath it. */
+/* Native editor panels own their heading and form directly. Preserve the desktop
+   accordion behavior without relying on an intermediate React Card wrapper. */
 @media (min-width: 1280px) {
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed {
-    --beui-panel-padding: 8px 12px;
-    padding: 0;
+    padding: 10px;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head {
     display: flex;
     visibility: visible;
     align-items: center;
@@ -9341,16 +9338,15 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
     border: 0;
     overflow: visible;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head h2,
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > .kefe-panel-head .kefe-meta {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head h2,
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head .kefe-meta {
     visibility: visible;
     opacity: 1;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .beui-panel-card-root > .beui-editor-panel-card > :not(.kefe-panel-head) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head) {
     display: none;
   }
 }
-
 @media (min-width: 1280px) {
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head > .beui-panel-button-host > .beui-accordion-trigger {
     position: absolute;
@@ -10406,7 +10402,9 @@ textarea.beui-native-textarea {
 }
 .beui-textarea-control { width: 100%; min-width: 0; }
 
-.beui-panel-card-root {
+/* The former Card bridge root carried the beUI theme tokens used by mirrored
+   controls inside each native section. Keep those tokens on the native panel. */
+.kefe-panel[data-panel-view] {
   --beui-background: var(--shell-bg, #171719);
   --beui-foreground: var(--shell-text, #f5f5f5);
   --beui-muted: var(--shell-panel, #29292d);
@@ -10416,10 +10414,7 @@ textarea.beui-native-textarea {
   --beui-primary: var(--shell-accent, #ef4444);
   --beui-primary-foreground: #ffffff;
   --beui-card: var(--shell-panel, #222225);
-  display: contents;
 }
-.kefe-panel.beui-panel-card-hosted { padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
-.beui-editor-panel-card { display: flex; flex-direction: column; }
 
 .beui-upload-card-root { display: contents; }
 .kefe-upload-zone.beui-upload-card-hosted { min-height: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
@@ -11077,6 +11072,15 @@ textarea.beui-native-textarea {
   border-color: var(--border-color);
 }
 :root[data-theme="day"] .kefe-panel-head { border-bottom-color: var(--border-color); }
+/* The removed Card wrapper supplied this day-surface to embedded native panels.
+   Keep the same beUI card treatment on the native panel owner itself. */
+html:root[data-theme="day"] .kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--line);
+  border-radius: 12px;
+  box-shadow: var(--lift);
+}
 :root[data-theme="day"] .kefe-card {
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -11123,7 +11127,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-
 }
 
 /* Keep beUI mount roots from painting their dark fallback over the themed columns. */
-html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-card-root,
 html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-sidebar-nav-host,
 html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-button-host {
   background-color: var(--bg-secondary);

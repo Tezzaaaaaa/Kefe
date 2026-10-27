@@ -58,6 +58,80 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
   return buffer;
 }
 
+async function captureEditorLayout(page) {
+  return page.evaluate(() => {
+    const viewport = { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight };
+    const describe = (node) => {
+      const rect = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      const section = node.closest(".section[data-section-id]");
+      const panel = node.closest(".kefe-panel[data-panel-view]");
+      const chain = [];
+      for (let current = node; current && current !== document.body && chain.length < 6; current = current.parentElement) {
+        const id = current.id ? `#${current.id}` : "";
+        const classes = [...current.classList].slice(0, 4).map(name => `.${name}`).join("");
+        chain.push(`${current.tagName.toLowerCase()}${id}${classes}`);
+      }
+      return {
+        path: chain.join(" < "), tag: node.tagName.toLowerCase(), id: node.id || "", classes: [...node.classList].join(" "),
+        section: section?.dataset.sectionId || "", panel: panel?.dataset.panelView || "",
+        text: (node.innerText || node.getAttribute("aria-label") || node.getAttribute("title") || "").trim().replace(/\s+/g, " ").slice(0, 100),
+        childCount: node.children.length, x: rect.x, y: rect.y, width: rect.width, height: rect.height,
+        display: style.display, visibility: style.visibility, position: style.position, boxSizing: style.boxSizing,
+        color: style.color, background: style.backgroundColor, boxShadow: style.boxShadow, opacity: style.opacity,
+        font: style.font, fontWeight: style.fontWeight, lineHeight: style.lineHeight, letterSpacing: style.letterSpacing,
+        textTransform: style.textTransform, alignItems: style.alignItems, justifyContent: style.justifyContent,
+        overflow: `${style.overflowX}/${style.overflowY}`, gridTemplateColumns: style.gridTemplateColumns,
+        border: `${style.borderTopWidth} ${style.borderTopStyle} ${style.borderTopColor}`, radius: style.borderTopLeftRadius,
+        padding: style.padding, margin: style.margin, gap: style.gap,
+        minWidth: style.minWidth, minHeight: style.minHeight, maxWidth: style.maxWidth, maxHeight: style.maxHeight,
+      };
+    };
+    return [...document.querySelectorAll(".kefe-editor, .kefe-editor *")].map(describe).filter(item =>
+      item.width > 0 && item.height > 0 && item.display !== "none" && item.visibility !== "hidden"
+      && item.x < viewport.width && item.y < viewport.height && item.x + item.width > 0 && item.y + item.height > 0
+    );
+  });
+}
+
+async function normalizeEditorScrollState(page) {
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    for (const node of document.querySelectorAll(".kefe-editor, .kefe-editor *")) {
+      node.scrollTop = 0;
+      node.scrollLeft = 0;
+    }
+  });
+}
+
+async function captureEditorScreenState(page) {
+  return page.evaluate(() => {
+    const describe = node => {
+      const rect = node.getBoundingClientRect();
+      return {
+        tag: node.tagName.toLowerCase(), id: node.id || "", classes: [...node.classList].join(" "),
+        section: node.dataset.sectionId || node.closest(".section[data-section-id]")?.dataset.sectionId || "",
+        group: node.dataset.group || "", panel: node.dataset.panelView || "",
+        text: (node.innerText || node.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
+        x: rect.x, y: rect.y, width: rect.width, height: rect.height, scrollTop: node.scrollTop,
+        scrollLeft: node.scrollLeft, scrollHeight: node.scrollHeight, clientHeight: node.clientHeight,
+      };
+    };
+    return {
+      viewport: { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight },
+      windowScroll: { x: window.scrollX, y: window.scrollY },
+      documentScroll: { x: document.documentElement.scrollLeft, y: document.documentElement.scrollTop },
+      activeSection: document.querySelector(".kefe-section.active")?.dataset.panel || "",
+      expandedSettings: [...document.querySelectorAll(".section[data-section-id]")].filter(section => section.dataset.expanded !== "false").map(section => section.dataset.sectionId),
+      scrollables: [...document.querySelectorAll(".kefe-editor, .kefe-editor *")].filter(node =>
+        node.scrollHeight > node.clientHeight + 2 && node.getBoundingClientRect().width > 0
+      ).map(describe),
+      keyBounds: [...document.querySelectorAll(".kefe-settings-mount, #kefe-settings-panel, .kefe-settings-columns > .kefe-panel[data-group], .kefe-panel-label, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form")]
+        .filter(node => node.getBoundingClientRect().width > 0).map(describe),
+    };
+  });
+}
+
 (async () => {
   let browser;
   let page;
@@ -267,7 +341,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       const expected = ["media", "lyrics", "effects", "background-effects", "visualiser", "export"];
       const panels = [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")];
       return panels.length === expected.length
-        && expected.every((name) => panels.some((panel) => panel.dataset.panelView === name && panel.querySelector(".beui-editor-panel-card")));
+        && expected.every((name) => panels.some((panel) => panel.dataset.panelView === name
+          && panel.querySelector(":scope > .kefe-panel-head")
+          && panel.querySelector(":scope > .kefe-form")))
+        && panels.every((panel) => !panel.querySelector(".beui-editor-panel-card"));
     }, null, { timeout: 20000 });
     await page.waitForSelector("#kefeUploadZone .beui-upload-card", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#kefeBgVideoZone", { state: "attached", timeout: 20000 });
@@ -341,8 +418,23 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.locator("#beui-songTitle").fill("beUI smoke track");
     assert.equal(await page.locator("#songTitle").inputValue(), "beUI smoke track", "beUI Input should preserve the legacy metadata value and events");
 
-    const panelCardCount = await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count();
-    assert.equal(panelCardCount, 6, `all six editor sections must use beUI Card surfaces, found ${panelCardCount}`);
+    const nativePanelSurfaceCount = await page.locator("#kefe-settings-panel .section[data-section-id]").evaluateAll(sections => sections.filter(section => {
+      const style = getComputedStyle(section);
+      return style.display !== "none" && style.borderRadius !== "0px" && style.borderTopWidth !== "0px";
+    }).length);
+    assert.equal(nativePanelSurfaceCount, 6, "all six native settings sections must retain their designed panel surfaces");
+    const embeddedPanelStyle = await page.locator("#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]").evaluateAll(panels =>
+      panels.map(panel => {
+        const style = getComputedStyle(panel);
+        return { position: style.position, display: style.display, flexDirection: style.flexDirection, gap: style.gap, padding: style.padding, borderWidth: style.borderTopWidth, borderColor: style.borderTopColor, borderRadius: style.borderTopLeftRadius };
+      })
+    );
+    assert.equal(embeddedPanelStyle.length, 6, "all six editor panels should remain embedded once in their native settings slots");
+    assert.ok(embeddedPanelStyle.every(style => style.position === "relative" && style.display === "flex" && style.flexDirection === "column" && style.gap === "0px"
+      && style.padding === "10px" && style.borderWidth === "1px" && style.borderColor === "rgba(0, 0, 0, 0)" && style.borderRadius === "8px"),
+      `embedded native panels must retain the former Card's vertical flex layout, zero gap, 10px inset, transparent border and 8px radius: ${JSON.stringify(embeddedPanelStyle)}`);
+    assert.equal(await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count(), 0,
+      "editor panels must not create parallel React Card wrappers");
 
     async function assertSectionFits(section) {
       const geometry = await page.locator(`.kefe-panel[data-panel-view="${section}"]`).evaluate(panel => {
@@ -593,6 +685,11 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
             assert.equal(geometry.background, "rgba(0, 0, 0, 0)", "night volume Card must preserve the legacy transparent fallback");
           }
           if (size === "desktop") desktopThemeSurfaces.set(theme, geometry.background);
+          await normalizeEditorScrollState(page);
+          const editorLayout = await captureEditorLayout(page);
+          fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
+          const editorScreenState = await captureEditorScreenState(page);
+          fs.writeFileSync(path.join(screenshotDir, `editor-screen-state-${size}-${theme}.json`), JSON.stringify(editorScreenState));
           await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
           await volumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
         }

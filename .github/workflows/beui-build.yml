@@ -49,40 +49,16 @@ jobs:
           node apps/web/scripts/smoke-section-card-coverage.mjs
       - name: Install Playwright and PNG comparison tools
         run: npm install --prefix /tmp/kefe-browser --no-save --no-package-lock playwright@1.56.1 pngjs@7.0.0 pixelmatch@5.3.0
-      - name: Find previous successful browser screenshots for this PR
-        id: screenshot-baseline
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const branch = context.payload.pull_request?.head?.ref;
-            if (!branch) {
-              core.setOutput("run_id", "");
-              return;
-            }
-            const { data } = await github.rest.actions.listWorkflowRuns({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "beui-build.yml",
-              branch,
-              status: "success",
-              per_page: 100,
-            });
-            const previous = data.workflow_runs.find((run) =>
-              run.id !== context.runId &&
-              run.pull_requests?.some((pullRequest) => pullRequest.number === context.issue.number)
-            );
-            core.setOutput("run_id", previous ? String(previous.id) : "");
-            core.info(previous ? `Using screenshot baseline from run ${previous.id} (${previous.head_sha}).` : "No previous successful screenshot run for this PR; this run establishes the baseline.");
-      - name: Download previous successful browser screenshots
-        if: steps.screenshot-baseline.outputs.run_id != ''
-        uses: actions/download-artifact@v4
-        with:
-          repository: ${{ github.repository }}
-          run-id: ${{ steps.screenshot-baseline.outputs.run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          pattern: kefe-browser-screenshots-*
-          path: /tmp/kefe-baseline-screenshots
-          merge-multiple: true
+      - name: Build main editor for direct layout comparison
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --depth=1 origin main
+          mkdir -p /tmp/kefe-main
+          git archive origin/main | tar -x -C /tmp/kefe-main
+          ln -s "$GITHUB_WORKSPACE/node_modules" /tmp/kefe-main/node_modules
+          ln -s "$GITHUB_WORKSPACE/apps/web/node_modules" /tmp/kefe-main/apps/web/node_modules
+          cd /tmp/kefe-main
+          pnpm --filter @kefe/web build
       - name: Install Chromium
         run: /tmp/kefe-browser/node_modules/.bin/playwright install --with-deps chromium
       - name: Run built-editor browser smoke test
@@ -105,13 +81,45 @@ jobs:
             const diagnostic = fs.existsSync(diagnosticPath) ? fs.readFileSync(diagnosticPath, "utf8") : "No structured browser diagnostic was written.";
             const log = fs.existsSync(logPath) ? fs.readFileSync(logPath, "utf8").slice(-8000) : "No browser smoke log was written.";
             core.error(`Browser smoke failed. Diagnostic:\n${diagnostic}\n\nLog tail:\n${log}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
-      - name: Compare volume Card screenshots against the previous successful run
-        if: steps.screenshot-baseline.outputs.run_id != ''
+      - name: Compare baseline and current day-theme DOM layouts and scroll state
+        if: github.event_name == 'pull_request'
+        env:
+          NODE_PATH: /tmp/kefe-browser/node_modules
+          KEFE_SCREENSHOT_DIR: /tmp/kefe-layout-main
+          KEFE_SCREENSHOT_LABEL: main-baseline
+        run: |
+          mkdir -p /tmp/kefe-layout-main
+          python3 - <<'PY'
+          from os import environ
+          from pathlib import Path
+          current = Path(environ["GITHUB_WORKSPACE"], "apps/web/scripts/browser-smoke.cjs").read_text()
+          helper_start = current.index("async function captureEditorLayout(page)")
+          helper_end = current.index("\n(async () =>", helper_start)
+          helpers = current[helper_start:helper_end]
+          baseline_path = Path("/tmp/kefe-main/apps/web/scripts/browser-smoke.cjs")
+          baseline = baseline_path.read_text()
+          baseline = baseline.replace("\n(async () => {", "\n" + helpers + "\n\n(async () => {", 1)
+          needle = '          await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });'
+          probe = '''          await normalizeEditorScrollState(page);
+          const editorLayout = await captureEditorLayout(page);
+          fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
+          const editorScreenState = await captureEditorScreenState(page);
+          fs.writeFileSync(path.join(screenshotDir, `editor-screen-state-${size}-${theme}.json`), JSON.stringify(editorScreenState));
+          await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });'''
+          if baseline.count(needle) != 1:
+              raise SystemExit(f"expected one baseline screenshot hook, found {baseline.count(needle)}")
+          baseline_path.write_text(baseline.replace(needle, probe, 1))
+          PY
+          node /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs
+          node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/layout-comparison.log
+          node apps/web/scripts/compare-screen-states.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/screen-state-comparison.log
+      - name: Compare editor and volume screenshots against main
+        if: github.event_name == 'pull_request'
         env:
           NODE_PATH: /tmp/kefe-browser/node_modules
         run: |
           set -o pipefail
-          node apps/web/scripts/compare-visual-screenshots.cjs /tmp/kefe-baseline-screenshots /tmp/kefe-screenshots 2>&1 | tee /tmp/kefe-screenshots/visual-comparison.log
+          node apps/web/scripts/compare-visual-screenshots.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots 2>&1 | tee /tmp/kefe-screenshots/visual-comparison.log
       - name: Report visual comparison results in check annotations
         if: always()
         uses: actions/github-script@v7
@@ -123,8 +131,24 @@ jobs:
               core.info("No screenshot comparison log was produced in this run.");
               return;
             }
-            const comparison = fs.readFileSync(logPath, "utf8").trim();
-            core.notice(`Volume Card visual comparison:\n${comparison}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+            const comparison = fs.readFileSync(logPath, "utf8").trim().split(/\r?\n/);
+            const metrics = comparison.filter(line => /^(editor|volume-card) (desktop|mobile)\/(day|night):/.test(line));
+            core.notice(`Editor/volume visual metrics:\n${metrics.join("\n") || "No summary lines were produced."}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+            const layoutPath = "/tmp/kefe-screenshots/layout-comparison.log";
+            if (fs.existsSync(layoutPath)) {
+              const layout = fs.readFileSync(layoutPath, "utf8").trim();
+              core.notice(`Baseline/current matched DOM layout:\n${layout}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+            }
+            const statePath = "/tmp/kefe-screenshots/screen-state-comparison.log";
+            if (fs.existsSync(statePath)) {
+              const lines = fs.readFileSync(statePath, "utf8").trim().split(/\r?\n/);
+              for (const size of ["desktop", "mobile"]) {
+                const start = lines.findIndex(line => line.startsWith(`${size}/day:`));
+                if (start < 0) continue;
+                const end = lines.findIndex((line, index) => index > start && /^(desktop|mobile)\/day:/.test(line));
+                core.notice(`Baseline/current ${size} screenshot state:\n${lines.slice(start, end < 0 ? undefined : end).join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              }
+            }
       - name: Upload desktop/mobile day/night screenshots and diffs
         if: always()
         uses: actions/upload-artifact@v4
