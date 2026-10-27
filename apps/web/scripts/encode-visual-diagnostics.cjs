@@ -52,7 +52,8 @@ const regions = states.map(([size, theme]) => {
   const filename = path.join(currentDir, `editor-region-diagnostics-${size}-${theme}.json`);
   assert.ok(fs.existsSync(filename), `missing changed-region diagnostics: ${filename}`);
   const report = JSON.parse(fs.readFileSync(filename, "utf8"));
-  return { key: `${size}-${theme}`, regions: report.slice(0, 5).map(({ changed, changedPercent, section, panel, tag, id, classes, text, bounds }) => ({ changed, changedPercent, section, panel, tag, id, classes, text, bounds })) };
+  const leafRegions = report.filter(item => !["kefe-editor", "kefe-panels", "kefe-panels-left", "kefe-panel", "kefe-settings-panel", "kefe-settings-columns", "kefe-settings-mount", "kefe-editing kefe-settings-layout"].includes(item.classes));
+  return { key: `${size}-${theme}`, regions: leafRegions.slice(0, 10).map(({ changed, changedPercent, section, panel, tag, id, classes, text, bounds }) => ({ changed, changedPercent, section, panel, tag, id, classes, text, bounds })) };
 });
 const layoutPath = path.join(currentDir, "layout-comparison.json");
 assert.ok(fs.existsSync(layoutPath), `missing baseline/current layout comparison: ${layoutPath}`);
@@ -60,7 +61,7 @@ const layout = JSON.parse(fs.readFileSync(layoutPath, "utf8")).map(({ size, coun
   size, counts, unmatchedCurrent, unmatchedBaseline,
   changes: changes.filter(item => item.tag === "select" || /kefe-(upload|sidebar|section|panel-action|section-heading|vis-tabs|toolbar)/.test(item.classes))
     .sort((a, b) => Object.keys(b.changedFields).length - Object.keys(a.changedFields).length)
-    .slice(0, 5)
+    .slice(0, 8)
     .map(({ key, section, panel, tag, classes, changedFields }) => ({
       key, section, panel, tag, classes,
       changedFields: Object.fromEntries(Object.entries(changedFields).filter(([field]) => ["x", "y", "width", "height", "display", "color", "background", "fontWeight", "lineHeight", "border", "radius", "padding", "gap", "gridTemplateColumns", "overflow"].includes(field))),
