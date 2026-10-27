@@ -94,6 +94,17 @@ jobs:
         run: |
           mkdir -p /tmp/kefe-layout-main
           set -o pipefail
+          # The updated main toolbar exposes this popover as a named dialog, not `.kft-colour`.
+          python3 - <<'PY'
+          from pathlib import Path
+          smoke = Path("/tmp/kefe-main/apps/web/scripts/browser-smoke.cjs")
+          source = smoke.read_text()
+          old = 'page.locator(".kft-colour")'
+          new = 'page.getByRole("dialog", { name: "Lyric text colour", exact: true })'
+          if source.count(old) != 2:
+              raise SystemExit(f"Expected two legacy colour-popover selectors, found {source.count(old)}")
+          smoke.write_text(source.replace(old, new))
+          PY
           node /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs 2>&1 | tee /tmp/kefe-layout-main/baseline-browser-smoke.log
           node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/layout-comparison.log
           node apps/web/scripts/compare-screen-states.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/screen-state-comparison.log

@@ -209,7 +209,7 @@ async function captureEditorScreenState(page) {
     assert.ok(mobileToolbarBounds.left >= 0 && mobileToolbarBounds.right <= mobileToolbarBounds.viewportWidth + 1,
       `mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarBounds)}`);
     await quickToolbar.getByRole("button", { name: "Lyric text colour", exact: true }).click();
-    const mobileColourPopover = page.locator(".kft-colour");
+    const mobileColourPopover = page.getByRole("dialog", { name: "Lyric text colour", exact: true });
     await mobileColourPopover.waitFor({ state: "visible", timeout: 5000 });
     const mobilePopoverBounds = await mobileColourPopover.evaluate(node => {
       const r = node.getBoundingClientRect();
@@ -224,7 +224,7 @@ async function captureEditorScreenState(page) {
     await page.waitForSelector("#kefeStyleGroup input[type=color]", { state: "attached", timeout: 10000 });
 
     await quickToolbar.getByRole("button", { name: "Lyric text colour", exact: true }).click();
-    const colourMenu = page.locator(".kft-colour");
+    const colourMenu = page.getByRole("dialog", { name: "Lyric text colour", exact: true });
     await colourMenu.waitFor({ state: "visible", timeout: 5000 });
     await colourMenu.getByRole("button", { name: "#EF4444" }).click();
     assert.equal((await page.evaluate(() => window.kefeStyle.state().textColor)).toLowerCase(), "#ef4444",
