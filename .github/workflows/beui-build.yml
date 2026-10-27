@@ -185,7 +185,7 @@ jobs:
             for (const report of layout) {
               core.warning(`KEFE_LAYOUT_DIFF:${report.size}:counts=${JSON.stringify(report.counts)}:unmatched=${report.unmatchedCurrent}/${report.unmatchedBaseline}:elements=${JSON.stringify(report.changes)}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
               for (const detail of report.details || []) {
-                core.notice(`KEFE_LAYOUT_DETAIL:${report.size}:${JSON.stringify(detail)}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+                core.warning(`KEFE_LAYOUT_DETAIL:${report.size}:${JSON.stringify(detail)}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
               }
             }
       - name: Upload desktop/mobile day/night screenshots and diffs

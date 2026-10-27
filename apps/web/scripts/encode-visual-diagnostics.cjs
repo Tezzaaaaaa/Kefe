@@ -68,9 +68,9 @@ const layout = JSON.parse(fs.readFileSync(layoutPath, "utf8")).map(({ size, coun
       changedFields: Object.fromEntries(Object.entries(changedFields).filter(([field]) => ["x", "y", "width", "height", "display", "color", "background", "font", "fontWeight", "lineHeight", "letterSpacing", "border", "radius", "padding", "gap", "gridTemplateColumns", "overflow", "minWidth", "minHeight", "maxWidth", "maxHeight"].includes(field))),
     })),
   details: changes.filter(item => item.key === "#kefeAspect" || item.key === "#kefeUploadZone"
-      || /kefe-sidebar-(link|group|toggle)|kefe-toolbar-format/.test(item.classes)
-      || /(^| )(section-header|section-title-wrap|title-group|expand-button|expand-indicator|info-button)( |$)/.test(item.classes))
-    .slice(0, 32)
+      || /kefe-sidebar-(link|group|toggle)|kefe-toolbar-format/.test(`${item.key} ${item.classes} ${item.path}`)
+      || /section-header|section-title-wrap|title-group|expand-button|expand-indicator|info-button/.test(`${item.key} ${item.classes} ${item.path}`))
+    .slice(0, 20)
     .map(({ key, path, section, panel, tag, classes, changedFields }) => ({
       key, path, section, panel, tag, classes,
       changedFields: Object.fromEntries(Object.entries(changedFields).filter(([field]) => ["x", "y", "width", "height", "display", "color", "background", "font", "fontWeight", "lineHeight", "letterSpacing", "border", "radius", "padding", "gap", "gridTemplateColumns", "overflow", "minWidth", "minHeight", "maxWidth", "maxHeight"].includes(field))),
