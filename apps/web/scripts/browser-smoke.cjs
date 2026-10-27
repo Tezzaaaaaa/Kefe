@@ -346,11 +346,12 @@ async function captureEditorScreenState(page) {
           && panel.querySelector(":scope > .kefe-form")))
         && panels.every((panel) => !panel.querySelector(".beui-editor-panel-card"));
     }, null, { timeout: 20000 });
-    await page.waitForSelector("#kefeUploadZone .beui-upload-card", { state: "attached", timeout: 20000 });
+    await page.waitForSelector("#kefeUploadZone.beui-upload-dropzone", { state: "visible", timeout: 20000 });
     await page.waitForSelector("#kefeBgVideoZone", { state: "attached", timeout: 20000 });
     assert.equal(await page.locator("#kefeUploadZone").count(), 1, "there must be exactly one primary audio/video uploader");
     assert.equal(await page.locator("#kefeBgVideoZone").count(), 1, "there must be exactly one separate optional background-video uploader");
-    assert.equal(await page.locator("#kefeUploadZone .beui-upload-card").count(), 1, "the primary uploader must not render duplicate Card shells");
+    assert.equal(await page.locator("#kefeUploadZone .beui-upload-card").count(), 0, "the primary uploader must not wrap itself in a React Card");
+    assert.equal(await page.locator("#kefeUploadZone.beui-upload-card-hosted").count(), 0, "the native upload label must not have a mirrored Card host");
     assert.equal(await page.locator("#kefeUploadZone .kefe-upload-title").textContent(), "Audio or video", "the primary uploader label must remain distinct");
     assert.equal(await page.locator("#kefeUploadZone .beui-upload-symbol").count(), 1, "the primary uploader must have one upload icon");
     assert.equal(await page.locator("#kefeUploadZone .kefe-upload-help").count(), 1, "the primary uploader must explain what the source media is used for");
@@ -358,18 +359,21 @@ async function captureEditorScreenState(page) {
     assert.match(await page.locator("#kefeBgVideoZone .kefe-upload-title").textContent(), /Optional background video/, "the second uploader must be clearly identified as optional background footage");
     const mediaUploadGeometry = await page.evaluate(() => {
       const primaryHost = document.querySelector("#kefeUploadZone");
-      const primaryCard = primaryHost && primaryHost.querySelector(".beui-upload-card");
+      const primaryInput = document.getElementById("mediaInput");
       const backgroundCard = document.querySelector("#kefeBgVideoZone");
-      if (!primaryHost || !primaryCard || !backgroundCard) return null;
+      if (!primaryHost || !primaryInput || !backgroundCard) return null;
       const hostStyle = getComputedStyle(primaryHost);
       const row = primaryHost.parentElement;
       const wrap = backgroundCard.parentElement;
-      const primary = primaryCard.getBoundingClientRect();
+      const primary = primaryHost.getBoundingClientRect();
       const background = backgroundCard.getBoundingClientRect();
       const rect = node => { const r = node.getBoundingClientRect(); const s = getComputedStyle(node); return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,display:s.display,position:s.position,gridColumn:s.gridColumn,gridRow:s.gridRow,heightCss:s.height,minHeight:s.minHeight,marginTop:s.marginTop,transform:s.transform}; };
       const overlapX = Math.max(0, Math.min(primary.right, background.right) - Math.max(primary.left, background.left));
       const overlapY = Math.max(0, Math.min(primary.bottom, background.bottom) - Math.max(primary.top, background.top));
       return {
+        isLabel: primaryHost.tagName === "LABEL",
+        inputRemainsAssociated: primaryInput.closest("label") === primaryHost,
+        hasBridgeCard: !!primaryHost.querySelector(".beui-upload-card, .beui-upload-card-root"),
         hostBorderWidth: hostStyle.borderTopWidth,
         hostPadding: hostStyle.paddingTop,
         primaryGridRow: hostStyle.gridRow,
@@ -380,22 +384,39 @@ async function captureEditorScreenState(page) {
         rowWidth: row.getBoundingClientRect().width,
         rowColumns: getComputedStyle(row).gridTemplateColumns,
         rowColumnCount: getComputedStyle(row).gridTemplateColumns.split(" ").length,
-        row: rect(row), primaryHost: rect(primaryHost), primaryCard: rect(primaryCard), backgroundWrap: rect(wrap), backgroundCard: rect(backgroundCard)
+        row: rect(row), primaryZone: rect(primaryHost), backgroundWrap: rect(wrap), backgroundZone: rect(backgroundCard)
       };
     });
-    assert.ok(mediaUploadGeometry, "both Media upload cards must be mounted");
-    assert.equal(mediaUploadGeometry.hostBorderWidth, "0px", "the primary uploader host must not add a duplicate outer border around the beUI Card");
-    assert.equal(mediaUploadGeometry.hostPadding, "0px", "the primary uploader host must not add a second layer of padding around the beUI Card");
+    assert.ok(mediaUploadGeometry, "both native Media upload zones must be mounted");
+    assert.equal(mediaUploadGeometry.isLabel, true, "the original upload label remains the visible drop target");
+    assert.equal(mediaUploadGeometry.inputRemainsAssociated, true, "the native file input remains associated with the upload label");
+    assert.equal(mediaUploadGeometry.hasBridgeCard, false, "the native upload zone must not contain a React Card wrapper");
+    assert.ok(Number.parseFloat(mediaUploadGeometry.hostBorderWidth) > 0, "the visible native upload zone must own its dashed border");
+    assert.ok(Number.parseFloat(mediaUploadGeometry.hostPadding) > 0, "the visible native upload zone must own its content spacing");
     assert.equal(mediaUploadGeometry.primaryGridRow, "auto", "the primary uploader must not span rows from the legacy Media grid");
     assert.equal(mediaUploadGeometry.backgroundGridRow, "auto", "the optional uploader wrapper must not span rows from the legacy Media grid");
-    assert.equal(mediaUploadGeometry.overlapArea, 0, `the primary and background upload cards must never overlap: ${JSON.stringify(mediaUploadGeometry)}`);
+    assert.equal(mediaUploadGeometry.overlapArea, 0, `the primary and background upload zones must never overlap: ${JSON.stringify(mediaUploadGeometry)}`);
     if (mediaUploadGeometry.rowWidth <= 500) {
-      assert.equal(mediaUploadGeometry.rowColumnCount, 1, `narrow Media panels must stack upload cards instead of compressing them: ${JSON.stringify(mediaUploadGeometry)}`);
+      assert.equal(mediaUploadGeometry.rowColumnCount, 1, `narrow Media panels must stack upload zones instead of compressing them: ${JSON.stringify(mediaUploadGeometry)}`);
     }
     if (mediaUploadGeometry.rowColumnCount > 1) {
       assert.ok(Math.abs(mediaUploadGeometry.primaryHeight - mediaUploadGeometry.backgroundHeight) <= 2,
-        `side-by-side Media upload cards must have matching heights: ${JSON.stringify(mediaUploadGeometry)}`);
+        `side-by-side Media upload zones must have matching heights: ${JSON.stringify(mediaUploadGeometry)}`);
     }
+    const nativeUploadZone = page.locator("#kefeUploadZone");
+    await nativeUploadZone.dispatchEvent("dragover");
+    assert.equal(await nativeUploadZone.evaluate(zone => zone.classList.contains("is-dragging")), true,
+      "native upload drop target should show drag-over state");
+    await nativeUploadZone.dispatchEvent("dragleave");
+    assert.equal(await nativeUploadZone.evaluate(zone => zone.classList.contains("is-dragging")), false,
+      "native upload drop target should clear drag-over state");
+    await nativeUploadZone.evaluate((zone, bytes) => {
+      const transfer = new DataTransfer();
+      transfer.items.add(new File([new Uint8Array(bytes)], "drop-smoke.wav", { type: "audio/wav" }));
+      zone.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: transfer }));
+    }, [...makeWavBuffer(1)]);
+    await page.waitForFunction(() => document.getElementById("mediaInput")?.files?.[0]?.name === "drop-smoke.wav"
+      && document.getElementById("kefeUploadZone")?.classList.contains("has-selected-file"), null, { timeout: 5000 });
     await assertSectionFits("media");
     const mediaMetadataColumns = await page.locator(".kefe-details-grid").evaluate(grid => ({
       width: grid.getBoundingClientRect().width,

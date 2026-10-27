@@ -48,6 +48,7 @@ jobs:
           node apps/web/scripts/smoke-settings-api.mjs
           node apps/web/scripts/smoke-section-card-coverage.mjs
           node apps/web/scripts/smoke-native-controls.mjs
+          node apps/web/scripts/smoke-native-upload.mjs
       - name: Install Playwright and PNG comparison tools
         run: npm install --prefix /tmp/kefe-browser --no-save --no-package-lock playwright@1.56.1 pngjs@7.0.0 pixelmatch@5.3.0
       - name: Build main editor for direct layout comparison
