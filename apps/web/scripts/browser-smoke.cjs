@@ -444,12 +444,39 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator("#mediaInput").getAttribute("type"), "file", "upload Card must preserve the native file input");
     await page.waitForFunction(() => {
       const ranges = [...document.querySelectorAll('.kefe-editor input[type="range"]')].filter((input) => input.id !== "kefeTime");
-      const selects = [...document.querySelectorAll('.kefe-editor select')];
-      return ranges.length > 0
-        && ranges.every((input) => input.nextElementSibling?.classList.contains("beui-range-host"))
-        && selects.length >= 5
-        && selects.every((input) => !input.hasAttribute("aria-hidden") && input.tabIndex !== -1 && input.nextElementSibling?.classList.contains("beui-select-host") !== true);
+      return ranges.length > 0 && ranges.every((input) => input.nextElementSibling?.classList.contains("beui-range-host"));
     }, null, { timeout: 20000 });
+    await page.waitForSelector('#kefeBackgroundEffectOptions [data-background-mode="apple"]', { state: "attached", timeout: 10000 });
+    const nativeSelectState = await page.evaluate(() => {
+      const visibleIds = ["kefeAspect", "fontOverride", "exportFormat", "exportResolution"];
+      return {
+        visible: visibleIds.map((id) => {
+          const select = document.getElementById(id);
+          return select && { id, hidden: select.hidden, ariaHidden: select.getAttribute("aria-hidden"), tabIndex: select.tabIndex, nextHost: select.nextElementSibling?.classList.contains("beui-select-host") === true };
+        }),
+        background: (() => {
+          const select = document.getElementById("visualiserBackground");
+          const group = document.getElementById("kefeBackgroundEffectOptions");
+          return select && group && {
+            hidden: select.hidden,
+            ariaHidden: select.getAttribute("aria-hidden"),
+            tabIndex: select.tabIndex,
+            options: [...group.querySelectorAll("[data-background-mode]")].map((button) => ({ mode: button.dataset.backgroundMode, pressed: button.getAttribute("aria-pressed") })),
+          };
+        })(),
+        bridgeHosts: document.querySelectorAll(".kefe-editor .beui-select-host").length,
+      };
+    });
+    assert.equal(nativeSelectState.visible.length, 4, `the preview, font and export selects must remain present: ${JSON.stringify(nativeSelectState)}`);
+    assert.ok(nativeSelectState.visible.every((select) => select && !select.hidden && select.ariaHidden === null && select.tabIndex !== -1 && !select.nextHost),
+      `primary editor selects must stay visible, keyboard-accessible native controls without a mirrored host: ${JSON.stringify(nativeSelectState)}`);
+    assert.equal(nativeSelectState.bridgeHosts, 0, "editor selects must not have React Select mirrors");
+    assert.ok(nativeSelectState.background?.hidden && nativeSelectState.background.ariaHidden === "true" && nativeSelectState.background.tabIndex === -1,
+      `the KEFE background-mode select should remain a hidden native backing control for its accessible custom choices: ${JSON.stringify(nativeSelectState.background)}`);
+    assert.deepEqual(nativeSelectState.background.options.map((option) => option.mode), ["apple", "gradient", "video"],
+      "the background mode choices must remain the original KEFE native buttons");
+    assert.equal(nativeSelectState.background.options.filter((option) => option.pressed === "true").length, 1,
+      "exactly one KEFE background choice must remain selected");
 
     const nativeSongTitle = page.locator("#songTitle");
     assert.equal(await nativeSongTitle.getAttribute("aria-hidden"), null, "native metadata input must remain exposed to assistive technology");
