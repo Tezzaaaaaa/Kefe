@@ -118,7 +118,21 @@ jobs:
           current_block = current_source[current_source.index(new_start):current_source.index(new_end) + len(new_end)]
           start = baseline_source.index(old_start)
           end = baseline_source.index(old_end) + len(old_end)
-          baseline.write_text(baseline_source[:start] + current_block + baseline_source[end:])
+          baseline_source = baseline_source[:start] + current_block + baseline_source[end:]
+          aspect_start = '    const aspectSelect = page.locator("#kefeAspect");'
+          aspect_end = '    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,'
+          if current_source.count(aspect_start) != 1 or current_source.count(aspect_end) != 1:
+              raise SystemExit("Current aspect smoke block is not uniquely selectable")
+          if baseline_source.count(aspect_end) != 1 or baseline_source.count(aspect_start) not in (0, 1):
+              raise SystemExit("Baseline aspect smoke block no longer has its expected boundary")
+          current_aspect = current_source[current_source.index(aspect_start):current_source.index(aspect_end)]
+          end = baseline_source.index(aspect_end)
+          if baseline_source.count(aspect_start) == 1:
+              start = baseline_source.index(aspect_start)
+              baseline_source = baseline_source[:start] + current_aspect + baseline_source[end:]
+          else:
+              baseline_source = baseline_source[:end] + current_aspect + baseline_source[end:]
+          baseline.write_text(baseline_source)
           PY
           node /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs 2>&1 | tee /tmp/kefe-layout-main/baseline-browser-smoke.log
           node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/layout-comparison.log

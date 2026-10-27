@@ -314,13 +314,19 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "keyboard activation of the native Media button should restore the initial section");
     const aspectSelect = page.locator("#kefeAspect");
-    assert.equal(await aspectSelect.getAttribute("aria-hidden"), null, "the preview aspect select must remain exposed to assistive technology");
-    await aspectSelect.selectOption("9:16");
+    assert.equal(await aspectSelect.getAttribute("aria-hidden"), null, "the preview aspect backing control must remain exposed to assistive technology");
+    const canvasButton = quickToolbar.getByRole("button", { name: "Canvas, background and visualiser", exact: true });
+    await canvasButton.click();
+    const canvasPanel = page.getByRole("dialog", { name: "Canvas", exact: true });
+    await canvasPanel.waitFor({ state: "visible", timeout: 5000 });
+    await canvasPanel.getByRole("radio", { name: "9:16", exact: true }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-9x16"), null, { timeout: 5000 });
     assert.deepEqual(await page.locator("#kefeCanvas").evaluate(canvas => [canvas.width, canvas.height]), [1080, 1920],
-      "the native aspect select should update KEFE's canvas dimensions");
-    await aspectSelect.selectOption("16:9");
+      "the Canvas panel aspect control should update KEFE's dimensions");
+    assert.equal(await aspectSelect.inputValue(), "9:16", "the Canvas panel must stay synchronized with its native aspect backing control");
+    await canvasPanel.getByRole("radio", { name: "16:9", exact: true }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-16x9"), null, { timeout: 5000 });
+    await page.keyboard.press("Escape");
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
       "visualiser tabs must stay hidden until the Visualisers section is opened");
     assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
