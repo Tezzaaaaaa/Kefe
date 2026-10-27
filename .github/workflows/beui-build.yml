@@ -94,6 +94,17 @@ jobs:
           mkdir -p /tmp/kefe-screenshots
           set -o pipefail
           node apps/web/scripts/browser-smoke.cjs 2>&1 | tee /tmp/kefe-screenshots/browser-smoke.log
+      - name: Publish browser failure details in check annotations
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const diagnosticPath = "/tmp/kefe-screenshots/browser-smoke-error.json";
+            const logPath = "/tmp/kefe-screenshots/browser-smoke.log";
+            const diagnostic = fs.existsSync(diagnosticPath) ? fs.readFileSync(diagnosticPath, "utf8") : "No structured browser diagnostic was written.";
+            const log = fs.existsSync(logPath) ? fs.readFileSync(logPath, "utf8").slice(-8000) : "No browser smoke log was written.";
+            core.error(`Browser smoke failed. Diagnostic:\n${diagnostic}\n\nLog tail:\n${log}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
       - name: Compare volume Card screenshots against the previous successful run
         if: steps.screenshot-baseline.outputs.run_id != ''
         env:
