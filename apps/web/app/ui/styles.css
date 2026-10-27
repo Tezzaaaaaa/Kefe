@@ -6418,9 +6418,13 @@ body{overflow-x:hidden;overflow-y:auto}
   text-decoration:none;font:600 13px/1.3 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,sans-serif;
   cursor:pointer;transition:background .16s ease,color .16s ease,border-color .16s ease;
 }
-.kefe-sidebar-link>span{
+.kefe-sidebar-link>span[aria-hidden="true"]{
   width:18px;flex:0 0 18px;display:inline-grid;place-items:center;
   color:inherit;font-size:17px;
+}
+.kefe-sidebar-link>.kefe-sidebar-link-label{
+  width:auto;min-width:0;flex:0 1 auto;
+  font-size:12px;font-weight:500;line-height:1.2;
 }
 .kefe-sidebar-link:hover{background:rgba(128,128,140,.12);color:var(--text)}
 .kefe-sidebar-link:focus-visible,.kefe-sidebar-brand:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -8873,7 +8877,7 @@ html:root[data-theme="day"] :is(.kefe-btn:not(.primary), .kefe-chip, .kefe-card,
 }
 html:root[data-theme="day"] :is(.kefe-input, .kefe-textarea, .kefe-search > input)::placeholder { color: var(--soft); }
 html:root[data-theme="day"] :is(.kefe-label, .kefe-meta, .kefe-panel-head .kefe-meta, .kefe-upload-help, .kefe-upload-name) { color: var(--muted); }
-html:root[data-theme="day"] .kefe-upload-zone { color: var(--text); background: var(--surface-hi); border-color: #aab5c5; }
+html:root[data-theme="day"] .kefe-upload-zone:not(#kefeUploadZone) { color: var(--text); background: var(--surface-hi); border-color: #aab5c5; }
 html:root[data-theme="day"] .kefe-section { color: var(--muted); background: transparent; box-shadow: none; }
 html:root[data-theme="day"] .kefe-section:hover { color: var(--text); background: #dce3ed; box-shadow: none; }
 html:root[data-theme="day"] .kefe-section.active,
@@ -8989,11 +8993,11 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 @media(prefers-reduced-motion:reduce){.kefe-liquid-swirl{will-change:auto}}
 
 
-/* beUI file-upload component, adapted for local-only KEFE media imports. */
+/* The native upload label now owns the same surface/box the former Card wrapped around it. */
 .kefe-upload-zone.beui-upload-dropzone{
-  position:relative;display:flex;grid-column:1/-1;flex-direction:column;align-items:center;justify-content:center;gap:7px;
-  min-height:168px;padding:22px 18px;border:1px dashed var(--line);border-radius:18px;
-  background:linear-gradient(145deg,var(--surface-hi),var(--surface));box-shadow:var(--inner);
+  position:relative;display:flex;grid-column:1/-1;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  box-sizing:border-box;width:100%;height:auto;min-height:192px;max-height:none;padding:18px;
+  border:1px dashed var(--line);border-radius:12px;background:var(--surface);box-shadow:var(--inner);
   text-align:center;cursor:pointer;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,transform .18s ease;
 }
 .kefe-upload-zone.beui-upload-dropzone:hover,.kefe-upload-zone.beui-upload-dropzone.is-dragging{
@@ -9020,7 +9024,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .beui-upload-file .kefe-btn{min-height:32px;padding:0 10px;font-size:var(--font-xs)}
 .kefe-upload-zone.beui-upload-dropzone:focus-within{outline:2px solid var(--focus);outline-offset:3px}
 @media(max-width:600px){
-  .kefe-upload-zone.beui-upload-dropzone{min-height:152px;padding:18px 12px;border-radius:15px}
   .beui-upload-file{gap:8px;padding:9px}
   .beui-upload-file-icon{flex-basis:34px;width:34px;height:34px}
   .beui-upload-file-status{display:none}
@@ -9031,11 +9034,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 }
 
 
-/* Match both media importers to one compact, shared beUI geometry. */
-.kefe-upload-zone.beui-upload-dropzone{
-  box-sizing:border-box;width:100%;height:154px;min-height:154px;max-height:154px;
-  gap:6px;padding:12px 16px;border-radius:16px;
-}
+/* Keep the upload affordances compact inside the native Card surface. */
 .kefe-upload-zone.beui-upload-dropzone .beui-upload-symbol{
   flex:0 0 38px;width:38px;height:38px;margin:0;border-radius:12px;
 }
@@ -9044,7 +9043,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .kefe-upload-zone.beui-upload-dropzone .kefe-upload-name{font-size:var(--font-xs);line-height:1.3}
 .kefe-upload-zone.beui-upload-dropzone .beui-upload-browse{min-height:30px;margin-top:1px;padding:0 12px;border-radius:9px}
 @media(max-width:600px){
-  .kefe-upload-zone.beui-upload-dropzone{height:146px;min-height:146px;max-height:146px;padding:10px 12px;border-radius:14px}
   .kefe-upload-zone.beui-upload-dropzone .beui-upload-symbol{flex-basis:34px;width:34px;height:34px}
 }
 
@@ -9357,7 +9355,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   display: inline-flex;
   flex: 0 0 auto;
   width: auto;
-  min-width: max-content;
+  min-width: 0;
   max-width: none;
   white-space: nowrap;
 }
@@ -10991,8 +10989,8 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-
   .kefe-sidebar-brand { height: 34px; padding-inline: 5px; font-size: 14px; }
   .kefe-sidebar .kefe-sidebar-toggle { display: inline-flex; align-items: center; justify-content: center; }
   .kefe-editor .kefe-sidebar .kefe-sidebar-group { gap: 2px; }
-  .kefe-sidebar-link { height: 31px; min-height: 31px; padding-inline: 7px; font-size: 11px; }
-  .kefe-sidebar .kefe-sidebar-link > .kefe-sidebar-link-label { width: auto; min-width: 0; flex: 0 1 auto; font-size: 14px; line-height: 1.3; }
+  .kefe-sidebar-link { height: 32px; min-height: 32px; gap: 6px; padding-inline: 10px; font-size: 12px; }
+  .kefe-sidebar .kefe-sidebar-link > .kefe-sidebar-link-label { width: auto; min-width: 0; flex: 0 1 auto; font-size: 12px; line-height: 1.2; }
   .kefe-sidebar-bottom { gap: 2px; margin-left: 4px; padding-left: 5px; }
   .kefe-work { grid-column: 1; grid-row: 2; grid-template-rows: auto 48px auto; }
   .kefe-editing { grid-column: 1; grid-row: 3; }
