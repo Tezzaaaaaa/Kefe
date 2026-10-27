@@ -7,7 +7,9 @@ assert.ok(baselineDir && currentDir, "usage: compare-screen-states.cjs <baseline
 
 function signature(node) {
   if (node.id) return `#${node.id}`;
-  return [node.tag, node.classes, node.section, node.group, node.panel].join("|");
+  if (node.panel) return [node.tag, node.section, node.group, node.panel].join("|");
+  if (node.section) return [node.tag, node.section, node.group].join("|");
+  return [node.tag, node.group].join("|");
 }
 function index(nodes) {
   const result = new Map();
