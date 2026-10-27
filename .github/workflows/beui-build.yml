@@ -111,9 +111,27 @@ jobs:
               raise SystemExit(f"expected one baseline screenshot hook, found {baseline.count(needle)}")
           baseline_path.write_text(baseline.replace(needle, probe, 1))
           PY
-          node /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs
+          set -o pipefail
+          node /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs 2>&1 | tee /tmp/kefe-layout-main/baseline-browser-smoke.log
           node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/layout-comparison.log
           node apps/web/scripts/compare-screen-states.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/screen-state-comparison.log
+      - name: Report baseline layout comparison failure details
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const files = [
+              ["baseline browser error", "/tmp/kefe-layout-main/browser-smoke-error.json"],
+              ["baseline browser log", "/tmp/kefe-layout-main/baseline-browser-smoke.log"],
+              ["layout comparison", "/tmp/kefe-screenshots/layout-comparison.log"],
+              ["screen-state comparison", "/tmp/kefe-screenshots/screen-state-comparison.log"],
+            ];
+            const details = files.map(([label, filename]) => {
+              if (!fs.existsSync(filename)) return `${label}: no file produced`;
+              return `${label}:\\n${fs.readFileSync(filename, "utf8").slice(-5000)}`;
+            }).join("\\n\\n");
+            core.error(`Baseline browser/layout comparison failed.\\n${details}`, {file: ".github/workflows/beui-build.yml", startLine: 77});
       - name: Compare editor and volume screenshots against main
         if: github.event_name == 'pull_request'
         env:
