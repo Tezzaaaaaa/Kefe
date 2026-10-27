@@ -625,7 +625,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await settingAccordions.filter({ hasText: "Defaults" }).getAttribute("aria-expanded"), "true", "the select-bearing settings group should open");
     const selectTrigger = dialog.locator('button[aria-haspopup="listbox"]').first();
     await selectTrigger.click();
-    const options = page.getByRole("option");
+    const options = dialog.getByRole("option");
     assert.ok(await options.count() > 0, "beUI Select should expose its options");
     await options.first().click();
     await dialog.getByRole("button", { name: "Done" }).click();
