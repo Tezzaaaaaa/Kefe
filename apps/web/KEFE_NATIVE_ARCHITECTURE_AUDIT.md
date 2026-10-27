@@ -70,7 +70,7 @@ On the clean starting tree at `f9fd5ced...`, installed the frozen workspace lock
 - Removed Card-wrapper CSS and the settings adapter's no-longer-needed Card flattening step.
 - Replaced the static Card-presence assertion with native section/direct-child/no-React-wrapper assertions in build and browser smoke checks.
 - Post-change local checks passed (`pnpm typecheck`, web production build, build/settings/native-panel smokes, built-artifact scan, syntax and diff checks). GitHub Actions PR run `40495743357` passed production build, static smokes, Chromium browser smoke, and uploaded desktop/mobile day/night captures.
-- The first PR run had no prior PR screenshot artifact, so its visual-comparison step was skipped. The workflow is being updated to compare full-editor screenshots and volume crops against the latest successful `main` run (`40490755047`); that comparison remains the acceptance gate before this slice is considered complete or merged.
+- The first PR run had no prior PR screenshot artifact, so its visual-comparison step was skipped. After adding the successful `main` run (`40490755047`) as a baseline and comparing full-editor screenshots, run `40496108856` identified a day-theme regression caused by a compact-style selector also matching the outer settings-group panels. The selector is now restricted to `data-panel-view` panels; a successful rerun of all four editor screenshot comparisons is still required before this slice is complete or merged.
 
 ## Completion gates
 

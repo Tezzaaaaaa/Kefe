@@ -116,7 +116,7 @@ jobs:
               return;
             }
             const comparison = fs.readFileSync(logPath, "utf8").trim();
-            core.notice(`Volume Card visual comparison:\n${comparison}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+            core.notice(`Editor and volume screenshot comparison:\n${comparison}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
       - name: Upload desktop/mobile day/night screenshots and diffs
         if: always()
         uses: actions/upload-artifact@v4

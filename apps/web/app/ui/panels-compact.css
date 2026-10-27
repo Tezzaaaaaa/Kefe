@@ -28,7 +28,7 @@
 }
 
 /* ---- Card chrome ---- */
-:is(.kefe-panels, .kefe-settings-columns) .kefe-panel:not(.kefe-settings-embedded-panel) { border-radius: 8px; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-panel[data-panel-view]:not(.kefe-settings-embedded-panel) { border-radius: 8px; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-panel-head { padding: 0 !important; margin: 0 !important; min-height: 0; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-panel .kefe-section-heading-row { min-height: 30px; gap: 6px; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-panel h2 { font-size: 13px !important; line-height: 16px; font-weight: 650; letter-spacing: .01em; }
@@ -251,7 +251,7 @@
 :is(.kefe-panels, .kefe-settings-columns) #exportStatus { margin: 0; }
 
 /* ---- Pass 2 fixes ---- */
-:is(.kefe-panels, .kefe-settings-columns) .kefe-panel:not(.kefe-settings-embedded-panel) { padding: 10px !important; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-panel[data-panel-view]:not(.kefe-settings-embedded-panel) { padding: 10px !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-panel-head,
 :is(.kefe-panels, .kefe-settings-columns) .kefe-panel-head .kefe-section-heading-row { min-height: 0 !important; height: auto !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-panel-head { gap: 0 !important; }

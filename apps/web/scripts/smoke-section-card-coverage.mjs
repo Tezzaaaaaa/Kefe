@@ -25,7 +25,7 @@ if (editor.includes("legacy-panel-card-bridge")) {
 if (panelStyles.includes("beui-panel-card-root") || panelStyles.includes("beui-editor-panel-card")) {
   failures.push("Native panel styles still depend on a React Card wrapper");
 }
-if (!panelStyles.includes(".kefe-panel{display:none") || !compactPanelStyles.includes(".kefe-panel:not(.kefe-settings-embedded-panel)")) {
+if (!panelStyles.includes(".kefe-panel{display:none") || !compactPanelStyles.includes(".kefe-panel[data-panel-view]:not(.kefe-settings-embedded-panel)")) {
   failures.push("Native editor panel surface styling is missing");
 }
 
