@@ -1015,6 +1015,8 @@ async function captureEditorScreenState(page) {
     assert.ok(firstCount > 0, "native panel actions should be styled directly on KEFE buttons");
     assert.equal(secondCount, firstCount, "native panel buttons must not be duplicated as controls");
     assert.equal(await page.locator(".beui-panel-button-host").count(), 0, "panel actions must not use mirrored host wrappers");
+    assert.equal(await page.locator(".kefe-settings-panel .expand-button.kefe-panel-action, .kefe-settings-panel .info-button.kefe-panel-action, .kefe-settings-panel .toggle-switch.kefe-panel-action").count(), 0,
+      "native settings accordion, info and toggle controls must retain their dedicated KEFE styles");
 
     const dropHandoff = await page.evaluate((bytes) => {
       const input = document.getElementById("mediaInput");

@@ -11,6 +11,7 @@ const panelActionExclusions = [
   '.beui-button-host', '.kefe-section-info', '.beui-command-button-host',
   '.kefe-vis-tabs', '.kefe-visualiser-power-slot', '.beui-vis-tabs-host',
   '.beui-range-host', '.beui-settings-root',
+  '.expand-button', '.info-button', '.toggle-switch',
 ].join(',');
 function decoratePanelAction(button) {
   if (!(button instanceof HTMLButtonElement) || !button.closest('.kefe-panel')) return;
