@@ -11170,3 +11170,17 @@ textarea.beui-native-textarea {
   background: var(--surface-hi);
   border-color: var(--border-color);
 }
+
+/* Day Mode: explicitly theme the two outer editor-column wrappers at every viewport width.
+   These wrappers previously depended on a desktop-only --col override. */
+html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels-left,
+html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left) {
+  background: var(--bg-secondary);
+}
+
+/* Keep beUI mount roots from painting their dark fallback over the themed columns. */
+html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-card-root,
+html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-sidebar-nav-host,
+html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-button-host {
+  background-color: var(--bg-secondary);
+}
