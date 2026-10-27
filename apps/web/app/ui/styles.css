@@ -1,20 +1,3 @@
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
-
-@theme inline {
-  --color-background: var(--beui-background);
-  --color-foreground: var(--beui-foreground);
-  --color-muted: var(--beui-muted);
-  --color-muted-foreground: var(--beui-muted-foreground);
-  --color-border: var(--beui-border);
-  --color-ring: var(--beui-ring);
-  --color-primary: var(--beui-primary);
-  --color-primary-foreground: var(--beui-primary-foreground);
-  --color-card: var(--beui-card);
-  --color-card-foreground: var(--beui-foreground);
-  --color-border-strong: var(--beui-border);
-}
-
 *{box-sizing:border-box}
 :root {
   color-scheme: light;
@@ -11183,4 +11166,185 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-card-root,
 html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-sidebar-nav-host,
 html:root[data-theme="day"] .kefe-editor .kefe-editing .beui-panel-button-host {
   background-color: var(--bg-secondary);
+}
+
+
+/* ==========================================================================
+   Editor shell and transport styling. Shared by both editor entry points.
+   Keep this final shell layer here instead of duplicating inline overrides in
+   editor.html and editor.source.html.
+   ========================================================================== */
+
+/* The legacy Canvas status label sat underneath the fullscreen button. */
+.kefe-preview-toolbar .kefe-toolbar-status { display: none; }
+
+/* Keep the beUI volume action visible against both preview and transport surfaces. */
+.beui-transport-host .beui-react-transport[aria-label*="volume" i] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--shell-line, #45454d);
+  border-radius: 10px;
+  color: var(--shell-text, #f5f5f7);
+  background: linear-gradient(145deg, var(--shell-panel, #29292f), var(--shell-bg, #171719));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 2px 8px rgb(0 0 0 / 18%);
+  opacity: 1;
+}
+.beui-transport-host .beui-react-transport[aria-label*="volume" i] > svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 1;
+}
+.beui-transport-host .beui-react-transport[aria-label*="volume" i]:hover,
+.beui-transport-host .beui-react-transport[aria-label*="volume" i][aria-expanded="true"] {
+  border-color: var(--shell-accent, #ef4444);
+  color: var(--shell-text, #ffffff);
+  background: var(--shell-panel, #29292f);
+}
+:root[data-theme="day"] .beui-transport-host .beui-react-transport[aria-label*="volume" i] {
+  border-color: var(--shell-line, #d5d7de);
+  color: var(--shell-text, #202126);
+  background: linear-gradient(145deg, #ffffff, #eceef3);
+}
+
+/* KEFE header navigator: reuse the existing working navigation controls in a single top bar. */
+.kefe-editor {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 56px auto auto;
+}
+.kefe-sidebar {
+  grid-column: 1;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  height: 56px;
+  min-height: 56px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--surface);
+  border-right: 0;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.kefe-sidebar::-webkit-scrollbar { display: none; }
+.kefe-sidebar-brand-row {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+.kefe-sidebar-toggle { display: none; }
+.kefe-sidebar-brand {
+  height: 36px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 16px;
+}
+.beui-sidebar-nav-host {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-width: 0;
+}
+.beui-sidebar-nav-host .beui-sidebar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+.beui-sidebar-nav-host .kefe-sidebar-link-label {
+  width: auto;
+  min-width: 0;
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+.kefe-sidebar-group {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+}
+.kefe-sidebar-label { display: none; }
+.kefe-sidebar-link {
+  width: auto;
+  min-height: 32px;
+  height: 32px;
+  padding: 0 10px;
+  gap: 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.kefe-sidebar-link > span {
+  width: 15px;
+  flex: 0 0 15px;
+  font-size: 14px;
+}
+.kefe-sidebar-bottom {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 0 auto;
+  padding: 0 0 0 10px;
+  border-top: 0;
+  border-left: 1px solid var(--line);
+}
+.kefe-sidebar-github { font-size: 12px; }
+.beui-sidebar-settings-host .kefe-sidebar-link { width: 32px; min-width: 32px; padding: 0; justify-content: center; }
+.kefe-sidebar-github { width: 32px; min-width: 32px; padding: 0; justify-content: center; }
+.kefe-sidebar-github > span { width: 16px; flex: 0 0 16px; }
+.kefe-header-search { width: 32px; min-width: 32px; padding: 0; justify-content: center; }
+.kefe-header-search > span { width: 16px; flex: 0 0 16px; }
+.kefe-sidebar-bottom { margin-left: 0; }
+.kefe-work { grid-column: 1; grid-row: 2; min-width: 0; }
+.kefe-editing { grid-column: 1; grid-row: 3; }
+.kefe-site-footer { grid-column: 1; grid-row: 4; }
+.kefe-sidebar-link.is-current {
+  background: var(--active, color-mix(in srgb, var(--accent) 12%, transparent));
+  border-color: var(--line-soft, var(--line));
+  color: var(--text);
+}
+@media (max-width: 900px) {
+  .kefe-sidebar { gap: 6px; padding-inline: 10px; }
+  .kefe-sidebar-link { padding-inline: 8px; gap: 5px; }
+  .kefe-sidebar-bottom { padding-left: 6px; }
+}
+@media (max-width: 640px) {
+  .kefe-editor {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 50px auto auto;
+  }
+  .kefe-sidebar {
+    grid-column: 1;
+    grid-row: 1;
+    height: 50px;
+    min-height: 50px;
+    padding: 0 8px;
+    gap: 5px;
+  }
+  .kefe-sidebar-brand { height: 34px; padding-inline: 5px; font-size: 14px; }
+  .kefe-sidebar-link { height: 31px; min-height: 31px; padding-inline: 7px; font-size: 11px; }
+  .kefe-sidebar-bottom { gap: 2px; margin-left: 4px; padding-left: 5px; }
+  .kefe-work { grid-column: 1; grid-row: 2; grid-template-rows: auto 48px auto; }
+  .kefe-editing { grid-column: 1; grid-row: 3; }
+  .kefe-site-footer { grid-column: 1; grid-row: 4; }
 }
