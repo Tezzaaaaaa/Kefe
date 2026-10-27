@@ -490,8 +490,6 @@
 .kefe-settings-panel .kefe-slot .kefe-visualiser-power-slot {
   display: flex;
 }
-.kefe-settings-panel .kefe-slot .beui-panel-card-root,
-.kefe-settings-panel .kefe-slot .beui-editor-panel-card,
 .kefe-settings-panel .kefe-slot .kefe-form {
   width: 100%;
   max-width: none;

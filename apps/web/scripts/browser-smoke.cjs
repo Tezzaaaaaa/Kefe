@@ -267,7 +267,10 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
       const expected = ["media", "lyrics", "effects", "background-effects", "visualiser", "export"];
       const panels = [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")];
       return panels.length === expected.length
-        && expected.every((name) => panels.some((panel) => panel.dataset.panelView === name && panel.querySelector(".beui-editor-panel-card")));
+        && expected.every((name) => panels.some((panel) => panel.dataset.panelView === name
+          && panel.querySelector(":scope > .kefe-panel-head")
+          && panel.querySelector(":scope > .kefe-form")))
+        && panels.every((panel) => !panel.querySelector(".beui-editor-panel-card"));
     }, null, { timeout: 20000 });
     await page.waitForSelector("#kefeUploadZone .beui-upload-card", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#kefeBgVideoZone", { state: "attached", timeout: 20000 });
@@ -341,8 +344,13 @@ function makeWavBuffer(durationSeconds = 5, sampleRate = 8000) {
     await page.locator("#beui-songTitle").fill("beUI smoke track");
     assert.equal(await page.locator("#songTitle").inputValue(), "beUI smoke track", "beUI Input should preserve the legacy metadata value and events");
 
-    const panelCardCount = await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count();
-    assert.equal(panelCardCount, 6, `all six editor sections must use beUI Card surfaces, found ${panelCardCount}`);
+    const nativePanelSurfaceCount = await page.locator("#kefe-settings-panel .section[data-section-id]").evaluateAll(sections => sections.filter(section => {
+      const style = getComputedStyle(section);
+      return style.display !== "none" && style.borderRadius !== "0px" && style.borderTopWidth !== "0px";
+    }).length);
+    assert.equal(nativePanelSurfaceCount, 6, "all six native settings sections must retain their designed panel surfaces");
+    assert.equal(await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count(), 0,
+      "editor panels must not create parallel React Card wrappers");
 
     async function assertSectionFits(section) {
       const geometry = await page.locator(`.kefe-panel[data-panel-view="${section}"]`).evaluate(panel => {

@@ -1,6 +1,7 @@
 # Historical KEFE beUI conversion notes
 
 > **Direction correction (2026-10-27):** This document records an earlier conversion experiment. Its goal, “required architecture,” and acceptance criteria below are superseded. KEFE's existing HTML/CSS/JavaScript, modules, dependencies, production entry and coding conventions remain authoritative. Do not migrate KEFE to React, beUI, Vite, or a parallel application architecture. Audit beUI sources for designs and behavior that can be translated into KEFE-native implementations. Preserve behavior, appearance, APIs and persisted preferences. See [`BEUI_COMPONENT_INVENTORY.md`](./BEUI_COMPONENT_INVENTORY.md) for the audited bridge-to-runtime map and validation limits. No infrastructure removal is approved by that inventory alone.
+See [`KEFE_NATIVE_ARCHITECTURE_AUDIT.md`](./KEFE_NATIVE_ARCHITECTURE_AUDIT.md) for the repository-wide dependency/runtime audit and restoration progress. The six-section Card wrapper has been translated back to native panel DOM/CSS on the active restoration branch; this slice is not complete until browser and visual verification pass.
 
 The sections below are historical context, not current requirements. In particular, “Required architecture,” “Acceptance criteria,” and branch/progress references describe the earlier experiment and must not be used to override the direction correction above.
 
