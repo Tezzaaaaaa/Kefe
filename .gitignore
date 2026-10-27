@@ -31,3 +31,6 @@ coverage/
 .local/
 .replit
 replit.nix
+
+# KEFE beUI build output
+apps/web/dist-beui/

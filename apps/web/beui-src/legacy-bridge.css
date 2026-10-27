@@ -1,6 +1,21 @@
-@import "../app/ui/styles.css";
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
 @import "../app/ui/panels-compact.css";
 @import "../app/settings/panel.css";
+
+@theme inline {
+  --color-background: var(--beui-background);
+  --color-foreground: var(--beui-foreground);
+  --color-muted: var(--beui-muted);
+  --color-muted-foreground: var(--beui-muted-foreground);
+  --color-border: var(--beui-border);
+  --color-ring: var(--beui-ring);
+  --color-primary: var(--beui-primary);
+  --color-primary-foreground: var(--beui-primary-foreground);
+  --color-card: var(--beui-card);
+  --color-card-foreground: var(--beui-foreground);
+  --color-border-strong: var(--beui-border);
+}
 
 .kefe-upload-zone.beui-upload-card-hosted,
 .kefe-panel.beui-panel-card-hosted,
@@ -55,3 +70,4 @@
   }
 }
 
+/* The base KEFE design system is loaded once by the editor page stylesheet. */
