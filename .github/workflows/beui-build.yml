@@ -156,16 +156,17 @@ jobs:
               core.info("No screenshot comparison log was produced in this run.");
               return;
             }
-            const comparison = fs.readFileSync(logPath, "utf8").trim();
-            core.notice(`Editor and volume screenshot comparison:\n${comparison}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
-            for (const [kind, comparisonPath] of [
-              ["DOM", "/tmp/kefe-screenshots/layout-comparison.log"],
-              ["scroll state", "/tmp/kefe-screenshots/screen-state-comparison.log"],
-            ]) {
-              if (!fs.existsSync(comparisonPath)) continue;
-              const lines = fs.readFileSync(comparisonPath, "utf8").trim().split(/\r?\n/).filter(Boolean);
-              for (const line of lines.slice(0, 12)) {
-                core.notice(`Baseline/current ${kind}: ${line}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+            const comparison = fs.readFileSync(logPath, "utf8").trim().split(/\r?\n/);
+            const metrics = comparison.filter(line => /^(editor|volume-card) (desktop|mobile)\/(day|night):/.test(line));
+            core.notice(`Editor/volume visual metrics:\n${metrics.join("\n") || "No summary lines were produced."}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+            const statePath = "/tmp/kefe-screenshots/screen-state-comparison.log";
+            if (fs.existsSync(statePath)) {
+              const lines = fs.readFileSync(statePath, "utf8").trim().split(/\r?\n/);
+              for (const size of ["desktop", "mobile"]) {
+                const start = lines.findIndex(line => line.startsWith(`${size}/day:`));
+                if (start < 0) continue;
+                const end = lines.findIndex((line, index) => index > start && /^(desktop|mobile)\/day:/.test(line));
+                core.notice(`Baseline/current ${size} screenshot state:\n${lines.slice(start, end < 0 ? undefined : end).join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
               }
             }
       - name: Upload desktop/mobile day/night screenshots and diffs

@@ -5,9 +5,7 @@ const path = require("node:path");
 const [baselineDir, currentDir] = process.argv.slice(2);
 assert.ok(baselineDir && currentDir, "usage: compare-screen-states.cjs <baseline-dir> <current-dir>");
 
-function signature(node) {
-  return [node.id, node.classes, node.text].join("|");
-}
+function signature(node) { return [node.id, node.classes, node.text].join("|"); }
 function index(nodes) {
   const result = new Map();
   for (const node of nodes) {
@@ -22,7 +20,7 @@ function index(nodes) {
 for (const size of ["desktop", "mobile"]) {
   const before = JSON.parse(fs.readFileSync(path.join(baselineDir, `editor-screen-state-${size}-day.json`), "utf8"));
   const after = JSON.parse(fs.readFileSync(path.join(currentDir, `editor-screen-state-${size}-day.json`), "utf8"));
-  console.log(`${size}/day: viewport=${JSON.stringify(before.viewport)}→${JSON.stringify(after.viewport)}, window-scroll=${JSON.stringify(before.windowScroll)}→${JSON.stringify(after.windowScroll)}, active=${before.activeSection}→${after.activeSection}, expanded=${JSON.stringify(before.expandedSettings)}→${JSON.stringify(after.expandedSettings)}`);
+  console.log(`${size}/day: viewport ${JSON.stringify(before.viewport)} → ${JSON.stringify(after.viewport)}; window scroll ${JSON.stringify(before.windowScroll)} → ${JSON.stringify(after.windowScroll)}; active ${before.activeSection} → ${after.activeSection}; expanded ${JSON.stringify(before.expandedSettings)} → ${JSON.stringify(after.expandedSettings)}`);
   for (const collection of ["keyBounds", "scrollables"]) {
     const oldMap = index(before[collection]);
     const newMap = index(after[collection]);
@@ -36,11 +34,18 @@ for (const size of ["desktop", "mobile"]) {
         for (const field of ["x", "y", "width", "height", "scrollTop", "scrollLeft", "scrollHeight", "clientHeight"]) {
           if (Math.abs((oldNode[field] || 0) - (newNode[field] || 0)) > 0.75) fields[field] = [oldNode[field], newNode[field]];
         }
-        if (Object.keys(fields).length) changes.push({ key, old: oldNode, current: newNode, fields });
+        if (Object.keys(fields).length) changes.push({ key, oldNode, newNode, fields });
       }
     }
-    changes.sort((a, b) => Object.keys(b.fields).length - Object.keys(a.fields).length);
-    console.log(`${collection} changed matches=${changes.length}; unmatched baseline/current=${[...oldMap].reduce((n, [key, a]) => n + Math.max(0, a.length - (newMap.get(key)?.length || 0)), 0)}/${[...newMap].reduce((n, [key, a]) => n + Math.max(0, a.length - (oldMap.get(key)?.length || 0)), 0)}`);
-    for (const change of changes.slice(0, 20)) console.log(JSON.stringify({ key: change.key, fields: change.fields, baseline: change.old, current: change.current }));
+    changes.sort((a, b) => Math.max(...Object.values(b.fields).map(v => Math.abs(v[1] - v[0])))
+      - Math.max(...Object.values(a.fields).map(v => Math.abs(v[1] - v[0]))));
+    const unmatchedBefore = [...oldMap].reduce((n, [key, items]) => n + Math.max(0, items.length - (newMap.get(key)?.length || 0)), 0);
+    const unmatchedAfter = [...newMap].reduce((n, [key, items]) => n + Math.max(0, items.length - (oldMap.get(key)?.length || 0)), 0);
+    console.log(`${collection}: ${changes.length} matched geometry/scroll differences; unmatched current/baseline=${unmatchedAfter}/${unmatchedBefore}`);
+    for (const change of changes.slice(0, 8)) {
+      console.log(JSON.stringify({ key: change.key, fields: change.fields,
+        baseline: { bounds: [change.oldNode.x, change.oldNode.y, change.oldNode.width, change.oldNode.height], scrollTop: change.oldNode.scrollTop, scrollHeight: change.oldNode.scrollHeight, clientHeight: change.oldNode.clientHeight },
+        current: { bounds: [change.newNode.x, change.newNode.y, change.newNode.width, change.newNode.height], scrollTop: change.newNode.scrollTop, scrollHeight: change.newNode.scrollHeight, clientHeight: change.newNode.clientHeight } }));
+    }
   }
 }
