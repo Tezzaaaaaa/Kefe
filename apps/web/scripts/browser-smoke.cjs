@@ -238,38 +238,52 @@ async function captureEditorScreenState(page) {
     assert.equal(await hex.inputValue(), "#A7E7FF", "invalid hex input must preserve the last valid colour");
     await page.keyboard.press("Escape");
 
-    const trayToggle = quickToolbar.locator('button[aria-controls="kefeToolbarTray"]');
-    await trayToggle.click();
-    assert.equal(await quickToolbar.locator("#kefeToolbarTray").isVisible(), true, "More tools must reveal the grouped tray");
-    assert.deepEqual(await quickToolbar.locator(".kft-group > .kft-label").allTextContents(), ["Lyrics", "Layer", "Canvas & background", "Preview & toolbar"],
-      "the tray must group lyrics, layer and canvas/background controls");
-    const quickSize = quickToolbar.locator('.kft-scrub[aria-label="Text size"]');
+    const fontButton = quickToolbar.getByRole("button", { name: "Font, case and size", exact: true });
+    await fontButton.click();
+    const fontPanel = page.getByRole("dialog", { name: "Font", exact: true });
+    await fontPanel.waitFor({ state: "visible", timeout: 5000 });
+    const quickSize = fontPanel.locator('.kft-scrub[aria-label="Text size"]');
     await quickSize.focus();
     await page.keyboard.press("End");
     assert.equal(await page.evaluate(() => window.kefeStyle.state().scale), 160,
       "toolbar text-size control must update the canonical lyric-style setting");
+    await page.keyboard.press("Escape");
+    assert.equal(await fontButton.evaluate(node => document.activeElement === node), true,
+      "Escape must close the Font panel and restore focus to its trigger");
     assert.equal(await page.locator("[data-layout-target]").count(), 1, "the editor must expose one canonical layer selector");
     assert.equal(await page.locator("[data-layout-scale]").count(), 1, "the editor must expose one canonical layer scale control");
-    const layerScaleControl = quickToolbar.locator('.kft-scrub[aria-label="Layer scale"]');
+
+    const moveButton = quickToolbar.getByRole("button", { name: "Move and scale layer", exact: true });
+    await moveButton.click();
+    const movePanel = page.getByRole("dialog", { name: "Move layer", exact: true });
+    await movePanel.waitFor({ state: "visible", timeout: 5000 });
+    const layerScaleControl = movePanel.locator('.kft-scrub[aria-label="Layer scale"]');
     await layerScaleControl.focus();
     await page.keyboard.press("End");
     assert.equal(await page.locator("[data-layout-scale]").inputValue(), await page.locator("[data-layout-scale]").getAttribute("max"),
       "layer scale control must drive the canonical layer scale");
     const moveLayer = page.locator("[data-layout-move]");
-    const moveTool = quickToolbar.locator("button.kft-btn--toggle").first();
-    await moveTool.click();
+    await movePanel.getByRole("button", { name: "Drag in preview", exact: true }).click();
     assert.equal(await moveLayer.getAttribute("aria-pressed"), "true", "Move must enter its active state");
-    await moveTool.click();
+    await movePanel.getByRole("button", { name: "Done moving", exact: true }).click();
     assert.equal(await moveLayer.getAttribute("aria-pressed"), "false", "Move must return to its inactive state");
+    await page.keyboard.press("Escape");
 
-    const lockToolbar = quickToolbar.getByRole("button", { name: /Lock position/ });
-    await lockToolbar.click();
+    const actionsButton = quickToolbar.getByRole("button", { name: "More actions", exact: true });
+    await actionsButton.click();
+    const actionsPanel = page.getByRole("dialog", { name: "Actions", exact: true });
+    await actionsPanel.waitFor({ state: "visible", timeout: 5000 });
+    await actionsPanel.getByRole("button", { name: "Lock toolbar position", exact: true }).click();
     assert.equal(await quickToolbar.evaluate(node => node.classList.contains("is-locked")), true, "toolbar position lock must engage");
-    await quickToolbar.getByRole("button", { name: /Position locked/ }).click();
+    await actionsPanel.getByRole("button", { name: "Toolbar position locked", exact: true }).click();
     assert.equal(await quickToolbar.evaluate(node => node.classList.contains("is-locked")), false, "toolbar position lock must disengage");
-    await trayToggle.click();
-    assert.equal(await quickToolbar.locator("#kefeToolbarTray").isVisible(), false, "the tray must collapse again");
-    await quickToolbar.getByRole("button", { name: /^Lyric effect/ }).click();
+    await page.keyboard.press("Escape");
+
+    const effectButton = quickToolbar.getByRole("button", { name: "Lyric effect and display mode", exact: true });
+    await effectButton.click();
+    const effectPanel = page.getByRole("dialog", { name: "Lyric effect", exact: true });
+    await effectPanel.waitFor({ state: "visible", timeout: 5000 });
+    await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();
     assert.ok(await page.locator('.kft-popover [role="option"]').count() > 1,
       "effect menu must be populated from the existing lyric effect gallery");
     assert.match(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option[data-effect="premium"]').textContent(), /Devotion/,
