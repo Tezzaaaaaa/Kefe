@@ -1,6 +1,6 @@
 # KEFE native architecture audit and restoration log
 
-**Current branch snapshot:** `arena/1e82fb01-kefe`; started from published `main` at `f9fd5ced442d47ad074baef01f066c0d40ed3887` (2026-10-27).  
+**Current branch snapshot:** `arena/1e82fb01-kefe`; started from published `main` at `f9fd5ced442d47ad074baef01f066c0d40ed3887` (2026-10-27).
 **Status:** active migration; not a declaration of completion. This audit separates the original KEFE application/runtime from the later React/beUI presentation layer and records the evidence used before each removal.
 
 ## Direction and preservation boundary
