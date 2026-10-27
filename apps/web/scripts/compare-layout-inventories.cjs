@@ -49,7 +49,7 @@ for (const size of ["desktop", "mobile"]) {
           changedFields[field] = [oldValue, newValue];
         }
       }
-      if (Object.keys(changedFields).length) changes.push({ key, section: newItem.section, panel: newItem.panel, tag: newItem.tag, classes: newItem.classes, changedFields });
+      if (Object.keys(changedFields).length) changes.push({ key, path: newItem.path, section: newItem.section, panel: newItem.panel, tag: newItem.tag, classes: newItem.classes, changedFields });
     }
   }
   const unmatchedBaseline = [...oldMap].reduce((sum, [key, items]) => sum + Math.max(0, items.length - (newMap.get(key)?.length || 0)), 0);

@@ -59,12 +59,13 @@ const layoutPath = path.join(currentDir, "layout-comparison.json");
 assert.ok(fs.existsSync(layoutPath), `missing baseline/current layout comparison: ${layoutPath}`);
 const layout = JSON.parse(fs.readFileSync(layoutPath, "utf8")).map(({ size, counts, unmatchedCurrent, unmatchedBaseline, changes }) => ({
   size, counts, unmatchedCurrent, unmatchedBaseline,
-  changes: changes.filter(item => item.tag === "select" || /kefe-(upload|sidebar|section|panel-action|section-heading|vis-tabs|toolbar)/.test(item.classes))
+  changes: changes.filter(item => item.tag === "select" || /kefe-(upload|sidebar|section|panel-action|section-heading|vis-tabs|toolbar|aspect)/.test(item.classes)
+      || /(^| )(section-header|section-title-wrap|title-group|expand-button|expand-indicator|info-button)( |$)/.test(item.classes))
     .sort((a, b) => Object.keys(b.changedFields).length - Object.keys(a.changedFields).length)
-    .slice(0, 8)
-    .map(({ key, section, panel, tag, classes, changedFields }) => ({
-      key, section, panel, tag, classes,
-      changedFields: Object.fromEntries(Object.entries(changedFields).filter(([field]) => ["x", "y", "width", "height", "display", "color", "background", "fontWeight", "lineHeight", "border", "radius", "padding", "gap", "gridTemplateColumns", "overflow"].includes(field))),
+    .slice(0, 24)
+    .map(({ key, path, section, panel, tag, classes, changedFields }) => ({
+      key, path, section, panel, tag, classes,
+      changedFields: Object.fromEntries(Object.entries(changedFields).filter(([field]) => ["x", "y", "width", "height", "display", "color", "background", "font", "fontWeight", "lineHeight", "letterSpacing", "border", "radius", "padding", "gap", "gridTemplateColumns", "overflow", "minWidth", "minHeight", "maxWidth", "maxHeight"].includes(field))),
     })),
 }));
 fs.writeFileSync(outputPath, JSON.stringify({ thumbnails, regions, layout }));
