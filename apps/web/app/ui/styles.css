@@ -8703,6 +8703,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 .beui-upload-file .kefe-btn{min-height:32px;padding:0 10px;font-size:var(--font-xs)}
 #kefeUploadZone.beui-upload-dropzone:focus-within{outline:2px solid var(--focus);outline-offset:3px}
 @media(max-width:600px){
+  #kefeUploadZone.beui-upload-dropzone{min-height:125px}
   .beui-upload-file{gap:8px;padding:9px}
   .beui-upload-file-icon{flex-basis:34px;width:34px;height:34px}
   .beui-upload-file-status{display:none}
