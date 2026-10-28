@@ -22,6 +22,8 @@ function index(nodes) {
   return result;
 }
 
+const carouselGeometryMismatches = [];
+
 for (const size of ["desktop", "mobile"]) {
   const before = JSON.parse(fs.readFileSync(path.join(baselineDir, `editor-screen-state-${size}-day.json`), "utf8"));
   const after = JSON.parse(fs.readFileSync(path.join(currentDir, `editor-screen-state-${size}-day.json`), "utf8"));
@@ -72,8 +74,9 @@ for (const size of ["desktop", "mobile"]) {
       const geometryDelta = child.bounds.map((value, index) => Number((value - baseline.bounds[index]).toFixed(2)));
       const geometryComparison = { baseline: baseline.bounds, current: child.bounds, delta: geometryDelta, tolerancePx: 1 };
       console.log(`${size}/day populated carousel child geometry baseline/current: ${JSON.stringify(geometryComparison)}`);
-      assert.ok(geometryDelta.every(delta => Math.abs(delta) <= geometryComparison.tolerancePx),
-        `${size}/day populated carousel card geometry differs between baseline and current by more than ${geometryComparison.tolerancePx}px: ${JSON.stringify(geometryComparison)}`);
+      if (!geometryDelta.every(delta => Math.abs(delta) <= geometryComparison.tolerancePx)) {
+        carouselGeometryMismatches.push({ size, ...geometryComparison });
+      }
     }
   }
   for (const collection of ["keyBounds", "scrollables"]) {
@@ -113,3 +116,5 @@ for (const size of ["desktop", "mobile"]) {
     }
   }
 }
+assert.deepEqual(carouselGeometryMismatches, [],
+  `populated carousel card geometry differs between baseline and current by more than 1px: ${JSON.stringify(carouselGeometryMismatches)}`);
