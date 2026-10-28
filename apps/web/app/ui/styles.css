@@ -10767,9 +10767,12 @@ textarea.beui-native-textarea {
 .kefe-download-row .beui-panel-button-host > button { width: 100%; white-space: nowrap; font-size: 12.5px; padding-inline: 10px; }
 #exportStatus:empty { display: none; }
 
-/* Below the three-panel breakpoint the work area has only preview + timeline; drop the phantom third row. */
+/* The work area contains only the preview and timeline; the editor panel is a sibling grid item. */
 @media (max-width: 1279px) {
-  .kefe-editor .kefe-work { grid-template-rows: auto auto; }
+  .kefe-editor .kefe-work { grid-template-rows: minmax(0, 1fr) var(--timeline-h); }
+}
+@media (max-width: 700px) {
+  .kefe-editor .kefe-work { grid-template-rows: minmax(0, 42dvh) 54px; }
 }
 
 /* One unified toolbar above the preview; keep its controls on the same surface. */
