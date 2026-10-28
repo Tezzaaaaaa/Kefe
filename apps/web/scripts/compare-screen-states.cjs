@@ -57,8 +57,9 @@ for (const size of ["desktop", "mobile"]) {
       `${label} ${size}/day carousel card accessible identity differs: ${JSON.stringify(child)}`);
     assert.equal(child.ariaPressed, "true", `${label} ${size}/day selected carousel card state is missing: ${JSON.stringify(child)}`);
     assert.ok(!child.hidden && child.display !== "none" && child.visibility !== "hidden"
+      && child.bounds.length === 4 && child.bounds.every(Number.isFinite)
       && child.bounds[2] > 0 && child.bounds[3] > 0,
-    `${label} ${size}/day carousel card is not visibly rendered: ${JSON.stringify(child)}`);
+    `${label} ${size}/day carousel card is not visibly rendered with complete geometry: ${JSON.stringify(child)}`);
     assert.ok(child.text.includes("KEFE visual regression fixture") && child.text.includes("KEFE browser smoke"),
       `${label} ${size}/day carousel card visible content is incomplete: ${JSON.stringify(child)}`);
     if (label === "current") {
@@ -68,10 +69,11 @@ for (const size of ["desktop", "mobile"]) {
       assert.equal(child.text, baseline.text, `${size}/day carousel visible content differs between baseline and current`);
       assert.deepEqual([child.tag, child.dataIndex], [baseline.tag, baseline.dataIndex],
         `${size}/day carousel stable child identity differs between baseline and current`);
-      console.log(`${size}/day populated carousel child geometry baseline/current: ${JSON.stringify({
-        baseline: baseline.bounds, current: child.bounds,
-        delta: child.bounds.map((value, index) => Number((value - baseline.bounds[index]).toFixed(2))),
-      })}`);
+      const geometryDelta = child.bounds.map((value, index) => Number((value - baseline.bounds[index]).toFixed(2)));
+      const geometryComparison = { baseline: baseline.bounds, current: child.bounds, delta: geometryDelta, tolerancePx: 1 };
+      console.log(`${size}/day populated carousel child geometry baseline/current: ${JSON.stringify(geometryComparison)}`);
+      assert.ok(geometryDelta.every(delta => Math.abs(delta) <= geometryComparison.tolerancePx),
+        `${size}/day populated carousel card geometry differs between baseline and current by more than ${geometryComparison.tolerancePx}px: ${JSON.stringify(geometryComparison)}`);
     }
   }
   for (const collection of ["keyBounds", "scrollables"]) {
