@@ -221,8 +221,8 @@ jobs:
             if (fs.existsSync(layoutPath)) {
               const layoutLines = fs.readFileSync(layoutPath, "utf8").trim().split(/\r?\n/);
               const focused = layoutLines.filter(line =>
-                /^(desktop|mobile)\/day lyric-effect control style\/geometry differences:/.test(line)
-                || /"classes":"[^"]*kefe-(?:lyric-effects-control|lyric-effect-option|lyric-effect-sample|lyric-effect-name|background-effect-control|font-selector-control)/.test(line)
+                /^(desktop|mobile)\/day unmatched lyric-effect descendants current\/baseline:/.test(line)
+                || line.startsWith("KEFE_EFFECT_UNMATCHED:")
               ).slice(0, 18);
               if (focused.length) core.notice(`Focused lyric-effect control differences:\n${focused.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
             }

@@ -73,5 +73,16 @@ for (const size of ["desktop", "mobile"]) {
   for (const item of effectControls.slice(0, 16)) {
     console.log(JSON.stringify({ section: item.section, panel: item.panel, tag: item.tag, id: item.id, classes: item.classes, fields: item.changedFields }));
   }
+  const isEffectControl = item => /kefe-(?:lyric-effects-control|lyric-effect-option|lyric-effect-sample|lyric-effect-name|background-effect-control|font-selector-control)/.test(item.path);
+  const unmatchedEffectCurrent = [...newMap].flatMap(([key, items]) => items.slice(Math.min(items.length, oldMap.get(key)?.length || 0))).filter(isEffectControl);
+  const unmatchedEffectBaseline = [...oldMap].flatMap(([key, items]) => items.slice(Math.min(items.length, newMap.get(key)?.length || 0))).filter(isEffectControl);
+  console.log(`${size}/day unmatched lyric-effect descendants current/baseline: ${unmatchedEffectCurrent.length}/${unmatchedEffectBaseline.length}`);
+  for (const [side, items] of [["current", unmatchedEffectCurrent], ["baseline", unmatchedEffectBaseline]]) {
+    for (const item of items.slice(0, 12)) {
+      console.log(`KEFE_EFFECT_UNMATCHED:${JSON.stringify({ side, tag: item.tag, id: item.id, classes: item.classes, text: item.text,
+        bounds: [Number(item.x.toFixed(2)), Number(item.y.toFixed(2)), Number(item.width.toFixed(2)), Number(item.height.toFixed(2))],
+        display: item.display, color: item.color, background: item.background, border: item.border, padding: item.padding })}`);
+    }
+  }
 }
 fs.writeFileSync(path.join(currentDir, "layout-comparison.json"), JSON.stringify(summaries));
