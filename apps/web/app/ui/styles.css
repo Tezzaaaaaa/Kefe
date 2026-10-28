@@ -8997,7 +8997,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 
 /* Keep the label as the native file/drop target; its inner Card owns the surface. */
 #kefeUploadZone.beui-upload-dropzone{
-  position:relative;display:block;box-sizing:border-box;width:100%;height:128px;min-height:128px;max-height:128px;padding:0;
+  position:relative;display:block;box-sizing:border-box;width:100%;height:154px;min-height:154px;max-height:154px;padding:0;
   overflow:hidden;border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--text);
   text-align:center;cursor:pointer;transition:none;
 }
