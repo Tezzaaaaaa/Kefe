@@ -3106,11 +3106,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   .kefe-line-main .kefe-line-text{grid-column:1/-1}
 }
 
-/* Downloads and review checklist */
-.kefe-download-row{
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  min-width:0;
-}.kefe-download-row>button{width:100%;min-width:0;max-width:100%;padding-inline:8px;white-space:normal;overflow-wrap:anywhere}
+/* Review checklist (the download row is styled once, in panels-compact.css) */
 .kefe-review{display:grid;gap:8px}
 .kefe-review-item{display:flex;gap:8px;align-items:flex-start;font-size:var(--font-sm);line-height:1.4;cursor:pointer}
 .kefe-review-item input{margin-top:3px;accent-color:var(--accent)}
@@ -10394,10 +10390,7 @@ textarea.beui-native-textarea {
 .kefe-lyric-effect-carousel > #lyricEffectOptions { grid-column: 2; grid-row: 1; }
 .kefe-lyric-effect-carousel > .kefe-lyric-effect-carousel-nav:last-child { grid-column: 3; grid-row: 1; }
 
-/* ===== Lyric downloads + export status ===== */
-.kefe-download-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.kefe-download-row .beui-panel-button-host { flex: 1 1 auto; min-width: 0; display: flex; }
-.kefe-download-row .beui-panel-button-host > button { width: 100%; white-space: nowrap; font-size: 12.5px; padding-inline: 10px; }
+/* ===== Export status ===== */
 #exportStatus:empty { display: none; }
 
 /* The work area contains only the preview and timeline; the editor panel is a sibling grid item. */
