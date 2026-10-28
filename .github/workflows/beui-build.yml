@@ -174,19 +174,27 @@ jobs:
         with:
           script: |
             const fs = require("fs");
-            const files = [
-              ["baseline browser error", "/tmp/kefe-layout-main/browser-smoke-error.json"],
-              ["baseline browser log", "/tmp/kefe-layout-main/baseline-browser-smoke.log"],
-              ["layout comparison", "/tmp/kefe-screenshots/layout-comparison.log"],
-              ["screen-state comparison", "/tmp/kefe-screenshots/screen-state-comparison.log"],
-            ];
-            const details = files.map(([label, filename]) => {
-              if (!fs.existsSync(filename)) return `${label}: no file produced`;
-              return `${label}:\\n${fs.readFileSync(filename, "utf8").slice(-5000)}`;
-            }).join("\\n\\n");
-            core.error(`Baseline browser/layout comparison failed.\\n${details}`, {file: ".github/workflows/beui-build.yml", startLine: 77});
+            const baselineErrorPath = "/tmp/kefe-layout-main/browser-smoke-error.json";
+            const statePath = "/tmp/kefe-screenshots/screen-state-comparison.log";
+            if (fs.existsSync(baselineErrorPath)) {
+              const diagnostic = JSON.parse(fs.readFileSync(baselineErrorPath, "utf8"));
+              core.error(`Baseline browser smoke failure: ${diagnostic.message}\n${diagnostic.stack || ""}`, {file: ".github/workflows/beui-build.yml", startLine: 77});
+            } else {
+              core.warning("Baseline browser smoke diagnostic is missing; baseline outcome is incomplete.", {file: ".github/workflows/beui-build.yml", startLine: 77});
+            }
+            if (!fs.existsSync(statePath)) {
+              core.warning("Baseline/current screen-state comparison is missing; carousel diagnostics are incomplete.", {file: ".github/workflows/beui-build.yml", startLine: 77});
+            } else {
+              const lines = fs.readFileSync(statePath, "utf8").split(/\r?\n/);
+              for (const line of lines.filter(line => line.includes("carousel child state"))) {
+                core.notice(line, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              }
+              for (const line of lines.filter(line => /^(desktop|mobile)\/day:/.test(line))) {
+                core.notice(line, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              }
+            }
       - name: Compare editor and volume screenshots against main
-        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
         env:
           NODE_PATH: /tmp/kefe-browser/node_modules
         run: |
@@ -199,27 +207,30 @@ jobs:
           script: |
             const fs = require("fs");
             const logPath = "/tmp/kefe-screenshots/visual-comparison.log";
-            if (!fs.existsSync(logPath)) {
-              core.info("No screenshot comparison log was produced in this run.");
-              return;
-            }
-            const comparison = fs.readFileSync(logPath, "utf8").trim().split(/\r?\n/);
+            const comparison = fs.existsSync(logPath) ? fs.readFileSync(logPath, "utf8").trim().split(/\r?\n/) : [];
             const metrics = comparison.filter(line => /^(editor|volume-card) (desktop|mobile)\/(day|night):/.test(line));
-            core.notice(`Editor/volume visual metrics:\n${metrics.join("\n") || "No summary lines were produced."}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+            if (metrics.length) {
+              core.notice(`Editor/volume visual metrics:\n${metrics.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+            }
+            if (metrics.length !== 8) {
+              core.warning(`Visual comparison is incomplete: expected 8 editor/volume metrics (four viewport/theme modes each), found ${metrics.length}. Missing screenshots are not a pass.`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+            }
             const layoutPath = "/tmp/kefe-screenshots/layout-comparison.log";
             if (fs.existsSync(layoutPath)) {
-              const layout = fs.readFileSync(layoutPath, "utf8").trim();
-              core.notice(`Baseline/current matched DOM layout:\n${layout}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              const layout = fs.readFileSync(layoutPath, "utf8").trim().split(/\r?\n/).filter(line => /^(desktop|mobile)\/day DOM diff:/.test(line));
+              if (layout.length) core.notice(`Baseline/current matched DOM layout:\n${layout.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
             }
             const statePath = "/tmp/kefe-screenshots/screen-state-comparison.log";
             if (fs.existsSync(statePath)) {
               const lines = fs.readFileSync(statePath, "utf8").trim().split(/\r?\n/);
-              for (const size of ["desktop", "mobile"]) {
-                const start = lines.findIndex(line => line.startsWith(`${size}/day:`));
-                if (start < 0) continue;
-                const end = lines.findIndex((line, index) => index > start && /^(desktop|mobile)\/day:/.test(line));
-                core.notice(`Baseline/current ${size} screenshot state:\n${lines.slice(start, end < 0 ? undefined : end).join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              for (const line of lines.filter(line => line.includes("carousel child state"))) {
+                core.notice(line, {file: ".github/workflows/beui-build.yml", startLine: 23});
               }
+              for (const line of lines.filter(line => /^(desktop|mobile)\/day:/.test(line))) {
+                core.notice(line, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              }
+            } else {
+              core.warning("Baseline/current screen-state comparison is missing; carousel diagnostics are incomplete.", {file: ".github/workflows/beui-build.yml", startLine: 23});
             }
       - name: Encode screenshot previews for visual regression diagnosis
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
@@ -265,5 +276,5 @@ jobs:
         with:
           name: kefe-browser-screenshots-${{ github.sha }}
           path: /tmp/kefe-screenshots/
-          if-no-files-found: ignore
+          if-no-files-found: warn
           retention-days: 14

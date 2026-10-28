@@ -115,6 +115,23 @@ async function captureEditorScreenState(page) {
         text: (node.innerText || node.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
         x: rect.x, y: rect.y, width: rect.width, height: rect.height, childCount: node.children.length,
         childSummary: node.id === "kefeCarStack" ? [...node.children].slice(0, 10).map(child => `${child.tagName.toLowerCase()}.${[...child.classList].join(".")}:${child.hidden ? "hidden" : getComputedStyle(child).display}:${child.textContent.trim().slice(0, 20)}`).join("|") : "",
+        carouselChildren: node.id === "kefeCarStack" ? [...node.children].map((child, index) => {
+          const childRect = child.getBoundingClientRect();
+          const style = getComputedStyle(child);
+          return {
+            index,
+            tag: child.tagName.toLowerCase(),
+            id: child.id || "",
+            classes: [...child.classList].join(" "),
+            dataIndex: child.dataset.i || "",
+            dataKeys: Object.keys(child.dataset).sort(),
+            text: (child.innerText || child.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
+            hidden: child.hidden,
+            display: style.display,
+            bounds: [childRect.x, childRect.y, childRect.width, childRect.height],
+          };
+        }) : undefined,
+        value: "value" in node ? node.value : undefined,
         scrollTop: node.scrollTop,
         scrollLeft: node.scrollLeft, scrollHeight: node.scrollHeight, clientHeight: node.clientHeight,
       };
@@ -128,7 +145,7 @@ async function captureEditorScreenState(page) {
       scrollables: [...document.querySelectorAll(".kefe-editor, .kefe-editor *")].filter(node =>
         node.scrollHeight > node.clientHeight + 2 && node.getBoundingClientRect().width > 0
       ).map(describe),
-      keyBounds: [...document.querySelectorAll(".kefe-settings-mount, #kefe-settings-panel, .kefe-settings-columns > .kefe-panel[data-group], .kefe-panel-label, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form, .kefe-step, .kefe-step-body, .kefe-media-upload-row, .kefe-find, .kefe-find-bar, .kefe-find-status, .kefe-search, .kefe-carousel, #kefeCarStack, #kefeCarInfo, .kefe-song-details, .kefe-details-grid")]
+      keyBounds: [...document.querySelectorAll(".kefe-settings-mount, #kefe-settings-panel, .kefe-settings-columns > .kefe-panel[data-group], .kefe-panel-label, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form, .kefe-step, .kefe-step-body, .kefe-media-upload-row, .kefe-find, .kefe-find-bar, #kefeFindInput, .kefe-find-status, .kefe-search, .kefe-carousel, #kefeCarStack, #kefeCarInfo, .kefe-song-details, .kefe-details-grid")]
         .filter(node => node.getBoundingClientRect().width > 0).map(describe),
     };
   });

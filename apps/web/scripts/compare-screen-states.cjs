@@ -26,6 +26,24 @@ for (const size of ["desktop", "mobile"]) {
   const before = JSON.parse(fs.readFileSync(path.join(baselineDir, `editor-screen-state-${size}-day.json`), "utf8"));
   const after = JSON.parse(fs.readFileSync(path.join(currentDir, `editor-screen-state-${size}-day.json`), "utf8"));
   console.log(`${size}/day: viewport ${JSON.stringify(before.viewport)} → ${JSON.stringify(after.viewport)}; window scroll ${JSON.stringify(before.windowScroll)} → ${JSON.stringify(after.windowScroll)}; active ${before.activeSection} → ${after.activeSection}; expanded ${JSON.stringify(before.expandedSettings)} → ${JSON.stringify(after.expandedSettings)}`);
+  for (const [label, state] of [["baseline", before], ["current", after]]) {
+    const carousel = state.keyBounds.find(node => node.id === "kefeCarStack");
+    const findInput = state.keyBounds.find(node => node.id === "kefeFindInput");
+    const findStatus = state.keyBounds.find(node => node.id === "kefeFindStatus");
+    const details = carousel ? {
+      count: carousel.childCount,
+      bounds: [carousel.x, carousel.y, carousel.width, carousel.height],
+      scroll: { left: carousel.scrollLeft, width: carousel.scrollWidth, clientWidth: carousel.clientWidth },
+      children: (carousel.carouselChildren || []).map(child => ({
+        index: child.index, tag: child.tag, id: child.id, classes: child.classes,
+        dataIndex: child.dataIndex, text: child.text, display: child.display, bounds: child.bounds,
+      })),
+      omittedChildren: Math.max(0, carousel.childCount - (carousel.carouselChildren || []).length),
+      findInput: findInput ? { value: findInput.value, bounds: [findInput.x, findInput.y, findInput.width, findInput.height] } : null,
+      findStatus: findStatus ? { text: findStatus.text, bounds: [findStatus.x, findStatus.y, findStatus.width, findStatus.height] } : null,
+    } : null;
+    console.log(`${size}/day carousel child state ${label}: ${JSON.stringify(details)}`);
+  }
   for (const collection of ["keyBounds", "scrollables"]) {
     const oldMap = index(before[collection]);
     const newMap = index(after[collection]);
