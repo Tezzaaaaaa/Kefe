@@ -558,15 +558,37 @@ async function captureEditorScreenState(page) {
       const geometry = await page.locator(`.kefe-panel[data-panel-view="${section}"]`).evaluate(panel => {
         const form = panel.querySelector(".kefe-visualiser-form") || panel.querySelector(".kefe-form");
         const formRect = form.getBoundingClientRect();
+        const formStyle = getComputedStyle(form);
+        const measure = node => {
+          const rect = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          return {
+            tag: node.tagName.toLowerCase(), id: node.id || "", classes: typeof node.className === "string" ? node.className : "",
+            left: rect.left, right: rect.right, top: rect.top, width: rect.width,
+            clientWidth: node.clientWidth, scrollWidth: node.scrollWidth,
+            display: style.display, position: style.position, boxSizing: style.boxSizing,
+            minWidth: style.minWidth, maxWidth: style.maxWidth, gridColumn: style.gridColumn,
+            whiteSpace: style.whiteSpace, overflowX: style.overflowX, padding: style.padding,
+          };
+        };
         const children = [...form.children].filter(child => {
           const style = getComputedStyle(child);
           return !child.hidden && style.display !== "none" && style.display !== "contents";
         });
-        const overflow = children.map(child => {
-          const rect = child.getBoundingClientRect();
-          return {className: child.className, left: rect.left, right: rect.right, width: rect.width};
-        }).filter(item => item.left < formRect.left - 1 || item.right > formRect.right + 1);
-        return {formWidth: formRect.width, clientWidth: form.clientWidth, scrollWidth: form.scrollWidth, overflow};
+        const overflow = children.map(measure).filter(item => item.left < formRect.left - 1 || item.right > formRect.right + 1);
+        const overflowDescendants = [...form.querySelectorAll("*")].map(measure)
+          .filter(item => item.scrollWidth > item.clientWidth + 1 || item.left < formRect.left - 1 || item.right > formRect.right + 1)
+          .sort((a, b) => (b.scrollWidth - b.clientWidth) - (a.scrollWidth - a.clientWidth))
+          .slice(0, 30);
+        const pseudo = ["::before", "::after"].map(selector => {
+          const style = getComputedStyle(form, selector);
+          return {selector, content: style.content, display: style.display, width: style.width, marginInline: `${style.marginLeft} ${style.marginRight}`, overflowX: style.overflowX};
+        });
+        return {
+          formWidth: formRect.width, clientWidth: form.clientWidth, scrollWidth: form.scrollWidth,
+          gridTemplateColumns: formStyle.gridTemplateColumns, gap: formStyle.gap, boxSizing: formStyle.boxSizing,
+          padding: formStyle.padding, overflow, overflowDescendants, pseudo,
+        };
       });
       assert.equal(geometry.overflow.length, 0, `${section} controls must stay inside their form: ${JSON.stringify(geometry)}`);
       assert.ok(geometry.scrollWidth <= geometry.clientWidth + 1, `${section} form must not overflow horizontally: ${JSON.stringify(geometry)}`);

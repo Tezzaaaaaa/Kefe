@@ -144,6 +144,35 @@ jobs:
           if baseline_source.count(old_aspect_a11y) != 1:
               raise SystemExit("Baseline aspect accessibility assertion is not uniquely selectable")
           baseline_source = baseline_source.replace(old_aspect_a11y, '    // The baseline retains its legacy aspect-control accessibility behavior.')
+          # Main's old screenshot block captures after the smoke search has populated its live
+          # carousel. Reuse the current isolated-context capture so both sides start clean,
+          # without changing the baseline UI or its smoke assertions.
+          screenshot_start = "    // Save repeatable before/after images of the component and its surrounding layout."
+          screenshot_end = '\n\n    await page.keyboard.press("Escape");\n    await volumePopover.waitFor'
+          if current_source.count(screenshot_start) != 1 or baseline_source.count(screenshot_start) != 1:
+              raise SystemExit("Screenshot capture block is not uniquely selectable on both builds")
+          if current_source.count(screenshot_end) != 1 or baseline_source.count(screenshot_end) != 1:
+              raise SystemExit("Screenshot capture block no longer ends at the expected volume-popover boundary")
+          current_screenshot_start = current_source.index(screenshot_start)
+          current_screenshot_end = current_source.index(screenshot_end, current_screenshot_start)
+          baseline_screenshot_start = baseline_source.index(screenshot_start)
+          baseline_screenshot_end = baseline_source.index(screenshot_end, baseline_screenshot_start)
+          current_screenshot = current_source[current_screenshot_start:current_screenshot_end]
+          baseline_source = baseline_source[:baseline_screenshot_start] + current_screenshot + baseline_source[baseline_screenshot_end:]
+          # Keep the same strict horizontal-overflow assertions while emitting matching
+          # descendant geometry for the baseline and current page when one fails.
+          fit_start = "    async function assertSectionFits(section) {"
+          fit_end = '\n\n    assert.equal(await page.locator(\'.kefe-panel[data-panel-view="effects"] .kefe-effects-background-group\').count(), 0,'
+          if current_source.count(fit_start) != 1 or baseline_source.count(fit_start) != 1:
+              raise SystemExit("Section-fit smoke helper is not uniquely selectable on both builds")
+          if current_source.count(fit_end) != 1 or baseline_source.count(fit_end) != 1:
+              raise SystemExit("Section-fit smoke helper no longer has its expected boundary")
+          current_fit_start = current_source.index(fit_start)
+          current_fit_end = current_source.index(fit_end, current_fit_start)
+          baseline_fit_start = baseline_source.index(fit_start)
+          baseline_fit_end = baseline_source.index(fit_end, baseline_fit_start)
+          current_fit_helper = current_source[current_fit_start:current_fit_end]
+          baseline_source = baseline_source[:baseline_fit_start] + current_fit_helper + baseline_source[baseline_fit_end:]
           # Capture the same media child boxes from both builds so large panel-height
           # regressions can be localized below the section/scroll-container level.
           capture_start = "async function captureEditorScreenState(page) {"
