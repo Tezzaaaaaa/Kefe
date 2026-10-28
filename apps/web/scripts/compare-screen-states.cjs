@@ -36,7 +36,7 @@ for (const size of ["desktop", "mobile"]) {
         const oldNode = oldItems[i];
         const newNode = newItems[i];
         const fields = {};
-        for (const field of ["x", "y", "width", "height", "scrollTop", "scrollLeft", "scrollHeight", "clientHeight"]) {
+        for (const field of ["x", "y", "width", "height", "childCount", "scrollTop", "scrollLeft", "scrollHeight", "clientHeight"]) {
           if (Math.abs((oldNode[field] || 0) - (newNode[field] || 0)) > 0.75) fields[field] = [oldNode[field], newNode[field]];
         }
         if (Object.keys(fields).length) changes.push({ key, oldNode, newNode, fields });
