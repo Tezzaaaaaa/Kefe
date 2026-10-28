@@ -115,7 +115,15 @@ async function captureEditorScreenState(page) {
         text: (node.innerText || node.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
         x: rect.x, y: rect.y, width: rect.width, height: rect.height, childCount: node.children.length,
         childSummary: node.id === "kefeCarStack" ? [...node.children].slice(0, 10).map(child => `${child.tagName.toLowerCase()}.${[...child.classList].join(".")}:${child.hidden ? "hidden" : getComputedStyle(child).display}:${child.textContent.trim().slice(0, 20)}`).join("|") : "",
-        carouselChildren: node.id === "kefeCarStack" ? [...node.children].map((child, index) => {
+        renderedCardCount: node.id === "kefeCarStack" ? [...node.querySelectorAll("button.kefe-car-card")].filter(card =>
+          !card.classList.contains("beui-native-panel-button") && card.getClientRects().length > 0
+          && getComputedStyle(card).display !== "none" && getComputedStyle(card).visibility !== "hidden"
+        ).length : undefined,
+        carouselChildren: node.id === "kefeCarStack" ? [...node.querySelectorAll("button.kefe-car-card")].filter(card =>
+          !card.classList.contains("beui-native-panel-button") && card.getClientRects().length > 0
+          && getComputedStyle(card).display !== "none" && getComputedStyle(card).visibility !== "hidden"
+        ).map((child, index) => {
+          const backing = child.closest(".beui-panel-button-host")?.nextElementSibling || child;
           const childRect = child.getBoundingClientRect();
           const style = getComputedStyle(child);
           return {
@@ -123,8 +131,8 @@ async function captureEditorScreenState(page) {
             tag: child.tagName.toLowerCase(),
             id: child.id || "",
             classes: [...child.classList].join(" "),
-            dataIndex: child.dataset.i || "",
-            dataKeys: Object.keys(child.dataset).sort(),
+            dataIndex: backing.dataset.i || child.dataset.i || "",
+            dataKeys: Object.keys(backing.dataset).sort(),
             ariaLabel: child.getAttribute("aria-label") || "",
             ariaPressed: child.getAttribute("aria-pressed"),
             tabIndex: child.tabIndex,
@@ -830,15 +838,28 @@ async function captureEditorScreenState(page) {
       };
       await screenshotPage.waitForFunction(() => typeof window.kefeCarousel?.setLocalUpload === "function", null, { timeout: 10000 });
       await screenshotPage.evaluate((item) => window.kefeCarousel.setLocalUpload(item, true), carouselFixture);
-      const fixtureCard = screenshotPage.locator("#kefeCarStack > .kefe-car-card");
-      await fixtureCard.waitFor({ state: "visible", timeout: 5000 });
-      const seededCarousel = await fixtureCard.evaluate((card) => ({
-        count: card.parentElement.children.length,
-        ariaLabel: card.getAttribute("aria-label"),
-        text: (card.innerText || "").trim().replace(/\s+/g, " "),
-        bounds: (() => { const rect = card.getBoundingClientRect(); return [rect.x, rect.y, rect.width, rect.height]; })(),
-      }));
+      const baselineUsesButtonBridge = await screenshotPage.evaluate(() =>
+        [...document.scripts].some(script => script.src.includes("legacy-panel-buttons-bridge")));
+      const fixtureCard = screenshotPage.locator(baselineUsesButtonBridge
+        ? '#kefeCarStack > .beui-panel-button-host > button.kefe-car-card'
+        : '#kefeCarStack > button.kefe-car-card:not(.beui-native-panel-button)');
+      await fixtureCard.waitFor({ state: "visible", timeout: 10000 });
+      const seededCarousel = await fixtureCard.evaluate((card) => {
+        const visibleCards = [...document.querySelectorAll("#kefeCarStack button.kefe-car-card")].filter(candidate =>
+          !candidate.classList.contains("beui-native-panel-button") && candidate.getClientRects().length > 0
+          && getComputedStyle(candidate).display !== "none" && getComputedStyle(candidate).visibility !== "hidden");
+        const backing = card.closest(".beui-panel-button-host")?.nextElementSibling || card;
+        const rect = card.getBoundingClientRect();
+        return {
+          count: visibleCards.length,
+          dataIndex: backing.dataset.i || card.dataset.i || "",
+          ariaLabel: card.getAttribute("aria-label"),
+          text: (card.innerText || "").trim().replace(/\s+/g, " "),
+          bounds: [rect.x, rect.y, rect.width, rect.height],
+        };
+      });
       assert.equal(seededCarousel.count, 1, `screenshot carousel fixture must render exactly one real item: ${JSON.stringify(seededCarousel)}`);
+      assert.equal(seededCarousel.dataIndex, "0", `screenshot carousel fixture must retain stable item index 0: ${JSON.stringify(seededCarousel)}`);
       assert.equal(seededCarousel.ariaLabel, `${carouselFixture.trackName} by ${carouselFixture.artistName}`,
         `screenshot carousel fixture must retain the real card identity: ${JSON.stringify(seededCarousel)}`);
       assert.ok(seededCarousel.text.includes(carouselFixture.trackName) && seededCarousel.text.includes(carouselFixture.artistName),

@@ -31,7 +31,8 @@ for (const size of ["desktop", "mobile"]) {
     const findInput = state.keyBounds.find(node => node.id === "kefeFindInput");
     const findStatus = state.keyBounds.find(node => node.id === "kefeFindStatus");
     const details = carousel ? {
-      count: carousel.childCount,
+      count: carousel.renderedCardCount,
+      domChildCount: carousel.childCount,
       bounds: [carousel.x, carousel.y, carousel.width, carousel.height],
       scroll: { left: carousel.scrollLeft, width: carousel.scrollWidth, clientWidth: carousel.clientWidth },
       children: (carousel.carouselChildren || []).map(child => ({
