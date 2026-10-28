@@ -47,6 +47,15 @@ for (const size of ["desktop", "mobile"]) {
     const unmatchedBefore = [...oldMap].reduce((n, [key, items]) => n + Math.max(0, items.length - (newMap.get(key)?.length || 0)), 0);
     const unmatchedAfter = [...newMap].reduce((n, [key, items]) => n + Math.max(0, items.length - (oldMap.get(key)?.length || 0)), 0);
     console.log(`${collection}: ${changes.length} matched geometry/scroll differences; unmatched current/baseline=${unmatchedAfter}/${unmatchedBefore}`);
+    if (collection === "keyBounds") {
+      const mediaChanges = changes.filter(({ oldNode, newNode }) => oldNode.section === "media" || newNode.section === "media");
+      console.log(`media content geometry: ${mediaChanges.length} changed entries`);
+      for (const change of mediaChanges.slice(0, 10)) {
+        console.log(JSON.stringify({ key: change.key, classes: change.newNode.classes, text: change.newNode.text, fields: change.fields,
+          baseline: [change.oldNode.x, change.oldNode.y, change.oldNode.width, change.oldNode.height],
+          current: [change.newNode.x, change.newNode.y, change.newNode.width, change.newNode.height] }));
+      }
+    }
     for (const change of changes.slice(0, 8)) {
       console.log(JSON.stringify({ key: change.key, fields: change.fields,
         baseline: { bounds: [change.oldNode.x, change.oldNode.y, change.oldNode.width, change.oldNode.height], scrollTop: change.oldNode.scrollTop, scrollHeight: change.oldNode.scrollHeight, clientHeight: change.oldNode.clientHeight },

@@ -126,7 +126,7 @@ async function captureEditorScreenState(page) {
       scrollables: [...document.querySelectorAll(".kefe-editor, .kefe-editor *")].filter(node =>
         node.scrollHeight > node.clientHeight + 2 && node.getBoundingClientRect().width > 0
       ).map(describe),
-      keyBounds: [...document.querySelectorAll(".kefe-settings-mount, #kefe-settings-panel, .kefe-settings-columns > .kefe-panel[data-group], .kefe-panel-label, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form")]
+      keyBounds: [...document.querySelectorAll(".kefe-settings-mount, #kefe-settings-panel, .kefe-settings-columns > .kefe-panel[data-group], .kefe-panel-label, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form, .kefe-step, .kefe-step-body, .kefe-media-upload-row, .kefe-find, .kefe-carousel, .kefe-song-details, .kefe-details-grid")]
         .filter(node => node.getBoundingClientRect().width > 0).map(describe),
     };
   });

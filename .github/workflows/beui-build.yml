@@ -144,6 +144,17 @@ jobs:
           if baseline_source.count(old_aspect_a11y) != 1:
               raise SystemExit("Baseline aspect accessibility assertion is not uniquely selectable")
           baseline_source = baseline_source.replace(old_aspect_a11y, '    // The baseline retains its legacy aspect-control accessibility behavior.')
+          # Capture the same media child boxes from both builds so large panel-height
+          # regressions can be localized below the section/scroll-container level.
+          capture_start = "async function captureEditorScreenState(page) {"
+          capture_end = "\n\n(async () => {"
+          if current_source.count(capture_start) != 1 or baseline_source.count(capture_start) != 1:
+              raise SystemExit("Screen-state capture function no longer has a unique boundary")
+          current_capture_start = current_source.index(capture_start)
+          current_capture_end = current_source.index(capture_end, current_capture_start)
+          baseline_capture_start = baseline_source.index(capture_start)
+          baseline_capture_end = baseline_source.index(capture_end, baseline_capture_start)
+          baseline_source = baseline_source[:baseline_capture_start] + current_source[current_capture_start:current_capture_end] + baseline_source[baseline_capture_end:]
           baseline.write_text(baseline_source)
           PY
           node /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs 2>&1 | tee /tmp/kefe-layout-main/baseline-browser-smoke.log
