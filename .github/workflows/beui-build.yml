@@ -159,6 +159,12 @@ jobs:
           baseline_screenshot_end = baseline_source.index(screenshot_end, baseline_screenshot_start)
           current_screenshot = current_source[current_screenshot_start:current_screenshot_end]
           baseline_source = baseline_source[:baseline_screenshot_start] + current_screenshot + baseline_source[baseline_screenshot_end:]
+          # Main hides the native volume backing button behind its React transport control.
+          old_volume_trigger = 'await screenshotPage.locator("#kefeMuteToggle").click();'
+          new_volume_trigger = "await screenshotPage.locator('.beui-transport-host button[aria-controls=\"kefeVolumePopover\"]').click();"
+          if baseline_source.count(old_volume_trigger) != 1:
+              raise SystemExit("Baseline volume screenshot trigger no longer matches the hidden native backing button")
+          baseline_source = baseline_source.replace(old_volume_trigger, new_volume_trigger)
           # Keep the same strict horizontal-overflow assertions while emitting matching
           # descendant geometry for the baseline and current page when one fails.
           fit_start = "    async function assertSectionFits(section) {"
