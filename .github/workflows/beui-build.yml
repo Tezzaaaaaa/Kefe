@@ -85,7 +85,8 @@ jobs:
             const details = `Browser smoke failed. Diagnostic:\n${diagnostic}\n\nLog tail:\n${log}`;
             core.error(details, {file: ".github/workflows/beui-build.yml", startLine: 22});
             await core.summary.addHeading("Browser smoke diagnostic").addCodeBlock(details).write();
-      - name: Compare baseline and current day-theme DOM layouts and scroll state
+      - name: Run main-branch baseline browser smoke test
+        id: main_baseline_smoke
         if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         env:
           NODE_PATH: /tmp/kefe-browser/node_modules
@@ -192,20 +193,40 @@ jobs:
           baseline_source = baseline_source[:baseline_capture_start] + current_source[current_capture_start:current_capture_end] + baseline_source[baseline_capture_end:]
           baseline.write_text(baseline_source)
           PY
-          set +e
+          set -o pipefail
           node /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs 2>&1 | tee /tmp/kefe-layout-main/baseline-browser-smoke.log
-          baseline_status=${PIPESTATUS[0]}
+      - name: Compare baseline and current DOM layouts and screen state
+        if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+        env:
+          NODE_PATH: /tmp/kefe-browser/node_modules
+        run: |
+          node - <<'NODE'
+          const fs = require("fs");
+          const path = require("path");
+          const required = [
+            ["/tmp/kefe-layout-main", "editor-layout-desktop-day.json"],
+            ["/tmp/kefe-layout-main", "editor-layout-mobile-day.json"],
+            ["/tmp/kefe-screenshots", "editor-layout-desktop-day.json"],
+            ["/tmp/kefe-screenshots", "editor-layout-mobile-day.json"],
+            ["/tmp/kefe-layout-main", "editor-screen-state-desktop-day.json"],
+            ["/tmp/kefe-layout-main", "editor-screen-state-mobile-day.json"],
+            ["/tmp/kefe-screenshots", "editor-screen-state-desktop-day.json"],
+            ["/tmp/kefe-screenshots", "editor-screen-state-mobile-day.json"],
+          ];
+          const missing = required.filter(([dir, name]) => !fs.existsSync(path.join(dir, name)));
+          if (missing.length) {
+            console.error(`INCOMPLETE baseline/current DOM and screen comparison; missing captures: ${JSON.stringify(missing)}`);
+            process.exit(1);
+          }
+          NODE
+          set -o pipefail
           node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/layout-comparison.log
-          layout_status=${PIPESTATUS[0]}
           node apps/web/scripts/compare-screen-states.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/screen-state-comparison.log
-          screen_state_status=${PIPESTATUS[0]}
-          set -e
-          if [ "$baseline_status" -ne 0 ]; then exit "$baseline_status"; fi
-          if [ "$layout_status" -ne 0 ]; then exit "$layout_status"; fi
-          if [ "$screen_state_status" -ne 0 ]; then exit "$screen_state_status"; fi
-      - name: Report baseline layout comparison failure details
+      - name: Report baseline and DOM/carousel comparison outcomes
         if: failure()
         uses: actions/github-script@v7
+        env:
+          BASELINE_OUTCOME: ${{ steps.main_baseline_smoke.outcome }}
         with:
           script: |
             const fs = require("fs");
@@ -214,8 +235,12 @@ jobs:
             if (fs.existsSync(baselineErrorPath)) {
               const diagnostic = JSON.parse(fs.readFileSync(baselineErrorPath, "utf8"));
               core.error(`Baseline browser smoke failure: ${diagnostic.message}\n${diagnostic.stack || ""}`, {file: ".github/workflows/beui-build.yml", startLine: 77});
+            } else if (process.env.BASELINE_OUTCOME === "failure") {
+              core.warning("Baseline browser smoke failed without a structured diagnostic; consult its step log.", {file: ".github/workflows/beui-build.yml", startLine: 77});
+            } else if (process.env.BASELINE_OUTCOME === "success") {
+              core.notice("Main-branch baseline browser smoke passed.", {file: ".github/workflows/beui-build.yml", startLine: 77});
             } else {
-              core.warning("Baseline browser smoke diagnostic is missing; baseline outcome is incomplete.", {file: ".github/workflows/beui-build.yml", startLine: 77});
+              core.warning("Main-branch baseline browser smoke did not run; its outcome is unavailable.", {file: ".github/workflows/beui-build.yml", startLine: 77});
             }
             const layoutPath = "/tmp/kefe-screenshots/layout-comparison.log";
             if (fs.existsSync(layoutPath)) {
@@ -223,7 +248,9 @@ jobs:
               const focused = layoutLines.filter(line =>
                 /^(desktop|mobile)\/day unmatched lyric-effect descendants current\/baseline:/.test(line)
                 || line.startsWith("KEFE_EFFECT_UNMATCHED:")
-              ).slice(0, 18);
+                || line.startsWith("KEFE_EFFECT_CONTROL_DIFF:")
+                || line.startsWith("KEFE_VISUAL_LAYOUT_DIFF:")
+              ).slice(0, 50);
               if (focused.length) core.notice(`Focused lyric-effect control differences:\n${focused.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
             }
             if (!fs.existsSync(statePath)) {

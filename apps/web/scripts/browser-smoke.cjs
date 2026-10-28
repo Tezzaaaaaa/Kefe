@@ -125,9 +125,13 @@ async function captureEditorScreenState(page) {
             classes: [...child.classList].join(" "),
             dataIndex: child.dataset.i || "",
             dataKeys: Object.keys(child.dataset).sort(),
-            text: (child.innerText || child.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
+            ariaLabel: child.getAttribute("aria-label") || "",
+            ariaPressed: child.getAttribute("aria-pressed"),
+            tabIndex: child.tabIndex,
+            text: (child.innerText || child.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 120),
             hidden: child.hidden,
             display: style.display,
+            visibility: style.visibility,
             bounds: [childRect.x, childRect.y, childRect.width, childRect.height],
           };
         }) : undefined,
@@ -817,6 +821,29 @@ async function captureEditorScreenState(page) {
       await screenshotPage.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
       await screenshotPage.waitForSelector('#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view="media"]', { state: "attached", timeout: 20000 });
       await screenshotPage.waitForSelector('#kefeBackgroundEffectOptions [data-background-mode="apple"]', { state: "attached", timeout: 10000 });
+      const carouselFixture = {
+        trackName: "KEFE visual regression fixture",
+        artistName: "KEFE browser smoke",
+        collectionName: "KEFE visual comparison",
+        fileName: "kefe-visual-regression-fixture.wav",
+        durationSeconds: 5,
+      };
+      await screenshotPage.waitForFunction(() => typeof window.kefeCarousel?.setLocalUpload === "function", null, { timeout: 10000 });
+      await screenshotPage.evaluate((item) => window.kefeCarousel.setLocalUpload(item, true), carouselFixture);
+      const fixtureCard = screenshotPage.locator("#kefeCarStack > .kefe-car-card");
+      await fixtureCard.waitFor({ state: "visible", timeout: 5000 });
+      const seededCarousel = await fixtureCard.evaluate((card) => ({
+        count: card.parentElement.children.length,
+        ariaLabel: card.getAttribute("aria-label"),
+        text: (card.innerText || "").trim().replace(/\s+/g, " "),
+        bounds: (() => { const rect = card.getBoundingClientRect(); return [rect.x, rect.y, rect.width, rect.height]; })(),
+      }));
+      assert.equal(seededCarousel.count, 1, `screenshot carousel fixture must render exactly one real item: ${JSON.stringify(seededCarousel)}`);
+      assert.equal(seededCarousel.ariaLabel, `${carouselFixture.trackName} by ${carouselFixture.artistName}`,
+        `screenshot carousel fixture must retain the real card identity: ${JSON.stringify(seededCarousel)}`);
+      assert.ok(seededCarousel.text.includes(carouselFixture.trackName) && seededCarousel.text.includes(carouselFixture.artistName),
+        `screenshot carousel fixture must expose its visible title and artist: ${JSON.stringify(seededCarousel)}`);
+      console.log("Seeded screenshot carousel through KEFE local-upload render path:", JSON.stringify(seededCarousel));
       const screenshotVolumePopover = screenshotPage.locator("#kefeVolumePopover");
       await screenshotPage.locator("#kefeMuteToggle").click();
       await screenshotVolumePopover.waitFor({ state: "visible", timeout: 5000 });

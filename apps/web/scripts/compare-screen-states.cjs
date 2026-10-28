@@ -36,13 +36,42 @@ for (const size of ["desktop", "mobile"]) {
       scroll: { left: carousel.scrollLeft, width: carousel.scrollWidth, clientWidth: carousel.clientWidth },
       children: (carousel.carouselChildren || []).map(child => ({
         index: child.index, tag: child.tag, id: child.id, classes: child.classes,
-        dataIndex: child.dataIndex, text: child.text, display: child.display, bounds: child.bounds,
+        dataIndex: child.dataIndex, ariaLabel: child.ariaLabel, ariaPressed: child.ariaPressed,
+        tabIndex: child.tabIndex, text: child.text, display: child.display, visibility: child.visibility, bounds: child.bounds,
       })),
       omittedChildren: Math.max(0, carousel.childCount - (carousel.carouselChildren || []).length),
       findInput: findInput ? { value: findInput.value, bounds: [findInput.x, findInput.y, findInput.width, findInput.height] } : null,
       findStatus: findStatus ? { text: findStatus.text, bounds: [findStatus.x, findStatus.y, findStatus.width, findStatus.height] } : null,
     } : null;
     console.log(`${size}/day carousel child state ${label}: ${JSON.stringify(details)}`);
+    assert.ok(details, `${label} ${size}/day carousel capture is missing`);
+    assert.equal(details.count, 1, `${label} ${size}/day carousel should contain exactly one fixture card: ${JSON.stringify(details)}`);
+    assert.equal(details.omittedChildren, 0, `${label} ${size}/day carousel child capture is incomplete: ${JSON.stringify(details)}`);
+    assert.equal(details.children.length, 1, `${label} ${size}/day carousel child identity is missing: ${JSON.stringify(details)}`);
+    const child = details.children[0];
+    assert.equal(child.tag, "button", `${label} ${size}/day carousel item should be the real button card: ${JSON.stringify(child)}`);
+    assert.ok(child.classes.split(/\s+/).includes("kefe-car-card"), `${label} ${size}/day carousel card class is missing: ${JSON.stringify(child)}`);
+    assert.equal(child.dataIndex, "0", `${label} ${size}/day carousel card index is not stable: ${JSON.stringify(child)}`);
+    assert.equal(child.ariaLabel, "KEFE visual regression fixture by KEFE browser smoke",
+      `${label} ${size}/day carousel card accessible identity differs: ${JSON.stringify(child)}`);
+    assert.equal(child.ariaPressed, "true", `${label} ${size}/day selected carousel card state is missing: ${JSON.stringify(child)}`);
+    assert.ok(!child.hidden && child.display !== "none" && child.visibility !== "hidden"
+      && child.bounds[2] > 0 && child.bounds[3] > 0,
+    `${label} ${size}/day carousel card is not visibly rendered: ${JSON.stringify(child)}`);
+    assert.ok(child.text.includes("KEFE visual regression fixture") && child.text.includes("KEFE browser smoke"),
+      `${label} ${size}/day carousel card visible content is incomplete: ${JSON.stringify(child)}`);
+    if (label === "current") {
+      const baseline = before.keyBounds.find(node => node.id === "kefeCarStack")?.carouselChildren?.[0];
+      assert.ok(baseline, `${size}/day baseline carousel card identity is missing`);
+      assert.equal(child.ariaLabel, baseline.ariaLabel, `${size}/day carousel accessible identity differs between baseline and current`);
+      assert.equal(child.text, baseline.text, `${size}/day carousel visible content differs between baseline and current`);
+      assert.deepEqual([child.tag, child.dataIndex], [baseline.tag, baseline.dataIndex],
+        `${size}/day carousel stable child identity differs between baseline and current`);
+      console.log(`${size}/day populated carousel child geometry baseline/current: ${JSON.stringify({
+        baseline: baseline.bounds, current: child.bounds,
+        delta: child.bounds.map((value, index) => Number((value - baseline.bounds[index]).toFixed(2))),
+      })}`);
+    }
   }
   for (const collection of ["keyBounds", "scrollables"]) {
     const oldMap = index(before[collection]);

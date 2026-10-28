@@ -71,7 +71,7 @@ for (const size of ["desktop", "mobile"]) {
   );
   console.log(`${size}/day lyric-effect control style/geometry differences: ${effectControls.length}`);
   for (const item of effectControls.slice(0, 16)) {
-    console.log(JSON.stringify({ section: item.section, panel: item.panel, tag: item.tag, id: item.id, classes: item.classes, fields: item.changedFields }));
+    console.log(`KEFE_EFFECT_CONTROL_DIFF:${JSON.stringify({ section: item.section, panel: item.panel, tag: item.tag, id: item.id, classes: item.classes, path: item.path, text: item.text, fields: item.changedFields })}`);
   }
   const isEffectControl = item => /kefe-(?:lyric-effects-control|lyric-effect-option|lyric-effect-sample|lyric-effect-name|background-effect-control|font-selector-control)/.test(item.path);
   const unmatchedEffectCurrent = [...newMap].flatMap(([key, items]) => items.slice(Math.min(items.length, oldMap.get(key)?.length || 0))).filter(isEffectControl);
@@ -83,6 +83,13 @@ for (const size of ["desktop", "mobile"]) {
         bounds: [Number(item.x.toFixed(2)), Number(item.y.toFixed(2)), Number(item.width.toFixed(2)), Number(item.height.toFixed(2))],
         display: item.display, color: item.color, background: item.background, border: item.border, padding: item.padding })}`);
     }
+  }
+  const visualRootChanges = changes.filter(item => item.section === "media" || item.section === "lyric-effects"
+    || /kefe-sidebar-link|kefe-preview-toolbar|kefe-font-selector-control/.test(`${item.classes} ${item.path}`))
+    .sort((a, b) => Object.keys(b.changedFields).length - Object.keys(a.changedFields).length);
+  for (const item of visualRootChanges.slice(0, 14)) {
+    console.log(`KEFE_VISUAL_LAYOUT_DIFF:${JSON.stringify({ section: item.section, panel: item.panel, tag: item.tag, id: item.id,
+      classes: item.classes, fields: item.changedFields })}`);
   }
 }
 fs.writeFileSync(path.join(currentDir, "layout-comparison.json"), JSON.stringify(summaries));
