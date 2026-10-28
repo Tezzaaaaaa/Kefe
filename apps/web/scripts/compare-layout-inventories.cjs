@@ -66,5 +66,12 @@ for (const size of ["desktop", "mobile"]) {
   for (const item of relevant.slice(0, 8)) {
     console.log(JSON.stringify({ section: item.section, panel: item.panel, tag: item.tag, classes: item.classes, fields: item.changedFields }));
   }
+  const effectControls = changes.filter(item =>
+    /kefe-(?:lyric-effects-control|lyric-effect-option|lyric-effect-sample|lyric-effect-name|background-effect-control|font-selector-control)/.test(item.classes)
+  );
+  console.log(`${size}/day lyric-effect control style/geometry differences: ${effectControls.length}`);
+  for (const item of effectControls.slice(0, 16)) {
+    console.log(JSON.stringify({ section: item.section, panel: item.panel, tag: item.tag, id: item.id, classes: item.classes, fields: item.changedFields }));
+  }
 }
 fs.writeFileSync(path.join(currentDir, "layout-comparison.json"), JSON.stringify(summaries));
