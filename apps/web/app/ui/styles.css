@@ -1182,6 +1182,7 @@ button{border:0;cursor:pointer;
 .kefe-search::before{content:'';position:absolute;left:14px;top:50%;width:14px;height:14px;transform:translateY(-50%);pointer-events:none;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239A9186' stroke-width='2.2' stroke-linecap='round'><circle cx='11' cy='11' r='7'/><path d='m21 21-4.3-4.3'/></svg>") center/contain no-repeat}
 .kefe-search input{width:100%;height:var(--control-h);padding:0 40px 0 38px;border:0;outline:0;background:transparent;color:var(--text);font:inherit;font-size: var(--font-sm);font-weight:500;
   font-family: inherit;}
+#kefeFindBox > #kefeFindInput{height:30px;min-height:30px}
 .kefe-search input::placeholder{color:var(--soft,#9a9186);
   font-size: var(--font-sm);
   font-family: inherit;}
@@ -8661,7 +8662,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
 
 /* Keep the label as the native file/drop target; its inner Card owns the surface. */
 #kefeUploadZone.beui-upload-dropzone{
-  position:relative;display:block;box-sizing:border-box;width:100%;height:auto;min-height:0;max-height:154px;padding:0;
+  position:relative;display:block;box-sizing:border-box;width:100%;height:auto;min-height:129px;max-height:154px;padding:0;
   overflow:hidden;border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--text);
   text-align:center;cursor:pointer;transition:none;
 }
