@@ -70,7 +70,7 @@ const regions = states.map(([size, theme]) => {
   assert.ok(fs.existsSync(filename), `missing changed-region diagnostics: ${filename}`);
   const report = JSON.parse(fs.readFileSync(filename, "utf8"));
   const leafRegions = report.filter(item => !["kefe-editor", "kefe-panels", "kefe-panels-left", "kefe-panel", "kefe-settings-panel", "kefe-settings-columns", "kefe-settings-mount", "kefe-editing kefe-settings-layout"].includes(item.classes));
-  return { key: `${size}-${theme}`, regions: leafRegions.slice(0, 10).map(({ changed, changedPercent, section, panel, tag, id, classes, text, bounds }) => ({ changed, changedPercent, section, panel, tag, id, classes, text, bounds })) };
+  return { key: `${size}-${theme}`, regions: leafRegions.slice(0, 10).map(({ changed, changedPercent, section, panel, tag, id, classes, text, x, y, width, height }) => ({ changed, changedPercent, section, panel, tag, id, classes, text, bounds: [x, y, width, height].map(value => Number(value.toFixed(1))) })) };
 });
 const layoutPath = path.join(currentDir, "layout-comparison.json");
 assert.ok(fs.existsSync(layoutPath), `missing baseline/current layout comparison: ${layoutPath}`);
