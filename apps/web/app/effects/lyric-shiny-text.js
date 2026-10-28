@@ -22,17 +22,6 @@
     return rows;
   }
 
-  function fit(ctx, text, requested, maxWidth) {
-    let size = Math.max(30, Math.min(150, Number(requested) || 78));
-    while (size > 30) {
-      u.setContractFont(ctx, 'shiny', size);
-      const rows = wrap(ctx, text, maxWidth);
-      if (rows.length <= 3) return { size, rows };
-      size -= 2;
-    }
-    u.setContractFont(ctx, 'shiny', size);
-    return { size, rows: wrap(ctx, text, maxWidth) };
-  }
 
   let bufferCanvas = null, bufferCtx = null;
   function getBuffer(w, h) {

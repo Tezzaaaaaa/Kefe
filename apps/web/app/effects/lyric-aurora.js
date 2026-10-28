@@ -27,21 +27,7 @@ function linaFindActiveLine(lines, time) {
     return index;
 }
 
-function fitCentredEffectText(ctx, text, baseSize, maxWidth, weight, family) {
-    const face = family || '"Open Sans"';
-    let size = Number(baseSize) || 76;
-    ctx.font = `${weight} ${size}px ${face},Arial,sans-serif`;
-    while (size > 30 && ctx.measureText(text).width > maxWidth) {
-        size -= 2;
-        ctx.font = `${weight} ${size}px ${face},Arial,sans-serif`;
-    }
-    return size;
-}
 
-function activeEffectLine(lines, time) {
-    const index = linaFindActiveLine(lines, time);
-    return index >= 0 ? linaNormaliseLine(lines, index) : null;
-}
 
 function drawAuroraLine(ctx, w, h, style, line, next, time, phase) {
     const text = String(line.text || '').trim().replace(/\s+/g, ' ');

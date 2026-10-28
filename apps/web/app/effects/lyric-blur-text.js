@@ -24,17 +24,6 @@
     return rows;
   }
 
-  function fit(ctx, text, requested, maxWidth) {
-    let size = Math.max(30, Math.min(140, Number(requested) || 74));
-    while (size > 30) {
-      u.setContractFont(ctx, 'blur', size);
-      const rows = layout(ctx, text, maxWidth);
-      if (rows.length <= 3) return { size, rows };
-      size -= 2;
-    }
-    u.setContractFont(ctx, 'blur', size);
-    return { size, rows: layout(ctx, text, maxWidth) };
-  }
 
   function drawBlur(ctx, w, h, style, line, next, time, phase) {
     const text = String(line.text || '').trim().replace(/\s+/g, ' ');

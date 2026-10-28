@@ -31,7 +31,7 @@ if (!panelStyles.includes(".kefe-panel[data-panel-view]") ||
     !panelStyles.includes("--beui-foreground: var(--shell-text")) {
   failures.push("Native section panels must preserve the beUI theme tokens previously inherited from the Card root");
 }
-if (!panelStyles.includes(".kefe-panel{display:none") || !compactPanelStyles.includes(".kefe-panel[data-panel-view]:not(.kefe-settings-embedded-panel)")) {
+if (!/\.kefe-panel\s*\{\s*display\s*:\s*none\b/.test(panelStyles) || !compactPanelStyles.includes(".kefe-panel[data-panel-view]:not(.kefe-settings-embedded-panel)")) {
   failures.push("Native editor panel surface styling is missing");
 }
 if (!settingsPanelStyles.includes(".kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel") ||

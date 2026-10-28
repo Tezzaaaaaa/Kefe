@@ -9,19 +9,6 @@
   function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
 
   function font(ctx,size){ ctx.font='900 '+Math.max(12,size)+'px "Big Shoulders Stencil Display","Arial Narrow",system-ui,sans-serif'; }
-  function fit(ctx,text,requested,maxWidth){
-    var size=Math.max(40,Math.min(220,Number(requested)||120));
-    while(size>40){
-      font(ctx,size);
-      var total=0;
-      for(var i=0;i<text.length;i++) total+=Math.max(ctx.measureText(text[i]).width,size*0.58);
-      total+=Math.max(0,text.length-1)*size*0.07;
-      if(total<=maxWidth) return size;
-      size-=2;
-    }
-    font(ctx,size);
-    return size;
-  }
   var ALPHABET='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
   function drawBoard(ctx,w,h,style,line,next,time,phase){

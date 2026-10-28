@@ -5,6 +5,16 @@
    the lyrics switch, fullscreen, and the "Adjust layer" controls created by editor.js (kept in a hidden host). */
 (() => {
   'use strict';
+  // Load our own stylesheet last so the toolbar never depends on the bundled editor CSS being republished.
+  try {
+    const src = document.currentScript && document.currentScript.src;
+    if (src && !document.getElementById('kefeToolbarCss')) {
+      const link = document.createElement('link');
+      link.id = 'kefeToolbarCss'; link.rel = 'stylesheet';
+      link.href = src.replace(/toolbar\.js(\?.*)?$/, 'toolbar.css$1');
+      document.head.appendChild(link);
+    }
+  } catch (_) {}
   const stage = document.querySelector('.kefe-stage');
   if (!stage || document.getElementById('kefeFloatingToolbar')) return;
 
@@ -587,12 +597,19 @@
   const previewBgLabel = h('label', 'kft-pref kft-pref--colour');
   const previewBgText = h('span'); previewBgText.textContent = 'Preview background';
   previewBgLabel.append(previewBgText, previewBg);
+  let safeInset = 5;
+  const safeScrub = createScrubber({
+    label: 'Safe-area inset', bare: true, min: 2, max: 20, step: 1, format: v => Math.round(v) + '%',
+    onInput: v => { safeInset = v; syncPreferences(); emit('safe-inset', v); }
+  });
   const canvasPanel = makePanel(ratioBtn, 'Canvas', 264);
-  canvasPanel.append(field('Canvas ratio', aspectSeg.el), field('Background', bgMenu.trigger), field('Visualiser', visMenu.trigger), field('Background darkness', darkScrub.el), checkRow('Show safe area', safeAreaToggle), previewBgLabel);
+  canvasPanel.append(field('Canvas ratio', aspectSeg.el), field('Background', bgMenu.trigger), field('Visualiser', visMenu.trigger), field('Background darkness', darkScrub.el), checkRow('Show safe area', safeAreaToggle), field('Safe-area inset', safeScrub.el), previewBgLabel);
 
   /* Actions panel */
   const actionsBtn = panelBtn('menu', 'More actions');
   const compactToggle = h('input', '', { type: 'checkbox', 'aria-label': 'Compact toolbar' });
+  const safeOverlay = h('div', 'kft-safe-overlay', { 'aria-hidden': 'true' });
+  safeOverlay.style.cssText = 'position:absolute;z-index:5;pointer-events:none;box-sizing:border-box;border:1px dashed rgba(255,255,255,.75);outline:1px solid rgba(0,0,0,.3);display:none';
   const prefKey = 'kefe.toolbar.preferences.v1';
   const previewHost = document.querySelector('.kefe-preview, .kefe-preview-stage, .kefe-stage');
   try {
@@ -600,6 +617,7 @@
     if (saved) {
       safeAreaToggle.checked = saved.safeArea === true;
       compactToggle.checked = saved.compact === true;
+      if (Number.isFinite(saved.safeInset)) safeInset = clamp(saved.safeInset, 2, 20);
       if (typeof saved.background === 'string' && /^#[0-9a-f]{6}$/i.test(saved.background)) {
         previewBg.value = saved.background;
         previewBg.dataset.changed = 'true';
@@ -608,12 +626,16 @@
   } catch (_) {}
   function syncPreferences() {
     root.classList.toggle('is-compact', compactToggle.checked);
-    previewHost?.classList.toggle('kft-safe-area-on', safeAreaToggle.checked);
+    if (!safeOverlay.isConnected) { if (getComputedStyle(stage).position === 'static') stage.style.position = 'relative'; stage.appendChild(safeOverlay); }
+    safeOverlay.style.display = safeAreaToggle.checked ? 'block' : 'none';
+    safeOverlay.style.inset = safeInset + '%';
+    safeScrub.set(safeInset);
     if (previewHost && previewBg.dataset.changed === 'true') previewHost.style.backgroundColor = previewBg.value;
     try {
       localStorage.setItem(prefKey, JSON.stringify({
         safeArea: safeAreaToggle.checked,
         compact: compactToggle.checked,
+        safeInset,
         background: previewBg.dataset.changed === 'true' ? previewBg.value : ''
       }));
     } catch (_) {}
@@ -717,6 +739,14 @@
       const d = dockEl.getBoundingClientRect();
       if (d.height > 0 && d.top > vh * 0.5) dockTop = d.top;
     }
+    // Dock inside the preview bar, in the slot the old "Canvas ratio" control used to occupy.
+    const slot = document.querySelector('.kefe-toolbar-format');
+    if (slot && !mobile.matches) {
+      slot.classList.add('kft-dock-slot');
+      slot.style.width = w + 'px'; slot.style.height = hgt + 'px';
+      const sr = slot.getBoundingClientRect();
+      if (sr.width && sr.height) return { x: sr.left, y: sr.top };
+    } else if (slot) { slot.classList.remove('kft-dock-slot'); slot.style.width = slot.style.height = ''; }
     const s = stage.getBoundingClientRect();
     if (!s.width || !s.height) return { x: (vw - w) / 2, y: 8 };
     return { x: s.left + (s.width - w) / 2, y: s.top - hgt - 10 };
@@ -773,7 +803,7 @@
   grip.addEventListener('dblclick', redock);
 
   window.addEventListener('resize', () => queueDock());
-  if (window.ResizeObserver) { const ro = new ResizeObserver(() => queueDock()); ro.observe(stage); ro.observe(document.documentElement); ro.observe(root); }
+  if (window.ResizeObserver) { const ro = new ResizeObserver(() => queueDock()); ro.observe(stage); const dockBar = document.querySelector('.kefe-preview-toolbar'); if (dockBar) ro.observe(dockBar); ro.observe(document.documentElement); ro.observe(root); }
   mobile.addEventListener?.('change', () => queueDock());
 
   /* ───────── Undo / redo (toolbar-level history of look & canvas settings) ───────── */

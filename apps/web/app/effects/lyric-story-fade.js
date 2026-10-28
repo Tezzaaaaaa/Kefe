@@ -27,21 +27,8 @@
   function setMotionFont(ctx,family,size){const f=getFont(family);ctx.font=`${f.weight} ${Math.max(18,size)}px "${f.value}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;return f;}
   function trackedWidth(ctx,text,tracking){const chars=Array.from(String(text));if(!chars.length)return 0;return chars.reduce((s,c)=>s+ctx.measureText(c).width,0)+Math.max(0,chars.length-1)*tracking;}
   const __motionFitCache=new Map();
-function fitMotionText(ctx,text,requested,tracking,maxWidth,family){
-  const key=(text||'')+'|'+(requested||0)+'|'+(tracking||0)+'|'+(maxWidth|0)+'|'+(family||'');
-  const hit=__motionFitCache.get(key);
-  if(hit)return hit;
-  let size=Math.max(30,Math.min(150,Number(requested)||76));
-  setMotionFont(ctx,family,size);
-  while(size>30&&trackedWidth(ctx,text,tracking*size)>maxWidth){size--;setMotionFont(ctx,family,size);}
-  const result={size,width:trackedWidth(ctx,text,tracking*size)};
-  if(__motionFitCache.size>800)__motionFitCache.clear();
-  __motionFitCache.set(key,result);
-  return result;
-}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>__motionFitCache.clear());
   function wrapWords(ctx,words,size,tracking,maxWidth,family){setMotionFont(ctx,family,size);const gap=Math.max(12,size*.16),rows=[];let row=[],width=0;for(const word of words){const wordWidth=trackedWidth(ctx,word.text,tracking),proposed=row.length?width+gap+wordWidth:wordWidth;if(row.length&&proposed>maxWidth){rows.push({words:row,width});row=[];width=0;}row.push({...word,width:wordWidth});width=row.length===1?wordWidth:width+gap+wordWidth;}if(row.length)rows.push({words:row,width});return rows;}
-  function fit(ctx,words,requested,tracking,maxWidth,family){let size=Math.max(34,Math.min(150,Number(requested)||78));while(size>34){const rows=wrapWords(ctx,words,size,tracking*size,maxWidth,family);if(rows.length<=2)return{size,rows};size-=2;}return{size,rows:wrapWords(ctx,words,size,tracking*size,maxWidth,family)};}
   function drawFadeUp(ctx, w, h, style, line0, next0, time, phase) {
     const active = { line: line0, next: next0 };
     const words = u.wordsFor(active.line, active.next);

@@ -18,19 +18,6 @@
     if(row.length) rows.push({words:row,width:rowWidth});
     return rows;
   }
-  function fit(ctx,words,requested,maxWidth){
-    var size=Math.max(30,Math.min(140,Number(requested)||82));
-    while(size>30){
-      setFlipFont(ctx,size);
-      var gap=size*0.08;
-      var rows=wrapWords(ctx,words,maxWidth,gap);
-      if(rows.length<=2) return {size:size,rows:rows,gap:gap};
-      size-=2;
-    }
-    setFlipFont(ctx,size);
-    var gap2=size*0.08;
-    return {size:size,rows:wrapWords(ctx,words,maxWidth,gap2),gap:gap2};
-  }
   var FLIP_DURATION=0.32;
   var CHAR_STAGGER=0.035;
 

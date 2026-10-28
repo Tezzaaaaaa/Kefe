@@ -165,13 +165,6 @@
     ctx.bezierCurveTo(edge+Math.sin(phase*2.1)*amp,size*.22,edge-amp*.5,size*.62,edge+Math.cos(phase*.8)*amp,size*.98);
     ctx.lineTo(-2,size*.98);ctx.closePath();ctx.clip();
   }
-  function rowRevealClip(ctx,rowWidth,size,progress,seed){
-    var edge=rowWidth*clamp(progress,0,1),amp=Math.min(size*.035,Math.max(.7,rowWidth*.012)),phase=seed*.013;
-    ctx.beginPath();ctx.moveTo(-2,-size*1.1);ctx.lineTo(edge-amp,-size*1.1);
-    ctx.bezierCurveTo(edge+Math.sin(phase)*amp,-size*.68,edge-amp*.7,-size*.25,edge+Math.cos(phase*1.7)*amp,size*.08);
-    ctx.bezierCurveTo(edge+Math.sin(phase*2.2)*amp,size*.38,edge-amp*.4,size*.72,edge+Math.cos(phase*.8)*amp,size*1.0);
-    ctx.lineTo(-2,size);ctx.closePath();ctx.clip();
-  }
   function strokeHandwrittenGlyph(ctx,row,offset,cw,x,y,size,progress,alpha,seed){
     if(!row||progress<=0)return;
     var jitter=Math.sin(seed*.071)*size*.004;

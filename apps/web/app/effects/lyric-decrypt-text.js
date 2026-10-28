@@ -24,17 +24,6 @@
     return rows;
   }
 
-  function fit(ctx, text, requested, maxWidth) {
-    let size = Math.max(28, Math.min(140, Number(requested) || 72));
-    while (size > 28) {
-      u.setContractFont(ctx, 'decrypt', size);
-      const rows = wrap(ctx, text, maxWidth);
-      if (rows.length <= 3) return { size, rows };
-      size -= 2;
-    }
-    u.setContractFont(ctx, 'decrypt', size);
-    return { size, rows: wrap(ctx, text, maxWidth) };
-  }
 
   function drawLine(ctx, w, h, style, line, next, time, phase) {
     const text = String(line.text || '').trim().replace(/\s+/g, ' ');

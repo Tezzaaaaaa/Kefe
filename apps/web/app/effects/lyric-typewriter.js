@@ -37,17 +37,6 @@
     return rows;
   }
 
-  function fit(ctx, text, requested, tracking, maxWidth) {
-    let size = Math.max(32, Math.min(140, Number(requested) || 76));
-    while (size > 32) {
-      u.setContractFont(ctx, 'typewriter', size);
-      const rows = wrap(ctx, text, tracking * size, maxWidth);
-      if (rows.length <= 3) return { size, rows };
-      size -= 2;
-    }
-    u.setContractFont(ctx, 'typewriter', size);
-    return { size, rows: wrap(ctx, text, tracking * size, maxWidth) };
-  }
 
   /* Per-character key-press times for the wrapped rows. Characters of a word are typed across the first ~82% of that word's
      sung duration (first key exactly on word.time), spaces are struck as the next word begins. Falls back to a linear spread

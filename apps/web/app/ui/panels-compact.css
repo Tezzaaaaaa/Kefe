@@ -139,8 +139,13 @@
 /* ---- Slider rows: one line  LABEL | slider | value ---- */
 :is(.kefe-panels, .kefe-settings-columns) label.kefe-visualiser-field,
 :is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-field:not(select) {
-  display: grid !important; grid-template-columns: 64px minmax(0, 1fr) 40px; align-items: center; column-gap: 8px; row-gap: 0;
-  min-height: var(--pc-h); padding: 0 !important; margin: 0 !important;
+  display: grid !important;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 0;
+  min-height: var(--pc-h);
+  padding: 0 !important;
+  margin: 0 !important;
 }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-field > span { display: contents; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-field > span > b { grid-column: 1; grid-row: 1; font-size: var(--pc-fs-sm); font-weight: 500; color: var(--pc-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -157,9 +162,20 @@
 /* ---- Lyrics timing: single compact row ---- */
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-value { font-size: var(--pc-fs-sm) !important; font-weight: 600; padding: 0 !important; min-width: 0 !important; height: auto !important; border: 0 !important; background: transparent !important; font-variant-numeric: tabular-nums; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls { display: grid !important; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px; padding: 0 !important; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-controls {
+  display: grid !important;
+  align-items: center;
+  gap: 6px;
+  padding: 0 !important;
+}
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-step { min-width: 0; padding: 0 6px !important; font-variant-numeric: tabular-nums; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-foot { display: flex; align-items: center; justify-content: space-between; padding: 0 !important; font-size: var(--pc-fs-xs); color: var(--pc-muted); }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-foot {
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 !important;
+  font-size: var(--pc-fs-xs);
+  color: var(--pc-muted);
+}
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyrics-timing-foot .kefe-btn { height: 22px !important; }
 :is(.kefe-panels, .kefe-settings-columns) #kefeLyricsTools { display: flex; gap: 4px; flex-wrap: wrap; }
 
@@ -179,8 +195,9 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-upload-name { font-size: var(--pc-fs-sm) !important; color: var(--pc-muted); }
 :is(.kefe-panels, .kefe-settings-columns) .beui-upload-symbol { width: 20px; height: 20px; }
 :is(.kefe-panels, .kefe-settings-columns) .beui-upload-symbol svg { width: 20px; height: 20px; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-media-upload-row { gap: 6px; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-song-details { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 6px; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-song-details {
+  gap: 4px 6px;
+}
 :is(.kefe-panels, .kefe-settings-columns) .kefe-song-details > div { min-width: 0; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-media-track { padding: 6px !important; gap: 8px !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-media-track-art { width: 40px; height: 40px; }
@@ -217,8 +234,16 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-style-color-row input[type="color"] { width: 28px; height: 22px; padding: 0; border-radius: 4px; }
 
 /* ---- Background cards ---- */
-:is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-options { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px !important; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-card { min-height: 0 !important; height: auto !important; padding: 4px !important; gap: 3px !important; border-radius: 5px !important; display: grid; align-content: start; text-align: center; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-options {
+  display: grid !important;
+  gap: 4px !important;
+}
+:is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-card {
+  min-height: 0 !important;
+  height: auto !important;
+  border-radius: 5px !important;
+  align-content: start;
+}
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-card img,
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-card canvas,
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-card [class*="preview"],
@@ -230,7 +255,10 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-card p { display: none; }
 
 /* ---- Visualiser tabs + toggles ---- */
-:is(.kefe-panels, .kefe-settings-columns) .kefe-vis-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 !important; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-vis-tabs {
+  flex-wrap: wrap;
+  padding: 0 !important;
+}
 :is(.kefe-panels, .kefe-settings-columns) .kefe-vis-tabs > button { height: 24px; padding: 0 8px; font-size: var(--pc-fs-sm); border-radius: 4px; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-form > * { margin: 0; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-form .kefe-switch-row,
@@ -333,7 +361,6 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-vis-view .kefe-panel-action:not(.kefe-gradient-chip):not(.kefe-switch) { height: 26px !important; padding: 0 8px !important; font-size: var(--pc-fs-sm) !important; border-radius: 4px !important; }
 
 /* Background effect cards: 3-up, short */
-:is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-options { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-card { width: auto !important; min-width: 0 !important; max-width: none !important; flex: none !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-preview { display: block; height: 44px !important; min-height: 0 !important; aspect-ratio: auto !important; border-radius: 3px !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-name { font-size: var(--pc-fs-xs) !important; line-height: 11px; font-weight: 600; }
@@ -453,8 +480,6 @@
 }
 
 /* Slider rows: a little more room for the label */
-:is(.kefe-panels, .kefe-settings-columns) label.kefe-visualiser-field,
-:is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-field:not(select) { grid-template-columns: 78px minmax(0, 1fr) 40px; }
 
 
 /* Respect the hidden attribute on rows these rules give a display value */
