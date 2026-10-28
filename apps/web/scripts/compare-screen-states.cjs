@@ -51,7 +51,7 @@ for (const size of ["desktop", "mobile"]) {
       const mediaChanges = changes.filter(({ oldNode, newNode }) => oldNode.section === "media" || newNode.section === "media");
       console.log(`media content geometry: ${mediaChanges.length} changed entries`);
       for (const change of mediaChanges.slice(0, 10)) {
-        console.log(JSON.stringify({ key: change.key, classes: change.newNode.classes, text: change.newNode.text, childSummary: change.newNode.childSummary, fields: change.fields,
+        console.log(JSON.stringify({ key: change.key, classes: change.newNode.classes, text: change.newNode.text, children: { baseline: change.oldNode.childSummary, current: change.newNode.childSummary }, fields: change.fields,
           baseline: [change.oldNode.x, change.oldNode.y, change.oldNode.width, change.oldNode.height],
           current: [change.newNode.x, change.newNode.y, change.newNode.width, change.newNode.height] }));
       }
