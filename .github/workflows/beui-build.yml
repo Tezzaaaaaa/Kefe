@@ -245,13 +245,14 @@ jobs:
             const layoutPath = "/tmp/kefe-screenshots/layout-comparison.log";
             if (fs.existsSync(layoutPath)) {
               const layoutLines = fs.readFileSync(layoutPath, "utf8").trim().split(/\r?\n/);
-              const focused = layoutLines.filter(line =>
+              const effectFocused = layoutLines.filter(line =>
                 /^(desktop|mobile)\/day unmatched lyric-effect descendants current\/baseline:/.test(line)
                 || line.startsWith("KEFE_EFFECT_UNMATCHED:")
                 || line.startsWith("KEFE_EFFECT_CONTROL_DIFF:")
-                || line.startsWith("KEFE_VISUAL_LAYOUT_DIFF:")
-              ).slice(0, 50);
-              if (focused.length) core.notice(`Focused lyric-effect control differences:\n${focused.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              ).slice(0, 20);
+              if (effectFocused.length) core.notice(`Focused lyric-effect control differences:\n${effectFocused.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              const visualFocused = layoutLines.filter(line => line.startsWith("KEFE_VISUAL_LAYOUT_DIFF:")).slice(0, 14);
+              if (visualFocused.length) core.notice(`Focused matched layout/style differences in affected regions:\n${visualFocused.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
             }
             if (!fs.existsSync(statePath)) {
               core.warning("Baseline/current screen-state comparison is missing; carousel diagnostics are incomplete.", {file: ".github/workflows/beui-build.yml", startLine: 77});

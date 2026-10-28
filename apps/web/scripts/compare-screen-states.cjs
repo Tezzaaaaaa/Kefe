@@ -40,7 +40,7 @@ for (const size of ["desktop", "mobile"]) {
         dataIndex: child.dataIndex, ariaLabel: child.ariaLabel, ariaPressed: child.ariaPressed,
         tabIndex: child.tabIndex, text: child.text, display: child.display, visibility: child.visibility, bounds: child.bounds,
       })),
-      omittedChildren: Math.max(0, carousel.childCount - (carousel.carouselChildren || []).length),
+      omittedChildren: Math.max(0, carousel.renderedCardCount - (carousel.carouselChildren || []).length),
       findInput: findInput ? { value: findInput.value, bounds: [findInput.x, findInput.y, findInput.width, findInput.height] } : null,
       findStatus: findStatus ? { text: findStatus.text, bounds: [findStatus.x, findStatus.y, findStatus.width, findStatus.height] } : null,
     } : null;

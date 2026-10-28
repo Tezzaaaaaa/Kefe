@@ -71,7 +71,7 @@ for (const size of ["desktop", "mobile"]) {
   );
   console.log(`${size}/day lyric-effect control style/geometry differences: ${effectControls.length}`);
   for (const item of effectControls.slice(0, 16)) {
-    console.log(`KEFE_EFFECT_CONTROL_DIFF:${JSON.stringify({ section: item.section, panel: item.panel, tag: item.tag, id: item.id, classes: item.classes, path: item.path, text: item.text, fields: item.changedFields })}`);
+    console.log(`KEFE_EFFECT_CONTROL_DIFF:${JSON.stringify({ section: item.section, panel: item.panel, tag: item.tag, id: item.id, classes: item.classes, fields: item.changedFields })}`);
   }
   const isEffectControl = item => /kefe-(?:lyric-effects-control|lyric-effect-option|lyric-effect-sample|lyric-effect-name|background-effect-control|font-selector-control)/.test(item.path);
   const unmatchedEffectCurrent = [...newMap].flatMap(([key, items]) => items.slice(Math.min(items.length, oldMap.get(key)?.length || 0))).filter(isEffectControl);
