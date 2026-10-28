@@ -16,8 +16,6 @@
   --kt-accent-fg: #ff8a8d;
   --kt-ring: #ff8a8d;
   --kt-shadow: 0 10px 30px rgb(0 0 0 / 50%);
-  --kt-h: 28px;
-  --kt-gap: 4px;
   --kt-ease: cubic-bezier(.2, .8, .2, 1);
   color: var(--kt-text);
   color-scheme: dark;
@@ -90,7 +88,6 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--kt-border);
-  border-radius: 8px;
   background: var(--kt-surface);
   box-shadow: var(--kt-shadow);
 }
@@ -100,13 +97,16 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
   gap: var(--kt-gap);
   width: max-content;
   max-width: 100%;
-  padding: 4px;
   overflow-x: auto;
   white-space: nowrap;
   scrollbar-width: none;
 }
 .kft-main::-webkit-scrollbar { display: none; }
-.kft-divider { flex: 0 0 1px; width: 1px; height: 14px; margin: 0 2px; background: var(--kt-border); }
+.kft-divider {
+  flex: 0 0 1px;
+  width: 1px;
+  background: var(--kt-border);
+}
 
 /* Unified control system */
 .kft-btn,
@@ -142,14 +142,15 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
   position: sticky;
   left: 0;
   z-index: 2;
-  width: var(--kt-h);
   padding: 0;
   color: var(--kt-muted);
   cursor: grab;
   touch-action: none;
-  box-shadow: 2px 0 4px rgb(0 0 0 / 20%);
 }
-.kft-grip .kft-icon { width: 12px; height: 12px; fill: currentColor; stroke: none; }
+.kft-grip .kft-icon {
+  fill: currentColor;
+  stroke: none;
+}
 .kft-grip:hover { color: var(--kt-text); }
 .kft-grip:active { cursor: grabbing; }
 .kefe-floating-toolbar.is-locked .kft-grip { cursor: default; opacity: .5; }
@@ -159,8 +160,6 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
 .kft-trigger__chev { width: 9px; height: 9px; color: var(--kt-muted); transition: transform 160ms var(--kt-ease); }
 .kft-trigger[aria-expanded="true"] .kft-trigger__chev { transform: rotate(180deg); }
 .kft-trigger.kft-trigger--field { display: flex; width: 100%; min-width: 0; max-width: none; }.kft-swatch {
-  width: 14px;
-  height: 14px;
   border: 1px solid rgb(255 255 255 / 25%);
   border-radius: 2px;
   background: var(--kt-swatch, #fff);
@@ -334,14 +333,24 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
 .kft-rule { height: 1px; margin: 2px 0; background: var(--kt-border); }
 
 .kft-pad {
-  display: grid; grid-template-columns: repeat(3, 32px); grid-template-rows: repeat(3, 32px);
-  width: max-content; margin: 0 auto; overflow: hidden;
-  border: 1px solid var(--kt-border); border-radius: 6px; background: var(--kt-input);
+  display: grid;
+  width: max-content;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--kt-border);
+  border-radius: 6px;
+  background: var(--kt-input);
 }
 .kft-padbtn {
-  display: grid; place-items: center; width: 32px; height: 32px; padding: 0;
-  border: 0; border-right: 1px solid var(--kt-border); border-bottom: 1px solid var(--kt-border);
-  background: transparent; color: var(--kt-text); cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--kt-border);
+  border-bottom: 1px solid var(--kt-border);
+  background: transparent;
+  color: var(--kt-text);
+  cursor: pointer;
 }
 .kft-padbtn:hover { background: var(--kt-surface-hover); }
 .kft-padbtn:active { background: var(--kt-border); }
