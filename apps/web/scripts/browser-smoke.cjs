@@ -113,7 +113,9 @@ async function captureEditorScreenState(page) {
         section: node.dataset.sectionId || node.closest(".section[data-section-id]")?.dataset.sectionId || "",
         group: node.dataset.group || "", panel: node.dataset.panelView || "",
         text: (node.innerText || node.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
-        x: rect.x, y: rect.y, width: rect.width, height: rect.height, childCount: node.children.length, scrollTop: node.scrollTop,
+        x: rect.x, y: rect.y, width: rect.width, height: rect.height, childCount: node.children.length,
+        childSummary: node.id === "kefeCarStack" ? [...node.children].slice(0, 10).map(child => `${child.tagName.toLowerCase()}.${[...child.classList].join(".")}:${child.hidden ? "hidden" : getComputedStyle(child).display}:${child.textContent.trim().slice(0, 20)}`).join("|") : "",
+        scrollTop: node.scrollTop,
         scrollLeft: node.scrollLeft, scrollHeight: node.scrollHeight, clientHeight: node.clientHeight,
       };
     };
