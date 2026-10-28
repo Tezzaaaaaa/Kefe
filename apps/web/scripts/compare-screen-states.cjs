@@ -108,6 +108,14 @@ for (const size of ["desktop", "mobile"]) {
           baseline: [change.oldNode.x, change.oldNode.y, change.oldNode.width, change.oldNode.height],
           current: [change.newNode.x, change.newNode.y, change.newNode.width, change.newNode.height] }));
       }
+      const mediaFlowChanges = mediaChanges.filter(({ oldNode, newNode }) =>
+        /kefe-(?:find|search|car-|media-upload-row|upload-zone|upload-title|upload-name)/.test(`${oldNode.classes} ${newNode.classes}`)
+      );
+      for (const change of mediaFlowChanges.slice(0, 14)) {
+        console.log(`KEFE_MEDIA_FLOW_DIFF:${JSON.stringify({ key: change.key, classes: change.newNode.classes, fields: change.fields,
+          baseline: [change.oldNode.x, change.oldNode.y, change.oldNode.width, change.oldNode.height],
+          current: [change.newNode.x, change.newNode.y, change.newNode.width, change.newNode.height] })}`);
+      }
     }
     for (const change of changes.slice(0, 8)) {
       console.log(JSON.stringify({ key: change.key, fields: change.fields,
