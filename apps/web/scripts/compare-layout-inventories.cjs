@@ -49,7 +49,7 @@ for (const size of ["desktop", "mobile"]) {
           changedFields[field] = [oldValue, newValue];
         }
       }
-      if (Object.keys(changedFields).length) changes.push({ key, path: newItem.path, section: newItem.section, panel: newItem.panel, tag: newItem.tag, classes: newItem.classes, changedFields });
+      if (Object.keys(changedFields).length) changes.push({ key, id: newItem.id, path: newItem.path, section: newItem.section, panel: newItem.panel, tag: newItem.tag, classes: newItem.classes, changedFields });
     }
   }
   const unmatchedBaseline = [...oldMap].reduce((sum, [key, items]) => sum + Math.max(0, items.length - (newMap.get(key)?.length || 0)), 0);
@@ -84,11 +84,14 @@ for (const size of ["desktop", "mobile"]) {
         display: item.display, color: item.color, background: item.background, border: item.border, padding: item.padding })}`);
     }
   }
-  const visualRootChanges = changes.filter(item => item.section === "media" || item.section === "lyric-effects"
-    || /kefe-sidebar-link|kefe-preview-toolbar|kefe-font-selector-control/.test(`${item.classes} ${item.path}`))
-    .sort((a, b) => Object.keys(b.changedFields).length - Object.keys(a.changedFields).length);
+  const visualRootChanges = changes.filter(item => item.section === "media" || item.section === "lyric-effects")
+    .sort((a, b) => {
+      const priority = item => /kefe-form|kefe-slot|content-inner|section-content|kefe-panel-head|kefe-settings-embedded-panel/.test(item.classes)
+        ? 0 : /kefe-(?:lyric-effects-control|lyric-effect-option|font-selector-control)|kefe-upload/.test(item.classes) ? 1 : 2;
+      return priority(a) - priority(b) || Object.keys(b.changedFields).length - Object.keys(a.changedFields).length;
+    });
   for (const item of visualRootChanges.slice(0, 14)) {
-    console.log(`KEFE_VISUAL_LAYOUT_DIFF:${JSON.stringify({ section: item.section, panel: item.panel, tag: item.tag, id: item.id,
+    console.log(`KEFE_VISUAL_LAYOUT_DIFF:${JSON.stringify({ key: item.key, section: item.section, panel: item.panel, tag: item.tag, id: item.id,
       classes: item.classes, fields: item.changedFields })}`);
   }
 }
