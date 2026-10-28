@@ -84,6 +84,13 @@ for (const size of ["desktop", "mobile"]) {
         display: item.display, color: item.color, background: item.background, border: item.border, padding: item.padding })}`);
     }
   }
+  const sectionHeaderChanges = changes.filter(item =>
+    /(?:^|\s)(?:section-header|section-title-wrap|expand-button|title-group|section-heading)(?:\s|$)/.test(item.classes)
+  );
+  for (const item of sectionHeaderChanges.slice(0, 12)) {
+    console.log(`KEFE_SECTION_HEADER_DIFF:${JSON.stringify({ key: item.key, tag: item.tag, id: item.id,
+      classes: item.classes, fields: item.changedFields })}`);
+  }
   const visualRootChanges = changes.filter(item => item.section === "media" || item.section === "lyric-effects")
     .sort((a, b) => {
       const priority = item => /kefe-form|kefe-slot|content-inner|section-content|kefe-panel-head|kefe-settings-embedded-panel/.test(item.classes)

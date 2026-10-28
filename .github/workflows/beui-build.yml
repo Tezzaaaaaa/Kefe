@@ -251,6 +251,8 @@ jobs:
                 || line.startsWith("KEFE_EFFECT_CONTROL_DIFF:")
               ).slice(0, 20);
               if (effectFocused.length) core.notice(`Focused lyric-effect control differences:\n${effectFocused.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              const headersFocused = layoutLines.filter(line => line.startsWith("KEFE_SECTION_HEADER_DIFF:")).slice(0, 12);
+              if (headersFocused.length) core.notice(`Matched section-header migration differences:\n${headersFocused.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
               const visualFocused = layoutLines.filter(line => line.startsWith("KEFE_VISUAL_LAYOUT_DIFF:")).slice(0, 14);
               if (visualFocused.length) core.notice(`Focused matched layout/style differences in affected regions:\n${visualFocused.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
             }
