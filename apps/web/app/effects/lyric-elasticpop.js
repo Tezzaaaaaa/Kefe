@@ -25,19 +25,6 @@
     if(row.length) rows.push({words:row,width:rowWidth});
     return rows;
   }
-  function fit(ctx,words,requested,maxWidth){
-    var size=Math.max(30,Math.min(140,Number(requested)||84));
-    while(size>30){
-      setElasticFont(ctx,size);
-      var gap=size*0.30;
-      var rows=wrapWords(ctx,words,maxWidth,gap);
-      if(rows.length<=2) return {size:size,rows:rows,gap:gap};
-      size-=2;
-    }
-    setElasticFont(ctx,size);
-    var gap2=size*0.30;
-    return {size:size,rows:wrapWords(ctx,words,maxWidth,gap2),gap:gap2};
-  }
 
   function drawPop(ctx,w,h,style,line,next,time,phase){
     var active={line:line,next:next};

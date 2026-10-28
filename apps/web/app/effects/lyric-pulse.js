@@ -29,10 +29,6 @@ function linaFindActiveLine(lines, time) {
     return index;
 }
 
-function activeEffectLine(lines, time) {
-    const index = linaFindActiveLine(lines, time);
-    return index >= 0 ? linaNormaliseLine(lines, index) : null;
-}
 
 /* Per-word timing aligned 1:1 with the whitespace tokens of the line. Real word timing when it lines up, else the engine's vocal-capped estimate. */
 function pulseWords(line, next, tokens) {

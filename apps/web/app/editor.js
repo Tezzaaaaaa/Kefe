@@ -458,13 +458,6 @@
       flipcardsColor:'#fff',flipcardsAccent:'rgba(255,255,255,.25)',kefeMotionFont:state.fontOverride||contract.family||'Open Sans'
     };
   }
-  function renderLyricsPreview(){
-    if(!state.lines.length)return;
-    const previewTime=Number(state.time)||0;
-    const firstLineTime=Number(state.lines[0]?.time);
-    if(Number.isFinite(firstLineTime)&&previewTime<Math.max(0,firstLineTime-1))state.time=Math.max(0,firstLineTime-1);
-    draw();
-  }
   window.addEventListener('kefe-effects-ready',()=>draw());
   function lyricOffset(){const v=Number(window.kefeSettings?.get('lyricOffset'));return Number.isFinite(v)?v:0;}
   function syncLyricsTimingControl(){
@@ -1342,21 +1335,6 @@
     /* Artist-only and album-only searches need close duration evidence; otherwise several tracks can match. */
     if(available===1&&!title&&(durationDifference===null||durationDifference>5))return false;
     return true;
-  }
-  function applyIdentifiedTrack(item){
-    const preferEmbeddedArtwork=!!document.getElementById('kefeUseEmbeddedArtwork')?.checked&&!!songAlbum.dataset.embeddedArtUrl;
-    if(!manuallyEditedTrackFields.has('title'))songTitle.value=item.trackName||songTitle.value;
-    if(!manuallyEditedTrackFields.has('artist'))songArtist.value=item.artistName||songArtist.value;
-    if(!manuallyEditedTrackFields.has('album'))songAlbum.value=item.collectionName||songAlbum.value;
-    if(!manuallyEditedTrackFields.has('year'))songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):songYear.value;
-    songAlbum.dataset.artUrl=preferEmbeddedArtwork?songAlbum.dataset.embeddedArtUrl:normalizeArtworkUrl(item.artworkUrl100);
-    songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
-    songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
-    const mediaTrack=document.getElementById('kefeMediaTrack');
-    if(mediaTrack)mediaTrack.classList.add('is-identified');
-    updateMediaTrack();updateTitleCard();
-    if(!songAlbum.dataset.artUrl)scheduleTitleArtworkLookup();
-    applyAppleAlbumGradient();syncAppleLyricsMetadata();
   }
   async function fetchItunesMatches(meta,duration){
     const title=String(meta.title||'').trim(),artist=String(meta.artist||'').trim(),album=String(meta.album||'').trim();

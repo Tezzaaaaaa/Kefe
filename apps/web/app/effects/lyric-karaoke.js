@@ -6,7 +6,6 @@
   window.kefeEffects = window.kefeEffects || {};
   if (!u) { console.error('[lyric-karaoke] requires core.js'); return; }
   function clamp(v,a,b){ a=a==null?0:a; b=b==null?1:b; return Math.max(a,Math.min(b,Number(v)||0)); }
-  function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
   function bounceHeight(elapsed,period,amplitude){
     var phase=((Math.max(0,elapsed)%period)/period);
     // A smooth hop with eased take-off and landing, avoiding sharp reversals.

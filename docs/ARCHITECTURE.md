@@ -37,7 +37,7 @@ fonts/            Bundled fonts, each with its own licence file
 - `app/editor.js` - editor state, media and lyric handling, canvas rendering, effect dispatch
 - `app/effects/manifest.js` - single source of truth for lyric effects
 - `app/effects/core.js` - shared utilities (`window.kefeEffectUtils`)
-- `app/visualiser/visualiser.js` - visualiser engine, presets and parameters
+- `app/visualiser/*.js` - one file per visualiser (liquid-flow, fluted-glass, liquid-glass, disco-ball, slow-light, scenic, gradient) plus `background.js` and `audio-overlay.js`
 - `app/visualiser/audio-overlay.js` - shared WebAudio graph for audio-reactive rendering and video export
 - `app/lyrics/lyric-model.js` - pure lyric data model (parse, edit, display modes, exports); no DOM
 - `app/lyrics/lyric-studio.js` - display modes, timing editor and downloads

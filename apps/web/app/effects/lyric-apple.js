@@ -69,30 +69,7 @@ function estimateFinalVocalWordEnd(words, nextLineTime = Infinity) {
     return end;
 }
 
-function estimateLineVocalEnd(line, nextLine) {
-    const start = Number(line.time);
-    if (!Number.isFinite(start)) return null;
-    const tokens = String(line.text || "").trim().split(/\s+/).filter(Boolean);
-    if (!tokens.length) return start;
-    const nextStart = Number(nextLine?.time);
-    const estimated = tokens.reduce((total, token) => {
-        const letters = Array.from(token.replace(/[^\p{L}\p{N}]/gu, "")).length || 1;
-        return total + linaClamp(0.16 + letters * 0.045, 0.24, 0.78);
-    }, 0) + Math.max(0, tokens.length - 1) * 0.055;
-    let duration = linaClamp(estimated, 0.65, 5.0);
-    if (Number.isFinite(nextStart)) {
-        const available = Math.max(0.20, nextStart - start - 0.10);
-        duration = Math.min(duration, available);
-    }
-    return start + duration;
-}
 
-function appleWordsForLine(line) {
-    if (Array.isArray(line?.words) && line.words.length) {
-        return line.words.map(w => ({ ...w, estimated: false }));
-    }
-    return [];
-}
 
 function appleKeyframeLerp(ed, points) {
     if (ed <= points[0][0]) return points[0][1];
@@ -128,12 +105,6 @@ function appleCubicBezier(t, x1, y1, x2, y2) {
     return sampleY(linaClamp(u));
 }
 
-function appleSpringOut(t) {
-    t = linaClamp(t);
-    const c1 = 1.2, c3 = c1 + 1;
-    const u = t - 1;
-    return 1 + c3 * u * u * u + c1 * u * u;
-}
 
 
 /* Apple Music-style lyric fill — a 1:1 port of the reference player (apple-lyrics-standalone.html).

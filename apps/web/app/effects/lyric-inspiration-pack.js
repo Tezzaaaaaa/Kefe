@@ -148,14 +148,6 @@
     if(!out.length){let i=-1;for(let j=0;j<lines.length;j++){if(time>=Number(lines[j].time||0))i=j;else break;}if(i>=0)out.push({line:lines[i],index:i,start:Number(lines[i].time)||0,end:Number(lines[i].endTime)||Number(lines[i+1]?.time)||(Number(lines[i].time)||0)+3});}
     return out.slice(-4);
   };
-  function textRows(ctx,text,family,weight,size,maxW){
-    const clean=String(text||'').trim().replace(/\s+/g,' ');ctx.font=weight+' '+size+'px "'+family+'", system-ui, sans-serif';
-    const words=clean.split(' ').filter(Boolean),rows=[];let row='';
-    for(const word of words){const test=row?row+' '+word:word;if(row&&ctx.measureText(test).width>maxW){rows.push(row);row=word;}else row=test;}
-    if(row)rows.push(row);
-    while(rows.length>4&&size>18){size*=.92;ctx.font=weight+' '+size+'px "'+family+'", system-ui, sans-serif';}
-    return {rows,size,lineH:size*1.12};
-  }
   /* Spin Lyrics: the active line is split into stacked rows (alternating pink/yellow), each letter flips in around its
      own centre with a stagger, then floats on a gentle wave with sparkles; letters flip out again before the line ends.
      Every letter has a black extrusion and a red drop shadow. Works with any font. */
@@ -311,14 +303,6 @@
     ctx.restore();
   }
   const dustPointCache=new Map();
-  function dustTextPoints(w,h,text,family,size,weight){
-    const key=[w,h,text,family,size,weight].join('|');if(dustPointCache.has(key))return dustPointCache.get(key);
-    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.ceil(w));canvas.height=Math.max(1,Math.ceil(h));
-    const c=canvas.getContext('2d',{willReadFrequently:true});c.clearRect(0,0,w,h);c.font=weight+' '+size+'px "'+String(family).replace(/"/g,'')+'", system-ui, sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillStyle='#fff';c.fillText(text,w/2,h/2,w*.84);
-    const data=c.getImageData(0,0,canvas.width,canvas.height).data,points=[];
-    for(let y=0;y<canvas.height;y+=4)for(let x=0;x<canvas.width;x+=4){if(data[(y*canvas.width+x)*4+3]>80)points.push({x,y});}
-    const result=points.length?points:[{x:w/2,y:h/2}];dustPointCache.set(key,result);if(dustPointCache.size>8)dustPointCache.delete(dustPointCache.keys().next().value);return result;
-  }
   /* Dust Off: the line is solid text that dissolves into wind-blown dust (and/or forms from dust). A soft front sweeps
      through the letters in the wind direction; particles are released as it passes, drift downwind with turbulence and fade.
      Timeline is fitted to the line: forms at the start, rests solid, blows away so it is gone as the line ends. */

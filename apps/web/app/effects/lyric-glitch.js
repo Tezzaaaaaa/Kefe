@@ -9,12 +9,6 @@
   function smoother(v){ var t=clamp(v); return t*t*t*(t*(t*6-15)+10); }
 
   function font(ctx,size){ ctx.font='400 '+Math.max(12,size)+'px "Special Elite","Courier New",monospace'; }
-  function fit(ctx,text,requested,maxWidth){
-    var size=Math.max(40,Math.min(220,Number(requested)||150));
-    font(ctx,size);
-    while(size>40 && ctx.measureText(text).width>maxWidth){ size-=2; font(ctx,size); }
-    return size;
-  }
   function pseudoRand(n){ var x=Math.sin(n*12.9898)*43758.5453; return x-Math.floor(x); }
 
   window.kefeEffects.glitch = function(ctx,w,h,style,lines,time){
