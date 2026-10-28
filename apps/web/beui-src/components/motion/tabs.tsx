@@ -1,5 +1,3 @@
-"use client";
-
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, MotionConfig, useReducedMotion, useSpring, type MotionValue, type Transition } from "framer-motion";
 import {

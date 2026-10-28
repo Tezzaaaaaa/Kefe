@@ -1,5 +1,3 @@
-"use client";
-
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useId } from "react";
 import { EASE_OUT, SPRING_PRESS } from "@/lib/ease";

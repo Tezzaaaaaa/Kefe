@@ -1,5 +1,3 @@
-"use client";
-
 import { forwardRef, type ChangeEvent, type TextareaHTMLAttributes } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";

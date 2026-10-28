@@ -1,5 +1,3 @@
-"use client";
-
 import { type KeyboardEvent, type PointerEvent, useCallback, useRef, useState } from "react";
 import { capturePointer, releasePointer } from "@/lib/touch";
 
