@@ -548,21 +548,3 @@
 /* Native settings buttons no longer have the React proxy's inner span. Keep the heading content flush to the indicator, as it was inside that wrapper. */
 #kefe-settings-panel .expand-button { gap: 0; }
 #kefe-settings-panel .expand-button > .title-group { flex: 0 1 auto; }
-
-:root[data-theme="day"] #kefe-settings-panel {
-  --ksp-bg: var(--bg-primary);
-  --ksp-surface: var(--surface);
-  --ksp-surface-hover: var(--surface-lo);
-  --ksp-border: var(--border-color);
-  --ksp-border-strong: var(--shell-line-strong);
-  --ksp-text: var(--text-primary);
-  --ksp-text-dim: var(--text-secondary);
-  --ksp-text-faint: #737b88;
-  --ksp-accent: var(--accent-color);
-  --ksp-accent-hover: var(--accent-hover);
-  --ksp-accent-glow: rgb(36 93 168 / 10%);
-  --ksp-highlight-bg: var(--surface-lo);
-  --ksp-highlight-border: #a9b4c4;
-  --ksp-highlight-header-from: rgb(36 93 168 / 9%);
-  --ksp-highlight-header-to: rgb(36 93 168 / 2%);
-}
