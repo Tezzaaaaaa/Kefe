@@ -887,9 +887,6 @@ async function captureEditorScreenState(page) {
       const desktopThemeSurfaces = new Map();
       for (const viewport of [originalViewport, { width: 390, height: 844 }]) {
         await screenshotPage.setViewportSize(viewport);
-        // The preceding volume-control click leaves the pointer on different panel controls after resize.
-        // Neutralize hover-only bridge styles so both screenshot contexts capture the same resting state.
-        await screenshotPage.mouse.move(0, 0);
         for (const theme of ["night", "day"]) {
           await screenshotPage.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, theme);
           await screenshotPage.waitForTimeout(400);

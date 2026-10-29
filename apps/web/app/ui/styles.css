@@ -8530,7 +8530,7 @@ html:root[data-theme="day"] :is(
   .kefe-btn:not(.primary), .kefe-chip:not(.active), .kefe-seg-btn:not(.active),
   .kefe-lyric-effect-option, .kefe-font-option, .kefe-card, .kefe-song-result,
   .kefe-suggestion, .kefe-visualiser-preset, .kefe-font-card, .kefe-media-track,
-  .beui-button, .kefe-panel-action, .beui-segmented-control button
+  .kefe-background-effect-card, .expand-button, .beui-button, .kefe-panel-action, .beui-segmented-control button
 ) {
   color: var(--text);
   background-color: var(--surface-hi);
