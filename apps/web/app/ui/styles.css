@@ -9539,7 +9539,8 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: 8px;
+  padding: 0 20px;
 }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card.active .kefe-car-art {
   box-shadow: var(--float, var(--lift));
