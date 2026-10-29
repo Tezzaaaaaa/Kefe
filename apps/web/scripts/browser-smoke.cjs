@@ -234,16 +234,67 @@ async function captureEditorScreenState(page) {
     const quickToolbar = page.locator("#kefeFloatingToolbar");
     assert.equal(await quickToolbar.count(), 1, "there must be exactly one editor toolbar");
     const initialToolbarPlacement = await page.evaluate(() => {
-      const stage = document.querySelector(".kefe-stage").getBoundingClientRect();
+      const slot = document.querySelector(".kft-dock-slot")?.getBoundingClientRect();
       const toolbar = document.querySelector("#kefeFloatingToolbar").getBoundingClientRect();
-      return { stage: { left: stage.left, right: stage.right, top: stage.top, bottom: stage.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
+      return { slot: slot && { left: slot.left, top: slot.top }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: innerWidth, vh: innerHeight };
     });
-    const stageCentre = (initialToolbarPlacement.stage.left + initialToolbarPlacement.stage.right) / 2;
-    const toolbarCentre = (initialToolbarPlacement.toolbar.left + initialToolbarPlacement.toolbar.right) / 2;
-    assert.ok(Math.abs(stageCentre - toolbarCentre) <= 2 || initialToolbarPlacement.toolbar.left <= 9 || initialToolbarPlacement.toolbar.right >= initialToolbarPlacement.vw - 9,
-      `toolbar should dock centred under the preview: ${JSON.stringify(initialToolbarPlacement)}`);
+    assert.ok(initialToolbarPlacement.slot && Math.abs(initialToolbarPlacement.slot.left - initialToolbarPlacement.toolbar.left) <= 2
+      && Math.abs(initialToolbarPlacement.slot.top - initialToolbarPlacement.toolbar.top) <= 2,
+      `toolbar should dock in the preview bar: ${JSON.stringify(initialToolbarPlacement)}`);
     assert.ok(initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
       `toolbar must start fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
+
+    // Grid-track sizing must contain the complete timeline, including its margins,
+    // and the actual docked controls must fit beside fullscreen without clipping.
+    const originalViewport = page.viewportSize();
+    const originalTheme = await page.evaluate(() => document.documentElement.dataset.theme);
+    for (const [width, height] of [[1440, 900], [1280, 720], [1024, 768], [390, 844], [320, 568]]) {
+      await page.setViewportSize({ width, height });
+      if (width > 760) await page.waitForFunction(() => {
+        const slot = document.querySelector('.kft-dock-slot')?.getBoundingClientRect();
+        const toolbar = document.querySelector('#kefeFloatingToolbar').getBoundingClientRect();
+        return slot && Math.abs(slot.left - toolbar.left) <= 2 && Math.abs(slot.top - toolbar.top) <= 2;
+      }, null, { timeout: 10000 });
+      for (const theme of ["night", "day"]) {
+        await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+        await page.waitForTimeout(200);
+        const layout = await page.evaluate(() => {
+          const rect = selector => {
+            const node = document.querySelector(selector);
+            if (!node) return null;
+            const r = node.getBoundingClientRect();
+            return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width };
+          };
+          const main = document.querySelector(".kft-main");
+          return {
+            brand: document.querySelector('.kefe-sidebar-brand')?.textContent.trim(),
+            labels: [...document.querySelectorAll('.kefe-panel-label')].map(node => node.textContent.trim()),
+            work: rect('.kefe-work'), timeline: rect('.kefe-timeline'), transport: rect('.kefe-transport'),
+            wave: rect('.kefe-wave'), time: rect('.kefe-time'), volume: rect('.kefe-volume-control'),
+            toolbar: rect('.kefe-floating-toolbar'), bar: rect('.kefe-preview-toolbar'),
+            slot: rect('.kft-dock-slot'), actions: rect('.kefe-toolbar-actions'),
+            scrollWidth: main.scrollWidth, clientWidth: main.clientWidth,
+          };
+        });
+        assert.equal(layout.brand, 'KEFE');
+        assert.ok(!layout.labels.includes('KEFE'), `duplicate brand label at ${width}px`);
+        const contains = (outer, inner) => inner.left >= outer.left - 1 && inner.right <= outer.right + 1
+          && inner.top >= outer.top - 1 && inner.bottom <= outer.bottom + 1;
+        assert.ok(contains(layout.work, layout.timeline), `timeline outside work at ${width}px: ${JSON.stringify(layout)}`);
+        for (const item of ['transport', 'wave', 'time', 'volume']) {
+          assert.ok(contains(layout.timeline, layout[item]), `${item} outside timeline at ${width}px: ${JSON.stringify(layout)}`);
+        }
+        if (width > 760) {
+          assert.ok(layout.slot && contains(layout.bar, layout.toolbar), `toolbar outside dock at ${width}px: ${JSON.stringify(layout)}`);
+          assert.ok(layout.toolbar.right <= layout.actions.left + 1, `toolbar overlaps fullscreen at ${width}px: ${JSON.stringify(layout)}`);
+          assert.ok(layout.scrollWidth <= layout.clientWidth + 1 && layout.toolbar.width > 390,
+            `desktop toolbar must expand without clipping at ${width}px: ${JSON.stringify(layout)}`);
+        }
+      }
+    }
+    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, originalTheme);
+    await page.setViewportSize(originalViewport);
+    await page.waitForTimeout(200);
     const desktopViewport = page.viewportSize();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
