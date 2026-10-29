@@ -220,7 +220,7 @@ jobs:
           node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/layout-comparison.log
           node apps/web/scripts/compare-screen-states.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots | tee /tmp/kefe-screenshots/screen-state-comparison.log
       - name: Report baseline and DOM/carousel comparison outcomes
-        if: failure()
+        if: always()
         uses: actions/github-script@v7
         env:
           BASELINE_OUTCOME: ${{ steps.main_baseline_smoke.outcome }}
