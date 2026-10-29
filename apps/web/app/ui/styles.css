@@ -6143,14 +6143,11 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-top-profile{gap:6px}
 .kefe-top-profile .kefe-top-link{min-height:34px;height:34px}
 .kefe-work{
-  min-width:0;
   min-height:0;
-  height:100%;
-  max-height:100%;
   display:grid;
-  grid-template-rows:minmax(0,1fr) 58px;
-  row-gap:0;
-  overflow:hidden;
+  grid-template-rows:auto 58px auto;
+  row-gap:var(--section-gap,12px);
+  overflow:visible;
 }
 .kefe-preview{
   display:flex;align-items:center;justify-content:center;
@@ -10043,7 +10040,7 @@ input.beui-native-range {
 .kefe-editor .kefe-work {
   min-width: 0;
   min-height: 0;
-  grid-template-rows: minmax(0, 1fr) var(--timeline-h);
+  grid-template-rows: minmax(0, 1fr) auto;
 }
 .kefe-editor .kefe-preview {
   display: flex;
@@ -10122,7 +10119,7 @@ input.beui-native-range {
   .kefe-editor .kefe-work { grid-template-rows: minmax(0, 1fr) var(--timeline-h); }
 }
 @media (max-width: 700px) {
-  .kefe-editor .kefe-work { grid-template-rows: minmax(0, 42dvh) 54px; }
+  .kefe-editor .kefe-work { grid-template-rows: minmax(0, 42dvh) auto; }
 }
 
 /* One unified toolbar above the preview; keep its controls on the same surface. */
@@ -10193,7 +10190,7 @@ input.beui-native-range {
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-16x9:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:16/9}
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-9x16:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:9/16}
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-1x1:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:1/1}
-.kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar{grid-row:1;width:min(100%,1280px)}
+.kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar{grid-row:1;width:100%;max-width:none}
 
 /* Keep the visible beUI fullscreen action attached to the preview while fullscreen is active. */
 .kefe-stage:fullscreen #previewFullscreen,
