@@ -547,3 +547,4 @@
 
 /* Native settings buttons no longer have the React proxy's inner span. Keep the heading content flush to the indicator, as it was inside that wrapper. */
 #kefe-settings-panel .expand-button { gap: 0; }
+#kefe-settings-panel .expand-button > .title-group { flex: 0 1 auto; }
