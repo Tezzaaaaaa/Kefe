@@ -266,6 +266,8 @@ jobs:
               if (geometryLines.length) core.notice(`Populated carousel card/content geometry comparison:\n${geometryLines.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
               const geometryFailure = lines.find(line => line.includes("populated carousel") && line.includes("geometry differs between baseline and current"));
               if (geometryFailure) core.error(`Populated carousel fixture geometry check failed: ${geometryFailure}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              const fixtureFailure = lines.find(line => /AssertionError/.test(line) && /carousel|fixture/i.test(line));
+              if (!geometryFailure && fixtureFailure) core.error(`Populated carousel fixture verification failed: ${fixtureFailure}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
               for (const line of lines.filter(line => /^(desktop|mobile)\/day:/.test(line))) {
                 core.notice(line, {file: ".github/workflows/beui-build.yml", startLine: 23});
               }
