@@ -141,6 +141,20 @@ async function captureEditorScreenState(page) {
             display: style.display,
             visibility: style.visibility,
             bounds: [childRect.x, childRect.y, childRect.width, childRect.height],
+            contentGeometry: [".kefe-car-art", ".kefe-car-local-icon", ".kefe-car-tag", ".kefe-car-cap", ".kefe-car-cap b", ".kefe-car-cap i"]
+              .map(selector => {
+                const nodes = [...child.querySelectorAll(selector)];
+                return {
+                  selector,
+                  nodes: nodes.map(node => {
+                    const childRect = node.getBoundingClientRect();
+                    return {
+                      text: (node.innerText || node.textContent || "").trim().replace(/\s+/g, " "),
+                      bounds: [childRect.x, childRect.y, childRect.width, childRect.height],
+                    };
+                  }),
+                };
+              }),
           };
         }) : undefined,
         value: "value" in node ? node.value : undefined,

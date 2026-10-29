@@ -40,7 +40,8 @@ for (const size of ["desktop", "mobile"]) {
       children: (carousel.carouselChildren || []).map(child => ({
         index: child.index, tag: child.tag, id: child.id, classes: child.classes,
         dataIndex: child.dataIndex, ariaLabel: child.ariaLabel, ariaPressed: child.ariaPressed,
-        tabIndex: child.tabIndex, text: child.text, display: child.display, visibility: child.visibility, bounds: child.bounds,
+        tabIndex: child.tabIndex, text: child.text, display: child.display, visibility: child.visibility,
+        bounds: child.bounds, contentGeometry: child.contentGeometry,
       })),
       omittedChildren: Math.max(0, carousel.renderedCardCount - (carousel.carouselChildren || []).length),
       findInput: findInput ? { value: findInput.value, bounds: [findInput.x, findInput.y, findInput.width, findInput.height] } : null,
@@ -64,6 +65,15 @@ for (const size of ["desktop", "mobile"]) {
     `${label} ${size}/day carousel card is not visibly rendered with complete geometry: ${JSON.stringify(child)}`);
     assert.ok(child.text.includes("KEFE visual regression fixture") && child.text.includes("KEFE browser smoke"),
       `${label} ${size}/day carousel card visible content is incomplete: ${JSON.stringify(child)}`);
+    const expectedContentSelectors = [".kefe-car-art", ".kefe-car-local-icon", ".kefe-car-tag", ".kefe-car-cap", ".kefe-car-cap b", ".kefe-car-cap i"];
+    assert.deepEqual((child.contentGeometry || []).map(item => item.selector), expectedContentSelectors,
+      `${label} ${size}/day carousel fixture content geometry capture is incomplete: ${JSON.stringify(child.contentGeometry)}`);
+    for (const item of child.contentGeometry) {
+      assert.equal(item.nodes.length, 1, `${label} ${size}/day fixture element ${item.selector} must render exactly once: ${JSON.stringify(item)}`);
+      assert.ok(item.nodes[0].bounds.length === 4 && item.nodes[0].bounds.every(Number.isFinite)
+        && item.nodes[0].bounds[2] > 0 && item.nodes[0].bounds[3] > 0,
+      `${label} ${size}/day fixture element ${item.selector} must have visible geometry: ${JSON.stringify(item)}`);
+    }
     if (label === "current") {
       const baseline = before.keyBounds.find(node => node.id === "kefeCarStack")?.carouselChildren?.[0];
       assert.ok(baseline, `${size}/day baseline carousel card identity is missing`);
@@ -71,6 +81,25 @@ for (const size of ["desktop", "mobile"]) {
       assert.equal(child.text, baseline.text, `${size}/day carousel visible content differs between baseline and current`);
       assert.deepEqual([child.tag, child.dataIndex], [baseline.tag, baseline.dataIndex],
         `${size}/day carousel stable child identity differs between baseline and current`);
+      assert.deepEqual(child.contentGeometry.map(item => item.selector), baseline.contentGeometry.map(item => item.selector),
+        `${size}/day carousel fixture rendered content differs between baseline and current`);
+      for (let itemIndex = 0; itemIndex < child.contentGeometry.length; itemIndex += 1) {
+        const currentItem = child.contentGeometry[itemIndex];
+        const baselineItem = baseline.contentGeometry[itemIndex];
+        assert.equal(currentItem.nodes.length, baselineItem.nodes.length,
+          `${size}/day carousel ${currentItem.selector} count differs between baseline and current`);
+        for (let nodeIndex = 0; nodeIndex < currentItem.nodes.length; nodeIndex += 1) {
+          const currentNode = currentItem.nodes[nodeIndex];
+          const baselineNode = baselineItem.nodes[nodeIndex];
+          assert.equal(currentNode.text, baselineNode.text,
+            `${size}/day carousel ${currentItem.selector} content differs between baseline and current`);
+          const contentGeometryDelta = currentNode.bounds.map((value, index) => Number((value - baselineNode.bounds[index]).toFixed(2)));
+          const contentGeometryComparison = { selector: currentItem.selector, baseline: baselineNode.bounds, current: currentNode.bounds, delta: contentGeometryDelta, tolerancePx: 1 };
+          console.log(`${size}/day populated carousel content geometry baseline/current: ${JSON.stringify(contentGeometryComparison)}`);
+          assert.ok(contentGeometryDelta.every(delta => Math.abs(delta) <= contentGeometryComparison.tolerancePx),
+            `${size}/day populated carousel content geometry differs between baseline and current: ${JSON.stringify(contentGeometryComparison)}`);
+        }
+      }
       const geometryDelta = child.bounds.map((value, index) => Number((value - baseline.bounds[index]).toFixed(2)));
       const geometryComparison = { baseline: baseline.bounds, current: child.bounds, delta: geometryDelta, tolerancePx: 1 };
       console.log(`${size}/day populated carousel child geometry baseline/current: ${JSON.stringify(geometryComparison)}`);

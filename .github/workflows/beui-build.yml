@@ -262,9 +262,9 @@ jobs:
               }
               const mediaFlowLines = lines.filter(line => line.startsWith("KEFE_MEDIA_FLOW_DIFF:")).slice(0, 14);
               if (mediaFlowLines.length) core.notice(`Populated media-search and carousel geometry differences:\n${mediaFlowLines.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
-              const geometryLines = lines.filter(line => line.includes("populated carousel child geometry baseline/current"));
-              if (geometryLines.length) core.notice(`Populated carousel card geometry comparison:\n${geometryLines.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
-              const geometryFailure = lines.find(line => line.includes("populated carousel card geometry differs between baseline and current"));
+              const geometryLines = lines.filter(line => /populated carousel (?:child|content) geometry baseline\/current/.test(line));
+              if (geometryLines.length) core.notice(`Populated carousel card/content geometry comparison:\n${geometryLines.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
+              const geometryFailure = lines.find(line => line.includes("populated carousel") && line.includes("geometry differs between baseline and current"));
               if (geometryFailure) core.error(`Populated carousel fixture geometry check failed: ${geometryFailure}`, {file: ".github/workflows/beui-build.yml", startLine: 23});
               for (const line of lines.filter(line => /^(desktop|mobile)\/day:/.test(line))) {
                 core.notice(line, {file: ".github/workflows/beui-build.yml", startLine: 23});
