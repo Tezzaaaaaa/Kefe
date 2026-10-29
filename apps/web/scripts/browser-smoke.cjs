@@ -113,7 +113,52 @@ async function captureEditorScreenState(page) {
         section: node.dataset.sectionId || node.closest(".section[data-section-id]")?.dataset.sectionId || "",
         group: node.dataset.group || "", panel: node.dataset.panelView || "",
         text: (node.innerText || node.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
-        x: rect.x, y: rect.y, width: rect.width, height: rect.height, scrollTop: node.scrollTop,
+        x: rect.x, y: rect.y, width: rect.width, height: rect.height, childCount: node.children.length,
+        childSummary: node.id === "kefeCarStack" ? [...node.children].slice(0, 10).map(child => `${child.tagName.toLowerCase()}.${[...child.classList].join(".")}:${child.hidden ? "hidden" : getComputedStyle(child).display}:${child.textContent.trim().slice(0, 20)}`).join("|") : "",
+        renderedCardCount: node.id === "kefeCarStack" ? [...node.querySelectorAll("button.kefe-car-card")].filter(card =>
+          !card.classList.contains("beui-native-panel-button") && card.getClientRects().length > 0
+          && getComputedStyle(card).display !== "none" && getComputedStyle(card).visibility !== "hidden"
+        ).length : undefined,
+        carouselChildren: node.id === "kefeCarStack" ? [...node.querySelectorAll("button.kefe-car-card")].filter(card =>
+          !card.classList.contains("beui-native-panel-button") && card.getClientRects().length > 0
+          && getComputedStyle(card).display !== "none" && getComputedStyle(card).visibility !== "hidden"
+        ).map((child, index) => {
+          const backing = child.closest(".beui-panel-button-host")?.nextElementSibling || child;
+          const childRect = child.getBoundingClientRect();
+          const style = getComputedStyle(child);
+          return {
+            index,
+            tag: child.tagName.toLowerCase(),
+            id: child.id || "",
+            classes: [...child.classList].join(" "),
+            dataIndex: backing.dataset.i || child.dataset.i || "",
+            dataKeys: Object.keys(backing.dataset).sort(),
+            ariaLabel: child.getAttribute("aria-label") || "",
+            ariaPressed: child.getAttribute("aria-pressed"),
+            tabIndex: child.tabIndex,
+            text: (child.innerText || child.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 120),
+            hidden: child.hidden,
+            display: style.display,
+            visibility: style.visibility,
+            bounds: [childRect.x, childRect.y, childRect.width, childRect.height],
+            contentGeometry: [".kefe-car-art", ".kefe-car-local-icon", ".kefe-car-tag", ".kefe-car-cap", ".kefe-car-cap b", ".kefe-car-cap i"]
+              .map(selector => {
+                const nodes = [...child.querySelectorAll(selector)];
+                return {
+                  selector,
+                  nodes: nodes.map(node => {
+                    const childRect = node.getBoundingClientRect();
+                    return {
+                      text: (node.innerText || node.textContent || "").trim().replace(/\s+/g, " "),
+                      bounds: [childRect.x, childRect.y, childRect.width, childRect.height],
+                    };
+                  }),
+                };
+              }),
+          };
+        }) : undefined,
+        value: "value" in node ? node.value : undefined,
+        scrollTop: node.scrollTop,
         scrollLeft: node.scrollLeft, scrollHeight: node.scrollHeight, clientHeight: node.clientHeight,
       };
     };
@@ -126,7 +171,7 @@ async function captureEditorScreenState(page) {
       scrollables: [...document.querySelectorAll(".kefe-editor, .kefe-editor *")].filter(node =>
         node.scrollHeight > node.clientHeight + 2 && node.getBoundingClientRect().width > 0
       ).map(describe),
-      keyBounds: [...document.querySelectorAll(".kefe-settings-mount, #kefe-settings-panel, .kefe-settings-columns > .kefe-panel[data-group], .kefe-panel-label, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form")]
+      keyBounds: [...document.querySelectorAll(".kefe-settings-mount, #kefe-settings-panel, .kefe-settings-columns > .kefe-panel[data-group], .kefe-panel-label, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form, .kefe-step, .kefe-step-body, .kefe-media-upload-row, .kefe-find, .kefe-find-bar, #kefeFindInput, .kefe-find-status, .kefe-search, .kefe-carousel, #kefeCarStack, #kefeCarInfo, .kefe-song-details, .kefe-details-grid")]
         .filter(node => node.getBoundingClientRect().width > 0).map(describe),
     };
   });
@@ -150,9 +195,9 @@ async function captureEditorScreenState(page) {
     });
 
     await page.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
-    await page.waitForSelector(".beui-sidebar-nav-host button", { state: "attached", timeout: 20000 });
+    await page.waitForSelector(".kefe-sidebar [data-shell-panel]", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
-    await page.waitForSelector("#beui-songTitle", { state: "attached", timeout: 20000 });
+    await page.waitForSelector("#songTitle", { state: "visible", timeout: 20000 });
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
     try {
@@ -202,6 +247,9 @@ async function captureEditorScreenState(page) {
     const desktopViewport = page.viewportSize();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
+    const mobileUploadColumns = await page.locator(".kefe-media-upload-row").evaluate(node =>
+      getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length);
+    assert.equal(mobileUploadColumns, 1, "mobile Media upload zones must stack at the viewport breakpoint");
     const mobileToolbarBounds = await quickToolbar.evaluate(node => {
       const r = node.getBoundingClientRect();
       return { left: r.left, right: r.right, viewportWidth: document.documentElement.clientWidth };
@@ -238,45 +286,52 @@ async function captureEditorScreenState(page) {
     assert.equal(await hex.inputValue(), "#A7E7FF", "invalid hex input must preserve the last valid colour");
     await page.keyboard.press("Escape");
 
-    const toolbarPanel = name => page.getByRole("dialog", { name, exact: true });
-    const openToolbarPanel = async name => {
-      await quickToolbar.getByRole("button", { name, exact: true }).click();
-      await toolbarPanel(name === "Font, case and size" ? "Font" : name === "Move and scale layer" ? "Move layer" : name === "Lyric effect and display mode" ? "Lyric effect" : name === "Canvas, background and visualiser" ? "Canvas" : "Actions").waitFor({ state: "visible", timeout: 5000 });
-    };
-
-    await openToolbarPanel("Font, case and size");
-    const quickSize = page.locator('.kft-scrub[aria-label="Text size"]');
+    const fontButton = quickToolbar.getByRole("button", { name: "Font, case and size", exact: true });
+    await fontButton.click();
+    const fontPanel = page.getByRole("dialog", { name: "Font", exact: true });
+    await fontPanel.waitFor({ state: "visible", timeout: 5000 });
+    const quickSize = fontPanel.locator('.kft-scrub[aria-label="Text size"]');
     await quickSize.focus();
     await page.keyboard.press("End");
     assert.equal(await page.evaluate(() => window.kefeStyle.state().scale), 160,
       "toolbar text-size control must update the canonical lyric-style setting");
     await page.keyboard.press("Escape");
-
+    assert.equal(await fontButton.evaluate(node => document.activeElement === node), true,
+      "Escape must close the Font panel and restore focus to its trigger");
     assert.equal(await page.locator("[data-layout-target]").count(), 1, "the editor must expose one canonical layer selector");
     assert.equal(await page.locator("[data-layout-scale]").count(), 1, "the editor must expose one canonical layer scale control");
-    await openToolbarPanel("Move and scale layer");
-    const layerScaleControl = page.locator('.kft-scrub[aria-label="Layer scale"]');
+
+    const moveButton = quickToolbar.getByRole("button", { name: "Move and scale layer", exact: true });
+    await moveButton.click();
+    const movePanel = page.getByRole("dialog", { name: "Move layer", exact: true });
+    await movePanel.waitFor({ state: "visible", timeout: 5000 });
+    const layerScaleControl = movePanel.locator('.kft-scrub[aria-label="Layer scale"]');
     await layerScaleControl.focus();
     await page.keyboard.press("End");
     assert.equal(await page.locator("[data-layout-scale]").inputValue(), await page.locator("[data-layout-scale]").getAttribute("max"),
       "layer scale control must drive the canonical layer scale");
     const moveLayer = page.locator("[data-layout-move]");
-    const moveChip = toolbarPanel("Move layer").getByRole("button", { name: "Drag in preview" });
-    await moveChip.click();
+    await movePanel.getByRole("button", { name: "Drag in preview", exact: true }).click();
     assert.equal(await moveLayer.getAttribute("aria-pressed"), "true", "Move must enter its active state");
-    await toolbarPanel("Move layer").getByRole("button", { name: "Done moving" }).click();
+    await movePanel.getByRole("button", { name: "Done moving", exact: true }).click();
     assert.equal(await moveLayer.getAttribute("aria-pressed"), "false", "Move must return to its inactive state");
     await page.keyboard.press("Escape");
 
-    await openToolbarPanel("More actions");
-    await toolbarPanel("Actions").getByRole("button", { name: "Lock toolbar position" }).click();
+    const actionsButton = quickToolbar.getByRole("button", { name: "More actions", exact: true });
+    await actionsButton.click();
+    const actionsPanel = page.getByRole("dialog", { name: "Actions", exact: true });
+    await actionsPanel.waitFor({ state: "visible", timeout: 5000 });
+    await actionsPanel.getByRole("button", { name: "Lock toolbar position", exact: true }).click();
     assert.equal(await quickToolbar.evaluate(node => node.classList.contains("is-locked")), true, "toolbar position lock must engage");
-    await toolbarPanel("Actions").getByRole("button", { name: "Toolbar position locked" }).click();
+    await actionsPanel.getByRole("button", { name: "Toolbar position locked", exact: true }).click();
     assert.equal(await quickToolbar.evaluate(node => node.classList.contains("is-locked")), false, "toolbar position lock must disengage");
     await page.keyboard.press("Escape");
 
-    await openToolbarPanel("Lyric effect and display mode");
-    await toolbarPanel("Lyric effect").getByRole("button", { name: /^Lyric effect:/ }).click();
+    const effectButton = quickToolbar.getByRole("button", { name: "Lyric effect and display mode", exact: true });
+    await effectButton.click();
+    const effectPanel = page.getByRole("dialog", { name: "Lyric effect", exact: true });
+    await effectPanel.waitFor({ state: "visible", timeout: 5000 });
+    await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();
     assert.ok(await page.locator('.kft-popover [role="option"]').count() > 1,
       "effect menu must be populated from the existing lyric effect gallery");
     assert.match(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option[data-effect="premium"]').textContent(), /Devotion/,
@@ -292,6 +347,36 @@ async function captureEditorScreenState(page) {
     await page.keyboard.press("Escape");
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "the editor must start in Media, not switch itself to Visualisers");
+    const lyricsSidebarAction = page.locator('.kefe-sidebar [data-shell-panel="lyrics"]');
+    await lyricsSidebarAction.focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "lyrics",
+      "keyboard activation of the native sidebar button should open Lyric Sync");
+    assert.equal(await lyricsSidebarAction.getAttribute("aria-current"), "page",
+      "the native sidebar should expose its active section to assistive technology");
+    assert.equal(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").count(), 7,
+      "native workspace links must expose their dedicated responsive text labels");
+    const mediaSidebarAction = page.locator('.kefe-sidebar [data-shell-panel="media"]');
+    await mediaSidebarAction.focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
+      "keyboard activation of the native Media button should restore the initial section");
+    const aspectSelect = page.locator("#kefeAspect");
+    assert.equal(await aspectSelect.getAttribute("aria-hidden"), null, "the preview aspect backing control must remain exposed to assistive technology");
+    const canvasButton = quickToolbar.getByRole("button", { name: "Canvas, background and visualiser", exact: true });
+    await canvasButton.click();
+    const canvasPanel = page.getByRole("dialog", { name: "Canvas", exact: true });
+    await canvasPanel.waitFor({ state: "visible", timeout: 5000 });
+    await canvasPanel.getByRole("radio", { name: "9:16", exact: true }).click();
+    await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-9x16"), null, { timeout: 5000 });
+    assert.deepEqual(await page.locator("#kefeCanvas").evaluate(canvas => [canvas.width, canvas.height]), [1080, 1920],
+      "the Canvas panel aspect control should update KEFE's dimensions");
+    assert.equal(await aspectSelect.inputValue(), "9:16", "the Canvas panel must stay synchronized with its native aspect backing control");
+    if (!(await canvasPanel.isVisible())) await canvasButton.click();
+    await canvasPanel.waitFor({ state: "visible", timeout: 5000 });
+    await canvasPanel.locator('[role="radio"][data-value="16:9"]').click();
+    await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-16x9"), null, { timeout: 5000 });
+    await page.keyboard.press("Escape");
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
       "visualiser tabs must stay hidden until the Visualisers section is opened");
     assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
@@ -317,8 +402,8 @@ async function captureEditorScreenState(page) {
     const headerNavigation = await page.evaluate(() => {
       const header = document.querySelector(".kefe-sidebar");
       const headerRect = header.getBoundingClientRect();
-      const navs = [...header.querySelectorAll(".beui-sidebar-nav")];
-      const links = [...header.querySelectorAll(".beui-sidebar-nav .kefe-sidebar-link")];
+      const navs = [...header.querySelectorAll(".kefe-sidebar-group")];
+      const links = [...header.querySelectorAll(".kefe-sidebar-group > .kefe-sidebar-link")];
       return {
         navDisplays: navs.map((nav) => getComputedStyle(nav).display),
         linksWithinHeader: links.every((link) => {
@@ -328,7 +413,7 @@ async function captureEditorScreenState(page) {
       };
     });
     assert.ok(headerNavigation.navDisplays.length >= 2 && headerNavigation.navDisplays.every((display) => display === "flex"),
-      `desktop beUI navigation groups must be horizontal flex rows: ${JSON.stringify(headerNavigation.navDisplays)}`);
+      `native navigation groups must be horizontal flex rows: ${JSON.stringify(headerNavigation.navDisplays)}`);
     assert.ok(headerNavigation.linksWithinHeader, "desktop navigation links must not be clipped outside the header");
     const desktopColumns = await page.evaluate(() => {
       const left = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
@@ -342,8 +427,8 @@ async function captureEditorScreenState(page) {
       "KEFE input panel must stay left of the central preview");
     assert.ok(desktopColumns.centreRight <= desktopColumns.rightLeft + 1,
       "Visual & Output panel must stay right of the central preview");
-    await page.waitForSelector(".beui-textarea-host #beui-lyricsInput", { state: "attached", timeout: 20000 });
-    assert.equal(await page.locator(".beui-textarea-host #beui-lyricsInput").count(), 1, "textarea bridge must not recursively mount its own component");
+    await page.waitForSelector("#lyricsInput", { state: "visible", timeout: 20000 });
+    assert.equal(await page.locator('label[for="lyricsInput"]').count(), 1, "native lyrics label association must remain in the DOM");
     await page.waitForFunction(() => {
       const expected = ["media", "lyrics", "effects", "background-effects", "visualiser", "export"];
       const panels = [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")];
@@ -353,11 +438,12 @@ async function captureEditorScreenState(page) {
           && panel.querySelector(":scope > .kefe-form")))
         && panels.every((panel) => !panel.querySelector(".beui-editor-panel-card"));
     }, null, { timeout: 20000 });
-    await page.waitForSelector("#kefeUploadZone .beui-upload-card", { state: "attached", timeout: 20000 });
+    await page.waitForSelector("#kefeUploadZone.beui-upload-dropzone", { state: "visible", timeout: 20000 });
     await page.waitForSelector("#kefeBgVideoZone", { state: "attached", timeout: 20000 });
     assert.equal(await page.locator("#kefeUploadZone").count(), 1, "there must be exactly one primary audio/video uploader");
     assert.equal(await page.locator("#kefeBgVideoZone").count(), 1, "there must be exactly one separate optional background-video uploader");
-    assert.equal(await page.locator("#kefeUploadZone .beui-upload-card").count(), 1, "the primary uploader must not render duplicate Card shells");
+    assert.equal(await page.locator("#kefeUploadZone .beui-upload-card").count(), 0, "the primary uploader must not wrap itself in a React Card");
+    assert.equal(await page.locator("#kefeUploadZone.beui-upload-card-hosted").count(), 0, "the native upload label must not have a mirrored Card host");
     assert.equal(await page.locator("#kefeUploadZone .kefe-upload-title").textContent(), "Audio or video", "the primary uploader label must remain distinct");
     assert.equal(await page.locator("#kefeUploadZone .beui-upload-symbol").count(), 1, "the primary uploader must have one upload icon");
     assert.equal(await page.locator("#kefeUploadZone .kefe-upload-help").count(), 1, "the primary uploader must explain what the source media is used for");
@@ -365,20 +451,26 @@ async function captureEditorScreenState(page) {
     assert.match(await page.locator("#kefeBgVideoZone .kefe-upload-title").textContent(), /Optional background video/, "the second uploader must be clearly identified as optional background footage");
     const mediaUploadGeometry = await page.evaluate(() => {
       const primaryHost = document.querySelector("#kefeUploadZone");
-      const primaryCard = primaryHost && primaryHost.querySelector(".beui-upload-card");
+      const primaryInput = document.getElementById("mediaInput");
       const backgroundCard = document.querySelector("#kefeBgVideoZone");
-      if (!primaryHost || !primaryCard || !backgroundCard) return null;
+      if (!primaryHost || !primaryInput || !backgroundCard) return null;
       const hostStyle = getComputedStyle(primaryHost);
+      const nativeCard = primaryHost.querySelector(".kefe-upload-card");
+      const cardStyle = nativeCard ? getComputedStyle(nativeCard) : null;
       const row = primaryHost.parentElement;
       const wrap = backgroundCard.parentElement;
-      const primary = primaryCard.getBoundingClientRect();
+      const primary = primaryHost.getBoundingClientRect();
       const background = backgroundCard.getBoundingClientRect();
       const rect = node => { const r = node.getBoundingClientRect(); const s = getComputedStyle(node); return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,display:s.display,position:s.position,gridColumn:s.gridColumn,gridRow:s.gridRow,heightCss:s.height,minHeight:s.minHeight,marginTop:s.marginTop,transform:s.transform}; };
       const overlapX = Math.max(0, Math.min(primary.right, background.right) - Math.max(primary.left, background.left));
       const overlapY = Math.max(0, Math.min(primary.bottom, background.bottom) - Math.max(primary.top, background.top));
       return {
-        hostBorderWidth: hostStyle.borderTopWidth,
-        hostPadding: hostStyle.paddingTop,
+        isLabel: primaryHost.tagName === "LABEL",
+        inputRemainsAssociated: primaryInput.closest("label") === primaryHost,
+        hasBridgeCard: !!primaryHost.querySelector(".beui-upload-card, .beui-upload-card-root"),
+        hasNativeCard: !!nativeCard,
+        cardBorderWidth: cardStyle?.borderTopWidth || "0px",
+        cardPadding: cardStyle?.paddingTop || "0px",
         primaryGridRow: hostStyle.gridRow,
         backgroundGridRow: getComputedStyle(wrap).gridRow,
         primaryHeight: primary.height,
@@ -387,22 +479,33 @@ async function captureEditorScreenState(page) {
         rowWidth: row.getBoundingClientRect().width,
         rowColumns: getComputedStyle(row).gridTemplateColumns,
         rowColumnCount: getComputedStyle(row).gridTemplateColumns.split(" ").length,
-        row: rect(row), primaryHost: rect(primaryHost), primaryCard: rect(primaryCard), backgroundWrap: rect(wrap), backgroundCard: rect(backgroundCard)
+        row: rect(row), primaryZone: rect(primaryHost), backgroundWrap: rect(wrap), backgroundZone: rect(backgroundCard)
       };
     });
-    assert.ok(mediaUploadGeometry, "both Media upload cards must be mounted");
-    assert.equal(mediaUploadGeometry.hostBorderWidth, "0px", "the primary uploader host must not add a duplicate outer border around the beUI Card");
-    assert.equal(mediaUploadGeometry.hostPadding, "0px", "the primary uploader host must not add a second layer of padding around the beUI Card");
+    assert.ok(mediaUploadGeometry, "both native Media upload zones must be mounted");
+    assert.equal(mediaUploadGeometry.isLabel, true, "the original upload label remains the visible drop target");
+    assert.equal(mediaUploadGeometry.inputRemainsAssociated, true, "the native file input remains associated with the upload label");
+    assert.equal(mediaUploadGeometry.hasBridgeCard, false, "the native upload zone must not contain a React Card wrapper");
+    assert.equal(mediaUploadGeometry.hasNativeCard, true, "the native upload label must preserve its inner Card surface");
+    assert.ok(Number.parseFloat(mediaUploadGeometry.cardBorderWidth) > 0, "the native Card surface must own its dashed border");
+    assert.ok(Number.parseFloat(mediaUploadGeometry.cardPadding) > 0, "the native Card surface must own its content spacing");
     assert.equal(mediaUploadGeometry.primaryGridRow, "auto", "the primary uploader must not span rows from the legacy Media grid");
     assert.equal(mediaUploadGeometry.backgroundGridRow, "auto", "the optional uploader wrapper must not span rows from the legacy Media grid");
-    assert.equal(mediaUploadGeometry.overlapArea, 0, `the primary and background upload cards must never overlap: ${JSON.stringify(mediaUploadGeometry)}`);
-    if (mediaUploadGeometry.rowWidth <= 500) {
-      assert.equal(mediaUploadGeometry.rowColumnCount, 1, `narrow Media panels must stack upload cards instead of compressing them: ${JSON.stringify(mediaUploadGeometry)}`);
+    assert.equal(mediaUploadGeometry.overlapArea, 0, `the primary and background upload zones must never overlap: ${JSON.stringify(mediaUploadGeometry)}`);
+    if (await page.evaluate(() => document.documentElement.clientWidth) <= 520) {
+      assert.equal(mediaUploadGeometry.rowColumnCount, 1, `mobile Media panels must stack upload zones instead of compressing them: ${JSON.stringify(mediaUploadGeometry)}`);
     }
     if (mediaUploadGeometry.rowColumnCount > 1) {
       assert.ok(Math.abs(mediaUploadGeometry.primaryHeight - mediaUploadGeometry.backgroundHeight) <= 2,
-        `side-by-side Media upload cards must have matching heights: ${JSON.stringify(mediaUploadGeometry)}`);
+        `side-by-side Media upload zones must have matching heights: ${JSON.stringify(mediaUploadGeometry)}`);
     }
+    const nativeUploadZone = page.locator("#kefeUploadZone");
+    await nativeUploadZone.dispatchEvent("dragover");
+    assert.equal(await nativeUploadZone.evaluate(zone => zone.classList.contains("is-dragging")), true,
+      "native upload drop target should show drag-over state");
+    await nativeUploadZone.dispatchEvent("dragleave");
+    assert.equal(await nativeUploadZone.evaluate(zone => zone.classList.contains("is-dragging")), false,
+      "native upload drop target should clear drag-over state");
     await assertSectionFits("media");
     const mediaMetadataColumns = await page.locator(".kefe-details-grid").evaluate(grid => ({
       width: grid.getBoundingClientRect().width,
@@ -416,14 +519,48 @@ async function captureEditorScreenState(page) {
       "visualiser tabs must not appear on the initial Media section");
     assert.equal(await page.locator("#mediaInput").getAttribute("type"), "file", "upload Card must preserve the native file input");
     await page.waitForFunction(() => {
-      const ranges = [...document.querySelectorAll('input[type="range"]')].filter((input) => input.id !== "kefeTime");
-      const selects = [...document.querySelectorAll("select")];
-      return ranges.every((input) => input.nextElementSibling?.classList.contains("beui-range-host"))
-        && selects.every((input) => input.nextElementSibling?.classList.contains("beui-select-host"));
+      const ranges = [...document.querySelectorAll('.kefe-editor input[type="range"]')].filter((input) => input.id !== "kefeTime");
+      return ranges.length > 0 && ranges.every((input) => input.nextElementSibling?.classList.contains("beui-range-host"));
     }, null, { timeout: 20000 });
+    await page.waitForSelector('#kefeBackgroundEffectOptions [data-background-mode="apple"]', { state: "attached", timeout: 10000 });
+    const nativeSelectState = await page.evaluate(() => {
+      const visibleIds = ["kefeAspect", "fontOverride", "exportFormat", "exportResolution"];
+      return {
+        visible: visibleIds.map((id) => {
+          const select = document.getElementById(id);
+          return select && { id, hidden: select.hidden, ariaHidden: select.getAttribute("aria-hidden"), tabIndex: select.tabIndex, nextHost: select.nextElementSibling?.classList.contains("beui-select-host") === true };
+        }),
+        background: (() => {
+          const select = document.getElementById("visualiserBackground");
+          const group = document.getElementById("kefeBackgroundEffectOptions");
+          return select && group && {
+            hidden: select.hidden,
+            ariaHidden: select.getAttribute("aria-hidden"),
+            tabIndex: select.tabIndex,
+            options: [...group.querySelectorAll("[data-background-mode]")].map((button) => ({ mode: button.dataset.backgroundMode, pressed: button.getAttribute("aria-pressed") })),
+          };
+        })(),
+        bridgeHosts: document.querySelectorAll(".kefe-editor .beui-select-host").length,
+      };
+    });
+    assert.equal(nativeSelectState.visible.length, 4, `the preview, font and export selects must remain present: ${JSON.stringify(nativeSelectState)}`);
+    assert.ok(nativeSelectState.visible.every((select) => select && !select.hidden && select.ariaHidden === null && select.tabIndex !== -1 && !select.nextHost),
+      `primary editor selects must stay visible, keyboard-accessible native controls without a mirrored host: ${JSON.stringify(nativeSelectState)}`);
+    assert.equal(nativeSelectState.bridgeHosts, 0, "editor selects must not have React Select mirrors");
+    assert.ok(nativeSelectState.background?.hidden && nativeSelectState.background.ariaHidden === "true" && nativeSelectState.background.tabIndex === -1,
+      `the KEFE background-mode select should remain a hidden native backing control for its accessible custom choices: ${JSON.stringify(nativeSelectState.background)}`);
+    assert.deepEqual(nativeSelectState.background.options.map((option) => option.mode), ["apple", "gradient", "video"],
+      "the background mode choices must remain the original KEFE native buttons");
+    assert.equal(nativeSelectState.background.options.filter((option) => option.pressed === "true").length, 1,
+      "exactly one KEFE background choice must remain selected");
 
-    await page.locator("#beui-songTitle").fill("beUI smoke track");
-    assert.equal(await page.locator("#songTitle").inputValue(), "beUI smoke track", "beUI Input should preserve the legacy metadata value and events");
+    const nativeSongTitle = page.locator("#songTitle");
+    assert.equal(await nativeSongTitle.getAttribute("aria-hidden"), null, "native metadata input must remain exposed to assistive technology");
+    assert.equal(await nativeSongTitle.getAttribute("tabindex"), null, "native metadata input must remain in the normal keyboard sequence");
+    assert.equal(await page.locator("#beui-songTitle").count(), 0, "metadata input must not have a mirrored React clone");
+    await nativeSongTitle.fill("beUI smoke track");
+    await page.waitForFunction(() => document.getElementById("kefeMediaTrackTitle")?.textContent === "beUI smoke track", null, { timeout: 5000 });
+    assert.equal(await nativeSongTitle.inputValue(), "beUI smoke track", "native metadata input should update the live track card");
 
     const nativePanelSurfaceCount = await page.locator("#kefe-settings-panel .section[data-section-id]").evaluateAll(sections => sections.filter(section => {
       const style = getComputedStyle(section);
@@ -447,15 +584,37 @@ async function captureEditorScreenState(page) {
       const geometry = await page.locator(`.kefe-panel[data-panel-view="${section}"]`).evaluate(panel => {
         const form = panel.querySelector(".kefe-visualiser-form") || panel.querySelector(".kefe-form");
         const formRect = form.getBoundingClientRect();
+        const formStyle = getComputedStyle(form);
+        const measure = node => {
+          const rect = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          return {
+            tag: node.tagName.toLowerCase(), id: node.id || "", classes: typeof node.className === "string" ? node.className : "",
+            left: rect.left, right: rect.right, top: rect.top, width: rect.width,
+            clientWidth: node.clientWidth, scrollWidth: node.scrollWidth,
+            display: style.display, position: style.position, boxSizing: style.boxSizing,
+            minWidth: style.minWidth, maxWidth: style.maxWidth, gridColumn: style.gridColumn,
+            whiteSpace: style.whiteSpace, overflowX: style.overflowX, padding: style.padding,
+          };
+        };
         const children = [...form.children].filter(child => {
           const style = getComputedStyle(child);
           return !child.hidden && style.display !== "none" && style.display !== "contents";
         });
-        const overflow = children.map(child => {
-          const rect = child.getBoundingClientRect();
-          return {className: child.className, left: rect.left, right: rect.right, width: rect.width};
-        }).filter(item => item.left < formRect.left - 1 || item.right > formRect.right + 1);
-        return {formWidth: formRect.width, clientWidth: form.clientWidth, scrollWidth: form.scrollWidth, overflow};
+        const overflow = children.map(measure).filter(item => item.left < formRect.left - 1 || item.right > formRect.right + 1);
+        const overflowDescendants = [...form.querySelectorAll("*")].map(measure)
+          .filter(item => item.scrollWidth > item.clientWidth + 1 || item.left < formRect.left - 1 || item.right > formRect.right + 1)
+          .sort((a, b) => (b.scrollWidth - b.clientWidth) - (a.scrollWidth - a.clientWidth))
+          .slice(0, 30);
+        const pseudo = ["::before", "::after"].map(selector => {
+          const style = getComputedStyle(form, selector);
+          return {selector, content: style.content, display: style.display, width: style.width, marginInline: `${style.marginLeft} ${style.marginRight}`, overflowX: style.overflowX};
+        });
+        return {
+          formWidth: formRect.width, clientWidth: form.clientWidth, scrollWidth: form.scrollWidth,
+          gridTemplateColumns: formStyle.gridTemplateColumns, gap: formStyle.gap, boxSizing: formStyle.boxSizing,
+          padding: formStyle.padding, overflow, overflowDescendants, pseudo,
+        };
       });
       assert.equal(geometry.overflow.length, 0, `${section} controls must stay inside their form: ${JSON.stringify(geometry)}`);
       assert.ok(geometry.scrollWidth <= geometry.clientWidth + 1, `${section} form must not overflow horizontally: ${JSON.stringify(geometry)}`);
@@ -474,6 +633,8 @@ async function captureEditorScreenState(page) {
     const mediaAccordion = mediaSection.locator(".expand-button").first();
     await mediaHeading.waitFor({ state: "visible", timeout: 10000 });
     await mediaAccordion.waitFor({ state: "visible", timeout: 10000 });
+    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true",
+      "the initially expanded Media settings section must expose its expanded state");
     await mediaAccordion.click();
     assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "false", "Media section should collapse");
     await page.waitForFunction(() => {
@@ -542,10 +703,10 @@ async function captureEditorScreenState(page) {
       [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize)].join("|")
     )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
-    const sidebarCount = await page.locator(".beui-sidebar-nav-host button").count();
-    assert.ok(sidebarCount >= 7, `expected sidebar actions, found ${sidebarCount}`);
+    const sidebarCount = await page.locator('.kefe-sidebar [data-shell-panel], .kefe-sidebar [data-top-panel="settings"], .kefe-sidebar a.kefe-sidebar-link[href="./editor.html"]').count();
+    assert.ok(sidebarCount >= 8, `expected native workspace, section, and Settings actions, found ${sidebarCount}`);
 
-    await page.locator(".beui-sidebar-settings-host button").click();
+    await page.locator('[data-top-panel="settings"]').click();
     const dialog = page.getByRole("dialog", { name: "Settings" });
     await dialog.waitFor({ state: "visible", timeout: 10000 });
     const settingAccordions = dialog.locator('button[aria-controls$="-content"]');
@@ -564,13 +725,13 @@ async function captureEditorScreenState(page) {
     assert.equal(await settingAccordions.filter({ hasText: "Defaults" }).getAttribute("aria-expanded"), "true", "the select-bearing settings group should open");
     const selectTrigger = dialog.locator('button[aria-haspopup="listbox"]').first();
     await selectTrigger.click();
-    const options = page.getByRole("option");
+    const options = dialog.getByRole("option");
     assert.ok(await options.count() > 0, "beUI Select should expose its options");
     await options.first().click();
     await dialog.getByRole("button", { name: "Done" }).click();
     await dialog.waitFor({ state: "hidden", timeout: 5000 });
 
-    await page.locator(".beui-transport-host button[aria-controls=\"kefeVolumePopover\"]").click();
+    await page.locator("#kefeMuteToggle[aria-controls=\"kefeVolumePopover\"]").click();
     const volumePopover = page.locator("#kefeVolumePopover");
     await volumePopover.waitFor({ state: "visible", timeout: 5000 });
     const volumeCardGeometry = await page.evaluate(() => {
@@ -669,17 +830,69 @@ async function captureEditorScreenState(page) {
     if (screenshotDir) {
       fs.mkdirSync(screenshotDir, { recursive: true });
       const screenshotLabel = process.env.KEFE_SCREENSHOT_LABEL || process.env.GITHUB_SHA?.slice(0, 12) || "local";
-      const originalTheme = await page.locator("html").getAttribute("data-theme") || "night";
-      const originalViewport = page.viewportSize();
+      // Capture from a fresh browser context so interaction checks above (file drops,
+      // panel navigation, settings and toolbar edits) cannot leak into visual baselines.
+      const screenshotContext = await browser.newContext({ serviceWorkers: "block" });
+      const screenshotPage = await screenshotContext.newPage();
+      screenshotPage.on("pageerror", (error) => pageErrors.push({ type: "pageerror", name: error.name, message: error.message, stack: error.stack || null }));
+      screenshotPage.on("console", (message) => {
+        if (message.type() === "error" && /SyntaxError|Invalid or unexpected token/.test(message.text())) {
+          pageErrors.push({ type: "console", message: message.text(), location: message.location() });
+        }
+      });
+      await screenshotPage.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
+      await screenshotPage.waitForSelector('#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view="media"]', { state: "attached", timeout: 20000 });
+      await screenshotPage.waitForSelector('#kefeBackgroundEffectOptions [data-background-mode="apple"]', { state: "attached", timeout: 10000 });
+      const carouselFixture = {
+        trackName: "KEFE visual regression fixture",
+        artistName: "KEFE browser smoke",
+        collectionName: "KEFE visual comparison",
+        fileName: "kefe-visual-regression-fixture.wav",
+        durationSeconds: 5,
+      };
+      await screenshotPage.waitForFunction(() => typeof window.kefeCarousel?.setLocalUpload === "function", null, { timeout: 10000 });
+      await screenshotPage.evaluate((item) => window.kefeCarousel.setLocalUpload(item, true), carouselFixture);
+      const baselineUsesButtonBridge = await screenshotPage.evaluate(() =>
+        Boolean(document.querySelector(".kefe-panel button[data-beui-panel-mounted]")));
+      const fixtureCard = screenshotPage.locator(baselineUsesButtonBridge
+        ? '#kefeCarStack > .beui-panel-button-host > button.kefe-car-card'
+        : '#kefeCarStack > button.kefe-car-card:not(.beui-native-panel-button)');
+      await fixtureCard.waitFor({ state: "visible", timeout: 10000 });
+      const seededCarousel = await fixtureCard.evaluate((card) => {
+        const visibleCards = [...document.querySelectorAll("#kefeCarStack button.kefe-car-card")].filter(candidate =>
+          !candidate.classList.contains("beui-native-panel-button") && candidate.getClientRects().length > 0
+          && getComputedStyle(candidate).display !== "none" && getComputedStyle(candidate).visibility !== "hidden");
+        const backing = card.closest(".beui-panel-button-host")?.nextElementSibling || card;
+        const rect = card.getBoundingClientRect();
+        return {
+          count: visibleCards.length,
+          dataIndex: backing.dataset.i || card.dataset.i || "",
+          ariaLabel: card.getAttribute("aria-label"),
+          text: (card.innerText || "").trim().replace(/\s+/g, " "),
+          bounds: [rect.x, rect.y, rect.width, rect.height],
+        };
+      });
+      assert.equal(seededCarousel.count, 1, `screenshot carousel fixture must render exactly one real item: ${JSON.stringify(seededCarousel)}`);
+      assert.equal(seededCarousel.dataIndex, "0", `screenshot carousel fixture must retain stable item index 0: ${JSON.stringify(seededCarousel)}`);
+      assert.equal(seededCarousel.ariaLabel, `${carouselFixture.trackName} by ${carouselFixture.artistName}`,
+        `screenshot carousel fixture must retain the real card identity: ${JSON.stringify(seededCarousel)}`);
+      assert.ok(seededCarousel.text.includes(carouselFixture.trackName) && seededCarousel.text.includes(carouselFixture.artistName),
+        `screenshot carousel fixture must expose its visible title and artist: ${JSON.stringify(seededCarousel)}`);
+      console.log("Seeded screenshot carousel through KEFE local-upload render path:", JSON.stringify(seededCarousel));
+      const screenshotVolumePopover = screenshotPage.locator("#kefeVolumePopover");
+      await screenshotPage.locator("#kefeMuteToggle").click();
+      await screenshotVolumePopover.waitFor({ state: "visible", timeout: 5000 });
+      const originalTheme = await screenshotPage.locator("html").getAttribute("data-theme") || "night";
+      const originalViewport = screenshotPage.viewportSize();
       const desktopThemeSurfaces = new Map();
       for (const viewport of [originalViewport, { width: 390, height: 844 }]) {
-        await page.setViewportSize(viewport);
+        await screenshotPage.setViewportSize(viewport);
         for (const theme of ["night", "day"]) {
-          await page.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, theme);
-          await page.waitForTimeout(400);
+          await screenshotPage.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, theme);
+          await screenshotPage.waitForTimeout(400);
           const size = viewport.width <= 640 ? "mobile" : "desktop";
           const suffix = `${screenshotLabel}-${size}-${theme}`;
-          const geometry = await volumePopover.evaluate((node) => {
+          const geometry = await screenshotVolumePopover.evaluate((node) => {
             const rect = node.getBoundingClientRect();
             const style = getComputedStyle(node);
             return { left: rect.left, right: rect.right, viewportWidth: document.documentElement.clientWidth, background: style.backgroundColor };
@@ -692,20 +905,21 @@ async function captureEditorScreenState(page) {
             assert.equal(geometry.background, "rgba(0, 0, 0, 0)", "night volume Card must preserve the legacy transparent fallback");
           }
           if (size === "desktop") desktopThemeSurfaces.set(theme, geometry.background);
-          await normalizeEditorScrollState(page);
-          const editorLayout = await captureEditorLayout(page);
+          await normalizeEditorScrollState(screenshotPage);
+          const editorLayout = await captureEditorLayout(screenshotPage);
           fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
-          const editorScreenState = await captureEditorScreenState(page);
+          const editorScreenState = await captureEditorScreenState(screenshotPage);
           fs.writeFileSync(path.join(screenshotDir, `editor-screen-state-${size}-${theme}.json`), JSON.stringify(editorScreenState));
-          await page.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
-          await volumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
+          await screenshotPage.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
+          await screenshotVolumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
         }
       }
       assert.notEqual(desktopThemeSurfaces.get("night"), desktopThemeSurfaces.get("day"),
         "volume Card should use the distinct KEFE day and night panel surfaces");
-      await page.setViewportSize(originalViewport);
-      await page.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, originalTheme);
-      await page.waitForTimeout(120);
+      await screenshotPage.setViewportSize(originalViewport);
+      await screenshotPage.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, originalTheme);
+      await screenshotPage.waitForTimeout(120);
+      await screenshotContext.close();
 
       await volumeSlider.focus();
       await page.keyboard.press("ArrowLeft");
@@ -720,7 +934,7 @@ async function captureEditorScreenState(page) {
     await page.keyboard.press("Escape");
     await volumePopover.waitFor({ state: "hidden", timeout: 5000 });
 
-    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Background Effects" }).click();
+    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Background Effects" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "background-effects", null, { timeout: 5000 });
     await assertSectionFits("background-effects");
     const backgroundOptionsLayout = await page.locator("#kefeBackgroundEffectOptions").evaluate(grid => ({
@@ -730,7 +944,7 @@ async function captureEditorScreenState(page) {
     if (backgroundOptionsLayout.width <= 360) assert.equal(backgroundOptionsLayout.columns, 1,
       `background effect cards must stack when the panel is narrow: ${JSON.stringify(backgroundOptionsLayout)}`);
 
-    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Visualiser" }).click();
+    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Visualiser" }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "visualiser", null, { timeout: 5000 });
     await page.waitForSelector(".beui-vis-tabs-host [role='tab']", { state: "attached", timeout: 10000 });
     assert.ok(await page.locator(".beui-vis-tabs-host [role='tab']").count() >= 1, "visualiser navigation should use beUI Tabs");
@@ -812,7 +1026,7 @@ async function captureEditorScreenState(page) {
       "power toggles must not change the selected visualiser tab");
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
-    const lyricsNavButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Lyric Sync" });
+    const lyricsNavButton = page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Lyric Sync" });
     await lyricsNavButton.evaluate((button) => button.scrollIntoView({ block: "center", inline: "nearest" }));
     await lyricsNavButton.evaluate((button) => button.click());
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
@@ -834,8 +1048,12 @@ async function captureEditorScreenState(page) {
         assert.match(lyricsTimingLayout.laterRow, /^2/);
       }
     }
-    await page.locator(".beui-textarea-host #beui-lyricsInput").fill("beUI lyric smoke");
-    assert.equal(await page.locator("#lyricsInput").inputValue(), "beUI lyric smoke", "beUI Textarea should preserve the legacy lyrics value and events");
+    const nativeLyrics = page.locator("#lyricsInput");
+    assert.equal(await nativeLyrics.getAttribute("aria-hidden"), null, "native lyric textarea must remain exposed to assistive technology");
+    assert.equal(await nativeLyrics.getAttribute("tabindex"), null, "native lyric textarea must remain in the normal keyboard sequence");
+    assert.equal(await page.locator("#beui-lyricsInput").count(), 0, "lyrics textarea must not have a mirrored React clone");
+    await nativeLyrics.fill("beUI lyric smoke");
+    assert.equal(await nativeLyrics.inputValue(), "beUI lyric smoke", "native lyrics textarea should own the value and input events");
 
     await page.keyboard.press("Control+k");
     const commandPalette = page.locator("#kefeCommandPalette");
@@ -852,7 +1070,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser tabs must not appear on the Effects section");
 
-    await page.locator(".beui-sidebar-nav-host button").filter({ hasText: "Export" }).evaluate(button => button.click());
+    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Export" }).evaluate(button => button.click());
     await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "export", null, { timeout: 5000 });
     await assertSectionFits("export");
     const exportLayout = await page.locator('.kefe-panel[data-panel-view="export"] .kefe-form').evaluate(form => ({
@@ -879,7 +1097,7 @@ async function captureEditorScreenState(page) {
         ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Effects"],
         ["background-effects", "Background Effects"], ["visualiser", "Visualiser"], ["export", "Export"]
       ]) {
-        const navButton = page.locator(".beui-sidebar-nav-host button").filter({ hasText: label }).first();
+        const navButton = page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: label }).first();
         await navButton.evaluate(button => button.click());
         await page.waitForFunction(expected => document.querySelector(".kefe-section.active")?.dataset.panel === expected, section, { timeout: 5000 });
         await assertSectionFits(section);
@@ -918,15 +1136,42 @@ async function captureEditorScreenState(page) {
     await page.setViewportSize(panelDesktopViewport);
     await page.waitForTimeout(100);
 
-    const reviewCheckbox = page.locator("#beui-kefeReview0[role=checkbox]");
+    const reviewCheckbox = page.locator("#kefeReview0");
     await reviewCheckbox.waitFor({ state: "visible", timeout: 10000 });
-    await reviewCheckbox.click();
-    assert.equal(await page.locator("#kefeReview0").evaluate((input) => input.checked), true, "beUI Checkbox should preserve the legacy checklist value");
+    assert.equal(await reviewCheckbox.getAttribute("type"), "checkbox", "review checklist must use the original native checkbox");
+    assert.equal(await reviewCheckbox.getAttribute("aria-hidden"), null, "native checklist checkbox must remain exposed to assistive technology");
+    assert.equal(await page.locator("#beui-kefeReview0[role=checkbox]").count(), 0, "review checklist must not have a mirrored React clone");
+    await reviewCheckbox.focus();
+    await page.keyboard.press("Space");
+    assert.equal(await reviewCheckbox.isChecked(), true, "native checkbox Space activation should update KEFE checklist state");
 
-    const firstCount = await page.locator(".beui-panel-button-host").count();
+    const firstCount = await page.locator(".kefe-panel-action").count();
     await page.waitForTimeout(300);
-    const secondCount = await page.locator(".beui-panel-button-host").count();
-    assert.equal(secondCount, firstCount, "panel bridge must not recursively mount its own buttons");
+    const secondCount = await page.locator(".kefe-panel-action").count();
+    assert.ok(firstCount > 0, "native panel actions should be styled directly on KEFE buttons");
+    assert.equal(secondCount, firstCount, "native panel buttons must not be duplicated as controls");
+    assert.equal(await page.locator(".beui-panel-button-host").count(), 0, "panel actions must not use mirrored host wrappers");
+    assert.equal(await page.locator(".kefe-settings-panel .expand-button.kefe-panel-action, .kefe-settings-panel .info-button.kefe-panel-action, .kefe-settings-panel .toggle-switch.kefe-panel-action").count(), 0,
+      "native settings accordion, info and toggle controls must retain their dedicated KEFE styles");
+
+    const dropHandoff = await page.evaluate((bytes) => {
+      const input = document.getElementById("mediaInput");
+      const zone = document.getElementById("kefeUploadZone");
+      const file = new File([new Uint8Array(bytes)], "drop-smoke.wav", { type: "audio/wav" });
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      let changes = 0;
+      const observeChange = () => { changes += 1; };
+      input.addEventListener("change", observeChange);
+      zone.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: transfer }));
+      input.removeEventListener("change", observeChange);
+      return { changes, name: input.files[0]?.name, selected: zone.classList.contains("has-selected-file"), size: input.files[0]?.size, type: input.files[0]?.type };
+    }, Array.from(makeWavBuffer(1)));
+    assert.equal(dropHandoff.changes, 1, `native drop should forward a file change to KEFE: ${JSON.stringify(dropHandoff)}`);
+    assert.equal(dropHandoff.name, "drop-smoke.wav", "native drop should preserve the dropped file in the original input");
+    assert.equal(dropHandoff.size, makeWavBuffer(1).length, "native drop should preserve the dropped file bytes in the original input");
+    assert.equal(dropHandoff.type, "audio/wav", "native drop should preserve the dropped file MIME type");
+    assert.equal(dropHandoff.selected, true, "native drop should update the original upload surface state");
 
     await page.locator("#mediaInput").setInputFiles({
       name: "beui-smoke.wav",
@@ -939,9 +1184,9 @@ async function captureEditorScreenState(page) {
       return audio && audio.readyState >= 1 && Number.isFinite(audio.duration) && audio.duration > 0 && track && !track.hidden;
     }, null, { timeout: 15000 });
     assert.ok(Number(await page.locator("#kefeTime").getAttribute("max")) >= 4.9, "timeline should use decoded media duration");
-    await page.locator(".beui-transport-host button[aria-label=\"Play\"]").click();
+    await page.locator("#playButton").click();
     await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === false, null, { timeout: 5000 });
-    await page.locator(".beui-transport-host button[aria-label=\"Pause\"]").click();
+    await page.locator("#playButton").click();
     await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === true, null, { timeout: 5000 });
 
     await page.locator("#mediaInput").setInputFiles({

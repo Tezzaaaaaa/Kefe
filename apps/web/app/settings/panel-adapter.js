@@ -83,7 +83,7 @@
       slot.appendChild(panel);
     });
 
-    editing.querySelectorAll('.kefe-tabs, .beui-tabs-host, .kefe-panels').forEach(element => {
+    editing.querySelectorAll('.kefe-tabs, .kefe-panels').forEach(element => {
       if (root.contains(element)) return;
       element.hidden = true;
       element.setAttribute('aria-hidden', 'true');
@@ -115,6 +115,12 @@
     }
 
     applyLegacyValues();
+    root.querySelectorAll('.section[data-section-id]').forEach(section => {
+      section.querySelector('.expand-button')?.setAttribute(
+        'aria-expanded',
+        String(section.dataset.expanded === 'true')
+      );
+    });
 
     panel.onChange(({ key, value }) => {
       const legacyKey = PANEL_TO_LEGACY[key];

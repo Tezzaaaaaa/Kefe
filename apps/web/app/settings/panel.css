@@ -153,7 +153,12 @@
     text-align: left;
     cursor: pointer;
     font-size: inherit;
+    height: 35px;
     min-height: 28px;
+    border-radius: 9999px;
+    font-weight: 500;
+    user-select: none;
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
   }.kefe-settings-panel .expand-button:focus-visible:not(.kefe-slot *){
     outline: 2px solid var(--ksp-accent);
     outline-offset: 3px;
@@ -409,7 +414,6 @@
   }
 }
 .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-tabs,
-.kefe-editor .kefe-editing.kefe-settings-layout > .beui-tabs-host,
 .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-columns,
 .kefe-editor .kefe-editing.kefe-settings-layout .kefe-resizer {
   display: none;
@@ -503,7 +507,6 @@
   container-name: kefe-settings;
 }
 @media (min-width: 1280px) {
-  .kefe-settings-panel .kefe-slot .kefe-media-upload-row,
   .kefe-settings-panel .kefe-slot .kefe-details-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -515,8 +518,10 @@
 .kefe-settings-panel .section-title-wrap,
 .kefe-settings-panel .expand-button,
 .kefe-settings-panel .title-group { min-width: 0; }
-.kefe-settings-panel .title-group { gap: 8px; overflow: visible; }
-.kefe-settings-panel .section-heading { display: block; min-width: 0; overflow-wrap: anywhere; white-space: normal; }.kefe-settings-panel .info-button { flex: 0 0 auto; }
+.kefe-settings-panel .title-group { gap: 8px; overflow: visible; font-weight: 600; }
+.kefe-settings-panel .section-heading { display: block; min-width: 0; overflow-wrap: anywhere; white-space: normal; }
+.kefe-settings-panel .format-note { display: none !important; }
+.kefe-settings-panel .info-button { flex: 0 0 auto; }
 @media (max-width: 600px) {
   .kefe-settings-mount { margin: 12px auto; padding: 0 10px; }
   .kefe-settings-panel { gap: 12px; }
@@ -537,4 +542,9 @@
 @media (min-width: 601px) {
   .kefe-settings-panel .section-header { gap: 10px; }
   .kefe-settings-panel .section-heading { line-height: 1.35; }
+  .kefe-settings-panel .expand-button > .title-group { flex: 0 1 auto; }
 }
+
+/* Native settings buttons no longer have the React proxy's inner span. Keep the heading content flush to the indicator, as it was inside that wrapper. */
+#kefe-settings-panel .expand-button { gap: 0; }
+#kefe-settings-panel .expand-button > .title-group { flex: 0 1 auto; }
