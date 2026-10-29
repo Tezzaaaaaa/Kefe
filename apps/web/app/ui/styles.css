@@ -6704,6 +6704,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   padding-bottom:0;
 }
 .kefe-editor .kefe-timeline{
+  width:auto;
   margin:4px 12px;
   padding:0 12px;
   border:1px solid var(--line-soft);
@@ -7723,7 +7724,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   .kefe-stage, .kefe-stage.is-16x9 { width: min(100%, 900px, 88vh); max-height: 100%; }
   .kefe-stage.is-9x16 { width: min(100%, 34vh); }
   .kefe-stage.is-1x1 { width: min(100%, 54vh); }
-  .kefe-timeline { width: 100%; max-width: none; min-width: 0; margin: 0; padding: 6px 12px; gap: 8px; }
+  .kefe-timeline { max-width: none; min-width: 0; margin: 0; padding: 6px 12px; gap: 8px; }
 
   /* Left + right editor panels share the grid through .kefe-editing */
   .kefe-editor > .kefe-editing { display: contents; }
@@ -10040,7 +10041,7 @@ input.beui-native-range {
 .kefe-editor .kefe-work {
   min-width: 0;
   min-height: 0;
-  grid-template-rows: minmax(0, 1fr) var(--timeline-h);
+  grid-template-rows: minmax(0, 1fr) auto;
 }
 .kefe-editor .kefe-preview {
   display: flex;
@@ -10114,12 +10115,15 @@ input.beui-native-range {
 .kefe-download-row .kefe-panel-action { flex: 1 1 auto; min-width: 0; max-width: 100%; display: flex; width: 100%; font-size: 12.5px; padding-inline: 10px; white-space: normal; overflow-wrap: anywhere; }
 #exportStatus:empty { display: none; }
 
-/* The work area contains only the preview and timeline; the editor panel is a sibling grid item. */
-@media (max-width: 1279px) {
-  .kefe-editor .kefe-work { grid-template-rows: minmax(0, 1fr) var(--timeline-h); }
+/* Narrow preview bars need their space for the controls and fullscreen button. */
+@media (min-width: 761px) and (max-width: 1439px) {
+  .kefe-preview-toolbar { grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px; }
+  .kefe-toolbar-workspace { visibility: hidden; }
 }
+
+/* The editor panel is a sibling of the preview and timeline. */
 @media (max-width: 700px) {
-  .kefe-editor .kefe-work { grid-template-rows: minmax(0, 42dvh) 54px; }
+  .kefe-editor .kefe-work { grid-template-rows: minmax(0, 42dvh) auto; }
 }
 
 /* One unified toolbar above the preview; keep its controls on the same surface. */
