@@ -103,7 +103,7 @@ button{border:0;cursor:pointer;
   gap:10px;
 }
 
-.kefe-preview-toolbar{position:relative;z-index:20;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;box-sizing:border-box;width:min(100%,1280px);min-width:0;min-height:48px;margin:0 auto;padding:7px 10px;border:1px solid var(--line-soft);border-radius:14px;background:var(--surface);box-shadow:var(--lift);color:var(--text)}
+.kefe-preview-toolbar{position:relative;z-index:20;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;box-sizing:border-box;width:100%;max-width:none;min-width:0;min-height:48px;margin:0 auto;padding:7px 10px;border:1px solid var(--line-soft);border-radius:14px;background:var(--surface);box-shadow:var(--lift);color:var(--text)}
 .kefe-toolbar-workspace,.kefe-toolbar-format,.kefe-toolbar-actions{display:flex;align-items:center;min-width:0;gap:8px}
 .kefe-toolbar-workspace{justify-self:start}
 .kefe-toolbar-live-dot{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
@@ -6143,11 +6143,14 @@ body{overflow-x:hidden;overflow-y:auto}
 .kefe-top-profile{gap:6px}
 .kefe-top-profile .kefe-top-link{min-height:34px;height:34px}
 .kefe-work{
+  min-width:0;
   min-height:0;
+  height:100%;
+  max-height:100%;
   display:grid;
-  grid-template-rows:auto 58px auto;
-  row-gap:var(--section-gap,12px);
-  overflow:visible;
+  grid-template-rows:minmax(0,1fr) 58px;
+  row-gap:0;
+  overflow:hidden;
 }
 .kefe-preview{
   display:flex;align-items:center;justify-content:center;
