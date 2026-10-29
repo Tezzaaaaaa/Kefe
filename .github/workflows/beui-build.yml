@@ -95,7 +95,9 @@ jobs:
         run: |
           mkdir -p /tmp/kefe-layout-main
           set -o pipefail
-          # Main's toolbar update replaced the old tray and colour-popover class selectors; reuse the current semantic smoke block against both builds.
+          # Main's smoke already uses accessible colour-dialog locators. Reuse the current
+          # semantic toolbar checks on its baseline build, while leaving baseline-only
+          # assertions elsewhere intact.
           python3 - <<'PY'
           import os
           from pathlib import Path
@@ -103,17 +105,12 @@ jobs:
           current = Path(os.environ["GITHUB_WORKSPACE"]) / "apps/web/scripts/browser-smoke.cjs"
           baseline_source = baseline.read_text()
           current_source = current.read_text()
-          old_colour = 'page.locator(".kft-colour")'
-          new_colour = 'page.getByRole("dialog", { name: "Lyric text colour", exact: true })'
-          if baseline_source.count(old_colour) != 2:
-              raise SystemExit(f"Expected two legacy colour-popover selectors, found {baseline_source.count(old_colour)}")
-          baseline_source = baseline_source.replace(old_colour, new_colour)
-          old_start = '    const trayToggle = quickToolbar.locator(\'button[aria-controls="kefeToolbarTray"]\');'
-          old_end = '    await quickToolbar.getByRole("button", { name: /^Lyric effect/ }).click();'
+          old_start = '    const toolbarPanel = name => page.getByRole("dialog", { name, exact: true });'
+          old_end = '    await toolbarPanel("Lyric effect").getByRole("button", { name: /^Lyric effect:/ }).click();'
           new_start = '    const fontButton = quickToolbar.getByRole("button", { name: "Font, case and size", exact: true });'
           new_end = '    await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();'
           if baseline_source.count(old_start) != 1 or baseline_source.count(old_end) != 1:
-              raise SystemExit("Main smoke toolbar block no longer matches the known pre-panel layout")
+              raise SystemExit("Main smoke toolbar block no longer matches the known semantic panel layout")
           if current_source.count(new_start) != 1 or current_source.count(new_end) != 1:
               raise SystemExit("Current smoke toolbar block is not uniquely selectable")
           current_block = current_source[current_source.index(new_start):current_source.index(new_end) + len(new_end)]
