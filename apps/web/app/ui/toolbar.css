@@ -302,7 +302,7 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
 
 /* ───────── KEFE toolbar v2 (concept layout): 32px cells, popover panels, nudge pad ───────── */
 .kefe-floating-toolbar,
-.kft-popover { --kt-h: 32px; --kt-gap: 7px; }
+.kft-popover { --kt-h: 32px; --kt-gap: 10px; }
 .kft-bar { border-radius: 12px; backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); }
 .kft-main { padding: 4px; }
 .kft-cell {
