@@ -1488,7 +1488,6 @@ button{border:0;cursor:pointer;
 
 html,
 body{
-  color: var(--text);
 }
 
 body{ letter-spacing: -.01em;
@@ -10105,10 +10104,9 @@ input.beui-native-range {
 .kefe-lyric-effect-carousel > #lyricEffectOptions { grid-column: 2; grid-row: 1; }
 .kefe-lyric-effect-carousel > .kefe-lyric-effect-carousel-nav:last-child { grid-column: 3; grid-row: 1; }
 
-/* ===== Lyric downloads + export status ===== */
-.kefe-download-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.kefe-download-row .kefe-panel-action { flex: 1 1 auto; min-width: 0; display: flex; }
-.kefe-download-row .kefe-panel-action { width: 100%; white-space: nowrap; font-size: 12.5px; padding-inline: 10px; }
+/* ===== Export status ===== */
+.kefe-download-row { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.kefe-download-row .kefe-panel-action { flex: 1 1 auto; min-width: 0; max-width: 100%; display: flex; width: 100%; font-size: 12.5px; padding-inline: 10px; white-space: normal; overflow-wrap: anywhere; }
 #exportStatus:empty { display: none; }
 
 /* The work area contains only the preview and timeline; the editor panel is a sibling grid item. */

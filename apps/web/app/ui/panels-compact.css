@@ -184,9 +184,9 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-timing-editor-actions { display: flex; gap: 4px; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-line-list { max-height: 160px; padding: 0 !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-empty-panel { padding: 8px !important; font-size: var(--pc-fs-sm) !important; line-height: 13px; border-radius: 4px; min-height: 0 !important; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-download-row { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px !important; padding: 0 !important; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-download-row .kefe-panel-action { width: auto !important; min-width: 0; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-download-row .kefe-btn { width: 100%; padding: 0 4px !important; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-download-row { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px !important; padding: 0 !important; min-width: 0; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-download-row .kefe-panel-action { display: flex; width: auto !important; min-width: 0; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-download-row :is(.kefe-btn, .kefe-mini, .kefe-panel-action) { width: 100%; min-width: 0; max-width: 100%; padding: 0 4px !important; white-space: normal; overflow-wrap: anywhere; line-height: 1.15; }
 
 /* ---- Media ---- */
 :is(.kefe-panels, .kefe-settings-columns) .kefe-upload-zone:not(#kefeUploadZone) { padding: 10px 8px !important; gap: 2px !important; min-height: 0 !important; border-radius: 10px; }

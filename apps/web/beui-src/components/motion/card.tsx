@@ -1,5 +1,3 @@
-"use client";
-
 import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
 import { type ComponentPropsWithRef, createContext, useContext, useEffect, useRef } from "react";
 import { SPRING_PRESS } from "@/lib/ease";
