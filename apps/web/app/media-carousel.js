@@ -269,14 +269,19 @@
     });
     var swipeStart=null;
     el.Carousel.addEventListener('pointerdown',function(e){
-      if(e.pointerType==='mouse'||e.target.closest('button'))return;
+      if(e.pointerType==='mouse'||e.target.closest('.kefe-car-nav'))return;
       swipeStart={x:e.clientX,y:e.clientY};
+      el.Carousel.setPointerCapture(e.pointerId);
     });
     el.Carousel.addEventListener('pointerup',function(e){
       if(!swipeStart)return;
       var dx=e.clientX-swipeStart.x,dy=e.clientY-swipeStart.y;
       swipeStart=null;
-      if(Math.abs(dx)>38&&Math.abs(dx)>Math.abs(dy)*1.35)go(S.index+(dx<0?1:-1));
+      if(Math.abs(dx)>38&&Math.abs(dx)>Math.abs(dy)*1.35){
+        S.moved=true;
+        go(S.index+(dx<0?1:-1));
+        setTimeout(function(){S.moved=false;},0);
+      }
     });
     el.Carousel.addEventListener('pointercancel',function(){swipeStart=null;});
   }
