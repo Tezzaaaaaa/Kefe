@@ -709,7 +709,7 @@ function mount() {
 }
 
 function start() {
-  const deadline = Date.now() + 8000;
+  const deadline = Date.now() + 5000;
   const mobile = window.matchMedia(MOBILE_QUERY);
   /* Retire the stacked mobile editing surface immediately so it is never
      painted before the sidebar takes over. Restored below if mounting fails. */
