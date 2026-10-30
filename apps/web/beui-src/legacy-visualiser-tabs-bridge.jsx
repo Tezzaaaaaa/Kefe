@@ -104,7 +104,6 @@ function start() {
   });
   if (!backingButtons.size) return;
 
-  nav.hidden = false;
   nav.dataset.beuiMounted = "true";
 
   const backingHost = document.createElement("div");
