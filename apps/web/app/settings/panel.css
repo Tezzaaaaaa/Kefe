@@ -483,13 +483,9 @@
 
 @container kefe-settings (max-width: 500px) {
   .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view] .kefe-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
   .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-details-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="export"] .kefe-form {
     grid-template-columns: minmax(0, 1fr);
   }
   .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-form > .kefe-upload-zone,
@@ -508,9 +504,6 @@
   }
   .kefe-settings-panel .kefe-slot .kefe-media-upload-row {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .kefe-settings-panel .kefe-slot .kefe-details-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @container kefe-settings (max-width: 359px) {
