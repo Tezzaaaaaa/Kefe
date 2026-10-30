@@ -279,7 +279,7 @@ async function captureEditorScreenState(page) {
       `toolbar must remain fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
     const desktopViewport = page.viewportSize();
     const visibleDesktopNavIcons = await page.locator(".kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden='true']").evaluateAll(nodes => nodes.filter(node => getComputedStyle(node).display !== "none").length);
-    assert.equal(visibleDesktopNavIcons, 1, "the single Editor tab must keep its icon on desktop");
+    assert.equal(visibleDesktopNavIcons, 0, "the header section links stay text-only, including the single Editor tab");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
@@ -638,9 +638,22 @@ async function captureEditorScreenState(page) {
       const target = page.locator(`#kefe-settings-panel .section[data-section-id="${sectionId}"]`).first();
       await target.waitFor({ state: "attached", timeout: 10000 });
       const trigger = target.locator(".expand-button").first();
-      if ((await trigger.getAttribute("aria-expanded")) !== "true") await trigger.click();
+      const expanded = () => page.waitForFunction(
+        ([id, state]) => document.querySelector(`#kefe-settings-panel .section[data-section-id="${id}"]`)?.dataset.expanded === state,
+        [sectionId, "true"], { timeout: 5000 }
+      );
+      // The adapter resolves the selected section on an expand click, so an
+      // already-open section is closed and reopened to select it again.
+      if ((await trigger.getAttribute("aria-expanded")) === "true") {
+        await trigger.click();
+        await page.waitForFunction(
+          id => document.querySelector(`#kefe-settings-panel .section[data-section-id="${id}"]`)?.dataset.expanded === "false",
+          sectionId, { timeout: 5000 }
+        );
+      }
+      await trigger.click();
       await page.waitForFunction(expected => document.querySelector(".kefe-editing")?.dataset.selectedSection === expected, section, { timeout: 5000 });
-      await page.waitForFunction(expected => document.querySelector(`#kefe-settings-panel .section[data-section-id="${SECTION_IDS[expected] || expected}"]`)?.dataset.expanded === "true", section, { timeout: 5000 });
+      await expanded();
     }
 
     async function assertSectionFits(section) {
