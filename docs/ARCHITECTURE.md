@@ -52,11 +52,9 @@ scripts/              Build and test scripts (see Checks)
 | Tab | Source |
 | --- | --- |
 | Liquid Glass | `visualiser/liquid-glass.js` |
-| Disco Ball | `visualiser/disco-ball.js` |
 | Slow Light | `visualiser/slow-light.js` |
 | Fluid Ink | `visualiser/gradient.js` (tab shell); rendering and controls in `visualiser/liquid-flow.js` |
 | Glass Lens | `visualiser/fluted-glass.js` |
-| Tidal Prism, Night Tunnel | `visualiser/scenic.js` |
 
 `visualiser/audio-overlay.js` is the shared WebAudio graph used for audio-reactive rendering and video export. `visualiser/background.js` handles the preview background.
 
