@@ -10424,3 +10424,9 @@ body { overflow: visible; overflow-x: clip; }
 }
 body:has(.kefe-editor) > .kefe-workspace-dock { display: none; }
 body:has(.kefe-editor):has(.kefe-workspace-dock) { padding-bottom: 0; }
+
+
+/* Header section links are text-only; utility actions keep their icons. */
+.kefe-editor .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden="true"] {
+  display: none;
+}
