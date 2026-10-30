@@ -1137,6 +1137,17 @@ async function captureEditorScreenState(page) {
       "Volumetric Engine canvas must be sized to the preview stage");
     assert.equal(await page.locator("#kefeVolumetricCanvas").evaluate(canvas => getComputedStyle(canvas).visibility), "visible",
       "Volumetric Engine power must reveal its preview canvas");
+    const slowLightTab = page.locator(".beui-vis-tabs-host [role='tab'][data-visualiser='slow-light']");
+    assert.equal(await slowLightTab.count(), 1, "Slow Light must register exactly one visualiser tab");
+    await slowLightTab.click();
+    await page.waitForFunction(() => document.querySelector(".beui-vis-backing-controls [data-visualiser='slow-light']")?.getAttribute("aria-selected") === "true");
+    assert.equal(await page.locator("#kefeVisSlowLightView").isVisible(), true, "Slow Light controls must open with its tab");
+    const slowLightPower = page.locator(".beui-vis-tabs-host [role='switch'][aria-label='Slow Light Visualiser']");
+    assert.equal(await slowLightPower.count(), 1, "Slow Light must have one power toggle");
+    await slowLightPower.click();
+    await page.waitForFunction(() => window.kefeSlowLight?.getState?.().enabled === true);
+    assert.equal(await page.locator("#kefeSlowLightCanvas").evaluate(canvas => canvas.width > 0 && canvas.height > 0 && getComputedStyle(canvas).display === "block"), true,
+      "Slow Light power must start its preview canvas");
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
     const lyricsNavButton = page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Lyric Sync" });
