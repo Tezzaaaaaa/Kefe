@@ -84,9 +84,11 @@ for (const [size, theme] of states) {
     const layoutPath = path.join(currentDir, `editor-layout-${size}-${theme}.json`);
     assert.ok(fs.existsSync(layoutPath), `desktop ${theme} layout inventory is required to isolate the intentionally resized settings columns`);
     const layout = JSON.parse(fs.readFileSync(layoutPath, "utf8"));
-    for (const group of ["input", "output"]) {
-      const panel = layout.find(item => item.group === group && item.width > 0 && item.height > 0);
-      assert.ok(panel, `desktop ${theme} layout inventory must include the ${group} settings column`);
+    const panels = layout.filter(item => item.tag === "div" && item.classes.split(/\\s+/).includes("kefe-panels")
+      && item.width > 0 && item.height > 0).sort((a, b) => a.x - b.x);
+    assert.equal(panels.length, 2, `desktop ${theme} layout inventory must include both side-panel columns`);
+    for (const [index, group] of ["input", "output"].entries()) {
+      const panel = panels[index];
       const left = Math.max(0, Math.floor(panel.x));
       const top = Math.max(0, Math.floor(panel.y));
       const right = Math.min(before.width, Math.ceil(panel.x + panel.width));
