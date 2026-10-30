@@ -22,16 +22,16 @@
   /* Shared accessible alert surface for actionable editor feedback. */
   (() => {
     let host;
-    const paths={default:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/>',success:'<circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/>',warning:'<path d="m12 3 9 17H3z"/><path d="M12 9v4m0 3h.01"/>',destructive:'<circle cx="12" cy="12" r="9"/><path d="m9 9 6 6m0-6-6 6"/>'};
+    const icons={default:'info',info:'info',success:'check-circle',warning:'alert-triangle',destructive:'x-circle'};
     window.kefeAlert=(message,options={})=>{
-      const variant=Object.hasOwn(paths,options.variant)?options.variant:'info';
+      const variant=Object.hasOwn(icons,options.variant)?options.variant:'info';
       if(!host){host=document.createElement('div');host.className='kefe-alert-stack';host.setAttribute('aria-label','Notifications');document.body.appendChild(host);}
       const item=document.createElement('section');item.className='kefe-alert kefe-alert-'+variant;item.setAttribute('role',variant==='warning'||variant==='destructive'?'alert':'status');item.setAttribute('aria-live',variant==='warning'||variant==='destructive'?'assertive':'polite');
-      const icon=document.createElement('span');icon.className='kefe-alert-icon';icon.setAttribute('aria-hidden','true');icon.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+paths[variant]+'</svg>';
+      const icon=document.createElement('span');icon.className='kefe-alert-icon';icon.setAttribute('aria-hidden','true');icon.innerHTML=window.kefeIcon?window.kefeIcon(icons[variant]):'<span data-kefe-icon="'+icons[variant]+'" aria-hidden="true"></span>';
       const content=document.createElement('div');content.className='kefe-alert-content';
       if(options.title){const title=document.createElement('strong');title.className='kefe-alert-title';title.textContent=String(options.title);content.appendChild(title);}
       const description=document.createElement('p');description.className='kefe-alert-description';description.textContent=String(message??'');content.appendChild(description);
-      const close=document.createElement('button');close.type='button';close.className='kefe-alert-close';close.setAttribute('aria-label','Dismiss notification');close.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
+      const close=document.createElement('button');close.type='button';close.className='kefe-alert-close';close.setAttribute('aria-label','Dismiss notification');close.innerHTML=window.kefeIcon?window.kefeIcon('close'):'<span data-kefe-icon="close" aria-hidden="true"></span>';
       let timer;const dismiss=()=>{clearTimeout(timer);item.classList.remove('is-visible');item.setAttribute('aria-hidden','true');setTimeout(()=>item.remove(),matchMedia('(prefers-reduced-motion: reduce)').matches?0:220);};
       close.addEventListener('click',dismiss);item.append(icon,content,close);host.appendChild(item);requestAnimationFrame(()=>item.classList.add('is-visible'));
       if(options.duration!==0)timer=setTimeout(dismiss,Math.max(2500,Number(options.duration)||6000));
@@ -1024,9 +1024,7 @@
     previewFullscreen.title=active?'Exit fullscreen':'Enter fullscreen';
     const layoutControls=document.getElementById('kefeFloatingToolbar');
     if(layoutControls)layoutControls.style.display=active?'none':'flex';
-    previewFullscreen.innerHTML=active
-      ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    previewFullscreen.innerHTML=window.kefeIcon?window.kefeIcon(active?'minimize':'maximize'):'<span data-kefe-icon="'+(active?'minimize':'maximize')+'" aria-hidden="true"></span>';
   }
   async function togglePreviewFullscreen(){
     if(!previewStage)return;
@@ -1086,7 +1084,7 @@
     const playing=!!audio.src&&!audio.paused;
     button.setAttribute('aria-label',playing?'Pause':'Play');
     button.setAttribute('title',playing?'Pause':'Play');
-    button.innerHTML=playing?'<svg class="kefe-pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>':'<svg class="kefe-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg>';
+    button.innerHTML=window.kefeIcon?window.kefeIcon(playing?'pause':'play',playing?'kefe-pause-icon':'kefe-play-icon'):'<span data-kefe-icon="'+(playing?'pause':'play')+'" data-icon-class="'+(playing?'kefe-pause-icon':'kefe-play-icon')+'" aria-hidden="true"></span>';
   }
   document.getElementById('playButton').onclick=async()=>{
     if(audio.src){
