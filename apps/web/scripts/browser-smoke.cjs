@@ -372,7 +372,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "keyboard activation of the native Media button should restore the initial section");
     const aspectSelect = page.locator("#kefeAspect");
-    assert.equal(await aspectSelect.getAttribute("aria-hidden"), null, "the preview aspect backing control must remain exposed to assistive technology");
+    assert.equal(await aspectSelect.getAttribute("aria-hidden"), "true", "the native preview aspect backing control must stay hidden from the preview bar");
     const canvasButton = quickToolbar.getByRole("button", { name: "Canvas, background and visualiser", exact: true });
     await canvasButton.click();
     const canvasPanel = page.getByRole("dialog", { name: "Canvas", exact: true });
