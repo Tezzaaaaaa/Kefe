@@ -151,7 +151,7 @@ const lines = [
   "|---|---|---|---:|---:|",
   ...results.map((item) => `| ${item.subject} | ${item.size} | ${item.theme} | ${item.width}×${item.height} | ${item.changedPercent}% (${item.changedPixels}/${item.totalPixels}) |`),
   "",
-  "Desktop comparison masks: ${JSON.stringify(results.filter(item => item.size === "desktop").map(item => ({ theme: item.theme, regions: item.maskedRegions })))}\nDiff images are included in the screenshot artifact for review.",
+  `Desktop comparison masks: ${JSON.stringify(results.filter(item => item.size === "desktop").map(item => ({ theme: item.theme, regions: item.maskedRegions })))}\nDiff images are included in the screenshot artifact for review.`,
   "",
 ];
 if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n"));
