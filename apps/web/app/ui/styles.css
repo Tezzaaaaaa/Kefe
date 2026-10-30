@@ -10424,19 +10424,16 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-
     min-height: 50px;
     gap: 6px;
     padding: 0 8px;
-    overflow-x: hidden;
+    overflow-x: auto;
   }
+  .kefe-sidebar-brand-row { position: static; }
   .kefe-sidebar-group {
     display: flex;
-    flex: 1 1 0;
-    min-width: 34px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
+    flex: 0 0 auto;
+    overflow: visible;
   }
-  .kefe-sidebar-group::-webkit-scrollbar { display: none; }
-  .kefe-sidebar-group > .kefe-sidebar-link > .kefe-sidebar-link-label { display: none; }
-  .kefe-sidebar-link { width: 34px; min-width: 34px; padding: 0; gap: 0; }
+  .kefe-sidebar-group > .kefe-sidebar-link > span[aria-hidden="true"] { display: none; }
+  .kefe-sidebar-group > .kefe-sidebar-link > .kefe-sidebar-link-label { display: inline; }
   .kefe-sidebar-bottom { flex: 0 0 auto; margin-left: auto; gap: 2px; padding-left: 5px; }
 }
 
