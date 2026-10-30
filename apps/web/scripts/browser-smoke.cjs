@@ -198,7 +198,7 @@ async function captureEditorScreenState(page) {
     });
 
     await page.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
-    await page.waitForSelector(".kefe-sidebar [data-shell-panel]", { state: "attached", timeout: 20000 });
+    await page.waitForSelector(".kefe-sidebar [data-editor-tab]", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#songTitle", { state: "visible", timeout: 20000 });
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
@@ -279,7 +279,7 @@ async function captureEditorScreenState(page) {
       `toolbar must remain fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
     const desktopViewport = page.viewportSize();
     const visibleDesktopNavIcons = await page.locator(".kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden='true']").evaluateAll(nodes => nodes.filter(node => getComputedStyle(node).display !== "none").length);
-    assert.equal(visibleDesktopNavIcons, 0, "workspace navigation must be text-only on desktop");
+    assert.equal(visibleDesktopNavIcons, 1, "the single Editor tab must keep its icon on desktop");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
@@ -387,20 +387,20 @@ async function captureEditorScreenState(page) {
     await page.keyboard.press("Escape");
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "the editor must start in Media, not switch itself to Visualisers");
-    const lyricsSidebarAction = page.locator('.kefe-sidebar [data-shell-panel="lyrics"]');
-    await lyricsSidebarAction.focus();
+    const editorTabAction = page.locator(".kefe-sidebar [data-editor-tab]");
+    await editorTabAction.focus();
     await page.keyboard.press("Enter");
-    assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "lyrics",
-      "keyboard activation of the native sidebar button should open Lyric Sync");
-    assert.equal(await lyricsSidebarAction.getAttribute("aria-current"), "page",
-      "the native sidebar should expose its active section to assistive technology");
-    assert.equal(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").count(), 7,
-      "native workspace links must expose their dedicated responsive text labels");
-    const mediaSidebarAction = page.locator('.kefe-sidebar [data-shell-panel="media"]');
-    await mediaSidebarAction.focus();
-    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => document.querySelector(".kefe-editing")?.dataset.selectedSection === "media", null, { timeout: 5000 });
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
-      "keyboard activation of the native Media button should restore the initial section");
+      "keyboard activation of the Editor tab should open the editor's Media section");
+    assert.equal(await editorTabAction.getAttribute("aria-current"), "page",
+      "the Editor tab must expose the current page to assistive technology");
+    assert.equal(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").count(), 1,
+      "the header must expose only the Editor tab label");
+    assert.equal((await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").innerText()).trim(), "Editor",
+      "the single header tab must read Editor");
+    assert.equal(await page.locator(".kefe-sidebar [data-shell-panel]").count(), 0,
+      "the header must not repeat the editor sections as tabs");
     const aspectSelect = page.locator("#kefeAspect");
     assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview-bar ratio wrapper must remain hidden");
     const canvasButton = quickToolbar.locator(".kft-cell--ratio");
@@ -453,8 +453,8 @@ async function captureEditorScreenState(page) {
         }),
       };
     });
-    assert.ok(headerNavigation.navDisplays.length >= 2 && headerNavigation.navDisplays.every((display) => display === "flex"),
-      `native navigation groups must be horizontal flex rows: ${JSON.stringify(headerNavigation.navDisplays)}`);
+    assert.ok(headerNavigation.navDisplays.length >= 1 && headerNavigation.navDisplays.every((display) => display === "flex"),
+      `the Editor tab group must stay a horizontal flex row: ${JSON.stringify(headerNavigation.navDisplays)}`);
     assert.ok(headerNavigation.linksWithinHeader, "desktop navigation links must not be clipped outside the header");
     const desktopColumns = await page.evaluate(() => {
       const left = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
@@ -625,6 +625,24 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count(), 0,
       "editor panels must not create parallel React Card wrappers");
 
+    const SECTION_IDS = {
+      media: "media",
+      lyrics: "lyric-sync",
+      effects: "lyric-effects",
+      "background-effects": "background",
+      visualiser: "visualisers",
+      export: "export"
+    };
+    async function openSection(section) {
+      const sectionId = SECTION_IDS[section] || section;
+      const target = page.locator(`#kefe-settings-panel .section[data-section-id="${sectionId}"]`).first();
+      await target.waitFor({ state: "attached", timeout: 10000 });
+      const trigger = target.locator(".expand-button").first();
+      if ((await trigger.getAttribute("aria-expanded")) !== "true") await trigger.click();
+      await page.waitForFunction(expected => document.querySelector(".kefe-editing")?.dataset.selectedSection === expected, section, { timeout: 5000 });
+      await page.waitForFunction(expected => document.querySelector(`#kefe-settings-panel .section[data-section-id="${SECTION_IDS[expected] || expected}"]`)?.dataset.expanded === "true", section, { timeout: 5000 });
+    }
+
     async function assertSectionFits(section) {
       const geometry = await page.locator(`.kefe-panel[data-panel-view="${section}"]`).evaluate(panel => {
         const form = panel.querySelector(".kefe-visualiser-form") || panel.querySelector(".kefe-form");
@@ -784,8 +802,8 @@ async function captureEditorScreenState(page) {
       [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize)].join("|")
     )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
-    const sidebarCount = await page.locator('.kefe-sidebar [data-shell-panel], .kefe-sidebar [data-top-panel="settings"], .kefe-sidebar a.kefe-sidebar-link[href="./editor.html"]').count();
-    assert.ok(sidebarCount >= 8, `expected native workspace, section, and Settings actions, found ${sidebarCount}`);
+    const sidebarCount = await page.locator('.kefe-sidebar [data-editor-tab], .kefe-sidebar [data-top-panel="settings"], .kefe-sidebar [data-command-open], .kefe-sidebar .kefe-sidebar-github, .kefe-sidebar #kefeThemeToggle').count();
+    assert.equal(sidebarCount, 5, `expected the Editor tab plus Settings, search, GitHub and day/night actions, found ${sidebarCount}`);
 
     await page.locator('[data-top-panel="settings"]').click();
     const dialog = page.getByRole("dialog", { name: "Settings" });
@@ -1047,8 +1065,7 @@ async function captureEditorScreenState(page) {
     await page.keyboard.press("Escape");
     await volumePopover.waitFor({ state: "hidden", timeout: 5000 });
 
-    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Background Effects" }).click();
-    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "background-effects", null, { timeout: 5000 });
+    await openSection("background-effects");
     await assertSectionFits("background-effects");
     const backgroundOptionsLayout = await page.locator("#kefeBackgroundEffectOptions").evaluate(grid => ({
       width: grid.getBoundingClientRect().width,
@@ -1057,8 +1074,7 @@ async function captureEditorScreenState(page) {
     if (backgroundOptionsLayout.width <= 360) assert.equal(backgroundOptionsLayout.columns, 1,
       `background effect cards must stack when the panel is narrow: ${JSON.stringify(backgroundOptionsLayout)}`);
 
-    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Visualiser" }).click();
-    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "visualiser", null, { timeout: 5000 });
+    await openSection("visualiser");
     await page.waitForSelector(".beui-vis-tabs-host [role='tab']", { state: "attached", timeout: 10000 });
     assert.ok(await page.locator(".beui-vis-tabs-host [role='tab']").count() >= 1, "visualiser navigation should use beUI Tabs");
     assert.equal(await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Liquid Glass" }).count(), 1,
@@ -1066,12 +1082,10 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
       "visualiser tabs must be visible while the Visualisers section is active");
 
-    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Background Effects" }).click();
-    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "background-effects", null, { timeout: 5000 });
+    await openSection("background-effects");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser tabs must hide when navigating away from Visualisers");
-    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Visualiser" }).click();
-    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "visualiser", null, { timeout: 5000 });
+    await openSection("visualiser");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
       "visualiser tabs must reliably reappear when Visualisers is reopened");
     assert.equal(await page.locator(".kefe-visualiser-preset-row").isVisible(), true,
@@ -1159,11 +1173,7 @@ async function captureEditorScreenState(page) {
         `${id} must own a sized preview canvas`);
     }
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
-    const lyricsNavButton = page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Lyric Sync" });
-    await lyricsNavButton.evaluate((button) => button.scrollIntoView({ block: "center", inline: "nearest" }));
-    await lyricsNavButton.evaluate((button) => button.click());
-    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "lyrics", null, { timeout: 5000 });
+    await openSection("lyrics");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser tabs must not appear on the Lyrics section");
     await assertSectionFits("lyrics");
@@ -1198,14 +1208,13 @@ async function captureEditorScreenState(page) {
     await commandButton.waitFor({ state: "visible", timeout: 5000 });
     await commandButton.evaluate(button => button.click());
     await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
-    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "effects", null, { timeout: 5000 });
+    await page.waitForFunction(() => document.querySelector(".kefe-editing")?.dataset.selectedSection === "effects", null, { timeout: 5000 });
     await assertSectionFits("effects");
 
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser tabs must not appear on the Effects section");
 
-    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Export" }).evaluate(button => button.click());
-    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "export", null, { timeout: 5000 });
+    await openSection("export");
     await assertSectionFits("export");
     const exportLayout = await page.locator('.kefe-panel[data-panel-view="export"] .kefe-form').evaluate(form => ({
       width: form.getBoundingClientRect().width,
@@ -1226,8 +1235,8 @@ async function captureEditorScreenState(page) {
           width: label.getBoundingClientRect().width
         }))
       );
-      assert.equal(mobileNavigationLabels.length, 7,
-        `all seven native workspace links must retain text labels at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+      assert.equal(mobileNavigationLabels.length, 1,
+        `the single Editor tab must retain its text label at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
       assert.ok(mobileNavigationLabels.every(label => label.text && label.display !== "none" && label.width > 0),
         `mobile navigation must not leave blank iconless links at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
       const mobileDockDisplay = await page.locator(".kefe-workspace-dock").evaluate(node => getComputedStyle(node).display);
@@ -1253,12 +1262,12 @@ async function captureEditorScreenState(page) {
       assert.equal(await page.locator(".kefe-ms-dock-item").count(), 6,
         `the mobile dock must offer all six editor sections at ${width}px`);
       for (const [section, label] of [
-        ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Effects"],
-        ["background-effects", "Background Effects"], ["visualiser", "Visualiser"], ["export", "Export"]
+        ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Lyric Effects"],
+        ["background-effects", "Background"], ["visualiser", "Visualisers"], ["export", "Export"]
       ]) {
-        const navButton = page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: label }).first();
-        await navButton.evaluate(button => button.click());
-        await page.waitForFunction(expected => document.querySelector(".kefe-section.active")?.dataset.panel === expected, section, { timeout: 5000 });
+        const dockButton = page.locator(`.kefe-ms-dock-item[aria-label="Edit ${label}"]`).first();
+        await dockButton.evaluate(button => button.click());
+        await page.waitForFunction(expected => document.querySelector(".kefe-editing")?.dataset.selectedSection === expected, section, { timeout: 5000 });
         await page.waitForFunction(expected => Boolean(
           document.querySelector(".kefe-ms-drawer") &&
           document.querySelector(`.kefe-ms-host .kefe-panel[data-panel-view="${expected}"]`)
