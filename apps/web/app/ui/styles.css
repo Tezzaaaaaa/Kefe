@@ -1203,13 +1203,17 @@ button{border:0;cursor:pointer;
 .kefe-find-status{min-height:16px;font-size: var(--font-xs);font-weight:600;color: var(--muted);}
 .kefe-find-status.loading{color:#c98a2b}.kefe-find-status.error{color:#b5473b}
 
-.kefe-carousel{position:relative;height:272px;border-radius:var(--r3);background:var(--surface);box-shadow:var(--inner);overflow:hidden;perspective:1600px;cursor:grab;user-select:none;display:flex;align-items:center;justify-content:center;outline:0}
+.kefe-carousel{position:relative;height:clamp(290px,34vw,390px);min-height:290px;border-radius:var(--r3);background:radial-gradient(ellipse at 50% 42%,var(--surface-hi) 0%,var(--surface) 72%);box-shadow:var(--inner);overflow:hidden;perspective:1600px;perspective-origin:50% 50%;user-select:none;outline:0;isolation:isolate;touch-action:pan-y}
 .kefe-carousel:focus-visible{box-shadow:var(--inner),0 0 0 2px var(--accent)}
-.kefe-carousel:active{cursor:grabbing}
-.kefe-carousel.busy .kefe-car-stack{opacity:.45}
-.kefe-car-stack{position:relative;width:170px;height:206px;transform-style:preserve-3d;transform:rotateY(-4deg) rotateX(2deg);transition:opacity .25s ease;margin-top:-6px}
-.kefe-car-card{position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:0;border:0;background:none;text-align:left;font:inherit;color:inherit;cursor:pointer;transform-origin:center;transition:transform .7s cubic-bezier(.19,1,.22,1),opacity .5s cubic-bezier(.19,1,.22,1),filter .3s ease;will-change:transform,opacity}
-.kefe-car-art{position:relative;display:block;width:170px;height:170px;padding:6px;border-radius:var(--r3);background:var(--surface);box-shadow:var(--lift)}
+.kefe-carousel.busy .kefe-car-stack{opacity:.5}
+.kefe-car-stack{position:absolute;left:50%;top:50%;height:100%;width:max-content;column-gap:clamp(18px,3vw,44px);transform-style:preserve-3d;transition:transform .7s cubic-bezier(.22,1,.36,1),opacity .25s ease;will-change:transform}
+.kefe-car-card{position:absolute;top:50%;left:0;display:flex;flex-direction:column;gap:9px;width:clamp(148px,20vw,230px);height:auto;min-height:0;padding:0;border:0;border-radius:var(--r3);background:transparent;text-align:left;font:inherit;color:inherit;cursor:pointer;transform-origin:center;transition:transform .7s cubic-bezier(.22,1,.36,1),opacity .6s ease,filter .6s ease,box-shadow .6s ease;will-change:transform,opacity,filter;backface-visibility:hidden;-webkit-user-select:none;user-select:none}
+.kefe-car-art{position:relative;display:block;box-sizing:border-box;width:100%;height:auto;aspect-ratio:4/5;padding:5px;border:1px solid var(--line);border-radius:var(--r3);background:var(--surface);box-shadow:var(--lift);overflow:hidden}
+.kefe-car-card .kefe-car-art img{border-radius:calc(var(--r3) - 5px)}
+.kefe-car-card.active{transform:translateY(-50%) scale(1.08) translateZ(100px);opacity:1;filter:brightness(1.06) saturate(1.12);z-index:10;cursor:pointer;box-shadow:0 28px 56px -24px rgba(0,0,0,.55),0 0 34px color-mix(in srgb,var(--accent) 26%,transparent)}
+.kefe-car-card.side-left{transform:translateY(-50%) scale(.82) translateZ(-50px) rotateY(7deg);opacity:.76;filter:brightness(.72) saturate(.78);z-index:5}
+.kefe-car-card.side-right{transform:translateY(-50%) scale(.82) translateZ(-50px) rotateY(-7deg);opacity:.76;filter:brightness(.72) saturate(.78);z-index:5}
+.kefe-car-card.hidden{transform:translateY(-50%) scale(.55) translateZ(-240px);opacity:0;filter:blur(5px);pointer-events:none;z-index:0}
 .kefe-car-art img{display:block;width:100%;height:100%;object-fit:cover;border-radius:var(--r2);background:var(--surface-lo)}
 .kefe-car-local-icon{display:grid;place-items:center;width:100%;height:100%;border-radius:var(--r2);background:var(--surface-lo);color:var(--muted);font-size:54px;font-weight:700}
 .kefe-car-tag{position:absolute;top:12px;right:12px;padding:2px 7px;border-radius:999px;font-size: var(--font-xs);font-weight:800;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.92);color:var(--text);box-shadow:0 2px 6px rgba(0,0,0,.2)}
@@ -1245,7 +1249,7 @@ button{border:0;cursor:pointer;
   font-size: var(--font-sm);
   font-family: inherit;}
 }
-@media(max-width:520px){.kefe-media-upload-row{grid-template-columns:minmax(0,1fr)}.kefe-media-upload-row>.beui-upload-wrap{min-height:0;height:auto}.kefe-media-upload-row>.beui-upload-wrap>.kefe-upload-zone{min-height:192px;height:auto;max-height:none}.kefe-details-grid{grid-template-columns:1fr}.kefe-carousel{height:250px}}
+@media(max-width:520px){.kefe-media-upload-row{grid-template-columns:minmax(0,1fr)}.kefe-media-upload-row>.beui-upload-wrap{min-height:0;height:auto}.kefe-media-upload-row>.beui-upload-wrap>.kefe-upload-zone{min-height:192px;height:auto;max-height:none}.kefe-details-grid{grid-template-columns:1fr}.kefe-carousel{height:290px;min-height:290px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-carousel{height:290px;min-height:290px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-stack{column-gap:18px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card{width:148px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-nav{width:34px;height:34px;margin-top:-17px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-nav.prev{left:7px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-nav.next{right:7px}}
 .kefe-car-cap{transition:opacity .3s ease}
 
 
@@ -9304,71 +9308,16 @@ html:root[data-theme="day"] .kefe-editor .kefe-liquid-timeline .kefe-time span{b
   max-width: 100%;
 }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-carousel {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  height: 236px;
-  min-height: 236px;
-  margin: 10px 0;
-  overflow: hidden;
-  border: 1px solid var(--line, rgba(255,255,255,.12));
-  border-radius: var(--r2, 12px);
+  box-sizing:border-box;width:100%;min-width:0;height:clamp(290px,34vw,390px);min-height:290px;margin:10px 0;overflow:hidden;border:1px solid var(--line);border-radius:var(--r3);
 }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-stack {
-  position: relative;
-  display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  margin: 0;
-  padding: 10px max(12px, calc(50% - 75px));
-  overflow-x: auto;
-  overflow-y: hidden;
-  transform: none;
-  scroll-snap-type: x mandatory;
-  scroll-padding-inline: calc(50% - 75px);
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-x: contain;
+  position:absolute;left:50%;top:50%;display:block;height:100%;min-width:0;margin:0;padding:0;overflow:visible;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.22,1,.36,1),opacity .25s ease;
 }
-.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-stack::-webkit-scrollbar { display: none; }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card {
-  position: relative;
-  inset: auto;
-  display: flex;
-  flex: 0 0 150px;
-  width: 150px;
-  height: 190px;
-  margin: 0;
-  transform: none;
-  opacity: 1;
-  filter: none;
-  pointer-events: auto;
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 0;
+  position:absolute;top:50%;left:0;display:flex;width:clamp(148px,20vw,230px);height:auto;min-height:0;margin:0;flex:none;transform-origin:center;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:9px;padding:0;pointer-events:auto;
 }
-.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card.active .kefe-car-art {
-  box-shadow: var(--float, var(--lift));
-}
-.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-art {
-  box-sizing: border-box;
-  width: 150px;
-  height: 150px;
-  padding: 5px;
-  border-radius: var(--r2, 12px);
-}
-.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-cap {
-  width: 100%;
-  padding-inline: 3px;
-}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-art {box-sizing:border-box;width:100%;height:auto;aspect-ratio:4/5;padding:5px;border-radius:var(--r3);}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-cap {width:100%;padding-inline:3px;}
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-nav { z-index: 70; }
 .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-info {
   box-sizing: border-box;

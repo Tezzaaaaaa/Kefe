@@ -185,18 +185,27 @@
     }
     layout();
   }
-  function layout(center){
-    var cards=el.CarStack.children,active=null;
+  function layout(){
+    var cards=el.CarStack.children,active=null,cardWidth=0,gap=0;
+    if(!cards.length){info();return;}
+    cardWidth=cards[0].getBoundingClientRect().width;
+    gap=parseFloat(window.getComputedStyle(el.CarStack).columnGap)||0;
+    var step=cardWidth+gap;
     for(var i=0;i<cards.length;i++){
-      var c=cards[i],selected=Number(c.dataset.i)===S.index;
-      c.classList.toggle('active',selected);
-      c.setAttribute('aria-pressed',selected?'true':'false');
-      c.tabIndex=selected?0:-1;
-      if(selected)active=c;
+      var c=cards[i],diff=Number(c.dataset.i)-S.index;
+      c.style.left=(i*step)+'px';
+      c.classList.remove('active','side-left','side-right','hidden');
+      if(diff===0){c.classList.add('active');active=c;}
+      else if(diff===-1)c.classList.add('side-left');
+      else if(diff===1)c.classList.add('side-right');
+      else c.classList.add('hidden');
+      c.setAttribute('aria-pressed',diff===0?'true':'false');
+      c.tabIndex=diff===0?0:-1;
     }
-    if(center!==false&&active){
-      var left=active.offsetLeft-(el.CarStack.clientWidth-active.offsetWidth)/2;
-      el.CarStack.scrollTo({left:Math.max(0,left),behavior:window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    if(active){
+      var localIndex=Number(active.dataset.i)-S.renderStart;
+      el.CarStack.style.width=(cards.length*step)+'px';
+      el.CarStack.style.transform='translate3d('+(-localIndex*step-cardWidth/2)+'px,-50%,0)';
     }
     info();
   }
@@ -258,22 +267,22 @@
       else if(e.key==='ArrowLeft'){e.preventDefault();go(S.index-1);}
       else if(e.key==='Enter'){e.preventDefault();activate();}
     });
-    /* Native horizontal scrolling owns touch and trackpad gestures. Keep the selected
-       result and detail panel in sync after a user scrolls between snap points. */
-    el.CarStack.addEventListener('scroll',function(){
-      clearTimeout(S.scrollTimer);
-      S.scrollTimer=setTimeout(function(){
-        var cards=el.CarStack.children,center=el.CarStack.getBoundingClientRect().left+el.CarStack.clientWidth/2,best=null,distance=Infinity;
-        for(var i=0;i<cards.length;i++){
-          var rect=cards[i].getBoundingClientRect(),d=Math.abs((rect.left+rect.right)/2-center);
-          if(d<distance){distance=d;best=cards[i];}
-        }
-        if(best){
-          var index=Number(best.dataset.i);
-          if(index!==S.index){S.index=index;layout(false);}
-        }
-      },90);
+    var swipeStart=null;
+    el.Carousel.addEventListener('pointerdown',function(e){
+      if(e.pointerType==='mouse'||e.target.closest('.kefe-car-nav'))return;
+      swipeStart={x:e.clientX,y:e.clientY};
     });
+    el.Carousel.addEventListener('pointerup',function(e){
+      if(!swipeStart)return;
+      var dx=e.clientX-swipeStart.x,dy=e.clientY-swipeStart.y;
+      swipeStart=null;
+      if(Math.abs(dx)>38&&Math.abs(dx)>Math.abs(dy)*1.35){
+        S.moved=true;
+        go(S.index+(dx<0?1:-1));
+        setTimeout(function(){S.moved=false;},0);
+      }
+    });
+    el.Carousel.addEventListener('pointercancel',function(){swipeStart=null;});
   }
 
   function setLocalUpload(item,reset){
