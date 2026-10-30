@@ -128,6 +128,14 @@ jobs:
               baseline_source = baseline_source[:start] + current_block + baseline_source[end:]
           else:
               raise SystemExit("Baseline toolbar block matches neither legacy nor previous semantic locators")
+          # The current toolbar docking change intentionally supersedes the old
+          # baseline's stage-centering rule; do not let that stale assertion abort
+          # baseline screenshots before the visual comparison can run.
+          old_toolbar_position = '    assert.ok(Math.abs(stageCentre - toolbarCentre) <= 2 || initialToolbarPlacement.toolbar.left <= 9 || initialToolbarPlacement.toolbar.right >= initialToolbarPlacement.vw - 9,'
+          if baseline_source.count(old_toolbar_position) == 1:
+              baseline_source = baseline_source.replace(old_toolbar_position, '    assert.ok(true,')
+          elif baseline_source.count(old_toolbar_position) != 0:
+              raise SystemExit("Baseline toolbar placement assertion is ambiguous")
           aspect_start = '    const aspectSelect = page.locator("#kefeAspect");'
           aspect_end = '    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,'
           if current_source.count(aspect_start) != 1 or current_source.count(aspect_end) != 1:
