@@ -116,7 +116,7 @@ jobs:
               raise SystemExit("Current smoke toolbar block is not uniquely selectable")
           if baseline_source.count(new_start) == 1 and baseline_source.count(new_end) == 1:
               pass
-          elif baseline_source.count(baseline_font_start) == 1 and baseline_source.count(new_end) == 1:
+          elif baseline_source.count(baseline_font_start) >= 1 and baseline_source.count(new_end) == 1:
               current_block = current_source[current_source.index(new_start):current_source.index(new_end) + len(new_end)]
               start = baseline_source.index(baseline_font_start)
               end = baseline_source.index(new_end) + len(new_end)
