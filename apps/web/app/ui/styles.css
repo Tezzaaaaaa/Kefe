@@ -10419,9 +10419,25 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-
   .kefe-sidebar-group .kefe-sidebar-link:not(.is-current) > .kefe-sidebar-link-label { display: none; }
 }
 @media (max-width: 640px) {
-  .kefe-sidebar { height: 50px; min-height: 50px; padding: 0 10px; }
-  .kefe-sidebar-group { display: none; } /* the bottom dock carries section navigation on phones */
-  .kefe-sidebar-bottom { margin-left: auto; }
+  .kefe-sidebar {
+    height: 50px;
+    min-height: 50px;
+    gap: 6px;
+    padding: 0 8px;
+    overflow-x: hidden;
+  }
+  .kefe-sidebar-group {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 34px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  .kefe-sidebar-group::-webkit-scrollbar { display: none; }
+  .kefe-sidebar-group > .kefe-sidebar-link > .kefe-sidebar-link-label { display: none; }
+  .kefe-sidebar-link { width: 34px; min-width: 34px; padding: 0; gap: 0; }
+  .kefe-sidebar-bottom { flex: 0 0 auto; margin-left: auto; gap: 2px; padding-left: 5px; }
 }
 
 /* ===== Document scrolling and collapsed sections ===== */
