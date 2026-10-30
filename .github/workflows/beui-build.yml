@@ -59,6 +59,7 @@ jobs:
           git archive origin/main | tar -x -C /tmp/kefe-main
           ln -s "$GITHUB_WORKSPACE/node_modules" /tmp/kefe-main/node_modules
           ln -s "$GITHUB_WORKSPACE/apps/web/node_modules" /tmp/kefe-main/apps/web/node_modules
+          cp "$GITHUB_WORKSPACE/apps/web/app/ui/structure.js" /tmp/kefe-main/apps/web/app/ui/structure.js
           cd /tmp/kefe-main
           pnpm --filter @kefe/web build
       - name: Install Chromium
