@@ -87,6 +87,14 @@ Effects provide different animation and typography treatments. Available control
 - Use the available presets and controls for each visualiser.
 - Visualiser output responds to source audio where supported and is included in video exports.
 
+### Mobile editing sidebar
+
+- On phones and small tablets the editor sections open in a sliding sidebar instead of a long stacked page.
+- A bottom section dock switches between Media, Lyric Sync, Lyric Effects, Background, Visualisers and Export in one tap.
+- An icon rail, grouped control tabs and collapsible control groups keep the active panel short, and the live native controls move with it.
+- An expanding Tools menu holds the editor-wide actions (day/night mode, search, fullscreen preview and reset).
+- Every slider in the sidebar uses the beUI range slider, and all edits stay in the same native controls as the desktop layout.
+
 ### Video formats and export
 
 - Choose a video type preset, including lyric video, full-song visualiser, cover-art video and vertical release cut.

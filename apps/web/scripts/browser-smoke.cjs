@@ -282,9 +282,15 @@ async function captureEditorScreenState(page) {
     assert.equal(visibleDesktopNavIcons, 0, "workspace navigation must be text-only on desktop");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
+    // Mobile editing happens in the KEFE sidebar, so measure the media surface
+    // with its live panel hosted in the drawer.
+    await page.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
+    await page.waitForFunction(() => Boolean(document.querySelector(".kefe-ms-host #kefeUploadZone")), null, { timeout: 5000 });
     const mobileUploadColumns = await page.locator(".kefe-media-upload-row").evaluate(node =>
       getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length);
     assert.equal(mobileUploadColumns, 1, "mobile Media upload zones must stack at the viewport breakpoint");
+    await page.locator(".kefe-ms-close").evaluate(button => button.click());
+    await page.waitForFunction(() => !document.querySelector(".kefe-ms-drawer"), null, { timeout: 5000 });
     const mobileToolbarBounds = await quickToolbar.evaluate(node => {
       const r = node.getBoundingClientRect();
       return { left: r.left, right: r.right, viewportWidth: document.documentElement.clientWidth };
@@ -1185,16 +1191,8 @@ async function captureEditorScreenState(page) {
     if (exportLayout.width <= 500) assert.equal(exportLayout.columns, 1,
       `export options must stack in a narrow panel: ${JSON.stringify(exportLayout)}`);
 
-    // Verify all six real settings-shell headings and embedded panels at phone widths.
+    // Verify the mobile editor sidebar (dock + drawer) at phone widths.
     const panelDesktopViewport = page.viewportSize();
-    const shellSectionIds = {
-      media: "media",
-      lyrics: "lyric-sync",
-      effects: "lyric-effects",
-      "background-effects": "background",
-      visualiser: "visualisers",
-      export: "export"
-    };
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       await page.waitForTimeout(100);
@@ -1221,13 +1219,15 @@ async function captureEditorScreenState(page) {
         `the preview toolbar must remain on one row at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
       assert.ok(mobileToolbarLayout.scrollHeight <= mobileToolbarLayout.clientHeight + 1,
         `the preview toolbar must not wrap at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
-      const mobilePanels = await page.locator(".kefe-editing .kefe-panels").first().evaluate(node => {
-        const r = node.getBoundingClientRect();
-        return { left: r.left, right: r.right, width: r.width, scrollWidth: node.scrollWidth, clientWidth: node.clientWidth };
-      });
-      assert.ok(mobilePanels.left >= -1 && mobilePanels.right <= width + 1
-        && mobilePanels.scrollWidth <= mobilePanels.clientWidth + 1,
-        `mobile editor panels must fit without horizontal overflow at ${width}px: ${JSON.stringify(mobilePanels)}`);
+      // The mobile editor surface is now the KEFE sidebar: a section dock replaces
+      // the stacked settings accordion, and the live native panel is hosted inside
+      // the drawer while it is open.
+      assert.equal(await page.locator(".kefe-ms-dock").evaluate(node => getComputedStyle(node).display !== "none"), true,
+        `the mobile section dock must be available at ${width}px`);
+      assert.equal(await page.locator(".kefe-editing").first().evaluate(node => getComputedStyle(node).display), "none",
+        `the stacked settings surface must be retired behind the mobile sidebar at ${width}px`);
+      assert.equal(await page.locator(".kefe-ms-dock-item").count(), 6,
+        `the mobile dock must offer all six editor sections at ${width}px`);
       for (const [section, label] of [
         ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Effects"],
         ["background-effects", "Background Effects"], ["visualiser", "Visualiser"], ["export", "Export"]
@@ -1235,37 +1235,61 @@ async function captureEditorScreenState(page) {
         const navButton = page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: label }).first();
         await navButton.evaluate(button => button.click());
         await page.waitForFunction(expected => document.querySelector(".kefe-section.active")?.dataset.panel === expected, section, { timeout: 5000 });
-        await assertSectionFits(section);
-        const geometry = await page.locator(`.kefe-panel[data-panel-view="${section}"]`).evaluate((panel, shellId) => {
-          const viewportWidth = document.documentElement.clientWidth;
-          const panelRect = panel.getBoundingClientRect();
-          const shellSection = document.querySelector(`#kefe-settings-panel .section[data-section-id="${shellId}"]`);
-          const row = shellSection?.querySelector(".section-header");
-          const title = shellSection?.querySelector(".section-heading");
-          const control = shellSection?.querySelector(".info-button");
+        await page.waitForFunction(expected => Boolean(
+          document.querySelector(".kefe-ms-drawer") &&
+          document.querySelector(`.kefe-ms-host .kefe-panel[data-panel-view="${expected}"]`)
+        ), section, { timeout: 5000 });
+
+        const drawerTitle = (await page.locator("#kefe-ms-title").innerText()).trim();
+        assert.ok(drawerTitle.length > 0, `mobile sidebar must name the ${section} section at ${width}px`);
+
+        const geometry = await page.evaluate((view) => {
+          const drawer = document.querySelector(".kefe-ms-drawer");
+          const host = document.querySelector(".kefe-ms-host");
+          const panel = document.querySelector(`.kefe-ms-host .kefe-panel[data-panel-view="${view}"]`);
           const rect = node => {
             if (!node) return null;
             const r = node.getBoundingClientRect();
-            return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width };
+            return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
           };
-          const t = title?.getBoundingClientRect();
-          const c = control?.getBoundingClientRect();
           return {
-            viewportWidth, panel: rect(panel), panelScrollWidth: panel.scrollWidth, panelClientWidth: panel.clientWidth,
-            row: rect(row), title: rect(title), control: rect(control),
-            titleControlOverlap: Boolean(t && c && t.right > c.left + 1 && t.left < c.right - 1)
+            viewportWidth: document.documentElement.clientWidth,
+            viewportHeight: document.documentElement.clientHeight,
+            drawer: rect(drawer),
+            host: rect(host),
+            hostScrollWidth: host?.scrollWidth ?? 0,
+            hostClientWidth: host?.clientWidth ?? 0,
+            panel: rect(panel),
+            panelScrollWidth: panel?.scrollWidth ?? 0,
+            panelClientWidth: panel?.clientWidth ?? 0,
           };
-        }, shellSectionIds[section]);
-        assert.ok(geometry.panel.left >= -1 && geometry.panel.right <= width + 1,
-          `${section} panel must stay within the ${width}px viewport: ${JSON.stringify(geometry)}`);
-        assert.ok(geometry.panelScrollWidth <= geometry.panelClientWidth + 1,
+        }, section);
+        assert.ok(geometry.drawer.left >= -1 && geometry.drawer.right <= width + 1,
+          `${section} sidebar drawer must stay within the ${width}px viewport: ${JSON.stringify(geometry)}`);
+        assert.ok(geometry.panel && geometry.panel.width > 0,
+          `${section} live panel must render inside the drawer at ${width}px: ${JSON.stringify(geometry)}`);
+        assert.ok(geometry.panel.left >= geometry.host.left - 1 && geometry.panel.right <= geometry.host.right + 1,
+          `${section} panel must stay inside the drawer surface at ${width}px: ${JSON.stringify(geometry)}`);
+        assert.ok(geometry.hostScrollWidth <= geometry.hostClientWidth + 1 && geometry.panelScrollWidth <= geometry.panelClientWidth + 1,
           `${section} panel must not overflow horizontally at ${width}px: ${JSON.stringify(geometry)}`);
-        assert.ok(geometry.row && geometry.title && geometry.title.width > 0,
-          `${section} settings heading must render at ${width}px: ${JSON.stringify(geometry)}`);
-        assert.ok(geometry.row.left >= -1 && geometry.row.right <= width + 1,
-          `${section} settings heading row must stay inside the ${width}px viewport: ${JSON.stringify(geometry)}`);
-        assert.equal(geometry.titleControlOverlap, false,
-          `${section} title and info control must not overlap at ${width}px: ${JSON.stringify(geometry)}`);
+
+        await assertSectionFits(section);
+
+        const groupTabs = page.locator(".kefe-ms-tabs [role='tab']");
+        if (await groupTabs.count() > 1) {
+          await groupTabs.last().evaluate(button => button.click());
+          const visibleGroups = await page.locator(".kefe-ms-host [data-kefe-ms-group]").evaluateAll(nodes =>
+            nodes.filter(node => getComputedStyle(node).display !== "none").length);
+          assert.ok(visibleGroups >= 1,
+            `${section} control-group tabs must reveal their controls at ${width}px`);
+        }
+
+        await page.locator(".kefe-ms-close").evaluate(button => button.click());
+        await page.waitForFunction(() => !document.querySelector(".kefe-ms-drawer"), null, { timeout: 5000 });
+        const restored = await page.evaluate((view) => Boolean(
+          document.querySelector(`.kefe-slot[data-kefe-slot] .kefe-panel[data-panel-view="${view}"]`)
+        ), section);
+        assert.ok(restored, `${section} panel must return to its settings slot after the mobile sidebar closes`);
       }
     }
     await page.setViewportSize(panelDesktopViewport);
