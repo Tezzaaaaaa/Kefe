@@ -463,7 +463,7 @@
 .kefe-settings-panel .kefe-slot .kefe-visualiser-power-slot {
   display: flex;
 }
-.kefe-settings-panel .kefe-slot .kefe-form {
+.kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view] .kefe-form {
   width: 100%;
   max-width: none;
   min-width: 0;
@@ -482,7 +482,7 @@
 
 
 @container kefe-settings (max-width: 500px) {
-  .kefe-settings-panel .kefe-slot .kefe-form {
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view] .kefe-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
