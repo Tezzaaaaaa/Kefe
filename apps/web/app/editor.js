@@ -1023,7 +1023,7 @@
     previewFullscreen.setAttribute('aria-label',active?'Exit fullscreen':'Enter fullscreen');
     previewFullscreen.title=active?'Exit fullscreen':'Enter fullscreen';
     const layoutControls=document.getElementById('kefeFloatingToolbar');
-    if(layoutControls)layoutControls.style.display=active?'none':'flex';
+    if(layoutControls)layoutControls.style.display='flex';
     previewFullscreen.innerHTML=window.kefeIcon?window.kefeIcon(active?'minimize':'maximize'):'<span data-kefe-icon="'+(active?'minimize':'maximize')+'" aria-hidden="true"></span>';
   }
   async function togglePreviewFullscreen(){

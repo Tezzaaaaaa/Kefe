@@ -729,17 +729,18 @@
       const d = dockEl.getBoundingClientRect();
       if (d.height > 0 && d.top > vh * 0.5) dockTop = d.top;
     }
-    // Dock inside the preview bar, in the slot the old "Canvas ratio" control used to occupy.
-    const slot = document.querySelector('.kefe-toolbar-format');
-    if (slot && !mobile.matches) {
-      slot.classList.add('kft-dock-slot');
-      slot.style.width = w + 'px'; slot.style.height = hgt + 'px';
-      const sr = slot.getBoundingClientRect();
-      if (sr.width && sr.height) return { x: sr.left, y: sr.top };
-    } else if (slot) { slot.classList.remove('kft-dock-slot'); slot.style.width = slot.style.height = ''; }
+    // Dock against the real preview action bar at every viewport size.
+    // In fullscreen, the preview stage becomes the toolbar's containing visual surface.
+    const fullscreen = document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
     const s = stage.getBoundingClientRect();
+    if (fullscreen && s.width && s.height) return { x: clamp(s.left + 8, 8, vw - w - 8), y: s.top + 8 };
+    const previewBar = document.querySelector('.kefe-preview-toolbar');
+    const barRect = previewBar?.getBoundingClientRect();
+    if (barRect?.width && barRect.height) {
+      return { x: clamp(barRect.left + 8, 8, vw - w - 8), y: barRect.top + Math.max(0, (barRect.height - hgt) / 2) };
+    }
     if (!s.width || !s.height) return { x: (vw - w) / 2, y: 8 };
-    return { x: s.left + (s.width - w) / 2, y: s.top - hgt - 10 };
+    return { x: clamp(s.left + 8, 8, vw - w - 8), y: s.top + 8 };
   }
   function apply() {
     if (custom) {
@@ -749,8 +750,9 @@
       // Docked: follow the preview bar as the page scrolls, and tuck away once it passes under the sticky header.
       const header = document.querySelector('.kefe-sidebar');
       const top = header ? header.getBoundingClientRect().bottom : 0;
+      const fullscreen = document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
       pos = { x: clamp(pos.x, 8, Math.max(8, window.innerWidth - root.offsetWidth - 8)), y: pos.y };
-      root.style.visibility = (pos.y < top || pos.y > window.innerHeight - 8) ? 'hidden' : '';
+      root.style.visibility = (!fullscreen && (pos.y < top || pos.y > window.innerHeight - 8)) ? 'hidden' : '';
     }
     root.style.left = pos.x + 'px'; root.style.top = pos.y + 'px';
   }

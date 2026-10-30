@@ -262,16 +262,17 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").isVisible(), false, "the duplicate preview-bar Canvas ratio must be hidden");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
     const initialToolbarPlacement = await page.evaluate(() => {
-      const stage = document.querySelector(".kefe-stage").getBoundingClientRect();
+      const bar = document.querySelector(".kefe-preview-toolbar").getBoundingClientRect();
       const toolbar = document.querySelector("#kefeFloatingToolbar").getBoundingClientRect();
-      return { stage: { left: stage.left, right: stage.right, top: stage.top, bottom: stage.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
+      return { bar: { left: bar.left, right: bar.right, top: bar.top, bottom: bar.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
     });
-    const stageCentre = (initialToolbarPlacement.stage.left + initialToolbarPlacement.stage.right) / 2;
-    const toolbarCentre = (initialToolbarPlacement.toolbar.left + initialToolbarPlacement.toolbar.right) / 2;
-    assert.ok(Math.abs(stageCentre - toolbarCentre) <= 2 || initialToolbarPlacement.toolbar.left <= 9 || initialToolbarPlacement.toolbar.right >= initialToolbarPlacement.vw - 9,
-      `toolbar should dock centred under the preview: ${JSON.stringify(initialToolbarPlacement)}`);
-    assert.ok(initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
-      `toolbar must start fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
+    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.bar.left - 1
+      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.bar.top - 1
+      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.bar.bottom + 8,
+      `toolbar must dock inside the preview action bar: ${JSON.stringify(initialToolbarPlacement)}`);
+    assert.ok(initialToolbarPlacement.toolbar.left >= 0 && initialToolbarPlacement.toolbar.right <= initialToolbarPlacement.vw + 1
+      && initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
+      `toolbar must remain fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
     const desktopViewport = page.viewportSize();
     const visibleDesktopNavIcons = await page.locator(".kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden='true']").evaluateAll(nodes => nodes.filter(node => getComputedStyle(node).display !== "none").length);
     assert.equal(visibleDesktopNavIcons, 0, "workspace navigation must be text-only on desktop");
@@ -1195,6 +1196,13 @@ async function captureEditorScreenState(page) {
         `the preview toolbar must remain on one row at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
       assert.ok(mobileToolbarLayout.scrollHeight <= mobileToolbarLayout.clientHeight + 1,
         `the preview toolbar must not wrap at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
+      const mobilePanels = await page.locator(".kefe-editing .kefe-panels").first().evaluate(node => {
+        const r = node.getBoundingClientRect();
+        return { left: r.left, right: r.right, width: r.width, scrollWidth: node.scrollWidth, clientWidth: node.clientWidth };
+      });
+      assert.ok(mobilePanels.left >= -1 && mobilePanels.right <= width + 1
+        && mobilePanels.scrollWidth <= mobilePanels.clientWidth + 1,
+        `mobile editor panels must fit without horizontal overflow at ${width}px: ${JSON.stringify(mobilePanels)}`);
       for (const [section, label] of [
         ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Effects"],
         ["background-effects", "Background Effects"], ["visualiser", "Visualiser"], ["export", "Export"]

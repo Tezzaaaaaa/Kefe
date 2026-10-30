@@ -55,7 +55,7 @@
   -webkit-user-select: none;
 }
 .kefe-floating-toolbar[hidden] { display: none; }
-body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
+body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: flex; }
 .kft-backing { display: none !important; }
 .kefe-floating-toolbar.is-dragging { cursor: grabbing; }
 .kefe-floating-toolbar.is-dragging .kft-bar { box-shadow: 0 15px 40px rgb(0 0 0 / 60%); }
