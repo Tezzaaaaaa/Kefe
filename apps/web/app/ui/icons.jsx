@@ -1,7 +1,7 @@
 import React, { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
-  Activity, AudioLines, AudioWaveform, ArrowDown, ArrowLeft, ArrowRight, ArrowUp,
+  Activity, AudioLines, AudioWaveform, PanelLeft, ArrowDown, ArrowLeft, ArrowRight, ArrowUp,
   Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, CloudUpload, Copy,
   Download, Edit3, Eye, FileAudio, FileText, Folder, Github, Grip, Image,
   Layers, ListMusic, Lock, LockOpen, Maximize, Minimize, MoreHorizontal, Move, Type, Frame, Circle,
@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 const icons = {
-  activity: Activity, "audio-lines": AudioLines, "audio-waveform": AudioWaveform,
+  activity: Activity, "panel-left": PanelLeft, "audio-lines": AudioLines, "audio-waveform": AudioWaveform,
   "arrow-down": ArrowDown, "arrow-left": ArrowLeft, "arrow-right": ArrowRight,
   "arrow-up": ArrowUp, check: Check, "chevron-down": ChevronDown,
   "chevron-left": ChevronLeft, "chevron-right": ChevronRight,
