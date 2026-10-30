@@ -446,23 +446,24 @@ html.kefe-ms-enabled {
 
   /* The drawer header already names the section; keep only the panel's own
      power switches (Lyrics on/off, Background on/off) from its heading. */
+  .kefe-ms-host .kefe-panel[data-panel-view] > .kefe-panel-head,
   .kefe-ms-host .kefe-panel-head {
-    display: flex;
+    display: flex !important;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
     min-height: 0;
-    margin: 0 0 8px;
-    padding: 0;
-    border: 0;
-    background: transparent;
+    margin: 0 0 8px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
   }
 
   .kefe-ms-host .kefe-panel-head h2,
   .kefe-ms-host .kefe-panel-head .kefe-meta,
   .kefe-ms-host .kefe-panel-head .kefe-effects-heading,
-  .kefe-ms-host .kefe-panel-head .kefe-section-heading-row > h2 {
-    display: none;
+  .kefe-ms-host .kefe-panel-head .beui-accordion-trigger {
+    display: none !important;
   }
 
   .kefe-ms-host .kefe-panel-head .kefe-lyrics-power,
