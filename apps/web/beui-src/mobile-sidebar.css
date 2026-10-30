@@ -1,0 +1,774 @@
+/* ═══════════════════════════════════════════════════════════════
+   KEFE mobile editor sidebar
+   Loaded by `beui-src/mobile-sidebar.jsx`. Only active below 1024px:
+   the section dock, the sliding sidebar and all of its surfaces stay
+   display:none on wider viewports, where the desktop shell is unchanged.
+   ═══════════════════════════════════════════════════════════════ */
+
+#kefe-mobile-sidebar-root {
+  display: contents;
+}
+
+.kefe-ms-dock,
+.kefe-ms-scrim,
+.kefe-ms-drawer {
+  display: none;
+}
+
+html.kefe-ms-enabled {
+  --kefe-ms-drawer-z: 12050;
+}
+
+/* The mobile sidebar owns editing below the desktop breakpoint; the old
+   stacked settings stack is retired there so nothing has to be scrolled to. */
+@media (max-width: 1023px) {
+  html.kefe-ms-enabled .kefe-editing {
+    display: none !important;
+  }
+
+  html.kefe-ms-enabled .kefe-editor {
+    padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Keep the drawer's own scrollers from rubber-banding the page. */
+  html.kefe-ms-locked,
+  html.kefe-ms-locked body {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+}
+
+/* ── Section dock ─────────────────────────────────────────────── */
+@media (max-width: 1023px) {
+  .kefe-ms-dock {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    z-index: 10600;
+    display: block;
+    width: min(100% - 16px, 520px);
+    margin-inline: auto;
+    padding: 5px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    box-shadow: 0 14px 38px rgba(0, 0, 0, .3), 0 1px 0 rgba(255, 255, 255, .05) inset;
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+    backdrop-filter: blur(18px) saturate(1.15);
+    color: var(--text);
+    animation: kefe-ms-dock-in 320ms cubic-bezier(.22, 1, .36, 1) both;
+  }
+
+  .kefe-ms-dock-grip {
+    display: none;
+  }
+
+  .kefe-ms-dock-row {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .kefe-ms-dock-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 50px;
+    padding: 5px 2px 4px;
+    border: 1px solid transparent;
+    border-radius: 13px;
+    background: transparent;
+    color: var(--muted);
+    font: 600 9.5px/1.1 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif;
+    letter-spacing: .01em;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .16s ease, color .16s ease, border-color .16s ease, transform .12s ease;
+  }
+
+  .kefe-ms-dock-item span {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .kefe-ms-dock-item svg {
+    flex: none;
+  }
+
+  .kefe-ms-dock-item:active {
+    transform: scale(.94);
+  }
+
+  .kefe-ms-dock-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .kefe-ms-dock-item.is-active {
+    border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: color-mix(in srgb, var(--accent) 78%, var(--text));
+  }
+
+  body:has(.kefe-pseudo-fullscreen) .kefe-ms-dock,
+  body:has(.kefe-stage:fullscreen) .kefe-ms-dock {
+    display: none;
+  }
+}
+
+@keyframes kefe-ms-dock-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Scrim + drawer ───────────────────────────────────────────── */
+@media (max-width: 1023px) {
+  .kefe-ms-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--kefe-ms-drawer-z) - 10);
+    display: block;
+    background: rgba(6, 8, 12, .54);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+  }
+
+  .kefe-ms-drawer {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: var(--kefe-ms-drawer-z);
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 430px);
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    border-right: 1px solid var(--line);
+    border-radius: 0 18px 18px 0;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+    outline: none;
+  }
+
+  .kefe-ms-drawer:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -3px;
+  }
+
+  /* A full-bleed drawer on phones reads better squared off. */
+  @media (max-width: 440px) {
+    .kefe-ms-drawer {
+      border-right: 0;
+      border-radius: 0;
+    }
+  }
+}
+
+/* ── Drawer header ───────────────────────────────────────────── */
+@media (max-width: 1023px) {
+  .kefe-ms-head::before {
+    content: "";
+    position: absolute;
+    top: calc(4px + env(safe-area-inset-top, 0px));
+    left: 50%;
+    width: 34px;
+    height: 4px;
+    margin-left: -17px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text) 18%, transparent);
+  }
+
+  .kefe-ms-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    flex: none;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px 16px;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface-hi) 70%, var(--surface));
+  }
+
+  .kefe-ms-head {
+    position: relative;
+  }
+
+  .kefe-ms-head-copy {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 8px;
+    min-width: 0;
+  }
+
+  .kefe-ms-brand {
+    font: 800 15px/1 -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, sans-serif;
+    letter-spacing: -.045em;
+    color: var(--text);
+  }
+
+  .kefe-ms-head-sub {
+    color: var(--muted);
+    font: 600 9.5px/1 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .kefe-ms-title {
+    grid-column: 1 / -1;
+    margin: 4px 0 0;
+    font: 650 17px/1.25 -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, sans-serif;
+    letter-spacing: -.02em;
+    color: var(--text);
+  }
+
+  .kefe-ms-close {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    margin-top: 2px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: background .16s ease, color .16s ease;
+  }
+
+  .kefe-ms-close:hover {
+    background: var(--surface-lo);
+    color: var(--text);
+  }
+
+  .kefe-ms-close:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+}
+
+/* ── Body: icon rail + control surface ───────────────────────── */
+@media (max-width: 1023px) {
+  .kefe-ms-body {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr);
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .kefe-ms-rail {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 8px 5px;
+    border-right: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface-lo) 38%, var(--surface));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+
+  .kefe-ms-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .kefe-ms-rail-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .kefe-ms-rail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 100%;
+    min-height: 50px;
+    padding: 6px 2px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    background: transparent;
+    color: var(--muted);
+    font: 600 8.5px/1.1 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif;
+    letter-spacing: .01em;
+    text-align: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .16s ease, color .16s ease, border-color .16s ease;
+  }
+
+  .kefe-ms-rail-item:hover {
+    background: color-mix(in srgb, var(--text) 6%, transparent);
+    color: var(--text);
+  }
+
+  .kefe-ms-rail-item.is-active {
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: color-mix(in srgb, var(--accent) 80%, var(--text));
+  }
+
+  .kefe-ms-rail-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .kefe-ms-rail-label {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .kefe-ms-surface {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .kefe-ms-surface-head {
+    flex: none;
+    display: grid;
+    gap: 8px;
+    padding: 10px 12px 9px;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface-hi) 55%, var(--surface));
+  }
+
+  .kefe-ms-blurb {
+    margin: 0;
+    color: var(--muted);
+    font: 500 11.5px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif;
+    text-wrap: pretty;
+  }
+}
+
+/* ── Group tabs (control groups) ─────────────────────────────── */
+@media (max-width: 1023px) {
+  .kefe-ms-tabs {
+    display: flex;
+    gap: 4px;
+    min-width: 0;
+    overflow-x: auto;
+    padding-bottom: 1px;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+
+  .kefe-ms-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .kefe-ms-tab {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--muted);
+    font: 600 11.5px/1 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif;
+    white-space: nowrap;
+    cursor: pointer;
+    scroll-snap-align: start;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .16s ease, color .16s ease, border-color .16s ease;
+  }
+
+  .kefe-ms-tab:active {
+    transform: scale(.97);
+  }
+
+  .kefe-ms-tab.is-active {
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: color-mix(in srgb, var(--accent) 82%, var(--text));
+  }
+
+  .kefe-ms-tab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+}
+
+/* ── Live panel host ─────────────────────────────────────────── */
+@media (max-width: 1023px) {
+  .kefe-ms-host {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 12px 12px calc(18px + env(safe-area-inset-bottom, 0px));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .kefe-ms-host > .kefe-panel,
+  .kefe-ms-host .kefe-ms-live-panel,
+  .kefe-ms-host .kefe-panel[data-panel-view] {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--text);
+    display: block;
+  }
+
+  /* The drawer header already names the section; keep only the panel's own
+     power switches (Lyrics on/off, Background on/off) from its heading. */
+  .kefe-ms-host .kefe-panel[data-panel-view] > .kefe-panel-head,
+  .kefe-ms-host .kefe-panel-head {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 0;
+    margin: 0 0 8px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .kefe-ms-host .kefe-panel-head h2,
+  .kefe-ms-host .kefe-panel-head .kefe-meta,
+  .kefe-ms-host .kefe-panel-head .kefe-effects-heading,
+  .kefe-ms-host .kefe-panel-head .beui-accordion-trigger {
+    display: none !important;
+  }
+
+  .kefe-ms-host .kefe-panel-head .kefe-lyrics-power,
+  .kefe-ms-host .kefe-panel-head .kefe-background-effect-toggle,
+  .kefe-ms-host .kefe-panel-head .kefe-toolbar-actions {
+    margin-left: auto;
+  }
+
+  .kefe-ms-host .kefe-form,
+  .kefe-ms-host .kefe-visualiser-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .kefe-ms-host [data-kefe-ms-group] {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .kefe-ms-host .kefe-ms-group-off {
+    display: none !important;
+  }
+
+  .kefe-ms-host input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  .kefe-ms-host select,
+  .kefe-ms-host textarea {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .kefe-ms-host .kefe-textarea {
+    min-height: 132px;
+  }
+
+  /* Group accordion: each labelled visualiser/style group collapses from its
+     own label, so long control lists become short, scannable rows. */
+  .kefe-ms-host .kefe-visualiser-control-group > div.kefe-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 26px;
+    margin: 0 0 2px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .kefe-ms-host .kefe-visualiser-control-group > div.kefe-label::after {
+    content: "";
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin-right: 3px;
+    border-right: 1.6px solid currentColor;
+    border-bottom: 1.6px solid currentColor;
+    transform: rotate(45deg) translate(-2px, -2px);
+    opacity: .7;
+    transition: transform .18s ease;
+  }
+
+  .kefe-ms-host .kefe-visualiser-control-group.is-collapsed > div.kefe-label::after {
+    transform: rotate(-45deg) translate(-1px, 2px);
+  }
+
+  .kefe-ms-host .kefe-visualiser-control-group.is-collapsed > :not(div.kefe-label) {
+    display: none !important;
+  }
+
+  .kefe-ms-host .kefe-visualiser-control-group > div.kefe-label:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* beUI RangeSlider hosts always fill the drawer column. */
+  .kefe-ms-host .beui-range-host,
+  .kefe-ms-host .beui-range-host > div {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .kefe-ms-host .kefe-slot,
+  .kefe-ms-host .kefe-panel-head + .kefe-form {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Section-specific support: media carousel and visualiser tabs need to fit
+     the narrow drawer instead of the desktop panel width. */
+  .kefe-ms-host .beui-horizontal-carousel,
+  .kefe-ms-host .kefe-media-carousel {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .kefe-ms-host .beui-horizontal-carousel::-webkit-scrollbar,
+  .kefe-ms-host .kefe-media-carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .kefe-ms-host .beui-vis-tabs-host .kv-grid,
+  .kefe-ms-host .kv-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .kefe-ms-host .kv-card {
+    min-width: 0;
+  }
+
+  .kefe-ms-host .kv-tab {
+    min-width: 0;
+  }
+
+  .kefe-ms-host .kv-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .kefe-ms-host .kefe-line-list {
+    max-height: 42dvh;
+  }
+}
+
+/* ── Footer with the expanding tools menu ────────────────────── */
+@media (max-width: 1023px) {
+  .kefe-ms-foot {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface-hi) 68%, var(--surface));
+  }
+
+  .kefe-ms-status {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--muted);
+    font: 500 11px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .kefe-ms-foot-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font: 600 12px/1 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif;
+    cursor: pointer;
+  }
+
+  .kefe-ms-foot-button:hover {
+    background: var(--surface-lo);
+  }
+
+  .kefe-ms-foot-button:focus-visible,
+  .kefe-ms-done:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .kefe-ms-foot-button .is-flipped {
+    transform: rotate(180deg);
+  }
+
+  .kefe-ms-done {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    font: 650 12.5px/1 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif;
+    cursor: pointer;
+  }
+
+  .kefe-ms-done:hover {
+    filter: brightness(1.06);
+  }
+
+  .kefe-ms-tools-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .kefe-ms-tools {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    z-index: 5;
+    display: grid;
+    gap: 2px;
+    width: min(238px, calc(100vw - 96px));
+    padding: 5px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--surface-hi);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, .34);
+    transform-origin: bottom right;
+  }
+
+  .kefe-ms-tool {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 38px;
+    padding: 0 9px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text);
+    font: 500 12.5px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .kefe-ms-tool:hover,
+  .kefe-ms-tool:focus-visible {
+    background: var(--surface-lo);
+    outline: none;
+  }
+
+  .kefe-ms-tool svg {
+    flex: none;
+    color: var(--muted);
+  }
+}
+
+/* The drawer is above the command dialog's default layer, so raise the
+   palette when it is opened from inside the sidebar. */
+html.kefe-ms-locked .kefe-command-overlay,
+html.kefe-ms-locked .beui-settings-root {
+  z-index: 12100;
+}
+
+/* Day mode keeps the same surfaces but lifts the scrim slightly. */
+html[data-theme="day"] .kefe-ms-scrim {
+  background: rgba(24, 28, 38, .34);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kefe-ms-dock,
+  .kefe-ms-dock-item,
+  .kefe-ms-rail-item,
+  .kefe-ms-tab,
+  .kefe-ms-close,
+  .kefe-ms-tool {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .kefe-ms-host .kefe-visualiser-control-group > div.kefe-label::after {
+    transition: none;
+  }
+}
+
+/* Short landscape phones: tighten the header so the controls keep the room. */
+@media (max-width: 1023px) and (max-height: 480px) {
+  .kefe-ms-head {
+    padding-block: 6px;
+  }
+
+  .kefe-ms-head-sub {
+    display: none;
+  }
+
+  .kefe-ms-title {
+    font-size: 15px;
+    margin-top: 2px;
+  }
+
+  .kefe-ms-blurb {
+    display: none;
+  }
+
+  .kefe-ms-rail-item {
+    min-height: 42px;
+    padding: 4px 2px;
+  }
+
+  .kefe-ms-rail-label {
+    display: none;
+  }
+}
