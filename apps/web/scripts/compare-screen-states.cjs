@@ -24,7 +24,15 @@ function index(nodes) {
 
 const carouselGeometryMismatches = [];
 
+/* Mobile intentionally redefined its editing surface: the stacked settings
+   accordion was replaced by the KEFE editor sidebar, and the mobile capture now
+   records that sidebar with the Media panel open. Desktop stays byte-for-byte
+   comparable with the baseline; mobile is validated against its own contract
+   instead of against the retired stacked layout. */
+const MOBILE_SIDEBAR_SELECTORS = [".kefe-ms-dock", ".kefe-ms-drawer", ".kefe-ms-rail", ".kefe-ms-surface", ".kefe-ms-host"];
+
 for (const size of ["desktop", "mobile"]) {
+  const mobileSidebar = size === "mobile";
   const before = JSON.parse(fs.readFileSync(path.join(baselineDir, `editor-screen-state-${size}-day.json`), "utf8"));
   const after = JSON.parse(fs.readFileSync(path.join(currentDir, `editor-screen-state-${size}-day.json`), "utf8"));
   console.log(`${size}/day: viewport ${JSON.stringify(before.viewport)} → ${JSON.stringify(after.viewport)}; window scroll ${JSON.stringify(before.windowScroll)} → ${JSON.stringify(after.windowScroll)}; active ${before.activeSection} → ${after.activeSection}; expanded ${JSON.stringify(before.expandedSettings)} → ${JSON.stringify(after.expandedSettings)}`);
@@ -48,6 +56,11 @@ for (const size of ["desktop", "mobile"]) {
       findStatus: findStatus ? { text: findStatus.text, bounds: [findStatus.x, findStatus.y, findStatus.width, findStatus.height] } : null,
     } : null;
     console.log(`${size}/day carousel child state ${label}: ${JSON.stringify(details)}`);
+    if (mobileSidebar && label === "baseline") {
+      // The baseline build had no editor sidebar on mobile; its stacked capture is
+      // not comparable, but the sidebar contract below covers the current build.
+      continue;
+    }
     assert.ok(details, `${label} ${size}/day carousel capture is missing`);
     assert.equal(details.count, 1, `${label} ${size}/day carousel should contain exactly one fixture card: ${JSON.stringify(details)}`);
     assert.equal(details.omittedChildren, 0, `${label} ${size}/day carousel child capture is incomplete: ${JSON.stringify(details)}`);
@@ -74,7 +87,24 @@ for (const size of ["desktop", "mobile"]) {
         && item.nodes[0].bounds[2] > 0 && item.nodes[0].bounds[3] > 0,
       `${label} ${size}/day fixture element ${item.selector} must have visible geometry: ${JSON.stringify(item)}`);
     }
-    if (label === "current") {
+    if (label === "current" && mobileSidebar) {
+      const sidebarBounds = MOBILE_SIDEBAR_SELECTORS.map(selector => ({
+        selector,
+        node: after.keyBounds.find(item => (` ${item.classes} `).includes(` ${selector.slice(1)} `)),
+      }));
+      for (const item of sidebarBounds) {
+        assert.ok(item.node, `mobile/day capture is missing the editor sidebar surface ${item.selector}`);
+        assert.ok(item.node.width > 0 && item.node.height > 0,
+          `mobile/day editor sidebar surface ${item.selector} must be visibly rendered: ${JSON.stringify(item.node)}`);
+        assert.ok(item.node.x >= -1 && item.node.x + item.node.width <= after.viewport.width + 1,
+          `mobile/day editor sidebar surface ${item.selector} must stay inside the viewport: ${JSON.stringify(item.node)}`);
+      }
+      const parkedPanel = after.keyBounds.find(item => item.classes.includes("kefe-panel") && item.classes.includes("kefe-ms-live-panel"));
+      assert.ok(parkedPanel && parkedPanel.width > 0,
+        `mobile/day capture must show the live Media panel hosted by the sidebar: ${JSON.stringify(after.keyBounds.map(item => item.classes))}`);
+      console.log(`${size}/day editor sidebar surfaces verified: ${JSON.stringify(sidebarBounds.map(item => [item.selector, [item.node.x, item.node.y, item.node.width, item.node.height]]))}`);
+    }
+    if (label === "current" && !mobileSidebar) {
       const baseline = before.keyBounds.find(node => node.id === "kefeCarStack")?.carouselChildren?.[0];
       assert.ok(baseline, `${size}/day baseline carousel card identity is missing`);
       assert.equal(child.ariaLabel, baseline.ariaLabel, `${size}/day carousel accessible identity differs between baseline and current`);
@@ -127,7 +157,7 @@ for (const size of ["desktop", "mobile"]) {
       - Math.max(...Object.values(a.fields).map(v => Math.abs(v[1] - v[0]))));
     const unmatchedBefore = [...oldMap].reduce((n, [key, items]) => n + Math.max(0, items.length - (newMap.get(key)?.length || 0)), 0);
     const unmatchedAfter = [...newMap].reduce((n, [key, items]) => n + Math.max(0, items.length - (oldMap.get(key)?.length || 0)), 0);
-    console.log(`${collection}: ${changes.length} matched geometry/scroll differences; unmatched current/baseline=${unmatchedAfter}/${unmatchedBefore}`);
+    console.log(`${collection}: ${changes.length} matched geometry/scroll differences; unmatched current/baseline=${unmatchedAfter}/${unmatchedBefore}${mobileSidebar ? " (mobile sidebar layout, diagnostics only)" : ""}`);
     if (collection === "keyBounds") {
       const mediaChanges = changes.filter(({ oldNode, newNode }) => oldNode.section === "media" || newNode.section === "media");
       console.log(`media content geometry: ${mediaChanges.length} changed entries`);

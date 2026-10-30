@@ -174,7 +174,7 @@ async function captureEditorScreenState(page) {
       scrollables: [...document.querySelectorAll(".kefe-editor, .kefe-editor *")].filter(node =>
         node.scrollHeight > node.clientHeight + 2 && node.getBoundingClientRect().width > 0
       ).map(describe),
-      keyBounds: [...document.querySelectorAll(".kefe-settings-mount, #kefe-settings-panel, .kefe-settings-columns > .kefe-panel[data-group], .kefe-panel-label, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form, .kefe-step, .kefe-step-body, .kefe-media-upload-row, .kefe-find, .kefe-find-bar, #kefeFindInput, .kefe-find-status, .kefe-search, .kefe-carousel, #kefeCarStack, #kefeCarInfo, .kefe-song-details, .kefe-details-grid")]
+      keyBounds: [...document.querySelectorAll(".kefe-settings-mount, #kefe-settings-panel, .kefe-settings-columns > .kefe-panel[data-group], .kefe-panel-label, .section[data-section-id], .kefe-panel[data-panel-view], .kefe-form, .kefe-step, .kefe-step-body, .kefe-media-upload-row, .kefe-find, .kefe-find-bar, #kefeFindInput, .kefe-find-status, .kefe-search, .kefe-carousel, #kefeCarStack, #kefeCarInfo, .kefe-song-details, .kefe-details-grid, .kefe-ms-dock, .kefe-ms-drawer, .kefe-ms-rail, .kefe-ms-surface, .kefe-ms-host")]
         .filter(node => node.getBoundingClientRect().width > 0).map(describe),
     };
   });
@@ -993,12 +993,34 @@ async function captureEditorScreenState(page) {
             await screenshotVolumeTrigger.click();
             await screenshotVolumePopover.waitFor({ state: "hidden", timeout: 5000 });
           }
+          // Mobile editing now lives in the KEFE sidebar, so the mobile capture
+          // shows that surface (Media open) instead of the retired stacked stack.
+          // Guarded so the main-branch baseline (which has no editor sidebar) still
+          // runs this same capture block unchanged.
+          const mobileShot = size === "mobile"
+            && await screenshotPage.locator(".kefe-ms-dock").count() > 0;
+          if (mobileShot) {
+            await screenshotPage.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
+            await screenshotPage.waitForFunction(() => Boolean(
+              document.querySelector('.kefe-ms-drawer .kefe-ms-host .kefe-panel[data-panel-view="media"]')
+            ), null, { timeout: 10000 });
+            await screenshotPage.waitForFunction(() => {
+              const drawer = document.querySelector(".kefe-ms-drawer");
+              if (!drawer) return false;
+              const rect = drawer.getBoundingClientRect();
+              return rect.left >= -1 && rect.right <= document.documentElement.clientWidth + 1;
+            }, null, { timeout: 5000 });
+          }
           await normalizeEditorScrollState(screenshotPage);
           const editorLayout = await captureEditorLayout(screenshotPage);
           fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
           const editorScreenState = await captureEditorScreenState(screenshotPage);
           fs.writeFileSync(path.join(screenshotDir, `editor-screen-state-${size}-${theme}.json`), JSON.stringify(editorScreenState));
           await screenshotPage.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
+          if (mobileShot) {
+            await screenshotPage.locator(".kefe-ms-close").evaluate(button => button.click());
+            await screenshotPage.waitForFunction(() => !document.querySelector(".kefe-ms-drawer"), null, { timeout: 5000 });
+          }
         }
       }
       if (hasScreenshotVolume) {
