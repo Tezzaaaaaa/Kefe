@@ -330,6 +330,15 @@ async function captureEditorScreenState(page) {
     await visualiserPanel.waitFor({ state: "visible", timeout: 5000 });
     assert.equal(await visualiserPanel.getByRole("button", { name: /Choose visualiser/ }).count(), 1,
       "visualiser selection must have its own toolbar panel");
+    const visualiserMenuTrigger = visualiserPanel.getByRole("button", { name: /Choose visualiser/ });
+    await visualiserMenuTrigger.click();
+    const visualiserMenu = page.getByRole("listbox", { name: "Visualiser", exact: true });
+    await visualiserMenu.waitFor({ state: "visible", timeout: 5000 });
+    const toolbarVisualiserOptions = await visualiserMenu.locator(".kft-item__text").allTextContents();
+    assert.equal(new Set(toolbarVisualiserOptions).size, toolbarVisualiserOptions.length,
+      "the toolbar visualiser menu must contain each visualiser exactly once");
+    assert.equal(toolbarVisualiserOptions.length, await page.locator(".beui-vis-tabs-host [role='tab'][data-visualiser]").count(),
+      "the toolbar menu must map one-to-one to the visible visualiser tabs");
     await page.keyboard.press("Escape");
     assert.equal(await page.locator("[data-layout-target]").count(), 1, "the editor must expose one canonical layer selector");
     assert.equal(await page.locator("[data-layout-scale]").count(), 1, "the editor must expose one canonical layer scale control");
@@ -1074,6 +1083,14 @@ async function captureEditorScreenState(page) {
       "no visualiser tab should appear selected until the user chooses one");
     assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
       "opening the Visualisers section must not automatically activate Fluid Ink");
+    await quickToolbar.getByRole("button", { name: "Visualiser", exact: true }).click();
+    const toolbarVisualiserPanel = page.getByRole("dialog", { name: "Visualiser", exact: true });
+    await toolbarVisualiserPanel.getByRole("button", { name: /Choose visualiser/ }).click();
+    await page.getByRole("listbox", { name: "Visualiser", exact: true }).getByRole("option", { name: "Fluid Ink", exact: true }).click();
+    assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "true",
+      "choosing Fluid Ink in the toolbar must activate the existing native visualiser control");
+    assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][data-visualiser='gradient']").getAttribute("aria-selected"), "true",
+      "choosing Fluid Ink in the toolbar must synchronize the visible visualiser tab");
     await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
     await assertSectionFits("visualiser");
     const visualiserParametersLayout = await page.locator(".kefe-fluid-settings").evaluate(grid => ({
