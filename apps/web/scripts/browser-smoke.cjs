@@ -279,7 +279,7 @@ async function captureEditorScreenState(page) {
       `toolbar must remain fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
     const desktopViewport = page.viewportSize();
     const visibleDesktopNavIcons = await page.locator(".kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden='true']").evaluateAll(nodes => nodes.filter(node => getComputedStyle(node).display !== "none").length);
-    assert.equal(visibleDesktopNavIcons, 1, "the single Editor tab must keep its icon on desktop");
+    assert.equal(visibleDesktopNavIcons, 0, "the header section links stay text-only, including the single Editor tab");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
