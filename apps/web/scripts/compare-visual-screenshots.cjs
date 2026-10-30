@@ -120,7 +120,7 @@ for (const [size, theme] of states) {
 
 const lines = [
   "### Editor and volume screenshot comparison",
-  "Compared complete editor screenshots and focused volume popover crops against the successful main-branch baseline; pixel threshold 0.12, antialias-only changes ignored, maximum changed-pixel budget 2.5%.",
+  "Compared full editor screenshots against the main-branch baseline; volume popover geometry and day/night surfaces are checked by the browser smoke test. Pixel threshold 0.12, antialias-only changes ignored, maximum changed-pixel budget 2.5%.",
   "",
   "| Subject | Viewport | Theme | Size | Changed pixels |",
   "|---|---|---|---:|---:|",
