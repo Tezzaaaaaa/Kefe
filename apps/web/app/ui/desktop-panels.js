@@ -66,7 +66,7 @@ function initDesktopPanels() {
       info.setAttribute('aria-label', 'About ' + heading.textContent.trim());
       info.setAttribute('aria-describedby', description.id);
       info.dataset.tooltip = description.textContent.trim() || defaults[key] || ('Information about ' + heading.textContent.trim() + '.');
-      info.innerHTML = '<span aria-hidden="true">i</span>';
+      info.innerHTML = window.kefeIcon ? window.kefeIcon('help') : '<span data-kefe-icon="help" aria-hidden="true"></span>';
       titleGroup.appendChild(info);
       row.appendChild(description);
     }
@@ -94,7 +94,7 @@ function initDesktopPanels() {
     toggle.className = 'beui-accordion-trigger';
     toggle.setAttribute('aria-expanded', 'true');
     toggle.setAttribute('aria-label', 'Collapse ' + heading.textContent.trim() + ' section');
-    toggle.innerHTML = '<span class="beui-accordion-chevron" aria-hidden="true"></span>';
+    toggle.innerHTML = window.kefeIcon ? window.kefeIcon('chevron-down', 'beui-accordion-chevron') : '<span data-kefe-icon="chevron-down" data-icon-class="beui-accordion-chevron" aria-hidden="true"></span>';
     toggle.addEventListener('click', () => {
       const open = toggle.getAttribute('aria-expanded') !== 'true';
       const currentHeight = panel.getBoundingClientRect().height;
