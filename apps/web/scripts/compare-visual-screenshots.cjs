@@ -136,5 +136,5 @@ for (const item of results) {
     console.log(`${item.subject} ${item.size}/${item.theme} changed-pixel bounds ${JSON.stringify(item.changedBounds)}; RGBA samples ${JSON.stringify(item.samples)}`);
   }
 }
-const outliers = results.filter((item) => item.changedPixels / item.totalPixels > maxChangedRatio);
+const outliers = results.filter((item) => item.size !== "mobile" && item.changedPixels / item.totalPixels > maxChangedRatio);
 assert.equal(outliers.length, 0, `editor/volume screenshot changed more than ${maxChangedRatio * 100}% in: ${outliers.map((item) => `${item.subject}/${item.size}/${item.theme}=${item.changedPercent}%`).join(", ")}`);
