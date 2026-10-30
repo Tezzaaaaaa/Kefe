@@ -1279,11 +1279,16 @@ async function captureEditorScreenState(page) {
 
         const groupTabs = page.locator(".kefe-ms-tabs [role='tab']");
         if (await groupTabs.count() > 1) {
-          await groupTabs.last().evaluate(button => button.click());
-          const visibleGroups = await page.locator(".kefe-ms-host [data-kefe-ms-group]").evaluateAll(nodes =>
-            nodes.filter(node => getComputedStyle(node).display !== "none").length);
-          assert.ok(visibleGroups >= 1,
-            `${section} control-group tabs must reveal their controls at ${width}px`);
+          const targetTab = groupTabs.last();
+          const targetGroup = await targetTab.getAttribute("data-kefe-ms-group-id");
+          await targetTab.evaluate(button => button.click());
+          await page.waitForFunction(expected => document.querySelector(".kefe-ms-host")?.getAttribute("data-kefe-ms-active-group") === expected,
+            targetGroup, { timeout: 5000 });
+          const selectedGroups = await page.locator(".kefe-ms-host [data-kefe-ms-group]").evaluateAll((nodes, expected) =>
+            nodes.filter(node => node.getAttribute("data-kefe-ms-group") === expected
+              && !node.classList.contains("kefe-ms-group-off")).length, targetGroup);
+          assert.ok(selectedGroups >= 1,
+            `${section} control-group tabs must select their group (${targetGroup}) at ${width}px`);
         }
 
         await page.locator(".kefe-ms-close").evaluate(button => button.click());

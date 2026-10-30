@@ -193,6 +193,7 @@ function GroupTabs({ groups, activeId, onSelect }) {
             role="tab"
             aria-selected={active}
             tabIndex={active ? 0 : -1}
+            data-kefe-ms-group-id={group.id}
             className={`kefe-ms-tab${active ? " is-active" : ""}`}
             onClick={() => onSelect(group.id)}
           >

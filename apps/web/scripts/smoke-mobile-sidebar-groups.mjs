@@ -147,10 +147,11 @@ const groupCount = (panel, sectionId, groupId) =>
   const status = el("div", { id: "exportStatus" });
   const extras = el("div", { id: "kefeExportExtras" });
   const panel = panelWithForm(format, resolution, button, status, extras);
-  expect(groupIds(panel, "export").join(",") === "video,extras,more",
-    `export must expose Video, Files and More: ${JSON.stringify(groupIds(panel, "export"))}`);
-  expect(groupCount(panel, "export", "video") === 3, "format, resolution and the export button belong to Video");
-  expect(groupCount(panel, "export", "more") === 1, "the status line falls back to More");
+  expect(groupIds(panel, "export").join(",") === "video,extras",
+    `export must expose Video and Files only while More is empty: ${JSON.stringify(groupIds(panel, "export"))}`);
+  expect(groupCount(panel, "export", "video") === 4, "format, resolution, export button and status belong to Video");
+  // The empty status line joins the More fallback, which is dropped when empty.
+  expect(!groupIds(panel, "export").includes("more"), "an empty fallback group must not become a dead tab");
 }
 
 /* ── Every section has a fallback group ─────────────────────── */

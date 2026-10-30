@@ -113,7 +113,7 @@ export const SECTIONS = [
         id: "video",
         label: "Video",
         icon: "download",
-        selectors: ["#exportFormat", "#exportResolution", "#exportButton"],
+        selectors: ["#exportFormat", "#exportResolution", "#exportButton", "#exportStatus"],
       },
       { id: "extras", label: "Files", icon: "file", selectors: ["#kefeExportExtras"] },
       { id: "more", label: "More", icon: "sliders", selectors: [] },
