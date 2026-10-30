@@ -485,8 +485,6 @@
   fontPanel.append(field('Font family', fontMenu.trigger), field('Text case', caseMenu.trigger), field('Text size', sizeScrub.el));
 
   /* Colour panel: presets + native picker + hex + outline/glow */
-  const swatch = h('span', 'kft-swatch');
-  fontBtn.appendChild(swatch);
   const PRESETS = ['#ffffff', '#ef4444', '#22c55e', '#06b6d4', '#a855f7', '#f59e0b', '#ec4899', '#14b8a6', '#111113', '#8b8b9a'];
   const presetsEl = h('div', 'kft-presets');
   const presetBtns = PRESETS.map(hex => {
@@ -503,7 +501,6 @@
   let colourValue = '#ffffff';
   function paintColour(hex) {
     colourValue = hex;
-    swatch.style.setProperty('--kt-swatch', hex);
     nativePicker.value = hex;
     if (document.activeElement !== hexInput) hexInput.value = hex.toUpperCase();
     presetBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.color.toLowerCase() === hex.toLowerCase())));
