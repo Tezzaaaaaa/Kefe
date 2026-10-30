@@ -10464,3 +10464,29 @@ body:has(.kefe-editor):has(.kefe-workspace-dock) { padding-bottom: 0; }
   .kefe-editor .kefe-visualiser-form .kefe-visualiser-field { grid-template-columns: minmax(128px, 44%) minmax(0, 1fr); }
   .kefe-editor .kefe-visualiser-form .kefe-visualiser-field > span > b { overflow: visible; text-overflow: clip; white-space: nowrap; }
 }
+
+/* ===== Editor-only header navigation =====
+   The header keeps a single Editor tab. The editor's own section panels hold the
+   Media / Lyric Sync / Lyric Effects / Background Effects / Visualisers / Export
+   controls, so the header no longer repeats them as tabs. Settings, day/night,
+   search and GitHub stay in the right-hand action cluster. */
+.kefe-sidebar .kefe-sidebar-group-editor { flex: 0 0 auto; }
+.kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] {
+  width: auto; min-width: 0; padding: 0 12px; font-size: 13px;
+}
+.kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] > .kefe-sidebar-link-label {
+  display: inline;
+}
+.kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab].is-current {
+  border-color: var(--line-soft, var(--line));
+}
+@media (max-width: 1180px) {
+  .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] { width: auto; padding: 0 11px; }
+  .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] > .kefe-sidebar-link-label { display: inline; }
+}
+@media (max-width: 640px) {
+  /* Keep the single Editor tab on phones even though the section groups are retired. */
+  .kefe-sidebar .kefe-sidebar-group-editor { display: flex; }
+  .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] { padding: 0 10px; }
+  .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] > .kefe-sidebar-link-label { display: inline; }
+}

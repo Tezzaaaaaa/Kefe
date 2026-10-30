@@ -38,8 +38,8 @@ for (const bridge of migratedBridges) {
   if (editor.includes(bridge)) failures.push(`Editor entry still loads ${bridge}`);
   if (existsSync(resolve(root, `beui-src/${bridge}.jsx`))) failures.push(`Retired bridge source remains: ${bridge}.jsx`);
 }
-if (!structure.includes("data-shell-panel") || !structure.includes("data-dock-panel") || !structure.includes("data-accent")) {
-  failures.push("Native sidebar, dock, or accent controls are missing from KEFE structure");
+if (!structure.includes("data-editor-tab") || !structure.includes("data-dock-panel") || !structure.includes("data-accent")) {
+  failures.push("Native Editor tab, dock, or accent controls are missing from KEFE structure");
 }
 if (!structure.includes("decoratePanelAction") || !structure.includes("button.type = 'button'") || !structure.includes("kefe-panel-action")) {
   failures.push("Native panel buttons are not decorated in place while preserving button semantics");
