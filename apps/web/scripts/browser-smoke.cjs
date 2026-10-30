@@ -1127,8 +1127,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator("[data-volumetric-preset]").count(), 6, "all six Volumetric Engine presets must be available");
     await page.locator("[data-volumetric-preset='carrie']").click();
     assert.equal(await page.locator("#kefeVolumetric-hue").inputValue(), "360", "preset selection must update the engine controls");
-    const volumetricCard = page.locator(".beui-vis-tabs-host .kv-card").filter({ has: volumetricTab });
-    const volumetricPower = volumetricCard.locator("[role='switch']");
+    const volumetricPower = page.locator(".beui-vis-tabs-host [role='switch'][aria-label='Volumetric Engine visualiser']");
     assert.equal(await volumetricPower.count(), 1, "Volumetric Engine must have one power toggle");
     await volumetricPower.click();
     await page.waitForFunction(() => window.kefeVolumetricActive === true && window.kefeVolumetricEnabled === true);
