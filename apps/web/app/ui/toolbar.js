@@ -750,8 +750,9 @@
       // Docked: follow the preview bar as the page scrolls, and tuck away once it passes under the sticky header.
       const header = document.querySelector('.kefe-sidebar');
       const top = header ? header.getBoundingClientRect().bottom : 0;
+      const fullscreen = document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
       pos = { x: clamp(pos.x, 8, Math.max(8, window.innerWidth - root.offsetWidth - 8)), y: pos.y };
-      root.style.visibility = (pos.y < top || pos.y > window.innerHeight - 8) ? 'hidden' : '';
+      root.style.visibility = (!fullscreen && (pos.y < top || pos.y > window.innerHeight - 8)) ? 'hidden' : '';
     }
     root.style.left = pos.x + 'px'; root.style.top = pos.y + 'px';
   }
