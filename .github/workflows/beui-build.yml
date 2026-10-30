@@ -294,10 +294,27 @@ jobs:
               if (!fs.existsSync(file)) return `${file} was not written.`;
               return fs.readFileSync(file, "utf8").trim().split(/\r?\n/).slice(-lines).join("\n");
             };
-            const captureSet = tail("/tmp/kefe-screenshots/capture-set.json", 200);
-            core.error(`Capture set report:\n${captureSet}`, {file: "apps/web/scripts/verify-capture-set.mjs", startLine: 1});
-            core.error(`Layout inventory comparison tail:\n${tail("/tmp/kefe-screenshots/layout-comparison.log")}`, {file: ".github/workflows/beui-build.yml", startLine: 232});
-            core.error(`Screen-state comparison tail:\n${tail("/tmp/kefe-screenshots/screen-state-comparison.log")}`, {file: ".github/workflows/beui-build.yml", startLine: 233});
+            // Comparison logs are dominated by very long single-line JSON dumps, so
+            // annotation tails truncated away the assertion itself. Surface the
+            // failure lines first, clipped, and keep a short tail for context.
+            const failureLines = (file, pattern = /AssertionError|INCOMPLETE|is missing|must |differs|changed more than/i) => {
+              if (!fs.existsSync(file)) return [`${file} was not written.`];
+              const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+              const matched = lines.filter(line => pattern.test(line)).slice(0, 4)
+                .map(line => (line.length > 900 ? `${line.slice(0, 900)}…` : line));
+              const short = lines.filter(line => line.trim() && line.length < 200).slice(-3);
+              return [...matched, ...short];
+            };
+            const captureSet = fs.existsSync("/tmp/kefe-screenshots/capture-set.json")
+              ? JSON.parse(fs.readFileSync("/tmp/kefe-screenshots/capture-set.json", "utf8")) : null;
+            const summary = captureSet
+              ? `missing=${JSON.stringify(captureSet.missing.map(item => [item.label, item.name]))} present=${captureSet.present.length}`
+              : "capture-set.json was not written.";
+            core.error(`Capture set: ${summary}`, {file: "apps/web/scripts/verify-capture-set.mjs", startLine: 1});
+            core.error(`Layout comparison failure:\n${failureLines("/tmp/kefe-screenshots/layout-comparison.log").join("\n")}`,
+              {file: "apps/web/scripts/compare-layout-inventories.cjs", startLine: 1});
+            core.error(`Screen-state comparison failure:\n${failureLines("/tmp/kefe-screenshots/screen-state-comparison.log").join("\n")}`,
+              {file: "apps/web/scripts/compare-screen-states.cjs", startLine: 1});
 
       - name: Compare editor and volume screenshots against main
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
