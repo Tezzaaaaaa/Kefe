@@ -1121,6 +1121,7 @@ async function captureEditorScreenState(page) {
       "power toggles must not change the selected visualiser tab");
     const volumetricTab = page.locator(".beui-vis-tabs-host [role='tab'][data-visualiser='volumetric']");
     assert.equal(await volumetricTab.count(), 1, "Volumetric Engine must register exactly one visualiser tab");
+    assert.equal(await volumetricTab.isVisible(), true, "Volumetric Engine must be visible alongside the other visualiser tabs");
     await volumetricTab.click();
     await page.waitForFunction(() => document.querySelector(".beui-vis-backing-controls [data-visualiser='volumetric']")?.getAttribute("aria-selected") === "true");
     assert.equal(await page.locator("#kefeVisVolumetricView").isVisible(), true, "Volumetric Engine controls must open with its tab");
