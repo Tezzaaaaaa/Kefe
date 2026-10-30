@@ -405,7 +405,7 @@
   }
   [['up', 0, -1, 'Nudge up'], ['left', -1, 0, 'Nudge left'], ['dot', 0, 0, 'Reset layer position'], ['right', 1, 0, 'Nudge right'], ['down', 0, 1, 'Nudge down']].forEach(([name, dx, dy, label]) => {
     const b = h('button', 'kft-padbtn kft-pad--' + name, { type: 'button', title: label + (dx || dy ? ' (Shift = 10px)' : '') });
-    b.innerHTML = icon(name === 'dot' ? 'dot' : 'arrow' + name);
+    b.innerHTML = icon(name === 'dot' ? 'dot' : 'arrow-' + name);
     b.setAttribute('aria-label', label);
     b.addEventListener('click', e => {
       if (!dx && !dy) { layerReset?.click(); requestAnimationFrame(syncLayer); return; }
@@ -440,8 +440,8 @@
   });
   /* Timing nudge: drives the Lyrics timing controls */
   const nudge = h('div', 'kft-nudge', { role: 'group', 'aria-label': 'Lyrics timing offset' });
-  const nudgeLess = h('button', '', { type: 'button', 'aria-label': 'Lyrics 0.1 seconds earlier' }); nudgeLess.textContent = '−';
-  const nudgeMore = h('button', '', { type: 'button', 'aria-label': 'Lyrics 0.1 seconds later' }); nudgeMore.textContent = '+';
+  const nudgeLess = h('button', '', { type: 'button', 'aria-label': 'Lyrics 0.1 seconds earlier' }); nudgeLess.innerHTML = icon('minus');
+  const nudgeMore = h('button', '', { type: 'button', 'aria-label': 'Lyrics 0.1 seconds later' }); nudgeMore.innerHTML = icon('plus');
   const nudgeVal = h('span', 'kft-nudge__val'); nudgeVal.textContent = '0.0s';
   nudge.append(nudgeLess, nudgeVal, nudgeMore);
   nudgeLess.addEventListener('click', () => { $('lyricsTimingEarlier')?.click(); requestAnimationFrame(syncTiming); emit('timing', -0.1); });
@@ -637,8 +637,8 @@
   lockPos.setAttribute('aria-pressed', 'false');
   const resetPos = chip('reset', 'Re-dock toolbar', () => redock());
   const revealBtn = h('button', 'kft-reveal', { type: 'button', 'aria-label': 'Show toolbar' });
-  revealBtn.textContent = 'Show toolbar'; revealBtn.hidden = true; document.body.appendChild(revealBtn);
-  const hideToolbar = chip(null, 'Hide toolbar', () => { closePopover(false); root.hidden = true; revealBtn.hidden = false; });
+  revealBtn.innerHTML = icon('eye') + '<span>Show toolbar</span>'; revealBtn.hidden = true; document.body.appendChild(revealBtn);
+  const hideToolbar = chip('eye-off', 'Hide toolbar', () => { closePopover(false); root.hidden = true; revealBtn.hidden = false; });
   revealBtn.addEventListener('click', () => { root.hidden = false; revealBtn.hidden = true; queueDock(true); actionsBtn.focus({ preventScroll: true }); });
   const actionsPanel = makePanel(actionsBtn, 'Actions', 244);
   actionsPanel.append(resetChip, lockChip, clearChip, h('div', 'kft-rule'), fullChip, lockPos, resetPos, h('div', 'kft-rule'), checkRow('Compact density', compactToggle), hideToolbar, hint);
