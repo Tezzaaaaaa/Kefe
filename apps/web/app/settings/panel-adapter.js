@@ -169,6 +169,13 @@
       const key = button.dataset.shellPanel || button.dataset.dockPanel || button.dataset.panel;
       const sectionId = NAV_TO_SECTION[key];
       if (!sectionId) return;
+      const editingRoot = editing;
+      editingRoot.setAttribute('data-active-panel', key);
+      editingRoot.setAttribute('data-selected-section', key);
+      const showVisualiserControls = sectionId === 'visualisers';
+      editingRoot.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(element => {
+        element.hidden = !showVisualiserControls;
+      });
       const section = root.querySelector('.section[data-section-id="' + sectionId + '"]');
       if (!section) return;
       // Side-by-side columns each keep their own open section; stacked layouts show one at a time.
