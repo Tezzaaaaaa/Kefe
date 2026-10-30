@@ -271,7 +271,6 @@
     el.Carousel.addEventListener('pointerdown',function(e){
       if(e.pointerType==='mouse'||e.target.closest('.kefe-car-nav'))return;
       swipeStart={x:e.clientX,y:e.clientY};
-      el.Carousel.setPointerCapture(e.pointerId);
     });
     el.Carousel.addEventListener('pointerup',function(e){
       if(!swipeStart)return;
