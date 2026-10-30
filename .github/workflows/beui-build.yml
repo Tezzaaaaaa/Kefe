@@ -109,7 +109,7 @@ jobs:
           current_source = current.read_text()
           old_start = '    const toolbarPanel = name => page.getByRole("dialog", { name, exact: true });'
           old_end = '    await toolbarPanel("Lyric effect").getByRole("button", { name: /^Lyric effect:/ }).click();'
-          new_start = '    const fontButton = quickToolbar.getByRole("button", { name: "Font, case and size", exact: true });'
+          new_start = '    const fontButton = quickToolbar.getByRole("button", { name: "Font and text colour", exact: true });'
           new_end = '    await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();'
           if current_source.count(new_start) != 1 or current_source.count(new_end) != 1:
               raise SystemExit("Current smoke toolbar block is not uniquely selectable")
@@ -145,9 +145,10 @@ jobs:
           # the current native editor exposes the control. Do not apply that current-only
           # accessibility assertion to the main baseline smoke run.
           old_aspect_a11y = '    assert.equal(await aspectSelect.getAttribute("aria-hidden"), null, "the preview aspect backing control must remain exposed to assistive technology");'
-          if baseline_source.count(old_aspect_a11y) != 1:
-              raise SystemExit("Baseline aspect accessibility assertion is not uniquely selectable")
-          baseline_source = baseline_source.replace(old_aspect_a11y, '    // The baseline retains its legacy aspect-control accessibility behavior.')
+          if baseline_source.count(old_aspect_a11y) > 1:
+              raise SystemExit("Baseline aspect accessibility assertion is ambiguous")
+          if baseline_source.count(old_aspect_a11y) == 1:
+              baseline_source = baseline_source.replace(old_aspect_a11y, '    // The baseline retains its legacy aspect-control accessibility behavior.')
           # Main's old screenshot block captures after the smoke search has populated its live
           # carousel. Reuse the current isolated-context capture so both sides start clean,
           # without changing the baseline UI or its smoke assertions.
