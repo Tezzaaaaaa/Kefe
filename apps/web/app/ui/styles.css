@@ -10449,3 +10449,20 @@ body { overflow: visible; overflow-x: clip; }
 .kefe-settings-panel .section[data-expanded="false"] > .section-content { padding-block: 0; border-top-width: 0; }
 /* The floating dock is fixed over the page below desktop width: reserve its height so the last controls stay reachable. */
 @media (max-width: 1279px) { body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
+
+
+/* Final responsive ownership: mobile section names stay readable despite the
+   compact icon-only tablet rule, and the duplicate floating dock yields to the
+   single header navigation at every viewport. */
+@media (max-width: 640px) {
+  .kefe-editor .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link:not(.is-current) {
+    width: auto;
+    min-width: max-content;
+    padding: 0 10px;
+  }
+  .kefe-editor .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link:not(.is-current) > .kefe-sidebar-link-label {
+    display: inline;
+  }
+}
+body:has(.kefe-editor) > .kefe-workspace-dock { display: none; }
+body:has(.kefe-editor):has(.kefe-workspace-dock) { padding-bottom: 0; }
