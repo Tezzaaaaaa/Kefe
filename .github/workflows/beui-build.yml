@@ -109,14 +109,18 @@ jobs:
           old_end = '    await toolbarPanel("Lyric effect").getByRole("button", { name: /^Lyric effect:/ }).click();'
           new_start = '    const fontButton = quickToolbar.getByRole("button", { name: "Font, case and size", exact: true });'
           new_end = '    await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();'
-          if baseline_source.count(old_start) != 1 or baseline_source.count(old_end) != 1:
-              raise SystemExit("Main smoke toolbar block no longer matches the known semantic panel layout")
           if current_source.count(new_start) != 1 or current_source.count(new_end) != 1:
               raise SystemExit("Current smoke toolbar block is not uniquely selectable")
-          current_block = current_source[current_source.index(new_start):current_source.index(new_end) + len(new_end)]
-          start = baseline_source.index(old_start)
-          end = baseline_source.index(old_end) + len(old_end)
-          baseline_source = baseline_source[:start] + current_block + baseline_source[end:]
+          if baseline_source.count(new_start) == 1 and baseline_source.count(new_end) == 1:
+              # Main already uses the current semantic toolbar locators; leave its block intact.
+              pass
+          elif baseline_source.count(old_start) == 1 and baseline_source.count(old_end) == 1:
+              current_block = current_source[current_source.index(new_start):current_source.index(new_end) + len(new_end)]
+              start = baseline_source.index(old_start)
+              end = baseline_source.index(old_end) + len(old_end)
+              baseline_source = baseline_source[:start] + current_block + baseline_source[end:]
+          else:
+              raise SystemExit("Baseline toolbar block matches neither the legacy nor current semantic layout")
           aspect_start = '    const aspectSelect = page.locator("#kefeAspect");'
           aspect_end = '    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,'
           if current_source.count(aspect_start) != 1 or current_source.count(aspect_end) != 1:
@@ -132,9 +136,10 @@ jobs:
               baseline_source = baseline_source[:end] + current_aspect + baseline_source[end:]
           old_upload_breakpoint = 'if (mediaUploadGeometry.rowWidth <= 500) {'
           new_upload_breakpoint = 'if (await page.evaluate(() => document.documentElement.clientWidth) <= 520) {'
-          if baseline_source.count(old_upload_breakpoint) != 1:
-              raise SystemExit("Baseline upload responsive check no longer has its expected panel-width condition")
-          baseline_source = baseline_source.replace(old_upload_breakpoint, new_upload_breakpoint)
+          if baseline_source.count(old_upload_breakpoint) == 1:
+              baseline_source = baseline_source.replace(old_upload_breakpoint, new_upload_breakpoint)
+          elif baseline_source.count(new_upload_breakpoint) != 1:
+              raise SystemExit("Baseline upload responsive check matches neither the legacy nor current viewport-width condition")
           # Main intentionally keeps its legacy aspect backing select hidden from AT;
           # the current native editor exposes the control. Do not apply that current-only
           # accessibility assertion to the main baseline smoke run.
