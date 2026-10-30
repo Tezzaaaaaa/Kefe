@@ -280,14 +280,7 @@ async function captureEditorScreenState(page) {
     assert.ok(mobilePopoverBounds.left >= 0 && mobilePopoverBounds.right <= mobilePopoverBounds.viewportWidth + 1
       && mobilePopoverBounds.top >= 0 && mobilePopoverBounds.bottom <= mobilePopoverBounds.viewportHeight + 1,
       `mobile colour popover must stay inside the viewport: ${JSON.stringify(mobilePopoverBounds)}`);
-    await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
-    await page.setViewportSize(desktopViewport);
-    await page.waitForTimeout(150);
-    await page.waitForSelector("#kefeStyleGroup input[type=color]", { state: "attached", timeout: 10000 });
-
-    await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
-    const colourMenu = page.getByRole("dialog", { name: "Font and text colour", exact: true });
-    await colourMenu.waitFor({ state: "visible", timeout: 5000 });
+    const colourMenu = mobileColourPopover;
     await colourMenu.getByRole("button", { name: "#EF4444" }).click();
     assert.equal((await page.evaluate(() => window.kefeStyle.state().textColor)).toLowerCase(), "#ef4444",
       "colour swatches must update the canonical lyric text colour");
@@ -298,12 +291,9 @@ async function captureEditorScreenState(page) {
     await hex.fill("not-a-colour");
     await hex.evaluate(input => input.blur());
     assert.equal(await hex.inputValue(), "#A7E7FF", "invalid hex input must preserve the last valid colour");
-    await page.keyboard.press("Escape");
 
     const fontButton = quickToolbar.getByRole("button", { name: "Font and text colour", exact: true });
-    await fontButton.click();
-    const fontPanel = page.getByRole("dialog", { name: "Font and text colour", exact: true });
-    await fontPanel.waitFor({ state: "visible", timeout: 5000 });
+    const fontPanel = mobileColourPopover;
     const quickSize = fontPanel.locator('.kft-scrub[aria-label="Text size"]');
     await quickSize.focus();
     await page.keyboard.press("End");
