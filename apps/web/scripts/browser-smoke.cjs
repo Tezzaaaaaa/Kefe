@@ -302,6 +302,8 @@ async function captureEditorScreenState(page) {
     await page.keyboard.press("Escape");
     assert.equal(await fontButton.evaluate(node => document.activeElement === node), true,
       "Escape must close the combined text panel and restore focus to its trigger");
+    await page.setViewportSize(desktopViewport);
+    await page.waitForTimeout(150);
     await quickToolbar.getByRole("button", { name: "Visualiser", exact: true }).click();
     const visualiserPanel = page.getByRole("dialog", { name: "Visualiser", exact: true });
     await visualiserPanel.waitFor({ state: "visible", timeout: 5000 });
