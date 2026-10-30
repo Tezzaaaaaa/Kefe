@@ -22,7 +22,7 @@
     --ksp-radius: 10px;
     --ksp-gap: 8px;
     --ksp-pad-x: 12px;
-    --ksp-pad-y: 9px;
+    --ksp-pad-y: 14px;
   }.kefe-settings-panel *:not(.kefe-slot *){ box-sizing: border-box; }.kefe-settings-panel{
     width: 100%;
     display: flex;
