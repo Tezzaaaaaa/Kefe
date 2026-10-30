@@ -580,8 +580,8 @@ async function captureEditorScreenState(page) {
     );
     assert.equal(embeddedPanelStyle.length, 6, "all six editor panels should remain embedded once in their native settings slots");
     assert.ok(embeddedPanelStyle.every(style => style.position === "relative" && style.display === "flex" && style.flexDirection === "column" && style.gap === "0px"
-      && style.padding === "4px 0px" && style.borderWidth === "1px" && style.borderColor === "rgba(0, 0, 0, 0)" && style.borderRadius === "8px"),
-      `embedded native panels must retain the former Card's vertical flex layout, zero gap, 4px vertical inset, transparent border and 8px radius: ${JSON.stringify(embeddedPanelStyle)}`);
+      && style.padding === "10px 0px" && style.borderWidth === "1px" && style.borderColor === "rgba(0, 0, 0, 0)" && style.borderRadius === "8px"),
+      `embedded native panels must retain the former Card's vertical flex layout, zero gap, 10px vertical inset, transparent border and 8px radius: ${JSON.stringify(embeddedPanelStyle)}`);
     assert.equal(await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count(), 0,
       "editor panels must not create parallel React Card wrappers");
 
