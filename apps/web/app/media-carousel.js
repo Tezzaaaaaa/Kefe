@@ -63,10 +63,10 @@
       '</div>'+
       '<div class="kefe-find-status" id="kefeFindStatus" aria-live="polite">Enter a track or album name.</div>'+
       '<div class="kefe-carousel" id="kefeCarousel" tabindex="0" aria-label="Search results carousel">'+
-        '<div class="kefe-car-empty" id="kefeCarEmpty"><div class="kefe-car-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></svg></div><span>Search results will appear here</span></div>'+
+        '<div class="kefe-car-empty" id="kefeCarEmpty"><div class="kefe-car-empty-icon"><span data-kefe-icon="music" aria-hidden="true"></span></div><span>Search results will appear here</span></div>'+
         '<div class="kefe-car-stack" id="kefeCarStack"></div>'+
-        '<button type="button" class="kefe-car-nav prev" id="kefeCarPrev" aria-label="Previous result">‹</button>'+
-        '<button type="button" class="kefe-car-nav next" id="kefeCarNext" aria-label="Next result">›</button>'+
+        '<button type="button" class="kefe-car-nav prev" id="kefeCarPrev" aria-label="Previous result"><span data-kefe-icon="chevron-left" aria-hidden="true"></span></button>'+
+        '<button type="button" class="kefe-car-nav next" id="kefeCarNext" aria-label="Next result"><span data-kefe-icon="chevron-right" aria-hidden="true"></span></button>'+
         '<div class="kefe-car-count" id="kefeCarCount"></div>'+
       '</div>'+
       '<div class="kefe-car-info" id="kefeCarInfo" hidden>'+
@@ -176,7 +176,7 @@
     for(var i=start;i<end;i++){
       var it=list[i],k=kindOf(it),b=mk('button','kefe-car-card');b.type='button';b.dataset.i=i;
       b.setAttribute('aria-label',titleOf(it)+' by '+it.artistName);
-      var artwork=it._kefeLocalUpload?'<span class="kefe-car-local-icon" aria-hidden="true">♫</span>':'<img src="'+esc(art(it.artworkUrl100,300))+'" alt="" loading="lazy">';
+      var artwork=it._kefeLocalUpload?(window.kefeIcon?window.kefeIcon('file-audio','kefe-car-local-icon'):'<span data-kefe-icon="file-audio" data-icon-class="kefe-car-local-icon" aria-hidden="true"></span>'):'<img src="'+esc(art(it.artworkUrl100,300))+'" alt="" loading="lazy">';
       var tag=k==='local'?'Uploaded':k;
       b.innerHTML='<span class="kefe-car-art">'+artwork+'<span class="kefe-car-tag '+k+'">'+tag+'</span></span>'+
         '<span class="kefe-car-cap"><b>'+esc(titleOf(it))+'</b><i>'+esc(it.artistName||(it._kefeLocalUpload?'Uploaded audio or video':''))+'</i></span>';
