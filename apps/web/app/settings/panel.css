@@ -482,9 +482,6 @@
 
 
 @container kefe-settings (max-width: 500px) {
-  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view] .kefe-form {
-    gap: 10px;
-  }
   .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-details-grid {
     grid-template-columns: minmax(0, 1fr);
   }
