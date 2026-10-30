@@ -148,7 +148,7 @@ float depth=smoothstep(-1.5,1.5,p.y);col*=mix(1.-FOG*.3,1.,depth);col+=(hash(gl_
     Object.keys(PRESETS).forEach(id => {
       const button = document.createElement('button'); button.type = 'button'; button.className = 'kefe-btn';
       button.textContent = id[0].toUpperCase() + id.slice(1); button.dataset.volumetricPreset = id;
-      button.setAttribute('aria-pressed', String(id === 'chromatica'));
+      button.setAttribute('aria-pressed', String(id === 'chromatica')); if (id === 'chromatica') button.classList.add('primary');
       button.addEventListener('click', () => applyPreset(id)); presetList.appendChild(button);
     });
     presetGroup.appendChild(presetList); view.appendChild(presetGroup);
@@ -177,7 +177,7 @@ float depth=smoothstep(-1.5,1.5,p.y);col*=mix(1.-FOG*.3,1.,depth);col+=(hash(gl_
       active = false; view.hidden = true; tab.classList.remove('primary'); tab.setAttribute('aria-selected','false');
       canvas.style.visibility = 'hidden'; window.kefeVolumetricActive = false;
     }
-    tabs.querySelectorAll('[role="tab"]').forEach(other => { if (other !== tab) other.addEventListener('click',hide); });
+    tabs.addEventListener('click',event => { const other=event.target.closest('[role="tab"]'); if(other && other!==tab) hide(); });
     tab.addEventListener('click',() => {
       active = true; view.hidden = false;
       tabs.querySelectorAll('[role="tab"]').forEach(other => {
@@ -202,7 +202,7 @@ float depth=smoothstep(-1.5,1.5,p.y);col*=mix(1.-FOG*.3,1.,depth);col+=(hash(gl_
     if (!stage || !document.querySelector('.kefe-vis-tabs')) return;
     canvas = document.createElement('canvas'); canvas.id = 'kefeVolumetricCanvas';
     canvas.setAttribute('aria-label','Volumetric Engine preview');
-    canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;z-index:4;visibility:hidden;';
+    canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;z-index:2;visibility:hidden;';
     stage.insertBefore(canvas,$('kefeCanvas') || null);
     try {
       initGL(); buildUI();
