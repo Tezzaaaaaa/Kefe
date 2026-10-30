@@ -280,7 +280,7 @@ async function captureEditorScreenState(page) {
     assert.ok(mobilePopoverBounds.left >= 0 && mobilePopoverBounds.right <= mobilePopoverBounds.viewportWidth + 1
       && mobilePopoverBounds.top >= 0 && mobilePopoverBounds.bottom <= mobilePopoverBounds.viewportHeight + 1,
       `mobile colour popover must stay inside the viewport: ${JSON.stringify(mobilePopoverBounds)}`);
-    await page.keyboard.press("Escape");
+    await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
     await page.setViewportSize(desktopViewport);
     await page.waitForTimeout(150);
     await page.waitForSelector("#kefeStyleGroup input[type=color]", { state: "attached", timeout: 10000 });
