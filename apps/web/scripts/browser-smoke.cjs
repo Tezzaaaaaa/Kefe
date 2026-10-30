@@ -1119,6 +1119,23 @@ async function captureEditorScreenState(page) {
     }
     assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 1,
       "power toggles must not change the selected visualiser tab");
+    const volumetricTab = page.locator(".beui-vis-tabs-host [role='tab'][data-visualiser='volumetric']");
+    assert.equal(await volumetricTab.count(), 1, "Volumetric Engine must register exactly one visualiser tab");
+    await volumetricTab.click();
+    await page.waitForFunction(() => document.querySelector(".beui-vis-backing-controls [data-visualiser='volumetric']")?.getAttribute("aria-selected") === "true");
+    assert.equal(await page.locator("#kefeVisVolumetricView").isVisible(), true, "Volumetric Engine controls must open with its tab");
+    assert.equal(await page.locator("[data-volumetric-preset]").count(), 6, "all six Volumetric Engine presets must be available");
+    await page.locator("[data-volumetric-preset='carrie']").click();
+    assert.equal(await page.locator("#kefeVolumetric-hue").inputValue(), "360", "preset selection must update the engine controls");
+    const volumetricPower = page.locator(".beui-vis-tabs-host [role='switch'][aria-label='Volumetric Engine visualiser']");
+    assert.equal(await volumetricPower.count(), 1, "Volumetric Engine must have one power toggle");
+    await volumetricPower.click();
+    await page.waitForFunction(() => window.kefeVolumetricActive === true && window.kefeVolumetricEnabled === true);
+    assert.equal(await page.locator("#kefeVolumetricCanvas").count(), 1, "Volumetric Engine must own one preview canvas");
+    assert.equal(await page.locator("#kefeVolumetricCanvas").evaluate(canvas => canvas.width > 0 && canvas.height > 0), true,
+      "Volumetric Engine canvas must be sized to the preview stage");
+    assert.equal(await page.locator("#kefeVolumetricCanvas").evaluate(canvas => getComputedStyle(canvas).visibility), "visible",
+      "Volumetric Engine power must reveal its preview canvas");
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
     const lyricsNavButton = page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Lyric Sync" });
