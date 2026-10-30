@@ -272,7 +272,7 @@
     transition: grid-template-rows 0.28s ease, padding 0.28s ease;
   }.kefe-settings-panel .section-content > .content-inner:not(.kefe-slot *){ overflow: hidden; min-height: 0; }.kefe-settings-panel .section[data-expanded="true"] .section-content:not(.kefe-slot *){
     grid-template-rows: 1fr;
-    padding: 10px var(--ksp-pad-x);
+    padding: 16px var(--ksp-pad-x);
   }.kefe-settings-panel .setting-row:not(.kefe-slot *){
     display: flex;
     align-items: center;
