@@ -55,7 +55,7 @@ float depth=smoothstep(-1.5,1.5,p.y);col*=mix(1.-FOG*.3,1.,depth);col+=(hash(gl_
     return shader;
   }
   function initGL() {
-    gl = canvas.getContext('webgl', { antialias: true, alpha: false, powerPreference: 'high-performance' });
+    gl = canvas.getContext('webgl', { antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
     if (!gl) throw Error('WebGL is unavailable');
     program = gl.createProgram();
     gl.attachShader(program, compile(gl.VERTEX_SHADER, VS));
@@ -73,9 +73,9 @@ float depth=smoothstep(-1.5,1.5,p.y);col*=mix(1.-FOG*.3,1.,depth);col+=(hash(gl_
   }
   function resize() {
     if (!stage || !canvas || !gl) return;
-    const rect = stage.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
-    const w = Math.max(1, Math.min(3840, Math.round(rect.width * dpr)));
-    const h = Math.max(1, Math.min(2160, Math.round(rect.height * dpr)));
+    const rect = stage.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 1.5);
+    let w = Math.max(1, Math.round(rect.width * dpr)), h = Math.max(1, Math.round(rect.height * dpr));
+    const scale = Math.min(1, 2560 / w, 2160 / h); w = Math.max(1, Math.round(w * scale)); h = Math.max(1, Math.round(h * scale));
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0,0,w,h); }
   }
   function render(now) {
