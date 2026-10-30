@@ -379,3 +379,16 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
 .kft-dock-slot { flex: 0 0 auto; }
 .kft-dock-slot > * { display: none !important; }
 html .kefe-editor .kefe-preview-toolbar .kft-dock-slot { padding: 0; border: 0; background: transparent; box-shadow: none; min-width: 0; }
+
+
+@media (max-width: 520px) {
+  /* Keep preview actions on one line; scroll the strip instead of wrapping. */
+  .kefe-floating-toolbar .kft-main {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+}
