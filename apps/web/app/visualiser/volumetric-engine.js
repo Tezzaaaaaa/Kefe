@@ -109,7 +109,7 @@ float depth=smoothstep(-1.5,1.5,p.y);col*=mix(1.-FOG*.3,1.,depth);col+=(hash(gl_
     const input = $('kefeVolumetric-' + key), output = $('kefeVolumetric-' + key + '-value');
     if (input) input.value = state[key];
     if (output) output.textContent = format(key, state[key]);
-    if (key !== 'hue' && key !== 'speed' && key !== 'mode') return;
+    document.querySelectorAll('[data-volumetric-preset]').forEach(button => { button.classList.remove('primary'); button.setAttribute('aria-pressed','false'); });
   }
   function applyPreset(id) {
     if (!PRESETS[id]) return;
