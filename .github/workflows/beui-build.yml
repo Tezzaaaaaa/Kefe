@@ -109,7 +109,7 @@ jobs:
           current_source = current.read_text()
           old_start = '    const toolbarPanel = name => page.getByRole("dialog", { name, exact: true });'
           old_end = '    await toolbarPanel("Lyric effect").getByRole("button", { name: /^Lyric effect:/ }).click();'
-          baseline_font_start = '    const fontButton = quickToolbar.getByRole("button", { name: "Font, case and size", exact: true });'
+          baseline_font_start = '    await quickToolbar.getByRole("button", { name: "Lyric text colour", exact: true }).click();'
           new_start = '    const fontButton = quickToolbar.getByRole("button", { name: "Font and text colour", exact: true });'
           new_end = '    await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();'
           if current_source.count(new_start) != 1 or current_source.count(new_end) != 1:
