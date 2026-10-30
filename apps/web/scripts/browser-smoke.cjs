@@ -243,6 +243,8 @@ async function captureEditorScreenState(page) {
       }));
     });
     assert.deepEqual(toolbarIconAudit, [], "every icon-bearing toolbar action must render its Lucide SVG");
+    assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").isVisible(), false, "the duplicate preview-bar Canvas ratio must be hidden");
+    assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
     const initialToolbarPlacement = await page.evaluate(() => {
       const stage = document.querySelector(".kefe-stage").getBoundingClientRect();
       const toolbar = document.querySelector("#kefeFloatingToolbar").getBoundingClientRect();
@@ -268,8 +270,8 @@ async function captureEditorScreenState(page) {
     });
     assert.ok(mobileToolbarBounds.left >= 0 && mobileToolbarBounds.right <= mobileToolbarBounds.viewportWidth + 1,
       `mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarBounds)}`);
-    await quickToolbar.getByRole("button", { name: "Lyric text colour", exact: true }).click();
-    const mobileColourPopover = page.getByRole("dialog", { name: "Lyric text colour", exact: true });
+    await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
+    const mobileColourPopover = page.getByRole("dialog", { name: "Font and text colour", exact: true });
     await mobileColourPopover.waitFor({ state: "visible", timeout: 5000 });
     const mobilePopoverBounds = await mobileColourPopover.evaluate(node => {
       const r = node.getBoundingClientRect();
@@ -283,8 +285,8 @@ async function captureEditorScreenState(page) {
     await page.waitForTimeout(150);
     await page.waitForSelector("#kefeStyleGroup input[type=color]", { state: "attached", timeout: 10000 });
 
-    await quickToolbar.getByRole("button", { name: "Lyric text colour", exact: true }).click();
-    const colourMenu = page.getByRole("dialog", { name: "Lyric text colour", exact: true });
+    await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
+    const colourMenu = page.getByRole("dialog", { name: "Font and text colour", exact: true });
     await colourMenu.waitFor({ state: "visible", timeout: 5000 });
     await colourMenu.getByRole("button", { name: "#EF4444" }).click();
     assert.equal((await page.evaluate(() => window.kefeStyle.state().textColor)).toLowerCase(), "#ef4444",
@@ -298,9 +300,9 @@ async function captureEditorScreenState(page) {
     assert.equal(await hex.inputValue(), "#A7E7FF", "invalid hex input must preserve the last valid colour");
     await page.keyboard.press("Escape");
 
-    const fontButton = quickToolbar.getByRole("button", { name: "Font, case and size", exact: true });
+    const fontButton = quickToolbar.getByRole("button", { name: "Font and text colour", exact: true });
     await fontButton.click();
-    const fontPanel = page.getByRole("dialog", { name: "Font", exact: true });
+    const fontPanel = page.getByRole("dialog", { name: "Font and text colour", exact: true });
     await fontPanel.waitFor({ state: "visible", timeout: 5000 });
     const quickSize = fontPanel.locator('.kft-scrub[aria-label="Text size"]');
     await quickSize.focus();
@@ -309,7 +311,13 @@ async function captureEditorScreenState(page) {
       "toolbar text-size control must update the canonical lyric-style setting");
     await page.keyboard.press("Escape");
     assert.equal(await fontButton.evaluate(node => document.activeElement === node), true,
-      "Escape must close the Font panel and restore focus to its trigger");
+      "Escape must close the combined text panel and restore focus to its trigger");
+    await quickToolbar.getByRole("button", { name: "Visualiser", exact: true }).click();
+    const visualiserPanel = page.getByRole("dialog", { name: "Visualiser", exact: true });
+    await visualiserPanel.waitFor({ state: "visible", timeout: 5000 });
+    assert.equal(await visualiserPanel.getByRole("button", { name: /Choose visualiser/ }).count(), 1,
+      "visualiser selection must have its own toolbar panel");
+    await page.keyboard.press("Escape");
     assert.equal(await page.locator("[data-layout-target]").count(), 1, "the editor must expose one canonical layer selector");
     assert.equal(await page.locator("[data-layout-scale]").count(), 1, "the editor must expose one canonical layer scale control");
 
