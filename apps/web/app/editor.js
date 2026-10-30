@@ -929,10 +929,6 @@
     const editingRoot=document.querySelector('.kefe-editing');
     editingRoot?.setAttribute('data-active-panel',panel);
     editingRoot?.setAttribute('data-selected-section',panel);
-    const showVisualiserNavigation = panel === 'visualiser';
-    document.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(element => {
-      element.hidden = !showVisualiserNavigation;
-    });
     document.querySelectorAll('.kefe-section').forEach(b=>b.classList.toggle('active',b.dataset.panel===panel));
     document.querySelectorAll('.kefe-panel').forEach(p=>p.classList.toggle('active',p.dataset.panelView===panel));
     document.querySelectorAll('[data-shell-panel]').forEach(button=>{
