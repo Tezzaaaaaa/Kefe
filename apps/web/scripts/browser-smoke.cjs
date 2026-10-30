@@ -661,6 +661,42 @@ async function captureEditorScreenState(page) {
       return section?.dataset.expanded === "true" &&
         section.querySelector(".section-content").getBoundingClientRect().height > 1;
     }, null, { timeout: 5000 });
+    const panelFillAudit = await page.evaluate(() => {
+      return ["input", "output"].map(groupName => {
+        const group = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="' + groupName + '"]');
+        if (!group) return { groupName, found: false };
+        const groupHeight = group.getBoundingClientRect().height;
+        const sections = [...group.querySelectorAll(":scope > .section[data-section-id]")];
+        return {
+          groupName,
+          found: sections.length === 3,
+          sectionHeights: sections.map(section => section.getBoundingClientRect().height),
+          minimumSectionHeight: groupHeight / 4,
+          expandedContentHeight: sections.find(section => section.dataset.expanded === "true")
+            ?.querySelector(".section-content").getBoundingClientRect().height || 0,
+          expandedContentWithinCard: (() => {
+            const section = sections.find(item => item.dataset.expanded === "true");
+            const content = section?.querySelector(".section-content > .content-inner");
+            return !!content && content.getBoundingClientRect().bottom <= section.getBoundingClientRect().bottom + 1
+              && content.getBoundingClientRect().height > 80;
+          })()
+        };
+      });
+    });
+    assert.ok(panelFillAudit.every(item => item.found
+      && item.sectionHeights.every(height => height >= item.minimumSectionHeight)
+      && item.expandedContentHeight > 80 && item.expandedContentWithinCard),
+      `desktop section cards must distribute the available panel height: ${JSON.stringify(panelFillAudit)}`);
+
+    const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
+    await visualiserSection.locator(".expand-button").click();
+    await page.waitForFunction(() => {
+      const section = document.querySelector('#kefe-settings-panel .section[data-section-id="visualisers"]');
+      const tabs = document.querySelector(".kefe-vis-tabs");
+      return section?.dataset.expanded === "true" && tabs && !tabs.hidden;
+    }, null, { timeout: 5000 });
+    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), true,
+      "opening Visualisers from its side-panel section must reveal the visualiser controls");
 
     const sectionHeaderAudit = await page.evaluate(() => {
       const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];

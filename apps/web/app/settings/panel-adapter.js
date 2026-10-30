@@ -157,6 +157,26 @@
       if (panelKey) applyLegacyValues();
     });
 
+    root.addEventListener('click', event => {
+      const trigger = event.target instanceof Element
+        ? event.target.closest('.section[data-section-id] .expand-button')
+        : null;
+      const section = trigger?.closest('.section[data-section-id]');
+      if (!section) return;
+      const sectionId = section.dataset.sectionId;
+      const navKey = Object.keys(NAV_TO_SECTION).find(key => NAV_TO_SECTION[key] === sectionId);
+      if (!navKey) return;
+      queueMicrotask(() => {
+        const expanded = section.dataset.expanded === 'true';
+        const showVisualiserControls = expanded && sectionId === 'visualisers';
+        editing.setAttribute('data-active-panel', navKey);
+        editing.setAttribute('data-selected-section', navKey);
+        editing.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(element => {
+          element.hidden = !showVisualiserControls;
+        });
+      });
+    });
+
     document.addEventListener('click', event => {
       const target = event.target;
       if (!(target instanceof Element)) return;
@@ -169,6 +189,13 @@
       const key = button.dataset.shellPanel || button.dataset.dockPanel || button.dataset.panel;
       const sectionId = NAV_TO_SECTION[key];
       if (!sectionId) return;
+      const editingRoot = editing;
+      editingRoot.setAttribute('data-active-panel', key);
+      editingRoot.setAttribute('data-selected-section', key);
+      const showVisualiserControls = sectionId === 'visualisers';
+      editingRoot.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(element => {
+        element.hidden = !showVisualiserControls;
+      });
       const section = root.querySelector('.section[data-section-id="' + sectionId + '"]');
       if (!section) return;
       // Side-by-side columns each keep their own open section; stacked layouts show one at a time.
