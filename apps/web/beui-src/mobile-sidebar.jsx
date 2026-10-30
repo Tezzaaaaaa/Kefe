@@ -80,6 +80,17 @@ const ICONS = {
 
 const iconFor = (key) => ICONS[key] || SlidersHorizontal;
 
+/** Restore the last edited section; fall back to Media for stored/unset ids. */
+function readStoredSection() {
+  try {
+    const saved = localStorage.getItem(SECTION_KEY);
+    if (saved && SECTION_BY_ID.has(saved)) return saved;
+  } catch (_) {
+    /* storage unavailable */
+  }
+  return "media";
+}
+
 function clearGroupMarkers(panel) {
   if (!panel) return;
   panel.querySelectorAll("[data-kefe-ms-group]").forEach((element) => {
