@@ -29,7 +29,10 @@ const carouselGeometryMismatches = [];
    records that sidebar with the Media panel open. Desktop stays byte-for-byte
    comparable with the baseline; mobile is validated against its own contract
    instead of against the retired stacked layout. */
-const MOBILE_SIDEBAR_SELECTORS = [".kefe-ms-dock", ".kefe-ms-drawer", ".kefe-ms-rail", ".kefe-ms-surface", ".kefe-ms-host"];
+// Required while the mobile capture is taken with the drawer open.
+const MOBILE_SIDEBAR_SELECTORS = [".kefe-ms-drawer", ".kefe-ms-rail", ".kefe-ms-surface", ".kefe-ms-host"];
+// Present in the DOM but deliberately hidden while the drawer is open.
+const MOBILE_SIDEBAR_OPTIONAL_SELECTORS = [".kefe-ms-dock"];
 
 for (const size of ["desktop", "mobile"]) {
   const mobileSidebar = size === "mobile";
@@ -102,7 +105,11 @@ for (const size of ["desktop", "mobile"]) {
       const parkedPanel = after.keyBounds.find(item => item.classes.includes("kefe-panel") && item.classes.includes("kefe-ms-live-panel"));
       assert.ok(parkedPanel && parkedPanel.width > 0,
         `mobile/day capture must show the live Media panel hosted by the sidebar: ${JSON.stringify(after.keyBounds.map(item => item.classes))}`);
-      console.log(`${size}/day editor sidebar surfaces verified: ${JSON.stringify(sidebarBounds.map(item => [item.selector, [item.node.x, item.node.y, item.node.width, item.node.height]]))}`);
+      const optionalSurfaces = MOBILE_SIDEBAR_OPTIONAL_SELECTORS.map(selector => ({
+        selector,
+        visible: after.keyBounds.some(item => (` ${item.classes} `).includes(` ${selector.slice(1)} `) && item.width > 0 && item.height > 0),
+      }));
+      console.log(`${size}/day editor sidebar surfaces verified: ${JSON.stringify(sidebarBounds.map(item => [item.selector, [item.node.x, item.node.y, item.node.width, item.node.height]]))}; hidden-while-open=${JSON.stringify(optionalSurfaces.filter(item => !item.visible).map(item => item.selector))}`);
     }
     if (label === "current" && !mobileSidebar) {
       const baseline = before.keyBounds.find(node => node.id === "kefeCarStack")?.carouselChildren?.[0];
