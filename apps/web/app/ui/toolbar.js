@@ -324,7 +324,11 @@
   root.addEventListener('click', e => e.stopPropagation());
   const bar = h('div', 'kft-bar');
   const main = h('div', 'kft-main');
-  const divider = () => h('span', 'kft-divider');
+  const cluster = (label, ...children) => {
+    const el = h('div', 'kft-cluster', { role: 'group', 'aria-label': label });
+    el.append(...children);
+    return el;
+  };
 
   const grip = h('button', 'kft-grip', { type: 'button' });
   grip.innerHTML = icon('grip');
@@ -643,7 +647,14 @@
   const actionsPanel = makePanel(actionsBtn, 'Actions', 244);
   actionsPanel.append(resetChip, lockChip, clearChip, h('div', 'kft-rule'), fullChip, lockPos, resetPos, h('div', 'kft-rule'), checkRow('Compact density', compactToggle), hideToolbar, hint);
 
-  main.append(grip, moveBtn, undoBtn, redoBtn, divider(), effectBtn, fontBtn, lyricsBtn, divider(), ratioBtn, visualiserBtn, actionsBtn);
+  main.append(
+    cluster('Layer', grip, moveBtn),
+    cluster('History', undoBtn, redoBtn),
+    cluster('Lyrics', effectBtn, fontBtn, lyricsBtn),
+    cluster('Canvas', ratioBtn),
+    cluster('Visualiser', visualiserBtn),
+    cluster('Actions', actionsBtn)
+  );
   bar.append(main);
   root.appendChild(bar);
   document.body.appendChild(root);
