@@ -252,7 +252,7 @@ async function captureEditorScreenState(page) {
       }))
     );
     assert.deepEqual(toolbarGroups, [
-      { label: "Layer", controls: ["Drag to reposition · double-click to re-dock", "Move and scale layer"] },
+      { label: "Layer", controls: ["Move toolbar. Drag, or use arrow keys to nudge. Double-click to re-dock.", "Move and scale layer"] },
       { label: "History", controls: ["Undo", "Redo"] },
       { label: "Lyrics", controls: ["Lyric effect and display mode", "Font and text colour", "Lyrics on or off"] },
       { label: "Canvas", controls: ["Canvas, background and visualiser"] },
