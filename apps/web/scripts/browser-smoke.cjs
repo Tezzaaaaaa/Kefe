@@ -1093,6 +1093,40 @@ async function captureEditorScreenState(page) {
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       await page.waitForTimeout(100);
+      const mobileNavigation = await page.evaluate(() => {
+        const header = document.querySelector(".kefe-sidebar");
+        const brand = header.querySelector(".kefe-sidebar-brand-row");
+        const groups = [...header.querySelectorAll(".kefe-sidebar-group")];
+        const actions = header.querySelector(".kefe-sidebar-bottom");
+        const rect = node => {
+          const r = node.getBoundingClientRect();
+          return { left: r.left, right: r.right, width: r.width };
+        };
+        const regions = [brand, ...groups, actions].map(rect);
+        return {
+          viewportWidth: document.documentElement.clientWidth,
+          header: rect(header),
+          headerScrollWidth: header.scrollWidth,
+          groups: groups.map(group => ({
+            display: getComputedStyle(group).display,
+            width: group.getBoundingClientRect().width,
+            clientWidth: group.clientWidth,
+            scrollWidth: group.scrollWidth,
+            linkCount: group.querySelectorAll(".kefe-sidebar-link").length
+          })),
+          regions,
+          regionsOverlap: regions.some((region, index) => regions.slice(index + 1)
+            .some(next => region.left < next.right - 1 && region.right > next.left + 1))
+        };
+      });
+      assert.equal(mobileNavigation.groups.length, 2,
+        `both mobile navigation groups must remain available at ${width}px: ${JSON.stringify(mobileNavigation)}`);
+      assert.ok(mobileNavigation.groups.every(group => group.display === "flex" && group.width >= 30 && group.linkCount > 0),
+        `mobile navigation groups must have usable, independently scrollable space at ${width}px: ${JSON.stringify(mobileNavigation)}`);
+      assert.ok(mobileNavigation.headerScrollWidth <= mobileNavigation.header.width + 1,
+        `mobile header must not overflow its viewport at ${width}px: ${JSON.stringify(mobileNavigation)}`);
+      assert.equal(mobileNavigation.regionsOverlap, false,
+        `mobile brand, navigation rails and action controls must not overlap at ${width}px: ${JSON.stringify(mobileNavigation)}`);
       for (const [section, label] of [
         ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Effects"],
         ["background-effects", "Background Effects"], ["visualiser", "Visualiser"], ["export", "Export"]
