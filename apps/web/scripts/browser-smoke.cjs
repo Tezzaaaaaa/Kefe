@@ -661,6 +661,25 @@ async function captureEditorScreenState(page) {
       return section?.dataset.expanded === "true" &&
         section.querySelector(".section-content").getBoundingClientRect().height > 1;
     }, null, { timeout: 5000 });
+    const panelFillAudit = await page.evaluate(() => {
+      return ["input", "output"].map(groupName => {
+        const group = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="' + groupName + '"]');
+        const expanded = group?.querySelector('.section[data-expanded="true"]');
+        if (!group || !expanded) return { groupName, found: false };
+        const groupRect = group.getBoundingClientRect();
+        const sectionRect = expanded.getBoundingClientRect();
+        const contentRect = expanded.querySelector(".section-content").getBoundingClientRect();
+        return {
+          groupName,
+          found: true,
+          bottomGap: groupRect.bottom - sectionRect.bottom,
+          contentHeight: contentRect.height,
+          groupHeight: groupRect.height
+        };
+      });
+    });
+    assert.ok(panelFillAudit.every(item => item.found && item.bottomGap <= 18 && item.contentHeight > 80),
+      `expanded desktop sections must stretch through the available panel space: ${JSON.stringify(panelFillAudit)}`);
 
     const sectionHeaderAudit = await page.evaluate(() => {
       const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];
