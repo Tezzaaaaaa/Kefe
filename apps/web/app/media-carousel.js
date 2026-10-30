@@ -176,7 +176,7 @@
     for(var i=start;i<end;i++){
       var it=list[i],k=kindOf(it),b=mk('button','kefe-car-card');b.type='button';b.dataset.i=i;
       b.setAttribute('aria-label',titleOf(it)+' by '+it.artistName);
-      var artwork=it._kefeLocalUpload?'<span data-kefe-icon="file-audio" data-icon-class="kefe-car-local-icon" aria-hidden="true"></span>':'<img src="'+esc(art(it.artworkUrl100,300))+'" alt="" loading="lazy">';
+      var artwork=it._kefeLocalUpload?(window.kefeIcon?window.kefeIcon('file-audio','kefe-car-local-icon'):'<span data-kefe-icon="file-audio" data-icon-class="kefe-car-local-icon" aria-hidden="true"></span>'):'<img src="'+esc(art(it.artworkUrl100,300))+'" alt="" loading="lazy">';
       var tag=k==='local'?'Uploaded':k;
       b.innerHTML='<span class="kefe-car-art">'+artwork+'<span class="kefe-car-tag '+k+'">'+tag+'</span></span>'+
         '<span class="kefe-car-cap"><b>'+esc(titleOf(it))+'</b><i>'+esc(it.artistName||(it._kefeLocalUpload?'Uploaded audio or video':''))+'</i></span>';
