@@ -42,6 +42,14 @@
       throw new Error('Settings panel adapter dependencies are unavailable.');
     }
 
+    const syncVisualiserControls = () => {
+      const section = root.querySelector('.section[data-section-id="visualisers"]');
+      const visible = section?.dataset.expanded === 'true';
+      editing.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(element => {
+        element.hidden = !visible;
+      });
+    };
+
     const placements = Object.entries(SLOT_TO_PANEL).map(([slotName, panelView]) => ({
       slotName,
       slot: root.querySelector('.kefe-slot[data-kefe-slot="' + slotName + '"]'),
@@ -129,6 +137,7 @@
         String(section.dataset.expanded === 'true')
       );
     });
+    syncVisualiserControls();
 
     panel.onChange(({ key, value }) => {
       const legacyKey = PANEL_TO_LEGACY[key];
@@ -167,13 +176,9 @@
       const navKey = Object.keys(NAV_TO_SECTION).find(key => NAV_TO_SECTION[key] === sectionId);
       if (!navKey) return;
       queueMicrotask(() => {
-        const expanded = section.dataset.expanded === 'true';
-        const showVisualiserControls = expanded && sectionId === 'visualisers';
         editing.setAttribute('data-active-panel', navKey);
         editing.setAttribute('data-selected-section', navKey);
-        editing.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(element => {
-          element.hidden = !showVisualiserControls;
-        });
+        syncVisualiserControls();
       });
     });
 
@@ -192,10 +197,6 @@
       const editingRoot = editing;
       editingRoot.setAttribute('data-active-panel', key);
       editingRoot.setAttribute('data-selected-section', key);
-      const showVisualiserControls = sectionId === 'visualisers';
-      editingRoot.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(element => {
-        element.hidden = !showVisualiserControls;
-      });
       const section = root.querySelector('.section[data-section-id="' + sectionId + '"]');
       if (!section) return;
       // Side-by-side columns each keep their own open section; stacked layouts show one at a time.
@@ -209,6 +210,7 @@
         item.dataset.expanded = String(expanded);
         item.querySelector('.expand-button')?.setAttribute('aria-expanded', String(expanded));
       });
+      syncVisualiserControls();
       if (!sideBySide) {
         setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
       }
