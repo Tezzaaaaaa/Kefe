@@ -4,7 +4,7 @@ import {
   Activity, AudioLines, AudioWaveform, ArrowDown, ArrowLeft, ArrowRight, ArrowUp,
   Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, CloudUpload, Copy,
   Download, Edit3, Eye, FileAudio, FileText, Folder, Github, Grip, Image,
-  Layers, ListMusic, Lock, LockOpen, Maximize, Minimize, MoreHorizontal,
+  Layers, ListMusic, Lock, LockOpen, Maximize, Minimize, MoreHorizontal, Move, Type, Frame, Circle,
   Music2, Pause, Play, Plus, Redo2, RotateCcw, Search, Settings, SlidersHorizontal,
   Sparkles, Sun, Moon, Trash2, Undo2, Upload, Volume2, VolumeX, X, Zap,
 } from "lucide-react";
@@ -17,7 +17,7 @@ const icons = {
   help: CircleHelp, "cloud-upload": CloudUpload, copy: Copy, download: Download,
   edit: Edit3, eye: Eye, "file-audio": FileAudio, "file-text": FileText,
   folder: Folder, github: Github, grip: Grip, image: Image, layers: Layers,
-  "list-music": ListMusic, lock: Lock, unlock: LockOpen, maximize: Maximize,
+  "list-music": ListMusic, lock: Lock, unlock: LockOpen, move: Move, type: Type, frame: Frame, circle: Circle, maximize: Maximize,
   minimize: Minimize, more: MoreHorizontal, music: Music2, pause: Pause,
   play: Play, plus: Plus, redo: Redo2, reset: RotateCcw, search: Search,
   settings: Settings, sliders: SlidersHorizontal, sparkles: Sparkles, sun: Sun,
