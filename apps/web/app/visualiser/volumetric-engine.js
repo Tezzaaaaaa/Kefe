@@ -177,7 +177,7 @@ float depth=smoothstep(-1.5,1.5,p.y);col*=mix(1.-FOG*.3,1.,depth);col+=(hash(gl_
       active = false; view.hidden = true; tab.classList.remove('primary'); tab.setAttribute('aria-selected','false');
       canvas.style.visibility = 'hidden'; window.kefeVolumetricActive = false;
     }
-    tabs.addEventListener('click',event => { const other=event.target.closest('[role="tab"]'); if(other && other!==tab) hide(); });
+    tabs.addEventListener('click',event => { const other=event.target.closest('.kefe-vis-option > [role="tab"]'); if(other && other!==tab) hide(); });
     tab.addEventListener('click',() => {
       active = true; view.hidden = false;
       tabs.querySelectorAll('[role="tab"]').forEach(other => {
