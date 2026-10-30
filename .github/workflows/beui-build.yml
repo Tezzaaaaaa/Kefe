@@ -63,6 +63,9 @@ jobs:
           ln -s "$GITHUB_WORKSPACE/apps/web/node_modules" /tmp/kefe-main/apps/web/node_modules
           cp "$GITHUB_WORKSPACE/apps/web/app/ui/structure.js" /tmp/kefe-main/apps/web/app/ui/structure.js
           cp "$GITHUB_WORKSPACE/apps/web/app/ui/toolbar.js" /tmp/kefe-main/apps/web/app/ui/toolbar.js
+          # The baseline build now shares the current shell, so navigate it with the
+          # current smoke script instead of main's stale header-tab interactions.
+          cp "$GITHUB_WORKSPACE/apps/web/scripts/browser-smoke.cjs" /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs
           cd /tmp/kefe-main
           pnpm --filter @kefe/web build
       - name: Install Chromium
