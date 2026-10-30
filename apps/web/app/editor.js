@@ -908,23 +908,6 @@
     document.head.appendChild(style);
     requestAnimationFrame(sync);
   })();
-  const kefeBrand=document.querySelector('.kefe-brand');
-  if(kefeBrand){
-    let kefeBrandClickTimer=null;
-    kefeBrand.addEventListener('click',()=>{
-      if(kefeBrandClickTimer)clearTimeout(kefeBrandClickTimer);
-      kefeBrandClickTimer=setTimeout(()=>{
-        kefeBrandClickTimer=null;
-        window.location.reload();
-      },260);
-    });
-    kefeBrand.addEventListener('dblclick',()=>{
-      if(kefeBrandClickTimer)clearTimeout(kefeBrandClickTimer);
-      kefeBrandClickTimer=null;
-      window.location.reload();
-    });
-  }
-
   function openEditorPanel(panel){
     const editingRoot=document.querySelector('.kefe-editing');
     editingRoot?.setAttribute('data-active-panel',panel);
@@ -1069,11 +1052,6 @@
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&previewStage?.classList.contains('kefe-pseudo-fullscreen')){togglePreviewFullscreen();}});
   syncPreviewFullscreen();
-  document.querySelectorAll('.kefe-top-link').forEach(button=>button.addEventListener('click',()=>{
-    const panel=button.dataset.topPanel;
-    if(panel==='media')openEditorPanel('media');
-    else if(panel==='editor')openEditorPanel('effects');
-  }));
   function updatePlayButton(){
     const button=document.getElementById('playButton');
     if(!button)return;

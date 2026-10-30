@@ -44,8 +44,8 @@ if (!structure.includes("data-editor-tab") || !structure.includes("data-dock-pan
 if (!structure.includes("decoratePanelAction") || !structure.includes("button.type = 'button'") || !structure.includes("kefe-panel-action")) {
   failures.push("Native panel buttons are not decorated in place while preserving button semantics");
 }
-if (!structure.includes("syncShellSection(button.dataset.panel)") || !structure.includes("aria-current") || !runtime.includes("openEditorPanel")) {
-  failures.push("Native sidebar navigation is missing its active-state and panel-selection path");
+if (!structure.includes("openEditorSections()") || !structure.includes("aria-current") || !runtime.includes("openEditorPanel")) {
+  failures.push("Native Editor navigation is missing its active-state and panel-selection path");
 }
 if (runtime.includes(".beui-transport-host")) failures.push("Fullscreen control logic still depends on the retired transport host");
 

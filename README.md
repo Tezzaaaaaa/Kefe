@@ -79,6 +79,11 @@ The editor includes 35 lyric effects:
 
 Effects provide different animation and typography treatments. Available controls depend on the selected effect. Use the shared style controls for colours, text size, placement, outline, glow, custom text and logo, with font overrides where available.
 
+### Navigation
+
+- One KEFE header bar holds the brand, a single Editor entry and the Settings, day/night, search and GitHub actions.
+- Editor sections open from the editor's own panels on desktop and the dock/drawer on phones and small tablets; the header does not repeat them as tabs.
+
 ### Preview and visualiser
 
 - Preview playback, scrub through the timeline and view the composition fullscreen.
