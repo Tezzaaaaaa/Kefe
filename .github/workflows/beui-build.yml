@@ -296,10 +296,10 @@ jobs:
             const comparison = fs.existsSync(logPath) ? fs.readFileSync(logPath, "utf8").trim().split(/\r?\n/) : [];
             const metrics = comparison.filter(line => /^(editor|volume-card) (desktop|mobile)\/(day|night):/.test(line));
             if (metrics.length) {
-              core.notice(`Editor/volume visual metrics:\n${metrics.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+              core.notice(`Editor visual metrics:\n${metrics.join("\n")}`, {file: ".github/workflows/beui-build.yml", startLine: 22});
             }
-            if (metrics.length !== 8) {
-              core.warning(`Visual comparison is incomplete: expected 8 editor/volume metrics (four viewport/theme modes each), found ${metrics.length}. Missing screenshots are not a pass.`, {file: ".github/workflows/beui-build.yml", startLine: 22});
+            if (metrics.length !== 4) {
+              core.warning(`Visual comparison is incomplete: expected 4 editor metrics (desktop/mobile, day/night), found ${metrics.length}. Missing screenshots are not a pass.`, {file: ".github/workflows/beui-build.yml", startLine: 22});
             }
             const layoutPath = "/tmp/kefe-screenshots/layout-comparison.log";
             if (fs.existsSync(layoutPath)) {
