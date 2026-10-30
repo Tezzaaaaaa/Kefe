@@ -20,8 +20,8 @@
     --ksp-highlight-header-to:   rgba(79, 158, 255, 0.02);
 
     --ksp-radius: 10px;
-    --ksp-gap: 12px;
-    --ksp-pad-x: 18px;
+    --ksp-gap: 8px;
+    --ksp-pad-x: 12px;
     --ksp-pad-y: 14px;
   }.kefe-settings-panel *:not(.kefe-slot *){ box-sizing: border-box; }.kefe-settings-panel{
     width: 100%;
@@ -92,7 +92,7 @@
   }.kefe-settings-panel .kefe-btn--ksp-saved:not(.kefe-slot *)::before{ content: "✓"; font-size: 13px; font-weight: 700; }.kefe-settings-panel .kefe-settings-columns:not(.kefe-slot *){
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 20px;
+    gap: 12px;
     align-items: start;
   }@container kefe-settings (min-width: 760px){.kefe-settings-panel .kefe-settings-columns:not(.kefe-slot *){ grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   }.kefe-settings-panel .kefe-panel:not(.kefe-slot *){ display: flex; flex-direction: column; gap: var(--ksp-gap); }.kefe-settings-panel .kefe-panel-label:not(.kefe-slot *){
@@ -120,7 +120,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
+    gap: 8px;
     padding: var(--ksp-pad-y) var(--ksp-pad-x);
     background: transparent;
     transition: background 0.2s ease;
@@ -277,13 +277,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 4px 0;
+    gap: 10px;
+    padding: 3px 0;
     min-height: 32px;
   }.kefe-settings-panel .setting-row + .setting-row:not(.kefe-slot *){
     border-top: 1px solid rgba(255, 255, 255, 0.06);
-    margin-top: 10px;
-    padding-top: 14px;
+    margin-top: 4px;
+    padding-top: 8px;
   }.kefe-settings-panel .setting-label:not(.kefe-slot *){
     font-size: 13.5px;
     color: var(--ksp-text);
@@ -427,7 +427,7 @@
   max-width: none;
   min-height: 0;
   margin: 0;
-  padding: 10px;
+  padding: 10px 0;
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
@@ -463,7 +463,7 @@
 .kefe-settings-panel .kefe-slot .kefe-visualiser-power-slot {
   display: flex;
 }
-.kefe-settings-panel .kefe-slot .kefe-form {
+.kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view] .kefe-form {
   width: 100%;
   max-width: none;
   min-width: 0;
@@ -482,9 +482,29 @@
 
 
 @container kefe-settings (max-width: 500px) {
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-details-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-form > .kefe-upload-zone,
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-form > .kefe-media-track,
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-form > .kefe-suggestions,
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="lyrics"] .kefe-form > div:has(.kefe-textarea),
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="visualiser"] .kefe-visualiser-intro {
+    grid-column: 1 / -1;
+  }
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songTitle),
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songArtist),
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songAlbum),
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-form > div:has(> #songYear) {
+    grid-column: auto;
+    grid-row: auto;
+  }
   .kefe-settings-panel .kefe-slot .kefe-media-upload-row {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+@container kefe-settings (max-width: 359px) {
+  .kefe-settings-panel .kefe-slot .kefe-form,
   .kefe-settings-panel .kefe-slot .kefe-details-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -506,11 +526,7 @@
   container-type: inline-size;
   container-name: kefe-settings;
 }
-@media (min-width: 1280px) {
-  .kefe-settings-panel .kefe-slot .kefe-details-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
+
 
 
 /* Section headings: keep labels unobstructed and responsive across viewport sizes. */
