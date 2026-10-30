@@ -35,7 +35,7 @@ if (!/\.kefe-panel\s*\{\s*display\s*:\s*none\b/.test(panelStyles) || !compactPan
   failures.push("Native editor panel surface styling is missing");
 }
 if (!settingsPanelStyles.includes(".kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel") ||
-    !settingsPanelStyles.includes("padding: 4px 0;")) {
+    !settingsPanelStyles.includes("padding: 10px 0;")) {
   failures.push("Embedded native panels must retain the compact spacing previously supplied by the Card wrapper");
 }
 
