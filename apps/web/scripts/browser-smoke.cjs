@@ -1121,6 +1121,7 @@ async function captureEditorScreenState(page) {
       "power toggles must not change the selected visualiser tab");
     const volumetricTab = page.locator(".beui-vis-tabs-host [role='tab'][data-visualiser='volumetric']");
     assert.equal(await volumetricTab.count(), 1, "Volumetric Engine must register exactly one visualiser tab");
+    assert.equal(await volumetricTab.isVisible(), true, "Volumetric Engine must be visible alongside the other visualiser tabs");
     await volumetricTab.click();
     await page.waitForFunction(() => document.querySelector(".beui-vis-backing-controls [data-visualiser='volumetric']")?.getAttribute("aria-selected") === "true");
     assert.equal(await page.locator("#kefeVisVolumetricView").isVisible(), true, "Volumetric Engine controls must open with its tab");
@@ -1136,6 +1137,31 @@ async function captureEditorScreenState(page) {
       "Volumetric Engine canvas must be sized to the preview stage");
     assert.equal(await page.locator("#kefeVolumetricCanvas").evaluate(canvas => getComputedStyle(canvas).visibility), "visible",
       "Volumetric Engine power must reveal its preview canvas");
+    const slowLightTab = page.locator(".beui-vis-tabs-host [role='tab'][data-visualiser='slow-light']");
+    assert.equal(await slowLightTab.count(), 1, "Slow Light must register exactly one visualiser tab");
+    await slowLightTab.click();
+    await page.waitForFunction(() => document.querySelector(".beui-vis-backing-controls [data-visualiser='slow-light']")?.getAttribute("aria-selected") === "true");
+    assert.equal(await page.locator("#kefeVisSlowLightView").isVisible(), true, "Slow Light controls must open with its tab");
+    const slowLightPower = page.locator(".beui-vis-tabs-host [role='switch'][aria-label='Slow Light Visualiser']");
+    assert.equal(await slowLightPower.count(), 1, "Slow Light must have one power toggle");
+    await slowLightPower.click();
+    await page.waitForFunction(() => window.kefeSlowLight?.getState?.().enabled === true);
+    assert.equal(await page.locator("#kefeSlowLightCanvas").evaluate(canvas => canvas.width > 0 && canvas.height > 0 && getComputedStyle(canvas).display === "block"), true,
+      "Slow Light power must start its preview canvas");
+    const fluidInkTab = page.locator(".beui-vis-tabs-host [role='tab'][data-visualiser='gradient']");
+    await fluidInkTab.click();
+    const fluidInkPower = page.locator(".beui-vis-tabs-host [role='switch'][aria-label='Fluid Ink visualiser']");
+    await fluidInkPower.click();
+    await page.waitForFunction(() => window.kefeGradientLayer?.state?.().on === true && getComputedStyle(document.getElementById("kefeFluidInkCanvas")).display === "block");
+    assert.equal(await page.locator("#kefeFluidInkCanvas").evaluate(canvas => canvas.width > 0 && canvas.height > 0), true,
+      "Fluid Ink must render into its live preview canvas");
+    const glassLensTab = page.locator(".beui-vis-tabs-host [role='tab'][data-visualiser='fluted']");
+    await glassLensTab.click();
+    const glassLensPower = page.locator(".beui-vis-tabs-host [role='switch'][aria-label='Liquid Glass visualiser']");
+    await glassLensPower.click();
+    await page.waitForFunction(() => window.kefeFlutedGlassActive === true && window.kefeFlutedGlassEnabled === true && getComputedStyle(document.getElementById("kefeFlutedGlassCanvas")).visibility === "visible");
+    assert.equal(await page.locator("#kefeFlutedGlassCanvas").evaluate(canvas => canvas.width > 0 && canvas.height > 0), true,
+      "Glass Lens must render into its live preview canvas");
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator(".kefe-sidebar").evaluate((sidebar) => { sidebar.scrollTop = 0; sidebar.scrollIntoView({ block: "start" }); });
     const lyricsNavButton = page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Lyric Sync" });
