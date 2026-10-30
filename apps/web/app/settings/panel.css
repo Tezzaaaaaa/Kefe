@@ -412,11 +412,14 @@
     min-height: 0;
   }
   .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-expanded="true"] > .section-content {
+    display: flex;
     flex: 1 1 auto;
+    flex-direction: column;
     min-height: 0;
-    grid-template-rows: minmax(0, 1fr);
   }
   .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-expanded="true"] > .section-content > .content-inner {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow: auto;
   }
   .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] {
