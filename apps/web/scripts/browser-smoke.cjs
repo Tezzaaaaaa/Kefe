@@ -673,13 +673,19 @@ async function captureEditorScreenState(page) {
           sectionHeights: sections.map(section => section.getBoundingClientRect().height),
           minimumSectionHeight: groupHeight / 4,
           expandedContentHeight: sections.find(section => section.dataset.expanded === "true")
-            ?.querySelector(".section-content").getBoundingClientRect().height || 0
+            ?.querySelector(".section-content").getBoundingClientRect().height || 0,
+          expandedContentWithinCard: (() => {
+            const section = sections.find(item => item.dataset.expanded === "true");
+            const content = section?.querySelector(".section-content > .content-inner");
+            return !!content && content.getBoundingClientRect().bottom <= section.getBoundingClientRect().bottom + 1
+              && content.getBoundingClientRect().height > 80;
+          })()
         };
       });
     });
     assert.ok(panelFillAudit.every(item => item.found
       && item.sectionHeights.every(height => height >= item.minimumSectionHeight)
-      && item.expandedContentHeight > 80),
+      && item.expandedContentHeight > 80 && item.expandedContentWithinCard),
       `desktop section cards must distribute the available panel height: ${JSON.stringify(panelFillAudit)}`);
 
     const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
