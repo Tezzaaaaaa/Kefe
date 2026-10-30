@@ -10385,3 +10385,48 @@ body { overflow: visible; overflow-x: clip; }
 .kefe-settings-panel .section[data-expanded="false"] > .section-content { padding-block: 0; border-top-width: 0; }
 /* The floating dock is fixed over the page below desktop width: reserve its height so the last controls stay reachable. */
 @media (max-width: 1279px) { body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
+
+
+/* Responsive workspace navigation: keep section names available on phones and
+   remove the fixed duplicate dock that obscures the scrollable editor. */
+@media (max-width: 640px) {
+  .kefe-editor .kefe-sidebar {
+    display: flex;
+    flex-wrap: nowrap;
+    height: 50px;
+    min-height: 50px;
+    gap: 6px;
+    padding: 0 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .kefe-editor .kefe-sidebar-brand-row {
+    position: static;
+    flex: 0 0 auto;
+  }
+  .kefe-editor .kefe-sidebar .kefe-sidebar-group {
+    display: flex;
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+  .kefe-editor .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link:not(.is-current) {
+    width: auto;
+    min-width: max-content;
+    padding: 0 10px;
+  }
+  .kefe-editor .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link:not(.is-current) > .kefe-sidebar-link-label,
+  .kefe-editor .kefe-sidebar .kefe-sidebar-group > .kefe-sidebar-link > .kefe-sidebar-link-label {
+    display: inline;
+  }
+  .kefe-editor .kefe-sidebar .kefe-sidebar-group > .kefe-sidebar-link > span[aria-hidden="true"] {
+    display: none;
+  }
+}
+body:has(.kefe-editor) > .kefe-workspace-dock { display: none; }
+body:has(.kefe-editor):has(.kefe-workspace-dock) { padding-bottom: 0; }
+
+
+/* Header section links are text-only; utility actions keep their icons. */
+.kefe-editor .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden="true"] {
+  display: none;
+}

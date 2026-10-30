@@ -657,7 +657,7 @@
   function syncMove() {
     const pressed = layerMove?.getAttribute('aria-pressed') === 'true';
     moveBtn.classList.toggle('is-active', pressed);
-    if (moveChip) { moveChip.setAttribute('aria-pressed', String(pressed)); moveChip.querySelector('span').textContent = pressed ? 'Done moving' : 'Drag in preview'; }
+    if (moveChip) { moveChip.setAttribute('aria-pressed', String(pressed)); moveChip.lastElementChild.textContent = pressed ? 'Done moving' : 'Drag in preview'; }
   }
   function sync() {
     effectMenu.refresh(); fontMenu.refresh(); caseMenu.refresh(); bgMenu.refresh(); visMenu.refresh();

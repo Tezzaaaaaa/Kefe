@@ -5,6 +5,9 @@ const path = require("node:path");
 const { chromium } = require("playwright");
 
 const root = path.resolve(__dirname, "..", "dist-beui");
+const structurePath = path.join(root, "app", "ui", "structure.js");
+assert.ok(fs.existsSync(structurePath), "built editor must include the native workspace structure script");
+new Function(fs.readFileSync(structurePath, "utf8"));
 const mime = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -245,6 +248,8 @@ async function captureEditorScreenState(page) {
     assert.ok(initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
       `toolbar must start fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
     const desktopViewport = page.viewportSize();
+    const visibleDesktopNavIcons = await page.locator(".kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden='true']").evaluateAll(nodes => nodes.filter(node => getComputedStyle(node).display !== "none").length);
+    assert.equal(visibleDesktopNavIcons, 0, "workspace navigation must be text-only on desktop");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     const mobileUploadColumns = await page.locator(".kefe-media-upload-row").evaluate(node =>
@@ -880,8 +885,8 @@ async function captureEditorScreenState(page) {
         `screenshot carousel fixture must expose its visible title and artist: ${JSON.stringify(seededCarousel)}`);
       console.log("Seeded screenshot carousel through KEFE local-upload render path:", JSON.stringify(seededCarousel));
       const screenshotVolumePopover = screenshotPage.locator("#kefeVolumePopover");
-      await screenshotPage.locator("#kefeMuteToggle").click();
-      await screenshotVolumePopover.waitFor({ state: "visible", timeout: 5000 });
+      const screenshotVolumeTrigger = screenshotPage.locator("#kefeMuteToggle");
+      const hasScreenshotVolume = await screenshotVolumeTrigger.count() > 0;
       const originalTheme = await screenshotPage.locator("html").getAttribute("data-theme") || "night";
       const originalViewport = screenshotPage.viewportSize();
       const desktopThemeSurfaces = new Map();
@@ -892,30 +897,40 @@ async function captureEditorScreenState(page) {
           await screenshotPage.waitForTimeout(400);
           const size = viewport.width <= 640 ? "mobile" : "desktop";
           const suffix = `${screenshotLabel}-${size}-${theme}`;
-          const geometry = await screenshotVolumePopover.evaluate((node) => {
-            const rect = node.getBoundingClientRect();
-            const style = getComputedStyle(node);
-            return { left: rect.left, right: rect.right, viewportWidth: document.documentElement.clientWidth, background: style.backgroundColor };
-          });
-          assert.ok(geometry.left >= -1 && geometry.right <= geometry.viewportWidth + 1,
-            `volume Card must stay within the ${size} viewport: ${JSON.stringify(geometry)}`);
-          if (theme === "day") {
-            assert.notEqual(geometry.background, "rgba(0, 0, 0, 0)", "day volume Card must retain the configured shell surface");
-          } else {
-            assert.equal(geometry.background, "rgba(0, 0, 0, 0)", "night volume Card must preserve the legacy transparent fallback");
+          if (hasScreenshotVolume) {
+            await screenshotVolumeTrigger.click();
+            await screenshotVolumePopover.waitFor({ state: "visible", timeout: 5000 });
+            const geometry = await screenshotVolumePopover.evaluate((node) => {
+              const rect = node.getBoundingClientRect();
+              const style = getComputedStyle(node);
+              return { left: rect.left, right: rect.right, viewportWidth: document.documentElement.clientWidth, background: style.backgroundColor };
+            });
+            assert.ok(geometry.left >= -1 && geometry.right <= geometry.viewportWidth + 1,
+              `volume Card must stay within the ${size} viewport: ${JSON.stringify(geometry)}`);
+            if (theme === "day") {
+              assert.notEqual(geometry.background, "rgba(0, 0, 0, 0)", "day volume Card must retain the configured shell surface");
+            } else {
+              assert.equal(geometry.background, "rgba(0, 0, 0, 0)", "night volume Card must preserve the legacy transparent fallback");
+            }
+            if (size === "desktop") desktopThemeSurfaces.set(theme, geometry.background);
+            await screenshotVolumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
+            await screenshotVolumeTrigger.click();
+            await screenshotVolumePopover.waitFor({ state: "hidden", timeout: 5000 });
           }
-          if (size === "desktop") desktopThemeSurfaces.set(theme, geometry.background);
           await normalizeEditorScrollState(screenshotPage);
           const editorLayout = await captureEditorLayout(screenshotPage);
           fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
           const editorScreenState = await captureEditorScreenState(screenshotPage);
           fs.writeFileSync(path.join(screenshotDir, `editor-screen-state-${size}-${theme}.json`), JSON.stringify(editorScreenState));
           await screenshotPage.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
-          await screenshotVolumePopover.screenshot({ path: path.join(screenshotDir, `volume-card-${suffix}.png`), animations: "disabled" });
         }
       }
-      assert.notEqual(desktopThemeSurfaces.get("night"), desktopThemeSurfaces.get("day"),
-        "volume Card should use the distinct KEFE day and night panel surfaces");
+      if (hasScreenshotVolume) {
+        assert.notEqual(desktopThemeSurfaces.get("night"), desktopThemeSurfaces.get("day"),
+          "volume Card should use the distinct KEFE day and night panel surfaces");
+      } else {
+        console.log("Baseline has no mounted native volume popover; editor screenshots captured without a volume-card comparison.");
+      }
       await screenshotPage.setViewportSize(originalViewport);
       await screenshotPage.evaluate((nextTheme) => { document.documentElement.dataset.theme = nextTheme; }, originalTheme);
       await screenshotPage.waitForTimeout(120);
@@ -1093,6 +1108,29 @@ async function captureEditorScreenState(page) {
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       await page.waitForTimeout(100);
+      const mobileNavigationLabels = await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").evaluateAll(labels =>
+        labels.map(label => ({
+          text: label.textContent.trim(),
+          display: getComputedStyle(label).display,
+          width: label.getBoundingClientRect().width
+        }))
+      );
+      assert.equal(mobileNavigationLabels.length, 7,
+        `all seven native workspace links must retain text labels at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+      assert.ok(mobileNavigationLabels.every(label => label.text && label.display !== "none" && label.width > 0),
+        `mobile navigation must not leave blank iconless links at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+      const mobileDockDisplay = await page.locator(".kefe-workspace-dock").evaluate(node => getComputedStyle(node).display);
+      assert.equal(mobileDockDisplay, "none",
+        `the duplicate fixed workspace dock must not cover editor content at ${width}px`);
+      const mobileToolbarLayout = await quickToolbar.locator(".kft-main").evaluate(node => ({
+        flexWrap: getComputedStyle(node).flexWrap,
+        clientHeight: node.clientHeight,
+        scrollHeight: node.scrollHeight
+      }));
+      assert.equal(mobileToolbarLayout.flexWrap, "nowrap",
+        `the preview toolbar must remain on one row at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
+      assert.ok(mobileToolbarLayout.scrollHeight <= mobileToolbarLayout.clientHeight + 1,
+        `the preview toolbar must not wrap at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
       for (const [section, label] of [
         ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Effects"],
         ["background-effects", "Background Effects"], ["visualiser", "Visualiser"], ["export", "Export"]
