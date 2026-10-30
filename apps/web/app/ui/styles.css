@@ -10431,22 +10431,36 @@ body:has(.kefe-editor):has(.kefe-workspace-dock) { padding-bottom: 0; }
   display: none;
 }
 
-/* Volumetric Engine preset rail: native KEFE controls, compact at every panel width. */
-.kefe-panel[data-panel-view="visualiser"] .kefe-volumetric-presets {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--s2);
-  width: 100%;
-  min-width: 0;
-}
-.kefe-panel[data-panel-view="visualiser"] .kefe-volumetric-presets .kefe-btn {
-  min-width: 0;
-  min-height: 30px;
-  padding-inline: 6px;
-  overflow-wrap: anywhere;
+/* ---- Mobile side panel: compact, thumb-friendly sections (≤700px) ---- */
+@media (max-width: 700px) {
+  .kefe-editor .kefe-panel { padding: 8px 8px 12px; }
+  .kefe-editor .kefe-settings-columns,
+  .kefe-editor .kefe-settings-panel { gap: 8px; }
+  .kefe-editor .section > .section-header { padding: 6px 10px; min-height: 48px; }
+  .kefe-editor .section > .section-header .expand-button { min-height: 44px; }
+  .kefe-editor .section > .section-content { padding: 2px 8px 10px; gap: 8px; }
+  .kefe-editor .section[data-expanded="true"] { scroll-margin-top: 56px; }
+  /* Controls: 44px touch targets without growing the layout */
+  .kefe-editor .section-content :is(button, select, input[type="text"], input:not([type]), textarea) { min-height: 40px; }
+  .kefe-editor .section-content :is(.kefe-btn, .kefe-switch) { touch-action: manipulation; }
+  .kefe-editor .section-content input[type="range"] { min-height: 32px; }
+  .kefe-editor .section-content .kefe-visualiser-field { gap: 4px; }
+  .kefe-editor .section-content .kefe-visualiser-control-group { gap: 6px; padding: 8px; }
+  /* Preset buttons: two readable columns, no truncated names */
+  .kefe-editor .kefe-shader-vis-presets,
+  .kefe-editor .kefe-slow-light-scenes {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; width: 100%;
+  }
+  .kefe-editor .kefe-shader-vis-presets > .kefe-btn,
+  .kefe-editor .kefe-slow-light-scenes > .kefe-btn { min-width: 0; white-space: normal; }
+  .kefe-editor .kefe-seg.kefe-shader-vis-finish { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Bottom padding so the last control clears the safe area / home indicator */
+  .kefe-editor .kefe-sidebar-footer, .kefe-editor .kefe-panel:last-child { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (max-width: 700px) {
-  .kefe-panel[data-panel-view="visualiser"] .kefe-volumetric-presets {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  /* One slider per row so labels, values and tracks stay readable */
+  .kefe-editor .kefe-form.kefe-visualiser-form { grid-template-columns: minmax(0, 1fr); }
+  .kefe-editor .kefe-visualiser-form .kefe-visualiser-field { grid-column: 1 / -1; width: 100%; }
+  .kefe-editor .kefe-visualiser-form .kefe-visualiser-field { grid-template-columns: minmax(128px, 44%) minmax(0, 1fr); }
+  .kefe-editor .kefe-visualiser-form .kefe-visualiser-field > span > b { overflow: visible; text-overflow: clip; white-space: nowrap; }
 }

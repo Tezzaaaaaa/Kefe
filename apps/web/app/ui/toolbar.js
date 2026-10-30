@@ -561,7 +561,7 @@
   const visLabel = tab => (tab.getAttribute('aria-label') || tab.textContent || '').replace(/\s*visualiser$/i, '').trim() || visKey(tab);
   const visMenu = createMenu({
     label: 'Visualiser', variant: 'field', fallback: 'Choose visualiser',
-    getOptions: () => visTabs().map(tab => ({ value: visKey(tab), label: visLabel(tab) })),
+    getOptions: () => visTabs().map(tab => ({ value: visKey(tab), label: visLabel(tab) })).filter((o, i, all) => all.findIndex(x => x.value === o.value) === i),
     getValue: () => { const on = visTabs().find(t => t.getAttribute('aria-selected') === 'true' || t.classList.contains('primary')); return on ? visKey(on) : ''; },
     onSelect: value => { visTabs().find(t => visKey(t) === value)?.click(); emit('visualiser', value); }
   });
