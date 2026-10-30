@@ -70,7 +70,12 @@ function explainEditorDifferences(before, after, size, theme, currentDir) {
 }
 
 for (const subject of ["editor", "volume-card"]) {
-for (const [size, theme] of states) {
+  const baselineCaptures = fs.readdirSync(baselineDir).filter(name => name.startsWith(`${subject}-`) && name.endsWith(".png"));
+  if (subject === "volume-card" && baselineCaptures.length === 0) {
+    console.log("Skipping volume-card pixel comparison: the main-branch baseline has no native volume-card capture.");
+    continue;
+  }
+  for (const [size, theme] of states) {
   const before = PNG.sync.read(fs.readFileSync(findCapture(baselineDir, subject, size, theme)));
   const after = PNG.sync.read(fs.readFileSync(findCapture(currentDir, subject, size, theme)));
   assert.equal(after.width, before.width, `${size}/${theme} component width changed (${before.width} → ${after.width})`);
@@ -120,7 +125,7 @@ for (const [size, theme] of states) {
 
 const lines = [
   "### Editor and volume screenshot comparison",
-  "Compared complete editor screenshots and focused volume popover crops against the successful main-branch baseline; pixel threshold 0.12, antialias-only changes ignored, maximum changed-pixel budget 2.5%.",
+  "Compared editor screenshots and volume popover crops against main when that baseline feature exists; pixel threshold 0.12, antialias-only changes ignored, maximum changed-pixel budget 2.5%.",
   "",
   "| Subject | Viewport | Theme | Size | Changed pixels |",
   "|---|---|---|---:|---:|",
