@@ -640,7 +640,7 @@ async function captureEditorScreenState(page) {
       const trigger = target.locator(".expand-button").first();
       if ((await trigger.getAttribute("aria-expanded")) !== "true") await trigger.click();
       await page.waitForFunction(expected => document.querySelector(".kefe-editing")?.dataset.selectedSection === expected, section, { timeout: 5000 });
-      await page.waitForFunction(expected => document.querySelector(`#kefe-settings-panel .section[data-section-id="${SECTION_IDS[expected] || expected}"]`)?.dataset.expanded === "true", section, { timeout: 5000 });
+      await page.waitForFunction(id => document.querySelector(`#kefe-settings-panel .section[data-section-id="${id}"]`)?.dataset.expanded === "true", sectionId, { timeout: 5000 });
     }
 
     async function assertSectionFits(section) {
