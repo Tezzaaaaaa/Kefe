@@ -248,6 +248,8 @@ async function captureEditorScreenState(page) {
     assert.ok(initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
       `toolbar must start fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
     const desktopViewport = page.viewportSize();
+    const visibleDesktopNavIcons = await page.locator(".kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden='true']").evaluateAll(nodes => nodes.filter(node => getComputedStyle(node).display !== "none").length);
+    assert.equal(visibleDesktopNavIcons, 0, "workspace navigation must be text-only on desktop");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     const mobileUploadColumns = await page.locator(".kefe-media-upload-row").evaluate(node =>
