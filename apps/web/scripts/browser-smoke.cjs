@@ -243,6 +243,22 @@ async function captureEditorScreenState(page) {
       }));
     });
     assert.deepEqual(toolbarIconAudit, [], "every icon-bearing toolbar action must render its Lucide SVG");
+    const toolbarGroups = await quickToolbar.locator(".kft-main > .kft-cluster").evaluateAll(groups =>
+      groups.map(group => ({
+        label: group.getAttribute("aria-label"),
+        controls: [...group.querySelectorAll(":scope > button")].map(button =>
+          button.getAttribute("aria-label") || button.getAttribute("title") || button.textContent.trim()
+        )
+      }))
+    );
+    assert.deepEqual(toolbarGroups, [
+      { label: "Layer", controls: ["Drag to reposition · double-click to re-dock", "Move and scale layer"] },
+      { label: "History", controls: ["Undo", "Redo"] },
+      { label: "Lyrics", controls: ["Lyric effect and display mode", "Font and text colour", "Lyrics on or off"] },
+      { label: "Canvas", controls: ["Canvas, background and visualiser"] },
+      { label: "Visualiser", controls: ["Visualiser"] },
+      { label: "Actions", controls: ["More actions"] }
+    ], "toolbar actions must appear once in their intended functional groups");
     assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").isVisible(), false, "the duplicate preview-bar Canvas ratio must be hidden");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
     const initialToolbarPlacement = await page.evaluate(() => {
