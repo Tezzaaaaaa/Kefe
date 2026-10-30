@@ -1036,6 +1036,17 @@ async function captureEditorScreenState(page) {
       "Liquid Glass must be available in the visualiser tab list");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
       "visualiser tabs must be visible while the Visualisers section is active");
+
+    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Background Effects" }).click();
+    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "background-effects", null, { timeout: 5000 });
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
+      "visualiser tabs must hide when navigating away from Visualisers");
+    await page.locator(".kefe-sidebar [data-shell-panel]").filter({ hasText: "Visualiser" }).click();
+    await page.waitForFunction(() => document.querySelector(".kefe-section.active")?.dataset.panel === "visualiser", null, { timeout: 5000 });
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
+      "visualiser tabs must reliably reappear when Visualisers is reopened");
+    assert.equal(await page.locator(".kefe-visualiser-preset-row").isVisible(), true,
+      "visualiser preset row must follow the same section visibility state");
     const visualiserTabGeometry = await page.locator(".beui-vis-tabs-host [role='tablist']").evaluate(list => {
       const rect = list.getBoundingClientRect();
       const tabs = [...list.querySelectorAll("[role='tab']")].map(tab => {
