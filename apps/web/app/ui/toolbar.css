@@ -392,3 +392,6 @@ html .kefe-editor .kefe-preview-toolbar .kft-dock-slot { padding: 0; border: 0; 
     overflow-y: hidden;
   }
 }
+
+/* The native aspect select remains the toolbar's backing control, not a preview-bar action. */
+.kefe-preview-toolbar .kefe-toolbar-format[hidden] { display: none; }

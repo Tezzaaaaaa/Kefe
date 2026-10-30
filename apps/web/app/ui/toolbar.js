@@ -456,7 +456,7 @@
   effectPanel.append(field('Effect', effectMenu.trigger), field('Display mode', modeSeg.el), field('Timing nudge', nudge), timingReset);
 
   /* Font panel */
-  const fontBtn = panelBtn('font', 'Font, case and size');
+  const fontBtn = panelBtn('type', 'Font and text colour');
   const fontMenu = createMenu({
     label: 'Lyric font', variant: 'field', fallback: 'Effect font',
     getOptions: () => Array.from(fontSelect()?.options || []).map(o => ({ value: o.value, label: o.value === '' ? 'Effect font' : o.textContent.trim() })),
@@ -477,14 +477,12 @@
       t.value = String(v); fire(t, 'input'); emit('text-size', v);
     }
   });
-  const fontPanel = makePanel(fontBtn, 'Font', 264);
+  const fontPanel = makePanel(fontBtn, 'Font and text colour', 280);
   fontPanel.append(field('Font family', fontMenu.trigger), field('Text case', caseMenu.trigger), field('Text size', sizeScrub.el));
 
   /* Colour panel: presets + native picker + hex + outline/glow */
-  const swatchBtn = panelBtn('dot', 'Lyric text colour');
-  swatchBtn.innerHTML = '';
   const swatch = h('span', 'kft-swatch');
-  swatchBtn.appendChild(swatch);
+  fontBtn.appendChild(swatch);
   const PRESETS = ['#ffffff', '#ef4444', '#22c55e', '#06b6d4', '#a855f7', '#f59e0b', '#ec4899', '#14b8a6', '#111113', '#8b8b9a'];
   const presetsEl = h('div', 'kft-presets');
   const presetBtns = PRESETS.map(hex => {
@@ -537,8 +535,7 @@
   glowToggle.addEventListener('change', () => setStyleToggle('glow', glowToggle.checked));
   window.addEventListener('kefe-style-change', syncStyleToggles);
   syncStyleToggles();
-  const colourPanel = makePanel(swatchBtn, 'Lyric text colour', 232);
-  colourPanel.append(presetsEl, hexRow, checkRow('Outline', outlineToggle), checkRow('Soft glow', glowToggle));
+  fontPanel.append(presetsEl, hexRow, checkRow('Outline', outlineToggle), checkRow('Soft glow', glowToggle));
 
   const lyricsBtn = cellBtn('eye', 'Lyrics on or off', 'kft-btn--toggle');
   lyricsBtn.setAttribute('aria-pressed', 'true');
@@ -567,6 +564,9 @@
     getValue: () => { const on = visTabs().find(t => t.getAttribute('aria-selected') === 'true' || t.classList.contains('primary')); return on ? visKey(on) : ''; },
     onSelect: value => { visTabs().find(t => visKey(t) === value)?.click(); emit('visualiser', value); }
   });
+  const visualiserBtn = panelBtn('audio-waveform', 'Visualiser');
+  const visualiserPanel = makePanel(visualiserBtn, 'Visualiser', 264);
+  visualiserPanel.append(field('Visualiser', visMenu.trigger));
   const darkScrub = createScrubber({
     label: 'Background darkness', bare: true, min: 0, max: 100, step: 1,
     onInput: v => { const t = bgDarkness(); if (!t) return; t.value = String(v); fire(t, 'input', 'change'); emit('background-darkness', v); }
@@ -582,7 +582,7 @@
     onInput: v => { safeInset = v; syncPreferences(); emit('safe-inset', v); }
   });
   const canvasPanel = makePanel(ratioBtn, 'Canvas', 264);
-  canvasPanel.append(field('Canvas ratio', aspectSeg.el), field('Background', bgMenu.trigger), field('Visualiser', visMenu.trigger), field('Background darkness', darkScrub.el), checkRow('Show safe area', safeAreaToggle), field('Safe-area inset', safeScrub.el), previewBgLabel);
+  canvasPanel.append(field('Canvas ratio', aspectSeg.el), field('Background', bgMenu.trigger), field('Background darkness', darkScrub.el), checkRow('Show safe area', safeAreaToggle), field('Safe-area inset', safeScrub.el), previewBgLabel);
 
   /* Actions panel */
   const actionsBtn = panelBtn('menu', 'More actions');
@@ -643,7 +643,7 @@
   const actionsPanel = makePanel(actionsBtn, 'Actions', 244);
   actionsPanel.append(resetChip, lockChip, clearChip, h('div', 'kft-rule'), fullChip, lockPos, resetPos, h('div', 'kft-rule'), checkRow('Compact density', compactToggle), hideToolbar, hint);
 
-  main.append(grip, moveBtn, undoBtn, redoBtn, divider(), effectBtn, fontBtn, swatchBtn, lyricsBtn, divider(), ratioBtn, actionsBtn);
+  main.append(grip, moveBtn, undoBtn, redoBtn, divider(), effectBtn, fontBtn, lyricsBtn, divider(), ratioBtn, visualiserBtn, actionsBtn);
   bar.append(main);
   root.appendChild(bar);
   document.body.appendChild(root);

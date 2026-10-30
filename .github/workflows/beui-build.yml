@@ -109,19 +109,25 @@ jobs:
           current_source = current.read_text()
           old_start = '    const toolbarPanel = name => page.getByRole("dialog", { name, exact: true });'
           old_end = '    await toolbarPanel("Lyric effect").getByRole("button", { name: /^Lyric effect:/ }).click();'
-          new_start = '    const fontButton = quickToolbar.getByRole("button", { name: "Font, case and size", exact: true });'
+          baseline_font_start = '    await quickToolbar.getByRole("button", { name: "Lyric text colour", exact: true }).click();'
+          new_start = '    await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();'
           new_end = '    await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();'
           if current_source.count(new_start) != 1 or current_source.count(new_end) != 1:
               raise SystemExit("Current smoke toolbar block is not uniquely selectable")
           if baseline_source.count(new_start) == 1 and baseline_source.count(new_end) == 1:
               pass
+          elif baseline_source.count(baseline_font_start) >= 1 and baseline_source.count(new_end) == 1:
+              current_block = current_source[current_source.index(new_start):current_source.index(new_end) + len(new_end)]
+              start = baseline_source.index(baseline_font_start)
+              end = baseline_source.index(new_end) + len(new_end)
+              baseline_source = baseline_source[:start] + current_block + baseline_source[end:]
           elif baseline_source.count(old_start) == 1 and baseline_source.count(old_end) == 1:
               current_block = current_source[current_source.index(new_start):current_source.index(new_end) + len(new_end)]
               start = baseline_source.index(old_start)
               end = baseline_source.index(old_end) + len(old_end)
               baseline_source = baseline_source[:start] + current_block + baseline_source[end:]
           else:
-              raise SystemExit("Baseline toolbar block matches neither legacy nor current semantic locators")
+              raise SystemExit("Baseline toolbar block matches neither legacy nor previous semantic locators")
           aspect_start = '    const aspectSelect = page.locator("#kefeAspect");'
           aspect_end = '    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,'
           if current_source.count(aspect_start) != 1 or current_source.count(aspect_end) != 1:
@@ -145,9 +151,15 @@ jobs:
           # the current native editor exposes the control. Do not apply that current-only
           # accessibility assertion to the main baseline smoke run.
           old_aspect_a11y = '    assert.equal(await aspectSelect.getAttribute("aria-hidden"), null, "the preview aspect backing control must remain exposed to assistive technology");'
-          if baseline_source.count(old_aspect_a11y) != 1:
-              raise SystemExit("Baseline aspect accessibility assertion is not uniquely selectable")
-          baseline_source = baseline_source.replace(old_aspect_a11y, '    // The baseline retains its legacy aspect-control accessibility behavior.')
+          if baseline_source.count(old_aspect_a11y) > 1:
+              raise SystemExit("Baseline aspect accessibility assertion is ambiguous")
+          if baseline_source.count(old_aspect_a11y) == 1:
+              baseline_source = baseline_source.replace(old_aspect_a11y, '    // The baseline retains its legacy aspect-control accessibility behavior.')
+          old_native_select_assert = '    assert.ok(nativeSelectState.visible.every((select) => select && !select.hidden && select.ariaHidden === null && select.tabIndex !== -1 && !select.nextHost),'
+          new_native_select_assert = '    assert.ok(nativeSelectState.visible.slice(1).every((select) => select && !select.hidden && select.ariaHidden === null && select.tabIndex !== -1 && !select.nextHost) && nativeSelectState.visible[0] && !nativeSelectState.visible[0].hidden && nativeSelectState.visible[0].ariaHidden === null && !nativeSelectState.visible[0].nextHost,'
+          if baseline_source.count(old_native_select_assert) != 1:
+              raise SystemExit("Baseline native-select assertion is not uniquely selectable")
+          baseline_source = baseline_source.replace(old_native_select_assert, new_native_select_assert)
           # Main's old screenshot block captures after the smoke search has populated its live
           # carousel. Reuse the current isolated-context capture so both sides start clean,
           # without changing the baseline UI or its smoke assertions.
