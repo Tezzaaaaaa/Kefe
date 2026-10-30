@@ -638,9 +638,22 @@ async function captureEditorScreenState(page) {
       const target = page.locator(`#kefe-settings-panel .section[data-section-id="${sectionId}"]`).first();
       await target.waitFor({ state: "attached", timeout: 10000 });
       const trigger = target.locator(".expand-button").first();
-      if ((await trigger.getAttribute("aria-expanded")) !== "true") await trigger.click();
+      const expanded = () => page.waitForFunction(
+        ([id, state]) => document.querySelector(`#kefe-settings-panel .section[data-section-id="${id}"]`)?.dataset.expanded === state,
+        [sectionId, "true"], { timeout: 5000 }
+      );
+      // The adapter resolves the selected section on an expand click, so an
+      // already-open section is closed and reopened to select it again.
+      if ((await trigger.getAttribute("aria-expanded")) === "true") {
+        await trigger.click();
+        await page.waitForFunction(
+          id => document.querySelector(`#kefe-settings-panel .section[data-section-id="${id}"]`)?.dataset.expanded === "false",
+          sectionId, { timeout: 5000 }
+        );
+      }
+      await trigger.click();
       await page.waitForFunction(expected => document.querySelector(".kefe-editing")?.dataset.selectedSection === expected, section, { timeout: 5000 });
-      await page.waitForFunction(id => document.querySelector(`#kefe-settings-panel .section[data-section-id="${id}"]`)?.dataset.expanded === "true", sectionId, { timeout: 5000 });
+      await expanded();
     }
 
     async function assertSectionFits(section) {
