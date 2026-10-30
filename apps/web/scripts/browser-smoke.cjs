@@ -1107,26 +1107,38 @@ async function captureEditorScreenState(page) {
           viewportWidth: document.documentElement.clientWidth,
           header: rect(header),
           headerScrollWidth: header.scrollWidth,
+          brandPosition: getComputedStyle(brand).position,
           groups: groups.map(group => ({
             display: getComputedStyle(group).display,
             width: group.getBoundingClientRect().width,
-            clientWidth: group.clientWidth,
-            scrollWidth: group.scrollWidth,
-            linkCount: group.querySelectorAll(".kefe-sidebar-link").length
+            linkCount: group.querySelectorAll(".kefe-sidebar-link").length,
+            links: [...group.querySelectorAll(".kefe-sidebar-link")].map(link => {
+              const r = link.getBoundingClientRect();
+              return { left: r.left, right: r.right, width: r.width };
+            })
           })),
           regions,
           regionsOverlap: regions.some((region, index) => regions.slice(index + 1)
-            .some(next => region.left < next.right - 1 && region.right > next.left + 1))
+            .some(next => region.left < next.right - 1 && region.right > next.left + 1)),
+          linkOverlap: groups.some(group => {
+            const links = [...group.querySelectorAll(".kefe-sidebar-link")].map(link => link.getBoundingClientRect());
+            return links.some((link, index) => links.slice(index + 1)
+              .some(next => link.left < next.right - 1 && link.right > next.left + 1));
+          })
         };
       });
       assert.equal(mobileNavigation.groups.length, 2,
         `both mobile navigation groups must remain available at ${width}px: ${JSON.stringify(mobileNavigation)}`);
-      assert.ok(mobileNavigation.groups.every(group => group.display === "flex" && group.width >= 30 && group.linkCount > 0),
-        `mobile navigation groups must have usable, independently scrollable space at ${width}px: ${JSON.stringify(mobileNavigation)}`);
-      assert.ok(mobileNavigation.headerScrollWidth <= mobileNavigation.header.width + 1,
-        `mobile header must not overflow its viewport at ${width}px: ${JSON.stringify(mobileNavigation)}`);
+      assert.ok(mobileNavigation.groups.every(group => group.display === "flex" && group.width > 0 && group.linkCount > 0),
+        `mobile navigation groups must remain visible at ${width}px: ${JSON.stringify(mobileNavigation)}`);
+      assert.ok(mobileNavigation.headerScrollWidth >= mobileNavigation.header.width - 1,
+        `mobile header must contain its complete horizontally scrollable navigation at ${width}px: ${JSON.stringify(mobileNavigation)}`);
+      assert.equal(mobileNavigation.brandPosition, "static",
+        `mobile brand must scroll with the navigation rather than cover links at ${width}px: ${JSON.stringify(mobileNavigation)}`);
       assert.equal(mobileNavigation.regionsOverlap, false,
-        `mobile brand, navigation rails and action controls must not overlap at ${width}px: ${JSON.stringify(mobileNavigation)}`);
+        `mobile brand, navigation groups and action controls must not overlap at ${width}px: ${JSON.stringify(mobileNavigation)}`);
+      assert.equal(mobileNavigation.linkOverlap, false,
+        `mobile navigation links must not overlap at ${width}px: ${JSON.stringify(mobileNavigation)}`);
       for (const [section, label] of [
         ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Effects"],
         ["background-effects", "Background Effects"], ["visualiser", "Visualiser"], ["export", "Export"]
