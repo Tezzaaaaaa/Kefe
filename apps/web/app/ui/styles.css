@@ -1206,7 +1206,7 @@ button{border:0;cursor:pointer;
 .kefe-carousel{position:relative;height:clamp(290px,34vw,390px);min-height:290px;border-radius:var(--r3);background:radial-gradient(ellipse at 50% 42%,var(--surface-hi) 0%,var(--surface) 72%);box-shadow:var(--inner);overflow:hidden;perspective:1600px;perspective-origin:50% 50%;user-select:none;outline:0;isolation:isolate;touch-action:pan-y}
 .kefe-carousel:focus-visible{box-shadow:var(--inner),0 0 0 2px var(--accent)}
 .kefe-carousel.busy .kefe-car-stack{opacity:.5}
-.kefe-car-stack{position:absolute;left:50%;top:50%;height:100%;width:max-content;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.22,1,.36,1),opacity .25s ease;will-change:transform}
+.kefe-car-stack{position:absolute;left:50%;top:50%;height:100%;width:max-content;column-gap:clamp(18px,3vw,44px);transform-style:preserve-3d;transition:transform .7s cubic-bezier(.22,1,.36,1),opacity .25s ease;will-change:transform}
 .kefe-car-card{position:absolute;top:50%;left:0;display:flex;flex-direction:column;gap:9px;width:clamp(148px,20vw,230px);height:auto;min-height:0;padding:0;border:0;border-radius:var(--r3);background:transparent;text-align:left;font:inherit;color:inherit;cursor:pointer;transform-origin:center;transition:transform .7s cubic-bezier(.22,1,.36,1),opacity .6s ease,filter .6s ease,box-shadow .6s ease;will-change:transform,opacity,filter;backface-visibility:hidden;-webkit-user-select:none;user-select:none}
 .kefe-car-art{position:relative;display:block;box-sizing:border-box;width:100%;height:auto;aspect-ratio:4/5;padding:5px;border:1px solid var(--line);border-radius:var(--r3);background:var(--surface);box-shadow:var(--lift);overflow:hidden}
 .kefe-car-card .kefe-car-art img{border-radius:calc(var(--r3) - 5px)}
