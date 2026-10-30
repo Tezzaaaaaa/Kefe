@@ -557,8 +557,12 @@ async function captureEditorScreenState(page) {
       };
     });
     assert.equal(nativeSelectState.visible.length, 4, `the preview, font and export selects must remain present: ${JSON.stringify(nativeSelectState)}`);
-    assert.ok(nativeSelectState.visible.every((select) => select && !select.hidden && select.ariaHidden === null && select.tabIndex !== -1 && !select.nextHost),
-      `primary editor selects must stay visible, keyboard-accessible native controls without a mirrored host: ${JSON.stringify(nativeSelectState)}`);
+    const [aspectNative, ...primaryNative] = nativeSelectState.visible;
+    assert.ok(aspectNative && !aspectNative.nextHost && aspectNative.tabIndex === -1
+      && await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
+      `the native aspect backing select must stay out of the preview bar and tab order while the floating toolbar controls it: ${JSON.stringify(nativeSelectState)}`);
+    assert.ok(primaryNative.every((select) => select && !select.hidden && select.ariaHidden === null && select.tabIndex !== -1 && !select.nextHost),
+      `font and export selects must stay visible, keyboard-accessible native controls without a mirrored host: ${JSON.stringify(nativeSelectState)}`);
     assert.equal(nativeSelectState.bridgeHosts, 0, "editor selects must not have React Select mirrors");
     assert.ok(nativeSelectState.background?.hidden && nativeSelectState.background.ariaHidden === "true" && nativeSelectState.background.tabIndex === -1,
       `the KEFE background-mode select should remain a hidden native backing control for its accessible custom choices: ${JSON.stringify(nativeSelectState.background)}`);
