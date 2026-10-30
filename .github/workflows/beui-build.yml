@@ -109,19 +109,25 @@ jobs:
           current_source = current.read_text()
           old_start = '    const toolbarPanel = name => page.getByRole("dialog", { name, exact: true });'
           old_end = '    await toolbarPanel("Lyric effect").getByRole("button", { name: /^Lyric effect:/ }).click();'
+          baseline_font_start = '    const fontButton = quickToolbar.getByRole("button", { name: "Font, case and size", exact: true });'
           new_start = '    const fontButton = quickToolbar.getByRole("button", { name: "Font and text colour", exact: true });'
           new_end = '    await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();'
           if current_source.count(new_start) != 1 or current_source.count(new_end) != 1:
               raise SystemExit("Current smoke toolbar block is not uniquely selectable")
           if baseline_source.count(new_start) == 1 and baseline_source.count(new_end) == 1:
               pass
+          elif baseline_source.count(baseline_font_start) == 1 and baseline_source.count(new_end) == 1:
+              current_block = current_source[current_source.index(new_start):current_source.index(new_end) + len(new_end)]
+              start = baseline_source.index(baseline_font_start)
+              end = baseline_source.index(new_end) + len(new_end)
+              baseline_source = baseline_source[:start] + current_block + baseline_source[end:]
           elif baseline_source.count(old_start) == 1 and baseline_source.count(old_end) == 1:
               current_block = current_source[current_source.index(new_start):current_source.index(new_end) + len(new_end)]
               start = baseline_source.index(old_start)
               end = baseline_source.index(old_end) + len(old_end)
               baseline_source = baseline_source[:start] + current_block + baseline_source[end:]
           else:
-              raise SystemExit("Baseline toolbar block matches neither legacy nor current semantic locators")
+              raise SystemExit("Baseline toolbar block matches neither legacy nor previous semantic locators")
           aspect_start = '    const aspectSelect = page.locator("#kefeAspect");'
           aspect_end = '    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,'
           if current_source.count(aspect_start) != 1 or current_source.count(aspect_end) != 1:
