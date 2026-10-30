@@ -30,7 +30,7 @@
   let active = false, enabled = false, raf = 0, elapsed = 0, last = 0, failed = false;
   const $ = id => document.getElementById(id);
   const VS = 'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
-  const FS = String.raw\`precision highp float;
+  const FS = String.raw`precision highp float;
 uniform vec2 R; uniform float T,VOLUME,WARP,HUE,VISC,TILT,ROT,SCALE,FOV,SHEEN,FOG,AMBIENT,GRAIN,LIGHT_ANGLE,MODE;
 uniform int HOLO_TYPE;
 float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
@@ -47,7 +47,7 @@ else if(HOLO_TYPE==5){col=mix(vec3(.15,0.,0.),vec3(.6,.02,.02),smoothstep(.1,.5,
 else if(HOLO_TYPE==1){float prism=fract(viewAngle*2.5+h*1.5+HUE);col=vec3(.02,.02,.05)+hsl2rgb(prism,1.,.65)*pow(spec,2.)*2.5+vec3(.9,.95,1.)*pow(diff,3.)*.4;col*=(AMBIENT*.5+(1.-AMBIENT)*diff);}
 else if(HOLO_TYPE==4){col=mix(vec3(.15,.05,0.),vec3(.85,.45,0.),smoothstep(.1,.5,h));col=mix(col,vec3(1.,.9,.4),smoothstep(.4,.9,h));col*=(AMBIENT+(1.2-AMBIENT)*diff)*ao;col+=vec3(1.)*spec*.5;}
 else{vec3 a=hsl2rgb(HUE,.8,.25),b=hsl2rgb(HUE,.9,.55),c=hsl2rgb(HUE,1.,.75);float p1=smoothstep(0.,5.,T),p2=smoothstep(5.,15.,T);col=mix(a,b,smoothstep(.1,.5,h)*p1);col=mix(col,c,smoothstep(.4,.9,h)*p2);col*=(AMBIENT+(1.2-AMBIENT)*diff)*ao;col+=vec3(1.)*spec;}
-float depth=smoothstep(-1.5,1.5,p.y);col*=mix(1.-FOG*.3,1.,depth);col+=(hash(gl_FragCoord.xy+T)-.5)*GRAIN;gl_FragColor=vec4(clamp(col,0.,1.),1.);}\`;
+float depth=smoothstep(-1.5,1.5,p.y);col*=mix(1.-FOG*.3,1.,depth);col+=(hash(gl_FragCoord.xy+T)-.5)*GRAIN;gl_FragColor=vec4(clamp(col,0.,1.),1.);}`;
 
   function compile(type, source) {
     const shader = gl.createShader(type); gl.shaderSource(shader, source); gl.compileShader(shader);
