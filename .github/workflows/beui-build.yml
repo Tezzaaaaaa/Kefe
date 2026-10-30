@@ -228,23 +228,7 @@ jobs:
           NODE_PATH: /tmp/kefe-browser/node_modules
         run: |
           node - <<'NODE'
-          const fs = require("fs");
-          const path = require("path");
-          const required = [
-            ["/tmp/kefe-layout-main", "editor-layout-desktop-day.json"],
-            ["/tmp/kefe-layout-main", "editor-layout-mobile-day.json"],
-            ["/tmp/kefe-screenshots", "editor-layout-desktop-day.json"],
-            ["/tmp/kefe-screenshots", "editor-layout-mobile-day.json"],
-            ["/tmp/kefe-layout-main", "editor-screen-state-desktop-day.json"],
-            ["/tmp/kefe-layout-main", "editor-screen-state-mobile-day.json"],
-            ["/tmp/kefe-screenshots", "editor-screen-state-desktop-day.json"],
-            ["/tmp/kefe-screenshots", "editor-screen-state-mobile-day.json"],
-          ];
-          const missing = required.filter(([dir, name]) => !fs.existsSync(path.join(dir, name)));
-          if (missing.length) {
-            console.error(`INCOMPLETE baseline/current DOM and screen comparison; missing captures: ${JSON.stringify(missing)}`);
-            process.exit(1);
-          }
+          node apps/web/scripts/verify-capture-set.mjs /tmp/kefe-layout-main /tmp/kefe-screenshots /tmp/kefe-screenshots/capture-set.json
           NODE
           set -o pipefail
           node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots 2>&1 | tee /tmp/kefe-screenshots/layout-comparison.log
@@ -302,6 +286,21 @@ jobs:
                 core.notice(line, {file: ".github/workflows/beui-build.yml", startLine: 23});
               }
             }
+      - name: Publish layout comparison failure details
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const tail = (file, lines = 40) => {
+              if (!fs.existsSync(file)) return `${file} was not written.`;
+              return fs.readFileSync(file, "utf8").trim().split(/\r?\n/).slice(-lines).join("\n");
+            };
+            const captureSet = tail("/tmp/kefe-screenshots/capture-set.json", 200);
+            core.error(`Capture set report:\n${captureSet}`, {file: "apps/web/scripts/verify-capture-set.mjs", startLine: 1});
+            core.error(`Layout inventory comparison tail:\n${tail("/tmp/kefe-screenshots/layout-comparison.log")}`, {file: ".github/workflows/beui-build.yml", startLine: 232});
+            core.error(`Screen-state comparison tail:\n${tail("/tmp/kefe-screenshots/screen-state-comparison.log")}`, {file: ".github/workflows/beui-build.yml", startLine: 233});
+
       - name: Compare editor and volume screenshots against main
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
         env:
