@@ -3,9 +3,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import {
   Activity, AudioLines, AudioWaveform, PanelLeft, Info, CircleCheck, TriangleAlert, CircleX, ArrowDown, ArrowLeft, ArrowRight, ArrowUp,
   Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, CloudUpload, Copy,
-  Download, Edit3, Eye, FileAudio, FileText, Folder, Github, Grip, Image,
+  Download, Edit3, Eye, EyeOff, FileAudio, FileText, Folder, Github, Grip, Image,
   Layers, ListMusic, Lock, LockOpen, Maximize, Minimize, MoreHorizontal, Move, Type, Frame, Circle, Cog,
-  Music2, Pause, Play, SkipForward, Plus, Redo2, RotateCcw, Search, Settings, SlidersHorizontal,
+  Music2, Pause, Play, SkipForward, Plus, Minus, Redo2, RotateCcw, Search, Settings, SlidersHorizontal,
   Sparkles, Sun, Moon, Trash2, Undo2, Upload, Volume2, VolumeX, X, Zap,
 } from "lucide-react";
 
@@ -15,11 +15,11 @@ const icons = {
   "arrow-up": ArrowUp, check: Check, "chevron-down": ChevronDown,
   "chevron-left": ChevronLeft, "chevron-right": ChevronRight,
   help: CircleHelp, "cloud-upload": CloudUpload, copy: Copy, download: Download,
-  edit: Edit3, eye: Eye, "file-audio": FileAudio, "file-text": FileText,
+  edit: Edit3, eye: Eye, "eye-off": EyeOff, "file-audio": FileAudio, "file-text": FileText,
   folder: Folder, github: Github, grip: Grip, image: Image, layers: Layers,
-  "list-music": ListMusic, lock: Lock, unlock: LockOpen, move: Move, type: Type, frame: Frame, circle: Circle, dot: Circle, maximize: Maximize,
+  "list-music": ListMusic, lock: Lock, unlock: LockOpen, move: Move, type: Type, font: Type, effect: Sparkles, frame: Frame, circle: Circle, dot: Circle, maximize: Maximize, full: Maximize, menu: MoreHorizontal,
   minimize: Minimize, more: MoreHorizontal, music: Music2, pause: Pause,
-  play: Play, "skip-forward": SkipForward, plus: Plus, redo: Redo2, reset: RotateCcw, search: Search,
+  play: Play, "skip-forward": SkipForward, plus: Plus, minus: Minus, redo: Redo2, reset: RotateCcw, search: Search,
   settings: Cog, sliders: SlidersHorizontal, sparkles: Sparkles, sun: Sun,
   moon: Moon, trash: Trash2, undo: Undo2, upload: Upload, volume: Volume2,
   mute: VolumeX, close: X, zap: Zap,
