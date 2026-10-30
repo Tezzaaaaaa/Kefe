@@ -1718,7 +1718,7 @@
   if(uploadZone&&mediaInput){
     uploadZone.classList.add('beui-upload-dropzone');
     if(!uploadZone.querySelector('.beui-upload-symbol')){
-      uploadZone.insertAdjacentHTML('afterbegin','<span class="beui-upload-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 16V4m-5 5 5-5 5 5M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>');
+      uploadZone.insertAdjacentHTML('afterbegin','<span class="beui-upload-symbol" aria-hidden="true"><span data-kefe-icon="upload" aria-hidden="true"></span></span>');
       uploadZone.insertAdjacentHTML('beforeend','<span class="beui-upload-browse">Browse files</span>');
     }
     mediaUploadRow=uploadZone.parentElement.querySelector('.beui-upload-file');
@@ -1727,7 +1727,7 @@
       mediaUploadRow.className='beui-upload-file';
       mediaUploadRow.hidden=true;
       mediaUploadRow.setAttribute('aria-live','polite');
-      mediaUploadRow.innerHTML='<span class="beui-upload-file-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 3.75h8l4 4V20H6zM14 4v4h4M9 13h6M9 16h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="beui-upload-file-copy"><span class="beui-upload-file-name"></span><span class="beui-upload-file-meta"></span></span><span class="beui-upload-file-status"><span class="beui-upload-status-dot"></span><span>Ready to use</span></span>';
+      mediaUploadRow.innerHTML='<span class="beui-upload-file-icon" aria-hidden="true"><span data-kefe-icon="file-text" aria-hidden="true"></span></span><span class="beui-upload-file-copy"><span class="beui-upload-file-name"></span><span class="beui-upload-file-meta"></span></span><span class="beui-upload-file-status"><span class="beui-upload-status-dot"></span><span>Ready to use</span></span>';
       uploadZone.insertAdjacentElement('afterend',mediaUploadRow);
     }
     uploadZone.addEventListener('dragover',event=>{event.preventDefault();uploadZone.classList.add('is-dragging')});
