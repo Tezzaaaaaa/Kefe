@@ -146,7 +146,7 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
     const button = ensureThemeToggle();
     if (!button) return;
     const isNight = root.dataset.theme === 'night';
-    button.innerHTML = '<span data-kefe-icon="' + (isNight ? 'sun' : 'moon') + '" aria-hidden="true"></span>';
+    button.innerHTML = window.kefeIcon ? window.kefeIcon(isNight ? 'sun' : 'moon') : '<span data-kefe-icon="' + (isNight ? 'sun' : 'moon') + '" aria-hidden="true"></span>';
     button.setAttribute('aria-label', isNight ? 'Switch to day mode' : 'Switch to night mode');
     button.title = isNight ? 'Switch to day mode' : 'Switch to night mode';
   }
