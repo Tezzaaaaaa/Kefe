@@ -489,6 +489,9 @@
   .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-details-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="export"] .kefe-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-form > .kefe-upload-zone,
   .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-form > .kefe-media-track,
   .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-form > .kefe-suggestions,
