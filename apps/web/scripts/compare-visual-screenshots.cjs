@@ -77,12 +77,37 @@ for (const [size, theme] of states) {
   assert.equal(after.height, before.height, `${size}/${theme} component height changed (${before.height} → ${after.height})`);
 
   const diff = new PNG({ width: before.width, height: before.height });
-  const changedPixels = pixelmatch(before.data, after.data, diff.data, before.width, before.height, {
+  const comparisonBefore = Buffer.from(before.data);
+  const comparisonAfter = Buffer.from(after.data);
+  const maskedRegions = [];
+  if (size === "desktop") {
+    const layoutPath = path.join(currentDir, `editor-layout-${size}-${theme}.json`);
+    assert.ok(fs.existsSync(layoutPath), `desktop ${theme} layout inventory is required to isolate the intentionally resized settings columns`);
+    const layout = JSON.parse(fs.readFileSync(layoutPath, "utf8"));
+    for (const group of ["input", "output"]) {
+      const panel = layout.find(item => item.group === group && item.width > 0 && item.height > 0);
+      assert.ok(panel, `desktop ${theme} layout inventory must include the ${group} settings column`);
+      const left = Math.max(0, Math.floor(panel.x));
+      const top = Math.max(0, Math.floor(panel.y));
+      const right = Math.min(before.width, Math.ceil(panel.x + panel.width));
+      const bottom = Math.min(before.height, Math.ceil(panel.y + panel.height));
+      for (let y = top; y < bottom; y += 1) {
+        for (let x = left; x < right; x += 1) {
+          const offset = (y * before.width + x) * 4;
+          comparisonBefore.fill(0, offset, offset + 4);
+          comparisonAfter.fill(0, offset, offset + 4);
+        }
+      }
+      maskedRegions.push({ group, x: left, y: top, width: right - left, height: bottom - top });
+    }
+  }
+  const changedPixels = pixelmatch(comparisonBefore, comparisonAfter, diff.data, before.width, before.height, {
     threshold,
     includeAA: false,
     diffColor: [255, 30, 30],
     aaColor: [255, 200, 0],
   });
+  const comparedPixels = before.width * before.height - maskedRegions.reduce((total, region) => total + region.width * region.height, 0);
   let changedBounds = null;
   if (changedPixels > 0) {
     changedBounds = { left: before.width, top: before.height, right: -1, bottom: -1 };
@@ -109,24 +134,24 @@ for (const [size, theme] of states) {
     [before.width - 3, Math.floor(before.height / 2)], [2, before.height - 3],
     [Math.floor(before.width / 2), before.height - 3], [before.width - 3, before.height - 3]];
   const samples = samplePoints.map(([x, y]) => ({ x, y, before: sample(before, x, y), after: sample(after, x, y) }));
-  const totalPixels = before.width * before.height;
+  const totalPixels = comparedPixels;
   const changedRatio = changedPixels / totalPixels;
   const diffPath = path.join(currentDir, `${subject}-diff-${size}-${theme}.png`);
   fs.writeFileSync(diffPath, PNG.sync.write(diff));
-  results.push({ subject, size, theme, width: before.width, height: before.height, changedPixels, totalPixels, changedPercent: Number((changedRatio * 100).toFixed(3)), changedBounds, samples, diffPath });
+  results.push({ subject, size, theme, width: before.width, height: before.height, changedPixels, totalPixels, changedPercent: Number((changedRatio * 100).toFixed(3)), changedBounds, samples, diffPath, maskedRegions });
   if (subject === "editor") explainEditorDifferences(before, after, size, theme, currentDir);
 }
 }
 
 const lines = [
   "### Editor and volume screenshot comparison",
-  "Compared full editor screenshots against the main-branch baseline; volume popover geometry and day/night surfaces are checked by the browser smoke test. Pixel threshold 0.12, antialias-only changes ignored, desktop pixel gate 2.5%; mobile diffs are reported for visual review.",
+  "Compared editor screenshots against main outside the desktop settings columns, whose height/scroll behavior is intentionally changed and separately checked by browser geometry assertions. Pixel threshold 0.12, antialias-only changes ignored, desktop pixel gate 2.5%; mobile diffs are reported for visual review.",
   "",
   "| Subject | Viewport | Theme | Size | Changed pixels |",
   "|---|---|---|---:|---:|",
   ...results.map((item) => `| ${item.subject} | ${item.size} | ${item.theme} | ${item.width}×${item.height} | ${item.changedPercent}% (${item.changedPixels}/${item.totalPixels}) |`),
   "",
-  "Diff images are included in the screenshot artifact for review.",
+  "Desktop comparison masks: ${JSON.stringify(results.filter(item => item.size === "desktop").map(item => ({ theme: item.theme, regions: item.maskedRegions })))}\nDiff images are included in the screenshot artifact for review.",
   "",
 ];
 if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n"));
