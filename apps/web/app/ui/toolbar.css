@@ -366,7 +366,17 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: none; }
 .kefe-floating-toolbar.is-compact { --kt-h: 28px; }
 .kefe-floating-toolbar.is-compact .kft-cell { width: 28px; height: 28px; }
 .kefe-floating-toolbar.is-compact .kft-grip { height: 28px; }
-@media (max-width: 520px) { .kft-main { flex-wrap: wrap; justify-content: center; width: auto; overflow: visible; } }
+@media (max-width: 520px) {
+  /* Keep the action strip on one line; narrow screens scroll it horizontally. */
+  .kefe-floating-toolbar .kft-main {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+}
 .kft-panel > * { flex-shrink: 0; }
 .kefe-floating-toolbar .kft-cell.kft-btn--toggle[aria-pressed="true"] { background: transparent; border-color: transparent; color: var(--kt-text); }
 .kefe-floating-toolbar .kft-cell.kft-btn--toggle[aria-pressed="false"] { background: var(--kt-surface-hover); border-color: var(--kt-border); color: var(--kt-muted); }
