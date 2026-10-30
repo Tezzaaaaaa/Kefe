@@ -3,8 +3,8 @@
 
   const scriptSrc = document.currentScript && document.currentScript.src;
   const MARKUP_URL = scriptSrc
-    ? new URL('./panel.html?v=settings-panel-replacement-20261025-3', scriptSrc)
-    : new URL('./app/settings/panel.html?v=settings-panel-replacement-20261025-3', window.location.href);
+    ? new URL('./panel.html?v=settings-panel-layout-20261030-1', scriptSrc)
+    : new URL('./app/settings/panel.html?v=settings-panel-layout-20261030-1', window.location.href);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
     'lyric-sync': 'lyrics',
@@ -115,6 +115,14 @@
     }
 
     applyLegacyValues();
+    {
+      // Stacked layouts open one section (Media); side-by-side columns open one per column.
+      const [a, b] = Array.from(root.querySelectorAll('.kefe-panel[data-group]'));
+      const stacked = !a || !b || Math.abs(a.getBoundingClientRect().top - b.getBoundingClientRect().top) >= 8;
+      if (stacked) root.querySelectorAll('.section[data-section-id]').forEach(item => {
+        item.dataset.expanded = String(item.dataset.sectionId === 'media');
+      });
+    }
     root.querySelectorAll('.section[data-section-id]').forEach(section => {
       section.querySelector('.expand-button')?.setAttribute(
         'aria-expanded',
@@ -163,11 +171,20 @@
       if (!sectionId) return;
       const section = root.querySelector('.section[data-section-id="' + sectionId + '"]');
       if (!section) return;
+      // Side-by-side columns each keep their own open section; stacked layouts show one at a time.
+      const groups = Array.from(root.querySelectorAll('.kefe-panel[data-group]'));
+      const sideBySide = groups.length > 1 &&
+        Math.abs(groups[0].getBoundingClientRect().top - groups[1].getBoundingClientRect().top) < 8;
+      const group = section.closest('.kefe-panel[data-group]');
       root.querySelectorAll('.section').forEach(item => {
+        if (sideBySide && item.closest('.kefe-panel[data-group]') !== group) return;
         const expanded = item === section;
         item.dataset.expanded = String(expanded);
         item.querySelector('.expand-button')?.setAttribute('aria-expanded', String(expanded));
       });
+      if (!sideBySide) {
+        setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+      }
     });
 
     window.kefeSettingsPanelAdapter = Object.freeze({

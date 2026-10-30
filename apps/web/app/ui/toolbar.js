@@ -752,7 +752,16 @@
     return { x: s.left + (s.width - w) / 2, y: s.top - hgt - 10 };
   }
   function apply() {
-    pos = clampPos(pos.x, pos.y);
+    if (custom) {
+      pos = clampPos(pos.x, pos.y);
+      root.style.visibility = '';
+    } else {
+      // Docked: follow the preview bar as the page scrolls, and tuck away once it passes under the sticky header.
+      const header = document.querySelector('.kefe-sidebar');
+      const top = header ? header.getBoundingClientRect().bottom : 0;
+      pos = { x: clamp(pos.x, 8, Math.max(8, window.innerWidth - root.offsetWidth - 8)), y: pos.y };
+      root.style.visibility = (pos.y < top || pos.y > window.innerHeight - 8) ? 'hidden' : '';
+    }
     root.style.left = pos.x + 'px'; root.style.top = pos.y + 'px';
   }
   function dock(keepBottom) {
@@ -803,6 +812,7 @@
   grip.addEventListener('dblclick', redock);
 
   window.addEventListener('resize', () => queueDock());
+  window.addEventListener('scroll', () => queueDock(), { passive: true });
   if (window.ResizeObserver) { const ro = new ResizeObserver(() => queueDock()); ro.observe(stage); const dockBar = document.querySelector('.kefe-preview-toolbar'); if (dockBar) ro.observe(dockBar); ro.observe(document.documentElement); ro.observe(root); }
   mobile.addEventListener?.('change', () => queueDock());
 
