@@ -5,6 +5,9 @@ const path = require("node:path");
 const { chromium } = require("playwright");
 
 const root = path.resolve(__dirname, "..", "dist-beui");
+const structurePath = path.join(root, "app", "ui", "structure.js");
+assert.ok(fs.existsSync(structurePath), "built editor must include the native workspace structure script");
+new Function(fs.readFileSync(structurePath, "utf8"));
 const mime = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
