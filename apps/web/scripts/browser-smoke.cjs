@@ -284,6 +284,7 @@ async function captureEditorScreenState(page) {
     await page.waitForTimeout(150);
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
     // with its live panel hosted in the drawer.
+    await page.locator(".kefe-ms-dock").waitFor({ state: "visible", timeout: 5000 });
     await page.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
     await page.waitForFunction(() => Boolean(document.querySelector(".kefe-ms-host #kefeUploadZone")), null, { timeout: 5000 });
     const mobileUploadColumns = await page.locator(".kefe-media-upload-row").evaluate(node =>
@@ -1222,6 +1223,7 @@ async function captureEditorScreenState(page) {
       // The mobile editor surface is now the KEFE sidebar: a section dock replaces
       // the stacked settings accordion, and the live native panel is hosted inside
       // the drawer while it is open.
+      await page.locator(".kefe-ms-dock").waitFor({ state: "visible", timeout: 5000 });
       assert.equal(await page.locator(".kefe-ms-dock").evaluate(node => getComputedStyle(node).display !== "none"), true,
         `the mobile section dock must be available at ${width}px`);
       assert.equal(await page.locator(".kefe-editing").first().evaluate(node => getComputedStyle(node).display), "none",
