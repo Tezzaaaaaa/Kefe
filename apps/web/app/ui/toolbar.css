@@ -168,12 +168,6 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: flex; }
 .kft-trigger__chev { width: 9px; height: 9px; color: var(--kt-muted); transition: transform 160ms var(--kt-ease); }
 .kft-trigger[aria-expanded="true"] .kft-trigger__chev { transform: rotate(180deg); }
 .kft-trigger.kft-trigger--field { display: flex; width: 100%; min-width: 0; max-width: none; }
-.kft-swatch {
-  border: 1px solid rgb(255 255 255 / 25%);
-  border-radius: 2px;
-  background: var(--kt-swatch, #fff);
-  box-shadow: 0 0 0 .5px rgb(0 0 0 / 40%);
-}
 
 .kft-nudge {
   display: flex;
