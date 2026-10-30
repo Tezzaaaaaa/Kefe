@@ -157,9 +157,10 @@ jobs:
               baseline_source = baseline_source.replace(old_aspect_a11y, '    // The baseline retains its legacy aspect-control accessibility behavior.')
           old_native_select_assert = '    assert.ok(nativeSelectState.visible.every((select) => select && !select.hidden && select.ariaHidden === null && select.tabIndex !== -1 && !select.nextHost),'
           new_native_select_assert = '    assert.ok(nativeSelectState.visible.slice(1).every((select) => select && !select.hidden && select.ariaHidden === null && select.tabIndex !== -1 && !select.nextHost) && nativeSelectState.visible[0] && !nativeSelectState.visible[0].hidden && nativeSelectState.visible[0].ariaHidden === null && !nativeSelectState.visible[0].nextHost,'
-          if baseline_source.count(old_native_select_assert) != 1:
-              raise SystemExit("Baseline native-select assertion is not uniquely selectable")
-          baseline_source = baseline_source.replace(old_native_select_assert, new_native_select_assert)
+          if baseline_source.count(old_native_select_assert) == 1:
+              baseline_source = baseline_source.replace(old_native_select_assert, new_native_select_assert)
+          elif baseline_source.count(new_native_select_assert) != 1:
+              raise SystemExit("Baseline native-select assertion matches neither legacy nor current behavior")
           # Main's old screenshot block captures after the smoke search has populated its live
           # carousel. Reuse the current isolated-context capture so both sides start clean,
           # without changing the baseline UI or its smoke assertions.
