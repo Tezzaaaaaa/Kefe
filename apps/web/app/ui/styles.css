@@ -6395,28 +6395,7 @@ html,body{min-height:100%;height:auto;background:var(--bg);color:var(--text)}
   box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent);
 }
 .kefe-sidebar-link.is-current{box-shadow:inset 2px 0 0 var(--accent)}
-@media(min-width:641px){
-.kefe-editor.sidebar-collapsed{grid-template-columns:72px minmax(0,1fr)}
-.kefe-editor.sidebar-collapsed .kefe-sidebar{padding-inline:8px;gap:18px}
-.kefe-editor.sidebar-collapsed .kefe-sidebar-brand-row{flex-direction:column;gap:9px}
-.kefe-editor.sidebar-collapsed .kefe-sidebar-brand{justify-content:center;padding:0}
-.kefe-editor.sidebar-collapsed .kefe-sidebar-brand span,
-.kefe-editor.sidebar-collapsed .kefe-sidebar-label{display:none}
-.kefe-editor.sidebar-collapsed .kefe-sidebar-link{justify-content:center;gap:0;padding-inline:0;font-size:0}
-.kefe-editor.sidebar-collapsed .kefe-sidebar-link>span{width:100%;flex-basis:100%;font-size:17px}
-.kefe-editor.sidebar-collapsed .kefe-sidebar-theme{padding:10px 0}
-.kefe-editor.sidebar-collapsed .kefe-theme-swatches{justify-content:center;gap:7px}
-.kefe-editor.sidebar-collapsed .kefe-theme-swatches button{width:17px;height:17px}
-.kefe-editor.sidebar-collapsed .kefe-sidebar-github{font-size:0}
-.kefe-editor.sidebar-collapsed .kefe-sidebar-github>span{font-size:17px}
-.kefe-editor.sidebar-collapsed .kefe-sidebar-toggle{transform:rotate(180deg)}
-}
 body:has(.kefe-workspace-dock){padding-bottom:82px}
-@media(min-width:641px) and (max-width:900px){
-  .kefe-editor.sidebar-collapsed{grid-template-columns:68px minmax(0,1fr)}
-  .kefe-editor.sidebar-collapsed .kefe-sidebar{padding-inline:7px}
-  .kefe-editor.sidebar-collapsed .kefe-theme-swatches{gap:5px}
-}
 @media(max-width:640px){
   body:has(.kefe-workspace-dock){padding-bottom:calc(112px + env(safe-area-inset-bottom))}
   .kefe-command-trigger span,.kefe-command-trigger kbd{display:none}
@@ -10284,95 +10263,6 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-
   background: linear-gradient(145deg, #ffffff, #eceef3);
 }
 
-/* KEFE header navigator: reuse the existing working navigation controls in a single top bar. */
-.kefe-editor {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 56px auto auto;
-}
-.kefe-sidebar {
-  background: var(--surface);
-  border-right: 0;
-  border-bottom: 1px solid var(--line);
-  scrollbar-width: none;
-}
-.kefe-sidebar-toggle { display: none; }
-.kefe-sidebar-brand {
-  border-radius: 6px;
-}
-.kefe-sidebar-link {
-  border-radius: 6px;
-}
-.kefe-sidebar-bottom {
-  border-top: 0;
-  border-left: 1px solid var(--line);
-}
-.kefe-work { grid-column: 1; grid-row: 2; min-width: 0; }
-.kefe-editing { grid-column: 1; grid-row: 3; }
-.kefe-site-footer { grid-column: 1; grid-row: 4; }
-.kefe-sidebar-link.is-current {
-  background: var(--active, color-mix(in srgb, var(--accent) 12%, transparent));
-  border-color: var(--line-soft, var(--line));
-  color: var(--text);
-}
-@media (max-width: 640px) {
-  .kefe-editor {
-    height: auto;
-    min-height: 100vh;
-    min-height: 100dvh;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 50px auto auto;
-  }
-  .kefe-sidebar .kefe-sidebar-toggle { display: inline-flex; align-items: center; justify-content: center; }
-  .kefe-work { grid-column: 1; grid-row: 2; grid-template-rows: auto 48px auto; }
-  .kefe-editing { grid-column: 1; grid-row: 3; }
-  .kefe-site-footer { grid-column: 1; grid-row: 4; }
-}
-
-/* ===== Header navigation — the single source of layout for .kefe-sidebar =====
-   Every earlier .kefe-sidebar rule set only owns colour/typography/state; geometry lives here.
-   One row: brand | sections | actions. Groups and links never shrink (they scroll instead),
-   so nothing can overlap, and narrower widths drop to icon-only links. */
-.kefe-sidebar {
-  grid-column: 1 / -1; grid-row: 1;
-  position: sticky; top: 0; z-index: 30;
-  box-sizing: border-box; width: 100%; min-width: 0; height: 56px; min-height: 56px;
-  display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 0 12px;
-  overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
-  background: var(--surface); border-right: 0; border-bottom: 1px solid var(--line);
-}
-.kefe-sidebar::-webkit-scrollbar { display: none; }
-.kefe-sidebar-toggle { display: none !important; }
-.kefe-sidebar-brand-row {
-  display: flex; flex: 0 0 auto; align-items: center;
-  position: sticky; left: 0; z-index: 2; padding-right: 8px;
-  background: var(--surface); box-shadow: none;
-}
-.kefe-sidebar-brand { display: flex; align-items: center; height: 36px; padding: 0 6px; font-size: 16px; border-radius: 6px; }
-.kefe-sidebar-group { display: flex; flex: 0 0 auto; align-items: center; gap: 2px; margin: 0; padding: 0; border: 0; }
-.kefe-sidebar-label { display: none; }
-.kefe-sidebar-link {
-  display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 7px;
-  width: auto; height: 34px; min-height: 34px; padding: 0 11px; border-radius: 8px;
-  font-size: 13px; line-height: 1; white-space: nowrap;
-}
-.kefe-sidebar-link > span[aria-hidden="true"] { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 18px; width: 18px; height: 18px; }
-.kefe-sidebar-link > span svg { display: block; width: 18px; height: 18px; }
-.kefe-sidebar-link > .kefe-sidebar-link-label { font-size: 13px; line-height: 1.2; }
-.kefe-sidebar-bottom {
-  display: flex; flex: 0 0 auto; align-items: center; gap: 4px;
-  margin: 0 0 0 auto; padding: 0 0 0 10px; border: 0; border-left: 1px solid var(--line);
-}
-.kefe-sidebar-bottom > .kefe-sidebar-link { width: 34px; min-width: 34px; padding: 0; font-size: 0; }
-@media (max-width: 1180px) {
-  .kefe-sidebar-group .kefe-sidebar-link:not(.is-current) { width: 34px; padding: 0; }
-  .kefe-sidebar-group .kefe-sidebar-link:not(.is-current) > .kefe-sidebar-link-label { display: none; }
-}
-@media (max-width: 640px) {
-  .kefe-sidebar { height: 50px; min-height: 50px; padding: 0 10px; }
-  .kefe-sidebar-group { display: none; } /* the bottom dock carries section navigation on phones */
-  .kefe-sidebar-bottom { margin-left: auto; }
-}
-
 /* ===== Document scrolling and collapsed sections ===== */
 /* The page scrolls on <html>. A second scrolling <body> made it the sticky header's scroll
    container, so the header scrolled away on stacked layouts. clip keeps horizontal containment
@@ -10387,49 +10277,8 @@ body { overflow: visible; overflow-x: clip; }
 @media (max-width: 1279px) { body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
 
 
-/* Responsive workspace navigation: keep section names available on phones and
-   remove the fixed duplicate dock that obscures the scrollable editor. */
-@media (max-width: 640px) {
-  .kefe-editor .kefe-sidebar {
-    display: flex;
-    flex-wrap: nowrap;
-    height: 50px;
-    min-height: 50px;
-    gap: 6px;
-    padding: 0 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-  .kefe-editor .kefe-sidebar-brand-row {
-    position: static;
-    flex: 0 0 auto;
-  }
-  .kefe-editor .kefe-sidebar .kefe-sidebar-group {
-    display: flex;
-    flex: 0 0 auto;
-    overflow: visible;
-  }
-  .kefe-editor .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link:not(.is-current) {
-    width: auto;
-    min-width: max-content;
-    padding: 0 10px;
-  }
-  .kefe-editor .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link:not(.is-current) > .kefe-sidebar-link-label,
-  .kefe-editor .kefe-sidebar .kefe-sidebar-group > .kefe-sidebar-link > .kefe-sidebar-link-label {
-    display: inline;
-  }
-  .kefe-editor .kefe-sidebar .kefe-sidebar-group > .kefe-sidebar-link > span[aria-hidden="true"] {
-    display: none;
-  }
-}
 body:has(.kefe-editor) > .kefe-workspace-dock { display: none; }
 body:has(.kefe-editor):has(.kefe-workspace-dock) { padding-bottom: 0; }
-
-
-/* Header section links are text-only; utility actions keep their icons. */
-.kefe-editor .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden="true"] {
-  display: none;
-}
 
 /* ---- Mobile side panel: compact, thumb-friendly sections (≤700px) ---- */
 @media (max-width: 700px) {
@@ -10465,28 +10314,151 @@ body:has(.kefe-editor):has(.kefe-workspace-dock) { padding-bottom: 0; }
   .kefe-editor .kefe-visualiser-form .kefe-visualiser-field > span > b { overflow: visible; text-overflow: clip; white-space: nowrap; }
 }
 
-/* ===== Editor-only header navigation =====
-   The header keeps a single Editor tab. The editor's own section panels hold the
-   Media / Lyric Sync / Lyric Effects / Background Effects / Visualisers / Export
-   controls, so the header no longer repeats them as tabs. Settings, day/night,
-   search and GitHub stay in the right-hand action cluster. */
-.kefe-sidebar .kefe-sidebar-group-editor { flex: 0 0 auto; }
-.kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] {
-  width: auto; min-width: 0; padding: 0 12px; font-size: 13px;
+/* ===== Consolidated KEFE header navigation =====
+   One bar owns the brand, the single Editor entry and the utility actions. The
+   editor's own section panels (desktop columns, drawer below 1024px) are the only
+   section navigation, and the mobile dock carries one-tap section switching.
+   Earlier .kefe-sidebar rule sets are legacy: they only contribute colour and
+   typography. All geometry for the header lives here. */
+.kefe-editor {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 56px auto auto;
 }
-.kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] > .kefe-sidebar-link-label {
-  display: inline;
+body .kefe-editor > header.kefe-sidebar {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 56px;
+  min-height: 56px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  background: var(--surface);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
 }
-.kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab].is-current {
+body .kefe-editor > header.kefe-sidebar::-webkit-scrollbar { display: none; }
+.kefe-sidebar-toggle,
+.kefe-sidebar-label { display: none !important; }
+.kefe-sidebar-brand-row {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  padding-right: 8px;
+  background: var(--surface);
+}
+.kefe-sidebar-brand {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 6px;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -.02em;
+  text-decoration: none;
+}
+.kefe-sidebar-group {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.kefe-sidebar-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: auto;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 11px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.kefe-sidebar-link > span[aria-hidden="true"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+}
+.kefe-sidebar-link > span svg { display: block; width: 18px; height: 18px; }
+.kefe-sidebar-link > .kefe-sidebar-link-label { display: inline; font-size: 13px; line-height: 1.2; }
+/* Header section entries are text-only; utility actions keep their icons. */
+.kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden="true"] { display: none; }
+.kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] {
+  width: auto;
+  min-width: 0;
+  padding: 0 12px;
+}
+.kefe-sidebar-bottom {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 0 auto;
+  padding: 0 0 0 10px;
+  border: 0;
+  border-left: 1px solid var(--line);
+}
+.kefe-sidebar-bottom > .kefe-sidebar-link {
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+  font-size: 0;
+}
+.kefe-sidebar-link.is-current {
+  background: var(--active, color-mix(in srgb, var(--accent) 12%, transparent));
   border-color: var(--line-soft, var(--line));
+  color: var(--text);
 }
-@media (max-width: 1180px) {
-  .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] { width: auto; padding: 0 11px; }
-  .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] > .kefe-sidebar-link-label { display: inline; }
-}
+.kefe-work { grid-column: 1; grid-row: 2; min-width: 0; }
+.kefe-editing { grid-column: 1; grid-row: 3; }
+.kefe-site-footer { grid-column: 1; grid-row: 4; }
+
 @media (max-width: 640px) {
-  /* Keep the single Editor tab on phones even though the section groups are retired. */
-  .kefe-sidebar .kefe-sidebar-group-editor { display: flex; }
-  .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] { padding: 0 10px; }
-  .kefe-sidebar .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] > .kefe-sidebar-link-label { display: inline; }
+  body .kefe-editor > header.kefe-sidebar {
+    height: 50px;
+    min-height: 50px;
+    padding: 0 10px;
+    gap: 6px;
+  }
+  .kefe-sidebar-brand-row { position: static; }
+  .kefe-sidebar-group { display: flex; overflow: visible; }
+  .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] { padding: 0 10px; }
+  .kefe-sidebar-bottom { margin-left: auto; }
+  .kefe-editor {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 50px auto auto;
+  }
+  .kefe-work { grid-column: 1; grid-row: 2; grid-template-rows: auto 48px auto; }
+  .kefe-editing { grid-column: 1; grid-row: 3; }
+  .kefe-site-footer { grid-column: 1; grid-row: 4; }
 }

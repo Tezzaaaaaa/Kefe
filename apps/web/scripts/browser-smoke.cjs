@@ -456,6 +456,26 @@ async function captureEditorScreenState(page) {
     assert.ok(headerNavigation.navDisplays.length >= 1 && headerNavigation.navDisplays.every((display) => display === "flex"),
       `the Editor tab group must stay a horizontal flex row: ${JSON.stringify(headerNavigation.navDisplays)}`);
     assert.ok(headerNavigation.linksWithinHeader, "desktop navigation links must not be clipped outside the header");
+    const headerActions = await page.locator(".kefe-sidebar-bottom > .kefe-sidebar-link").evaluateAll(nodes =>
+      nodes.map(node => node.getAttribute("aria-label") || node.textContent.trim()));
+    assert.deepEqual(headerActions, ["Settings", "Switch to day mode", "Search KEFE", "KEFE on GitHub"],
+      `header actions must expose their names: ${JSON.stringify(headerActions)}`);
+    assert.equal(await page.locator(".kefe-sidebar > .kefe-sidebar-group").count(), 1,
+      "the header must expose one navigation group");
+    assert.equal(await page.locator(".kefe-sidebar-group > .kefe-sidebar-link").count(), 1,
+      "the header navigation group must hold only the Editor entry");
+    assert.equal(await page.locator(".kefe-top-nav, .kefe-top-link").count(), 0,
+      "the retired top navigation must not remain in the editor DOM");
+    const themeToggle = page.locator("#kefeThemeToggle");
+    assert.equal(await themeToggle.count(), 1, "the header must own a single day/night action");
+    await themeToggle.click();
+    await page.waitForFunction(() => document.documentElement.dataset.theme === "day", null, { timeout: 5000 });
+    assert.equal(await themeToggle.getAttribute("aria-label"), "Switch to night mode",
+      "the day/night action must describe the theme it switches to");
+    await themeToggle.click();
+    await page.waitForFunction(() => document.documentElement.dataset.theme === "night", null, { timeout: 5000 });
+    assert.equal(await themeToggle.getAttribute("aria-label"), "Switch to day mode",
+      "the day/night action must return to the night theme");
     const desktopColumns = await page.evaluate(() => {
       const left = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
       const centre = document.querySelector(".kefe-work").getBoundingClientRect();
@@ -1252,6 +1272,16 @@ async function captureEditorScreenState(page) {
         `the single Editor tab must retain its text label at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
       assert.ok(mobileNavigationLabels.every(label => label.text && label.display !== "none" && label.width > 0),
         `mobile navigation must not leave blank iconless links at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+      const headerFit = await page.locator(".kefe-sidebar").evaluate(node => {
+        const header = node.getBoundingClientRect();
+        const actions = node.querySelector(".kefe-sidebar-bottom")?.getBoundingClientRect();
+        return { top: header.top, left: header.left, right: header.right, height: header.height,
+          actionsRight: actions?.right ?? null, viewportWidth: document.documentElement.clientWidth };
+      });
+      assert.ok(headerFit.top <= 1 && headerFit.left >= -1 && headerFit.right <= headerFit.viewportWidth + 1,
+        `the header must stay on screen at ${width}px: ${JSON.stringify(headerFit)}`);
+      assert.ok(headerFit.actionsRight === null || headerFit.actionsRight <= headerFit.viewportWidth + 1,
+        `header actions must stay inside the header at ${width}px: ${JSON.stringify(headerFit)}`);
       const mobileDockDisplay = await page.locator(".kefe-workspace-dock").evaluate(node => getComputedStyle(node).display);
       assert.equal(mobileDockDisplay, "none",
         `the duplicate fixed workspace dock must not cover editor content at ${width}px`);

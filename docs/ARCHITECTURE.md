@@ -62,7 +62,8 @@ scripts/              Build and test scripts (see Checks)
 
 - **Legacy layer.** `editor.source.html` loads the effect, lyric, UI and visualiser scripts in a fixed order. Scripts communicate through globals such as `window.kefeEffects`, `window.kefeStyle` and `window.kefeSettings`. `effects/core.js` and `effects/manifest.js` must load before the lyric renderers.
 - **beUI bridges.** Each `beui-src/legacy-*-bridge.jsx` module mounts a beUI component beside the matching legacy control (range, select, text input, textarea, checkbox, upload card, tabs, sidebar, command dialog, panel buttons). The legacy control stays the source of truth: the bridge mirrors its value and forwards events, so the native input is preserved.
-- **Panels.** `ui/structure.js` builds the six editor sections (Media, Lyrics, Effects, Background Effects, Visualiser, Export). `ui/desktop-panels.js` and the settings panel place them in the header plus three-panel desktop layout. `ui/panels-compact.css` is the compact styling layer for the side panels.
+- **Header navigation.** `ui/structure.js` renders one header bar (`.kefe-sidebar`): the KEFE brand, a single Editor entry and the Settings, day/night, search and GitHub actions. The header never repeats the six editor sections; those are reached through the editor's own section panels, the mobile drawer/dock, or the command palette.
+- **Panels.** `ui/structure.js` builds the six editor sections (Media, Lyrics, Effects, Background Effects, Visualiser, Export). `ui/desktop-panels.js` and the settings panel place them in the three-panel desktop layout (and stack them below 1280px). `ui/panels-compact.css` is the compact styling layer for the side panels.
 - **Toolbar.** `ui/toolbar.js` is the floating editor toolbar. On desktop it docks in the preview bar; each button opens a panel (layer, lyric effect, font, colour, canvas, more actions) that drives the canonical editor controls.
 
 ### Rules
