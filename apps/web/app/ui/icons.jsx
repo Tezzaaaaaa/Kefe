@@ -1,7 +1,7 @@
 import React, { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
-  Activity, AudioLines, AudioWaveform, PanelLeft, ArrowDown, ArrowLeft, ArrowRight, ArrowUp,
+  Activity, AudioLines, AudioWaveform, PanelLeft, Info, CircleCheck, TriangleAlert, CircleX, ArrowDown, ArrowLeft, ArrowRight, ArrowUp,
   Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, CloudUpload, Copy,
   Download, Edit3, Eye, FileAudio, FileText, Folder, Github, Grip, Image,
   Layers, ListMusic, Lock, LockOpen, Maximize, Minimize, MoreHorizontal, Move, Type, Frame, Circle,
