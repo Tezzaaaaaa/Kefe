@@ -1139,6 +1139,31 @@ async function captureEditorScreenState(page) {
         `mobile brand, navigation groups and action controls must not overlap at ${width}px: ${JSON.stringify(mobileNavigation)}`);
       assert.equal(mobileNavigation.linkOverlap, false,
         `mobile navigation links must not overlap at ${width}px: ${JSON.stringify(mobileNavigation)}`);
+      const mobileNavigationLabels = await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").evaluateAll(labels =>
+        labels.map(label => ({
+          text: label.textContent.trim(),
+          display: getComputedStyle(label).display,
+          width: label.getBoundingClientRect().width
+        }))
+      );
+      assert.equal(mobileNavigationLabels.length, 7,
+        `all seven native workspace links must retain their text labels at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+      assert.ok(mobileNavigationLabels.every(label => label.text && label.display !== "none" && label.width > 0),
+        `mobile navigation must not leave blank iconless links at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+      const mobileDockDisplay = await page.locator(".kefe-workspace-dock").evaluate(node => getComputedStyle(node).display);
+      assert.equal(mobileDockDisplay, "none",
+        `the duplicate fixed workspace dock must not cover mobile editor content at ${width}px`);
+      const mobileToolbarLayout = await quickToolbar.locator(".kft-main").evaluate(node => ({
+        flexWrap: getComputedStyle(node).flexWrap,
+        clientHeight: node.clientHeight,
+        scrollHeight: node.scrollHeight,
+        clientWidth: node.clientWidth,
+        scrollWidth: node.scrollWidth
+      }));
+      assert.equal(mobileToolbarLayout.flexWrap, "nowrap",
+        `the mobile preview toolbar must stay on one row at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
+      assert.ok(mobileToolbarLayout.scrollHeight <= mobileToolbarLayout.clientHeight + 1,
+        `the mobile preview toolbar must not wrap or increase its height at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
       for (const [section, label] of [
         ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Effects"],
         ["background-effects", "Background Effects"], ["visualiser", "Visualiser"], ["export", "Export"]
