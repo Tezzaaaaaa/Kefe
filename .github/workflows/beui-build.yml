@@ -165,7 +165,7 @@ jobs:
           baseline_source = baseline_source[:baseline_screenshot_start] + current_screenshot + baseline_source[baseline_screenshot_end:]
           # Main hides the native volume backing button behind its React transport control.
           old_volume_trigger = 'await screenshotPage.locator("#kefeMuteToggle").click();'
-          new_volume_trigger = "await screenshotPage.locator('.beui-transport-host button[aria-controls=\"kefeVolumePopover\"]').click();"
+          new_volume_trigger = "await screenshotVolumeTrigger.click();"
           if baseline_source.count(old_volume_trigger) == 1:
               baseline_source = baseline_source.replace(old_volume_trigger, new_volume_trigger)
           elif baseline_source.count(new_volume_trigger) == 0:
