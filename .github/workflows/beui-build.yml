@@ -227,8 +227,8 @@ jobs:
         env:
           NODE_PATH: /tmp/kefe-browser/node_modules
         run: |
+          set -eo pipefail
           node apps/web/scripts/verify-capture-set.mjs /tmp/kefe-layout-main /tmp/kefe-screenshots /tmp/kefe-screenshots/capture-set.json
-          set -o pipefail
           node apps/web/scripts/compare-layout-inventories.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots 2>&1 | tee /tmp/kefe-screenshots/layout-comparison.log
           node apps/web/scripts/compare-screen-states.cjs /tmp/kefe-layout-main /tmp/kefe-screenshots 2>&1 | tee /tmp/kefe-screenshots/screen-state-comparison.log
       - name: Report baseline and DOM/carousel comparison outcomes
