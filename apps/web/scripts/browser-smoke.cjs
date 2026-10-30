@@ -1241,6 +1241,13 @@ async function captureEditorScreenState(page) {
           document.querySelector(".kefe-ms-drawer") &&
           document.querySelector(`.kefe-ms-host .kefe-panel[data-panel-view="${expected}"]`)
         ), section, { timeout: 5000 });
+        // Wait for the slide-in spring to settle before measuring the drawer.
+        await page.waitForFunction(() => {
+          const drawer = document.querySelector(".kefe-ms-drawer");
+          if (!drawer) return false;
+          const rect = drawer.getBoundingClientRect();
+          return rect.left >= -1 && rect.right <= document.documentElement.clientWidth + 1;
+        }, null, { timeout: 5000 });
 
         const drawerTitle = (await page.locator("#kefe-ms-title").innerText()).trim();
         assert.ok(drawerTitle.length > 0, `mobile sidebar must name the ${section} section at ${width}px`);
