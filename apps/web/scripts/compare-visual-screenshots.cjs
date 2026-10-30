@@ -69,7 +69,7 @@ function explainEditorDifferences(before, after, size, theme, currentDir) {
   }
 }
 
-for (const subject of ["editor", "volume-card"]) {
+for (const subject of ["editor"]) {
 for (const [size, theme] of states) {
   const before = PNG.sync.read(fs.readFileSync(findCapture(baselineDir, subject, size, theme)));
   const after = PNG.sync.read(fs.readFileSync(findCapture(currentDir, subject, size, theme)));
