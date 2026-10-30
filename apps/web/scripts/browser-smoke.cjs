@@ -682,6 +682,16 @@ async function captureEditorScreenState(page) {
       && item.expandedContentHeight > 80),
       `desktop section cards must distribute the available panel height: ${JSON.stringify(panelFillAudit)}`);
 
+    const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
+    await visualiserSection.locator(".expand-button").click();
+    await page.waitForFunction(() => {
+      const section = document.querySelector('#kefe-settings-panel .section[data-section-id="visualisers"]');
+      const tabs = document.querySelector(".kefe-vis-tabs");
+      return section?.dataset.expanded === "true" && tabs && !tabs.hidden;
+    }, null, { timeout: 5000 });
+    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), true,
+      "opening Visualisers from its side-panel section must reveal the visualiser controls");
+
     const sectionHeaderAudit = await page.evaluate(() => {
       const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];
       return sections.map(section => {
