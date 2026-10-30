@@ -18,30 +18,9 @@
   const stage = document.querySelector('.kefe-stage');
   if (!stage || document.getElementById('kefeFloatingToolbar')) return;
 
-  const ICON = {
-    grip: '<circle cx="9" cy="5" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="9" cy="19" r="2"/><circle cx="15" cy="5" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="15" cy="19" r="2"/>',
-    move: '<path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/>',
-    lock: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
-    unlock: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
-    lyrics: '<path d="M4 6h16M4 12h11M4 18h8"/>',
-    full: '<path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5"/>',
-    chevron: '<polyline points="6 9 12 15 18 9"/>',
-    check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
-    reset: '<path d="M3 11a9 9 0 1 1 2.6 6.4M3 4v7h7"/>',
-    undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
-    redo: '<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
-    effect: '<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3"/>',
-    font: '<path d="M4 20 10 4h4l6 16"/><path d="M6.5 14h11"/>',
-    ratio: '<rect x="3" y="5" width="18" height="14" rx="2"/>',
-    menu: '<path d="M3 6h18M3 12h18M3 18h18"/>',
-    eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
-    dot: '<circle cx="12" cy="12" r="3"/>',
-    arrowup: '<path d="m18 15-6-6-6 6"/>',
-    arrowdown: '<path d="m6 9 6 6 6-6"/>',
-    arrowleft: '<path d="m15 18-6-6 6-6"/>',
-    arrowright: '<path d="m9 18 6-6-6-6"/>'
-  };
-  const icon = (name, cls) => '<svg class="kft-icon' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + ICON[name] + '</svg>';
+  const icon = (name, cls) => window.kefeIcon
+    ? window.kefeIcon(name, 'kft-icon' + (cls ? ' ' + cls : ''))
+    : '<span data-kefe-icon="' + name + '" data-icon-class="kft-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"></span>';
   const h = (tag, cls, attrs) => {
     const node = document.createElement(tag);
     if (cls) node.className = cls;
@@ -167,7 +146,7 @@
     const trigger = h('button', 'kft-trigger kft-trigger--' + variant, { type: 'button', 'aria-haspopup': 'listbox', 'aria-expanded': 'false', 'aria-label': label });
     const text = h('span', 'kft-trigger__text');
     trigger.appendChild(text);
-    trigger.insertAdjacentHTML('beforeend', icon('chevron', 'kft-trigger__chev'));
+    trigger.insertAdjacentHTML('beforeend', icon('chevron-down', 'kft-trigger__chev'));
     const listId = 'kftList' + (++menuSeq);
     let typed = '', typedTimer = 0;
     function refresh() {
@@ -567,7 +546,7 @@
   /* Canvas panel: ratio, safe area, preview background, background + visualiser */
   const ratioBtn = h('button', 'kft-btn kft-cell kft-cell--ratio', { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
   const ratioLabel = h('span'); ratioLabel.textContent = '16:9';
-  ratioBtn.innerHTML = icon('ratio'); ratioBtn.appendChild(ratioLabel);
+  ratioBtn.innerHTML = icon('frame'); ratioBtn.appendChild(ratioLabel);
   bindTip(ratioBtn, 'Canvas, background and visualiser');
   const aspectSeg = createSegmented({
     label: 'Canvas ratio',
