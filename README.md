@@ -83,7 +83,7 @@ Effects provide different animation and typography treatments. Available control
 
 - Preview playback, scrub through the timeline and view the composition fullscreen.
 - Switch the composition aspect ratio between 16:9, 9:16 and 1:1.
-- Switch between the Liquid Glass, Disco Ball, Slow Light, Fluid Ink, Glass Lens, Tidal Prism and Night Tunnel visualisers.
+- Switch between the Liquid Glass, Slow Light, Fluid Ink and Glass Lens visualisers.
 - Use the available presets and controls for each visualiser.
 - Visualiser output responds to source audio where supported and is included in video exports.
 
