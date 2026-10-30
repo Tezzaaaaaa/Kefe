@@ -57,8 +57,19 @@
     return ranges.find(r => Number(r.min) === 50 && Number(r.max) === 160) || ranges[0] || null;
   };
   const modeButtons = () => Array.from(document.querySelectorAll('#kefeDisplayGroup [data-mode]'));
-  const visTabs = () => Array.from(document.querySelectorAll('.kefe-vis-tabs [role="tab"], .kefe-vis-tabs button[data-visualiser]'))
-    .filter((tab, i, all) => all.indexOf(tab) === i);
+  const visTabs = () => {
+    const host = document.querySelector('.kefe-vis-tabs .beui-vis-tabs-host');
+    const source = host
+      ? host.querySelectorAll('button[role="tab"][data-visualiser]')
+      : document.querySelectorAll('.kefe-vis-tabs button[role="tab"][data-visualiser]');
+    const seen = new Set();
+    return Array.from(source).filter(tab => {
+      const key = tab.dataset.visualiser;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
 
   // editor.js handles layer move / scale / reset / effect defaults through page-wide delegation on these
   // data attributes. The toolbar owns the controls: a hidden native set that its own UI drives, so saved layout
