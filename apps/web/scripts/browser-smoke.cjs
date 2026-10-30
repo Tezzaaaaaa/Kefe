@@ -372,7 +372,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "keyboard activation of the native Media button should restore the initial section");
     const aspectSelect = page.locator("#kefeAspect");
-    assert.equal(await aspectSelect.getAttribute("aria-hidden"), "true", "the native preview aspect backing control must stay hidden from the preview bar");
+    assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview-bar ratio wrapper must remain hidden");
     const canvasButton = quickToolbar.locator(".kft-cell--ratio");
     assert.equal(await canvasButton.getAttribute("aria-label"), "Canvas, background and visualiser", "the Canvas ratio control must remain available in the floating toolbar");
     await canvasButton.click();
