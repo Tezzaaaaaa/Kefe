@@ -664,22 +664,23 @@ async function captureEditorScreenState(page) {
     const panelFillAudit = await page.evaluate(() => {
       return ["input", "output"].map(groupName => {
         const group = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="' + groupName + '"]');
-        const expanded = group?.querySelector('.section[data-expanded="true"]');
-        if (!group || !expanded) return { groupName, found: false };
-        const groupRect = group.getBoundingClientRect();
-        const sectionRect = expanded.getBoundingClientRect();
-        const contentRect = expanded.querySelector(".section-content").getBoundingClientRect();
+        if (!group) return { groupName, found: false };
+        const groupHeight = group.getBoundingClientRect().height;
+        const sections = [...group.querySelectorAll(":scope > .section[data-section-id]")];
         return {
           groupName,
-          found: true,
-          bottomGap: groupRect.bottom - sectionRect.bottom,
-          contentHeight: contentRect.height,
-          groupHeight: groupRect.height
+          found: sections.length === 3,
+          sectionHeights: sections.map(section => section.getBoundingClientRect().height),
+          minimumSectionHeight: groupHeight / 4,
+          expandedContentHeight: sections.find(section => section.dataset.expanded === "true")
+            ?.querySelector(".section-content").getBoundingClientRect().height || 0
         };
       });
     });
-    assert.ok(panelFillAudit.every(item => item.found && item.bottomGap <= 18 && item.contentHeight > 80),
-      `expanded desktop sections must stretch through the available panel space: ${JSON.stringify(panelFillAudit)}`);
+    assert.ok(panelFillAudit.every(item => item.found
+      && item.sectionHeights.every(height => height >= item.minimumSectionHeight)
+      && item.expandedContentHeight > 80),
+      `desktop section cards must distribute the available panel height: ${JSON.stringify(panelFillAudit)}`);
 
     const sectionHeaderAudit = await page.evaluate(() => {
       const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];
