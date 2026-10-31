@@ -236,6 +236,9 @@ async function captureEditorScreenState(page) {
     // Exercise the editor toolbar against the real editor controls.
     const quickToolbar = page.locator("#kefeFloatingToolbar");
     assert.equal(await quickToolbar.count(), 1, "there must be exactly one editor toolbar");
+    await quickToolbar.getByRole("button", { name: "Editor toolbar", exact: true }).click();
+    await page.waitForFunction(() => document.querySelector("#kefeFloatingToolbar .kft-launch")?.getAttribute("aria-expanded") === "true",
+      null, { timeout: 5000 });
     const toolbarIconAudit = await quickToolbar.evaluate(node => {
       const controls = [...node.querySelectorAll(".kft-main button.kft-btn--icon:not(:has(.kft-swatch)), .kft-grip, .kft-padbtn, .kft-nudge button")];
       return controls.filter(button => !button.querySelector("svg.lucide")).map(button => ({
