@@ -43,8 +43,7 @@
     }
 
     const syncVisualiserControls = () => {
-      const section = root.querySelector('.section[data-section-id="visualisers"]');
-      const visible = section?.dataset.expanded === 'true';
+      const visible = editing.dataset.selectedSection === 'visualiser';
       editing.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(element => {
         element.hidden = !visible;
       });
@@ -123,14 +122,14 @@
     }
 
     applyLegacyValues();
-    {
-      // Stacked layouts open one section (Media); side-by-side columns open one per column.
-      const [a, b] = Array.from(root.querySelectorAll('.kefe-panel[data-group]'));
-      const stacked = !a || !b || Math.abs(a.getBoundingClientRect().top - b.getBoundingClientRect().top) >= 8;
-      if (stacked) root.querySelectorAll('.section[data-section-id]').forEach(item => {
-        item.dataset.expanded = String(item.dataset.sectionId === 'media');
-      });
-    }
+    const initialNav = editing.dataset.selectedSection || 'media';
+    const initialSectionId = NAV_TO_SECTION[initialNav] ? Object.keys(NAV_TO_SECTION).find(key => NAV_TO_SECTION[key] === NAV_TO_SECTION[initialNav]) : 'media';
+    editing.dataset.selectedSection = initialNav;
+    editing.dataset.activePanel = initialNav;
+    root.querySelectorAll('.section[data-section-id]').forEach(item => {
+      const selected = item.dataset.sectionId === (NAV_TO_SECTION[initialNav] || 'media');
+      item.dataset.expanded = String(selected);
+    });
     root.querySelectorAll('.section[data-section-id]').forEach(section => {
       section.querySelector('.expand-button')?.setAttribute(
         'aria-expanded',
@@ -176,6 +175,11 @@
       const navKey = Object.keys(NAV_TO_SECTION).find(key => NAV_TO_SECTION[key] === sectionId);
       if (!navKey) return;
       queueMicrotask(() => {
+        root.querySelectorAll('.section[data-section-id]').forEach(item => {
+          const selected = item === section;
+          item.dataset.expanded = String(selected);
+          item.querySelector('.expand-button')?.setAttribute('aria-expanded', String(selected));
+        });
         editing.setAttribute('data-active-panel', navKey);
         editing.setAttribute('data-selected-section', navKey);
         syncVisualiserControls();
@@ -199,21 +203,15 @@
       editingRoot.setAttribute('data-selected-section', key);
       const section = root.querySelector('.section[data-section-id="' + sectionId + '"]');
       if (!section) return;
-      // Side-by-side columns each keep their own open section; stacked layouts show one at a time.
-      const groups = Array.from(root.querySelectorAll('.kefe-panel[data-group]'));
-      const sideBySide = groups.length > 1 &&
-        Math.abs(groups[0].getBoundingClientRect().top - groups[1].getBoundingClientRect().top) < 8;
-      const group = section.closest('.kefe-panel[data-group]');
-      root.querySelectorAll('.section').forEach(item => {
-        if (sideBySide && item.closest('.kefe-panel[data-group]') !== group) return;
+      root.querySelectorAll('.section[data-section-id]').forEach(item => {
         const expanded = item === section;
         item.dataset.expanded = String(expanded);
         item.querySelector('.expand-button')?.setAttribute('aria-expanded', String(expanded));
       });
+      editing.setAttribute('data-active-panel', key);
+      editing.setAttribute('data-selected-section', key);
       syncVisualiserControls();
-      if (!sideBySide) {
-        setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-      }
+      setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
     });
 
     window.kefeSettingsPanelAdapter = Object.freeze({
