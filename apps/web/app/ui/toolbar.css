@@ -408,7 +408,13 @@ html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar {
   gap: 8px 10px;
 }
 html .kefe-editor .kefe-work > .kefe-preview { grid-template-columns: minmax(0, 1fr); }
-html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar { min-height: 58px; max-width: 100%; }
+html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar {
+  min-height: 44px; max-width: 100%; padding: 5px 8px; gap: 6px 8px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--surface); box-shadow: none;
+}
+html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-title { font-size: 12px; font-weight: 700; }
+.kft-bar { border-radius: 10px; box-shadow: none; }
+.kft-main { padding: 2px; }
 html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-workspace { flex: 1 1 auto; min-width: 0; }
 html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-actions { flex: 0 1 auto; min-width: 0; gap: 6px; }
 

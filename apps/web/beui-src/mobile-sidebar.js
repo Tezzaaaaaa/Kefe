@@ -1,21 +1,46 @@
-/* KEFE — Pure JavaScript + CSS shadcn.io Mobile Editor Sidebar (Sheet + Sidebar Rail + Tabs + Menu).
+/* KEFE — Pure JavaScript + CSS shadcn.io Mobile Editor Sidebar (Inline Section Panel + Bottom Dock + shadcn Tabs).
    Hosts the live native .kefe-panel[data-panel-view] elements below 1024px without cloning controls,
    and restores each panel to its original .kefe-slot when switched or closed. */
 
 import "./mobile-sidebar.css";
 import { renderKefeIcon } from "../app/ui/icons.js";
-import { SECTION_BY_ID, SECTIONS, resolveGroups } from "./mobile-sidebar-sections.js";
+import { MIGRATED_SLOTS, SECTION_BY_ID, SECTIONS, resolveGroups } from "./mobile-sidebar-sections.js";
 
 const MOBILE_QUERY = "(max-width: 1023px)";
+const SECTION_KEY = "kefe.mobileSidebar.section";
 
-const SECTION_ICONS = {
-  media: "music",
-  lyrics: "list-music",
-  effects: "sparkles",
-  "background-effects": "layers",
-  visualiser: "audio-waveform",
-  export: "download",
+const ICON_MAP = {
+  activity: "activity",
+  clock: "clock",
+  download: "download",
+  file: "file",
+  folder: "folder-open",
+  image: "image",
+  list: "list-music",
+  moon: "moon",
+  music: "music-2",
+  palette: "palette",
+  sliders: "sliders",
+  sparkles: "sparkles",
+  type: "type",
+  upload: "upload",
+  video: "video",
 };
+
+function iconSvg(key, size, strokeWidth) {
+  const mapped = ICON_MAP[key] || key || "sliders";
+  return renderKefeIcon(mapped, "", size, strokeWidth);
+}
+
+function readStoredSection() {
+  try {
+    const saved = localStorage.getItem(SECTION_KEY);
+    if (saved && SECTION_BY_ID.has(saved)) return saved;
+  } catch (_) {
+    /* storage unavailable */
+  }
+  return "media";
+}
 
 function readActiveSection() {
   const editing = document.querySelector(".kefe-editing");
@@ -24,21 +49,24 @@ function readActiveSection() {
   const activeBtn = document.querySelector(".kefe-tabs .kefe-section.active");
   const fromBtn = activeBtn?.getAttribute("data-panel");
   if (fromBtn && SECTION_BY_ID.has(fromBtn)) return fromBtn;
-  return "media";
+  return readStoredSection();
 }
 
-const MIGRATED_SLOTS = {
-  media: "media",
-  lyrics: "lyric-sync",
-  effects: "lyric-effects",
-  "background-effects": "background",
-  visualiser: "visualisers",
-  export: "export",
-};
-
 function selectNativeSection(sectionId) {
-  const navBtn = document.querySelector(`.kefe-tabs .kefe-section[data-panel="${sectionId}"]`);
-  if (navBtn) navBtn.click();
+  try {
+    localStorage.setItem(SECTION_KEY, sectionId);
+  } catch (_) {
+    /* storage unavailable */
+  }
+  document.querySelectorAll("[data-shell-panel]").forEach((button) => {
+    button.classList.toggle("is-current", button.dataset.shellPanel === sectionId);
+  });
+  document.querySelectorAll(".kefe-section[data-panel]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.panel === sectionId);
+  });
+  document.querySelectorAll("[data-dock-panel]").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.dockPanel === sectionId));
+  });
   const editing = document.querySelector(".kefe-editing");
   if (editing) {
     editing.setAttribute("data-active-panel", sectionId);
@@ -57,16 +85,6 @@ function selectNativeSection(sectionId) {
       item.querySelector(".expand-button")?.setAttribute("aria-expanded", String(selected));
     });
   }
-}
-
-function readTrackSummary() {
-  const title = document.getElementById("songTitle")?.value?.trim();
-  const artist = document.getElementById("songArtist")?.value?.trim();
-  if (title && artist) return `${title} — ${artist}`;
-  if (title) return title;
-  const cardTitle = document.getElementById("kefeMediaTrackTitle")?.textContent?.trim();
-  if (cardTitle && cardTitle !== "Untitled") return cardTitle;
-  return "No track loaded";
 }
 
 function clearGroupAttributes(panel) {
@@ -123,8 +141,7 @@ function initMobileSidebar() {
   const mediaQuery = window.matchMedia(MOBILE_QUERY);
   let isMobile = mediaQuery.matches;
   let isOpen = false;
-  let toolsOpen = false;
-  let activeSection = readActiveSection();
+  let activeSection = readStoredSection();
   const groupMemory = { media: "source" };
   let activeGroups = [];
   let borrowed = null;
@@ -133,7 +150,12 @@ function initMobileSidebar() {
 
   const dock = document.createElement("nav");
   dock.className = "kefe-ms-dock";
-  dock.setAttribute("aria-label", "Editor sections");
+  dock.setAttribute("aria-label", "Edit sections");
+
+  const dockGrip = document.createElement("span");
+  dockGrip.className = "kefe-ms-dock-grip";
+  dockGrip.setAttribute("aria-hidden", "true");
+  dock.appendChild(dockGrip);
 
   const dockRow = document.createElement("div");
   dockRow.className = "kefe-ms-dock-row";
@@ -145,7 +167,7 @@ function initMobileSidebar() {
     btn.type = "button";
     btn.className = "kefe-ms-dock-item";
     btn.setAttribute("aria-label", `Edit ${sec.label}`);
-    btn.innerHTML = `${renderKefeIcon(SECTION_ICONS[sec.id] || "sliders", "", 17, 1.9)}<span>${sec.shortLabel}</span>`;
+    btn.innerHTML = `${iconSvg(sec.icon, 18, 1.7)}<span>${sec.short}</span>`;
     btn.addEventListener("click", () => openSectionInSidebar(sec.id, btn));
     dockRow.appendChild(btn);
     dockButtons.set(sec.id, btn);
@@ -154,14 +176,10 @@ function initMobileSidebar() {
 
   let drawerEl = null;
   let hostEl = null;
-  let tabsEl = null;
+  let tabsRootEl = null;
+  let tabsListEl = null;
   let titleEl = null;
-  let stepEl = null;
   let blurbEl = null;
-  let statusEl = null;
-  let toolsWrapEl = null;
-  let toolsMenuEl = null;
-  let toolsBtnEl = null;
 
   function restoreBorrowedPanel() {
     if (panelMutationObserver) {
@@ -184,9 +202,10 @@ function initMobileSidebar() {
 
   function syncDockState() {
     dockButtons.forEach((btn, id) => {
-      const selected = isOpen && activeSection === id;
+      const selected = activeSection === id;
       btn.classList.toggle("is-active", selected);
-      btn.setAttribute("aria-pressed", String(selected));
+      if (selected) btn.setAttribute("aria-current", "page");
+      else btn.removeAttribute("aria-current");
     });
   }
 
@@ -201,6 +220,7 @@ function initMobileSidebar() {
 
     if (hostEl) {
       hostEl.setAttribute("data-kefe-ms-active-group", chosen);
+      hostEl.setAttribute("data-kefe-ms-section", section.id);
     }
 
     clearGroupAttributes(panel);
@@ -217,24 +237,29 @@ function initMobileSidebar() {
     renderGroupTabs(section, chosen);
   }
 
+  /* Group switcher: pure-JS shadcn.io Tabs (`[data-slot="tabs"]`, `[data-slot="tabs-list"]`,
+     `[data-slot="tabs-trigger"]`). Native panels stay in place; the active tab decides which
+     marked control group is visible. */
   function renderGroupTabs(section, chosenId) {
-    if (!tabsEl) return;
-    tabsEl.textContent = "";
-    tabsEl.setAttribute("aria-label", `${section.label} control groups`);
-    if (activeGroups.length <= 1) {
-      tabsEl.hidden = true;
+    if (!tabsRootEl || !tabsListEl) return;
+    tabsListEl.textContent = "";
+    if (activeGroups.length < 2) {
+      tabsRootEl.hidden = true;
       return;
     }
-    tabsEl.hidden = false;
+    tabsRootEl.hidden = false;
     activeGroups.forEach((group) => {
       const selected = group.id === chosenId;
       const tab = document.createElement("button");
       tab.type = "button";
+      tab.setAttribute("data-slot", "tabs-trigger");
       tab.setAttribute("role", "tab");
-      tab.className = `kefe-ms-tab${selected ? " is-active" : ""}`;
-      tab.dataset.kefeMsGroupId = group.id;
       tab.setAttribute("aria-selected", String(selected));
-      tab.textContent = group.label;
+      tab.setAttribute("data-state", selected ? "active" : "inactive");
+      tab.setAttribute("tabindex", selected ? "0" : "-1");
+      tab.dataset.kefeMsGroupId = group.id;
+      tab.className = `kefe-ms-tab${selected ? " is-active" : ""}`;
+      tab.innerHTML = `${iconSvg(group.icon, 14, 1.8)}<span>${group.label}</span>`;
       tab.addEventListener("click", () => {
         groupMemory[section.id] = group.id;
         if (borrowed?.panel) {
@@ -242,7 +267,7 @@ function initMobileSidebar() {
         }
         if (hostEl) hostEl.scrollTop = 0;
       });
-      tabsEl.appendChild(tab);
+      tabsListEl.appendChild(tab);
     });
   }
 
@@ -283,59 +308,6 @@ function initMobileSidebar() {
     }
   }
 
-  function renderToolsMenu() {
-    if (!toolsMenuEl) return;
-    const isNight = (document.documentElement.dataset.theme || "night") !== "day";
-    toolsMenuEl.hidden = !toolsOpen;
-    if (toolsBtnEl) {
-      toolsBtnEl.setAttribute("aria-expanded", String(toolsOpen));
-      const chev = toolsBtnEl.querySelector(".kefe-ms-tools-chevron");
-      if (chev) chev.classList.toggle("is-flipped", toolsOpen);
-    }
-    if (!toolsOpen) return;
-
-    toolsMenuEl.textContent = "";
-    const actions = [
-      {
-        icon: "sliders",
-        label: "Workspace settings",
-        run: () => document.querySelector('[data-top-panel="settings"]')?.click(),
-      },
-      {
-        icon: "search",
-        label: "Search & commands",
-        run: () => document.querySelector("[data-command-open]")?.click(),
-      },
-      {
-        icon: isNight ? "sun" : "moon",
-        label: isNight ? "Switch to day mode" : "Switch to night mode",
-        run: () => document.getElementById("kefeThemeToggle")?.click(),
-      },
-      {
-        icon: "maximize",
-        label: "Fullscreen preview",
-        run: () => {
-          closeSidebar();
-          requestAnimationFrame(() => document.getElementById("previewFullscreen")?.click());
-        },
-      },
-    ];
-
-    actions.forEach((action) => {
-      const item = document.createElement("button");
-      item.type = "button";
-      item.setAttribute("role", "menuitem");
-      item.className = "kefe-ms-tool";
-      item.innerHTML = `${renderKefeIcon(action.icon, "", 15, 1.9)}<span>${action.label}</span>`;
-      item.addEventListener("click", () => {
-        toolsOpen = false;
-        renderToolsMenu();
-        action.run();
-      });
-      toolsMenuEl.appendChild(item);
-    });
-  }
-
   function ensureDrawerMounted() {
     if (drawerEl) return;
 
@@ -344,62 +316,58 @@ function initMobileSidebar() {
     drawerEl.setAttribute("role", "dialog");
     drawerEl.setAttribute("aria-modal", "false");
     drawerEl.setAttribute("aria-labelledby", "kefe-ms-title");
+    drawerEl.setAttribute("tabindex", "-1");
 
     drawerEl.innerHTML = `
       <header class="kefe-ms-head">
         <div class="kefe-ms-head-copy">
           <span class="kefe-ms-brand">KEFE</span>
-          <span class="kefe-ms-head-sub"></span>
+          <span class="kefe-ms-head-sub">Editor sidebar</span>
           <h2 id="kefe-ms-title" class="kefe-ms-title"></h2>
         </div>
-        <button type="button" class="kefe-ms-close" aria-label="Close editor sidebar">
-          ${renderKefeIcon("close", "", 17, 2)}
+        <button type="button" class="kefe-ms-close" aria-label="Close editor sidebar" title="Close">
+          ${renderKefeIcon("close", "", 18, 2)}
         </button>
       </header>
       <div class="kefe-ms-body">
         <div class="kefe-ms-surface" id="kefe-ms-surface" role="tabpanel">
           <div class="kefe-ms-surface-head">
             <p class="kefe-ms-blurb"></p>
-            <div class="kefe-ms-tabs" role="tablist"></div>
+            <div data-slot="tabs" class="kefe-ms-tabs-root">
+              <div data-slot="tabs-list" class="kefe-ms-tabs" role="tablist" aria-label="Control groups"></div>
+            </div>
           </div>
           <div class="kefe-ms-host"></div>
         </div>
       </div>
-      <footer class="kefe-ms-foot">
-        <span class="kefe-ms-status" title="Current track"></span>
-        <div class="kefe-ms-tools-wrap">
-          <div class="kefe-ms-tools" role="menu" aria-label="Editor tools" hidden></div>
-          <button type="button" class="kefe-ms-foot-button" aria-haspopup="menu" aria-expanded="false">
-            ${renderKefeIcon("sliders", "", 14, 2)}
-            <span>Tools</span>
-            <span class="kefe-ms-tools-chevron" aria-hidden="true">${renderKefeIcon("chevron-up", "", 13, 2)}</span>
-          </button>
-        </div>
-        <button type="button" class="kefe-ms-done">
-          ${renderKefeIcon("check", "", 14, 2.2)}
-          <span>Done</span>
-        </button>
-      </footer>
     `;
 
     titleEl = drawerEl.querySelector("#kefe-ms-title");
-    stepEl = drawerEl.querySelector(".kefe-ms-head-sub");
     blurbEl = drawerEl.querySelector(".kefe-ms-blurb");
-    tabsEl = drawerEl.querySelector(".kefe-ms-tabs");
+    tabsRootEl = drawerEl.querySelector('[data-slot="tabs"]');
+    tabsListEl = drawerEl.querySelector('[data-slot="tabs-list"]');
     hostEl = drawerEl.querySelector(".kefe-ms-host");
-    statusEl = drawerEl.querySelector(".kefe-ms-status");
-    toolsWrapEl = drawerEl.querySelector(".kefe-ms-tools-wrap");
-    toolsMenuEl = drawerEl.querySelector(".kefe-ms-tools");
-    toolsBtnEl = drawerEl.querySelector(".kefe-ms-foot-button");
 
-    drawerEl.querySelector(".kefe-ms-close")?.addEventListener("click", closeSidebar);
-    drawerEl.querySelector(".kefe-ms-done")?.addEventListener("click", closeSidebar);
-    toolsBtnEl?.addEventListener("click", (event) => {
-      event.stopPropagation();
-      toolsOpen = !toolsOpen;
-      renderToolsMenu();
+    tabsListEl?.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+      if (activeGroups.length < 2) return;
+      event.preventDefault();
+      const section = SECTION_BY_ID.get(activeSection) || SECTIONS[0];
+      const current = groupMemory[section.id] || activeGroups[0]?.id;
+      const idx = Math.max(0, activeGroups.findIndex((g) => g.id === current));
+      const delta = event.key === "ArrowRight" ? 1 : -1;
+      const nextIndex = (idx + delta + activeGroups.length) % activeGroups.length;
+      const nextGroup = activeGroups[nextIndex];
+      if (!nextGroup) return;
+      groupMemory[section.id] = nextGroup.id;
+      if (borrowed?.panel) {
+        applyGroupVisibility(borrowed.panel, section);
+      }
+      if (hostEl) hostEl.scrollTop = 0;
+      tabsListEl?.querySelectorAll('[role="tab"]')[nextIndex]?.focus();
     });
 
+    drawerEl.querySelector(".kefe-ms-close")?.addEventListener("click", closeSidebar);
     root.appendChild(drawerEl);
   }
 
@@ -408,27 +376,18 @@ function initMobileSidebar() {
     drawerEl?.remove();
     drawerEl = null;
     hostEl = null;
-    tabsEl = null;
+    tabsRootEl = null;
+    tabsListEl = null;
     titleEl = null;
-    stepEl = null;
     blurbEl = null;
-    statusEl = null;
-    toolsWrapEl = null;
-    toolsMenuEl = null;
-    toolsBtnEl = null;
   }
 
   function syncDrawerContent() {
     if (!drawerEl) return;
     const section = SECTION_BY_ID.get(activeSection) || SECTIONS[0];
-    const index = SECTIONS.findIndex((s) => s.id === section.id);
     if (titleEl) titleEl.textContent = section.label;
-    if (stepEl) stepEl.textContent = `Step ${index + 1} of ${SECTIONS.length}`;
     if (blurbEl) blurbEl.textContent = section.blurb;
-    if (statusEl) statusEl.textContent = readTrackSummary();
     drawerEl.querySelector("#kefe-ms-surface")?.setAttribute("aria-label", section.label);
-
-    renderToolsMenu();
   }
 
   function placeBottomSheet() {
@@ -456,9 +415,11 @@ function initMobileSidebar() {
       lastFocusedBeforeOpen = trigger instanceof HTMLElement ? trigger : document.activeElement;
     }
     activeSection = sectionId;
-    toolsOpen = false;
     selectNativeSection(sectionId);
-    if (!isMobile) return;
+    if (!isMobile) {
+      syncDockState();
+      return;
+    }
 
     if (!isOpen) {
       window.scrollTo(0, 0);
@@ -478,7 +439,6 @@ function initMobileSidebar() {
     cancelPendingViewportOpen();
     if (!isOpen) return;
     isOpen = false;
-    toolsOpen = false;
     window.removeEventListener("resize", placeBottomSheet);
     document.documentElement.classList.remove("kefe-ms-locked", "kefe-ms-sheet-open");
     document.documentElement.style.removeProperty("--kefe-ms-top");
@@ -504,7 +464,7 @@ function initMobileSidebar() {
       viewportOpenFrame = requestAnimationFrame(() => {
         viewportOpenFrame = 0;
         if (isMobile && !isOpen) {
-          openSectionInSidebar(readActiveSection());
+          openSectionInSidebar(activeSection || readActiveSection());
         }
       });
     } else {
@@ -513,11 +473,23 @@ function initMobileSidebar() {
   }
 
   mediaQuery.addEventListener("change", syncViewportMode);
-  syncViewportMode();
+  if (isMobile) {
+    document.documentElement.classList.add("kefe-ms-enabled");
+    syncDockState();
+    viewportOpenFrame = requestAnimationFrame(() => {
+      viewportOpenFrame = 0;
+      if (isMobile && !isOpen) {
+        openSectionInSidebar(activeSection || readActiveSection());
+      }
+    });
+  } else {
+    syncDockState();
+  }
 
   const editing = document.querySelector(".kefe-editing");
   if (editing) {
     const editingObserver = new MutationObserver(() => {
+      if (!isMobile) return;
       const next = readActiveSection();
       if (next !== activeSection) {
         activeSection = next;
@@ -533,12 +505,7 @@ function initMobileSidebar() {
 
   document.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : null;
-    if (!target) return;
-    if (toolsOpen && toolsWrapEl && !toolsWrapEl.contains(target)) {
-      toolsOpen = false;
-      renderToolsMenu();
-    }
-    if (!isMobile) return;
+    if (!target || !isMobile) return;
     const dockTrigger = target.closest("[data-dock-panel]");
     if (dockTrigger) {
       const id = dockTrigger.getAttribute("data-dock-panel");
@@ -556,19 +523,9 @@ function initMobileSidebar() {
     }
   });
 
-  document.addEventListener("input", () => {
-    if (isOpen && statusEl) statusEl.textContent = readTrackSummary();
-  });
-
   window.addEventListener("keydown", (event) => {
     if (!isOpen || event.key !== "Escape") return;
     if (document.querySelector(".beui-settings-root:not([hidden]), #kefeCommandPalette:not([hidden])")) {
-      return;
-    }
-    if (toolsOpen) {
-      event.preventDefault();
-      toolsOpen = false;
-      renderToolsMenu();
       return;
     }
     event.preventDefault();

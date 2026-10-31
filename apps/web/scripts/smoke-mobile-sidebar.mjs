@@ -41,7 +41,6 @@ for (const marker of [
   "kefe-ms-dock",
   "kefe-ms-drawer",
   "kefe-ms-tabs",
-  "kefe-ms-tools",
   "kefe-ms-host",
   'role", "dialog"',
   'aria-modal", "false"',
@@ -53,6 +52,15 @@ for (const marker of [
 // Sections open inline under the preview via the bottom dock: no icon rail, no dimming scrim.
 expect(!source.includes("kefe-ms-rail"), "the sidebar icon rail must stay removed");
 expect(source.includes("--kefe-ms-top") && source.includes("--kefe-ms-bottom"), "the section panel must be placed between the timeline and the dock");
+
+// Group switching uses the pure-JS shadcn.io Tabs slots; there is no Tools dropdown (the header and toolbar own those actions).
+expect(
+  source.includes('data-slot="tabs"') &&
+    source.includes('data-slot="tabs-list"') &&
+    source.includes('data-slot="tabs-trigger"'),
+  "group tabs must use the shadcn Tabs slots",
+);
+expect(!source.includes("ToolMenu") && !source.includes("kefe-ms-tools"), "the sidebar Tools dropdown must stay removed");
 
 // Sliders must keep using the shared shadcn Slider module: the sidebar may
 // only move existing range inputs, never create new ones.
@@ -76,4 +84,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("PASS: the pure-JS shadcn mobile editor sidebar hosts the six native panels inline under the preview through the bottom dock, group tabs and an expanding tools menu.");
+console.log("PASS: the pure-JS shadcn mobile editor sidebar hosts the six native panels inline under the preview through the bottom dock and shadcn group tabs.");
