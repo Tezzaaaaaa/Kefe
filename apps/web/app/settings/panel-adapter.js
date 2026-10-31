@@ -210,7 +210,6 @@
       editing.setAttribute('data-active-panel', key);
       editing.setAttribute('data-selected-section', key);
       syncVisualiserControls();
-      setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
     });
 
     window.kefeSettingsPanelAdapter = Object.freeze({
