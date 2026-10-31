@@ -1,0 +1,37 @@
+/* shadcn DropdownMenu skin for the editor section selects. */
+.kefe-dd { position: relative; display: block; width: 100%; min-width: 0; }
+.kefe-dd-native { position: absolute !important; width: 1px !important; height: 1px !important; opacity: 0 !important; pointer-events: none !important; overflow: hidden; }
+.kefe-dd-trigger {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-width: 0; height: 32px; padding: 0 10px;
+  border: 1px solid var(--line-soft, var(--line)); border-radius: 9px; background: var(--surface); color: var(--text);
+  font: 500 12px/1 inherit; font-family: inherit; text-align: left; cursor: pointer; transition: background-color 150ms, border-color 150ms;
+}
+.kefe-dd-trigger:hover, .kefe-dd-trigger[aria-expanded="true"] { background: var(--surface-hi, var(--surface)); border-color: var(--line); }
+.kefe-dd-trigger:disabled { opacity: .5; cursor: not-allowed; }
+.kefe-dd-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kefe-dd-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kefe-dd-chev, .kefe-dd-check { width: 14px; height: 14px; flex: 0 0 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.kefe-dd-chev { opacity: .6; transition: transform 160ms; }
+.kefe-dd-trigger[aria-expanded="true"] .kefe-dd-chev { transform: rotate(180deg); }
+.kefe-dd-menu {
+  position: fixed; z-index: 2147483000; display: flex; flex-direction: column; gap: 1px; padding: 4px; overflow-y: auto; overscroll-behavior: contain;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); box-shadow: 0 10px 30px rgb(0 0 0 / 45%);
+  font: 500 12px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif; outline: none; animation: kefeDd 110ms ease-out both;
+}
+.kefe-dd-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 30px; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+.kefe-dd-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kefe-dd-item.is-active { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.kefe-dd-item .kefe-dd-check { opacity: 0; }
+.kefe-dd-item[aria-checked="true"] { color: var(--accent); }
+.kefe-dd-item[aria-checked="true"] .kefe-dd-check { opacity: 1; }
+@keyframes kefeDd { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .kefe-dd-menu { animation: none; } .kefe-dd-chev { transition: none; } }
+
+/* Beat the generic panel-button skin so the trigger matches the toolbar's 32px controls. */
+html .kefe-editor .kefe-dd > .kefe-dd-trigger {
+  display: flex; justify-content: space-between; width: 100%; height: 32px; min-height: 32px; padding: 0 10px;
+  border: 1px solid var(--line-soft, var(--line)); border-radius: 9px; background: var(--surface); color: var(--text);
+  font-size: 12px; font-weight: 500; box-shadow: none; text-align: left;
+}
+html .kefe-editor .kefe-dd > .kefe-dd-trigger:hover,
+html .kefe-editor .kefe-dd > .kefe-dd-trigger[aria-expanded="true"] { background: var(--surface-hi, var(--surface)); border-color: var(--line); }
