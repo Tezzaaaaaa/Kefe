@@ -14,7 +14,7 @@ function initDesktopPanels() {
   let leftPanel = 'media';
   let rightPanel = 'effects';
 
-  const panels = () => Array.from(document.querySelectorAll('.kefe-panel[data-panel-view]')).filter(panel => !panel.closest('.kefe-settings-panel'));
+  const panels = () => Array.from(document.querySelectorAll('.kefe-panel[data-panel-view]')).filter(panel => !panel.closest('.kefe-settings-panel, .kefe-ms-host'));
 
 
   function place() {

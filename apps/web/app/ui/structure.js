@@ -17,6 +17,7 @@ const panelActionExclusions = [
 function decoratePanelAction(button) {
   if (!(button instanceof HTMLButtonElement) || !button.closest('.kefe-panel')) return;
   if (button.classList.contains('kefe-background-effect-card')
+      || button.classList.contains('kefe-car-card')
       || button.classList.contains('kefe-lyric-effect-option')
       || button.classList.contains('kefe-lyric-effect-carousel-nav')
       || button.closest(panelActionExclusions)) return;

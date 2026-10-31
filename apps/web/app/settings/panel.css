@@ -1,23 +1,23 @@
 .kefe-settings-mount{width:min(100%,1440px);margin:24px auto;padding:0 16px;}
 .kefe-settings-panel{
-    --ksp-bg: #0d0f12;
-    --ksp-surface: #16191d;
-    --ksp-surface-hover: #1c2026;
-    --ksp-border: #262b32;
-    --ksp-border-strong: #333a43;
+    --ksp-bg: var(--shad-background, var(--shell-bg, #171719));
+    --ksp-surface: var(--shad-card, #202126);
+    --ksp-surface-hover: var(--shad-card-elevated, #26272d);
+    --ksp-border: var(--shad-border, #34353c);
+    --ksp-border-strong: var(--shad-border-strong, #4b4c56);
 
-    --ksp-text: #e6e8eb;
-    --ksp-text-dim: #8b929c;
-    --ksp-text-faint: #5e6570;
+    --ksp-text: var(--shad-foreground, #f5f5f5);
+    --ksp-text-dim: var(--shad-muted-foreground, #a1a1aa);
+    --ksp-text-faint: color-mix(in srgb, var(--shad-muted-foreground, #a1a1aa) 78%, transparent);
 
-    --ksp-accent: #4f9eff;
-    --ksp-accent-hover: #6aaeff;
-    --ksp-accent-glow: rgba(79, 158, 255, 0.10);
+    --ksp-accent: var(--shad-primary, var(--accent, #d92f33));
+    --ksp-accent-hover: var(--shad-primary-hover, var(--accent-hover, #e6393d));
+    --ksp-accent-glow: color-mix(in srgb, var(--ksp-accent) 14%, transparent);
 
-    --ksp-highlight-bg: #181c22;
-    --ksp-highlight-border: #35507a;
-    --ksp-highlight-header-from: rgba(79, 158, 255, 0.09);
-    --ksp-highlight-header-to:   rgba(79, 158, 255, 0.02);
+    --ksp-highlight-bg: var(--shad-card, #202126);
+    --ksp-highlight-border: color-mix(in srgb, var(--ksp-accent) 42%, var(--ksp-border-strong));
+    --ksp-highlight-header-from: color-mix(in srgb, var(--ksp-accent) 9%, transparent);
+    --ksp-highlight-header-to: color-mix(in srgb, var(--ksp-accent) 2%, transparent);
 
     --ksp-radius: 10px;
     --ksp-gap: 8px;
@@ -166,11 +166,10 @@
   }.kefe-settings-panel .expand-indicator:not(.kefe-slot *){
     width: 18px; height: 18px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px; font-weight: 500;
     color: var(--ksp-text-dim);
     flex-shrink: 0;
-    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
-  }.kefe-settings-panel .expand-indicator:not(.kefe-slot *)::after{ content: "›"; transform: translateY(-1px); }.kefe-settings-panel .expand-button[aria-expanded="true"] .expand-indicator:not(.kefe-slot *){
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease;
+  }.kefe-settings-panel .expand-button[aria-expanded="true"] .expand-indicator:not(.kefe-slot *){
     transform: rotate(90deg);
     color: var(--ksp-accent);
   }.kefe-settings-panel .title-group:not(.kefe-slot *){
@@ -191,7 +190,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     flex-shrink: 0;
-  }.kefe-settings-panel .section[data-expanded="true"] .title-group h2:not(.kefe-slot *){ color: #eaf1fb; }.kefe-settings-panel .modified-dot:not(.kefe-slot *){
+  }.kefe-settings-panel .section[data-expanded="true"] .title-group h2:not(.kefe-slot *){ color: var(--ksp-text); }.kefe-settings-panel .modified-dot:not(.kefe-slot *){
     width: 6px; height: 6px; border-radius: 50%;
     background: var(--ksp-accent);
     flex-shrink: 0;
@@ -202,14 +201,11 @@
   }.kefe-settings-panel .section[data-modified="true"] .modified-dot:not(.kefe-slot *){ opacity: 1; transform: scale(1); }.kefe-settings-panel .info-button:not(.kefe-slot *){
     position: relative;
     width: 22px; height: 22px;
-    border-radius: 50%;
+    border-radius: 6px;
     border: 1px solid var(--ksp-border-strong);
     background: transparent;
     color: var(--ksp-text-dim);
-    font-family: Georgia, serif;
-    font-weight: 700;
-    font-size: 11px;
-    font-style: italic;
+    font-family: inherit;
     cursor: pointer;
     padding: 0;
     flex-shrink: 0;
@@ -229,22 +225,22 @@
     border-color: var(--ksp-accent);
     background: var(--ksp-accent-glow);
   }.kefe-settings-panel .section[data-expanded="true"] .info-button:not(.kefe-slot *){
-    border-color: rgba(79, 158, 255, 0.35);
-    color: #c3d5ec;
+    border-color: color-mix(in srgb, var(--ksp-accent) 32%, var(--ksp-border-strong));
+    color: var(--ksp-text-dim);
   }.kefe-settings-panel .info-button:focus-visible:not(.kefe-slot *){ outline: 2px solid var(--ksp-accent); outline-offset: 2px; }.kefe-settings-panel .kefe-tooltip:not(.kefe-slot *){
     margin: 0;
     padding: 13px 15px;
     width: 250px;
     max-width: calc(100vw - 24px);
-    background: #1e2329;
-    color: var(--ksp-text);
+    background: var(--shad-popover, var(--ksp-surface));
+    color: var(--shad-popover-foreground, var(--ksp-text));
     border: 1px solid var(--ksp-border-strong);
     border-radius: 8px;
     font-size: 12.5px;
     line-height: 1.5;
     text-align: left;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shad-shadow-md, 0 8px 24px rgba(0, 0, 0, 0.45));
     z-index: 1000;
     position: fixed;
     inset: auto;

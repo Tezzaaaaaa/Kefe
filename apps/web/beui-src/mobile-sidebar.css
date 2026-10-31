@@ -1,12 +1,26 @@
 /* ═══════════════════════════════════════════════════════════════
-   KEFE mobile editor sidebar
-   Loaded by `beui-src/mobile-sidebar.jsx`. Only active below 1024px:
+   KEFE mobile editor sidebar (shadcn.io Sheet + Sidebar Rail + Tabs + Menu)
+   Loaded by `beui-src/mobile-sidebar.js`. Only active below 1024px:
    the section dock, the sliding sidebar and all of its surfaces stay
    display:none on wider viewports, where the desktop shell is unchanged.
    ═══════════════════════════════════════════════════════════════ */
 
 #kefe-mobile-sidebar-root {
   display: contents;
+}
+
+.kefe-ms-tabs[hidden],
+.kefe-ms-tools[hidden] {
+  display: none !important;
+}
+
+.kefe-ms-tools-chevron {
+  display: inline-flex;
+  transition: transform 160ms ease;
+}
+
+.kefe-ms-tools-chevron.is-flipped {
+  transform: rotate(180deg);
 }
 
 .kefe-ms-dock,
