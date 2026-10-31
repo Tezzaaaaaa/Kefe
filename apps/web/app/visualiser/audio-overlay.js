@@ -47,6 +47,22 @@
     analyser: function () { return graph ? graph.analyser : null; }
   };
 
+  /* Shared preview render-rate gate. Settings → Engine → FPS target caps how often a visualiser
+     paints the preview. Only the visible visualiser calls this, so the cap stays accurate. */
+  function frameGate(now) {
+    var target = Math.round(Number(window.kefeSettings && window.kefeSettings.get('fpsTarget'))) || 60;
+    target = Math.max(24, Math.min(120, target));
+    var step = 1000 / target;
+    var last = frameGate.lastPaint || 0;
+    if (!last || now - last >= step - 1) {
+      frameGate.lastPaint = now;
+      return true;
+    }
+    return false;
+  }
+
+  window.kefeFrameGate = frameGate;
+
   /* Retain the legacy export hook as a harmless no-op for compatibility. */
   window.kefeAudioOverlay = {
     paint: function () {},

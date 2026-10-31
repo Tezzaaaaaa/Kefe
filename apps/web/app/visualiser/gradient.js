@@ -105,7 +105,17 @@
         set.hidden = set !== gradientPresetSet;
       });
       window.kefeFlutedGlassActive = false;
+      window.dispatchEvent(new CustomEvent('kefe-visualiser-select', { detail: { id: 'gradient' } }));
     }
+
+    /* Single-selection contract: whichever visualiser is chosen takes over, so every other
+       engine deactivates and stops painting the preview. */
+    window.addEventListener('kefe-visualiser-select', event => {
+      if (event.detail?.id === 'gradient') return;
+      tab.setAttribute('aria-selected', 'false');
+      tab.classList.remove('primary');
+      view.hidden = true;
+    });
 
     tab.addEventListener('click', showFluidInk);
     // Do not select a visualiser during startup. The user must choose one explicitly.

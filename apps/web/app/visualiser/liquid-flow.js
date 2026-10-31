@@ -283,6 +283,7 @@
       if(rect.width>1&&rect.height>1){
         canvas.style.display=active()?'block':'none';
         if(active()){
+          if(window.kefeFrameGate&&!window.kefeFrameGate(now)){raf=requestAnimationFrame(frame);return;}
           var scale=Math.min(window.devicePixelRatio||1,1920/Math.max(rect.width,rect.height));
           draw(Math.round(rect.width*scale),Math.round(rect.height*scale),(now-start)/1000);
         }

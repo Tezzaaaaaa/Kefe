@@ -45,6 +45,7 @@ jobs:
       - name: Verify built output
         run: |
           test -s apps/web/dist-beui/editor.html
+          node apps/web/scripts/verify-visualiser-wiring.mjs
           node apps/web/scripts/smoke-build.mjs
           node apps/web/scripts/smoke-settings-api.mjs
           node apps/web/scripts/smoke-section-card-coverage.mjs

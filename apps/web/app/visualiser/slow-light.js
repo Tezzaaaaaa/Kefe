@@ -92,6 +92,7 @@
   function syncScene(){if(!ui)return;ui.sceneName.textContent=SCENES[index].name;ui.sceneButtons.forEach((b,i)=>{b.classList.toggle('primary',i===index);b.setAttribute('aria-pressed',String(i===index));});}
   function frame(now){
     raf=0;if(!shown()||!gl||!program||document.hidden)return;
+    if(window.kefeFrameGate&&!window.kefeFrameGate(now)){raf=requestAnimationFrame(frame);return;}
     const dt=Math.min(.1,Math.max(0,(now-(last||now))/1000));last=now;tick+=dt;audio(dt);
     if(morph<1){morph=Math.min(1,morph+dt/morphDuration);current=blend(from,to,morph);}
     else if(cfg.auto){hold+=dt;if(hold>=cfg.len)goTo((index+1)%SCENES.length,Math.min(16,Math.max(8,cfg.len*.5)));}
@@ -170,7 +171,9 @@
       const heading=document.getElementById('kefeVisualiserHeading'),description=document.getElementById('kefeVisualiserDescription');
       if(heading)heading.textContent='Slow Light';if(description)description.textContent='';
       setActive(true);
+      window.dispatchEvent(new CustomEvent('kefe-visualiser-select',{detail:{id:'slow-light'}}));
     });
+    window.addEventListener('kefe-visualiser-select',e=>{if(e.detail&&e.detail.id!=='slow-light'){sceneSet.hidden=true;view.hidden=true;setActive(false);}});
     tabsList.appendChild(option);
     ui.sceneName.textContent=SCENES[0].name;current=blend(from,to,1);syncScene();resize();
 
