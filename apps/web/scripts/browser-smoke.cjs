@@ -1260,7 +1260,6 @@ async function captureEditorScreenState(page) {
       "opening the Visualisers section must not automatically activate Fluid Ink");
     await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
     if (singleSectionMode) {
-    if (singleSectionMode) {
       await page.waitForFunction(() => {
         const tab = document.querySelector(".beui-vis-backing-controls [data-visualiser='gradient']");
         const power = tab?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
