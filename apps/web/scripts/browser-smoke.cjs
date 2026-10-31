@@ -863,6 +863,15 @@ async function captureEditorScreenState(page) {
 
     const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
     await visualiserSection.locator(".expand-button").click();
+    if (singleSectionMode) {
+      const settingsScrollState = await page.evaluate(() => {
+        const mount = document.querySelector(".kefe-settings-mount");
+        return { pageY: window.scrollY, clientHeight: mount.clientHeight, scrollHeight: mount.scrollHeight, scrollTop: mount.scrollTop };
+      });
+      assert.equal(settingsScrollState.pageY, 0, "settings navigation must not scroll the preview page");
+      assert.ok(settingsScrollState.scrollHeight > settingsScrollState.clientHeight,
+        `the settings area must scroll independently below the preview: ${JSON.stringify(settingsScrollState)}`);
+    }
     await page.waitForFunction(() => {
       const section = document.querySelector('#kefe-settings-panel .section[data-section-id="visualisers"]');
       const tabs = document.querySelector(".kefe-vis-tabs");
