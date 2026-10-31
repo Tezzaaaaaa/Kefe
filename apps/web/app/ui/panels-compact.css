@@ -366,7 +366,7 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-name { font-size: var(--pc-fs-xs) !important; line-height: 11px; font-weight: 600; }
 
 /* ---- Pass 5: visualiser list (React bridge .kv-*) ---- */
-:is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-grid { grid-template-columns: minmax(0, 1fr) !important; gap: 4px !important; }
+:is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 6px; }
 :is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-card { min-height: 0 !important; height: 30px; padding: 0 6px 0 8px !important; gap: 6px !important; border-radius: 5px !important; border-color: var(--pc-border) !important; background: var(--pc-surface) !important; }
 :is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-card:hover { border-color: var(--pc-border-hover) !important; background: var(--pc-surface-hover) !important; }
 :is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-card.is-active { border-color: var(--pc-accent) !important; background: var(--pc-accent-bg) !important; }
