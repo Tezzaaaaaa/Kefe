@@ -420,24 +420,6 @@ async function captureEditorScreenState(page) {
     assert.deepEqual(await page.locator("#kefeCanvas").evaluate(canvas => [canvas.width, canvas.height]), [1080, 1920],
       "the Canvas panel aspect control should update KEFE's dimensions");
     assert.equal(await aspectSelect.inputValue(), "9:16", "the Canvas panel must stay synchronized with its native aspect backing control");
-    console.log("Portrait toolbar geometry:", JSON.stringify(await page.evaluate(() => {
-      const rect = selector => {
-        const node = document.querySelector(selector);
-        if (!node) return null;
-        const r = node.getBoundingClientRect();
-        const s = getComputedStyle(node);
-        return { x: r.x, y: r.y, width: r.width, height: r.height, display: s.display, visibility: s.visibility, position: s.position };
-      };
-      return {
-        viewport: { width: innerWidth, height: innerHeight, scrollY },
-        header: rect(".kefe-sidebar"),
-        workspace: rect(".kefe-work"),
-        preview: rect(".kefe-preview"),
-        previewBar: rect(".kefe-preview-toolbar"),
-        stage: rect(".kefe-stage"),
-        floatingToolbar: rect("#kefeFloatingToolbar"),
-      };
-    })));
     if (!(await canvasPanel.isVisible())) await canvasButton.click();
     await canvasPanel.waitFor({ state: "visible", timeout: 5000 });
     await canvasPanel.locator('[role="radio"][data-value="16:9"]').click();
