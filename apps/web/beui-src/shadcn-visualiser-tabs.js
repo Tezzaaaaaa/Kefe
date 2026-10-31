@@ -73,8 +73,9 @@ function mountVisualiserTabs() {
   backingHost.className = "beui-vis-backing-controls";
   backingHost.hidden = true;
   backingHost.setAttribute("aria-hidden", "true");
-  while (nav.firstChild) {
-    backingHost.appendChild(nav.firstChild);
+  for (const button of backingButtons.values()) {
+    const option = button.closest(".kefe-vis-option");
+    backingHost.appendChild(option || button);
   }
 
   const host = document.createElement("div");
@@ -109,7 +110,14 @@ function mountVisualiserTabs() {
     });
   }
 
-  backingButtons.forEach((backing, value) => {
+  function registerCard(backing, value) {
+    if (!value || cardsByValue.has(value)) return;
+    backingButtons.set(value, backing);
+    const option = backing.closest(".kefe-vis-option");
+    if ((option || backing).parentNode !== backingHost) {
+      backingHost.appendChild(option || backing);
+    }
+
     const label = cleanVisualiserLabel(backing, value);
 
     const card = document.createElement("div");
@@ -171,12 +179,31 @@ function mountVisualiserTabs() {
     card.append(tabBtn, switchBtn);
     grid.appendChild(card);
     cardsByValue.set(value, { card, tabBtn, switchBtn, switchState });
-  });
+  }
+
+  backingButtons.forEach((backing, value) => registerCard(backing, value));
 
   host.appendChild(grid);
-  nav.append(host, backingHost);
+  nav.prepend(host);
+  nav.appendChild(backingHost);
 
   syncAllStates();
+
+  function sweepLateBackingOptions() {
+    let added = false;
+    nav.querySelectorAll('button[role="tab"][data-visualiser]').forEach((button) => {
+      if (button.classList.contains("kv-tab")) return;
+      if (!backingHost.contains(button)) {
+        registerCard(button, button.dataset.visualiser);
+        added = true;
+      }
+    });
+    if (added) syncAllStates();
+  }
+
+  const lateObserver = new MutationObserver(sweepLateBackingOptions);
+  lateObserver.observe(nav, { childList: true });
+  lateObserver.observe(grid, { childList: true });
 
   const observer = new MutationObserver(() => {
     const selectedEntry = [...backingButtons.entries()].find(
@@ -196,23 +223,16 @@ function mountVisualiserTabs() {
 }
 
 if (typeof window !== "undefined") {
-  const boot = () => {
-    mountVisualiserTabs();
-    if (!document.querySelector('.kefe-vis-tabs[data-beui-mounted="true"]')) {
-      const obs = new MutationObserver(() => {
-        if (document.querySelector(".kefe-vis-tabs")) {
-          mountVisualiserTabs();
-          if (document.querySelector('.kefe-vis-tabs[data-beui-mounted="true"]')) {
-            obs.disconnect();
-          }
-        }
-      });
-      if (document.body) obs.observe(document.body, { childList: true, subtree: true });
+  window.addEventListener("load", mountVisualiserTabs, { once: true });
+  document.addEventListener("click", (event) => {
+    if (
+      event.target instanceof Element &&
+      event.target.closest('[data-shell-panel="visualiser"], .kefe-section[data-panel="visualiser"]')
+    ) {
+      window.setTimeout(mountVisualiserTabs, 0);
     }
-  };
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot, { once: true });
-  } else {
-    boot();
+  });
+  if (document.readyState === "complete") {
+    mountVisualiserTabs();
   }
 }
