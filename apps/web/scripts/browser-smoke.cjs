@@ -761,7 +761,7 @@ async function captureEditorScreenState(page) {
         total: sections.length,
         expanded: sections.filter(section => section.dataset.expanded === "true").map(section => section.dataset.sectionId),
         collapsedContentVisible: sections.filter(section => section.dataset.expanded !== "true")
-          .some(section => getComputedStyle(section.querySelector(".section-content")).display !== "none"),
+          .some(section => section.querySelector(".section-content").getBoundingClientRect().height > 1),
       };
     });
     assert.equal(sectionSelectionAudit.total, 6, "all six settings sections must remain mounted exactly once");
