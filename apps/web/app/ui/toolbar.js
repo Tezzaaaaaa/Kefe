@@ -41,7 +41,6 @@
   const fontSelect = () => $('fontOverride');
   const aspectSelect = () => $('kefeAspect');
   const lyricsSwitch = () => $('lyricsEnabledToggle');
-  const fullscreenButton = () => $('previewFullscreen');
   const bgSelect = () => $('visualiserBackground');
   const bgDarkness = () => $('backgroundTransparency');
   const caseSelect = () => $('lyricCase');
@@ -710,12 +709,12 @@
   });
 
   /* ───────── Docking, expanding, dragging ─────────
-     Default home: inside the preview bar, immediately left of the fullscreen button. The launcher is always there;
-     it expands into the strip. Dragging the grip floats the toolbar; double-click the grip, the dock placeholder
-     or "Dock toolbar" puts it back. Position is deliberately not persisted: a refresh always re-docks. */
+     Default home: the dedicated toolbar dock directly above the preview stage. The fullscreen control
+     remains independently mounted at the player's top-right corner. Dragging the grip floats the toolbar;
+     double-click the grip, the dock placeholder or "Dock toolbar" puts it back. */
   const OPEN_KEY = 'kefe.toolbar.open.v2';
-  const bareBar = () => document.querySelector('.kefe-preview-toolbar');
-  const dockHost = () => bareBar()?.querySelector('.kefe-toolbar-actions') || null;
+  const bareBar = () => document.querySelector('.kefe-preview-dock');
+  const dockHost = () => bareBar() || null;
   const inFullscreen = () => document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
   let pos = { x: 12, y: 12 }, floating = false, dragging = null, isOpen = false;
   try { localStorage.removeItem('kefe.floating-toolbar.position.v4'); isOpen = localStorage.getItem(OPEN_KEY) === '1'; } catch (_) {}
@@ -758,12 +757,10 @@
     } else if (host) {
       root.classList.remove('is-floating');
       root.style.left = ''; root.style.top = '';
-      const fs = fullscreenButton();
-      const before = fs && fs.parentNode === host ? fs : null;
-      if (root.parentNode !== host || (before && root.nextElementSibling !== before)) host.insertBefore(root, before);
+      if (root.parentNode !== host || root.nextElementSibling !== null) host.appendChild(root);
       ghost.hidden = true;
     }
-    if (host && ghost.parentNode !== host) host.insertBefore(ghost, root.parentNode === host ? root : fullscreenButton());
+    if (host && ghost.parentNode !== host) host.insertBefore(ghost, root.parentNode === host ? root : null);
   }
   function redock() {
     floating = false;
@@ -824,8 +821,8 @@
   window.addEventListener('resize', () => { if (floating) placeFloating(); queueMount(); });
   document.addEventListener('fullscreenchange', queueMount);
   new MutationObserver(queueMount).observe(stage, { attributes: true, attributeFilter: ['class'] });
-  // The bar's height changes when the strip wraps; keep the preview stage fitted to what is left.
-  // Width flag for the stacked layout (strip on its own row). Measured from the pane, not the bar, so it cannot feed back.
+  // The dock's height changes when the strip wraps; keep the preview stage fitted to what is left.
+  // Width flag for the stacked layout (strip on its own row). Measured from the pane, not the dock, so it cannot feed back.
   const flagWidth = () => {
     const barEl = bareBar(); if (!barEl) return;
     const w = (barEl.parentElement || barEl).clientWidth;

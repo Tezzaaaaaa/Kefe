@@ -266,17 +266,42 @@ async function captureEditorScreenState(page) {
       { label: "Visualiser", controls: ["Visualiser"] },
       { label: "Actions", controls: ["More actions"] }
     ], "toolbar actions must appear once in their intended functional groups");
-    assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").isVisible(), false, "the duplicate preview-bar Canvas ratio must be hidden");
+    const usesDedicatedDock = await page.locator(".kefe-preview-dock").count() === 1;
+    assert.equal(await page.locator(".kefe-preview-toolbar").count(), usesDedicatedDock ? 0 : 1,
+      "the editor must use either the new dedicated dock or the legacy preview bar, never both");
+    const nativeAspect = page.locator(usesDedicatedDock
+      ? ".kefe-preview-dock .kefe-toolbar-format"
+      : ".kefe-preview-toolbar .kefe-toolbar-format");
+    assert.equal(await nativeAspect.isVisible(), false, "the native aspect select remains hidden as a backing control");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
+    assert.equal(await page.locator("#previewFullscreen").count(), 1, "the player must retain exactly one fullscreen control");
+    const fullscreenInPlayer = await page.locator(".kefe-stage > #previewFullscreen").count() === 1;
+    assert.equal(fullscreenInPlayer, usesDedicatedDock,
+      "the current editor keeps fullscreen in the player; the legacy baseline keeps it in the preview bar");
     const initialToolbarPlacement = await page.evaluate(() => {
-      const bar = document.querySelector(".kefe-preview-toolbar").getBoundingClientRect();
+      const dockElement = document.querySelector(".kefe-preview-dock") || document.querySelector(".kefe-preview-toolbar");
+      const dock = dockElement.getBoundingClientRect();
       const toolbar = document.querySelector("#kefeFloatingToolbar").getBoundingClientRect();
-      return { bar: { left: bar.left, right: bar.right, top: bar.top, bottom: bar.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
+      const stage = document.querySelector(".kefe-stage").getBoundingClientRect();
+      const fullscreen = document.querySelector("#previewFullscreen").getBoundingClientRect();
+      const fullscreenInPlayer = fullscreen.top >= stage.top - 1;
+      return { dock: { left: dock.left, right: dock.right, top: dock.top, bottom: dock.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, stage: { left: stage.left, right: stage.right, top: stage.top, bottom: stage.bottom }, fullscreen: { left: fullscreen.left, right: fullscreen.right, top: fullscreen.top, bottom: fullscreen.bottom }, fullscreenInPlayer, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
     });
-    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.bar.left - 1
-      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.bar.top - 1
-      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.bar.bottom + 8,
-      `toolbar must dock inside the preview action bar: ${JSON.stringify(initialToolbarPlacement)}`);
+    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.dock.left - 1
+      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.dock.top - 1
+      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.dock.bottom + 8,
+      `toolbar must remain within its designated dock: ${JSON.stringify(initialToolbarPlacement)}`);
+    if (initialToolbarPlacement.fullscreenInPlayer) {
+      assert.ok(initialToolbarPlacement.fullscreen.right <= initialToolbarPlacement.stage.right + 24
+        && initialToolbarPlacement.fullscreen.left >= initialToolbarPlacement.stage.right - 60
+        && initialToolbarPlacement.fullscreen.top >= initialToolbarPlacement.stage.top - 24
+        && initialToolbarPlacement.fullscreen.bottom <= initialToolbarPlacement.stage.top + 60,
+        `fullscreen control must remain in the preview player's top-right corner: ${JSON.stringify(initialToolbarPlacement)}`);
+    } else {
+      assert.ok(initialToolbarPlacement.fullscreen.left >= initialToolbarPlacement.dock.left - 1
+        && initialToolbarPlacement.fullscreen.right <= initialToolbarPlacement.dock.right + 1,
+        `legacy fullscreen control must remain within its preview bar: ${JSON.stringify(initialToolbarPlacement)}`);
+    }
     assert.ok(initialToolbarPlacement.toolbar.left >= 0 && initialToolbarPlacement.toolbar.right <= initialToolbarPlacement.vw + 1
       && initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
       `toolbar must remain fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
@@ -430,7 +455,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-sidebar [data-shell-panel]").count(), 0,
       "the header must not repeat the editor sections as tabs");
     const aspectSelect = page.locator("#kefeAspect");
-    assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview-bar ratio wrapper must remain hidden");
+    assert.equal(await page.locator(".kefe-preview-dock .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview-bar ratio wrapper must remain hidden");
     const canvasButton = quickToolbar.locator(".kft-cell--ratio");
     assert.equal(await canvasButton.getAttribute("aria-label"), "Canvas, background and visualiser", "the Canvas ratio control must remain available in the floating toolbar");
     await canvasButton.click();
@@ -661,7 +686,7 @@ async function captureEditorScreenState(page) {
     assert.equal(nativeSelectState.visible.length, 4, `the preview, font and export selects must remain present: ${JSON.stringify(nativeSelectState)}`);
     const [aspectNative, ...primaryNative] = nativeSelectState.visible;
     assert.ok(aspectNative && !aspectNative.nextHost && aspectNative.tabIndex === -1
-      && await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
+      && await page.locator(".kefe-preview-dock .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
       `the native aspect backing select must stay out of the preview bar and tab order while the floating toolbar controls it: ${JSON.stringify(nativeSelectState)}`);
     // The font and export selects are presented through the shadcn-style dropdown trigger that follows them
     // (a real, focusable <button aria-haspopup="menu">); the native select stays as the value source.
