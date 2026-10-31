@@ -801,26 +801,25 @@ html[data-theme="day"] .kefe-ms-scrim {
 }
 
 
-/* ── shadcn Tabs (Radix) skin: matches the toolbar's 32px / 9px-radius control language ── */
+/* ── shadcn Tabs, variant 1 (pill list on a muted background; the active tab is raised) ── */
 @media (max-width: 1023px) {
   .kefe-ms-foot { display: none !important; }
   .kefe-ms-surface-head [data-slot="tabs"] { display: block; gap: 0; }
   .kefe-ms-surface-head [data-slot="tabs-list"].kefe-ms-tabs {
-    display: flex; width: 100%; height: auto; justify-content: flex-start;
-    gap: 4px; padding: 0; border-radius: 0; background: transparent;
+    display: flex; width: 100%; height: 36px; align-items: stretch; justify-content: stretch;
+    gap: 2px; padding: 3px; overflow: hidden; border-radius: 10px;
+    background: color-mix(in srgb, var(--text) 8%, var(--surface));
   }
   .kefe-ms-surface-head [data-slot="tabs-trigger"].kefe-ms-tab {
-    flex: 0 0 auto; height: 32px; padding: 0 10px; border-radius: 9px;
-    border: 1px solid var(--line-soft, var(--line)); background: var(--surface); color: var(--muted);
-    box-shadow: none;
+    flex: 1 1 0; min-width: 0; height: auto; padding: 0 8px; gap: 5px;
+    border: 1px solid transparent; border-radius: 7px; background: transparent;
+    color: var(--muted); font-size: 12px; font-weight: 600; box-shadow: none; justify-content: center;
   }
+  .kefe-ms-surface-head [data-slot="tabs-trigger"].kefe-ms-tab > span { overflow: hidden; text-overflow: ellipsis; }
+  .kefe-ms-surface-head [data-slot="tabs-trigger"].kefe-ms-tab:hover { color: var(--text); }
   .kefe-ms-surface-head [data-slot="tabs-trigger"].kefe-ms-tab[data-state="active"] {
-    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    color: color-mix(in srgb, var(--accent) 82%, var(--text));
+    border-color: var(--line-soft, var(--line)); background: var(--surface);
+    color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
   }
-  .kefe-ms-tab-count {
-    min-width: 16px; padding: 1px 4px; border-radius: 999px; font-size: 10px; line-height: 1.2;
-    background: color-mix(in srgb, var(--text) 10%, transparent); color: inherit;
-  }
+  .kefe-ms-surface-head [data-slot="tabs-trigger"].kefe-ms-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 }
