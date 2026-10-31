@@ -114,6 +114,15 @@ jobs:
           current = Path(os.environ["GITHUB_WORKSPACE"]) / "apps/web/scripts/browser-smoke.cjs"
           baseline_source = baseline.read_text()
           current_source = current.read_text()
+          # The candidate adds fullscreen transport behavior that does not exist on
+          # main yet. Keep that candidate-only assertion out of the main baseline run.
+          fullscreen_start = '    const editorViewport = page.viewportSize();'
+          fullscreen_end = '    await page.setViewportSize(editorViewport);'
+          if baseline_source.count(fullscreen_start) != 1 or baseline_source.count(fullscreen_end) != 1:
+              raise SystemExit("Fullscreen smoke block is not uniquely selectable in the baseline script")
+          fullscreen_begin = baseline_source.index(fullscreen_start)
+          fullscreen_finish = baseline_source.index(fullscreen_end, fullscreen_begin) + len(fullscreen_end)
+          baseline_source = baseline_source[:fullscreen_begin] + baseline_source[fullscreen_finish:]
           old_start = '    const toolbarPanel = name => page.getByRole("dialog", { name, exact: true });'
           old_end = '    await toolbarPanel("Lyric effect").getByRole("button", { name: /^Lyric effect:/ }).click();'
           baseline_font_start = '    await quickToolbar.getByRole("button", { name: "Lyric text colour", exact: true }).click();'
