@@ -626,7 +626,18 @@
     gap: 8px;
   }
   html:root #kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] {
-    display: contents;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    gap: 8px;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
   }
   html:root #kefe-settings-panel .kefe-panel-label,
   html:root #kefe-settings-panel .kefe-section-tabs-mount {
