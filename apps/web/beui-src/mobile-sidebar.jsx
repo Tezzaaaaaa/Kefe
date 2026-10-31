@@ -564,7 +564,7 @@ function MobileSidebar() {
     <>
       <SectionDock
         activeId={open ? activeId : ""}
-        onSelect={(id) => (open && id === activeId ? setOpen(false) : openSection(id))}
+        onSelect={openSection}
       />
 
       <AnimatePresence>
