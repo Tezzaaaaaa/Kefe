@@ -177,7 +177,7 @@
       const navKey = Object.keys(NAV_TO_SECTION).find(key => NAV_TO_SECTION[key] === sectionId);
       if (!navKey) return;
       queueMicrotask(() => {
-        const expanded = section.dataset.expanded === 'true';
+        const expanded = section.querySelector('.expand-button')?.getAttribute('aria-expanded') === 'true';
         const selectedPanel = expanded ? navKey : '';
         root.querySelectorAll('.section[data-section-id]').forEach(item => {
           const selected = expanded && item === section;
