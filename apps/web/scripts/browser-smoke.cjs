@@ -803,7 +803,7 @@ async function captureEditorScreenState(page) {
           && editing?.dataset.selectedSection === "lyrics";
       }, null, { timeout: 5000 });
       assert.equal(page.url(), previewUrlBeforeTabs, "opening a grouped settings tab must not navigate away from the preview page");
-      assert.equal(await page.locator('.kefe-stage canvas').isVisible(), true,
+      assert.equal(await page.locator('#kefeCanvas').isVisible(), true,
         "the preview must stay visible while switching grouped settings sections");
       assert.equal(await page.evaluate(() => {
         const active = document.querySelector('.kefe-section-tabs-trigger[data-state="active"]');
