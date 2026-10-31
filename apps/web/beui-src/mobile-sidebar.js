@@ -391,13 +391,28 @@ function initMobileSidebar() {
   }
 
   function placeBottomSheet() {
+    const root = document.documentElement;
+    const work = document.querySelector(".kefe-work")?.getBoundingClientRect();
     const tl = document.querySelector(".kefe-timeline")?.getBoundingClientRect();
     const dockRect = dock.getBoundingClientRect();
     const bottom = dockRect.height ? Math.max(0, window.innerHeight - dockRect.top) + 6 : 86;
-    const wanted = tl ? tl.bottom + 8 : window.innerHeight * 0.5;
-    const top = Math.min(Math.max(wanted, 120), window.innerHeight - bottom - 220);
-    document.documentElement.style.setProperty("--kefe-ms-top", `${Math.round(top)}px`);
-    document.documentElement.style.setProperty("--kefe-ms-bottom", `${Math.round(bottom)}px`);
+    /* Reserve a usable panel (230px) and shrink the preview area to fit above it, so the section panel
+       can never sit on top of the preview or the timeline bar. */
+    const workTop = work ? work.top : 60;
+    const workMax = Math.max(150, window.innerHeight - bottom - 230 - workTop - 8);
+    const top = Math.max(120, (tl ? tl.bottom : window.innerHeight * 0.5) + 8);
+    root.style.setProperty("--kefe-ms-work-max", `${Math.round(workMax)}px`);
+    root.style.setProperty("--kefe-ms-top", `${Math.round(top)}px`);
+    root.style.setProperty("--kefe-ms-bottom", `${Math.round(bottom)}px`);
+  }
+
+  /* The stage refits after the height cap applies; follow it so the panel always starts under the timeline. */
+  let placeObserver = null;
+  function watchPlacement() {
+    if (placeObserver || typeof ResizeObserver === "undefined") return;
+    placeObserver = new ResizeObserver(placeBottomSheet);
+    document.querySelectorAll(".kefe-work, .kefe-preview, .kefe-timeline").forEach((el) => placeObserver.observe(el));
+    placeObserver.observe(dock);
   }
 
   let viewportOpenFrame = 0;
@@ -426,6 +441,7 @@ function initMobileSidebar() {
       placeBottomSheet();
       requestAnimationFrame(placeBottomSheet);
       window.addEventListener("resize", placeBottomSheet);
+      watchPlacement();
     }
     isOpen = true;
     document.documentElement.classList.add("kefe-ms-locked", "kefe-ms-sheet-open");
@@ -440,6 +456,9 @@ function initMobileSidebar() {
     if (!isOpen) return;
     isOpen = false;
     window.removeEventListener("resize", placeBottomSheet);
+    placeObserver?.disconnect();
+    placeObserver = null;
+    document.documentElement.style.removeProperty("--kefe-ms-work-max");
     document.documentElement.classList.remove("kefe-ms-locked", "kefe-ms-sheet-open");
     document.documentElement.style.removeProperty("--kefe-ms-top");
     document.documentElement.style.removeProperty("--kefe-ms-bottom");

@@ -858,3 +858,13 @@ html[data-theme="day"] .kefe-ms-scrim {
   .kefe-ms-surface-head { border-bottom: 0; padding: 4px 14px 8px; }
   .kefe-ms-host { padding: 4px 14px 14px; }
 }
+
+
+/* Keep the preview + timeline fully above the section panel: cap the work area to the space left over. */
+@media (max-width: 1023px) {
+  html.kefe-ms-sheet-open .kefe-editor .kefe-work {
+    height: min(var(--kefe-ms-work-max, 60dvh), 50dvh);
+    max-height: var(--kefe-ms-work-max, 60dvh);
+    grid-template-rows: minmax(0, 1fr) var(--timeline-h, 56px);
+  }
+}
