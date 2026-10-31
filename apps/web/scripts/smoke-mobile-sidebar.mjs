@@ -45,7 +45,8 @@ for (const marker of [
   "kefe-ms-tools",
   "kefe-ms-host",
   'role", "dialog"',
-  'aria-modal", "true"',
+  'aria-modal", "false"',
+  "kefe-ms-sheet-open",
 ]) {
   expect(source.includes(marker), `mobile sidebar is missing ${marker}`);
 }

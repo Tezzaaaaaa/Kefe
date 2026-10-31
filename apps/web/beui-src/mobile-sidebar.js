@@ -356,7 +356,7 @@ function initMobileSidebar() {
     drawerEl = document.createElement("aside");
     drawerEl.className = "kefe-ms-drawer";
     drawerEl.setAttribute("role", "dialog");
-    drawerEl.setAttribute("aria-modal", "true");
+    drawerEl.setAttribute("aria-modal", "false");
     drawerEl.setAttribute("aria-labelledby", "kefe-ms-title");
 
     drawerEl.innerHTML = `
@@ -473,6 +473,13 @@ function initMobileSidebar() {
     renderToolsMenu();
   }
 
+  function placeBottomSheet() {
+    const tl = document.querySelector(".kefe-timeline")?.getBoundingClientRect();
+    const wanted = tl ? tl.bottom + 8 : window.innerHeight * 0.5;
+    const top = Math.min(Math.max(wanted, 120), window.innerHeight - 300);
+    document.documentElement.style.setProperty("--kefe-ms-top", `${Math.round(top)}px`);
+  }
+
   function openSectionInSidebar(sectionId, trigger = null) {
     if (!SECTION_BY_ID.has(sectionId)) return;
     if (!isOpen) {
@@ -483,8 +490,13 @@ function initMobileSidebar() {
     selectNativeSection(sectionId);
     if (!isMobile) return;
 
+    if (!isOpen) {
+      window.scrollTo(0, 0);
+      placeBottomSheet();
+      window.addEventListener("resize", placeBottomSheet);
+    }
     isOpen = true;
-    document.documentElement.classList.add("kefe-ms-locked");
+    document.documentElement.classList.add("kefe-ms-locked", "kefe-ms-sheet-open");
     ensureDrawerMounted();
     syncDrawerContent();
     mountPanelIntoHost();
@@ -495,7 +507,9 @@ function initMobileSidebar() {
     if (!isOpen) return;
     isOpen = false;
     toolsOpen = false;
-    document.documentElement.classList.remove("kefe-ms-locked");
+    window.removeEventListener("resize", placeBottomSheet);
+    document.documentElement.classList.remove("kefe-ms-locked", "kefe-ms-sheet-open");
+    document.documentElement.style.removeProperty("--kefe-ms-top");
     unmountDrawer();
     syncDockState();
     if (lastFocusedBeforeOpen && typeof lastFocusedBeforeOpen.focus === "function") {

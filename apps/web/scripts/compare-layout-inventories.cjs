@@ -38,7 +38,7 @@ for (const size of ["desktop", "mobile"]) {
     for (let index = 0; index < Math.min(oldItems.length, newItems.length); index += 1) {
       const oldItem = oldItems[index];
       const newItem = newItems[index];
-      if (newItem.classes.includes("kefe-liquid-swirl")) continue;
+      if (newItem.classes.includes("kefe-timebar__tip")) continue;
       const changedFields = {};
       for (const field of fields) {
         const oldValue = oldItem[field];

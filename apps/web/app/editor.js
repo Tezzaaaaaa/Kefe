@@ -2195,25 +2195,34 @@
   function updateTime(){
     timeNow.textContent=fmt(state.time);timeEnd.textContent=fmt(Number(range.max)||30);
     const p=(state.time/(Number(range.max)||30))*100;
-    range.style.setProperty('--progress',p+'%');playhead.style.left=p+'%';window.kefeLiquidTimelineUpdate?.();
+    range.style.setProperty('--progress',p+'%');playhead.style.left=p+'%';window.kefeTimebarUpdate?.();
   }
 
-  (function initLiquidTimeline(){
-    const host=document.getElementById('waveform'),svg=document.getElementById('kefeLiquidSvg'),fill=document.getElementById('kefeLiquidFillPath'),head=document.getElementById('kefeLiquidHeadPath'),swirls=document.getElementById('kefeLiquidSwirls'),range=document.getElementById('kefeTime');
-    if(!host||!svg||!fill||!head||!swirls||!range)return;
-    const reduced=matchMedia('(prefers-reduced-motion: reduce)'),clamp=(v,a,b)=>Math.min(b,Math.max(a,v)),state=[];
-    for(let i=0;i<3;i++){const el=document.createElement('span');el.className='kefe-liquid-swirl';swirls.appendChild(el);state.push({el,y:.3+Math.random()*.4,p:Math.random()*6.28,s:.16+Math.random()*.18,dx:6+Math.random()*10,dy:2+Math.random()*4,size:34+Math.random()*20});}
-    let vw=1000,vh=100,ih=40,t=0,last=0,merge=0,target=0,raf=0;
-    function resize(){const r=host.getBoundingClientRect();ih=Math.max(1,r.height-6);vw=Math.max(1,r.width-6)/ih*vh;svg.setAttribute('viewBox','0 0 '+vw+' '+vh);}
-    function draw(){const pct=clamp((Number(range.value)||0)/Math.max(.01,Number(range.max)||30),0,1),w=pct*vw,rad=vh/2,amp=4*(1-merge);let d='';
-      if(w>0){const r=Math.min(rad,w/2);d='M '+r+' 0 L '+Math.max(r,w-r)+' 0 ';if(w>r*2)d+='A '+r+' '+r+' 0 0 1 '+w+' '+r+' ';
-      for(let i=0;i<3;i++){const y0=r+i/3*(vh-2*r),y1=r+(i+1)/3*(vh-2*r),dx=reduced.matches?0:Math.sin(t*1.4+i*1.3)*amp*(i%2?-.6:1),cy=reduced.matches?0:Math.cos(t*1.4+i*1.3)*amp*.3;d+='C '+(w+dx)+' '+(y0+cy)+', '+(w-dx)+' '+(y1+cy)+', '+w+' '+y1+' ';}
-      if(w>r*2)d+='A '+r+' '+r+' 0 0 1 '+(w-r)+' '+vh+' ';d+='L '+r+' '+vh+' A '+r+' '+r+' 0 0 1 '+r+' 0 Z';}
-      fill.setAttribute('d',d);const strip=1.2/Math.max(1,ih)*vh,left=Math.max(0,w-strip);head.setAttribute('d',w?'M '+left+' 0 H '+(w+strip)+' V '+vh+' H '+left+' Z':'');head.setAttribute('opacity',String(merge));
-      const rect=host.getBoundingClientRect();state.forEach((q,i)=>{const x=rect.width*pct-20-i*13+(reduced.matches?0:Math.cos(t*q.s+q.p)*q.dx),y=q.y*rect.height+(reduced.matches?0:Math.sin(t*q.s*1.2+q.p)*q.dy);q.el.style.width=q.size+'px';q.el.style.height=q.size+'px';q.el.style.transform='translate('+x+'px,'+y+'px) translate(-50%,-50%)';q.el.style.opacity=String(.3+.4*pct);});}
-    function loop(now){if(!reduced.matches){if(last)t+=Math.min(.05,(now-last)/1000);merge+=(target-merge)*.18;}else merge=target;last=now;draw();raf=requestAnimationFrame(loop);}
-    window.kefeLiquidTimelineUpdate=draw;host.addEventListener('pointerenter',()=>target=1);host.addEventListener('pointerleave',()=>target=0);host.addEventListener('focusin',()=>target=1);host.addEventListener('focusout',()=>target=0);
-    resize();draw();raf=requestAnimationFrame(loop);if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{resize();draw();}).observe(host);addEventListener('pagehide',()=>cancelAnimationFrame(raf),{once:true});
+  /* Timeline bar: a flat seek field in the same language as the toolbar scrubbers. The native range input sits on
+     top (click, drag, arrow keys, Home/End all seek); this paints the fill, the spoken value and a hover time. */
+  (function initTimebar(){
+    const host=document.getElementById('waveform'),input=document.getElementById('kefeTime');
+    if(!host||!input)return;
+    const fill=document.createElement('span');fill.className='kefe-timebar__fill';fill.setAttribute('aria-hidden','true');
+    const tip=document.createElement('span');tip.className='kefe-timebar__tip';tip.setAttribute('aria-hidden','true');tip.hidden=true;
+    host.prepend(fill);host.append(tip);
+    const max=()=>Math.max(.01,Number(input.max)||30);
+    function paint(){
+      const p=Math.min(100,Math.max(0,(Number(input.value)||0)/max()*100));
+      host.style.setProperty('--progress',p+'%');
+      input.setAttribute('aria-valuetext',fmt(input.value)+' of '+fmt(max()));
+    }
+    window.kefeTimebarUpdate=paint;
+    input.addEventListener('input',paint);
+    host.addEventListener('pointermove',e=>{
+      const r=host.getBoundingClientRect(),x=Math.min(Math.max(e.clientX-r.left,0),r.width);
+      tip.textContent=fmt(x/Math.max(1,r.width)*max());tip.style.left=x+'px';tip.hidden=false;
+    });
+    host.addEventListener('pointerleave',()=>{tip.hidden=true;});
+    const scrub=on=>()=>host.classList.toggle('is-scrubbing',on);
+    input.addEventListener('pointerdown',scrub(true));
+    ['pointerup','pointercancel','blur'].forEach(t=>input.addEventListener(t,scrub(false)));
+    paint();
   })();
 
   function applySettingsDefaults(){
