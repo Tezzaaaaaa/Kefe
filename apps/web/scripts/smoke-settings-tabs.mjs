@@ -20,7 +20,7 @@ if (!adapter.includes("editing.dataset.selectedSection === 'visualiser'")) {
 }
 if (!panelStyles.includes("Editor workspace: keep the preview in the upper half") ||
     !panelStyles.includes("grid-template-columns: minmax(0, 1fr);") ||
-    !panelStyles.includes("display: contents;")) {
+    !panelStyles.includes("flex-direction: column;")) {
   failures.push("Desktop settings must be one full-width section stack below the preview");
 }
 
