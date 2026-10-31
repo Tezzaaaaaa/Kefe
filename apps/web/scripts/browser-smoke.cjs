@@ -288,9 +288,7 @@ async function captureEditorScreenState(page) {
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
     // with its live panel hosted in the drawer.
     await page.locator(".kefe-ms-dock").waitFor({ state: "visible", timeout: 5000 });
-    if (!(await page.evaluate(() => Boolean(document.querySelector('.kefe-ms-drawer .kefe-ms-host .kefe-panel[data-panel-view="media"]'))))) {
-      await page.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
-    }
+    await page.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
     await page.waitForFunction(() => Boolean(document.querySelector(".kefe-ms-host #kefeUploadZone")), null, { timeout: 5000 });
     const mobileUploadColumns = await page.locator(".kefe-media-upload-row").evaluate(node =>
       getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length);
@@ -303,11 +301,7 @@ async function captureEditorScreenState(page) {
     });
     assert.ok(mobileToolbarBounds.left >= 0 && mobileToolbarBounds.right <= mobileToolbarBounds.viewportWidth + 1,
       `mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarBounds)}`);
-    if ((await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).count()) > 0) {
-    await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
-    } else {
-      await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).click();
-    }
+    await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).click();
     const mobileColourPopover = page.getByRole("dialog", { name: "Lyric effect and text style", exact: true });
     await mobileColourPopover.waitFor({ state: "visible", timeout: 5000 });
     const mobilePopoverBounds = await mobileColourPopover.evaluate(node => {
@@ -1178,12 +1172,7 @@ async function captureEditorScreenState(page) {
           const mobileShot = size === "mobile"
             && await screenshotPage.locator(".kefe-ms-dock").count() > 0;
           if (mobileShot) {
-            const mediaAlreadyOpen = await screenshotPage.evaluate(() => Boolean(
-              document.querySelector('.kefe-ms-drawer .kefe-ms-host .kefe-panel[data-panel-view="media"]')
-            ));
-            if (!mediaAlreadyOpen) {
-              await screenshotPage.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
-            }
+            await screenshotPage.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
             await screenshotPage.waitForFunction(() => Boolean(
               document.querySelector('.kefe-ms-drawer .kefe-ms-host .kefe-panel[data-panel-view="media"]')
             ), null, { timeout: 10000 });
@@ -1478,13 +1467,8 @@ async function captureEditorScreenState(page) {
         ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Lyric Effects"],
         ["background-effects", "Background"], ["visualiser", "Visualisers"], ["export", "Export"]
       ]) {
-        const alreadyOpen = await page.evaluate(expected => Boolean(
-          document.querySelector(`.kefe-ms-drawer .kefe-ms-host .kefe-panel[data-panel-view="${expected}"]`)
-        ), section);
-        if (!alreadyOpen) {
-          const dockButton = page.locator(`.kefe-ms-dock-item[aria-label="Edit ${label}"]`).first();
-          await dockButton.evaluate(button => button.click());
-        }
+        const dockButton = page.locator(`.kefe-ms-dock-item[aria-label="Edit ${label}"]`).first();
+        await dockButton.evaluate(button => button.click());
         await page.waitForFunction(expected => document.querySelector(".kefe-editing")?.dataset.selectedSection === expected, section, { timeout: 5000 });
         await page.waitForFunction(expected => Boolean(
           document.querySelector(".kefe-ms-drawer") &&

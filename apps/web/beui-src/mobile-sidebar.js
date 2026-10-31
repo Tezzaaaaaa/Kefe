@@ -441,8 +441,17 @@ function initMobileSidebar() {
     document.documentElement.style.setProperty("--kefe-ms-bottom", `${Math.round(bottom)}px`);
   }
 
+  let viewportOpenFrame = 0;
+
+  function cancelPendingViewportOpen() {
+    if (!viewportOpenFrame) return;
+    cancelAnimationFrame(viewportOpenFrame);
+    viewportOpenFrame = 0;
+  }
+
   function openSectionInSidebar(sectionId, trigger = null) {
     if (!SECTION_BY_ID.has(sectionId)) return;
+    cancelPendingViewportOpen();
     if (!isOpen) {
       lastFocusedBeforeOpen = trigger instanceof HTMLElement ? trigger : document.activeElement;
     }
@@ -466,6 +475,7 @@ function initMobileSidebar() {
   }
 
   function closeSidebar() {
+    cancelPendingViewportOpen();
     if (!isOpen) return;
     isOpen = false;
     toolsOpen = false;
@@ -484,10 +494,19 @@ function initMobileSidebar() {
     const wasMobile = isMobile;
     isMobile = mediaQuery.matches;
     document.documentElement.classList.toggle("kefe-ms-enabled", isMobile);
-    if (!isMobile && isOpen) {
-      closeSidebar();
-    } else if (isMobile && !wasMobile) {
-      openSectionInSidebar(readActiveSection());
+    if (!isMobile) {
+      cancelPendingViewportOpen();
+      if (isOpen) closeSidebar();
+      else syncDockState();
+    } else if (!wasMobile) {
+      syncDockState();
+      cancelPendingViewportOpen();
+      viewportOpenFrame = requestAnimationFrame(() => {
+        viewportOpenFrame = 0;
+        if (isMobile && !isOpen) {
+          openSectionInSidebar(readActiveSection());
+        }
+      });
     } else {
       syncDockState();
     }
