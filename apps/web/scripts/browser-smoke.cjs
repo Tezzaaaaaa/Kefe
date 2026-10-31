@@ -1606,6 +1606,24 @@ async function captureEditorScreenState(page) {
     await page.locator("#playButton").click();
     await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === true, null, { timeout: 5000 });
 
+    const editorViewport = page.viewportSize();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator("#previewFullscreen").click();
+    await page.waitForFunction(() => {
+      const stage = document.querySelector(".kefe-stage");
+      const timeline = document.querySelector(".kefe-timeline");
+      return stage?.classList.contains("kefe-pseudo-fullscreen") && timeline?.parentElement === stage;
+    }, null, { timeout: 5000 });
+    assert.equal(await page.locator(".kefe-stage > .kefe-timeline").count(), 1,
+      "mobile fullscreen must retain the live transport controls inside the preview");
+    await page.locator("#previewFullscreen").click();
+    await page.waitForFunction(() => {
+      const stage = document.querySelector(".kefe-stage");
+      const timeline = document.querySelector(".kefe-timeline");
+      return !stage?.classList.contains("kefe-pseudo-fullscreen") && timeline?.parentElement !== stage;
+    }, null, { timeout: 5000 });
+    await page.setViewportSize(editorViewport);
+
     await page.locator("#mediaInput").setInputFiles({
       name: "beui-smoke.lrc",
       mimeType: "text/plain",
