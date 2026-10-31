@@ -1273,7 +1273,9 @@ async function captureEditorScreenState(page) {
         reactTabs: [...document.querySelectorAll(".beui-vis-tabs-host [role=tab]")].map(tab => ({
           value: tab.dataset.visualiser, selected: tab.getAttribute("aria-selected")
         })),
-        canvas: (() => { const c = document.getElementById("kefeFluidInkCanvas"); if (!c) return null; const r = c.getBoundingClientRect(); return { display: getComputedStyle(c).display, width: r.width, height: r.height }; })()
+        canvas: (() => { const c = document.getElementById("kefeFluidInkCanvas"); if (!c) return null; const r = c.getBoundingClientRect(); return { display: getComputedStyle(c).display, width: r.width, height: r.height }; })(),
+        stage: (() => { const e = document.querySelector(".kefe-stage"); if (!e) return null; const r = e.getBoundingClientRect(); return { width:r.width,height:r.height,display:getComputedStyle(e).display,visibility:getComputedStyle(e).visibility }; })(),
+        preview: (() => { const e = document.querySelector(".kefe-preview"); if (!e) return null; const r = e.getBoundingClientRect(); return { width:r.width,height:r.height,display:getComputedStyle(e).display,gridRows:getComputedStyle(e).gridTemplateRows }; })()
       }))));
     }
     if (singleSectionMode) {
