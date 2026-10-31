@@ -11,7 +11,7 @@ const failures = [];
 if (editor.includes("legacy-settings-tabs-bridge.jsx")) {
   failures.push("The retired grouped settings-tab bridge must not load alongside the native section headers");
 }
-if (!adapter.includes("const selected = item === section;") ||
+if (!adapter.includes("const selected = expanded && item === section;") ||
     !adapter.includes("editing.setAttribute('data-selected-section', key);")) {
   failures.push("Selecting a settings section must close every other section and update the canonical selection");
 }
