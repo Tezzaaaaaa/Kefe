@@ -288,7 +288,9 @@ async function captureEditorScreenState(page) {
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
     // with its live panel hosted in the drawer.
     await page.locator(".kefe-ms-dock").waitFor({ state: "visible", timeout: 5000 });
-    await page.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
+    if (!(await page.evaluate(() => Boolean(document.querySelector('.kefe-ms-drawer .kefe-ms-host .kefe-panel[data-panel-view="media"]'))))) {
+      await page.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
+    }
     await page.waitForFunction(() => Boolean(document.querySelector(".kefe-ms-host #kefeUploadZone")), null, { timeout: 5000 });
     const mobileUploadColumns = await page.locator(".kefe-media-upload-row").evaluate(node =>
       getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length);
