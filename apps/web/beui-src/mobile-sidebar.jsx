@@ -123,51 +123,6 @@ function useMobileLayout() {
 
 /* ── Small building blocks ───────────────────────────────────── */
 
-function SectionRail({ activeId, onSelect }) {
-  const move = (event) => {
-    const keys = ["ArrowDown", "ArrowUp", "Home", "End"];
-    if (!keys.includes(event.key)) return;
-    event.preventDefault();
-    const ids = SECTIONS.map((entry) => entry.id);
-    const index = ids.indexOf(activeId);
-    let next = index;
-    if (event.key === "ArrowDown") next = (index + 1) % ids.length;
-    if (event.key === "ArrowUp") next = (index - 1 + ids.length) % ids.length;
-    if (event.key === "Home") next = 0;
-    if (event.key === "End") next = ids.length - 1;
-    onSelect(ids[next]);
-    requestAnimationFrame(() => {
-      event.currentTarget.querySelectorAll('[role="tab"]')[next]?.focus();
-    });
-  };
-  return (
-    <nav className="kefe-ms-rail" aria-label="Editor sections">
-      <div className="kefe-ms-rail-group" role="tablist" aria-orientation="vertical" onKeyDown={move}>
-        {SECTIONS.map((section) => {
-          const Icon = iconFor(section.icon);
-          const active = section.id === activeId;
-          return (
-            <button
-              key={section.id}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              aria-controls="kefe-ms-surface"
-              tabIndex={active ? 0 : -1}
-              className={`kefe-ms-rail-item${active ? " is-active" : ""}`}
-              onClick={() => onSelect(section.id)}
-              title={section.label}
-            >
-              <Icon size={19} strokeWidth={1.7} aria-hidden="true" />
-              <span className="kefe-ms-rail-label">{section.short}</span>
-            </button>
-          );
-        })}
-      </div>
-    </nav>
-  );
-}
-
 function GroupTabs({ groups, activeId, onSelect }) {
   if (groups.length < 2) return null;
   const move = (event) => {
@@ -419,7 +374,7 @@ function MobileSidebar() {
 
   useEffect(() => {
     document.documentElement.classList.toggle("kefe-ms-enabled", enabled);
-    if (!enabled) setOpen(false);
+    setOpen(enabled);
     return () => document.documentElement.classList.remove("kefe-ms-enabled");
   }, [enabled]);
 
@@ -566,56 +521,31 @@ function MobileSidebar() {
     };
   }, [open, activeId]);
 
-  /* Dialog behaviour: focus, Escape, tab trap and scroll lock. */
+  /* Inline section panel: sits under the preview + timeline and above the bottom dock.
+     No focus trap or scrim, so the preview, timeline and dock stay usable while editing. */
   useEffect(() => {
     if (!open) return undefined;
-    const previous = document.activeElement;
-    const node = drawerRef.current;
-    /* Bottom sheet: keep the preview + timeline on screen above it. */
     window.scrollTo(0, 0);
-    const scrollY = 0;
+    const root = document.documentElement;
     const place = () => {
       const tl = document.querySelector(".kefe-timeline")?.getBoundingClientRect();
+      const dock = document.querySelector(".kefe-ms-dock")?.getBoundingClientRect();
+      const bottom = dock ? Math.max(0, window.innerHeight - dock.top) + 6 : 86;
       const wanted = tl ? tl.bottom + 8 : window.innerHeight * 0.5;
-      const top = Math.min(Math.max(wanted, 120), window.innerHeight - 300);
-      document.documentElement.style.setProperty("--kefe-ms-top", Math.round(top) + "px");
+      const top = Math.min(Math.max(wanted, 120), window.innerHeight - bottom - 220);
+      root.style.setProperty("--kefe-ms-top", Math.round(top) + "px");
+      root.style.setProperty("--kefe-ms-bottom", Math.round(bottom) + "px");
     };
     place();
+    const frame = requestAnimationFrame(place);
     window.addEventListener("resize", place);
-    document.documentElement.classList.add("kefe-ms-locked", "kefe-ms-sheet-open");
-    const frame = requestAnimationFrame(() => node?.focus({ preventScroll: true }));
-
-    const onKeyDown = (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setOpen(false);
-        return;
-      }
-      if (event.key !== "Tab" || !node) return;
-      const focusable = node.querySelectorAll(
-        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      );
-      if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && (document.activeElement === first || document.activeElement === node)) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown, true);
+    root.classList.add("kefe-ms-locked", "kefe-ms-sheet-open");
     return () => {
       cancelAnimationFrame(frame);
-      document.removeEventListener("keydown", onKeyDown, true);
       window.removeEventListener("resize", place);
-      document.documentElement.classList.remove("kefe-ms-locked", "kefe-ms-sheet-open");
-      document.documentElement.style.removeProperty("--kefe-ms-top");
-      window.scrollTo(0, scrollY);
-      if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true });
+      root.classList.remove("kefe-ms-locked", "kefe-ms-sheet-open");
+      root.style.removeProperty("--kefe-ms-top");
+      root.style.removeProperty("--kefe-ms-bottom");
     };
   }, [open]);
 
@@ -632,9 +562,10 @@ function MobileSidebar() {
 
   return (
     <>
-      {!open ? (
-        <SectionDock activeId={activeId} onSelect={openSection} />
-      ) : null}
+      <SectionDock
+        activeId={open ? activeId : ""}
+        onSelect={(id) => (open && id === activeId ? setOpen(false) : openSection(id))}
+      />
 
       <AnimatePresence>
         {open ? (
@@ -677,8 +608,6 @@ function MobileSidebar() {
               </header>
 
               <div className="kefe-ms-body">
-                <SectionRail activeId={activeId} onSelect={openSection} />
-
                 <div className="kefe-ms-surface" id="kefe-ms-surface" role="tabpanel" aria-label={section.label}>
                   <div className="kefe-ms-surface-head">
                     <p className="kefe-ms-blurb">{section.blurb}</p>
