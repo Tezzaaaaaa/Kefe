@@ -374,19 +374,26 @@ async function captureEditorScreenState(page) {
     await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();
     assert.ok(await page.locator('.kft-popover [role="option"]').count() > 1,
       "effect menu must be populated from the existing lyric effect gallery");
-    assert.match(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option[data-effect="sigkineticpunch"]').textContent(), /Kinetic Punch/,
-      "the Signature LyricFX pack must be listed in the effect gallery");
-    await page.evaluate(() => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 320; canvas.height = 180;
-      const ctx = canvas.getContext("2d");
-      if (typeof window.kefeEffects?.sigkineticpunch !== "function") throw new Error("Signature LyricFX renderer is not registered");
-      window.kefeEffects.sigkineticpunch(ctx, 320, 180, { effect: "sigkineticpunch", fontSize: 40 }, [{ text: "Signature smoke", time: 0, endTime: 3 }], 1);
-      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-      let painted = false;
-      for (let i = 3; i < pixels.length; i += 4) { if (pixels[i] !== 0) { painted = true; break; } }
-      if (!painted) throw new Error("Signature LyricFX effect did not paint the canvas");
-    });
+    // The Signature pack is declared in the current editor template, so the
+    // main-branch baseline (which predates it) can reuse this script.
+    const signaturePack = await page.evaluate(() =>
+      document.querySelector('meta[name="kefe-lyric-signature"]')?.content === "50");
+    if (!signaturePack) console.log("Baseline has no Signature LyricFX pack; skipping its gallery assertions.");
+    if (signaturePack) {
+      assert.match(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option[data-effect="sigkineticpunch"]').textContent(), /Kinetic Punch/,
+        "the Signature LyricFX pack must be listed in the effect gallery");
+      await page.evaluate(() => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 320; canvas.height = 180;
+        const ctx = canvas.getContext("2d");
+        if (typeof window.kefeEffects?.sigkineticpunch !== "function") throw new Error("Signature LyricFX renderer is not registered");
+        window.kefeEffects.sigkineticpunch(ctx, 320, 180, { effect: "sigkineticpunch", fontSize: 40 }, [{ text: "Signature smoke", time: 0, endTime: 3 }], 1);
+        const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let painted = false;
+        for (let i = 3; i < pixels.length; i += 4) { if (pixels[i] !== 0) { painted = true; break; } }
+        if (!painted) throw new Error("Signature LyricFX effect did not paint the canvas");
+      });
+    }
     await page.keyboard.press("Escape");
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "the editor must start in Media, not switch itself to Visualisers");

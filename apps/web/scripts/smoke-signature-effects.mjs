@@ -48,6 +48,7 @@ assert.deepEqual(legacy, [], `legacy effects must be removed from the roster: ${
 
 /* ---- page wiring ------------------------------------------------- */
 const editor = read("editor.source.html");
+assert.match(editor, /<meta name="kefe-lyric-signature" content="50">/, "the editor must declare the Signature pack marker");
 assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
 assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
 assert.match(editor, /effects\/manifest\.js/, "the manifest must be loaded");
