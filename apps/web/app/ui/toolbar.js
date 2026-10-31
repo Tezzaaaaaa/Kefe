@@ -41,7 +41,6 @@
   const fontSelect = () => $('fontOverride');
   const aspectSelect = () => $('kefeAspect');
   const lyricsSwitch = () => $('lyricsEnabledToggle');
-  const fullscreenButton = () => $('previewFullscreen');
   const bgSelect = () => $('visualiserBackground');
   const bgDarkness = () => $('backgroundTransparency');
   const caseSelect = () => $('lyricCase');
