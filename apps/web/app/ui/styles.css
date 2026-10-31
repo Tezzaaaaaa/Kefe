@@ -152,6 +152,32 @@ button{border:0;cursor:pointer;
 .kefe-stage:fullscreen,.kefe-stage.kefe-pseudo-fullscreen{position:fixed;inset:0;z-index:99999;max-width:none;max-height:none;aspect-ratio:auto;transform:none;margin:auto;border:0;border-radius:0;box-shadow:none;background:#000}
 .kefe-stage:fullscreen::before,.kefe-stage.kefe-pseudo-fullscreen::before{background:#000}
 .kefe-stage::backdrop{background:#000}
+
+/* Keep the existing transport controls inside the immersive preview instead of leaving them behind. */
+.kefe-stage:fullscreen > .kefe-timeline,
+.kefe-stage.kefe-pseudo-fullscreen > .kefe-timeline {
+  position: absolute;
+  inset-inline: max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-right));
+  bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 2147483645;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 14px;
+  background: rgba(18,18,22,.84);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+.kefe-stage:fullscreen > .kefe-timeline .kefe-time,
+.kefe-stage.kefe-pseudo-fullscreen > .kefe-timeline .kefe-time {
+  color: rgba(255,255,255,.88);
+}
+.kefe-stage:fullscreen > .kefe-timeline .kefe-wave,
+.kefe-stage.kefe-pseudo-fullscreen > .kefe-timeline .kefe-wave {
+  min-width: 0;
+}
 .kefe-pseudo-fullscreen-backdrop{display:none}
 .kefe-stage:fullscreen .kefe-preview-fullscreen,.kefe-stage.kefe-pseudo-fullscreen .kefe-preview-fullscreen{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));
   font-size: var(--font-sm);
