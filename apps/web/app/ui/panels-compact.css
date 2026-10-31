@@ -622,3 +622,116 @@
     flex: 0 0 100%;
   }
 }
+
+/* ---- Grouped settings section tabs (shadcn/Radix Tabs) -------------------
+   Each integrated settings column gets a compact switcher that groups its
+   three sections behind icon + short-label tabs. All section cards stay in
+   the DOM; selecting a tab opens that section in place, so the preview screen
+   is never left. */
+.kefe-settings-panel .kefe-section-tabs-mount {
+  flex: 0 0 auto;
+  margin: 0 0 6px;
+  min-width: 0;
+}
+.kefe-settings-panel .kefe-section-tabs-host {
+  padding: 3px;
+  border: 1px solid var(--pc-border, var(--line));
+  border-radius: 9px;
+  background: var(--pc-input, var(--surface-hi));
+  box-shadow: var(--inner, inset 0 1px 0 rgba(255, 255, 255, .03));
+}
+.kefe-settings-panel .kefe-section-tabs {
+  display: block;
+  gap: 0;
+}
+.kefe-settings-panel .kefe-section-tabs-list {
+  display: flex;
+  width: 100%;
+  height: 26px;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--pc-muted, var(--muted));
+}
+.kefe-settings-panel .kefe-section-tabs-trigger {
+  display: inline-flex;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: .01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .16s ease, color .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.kefe-settings-panel .kefe-section-tabs-trigger svg {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  stroke-width: 2.1;
+  opacity: .8;
+}
+.kefe-settings-panel .kefe-section-tabs-trigger:hover {
+  color: var(--pc-text, var(--text));
+  background: var(--pc-surface-hover, var(--surface));
+}
+.kefe-settings-panel .kefe-section-tabs-trigger[data-state="active"] {
+  border-color: var(--pc-border, var(--line));
+  background: var(--pc-surface, var(--surface));
+  color: var(--pc-text, var(--text));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+.kefe-settings-panel .kefe-section-tabs-trigger[data-state="active"] svg {
+  color: var(--pc-accent-fg, var(--accent));
+  opacity: 1;
+}
+.kefe-settings-panel .kefe-section-tabs-trigger:focus-visible {
+  outline: 2px solid var(--pc-accent, var(--accent));
+  outline-offset: 1px;
+}
+.kefe-settings-panel .kefe-section-tabs-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (min-width: 1280px) {
+  .kefe-settings-panel .kefe-section-tabs-mount {
+    position: sticky;
+    top: 0;
+    z-index: 7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kefe-settings-panel .kefe-section-tabs-trigger { transition: none; }
+}
+:root[data-theme="day"] .kefe-settings-panel .kefe-section-tabs-host {
+  background: #f1f2f6;
+  box-shadow: inset 0 1px 2px rgba(20, 30, 50, .06);
+}
+:root[data-theme="day"] .kefe-settings-panel .kefe-section-tabs-trigger[data-state="active"] {
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(20, 30, 50, .10);
+}
+.kefe-settings-panel .kefe-section-tabs-dot {
+  width: 4px;
+  height: 4px;
+  flex: 0 0 4px;
+  border-radius: 9999px;
+  background: var(--pc-accent-fg, var(--accent));
+  box-shadow: 0 0 6px color-mix(in srgb, var(--pc-accent-fg, var(--accent)) 60%, transparent);
+}

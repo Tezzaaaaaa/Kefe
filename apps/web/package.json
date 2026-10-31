@@ -10,6 +10,7 @@
     "beui:build": "vite build --config beui.vite.config.ts && node scripts/copy-static.mjs"
   },
   "dependencies": {
+    "@radix-ui/react-tabs": "catalog:",
     "clsx": "catalog:",
     "framer-motion": "catalog:",
     "lucide-react": "catalog:",

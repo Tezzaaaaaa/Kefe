@@ -772,6 +772,68 @@ async function captureEditorScreenState(page) {
       && item.expandedContentHeight > 80 && item.expandedContentWithinCard),
       `desktop section cards must distribute the available panel height: ${JSON.stringify(panelFillAudit)}`);
 
+    // Grouped settings switcher: each side column exposes its three sections as
+    // compact shadcn Tabs that stay docked beside the preview. The feature marker
+    // is compiled into the current editor template, so the main-branch baseline
+    // (which lacks the bridge) can reuse this smoke script without failing here.
+    const groupedSettingsTabs = await page.evaluate(() =>
+      document.querySelector('meta[name="kefe-settings-tabs"]')?.content === "grouped");
+    if (!groupedSettingsTabs) console.log("Baseline has no grouped settings tabs; skipping grouped switcher assertions.");
+    const settingsTabsAudit = groupedSettingsTabs ? await page.evaluate(() => {
+      const groups = [...document.querySelectorAll('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group]')];
+      return groups.map(group => {
+        const mount = group.querySelector(':scope > .kefe-section-tabs-mount');
+        const tabs = [...(mount?.querySelectorAll('[role="tab"]') || [])];
+        const mountRect = mount?.getBoundingClientRect();
+        const groupRect = group.getBoundingClientRect();
+        const strip = mount?.querySelector('.kefe-section-tabs-host');
+        const stripRect = strip?.getBoundingClientRect();
+        return {
+          group: group.dataset.group,
+          mounted: Boolean(mount),
+          tablist: mount?.querySelector('[role="tablist"]')?.getAttribute('aria-label') || '',
+          labels: tabs.map(tab => tab.textContent.trim()),
+          selected: tabs.filter(tab => tab.dataset.state === "active").map(tab => tab.textContent.trim()),
+          withinColumn: Boolean(mountRect) && mountRect.left >= groupRect.left - 1
+            && mountRect.right <= groupRect.right + 1 && mountRect.top >= groupRect.top - 1,
+          stripWithinColumn: Boolean(stripRect) && stripRect.left >= groupRect.left - 1
+            && stripRect.right <= groupRect.right + 1,
+          stripHeight: stripRect?.height || 0,
+        };
+      });
+    }) : [];
+    if (groupedSettingsTabs) {
+      assert.equal(settingsTabsAudit.length, 2, `both settings columns must expose a grouped section switcher: ${JSON.stringify(settingsTabsAudit)}`);
+      assert.deepEqual(settingsTabsAudit.map(item => item.labels),
+        [["Media", "Lyrics", "Background"], ["Effects", "Visuals", "Export"]],
+        `settings sections must be grouped as compact tabs: ${JSON.stringify(settingsTabsAudit)}`);
+      assert.deepEqual(settingsTabsAudit.map(item => item.selected), [["Media"], ["Effects"]],
+        `the initially expanded section must own the active tab: ${JSON.stringify(settingsTabsAudit)}`);
+      assert.ok(settingsTabsAudit.every(item => item.mounted && item.tablist && item.withinColumn
+        && item.stripWithinColumn && item.stripHeight > 20 && item.stripHeight < 48),
+        `grouped settings tabs must stay compact and inside their column: ${JSON.stringify(settingsTabsAudit)}`);
+
+      const previewUrlBeforeTabs = page.url();
+      await page.locator('.kefe-section-tabs-trigger', { hasText: 'Lyrics' }).first().click();
+      await page.waitForFunction(() => {
+        const section = document.querySelector('#kefe-settings-panel .section[data-section-id="lyric-sync"]');
+        const media = document.querySelector('#kefe-settings-panel .section[data-section-id="media"]');
+        const editing = document.querySelector('.kefe-editing');
+        return section?.dataset.expanded === "true" && media?.dataset.expanded === "false"
+          && editing?.dataset.selectedSection === "lyrics";
+      }, null, { timeout: 5000 });
+      assert.equal(page.url(), previewUrlBeforeTabs, "opening a grouped settings tab must not navigate away from the preview page");
+      assert.equal(await page.locator('#kefeCanvas').isVisible(), true,
+        "the preview must stay visible while switching grouped settings sections");
+      assert.equal(await page.evaluate(() => {
+        const active = document.querySelector('.kefe-section-tabs-trigger[data-state="active"]');
+        return active?.textContent.trim();
+      }), "Lyrics", "the clicked grouped tab must become active");
+      await page.locator('.kefe-section-tabs-trigger', { hasText: 'Media' }).first().click();
+      await page.waitForFunction(() => document.querySelector('#kefe-settings-panel .section[data-section-id="media"]')?.dataset.expanded === "true",
+        null, { timeout: 5000 });
+    }
+
     const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
     await visualiserSection.locator(".expand-button").click();
     await page.waitForFunction(() => {
