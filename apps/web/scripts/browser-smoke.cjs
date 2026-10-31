@@ -1260,6 +1260,23 @@ async function captureEditorScreenState(page) {
       "opening the Visualisers section must not automatically activate Fluid Ink");
     await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
     if (singleSectionMode) {
+      console.log("Fluid Ink activation state:", JSON.stringify(await page.evaluate(() => ({
+        tabs: [...document.querySelectorAll(".kefe-vis-tabs")].map(nav => ({
+          hidden: nav.hidden,
+          rect: (() => { const r = nav.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; })(),
+          items: [...nav.querySelectorAll("[data-visualiser]")].map(tab => ({
+            value: tab.dataset.visualiser,
+            selected: tab.getAttribute("aria-selected"),
+            power: tab.closest(".kefe-vis-option")?.querySelector(".kefe-switch")?.getAttribute("aria-checked")
+          }))
+        })),
+        reactTabs: [...document.querySelectorAll(".beui-vis-tabs-host [role=tab]")].map(tab => ({
+          value: tab.dataset.visualiser, selected: tab.getAttribute("aria-selected")
+        })),
+        canvas: (() => { const c = document.getElementById("kefeFluidInkCanvas"); if (!c) return null; const r = c.getBoundingClientRect(); return { display: getComputedStyle(c).display, width: r.width, height: r.height }; })()
+      }))));
+    }
+    if (singleSectionMode) {
       await page.waitForFunction(() => {
         const tab = document.querySelector(".beui-vis-backing-controls [data-visualiser='gradient']");
         const power = tab?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
