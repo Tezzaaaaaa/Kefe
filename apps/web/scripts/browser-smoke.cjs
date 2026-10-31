@@ -426,7 +426,7 @@ async function captureEditorScreenState(page) {
       "Fluid Ink must not be selected automatically on startup");
     assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient'][aria-label='Fluid Ink visualiser']").evaluate(tab => tab.classList.contains("primary")), false,
       "Fluid Ink must not have the selected visual style on startup");
-    const desktopLayout = await page.evaluate(() => {
+    const previewSettingsLayout = await page.evaluate(() => {
       const nav = document.querySelector(".kefe-sidebar").getBoundingClientRect();
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
       return {
@@ -436,10 +436,10 @@ async function captureEditorScreenState(page) {
         viewportWidth: document.documentElement.clientWidth,
       };
     });
-    assert.ok(desktopLayout.navBottom <= desktopLayout.workspaceTop + 1,
-      `desktop navigation must sit above the workspace, got nav bottom ${desktopLayout.navBottom} and workspace top ${desktopLayout.workspaceTop}`);
-    assert.ok(desktopLayout.navWidth >= desktopLayout.viewportWidth * 0.8,
-      `desktop navigation should span the workspace width, got ${desktopLayout.navWidth}/${desktopLayout.viewportWidth}`);
+    assert.ok(previewSettingsLayout.navBottom <= previewSettingsLayout.workspaceTop + 1,
+      `desktop navigation must sit above the workspace, got nav bottom ${previewSettingsLayout.navBottom} and workspace top ${previewSettingsLayout.workspaceTop}`);
+    assert.ok(previewSettingsLayout.navWidth >= previewSettingsLayout.viewportWidth * 0.8,
+      `desktop navigation should span the workspace width, got ${previewSettingsLayout.navWidth}/${previewSettingsLayout.viewportWidth}`);
     const headerNavigation = await page.evaluate(() => {
       const header = document.querySelector(".kefe-sidebar");
       const headerRect = header.getBoundingClientRect();
@@ -478,7 +478,7 @@ async function captureEditorScreenState(page) {
       "the day/night action must return to the night theme");
     const singleSectionMode = await page.evaluate(() =>
       document.querySelector('meta[name="kefe-settings-tabs"]')?.content === "single");
-    const desktopLayout = await page.evaluate(() => {
+    const previewSettingsLayout = await page.evaluate(() => {
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
       const settings = document.querySelector(".kefe-settings-mount").getBoundingClientRect();
       const columns = document.querySelector("#kefe-settings-panel > .kefe-settings-columns");
@@ -501,19 +501,19 @@ async function captureEditorScreenState(page) {
       };
     });
     if (singleSectionMode) {
-      assert.ok(desktopLayout.workspaceHeight >= desktopLayout.viewportHeight * 0.48
-        && desktopLayout.workspaceHeight <= desktopLayout.viewportHeight * 0.56,
-        `the preview workspace must occupy the upper half of the viewport: ${JSON.stringify(desktopLayout)}`);
-      assert.ok(desktopLayout.settingsTop >= desktopLayout.workspaceBottom - 1,
-        `settings must begin below the preview workspace: ${JSON.stringify(desktopLayout)}`);
-      assert.equal(desktopLayout.columns, 1, "settings must use one full-width column below the preview");
-      assert.equal(desktopLayout.activeSections.length, 1,
-        `only one settings section may be expanded at a time: ${JSON.stringify(desktopLayout.activeSections)}`);
+      assert.ok(previewSettingsLayout.workspaceHeight >= previewSettingsLayout.viewportHeight * 0.48
+        && previewSettingsLayout.workspaceHeight <= previewSettingsLayout.viewportHeight * 0.56,
+        `the preview workspace must occupy the upper half of the viewport: ${JSON.stringify(previewSettingsLayout)}`);
+      assert.ok(previewSettingsLayout.settingsTop >= previewSettingsLayout.workspaceBottom - 1,
+        `settings must begin below the preview workspace: ${JSON.stringify(previewSettingsLayout)}`);
+      assert.equal(previewSettingsLayout.columns, 1, "settings must use one full-width column below the preview");
+      assert.equal(previewSettingsLayout.activeSections.length, 1,
+        `only one settings section may be expanded at a time: ${JSON.stringify(previewSettingsLayout.activeSections)}`);
     } else {
-      assert.ok(desktopLayout.leftWidth > 0 && desktopLayout.rightWidth > 0,
+      assert.ok(previewSettingsLayout.leftWidth > 0 && previewSettingsLayout.rightWidth > 0,
         "the main-branch baseline must retain its two settings columns");
-      assert.ok(desktopLayout.leftRight <= desktopLayout.workspaceLeft + 1
-        && desktopLayout.workspaceRight <= desktopLayout.rightLeft + 1,
+      assert.ok(previewSettingsLayout.leftRight <= previewSettingsLayout.workspaceLeft + 1
+        && previewSettingsLayout.workspaceRight <= previewSettingsLayout.rightLeft + 1,
         "the main-branch baseline settings columns must flank the preview");
     }
     await page.waitForSelector("#lyricsInput", { state: "visible", timeout: 20000 });
