@@ -194,10 +194,7 @@
     document.addEventListener('click', event => {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      if (target.closest('[data-top-panel="settings"]')) {
-        root.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
+      if (target.closest('[data-top-panel="settings"]')) return;
       const button = target.closest('[data-shell-panel], [data-dock-panel], .kefe-section');
       if (!button) return;
       const key = button.dataset.shellPanel || button.dataset.dockPanel || button.dataset.panel;
