@@ -426,7 +426,7 @@ async function captureEditorScreenState(page) {
       "Fluid Ink must not be selected automatically on startup");
     assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient'][aria-label='Fluid Ink visualiser']").evaluate(tab => tab.classList.contains("primary")), false,
       "Fluid Ink must not have the selected visual style on startup");
-    const previewSettingsLayout = await page.evaluate(() => {
+    const navigationLayout = await page.evaluate(() => {
       const nav = document.querySelector(".kefe-sidebar").getBoundingClientRect();
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
       return {
@@ -436,10 +436,10 @@ async function captureEditorScreenState(page) {
         viewportWidth: document.documentElement.clientWidth,
       };
     });
-    assert.ok(previewSettingsLayout.navBottom <= previewSettingsLayout.workspaceTop + 1,
-      `desktop navigation must sit above the workspace, got nav bottom ${previewSettingsLayout.navBottom} and workspace top ${previewSettingsLayout.workspaceTop}`);
-    assert.ok(previewSettingsLayout.navWidth >= previewSettingsLayout.viewportWidth * 0.8,
-      `desktop navigation should span the workspace width, got ${previewSettingsLayout.navWidth}/${previewSettingsLayout.viewportWidth}`);
+    assert.ok(navigationLayout.navBottom <= navigationLayout.workspaceTop + 1,
+      `desktop navigation must sit above the workspace, got nav bottom ${navigationLayout.navBottom} and workspace top ${navigationLayout.workspaceTop}`);
+    assert.ok(navigationLayout.navWidth >= navigationLayout.viewportWidth * 0.8,
+      `desktop navigation should span the workspace width, got ${navigationLayout.navWidth}/${navigationLayout.viewportWidth}`);
     const headerNavigation = await page.evaluate(() => {
       const header = document.querySelector(".kefe-sidebar");
       const headerRect = header.getBoundingClientRect();
