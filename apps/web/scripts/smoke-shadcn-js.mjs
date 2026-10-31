@@ -56,6 +56,7 @@ for (const selector of [
   'html[data-theme="night"]',
   'html[data-theme="day"]',
   ".shad-slider",
+  ".kefe-volume-popover .shad-slider",
   ".shad-switch",
   ".shad-select-trigger",
   ".shad-dialog-content",
