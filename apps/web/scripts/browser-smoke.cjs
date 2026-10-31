@@ -301,7 +301,11 @@ async function captureEditorScreenState(page) {
     });
     assert.ok(mobileToolbarBounds.left >= 0 && mobileToolbarBounds.right <= mobileToolbarBounds.viewportWidth + 1,
       `mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarBounds)}`);
-    await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).click();
+    if ((await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).count()) > 0) {
+    await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
+    } else {
+      await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).click();
+    }
     const mobileColourPopover = page.getByRole("dialog", { name: "Lyric effect and text style", exact: true });
     await mobileColourPopover.waitFor({ state: "visible", timeout: 5000 });
     const mobilePopoverBounds = await mobileColourPopover.evaluate(node => {
