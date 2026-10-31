@@ -125,6 +125,9 @@
     const initialNav = editing.dataset.selectedSection || 'media';
     editing.setAttribute('data-active-panel', initialNav);
     editing.setAttribute('data-selected-section', initialNav);
+    editing.querySelectorAll('.kefe-panel[data-panel-view]').forEach(panel => {
+      panel.classList.toggle('active', panel.dataset.panelView === initialNav);
+    });
     root.querySelectorAll('.section[data-section-id]').forEach(item => {
       const selected = item.dataset.sectionId === (NAV_TO_SECTION[initialNav] || 'media');
       item.dataset.expanded = String(selected);
@@ -181,6 +184,9 @@
         });
         editing.setAttribute('data-active-panel', navKey);
         editing.setAttribute('data-selected-section', navKey);
+        editing.querySelectorAll('.kefe-panel[data-panel-view]').forEach(panel => {
+          panel.classList.toggle('active', panel.dataset.panelView === navKey);
+        });
         syncVisualiserControls();
       });
     });
@@ -200,6 +206,9 @@
       const editingRoot = editing;
       editingRoot.setAttribute('data-active-panel', key);
       editingRoot.setAttribute('data-selected-section', key);
+      editingRoot.querySelectorAll('.kefe-panel[data-panel-view]').forEach(panel => {
+        panel.classList.toggle('active', panel.dataset.panelView === key);
+      });
       const section = root.querySelector('.section[data-section-id="' + sectionId + '"]');
       if (!section) return;
       root.querySelectorAll('.section[data-section-id]').forEach(item => {
