@@ -382,8 +382,11 @@ function MobileSidebar() {
       `#kefe-settings-panel .section[data-section-id="${MIGRATED_SLOTS[next]}"]`,
     );
     if (settingsSection) {
-      settingsSection.dataset.expanded = "true";
-      settingsSection.querySelector(".expand-button")?.setAttribute("aria-expanded", "true");
+      document.querySelectorAll("#kefe-settings-panel .section[data-section-id]").forEach((item) => {
+        const selected = item === settingsSection;
+        item.dataset.expanded = String(selected);
+        item.querySelector(".expand-button")?.setAttribute("aria-expanded", String(selected));
+      });
     }
   }, []);
 
