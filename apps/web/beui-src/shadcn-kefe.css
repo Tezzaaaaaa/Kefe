@@ -97,6 +97,10 @@ html[data-theme="day"] {
   cursor: pointer;
 }
 
+.kefe-volume-popover .shad-slider {
+  height: 2.5rem;
+}
+
 .shad-slider[data-disabled="true"] {
   opacity: 0.5;
   cursor: not-allowed;

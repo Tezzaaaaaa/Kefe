@@ -161,12 +161,14 @@ export function createShadcnSlider(options = {}) {
   };
 }
 
+const mountedInputs = new Set();
+
 function shouldConvert(input) {
   return (
     input instanceof HTMLInputElement &&
+    input.isConnected &&
     input.type === "range" &&
     input.id !== "kefeTime" &&
-    !(input.closest(".kefe-settings-panel") && input.hasAttribute("data-setting")) &&
     !input.hasAttribute(MOUNT_ATTR)
   );
 }
@@ -213,6 +215,7 @@ function mountSlider(input) {
 
   const host = document.createElement("div");
   host.className = "beui-range-host shad-slider-host";
+  host.dataset.beuiRangeFor = input.id || input.getAttribute("aria-label") || "range";
   if (input.className) {
     input.className
       .split(/\s+/)
@@ -220,6 +223,7 @@ function mountSlider(input) {
       .forEach((name) => host.classList.add(name));
   }
   input.insertAdjacentElement("afterend", host);
+  mountedInputs.add(input);
 
   let internalWrite = false;
   const initial = readInputState(input);
@@ -267,9 +271,20 @@ function mountSlider(input) {
 
   input.addEventListener("input", syncFromInput);
   input.addEventListener("change", syncFromInput);
+  input.addEventListener("beui-sync", syncFromInput);
 
   const attrObserver = new MutationObserver(syncFromInput);
   attrObserver.observe(input, { attributes: true, attributeFilter: ["min", "max", "step", "disabled", "value", "aria-label"] });
+}
+
+function syncMountedValues() {
+  for (const input of [...mountedInputs]) {
+    if (!input.isConnected) {
+      mountedInputs.delete(input);
+      continue;
+    }
+    input.dispatchEvent(new Event("beui-sync"));
+  }
 }
 
 function scan(root = document) {
@@ -293,6 +308,8 @@ if (typeof window !== "undefined") {
     if (document.body) {
       observer.observe(document.body, { childList: true, subtree: true });
     }
+    window.kefeSettings?.onChange?.(() => requestAnimationFrame(syncMountedValues));
+    window.addEventListener("kefe:beui-sync-ranges", syncMountedValues);
   };
 
   if (document.readyState === "loading") {
