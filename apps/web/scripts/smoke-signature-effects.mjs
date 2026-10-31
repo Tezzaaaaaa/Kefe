@@ -112,6 +112,13 @@ vm.runInContext(read("app/effects/lyric-signature-pack.js"), runtime, { filename
 const registered = Object.keys(runtime.kefeEffects || {}).filter(key => key.startsWith("sig"));
 assert.deepEqual(registered.sort(), [...keys].sort(), "renderer registrations must match the roster");
 assert.equal(typeof runtime.kefeEffects.apple, "undefined", "the Apple renderer is owned by lyric-apple.js");
+ runtime.dispatchEvent = () => {};
+ runtime.Event = class Event {};
+ vm.runInContext(read("app/effects/lyric-apple.js"), runtime, { filename: "lyric-apple.js" });
+ assert.equal(typeof runtime.kefeEffects.apple, "function", "Apple renderer must register independently");
+ const appleContext = makeContext();
+ runtime.kefeEffects.apple(appleContext, 1280, 720, { effect: "apple", fontSize: 84 }, lines, 1.6, null);
+ assert.ok(appleContext.fills > 0, "Apple renderer must paint the active line in the preview canvas");
 
 const words = [
   { text: "BURN", time: 1, endTime: 1.5 },
