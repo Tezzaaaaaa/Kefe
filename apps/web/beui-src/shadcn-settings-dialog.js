@@ -364,10 +364,10 @@ function mountSettingsDialog() {
           },
         });
 
-        row.append(topLine, slider.root);
+        row.append(topLine, slider.el);
         controlSyncers.set(item.key, (val) => {
           valOut.textContent = formatSettingValue(item, val);
-          slider.setValue(Number(val));
+          slider.update({ value: Number(val) });
         });
       } else if (item.type === "toggle" || item.type === "boolean") {
         const sw = createShadcnSwitch({

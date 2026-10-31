@@ -136,7 +136,14 @@ export function createShadcnSlider(options = {}) {
 
   return {
     el: root,
+    root,
     thumb,
+    setValue(nextVal) {
+      if (Number.isFinite(Number(nextVal))) {
+        value = clampAndSnap(Number(nextVal), min, max, step);
+        render();
+      }
+    },
     update(nextProps = {}) {
       if (nextProps.min !== undefined && Number.isFinite(Number(nextProps.min))) min = Number(nextProps.min);
       if (nextProps.max !== undefined && Number.isFinite(Number(nextProps.max))) max = Number(nextProps.max);
