@@ -42,6 +42,8 @@ function VisualiserTabs({ backingButtons }) {
 
   function select(value) {
     backingButtons.get(value)?.click();
+    const power = nativePower(value);
+    if (power && power.getAttribute("aria-checked") !== "true") power.click();
     setActive(value);
     window.setTimeout(() => syncPower(value), 0);
   }
@@ -50,6 +52,7 @@ function VisualiserTabs({ backingButtons }) {
     event.stopPropagation();
     const power = nativePower(value);
     if (!power) return;
+    if (power.getAttribute("aria-checked") !== "true") backingButtons.get(value)?.click();
     power.click();
     setPowerStates((current) => ({ ...current, [value]: power.getAttribute("aria-checked") === "true" }));
   }
