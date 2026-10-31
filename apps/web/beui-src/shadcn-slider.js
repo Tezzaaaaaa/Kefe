@@ -58,6 +58,7 @@ export function createShadcnSlider(options = {}) {
   function render() {
     const pct = percentOf(value, min, max);
     root.style.setProperty("--shad-slider-pct", `${pct}%`);
+    root.style.setProperty("--shad-slider-ratio", String(pct / 100));
     root.dataset.disabled = disabled ? "true" : "false";
     thumb.tabIndex = disabled ? -1 : 0;
     thumb.setAttribute("aria-valuemin", String(min));
@@ -79,7 +80,9 @@ export function createShadcnSlider(options = {}) {
   function valueFromClientX(clientX) {
     const rect = track.getBoundingClientRect();
     if (!rect.width) return value;
-    const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+    const inset = Math.min(8, rect.width / 4);
+    const usable = Math.max(1, rect.width - inset * 2);
+    const ratio = Math.min(1, Math.max(0, (clientX - (rect.left + inset)) / usable));
     return min + ratio * (max - min);
   }
 

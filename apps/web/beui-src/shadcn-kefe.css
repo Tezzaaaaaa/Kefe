@@ -129,7 +129,7 @@ html[data-theme="day"] {
 .shad-slider-thumb {
   position: absolute;
   top: 50%;
-  left: var(--shad-slider-pct, 0%);
+  left: calc(8px + (100% - 16px) * var(--shad-slider-ratio, 0));
   width: 16px;
   height: 16px;
   border-radius: 9999px;
@@ -142,13 +142,13 @@ html[data-theme="day"] {
 }
 
 .shad-slider:hover .shad-slider-thumb {
-  transform: translate(-50%, -50%) scale(1.08);
+  transform: translate(-50%, -50%) scale(1.05);
 }
 
 .shad-slider-thumb:focus-visible,
 .shad-slider[data-dragging="true"] .shad-slider-thumb {
   box-shadow: 0 0 0 4px var(--shad-ring), 0 1px 3px rgba(0, 0, 0, 0.32);
-  transform: translate(-50%, -50%) scale(1.1);
+  transform: translate(-50%, -50%) scale(1.05);
 }
 
 /* --------------------------------------------------------------------------
