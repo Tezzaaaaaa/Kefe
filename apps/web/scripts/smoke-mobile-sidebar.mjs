@@ -1,9 +1,9 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
- * Structural smoke test for the mobile editor sidebar.
+ * Structural smoke test for the pure-JS shadcn.io mobile editor sidebar.
  *
  * The sidebar must remain a pure enhancement: it hosts the native editor
  * panels (never clones their controls), it only activates below the desktop
@@ -13,18 +13,20 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(resolve(root, path), "utf8");
 
 const editor = read("editor.source.html");
-const source = read("beui-src/mobile-sidebar.jsx");
+const source = read("beui-src/mobile-sidebar.js");
 const sections = read("beui-src/mobile-sidebar-sections.js");
 const styles = read("beui-src/mobile-sidebar.css");
-const rangeBridge = read("beui-src/legacy-range-bridge.jsx");
+const rangeModule = read("beui-src/shadcn-slider.js");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-// Wired into the published editor page.
-expect(editor.includes("beui-src/mobile-sidebar.jsx"), "editor.source.html must load the mobile sidebar module");
+// Wired into the published editor page without legacy JSX bridges.
+expect(editor.includes("beui-src/mobile-sidebar.js"), "editor.source.html must load the pure-JS mobile sidebar module");
+expect(!editor.includes("beui-src/mobile-sidebar.jsx"), "editor.source.html must not load retired mobile-sidebar.jsx");
+expect(!existsSync(resolve(root, "beui-src/mobile-sidebar.jsx")), "retired mobile-sidebar.jsx must be removed");
 
 // One entry per editor section, each with a group fallback so controls that
 // other modules append later are never orphaned.
@@ -40,8 +42,9 @@ for (const marker of [
   "kefe-ms-drawer",
   "kefe-ms-tabs",
   "kefe-ms-host",
-  "role=\"dialog\"",
-  "aria-modal=\"false\"",
+  'role", "dialog"',
+  'aria-modal", "false"',
+  "kefe-ms-sheet-open",
 ]) {
   expect(source.includes(marker), `mobile sidebar is missing ${marker}`);
 }
@@ -50,16 +53,21 @@ for (const marker of [
 expect(!source.includes("kefe-ms-rail"), "the sidebar icon rail must stay removed");
 expect(source.includes("--kefe-ms-top") && source.includes("--kefe-ms-bottom"), "the section panel must be placed between the timeline and the dock");
 
-// Group switching uses the shadcn/ui Tabs component; there is no Tools dropdown (the header and toolbar own those actions).
-expect(source.includes("components/ui/tabs") && source.includes("<TabsTrigger"), "group tabs must use the shadcn Tabs component");
+// Group switching uses the pure-JS shadcn.io Tabs slots; there is no Tools dropdown (the header and toolbar own those actions).
+expect(
+  source.includes('data-slot="tabs"') &&
+    source.includes('data-slot="tabs-list"') &&
+    source.includes('data-slot="tabs-trigger"'),
+  "group tabs must use the shadcn Tabs slots",
+);
 expect(!source.includes("ToolMenu") && !source.includes("kefe-ms-tools"), "the sidebar Tools dropdown must stay removed");
 
-// Sliders must keep using the shared beUI RangeSlider bridge: the sidebar may
+// Sliders must keep using the shared shadcn Slider module: the sidebar may
 // only move existing range inputs, never create new ones.
 expect(!/createElement\(\s*["']input/.test(source), "mobile sidebar must not create its own inputs");
 expect(!/createElement\(\s*["']input/.test(source) && !/type=["']range["']\s*\/>/.test(source),
   "mobile sidebar must not declare its own range inputs");
-expect(rangeBridge.includes("RangeSlider"), "the beUI RangeSlider bridge must remain the slider source of truth");
+expect(rangeModule.includes("createShadcnSlider"), "the shadcn Slider module must remain the slider source of truth");
 
 // Appearance lives in its own stylesheet, scoped to the mobile breakpoint.
 expect(styles.includes("@media (max-width: 1023px)"), "mobile sidebar styles must be scoped to the mobile breakpoint");
@@ -76,4 +84,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("PASS: the mobile editor sidebar hosts the six native panels inline under the preview through the bottom dock, shadcn group tabs.");
+console.log("PASS: the pure-JS shadcn mobile editor sidebar hosts the six native panels inline under the preview through the bottom dock and shadcn group tabs.");

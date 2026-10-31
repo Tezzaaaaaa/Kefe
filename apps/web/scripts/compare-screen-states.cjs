@@ -29,10 +29,10 @@ const carouselGeometryMismatches = [];
    records that sidebar with the Media panel open. Desktop stays byte-for-byte
    comparable with the baseline; mobile is validated against its own contract
    instead of against the retired stacked layout. */
-// Required while the mobile capture is taken with the drawer open.
-const MOBILE_SIDEBAR_SELECTORS = [".kefe-ms-drawer", ".kefe-ms-rail", ".kefe-ms-surface", ".kefe-ms-host"];
-// Present in the DOM but deliberately hidden while the drawer is open.
-const MOBILE_SIDEBAR_OPTIONAL_SELECTORS = [".kefe-ms-dock"];
+// Required while the mobile capture is taken with the inline section panel open.
+const MOBILE_SIDEBAR_SELECTORS = [".kefe-ms-drawer", ".kefe-ms-dock", ".kefe-ms-surface", ".kefe-ms-host"];
+// Retired sidebar rail stays optional/absent in the inline dock layout.
+const MOBILE_SIDEBAR_OPTIONAL_SELECTORS = [];
 
 for (const size of ["desktop", "mobile"]) {
   const mobileSidebar = size === "mobile";

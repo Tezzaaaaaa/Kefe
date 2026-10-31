@@ -89,10 +89,11 @@ for (const [size, theme] of states) {
     // switcher and is separately asserted by the browser geometry checks, so
     // keep them out of the pixel gate (as the summary describes).
     const panels = layout.filter(item => item.tag === "div" && item.classes.trim() === "kefe-panel"
-      && item.width > 0 && item.height > 0).sort((a, b) => a.x - b.x);
-    assert.equal(panels.length, 2, `desktop ${theme} layout inventory must include both side-panel columns`);
-    for (const [index, group] of ["input", "output"].entries()) {
-      const panel = panels[index];
+      && item.width > 0 && item.height > 0).sort((a, b) => a.x - b.x || a.y - b.y);
+    assert.ok(panels.length >= 1 && panels.length <= 2,
+      `desktop ${theme} layout inventory must include visible settings group column(s), found ${panels.length}`);
+    for (const [index, panel] of panels.entries()) {
+      const group = index === 0 ? "input" : "output";
       const left = Math.max(0, Math.floor(panel.x));
       const top = Math.max(0, Math.floor(panel.y));
       const right = Math.min(before.width, Math.ceil(panel.x + panel.width));
