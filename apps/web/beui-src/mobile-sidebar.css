@@ -788,19 +788,28 @@ html[data-theme="day"] .kefe-ms-scrim {
 }
 
 
-/* ── Bottom sheet: the preview and timeline stay visible above the editor ── */
+/* ── Inline section panel: under the preview + timeline, above the bottom dock ── */
 @media (max-width: 1023px) {
-  .kefe-ms-scrim { display: none !important; }
+  .kefe-ms-scrim,
+  .kefe-ms-rail,
+  .kefe-ms-done,
+  .kefe-ms-head-sub,
+  .kefe-ms-head::before { display: none !important; }
+  .kefe-ms-body { grid-template-columns: minmax(0, 1fr); }
   .kefe-ms-drawer {
-    inset: auto 0 0 0;
+    inset: auto 8px var(--kefe-ms-bottom, 86px) 8px;
     top: var(--kefe-ms-top, 52dvh);
-    width: 100%;
+    width: auto;
     max-width: none;
     height: auto;
     max-height: none;
-    border: 0;
-    border-top: 1px solid var(--line);
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -12px 40px rgba(0, 0, 0, .35);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: none;
   }
+  .kefe-ms-head { padding: 8px 10px 8px 14px; }
+  .kefe-ms-title { margin: 0; }
+  .kefe-ms-head-copy { display: flex; }
+  .kefe-ms-brand { display: none; }
+  .kefe-ms-foot { padding: 6px 10px; }
 }

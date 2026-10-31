@@ -1176,7 +1176,12 @@ async function captureEditorScreenState(page) {
           const mobileShot = size === "mobile"
             && await screenshotPage.locator(".kefe-ms-dock").count() > 0;
           if (mobileShot) {
-            await screenshotPage.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
+            const mediaAlreadyOpen = await screenshotPage.evaluate(() => Boolean(
+              document.querySelector('.kefe-ms-drawer .kefe-ms-host .kefe-panel[data-panel-view="media"]')
+            ));
+            if (!mediaAlreadyOpen) {
+              await screenshotPage.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
+            }
             await screenshotPage.waitForFunction(() => Boolean(
               document.querySelector('.kefe-ms-drawer .kefe-ms-host .kefe-panel[data-panel-view="media"]')
             ), null, { timeout: 10000 });
@@ -1471,8 +1476,13 @@ async function captureEditorScreenState(page) {
         ["media", "Media"], ["lyrics", "Lyric Sync"], ["effects", "Lyric Effects"],
         ["background-effects", "Background"], ["visualiser", "Visualisers"], ["export", "Export"]
       ]) {
-        const dockButton = page.locator(`.kefe-ms-dock-item[aria-label="Edit ${label}"]`).first();
-        await dockButton.evaluate(button => button.click());
+        const alreadyOpen = await page.evaluate(expected => Boolean(
+          document.querySelector(`.kefe-ms-drawer .kefe-ms-host .kefe-panel[data-panel-view="${expected}"]`)
+        ), section);
+        if (!alreadyOpen) {
+          const dockButton = page.locator(`.kefe-ms-dock-item[aria-label="Edit ${label}"]`).first();
+          await dockButton.evaluate(button => button.click());
+        }
         await page.waitForFunction(expected => document.querySelector(".kefe-editing")?.dataset.selectedSection === expected, section, { timeout: 5000 });
         await page.waitForFunction(expected => Boolean(
           document.querySelector(".kefe-ms-drawer") &&

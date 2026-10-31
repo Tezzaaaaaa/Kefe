@@ -193,8 +193,7 @@ function initMobileSidebar() {
   function syncDockState() {
     dockButtons.forEach((btn, id) => {
       const selected = isOpen && activeSection === id;
-      const highlighted = activeSection === id;
-      btn.classList.toggle("is-active", highlighted);
+      btn.classList.toggle("is-active", selected);
       btn.setAttribute("aria-pressed", String(selected));
     });
   }
@@ -475,9 +474,12 @@ function initMobileSidebar() {
 
   function placeBottomSheet() {
     const tl = document.querySelector(".kefe-timeline")?.getBoundingClientRect();
+    const dockRect = dock.getBoundingClientRect();
+    const bottom = dockRect.height ? Math.max(0, window.innerHeight - dockRect.top) + 6 : 86;
     const wanted = tl ? tl.bottom + 8 : window.innerHeight * 0.5;
-    const top = Math.min(Math.max(wanted, 120), window.innerHeight - 300);
+    const top = Math.min(Math.max(wanted, 120), window.innerHeight - bottom - 220);
     document.documentElement.style.setProperty("--kefe-ms-top", `${Math.round(top)}px`);
+    document.documentElement.style.setProperty("--kefe-ms-bottom", `${Math.round(bottom)}px`);
   }
 
   function openSectionInSidebar(sectionId, trigger = null) {
@@ -493,6 +495,7 @@ function initMobileSidebar() {
     if (!isOpen) {
       window.scrollTo(0, 0);
       placeBottomSheet();
+      requestAnimationFrame(placeBottomSheet);
       window.addEventListener("resize", placeBottomSheet);
     }
     isOpen = true;
@@ -510,6 +513,7 @@ function initMobileSidebar() {
     window.removeEventListener("resize", placeBottomSheet);
     document.documentElement.classList.remove("kefe-ms-locked", "kefe-ms-sheet-open");
     document.documentElement.style.removeProperty("--kefe-ms-top");
+    document.documentElement.style.removeProperty("--kefe-ms-bottom");
     unmountDrawer();
     syncDockState();
     if (lastFocusedBeforeOpen && typeof lastFocusedBeforeOpen.focus === "function") {
@@ -518,10 +522,13 @@ function initMobileSidebar() {
   }
 
   function syncViewportMode() {
+    const wasMobile = isMobile;
     isMobile = mediaQuery.matches;
     document.documentElement.classList.toggle("kefe-ms-enabled", isMobile);
     if (!isMobile && isOpen) {
       closeSidebar();
+    } else if (isMobile && !wasMobile) {
+      openSectionInSidebar(readActiveSection());
     } else {
       syncDockState();
     }
