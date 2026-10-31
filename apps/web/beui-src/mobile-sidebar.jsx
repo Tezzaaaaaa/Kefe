@@ -464,10 +464,10 @@ function MobileSidebar() {
               aria-modal="false"
               aria-labelledby="kefe-ms-title"
               tabIndex={-1}
-              initial={reduce ? false : { y: "100%" }}
-              animate={{ y: 0 }}
-              exit={reduce ? { opacity: 0 } : { y: "100%" }}
-              transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 38, mass: 0.9 }}
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0 }}
             >
               <header className="kefe-ms-head">
                 <div className="kefe-ms-head-copy">

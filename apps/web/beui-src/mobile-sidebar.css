@@ -823,3 +823,24 @@ html[data-theme="day"] .kefe-ms-scrim {
   }
   .kefe-ms-surface-head [data-slot="tabs-trigger"].kefe-ms-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 }
+
+
+/* ── Flat section area: sits on the page background under the preview, no popup chrome ── */
+@media (max-width: 1023px) {
+  .kefe-ms-close { display: none !important; }
+  .kefe-ms-drawer {
+    inset: auto 0 var(--kefe-ms-bottom, 86px) 0;
+    top: var(--kefe-ms-top, 52dvh);
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    background: var(--bg);
+    box-shadow: none;
+  }
+  .kefe-ms-head { padding: 8px 14px 4px; border-bottom: 0; background: transparent; }
+  .kefe-ms-title { font-size: 15px; }
+  .kefe-ms-surface,
+  .kefe-ms-surface-head { background: transparent; }
+  .kefe-ms-surface-head { border-bottom: 0; padding: 4px 14px 8px; }
+  .kefe-ms-host { padding: 4px 14px 14px; }
+}
