@@ -243,8 +243,8 @@ async function captureEditorScreenState(page) {
       }));
     });
     assert.deepEqual(toolbarIconAudit, [], "every icon-bearing toolbar action must render its Lucide SVG");
-    const fontTriggerIcons = await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).locator(":scope > svg").count();
-    const fontTriggerChildren = await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).evaluate(node => node.children.length);
+    const fontTriggerIcons = await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).locator(":scope > svg").count();
+    const fontTriggerChildren = await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).evaluate(node => node.children.length);
     assert.equal(fontTriggerIcons, 1, "the combined font and colour trigger must display one Lucide icon");
     assert.equal(fontTriggerChildren, 1, "the combined font and colour trigger must not contain a second icon or decorative symbol");
     const toolbarGroups = await quickToolbar.locator(".kft-main > .kft-cluster").evaluateAll(groups =>
@@ -258,7 +258,7 @@ async function captureEditorScreenState(page) {
     assert.deepEqual(toolbarGroups, [
       { label: "Layer", controls: ["Move toolbar. Drag, or use arrow keys to nudge. Double-click to re-dock.", "Move and scale layer"] },
       { label: "History", controls: ["Undo", "Redo"] },
-      { label: "Lyrics", controls: ["Lyric effect and display mode", "Font and text colour", "Lyrics on or off"] },
+      { label: "Lyrics", controls: ["Lyric effect and text style", "Lyrics on or off"] },
       { label: "Canvas", controls: ["Canvas, background and visualiser"] },
       { label: "Visualiser", controls: ["Visualiser"] },
       { label: "Actions", controls: ["More actions"] }
@@ -298,8 +298,8 @@ async function captureEditorScreenState(page) {
     });
     assert.ok(mobileToolbarBounds.left >= 0 && mobileToolbarBounds.right <= mobileToolbarBounds.viewportWidth + 1,
       `mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarBounds)}`);
-    await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
-    const mobileColourPopover = page.getByRole("dialog", { name: "Font and text colour", exact: true });
+    await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).click();
+    const mobileColourPopover = page.getByRole("dialog", { name: "Lyric effect and text style", exact: true });
     await mobileColourPopover.waitFor({ state: "visible", timeout: 5000 });
     const mobilePopoverBounds = await mobileColourPopover.evaluate(node => {
       const r = node.getBoundingClientRect();
@@ -320,7 +320,7 @@ async function captureEditorScreenState(page) {
     await hex.evaluate(input => input.blur());
     assert.equal(await hex.inputValue(), "#A7E7FF", "invalid hex input must preserve the last valid colour");
 
-    const fontButton = quickToolbar.getByRole("button", { name: "Font and text colour", exact: true });
+    const fontButton = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
     const fontPanel = mobileColourPopover;
     const quickSize = fontPanel.locator('.kft-scrub[aria-label="Text size"]');
     await quickSize.focus();
@@ -367,9 +367,9 @@ async function captureEditorScreenState(page) {
     assert.equal(await quickToolbar.evaluate(node => node.classList.contains("is-locked")), false, "toolbar position lock must disengage");
     await page.keyboard.press("Escape");
 
-    const effectButton = quickToolbar.getByRole("button", { name: "Lyric effect and display mode", exact: true });
+    const effectButton = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
     await effectButton.click();
-    const effectPanel = page.getByRole("dialog", { name: "Lyric effect", exact: true });
+    const effectPanel = page.getByRole("dialog", { name: "Lyric effect and text style", exact: true });
     await effectPanel.waitFor({ state: "visible", timeout: 5000 });
     await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();
     assert.ok(await page.locator('.kft-popover [role="option"]').count() > 1,
