@@ -588,7 +588,7 @@
 
 /* Editor workspace: keep the preview in the upper half and show one selected
    settings section in a full-width, scrollable surface beneath it. */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   html:root .kefe-editor {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 56px minmax(0, 50vh) minmax(0, 1fr) auto;
