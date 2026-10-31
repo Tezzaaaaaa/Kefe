@@ -243,26 +243,6 @@ async function captureEditorScreenState(page) {
       }));
     });
     assert.deepEqual(toolbarIconAudit, [], "every icon-bearing toolbar action must render its Lucide SVG");
-    const fontTriggerIcons = await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).locator(":scope > svg").count();
-    const fontTriggerChildren = await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).evaluate(node => node.children.length);
-    assert.equal(fontTriggerIcons, 1, "the combined font and colour trigger must display one Lucide icon");
-    assert.equal(fontTriggerChildren, 1, "the combined font and colour trigger must not contain a second icon or decorative symbol");
-    const toolbarGroups = await quickToolbar.locator(".kft-main > .kft-cluster").evaluateAll(groups =>
-      groups.map(group => ({
-        label: group.getAttribute("aria-label"),
-        controls: [...group.querySelectorAll(":scope > button")].map(button =>
-          button.getAttribute("aria-label") || button.getAttribute("title") || button.textContent.trim()
-        )
-      }))
-    );
-    assert.deepEqual(toolbarGroups, [
-      { label: "Layer", controls: ["Move toolbar. Drag, or use arrow keys to nudge. Double-click to re-dock.", "Move and scale layer"] },
-      { label: "History", controls: ["Undo", "Redo"] },
-      { label: "Lyrics", controls: ["Lyric effect and display mode", "Font and text colour", "Lyrics on or off"] },
-      { label: "Canvas", controls: ["Canvas, background and visualiser"] },
-      { label: "Visualiser", controls: ["Visualiser"] },
-      { label: "Actions", controls: ["More actions"] }
-    ], "toolbar actions must appear once in their intended functional groups");
     assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").isVisible(), false, "the duplicate preview-bar Canvas ratio must be hidden");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
     const initialToolbarPlacement = await page.evaluate(() => {
@@ -277,6 +257,32 @@ async function captureEditorScreenState(page) {
     assert.ok(initialToolbarPlacement.toolbar.left >= 0 && initialToolbarPlacement.toolbar.right <= initialToolbarPlacement.vw + 1
       && initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
       `toolbar must remain fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
+
+    const toolbarLauncher = quickToolbar.locator(".kft-launch");
+    if ((await toolbarLauncher.count()) > 0 && (await toolbarLauncher.getAttribute("aria-expanded")) !== "true") {
+      await toolbarLauncher.click();
+    }
+    const lyricTrigger = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
+    const fontTriggerIcons = await lyricTrigger.locator(":scope > svg").count();
+    const fontTriggerChildren = await lyricTrigger.evaluate(node => node.children.length);
+    assert.equal(fontTriggerIcons, 1, "the combined lyric effect and text trigger must display one Lucide icon");
+    assert.equal(fontTriggerChildren, 1, "the combined lyric effect and text trigger must not contain a second icon or decorative symbol");
+    const toolbarGroups = await quickToolbar.locator(".kft-main > .kft-cluster").evaluateAll(groups =>
+      groups.map(group => ({
+        label: group.getAttribute("aria-label"),
+        controls: [...group.querySelectorAll(":scope > button")].map(button =>
+          button.getAttribute("aria-label") || button.getAttribute("title") || button.textContent.trim()
+        )
+      }))
+    );
+    assert.deepEqual(toolbarGroups, [
+      { label: "Layer", controls: ["Move toolbar. Drag, or use arrow keys to nudge. Double-click to re-dock.", "Move and scale layer"] },
+      { label: "History", controls: ["Undo", "Redo"] },
+      { label: "Lyrics", controls: ["Lyric effect and text style", "Lyrics on or off"] },
+      { label: "Canvas", controls: ["Canvas, background and visualiser"] },
+      { label: "Visualiser", controls: ["Visualiser"] },
+      { label: "Actions", controls: ["More actions"] }
+    ], "toolbar actions must appear once in their intended functional groups");
     const desktopViewport = page.viewportSize();
     const visibleDesktopNavIcons = await page.locator(".kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden='true']").evaluateAll(nodes => nodes.filter(node => getComputedStyle(node).display !== "none").length);
     assert.equal(visibleDesktopNavIcons, 0, "the header section links stay text-only, including the single Editor tab");
@@ -293,13 +299,18 @@ async function captureEditorScreenState(page) {
     await page.locator(".kefe-ms-close").evaluate(button => button.click());
     await page.waitForFunction(() => !document.querySelector(".kefe-ms-drawer"), null, { timeout: 5000 });
     const mobileToolbarBounds = await quickToolbar.evaluate(node => {
-      const r = node.getBoundingClientRect();
+      const target = node.querySelector(".kft-bar") || node;
+      const r = target.getBoundingClientRect();
       return { left: r.left, right: r.right, viewportWidth: document.documentElement.clientWidth };
     });
     assert.ok(mobileToolbarBounds.left >= 0 && mobileToolbarBounds.right <= mobileToolbarBounds.viewportWidth + 1,
       `mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarBounds)}`);
+    if ((await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).count()) > 0) {
     await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
-    const mobileColourPopover = page.getByRole("dialog", { name: "Font and text colour", exact: true });
+    } else {
+      await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).click();
+    }
+    const mobileColourPopover = page.getByRole("dialog", { name: "Lyric effect and text style", exact: true });
     await mobileColourPopover.waitFor({ state: "visible", timeout: 5000 });
     const mobilePopoverBounds = await mobileColourPopover.evaluate(node => {
       const r = node.getBoundingClientRect();
@@ -320,7 +331,7 @@ async function captureEditorScreenState(page) {
     await hex.evaluate(input => input.blur());
     assert.equal(await hex.inputValue(), "#A7E7FF", "invalid hex input must preserve the last valid colour");
 
-    const fontButton = quickToolbar.getByRole("button", { name: "Font and text colour", exact: true });
+    const fontButton = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
     const fontPanel = mobileColourPopover;
     const quickSize = fontPanel.locator('.kft-scrub[aria-label="Text size"]');
     await quickSize.focus();
@@ -367,9 +378,9 @@ async function captureEditorScreenState(page) {
     assert.equal(await quickToolbar.evaluate(node => node.classList.contains("is-locked")), false, "toolbar position lock must disengage");
     await page.keyboard.press("Escape");
 
-    const effectButton = quickToolbar.getByRole("button", { name: "Lyric effect and display mode", exact: true });
+    const effectButton = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
     await effectButton.click();
-    const effectPanel = page.getByRole("dialog", { name: "Lyric effect", exact: true });
+    const effectPanel = page.getByRole("dialog", { name: "Lyric effect and text style", exact: true });
     await effectPanel.waitFor({ state: "visible", timeout: 5000 });
     await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();
     assert.ok(await page.locator('.kft-popover [role="option"]').count() > 1,
@@ -395,6 +406,9 @@ async function captureEditorScreenState(page) {
       });
     }
     await page.keyboard.press("Escape");
+    if (await effectPanel.isVisible()) {
+      await page.keyboard.press("Escape");
+    }
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "the editor must start in Media, not switch itself to Visualisers");
     const editorTabAction = page.locator(".kefe-sidebar [data-editor-tab]");
@@ -428,6 +442,10 @@ async function captureEditorScreenState(page) {
     await canvasPanel.locator('[role="radio"][data-value="16:9"]').click();
     await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-16x9"), null, { timeout: 5000 });
     await page.keyboard.press("Escape");
+    if ((await toolbarLauncher.count()) > 0 && (await toolbarLauncher.getAttribute("aria-expanded")) === "true") {
+      await toolbarLauncher.click();
+    }
+    await page.evaluate(() => { try { localStorage.removeItem("kefe.toolbar.open.v2"); } catch (_) {} });
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
       "visualiser tabs must stay hidden until the Visualisers section is opened");
     assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
@@ -1357,15 +1375,22 @@ async function captureEditorScreenState(page) {
       const mobileDockDisplay = await page.locator(".kefe-workspace-dock").evaluate(node => getComputedStyle(node).display);
       assert.equal(mobileDockDisplay, "none",
         `the duplicate fixed workspace dock must not cover editor content at ${width}px`);
-      const mobileToolbarLayout = await quickToolbar.locator(".kft-main").evaluate(node => ({
-        flexWrap: getComputedStyle(node).flexWrap,
-        clientHeight: node.clientHeight,
-        scrollHeight: node.scrollHeight
-      }));
-      assert.equal(mobileToolbarLayout.flexWrap, "nowrap",
-        `the preview toolbar must remain on one row at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
-      assert.ok(mobileToolbarLayout.scrollHeight <= mobileToolbarLayout.clientHeight + 1,
-        `the preview toolbar must not wrap at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
+      const mobileToolbarLayout = await quickToolbar.evaluate(node => {
+        const launch = node.querySelector(".kft-launch") || node;
+        const r = launch.getBoundingClientRect();
+        const main = node.querySelector(".kft-main");
+        return {
+          left: r.left,
+          right: r.right,
+          viewportWidth: document.documentElement.clientWidth,
+          clientWidth: main ? main.clientWidth : 0,
+          scrollWidth: main ? main.scrollWidth : 0
+        };
+      });
+      assert.ok(mobileToolbarLayout.left >= -1 && mobileToolbarLayout.right <= mobileToolbarLayout.viewportWidth + 1,
+        `the preview toolbar launcher must remain inside the viewport at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
+      assert.ok(mobileToolbarLayout.scrollWidth <= mobileToolbarLayout.clientWidth + 1,
+        `the preview toolbar must not scroll horizontally at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
       // The mobile editor surface is now the KEFE sidebar: a section dock replaces
       // the stacked settings accordion, and the live native panel is hosted inside
       // the drawer while it is open.
