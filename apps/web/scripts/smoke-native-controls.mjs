@@ -33,10 +33,30 @@ if (!editorStyles.includes('input[type="checkbox"]:not(.kefe-sr-only)') ||
 const migratedBridges = [
   "legacy-select-bridge", "legacy-tabs-bridge", "legacy-sidebar-bridge",
   "legacy-chrome-bridge", "legacy-panel-buttons-bridge",
+  "legacy-range-bridge", "legacy-settings-bridge", "legacy-settings-tabs-bridge",
+  "legacy-visualiser-tabs-bridge", "legacy-command-dialog-bridge", "mobile-sidebar",
 ];
 for (const bridge of migratedBridges) {
-  if (editor.includes(bridge)) failures.push(`Editor entry still loads ${bridge}`);
+  if (editor.includes(`${bridge}.jsx`)) failures.push(`Editor entry still loads ${bridge}.jsx`);
   if (existsSync(resolve(root, `beui-src/${bridge}.jsx`))) failures.push(`Retired bridge source remains: ${bridge}.jsx`);
+}
+if (editor.includes("app/ui/icons.jsx") || existsSync(resolve(root, "app/ui/icons.jsx"))) {
+  failures.push("Retired React icons.jsx bridge remains");
+}
+for (const requiredModule of [
+  "app/ui/icons.js",
+  "beui-src/shadcn-slider.js",
+  "beui-src/shadcn-settings-dialog.js",
+  "beui-src/shadcn-settings-tabs.js",
+  "beui-src/shadcn-visualiser-tabs.js",
+  "beui-src/shadcn-command-dialog.js",
+  "beui-src/shadcn-controls.js",
+  "beui-src/mobile-sidebar.js",
+  "beui-src/shadcn-kefe.css",
+]) {
+  if (!existsSync(resolve(root, requiredModule))) {
+    failures.push(`Required pure-JS/CSS shadcn module is missing: ${requiredModule}`);
+  }
 }
 if (!structure.includes("data-editor-tab") || !structure.includes("data-dock-panel") || !structure.includes("data-accent")) {
   failures.push("Native Editor tab, dock, or accent controls are missing from KEFE structure");

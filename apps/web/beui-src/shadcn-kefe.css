@@ -1,0 +1,936 @@
+/* ==========================================================================
+   KEFE — shadcn.io Design System (Pure CSS + JavaScript)
+   Preserves KEFE's exact Night (#171719 / #202126) & Day (#f3f4f7 / #ffffff)
+   palettes and #d92f33 brand crimson accent across every component.
+   ========================================================================== */
+
+:root,
+html[data-theme="night"] {
+  --shad-background: var(--shell-bg, #171719);
+  --shad-foreground: var(--shell-text, #f5f5f5);
+  --shad-card: #202126;
+  --shad-card-elevated: #26272d;
+  --shad-card-foreground: var(--shell-text, #f5f5f5);
+  --shad-popover: #202126;
+  --shad-popover-foreground: var(--shell-text, #f5f5f5);
+  --shad-primary: var(--accent, #d92f33);
+  --shad-primary-hover: var(--accent-hover, #e6393d);
+  --shad-primary-pressed: var(--accent-pressed, #c22a2e);
+  --shad-primary-foreground: var(--on-accent, #ffffff);
+  --shad-secondary: #27282e;
+  --shad-secondary-hover: #2f3038;
+  --shad-secondary-foreground: #f4f4f5;
+  --shad-muted: #1b1c20;
+  --shad-muted-foreground: var(--shell-muted, #a1a1aa);
+  --shad-accent: #2c2d35;
+  --shad-accent-foreground: #fafafa;
+  --shad-accent-soft: color-mix(in srgb, var(--shad-primary) 18%, transparent);
+  --shad-border: var(--shell-line, #34353c);
+  --shad-border-strong: var(--shell-line-strong, #4b4c56);
+  --shad-input: #34353d;
+  --shad-ring: color-mix(in srgb, var(--shad-primary) 35%, transparent);
+  --shad-ring-solid: var(--focus-ring, #ff8a8d);
+  --shad-radius-sm: 6px;
+  --shad-radius-md: 8px;
+  --shad-radius-lg: 10px;
+  --shad-radius-xl: 14px;
+  --shad-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shad-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.28);
+  --shad-shadow-md: 0 10px 28px rgba(0, 0, 0, 0.42);
+  --shad-shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.58);
+  --shad-success: #22c55e;
+  --shad-warning: #f59e0b;
+  --shad-danger: #ef4444;
+  --shad-info: #38bdf8;
+}
+
+html[data-theme="day"] {
+  --shad-background: var(--shell-bg, #f3f4f7);
+  --shad-foreground: var(--shell-text, #141519);
+  --shad-card: #ffffff;
+  --shad-card-elevated: #f8f9fb;
+  --shad-card-foreground: var(--shell-text, #141519);
+  --shad-popover: #ffffff;
+  --shad-popover-foreground: var(--shell-text, #141519);
+  --shad-primary: var(--accent, #d92f33);
+  --shad-primary-hover: var(--accent-hover, #c5282c);
+  --shad-primary-pressed: var(--accent-pressed, #ad2226);
+  --shad-primary-foreground: #ffffff;
+  --shad-secondary: #f1f2f6;
+  --shad-secondary-hover: #e7e9ef;
+  --shad-secondary-foreground: #18181b;
+  --shad-muted: #eceef3;
+  --shad-muted-foreground: var(--shell-muted, #5f636e);
+  --shad-accent: #ebedf3;
+  --shad-accent-foreground: #141519;
+  --shad-accent-soft: color-mix(in srgb, var(--shad-primary) 12%, transparent);
+  --shad-border: var(--shell-line, #dfe2ea);
+  --shad-border-strong: var(--shell-line-strong, #c8cdd8);
+  --shad-input: #d5d9e2;
+  --shad-ring: color-mix(in srgb, var(--shad-primary) 26%, transparent);
+  --shad-ring-solid: var(--shad-primary);
+  --shad-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shad-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.07);
+  --shad-shadow-md: 0 12px 28px rgba(15, 23, 42, 0.12);
+  --shad-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+/* --------------------------------------------------------------------------
+   1. shadcn Slider (.shad-slider)
+   -------------------------------------------------------------------------- */
+.shad-slider-host {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 84px;
+}
+
+.shad-slider {
+  --shad-slider-pct: 0%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 20px;
+  touch-action: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+.shad-slider[data-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.shad-slider-track {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--shad-input);
+  overflow: hidden;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.16);
+}
+
+.shad-slider-range {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--shad-slider-pct, 0%);
+  height: 100%;
+  background: var(--shad-primary);
+  border-radius: inherit;
+}
+
+.shad-slider-thumb {
+  position: absolute;
+  top: 50%;
+  left: var(--shad-slider-pct, 0%);
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 2px solid var(--shad-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.32);
+  transform: translate(-50%, -50%);
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+  outline: none;
+}
+
+.shad-slider:hover .shad-slider-thumb {
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.shad-slider-thumb:focus-visible,
+.shad-slider[data-dragging="true"] .shad-slider-thumb {
+  box-shadow: 0 0 0 4px var(--shad-ring), 0 1px 3px rgba(0, 0, 0, 0.32);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* --------------------------------------------------------------------------
+   2. shadcn Switch (.shad-switch)
+   -------------------------------------------------------------------------- */
+.shad-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 36px;
+  height: 20px;
+  flex: 0 0 36px;
+  padding: 2px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background: var(--shad-input);
+  cursor: pointer;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.shad-switch[data-state="checked"],
+.shad-switch[aria-checked="true"] {
+  background: var(--shad-primary);
+}
+
+.shad-switch:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--shad-ring);
+}
+
+.shad-switch-thumb {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+  transform: translateX(0);
+  transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.shad-switch[data-state="checked"] .shad-switch-thumb,
+.shad-switch[aria-checked="true"] .shad-switch-thumb {
+  transform: translateX(16px);
+}
+
+/* --------------------------------------------------------------------------
+   3. shadcn Select (.shad-select-* & native select[data-slot="select"])
+   -------------------------------------------------------------------------- */
+.shad-select-wrap {
+  position: relative;
+  min-width: 148px;
+}
+
+.shad-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: var(--shad-radius-md);
+  border: 1px solid var(--shad-border);
+  background: var(--shad-secondary);
+  color: var(--shad-foreground);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--shad-shadow-xs);
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.shad-select-trigger:hover {
+  background: var(--shad-secondary-hover);
+  border-color: var(--shad-border-strong);
+}
+
+.shad-select-trigger:focus-visible,
+.shad-select-trigger[aria-expanded="true"] {
+  outline: none;
+  border-color: var(--shad-primary);
+  box-shadow: 0 0 0 3px var(--shad-ring);
+}
+
+.shad-select-chevron {
+  display: inline-flex;
+  color: var(--shad-muted-foreground);
+  transition: transform 150ms ease;
+}
+
+.shad-select-trigger[aria-expanded="true"] .shad-select-chevron {
+  transform: rotate(180deg);
+}
+
+.shad-select-listbox {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 60;
+  min-width: 100%;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px;
+  border-radius: var(--shad-radius-md);
+  border: 1px solid var(--shad-border-strong);
+  background: var(--shad-popover);
+  color: var(--shad-popover-foreground);
+  box-shadow: var(--shad-shadow-md);
+}
+
+.shad-select-listbox[hidden] {
+  display: none !important;
+}
+
+.shad-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--shad-radius-sm);
+  font-size: 12.5px;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.shad-select-option:hover,
+.shad-select-option:focus {
+  background: var(--shad-accent);
+  color: var(--shad-accent-foreground);
+}
+
+.shad-select-option[data-state="checked"] {
+  font-weight: 600;
+}
+
+.shad-select-option-check {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  align-items: center;
+  justify-content: center;
+  color: var(--shad-primary);
+  opacity: 0;
+}
+
+.shad-select-option[data-state="checked"] .shad-select-option-check {
+  opacity: 1;
+}
+
+/* Native <select> across editor panels styled as shadcn SelectTrigger */
+.kefe-editor select[data-slot="select"] {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--shad-border);
+  border-radius: var(--shad-radius-md);
+  background-color: var(--shad-secondary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 14px 14px;
+  padding-right: 30px;
+  color: var(--shad-foreground);
+  box-shadow: var(--shad-shadow-xs);
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.kefe-editor select[data-slot="select"]:hover:not(:disabled) {
+  border-color: var(--shad-border-strong);
+  background-color: var(--shad-secondary-hover);
+}
+
+.kefe-editor select[data-slot="select"]:focus-visible {
+  outline: none;
+  border-color: var(--shad-primary);
+  box-shadow: 0 0 0 3px var(--shad-ring);
+}
+
+/* --------------------------------------------------------------------------
+   4. shadcn Checkbox, Input, Textarea
+   -------------------------------------------------------------------------- */
+.kefe-editor input[type="checkbox"][data-slot="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin: 0;
+  border-radius: 4px;
+  border: 1px solid var(--shad-border-strong);
+  background-color: var(--shad-secondary);
+  box-shadow: var(--shad-shadow-xs);
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  transition: background-color 130ms ease, border-color 130ms ease, box-shadow 130ms ease;
+}
+
+.kefe-editor input[type="checkbox"][data-slot="checkbox"]::before {
+  content: "";
+  width: 11px;
+  height: 11px;
+  transform: scale(0);
+  transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px 11px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+.kefe-editor input[type="checkbox"][data-slot="checkbox"]:checked {
+  background-color: var(--shad-primary);
+  border-color: var(--shad-primary);
+}
+
+.kefe-editor input[type="checkbox"][data-slot="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+.kefe-editor input[type="checkbox"][data-slot="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--shad-ring);
+}
+
+.kefe-editor .kefe-panel input[data-slot="input"]:not(#kefeCommandInput),
+.kefe-editor .kefe-panel textarea[data-slot="textarea"],
+#lsAutoSyncModal textarea[data-slot="textarea"] {
+  border: 1px solid var(--shad-border);
+  border-radius: var(--shad-radius-md);
+  background-color: var(--shad-secondary);
+  color: var(--shad-foreground);
+  box-shadow: var(--shad-shadow-xs);
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.kefe-editor .kefe-panel input[data-slot="input"]:not(#kefeCommandInput):hover:not(:disabled),
+.kefe-editor .kefe-panel textarea[data-slot="textarea"]:hover:not(:disabled) {
+  border-color: var(--shad-border-strong);
+}
+
+.kefe-editor .kefe-panel input[data-slot="input"]:not(#kefeCommandInput):focus-visible,
+.kefe-editor .kefe-panel textarea[data-slot="textarea"]:focus-visible,
+#lsAutoSyncModal textarea[data-slot="textarea"]:focus-visible {
+  outline: none;
+  border-color: var(--shad-primary);
+  box-shadow: 0 0 0 3px var(--shad-ring);
+}
+
+/* --------------------------------------------------------------------------
+   5. shadcn Button (.shad-btn & editor panel buttons)
+   -------------------------------------------------------------------------- */
+.shad-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: var(--shad-radius-md);
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.shad-btn--primary {
+  background: var(--shad-primary);
+  color: var(--shad-primary-foreground);
+  box-shadow: var(--shad-shadow-xs);
+}
+
+.shad-btn--primary:hover {
+  background: var(--shad-primary-hover);
+}
+
+.shad-btn--outline {
+  border-color: var(--shad-border-strong);
+  background: transparent;
+  color: var(--shad-foreground);
+}
+
+.shad-btn--outline:hover {
+  background: var(--shad-accent);
+  border-color: var(--shad-border-strong);
+}
+
+.shad-btn:focus-visible,
+.shad-icon-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--shad-ring);
+}
+
+.shad-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: var(--shad-radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--shad-muted-foreground);
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.shad-icon-btn:hover {
+  background: var(--shad-accent);
+  color: var(--shad-foreground);
+}
+
+/* --------------------------------------------------------------------------
+   6. shadcn Dialog & Accordion (Settings Dialog + Auto-Sync Dialog)
+   -------------------------------------------------------------------------- */
+.shad-dialog-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.shad-dialog-root[hidden] {
+  display: none !important;
+}
+
+.shad-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.shad-dialog-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(540px, calc(100vw - 24px));
+  max-height: min(84vh, 720px);
+  border-radius: var(--shad-radius-xl);
+  border: 1px solid var(--shad-border-strong);
+  background: var(--shad-card);
+  color: var(--shad-card-foreground);
+  box-shadow: var(--shad-shadow-lg);
+  overflow: hidden;
+  animation: shad-dialog-enter 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes shad-dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.shad-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--shad-border);
+}
+
+.shad-dialog-header-text {
+  min-width: 0;
+}
+
+.shad-dialog-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--shad-foreground);
+}
+
+.shad-dialog-description {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--shad-muted-foreground);
+}
+
+.shad-dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 20px 12px;
+}
+
+.shad-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--shad-border);
+  background: color-mix(in srgb, var(--shad-muted) 65%, var(--shad-card));
+}
+
+.shad-accordion {
+  display: flex;
+  flex-direction: column;
+}
+
+.shad-accordion-item {
+  border-bottom: 1px solid var(--shad-border);
+}
+
+.shad-accordion-item:last-child {
+  border-bottom: none;
+}
+
+.shad-accordion-header {
+  margin: 0;
+}
+
+.shad-accordion-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--shad-foreground);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+
+.shad-accordion-trigger:hover {
+  color: var(--shad-primary);
+}
+
+.shad-accordion-trigger:focus-visible {
+  outline: none;
+  border-radius: var(--shad-radius-sm);
+  box-shadow: 0 0 0 3px var(--shad-ring);
+}
+
+.shad-accordion-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shad-accordion-icon {
+  display: inline-flex;
+  color: var(--shad-muted-foreground);
+}
+
+.shad-accordion-trigger[data-state="open"] .shad-accordion-icon {
+  color: var(--shad-primary);
+}
+
+.shad-accordion-chevron {
+  display: inline-flex;
+  color: var(--shad-muted-foreground);
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.shad-accordion-trigger[data-state="open"] .shad-accordion-chevron {
+  transform: rotate(180deg);
+}
+
+.shad-accordion-content {
+  padding: 2px 2px 14px;
+}
+
+.shad-accordion-content[hidden] {
+  display: none !important;
+}
+
+.shad-accordion-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shad-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.shad-setting-row--slider {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.shad-setting-slider-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shad-setting-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.shad-setting-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--shad-foreground);
+}
+
+.shad-setting-hint {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--shad-muted-foreground);
+}
+
+.shad-setting-value {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--shad-muted-foreground);
+  padding: 2px 7px;
+  border-radius: var(--shad-radius-sm);
+  background: var(--shad-secondary);
+  border: 1px solid var(--shad-border);
+}
+
+/* Auto-Sync Modal upgraded to shadcn Dialog */
+#lsAutoSyncModal .ls-as-card[data-slot="dialog-content"] {
+  border-radius: var(--shad-radius-xl);
+  border: 1px solid var(--shad-border-strong);
+  background: var(--shad-card);
+  color: var(--shad-card-foreground);
+  box-shadow: var(--shad-shadow-lg);
+}
+
+/* --------------------------------------------------------------------------
+   7. shadcn ToggleGroup & Segmented Tabs (.kefe-seg-row, .ls-tabs)
+   -------------------------------------------------------------------------- */
+.kefe-editor .kefe-seg-row[data-slot="toggle-group"] {
+  padding: 3px;
+  gap: 3px;
+  border-radius: var(--shad-radius-md);
+  border: 1px solid var(--shad-border);
+  background: var(--shad-muted);
+}
+
+.kefe-editor .kefe-seg-row[data-slot="toggle-group"] > button {
+  border-radius: var(--shad-radius-sm);
+  border: 1px solid transparent;
+  font-weight: 500;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.kefe-editor .kefe-seg-row[data-slot="toggle-group"] > button[data-state="off"]:not(:hover) {
+  background: transparent;
+  color: var(--shad-muted-foreground);
+}
+
+.kefe-editor .kefe-seg-row[data-slot="toggle-group"] > button[data-state="on"],
+.kefe-editor .kefe-seg-row[data-slot="toggle-group"] > button.active {
+  background: var(--shad-card);
+  color: var(--shad-foreground);
+  border-color: var(--shad-border-strong);
+  box-shadow: var(--shad-shadow-xs);
+}
+
+/* --------------------------------------------------------------------------
+   8. shadcn CommandDialog (#kefeCommandPalette)
+   -------------------------------------------------------------------------- */
+#kefeCommandPalette {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#kefeCommandPalette .shad-command-dialog {
+  border-radius: var(--shad-radius-xl);
+  border: 1px solid var(--shad-border-strong);
+  background: var(--shad-popover);
+  color: var(--shad-popover-foreground);
+  box-shadow: var(--shad-shadow-lg);
+  overflow: hidden;
+}
+
+#kefeCommandPalette .kefe-command-head {
+  border-bottom: 1px solid var(--shad-border);
+  background: transparent;
+}
+
+#kefeCommandPalette .kefe-command-list {
+  padding: 6px;
+  max-height: min(62vh, 380px);
+  overflow-y: auto;
+}
+
+.shad-command-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 0;
+}
+
+.shad-command-group[hidden] {
+  display: none !important;
+}
+
+.shad-command-group-heading {
+  padding: 6px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--shad-muted-foreground);
+}
+
+.shad-command-separator {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--shad-border);
+}
+
+.shad-command-separator[hidden] {
+  display: none !important;
+}
+
+.shad-command-item-host {
+  display: contents;
+}
+
+.shad-command-item-host[hidden] {
+  display: none !important;
+}
+
+#kefeCommandPalette .shad-command-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--shad-radius-md);
+  border: 0;
+  background: transparent;
+  color: var(--shad-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 110ms ease, color 110ms ease;
+}
+
+#kefeCommandPalette .shad-command-item > span:not(.shad-command-item-icon) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.shad-command-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  color: var(--shad-muted-foreground);
+}
+
+#kefeCommandPalette .shad-command-item[data-selected="true"],
+#kefeCommandPalette .shad-command-item:hover {
+  background: var(--shad-accent);
+  color: var(--shad-accent-foreground);
+}
+
+#kefeCommandPalette .shad-command-item[data-selected="true"] .shad-command-item-icon,
+#kefeCommandPalette .shad-command-item:hover .shad-command-item-icon {
+  color: var(--shad-primary);
+}
+
+#kefeCommandPalette .shad-command-item kbd,
+#kefeCommandPalette .kefe-command-head kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 5px;
+  border: 1px solid var(--shad-border);
+  background: var(--shad-muted);
+  color: var(--shad-muted-foreground);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.shad-command-empty {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--shad-muted-foreground);
+}
+
+/* --------------------------------------------------------------------------
+   9. shadcn Dropzone (.kefe-drop[data-slot="dropzone"])
+   -------------------------------------------------------------------------- */
+.kefe-editor .kefe-drop[data-slot="dropzone"] {
+  border-style: dashed;
+  border-width: 1px;
+  border-color: var(--shad-border-strong);
+  border-radius: var(--shad-radius-lg);
+  background: color-mix(in srgb, var(--shad-secondary) 65%, transparent);
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.kefe-editor .kefe-drop[data-slot="dropzone"]:hover {
+  border-color: color-mix(in srgb, var(--shad-primary) 55%, var(--shad-border-strong));
+  background: color-mix(in srgb, var(--shad-secondary) 92%, transparent);
+}
+
+.kefe-editor .kefe-drop[data-slot="dropzone"][data-dragover="true"],
+.kefe-editor .kefe-drop[data-slot="dropzone"].dragover {
+  border-color: var(--shad-primary);
+  background: var(--shad-accent-soft);
+  box-shadow: 0 0 0 3px var(--shad-ring);
+}
+
+/* --------------------------------------------------------------------------
+   10. shadcn Card, Progress & Sonner/Alert Toast
+   -------------------------------------------------------------------------- */
+#kefeMediaCurrentCard[data-slot="card"],
+.ls-root[data-slot="card"] {
+  border-color: var(--shad-border);
+  border-radius: var(--shad-radius-lg);
+  background: var(--shad-card);
+  box-shadow: var(--shad-shadow-xs);
+}
+
+.kefe-editor progress {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 8px;
+  border-radius: 9999px;
+  border: 0;
+  overflow: hidden;
+  background: var(--shad-secondary);
+}
+
+.kefe-editor progress::-webkit-progress-bar {
+  background: var(--shad-secondary);
+  border-radius: 9999px;
+}
+
+.kefe-editor progress::-webkit-progress-value {
+  background: var(--shad-primary);
+  border-radius: 9999px;
+  transition: width 160ms ease;
+}
+
+.kefe-editor progress::-moz-progress-bar {
+  background: var(--shad-primary);
+  border-radius: 9999px;
+}
+
+#kefeAlertHost .kefe-alert[data-slot="alert"] {
+  border-radius: var(--shad-radius-lg);
+  border: 1px solid var(--shad-border-strong);
+  background: var(--shad-popover);
+  color: var(--shad-popover-foreground);
+  box-shadow: var(--shad-shadow-md);
+}

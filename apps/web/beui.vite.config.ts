@@ -15,6 +15,14 @@ export default defineConfig({
       "@": resolve(here, "beui-src"),
     },
   },
+  server: {
+    host: "0.0.0.0",
+    allowedHosts: true,
+  },
+  preview: {
+    host: "0.0.0.0",
+    allowedHosts: true,
+  },
   build: {
     cssCodeSplit: false,
     outDir: "dist-beui",
