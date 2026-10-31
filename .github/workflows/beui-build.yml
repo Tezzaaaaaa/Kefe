@@ -47,6 +47,7 @@ jobs:
           node apps/web/scripts/smoke-build.mjs
           node apps/web/scripts/smoke-settings-api.mjs
           node apps/web/scripts/smoke-section-card-coverage.mjs
+          node apps/web/scripts/smoke-settings-tabs.mjs
           node apps/web/scripts/smoke-native-controls.mjs
           node apps/web/scripts/smoke-native-upload.mjs
           node apps/web/scripts/smoke-mobile-sidebar.mjs
