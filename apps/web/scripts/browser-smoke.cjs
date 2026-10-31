@@ -395,6 +395,13 @@ async function captureEditorScreenState(page) {
       "keyboard activation of the Editor tab should open the editor's Media section");
     assert.equal(await editorTabAction.getAttribute("aria-current"), "page",
       "the Editor tab must expose the current page to assistive technology");
+    const previewAnchor = await page.locator(".kefe-work").evaluate(node => {
+      const rect = node.getBoundingClientRect();
+      return { top: rect.top, bottom: rect.bottom, viewport: innerHeight, scrollY };
+    });
+    assert.equal(previewAnchor.scrollY, 0, "switching editor sections must not scroll the preview off-screen");
+    assert.ok(previewAnchor.top >= 0 && previewAnchor.bottom <= previewAnchor.viewport * 0.6,
+      `the preview workspace must remain anchored in the upper half: ${JSON.stringify(previewAnchor)}`);
     assert.equal(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").count(), 1,
       "the header must expose only the Editor tab label");
     assert.equal((await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").innerText()).trim(), "Editor",
