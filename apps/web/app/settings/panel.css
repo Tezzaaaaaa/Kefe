@@ -603,6 +603,15 @@
     min-height: 0;
     grid-template-rows: minmax(0, 1fr) var(--timeline-h, 58px);
   }
+  html:root .kefe-editor .kefe-work .kefe-stage.is-16x9 {
+    width: min(100%, 900px, calc((50vh - var(--timeline-h, 58px) - 24px) * 16 / 9));
+  }
+  html:root .kefe-editor .kefe-work .kefe-stage.is-9x16 {
+    width: min(100%, calc((50vh - var(--timeline-h, 58px) - 24px) * 9 / 16));
+  }
+  html:root .kefe-editor .kefe-work .kefe-stage.is-1x1 {
+    width: min(100%, calc(50vh - var(--timeline-h, 58px) - 24px));
+  }
   html:root .kefe-editor .kefe-editing {
     grid-column: 1;
     grid-row: 3;
