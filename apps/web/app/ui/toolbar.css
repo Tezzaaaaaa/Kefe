@@ -409,8 +409,8 @@ html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-dock {
 }
 html .kefe-editor .kefe-work > .kefe-preview { grid-template-columns: minmax(0, 1fr); }
 html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-dock {
-  min-height: 44px; max-width: 100%; padding: 5px 8px; gap: 6px 8px; border-radius: 12px;
-  border: 1px solid var(--line); background: var(--surface); box-shadow: none;
+  min-height: 0; max-width: 100%; padding: 0; gap: 0; border: 0; border-radius: 0;
+  background: transparent; box-shadow: none;
 }
 html .kefe-editor .kefe-preview-dock .kefe-toolbar-title { font-size: 12px; font-weight: 700; }
 .kft-bar { border-radius: 10px; box-shadow: none; }
@@ -446,8 +446,7 @@ html .kefe-editor .kefe-preview-dock { display: flex; align-items: center; justi
 .kft-ghost:focus-visible { outline: 2px solid var(--kt-ring); outline-offset: 2px; }
 .kefe-floating-toolbar.is-floating .kft-launch { box-shadow: var(--kt-shadow); }
 
-/* Narrow bar (toolbar.js sets data-kft on the bar): launcher + fullscreen stay on the title row, the strip takes
-   its own full-width row below. */
+/* Narrow toolbar dock: the launcher stays on the first row and the expanded strip takes its own row below. */
 .kefe-preview-dock[data-kft] .kefe-floating-toolbar:not(.is-floating) { display: contents; }
 .kefe-preview-dock[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-launch { order: 1; margin-left: auto; }
 .kefe-preview-dock[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-bar { order: 5; flex: 1 0 100%; }
