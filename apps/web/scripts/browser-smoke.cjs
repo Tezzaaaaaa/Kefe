@@ -1438,15 +1438,15 @@ async function captureEditorScreenState(page) {
       const mobileDockDisplay = await page.locator(".kefe-workspace-dock").evaluate(node => getComputedStyle(node).display);
       assert.equal(mobileDockDisplay, "none",
         `the duplicate fixed workspace dock must not cover editor content at ${width}px`);
-      const mobileToolbarLayout = await quickToolbar.locator(".kft-main").evaluate(node => ({
-        flexWrap: getComputedStyle(node).flexWrap,
-        clientHeight: node.clientHeight,
-        scrollHeight: node.scrollHeight
-      }));
-      assert.equal(mobileToolbarLayout.flexWrap, "nowrap",
-        `the preview toolbar must remain on one row at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
+      const mobileToolbarLayout = await quickToolbar.locator(".kft-main").evaluate(node => {
+        const clusters = [...node.querySelectorAll(":scope > .kft-cluster")];
+        const rows = [...new Set(clusters.map(cluster => Math.round(cluster.getBoundingClientRect().top)))];
+        return { flexWrap: getComputedStyle(node).flexWrap, clientHeight: node.clientHeight, scrollHeight: node.scrollHeight, rows };
+      });
+      assert.equal(mobileToolbarLayout.rows.length, 1,
+        `the preview toolbar controls must occupy one visible row at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
       assert.ok(mobileToolbarLayout.scrollHeight <= mobileToolbarLayout.clientHeight + 1,
-        `the preview toolbar must not wrap at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
+        `the preview toolbar must not overflow vertically at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
       // The mobile editor surface is now the KEFE sidebar: a section dock replaces
       // the stacked settings accordion, and the live native panel is hosted inside
       // the drawer while it is open.
