@@ -283,7 +283,9 @@ async function captureEditorScreenState(page) {
       && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.dock.bottom + 8,
       `toolbar must dock in the dedicated row above the preview: ${JSON.stringify(initialToolbarPlacement)}`);
     assert.ok(initialToolbarPlacement.fullscreen.right <= initialToolbarPlacement.stage.right + 1
-      && initialToolbarPlacement.fullscreen.top >= initialToolbarPlacement.stage.top - 1,
+      && initialToolbarPlacement.fullscreen.left >= initialToolbarPlacement.stage.right - 52
+      && initialToolbarPlacement.fullscreen.top >= initialToolbarPlacement.stage.top - 1
+      && initialToolbarPlacement.fullscreen.bottom <= initialToolbarPlacement.stage.top + 52,
       `fullscreen control must remain in the preview player's top-right corner: ${JSON.stringify(initialToolbarPlacement)}`);
     assert.ok(initialToolbarPlacement.toolbar.left >= 0 && initialToolbarPlacement.toolbar.right <= initialToolbarPlacement.vw + 1
       && initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
