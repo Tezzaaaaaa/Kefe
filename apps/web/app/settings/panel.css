@@ -603,12 +603,6 @@
     min-height: 0;
     grid-template-rows: minmax(0, 1fr) var(--timeline-h, 58px);
   }
-  html:root .kefe-editor .kefe-work .kefe-stage {
-    width: auto;
-    height: calc(50vh - var(--timeline-h, 58px) - 24px);
-    max-width: 100%;
-    max-height: 100%;
-  }
   html:root .kefe-editor .kefe-editing {
     grid-column: 1;
     grid-row: 3;
