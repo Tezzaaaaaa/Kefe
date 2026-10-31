@@ -146,19 +146,12 @@ function initMobileSidebar() {
     btn.className = "kefe-ms-dock-item";
     btn.setAttribute("aria-label", `Edit ${sec.label}`);
     btn.innerHTML = `${renderKefeIcon(SECTION_ICONS[sec.id] || "sliders", "", 17, 1.9)}<span>${sec.shortLabel}</span>`;
-    btn.addEventListener("click", () => {
-      if (isOpen && activeSection === sec.id) {
-        closeSidebar();
-      } else {
-        openSectionInSidebar(sec.id, btn);
-      }
-    });
+    btn.addEventListener("click", () => openSectionInSidebar(sec.id, btn));
     dockRow.appendChild(btn);
     dockButtons.set(sec.id, btn);
   });
   root.appendChild(dock);
 
-  let scrimEl = null;
   let drawerEl = null;
   let hostEl = null;
   let tabsEl = null;
@@ -169,7 +162,6 @@ function initMobileSidebar() {
   let toolsWrapEl = null;
   let toolsMenuEl = null;
   let toolsBtnEl = null;
-  const railButtons = new Map();
 
   function restoreBorrowedPanel() {
     if (panelMutationObserver) {
@@ -347,11 +339,6 @@ function initMobileSidebar() {
   function ensureDrawerMounted() {
     if (drawerEl) return;
 
-    scrimEl = document.createElement("div");
-    scrimEl.className = "kefe-ms-scrim";
-    scrimEl.setAttribute("aria-hidden", "true");
-    scrimEl.addEventListener("click", closeSidebar);
-
     drawerEl = document.createElement("aside");
     drawerEl.className = "kefe-ms-drawer";
     drawerEl.setAttribute("role", "dialog");
@@ -370,10 +357,7 @@ function initMobileSidebar() {
         </button>
       </header>
       <div class="kefe-ms-body">
-        <nav class="kefe-ms-rail" aria-label="Editor sections">
-          <div class="kefe-ms-rail-group"></div>
-        </nav>
-        <div class="kefe-ms-surface">
+        <div class="kefe-ms-surface" id="kefe-ms-surface" role="tabpanel">
           <div class="kefe-ms-surface-head">
             <p class="kefe-ms-blurb"></p>
             <div class="kefe-ms-tabs" role="tablist"></div>
@@ -408,22 +392,6 @@ function initMobileSidebar() {
     toolsMenuEl = drawerEl.querySelector(".kefe-ms-tools");
     toolsBtnEl = drawerEl.querySelector(".kefe-ms-foot-button");
 
-    const railGroup = drawerEl.querySelector(".kefe-ms-rail-group");
-    railButtons.clear();
-    SECTIONS.forEach((sec) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "kefe-ms-rail-item";
-      btn.title = sec.label;
-      btn.innerHTML = `
-        <span aria-hidden="true">${renderKefeIcon(SECTION_ICONS[sec.id] || "sliders", "", 17, 1.9)}</span>
-        <span class="kefe-ms-rail-label">${sec.shortLabel}</span>
-      `;
-      btn.addEventListener("click", () => openSectionInSidebar(sec.id));
-      railGroup.appendChild(btn);
-      railButtons.set(sec.id, btn);
-    });
-
     drawerEl.querySelector(".kefe-ms-close")?.addEventListener("click", closeSidebar);
     drawerEl.querySelector(".kefe-ms-done")?.addEventListener("click", closeSidebar);
     toolsBtnEl?.addEventListener("click", (event) => {
@@ -432,14 +400,12 @@ function initMobileSidebar() {
       renderToolsMenu();
     });
 
-    root.append(scrimEl, drawerEl);
+    root.appendChild(drawerEl);
   }
 
   function unmountDrawer() {
     restoreBorrowedPanel();
-    scrimEl?.remove();
     drawerEl?.remove();
-    scrimEl = null;
     drawerEl = null;
     hostEl = null;
     tabsEl = null;
@@ -450,7 +416,6 @@ function initMobileSidebar() {
     toolsWrapEl = null;
     toolsMenuEl = null;
     toolsBtnEl = null;
-    railButtons.clear();
   }
 
   function syncDrawerContent() {
@@ -461,13 +426,7 @@ function initMobileSidebar() {
     if (stepEl) stepEl.textContent = `Step ${index + 1} of ${SECTIONS.length}`;
     if (blurbEl) blurbEl.textContent = section.blurb;
     if (statusEl) statusEl.textContent = readTrackSummary();
-
-    railButtons.forEach((btn, id) => {
-      const current = id === section.id;
-      btn.classList.toggle("is-active", current);
-      if (current) btn.setAttribute("aria-current", "true");
-      else btn.removeAttribute("aria-current");
-    });
+    drawerEl.querySelector("#kefe-ms-surface")?.setAttribute("aria-label", section.label);
 
     renderToolsMenu();
   }

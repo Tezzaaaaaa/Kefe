@@ -40,7 +40,6 @@ expect(fallbacks.length >= 5, `every section needs a fallback control group (fou
 for (const marker of [
   "kefe-ms-dock",
   "kefe-ms-drawer",
-  "kefe-ms-rail",
   "kefe-ms-tabs",
   "kefe-ms-tools",
   "kefe-ms-host",
@@ -50,6 +49,10 @@ for (const marker of [
 ]) {
   expect(source.includes(marker), `mobile sidebar is missing ${marker}`);
 }
+
+// Sections open inline under the preview via the bottom dock: no icon rail, no dimming scrim.
+expect(!source.includes("kefe-ms-rail"), "the sidebar icon rail must stay removed");
+expect(source.includes("--kefe-ms-top") && source.includes("--kefe-ms-bottom"), "the section panel must be placed between the timeline and the dock");
 
 // Sliders must keep using the shared shadcn Slider module: the sidebar may
 // only move existing range inputs, never create new ones.
@@ -73,4 +76,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("PASS: the pure-JS shadcn mobile editor sidebar hosts the six native panels through dock, rail, group tabs and an expanding tools menu.");
+console.log("PASS: the pure-JS shadcn mobile editor sidebar hosts the six native panels inline under the preview through the bottom dock, group tabs and an expanding tools menu.");
