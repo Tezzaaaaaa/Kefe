@@ -640,7 +640,7 @@
       if(appleLyricsReady)appleLyrics.currentTime=Math.round(((Number(state.time)||0)-lyricOffset())*1000);
     }
     if(lyricsEnabled&&state.effect!=='none'&&state.lines.length&&!useAppleComponent&&(state.effect!=='apple'||ph.mode==='header'||ph.mode==='move'||ph.mode==='off')){
-      const fn=window.kefeEffects[state.effect]||window.kefeEffects.apple;
+      const fn=window.kefeEffects[state.effect];
       if(typeof fn==='function'){
         try{
           const effT=state.time+(state.effect==='apple'?0:0.06)-lyricOffset();
@@ -653,16 +653,21 @@
             const aspect=W/Math.max(1,H);
             fn(g,W,H,style,shown,effT,titleArtImage);
           };
-          // Lyrics scroll underneath the pinned header: render them on a scratch layer and fade/clip at the header's bottom edge.
+          // Apple lyrics scroll beneath the pinned title-card header; other effects use the full canvas.
           if(!lyricLayer)lyricLayer=document.createElement('canvas');
           if(lyricLayer.width!==W||lyricLayer.height!==H){lyricLayer.width=W;lyricLayer.height=H;}
           const lc=lyricLayer.getContext('2d');lc.setTransform(1,0,0,1,0,0);lc.clearRect(0,0,W,H);
-          if(styler)styler.post(lc,W,H,paintEffect);else paintEffect(lc);const u=Math.min(W,H),landscapeLyrics=W/Math.max(1,H)>=1.25,edge=landscapeLyrics?Math.max(32,H*.13):Math.max(32,H*.07)+u*.173,fade=u*.12;
-          lc.save();lc.globalCompositeOperation='destination-in';
-          const g=lc.createLinearGradient(0,edge-fade,0,edge);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');
-          lc.fillStyle=g;lc.fillRect(0,0,W,H);lc.restore();
+          if(styler)styler.post(lc,W,H,paintEffect);else paintEffect(lc);
+          if(state.effect==='apple'){
+            const u=Math.min(W,H),landscapeLyrics=W/Math.max(1,H)>=1.25,edge=landscapeLyrics?Math.max(32,H*.13):Math.max(32,H*.07)+u*.173,fade=u*.12;
+            lc.save();lc.globalCompositeOperation='destination-in';
+            const g=lc.createLinearGradient(0,edge-fade,0,edge);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');
+            lc.fillStyle=g;lc.fillRect(0,0,W,H);lc.restore();
+          }
           ctx.drawImage(lyricLayer,0,0);
         }catch(err){console.error('[KEFE effect]',state.effect,err);}
+      }else{
+        console.error('[KEFE effect] No renderer registered for selected effect:',state.effect);
       }
     }
     drawTitleCardCanvas(ctx,W,H,state.time);

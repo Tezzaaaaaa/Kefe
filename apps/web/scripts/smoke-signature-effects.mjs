@@ -56,6 +56,12 @@ for (const file of ["lyric-aurora", "lyric-pulse", "lyric-typewriter", "lyric-gl
   assert.doesNotMatch(editor, new RegExp(`effects/${file}\\.js`), `the retired ${file} renderer must not be loaded`);
 }
 
+/* ---- editor picker + preview integration -------------------------- */
+const editorSource = read("app/editor.js");
+assert.match(editorSource, /effectDefinitions\.filter\(\(\[id\]\)=>id!=='karaoke'&&id!=='bounce'\)\.forEach\(\(\[id,label\]\)=>addLyricEffectOption\(id,label\)\)/, "the picker must be generated from the complete effect manifest");
+assert.doesNotMatch(editorSource, /window\.kefeEffects\[state\.effect\]\s*\|\|\s*window\.kefeEffects\.apple/, "a missing renderer must not silently substitute Apple");
+assert.match(editorSource, /if\(state\.effect==='apple'\)\{\s*const u=Math\.min\(W,H\)/, "the pinned-header mask must be scoped to Apple only");
+
 /* ---- typography contracts ---------------------------------------- */
 const typography = read("app/ui/typography.js");
 for (const key of keys) {
@@ -113,6 +119,13 @@ const words = [
   { text: "DOWN", time: 1.8, endTime: 2.6 },
 ];
 const lines = [{ text: "BURN IT DOWN", time: 1, endTime: 2.9, words }];
+runtime.dispatchEvent = () => {};
+ runtime.Event = class Event {};
+ vm.runInContext(read("app/effects/lyric-apple.js"), runtime, { filename: "lyric-apple.js" });
+ assert.equal(typeof runtime.kefeEffects.apple, "function", "Apple renderer must register independently");
+ const appleContext = makeContext();
+ runtime.kefeEffects.apple(appleContext, 1280, 720, { effect: "apple", fontSize: 84 }, lines, 1.6, null);
+ assert.ok(appleContext.fills > 0, "Apple renderer must paint the active line in the preview canvas");
 const plainLines = [{ text: "NO WORD TIMINGS", time: 0, endTime: 3 }, { text: "SECOND LINE", time: 3, endTime: 5 }];
 for (const key of keys) {
   const ctx = makeContext();
