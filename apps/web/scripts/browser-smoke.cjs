@@ -476,18 +476,28 @@ async function captureEditorScreenState(page) {
     await page.waitForFunction(() => document.documentElement.dataset.theme === "night", null, { timeout: 5000 });
     assert.equal(await themeToggle.getAttribute("aria-label"), "Switch to day mode",
       "the day/night action must return to the night theme");
-    const desktopColumns = await page.evaluate(() => {
-      const left = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
-      const centre = document.querySelector(".kefe-work").getBoundingClientRect();
-      const right = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="output"]').getBoundingClientRect();
-      return { leftRight: left.right, centreLeft: centre.left, centreRight: centre.right, rightLeft: right.left, leftWidth: left.width, rightWidth: right.width };
+    const desktopLayout = await page.evaluate(() => {
+      const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
+      const settings = document.querySelector(".kefe-settings-mount").getBoundingClientRect();
+      const columns = document.querySelector("#kefe-settings-panel > .kefe-settings-columns");
+      const active = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id][data-expanded='true']")];
+      return {
+        workspaceHeight: workspace.height,
+        viewportHeight: document.documentElement.clientHeight,
+        workspaceBottom: workspace.bottom,
+        settingsTop: settings.top,
+        columns: getComputedStyle(columns).gridTemplateColumns.split(" ").length,
+        activeSections: active.map(section => section.dataset.sectionId),
+      };
     });
-    assert.ok(desktopColumns.leftWidth > 0 && desktopColumns.rightWidth > 0,
-      "both integrated settings panels must be visible");
-    assert.ok(desktopColumns.leftRight <= desktopColumns.centreLeft + 1,
-      "KEFE input panel must stay left of the central preview");
-    assert.ok(desktopColumns.centreRight <= desktopColumns.rightLeft + 1,
-      "Visual & Output panel must stay right of the central preview");
+    assert.ok(desktopLayout.workspaceHeight >= desktopLayout.viewportHeight * 0.48
+      && desktopLayout.workspaceHeight <= desktopLayout.viewportHeight * 0.56,
+      `the preview workspace must occupy the upper half of the viewport: ${JSON.stringify(desktopLayout)}`);
+    assert.ok(desktopLayout.settingsTop >= desktopLayout.workspaceBottom - 1,
+      `settings must begin below the preview workspace: ${JSON.stringify(desktopLayout)}`);
+    assert.equal(desktopLayout.columns, 1, "settings must use one full-width column below the preview");
+    assert.equal(desktopLayout.activeSections.length, 1,
+      `only one settings section may be expanded at a time: ${JSON.stringify(desktopLayout.activeSections)}`);
     await page.waitForSelector("#lyricsInput", { state: "visible", timeout: 20000 });
     assert.equal(await page.locator('label[for="lyricsInput"]').count(), 1, "native lyrics label association must remain in the DOM");
     await page.waitForFunction(() => {
@@ -745,32 +755,20 @@ async function captureEditorScreenState(page) {
       return section?.dataset.expanded === "true" &&
         section.querySelector(".section-content").getBoundingClientRect().height > 1;
     }, null, { timeout: 5000 });
-    const panelFillAudit = await page.evaluate(() => {
-      return ["input", "output"].map(groupName => {
-        const group = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="' + groupName + '"]');
-        if (!group) return { groupName, found: false };
-        const groupHeight = group.getBoundingClientRect().height;
-        const sections = [...group.querySelectorAll(":scope > .section[data-section-id]")];
-        return {
-          groupName,
-          found: sections.length === 3,
-          sectionHeights: sections.map(section => section.getBoundingClientRect().height),
-          minimumSectionHeight: groupHeight / 4,
-          expandedContentHeight: sections.find(section => section.dataset.expanded === "true")
-            ?.querySelector(".section-content").getBoundingClientRect().height || 0,
-          expandedContentWithinCard: (() => {
-            const section = sections.find(item => item.dataset.expanded === "true");
-            const content = section?.querySelector(".section-content > .content-inner");
-            return !!content && content.getBoundingClientRect().bottom <= section.getBoundingClientRect().bottom + 1
-              && content.getBoundingClientRect().height > 80;
-          })()
-        };
-      });
+    const sectionSelectionAudit = await page.evaluate(() => {
+      const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
+      return {
+        total: sections.length,
+        expanded: sections.filter(section => section.dataset.expanded === "true").map(section => section.dataset.sectionId),
+        collapsedContentVisible: sections.filter(section => section.dataset.expanded !== "true")
+          .some(section => getComputedStyle(section.querySelector(".section-content")).display !== "none"),
+      };
     });
-    assert.ok(panelFillAudit.every(item => item.found
-      && item.sectionHeights.every(height => height >= item.minimumSectionHeight)
-      && item.expandedContentHeight > 80 && item.expandedContentWithinCard),
-      `desktop section cards must distribute the available panel height: ${JSON.stringify(panelFillAudit)}`);
+    assert.equal(sectionSelectionAudit.total, 6, "all six settings sections must remain mounted exactly once");
+    assert.equal(sectionSelectionAudit.expanded.length, 1,
+      `the selected section must be the only expanded settings section: ${JSON.stringify(sectionSelectionAudit)}`);
+    assert.equal(sectionSelectionAudit.collapsedContentVisible, false,
+      "settings from inactive sections must leave the workspace flow");
 
     const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
     await visualiserSection.locator(".expand-button").click();
@@ -1151,6 +1149,14 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
       "opening the Visualisers section must not automatically activate Fluid Ink");
     await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
+    await page.waitForFunction(() => {
+      const tab = document.querySelector(".beui-vis-backing-controls [data-visualiser='gradient']");
+      const power = tab?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
+      const canvas = document.getElementById("kefeFluidInkCanvas");
+      return tab?.getAttribute("aria-selected") === "true"
+        && power?.getAttribute("aria-checked") === "true"
+        && canvas && getComputedStyle(canvas).display !== "none";
+    }, null, { timeout: 5000 });
     await assertSectionFits("visualiser");
     const visualiserParametersLayout = await page.locator(".kefe-fluid-settings").evaluate(grid => ({
       width: grid.getBoundingClientRect().width,
@@ -1194,13 +1200,25 @@ async function captureEditorScreenState(page) {
       }, { value, expected: initial });
     }
     assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 1,
-      "power toggles must not change the selected visualiser tab");
+      "powering on a visualiser must keep exactly one selected visualiser");
+    const lastVisualiserId = await visualiserCards.last().locator("[role='tab']").getAttribute("data-visualiser");
+    assert.equal(await page.locator(`.beui-vis-backing-controls [data-visualiser="${lastVisualiserId}"]`).getAttribute("aria-selected"), "true",
+      "turning on a visualiser must select that same visualiser before it renders");
     for (const id of ["silk-road", "visuals-mix"]) {
       const shaderTab = page.locator(`.beui-vis-tabs-host [role='tab'][data-visualiser='${id}']`);
       assert.equal(await shaderTab.count(), 1, `${id} must register exactly one visualiser tab`);
       await shaderTab.click();
-      await page.waitForFunction((value) => document.querySelector(`.beui-vis-backing-controls [data-visualiser='${value}']`)?.getAttribute("aria-selected") === "true", id);
-      await page.locator(`.beui-vis-tabs-host [role='tab'][data-visualiser='${id}']`).locator("xpath=ancestor::*[contains(@class,'kv-card')][1]").locator("[role='switch']").click();
+      await page.waitForFunction((value) => {
+        const tab = document.querySelector(`.beui-vis-backing-controls [data-visualiser='${value}']`);
+        const power = tab?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
+        return tab?.getAttribute("aria-selected") === "true"
+          && power?.getAttribute("aria-checked") === "true"
+          && window.kefeShaderVis?.instances?.get(value)?.getState().enabled === true;
+      }, id);
+      const shaderPower = page.locator(`.beui-vis-tabs-host [role='tab'][data-visualiser='${id}']`).locator("xpath=ancestor::*[contains(@class,'kv-card')][1]").locator("[role='switch']");
+      await shaderPower.click();
+      await page.waitForFunction((value) => window.kefeShaderVis?.instances?.get(value)?.getState().enabled === false, id);
+      await shaderPower.click();
       await page.waitForFunction((value) => window.kefeShaderVis?.instances?.get(value)?.getState().enabled === true, id);
       assert.equal(await page.evaluate(() => { const c = window.kefeShaderVis.current(); return !!c && c.width > 0 && c.height > 0; }), true,
         `${id} must own a sized preview canvas`);
