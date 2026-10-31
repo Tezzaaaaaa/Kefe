@@ -123,7 +123,6 @@
 
     applyLegacyValues();
     const initialNav = editing.dataset.selectedSection || 'media';
-    const initialSectionId = NAV_TO_SECTION[initialNav] ? Object.keys(NAV_TO_SECTION).find(key => NAV_TO_SECTION[key] === NAV_TO_SECTION[initialNav]) : 'media';
     editing.dataset.selectedSection = initialNav;
     editing.dataset.activePanel = initialNav;
     root.querySelectorAll('.section[data-section-id]').forEach(item => {
