@@ -1005,12 +1005,34 @@
     if(layoutControls)layoutControls.style.display='flex';
     previewFullscreen.innerHTML=window.kefeIcon?window.kefeIcon(active?'minimize':'maximize'):'<span data-kefe-icon="'+(active?'minimize':'maximize')+'" aria-hidden="true"></span>';
   }
+  const fullscreenTimeline=document.querySelector('.kefe-timeline');
+  let fullscreenTimelinePlaceholder=null;
+  function syncFullscreenTimeline(active){
+    if(!fullscreenTimeline||!previewStage)return;
+    if(active){
+      if(fullscreenTimeline.parentElement===previewStage)return;
+      const parent=fullscreenTimeline.parentNode;
+      if(!parent)return;
+      fullscreenTimelinePlaceholder=document.createComment('kefe-fullscreen-timeline');
+      parent.insertBefore(fullscreenTimelinePlaceholder,fullscreenTimeline);
+      previewStage.appendChild(fullscreenTimeline);
+      fullscreenTimeline.classList.add('kefe-fullscreen-timeline');
+      return;
+    }
+    if(fullscreenTimeline.parentElement===previewStage){
+      if(fullscreenTimelinePlaceholder?.parentNode)fullscreenTimelinePlaceholder.parentNode.insertBefore(fullscreenTimeline,fullscreenTimelinePlaceholder);
+      fullscreenTimelinePlaceholder?.remove();
+      fullscreenTimelinePlaceholder=null;
+    }
+    fullscreenTimeline.classList.remove('kefe-fullscreen-timeline');
+  }
   async function togglePreviewFullscreen(){
     if(!previewStage)return;
     const pseudo=previewStage.classList.contains('kefe-pseudo-fullscreen');
     const mobile=window.matchMedia('(max-width: 700px), (pointer: coarse)').matches;
     const setPseudo=active=>{
       previewStage.classList.toggle('kefe-pseudo-fullscreen',active);
+      syncFullscreenTimeline(active||document.fullscreenElement===previewStage);
       document.documentElement.classList.toggle('kefe-fullscreen-open',active);
       document.body.classList.toggle('kefe-fullscreen-open',active);
       if(active){
@@ -1048,6 +1070,7 @@
   previewFullscreen?.addEventListener('click',togglePreviewFullscreen);
   document.addEventListener('fullscreenchange',()=>{
     if(document.fullscreenElement!==previewStage){previewStage?.classList.remove('kefe-pseudo-fullscreen');document.documentElement.classList.remove('kefe-fullscreen-open');document.body.classList.remove('kefe-fullscreen-open');}
+    syncFullscreenTimeline(document.fullscreenElement===previewStage||previewStage?.classList.contains('kefe-pseudo-fullscreen'));
     syncPreviewFullscreen();fitPreviewStage();draw();
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&previewStage?.classList.contains('kefe-pseudo-fullscreen')){togglePreviewFullscreen();}});
