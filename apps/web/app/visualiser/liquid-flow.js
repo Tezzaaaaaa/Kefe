@@ -184,8 +184,8 @@
     ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=1;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
   }
   function active(){
-    var tab=document.querySelector('.kefe-vis-tabs [data-visualiser="gradient"]');
-    var power=tab&&tab.parentElement.querySelector('.kefe-vis-option-power');
+    var tab=document.querySelector('.kefe-vis-backing-controls [data-visualiser="gradient"]');
+    var power=tab&&tab.closest('.kefe-vis-option')?.querySelector('.kefe-vis-option-power');
     return !!tab&&tab.getAttribute('aria-selected')==='true'&&!!power&&power.getAttribute('aria-checked')==='true';
   }
   function setPreset(id){
