@@ -1,0 +1,12 @@
+/* Carousel dots: inactive dot is a small circle, the active dot stretches into an accent pill. */
+.kefe-carousel-dots { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 16px; padding: 6px 0 2px; }
+.kefe-carousel-dots[hidden] { display: none; }
+.kefe-carousel-dot {
+  width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; cursor: pointer;
+  background: color-mix(in srgb, var(--text, #fff) 22%, transparent);
+  transition: width 200ms cubic-bezier(.2, .8, .2, 1), background-color 150ms;
+}
+.kefe-carousel-dot:hover { background: color-mix(in srgb, var(--text, #fff) 40%, transparent); }
+.kefe-carousel-dot.is-active { width: 24px; background: var(--accent, #d92f33); }
+.kefe-carousel-dot:focus-visible { outline: 2px solid var(--accent, #d92f33); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .kefe-carousel-dot { transition: none; } }
