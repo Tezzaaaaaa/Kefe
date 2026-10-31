@@ -799,3 +799,28 @@ html[data-theme="day"] .kefe-ms-scrim {
   .kefe-ms-brand { display: none; }
   .kefe-ms-foot { padding: 6px 10px; }
 }
+
+
+/* ── shadcn Tabs (Radix) skin: matches the toolbar's 32px / 9px-radius control language ── */
+@media (max-width: 1023px) {
+  .kefe-ms-foot { display: none !important; }
+  .kefe-ms-surface-head [data-slot="tabs"] { display: block; gap: 0; }
+  .kefe-ms-surface-head [data-slot="tabs-list"].kefe-ms-tabs {
+    display: flex; width: 100%; height: auto; justify-content: flex-start;
+    gap: 4px; padding: 0; border-radius: 0; background: transparent;
+  }
+  .kefe-ms-surface-head [data-slot="tabs-trigger"].kefe-ms-tab {
+    flex: 0 0 auto; height: 32px; padding: 0 10px; border-radius: 9px;
+    border: 1px solid var(--line-soft, var(--line)); background: var(--surface); color: var(--muted);
+    box-shadow: none;
+  }
+  .kefe-ms-surface-head [data-slot="tabs-trigger"].kefe-ms-tab[data-state="active"] {
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: color-mix(in srgb, var(--accent) 82%, var(--text));
+  }
+  .kefe-ms-tab-count {
+    min-width: 16px; padding: 1px 4px; border-radius: 999px; font-size: 10px; line-height: 1.2;
+    background: color-mix(in srgb, var(--text) 10%, transparent); color: inherit;
+  }
+}

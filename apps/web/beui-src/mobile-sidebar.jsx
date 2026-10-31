@@ -54,6 +54,8 @@ import {
   resolveGroups,
 } from "./mobile-sidebar-sections.js";
 
+import { Tabs, TabsList, TabsTrigger } from "./components/ui/tabs";
+
 import "./mobile-sidebar.css";
 
 const MOBILE_QUERY = "(max-width: 1023px)";
@@ -123,149 +125,30 @@ function useMobileLayout() {
 
 /* ── Small building blocks ───────────────────────────────────── */
 
+/* Group switcher: shadcn/ui Tabs (Radix). Native panels stay in place; the active tab only decides
+   which marked control group is visible. */
 function GroupTabs({ groups, activeId, onSelect }) {
   if (groups.length < 2) return null;
-  const move = (event) => {
-    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
-    event.preventDefault();
-    const index = groups.findIndex((group) => group.id === activeId);
-    const delta = event.key === "ArrowRight" ? 1 : -1;
-    const next = (index + delta + groups.length) % groups.length;
-    onSelect(groups[next].id);
-    requestAnimationFrame(() => {
-      event.currentTarget.querySelectorAll('[role="tab"]')[next]?.focus();
-    });
-  };
   return (
-    <div className="kefe-ms-tabs" role="tablist" aria-label="Control groups" onKeyDown={move}>
-      {groups.map((group) => {
-        const Icon = iconFor(group.icon);
-        const active = group.id === activeId;
-        return (
-          <button
-            key={group.id}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            tabIndex={active ? 0 : -1}
-            data-kefe-ms-group-id={group.id}
-            className={`kefe-ms-tab${active ? " is-active" : ""}`}
-            onClick={() => onSelect(group.id)}
-          >
-            {Icon ? <Icon size={14} strokeWidth={1.8} aria-hidden="true" /> : null}
-            <span>{group.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function ToolMenu({ onClose, onReset }) {
-  const reduce = useReducedMotion();
-  const [open, setOpen] = useState(false);
-  const wrap = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const dismiss = (event) => {
-      if (!wrap.current?.contains(event.target)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", dismiss, true);
-    return () => document.removeEventListener("pointerdown", dismiss, true);
-  }, [open]);
-
-  const tools = [
-    {
-      id: "theme",
-      label: "Switch day / night",
-      icon: Sun,
-      run: () => {
-        const shellToggle = document.getElementById("kefeThemeToggle");
-        if (shellToggle) {
-          shellToggle.click();
-          return;
-        }
-        const root = document.documentElement;
-        const next = root.dataset.theme === "night" ? "day" : "night";
-        root.dataset.theme = next;
-        try {
-          localStorage.setItem("kefe.theme", next);
-        } catch (_) {}
-      },
-    },
-    {
-      id: "search",
-      label: "Search KEFE",
-      icon: Search,
-      run: () => document.querySelector("[data-command-open]")?.click(),
-    },
-    {
-      id: "fullscreen",
-      label: "Fullscreen preview",
-      icon: Maximize,
-      run: () => document.getElementById("previewFullscreen")?.click(),
-    },
-    {
-      id: "reset",
-      label: "Reset all settings",
-      icon: RotateCcw,
-      run: onReset,
-    },
-    {
-      id: "desktop",
-      label: "Close editor sidebar",
-      icon: X,
-      run: onClose,
-    },
-  ];
-
-  return (
-    <div className="kefe-ms-tools-wrap" ref={wrap}>
-      <AnimatePresence initial={false}>
-        {open ? (
-          <motion.div
-            className="kefe-ms-tools"
-            role="menu"
-            aria-label="Editor tools"
-            initial={reduce ? false : { opacity: 0, y: 8, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 6, scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 520, damping: 34, mass: 0.7 }}
-          >
-            {tools.map((tool) => {
-              const Icon = tool.icon;
-              return (
-                <button
-                  key={tool.id}
-                  type="button"
-                  role="menuitem"
-                  className="kefe-ms-tool"
-                  onClick={() => {
-                    setOpen(false);
-                    tool.run();
-                  }}
-                >
-                  <Icon size={16} strokeWidth={1.8} aria-hidden="true" />
-                  <span>{tool.label}</span>
-                </button>
-              );
-            })}
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-      <button
-        type="button"
-        className="kefe-ms-foot-button"
-        aria-expanded={open}
-        aria-haspopup="menu"
-        onClick={() => setOpen((value) => !value)}
-      >
-        <MoreHorizontal size={16} strokeWidth={1.8} aria-hidden="true" />
-        <span>Tools</span>
-        <ChevronDown size={14} strokeWidth={2} aria-hidden="true" className={open ? "is-flipped" : undefined} />
-      </button>
-    </div>
+    <Tabs value={activeId} onValueChange={onSelect} className="kefe-ms-tabs-root">
+      <TabsList className="kefe-ms-tabs" aria-label="Control groups">
+        {groups.map((group) => {
+          const Icon = iconFor(group.icon);
+          return (
+            <TabsTrigger
+              key={group.id}
+              value={group.id}
+              data-kefe-ms-group-id={group.id}
+              className="kefe-ms-tab"
+              onClick={() => onSelect(group.id)}
+            >
+              {Icon ? <Icon size={14} strokeWidth={1.8} aria-hidden="true" /> : null}
+              <span>{group.label}</span>
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+    </Tabs>
   );
 }
 
@@ -305,7 +188,6 @@ function MobileSidebar() {
   const [activeId, setActiveId] = useState(readStoredSection);
   const [groups, setGroups] = useState([]);
   const [activeGroup, setActiveGroup] = useState("");
-  const [status, setStatus] = useState("");
 
   const drawerRef = useRef(null);
   const hostRef = useRef(null);
@@ -549,15 +431,6 @@ function MobileSidebar() {
     };
   }, [open]);
 
-  const resetSettings = useCallback(() => {
-    const reset = document.querySelector("#kefe-settings-panel #kefe-reset");
-    if (!reset) return;
-    if (!window.confirm("Reset every KEFE setting to its default?")) return;
-    reset.click();
-    setStatus("All settings reset to defaults");
-    window.setTimeout(() => setStatus(""), 2400);
-  }, []);
-
   if (!enabled) return null;
 
   return (
@@ -626,14 +499,6 @@ function MobileSidebar() {
                 </div>
               </div>
 
-              <footer className="kefe-ms-foot">
-                <span className="kefe-ms-status" role="status" aria-live="polite">{status}</span>
-                <ToolMenu onClose={close} onReset={resetSettings} />
-                <button type="button" className="kefe-ms-done" onClick={close}>
-                  <Check size={16} strokeWidth={2.2} aria-hidden="true" />
-                  <span>Done</span>
-                </button>
-              </footer>
           </motion.aside>
         ) : null}
       </AnimatePresence>
