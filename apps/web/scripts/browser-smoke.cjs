@@ -879,6 +879,14 @@ async function captureEditorScreenState(page) {
     }, null, { timeout: 5000 });
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), true,
       "opening Visualisers from its side-panel section must reveal the visualiser controls");
+    await page.waitForFunction(() => {
+      const panel = document.querySelector('#kefe-settings-panel .kefe-slot[data-kefe-slot="visualisers"] > .kefe-panel[data-panel-view="visualiser"]');
+      return panel?.classList.contains("active")
+        && getComputedStyle(panel).display !== "none"
+        && panel.getBoundingClientRect().height > 0;
+    }, null, { timeout: 5000 });
+    assert.equal(await page.locator('#kefe-settings-panel .kefe-slot[data-kefe-slot="visualisers"] > .kefe-panel[data-panel-view="visualiser"]').isVisible(), true,
+      "selecting the Visualisers section must activate and reveal its existing native renderer panel");
 
     const sectionHeaderAudit = await page.evaluate(() => {
       const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];
