@@ -378,6 +378,9 @@ function MobileSidebar() {
     const editing = document.querySelector(".kefe-editing");
     editing?.setAttribute("data-active-panel", next);
     editing?.setAttribute("data-selected-section", next);
+    editing?.querySelectorAll(".kefe-panel[data-panel-view]").forEach((panel) => {
+      panel.classList.toggle("active", panel.dataset.panelView === next);
+    });
     const settingsSection = document.querySelector(
       `#kefe-settings-panel .section[data-section-id="${MIGRATED_SLOTS[next]}"]`,
     );
