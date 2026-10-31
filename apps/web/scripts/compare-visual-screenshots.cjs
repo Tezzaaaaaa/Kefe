@@ -106,6 +106,30 @@ for (const [size, theme] of states) {
       }
       maskedRegions.push({ group, x: left, y: top, width: right - left, height: bottom - top });
     }
+    /* The requested editor redesign deliberately moves and resizes the entire
+       preview workspace above the settings. Its geometry and renderer visibility
+       are asserted by Playwright; exclude only that intentionally reflowed area
+       from the pixel gate while continuing to compare the persistent shell. */
+    const workspace = layout.find(item => item.classes.split(" ").includes("kefe-work")
+      && item.width > 0 && item.height > 0);
+    const settingsMount = layout.find(item => item.classes.split(" ").includes("kefe-settings-mount")
+      && item.width > 0 && item.height > 0);
+    if (workspace && settingsMount && workspace.height >= before.height * 0.48
+      && workspace.height <= before.height * 0.56
+      && settingsMount.y >= workspace.y + workspace.height - 1) {
+      const left = Math.max(0, Math.floor(workspace.x));
+      const top = Math.max(0, Math.floor(workspace.y));
+      const right = Math.min(before.width, Math.ceil(workspace.x + workspace.width));
+      const bottom = Math.min(before.height, Math.ceil(workspace.y + workspace.height));
+      for (let y = top; y < bottom; y += 1) {
+        for (let x = left; x < right; x += 1) {
+          const offset = (y * before.width + x) * 4;
+          comparisonBefore.fill(0, offset, offset + 4);
+          comparisonAfter.fill(0, offset, offset + 4);
+        }
+      }
+      maskedRegions.push({ group: "preview-workspace", x: left, y: top, width: right - left, height: bottom - top });
+    }
   }
   const changedPixels = pixelmatch(comparisonBefore, comparisonAfter, diff.data, before.width, before.height, {
     threshold,
@@ -151,7 +175,7 @@ for (const [size, theme] of states) {
 
 const lines = [
   "### Editor and volume screenshot comparison",
-  "Compared editor screenshots against main outside the desktop settings columns, whose height/scroll behavior is intentionally changed and separately checked by browser geometry assertions. Pixel threshold 0.12, antialias-only changes ignored, desktop pixel gate 2.5%; mobile diffs are reported for visual review.",
+  "Compared editor screenshots against main outside the intentionally reflowed desktop settings and preview workspace, whose geometry and renderer visibility are separately checked by browser smoke assertions. Pixel threshold 0.12, antialias-only changes ignored, desktop pixel gate 2.5%; mobile diffs are reported for visual review.",
   "",
   "| Subject | Viewport | Theme | Size | Changed pixels |",
   "|---|---|---|---:|---:|",

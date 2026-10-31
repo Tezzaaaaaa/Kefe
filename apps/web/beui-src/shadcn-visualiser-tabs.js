@@ -25,6 +25,41 @@ function mountVisualiserTabs() {
   const nav = document.querySelector(".kefe-vis-tabs");
   if (!nav || nav.dataset.beuiMounted === "true") return;
 
+  /* Selection and power are one user action: the native renderers require both
+     states before they paint. Delegation also covers the preview toolbar. */
+  let activating = false;
+  document.addEventListener(
+    "click",
+    (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target || activating) return;
+      const tab = target.closest('.kefe-vis-tabs [role="tab"][data-visualiser]');
+      if (tab) {
+        const power = tab.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
+        if (power && power.getAttribute("aria-checked") !== "true") {
+          queueMicrotask(() => {
+            if (power.isConnected && power.getAttribute("aria-checked") !== "true") {
+              activating = true;
+              power.click();
+              activating = false;
+            }
+          });
+        }
+        return;
+      }
+      const power = target.closest(".kefe-vis-option .kefe-switch");
+      if (power && power.getAttribute("aria-checked") !== "true") {
+        const backingTab = power.closest(".kefe-vis-option")?.querySelector('[role="tab"][data-visualiser]');
+        if (backingTab && backingTab.getAttribute("aria-selected") !== "true") {
+          activating = true;
+          backingTab.click();
+          activating = false;
+        }
+      }
+    },
+    true,
+  );
+
   const backingButtons = new Map();
   nav.querySelectorAll('button[role="tab"][data-visualiser]').forEach((button) => {
     const id = button.dataset.visualiser;
@@ -97,9 +132,9 @@ function mountVisualiserTabs() {
 
     tabBtn.addEventListener("click", () => {
       activeValue = value;
-      if (backing.getAttribute("aria-selected") !== "true") {
-        backing.click();
-      }
+      backing.click();
+      const power = findNativePowerSwitch(backing);
+      if (power && power.getAttribute("aria-checked") !== "true") power.click();
       syncAllStates();
     });
 
@@ -125,6 +160,10 @@ function mountVisualiserTabs() {
       event.stopPropagation();
       const power = findNativePowerSwitch(backing);
       if (!power) return;
+      if (power.getAttribute("aria-checked") !== "true") {
+        activeValue = value;
+        backing.click();
+      }
       power.click();
       syncAllStates();
     });

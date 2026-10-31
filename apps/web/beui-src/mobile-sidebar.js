@@ -27,12 +27,35 @@ function readActiveSection() {
   return "media";
 }
 
+const MIGRATED_SLOTS = {
+  media: "media",
+  lyrics: "lyric-sync",
+  effects: "lyric-effects",
+  "background-effects": "background",
+  visualiser: "visualisers",
+  export: "export",
+};
+
 function selectNativeSection(sectionId) {
   const navBtn = document.querySelector(`.kefe-tabs .kefe-section[data-panel="${sectionId}"]`);
   if (navBtn) navBtn.click();
   const editing = document.querySelector(".kefe-editing");
-  if (editing && editing.dataset.selectedSection !== sectionId) {
-    editing.dataset.selectedSection = sectionId;
+  if (editing) {
+    editing.setAttribute("data-active-panel", sectionId);
+    editing.setAttribute("data-selected-section", sectionId);
+    editing.querySelectorAll(".kefe-panel[data-panel-view]").forEach((panel) => {
+      panel.classList.toggle("active", panel.dataset.panelView === sectionId);
+    });
+  }
+  const settingsSection = document.querySelector(
+    `#kefe-settings-panel .section[data-section-id="${MIGRATED_SLOTS[sectionId]}"]`,
+  );
+  if (settingsSection) {
+    document.querySelectorAll("#kefe-settings-panel .section[data-section-id]").forEach((item) => {
+      const selected = item === settingsSection;
+      item.dataset.expanded = String(selected);
+      item.querySelector(".expand-button")?.setAttribute("aria-expanded", String(selected));
+    });
   }
 }
 

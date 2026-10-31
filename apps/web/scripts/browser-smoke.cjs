@@ -236,6 +236,9 @@ async function captureEditorScreenState(page) {
     // Exercise the editor toolbar against the real editor controls.
     const quickToolbar = page.locator("#kefeFloatingToolbar");
     assert.equal(await quickToolbar.count(), 1, "there must be exactly one editor toolbar");
+    await quickToolbar.getByRole("button", { name: "Editor toolbar", exact: true }).click();
+    await page.waitForFunction(() => document.querySelector("#kefeFloatingToolbar .kft-launch")?.getAttribute("aria-expanded") === "true",
+      null, { timeout: 5000 });
     const toolbarIconAudit = await quickToolbar.evaluate(node => {
       const controls = [...node.querySelectorAll(".kft-main button.kft-btn--icon:not(:has(.kft-swatch)), .kft-grip, .kft-padbtn, .kft-nudge button")];
       return controls.filter(button => !button.querySelector("svg.lucide")).map(button => ({
@@ -243,32 +246,10 @@ async function captureEditorScreenState(page) {
       }));
     });
     assert.deepEqual(toolbarIconAudit, [], "every icon-bearing toolbar action must render its Lucide SVG");
-    assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").isVisible(), false, "the duplicate preview-bar Canvas ratio must be hidden");
-    assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
-    const initialToolbarPlacement = await page.evaluate(() => {
-      const bar = document.querySelector(".kefe-preview-toolbar").getBoundingClientRect();
-      const root = document.querySelector("#kefeFloatingToolbar");
-      const target = root.querySelector(".kft-launch") || root.querySelector(".kft-bar") || root;
-      const toolbar = target.getBoundingClientRect();
-      return { bar: { left: bar.left, right: bar.right, top: bar.top, bottom: bar.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
-    });
-    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.bar.left - 1
-      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.bar.top - 1
-      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.bar.bottom + 8,
-      `toolbar must dock inside the preview action bar: ${JSON.stringify(initialToolbarPlacement)}`);
-    assert.ok(initialToolbarPlacement.toolbar.left >= 0 && initialToolbarPlacement.toolbar.right <= initialToolbarPlacement.vw + 1
-      && initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
-      `toolbar must remain fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
-
-    const toolbarLauncher = quickToolbar.locator(".kft-launch");
-    if ((await toolbarLauncher.count()) > 0 && (await toolbarLauncher.getAttribute("aria-expanded")) !== "true") {
-      await toolbarLauncher.click();
-    }
-    const lyricTrigger = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
-    const fontTriggerIcons = await lyricTrigger.locator(":scope > svg").count();
-    const fontTriggerChildren = await lyricTrigger.evaluate(node => node.children.length);
-    assert.equal(fontTriggerIcons, 1, "the combined lyric effect and text trigger must display one Lucide icon");
-    assert.equal(fontTriggerChildren, 1, "the combined lyric effect and text trigger must not contain a second icon or decorative symbol");
+    const fontTriggerIcons = await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).locator(":scope > svg").count();
+    const fontTriggerChildren = await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).evaluate(node => node.children.length);
+    assert.equal(fontTriggerIcons, 1, "the combined font and colour trigger must display one Lucide icon");
+    assert.equal(fontTriggerChildren, 1, "the combined font and colour trigger must not contain a second icon or decorative symbol");
     const toolbarGroups = await quickToolbar.locator(".kft-main > .kft-cluster").evaluateAll(groups =>
       groups.map(group => ({
         label: group.getAttribute("aria-label"),
@@ -285,6 +266,20 @@ async function captureEditorScreenState(page) {
       { label: "Visualiser", controls: ["Visualiser"] },
       { label: "Actions", controls: ["More actions"] }
     ], "toolbar actions must appear once in their intended functional groups");
+    assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").isVisible(), false, "the duplicate preview-bar Canvas ratio must be hidden");
+    assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
+    const initialToolbarPlacement = await page.evaluate(() => {
+      const bar = document.querySelector(".kefe-preview-toolbar").getBoundingClientRect();
+      const toolbar = document.querySelector("#kefeFloatingToolbar").getBoundingClientRect();
+      return { bar: { left: bar.left, right: bar.right, top: bar.top, bottom: bar.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
+    });
+    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.bar.left - 1
+      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.bar.top - 1
+      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.bar.bottom + 8,
+      `toolbar must dock inside the preview action bar: ${JSON.stringify(initialToolbarPlacement)}`);
+    assert.ok(initialToolbarPlacement.toolbar.left >= 0 && initialToolbarPlacement.toolbar.right <= initialToolbarPlacement.vw + 1
+      && initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
+      `toolbar must remain fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
     const desktopViewport = page.viewportSize();
     const visibleDesktopNavIcons = await page.locator(".kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden='true']").evaluateAll(nodes => nodes.filter(node => getComputedStyle(node).display !== "none").length);
     assert.equal(visibleDesktopNavIcons, 0, "the header section links stay text-only, including the single Editor tab");
@@ -301,8 +296,7 @@ async function captureEditorScreenState(page) {
     await page.locator(".kefe-ms-close").evaluate(button => button.click());
     await page.waitForFunction(() => !document.querySelector(".kefe-ms-drawer"), null, { timeout: 5000 });
     const mobileToolbarBounds = await quickToolbar.evaluate(node => {
-      const target = node.querySelector(".kft-bar") || node;
-      const r = target.getBoundingClientRect();
+      const r = node.getBoundingClientRect();
       return { left: r.left, right: r.right, viewportWidth: document.documentElement.clientWidth };
     });
     assert.ok(mobileToolbarBounds.left >= 0 && mobileToolbarBounds.right <= mobileToolbarBounds.viewportWidth + 1,
@@ -408,9 +402,6 @@ async function captureEditorScreenState(page) {
       });
     }
     await page.keyboard.press("Escape");
-    if (await effectPanel.isVisible()) {
-      await page.keyboard.press("Escape");
-    }
     assert.equal(await page.locator(".kefe-section.active").getAttribute("data-panel"), "media",
       "the editor must start in Media, not switch itself to Visualisers");
     const editorTabAction = page.locator(".kefe-sidebar [data-editor-tab]");
@@ -421,6 +412,17 @@ async function captureEditorScreenState(page) {
       "keyboard activation of the Editor tab should open the editor's Media section");
     assert.equal(await editorTabAction.getAttribute("aria-current"), "page",
       "the Editor tab must expose the current page to assistive technology");
+    const singleSectionMode = await page.evaluate(() =>
+      document.querySelector('meta[name="kefe-settings-tabs"]')?.content === "single");
+    const previewAnchor = await page.locator(".kefe-work").evaluate(node => {
+      const rect = node.getBoundingClientRect();
+      return { top: rect.top, bottom: rect.bottom, viewport: innerHeight, scrollY };
+    });
+    if (singleSectionMode) {
+      assert.equal(previewAnchor.scrollY, 0, "switching editor sections must not scroll the preview off-screen");
+      assert.ok(previewAnchor.top >= 0 && previewAnchor.bottom <= previewAnchor.viewport * 0.6,
+        `the preview workspace must remain anchored in the upper half: ${JSON.stringify(previewAnchor)}`);
+    }
     assert.equal(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").count(), 1,
       "the header must expose only the Editor tab label");
     assert.equal((await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").innerText()).trim(), "Editor",
@@ -444,10 +446,6 @@ async function captureEditorScreenState(page) {
     await canvasPanel.locator('[role="radio"][data-value="16:9"]').click();
     await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-16x9"), null, { timeout: 5000 });
     await page.keyboard.press("Escape");
-    if ((await toolbarLauncher.count()) > 0 && (await toolbarLauncher.getAttribute("aria-expanded")) === "true") {
-      await toolbarLauncher.click();
-    }
-    await page.evaluate(() => { try { localStorage.removeItem("kefe.toolbar.open.v2"); } catch (_) {} });
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
       "visualiser tabs must stay hidden until the Visualisers section is opened");
     assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
@@ -456,7 +454,7 @@ async function captureEditorScreenState(page) {
       "Fluid Ink must not be selected automatically on startup");
     assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient'][aria-label='Fluid Ink visualiser']").evaluate(tab => tab.classList.contains("primary")), false,
       "Fluid Ink must not have the selected visual style on startup");
-    const desktopLayout = await page.evaluate(() => {
+    const navigationLayout = await page.evaluate(() => {
       const nav = document.querySelector(".kefe-sidebar").getBoundingClientRect();
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
       return {
@@ -466,10 +464,10 @@ async function captureEditorScreenState(page) {
         viewportWidth: document.documentElement.clientWidth,
       };
     });
-    assert.ok(desktopLayout.navBottom <= desktopLayout.workspaceTop + 1,
-      `desktop navigation must sit above the workspace, got nav bottom ${desktopLayout.navBottom} and workspace top ${desktopLayout.workspaceTop}`);
-    assert.ok(desktopLayout.navWidth >= desktopLayout.viewportWidth * 0.8,
-      `desktop navigation should span the workspace width, got ${desktopLayout.navWidth}/${desktopLayout.viewportWidth}`);
+    assert.ok(navigationLayout.navBottom <= navigationLayout.workspaceTop + 1,
+      `desktop navigation must sit above the workspace, got nav bottom ${navigationLayout.navBottom} and workspace top ${navigationLayout.workspaceTop}`);
+    assert.ok(navigationLayout.navWidth >= navigationLayout.viewportWidth * 0.8,
+      `desktop navigation should span the workspace width, got ${navigationLayout.navWidth}/${navigationLayout.viewportWidth}`);
     const headerNavigation = await page.evaluate(() => {
       const header = document.querySelector(".kefe-sidebar");
       const headerRect = header.getBoundingClientRect();
@@ -506,18 +504,44 @@ async function captureEditorScreenState(page) {
     await page.waitForFunction(() => document.documentElement.dataset.theme === "night", null, { timeout: 5000 });
     assert.equal(await themeToggle.getAttribute("aria-label"), "Switch to day mode",
       "the day/night action must return to the night theme");
-    const desktopColumns = await page.evaluate(() => {
-      const left = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
-      const centre = document.querySelector(".kefe-work").getBoundingClientRect();
-      const right = document.querySelector('.kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="output"]').getBoundingClientRect();
-      return { leftRight: left.right, centreLeft: centre.left, centreRight: centre.right, rightLeft: right.left, leftWidth: left.width, rightWidth: right.width };
+    const previewSettingsLayout = await page.evaluate(() => {
+      const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
+      const settings = document.querySelector(".kefe-settings-mount").getBoundingClientRect();
+      const columns = document.querySelector("#kefe-settings-panel > .kefe-settings-columns");
+      const active = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id][data-expanded='true']")];
+      const left = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
+      const right = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="output"]').getBoundingClientRect();
+      return {
+        workspaceHeight: workspace.height,
+        viewportHeight: document.documentElement.clientHeight,
+        workspaceBottom: workspace.bottom,
+        settingsTop: settings.top,
+        columns: getComputedStyle(columns).gridTemplateColumns.split(" ").length,
+        activeSections: active.map(section => section.dataset.sectionId),
+        leftWidth: left.width,
+        rightWidth: right.width,
+        leftRight: left.right,
+        rightLeft: right.left,
+        workspaceLeft: workspace.left,
+        workspaceRight: workspace.right,
+      };
     });
-    assert.ok(desktopColumns.leftWidth > 0 && desktopColumns.rightWidth > 0,
-      "both integrated settings panels must be visible");
-    assert.ok(desktopColumns.leftRight <= desktopColumns.centreLeft + 1,
-      "KEFE input panel must stay left of the central preview");
-    assert.ok(desktopColumns.centreRight <= desktopColumns.rightLeft + 1,
-      "Visual & Output panel must stay right of the central preview");
+    if (singleSectionMode) {
+      assert.ok(previewSettingsLayout.workspaceHeight >= previewSettingsLayout.viewportHeight * 0.48
+        && previewSettingsLayout.workspaceHeight <= previewSettingsLayout.viewportHeight * 0.56,
+        `the preview workspace must occupy the upper half of the viewport: ${JSON.stringify(previewSettingsLayout)}`);
+      assert.ok(previewSettingsLayout.settingsTop >= previewSettingsLayout.workspaceBottom - 1,
+        `settings must begin below the preview workspace: ${JSON.stringify(previewSettingsLayout)}`);
+      assert.equal(previewSettingsLayout.columns, 1, "settings must use one full-width column below the preview");
+      assert.equal(previewSettingsLayout.activeSections.length, 1,
+        `only one settings section may be expanded at a time: ${JSON.stringify(previewSettingsLayout.activeSections)}`);
+    } else {
+      assert.ok(previewSettingsLayout.leftWidth > 0 && previewSettingsLayout.rightWidth > 0,
+        "the main-branch baseline must retain its two settings columns");
+      assert.ok(previewSettingsLayout.leftRight <= previewSettingsLayout.workspaceLeft + 1
+        && previewSettingsLayout.workspaceRight <= previewSettingsLayout.rightLeft + 1,
+        "the main-branch baseline settings columns must flank the preview");
+    }
     await page.waitForSelector("#lyricsInput", { state: "visible", timeout: 20000 });
     assert.equal(await page.locator('label[for="lyricsInput"]').count(), 1, "native lyrics label association must remain in the DOM");
     await page.waitForFunction(() => {
@@ -775,32 +799,22 @@ async function captureEditorScreenState(page) {
       return section?.dataset.expanded === "true" &&
         section.querySelector(".section-content").getBoundingClientRect().height > 1;
     }, null, { timeout: 5000 });
-    const panelFillAudit = await page.evaluate(() => {
-      return ["input", "output"].map(groupName => {
-        const group = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="' + groupName + '"]');
-        if (!group) return { groupName, found: false };
-        const groupHeight = group.getBoundingClientRect().height;
-        const sections = [...group.querySelectorAll(":scope > .section[data-section-id]")];
+    if (singleSectionMode) {
+      const sectionSelectionAudit = await page.evaluate(() => {
+        const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
         return {
-          groupName,
-          found: sections.length === 3,
-          sectionHeights: sections.map(section => section.getBoundingClientRect().height),
-          minimumSectionHeight: groupHeight / 4,
-          expandedContentHeight: sections.find(section => section.dataset.expanded === "true")
-            ?.querySelector(".section-content").getBoundingClientRect().height || 0,
-          expandedContentWithinCard: (() => {
-            const section = sections.find(item => item.dataset.expanded === "true");
-            const content = section?.querySelector(".section-content > .content-inner");
-            return !!content && content.getBoundingClientRect().bottom <= section.getBoundingClientRect().bottom + 1
-              && content.getBoundingClientRect().height > 80;
-          })()
+          total: sections.length,
+          expanded: sections.filter(section => section.dataset.expanded === "true").map(section => section.dataset.sectionId),
+          collapsedContentVisible: sections.filter(section => section.dataset.expanded !== "true")
+            .some(section => section.querySelector(".section-content").getBoundingClientRect().height > 1),
         };
       });
-    });
-    assert.ok(panelFillAudit.every(item => item.found
-      && item.sectionHeights.every(height => height >= item.minimumSectionHeight)
-      && item.expandedContentHeight > 80 && item.expandedContentWithinCard),
-      `desktop section cards must distribute the available panel height: ${JSON.stringify(panelFillAudit)}`);
+      assert.equal(sectionSelectionAudit.total, 6, "all six settings sections must remain mounted exactly once");
+      assert.equal(sectionSelectionAudit.expanded.length, 1,
+        `the selected section must be the only expanded settings section: ${JSON.stringify(sectionSelectionAudit)}`);
+      assert.equal(sectionSelectionAudit.collapsedContentVisible, false,
+        "settings from inactive sections must leave the workspace flow");
+    }
 
     // Grouped settings switcher: each side column exposes its three sections as
     // compact shadcn Tabs that stay docked beside the preview. The feature marker
@@ -866,6 +880,15 @@ async function captureEditorScreenState(page) {
 
     const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
     await visualiserSection.locator(".expand-button").click();
+    if (singleSectionMode) {
+      const settingsScrollState = await page.evaluate(() => {
+        const mount = document.querySelector(".kefe-settings-mount");
+        return { pageY: window.scrollY, clientHeight: mount.clientHeight, scrollHeight: mount.scrollHeight, scrollTop: mount.scrollTop };
+      });
+      assert.equal(settingsScrollState.pageY, 0, "settings navigation must not scroll the preview page");
+      assert.ok(settingsScrollState.scrollHeight > settingsScrollState.clientHeight,
+        `the settings area must scroll independently below the preview: ${JSON.stringify(settingsScrollState)}`);
+    }
     await page.waitForFunction(() => {
       const section = document.querySelector('#kefe-settings-panel .section[data-section-id="visualisers"]');
       const tabs = document.querySelector(".kefe-vis-tabs");
@@ -873,6 +896,16 @@ async function captureEditorScreenState(page) {
     }, null, { timeout: 5000 });
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), true,
       "opening Visualisers from its side-panel section must reveal the visualiser controls");
+    if (singleSectionMode) {
+      await page.waitForFunction(() => {
+        const panel = document.querySelector('#kefe-settings-panel .kefe-slot[data-kefe-slot="visualisers"] > .kefe-panel[data-panel-view="visualiser"]');
+        return panel?.classList.contains("active")
+          && getComputedStyle(panel).display !== "none"
+          && panel.getBoundingClientRect().height > 0;
+      }, null, { timeout: 5000 });
+      assert.equal(await page.locator('#kefe-settings-panel .kefe-slot[data-kefe-slot="visualisers"] > .kefe-panel[data-panel-view="visualiser"]').isVisible(), true,
+        "selecting the Visualisers section must activate and reveal its existing native renderer panel");
+    }
 
     const sectionHeaderAudit = await page.evaluate(() => {
       const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];
@@ -1243,6 +1276,16 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
       "opening the Visualisers section must not automatically activate Fluid Ink");
     await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
+    if (singleSectionMode) {
+      await page.waitForFunction(() => {
+        const tab = document.querySelector(".beui-vis-backing-controls [data-visualiser='gradient']");
+        const power = tab?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
+        const canvas = document.getElementById("kefeFluidInkCanvas");
+        return tab?.getAttribute("aria-selected") === "true"
+          && power?.getAttribute("aria-checked") === "true"
+          && canvas && getComputedStyle(canvas).display !== "none";
+      }, null, { timeout: 5000 });
+    }
     await assertSectionFits("visualiser");
     const visualiserParametersLayout = await page.locator(".kefe-fluid-settings").evaluate(grid => ({
       width: grid.getBoundingClientRect().width,
@@ -1286,13 +1329,35 @@ async function captureEditorScreenState(page) {
       }, { value, expected: initial });
     }
     assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 1,
-      "power toggles must not change the selected visualiser tab");
+      "exactly one visualiser tab must remain selected");
+    if (singleSectionMode) {
+      const lastVisualiserId = await visualiserCards.last().locator("[role='tab']").getAttribute("data-visualiser");
+      assert.equal(await page.locator(`.beui-vis-backing-controls [data-visualiser="${lastVisualiserId}"]`).getAttribute("aria-selected"), "true",
+        "turning on a visualiser must select that same visualiser before it renders");
+    } else {
+      assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "true",
+        "the main-branch baseline power toggles must not change the selected visualiser tab");
+    }
     for (const id of ["silk-road", "visuals-mix"]) {
       const shaderTab = page.locator(`.beui-vis-tabs-host [role='tab'][data-visualiser='${id}']`);
       assert.equal(await shaderTab.count(), 1, `${id} must register exactly one visualiser tab`);
       await shaderTab.click();
-      await page.waitForFunction((value) => document.querySelector(`.beui-vis-backing-controls [data-visualiser='${value}']`)?.getAttribute("aria-selected") === "true", id);
-      await page.locator(`.beui-vis-tabs-host [role='tab'][data-visualiser='${id}']`).locator("xpath=ancestor::*[contains(@class,'kv-card')][1]").locator("[role='switch']").click();
+      const shaderPower = page.locator(`.beui-vis-tabs-host [role='tab'][data-visualiser='${id}']`).locator("xpath=ancestor::*[contains(@class,'kv-card')][1]").locator("[role='switch']");
+      if (singleSectionMode) {
+        await page.waitForFunction((value) => {
+          const tab = document.querySelector(`.beui-vis-backing-controls [data-visualiser='${value}']`);
+          const power = tab?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
+          return tab?.getAttribute("aria-selected") === "true"
+            && power?.getAttribute("aria-checked") === "true"
+            && window.kefeShaderVis?.instances?.get(value)?.getState().enabled === true;
+        }, id);
+        await shaderPower.click();
+        await page.waitForFunction((value) => window.kefeShaderVis?.instances?.get(value)?.getState().enabled === false, id);
+        await shaderPower.click();
+      } else {
+        await page.waitForFunction((value) => document.querySelector(`.beui-vis-backing-controls [data-visualiser='${value}']`)?.getAttribute("aria-selected") === "true", id);
+        await shaderPower.click();
+      }
       await page.waitForFunction((value) => window.kefeShaderVis?.instances?.get(value)?.getState().enabled === true, id);
       assert.equal(await page.evaluate(() => { const c = window.kefeShaderVis.current(); return !!c && c.width > 0 && c.height > 0; }), true,
         `${id} must own a sized preview canvas`);
@@ -1377,22 +1442,21 @@ async function captureEditorScreenState(page) {
       const mobileDockDisplay = await page.locator(".kefe-workspace-dock").evaluate(node => getComputedStyle(node).display);
       assert.equal(mobileDockDisplay, "none",
         `the duplicate fixed workspace dock must not cover editor content at ${width}px`);
-      const mobileToolbarLayout = await quickToolbar.evaluate(node => {
-        const launch = node.querySelector(".kft-launch") || node;
-        const r = launch.getBoundingClientRect();
-        const main = node.querySelector(".kft-main");
+      const mobileToolbarLayout = await quickToolbar.locator(".kft-main").evaluate(node => {
+        const bounds = node.getBoundingClientRect();
+        const clusters = [...node.querySelectorAll(":scope > .kft-cluster")].map(cluster => {
+          const rect = cluster.getBoundingClientRect();
+          return { left: rect.left, right: rect.right };
+        });
         return {
-          left: r.left,
-          right: r.right,
-          viewportWidth: document.documentElement.clientWidth,
-          clientWidth: main ? main.clientWidth : 0,
-          scrollWidth: main ? main.scrollWidth : 0
+          clientWidth: node.clientWidth,
+          scrollWidth: node.scrollWidth,
+          clustersWithinBounds: clusters.every(rect => rect.left >= bounds.left - 1 && rect.right <= bounds.right + 1)
         };
       });
-      assert.ok(mobileToolbarLayout.left >= -1 && mobileToolbarLayout.right <= mobileToolbarLayout.viewportWidth + 1,
-        `the preview toolbar launcher must remain inside the viewport at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
-      assert.ok(mobileToolbarLayout.scrollWidth <= mobileToolbarLayout.clientWidth + 1,
-        `the preview toolbar must not scroll horizontally at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
+      assert.ok(mobileToolbarLayout.scrollWidth <= mobileToolbarLayout.clientWidth + 1
+        && mobileToolbarLayout.clustersWithinBounds,
+        `the mobile preview toolbar must keep every group visible without horizontal overflow at ${width}px: ${JSON.stringify(mobileToolbarLayout)}`);
       // The mobile editor surface is now the KEFE sidebar: a section dock replaces
       // the stacked settings accordion, and the live native panel is hosted inside
       // the drawer while it is open.
