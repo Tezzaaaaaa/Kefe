@@ -6,7 +6,7 @@ import {
   Download, Edit3, Eye, EyeOff, FileAudio, FileText, Folder, Github, Grip, Image,
   Layers, ListMusic, Lock, LockOpen, Maximize, Minimize, MoreHorizontal, Move, Type, Frame, Circle, Cog,
   Music2, Pause, Play, SkipForward, Plus, Minus, Redo2, RotateCcw, Search, Settings, SlidersHorizontal,
-  Sparkles, Sun, Moon, Trash2, Undo2, Upload, Volume2, VolumeX, X, Zap,
+  Sparkles, Sun, Moon, Trash2, Undo2, Upload, Volume2, VolumeX, X, Zap, PencilRuler, Dock,
 } from "lucide-react";
 
 const icons = {
@@ -22,7 +22,7 @@ const icons = {
   play: Play, "skip-forward": SkipForward, plus: Plus, minus: Minus, redo: Redo2, reset: RotateCcw, search: Search,
   settings: Cog, sliders: SlidersHorizontal, sparkles: Sparkles, sun: Sun,
   moon: Moon, trash: Trash2, undo: Undo2, upload: Upload, volume: Volume2,
-  mute: VolumeX, close: X, zap: Zap,
+  mute: VolumeX, close: X, zap: Zap, toolbar: PencilRuler, dock: Dock,
 };
 
 function markup(name, className = "", size = 18) {

@@ -44,18 +44,31 @@
 .kft-popover * { box-sizing: border-box; }
 
 .kefe-floating-toolbar {
-  position: fixed;
-  z-index: 10000;
-  left: 0;
-  top: 0;
-  width: max-content;
-  max-width: calc(100vw - 16px);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
 }
-.kefe-floating-toolbar[hidden] { display: none; }
-body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: flex; }
+/* Dragged away from the preview bar (or shown over the fullscreen stage). */
+.kefe-floating-toolbar.is-floating {
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  max-width: calc(100vw - 16px);
+}
+.kefe-floating-toolbar.is-fullscreen {
+  left: max(10px, env(safe-area-inset-left));
+  top: max(10px, env(safe-area-inset-top));
+  z-index: 2147483646;
+}
+.kefe-floating-toolbar:not(.is-open) .kft-bar { display: none; }
 .kft-backing { display: none !important; }
 .kefe-floating-toolbar.is-dragging { cursor: grabbing; }
 .kefe-floating-toolbar.is-dragging .kft-bar { box-shadow: 0 15px 40px rgb(0 0 0 / 60%); }
@@ -86,22 +99,24 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: flex; }
 .kft-bar {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
+  min-width: 0;
+  animation: kftStrip 160ms var(--kt-ease) both;
   border: 1px solid var(--kt-border);
   background: var(--kt-surface);
   box-shadow: var(--kt-shadow);
 }
 .kft-main {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-start;
   gap: var(--kt-gap);
   width: max-content;
   max-width: 100%;
-  overflow-x: auto;
+  overflow: visible;
   white-space: nowrap;
-  scrollbar-width: none;
 }
-.kft-main::-webkit-scrollbar { display: none; }
 .kft-cluster {
   display: inline-flex;
   align-items: center;
@@ -281,9 +296,7 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: flex; }
 .kft-pref input[type="checkbox"] { accent-color: var(--kt-accent); }
 .kft-pref--colour { justify-content: space-between; }
 .kft-pref--colour input[type="color"] { width: 28px; height: 24px; padding: 1px; border: 1px solid var(--kt-border); border-radius: 4px; background: var(--kt-input); }.kefe-floating-toolbar.is-compact .kft-group { padding: 6px; }
-.kefe-floating-toolbar.is-compact .kft-label { margin-bottom: 3px; }.kft-reveal { position: fixed; z-index: 10000; top: 8px; left: 8px; padding: 7px 10px; border: 1px solid var(--kt-border); border-radius: 6px; background: var(--kt-surface); color: var(--kt-text); font: inherit; font-size: 11px; cursor: pointer; box-shadow: 0 4px 16px rgb(0 0 0 / 22%); }
-.kft-reveal[hidden] { display: none; }
-/* ───────── Focus ───────── */
+.kefe-floating-toolbar.is-compact .kft-label { margin-bottom: 3px; }/* ───────── Focus ───────── */
 .kefe-floating-toolbar :is(button, [role="slider"], input):focus-visible,
 .kft-popover :is(button, input):focus-visible,
 .kft-popover:focus-visible { outline: 2px solid var(--kt-ring); outline-offset: 1px; }@media (max-width: 760px) {
@@ -368,7 +381,6 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: flex; }
 .kefe-floating-toolbar.is-compact { --kt-h: 28px; }
 .kefe-floating-toolbar.is-compact .kft-cell { width: 28px; height: 28px; }
 .kefe-floating-toolbar.is-compact .kft-grip { height: 28px; }
-@media (max-width: 520px) { .kft-main { flex-wrap: wrap; justify-content: center; width: auto; overflow: visible; } }
 .kft-panel > * { flex-shrink: 0; }
 .kefe-floating-toolbar .kft-cell.kft-btn--toggle[aria-pressed="true"] { background: transparent; border-color: transparent; color: var(--kt-text); }
 .kefe-floating-toolbar .kft-cell.kft-btn--toggle[aria-pressed="false"] { background: var(--kt-surface-hover); border-color: var(--kt-border); color: var(--kt-muted); }
@@ -377,23 +389,68 @@ body:has(.kefe-pseudo-fullscreen) .kefe-floating-toolbar { display: flex; }
 .kft-pad { grid-template-columns: repeat(3, 30px); grid-template-rows: repeat(3, 30px); }
 .kft-padbtn { width: 30px; height: 30px; }
 
-/* The preview bar's old Canvas ratio control now lives in the toolbar's Canvas panel; its slot docks the toolbar. */
-.kft-dock-slot { flex: 0 0 auto; }
-.kft-dock-slot > * { display: none !important; }
-html .kefe-editor .kefe-preview-toolbar .kft-dock-slot { padding: 0; border: 0; background: transparent; box-shadow: none; min-width: 0; }
-
-
-@media (max-width: 520px) {
-  /* Keep preview actions on one line; scroll the strip instead of wrapping. */
-  .kefe-floating-toolbar .kft-main {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    width: max-content;
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-}
 
 /* The native aspect select remains the toolbar's backing control, not a preview-bar action. */
 .kefe-preview-toolbar .kefe-toolbar-format[hidden] { display: none; }
+
+
+/* ───────── KEFE toolbar v3: docked in the preview bar ─────────
+   [ Preview ........ ( strip )  [launcher]  [fullscreen] ]
+   The launcher sits immediately left of the fullscreen button and expands into the strip. The strip never
+   scrolls: if the bar is too narrow it drops onto its own row inside the bar. */
+@keyframes kftStrip { from { opacity: 0; transform: translateX(6px); } to { opacity: 1; transform: none; } }
+
+html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 10px;
+}
+html .kefe-editor .kefe-work > .kefe-preview { grid-template-columns: minmax(0, 1fr); }
+html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar { min-height: 58px; max-width: 100%; }
+html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-workspace { flex: 1 1 auto; min-width: 0; }
+html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-actions { flex: 0 1 auto; min-width: 0; gap: 6px; }
+
+/* Launcher + dock placeholder: the same 32px control as the fullscreen button next to them. */
+.kft-launch,
+.kft-ghost {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--line-soft, var(--kt-border));
+  border-radius: 9px;
+  background: var(--surface, var(--kt-surface));
+  color: var(--text, var(--kt-text));
+  cursor: pointer;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
+}
+.kft-launch .kft-icon,
+.kft-ghost .kft-icon { width: 16px; height: 16px; }
+.kft-launch:hover,
+.kft-ghost:hover { background: var(--kt-surface-hover); border-color: var(--kt-border-hover); }
+.kft-launch.is-open,
+.kft-launch[aria-expanded="true"] { background: var(--kt-accent-bg); border-color: var(--kt-accent); color: var(--kt-accent-fg); }
+.kft-ghost { border-style: dashed; color: var(--kt-muted); }
+.kft-ghost[hidden] { display: none; }
+.kft-launch:focus-visible,
+.kft-ghost:focus-visible { outline: 2px solid var(--kt-ring); outline-offset: 2px; }
+.kefe-floating-toolbar.is-floating .kft-launch { box-shadow: var(--kt-shadow); }
+
+/* Narrow bar (toolbar.js sets data-kft on the bar): launcher + fullscreen stay on the title row, the strip takes
+   its own full-width row below. */
+.kefe-preview-toolbar[data-kft] .kefe-toolbar-actions { display: contents; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) { display: contents; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-launch { order: 1; margin-left: auto; }
+.kefe-preview-toolbar[data-kft] .kefe-toolbar-actions > #previewFullscreen { order: 2; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-bar { order: 5; flex: 1 0 100%; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-main { width: 100%; justify-content: space-between; }
+.kefe-preview-toolbar[data-kft] .kft-ghost { order: 1; margin-left: auto; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-grip { display: none; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-cell--ratio { min-width: 32px; width: 32px; padding: 0; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-cell--ratio > span { display: none; }
+html .kefe-editor .kefe-preview-toolbar #previewFullscreen { width: 32px; min-width: 32px; height: 32px; flex-basis: 32px; }
+@media (prefers-reduced-motion: reduce) { .kft-bar { animation: none; } }

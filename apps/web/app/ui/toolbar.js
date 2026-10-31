@@ -5,10 +5,10 @@
    the lyrics switch, fullscreen, and the "Adjust layer" controls created by editor.js (kept in a hidden host). */
 (() => {
   'use strict';
-  // Load our own stylesheet last so the toolbar never depends on the bundled editor CSS being republished.
+  // Normally linked after styles.css in editor.html; injected last here only if that link is missing.
   try {
     const src = document.currentScript && document.currentScript.src;
-    if (src && !document.getElementById('kefeToolbarCss')) {
+    if (src && !document.getElementById('kefeToolbarCss') && !document.querySelector('link[rel="stylesheet"][href*="/toolbar.css"]')) {
       const link = document.createElement('link');
       link.id = 'kefeToolbarCss'; link.rel = 'stylesheet';
       link.href = src.replace(/toolbar\.js(\?.*)?$/, 'toolbar.css$1');
@@ -121,9 +121,11 @@
     pop.style.top = placeBelow ? (r.bottom + 6) + 'px' : 'auto';
     pop.style.bottom = placeBelow ? 'auto' : (vh - r.top + 6) + 'px';
   }
+  // Popovers render in the fullscreen element while it is active (anything outside it is not painted).
+  const popHost = () => document.fullscreenElement || document.body;
   function openPopover(pop, trigger, width) {
     closeListbox(false);
-    document.body.appendChild(pop);
+    popHost().appendChild(pop);
     placePopover(pop, trigger, width);
     const onDoc = e => { if (!pop.contains(e.target) && !trigger.contains(e.target)) closeListbox(false); };
     document.addEventListener('pointerdown', onDoc, true);
@@ -131,7 +133,7 @@
     trigger.setAttribute('aria-expanded', 'true');
   }
   function openPanel(pop, trigger, width) {
-    document.body.appendChild(pop);
+    popHost().appendChild(pop);
     placePopover(pop, trigger, width);
     const onDoc = e => { if (!e.target.closest('.kft-popover') && !trigger.contains(e.target) && !e.target.closest('.kft-tip')) closePanel(false); };
     document.addEventListener('pointerdown', onDoc, true);
@@ -295,7 +297,7 @@
         if (current || panel || dragging) return;
         tip.textContent = node.dataset.tip || text;
         tip.hidden = false;
-        if (!tip.isConnected) document.body.appendChild(tip);
+        if (tip.parentNode !== popHost()) popHost().appendChild(tip);
         const r = node.getBoundingClientRect(), t = tip.getBoundingClientRect();
         tip.style.left = clamp(r.left + (r.width - t.width) / 2, 6, window.innerWidth - t.width - 6) + 'px';
         const below = r.bottom + 8 + t.height < window.innerHeight - 6;
@@ -319,11 +321,19 @@
   const flash = node => { node.classList.add('is-flash'); setTimeout(() => node.classList.remove('is-flash'), 450); };
 
   /* ───────── Structure ───────── */
-  const root = h('div', 'kefe-floating-toolbar', { id: 'kefeFloatingToolbar', role: 'toolbar', 'aria-label': 'KEFE editor toolbar' });
+  // The toolbar lives in the preview bar, left of the fullscreen button: a launcher icon that expands into the strip.
+  const root = h('div', 'kefe-floating-toolbar', { id: 'kefeFloatingToolbar' });
   root.addEventListener('pointerdown', e => e.stopPropagation());
   root.addEventListener('click', e => e.stopPropagation());
-  const bar = h('div', 'kft-bar');
+  const bar = h('div', 'kft-bar', { id: 'kftStrip', role: 'toolbar', 'aria-label': 'KEFE editor toolbar' });
   const main = h('div', 'kft-main');
+  const launch = h('button', 'kft-launch', { type: 'button', 'aria-expanded': 'false', 'aria-controls': 'kftStrip' });
+  launch.innerHTML = icon('toolbar');
+  bindTip(launch, 'Editor toolbar');
+  // Placeholder left in the bar while the toolbar is dragged elsewhere: one click docks it again.
+  const ghost = h('button', 'kft-ghost', { type: 'button' });
+  ghost.innerHTML = icon('dock'); ghost.hidden = true;
+  bindTip(ghost, 'Dock toolbar here');
   const cluster = (label, ...children) => {
     const el = h('div', 'kft-cluster', { role: 'group', 'aria-label': label });
     el.append(...children);
@@ -427,7 +437,7 @@
   });
 
   /* Effect panel */
-  const effectBtn = panelBtn('effect', 'Lyric effect and display mode');
+  const lyricStyleBtn = panelBtn('effect', 'Lyric effect and text style');
   const effectMenu = createMenu({
     label: 'Lyric effect', variant: 'field', fallback: 'Lyric effect',
     getOptions: () => Array.from(gallery()?.querySelectorAll('[data-effect]') || []).map(item => ({
@@ -456,11 +466,12 @@
     nudgeVal.textContent = Number.isFinite(n) ? (n > 0 ? '+' : '') + n.toFixed(1) + 's' : t;
   }
   const timingReset = chip('reset', 'Reset timing', () => { $('lyricsTimingReset')?.click(); requestAnimationFrame(syncTiming); });
-  const effectPanel = makePanel(effectBtn, 'Lyric effect', 264);
-  effectPanel.append(field('Effect', effectMenu.trigger), field('Display mode', modeSeg.el), field('Timing nudge', nudge), timingReset);
+  // One Lyrics panel groups everything that styles the lyric text: effect, display mode, timing, font and colour.
+  const lyricPanel = makePanel(lyricStyleBtn, 'Lyric effect and text style', 288);
+  const sectionLabel = text => { const l = h('div', 'kft-label'); l.textContent = text; return l; };
+  lyricPanel.append(sectionLabel('Effect'), field('Effect', effectMenu.trigger), field('Display mode', modeSeg.el), field('Timing nudge', nudge), timingReset);
 
-  /* Font panel */
-  const fontBtn = panelBtn('type', 'Font and text colour');
+  /* Text controls (rendered in the Lyrics panel) */
   const fontMenu = createMenu({
     label: 'Lyric font', variant: 'field', fallback: 'Effect font',
     getOptions: () => Array.from(fontSelect()?.options || []).map(o => ({ value: o.value, label: o.value === '' ? 'Effect font' : o.textContent.trim() })),
@@ -481,8 +492,7 @@
       t.value = String(v); fire(t, 'input'); emit('text-size', v);
     }
   });
-  const fontPanel = makePanel(fontBtn, 'Font and text colour', 280);
-  fontPanel.append(field('Font family', fontMenu.trigger), field('Text case', caseMenu.trigger), field('Text size', sizeScrub.el));
+  lyricPanel.append(h('div', 'kft-rule'), sectionLabel('Text'), field('Font family', fontMenu.trigger), field('Text case', caseMenu.trigger), field('Text size', sizeScrub.el));
 
   /* Colour panel: presets + native picker + hex + outline/glow */
   const PRESETS = ['#ffffff', '#ef4444', '#22c55e', '#06b6d4', '#a855f7', '#f59e0b', '#ec4899', '#14b8a6', '#111113', '#8b8b9a'];
@@ -536,10 +546,10 @@
   glowToggle.addEventListener('change', () => setStyleToggle('glow', glowToggle.checked));
   window.addEventListener('kefe-style-change', syncStyleToggles);
   syncStyleToggles();
-  fontPanel.append(presetsEl, hexRow, checkRow('Outline', outlineToggle), checkRow('Soft glow', glowToggle));
+  lyricPanel.append(sectionLabel('Colour'), presetsEl, hexRow, checkRow('Outline', outlineToggle), checkRow('Soft glow', glowToggle));
 
-  const lyricsBtn = cellBtn('eye', 'Lyrics on or off', 'kft-btn--toggle');
-  lyricsBtn.setAttribute('aria-pressed', 'true');
+  const lyricsToggle = cellBtn('eye', 'Lyrics on or off', 'kft-btn--toggle');
+  lyricsToggle.setAttribute('aria-pressed', 'true');
 
   /* Canvas panel: ratio, safe area, preview background, background + visualiser */
   const ratioBtn = h('button', 'kft-btn kft-cell kft-cell--ratio', { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
@@ -636,25 +646,20 @@
     emit('lock', on);
   });
   lockPos.setAttribute('aria-pressed', 'false');
-  const resetPos = chip('reset', 'Re-dock toolbar', () => redock());
-  const revealBtn = h('button', 'kft-reveal', { type: 'button', 'aria-label': 'Show toolbar' });
-  revealBtn.innerHTML = icon('eye') + '<span>Show toolbar</span>'; revealBtn.hidden = true; document.body.appendChild(revealBtn);
-  const hideToolbar = chip('eye-off', 'Hide toolbar', () => { closePopover(false); root.hidden = true; revealBtn.hidden = false; });
-  revealBtn.addEventListener('click', () => { root.hidden = false; revealBtn.hidden = true; queueDock(true); actionsBtn.focus({ preventScroll: true }); });
+  const resetPos = chip('dock', 'Dock toolbar in preview bar', () => { closePanel(false); redock(); });
   const actionsPanel = makePanel(actionsBtn, 'Actions', 244);
-  actionsPanel.append(resetChip, lockChip, clearChip, h('div', 'kft-rule'), fullChip, lockPos, resetPos, h('div', 'kft-rule'), checkRow('Compact density', compactToggle), hideToolbar, hint);
+  actionsPanel.append(resetChip, lockChip, clearChip, h('div', 'kft-rule'), fullChip, lockPos, resetPos, h('div', 'kft-rule'), checkRow('Compact density', compactToggle), hint);
 
   main.append(
     cluster('Layer', grip, moveBtn),
     cluster('History', undoBtn, redoBtn),
-    cluster('Lyrics', effectBtn, fontBtn, lyricsBtn),
+    cluster('Lyrics', lyricStyleBtn, lyricsToggle),
     cluster('Canvas', ratioBtn),
     cluster('Visualiser', visualiserBtn),
     cluster('Actions', actionsBtn)
   );
   bar.append(main);
-  root.appendChild(bar);
-  document.body.appendChild(root);
+  root.append(bar, launch);
 
   /* ───────── Sync with the editor ───────── */
   function syncLayer() {
@@ -678,8 +683,8 @@
     const s = styleScale(); sizeScrub.disable(!s); sizeScrub.set(s ? s.value : 100);
     const d = bgDarkness(); darkScrub.disable(!d); darkScrub.set(d ? d.value : 0, Number(d?.min) || 0, Number(d?.max) || 100);
     const on = lyricsSwitch()?.getAttribute('aria-checked') !== 'false';
-    lyricsBtn.setAttribute('aria-pressed', String(on));
-    lyricsBtn.dataset.tip = on ? 'Lyrics on · click to hide' : 'Lyrics off · click to show';
+    lyricsToggle.setAttribute('aria-pressed', String(on));
+    lyricsToggle.dataset.tip = on ? 'Lyrics on · click to hide' : 'Lyrics off · click to show';
     syncTiming(); syncLayer(); syncMove();
   }
   let syncQueued = 0;
@@ -692,118 +697,149 @@
   window.addEventListener('kefe-style-change', sync);
   document.addEventListener('kefe-effect-change', sync);
   document.addEventListener('DOMContentLoaded', sync, { once: true });
-  window.addEventListener('kefe-shell-ready', () => { sync(); queueDock(); });
-  window.addEventListener('load', () => { sync(); queueDock(); });
+  window.addEventListener('kefe-shell-ready', () => { sync(); queueMount(); });
+  window.addEventListener('load', () => { sync(); queueMount(); });
 
-  lyricsBtn.addEventListener('click', () => {
+  lyricsToggle.addEventListener('click', () => {
     const s = lyricsSwitch(); if (!s) return;
     s.click();
     const on = s.getAttribute('aria-checked') !== 'false';
-    lyricsBtn.setAttribute('aria-pressed', String(on));
-    lyricsBtn.dataset.tip = on ? 'Lyrics on · click to hide' : 'Lyrics off · click to show';
+    lyricsToggle.setAttribute('aria-pressed', String(on));
+    lyricsToggle.dataset.tip = on ? 'Lyrics on · click to hide' : 'Lyrics off · click to show';
     emit('lyrics', on);
   });
-  root.addEventListener('keydown', e => { if (e.key === 'Escape' && panel) { closePanel(true); } });
 
-  /* ───────── Position, docking, dragging ───────── */
-  const STORE = 'kefe.floating-toolbar.position.v4';
-  const mobile = window.matchMedia('(max-width: 760px)');
-  let pos = { x: 12, y: 12 }, custom = false, dragging = null;
-  try {
-    ['kefe.floating-toolbar.position.v1', 'kefe.floating-toolbar.position.v2', 'kefe.floating-toolbar.position.v3'].forEach(k => localStorage.removeItem(k));
-    const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
-    if (saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)) { pos = saved; custom = true; }
-  } catch (_) {}
+  /* ───────── Docking, expanding, dragging ─────────
+     Default home: inside the preview bar, immediately left of the fullscreen button. The launcher is always there;
+     it expands into the strip. Dragging the grip floats the toolbar; double-click the grip, the dock placeholder
+     or "Dock toolbar" puts it back. Position is deliberately not persisted: a refresh always re-docks. */
+  const OPEN_KEY = 'kefe.toolbar.open.v2';
+  const bareBar = () => document.querySelector('.kefe-preview-toolbar');
+  const dockHost = () => bareBar()?.querySelector('.kefe-toolbar-actions') || null;
+  const inFullscreen = () => document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
+  let pos = { x: 12, y: 12 }, floating = false, dragging = null, isOpen = false;
+  try { localStorage.removeItem('kefe.floating-toolbar.position.v4'); isOpen = localStorage.getItem(OPEN_KEY) === '1'; } catch (_) {}
+
   const clampPos = (x, y) => ({
     x: clamp(x, 8, Math.max(8, window.innerWidth - root.offsetWidth - 8)),
     y: clamp(y, 8, Math.max(8, window.innerHeight - root.offsetHeight - 8))
   });
-  function defaultPos() {
-    const w = root.offsetWidth, hgt = root.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
-    const dockEl = document.querySelector('.kefe-workspace-dock');
-    let dockTop = vh;
-    if (dockEl && getComputedStyle(dockEl).display !== 'none') {
-      const d = dockEl.getBoundingClientRect();
-      if (d.height > 0 && d.top > vh * 0.5) dockTop = d.top;
-    }
-    // Dock against the real preview action bar at every viewport size.
-    // In fullscreen, the preview stage becomes the toolbar's containing visual surface.
-    const fullscreen = document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
-    const s = stage.getBoundingClientRect();
-    if (fullscreen && s.width && s.height) return { x: clamp(s.left + 8, 8, vw - w - 8), y: s.top + 8 };
-    const previewBar = document.querySelector('.kefe-preview-toolbar');
-    const barRect = previewBar?.getBoundingClientRect();
-    if (barRect?.width && barRect.height) {
-      return { x: clamp(barRect.left + 8, 8, vw - w - 8), y: barRect.top + Math.max(0, (barRect.height - hgt) / 2) };
-    }
-    if (!s.width || !s.height) return { x: (vw - w) / 2, y: 8 };
-    return { x: clamp(s.left + 8, 8, vw - w - 8), y: s.top + 8 };
-  }
-  function apply() {
-    if (custom) {
-      pos = clampPos(pos.x, pos.y);
-      root.style.visibility = '';
-    } else {
-      // Docked: follow the preview bar as the page scrolls, and tuck away once it passes under the sticky header.
-      const header = document.querySelector('.kefe-sidebar');
-      const top = header ? header.getBoundingClientRect().bottom : 0;
-      const fullscreen = document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
-      pos = { x: clamp(pos.x, 8, Math.max(8, window.innerWidth - root.offsetWidth - 8)), y: pos.y };
-      root.style.visibility = (!fullscreen && (pos.y < top || pos.y > window.innerHeight - 8)) ? 'hidden' : '';
-    }
+  function placeFloating() {
+    pos = clampPos(pos.x, pos.y);
     root.style.left = pos.x + 'px'; root.style.top = pos.y + 'px';
   }
-  function dock(keepBottom) {
-    if (!custom) pos = defaultPos();
-    apply();
-    // Expanding must never push the tray off-screen: apply() already clamps; also leave room for the bar itself.
-    if (keepBottom) apply();
+  function setOpen(next, focusLauncher) {
+    isOpen = !!next;
+    clearTimeout(tipTimer); tip.hidden = true;
+    root.classList.toggle('is-open', isOpen);
+    launch.setAttribute('aria-expanded', String(isOpen));
+    launch.classList.toggle('is-open', isOpen);
+    if (!isOpen) closePopover(false);
+    try { localStorage.setItem(OPEN_KEY, isOpen ? '1' : '0'); } catch (_) {}
+    if (floating) requestAnimationFrame(placeFloating);
+    requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    if (focusLauncher) launch.focus({ preventScroll: true });
   }
-  let dockQueued = 0;
-  function queueDock(keepBottom) { if (dockQueued) return; dockQueued = requestAnimationFrame(() => { dockQueued = 0; dock(keepBottom); }); }
+  // Where the root should live right now: the fullscreen stage, the page (floating), or the preview bar (docked).
+  function mountRoot() {
+    const host = dockHost();
+    if (inFullscreen()) {
+      root.classList.add('is-floating', 'is-fullscreen');
+      if (root.parentNode !== stage) stage.appendChild(root);
+      root.style.left = ''; root.style.top = '';
+      ghost.hidden = !floating || !host; return;
+    }
+    root.classList.remove('is-fullscreen');
+    if (floating) {
+      root.classList.add('is-floating');
+      if (root.parentNode !== document.body) document.body.appendChild(root);
+      placeFloating();
+      ghost.hidden = !host;
+    } else if (host) {
+      root.classList.remove('is-floating');
+      root.style.left = ''; root.style.top = '';
+      const fs = fullscreenButton();
+      const before = fs && fs.parentNode === host ? fs : null;
+      if (root.parentNode !== host || (before && root.nextElementSibling !== before)) host.insertBefore(root, before);
+      ghost.hidden = true;
+    }
+    if (host && ghost.parentNode !== host) host.insertBefore(ghost, root.parentNode === host ? root : fullscreenButton());
+  }
+  function redock() {
+    floating = false;
+    closePopover(false);
+    mountRoot(); emit('reset-position', pos);
+    requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+  }
+  launch.addEventListener('click', () => setOpen(!isOpen));
+  ghost.addEventListener('click', redock);
+  // Escape: close an open panel first; with nothing open, collapse the strip back to the launcher.
+  root.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (panel) { closePanel(true); e.stopPropagation(); return; }
+    if (current) return;
+    if (isOpen) { e.stopPropagation(); setOpen(false, true); }
+  });
 
-  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(pos)); } catch (_) {} };
   grip.addEventListener('pointerdown', e => {
-    if (lockPos.getAttribute('aria-pressed') === 'true' || (e.button !== 0 && e.pointerType === 'mouse')) return;
+    if (lockPos.getAttribute('aria-pressed') === 'true' || inFullscreen() || (e.button !== 0 && e.pointerType === 'mouse')) return;
     e.preventDefault();
     closePopover(false); tip.hidden = true;
     const r = root.getBoundingClientRect();
-    dragging = { id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top };
+    dragging = { id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top, moved: false, from: r };
     grip.setPointerCapture?.(e.pointerId);
-    root.classList.add('is-dragging');
   });
   grip.addEventListener('pointermove', e => {
     if (!dragging || e.pointerId !== dragging.id) return;
-    custom = true;
+    if (!dragging.moved) {
+      if (Math.hypot(e.clientX - dragging.dx - dragging.from.left, e.clientY - dragging.dy - dragging.from.top) < 4) return;
+      // First real movement: float at the current spot so nothing jumps, then follow the pointer.
+      dragging.moved = true; floating = true;
+      pos = { x: dragging.from.left, y: dragging.from.top };
+      mountRoot(); root.classList.add('is-dragging');
+    }
     pos = clampPos(e.clientX - dragging.dx, e.clientY - dragging.dy);
     root.style.left = pos.x + 'px'; root.style.top = pos.y + 'px';
   });
   const stopDrag = e => {
     if (!dragging || (e && e.pointerId !== dragging.id)) return;
+    const moved = dragging.moved;
     dragging = null; root.classList.remove('is-dragging');
-    if (custom) { save(); emit('position', pos); }
+    if (moved) { emit('position', pos); requestAnimationFrame(() => window.dispatchEvent(new Event('resize'))); }
   };
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => grip.addEventListener(t, stopDrag));
   grip.addEventListener('keydown', e => {
-    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home'].includes(e.key) || lockPos.getAttribute('aria-pressed') === 'true') return;
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home'].includes(e.key) || lockPos.getAttribute('aria-pressed') === 'true' || inFullscreen()) return;
     e.preventDefault();
     if (e.key === 'Home') { redock(); return; }
     const step = e.shiftKey ? 24 : 6;
-    custom = true;
+    if (!floating) { const r = root.getBoundingClientRect(); pos = { x: r.left, y: r.top }; floating = true; mountRoot(); }
     pos = { x: pos.x + (e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0), y: pos.y + (e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0) };
-    apply(); save(); emit('position', pos);
+    placeFloating(); emit('position', pos);
   });
-  function redock() {
-    custom = false;
-    try { localStorage.removeItem(STORE); } catch (_) {}
-    dock(); emit('reset-position', pos);
-  }
   grip.addEventListener('dblclick', redock);
 
-  window.addEventListener('resize', () => queueDock());
-  window.addEventListener('scroll', () => queueDock(), { passive: true });
-  if (window.ResizeObserver) { const ro = new ResizeObserver(() => queueDock()); ro.observe(stage); const dockBar = document.querySelector('.kefe-preview-toolbar'); if (dockBar) ro.observe(dockBar); ro.observe(document.documentElement); ro.observe(root); }
-  mobile.addEventListener?.('change', () => queueDock());
+  let mountQueued = 0;
+  const queueMount = () => { if (mountQueued) return; mountQueued = requestAnimationFrame(() => { mountQueued = 0; mountRoot(); }); };
+  window.addEventListener('resize', () => { if (floating) placeFloating(); queueMount(); });
+  document.addEventListener('fullscreenchange', queueMount);
+  new MutationObserver(queueMount).observe(stage, { attributes: true, attributeFilter: ['class'] });
+  // The bar's height changes when the strip wraps; keep the preview stage fitted to what is left.
+  // Width flag for the stacked layout (strip on its own row). Measured from the pane, not the bar, so it cannot feed back.
+  const flagWidth = () => {
+    const barEl = bareBar(); if (!barEl) return;
+    const w = (barEl.parentElement || barEl).clientWidth;
+    const next = w <= 360 ? 'tight' : w <= 540 ? 'narrow' : '';
+    if (next) barEl.setAttribute('data-kft', next); else barEl.removeAttribute('data-kft');
+  };
+  flagWidth();
+  if (window.ResizeObserver) {
+    const barEl = bareBar();
+    if (barEl) {
+      new ResizeObserver(() => window.dispatchEvent(new Event('resize'))).observe(barEl);
+      if (barEl.parentElement) new ResizeObserver(flagWidth).observe(barEl.parentElement);
+    }
+  }
 
   /* ───────── Undo / redo (toolbar-level history of look & canvas settings) ───────── */
   const hist = { past: [], future: [], last: null, busy: false, timer: 0 };
@@ -853,6 +889,8 @@
 
   sync();
   seedHistory();
-  dock();
+  setOpen(isOpen);
+  mountRoot();
+  if (!root.isConnected) document.body.appendChild(root);
   emit('ready', true);
 })();
