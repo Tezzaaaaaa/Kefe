@@ -64,6 +64,7 @@
     }
     function frame(now) {
       raf = 0; if (!shown() || !gl || !program || document.hidden) return;
+      if (window.kefeFrameGate && !window.kefeFrameGate(now)) { raf = requestAnimationFrame(frame); return; }
       const dt = Math.min(.1, Math.max(0, (now - (last || now)) / 1000)); last = now; tick += dt;
       audio(dt); resize();
       gl.useProgram(program);
@@ -154,7 +155,7 @@
         setActive(true);
       });
       /* Any other visualiser's tab (or a later-registered one) deselects this one. */
-      window.addEventListener('kefe-visualiser-select', e => { if (e.detail?.id !== def.id) { presetSet.hidden = true; setActive(false); } });
+      window.addEventListener('kefe-visualiser-select', e => { if (e.detail?.id !== def.id) { presetSet.hidden = true; view.hidden = true; setActive(false); } });
       tabsList.addEventListener('click', e => {
         const c = e.target.closest('[role="tab"]');
         if (c && c !== tab && c.dataset.visualiser !== def.id) { presetSet.hidden = true; setActive(false); }

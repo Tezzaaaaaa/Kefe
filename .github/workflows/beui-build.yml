@@ -44,6 +44,7 @@ jobs:
           test ! -e apps/web/dist-beui/editor.source.html
           test -s apps/web/dist-beui/index.html
           test ! -e apps/web/dist-beui/beui.html
+          node apps/web/scripts/verify-visualiser-wiring.mjs
           node apps/web/scripts/smoke-build.mjs
           node apps/web/scripts/smoke-settings-api.mjs
           node apps/web/scripts/smoke-section-card-coverage.mjs

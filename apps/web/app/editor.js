@@ -2126,10 +2126,22 @@
     previewStage.addEventListener('pointerup',endGesture);previewStage.addEventListener('pointercancel',endGesture);
     applyVisualiserPreviewTransform();
   }
+  /* One lookup every consumer shares, so the preview and the export always agree on which
+     visualiser layer is live. Returns the engine's own canvas plus how it must be composited. */
+  function activeVisualiserLayer(){
+    const shader=window.kefeShaderVis?.current?.();
+    if(shader)return {canvas:shader,blend:'source-over'};
+    if(window.kefeSlowLight?.getState?.().enabled)return {canvas:document.getElementById('kefeSlowLightCanvas'),blend:'source-over'};
+    if(window.kefeFlutedGlassActive&&window.kefeFlutedGlassEnabled!==false)return {canvas:document.getElementById('kefeFlutedGlassCanvas'),blend:'source-over'};
+    if(window.kefeLiquidGlassActive&&window.kefeLiquidGlassEnabled!==false)return {canvas:document.getElementById('kefeLiquidGlassCanvas'),blend:'source-over'};
+    if(window.kefeGradientLayer?.state?.().on)return {canvas:document.getElementById('kefeFluidInkCanvas'),blend:window.kefeBackground?window.kefeBackground.blend():'source-over'};
+    return null;
+  }
   document.getElementById('exportButton').addEventListener('click',async()=>{
-    const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),shaderCanvas=window.kefeShaderVis?.current?.(),visualiserCanvas=shaderCanvas?shaderCanvas:window.kefeSlowLight?.getState?.().enabled?document.getElementById('kefeSlowLightCanvas'):window.kefeFlutedGlassActive?document.getElementById('kefeFlutedGlassCanvas'):document.getElementById('kefeLiquidFlowCanvas');
+    const activeLayer=activeVisualiserLayer(),status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),visualiserCanvas=activeLayer?activeLayer.canvas:null,visualiserBlend=activeLayer?activeLayer.blend:'source-over';
     if(exporting)return;
-    if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream||!visualiserCanvas){status.textContent='Video export is not supported by this browser.';return;}
+    if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){status.textContent='Video export is not supported by this browser.';return;}
+    if(!visualiserCanvas){status.textContent='Choose a visualiser before exporting.';return;}
     if(!audio.src||!Number.isFinite(audio.duration)){status.textContent='Upload a track first.';return;}
     if(window.KEFE_TYPE?.ready){try{await window.KEFE_TYPE.ready;}catch(_){} }
     if(document.fonts?.load){try{await Promise.all([document.fonts.load('700 48px "Inter Tight"'),document.fonts.load('600 48px "Inter Tight"')]);}catch(_){} }
@@ -2153,9 +2165,10 @@
     const compositeFrame=()=>{
       compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paint(compositeCtx,dims[0],dims[1],state.time);
-      const vw=visualiserCanvas.width,vh=visualiserCanvas.height;
-      if(vw&&vh&&visualiserCanvas&&((window.kefeFlutedGlassActive&&window.kefeFlutedGlassEnabled!==false)||(window.kefeSlowLight?.getState?.().enabled)||shaderCanvas||(window.kefeGradientLayer?.state?.().on))){const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k,stageRect=previewStage?.getBoundingClientRect(),sx=stageRect?.width?dims[0]/stageRect.width:1,sy=stageRect?.height?dims[1]/stageRect.height:1;compositeCtx.save();compositeCtx.globalCompositeOperation=(window.kefeFlutedGlassActive||shaderCanvas||window.kefeSlowLight?.getState?.().enabled)?'source-over':(window.kefeBackground?window.kefeBackground.blend():'source-over');compositeCtx.translate(dims[0]/2+visualiserPanX*sx,dims[1]/2+visualiserPanY*sy);compositeCtx.scale(visualiserZoom,visualiserZoom);compositeCtx.drawImage(visualiserCanvas,-dw/2,-dh/2,dw,dh);compositeCtx.restore();}
-      if(window.kefeGradientLayer)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
+      if(visualiserCanvas&&visualiserCanvas.width&&visualiserCanvas.height){const vw=visualiserCanvas.width,vh=visualiserCanvas.height;const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k,stageRect=previewStage?.getBoundingClientRect(),sx=stageRect?.width?dims[0]/stageRect.width:1,sy=stageRect?.height?dims[1]/stageRect.height:1;compositeCtx.save();compositeCtx.globalCompositeOperation=visualiserBlend;compositeCtx.translate(dims[0]/2+visualiserPanX*sx,dims[1]/2+visualiserPanY*sy);compositeCtx.scale(visualiserZoom,visualiserZoom);compositeCtx.drawImage(visualiserCanvas,-dw/2,-dh/2,dw,dh);compositeCtx.restore();}
+      /* Fluid Ink is already composited from its own canvas above; repainting it here would double it up. */
+      const fluidInkComposited=!!(visualiserCanvas&&visualiserCanvas.id==='kefeFluidInkCanvas');
+      if(window.kefeGradientLayer&&!fluidInkComposited)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
       if(window.kefeAudioOverlay)window.kefeAudioOverlay.paint(compositeCtx,dims[0],dims[1]);
       if(window.kefeBackground)window.kefeBackground.paintTransparency(compositeCtx,dims[0],dims[1]);
       compositeCtx.drawImage(canvas,0,0,dims[0],dims[1]);
@@ -2176,7 +2189,7 @@
       const tapCtx=window.kefeAudioGraph?.context()||exportTap?.ac;
       if(tapCtx&&tapCtx.state==='suspended')await tapCtx.resume();
       compositeFrame();
-      const exportFps=60;
+      const exportFps=Math.max(24,Math.min(60,Math.round(Number(window.kefeSettings?.get('fpsTarget')))||60));
       const stream=compositeCanvas.captureStream(exportFps);
       frameTicker=setInterval(compositeFrame,1000/exportFps);
       if(audioStream)audioStream.getAudioTracks().forEach(t=>stream.addTrack(t));
