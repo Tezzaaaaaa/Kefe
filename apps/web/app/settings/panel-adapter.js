@@ -177,15 +177,17 @@
       const navKey = Object.keys(NAV_TO_SECTION).find(key => NAV_TO_SECTION[key] === sectionId);
       if (!navKey) return;
       queueMicrotask(() => {
+        const expanded = section.dataset.expanded === 'true';
+        const selectedPanel = expanded ? navKey : '';
         root.querySelectorAll('.section[data-section-id]').forEach(item => {
-          const selected = item === section;
+          const selected = expanded && item === section;
           item.dataset.expanded = String(selected);
           item.querySelector('.expand-button')?.setAttribute('aria-expanded', String(selected));
         });
-        editing.setAttribute('data-active-panel', navKey);
-        editing.setAttribute('data-selected-section', navKey);
+        editing.setAttribute('data-active-panel', selectedPanel);
+        editing.setAttribute('data-selected-section', selectedPanel);
         editing.querySelectorAll('.kefe-panel[data-panel-view]').forEach(panel => {
-          panel.classList.toggle('active', panel.dataset.panelView === navKey);
+          panel.classList.toggle('active', panel.dataset.panelView === selectedPanel);
         });
         syncVisualiserControls();
       });
