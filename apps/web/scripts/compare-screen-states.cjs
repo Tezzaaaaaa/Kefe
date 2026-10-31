@@ -137,9 +137,29 @@ for (const size of ["desktop", "mobile"]) {
         }
       }
       const geometryDelta = child.bounds.map((value, index) => Number((value - baseline.bounds[index]).toFixed(2)));
-      const geometryComparison = { baseline: baseline.bounds, current: child.bounds, delta: geometryDelta, tolerancePx: 1 };
+      // The grouped settings tab strip sits above the settings columns, so the whole
+      // media stack (and every card in it) can shift vertically without the carousel
+      // itself changing. Compare the fixture card against its own track, and hold the
+      // track size to the same 1px tolerance, so panel-height changes cannot hide a
+      // real card reflow or resize.
+      const baselineStack = before.keyBounds.find(node => node.id === "kefeCarStack");
+      const currentStack = after.keyBounds.find(node => node.id === "kefeCarStack");
+      assert.ok(baselineStack && currentStack, `${size}/day carousel track bounds are missing`);
+      assert.ok(Math.abs(currentStack.width - baselineStack.width) <= 1 && Math.abs(currentStack.height - baselineStack.height) <= 1,
+        `${size}/day carousel track changed size between baseline and current: ${JSON.stringify({ baseline: [baselineStack.width, baselineStack.height], current: [currentStack.width, currentStack.height] })}`);
+      const relativeToTrack = (bounds, stack) => [
+        Number((bounds[0] - stack.x).toFixed(2)),
+        Number((bounds[1] - stack.y).toFixed(2)),
+        bounds[2],
+        bounds[3],
+      ];
+      const baselineRelative = relativeToTrack(baseline.bounds, baselineStack);
+      const currentRelative = relativeToTrack(child.bounds, currentStack);
+      const relativeDelta = currentRelative.map((value, index) => Number((value - baselineRelative[index]).toFixed(2)));
+      const geometryComparison = { baseline: baseline.bounds, current: child.bounds, delta: geometryDelta,
+        baselineRelative, currentRelative, relativeDelta, tolerancePx: 1 };
       console.log(`${size}/day populated carousel child geometry baseline/current: ${JSON.stringify(geometryComparison)}`);
-      if (!geometryDelta.every(delta => Math.abs(delta) <= geometryComparison.tolerancePx)) {
+      if (!relativeDelta.every(delta => Math.abs(delta) <= geometryComparison.tolerancePx)) {
         carouselGeometryMismatches.push({ size, ...geometryComparison });
       }
     }
@@ -190,4 +210,4 @@ for (const size of ["desktop", "mobile"]) {
   }
 }
 assert.deepEqual(carouselGeometryMismatches, [],
-  `populated carousel card geometry differs between baseline and current by more than 1px: ${JSON.stringify(carouselGeometryMismatches)}`);
+  `populated carousel card geometry relative to its track differs between baseline and current by more than 1px: ${JSON.stringify(carouselGeometryMismatches)}`);
