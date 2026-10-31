@@ -47,7 +47,6 @@ for (const requiredModule of [
   "app/ui/icons.js",
   "beui-src/shadcn-slider.js",
   "beui-src/shadcn-settings-dialog.js",
-  "beui-src/shadcn-settings-tabs.js",
   "beui-src/shadcn-visualiser-tabs.js",
   "beui-src/shadcn-command-dialog.js",
   "beui-src/shadcn-controls.js",
