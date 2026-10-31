@@ -247,7 +247,9 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
     const initialToolbarPlacement = await page.evaluate(() => {
       const bar = document.querySelector(".kefe-preview-toolbar").getBoundingClientRect();
-      const toolbar = document.querySelector("#kefeFloatingToolbar").getBoundingClientRect();
+      const root = document.querySelector("#kefeFloatingToolbar");
+      const target = root.querySelector(".kft-launch") || root.querySelector(".kft-bar") || root;
+      const toolbar = target.getBoundingClientRect();
       return { bar: { left: bar.left, right: bar.right, top: bar.top, bottom: bar.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
     });
     assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.bar.left - 1
