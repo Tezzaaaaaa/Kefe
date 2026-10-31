@@ -56,6 +56,12 @@ for (const file of ["lyric-aurora", "lyric-pulse", "lyric-typewriter", "lyric-gl
   assert.doesNotMatch(editor, new RegExp(`effects/${file}\\.js`), `the retired ${file} renderer must not be loaded`);
 }
 
+/* ---- editor picker + preview integration -------------------------- */
+const editorSource = read("app/editor.js");
+assert.match(editorSource, /effectDefinitions\.filter\(\(\[id\]\)=>id!=='karaoke'&&id!=='bounce'\)\.forEach\(\(\[id,label\]\)=>addLyricEffectOption\(id,label\)\)/, "the picker must be generated from the complete effect manifest");
+assert.doesNotMatch(editorSource, /window\.kefeEffects\[state\.effect\]\s*\|\|\s*window\.kefeEffects\.apple/, "a missing renderer must not silently substitute Apple");
+assert.match(editorSource, /if\(state\.effect==='apple'\)\{\s*const u=Math\.min\(W,H\)/, "the pinned-header mask must be scoped to Apple only");
+
 /* ---- typography contracts ---------------------------------------- */
 const typography = read("app/ui/typography.js");
 for (const key of keys) {
