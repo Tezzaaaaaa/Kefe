@@ -571,8 +571,18 @@ function MobileSidebar() {
     if (!open) return undefined;
     const previous = document.activeElement;
     const node = drawerRef.current;
-    const scrollY = window.scrollY;
-    document.documentElement.classList.add("kefe-ms-locked");
+    /* Bottom sheet: keep the preview + timeline on screen above it. */
+    window.scrollTo(0, 0);
+    const scrollY = 0;
+    const place = () => {
+      const tl = document.querySelector(".kefe-timeline")?.getBoundingClientRect();
+      const wanted = tl ? tl.bottom + 8 : window.innerHeight * 0.5;
+      const top = Math.min(Math.max(wanted, 120), window.innerHeight - 300);
+      document.documentElement.style.setProperty("--kefe-ms-top", Math.round(top) + "px");
+    };
+    place();
+    window.addEventListener("resize", place);
+    document.documentElement.classList.add("kefe-ms-locked", "kefe-ms-sheet-open");
     const frame = requestAnimationFrame(() => node?.focus({ preventScroll: true }));
 
     const onKeyDown = (event) => {
@@ -601,7 +611,9 @@ function MobileSidebar() {
     return () => {
       cancelAnimationFrame(frame);
       document.removeEventListener("keydown", onKeyDown, true);
-      document.documentElement.classList.remove("kefe-ms-locked");
+      window.removeEventListener("resize", place);
+      document.documentElement.classList.remove("kefe-ms-locked", "kefe-ms-sheet-open");
+      document.documentElement.style.removeProperty("--kefe-ms-top");
       window.scrollTo(0, scrollY);
       if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true });
     };
@@ -645,12 +657,12 @@ function MobileSidebar() {
               ref={drawerRef}
               className="kefe-ms-drawer"
               role="dialog"
-              aria-modal="true"
+              aria-modal="false"
               aria-labelledby="kefe-ms-title"
               tabIndex={-1}
-              initial={reduce ? false : { x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={reduce ? { opacity: 0 } : { x: "-100%" }}
+              initial={reduce ? false : { y: "100%" }}
+              animate={{ y: 0 }}
+              exit={reduce ? { opacity: 0 } : { y: "100%" }}
               transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 38, mass: 0.9 }}
             >
               <header className="kefe-ms-head">
