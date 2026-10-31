@@ -422,19 +422,24 @@
   }
   html:root .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount > .kefe-settings-panel {
     display: flex;
+    flex: 0 0 auto;
     flex-direction: column;
     width: 100%;
-    height: 100%;
+    height: auto;
+    min-height: 100%;
     max-width: none;
-    min-height: 0;
+    overflow: visible;
   }
   html:root #kefe-settings-panel > .kefe-settings-columns[data-accordion="multi"] {
     display: grid;
+    flex: 0 0 auto;
     grid-template-columns: minmax(0, 1fr);
     gap: 8px;
     align-items: start;
     width: 100%;
+    height: auto;
     min-height: 0;
+    overflow: visible;
   }
   html:root #kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] {
     display: flex;
