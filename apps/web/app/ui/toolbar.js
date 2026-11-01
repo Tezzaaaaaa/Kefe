@@ -320,7 +320,7 @@
   const flash = node => { node.classList.add('is-flash'); setTimeout(() => node.classList.remove('is-flash'), 450); };
 
   /* ───────── Structure ───────── */
-  // The toolbar lives in the preview bar, left of the fullscreen button: a launcher icon that expands into the strip.
+  // The toolbar is docked immediately after Editor in the header navigation.
   const root = h('div', 'kefe-floating-toolbar', { id: 'kefeFloatingToolbar' });
   root.addEventListener('pointerdown', e => e.stopPropagation());
   root.addEventListener('click', e => e.stopPropagation());
@@ -712,8 +712,7 @@
      it expands into the strip. Dragging the grip floats the toolbar; double-click the grip, the dock placeholder
      or "Dock toolbar" puts it back. Position is deliberately not persisted: a refresh always re-docks. */
   const OPEN_KEY = 'kefe.toolbar.open.v2';
-  const bareBar = () => document.querySelector('.kefe-preview-dock');
-  const dockHost = () => bareBar() || null;
+  const dockHost = () => document.querySelector('.kefe-sidebar-group-editor');
   const inFullscreen = () => document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
   let pos = { x: 12, y: 12 }, floating = false, dragging = null, isOpen = false;
   try { localStorage.removeItem('kefe.floating-toolbar.position.v4'); isOpen = localStorage.getItem(OPEN_KEY) !== '0'; } catch (_) {}
@@ -738,7 +737,7 @@
     requestAnimationFrame(() => window.dispatchEvent(new Event('kefe-preview-fit')));
     if (focusLauncher) launch.focus({ preventScroll: true });
   }
-  // Where the root should live right now: the fullscreen stage, the page (floating), or the preview bar (docked).
+  // Where the root should live right now: the fullscreen stage, the page (floating), or the header navigation (docked).
   function mountRoot() {
     const host = dockHost();
     if (inFullscreen()) {
@@ -756,7 +755,9 @@
     } else if (host) {
       root.classList.remove('is-floating');
       root.style.left = ''; root.style.top = '';
-      if (root.parentNode !== host || root.nextElementSibling !== null) host.appendChild(root);
+      const editorLink = host.querySelector('[data-editor-tab]');
+      if (editorLink && root.previousElementSibling !== editorLink) editorLink.insertAdjacentElement('afterend', root);
+      else if (!editorLink && root.parentNode !== host) host.appendChild(root);
       ghost.hidden = true;
     }
     if (host && ghost.parentNode !== host) host.insertBefore(ghost, root.parentNode === host ? root : null);
@@ -820,25 +821,6 @@
   window.addEventListener('resize', () => { if (floating) placeFloating(); queueMount(); });
   document.addEventListener('fullscreenchange', queueMount);
   new MutationObserver(queueMount).observe(stage, { attributes: true, attributeFilter: ['class'] });
-  // The bar's height changes when the strip wraps; keep the preview stage fitted to what is left.
-  // Width flag for the stacked layout (strip on its own row). Measured from the pane, not the bar, so it cannot feed back.
-  const flagWidth = () => {
-    const barEl = bareBar(); if (!barEl) return;
-    const w = (barEl.parentElement || barEl).clientWidth;
-    const next = w <= 360 ? 'tight' : w <= 540 ? 'narrow' : '';
-    if (next) barEl.setAttribute('data-kft', next); else barEl.removeAttribute('data-kft');
-  };
-  flagWidth();
-  if (window.ResizeObserver) {
-    const barEl = bareBar();
-    if (barEl) {
-      // Toolbar wrapping changes only the preview's available height; do not
-      // broadcast a global viewport resize to every editor subsystem.
-      new ResizeObserver(() => window.dispatchEvent(new Event('kefe-preview-fit'))).observe(barEl);
-      if (barEl.parentElement) new ResizeObserver(flagWidth).observe(barEl.parentElement);
-    }
-  }
-
   /* ───────── Undo / redo (toolbar-level history of look & canvas settings) ───────── */
   const hist = { past: [], future: [], last: null, busy: false, timer: 0 };
   const snap = () => ({
