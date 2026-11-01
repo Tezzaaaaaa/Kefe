@@ -410,10 +410,10 @@ html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar {
 html .kefe-editor .kefe-work > .kefe-preview { grid-template-columns: minmax(0, 1fr); }
 html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar {
   min-height: 44px; max-width: 100%; padding: 5px 8px; gap: 6px 8px; border-radius: 12px;
-  border: 1px solid var(--line); background: var(--surface); box-shadow: none;
+  border: 0; background: var(--surface); box-shadow: none;
 }
 html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-title { font-size: 12px; font-weight: 700; }
-.kft-bar { border-radius: 10px; box-shadow: none; }
+.kft-bar { border: 0; border-radius: 10px; box-shadow: none; }
 .kft-main { padding: 2px; }
 html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-workspace { flex: 1 1 auto; min-width: 0; }
 html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-actions { flex: 0 1 auto; min-width: 0; gap: 6px; }
@@ -427,7 +427,7 @@ html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-actions { flex: 0 1 auto; 
   width: 32px;
   height: 32px;
   padding: 0;
-  border: 1px solid var(--line-soft, var(--kt-border));
+  border: 0;
   border-radius: 9px;
   background: var(--surface, var(--kt-surface));
   color: var(--text, var(--kt-text));
@@ -564,3 +564,7 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
 .kefe-preview-toolbar[data-kft="tight"] .kefe-floating-toolbar:not(.is-floating) .kft-cell,
 .kefe-preview-toolbar[data-kft="tight"] .kefe-floating-toolbar:not(.is-floating) .kft-cell--ratio { width: 27px; min-width: 27px; height: 28px; }
 .kefe-preview-toolbar[data-kft="tight"] .kefe-floating-toolbar:not(.is-floating) .kft-launch { flex-basis: 28px; width: 28px; height: 28px; }
+
+
+/* The toolbar is one quiet surface; its launcher and cells do not draw nested outlines. */
+.kefe-editor .kft-bar, .kefe-editor .kft-launch, .kefe-editor .kft-ghost { border-color: transparent; }
