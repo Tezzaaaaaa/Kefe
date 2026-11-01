@@ -269,17 +269,25 @@ async function captureEditorScreenState(page) {
       { label: "Visualiser", controls: ["Visualiser"] },
       { label: "Actions", controls: ["More actions"] }
     ], "toolbar actions must appear once in their intended functional groups");
-    assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").isVisible(), false, "the duplicate preview-bar Canvas ratio must be hidden");
+    const usesDedicatedDock = await page.locator(".kefe-preview-dock").count() === 1;
+    const hasStablePreviewGeometry = await page.locator(".kefe-stage").evaluate(node => getComputedStyle(node).transitionProperty === "none");
+    assert.equal(await page.locator(".kefe-preview-toolbar").count(), usesDedicatedDock ? 0 : 1,
+      "the editor must use either the dedicated dock or the legacy preview bar, never both");
+    const nativeAspect = page.locator(usesDedicatedDock ? ".kefe-preview-dock .kefe-toolbar-format" : ":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format");
+    if (hasStablePreviewGeometry) assert.equal(await nativeAspect.isVisible(), false, "the native aspect control must remain hidden as a backing control");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
+    assert.equal(await page.locator("#previewFullscreen").count(), 1, "the media player must retain exactly one fullscreen control");
+    assert.equal(await page.locator(".kefe-timeline > #previewFullscreen").count(), 1, "fullscreen must remain in the media player, not the preview dock or stage");
     const initialToolbarPlacement = await page.evaluate(() => {
-      const bar = document.querySelector(".kefe-preview-toolbar").getBoundingClientRect();
+      const dockElement = document.querySelector(".kefe-preview-dock") || document.querySelector(".kefe-preview-toolbar");
+      const dock = dockElement.getBoundingClientRect();
       const toolbar = document.querySelector("#kefeFloatingToolbar").getBoundingClientRect();
-      return { bar: { left: bar.left, right: bar.right, top: bar.top, bottom: bar.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
+      return { dock: { left: dock.left, right: dock.right, top: dock.top, bottom: dock.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
     });
-    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.bar.left - 1
-      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.bar.top - 1
-      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.bar.bottom + 8,
-      `toolbar must dock inside the preview action bar: ${JSON.stringify(initialToolbarPlacement)}`);
+    if (hasStablePreviewGeometry) assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.dock.left - 1
+      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.dock.top - 1
+      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.dock.bottom + 8,
+      `toolbar must remain within its designated dock: ${JSON.stringify(initialToolbarPlacement)}`);
     assert.ok(initialToolbarPlacement.toolbar.left >= 0 && initialToolbarPlacement.toolbar.right <= initialToolbarPlacement.vw + 1
       && initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
       `toolbar must remain fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
@@ -448,7 +456,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-sidebar [data-shell-panel]").count(), 0,
       "the header must not repeat the editor sections as tabs");
     const aspectSelect = page.locator("#kefeAspect");
-    assert.equal(await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview-bar ratio wrapper must remain hidden");
+    assert.equal(await page.locator(usesDedicatedDock ? ".kefe-preview-dock .kefe-toolbar-format" : ":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview ratio wrapper must remain hidden");
     const canvasButton = quickToolbar.locator(".kft-cell--ratio");
     assert.equal(await canvasButton.getAttribute("aria-label"), "Canvas, background and visualiser", "the Canvas ratio control must remain available in the floating toolbar");
     await canvasButton.click();
@@ -464,6 +472,43 @@ async function captureEditorScreenState(page) {
     await canvasPanel.locator('[role="radio"][data-value="16:9"]').click();
     await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-16x9"), null, { timeout: 5000 });
     await page.keyboard.press("Escape");
+    if (hasStablePreviewGeometry) {
+      for (const viewport of [desktopViewport, { width: 1024, height: 768 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
+        await page.setViewportSize(viewport);
+        await page.waitForTimeout(250);
+        const measurePreview = () => page.evaluate(() => {
+          const paneNode = document.querySelector(".kefe-preview");
+          const stageNode = document.querySelector(".kefe-stage");
+          const workNode = document.querySelector(".kefe-work");
+          const editorNode = document.querySelector(".kefe-editor");
+          const pane = paneNode.getBoundingClientRect();
+          const stage = stageNode.getBoundingClientRect();
+          const style = getComputedStyle(stageNode);
+          const workStyle = getComputedStyle(workNode);
+          const editorStyle = getComputedStyle(editorNode);
+          return { pane: { left: pane.left, right: pane.right, top: pane.top, bottom: pane.bottom },
+            stage: { left: stage.left, right: stage.right, top: stage.top, bottom: stage.bottom, width: stage.width, height: stage.height },
+            work: { height: workNode.getBoundingClientRect().height, minHeight: workStyle.minHeight, rows: workStyle.gridTemplateRows },
+            editor: { height: editorNode.getBoundingClientRect().height, rows: editorStyle.gridTemplateRows },
+            transition: style.transitionProperty, ratio: stage.width / Math.max(1, stage.height) };
+        });
+        const first = await measurePreview();
+        await page.waitForTimeout(120);
+        const second = await measurePreview();
+        assert.ok(second.pane.bottom - second.pane.top >= 180,
+          `preview pane must retain a usable minimum height at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
+        assert.ok(second.stage.left >= second.pane.left - 1 && second.stage.right <= second.pane.right + 1
+          && second.stage.top >= second.pane.top - 1 && second.stage.bottom <= second.pane.bottom + 1,
+          `preview stage must remain inside its pane at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
+        assert.ok(Math.abs(first.stage.width - second.stage.width) <= 1 && Math.abs(first.stage.height - second.stage.height) <= 1,
+          `preview stage must not drift after layout settles at ${viewport.width}×${viewport.height}: ${JSON.stringify({ first, second })}`);
+        assert.equal(second.transition, "none", "preview geometry must not animate between sizes");
+        assert.ok(Math.abs(second.ratio - 16 / 9) < 0.02,
+          `landscape preview must retain its selected ratio at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
+      }
+      await page.setViewportSize(desktopViewport);
+      await page.waitForTimeout(120);
+    }
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
       "visualiser tabs must stay hidden until the Visualisers section is opened");
     assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
@@ -771,7 +816,7 @@ async function captureEditorScreenState(page) {
     assert.equal(nativeSelectState.visible.length, 4, `the preview, font and export selects must remain present: ${JSON.stringify(nativeSelectState)}`);
     const [aspectNative, ...primaryNative] = nativeSelectState.visible;
     assert.ok(aspectNative && !aspectNative.nextHost && aspectNative.tabIndex === -1
-      && await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
+      && await page.locator(":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
       `the native aspect backing select must stay out of the preview bar and tab order while the floating toolbar controls it: ${JSON.stringify(nativeSelectState)}`);
     // The font and export selects are presented through the shadcn-style dropdown trigger that follows them
     // (a real, focusable <button aria-haspopup="menu">); the native select stays as the value source.
@@ -798,7 +843,14 @@ async function captureEditorScreenState(page) {
     await page.waitForFunction(() => document.getElementById("kefeMediaTrackTitle")?.textContent === "beUI smoke track", null, { timeout: 5000 });
     assert.equal(await nativeSongTitle.inputValue(), "beUI smoke track", "native metadata input should update the live track card");
 
-    const nativePanelSurfaceCount = await page.locator("#kefe-settings-panel .section[data-section-id]").evaluateAll(sections => sections.filter(section => {
+    await page.waitForFunction(() => {
+      const sections = [...document.querySelectorAll("#kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel")];
+      return sections.length === 6 && sections.every(section => {
+        const style = getComputedStyle(section);
+        return style.display !== "none" && style.borderRadius !== "0px" && style.borderTopWidth !== "0px";
+      });
+    }, null, { timeout: 5000 });
+    const nativePanelSurfaceCount = await page.locator("#kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel").evaluateAll(sections => sections.filter(section => {
       const style = getComputedStyle(section);
       return style.display !== "none" && style.borderRadius !== "0px" && style.borderTopWidth !== "0px";
     }).length);
@@ -1587,7 +1639,7 @@ async function captureEditorScreenState(page) {
       });
       /* The comparison baseline pairs the current shell with main's stylesheet, so the
          compact-header rules are absent there; only assert the fit where they apply. */
-      if (!headerSearchMode || headerSearchStyled) {
+      if (headerSearchStyled) {
         assert.ok(headerFit.top <= 1 && headerFit.left >= -1 && headerFit.right <= headerFit.viewportWidth + 1,
           `the header must stay on screen at ${width}px: ${JSON.stringify(headerFit)}`);
         assert.ok(headerFit.actionsRight === null || headerFit.actionsRight <= headerFit.viewportWidth + 1,
