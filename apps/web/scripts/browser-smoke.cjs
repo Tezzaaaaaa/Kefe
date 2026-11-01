@@ -725,6 +725,27 @@ async function captureEditorScreenState(page) {
       assert.equal(previewSettingsLayout.columns, 1, "settings must use one full-width column below the preview");
       assert.equal(previewSettingsLayout.activeSections.length, 1,
         `only one settings section may be expanded at a time: ${JSON.stringify(previewSettingsLayout.activeSections)}`);
+      const sharedWidth = await page.evaluate(() => {
+        const rect = selector => {
+          const node = document.querySelector(selector);
+          if (!node) throw new Error(`Missing layout element: ${selector}`);
+          const box = node.getBoundingClientRect();
+          return { left: box.left, right: box.right, width: box.width };
+        };
+        return {
+          editor: rect(".kefe-editor"),
+          header: rect(".kefe-sidebar"),
+          workspace: rect(".kefe-work"),
+          settings: rect(".kefe-settings-mount"),
+          panel: rect("#kefe-settings-panel"),
+          columns: rect("#kefe-settings-panel > .kefe-settings-columns"),
+        };
+      });
+      const reference = sharedWidth.editor;
+      for (const [name, bounds] of Object.entries(sharedWidth)) {
+        assert.ok(Math.abs(bounds.left - reference.left) <= 1 && Math.abs(bounds.right - reference.right) <= 1,
+          `${name} must share the preview workspace width boundary: ${JSON.stringify(sharedWidth)}`);
+      }
     } else {
       assert.ok(previewSettingsLayout.leftWidth > 0 && previewSettingsLayout.rightWidth > 0,
         "the main-branch baseline must retain its two settings columns");
