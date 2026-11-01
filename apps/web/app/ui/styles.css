@@ -10832,3 +10832,7 @@ html:root .kefe-editor .kefe-work > .kefe-timeline,
 html:root .kefe-editor .kefe-work > .kefe-timeline .kefe-wave {
   border: 0; outline: 0; box-shadow: none;
 }
+
+
+/* The preview has one child now that its toolbar lives in the header. */
+.kefe-editor .kefe-preview { grid-template-rows: minmax(0, 1fr); }
