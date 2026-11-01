@@ -225,7 +225,7 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-switch { height: 22px; font-size: var(--pc-fs-sm); }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-switch.kefe-background-effect-toggle,
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-toggle { height: 24px; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-control-group { margin: 0 !important; padding: 0 !important; border: 0 !important; border-top: 1px solid var(--pc-border) !important; border-radius: 0 !important; background: transparent !important; }
+:is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-control-group { margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-control-group > summary { display: flex; align-items: center; justify-content: space-between; min-height: 26px; padding: 0 !important; margin: 0 !important; cursor: pointer; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-control-group[open] > summary { color: var(--pc-text); }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-visualiser-control-group[open] { display: grid; gap: 4px; padding-bottom: 6px !important; }
@@ -691,10 +691,10 @@
   background: var(--pc-surface-hover, var(--surface));
 }
 .kefe-settings-panel .kefe-section-tabs-trigger[data-state="active"] {
-  border-color: var(--pc-border, var(--line));
+  border-color: transparent;
   background: var(--pc-surface, var(--surface));
   color: var(--pc-text, var(--text));
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .04);
+  box-shadow: none;
 }
 .kefe-settings-panel .kefe-section-tabs-trigger[data-state="active"] svg {
   color: var(--pc-accent-fg, var(--accent));
@@ -721,11 +721,11 @@
 }
 :root[data-theme="day"] .kefe-settings-panel .kefe-section-tabs-host {
   background: #f1f2f6;
-  box-shadow: inset 0 1px 2px rgba(20, 30, 50, .06);
+  box-shadow: none;
 }
 :root[data-theme="day"] .kefe-settings-panel .kefe-section-tabs-trigger[data-state="active"] {
   background: #fff;
-  box-shadow: 0 1px 2px rgba(20, 30, 50, .10);
+  box-shadow: none;
 }
 .kefe-settings-panel .kefe-section-tabs-dot {
   width: 4px;
