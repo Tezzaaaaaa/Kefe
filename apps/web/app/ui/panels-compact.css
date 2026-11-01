@@ -354,8 +354,8 @@
 /* ==========================================================================
    Shared panel alignment contract
    Keep every section on one compact, predictable grid like the floating toolbar.
-   This aligns controls and content; it deliberately does not justify paragraph
-   letter/word spacing, which harms readability.
+   Section headers justify title and controls to opposite edges, and section body
+   copy uses true justification so prose fills the compact panel width.
    ========================================================================== */
 :is(.kefe-panels, .kefe-settings-columns),
 :is(.kefe-panels, .kefe-settings-columns) .kefe-panel,
@@ -367,9 +367,18 @@
   align-content: start;
   justify-items: stretch;
 }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-panel :where(.kefe-label, label, .kefe-meta, p, h2, h3, .kefe-step-head) {
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel :where(.kefe-label, label, h2, h3, .kefe-step-head) {
   min-width: 0;
   text-align: left;
+  overflow-wrap: anywhere;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel :where(.kefe-meta, p, .kefe-upload-help, .kefe-empty-panel) {
+  min-width: 0;
+  text-align: justify;
+  text-align-last: start;
+  text-justify: inter-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
   overflow-wrap: anywhere;
 }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-panel :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea) {
@@ -405,13 +414,16 @@
 }
 
 
-/* Shared section-header order: accordion, optional switch, title and info. */
+/* Shared section-header justification: chevron and title on the left edge,
+   info and feature switches in a flush right-hand control lane. */
 :is(.kefe-panels, .kefe-settings-columns) .kefe-panel .kefe-section-heading-row { justify-content: flex-start; }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger { order: 0; flex: 0 0 24px; width: 24px; min-width: 24px; height: 24px; min-height: 24px; margin: 0; }
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-section-title-group { order: 1; flex: 0 1 auto; min-width: 0; margin-right: auto; }
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-section-info { order: 2; flex: 0 0 14px; margin: 0; }
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-section-info::after { left: auto; right: 0; }
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-lyrics-power,
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-visualiser-power-slot,
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-background-effect-toggle { order: 1; flex: 0 0 auto; margin: 0; }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-section-title-group { order: 2; flex: 0 1 auto; }
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .kefe-background-effect-toggle { order: 3; flex: 0 0 auto; margin: 0; }
 
 
 /* ==========================================================================
@@ -436,6 +448,7 @@
 /* The shell header already names the section; drop the duplicate heading inside it.
    Keep the row only when it carries a section switch. */
 .kefe-settings-columns .kefe-slot .kefe-section-title-group,
+.kefe-settings-columns .kefe-slot .kefe-section-info,
 .kefe-settings-columns .kefe-slot .kefe-section-description { display: none !important; }
 .kefe-settings-columns .kefe-slot .kefe-section-heading-row:not(:has(.kefe-lyrics-power, .kefe-visualiser-power-slot, .kefe-background-effect-toggle)) { display: none !important; }
 .kefe-settings-columns .kefe-slot .kefe-section-heading-row:has(.kefe-lyrics-power, .kefe-visualiser-power-slot, .kefe-background-effect-toggle) { min-height: 24px !important; justify-content: flex-end; border: 0; }
