@@ -617,3 +617,11 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
   .kefe-sidebar-bottom { gap: 2px; padding-left: 4px; }
   .kefe-sidebar-bottom > .kefe-sidebar-link { width: 28px; min-width: 28px; height: 28px; }
 }
+
+@media (max-width: 360px) {
+  .kefe-sidebar-bottom { gap: 1px; padding-left: 2px; }
+  .kefe-sidebar-bottom > .kefe-sidebar-link,
+  .kefe-sidebar-bottom .kefe-search,
+  .kefe-sidebar-bottom .kefe-header-search { width: 24px; min-width: 24px; height: 28px; }
+  .kefe-sidebar-bottom .kefe-search-track { width: 24px; }
+}
