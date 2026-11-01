@@ -33,6 +33,7 @@ const engines = [
   { name: "Slow Light", id: "slow-light", canvas: "kefeSlowLightCanvas", kind: "bespoke", files: ["app/visualiser/slow-light.js"] },
   { name: "Silk Road", id: "silk-road", canvas: "kefeSilkRoadCanvas", kind: "registered", files: ["app/visualiser/silk-road.js"] },
   { name: "Visuals Mix", id: "visuals-mix", canvas: "kefeVisualsMixCanvas", kind: "registered", files: ["app/visualiser/visuals-mix.js"] },
+  { name: "Apple FX", id: "apple-fx", canvas: "kefeAppleFxCanvas", kind: "registered", files: ["app/visualiser/apple-fx.js"] },
 ];
 
 const failures = [];

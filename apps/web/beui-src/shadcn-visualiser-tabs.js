@@ -46,6 +46,13 @@ const VISUALISER_PRESENTATION = {
     order: 5,
     description: "Seven visual scenes and four finishes, mixed with the audio.",
   },
+  "apple-fx": {
+    name: "Apple FX",
+    icon: "◐",
+    art: "apple-fx",
+    order: 6,
+    description: "Apple-event light trails and glass renders that move with the music.",
+  },
 };
 
 function cleanVisualiserLabel(button, fallback) {

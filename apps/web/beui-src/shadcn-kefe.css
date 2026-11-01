@@ -1243,6 +1243,18 @@ html[data-theme="day"] {
   filter: blur(14px);
 }
 
+.kv-preview[data-art="apple-fx"] {
+  background:
+    repeating-linear-gradient(90deg, rgba(210, 228, 255, 0.5) 0 3px, rgba(20, 32, 54, 0.2) 3px 9px, rgba(110, 150, 205, 0.45) 9px 12px, transparent 12px 20px),
+    linear-gradient(180deg, #8fb0de, #1a2a46 55%, #05070d);
+}
+.kv-preview[data-art="apple-fx"]::before {
+  background:
+    linear-gradient(90deg, transparent 18%, rgba(255, 170, 70, 0.75) 19%, transparent 21%),
+    linear-gradient(90deg, transparent 78%, rgba(255, 90, 60, 0.7) 79%, transparent 81%);
+  filter: blur(1px);
+}
+
 .kv-preview[data-art="generic"] {
   background:
     radial-gradient(circle at 30% 30%, rgba(214, 96, 255, 0.55), transparent 48%),
