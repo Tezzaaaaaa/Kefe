@@ -851,7 +851,7 @@ async function captureEditorScreenState(page) {
     assert.equal(nativeSelectState.visible.length, 4, `the preview, font and export selects must remain present: ${JSON.stringify(nativeSelectState)}`);
     const [aspectNative] = nativeSelectState.visible;
     assert.ok(aspectNative && !aspectNative.nextHost && aspectNative.tabIndex === -1
-      && await page.locator(":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
+      && await page.locator(".kefe-sidebar-group-editor .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
       `the native aspect backing select must stay out of the preview bar and tab order while the floating toolbar controls it: ${JSON.stringify(nativeSelectState)}`);
     // The font and export selects are presented through the shadcn-style dropdown trigger that follows them
     // (a real, focusable <button aria-haspopup="menu">); the native select stays as the value source.
