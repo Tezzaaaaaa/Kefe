@@ -102,8 +102,10 @@ button{border:0;cursor:pointer;
   justify-items:stretch;
   gap:10px;
 }
+.kefe-preview-dock{position:relative;z-index:20;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:min(100%,1280px);min-width:0;min-height:36px;margin:0 auto;padding:0;color:var(--text)}
+.kefe-preview>.kefe-stage{position:relative}
 
-.kefe-preview-toolbar{position:relative;z-index:20;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;box-sizing:border-box;width:min(100%,1280px);min-width:0;min-height:48px;margin:0 auto;padding:7px 10px;border:1px solid var(--line-soft);border-radius:14px;background:var(--surface);box-shadow:var(--lift);color:var(--text)}
+.kefe-preview-dock{position:relative;z-index:20;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;box-sizing:border-box;width:min(100%,1280px);min-width:0;min-height:48px;margin:0 auto;padding:7px 10px;border:1px solid var(--line-soft);border-radius:14px;background:var(--surface);box-shadow:var(--lift);color:var(--text)}
 .kefe-toolbar-workspace,.kefe-toolbar-format,.kefe-toolbar-actions{display:flex;align-items:center;min-width:0;gap:8px}
 .kefe-toolbar-workspace{justify-self:start}
 .kefe-toolbar-live-dot{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
@@ -113,13 +115,13 @@ button{border:0;cursor:pointer;
 .kefe-toolbar-format select{min-height:30px;max-width:100px;padding:0 26px 0 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text);font:inherit;font-size:var(--font-sm)}
 .kefe-toolbar-actions{justify-self:end;justify-content:flex-end;gap:8px}
 .kefe-toolbar-status{color:var(--muted);font-size:var(--font-xs);font-weight:600}
-.kefe-preview-toolbar #previewFullscreen{position:static;top:auto;right:auto;z-index:auto;width:32px;height:32px;flex:0 0 32px;border-radius:9px;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
-.kefe-preview-toolbar #previewFullscreen svg{width:16px;height:16px}
-.kefe-preview-toolbar #previewFullscreen{position:static;inset:auto;z-index:auto;display:inline-flex;align-items:center;justify-content:center;width:32px;min-width:32px;height:32px;flex:0 0 32px;padding:0;border-radius:9px;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
-.kefe-preview-toolbar #previewFullscreen svg{display:block;width:16px;height:16px}
-.kefe-preview-toolbar #previewFullscreen:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kefe-preview-dock #previewFullscreen{position:static;top:auto;right:auto;z-index:auto;width:32px;height:32px;flex:0 0 32px;border-radius:9px;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.kefe-preview-dock #previewFullscreen svg{width:16px;height:16px}
+.kefe-preview-dock #previewFullscreen{position:static;inset:auto;z-index:auto;display:inline-flex;align-items:center;justify-content:center;width:32px;min-width:32px;height:32px;flex:0 0 32px;padding:0;border-radius:9px;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.kefe-preview-dock #previewFullscreen svg{display:block;width:16px;height:16px}
+.kefe-preview-dock #previewFullscreen:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .kefe-preview > .kefe-stage{justify-self:center;align-self:center;max-height:100%}
-@media(max-width:520px){.kefe-preview{gap:7px;min-height:0;grid-template-rows:auto minmax(0,1fr);padding:10px 8px 8px}.kefe-preview-toolbar{grid-template-columns:minmax(0,1fr) auto auto;gap:6px;min-height:42px;padding:5px 7px;border-radius:11px}.kefe-toolbar-workspace{gap:6px}.kefe-toolbar-format{grid-column:2;grid-row:1;justify-self:end;gap:4px;padding:0;border:0;background:transparent}.kefe-toolbar-format label{font-size:10px}.kefe-toolbar-format select{min-height:28px;width:62px;max-width:62px;padding:0 3px;font-size:12px}.kefe-toolbar-actions{grid-column:3;grid-row:1;display:flex;min-width:32px;justify-content:flex-end}.kefe-toolbar-status{display:none}.kefe-toolbar-title{font-size:12px}.kefe-toolbar-live-dot{width:6px;height:6px;flex-basis:6px}.kefe-preview-toolbar #previewFullscreen{position:static;width:29px;height:29px;flex:0 0 29px;padding:0}.kefe-preview-toolbar #previewFullscreen{width:29px;min-width:29px;height:29px;flex-basis:29px}}
+@media(max-width:520px){.kefe-preview{gap:7px;min-height:0;grid-template-rows:auto minmax(0,1fr);padding:10px 8px 8px}.kefe-preview-dock{grid-template-columns:minmax(0,1fr) auto auto;gap:6px;min-height:42px;padding:5px 7px;border-radius:11px}.kefe-toolbar-workspace{gap:6px}.kefe-toolbar-format{grid-column:2;grid-row:1;justify-self:end;gap:4px;padding:0;border:0;background:transparent}.kefe-toolbar-format label{font-size:10px}.kefe-toolbar-format select{min-height:28px;width:62px;max-width:62px;padding:0 3px;font-size:12px}.kefe-toolbar-actions{grid-column:3;grid-row:1;display:flex;min-width:32px;justify-content:flex-end}.kefe-toolbar-status{display:none}.kefe-toolbar-title{font-size:12px}.kefe-toolbar-live-dot{width:6px;height:6px;flex-basis:6px}.kefe-preview-dock #previewFullscreen{position:static;width:29px;height:29px;flex:0 0 29px;padding:0}.kefe-preview-dock #previewFullscreen{width:29px;min-width:29px;height:29px;flex-basis:29px}}
 
 .kefe-stage{
   height:auto;
@@ -6118,8 +6120,8 @@ html,body{min-height:100%;height:auto;background:var(--bg);color:var(--text)}
   max-width:100%;max-height:none;margin-inline:auto;
   border:1px solid var(--line);border-radius:var(--r2);
   box-shadow:0 12px 36px rgba(0,0,0,.13);
-  transition:width 420ms cubic-bezier(.22,1,.36,1),height 420ms cubic-bezier(.22,1,.36,1),aspect-ratio 420ms cubic-bezier(.22,1,.36,1);
-  will-change:width,height;
+  transition:none;
+  will-change:auto;
 }
 .kefe-stage.is-16x9{width:min(100%,900px,92.45vh);aspect-ratio:16/9}
 .kefe-stage.is-9x16{width:min(100%,29.25vh);aspect-ratio:9/16}
@@ -6257,7 +6259,7 @@ html,body{min-height:100%;height:auto;background:var(--bg);color:var(--text)}
   .kefe-preview{padding:10px 12px 6px}
 }
 @media(max-width:640px){
-  .kefe-editor{height:auto;min-height:100vh;min-height:100dvh;grid-template-columns:minmax(0,1fr);grid-template-rows:48px auto auto}
+  .kefe-editor{height:auto;min-height:100vh;min-height:100dvh;grid-template-columns:minmax(0,1fr);grid-template-rows:50px minmax(234px,auto) auto}
   .kefe-sidebar{border-right:0;
     border-bottom:1px solid var(--line);
   }
@@ -6265,7 +6267,7 @@ html,body{min-height:100%;height:auto;background:var(--bg);color:var(--text)}
   .kefe-top{grid-column:1;grid-row:2;width:calc(100% - 16px);margin:3px auto 0;height:46px;padding-inline:5px}
   .kefe-top-profile{gap:2px}
   .kefe-top-profile .kefe-top-link{padding-inline:8px;font-size:11px}
-  .kefe-work{grid-column:1;grid-row:2;grid-template-rows:auto 48px auto}
+  .kefe-work{grid-column:1;grid-row:2;min-height:234px;grid-template-rows:minmax(180px,42dvh) 54px}
   .kefe-site-footer{grid-row:3}
   .kefe-timeline{width:calc(100% - 16px);padding-inline:5px}
   .kefe-site-footer{width:calc(100% - 16px)}
@@ -8331,7 +8333,7 @@ html:root[data-theme="day"] .kefe-editor > .kefe-sidebar {
   box-shadow: 0 1px 0 rgba(255, 255, 255, .8);
 }
 html:root[data-theme="day"] .kefe-top,
-html:root[data-theme="day"] .kefe-preview-toolbar {
+html:root[data-theme="day"] .kefe-preview-dock {
   background: var(--surface);
   border-color: var(--line);
   box-shadow: var(--lift);
@@ -9738,18 +9740,18 @@ input.beui-native-range {
   .kefe-editor .kefe-work { grid-template-rows: minmax(0, 1fr) var(--timeline-h); }
 }
 @media (max-width: 700px) {
-  .kefe-editor .kefe-work { grid-template-rows: minmax(0, 42dvh) 54px; }
+  .kefe-editor .kefe-work { min-height: 234px; grid-template-rows: minmax(180px, 42dvh) 54px; }
 }
 
 /* One unified toolbar above the preview; keep its controls on the same surface. */
-.kefe-editor .kefe-preview-toolbar .kefe-toolbar-format {
+.kefe-editor .kefe-preview-dock .kefe-toolbar-format {
   min-width: 0;
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
 }
-.kefe-editor .kefe-preview-toolbar .kefe-toolbar-format select {
+.kefe-editor .kefe-preview-dock .kefe-toolbar-format select {
   border-color: var(--line-soft);
   border-radius: var(--r2);
   background: var(--surface);
@@ -9786,7 +9788,7 @@ input.beui-native-range {
   gap:10px;
   min-width:0;
   min-height:0;
-  height:auto;
+  height:100%;
   padding:12px;
   overflow:hidden;
   box-sizing:border-box;
@@ -9809,7 +9811,7 @@ input.beui-native-range {
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-16x9:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:16/9}
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-9x16:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:9/16}
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-1x1:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:1/1}
-.kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar{grid-row:1;width:min(100%,1280px)}
+.kefe-editor .kefe-work > .kefe-preview > .kefe-preview-dock{grid-row:1;width:min(100%,1280px);min-height:0}
 
 /* Keep the visible beUI fullscreen action attached to the preview while fullscreen is active. */
 .kefe-stage:fullscreen #previewFullscreen,
@@ -9949,7 +9951,7 @@ input.beui-native-range {
 
 /* Navigation and preview toolbar */
 :root[data-theme="day"] .kefe-top,
-:root[data-theme="day"] .kefe-preview-toolbar {
+:root[data-theme="day"] .kefe-preview-dock {
   background: var(--surface);
   color: var(--text-primary);
   border-color: var(--border-color);
@@ -10100,7 +10102,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-
    ========================================================================== */
 
 /* The legacy Canvas status label sat underneath the fullscreen button. */
-.kefe-preview-toolbar .kefe-toolbar-status { display: none; }
+.kefe-preview-dock .kefe-toolbar-status { display: none; }
 
 /* Keep the beUI volume action visible against both preview and transport surfaces. */
 #kefeMuteToggle {
