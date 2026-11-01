@@ -6142,8 +6142,8 @@ html,body{min-height:100%;height:auto;background:var(--bg);color:var(--text)}
   max-width:100%;max-height:none;margin-inline:auto;
   border:1px solid var(--line);border-radius:var(--r2);
   box-shadow:0 12px 36px rgba(0,0,0,.13);
-  transition:width 420ms cubic-bezier(.22,1,.36,1),height 420ms cubic-bezier(.22,1,.36,1),aspect-ratio 420ms cubic-bezier(.22,1,.36,1);
-  will-change:width,height;
+  transition:none;
+  will-change:auto;
 }
 .kefe-stage.is-16x9{width:min(100%,900px,92.45vh);aspect-ratio:16/9}
 .kefe-stage.is-9x16{width:min(100%,29.25vh);aspect-ratio:9/16}
