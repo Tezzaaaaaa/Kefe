@@ -10227,7 +10227,6 @@ body .kefe-editor > header.kefe-sidebar {
   scrollbar-width: none;
   background: var(--surface);
   border: 0;
-  border-bottom: 1px solid var(--line);
   border-radius: 0;
 }
 body .kefe-editor > header.kefe-sidebar::-webkit-scrollbar { display: none; }
@@ -10849,4 +10848,16 @@ html:root .kefe-editor .kefe-work > .kefe-timeline .kefe-wave {
   .kefe-sidebar-bottom { gap: 2px; padding-left: 5px; }
   .kefe-sidebar-bottom > .kefe-sidebar-link { width: 30px; min-width: 30px; height: 30px; }
   .kefe-search .kefe-header-search { width: 30px; min-width: 30px; }
+}
+
+/* Remove the thin chrome lines around the editor header and preview canvas. */
+body .kefe-editor > header.kefe-sidebar,
+html:root[data-theme="day"] .kefe-editor > .kefe-sidebar {
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+}
+
+html:root .kefe-stage:not(:fullscreen):not(.kefe-pseudo-fullscreen),
+html:root[data-theme="day"] .kefe-stage:not(:fullscreen):not(.kefe-pseudo-fullscreen) {
+  box-shadow: 0 20px 46px -28px rgba(0, 0, 0, .38);
 }

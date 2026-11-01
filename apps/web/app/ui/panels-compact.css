@@ -785,3 +785,10 @@
   padding: 5px;
   border-radius: 6px;
 }
+
+/* No bright keyline around either media drop target. */
+.kefe-editor .kefe-panel[data-panel-view="media"] #kefeUploadZone .kefe-upload-card,
+.kefe-editor .kefe-panel[data-panel-view="media"] #kefeBgVideoZone {
+  border: 0 !important;
+  box-shadow: none !important;
+}
