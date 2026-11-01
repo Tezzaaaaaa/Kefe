@@ -635,7 +635,7 @@
 }
 .kefe-settings-panel .kefe-section-tabs-host {
   padding: 3px;
-  border: 1px solid var(--pc-border, var(--line));
+  border: 0;
   border-radius: 9px;
   background: var(--pc-input, var(--surface-hi));
   box-shadow: var(--inner, inset 0 1px 0 rgba(255, 255, 255, .03));
@@ -735,3 +735,8 @@
   background: var(--pc-accent-fg, var(--accent));
   box-shadow: 0 0 6px color-mix(in srgb, var(--pc-accent-fg, var(--accent)) 60%, transparent);
 }
+
+
+/* Settings groups use a shared surface; avoid nested card outlines around each section. */
+.kefe-editor .kefe-settings-panel .kefe-section-tabs-host,
+.kefe-editor .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] { border: 0; box-shadow: none; }
