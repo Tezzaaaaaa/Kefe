@@ -1806,8 +1806,8 @@ async function captureEditorScreenState(page) {
             style[`border${side}Style`] !== "none" &&
             style[`border${side}Color`] !== "rgba(0, 0, 0, 0)"
           );
-          const shadowLayers = style.boxShadow === "none" ? [] : style.boxShadow.split(/,(?![^()]*\\))/);
-          const visibleShadow = shadowLayers.some(layer => !/^rgba\\([^)]*,\\s*0\\)\\s+0px 0px 0px 0px$/.test(layer.trim()));
+          const shadowLayers = style.boxShadow === "none" ? [] : style.boxShadow.split(/,(?![^()]*\))/);
+          const visibleShadow = shadowLayers.some(layer => !/^rgba\([^)]*,\s*0\)\s+0px 0px 0px 0px$/.test(layer.trim()));
           const visibleOutline = style.outlineWidth !== "0px" && style.outlineStyle !== "none"
             && style.outlineColor !== "rgba(0, 0, 0, 0)";
           return { border: style.border, boxShadow: style.boxShadow, outline: style.outline, visibleBorder, visibleShadow, visibleOutline };
