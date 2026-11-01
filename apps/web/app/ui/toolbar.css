@@ -582,3 +582,7 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
 
 /* The editor toolbar now lives in the header; remove the empty legacy preview row. */
 html .kefe-editor .kefe-preview .kefe-preview-dock { display: none; border: 0; box-shadow: none; }
+
+
+/* The toolbar is mounted beside Editor in the header; the legacy preview dock must not render. */
+html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-dock { display: none; border: 0; outline: 0; box-shadow: none; }
