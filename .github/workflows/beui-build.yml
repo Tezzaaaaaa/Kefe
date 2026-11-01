@@ -111,7 +111,7 @@ jobs:
           # Main's smoke already uses accessible colour-dialog locators. Reuse the current
           # semantic toolbar checks on its baseline build, while leaving baseline-only
           # assertions elsewhere intact.
-          python3 - <<'PY'
+          python3 - <<'PY' 2>&1 | tee /tmp/kefe-layout-main/baseline-patch.log
           import os
           from pathlib import Path
           baseline = Path("/tmp/kefe-main/apps/web/scripts/browser-smoke.cjs")
@@ -240,6 +240,20 @@ jobs:
           PY
           set -o pipefail
           node /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs 2>&1 | tee /tmp/kefe-layout-main/baseline-browser-smoke.log
+      - name: Publish baseline smoke diagnostics
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const tail = (file, limit = 9000) => fs.existsSync(file)
+              ? fs.readFileSync(file, "utf8").slice(-limit)
+              : `${file} was not written.`;
+            core.error(
+              `Baseline smoke log:\n${tail("/tmp/kefe-layout-main/baseline-browser-smoke.log")}\n\n` +
+              `Baseline patch log:\n${tail("/tmp/kefe-layout-main/baseline-patch.log", 4000)}`,
+              {file: ".github/workflows/beui-build.yml", startLine: 105}
+            );
       - name: Compare baseline and current DOM layouts and screen state
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
         env:
