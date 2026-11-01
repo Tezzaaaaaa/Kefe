@@ -369,6 +369,19 @@
 
 /* Integrated editor layout: the standalone panel owns section layout; legacy panel
    containers are moved into its slots so their existing controls and handlers remain authoritative. */
+/* One shared page-width boundary for the header, preview and every editor section.
+   The preview stage itself remains aspect-fitted inside this workspace. */
+.kefe-editor {
+  width: min(100%, 1280px);
+  min-width: 0;
+  margin-inline: auto;
+}
+.kefe-editor > .kefe-sidebar,
+.kefe-editor > .kefe-work,
+.kefe-editor > .kefe-editing {
+  width: 100%;
+  min-width: 0;
+}
 .kefe-editor .kefe-editing.kefe-settings-layout {
   min-width: 0;
   width: 100%;
@@ -411,7 +424,7 @@
     height: 100%;
     max-width: none;
     margin: 0;
-    padding: 0 24px 24px;
+    padding: 0 0 24px;
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
