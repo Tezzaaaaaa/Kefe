@@ -477,11 +477,19 @@ async function captureEditorScreenState(page) {
         await page.setViewportSize(viewport);
         await page.waitForTimeout(250);
         const measurePreview = () => page.evaluate(() => {
-          const pane = document.querySelector(".kefe-preview").getBoundingClientRect();
-          const stage = document.querySelector(".kefe-stage").getBoundingClientRect();
-          const style = getComputedStyle(document.querySelector(".kefe-stage"));
+          const paneNode = document.querySelector(".kefe-preview");
+          const stageNode = document.querySelector(".kefe-stage");
+          const workNode = document.querySelector(".kefe-work");
+          const editorNode = document.querySelector(".kefe-editor");
+          const pane = paneNode.getBoundingClientRect();
+          const stage = stageNode.getBoundingClientRect();
+          const style = getComputedStyle(stageNode);
+          const workStyle = getComputedStyle(workNode);
+          const editorStyle = getComputedStyle(editorNode);
           return { pane: { left: pane.left, right: pane.right, top: pane.top, bottom: pane.bottom },
             stage: { left: stage.left, right: stage.right, top: stage.top, bottom: stage.bottom, width: stage.width, height: stage.height },
+            work: { height: workNode.getBoundingClientRect().height, minHeight: workStyle.minHeight, rows: workStyle.gridTemplateRows },
+            editor: { height: editorNode.getBoundingClientRect().height, rows: editorStyle.gridTemplateRows },
             transition: style.transitionProperty, ratio: stage.width / Math.max(1, stage.height) };
         });
         const first = await measurePreview();
