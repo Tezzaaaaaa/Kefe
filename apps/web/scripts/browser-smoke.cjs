@@ -189,6 +189,7 @@ async function captureEditorScreenState(page) {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ serviceWorkers: "block" });
     page = await context.newPage();
+    const desktopViewport = page.viewportSize();
     failureContext = { page, pageErrors };
     page.on("pageerror", (error) => pageErrors.push({ type: "pageerror", name: error.name, message: error.message, stack: error.stack || null }));
     page.on("console", (message) => {
