@@ -10835,4 +10835,4 @@ html:root .kefe-editor .kefe-work > .kefe-timeline .kefe-wave {
 
 
 /* The preview has one child now that its toolbar lives in the header. */
-.kefe-editor .kefe-preview { grid-template-rows: minmax(0, 1fr); }
+.kefe-editor .kefe-work > .kefe-preview { grid-template-rows: minmax(0, 1fr); }
