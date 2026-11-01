@@ -1797,6 +1797,23 @@ async function captureEditorScreenState(page) {
           document.querySelector(".kefe-ms-drawer") &&
           document.querySelector(`.kefe-ms-host .kefe-panel[data-panel-view="${expected}"]`)
         ), section, { timeout: 5000 });
+
+        const mobileSectionChrome = await page.locator(".kefe-ms-host .kefe-ms-live-panel").evaluate(panel => {
+          const style = getComputedStyle(panel);
+          const sides = ["Top", "Right", "Bottom", "Left"];
+          const visibleBorder = sides.some(side =>
+            style[`border${side}Width`] !== "0px" &&
+            style[`border${side}Style`] !== "none" &&
+            style[`border${side}Color`] !== "rgba(0, 0, 0, 0)"
+          );
+          const shadowLayers = style.boxShadow === "none" ? [] : style.boxShadow.split(/,(?![^()]*\\))/);
+          const visibleShadow = shadowLayers.some(layer => !/^rgba\\([^)]*,\\s*0\\)\\s+0px 0px 0px 0px$/.test(layer.trim()));
+          const visibleOutline = style.outlineWidth !== "0px" && style.outlineStyle !== "none"
+            && style.outlineColor !== "rgba(0, 0, 0, 0)";
+          return { border: style.border, boxShadow: style.boxShadow, outline: style.outline, visibleBorder, visibleShadow, visibleOutline };
+        });
+        assert.ok(!mobileSectionChrome.visibleBorder && !mobileSectionChrome.visibleShadow && !mobileSectionChrome.visibleOutline,
+          `mobile ${section} section frame must not draw an outer border, shadow or outline: ${JSON.stringify(mobileSectionChrome)}`);
         // Wait for the slide-in spring to settle before measuring the drawer.
         await page.waitForFunction(() => {
           const drawer = document.querySelector(".kefe-ms-drawer");
