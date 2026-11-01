@@ -41,7 +41,6 @@
   const fontSelect = () => $('fontOverride');
   const aspectSelect = () => $('kefeAspect');
   const lyricsSwitch = () => $('lyricsEnabledToggle');
-  const fullscreenButton = () => $('previewFullscreen');
   const bgSelect = () => $('visualiserBackground');
   const bgDarkness = () => $('backgroundTransparency');
   const caseSelect = () => $('lyricCase');
@@ -637,7 +636,6 @@
   const resetChip = chip('reset', 'Reset selected layer', () => { layerReset?.click(); requestAnimationFrame(syncLayer); });
   const lockChip = chip('lock', 'Lock as effect default', () => layerDefault?.click());
   const clearChip = chip('unlock', 'Clear effect default', () => layerDefaultClear?.click());
-  const fullChip = chip('full', 'Fullscreen preview', () => { closePanel(false); fullscreenButton()?.click(); });
   const lockPos = chip('unlock', 'Lock toolbar position', () => {
     const on = lockPos.getAttribute('aria-pressed') !== 'true';
     lockPos.setAttribute('aria-pressed', String(on));
@@ -648,7 +646,7 @@
   lockPos.setAttribute('aria-pressed', 'false');
   const resetPos = chip('dock', 'Dock toolbar in preview bar', () => { closePanel(false); redock(); });
   const actionsPanel = makePanel(actionsBtn, 'Actions', 244);
-  actionsPanel.append(resetChip, lockChip, clearChip, h('div', 'kft-rule'), fullChip, lockPos, resetPos, h('div', 'kft-rule'), checkRow('Compact density', compactToggle), hint);
+  actionsPanel.append(resetChip, lockChip, clearChip, h('div', 'kft-rule'), lockPos, resetPos, h('div', 'kft-rule'), checkRow('Compact density', compactToggle), hint);
 
   main.append(
     cluster('Layer', grip, moveBtn),
@@ -714,8 +712,8 @@
      it expands into the strip. Dragging the grip floats the toolbar; double-click the grip, the dock placeholder
      or "Dock toolbar" puts it back. Position is deliberately not persisted: a refresh always re-docks. */
   const OPEN_KEY = 'kefe.toolbar.open.v2';
-  const bareBar = () => document.querySelector('.kefe-preview-toolbar');
-  const dockHost = () => bareBar()?.querySelector('.kefe-toolbar-actions') || null;
+  const bareBar = () => document.querySelector('.kefe-preview-dock');
+  const dockHost = () => bareBar() || null;
   const inFullscreen = () => document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
   let pos = { x: 12, y: 12 }, floating = false, dragging = null, isOpen = false;
   try { localStorage.removeItem('kefe.floating-toolbar.position.v4'); isOpen = localStorage.getItem(OPEN_KEY) !== '0'; } catch (_) {}
@@ -758,12 +756,10 @@
     } else if (host) {
       root.classList.remove('is-floating');
       root.style.left = ''; root.style.top = '';
-      const fs = fullscreenButton();
-      const before = fs && fs.parentNode === host ? fs : null;
-      if (root.parentNode !== host || (before && root.nextElementSibling !== before)) host.insertBefore(root, before);
+      if (root.parentNode !== host || root.nextElementSibling !== null) host.appendChild(root);
       ghost.hidden = true;
     }
-    if (host && ghost.parentNode !== host) host.insertBefore(ghost, root.parentNode === host ? root : fullscreenButton());
+    if (host && ghost.parentNode !== host) host.insertBefore(ghost, root.parentNode === host ? root : null);
   }
   function redock() {
     floating = false;
