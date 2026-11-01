@@ -491,7 +491,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-sidebar [data-shell-panel]").count(), 0,
       "the header must not repeat the editor sections as tabs");
     const aspectSelect = page.locator("#kefeAspect");
-    assert.equal(await page.locator(":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview-bar ratio wrapper must remain hidden");
+    assert.equal(await page.locator(".kefe-sidebar-group-editor .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview-bar ratio wrapper must remain hidden");
     const canvasButton = quickToolbar.locator(".kft-cell--ratio");
     assert.equal(await canvasButton.getAttribute("aria-label"), "Canvas, background and visualiser", "the Canvas ratio control must remain available in the floating toolbar");
     await canvasButton.click();
