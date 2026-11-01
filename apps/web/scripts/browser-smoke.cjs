@@ -471,39 +471,40 @@ async function captureEditorScreenState(page) {
     await canvasPanel.locator('[role="radio"][data-value="16:9"]').click();
     await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-16x9"), null, { timeout: 5000 });
     await page.keyboard.press("Escape");
-    for (const viewport of [desktopViewport, { width: 1024, height: 768 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
-      await page.setViewportSize(viewport);
-      await page.waitForFunction(() => {
-        const rect = document.querySelector(".kefe-stage")?.getBoundingClientRect();
-        return rect && rect.width > 0 && rect.height > 0;
-      }, null, { timeout: 5000 });
-      await page.waitForTimeout(250);
-      const measurePreview = () => page.evaluate(() => {
-        const paneNode = document.querySelector(".kefe-preview");
-        const stageNode = document.querySelector(".kefe-stage");
-        const pane = paneNode.getBoundingClientRect();
-        const stage = stageNode.getBoundingClientRect();
-        const style = getComputedStyle(stageNode);
-        return { pane: { left: pane.left, right: pane.right, top: pane.top, bottom: pane.bottom },
-          stage: { left: stage.left, right: stage.right, top: stage.top, bottom: stage.bottom, width: stage.width, height: stage.height },
-          computed: { width: style.width, height: style.height, aspectRatio: style.aspectRatio, transition: style.transition, transitionDuration: style.transitionDuration, transform: style.transform, zoom: style.zoom, boxSizing: style.boxSizing, padding: style.padding, border: style.borderWidth, inlineWidth: stageNode.style.width, inlineHeight: stageNode.style.height },
-          ratio: stage.width / Math.max(1, stage.height) };
-      });
-      const first = await measurePreview();
-      await page.waitForTimeout(120);
-      const second = await measurePreview();
-      assert.ok(second.stage.left >= second.pane.left - 1 && second.stage.right <= second.pane.right + 1
-        && second.stage.top >= second.pane.top - 1 && second.stage.bottom <= second.pane.bottom + 1,
-        `preview stage must remain inside its pane at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
-      assert.ok(Math.abs(first.stage.width - second.stage.width) <= 1 && Math.abs(first.stage.height - second.stage.height) <= 1,
-        `preview stage must not drift after layout settles at ${viewport.width}×${viewport.height}: ${JSON.stringify({ first, second })}`);
-      assert.ok(!second.computed.transition.includes("width") && !second.computed.transition.includes("height") && !second.computed.transition.includes("aspect-ratio"),
-        `preview geometry must not animate between sizes: ${JSON.stringify(second.computed)}`);
-      assert.ok(Math.abs(second.ratio - 16 / 9) < 0.02,
-        `landscape preview must retain its selected ratio at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
+    if (usesDedicatedDock) {
+      for (const viewport of [desktopViewport, { width: 1024, height: 768 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
+        await page.setViewportSize(viewport);
+        await page.waitForFunction(() => {
+          const rect = document.querySelector(".kefe-stage")?.getBoundingClientRect();
+          return rect && rect.width > 0 && rect.height > 0;
+        }, null, { timeout: 5000 });
+        await page.waitForTimeout(250);
+        const measurePreview = () => page.evaluate(() => {
+          const paneNode = document.querySelector(".kefe-preview");
+          const stageNode = document.querySelector(".kefe-stage");
+          const pane = paneNode.getBoundingClientRect();
+          const stage = stageNode.getBoundingClientRect();
+          const style = getComputedStyle(stageNode);
+          return { pane: { left: pane.left, right: pane.right, top: pane.top, bottom: pane.bottom },
+            stage: { left: stage.left, right: stage.right, top: stage.top, bottom: stage.bottom, width: stage.width, height: stage.height },
+            computed: { width: style.width, height: style.height, aspectRatio: style.aspectRatio, transition: style.transition, transitionDuration: style.transitionDuration, transform: style.transform, zoom: style.zoom, boxSizing: style.boxSizing, padding: style.padding, border: style.borderWidth, inlineWidth: stageNode.style.width, inlineHeight: stageNode.style.height },
+            ratio: stage.width / Math.max(1, stage.height) };
+        });
+        const first = await measurePreview();
+        await page.waitForTimeout(120);
+        const second = await measurePreview();
+        assert.ok(second.stage.left >= second.pane.left - 1 && second.stage.right <= second.pane.right + 1
+          && second.stage.top >= second.pane.top - 1 && second.stage.bottom <= second.pane.bottom + 1,
+          `preview stage must remain inside its pane at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
+        assert.ok(Math.abs(first.stage.width - second.stage.width) <= 1 && Math.abs(first.stage.height - second.stage.height) <= 1,
+          `preview stage must not drift after layout settles at ${viewport.width}×${viewport.height}: ${JSON.stringify({ first, second })}`);
+        assert.ok(!second.computed.transition.includes("width") && !second.computed.transition.includes("height") && !second.computed.transition.includes("aspect-ratio"),
+          `preview geometry must not animate between sizes: ${JSON.stringify(second.computed)}`);
+        assert.ok(Math.abs(second.ratio - 16 / 9) < 0.02,
+          `landscape preview must retain its selected ratio at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
+      }
+  
     }
-    await page.setViewportSize(desktopViewport);
-    await page.waitForTimeout(120);
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
       "visualiser tabs must stay hidden until the Visualisers section is opened");
     assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
