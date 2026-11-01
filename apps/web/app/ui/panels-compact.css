@@ -72,7 +72,7 @@
   gap: 4px;
   padding: 8px !important;
   margin: 0 !important;
-  border: 1px solid var(--pc-border) !important;
+  border: 1px solid transparent !important;
   border-radius: 6px !important;
   background: color-mix(in srgb, var(--pc-surface) 55%, transparent) !important;
   box-shadow: none !important;
@@ -82,7 +82,7 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-settings .kefe-lyric-mode-box,
 :is(.kefe-panels, .kefe-settings-columns) .kefe-media-upload-row .kefe-find,
 :is(.kefe-panels, .kefe-settings-columns) #kefeDisplayGroup .kefe-font-control { padding: 0 !important; border: 0 !important; background: transparent !important; }
-:is(.kefe-panels, .kefe-settings-columns) #kefeStyleGroup { display: grid; gap: 4px; padding: 8px; border: 1px solid var(--pc-border); border-radius: 6px; background: color-mix(in srgb, var(--pc-surface) 55%, transparent); }
+:is(.kefe-panels, .kefe-settings-columns) #kefeStyleGroup { display: grid; gap: 4px; padding: 8px; border: 1px solid transparent; border-radius: 6px; background: color-mix(in srgb, var(--pc-surface) 55%, transparent); }
 
 /* ---- Buttons, inputs, selects (28px) ---- */
 :is(.kefe-panels, .kefe-settings-columns) .kefe-btn,
