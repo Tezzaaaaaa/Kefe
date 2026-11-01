@@ -385,7 +385,7 @@
 @media (min-width: 1024px) {
   html:root .kefe-editor {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 56px minmax(0, 50vh) minmax(0, 1fr) auto;
+    grid-template-rows: 56px minmax(248px, 50vh) minmax(0, 1fr) auto;
     height: 100vh;
     min-height: 100vh;
     overflow: hidden;
@@ -394,8 +394,8 @@
     grid-column: 1;
     grid-row: 2;
     height: 50vh;
-    min-height: 0;
-    grid-template-rows: minmax(0, 1fr) var(--timeline-h, 58px);
+    min-height: 248px;
+    grid-template-rows: minmax(180px, 1fr) var(--timeline-h, 58px);
   }
   html:root .kefe-editor .kefe-editing {
     grid-column: 1;
