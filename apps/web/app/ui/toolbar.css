@@ -605,3 +605,23 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
     width: 100%; max-width: 100%; flex-wrap: wrap; white-space: normal;
   }
 }
+
+
+/* Compact header spacing keeps the Editor toolbar and utility actions inside 320px phones. */
+@media (max-width: 360px) {
+  body .kefe-editor > header.kefe-sidebar { gap: 4px; padding-inline: 6px; }
+  .kefe-sidebar-group-editor { gap: 3px; }
+  .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab],
+  .kefe-sidebar-group .kefe-header-settings { padding-inline: 7px; }
+  .kefe-sidebar-group-editor > .kefe-floating-toolbar .kft-launch { width: 26px; height: 26px; }
+  .kefe-sidebar-bottom { gap: 2px; padding-left: 4px; }
+  .kefe-sidebar-bottom > .kefe-sidebar-link { width: 28px; min-width: 28px; height: 28px; }
+}
+
+@media (max-width: 360px) {
+  .kefe-sidebar-bottom { gap: 1px; padding-left: 2px; }
+  .kefe-sidebar-bottom > .kefe-sidebar-link,
+  .kefe-sidebar-bottom .kefe-search,
+  .kefe-sidebar-bottom .kefe-header-search { width: 24px; min-width: 24px; height: 28px; }
+  .kefe-sidebar-bottom .kefe-search-track { width: 24px; }
+}
