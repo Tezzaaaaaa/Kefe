@@ -324,7 +324,7 @@ async function captureEditorScreenState(page) {
       && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.editor.top - 2
       && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.editor.bottom + 8,
       `toolbar must be docked immediately to the right of Editor: ${JSON.stringify(initialToolbarPlacement)}`);
-    const desktopViewport = page.viewportSize();
+
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
@@ -491,7 +491,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-sidebar [data-shell-panel]").count(), 0,
       "the header must not repeat the editor sections as tabs");
     const aspectSelect = page.locator("#kefeAspect");
-    assert.equal(await page.locator(":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview-bar ratio wrapper must remain hidden");
+    assert.equal(await page.locator(".kefe-sidebar-group-editor .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview-bar ratio wrapper must remain hidden");
     const canvasButton = quickToolbar.locator(".kft-cell--ratio");
     assert.equal(await canvasButton.getAttribute("aria-label"), "Canvas, background and visualiser", "the Canvas ratio control must remain available in the floating toolbar");
     await canvasButton.click();
