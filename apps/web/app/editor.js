@@ -954,11 +954,10 @@
     const padX=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
     const padY=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
     const gap=parseFloat(cs.rowGap)||0;
-    const bar=previewPane.querySelector('.kefe-preview-toolbar');
-    const barH=bar?bar.getBoundingClientRect().height+gap:0;
+    const dock=previewPane.querySelector('.kefe-preview-dock');
+    const dockH=dock?dock.getBoundingClientRect().height+gap:0;
     const paneWidth=Math.max(0,previewPane.clientWidth-padX);
-    let paneHeight=Math.max(0,previewPane.clientHeight-padY-barH);
-    if(!paneHeight)paneHeight=Math.max(0,Math.floor(window.innerHeight*0.52)-barH);
+    const paneHeight=Math.max(0,previewPane.clientHeight-padY-dockH);
     if(paneWidth<=0||paneHeight<=0)return;
     let width=Math.min(paneWidth,1280);
     let height=width/ratio;
@@ -975,9 +974,11 @@
   if(typeof ResizeObserver!=='undefined'&&previewPane){
     const fitObserver=new ResizeObserver(queueFit);
     fitObserver.observe(previewPane);
+    const previewDock=previewPane.querySelector('.kefe-preview-dock');if(previewDock)fitObserver.observe(previewDock);
     const workHost=previewPane.parentElement;if(workHost)fitObserver.observe(workHost);
   }
-  window.addEventListener('resize',fitPreviewStage);
+  window.addEventListener('resize',queueFit);
+  window.visualViewport?.addEventListener('resize',queueFit);
   const aspectSelect=document.getElementById('kefeAspect');
   aspectSelect?.addEventListener('change',()=>{
     previewAspectRatio=aspectSelect.value;
@@ -995,15 +996,9 @@
 
   fitPreviewStage();
   const previewFullscreen=document.getElementById('previewFullscreen');
-  const previewToolbarActions=previewFullscreen?.parentElement;
   function syncPreviewFullscreen(){
     if(!previewFullscreen||!previewStage)return;
     const active=document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen');
-    if(active){
-      if(previewFullscreen.parentElement!==previewStage)previewStage.appendChild(previewFullscreen);
-    }else{
-      if(previewFullscreen.parentElement!==previewToolbarActions&&previewToolbarActions)previewToolbarActions.appendChild(previewFullscreen);
-    }
     previewFullscreen.setAttribute('aria-label',active?'Exit fullscreen':'Enter fullscreen');
     previewFullscreen.title=active?'Exit fullscreen':'Enter fullscreen';
     const layoutControls=document.getElementById('kefeFloatingToolbar');
