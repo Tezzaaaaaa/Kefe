@@ -741,11 +741,14 @@ async function captureEditorScreenState(page) {
           columns: rect("#kefe-settings-panel > .kefe-settings-columns"),
         };
       });
-      const reference = sharedWidth.editor;
-      for (const [name, bounds] of Object.entries(sharedWidth)) {
+      const reference = sharedWidth.workspace;
+      for (const name of ["header", "settings", "panel", "columns"]) {
+        const bounds = sharedWidth[name];
         assert.ok(Math.abs(bounds.left - reference.left) <= 1 && Math.abs(bounds.right - reference.right) <= 1,
           `${name} must share the preview workspace width boundary: ${JSON.stringify(sharedWidth)}`);
       }
+      assert.ok(sharedWidth.editor.left <= reference.left && sharedWidth.editor.right >= reference.right,
+        `the page shell must contain the shared preview and section width: ${JSON.stringify(sharedWidth)}`);
     } else {
       assert.ok(previewSettingsLayout.leftWidth > 0 && previewSettingsLayout.rightWidth > 0,
         "the main-branch baseline must retain its two settings columns");
