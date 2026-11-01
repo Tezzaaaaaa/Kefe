@@ -10821,6 +10821,14 @@ body .kefe-editor > .kefe-sidebar {
 }
 
 
-/* Remove legacy white preview and transport borders. */
-.kefe-stage { border: 0; outline: 0; box-shadow: none; }
-.kefe-timeline, .kefe-wave { border-color: transparent; }
+/* Remove the preview frame and transport separators in both themes. */
+html:root .kefe-editor .kefe-work > .kefe-preview > .kefe-stage:not(:fullscreen):not(.kefe-pseudo-fullscreen) {
+  border: 0; outline: 0; box-shadow: none;
+}
+html:root[data-theme="day"] .kefe-editor .kefe-work > .kefe-preview > .kefe-stage:not(:fullscreen):not(.kefe-pseudo-fullscreen) {
+  border: 0; outline: 0; box-shadow: none;
+}
+html:root .kefe-editor .kefe-work > .kefe-timeline,
+html:root .kefe-editor .kefe-work > .kefe-timeline .kefe-wave {
+  border: 0; outline: 0; box-shadow: none;
+}
