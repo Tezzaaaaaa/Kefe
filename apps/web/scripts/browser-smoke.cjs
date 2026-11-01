@@ -486,7 +486,7 @@ async function captureEditorScreenState(page) {
         const style = getComputedStyle(stageNode);
         return { pane: { left: pane.left, right: pane.right, top: pane.top, bottom: pane.bottom },
           stage: { left: stage.left, right: stage.right, top: stage.top, bottom: stage.bottom, width: stage.width, height: stage.height },
-          computed: { width: style.width, height: style.height, aspectRatio: style.aspectRatio, transform: style.transform, zoom: style.zoom, boxSizing: style.boxSizing, padding: style.padding, border: style.borderWidth, inlineWidth: stageNode.style.width, inlineHeight: stageNode.style.height },
+          computed: { width: style.width, height: style.height, aspectRatio: style.aspectRatio, transition: style.transition, transitionDuration: style.transitionDuration, transform: style.transform, zoom: style.zoom, boxSizing: style.boxSizing, padding: style.padding, border: style.borderWidth, inlineWidth: stageNode.style.width, inlineHeight: stageNode.style.height },
           ratio: stage.width / Math.max(1, stage.height) };
       });
       const first = await measurePreview();
@@ -497,6 +497,8 @@ async function captureEditorScreenState(page) {
         `preview stage must remain inside its pane at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
       assert.ok(Math.abs(first.stage.width - second.stage.width) <= 1 && Math.abs(first.stage.height - second.stage.height) <= 1,
         `preview stage must not drift after layout settles at ${viewport.width}×${viewport.height}: ${JSON.stringify({ first, second })}`);
+      assert.ok(!second.computed.transition.includes("width") && !second.computed.transition.includes("height") && !second.computed.transition.includes("aspect-ratio"),
+        `preview geometry must not animate between sizes: ${JSON.stringify(second.computed)}`);
       assert.ok(Math.abs(second.ratio - 16 / 9) < 0.02,
         `landscape preview must retain its selected ratio at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
     }
