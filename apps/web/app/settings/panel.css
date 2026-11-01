@@ -625,3 +625,9 @@
 /* Native settings buttons no longer have the React proxy's inner span. Keep the heading content flush to the indicator, as it was inside that wrapper. */
 #kefe-settings-panel .expand-button { gap: 0; }
 #kefe-settings-panel .expand-button > .title-group { flex: 0 1 auto; }
+
+
+/* The embedded editor sections are separated by spacing and surface tone, not card borders. */
+.kefe-editor .kefe-settings-panel .section:not(.kefe-slot *) { border: 0; box-shadow: none; }
+.kefe-editor .kefe-settings-panel .section:hover:not(.kefe-slot *),
+.kefe-editor .kefe-settings-panel .section[data-expanded="true"]:not(.kefe-slot *) { border-color: transparent; box-shadow: none; }

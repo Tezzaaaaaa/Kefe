@@ -10698,7 +10698,8 @@ body .kefe-editor > header.kefe-sidebar::-webkit-scrollbar { display: none; }
     height: 18px;
   }
   .kefe-sidebar-group .kefe-header-settings > .kefe-sidebar-link-label {
-    display: none;
+    display: inline-flex;
+    white-space: nowrap;
   }
   .kefe-sidebar-group .kefe-header-settings {
     padding: 0 10px;

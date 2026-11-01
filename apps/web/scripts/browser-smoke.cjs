@@ -1547,11 +1547,11 @@ async function captureEditorScreenState(page) {
         assert.equal(mobileNavigationLabels.length, 2,
           `both header entries keep their label nodes at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
         const visibleMobileLabels = mobileNavigationLabels.filter(label => label.display !== "none" && label.width > 0);
-        assert.equal(visibleMobileLabels.length, 1,
-          `only the Editor tab keeps a visible text label at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
-        assert.equal(visibleMobileLabels[0].text, "Editor",
-          `the visible header label must read Editor at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
-        /* Settings compacts to its gear on narrow phones, so the corner actions still fit. */
+        assert.equal(visibleMobileLabels.length, 2,
+          `Editor and Settings must both remain visible text labels at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+        assert.deepEqual(visibleMobileLabels.map(label => label.text), ["Editor", "Settings"],
+          `the header navigation must read Editor and Settings at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+        /* Settings remains a named text action at every supported phone width. */
         const mobileNavEntries = await page.locator(".kefe-sidebar-group > .kefe-sidebar-link").evaluateAll(nodes =>
           nodes.map(node => {
             const label = node.querySelector(".kefe-sidebar-link-label");
@@ -1567,8 +1567,8 @@ async function captureEditorScreenState(page) {
           `the header must keep both the Editor and Settings entries at ${width}px: ${JSON.stringify(mobileNavEntries)}`);
         assert.ok(mobileNavEntries.every(entry => entry.name && entry.width > 0 && (entry.labelWidth > 0 || entry.iconVisible)),
           `every header entry must stay visible and named at ${width}px: ${JSON.stringify(mobileNavEntries)}`);
-        assert.ok(mobileNavEntries.find(entry => entry.name === "Settings")?.iconVisible,
-          `Settings must fall back to its gear icon at ${width}px: ${JSON.stringify(mobileNavEntries)}`);
+        assert.ok(mobileNavEntries.find(entry => entry.name === "Settings")?.labelWidth > 0,
+          `Settings must remain a visible text action at ${width}px: ${JSON.stringify(mobileNavEntries)}`);
       } else if (headerSearchMode) {
         /* Unstyled baseline shell: only the structural contract is meaningful. */
         assert.equal(mobileNavigationLabels.length, 2,
