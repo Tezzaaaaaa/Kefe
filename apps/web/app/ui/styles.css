@@ -10462,7 +10462,7 @@ body .kefe-editor > header.kefe-sidebar::-webkit-scrollbar { display: none; }
     min-height: 100vh;
     min-height: 100dvh;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 50px auto auto;
+    grid-template-rows: 50px minmax(234px, auto) auto;
   }
   .kefe-work { grid-column: 1; grid-row: 2; min-height: 234px; grid-template-rows: minmax(180px, 42dvh) 54px; }
   .kefe-editing { grid-column: 1; grid-row: 3; }
