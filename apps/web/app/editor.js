@@ -903,11 +903,8 @@
     const cs=getComputedStyle(previewPane);
     const padX=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
     const padY=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
-    const gap=parseFloat(cs.rowGap)||0;
-    const dock=previewPane.querySelector('.kefe-preview-dock');
-    const dockH=dock?dock.getBoundingClientRect().height+gap:0;
     const paneWidth=Math.max(0,previewPane.clientWidth-padX);
-    const paneHeight=Math.max(0,previewPane.clientHeight-padY-dockH);
+    const paneHeight=Math.max(0,previewPane.clientHeight-padY);
     // A hidden or not-yet-laid-out pane has no reliable dimensions. Keep the last
     // valid stage size until its ResizeObserver reports the real available space.
     if(paneWidth<=0||paneHeight<=0)return;
@@ -926,7 +923,6 @@
   if(typeof ResizeObserver!=='undefined'&&previewPane){
     const fitObserver=new ResizeObserver(queueFit);
     fitObserver.observe(previewPane);
-    const previewDock=previewPane.querySelector('.kefe-preview-dock');if(previewDock)fitObserver.observe(previewDock);
   }
   window.addEventListener('resize',queueFit,{passive:true});
   window.visualViewport?.addEventListener('resize',queueFit);
