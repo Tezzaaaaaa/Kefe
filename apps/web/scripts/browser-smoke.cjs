@@ -843,6 +843,13 @@ async function captureEditorScreenState(page) {
     await page.waitForFunction(() => document.getElementById("kefeMediaTrackTitle")?.textContent === "beUI smoke track", null, { timeout: 5000 });
     assert.equal(await nativeSongTitle.inputValue(), "beUI smoke track", "native metadata input should update the live track card");
 
+    await page.waitForFunction(() => {
+      const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
+      return sections.length === 6 && sections.every(section => {
+        const style = getComputedStyle(section);
+        return style.display !== "none" && style.borderRadius !== "0px" && style.borderTopWidth !== "0px";
+      });
+    }, null, { timeout: 5000 });
     const nativePanelSurfaceCount = await page.locator("#kefe-settings-panel .section[data-section-id]").evaluateAll(sections => sections.filter(section => {
       const style = getComputedStyle(section);
       return style.display !== "none" && style.borderRadius !== "0px" && style.borderTopWidth !== "0px";
