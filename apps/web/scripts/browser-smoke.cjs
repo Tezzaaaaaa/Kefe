@@ -922,8 +922,10 @@ async function captureEditorScreenState(page) {
       && style.padding === "10px 0px" && style.borderWidth === "1px" && style.borderColor === "rgba(0, 0, 0, 0)" && style.borderRadius === "8px"),
       `embedded native panels must retain the former Card's vertical flex layout, zero gap, 10px vertical inset, transparent border and 8px radius: ${JSON.stringify(embeddedPanelStyle)}`);
 
-    const originalEditorTheme = await page.evaluate(() => document.documentElement.dataset.theme);
-    for (const theme of ["day", "night"]) {
+    // The baseline capture intentionally contains the section frame this change removes.
+    if (process.env.KEFE_SCREENSHOT_LABEL !== "main-baseline") {
+      const originalEditorTheme = await page.evaluate(() => document.documentElement.dataset.theme);
+      for (const theme of ["day", "night"]) {
       await page.evaluate(nextTheme => { document.documentElement.dataset.theme = nextTheme; }, theme);
       const sectionChromeAudit = await page.evaluate(() => {
         const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
@@ -953,7 +955,8 @@ async function captureEditorScreenState(page) {
       assert.ok(sectionChromeAudit.columns.every(style => style.left === "0px" && style.right === "0px"),
         `${theme} mode must not draw vertical rules on the editor columns: ${JSON.stringify(sectionChromeAudit.columns)}`);
     }
-    await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, originalEditorTheme);
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, originalEditorTheme);
+    }
     assert.equal(await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count(), 0,
       "editor panels must not create parallel React Card wrappers");
 
