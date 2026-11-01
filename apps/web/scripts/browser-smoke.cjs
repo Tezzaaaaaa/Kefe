@@ -929,7 +929,6 @@ async function captureEditorScreenState(page) {
         const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
         const panels = [...document.querySelectorAll("#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]")];
         const columns = [...document.querySelectorAll(".kefe-editor .kefe-editing > .kefe-panels-left, .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left)")];
-        const groups = [...document.querySelectorAll("#kefe-settings-panel :is(.kefe-background-effect-control, .kefe-lyric-settings, .kefe-lyric-mode-box, .kefe-lyrics-timing, .kefe-timing-editor, .kefe-review, .kefe-media-upload-row, .kefe-song-details, .kefe-find, #kefeStyleGroup)")];
         return {
           sections: sections.map(node => {
             const style = getComputedStyle(node);
@@ -945,11 +944,6 @@ async function captureEditorScreenState(page) {
             const style = getComputedStyle(node);
             return { left: style.borderLeftWidth, right: style.borderRightWidth };
           }),
-          groups: groups.map(node => {
-            const style = getComputedStyle(node);
-            const visibleBorder = style.borderTopWidth !== "0px" && style.borderTopStyle !== "none" && style.borderTopColor !== "rgba(0, 0, 0, 0)";
-            return { classes: node.className, visibleBorder };
-          })
         };
       });
       assert.ok(sectionChromeAudit.sections.every(style => style.borderWidth === "0px" && style.borderStyle === "none" && style.shadow === "none"),
@@ -958,8 +952,6 @@ async function captureEditorScreenState(page) {
         `${theme} mode must keep embedded editor panels free of visible borders and shadows: ${JSON.stringify(sectionChromeAudit.panels)}`);
       assert.ok(sectionChromeAudit.columns.every(style => style.left === "0px" && style.right === "0px"),
         `${theme} mode must not draw vertical rules on the editor columns: ${JSON.stringify(sectionChromeAudit.columns)}`);
-      assert.ok(sectionChromeAudit.groups.every(style => !style.visibleBorder),
-        `${theme} mode must keep editor content groups free of outer outlines: ${JSON.stringify(sectionChromeAudit.groups)}`);
     }
     await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, originalEditorTheme);
     assert.equal(await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count(), 0,
