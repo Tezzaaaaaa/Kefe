@@ -906,10 +906,10 @@ async function captureEditorScreenState(page) {
       .filter(section => getComputedStyle(section).display !== "none")
       .map(section => {
         const style = getComputedStyle(section);
-        return { borderColor: style.borderTopColor, boxShadow: style.boxShadow, background: style.backgroundColor };
+        return { borderWidth: style.borderTopWidth, borderStyle: style.borderTopStyle, boxShadow: style.boxShadow, background: style.backgroundColor };
       }));
     assert.equal(nativePanelSurfaceStyle.length, 6, "all six native settings sections must remain present");
-    assert.ok(nativePanelSurfaceStyle.every(style => style.borderColor === "rgba(0, 0, 0, 0)" && style.boxShadow === "none"),
+    assert.ok(nativePanelSurfaceStyle.every(style => style.borderWidth === "0px" && style.borderStyle === "none" && style.boxShadow === "none"),
       `native settings sections must not draw outer outlines or elevation shadows: ${JSON.stringify(nativePanelSurfaceStyle)}`);
     const embeddedPanelStyle = await page.locator("#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]").evaluateAll(panels =>
       panels.map(panel => {
@@ -932,7 +932,7 @@ async function captureEditorScreenState(page) {
         return {
           sections: sections.map(node => {
             const style = getComputedStyle(node);
-            return { border: style.borderTopColor, shadow: style.boxShadow };
+            return { borderWidth: style.borderTopWidth, borderStyle: style.borderTopStyle, shadow: style.boxShadow };
           }),
           panels: panels.map(node => {
             const style = getComputedStyle(node);
@@ -944,7 +944,7 @@ async function captureEditorScreenState(page) {
           })
         };
       });
-      assert.ok(sectionChromeAudit.sections.every(style => style.border === "rgba(0, 0, 0, 0)" && style.shadow === "none"),
+      assert.ok(sectionChromeAudit.sections.every(style => style.borderWidth === "0px" && style.borderStyle === "none" && style.shadow === "none"),
         `${theme} mode must keep settings section rows free of borders and shadows: ${JSON.stringify(sectionChromeAudit.sections)}`);
       assert.ok(sectionChromeAudit.panels.every(style => style.border === "rgba(0, 0, 0, 0)" && style.shadow === "none"),
         `${theme} mode must keep embedded editor panels free of visible borders and shadows: ${JSON.stringify(sectionChromeAudit.panels)}`);
