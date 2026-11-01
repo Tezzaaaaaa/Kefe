@@ -10461,7 +10461,7 @@ body .kefe-editor > header.kefe-sidebar::-webkit-scrollbar { display: none; }
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 50px auto auto;
   }
-  .kefe-work { grid-column: 1; grid-row: 2; grid-template-rows: auto 48px auto; }
+  .kefe-work { grid-column: 1; grid-row: 2; min-height: 0; grid-template-rows: minmax(180px, 42dvh) 54px; }
   .kefe-editing { grid-column: 1; grid-row: 3; }
   .kefe-site-footer { grid-column: 1; grid-row: 4; }
 }
