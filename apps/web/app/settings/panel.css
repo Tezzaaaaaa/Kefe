@@ -105,11 +105,11 @@
     padding-left: 2px;
   }.kefe-settings-panel .section:not(.kefe-slot *){
     border-radius: var(--ksp-radius);
-    border: 1px solid var(--ksp-border);
+    border: 1px solid transparent;
     background: var(--ksp-surface);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-  }.kefe-settings-panel .section:hover:not(.kefe-slot *){ border-color: var(--ksp-border-strong); }.kefe-settings-panel .section[data-expanded="true"]:not(.kefe-slot *){
-    border-color: var(--ksp-highlight-border);
+    transition: box-shadow 0.2s ease, background 0.2s ease;
+  }.kefe-settings-panel .section:hover:not(.kefe-slot *){ border-color: transparent; }.kefe-settings-panel .section[data-expanded="true"]:not(.kefe-slot *){
+    border-color: transparent;
     background: var(--ksp-highlight-bg);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
   }.kefe-settings-panel .section[data-disabled="true"]:not(.kefe-slot *){
