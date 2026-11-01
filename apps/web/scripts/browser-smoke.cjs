@@ -936,7 +936,9 @@ async function captureEditorScreenState(page) {
           }),
           panels: panels.map(node => {
             const style = getComputedStyle(node);
-            return { border: style.borderTopColor, shadow: style.boxShadow };
+            const shadowLayers = style.boxShadow === "none" ? [] : style.boxShadow.split(/,(?![^()]*\\))/);
+            const shadowVisible = shadowLayers.some(layer => !/^rgba\\([^)]*,\\s*0\\)\\s+0px 0px 0px 0px$/.test(layer.trim()));
+            return { border: style.borderTopColor, shadowVisible };
           }),
           columns: columns.map(node => {
             const style = getComputedStyle(node);
@@ -946,7 +948,7 @@ async function captureEditorScreenState(page) {
       });
       assert.ok(sectionChromeAudit.sections.every(style => style.borderWidth === "0px" && style.borderStyle === "none" && style.shadow === "none"),
         `${theme} mode must keep settings section rows free of borders and shadows: ${JSON.stringify(sectionChromeAudit.sections)}`);
-      assert.ok(sectionChromeAudit.panels.every(style => style.border === "rgba(0, 0, 0, 0)" && style.shadow === "none"),
+      assert.ok(sectionChromeAudit.panels.every(style => style.border === "rgba(0, 0, 0, 0)" && !style.shadowVisible),
         `${theme} mode must keep embedded editor panels free of visible borders and shadows: ${JSON.stringify(sectionChromeAudit.panels)}`);
       assert.ok(sectionChromeAudit.columns.every(style => style.left === "0px" && style.right === "0px"),
         `${theme} mode must not draw vertical rules on the editor columns: ${JSON.stringify(sectionChromeAudit.columns)}`);
