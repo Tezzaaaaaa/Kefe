@@ -945,7 +945,7 @@ html[data-theme="day"] {
 .kefe-editor #kefe-settings-panel .section[data-section-id],
 .kefe-editor #kefe-settings-panel .section[data-section-id]:hover,
 .kefe-editor #kefe-settings-panel .section[data-section-id][data-expanded="true"] {
-  border-color: transparent;
+  border: 0;
   box-shadow: none;
 }
 
