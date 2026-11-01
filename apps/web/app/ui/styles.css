@@ -9783,11 +9783,11 @@ input.beui-native-range {
    every toolbar/panel/aspect change. Keep this block last. */
 .kefe-editor .kefe-work > .kefe-preview{
   display:grid;
-  grid-template-rows:auto minmax(0,1fr);
+  grid-template-rows:minmax(0,1fr);
   align-items:center;
   justify-items:center;
   align-content:stretch;
-  gap:10px;
+  gap:0;
   min-width:0;
   min-height:0;
   height:100%;
@@ -9799,7 +9799,7 @@ input.beui-native-range {
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-16x9:not(.kefe-pseudo-fullscreen):not(:fullscreen),
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-9x16:not(.kefe-pseudo-fullscreen):not(:fullscreen),
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-1x1:not(.kefe-pseudo-fullscreen):not(:fullscreen){
-  grid-row:2;
+  grid-row:1;
   align-self:center;
   justify-self:center;
   flex:none;
@@ -9813,7 +9813,6 @@ input.beui-native-range {
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-16x9:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:16/9}
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-9x16:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:9/16}
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-1x1:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:1/1}
-.kefe-editor .kefe-work > .kefe-preview > .kefe-preview-dock{grid-row:1;width:min(100%,1280px);min-height:0}
 
 /* Keep the visible beUI fullscreen action attached to the preview while fullscreen is active. */
 .kefe-stage:fullscreen #previewFullscreen,
