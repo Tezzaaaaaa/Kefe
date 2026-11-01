@@ -953,7 +953,6 @@
     const dockH=dock?dock.getBoundingClientRect().height+gap:0;
     const paneWidth=Math.max(0,previewPane.clientWidth-padX);
     let paneHeight=Math.max(0,previewPane.clientHeight-padY-dockH);
-    if(!paneHeight)paneHeight=Math.max(0,Math.floor(window.innerHeight*0.52)-dockH);
     if(paneWidth<=0||paneHeight<=0)return;
     let width=Math.min(paneWidth,1280);
     let height=width/ratio;
@@ -970,9 +969,11 @@
   if(typeof ResizeObserver!=='undefined'&&previewPane){
     const fitObserver=new ResizeObserver(queueFit);
     fitObserver.observe(previewPane);
+    const previewDock=previewPane.querySelector('.kefe-preview-dock');if(previewDock)fitObserver.observe(previewDock);
     const workHost=previewPane.parentElement;if(workHost)fitObserver.observe(workHost);
   }
-  window.addEventListener('resize',fitPreviewStage);
+  window.addEventListener('resize',queueFit);
+  window.visualViewport?.addEventListener('resize',queueFit);
   const aspectSelect=document.getElementById('kefeAspect');
   aspectSelect?.addEventListener('change',()=>{
     previewAspectRatio=aspectSelect.value;
