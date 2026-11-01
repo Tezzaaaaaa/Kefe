@@ -324,7 +324,7 @@ async function captureEditorScreenState(page) {
       && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.editor.top - 2
       && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.editor.bottom + 8,
       `toolbar must be docked immediately to the right of Editor: ${JSON.stringify(initialToolbarPlacement)}`);
-    const desktopViewport = page.viewportSize();
+
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
