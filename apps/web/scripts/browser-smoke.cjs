@@ -292,6 +292,20 @@ async function captureEditorScreenState(page) {
     assert.equal(toolbarIsInHeader, true, "the editor toolbar must sit directly beside Editor in the header navigation");
     assert.equal(await page.locator(".kefe-preview-dock").count(), 0,
       "the obsolete preview toolbar dock must be removed from the preview entirely");
+    const previewFrame = await page.locator(".kefe-stage").evaluate(node => {
+      const style = getComputedStyle(node);
+      return { border: style.borderWidth, outline: style.outlineStyle, shadow: style.boxShadow };
+    });
+    assert.equal(previewFrame.border, "0px", "the preview stage must not have a visible border");
+    assert.equal(previewFrame.outline, "none", "the preview stage must not have an outline");
+    assert.equal(previewFrame.shadow, "none", "the preview stage must not have a framing shadow");
+    await page.evaluate(() => { document.documentElement.dataset.theme = "day"; });
+    const dayPreviewFrame = await page.locator(".kefe-stage").evaluate(node => {
+      const style = getComputedStyle(node);
+      return { border: style.borderWidth, outline: style.outlineStyle, shadow: style.boxShadow };
+    });
+    assert.deepEqual(dayPreviewFrame, previewFrame, "Day Mode must not restore a white or coloured preview frame");
+    await page.evaluate(() => { document.documentElement.dataset.theme = "night"; });
     const hasStablePreviewGeometry = await page.locator(".kefe-stage").evaluate(node => getComputedStyle(node).transitionProperty === "none");
     const nativeAspect = page.locator(".kefe-sidebar-group-editor .kefe-toolbar-format");
     if (hasStablePreviewGeometry) assert.equal(await nativeAspect.isVisible(), false,
