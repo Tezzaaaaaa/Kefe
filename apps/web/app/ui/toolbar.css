@@ -575,3 +575,5 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
 .kefe-sidebar-group-editor > .kefe-floating-toolbar { flex: 0 0 auto; margin-inline-start: 2px; }
 .kefe-sidebar-group-editor > .kefe-floating-toolbar .kft-launch { width: 32px; height: 32px; }
 @media (max-width: 520px) { .kefe-sidebar-group-editor { gap: 5px; } .kefe-sidebar-group-editor > .kefe-floating-toolbar { margin-inline-start: 0; } }
+
+.kefe-sidebar-group-editor > .kefe-toolbar-format[hidden] { display: none; }
