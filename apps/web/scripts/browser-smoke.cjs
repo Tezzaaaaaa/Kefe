@@ -493,6 +493,8 @@ async function captureEditorScreenState(page) {
         const first = await measurePreview();
         await page.waitForTimeout(120);
         const second = await measurePreview();
+        assert.ok(second.pane.bottom - second.pane.top >= 180,
+          `preview pane must retain a usable minimum height at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
         assert.ok(second.stage.left >= second.pane.left - 1 && second.stage.right <= second.pane.right + 1
           && second.stage.top >= second.pane.top - 1 && second.stage.bottom <= second.pane.bottom + 1,
           `preview stage must remain inside its pane at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
