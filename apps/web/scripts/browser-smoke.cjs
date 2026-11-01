@@ -488,15 +488,15 @@ async function captureEditorScreenState(page) {
         await page.waitForTimeout(120);
         const second = await measurePreview();
         assert.ok(second.pane.bottom - second.pane.top >= 180,
-          `preview pane must retain a usable minimum height at \${viewport.width}×\${viewport.height}: \${JSON.stringify(second)}`);
+          `preview pane must retain a usable minimum height at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
         assert.ok(second.stage.left >= second.pane.left - 1 && second.stage.right <= second.pane.right + 1
           && second.stage.top >= second.pane.top - 1 && second.stage.bottom <= second.pane.bottom + 1,
-          `preview stage must remain inside its pane at \${viewport.width}×\${viewport.height}: \${JSON.stringify(second)}`);
+          `preview stage must remain inside its pane at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
         assert.ok(Math.abs(first.stage.width - second.stage.width) <= 1 && Math.abs(first.stage.height - second.stage.height) <= 1,
-          `preview stage must not drift after layout settles at \${viewport.width}×\${viewport.height}: \${JSON.stringify({ first, second })}`);
+          `preview stage must not drift after layout settles at ${viewport.width}×${viewport.height}: ${JSON.stringify({ first, second })}`);
         assert.equal(second.transition, "none", "preview geometry must not animate between sizes");
         assert.ok(Math.abs(second.ratio - 16 / 9) < 0.02,
-          `landscape preview must retain its selected ratio at \${viewport.width}×\${viewport.height}: \${JSON.stringify(second)}`);
+          `landscape preview must retain its selected ratio at ${viewport.width}×${viewport.height}: ${JSON.stringify(second)}`);
       }
       await page.setViewportSize(desktopViewport);
       await page.waitForTimeout(120);
