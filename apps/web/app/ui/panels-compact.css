@@ -740,13 +740,3 @@
 /* Settings groups use a shared surface; avoid nested card outlines around each section. */
 .kefe-editor .kefe-settings-panel .kefe-section-tabs-host,
 .kefe-editor .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] { border: 0; box-shadow: none; }
-
-
-/* The accordion sections themselves were still drawing the white card outlines.
-   Keep their geometry and surface treatment, but remove the perimeter in every state. */
-.kefe-editor .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id],
-.kefe-editor .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]:hover,
-.kefe-editor .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id][data-expanded="true"] {
-  border-color: transparent;
-  box-shadow: none;
-}
