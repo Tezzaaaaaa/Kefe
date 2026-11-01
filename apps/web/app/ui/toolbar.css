@@ -578,3 +578,7 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
   .kefe-sidebar-group-editor { gap: 5px; }
   .kefe-sidebar-group-editor > .kefe-floating-toolbar { margin-inline-start: 0; }
 }
+
+
+/* The editor toolbar now lives in the header; remove the empty legacy preview row. */
+html .kefe-editor .kefe-preview .kefe-preview-dock { display: none; border: 0; box-shadow: none; }
