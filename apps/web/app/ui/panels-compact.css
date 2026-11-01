@@ -799,9 +799,12 @@
   border-radius: 6px;
 }
 
-/* No bright keyline around either media drop target. */
-.kefe-editor .kefe-panel[data-panel-view="media"] #kefeUploadZone .kefe-upload-card,
+/* The Card, not the outer label, is the visible media drop target. */
+.kefe-editor .kefe-panel[data-panel-view="media"] #kefeUploadZone .kefe-upload-card {
+  border: 1px dashed var(--line) !important;
+  box-shadow: none !important;
+}
 .kefe-editor .kefe-panel[data-panel-view="media"] #kefeBgVideoZone {
-  border: 0 !important;
+  border: 1px dashed var(--line) !important;
   box-shadow: none !important;
 }
