@@ -568,3 +568,40 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
 
 /* The toolbar is one quiet surface; its launcher and cells do not draw nested outlines. */
 .kefe-editor .kft-bar, .kefe-editor .kft-launch, .kefe-editor .kft-ghost { border-color: transparent; }
+
+
+/* Header placement: keep the editor toolbar directly beside the Editor navigation item. */
+.kefe-sidebar-group-editor { display: flex; flex-direction: row; align-items: center; gap: 8px; min-width: 0; }
+.kefe-sidebar-group-editor > .kefe-floating-toolbar { flex: 0 0 auto; margin-inline-start: 2px; }
+.kefe-sidebar-group-editor > .kefe-floating-toolbar .kft-launch { width: 32px; height: 32px; }
+@media (max-width: 520px) { .kefe-sidebar-group-editor { gap: 5px; } .kefe-sidebar-group-editor > .kefe-floating-toolbar { margin-inline-start: 0; } }
+
+.kefe-sidebar-group-editor > .kefe-toolbar-format[hidden] { display: none; }
+
+
+/* On phones the toolbar opens as an overlay so it never pushes past the header viewport. */
+@media (max-width: 520px) {
+  .kefe-sidebar-group-editor > .kefe-floating-toolbar.is-open .kft-bar {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 56px);
+    left: 8px;
+    right: 8px;
+    z-index: 10001;
+    width: auto;
+    max-width: calc(100vw - 16px);
+  }
+  .kefe-sidebar-group-editor > .kefe-floating-toolbar.is-open .kft-main { width: 100%; }
+}
+
+
+/* On phones the launcher stays beside Editor; the expanded controls open below the header. */
+@media (max-width: 520px) {
+  .kefe-sidebar-group-editor > #kefeFloatingToolbar { position: relative; flex: 0 0 32px; width: 32px; max-width: 32px; }
+  .kefe-sidebar-group-editor > #kefeFloatingToolbar .kft-bar {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 2147483645;
+    width: max-content; max-width: calc(100vw - 160px); min-width: 0;
+  }
+  .kefe-sidebar-group-editor > #kefeFloatingToolbar .kft-main {
+    width: 100%; max-width: 100%; flex-wrap: wrap; white-space: normal;
+  }
+}

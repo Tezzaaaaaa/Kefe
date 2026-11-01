@@ -189,6 +189,7 @@ async function captureEditorScreenState(page) {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ serviceWorkers: "block" });
     page = await context.newPage();
+    const desktopViewport = page.viewportSize();
     failureContext = { page, pageErrors };
     page.on("pageerror", (error) => pageErrors.push({ type: "pageerror", name: error.name, message: error.message, stack: error.stack || null }));
     page.on("console", (message) => {
@@ -288,30 +289,42 @@ async function captureEditorScreenState(page) {
       { label: "Visualiser", controls: ["Visualiser"] },
       { label: "Actions", controls: ["More actions"] }
     ], "toolbar actions must appear once in their intended functional groups");
-    const usesDedicatedDock = await page.locator(".kefe-preview-dock").count() === 1;
+    const toolbarIsInHeader = await page.locator(".kefe-sidebar-group-editor > #kefeFloatingToolbar").count() === 1;
+    assert.equal(toolbarIsInHeader, true, "the editor toolbar must sit directly beside Editor in the header navigation");
+    assert.equal(await page.locator(".kefe-preview-dock").count(), 0,
+      "the obsolete preview toolbar dock must be removed from the preview entirely");
+    const frameState = async () => page.locator(".kefe-stage").evaluate(node => {
+      const style = getComputedStyle(node);
+      return { border: style.borderWidth, outline: style.outlineStyle, shadow: style.boxShadow };
+    });
+    const nightFrame = await frameState();
+    assert.deepEqual(nightFrame, { border: "0px", outline: "none", shadow: "none" },
+      "the preview canvas must have no border, outline, or framing shadow");
+    await page.evaluate(() => { document.documentElement.dataset.theme = "day"; });
+    assert.deepEqual(await frameState(), nightFrame, "Day Mode must not restore a visible preview frame");
+    await page.evaluate(() => { document.documentElement.dataset.theme = "night"; });
+    const transportFrame = await page.locator(".kefe-timeline, .kefe-wave").evaluateAll(nodes =>
+      nodes.map(node => {
+        const style = getComputedStyle(node);
+        return { borderColor: style.borderTopColor, borderStyle: style.borderTopStyle };
+      }));
+    assert.ok(transportFrame.every(state => state.borderStyle === "none" || state.borderColor === "rgba(0, 0, 0, 0)"),
+      "the transport bar and waveform must not draw visible separator borders");
     const hasStablePreviewGeometry = await page.locator(".kefe-stage").evaluate(node => getComputedStyle(node).transitionProperty === "none");
-    assert.equal(await page.locator(".kefe-preview-toolbar").count(), usesDedicatedDock ? 0 : 1,
-      "the editor must use either the dedicated dock or the legacy preview bar, never both");
-    const nativeAspect = page.locator(usesDedicatedDock ? ".kefe-preview-dock .kefe-toolbar-format" : ":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format");
+    const nativeAspect = page.locator(".kefe-sidebar-group-editor .kefe-toolbar-format");
     if (hasStablePreviewGeometry) assert.equal(await nativeAspect.isVisible(), false,
       "the native aspect control must remain hidden as a backing control");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
     const initialToolbarPlacement = await page.evaluate(() => {
-      const dockElement = document.querySelector(".kefe-preview-dock") || document.querySelector(".kefe-preview-toolbar");
-      const dock = dockElement.getBoundingClientRect();
+      const editor = document.querySelector("[data-editor-tab]").getBoundingClientRect();
       const toolbar = document.querySelector("#kefeFloatingToolbar").getBoundingClientRect();
-      return { dock: { left: dock.left, right: dock.right, top: dock.top, bottom: dock.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
+      return { editor: { left: editor.left, right: editor.right, top: editor.top, bottom: editor.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth };
     });
-    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.dock.left - 1
-      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.dock.top - 1
-      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.dock.bottom + 8,
-      `toolbar must remain within its designated dock: ${JSON.stringify(initialToolbarPlacement)}`);
-    assert.ok(initialToolbarPlacement.toolbar.left >= 0 && initialToolbarPlacement.toolbar.right <= initialToolbarPlacement.vw + 1
-      && initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
-      `toolbar must remain fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
+    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.editor.right - 1
+      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.editor.top - 2
+      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.editor.bottom + 8,
+      `toolbar must be docked immediately to the right of Editor: ${JSON.stringify(initialToolbarPlacement)}`);
     const desktopViewport = page.viewportSize();
-    const visibleDesktopNavIcons = await page.locator(".kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden='true']").evaluateAll(nodes => nodes.filter(node => getComputedStyle(node).display !== "none").length);
-    assert.equal(visibleDesktopNavIcons, 0, "the header section links stay text-only, including the single Editor tab");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
@@ -330,6 +343,10 @@ async function captureEditorScreenState(page) {
     });
     assert.ok(mobileToolbarBounds.left >= 0 && mobileToolbarBounds.right <= mobileToolbarBounds.viewportWidth + 1,
       `mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarBounds)}`);
+    const mobileToolbarPanel = await quickToolbar.locator(".kft-bar").boundingBox();
+    if (mobileToolbarPanel) assert.ok(mobileToolbarPanel.x >= 0
+      && mobileToolbarPanel.x + mobileToolbarPanel.width <= mobileToolbarBounds.viewportWidth + 1,
+      `expanded mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarPanel)}`);
     if ((await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).count()) > 0) {
     await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
     } else {
