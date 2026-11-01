@@ -390,8 +390,8 @@
 .kft-padbtn { width: 30px; height: 30px; }
 
 
-/* The native aspect select remains the toolbar's backing control, not a preview-bar action. */
-.kefe-preview-toolbar .kefe-toolbar-format[hidden] { display: none; }
+/* The native aspect select remains the toolbar's hidden backing control. */
+.kefe-preview-dock .kefe-toolbar-format[hidden] { display: none; }
 
 
 /* ───────── KEFE toolbar v3: docked in the preview bar ─────────
@@ -400,7 +400,7 @@
    scrolls: if the bar is too narrow it drops onto its own row inside the bar. */
 @keyframes kftStrip { from { opacity: 0; transform: translateX(6px); } to { opacity: 1; transform: none; } }
 
-html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar {
+html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-dock {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -408,15 +408,15 @@ html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar {
   gap: 8px 10px;
 }
 html .kefe-editor .kefe-work > .kefe-preview { grid-template-columns: minmax(0, 1fr); }
-html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar {
-  min-height: 44px; max-width: 100%; padding: 5px 8px; gap: 6px 8px; border-radius: 12px;
-  border: 1px solid var(--line); background: var(--surface); box-shadow: none;
+html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-dock {
+  min-height: 0; max-width: 100%; padding: 0; gap: 0; border: 0; border-radius: 0;
+  background: transparent; box-shadow: none;
 }
-html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-title { font-size: 12px; font-weight: 700; }
+html .kefe-editor .kefe-preview-dock .kefe-toolbar-title { font-size: 12px; font-weight: 700; }
 .kft-bar { border-radius: 10px; box-shadow: none; }
 .kft-main { padding: 2px; }
-html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-workspace { flex: 1 1 auto; min-width: 0; }
-html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-actions { flex: 0 1 auto; min-width: 0; gap: 6px; }
+html .kefe-editor .kefe-preview-dock .kefe-toolbar-workspace { flex: 1 1 auto; min-width: 0; }
+html .kefe-editor .kefe-preview-dock { display: flex; align-items: center; justify-content: flex-start; width: min(100%, 1280px); min-width: 0; margin: 0 auto; }
 
 /* Launcher + dock placeholder: the same 32px control as the fullscreen button next to them. */
 .kft-launch,
@@ -446,20 +446,15 @@ html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-actions { flex: 0 1 auto; 
 .kft-ghost:focus-visible { outline: 2px solid var(--kt-ring); outline-offset: 2px; }
 .kefe-floating-toolbar.is-floating .kft-launch { box-shadow: var(--kt-shadow); }
 
-/* Narrow bar (toolbar.js sets data-kft on the bar): launcher + fullscreen stay on the title row, the strip takes
-   its own full-width row below. */
-.kefe-preview-toolbar[data-kft] .kefe-toolbar-actions { display: contents; }
-.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) { display: contents; }
-.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-launch { order: 2; margin-left: 0; }
-.kefe-preview-toolbar[data-kft] .kefe-toolbar-actions > #previewFullscreen { order: 2; }
-.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-bar { order: 1; flex: 1 1 0; min-width: 0; }
-.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-main { width: 100%; justify-content: space-between; }
-.kefe-preview-toolbar[data-kft] .kft-ghost { order: 1; margin-left: auto; }
-.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-grip { display: none; }
-.kefe-preview-toolbar[data-kft="narrow"] .kefe-floating-toolbar:not(.is-floating) .kft-grip { display: none; }
-.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-cell--ratio { min-width: 32px; width: 32px; padding: 0; }
-.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-cell--ratio > span { display: none; }
-html .kefe-editor .kefe-preview-toolbar #previewFullscreen { width: 32px; min-width: 32px; height: 32px; flex-basis: 32px; }
+/* Narrow toolbar dock: launcher stays on the first row and the expanded strip takes its own row below. */
+.kefe-preview-dock[data-kft] .kefe-floating-toolbar:not(.is-floating) { display: contents; }
+.kefe-preview-dock[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-launch { order: 1; margin-left: auto; }
+.kefe-preview-dock[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-bar { order: 5; flex: 1 0 100%; }
+.kefe-preview-dock[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-main { width: 100%; justify-content: space-between; }
+.kefe-preview-dock[data-kft] .kft-ghost { order: 1; margin-left: auto; }
+.kefe-preview-dock[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-grip { display: none; }
+.kefe-preview-dock[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-cell--ratio { min-width: 32px; width: 32px; padding: 0; }
+.kefe-preview-dock[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-cell--ratio > span { display: none; }
 @media (prefers-reduced-motion: reduce) { .kft-bar { animation: none; } }
 
 /* ───────── Timeline controls: same language as the toolbar (surface, 1px border, accent fill + edge) ───────── */
