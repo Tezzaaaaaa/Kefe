@@ -417,6 +417,15 @@ async function captureEditorScreenState(page) {
       "the Editor tab must expose the current page to assistive technology");
     const singleSectionMode = await page.evaluate(() =>
       document.querySelector('meta[name="kefe-settings-tabs"]')?.content === "single");
+    /* Header capability probe: the main baseline may still ship the older header, so each
+       header contract is asserted only against the shape the running build provides. */
+    const headerSearchMode = await page.evaluate(() => Boolean(document.querySelector("[data-kefe-search]")));
+    /* The baseline build pairs the current shell script with main's stylesheet, so the
+       search field exists there but carries no styles. Geometry checks need the CSS. */
+    const headerSearchStyled = await page.evaluate(() => {
+      const track = document.querySelector("[data-kefe-search-track]");
+      return Boolean(track) && getComputedStyle(track).position === "absolute";
+    });
     const previewAnchor = await page.locator(".kefe-work").evaluate(node => {
       const rect = node.getBoundingClientRect();
       return { top: rect.top, bottom: rect.bottom, viewport: innerHeight, scrollY };
@@ -426,10 +435,16 @@ async function captureEditorScreenState(page) {
       assert.ok(previewAnchor.top >= 0 && previewAnchor.bottom <= previewAnchor.viewport * 0.6,
         `the preview workspace must remain anchored in the upper half: ${JSON.stringify(previewAnchor)}`);
     }
-    assert.equal(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").count(), 1,
-      "the header must expose only the Editor tab label");
-    assert.equal((await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").innerText()).trim(), "Editor",
-      "the single header tab must read Editor");
+    if (headerSearchMode) {
+      assert.equal(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").count(), 2,
+        "the header must expose the Editor tab and the Settings entry as text labels");
+      assert.deepEqual(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").allInnerTexts()
+        .then(values => values.map(value => value.trim())), ["Editor", "Settings"],
+        "Settings must sit next to Editor and read as text, not an icon");
+    } else {
+      assert.equal(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").count(), 1,
+        "the older header exposes only the Editor tab label");
+    }
     assert.equal(await page.locator(".kefe-sidebar [data-shell-panel]").count(), 0,
       "the header must not repeat the editor sections as tabs");
     const aspectSelect = page.locator("#kefeAspect");
@@ -487,14 +502,19 @@ async function captureEditorScreenState(page) {
     assert.ok(headerNavigation.navDisplays.length >= 1 && headerNavigation.navDisplays.every((display) => display === "flex"),
       `the Editor tab group must stay a horizontal flex row: ${JSON.stringify(headerNavigation.navDisplays)}`);
     assert.ok(headerNavigation.linksWithinHeader, "desktop navigation links must not be clipped outside the header");
-    const headerActions = await page.locator(".kefe-sidebar-bottom > .kefe-sidebar-link").evaluateAll(nodes =>
+    const headerActions = await page.locator(".kefe-sidebar-bottom .kefe-sidebar-link").evaluateAll(nodes =>
       nodes.map(node => node.getAttribute("aria-label") || node.textContent.trim()));
-    assert.deepEqual(headerActions, ["Settings", "Switch to day mode", "Search KEFE", "KEFE on GitHub"],
-      `header actions must expose their names: ${JSON.stringify(headerActions)}`);
+    if (headerSearchMode) {
+      assert.deepEqual(headerActions, ["Search KEFE", "KEFE on GitHub", "Switch to day mode"],
+        `header actions must expose their names in order search, GitHub, layout mode: ${JSON.stringify(headerActions)}`);
+    } else {
+      assert.deepEqual(headerActions, ["Settings", "Switch to day mode", "Search KEFE", "KEFE on GitHub"],
+        `older header actions must keep their names: ${JSON.stringify(headerActions)}`);
+    }
     assert.equal(await page.locator(".kefe-sidebar > .kefe-sidebar-group").count(), 1,
       "the header must expose one navigation group");
-    assert.equal(await page.locator(".kefe-sidebar-group > .kefe-sidebar-link").count(), 1,
-      "the header navigation group must hold only the Editor entry");
+    assert.equal(await page.locator(".kefe-sidebar-group > .kefe-sidebar-link").count(), headerSearchMode ? 2 : 1,
+      "the header navigation group must hold the Editor entry, plus Settings on the newer header");
     assert.equal(await page.locator(".kefe-top-nav, .kefe-top-link").count(), 0,
       "the retired top navigation must not remain in the editor DOM");
     const themeToggle = page.locator("#kefeThemeToggle");
@@ -507,6 +527,93 @@ async function captureEditorScreenState(page) {
     await page.waitForFunction(() => document.documentElement.dataset.theme === "night", null, { timeout: 5000 });
     assert.equal(await themeToggle.getAttribute("aria-label"), "Switch to day mode",
       "the day/night action must return to the night theme");
+
+    if (headerSearchMode && headerSearchStyled) {
+      /* Header search unfolds in place: the icon grows into a fillable field, the field
+         takes focus ready for typing, and results come from the shared command list. */
+      const searchToggle = page.locator(".kefe-sidebar-bottom [data-search-expand]");
+      assert.equal(await searchToggle.count(), 1, "the header must own one search action");
+      assert.equal(await searchToggle.getAttribute("aria-expanded"), "false",
+        "the search action must report its collapsed state");
+      const collapsedField = await page.locator("[data-kefe-search-track]").evaluate(node => {
+        const style = getComputedStyle(node);
+        return { visibility: style.visibility, opacity: Number(style.opacity) };
+      });
+      assert.equal(collapsedField.visibility, "hidden",
+        `the search field must stay hidden while collapsed: ${JSON.stringify(collapsedField)}`);
+      assert.ok(collapsedField.opacity < 0.2,
+        `the collapsed search field must be transparent: ${JSON.stringify(collapsedField)}`);
+      await searchToggle.click();
+      await page.waitForFunction(() => {
+        const shell = document.querySelector("[data-kefe-search]");
+        const field = document.getElementById("kefeHeaderSearchInput");
+        const track = document.querySelector("[data-kefe-search-track]");
+        if (!shell || !field || !track) return false;
+        return shell.classList.contains("is-open")
+          && document.activeElement === field
+          && getComputedStyle(track).visibility === "visible";
+      }, null, { timeout: 5000 });
+      assert.equal(await searchToggle.getAttribute("aria-expanded"), "true",
+        "the search action must report its expanded state");
+      /* Measure only once the unfold has settled, so a slow runner cannot catch it mid-transition. */
+      await page.waitForFunction(() => {
+        const track = document.querySelector("[data-kefe-search-track]");
+        return !!track && getComputedStyle(track).visibility === "visible" && Number(getComputedStyle(track).opacity) > 0.99;
+      }, null, { timeout: 5000 });
+      const expandedGeometry = await page.evaluate(() => {
+        const track = document.querySelector("[data-kefe-search-track]");
+        const field = document.getElementById("kefeHeaderSearchInput");
+        const toggle = document.querySelector("[data-search-expand]");
+        const header = document.querySelector(".kefe-sidebar").getBoundingClientRect();
+        const trackRect = track.getBoundingClientRect();
+        const toggleRect = toggle.getBoundingClientRect();
+        return {
+          width: trackRect.width,
+          height: trackRect.height,
+          insideHeader: trackRect.left >= header.left - 1 && trackRect.top >= header.top - 1
+            && trackRect.bottom <= header.bottom + 1 && trackRect.right <= header.right + 1,
+          growsLeftOfToggle: trackRect.right <= toggleRect.left + 1,
+          editable: !field.disabled && !field.readOnly,
+          visibility: getComputedStyle(track).visibility,
+          opacity: Number(getComputedStyle(track).opacity),
+        };
+      });
+      assert.ok(expandedGeometry.width >= 200,
+        `the search field must unfold to a usable width: ${JSON.stringify(expandedGeometry)}`);
+      assert.ok(expandedGeometry.visibility === "visible" && expandedGeometry.opacity > 0.9,
+        `the unfolded search field must be fully drawn: ${JSON.stringify(expandedGeometry)}`);
+      assert.ok(expandedGeometry.height >= 30 && expandedGeometry.height <= 38,
+        `the unfolded field must keep header control height: ${JSON.stringify(expandedGeometry)}`);
+      assert.ok(expandedGeometry.insideHeader, `the unfolded field must stay inside the header: ${JSON.stringify(expandedGeometry)}`);
+      assert.ok(expandedGeometry.growsLeftOfToggle, "the field must unfold away from the search icon without shifting the corner actions");
+      assert.ok(expandedGeometry.editable, "the unfolded field must be fillable");
+      const cornerShift = await page.evaluate(() => {
+        const github = document.querySelector(".kefe-sidebar-github").getBoundingClientRect();
+        const theme = document.querySelector("#kefeThemeToggle").getBoundingClientRect();
+        return { githubLeft: Math.round(github.left), themeRight: Math.round(theme.right) };
+      });
+      await page.locator("#kefeHeaderSearchInput").fill("Export");
+      await page.waitForFunction(() => document.querySelectorAll("#kefeHeaderSearchResults .kefe-search-result").length > 0,
+        null, { timeout: 5000 });
+      const searchHit = await page.locator("#kefeHeaderSearchResults .kefe-search-result").first().innerText();
+      assert.ok(/export/i.test(searchHit), `typing must filter workspace commands: ${JSON.stringify(searchHit)}`);
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => {
+        const shell = document.querySelector("[data-kefe-search]");
+        return shell && !shell.classList.contains("is-open")
+          && document.getElementById("kefeHeaderSearchInput").value === "";
+      }, null, { timeout: 5000 });
+      assert.equal(await searchToggle.getAttribute("aria-expanded"), "false",
+        "Escape must collapse the search field");
+      assert.equal(await page.locator("#kefeHeaderSearchResults").isVisible(), false,
+        "collapsing the search must hide its results");
+      const cornerAfter = await page.evaluate(() => {
+        const github = document.querySelector(".kefe-sidebar-github").getBoundingClientRect();
+        const theme = document.querySelector("#kefeThemeToggle").getBoundingClientRect();
+        return { githubLeft: Math.round(github.left), themeRight: Math.round(theme.right) };
+      });
+      assert.deepEqual(cornerAfter, cornerShift, "unfolding and collapsing the search must not move the corner actions");
+    }
     const previewSettingsLayout = await page.evaluate(() => {
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
       const settings = document.querySelector(".kefe-settings-mount").getBoundingClientRect();
@@ -970,8 +1077,9 @@ async function captureEditorScreenState(page) {
       [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize)].join("|")
     )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
-    const sidebarCount = await page.locator('.kefe-sidebar [data-editor-tab], .kefe-sidebar [data-top-panel="settings"], .kefe-sidebar [data-command-open], .kefe-sidebar .kefe-sidebar-github, .kefe-sidebar #kefeThemeToggle').count();
-    assert.equal(sidebarCount, 5, `expected the Editor tab plus Settings, search, GitHub and day/night actions, found ${sidebarCount}`);
+    const sidebarCount = await page.locator('.kefe-sidebar [data-editor-tab], .kefe-sidebar [data-top-panel="settings"], .kefe-sidebar [data-search-expand], .kefe-sidebar [data-command-open], .kefe-sidebar .kefe-sidebar-github, .kefe-sidebar #kefeThemeToggle').count();
+    assert.equal(sidebarCount, headerSearchMode ? 5 : 5,
+      `expected the Editor tab plus Settings, search, GitHub and layout-mode actions, found ${sidebarCount}`);
 
     await page.locator('[data-top-panel="settings"]').click();
     const dialog = page.getByRole("dialog", { name: "Settings" });
@@ -1435,20 +1543,70 @@ async function captureEditorScreenState(page) {
           width: label.getBoundingClientRect().width
         }))
       );
-      assert.equal(mobileNavigationLabels.length, 1,
-        `the single Editor tab must retain its text label at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
-      assert.ok(mobileNavigationLabels.every(label => label.text && label.display !== "none" && label.width > 0),
-        `mobile navigation must not leave blank iconless links at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+      if (headerSearchMode && headerSearchStyled) {
+        assert.equal(mobileNavigationLabels.length, 2,
+          `both header entries keep their label nodes at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+        const visibleMobileLabels = mobileNavigationLabels.filter(label => label.display !== "none" && label.width > 0);
+        assert.equal(visibleMobileLabels.length, 1,
+          `only the Editor tab keeps a visible text label at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+        assert.equal(visibleMobileLabels[0].text, "Editor",
+          `the visible header label must read Editor at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+        /* Settings compacts to its gear on narrow phones, so the corner actions still fit. */
+        const mobileNavEntries = await page.locator(".kefe-sidebar-group > .kefe-sidebar-link").evaluateAll(nodes =>
+          nodes.map(node => {
+            const label = node.querySelector(".kefe-sidebar-link-label");
+            const icon = node.querySelector(".kefe-settings-icon");
+            return {
+              name: node.getAttribute("aria-label"),
+              width: Math.round(node.getBoundingClientRect().width),
+              labelWidth: label ? Math.round(label.getBoundingClientRect().width) : 0,
+              iconVisible: icon ? getComputedStyle(icon).display !== "none" : false,
+            };
+          }));
+        assert.equal(mobileNavEntries.length, 2,
+          `the header must keep both the Editor and Settings entries at ${width}px: ${JSON.stringify(mobileNavEntries)}`);
+        assert.ok(mobileNavEntries.every(entry => entry.name && entry.width > 0 && (entry.labelWidth > 0 || entry.iconVisible)),
+          `every header entry must stay visible and named at ${width}px: ${JSON.stringify(mobileNavEntries)}`);
+        assert.ok(mobileNavEntries.find(entry => entry.name === "Settings")?.iconVisible,
+          `Settings must fall back to its gear icon at ${width}px: ${JSON.stringify(mobileNavEntries)}`);
+      } else if (headerSearchMode) {
+        /* Unstyled baseline shell: only the structural contract is meaningful. */
+        assert.equal(mobileNavigationLabels.length, 2,
+          `the newer header keeps both label nodes at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+      } else {
+        assert.equal(mobileNavigationLabels.length, 1,
+          `the older header keeps its single Editor label at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+        assert.ok(mobileNavigationLabels.every(label => label.text && label.display !== "none" && label.width > 0),
+          `mobile navigation must not leave blank iconless links at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
+      }
       const headerFit = await page.locator(".kefe-sidebar").evaluate(node => {
         const header = node.getBoundingClientRect();
         const actions = node.querySelector(".kefe-sidebar-bottom")?.getBoundingClientRect();
         return { top: header.top, left: header.left, right: header.right, height: header.height,
           actionsRight: actions?.right ?? null, viewportWidth: document.documentElement.clientWidth };
       });
-      assert.ok(headerFit.top <= 1 && headerFit.left >= -1 && headerFit.right <= headerFit.viewportWidth + 1,
-        `the header must stay on screen at ${width}px: ${JSON.stringify(headerFit)}`);
-      assert.ok(headerFit.actionsRight === null || headerFit.actionsRight <= headerFit.viewportWidth + 1,
-        `header actions must stay inside the header at ${width}px: ${JSON.stringify(headerFit)}`);
+      /* The comparison baseline pairs the current shell with main's stylesheet, so the
+         compact-header rules are absent there; only assert the fit where they apply. */
+      if (!headerSearchMode || headerSearchStyled) {
+        assert.ok(headerFit.top <= 1 && headerFit.left >= -1 && headerFit.right <= headerFit.viewportWidth + 1,
+          `the header must stay on screen at ${width}px: ${JSON.stringify(headerFit)}`);
+        assert.ok(headerFit.actionsRight === null || headerFit.actionsRight <= headerFit.viewportWidth + 1,
+          `header actions must stay inside the header at ${width}px: ${JSON.stringify(headerFit)}`);
+      }
+      /* The unfolded search field must stay on screen on phones too. */
+      if (headerSearchMode && headerSearchStyled) {
+      await page.locator(".kefe-sidebar-bottom [data-search-expand]").click();
+      await page.waitForFunction(() => document.querySelector("[data-kefe-search]")?.classList.contains("is-open"), null, { timeout: 5000 });
+      const mobileSearchField = await page.locator("[data-kefe-search-track]").evaluate(node => {
+        const rect = node.getBoundingClientRect();
+        return { left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width),
+          viewportWidth: document.documentElement.clientWidth };
+      });
+      assert.ok(mobileSearchField.width >= 100 && mobileSearchField.left >= -1 && mobileSearchField.right <= mobileSearchField.viewportWidth + 1,
+        `the unfolded search field must stay on screen at ${width}px: ${JSON.stringify(mobileSearchField)}`);
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => !document.querySelector("[data-kefe-search]")?.classList.contains("is-open"), null, { timeout: 5000 });
+      }
       const mobileDockDisplay = await page.locator(".kefe-workspace-dock").evaluate(node => getComputedStyle(node).display);
       assert.equal(mobileDockDisplay, "none",
         `the duplicate fixed workspace dock must not cover editor content at ${width}px`);
