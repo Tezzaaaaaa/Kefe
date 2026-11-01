@@ -1143,6 +1143,13 @@ async function captureEditorScreenState(page) {
     assert.ok(featureSwitchAudit.every(item => item.featureSwitchInline),
       "existing feature switches must remain beside their section controls");
 
+    const justifiedCopyAudit = await page.evaluate(() => [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view] :is(.kefe-meta, p, .kefe-upload-help, .kefe-empty-panel)")]
+      .filter(node => getComputedStyle(node).display !== "none" && node.getClientRects().length)
+      .map(node => ({ text: node.textContent.trim().slice(0, 60), align: getComputedStyle(node).textAlign })));
+    assert.ok(justifiedCopyAudit.length > 0, "at least one section body copy block must be visible for the justification audit");
+    assert.ok(justifiedCopyAudit.every(item => item.align === "justify"),
+      `section body copy must use true justification: ${JSON.stringify(justifiedCopyAudit)}`);
+
     const uniformHeaderGeometry = await page.evaluate(() => [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")].map(section => {
       const title = section.querySelector(".section-heading");
       const info = section.querySelector(".info-button");

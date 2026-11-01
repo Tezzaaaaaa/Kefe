@@ -67,7 +67,7 @@ function initDesktopPanels() {
       info.setAttribute('aria-describedby', description.id);
       info.dataset.tooltip = description.textContent.trim() || defaults[key] || ('Information about ' + heading.textContent.trim() + '.');
       info.innerHTML = window.kefeIcon ? window.kefeIcon('help') : '<span data-kefe-icon="help" aria-hidden="true"></span>';
-      titleGroup.appendChild(info);
+      row.appendChild(info);
       row.appendChild(description);
     }
     if (oldHeadingGroup && !oldHeadingGroup.children.length) oldHeadingGroup.remove();
