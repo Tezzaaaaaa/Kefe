@@ -821,25 +821,6 @@
   window.addEventListener('resize', () => { if (floating) placeFloating(); queueMount(); });
   document.addEventListener('fullscreenchange', queueMount);
   new MutationObserver(queueMount).observe(stage, { attributes: true, attributeFilter: ['class'] });
-  // The bar's height changes when the strip wraps; keep the preview stage fitted to what is left.
-  // Width flag for the stacked layout (strip on its own row). Measured from the pane, not the bar, so it cannot feed back.
-  const flagWidth = () => {
-    const barEl = bareBar(); if (!barEl) return;
-    const w = (barEl.parentElement || barEl).clientWidth;
-    const next = w <= 360 ? 'tight' : w <= 540 ? 'narrow' : '';
-    if (next) barEl.setAttribute('data-kft', next); else barEl.removeAttribute('data-kft');
-  };
-  flagWidth();
-  if (window.ResizeObserver) {
-    const barEl = bareBar();
-    if (barEl) {
-      // Toolbar wrapping changes only the preview's available height; do not
-      // broadcast a global viewport resize to every editor subsystem.
-      new ResizeObserver(() => window.dispatchEvent(new Event('kefe-preview-fit'))).observe(barEl);
-      if (barEl.parentElement) new ResizeObserver(flagWidth).observe(barEl.parentElement);
-    }
-  }
-
   /* ───────── Undo / redo (toolbar-level history of look & canvas settings) ───────── */
   const hist = { past: [], future: [], last: null, busy: false, timer: 0 };
   const snap = () => ({
