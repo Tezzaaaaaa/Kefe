@@ -324,7 +324,7 @@ async function captureEditorScreenState(page) {
       && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.editor.top - 2
       && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.editor.bottom + 8,
       `toolbar must be docked immediately to the right of Editor: ${JSON.stringify(initialToolbarPlacement)}`);
-    const desktopViewport = page.viewportSize();
+
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
@@ -491,7 +491,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-sidebar [data-shell-panel]").count(), 0,
       "the header must not repeat the editor sections as tabs");
     const aspectSelect = page.locator("#kefeAspect");
-    assert.equal(await page.locator(":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview-bar ratio wrapper must remain hidden");
+    assert.equal(await page.locator(".kefe-sidebar-group-editor .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview-bar ratio wrapper must remain hidden");
     const canvasButton = quickToolbar.locator(".kft-cell--ratio");
     assert.equal(await canvasButton.getAttribute("aria-label"), "Canvas, background and visualiser", "the Canvas ratio control must remain available in the floating toolbar");
     await canvasButton.click();
@@ -851,7 +851,7 @@ async function captureEditorScreenState(page) {
     assert.equal(nativeSelectState.visible.length, 4, `the preview, font and export selects must remain present: ${JSON.stringify(nativeSelectState)}`);
     const [aspectNative] = nativeSelectState.visible;
     assert.ok(aspectNative && !aspectNative.nextHost && aspectNative.tabIndex === -1
-      && await page.locator(":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
+      && await page.locator(".kefe-sidebar-group-editor .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
       `the native aspect backing select must stay out of the preview bar and tab order while the floating toolbar controls it: ${JSON.stringify(nativeSelectState)}`);
     // The font and export selects are presented through the shadcn-style dropdown trigger that follows them
     // (a real, focusable <button aria-haspopup="menu">); the native select stays as the value source.
