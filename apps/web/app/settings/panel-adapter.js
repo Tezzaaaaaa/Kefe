@@ -3,8 +3,8 @@
 
   const scriptSrc = document.currentScript && document.currentScript.src;
   const MARKUP_URL = scriptSrc
-    ? new URL('./panel.html?v=settings-panel-layout-20261030-1', scriptSrc)
-    : new URL('./app/settings/panel.html?v=settings-panel-layout-20261030-1', window.location.href);
+    ? new URL('./panel.html?v=settings-panel-cleanup-20261101-1', scriptSrc)
+    : new URL('./app/settings/panel.html?v=settings-panel-cleanup-20261101-1', window.location.href);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
     'lyric-sync': 'lyrics',

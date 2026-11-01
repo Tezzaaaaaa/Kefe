@@ -1,13 +1,13 @@
 # beUI source attribution
 
-The range slider, motion button, switch, Select, Tabs, Card, and supporting utility source retained in this directory are adapted from the public beUI component source:
+The range slider, switch, select, tabs, dialog, command palette, and supporting utility patterns retained in this directory are adapted from the public beUI component source:
 
 - Public library: https://beui.dev/
 - Component source pages: https://beui.dev/components/motion/range-slider, https://beui.dev/components/motion/button, https://beui.dev/components/motion/switch, https://beui.dev/components/motion/select, https://beui.dev/components/motion/tabs, https://beui.dev/components/motion/bouncy-accordion, https://beui.dev/components/motion/card
 - Public source repository: https://github.com/starc007/ui-components
 - Copied components: `components/motion/range-slider.tsx`, `components/motion/button/base.tsx`, `components/motion/switch.tsx`, `components/motion/select.tsx`, `components/motion/tabs.tsx`, `components/motion/bouncy-accordion.tsx`, and `components/motion/card.tsx`
 - Shared source: `lib/hooks/use-slider.ts`, `lib/hooks/use-hover-capable.ts`, `lib/touch.ts`, `lib/ease.ts`, and `lib/utils.ts`
-- Import paths were adapted from `motion/react` to the workspace-compatible `framer-motion` package.
+- KEFE's copies are reimplemented in plain JavaScript and CSS; no React, Motion or Framer Motion runtime is bundled.
 - Upstream copyright: Copyright (c) 2026 Saurabh Chauhan
 - License: MIT
 

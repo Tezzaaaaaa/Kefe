@@ -34,8 +34,8 @@ Users load their own audio/video and export lyric videos. Copyright in the music
 
 ## 4. Trademarks and brand references
 
-Effect labels and descriptions name third-party brands: "Apple" (Apple Music-style), "Instagram" (Story-style), "Barbie", "Brat" (album-cover style), plus SF Pro Display as a system-font fallback. Risks are low if the effects are original code that only evoke a style, but:
-- Rename or soften brand names in the UI (for example "Focus Lines", "Story Stack", "Pink Glow", "Edge Type").
+Effect labels and descriptions name third-party brands. The 2026-11-01 cleanup removed the legacy Instagram, Barbie and Brat renderers, leaving "Apple" as the only brand-named effect, plus SF Pro Display as a system-font fallback. Risks are low if the effects are original code that only evoke a style, but:
+- Consider renaming or softening the remaining "Apple" label (for example "Music Player") if trademark exposure matters.
 - Do not use brand logos or imply affiliation. Add a non-affiliation line to the footer/terms (drafted).
 - Check that no effect copies trade dress, fonts that are not licensed, or protected artwork.
 
@@ -44,22 +44,19 @@ Effect labels and descriptions name third-party brands: "Apple" (Apple Music-sty
 KEFE runs in the browser. Data leaves the device only through these requests, which the privacy policy discloses:
 - iTunes Search (search text)
 - LRCLIB (title, artist, album, duration)
-- Google Fonts (`fonts.googleapis.com`), only when a user picks a custom Google font (`lyric-inspiration-pack.js`)
-- jsDelivr, on every editor load: `gif.js` (`editor.html`) and `@uimaxbai/am-lyrics` (`editor.js`, the Apple-style lyric component). These run third-party code in the page from a CDN. Pin versions and add Subresource Integrity, or bundle them. I have not verified what `am-lyrics` requests over the network (likely lyrics for the current track); check before publishing the privacy policy.
+- jsDelivr and Hugging Face, only when the user presses **Auto-sync**: the Transformers.js library and a Whisper speech model are downloaded. Audio decoding and inference run locally and the audio is not uploaded.
 - GitHub Pages hosting (visitor IP, logged by GitHub)
-- AudD song recognition, only when the operator sets `KEFE_AUDIO_RECOGNITION_*`. This uploads the user's audio file to a third party. Do not enable it without a consent prompt, and prefer a server-side proxy so the API token is not in the page.
+- AudD song recognition, only when the operator sets `KEFE_AUDIO_RECOGNITION_*` and a user uploads an audio file up to 10 MB. This uploads the user's audio file to a third party. Do not enable it without a consent prompt, and prefer a server-side proxy so the API token is not in the page.
 
-Local storage holds editor settings only. No analytics, cookies or accounts today.
-
-To reduce exposure: bundle `gif.js` and `am-lyrics` instead of loading them from jsDelivr, and either bundle the custom Google fonts or drop the "custom Google font" option.
+Local storage holds editor settings only. No analytics, cookies or accounts today. The Apple lyric effect is now rendered entirely by KEFE canvas code; the `am-lyrics` CDN component, gif.js and Google Fonts were removed in the 2026-11-01 cleanup, so no third-party code loads on startup.
 
 When accounts and billing arrive (`apps/api`, `packages/db`, Stripe packages in the workspace config) these become required: privacy policy update, Australian Privacy Act and APPs if turnover or data handling triggers it (the small-business exemption has limits), GDPR/UK GDPR and CCPA for overseas users, a data-deletion path, a payments processor agreement, refund policy under Australian Consumer Law, and GST/ABN details on invoices.
 
 ## 6. Licences and notices
 
 - `LICENSE` is MIT for KEFE-authored code. Fine.
-- `THIRD_PARTY_NOTICES.md` says Three.js is loaded from jsDelivr, but `editor.html` does not load Three.js. The libraries actually loaded from jsDelivr are `gif.js@0.2.0` and `@uimaxbai/am-lyrics`; neither is listed. Fix the notice and add their licences (confirm each licence from the packages; I have not).
-- `THIRD_PARTY_NOTICES.md` lists 17 bundled Google fonts with OFL/Apache licence files, plus Three.js. Checked: every one of the 17 has its licence file in its font directory. Good.
+- `THIRD_PARTY_NOTICES.md` is current: the stale Three.js entry was removed, and Transformers.js (Apache-2.0) plus its Hugging Face speech model are documented as optional Auto-sync downloads. No gif.js or `am-lyrics` code remains.
+- `THIRD_PARTY_NOTICES.md` lists 17 bundled Google fonts with OFL/Apache licence files. Checked: every one of the 17 has its licence file in its font directory. Good.
 - The six "KEFE original merged fonts" (AuraSerif, BlockParty, Boulder, BubblegumDisplay, Kefe Tracklist Cursive, VogueNoir) are the real gap. Their `LICENSE.txt` files and `fonts/CUSTOM-FONTS-LICENSE.md` do not name the two source fonts each was built from, and none contains a Reserved Font Name statement. Under the OFL, a modified font must keep the original copyright notices, stay under the OFL, and not use a Reserved Font Name. Fix: record the two source fonts, their licences and copyright lines for each merged font, check Reserved Font Names, and rename or drop any that cannot be shipped. This needs your original build notes; I can't derive them from the font files with certainty.
 - iOS app: Apple developer terms, App Store review (hosted-web-wrapper apps can be rejected under guideline 4.2), and Live Activity usage need review before distribution.
 - PWA (PR #55): no new licensing impact; icons are derived from the KEFE logo.

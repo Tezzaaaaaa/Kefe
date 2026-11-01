@@ -30,13 +30,29 @@ jobs:
             exit 1
           fi
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the production editor
+        run: pnpm --filter @kefe/web build
+
       - name: Assemble browser app package
         env:
           RELEASE_VERSION: ${{ inputs.version }}
         run: |
           set -eu
+          test -s apps/web/dist-beui/editor.html
           mkdir -p dist/kefe-visualiser
-          cp -R apps/web/. dist/kefe-visualiser/
+          cp -R apps/web/dist-beui/. dist/kefe-visualiser/
           cp README.md LICENSE THIRD_PARTY_NOTICES.md dist/kefe-visualiser/
           printf '%s\n' "$RELEASE_VERSION" > dist/kefe-visualiser/VERSION
           cd dist

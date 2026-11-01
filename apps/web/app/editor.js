@@ -137,7 +137,7 @@
   const video=document.createElement('video');
   video.preload='metadata'; video.muted=true; video.playsInline=true; video.style.display='none'; document.body.appendChild(video);
   window.kefeGetProjectVideo=()=>video;
-  let mediaObjectUrl=''; let embeddedArtworkObjectUrl=''; let visualiserPreset='none',visualiserBackground='black',visualiserMotion='reactive';
+  let mediaObjectUrl=''; let embeddedArtworkObjectUrl='';
   let previewAspectRatio='16:9';
   let titleArtImage=null,titleCardShownFor='';
   let titleArtworkRequest=0,titleArtworkTimer=null;
@@ -145,24 +145,6 @@
   window.kefeGetAlbumArt=()=>titleArtImage;
   const songTitle=document.getElementById('songTitle'),songArtist=document.getElementById('songArtist'),songAlbum=document.getElementById('songAlbum'),songYear=document.getElementById('songYear');
   const previewStage=document.querySelector('.kefe-stage');
-  const appleLyrics=document.createElement('am-lyrics');
-  appleLyrics.id='kefeAppleLyrics';
-  appleLyrics.setAttribute('highlight-color','#fff');
-  appleLyrics.setAttribute('font-family',"'Inter', Arial, sans-serif");
-  appleLyrics.setAttribute('autoscroll','');
-  previewStage.appendChild(appleLyrics);
-  let appleLyricsReady=false;
-  import('https://cdn.jsdelivr.net/npm/@uimaxbai/am-lyrics@1.8.2/dist/src/am-lyrics.min.js').then(()=>{
-    appleLyricsReady=true;
-    syncAppleLyricsMetadata();
-    draw();
-  }).catch(error=>console.warn('[KEFE am-lyrics]',error));
-  appleLyrics.addEventListener('line-click',event=>{
-    const timestamp=Number(event.detail?.timestamp);
-    if(!Number.isFinite(timestamp)||!audio.src)return;
-    audio.currentTime=Math.max(0,timestamp/1000);
-    audio.play().catch(()=>{});
-  });
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead');
   const lyricsTiming=document.getElementById('lyricsTiming'),lyricsTimingValue=document.getElementById('lyricsTimingValue'),lyricsTimingEarlier=document.getElementById('lyricsTimingEarlier'),lyricsTimingLater=document.getElementById('lyricsTimingLater'),lyricsTimingReset=document.getElementById('lyricsTimingReset');
 
@@ -183,7 +165,7 @@
         if(!songAlbum.dataset.embeddedArtUrl)return;
         if(event.target.checked){songAlbum.dataset.artUrl=songAlbum.dataset.embeddedArtUrl;}
         else{delete songAlbum.dataset.artUrl;}
-        updateTitleCard();applyAppleAlbumGradient();
+        updateTitleCard();
         if(!event.target.checked)scheduleTitleArtworkLookup();
       });
     }
@@ -220,19 +202,6 @@
     }
     track.hidden=!song;
     const suggestions=document.getElementById('kefeSuggestions');
-    const suggestionArt=document.getElementById('kefeSuggestionArt');
-    if(suggestionArt){
-      suggestionArt.innerHTML='';
-      if(cover){
-        const image=document.createElement('img');
-        image.src=cover;
-        image.alt='';
-        suggestionArt.appendChild(image);
-        suggestionArt.style.display='block';
-      }else{
-        suggestionArt.style.display='none';
-      }
-    }
     if(suggestions)suggestions.hidden=!song;
   }
   function applyPickedTrack(item){
@@ -249,8 +218,6 @@
     updateMediaTrack();
     updateTitleCard();
     if(!songAlbum.dataset.artUrl)scheduleTitleArtworkLookup();
-    applyAppleAlbumGradient();
-    syncAppleLyricsMetadata();
     clearManualNotice();
     const panel=document.getElementById('kefeSuggestions'),list=document.getElementById('kefeSuggestionList');
     if(panel)panel.hidden=true;
@@ -270,7 +237,7 @@
     if(mediaTrack)mediaTrack.classList.remove('is-identified');
     updateMediaTrack();updateTitleCard();
     if(!songAlbum.dataset.artUrl)scheduleTitleArtworkLookup();
-    applyAppleAlbumGradient();syncAppleLyricsMetadata();clearManualNotice();
+    clearManualNotice();
     if(songTitle.value.trim()&&songArtist.value.trim())return loadAutomaticLyrics();
   };
   function renderSongSuggestions(results,opts={}){
@@ -279,8 +246,6 @@
     const status=document.getElementById('kefeSuggestionsStatus');
     if(!panel||!list||!status)return;
     list.innerHTML='';
-    const currentTitle=songTitle.value.trim().toLowerCase();
-    const currentArtist=songArtist.value.trim().toLowerCase();
     const items=Array.isArray(results)?results:[];
     const message=opts.statusMessage||(opts.excludeCurrent?(items.length?'Other matches':'No other matches'):(items.length?'Select the correct song':'No matches found'));
     status.textContent=message;
@@ -392,7 +357,6 @@
     if(!best?.artworkUrl100)return false;
     songAlbum.dataset.artUrl=normalizeArtworkUrl(best.artworkUrl100);
     updateTitleCard();
-    applyAppleAlbumGradient();
     return true;
   }
   function clearTitleArtwork(){
@@ -402,21 +366,6 @@
     delete songAlbum.dataset.artUrl;
     titleArtImage=null;
     updateTitleCard();
-  }
-  function applyAppleAlbumGradient(){
-    const appleLyrics=document.getElementById('kefeAppleLyrics'),artUrl=songAlbum?.dataset.artUrl;
-    if(!appleLyrics||!artUrl)return;
-    const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{try{
-      const sample=document.createElement('canvas'),size=40,ctx2=sample.getContext('2d',{willReadFrequently:true});sample.width=size;sample.height=size;ctx2.drawImage(img,0,0,size,size);
-      const data=ctx2.getImageData(0,0,size,size).data,points=[];
-      for(let i=0;i<data.length;i+=4){const r=data[i],g=data[i+1],b=data[i+2],a=data[i+3],max=Math.max(r,g,b),min=Math.min(r,g,b);if(a>180&&max>22)points.push([r,g,b]);}
-      if(!points.length)return;
-      const seeds=[[0,0,0],[0,0,0],[0,0,0]],groups=[[],[],[]];
-      points.forEach((p,i)=>{let best=0,bestDistance=Infinity;for(let j=0;j<seeds.length;j++){const d=(p[0]-seeds[j][0])**2+(p[1]-seeds[j][1])**2+(p[2]-seeds[j][2])**2;if(d<bestDistance){bestDistance=d;best=j;}}groups[best].push(p);});
-      points.slice(0,Math.min(points.length,600)).forEach((p,i)=>{const j=i%3;seeds[j]=seeds[j].map((v,k)=>Math.round((v*(groups[j].length||1)+p[k])/(groups[j].length+1)));});
-      const color=group=>{const source=group.length?group:points;let r=0,g=0,b=0;source.forEach(p=>{r+=p[0];g+=p[1];b+=p[2]});r/=source.length;g/=source.length;b/=source.length;const max=Math.max(r,g,b),min=Math.min(r,g,b),boost=max-min<28?1.35:1.12;const lift=v=>Math.min(255,Math.max(12,Math.round(v*.62*boost+18)));return 'rgb('+lift(r)+','+lift(g)+','+lift(b)+')';};
-      appleLyrics.style.setProperty('--kefe-album-a',color(groups[0]));appleLyrics.style.setProperty('--kefe-album-b',color(groups[1]));appleLyrics.style.setProperty('--kefe-album-c',color(groups[2]));
-    }catch(err){console.warn('[KEFE album gradient]',err);}};img.src=artUrl;
   }
   function showTitleCard(){
     if(!audio.src)return;updateTitleCard();titleCardShownFor=mediaObjectUrl;draw();
@@ -442,19 +391,11 @@
     publishKefeLockScreen('update');
     draw();
   }
-  function lyricsToTtml(lines){
-    const escapeXml=value=>String(value||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
-    const time=value=>Math.max(0,Number(value)||0).toFixed(3);
-    const body=lines.map(line=>'<p begin="'+time(line.time)+'s" end="'+time(line.endTime)+'s">'+escapeXml(line.text)+'</p>').join('');
-    return '<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:itunes="http://music.apple.com/lyric-ttml-internal" xmlns:amll="http://www.example.com/ns/amll" itunes:timing="Line"><head><metadata><amll:meta key="musicName" value="'+escapeXml(songTitle.value.trim())+'"/><amll:meta key="artists" value="'+escapeXml(songArtist.value.trim())+'"/><amll:meta key="album" value="'+escapeXml(songAlbum.value.trim())+'"/></metadata></head><body><div>'+body+'</div></body></tt>';
-  }
   function currentStyle(){
     const contract=window.KEFE_TYPE?.effects?.[state.effect]||{};
     return {
       effect:state.effect,
-      // BRAT EFFECT — HOST INTEGRATION
-      bratMode:readEffectDefaults().brat?.mode||'green',
-      fontSize:Math.min(canvas.width,canvas.height)*.13,textColor:state.effect==='brat'?'#000000':'#fff',accentColor:state.effect==='decrypt'?'#58E6D4':'#ef3f38',
+      fontSize:Math.min(canvas.width,canvas.height)*.13,textColor:'#fff',accentColor:'#ef3f38',
       flipcardsColor:'#fff',flipcardsAccent:'rgba(255,255,255,.25)',kefeMotionFont:state.fontOverride||contract.family||'Open Sans'
     };
   }
@@ -617,11 +558,6 @@
   function draw(){
     const W=canvas.width,H=canvas.height;
     ctx.clearRect(0,0,W,H);
-    // BRAT EFFECT — HOST INTEGRATION
-    if(state.effect==='brat'&&(readEffectDefaults().brat?.mode||'green')==='green'){
-      ctx.fillStyle='#8ACE00';
-      ctx.fillRect(0,0,W,H);
-    }
     // Keep all rendered lyrics and title-card text inside an invisible 5% safe margin,
     // matching the inset content area used by standard document/presentation layouts.
     const safeX=Math.round(W*.05),safeY=Math.round(H*.05);
@@ -631,15 +567,7 @@
     ctx.clip();
     // The WebGL visualiser is the background; this canvas only composites lyrics/title card.
     const ph=titlePhase(state.time);
-    const useAppleComponent=false;
-    if(appleLyrics){
-      const lyricsTop=Math.max(32,H*.07)+Math.min(W,H)*.173;
-      appleLyrics.style.setProperty('--kefe-apple-lyrics-top',`${Math.min(0.92,lyricsTop/H)*100}%`);
-      const hasTrack=!!(songTitle.value.trim()||songArtist.value.trim()||state.lines.length);
-      appleLyrics.style.display=lyricsEnabled&&useAppleComponent&&hasTrack&&(ph.mode==='header'||ph.mode==='off')?'block':'none';
-      if(appleLyricsReady)appleLyrics.currentTime=Math.round(((Number(state.time)||0)-lyricOffset())*1000);
-    }
-    if(lyricsEnabled&&state.effect!=='none'&&state.lines.length&&!useAppleComponent&&(state.effect!=='apple'||ph.mode==='header'||ph.mode==='move'||ph.mode==='off')){
+    if(lyricsEnabled&&state.effect!=='none'&&state.lines.length&&(state.effect!=='apple'||ph.mode==='header'||ph.mode==='move'||ph.mode==='off')){
       const fn=window.kefeEffects[state.effect];
       if(typeof fn==='function'){
         try{
@@ -649,8 +577,6 @@
           const shown=studio?studio.shape(state.lines,state.effect):state.lines;
           const style=styler?styler.style(currentStyle()):currentStyle();
           const paintEffect=g=>{
-            if(state.effect!=='apple'){fn(g,W,H,style,shown,effT,titleArtImage);return;}
-            const aspect=W/Math.max(1,H);
             fn(g,W,H,style,shown,effT,titleArtImage);
           };
           // Apple lyrics scroll beneath the pinned title-card header; other effects use the full canvas.
@@ -776,8 +702,6 @@
   function setEffect(id){
     state.effect=id;
     applyEffectDefault(id);
-    if(typeof syncKaraokeControls==='function')syncKaraokeControls();
-    if(appleLyrics){if(id==='apple'){applyAppleAlbumGradient();syncAppleLyricsMetadata();}else appleLyrics.style.display='none';}
     document.querySelectorAll('.kefe-lyric-effect-option').forEach(b=>{const active=b.dataset.effect===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
@@ -812,48 +736,6 @@
   lyricsEnabledToggle?.addEventListener('click',()=>{lyricsEnabled=!lyricsEnabled;syncLyricsEnabledToggle();draw();});
   syncLyricsEnabledToggle();
 
-  // BRAT EFFECT — HOST INTEGRATION
-  const bratModeControl=document.createElement('div');
-  bratModeControl.className='kefe-visualiser-spin-row';
-  const bratModeLabel=document.createElement('span');
-  bratModeLabel.className='kefe-label';
-  bratModeLabel.textContent='Brat background';
-  const bratModeButton=document.createElement('button');
-  bratModeButton.type='button';
-  bratModeButton.className='kefe-btn kefe-switch';
-  bratModeButton.setAttribute('role','switch');
-  const bratModeState=document.createElement('span');
-  bratModeState.className='kefe-switch-state';
-  const bratModeTrack=document.createElement('span');
-  bratModeTrack.className='kefe-switch-track';
-  bratModeTrack.setAttribute('aria-hidden','true');
-  const bratModeThumb=document.createElement('span');
-  bratModeThumb.className='kefe-switch-thumb';
-  bratModeTrack.appendChild(bratModeThumb);
-  bratModeButton.append(bratModeState,bratModeTrack);
-  bratModeControl.append(bratModeLabel,bratModeButton);
-  function syncBratModeControl(){
-    const mode=readEffectDefaults().brat?.mode||'green';
-    const green=mode==='green';
-    bratModeControl.hidden=state.effect!=='brat';
-    bratModeState.textContent=green?'Green':'Transparent';
-    bratModeButton.setAttribute('aria-label','Brat background mode');
-    bratModeButton.setAttribute('aria-checked',String(green));
-    bratModeButton.classList.toggle('is-on',green);
-    bratModeButton.title=green?'Switch to transparent mode':'Switch to green mode';
-  }
-  bratModeButton.addEventListener('click',()=>{
-    const defaults=readEffectDefaults();
-    const brat=defaults.brat&&typeof defaults.brat==='object'?defaults.brat:{};
-    defaults.brat={...brat,mode:(brat.mode||'green')==='green'?'transparent':'green'};
-    try{localStorage.setItem(effectDefaultsKey,JSON.stringify(defaults));}catch(_){}
-    syncBratModeControl();
-    draw();
-    window.dispatchEvent(new CustomEvent('kefe-effect-change',{detail:{effect:state.effect}}));
-  });
-  lyricEffectOptions.parentNode.insertBefore(bratModeControl,lyricEffectOptions.nextSibling);
-  window.addEventListener('kefe-effect-change',syncBratModeControl);
-  syncBratModeControl();
 
   effectDefinitions.filter(([id])=>id!=='karaoke'&&id!=='bounce').forEach(([id,label])=>addLyricEffectOption(id,label));
 
@@ -1105,7 +987,6 @@
     state.time=0;
     range.value='0';
     updateTime();
-    syncAppleLyrics(true);
     draw();
     updatePlayButton();
   });
@@ -1379,7 +1260,7 @@
     previewStage.classList.remove('is-empty');
     const status=document.getElementById('kefeLyricsStatus');
     if(status)status.textContent=source;
-    syncAppleLyricsMetadata();draw();syncAppleLyrics(true);showTitleCard();
+    draw();showTitleCard();
     window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:'load'}}));
     return true;
   }
@@ -1830,34 +1711,11 @@
       range.max=String(Number.isFinite(audio.duration)&&audio.duration>0?audio.duration:30);timeEnd.textContent=fmt(Number(range.max));updateTime();
       identifyAndLoadTrack(file);
     });
-    updateTitleCard();syncAppleLyricsMetadata();
+    updateTitleCard();
     queueMicrotask(()=>{e.target.value='';});
   });
 
   // Keep the earlier async play handler; it resumes suspended audio and reports playback errors.
-  function syncAppleLyricsMetadata(){
-    if(!appleLyrics||!appleLyricsReady)return;
-    /* Never give the am-lyrics component track metadata: when it has a title, artist, query or music id and no
-       lyrics of its own it searches several third-party lyric services itself. KEFE passes only the lyrics it
-       already holds (LRCLIB or the user's own file), so the component makes no lyric requests. */
-    appleLyrics.songTitle='';
-    appleLyrics.songArtist='';
-    appleLyrics.songAlbum='';
-    appleLyrics.query='';
-    appleLyrics.musicId='';
-    appleLyrics.songDurationMs=0;
-    appleLyrics.ttml=state.lines.length?lyricsToTtml(state.lines):'';
-    appleLyrics.currentTime=Math.round(((audio.currentTime||state.time||0)-lyricOffset())*1000);
-    appleLyrics.highlightColor='#fff';
-    appleLyrics.fontFamily="'Inter', Arial, sans-serif";
-    appleLyrics.autoScroll=true;
-    appleLyrics.interpolate=true;
-  }
-  function syncAppleLyrics(seeking=false){
-    if(!appleLyrics||!appleLyricsReady)return;
-    appleLyrics.currentTime=Math.round(((audio.src?audio.currentTime:state.time)-lyricOffset())*1000);
-    if(seeking&&typeof appleLyrics.seek==='function')appleLyrics.seek();
-  }
   /* Native iOS bridge is separate from the Apple Music renderer. It sends only track metadata
      and the currently timed lyric to the host app; Safari ignores this when no bridge exists. */
   let lockScreenLastKey='';
@@ -1908,7 +1766,7 @@
   audio.addEventListener('ratechange',()=>publishKefeLockScreen('seek'));
   audio.addEventListener('timeupdate',()=>{
     if(audio.paused){
-      state.time=audio.currentTime;range.value=state.time;updateTime();syncAppleLyrics();
+      state.time=audio.currentTime;range.value=state.time;updateTime();
     }
   });
   /* audio.currentTime only advances in coarse steps; interpolate with the frame clock so line transitions animate smoothly. */
@@ -1928,12 +1786,10 @@
     return clk.est;
   }
   function syncPreview(){
-    const firstLyric=state.lines[0]?.time;
     if(audio.src&&!audio.paused){
       state.time=smoothTime();
       range.value=state.time;
       updateTime();
-      syncAppleLyrics();
       publishKefeLockScreen('update');
       draw();
       requestAnimationFrame(syncPreview);
@@ -1946,36 +1802,28 @@
       video.play().catch(err=>console.warn('[KEFE video]',err));
     }
     if(audio.currentTime<=0.08&&titleCardShownFor!==mediaObjectUrl)showTitleCard();
-    syncAppleLyrics();
     publishKefeLockScreen('start');
     requestAnimationFrame(syncPreview);
   });
   audio.addEventListener('pause',()=>{
     updatePlayButton();
     if(video.src&&!video.paused)video.pause();
-    syncAppleLyrics();
     publishKefeLockScreen('pause');
   });
   audio.addEventListener('ended',()=>{
     updatePlayButton();
     if(video.src&&!video.paused)video.pause();
-    syncAppleLyrics(true);
-    const appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(appleLyrics&&typeof appleLyrics.pause==='function')appleLyrics.pause();
     publishKefeLockScreen('end');
   });
-  audio.addEventListener('seeking',()=>syncAppleLyrics(true));
   audio.addEventListener('seeked',()=>{
     if(video.src)video.currentTime=audio.currentTime;
-    syncAppleLyrics(true);draw();
+    draw();
     publishKefeLockScreen('seek');
   });
   range.addEventListener('input',()=>{
     state.time=Number(range.value);
     if(audio.src)audio.currentTime=state.time;
     if(video.src)video.currentTime=state.time;
-    const appleLyrics=document.getElementById('kefeAppleLyrics');
-    syncAppleLyrics(true);
     updateTime();draw();
   });
   let exportTap=null,exporting=false;
@@ -2127,7 +1975,7 @@
       }
       applyVisualiserPreviewTransform();
     },{passive:false});
-    const endGesture=e=>{if(layoutDrag){layoutDrag=null;return;}pointers.delete(e.pointerId);if(!pointers.size)gestureStart=null;else if(pointers.size===1){const [id,p]=[...pointers.entries()][0];gestureStart={mode:'pan',point:p,x:visualiserPanX,y:visualiserPanY};}};
+    const endGesture=e=>{if(layoutDrag){layoutDrag=null;return;}pointers.delete(e.pointerId);if(!pointers.size)gestureStart=null;else if(pointers.size===1){const [,p]=[...pointers.entries()][0];gestureStart={mode:'pan',point:p,x:visualiserPanX,y:visualiserPanY};}};
     previewStage.addEventListener('pointerup',endGesture);previewStage.addEventListener('pointercancel',endGesture);
     applyVisualiserPreviewTransform();
   }
@@ -2295,11 +2143,9 @@
       state.time=t;range.value=t;
       if(audio.src)audio.currentTime=t;
       if(video.src)video.currentTime=t;
-      updateTime();syncAppleLyrics(true);draw();
+      updateTime();draw();
     },
     redraw:()=>draw()
   };
   canvas.width=1920;canvas.height=1080;parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();ensureLyricsTools();applySettingsDefaults();
-  syncAppleLyricsMetadata();
-  syncAppleLyrics(true);
 })();

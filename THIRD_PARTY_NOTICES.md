@@ -43,11 +43,14 @@ The following are identified in the KEFE typography registry with an asterisk (`
 
 See [the KEFE custom-font notice](fonts/CUSTOM-FONTS-LICENSE.md) for the scope of the attribution and permissions. These fonts were made by merging or modifying other font designs. The applicable source-font licences still govern the merged font files; this notice does not override upstream terms. Keep the source-font identities and required notices with the project.
 
-## Other software
+## Runtime third-party software
 
-Three.js is loaded from jsDelivr in the legacy browser editor and is distributed under the MIT License: https://github.com/mrdoob/three.js/blob/dev/LICENSE
+The production editor does not bundle a UI framework, animation runtime, or WebGL library. Two optional features load code from a CDN at runtime:
 
-Other dependencies declared in workspace package manifests and lockfiles retain their own licences.
+- **Transformers.js 2.17.2** (`@xenova/transformers`, Apache-2.0), loaded from jsDelivr only when you press **Auto-sync** in the lyric timing editor. The speech-recognition model (`Xenova/whisper-*`) is downloaded from Hugging Face on first use. Audio decoding and inference run locally in the browser; the audio is not uploaded. Model files retain the licence published on their Hugging Face model card.
+- The **iTunes Search API**, **LRCLIB**, and optional **AudD** proxy are network services, not bundled software; see the privacy notice for what each request sends.
+
+Build tooling and workspace dependencies declared in package manifests and `pnpm-lock.yaml` retain their own licences and are not shipped in the browser bundle.
 
 ## System font fallback
 
