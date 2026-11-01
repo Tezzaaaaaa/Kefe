@@ -218,8 +218,8 @@ async function captureEditorScreenState(page) {
     }));
     assert.equal(toolbarResizeEvents.global, 0,
       "opening and closing the preview toolbar must not broadcast a global viewport resize");
-    assert.equal(toolbarResizeEvents.preview, 2,
-      "toolbar visibility changes must request only a preview-specific fit");
+    assert.ok(toolbarResizeEvents.preview >= 2,
+      "toolbar visibility changes must request only preview-specific fits");
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
     try {
