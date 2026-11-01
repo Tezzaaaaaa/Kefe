@@ -288,30 +288,24 @@ async function captureEditorScreenState(page) {
       { label: "Visualiser", controls: ["Visualiser"] },
       { label: "Actions", controls: ["More actions"] }
     ], "toolbar actions must appear once in their intended functional groups");
-    const usesDedicatedDock = await page.locator(".kefe-preview-dock").count() === 1;
+    const toolbarIsInHeader = await page.locator(".kefe-sidebar-group-editor > #kefeFloatingToolbar").count() === 1;
+    assert.equal(toolbarIsInHeader, true, "the editor toolbar must sit directly beside Editor in the header navigation");
+    assert.equal(await page.locator(".kefe-preview-dock").count(), 0,
+      "the obsolete preview toolbar dock must be removed from the preview entirely");
     const hasStablePreviewGeometry = await page.locator(".kefe-stage").evaluate(node => getComputedStyle(node).transitionProperty === "none");
-    assert.equal(await page.locator(".kefe-preview-toolbar").count(), usesDedicatedDock ? 0 : 1,
-      "the editor must use either the dedicated dock or the legacy preview bar, never both");
-    const nativeAspect = page.locator(usesDedicatedDock ? ".kefe-preview-dock .kefe-toolbar-format" : ":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format");
+    const nativeAspect = page.locator(".kefe-sidebar-group-editor .kefe-toolbar-format");
     if (hasStablePreviewGeometry) assert.equal(await nativeAspect.isVisible(), false,
       "the native aspect control must remain hidden as a backing control");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
     const initialToolbarPlacement = await page.evaluate(() => {
-      const dockElement = document.querySelector(".kefe-preview-dock") || document.querySelector(".kefe-preview-toolbar");
-      const dock = dockElement.getBoundingClientRect();
+      const editor = document.querySelector("[data-editor-tab]").getBoundingClientRect();
       const toolbar = document.querySelector("#kefeFloatingToolbar").getBoundingClientRect();
-      return { dock: { left: dock.left, right: dock.right, top: dock.top, bottom: dock.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth, vh: document.documentElement.clientHeight };
+      return { editor: { left: editor.left, right: editor.right, top: editor.top, bottom: editor.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth };
     });
-    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.dock.left - 1
-      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.dock.top - 1
-      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.dock.bottom + 8,
-      `toolbar must remain within its designated dock: ${JSON.stringify(initialToolbarPlacement)}`);
-    assert.ok(initialToolbarPlacement.toolbar.left >= 0 && initialToolbarPlacement.toolbar.right <= initialToolbarPlacement.vw + 1
-      && initialToolbarPlacement.toolbar.top >= 0 && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.vh + 1,
-      `toolbar must remain fully on screen: ${JSON.stringify(initialToolbarPlacement)}`);
-    const desktopViewport = page.viewportSize();
-    const visibleDesktopNavIcons = await page.locator(".kefe-sidebar-group .kefe-sidebar-link > span[aria-hidden='true']").evaluateAll(nodes => nodes.filter(node => getComputedStyle(node).display !== "none").length);
-    assert.equal(visibleDesktopNavIcons, 0, "the header section links stay text-only, including the single Editor tab");
+    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.editor.right - 1
+      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.editor.top - 2
+      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.editor.bottom + 8,
+      `toolbar must be docked immediately to the right of Editor: ${JSON.stringify(initialToolbarPlacement)}`);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
