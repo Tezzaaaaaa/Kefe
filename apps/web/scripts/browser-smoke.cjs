@@ -970,7 +970,7 @@ async function captureEditorScreenState(page) {
     }, null, { timeout: 5000 });
     if (singleSectionMode) {
       const sectionSelectionAudit = await page.evaluate(() => {
-        const sections = [...document.querySelectorAll("#kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel")];
+        const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
         return {
           total: sections.length,
           expanded: sections.filter(section => section.dataset.expanded === "true").map(section => section.dataset.sectionId),
