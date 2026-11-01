@@ -604,7 +604,7 @@
   try {
     const saved = JSON.parse(localStorage.getItem(prefKey) || 'null');
     if (saved) {
-      safeAreaToggle.checked = saved.safeArea === true;
+      safeAreaToggle.checked = false;
       compactToggle.checked = saved.compact === true;
       if (Number.isFinite(saved.safeInset)) safeInset = clamp(saved.safeInset, 2, 20);
       if (typeof saved.background === 'string' && /^#[0-9a-f]{6}$/i.test(saved.background)) {
