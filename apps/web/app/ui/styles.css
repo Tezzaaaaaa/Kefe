@@ -10861,3 +10861,22 @@ html:root .kefe-stage:not(:fullscreen):not(.kefe-pseudo-fullscreen),
 html:root[data-theme="day"] .kefe-stage:not(:fullscreen):not(.kefe-pseudo-fullscreen) {
   box-shadow: 0 20px 46px -28px rgba(0, 0, 0, .38);
 }
+
+/* Final keyline removal: no outlines or one-pixel borders on the preview chrome. */
+body .kefe-editor > header.kefe-sidebar {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html:root .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-dock,
+html:root .kefe-editor .kefe-work > .kefe-preview > .kefe-stage:not(:fullscreen):not(.kefe-pseudo-fullscreen),
+html:root .kefe-editor .kefe-work > .kefe-timeline,
+html:root .kefe-editor .kefe-work > .kefe-timeline .kefe-wave {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html:root .kefe-editor .kefe-work > .kefe-timeline :is(.kefe-play, .kefe-restart, .kefe-volume-control > button, .kefe-player-fullscreen) {
+  border: 0 !important;
+  box-shadow: none !important;
+}
