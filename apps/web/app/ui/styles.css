@@ -8138,7 +8138,7 @@ html:root .kefe-alert-stack {
 }
 html:root .kefe-alert {
   display: flex; align-items: flex-start; gap: 12px; min-width: 0; padding: 14px;
-  border: 1px solid var(--border, rgba(255,255,255,.14)); border-radius: var(--r2, 14px);
+  border: 1px solid var(--border, transparent); border-radius: var(--r2, 14px);
   background: var(--surface-hi, var(--surface, #242426)); color: var(--text, #f5f5f5);
   box-shadow: 0 12px 36px rgba(0,0,0,.22); opacity: 0; transform: translateY(-6px);
   transition: opacity .18s ease, transform .2s cubic-bezier(.2,.8,.2,1); pointer-events: auto;
@@ -9245,7 +9245,7 @@ html:root[data-theme="day"] .beui-settings-root {
   min-height: 44px;
   margin: 12px 0 0;
   padding: 10px 12px;
-  border: 1px solid var(--line, rgba(255,255,255,.16));
+  border: 1px solid var(--line, transparent);
   border-radius: var(--r2, 12px);
   background: var(--surface-lo, rgba(255,255,255,.04));
   color: var(--text, inherit);
@@ -9356,7 +9356,7 @@ html:root[data-theme="day"] .beui-settings-root {
   max-width: 100%;
   margin: 0;
   padding: 14px;
-  border: 1px solid var(--line, rgba(255,255,255,.12));
+  border: 1px solid var(--line, transparent);
   border-radius: var(--r2, 12px);
   background: var(--surface-lo, rgba(255,255,255,.035));
 }
