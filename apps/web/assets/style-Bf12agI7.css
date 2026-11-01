@@ -8,3 +8,11 @@ html:root .kefe-editor::after {
   outline: 0 !important;
   box-shadow: none !important;
 }
+
+/* The visible white frame is the preview stage itself, not the editor shell. */
+html:root .kefe-editor > .kefe-work > .kefe-preview > .kefe-stage:not(:fullscreen):not(.kefe-pseudo-fullscreen),
+html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-stage:not(:fullscreen):not(.kefe-pseudo-fullscreen) {
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
