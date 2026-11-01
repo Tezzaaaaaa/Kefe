@@ -290,10 +290,10 @@ async function captureEditorScreenState(page) {
     ], "toolbar actions must appear once in their intended functional groups");
     const toolbarIsInHeader = await page.locator(".kefe-sidebar-group-editor > #kefeFloatingToolbar").count() === 1;
     assert.equal(toolbarIsInHeader, true, "the editor toolbar must sit directly beside Editor in the header navigation");
-    assert.equal(await page.locator(".kefe-preview-dock").evaluate(node => getComputedStyle(node).display), "none",
-      "the old preview toolbar dock must not occupy preview space or draw a border");
+    assert.equal(await page.locator(".kefe-preview-dock").count(), 0,
+      "the obsolete preview toolbar dock must be removed from the preview entirely");
     const hasStablePreviewGeometry = await page.locator(".kefe-stage").evaluate(node => getComputedStyle(node).transitionProperty === "none");
-    const nativeAspect = page.locator(".kefe-preview-dock .kefe-toolbar-format");
+    const nativeAspect = page.locator(".kefe-sidebar-group-editor .kefe-toolbar-format");
     if (hasStablePreviewGeometry) assert.equal(await nativeAspect.isVisible(), false,
       "the native aspect control must remain hidden as a backing control");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
