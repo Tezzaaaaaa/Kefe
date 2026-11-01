@@ -957,8 +957,9 @@
     const bar=previewPane.querySelector('.kefe-preview-toolbar');
     const barH=bar?bar.getBoundingClientRect().height+gap:0;
     const paneWidth=Math.max(0,previewPane.clientWidth-padX);
-    let paneHeight=Math.max(0,previewPane.clientHeight-padY-barH);
-    if(!paneHeight)paneHeight=Math.max(0,Math.floor(window.innerHeight*0.52)-barH);
+    const paneHeight=Math.max(0,previewPane.clientHeight-padY-barH);
+    // A hidden or not-yet-laid-out pane has no reliable dimensions. Keep the last
+    // valid stage size until its ResizeObserver reports the real available space.
     if(paneWidth<=0||paneHeight<=0)return;
     let width=Math.min(paneWidth,1280);
     let height=width/ratio;
@@ -977,7 +978,8 @@
     fitObserver.observe(previewPane);
     const workHost=previewPane.parentElement;if(workHost)fitObserver.observe(workHost);
   }
-  window.addEventListener('resize',fitPreviewStage);
+  window.addEventListener('resize',queueFit,{passive:true});
+  window.addEventListener('kefe-preview-fit',queueFit);
   const aspectSelect=document.getElementById('kefeAspect');
   aspectSelect?.addEventListener('change',()=>{
     previewAspectRatio=aspectSelect.value;
