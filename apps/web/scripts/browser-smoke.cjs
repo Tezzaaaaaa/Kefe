@@ -236,7 +236,10 @@ async function captureEditorScreenState(page) {
     // Exercise the editor toolbar against the real editor controls.
     const quickToolbar = page.locator("#kefeFloatingToolbar");
     assert.equal(await quickToolbar.count(), 1, "there must be exactly one editor toolbar");
-    await quickToolbar.getByRole("button", { name: "Editor toolbar", exact: true }).click();
+    // The toolbar is open by default; only press the launcher when it is collapsed.
+    if (await page.locator("#kefeFloatingToolbar .kft-launch").getAttribute("aria-expanded") !== "true") {
+      await quickToolbar.getByRole("button", { name: "Editor toolbar", exact: true }).click();
+    }
     await page.waitForFunction(() => document.querySelector("#kefeFloatingToolbar .kft-launch")?.getAttribute("aria-expanded") === "true",
       null, { timeout: 5000 });
     const toolbarIconAudit = await quickToolbar.evaluate(node => {

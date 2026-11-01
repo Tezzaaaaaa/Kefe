@@ -450,12 +450,13 @@ html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-actions { flex: 0 1 auto; 
    its own full-width row below. */
 .kefe-preview-toolbar[data-kft] .kefe-toolbar-actions { display: contents; }
 .kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) { display: contents; }
-.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-launch { order: 1; margin-left: auto; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-launch { order: 2; margin-left: 0; }
 .kefe-preview-toolbar[data-kft] .kefe-toolbar-actions > #previewFullscreen { order: 2; }
-.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-bar { order: 5; flex: 1 0 100%; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-bar { order: 1; flex: 1 1 0; min-width: 0; }
 .kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-main { width: 100%; justify-content: space-between; }
 .kefe-preview-toolbar[data-kft] .kft-ghost { order: 1; margin-left: auto; }
 .kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-grip { display: none; }
+.kefe-preview-toolbar[data-kft="narrow"] .kefe-floating-toolbar:not(.is-floating) .kft-grip { display: none; }
 .kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-cell--ratio { min-width: 32px; width: 32px; padding: 0; }
 .kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-cell--ratio > span { display: none; }
 html .kefe-editor .kefe-preview-toolbar #previewFullscreen { width: 32px; min-width: 32px; height: 32px; flex-basis: 32px; }
@@ -536,3 +537,30 @@ html .kefe-editor .kefe-timeline .kefe-timebar #kefeTime { position: absolute; i
 }
 .kefe-timebar__tip[hidden] { display: none; }
 
+
+/* ───────── No preview bar: the toolbar sits directly above the preview screen; fullscreen lives in the media player ───────── */
+html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar {
+  min-height: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none;
+  justify-content: center;
+}
+html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-actions { flex: 0 1 auto; justify-content: center; }
+html .kefe-editor .kefe-timeline { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+html .kefe-editor .kefe-timeline .kefe-player-fullscreen {
+  position: static; display: inline-grid; place-items: center; width: 36px; min-width: 36px; height: 36px; padding: 0;
+  border: 1px solid var(--line-soft, var(--kt-border)); border-radius: 10px; background: var(--surface, var(--kt-surface));
+  color: var(--text); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+html .kefe-editor .kefe-timeline .kefe-player-fullscreen svg { width: 16px; height: 16px; }
+html .kefe-editor .kefe-timeline .kefe-player-fullscreen:hover { background: var(--kt-surface-hover, var(--surface-hi)); border-color: var(--kt-border-hover, var(--line)); }
+html .kefe-editor .kefe-timeline .kefe-player-fullscreen:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
+
+/* Narrow bar: tighten the strip so it stays on one row beside the launcher. */
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-main { gap: 0; padding: 2px; flex-wrap: nowrap; justify-content: space-between; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-cluster { padding: 0 1px; gap: 0; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-cluster + .kft-cluster { margin-left: 0; padding-left: 2px; }
+.kefe-preview-toolbar[data-kft] .kefe-floating-toolbar:not(.is-floating) .kft-cell { width: 30px; height: 30px; }
+.kefe-preview-toolbar[data-kft="tight"] .kefe-floating-toolbar:not(.is-floating) .kft-cell,
+.kefe-preview-toolbar[data-kft="tight"] .kefe-floating-toolbar:not(.is-floating) .kft-cell--ratio { width: 27px; min-width: 27px; height: 28px; }
+.kefe-preview-toolbar[data-kft="tight"] .kefe-floating-toolbar:not(.is-floating) .kft-launch { flex-basis: 28px; width: 28px; height: 28px; }

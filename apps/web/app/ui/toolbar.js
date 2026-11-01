@@ -718,7 +718,7 @@
   const dockHost = () => bareBar()?.querySelector('.kefe-toolbar-actions') || null;
   const inFullscreen = () => document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
   let pos = { x: 12, y: 12 }, floating = false, dragging = null, isOpen = false;
-  try { localStorage.removeItem('kefe.floating-toolbar.position.v4'); isOpen = localStorage.getItem(OPEN_KEY) === '1'; } catch (_) {}
+  try { localStorage.removeItem('kefe.floating-toolbar.position.v4'); isOpen = localStorage.getItem(OPEN_KEY) !== '0'; } catch (_) {}
 
   const clampPos = (x, y) => ({
     x: clamp(x, 8, Math.max(8, window.innerWidth - root.offsetWidth - 8)),
