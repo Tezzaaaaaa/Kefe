@@ -275,9 +275,8 @@ async function captureEditorScreenState(page) {
     const nativeAspect = page.locator(usesDedicatedDock ? ".kefe-preview-dock .kefe-toolbar-format" : ":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format");
     assert.equal(await nativeAspect.isVisible(), usesDedicatedDock ? false : true, "aspect backing visibility must match the active preview shell");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
-    assert.equal(await page.locator("#previewFullscreen").count(), 1, "the preview must have one fullscreen control");
-    const fullscreenInPlayer = await page.locator(".kefe-stage > #previewFullscreen").count() === 1;
-    assert.equal(fullscreenInPlayer, usesDedicatedDock, "fullscreen must remain in the player when the dedicated dock is active");
+    assert.equal(await page.locator("#previewFullscreen").count(), 1, "the media player must retain exactly one fullscreen control");
+    assert.equal(await page.locator(".kefe-timeline > #previewFullscreen").count(), 1, "fullscreen must remain in the media player, not the preview dock or stage");
     const initialToolbarPlacement = await page.evaluate(() => {
       const dockElement = document.querySelector(".kefe-preview-dock") || document.querySelector(".kefe-preview-toolbar");
       const dock = dockElement.getBoundingClientRect();
