@@ -273,7 +273,7 @@ async function captureEditorScreenState(page) {
     const hasStablePreviewGeometry = await page.locator(".kefe-stage").evaluate(node => getComputedStyle(node).transitionProperty === "none");
     assert.equal(await page.locator(".kefe-preview-toolbar").count(), usesDedicatedDock ? 0 : 1,
       "the editor must use either the dedicated dock or the legacy preview bar, never both");
-    const nativeAspect = page.locator(usesDedicatedDock ? ".kefe-preview-dock .kefe-toolbar-format" : ".kefe-preview-toolbar .kefe-toolbar-format");
+    const nativeAspect = page.locator(usesDedicatedDock ? ".kefe-preview-dock .kefe-toolbar-format" : ":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format");
     assert.equal(await nativeAspect.isVisible(), false, "the native aspect control must remain hidden as a backing control");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
     assert.equal(await page.locator("#previewFullscreen").count(), 1, "the media player must retain exactly one fullscreen control");
@@ -456,7 +456,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-sidebar [data-shell-panel]").count(), 0,
       "the header must not repeat the editor sections as tabs");
     const aspectSelect = page.locator("#kefeAspect");
-    assert.equal(await page.locator(usesDedicatedDock ? ".kefe-preview-dock .kefe-toolbar-format" : ".kefe-preview-toolbar .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview ratio wrapper must remain hidden");
+    assert.equal(await page.locator(usesDedicatedDock ? ".kefe-preview-dock .kefe-toolbar-format" : ":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format").getAttribute("hidden"), "", "the duplicate preview ratio wrapper must remain hidden");
     const canvasButton = quickToolbar.locator(".kft-cell--ratio");
     assert.equal(await canvasButton.getAttribute("aria-label"), "Canvas, background and visualiser", "the Canvas ratio control must remain available in the floating toolbar");
     await canvasButton.click();
@@ -816,7 +816,7 @@ async function captureEditorScreenState(page) {
     assert.equal(nativeSelectState.visible.length, 4, `the preview, font and export selects must remain present: ${JSON.stringify(nativeSelectState)}`);
     const [aspectNative, ...primaryNative] = nativeSelectState.visible;
     assert.ok(aspectNative && !aspectNative.nextHost && aspectNative.tabIndex === -1
-      && await page.locator(".kefe-preview-toolbar .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
+      && await page.locator(":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
       `the native aspect backing select must stay out of the preview bar and tab order while the floating toolbar controls it: ${JSON.stringify(nativeSelectState)}`);
     // The font and export selects are presented through the shadcn-style dropdown trigger that follows them
     // (a real, focusable <button aria-haspopup="menu">); the native select stays as the value source.
