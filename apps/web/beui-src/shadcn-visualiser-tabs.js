@@ -206,7 +206,9 @@ function mountVisualiserTabs() {
     tabBtn.setAttribute("aria-selected", "false");
     tabBtn.className = "kv-tab";
     tabBtn.title = `${label} visualiser`;
-    tabBtn.setAttribute("aria-label", `${label} visualiser`);
+    /* Keep the native backing tab's "… visualiser" aria-label unique. The visible
+       label already names this trigger; screen readers get the same clean name. */
+    tabBtn.setAttribute("aria-label", label);
     const controls = backing.getAttribute("aria-controls");
     if (controls) tabBtn.setAttribute("aria-controls", controls);
 
