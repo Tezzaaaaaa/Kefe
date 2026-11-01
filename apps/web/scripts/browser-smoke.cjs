@@ -663,7 +663,7 @@ async function captureEditorScreenState(page) {
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
       const settings = document.querySelector(".kefe-settings-mount").getBoundingClientRect();
       const columns = document.querySelector("#kefe-settings-panel > .kefe-settings-columns");
-      const active = [...document.querySelectorAll("#kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel[data-expanded='true']")];
+      const active = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id][data-expanded='true']")];
       const left = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
       const right = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="output"]').getBoundingClientRect();
       return {
