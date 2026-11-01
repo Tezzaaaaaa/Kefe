@@ -201,6 +201,25 @@ async function captureEditorScreenState(page) {
     await page.waitForSelector(".kefe-sidebar [data-editor-tab]", { state: "attached", timeout: 20000 });
     await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#songTitle", { state: "visible", timeout: 20000 });
+    await page.waitForSelector(".kft-launch", { state: "attached", timeout: 10000 });
+    await page.evaluate(() => {
+      window.__kefeGlobalResizeCount = 0;
+      window.__kefePreviewFitCount = 0;
+      window.addEventListener("resize", () => window.__kefeGlobalResizeCount++);
+      window.addEventListener("kefe-preview-fit", () => window.__kefePreviewFitCount++);
+      const launcher = document.querySelector(".kft-launch");
+      launcher.click();
+      launcher.click();
+    });
+    await page.waitForTimeout(100);
+    const toolbarResizeEvents = await page.evaluate(() => ({
+      global: window.__kefeGlobalResizeCount,
+      preview: window.__kefePreviewFitCount,
+    }));
+    assert.equal(toolbarResizeEvents.global, 0,
+      "opening and closing the preview toolbar must not broadcast a global viewport resize");
+    assert.equal(toolbarResizeEvents.preview, 2,
+      "toolbar visibility changes must request only a preview-specific fit");
     await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
     try {
