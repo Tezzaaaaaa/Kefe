@@ -63,14 +63,16 @@ jobs:
           git fetch --depth=1 origin main
           mkdir -p /tmp/kefe-main
           git archive origin/main | tar -x -C /tmp/kefe-main
-          ln -s "$GITHUB_WORKSPACE/node_modules" /tmp/kefe-main/node_modules
-          ln -s "$GITHUB_WORKSPACE/apps/web/node_modules" /tmp/kefe-main/apps/web/node_modules
           cp "$GITHUB_WORKSPACE/apps/web/app/ui/structure.js" /tmp/kefe-main/apps/web/app/ui/structure.js
           cp "$GITHUB_WORKSPACE/apps/web/app/ui/toolbar.js" /tmp/kefe-main/apps/web/app/ui/toolbar.js
           # The baseline build now shares the current shell, so navigate it with the
           # current smoke script instead of main's stale header-tab interactions.
           cp "$GITHUB_WORKSPACE/apps/web/scripts/browser-smoke.cjs" /tmp/kefe-main/apps/web/scripts/browser-smoke.cjs
+          # Main still installs React and Tailwind, which this cleanup branch has
+          # removed. Give the baseline its own frozen dependency tree instead of
+          # symlinking the candidate's leaner node_modules into it.
           cd /tmp/kefe-main
+          pnpm install --frozen-lockfile
           pnpm --filter @kefe/web build
       - name: Install Chromium
         run: /tmp/kefe-browser/node_modules/.bin/playwright install --with-deps chromium
