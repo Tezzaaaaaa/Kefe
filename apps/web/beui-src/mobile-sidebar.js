@@ -396,10 +396,10 @@ function initMobileSidebar() {
     const tl = document.querySelector(".kefe-timeline")?.getBoundingClientRect();
     const dockRect = dock.getBoundingClientRect();
     const bottom = dockRect.height ? Math.max(0, window.innerHeight - dockRect.top) + 6 : 86;
-    /* Reserve a usable panel (230px) and shrink the preview area to fit above it, so the section panel
+    /* Reserve a usable panel (300px) and shrink the preview area to fit above it, so the section panel
        can never sit on top of the preview or the timeline bar. */
     const workTop = work ? work.top : 60;
-    const workMax = Math.max(150, window.innerHeight - bottom - 230 - workTop - 8);
+    const workMax = Math.max(150, window.innerHeight - bottom - 300 - workTop - 8);
     const top = Math.max(120, (tl ? tl.bottom : window.innerHeight * 0.5) + 8);
     root.style.setProperty("--kefe-ms-work-max", `${Math.round(workMax)}px`);
     root.style.setProperty("--kefe-ms-top", `${Math.round(top)}px`);

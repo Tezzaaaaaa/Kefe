@@ -868,3 +868,38 @@ html[data-theme="day"] .kefe-ms-scrim {
     grid-template-rows: minmax(0, 1fr) var(--timeline-h, 56px);
   }
 }
+
+/* ── Use the space: no title/blurb rows, settings packed 2–3 per line ── */
+.kefe-section-info { display: none !important; }
+@media (max-width: 1023px) {
+  .kefe-ms-head,
+  .kefe-ms-blurb { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); padding: 0; margin: -1px; white-space: nowrap; }
+  .kefe-ms-surface-head { padding: 6px 12px 4px; gap: 0; }
+  .kefe-ms-host { padding: 4px 12px 12px; }
+  .kefe-ms-host .kefe-panel-head { margin: 0 0 4px !important; }
+
+  /* Any container that directly holds sliders, dropdowns or option rows becomes a 2–3 column grid. */
+  .kefe-ms-host :is(div, details, section, fieldset):has(> :is(label.kefe-visualiser-field, .kefe-dd, label.kefe-review-item)) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)) !important;
+    gap: 8px 10px;
+    align-items: end;
+  }
+  .kefe-ms-host :is(div, details, section, fieldset):has(> :is(label.kefe-visualiser-field, .kefe-dd, label.kefe-review-item)) > :not(label.kefe-visualiser-field):not(.kefe-dd):not(label.kefe-review-item) {
+    grid-column: 1 / -1;
+  }
+  .kefe-ms-host label.kefe-visualiser-field,
+  .kefe-ms-host label.kefe-review-item { min-width: 0; margin: 0; }
+  .kefe-ms-host .kefe-form,
+  .kefe-ms-host .kefe-visualiser-form { gap: 8px; }
+}
+
+@media (max-width: 1023px) {
+  .kefe-ms-host .kefe-lyric-settings-head { display: none !important; }
+  .kefe-ms-host .kefe-panel-head { justify-content: flex-start; }
+  .kefe-ms-host .kefe-panel-head .kefe-lyrics-power,
+  .kefe-ms-host .kefe-panel-head .kefe-background-effect-toggle,
+  .kefe-ms-host .kefe-panel-head .kefe-toolbar-actions { margin-left: 0; }
+  .kefe-ms-host .kefe-lyric-mode-box { gap: 6px; }
+  .kefe-ms-host .kefe-seg button { min-height: 34px; }
+}
