@@ -798,11 +798,15 @@ async function captureEditorScreenState(page) {
     await page.waitForFunction(() => document.getElementById("kefeMediaTrackTitle")?.textContent === "beUI smoke track", null, { timeout: 5000 });
     assert.equal(await nativeSongTitle.inputValue(), "beUI smoke track", "native metadata input should update the live track card");
 
-    const nativePanelSurfaceCount = await page.locator("#kefe-settings-panel .section[data-section-id]").evaluateAll(sections => sections.filter(section => {
-      const style = getComputedStyle(section);
-      return style.display !== "none" && style.borderRadius !== "0px" && style.borderTopWidth !== "0px";
-    }).length);
-    assert.equal(nativePanelSurfaceCount, 6, "all six native settings sections must retain their designed panel surfaces");
+    const nativePanelSurfaceStyle = await page.locator("#kefe-settings-panel .section[data-section-id]").evaluateAll(sections => sections
+      .filter(section => getComputedStyle(section).display !== "none")
+      .map(section => {
+        const style = getComputedStyle(section);
+        return { borderColor: style.borderTopColor, boxShadow: style.boxShadow, background: style.backgroundColor };
+      }));
+    assert.equal(nativePanelSurfaceStyle.length, 6, "all six native settings sections must remain present");
+    assert.ok(nativePanelSurfaceStyle.every(style => style.borderColor === "rgba(0, 0, 0, 0)" && style.boxShadow === "none"),
+      `native settings sections must not draw outer outlines or elevation shadows: ${JSON.stringify(nativePanelSurfaceStyle)}`);
     const embeddedPanelStyle = await page.locator("#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]").evaluateAll(panels =>
       panels.map(panel => {
         const style = getComputedStyle(panel);
