@@ -663,7 +663,7 @@ async function captureEditorScreenState(page) {
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
       const settings = document.querySelector(".kefe-settings-mount").getBoundingClientRect();
       const columns = document.querySelector("#kefe-settings-panel > .kefe-settings-columns");
-      const active = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id][data-expanded='true']")];
+      const active = [...document.querySelectorAll("#kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel[data-expanded='true']")];
       const left = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
       const right = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="output"]').getBoundingClientRect();
       return {
@@ -844,13 +844,13 @@ async function captureEditorScreenState(page) {
     assert.equal(await nativeSongTitle.inputValue(), "beUI smoke track", "native metadata input should update the live track card");
 
     await page.waitForFunction(() => {
-      const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
+      const sections = [...document.querySelectorAll("#kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel")];
       return sections.length === 6 && sections.every(section => {
         const style = getComputedStyle(section);
         return style.display !== "none" && style.borderRadius !== "0px" && style.borderTopWidth !== "0px";
       });
     }, null, { timeout: 5000 });
-    const nativePanelSurfaceCount = await page.locator("#kefe-settings-panel .section[data-section-id]").evaluateAll(sections => sections.filter(section => {
+    const nativePanelSurfaceCount = await page.locator("#kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel").evaluateAll(sections => sections.filter(section => {
       const style = getComputedStyle(section);
       return style.display !== "none" && style.borderRadius !== "0px" && style.borderTopWidth !== "0px";
     }).length);
@@ -970,7 +970,7 @@ async function captureEditorScreenState(page) {
     }, null, { timeout: 5000 });
     if (singleSectionMode) {
       const sectionSelectionAudit = await page.evaluate(() => {
-        const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
+        const sections = [...document.querySelectorAll("#kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel")];
         return {
           total: sections.length,
           expanded: sections.filter(section => section.dataset.expanded === "true").map(section => section.dataset.sectionId),
