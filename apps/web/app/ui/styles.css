@@ -10773,10 +10773,3 @@ body .kefe-editor > header.kefe-sidebar::-webkit-scrollbar { display: none; }
     gap: 5px;
   }
 }
-
-
-/* Flat KEFE editor surfaces: separate sections through spacing and tone, not white outlines. */
-.kefe-editor .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group],
-.kefe-editor .kefe-settings-panel .section:not(.kefe-slot *) { border: 0; box-shadow: none; }
-.kefe-editor .kefe-settings-panel .section:hover:not([data-expanded="true"]):not(.kefe-slot *),
-.kefe-editor .kefe-settings-panel .section[data-expanded="true"]:not(.kefe-slot *) { border-color: transparent; box-shadow: none; }
