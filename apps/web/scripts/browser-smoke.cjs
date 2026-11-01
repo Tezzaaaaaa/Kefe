@@ -477,11 +477,16 @@ async function captureEditorScreenState(page) {
         const rect = document.querySelector(".kefe-stage")?.getBoundingClientRect();
         return rect && rect.width > 0 && rect.height > 0;
       }, null, { timeout: 5000 });
+      await page.waitForTimeout(250);
       const measurePreview = () => page.evaluate(() => {
-        const pane = document.querySelector(".kefe-preview").getBoundingClientRect();
-        const stage = document.querySelector(".kefe-stage").getBoundingClientRect();
+        const paneNode = document.querySelector(".kefe-preview");
+        const stageNode = document.querySelector(".kefe-stage");
+        const pane = paneNode.getBoundingClientRect();
+        const stage = stageNode.getBoundingClientRect();
+        const style = getComputedStyle(stageNode);
         return { pane: { left: pane.left, right: pane.right, top: pane.top, bottom: pane.bottom },
           stage: { left: stage.left, right: stage.right, top: stage.top, bottom: stage.bottom, width: stage.width, height: stage.height },
+          computed: { width: style.width, height: style.height, aspectRatio: style.aspectRatio, transform: style.transform, zoom: style.zoom, boxSizing: style.boxSizing, padding: style.padding, border: style.borderWidth, inlineWidth: stageNode.style.width, inlineHeight: stageNode.style.height },
           ratio: stage.width / Math.max(1, stage.height) };
       });
       const first = await measurePreview();
