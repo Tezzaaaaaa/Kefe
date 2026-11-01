@@ -627,6 +627,14 @@
 #kefe-settings-panel .expand-button > .title-group { flex: 0 1 auto; }
 
 
+/* Editor section rows use spacing and surface tone, not card outlines. */
+.kefe-editor #kefe-settings-panel .section,
+.kefe-editor #kefe-settings-panel .section:hover,
+.kefe-editor #kefe-settings-panel .section[data-expanded="true"] {
+  border: 0;
+  box-shadow: none;
+}
+
 /* The embedded editor sections are separated by spacing and surface tone, not card borders. */
 .kefe-editor .kefe-settings-panel .section:not(.kefe-slot *) { border: 0; box-shadow: none; }
 .kefe-editor .kefe-settings-panel .section:hover:not(.kefe-slot *),
