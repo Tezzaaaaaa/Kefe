@@ -783,7 +783,7 @@ html[data-theme="day"] .kefe-ms-scrim {
     max-width: none;
     height: auto;
     max-height: none;
-    border: 1px solid var(--line);
+    border: 0;
     border-radius: 14px;
     box-shadow: none;
   }
@@ -826,7 +826,6 @@ html[data-theme="day"] .kefe-ms-scrim {
     inset: auto 0 var(--kefe-ms-bottom, 86px) 0;
     top: var(--kefe-ms-top, 52dvh);
     border: 0;
-    border-top: 1px solid var(--line);
     border-radius: 0;
     background: var(--bg);
     box-shadow: none;
