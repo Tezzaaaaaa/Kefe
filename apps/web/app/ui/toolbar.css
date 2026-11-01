@@ -410,7 +410,7 @@ html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar {
 html .kefe-editor .kefe-work > .kefe-preview { grid-template-columns: minmax(0, 1fr); }
 html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar {
   min-height: 44px; max-width: 100%; padding: 5px 8px; gap: 6px 8px; border-radius: 12px;
-  border: 1px solid var(--line); background: var(--surface); box-shadow: none;
+  border: 0; background: var(--surface); box-shadow: none;
 }
 html .kefe-editor .kefe-preview-toolbar .kefe-toolbar-title { font-size: 12px; font-weight: 700; }
 .kft-bar { border: 0; border-radius: 10px; box-shadow: none; }
