@@ -936,8 +936,8 @@ async function captureEditorScreenState(page) {
           }),
           panels: panels.map(node => {
             const style = getComputedStyle(node);
-            const shadowLayers = style.boxShadow === "none" ? [] : style.boxShadow.split(/,(?![^()]*\\))/);
-            const shadowVisible = shadowLayers.some(layer => !/^rgba\\([^)]*,\\s*0\\)\\s+0px 0px 0px 0px$/.test(layer.trim()));
+            const shadowLayers = style.boxShadow === "none" ? [] : style.boxShadow.split(/,(?![^()]*\))/);
+            const shadowVisible = shadowLayers.some(layer => !/^rgba\([^)]*,\s*0\)\s+0px 0px 0px 0px$/.test(layer.trim()));
             return { border: style.borderTopColor, shadowVisible };
           }),
           columns: columns.map(node => {
