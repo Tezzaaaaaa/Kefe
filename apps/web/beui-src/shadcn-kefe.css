@@ -948,3 +948,19 @@ html[data-theme="day"] {
   border-color: transparent;
   box-shadow: none;
 }
+
+
+/* At 320px, retain the Editor and Settings labels while reclaiming the small
+   amount of width needed to keep all three utility actions inside the header. */
+@media (max-width: 380px) {
+  body .kefe-editor > header.kefe-sidebar { gap: 3px; }
+  .kefe-editor .kefe-sidebar-bottom { gap: 2px; padding-left: 6px; }
+  .kefe-editor .kefe-sidebar-bottom > .kefe-sidebar-link {
+    width: 30px;
+    min-width: 30px;
+  }
+  .kefe-editor .kefe-search .kefe-header-search {
+    width: 30px;
+    min-width: 30px;
+  }
+}
