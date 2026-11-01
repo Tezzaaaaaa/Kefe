@@ -8363,8 +8363,6 @@ html:root[data-theme="day"] .kefe-toolbar-format select {
   html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left) {
     background: var(--col);
   }
-  html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels-left { border-right: 1px solid var(--line); }
-  html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left) { border-left: 1px solid var(--line); }
 }
 html:root[data-theme="day"] .kefe-panel,
 html:root[data-theme="day"] .kefe-settings,
@@ -10040,15 +10038,6 @@ input.beui-native-range {
   border-color: var(--border-color);
 }
 :root[data-theme="day"] .kefe-panel-head { border-bottom-color: var(--border-color); }
-/* The removed Card wrapper supplied this day-surface to embedded native panels.
-   Keep the same beUI card treatment on the native panel owner itself. */
-html:root[data-theme="day"] .kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel {
-  background: var(--surface);
-  color: var(--text);
-  border-color: var(--line);
-  border-radius: 12px;
-  box-shadow: var(--lift);
-}
 :root[data-theme="day"] .kefe-card {
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -10907,13 +10896,4 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
   border: 0;
   outline: 0;
   box-shadow: none;
-}
-
-/* Editor section separators: remove the visible panel and column rules without
-   changing their dimensions or the settings control borders. */
-html:root .kefe-editor .kefe-panel,
-html:root .kefe-editor .kefe-panel-head,
-html:root .kefe-editor .kefe-editing > .kefe-panels-left,
-html:root .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left) {
-  border-color: transparent;
 }
