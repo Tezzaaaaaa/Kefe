@@ -102,6 +102,8 @@ button{border:0;cursor:pointer;
   justify-items:stretch;
   gap:10px;
 }
+.kefe-preview-dock{position:relative;z-index:20;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:min(100%,1280px);min-width:0;min-height:36px;margin:0 auto;padding:0;color:var(--text)}
+.kefe-preview>.kefe-stage{position:relative}
 
 .kefe-preview-toolbar{position:relative;z-index:20;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;box-sizing:border-box;width:min(100%,1280px);min-width:0;min-height:48px;margin:0 auto;padding:7px 10px;border:1px solid var(--line-soft);border-radius:14px;background:var(--surface);box-shadow:var(--lift);color:var(--text)}
 .kefe-toolbar-workspace,.kefe-toolbar-format,.kefe-toolbar-actions{display:flex;align-items:center;min-width:0;gap:8px}
@@ -6143,8 +6145,8 @@ html,body{min-height:100%;height:auto;background:var(--bg);color:var(--text)}
   max-width:100%;max-height:none;margin-inline:auto;
   border:1px solid var(--line);border-radius:var(--r2);
   box-shadow:0 12px 36px rgba(0,0,0,.13);
-  transition:width 420ms cubic-bezier(.22,1,.36,1),height 420ms cubic-bezier(.22,1,.36,1),aspect-ratio 420ms cubic-bezier(.22,1,.36,1);
-  will-change:width,height;
+  transition:none;
+  will-change:auto;
 }
 .kefe-stage.is-16x9{width:min(100%,900px,92.45vh);aspect-ratio:16/9}
 .kefe-stage.is-9x16{width:min(100%,29.25vh);aspect-ratio:9/16}
@@ -9864,7 +9866,7 @@ input.beui-native-range {
   .kefe-editor .kefe-work { grid-template-rows: minmax(0, 1fr) var(--timeline-h); }
 }
 @media (max-width: 700px) {
-  .kefe-editor .kefe-work { grid-template-rows: minmax(0, 42dvh) 54px; }
+  .kefe-editor .kefe-work { min-height: 234px; grid-template-rows: minmax(180px, 42dvh) 54px; }
 }
 
 /* One unified toolbar above the preview; keep its controls on the same surface. */
@@ -9912,7 +9914,7 @@ input.beui-native-range {
   gap:10px;
   min-width:0;
   min-height:0;
-  height:auto;
+  height:100%;
   padding:12px;
   overflow:hidden;
   box-sizing:border-box;
@@ -9935,7 +9937,7 @@ input.beui-native-range {
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-16x9:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:16/9}
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-9x16:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:9/16}
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-1x1:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:1/1}
-.kefe-editor .kefe-work > .kefe-preview > .kefe-preview-toolbar{grid-row:1;width:min(100%,1280px)}
+.kefe-editor .kefe-work > .kefe-preview > .kefe-preview-dock{grid-row:1;width:min(100%,1280px);min-height:0}
 
 /* Keep the visible beUI fullscreen action attached to the preview while fullscreen is active. */
 .kefe-stage:fullscreen #previewFullscreen,
@@ -10462,7 +10464,7 @@ body .kefe-editor > header.kefe-sidebar::-webkit-scrollbar { display: none; }
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 50px auto auto;
   }
-  .kefe-work { grid-column: 1; grid-row: 2; grid-template-rows: auto 48px auto; }
+  .kefe-work { grid-column: 1; grid-row: 2; min-height: 234px; grid-template-rows: minmax(180px, 42dvh) 54px; }
   .kefe-editing { grid-column: 1; grid-row: 3; }
   .kefe-site-footer { grid-column: 1; grid-row: 4; }
 }
