@@ -586,26 +586,6 @@ html.kefe-ms-enabled {
     display: none;
   }
 
-  .kefe-ms-host .beui-vis-tabs-host .kv-grid,
-  .kefe-ms-host .kv-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-
-  .kefe-ms-host .kv-card {
-    min-width: 0;
-  }
-
-  .kefe-ms-host .kv-tab {
-    min-width: 0;
-  }
-
-  .kefe-ms-host .kv-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .kefe-ms-host .kefe-line-list {
     max-height: 42dvh;
   }

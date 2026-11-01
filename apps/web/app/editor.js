@@ -711,17 +711,99 @@
     return true;
   }
   const lyricEffectOptions=document.getElementById('lyricEffectOptions');
+  /* Every lyric-effect card paints a real frame of that effect. The phrase is one
+     of the example lines the renderer smoke tests already exercise, so every
+     renderer is guaranteed to produce visible output for it. */
+  const EFFECT_PREVIEW_PHRASE='BURN IT DOWN';
+  const effectPreviewCards=[];
+  let effectPreviewQueue=[];
+  let effectPreviewScheduled=false;
+  function effectPreviewLine(phrase){
+    const text=String(phrase).replace(/\s+/g,' ').trim();
+    /* Same timed fixture the signature-effect smoke renders, so every effect
+       shows its active state rather than an empty first frame. */
+    const words=text==='BURN IT DOWN'
+      ? [{text:'BURN',time:1,endTime:1.5},{text:'IT',time:1.5,endTime:1.8},{text:'DOWN',time:1.8,endTime:2.6}]
+      : text.split(' ').filter(Boolean).map((word,i)=>({text:word,time:1+i*.35,endTime:1.5+i*.35}));
+    return {text,time:1,endTime:2.9,words};
+  }
+  function paintEffectPreview(entry){
+    const {canvas,id,sample}=entry;
+    const ctx=canvas.getContext('2d');
+    if(!ctx)return false;
+    const W=canvas.width,H=canvas.height,fn=window.kefeEffects?.[id];
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,W,H);
+    if(typeof fn!=='function')return false;
+    const contract=window.KEFE_TYPE?.effects?.[id]||{};
+    const base={
+      effect:id,
+      fontSize:Math.min(W,H)*.21,
+      textColor:'#fff',
+      accentColor:'#ef3f38',
+      flipcardsColor:'#fff',
+      flipcardsAccent:'rgba(255,255,255,.25)',
+      kefeMotionFont:contract.family||'Open Sans'
+    };
+    const styler=window.kefeStyle;
+    const style=styler?.style?styler.style(base):base;
+    const lines=[effectPreviewLine(EFFECT_PREVIEW_PHRASE)];
+    try{
+      if(styler?.post)styler.post(ctx,W,H,target=>fn(target,W,H,style,lines,2,null));
+      else fn(ctx,W,H,style,lines,2,null);
+      return true;
+    }catch(error){
+      sample.dataset.previewError='true';
+      console.warn('[KEFE effect preview]',id,error);
+      return false;
+    }
+  }
+  function queueEffectPreview(entry){
+    effectPreviewQueue.push(entry);
+    if(effectPreviewScheduled)return;
+    effectPreviewScheduled=true;
+    const paintBatch=()=>{
+      for(let i=0;i<3&&effectPreviewQueue.length;i++)paintEffectPreview(effectPreviewQueue.shift());
+      if(effectPreviewQueue.length)requestAnimationFrame(paintBatch);
+      else effectPreviewScheduled=false;
+    };
+    requestAnimationFrame(paintBatch);
+  }
+  function repaintEffectPreviews(){
+    effectPreviewQueue=[];
+    effectPreviewCards.forEach(entry=>{
+      if(!paintEffectPreview(entry)){
+        entry.sample.textContent=EFFECT_PREVIEW_PHRASE;
+        entry.canvas.remove();
+      }
+    });
+  }
+  if(document.fonts?.ready)document.fonts.ready.then(repaintEffectPreviews).catch(()=>{});
+  window.addEventListener('kefe-effects-ready',repaintEffectPreviews);
+  /* style-layer.js is deferred and wraps every renderer after this script runs.
+     Repaint once the page and the wrapped renderers are both settled. */
+  window.addEventListener('load',repaintEffectPreviews,{once:true});
+  setTimeout(repaintEffectPreviews,400);
   function addLyricEffectOption(id,label){
     const button=document.createElement('button');
     button.type='button';
     button.className='kefe-lyric-effect-option';
     button.dataset.effect=id;
-    button.setAttribute('aria-label','Preview '+label+' lyric effect');
+    button.dataset.samplePhrase=EFFECT_PREVIEW_PHRASE;
+    button.setAttribute('aria-label','Preview '+label+' lyric effect: '+EFFECT_PREVIEW_PHRASE);
     button.setAttribute('aria-pressed','false');
     const sample=document.createElement('span');
     sample.className='kefe-lyric-effect-sample';
     sample.setAttribute('aria-hidden','true');
-    sample.textContent='Aa';
+    const canvas=document.createElement('canvas');
+    canvas.className='kefe-lyric-effect-canvas';
+    canvas.width=360;
+    canvas.height=180;
+    canvas.setAttribute('aria-hidden','true');
+    sample.appendChild(canvas);
+    const entry={canvas,id,sample};
+    effectPreviewCards.push(entry);
+    queueEffectPreview(entry);
     const name=document.createElement('span');
     name.className='kefe-lyric-effect-name';
     name.textContent=label;
@@ -779,20 +861,6 @@
         } else scroll(direction);
       }
     });
-    const style = document.createElement('style');
-    style.dataset.kefeLyricCarousel = 'true';
-    style.textContent = `
-      .kefe-lyric-effect-carousel{display:grid;grid-template-columns:28px minmax(0,1fr) 28px;align-items:center;gap:6px;width:100%;min-width:0}
-      .kefe-lyric-effect-carousel-nav{display:grid;place-items:center;width:28px;height:34px;padding:0;border:1px solid var(--shell-line,var(--border,#39393f));border-radius:9px;background:var(--shell-panel,var(--surface,#242428));color:var(--shell-text,var(--text,#f5f5f5));font-size:22px;line-height:1;cursor:pointer;transition:background .15s,border-color .15s}
-      .kefe-lyric-effect-carousel-nav:hover:not(:disabled){border-color:var(--shell-accent,var(--accent,#888));background:var(--shell-bg,#171719)}
-      .kefe-lyric-effect-carousel-nav:disabled{opacity:.28;cursor:default}
-      .kefe-lyric-effect-carousel #lyricEffectOptions{display:flex;flex-flow:row nowrap;gap:8px;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;padding:3px 2px 8px;scroll-snap-type:x mandatory;scrollbar-width:thin;overscroll-behavior-x:contain;touch-action:pan-x; -webkit-overflow-scrolling:touch}
-      .kefe-lyric-effect-carousel #lyricEffectOptions>.kefe-lyric-effect-option{flex:0 0 104px;min-width:0;min-height:78px;scroll-snap-align:start}
-      .kefe-lyric-effect-carousel #lyricEffectOptions::-webkit-scrollbar{height:4px}
-      .kefe-lyric-effect-carousel #lyricEffectOptions::-webkit-scrollbar-thumb{background:var(--shell-line,#39393f);border-radius:8px}
-      @media(max-width:640px){.kefe-lyric-effect-carousel{grid-template-columns:24px minmax(0,1fr) 24px;gap:4px}.kefe-lyric-effect-carousel-nav{width:24px;height:32px}.kefe-lyric-effect-carousel #lyricEffectOptions>.kefe-lyric-effect-option{flex-basis:94px;min-height:72px}}
-    `;
-    document.head.appendChild(style);
     requestAnimationFrame(sync);
   })();
   function openEditorPanel(panel){
