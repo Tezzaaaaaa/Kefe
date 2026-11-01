@@ -10670,7 +10670,13 @@ body .kefe-editor > header.kefe-sidebar::-webkit-scrollbar { display: none; }
 @media(max-width:640px){.kefe-lyric-effect-carousel{grid-template-columns:24px minmax(0,1fr) 24px;gap:4px}.kefe-lyric-effect-carousel-nav{width:24px;height:32px}.kefe-lyric-effect-carousel #lyricEffectOptions>.kefe-lyric-effect-option{flex-basis:152px;min-height:124px}}
 
 
-/* Remove the old framed preview dock and legacy white separator strokes. */
-.kefe-preview-dock { display: none; border: 0; box-shadow: none; }
-.kefe-stage { border: 0; outline: 0; box-shadow: none; }
-.kefe-timeline, .kefe-wave { border-color: transparent; }
+/* Remove the obsolete preview dock and the visible frame around the preview canvas. */
+html:root .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-dock {
+  display: none; border: 0; outline: 0; box-shadow: none;
+}
+html:root .kefe-editor .kefe-work > .kefe-preview > .kefe-stage:not(:fullscreen):not(.kefe-pseudo-fullscreen) {
+  border: 0; outline: 0; box-shadow: none;
+}
+html:root[data-theme="day"] .kefe-editor .kefe-work > .kefe-preview > .kefe-stage:not(:fullscreen):not(.kefe-pseudo-fullscreen) {
+  border: 0; outline: 0; box-shadow: none;
+}
