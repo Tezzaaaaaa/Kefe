@@ -964,3 +964,315 @@ html[data-theme="day"] {
     min-width: 30px;
   }
 }
+
+/* ==========================================================================
+   Visualiser gallery — shadcn Tabs + Card
+   One card per engine: CSS preview art, name, description and an independent
+   power switch. The native visualiser buttons remain in the hidden backing
+   host, so this is presentation only.
+   ========================================================================== */
+.kv-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 189px), 1fr));
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.kv-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--shad-border);
+  border-radius: var(--shad-radius-lg);
+  background: var(--shad-card);
+  box-shadow: var(--shad-shadow-xs);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+.kv-card:hover {
+  border-color: var(--shad-border-strong);
+  box-shadow: var(--shad-shadow-sm);
+  transform: translateY(-1px);
+}
+.kv-card.is-active {
+  border-color: var(--shad-primary);
+  box-shadow: 0 0 0 1px var(--shad-primary), var(--shad-shadow-sm);
+}
+
+.kv-tab {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--shad-card-foreground);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.kv-tab:focus-visible {
+  outline: 2px solid var(--shad-ring-solid);
+  outline-offset: -3px;
+}
+
+.kv-preview {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 8.4;
+  overflow: hidden;
+  background: #101116;
+  isolation: isolate;
+}
+.kv-preview::before,
+.kv-preview::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+.kv-preview::before {
+  inset: -18%;
+  z-index: 0;
+  transform-origin: 50% 55%;
+}
+.kv-preview::after {
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, transparent 55%, rgba(6, 8, 14, 0.42)),
+    linear-gradient(105deg, rgba(255, 255, 255, 0.12), transparent 32% 68%, rgba(255, 255, 255, 0.06));
+  mix-blend-mode: screen;
+}
+
+.kv-preview-icon {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(9, 12, 20, 0.46);
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.kv-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 11px 9px;
+}
+.kv-label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--shad-card-foreground);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kv-desc {
+  display: -webkit-box;
+  min-height: 2.7em;
+  overflow: hidden;
+  color: var(--shad-muted-foreground);
+  font-size: 11px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.kv-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 38px;
+  padding: 7px 9px 8px 11px;
+  border-top: 1px solid var(--shad-border);
+  background: color-mix(in srgb, var(--shad-muted) 48%, transparent);
+}
+.kv-card-status {
+  color: var(--shad-muted-foreground);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.kv-card.is-active .kv-card-status { color: var(--shad-primary); }
+
+.kv-power-switch {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 3px 6px 3px 7px;
+  border: 1px solid var(--shad-border);
+  border-radius: 999px;
+  background: var(--shad-background);
+  color: var(--shad-muted-foreground);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+  cursor: pointer;
+}
+.kv-power-switch:hover { border-color: var(--shad-border-strong); }
+.kv-power-switch.is-on {
+  border-color: var(--shad-primary);
+  color: var(--shad-card-foreground);
+}
+.kv-power-state { min-width: 14px; text-align: center; }
+.kv-power-track {
+  display: inline-flex;
+  align-items: center;
+  width: 26px;
+  height: 15px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--shad-border);
+  transition: background-color 140ms ease;
+}
+.kv-power-track > span {
+  display: block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--shad-muted-foreground);
+  transition: transform 140ms ease, background-color 140ms ease;
+}
+.kv-power-switch.is-on .kv-power-track { background: var(--shad-primary); }
+.kv-power-switch.is-on .kv-power-track > span {
+  transform: translateX(11px);
+  background: #fff;
+}
+
+/* Preview art per visualiser. These stay dark and saturated in both themes. */
+.kv-preview[data-art="fluid"] {
+  background:
+    radial-gradient(circle at 18% 78%, rgba(255, 122, 89, 0.8), transparent 42%),
+    radial-gradient(circle at 82% 24%, rgba(86, 139, 255, 0.78), transparent 46%),
+    linear-gradient(135deg, #0a1020, #1b2141 52%, #3a1730);
+}
+.kv-preview[data-art="fluid"]::before {
+  background:
+    conic-gradient(from 210deg at 46% 52%, transparent, rgba(255, 196, 128, 0.72), transparent 38%, rgba(120, 164, 255, 0.7), transparent 74%),
+    radial-gradient(circle at 55% 48%, rgba(255, 255, 255, 0.4), transparent 38%);
+  filter: blur(14px);
+}
+
+.kv-preview[data-art="liquid-glass"] {
+  background:
+    linear-gradient(135deg, rgba(190, 214, 255, 0.94), rgba(92, 126, 255, 0.64) 42%, rgba(24, 34, 64, 0.96)),
+    #19213a;
+}
+.kv-preview[data-art="liquid-glass"]::before {
+  background:
+    radial-gradient(ellipse at 22% 18%, rgba(255, 255, 255, 0.88), transparent 46%),
+    radial-gradient(ellipse at 78% 82%, rgba(130, 166, 255, 0.8), transparent 52%);
+  filter: blur(10px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.kv-preview[data-art="glass-lens"] {
+  background:
+    repeating-linear-gradient(102deg, rgba(255, 255, 255, 0.16) 0 4px, rgba(8, 14, 26, 0.32) 4px 12px),
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.34), transparent 42%),
+    linear-gradient(135deg, #1a2336, #4a5c7a 54%, #0d1422);
+}
+.kv-preview[data-art="glass-lens"]::before {
+  background: radial-gradient(circle at 50% 44%, transparent 0 20%, rgba(255, 255, 255, 0.2) 24% 26%, transparent 34%);
+  filter: blur(2px);
+}
+
+.kv-preview[data-art="slow-light"] {
+  background:
+    radial-gradient(ellipse at 26% 32%, rgba(255, 190, 150, 0.55), transparent 52%),
+    radial-gradient(ellipse at 76% 70%, rgba(133, 206, 196, 0.5), transparent 56%),
+    linear-gradient(160deg, #241a1b, #172a2b 58%, #101719);
+}
+.kv-preview[data-art="slow-light"]::before {
+  background:
+    radial-gradient(circle at 36% 44%, rgba(255, 232, 200, 0.5), transparent 30%),
+    radial-gradient(circle at 66% 58%, rgba(180, 235, 226, 0.4), transparent 34%);
+  filter: blur(15px);
+}
+.kv-preview[data-art="slow-light"]::after {
+  background:
+    repeating-radial-gradient(circle at 40% 50%, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, transparent 58%, rgba(6, 8, 14, 0.38));
+}
+
+.kv-preview[data-art="silk-road"] {
+  background:
+    repeating-linear-gradient(116deg, rgba(255, 116, 214, 0.6) 0 7px, transparent 7px 18px, rgba(96, 214, 255, 0.56) 18px 25px, transparent 25px 38px),
+    linear-gradient(140deg, #230d3a, #2a4c87 48%, #0e1528);
+}
+.kv-preview[data-art="silk-road"]::before {
+  background:
+    conic-gradient(from 140deg at 60% 45%, transparent, rgba(255, 176, 240, 0.55), transparent 32%, rgba(124, 226, 255, 0.55), transparent 66%);
+  filter: blur(12px);
+}
+
+.kv-preview[data-art="visuals-mix"] {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    conic-gradient(from 40deg at 32% 38%, #ff8b5d, #f7d35e, #54d6b5, #5ca8ff, #b06cff, #ff8b5d);
+  background-size: 28px 28px, 28px 28px, 100% 100%;
+}
+.kv-preview[data-art="visuals-mix"]::before {
+  background: radial-gradient(circle at 66% 58%, rgba(255, 255, 255, 0.34), transparent 40%);
+  filter: blur(14px);
+}
+
+.kv-preview[data-art="generic"] {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(214, 96, 255, 0.55), transparent 48%),
+    radial-gradient(circle at 72% 74%, rgba(80, 190, 255, 0.5), transparent 50%),
+    linear-gradient(135deg, #161c2c, #23253a);
+}
+.kv-preview[data-art="generic"]::before {
+  background: conic-gradient(from 90deg at 50% 50%, transparent, rgba(255, 255, 255, 0.28), transparent 60%);
+  filter: blur(12px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .kv-card:hover .kv-preview::before,
+  .kv-card:focus-within .kv-preview::before {
+    animation: kv-gallery-drift 9s ease-in-out infinite alternate;
+  }
+}
+@keyframes kv-gallery-drift {
+  from { transform: scale(1) rotate(0deg); }
+  to { transform: scale(1.14) rotate(5deg); }
+}
+
+@media (max-width: 420px) {
+  /* One column on narrow panels: a compact row keeps all six engines visible
+     without turning the gallery into a long vertical stack. */
+  .kv-tab { flex-direction: row; align-items: center; }
+  .kv-preview { flex: 0 0 44%; width: 44%; aspect-ratio: 16 / 10; }
+  .kv-body { padding: 9px 10px; }
+}
+
+@media (max-width: 380px) {
+  .kv-gallery { grid-template-columns: minmax(0, 1fr); }
+}

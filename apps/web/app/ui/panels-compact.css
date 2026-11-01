@@ -204,20 +204,6 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-suggestion-list { gap: 4px; }
 
 /* ---- Effects: carousel, lyric settings ---- */
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-effect-carousel { gap: 2px; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-effect-grid { gap: 4px !important; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-effect-option,
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-effect-grid > button {
-  min-height: 0 !important; padding: 6px 4px !important; gap: 2px !important; border-radius: 5px !important;
-  border: 1px solid var(--pc-border); background: var(--pc-surface);
-}
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-effect-grid > button[aria-pressed="true"],
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-effect-grid > button.active { border-color: var(--pc-accent); background: var(--pc-accent-bg); }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-effect-grid .kefe-lyric-effect-preview,
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-effect-grid [class*="preview"] { font-size: 16px !important; line-height: 20px; min-height: 0 !important; height: 24px !important; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-effect-grid [class*="name"],
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-effect-grid small { font-size: var(--pc-fs-xs) !important; line-height: 11px; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-effect-carousel-nav { width: 22px; height: 28px; padding: 0; border-radius: 4px; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-lyric-settings-head { padding: 0 !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-font-selector-heading { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-font-selector-heading .kefe-meta { display: block; }
@@ -365,17 +351,6 @@
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-preview { display: block; height: 44px !important; min-height: 0 !important; aspect-ratio: auto !important; border-radius: 3px !important; }
 :is(.kefe-panels, .kefe-settings-columns) .kefe-background-effect-name { font-size: var(--pc-fs-xs) !important; line-height: 11px; font-weight: 600; }
 
-/* ---- Pass 5: visualiser list (React bridge .kv-*) ---- */
-:is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 6px; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-card { min-height: 0 !important; height: 30px; padding: 0 6px 0 8px !important; gap: 6px !important; border-radius: 5px !important; border-color: var(--pc-border) !important; background: var(--pc-surface) !important; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-card:hover { border-color: var(--pc-border-hover) !important; background: var(--pc-surface-hover) !important; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-card.is-active { border-color: var(--pc-accent) !important; background: var(--pc-accent-bg) !important; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-tab { min-height: 28px !important; padding: 0 !important; font-size: var(--pc-fs) !important; font-weight: 500; color: var(--pc-text); }
-:is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-card.is-active .kv-tab { color: var(--pc-accent-fg); font-weight: 600; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-power-switch { min-height: 20px !important; padding: 0 !important; border: 0 !important; background: transparent !important; font-size: var(--pc-fs-sm) !important; gap: 5px !important; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-power-state { font-size: var(--pc-fs-sm); font-weight: 600; }
-:is(.kefe-panels, .kefe-settings-columns) .beui-vis-tabs-host .kv-power-track { width: 24px !important; height: 14px !important; }
-
 /* ==========================================================================
    Shared panel alignment contract
    Keep every section on one compact, predictable grid like the floating toolbar.
@@ -484,16 +459,6 @@
 
 /* Respect the hidden attribute on rows these rules give a display value */
 :is(.kefe-panels, .kefe-settings-columns) [hidden] { display: none !important; }
-
-/* Lyric effect carousel: smaller cards */
-:is(.kefe-panels, .kefe-settings-columns) .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-option {
-  flex: 0 0 88px; width: 88px; min-height: 0; padding: 5px; gap: 4px; border-radius: 6px;
-}
-:is(.kefe-panels, .kefe-settings-columns) .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-sample {
-  min-height: 38px; font-size: 20px; border-radius: 4px;
-}
-:is(.kefe-panels, .kefe-settings-columns) .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-name { font-size: var(--pc-fs-xs); line-height: 1.2; }
-:is(.kefe-panels, .kefe-settings-columns) .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control .kefe-lyric-effect-grid { gap: 6px; padding: 2px; }
 
 /* Slider labels: room for "Words per chunk" */
 :is(.kefe-panels, .kefe-settings-columns) label.kefe-visualiser-field,
