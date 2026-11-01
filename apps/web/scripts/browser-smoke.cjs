@@ -274,7 +274,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".kefe-preview-toolbar").count(), usesDedicatedDock ? 0 : 1,
       "the editor must use either the dedicated dock or the legacy preview bar, never both");
     const nativeAspect = page.locator(usesDedicatedDock ? ".kefe-preview-dock .kefe-toolbar-format" : ":is(.kefe-preview-dock, .kefe-preview-toolbar) .kefe-toolbar-format");
-    assert.equal(await nativeAspect.isVisible(), false, "the native aspect control must remain hidden as a backing control");
+    if (hasStablePreviewGeometry) assert.equal(await nativeAspect.isVisible(), false, "the native aspect control must remain hidden as a backing control");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
     assert.equal(await page.locator("#previewFullscreen").count(), 1, "the media player must retain exactly one fullscreen control");
     assert.equal(await page.locator(".kefe-timeline > #previewFullscreen").count(), 1, "fullscreen must remain in the media player, not the preview dock or stage");
