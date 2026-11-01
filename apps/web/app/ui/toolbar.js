@@ -836,7 +836,9 @@
   if (window.ResizeObserver) {
     const barEl = bareBar();
     if (barEl) {
-      new ResizeObserver(() => window.dispatchEvent(new Event('resize'))).observe(barEl);
+      // Toolbar wrapping changes only the preview's available height; do not
+      // broadcast a global viewport resize to every editor subsystem.
+      new ResizeObserver(() => window.dispatchEvent(new Event('kefe-preview-fit'))).observe(barEl);
       if (barEl.parentElement) new ResizeObserver(flagWidth).observe(barEl.parentElement);
     }
   }
