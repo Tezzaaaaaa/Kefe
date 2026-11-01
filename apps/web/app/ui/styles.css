@@ -10908,3 +10908,12 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
   outline: 0;
   box-shadow: none;
 }
+
+/* Editor section separators: remove the visible panel and column rules without
+   changing their dimensions or the settings control borders. */
+html:root .kefe-editor .kefe-panel,
+html:root .kefe-editor .kefe-panel-head,
+html:root .kefe-editor .kefe-editing > .kefe-panels-left,
+html:root .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left) {
+  border-color: transparent;
+}
