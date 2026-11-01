@@ -737,7 +737,7 @@
     if (!isOpen) closePopover(false);
     try { localStorage.setItem(OPEN_KEY, isOpen ? '1' : '0'); } catch (_) {}
     if (floating) requestAnimationFrame(placeFloating);
-    requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    requestAnimationFrame(() => window.dispatchEvent(new Event('kefe-preview-fit')));
     if (focusLauncher) launch.focus({ preventScroll: true });
   }
   // Where the root should live right now: the fullscreen stage, the page (floating), or the preview bar (docked).
@@ -769,7 +769,7 @@
     floating = false;
     closePopover(false);
     mountRoot(); emit('reset-position', pos);
-    requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    requestAnimationFrame(() => window.dispatchEvent(new Event('kefe-preview-fit')));
   }
   launch.addEventListener('click', () => setOpen(!isOpen));
   ghost.addEventListener('click', redock);
@@ -805,7 +805,7 @@
     if (!dragging || (e && e.pointerId !== dragging.id)) return;
     const moved = dragging.moved;
     dragging = null; root.classList.remove('is-dragging');
-    if (moved) { emit('position', pos); requestAnimationFrame(() => window.dispatchEvent(new Event('resize'))); }
+    if (moved) { emit('position', pos); requestAnimationFrame(() => window.dispatchEvent(new Event('kefe-preview-fit'))); }
   };
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => grip.addEventListener(t, stopDrag));
   grip.addEventListener('keydown', e => {
