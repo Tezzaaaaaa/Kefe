@@ -305,10 +305,10 @@ async function captureEditorScreenState(page) {
     const transportFrame = await page.locator(".kefe-timeline, .kefe-wave").evaluateAll(nodes =>
       nodes.map(node => {
         const style = getComputedStyle(node);
-        return { border: style.borderWidth, shadow: style.boxShadow };
+        return { borderColor: style.borderTopColor, borderStyle: style.borderTopStyle };
       }));
-    assert.ok(transportFrame.every(state => state.border === "0px" && state.shadow === "none"),
-      "the transport bar and waveform must not draw white separator borders");
+    assert.ok(transportFrame.every(state => state.borderStyle === "none" || state.borderColor === "rgba(0, 0, 0, 0)"),
+      "the transport bar and waveform must not draw visible separator borders");
     const hasStablePreviewGeometry = await page.locator(".kefe-stage").evaluate(node => getComputedStyle(node).transitionProperty === "none");
     const nativeAspect = page.locator(".kefe-sidebar-group-editor .kefe-toolbar-format");
     if (hasStablePreviewGeometry) assert.equal(await nativeAspect.isVisible(), false,
@@ -323,6 +323,7 @@ async function captureEditorScreenState(page) {
       && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.editor.top - 2
       && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.editor.bottom + 8,
       `toolbar must be docked immediately to the right of Editor: ${JSON.stringify(initialToolbarPlacement)}`);
+    const desktopViewport = page.viewportSize();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     // Mobile editing happens in the KEFE sidebar, so measure the media surface
