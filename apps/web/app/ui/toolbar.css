@@ -592,3 +592,16 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
   }
   .kefe-sidebar-group-editor > .kefe-floating-toolbar.is-open .kft-main { width: 100%; }
 }
+
+
+/* On phones the launcher stays beside Editor; the expanded controls open below the header. */
+@media (max-width: 520px) {
+  .kefe-sidebar-group-editor > #kefeFloatingToolbar { position: relative; flex: 0 0 32px; width: 32px; max-width: 32px; }
+  .kefe-sidebar-group-editor > #kefeFloatingToolbar .kft-bar {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 2147483645;
+    width: max-content; max-width: calc(100vw - 160px); min-width: 0;
+  }
+  .kefe-sidebar-group-editor > #kefeFloatingToolbar .kft-main {
+    width: 100%; max-width: 100%; flex-wrap: wrap; white-space: normal;
+  }
+}
