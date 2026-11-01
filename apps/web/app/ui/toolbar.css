@@ -577,3 +577,18 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
 @media (max-width: 520px) { .kefe-sidebar-group-editor { gap: 5px; } .kefe-sidebar-group-editor > .kefe-floating-toolbar { margin-inline-start: 0; } }
 
 .kefe-sidebar-group-editor > .kefe-toolbar-format[hidden] { display: none; }
+
+
+/* On phones the toolbar opens as an overlay so it never pushes past the header viewport. */
+@media (max-width: 520px) {
+  .kefe-sidebar-group-editor > .kefe-floating-toolbar.is-open .kft-bar {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 56px);
+    left: 8px;
+    right: 8px;
+    z-index: 10001;
+    width: auto;
+    max-width: calc(100vw - 16px);
+  }
+  .kefe-sidebar-group-editor > .kefe-floating-toolbar.is-open .kft-main { width: 100%; }
+}
