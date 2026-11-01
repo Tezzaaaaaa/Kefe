@@ -10880,3 +10880,23 @@ html:root .kefe-editor .kefe-work > .kefe-timeline :is(.kefe-play, .kefe-restart
   border: 0 !important;
   box-shadow: none !important;
 }
+
+/* The editor workspace itself must stay edge-to-edge: remove residual shell and section keylines. */
+html:root .kefe-editor,
+html:root .kefe-editor > header.kefe-sidebar,
+html:root .kefe-editor > .kefe-work,
+html:root .kefe-editor > .kefe-editing,
+html:root .kefe-editor .kefe-editing > .kefe-panels,
+html:root .kefe-editor .kefe-editing > .kefe-panels-left,
+html:root .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left) {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html:root .kefe-editor .kefe-editing .kefe-panel[data-panel-view],
+html:root .kefe-editor .kefe-editing .kefe-panel-head {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
