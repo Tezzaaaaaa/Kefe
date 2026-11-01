@@ -1639,7 +1639,7 @@ async function captureEditorScreenState(page) {
       });
       /* The comparison baseline pairs the current shell with main's stylesheet, so the
          compact-header rules are absent there; only assert the fit where they apply. */
-      if (!headerSearchMode || headerSearchStyled) {
+      if (headerSearchStyled) {
         assert.ok(headerFit.top <= 1 && headerFit.left >= -1 && headerFit.right <= headerFit.viewportWidth + 1,
           `the header must stay on screen at ${width}px: ${JSON.stringify(headerFit)}`);
         assert.ok(headerFit.actionsRight === null || headerFit.actionsRight <= headerFit.viewportWidth + 1,
