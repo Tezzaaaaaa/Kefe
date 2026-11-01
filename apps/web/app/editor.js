@@ -975,7 +975,6 @@
     const fitObserver=new ResizeObserver(queueFit);
     fitObserver.observe(previewPane);
     const previewDock=previewPane.querySelector('.kefe-preview-dock');if(previewDock)fitObserver.observe(previewDock);
-    const workHost=previewPane.parentElement;if(workHost)fitObserver.observe(workHost);
   }
   window.addEventListener('resize',queueFit);
   window.visualViewport?.addEventListener('resize',queueFit);
