@@ -9863,7 +9863,7 @@ input.beui-native-range {
   .kefe-editor .kefe-work { grid-template-rows: minmax(0, 1fr) var(--timeline-h); }
 }
 @media (max-width: 700px) {
-  .kefe-editor .kefe-work { grid-template-rows: minmax(0, 42dvh) 54px; }
+  .kefe-editor .kefe-work { min-height: 234px; grid-template-rows: minmax(180px, 42dvh) 54px; }
 }
 
 /* One unified toolbar above the preview; keep its controls on the same surface. */
