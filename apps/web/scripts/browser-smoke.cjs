@@ -906,10 +906,10 @@ async function captureEditorScreenState(page) {
       .filter(section => getComputedStyle(section).display !== "none")
       .map(section => {
         const style = getComputedStyle(section);
-        return { borderColor: style.borderTopColor, boxShadow: style.boxShadow, background: style.backgroundColor };
+        return { borderWidth: style.borderTopWidth, borderStyle: style.borderTopStyle, boxShadow: style.boxShadow, background: style.backgroundColor };
       }));
     assert.equal(nativePanelSurfaceStyle.length, 6, "all six native settings sections must remain present");
-    assert.ok(nativePanelSurfaceStyle.every(style => style.borderColor === "rgba(0, 0, 0, 0)" && style.boxShadow === "none"),
+    assert.ok(nativePanelSurfaceStyle.every(style => style.borderWidth === "0px" && style.borderStyle === "none" && style.boxShadow === "none"),
       `native settings sections must not draw outer outlines or elevation shadows: ${JSON.stringify(nativePanelSurfaceStyle)}`);
     const embeddedPanelStyle = await page.locator("#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]").evaluateAll(panels =>
       panels.map(panel => {
@@ -921,6 +921,42 @@ async function captureEditorScreenState(page) {
     assert.ok(embeddedPanelStyle.every(style => style.position === "relative" && style.display === "flex" && style.flexDirection === "column" && style.gap === "0px"
       && style.padding === "10px 0px" && style.borderWidth === "1px" && style.borderColor === "rgba(0, 0, 0, 0)" && style.borderRadius === "8px"),
       `embedded native panels must retain the former Card's vertical flex layout, zero gap, 10px vertical inset, transparent border and 8px radius: ${JSON.stringify(embeddedPanelStyle)}`);
+
+    // The baseline capture intentionally contains the section frame this change removes.
+    if (process.env.KEFE_SCREENSHOT_LABEL !== "main-baseline") {
+      const originalEditorTheme = await page.evaluate(() => document.documentElement.dataset.theme);
+      for (const theme of ["day", "night"]) {
+        await page.evaluate(nextTheme => { document.documentElement.dataset.theme = nextTheme; }, theme);
+        const sectionChromeAudit = await page.evaluate(() => {
+          const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
+          const panels = [...document.querySelectorAll("#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]")];
+          const columns = [...document.querySelectorAll(".kefe-editor .kefe-editing > .kefe-panels-left, .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left)")];
+          return {
+            sections: sections.map(node => {
+              const style = getComputedStyle(node);
+              return { borderWidth: style.borderTopWidth, borderStyle: style.borderTopStyle, shadow: style.boxShadow };
+            }),
+            panels: panels.map(node => {
+              const style = getComputedStyle(node);
+              const shadowLayers = style.boxShadow === "none" ? [] : style.boxShadow.split(/,(?![^()]*\))/);
+              const shadowVisible = shadowLayers.some(layer => !/^rgba\([^)]*,\s*0\)\s+0px 0px 0px 0px$/.test(layer.trim()));
+              return { border: style.borderTopColor, shadowVisible };
+            }),
+            columns: columns.map(node => {
+              const style = getComputedStyle(node);
+              return { left: style.borderLeftWidth, right: style.borderRightWidth };
+            }),
+          };
+        });
+        assert.ok(sectionChromeAudit.sections.every(style => style.borderWidth === "0px" && style.borderStyle === "none" && style.shadow === "none"),
+          `${theme} mode must keep settings section rows free of borders and shadows: ${JSON.stringify(sectionChromeAudit.sections)}`);
+        assert.ok(sectionChromeAudit.panels.every(style => style.border === "rgba(0, 0, 0, 0)" && !style.shadowVisible),
+          `${theme} mode must keep embedded editor panels free of visible borders and shadows: ${JSON.stringify(sectionChromeAudit.panels)}`);
+        assert.ok(sectionChromeAudit.columns.every(style => style.left === "0px" && style.right === "0px"),
+          `${theme} mode must not draw vertical rules on the editor columns: ${JSON.stringify(sectionChromeAudit.columns)}`);
+      }
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, originalEditorTheme);
+    }
     assert.equal(await page.locator(".kefe-editor .kefe-panel[data-panel-view] .beui-editor-panel-card").count(), 0,
       "editor panels must not create parallel React Card wrappers");
 
@@ -1761,6 +1797,23 @@ async function captureEditorScreenState(page) {
           document.querySelector(".kefe-ms-drawer") &&
           document.querySelector(`.kefe-ms-host .kefe-panel[data-panel-view="${expected}"]`)
         ), section, { timeout: 5000 });
+
+        const mobileSectionChrome = await page.locator(".kefe-ms-host .kefe-ms-live-panel").evaluate(panel => {
+          const style = getComputedStyle(panel);
+          const sides = ["Top", "Right", "Bottom", "Left"];
+          const visibleBorder = sides.some(side =>
+            style[`border${side}Width`] !== "0px" &&
+            style[`border${side}Style`] !== "none" &&
+            style[`border${side}Color`] !== "rgba(0, 0, 0, 0)"
+          );
+          const shadowLayers = style.boxShadow === "none" ? [] : style.boxShadow.split(/,(?![^()]*\))/);
+          const visibleShadow = shadowLayers.some(layer => !/^rgba\([^)]*,\s*0\)\s+0px 0px 0px 0px$/.test(layer.trim()));
+          const visibleOutline = style.outlineWidth !== "0px" && style.outlineStyle !== "none"
+            && style.outlineColor !== "rgba(0, 0, 0, 0)";
+          return { border: style.border, boxShadow: style.boxShadow, outline: style.outline, visibleBorder, visibleShadow, visibleOutline };
+        });
+        assert.ok(!mobileSectionChrome.visibleBorder && !mobileSectionChrome.visibleShadow && !mobileSectionChrome.visibleOutline,
+          `mobile ${section} section frame must not draw an outer border, shadow or outline: ${JSON.stringify(mobileSectionChrome)}`);
         // Wait for the slide-in spring to settle before measuring the drawer.
         await page.waitForFunction(() => {
           const drawer = document.querySelector(".kefe-ms-drawer");
