@@ -10712,9 +10712,14 @@ body .kefe-editor > header.kefe-sidebar::-webkit-scrollbar { display: none; }
    keeps every action reachable without a horizontal scroll. */
 @media (max-width: 380px) {
   body .kefe-editor > header.kefe-sidebar {
-    padding: 0 8px;
-    gap: 4px;
+    padding: 0 6px;
+    gap: 3px;
   }
+  .kefe-sidebar-brand-row { padding-right: 4px; }
+  .kefe-sidebar-group { gap: 0; }
+  .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] { padding: 0 8px; }
+  .kefe-sidebar-bottom { gap: 2px; padding-left: 4px; }
+  .kefe-sidebar-bottom > .kefe-sidebar-link { width: 32px; min-width: 32px; }
 }
 
 /* Below this width the unfolded field would reach the workspace entries, so the
