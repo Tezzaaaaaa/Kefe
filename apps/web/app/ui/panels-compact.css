@@ -705,3 +705,83 @@
 /* Settings groups use a shared surface; avoid nested card outlines around each section. */
 .kefe-editor .kefe-settings-panel .kefe-section-tabs-host,
 .kefe-editor .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] { border: 0; box-shadow: none; }
+
+/* Keep the audio and optional video pickers compact and paired on every screen. */
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: stretch;
+  gap: 6px !important;
+}
+
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap {
+  box-sizing: border-box;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  width: 100%;
+  margin: 0 !important;
+}
+
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeBgVideoZone {
+  box-sizing: border-box;
+  height: 96px !important;
+  min-height: 96px !important;
+  max-height: 96px !important;
+  padding: 6px !important;
+  gap: 3px !important;
+  overflow: hidden;
+}
+
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone .kefe-upload-card {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 5px 4px;
+  gap: 2px;
+}
+
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-symbol {
+  width: 24px !important;
+  height: 24px !important;
+  flex-basis: 24px;
+  margin: 0;
+  border-radius: 7px;
+}
+
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-symbol svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .kefe-upload-title {
+  max-width: 100%;
+  font-size: 11px !important;
+  line-height: 1.15;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .kefe-upload-name {
+  max-width: 100%;
+  font-size: 9.5px !important;
+  line-height: 1.15;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-browse {
+  height: 22px !important;
+  min-height: 22px !important;
+  margin: 0;
+  padding-inline: 7px !important;
+  font-size: 10px !important;
+}
+
+.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-file {
+  min-width: 0;
+  gap: 5px;
+  padding: 5px;
+  border-radius: 6px;
+}

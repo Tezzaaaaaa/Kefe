@@ -9,6 +9,8 @@ const editorRuntime = readFileSync(resolve(root, "app/editor.js"), "utf8");
 const editorStyles = readFileSync(resolve(root, "app/ui/styles.css"), "utf8");
 const compactStyles = readFileSync(resolve(root, "app/ui/panels-compact.css"), "utf8");
 const bridgeStyles = readFileSync(resolve(root, "beui-src/legacy-bridge.css"), "utf8");
+const backgroundRuntime = readFileSync(resolve(root, "app/visualiser/background.js"), "utf8");
+const mediaRuntime = readFileSync(resolve(root, "app/media-carousel.js"), "utf8");
 const failures = [];
 
 if (entry.includes("legacy-upload-card-bridge")) failures.push("Editor entry still loads the upload Card bridge");
@@ -28,6 +30,18 @@ for (const retiredClass of ["beui-upload-card-hosted", "beui-upload-card-root", 
   if (editorStyles.includes(retiredClass) || compactStyles.includes(retiredClass) || bridgeStyles.includes(retiredClass)) {
     failures.push(`Styles still depend on retired upload Card wrapper class ${retiredClass}`);
   }
+}
+
+if (!backgroundRuntime.includes('id="kefeBgVideoZone"') || !backgroundRuntime.includes('id="bgVideoInput"')) {
+  failures.push("Optional background-video picker or its file input is missing");
+}
+if (!mediaRuntime.includes("uploads.appendChild(zone)") || !mediaRuntime.includes("uploads.appendChild(bgWrap)")) {
+  failures.push("Audio and background-video upload controls are not grouped together in Media");
+}
+if (!compactStyles.includes("grid-template-columns: repeat(2, minmax(0, 1fr)) !important") ||
+    !compactStyles.includes("height: 96px !important") ||
+    !compactStyles.includes("#kefeBgVideoZone")) {
+  failures.push("Audio and background-video upload cards must remain side by side at a compact fixed height");
 }
 
 if (failures.length) {
