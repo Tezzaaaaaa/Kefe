@@ -1034,7 +1034,8 @@
   document.getElementById('playButton').onclick=async()=>{
     if(audio.src){
       if(audio.paused){
-        const audioContext=window.kefeAudioGraph?.context?.();
+        const graph=window.kefeAudioGraph?.ensure?.();
+        const audioContext=graph?.ac||window.kefeAudioGraph?.context?.();
         if(audioContext&&audioContext.state==='suspended'){
           try{await audioContext.resume();}catch(error){console.warn('[KEFE audio context]',error);}
         }
