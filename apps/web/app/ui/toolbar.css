@@ -568,3 +568,10 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
 
 /* The toolbar is one quiet surface; its launcher and cells do not draw nested outlines. */
 .kefe-editor .kft-bar, .kefe-editor .kft-launch, .kefe-editor .kft-ghost { border-color: transparent; }
+
+
+/* Header placement: keep the editor toolbar directly beside the Editor navigation item. */
+.kefe-sidebar-group-editor { display: flex; flex-direction: row; align-items: center; gap: 8px; min-width: 0; }
+.kefe-sidebar-group-editor > .kefe-floating-toolbar { flex: 0 0 auto; margin-inline-start: 2px; }
+.kefe-sidebar-group-editor > .kefe-floating-toolbar .kft-launch { width: 32px; height: 32px; }
+@media (max-width: 520px) { .kefe-sidebar-group-editor { gap: 5px; } .kefe-sidebar-group-editor > .kefe-floating-toolbar { margin-inline-start: 0; } }
