@@ -10839,6 +10839,8 @@ html:root .kefe-editor .kefe-work > .kefe-timeline .kefe-wave {
 
 /* Keep the Editor, toolbar launcher, Settings and utility actions on-screen at 320px. */
 @media (max-width: 380px) {
+  .kefe-sidebar-brand-row { padding-right: 0; }
+  .kefe-sidebar-brand { padding-inline: 2px; }
   .kefe-sidebar-group { gap: 1px; }
   .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] { padding-inline: 6px; }
   .kefe-sidebar-group .kefe-header-settings { padding-inline: 6px; }
