@@ -1814,6 +1814,24 @@ async function captureEditorScreenState(page) {
         });
         assert.ok(!mobileSectionChrome.visibleBorder && !mobileSectionChrome.visibleShadow && !mobileSectionChrome.visibleOutline,
           `mobile ${section} section frame must not draw an outer border, shadow or outline: ${JSON.stringify(mobileSectionChrome)}`);
+
+        if (section === "media" && process.env.KEFE_SCREENSHOT_LABEL !== "main-baseline") {
+          const mobileFindStepChrome = await page.locator(".kefe-ms-host .kefe-find-step").evaluate(step => {
+            const style = getComputedStyle(step);
+            return {
+              borderWidth: style.borderTopWidth,
+              borderStyle: style.borderTopStyle,
+              background: style.backgroundColor,
+              boxShadow: style.boxShadow,
+              outlineWidth: style.outlineWidth,
+              outlineStyle: style.outlineStyle
+            };
+          });
+          assert.ok(mobileFindStepChrome.borderWidth === "0px" && mobileFindStepChrome.borderStyle === "none"
+            && mobileFindStepChrome.background === "rgba(0, 0, 0, 0)" && mobileFindStepChrome.boxShadow === "none"
+            && mobileFindStepChrome.outlineWidth === "0px" && mobileFindStepChrome.outlineStyle === "none",
+            `mobile Find your song step must be borderless and transparent: ${JSON.stringify(mobileFindStepChrome)}`);
+        }
         // Wait for the slide-in spring to settle before measuring the drawer.
         await page.waitForFunction(() => {
           const drawer = document.querySelector(".kefe-ms-drawer");
