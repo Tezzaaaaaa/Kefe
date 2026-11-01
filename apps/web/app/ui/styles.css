@@ -10835,3 +10835,16 @@ html:root .kefe-editor .kefe-work > .kefe-timeline .kefe-wave {
 
 /* The preview has one child now that its toolbar lives in the header. */
 .kefe-editor .kefe-preview { grid-template-rows: minmax(0, 1fr); }
+
+
+/* Keep the Editor, toolbar launcher, Settings and utility actions on-screen at 320px. */
+@media (max-width: 380px) {
+  .kefe-sidebar-group { gap: 1px; }
+  .kefe-sidebar-group .kefe-sidebar-link[data-editor-tab] { padding-inline: 6px; }
+  .kefe-sidebar-group .kefe-header-settings { padding-inline: 6px; }
+  .kefe-sidebar-group-editor > #kefeFloatingToolbar { flex-basis: 28px; width: 28px; }
+  .kefe-sidebar-group-editor > #kefeFloatingToolbar .kft-launch { width: 28px; height: 28px; }
+  .kefe-sidebar-bottom { gap: 2px; padding-left: 5px; }
+  .kefe-sidebar-bottom > .kefe-sidebar-link { width: 30px; min-width: 30px; height: 30px; }
+  .kefe-search .kefe-header-search { width: 30px; min-width: 30px; }
+}
