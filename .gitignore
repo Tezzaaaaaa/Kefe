@@ -26,11 +26,5 @@ Thumbs.db
 *.log
 coverage/
 
-# Replit
-.cache/
-.local/
-.replit
-replit.nix
-
 # KEFE beUI build output
 apps/web/dist-beui/

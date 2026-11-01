@@ -196,7 +196,6 @@ function appleDrawRow(ctx, entries, y, fs, time, P, lineA, hi, blurPx) {
         const front = progress * (1 + edgeSoft * 2) - edgeSoft;
         const W = en.box.W;
         const charCount = en.box.chars.length;
-        const amp = en.explicitTiming && dur >= 0.72 ? 0.48 : 0.68;
         const emphasise = appleShouldEmphasize(en, dur, en.tokenLength || charCount);
         const emp = emphasise ? appleEmphasisParams(dur, en.isLastWord) : null;
         for (let k = 0; k < charCount; k++) {
@@ -480,8 +479,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     const rowHeight = activeFontSize * 1.18;
     const blockGap = activeFontSize * 0.74;
         const visibleLines = Math.round(linaClamp(Number(style.appleVisibleLines) || 4, 2, 6));
-    const appleHeaderSize = baseDimension * 0.11;
-    const appleHeaderTop = Math.max(baseDimension * 0.065, h * 0.035);
     const appleHeaderBottom = landscapeSplit ? 0 : Math.max(32, h * 0.07) + baseDimension * 0.11;
     // Fixed anchors preserve each ratio's established composition regardless of lyric wrapping.
     const topAnchor = landscapeSplit
@@ -519,7 +516,6 @@ function drawAppleEffect(ctx, w, h, style, lines, time, albumArtworkImage) {
     for (let i = 1; i < displayLines.length; i++) cum[i] = cum[i - 1] + heightOf(i - 1) / 2 + heightOf(i) / 2 + blockGap;
     const fl = Math.max(0, Math.min(displayLines.length - 1, Math.floor(focus)));
     const fn1 = Math.min(displayLines.length - 1, fl + 1);
-    const focusY = cum[fl] + (cum[fn1] - cum[fl]) * (focus - fl);
     /* iOS scroll: every line rides the same ease, but lines further below the sung line start a beat later,
        so the stack "unfurls" instead of moving as one slab. Each line's scroll offset is the sum of the last
        few line-to-line steps, each with its own per-line delay, so nothing jumps when the active line changes. */

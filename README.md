@@ -34,50 +34,14 @@ The preview combines the lyric/title-card canvas with a dedicated visualiser can
 - Use the lyric timing editor to adjust line and word start times, create pickups and held words, split or merge lines, insert or delete content, undo edits and follow playback.
 - Import enhanced LRC files with word-level timing tags.
 - Download lyrics as LRC, SRT or timed JSON.
-- Choose a lyric display mode: Line, Word, Karaoke or Chunk.
+- Choose a lyric display mode: Line, Word or Chunk.
 - Apply capitalisation options and a shared lyric style layer across effects.
 
 ### Lyric effects
 
-The editor includes 35 lyric effects:
+The editor includes 53 lyric effects: Karaoke, Bounce Karaoke, Apple, and 50 Signature LyricFX effects grouped as Kinetic Dynamics, Glow Shaders, Cyber Networks, Rare Gem Treatments, Liquid & Organic, and Dimensional Depth.
 
-- Karaoke
-- Bounce Karaoke
-- Apple
-- Brat
-- Aurora
-- Pulse
-- Typewriter
-- Instagram
-- Fade Up
-- Decrypt
-- Blur In
-- Shiny
-- Rise
-- Slide
-- Drop
-- Drift
-- Scroll Lines
-- Barbie
-- Elastic Pop
-- Flip Text
-- Trailer
-- Fancy
-- Glitch
-- Split-Flap
-- CRT Computer Desktop
-- CRT TV Box
-- Randomise
-- Spin Lyrics
-- Devotion
-- Dust Off
-- WrapSlide
-- Eternal Sunshine
-- Ink Script
-- Liquid Chrome
-- Gel Script
-
-Effects provide different animation and typography treatments. Available controls depend on the selected effect. Use the shared style controls for colours, text size, placement, outline, glow, custom text and logo, with font overrides where available.
+Effects provide different animation and typography treatments. Available controls depend on the selected effect. Use the shared style controls for colours, text size, placement, outline and glow, with font overrides where available.
 
 ### Navigation
 
@@ -88,7 +52,7 @@ Effects provide different animation and typography treatments. Available control
 
 - Preview playback, scrub through the timeline and view the composition fullscreen.
 - Switch the composition aspect ratio between 16:9, 9:16 and 1:1.
-- Switch between the Liquid Glass, Slow Light, Fluid Ink and Glass Lens visualisers.
+- Switch between the Liquid Glass, Slow Light, Fluid Ink, Glass Lens, Silk Road and Visuals Mix visualisers.
 - Use the available presets and controls for each visualiser.
 - Visualiser output responds to source audio where supported and is included in video exports.
 
@@ -102,7 +66,6 @@ Effects provide different animation and typography treatments. Available control
 
 ### Video formats and export
 
-- Choose a video type preset, including lyric video, full-song visualiser, cover-art video and vertical release cut.
 - Choose 720p, 1080p, 1440p (2K) or 2160p (4K) output, subject to browser and device limits.
 - Export as WebM or MP4 (H.264/AAC where supported).
 - Review the composition with the pre-export checklist and phone-size preview.
@@ -131,7 +94,6 @@ docs/           Architecture notes and design references
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the editor's file layout, key files and development commands.
-
 
 ## Licensing
 

@@ -50,6 +50,7 @@ assert.deepEqual(legacy, [], `legacy effects must be removed from the roster: ${
 const editor = read("editor.source.html");
 assert.match(editor, /<meta name="kefe-lyric-signature" content="50">/, "the editor must declare the Signature pack marker");
 assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
+assert.match(editor, /lyric-karaoke\.js/, "the Karaoke and Bounce renderers must stay loaded");
 assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
 assert.match(editor, /effects\/manifest\.js/, "the manifest must be loaded");
 for (const file of ["lyric-aurora", "lyric-pulse", "lyric-typewriter", "lyric-glitch", "lyric-inspiration-pack"]) {
@@ -126,6 +127,16 @@ runtime.dispatchEvent = () => {};
  const appleContext = makeContext();
  runtime.kefeEffects.apple(appleContext, 1280, 720, { effect: "apple", fontSize: 84 }, lines, 1.6, null);
  assert.ok(appleContext.fills > 0, "Apple renderer must paint the active line in the preview canvas");
+/* Karaoke and Bounce are picker entries outside the Signature manifest; make sure their
+   renderer stays loaded and paints, so the two buttons never regress to a blank preview. */
+vm.runInContext(read("app/effects/lyric-karaoke.js"), runtime, { filename: "lyric-karaoke.js" });
+for (const key of ["karaoke", "bounce"]) {
+  assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register from lyric-karaoke.js`);
+  const ctx = makeContext();
+  runtime.kefeEffects[key](ctx, 1280, 720, { effect: key, fontSize: 84 }, lines, 1.6);
+  assert.ok(ctx.fills > 0, `${key} renderer must paint the active line`);
+}
+
 const plainLines = [{ text: "NO WORD TIMINGS", time: 0, endTime: 3 }, { text: "SECOND LINE", time: 3, endTime: 5 }];
 for (const key of keys) {
   const ctx = makeContext();
@@ -140,4 +151,4 @@ for (const key of keys) {
   }
 }
 
-console.log(`Signature LyricFX verified: Apple + ${keys.length} effects, unique keys/labels, contracts, wiring and canvas output.`);
+console.log(`Signature LyricFX verified: Apple + ${keys.length} effects, Karaoke/Bounce renderers, unique keys/labels, contracts, wiring and canvas output.`);

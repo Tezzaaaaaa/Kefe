@@ -246,13 +246,12 @@
     var transparencyLayer=document.createElement('div');transparencyLayer.id='kefeBackgroundTransparencyLayer';transparencyLayer.setAttribute('aria-hidden','true');
     transparencyLayer.style.cssText='position:absolute;inset:0;z-index:3;pointer-events:none;background:#000;opacity:0;';
     stage.appendChild(transparencyLayer);
-    var lyricCanvas=document.getElementById('kefeCanvas'),appleLyrics=document.getElementById('kefeAppleLyrics');
-    if(lyricCanvas)lyricCanvas.style.zIndex='4';if(appleLyrics)appleLyrics.style.zIndex='5';
+    var lyricCanvas=document.getElementById('kefeCanvas');
+    if(lyricCanvas)lyricCanvas.style.zIndex='4';
     if(window.ResizeObserver)new ResizeObserver(size).observe(stage);
     window.addEventListener('kefe-stage-resize',size);
     buildSelect();buildUpload();buildEffectCategories();
     window.addEventListener('kefe-effect-change',function(event){if(event.detail&&event.detail.effect==='apple')setMode('gradient');});
-    var appleLyrics=document.getElementById('kefeAppleLyrics');if(appleLyrics&&appleLyrics.style.display!=='none')setMode('gradient');
     var transparency=document.getElementById('backgroundTransparency'),transparencyValue=document.getElementById('backgroundTransparencyValue');
     if(transparency&&transparencyValue){
       var updateTransparency=function(){var amount=Math.max(0,Math.min(100,Number(transparency.value)||0))/100;transparencyValue.value=transparency.value+'%';transparencyValue.textContent=transparency.value+'%';transparencyLayer.style.opacity=String(amount);};

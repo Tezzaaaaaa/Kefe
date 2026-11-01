@@ -295,7 +295,6 @@
     });
     undo.addEventListener('click', function () {
       if (!previous || !root.kefeLyrics) return;
-      var model = root.kefeLyricModel;
       root.kefeLyrics.set(previous.lines, 'autosync');
       var box = document.getElementById('lyricsInput'); if (box) box.value = previous.text;
       previous = null; undo.disabled = true; status.textContent = 'Previous lyrics restored.'; note.textContent = '';

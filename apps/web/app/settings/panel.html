@@ -42,9 +42,6 @@
         <div class="section-content" id="settings-panel-media">
           <div class="content-inner">
             <div class="kefe-slot" data-kefe-slot="media"></div>
-            <div class="kefe-empty" data-kefe-fallback="media">
-              Media browser is provided by the editor shell.
-            </div>
           </div>
         </div>
       </section>
@@ -86,9 +83,6 @@
                      aria-labelledby="nudge-label" />
             </div>
             <div class="kefe-slot" data-kefe-slot="lyric-sync"></div>
-            <div class="kefe-empty" data-kefe-fallback="lyric-sync">
-              Timing editor is provided by the editor shell.
-            </div>
           </div>
         </div>
       </section>
@@ -120,23 +114,6 @@
         </div>
         <div class="section-content" id="settings-panel-background">
           <div class="content-inner">
-            <div class="setting-row">
-              <span class="setting-label" id="background-label">Enable Background</span>
-              <button class="toggle-switch" type="button" role="switch"
-                      aria-checked="false" aria-labelledby="background-label"
-                      data-default="false" data-setting="background-enabled">
-                <span class="toggle-thumb"></span>
-              </button>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label" id="background-mode-label">Mode</span>
-              <select class="kefe-select" data-setting="background-mode" data-default="gradient"
-                      aria-labelledby="background-mode-label">
-                <option value="gradient">Gradient</option>
-                <option value="particles">Particles</option>
-                <option value="media">Media loop</option>
-              </select>
-            </div>
             <div class="kefe-slot" data-kefe-slot="background"></div>
           </div>
         </div>
@@ -174,20 +151,6 @@
         </div>
         <div class="section-content" id="settings-panel-lyric-effects">
           <div class="content-inner">
-            <div class="setting-row">
-              <span class="setting-label" id="lyric-effects-label">Enable Lyric Effects</span>
-              <button class="toggle-switch" type="button" role="switch"
-                      aria-checked="true" aria-labelledby="lyric-effects-label"
-                      data-default="true" data-setting="lyric-effects-enabled">
-                <span class="toggle-thumb"></span>
-              </button>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label" id="lyric-colour-label">Accent colour</span>
-              <input class="kefe-color" type="color" value="#d92f33"
-                     data-setting="lyric-accent" data-default="#d92f33"
-                     aria-labelledby="lyric-colour-label" />
-            </div>
             <div class="kefe-slot" data-kefe-slot="lyric-effects"></div>
           </div>
         </div>
@@ -220,22 +183,6 @@
         </div>
         <div class="section-content" id="settings-panel-visualisers">
           <div class="content-inner">
-            <div class="setting-row">
-              <span class="setting-label" id="visualiser-style-label">Style</span>
-              <select class="kefe-select" data-setting="visualiser-style" data-default="bars"
-                      aria-labelledby="visualiser-style-label">
-                <option value="bars">Bars</option>
-                <option value="wave">Waveform</option>
-                <option value="rings">Rings</option>
-                <option value="off">Off</option>
-              </select>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label" id="visualiser-intensity-label">Intensity</span>
-              <input class="kefe-range" type="range" min="0" max="100" step="1" value="60"
-                     data-setting="visualiser-intensity" data-default="60"
-                     aria-labelledby="visualiser-intensity-label" />
-            </div>
             <div class="kefe-slot" data-kefe-slot="visualisers"></div>
           </div>
         </div>
@@ -268,32 +215,6 @@
         </div>
         <div class="section-content" id="settings-panel-export">
           <div class="content-inner">
-            <div class="setting-row">
-              <span class="setting-label" id="export-ratio-label">Canvas ratio</span>
-              <select class="kefe-select" data-setting="export-ratio" data-default="16:9"
-                      aria-labelledby="export-ratio-label">
-                <option value="16:9">16:9</option>
-                <option value="9:16">9:16</option>
-                <option value="1:1">1:1</option>
-                <option value="4:3">4:3</option>
-              </select>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label" id="export-format-label">Format</span>
-              <select class="kefe-select" data-setting="export-format" data-default="mp4"
-                      aria-labelledby="export-format-label">
-                <option value="mp4">MP4</option>
-                <option value="mov">MOV</option>
-                <option value="webm">WEBM</option>
-                <option value="gif">GIF</option>
-              </select>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label" id="export-scale-label">Scale</span>
-              <input class="kefe-range" type="range" min="50" max="200" step="10" value="100"
-                     data-setting="export-scale" data-default="100"
-                     aria-labelledby="export-scale-label" />
-            </div>
             <div class="kefe-slot" data-kefe-slot="export"></div>
           </div>
         </div>

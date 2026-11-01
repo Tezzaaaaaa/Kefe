@@ -1,20 +1,12 @@
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   root: here,
   base: "./",
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      "@": resolve(here, "beui-src"),
-    },
-  },
   server: {
     host: "0.0.0.0",
     allowedHosts: true,
