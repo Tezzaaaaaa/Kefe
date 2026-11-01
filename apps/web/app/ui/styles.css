@@ -10894,7 +10894,7 @@ html:root .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-panels-left) {
   box-shadow: none !important;
 }
 
-html:root .kefe-editor .kefe-editing .kefe-panel[data-panel-view],
+html:root .kefe-editor .kefe-editing .kefe-panel[data-panel-view]:not(.kefe-settings-embedded-panel),
 html:root .kefe-editor .kefe-editing .kefe-panel-head {
   border: 0 !important;
   outline: 0 !important;
