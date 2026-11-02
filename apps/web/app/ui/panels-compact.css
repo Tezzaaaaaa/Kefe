@@ -721,13 +721,14 @@
 
 /* Keep the audio and optional video pickers compact and paired on every screen. */
 :is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+  display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   align-items: stretch;
   gap: 6px !important;
 }
 
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap {
   box-sizing: border-box;
   min-width: 0 !important;
   min-height: 0 !important;
@@ -735,8 +736,8 @@
   margin: 0 !important;
 }
 
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeBgVideoZone {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeBgVideoZone {
   box-sizing: border-box;
   height: 96px !important;
   min-height: 96px !important;
@@ -746,7 +747,7 @@
   overflow: hidden;
 }
 
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone .kefe-upload-card {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone .kefe-upload-card {
   box-sizing: border-box;
   min-width: 0;
   min-height: 0;
@@ -755,7 +756,7 @@
   gap: 2px;
 }
 
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-symbol {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-symbol {
   width: 24px !important;
   height: 24px !important;
   flex-basis: 24px;
@@ -763,12 +764,12 @@
   border-radius: 7px;
 }
 
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-symbol svg {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-symbol svg {
   width: 15px !important;
   height: 15px !important;
 }
 
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .kefe-upload-title {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .kefe-upload-title {
   max-width: 100%;
   font-size: 11px !important;
   line-height: 1.15;
@@ -776,7 +777,7 @@
   overflow-wrap: anywhere;
 }
 
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .kefe-upload-name {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .kefe-upload-name {
   max-width: 100%;
   font-size: 9.5px !important;
   line-height: 1.15;
@@ -784,7 +785,7 @@
   overflow-wrap: anywhere;
 }
 
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-browse {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-browse {
   height: 22px !important;
   min-height: 22px !important;
   margin: 0;
@@ -792,7 +793,7 @@
   font-size: 10px !important;
 }
 
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-file {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-file {
   min-width: 0;
   gap: 5px;
   padding: 5px;
