@@ -720,7 +720,7 @@
 .kefe-editor .kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] { border: 0; box-shadow: none; }
 
 /* Keep the audio and optional video pickers compact and paired on every screen. */
-.kefe-editor .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   align-items: stretch;
   gap: 6px !important;
