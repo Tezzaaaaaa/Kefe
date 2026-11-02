@@ -338,7 +338,7 @@ async function captureEditorScreenState(page) {
         const rect = child.getBoundingClientRect();
         return { left: rect.left, right: rect.right, top: rect.top, width: rect.width, height: rect.height };
       }).filter(rect => rect.width > 0 && rect.height > 0);
-      return { display: style.display, columns: style.gridTemplateColumns.trim().split(/\\s+/).length, boxes };
+      return { display: style.display, columns: style.gridTemplateColumns.trim().split(/\s+/).length, boxes };
     });
     assert.equal(mobileUploadLayout.display, "grid", "mobile Media upload row must use grid layout");
     assert.equal(mobileUploadLayout.columns, 2, "mobile Media upload row must define two columns");
