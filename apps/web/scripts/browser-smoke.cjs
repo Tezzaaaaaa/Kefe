@@ -332,9 +332,20 @@ async function captureEditorScreenState(page) {
     await page.locator(".kefe-ms-dock").waitFor({ state: "visible", timeout: 5000 });
     await page.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
     await page.waitForFunction(() => Boolean(document.querySelector(".kefe-ms-host #kefeUploadZone")), null, { timeout: 5000 });
-    const mobileUploadColumns = await page.locator(".kefe-ms-host .kefe-panel[data-panel-view=\"media\"] .kefe-media-upload-row").evaluate(node =>
-      getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length);
-    assert.equal(mobileUploadColumns, 2, "mobile Media upload zones must remain side by side at the viewport breakpoint");
+    const mobileUploadLayout = await page.locator(".kefe-ms-host .kefe-panel[data-panel-view=\"media\"] .kefe-media-upload-row").evaluate(node => {
+      const style = getComputedStyle(node);
+      const boxes = [...node.children].map(child => {
+        const rect = child.getBoundingClientRect();
+        return { left: rect.left, right: rect.right, top: rect.top, width: rect.width, height: rect.height };
+      }).filter(rect => rect.width > 0 && rect.height > 0);
+      return { display: style.display, columns: style.gridTemplateColumns.trim().split(/\\s+/).length, boxes };
+    });
+    assert.equal(mobileUploadLayout.display, "grid", "mobile Media upload row must use grid layout");
+    assert.equal(mobileUploadLayout.columns, 2, "mobile Media upload row must define two columns");
+    assert.equal(mobileUploadLayout.boxes.length, 2, `mobile Media must show both upload zones: ${JSON.stringify(mobileUploadLayout)}`);
+    assert.ok(Math.abs(mobileUploadLayout.boxes[0].top - mobileUploadLayout.boxes[1].top) <= 2
+      && mobileUploadLayout.boxes[0].right <= mobileUploadLayout.boxes[1].left + 2,
+      `mobile Media upload zones must render side by side: ${JSON.stringify(mobileUploadLayout)}`);
     await page.locator(".kefe-ms-close").evaluate(button => button.click());
     await page.waitForFunction(() => !document.querySelector(".kefe-ms-drawer"), null, { timeout: 5000 });
     const mobileToolbarBounds = await quickToolbar.evaluate(node => {
