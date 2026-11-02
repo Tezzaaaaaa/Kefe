@@ -16,6 +16,8 @@ const editor = read("editor.source.html");
 const source = read("beui-src/mobile-sidebar.js");
 const sections = read("beui-src/mobile-sidebar-sections.js");
 const styles = read("beui-src/mobile-sidebar.css");
+const compact = read("app/ui/panels-compact.css");
+const shadcn = read("beui-src/shadcn-kefe.css");
 const rangeModule = read("beui-src/shadcn-slider.js");
 
 const failures = [];
@@ -68,6 +70,25 @@ expect(!/createElement\(\s*["']input/.test(source), "mobile sidebar must not cre
 expect(!/createElement\(\s*["']input/.test(source) && !/type=["']range["']\s*\/>/.test(source),
   "mobile sidebar must not declare its own range inputs");
 expect(rangeModule.includes("createShadcnSlider"), "the shadcn Slider module must remain the slider source of truth");
+
+// Borrowed panels leave .kefe-editor and .kefe-settings-columns while mounted in the drawer.
+// Their shared compact and shadcn control styles must explicitly include that live host.
+expect(compact.includes(":is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host)"),
+  "compact panel tokens and shared control rules must include the mobile panel host");
+expect(compact.includes(':is(.kefe-editor .kefe-editing, .kefe-ms-host) .kefe-panel[data-panel-view]'),
+  "shared panel-heading layout must apply to panels borrowed into the mobile host");
+expect(compact.includes(':is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] #kefeBgVideoZone'),
+  "media drop-target styling must apply while the panel is in the mobile host");
+for (const selector of [
+  ':is(.kefe-editor, .kefe-ms-host) select[data-slot="select"]',
+  ':is(.kefe-editor, .kefe-ms-host) input[type="checkbox"][data-slot="checkbox"]',
+  ':is(.kefe-editor, .kefe-ms-host) .kefe-panel input[data-slot="input"]',
+  ':is(.kefe-editor, .kefe-ms-host) .kefe-seg-row[data-slot="toggle-group"]',
+  ':is(.kefe-editor, .kefe-ms-host) .kefe-drop[data-slot="dropzone"]',
+  ':is(.kefe-editor, .kefe-ms-host) progress',
+]) {
+  expect(shadcn.includes(selector), `shadcn control styling must cover mobile-host panels: ${selector}`);
+}
 
 // Appearance lives in its own stylesheet, scoped to the mobile breakpoint.
 expect(styles.includes("@media (max-width: 1023px)"), "mobile sidebar styles must be scoped to the mobile breakpoint");
