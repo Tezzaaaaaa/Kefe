@@ -304,7 +304,7 @@ html[data-theme="day"] {
 }
 
 /* Native <select> across editor panels styled as shadcn SelectTrigger */
-.kefe-editor select[data-slot="select"] {
+:is(.kefe-editor, .kefe-ms-host) select[data-slot="select"] {
   appearance: none;
   -webkit-appearance: none;
   border: 1px solid var(--shad-border);
@@ -320,12 +320,12 @@ html[data-theme="day"] {
   transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
 }
 
-.kefe-editor select[data-slot="select"]:hover:not(:disabled) {
+:is(.kefe-editor, .kefe-ms-host) select[data-slot="select"]:hover:not(:disabled) {
   border-color: var(--shad-border-strong);
   background-color: var(--shad-secondary-hover);
 }
 
-.kefe-editor select[data-slot="select"]:focus-visible {
+:is(.kefe-editor, .kefe-ms-host) select[data-slot="select"]:focus-visible {
   outline: none;
   border-color: var(--shad-primary);
   box-shadow: 0 0 0 3px var(--shad-ring);
@@ -334,7 +334,7 @@ html[data-theme="day"] {
 /* --------------------------------------------------------------------------
    4. shadcn Checkbox, Input, Textarea
    -------------------------------------------------------------------------- */
-.kefe-editor input[type="checkbox"][data-slot="checkbox"] {
+:is(.kefe-editor, .kefe-ms-host) input[type="checkbox"][data-slot="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
   width: 16px;
@@ -351,7 +351,7 @@ html[data-theme="day"] {
   transition: background-color 130ms ease, border-color 130ms ease, box-shadow 130ms ease;
 }
 
-.kefe-editor input[type="checkbox"][data-slot="checkbox"]::before {
+:is(.kefe-editor, .kefe-ms-host) input[type="checkbox"][data-slot="checkbox"]::before {
   content: "";
   width: 11px;
   height: 11px;
@@ -363,22 +363,22 @@ html[data-theme="day"] {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
 }
 
-.kefe-editor input[type="checkbox"][data-slot="checkbox"]:checked {
+:is(.kefe-editor, .kefe-ms-host) input[type="checkbox"][data-slot="checkbox"]:checked {
   background-color: var(--shad-primary);
   border-color: var(--shad-primary);
 }
 
-.kefe-editor input[type="checkbox"][data-slot="checkbox"]:checked::before {
+:is(.kefe-editor, .kefe-ms-host) input[type="checkbox"][data-slot="checkbox"]:checked::before {
   transform: scale(1);
 }
 
-.kefe-editor input[type="checkbox"][data-slot="checkbox"]:focus-visible {
+:is(.kefe-editor, .kefe-ms-host) input[type="checkbox"][data-slot="checkbox"]:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--shad-ring);
 }
 
-.kefe-editor .kefe-panel input[data-slot="input"]:not(#kefeCommandInput),
-.kefe-editor .kefe-panel textarea[data-slot="textarea"],
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel input[data-slot="input"]:not(#kefeCommandInput),
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel textarea[data-slot="textarea"],
 #lsAutoSyncModal textarea[data-slot="textarea"] {
   border: 1px solid var(--shad-border);
   border-radius: var(--shad-radius-md);
@@ -388,13 +388,13 @@ html[data-theme="day"] {
   transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
 }
 
-.kefe-editor .kefe-panel input[data-slot="input"]:not(#kefeCommandInput):hover:not(:disabled),
-.kefe-editor .kefe-panel textarea[data-slot="textarea"]:hover:not(:disabled) {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel input[data-slot="input"]:not(#kefeCommandInput):hover:not(:disabled),
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel textarea[data-slot="textarea"]:hover:not(:disabled) {
   border-color: var(--shad-border-strong);
 }
 
-.kefe-editor .kefe-panel input[data-slot="input"]:not(#kefeCommandInput):focus-visible,
-.kefe-editor .kefe-panel textarea[data-slot="textarea"]:focus-visible,
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel input[data-slot="input"]:not(#kefeCommandInput):focus-visible,
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel textarea[data-slot="textarea"]:focus-visible,
 #lsAutoSyncModal textarea[data-slot="textarea"]:focus-visible {
   outline: none;
   border-color: var(--shad-primary);
@@ -709,7 +709,7 @@ html[data-theme="day"] {
 /* --------------------------------------------------------------------------
    7. shadcn ToggleGroup & Segmented Tabs (.kefe-seg-row, .ls-tabs)
    -------------------------------------------------------------------------- */
-.kefe-editor .kefe-seg-row[data-slot="toggle-group"] {
+:is(.kefe-editor, .kefe-ms-host) .kefe-seg-row[data-slot="toggle-group"] {
   padding: 3px;
   gap: 3px;
   border-radius: var(--shad-radius-md);
@@ -717,20 +717,20 @@ html[data-theme="day"] {
   background: var(--shad-muted);
 }
 
-.kefe-editor .kefe-seg-row[data-slot="toggle-group"] > button {
+:is(.kefe-editor, .kefe-ms-host) .kefe-seg-row[data-slot="toggle-group"] > button {
   border-radius: var(--shad-radius-sm);
   border: 1px solid transparent;
   font-weight: 500;
   transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
 
-.kefe-editor .kefe-seg-row[data-slot="toggle-group"] > button[data-state="off"]:not(:hover) {
+:is(.kefe-editor, .kefe-ms-host) .kefe-seg-row[data-slot="toggle-group"] > button[data-state="off"]:not(:hover) {
   background: transparent;
   color: var(--shad-muted-foreground);
 }
 
-.kefe-editor .kefe-seg-row[data-slot="toggle-group"] > button[data-state="on"],
-.kefe-editor .kefe-seg-row[data-slot="toggle-group"] > button.active {
+:is(.kefe-editor, .kefe-ms-host) .kefe-seg-row[data-slot="toggle-group"] > button[data-state="on"],
+:is(.kefe-editor, .kefe-ms-host) .kefe-seg-row[data-slot="toggle-group"] > button.active {
   background: var(--shad-card);
   color: var(--shad-foreground);
   border-color: var(--shad-border-strong);
@@ -873,7 +873,7 @@ html[data-theme="day"] {
 /* --------------------------------------------------------------------------
    9. shadcn Dropzone (.kefe-drop[data-slot="dropzone"])
    -------------------------------------------------------------------------- */
-.kefe-editor .kefe-drop[data-slot="dropzone"] {
+:is(.kefe-editor, .kefe-ms-host) .kefe-drop[data-slot="dropzone"] {
   border-style: dashed;
   border-width: 1px;
   border-color: var(--shad-border-strong);
@@ -882,13 +882,13 @@ html[data-theme="day"] {
   transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
 }
 
-.kefe-editor .kefe-drop[data-slot="dropzone"]:hover {
+:is(.kefe-editor, .kefe-ms-host) .kefe-drop[data-slot="dropzone"]:hover {
   border-color: color-mix(in srgb, var(--shad-primary) 55%, var(--shad-border-strong));
   background: color-mix(in srgb, var(--shad-secondary) 92%, transparent);
 }
 
-.kefe-editor .kefe-drop[data-slot="dropzone"][data-dragover="true"],
-.kefe-editor .kefe-drop[data-slot="dropzone"].dragover {
+:is(.kefe-editor, .kefe-ms-host) .kefe-drop[data-slot="dropzone"][data-dragover="true"],
+:is(.kefe-editor, .kefe-ms-host) .kefe-drop[data-slot="dropzone"].dragover {
   border-color: var(--shad-primary);
   background: var(--shad-accent-soft);
   box-shadow: 0 0 0 3px var(--shad-ring);
@@ -905,7 +905,7 @@ html[data-theme="day"] {
   box-shadow: var(--shad-shadow-xs);
 }
 
-.kefe-editor progress {
+:is(.kefe-editor, .kefe-ms-host) progress {
   appearance: none;
   -webkit-appearance: none;
   height: 8px;
@@ -915,18 +915,18 @@ html[data-theme="day"] {
   background: var(--shad-secondary);
 }
 
-.kefe-editor progress::-webkit-progress-bar {
+:is(.kefe-editor, .kefe-ms-host) progress::-webkit-progress-bar {
   background: var(--shad-secondary);
   border-radius: 9999px;
 }
 
-.kefe-editor progress::-webkit-progress-value {
+:is(.kefe-editor, .kefe-ms-host) progress::-webkit-progress-value {
   background: var(--shad-primary);
   border-radius: 9999px;
   transition: width 160ms ease;
 }
 
-.kefe-editor progress::-moz-progress-bar {
+:is(.kefe-editor, .kefe-ms-host) progress::-moz-progress-bar {
   background: var(--shad-primary);
   border-radius: 9999px;
 }
