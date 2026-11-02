@@ -332,7 +332,7 @@ async function captureEditorScreenState(page) {
     await page.locator(".kefe-ms-dock").waitFor({ state: "visible", timeout: 5000 });
     await page.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
     await page.waitForFunction(() => Boolean(document.querySelector(".kefe-ms-host #kefeUploadZone")), null, { timeout: 5000 });
-    const mobileUploadColumns = await page.locator(".kefe-media-upload-row").evaluate(node =>
+    const mobileUploadColumns = await page.locator(".kefe-ms-host .kefe-panel[data-panel-view=\"media\"] .kefe-media-upload-row").evaluate(node =>
       getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length);
     assert.equal(mobileUploadColumns, 2, "mobile Media upload zones must remain side by side at the viewport breakpoint");
     await page.locator(".kefe-ms-close").evaluate(button => button.click());
