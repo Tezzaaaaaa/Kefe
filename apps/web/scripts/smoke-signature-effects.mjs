@@ -106,11 +106,17 @@ runtime.document = {
   readyState: "complete", addEventListener() {}, querySelector() { return null; },
   querySelectorAll() { return []; }, createElement() { return { style: {}, setAttribute() {}, appendChild() {} }; },
   getElementById() { return null; },
+  fonts: { ready: Promise.resolve(), load: () => Promise.resolve([]) },
 };
 vm.createContext(runtime);
+vm.runInContext(read("app/ui/typography.js"), runtime, { filename: "typography.js" });
 vm.runInContext(read("app/effects/core.js"), runtime, { filename: "core.js" });
 vm.runInContext(read("app/effects/lyric-signature-pack.js"), runtime, { filename: "lyric-signature-pack.js" });
 const registered = Object.keys(runtime.kefeEffects || {}).filter(key => key.startsWith("sig"));
+assert.ok(runtime.KEFE_TYPE && runtime.KEFE_TYPE.effects, "the canonical typography contracts must load before renderers");
+const signatureFamilies = new Set(keys.map(key => runtime.KEFE_TYPE.effects[key]?.family));
+assert.ok(signatureFamilies.size >= 12, `Signature effects must use distinct type systems, found ${signatureFamilies.size}`);
+for (const key of keys) assert.ok(runtime.KEFE_TYPE.effects[key]?.family, `${key} must resolve a typography family`);
 assert.deepEqual(registered.sort(), [...keys].sort(), "renderer registrations must match the roster");
 assert.equal(typeof runtime.kefeEffects.apple, "undefined", "the Apple renderer is owned by lyric-apple.js");
 
@@ -145,6 +151,8 @@ for (const key of keys) {
     ctx.resetFills();
     runtime.kefeEffects[key](ctx, 1280, 720, style, lines, time);
     if (time >= 1 && time <= 2.9) assert.ok(ctx.fills > 0, `${key} must paint the active line at t=${time}`);
+    const tracking = Number(runtime.KEFE_TYPE.effects[key].tracking) || 0;
+    if (tracking) assert.notEqual(ctx.letterSpacing, "0px", `${key} must apply its designed letter spacing to canvas glyphs`);
     runtime.kefeEffects[key](ctx, 360, 640, { ...style, fontSize: 48 }, lines, time);
     runtime.kefeEffects[key](ctx, 1280, 720, style, plainLines, time);
     runtime.kefeEffects[key](ctx, 1280, 720, style, [], time);
