@@ -63,7 +63,7 @@
     const set = (target, size) => U.setFont(target, family, size, c.weight || 800);
     const lay = U.layoutText(ctx, text, {
       setFont: set,
-      size: Number(style.fontSize) || 90,
+      size: (Number(style.fontSize) || 90) * (Number(c.opticalScale) || 1),
       minSize: opt.minSize || 18,
       maxWidth: w * (opt.width || .88),
       maxHeight: h * (opt.height || .76),
@@ -146,9 +146,14 @@
       const text = clean(item.line.text);
       if (!text) return;
       const words = U.wordsFor(item.line, item.next);
-      const lay = makeLayout(ctx, style, text, ctx.canvas.width, ctx.canvas.height, opt);
-      const map = U.charMap(lay.lines, words);
+      const c = contract(style.effect);
       ctx.save();
+      const lay = makeLayout(ctx, style, text, ctx.canvas.width, ctx.canvas.height, opt);
+      /* Typography contracts previously influenced fit calculations but their
+         tracking never reached the canvas glyphs. Apply it at render time so
+         every Signature effect gets its designed letter spacing. */
+      if ('letterSpacing' in ctx) ctx.letterSpacing = (Number(c.tracking) || 0) * lay.size + 'px';
+      const map = U.charMap(lay.lines, words);
       ctx.globalAlpha *= item.alpha;
       draw({ line: item.line, next: item.next, text, words, lay, map, index: item.index });
       ctx.restore();
