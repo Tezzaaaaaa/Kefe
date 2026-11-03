@@ -41,9 +41,10 @@ if (!backgroundRuntime.includes(".jpg,.jpeg,.png,.webp") ||
     !backgroundRuntime.includes("bgImage&&drawCover")) {
   failures.push("Background uploader must accept, decode and render JPG, PNG and WebP images");
 }
-if (!mediaRuntime.includes("uploads.appendChild(zone)") || !mediaRuntime.includes("uploads.appendChild(bgWrap)")) {
+if (!mediaRuntime.includes("uploads.appendChild(zone)") || !mediaRuntime.includes("uploads.appendChild(bgWrap)") || !mediaRuntime.includes("buildTrackSettings()") || !mediaRuntime.includes("kefeTrackPlaybackRate") || !mediaRuntime.includes("kefeTrackLoop")) {
   failures.push("Audio and background-video upload controls are not grouped together in Media");
 }
+if (!backgroundRuntime.includes("kefeBackgroundFit") || !backgroundRuntime.includes("kefeBackgroundVideoAudio") || !backgroundRuntime.includes("backgroundFit==='contain'")) failures.push("Uploaded background media must expose fit and video-audio controls in Background Effects");
 if (!compactStyles.includes("grid-template-columns: repeat(2, minmax(0, 1fr)) !important") ||
     !compactStyles.includes("height: 96px !important") ||
     !compactStyles.includes("#kefeBgVideoZone")) {
