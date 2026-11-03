@@ -154,7 +154,7 @@
     sel=document.getElementById('visualiserBackground');if(!sel)return;
     sel.innerHTML='<option value="off">Off</option><option value="apple">Apple Motion Art</option><option value="gradient">Album Palette Gradient</option><option value="video" disabled>Uploaded media</option>';
     sel.value='off';
-    sel.addEventListener('change',function(){setMode(sel.value==='video'&&!vid?'apple':sel.value);});
+    sel.addEventListener('change',function(){setMode(sel.value==='video'&&!vid&&!bgImage?'apple':sel.value);});
   }
   function buildEffectCategories(){
     var backgroundForm=document.querySelector('[data-panel-view="background-effects"] .kefe-form');
@@ -210,7 +210,7 @@
       choiceWrap.querySelectorAll('[data-background-mode]').forEach(function(button){var selected=button.dataset.backgroundMode===lastMode;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));if(button.dataset.backgroundMode==='video')button.disabled=!vid&&!bgImage;});
     }
     syncBackgroundOptionsUI=syncBackgroundOptions;
-    select.addEventListener('change',function(){setMode(select.value==='video'&&!vid?'off':select.value);});
+    select.addEventListener('change',function(){setMode(select.value==='video'&&!vid&&!bgImage?'off':select.value);});
     syncBackgroundOptions();
   }
   function buildUpload(){
