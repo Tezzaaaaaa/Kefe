@@ -246,7 +246,7 @@
       vid=document.createElement('video');vid.muted=true;vid.loop=true;vid.playsInline=true;vid.preload='auto';vid.style.display='none';
       vid.src=vidUrl;document.body.appendChild(vid);
       vid.addEventListener('loadeddata',function(){name.textContent=vidName;rowStatus.textContent='Ready to use';z.classList.add('kefe-confirmed-container');setMode('video');syncVideo(true);if(audio&&!audio.paused)vid.play().catch(function(){});});
-      vid.addEventListener('error',function(){name.textContent='Could not load this video';rowStatus.textContent='Could not read file';z.classList.remove('kefe-confirmed-container','has-selected-file');row.hidden=true;clearVideo();});
+      vid.addEventListener('error',function(){name.textContent='Could not load this video';rowStatus.textContent='Could not read file';z.classList.remove('kefe-confirmed-container','has-selected-file');row.hidden=true;mediaSettings.hidden=true;clearVideo();});
       vid.load();
     }
     input.addEventListener('change',function(){load(input.files&&input.files[0]);});
