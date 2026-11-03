@@ -5,7 +5,7 @@
    Visualiser layers are composited into video export. */
 (function(){
   'use strict';
-  var stage,cv,cctx,sel,audio,mode='off',lastMode='apple',enabled=false,vid=null,vidUrl='',vidName='',small=null,smallKey='',avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
+  var stage,cv,cctx,sel,audio,mode='off',lastMode='apple',enabled=false,vid=null,vidUrl='',vidName='',bgImage=null,bgImageUrl='',small=null,smallKey='',avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
   var syncBackgroundOptionsUI=null,syncBackgroundToggleUI=null;
   var work=document.createElement('canvas'),wctx=work.getContext('2d');
   var t0=performance.now();
@@ -90,7 +90,7 @@
   }
 
   function drawCover(g,el,w,h){
-    var vw=el.videoWidth,vh=el.videoHeight;if(!vw||!vh)return false;
+    var vw=el.videoWidth||el.naturalWidth,vh=el.videoHeight||el.naturalHeight;if(!vw||!vh)return false;
     var k=Math.max(w/vw,h/vh),dw=vw*k,dh=vh*k;
     try{g.drawImage(el,(w-dw)/2,(h-dh)/2,dw,dh);return true;}catch(e){return false;}
   }
@@ -102,6 +102,7 @@
     g.save();g.fillStyle='#000';g.fillRect(0,0,w,h);
     if(!enabled){g.restore();return;}
     if(mode==='gradient'){drawAlbumGradient(g,w,h,t);g.restore();return;}
+    if(mode==='video'&&bgImage&&drawCover(g,bgImage,w,h)){g.restore();return;}
     if(useVideo()&&drawCover(g,vid,w,h)){
       g.restore();return;
     }
@@ -143,7 +144,7 @@
   function setMode(m){
     if(m==='off'){enabled=false;mode='off';if(sel&&sel.value!=='off')sel.value='off';}
     else{mode=m;lastMode=m;enabled=true;if(sel&&sel.value!==m)sel.value=m;}
-    var o=sel&&sel.querySelector('option[value="video"]');if(o)o.disabled=!vid;
+    var o=sel&&sel.querySelector('option[value="video"]');if(o)o.disabled=!vid&&!bgImage;
     syncVideo(true);
     if(syncBackgroundOptionsUI)syncBackgroundOptionsUI();
     if(syncBackgroundToggleUI)syncBackgroundToggleUI();
@@ -198,7 +199,7 @@
     });
     select.parentNode.insertBefore(choiceWrap,select);select.hidden=true;select.setAttribute('aria-hidden','true');select.tabIndex=-1;
     function syncBackgroundOptions(){
-      choiceWrap.querySelectorAll('[data-background-mode]').forEach(function(button){var selected=button.dataset.backgroundMode===lastMode;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));if(button.dataset.backgroundMode==='video')button.disabled=!vid;});
+      choiceWrap.querySelectorAll('[data-background-mode]').forEach(function(button){var selected=button.dataset.backgroundMode===lastMode;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));if(button.dataset.backgroundMode==='video')button.disabled=!vid&&!bgImage;});
     }
     syncBackgroundOptionsUI=syncBackgroundOptions;
     select.addEventListener('change',function(){setMode(select.value==='video'&&!vid?'off':select.value);});
@@ -209,17 +210,28 @@
     var wrap=document.createElement('div');wrap.className='beui-upload-wrap';
     wrap.innerHTML='<label class="kefe-upload-zone beui-upload-dropzone" id="kefeBgVideoZone" for="bgVideoInput">'+
       '<span class="beui-upload-symbol" aria-hidden="true"><span data-kefe-icon="file-audio" aria-hidden="true"></span></span>'+
-      '<span class="kefe-upload-title">Optional background video</span><span class="kefe-upload-help">Use separate footage behind your lyrics.</span>'+
+      '<span class="kefe-upload-title">Background video or photo</span><span class="kefe-upload-help">Use separate footage or an image behind your lyrics.</span>'+ 
       '<span class="kefe-upload-name" id="bgVideoName">Drop file here or browse</span>'+
       '<span class="beui-upload-browse">Browse files</span>'+
-      '<input class="kefe-file" id="bgVideoInput" type="file" accept=".mp4,.mov,.m4v,.webm,video/*"></label>'+
+      '<input class="kefe-file" id="bgVideoInput" type="file" accept=".mp4,.mov,.m4v,.webm,.jpg,.jpeg,.png,.webp,video/*,image/jpeg,image/png,image/webp"></label>'+ 
       '<div class="beui-upload-file" id="bgVideoFileRow" hidden aria-live="polite"><span class="beui-upload-file-icon" aria-hidden="true"><span data-kefe-icon="folder" aria-hidden="true"></span></span><span class="beui-upload-file-copy"><span class="beui-upload-file-name" id="bgVideoFileName"></span><span class="beui-upload-file-meta">Background video</span></span><span class="beui-upload-file-status"><span class="beui-upload-status-dot"></span><span id="bgVideoFileStatus">Loading preview…</span></span><button class="kefe-btn" id="bgVideoRemove" type="button">Remove</button></div>';
     zone.parentNode.insertBefore(wrap,zone.nextSibling);
     var input=wrap.querySelector('#bgVideoInput'),name=wrap.querySelector('#bgVideoName'),rm=wrap.querySelector('#bgVideoRemove'),z=wrap.querySelector('#kefeBgVideoZone'),row=wrap.querySelector('#bgVideoFileRow'),rowName=wrap.querySelector('#bgVideoFileName'),rowStatus=wrap.querySelector('#bgVideoFileStatus');
     function load(file){
-      if(!file||!/^video\//.test(file.type)&&! /\.(mp4|mov|m4v|webm)$/i.test(file.name)){name.textContent='Choose an MP4, MOV or WebM video';return;}
-      clearVideo();
-      vidUrl=URL.createObjectURL(file);vidName=file.name;
+      if(!file)return;
+      var isImage=/^image\/(jpeg|png|webp)$/.test(file.type)||/\.(jpe?g|png|webp)$/i.test(file.name);
+      var isVideo=/^video\//.test(file.type)||/\.(mp4|mov|m4v|webm)$/i.test(file.name);
+      if(!isImage&&!isVideo){name.textContent='Choose an MP4, MOV, WebM, JPG, PNG or WebP file';return;}
+      clearVideo();clearImage();
+      vidName=file.name;
+      if(isImage){
+        bgImageUrl=URL.createObjectURL(file);rowName.textContent=file.name;rowStatus.textContent='Loading preview…';row.hidden=false;z.classList.add('has-selected-file');
+        var image=new Image();
+        image.onload=function(){bgImage=image;name.textContent=vidName;rowStatus.textContent='Ready to use';z.classList.add('kefe-confirmed-container');setMode('video');};
+        image.onerror=function(){name.textContent='Could not load this image';rowStatus.textContent='Could not read file';z.classList.remove('kefe-confirmed-container','has-selected-file');row.hidden=true;clearImage();};
+        image.src=bgImageUrl;return;
+      }
+      vidUrl=URL.createObjectURL(file);
       rowName.textContent=file.name;rowStatus.textContent='Loading preview…';row.hidden=false;z.classList.add('has-selected-file');
       vid=document.createElement('video');vid.muted=true;vid.loop=true;vid.playsInline=true;vid.preload='auto';vid.style.display='none';
       vid.src=vidUrl;document.body.appendChild(vid);
@@ -231,11 +243,15 @@
     ['dragenter','dragover'].forEach(function(e){z.addEventListener(e,function(ev){ev.preventDefault();z.classList.add('is-dragging');});});
     ['dragleave','drop'].forEach(function(e){z.addEventListener(e,function(ev){ev.preventDefault();z.classList.remove('is-dragging');});});
     z.addEventListener('drop',function(ev){var f=ev.dataTransfer&&ev.dataTransfer.files&&ev.dataTransfer.files[0];if(f)load(f);});
-    rm.addEventListener('click',function(){clearVideo();z.classList.remove('kefe-confirmed-container','has-selected-file');input.value='';name.textContent='Drop file here or browse';row.hidden=true;setMode('apple');});
+    rm.addEventListener('click',function(){clearVideo();clearImage();z.classList.remove('kefe-confirmed-container','has-selected-file');input.value='';name.textContent='Drop file here or browse';row.hidden=true;setMode('apple');});
   }
   function clearVideo(){
     if(vid){vid.pause();vid.removeAttribute('src');vid.load();vid.remove();vid=null;}
     if(vidUrl){URL.revokeObjectURL(vidUrl);vidUrl='';}
+  }
+  function clearImage(){
+    if(bgImage){bgImage.onload=null;bgImage.onerror=null;bgImage=null;}
+    if(bgImageUrl){URL.revokeObjectURL(bgImageUrl);bgImageUrl='';}
   }
 
   function init(){
