@@ -35,6 +35,12 @@ for (const retiredClass of ["beui-upload-card-hosted", "beui-upload-card-root", 
 if (!backgroundRuntime.includes('id="kefeBgVideoZone"') || !backgroundRuntime.includes('id="bgVideoInput"')) {
   failures.push("Optional background-video picker or its file input is missing");
 }
+if (!backgroundRuntime.includes(".jpg,.jpeg,.png,.webp") ||
+    !backgroundRuntime.includes("image/jpeg,image/png,image/webp") ||
+    !backgroundRuntime.includes("new Image()") ||
+    !backgroundRuntime.includes("bgImage&&drawCover")) {
+  failures.push("Background uploader must accept, decode and render JPG, PNG and WebP images");
+}
 if (!mediaRuntime.includes("uploads.appendChild(zone)") || !mediaRuntime.includes("uploads.appendChild(bgWrap)")) {
   failures.push("Audio and background-video upload controls are not grouped together in Media");
 }
