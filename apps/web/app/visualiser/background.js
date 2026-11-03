@@ -226,8 +226,8 @@
       vidName=file.name;
       if(isImage){
         bgImageUrl=URL.createObjectURL(file);rowName.textContent=file.name;rowStatus.textContent='Loading preview…';row.hidden=false;z.classList.add('has-selected-file');
-        var image=new Image();
-        image.onload=function(){bgImage=image;name.textContent=vidName;rowStatus.textContent='Ready to use';z.classList.add('kefe-confirmed-container');setMode('video');};
+        var image=new Image();bgImage=image;
+        image.onload=function(){name.textContent=vidName;rowStatus.textContent='Ready to use';z.classList.add('kefe-confirmed-container');setMode('video');};
         image.onerror=function(){name.textContent='Could not load this image';rowStatus.textContent='Could not read file';z.classList.remove('kefe-confirmed-container','has-selected-file');row.hidden=true;clearImage();};
         image.src=bgImageUrl;return;
       }
