@@ -42,6 +42,7 @@
     if(zone)uploads.appendChild(zone);
     if(bgWrap)uploads.appendChild(bgWrap);
     s2.body.appendChild(uploads);
+    s2.body.appendChild(buildTrackSettings());
     if(track)s2.body.appendChild(track);
     if(sugg)s2.body.appendChild(sugg);
     s2.body.appendChild(buildSearch());
@@ -52,6 +53,17 @@
     form.innerHTML='';
     form.appendChild(s2);
     return true;
+  }
+
+  function buildTrackSettings(){
+    var wrap=mk('section','kefe-background-effect-control kefe-track-playback-settings');wrap.id='kefeTrackPlaybackSettings';
+    wrap.innerHTML='<div class="kefe-media-settings-heading"><label class="kefe-label" for="kefeTrackPlaybackRate">Track playback</label><span class="kefe-meta">Applies to uploaded audio and video tracks.</span></div><label class="kefe-label" for="kefeTrackPlaybackRate">Playback speed <output id="kefeTrackPlaybackRateValue" for="kefeTrackPlaybackRate">1×</output></label><select class="kefe-select" id="kefeTrackPlaybackRate"><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="1.75">1.75×</option><option value="2">2×</option></select><label class="kefe-inline-setting"><input id="kefeTrackLoop" type="checkbox"> Loop track playback</label>';
+    var audio=document.getElementById('kefeAudio'),video=window.kefeGetProjectVideo&&window.kefeGetProjectVideo();
+    var rate=wrap.querySelector('#kefeTrackPlaybackRate'),value=wrap.querySelector('#kefeTrackPlaybackRateValue'),loop=wrap.querySelector('#kefeTrackLoop');
+    function applyRate(){var speed=Number(rate.value)||1;if(audio){audio.playbackRate=speed;if('preservesPitch' in audio)audio.preservesPitch=true;}if(video){video.playbackRate=speed;if('preservesPitch' in video)video.preservesPitch=true;}value.textContent=speed+'×';}
+    rate.addEventListener('change',applyRate);loop.addEventListener('change',function(){if(audio)audio.loop=loop.checked;if(video)video.loop=loop.checked;});
+    if(audio){audio.addEventListener('loadedmetadata',applyRate);audio.addEventListener('ratechange',function(){if(Number(rate.value)!==audio.playbackRate){rate.value=String(audio.playbackRate);value.textContent=audio.playbackRate+'×';}});}
+    return wrap;
   }
 
   function buildSearch(){
