@@ -151,7 +151,7 @@
   }
   function buildSelect(){
     sel=document.getElementById('visualiserBackground');if(!sel)return;
-    sel.innerHTML='<option value="off">Off</option><option value="apple">Apple Motion Art</option><option value="gradient">Album Palette Gradient</option><option value="video" disabled>Uploaded video</option>';
+    sel.innerHTML='<option value="off">Off</option><option value="apple">Apple Motion Art</option><option value="gradient">Album Palette Gradient</option><option value="video" disabled>Uploaded media</option>';
     sel.value='off';
     sel.addEventListener('change',function(){setMode(sel.value==='video'&&!vid?'apple':sel.value);});
   }
@@ -188,7 +188,7 @@
     if(transparencyBlock&&transparencyBlock.parentNode!==backgroundForm)backgroundForm.appendChild(transparencyBlock);
     if(uploadWrap)backgroundForm.appendChild(uploadWrap);
     var choiceWrap=document.createElement('div');choiceWrap.id='kefeBackgroundEffectOptions';choiceWrap.className='kefe-background-effect-options';choiceWrap.setAttribute('role','group');choiceWrap.setAttribute('aria-label','Background effect options');
-    [['apple','Apple Motion Art'],['gradient','Album Palette Gradient'],['video','Uploaded Video']].forEach(function(item){
+    [['apple','Apple Motion Art'],['gradient','Album Palette Gradient'],['video','Uploaded Media']].forEach(function(item){
       var button=document.createElement('button');button.type='button';button.className='kefe-lyric-effect-option kefe-background-effect-card';button.dataset.backgroundMode=item[0];button.setAttribute('aria-pressed',String(lastMode===item[0]));
       var preview=document.createElement('span');preview.className='kefe-background-effect-preview';preview.setAttribute('aria-hidden','true');
       var previewCore=document.createElement('span');previewCore.className='kefe-background-effect-preview-core';preview.appendChild(previewCore);
@@ -214,7 +214,7 @@
       '<span class="kefe-upload-name" id="bgVideoName">Drop file here or browse</span>'+
       '<span class="beui-upload-browse">Browse files</span>'+
       '<input class="kefe-file" id="bgVideoInput" type="file" accept=".mp4,.mov,.m4v,.webm,.jpg,.jpeg,.png,.webp,video/*,image/jpeg,image/png,image/webp"></label>'+ 
-      '<div class="beui-upload-file" id="bgVideoFileRow" hidden aria-live="polite"><span class="beui-upload-file-icon" aria-hidden="true"><span data-kefe-icon="folder" aria-hidden="true"></span></span><span class="beui-upload-file-copy"><span class="beui-upload-file-name" id="bgVideoFileName"></span><span class="beui-upload-file-meta">Background video</span></span><span class="beui-upload-file-status"><span class="beui-upload-status-dot"></span><span id="bgVideoFileStatus">Loading preview…</span></span><button class="kefe-btn" id="bgVideoRemove" type="button">Remove</button></div>';
+      '<div class="beui-upload-file" id="bgVideoFileRow" hidden aria-live="polite"><span class="beui-upload-file-icon" aria-hidden="true"><span data-kefe-icon="folder" aria-hidden="true"></span></span><span class="beui-upload-file-copy"><span class="beui-upload-file-name" id="bgVideoFileName"></span><span class="beui-upload-file-meta">Background media</span></span><span class="beui-upload-file-status"><span class="beui-upload-status-dot"></span><span id="bgVideoFileStatus">Loading preview…</span></span><button class="kefe-btn" id="bgVideoRemove" type="button">Remove</button></div>';
     zone.parentNode.insertBefore(wrap,zone.nextSibling);
     var input=wrap.querySelector('#bgVideoInput'),name=wrap.querySelector('#bgVideoName'),rm=wrap.querySelector('#bgVideoRemove'),z=wrap.querySelector('#kefeBgVideoZone'),row=wrap.querySelector('#bgVideoFileRow'),rowName=wrap.querySelector('#bgVideoFileName'),rowStatus=wrap.querySelector('#bgVideoFileStatus');
     function load(file){
