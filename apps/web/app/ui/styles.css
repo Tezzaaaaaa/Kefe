@@ -10897,3 +10897,23 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
   outline: 0;
   box-shadow: none;
 }
+
+
+/* Uploaded track settings: a compact native group in Media, sharing the timeline volume state. */
+.kefe-track-playback-settings {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r3);
+  background: var(--surface);
+  box-shadow: var(--lift);
+}
+.kefe-track-playback-settings .kefe-media-settings-heading { display: grid; gap: 2px; }
+.kefe-track-playback-settings .kefe-meta { margin: 0; font-size: var(--font-xs); color: var(--muted); }
+.kefe-track-playback-settings .kefe-label { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0; }
+.kefe-track-playback-settings .kefe-select,
+.kefe-track-playback-settings input[type="range"] { width: 100%; min-width: 0; margin: 0; }
+.kefe-inline-setting { display: flex; align-items: center; gap: 8px; min-height: 28px; color: var(--text); font-size: var(--font-sm); }
+.kefe-inline-setting input { flex: 0 0 auto; accent-color: var(--accent); }
