@@ -10917,3 +10917,6 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
 .kefe-track-playback-settings input[type="range"] { width: 100%; min-width: 0; margin: 0; }
 .kefe-inline-setting { display: flex; align-items: center; gap: 8px; min-height: 28px; color: var(--text); font-size: var(--font-sm); }
 .kefe-inline-setting input { flex: 0 0 auto; accent-color: var(--accent); }
+
+.kefe-track-playback-settings[hidden],
+#kefeBackgroundMediaSettings[hidden] { display: none; }
