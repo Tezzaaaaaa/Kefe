@@ -188,12 +188,12 @@
     if(backgroundBlock)backgroundForm.appendChild(backgroundBlock);
     if(transparencyBlock&&transparencyBlock.parentNode!==backgroundForm)backgroundForm.appendChild(transparencyBlock);
     if(uploadWrap)backgroundForm.appendChild(uploadWrap);
-    var mediaSettings=document.createElement('div');mediaSettings.id='kefeBackgroundMediaSettings';mediaSettings.className='kefe-background-effect-control';
+    var mediaSettings=document.createElement('div');mediaSettings.id='kefeBackgroundMediaSettings';mediaSettings.className='kefe-background-effect-control';mediaSettings.hidden=true;
     mediaSettings.innerHTML='<label class="kefe-label" for="kefeBackgroundFit">Uploaded media fit</label><select class="kefe-select" id="kefeBackgroundFit"><option value="cover">Fill canvas</option><option value="contain">Fit entire image</option></select><div id="kefeBackgroundVideoAudioSettings" hidden><label class="kefe-label" for="kefeBackgroundVideoAudio">Background video sound</label><label class="kefe-inline-setting"><input id="kefeBackgroundVideoAudio" type="checkbox"> Include background video audio</label><label class="kefe-label" for="kefeBackgroundVideoVolume">Video audio volume <output id="kefeBackgroundVideoVolumeValue" for="kefeBackgroundVideoVolume">0%</output></label><input class="kefe-slider" id="kefeBackgroundVideoVolume" type="range" min="0" max="100" step="1" value="0" aria-label="Background video audio volume"></div>';
     backgroundForm.appendChild(mediaSettings);
     var fitSelect=mediaSettings.querySelector('#kefeBackgroundFit'),videoAudioSettings=mediaSettings.querySelector('#kefeBackgroundVideoAudioSettings'),videoAudioToggle=mediaSettings.querySelector('#kefeBackgroundVideoAudio'),videoAudioSlider=mediaSettings.querySelector('#kefeBackgroundVideoVolume'),videoAudioValue=mediaSettings.querySelector('#kefeBackgroundVideoVolumeValue');
     fitSelect.addEventListener('change',function(){backgroundFit=fitSelect.value;});
-    videoAudioToggle.addEventListener('change',function(){backgroundAudioEnabled=videoAudioToggle.checked;syncVideo(true);});
+    videoAudioToggle.addEventListener('change',function(){backgroundAudioEnabled=videoAudioToggle.checked;if(backgroundAudioEnabled&&backgroundAudioVolume===0){backgroundAudioVolume=50;videoAudioSlider.value='50';videoAudioValue.textContent='50%';}syncVideo(true);});
     videoAudioSlider.addEventListener('input',function(){backgroundAudioVolume=Math.max(0,Math.min(100,Number(videoAudioSlider.value)||0));videoAudioValue.textContent=backgroundAudioVolume+'%';if(vid)vid.volume=backgroundAudioVolume/100;});
     var choiceWrap=document.createElement('div');choiceWrap.id='kefeBackgroundEffectOptions';choiceWrap.className='kefe-background-effect-options';choiceWrap.setAttribute('role','group');choiceWrap.setAttribute('aria-label','Background effect options');
     [['apple','Apple Motion Art'],['gradient','Album Palette Gradient'],['video','Uploaded Media']].forEach(function(item){
@@ -233,14 +233,14 @@
       clearVideo();clearImage();
       vidName=file.name;
       if(isImage){
-        videoAudioSettings.hidden=true;videoAudioToggle.checked=false;backgroundAudioEnabled=false;
+        mediaSettings.hidden=false;videoAudioSettings.hidden=true;videoAudioToggle.checked=false;backgroundAudioEnabled=false;
         bgImageUrl=URL.createObjectURL(file);rowName.textContent=file.name;rowStatus.textContent='Loading preview…';row.hidden=false;z.classList.add('has-selected-file');
         var image=new Image();bgImage=image;
         image.onload=function(){name.textContent=vidName;rowStatus.textContent='Ready to use';z.classList.add('kefe-confirmed-container');setMode('video');};
         image.onerror=function(){name.textContent='Could not load this image';rowStatus.textContent='Could not read file';z.classList.remove('kefe-confirmed-container','has-selected-file');row.hidden=true;clearImage();};
         image.src=bgImageUrl;return;
       }
-      videoAudioSettings.hidden=false;videoAudioToggle.checked=backgroundAudioEnabled;videoAudioSlider.value=String(backgroundAudioVolume);videoAudioValue.textContent=backgroundAudioVolume+'%';
+      mediaSettings.hidden=false;videoAudioSettings.hidden=false;videoAudioToggle.checked=backgroundAudioEnabled;videoAudioSlider.value=String(backgroundAudioVolume);videoAudioValue.textContent=backgroundAudioVolume+'%';
       vidUrl=URL.createObjectURL(file);
       rowName.textContent=file.name;rowStatus.textContent='Loading preview…';row.hidden=false;z.classList.add('has-selected-file');
       vid=document.createElement('video');vid.muted=true;vid.loop=true;vid.playsInline=true;vid.preload='auto';vid.style.display='none';
@@ -253,7 +253,7 @@
     ['dragenter','dragover'].forEach(function(e){z.addEventListener(e,function(ev){ev.preventDefault();z.classList.add('is-dragging');});});
     ['dragleave','drop'].forEach(function(e){z.addEventListener(e,function(ev){ev.preventDefault();z.classList.remove('is-dragging');});});
     z.addEventListener('drop',function(ev){var f=ev.dataTransfer&&ev.dataTransfer.files&&ev.dataTransfer.files[0];if(f)load(f);});
-    rm.addEventListener('click',function(){clearVideo();clearImage();backgroundAudioEnabled=false;videoAudioToggle.checked=false;videoAudioSettings.hidden=true;z.classList.remove('kefe-confirmed-container','has-selected-file');input.value='';name.textContent='Drop file here or browse';row.hidden=true;setMode('apple');});
+    rm.addEventListener('click',function(){clearVideo();clearImage();backgroundAudioEnabled=false;videoAudioToggle.checked=false;videoAudioSettings.hidden=true;mediaSettings.hidden=true;z.classList.remove('kefe-confirmed-container','has-selected-file');input.value='';name.textContent='Drop file here or browse';row.hidden=true;setMode('apple');});
   }
   function clearVideo(){
     if(vid){vid.pause();vid.removeAttribute('src');vid.load();vid.remove();vid=null;}
