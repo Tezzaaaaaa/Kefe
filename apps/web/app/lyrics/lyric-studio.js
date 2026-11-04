@@ -11,7 +11,7 @@
   if (!M) { console.error('[KEFE lyric studio] lyric-model.js must load first'); return; }
 
   var KEY = 'kefe.lyricStudio.v1';
-  var DEFAULT = { mode: 'line', chunk: 3, caseMode: 'asis' };
+  var DEFAULT = { mode: 'line', chunk: 3, caseMode: 'asis', alignment: 'justify' };
   var MODES = [
     ['line', 'Line', 'Whole line at a time.'],
     ['word', 'Word', 'One word at a time. Suits slower songs.'],
@@ -23,6 +23,7 @@
     var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (saved && typeof saved === 'object') {
       if (MODES.some(function (m) { return m[0] === saved.mode; })) S.mode = saved.mode;
+      if (['left', 'center', 'justify'].indexOf(saved.alignment) !== -1) S.alignment = saved.alignment;
       if (CASES.some(function (c) { return c[0] === saved.caseMode; })) S.caseMode = saved.caseMode;
       if (Number.isFinite(saved.chunk)) S.chunk = Math.max(1, Math.min(12, Math.round(saved.chunk)));
     }
@@ -100,10 +101,12 @@
     effectRow.parentNode.insertBefore(wrap, effectRow.nextSibling);
 
     var styleGroup = document.getElementById('kefeStyleGroup');
-    if (styleGroup) {
+    var fontSelect = document.getElementById('fontOverride');
+    var fontBlock = fontSelect && !fontSelect.closest('[hidden]') ? fontSelect.closest('div') : null;
+    if (fontBlock) {
+      fontBlock.classList.add('kefe-font-control');
       caseBox.classList.add('kefe-case-control');
-      var styleHead = styleGroup.firstElementChild;
-      styleGroup.insertBefore(caseBox, styleHead ? styleHead.nextSibling : styleGroup.firstChild);
+      fontBlock.appendChild(caseBox);
     }
     var placement = styleGroup && Array.prototype.find.call(styleGroup.children, function (node) {
       return node.classList.contains('kefe-visualiser-control-group') &&
@@ -118,13 +121,35 @@
       modeBox.appendChild(placement);
     }
 
-    var fontSelect = document.getElementById('fontOverride');
-    var fontBlock = fontSelect && !fontSelect.closest('[hidden]') ? fontSelect.closest('div') : null;
-    if (fontBlock) {
-      fontBlock.classList.add('kefe-font-control');
-      wrap.appendChild(fontBlock);
-    }
     sync();
+  }
+
+  /* ---------- Lyrics panel: fetched-lyrics alignment ---------- */
+  function buildAlignmentUi() {
+    var input = document.getElementById('lyricsInput');
+    var host = input && input.parentElement;
+    if (!input || !host || document.getElementById('kefeLyricAlignment')) return;
+    var wrap = el('div', 'kefe-lyric-alignment'); wrap.id = 'kefeLyricAlignment';
+    wrap.setAttribute('role', 'group'); wrap.setAttribute('aria-label', 'Fetched lyrics alignment');
+    var choices = [['left', 'Left'], ['center', 'Center'], ['justify', 'Justify']];
+    var buttons = {};
+    choices.forEach(function (choice) {
+      var button = btn(choice[1], choice[1] + ' align fetched lyrics', 'kefe-seg-item');
+      button.setAttribute('aria-pressed', 'false');
+      button.addEventListener('click', function () {
+        S.alignment = choice[0]; input.style.textAlign = S.alignment; persist(); sync();
+      });
+      buttons[choice[0]] = button; wrap.appendChild(button);
+    });
+    function sync() {
+      input.style.textAlign = S.alignment;
+      choices.forEach(function (choice) {
+        var active = S.alignment === choice[0];
+        buttons[choice[0]].setAttribute('aria-pressed', String(active));
+        buttons[choice[0]].classList.toggle('active', active);
+      });
+    }
+    host.insertBefore(wrap, input.nextSibling); sync();
   }
 
   /* ---------- Lyrics panel: timing editor ---------- */
@@ -362,7 +387,7 @@
 
   /* ---------- wiring ---------- */
   function init() {
-    buildDisplayUi(); buildLyricsUi(); buildExportUi();
+    buildDisplayUi(); buildAlignmentUi(); buildLyricsUi(); buildExportUi();
     window.addEventListener('kefe-lyrics-changed', function (e) {
       if (e.detail && e.detail.source === 'studio') return;
       if (!(e.detail && e.detail.source === 'text')) history = [];
@@ -378,9 +403,11 @@
   window.kefeLyricStudio = {
     shape: shape,
     settings: function () { return Object.assign({}, S); },
+    alignment: function () { return S.alignment; },
     applySettings: function (value) {
       if (!value || typeof value !== 'object') return Object.assign({}, S);
       if (MODES.some(function (m) { return m[0] === value.mode; })) S.mode = value.mode;
+      if (['left', 'center', 'justify'].indexOf(value.alignment) !== -1) S.alignment = value.alignment;
       if (CASES.some(function (c) { return c[0] === value.caseMode; })) S.caseMode = value.caseMode;
       if (Number.isFinite(value.chunk)) S.chunk = Math.max(1, Math.min(12, Math.round(value.chunk)));
       memo = { src: null, key: '', out: null }; persist(); redraw(); return Object.assign({}, S);
