@@ -102,13 +102,13 @@
 
     var styleGroup = document.getElementById('kefeStyleGroup');
     var fontSelect = document.getElementById('fontOverride');
-    var fontBlock = fontSelect && !fontSelect.closest('[hidden]') ? fontSelect.closest('div') : null;
+    var fontBlock = fontSelect && !fontSelect.closest('[hidden]') ? fontSelect.closest('.kefe-font-selector-control') : null;
     if (fontBlock) {
-      fontBlock.classList.add('kefe-font-control');
       caseBox.classList.add('kefe-case-control');
       var fontControls = el('div', 'kefe-font-controls');
-      fontBlock.insertBefore(fontControls, fontSelect);
-      fontControls.append(fontSelect, caseBox);
+      var fontControl = fontSelect.closest('.kefe-dd') || fontSelect;
+      fontBlock.insertBefore(fontControls, fontControl);
+      fontControls.append(fontControl, caseBox);
     }
     var placement = styleGroup && Array.prototype.find.call(styleGroup.children, function (node) {
       return node.classList.contains('kefe-visualiser-control-group') &&
