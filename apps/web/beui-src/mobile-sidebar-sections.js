@@ -40,7 +40,7 @@ export const SECTIONS = [
     blurb: "Find, import and time the lyrics that drive the preview.",
     container: "form",
     groups: [
-      { id: "lyrics", label: "Lyrics", icon: "file", selectors: ["#lyricsInput", "#kefeAutoSync"] },
+      { id: "lyrics", label: "Lyrics", icon: "file", selectors: ["#lyricsInput", "#kefeLyricAlignment", "#kefeAutoSync"] },
       {
         id: "timing",
         label: "Timing",
@@ -88,8 +88,7 @@ export const SECTIONS = [
         icon: "video",
         selectors: ["#kefeBgVideoZone", ".beui-upload-wrap", "#bgVideoInput"],
       },
-      { id: "darkness", label: "Darkness", icon: "moon", selectors: ["#backgroundTransparency"] },
-      { id: "look", label: "Look", icon: "palette", selectors: [] },
+      { id: "look", label: "Look", icon: "palette", selectors: ["#backgroundTransparency"] },
     ],
   },
   {
