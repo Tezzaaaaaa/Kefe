@@ -1031,25 +1031,38 @@
     button.setAttribute('title',playing?'Pause':'Play');
     button.innerHTML=window.kefeIcon?window.kefeIcon(playing?'pause':'play',playing?'kefe-pause-icon':'kefe-play-icon'):'<span data-kefe-icon="'+(playing?'pause':'play')+'" data-icon-class="'+(playing?'kefe-pause-icon':'kefe-play-icon')+'" aria-hidden="true"></span>';
   }
-  document.getElementById('playButton').onclick=async()=>{
-    if(audio.src){
-      if(audio.paused){
-        const graph=window.kefeAudioGraph?.ensure?.();
-        const audioContext=graph?.ac||window.kefeAudioGraph?.context?.();
-        if(audioContext&&audioContext.state==='suspended'){
-          try{await audioContext.resume();}catch(error){console.warn('[KEFE audio context]',error);}
-        }
-        try{await audio.play();}catch(error){console.warn('[KEFE audio playback]',error);setLyricsStatus('Could not play this media file: '+(error?.message||'unknown playback error'));}
-      }else audio.pause();
-    }else{state.time=state.time>=30?0:state.time+.05;updateTime();draw();}
-  };
-  document.getElementById('restartButton')?.addEventListener('click',()=>{
-    if(audio.src)audio.currentTime=0;
-    if(video.src)video.currentTime=0;
-    state.time=0;
-    range.value='0';
+  /* All preview transport controls operate on this one media clock. */
+  function seekPreview(time){
+    const duration=Number(audio.duration);
+    const limit=Number.isFinite(duration)&&duration>0?duration:Math.max(0,Number(range.max)||30);
+    const next=Math.max(0,Math.min(Number(time)||0,limit));
+    state.time=next;
+    if(audio.src)audio.currentTime=next;
+    if(video.src)video.currentTime=next;
+    range.value=String(next);
     updateTime();
     draw();
+  }
+  async function startPreviewPlayback({restart=false}={}){
+    if(!audio.src)return false;
+    if(restart||audio.ended||(Number.isFinite(audio.duration)&&audio.duration>0&&audio.currentTime>=audio.duration-0.05))seekPreview(0);
+    const graph=window.kefeAudioGraph?.ensure?.();
+    const audioContext=graph?.ac||window.kefeAudioGraph?.context?.();
+    if(audioContext&&audioContext.state==='suspended'){
+      try{await audioContext.resume();}catch(error){console.warn('[KEFE audio context]',error);}
+    }
+    try{await audio.play();return true;}
+    catch(error){console.warn('[KEFE audio playback]',error);setLyricsStatus('Could not play this media file: '+(error?.message||'unknown playback error'));return false;}
+  }
+  function pausePreviewPlayback(){if(!audio.paused)audio.pause();}
+  document.getElementById('playButton').onclick=async()=>{
+    if(!audio.src){state.time=state.time>=30?0:state.time+.05;updateTime();draw();return;}
+    if(audio.paused)await startPreviewPlayback();
+    else pausePreviewPlayback();
+  };
+  document.getElementById('restartButton')?.addEventListener('click',async()=>{
+    if(audio.src)await startPreviewPlayback({restart:true});
+    else seekPreview(0);
     updatePlayButton();
   });
   function decodeText(bytes){
@@ -1882,12 +1895,7 @@
     draw();
     publishKefeLockScreen('seek');
   });
-  range.addEventListener('input',()=>{
-    state.time=Number(range.value);
-    if(audio.src)audio.currentTime=state.time;
-    if(video.src)video.currentTime=state.time;
-    updateTime();draw();
-  });
+  range.addEventListener('input',()=>seekPreview(range.value));
   let exportTap=null,exporting=false;
   let exportProgressModal=null,exportProgressFill=null,exportProgressValue=null,exportProgressStage=null;
   function ensureExportProgressModal(){
@@ -2200,13 +2208,7 @@
        window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:source||'api'}}));
       draw();
     },
-    seek(time){
-      const t=Math.max(0,Math.min(Number(time)||0,Number.isFinite(audio.duration)?audio.duration:Infinity));
-      state.time=t;range.value=t;
-      if(audio.src)audio.currentTime=t;
-      if(video.src)video.currentTime=t;
-      updateTime();draw();
-    },
+    seek(time){seekPreview(time);},
     redraw:()=>draw()
   };
   canvas.width=1920;canvas.height=1080;parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();ensureLyricsTools();applySettingsDefaults();
