@@ -411,6 +411,7 @@
       if (MODES.some(function (m) { return m[0] === value.mode; })) S.mode = value.mode;
       if (['left', 'center', 'justify'].indexOf(value.alignment) !== -1) S.alignment = value.alignment;
       if (CASES.some(function (c) { return c[0] === value.caseMode; })) S.caseMode = value.caseMode;
+      if (['left', 'center', 'justify'].indexOf(value.alignment) !== -1) S.alignment = value.alignment;
       if (Number.isFinite(value.chunk)) S.chunk = Math.max(1, Math.min(12, Math.round(value.chunk)));
       memo = { src: null, key: '', out: null }; persist(); redraw(); return Object.assign({}, S);
     },
