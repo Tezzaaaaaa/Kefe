@@ -127,6 +127,7 @@
   }
 
   /* ---------- Lyrics panel: fetched-lyrics alignment ---------- */
+  var syncAlignmentUi = function () {};
   function buildAlignmentUi() {
     var input = document.getElementById('lyricsInput');
     var host = input && input.parentElement;
@@ -151,6 +152,7 @@
         buttons[choice[0]].classList.toggle('active', active);
       });
     }
+    syncAlignmentUi = sync;
     host.insertBefore(wrap, input.nextSibling); sync();
   }
 
@@ -411,7 +413,7 @@
       if (MODES.some(function (m) { return m[0] === value.mode; })) S.mode = value.mode;
       if (['left', 'center', 'justify'].indexOf(value.alignment) !== -1) S.alignment = value.alignment;
       if (CASES.some(function (c) { return c[0] === value.caseMode; })) S.caseMode = value.caseMode;
-      if (['left', 'center', 'justify'].indexOf(value.alignment) !== -1) S.alignment = value.alignment;
+      syncAlignmentUi();
       if (Number.isFinite(value.chunk)) S.chunk = Math.max(1, Math.min(12, Math.round(value.chunk)));
       memo = { src: null, key: '', out: null }; persist(); redraw(); return Object.assign({}, S);
     },
