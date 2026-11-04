@@ -88,7 +88,8 @@ export const SECTIONS = [
         icon: "video",
         selectors: ["#kefeBgVideoZone", ".beui-upload-wrap", "#bgVideoInput"],
       },
-      { id: "look", label: "Look", icon: "palette", selectors: ["#backgroundTransparency"] },
+      { id: "look", label: "Look", icon: "palette", selectors: ["#kefeBackgroundEffectOptions", ".kefe-background-effect-control", "#backgroundTransparency", "#visualiserBackground"] },
+      { id: "more", label: "More", icon: "sliders", selectors: [] },
     ],
   },
   {
