@@ -925,13 +925,16 @@ async function captureEditorScreenState(page) {
     const embeddedPanelStyle = await page.locator("#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]").evaluateAll(panels =>
       panels.map(panel => {
         const style = getComputedStyle(panel);
-        return { position: style.position, display: style.display, flexDirection: style.flexDirection, gap: style.gap, padding: style.padding, borderWidth: style.borderTopWidth, borderColor: style.borderTopColor, borderRadius: style.borderTopLeftRadius };
+        return { panelView: panel.dataset.panelView || "", position: style.position, display: style.display, flexDirection: style.flexDirection, gap: style.gap, padding: style.padding, borderWidth: style.borderTopWidth, borderColor: style.borderTopColor, borderRadius: style.borderTopLeftRadius };
       })
     );
     assert.equal(embeddedPanelStyle.length, 6, "all six editor panels should remain embedded once in their native settings slots");
+    /* Media deliberately starts flush at the top of its slot so no stacked inset
+       sits above the Media search (panels-compact.css); every other panel keeps
+       the former Card's full 10px vertical inset. */
     assert.ok(embeddedPanelStyle.every(style => style.position === "relative" && style.display === "flex" && style.flexDirection === "column" && style.gap === "0px"
-      && style.padding === "10px 0px" && style.borderWidth === "1px" && style.borderColor === "rgba(0, 0, 0, 0)" && style.borderRadius === "8px"),
-      `embedded native panels must retain the former Card's vertical flex layout, zero gap, 10px vertical inset, transparent border and 8px radius: ${JSON.stringify(embeddedPanelStyle)}`);
+      && style.padding === (style.panelView === "media" ? "0px 0px 10px" : "10px 0px") && style.borderWidth === "1px" && style.borderColor === "rgba(0, 0, 0, 0)" && style.borderRadius === "8px"),
+      `embedded native panels must retain the former Card's vertical flex layout, zero gap, transparent border and 8px radius, with the 10px vertical inset (Media flush at the top): ${JSON.stringify(embeddedPanelStyle)}`);
 
     // The baseline capture intentionally contains the section frame this change removes.
     if (process.env.KEFE_SCREENSHOT_LABEL !== "main-baseline") {
