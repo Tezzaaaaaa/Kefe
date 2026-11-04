@@ -188,22 +188,19 @@
   min-width: 0;
 }
 :is(#kefe-settings-panel, .kefe-ms-host) .kv-gallery {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   width: 100%;
   min-width: 0;
 }
 :is(#kefe-settings-panel, .kefe-ms-host) .kv-gallery > .kv-card {
-  flex: 1 1 calc((100% - 30px) / 4);
-  min-width: 190px;
+  width: 100%;
+  min-width: 0;
   max-width: none;
 }
 :is(#kefe-settings-panel, .kefe-ms-host) .kv-card .kv-desc {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  display: none !important;
 }
 
 #kefe-settings-panel .kv-card .kv-preview {
@@ -411,4 +408,17 @@
 }
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(.beui-range-host, .shad-slider-host) {
   grid-row: 2 !important;
+}
+
+/* Fetched lyric alignment and compact three-way control. */
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-lyric-alignment {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+}
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-lyric-alignment > button {
+  min-width: 0;
+  width: 100%;
+  justify-content: center;
 }
