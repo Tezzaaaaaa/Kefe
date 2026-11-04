@@ -851,8 +851,8 @@ async function captureEditorScreenState(page) {
       width: grid.getBoundingClientRect().width,
       columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length
     }));
-    if (mediaMetadataColumns.width <= 500) assert.equal(mediaMetadataColumns.columns, 1,
-      `metadata fields must stack inside a narrow Media panel: ${JSON.stringify(mediaMetadataColumns)}`);
+    if (mediaMetadataColumns.width <= 500) assert.equal(mediaMetadataColumns.columns, 2,
+      `mobile Media must keep Track title / Artist and Album / Year paired: ${JSON.stringify(mediaMetadataColumns)}`);
 
     const initialVisualiserTabs = page.locator(".beui-vis-tabs-host");
     assert.ok((await initialVisualiserTabs.count()) === 0 || !(await initialVisualiserTabs.isVisible()),
