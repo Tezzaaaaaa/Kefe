@@ -1203,15 +1203,20 @@ button{border:0;cursor:pointer;
 
 .kefe-find{display:grid;gap:10px;min-width:0}
 .kefe-find-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.kefe-search{position:relative;flex:1 1 220px;min-width:0;border-radius:999px;background:var(--surface);box-shadow:var(--inner)}
-.kefe-search::before{content:'';position:absolute;left:14px;top:50%;width:14px;height:14px;transform:translateY(-50%);pointer-events:none;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239A9186' stroke-width='2.2' stroke-linecap='round'><circle cx='11' cy='11' r='7'/><path d='m21 21-4.3-4.3'/></svg>") center/contain no-repeat}
-.kefe-search input{width:100%;height:var(--control-h);padding:0 40px 0 38px;border:0;outline:0;background:transparent;color:var(--text);font:inherit;font-size: var(--font-sm);font-weight:500;
+/* Legacy pill search field — the Media panel's "Find your song" box (#kefeFindBox).
+   The header's unfolding search ([data-kefe-search]) shares the .kefe-search class,
+   so these rules must exclude it: otherwise the pill background and the ::before
+   magnifier paint a second, duplicated search button behind the header's own
+   magnifier button, and the field padding leaks into the header search input. */
+.kefe-search:not([data-kefe-search]){position:relative;flex:1 1 220px;min-width:0;border-radius:999px;background:var(--surface);box-shadow:var(--inner)}
+.kefe-search:not([data-kefe-search])::before{content:'';position:absolute;left:14px;top:50%;width:14px;height:14px;transform:translateY(-50%);pointer-events:none;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239A9186' stroke-width='2.2' stroke-linecap='round'><circle cx='11' cy='11' r='7'/><path d='m21 21-4.3-4.3'/></svg>") center/contain no-repeat}
+.kefe-search:not([data-kefe-search]) input{width:100%;height:var(--control-h);padding:0 40px 0 38px;border:0;outline:0;background:transparent;color:var(--text);font:inherit;font-size: var(--font-sm);font-weight:500;
   font-family: inherit;}
 #kefeFindBox > #kefeFindInput{height:30px;min-height:30px}
-.kefe-search input::placeholder{color:var(--soft,#9a9186);
+.kefe-search:not([data-kefe-search]) input::placeholder{color:var(--soft,#9a9186);
   font-size: var(--font-sm);
   font-family: inherit;}
-.kefe-search:focus-within{box-shadow:var(--inner),0 0 0 2px var(--accent)}
+.kefe-search:not([data-kefe-search]):focus-within{box-shadow:var(--inner),0 0 0 2px var(--accent)}
 .kefe-search-clear{position:absolute;right:8px;top:50%;width:24px;height:24px;transform:translateY(-50%);display:none;border:0;border-radius:50%;background:var(--surface);color:var(--muted);font-size: var(--font-xs);cursor:pointer;box-shadow:var(--lift)}
 .kefe-search.has-text .kefe-search-clear{display:block}
 .kefe-search.busy::after{content:'';position:absolute;right:40px;top:50%;width:13px;height:13px;margin-top:-6.5px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:kefeSpin .8s linear infinite}
@@ -8108,7 +8113,7 @@ html:root[data-theme="day"] :is(.kefe-input, .kefe-select, .kefe-textarea) {
   background: var(--surface-hi);
   border-color: var(--line);
 }
-html:root[data-theme="day"] .kefe-search { background: var(--surface-hi); }
+html:root[data-theme="day"] .kefe-search:not([data-kefe-search]) { background: var(--surface-hi); }
 html:root[data-theme="day"] .kefe-lyric-effects-control { background: var(--surface-lo); }
 
 /* Presets (second tier) use the soft selected style, engine tabs stay filled. */
@@ -8386,9 +8391,16 @@ html:root[data-theme="day"] :is(
   box-shadow: none;
 }
 html:root[data-theme="day"] :is(
-  .kefe-input, .kefe-select, .kefe-textarea, .kefe-search, .kefe-search > input,
+  .kefe-input, .kefe-select, .kefe-textarea, .kefe-search > input,
   .beui-select-control, .beui-select-trigger, .beui-combobox-trigger
 ) {
+  color: var(--text);
+  background-color: var(--surface-hi);
+  border-color: var(--line);
+}
+/* Split out of the :is() above so the day-mode fill only reaches the legacy
+   find box, never the header search shell ([data-kefe-search]). */
+html:root[data-theme="day"] .kefe-search:not([data-kefe-search]) {
   color: var(--text);
   background-color: var(--surface-hi);
   border-color: var(--line);
