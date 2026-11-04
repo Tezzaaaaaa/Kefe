@@ -106,7 +106,9 @@
     if (fontBlock) {
       fontBlock.classList.add('kefe-font-control');
       caseBox.classList.add('kefe-case-control');
-      fontBlock.appendChild(caseBox);
+      var fontControls = el('div', 'kefe-font-controls');
+      fontBlock.insertBefore(fontControls, fontSelect);
+      fontControls.append(fontSelect, caseBox);
     }
     var placement = styleGroup && Array.prototype.find.call(styleGroup.children, function (node) {
       return node.classList.contains('kefe-visualiser-control-group') &&
@@ -129,7 +131,7 @@
     var input = document.getElementById('lyricsInput');
     var host = input && input.parentElement;
     if (!input || !host || document.getElementById('kefeLyricAlignment')) return;
-    var wrap = el('div', 'kefe-lyric-alignment'); wrap.id = 'kefeLyricAlignment';
+    var wrap = el('div', 'kefe-lyric-alignment kefe-seg'); wrap.id = 'kefeLyricAlignment';
     wrap.setAttribute('role', 'group'); wrap.setAttribute('aria-label', 'Fetched lyrics alignment');
     var choices = [['left', 'Left'], ['center', 'Center'], ['justify', 'Justify']];
     var buttons = {};
