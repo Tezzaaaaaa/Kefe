@@ -47,14 +47,16 @@
     option.appendChild(tab);
     tabs.appendChild(option);
 
-    const presetRow = element('div', 'kefe-visualiser-preset-row');
+    /* The preset row is created by the editor structure so engines that initialise before this
+       shell (the bundled module visualisers) can already attach their presets to it. */
+    const presetRow = panel.querySelector('#kefeVisualiserPresetRow') || element('div', 'kefe-visualiser-preset-row');
     presetRow.id = 'kefeVisualiserPresetRow';
     const gradientPresetSet = element('div', 'kefe-visualiser-preset-set');
     gradientPresetSet.id = 'kefeGradientPresetSet';
     const flutedPresetSet = element('div', 'kefe-visualiser-preset-set');
     flutedPresetSet.id = 'kefeFlutedPresetSet';
     flutedPresetSet.hidden = true;
-    presetRow.append(gradientPresetSet, flutedPresetSet);
+    presetRow.prepend(gradientPresetSet, flutedPresetSet);
 
     const heading = panel.querySelector('#kefeVisualiserHeading');
     const description = panel.querySelector('#kefeVisualiserDescription');
@@ -84,8 +86,12 @@
     const editing = panel.closest('.kefe-editing');
     const panels = editing?.querySelector('.kefe-panels');
     if (!existingTabs) panel.insertBefore(tabs, form);
-    panel.insertBefore(presetRow, form);
-    form.replaceChildren(view);
+    if (presetRow.parentNode !== panel) panel.insertBefore(presetRow, form);
+    /* Clear stray non-view content, but keep settings views other engines already added. */
+    Array.from(form.children).forEach(child => {
+      if (!child.classList.contains('kefe-vis-view')) child.remove();
+    });
+    form.prepend(view);
 
     function showFluidInk() {
       form.querySelectorAll('.kefe-vis-view').forEach(item => {
