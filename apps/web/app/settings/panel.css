@@ -652,3 +652,15 @@
 .kefe-editor .kefe-settings-panel .section:not(.kefe-slot *) { border: 0; box-shadow: none; }
 .kefe-editor .kefe-settings-panel .section:hover:not(.kefe-slot *),
 .kefe-editor .kefe-settings-panel .section[data-expanded="true"]:not(.kefe-slot *) { border-color: transparent; box-shadow: none; }
+
+/* Media metadata: title + artist, then album + year on every viewport. */
+.kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+@container kefe-settings (max-width: 500px) {
+  .kefe-settings-panel .kefe-slot .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

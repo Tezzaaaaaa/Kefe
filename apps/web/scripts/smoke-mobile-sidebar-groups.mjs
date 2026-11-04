@@ -118,11 +118,10 @@ const groupCount = (panel, sectionId, groupId) =>
     el("input", { id: "backgroundTransparency" }),
   );
   const panel = panelWithForm(options, background, video, darkness);
-  expect(groupIds(panel, "background-effects").join(",") === "video,darkness,look",
-    `background must expose Video, Darkness and Look: ${JSON.stringify(groupIds(panel, "background-effects"))}`);
+  expect(groupIds(panel, "background-effects").join(",") === "video,look",
+    `background must expose Video and combined Look: ${JSON.stringify(groupIds(panel, "background-effects"))}`);
   expect(groupCount(panel, "background-effects", "video") === 1, "the background video uploader belongs to Video");
-  expect(groupCount(panel, "background-effects", "darkness") === 1, "the darkness slider belongs to Darkness");
-  expect(groupCount(panel, "background-effects", "look") === 2, "background choices fall back to Look");
+  expect(groupCount(panel, "background-effects", "look") === 3, "background selection, darkness and look controls share Look");
 }
 
 /* ── Visualisers: the whole panel stays in one surface ──────── */

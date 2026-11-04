@@ -809,3 +809,60 @@
   border: 1px dashed var(--line) !important;
   box-shadow: none !important;
 }
+
+/* Keep lyric-style sliders and colour controls on the same full-width grid. */
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) #kefeStyleGroup .kefe-visualiser-field {
+  display: grid !important;
+  grid-template-columns: 88px minmax(0, 1fr) 40px !important;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 8px;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) #kefeStyleGroup .kefe-visualiser-field > input[type="range"],
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) #kefeStyleGroup .kefe-visualiser-field > .beui-range-host {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  min-width: 0;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) #kefeStyleGroup .kefe-style-color-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) #kefeStyleGroup .kefe-style-color-swatches {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) #kefeStyleGroup .kefe-style-color-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* Media details retain the requested two-row, two-column field order on phones too. */
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-font-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-font-controls > * {
+  min-width: 0;
+  width: 100%;
+}
