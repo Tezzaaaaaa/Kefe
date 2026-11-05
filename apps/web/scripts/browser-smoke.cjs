@@ -572,8 +572,8 @@ async function captureEditorScreenState(page) {
       await page.setViewportSize(desktopViewport);
       await page.waitForTimeout(120);
     }
-    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
-      "visualiser tabs must stay hidden until the Visualisers section is opened");
+    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), threeWorkspaceMode,
+      "visualiser choices must be visible in the always-on workspace and remain section-scoped in the legacy layout");
     assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
       "initialisation must not select Fluid Ink or change the visualiser heading");
     assert.equal(await page.locator(".kefe-vis-tabs [data-visualiser='gradient'][aria-label='Fluid Ink visualiser']").getAttribute("aria-selected"), "false",
