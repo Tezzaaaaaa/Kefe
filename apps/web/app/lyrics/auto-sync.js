@@ -278,13 +278,13 @@
     var words = Math.max(0, Number(result && result.words) || 0);
     var measured = Math.max(0, Math.min(words, Number(result && result.matched) || 0));
     var lines = Math.max(0, Number(result && result.lines) || 0);
-    var measuredLines = Array.isArray(result && result.measuredLineIndexes) ? result.measuredLineIndexes.length : 0;
+    var matchedLineAnchors = Array.isArray(result && result.measuredLineIndexes) ? result.measuredLineIndexes.length : 0;
     var coverage = words ? measured / words : 0;
     var warnings = [];
     if (!words) warnings.push('No lyric words were available to assess.');
     else if (coverage < 0.4) warnings.push('Low measured-word coverage: most word timings are estimates.');
     else if (coverage < 0.7) warnings.push('Partial measured-word coverage: review the estimated words carefully.');
-    if (lines && measuredLines < lines) { var estimatedLines = lines - measuredLines; warnings.push(estimatedLines + (estimatedLines === 1 ? ' lyric line has' : ' lyric lines have') + ' estimated start times.'); }
+    if (lines && matchedLineAnchors < lines) { var estimatedLines = lines - matchedLineAnchors; warnings.push(estimatedLines + (estimatedLines === 1 ? ' lyric line has' : ' lyric lines have') + ' an estimated start anchor.'); }
     var scores = Array.isArray(result && result.matchScores) ? result.matchScores.filter(Number.isFinite) : [];
     var lowMatchWords = scores.filter(function (score) { return score < 0.72; }).length;
     if (lowMatchWords) warnings.push(lowMatchWords + (lowMatchWords === 1 ? ' measured word has' : ' measured words have') + ' weak lyric-text matches and should be checked against the audio.');
@@ -299,7 +299,7 @@
       measuredWords: measured,
       estimatedWords: Math.max(0, words - measured),
       totalWords: words,
-      measuredLines: measuredLines,
+      matchedLineAnchors: matchedLineAnchors,
       totalLines: lines,
       coverage: coverage,
       lowMatchWords: lowMatchWords,
