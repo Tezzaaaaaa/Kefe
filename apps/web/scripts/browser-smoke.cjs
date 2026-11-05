@@ -1191,10 +1191,19 @@ async function captureEditorScreenState(page) {
     await page.waitForFunction(() => {
       const section = document.querySelector('#kefe-settings-panel .section[data-section-id="visualisers"]');
       const tabs = document.querySelector(".kefe-vis-tabs");
-      return section?.dataset.expanded === "true" && tabs && !tabs.hidden;
-    }, null, { timeout: 5000 });
+      const choices = tabs?.querySelectorAll(".kv-tab") || [];
+      return section?.dataset.expanded === "true" && tabs && !tabs.hidden && choices.length > 0;
+    }, null, { timeout: 10000 });
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), true,
-      "opening Visualisers from its side-panel section must reveal the visualiser controls");
+      "the visualiser gallery must remain visible before a renderer is selected");
+    if (threeWorkspaceMode) {
+      const firstVisualiser = page.locator(".kefe-vis-tabs .kv-tab").first();
+      await firstVisualiser.waitFor({ state: "visible", timeout: 5000 });
+      await firstVisualiser.click();
+      await page.waitForFunction(() =>
+        Boolean(document.querySelector(".kefe-vis-tabs .kv-tab[aria-selected='true']")),
+        null, { timeout: 5000 });
+    }
     if (singleSectionMode && !threeWorkspaceMode) {
       await page.waitForFunction(() => {
         const panel = document.querySelector('#kefe-settings-panel .kefe-slot[data-kefe-slot="visualisers"] > .kefe-panel[data-panel-view="visualiser"]');
