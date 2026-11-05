@@ -1072,28 +1072,40 @@ async function captureEditorScreenState(page) {
       "background darkness control must remain in Background Effects after cleanup");
     assert.equal(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option').count() > 0, true,
       "Effects must retain its lyric-effect gallery after background-treatment cleanup");
-    const mediaSection = page.locator('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] > .section[data-section-id="media"]');
-    const mediaHeading = mediaSection.locator(".section-heading").first();
-    const mediaAccordion = mediaSection.locator(".expand-button").first();
-    await mediaHeading.waitFor({ state: "visible", timeout: 10000 });
-    await mediaAccordion.waitFor({ state: "visible", timeout: 10000 });
-    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true",
-      "the initially expanded Media settings section must expose its expanded state");
-    await mediaAccordion.click();
-    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "false", "Media section should collapse");
-    await page.waitForFunction(() => {
-      const section = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] > .section[data-section-id="media"]');
-      return section?.dataset.expanded === "false" &&
-        section.querySelector(".section-content").getBoundingClientRect().height < 1;
-    }, null, { timeout: 5000 });
-    await mediaAccordion.click();
-    assert.equal(await mediaAccordion.getAttribute("aria-expanded"), "true", "Media section should expand again");
-    await page.waitForFunction(() => {
-      const section = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"] > .section[data-section-id="media"]');
-      return section?.dataset.expanded === "true" &&
-        section.querySelector(".section-content").getBoundingClientRect().height > 1;
-    }, null, { timeout: 5000 });
-    if (singleSectionMode) {
+    if (threeWorkspaceMode) {
+      const workspaceAudit = await page.evaluate(() => {
+        const groups = [...document.querySelectorAll('#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]')];
+        const sections = [...document.querySelectorAll('#kefe-settings-panel .kefe-workspace-stack > .section[data-section-id]')];
+        const panels = [...document.querySelectorAll('#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]')];
+        return {
+          groups: groups.map(group => ({ id: group.dataset.group, title: group.querySelector('.kefe-workspace-title')?.textContent.trim() })),
+          sections: sections.map(section => ({ id: section.dataset.sectionId, expanded: section.dataset.expanded, visible: section.querySelector('.section-content')?.getBoundingClientRect().height > 0 })),
+          panels: panels.map(panel => ({ id: panel.dataset.panelView, visible: getComputedStyle(panel).display !== 'none' && panel.getBoundingClientRect().height > 0 }))
+        };
+      });
+      assert.deepEqual(workspaceAudit.groups, [
+        { id: 'content', title: 'Content' },
+        { id: 'design', title: 'Design' },
+        { id: 'audio-visuals', title: 'Audio & Visuals' }
+      ], 'the editor must expose the three named workspaces in order: ' + JSON.stringify(workspaceAudit));
+      assert.equal(workspaceAudit.sections.length, 6, 'all six editor sections must remain mounted');
+      assert.ok(workspaceAudit.sections.every(section => section.expanded === 'true' && section.visible), 'all six editor sections must remain visible: ' + JSON.stringify(workspaceAudit));
+      assert.equal(workspaceAudit.panels.length, 6, 'each native editor panel must be mounted exactly once');
+      assert.ok(workspaceAudit.panels.every(panel => panel.visible), 'all six native editor panels must remain visible and connected: ' + JSON.stringify(workspaceAudit));
+    } else {
+      const mediaSection = page.locator('#kefe-settings-panel .section[data-section-id="media"]');
+      const mediaHeading = mediaSection.locator('.section-heading').first();
+      const mediaAccordion = mediaSection.locator('.expand-button').first();
+      await mediaHeading.waitFor({ state: 'visible', timeout: 10000 });
+      await mediaAccordion.waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await mediaAccordion.getAttribute('aria-expanded'), 'true', 'Media should initially be expanded');
+      await mediaAccordion.click();
+      assert.equal(await mediaAccordion.getAttribute('aria-expanded'), 'false', 'Media section should collapse');
+      await page.waitForFunction(() => document.querySelector('#kefe-settings-panel .section[data-section-id="media"]')?.dataset.expanded === 'false', null, { timeout: 5000 });
+      await mediaAccordion.click();
+      assert.equal(await mediaAccordion.getAttribute('aria-expanded'), 'true', 'Media section should expand again');
+    }
+    if (singleSectionMode && !threeWorkspaceMode) {
       const sectionSelectionAudit = await page.evaluate(() => {
         const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
         return {
@@ -1201,7 +1213,7 @@ async function captureEditorScreenState(page) {
         "selecting the Visualisers section must activate and reveal its existing native renderer panel");
     }
 
-    const sectionHeaderAudit = await page.evaluate(() => {
+    if (!threeWorkspaceMode) {\n    const sectionHeaderAudit = await page.evaluate(() => {
       const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];
       return sections.map(section => {
         const header = section.querySelector(".section-header");
@@ -1223,9 +1235,7 @@ async function captureEditorScreenState(page) {
     assert.ok(sectionHeaderAudit.every(item => item.title && item.info && item.description && item.accordion),
       `every settings section needs a title, info tooltip and accordion: ${JSON.stringify(sectionHeaderAudit)}`);
     assert.match(sectionHeaderAudit.find(item => item.section === "media").tooltip, /Import, replace, or remove files/,
-      "Media instructions should be available through the info tooltip");
-
-    const featureSwitchAudit = await page.evaluate(() => [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")].map(panel => {
+      "Media instructions should be available through the info tooltip");\n    }\n\n    const featureSwitchAudit = await page.evaluate(() => [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")].map(panel => {
       const row = panel.querySelector(".kefe-panel-head .kefe-section-heading-row");
       const featureSwitch = row?.querySelector(".kefe-switch");
       return {
@@ -1243,7 +1253,7 @@ async function captureEditorScreenState(page) {
     assert.ok(justifiedCopyAudit.every(item => item.align === "justify"),
       `section body copy must use true justification: ${JSON.stringify(justifiedCopyAudit)}`);
 
-    const uniformHeaderGeometry = await page.evaluate(() => [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")].map(section => {
+    const uniformHeaderGeometry = threeWorkspaceMode ? [] : await page.evaluate(() => [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")].map(section => {
       const title = section.querySelector(".section-heading");
       const info = section.querySelector(".info-button");
       const accordion = section.querySelector(".expand-button");
@@ -1257,7 +1267,7 @@ async function captureEditorScreenState(page) {
         accordionHeight: accordion ? accordion.offsetHeight : null
       };
     }));
-    assert.equal(new Set(uniformHeaderGeometry.map(item =>
+    if (!threeWorkspaceMode) assert.equal(new Set(uniformHeaderGeometry.map(item =>
       [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize)].join("|")
     )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
