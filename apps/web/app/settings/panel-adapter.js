@@ -3,8 +3,8 @@
 
   const scriptSrc = document.currentScript && document.currentScript.src;
   const MARKUP_URL = scriptSrc
-    ? new URL('./panel.html?v=settings-panel-cleanup-20261101-1', scriptSrc)
-    : new URL('./app/settings/panel.html?v=settings-panel-cleanup-20261101-1', window.location.href);
+    ? new URL('./panel.html?v=three-workspaces-20261106-1', scriptSrc)
+    : new URL('./app/settings/panel.html?v=three-workspaces-20261106-1', window.location.href);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
     'lyric-sync': 'lyrics',
@@ -15,14 +15,6 @@
   });
   const PANEL_TO_LEGACY = Object.freeze({ 'lyric-nudge': 'lyricOffset' });
   const LEGACY_TO_PANEL = Object.freeze({ lyricOffset: 'lyric-nudge' });
-  const NAV_TO_SECTION = Object.freeze({
-    media: 'media',
-    lyrics: 'lyric-sync',
-    effects: 'lyric-effects',
-    'background-effects': 'background',
-    visualiser: 'visualisers',
-    export: 'export'
-  });
 
   async function mount() {
     if (document.getElementById('kefe-settings-panel')) return;
@@ -42,42 +34,24 @@
       throw new Error('Settings panel adapter dependencies are unavailable.');
     }
 
-    const syncVisualiserControls = () => {
-      const visible = editing.dataset.selectedSection === 'visualiser';
-      editing.querySelectorAll('.kefe-vis-tabs, .kefe-visualiser-preset-row').forEach(element => {
-        element.hidden = !visible;
-      });
-    };
-
     const placements = Object.entries(SLOT_TO_PANEL).map(([slotName, panelView]) => ({
-      slotName,
       slot: root.querySelector('.kefe-slot[data-kefe-slot="' + slotName + '"]'),
       panel: editing.querySelector('.kefe-panel[data-panel-view="' + panelView + '"]')
     }));
     if (placements.some(item => !item.slot || !item.panel)) {
-      throw new Error('Settings panel integration requires all six existing editor panels and slots.');
+      throw new Error('Settings workspace integration requires all six existing editor panels and slots.');
     }
 
-    const inputGroup = root.querySelector('.kefe-panel[data-group="input"]');
-    const outputGroup = root.querySelector('.kefe-panel[data-group="output"]');
-    const topbar = root.querySelector('.kefe-topbar');
-    if (!inputGroup || !outputGroup || !topbar) {
-      throw new Error('Settings panel input/output groups are unavailable.');
+    const contentGroup = root.querySelector('.kefe-panel[data-group="content"]');
+    const designGroup = root.querySelector('.kefe-panel[data-group="design"]');
+    const audioVisualsGroup = root.querySelector('.kefe-panel[data-group="audio-visuals"]');
+    if (!contentGroup || !designGroup || !audioVisualsGroup || !root.querySelector('.kefe-topbar')) {
+      throw new Error('All three KEFE workspaces are required.');
     }
-    inputGroup.append(topbar);
-    inputGroup.setAttribute('role', 'region');
-    inputGroup.setAttribute('aria-label', 'KEFE settings');
-    outputGroup.setAttribute('role', 'region');
-    outputGroup.setAttribute('aria-label', 'Visual and output settings');
-
-    root.querySelectorAll('[data-setting]').forEach(control => {
-      if (PANEL_TO_LEGACY[control.dataset.setting]) return;
-      control.closest('.setting-row')?.remove();
-    });
 
     const host = document.createElement('section');
     host.className = 'kefe-settings-mount';
-    host.setAttribute('aria-label', 'KEFE editor settings');
+    host.setAttribute('aria-label', 'KEFE editor workspaces');
     host.appendChild(root);
     editing.classList.add('kefe-settings-layout');
     editing.appendChild(host);
@@ -87,16 +61,17 @@
       panel.classList.remove('beui-accordion-collapsed', 'kefe-pane-shown', 'beui-accordion-enter');
       panel.style.removeProperty('height');
       panel.style.removeProperty('overflow');
+      const heading = panel.querySelector(':scope > .kefe-panel-head h2');
+      if (heading && panel.dataset.panelView === 'background-effects') heading.textContent = 'Background';
       slot.appendChild(panel);
     });
 
     editing.querySelectorAll('.kefe-tabs, .kefe-panels').forEach(element => {
-      if (root.contains(element)) return;
       element.hidden = true;
       element.setAttribute('aria-hidden', 'true');
     });
 
-    const panel = new window.KefeSettingsPanel(root, {
+    const settingsPanel = new window.KefeSettingsPanel(root, {
       storage: null,
       autoPersist: true,
       debounceMs: 80,
@@ -110,120 +85,38 @@
       const values = {};
       Object.entries(PANEL_TO_LEGACY).forEach(([panelKey, legacyKey]) => {
         const current = api.get(legacyKey);
-        values[panelKey] = typeof current === typeof defaults[legacyKey]
-          ? current
-          : defaults[legacyKey];
+        values[panelKey] = typeof current === typeof defaults[legacyKey] ? current : defaults[legacyKey];
       });
       return values;
     }
 
     function applyLegacyValues() {
-      panel.applyValues(readPanelValues(), { silent: true });
+      settingsPanel.applyValues(readPanelValues(), { silent: true });
     }
 
     applyLegacyValues();
-    const initialNav = editing.dataset.selectedSection || 'media';
-    editing.setAttribute('data-active-panel', initialNav);
-    editing.setAttribute('data-selected-section', initialNav);
-    editing.querySelectorAll('.kefe-panel[data-panel-view]').forEach(panel => {
-      panel.classList.toggle('active', panel.dataset.panelView === initialNav);
-    });
-    root.querySelectorAll('.section[data-section-id]').forEach(item => {
-      const selected = item.dataset.sectionId === (NAV_TO_SECTION[initialNav] || 'media');
-      item.dataset.expanded = String(selected);
-    });
-    root.querySelectorAll('.section[data-section-id]').forEach(section => {
-      section.querySelector('.expand-button')?.setAttribute(
-        'aria-expanded',
-        String(section.dataset.expanded === 'true')
-      );
-    });
-    syncVisualiserControls();
-
-    panel.onChange(({ key, value }) => {
+    settingsPanel.onChange(({ key, value }) => {
       const legacyKey = PANEL_TO_LEGACY[key];
       if (!legacyKey || writingToLegacy) return;
       writingToLegacy = true;
-      try {
-        api.set(legacyKey, value);
-      } finally {
-        writingToLegacy = false;
-      }
+      try { api.set(legacyKey, value); }
+      finally { writingToLegacy = false; }
     });
-
-    panel.onReset(() => {
+    settingsPanel.onReset(() => {
       writingToLegacy = true;
       try {
         api.reset();
         applyLegacyValues();
-      } finally {
-        writingToLegacy = false;
-      }
+      } finally { writingToLegacy = false; }
     });
-
     api.onChange(legacyKey => {
-      if (writingToLegacy) return;
-      const panelKey = LEGACY_TO_PANEL[legacyKey];
-      if (panelKey) applyLegacyValues();
-    });
-
-    root.addEventListener('click', event => {
-      const trigger = event.target instanceof Element
-        ? event.target.closest('.section[data-section-id] .expand-button')
-        : null;
-      const section = trigger?.closest('.section[data-section-id]');
-      if (!section) return;
-      const sectionId = section.dataset.sectionId;
-      const navKey = Object.keys(NAV_TO_SECTION).find(key => NAV_TO_SECTION[key] === sectionId);
-      if (!navKey) return;
-      queueMicrotask(() => {
-        const expanded = section.querySelector('.expand-button')?.getAttribute('aria-expanded') === 'true';
-        const selectedPanel = expanded ? navKey : '';
-        root.querySelectorAll('.section[data-section-id]').forEach(item => {
-          const selected = expanded && item === section;
-          item.dataset.expanded = String(selected);
-          item.querySelector('.expand-button')?.setAttribute('aria-expanded', String(selected));
-        });
-        editing.setAttribute('data-active-panel', selectedPanel);
-        editing.setAttribute('data-selected-section', selectedPanel);
-        editing.querySelectorAll('.kefe-panel[data-panel-view]').forEach(panel => {
-          panel.classList.toggle('active', panel.dataset.panelView === selectedPanel);
-        });
-        syncVisualiserControls();
-      });
-    });
-
-    document.addEventListener('click', event => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (target.closest('[data-top-panel="settings"]')) return;
-      const button = target.closest('[data-shell-panel], [data-dock-panel], .kefe-section');
-      if (!button) return;
-      const key = button.dataset.shellPanel || button.dataset.dockPanel || button.dataset.panel;
-      const sectionId = NAV_TO_SECTION[key];
-      if (!sectionId) return;
-      const editingRoot = editing;
-      editingRoot.setAttribute('data-active-panel', key);
-      editingRoot.setAttribute('data-selected-section', key);
-      editingRoot.querySelectorAll('.kefe-panel[data-panel-view]').forEach(panel => {
-        panel.classList.toggle('active', panel.dataset.panelView === key);
-      });
-      const section = root.querySelector('.section[data-section-id="' + sectionId + '"]');
-      if (!section) return;
-      root.querySelectorAll('.section[data-section-id]').forEach(item => {
-        const expanded = item === section;
-        item.dataset.expanded = String(expanded);
-        item.querySelector('.expand-button')?.setAttribute('aria-expanded', String(expanded));
-      });
-      editing.setAttribute('data-active-panel', key);
-      editing.setAttribute('data-selected-section', key);
-      syncVisualiserControls();
+      if (!writingToLegacy && LEGACY_TO_PANEL[legacyKey]) applyLegacyValues();
     });
 
     window.kefeSettingsPanelAdapter = Object.freeze({
-      panel,
+      panel: settingsPanel,
       readPanelValues,
-      getSlot: name => panel.getSlot(name)
+      getSlot: name => settingsPanel.getSlot(name)
     });
   }
 
@@ -239,13 +132,9 @@
       start();
       return;
     }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', startWhenReady, { once: true });
-    } else if (document.readyState !== 'complete') {
-      window.addEventListener('load', startWhenReady, { once: true });
-    } else {
-      start();
-    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startWhenReady, { once: true });
+    else if (document.readyState !== 'complete') window.addEventListener('load', startWhenReady, { once: true });
+    else start();
   }
 
   startWhenReady();
