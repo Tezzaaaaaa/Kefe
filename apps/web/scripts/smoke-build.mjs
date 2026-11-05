@@ -92,7 +92,7 @@ if (!autoSync || typeof autoSync.align !== "function" || typeof autoSync.validat
   }
 }
 if (failures.length) {
-  console.error(failures.join("\\n"));
+  console.error(failures.join("\n"));
   process.exit(1);
 }
 console.log("Production entry points, local assets, and PWA manifest are present and valid.");
