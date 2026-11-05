@@ -2,7 +2,7 @@
   'use strict';
   var CDN = 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
   var cached = null;
-  function norm(s) { return String(s || '').toLowerCase().replace(/[^a-z']/g, ''); }
+  function norm(s) { return String(s || '').normalize('NFKD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^\\p{L}\\p{N}']/gu, ''); }
   function similarity(a, b) {
     a = norm(a); b = norm(b);
     if (!a || !b) return 0;
@@ -56,21 +56,54 @@
     });
     return tokens;
   }
+  /* Monotonic sequence alignment: tolerate ASR insertions, skipped lyric words and
+     repeated phrases without the old fixed 12-token look-ahead window. */
   function matchTokens(tokens, asr, from, to) {
-    var timings = new Array(tokens.length), indexes = new Array(tokens.length), cursor = from || 0;
+    var timings = new Array(tokens.length), indexes = new Array(tokens.length);
+    var begin = Math.max(0, Number(from) || 0);
     var limit = to == null ? asr.length : Math.min(asr.length, to);
-    tokens.forEach(function (token, i) {
-      var best = -1, score = 0;
-      for (var j = cursor; j < Math.min(limit, cursor + 12); j++) {
-        var candidate = similarity(token.word, asrWordText(asr[j]));
-        if (candidate > score) { score = candidate; best = j; }
+    var words = asr.slice(begin, limit), n = tokens.length, m = words.length;
+    if (!n || !m) return { timings: timings, indexes: indexes };
+    var lyricNorm = tokens.map(function (t) { return norm(t.word); });
+    var asrNorm = words.map(function (w) { return norm(asrWordText(w)); });
+    var width = m + 1, trace = new Uint8Array((n + 1) * width);
+    var previous = new Float64Array(width), current = new Float64Array(width);
+    /* Free leading/trailing ASR words: recordings may contain intros and outros. */
+    for (var j = 0; j <= m; j++) previous[j] = 0;
+    for (var i = 1; i <= n; i++) {
+      current[0] = -i * 1.05;
+      trace[i * width] = 3;
+      for (var j = 1; j <= m; j++) {
+        var sim = similarity(lyricNorm[i - 1], asrNorm[j - 1]);
+        var match = previous[j - 1] + (sim >= 0.45 ? 2 * sim - 0.65 : -1.25);
+        var skipAsr = current[j - 1] - 0.22;
+        var skipLyric = previous[j] - 1.05;
+        if (match >= skipAsr && match >= skipLyric) {
+          current[j] = match; trace[i * width + j] = 1;
+        } else if (skipAsr >= skipLyric) {
+          current[j] = skipAsr; trace[i * width + j] = 2;
+        } else {
+          current[j] = skipLyric; trace[i * width + j] = 3;
+        }
       }
-      if (best >= 0 && score >= 0.58) {
-        timings[i] = asrWordStart(asr[best]);
-        indexes[i] = best;
-        cursor = best + 1;
-      }
-    });
+      var swap = previous; previous = current; current = swap;
+    }
+    var bestEnd = 0, bestScore = -Infinity;
+    for (var k = 0; k <= m; k++) if (previous[k] > bestScore) { bestScore = previous[k]; bestEnd = k; }
+    var x = n, y = bestEnd;
+    while (x > 0 && y >= 0) {
+      var step = trace[x * width + y];
+      if (step === 1) {
+        var score = similarity(lyricNorm[x - 1], asrNorm[y - 1]);
+        if (score >= 0.58) {
+          timings[x - 1] = asrWordStart(words[y - 1]);
+          indexes[x - 1] = begin + y - 1;
+        }
+        x--; y--;
+      } else if (step === 2) y--;
+      else x--;
+      if (y === 0 && x > 0 && trace[x * width] === 3) break;
+    }
     return { timings: timings, indexes: indexes };
   }
   function autoWindows(asr, lyricsText, minGap) {
@@ -260,10 +293,10 @@
     var card = document.createElement('section'); card.id = 'kefeAutoSync'; card.className = 'kefe-editor-panel-card';
     card.style.cssText = 'display:grid;gap:8px;min-width:0;margin:8px 0;';
     var title = document.createElement('div'); title.className = 'kefe-label'; title.textContent = 'Auto-sync lyrics (beta)';
-    var help = document.createElement('div'); help.className = 'kefe-meta'; help.textContent = 'Load a song and add plain lyrics above. KEFE recognises vocals locally in your browser, aligns words, and sends enhanced timings to the existing timing editor. Speech-model files are downloaded from the CDN and cached by the browser.';
+    var help = document.createElement('div'); help.className = 'kefe-meta'; help.textContent = 'Load a song and add lyrics above. Choose an English or multilingual Whisper model; larger models take longer and use more memory. Recognition runs locally in your browser after the model downloads and is cached. Word matches are aligned in sequence; unmatched timings are estimated and must be reviewed.';
     var controls = document.createElement('div'); controls.className = 'kefe-download-row'; controls.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;min-width:0;';
     var select = document.createElement('select'); select.className = 'kefe-select'; select.setAttribute('aria-label', 'Speech recognition model');
-    [['tiny.en','Fast'],['base.en','More accurate']].forEach(function (pair) { var o = document.createElement('option'); o.value = pair[0]; o.textContent = pair[1]; select.appendChild(o); });
+    [['tiny.en','English · Fast'],['base.en','English · Balanced'],['tiny','Multilingual · Fast'],['base','Multilingual · Balanced'],['small','Multilingual · Highest accuracy']].forEach(function (pair) { var o = document.createElement('option'); o.value = pair[0]; o.textContent = pair[1]; select.appendChild(o); });
     var go = document.createElement('button'); go.type = 'button'; go.className = 'kefe-mini'; go.textContent = 'Auto-time lyrics';
     var undo = document.createElement('button'); undo.type = 'button'; undo.className = 'kefe-mini'; undo.textContent = 'Restore previous'; undo.disabled = true;
     var status = document.createElement('div'); status.className = 'kefe-meta'; status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
