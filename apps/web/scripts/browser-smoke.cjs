@@ -221,7 +221,7 @@ async function captureEditorScreenState(page) {
       "opening and closing the preview toolbar must not broadcast a global viewport resize");
     assert.ok(toolbarResizeEvents.preview >= 2,
       "toolbar visibility changes must request only preview-specific fits");
-    await page.waitForSelector(".kefe-panels-left", { state: "attached", timeout: 10000 });
+    await page.waitForFunction(() => document.querySelectorAll("#kefe-settings-panel .kefe-workspace[data-group]").length === 3, null, { timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
     try {
       await page.waitForFunction(() => {
@@ -327,18 +327,35 @@ async function captureEditorScreenState(page) {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
-    // Mobile editing happens in the KEFE sidebar, so measure the media surface
-    // with its live panel hosted in the drawer.
-    await page.locator(".kefe-ms-dock").waitFor({ state: "visible", timeout: 5000 });
-    await page.locator('.kefe-ms-dock-item[aria-label="Edit Media"]').evaluate(button => button.click());
-    await page.waitForFunction(() => Boolean(document.querySelector(".kefe-ms-host #kefeUploadZone")), null, { timeout: 5000 });
-    const mobileUploadLayout = await page.locator(".kefe-ms-host .kefe-panel[data-panel-view=\"media\"] .kefe-media-upload-row").evaluate(node => {
+    // Mobile keeps all three workspaces in the page, stacked below the preview.
+    await page.waitForFunction(() => {
+      const root = document.querySelector("#kefe-settings-panel");
+      const workspaces = [...(root?.querySelectorAll(".kefe-workspace[data-group]") || [])];
+      const panels = [...(root?.querySelectorAll(".kefe-panel[data-panel-view]") || [])];
+      return workspaces.length === 3 && panels.length === 6 &&
+        workspaces.every(node => getComputedStyle(node).display !== "none" && node.getBoundingClientRect().height > 0) &&
+        panels.every(node => getComputedStyle(node).display !== "none" && node.getBoundingClientRect().height > 0);
+    }, null, { timeout: 5000 });
+    const mobileWorkspaceLayout = await page.locator("#kefe-settings-panel .kefe-settings-columns").evaluate(node => ({
+      columns: getComputedStyle(node).gridTemplateColumns.trim().split(/\\s+/).length,
+      groups: [...node.querySelectorAll(":scope > .kefe-workspace")].map(group => ({
+        label: group.querySelector(".kefe-workspace-title")?.textContent.trim(),
+        width: group.getBoundingClientRect().width,
+        height: group.getBoundingClientRect().height
+      }))
+    }));
+    assert.equal(mobileWorkspaceLayout.columns, 1, "mobile must stack the three workspaces in one column");
+    assert.deepEqual(mobileWorkspaceLayout.groups.map(group => group.label), ["Content", "Design", "Audio & Visuals"],
+      "mobile must retain the same three workspace order");
+    assert.ok(mobileWorkspaceLayout.groups.every(group => group.width > 0 && group.height > 0),
+      "all mobile workspaces must remain visible without opening a drawer");
+    const mobileUploadLayout = await page.locator('.kefe-workspace[data-group="content"] .kefe-panel[data-panel-view="media"] .kefe-media-upload-row').evaluate(node => {
       const style = getComputedStyle(node);
       const boxes = [...node.children].map(child => {
         const rect = child.getBoundingClientRect();
         return { left: rect.left, right: rect.right, top: rect.top, width: rect.width, height: rect.height };
       }).filter(rect => rect.width > 0 && rect.height > 0);
-      return { display: style.display, columns: style.gridTemplateColumns.trim().split(/\s+/).length, boxes };
+      return { display: style.display, columns: style.gridTemplateColumns.trim().split(/\\s+/).length, boxes };
     });
     assert.equal(mobileUploadLayout.display, "grid", "mobile Media upload row must use grid layout");
     assert.equal(mobileUploadLayout.columns, 2, "mobile Media upload row must define two columns");
@@ -346,8 +363,6 @@ async function captureEditorScreenState(page) {
     assert.ok(Math.abs(mobileUploadLayout.boxes[0].top - mobileUploadLayout.boxes[1].top) <= 2
       && mobileUploadLayout.boxes[0].right <= mobileUploadLayout.boxes[1].left + 2,
       `mobile Media upload zones must render side by side: ${JSON.stringify(mobileUploadLayout)}`);
-    await page.locator(".kefe-ms-close").evaluate(button => button.click());
-    await page.waitForFunction(() => !document.querySelector(".kefe-ms-drawer"), null, { timeout: 5000 });
     const mobileToolbarBounds = await quickToolbar.evaluate(node => {
       const r = node.getBoundingClientRect();
       return { left: r.left, right: r.right, viewportWidth: document.documentElement.clientWidth };
