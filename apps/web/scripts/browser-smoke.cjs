@@ -355,10 +355,31 @@ async function captureEditorScreenState(page) {
         const rect = child.getBoundingClientRect();
         return { left: rect.left, right: rect.right, top: rect.top, width: rect.width, height: rect.height };
       }).filter(rect => rect.width > 0 && rect.height > 0);
-      return { display: style.display, columns: style.gridTemplateColumns.trim().split(/\\s+/).length, boxes };
+      const matchedRules = [];
+      for (const sheet of document.styleSheets) {
+        try {
+          const visit = (rules, media = []) => {
+            for (const rule of rules) {
+              if (rule.cssRules) visit(rule.cssRules, [...media, rule.conditionText || "group"]);
+              else if (rule.selectorText && rule.style?.getPropertyValue("grid-template-columns")) {
+                try {
+                  if (node.matches(rule.selectorText)) matchedRules.push({
+                    href: sheet.href, selector: rule.selectorText,
+                    value: rule.style.getPropertyValue("grid-template-columns"),
+                    important: rule.style.getPropertyPriority("grid-template-columns"),
+                    media
+                  });
+                } catch {}
+              }
+            }
+          };
+          visit(sheet.cssRules);
+        } catch {}
+      }
+      return { display: style.display, columns: style.gridTemplateColumns.trim().split(/\\s+/).length, boxes, matchedRules };
     });
     assert.equal(mobileUploadLayout.display, "grid", "mobile Media upload row must use grid layout");
-    assert.equal(mobileUploadLayout.columns, 2, "mobile Media upload row must define two columns");
+    assert.equal(mobileUploadLayout.columns, 2, `mobile Media upload row must define two columns: ${JSON.stringify(mobileUploadLayout)}`);
     assert.equal(mobileUploadLayout.boxes.length, 2, `mobile Media must show both upload zones: ${JSON.stringify(mobileUploadLayout)}`);
     assert.ok(Math.abs(mobileUploadLayout.boxes[0].top - mobileUploadLayout.boxes[1].top) <= 2
       && mobileUploadLayout.boxes[0].right <= mobileUploadLayout.boxes[1].left + 2,
