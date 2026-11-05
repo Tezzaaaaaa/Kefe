@@ -1194,11 +1194,9 @@ async function captureEditorScreenState(page) {
       const choices = tabs?.querySelectorAll(".kv-tab") || [];
       return section?.dataset.expanded === "true" && tabs && !tabs.hidden && choices.length > 0;
     }, null, { timeout: 10000 });
-    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), true,
-      "the visualiser gallery must remain visible before a renderer is selected");
+    const firstVisualiser = page.locator(".kefe-vis-tabs .kv-tab").first();
+    await firstVisualiser.waitFor({ state: "visible", timeout: 5000 });
     if (threeWorkspaceMode) {
-      const firstVisualiser = page.locator(".kefe-vis-tabs .kv-tab").first();
-      await firstVisualiser.waitFor({ state: "visible", timeout: 5000 });
       await firstVisualiser.click();
       await page.waitForFunction(() =>
         Boolean(document.querySelector(".kefe-vis-tabs .kv-tab[aria-selected='true']")),
