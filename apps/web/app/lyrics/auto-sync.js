@@ -68,11 +68,11 @@
   /* Monotonic sequence alignment: tolerate ASR insertions, skipped lyric words and
      repeated phrases without the old fixed 12-token look-ahead window. */
   function matchTokens(tokens, asr, from, to) {
-    var timings = new Array(tokens.length), indexes = new Array(tokens.length);
+    var timings = new Array(tokens.length), indexes = new Array(tokens.length), scores = new Array(tokens.length);
     var begin = Math.max(0, Number(from) || 0);
     var limit = to == null ? asr.length : Math.min(asr.length, to);
     var words = asr.slice(begin, limit), n = tokens.length, m = words.length;
-    if (!n || !m) return { timings: timings, indexes: indexes };
+    if (!n || !m) return { timings: timings, indexes: indexes, scores: scores };
     var lyricNorm = tokens.map(function (t) { return norm(t.word); });
     var asrNorm = words.map(function (w) { return norm(asrWordText(w)); });
     var width = m + 1, trace = new Uint8Array((n + 1) * width);
@@ -107,13 +107,14 @@
         if (score >= 0.58) {
           timings[x - 1] = asrWordStart(words[y - 1]);
           indexes[x - 1] = begin + y - 1;
+          scores[x - 1] = score;
         }
         x--; y--;
       } else if (step === 2) y--;
       else x--;
       if (y === 0 && x > 0 && trace[x * width] === 3) break;
     }
-    return { timings: timings, indexes: indexes };
+    return { timings: timings, indexes: indexes, scores: scores };
   }
   function autoWindows(asr, lyricsText, minGap) {
     if (!Array.isArray(asr) || asr.length < 2) return null;
@@ -163,7 +164,7 @@
     var structure = lyricStructure(text), lines = structure.lines, tokens = lyricTokens(lines);
     if (!tokens.length || !Array.isArray(asr) || !asr.length) throw new Error('Add lyrics and load a song with vocals first.');
     var windows = Array.isArray(opts.windows) && opts.windows.length ? opts.windows : [[asrWordStart(asr[0]), Number(Array.isArray(asr[asr.length - 1]) ? asr[asr.length - 1][2] : asr[asr.length - 1].end) || asrWordStart(asr[asr.length - 1]) + 0.01, 0, lines.length]];
-    var timings = new Array(tokens.length), tokenAsrIndexes = new Array(tokens.length);
+    var timings = new Array(tokens.length), tokenAsrIndexes = new Array(tokens.length), matchScores = new Array(tokens.length);
     windows.forEach(function (window) {
       var t0 = Number(window[0]), t1 = Number(window[1]), l0 = Math.max(0, Number(window[2]) || 0), l1 = Math.min(lines.length, Number(window[3]));
       if (!Number.isFinite(l1) || l1 <= l0) return;
@@ -182,6 +183,7 @@
         if (Number.isFinite(matched.timings[localIndex])) {
           timings[ti] = matched.timings[localIndex];
           tokenAsrIndexes[ti] = asrIndexes[matched.indexes[localIndex]];
+          matchScores[ti] = matched.scores[localIndex];
         }
       });
     });
@@ -243,7 +245,7 @@
         report.push(section.label + ': timing template applied (slope ' + normalisedSlope.toFixed(3) + ').');
       });
     });
-    var out = [];
+    var out = [], measuredWordCount = 0, emittedMatchScores = [];
     if (opts.title) out.push('[ti:' + opts.title + ']');
     if (opts.artist) out.push('[ar:' + opts.artist + ']');
     if (opts.album) out.push('[al:' + opts.album + ']');
@@ -260,12 +262,49 @@
         var estimate = start + (end - start) * elapsed / total;
         elapsed += weights[wi];
         var measured = timings[indexes[wi]];
-        var time = Number.isFinite(measured) && measured >= start - 0.3 && measured < end + 0.2 ? measured : estimate;
+        var hasMeasuredTime = Number.isFinite(measured) && measured >= start - 0.3 && measured < end + 0.2;
+        if (hasMeasuredTime) {
+          measuredWordCount++;
+          if (Number.isFinite(matchScores[indexes[wi]])) emittedMatchScores.push(matchScores[indexes[wi]]);
+        }
+        var time = hasMeasuredTime ? measured : estimate;
         return '<' + stamp(time) + '>' + word;
       }).join(' ');
       out.push('[' + stamp(start) + '] ' + tagged);
     });
-    return { lrc: out.join('\n') + '\n', matched: timings.filter(Number.isFinite).length, words: tokens.length, lines: lines.length, report: report, windows: windows };
+    return { lrc: out.join('\n') + '\n', matched: measuredWordCount, recognized: timings.filter(Number.isFinite).length, matchScores: emittedMatchScores, words: tokens.length, lines: lines.length, report: report, windows: windows, lineStarts: starts.slice(), measuredLineIndexes: known.slice() };
+  }
+  function validateReport(result) {
+    var words = Math.max(0, Number(result && result.words) || 0);
+    var measured = Math.max(0, Math.min(words, Number(result && result.matched) || 0));
+    var lines = Math.max(0, Number(result && result.lines) || 0);
+    var matchedLineAnchors = Array.isArray(result && result.measuredLineIndexes) ? result.measuredLineIndexes.length : 0;
+    var coverage = words ? measured / words : 0;
+    var warnings = [];
+    if (!words) warnings.push('No lyric words were available to assess.');
+    else if (coverage < 0.4) warnings.push('Low measured-word coverage: most word timings are estimates.');
+    else if (coverage < 0.7) warnings.push('Partial measured-word coverage: review the estimated words carefully.');
+    if (lines && matchedLineAnchors < lines) { var estimatedLines = lines - matchedLineAnchors; warnings.push(estimatedLines + (estimatedLines === 1 ? ' lyric line has' : ' lyric lines have') + ' an estimated start anchor.'); }
+    var scores = Array.isArray(result && result.matchScores) ? result.matchScores.filter(Number.isFinite) : [];
+    var lowMatchWords = scores.filter(function (score) { return score < 0.72; }).length;
+    if (lowMatchWords) warnings.push(lowMatchWords + (lowMatchWords === 1 ? ' measured word has' : ' measured words have') + ' weak lyric-text matches and should be checked against the audio.');
+    var starts = Array.isArray(result && result.lineStarts) ? result.lineStarts : [];
+    for (var i = 1; i < starts.length; i++) {
+      if (Number.isFinite(starts[i - 1]) && Number.isFinite(starts[i]) && starts[i] - starts[i - 1] < 0.02) {
+        warnings.push('Some adjacent lyric lines have nearly identical start times.');
+        break;
+      }
+    }
+    return {
+      measuredWords: measured,
+      estimatedWords: Math.max(0, words - measured),
+      totalWords: words,
+      matchedLineAnchors: matchedLineAnchors,
+      totalLines: lines,
+      coverage: coverage,
+      lowMatchWords: lowMatchWords,
+      warnings: warnings
+    };
   }
   async function decodeAudio() {
     var audio = document.getElementById('kefeAudio'), src = audio && (audio.currentSrc || audio.src);
@@ -482,8 +521,9 @@
         if (box.value !== sourceLyrics || (audio && (audio.currentSrc || audio.src) !== src)) throw new Error('The lyrics or loaded audio changed during syncing. Run auto-time again for the current track.');
         previous = { lines: model.cloneLines(api.lines()), text: box.value };
         api.set(nextLines, 'autosync');
-        status.textContent = (select.value === 'ctc.en' ? 'Forced alignment' : 'Auto-sync') + ' complete: ' + result.matched + '/' + result.words + ' words measured or matched (' + pct + '%).' + (forcedCoverage == null ? '' : ' Whisper lyric overlap: ' + Math.round(forcedCoverage * 100) + '%');
-        note.textContent = (forcedCoverage != null && forcedCoverage < 0.55 ? 'Whisper matched only part of the supplied lyrics; forced timings may be less reliable. ' : '') + (pct < 40 ? 'Many timings may be estimated. ' : '') + 'Review line and word timings in the Timing editor before exporting.';
+        status.textContent = (select.value === 'ctc.en' ? 'Forced alignment' : 'Auto-sync') + ' complete: ' + result.matched + '/' + result.words + ' word timings measured (' + pct + '%).' + (forcedCoverage == null ? '' : ' Whisper lyric overlap: ' + Math.round(forcedCoverage * 100) + '%');
+        var review = validateReport(result);
+        note.textContent = 'Measured word timings: ' + review.measuredWords + '/' + review.totalWords + '; estimated: ' + review.estimatedWords + '. ' + review.warnings.join(' ') + (forcedCoverage != null && forcedCoverage < 0.55 ? ' Whisper found limited lyric overlap, so forced timings may be unreliable.' : '') + ' Review line and word timings in the Timing editor before exporting.';
         undo.disabled = false;
       } catch (e) { status.textContent = 'Auto-sync failed: ' + (e && e.message ? e.message : String(e)); }
       finally { go.disabled = false; undo.disabled = !previous; }
@@ -497,7 +537,8 @@
   root.kefeAutoSync = {
     align: align,
     autoWindows: autoWindows,
-    parseLyrics: parseLyrics
+    parseLyrics: parseLyrics,
+    validateReport: validateReport
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.kefeAutoSync;
   if (typeof document !== 'undefined') {

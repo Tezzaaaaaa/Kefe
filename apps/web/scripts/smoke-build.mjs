@@ -67,4 +67,32 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
+// Exercise the lyric sync quality report with deterministic synthetic word timings.
+await import("../app/lyrics/auto-sync.js");
+const autoSync = globalThis.kefeAutoSync;
+if (!autoSync || typeof autoSync.align !== "function" || typeof autoSync.validateReport !== "function") {
+  failures.push("Lyric auto-sync must expose align() and validateReport().");
+} else {
+  const outOfWindow = autoSync.align(
+    [{ text: "one", start: 10, end: 10.4 }, { text: "two", start: 10.5, end: 10.9 }],
+    "one two",
+    { wordTimings: [10, 1] },
+  );
+  if (outOfWindow.matched !== 1 || outOfWindow.recognized !== 2) {
+    failures.push("Lyric sync must count only word timestamps actually emitted, not rejected out-of-window timestamps.");
+  }
+  const outOfWindowReport = autoSync.validateReport(outOfWindow);
+  if (outOfWindowReport.measuredWords !== 1 || outOfWindowReport.estimatedWords !== 1) {
+    failures.push("Lyric sync quality report must distinguish measured and estimated word timings.");
+  }
+  const weakMatch = autoSync.align([{ text: "bna", start: 2, end: 2.5 }], "banana");
+  const weakMatchReport = autoSync.validateReport(weakMatch);
+  if (weakMatchReport.lowMatchWords !== 1) {
+    failures.push("Lyric sync quality report must flag weak lyric-to-recognition text matches.");
+  }
+}
+if (failures.length) {
+  console.error(failures.join("\n"));
+  process.exit(1);
+}
 console.log("Production entry points, local assets, and PWA manifest are present and valid.");
