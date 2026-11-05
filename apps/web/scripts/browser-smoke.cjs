@@ -1452,10 +1452,6 @@ async function captureEditorScreenState(page) {
           const editorScreenState = await captureEditorScreenState(screenshotPage);
           fs.writeFileSync(path.join(screenshotDir, `editor-screen-state-${size}-${theme}.json`), JSON.stringify(editorScreenState));
           await screenshotPage.screenshot({ path: path.join(screenshotDir, `editor-${suffix}.png`), animations: "disabled" });
-          if (mobileShot) {
-            await screenshotPage.locator(".kefe-ms-close").evaluate(button => button.click());
-            await screenshotPage.waitForFunction(() => !document.querySelector(".kefe-ms-drawer"), null, { timeout: 5000 });
-          }
         }
       }
       if (hasScreenshotVolume) {
