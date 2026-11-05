@@ -2,6 +2,14 @@
   'use strict';
   var CDN = 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
   var cached = null;
+  var forcedAlignerPromise = null;
+  var forcedAligner = null;
+  var ORT_URL = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0/dist/ort.min.js';
+  var ORT_WASM = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0/dist/';
+  var CHARSU_CORE = 'https://cdn.jsdelivr.net/npm/charsiu-js@0.2.0/dist/index.js';
+  var CHARSU_ASSETS = 'https://cdn.jsdelivr.net/npm/charsiu-js@0.2.0/dist/assets-web.js';
+  var CHARSU_ASSET_BASE = 'https://cdn.jsdelivr.net/npm/charsiu-js@0.2.0/assets/';
+  var EN_ALIGN_MODEL = 'https://huggingface.co/mnaoizyyy/charsiu-js-models/resolve/main/en_w2v2_fc_10ms/model_quantized.onnx';
   function norm(s) { return String(s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\p{L}\p{N}']/gu, ''); }
   function similarity(a, b) {
     a = norm(a); b = norm(b);
@@ -49,6 +57,7 @@
   }
   function asrWordText(item) { return String(Array.isArray(item) ? item[0] : item && (item.word || item.text) || '').trim(); }
   function asrWordStart(item) { return Number(Array.isArray(item) ? item[1] : item && (item.start != null ? item.start : item.timestamp)); }
+  function asrWordEnd(item) { return Number(Array.isArray(item) ? item[2] : item && (item.end != null ? item.end : item.timestamp)); }
   function lyricTokens(lines) {
     var tokens = [];
     lines.forEach(function (line, li) {
@@ -176,6 +185,7 @@
         }
       });
     });
+    if (Array.isArray(opts.wordTimings)) timings = opts.wordTimings.slice(0, tokens.length);
     var starts = lines.map(function (_, lineIndex) {
       for (var ti = 0; ti < tokens.length; ti++) if (tokens[ti].line === lineIndex && Number.isFinite(timings[ti])) return timings[ti];
       return null;
@@ -297,16 +307,143 @@
       }).filter(function (w) { return w[0] && Number.isFinite(w[1]); });
     } finally { if (decoded.context.close) await decoded.context.close(); }
   }
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      if (root.ort) { resolve(root.ort); return; }
+      if (root.kefeOrtScriptPromise) { root.kefeOrtScriptPromise.then(resolve, reject); return; }
+      root.kefeOrtScriptPromise = new Promise(function (done, fail) {
+        var script = document.createElement('script');
+        script.src = src; script.async = true;
+        script.onload = function () { root.ort ? done(root.ort) : fail(new Error('ONNX Runtime loaded without its browser API.')); };
+        script.onerror = function () { fail(new Error('Could not load the ONNX Runtime browser engine.')); };
+        document.head.appendChild(script);
+      });
+      root.kefeOrtScriptPromise.then(resolve, reject);
+    });
+  }
+  async function getForcedAligner(status) {
+    if (forcedAligner) return forcedAligner;
+    if (!forcedAlignerPromise) forcedAlignerPromise = (async function () {
+      status('Loading the local forced-alignment engine…');
+      var modules = await Promise.all([import(CHARSU_CORE), import(CHARSU_ASSETS), loadScript(ORT_URL)]);
+      var core = modules[0], assets = modules[1], ort = modules[2];
+      ort.env.wasm.wasmPaths = ORT_WASM;
+      ort.env.wasm.numThreads = 1;
+      ort.env.wasm.proxy = false;
+      status('Loading English pronunciation data…');
+      var loaded = await Promise.all([
+        assets.loadG2pAssets(CHARSU_ASSET_BASE),
+        assets.loadPhoneVocab(CHARSU_ASSET_BASE)
+      ]);
+      var phonemizer = new core.PhonemizerEn(new core.G2p(loaded[0]), loaded[1]);
+      status('Downloading/loading the English phonetic model (~123 MB, first use)…');
+      var session = await ort.InferenceSession.create(EN_ALIGN_MODEL, {
+        executionProviders: ['wasm'],
+        graphOptimizationLevel: 'all'
+      });
+      forcedAligner = new core.ForcedAligner({ session: session, ort: ort, phonemizer: phonemizer });
+      return forcedAligner;
+    })().catch(function (error) {
+      forcedAlignerPromise = null;
+      throw error;
+    });
+    return forcedAlignerPromise;
+  }
+  async function forceAlignLyrics(text, asr, status) {
+    if (/[^\\p{Script=Latin}\\p{N}\\p{P}\\p{Zs}\\p{M}]/u.test(text)) {
+      throw new Error('Phonetic forced alignment currently supports English/Latin-script lyrics. Choose a multilingual Whisper model for other languages.');
+    }
+    var decoded = await decodeAudio();
+    try {
+      var aligner = await getForcedAligner(status);
+      var structure = lyricStructure(text), lines = structure.lines, tokens = lyricTokens(lines);
+      var matched = matchTokens(tokens, asr, 0, asr.length);
+      var lineTimes = new Array(lines.length), lineAsr = new Array(lines.length);
+      tokens.forEach(function (token, index) {
+        var ai = matched.indexes[index];
+        if (ai == null) return;
+        if (lineTimes[token.line] == null) {
+          lineTimes[token.line] = asrWordStart(asr[ai]);
+          lineAsr[token.line] = ai;
+        }
+      });
+      var known = lineTimes.map(function (time, index) { return Number.isFinite(time) ? index : -1; }).filter(function (index) { return index >= 0; });
+      if (!known.length) throw new Error('Whisper could not locate the supplied lyrics in the audio. Try a larger Whisper model.');
+      for (var li = 0; li < lines.length; li++) {
+        if (Number.isFinite(lineTimes[li])) continue;
+        var left = known.filter(function (index) { return index < li; }).pop();
+        var right = known.filter(function (index) { return index > li; })[0];
+        lineTimes[li] = left != null && right != null
+          ? lineTimes[left] + (lineTimes[right] - lineTimes[left]) * (li - left) / (right - left)
+          : left != null ? lineTimes[left] + 1.6 : Math.max(0, lineTimes[right] - (right - li) * 1.6);
+      }
+      for (var ti = 1; ti < lineTimes.length; ti++) lineTimes[ti] = Math.max(lineTimes[ti], lineTimes[ti - 1] + 0.01);
+      var wordTimings = new Array(tokens.length), completed = 0, failed = 0;
+      var firstLine = 0, chunkRanges = [];
+      while (firstLine < lines.length) {
+        var chunkStartTime = lineTimes[firstLine], endLine = firstLine + 1;
+        while (endLine < lines.length && lineTimes[endLine] - chunkStartTime < 18) endLine++;
+        chunkRanges.push([firstLine, endLine]);
+        firstLine = endLine;
+      }
+      for (var ci = 0; ci < chunkRanges.length; ci++) {
+        var range = chunkRanges[ci], localIndexes = [], asrIndexes = [];
+        tokens.forEach(function (token, index) {
+          if (token.line < range[0] || token.line >= range[1]) return;
+          localIndexes.push(index);
+          if (matched.indexes[index] != null) asrIndexes.push(matched.indexes[index]);
+        });
+        if (!localIndexes.length || !asrIndexes.length) { failed++; continue; }
+        var firstAsr = Math.min.apply(Math, asrIndexes), lastAsr = Math.max.apply(Math, asrIndexes);
+        var audioStart = Math.max(0, asrWordStart(asr[firstAsr]) - 0.8);
+        var lastEnd = asrWordEnd(asr[lastAsr]);
+        if (!Number.isFinite(lastEnd) || lastEnd <= asrWordStart(asr[lastAsr])) lastEnd = asrWordStart(asr[lastAsr]) + 0.35;
+        var audioEnd = Math.min(decoded.audio.length / 16000, lastEnd + 1.0);
+        if (audioEnd - audioStart < 1.2) audioEnd = Math.min(decoded.audio.length / 16000, audioStart + 1.2);
+        var startSample = Math.max(0, Math.floor(audioStart * 16000));
+        var endSample = Math.min(decoded.audio.length, Math.ceil(audioEnd * 16000));
+        if (endSample - startSample < 16000) { failed++; continue; }
+        var chunkText = lines.slice(range[0], range[1]).join('\\n');
+        status('Phonetic alignment: section ' + (ci + 1) + ' of ' + chunkRanges.length + '…');
+        try {
+          var aligned = await aligner.align(decoded.audio.subarray(startSample, endSample), chunkText);
+          var localCursor = 0;
+          aligned.words.forEach(function (segment) {
+            if (!segment || segment[2] === '[SIL]') return;
+            var label = norm(segment[2]), found = -1, best = 0;
+            for (var k = localCursor; k < localIndexes.length; k++) {
+              var score = similarity(label, norm(tokens[localIndexes[k]].word));
+              if (score > best) { best = score; found = k; }
+              if (score >= 0.72) break;
+            }
+            if (found >= 0 && best >= 0.55) {
+              wordTimings[localIndexes[found]] = audioStart + segment[0];
+              localCursor = found + 1;
+            }
+          });
+          completed++;
+        } catch (error) {
+          failed++;
+          status('A lyric section could not be force-aligned; retaining its recognised estimates…');
+        }
+      }
+      if (!wordTimings.some(Number.isFinite)) {
+        throw new Error('Forced alignment did not produce usable word timings. Try clearer vocals or use standard Auto-time.');
+      }
+      status('Forced alignment complete: ' + wordTimings.filter(Number.isFinite).length + ' words measured across ' + completed + ' sections' + (failed ? '; ' + failed + ' sections kept estimated timings.' : '.'));
+      return wordTimings;
+    } finally { if (decoded.context.close) await decoded.context.close(); }
+  }
   function init() {
     var host = document.querySelector('[data-panel-view="lyrics"] .kefe-form');
     if (!host || document.getElementById('kefeAutoSync')) return;
     var card = document.createElement('section'); card.id = 'kefeAutoSync'; card.className = 'kefe-editor-panel-card';
     card.style.cssText = 'display:grid;gap:8px;min-width:0;margin:8px 0;';
     var title = document.createElement('div'); title.className = 'kefe-label'; title.textContent = 'Auto-sync lyrics (beta)';
-    var help = document.createElement('div'); help.className = 'kefe-meta'; help.textContent = 'Load a song and add lyrics above. Choose an English or multilingual Whisper model; larger models take longer and use more memory. Recognition runs locally in your browser after the model downloads and is cached. Audio is resampled to 16 kHz before recognition. Word matches are aligned in sequence; unmatched timings are estimates and must be reviewed.';
+    var help = document.createElement('div'); help.className = 'kefe-meta'; help.textContent = 'Whisper transcription runs locally in your browser. Choose English phonetic forced alignment for measured word timings (extra ~123 MB model download; English only), or a multilingual Whisper model for other languages. Models and pronunciation data are downloaded from their publishers and cached by your browser. Audio stays on your device. Review timings before exporting.';
     var controls = document.createElement('div'); controls.className = 'kefe-download-row'; controls.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;min-width:0;';
     var select = document.createElement('select'); select.className = 'kefe-select'; select.setAttribute('aria-label', 'Speech recognition model');
-    [['tiny.en','English · Fast'],['base.en','English · Balanced'],['tiny','Multilingual · Fast'],['base','Multilingual · Balanced'],['small','Multilingual · Highest accuracy']].forEach(function (pair) { var o = document.createElement('option'); o.value = pair[0]; o.textContent = pair[1]; select.appendChild(o); });
+    [['tiny.en','English · Fast'],['base.en','English · Balanced'],['ctc.en','English · Phonetic forced alignment (~123 MB)'],['tiny','Multilingual · Fast'],['base','Multilingual · Balanced'],['small','Multilingual · Highest accuracy']].forEach(function (pair) { var o = document.createElement('option'); o.value = pair[0]; o.textContent = pair[1]; select.appendChild(o); });
     var go = document.createElement('button'); go.type = 'button'; go.className = 'kefe-mini'; go.textContent = 'Auto-time lyrics';
     var undo = document.createElement('button'); undo.type = 'button'; undo.className = 'kefe-mini'; undo.textContent = 'Restore previous'; undo.disabled = true;
     var status = document.createElement('div'); status.className = 'kefe-meta'; status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
@@ -322,23 +459,31 @@
       go.disabled = undo.disabled = true; note.textContent = '';
       try {
         var audio = document.getElementById('kefeAudio'), src = audio && (audio.currentSrc || audio.src);
-        if (!cached || cached.model !== select.value || cached.src !== src) {
-          cached = { model: select.value, src: src, words: await transcribe(select.value, function (s) { status.textContent = s; }) };
+        var recognitionModel = select.value === 'ctc.en' ? 'base.en' : select.value;
+        if (!cached || cached.model !== recognitionModel || cached.src !== src) {
+          cached = { model: recognitionModel, src: src, words: await transcribe(recognitionModel, function (s) { status.textContent = s; }) };
         }
         if (!cached.words.length) throw new Error('No speech was detected in this audio.');
         var meta = function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; };
-        var result = align(cached.words, box.value, { title: meta('songTitle'), artist: meta('songArtist'), album: meta('songAlbum') });
+        var options = { title: meta('songTitle'), artist: meta('songArtist'), album: meta('songAlbum') };
+        if (select.value === 'ctc.en') {
+          options.wordTimings = await forceAlignLyrics(box.value, cached.words, function (s) { status.textContent = s; });
+        }
+        var result = align(cached.words, box.value, options);
         var pct = Math.round(100 * result.matched / result.words);
-        status.textContent = 'Auto-sync complete: ' + result.matched + '/' + result.words + ' words matched (' + pct + '%).';
-        note.textContent = (pct < 40 ? 'Low vocal match; much of the timing may be estimated. ' : '') + 'Review line and word timings in the Timing editor before exporting.';
+        var nextLines = model.parseLrc(result.lrc);
+        if (!nextLines.length) throw new Error('The timing result could not be applied to the lyric editor.');
+        previous = { lines: model.cloneLines(api.lines()), text: box.value };
+        api.set(nextLines, 'autosync');
+        status.textContent = (select.value === 'ctc.en' ? 'Forced alignment' : 'Auto-sync') + ' complete: ' + result.matched + '/' + result.words + ' words measured or matched (' + pct + '%).';
+        note.textContent = (pct < 40 ? 'Low vocal match; many timings may be estimated. ' : '') + 'Review line and word timings in the Timing editor before exporting.';
         undo.disabled = false;
       } catch (e) { status.textContent = 'Auto-sync failed: ' + (e && e.message ? e.message : String(e)); }
       finally { go.disabled = false; }
     });
     undo.addEventListener('click', function () {
       if (!previous || !root.kefeLyrics) return;
-      root.kefeLyrics.set(previous.lines, 'autosync');
-      var box = document.getElementById('lyricsInput'); if (box) box.value = previous.text;
+      root.kefeLyrics.set(previous.lines, 'autosync-restore');
       previous = null; undo.disabled = true; status.textContent = 'Previous lyrics restored.'; note.textContent = '';
     });
   }
