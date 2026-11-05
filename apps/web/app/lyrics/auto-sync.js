@@ -458,6 +458,7 @@
       var api = root.kefeLyrics, model = root.kefeLyricModel;
       if (!api || !model) { status.textContent = 'KEFE lyric editor is not ready.'; return; }
       go.disabled = undo.disabled = true; note.textContent = '';
+      var sourceLyrics = box.value;
       try {
         var audio = document.getElementById('kefeAudio'), src = audio && (audio.currentSrc || audio.src);
         var recognitionModel = select.value === 'ctc.en' ? 'base.en' : select.value;
@@ -468,12 +469,13 @@
         var meta = function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; };
         var options = { title: meta('songTitle'), artist: meta('songArtist'), album: meta('songAlbum') };
         if (select.value === 'ctc.en') {
-          options.wordTimings = await forceAlignLyrics(box.value, cached.words, function (s) { status.textContent = s; });
+          options.wordTimings = await forceAlignLyrics(sourceLyrics, cached.words, function (s) { status.textContent = s; });
         }
-        var result = align(cached.words, box.value, options);
+        var result = align(cached.words, sourceLyrics, options);
         var pct = Math.round(100 * result.matched / result.words);
         var nextLines = model.parseLrc(result.lrc);
         if (!nextLines.length) throw new Error('The timing result could not be applied to the lyric editor.');
+        if (box.value !== sourceLyrics || (audio && (audio.currentSrc || audio.src) !== src)) throw new Error('The lyrics or loaded audio changed during syncing. Run auto-time again for the current track.');
         previous = { lines: model.cloneLines(api.lines()), text: box.value };
         api.set(nextLines, 'autosync');
         status.textContent = (select.value === 'ctc.en' ? 'Forced alignment' : 'Auto-sync') + ' complete: ' + result.matched + '/' + result.words + ' words measured or matched (' + pct + '%).';
