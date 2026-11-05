@@ -486,6 +486,8 @@ async function captureEditorScreenState(page) {
       "the Editor tab must expose the current page to assistive technology");
     const singleSectionMode = await page.evaluate(() =>
       document.querySelector('meta[name="kefe-settings-tabs"]')?.content === "single");
+    const threeWorkspaceMode = await page.evaluate(() =>
+      document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]").length === 3);
     /* Header capability probe: the main baseline may still ship the older header, so each
        header contract is asserted only against the shape the running build provides. */
     const headerSearchMode = await page.evaluate(() => Boolean(document.querySelector("[data-kefe-search]")));
@@ -724,25 +726,48 @@ async function captureEditorScreenState(page) {
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
       const settings = document.querySelector(".kefe-settings-mount").getBoundingClientRect();
       const columns = document.querySelector("#kefe-settings-panel > .kefe-settings-columns");
+      const workspaceCards = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]")];
+      if (workspaceCards.length === 3) {
+        const bounds = workspaceCards.map(node => node.getBoundingClientRect());
+        return {
+          workspaceHeight: workspace.height,
+          viewportHeight: document.documentElement.clientHeight,
+          workspaceBottom: workspace.bottom,
+          settingsTop: settings.top,
+          columns: getComputedStyle(columns).gridTemplateColumns.trim().split(/\\s+/).length,
+          activeSections: [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id][data-expanded='true']")].map(section => section.dataset.sectionId),
+          leftWidth: bounds[0].width,
+          rightWidth: bounds[2].width,
+          leftRight: bounds[0].right,
+          rightLeft: bounds[2].left,
+          workspaceLeft: workspace.left,
+          workspaceRight: workspace.right,
+        };
+      }
       const active = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id][data-expanded='true']")];
-      const left = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]').getBoundingClientRect();
-      const right = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="output"]').getBoundingClientRect();
+      const left = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="input"]')?.getBoundingClientRect();
+      const right = document.querySelector('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group="output"]')?.getBoundingClientRect();
       return {
         workspaceHeight: workspace.height,
         viewportHeight: document.documentElement.clientHeight,
         workspaceBottom: workspace.bottom,
         settingsTop: settings.top,
-        columns: getComputedStyle(columns).gridTemplateColumns.split(" ").length,
+        columns: getComputedStyle(columns).gridTemplateColumns.trim().split(/\\s+/).length,
         activeSections: active.map(section => section.dataset.sectionId),
-        leftWidth: left.width,
-        rightWidth: right.width,
-        leftRight: left.right,
-        rightLeft: right.left,
+        leftWidth: left?.width || 0,
+        rightWidth: right?.width || 0,
+        leftRight: left?.right || 0,
+        rightLeft: right?.left || 0,
         workspaceLeft: workspace.left,
         workspaceRight: workspace.right,
       };
     });
-    if (singleSectionMode) {
+    if (threeWorkspaceMode) {
+      assert.equal(previewSettingsLayout.columns, 3,
+        `the editor must show three workspace columns: ${JSON.stringify(previewSettingsLayout)}`);
+      assert.ok(previewSettingsLayout.leftWidth > 0 && previewSettingsLayout.rightWidth > 0,
+        "all three workspaces must have visible geometry");
+    } else if (singleSectionMode) {
       assert.ok(previewSettingsLayout.workspaceHeight >= previewSettingsLayout.viewportHeight * 0.48
         && previewSettingsLayout.workspaceHeight <= previewSettingsLayout.viewportHeight * 0.56,
         `the preview workspace must occupy the upper half of the viewport: ${JSON.stringify(previewSettingsLayout)}`);
