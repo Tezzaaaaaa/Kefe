@@ -78,6 +78,7 @@ jobs:
       - name: Install Chromium
         run: /tmp/kefe-browser/node_modules/.bin/playwright install chromium
       - name: Run built-editor browser smoke test
+        timeout-minutes: 5
         env:
           NODE_PATH: /tmp/kefe-browser/node_modules
           KEFE_SCREENSHOT_DIR: /tmp/kefe-screenshots
@@ -100,6 +101,7 @@ jobs:
             core.error(details, {file: ".github/workflows/beui-build.yml", startLine: 22});
             await core.summary.addHeading("Browser smoke diagnostic").addCodeBlock(details).write();
       - name: Run main-branch baseline browser smoke test
+        timeout-minutes: 5
         id: main_baseline_smoke
         if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         env:
