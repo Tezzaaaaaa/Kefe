@@ -1199,12 +1199,12 @@ async function captureEditorScreenState(page) {
       const choices = tabs?.querySelectorAll(".kv-tab") || [];
       return section?.dataset.expanded === "true" && tabs && !tabs.hidden && choices.length > 0;
     }, null, { timeout: 10000 });
-    const firstVisualiser = page.locator(".kefe-vis-tabs .kv-tab").first();
-    await firstVisualiser.waitFor({ state: "visible", timeout: 5000 });
+    const fluidInkTab = page.locator('.kefe-vis-tabs .kv-tab[data-visualiser="gradient"]');
+    await fluidInkTab.waitFor({ state: "visible", timeout: 10000 });
     if (threeWorkspaceMode) {
-      await firstVisualiser.click();
+      await fluidInkTab.click();
       await page.waitForFunction(() =>
-        Boolean(document.querySelector(".kefe-vis-tabs .kv-tab[aria-selected='true']")),
+        document.querySelector('.kefe-vis-tabs .kv-tab[data-visualiser="gradient"]')?.getAttribute("aria-selected") === "true",
         null, { timeout: 5000 });
       await page.waitForFunction(() => {
         const presets = document.querySelector(".kefe-visualiser-preset-row");
