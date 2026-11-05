@@ -117,8 +117,11 @@ jobs:
           from pathlib import Path
           baseline = Path("/tmp/kefe-main/apps/web/scripts/browser-smoke.cjs")
           current = Path(os.environ["GITHUB_WORKSPACE"]) / "apps/web/scripts/browser-smoke.cjs"
-          baseline_source = baseline.read_text()
           current_source = current.read_text()
+          # The baseline build must run the exact current smoke script; enforce that
+          # here as well as in the preceding copy step before applying baseline adapters.
+          baseline.write_text(current_source)
+          baseline_source = baseline.read_text()
           # The candidate adds fullscreen transport behavior that does not exist on
           # main yet. Keep that candidate-only assertion out of the main baseline run.
           fullscreen_start = '    const editorViewport = page.viewportSize();'
