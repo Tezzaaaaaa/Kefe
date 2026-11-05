@@ -350,7 +350,7 @@
     return forcedAlignerPromise;
   }
   async function forceAlignLyrics(text, asr, status) {
-    if (/[^\\p{Script=Latin}\\p{N}\\p{P}\\p{Zs}\\p{M}]/u.test(text)) {
+    if (/[^\p{Script=Latin}\p{N}\p{P}\p{Zs}\p{M}]/u.test(text)) {
       throw new Error('Phonetic forced alignment currently supports English/Latin-script lyrics. Choose a multilingual Whisper model for other languages.');
     }
     var decoded = await decodeAudio();
@@ -358,13 +358,12 @@
       var aligner = await getForcedAligner(status);
       var structure = lyricStructure(text), lines = structure.lines, tokens = lyricTokens(lines);
       var matched = matchTokens(tokens, asr, 0, asr.length);
-      var lineTimes = new Array(lines.length), lineAsr = new Array(lines.length);
+      var lineTimes = new Array(lines.length);
       tokens.forEach(function (token, index) {
         var ai = matched.indexes[index];
         if (ai == null) return;
         if (lineTimes[token.line] == null) {
           lineTimes[token.line] = asrWordStart(asr[ai]);
-          lineAsr[token.line] = ai;
         }
       });
       var known = lineTimes.map(function (time, index) { return Number.isFinite(time) ? index : -1; }).filter(function (index) { return index >= 0; });
@@ -403,7 +402,7 @@
         var startSample = Math.max(0, Math.floor(audioStart * 16000));
         var endSample = Math.min(decoded.audio.length, Math.ceil(audioEnd * 16000));
         if (endSample - startSample < 16000) { failed++; continue; }
-        var chunkText = lines.slice(range[0], range[1]).join('\\n');
+        var chunkText = lines.slice(range[0], range[1]).join('\n');
         status('Phonetic alignment: section ' + (ci + 1) + ' of ' + chunkRanges.length + '…');
         try {
           var aligned = await aligner.align(decoded.audio.subarray(startSample, endSample), chunkText);
