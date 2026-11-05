@@ -260,9 +260,19 @@
     if (!src) throw new Error('Load the song in Media first.');
     var response = await fetch(src);
     if (!response.ok) throw new Error('Could not read the loaded audio.');
-    var buffer = await response.arrayBuffer(), Ctx = root.AudioContext || root.webkitAudioContext, ctx = new Ctx();
+    var buffer = await response.arrayBuffer(), Ctx = root.AudioContext || root.webkitAudioContext, ctx;
+    try { ctx = new Ctx({ sampleRate: 16000 }); } catch (e) { ctx = new Ctx(); }
     try {
-      var decoded = await ctx.decodeAudioData(buffer), mono = new Float32Array(decoded.length);
+      var decoded = await ctx.decodeAudioData(buffer);
+      if (decoded.sampleRate !== 16000) {
+        var Offline = root.OfflineAudioContext || root.webkitOfflineAudioContext;
+        if (!Offline) throw new Error('This browser cannot resample audio to 16 kHz for speech recognition.');
+        var offline = new Offline(1, Math.ceil(decoded.duration * 16000), 16000);
+        var source = offline.createBufferSource(); source.buffer = decoded; source.connect(offline.destination); source.start(0);
+        var resampled = await offline.startRendering();
+        return { audio: resampled.getChannelData(0).slice(), context: ctx };
+      }
+      var mono = new Float32Array(decoded.length);
       for (var c = 0; c < decoded.numberOfChannels; c++) {
         var channel = decoded.getChannelData(c);
         for (var i = 0; i < mono.length; i++) mono[i] += channel[i] / decoded.numberOfChannels;
@@ -271,7 +281,7 @@
     } catch (e) { await ctx.close(); throw e; }
   }
   async function transcribe(model, status) {
-    status('Decoding loaded audio…');
+    status('Decoding and resampling audio to 16 kHz…');
     var decoded = await decodeAudio();
     try {
       status('Loading speech model; first use downloads it for browser caching…');
