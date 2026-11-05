@@ -1201,16 +1201,6 @@ async function captureEditorScreenState(page) {
     }, null, { timeout: 10000 });
     const fluidInkTab = page.locator('.kefe-vis-tabs .kv-tab[data-visualiser="gradient"]');
     await fluidInkTab.waitFor({ state: "visible", timeout: 10000 });
-    if (threeWorkspaceMode) {
-      await fluidInkTab.click();
-      await page.waitForFunction(() =>
-        document.querySelector('.kefe-vis-tabs .kv-tab[data-visualiser="gradient"]')?.getAttribute("aria-selected") === "true",
-        null, { timeout: 5000 });
-      await page.waitForFunction(() => {
-        const presets = document.querySelector(".kefe-visualiser-preset-row");
-        return presets && !presets.hidden;
-      }, null, { timeout: 5000 });
-    }
     if (singleSectionMode && !threeWorkspaceMode) {
       await page.waitForFunction(() => {
         const panel = document.querySelector('#kefe-settings-panel .kefe-slot[data-kefe-slot="visualisers"] > .kefe-panel[data-panel-view="visualiser"]');
@@ -1582,6 +1572,11 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
       "opening the Visualisers section must not automatically activate Fluid Ink");
     await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
+    await page.waitForFunction(() => {
+      const tab = document.querySelector(".beui-vis-backing-controls [data-visualiser='gradient']");
+      const presets = document.querySelector("#kefeVisualiserPresetRow");
+      return tab?.getAttribute("aria-selected") === "true" && presets && !presets.hidden;
+    }, null, { timeout: 5000 });
     if (singleSectionMode) {
       await page.waitForFunction(() => {
         const tab = document.querySelector(".beui-vis-backing-controls [data-visualiser='gradient']");
