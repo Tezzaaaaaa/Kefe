@@ -896,8 +896,13 @@ async function captureEditorScreenState(page) {
       `mobile Media must keep Track title / Artist and Album / Year paired: ${JSON.stringify(mediaMetadataColumns)}`);
 
     const initialVisualiserTabs = page.locator(".beui-vis-tabs-host");
-    assert.ok((await initialVisualiserTabs.count()) === 0 || !(await initialVisualiserTabs.isVisible()),
-      "visualiser tabs must not appear on the initial Media section");
+    if (!threeWorkspaceMode) {
+      assert.ok((await initialVisualiserTabs.count()) === 0 || !(await initialVisualiserTabs.isVisible()),
+        "legacy visualiser tabs must stay scoped to their selected section");
+    } else {
+      assert.equal(await initialVisualiserTabs.isVisible(), true,
+        "the visualiser gallery must remain available from the initial workspace view");
+    }
     assert.equal(await page.locator("#mediaInput").getAttribute("type"), "file", "upload Card must preserve the native file input");
     await page.waitForFunction(() => {
       const ranges = [...document.querySelectorAll('.kefe-editor input[type="range"]')].filter((input) => input.id !== "kefeTime");
@@ -1536,8 +1541,8 @@ async function captureEditorScreenState(page) {
       "visualiser tabs must be visible while the Visualisers section is active");
 
     await openSection("background-effects");
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
-      "visualiser tabs must hide when navigating away from Visualisers");
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), threeWorkspaceMode,
+      "visualiser choices remain visible in workspaces and section-scoped in the legacy layout");
     await openSection("visualiser");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
       "visualiser tabs must reliably reappear when Visualisers is reopened");
@@ -1659,8 +1664,8 @@ async function captureEditorScreenState(page) {
     }
     await page.evaluate(() => window.scrollTo(0, 0));
     await openSection("lyrics");
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
-      "visualiser tabs must not appear on the Lyrics section");
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), threeWorkspaceMode,
+      "visualiser choices remain available while the Lyrics section is visible");
     await assertSectionFits("lyrics");
     if (await page.locator(".kefe-lyrics-timing").isVisible()) {
       const lyricsTimingLayout = await page.locator(".kefe-lyrics-timing-controls").evaluate(grid => ({
@@ -1696,8 +1701,8 @@ async function captureEditorScreenState(page) {
     await page.waitForFunction(() => document.querySelector(".kefe-editing")?.dataset.selectedSection === "effects", null, { timeout: 5000 });
     await assertSectionFits("effects");
 
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
-      "visualiser tabs must not appear on the Effects section");
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), threeWorkspaceMode,
+      "visualiser choices remain available while the Effects section is visible");
 
     await openSection("export");
     await assertSectionFits("export");
