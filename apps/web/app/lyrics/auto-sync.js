@@ -510,7 +510,7 @@
         if (box.value !== sourceLyrics || (audio && (audio.currentSrc || audio.src) !== src)) throw new Error('The lyrics or loaded audio changed during syncing. Run auto-time again for the current track.');
         previous = { lines: model.cloneLines(api.lines()), text: box.value };
         api.set(nextLines, 'autosync');
-        status.textContent = (select.value === 'ctc.en' ? 'Forced alignment' : 'Auto-sync') + ' complete: ' + result.matched + '/' + result.words + ' words measured or matched (' + pct + '%).' + (forcedCoverage == null ? '' : ' Whisper lyric overlap: ' + Math.round(forcedCoverage * 100) + '%');
+        status.textContent = (select.value === 'ctc.en' ? 'Forced alignment' : 'Auto-sync') + ' complete: ' + result.matched + '/' + result.words + ' word timings measured (' + pct + '%).' + (forcedCoverage == null ? '' : ' Whisper lyric overlap: ' + Math.round(forcedCoverage * 100) + '%');
         var review = validateReport(result);
         note.textContent = 'Measured word timings: ' + review.measuredWords + '/' + review.totalWords + '; estimated: ' + review.estimatedWords + '. ' + review.warnings.join(' ') + (forcedCoverage != null && forcedCoverage < 0.55 ? ' Whisper found limited lyric overlap, so forced timings may be unreliable.' : '') + ' Review line and word timings in the Timing editor before exporting.';
         undo.disabled = false;
