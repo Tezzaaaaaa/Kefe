@@ -252,6 +252,8 @@
       tokens.forEach(function (token, index) { if (token.line === li) indexes.push(index); });
       var start = starts[li], next = starts[li + 1];
       var end = Number.isFinite(next) && next > start ? Math.min(next - 0.05, start + Math.max(0.5, line.length / 15)) : start + Math.max(0.8, line.length / 15);
+      var lastMeasured = indexes.length ? timings[indexes[indexes.length - 1]] : NaN;
+      if (Number.isFinite(lastMeasured) && lastMeasured > start) end = Math.max(end, lastMeasured + 0.3);
       var weights = words.map(function (word) { return Math.max(1, word.length); });
       var total = weights.reduce(function (sum, value) { return sum + value; }, 0), elapsed = 0;
       var tagged = words.map(function (word, wi) {
@@ -314,8 +316,8 @@
       root.kefeOrtScriptPromise = new Promise(function (done, fail) {
         var script = document.createElement('script');
         script.src = src; script.async = true;
-        script.onload = function () { root.ort ? done(root.ort) : fail(new Error('ONNX Runtime loaded without its browser API.')); };
-        script.onerror = function () { fail(new Error('Could not load the ONNX Runtime browser engine.')); };
+        script.onload = function () { if (root.ort) done(root.ort); else { root.kefeOrtScriptPromise = null; fail(new Error('ONNX Runtime loaded without its browser API.')); } };
+        script.onerror = function () { root.kefeOrtScriptPromise = null; fail(new Error('Could not load the ONNX Runtime browser engine.')); };
         document.head.appendChild(script);
       });
       root.kefeOrtScriptPromise.then(resolve, reject);
@@ -394,10 +396,10 @@
         });
         if (!localIndexes.length || !asrIndexes.length) { failed++; continue; }
         var firstAsr = Math.min.apply(Math, asrIndexes), lastAsr = Math.max.apply(Math, asrIndexes);
-        var audioStart = Math.max(0, asrWordStart(asr[firstAsr]) - 0.8);
+        var audioStart = Math.max(0, asrWordStart(asr[firstAsr]) - 1.8);
         var lastEnd = asrWordEnd(asr[lastAsr]);
         if (!Number.isFinite(lastEnd) || lastEnd <= asrWordStart(asr[lastAsr])) lastEnd = asrWordStart(asr[lastAsr]) + 0.35;
-        var audioEnd = Math.min(decoded.audio.length / 16000, lastEnd + 1.0);
+        var audioEnd = Math.min(decoded.audio.length / 16000, lastEnd + 1.8);
         if (audioEnd - audioStart < 1.2) audioEnd = Math.min(decoded.audio.length / 16000, audioStart + 1.2);
         var startSample = Math.max(0, Math.floor(audioStart * 16000));
         var endSample = Math.min(decoded.audio.length, Math.ceil(audioEnd * 16000));
