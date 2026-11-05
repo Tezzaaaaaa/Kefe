@@ -726,14 +726,20 @@
   display: none !important;
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-panel[data-panel-view] {
-  display: block !important;
+  display: flex !important;
+  flex-direction: column;
+  gap: 0;
   width: 100%;
   min-width: 0;
   margin: 0;
-  padding: 0;
-  border: 0;
+  padding: 10px 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
   box-shadow: none;
   background: transparent;
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace[data-group="content"] .kefe-panel[data-panel-view="media"] {
+  padding: 0 0 10px;
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-panel-head {
   display: flex;
