@@ -265,7 +265,35 @@
       }).join(' ');
       out.push('[' + stamp(start) + '] ' + tagged);
     });
-    return { lrc: out.join('\n') + '\n', matched: timings.filter(Number.isFinite).length, words: tokens.length, lines: lines.length, report: report, windows: windows };
+    return { lrc: out.join('\n') + '\n', matched: timings.filter(Number.isFinite).length, words: tokens.length, lines: lines.length, report: report, windows: windows, lineStarts: starts.slice(), measuredLineIndexes: known.slice() };
+  }
+  function validateReport(result) {
+    var words = Math.max(0, Number(result && result.words) || 0);
+    var measured = Math.max(0, Math.min(words, Number(result && result.matched) || 0));
+    var lines = Math.max(0, Number(result && result.lines) || 0);
+    var measuredLines = Array.isArray(result && result.measuredLineIndexes) ? result.measuredLineIndexes.length : 0;
+    var coverage = words ? measured / words : 0;
+    var warnings = [];
+    if (!words) warnings.push('No lyric words were available to assess.');
+    else if (coverage < 0.4) warnings.push('Low measured-word coverage: most word timings are estimates.');
+    else if (coverage < 0.7) warnings.push('Partial measured-word coverage: review the estimated words carefully.');
+    if (lines && measuredLines < lines) warnings.push((lines - measuredLines) + ' lyric lines have estimated start times.');
+    var starts = Array.isArray(result && result.lineStarts) ? result.lineStarts : [];
+    for (var i = 1; i < starts.length; i++) {
+      if (Number.isFinite(starts[i - 1]) && Number.isFinite(starts[i]) && starts[i] - starts[i - 1] < 0.02) {
+        warnings.push('Some adjacent lyric lines have nearly identical start times.');
+        break;
+      }
+    }
+    return {
+      measuredWords: measured,
+      estimatedWords: Math.max(0, words - measured),
+      totalWords: words,
+      measuredLines: measuredLines,
+      totalLines: lines,
+      coverage: coverage,
+      warnings: warnings
+    };
   }
   async function decodeAudio() {
     var audio = document.getElementById('kefeAudio'), src = audio && (audio.currentSrc || audio.src);
@@ -483,7 +511,8 @@
         previous = { lines: model.cloneLines(api.lines()), text: box.value };
         api.set(nextLines, 'autosync');
         status.textContent = (select.value === 'ctc.en' ? 'Forced alignment' : 'Auto-sync') + ' complete: ' + result.matched + '/' + result.words + ' words measured or matched (' + pct + '%).' + (forcedCoverage == null ? '' : ' Whisper lyric overlap: ' + Math.round(forcedCoverage * 100) + '%');
-        note.textContent = (forcedCoverage != null && forcedCoverage < 0.55 ? 'Whisper matched only part of the supplied lyrics; forced timings may be less reliable. ' : '') + (pct < 40 ? 'Many timings may be estimated. ' : '') + 'Review line and word timings in the Timing editor before exporting.';
+        var review = validateReport(result);
+        note.textContent = 'Measured word timings: ' + review.measuredWords + '/' + review.totalWords + '; estimated: ' + review.estimatedWords + '. ' + review.warnings.join(' ') + (forcedCoverage != null && forcedCoverage < 0.55 ? ' Whisper found limited lyric overlap, so forced timings may be unreliable.' : '') + ' Review line and word timings in the Timing editor before exporting.';
         undo.disabled = false;
       } catch (e) { status.textContent = 'Auto-sync failed: ' + (e && e.message ? e.message : String(e)); }
       finally { go.disabled = false; undo.disabled = !previous; }
@@ -497,7 +526,8 @@
   root.kefeAutoSync = {
     align: align,
     autoWindows: autoWindows,
-    parseLyrics: parseLyrics
+    parseLyrics: parseLyrics,
+    validateReport: validateReport
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.kefeAutoSync;
   if (typeof document !== 'undefined') {
