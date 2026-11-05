@@ -1,0 +1,34 @@
+/* KEFE — Media panel song search: 3D shelf carousel (see app/media-carousel.js).
+   Square album artwork on a curved perspective shelf. Sizes come from --ks-H / --ks-ws / --ks-d,
+   which the script sets on #kefeCarousel from its measured size. */
+.kefe-carousel.ks-shelf { cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.kefe-carousel.ks-shelf::after {
+  content: ""; position: absolute; left: 50%; bottom: 6%; width: 78%; height: 14%; transform: translateX(-50%);
+  background: radial-gradient(50% 50% at 50% 40%, rgba(0, 0, 0, .4), rgba(0, 0, 0, .12) 55%, transparent 72%);
+  pointer-events: none; z-index: 0;
+}
+.kefe-carousel.ks-shelf.busy .ks-stage { opacity: .5; }
+
+.ks-stage {
+  position: absolute; left: 50%; top: 50%; width: 0; height: 0;
+  transform-style: preserve-3d; pointer-events: none; transition: opacity .25s ease;
+}
+.ks-tape { position: absolute; width: 0; height: 0; transform-style: preserve-3d; pointer-events: none; will-change: transform; }
+.ks-face {
+  position: absolute; top: calc(var(--ks-H, 140px) * -.5); height: var(--ks-H, 140px);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  border-radius: 2px; overflow: hidden; pointer-events: none;
+  background-color: var(--surface-lo, #1c1c1f);
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+}
+.ks-shade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; }
+.ks-sp { left: 0; width: var(--ks-ws, 28px); transform: translateZ(calc(var(--ks-d, 140px) * .5)); }
+.ks-cv {
+  left: 0; width: var(--ks-d, 140px);
+  transform: rotateY(90deg) translateZ(calc(var(--ks-ws, 28px) * .5));
+  box-shadow: 0 24px 40px -24px rgba(0, 0, 0, .6);
+}
+.kefe-carousel.ks-shelf .kefe-car-nav,
+.kefe-carousel.ks-shelf .kefe-car-count,
+.kefe-carousel.ks-shelf .kefe-car-empty { z-index: 5000; }
+@media (prefers-reduced-motion: reduce) { .ks-stage { transition: none; } }
