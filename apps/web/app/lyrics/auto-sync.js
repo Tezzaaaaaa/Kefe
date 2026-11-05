@@ -2,7 +2,7 @@
   'use strict';
   var CDN = 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
   var cached = null;
-  function norm(s) { return String(s || '').normalize('NFKD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^\\p{L}\\p{N}']/gu, ''); }
+  function norm(s) { return String(s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\p{L}\p{N}']/gu, ''); }
   function similarity(a, b) {
     a = norm(a); b = norm(b);
     if (!a || !b) return 0;
