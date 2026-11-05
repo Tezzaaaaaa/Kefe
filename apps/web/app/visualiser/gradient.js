@@ -126,7 +126,7 @@
     tab.addEventListener('click', showFluidInk);
     // Do not select a visualiser during startup. The user must choose one explicitly.
     view.hidden = true;
-    tabs.hidden = true;
+    tabs.hidden = false;
     presetRow.hidden = true;
   }
 

@@ -5,27 +5,41 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const editor = readFileSync(resolve(root, "editor.source.html"), "utf8");
 const adapter = readFileSync(resolve(root, "app/settings/panel-adapter.js"), "utf8");
+const panelHtml = readFileSync(resolve(root, "app/settings/panel.html"), "utf8");
 const panelStyles = readFileSync(resolve(root, "app/settings/panel.css"), "utf8");
 const failures = [];
 
-if (editor.includes("legacy-settings-tabs-bridge.jsx")) {
-  failures.push("The retired grouped settings-tab bridge must not load alongside the native section headers");
+for (const group of ["content", "design", "audio-visuals"]) {
+  if (!panelHtml.includes('data-group="' + group + '"')) failures.push("Missing " + group + " workspace.");
 }
-if (!adapter.includes("const selected = expanded && item === section;") ||
-    !adapter.includes("editing.setAttribute('data-selected-section', key);")) {
-  failures.push("Selecting a settings section must close every other section and update the canonical selection");
+for (const slot of ["media", "lyric-sync", "lyric-effects", "background", "visualisers", "export"]) {
+  if (!panelHtml.includes('data-kefe-slot="' + slot + '"')) failures.push("Missing live control slot: " + slot);
 }
-if (!adapter.includes("editing.dataset.selectedSection === 'visualiser'")) {
-  failures.push("Visualiser controls must follow the selected section, not an independent accordion state");
+if ((panelHtml.match(/data-expanded="true"/g) || []).length !== 6) {
+  failures.push("All six native control panels must be visible from initial load.");
 }
-if (!panelStyles.includes("Editor workspace: keep the preview in the upper half") ||
-    !panelStyles.includes("grid-template-columns: minmax(0, 1fr);") ||
-    !panelStyles.includes("flex-direction: column;")) {
-  failures.push("Desktop settings must be one full-width section stack below the preview");
+if (panelHtml.includes("expand-button") || panelHtml.includes("data-expanded=\"false\"")) {
+  failures.push("Workspace controls must not be hidden behind accordions.");
+}
+if (!editor.includes("panel.css?v=three-workspaces-20261106-1") ||
+    editor.includes("mobile-sidebar.js") || editor.includes("desktop-panels.js")) {
+  failures.push("The editor must load the workspace layout and retire the six-section sidebars.");
+}
+if (!adapter.includes("panel.classList.add('kefe-settings-embedded-panel', 'active')") ||
+    !adapter.includes("All three KEFE workspaces are required.")) {
+  failures.push("The adapter must mount every native panel into the three persistent workspaces.");
+}
+if (!panelStyles.includes("grid-template-columns: repeat(3, minmax(0, 1fr))") ||
+    !panelStyles.includes("grid-template-columns: minmax(0, 1fr)")) {
+  failures.push("Workspaces must display in three desktop columns and stack on mobile.");
+}
+if (!panelStyles.includes(".kefe-workspace .section-content") ||
+    !panelStyles.includes("display: block !important")) {
+  failures.push("Workspace content must remain visible without accordion interaction.");
 }
 
 if (failures.length) {
-  console.error(failures.join("\n"));
+  console.error(failures.join("\\n"));
   process.exit(1);
 }
-console.log("PASS: one active settings section is shown below the desktop preview; duplicate grouped navigation is retired.");
+console.log("PASS: three visible workspaces retain all six native control panels on desktop and mobile.");

@@ -8763,7 +8763,7 @@ html:root[data-theme="day"] .beui-settings-root {
 
 /* Visualiser-specific navigation belongs only to the selected Visualisers section,
    even while the desktop workspace keeps multiple accordion panels mounted. */
-.kefe-editing:not([data-selected-section="visualiser"]) .kefe-vis-tabs {
+.kefe-editing:not(.kefe-settings-layout):not([data-selected-section="visualiser"]) .kefe-vis-tabs {
   display: none;
 }
 
@@ -9393,8 +9393,8 @@ html:root[data-theme="day"] .beui-settings-root {
   visibility: visible;
   opacity: 1;
 }
-.kefe-editor .kefe-editing:not([data-selected-section="visualiser"]) .kefe-vis-tabs,
-.kefe-editor .kefe-editing:not([data-selected-section="visualiser"]) .beui-vis-tabs-host {
+.kefe-editor .kefe-editing:not(.kefe-settings-layout):not([data-selected-section="visualiser"]) .kefe-vis-tabs,
+.kefe-editor .kefe-editing:not(.kefe-settings-layout):not([data-selected-section="visualiser"]) .beui-vis-tabs-host {
   display: none !important;
 }
 @media (max-width: 520px) {
