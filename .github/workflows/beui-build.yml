@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: beui-build-${{ github.ref }}
+  group: beui-build-${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
