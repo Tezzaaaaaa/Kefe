@@ -355,11 +355,13 @@
     if (/[^\p{Script=Latin}\p{N}\p{P}\p{Zs}\p{M}]/u.test(text)) {
       throw new Error('Phonetic forced alignment currently supports English/Latin-script lyrics. Choose a multilingual Whisper model for other languages.');
     }
+    var aligner = await getForcedAligner(status);
     var decoded = await decodeAudio();
     try {
-      var aligner = await getForcedAligner(status);
       var structure = lyricStructure(text), lines = structure.lines, tokens = lyricTokens(lines);
       var matched = matchTokens(tokens, asr, 0, asr.length);
+      var asrCoverage = matched.indexes.filter(Number.isFinite).length / Math.max(1, tokens.length);
+      if (asrCoverage < 0.2) throw new Error('Whisper matched fewer than 20% of the supplied lyric words. Check the lyrics or choose a larger English Whisper model before forcing alignment.');
       var lineTimes = new Array(lines.length);
       tokens.forEach(function (token, index) {
         var ai = matched.indexes[index];
@@ -432,7 +434,7 @@
         throw new Error('Forced alignment did not produce usable word timings. Try clearer vocals or use standard Auto-time.');
       }
       status('Forced alignment complete: ' + wordTimings.filter(Number.isFinite).length + ' words measured across ' + completed + ' sections' + (failed ? '; ' + failed + ' sections kept estimated timings.' : '.'));
-      return wordTimings;
+      return { wordTimings: wordTimings, asrCoverage: asrCoverage };
     } finally { if (decoded.context.close) await decoded.context.close(); }
   }
   function init() {
@@ -467,9 +469,11 @@
         }
         if (!cached.words.length) throw new Error('No speech was detected in this audio.');
         var meta = function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; };
-        var options = { title: meta('songTitle'), artist: meta('songArtist'), album: meta('songAlbum') };
+        var options = { title: meta('songTitle'), artist: meta('songArtist'), album: meta('songAlbum') }, forcedCoverage = null;
         if (select.value === 'ctc.en') {
-          options.wordTimings = await forceAlignLyrics(sourceLyrics, cached.words, function (s) { status.textContent = s; });
+          var forced = await forceAlignLyrics(sourceLyrics, cached.words, function (s) { status.textContent = s; });
+          options.wordTimings = forced.wordTimings;
+          forcedCoverage = forced.asrCoverage;
         }
         var result = align(cached.words, sourceLyrics, options);
         var pct = Math.round(100 * result.matched / result.words);
@@ -478,8 +482,8 @@
         if (box.value !== sourceLyrics || (audio && (audio.currentSrc || audio.src) !== src)) throw new Error('The lyrics or loaded audio changed during syncing. Run auto-time again for the current track.');
         previous = { lines: model.cloneLines(api.lines()), text: box.value };
         api.set(nextLines, 'autosync');
-        status.textContent = (select.value === 'ctc.en' ? 'Forced alignment' : 'Auto-sync') + ' complete: ' + result.matched + '/' + result.words + ' words measured or matched (' + pct + '%).';
-        note.textContent = (pct < 40 ? 'Low vocal match; many timings may be estimated. ' : '') + 'Review line and word timings in the Timing editor before exporting.';
+        status.textContent = (select.value === 'ctc.en' ? 'Forced alignment' : 'Auto-sync') + ' complete: ' + result.matched + '/' + result.words + ' words measured or matched (' + pct + '%).' + (forcedCoverage == null ? '' : ' Whisper lyric overlap: ' + Math.round(forcedCoverage * 100) + '%');
+        note.textContent = (forcedCoverage != null && forcedCoverage < 0.55 ? 'Whisper matched only part of the supplied lyrics; forced timings may be less reliable. ' : '') + (pct < 40 ? 'Many timings may be estimated. ' : '') + 'Review line and word timings in the Timing editor before exporting.';
         undo.disabled = false;
       } catch (e) { status.textContent = 'Auto-sync failed: ' + (e && e.message ? e.message : String(e)); }
       finally { go.disabled = false; undo.disabled = !previous; }
