@@ -1206,6 +1206,10 @@ async function captureEditorScreenState(page) {
       await page.waitForFunction(() =>
         Boolean(document.querySelector(".kefe-vis-tabs .kv-tab[aria-selected='true']")),
         null, { timeout: 5000 });
+      await page.waitForFunction(() => {
+        const presets = document.querySelector(".kefe-visualiser-preset-row");
+        return presets && !presets.hidden;
+      }, null, { timeout: 5000 });
     }
     if (singleSectionMode && !threeWorkspaceMode) {
       await page.waitForFunction(() => {
@@ -1546,8 +1550,10 @@ async function captureEditorScreenState(page) {
     await openSection("visualiser");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
       "visualiser tabs must reliably reappear when Visualisers is reopened");
-    assert.equal(await page.locator(".kefe-visualiser-preset-row").isVisible(), true,
-      "visualiser preset row must follow the same section visibility state");
+    if (!threeWorkspaceMode) {
+      assert.equal(await page.locator(".kefe-visualiser-preset-row").isVisible(), true,
+        "legacy visualiser preset row must follow the selected section visibility state");
+    }
     const visualiserTabGeometry = await page.locator(".beui-vis-tabs-host [role='tablist']").evaluate(list => {
       const rect = list.getBoundingClientRect();
       const tabs = [...list.querySelectorAll("[role='tab']")].map(tab => {
