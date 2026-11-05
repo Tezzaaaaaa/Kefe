@@ -2,7 +2,6 @@
   'use strict';
   var CDN = 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
   var cached = null;
-  var ctcCached = null;
   function norm(s) { return String(s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\p{L}\p{N}']/gu, ''); }
   function similarity(a, b) {
     a = norm(a); b = norm(b);
@@ -281,122 +280,6 @@
       return { audio: mono, context: ctx };
     } catch (e) { await ctx.close(); throw e; }
   }
-  function flatIds(encoded) {
-    var ids = encoded && encoded.input_ids;
-    if (ids && typeof ids.tolist === 'function') ids = ids.tolist();
-    else if (ids && ids.data) ids = Array.from(ids.data);
-    if (Array.isArray(ids) && Array.isArray(ids[0])) ids = ids[0];
-    return Array.from(ids || []).map(Number).filter(Number.isFinite);
-  }
-  /* CTC Viterbi forced alignment. The model supplies frame scores; this maps the
-     known lyric character sequence onto those frames without re-transcribing it. */
-  function ctcAlign(logits, frames, vocabSize, targetIds, blankId, wordRanges, strideSeconds) {
-    var states = targetIds.length * 2 + 1;
-    if (!frames || !targetIds.length || frames < targetIds.length || !vocabSize) throw new Error('The supplied lyrics are too long to align to this audio.');
-    var expanded = new Int32Array(states);
-    for (var s = 0; s < states; s++) expanded[s] = s % 2 ? targetIds[(s - 1) >> 1] : blankId;
-    var back = new Uint8Array(frames * states);
-    var previous = new Float64Array(states), current = new Float64Array(states);
-    previous.fill(-Infinity); current.fill(-Infinity);
-    previous[0] = logits[blankId];
-    previous[1] = logits[targetIds[0]];
-    for (var t = 1; t < frames; t++) {
-      current.fill(-Infinity);
-      var row = t * vocabSize;
-      for (var s = 0; s < states; s++) {
-        var best = previous[s], move = 0;
-        if (s > 0 && previous[s - 1] > best) { best = previous[s - 1]; move = 1; }
-        if (s > 1 && expanded[s] !== blankId && expanded[s] !== expanded[s - 2] && previous[s - 2] > best) {
-          best = previous[s - 2]; move = 2;
-        }
-        current[s] = best + logits[row + expanded[s]];
-        back[t * states + s] = move;
-      }
-      var swap = previous; previous = current; current = swap;
-    }
-    var state = states - 1;
-    if (states > 1 && previous[states - 2] > previous[state]) state--;
-    if (!Number.isFinite(previous[state])) throw new Error('The lyrics could not be aligned to this audio.');
-    var first = new Int32Array(targetIds.length), last = new Int32Array(targetIds.length);
-    first.fill(-1); last.fill(-1);
-    for (var frame = frames - 1; frame >= 0; frame--) {
-      if (state % 2) {
-        var charIndex = (state - 1) >> 1;
-        if (first[charIndex] < 0) first[charIndex] = frame;
-        last[charIndex] = frame;
-      }
-      if (frame > 0) {
-        var step = back[frame * states + state];
-        if (step === 1) state--;
-        else if (step === 2) state -= 2;
-      }
-    }
-    return wordRanges.map(function (range) {
-      var startFrame = Infinity, endFrame = -1;
-      for (var i = range[0]; i <= range[1]; i++) {
-        if (first[i] >= 0) startFrame = Math.min(startFrame, first[i]);
-        endFrame = Math.max(endFrame, last[i]);
-      }
-      return startFrame !== Infinity && endFrame >= startFrame
-        ? [null, startFrame * strideSeconds, (endFrame + 1) * strideSeconds]
-        : null;
-    });
-  }
-  async function forceAlignLyrics(text, status) {
-    status('Decoding and resampling audio to 16 kHz…');
-    var decoded = await decodeAudio();
-    try {
-      var tf = await import(CDN), modelId = 'Xenova/wav2vec2-base-960h';
-      tf.env.allowLocalModels = false;
-      if (!ctcCached) {
-        var progress = function (p) {
-          if (p && p.status === 'progress') status('Downloading English alignment model… ' + Math.round(p.progress || 0) + '%');
-        };
-        status('Loading English CTC alignment model; first use downloads it for browser caching…');
-        var loaded = await Promise.all([
-          tf.Wav2Vec2ForCTC.from_pretrained(modelId, { progress_callback: progress }),
-          tf.AutoFeatureExtractor.from_pretrained(modelId),
-          tf.AutoTokenizer.from_pretrained(modelId)
-        ]);
-        ctcCached = { model: loaded[0], extractor: loaded[1], tokenizer: loaded[2] };
-      }
-      var words = lyricStructure(text).lines.reduce(function (all, line) {
-        return all.concat(line.split(/\\s+/));
-      }, []);
-      var targetIds = [], wordRanges = [], separator = flatIds(ctcCached.tokenizer('|', { add_special_tokens: false }));
-      var separatorId = separator.length ? separator[0] : -1;
-      if (separatorId < 0) throw new Error('The English alignment tokenizer has no word separator.');
-      words.forEach(function (word) {
-        var clean = word.toUpperCase().replace(/[^A-Z']/g, '');
-        if (!clean) return;
-        var ids = flatIds(ctcCached.tokenizer(clean, { add_special_tokens: false }));
-        if (!ids.length || ids.some(function (id) { return id === ctcCached.tokenizer.unk_token_id; })) return;
-        var first = targetIds.length;
-        targetIds.push.apply(targetIds, ids);
-        wordRanges.push([first, targetIds.length - 1]);
-        targetIds.push(separatorId);
-      });
-      if (!targetIds.length) throw new Error('No English lyric characters could be prepared for forced alignment.');
-      if (targetIds[targetIds.length - 1] === separatorId) targetIds.pop();
-      status('Aligning the supplied lyrics to the vocal audio…');
-      var inputs = await ctcCached.extractor(decoded.audio);
-      var output = await ctcCached.model(inputs), tensor = output && output.logits;
-      if (!tensor || !tensor.dims || tensor.dims.length < 2) throw new Error('The alignment model returned no CTC frame scores.');
-      var frames = tensor.dims[tensor.dims.length - 2], vocabSize = tensor.dims[tensor.dims.length - 1];
-      var aligned = ctcAlign(tensor.data, frames, vocabSize, targetIds, ctcCached.tokenizer.pad_token_id, wordRanges, 0.02);
-      var result = [], rangeIndex = 0;
-      words.forEach(function (word) {
-        var clean = word.toUpperCase().replace(/[^A-Z']/g, '');
-        if (!clean) return;
-        var ids = flatIds(ctcCached.tokenizer(clean, { add_special_tokens: false }));
-        if (!ids.length || ids.some(function (id) { return id === ctcCached.tokenizer.unk_token_id; })) return;
-        var timing = aligned[rangeIndex++];
-        if (timing) result.push([word, timing[1], timing[2]]);
-      });
-      if (!result.length) throw new Error('No lyric words received usable alignment timings.');
-      return result;
-    } finally { if (decoded.context.close) await decoded.context.close(); }
-  }
   async function transcribe(model, status) {
     status('Decoding and resampling audio to 16 kHz…');
     var decoded = await decodeAudio();
@@ -420,10 +303,10 @@
     var card = document.createElement('section'); card.id = 'kefeAutoSync'; card.className = 'kefe-editor-panel-card';
     card.style.cssText = 'display:grid;gap:8px;min-width:0;margin:8px 0;';
     var title = document.createElement('div'); title.className = 'kefe-label'; title.textContent = 'Auto-sync lyrics (beta)';
-    var help = document.createElement('div'); help.className = 'kefe-meta'; help.textContent = 'Load a song and add lyrics above. Whisper models recognise vocals locally; the experimental English forced-alignment option instead maps your supplied lyrics directly to the audio. Models download once and are cached by the browser. Clear vocals work best; backing music can reduce accuracy. Review all timings before exporting.';
+    var help = document.createElement('div'); help.className = 'kefe-meta'; help.textContent = 'Load a song and add lyrics above. Choose an English or multilingual Whisper model; larger models take longer and use more memory. Recognition runs locally in your browser after the model downloads and is cached. Audio is resampled to 16 kHz before recognition. Word matches are aligned in sequence; unmatched timings are estimates and must be reviewed.';
     var controls = document.createElement('div'); controls.className = 'kefe-download-row'; controls.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;min-width:0;';
     var select = document.createElement('select'); select.className = 'kefe-select'; select.setAttribute('aria-label', 'Speech recognition model');
-    [['tiny.en','English · Fast'],['base.en','English · Balanced'],['ctc.en','English · Forced alignment (experimental)'],['tiny','Multilingual · Fast'],['base','Multilingual · Balanced'],['small','Multilingual · Highest accuracy']].forEach(function (pair) { var o = document.createElement('option'); o.value = pair[0]; o.textContent = pair[1]; select.appendChild(o); });
+    [['tiny.en','English · Fast'],['base.en','English · Balanced'],['tiny','Multilingual · Fast'],['base','Multilingual · Balanced'],['small','Multilingual · Highest accuracy']].forEach(function (pair) { var o = document.createElement('option'); o.value = pair[0]; o.textContent = pair[1]; select.appendChild(o); });
     var go = document.createElement('button'); go.type = 'button'; go.className = 'kefe-mini'; go.textContent = 'Auto-time lyrics';
     var undo = document.createElement('button'); undo.type = 'button'; undo.className = 'kefe-mini'; undo.textContent = 'Restore previous'; undo.disabled = true;
     var status = document.createElement('div'); status.className = 'kefe-meta'; status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
@@ -438,23 +321,13 @@
       if (!api || !model) { status.textContent = 'KEFE lyric editor is not ready.'; return; }
       go.disabled = undo.disabled = true; note.textContent = '';
       try {
-        var words;
-        if (select.value === 'ctc.en') {
-          words = await forceAlignLyrics(box.value, function (s) { status.textContent = s; });
-        } else {
-          var audio = document.getElementById('kefeAudio'), src = audio && (audio.currentSrc || audio.src);
-          if (!cached || cached.model !== select.value || cached.src !== src) {
-            cached = { model: select.value, src: src, words: await transcribe(select.value, function (s) { status.textContent = s; }) };
-          }
-          words = cached.words;
+        var audio = document.getElementById('kefeAudio'), src = audio && (audio.currentSrc || audio.src);
+        if (!cached || cached.model !== select.value || cached.src !== src) {
+          cached = { model: select.value, src: src, words: await transcribe(select.value, function (s) { status.textContent = s; }) };
         }
-        if (!words.length) throw new Error('No speech or alignable lyric words were detected in this audio.');
+        if (!cached.words.length) throw new Error('No speech was detected in this audio.');
         var meta = function (id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; };
-        var result = align(words, box.value, { title: meta('songTitle'), artist: meta('songArtist'), album: meta('songAlbum') });
-        var parsed = model.parseLrc(result.lrc);
-        if (!parsed.length) throw new Error('The generated timings did not pass KEFE lyric parsing.');
-        previous = { text: box.value, lines: api.lines() };
-        box.value = result.lrc; api.set(parsed, 'autosync');
+        var result = align(cached.words, box.value, { title: meta('songTitle'), artist: meta('songArtist'), album: meta('songAlbum') });
         var pct = Math.round(100 * result.matched / result.words);
         status.textContent = 'Auto-sync complete: ' + result.matched + '/' + result.words + ' words matched (' + pct + '%).';
         note.textContent = (pct < 40 ? 'Low vocal match; much of the timing may be estimated. ' : '') + 'Review line and word timings in the Timing editor before exporting.';
@@ -472,8 +345,7 @@
   root.kefeAutoSync = {
     align: align,
     autoWindows: autoWindows,
-    parseLyrics: parseLyrics,
-    ctcAlign: ctcAlign
+    parseLyrics: parseLyrics
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.kefeAutoSync;
   if (typeof document !== 'undefined') {
