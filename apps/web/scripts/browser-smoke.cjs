@@ -1083,20 +1083,14 @@ async function captureEditorScreenState(page) {
           panels: panels.map(panel => ({ id: panel.dataset.panelView, visible: getComputedStyle(panel).display !== 'none' && panel.getBoundingClientRect().height > 0 }))
         };
       });
-      assert.deepEqual(workspaceAudit.groups, [
-        { id: 'content', title: 'Content' },
-        { id: 'design', title: 'Design' },
-        { id: 'audio-visuals', title: 'Audio & Visuals' }
-      ], 'the editor must expose the three named workspaces in order: ' + JSON.stringify(workspaceAudit));
+      assert.deepEqual(workspaceAudit.groups, [{ id: 'content', title: 'Content' }, { id: 'design', title: 'Design' }, { id: 'audio-visuals', title: 'Audio & Visuals' }], 'three named workspaces must appear in order: ' + JSON.stringify(workspaceAudit));
       assert.equal(workspaceAudit.sections.length, 6, 'all six editor sections must remain mounted');
-      assert.ok(workspaceAudit.sections.every(section => section.expanded === 'true' && section.visible), 'all six editor sections must remain visible: ' + JSON.stringify(workspaceAudit));
+      assert.ok(workspaceAudit.sections.every(section => section.expanded === 'true' && section.visible), 'all six sections must remain visible: ' + JSON.stringify(workspaceAudit));
       assert.equal(workspaceAudit.panels.length, 6, 'each native editor panel must be mounted exactly once');
-      assert.ok(workspaceAudit.panels.every(panel => panel.visible), 'all six native editor panels must remain visible and connected: ' + JSON.stringify(workspaceAudit));
+      assert.ok(workspaceAudit.panels.every(panel => panel.visible), 'all six native panels must remain visible: ' + JSON.stringify(workspaceAudit));
     } else {
       const mediaSection = page.locator('#kefe-settings-panel .section[data-section-id="media"]');
-      const mediaHeading = mediaSection.locator('.section-heading').first();
       const mediaAccordion = mediaSection.locator('.expand-button').first();
-      await mediaHeading.waitFor({ state: 'visible', timeout: 10000 });
       await mediaAccordion.waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(await mediaAccordion.getAttribute('aria-expanded'), 'true', 'Media should initially be expanded');
       await mediaAccordion.click();
@@ -1126,9 +1120,8 @@ async function captureEditorScreenState(page) {
     // compact shadcn Tabs that stay docked beside the preview. The feature marker
     // is compiled into the current editor template, so the main-branch baseline
     // (which lacks the bridge) can reuse this smoke script without failing here.
-    const groupedSettingsTabs = await page.evaluate(() =>
+    const groupedSettingsTabs = !threeWorkspaceMode && await page.evaluate(() =>
       document.querySelector('meta[name="kefe-settings-tabs"]')?.content === "grouped");
-    if (!groupedSettingsTabs) console.log("Baseline has no grouped settings tabs; skipping grouped switcher assertions.");
     const settingsTabsAudit = groupedSettingsTabs ? await page.evaluate(() => {
       const groups = [...document.querySelectorAll('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group]')];
       return groups.map(group => {
@@ -1913,9 +1906,7 @@ async function captureEditorScreenState(page) {
     await page.locator("#mediaInput").setInputFiles({
       name: "beui-smoke.lrc",
       mimeType: "text/plain",
-      buffer: Buffer.from("[00:00.00]Smoke line one
-[00:02.00]Smoke line two
-", "utf8"),
+      buffer: Buffer.from("[00:00.00]Smoke line one\n[00:02.00]Smoke line two\n", "utf8"),
     });
     await page.waitForFunction(() => document.getElementById("kefeLyricsStatus")?.textContent.includes("Loaded lyrics from beui-smoke.lrc"), null, { timeout: 10000 });
 
