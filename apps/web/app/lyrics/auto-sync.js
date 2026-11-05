@@ -114,7 +114,7 @@
       else x--;
       if (y === 0 && x > 0 && trace[x * width] === 3) break;
     }
-    return { timings: timings, indexes: indexes };
+    return { timings: timings, indexes: indexes, scores: scores };
   }
   function autoWindows(asr, lyricsText, minGap) {
     if (!Array.isArray(asr) || asr.length < 2) return null;
