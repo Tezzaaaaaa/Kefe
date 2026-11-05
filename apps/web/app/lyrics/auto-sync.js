@@ -284,10 +284,10 @@
     if (!words) warnings.push('No lyric words were available to assess.');
     else if (coverage < 0.4) warnings.push('Low measured-word coverage: most word timings are estimates.');
     else if (coverage < 0.7) warnings.push('Partial measured-word coverage: review the estimated words carefully.');
-    if (lines && measuredLines < lines) warnings.push((lines - measuredLines) + ' lyric lines have estimated start times.');
+    if (lines && measuredLines < lines) { var estimatedLines = lines - measuredLines; warnings.push(estimatedLines + (estimatedLines === 1 ? ' lyric line has' : ' lyric lines have') + ' estimated start times.'); }
     var scores = Array.isArray(result && result.matchScores) ? result.matchScores.filter(Number.isFinite) : [];
     var lowMatchWords = scores.filter(function (score) { return score < 0.72; }).length;
-    if (lowMatchWords) warnings.push(lowMatchWords + ' measured words have weak lyric-text matches and should be checked against the audio.');
+    if (lowMatchWords) warnings.push(lowMatchWords + (lowMatchWords === 1 ? ' measured word has' : ' measured words have') + ' weak lyric-text matches and should be checked against the audio.');
     var starts = Array.isArray(result && result.lineStarts) ? result.lineStarts : [];
     for (var i = 1; i < starts.length; i++) {
       if (Number.isFinite(starts[i - 1]) && Number.isFinite(starts[i]) && starts[i] - starts[i - 1] < 0.02) {
