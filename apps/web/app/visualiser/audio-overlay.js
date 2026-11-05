@@ -19,14 +19,30 @@
     try {
       var ac = new AC();
       var src = ac.createMediaElementSource(audio);
-      var analyser = ac.createAnalyser();
-      var dest = ac.createMediaStreamDestination();
-      analyser.fftSize = fftSize();
-      analyser.smoothingTimeConstant = 0.78;
-      src.connect(analyser);
+
+      /* A MediaElementSource takes over the element's native output. Route it to the
+         speakers immediately, before creating optional analysis/export nodes: if either
+         optional API is unavailable (notably in mobile browsers), playback must remain audible. */
       src.connect(ac.destination);
-      src.connect(dest);
-      graph = { ac: ac, analyser: analyser, stream: dest.stream };
+      graph = { ac: ac, source: src, analyser: null, stream: null };
+
+      try {
+        var analyser = ac.createAnalyser();
+        analyser.fftSize = fftSize();
+        analyser.smoothingTimeConstant = 0.78;
+        src.connect(analyser);
+        graph.analyser = analyser;
+      } catch (e) {
+        console.warn('[KEFE audio analyser]', e);
+      }
+
+      try {
+        var dest = ac.createMediaStreamDestination();
+        src.connect(dest);
+        graph.stream = dest.stream;
+      } catch (e) {
+        console.warn('[KEFE audio export stream]', e);
+      }
     } catch (e) {
       console.warn('[KEFE audio graph]', e);
       graph = null;
@@ -36,7 +52,7 @@
 
   if (window.kefeSettings && window.kefeSettings.onChange) {
     window.kefeSettings.onChange(function (key) {
-      if (key !== 'fftPower' || !graph) return;
+      if (key !== 'fftPower' || !graph || !graph.analyser) return;
       try { graph.analyser.fftSize = fftSize(); } catch (e) { console.warn('[KEFE audio graph]', e); }
     });
   }

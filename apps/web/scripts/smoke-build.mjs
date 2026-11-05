@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { runInNewContext } from "node:vm";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "dist-beui");
 const pages = ["index.html", "editor.html"];
@@ -66,6 +67,44 @@ if (!existsSync(manifestPath)) {
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
+}
+// Verify that optional Web Audio analysis/export APIs cannot silence the media element.
+{
+  const audio = {};
+  const destination = {};
+  const connected = [];
+  let sourceCreations = 0;
+  class MockAudioContext {
+    constructor() { this.destination = destination; }
+    createMediaElementSource() {
+      sourceCreations++;
+      return { connect(node) { connected.push(node); } };
+    }
+    createAnalyser() { throw new Error("analysis unavailable"); }
+    createMediaStreamDestination() { throw new Error("stream capture unavailable"); }
+  }
+  const mockWindow = {
+    AudioContext: MockAudioContext,
+    get kefeSettings() { return null; },
+    document: null,
+  };
+  const sandbox = {
+    window: mockWindow,
+    console: { warn() {} },
+    document: { getElementById(id) { return id === "kefeAudio" ? audio : null; } },
+  };
+  runInNewContext(
+    readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../app/visualiser/audio-overlay.js"), "utf8"),
+    sandbox,
+  );
+  const first = mockWindow.kefeAudioGraph.ensure();
+  const second = mockWindow.kefeAudioGraph.ensure();
+  if (!first || first.analyser !== null || first.stream !== null || !connected.includes(destination)) {
+    failures.push("Audio graph must route media to speakers before optional analysis/export setup.");
+  }
+  if (first !== second || sourceCreations !== 1) {
+    failures.push("Audio graph must reuse one MediaElementSource for the player.");
+  }
 }
 // Exercise the lyric sync quality report with deterministic synthetic word timings.
 await import("../app/lyrics/auto-sync.js");
