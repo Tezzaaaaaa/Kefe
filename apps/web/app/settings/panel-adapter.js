@@ -3,8 +3,8 @@
 
   const scriptSrc = document.currentScript && document.currentScript.src;
   const MARKUP_URL = scriptSrc
-    ? new URL('./panel.html?v=three-workspaces-20261106-1', scriptSrc)
-    : new URL('./app/settings/panel.html?v=three-workspaces-20261106-1', window.location.href);
+    ? new URL('./panel.html?v=three-tabs-20261106-1', scriptSrc)
+    : new URL('./app/settings/panel.html?v=three-tabs-20261106-1', window.location.href);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
     'lyric-sync': 'lyrics',
@@ -48,6 +48,44 @@
     if (!contentGroup || !designGroup || !audioVisualsGroup || !root.querySelector('.kefe-topbar')) {
       throw new Error('All three KEFE workspaces are required.');
     }
+
+    const tablist = root.querySelector('[data-workspace-tablist]');
+    const tabs = Array.from(root.querySelectorAll('[role="tab"][data-workspace-tab]'));
+    const workspaces = Array.from(root.querySelectorAll('.kefe-workspace[data-group]'));
+    if (!tablist || tabs.length !== 3 || workspaces.length !== 3) {
+      throw new Error('All three persistent workspace tabs and panels are required.');
+    }
+    function activateWorkspace(name, moveFocus) {
+      const selectedTab = tabs.find(tab => tab.dataset.workspaceTab === name);
+      if (!selectedTab) return;
+      tabs.forEach(tab => {
+        const selected = tab === selectedTab;
+        tab.setAttribute('aria-selected', String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+      });
+      workspaces.forEach(workspace => {
+        const selected = workspace.dataset.group === name;
+        workspace.hidden = !selected;
+        workspace.setAttribute('aria-hidden', String(!selected));
+      });
+      root.dataset.activeWorkspace = name;
+      if (moveFocus) selectedTab.focus();
+    }
+    const initialTab = tabs.find(tab => tab.getAttribute('aria-selected') === 'true') || tabs[0];
+    activateWorkspace(initialTab.dataset.workspaceTab, false);
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => activateWorkspace(tab.dataset.workspaceTab, false));
+      tab.addEventListener('keydown', event => {
+        let nextIndex = index;
+        if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+        else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+        else if (event.key === 'Home') nextIndex = 0;
+        else if (event.key === 'End') nextIndex = tabs.length - 1;
+        else return;
+        event.preventDefault();
+        activateWorkspace(tabs[nextIndex].dataset.workspaceTab, true);
+      });
+    });
 
     const host = document.createElement('section');
     host.className = 'kefe-settings-mount';
@@ -116,7 +154,8 @@
     window.kefeSettingsPanelAdapter = Object.freeze({
       panel: settingsPanel,
       readPanelValues,
-      getSlot: name => settingsPanel.getSlot(name)
+      getSlot: name => settingsPanel.getSlot(name),
+      activateWorkspace
     });
   }
 
