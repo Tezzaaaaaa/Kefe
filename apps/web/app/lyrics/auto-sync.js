@@ -480,7 +480,7 @@
         note.textContent = (pct < 40 ? 'Low vocal match; many timings may be estimated. ' : '') + 'Review line and word timings in the Timing editor before exporting.';
         undo.disabled = false;
       } catch (e) { status.textContent = 'Auto-sync failed: ' + (e && e.message ? e.message : String(e)); }
-      finally { go.disabled = false; }
+      finally { go.disabled = false; undo.disabled = !previous; }
     });
     undo.addEventListener('click', function () {
       if (!previous || !root.kefeLyrics) return;
