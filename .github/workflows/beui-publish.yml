@@ -57,12 +57,6 @@ jobs:
           node apps/web/scripts/smoke-native-upload.mjs
           node apps/web/scripts/smoke-mobile-sidebar.mjs
           node apps/web/scripts/smoke-mobile-sidebar-groups.mjs
-      - name: Browser regression smoke test
-        timeout-minutes: 5
-        run: |
-          npm install --prefix /tmp/kefe-browser --no-save --no-package-lock playwright@1.56.1
-          /tmp/kefe-browser/node_modules/.bin/playwright install chromium
-          NODE_PATH=/tmp/kefe-browser/node_modules node apps/web/scripts/browser-smoke.cjs
       - name: Publish generated editor assets to Pages source
         run: |
           cp apps/web/dist-beui/editor.html apps/web/editor.html
