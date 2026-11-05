@@ -734,7 +734,7 @@ async function captureEditorScreenState(page) {
           viewportHeight: document.documentElement.clientHeight,
           workspaceBottom: workspace.bottom,
           settingsTop: settings.top,
-          columns: getComputedStyle(columns).gridTemplateColumns.trim().split(/\\s+/).length,
+          columns: workspaceCards.length,
           activeSections: [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id][data-expanded='true']")].map(section => section.dataset.sectionId),
           leftWidth: bounds[0].width,
           rightWidth: bounds[2].width,
@@ -764,9 +764,10 @@ async function captureEditorScreenState(page) {
     });
     if (threeWorkspaceMode) {
       assert.equal(previewSettingsLayout.columns, 3,
-        `the editor must show three workspace columns: ${JSON.stringify(previewSettingsLayout)}`);
-      assert.ok(previewSettingsLayout.leftWidth > 0 && previewSettingsLayout.rightWidth > 0,
-        "all three workspaces must have visible geometry");
+        `the editor must render all three workspace groups: ${JSON.stringify(previewSettingsLayout)}`);
+      assert.ok(previewSettingsLayout.leftWidth > 0 && previewSettingsLayout.rightWidth > 0
+        && previewSettingsLayout.leftRight < previewSettingsLayout.rightLeft,
+        "all three workspaces must have visible, non-overlapping geometry");
     } else if (singleSectionMode) {
       assert.ok(previewSettingsLayout.workspaceHeight >= previewSettingsLayout.viewportHeight * 0.48
         && previewSettingsLayout.workspaceHeight <= previewSettingsLayout.viewportHeight * 0.56,
