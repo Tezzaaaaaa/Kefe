@@ -243,7 +243,7 @@
         report.push(section.label + ': timing template applied (slope ' + normalisedSlope.toFixed(3) + ').');
       });
     });
-    var out = [];
+    var out = [], measuredWordCount = 0;
     if (opts.title) out.push('[ti:' + opts.title + ']');
     if (opts.artist) out.push('[ar:' + opts.artist + ']');
     if (opts.album) out.push('[al:' + opts.album + ']');
@@ -260,12 +260,14 @@
         var estimate = start + (end - start) * elapsed / total;
         elapsed += weights[wi];
         var measured = timings[indexes[wi]];
-        var time = Number.isFinite(measured) && measured >= start - 0.3 && measured < end + 0.2 ? measured : estimate;
+        var hasMeasuredTime = Number.isFinite(measured) && measured >= start - 0.3 && measured < end + 0.2;
+        if (hasMeasuredTime) measuredWordCount++;
+        var time = hasMeasuredTime ? measured : estimate;
         return '<' + stamp(time) + '>' + word;
       }).join(' ');
       out.push('[' + stamp(start) + '] ' + tagged);
     });
-    return { lrc: out.join('\n') + '\n', matched: timings.filter(Number.isFinite).length, words: tokens.length, lines: lines.length, report: report, windows: windows, lineStarts: starts.slice(), measuredLineIndexes: known.slice() };
+    return { lrc: out.join('\n') + '\n', matched: measuredWordCount, recognized: timings.filter(Number.isFinite).length, words: tokens.length, lines: lines.length, report: report, windows: windows, lineStarts: starts.slice(), measuredLineIndexes: known.slice() };
   }
   function validateReport(result) {
     var words = Math.max(0, Number(result && result.words) || 0);
