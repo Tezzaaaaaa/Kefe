@@ -68,11 +68,11 @@
   /* Monotonic sequence alignment: tolerate ASR insertions, skipped lyric words and
      repeated phrases without the old fixed 12-token look-ahead window. */
   function matchTokens(tokens, asr, from, to) {
-    var timings = new Array(tokens.length), indexes = new Array(tokens.length);
+    var timings = new Array(tokens.length), indexes = new Array(tokens.length), scores = new Array(tokens.length);
     var begin = Math.max(0, Number(from) || 0);
     var limit = to == null ? asr.length : Math.min(asr.length, to);
     var words = asr.slice(begin, limit), n = tokens.length, m = words.length;
-    if (!n || !m) return { timings: timings, indexes: indexes };
+    if (!n || !m) return { timings: timings, indexes: indexes, scores: scores };
     var lyricNorm = tokens.map(function (t) { return norm(t.word); });
     var asrNorm = words.map(function (w) { return norm(asrWordText(w)); });
     var width = m + 1, trace = new Uint8Array((n + 1) * width);
@@ -107,6 +107,7 @@
         if (score >= 0.58) {
           timings[x - 1] = asrWordStart(words[y - 1]);
           indexes[x - 1] = begin + y - 1;
+          scores[x - 1] = score;
         }
         x--; y--;
       } else if (step === 2) y--;
@@ -163,7 +164,7 @@
     var structure = lyricStructure(text), lines = structure.lines, tokens = lyricTokens(lines);
     if (!tokens.length || !Array.isArray(asr) || !asr.length) throw new Error('Add lyrics and load a song with vocals first.');
     var windows = Array.isArray(opts.windows) && opts.windows.length ? opts.windows : [[asrWordStart(asr[0]), Number(Array.isArray(asr[asr.length - 1]) ? asr[asr.length - 1][2] : asr[asr.length - 1].end) || asrWordStart(asr[asr.length - 1]) + 0.01, 0, lines.length]];
-    var timings = new Array(tokens.length), tokenAsrIndexes = new Array(tokens.length);
+    var timings = new Array(tokens.length), tokenAsrIndexes = new Array(tokens.length), matchScores = new Array(tokens.length);
     windows.forEach(function (window) {
       var t0 = Number(window[0]), t1 = Number(window[1]), l0 = Math.max(0, Number(window[2]) || 0), l1 = Math.min(lines.length, Number(window[3]));
       if (!Number.isFinite(l1) || l1 <= l0) return;
@@ -182,6 +183,7 @@
         if (Number.isFinite(matched.timings[localIndex])) {
           timings[ti] = matched.timings[localIndex];
           tokenAsrIndexes[ti] = asrIndexes[matched.indexes[localIndex]];
+          matchScores[ti] = matched.scores[localIndex];
         }
       });
     });
@@ -243,7 +245,7 @@
         report.push(section.label + ': timing template applied (slope ' + normalisedSlope.toFixed(3) + ').');
       });
     });
-    var out = [], measuredWordCount = 0;
+    var out = [], measuredWordCount = 0, emittedMatchScores = [];
     if (opts.title) out.push('[ti:' + opts.title + ']');
     if (opts.artist) out.push('[ar:' + opts.artist + ']');
     if (opts.album) out.push('[al:' + opts.album + ']');
@@ -261,13 +263,16 @@
         elapsed += weights[wi];
         var measured = timings[indexes[wi]];
         var hasMeasuredTime = Number.isFinite(measured) && measured >= start - 0.3 && measured < end + 0.2;
-        if (hasMeasuredTime) measuredWordCount++;
+        if (hasMeasuredTime) {
+          measuredWordCount++;
+          if (Number.isFinite(matchScores[indexes[wi]])) emittedMatchScores.push(matchScores[indexes[wi]]);
+        }
         var time = hasMeasuredTime ? measured : estimate;
         return '<' + stamp(time) + '>' + word;
       }).join(' ');
       out.push('[' + stamp(start) + '] ' + tagged);
     });
-    return { lrc: out.join('\n') + '\n', matched: measuredWordCount, recognized: timings.filter(Number.isFinite).length, words: tokens.length, lines: lines.length, report: report, windows: windows, lineStarts: starts.slice(), measuredLineIndexes: known.slice() };
+    return { lrc: out.join('\n') + '\n', matched: measuredWordCount, recognized: timings.filter(Number.isFinite).length, matchScores: emittedMatchScores, words: tokens.length, lines: lines.length, report: report, windows: windows, lineStarts: starts.slice(), measuredLineIndexes: known.slice() };
   }
   function validateReport(result) {
     var words = Math.max(0, Number(result && result.words) || 0);
@@ -280,6 +285,9 @@
     else if (coverage < 0.4) warnings.push('Low measured-word coverage: most word timings are estimates.');
     else if (coverage < 0.7) warnings.push('Partial measured-word coverage: review the estimated words carefully.');
     if (lines && measuredLines < lines) warnings.push((lines - measuredLines) + ' lyric lines have estimated start times.');
+    var scores = Array.isArray(result && result.matchScores) ? result.matchScores.filter(Number.isFinite) : [];
+    var lowMatchWords = scores.filter(function (score) { return score < 0.72; }).length;
+    if (lowMatchWords) warnings.push(lowMatchWords + ' measured words have weak lyric-text matches and should be checked against the audio.');
     var starts = Array.isArray(result && result.lineStarts) ? result.lineStarts : [];
     for (var i = 1; i < starts.length; i++) {
       if (Number.isFinite(starts[i - 1]) && Number.isFinite(starts[i]) && starts[i] - starts[i - 1] < 0.02) {
@@ -294,6 +302,7 @@
       measuredLines: measuredLines,
       totalLines: lines,
       coverage: coverage,
+      lowMatchWords: lowMatchWords,
       warnings: warnings
     };
   }
