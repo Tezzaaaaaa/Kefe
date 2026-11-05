@@ -808,8 +808,7 @@
   .kefe-editor #kefe-settings-panel .kefe-workspace {
     padding: 10px;
   }
-  .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-media-upload-row {
-    display: grid;
+  #kefe-settings-panel .kefe-workspace[data-group="content"] .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-lyric-effect-carousel,
