@@ -18,13 +18,14 @@ permissions:
   contents: write
 
 concurrency:
-  group: beui-publish-main
+  group: beui-publish-main-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
   build-and-publish:
     # Match the build workflow's tested runner for Playwright's Chromium setup.
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Check out main
         uses: actions/checkout@v4
@@ -57,9 +58,10 @@ jobs:
           node apps/web/scripts/smoke-mobile-sidebar.mjs
           node apps/web/scripts/smoke-mobile-sidebar-groups.mjs
       - name: Browser regression smoke test
+        timeout-minutes: 5
         run: |
           npm install --prefix /tmp/kefe-browser --no-save --no-package-lock playwright@1.56.1
-          /tmp/kefe-browser/node_modules/.bin/playwright install --with-deps chromium
+          /tmp/kefe-browser/node_modules/.bin/playwright install chromium
           NODE_PATH=/tmp/kefe-browser/node_modules node apps/web/scripts/browser-smoke.cjs
       - name: Publish generated editor assets to Pages source
         run: |
