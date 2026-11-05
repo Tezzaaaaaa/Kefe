@@ -1185,8 +1185,8 @@ async function captureEditorScreenState(page) {
     }
 
     const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
-    await visualiserSection.locator(".expand-button").click();
-    if (singleSectionMode) {
+    if (!threeWorkspaceMode) await visualiserSection.locator(".expand-button").click();
+    if (singleSectionMode && !threeWorkspaceMode) {
       const settingsScrollState = await page.evaluate(() => {
         const mount = document.querySelector(".kefe-settings-mount");
         return { pageY: window.scrollY, clientHeight: mount.clientHeight, scrollHeight: mount.scrollHeight, scrollTop: mount.scrollTop };
@@ -1202,7 +1202,7 @@ async function captureEditorScreenState(page) {
     }, null, { timeout: 5000 });
     assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), true,
       "opening Visualisers from its side-panel section must reveal the visualiser controls");
-    if (singleSectionMode) {
+    if (singleSectionMode && !threeWorkspaceMode) {
       await page.waitForFunction(() => {
         const panel = document.querySelector('#kefe-settings-panel .kefe-slot[data-kefe-slot="visualisers"] > .kefe-panel[data-panel-view="visualiser"]');
         return panel?.classList.contains("active")
@@ -1213,7 +1213,8 @@ async function captureEditorScreenState(page) {
         "selecting the Visualisers section must activate and reveal its existing native renderer panel");
     }
 
-    if (!threeWorkspaceMode) {\n    const sectionHeaderAudit = await page.evaluate(() => {
+    if (!threeWorkspaceMode) {
+    const sectionHeaderAudit = await page.evaluate(() => {
       const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];
       return sections.map(section => {
         const header = section.querySelector(".section-header");
@@ -1235,7 +1236,10 @@ async function captureEditorScreenState(page) {
     assert.ok(sectionHeaderAudit.every(item => item.title && item.info && item.description && item.accordion),
       `every settings section needs a title, info tooltip and accordion: ${JSON.stringify(sectionHeaderAudit)}`);
     assert.match(sectionHeaderAudit.find(item => item.section === "media").tooltip, /Import, replace, or remove files/,
-      "Media instructions should be available through the info tooltip");\n    }\n\n    const featureSwitchAudit = await page.evaluate(() => [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")].map(panel => {
+      "Media instructions should be available through the info tooltip");
+    }
+
+    const featureSwitchAudit = await page.evaluate(() => [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")].map(panel => {
       const row = panel.querySelector(".kefe-panel-head .kefe-section-heading-row");
       const featureSwitch = row?.querySelector(".kefe-switch");
       return {
@@ -1909,7 +1913,9 @@ async function captureEditorScreenState(page) {
     await page.locator("#mediaInput").setInputFiles({
       name: "beui-smoke.lrc",
       mimeType: "text/plain",
-      buffer: Buffer.from("[00:00.00]Smoke line one\n[00:02.00]Smoke line two\n", "utf8"),
+      buffer: Buffer.from("[00:00.00]Smoke line one
+[00:02.00]Smoke line two
+", "utf8"),
     });
     await page.waitForFunction(() => document.getElementById("kefeLyricsStatus")?.textContent.includes("Loaded lyrics from beui-smoke.lrc"), null, { timeout: 10000 });
 
