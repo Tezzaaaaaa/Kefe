@@ -828,3 +828,62 @@
     overflow: visible;
   }
 }
+
+
+/* Persistent workspace tabs: all three destinations remain visible and switch in place. */
+.kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  padding: 7px;
+  margin: 0 0 10px;
+  border: 1px solid var(--ksp-border);
+  border-radius: 12px;
+  background: var(--ksp-bg);
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ksp-text-dim);
+  font: inherit;
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace-tab[aria-selected="true"] {
+  border-color: var(--ksp-border-strong);
+  background: var(--ksp-surface-hover);
+  color: var(--ksp-text);
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace-tab:focus-visible {
+  outline: 2px solid var(--ksp-accent);
+  outline-offset: 2px;
+}
+.kefe-editor #kefe-settings-panel .kefe-settings-columns.kefe-workspaces {
+  display: block;
+  width: 100%;
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace[hidden] {
+  display: none !important;
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace:not([hidden]) {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (max-width: 420px) {
+  .kefe-editor #kefe-settings-panel .kefe-workspace-tabs { gap: 4px; padding: 5px; }
+  .kefe-editor #kefe-settings-panel .kefe-workspace-tab { min-height: 40px; padding: 7px 4px; font-size: 11.5px; }
+}
