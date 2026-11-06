@@ -18,20 +18,20 @@ for (const group of ["content", "design", "audio-visuals"]) {
 for (const slot of ["media", "lyric-sync", "lyric-effects", "background", "visualisers", "export"]) {
   expect(panel.includes('data-kefe-slot="' + slot + '"'), "missing live control slot " + slot);
 }
-expect((panel.match(/data-expanded="true"/g) || []).length === 6, "all six native control panels must start visible");
-expect(!panel.includes("expand-button") && !panel.includes('data-expanded="false"'),
-  "workspace controls must not depend on accordion expansion");
-expect(styles.includes("grid-template-columns: repeat(3, minmax(0, 1fr))"),
-  "desktop must present three workspace columns");
-expect(styles.includes("@media (max-width: 760px)") &&
-  styles.includes("grid-template-columns: minmax(0, 1fr)"),
-  "mobile must stack the same three visible workspaces");
-expect(styles.includes(".kefe-workspace .section-content") &&
-  styles.includes("display: block !important"),
-  "workspace content must remain visible without user interaction");
+expect((panel.match(/data-expanded="true"/g) || []).length === 6, "all six native control panels must retain their content state");
+expect((panel.match(/data-workspace-tab="/g) || []).length === 3, "all three workspace tabs must remain present");
+expect((panel.match(/class="kefe-panel kefe-workspace/g) || []).length === 3, "all three workspace panels must remain present");
+expect(panel.includes('role="tablist"') && panel.includes('aria-selected="true"'),
+  "workspace tabs must expose accessible selected state");
+expect((panel.match(/hidden aria-hidden="true"/g) || []).length === 2,
+  "only the selected workspace is visible at a time");
+expect(styles.includes(".kefe-workspace-tabs") && styles.includes(".kefe-workspace[hidden]"),
+  "workspace tab strip and inactive workspace state must be styled");
+expect(styles.includes("@media (max-width: 760px)"),
+  "mobile must retain a responsive workspace tab layout");
 
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("PASS: mobile and desktop use the same three always-visible workspaces; no section drawer or hidden controls.");
+console.log("PASS: mobile and desktop retain three persistent accessible workspace tabs; only the selected workspace is visible.");
