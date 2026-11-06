@@ -438,6 +438,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kefe-browser-screenshots-${{ github.sha }}
-          path: /tmp/kefe-screenshots/
+          path: |
+            /tmp/kefe-screenshots/
+            /tmp/kefe-layout-main/baseline-browser-smoke.log
+            /tmp/kefe-layout-main/baseline-patch.log
+            /tmp/kefe-layout-main/browser-smoke-error.json
           if-no-files-found: warn
           retention-days: 14
