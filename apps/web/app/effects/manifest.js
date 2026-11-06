@@ -9,6 +9,7 @@
  */
 window.KEFE_EFFECTS = [
   { key: 'apple', label: 'Apple', description: 'Apple Music-style focus-line animation', category: 'Core' },
+  { key: 'textswap', label: 'Text Swap', description: 'Cinematic line transitions with six selectable motion presets', category: 'Core' },
 
   /* Kinetic Dynamics */
   { key: 'sigkineticpunch', label: 'Kinetic Punch', description: 'Beat-locked scale punch with tracking spread', category: 'Kinetic Dynamics' },
