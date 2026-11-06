@@ -552,22 +552,78 @@
   }, { width: .8, height: .7 });
 
 
-  E.sigwordcascade = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
+  /* Word Cascade — words hinge up out of the floor on a sprung flip with
+     depth-of-field: each word starts foreshortened, soft and low, then
+     resolves razor sharp with a travelling specular sweep. The word being sung
+     carries a violet bloom that follows the voice; sung words settle to clean
+     white. */
+  E.sigwordcascade = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    wordsRows(ctx, lay, words, w, h, item => {
-      const enter = clamp((time - item.word.time) / .4);
-      const flip = Math.cos((1 - enter) * Math.PI / 2);
-      ctx.save();
-      ctx.globalAlpha *= .25 + .75 * enter;
-      ctx.translate(item.cx, item.y - (1 - enter) * lay.size * .35);
-      ctx.scale(1, Math.max(.02, flip));
-      if (enter < .98) blur(ctx, (1 - enter) * 3.5);
-      ctx.fillStyle = item.index % 2 ? '#c4b5fd' : '#fff';
-      glow(ctx, rgba('#8b5cf6', .35 * enter), lay.size * .2);
-      ctx.fillText(item.text, -item.width / 2, 0);
-      ctx.restore();
+    const pal = Fx.palette({ text: '#ffffff', accent: '#a78bfa', inactive: 'rgba(255,255,255,.1)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size;
+    const lift = (phase.leave || 0) * size * .3;
+    ctx.save();
+    ctx.translate(0, -lift);
+    ctx.fillStyle = pal.inactive;
+    items.forEach(item => { if (time < item.word.time - .1) ctx.fillText(item.text, item.x, item.y); });
+    const entered = items.filter(item => time >= item.word.time - .1);
+    const state = entered.map(item => {
+      const age = time - (item.word.time - .1);
+      const spr = Math.min(1.05, Fx.spring(age, 1.7, .66));
+      const e = clamp(spr);
+      const prog = U.wordProgress(item.word, time, .06);
+      return { item, e, spr, age, active: prog.pulse * (time < item.word.endTime + .25 ? 1 : 0), sung: prog.sweep };
     });
-  });
+    const glowing = state.filter(st => st.active > .05);
+    if (glowing.length) {
+      Fx.bloom(ctx, w, h, c => {
+        glowing.forEach(st => {
+          c.fillStyle = Fx.rgba(pal.accent, .75 * st.active);
+          c.fillText(st.item.text, st.item.x, st.item.y);
+        });
+      }, { radius: size * .42, strength: .9, haze: .3 });
+    }
+    state.forEach(st => {
+      const { item, e } = st;
+      const flip = Math.max(.04, Math.cos((1 - st.spr) * 1.36));
+      ctx.save();
+      ctx.globalAlpha *= clamp(.15 + e * 1.1);
+      ctx.translate(item.cx, item.y + (1 - e) * size * .34);
+      ctx.scale(1 - (1 - e) * .05, flip);
+      if (e < .97) blur(ctx, (1 - e) * 9);
+      ctx.shadowColor = 'rgba(0,0,0,.4)';
+      ctx.shadowBlur = size * .1;
+      ctx.shadowOffsetY = size * .03;
+      ctx.fillStyle = pal.text;
+      ctx.fillText(item.text, -item.width / 2, 0);
+      ctx.shadowColor = 'transparent';
+      if (st.active > .03) {
+        ctx.globalAlpha *= st.active * .8;
+        ctx.fillStyle = Fx.mix('#ffffff', pal.accent, .55);
+        ctx.fillText(item.text, -item.width / 2, 0);
+      }
+      ctx.restore();
+      /* specular band travelling across the word while it unfolds */
+      if (e < .98) {
+        const bandX = item.x + item.width * (-.2 + 1.4 * e);
+        Fx.masked(ctx, w, h, g => {
+          g.save();
+          g.translate(item.cx, item.y + (1 - e) * size * .34);
+          g.scale(1 - (1 - e) * .05, flip);
+          g.fillStyle = '#fff';
+          g.fillText(item.text, -item.width / 2, 0);
+          g.restore();
+        }, g => {
+          g.fillStyle = Fx.lineGradient(g, bandX - size * .5, 0, bandX + size * .5, 0, [[0, 'rgba(255,255,255,0)'], [.5, `rgba(255,255,255,${.9 * (1 - e)})`], [1, 'rgba(255,255,255,0)']]);
+          g.fillRect(bandX - size * .5, item.y - size, size, size * 2);
+        });
+      }
+    });
+    ctx.restore();
+  }, { width: .8, height: .72 });
+
 
   E.sigmarqueerail = lineLoop((ctx, w, h, style, time) => ({ text, words, lay, next }) => {
     setFont(ctx, style.effect, lay.size, style);
