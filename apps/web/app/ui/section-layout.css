@@ -422,3 +422,74 @@
   width: 100%;
   justify-content: center;
 }
+
+
+/* Keep the Lyric Effects gallery independently scrollable so the preview stage
+   remains in view while users browse the complete effect list. */
+:is(#kefe-settings-panel, .kefe-ms-host) #lyricEffectOptions {
+  max-height: min(420px, 48vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+#kefe-settings-panel #lyricEffectOptions {
+  max-height: min(460px, 52vh);
+}
+.kefe-ms-host #lyricEffectOptions {
+  max-height: min(340px, 38vh);
+}
+
+/* Previous/next effect controls sit over the preview, not in the settings
+   column, so changing effects never interrupts browsing or hides the canvas. */
+.kefe-stage { position: relative; }
+.kefe-lyric-effect-preview-nav {
+  position: absolute;
+  z-index: 5;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--shell-line, #777) 75%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, #111 76%, transparent);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(0,0,0,.24);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.kefe-lyric-effect-preview-button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.12);
+  color: inherit;
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.kefe-lyric-effect-preview-button:hover:not(:disabled) { background: rgba(255,255,255,.24); }
+.kefe-lyric-effect-preview-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.kefe-lyric-effect-preview-button:disabled { opacity: .35; cursor: default; }
+.kefe-lyric-effect-preview-count {
+  min-width: 42px;
+  color: #fff;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+@media (max-width: 700px) {
+  .kefe-lyric-effect-preview-nav { right: 8px; bottom: 8px; }
+  .kefe-lyric-effect-preview-button { width: 30px; height: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kefe-lyric-effect-preview-button { transition: none; }
+}
