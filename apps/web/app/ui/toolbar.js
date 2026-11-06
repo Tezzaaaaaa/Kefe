@@ -320,7 +320,7 @@
   const flash = node => { node.classList.add('is-flash'); setTimeout(() => node.classList.remove('is-flash'), 450); };
 
   /* ───────── Structure ───────── */
-  // The toolbar is docked immediately after Editor in the header navigation.
+  // The toolbar launcher is docked immediately after the volume control in the timeline.
   const root = h('div', 'kefe-floating-toolbar', { id: 'kefeFloatingToolbar' });
   root.addEventListener('pointerdown', e => e.stopPropagation());
   root.addEventListener('click', e => e.stopPropagation());
@@ -708,11 +708,11 @@
   });
 
   /* ───────── Docking, expanding, dragging ─────────
-     Default home: inside the preview bar, immediately left of the fullscreen button. The launcher is always there;
+     Default home: inside the timeline, immediately after the volume control. The launcher is always there;
      it expands into the strip. Dragging the grip floats the toolbar; double-click the grip, the dock placeholder
      or "Dock toolbar" puts it back. Position is deliberately not persisted: a refresh always re-docks. */
   const OPEN_KEY = 'kefe.toolbar.open.v2';
-  const dockHost = () => document.querySelector('.kefe-sidebar-group-editor');
+  const dockHost = () => document.querySelector('.kefe-timeline');
   const inFullscreen = () => document.fullscreenElement === stage || stage.classList.contains('kefe-pseudo-fullscreen');
   let pos = { x: 12, y: 12 }, floating = false, dragging = null, isOpen = false;
   try { localStorage.removeItem('kefe.floating-toolbar.position.v4'); isOpen = localStorage.getItem(OPEN_KEY) !== '0'; } catch (_) {}
@@ -741,10 +741,12 @@
   function mountRoot() {
     const host = dockHost();
     if (inFullscreen()) {
-      root.classList.add('is-floating', 'is-fullscreen');
-      if (root.parentNode !== stage) stage.appendChild(root);
+      root.classList.remove('is-floating', 'is-fullscreen');
+      const volume = host?.querySelector('.kefe-volume-control');
+      if (volume && volume.nextElementSibling !== root) volume.insertAdjacentElement('afterend', root);
+      else if (host && root.parentNode !== host) host.appendChild(root);
       root.style.left = ''; root.style.top = '';
-      ghost.hidden = !floating || !host; return;
+      ghost.hidden = true; return;
     }
     root.classList.remove('is-fullscreen');
     if (floating) {
@@ -755,9 +757,9 @@
     } else if (host) {
       root.classList.remove('is-floating');
       root.style.left = ''; root.style.top = '';
-      const editorLink = host.querySelector('[data-editor-tab]');
-      if (editorLink && root.previousElementSibling !== editorLink) editorLink.insertAdjacentElement('afterend', root);
-      else if (!editorLink && root.parentNode !== host) host.appendChild(root);
+      const volume = host.querySelector('.kefe-volume-control');
+      if (volume && volume.nextElementSibling !== root) volume.insertAdjacentElement('afterend', root);
+      else if (!volume && root.parentNode !== host) host.appendChild(root);
       ghost.hidden = true;
     }
     if (host && ghost.parentNode !== host) host.insertBefore(ghost, root.parentNode === host ? root : null);
