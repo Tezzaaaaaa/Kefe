@@ -198,6 +198,9 @@
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-upload-name { font-size: var(--pc-fs-sm) !important; color: var(--pc-muted); }
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .beui-upload-symbol { width: 20px; height: 20px; }
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .beui-upload-symbol svg { width: 20px; height: 20px; }
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-background-upload-card > .kefe-upload-zone {
+  width: 100%; min-width: 0; min-height: 0; height: 100%; box-sizing: border-box;
+}
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-song-details {
   gap: 4px 6px;
 }
@@ -892,6 +895,7 @@
   padding: 8px !important;
   gap: 4px;
   align-self: stretch;
+  grid-column: auto;
 }
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-song-details {
   grid-template-columns: minmax(0, 1fr);
