@@ -1129,3 +1129,37 @@
     justify-content: flex-start;
   }
 }
+
+
+/* Keep the Lyric Effects list independently scrollable on compact workspace layouts.
+   This must follow the mobile workspace reset above in the final cascade. */
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
+.kefe-editor #kefe-settings-panel .kefe-workspace .kefe-lyric-effect-carousel #lyricEffectOptions {
+  height: 232px !important;
+  min-height: 232px !important;
+  max-height: 232px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  scrollbar-width: auto !important;
+  scrollbar-gutter: stable;
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions::-webkit-scrollbar {
+  width: 9px;
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9px;
+  background: var(--text-secondary, #888) padding-box;
+}
+@media (max-width: 1023px) {
+  .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
+  .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-lyric-effect-carousel #lyricEffectOptions {
+    height: 336px !important;
+    min-height: 336px !important;
+    max-height: 336px !important;
+    overflow-y: auto !important;
+  }
+}
