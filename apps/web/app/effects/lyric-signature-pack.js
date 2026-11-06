@@ -936,16 +936,67 @@
   /* 10–18  Glow Shaders                                                */
   /* ------------------------------------------------------------------ */
 
-  E.signeonatmosphere = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
+  /* Neon Atmosphere — a lit-room treatment. Two coloured auras drift and breathe
+     behind the line, unsung words are cold glass tubes (a thin outline), and a
+     word switches on as it is sung: white-hot core, coloured tube glow, wide
+     haze. The sung word runs a touch hotter than the ones already lit. */
+  E.signeonatmosphere = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    const breathe = .5 + .5 * Math.sin(time * 2.1);
-    glyphs(ctx, lay, map, time, w, h, {}, (ch, x, cw, y, ri, p) => {
-      glyph(ctx, ch, x, cw, y, {
-        alpha: .4 + .6 * p, fill: '#a5b4fc',
-        shadow: { color: rgba('#6366f1', .55 + .4 * breathe), blur: lay.size * (.18 + .22 * breathe) },
-      });
+    const pal = Fx.palette({ text: '#fff4fb', accent: '#ff3fa4', inactive: 'rgba(255,255,255,.2)' });
+    const second = pal.accentSet ? Fx.mix(pal.accent, '#4fd8ff', .7) : '#3fd0ff';
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size, box = Fx.bounds(rows, lay);
+    const lift = (phase.leave || 0) * size * .2;
+    const breathe = .72 + .28 * Math.sin(time * 1.1);
+    ctx.save();
+    ctx.translate(0, -lift);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    [[pal.accent, -.28, .9, 0], [second, .3, 1.1, 2.1]].forEach(([colour, off, speed, ph]) => {
+      const x = box.cx + box.w * (off + .06 * Math.sin(time * .5 * speed + ph));
+      const y = box.cy + size * .12 * Math.cos(time * .43 * speed + ph);
+      const r = Math.max(box.w * .5, size * 3) * (.9 + .1 * breathe);
+      ctx.fillStyle = Fx.radial(ctx, x, y, 0, r, [[0, Fx.rgba(colour, .26 * breathe)], [.55, Fx.rgba(colour, .09 * breathe)], [1, Fx.rgba(colour, 0)]]);
+      ctx.fillRect(x - r, y - r, r * 2, r * 2);
     });
-  });
+    ctx.restore();
+    /* cold glass tubes for the unsung type */
+    ctx.save();
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = Math.max(1.2, size * .016);
+    ctx.strokeStyle = Fx.rgba(pal.accent, .32);
+    items.forEach(item => ctx.strokeText(item.text, item.x, item.y));
+    ctx.restore();
+    const lit = items.map(item => ({ item, p: U.wordProgress(item.word, time, .08) })).filter(o => o.p.sweep > .02);
+    if (lit.length) {
+      Fx.bloom(ctx, w, h, g => {
+        lit.forEach(({ item, p }) => {
+          g.fillStyle = Fx.lineGradient(g, item.x, 0, item.x + item.width, 0, [[0, pal.accent], [1, second]]);
+          g.globalAlpha = (.55 + .45 * p.pulse) * Math.min(1, p.sweep * 1.5);
+          g.fillText(item.text, item.x, item.y);
+        });
+      }, { radius: size * .55, strength: 1.05, haze: .5 });
+    }
+    items.forEach(item => {
+      const p = U.wordProgress(item.word, time, .08);
+      if (p.sweep <= 0) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(item.x - size * .1, item.y - size, item.width * Math.min(1, p.sweep * 1.12) + size * .2, size * 2);
+      ctx.clip();
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = Math.max(2, size * .03);
+      ctx.strokeStyle = Fx.lineGradient(ctx, item.x, 0, item.x + item.width, 0, [[0, pal.accent], [1, second]]);
+      ctx.strokeText(item.text, item.x, item.y);
+      ctx.fillStyle = pal.text;
+      ctx.fillText(item.text, item.x, item.y);
+      if (p.pulse > .05) { ctx.globalAlpha *= p.pulse * .5; ctx.fillStyle = '#fff'; ctx.fillText(item.text, item.x, item.y); }
+      ctx.restore();
+    });
+    ctx.restore();
+  }, { width: .82, height: .66 });
+
 
   E.sigtubeignition = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
     setFont(ctx, style.effect, lay.size, style);
