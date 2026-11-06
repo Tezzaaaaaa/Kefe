@@ -451,24 +451,10 @@
     options: [{ value: 'line', label: 'Line' }, { value: 'word', label: 'Word' }, { value: 'chunk', label: 'Chunk' }],
     onChange: value => { modeButtons().find(b => b.dataset.mode === value)?.click(); emit('lyric-mode', value); }
   });
-  /* Timing nudge: drives the Lyrics timing controls */
-  const nudge = h('div', 'kft-nudge', { role: 'group', 'aria-label': 'Lyrics timing offset' });
-  const nudgeLess = h('button', '', { type: 'button', 'aria-label': 'Lyrics 0.1 seconds earlier' }); nudgeLess.innerHTML = icon('minus');
-  const nudgeMore = h('button', '', { type: 'button', 'aria-label': 'Lyrics 0.1 seconds later' }); nudgeMore.innerHTML = icon('plus');
-  const nudgeVal = h('span', 'kft-nudge__val'); nudgeVal.textContent = '0.0s';
-  nudge.append(nudgeLess, nudgeVal, nudgeMore);
-  nudgeLess.addEventListener('click', () => { $('lyricsTimingEarlier')?.click(); requestAnimationFrame(syncTiming); emit('timing', -0.1); });
-  nudgeMore.addEventListener('click', () => { $('lyricsTimingLater')?.click(); requestAnimationFrame(syncTiming); emit('timing', 0.1); });
-  function syncTiming() {
-    const t = $('lyricsTimingValue')?.textContent.trim() || '0.00s';
-    const n = parseFloat(t);
-    nudgeVal.textContent = Number.isFinite(n) ? (n > 0 ? '+' : '') + n.toFixed(1) + 's' : t;
-  }
-  const timingReset = chip('reset', 'Reset timing', () => { $('lyricsTimingReset')?.click(); requestAnimationFrame(syncTiming); });
-  // One Lyrics panel groups everything that styles the lyric text: effect, display mode, timing, font and colour.
+  // One Lyrics panel groups everything that styles the lyric text: effect, display mode, font and colour.
   const lyricPanel = makePanel(lyricStyleBtn, 'Lyric effect and text style', 288);
   const sectionLabel = text => { const l = h('div', 'kft-label'); l.textContent = text; return l; };
-  lyricPanel.append(sectionLabel('Effect'), field('Effect', effectMenu.trigger), field('Display mode', modeSeg.el), field('Timing nudge', nudge), timingReset);
+  lyricPanel.append(sectionLabel('Effect'), field('Effect', effectMenu.trigger), field('Display mode', modeSeg.el));
 
   /* Text controls (rendered in the Lyrics panel) */
   const fontMenu = createMenu({
@@ -683,14 +669,13 @@
     const on = lyricsSwitch()?.getAttribute('aria-checked') !== 'false';
     lyricsToggle.setAttribute('aria-pressed', String(on));
     lyricsToggle.dataset.tip = on ? 'Lyrics on · click to hide' : 'Lyrics off · click to show';
-    syncTiming(); syncLayer(); syncMove();
+    syncLayer(); syncMove();
   }
   let syncQueued = 0;
   const queueSync = () => { if (syncQueued) return; syncQueued = requestAnimationFrame(() => { syncQueued = 0; if (!current) sync(); recordHistory(); }); };
   ['input', 'change', 'click'].forEach(type => document.addEventListener(type, e => { if (!root.contains(e.target)) queueSync(); }, true));
   mirror(layerHint, () => { const t = layerHint?.textContent.trim(); if (t) setHint(t); }, { childList: true, characterData: true, subtree: true });
   mirror(layerMove, syncMove, { attributes: true, attributeFilter: ['aria-pressed'] });
-  mirror($('lyricsTimingValue'), syncTiming, { childList: true, characterData: true, subtree: true });
   mirror(gallery(), () => effectMenu.refresh(), { attributes: true, attributeFilter: ['class'], subtree: true, childList: true });
   window.addEventListener('kefe-style-change', sync);
   document.addEventListener('kefe-effect-change', sync);

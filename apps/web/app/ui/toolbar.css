@@ -184,19 +184,6 @@
 .kft-trigger[aria-expanded="true"] .kft-trigger__chev { transform: rotate(180deg); }
 .kft-trigger.kft-trigger--field { display: flex; width: 100%; min-width: 0; max-width: none; }
 
-.kft-nudge {
-  display: flex;
-  align-items: center;
-  height: var(--kt-h);
-  overflow: hidden;
-  border: 1px solid var(--kt-border);
-  border-radius: 4px;
-  background: var(--kt-input);
-}
-.kft-nudge button { width: 24px; height: 100%; border: 0; background: transparent; color: var(--kt-text); font-size: 14px; line-height: 1; cursor: pointer; }
-.kft-nudge button:hover { background: var(--kt-surface-hover); }
-.kft-nudge__val { min-width: 46px; padding: 0 2px; text-align: center; font: 500 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
-
 /* Tooltips */
 .kft-btn[data-tip],
 .kft-grip[data-tip] { position: relative; }
@@ -342,8 +329,6 @@
 .kft-panel .kft-chip { width: 100%; justify-content: flex-start; }
 .kft-panel .kft-hint { order: 0; padding-top: 2px; }
 .kft-panel .kft-pref { color: var(--kt-text); font-size: 12px; }
-.kft-panel .kft-nudge { width: 100%; justify-content: space-between; }
-.kft-panel .kft-nudge button { width: 32px; }
 .kft-panel .kft-presets { margin-bottom: 0; }
 .kft-rule { height: 1px; margin: 2px 0; background: var(--kt-border); }
 

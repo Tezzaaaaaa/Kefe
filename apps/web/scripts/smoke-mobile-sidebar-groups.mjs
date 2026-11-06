@@ -82,15 +82,14 @@ const groupCount = (panel, sectionId, groupId) =>
 {
   const textareaWrap = el("div").append(el("textarea", { id: "lyricsInput" }));
   const autoSync = el("section", { id: "kefeAutoSync" });
-  const timing = el("div", { classes: ["kefe-lyrics-timing"] });
   const timingEditor = el("div", { id: "kefeTimingEditor" });
   const appendedLater = el("div", { classes: ["kefe-new-control"] });
-  const panel = panelWithForm(textareaWrap, autoSync, timing, timingEditor, appendedLater);
+  const panel = panelWithForm(textareaWrap, autoSync, timingEditor, appendedLater);
   const groups = resolveGroups(panel, SECTION_BY_ID.get("lyrics"));
   expect(groups.map((group) => group.id).join(",") === "lyrics,timing,more",
     `lyric sync must expose Lyrics, Timing and a fallback: ${JSON.stringify(groupIds(panel, "lyrics"))}`);
   expect(groupCount(panel, "lyrics", "lyrics") === 2, "the lyrics textarea and auto-sync card belong to Lyrics");
-  expect(groupCount(panel, "lyrics", "timing") === 2, "both timing blocks belong to Timing");
+  expect(groupCount(panel, "lyrics", "timing") === 1, "the timing editor belongs to Timing");
   expect(groupCount(panel, "lyrics", "more") === 1, "late-appended controls must land in the More tab");
 }
 

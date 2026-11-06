@@ -481,17 +481,21 @@
     if (!host || document.getElementById('kefeAutoSync')) return;
     var card = document.createElement('section'); card.id = 'kefeAutoSync'; card.className = 'kefe-editor-panel-card';
     card.style.cssText = 'display:grid;gap:8px;min-width:0;margin:8px 0;';
-    var title = document.createElement('div'); title.className = 'kefe-label'; title.textContent = 'Auto-sync lyrics (beta)';
-    var help = document.createElement('div'); help.className = 'kefe-meta'; help.textContent = 'Whisper transcription runs locally. English forced alignment downloads an additional ~123 MB model and uses Whisper Base to locate lyric sections; it can be memory-intensive on phones. Other languages use multilingual Whisper matching. Model and pronunciation files are downloaded and browser-cached. Audio stays on your device. Review timings before exporting.';
+    var title = document.createElement('div'); title.className = 'kefe-label'; title.textContent = '2 · Auto-time (optional)';
+    var help = document.createElement('div'); help.className = 'kefe-meta'; help.textContent = 'Lyrics out of sync, or plain text with no timestamps? KEFE listens to the song and lines the words up. It runs on your device and the first run downloads a small model.';
     var controls = document.createElement('div'); controls.className = 'kefe-download-row'; controls.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;min-width:0;';
     var select = document.createElement('select'); select.className = 'kefe-select'; select.setAttribute('aria-label', 'Speech recognition model');
     [['tiny.en','English · Fast'],['base.en','English · Balanced'],['ctc.en','English · Forced alignment'],['tiny','Multilingual · Fast'],['base','Multilingual · Balanced'],['small','Multilingual · Highest accuracy']].forEach(function (pair) { var o = document.createElement('option'); o.value = pair[0]; o.textContent = pair[1]; select.appendChild(o); });
-    var go = document.createElement('button'); go.type = 'button'; go.className = 'kefe-mini'; go.textContent = 'Auto-time lyrics';
-    var undo = document.createElement('button'); undo.type = 'button'; undo.className = 'kefe-mini'; undo.textContent = 'Restore previous'; undo.disabled = true;
+    var go = document.createElement('button'); go.type = 'button'; go.className = 'kefe-btn primary'; go.textContent = 'Auto-time lyrics';
+    var undo = document.createElement('button'); undo.type = 'button'; undo.className = 'kefe-btn'; undo.textContent = 'Undo auto-time'; undo.disabled = true;
     var status = document.createElement('div'); status.className = 'kefe-meta'; status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
     var note = document.createElement('div'); note.className = 'kefe-meta';
     var previous = null;
-    controls.append(select, go, undo); card.append(title, help, controls, status, note);
+    var more = document.createElement('details'); more.className = 'kefe-more';
+    var moreSummary = document.createElement('summary'); moreSummary.textContent = 'Accuracy and language';
+    var moreHelp = document.createElement('div'); moreHelp.className = 'kefe-meta'; moreHelp.textContent = 'English · Fast is the default. Forced alignment is the most precise for English but downloads about 123 MB and needs more memory. Pick Multilingual for other languages.';
+    more.append(moreSummary, select, moreHelp);
+    controls.append(go, undo); card.append(title, help, controls, more, status, note);
     var timing = document.getElementById('kefeTimingEditor'); host.insertBefore(card, timing || null);
     go.addEventListener('click', async function () {
       var box = document.getElementById('lyricsInput');

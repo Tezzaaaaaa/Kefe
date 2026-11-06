@@ -23,10 +23,6 @@ function slugify(value) {
 
 function formatSettingValue(item, raw) {
   if (typeof item.fmt === "function") return item.fmt(Number(raw));
-  if (item.key === "lyricOffset") {
-    const num = Number(raw) || 0;
-    return `${num > 0 ? "+" : ""}${num.toFixed(2)}s`;
-  }
   if (item.key === "fftPower") {
     const num = Number(raw) || 11;
     return String(Math.pow(2, num));

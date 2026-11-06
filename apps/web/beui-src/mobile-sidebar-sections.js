@@ -45,7 +45,7 @@ export const SECTIONS = [
         id: "timing",
         label: "Timing",
         icon: "clock",
-        selectors: ["#lyricsTiming", "#kefeTimingEditor", ".kefe-lyrics-timing"],
+        selectors: ["#kefeTimingEditor"],
       },
       { id: "more", label: "More", icon: "sliders", selectors: [] },
     ],

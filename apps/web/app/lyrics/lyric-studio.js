@@ -156,6 +156,38 @@
     host.insertBefore(wrap, input.nextSibling); sync();
   }
 
+
+  /* ---------- Lyric Sync: plain-language "what to do next" guide ---------- */
+  function buildGuide() {
+    var host = document.querySelector('[data-panel-view="lyrics"] .kefe-form');
+    if (!host || document.getElementById('kefeSyncGuide')) return;
+    var card = el('section', 'kefe-sync-guide'); card.id = 'kefeSyncGuide'; card.setAttribute('aria-live', 'polite');
+    var title = el('div', 'kefe-sync-guide-title'), body = el('div', 'kefe-meta kefe-sync-guide-body'), actions = el('div', 'kefe-sync-guide-actions');
+    var play = btn('Play song', 'Play or pause the preview', 'kefe-btn primary');
+    play.addEventListener('click', function () { var a = audio(); if (!a || !a.src) return; if (a.paused) a.play().catch(function () { /* blocked */ }); else a.pause(); });
+    actions.appendChild(play);
+    card.append(title, body, actions);
+    host.insertBefore(card, host.firstChild);
+    function update() {
+      var n = lines().length, a = audio(), hasSong = !!(a && a.src);
+      play.hidden = !(n && hasSong); play.textContent = a && !a.paused ? 'Pause song' : 'Play song';
+      if (!n) {
+        title.textContent = 'Start here';
+        body.textContent = hasSong
+          ? 'Tap Find lyrics to fetch them for this song. No luck? Upload an .lrc file, or paste your lyrics into the box below.'
+          : 'First add your song in Media. Then come back here and tap Find lyrics. You can also upload an .lrc file or paste your lyrics into the box below.';
+      } else {
+        title.textContent = 'Lyrics ready · ' + n + ' lines';
+        body.textContent = hasSong
+          ? 'Play the song and watch the preview. If the words match the singing, you are done. If a line is early or late, find it under Fix timing and tap Sync here as it is sung.'
+          : 'Add your song in Media to hear the lyrics line up. Until then the timing below comes from the lyrics file.';
+      }
+    }
+    window.addEventListener('kefe-lyrics-changed', update);
+    var a = audio(); if (a) ['loadedmetadata', 'play', 'pause', 'emptied'].forEach(function (ev) { a.addEventListener(ev, update); });
+    update();
+  }
+
   /* ---------- Lyrics panel: timing editor ---------- */
   var history = [], listEl, statusEl, undoBtn, followBox, openWords = new Set(), renderTimer = null;
 
@@ -197,20 +229,26 @@
     var main = el('div', 'kefe-line-main');
     var num = el('span', 'kefe-line-num', String(i + 1));
     var start = timeInput(line.time, function (t) { commit(M.setLineStart(all, i, t)); }, 'Line ' + (i + 1) + ' start');
-    var minus = btn('−', 'Start 0.1 seconds earlier (pickup)', 'kefe-nudge'), plus = btn('+', 'Start 0.1 seconds later', 'kefe-nudge');
-    minus.addEventListener('click', function () { commit(M.setLineStart(all, i, line.time - 0.1)); });
-    plus.addEventListener('click', function () { commit(M.setLineStart(all, i, line.time + 0.1)); });
     var text = el('input', 'kefe-input kefe-line-text'); text.type = 'text'; text.value = line.text; text.spellcheck = true;
     text.setAttribute('aria-label', 'Line ' + (i + 1) + ' text');
     text.addEventListener('change', function () { commit(M.setLineText(all, i, text.value)); });
     text.addEventListener('keydown', function (e) { if (e.key === 'Enter') text.blur(); });
-    main.append(num, start, minus, plus, text);
+    main.append(num, start, text);
 
     var tools = el('div', 'kefe-line-tools');
     var play = btn('Play', 'Play from this line', 'kefe-mini'); play.addEventListener('click', function () {
       seekTo(line.time - 0.4); var a = audio(); if (a && a.src && a.paused) a.play().catch(function () { /* autoplay blocked */ });
     });
-    var nowBtn = btn('Set to now', 'Move this line’s start to the playhead', 'kefe-mini');
+    var sync = btn('Sync here', 'This line is being sung now: move it to the playhead and move every later line with it', 'kefe-mini kefe-sync');
+    sync.addEventListener('click', function () {
+      var a = audio();
+      if (!a || !a.src) { if (statusEl) statusEl.textContent = 'Load a song and press play first.'; return; }
+      var dt = now() - line.time;
+      commit(M.cloneLines(all.slice(0, i)).concat(M.shiftAll(all.slice(i), dt)));
+    });
+    var more = el('details', 'kefe-more kefe-line-more'), moreSum = el('summary', null, 'More');
+    var moreTools = el('div', 'kefe-line-more-tools');
+    var nowBtn = btn('This line only', 'Move only this line’s start to the playhead', 'kefe-mini');
     nowBtn.addEventListener('click', function () { commit(M.setLineStart(all, i, now())); });
     var endLabel = el('span', 'kefe-meta', 'Ends');
     var end = timeInput(line.endTime, function (t) { setLineEnd(i, t); }, 'Line ' + (i + 1) + ' end');
@@ -224,7 +262,10 @@
     merge.addEventListener('click', function () { openWords = new Set(); commit(M.mergeWithNext(all, i)); });
     var del = btn('Delete', 'Delete this line', 'kefe-mini');
     del.addEventListener('click', function () { openWords = new Set(); commit(M.removeLine(all, i)); });
-    tools.append(play, nowBtn, endLabel, end, hold, words, add, merge, del);
+    moreTools.append(nowBtn, endLabel, end, hold, words, add, merge, del);
+    more.append(moreSum, moreTools);
+    if (openWords.has(i)) more.open = true;
+    tools.append(play, sync, more);
     row.append(main, tools);
 
     if (openWords.has(i)) {
@@ -268,7 +309,7 @@
     var all = lines(), top = listEl.scrollTop;
     listEl.textContent = '';
     if (!all.length) {
-      listEl.appendChild(el('div', 'kefe-empty-panel', 'No timed lyrics yet. Upload audio to fetch them, paste LRC above, or upload an .lrc file.'));
+      listEl.appendChild(el('div', 'kefe-empty-panel', 'No timed lyrics yet. Use Find lyrics, paste lyrics above, or upload an .lrc file.'));
     } else {
       var frag = document.createDocumentFragment();
       all.forEach(function (l, i) { frag.appendChild(lineRow(l, i, all)); });
@@ -284,7 +325,7 @@
   var lastActive = -2;
   function markActive(force) {
     if (!listEl) return;
-    var all = lines(), t = now() + (window.kefeSettings ? -(Number(window.kefeSettings.get('lyricOffset')) || 0) : 0), idx = -1;
+    var all = lines(), t = now(), idx = -1;
     for (var i = 0; i < all.length; i++) { if (all[i].time <= t) idx = i; else break; }
     if (!force && idx === lastActive) return;
     lastActive = idx;
@@ -305,7 +346,6 @@
     var a = (document.getElementById('songArtist') || {}).value || '', t = (document.getElementById('songTitle') || {}).value || '';
     return [a, t].map(function (v) { return v.trim(); }).filter(Boolean).join(' - ').replace(/[\\/:*?"<>|]+/g, '') || 'kefe-lyrics';
   }
-  function offset() { return window.kefeSettings ? Number(window.kefeSettings.get('lyricOffset')) || 0 : 0; }
   function download(name, text, type) {
     var blob = new Blob([text], { type: type + ';charset=utf-8' }), url = URL.createObjectURL(blob), a = document.createElement('a');
     a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
@@ -316,14 +356,10 @@
     var a = audio();
     return { title: v('songTitle'), artist: v('songArtist'), album: v('songAlbum'), duration: a && Number.isFinite(a.duration) ? a.duration : null };
   }
-  function exportLines(applyOffset) {
-    var all = lines();
-    return applyOffset && offset() ? M.shiftAll(all, offset()) : all;
-  }
   var exporters = {
-    lrc: function () { return { text: M.toLrc(exportLines(true), { meta: meta(), words: M.displayLines(lines(), {}).some(M.hasRealWords) }), ext: 'lrc', type: 'text/plain' }; },
-    srt: function () { return { text: M.toSrt(exportLines(true), { mode: S.mode === 'karaoke' ? 'line' : S.mode, chunk: S.chunk, caseMode: S.caseMode }), ext: 'srt', type: 'application/x-subrip' }; },
-    json: function () { var m = meta(); m.offset = offset(); return { text: M.toTimedJson(lines(), m), ext: 'json', type: 'application/json' }; }
+    lrc: function () { return { text: M.toLrc(lines(), { meta: meta(), words: M.displayLines(lines(), {}).some(M.hasRealWords) }), ext: 'lrc', type: 'text/plain' }; },
+    srt: function () { return { text: M.toSrt(lines(), { mode: S.mode === 'karaoke' ? 'line' : S.mode, chunk: S.chunk, caseMode: S.caseMode }), ext: 'srt', type: 'application/x-subrip' }; },
+    json: function () { var m = meta(); return { text: M.toTimedJson(lines(), m), ext: 'json', type: 'application/json' }; }
   };
   function downloadAs(kind, statusNode) {
     if (!lines().length) { if (statusNode) statusNode.textContent = 'There are no timed lyrics to download yet.'; return; }
@@ -344,7 +380,7 @@
     if (!host || document.getElementById('kefeTimingEditor')) return;
     var box = el('div', 'kefe-timing-editor'); box.id = 'kefeTimingEditor';
     var head = el('div', 'kefe-timing-editor-head');
-    var titleBox = el('div'); titleBox.append(el('div', 'kefe-label', 'Timing editor'), el('div', 'kefe-meta', 'Fix words, move line starts (pickups), extend held words, split or merge lines.'));
+    var titleBox = el('div'); titleBox.append(el('div', 'kefe-label', '3 · Fix timing'), el('div', 'kefe-meta', 'Only needed if a line shows too early or late. Play the song, and the moment a line is sung, tap Sync here on it. Later lines move with it.'));
     var controls = el('div', 'kefe-timing-editor-actions');
     undoBtn = btn('Undo', 'Undo the last timing edit'); undoBtn.disabled = true; undoBtn.addEventListener('click', undo);
     var follow = el('label', 'kefe-follow'); followBox = document.createElement('input'); followBox.type = 'checkbox'; followBox.checked = true;
@@ -391,7 +427,7 @@
 
   /* ---------- wiring ---------- */
   function init() {
-    buildDisplayUi(); buildAlignmentUi(); buildLyricsUi(); buildExportUi();
+    buildDisplayUi(); buildAlignmentUi(); buildLyricsUi(); buildGuide(); buildExportUi();
     window.addEventListener('kefe-lyrics-changed', function (e) {
       if (e.detail && e.detail.source === 'studio') return;
       if (!(e.detail && e.detail.source === 'text')) history = [];
@@ -400,7 +436,6 @@
     var a = audio();
     if (a) ['timeupdate', 'seeked', 'play', 'pause'].forEach(function (ev) { a.addEventListener(ev, function () { markActive(false); }); });
     (function tick() { if (a && !a.paused) markActive(false); requestAnimationFrame(tick); })();
-    if (window.kefeSettings) window.kefeSettings.onChange(function (k) { if (k === 'lyricOffset') markActive(true); });
     redraw();
   }
 

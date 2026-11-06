@@ -241,17 +241,6 @@ async function captureEditorScreenState(page) {
       }));
       throw new Error("Settings panel did not mount: " + JSON.stringify({ diagnostics, pageErrors, error: error.message }));
     }
-    const timingNudge = page.locator('[data-setting="lyric-nudge"]');
-    await timingNudge.evaluate(input => {
-      input.value = "0.65";
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-    await page.waitForFunction(() => Math.abs(window.kefeSettings.get("lyricOffset") - 0.65) < 0.001, null, { timeout: 5000 });
-    await timingNudge.evaluate(input => {
-      input.value = "0";
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-    await page.waitForFunction(() => Math.abs(window.kefeSettings.get("lyricOffset")) < 0.001, null, { timeout: 5000 });
 
     // Exercise the editor toolbar against the real editor controls.
     const quickToolbar = page.locator("#kefeFloatingToolbar");
@@ -1697,21 +1686,6 @@ async function captureEditorScreenState(page) {
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser choices remain available while the Lyrics section is visible");
     await assertSectionFits("lyrics");
-    if (await page.locator(".kefe-lyrics-timing").isVisible()) {
-      const lyricsTimingLayout = await page.locator(".kefe-lyrics-timing-controls").evaluate(grid => ({
-        width: grid.getBoundingClientRect().width,
-        columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length,
-        sliderRow: getComputedStyle(document.getElementById("lyricsTiming")).gridRow,
-        earlierRow: getComputedStyle(document.getElementById("lyricsTimingEarlier")).gridRow,
-        laterRow: getComputedStyle(document.getElementById("lyricsTimingLater")).gridRow
-      }));
-      if (lyricsTimingLayout.width <= 500) {
-        assert.equal(lyricsTimingLayout.columns, 2, `lyrics timing must stack slider and step buttons in a narrow panel: ${JSON.stringify(lyricsTimingLayout)}`);
-        assert.match(lyricsTimingLayout.sliderRow, /^1/);
-        assert.match(lyricsTimingLayout.earlierRow, /^2/);
-        assert.match(lyricsTimingLayout.laterRow, /^2/);
-      }
-    }
     const nativeLyrics = page.locator("#lyricsInput");
     assert.equal(await nativeLyrics.getAttribute("aria-hidden"), null, "native lyric textarea must remain exposed to assistive technology");
     assert.equal(await nativeLyrics.getAttribute("tabindex"), null, "native lyric textarea must remain in the normal keyboard sequence");

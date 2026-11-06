@@ -146,7 +146,6 @@
   const songTitle=document.getElementById('songTitle'),songArtist=document.getElementById('songArtist'),songAlbum=document.getElementById('songAlbum'),songYear=document.getElementById('songYear');
   const previewStage=document.querySelector('.kefe-stage');
   const timeNow=document.getElementById('timeNow'),timeEnd=document.getElementById('timeEnd'),playhead=document.getElementById('playhead');
-  const lyricsTiming=document.getElementById('lyricsTiming'),lyricsTimingValue=document.getElementById('lyricsTimingValue'),lyricsTimingEarlier=document.getElementById('lyricsTimingEarlier'),lyricsTimingLater=document.getElementById('lyricsTimingLater'),lyricsTimingReset=document.getElementById('lyricsTimingReset');
 
   function normalizeArtworkUrl(url,size='600x600bb'){
     const value=String(url||'').trim();
@@ -400,17 +399,6 @@
     };
   }
   window.addEventListener('kefe-effects-ready',()=>draw());
-  function lyricOffset(){const v=Number(window.kefeSettings?.get('lyricOffset'));return Number.isFinite(v)?v:0;}
-  function syncLyricsTimingControl(){
-    const value=lyricOffset();
-    if(lyricsTiming)lyricsTiming.value=String(value);
-    if(lyricsTimingValue)lyricsTimingValue.textContent=(value>0?'+':'')+value.toFixed(2)+'s';
-  }
-  if(lyricsTiming)lyricsTiming.addEventListener('input',()=>window.kefeSettings?.set('lyricOffset',Number(lyricsTiming.value)));
-  if(lyricsTimingEarlier)lyricsTimingEarlier.addEventListener('click',()=>window.kefeSettings?.set('lyricOffset',Math.max(-3,Math.round((lyricOffset()-.10)*100)/100)));
-  if(lyricsTimingLater)lyricsTimingLater.addEventListener('click',()=>window.kefeSettings?.set('lyricOffset',Math.min(3,Math.round((lyricOffset()+.10)*100)/100)));
-  if(lyricsTimingReset)lyricsTimingReset.addEventListener('click',()=>window.kefeSettings?.set('lyricOffset',0));
-  syncLyricsTimingControl();
   /* Title card: Apple Music effect only.
      hold   – card centred before the two-second entrance
      move   – card recedes to its aspect-ratio-specific lyrics header
@@ -419,10 +407,10 @@
     if(state.effect!=='apple'||!state.lines.length)return {mode:'off'};
     if(window.kefeSettings&&!window.kefeSettings.get('titleCard'))return {mode:'off'};
     if(!songTitle.value.trim()||!(t>=0))return {mode:'off'};
-    const first=Number(state.lines[0]?.time)+lyricOffset();
+    const first=Number(state.lines[0]?.time);
     const last=state.lines[state.lines.length-1];
-    const lastStart=Number(last?.time)+lyricOffset();
-    const lastEnd=Number.isFinite(Number(last?.vocalEndTime)) ? Number(last.vocalEndTime)+lyricOffset() : Number(last?.endTime)+lyricOffset();
+    const lastStart=Number(last?.time);
+    const lastEnd=Number.isFinite(Number(last?.vocalEndTime)) ? Number(last.vocalEndTime) : Number(last?.endTime);
     const finalEnd=Number.isFinite(lastEnd) ? Math.max(lastEnd,lastStart+0.25) : lastStart+3;
     if(!Number.isFinite(first)||!Number.isFinite(lastStart))return {mode:'off'};
     const start=Math.max(0,first-2);
@@ -437,7 +425,7 @@
   function drawTitleCardTimer(ctx,w,h,t){
     const ph=titlePhase(t);
     if(ph.mode==='off'||ph.mode==='header'||ph.mode==='return')return;
-    const first=Number(state.lines[0]?.time)+lyricOffset();
+    const first=Number(state.lines[0]?.time);
     if(!Number.isFinite(first)||first<=t)return;
     const progress=first>0?Math.max(0,Math.min(1,t/first)):1;
     const unit=Math.min(w,h),aspect=w/Math.max(1,h),landscape=aspect>=1.25;
@@ -460,7 +448,7 @@
   /* Match the Apple opening countdown for every other lyric effect without changing Apple's renderer. */
   function drawEffectStartTimer(ctx,w,h,t){
     if(state.effect==='apple'||!lyricsEnabled||!state.lines.length)return;
-    const first=Number(state.lines[0]?.time)+lyricOffset();
+    const first=Number(state.lines[0]?.time);
     if(!Number.isFinite(first)||first<=t)return;
     const progress=first>0?Math.max(0,Math.min(1,t/first)):1;
     const unit=Math.min(w,h),aspect=w/Math.max(1,h),landscape=aspect>=1.25;
@@ -571,7 +559,7 @@
       const fn=window.kefeEffects[state.effect];
       if(typeof fn==='function'){
         try{
-          const effT=state.time+(state.effect==='apple'?0:0.06)-lyricOffset();
+          const effT=state.time+(state.effect==='apple'?0:0.06);
           const studio=window.kefeLyricStudio,styler=window.kefeStyle;
           // Display mode / case come from the lyric studio; colours, size, outline, glow and placement from the style layer.
           const shown=studio?studio.shape(state.lines,state.effect):state.lines;
@@ -1688,7 +1676,8 @@
     upload.type='button';upload.id='kefeUploadLrc';upload.textContent='Upload .lrc';upload.className='kefe-btn';
     const input=document.createElement('input');
     input.type='file';input.id='kefeLrcInput';input.accept='.lrc,.ttml,.xml,.txt,text/plain';input.hidden=true;
-    bar.append(find,upload,input);
+    const step=document.createElement('div');step.className='kefe-label kefe-step-label';step.textContent='1 · Get lyrics';
+    bar.append(step,find,upload,input);
     if(!document.getElementById('kefeLyricsStatus')){
       const st=document.createElement('span');
       st.id='kefeLyricsStatus';st.className='kefe-meta';
@@ -1858,7 +1847,7 @@
   function publishKefeLockScreen(action='update'){
     const bridge=window.webkit?.messageHandlers?.kefeLockScreen;
     if(!bridge||typeof bridge.postMessage!=='function')return;
-    const time=Math.max(0,(audio.src?audio.currentTime:state.time)-lyricOffset());
+    const time=Math.max(0,(audio.src?audio.currentTime:state.time));
     let activeIndex=-1;
     for(let i=0;i<state.lines.length;i++){
       if(time>=Number(state.lines[i]?.time||0))activeIndex=i;
@@ -2251,7 +2240,6 @@
     if(asp&&asp.value!==S.get('aspect')){asp.value=S.get('aspect');asp.dispatchEvent(new Event('change'));}
   }
   if(window.kefeSettings)window.kefeSettings.onChange(key=>{
-    if(key==='lyricOffset')syncLyricsTimingControl();
     if(key==='exportResolution'||key==='aspect')applySettingsDefaults();else draw();
   });
   /* Public surface for the lyric studio (timing editor, downloads) and the style layer. */

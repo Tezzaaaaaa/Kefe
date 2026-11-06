@@ -3,8 +3,8 @@
 
   const scriptSrc = document.currentScript && document.currentScript.src;
   const MARKUP_URL = scriptSrc
-    ? new URL('./panel.html?v=reset-footer-20261106-1', scriptSrc)
-    : new URL('./app/settings/panel.html?v=three-tabs-20261106-1', window.location.href);
+    ? new URL('./panel.html?v=simple-lyric-sync-20261107-2', scriptSrc)
+    : new URL('./app/settings/panel.html?v=simple-lyric-sync-20261107-2', window.location.href);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
     'lyric-sync': 'lyrics',
@@ -13,8 +13,8 @@
     visualisers: 'visualiser',
     export: 'export'
   });
-  const PANEL_TO_LEGACY = Object.freeze({ 'lyric-nudge': 'lyricOffset' });
-  const LEGACY_TO_PANEL = Object.freeze({ lyricOffset: 'lyric-nudge' });
+  const PANEL_TO_LEGACY = Object.freeze({});
+  const LEGACY_TO_PANEL = Object.freeze({});
 
   async function mount() {
     if (document.getElementById('kefe-settings-panel')) return;
