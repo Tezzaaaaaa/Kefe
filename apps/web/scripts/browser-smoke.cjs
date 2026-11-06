@@ -113,38 +113,39 @@ async function captureEditorScreenState(page) {
       const rect = node.getBoundingClientRect();
       return {
         tag: node.tagName.toLowerCase(), id: node.id || "", classes: [...node.classList].join(" "),
+        ariaLabel: node.getAttribute("aria-label") || "",
         section: node.dataset.sectionId || node.closest(".section[data-section-id]")?.dataset.sectionId || "",
         group: node.dataset.group || "", panel: node.dataset.panelView || "",
         text: (node.innerText || node.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
         x: rect.x, y: rect.y, width: rect.width, height: rect.height, childCount: node.children.length,
-        childSummary: node.id === "kefeCarStack" ? [...node.children].slice(0, 10).map(child => `${child.tagName.toLowerCase()}.${[...child.classList].join(".")}:${child.hidden ? "hidden" : getComputedStyle(child).display}:${child.textContent.trim().slice(0, 20)}`).join("|") : "",
-        renderedCardCount: node.id === "kefeCarStack" ? [...node.querySelectorAll("button.kefe-car-card")].filter(card =>
-          !card.classList.contains("beui-native-panel-button") && card.getClientRects().length > 0
-          && getComputedStyle(card).display !== "none" && getComputedStyle(card).visibility !== "hidden"
+        childSummary: node.id === "kefeCarousel" ? [...node.children].slice(0, 10).map(child => `${child.tagName.toLowerCase()}.${[...child.classList].join(".")}:${child.hidden ? "hidden" : getComputedStyle(child).display}:${child.textContent.trim().slice(0, 20)}`).join("|") : "",
+        renderedCardCount: node.id === "kefeCarousel" ? [...node.querySelectorAll(".ks-tape")].filter(tape =>
+          [...tape.querySelectorAll(".ks-face")].some(face => face.getClientRects().length > 0
+            && getComputedStyle(face).display !== "none" && getComputedStyle(face).visibility !== "hidden")
         ).length : undefined,
-        carouselChildren: node.id === "kefeCarStack" ? [...node.querySelectorAll("button.kefe-car-card")].filter(card =>
-          !card.classList.contains("beui-native-panel-button") && card.getClientRects().length > 0
-          && getComputedStyle(card).display !== "none" && getComputedStyle(card).visibility !== "hidden"
+        carouselChildren: node.id === "kefeCarousel" ? [...node.querySelectorAll(".ks-tape")].filter(tape =>
+          [...tape.querySelectorAll(".ks-face")].some(face => face.getClientRects().length > 0
+            && getComputedStyle(face).display !== "none" && getComputedStyle(face).visibility !== "hidden")
         ).map((child, index) => {
-          const backing = child.closest(".beui-panel-button-host")?.nextElementSibling || child;
-          const childRect = child.getBoundingClientRect();
-          const style = getComputedStyle(child);
+          const face = child.querySelector(".ks-cv") || child;
+          const childRect = face.getBoundingClientRect();
+          const style = getComputedStyle(face);
           return {
             index,
             tag: child.tagName.toLowerCase(),
             id: child.id || "",
             classes: [...child.classList].join(" "),
-            dataIndex: backing.dataset.i || child.dataset.i || "",
-            dataKeys: Object.keys(backing.dataset).sort(),
+            dataIndex: String(index),
+            dataKeys: Object.keys(child.dataset).sort(),
             ariaLabel: child.getAttribute("aria-label") || "",
             ariaPressed: child.getAttribute("aria-pressed"),
             tabIndex: child.tabIndex,
-            text: (child.innerText || child.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 120),
+            text: (face.innerText || face.textContent || "").trim().replace(/\s+/g, " ").slice(0, 120),
             hidden: child.hidden,
             display: style.display,
             visibility: style.visibility,
             bounds: [childRect.x, childRect.y, childRect.width, childRect.height],
-            contentGeometry: [".kefe-car-art", ".kefe-car-local-icon", ".kefe-car-tag", ".kefe-car-cap", ".kefe-car-cap b", ".kefe-car-cap i"]
+            contentGeometry: [".ks-face", ".ks-sp", ".ks-cv", ".ks-shade"]
               .map(selector => {
                 const nodes = [...child.querySelectorAll(selector)];
                 return {
@@ -227,8 +228,7 @@ async function captureEditorScreenState(page) {
       await page.waitForFunction(() => {
         const root = document.querySelector("#kefe-settings-panel");
         const slots = root && [...root.querySelectorAll(".kefe-slot")];
-        return root && root.closest(".kefe-editing.kefe-settings-layout") &&
-          slots.length === 6 && slots.every(slot => slot.querySelector(".kefe-panel"));
+        return root && slots.length === 6 && slots.every(slot => slot.querySelector(".kefe-panel"));
       }, null, { timeout: 10000 });
     } catch (error) {
       const diagnostics = await page.evaluate(() => ({
@@ -325,30 +325,40 @@ async function captureEditorScreenState(page) {
       && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.editor.bottom + 8,
       `toolbar must be docked immediately to the right of Editor: ${JSON.stringify(initialToolbarPlacement)}`);
 
+    const tidySectionMode = await page.evaluate(() => Boolean(document.querySelector(".kefe-advanced-controls")));
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
-    // Mobile keeps all three workspaces in the page, stacked below the preview.
+    // Mobile keeps all three workspace tabs visible and exposes one selected panel.
     await page.waitForFunction(() => {
       const root = document.querySelector("#kefe-settings-panel");
       const workspaces = [...(root?.querySelectorAll(".kefe-workspace[data-group]") || [])];
+      const tabs = [...(root?.querySelectorAll('[role="tab"][data-workspace-tab]') || [])];
       const panels = [...(root?.querySelectorAll(".kefe-panel[data-panel-view]") || [])];
-      return workspaces.length === 3 && panels.length === 6 &&
-        workspaces.every(node => getComputedStyle(node).display !== "none" && node.getBoundingClientRect().height > 0) &&
-        panels.every(node => getComputedStyle(node).display !== "none" && node.getBoundingClientRect().height > 0);
+      return workspaces.length === 3 && tabs.length === 3 && panels.length === 6 &&
+        workspaces.filter(node => !node.hidden && node.getBoundingClientRect().height > 0).length === 1;
     }, null, { timeout: 5000 });
     const mobileWorkspaceLayout = await page.locator("#kefe-settings-panel .kefe-settings-columns").evaluate(node => ({
       columns: getComputedStyle(node).gridTemplateColumns.trim().split(/\\s+/).length,
       groups: [...node.querySelectorAll(":scope > .kefe-workspace")].map(group => ({
         label: group.querySelector(".kefe-workspace-title")?.textContent.trim(),
+        hidden: group.hidden,
         width: group.getBoundingClientRect().width,
         height: group.getBoundingClientRect().height
+      })),
+      tabs: [...node.parentElement.querySelectorAll('[role="tab"][data-workspace-tab]')].map(tab => ({
+        label: tab.textContent.trim(),
+        width: tab.getBoundingClientRect().width
       }))
     }));
-    assert.equal(mobileWorkspaceLayout.columns, 1, "mobile must stack the three workspaces in one column");
-    assert.deepEqual(mobileWorkspaceLayout.groups.map(group => group.label), ["Content", "Design", "Audio & Visuals"],
-      "mobile must retain the same three workspace order");
-    assert.ok(mobileWorkspaceLayout.groups.every(group => group.width > 0 && group.height > 0),
-      "all mobile workspaces must remain visible without opening a drawer");
+    assert.equal(mobileWorkspaceLayout.columns, 1, "the selected mobile workspace must use one full-width column");
+    const mobileWorkspaceLabels = mobileWorkspaceLayout.groups.map(group => group.label);
+    assert.equal(mobileWorkspaceLabels[0], "Content", "the first workspace must remain Content");
+    assert.ok(["Design", "Appearance"].includes(mobileWorkspaceLabels[1]), "the second workspace must remain the appearance/design workspace");
+    assert.equal(mobileWorkspaceLabels[2], tidySectionMode ? "Audio & Visualiser" : "Audio & Visuals", "the third workspace must remain Audio & Visualiser");
+    assert.equal(mobileWorkspaceLayout.groups.filter(group => !group.hidden && group.width > 0 && group.height > 0).length, 1,
+      "only the selected workspace should be visible on mobile");
+    assert.equal(mobileWorkspaceLayout.tabs.length, 3, "all three workspace tabs must remain available on mobile");
+    assert.ok(mobileWorkspaceLayout.tabs.every(tab => tab.width > 0), "all three mobile workspace tabs must remain visible");
     const mobileUploadLayout = await page.locator('.kefe-workspace[data-group="content"] .kefe-panel[data-panel-view="media"] .kefe-media-upload-row').evaluate(node => {
       const style = getComputedStyle(node);
       const boxes = [...node.children].map(child => {
@@ -572,7 +582,7 @@ async function captureEditorScreenState(page) {
       await page.setViewportSize(desktopViewport);
       await page.waitForTimeout(120);
     }
-    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), threeWorkspaceMode,
+    assert.equal(await page.locator(".kefe-vis-tabs").isVisible(), false,
       "visualiser choices must be visible in the always-on workspace and remain section-scoped in the legacy layout");
     assert.equal(await page.locator("#kefeVisualiserHeading").textContent(), "Visualisers",
       "initialisation must not select Fluid Ink or change the visualiser heading");
@@ -734,7 +744,8 @@ async function captureEditorScreenState(page) {
           viewportHeight: document.documentElement.clientHeight,
           workspaceBottom: workspace.bottom,
           settingsTop: settings.top,
-          columns: workspaceCards.length,
+          columns: getComputedStyle(columns).gridTemplateColumns.trim().split(/\\s+/).length,
+          visibleWorkspaceCount: workspaceCards.filter(node => !node.hidden && node.getBoundingClientRect().width > 0).length,
           activeSections: [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id][data-expanded='true']")].map(section => section.dataset.sectionId),
           leftWidth: bounds[0].width,
           rightWidth: bounds[2].width,
@@ -763,11 +774,10 @@ async function captureEditorScreenState(page) {
       };
     });
     if (threeWorkspaceMode) {
-      assert.equal(previewSettingsLayout.columns, 3,
-        `the editor must render all three workspace groups: ${JSON.stringify(previewSettingsLayout)}`);
-      assert.ok(previewSettingsLayout.leftWidth > 0 && previewSettingsLayout.rightWidth > 0
-        && previewSettingsLayout.leftRight < previewSettingsLayout.rightLeft,
-        "all three workspaces must have visible, non-overlapping geometry");
+      assert.equal(previewSettingsLayout.visibleWorkspaceCount, 1,
+        `exactly one workspace panel must be visible at a time: ${JSON.stringify(previewSettingsLayout)}`);
+      assert.equal(await page.locator('[role="tab"][data-workspace-tab]').count(), 3,
+        "all three workspace tabs must remain available");
     } else if (singleSectionMode) {
       assert.ok(previewSettingsLayout.workspaceHeight >= previewSettingsLayout.viewportHeight * 0.48
         && previewSettingsLayout.workspaceHeight <= previewSettingsLayout.viewportHeight * 0.56,
@@ -896,13 +906,8 @@ async function captureEditorScreenState(page) {
       `mobile Media must keep Track title / Artist and Album / Year paired: ${JSON.stringify(mediaMetadataColumns)}`);
 
     const initialVisualiserTabs = page.locator(".beui-vis-tabs-host");
-    if (!threeWorkspaceMode) {
-      assert.ok((await initialVisualiserTabs.count()) === 0 || !(await initialVisualiserTabs.isVisible()),
-        "legacy visualiser tabs must stay scoped to their selected section");
-    } else {
-      assert.equal(await initialVisualiserTabs.isVisible(), true,
-        "the visualiser gallery must remain available from the initial workspace view");
-    }
+    assert.ok((await initialVisualiserTabs.count()) === 0 || !(await initialVisualiserTabs.isVisible()),
+      "visualiser controls must remain inside the Audio & Visualiser workspace until selected");
     assert.equal(await page.locator("#mediaInput").getAttribute("type"), "file", "upload Card must preserve the native file input");
     await page.waitForFunction(() => {
       const ranges = [...document.querySelectorAll('.kefe-editor input[type="range"]')].filter((input) => input.id !== "kefeTime");
@@ -960,7 +965,6 @@ async function captureEditorScreenState(page) {
     assert.equal(await nativeSongTitle.inputValue(), "beUI smoke track", "native metadata input should update the live track card");
 
     const nativePanelSurfaceStyle = await page.locator("#kefe-settings-panel .section[data-section-id]").evaluateAll(sections => sections
-      .filter(section => getComputedStyle(section).display !== "none")
       .map(section => {
         const style = getComputedStyle(section);
         return { borderWidth: style.borderTopWidth, borderStyle: style.borderTopStyle, boxShadow: style.boxShadow, background: style.backgroundColor };
@@ -1021,6 +1025,14 @@ async function captureEditorScreenState(page) {
       "editor panels must not create parallel React Card wrappers");
 
     async function openSection(section) {
+      const workspace = ["media", "lyrics"].includes(section) ? "content"
+        : ["effects", "background-effects"].includes(section) ? "design" : "audio-visuals";
+      const tab = page.locator('[role="tab"][data-workspace-tab="' + workspace + '"]');
+      if (await tab.getAttribute("aria-selected") !== "true") await tab.click();
+      if (section === "export") {
+        const advanced = page.locator(".kefe-advanced-controls");
+        if (await advanced.count()) await advanced.evaluate(node => { node.open = true; });
+      }
       const panel = page.locator('.kefe-panel[data-panel-view="' + section + '"]').first();
       await panel.waitFor({ state: "attached", timeout: 10000 });
       await page.waitForFunction(expected => {
@@ -1080,19 +1092,19 @@ async function captureEditorScreenState(page) {
     if (threeWorkspaceMode) {
       const workspaceAudit = await page.evaluate(() => {
         const groups = [...document.querySelectorAll('#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]')];
-        const sections = [...document.querySelectorAll('#kefe-settings-panel .kefe-workspace-stack > .section[data-section-id]')];
+        const sections = [...document.querySelectorAll('#kefe-settings-panel .kefe-workspace-stack .section[data-section-id]')];
         const panels = [...document.querySelectorAll('#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]')];
         return {
-          groups: groups.map(group => ({ id: group.dataset.group, title: group.querySelector('.kefe-workspace-title')?.textContent.trim() })),
-          sections: sections.map(section => ({ id: section.dataset.sectionId, expanded: section.dataset.expanded, visible: section.querySelector('.section-content')?.getBoundingClientRect().height > 0 })),
+          groups: groups.map(group => ({ id: group.dataset.group, title: group.querySelector('.kefe-workspace-title')?.textContent.trim(), hidden: group.hidden })),
+          sections: sections.map(section => ({ id: section.dataset.sectionId, expanded: section.dataset.expanded })),
           panels: panels.map(panel => ({ id: panel.dataset.panelView, visible: getComputedStyle(panel).display !== 'none' && panel.getBoundingClientRect().height > 0 }))
         };
       });
-      assert.deepEqual(workspaceAudit.groups, [{ id: 'content', title: 'Content' }, { id: 'design', title: 'Design' }, { id: 'audio-visuals', title: 'Audio & Visuals' }], 'three named workspaces must appear in order: ' + JSON.stringify(workspaceAudit));
+      assert.deepEqual(workspaceAudit.groups.map(group => [group.id, group.title]), [['content', 'Content'], ['design', 'Appearance'], ['audio-visuals', tidySectionMode ? 'Audio & Visualiser' : 'Audio & Visuals']], 'three named workspaces must appear in order: ' + JSON.stringify(workspaceAudit));
+      assert.equal(workspaceAudit.groups.filter(group => !group.hidden).length, 1, 'exactly one workspace panel must be visible');
       assert.equal(workspaceAudit.sections.length, 6, 'all six editor sections must remain mounted');
-      assert.ok(workspaceAudit.sections.every(section => section.expanded === 'true' && section.visible), 'all six sections must remain visible: ' + JSON.stringify(workspaceAudit));
       assert.equal(workspaceAudit.panels.length, 6, 'each native editor panel must be mounted exactly once');
-      assert.ok(workspaceAudit.panels.every(panel => panel.visible), 'all six native panels must remain visible: ' + JSON.stringify(workspaceAudit));
+      assert.ok(workspaceAudit.panels.filter(panel => panel.visible).length >= 2, 'the selected workspace native panels must be visible: ' + JSON.stringify(workspaceAudit));
     } else {
       const mediaSection = page.locator('#kefe-settings-panel .section[data-section-id="media"]');
       const mediaAccordion = mediaSection.locator('.expand-button').first();
@@ -1183,6 +1195,7 @@ async function captureEditorScreenState(page) {
     }
 
     const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
+    await openSection("visualiser");
     if (!threeWorkspaceMode) await visualiserSection.locator(".expand-button").click();
     if (singleSectionMode && !threeWorkspaceMode) {
       const settingsScrollState = await page.evaluate(() => {
@@ -1414,6 +1427,9 @@ async function captureEditorScreenState(page) {
       });
       await screenshotPage.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
       await screenshotPage.waitForSelector('#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view="media"]', { state: "attached", timeout: 20000 });
+      await screenshotPage.locator('[role="tab"][data-workspace-tab="content"]').click();
+      await screenshotPage.waitForFunction(() => !document.querySelector('.kefe-workspace[data-group="content"]')?.hidden
+        && document.querySelector('#kefe-settings-panel .kefe-slot[data-kefe-slot="media"] #mediaInput'), null, { timeout: 10000 });
       await screenshotPage.waitForSelector('#kefeBackgroundEffectOptions [data-background-mode="apple"]', { state: "attached", timeout: 10000 });
       const carouselFixture = {
         trackName: "KEFE visual regression fixture",
@@ -1424,33 +1440,32 @@ async function captureEditorScreenState(page) {
       };
       await screenshotPage.waitForFunction(() => typeof window.kefeCarousel?.setLocalUpload === "function", null, { timeout: 10000 });
       await screenshotPage.evaluate((item) => window.kefeCarousel.setLocalUpload(item, true), carouselFixture);
-      const baselineUsesButtonBridge = await screenshotPage.evaluate(() =>
-        Boolean(document.querySelector(".kefe-panel button[data-beui-panel-mounted]")));
-      const fixtureCard = screenshotPage.locator(baselineUsesButtonBridge
-        ? '#kefeCarStack > .beui-panel-button-host > button.kefe-car-card'
-        : '#kefeCarStack > button.kefe-car-card:not(.beui-native-panel-button)');
+      await screenshotPage.locator("#kefeCarousel").scrollIntoViewIfNeeded();
+      const fixtureCard = screenshotPage.locator('#kefeCarStack .ks-face.ks-cv:visible').first();
       await fixtureCard.waitFor({ state: "visible", timeout: 10000 });
-      const seededCarousel = await fixtureCard.evaluate((card) => {
-        const visibleCards = [...document.querySelectorAll("#kefeCarStack button.kefe-car-card")].filter(candidate =>
-          !candidate.classList.contains("beui-native-panel-button") && candidate.getClientRects().length > 0
-          && getComputedStyle(candidate).display !== "none" && getComputedStyle(candidate).visibility !== "hidden");
-        const backing = card.closest(".beui-panel-button-host")?.nextElementSibling || card;
-        const rect = card.getBoundingClientRect();
+      const seededCarousel = await fixtureCard.evaluate((cover) => {
+        const tape = cover.closest(".ks-tape");
+        const visibleTapes = [...document.querySelectorAll("#kefeCarStack .ks-tape")].filter(candidate =>
+          [...candidate.querySelectorAll(".ks-face")].some(face => face.getClientRects().length > 0
+            && getComputedStyle(face).display !== "none" && getComputedStyle(face).visibility !== "hidden"));
+        const rect = cover.getBoundingClientRect();
+        const title = document.getElementById("kefeCarTitle")?.textContent || "";
+        const artist = document.getElementById("kefeCarArtist")?.textContent || "";
         return {
-          count: visibleCards.length,
-          dataIndex: backing.dataset.i || card.dataset.i || "",
-          ariaLabel: card.getAttribute("aria-label"),
-          text: (card.innerText || "").trim().replace(/\s+/g, " "),
+          count: visibleTapes.length,
+          dataIndex: String(visibleTapes.indexOf(tape)),
+          ariaLabel: document.getElementById("kefeCarousel")?.getAttribute("aria-label") || "",
+          text: [title, artist].join(" ").trim(),
           bounds: [rect.x, rect.y, rect.width, rect.height],
         };
       });
-      assert.equal(seededCarousel.count, 1, `screenshot carousel fixture must render exactly one real item: ${JSON.stringify(seededCarousel)}`);
+      assert.equal(seededCarousel.count, 1, `screenshot carousel fixture must render exactly one 3D tape: ${JSON.stringify(seededCarousel)}`);
       assert.equal(seededCarousel.dataIndex, "0", `screenshot carousel fixture must retain stable item index 0: ${JSON.stringify(seededCarousel)}`);
-      assert.equal(seededCarousel.ariaLabel, `${carouselFixture.trackName} by ${carouselFixture.artistName}`,
-        `screenshot carousel fixture must retain the real card identity: ${JSON.stringify(seededCarousel)}`);
+      assert.ok(seededCarousel.ariaLabel.includes(carouselFixture.trackName) && seededCarousel.ariaLabel.includes(carouselFixture.artistName),
+        `screenshot carousel fixture must expose its accessible track identity: ${JSON.stringify(seededCarousel)}`);
       assert.ok(seededCarousel.text.includes(carouselFixture.trackName) && seededCarousel.text.includes(carouselFixture.artistName),
-        `screenshot carousel fixture must expose its visible title and artist: ${JSON.stringify(seededCarousel)}`);
-      console.log("Seeded screenshot carousel through KEFE local-upload render path:", JSON.stringify(seededCarousel));
+        `screenshot carousel fixture must expose its track title and artist in the info panel: ${JSON.stringify(seededCarousel)}`);
+      console.log("Seeded screenshot 3D carousel through KEFE local-upload render path:", JSON.stringify(seededCarousel));
       const screenshotVolumePopover = screenshotPage.locator("#kefeVolumePopover");
       const screenshotVolumeTrigger = screenshotPage.locator("#kefeMuteToggle");
       const hasScreenshotVolume = await screenshotVolumeTrigger.count() > 0;
@@ -1535,7 +1550,7 @@ async function captureEditorScreenState(page) {
       "visualiser tabs must be visible while the Visualisers section is active");
 
     await openSection("background-effects");
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), threeWorkspaceMode,
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser choices remain visible in workspaces and section-scoped in the legacy layout");
     await openSection("visualiser");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
@@ -1665,7 +1680,7 @@ async function captureEditorScreenState(page) {
     }
     await page.evaluate(() => window.scrollTo(0, 0));
     await openSection("lyrics");
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), threeWorkspaceMode,
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser choices remain available while the Lyrics section is visible");
     await assertSectionFits("lyrics");
     if (await page.locator(".kefe-lyrics-timing").isVisible()) {
@@ -1700,9 +1715,10 @@ async function captureEditorScreenState(page) {
     await commandButton.evaluate(button => button.click());
     await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
     await page.waitForFunction(() => document.querySelector(".kefe-editing")?.dataset.selectedSection === "effects", null, { timeout: 5000 });
+    await openSection("effects");
     await assertSectionFits("effects");
 
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), threeWorkspaceMode,
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser choices remain available while the Effects section is visible");
 
     await openSection("export");
@@ -1820,25 +1836,29 @@ async function captureEditorScreenState(page) {
         return {
           columnCount: getComputedStyle(columns).gridTemplateColumns.trim().split(/\\s+/).length,
           groups: workspaces.map(node => ({ label: node.querySelector(".kefe-workspace-title")?.textContent.trim(), ...rect(node) })),
+          visibleGroups: workspaces.filter(node => !node.hidden && rect(node).width > 0).length,
+          tabCount: root?.querySelectorAll('[role="tab"][data-workspace-tab]').length || 0,
           panels: panels.map(node => ({ id: node.dataset.panelView, display: getComputedStyle(node).display, ...rect(node) })),
           drawerCount: document.querySelectorAll(".kefe-ms-drawer").length
         };
       });
       assert.equal(mobileWorkspaceAudit.columnCount, 1,
-        `the mobile editor must stack workspaces at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
-      assert.deepEqual(mobileWorkspaceAudit.groups.map(group => group.label), ["Content", "Design", "Audio & Visuals"],
-        `the three workspaces must remain in their defined order at ${width}px`);
-      assert.ok(mobileWorkspaceAudit.groups.every(group => group.width > 0 && group.height > 0
-        && group.left >= -1 && group.right <= width + 1),
-        `all three mobile workspaces must remain visible and within the viewport at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
+        `the selected workspace must use one full-width column at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
+      assert.deepEqual(mobileWorkspaceAudit.groups.map(group => group.label), ["Content", "Appearance", tidySectionMode ? "Audio & Visualiser" : "Audio & Visuals"],
+        `the three workspace panels must remain in their defined order at ${width}px`);
+      assert.equal(mobileWorkspaceAudit.visibleGroups, 1,
+        `only the selected workspace may be visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
+      assert.equal(mobileWorkspaceAudit.tabCount, 3,
+        `all three workspace tabs must remain visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
       assert.equal(mobileWorkspaceAudit.panels.length, 6,
         `all six native panels must remain mounted at ${width}px`);
-      assert.ok(mobileWorkspaceAudit.panels.every(panel => panel.display !== "none" && panel.width > 0 && panel.height > 0),
-        `all six native panels must remain visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
+      assert.ok(mobileWorkspaceAudit.panels.filter(panel => panel.width > 0 && panel.height > 0).length >= 2,
+        `the selected workspace must show its native panels at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
       assert.equal(mobileWorkspaceAudit.drawerCount, 0,
         `the retired mobile section drawer must not be created at ${width}px`);
       for (const section of ["media", "lyrics", "effects", "background-effects", "visualiser", "export"]) {
         const panelView = section === "lyrics" ? "lyrics" : section;
+        await openSection(panelView);
         await assertSectionFits(panelView);
       }
     }

@@ -84,11 +84,11 @@ for (const [size, theme] of states) {
     const layoutPath = path.join(currentDir, `editor-layout-${size}-${theme}.json`);
     assert.ok(fs.existsSync(layoutPath), `desktop ${theme} layout inventory is required to isolate the intentionally resized settings columns`);
     const layout = JSON.parse(fs.readFileSync(layoutPath, "utf8"));
-    // The integrated settings columns are `.kefe-panel[data-group]` divs. Their
-    // height/scroll behaviour is intentionally changed by the grouped settings
-    // switcher and is separately asserted by the browser geometry checks, so
-    // keep them out of the pixel gate (as the summary describes).
-    const panels = layout.filter(item => item.tag === "div" && item.classes.trim() === "kefe-panel"
+    // The selected workspace is a full-width section in the persistent tab layout.
+    // Its geometry is asserted by the browser smoke test, so exclude that selected
+    // workspace from the pixel gate while continuing to compare the shared shell.
+    const panels = layout.filter(item => item.tag === "section"
+      && item.classes.split(" ").includes("kefe-workspace")
       && item.width > 0 && item.height > 0).sort((a, b) => a.x - b.x || a.y - b.y);
     assert.ok(panels.length >= 1 && panels.length <= 2,
       `desktop ${theme} layout inventory must include visible settings group column(s), found ${panels.length}`);
