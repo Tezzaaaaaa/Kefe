@@ -962,7 +962,6 @@ async function captureEditorScreenState(page) {
     assert.equal(await nativeSongTitle.inputValue(), "beUI smoke track", "native metadata input should update the live track card");
 
     const nativePanelSurfaceStyle = await page.locator("#kefe-settings-panel .section[data-section-id]").evaluateAll(sections => sections
-      .filter(section => getComputedStyle(section).display !== "none")
       .map(section => {
         const style = getComputedStyle(section);
         return { borderWidth: style.borderTopWidth, borderStyle: style.borderTopStyle, boxShadow: style.boxShadow, background: style.backgroundColor };
