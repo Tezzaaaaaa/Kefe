@@ -397,33 +397,84 @@
   }, { width: .8, height: .72 });
 
 
-  E.siggravitylanding = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
+  /* Gravity Landing — the whole line drops under real acceleration, stretches
+     just before contact, lands with an area-preserving squash pivoting on the
+     floor, rebounds twice with decaying height, and leaves a floor shockwave.
+     A contact shadow tightens as it approaches; the lit gradient then sweeps
+     word by word. */
+  E.siggravitylanding = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    const first = words[0] ? words[0].time : 0;
-    const p = clamp((time - first) / .7);
-    const e = easeOutCubic(p);
-    const landing = pulseOf(words, time);
-    const rows = rowsOf(ctx, lay, w, h);
-    const squashY = 1 - .24 * landing * (1 - landing) * 4;
+    const pal = Fx.palette({ text: '#ffffff', accent: '#a5b4fc', inactive: 'rgba(255,255,255,.3)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size;
+    const box = Fx.bounds(rows, lay);
+    const floor = box.y + box.h + size * .1;
+    const fall = .46, t = Math.max(0, phase.t);
+    const dist = Math.max(h * .5, size * 3.4);
+    const age = t - fall;
+    let dy, sx = 1, sy = 1;
+    if (age < 0) {
+      const k = t / fall;
+      dy = -dist * (1 - k * k);
+      sy = 1 + .14 * Math.pow(k, 4);
+      sx = 1 - .05 * Math.pow(k, 4);
+    } else {
+      const bounce = (start, len, height) => {
+        const u = (age - start) / len;
+        return u > 0 && u < 1 ? -height * 4 * u * (1 - u) : 0;
+      };
+      dy = bounce(0, .3, size * .16) + bounce(.3, .17, size * .05);
+      const squash = Math.exp(-age / .1) * (1 + .35 * Math.cos(age * 26));
+      sy = 1 - .2 * clamp(squash, -.4, 1);
+      sx = 1 + .075 * clamp(squash, -.4, 1);
+    }
+    const shakeAge = Math.max(0, age);
+    const shake = age >= 0 ? Math.sin(shakeAge * 90) * Math.exp(-shakeAge / .06) * size * .012 : 0;
+    const lift = (phase.leave || 0) * size * .28;
+    /* contact shadow: tightens and darkens as the line comes down */
+    const near = age < 0 ? Math.pow(t / fall, 2) : 1;
     ctx.save();
-    ctx.translate(w / 2, h / 2);
-    ctx.scale(1 + .1 * landing, squashY);
-    ctx.translate(-w / 2, -h / 2 - (1 - e) * h * .34);
-    rows.forEach(row => {
-      ctx.fillStyle = 'rgba(255,255,255,.42)';
-      ctx.fillText(row.text, w / 2 - row.width / 2, row.y);
-    });
-    ctx.save();
+    ctx.globalAlpha *= .55 * near;
+    ctx.translate(w / 2, floor + size * .02);
+    ctx.scale(1 + (1 - near) * .35, .16);
+    ctx.fillStyle = Fx.radial(ctx, 0, 0, 0, box.w * .62, [[0, 'rgba(0,0,0,.65)'], [.6, 'rgba(0,0,0,.25)'], [1, 'rgba(0,0,0,0)']]);
     ctx.beginPath();
-    ctx.rect(w / 2 - Math.max(...rows.map(r => r.width)) / 2, (h - lay.blockH) / 2 - lay.size, Math.max(...rows.map(r => r.width)) * U.sungProgress(words, time), lay.blockH + lay.size * 2);
-    ctx.clip();
-    const paint = ctx.createLinearGradient(0, (h - lay.blockH) / 2, 0, (h + lay.blockH) / 2);
-    paint.addColorStop(0, '#fff');
-    paint.addColorStop(1, '#c7d2fe');
-    rows.forEach(row => { ctx.fillStyle = paint; ctx.fillText(row.text, w / 2 - row.width / 2, row.y); });
+    ctx.arc(0, 0, box.w * .62, 0, TAU);
+    ctx.fill();
     ctx.restore();
+    /* floor shockwave */
+    if (age > 0 && age < .7) {
+      const u = age / .7;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineWidth = Math.max(1.5, size * .014);
+      ctx.strokeStyle = Fx.rgba(pal.accent, .55 * Math.pow(1 - u, 2));
+      ctx.beginPath();
+      ctx.ellipse(w / 2, floor + size * .02, box.w * (.3 + .5 * Fx.ease.outCubic(u)), size * (.03 + .05 * u), 0, 0, TAU);
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.translate(shake, -lift);
+    ctx.translate(w / 2, floor);
+    ctx.scale(sx, sy);
+    ctx.translate(-w / 2, -floor + dy);
+    ctx.shadowColor = 'rgba(0,0,0,.4)';
+    ctx.shadowBlur = size * .1;
+    ctx.shadowOffsetY = size * .03;
+    ctx.fillStyle = pal.inactive;
+    rows.forEach(row => ctx.fillText(row.text, row.x, row.y));
+    ctx.shadowColor = 'transparent';
+    const paintLit = g => {
+      const cool = pal.textSet ? pal.text : '#b4c0ff';
+      g.fillStyle = Fx.lineGradient(g, 0, box.y, 0, box.y + box.h, [[0, pal.text], [.5, pal.textSet ? pal.text : '#e6ebff'], [1, cool]]);
+      rows.forEach(row => g.fillText(row.text, row.x, row.y));
+    };
+    Fx.softReveal(ctx, w, h, items, time, paintLit, { size, edge: .3 });
     ctx.restore();
-  });
+  }, { width: .84, height: .7 });
+
 
   E.sigmagnetrepulse = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
     setFont(ctx, style.effect, lay.size, style);
