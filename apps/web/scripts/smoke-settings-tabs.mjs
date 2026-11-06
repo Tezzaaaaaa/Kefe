@@ -7,7 +7,7 @@ const editor = readFileSync(resolve(root, "editor.source.html"), "utf8");
 const adapter = readFileSync(resolve(root, "app/settings/panel-adapter.js"), "utf8");
 const panelHtml = readFileSync(resolve(root, "app/settings/panel.html"), "utf8");
 const panelStyles = readFileSync(resolve(root, "app/settings/panel.css"), "utf8");
-const failures = [];
+const failures = [];\nconst bg = readFileSync(resolve(root, "app/visualiser/background.js"), "utf8");
 
 for (const group of ["content", "design", "audio-visuals"]) {
   if (!panelHtml.includes('data-group="' + group + '"')) failures.push("Missing " + group + " workspace.");
@@ -16,7 +16,13 @@ for (const slot of ["media", "lyric-sync", "lyric-effects", "background", "visua
   if (!panelHtml.includes('data-kefe-slot="' + slot + '"')) failures.push("Missing live control slot: " + slot);
 }
 if ((panelHtml.match(/data-expanded="true"/g) || []).length !== 6) {
-  failures.push("All six native control panels must be visible from initial load.");
+  failures.push("All six native control panels must retain their expanded content state.");
+}
+if (!panelHtml.includes("Audio &amp; Visualiser") || !panelHtml.includes("<summary>Advanced</summary>")) {
+  failures.push("Audio & Visualiser must be clearly named and Export must be inside collapsed Advanced controls.");
+}
+if (!bg.includes("data-background-group='effects'") || !bg.includes("Background Effects")) {
+  failures.push("Background and Background Effects must have distinct visible group structure.");
 }
 if (panelHtml.includes("expand-button") || panelHtml.includes("data-expanded=\"false\"")) {
   failures.push("Workspace controls must not be hidden behind accordions.");
@@ -29,13 +35,11 @@ if (!adapter.includes("panel.classList.add('kefe-settings-embedded-panel', 'acti
     !adapter.includes("All three KEFE workspaces are required.")) {
   failures.push("The adapter must mount every native panel into the three persistent workspaces.");
 }
-if (!panelStyles.includes("grid-template-columns: repeat(3, minmax(0, 1fr))") ||
-    !panelStyles.includes("grid-template-columns: minmax(0, 1fr)")) {
-  failures.push("Workspaces must display in three desktop columns and stack on mobile.");
+if (!panelStyles.includes(".kefe-workspace-tabs") || !panelStyles.includes(".kefe-workspace[hidden]")) {
+  failures.push("Persistent workspace tabs must control one visible workspace at a time.");
 }
-if (!panelStyles.includes(".kefe-workspace .section-content") ||
-    !panelStyles.includes("display: block !important")) {
-  failures.push("Workspace content must remain visible without accordion interaction.");
+if (!panelStyles.includes(".kefe-advanced-controls") || !panelStyles.includes(".kefe-background-effects-group")) {
+  failures.push("Advanced and Background Effects groups must have consistent dedicated styling.");
 }
 
 if (failures.length) {
