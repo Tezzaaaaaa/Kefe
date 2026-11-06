@@ -1709,6 +1709,7 @@ async function captureEditorScreenState(page) {
     await commandButton.evaluate(button => button.click());
     await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
     await page.waitForFunction(() => document.querySelector(".kefe-editing")?.dataset.selectedSection === "effects", null, { timeout: 5000 });
+    await openSection("effects");
     await assertSectionFits("effects");
 
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
@@ -1851,6 +1852,7 @@ async function captureEditorScreenState(page) {
         `the retired mobile section drawer must not be created at ${width}px`);
       for (const section of ["media", "lyrics", "effects", "background-effects", "visualiser", "export"]) {
         const panelView = section === "lyrics" ? "lyrics" : section;
+        await openSection(panelView);
         await assertSectionFits(panelView);
       }
     }
