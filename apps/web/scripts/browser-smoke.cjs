@@ -1082,7 +1082,7 @@ async function captureEditorScreenState(page) {
     if (threeWorkspaceMode) {
       const workspaceAudit = await page.evaluate(() => {
         const groups = [...document.querySelectorAll('#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]')];
-        const sections = [...document.querySelectorAll('#kefe-settings-panel .kefe-workspace-stack > .section[data-section-id]')];
+        const sections = [...document.querySelectorAll('#kefe-settings-panel .kefe-workspace-stack .section[data-section-id]')];
         const panels = [...document.querySelectorAll('#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]')];
         return {
           groups: groups.map(group => ({ id: group.dataset.group, title: group.querySelector('.kefe-workspace-title')?.textContent.trim(), hidden: group.hidden })),
