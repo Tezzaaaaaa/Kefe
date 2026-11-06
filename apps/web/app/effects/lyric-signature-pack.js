@@ -756,21 +756,87 @@
   }, { width: .82, height: .7 });
 
 
-  E.sigstompbeat = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
+  /* Stomp Beat — each word lands like a kick drum: it is struck down from above
+     with a hard ease-in, compresses on impact, and throws a ring shockwave and
+     floor dust that travels outward. The whole stage thumps by a hair on every
+     hit. Settled words carry a crisp contact shadow. */
+  E.sigstompbeat = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    wordsRows(ctx, lay, words, w, h, item => {
-      const pulse = U.wordProgress(item.word, time, .05).pulse;
+    const pal = Fx.palette({ text: '#ffffff', accent: '#ffd166', inactive: 'rgba(255,255,255,.18)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size;
+    /* stage thump: sum of decaying kicks from every recent word */
+    let thump = 0;
+    items.forEach(item => {
+      const age = time - item.word.time;
+      if (age >= 0 && age < .35) thump += Math.exp(-age / .06) * Math.cos(age * 55);
+    });
+    const lift = (phase.leave || 0) * size * .25;
+    ctx.save();
+    ctx.translate(0, -lift + thump * size * .012);
+    ctx.fillStyle = pal.inactive;
+    items.forEach(item => { if (time < item.word.time - .12) ctx.fillText(item.text, item.x, item.y); });
+    items.forEach(item => {
+      const t0 = item.word.time;
+      const fall = item.index === 0 ? .06 : .12, age = time - t0;
+      if (age < -fall) return;
+      const base = item.y + size * .5;
+      let dy = 0, sy = 1, sx = 1, alpha = 1;
+      if (age < 0) {
+        const k = (age + fall) / fall;
+        dy = -(1 - k * k * k) * size * 1.5;
+        sy = 1 + .18 * k;
+        sx = 1 - .06 * k;
+        alpha = clamp(k * 1.6);
+      } else {
+        const c = Math.exp(-age / .09) * Math.cos(age * 30);
+        sy = 1 - .22 * clamp(c, -.3, 1);
+        sx = 1 + .09 * clamp(c, -.3, 1);
+      }
+      /* shockwave ring + dust on the floor line */
+      if (age > 0 && age < .6) {
+        const u = age / .6;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = Fx.rgba(pal.accent, .85 * Math.pow(1 - u, 1.6));
+        ctx.lineWidth = Math.max(2, size * .026 * (1 - u));
+        ctx.beginPath();
+        ctx.ellipse(item.cx, base, item.width * (.35 + .6 * Fx.ease.outCubic(u)), size * (.05 + .06 * u), 0, 0, TAU);
+        ctx.stroke();
+        for (let p = 0; p < 8; p += 1) {
+          const dir = p < 4 ? -1 : 1, seed = item.index * 11 + p;
+          const dist = Fx.ease.outCubic(u) * size * (.35 + Fx.hash(seed) * .55) * dir;
+          const rise = Math.sin(u * Math.PI) * size * (.08 + Fx.hash(seed + 3) * .18);
+          ctx.fillStyle = Fx.rgba('#ffffff', .4 * (1 - u));
+          ctx.beginPath();
+          ctx.arc(item.cx + dir * item.width * .3 + dist, base - rise, Math.max(1.2, size * .016 * (1 - u * .6)), 0, TAU);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
       ctx.save();
-      ctx.translate(item.cx, item.y - pulse * lay.size * .06);
-      ctx.rotate(-.045 * pulse);
-      ctx.scale(1 + .24 * pulse, 1 + .24 * pulse);
-      ctx.globalAlpha *= .4 + .6 * (time >= item.word.time ? 1 : .4);
-      ctx.fillStyle = mix('#ffffff', '#fca5a5', pulse);
-      glow(ctx, rgba('#ef4444', .3 * pulse), lay.size * .22);
+      ctx.globalAlpha *= alpha;
+      ctx.translate(item.cx, base);
+      ctx.scale(sx, sy);
+      ctx.translate(0, -size * .5 + dy);
+      ctx.shadowColor = 'rgba(0,0,0,.45)';
+      ctx.shadowBlur = size * .08;
+      ctx.shadowOffsetY = size * .035;
+      const p = U.wordProgress(item.word, time, .06).sweep;
+      ctx.fillStyle = U.sweepFill(ctx, -item.width / 2, item.width, p, pal.text, 'rgba(255,255,255,.55)', .3);
       ctx.fillText(item.text, -item.width / 2, 0);
+      if (age > 0 && age < .14) {
+        ctx.shadowColor = 'transparent';
+        ctx.globalAlpha *= (1 - age / .14);
+        ctx.fillStyle = pal.accent;
+        ctx.fillText(item.text, -item.width / 2, 0);
+      }
       ctx.restore();
     });
-  });
+    ctx.restore();
+  }, { width: .8, height: .7 });
+
 
   E.sigrubberstretch = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
     setFont(ctx, style.effect, lay.size, style);
