@@ -997,3 +997,135 @@
     display: none;
   }
 }
+
+/* ==========================================================================
+   KEFE layout guardrails
+   Use one predictable spacing rhythm and let every grid/flex child shrink or
+   wrap inside its assigned track. Controls never size a column by themselves.
+   ========================================================================== */
+.kefe-settings-panel {
+  --kefe-layout-gap: 8px;
+  --kefe-layout-gap-wide: 12px;
+  --kefe-layout-inset: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+.kefe-settings-panel .kefe-settings-columns,
+.kefe-settings-panel .kefe-panel,
+.kefe-settings-panel .kefe-slot,
+.kefe-settings-panel .kefe-panel[data-panel-view],
+.kefe-settings-panel .kefe-panel[data-panel-view] > *,
+.kefe-settings-panel .kefe-panel[data-panel-view] :where(.kefe-form, .kefe-step-body, .kefe-panel-head, .kefe-section-heading-row, .kefe-section-title-group, .kefe-lyric-settings, .kefe-lyric-mode-box, .kefe-lyrics-timing, .kefe-timing-editor, .kefe-review, .kefe-media-upload-row, .kefe-song-details, .kefe-find, .kefe-vis-view, .kefe-vis-tabs, .kefe-lyric-effect-grid, .kefe-background-effect-options) {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.kefe-settings-panel .kefe-settings-columns {
+  gap: var(--kefe-layout-gap-wide);
+  align-items: start;
+}
+.kefe-settings-panel .kefe-panel[data-panel-view] {
+  align-self: start;
+  min-inline-size: 0;
+}
+.kefe-settings-panel .kefe-slot {
+  width: 100%;
+  min-inline-size: 0;
+}
+.kefe-settings-panel .section-header {
+  min-width: 0;
+  flex-wrap: wrap;
+  column-gap: var(--kefe-layout-gap);
+  row-gap: 6px;
+}
+.kefe-settings-panel .expand-button,
+.kefe-settings-panel .section-title-wrap,
+.kefe-settings-panel .title-group {
+  min-width: 0;
+  max-width: 100%;
+}
+.kefe-settings-panel .title-group {
+  flex: 1 1 140px;
+}
+.kefe-settings-panel .kefe-actions {
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--kefe-layout-gap);
+}
+.kefe-settings-panel .kefe-panel[data-panel-view] :where(
+  .kefe-panel-head,
+  .kefe-section-heading-row,
+  .kefe-lyric-settings-head,
+  .kefe-lyrics-timing-head,
+  .kefe-timing-editor-head,
+  .kefe-find-bar,
+  .kefe-media-upload-row,
+  .kefe-download-row,
+  .kefe-vis-tabs,
+  .kefe-chips
+) {
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+  gap: var(--kefe-layout-gap);
+}
+.kefe-settings-panel .kefe-panel[data-panel-view] :where(
+  .kefe-form,
+  .kefe-step-body,
+  .kefe-visualiser-control-group,
+  .kefe-vis-view,
+  .kefe-lyric-effect-grid,
+  .kefe-background-effect-options,
+  .kefe-download-row
+) {
+  min-width: 0;
+  align-content: start;
+  justify-items: stretch;
+}
+.kefe-settings-panel .kefe-panel[data-panel-view] :where(
+  button,
+  .kefe-btn,
+  .kefe-panel-action,
+  .kefe-chip,
+  .beui-upload-browse,
+  input,
+  select,
+  textarea
+) {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.kefe-settings-panel .kefe-panel[data-panel-view] :where(button, .kefe-btn, .kefe-panel-action, .kefe-chip, .beui-upload-browse) {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.kefe-settings-panel .kefe-panel[data-panel-view] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea) {
+  width: 100%;
+}
+.kefe-settings-panel .kefe-panel[data-panel-view] .kefe-media-upload-row > * {
+  min-width: 0;
+  max-width: 100%;
+  align-self: stretch;
+}
+.kefe-settings-panel .kefe-panel[data-panel-view] .kefe-media-upload-row .kefe-upload-zone {
+  min-height: 88px;
+  height: 100%;
+  align-content: center;
+}
+.kefe-settings-panel .kefe-panel[data-panel-view] :where(.kefe-download-row, .kefe-chips) > * {
+  min-width: 0;
+  max-width: 100%;
+}
+@container kefe-settings (max-width: 560px) {
+  .kefe-settings-panel .kefe-settings-columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--kefe-layout-gap);
+  }
+  .kefe-settings-panel .kefe-actions {
+    justify-content: flex-start;
+  }
+}
