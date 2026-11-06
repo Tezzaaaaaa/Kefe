@@ -1073,40 +1073,60 @@
   }, { width: .82, height: .66 });
 
 
-  E.sighalobloom = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
+  /* Halo Bloom — the voice radiates. Soft annular halos leave the sung word on a
+     fixed half-second cadence (true gradient rings, not strokes), cooling in
+     colour as they widen, while the word itself carries a warm bloom. Sung
+     words stay lit; the whole field gently breathes on the beat. */
+  E.sighalobloom = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    const rows = rowsOf(ctx, lay, w, h);
-    const widest = Math.max(...rows.map(row => row.width));
-    const cx = w / 2, cy = rows.reduce((sum, row) => sum + row.y, 0) / rows.length;
-    for (let ring = 0; ring < 2; ring += 1) {
-      const phase = ((time / 2.6) + ring * .5) % 1;
+    const pal = Fx.palette({ text: '#ffffff', accent: '#ffb86b', inactive: 'rgba(255,255,255,.22)' });
+    const cool = pal.accentSet ? Fx.mix(pal.accent, '#7ab8ff', .6) : '#7ab8ff';
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size;
+    const lift = (phase.leave || 0) * size * .22;
+    const active = items.reduce((best, item) => (time >= item.word.time && time <= item.word.endTime + .5 ? item : best), null);
+    const cadence = .55;
+    const beat = (time % cadence) / cadence;
+    ctx.save();
+    ctx.translate(0, -lift);
+    if (active) {
+      const fade = clamp(1 - (time - active.word.endTime) / .5);
       ctx.save();
-      ctx.globalAlpha *= (1 - phase) * .8;
-      ctx.strokeStyle = 'rgba(255,255,255,.75)';
-      ctx.lineWidth = Math.max(1, lay.size * .012);
-      glow(ctx, 'rgba(255,255,255,.35)', lay.size * .18);
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, (widest * .5 + lay.size * .5) * (.55 + phase), (lay.blockH * .5 + lay.size * .45) * (.55 + phase), 0, 0, TAU);
-      ctx.stroke();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let ring = 0; ring < 4; ring += 1) {
+        const u = (beat + ring / 4) % 1;
+        const r = size * (.4 + 2.2 * Fx.ease.outCubic(u)) + active.width * .25 * u;
+        const a = .34 * Math.pow(1 - u, 1.6) * fade;
+        const colour = Fx.mix(pal.accent, cool, Fx.ease.outCubic(u));
+        ctx.save();
+        ctx.translate(active.cx, active.y);
+        ctx.scale(1, .55);
+        ctx.fillStyle = Fx.radial(ctx, 0, 0, r * .72, r * 1.18, [[0, Fx.rgba('#ffffff', 0)], [.5, `rgba(${Fx.rgb(colour).join(',')},${a})`], [1, Fx.rgba('#ffffff', 0)]]);
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 1.18, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
       ctx.restore();
     }
-    rows.forEach(row => {
-      ctx.save();
-      ctx.fillStyle = 'rgba(255,255,255,.38)';
-      ctx.fillText(row.text, row.x, row.y);
-      ctx.restore();
-    });
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(w / 2 - widest / 2, (h - lay.blockH) / 2 - lay.size * .3, widest * U.sungProgress(words, time), lay.blockH + lay.size * .6);
-    ctx.clip();
-    rows.forEach(row => {
-      ctx.fillStyle = '#fff';
-      glow(ctx, 'rgba(255,255,255,.5)', lay.size * .24);
-      ctx.fillText(row.text, row.x, row.y);
-    });
+    ctx.shadowColor = 'rgba(0,0,0,.35)';
+    ctx.shadowBlur = size * .08;
+    ctx.shadowOffsetY = size * .025;
+    Fx.sung(ctx, items, time, pal.text, pal.inactive, .3);
+    ctx.shadowColor = 'transparent';
+    const glow = items.map(item => ({ item, p: U.wordProgress(item.word, time, .06) })).filter(o => o.p.sweep > .02);
+    if (glow.length) {
+      Fx.bloom(ctx, w, h, g => {
+        glow.forEach(({ item, p }) => {
+          g.fillStyle = Fx.rgba(pal.accent, (.25 + .6 * p.pulse) * Math.min(1, p.sweep * 1.4));
+          g.fillText(item.text, item.x, item.y);
+        });
+      }, { radius: size * .5, strength: .9 + .15 * Math.sin(beat * TAU), haze: .35 });
+    }
     ctx.restore();
-  });
+  }, { width: .8, height: .68 });
+
 
   E.sigemberrise = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
     setFont(ctx, style.effect, lay.size, style);
