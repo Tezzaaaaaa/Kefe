@@ -153,7 +153,7 @@
     paint(A.g);
     A.g.restore();
     const radius = Math.max(2, o.radius || 24) * scale;
-    const strength = o.strength == null ? 1 : o.strength;
+    const strength = (o.strength == null ? 1 : o.strength) * ctx.globalAlpha;
     const tight = Fx.scratch('kfx-bloom-b', w * scale, h * scale);
     const wide = Fx.scratch('kfx-bloom-c', w * scale * .5, h * scale * .5);
     ctx.save();
@@ -313,6 +313,22 @@
       });
     });
     return items;
+  };
+
+  /* Every glyph of every word with kerning-aware x / width (prefix measuring). */
+  Fx.chars = (ctx, items) => {
+    const out = [];
+    items.forEach(item => {
+      const chars = Array.from(item.text);
+      let acc = '';
+      chars.forEach((ch, j) => {
+        const a = acc ? ctx.measureText(acc).width : 0;
+        acc += ch;
+        const b = ctx.measureText(acc).width;
+        out.push({ ch, x: item.x + a, w: b - a, cx: item.x + (a + b) / 2, y: item.y, j, n: chars.length, item });
+      });
+    });
+    return out;
   };
 
   /* ------------------------------------------------------------------ */

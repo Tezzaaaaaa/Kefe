@@ -309,18 +309,93 @@
   }, { width: .8, height: .7 });
 
 
-  E.sigelasticslam = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
+  /* Elastic Slam — letters drop in on a damped spring, stretching as they fall
+     and squashing as they land (area-preserving), with a short motion trail,
+     a landing flash and a hint of chromatic fringe. Unsung letters wait as a
+     faint ghost so the line never jumps. */
+  E.sigelasticslam = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    glyphs(ctx, lay, map, time, w, h, { stagger: 1, soft: .42 }, (ch, x, cw, y, ri, p, cell) => {
-      const start = cell ? cell.word.time : 0;
-      const local = clamp((time - start) / .42 - (x / Math.max(1, w)) * .12);
-      const e = easeOutBack(local);
-      glyph(ctx, ch, x, cw, y, {
-        dy: -(1 - e) * lay.size * .9, scaleX: 1 + (1 - e) * .2, scaleY: 1 - (1 - e) * .2,
-        alpha: (local > 0 ? 1 : .3) * (.42 + .58 * p), fill: '#fff',
-      });
+    const pal = Fx.palette({ text: '#ffffff', accent: '#ff5c8a', inactive: 'rgba(255,255,255,.14)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const glyphList = Fx.chars(ctx, items);
+    const size = lay.size;
+    const drop = size * .62;
+    const lift = (phase.leave || 0) * size * .22;
+    ctx.save();
+    ctx.translate(0, -lift);
+    const state = glyphList.map((g, index) => {
+      const word = g.item.word;
+      const dur = Math.max(.12, word.endTime - word.time);
+      const arrive = word.time + dur * .55 * (g.n > 1 ? g.j / (g.n - 1) : 0);
+      const age = time - arrive;
+      const e = age > 0 ? Fx.spring(age, 2.5, .5) : 0;
+      const v = age > 0 ? (Fx.spring(age + .012, 2.5, .5) - Fx.spring(age - .012, 2.5, .5)) / .024 : 0;
+      const stretch = 1 + clamp(v * .05, -.22, .5);
+      const sx = 1 / Math.sqrt(Math.max(.4, stretch));
+      return { g, age, e, v, stretch, sx, index, dy: -(1 - e) * drop, alpha: clamp(age / .07), rot: (Fx.hash(index * 3.1 + 2) - .5) * .42 * (1 - Math.min(1, e)) };
     });
-  });
+    ctx.fillStyle = pal.inactive;
+    state.filter(st => st.age <= 0).forEach(st => ctx.fillText(st.g.ch, st.g.x, st.g.y));
+    const live = state.filter(st => st.age > 0);
+    const hot = live.filter(st => st.age < .22);
+    if (hot.length) {
+      Fx.bloom(ctx, w, h, g => {
+        hot.forEach(st => {
+          g.save();
+          g.translate(st.g.cx, st.g.y + st.dy);
+          g.rotate(st.rot);
+          g.scale(st.sx, st.stretch);
+          g.fillStyle = Fx.rgba(pal.accent, .75 * st.alpha * Math.exp(-st.age / .09));
+          g.fillText(st.g.ch, -st.g.w / 2, 0);
+          g.restore();
+        });
+      }, { radius: size * .32, strength: .9 });
+    }
+    live.forEach(st => {
+      const { g } = st;
+      const dy = st.dy;
+      const sy = st.stretch, sx = st.sx;
+      const alpha = st.alpha;
+      const draw = (offsetY, a, colour, dx = 0) => {
+        ctx.save();
+        ctx.globalAlpha *= a;
+        ctx.translate(g.cx + dx, g.y + dy + offsetY);
+        ctx.rotate(st.rot);
+        ctx.scale(sx, sy);
+        ctx.fillStyle = colour;
+        ctx.fillText(g.ch, -g.w / 2, 0);
+        ctx.restore();
+      };
+      /* motion trail while the glyph is travelling fast */
+      const speed = clamp(Math.abs(st.v) * .06);
+      if (speed > .05) {
+        draw(-drop * .16 * speed * 3, alpha * .16 * speed, pal.text);
+        draw(-drop * .3 * speed * 3, alpha * .08 * speed, pal.text);
+      }
+      if (speed > .12) {
+        Fx.chroma(ctx, (c, dx, dyy, colour) => {
+          c.save();
+          c.translate(g.cx + dx, g.y + dy + dyy);
+          c.rotate(st.rot);
+          c.scale(sx, sy);
+          c.fillStyle = colour;
+          c.fillText(g.ch, -g.w / 2, 0);
+          c.restore();
+        }, { dx: size * .012 * speed, strength: alpha * .6 * speed });
+      }
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,.4)';
+      ctx.shadowBlur = size * .08;
+      ctx.shadowOffsetY = size * .025;
+      draw(0, alpha, pal.text);
+      ctx.restore();
+      const flash = Math.exp(-st.age / .07);
+      if (flash > .03) draw(0, alpha * flash * .9, '#ffffff');
+    });
+    ctx.restore();
+  }, { width: .8, height: .72 });
+
 
   E.siggravitylanding = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
     setFont(ctx, style.effect, lay.size, style);
