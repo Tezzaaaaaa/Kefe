@@ -3,7 +3,7 @@
 
   const scriptSrc = document.currentScript && document.currentScript.src;
   const MARKUP_URL = scriptSrc
-    ? new URL('./panel.html?v=three-tabs-20261106-1', scriptSrc)
+    ? new URL('./panel.html?v=reset-footer-20261106-1', scriptSrc)
     : new URL('./app/settings/panel.html?v=three-tabs-20261106-1', window.location.href);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
@@ -45,7 +45,7 @@
     const contentGroup = root.querySelector('.kefe-panel[data-group="content"]');
     const designGroup = root.querySelector('.kefe-panel[data-group="design"]');
     const audioVisualsGroup = root.querySelector('.kefe-panel[data-group="audio-visuals"]');
-    if (!contentGroup || !designGroup || !audioVisualsGroup || !root.querySelector('.kefe-topbar')) {
+    if (!contentGroup || !designGroup || !audioVisualsGroup) {
       throw new Error('All three KEFE workspaces are required.');
     }
 
