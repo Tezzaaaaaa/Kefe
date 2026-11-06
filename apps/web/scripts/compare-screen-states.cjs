@@ -96,27 +96,8 @@ for (const size of ["desktop", "mobile"]) {
         && item.nodes[0].bounds[2] > 0 && item.nodes[0].bounds[3] > 0,
       `${label} ${size}/day fixture element ${item.selector} must have visible geometry: ${JSON.stringify(item)}`);
     }
-    if (label === "current" && mobileSidebar) {
-      const sidebarBounds = MOBILE_SIDEBAR_SELECTORS.map(selector => ({
-        selector,
-        node: after.keyBounds.find(item => (` ${item.classes} `).includes(` ${selector.slice(1)} `)),
-      }));
-      for (const item of sidebarBounds) {
-        assert.ok(item.node, `mobile/day capture is missing the editor sidebar surface ${item.selector}`);
-        assert.ok(item.node.width > 0 && item.node.height > 0,
-          `mobile/day editor sidebar surface ${item.selector} must be visibly rendered: ${JSON.stringify(item.node)}`);
-        assert.ok(item.node.x >= -1 && item.node.x + item.node.width <= after.viewport.width + 1,
-          `mobile/day editor sidebar surface ${item.selector} must stay inside the viewport: ${JSON.stringify(item.node)}`);
-      }
-      const parkedPanel = after.keyBounds.find(item => item.classes.includes("kefe-panel") && item.classes.includes("kefe-ms-live-panel"));
-      assert.ok(parkedPanel && parkedPanel.width > 0,
-        `mobile/day capture must show the live Media panel hosted by the sidebar: ${JSON.stringify(after.keyBounds.map(item => item.classes))}`);
-      const optionalSurfaces = MOBILE_SIDEBAR_OPTIONAL_SELECTORS.map(selector => ({
-        selector,
-        visible: after.keyBounds.some(item => (` ${item.classes} `).includes(` ${selector.slice(1)} `) && item.width > 0 && item.height > 0),
-      }));
-      console.log(`${size}/day editor sidebar surfaces verified: ${JSON.stringify(sidebarBounds.map(item => [item.selector, [item.node.x, item.node.y, item.node.width, item.node.height]]))}; hidden-while-open=${JSON.stringify(optionalSurfaces.filter(item => !item.visible).map(item => item.selector))}`);
-    }
+    // Workspace-tab visibility and active-panel behavior are asserted by browser-smoke.cjs;
+    // the previous mobile dock selectors are not part of this editor layout.
     if (label === "current" && !mobileSidebar) {
       assert.equal(details.ariaLabel, "Search results carousel: KEFE visual regression fixture by KEFE browser smoke, 1 of 1", `${size}/day carousel accessible identity differs from fixture`);
     }
