@@ -43,7 +43,7 @@ for (const [category, list] of EXPECTED) {
   }
 }
 for (const key of keys) assert.ok(manifestKeys.includes(key), `${key} is missing from the manifest`);
-const legacy = Array.from(manifestKeys).filter(key => key !== "apple" && key !== "textswap" && !key.startsWith("sig"));
+const legacy = Array.from(manifestKeys).filter(key => key !== "apple" && key !== "textswap" && key !== "lyricpull" && !key.startsWith("sig"));
 assert.deepEqual(legacy, [], `legacy effects must be removed from the roster: ${legacy.join(", ")}`);
 
 /* ---- page wiring ------------------------------------------------- */
@@ -181,4 +181,4 @@ for (const key of keys) {
   }
 }
 
-console.log(`Lyric effects verified: Apple + Text Swap (6 presets) + ${keys.length} Signature effects, Karaoke/Bounce renderers, unique keys/labels, contracts, wiring and canvas output.`);
+console.log(`Lyric effects verified: Apple + Text Swap (6 presets) + Lyric Pull + ${keys.length} Signature effects, Karaoke/Bounce renderers, unique keys/labels, contracts, wiring and canvas output.`);
