@@ -869,3 +869,111 @@
   min-width: 0;
   width: 100%;
 }
+
+/* Media upload pair: equal cards, no unused vertical area. */
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 132px !important;
+  min-height: 132px !important;
+  max-height: 132px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeBgVideoZone {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto auto auto auto !important;
+  align-content: center !important;
+  justify-items: center !important;
+  gap: 5px !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 132px !important;
+  min-height: 132px !important;
+  max-height: 132px !important;
+  padding: 9px 8px !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap {
+  display: grid !important;
+  grid-template-rows: 132px auto !important;
+  align-content: start !important;
+  gap: 6px !important;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .beui-upload-file[hidden] {
+  display: none !important;
+}
+@media (max-width: 359px) {
+  :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* The identified source and editable metadata are one compact track card. */
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-track-editor-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  margin: 0;
+  border: 1px solid var(--pc-border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--pc-surface) 55%, transparent);
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-track-editor-card > .kefe-media-track {
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-track-editor-card > .kefe-song-details {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 8px 0 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--pc-border) !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-track-editor-card .kefe-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 8px;
+  width: 100%;
+  min-width: 0;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-track-editor-card .kefe-details-grid > div {
+  min-width: 0;
+  margin: 0;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-track-editor-card .kefe-details-grid .kefe-label {
+  margin: 0 0 3px !important;
+}
+:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-track-editor-card .kefe-details-grid .kefe-input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
