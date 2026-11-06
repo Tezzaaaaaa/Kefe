@@ -1895,6 +1895,11 @@ async function captureEditorScreenState(page) {
     assert.ok(Number(await page.locator("#kefeTime").getAttribute("max")) >= 4.9, "timeline should use decoded media duration");
     await page.locator("#playButton").click();
     await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === false, null, { timeout: 5000 });
+    await page.waitForFunction(() => {
+      const audio = document.getElementById("kefeAudio");
+      const context = window.kefeAudioGraph?.context?.();
+      return audio && !audio.muted && audio.volume > 0 && (!context || context.state === "running");
+    }, null, { timeout: 5000 });
     await page.locator("#playButton").click();
     await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === true, null, { timeout: 5000 });
 
