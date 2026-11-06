@@ -43,7 +43,7 @@ if (!panelStyles.includes(".kefe-advanced-controls") || !panelStyles.includes(".
 }
 
 if (failures.length) {
-  console.error(failures.join("\\n"));
+  console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("PASS: three visible workspaces retain all six native control panels on desktop and mobile.");
+console.log("PASS: three persistent workspace tabs, tidy section grouping and six native panels are present.");
