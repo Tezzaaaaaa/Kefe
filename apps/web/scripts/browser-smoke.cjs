@@ -1191,6 +1191,7 @@ async function captureEditorScreenState(page) {
     }
 
     const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
+    await openSection("visualiser");
     if (!threeWorkspaceMode) await visualiserSection.locator(".expand-button").click();
     if (singleSectionMode && !threeWorkspaceMode) {
       const settingsScrollState = await page.evaluate(() => {
