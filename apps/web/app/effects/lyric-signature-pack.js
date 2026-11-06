@@ -1128,34 +1128,72 @@
   }, { width: .8, height: .68 });
 
 
-  E.sigemberrise = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
+  /* Ember Rise — heat. The line is drawn in thin horizontal strips whose
+     sideways wobble grows toward the top, so the type shimmers like air above
+     a fire. Sung words ignite (white-hot, then amber), unsung words are
+     charcoal with a dull red edge, and embers lift off the line, cooling from
+     yellow through orange to red as they dissolve. */
+  E.sigemberrise = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    const rows = rowsOf(ctx, lay, w, h);
-    const phase = .5 + .5 * Math.sin(time * 1.5);
-    for (let i = 0; i < 16; i += 1) {
-      const seed = i + 11;
-      const life = ((time * (.35 + hash(seed) * .3)) + hash(seed + 2)) % 1;
-      const px = w / 2 + (hash(seed + 4) - .5) * w * .55;
-      const py = (h - lay.blockH) / 2 + lay.blockH * (.6 - life * .9);
+    const pal = Fx.palette({ text: '#fff1d6', accent: '#ff7a1a', inactive: 'rgba(255,170,110,.26)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size, box = Fx.bounds(rows, lay);
+    const lift = (phase.leave || 0) * size * .25;
+    ctx.save();
+    ctx.translate(0, -lift);
+    /* heat bed under the line */
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const bedY = box.y + box.h;
+    ctx.fillStyle = Fx.radial(ctx, box.cx, bedY, 0, box.w * .6, [[0, Fx.rgba(pal.accent, .22)], [1, Fx.rgba(pal.accent, 0)]]);
+    ctx.fillRect(box.x - box.w * .2, bedY - box.w * .6, box.w * 1.4, box.w * 1.2);
+    ctx.restore();
+    const lit = items.map(item => ({ item, p: U.wordProgress(item.word, time, .1) })).filter(o => o.p.sweep > .02);
+    if (lit.length) {
+      Fx.bloom(ctx, w, h, g => {
+        lit.forEach(({ item, p }) => {
+          g.fillStyle = Fx.rgba(pal.accent, .8 * Math.min(1, p.sweep * 1.4));
+          g.fillText(item.text, item.x, item.y - Math.sin(time * 3 + item.x) * size * .01);
+        });
+      }, { radius: size * .45, strength: 1, haze: .45 });
+    }
+    /* heat-haze strips */
+    const strip = Math.max(3, Math.round(size * .06));
+    const top = box.y - size * .2, bottom = box.y + box.h + size * .3;
+    for (let y = top; y < bottom; y += strip) {
+      const rise = clamp(1 - (y - top) / Math.max(1, bottom - top));
+      const dx = (Math.sin(y * .09 - time * 4.2) + .5 * Math.sin(y * .23 - time * 6.7 + 1.3)) * size * .012 * (.25 + rise * 1.2);
       ctx.save();
-      ctx.globalAlpha *= (1 - life) * .5;
-      ctx.fillStyle = '#fb923c';
-      glow(ctx, '#f97316', lay.size * .12);
       ctx.beginPath();
-      ctx.arc(px, py, Math.max(.6, lay.size * .014 * (1 - life * .5)), 0, TAU);
-      ctx.fill();
+      ctx.rect(box.x - size, y, box.w + size * 2, strip + .5);
+      ctx.clip();
+      ctx.translate(dx, 0);
+      Fx.sung(ctx, items, time, pal.text, pal.inactive, .25);
       ctx.restore();
     }
-    rows.forEach(row => {
-      ctx.save();
-      ctx.globalAlpha *= .55 + .45 * phase;
-      ctx.fillStyle = '#fdba74';
-      glow(ctx, rgba('#f97316', .55), lay.size * .32);
-      ctx.fillText(row.text, row.x, row.y - phase * lay.size * .08);
-      ctx.restore();
-    });
-    karaokeRows(ctx, lay, rows, w, h, words, () => '#fff7ed');
-  });
+    /* embers */
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const sources = lit.length ? lit.map(o => o.item) : items;
+    for (let i = 0; i < 34; i += 1) {
+      const seed = i * 7 + 3;
+      const speed = .18 + hash(seed) * .22;
+      const life = (time * speed + hash(seed + 1)) % 1;
+      const src = sources[Math.floor(hash(seed + 2) * sources.length)];
+      if (!src) continue;
+      const x = src.x + hash(seed + 3) * src.width + Math.sin(time * 1.6 + seed) * size * .12 * life;
+      const y = src.y - size * .25 - life * size * 1.9;
+      const heat = 1 - life;
+      const colour = heat > .55 ? Fx.mix('#ffd37a', '#fff3c4', (heat - .55) / .45) : Fx.mix('#d62a10', '#ffb347', heat / .55);
+      const r = Math.max(.7, size * (.012 + hash(seed + 4) * .014) * (1 - life * .6));
+      ctx.fillStyle = Fx.radial(ctx, x, y, 0, r * 4, [[0, Fx.rgba(colour, .75 * heat)], [.3, Fx.rgba(colour, .3 * heat)], [1, Fx.rgba(colour, 0)]]);
+      ctx.fillRect(x - r * 4, y - r * 4, r * 8, r * 8);
+    }
+    ctx.restore();
+    ctx.restore();
+  }, { width: .8, height: .66 });
+
 
   E.sigultraviolet = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
     setFont(ctx, style.effect, lay.size, style);
