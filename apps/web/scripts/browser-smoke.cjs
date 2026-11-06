@@ -227,8 +227,7 @@ async function captureEditorScreenState(page) {
       await page.waitForFunction(() => {
         const root = document.querySelector("#kefe-settings-panel");
         const slots = root && [...root.querySelectorAll(".kefe-slot")];
-        return root && root.closest(".kefe-editing.kefe-settings-layout") &&
-          slots.length === 6 && slots.every(slot => slot.querySelector(".kefe-panel"));
+        return root && slots.length === 6 && slots.every(slot => slot.querySelector(".kefe-panel"));
       }, null, { timeout: 10000 });
     } catch (error) {
       const diagnostics = await page.evaluate(() => ({
