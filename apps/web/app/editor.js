@@ -1045,8 +1045,7 @@
             if(audioContext.state!=='running')throw new Error('Audio output is still suspended');
           }catch(error){
             console.warn('[KEFE audio context]',error);
-            setLyricsStatus('Audio output is unavailable. Tap Play again to resume audio.');
-            return;
+            setLyricsStatus('Audio context could not resume: '+(error?.message||'unknown audio output error'));
           }
         }
         try{
