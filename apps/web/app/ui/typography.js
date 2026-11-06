@@ -149,6 +149,7 @@
   const effects = {
     apple:      { family: families.apple,       weight: 700, min: 42, max: 150, lineHeight: 1.08, tracking: -.020, align: 'center', case: 'none',  opticalScale: 1.00 },
     textswap:   { family: families.ui,          weight: 750, min: 30, max: 180, lineHeight: 1.06, tracking: -.015, align: 'center', case: 'none', opticalScale: 1.00 },
+    lyricpull:  { family: families.ui,          weight: 800, min: 32, max: 190, lineHeight: 1.12, tracking: -.02, align: 'center', case: 'none', opticalScale: 1.00 },
     brat:       { family: families.brat,        weight: 700, min: 36, max: 150, lineHeight: .94,  tracking: -.055, align: 'center', case: 'none',  opticalScale: 1.04 },
     eternal:    { family: families.eternal,     weight: 400, min: 34, max: 150, lineHeight: 1,    tracking: .004,  align: 'left',   case: 'none',  opticalScale: .98 },
     pulse:      { family: families.pulse,       weight: 400, min: 38, max: 160, lineHeight: 1.05, tracking: .010,  align: 'center', case: 'none',  opticalScale: 1.00 },
