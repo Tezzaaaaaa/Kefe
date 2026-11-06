@@ -52,7 +52,7 @@ assert.match(editor, /<meta name="kefe-lyric-signature" content="50">/, "the edi
 assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
 assert.match(editor, /lyric-karaoke\.js/, "the Karaoke and Bounce renderers must stay loaded");
 assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
-assert.match(editor, /lyric-text-swap\\.js/, "Text Swap renderer must be loaded by the editor");
+assert.match(editor, /lyric-text-swap\.js/, "Text Swap renderer must be loaded by the editor");
 assert.match(editor, /lyric-premium-kit\.js[^]*lyric-signature-pack\.js/, "the premium kit must load before the Signature pack");
 assert.match(editor, /effects\/manifest\.js/, "the manifest must be loaded");
 for (const file of ["lyric-aurora", "lyric-pulse", "lyric-typewriter", "lyric-glitch", "lyric-inspiration-pack"]) {
