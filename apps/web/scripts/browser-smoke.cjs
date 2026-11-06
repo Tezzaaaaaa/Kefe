@@ -350,7 +350,7 @@ async function captureEditorScreenState(page) {
       }))
     }));
     assert.equal(mobileWorkspaceLayout.columns, 1, "the selected mobile workspace must use one full-width column");
-    assert.deepEqual(mobileWorkspaceLayout.groups.map(group => group.label), ["Content", "Appearance"", tidySectionMode ? "Audio & Visualiser" : "Audio & Visuals"],
+    assert.deepEqual(mobileWorkspaceLayout.groups.map(group => group.label), ["Content", "Appearance", tidySectionMode ? "Audio & Visualiser" : "Audio & Visuals"],
       "mobile must retain the same three workspace order");
     assert.equal(mobileWorkspaceLayout.groups.filter(group => !group.hidden && group.width > 0 && group.height > 0).length, 1,
       "only the selected workspace should be visible on mobile");
@@ -1097,7 +1097,7 @@ async function captureEditorScreenState(page) {
           panels: panels.map(panel => ({ id: panel.dataset.panelView, visible: getComputedStyle(panel).display !== 'none' && panel.getBoundingClientRect().height > 0 }))
         };
       });
-      assert.deepEqual(workspaceAudit.groups.map(group => [group.id, group.title]), [['content', 'Content'], ['design', 'Appearance''], ['audio-visuals', tidySectionMode ? 'Audio & Visualiser' : 'Audio & Visuals']], 'three named workspaces must appear in order: ' + JSON.stringify(workspaceAudit));
+      assert.deepEqual(workspaceAudit.groups.map(group => [group.id, group.title]), [['content', 'Content'], ['design', 'Appearance'], ['audio-visuals', tidySectionMode ? 'Audio & Visualiser' : 'Audio & Visuals']], 'three named workspaces must appear in order: ' + JSON.stringify(workspaceAudit));
       assert.equal(workspaceAudit.groups.filter(group => !group.hidden).length, 1, 'exactly one workspace panel must be visible');
       assert.equal(workspaceAudit.sections.length, 6, 'all six editor sections must remain mounted');
       assert.equal(workspaceAudit.panels.length, 6, 'each native editor panel must be mounted exactly once');
@@ -1841,7 +1841,7 @@ async function captureEditorScreenState(page) {
       });
       assert.equal(mobileWorkspaceAudit.columnCount, 1,
         `the selected workspace must use one full-width column at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
-      assert.deepEqual(mobileWorkspaceAudit.groups.map(group => group.label), ["Content", "Appearance"", tidySectionMode ? "Audio & Visualiser" : "Audio & Visuals"],
+      assert.deepEqual(mobileWorkspaceAudit.groups.map(group => group.label), ["Content", "Appearance", tidySectionMode ? "Audio & Visualiser" : "Audio & Visuals"],
         `the three workspace panels must remain in their defined order at ${width}px`);
       assert.equal(mobileWorkspaceAudit.visibleGroups, 1,
         `only the selected workspace may be visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
