@@ -1255,29 +1255,50 @@
   }, { width: .82, height: .66 });
 
 
-  E.sigphosphor = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
+  /* Phosphor Drift — CRT persistence. Two coloured phosphor shadows (green and
+     magenta) slide in opposition on slow orbits, each leaving a trail of
+     fading afterimages; the sung word snaps both shadows back onto the glyph
+     (the beam hitting) and then lets them relax. Crisp white type on top. */
+  E.sigphosphor = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    const rows = rowsOf(ctx, lay, w, h);
-    const drift = lay.size * .07 * Math.sin(time * 1.6);
-    const draw = (dx, color, alphaValue) => rows.forEach(row => {
-      ctx.save();
-      ctx.globalAlpha *= alphaValue;
-      ctx.fillStyle = color;
-      glow(ctx, color, lay.size * .24);
-      ctx.fillText(row.text, row.x + dx, row.y);
-      ctx.restore();
-    });
-    draw(-lay.size * .05 - drift, '#10b981', .85);
-    draw(lay.size * .05 + drift, '#38bdf8', .85);
-    const p = U.sungProgress(words, time);
-    const widest = Math.max(...rows.map(row => row.width));
+    const pal = Fx.palette({ text: '#f4fff6', accent: '#3dffa0', inactive: 'rgba(210,255,225,.22)' });
+    const other = pal.accentSet ? Fx.mix(pal.accent, '#ff3df0', .85) : '#ff3df0';
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size;
+    const lift = (phase.leave || 0) * size * .2;
+    let hit = 0;
+    items.forEach(item => { const p = U.wordProgress(item.word, time, .12); hit = Math.max(hit, p.pulse * (p.sweep > .02 ? 1 : 0)); });
+    const spread = size * .09 * (1 - .75 * hit);
     ctx.save();
-    ctx.beginPath();
-    ctx.rect(w / 2 - widest / 2, (h - lay.blockH) / 2 - lay.size * .3, widest * p, lay.blockH + lay.size * .6);
-    ctx.clip();
-    rows.forEach(row => { ctx.fillStyle = '#ecfeff'; ctx.fillText(row.text, row.x, row.y); });
+    ctx.translate(0, -lift);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineJoin = 'round';
+    [[pal.accent, 1], [other, -1]].forEach(([colour, dir]) => {
+      for (let k = 5; k >= 0; k -= 1) {
+        const t = time - k * .045;
+        const ox = dir * Math.cos(t * .9) * spread * 1.3;
+        const oy = dir * Math.sin(t * 1.3) * spread * .7;
+        const a = (k === 0 ? .55 : .2 * (1 - k / 6));
+        ctx.fillStyle = Fx.rgba(colour, a);
+        items.forEach(item => ctx.fillText(item.text, item.x + ox, item.y + oy));
+      }
+    });
     ctx.restore();
-  });
+    const lit = items.map(item => ({ item, p: U.wordProgress(item.word, time, .08) })).filter(o => o.p.sweep > .02);
+    if (lit.length) {
+      Fx.bloom(ctx, w, h, g => {
+        lit.forEach(({ item, p }) => {
+          g.fillStyle = Fx.rgba(pal.accent, (.5 + .5 * p.pulse) * Math.min(1, p.sweep * 1.4));
+          g.fillText(item.text, item.x, item.y);
+        });
+      }, { radius: size * .4, strength: .85, haze: .3 });
+    }
+    Fx.sung(ctx, items, time, pal.text, pal.inactive, .25);
+    ctx.restore();
+  }, { width: .82, height: .66 });
+
 
   E.sigspotlight = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
     setFont(ctx, style.effect, lay.size, style);
