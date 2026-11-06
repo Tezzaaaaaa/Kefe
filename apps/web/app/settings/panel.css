@@ -887,3 +887,63 @@
   .kefe-editor #kefe-settings-panel .kefe-workspace-tabs { gap: 4px; padding: 5px; }
   .kefe-editor #kefe-settings-panel .kefe-workspace-tab { min-height: 40px; padding: 7px 4px; font-size: 11.5px; }
 }
+
+
+/* Consistent nested section rhythm for Background and its effect controls. */
+.kefe-editor #kefe-settings-panel .kefe-background-effects-group {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ksp-border);
+}
+.kefe-editor #kefe-settings-panel .kefe-background-effects-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.kefe-editor #kefe-settings-panel .kefe-background-effects-heading h3 {
+  margin: 0;
+  color: var(--ksp-text);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+.kefe-editor #kefe-settings-panel .kefe-background-effects-heading .kefe-background-effect-toggle {
+  flex: 0 0 auto;
+  margin: 0;
+}
+.kefe-editor #kefe-settings-panel .kefe-advanced-controls {
+  min-width: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--ksp-border);
+}
+.kefe-editor #kefe-settings-panel .kefe-advanced-controls > summary {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  color: var(--ksp-text-dim);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+}
+.kefe-editor #kefe-settings-panel .kefe-advanced-controls > summary::-webkit-details-marker { display: none; }
+.kefe-editor #kefe-settings-panel .kefe-advanced-controls > summary::after {
+  content: "+";
+  margin-left: auto;
+  color: var(--ksp-text-dim);
+  font-size: 16px;
+}
+.kefe-editor #kefe-settings-panel .kefe-advanced-controls[open] > summary::after { content: "−"; }
+.kefe-editor #kefe-settings-panel .kefe-advanced-controls > .section { margin-top: 8px; }
+@media (max-width: 420px) {
+  .kefe-editor #kefe-settings-panel .kefe-background-effects-heading { align-items: flex-start; }
+  .kefe-editor #kefe-settings-panel .kefe-advanced-controls > summary { min-height: 40px; }
+}
