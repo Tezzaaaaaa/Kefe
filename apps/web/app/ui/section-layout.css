@@ -500,3 +500,11 @@
 @media (prefers-reduced-motion: reduce) {
   .kefe-lyric-effect-preview-button { transition: none; }
 }
+
+/* Text Swap exposes its motion presets only while that lyric effect is selected. */
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-text-swap-settings {
+  display:grid; grid-template-columns:minmax(0,1fr); gap:6px; width:100%; margin:10px 0 2px;
+}
+.kefe-text-swap-settings[hidden] { display:none !important; }
+.kefe-text-swap-settings > span { color:var(--muted,#9295a0); font-size:11px; font-weight:650; }
+.kefe-text-swap-settings > select { width:100%; min-width:0; }

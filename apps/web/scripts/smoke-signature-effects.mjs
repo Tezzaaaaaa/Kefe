@@ -27,7 +27,7 @@ vm.createContext(sandbox);
 vm.runInContext(read("app/effects/manifest.js"), sandbox, { filename: "manifest.js" });
 const manifest = sandbox.window.KEFE_EFFECTS;
 assert.ok(Array.isArray(manifest), "manifest must publish KEFE_EFFECTS");
-assert.equal(manifest.length, 51, `roster must be Apple + 50 Signature effects, found ${manifest.length}`);
+assert.equal(manifest.length, 52, `roster must be Apple + Text Swap + 50 Signature effects, found ${manifest.length}`);
 assert.equal(manifest[0].key, "apple", "Apple must stay first in the roster");
 assert.equal(manifest.filter(item => item.key === "apple").length, 1, "Apple must be listed exactly once");
 const manifestKeys = Array.from(manifest, item => item.key);
@@ -43,7 +43,7 @@ for (const [category, list] of EXPECTED) {
   }
 }
 for (const key of keys) assert.ok(manifestKeys.includes(key), `${key} is missing from the manifest`);
-const legacy = Array.from(manifestKeys).filter(key => key !== "apple" && !key.startsWith("sig"));
+const legacy = Array.from(manifestKeys).filter(key => key !== "apple" && key !== "textswap" && !key.startsWith("sig"));
 assert.deepEqual(legacy, [], `legacy effects must be removed from the roster: ${legacy.join(", ")}`);
 
 /* ---- page wiring ------------------------------------------------- */
@@ -52,6 +52,7 @@ assert.match(editor, /<meta name="kefe-lyric-signature" content="50">/, "the edi
 assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
 assert.match(editor, /lyric-karaoke\.js/, "the Karaoke and Bounce renderers must stay loaded");
 assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
+assert.match(editor, /lyric-text-swap\.js/, "Text Swap renderer must be loaded by the editor");
 assert.match(editor, /lyric-premium-kit\.js[^]*lyric-signature-pack\.js/, "the premium kit must load before the Signature pack");
 assert.match(editor, /effects\/manifest\.js/, "the manifest must be loaded");
 for (const file of ["lyric-aurora", "lyric-pulse", "lyric-typewriter", "lyric-glitch", "lyric-inspiration-pack"]) {
@@ -66,6 +67,7 @@ assert.match(editorSource, /if\(state\.effect==='apple'\)\{\s*const u=Math\.min\
 
 /* ---- typography contracts ---------------------------------------- */
 const typography = read("app/ui/typography.js");
+assert.match(typography, /\n\s+textswap:\s*\{ family: families\./, "Text Swap needs a typography contract");
 for (const key of keys) {
   assert.match(typography, new RegExp(`\\n\\s+${key}: \\{ family: families\\.`), `${key} needs a typography contract`);
 }
@@ -118,6 +120,8 @@ vm.runInContext(read("app/effects/core.js"), runtime, { filename: "core.js" });
 vm.runInContext(read("app/effects/lyric-premium-kit.js"), runtime, { filename: "lyric-premium-kit.js" });
 assert.equal(typeof runtime.kefeFx?.bloom, "function", "the premium kit must publish window.kefeFx");
 vm.runInContext(read("app/effects/lyric-signature-pack.js"), runtime, { filename: "lyric-signature-pack.js" });
+vm.runInContext(read("app/effects/lyric-text-swap.js"), runtime, { filename: "lyric-text-swap.js" });
+assert.equal(typeof runtime.kefeEffects.textswap, "function", "Text Swap renderer must register");
 const registered = Object.keys(runtime.kefeEffects || {}).filter(key => key.startsWith("sig"));
 assert.deepEqual(registered.sort(), [...keys].sort(), "renderer registrations must match the roster");
 assert.equal(typeof runtime.kefeEffects.apple, "undefined", "the Apple renderer is owned by lyric-apple.js");
@@ -146,6 +150,15 @@ for (const key of ["karaoke", "bounce"]) {
 }
 
 const plainLines = [{ text: "NO WORD TIMINGS", time: 0, endTime: 3 }, { text: "SECOND LINE", time: 3, endTime: 5 }];
+for (const preset of ["fly-through", "fade-through", "crossfade", "shared-axis-y", "shared-axis-z", "cut"]) {
+  runtime.kefeTextSwapPreset = preset;
+  const ctx = makeContext();
+  runtime.kefeEffects.textswap(ctx, 1280, 720, { effect: "textswap", fontSize: 84 }, plainLines, 3.18);
+  assert.ok(ctx.fills > 0, `Text Swap ${preset} must paint during a line transition`);
+  ctx.resetFills();
+  runtime.kefeEffects.textswap(ctx, 360, 640, { effect: "textswap", fontSize: 48 }, plainLines, 4.2);
+  assert.ok(ctx.fills > 0, `Text Swap ${preset} must paint after a transition on mobile`);
+}
 for (const key of keys) {
   const ctx = makeContext();
   const style = { effect: key, fontSize: 84, kefeMotionFont: "Open Sans" };
@@ -159,4 +172,4 @@ for (const key of keys) {
   }
 }
 
-console.log(`Signature LyricFX verified: Apple + ${keys.length} effects, Karaoke/Bounce renderers, unique keys/labels, contracts, wiring and canvas output.`);
+console.log(`Lyric effects verified: Apple + Text Swap (6 presets) + ${keys.length} Signature effects, Karaoke/Bounce renderers, unique keys/labels, contracts, wiring and canvas output.`);
