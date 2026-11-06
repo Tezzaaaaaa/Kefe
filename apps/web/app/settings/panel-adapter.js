@@ -3,8 +3,8 @@
 
   const scriptSrc = document.currentScript && document.currentScript.src;
   const MARKUP_URL = scriptSrc
-    ? new URL('./panel.html?v=simple-lyric-sync-20261107-2', scriptSrc)
-    : new URL('./app/settings/panel.html?v=simple-lyric-sync-20261107-2', window.location.href);
+    ? new URL('./panel.html?v=subtabs-20261107-1', scriptSrc)
+    : new URL('./app/settings/panel.html?v=subtabs-20261107-1', window.location.href);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
     'lyric-sync': 'lyrics',
@@ -95,6 +95,75 @@
       root.dataset.activeWorkspace = name;
       if (moveFocus) selectedTab.focus();
     }
+    /* Subtabs: each workspace lists its features as a second row of tabs and shows one at a time. */
+    const SUBTAB_LABELS = Object.freeze({
+      media: 'Media', 'lyric-sync': 'Lyric Sync', 'lyric-effects': 'Lyric Effects',
+      background: 'Background', visualisers: 'Visualisers', export: 'Export'
+    });
+    const subtabApis = new Map();
+    workspaces.forEach(workspace => {
+      const stack = workspace.querySelector('.kefe-workspace-stack');
+      const sections = Array.from(workspace.querySelectorAll('.section[data-section-id]'));
+      if (!stack || !sections.length) return;
+      const list = document.createElement('div');
+      list.className = 'kefe-subtabs';
+      list.setAttribute('role', 'tablist');
+      list.setAttribute('aria-label', (workspace.querySelector('.kefe-workspace-title')?.textContent || 'Workspace') + ' sections');
+      list.style.setProperty('--kefe-subtab-count', String(sections.length));
+      const items = sections.map(section => {
+        const id = section.dataset.sectionId;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'kefe-subtab';
+        button.setAttribute('role', 'tab');
+        button.id = 'kefe-subtab-' + id;
+        button.setAttribute('aria-controls', section.querySelector('.section-content')?.id || '');
+        button.textContent = SUBTAB_LABELS[id] || id;
+        section.setAttribute('role', 'tabpanel');
+        section.setAttribute('aria-labelledby', button.id);
+        list.appendChild(button);
+        return { id, section, button };
+      });
+      function select(id, moveFocus) {
+        const target = items.find(item => item.id === id) || items[0];
+        items.forEach(item => {
+          const on = item === target;
+          item.button.setAttribute('aria-selected', String(on));
+          item.button.tabIndex = on ? 0 : -1;
+          item.section.hidden = !on;
+        });
+        workspace.dataset.activeSection = target.id;
+        try { localStorage.setItem('kefe.subtab.' + workspace.dataset.group, target.id); } catch (e) { /* storage unavailable */ }
+        if (moveFocus) target.button.focus();
+      }
+      items.forEach((item, index) => {
+        item.button.addEventListener('click', () => select(item.id, false));
+        item.button.addEventListener('keydown', event => {
+          let next = index;
+          if (event.key === 'ArrowRight') next = (index + 1) % items.length;
+          else if (event.key === 'ArrowLeft') next = (index - 1 + items.length) % items.length;
+          else if (event.key === 'Home') next = 0;
+          else if (event.key === 'End') next = items.length - 1;
+          else return;
+          event.preventDefault();
+          select(items[next].id, true);
+        });
+      });
+      stack.insertBefore(list, stack.firstChild);
+      let saved = null;
+      try { saved = localStorage.getItem('kefe.subtab.' + workspace.dataset.group); } catch (e) { /* ignore */ }
+      select(saved, false);
+      subtabApis.set(workspace.dataset.group, select);
+    });
+    function activateSection(sectionId) {
+      for (const workspace of workspaces) {
+        if (workspace.querySelector('.section[data-section-id="' + sectionId + '"]')) {
+          activateWorkspace(workspace.dataset.group, false);
+          subtabApis.get(workspace.dataset.group)?.(sectionId, false);
+          return;
+        }
+      }
+    }
     const initialTab = tabs.find(tab => tab.getAttribute('aria-selected') === 'true') || tabs[0];
     activateWorkspace(initialTab.dataset.workspaceTab, false);
     tabs.forEach((tab, index) => {
@@ -179,7 +248,8 @@
       panel: settingsPanel,
       readPanelValues,
       getSlot: name => settingsPanel.getSlot(name),
-      activateWorkspace
+      activateWorkspace,
+      activateSection
     });
   }
 

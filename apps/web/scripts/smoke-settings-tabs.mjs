@@ -19,8 +19,8 @@ for (const slot of ["media", "lyric-sync", "lyric-effects", "background", "visua
 if ((panelHtml.match(/data-expanded="true"/g) || []).length !== 6) {
   failures.push("All six native control panels must retain their expanded content state.");
 }
-if (!panelHtml.includes("Audio &amp; Visualiser") || !panelHtml.includes("<summary>Advanced</summary>")) {
-  failures.push("Audio & Visualiser must be clearly named and Export must be inside collapsed Advanced controls.");
+if (!panelHtml.includes("Audio &amp; Visualiser") || panelHtml.includes("kefe-advanced-controls") || !adapter.includes("kefe-subtabs")) {
+  failures.push("Audio & Visualiser must be clearly named, and every workspace must list its features as subtabs (no Advanced wrapper).");
 }
 if (!bg.includes("effectsGroup.dataset.backgroundGroup='effects'") || !bg.includes("Background Effects")) {
   failures.push("Background and Background Effects must have distinct visible group structure.");
@@ -43,8 +43,8 @@ if (!adapter.includes("panel.classList.add('kefe-settings-embedded-panel', 'acti
 if (!panelStyles.includes(".kefe-workspace-tabs") || !panelStyles.includes(".kefe-workspace[hidden]")) {
   failures.push("Persistent workspace tabs must control one visible workspace at a time.");
 }
-if (!panelStyles.includes(".kefe-advanced-controls") || !panelStyles.includes(".kefe-background-effects-group")) {
-  failures.push("Advanced and Background Effects groups must have consistent dedicated styling.");
+if (!panelStyles.includes(".kefe-subtab") || !panelStyles.includes(".kefe-background-effects-group")) {
+  failures.push("Subtabs and Background Effects groups must have consistent dedicated styling.");
 }
 
 if (failures.length) {
