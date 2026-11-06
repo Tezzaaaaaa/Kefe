@@ -949,3 +949,12 @@
 }
 
 .kefe-editor #kefe-settings-panel .kefe-advanced-controls:not([open]) > .section { display: none !important; }
+
+
+/* Keep the global reset action at the end of the settings workspaces. */
+.kefe-settings-panel .kefe-reset-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+  padding: 0 2px;
+}
