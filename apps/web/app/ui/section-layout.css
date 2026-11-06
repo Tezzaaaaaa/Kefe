@@ -510,33 +510,36 @@
 .kefe-text-swap-settings > select { width:100%; min-width:0; }
 
 
-/* Six-card lyric-effects gallery.
-   The gallery is vertical, so remove the legacy three-column carousel shell and
-   give each preview a real, stable card height instead of squeezing rows. */
+/* Lyric Effects gallery: six complete, readable cards in a fixed viewport.
+   Explicit card rows prevent fractional grid sizing from squeezing previews and labels. */
 .kefe-lyric-effect-carousel {
   display: block !important;
   width: 100% !important;
-  min-width: 0;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
 }
 .kefe-lyric-effect-carousel > .kefe-lyric-effect-carousel-nav {
   display: none !important;
 }
 #kefe-settings-panel #lyricEffectOptions,
+#kefe-settings-panel .kefe-workspace #lyricEffectOptions,
 .kefe-ms-host #lyricEffectOptions {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  grid-auto-flow: row !important;
-  grid-auto-rows: 132px !important;
   grid-template-rows: none !important;
+  grid-auto-flow: row !important;
+  grid-auto-rows: 112px !important;
   align-content: start !important;
   align-items: stretch !important;
   gap: 8px !important;
-  width: 100% !important;
-  height: 272px !important;
-  max-height: 272px !important;
-  min-height: 0 !important;
-  padding: 2px !important;
   box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 232px !important;
+  min-height: 232px !important;
+  max-height: 232px !important;
+  padding: 4px 8px 4px 2px !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   overscroll-behavior-y: contain;
@@ -544,51 +547,97 @@
   -webkit-overflow-scrolling: touch;
 }
 #kefe-settings-panel #lyricEffectOptions > .kefe-lyric-effect-option,
+#kefe-settings-panel .kefe-workspace #lyricEffectOptions > .kefe-lyric-effect-option,
 .kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option {
-  display: grid !important;
-  grid-template-rows: minmax(0, 1fr) auto !important;
+  display: flex !important;
   flex: none !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  min-height: 132px !important;
-  height: 132px !important;
-  max-height: 132px !important;
-  padding: 7px !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
   gap: 6px !important;
   box-sizing: border-box !important;
-  overflow: hidden;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--sl-card-border, rgba(255,255,255,.16)) !important;
+  border-radius: var(--sl-card-radius, 8px) !important;
+  background: var(--sl-card-bg, #1f2026) !important;
+  color: var(--text-primary, var(--text, #f5f5f5)) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+#kefe-settings-panel #lyricEffectOptions > .kefe-lyric-effect-option.active,
+#kefe-settings-panel #lyricEffectOptions > .kefe-lyric-effect-option[aria-pressed="true"],
+.kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option.active,
+.kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option[aria-pressed="true"] {
+  border-color: var(--sl-card-active, var(--accent, #d92f33)) !important;
+  background: color-mix(in srgb, var(--sl-card-active, var(--accent, #d92f33)) 12%, var(--sl-card-bg, #1f2026)) !important;
 }
 #kefe-settings-panel #lyricEffectOptions .kefe-lyric-effect-sample,
 .kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-sample {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 64px !important;
   width: 100% !important;
-  min-width: 0;
-  min-height: 0 !important;
-  height: 100% !important;
+  height: 64px !important;
+  min-height: 64px !important;
   aspect-ratio: auto !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  border-radius: 5px !important;
+  background: rgba(0,0,0,.18) !important;
+}
+#kefe-settings-panel #lyricEffectOptions .kefe-lyric-effect-canvas,
+.kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-canvas {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
 }
 #kefe-settings-panel #lyricEffectOptions .kefe-lyric-effect-name,
 .kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-name {
   display: block !important;
-  min-height: 2.4em;
-  max-height: 2.4em;
-  overflow: hidden;
-  font-size: 11px;
-  line-height: 1.2;
-  text-overflow: ellipsis;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: 1.3em !important;
+  overflow: hidden !important;
+  color: inherit !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  line-height: 1.25 !important;
+  text-align: center !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 @media (max-width: 1023px) {
   #kefe-settings-panel #lyricEffectOptions,
+  #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
   .kefe-ms-host #lyricEffectOptions {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-auto-rows: 124px !important;
-    height: 388px !important;
-    max-height: 388px !important;
+    grid-auto-rows: 104px !important;
+    height: 336px !important;
+    min-height: 336px !important;
+    max-height: 336px !important;
+  }
+  #kefe-settings-panel #lyricEffectOptions .kefe-lyric-effect-sample,
+  .kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-sample {
+    flex-basis: 56px !important;
+    height: 56px !important;
+    min-height: 56px !important;
   }
   #kefe-settings-panel #lyricEffectOptions > .kefe-lyric-effect-option,
   .kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option {
-    min-height: 124px !important;
-    height: 124px !important;
-    max-height: 124px !important;
+    gap: 5px !important;
+    padding: 5px !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {
