@@ -290,14 +290,11 @@ async function captureEditorScreenState(page) {
       { label: "Actions", controls: ["More actions"] }
     ], "toolbar actions must appear once in their intended functional groups");
     const hasTimelineControlLayout = await page.locator(".kefe-stage > #previewFullscreen").count() === 1;
+    assert.equal(await page.locator(".kefe-timeline > #kefeFloatingToolbar").count(), 1,
+      "the toolbar launcher must sit in the timeline beside volume");
     if (hasTimelineControlLayout) {
-      assert.equal(await page.locator(".kefe-timeline > #kefeFloatingToolbar").count(), 1,
-        "the editor toolbar launcher must sit in the timeline beside volume");
       assert.equal(await page.locator(".kefe-preview-dock").count(), 0,
         "the obsolete preview toolbar dock must remain absent");
-    } else {
-      assert.equal(await page.locator(".kefe-sidebar-group-editor > #kefeFloatingToolbar").count(), 1,
-        "the unchanged main-branch baseline must retain its header toolbar");
     }
     const frameState = async () => page.locator(".kefe-stage").evaluate(node => {
       const style = getComputedStyle(node);
@@ -336,11 +333,6 @@ async function captureEditorScreenState(page) {
         && initialToolbarPlacement.fullscreen.top >= initialToolbarPlacement.stage.top
         && initialToolbarPlacement.fullscreen.top <= initialToolbarPlacement.stage.top + 24,
         `fullscreen control must be anchored at the preview's top-right: ${JSON.stringify(initialToolbarPlacement)}`);
-    } else {
-      const editor = await page.locator("[data-editor-tab]").boundingBox();
-      const toolbar = await page.locator("#kefeFloatingToolbar").boundingBox();
-      assert.ok(editor && toolbar && toolbar.x >= editor.x + editor.width - 1,
-        "the unchanged main-branch baseline must retain its toolbar beside Editor");
     }
 
     const tidySectionMode = await page.evaluate(() => Boolean(document.querySelector(".kefe-advanced-controls")));
