@@ -327,28 +327,35 @@ async function captureEditorScreenState(page) {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
-    // Mobile keeps all three workspaces in the page, stacked below the preview.
+    // Mobile keeps all three workspace tabs visible and exposes one selected panel.
     await page.waitForFunction(() => {
       const root = document.querySelector("#kefe-settings-panel");
       const workspaces = [...(root?.querySelectorAll(".kefe-workspace[data-group]") || [])];
+      const tabs = [...(root?.querySelectorAll('[role="tab"][data-workspace-tab]') || [])];
       const panels = [...(root?.querySelectorAll(".kefe-panel[data-panel-view]") || [])];
-      return workspaces.length === 3 && panels.length === 6 &&
-        workspaces.every(node => getComputedStyle(node).display !== "none" && node.getBoundingClientRect().height > 0) &&
-        panels.every(node => getComputedStyle(node).display !== "none" && node.getBoundingClientRect().height > 0);
+      return workspaces.length === 3 && tabs.length === 3 && panels.length === 6 &&
+        workspaces.filter(node => !node.hidden && node.getBoundingClientRect().height > 0).length === 1;
     }, null, { timeout: 5000 });
     const mobileWorkspaceLayout = await page.locator("#kefe-settings-panel .kefe-settings-columns").evaluate(node => ({
       columns: getComputedStyle(node).gridTemplateColumns.trim().split(/\\s+/).length,
       groups: [...node.querySelectorAll(":scope > .kefe-workspace")].map(group => ({
         label: group.querySelector(".kefe-workspace-title")?.textContent.trim(),
+        hidden: group.hidden,
         width: group.getBoundingClientRect().width,
         height: group.getBoundingClientRect().height
+      })),
+      tabs: [...node.parentElement.querySelectorAll('[role="tab"][data-workspace-tab]')].map(tab => ({
+        label: tab.textContent.trim(),
+        width: tab.getBoundingClientRect().width
       }))
     }));
-    assert.equal(mobileWorkspaceLayout.columns, 1, "mobile must stack the three workspaces in one column");
-    assert.deepEqual(mobileWorkspaceLayout.groups.map(group => group.label), ["Content", "Design", "Audio & Visuals"],
+    assert.equal(mobileWorkspaceLayout.columns, 1, "the selected mobile workspace must use one full-width column");
+    assert.deepEqual(mobileWorkspaceLayout.groups.map(group => group.label), ["Content", "Appearance", "Audio & Visualiser"],
       "mobile must retain the same three workspace order");
-    assert.ok(mobileWorkspaceLayout.groups.every(group => group.width > 0 && group.height > 0),
-      "all mobile workspaces must remain visible without opening a drawer");
+    assert.equal(mobileWorkspaceLayout.groups.filter(group => !group.hidden && group.width > 0 && group.height > 0).length, 1,
+      "only the selected workspace should be visible on mobile");
+    assert.equal(mobileWorkspaceLayout.tabs.length, 3, "all three workspace tabs must remain available on mobile");
+    assert.ok(mobileWorkspaceLayout.tabs.every(tab => tab.width > 0), "all three mobile workspace tabs must remain visible");
     const mobileUploadLayout = await page.locator('.kefe-workspace[data-group="content"] .kefe-panel[data-panel-view="media"] .kefe-media-upload-row').evaluate(node => {
       const style = getComputedStyle(node);
       const boxes = [...node.children].map(child => {
