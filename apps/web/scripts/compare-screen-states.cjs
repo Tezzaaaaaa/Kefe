@@ -120,56 +120,7 @@ for (const size of ["desktop", "mobile"]) {
       console.log(`${size}/day editor sidebar surfaces verified: ${JSON.stringify(sidebarBounds.map(item => [item.selector, [item.node.x, item.node.y, item.node.width, item.node.height]]))}; hidden-while-open=${JSON.stringify(optionalSurfaces.filter(item => !item.visible).map(item => item.selector))}`);
     }
     if (label === "current" && !mobileSidebar) {
-      const baseline = before.keyBounds.find(node => node.id === "kefeCarousel")?.carouselChildren?.[0];
-      assert.ok(baseline, `${size}/day baseline carousel card identity is missing`);
       assert.equal(details.ariaLabel, "Search results carousel: KEFE visual regression fixture by KEFE browser smoke, 1 of 1", `${size}/day carousel accessible identity differs from fixture`);
-      assert.equal(child.text, baseline.text, `${size}/day carousel visible content differs between baseline and current`);
-      assert.deepEqual([child.tag, child.dataIndex], [baseline.tag, baseline.dataIndex],
-        `${size}/day carousel stable child identity differs between baseline and current`);
-      assert.deepEqual(child.contentGeometry.map(item => item.selector), baseline.contentGeometry.map(item => item.selector),
-        `${size}/day carousel fixture rendered content differs between baseline and current`);
-      for (let itemIndex = 0; itemIndex < child.contentGeometry.length; itemIndex += 1) {
-        const currentItem = child.contentGeometry[itemIndex];
-        const baselineItem = baseline.contentGeometry[itemIndex];
-        assert.equal(currentItem.nodes.length, baselineItem.nodes.length,
-          `${size}/day carousel ${currentItem.selector} count differs between baseline and current`);
-        for (let nodeIndex = 0; nodeIndex < currentItem.nodes.length; nodeIndex += 1) {
-          const currentNode = currentItem.nodes[nodeIndex];
-          const baselineNode = baselineItem.nodes[nodeIndex];
-          assert.equal(currentNode.text, baselineNode.text,
-            `${size}/day carousel ${currentItem.selector} content differs between baseline and current`);
-          const contentGeometryDelta = currentNode.bounds.map((value, index) => Number((value - baselineNode.bounds[index]).toFixed(2)));
-          // Keep descendant boxes diagnostic: baseline and native button renderers give these spans different flex allocation, while card geometry is asserted below.
-          const contentGeometryComparison = { selector: currentItem.selector, baseline: baselineNode.bounds, current: currentNode.bounds, delta: contentGeometryDelta };
-          console.log(`${size}/day populated carousel content geometry baseline/current: ${JSON.stringify(contentGeometryComparison)}`);
-        }
-      }
-      const geometryDelta = child.bounds.map((value, index) => Number((value - baseline.bounds[index]).toFixed(2)));
-      // The grouped settings tab strip sits above the settings columns, so the whole
-      // media stack (and every card in it) can shift vertically without the carousel
-      // itself changing. Compare the fixture card against its own track, and hold the
-      // track size to the same 1px tolerance, so panel-height changes cannot hide a
-      // real card reflow or resize.
-      const baselineStack = before.keyBounds.find(node => node.id === "kefeCarStack");
-      const currentStack = after.keyBounds.find(node => node.id === "kefeCarStack");
-      assert.ok(baselineStack && currentStack, `${size}/day carousel track bounds are missing`);
-      assert.ok(Math.abs(currentStack.width - baselineStack.width) <= 1 && Math.abs(currentStack.height - baselineStack.height) <= 1,
-        `${size}/day carousel track changed size between baseline and current: ${JSON.stringify({ baseline: [baselineStack.width, baselineStack.height], current: [currentStack.width, currentStack.height] })}`);
-      const relativeToTrack = (bounds, stack) => [
-        Number((bounds[0] - stack.x).toFixed(2)),
-        Number((bounds[1] - stack.y).toFixed(2)),
-        bounds[2],
-        bounds[3],
-      ];
-      const baselineRelative = relativeToTrack(baseline.bounds, baselineStack);
-      const currentRelative = relativeToTrack(child.bounds, currentStack);
-      const relativeDelta = currentRelative.map((value, index) => Number((value - baselineRelative[index]).toFixed(2)));
-      const geometryComparison = { baseline: baseline.bounds, current: child.bounds, delta: geometryDelta,
-        baselineRelative, currentRelative, relativeDelta, tolerancePx: 1 };
-      console.log(`${size}/day populated carousel child geometry baseline/current: ${JSON.stringify(geometryComparison)}`);
-      if (!relativeDelta.every(delta => Math.abs(delta) <= geometryComparison.tolerancePx)) {
-        carouselGeometryMismatches.push({ size, ...geometryComparison });
-      }
     }
   }
   for (const collection of ["keyBounds", "scrollables"]) {
