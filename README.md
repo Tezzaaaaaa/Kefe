@@ -45,7 +45,7 @@ Effects provide different animation and typography treatments. Available control
 
 ### Navigation
 
-- One KEFE header bar holds the brand, a single Editor entry and the Settings, day/night, search and GitHub actions.
+- One KEFE header bar holds the brand, a single Editor entry and the Settings, day/night and search actions; the repository link lives inside Settings.
 - Editor sections open from the editor's own panels on desktop and the dock/drawer on phones and small tablets; the header does not repeat them as tabs.
 
 ### Preview and visualiser

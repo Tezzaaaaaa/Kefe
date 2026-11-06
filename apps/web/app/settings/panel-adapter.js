@@ -26,6 +26,30 @@
     const template = document.createElement('template');
     template.innerHTML = await response.text();
     const root = template.content.querySelector('#kefe-settings-panel');
+    let settingsFooter = root.querySelector('.kefe-reset-footer');
+    if (!settingsFooter) {
+      settingsFooter = document.createElement('div');
+      settingsFooter.className = 'kefe-reset-footer';
+      root.appendChild(settingsFooter);
+    }
+    if (!settingsFooter.querySelector('.kefe-settings-github')) {
+      const githubLink = document.createElement('a');
+      githubLink.className = 'kefe-settings-github';
+      githubLink.href = 'https://github.com/Tezzaaaaaa/Kefe';
+      githubLink.target = '_blank';
+      githubLink.rel = 'noopener noreferrer';
+      githubLink.setAttribute('aria-label', 'KEFE on GitHub');
+      const githubIcon = document.createElement('span');
+      githubIcon.setAttribute('data-kefe-icon', 'github');
+      githubIcon.setAttribute('data-icon-size', '16');
+      githubIcon.setAttribute('aria-hidden', 'true');
+      const githubLabel = document.createElement('span');
+      githubLabel.textContent = 'GitHub';
+      githubLink.append(githubIcon, githubLabel);
+      settingsFooter.insertBefore(githubLink, settingsFooter.firstChild);
+      window.kefeHydrateIcons?.(githubLink);
+    }
+
     const api = window.kefeSettings;
     if (!root || !window.KefeSettingsPanel || !api ||
         typeof api.defaults !== 'function' || typeof api.get !== 'function' ||

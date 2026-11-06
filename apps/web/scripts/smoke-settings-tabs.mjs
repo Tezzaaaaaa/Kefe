@@ -25,6 +25,10 @@ if (!panelHtml.includes("Audio &amp; Visualiser") || !panelHtml.includes("<summa
 if (!bg.includes("effectsGroup.dataset.backgroundGroup='effects'") || !bg.includes("Background Effects")) {
   failures.push("Background and Background Effects must have distinct visible group structure.");
 }
+if (!(panelHtml.includes("kefe-settings-github") || adapter.includes("kefe-settings-github")) ||
+    !(panelHtml.includes("https://github.com/Tezzaaaaaa/Kefe") || adapter.includes("https://github.com/Tezzaaaaaa/Kefe"))) {
+  failures.push("The KEFE repository link must be available inside Settings.");
+}
 if (panelHtml.includes("expand-button") || panelHtml.includes("data-expanded=\"false\"")) {
   failures.push("Workspace controls must not be hidden behind accordions.");
 }
