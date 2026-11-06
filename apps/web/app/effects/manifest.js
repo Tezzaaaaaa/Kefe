@@ -75,5 +75,6 @@ window.KEFE_EFFECTS = [
   { key: 'sigcinemabars', label: 'Cinema Bars', description: 'Anamorphic punch framed by closing letterbox bars', category: 'Dimensional Depth' },
 
   /* Flagship */
-  { key: 'sigluminaire', label: 'Luminaire', description: 'Cinematic polished-metal title: extruded type, sheen, lens streak, motes and mirror floor', category: 'Flagship' }
+  { key: 'sigluminaire', label: 'Luminaire', description: 'Cinematic polished-metal title: extruded type, sheen, lens streak, motes and mirror floor', category: 'Flagship' },
+  { key: 'sigpresscycle', label: 'Press Cycle', description: 'Each sung word flashes through a collage of editorial cover styles, then lands clean', category: 'Flagship' }
 ];

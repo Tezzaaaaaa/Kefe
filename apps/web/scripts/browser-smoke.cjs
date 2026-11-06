@@ -484,7 +484,7 @@ async function captureEditorScreenState(page) {
     // The Signature pack is declared in the current editor template, so the
     // main-branch baseline (which predates it) can reuse this script.
     const signaturePack = await page.evaluate(() =>
-      document.querySelector('meta[name="kefe-lyric-signature"]')?.content === "51");
+      document.querySelector('meta[name="kefe-lyric-signature"]')?.content === "52");
     if (!signaturePack) console.log("Baseline has no Signature LyricFX pack; skipping its gallery assertions.");
     if (signaturePack) {
       assert.match(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option[data-effect="sigkineticpunch"]').textContent(), /Kinetic Punch/,

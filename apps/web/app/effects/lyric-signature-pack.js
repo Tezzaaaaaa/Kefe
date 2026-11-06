@@ -1864,6 +1864,132 @@
     ctx.restore();
   }, { width: .8, height: .66 });
 
+  /* Press Cycle — every sung word is struck through a rapid collage of editorial
+     cover styles. Eight original newsstand voices (fashion serif, tabloid, newsprint
+     with halftone, terminal mono, glossy pop, torn zine, lifestyle script, sports
+     condensed) land as paper tiles on top of each other, each with its own stock,
+     ink, texture, tilt and shadow, then the pile whips away and the word settles
+     into the clean line. The style order is different for every word. */
+  const PRESS_STYLES = [
+    { family: 'VogueNoir', weight: 400, bg: '#f3eee4', ink: '#121212', rule: '#121212', fit: .84, tag: 'N° 12' },
+    { family: 'Anton', weight: 400, bg: '#ffd400', ink: '#111111', upper: true, fit: .9, tag: 'EXCLUSIVE' },
+    { family: 'AuraSerif', weight: 400, bg: '#e6e0cf', ink: '#1c1b18', halftone: true, fit: .86, tag: 'LATE EDITION' },
+    { family: 'Courier Prime', weight: 700, bg: '#08100c', ink: '#79ffa0', upper: true, scan: true, fit: .86, tag: 'v2.0' },
+    { family: 'Inter Tight', weight: 900, bg: ['#ff3d8b', '#ff8a3d'], ink: '#ffffff', fit: .9, shadow: '#7a0f3a', tag: 'ISSUE 07' },
+    { family: 'BlockParty', weight: 400, bg: '#fbfaf6', ink: '#0a0a0a', torn: true, tape: true, fit: .86, tag: 'ZINE' },
+    { family: 'Homemade Apple', weight: 400, bg: '#f7d6c7', ink: '#7a2e1d', lower: true, fit: .8, tag: 'Spring' },
+    { family: 'Archivo Narrow', weight: 900, bg: '#0b2c73', ink: '#ffffff', upper: true, stripes: true, fit: .92, tag: 'MATCHDAY' },
+  ];
+
+  E.sigpresscycle = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
+    setFont(ctx, style.effect, lay.size, style);
+    const pal = Fx.palette({ text: '#ffffff', accent: '#ffffff', inactive: 'rgba(255,255,255,.24)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size;
+    const lift = (phase.leave || 0) * size * .25;
+    const baseFont = ctx.font, baseSpacing = ctx.letterSpacing;
+    ctx.save();
+    ctx.translate(0, -lift);
+    ctx.shadowColor = 'rgba(0,0,0,.35)';
+    ctx.shadowBlur = size * .08;
+    ctx.shadowOffsetY = size * .025;
+    Fx.sung(ctx, items, time, pal.text, pal.inactive, .3);
+    ctx.shadowColor = 'transparent';
+    const tile = (st, text, cx, cy, tw, th, rot, scale, seed, alpha) => {
+      const label = st.upper ? text.toUpperCase() : st.lower ? text.toLowerCase() : text;
+      ctx.save();
+      ctx.globalAlpha *= alpha;
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.scale(scale, scale);
+      ctx.shadowColor = 'rgba(0,0,0,.5)';
+      ctx.shadowBlur = size * .14;
+      ctx.shadowOffsetY = size * .05;
+      /* paper stock */
+      ctx.beginPath();
+      if (st.torn) {
+        const n = 14;
+        for (let i = 0; i <= n; i += 1) ctx.lineTo(-tw / 2 + tw * i / n, -th / 2 + (Fx.hash(seed + i) - .5) * th * .09);
+        for (let i = 0; i <= 5; i += 1) ctx.lineTo(tw / 2 + (Fx.hash(seed + 30 + i) - .5) * tw * .03, -th / 2 + th * i / 5);
+        for (let i = n; i >= 0; i -= 1) ctx.lineTo(-tw / 2 + tw * i / n, th / 2 + (Fx.hash(seed + 60 + i) - .5) * th * .09);
+        for (let i = 5; i >= 0; i -= 1) ctx.lineTo(-tw / 2 + (Fx.hash(seed + 90 + i) - .5) * tw * .03, -th / 2 + th * i / 5);
+      } else ctx.rect(-tw / 2, -th / 2, tw, th);
+      ctx.closePath();
+      ctx.fillStyle = Array.isArray(st.bg) ? Fx.lineGradient(ctx, -tw / 2, -th / 2, tw / 2, th / 2, [[0, st.bg[0]], [1, st.bg[1]]]) : st.bg;
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.save();
+      ctx.clip();
+      if (st.halftone) {
+        ctx.fillStyle = 'rgba(0,0,0,.13)';
+        for (let y = -th / 2 + 3; y < th / 2; y += 6) for (let x = -tw / 2 + 3 + ((y / 6) % 2) * 3; x < tw / 2; x += 6) {
+          ctx.beginPath(); ctx.arc(x, y, 1.15 + (y + th / 2) / th * 1.2, 0, TAU); ctx.fill();
+        }
+      }
+      if (st.scan) { ctx.fillStyle = 'rgba(121,255,160,.08)'; for (let y = -th / 2; y < th / 2; y += 3) ctx.fillRect(-tw / 2, y, tw, 1); }
+      if (st.stripes) { ctx.fillStyle = 'rgba(255,255,255,.08)'; for (let x = -tw; x < tw; x += th * .38) { ctx.beginPath(); ctx.moveTo(x, th / 2); ctx.lineTo(x + th * .2, th / 2); ctx.lineTo(x + th * .2 + th, -th / 2); ctx.lineTo(x + th, -th / 2); ctx.fill(); } }
+      if (st.rule) { ctx.fillStyle = st.rule; ctx.fillRect(-tw / 2 + th * .08, -th / 2 + th * .09, tw - th * .16, Math.max(1, th * .014)); ctx.fillRect(-tw / 2 + th * .08, th / 2 - th * .1, tw - th * .16, Math.max(1, th * .014)); }
+      ctx.restore();
+      /* headline, fitted to the tile */
+      const probe = th * .72;
+      U.setFont(ctx, st.family, probe, Fx.fontWeight(st.family, st.weight));
+      Fx.letterSpacing(ctx, 0);
+      const mw = Math.max(1, ctx.measureText(label).width);
+      const px = Math.min(probe * 1.25, probe * (tw * st.fit) / mw);
+      U.setFont(ctx, st.family, px, Fx.fontWeight(st.family, st.weight));
+      Fx.letterSpacing(ctx, 0);
+      const tx = -ctx.measureText(label).width / 2;
+      if (st.shadow) { ctx.fillStyle = st.shadow; ctx.fillText(label, tx + px * .05, px * .02 + px * .05); }
+      ctx.fillStyle = st.ink;
+      ctx.fillText(label, tx, px * .02);
+      /* micro tag */
+      U.setFont(ctx, 'Courier Prime', Math.max(7, th * .11), 700);
+      Fx.letterSpacing(ctx, 1);
+      ctx.fillStyle = st.ink;
+      ctx.globalAlpha *= .55;
+      ctx.fillText(st.tag, -tw / 2 + th * .08, th / 2 - th * .09);
+      if (st.tape) {
+        ctx.globalAlpha = alpha / .55 * .9;
+        ctx.fillStyle = 'rgba(255,230,150,.75)';
+        ctx.save();
+        ctx.translate(tw * .3, -th / 2);
+        ctx.rotate(.12);
+        ctx.fillRect(-th * .3, -th * .08, th * .6, th * .16);
+        ctx.restore();
+      }
+      ctx.restore();
+    };
+    items.forEach(item => {
+      const count = Math.max(4, Math.min(8, Math.round((item.word.endTime - item.word.time) / .11)));
+      const cad = Math.min(.085, Math.max(.05, (item.word.endTime - item.word.time) * .7 / count));
+      const t0 = item.word.time, burstEnd = t0 + count * cad;
+      const tEnd = burstEnd + .16;
+      if (time < t0 || time > tEnd + .14) return;
+      const exit = time > tEnd ? clamp((time - tEnd) / .14) : 0;
+      const start = Math.floor(Fx.hash(item.index * 4.7 + 3) * PRESS_STYLES.length);
+      for (let k = 0; k < count; k += 1) {
+        const born = t0 + k * cad;
+        if (time < born) break;
+        const age = time - born;
+        const pop = 1 + .22 * Math.exp(-age / .035);
+        const seed = item.index * 17 + k * 5;
+        const st = PRESS_STYLES[(start + k * 3) % PRESS_STYLES.length];
+        const tw = item.width + size * .6, th = size * 1.12;
+        tile(
+          st, item.text,
+          item.cx + (Fx.hash(seed) - .5) * item.width * .2 + exit * (Fx.hash(seed + 2) - .5) * size * 1.5,
+          item.y + (Fx.hash(seed + 1) - .5) * size * .2 - exit * size * .9,
+          tw, th, (Fx.hash(seed + 3) - .5) * .13 + exit * (Fx.hash(seed + 4) - .5) * .5,
+          pop * (1 - exit * .2), seed, clamp(age / .02) * (1 - exit),
+        );
+      }
+    });
+    ctx.font = baseFont;
+    Fx.letterSpacing(ctx, 0);
+    ctx.restore();
+  }, { width: .76, height: .66 });
+
   /* ------------------------------------------------------------------ */
   /* 43–50  Dimensional Depth                                           */
   /* ------------------------------------------------------------------ */

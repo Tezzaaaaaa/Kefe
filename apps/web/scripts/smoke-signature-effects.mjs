@@ -17,7 +17,7 @@ const EXPECTED = [
   ["Rare Gem Treatments", ["sigiridescent", "siggoldfoil", "sigchromemetal", "sigprismsplit", "sigdiamondfacet", "sigrosequartz", "sigobsidian", "sigsodalite"]],
   ["Liquid & Organic", ["sigmetaball", "siginkbleed", "sigwaterripple", "sigmoltendrip", "sigmercurybead", "sigsilkwave", "sigpetalbloom", "sigvaporbloom"]],
   ["Dimensional Depth", ["sigchromeextrusion", "sigletterflip", "sigcardstack", "sigrackfocus", "sigkaleidoscope", "sigorbitring", "sigtypewriter", "sigcinemabars"]],
-  ["Flagship", ["sigluminaire"]],
+  ["Flagship", ["sigluminaire", "sigpresscycle"]],
 ];
 const keys = EXPECTED.flatMap(([, list]) => list);
 
@@ -28,7 +28,7 @@ vm.createContext(sandbox);
 vm.runInContext(read("app/effects/manifest.js"), sandbox, { filename: "manifest.js" });
 const manifest = sandbox.window.KEFE_EFFECTS;
 assert.ok(Array.isArray(manifest), "manifest must publish KEFE_EFFECTS");
-assert.equal(manifest.length, 54, `roster must be Apple + Text Swap + Lyric Pull + 51 Signature effects, found ${manifest.length}`);
+assert.equal(manifest.length, 55, `roster must be Apple + Text Swap + Lyric Pull + 52 Signature effects, found ${manifest.length}`);
 assert.equal(manifest[0].key, "apple", "Apple must stay first in the roster");
 assert.equal(manifest.filter(item => item.key === "apple").length, 1, "Apple must be listed exactly once");
 const manifestKeys = Array.from(manifest, item => item.key);
@@ -49,7 +49,7 @@ assert.deepEqual(legacy, [], `legacy effects must be removed from the roster: ${
 
 /* ---- page wiring ------------------------------------------------- */
 const editor = read("editor.source.html");
-assert.match(editor, /<meta name="kefe-lyric-signature" content="51">/, "the editor must declare the Signature pack marker");
+assert.match(editor, /<meta name="kefe-lyric-signature" content="52">/, "the editor must declare the Signature pack marker");
 assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
 assert.match(editor, /lyric-karaoke\.js/, "the Karaoke and Bounce renderers must stay loaded");
 assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
