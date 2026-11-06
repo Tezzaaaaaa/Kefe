@@ -998,35 +998,80 @@
   }, { width: .82, height: .66 });
 
 
-  E.sigtubeignition = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
+  /* Tube Ignition — a sign coming alive. Each letter strikes with its own
+     deterministic stutter (on, off, on, half, on) before holding with a faint
+     mains shimmer. A lit letter is a real tube: wide coloured glass glow, a
+     narrow white-hot core, wide bloom and a soft wall wash; unlit tubes are
+     dark grey glass. A cold arc flashes at each strike. */
+  E.sigtubeignition = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    const cycle = time % 3.2;
-    let power = 1;
-    if (cycle < .8) {
-      const n = hash(Math.floor(cycle * 28) + 3);
-      power = n > .55 ? 1 : n > .2 ? .18 : .04;
-    }
-    const rows = rowsOf(ctx, lay, w, h);
-    ctx.save();
-    ctx.globalAlpha *= power;
-    rows.forEach(row => {
-      ctx.fillStyle = '#e0f2fe';
-      glow(ctx, '#38bdf8', lay.size * .42);
-      ctx.fillText(row.text, row.x, row.y);
+    const pal = Fx.palette({ text: '#fff0ee', accent: '#ff4d6d', inactive: 'rgba(255,255,255,.12)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const list = Fx.chars(ctx, items);
+    const size = lay.size, box = Fx.bounds(rows, lay);
+    const pattern = [1, 0, 1, 0, .15, 1, .35, 1, 0, 1];
+    const state = list.map((g, index) => {
+      const word = g.item.word;
+      const age = time - (word.time - .05 + g.j * .045);
+      let level = 0, strike = 0;
+      if (age > 0) {
+        const step = Math.floor(age / .052);
+        if (step < pattern.length) { level = pattern[step]; strike = step < 3 ? 1 : 0; } else {
+          level = .94 + .06 * Math.sin(time * 94 + index) * Fx.noise(time * 9, index);
+        }
+      }
+      return { g, level, strike, age };
     });
-    ctx.restore();
-    const p = U.sungProgress(words, time) * .35;
-    if (p > 0 && power > .1) {
+    const lift = (phase.leave || 0) * size * .2;
+    ctx.save();
+    ctx.translate(0, -lift);
+    /* wall wash from everything that is on */
+    const on = state.filter(st => st.level > .05);
+    if (on.length) {
+      const total = on.reduce((a, st) => a + st.level, 0) / state.length;
       ctx.save();
-      ctx.globalAlpha *= .3 * power;
-      rows.forEach(row => {
-        ctx.fillStyle = '#7dd3fc';
-        glow(ctx, '#0ea5e9', lay.size * .5);
-        ctx.fillText(row.text, row.x, row.y);
-      });
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = Fx.radial(ctx, box.cx, box.cy, 0, box.w * .62, [[0, Fx.rgba(pal.accent, .22 * total)], [1, Fx.rgba(pal.accent, 0)]]);
+      ctx.fillRect(box.x - box.w * .2, box.cy - box.w * .6, box.w * 1.4, box.w * 1.2);
       ctx.restore();
     }
-  });
+    ctx.save();
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = Math.max(1.5, size * .03);
+    ctx.strokeStyle = pal.inactive;
+    state.forEach(st => ctx.strokeText(st.g.ch, st.g.x, st.g.y));
+    ctx.restore();
+    if (on.length) {
+      Fx.bloom(ctx, w, h, g => {
+        g.lineJoin = 'round';
+        g.lineWidth = Math.max(3, size * .06);
+        on.forEach(st => { g.strokeStyle = Fx.rgba(pal.accent, .9 * st.level); g.strokeText(st.g.ch, st.g.x, st.g.y); });
+      }, { radius: size * .6, strength: 1.1, haze: .5 });
+    }
+    state.forEach(st => {
+      if (st.level <= .02) return;
+      ctx.save();
+      ctx.globalAlpha *= st.level;
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = Math.max(2.5, size * .05);
+      ctx.strokeStyle = pal.accent;
+      ctx.strokeText(st.g.ch, st.g.x, st.g.y);
+      ctx.lineWidth = Math.max(1, size * .016);
+      ctx.strokeStyle = pal.text;
+      ctx.strokeText(st.g.ch, st.g.x, st.g.y);
+      ctx.restore();
+      if (st.strike && st.level > .5) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = Fx.rgba('#cfe6ff', .5);
+        ctx.fillRect(st.g.x - size * .05, st.g.y - size * .004, st.g.w + size * .1, Math.max(1.2, size * .012));
+        ctx.restore();
+      }
+    });
+    ctx.restore();
+  }, { width: .82, height: .66 });
+
 
   E.sighalobloom = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
     setFont(ctx, style.effect, lay.size, style);
