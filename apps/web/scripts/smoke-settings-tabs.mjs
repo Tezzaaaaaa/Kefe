@@ -7,7 +7,8 @@ const editor = readFileSync(resolve(root, "editor.source.html"), "utf8");
 const adapter = readFileSync(resolve(root, "app/settings/panel-adapter.js"), "utf8");
 const panelHtml = readFileSync(resolve(root, "app/settings/panel.html"), "utf8");
 const panelStyles = readFileSync(resolve(root, "app/settings/panel.css"), "utf8");
-const failures = [];\nconst bg = readFileSync(resolve(root, "app/visualiser/background.js"), "utf8");
+const failures = [];
+const bg = readFileSync(resolve(root, "app/visualiser/background.js"), "utf8");
 
 for (const group of ["content", "design", "audio-visuals"]) {
   if (!panelHtml.includes('data-group="' + group + '"')) failures.push("Missing " + group + " workspace.");
