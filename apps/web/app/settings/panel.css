@@ -976,3 +976,24 @@
   outline-offset: 3px;
   border-radius: 4px;
 }
+
+/* On phones the selected tab already names the workspace. Bring its controls
+   closer to the tabs and omit the introductory copy above the upload cards. */
+@media (max-width: 760px) {
+  .kefe-editor .kefe-settings-mount {
+    margin-top: 0;
+  }
+  .kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
+    margin-bottom: 4px;
+  }
+  .kefe-editor #kefe-settings-panel .kefe-workspace-title {
+    display: none;
+  }
+  .kefe-editor #kefe-settings-panel .kefe-workspace {
+    gap: 0;
+  }
+  .kefe-editor #kefe-settings-panel .kefe-workspace[data-group="content"] .kefe-panel[data-panel-view="media"] > .kefe-panel-head,
+  .kefe-editor #kefe-settings-panel .kefe-workspace[data-group="content"] .kefe-find-step .kefe-step-head {
+    display: none;
+  }
+}
