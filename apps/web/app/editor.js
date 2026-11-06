@@ -1034,12 +1034,28 @@
   document.getElementById('playButton').onclick=async()=>{
     if(audio.src){
       if(audio.paused){
+        /* The transport has no separate mute control: always restore audible playback
+           when the user explicitly presses Play. Keep the volume slider's level intact. */
+        audio.muted=false;
         const graph=window.kefeAudioGraph?.ensure?.();
         const audioContext=graph?.ac||window.kefeAudioGraph?.context?.();
-        if(audioContext&&audioContext.state==='suspended'){
-          try{await audioContext.resume();}catch(error){console.warn('[KEFE audio context]',error);}
+        if(audioContext&&audioContext.state!=='running'){
+          try{
+            await audioContext.resume();
+            if(audioContext.state!=='running')throw new Error('Audio output is still suspended');
+          }catch(error){
+            console.warn('[KEFE audio context]',error);
+            setLyricsStatus('Audio output is unavailable. Tap Play again to resume audio.');
+            return;
+          }
         }
-        try{await audio.play();}catch(error){console.warn('[KEFE audio playback]',error);setLyricsStatus('Could not play this media file: '+(error?.message||'unknown playback error'));}
+        try{
+          await audio.play();
+          if(audio.paused)throw new Error('The media did not start playing');
+        }catch(error){
+          console.warn('[KEFE audio playback]',error);
+          setLyricsStatus('Could not play this media file: '+(error?.message||'unknown playback error'));
+        }
       }else audio.pause();
     }else{state.time=state.time>=30?0:state.time+.05;updateTime();draw();}
   };
