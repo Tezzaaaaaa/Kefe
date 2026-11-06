@@ -73,11 +73,15 @@
     var uploads=mk('div','kefe-media-upload-row');
     if(zone)uploads.appendChild(zone);
     if(bgWrap)uploads.appendChild(bgWrap);
+
+    var trackEditor=mk('section','kefe-track-editor-card');
+    if(track)trackEditor.appendChild(track);
+    trackEditor.appendChild(details);
+
     s2.body.appendChild(uploads);
-    if(track)s2.body.appendChild(track);
     if(sugg)s2.body.appendChild(sugg);
     s2.body.appendChild(buildSearch());
-    s2.body.appendChild(details);
+    s2.body.appendChild(trackEditor);
 
     if(sugg)sugg.hidden=true;
     if(empty)empty.remove();
