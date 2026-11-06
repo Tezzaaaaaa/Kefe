@@ -119,15 +119,16 @@ async function captureEditorScreenState(page) {
         x: rect.x, y: rect.y, width: rect.width, height: rect.height, childCount: node.children.length,
         childSummary: node.id === "kefeCarStack" ? [...node.children].slice(0, 10).map(child => `${child.tagName.toLowerCase()}.${[...child.classList].join(".")}:${child.hidden ? "hidden" : getComputedStyle(child).display}:${child.textContent.trim().slice(0, 20)}`).join("|") : "",
         renderedCardCount: node.id === "kefeCarStack" ? [...node.querySelectorAll(".ks-tape")].filter(tape =>
-          tape.getClientRects().length > 0 && getComputedStyle(tape).display !== "none"
-          && getComputedStyle(tape).visibility !== "hidden"
+          [...tape.querySelectorAll(".ks-face")].some(face => face.getClientRects().length > 0
+            && getComputedStyle(face).display !== "none" && getComputedStyle(face).visibility !== "hidden")
         ).length : undefined,
         carouselChildren: node.id === "kefeCarStack" ? [...node.querySelectorAll(".ks-tape")].filter(tape =>
-          tape.getClientRects().length > 0 && getComputedStyle(tape).display !== "none"
-          && getComputedStyle(tape).visibility !== "hidden"
+          [...tape.querySelectorAll(".ks-face")].some(face => face.getClientRects().length > 0
+            && getComputedStyle(face).display !== "none" && getComputedStyle(face).visibility !== "hidden")
         ).map((child, index) => {
-          const childRect = child.getBoundingClientRect();
-          const style = getComputedStyle(child);
+          const face = child.querySelector(".ks-cv") || child;
+          const childRect = face.getBoundingClientRect();
+          const style = getComputedStyle(face);
           return {
             index,
             tag: child.tagName.toLowerCase(),
@@ -1437,38 +1438,14 @@ async function captureEditorScreenState(page) {
       };
       await screenshotPage.waitForFunction(() => typeof window.kefeCarousel?.setLocalUpload === "function", null, { timeout: 10000 });
       await screenshotPage.evaluate((item) => window.kefeCarousel.setLocalUpload(item, true), carouselFixture);
-      const carouselDebug = await screenshotPage.evaluate(() => {
-        const workspace = document.querySelector('.kefe-workspace[data-group="content"]');
-        const panel = document.querySelector('.kefe-panel[data-panel-view="media"]');
-        const stack = document.getElementById("kefeCarStack");
-        const empty = document.getElementById("kefeCarEmpty");
-        const info = document.getElementById("kefeCarInfo");
-        return {
-          selectedTab: document.querySelector('[role="tab"][data-workspace-tab="content"]')?.getAttribute("aria-selected"),
-          workspaceHidden: workspace?.hidden,
-          panelClass: panel?.className,
-          panelDisplay: panel && getComputedStyle(panel).display,
-          panelBounds: panel && (() => { const r = panel.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; })(),
-          stackExists: Boolean(stack),
-          stackDisplay: stack && getComputedStyle(stack).display,
-          stackBounds: stack && (() => { const r = stack.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; })(),
-          stackHTML: stack?.innerHTML.slice(0, 1200),
-          emptyDisplay: empty && getComputedStyle(empty).display,
-          infoHidden: info?.hidden,
-          infoText: info?.innerText,
-          carouselLabel: document.getElementById("kefeCarousel")?.getAttribute("aria-label"),
-          title: document.getElementById("kefeCarTitle")?.textContent,
-          artist: document.getElementById("kefeCarArtist")?.textContent
-        };
-      });
-      console.log("Screenshot carousel diagnostic:", JSON.stringify(carouselDebug));
-      const fixtureCard = screenshotPage.locator('#kefeCarStack .ks-tape:visible').first();
+      const fixtureCard = screenshotPage.locator('#kefeCarStack .ks-face.ks-cv:visible').first();
       await fixtureCard.waitFor({ state: "visible", timeout: 10000 });
-      const seededCarousel = await fixtureCard.evaluate((tape) => {
+      const seededCarousel = await fixtureCard.evaluate((cover) => {
+        const tape = cover.closest(".ks-tape");
         const visibleTapes = [...document.querySelectorAll("#kefeCarStack .ks-tape")].filter(candidate =>
-          candidate.getClientRects().length > 0 && getComputedStyle(candidate).display !== "none"
-          && getComputedStyle(candidate).visibility !== "hidden");
-        const rect = tape.getBoundingClientRect();
+          [...candidate.querySelectorAll(".ks-face")].some(face => face.getClientRects().length > 0
+            && getComputedStyle(face).display !== "none" && getComputedStyle(face).visibility !== "hidden"));
+        const rect = cover.getBoundingClientRect();
         const title = document.getElementById("kefeCarTitle")?.textContent || "";
         const artist = document.getElementById("kefeCarArtist")?.textContent || "";
         return {
