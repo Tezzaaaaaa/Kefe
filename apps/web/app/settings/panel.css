@@ -947,3 +947,5 @@
   .kefe-editor #kefe-settings-panel .kefe-background-effects-heading { align-items: flex-start; }
   .kefe-editor #kefe-settings-panel .kefe-advanced-controls > summary { min-height: 40px; }
 }
+
+.kefe-editor #kefe-settings-panel .kefe-advanced-controls:not([open]) > .section { display: none !important; }
