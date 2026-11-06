@@ -592,3 +592,32 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
   }
   .kefe-sidebar-group-editor > .kefe-floating-toolbar.is-open .kft-main { width: 100%; }
 }
+
+
+/* Timeline docking: keep the toolbar launcher on the same control row as volume. */
+html .kefe-editor .kefe-timeline {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto 36px;
+  align-items: center;
+  gap: 8px;
+}
+html .kefe-editor .kefe-timeline > .kefe-transport { grid-column: 1; grid-row: 1; }
+html .kefe-editor .kefe-timeline > .kefe-timebar { grid-column: 2; grid-row: 1; min-width: 0; }
+html .kefe-editor .kefe-timeline > .kefe-volume-control { grid-column: 3; grid-row: 1; justify-self: end; }
+html .kefe-editor .kefe-timeline > #kefeFloatingToolbar {
+  grid-column: 4; grid-row: 1; justify-self: end; align-self: center;
+  display: inline-flex; width: 32px; min-width: 32px; height: 32px; max-width: 32px;
+  position: relative; z-index: 20;
+}
+html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-bar {
+  position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 10002;
+}
+html .kefe-editor .kefe-stage { position: relative; }
+html .kefe-editor .kefe-stage > #previewFullscreen {
+  position: absolute; top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right)); z-index: 10020;
+}
+html .kefe-editor .kefe-timeline > #previewFullscreen { display: none !important; }
+@media (max-width: 700px) {
+  html .kefe-editor .kefe-timeline { grid-template-columns: auto minmax(0, 1fr) auto 36px; gap: 6px; }
+}
