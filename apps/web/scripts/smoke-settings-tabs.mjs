@@ -28,7 +28,7 @@ if (!bg.includes("effectsGroup.dataset.backgroundGroup='effects'") || !bg.includ
 if (panelHtml.includes("expand-button") || panelHtml.includes("data-expanded=\"false\"")) {
   failures.push("Workspace controls must not be hidden behind accordions.");
 }
-if (!/panel\\.css\\?v=[^"\\s]+/.test(editor) ||
+if (!/panel\.css\?v=[^"\s]+/.test(editor) ||
     editor.includes("mobile-sidebar.js") || editor.includes("desktop-panels.js")) {
   failures.push("The editor must load the workspace layout and retire the six-section sidebars.");
 }
