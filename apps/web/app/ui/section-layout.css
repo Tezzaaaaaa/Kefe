@@ -510,16 +510,33 @@
 .kefe-text-swap-settings > select { width:100%; min-width:0; }
 
 
-/* Six-card viewport. This layer is loaded after panel.css so it wins over
-   workspace overflow defaults on desktop and in the mobile sheet. */
+/* Six-card lyric-effects gallery.
+   The gallery is vertical, so remove the legacy three-column carousel shell and
+   give each preview a real, stable card height instead of squeezing rows. */
+.kefe-lyric-effect-carousel {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0;
+}
+.kefe-lyric-effect-carousel > .kefe-lyric-effect-carousel-nav {
+  display: none !important;
+}
 #kefe-settings-panel #lyricEffectOptions,
-#kefe-settings-panel .kefe-workspace #lyricEffectOptions,
 .kefe-ms-host #lyricEffectOptions {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
-  height: 190px !important;
-  max-height: 190px !important;
+  grid-auto-flow: row !important;
+  grid-auto-rows: 132px !important;
+  grid-template-rows: none !important;
+  align-content: start !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  width: 100% !important;
+  height: 272px !important;
+  max-height: 272px !important;
+  min-height: 0 !important;
+  padding: 2px !important;
+  box-sizing: border-box !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   overscroll-behavior-y: contain;
@@ -527,18 +544,56 @@
   -webkit-overflow-scrolling: touch;
 }
 #kefe-settings-panel #lyricEffectOptions > .kefe-lyric-effect-option,
-#kefe-settings-panel .kefe-workspace #lyricEffectOptions > .kefe-lyric-effect-option,
 .kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option {
-  height: 100% !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  flex: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 132px !important;
+  height: 132px !important;
+  max-height: 132px !important;
+  padding: 7px !important;
+  gap: 6px !important;
+  box-sizing: border-box !important;
+  overflow: hidden;
+}
+#kefe-settings-panel #lyricEffectOptions .kefe-lyric-effect-sample,
+.kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-sample {
+  width: 100% !important;
+  min-width: 0;
   min-height: 0 !important;
+  height: 100% !important;
+  aspect-ratio: auto !important;
+}
+#kefe-settings-panel #lyricEffectOptions .kefe-lyric-effect-name,
+.kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-name {
+  display: block !important;
+  min-height: 2.4em;
+  max-height: 2.4em;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
 }
 @media (max-width: 1023px) {
   #kefe-settings-panel #lyricEffectOptions,
-  #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
   .kefe-ms-host #lyricEffectOptions {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-template-rows: repeat(3, minmax(0, 1fr)) !important;
-    height: 340px !important;
-    max-height: 340px !important;
+    grid-auto-rows: 124px !important;
+    height: 388px !important;
+    max-height: 388px !important;
+  }
+  #kefe-settings-panel #lyricEffectOptions > .kefe-lyric-effect-option,
+  .kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option {
+    min-height: 124px !important;
+    height: 124px !important;
+    max-height: 124px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #kefe-settings-panel #lyricEffectOptions,
+  .kefe-ms-host #lyricEffectOptions {
+    scroll-behavior: auto;
   }
 }
