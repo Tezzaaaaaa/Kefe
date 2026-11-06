@@ -10882,3 +10882,80 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
   outline: 0;
   box-shadow: none;
 }
+
+
+/* One result card: keep the selected track directly attached to its artwork shelf. */
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-result-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  background: var(--surface);
+  box-shadow: var(--inner);
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-result-card .kefe-carousel {
+  height: clamp(190px, 56cqw, 248px);
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-result-card .kefe-car-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-info-copy {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 2px;
+  min-width: 0;
+  align-content: center;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-info-copy h4 {
+  font-size: var(--font-base);
+  line-height: 1.15;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-info-copy p {
+  font-size: var(--font-xs);
+  line-height: 1.2;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-info-copy small {
+  font-size: 10px;
+  line-height: 1.25;
+  letter-spacing: .055em;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-actions {
+  flex: 0 0 auto;
+  align-items: center;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-actions .kefe-btn {
+  min-height: 38px;
+  padding-block: 7px;
+}
+@media (max-width: 900px) {
+  .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-result-card .kefe-car-info {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+    padding: 9px 11px;
+  }
+  .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-actions {
+    width: 100%;
+  }
+  .kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-actions .kefe-btn {
+    flex: 1 1 120px;
+    min-height: 36px;
+  }
+}
