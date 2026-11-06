@@ -67,7 +67,7 @@ assert.match(editorSource, /if\(state\.effect==='apple'\)\{\s*const u=Math\.min\
 
 /* ---- typography contracts ---------------------------------------- */
 const typography = read("app/ui/typography.js");
-assert.match(typography, /\n\s+textswap: \{ family: families\./, "Text Swap needs a typography contract");
+assert.match(typography, /\n\s+textswap:\s*\{ family: families\./, "Text Swap needs a typography contract");
 for (const key of keys) {
   assert.match(typography, new RegExp(`\\n\\s+${key}: \\{ family: families\\.`), `${key} needs a typography contract`);
 }
