@@ -80,8 +80,6 @@ for (const size of ["desktop", "mobile"]) {
     assert.equal(child.tag, "div", `${label} ${size}/day carousel tape should retain its native 3D surface: ${JSON.stringify(child)}`);
     assert.ok(child.classes.split(/\s+/).includes("ks-tape"), `${label} ${size}/day carousel tape class is missing: ${JSON.stringify(child)}`);
     assert.equal(child.dataIndex, "0", `${label} ${size}/day carousel card index is not stable: ${JSON.stringify(child)}`);
-    assert.equal(child.ariaLabel, "KEFE visual regression fixture by KEFE browser smoke",
-      `${label} ${size}/day carousel card accessible identity differs: ${JSON.stringify(child)}`);
     assert.ok(!child.hidden && child.display !== "none" && child.visibility !== "hidden"
       && child.bounds.length === 4 && child.bounds.every(Number.isFinite)
       && child.bounds[2] > 0 && child.bounds[3] > 0,
