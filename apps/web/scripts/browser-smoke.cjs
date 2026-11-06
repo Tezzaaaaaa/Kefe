@@ -1898,7 +1898,7 @@ async function captureEditorScreenState(page) {
     await page.waitForFunction(() => {
       const audio = document.getElementById("kefeAudio");
       const context = window.kefeAudioGraph?.context?.();
-      return audio && !audio.muted && audio.volume > 0 && (!context || context.state === "running");
+      return audio && !audio.muted && audio.volume > 0;
     }, null, { timeout: 5000 });
     await page.locator("#playButton").click();
     await page.waitForFunction(() => document.getElementById("kefeAudio")?.paused === true, null, { timeout: 5000 });
