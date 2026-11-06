@@ -646,3 +646,51 @@
     scroll-behavior: auto;
   }
 }
+
+
+/* Final mobile workspace override: panel.css otherwise disables gallery scrolling. */
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
+.kefe-editor #kefe-settings-panel .kefe-workspace .kefe-lyric-effect-carousel #lyricEffectOptions,
+.kefe-editor .kefe-ms-host #lyricEffectOptions {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-flow: row !important;
+  grid-auto-rows: 112px !important;
+  align-content: start !important;
+  height: 232px !important;
+  min-height: 232px !important;
+  max-height: 232px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  scrollbar-width: auto !important;
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions::-webkit-scrollbar,
+.kefe-editor .kefe-ms-host #lyricEffectOptions::-webkit-scrollbar {
+  width: 9px;
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions::-webkit-scrollbar-thumb,
+.kefe-editor .kefe-ms-host #lyricEffectOptions::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9px;
+  background: var(--text-secondary, #888) padding-box;
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions::-webkit-scrollbar-track,
+.kefe-editor .kefe-ms-host #lyricEffectOptions::-webkit-scrollbar-track {
+  background: transparent;
+}
+@media (max-width: 1023px) {
+  .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
+  .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-lyric-effect-carousel #lyricEffectOptions,
+  .kefe-editor .kefe-ms-host #lyricEffectOptions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: 104px !important;
+    height: 336px !important;
+    min-height: 336px !important;
+    max-height: 336px !important;
+  }
+}
