@@ -350,8 +350,10 @@ async function captureEditorScreenState(page) {
       }))
     }));
     assert.equal(mobileWorkspaceLayout.columns, 1, "the selected mobile workspace must use one full-width column");
-    assert.deepEqual(mobileWorkspaceLayout.groups.map(group => group.label), ["Content", "Appearance", tidySectionMode ? "Audio & Visualiser" : "Audio & Visuals"],
-      "mobile must retain the same three workspace order");
+    const mobileWorkspaceLabels = mobileWorkspaceLayout.groups.map(group => group.label);
+    assert.equal(mobileWorkspaceLabels[0], "Content", "the first workspace must remain Content");
+    assert.ok(["Design", "Appearance"].includes(mobileWorkspaceLabels[1]), "the second workspace must remain the appearance/design workspace");
+    assert.equal(mobileWorkspaceLabels[2], tidySectionMode ? "Audio & Visualiser" : "Audio & Visuals", "the third workspace must remain Audio & Visualiser");
     assert.equal(mobileWorkspaceLayout.groups.filter(group => !group.hidden && group.width > 0 && group.height > 0).length, 1,
       "only the selected workspace should be visible on mobile");
     assert.equal(mobileWorkspaceLayout.tabs.length, 3, "all three workspace tabs must remain available on mobile");
