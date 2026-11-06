@@ -10959,3 +10959,134 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
     min-height: 36px;
   }
 }
+
+/* Media panel: one spacing scale, aligned cards and equal upload targets. */
+.kefe-panel[data-panel-view="media"] .kefe-find-step,
+.kefe-panel[data-panel-view="media"] .kefe-find-step *,
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row,
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row * {
+  box-sizing: border-box;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-step-body {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-step-body > * {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  margin-block: 0;
+}
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(164px, 1fr);
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .kefe-upload-zone,
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap,
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-self: stretch;
+  align-content: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: 164px;
+  height: 100%;
+  margin: 0;
+}
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .kefe-upload-zone,
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap > .kefe-upload-zone,
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row > div > .kefe-upload-zone {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  justify-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 164px;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 12px;
+  gap: 5px;
+  text-align: center;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-find {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-find-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+  margin: 0;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-chips {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-chip {
+  min-width: 0;
+  min-height: 36px;
+  margin: 0;
+  padding-inline: 6px;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-find-status {
+  min-height: 16px;
+  margin: 0;
+  line-height: 1.25;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-result-card,
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-song-details,
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-media-track {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-song-details {
+  gap: 8px;
+  padding: 10px 0 0;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-details-grid {
+  gap: 8px 10px;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-details-grid > div {
+  min-width: 0;
+  margin: 0;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-details-grid .kefe-label {
+  margin: 0 0 5px;
+  line-height: 1.2;
+}
+.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-details-grid .kefe-input {
+  min-height: 44px;
+  margin: 0;
+}
+@media (max-width: 359px) {
+  .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: auto;
+  }
+  .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .kefe-upload-zone,
+  .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap,
+  .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > div {
+    min-height: 148px;
+  }
+  .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .kefe-upload-zone {
+    min-height: 148px;
+  }
+}
+
