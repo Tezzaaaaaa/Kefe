@@ -1454,12 +1454,12 @@ async function captureEditorScreenState(page) {
           bounds: [rect.x, rect.y, rect.width, rect.height],
         };
       });
-      assert.equal(seededCarousel.count, 1, \`screenshot carousel fixture must render exactly one 3D tape: \${JSON.stringify(seededCarousel)}\`);
-      assert.equal(seededCarousel.dataIndex, "0", \`screenshot carousel fixture must retain stable item index 0: \${JSON.stringify(seededCarousel)}\`);
+      assert.equal(seededCarousel.count, 1, `screenshot carousel fixture must render exactly one 3D tape: ${JSON.stringify(seededCarousel)}`);
+      assert.equal(seededCarousel.dataIndex, "0", `screenshot carousel fixture must retain stable item index 0: ${JSON.stringify(seededCarousel)}`);
       assert.ok(seededCarousel.ariaLabel.includes(carouselFixture.trackName) && seededCarousel.ariaLabel.includes(carouselFixture.artistName),
-        \`screenshot carousel fixture must expose its accessible track identity: \${JSON.stringify(seededCarousel)}\`);
+        `screenshot carousel fixture must expose its accessible track identity: ${JSON.stringify(seededCarousel)}`);
       assert.ok(seededCarousel.text.includes(carouselFixture.trackName) && seededCarousel.text.includes(carouselFixture.artistName),
-        \`screenshot carousel fixture must expose its track title and artist in the info panel: \${JSON.stringify(seededCarousel)}\`);
+        `screenshot carousel fixture must expose its track title and artist in the info panel: ${JSON.stringify(seededCarousel)}`);
       console.log("Seeded screenshot 3D carousel through KEFE local-upload render path:", JSON.stringify(seededCarousel));
       const screenshotVolumePopover = screenshotPage.locator("#kefeVolumePopover");
       const screenshotVolumeTrigger = screenshotPage.locator("#kefeMuteToggle");
