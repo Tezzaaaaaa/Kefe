@@ -707,9 +707,18 @@
     document.getElementById('fontName').textContent=c.family||'System UI';
     document.getElementById('fontMeta').textContent=fontSelect.value ? 'Selected font · '+fontSelect.value : 'Effect font · '+(c.family||'System UI');
     draw();
+    syncLyricEffectPreviewNav();
     window.dispatchEvent(new CustomEvent('kefe-effect-change',{detail:{effect:id}}));
     return true;
   }
+  function syncLyricEffectPreviewNav(){
+    const options=Array.from(document.querySelectorAll('#lyricEffectOptions .kefe-lyric-effect-option'));
+    const index=options.findIndex(option=>option.dataset.effect===state.effect);
+    if(lyricEffectPreviewStatus)lyricEffectPreviewStatus.textContent=index>=0?(index+1)+' / '+options.length:'';
+    if(lyricEffectPreviewPrevious)lyricEffectPreviewPrevious.disabled=options.length<2;
+    if(lyricEffectPreviewNext)lyricEffectPreviewNext.disabled=options.length<2;
+  }
+  let lyricEffectPreviewPrevious=null,lyricEffectPreviewNext=null,lyricEffectPreviewStatus=null;
   const lyricEffectOptions=document.getElementById('lyricEffectOptions');
   /* Every lyric-effect card paints a real frame of that effect. The phrase is one
      of the example lines the renderer smoke tests already exercise, so every
@@ -863,6 +872,46 @@
     });
     requestAnimationFrame(sync);
   })();
+
+  /* Preview-stage navigation changes the active renderer without moving focus
+     away from the canvas or requiring the user to return to the effect gallery. */
+  (() => {
+    const stage=document.querySelector('.kefe-stage');
+    if(!stage||stage.querySelector('.kefe-lyric-effect-preview-nav'))return;
+    const nav=document.createElement('div');
+    nav.className='kefe-lyric-effect-preview-nav';
+    nav.setAttribute('role','group');
+    nav.setAttribute('aria-label','Browse lyric effects');
+    lyricEffectPreviewPrevious=document.createElement('button');
+    lyricEffectPreviewPrevious.type='button';
+    lyricEffectPreviewPrevious.className='kefe-lyric-effect-preview-button';
+    lyricEffectPreviewPrevious.setAttribute('aria-label','Previous lyric effect');
+    lyricEffectPreviewPrevious.title='Previous lyric effect';
+    lyricEffectPreviewPrevious.textContent='‹';
+    lyricEffectPreviewStatus=document.createElement('span');
+    lyricEffectPreviewStatus.className='kefe-lyric-effect-preview-count';
+    lyricEffectPreviewStatus.setAttribute('aria-live','polite');
+    lyricEffectPreviewNext=document.createElement('button');
+    lyricEffectPreviewNext.type='button';
+    lyricEffectPreviewNext.className='kefe-lyric-effect-preview-button';
+    lyricEffectPreviewNext.setAttribute('aria-label','Next lyric effect');
+    lyricEffectPreviewNext.title='Next lyric effect';
+    lyricEffectPreviewNext.textContent='›';
+    const changeEffect=direction=>{
+      const options=Array.from(lyricEffectOptions?.querySelectorAll('.kefe-lyric-effect-option')||[]);
+      if(options.length<2)return;
+      const current=options.findIndex(option=>option.dataset.effect===state.effect);
+      const next=(Math.max(0,current)+direction+options.length)%options.length;
+      setEffect(options[next].dataset.effect);
+      options[next].scrollIntoView({block:'nearest',inline:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    };
+    lyricEffectPreviewPrevious.addEventListener('click',()=>changeEffect(-1));
+    lyricEffectPreviewNext.addEventListener('click',()=>changeEffect(1));
+    nav.append(lyricEffectPreviewPrevious,lyricEffectPreviewStatus,lyricEffectPreviewNext);
+    stage.appendChild(nav);
+    syncLyricEffectPreviewNav();
+  })();
+
   function openEditorPanel(panel){
     const editingRoot=document.querySelector('.kefe-editing');
     editingRoot?.setAttribute('data-active-panel',panel);
