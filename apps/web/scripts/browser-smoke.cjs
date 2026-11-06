@@ -118,15 +118,14 @@ async function captureEditorScreenState(page) {
         text: (node.innerText || node.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
         x: rect.x, y: rect.y, width: rect.width, height: rect.height, childCount: node.children.length,
         childSummary: node.id === "kefeCarStack" ? [...node.children].slice(0, 10).map(child => `${child.tagName.toLowerCase()}.${[...child.classList].join(".")}:${child.hidden ? "hidden" : getComputedStyle(child).display}:${child.textContent.trim().slice(0, 20)}`).join("|") : "",
-        renderedCardCount: node.id === "kefeCarStack" ? [...node.querySelectorAll("button.kefe-car-card")].filter(card =>
-          !card.classList.contains("beui-native-panel-button") && card.getClientRects().length > 0
-          && getComputedStyle(card).display !== "none" && getComputedStyle(card).visibility !== "hidden"
+        renderedCardCount: node.id === "kefeCarStack" ? [...node.querySelectorAll(".ks-tape")].filter(tape =>
+          tape.getClientRects().length > 0 && getComputedStyle(tape).display !== "none"
+          && getComputedStyle(tape).visibility !== "hidden"
         ).length : undefined,
-        carouselChildren: node.id === "kefeCarStack" ? [...node.querySelectorAll("button.kefe-car-card")].filter(card =>
-          !card.classList.contains("beui-native-panel-button") && card.getClientRects().length > 0
-          && getComputedStyle(card).display !== "none" && getComputedStyle(card).visibility !== "hidden"
+        carouselChildren: node.id === "kefeCarStack" ? [...node.querySelectorAll(".ks-tape")].filter(tape =>
+          tape.getClientRects().length > 0 && getComputedStyle(tape).display !== "none"
+          && getComputedStyle(tape).visibility !== "hidden"
         ).map((child, index) => {
-          const backing = child.closest(".beui-panel-button-host")?.nextElementSibling || child;
           const childRect = child.getBoundingClientRect();
           const style = getComputedStyle(child);
           return {
@@ -134,8 +133,8 @@ async function captureEditorScreenState(page) {
             tag: child.tagName.toLowerCase(),
             id: child.id || "",
             classes: [...child.classList].join(" "),
-            dataIndex: backing.dataset.i || child.dataset.i || "",
-            dataKeys: Object.keys(backing.dataset).sort(),
+            dataIndex: String(index),
+            dataKeys: Object.keys(child.dataset).sort(),
             ariaLabel: child.getAttribute("aria-label") || "",
             ariaPressed: child.getAttribute("aria-pressed"),
             tabIndex: child.tabIndex,
@@ -144,7 +143,7 @@ async function captureEditorScreenState(page) {
             display: style.display,
             visibility: style.visibility,
             bounds: [childRect.x, childRect.y, childRect.width, childRect.height],
-            contentGeometry: [".kefe-car-art", ".kefe-car-local-icon", ".kefe-car-tag", ".kefe-car-cap", ".kefe-car-cap b", ".kefe-car-cap i"]
+            contentGeometry: [".ks-face", ".ks-sp", ".ks-cv", ".ks-shade"]
               .map(selector => {
                 const nodes = [...child.querySelectorAll(selector)];
                 return {
@@ -1438,29 +1437,30 @@ async function captureEditorScreenState(page) {
       };
       await screenshotPage.waitForFunction(() => typeof window.kefeCarousel?.setLocalUpload === "function", null, { timeout: 10000 });
       await screenshotPage.evaluate((item) => window.kefeCarousel.setLocalUpload(item, true), carouselFixture);
-      const fixtureCard = screenshotPage.locator('#kefeCarStack button.kefe-car-card:visible').first();
+      const fixtureCard = screenshotPage.locator('#kefeCarStack .ks-tape:visible').first();
       await fixtureCard.waitFor({ state: "visible", timeout: 10000 });
-      const seededCarousel = await fixtureCard.evaluate((card) => {
-        const visibleCards = [...document.querySelectorAll("#kefeCarStack button.kefe-car-card")].filter(candidate =>
-          !candidate.classList.contains("beui-native-panel-button") && candidate.getClientRects().length > 0
-          && getComputedStyle(candidate).display !== "none" && getComputedStyle(candidate).visibility !== "hidden");
-        const backing = card.closest(".beui-panel-button-host")?.nextElementSibling || card;
-        const rect = card.getBoundingClientRect();
+      const seededCarousel = await fixtureCard.evaluate((tape) => {
+        const visibleTapes = [...document.querySelectorAll("#kefeCarStack .ks-tape")].filter(candidate =>
+          candidate.getClientRects().length > 0 && getComputedStyle(candidate).display !== "none"
+          && getComputedStyle(candidate).visibility !== "hidden");
+        const rect = tape.getBoundingClientRect();
+        const title = document.getElementById("kefeCarTitle")?.textContent || "";
+        const artist = document.getElementById("kefeCarArtist")?.textContent || "";
         return {
-          count: visibleCards.length,
-          dataIndex: backing.dataset.i || card.dataset.i || "",
-          ariaLabel: card.getAttribute("aria-label"),
-          text: (card.innerText || "").trim().replace(/\s+/g, " "),
+          count: visibleTapes.length,
+          dataIndex: String(visibleTapes.indexOf(tape)),
+          ariaLabel: document.getElementById("kefeCarousel")?.getAttribute("aria-label") || "",
+          text: [title, artist].join(" ").trim(),
           bounds: [rect.x, rect.y, rect.width, rect.height],
         };
       });
-      assert.equal(seededCarousel.count, 1, `screenshot carousel fixture must render exactly one real item: ${JSON.stringify(seededCarousel)}`);
-      assert.equal(seededCarousel.dataIndex, "0", `screenshot carousel fixture must retain stable item index 0: ${JSON.stringify(seededCarousel)}`);
-      assert.equal(seededCarousel.ariaLabel, `${carouselFixture.trackName} by ${carouselFixture.artistName}`,
-        `screenshot carousel fixture must retain the real card identity: ${JSON.stringify(seededCarousel)}`);
+      assert.equal(seededCarousel.count, 1, \`screenshot carousel fixture must render exactly one 3D tape: \${JSON.stringify(seededCarousel)}\`);
+      assert.equal(seededCarousel.dataIndex, "0", \`screenshot carousel fixture must retain stable item index 0: \${JSON.stringify(seededCarousel)}\`);
+      assert.ok(seededCarousel.ariaLabel.includes(carouselFixture.trackName) && seededCarousel.ariaLabel.includes(carouselFixture.artistName),
+        \`screenshot carousel fixture must expose its accessible track identity: \${JSON.stringify(seededCarousel)}\`);
       assert.ok(seededCarousel.text.includes(carouselFixture.trackName) && seededCarousel.text.includes(carouselFixture.artistName),
-        `screenshot carousel fixture must expose its visible title and artist: ${JSON.stringify(seededCarousel)}`);
-      console.log("Seeded screenshot carousel through KEFE local-upload render path:", JSON.stringify(seededCarousel));
+        \`screenshot carousel fixture must expose its track title and artist in the info panel: \${JSON.stringify(seededCarousel)}\`);
+      console.log("Seeded screenshot 3D carousel through KEFE local-upload render path:", JSON.stringify(seededCarousel));
       const screenshotVolumePopover = screenshotPage.locator("#kefeVolumePopover");
       const screenshotVolumeTrigger = screenshotPage.locator("#kefeMuteToggle");
       const hasScreenshotVolume = await screenshotVolumeTrigger.count() > 0;
