@@ -113,6 +113,7 @@ async function captureEditorScreenState(page) {
       const rect = node.getBoundingClientRect();
       return {
         tag: node.tagName.toLowerCase(), id: node.id || "", classes: [...node.classList].join(" "),
+        ariaLabel: node.getAttribute("aria-label") || "",
         section: node.dataset.sectionId || node.closest(".section[data-section-id]")?.dataset.sectionId || "",
         group: node.dataset.group || "", panel: node.dataset.panelView || "",
         text: (node.innerText || node.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
