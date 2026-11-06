@@ -1185,7 +1185,7 @@
       const x = src.x + hash(seed + 3) * src.width + Math.sin(time * 1.6 + seed) * size * .12 * life;
       const y = src.y - size * .25 - life * size * 1.9;
       const heat = 1 - life;
-      const colour = heat > .55 ? Fx.mix('#ffd37a', '#fff3c4', (heat - .55) / .45) : Fx.mix('#d62a10', '#ffb347', heat / .55);
+      const colour = heat > .5 ? Fx.mix('#ff9a2e', '#ffd27a', (heat - .5) / .5) : Fx.mix('#c81e0a', '#ff9a2e', heat / .5);
       const r = Math.max(.7, size * (.012 + hash(seed + 4) * .014) * (1 - life * .6));
       ctx.fillStyle = Fx.radial(ctx, x, y, 0, r * 4, [[0, Fx.rgba(colour, .75 * heat)], [.3, Fx.rgba(colour, .3 * heat)], [1, Fx.rgba(colour, 0)]]);
       ctx.fillRect(x - r * 4, y - r * 4, r * 8, r * 8);
@@ -1281,8 +1281,11 @@
         const ox = dir * Math.cos(t * .9) * spread * 1.3;
         const oy = dir * Math.sin(t * 1.3) * spread * .7;
         const a = (k === 0 ? .55 : .2 * (1 - k / 6));
-        ctx.fillStyle = Fx.rgba(colour, a);
-        items.forEach(item => ctx.fillText(item.text, item.x + ox, item.y + oy));
+        items.forEach(item => {
+          const on = U.wordProgress(item.word, time, .12).sweep > .02;
+          ctx.fillStyle = Fx.rgba(colour, a * (on ? 1 : .35));
+          ctx.fillText(item.text, item.x + ox, item.y + oy);
+        });
       }
     });
     ctx.restore();
