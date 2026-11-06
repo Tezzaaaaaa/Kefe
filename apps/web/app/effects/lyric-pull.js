@@ -25,21 +25,21 @@
     U.fillTrackedText(ctx,word,w/2+o.x,h/2,tracking);
     ctx.restore();
   }
-  function background(ctx,w,h,progress,index){
-    const color=palette[Math.min(palette.length-1,Math.floor(Math.max(0,index)/2)%palette.length)];
+  function background(ctx,w,h,wordIndex,fade){
+    const color=palette[Math.max(0,wordIndex)%palette.length];
     const g=ctx.createRadialGradient(w*.5,h*.46,0,w*.5,h*.46,Math.max(w,h)*.72);
     g.addColorStop(0,color);g.addColorStop(.55,'rgba(8,12,30,.74)');g.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.save();ctx.globalAlpha=.72*(1-clamp(progress));ctx.fillStyle=g;ctx.fillRect(0,0,w,h);ctx.restore();
+    ctx.save();ctx.globalAlpha=.72*clamp(fade);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);ctx.restore();
   }
   E.lyricpull=function(ctx,w,h,style,lines,time){
     if(!Array.isArray(lines)||!lines.length)return;
     const active=U.activeLine(lines,time);if(!active)return;
     const line=active.line,words=U.wordsFor(line,active.next);if(!words.length)return;
     const start=Number(line.time)||0,end=Math.max(start+.2,Number(line.endTime)||words[words.length-1].endTime);
-    const elapsed=Math.max(0,time-start),lineProgress=clamp((time-start)/(end-start));
+    const elapsed=Math.max(0,time-start);
     const fade=clamp((end-time)/.5),type=font(ctx,style||{},w,h);
-    background(ctx,w,h,lineProgress,active.index);
     const latest=U.activeWordIndex(words,time);
+    background(ctx,w,h,latest<0?0:latest,fade);
     const finalEnd=words[words.length-1].endTime;
     words.forEach((word,i)=>{
       const age=time-Number(word.time),duration=Math.max(.06,Number(word.endTime)-Number(word.time));
@@ -53,10 +53,6 @@
       o.alpha*=fade;
       drawWord(ctx,word.text,w,h,type,o);
     });
-    if(time>=finalEnd&&time<end){
-      const q=clamp((time-finalEnd)/Math.max(.2,end-finalEnd));
-      ctx.save();ctx.globalAlpha*=1-q;ctx.restore();
-    }
     if(elapsed<.4){
       const q=1-clamp(elapsed/.4);
       ctx.save();ctx.globalAlpha*=q*.16;ctx.fillStyle='#1e3a8a';ctx.fillRect(0,0,w,h);ctx.restore();
