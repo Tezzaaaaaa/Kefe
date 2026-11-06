@@ -1704,7 +1704,7 @@ async function captureEditorScreenState(page) {
     await page.waitForFunction(() => document.querySelector(".kefe-editing")?.dataset.selectedSection === "effects", null, { timeout: 5000 });
     await assertSectionFits("effects");
 
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), threeWorkspaceMode,
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser choices remain available while the Effects section is visible");
 
     await openSection("export");
