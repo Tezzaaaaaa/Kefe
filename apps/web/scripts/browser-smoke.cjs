@@ -116,13 +116,14 @@ async function captureEditorScreenState(page) {
         section: node.dataset.sectionId || node.closest(".section[data-section-id]")?.dataset.sectionId || "",
         group: node.dataset.group || "", panel: node.dataset.panelView || "",
         text: (node.innerText || node.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 80),
+        ariaLabel: node.getAttribute("aria-label") || "",
         x: rect.x, y: rect.y, width: rect.width, height: rect.height, childCount: node.children.length,
-        childSummary: node.id === "kefeCarStack" ? [...node.children].slice(0, 10).map(child => `${child.tagName.toLowerCase()}.${[...child.classList].join(".")}:${child.hidden ? "hidden" : getComputedStyle(child).display}:${child.textContent.trim().slice(0, 20)}`).join("|") : "",
-        renderedCardCount: node.id === "kefeCarStack" ? [...node.querySelectorAll(".ks-tape")].filter(tape =>
+        childSummary: node.id === "kefeCarousel" ? [...node.children].slice(0, 10).map(child => `${child.tagName.toLowerCase()}.${[...child.classList].join(".")}:${child.hidden ? "hidden" : getComputedStyle(child).display}:${child.textContent.trim().slice(0, 20)}`).join("|") : "",
+        renderedCardCount: node.id === "kefeCarousel" ? [...node.querySelectorAll(".ks-tape")].filter(tape =>
           [...tape.querySelectorAll(".ks-face")].some(face => face.getClientRects().length > 0
             && getComputedStyle(face).display !== "none" && getComputedStyle(face).visibility !== "hidden")
         ).length : undefined,
-        carouselChildren: node.id === "kefeCarStack" ? [...node.querySelectorAll(".ks-tape")].filter(tape =>
+        carouselChildren: node.id === "kefeCarousel" ? [...node.querySelectorAll(".ks-tape")].filter(tape =>
           [...tape.querySelectorAll(".ks-face")].some(face => face.getClientRects().length > 0
             && getComputedStyle(face).display !== "none" && getComputedStyle(face).visibility !== "hidden")
         ).map((child, index) => {
@@ -139,7 +140,7 @@ async function captureEditorScreenState(page) {
             ariaLabel: child.getAttribute("aria-label") || "",
             ariaPressed: child.getAttribute("aria-pressed"),
             tabIndex: child.tabIndex,
-            text: (child.innerText || child.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 120),
+            text: (face.innerText || face.textContent || "").trim().replace(/\s+/g, " ").slice(0, 120),
             hidden: child.hidden,
             display: style.display,
             visibility: style.visibility,
