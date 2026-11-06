@@ -838,18 +838,99 @@
   }, { width: .8, height: .7 });
 
 
-  E.sigrubberstretch = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
+  /* Rubber Stretch — the sung word is pulled like taffy: glyphs elongate along
+     a bell profile (fattest in the middle), volume is preserved by thinning the
+     height, neighbours are pushed apart by the real extra width, and when the
+     note ends the word snaps back through rest on a damped spring. Tension
+     warms the colour towards coral. */
+  E.sigrubberstretch = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    glyphs(ctx, lay, map, time, w, h, {}, (ch, x, cw, y, ri, p) => {
-      const phase = time * 3.4 + x * .02;
-      const sx = 1 + .32 * Math.sin(phase);
-      const sy = 1 - .22 * Math.sin(phase);
-      glyph(ctx, ch, x, cw, y, {
-        scaleX: sx, scaleY: sy, dy: Math.sin(phase + 1.2) * lay.size * .08,
-        alpha: .42 + .58 * p, fill: '#fff',
+    const pal = Fx.palette({ text: '#ffffff', accent: '#ff7b6b', inactive: 'rgba(255,255,255,.26)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size;
+    const list = Fx.chars(ctx, items);
+    const byWord = new Map();
+    items.forEach(item => {
+      const dur = Math.max(.1, item.word.endTime - item.word.time);
+      const peak = .12 + .3 * clamp(dur / .9);
+      let a = 0;
+      if (time >= item.word.time && time <= item.word.endTime) a = peak * Fx.ease.outCubic((time - item.word.time) / Math.min(.35, dur));
+      else if (time > item.word.endTime) a = peak * (1 - Fx.spring(time - item.word.endTime, 3.1, .3));
+      item.a = a;
+      item.peak = peak;
+      const scales = Array.from(item.text).map((_, j, arr) => 1 + a * (.5 + .5 * Math.cos(((j + .5) / arr.length - .5) * Math.PI)) * 1.25);
+      item.scales = scales;
+      byWord.set(item, scales);
+    });
+    rows.forEach(row => {
+      const own = items.filter(item => item.ri === row.ri);
+      const glyphs = list.filter(g => own.includes(g.item));
+      own.forEach(item => {
+        const mine = glyphs.filter(g => g.item === item);
+        item.newWidth = mine.reduce((sum, g) => sum + g.w * item.scales[g.j], 0);
+        item.extra = item.newWidth - item.width;
+      });
+      const total = own.reduce((sum, item) => sum + item.extra, 0);
+      let before = 0;
+      own.forEach(item => {
+        item.left = item.x + before - total / 2 - 0;
+        before += item.extra;
       });
     });
-  });
+    const lift = (phase.leave || 0) * size * .25;
+    ctx.save();
+    ctx.translate(0, -lift);
+    items.forEach(item => {
+      let cursor = item.left;
+      const mine = list.filter(g => g.item === item);
+      mine.forEach(g => {
+        const s = item.scales[g.j];
+        const gw = g.w * s;
+        const tension = clamp(item.a / item.peak);
+        const lit = U.charProgress(item.word, g.j, g.n, time, .85, .3);
+        const sy = 1 - item.a * .3;
+        const draw = (colour, alpha) => {
+          ctx.save();
+          ctx.globalAlpha *= alpha;
+          ctx.translate(cursor + gw / 2, g.y);
+          ctx.scale(s, sy);
+          ctx.fillStyle = colour;
+          ctx.fillText(g.ch, -g.w / 2, 0);
+          ctx.restore();
+        };
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,.4)';
+        ctx.shadowBlur = size * .08;
+        ctx.shadowOffsetY = size * .03;
+        draw(pal.inactive, 1);
+        ctx.restore();
+        draw(pal.text, lit);
+        if (tension > .04) draw(pal.accent, tension * .55 * Math.max(lit, .3));
+        cursor += gw;
+      });
+    });
+    const tense = items.filter(item => item.a > .06);
+    if (tense.length) {
+      Fx.bloom(ctx, w, h, c => {
+        tense.forEach(item => {
+          let cursor = item.left;
+          list.filter(g => g.item === item).forEach(g => {
+            const s = item.scales[g.j];
+            c.save();
+            c.translate(cursor + g.w * s / 2, g.y);
+            c.scale(s, 1 - item.a * .3);
+            c.fillStyle = Fx.rgba(pal.accent, .55 * clamp(item.a / item.peak));
+            c.fillText(g.ch, -g.w / 2, 0);
+            c.restore();
+            cursor += g.w * s;
+          });
+        });
+      }, { radius: size * .3, strength: .8 });
+    }
+    ctx.restore();
+  }, { width: .74, height: .7 });
+
 
   /* ------------------------------------------------------------------ */
   /* 10–18  Glow Shaders                                                */
