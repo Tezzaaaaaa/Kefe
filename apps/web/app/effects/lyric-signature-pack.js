@@ -476,19 +476,81 @@
   }, { width: .84, height: .7 });
 
 
-  E.sigmagnetrepulse = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
+  /* Magnet Repulse — each word is a pole: when it is sung its glyphs are driven
+     outward from the word's centre of mass along a damped spring, tint towards
+     the accent as the field strengthens, and snap back past rest before
+     settling. A pair of field rings expands from the word with every hit. */
+  E.sigmagnetrepulse = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    const pulse = pulseOf(words, time);
-    glyphs(ctx, lay, map, time, w, h, {}, (ch, x, cw, y, ri, p) => {
-      const dir = (x + cw / 2 - w / 2) / Math.max(1, w * .5);
-      glyph(ctx, ch, x, cw, y, {
-        dx: dir * lay.size * .22 * pulse, dy: -dir * lay.size * .05 * pulse,
-        scaleX: 1 + .05 * pulse, scaleY: 1 + .05 * pulse,
-        alpha: .4 + .6 * p, fill: mix('#a5b4fc', '#f0abfc', pulse),
-        shadow: { color: rgba('#f0abfc', .4 * pulse), blur: lay.size * .22 },
-      });
+    const pal = Fx.palette({ text: '#f4f1ff', accent: '#e879f9', inactive: 'rgba(196,181,253,.32)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const list = Fx.chars(ctx, items);
+    const size = lay.size;
+    const lift = (phase.leave || 0) * size * .26;
+    ctx.save();
+    ctx.translate(0, -lift);
+    /* field rings first so the type sits on top of them */
+    items.forEach(item => {
+      const age = time - item.word.time;
+      if (age < 0 || age > .75) return;
+      for (let ring = 0; ring < 2; ring += 1) {
+        const u = clamp((age - ring * .09) / .6);
+        if (u <= 0 || u >= 1) continue;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.lineWidth = Math.max(1.2, size * (.016 - ring * .006));
+        ctx.strokeStyle = Fx.rgba(pal.accent, .5 * Math.pow(1 - u, 2) * (1 - ring * .4));
+        ctx.beginPath();
+        ctx.ellipse(item.cx, item.y, item.width * .5 + size * (.12 + .9 * Fx.ease.outCubic(u)), size * (.34 + .55 * Fx.ease.outCubic(u)), 0, 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+      }
     });
-  });
+    const state = list.map((g, index) => {
+      const item = g.item, word = item.word;
+      const age = time - word.time;
+      const ramp = age > 0 ? 1 - Math.exp(-age / .045) : 0;
+      const d = age > 0 ? ramp * Math.exp(-age / .34) * Math.cos(age * 8.5) : 0;
+      const dir = (g.cx - item.cx) / Math.max(item.width * .5, size * .3);
+      const vert = (Fx.hash(index * 1.9 + 7) - .5) * 1.2;
+      const lit = U.charProgress(word, g.j, g.n, time, .85, .3);
+      return {
+        g, d, lit, field: clamp(Math.abs(d) * 4.6),
+        x: g.cx + dir * d * size * .3, y: g.y + (dir * .35 + vert) * d * size * .12,
+        rot: dir * d * .5,
+      };
+    });
+    const hot = state.filter(st => st.field > .12);
+    if (hot.length) {
+      Fx.bloom(ctx, w, h, c => {
+        hot.forEach(st => {
+          c.save();
+          c.translate(st.x, st.y);
+          c.rotate(st.rot);
+          c.fillStyle = Fx.rgba(pal.accent, .8 * st.field);
+          c.fillText(st.g.ch, -st.g.w / 2, 0);
+          c.restore();
+        });
+      }, { radius: size * .34, strength: .85 });
+    }
+    state.forEach(st => {
+      const draw = (colour, alpha) => {
+        ctx.save();
+        ctx.globalAlpha *= alpha;
+        ctx.translate(st.x, st.y);
+        ctx.rotate(st.rot);
+        ctx.fillStyle = colour;
+        ctx.fillText(st.g.ch, -st.g.w / 2, 0);
+        ctx.restore();
+      };
+      draw(pal.inactive, 1);
+      draw(pal.text, st.lit);
+      if (st.field > .02) draw(pal.accent, st.field * .85);
+    });
+    ctx.restore();
+  }, { width: .8, height: .7 });
+
 
   E.sigwordcascade = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
     setFont(ctx, style.effect, lay.size, style);
