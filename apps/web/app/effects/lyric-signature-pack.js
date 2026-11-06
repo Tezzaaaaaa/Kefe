@@ -1303,81 +1303,225 @@
   }, { width: .82, height: .66 });
 
 
-  E.sigspotlight = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
+  /* Spotlight Sweep — a stage follow-spot. The room is dark and the type is
+     barely there; a hard-edged slanted band of light travels with the voice
+     (gliding across the gaps between words), revealing crisp warm-white
+     glyphs inside it, with a soft second edge, a volumetric beam from above,
+     a lit pool on the floor and bloom on whatever the band is touching. */
+  E.sigspotlight = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    const rows = rowsOf(ctx, lay, w, h);
-    const widest = Math.max(...rows.map(row => row.width));
-    const head = (time * .45) % 1;
-    const paint = (ctx, left, right) => {
-      const g = ctx.createLinearGradient(left, 0, right, 0);
-      g.addColorStop(0, '#6b7280');
-      g.addColorStop(clamp(head - .18), '#6b7280');
-      g.addColorStop(clamp(head), '#ffffff');
-      g.addColorStop(clamp(head + .18), '#6b7280');
-      g.addColorStop(1, '#6b7280');
-      return g;
-    };
-    rows.forEach(row => { ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillText(row.text, row.x, row.y); });
-    const p = U.sungProgress(words, time);
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(w / 2 - widest / 2, (h - lay.blockH) / 2 - lay.size * .3, widest * p, lay.blockH + lay.size * .6);
-    ctx.clip();
-    rows.forEach(row => {
-      ctx.fillStyle = paint(ctx, w / 2 - widest / 2, w / 2 + widest / 2);
-      ctx.fillText(row.text, row.x, row.y);
-    });
-    ctx.restore();
-  });
-
-  E.sigaurorawash = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
-    setFont(ctx, style.effect, lay.size, style);
-    const rows = rowsOf(ctx, lay, w, h);
-    const widest = Math.max(...rows.map(row => row.width));
-    const cx = w / 2, cy = rows.reduce((sum, row) => sum + row.y, 0) / rows.length;
-    const colors = ['#22d3ee', '#a78bfa', '#f472b6', '#34d399'];
-    ctx.save();
-    blur(ctx, Math.max(8, lay.size * .32));
-    for (let i = 0; i < 4; i += 1) {
-      const angle = time * .55 + i * TAU / 4;
-      const radius = widest * .38;
-      ctx.globalAlpha *= .3;
-      ctx.fillStyle = colors[i];
-      ctx.beginPath();
-      ctx.arc(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius * .42, widest * .3, 0, TAU);
-      ctx.fill();
-      ctx.globalAlpha /= .3;
+    const pal = Fx.palette({ text: '#fff6e6', accent: '#ffd59a', inactive: 'rgba(255,255,255,.14)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size, box = Fx.bounds(rows, lay);
+    const lift = (phase.leave || 0) * size * .2;
+    /* where the light is */
+    let front = items.length ? items[0].x : box.cx, rowY = items.length ? items[0].y : box.cy;
+    for (let i = 0; i < items.length; i += 1) {
+      const it = items[i], nx = items[i + 1];
+      if (time < it.word.time) { if (i === 0) { front = it.x; rowY = it.y; } break; }
+      const p = U.wordProgress(it.word, time, .08);
+      front = it.x + it.width * Math.min(1, p.sweep); rowY = it.y;
+      if (nx && time > it.word.endTime && time < nx.word.time) {
+        const u = Fx.ease.inOut(clamp((time - it.word.endTime) / Math.max(.05, nx.word.time - it.word.endTime)));
+        front = it.x + it.width + (nx.x - (it.x + it.width)) * u; rowY = it.y + (nx.y - it.y) * u;
+      }
     }
-    ctx.restore();
-    rows.forEach(row => { ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillText(row.text, row.x, row.y); });
-    const p = U.sungProgress(words, time);
+    const bw = size * 1.15, slant = size * .5;
+    const band = (pad, inset) => {
+      const x0 = front - bw / 2 - pad, x1 = front + bw / 2 + pad;
+      const yt = box.y - size * 1.2, yb = box.y + box.h + size * 1.2;
+      ctx.beginPath();
+      ctx.moveTo(x0 + slant, yt); ctx.lineTo(x1 + slant, yt); ctx.lineTo(x1 - slant, yb); ctx.lineTo(x0 - slant, yb);
+      ctx.closePath();
+    };
     ctx.save();
-    ctx.beginPath();
-    ctx.rect(w / 2 - widest / 2, (h - lay.blockH) / 2 - lay.size * .3, widest * p, lay.blockH + lay.size * .6);
-    ctx.clip();
-    rows.forEach(row => {
-      ctx.fillStyle = '#fff';
-      glow(ctx, 'rgba(167,139,250,.6)', lay.size * .26);
-      ctx.fillText(row.text, row.x, row.y);
-    });
+    ctx.translate(0, -lift);
+    /* dim type */
+    ctx.fillStyle = pal.inactive;
+    items.forEach(item => ctx.fillText(item.text, item.x, item.y));
+    /* sung words stay faintly lit after the beam passes */
+    ctx.save(); ctx.globalAlpha *= .5;
+    Fx.sung(ctx, items, time, Fx.rgba(pal.text, .55), 'rgba(0,0,0,0)', .2);
     ctx.restore();
-  });
-
-  E.sigcandleflicker = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
-    setFont(ctx, style.effect, lay.size, style);
-    const rows = rowsOf(ctx, lay, w, h);
-    const n = Math.sin(time * 13.7) * Math.sin(time * 5.3 + 1.4) + Math.sin(time * 29.1) * .35;
-    const flicker = clamp(.82 + n * .18, .45, 1);
-    rows.forEach(row => {
-      ctx.save();
-      ctx.globalAlpha *= flicker;
-      ctx.fillStyle = '#fef3c7';
-      glow(ctx, '#f59e0b', lay.size * (.18 + .14 * flicker));
-      ctx.fillText(row.text, row.x, row.y + Math.sin(time * 9.1) * lay.size * .012);
+    /* volumetric beam */
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const topY = box.y - size * 2.4;
+    const beam = ctx.createLinearGradient(0, topY, 0, box.y + box.h + size);
+    beam.addColorStop(0, Fx.rgba(pal.accent, 0)); beam.addColorStop(.5, Fx.rgba(pal.accent, .07)); beam.addColorStop(1, Fx.rgba(pal.accent, .16));
+    ctx.fillStyle = beam;
+    ctx.beginPath();
+    ctx.moveTo(front + slant * 1.6 - bw * .12, topY); ctx.lineTo(front + slant * 1.6 + bw * .12, topY);
+    ctx.lineTo(front + bw * .6 - slant, box.y + box.h + size); ctx.lineTo(front - bw * .6 - slant, box.y + box.h + size);
+    ctx.closePath(); ctx.fill();
+    /* floor pool */
+    const fy = box.y + box.h + size * .55;
+    ctx.save(); ctx.translate(front - slant, fy); ctx.scale(1, .22);
+    ctx.fillStyle = Fx.radial(ctx, 0, 0, 0, bw * 1.5, [[0, Fx.rgba(pal.accent, .3)], [1, Fx.rgba(pal.accent, 0)]]);
+    ctx.beginPath(); ctx.arc(0, 0, bw * 1.5, 0, TAU); ctx.fill(); ctx.restore();
+    ctx.restore();
+    /* lit glyphs, two edges: wide soft then hard */
+    [[size * .22, .35], [0, 1]].forEach(([pad, a]) => {
+      ctx.save(); band(pad); ctx.clip(); ctx.globalAlpha *= a;
+      ctx.fillStyle = pal.text;
+      items.forEach(item => ctx.fillText(item.text, item.x, item.y));
       ctx.restore();
     });
-    karaokeRows(ctx, lay, rows, w, h, words, () => '#fffbeb');
-  });
+    Fx.bloom(ctx, w, h, g => {
+      g.save();
+      g.beginPath();
+      const x0 = front - bw / 2, x1 = front + bw / 2, yt = box.y - size * 1.2, yb = box.y + box.h + size * 1.2;
+      g.moveTo(x0 + slant, yt); g.lineTo(x1 + slant, yt); g.lineTo(x1 - slant, yb); g.lineTo(x0 - slant, yb); g.closePath(); g.clip();
+      g.fillStyle = Fx.rgba(pal.accent, .85);
+      items.forEach(item => g.fillText(item.text, item.x, item.y));
+      g.restore();
+    }, { radius: size * .4, strength: .8, haze: .3 });
+    ctx.restore();
+  }, { width: .82, height: .66 });
+
+
+  /* Aurora Wash — curtains of northern light. Ribbons of green, teal and
+     violet hang behind the line with their own slow wave, brighter at the
+     lower hem and fading up into nothing, drifting in layers for depth, with a
+     rotating conic bloom under them. Unsung type is frosted, sung words fill
+     with the aurora's own gradient and a clean white core. */
+  E.sigaurorawash = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
+    setFont(ctx, style.effect, lay.size, style);
+    const pal = Fx.palette({ text: '#f2fff9', accent: '#46f0b0', inactive: 'rgba(225,255,245,.2)' });
+    const hues = pal.accentSet ? [pal.accent, Fx.mix(pal.accent, '#8a6bff', .6), Fx.mix(pal.accent, '#3ad0ff', .6)] : ['#46f0b0', '#38c8ff', '#9a6bff'];
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size, box = Fx.bounds(rows, lay);
+    const lift = (phase.leave || 0) * size * .2;
+    ctx.save();
+    ctx.translate(0, -lift);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    hues.forEach((colour, k) => {
+      const a = time * .22 + k * TAU / 3;
+      const bx = box.cx + Math.cos(a) * box.w * .26, by = box.cy + Math.sin(a * 1.3) * size * .35;
+      const br = Math.max(box.w * .38, size * 2.6);
+      ctx.fillStyle = Fx.radial(ctx, bx, by, 0, br, [[0, Fx.rgba(colour, .2)], [1, Fx.rgba(colour, 0)]]);
+      ctx.fillRect(bx - br, by - br, br * 2, br * 2);
+    });
+    const step = Math.max(4, Math.round(size * .07));
+    const x0 = box.x - size * .8, x1 = box.x + box.w + size * .8;
+    [[0, .75, .5, 1.0], [1, 1, -.35, .75], [2, .6, .22, .55]].forEach(([layer, amp, speed, alpha]) => {
+      const colour = hues[layer % 3];
+      for (let x = x0; x < x1; x += step) {
+        const u = (x - x0) / (x1 - x0);
+        const wave = Math.sin(u * 5.2 + time * speed + layer * 2) * .5 + Math.sin(u * 11 - time * speed * 1.7 + layer) * .25;
+        const hem = box.cy + size * (.62 + .3 * wave * amp) - layer * size * .1;
+        const len = size * (1.5 + .9 * (.5 + .5 * Math.sin(u * 7 + time * .6 + layer * 1.7))) * amp;
+        const edge = Math.sin(Math.PI * u);
+        const g = ctx.createLinearGradient(0, hem - len, 0, hem);
+        g.addColorStop(0, Fx.rgba(colour, 0));
+        g.addColorStop(.7, Fx.rgba(colour, .2 * alpha * edge));
+        g.addColorStop(1, Fx.rgba(colour, .5 * alpha * edge));
+        ctx.fillStyle = g;
+        ctx.fillRect(x, hem - len, step + .6, len);
+      }
+    });
+    ctx.restore();
+    ctx.fillStyle = pal.inactive;
+    items.forEach(item => ctx.fillText(item.text, item.x, item.y));
+    const lit = items.map(item => ({ item, p: U.wordProgress(item.word, time, .08) })).filter(o => o.p.sweep > .02);
+    if (lit.length) {
+      Fx.bloom(ctx, w, h, g => {
+        lit.forEach(({ item, p }) => {
+          g.fillStyle = Fx.lineGradient(g, item.x, 0, item.x + item.width, 0, [[0, hues[0]], [.5, hues[1]], [1, hues[2]]]);
+          g.globalAlpha = (.55 + .45 * p.pulse) * Math.min(1, p.sweep * 1.4);
+          g.fillText(item.text, item.x, item.y);
+        });
+      }, { radius: size * .5, strength: .95, haze: .5 });
+    }
+    Fx.sung(ctx, items, time, pal.text, 'rgba(0,0,0,0)', .3);
+    ctx.restore();
+  }, { width: .82, height: .66 });
+
+
+  /* Candle Flicker — one real flame. Intensity is a sum of unrelated noise
+     octaves plus occasional gutters, so there is no repeating pattern; the
+     flame sits just below the line and wanders toward the sung word. The type
+     is painted with a radial gradient centred on the flame (amber-white near,
+     dark brown far), shadows lean with the draught, and a small flame body
+     and warm bloom flicker with it. */
+  E.sigcandleflicker = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
+    setFont(ctx, style.effect, lay.size, style);
+    const pal = Fx.palette({ text: '#ffe6bd', accent: '#ff9a3a', inactive: 'rgba(120,70,40,.7)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size, box = Fx.bounds(rows, lay);
+    const lift = (phase.leave || 0) * size * .2;
+    const n = (k, s) => Fx.noise(time * k, s);
+    let flick = .72 + .16 * n(3.1, 1) + .1 * n(7.3, 2) + .06 * n(17, 3);
+    const gutter = Math.max(0, n(.9, 9) - .68) * 3;
+    flick = clamp(flick - gutter * .35, .25, 1.15);
+    let target = items.find(it => time >= it.word.time && time <= it.word.endTime + .3) || null;
+    if (!target) target = items.filter(it => it.word.endTime < time).pop() || items[0];
+    const fx = (target ? target.cx : box.cx) + (n(1.3, 4) - .5) * size * .5;
+    const fy = box.y + box.h + size * .55 + (n(2.2, 5) - .5) * size * .06;
+    const lean = (n(1.7, 6) - .5) * size * .25;
+    const R = Math.max(box.w * .55, size * 3.2) * (.85 + .2 * flick);
+    ctx.save();
+    ctx.translate(0, -lift);
+    const face = Fx.radial(ctx, fx, fy, 0, R, [[0, Fx.mix(pal.text, '#ffffff', .35)], [.25, pal.text], [.6, Fx.mix(pal.accent, '#5a2a12', .45)], [1, '#2a1409']]);
+    /* wall glow */
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = Fx.radial(ctx, fx, fy, 0, R * 1.2, [[0, Fx.rgba(pal.accent, .26 * flick)], [1, Fx.rgba(pal.accent, 0)]]);
+    ctx.fillRect(fx - R * 1.2, fy - R * 1.2, R * 2.4, R * 2.4);
+    ctx.restore();
+    /* unsung: dark wax-brown, lit only by distance */
+    ctx.save();
+    ctx.globalAlpha *= .35 + .5 * flick;
+    ctx.fillStyle = face;
+    ctx.shadowColor = 'rgba(0,0,0,.55)';
+    ctx.shadowBlur = size * .1;
+    ctx.shadowOffsetX = -lean * .3 + (fx < box.cx ? size * .03 : -size * .03);
+    ctx.shadowOffsetY = size * .03;
+    items.forEach(item => ctx.fillText(item.text, item.x, item.y));
+    ctx.restore();
+    /* sung words burn brighter */
+    const lit = items.map(item => ({ item, p: U.wordProgress(item.word, time, .1) })).filter(o => o.p.sweep > .02);
+    if (lit.length) {
+      Fx.bloom(ctx, w, h, g => {
+        lit.forEach(({ item, p }) => {
+          g.fillStyle = Fx.rgba(pal.accent, .75 * flick * Math.min(1, p.sweep * 1.4));
+          g.fillText(item.text, item.x, item.y);
+        });
+      }, { radius: size * .5, strength: .9 * flick, haze: .4 });
+      lit.forEach(({ item, p }) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(item.x - size * .1, item.y - size, item.width * Math.min(1, p.sweep * 1.12) + size * .2, size * 2);
+        ctx.clip();
+        ctx.globalAlpha *= .55 + .4 * flick;
+        ctx.fillStyle = Fx.mix(pal.text, '#ffffff', .4);
+        ctx.fillText(item.text, item.x, item.y);
+        ctx.restore();
+      });
+    }
+    /* flame body */
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const fh = size * .42 * (.8 + .35 * flick), fw = size * .09;
+    ctx.translate(fx, fy);
+    ctx.fillStyle = Fx.radial(ctx, 0, 0, 0, fh * 1.6, [[0, Fx.rgba('#fff4d8', .35 * flick)], [1, Fx.rgba(pal.accent, 0)]]);
+    ctx.fillRect(-fh * 1.6, -fh * 1.6, fh * 3.2, fh * 3.2);
+    ctx.beginPath();
+    ctx.moveTo(0, fh * .35);
+    ctx.bezierCurveTo(fw * 1.3, fh * .1, fw * .9, -fh * .5, lean * .6, -fh);
+    ctx.bezierCurveTo(-fw * .9, -fh * .5, -fw * 1.3, fh * .1, 0, fh * .35);
+    ctx.fillStyle = Fx.rgba('#ffb04a', .85);
+    ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, fh * .05, fw * .5, fh * .32, 0, 0, TAU);
+    ctx.fillStyle = Fx.rgba('#fff6dc', .9); ctx.fill();
+    ctx.restore();
+    ctx.restore();
+  }, { width: .82, height: .66 });
+
 
   /* ------------------------------------------------------------------ */
   /* 19–26  Cyber Networks                                              */
