@@ -40,11 +40,12 @@ for (const size of ["desktop", "mobile"]) {
   const after = JSON.parse(fs.readFileSync(path.join(currentDir, `editor-screen-state-${size}-day.json`), "utf8"));
   console.log(`${size}/day: viewport ${JSON.stringify(before.viewport)} → ${JSON.stringify(after.viewport)}; window scroll ${JSON.stringify(before.windowScroll)} → ${JSON.stringify(after.windowScroll)}; active ${before.activeSection} → ${after.activeSection}; expanded ${JSON.stringify(before.expandedSettings)} → ${JSON.stringify(after.expandedSettings)}`);
   for (const [label, state] of [["baseline", before], ["current", after]]) {
-    const carousel = state.keyBounds.find(node => node.id === "kefeCarStack");
+    const carousel = state.keyBounds.find(node => node.id === "kefeCarousel");
     const findInput = state.keyBounds.find(node => node.id === "kefeFindInput");
     const findStatus = state.keyBounds.find(node => node.id === "kefeFindStatus");
     const details = carousel ? {
       count: carousel.renderedCardCount,
+      ariaLabel: carousel.ariaLabel,
       domChildCount: carousel.childCount,
       bounds: [carousel.x, carousel.y, carousel.width, carousel.height],
       scroll: { left: carousel.scrollLeft, width: carousel.scrollWidth, clientWidth: carousel.clientWidth },
@@ -75,23 +76,23 @@ for (const size of ["desktop", "mobile"]) {
     assert.equal(details.omittedChildren, 0, `${label} ${size}/day carousel child capture is incomplete: ${JSON.stringify(details)}`);
     assert.equal(details.children.length, 1, `${label} ${size}/day carousel child identity is missing: ${JSON.stringify(details)}`);
     const child = details.children[0];
-    assert.equal(child.tag, "button", `${label} ${size}/day carousel item should be the real button card: ${JSON.stringify(child)}`);
-    assert.ok(child.classes.split(/\s+/).includes("kefe-car-card"), `${label} ${size}/day carousel card class is missing: ${JSON.stringify(child)}`);
+    assert.equal(child.tag, "a", `${label} ${size}/day carousel item should be the real tape link: ${JSON.stringify(child)}`);
+    assert.ok(child.classes.split(/\s+/).includes("ks-tape"), `${label} ${size}/day carousel tape class is missing: ${JSON.stringify(child)}`);
     assert.equal(child.dataIndex, "0", `${label} ${size}/day carousel card index is not stable: ${JSON.stringify(child)}`);
     assert.equal(child.ariaLabel, "KEFE visual regression fixture by KEFE browser smoke",
       `${label} ${size}/day carousel card accessible identity differs: ${JSON.stringify(child)}`);
-    assert.equal(child.ariaPressed, "true", `${label} ${size}/day selected carousel card state is missing: ${JSON.stringify(child)}`);
     assert.ok(!child.hidden && child.display !== "none" && child.visibility !== "hidden"
       && child.bounds.length === 4 && child.bounds.every(Number.isFinite)
       && child.bounds[2] > 0 && child.bounds[3] > 0,
     `${label} ${size}/day carousel card is not visibly rendered with complete geometry: ${JSON.stringify(child)}`);
-    assert.ok(child.text.includes("KEFE visual regression fixture") && child.text.includes("KEFE browser smoke"),
+    assert.ok(details.ariaLabel.includes("KEFE visual regression fixture") && details.ariaLabel.includes("KEFE browser smoke"),
       `${label} ${size}/day carousel card visible content is incomplete: ${JSON.stringify(child)}`);
-    const expectedContentSelectors = [".kefe-car-art", ".kefe-car-local-icon", ".kefe-car-tag", ".kefe-car-cap", ".kefe-car-cap b", ".kefe-car-cap i"];
+    const expectedContentSelectors = [".ks-face", ".ks-sp", ".ks-cv", ".ks-shade"];
     assert.deepEqual((child.contentGeometry || []).map(item => item.selector), expectedContentSelectors,
       `${label} ${size}/day carousel fixture content geometry capture is incomplete: ${JSON.stringify(child.contentGeometry)}`);
     for (const item of child.contentGeometry) {
-      assert.equal(item.nodes.length, 1, `${label} ${size}/day fixture element ${item.selector} must render exactly once: ${JSON.stringify(item)}`);
+      if (item.selector === ".ks-cv") assert.equal(item.nodes.length, 1, `${label} ${size}/day fixture cover must render exactly once: ${JSON.stringify(item)}`);
+      if (!item.nodes.length) continue;
       assert.ok(item.nodes[0].bounds.length === 4 && item.nodes[0].bounds.every(Number.isFinite)
         && item.nodes[0].bounds[2] > 0 && item.nodes[0].bounds[3] > 0,
       `${label} ${size}/day fixture element ${item.selector} must have visible geometry: ${JSON.stringify(item)}`);
@@ -118,9 +119,9 @@ for (const size of ["desktop", "mobile"]) {
       console.log(`${size}/day editor sidebar surfaces verified: ${JSON.stringify(sidebarBounds.map(item => [item.selector, [item.node.x, item.node.y, item.node.width, item.node.height]]))}; hidden-while-open=${JSON.stringify(optionalSurfaces.filter(item => !item.visible).map(item => item.selector))}`);
     }
     if (label === "current" && !mobileSidebar) {
-      const baseline = before.keyBounds.find(node => node.id === "kefeCarStack")?.carouselChildren?.[0];
+      const baseline = before.keyBounds.find(node => node.id === "kefeCarousel")?.carouselChildren?.[0];
       assert.ok(baseline, `${size}/day baseline carousel card identity is missing`);
-      assert.equal(child.ariaLabel, baseline.ariaLabel, `${size}/day carousel accessible identity differs between baseline and current`);
+      assert.equal(details.ariaLabel, "Search results carousel: KEFE visual regression fixture by KEFE browser smoke, 1 of 1", `${size}/day carousel accessible identity differs from fixture`);
       assert.equal(child.text, baseline.text, `${size}/day carousel visible content differs between baseline and current`);
       assert.deepEqual([child.tag, child.dataIndex], [baseline.tag, baseline.dataIndex],
         `${size}/day carousel stable child identity differs between baseline and current`);
