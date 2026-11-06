@@ -1438,11 +1438,7 @@ async function captureEditorScreenState(page) {
       };
       await screenshotPage.waitForFunction(() => typeof window.kefeCarousel?.setLocalUpload === "function", null, { timeout: 10000 });
       await screenshotPage.evaluate((item) => window.kefeCarousel.setLocalUpload(item, true), carouselFixture);
-      const baselineUsesButtonBridge = await screenshotPage.evaluate(() =>
-        Boolean(document.querySelector(".kefe-panel button[data-beui-panel-mounted]")));
-      const fixtureCard = screenshotPage.locator(baselineUsesButtonBridge
-        ? '#kefeCarStack > .beui-panel-button-host > button.kefe-car-card'
-        : '#kefeCarStack > button.kefe-car-card:not(.beui-native-panel-button)');
+      const fixtureCard = screenshotPage.locator('#kefeCarStack button.kefe-car-card:not(.beui-native-panel-button)').first();
       await fixtureCard.waitFor({ state: "visible", timeout: 10000 });
       const seededCarousel = await fixtureCard.evaluate((card) => {
         const visibleCards = [...document.querySelectorAll("#kefeCarStack button.kefe-car-card")].filter(candidate =>
