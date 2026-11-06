@@ -325,6 +325,7 @@ async function captureEditorScreenState(page) {
       && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.editor.bottom + 8,
       `toolbar must be docked immediately to the right of Editor: ${JSON.stringify(initialToolbarPlacement)}`);
 
+    const tidySectionMode = await page.evaluate(() => Boolean(document.querySelector(".kefe-advanced-controls")));
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     // Mobile keeps all three workspace tabs visible and exposes one selected panel.
@@ -495,7 +496,6 @@ async function captureEditorScreenState(page) {
       document.querySelector('meta[name="kefe-settings-tabs"]')?.content === "single");
     const threeWorkspaceMode = await page.evaluate(() =>
       document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]").length === 3);
-    const tidySectionMode = await page.evaluate(() => Boolean(document.querySelector(".kefe-advanced-controls")));
     /* Header capability probe: the main baseline may still ship the older header, so each
        header contract is asserted only against the shape the running build provides. */
     const headerSearchMode = await page.evaluate(() => Boolean(document.querySelector("[data-kefe-search]")));
