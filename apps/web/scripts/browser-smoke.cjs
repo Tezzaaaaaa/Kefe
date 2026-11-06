@@ -1423,6 +1423,9 @@ async function captureEditorScreenState(page) {
       });
       await screenshotPage.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
       await screenshotPage.waitForSelector('#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view="media"]', { state: "attached", timeout: 20000 });
+      await screenshotPage.locator('[role="tab"][data-workspace-tab="content"]').click();
+      await screenshotPage.waitForFunction(() => !document.querySelector('.kefe-workspace[data-group="content"]')?.hidden
+        && document.querySelector('#kefe-settings-panel .kefe-slot[data-kefe-slot="media"] #mediaInput'), null, { timeout: 10000 });
       await screenshotPage.waitForSelector('#kefeBackgroundEffectOptions [data-background-mode="apple"]', { state: "attached", timeout: 10000 });
       const carouselFixture = {
         trackName: "KEFE visual regression fixture",
