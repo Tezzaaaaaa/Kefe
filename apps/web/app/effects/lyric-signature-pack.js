@@ -39,9 +39,14 @@
     return `rgb(${Math.round(lerp(A[0], B[0], t))},${Math.round(lerp(A[1], B[1], t))},${Math.round(lerp(A[2], B[2], t))})`;
   };
   const contract = key => (window.KEFE_TYPE && window.KEFE_TYPE.effects && window.KEFE_TYPE.effects[key]) || {};
+  const Fx = window.kefeFx || {};
   const setFont = (ctx, key, size, style) => {
     const c = contract(key);
-    U.setFont(ctx, c.family || style?.kefeMotionFont || 'Open Sans', size, c.weight || 800);
+    const family = c.family || style?.kefeMotionFont || 'Open Sans';
+    U.setFont(ctx, family, size, Fx.fontWeight ? Fx.fontWeight(family, c.weight || 800) : (c.weight || 800));
+    if (Fx.typeQuality) Fx.typeQuality(ctx);
+    /* Contract tracking is real letter-spacing at draw time, not just a wrap hint. */
+    if (Fx.letterSpacing) Fx.letterSpacing(ctx, (c.tracking || 0) * Math.max(18, size));
   };
   const blur = (ctx, px) => {
     try { if ('filter' in ctx) ctx.filter = px > 0 ? `blur(${px}px)` : 'none'; } catch (_) {}
@@ -60,7 +65,10 @@
     const key = style.effect;
     const c = contract(key);
     const family = c.family || style.kefeMotionFont || 'Open Sans';
-    const set = (target, size) => U.setFont(target, family, size, c.weight || 800);
+    const weight = Fx.fontWeight ? Fx.fontWeight(family, c.weight || 800) : (c.weight || 800);
+    const set = (target, size) => U.setFont(target, family, size, weight);
+    /* layoutText adds tracking itself, so measure with spacing off to avoid counting it twice */
+    if (Fx.letterSpacing) Fx.letterSpacing(ctx, 0);
     const lay = U.layoutText(ctx, text, {
       setFont: set,
       size: Number(style.fontSize) || 90,
@@ -73,6 +81,8 @@
       upper: !!opt.upper,
     });
     set(ctx, lay.size);
+    if (Fx.typeQuality) Fx.typeQuality(ctx);
+    if (Fx.letterSpacing) Fx.letterSpacing(ctx, (c.tracking || 0) * lay.size);
     return lay;
   }
 
@@ -150,7 +160,9 @@
       const map = U.charMap(lay.lines, words);
       ctx.save();
       ctx.globalAlpha *= item.alpha;
-      draw({ line: item.line, next: item.next, text, words, lay, map, index: item.index });
+      const t0 = Number(item.line.time) || 0;
+      const phase = { enter: item.enter, leave: item.leave, alpha: item.alpha, role: item.role, t: ctx.__kfxTime - t0, line: item.line };
+      draw({ line: item.line, next: item.next, text, words, lay, map, index: item.index, phase });
       ctx.restore();
     });
   }
@@ -190,7 +202,16 @@
       noGlow(ctx);
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      fn(ctx, w, h, style, lines || [], timeNow);
+      ctx.__kfxTime = timeNow;
+      try {
+        fn(ctx, w, h, style, lines || [], timeNow);
+      } finally {
+        /* never leak spacing / filters / blend modes into the next effect or the title card */
+        if (Fx.letterSpacing) Fx.letterSpacing(ctx, 0);
+        ctx.globalCompositeOperation = 'source-over';
+        noGlow(ctx);
+        if ('filter' in ctx) ctx.filter = 'none';
+      }
     };
   }
 

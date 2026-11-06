@@ -52,6 +52,7 @@ assert.match(editor, /<meta name="kefe-lyric-signature" content="50">/, "the edi
 assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
 assert.match(editor, /lyric-karaoke\.js/, "the Karaoke and Bounce renderers must stay loaded");
 assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
+assert.match(editor, /lyric-premium-kit\.js[^]*lyric-signature-pack\.js/, "the premium kit must load before the Signature pack");
 assert.match(editor, /effects\/manifest\.js/, "the manifest must be loaded");
 for (const file of ["lyric-aurora", "lyric-pulse", "lyric-typewriter", "lyric-glitch", "lyric-inspiration-pack"]) {
   assert.doesNotMatch(editor, new RegExp(`effects/${file}\\.js`), `the retired ${file} renderer must not be loaded`);
@@ -104,11 +105,18 @@ runtime.window = runtime;
 runtime.globalThis = runtime;
 runtime.document = {
   readyState: "complete", addEventListener() {}, querySelector() { return null; },
-  querySelectorAll() { return []; }, createElement() { return { style: {}, setAttribute() {}, appendChild() {} }; },
+  querySelectorAll() { return []; },
+  /* canvases get a working mock context so the kit's bloom / mask / reveal paths run too */
+  createElement(tag) {
+    if (tag === "canvas") { const canvas = { width: 1, height: 1, style: {} }; canvas.getContext = () => Object.assign(makeContext(), { canvas }); return canvas; }
+    return { style: {}, setAttribute() {}, appendChild() {} };
+  },
   getElementById() { return null; },
 };
 vm.createContext(runtime);
 vm.runInContext(read("app/effects/core.js"), runtime, { filename: "core.js" });
+vm.runInContext(read("app/effects/lyric-premium-kit.js"), runtime, { filename: "lyric-premium-kit.js" });
+assert.equal(typeof runtime.kefeFx?.bloom, "function", "the premium kit must publish window.kefeFx");
 vm.runInContext(read("app/effects/lyric-signature-pack.js"), runtime, { filename: "lyric-signature-pack.js" });
 const registered = Object.keys(runtime.kefeEffects || {}).filter(key => key.startsWith("sig"));
 assert.deepEqual(registered.sort(), [...keys].sort(), "renderer registrations must match the roster");
