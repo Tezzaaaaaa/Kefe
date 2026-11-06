@@ -22,7 +22,7 @@ if ((panelHtml.match(/data-expanded="true"/g) || []).length !== 6) {
 if (!panelHtml.includes("Audio &amp; Visualiser") || !panelHtml.includes("<summary>Advanced</summary>")) {
   failures.push("Audio & Visualiser must be clearly named and Export must be inside collapsed Advanced controls.");
 }
-if (!bg.includes("data-background-group='effects'") || !bg.includes("Background Effects")) {
+if (!bg.includes("effectsGroup.dataset.backgroundGroup='effects'") || !bg.includes("Background Effects")) {
   failures.push("Background and Background Effects must have distinct visible group structure.");
 }
 if (panelHtml.includes("expand-button") || panelHtml.includes("data-expanded=\"false\"")) {
