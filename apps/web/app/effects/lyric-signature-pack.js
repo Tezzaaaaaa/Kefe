@@ -210,32 +210,104 @@
         if (Fx.letterSpacing) Fx.letterSpacing(ctx, 0);
         ctx.globalCompositeOperation = 'source-over';
         noGlow(ctx);
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
         if ('filter' in ctx) ctx.filter = 'none';
       }
     };
   }
 
-  const lineLoop = drawLine => withTime((ctx, w, h, style, lines, time) => {
-    lineScene(ctx, style, lines, time, {}, drawLine(ctx, w, h, style, time));
+  const lineLoop = (drawLine, opt = {}) => withTime((ctx, w, h, style, lines, time) => {
+    lineScene(ctx, style, lines, time, opt, drawLine(ctx, w, h, style, time));
   });
 
   /* ------------------------------------------------------------------ */
   /* 01–09  Kinetic Dynamics                                            */
   /* ------------------------------------------------------------------ */
 
-  E.sigkineticpunch = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
-    const pulse = pulseOf(words, time);
+  /* Kinetic Punch — every word is struck on its own beat: a sprung scale-in with
+     overshoot, a white-hot flash with warm bloom, an anamorphic streak and a
+     brief chromatic fringe. Neighbours are pushed apart by the punched word's
+     real width (no overlaps), and the whole line lifts away on exit. */
+  E.sigkineticpunch = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    glyphs(ctx, lay, map, time, w, h, {}, (ch, x, cw, y, ri, p) => {
-      const spread = (x + cw / 2 - w / 2) / Math.max(1, w * .5) * lay.size * .13 * pulse;
-      glyph(ctx, ch, x, cw, y, {
-        dx: spread, dy: -pulse * lay.size * .05,
-        scaleX: 1 + .14 * pulse, scaleY: 1 + .14 * pulse,
-        alpha: .38 + .62 * p, fill: '#fff',
-        shadow: { color: rgba('#ffffff', .35 * pulse), blur: lay.size * .3 * pulse },
+    const pal = Fx.palette({ text: '#ffffff', accent: '#ff7a59', inactive: 'rgba(255,255,255,.3)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size;
+    /* per-word state */
+    items.forEach(item => {
+      const age = time - item.word.time;
+      const hit = age >= 0 ? Fx.spring(age, 3.3, .34) : 0;
+      const pre = U.wordProgress(item.word, time, .09).pre * (age < 0 ? 1 : 0);
+      item.s = age >= 0 ? 1 + .34 * (1 - hit) : 1 - .035 * pre;
+      item.dy = age >= 0 ? -(1 - hit) * size * .07 : pre * size * .012;
+      item.flash = age >= 0 ? Math.exp(-age / .15) : 0;
+    });
+    /* push neighbours apart by the extra width each punched word occupies */
+    rows.forEach(row => {
+      const own = items.filter(item => item.ri === row.ri);
+      const extra = own.map(item => (item.s - 1) * item.width);
+      const total = extra.reduce((a, b) => a + b, 0);
+      let before = 0;
+      own.forEach((item, i) => {
+        item.px = item.cx + before + extra[i] / 2 - total / 2;
+        before += extra[i];
       });
     });
-  });
+    const lift = (phase.leave || 0) * size * .3;
+    ctx.save();
+    ctx.translate(0, -lift);
+    const hot = items.filter(item => item.flash > .02);
+    if (hot.length) {
+      Fx.bloom(ctx, w, h, g => {
+        hot.forEach(item => {
+          g.save();
+          g.translate(item.px, item.y + item.dy);
+          g.scale(item.s, item.s);
+          g.fillStyle = Fx.rgba(pal.accent, .85 * item.flash);
+          g.fillText(item.text, -item.width / 2, 0);
+          g.restore();
+        });
+      }, { radius: size * .5, strength: .8, haze: .3 });
+      hot.forEach(item => {
+        const span = item.width * item.s * 2.1;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = Fx.lineGradient(ctx, item.px - span / 2, 0, item.px + span / 2, 0, [
+          [0, 'rgba(255,255,255,0)'], [.5, Fx.rgba('#ffffff', .85 * item.flash)], [1, 'rgba(255,255,255,0)'],
+        ]);
+        ctx.fillRect(item.px - span / 2, item.y + item.dy - size * .004, span, Math.max(1.5, size * .014));
+        ctx.restore();
+      });
+    }
+    items.forEach(item => {
+      const p = U.wordProgress(item.word, time, .06).sweep;
+      ctx.save();
+      ctx.translate(item.px, item.y + item.dy);
+      ctx.scale(item.s, item.s);
+      if (item.flash > .25) {
+        Fx.chroma(ctx, (g, dx, dy, colour) => {
+          g.fillStyle = colour;
+          g.fillText(item.text, -item.width / 2 + dx, dy);
+        }, { dx: size * .014 * item.flash, strength: .5 * item.flash });
+      }
+      ctx.shadowColor = 'rgba(0,0,0,.42)';
+      ctx.shadowBlur = size * .1;
+      ctx.shadowOffsetY = size * .03;
+      ctx.fillStyle = U.sweepFill(ctx, -item.width / 2, item.width, p, pal.text, pal.inactive, .32);
+      ctx.fillText(item.text, -item.width / 2, 0);
+      if (item.flash > .02) {
+        /* white-hot strike: the whole word flashes full white at impact, then settles into the sweep */
+        ctx.globalAlpha *= clamp(item.flash * 1.15);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(item.text, -item.width / 2, 0);
+      }
+      ctx.restore();
+    });
+    ctx.restore();
+  }, { width: .8, height: .7 });
+
 
   E.sigelasticslam = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
     setFont(ctx, style.effect, lay.size, style);

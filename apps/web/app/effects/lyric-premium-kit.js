@@ -147,6 +147,7 @@
     const scale = o.scale || .5;
     const A = Fx.scratch('kfx-bloom-a', w * scale, h * scale);
     if (!A) return false;
+    Fx.syncText(A.g, ctx);
     A.g.save();
     A.g.scale(scale, scale);
     paint(A.g);
@@ -184,8 +185,7 @@
   Fx.masked = (ctx, w, h, drawMask, paintFill, o = {}) => {
     const A = Fx.scratch('kfx-mask', w, h);
     if (!A) { drawMask(ctx); return false; }
-    A.g.textAlign = 'left';
-    A.g.textBaseline = 'middle';
+    Fx.syncText(A.g, ctx);
     if (o.setup) o.setup(A.g);
     drawMask(A.g);
     A.g.save();
@@ -336,8 +336,7 @@
     const lit = Fx.scratch('kfx-reveal-lit', w, h);
     const matte = Fx.scratch('kfx-reveal-matte', w, h);
     if (!lit || !matte) { paintLit(ctx); return false; }
-    lit.g.textAlign = 'left';
-    lit.g.textBaseline = 'middle';
+    Fx.syncText(lit.g, ctx);
     paintLit(lit.g);
     const band = o.band || 1.4;
     items.forEach(item => {
@@ -370,6 +369,16 @@
   /* ------------------------------------------------------------------ */
   /* small drawing helpers                                              */
   /* ------------------------------------------------------------------ */
+  /* Copy the text state of the main context onto an offscreen one so paint
+     callbacks can draw type with exactly the same font and spacing. */
+  Fx.syncText = (to, from) => {
+    to.font = from.font;
+    to.textAlign = 'left';
+    to.textBaseline = 'middle';
+    if ('letterSpacing' in from) to.letterSpacing = from.letterSpacing;
+    if ('textRendering' in from) to.textRendering = from.textRendering;
+    if ('fontKerning' in from) to.fontKerning = from.fontKerning;
+  };
   Fx.letterSpacing = (ctx, px) => {
     if ('letterSpacing' in ctx) ctx.letterSpacing = `${px || 0}px`;
   };
