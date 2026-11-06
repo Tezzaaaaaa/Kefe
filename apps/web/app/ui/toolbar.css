@@ -592,3 +592,40 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
   }
   .kefe-sidebar-group-editor > .kefe-floating-toolbar.is-open .kft-main { width: 100%; }
 }
+
+
+/* Timeline control order: playback, scrubber, volume, editor toolbar. Fullscreen lives on the preview's top-right edge. */
+html .kefe-editor .kefe-timeline {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+html .kefe-editor .kefe-timeline > .kefe-floating-toolbar {
+  display: flex;
+  align-items: center;
+  min-width: 32px;
+  max-width: min(100%, 420px);
+  margin: 0;
+}
+html .kefe-editor .kefe-timeline > .kefe-floating-toolbar .kft-launch {
+  order: 0;
+}
+html .kefe-editor .kefe-stage {
+  position: relative;
+}
+html .kefe-editor .kefe-stage > #previewFullscreen {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  z-index: 10020;
+}
+html .kefe-editor .kefe-timeline > .kefe-preview-fullscreen {
+  display: none !important;
+}
+@media (max-width: 700px) {
+  html .kefe-editor .kefe-timeline {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    gap: 6px;
+  }
+  html .kefe-editor .kefe-timeline > .kefe-floating-toolbar {
+    max-width: 36px;
+  }
+}
