@@ -159,50 +159,95 @@
     var select=document.getElementById('visualiserBackground');
     var lyricOptions=document.getElementById('lyricEffectOptions');
     if(!backgroundForm||!select||!lyricOptions||document.getElementById('kefeBackgroundEffectOptions'))return;
-    var panel=document.querySelector('[data-panel-view="background-effects"]');
-    var panelHead=panel&&panel.querySelector('.kefe-panel-head');
-    var heading=panelHead&&panelHead.querySelector('h2');
-    if(heading&&!document.getElementById('kefeBackgroundEffectToggle')){
-      var titleRow=panelHead.querySelector('.kefe-section-heading-row');
-      if(!titleRow){
-        titleRow=document.createElement('div');titleRow.className='kefe-background-effect-heading';
-        heading.parentNode.insertBefore(titleRow,heading);titleRow.appendChild(heading);
-      }
-      var toggle=document.createElement('button');toggle.id='kefeBackgroundEffectToggle';toggle.type='button';toggle.className='kefe-background-effect-toggle kefe-switch';toggle.setAttribute('role','switch');toggle.setAttribute('aria-label','Background effects');toggle.setAttribute('aria-checked',String(enabled));
-      var toggleState=document.createElement('span');toggleState.className='kefe-switch-state';
-      var toggleTrack=document.createElement('span');toggleTrack.className='kefe-switch-track';toggleTrack.setAttribute('aria-hidden','true');
-      var toggleThumb=document.createElement('span');toggleThumb.className='kefe-switch-thumb';toggleTrack.appendChild(toggleThumb);toggle.append(toggleState,toggleTrack);
-      toggle.addEventListener('click',function(){setMode(enabled?'off':(lastMode||'apple'));});
-      var accordion=titleRow.querySelector(':scope > .beui-accordion-trigger');
-      if(accordion)titleRow.insertBefore(toggle,accordion);else titleRow.appendChild(toggle);
-      syncBackgroundToggleUI=function(){toggleState.textContent=enabled?'On':'Off';toggle.setAttribute('aria-checked',String(enabled));toggle.classList.toggle('is-on',enabled);};
-      syncBackgroundToggleUI();
-    }
+
+    var effectsGroup=document.createElement('section');
+    effectsGroup.className='kefe-background-effects-group';
+    effectsGroup.dataset.backgroundGroup='effects';
+    effectsGroup.setAttribute('aria-labelledby','kefeBackgroundEffectsHeading');
+    var heading=document.createElement('div');
+    heading.className='kefe-background-effects-heading';
+    var title=document.createElement('h3');
+    title.id='kefeBackgroundEffectsHeading';
+    title.textContent='Background Effects';
+    heading.appendChild(title);
+
+    var toggle=document.createElement('button');
+    toggle.id='kefeBackgroundEffectToggle';
+    toggle.type='button';
+    toggle.className='kefe-background-effect-toggle kefe-switch';
+    toggle.setAttribute('role','switch');
+    toggle.setAttribute('aria-label','Background effects');
+    toggle.setAttribute('aria-checked',String(enabled));
+    var toggleState=document.createElement('span');
+    toggleState.className='kefe-switch-state';
+    var toggleTrack=document.createElement('span');
+    toggleTrack.className='kefe-switch-track';
+    toggleTrack.setAttribute('aria-hidden','true');
+    var toggleThumb=document.createElement('span');
+    toggleThumb.className='kefe-switch-thumb';
+    toggleTrack.appendChild(toggleThumb);
+    toggle.append(toggleState,toggleTrack);
+    toggle.addEventListener('click',function(){setMode(enabled?'off':(lastMode||'apple'));});
+    heading.appendChild(toggle);
+    effectsGroup.append(heading);
+
     var backgroundBlock=select.closest('.kefe-background-effect-control');
     var transparency=document.getElementById('backgroundTransparency');
     var transparencyBlock=transparency&&transparency.closest('.kefe-background-effect-control');
     var upload=document.getElementById('kefeBgVideoZone');
-    var uploadWrap=upload&&upload.parentElement;
-    if(backgroundBlock)backgroundForm.appendChild(backgroundBlock);
-    if(transparencyBlock&&transparencyBlock.parentNode!==backgroundForm)backgroundForm.appendChild(transparencyBlock);
-    if(uploadWrap)backgroundForm.appendChild(uploadWrap);
-    var choiceWrap=document.createElement('div');choiceWrap.id='kefeBackgroundEffectOptions';choiceWrap.className='kefe-background-effect-options';choiceWrap.setAttribute('role','group');choiceWrap.setAttribute('aria-label','Background effect options');
+    var uploadWrap=upload&&upload.closest('.beui-upload-wrap');
+
+    var choiceWrap=document.createElement('div');
+    choiceWrap.id='kefeBackgroundEffectOptions';
+    choiceWrap.className='kefe-background-effect-options';
+    choiceWrap.setAttribute('role','group');
+    choiceWrap.setAttribute('aria-label','Background effect options');
     [['apple','Apple Motion Art'],['gradient','Album Palette Gradient'],['video','Uploaded Video']].forEach(function(item){
-      var button=document.createElement('button');button.type='button';button.className='kefe-lyric-effect-option kefe-background-effect-card';button.dataset.backgroundMode=item[0];button.setAttribute('aria-pressed',String(lastMode===item[0]));
-      var preview=document.createElement('span');preview.className='kefe-background-effect-preview';preview.setAttribute('aria-hidden','true');
-      var previewCore=document.createElement('span');previewCore.className='kefe-background-effect-preview-core';preview.appendChild(previewCore);
-      var label=document.createElement('span');label.className='kefe-background-effect-name';label.textContent=item[1];
-      button.appendChild(preview);button.appendChild(label);
+      var button=document.createElement('button');
+      button.type='button';
+      button.className='kefe-lyric-effect-option kefe-background-effect-card';
+      button.dataset.backgroundMode=item[0];
+      button.setAttribute('aria-pressed',String(lastMode===item[0]));
+      var preview=document.createElement('span');
+      preview.className='kefe-background-effect-preview';
+      preview.setAttribute('aria-hidden','true');
+      var previewCore=document.createElement('span');
+      previewCore.className='kefe-background-effect-preview-core';
+      preview.appendChild(previewCore);
+      var label=document.createElement('span');
+      label.className='kefe-background-effect-name';
+      label.textContent=item[1];
+      button.append(preview,label);
       button.addEventListener('click',function(){if(item[0]==='video'&&button.disabled)return;setMode(item[0]);});
       choiceWrap.appendChild(button);
     });
-    select.parentNode.insertBefore(choiceWrap,select);select.hidden=true;select.setAttribute('aria-hidden','true');select.tabIndex=-1;
+
+    if(uploadWrap)backgroundForm.appendChild(uploadWrap);
+    backgroundForm.appendChild(effectsGroup);
+    if(backgroundBlock)effectsGroup.appendChild(backgroundBlock);
+    effectsGroup.appendChild(choiceWrap);
+    if(transparencyBlock)effectsGroup.appendChild(transparencyBlock);
+    select.hidden=true;
+    select.setAttribute('aria-hidden','true');
+    select.tabIndex=-1;
+
     function syncBackgroundOptions(){
-      choiceWrap.querySelectorAll('[data-background-mode]').forEach(function(button){var selected=button.dataset.backgroundMode===lastMode;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));if(button.dataset.backgroundMode==='video')button.disabled=!vid;});
+      choiceWrap.querySelectorAll('[data-background-mode]').forEach(function(button){
+        var selected=button.dataset.backgroundMode===lastMode;
+        button.classList.toggle('active',selected);
+        button.setAttribute('aria-pressed',String(selected));
+        if(button.dataset.backgroundMode==='video')button.disabled=!vid;
+      });
     }
     syncBackgroundOptionsUI=syncBackgroundOptions;
     select.addEventListener('change',function(){setMode(select.value==='video'&&!vid?'off':select.value);});
+    syncBackgroundToggleUI=function(){
+      toggleState.textContent=enabled?'On':'Off';
+      toggle.setAttribute('aria-checked',String(enabled));
+      toggle.classList.toggle('is-on',enabled);
+    };
     syncBackgroundOptions();
+    syncBackgroundToggleUI();
   }
   function buildUpload(){
     var zone=document.getElementById('kefeUploadZone');if(!zone||document.getElementById('kefeBgVideoZone'))return;
