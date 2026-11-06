@@ -77,7 +77,7 @@ for (const size of ["desktop", "mobile"]) {
     assert.equal(details.omittedChildren, 0, `${label} ${size}/day carousel child capture is incomplete: ${JSON.stringify(details)}`);
     assert.equal(details.children.length, 1, `${label} ${size}/day carousel child identity is missing: ${JSON.stringify(details)}`);
     const child = details.children[0];
-    assert.equal(child.tag, "a", `${label} ${size}/day carousel item should be the real tape link: ${JSON.stringify(child)}`);
+    assert.equal(child.tag, "div", `${label} ${size}/day carousel tape should retain its native 3D surface: ${JSON.stringify(child)}`);
     assert.ok(child.classes.split(/\s+/).includes("ks-tape"), `${label} ${size}/day carousel tape class is missing: ${JSON.stringify(child)}`);
     assert.equal(child.dataIndex, "0", `${label} ${size}/day carousel card index is not stable: ${JSON.stringify(child)}`);
     assert.equal(child.ariaLabel, "KEFE visual regression fixture by KEFE browser smoke",
