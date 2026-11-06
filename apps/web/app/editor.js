@@ -944,6 +944,7 @@
 
   fitPreviewStage();
   const previewFullscreen=document.getElementById('previewFullscreen');
+  if(previewFullscreen&&previewStage&&previewFullscreen.parentElement!==previewStage)previewStage.appendChild(previewFullscreen);
   function syncPreviewFullscreen(){
     if(!previewFullscreen||!previewStage)return;
     const active=document.fullscreenElement===previewStage||previewStage.classList.contains('kefe-pseudo-fullscreen');
