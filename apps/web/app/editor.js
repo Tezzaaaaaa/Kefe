@@ -909,7 +909,9 @@
     lyricEffectPreviewPrevious.addEventListener('click',()=>changeEffect(-1));
     lyricEffectPreviewNext.addEventListener('click',()=>changeEffect(1));
     nav.append(lyricEffectPreviewPrevious,lyricEffectPreviewStatus,lyricEffectPreviewNext);
-    stage.appendChild(nav);
+    const appearanceControls=document.querySelector('.kefe-panel[data-panel-view="effects"] .kefe-lyrics-power');
+    if(appearanceControls)appearanceControls.appendChild(nav);
+    else stage.appendChild(nav);
     syncLyricEffectPreviewNav();
   })();
 

@@ -1736,6 +1736,17 @@ async function captureEditorScreenState(page) {
     await openSection("effects");
     await assertSectionFits("effects");
 
+    const effectNav = page.locator(".kefe-lyrics-power > .kefe-lyric-effect-preview-nav");
+    assert.equal(await effectNav.count(), 1, "previous/next effect controls must sit beside the Lyrics on/off switch in Appearance");
+    assert.equal(await page.locator(".kefe-stage > .kefe-lyric-effect-preview-nav").count(), 0,
+      "effect navigation must no longer overlay the preview screen");
+    const activeEffectBefore = await page.locator("#lyricEffectOptions .kefe-lyric-effect-option.active").getAttribute("data-effect");
+    await effectNav.locator('[aria-label="Next lyric effect"]').click();
+    await page.waitForFunction(previous => document.querySelector("#lyricEffectOptions .kefe-lyric-effect-option.active")?.dataset.effect !== previous, activeEffectBefore);
+    const activeEffectAfterNext = await page.locator("#lyricEffectOptions .kefe-lyric-effect-option.active").getAttribute("data-effect");
+    await effectNav.locator('[aria-label="Previous lyric effect"]').click();
+    await page.waitForFunction(expected => document.querySelector("#lyricEffectOptions .kefe-lyric-effect-option.active")?.dataset.effect === expected, activeEffectBefore);
+
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser choices remain available while the Effects section is visible");
 
