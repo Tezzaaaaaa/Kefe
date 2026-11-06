@@ -1729,6 +1729,142 @@
   });
 
   /* ------------------------------------------------------------------ */
+  /* 51  Flagship                                                       */
+  /* ------------------------------------------------------------------ */
+
+  /* Luminaire — a cinematic title-sequence treatment. Polished metal type with
+     real thickness (bronze extrusion + rim light), a brushed grain that a slow
+     specular sheen travels across, word-by-word soft reveal, an anamorphic
+     streak with lens-flare ghosts riding the sung word, drifting light motes
+     that brighten near the voice, a falling-off mirror reflection, film grain
+     and a rack-focus entrance / exit. Colours come from the user's text and
+     accent choices when set; otherwise champagne gold. */
+  E.sigluminaire = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
+    setFont(ctx, style.effect, lay.size, style);
+    const pal = Fx.palette({ text: '#f3d58b', accent: '#ffe6b0', inactive: 'rgba(243,213,139,.22)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    if (!items.length) return;
+    const size = lay.size;
+    const box = Fx.bounds(rows, lay);
+    const top = Fx.mix(pal.text, '#ffffff', .62), mid = pal.text, low = Fx.mix(pal.text, '#000000', .5), edge = Fx.mix(pal.text, '#ffffff', .8);
+    const depth = Math.max(2, Math.round(size * .034));
+    const focus = (1 - clamp(phase.enter == null ? 1 : phase.enter)) * 12 + clamp(phase.leave || 0) * 10;
+    const lift = (phase.leave || 0) * size * .2;
+    const active = items.reduce((best, item) => (time >= item.word.time && time <= item.word.endTime + .3 ? item : best), null);
+    const pulse = active ? U.wordProgress(active.word, time, .06).pulse : 0;
+    /* slow sheen: one pass every ~5.5s, plus a stronger pass on each new word */
+    const sheenAt = (box.x - size) + (box.w + size * 2) * (((time * .18) % 1.25) / 1.25);
+    const paintFace = g => {
+      /* bronze thickness */
+      g.save();
+      g.fillStyle = low;
+      for (let k = depth; k >= 1; k -= 1) rows.forEach(row => g.fillText(row.text, row.x + k * .45, row.y + k * .85));
+      g.restore();
+      /* rim light under the face */
+      g.save();
+      g.lineJoin = 'round';
+      g.lineWidth = Math.max(1.2, size * .014);
+      g.strokeStyle = Fx.rgba(edge, .7);
+      rows.forEach(row => g.strokeText(row.text, row.x - .5, row.y - .8));
+      g.restore();
+      /* face: polished vertical gradient, then brushed grain + sheen on the glyphs only */
+      Fx.masked(g, w, h, m => {
+        m.fillStyle = Fx.lineGradient(m, 0, box.y, 0, box.y + box.h, [[0, top], [.38, mid], [.62, Fx.mix(mid, low, .25)], [.8, mid], [1, Fx.mix(mid, low, .55)]]);
+        rows.forEach(row => m.fillText(row.text, row.x, row.y));
+      }, m => {
+        m.fillStyle = 'rgba(255,255,255,.07)';
+        for (let y = box.y; y < box.y + box.h; y += 3) {
+          if (Fx.hash(y * .71) > .45) m.fillRect(box.x, y, box.w, 1);
+        }
+        m.fillStyle = 'rgba(0,0,0,.06)';
+        for (let y = box.y + 1; y < box.y + box.h; y += 4) {
+          if (Fx.hash(y * 1.3 + 5) > .5) m.fillRect(box.x, y, box.w, 1);
+        }
+        const band = (cx, strength) => {
+          m.fillStyle = Fx.lineGradient(m, cx - size * .7, box.y + box.h, cx + size * .7, box.y, [[0, 'rgba(255,255,255,0)'], [.5, `rgba(255,252,240,${strength})`], [1, 'rgba(255,255,255,0)']]);
+          m.fillRect(cx - size * .8, box.y - size * .2, size * 1.6, box.h + size * .4);
+        };
+        Fx.grain(m, box.x, box.y, box.w, box.h, time, .14, 'source-atop');
+        band(sheenAt, .5);
+        if (active) band(active.cx + (active.width * (U.wordProgress(active.word, time, .06).sweep - .5)), .55 * pulse);
+      });
+    };
+    const paintLit = g => paintFace(g);
+    ctx.save();
+    ctx.translate(0, -lift);
+    /* drifting light motes behind the type */
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 30; i += 1) {
+      const sp = .012 + Fx.hash(i * 2.3) * .03;
+      const x = box.x - size + Fx.hash(i * 5.1 + 1) * (box.w + size * 2) + Math.sin(time * .4 + i) * size * .15;
+      const y = box.y + box.h * 1.15 - (((time * sp * h * .5 + Fx.hash(i * 9.7) * box.h * 2.6) % (box.h * 2.6)));
+      const near = active ? clamp(1 - Math.abs(x - active.cx) / (size * 3.2)) : 0;
+      const a = (.12 + .5 * near * pulse) * (.5 + .5 * Math.sin(time * 1.7 + i * 2.1)) * clamp((y - (box.y - size * 1.2)) / size) ;
+      if (a <= .01) continue;
+      const r = size * (.025 + Fx.hash(i * 3.3) * .05);
+      ctx.fillStyle = Fx.radial(ctx, x, y, 0, r, [[0, Fx.rgba(pal.accent, a)], [1, Fx.rgba(pal.accent, 0)]]);
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+    /* mirror reflection that falls away */
+    const floorY = box.y + box.h + size * .04;
+    const refl = Fx.scratch('kfx-refl', w, h);
+    if (refl) {
+      Fx.syncText(refl.g, ctx);
+      refl.g.save();
+      refl.g.translate(0, floorY * 2);
+      refl.g.scale(1, -1);
+      Fx.softReveal(refl.g, w, h, items, time, g => {
+        g.fillStyle = Fx.lineGradient(g, 0, box.y, 0, box.y + box.h, [[0, top], [.5, mid], [1, low]]);
+        rows.forEach(row => g.fillText(row.text, row.x, row.y));
+      }, { size, edge: .3 });
+      refl.g.restore();
+      refl.g.globalCompositeOperation = 'destination-in';
+      refl.g.fillStyle = Fx.lineGradient(refl.g, 0, floorY, 0, floorY + size * .95, [[0, 'rgba(0,0,0,.34)'], [1, 'rgba(0,0,0,0)']]);
+      refl.g.fillRect(0, floorY, w, size);
+      ctx.drawImage(refl.c, 0, 0);
+    }
+    /* body: soft contact shadow, ghost line, then the revealed metal under a rack-focus */
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,.55)';
+    ctx.shadowBlur = size * .18;
+    ctx.shadowOffsetY = size * .06;
+    ctx.fillStyle = pal.inactive;
+    rows.forEach(row => ctx.fillText(row.text, row.x, row.y));
+    ctx.restore();
+    if (focus > .2) blur(ctx, focus);
+    Fx.softReveal(ctx, w, h, items, time, paintLit, { size, edge: .34 });
+    if ('filter' in ctx) ctx.filter = 'none';
+    /* bloom from the voice + a whisper of glow on everything lit */
+    if (active) {
+      Fx.bloom(ctx, w, h, g => {
+        g.fillStyle = Fx.rgba(pal.accent, .7 * pulse);
+        g.fillText(active.text, active.x, active.y);
+      }, { radius: size * .5, strength: .95, haze: .4 });
+      /* anamorphic streak + flare ghosts */
+      const cx = active.cx, cy = active.y;
+      const span = Math.min(w * .9, box.w * 1.5 + size * 4);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = Fx.lineGradient(ctx, cx - span / 2, 0, cx + span / 2, 0, [[0, Fx.rgba(pal.accent, 0)], [.5, Fx.rgba('#ffffff', .6 * pulse)], [1, Fx.rgba(pal.accent, 0)]]);
+      ctx.fillRect(cx - span / 2, cy - size * .012, span, Math.max(1.5, size * .026));
+      [[-.55, .2, '#8fd3ff'], [.45, .14, '#ffd0a0'], [1.2, .3, '#ffb6e1']].forEach(([k, r, tint]) => {
+        const gx = box.cx + (cx - box.cx) * -k, rad = size * r;
+        ctx.fillStyle = Fx.radial(ctx, gx, cy, 0, rad, [[0, Fx.rgba(tint, .16 * pulse)], [.7, Fx.rgba(tint, .06 * pulse)], [1, Fx.rgba(tint, 0)]]);
+        ctx.beginPath();
+        ctx.arc(gx, cy, rad, 0, TAU);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+    ctx.restore();
+  }, { width: .8, height: .66 });
+
+  /* ------------------------------------------------------------------ */
   /* 43–50  Dimensional Depth                                           */
   /* ------------------------------------------------------------------ */
 

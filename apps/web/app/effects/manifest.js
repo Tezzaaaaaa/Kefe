@@ -72,5 +72,8 @@ window.KEFE_EFFECTS = [
   { key: 'sigkaleidoscope', label: 'Kaleidoscope', description: 'Mirrored ghost reflections folding around the type', category: 'Dimensional Depth' },
   { key: 'sigorbitring', label: 'Orbit Ring', description: 'Conic light ring orbiting behind the letterforms', category: 'Dimensional Depth' },
   { key: 'sigtypewriter', label: 'Typewriter', description: 'Monospace reveal with a live blinking caret', category: 'Dimensional Depth' },
-  { key: 'sigcinemabars', label: 'Cinema Bars', description: 'Anamorphic punch framed by closing letterbox bars', category: 'Dimensional Depth' }
+  { key: 'sigcinemabars', label: 'Cinema Bars', description: 'Anamorphic punch framed by closing letterbox bars', category: 'Dimensional Depth' },
+
+  /* Flagship */
+  { key: 'sigluminaire', label: 'Luminaire', description: 'Cinematic polished-metal title: extruded type, sheen, lens streak, motes and mirror floor', category: 'Flagship' }
 ];

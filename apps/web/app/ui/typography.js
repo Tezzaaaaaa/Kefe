@@ -228,6 +228,7 @@
     sigkaleidoscope: { family: families.aurora, weight: 900, min: 34, max: 190, lineHeight: 1.04, tracking: 0.05, align: 'center', case: 'none', opticalScale: 1.00 },
     sigorbitring: { family: families.aurora, weight: 850, min: 34, max: 190, lineHeight: 1.04, tracking: 0.06, align: 'center', case: 'none', opticalScale: 1.00 },
     sigtypewriter: { family: families.typewriter, weight: 700, min: 30, max: 170, lineHeight: 1.06, tracking: 0, align: 'center', case: 'none', opticalScale: 1.00 },
+    sigluminaire: { family: families.blur, weight: 400, min: 36, max: 200, lineHeight: 1.02, tracking: 0.05, align: 'center', case: 'none', opticalScale: 1.00 },
     sigcinemabars: { family: families.fancy, weight: 900, min: 34, max: 200, lineHeight: 1.02, tracking: 0.16, align: 'center', case: 'none', opticalScale: 1.00 }
   };
 
