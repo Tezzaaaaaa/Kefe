@@ -289,10 +289,12 @@ async function captureEditorScreenState(page) {
       { label: "Visualiser", controls: ["Visualiser"] },
       { label: "Actions", controls: ["More actions"] }
     ], "toolbar actions must appear once in their intended functional groups");
-    const toolbarIsInHeader = await page.locator(".kefe-sidebar-group-editor > #kefeFloatingToolbar").count() === 1;
-    assert.equal(toolbarIsInHeader, true, "the editor toolbar must sit directly beside Editor in the header navigation");
+    const toolbarIsInTimeline = await page.locator(".kefe-timeline > #kefeFloatingToolbar").count() === 1;
+    assert.equal(toolbarIsInTimeline, true, "the editor toolbar launcher must sit in the timeline beside volume");
     assert.equal(await page.locator(".kefe-preview-dock").count(), 0,
-      "the obsolete preview toolbar dock must be removed from the preview entirely");
+      "the obsolete preview toolbar dock must remain absent");
+    assert.equal(await page.locator(".kefe-stage > #previewFullscreen").count(), 1,
+      "fullscreen must be anchored to the preview stage's top-right corner");
     const frameState = async () => page.locator(".kefe-stage").evaluate(node => {
       const style = getComputedStyle(node);
       return { border: style.borderWidth, outline: style.outlineStyle, shadow: style.boxShadow };
@@ -316,14 +318,18 @@ async function captureEditorScreenState(page) {
       "the native aspect control must remain hidden as a backing control");
     assert.equal(await page.locator("#kefeAspect").count(), 1, "the native aspect control must remain as the toolbar backing control");
     const initialToolbarPlacement = await page.evaluate(() => {
-      const editor = document.querySelector("[data-editor-tab]").getBoundingClientRect();
+      const volume = document.querySelector(".kefe-volume-control").getBoundingClientRect();
       const toolbar = document.querySelector("#kefeFloatingToolbar").getBoundingClientRect();
-      return { editor: { left: editor.left, right: editor.right, top: editor.top, bottom: editor.bottom }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, vw: document.documentElement.clientWidth };
+      const stage = document.querySelector(".kefe-stage").getBoundingClientRect();
+      const fullscreen = document.querySelector("#previewFullscreen").getBoundingClientRect();
+      return { volume: { right: volume.right }, toolbar: { left: toolbar.left, right: toolbar.right, top: toolbar.top, bottom: toolbar.bottom }, stage: { top: stage.top, right: stage.right }, fullscreen: { top: fullscreen.top, right: fullscreen.right } };
     });
-    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.editor.right - 1
-      && initialToolbarPlacement.toolbar.top >= initialToolbarPlacement.editor.top - 2
-      && initialToolbarPlacement.toolbar.bottom <= initialToolbarPlacement.editor.bottom + 8,
-      `toolbar must be docked immediately to the right of Editor: ${JSON.stringify(initialToolbarPlacement)}`);
+    assert.ok(initialToolbarPlacement.toolbar.left >= initialToolbarPlacement.volume.right - 1,
+      `toolbar launcher must be immediately beside volume: ${JSON.stringify(initialToolbarPlacement)}`);
+    assert.ok(Math.abs(initialToolbarPlacement.fullscreen.right - initialToolbarPlacement.stage.right) <= 16
+      && initialToolbarPlacement.fullscreen.top >= initialToolbarPlacement.stage.top
+      && initialToolbarPlacement.fullscreen.top <= initialToolbarPlacement.stage.top + 24,
+      `fullscreen control must be anchored at the preview's top-right: ${JSON.stringify(initialToolbarPlacement)}`);
 
     const tidySectionMode = await page.evaluate(() => Boolean(document.querySelector(".kefe-advanced-controls")));
     await page.setViewportSize({ width: 390, height: 844 });
