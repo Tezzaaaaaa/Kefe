@@ -1438,6 +1438,7 @@ async function captureEditorScreenState(page) {
       };
       await screenshotPage.waitForFunction(() => typeof window.kefeCarousel?.setLocalUpload === "function", null, { timeout: 10000 });
       await screenshotPage.evaluate((item) => window.kefeCarousel.setLocalUpload(item, true), carouselFixture);
+      await screenshotPage.locator("#kefeCarousel").scrollIntoViewIfNeeded();
       const fixtureCard = screenshotPage.locator('#kefeCarStack .ks-face.ks-cv:visible').first();
       await fixtureCard.waitFor({ state: "visible", timeout: 10000 });
       const seededCarousel = await fixtureCard.evaluate((cover) => {
