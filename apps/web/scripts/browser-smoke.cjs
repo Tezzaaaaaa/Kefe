@@ -1437,6 +1437,31 @@ async function captureEditorScreenState(page) {
       };
       await screenshotPage.waitForFunction(() => typeof window.kefeCarousel?.setLocalUpload === "function", null, { timeout: 10000 });
       await screenshotPage.evaluate((item) => window.kefeCarousel.setLocalUpload(item, true), carouselFixture);
+      const carouselDebug = await screenshotPage.evaluate(() => {
+        const workspace = document.querySelector('.kefe-workspace[data-group="content"]');
+        const panel = document.querySelector('.kefe-panel[data-panel-view="media"]');
+        const stack = document.getElementById("kefeCarStack");
+        const empty = document.getElementById("kefeCarEmpty");
+        const info = document.getElementById("kefeCarInfo");
+        return {
+          selectedTab: document.querySelector('[role="tab"][data-workspace-tab="content"]')?.getAttribute("aria-selected"),
+          workspaceHidden: workspace?.hidden,
+          panelClass: panel?.className,
+          panelDisplay: panel && getComputedStyle(panel).display,
+          panelBounds: panel && (() => { const r = panel.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; })(),
+          stackExists: Boolean(stack),
+          stackDisplay: stack && getComputedStyle(stack).display,
+          stackBounds: stack && (() => { const r = stack.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; })(),
+          stackHTML: stack?.innerHTML.slice(0, 1200),
+          emptyDisplay: empty && getComputedStyle(empty).display,
+          infoHidden: info?.hidden,
+          infoText: info?.innerText,
+          carouselLabel: document.getElementById("kefeCarousel")?.getAttribute("aria-label"),
+          title: document.getElementById("kefeCarTitle")?.textContent,
+          artist: document.getElementById("kefeCarArtist")?.textContent
+        };
+      });
+      console.log("Screenshot carousel diagnostic:", JSON.stringify(carouselDebug));
       const fixtureCard = screenshotPage.locator('#kefeCarStack .ks-tape:visible').first();
       await fixtureCard.waitFor({ state: "visible", timeout: 10000 });
       const seededCarousel = await fixtureCard.evaluate((tape) => {
