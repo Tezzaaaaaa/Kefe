@@ -67,14 +67,14 @@
     s2.classList.add('kefe-find-step');
 
     var details=mk('div','kefe-song-details');
+    if(track){track.classList.add('kefe-song-details-track');details.appendChild(track);}
     var grid=mk('div','kefe-details-grid');fields.forEach(function(f){grid.appendChild(f);});
     details.appendChild(grid);
 
     var uploads=mk('div','kefe-media-upload-row');
-    if(zone)uploads.appendChild(zone);
-    if(bgWrap)uploads.appendChild(bgWrap);
+    if(zone){zone.classList.add('kefe-audio-upload-card');uploads.appendChild(zone);}
+    if(bgWrap){bgWrap.classList.add('kefe-background-upload-card');uploads.appendChild(bgWrap);}
     s2.body.appendChild(uploads);
-    if(track)s2.body.appendChild(track);
     if(sugg)s2.body.appendChild(sugg);
     s2.body.appendChild(buildSearch());
     s2.body.appendChild(details);
