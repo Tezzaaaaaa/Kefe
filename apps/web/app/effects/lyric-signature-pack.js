@@ -1195,30 +1195,65 @@
   }, { width: .8, height: .66 });
 
 
-  E.sigultraviolet = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
+  /* Ultraviolet Breath — blacklight. Type fluoresces: a hue that wanders
+     through violet, indigo and magenta (never off-palette), brightness that
+     swells on a slow breath, an inner pale core and a wide bloom. Unsung words
+     are dim dye, sung words flare. Fluorescent dust floats in the beam. */
+  E.sigultraviolet = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    const rows = rowsOf(ctx, lay, w, h);
-    const hue = (time * 42) % 360;
-    const breathe = .5 + .5 * Math.sin(time * 1.7);
-    rows.forEach(row => {
+    const pal = Fx.palette({ text: '#f3e9ff', accent: '#9b5cff', inactive: 'rgba(180,140,255,.2)' });
+    const hue = 268 + 28 * Math.sin(time * .55) + 10 * Math.sin(time * 1.3);
+    const swell = .65 + .35 * (.5 + .5 * Math.sin(time * 1.05));
+    const tone = a => pal.accentSet ? Fx.rgba(pal.accent, a) : `hsla(${hue},95%,62%,${a})`;
+    const core = pal.accentSet ? Fx.mix(pal.accent, '#ffffff', .6) : `hsl(${hue + 8},100%,86%)`;
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const size = lay.size, box = Fx.bounds(rows, lay);
+    const lift = (phase.leave || 0) * size * .2;
+    ctx.save();
+    ctx.translate(0, -lift);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = Fx.radial(ctx, box.cx, box.cy, 0, box.w * .6, [[0, tone(.2 * swell)], [1, tone(0)]]);
+    ctx.fillRect(box.x - box.w * .2, box.cy - box.w * .6, box.w * 1.4, box.w * 1.2);
+    for (let i = 0; i < 26; i += 1) {
+      const x = box.x + hash(i + 1) * box.w;
+      const y = box.y - size * .4 + ((hash(i + 40) * 1.4 + time * (.02 + hash(i + 80) * .03)) % 1.4) * (box.h + size * .8);
+      const tw = .5 + .5 * Math.sin(time * 2 + i * 3.1);
+      ctx.fillStyle = tone(.5 * tw);
+      ctx.beginPath(); ctx.arc(x, y, Math.max(.6, size * .008), 0, TAU); ctx.fill();
+    }
+    ctx.restore();
+    ctx.save();
+    ctx.fillStyle = tone(.28);
+    items.forEach(item => ctx.fillText(item.text, item.x, item.y));
+    ctx.restore();
+    const lit = items.map(item => ({ item, p: U.wordProgress(item.word, time, .08) })).filter(o => o.p.sweep > .02);
+    if (lit.length) {
+      Fx.bloom(ctx, w, h, g => {
+        lit.forEach(({ item, p }) => {
+          g.fillStyle = tone(Math.min(1, (.55 + .45 * p.pulse) * swell * 1.3) * Math.min(1, p.sweep * 1.4));
+          g.fillText(item.text, item.x, item.y);
+        });
+      }, { radius: size * .55, strength: 1.15 * swell + .2, haze: .5 });
+    }
+    items.forEach(item => {
+      const p = U.wordProgress(item.word, time, .08);
+      if (p.sweep <= 0) return;
       ctx.save();
-      ctx.fillStyle = 'rgba(233,213,255,.35)';
-      ctx.fillText(row.text, row.x, row.y);
+      ctx.beginPath();
+      ctx.rect(item.x - size * .1, item.y - size, item.width * Math.min(1, p.sweep * 1.1) + size * .2, size * 2);
+      ctx.clip();
+      ctx.fillStyle = tone(.95);
+      ctx.fillText(item.text, item.x, item.y);
+      ctx.fillStyle = core;
+      ctx.globalAlpha *= .55 + .45 * p.pulse;
+      ctx.save(); ctx.translate(0, -size * .004); ctx.fillText(item.text, item.x, item.y); ctx.restore();
       ctx.restore();
     });
-    const p = U.sungProgress(words, time);
-    const widest = Math.max(...rows.map(row => row.width));
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(w / 2 - widest / 2, (h - lay.blockH) / 2 - lay.size * .3, widest * p, lay.blockH + lay.size * .6);
-    ctx.clip();
-    rows.forEach(row => {
-      ctx.fillStyle = `hsl(${hue} 70% 80%)`;
-      glow(ctx, `hsl(${(hue + 40) % 360} 90% 60%)`, lay.size * (.2 + .2 * breathe));
-      ctx.fillText(row.text, row.x, row.y);
-    });
     ctx.restore();
-  });
+  }, { width: .82, height: .66 });
+
 
   E.sigphosphor = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
     setFont(ctx, style.effect, lay.size, style);
