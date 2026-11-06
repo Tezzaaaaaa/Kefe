@@ -96,7 +96,7 @@ function makeContext() {
     createRadialGradient() { return gradient; },
     createConicGradient() { return gradient; },
     createPattern() { return null; },
-    drawImage() {}, setLineDash() {}, getLineDash() { return []; },
+    drawImage() { counter.fills += 1; }, setLineDash() {}, getLineDash() { return []; },
     get fills() { return counter.fills; },
     resetFills() { counter.fills = 0; },
   };

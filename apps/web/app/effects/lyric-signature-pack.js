@@ -625,32 +625,75 @@
   }, { width: .8, height: .72 });
 
 
-  E.sigmarqueerail = lineLoop((ctx, w, h, style, time) => ({ text, words, lay, next }) => {
+  /* Marquee Rail — a single kinetic ticker that follows the vocal: the rail
+     glides so the word being sung stays on the centre line (eased between
+     anchors, never snapping), words light with a soft sweep, a halo rides the
+     active word, and a huge outlined ghost rail drifts at 40% speed behind for
+     parallax depth. Both ends feather out. */
+  E.sigmarqueerail = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    const unit = text + '  ·  ';
-    const width = ctx.measureText(unit).width;
-    const offset = (time * 90) % Math.max(1, width);
-    const rows = rowsOf(ctx, lay, w, h);
-    const y = rows[0].y;
-    const p = U.sungProgress(words, time);
+    const pal = Fx.palette({ text: '#ffffff', accent: '#8ec5ff', inactive: 'rgba(255,255,255,.24)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    if (!items.length) return;
+    const size = lay.size, y = rows[0].y, rowW = rows[0].width;
+    /* anchor on the active word, eased between neighbours */
+    let k = -1;
+    items.forEach((item, i) => { if (time >= item.word.time) k = i; });
+    let anchor = items[0].cx;
+    if (k >= items.length - 1) anchor = items[items.length - 1].cx;
+    else if (k >= 0) {
+      const a = items[k], b = items[k + 1];
+      const u = clamp((time - a.word.time) / Math.max(.12, b.word.time - a.word.time));
+      anchor = Fx.lerp(a.cx, b.cx, U.smoother(clamp((u - .15) / .7)));
+    }
+    const follow = clamp((rowW - w * .6) / (w * .28));
+    const shift = (w / 2 - anchor) * follow + (1 - follow) * 0;
+    const active = k >= 0 ? items[k] : null;
+    const paintRail = g => {
+      g.save();
+      g.translate(w / 2 + shift * .4, y);
+      g.scale(2.5, 2.5);
+      g.translate(-w / 2, -y);
+      g.lineWidth = Math.max(.6, size * .006);
+      g.strokeStyle = 'rgba(255,255,255,.09)';
+      g.strokeText(rows[0].text, rows[0].x, y);
+      g.restore();
+      g.save();
+      g.translate(shift, 0);
+      if (active) {
+        const p = U.wordProgress(active.word, time, .06);
+        const r = Math.max(active.width * .62, size * .55);
+        g.fillStyle = Fx.radial(g, active.cx, y, 0, r, [[0, Fx.rgba(pal.accent, .22 * (.4 + .6 * p.pulse))], [1, Fx.rgba(pal.accent, 0)]]);
+        g.fillRect(active.cx - r, y - r, r * 2, r * 2);
+      }
+      Fx.sung(g, items, time, pal.text, pal.inactive, .3);
+      g.fillStyle = Fx.rgba(pal.accent, .75);
+      for (let i = 0; i < items.length - 1; i += 1) {
+        const mid = (items[i].x + items[i].width + items[i + 1].x) / 2;
+        g.beginPath();
+        g.arc(mid, y, Math.max(2, size * .045), 0, TAU);
+        g.fill();
+      }
+      g.restore();
+    };
+    const lift = (phase.leave || 0) * size * .25;
     ctx.save();
-    ctx.beginPath();
-    ctx.rect(w * .05, y - lay.size, w * .9, lay.size * 2);
-    ctx.clip();
-    for (let copy = -1; copy <= Math.ceil(w / width) + 1; copy += 1) {
-      const startX = w / 2 - width / 2 - offset + copy * width;
-      ctx.fillStyle = 'rgba(255,255,255,.22)';
-      ctx.fillText(unit, startX, y);
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(startX, y - lay.size, width * p, lay.size * 2);
-      ctx.clip();
-      ctx.fillStyle = '#e5e7eb';
-      ctx.fillText(unit, startX, y);
-      ctx.restore();
+    ctx.translate(0, -lift);
+    const sc = Fx.scratch('kfx-rail', w, h);
+    if (sc) {
+      Fx.syncText(sc.g, ctx);
+      paintRail(sc.g);
+      sc.g.globalCompositeOperation = 'destination-in';
+      sc.g.fillStyle = Fx.lineGradient(sc.g, w * .04, 0, w * .96, 0, [[0, 'rgba(0,0,0,0)'], [.14, 'rgba(0,0,0,1)'], [.86, 'rgba(0,0,0,1)'], [1, 'rgba(0,0,0,0)']]);
+      sc.g.fillRect(0, 0, w, h);
+      ctx.drawImage(sc.c, 0, 0);
+    } else {
+      paintRail(ctx);
     }
     ctx.restore();
-  });
+  }, { width: 8, height: .6, maxLines: 1 });
+
 
   E.sigslotroll = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
     setFont(ctx, style.effect, lay.size, style);
