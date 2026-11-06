@@ -954,7 +954,25 @@
 /* Keep the global reset action at the end of the settings workspaces. */
 .kefe-settings-panel .kefe-reset-footer {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 10px;
   padding: 0 2px;
+}
+.kefe-settings-panel .kefe-settings-github {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  color: var(--ksp-text-dim);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.kefe-settings-panel .kefe-settings-github:hover { color: var(--ksp-text); }
+.kefe-settings-panel .kefe-settings-github:focus-visible {
+  outline: 2px solid var(--ksp-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
 }

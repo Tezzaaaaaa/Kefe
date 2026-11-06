@@ -641,11 +641,11 @@ async function captureEditorScreenState(page) {
     const headerActions = await page.locator(".kefe-sidebar-bottom .kefe-sidebar-link").evaluateAll(nodes =>
       nodes.map(node => node.getAttribute("aria-label") || node.textContent.trim()));
     if (headerSearchMode) {
-      assert.deepEqual(headerActions, ["Search KEFE", "KEFE on GitHub", "Switch to day mode"],
-        `header actions must expose their names in order search, GitHub, layout mode: ${JSON.stringify(headerActions)}`);
+      assert.deepEqual(headerActions, ["Search KEFE", "Switch to day mode"],
+        `header actions must expose only search and layout mode: ${JSON.stringify(headerActions)}`);
     } else {
-      assert.deepEqual(headerActions, ["Settings", "Switch to day mode", "Search KEFE", "KEFE on GitHub"],
-        `older header actions must keep their names: ${JSON.stringify(headerActions)}`);
+      assert.deepEqual(headerActions, ["Settings", "Switch to day mode", "Search KEFE"],
+        `older header actions must not include GitHub: ${JSON.stringify(headerActions)}`);
     }
     assert.equal(await page.locator(".kefe-sidebar > .kefe-sidebar-group").count(), 1,
       "the header must expose one navigation group");
@@ -653,6 +653,13 @@ async function captureEditorScreenState(page) {
       "the header navigation group must hold the Editor entry, plus Settings on the newer header");
     assert.equal(await page.locator(".kefe-top-nav, .kefe-top-link").count(), 0,
       "the retired top navigation must not remain in the editor DOM");
+    assert.equal(await page.locator(".kefe-sidebar-github").count(), 0, "GitHub must not remain in the header");
+    if (process.env.KEFE_SCREENSHOT_LABEL !== "main-baseline") {
+      const settingsGithub = page.locator("#kefe-settings-panel .kefe-settings-github");
+      await settingsGithub.waitFor({ state: "attached", timeout: 10000 });
+      assert.equal(await settingsGithub.count(), 1, "Settings must contain one GitHub link");
+      assert.equal(await settingsGithub.getAttribute("href"), "https://github.com/Tezzaaaaaa/Kefe", "Settings GitHub link must open the KEFE repository");
+    }
     const themeToggle = page.locator("#kefeThemeToggle");
     assert.equal(await themeToggle.count(), 1, "the header must own a single day/night action");
     await themeToggle.click();
@@ -723,11 +730,6 @@ async function captureEditorScreenState(page) {
       assert.ok(expandedGeometry.insideHeader, `the unfolded field must stay inside the header: ${JSON.stringify(expandedGeometry)}`);
       assert.ok(expandedGeometry.growsLeftOfToggle, "the field must unfold away from the search icon without shifting the corner actions");
       assert.ok(expandedGeometry.editable, "the unfolded field must be fillable");
-      const cornerShift = await page.evaluate(() => {
-        const github = document.querySelector(".kefe-sidebar-github").getBoundingClientRect();
-        const theme = document.querySelector("#kefeThemeToggle").getBoundingClientRect();
-        return { githubLeft: Math.round(github.left), themeRight: Math.round(theme.right) };
-      });
       await page.locator("#kefeHeaderSearchInput").fill("Export");
       await page.waitForFunction(() => document.querySelectorAll("#kefeHeaderSearchResults .kefe-search-result").length > 0,
         null, { timeout: 5000 });
@@ -743,12 +745,6 @@ async function captureEditorScreenState(page) {
         "Escape must collapse the search field");
       assert.equal(await page.locator("#kefeHeaderSearchResults").isVisible(), false,
         "collapsing the search must hide its results");
-      const cornerAfter = await page.evaluate(() => {
-        const github = document.querySelector(".kefe-sidebar-github").getBoundingClientRect();
-        const theme = document.querySelector("#kefeThemeToggle").getBoundingClientRect();
-        return { githubLeft: Math.round(github.left), themeRight: Math.round(theme.right) };
-      });
-      assert.deepEqual(cornerAfter, cornerShift, "unfolding and collapsing the search must not move the corner actions");
     }
     const previewSettingsLayout = await page.evaluate(() => {
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
@@ -1306,8 +1302,8 @@ async function captureEditorScreenState(page) {
     )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
     const sidebarCount = await page.locator('.kefe-sidebar [data-editor-tab], .kefe-sidebar [data-top-panel="settings"], .kefe-sidebar [data-search-expand], .kefe-sidebar [data-command-open], .kefe-sidebar .kefe-sidebar-github, .kefe-sidebar #kefeThemeToggle').count();
-    assert.equal(sidebarCount, headerSearchMode ? 5 : 5,
-      `expected the Editor tab plus Settings, search, GitHub and layout-mode actions, found ${sidebarCount}`);
+    assert.equal(sidebarCount, 4,
+      `expected the Editor tab plus Settings, search and layout-mode actions, found ${sidebarCount}`);
 
     await page.locator('[data-top-panel="settings"]').click();
     const dialog = page.getByRole("dialog", { name: "Settings" });
