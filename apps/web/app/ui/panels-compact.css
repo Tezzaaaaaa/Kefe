@@ -321,7 +321,6 @@
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-chips { display: flex; gap: 4px; }
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-chips .kefe-chip { height: 22px !important; padding: 0 8px !important; font-size: var(--pc-fs-sm) !important; }
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-find-status { min-height: 0; font-size: var(--pc-fs-sm); }
-:is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-carousel:has(#kefeCarStack:empty) { height: 84px !important; min-height: 0 !important; }
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-carousel { max-height: none; }
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-car-empty { gap: 4px; flex-direction: row; justify-content: center; font-size: var(--pc-fs-sm); }
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-car-empty-icon { width: 28px; height: 28px; border-radius: 6px; }

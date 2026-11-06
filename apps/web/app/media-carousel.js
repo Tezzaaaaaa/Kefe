@@ -238,7 +238,7 @@
   function measure(){
     var r=el.Carousel.getBoundingClientRect();
     if(r.width<40||r.height<40){G.ok=false;return false;}
-    var H=Math.max(64,Math.min(r.height*.7,r.width*.46));
+    var H=Math.max(64,Math.min(r.height*.76,r.width*.72));
     G.H=H;G.ws=H*.2;G.d=H;G.gap=H*.04;G.U=H*1.25;G.P=H*3.2;
     G.XS=[];
     var acc=0;
