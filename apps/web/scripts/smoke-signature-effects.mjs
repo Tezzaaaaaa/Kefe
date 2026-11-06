@@ -125,6 +125,12 @@ vm.runInContext(read("app/effects/lyric-text-swap.js"), runtime, { filename: "ly
 assert.equal(typeof runtime.kefeEffects.textswap, "function", "Text Swap renderer must register");
 vm.runInContext(read("app/effects/lyric-pull.js"), runtime, { filename: "lyric-pull.js" });
 assert.equal(typeof runtime.kefeEffects.lyricpull, "function", "Lyric Pull renderer must register");
+const words = [
+  { text: "BURN", time: 1, endTime: 1.5 },
+  { text: "IT", time: 1.5, endTime: 1.8 },
+  { text: "DOWN", time: 1.8, endTime: 2.6 },
+];
+const lines = [{ text: "BURN IT DOWN", time: 1, endTime: 2.9, words }];
 const pullContext = makeContext();
 runtime.kefeEffects.lyricpull(pullContext, 1280, 720, { effect: "lyricpull", fontSize: 84 }, lines, 1.6);
 assert.ok(pullContext.fills > 0, "Lyric Pull must paint the active word on the canvas");
@@ -135,12 +141,6 @@ const registered = Object.keys(runtime.kefeEffects || {}).filter(key => key.star
 assert.deepEqual(registered.sort(), [...keys].sort(), "renderer registrations must match the roster");
 assert.equal(typeof runtime.kefeEffects.apple, "undefined", "the Apple renderer is owned by lyric-apple.js");
 
-const words = [
-  { text: "BURN", time: 1, endTime: 1.5 },
-  { text: "IT", time: 1.5, endTime: 1.8 },
-  { text: "DOWN", time: 1.8, endTime: 2.6 },
-];
-const lines = [{ text: "BURN IT DOWN", time: 1, endTime: 2.9, words }];
 runtime.dispatchEvent = () => {};
  runtime.Event = class Event {};
  vm.runInContext(read("app/effects/lyric-apple.js"), runtime, { filename: "lyric-apple.js" });
