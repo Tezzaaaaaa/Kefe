@@ -903,7 +903,8 @@
       const current=options.findIndex(option=>option.dataset.effect===state.effect);
       const next=(Math.max(0,current)+direction+options.length)%options.length;
       setEffect(options[next].dataset.effect);
-      options[next].scrollIntoView({block:'nearest',inline:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+      const target=options[next],grid=lyricEffectOptions;
+      grid.scrollTo({top:Math.max(0,target.offsetTop-grid.offsetTop-4),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
     };
     lyricEffectPreviewPrevious.addEventListener('click',()=>changeEffect(-1));
     lyricEffectPreviewNext.addEventListener('click',()=>changeEffect(1));
