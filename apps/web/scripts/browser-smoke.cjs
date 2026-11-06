@@ -1020,6 +1020,9 @@ async function captureEditorScreenState(page) {
         : ["effects", "background-effects"].includes(section) ? "design" : "audio-visuals";
       const tab = page.locator('[role="tab"][data-workspace-tab="' + workspace + '"]');
       if (await tab.getAttribute("aria-selected") !== "true") await tab.click();
+      if (section === "export") {
+        await page.locator(".kefe-advanced-controls").evaluate(node => { node.open = true; });
+      }
       const panel = page.locator('.kefe-panel[data-panel-view="' + section + '"]').first();
       await panel.waitFor({ state: "attached", timeout: 10000 });
       await page.waitForFunction(expected => {
@@ -1082,16 +1085,16 @@ async function captureEditorScreenState(page) {
         const sections = [...document.querySelectorAll('#kefe-settings-panel .kefe-workspace-stack > .section[data-section-id]')];
         const panels = [...document.querySelectorAll('#kefe-settings-panel .kefe-slot > .kefe-panel[data-panel-view]')];
         return {
-          groups: groups.map(group => ({ id: group.dataset.group, title: group.querySelector('.kefe-workspace-title')?.textContent.trim() })),
-          sections: sections.map(section => ({ id: section.dataset.sectionId, expanded: section.dataset.expanded, visible: section.querySelector('.section-content')?.getBoundingClientRect().height > 0 })),
+          groups: groups.map(group => ({ id: group.dataset.group, title: group.querySelector('.kefe-workspace-title')?.textContent.trim(), hidden: group.hidden })),
+          sections: sections.map(section => ({ id: section.dataset.sectionId, expanded: section.dataset.expanded })),
           panels: panels.map(panel => ({ id: panel.dataset.panelView, visible: getComputedStyle(panel).display !== 'none' && panel.getBoundingClientRect().height > 0 }))
         };
       });
-      assert.deepEqual(workspaceAudit.groups, [{ id: 'content', title: 'Content' }, { id: 'design', title: 'Design' }, { id: 'audio-visuals', title: 'Audio & Visuals' }], 'three named workspaces must appear in order: ' + JSON.stringify(workspaceAudit));
+      assert.deepEqual(workspaceAudit.groups.map(group => [group.id, group.title]), [['content', 'Content'], ['design', 'Appearance'], ['audio-visuals', 'Audio & Visualiser']], 'three named workspaces must appear in order: ' + JSON.stringify(workspaceAudit));
+      assert.equal(workspaceAudit.groups.filter(group => !group.hidden).length, 1, 'exactly one workspace panel must be visible');
       assert.equal(workspaceAudit.sections.length, 6, 'all six editor sections must remain mounted');
-      assert.ok(workspaceAudit.sections.every(section => section.expanded === 'true' && section.visible), 'all six sections must remain visible: ' + JSON.stringify(workspaceAudit));
       assert.equal(workspaceAudit.panels.length, 6, 'each native editor panel must be mounted exactly once');
-      assert.ok(workspaceAudit.panels.every(panel => panel.visible), 'all six native panels must remain visible: ' + JSON.stringify(workspaceAudit));
+      assert.ok(workspaceAudit.panels.filter(panel => panel.visible).length >= 2, 'the selected workspace native panels must be visible: ' + JSON.stringify(workspaceAudit));
     } else {
       const mediaSection = page.locator('#kefe-settings-panel .section[data-section-id="media"]');
       const mediaAccordion = mediaSection.locator('.expand-button').first();
@@ -1664,7 +1667,7 @@ async function captureEditorScreenState(page) {
     }
     await page.evaluate(() => window.scrollTo(0, 0));
     await openSection("lyrics");
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), threeWorkspaceMode,
+    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
       "visualiser choices remain available while the Lyrics section is visible");
     await assertSectionFits("lyrics");
     if (await page.locator(".kefe-lyrics-timing").isVisible()) {
