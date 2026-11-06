@@ -695,17 +695,66 @@
   }, { width: 8, height: .6, maxLines: 1 });
 
 
-  E.sigslotroll = lineLoop((ctx, w, h, style, time) => ({ words, lay, map }) => {
+  /* Slot Roll — every glyph lives in its own reel window. A column of
+     deterministic decoy characters spins through, decelerates on a spring and
+     locks onto the real letter with a tiny overshoot. Fast reels smear with
+     motion ghosts and fade at the window edges; each lock-in fires a brass
+     flash. */
+  E.sigslotroll = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    glyphs(ctx, lay, map, time, w, h, { clipRow: true }, (ch, x, cw, y, ri, p, cell) => {
-      const step = Math.floor((((time * 1.25) + x * .0015) % 1) * 8) / 8;
-      const offset = (step - .5) * lay.size * 1.35;
-      glyph(ctx, ch, x, cw, y, {
-        dy: offset, scaleY: .86, alpha: (1 - Math.abs(step - .5) * 1.2) * (.35 + .65 * p),
-        fill: '#fde68a', shadow: { color: rgba('#fbbf24', .35), blur: lay.size * .18 },
-      });
+    const pal = Fx.palette({ text: '#fff7e6', accent: '#ffb347', inactive: 'rgba(255,247,230,.16)' });
+    const rows = Fx.rows(ctx, lay, w, h);
+    const items = Fx.words(ctx, rows, words);
+    const list = Fx.chars(ctx, items);
+    const size = lay.size, step = size * 1.02, win = lay.lineH * .98;
+    const alphabet = 'ABCDEFGHJKLMNPRSTUVWXYZ0123456789';
+    const lift = (phase.leave || 0) * size * .25;
+    ctx.save();
+    ctx.translate(0, -lift);
+    const locks = [];
+    list.forEach((g, index) => {
+      const word = g.item.word;
+      const start = word.time - .2 + g.j * .035;
+      const age = time - start;
+      if (g.ch === ' ') return;
+      if (age <= 0) { ctx.fillStyle = pal.inactive; ctx.fillText(g.ch, g.x, g.y); return; }
+      const dur = .55 + g.j * .03;
+      const e = Fx.spring(age / dur, 1.1, .72);
+      const turns = 5 + (index % 3);
+      const pos = (1 - e) * turns;
+      const speed = clamp(Math.abs(Fx.spring(age / dur + .01, 1.1, .72) - Fx.spring(age / dur - .01, 1.1, .72)) * 20);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(g.x - size * .06, g.y - win / 2, g.w + size * .12, win);
+      ctx.clip();
+      for (let k = -2; k <= 2; k += 1) {
+        const row = Math.round(pos) + k;
+        const offset = (row - pos) * step;
+        const dist = Math.abs(offset) / (win * .5);
+        const fade = clamp(1 - Math.pow(dist, 2.2));
+        if (fade <= .01) continue;
+        const ch = row === 0 ? g.ch : alphabet[Math.floor(Fx.hash(index * 7.3 + row * 3.1) * alphabet.length)];
+        for (let ghost = speed > .1 ? -1 : 0; ghost <= (speed > .1 ? 1 : 0); ghost += 1) {
+          ctx.globalAlpha *= 1;
+          ctx.save();
+          ctx.globalAlpha *= fade * (ghost === 0 ? 1 : .35 * speed);
+          ctx.fillStyle = ghost === 0 ? pal.text : pal.accent;
+          ctx.fillText(ch, g.x + (g.w - ctx.measureText(ch).width) / 2, g.y + offset + ghost * speed * size * .22);
+          ctx.restore();
+        }
+      }
+      ctx.restore();
+      const lock = age - dur * .62;
+      if (lock > 0 && lock < .4) locks.push({ g, flash: Math.exp(-lock / .1) });
     });
-  });
+    if (locks.length) {
+      Fx.bloom(ctx, w, h, c => {
+        locks.forEach(l => { c.fillStyle = Fx.rgba(pal.accent, .85 * l.flash); c.fillText(l.g.ch, l.g.x, l.g.y); });
+      }, { radius: size * .34, strength: .9 });
+    }
+    ctx.restore();
+  }, { width: .82, height: .7 });
+
 
   E.sigstompbeat = lineLoop((ctx, w, h, style, time) => ({ words, lay }) => {
     setFont(ctx, style.effect, lay.size, style);
