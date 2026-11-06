@@ -94,16 +94,18 @@
         '<div class="kefe-chips" id="kefeFindFilters" role="group" aria-label="Filter results by type"><button type="button" class="kefe-chip active" data-f="all">All</button><button type="button" class="kefe-chip" data-f="song">Songs</button><button type="button" class="kefe-chip" data-f="album">Albums</button><button type="button" class="kefe-chip" data-f="artist">Artists</button></div>'+
       '</div>'+
       '<div class="kefe-find-status" id="kefeFindStatus" aria-live="polite">Enter a song, artist or album name.</div>'+
-      '<div class="kefe-carousel ks-shelf" id="kefeCarousel" tabindex="0" role="group" aria-roledescription="carousel" aria-label="Search results carousel">'+
-        '<div class="kefe-car-empty" id="kefeCarEmpty"><div class="kefe-car-empty-icon"><span data-kefe-icon="music" aria-hidden="true"></span></div><span>Search results will appear here</span></div>'+
-        '<div class="ks-stage" id="kefeCarStack"></div>'+
-        '<button type="button" class="kefe-car-nav prev" id="kefeCarPrev" aria-label="Previous result"><span data-kefe-icon="chevron-left" aria-hidden="true"></span></button>'+
-        '<button type="button" class="kefe-car-nav next" id="kefeCarNext" aria-label="Next result"><span data-kefe-icon="chevron-right" aria-hidden="true"></span></button>'+
-        '<div class="kefe-car-count" id="kefeCarCount"></div>'+
-      '</div>'+
-      '<div class="kefe-car-info" id="kefeCarInfo" hidden>'+
-        '<div class="kefe-car-info-copy"><span class="kefe-badge" id="kefeCarBadge">Song</span><h4 id="kefeCarTitle"></h4><p id="kefeCarArtist"></p><small id="kefeCarMeta"></small></div>'+
-        '<div class="kefe-car-actions"><button type="button" class="kefe-btn" id="kefeCarBack" hidden>← Results</button><button type="button" class="kefe-btn primary" id="kefeCarUse">Use this song</button></div>'+
+      '<div class="kefe-result-card" id="kefeResultCard">'+
+        '<div class="kefe-carousel ks-shelf" id="kefeCarousel" tabindex="0" role="group" aria-roledescription="carousel" aria-label="Search results carousel">'+
+          '<div class="kefe-car-empty" id="kefeCarEmpty"><div class="kefe-car-empty-icon"><span data-kefe-icon="music" aria-hidden="true"></span></div><span>Search results will appear here</span></div>'+
+          '<div class="ks-stage" id="kefeCarStack"></div>'+
+          '<button type="button" class="kefe-car-nav prev" id="kefeCarPrev" aria-label="Previous result"><span data-kefe-icon="chevron-left" aria-hidden="true"></span></button>'+
+          '<button type="button" class="kefe-car-nav next" id="kefeCarNext" aria-label="Next result"><span data-kefe-icon="chevron-right" aria-hidden="true"></span></button>'+
+          '<div class="kefe-car-count" id="kefeCarCount"></div>'+
+        '</div>'+
+        '<div class="kefe-car-info" id="kefeCarInfo" hidden>'+
+          '<div class="kefe-car-info-copy"><span class="kefe-badge" id="kefeCarBadge">Song</span><h4 id="kefeCarTitle"></h4><p id="kefeCarArtist"></p><small id="kefeCarMeta"></small></div>'+
+          '<div class="kefe-car-actions"><button type="button" class="kefe-btn" id="kefeCarBack" hidden>← Results</button><button type="button" class="kefe-btn primary" id="kefeCarUse">Use this song</button></div>'+
+        '</div>'+
       '</div>';
     return w;
   }
