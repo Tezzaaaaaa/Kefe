@@ -2,7 +2,7 @@
   'use strict';
   const SAVE_KEY = 'kefe.project.autosave.v1', DB_NAME = 'kefe-project-autosave', DB_STORE = 'media';
   const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  let restoring = false, saveTimer = 0, dbPromise;
+  let restoring = false, saveTimer = 0, dbPromise, autosaveError = null;
   function openDb() {
     if (dbPromise) return dbPromise;
     dbPromise = new Promise((resolve, reject) => {
@@ -56,7 +56,7 @@
         return input.id && file ? dbWrite(input.id, file) : Promise.resolve();
       }));
       status('All changes saved on this device', true);
-    } catch (error) { status('Autosave storage is full or unavailable', false); console.warn('[KEFE autosave]', error); }
+    } catch (error) { autosaveError = error?.message || String(error); status('Autosave storage is full or unavailable', false); console.warn('[KEFE autosave]', error); }
   }
   function queueSave() {
     if (restoring) return;
@@ -197,7 +197,8 @@
     restore: restoreProject,
     state: () => {
       const title = document.querySelector('#songTitle');
-      return { restoring, hasSnapshot: !!localStorage.getItem(SAVE_KEY), songTitleBound: !!title && boundControls.has(title), observedInputEvents };
+      const launcher = document.querySelector('#kefeFloatingToolbar .kft-launch');
+      return { restoring, hasSnapshot: !!localStorage.getItem(SAVE_KEY), songTitleBound: !!title && boundControls.has(title), observedInputEvents, saveState: launcher?.dataset.saveState || '', launcherTitle: launcher?.title || '', error: autosaveError };
     }
   });
   const boundControls = new WeakSet();
