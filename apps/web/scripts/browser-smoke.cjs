@@ -452,10 +452,13 @@ async function captureEditorScreenState(page) {
     if (mobileToolbarPanel) assert.ok(mobileToolbarPanel.x >= 0
       && mobileToolbarPanel.x + mobileToolbarPanel.width <= mobileToolbarBounds.viewportWidth + 1,
       `expanded mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarPanel)}`);
-    await page.keyboard.press("Escape");
+    await page.evaluate(() => {
+      const toggle = document.querySelector("[data-search-expand]");
+      if (toggle?.getAttribute("aria-expanded") === "true") toggle.click();
+    });
     await page.waitForFunction(() => {
       const results = document.querySelector("#kefeHeaderSearchResults");
-      return !results || getComputedStyle(results).display === "none" || results.hidden;
+      return !results || results.hidden;
     });
     if ((await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).count()) > 0) {
     await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
