@@ -1967,8 +1967,8 @@ async function captureEditorScreenState(page) {
         `all three workspace tabs must remain visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
       assert.equal(mobileWorkspaceAudit.panels.length, 6,
         `all six native panels must remain mounted at ${width}px`);
-      assert.ok(mobileWorkspaceAudit.panels.filter(panel => panel.width > 0 && panel.height > 0).length >= 2,
-        `the selected workspace must show its native panels at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
+      assert.ok(mobileWorkspaceAudit.panels.filter(panel => panel.width > 0 && panel.height > 0).length >= 1,
+        `the selected workspace subtab must show its native panel at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
       assert.equal(mobileWorkspaceAudit.drawerCount, 0,
         `the retired mobile section drawer must not be created at ${width}px`);
       for (const section of ["media", "lyrics", "effects", "background-effects", "visualiser", "export"]) {
