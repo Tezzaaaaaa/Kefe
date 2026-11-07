@@ -1809,15 +1809,8 @@ async function captureEditorScreenState(page) {
     await nativeLyrics.fill("beUI lyric smoke");
     assert.equal(await nativeLyrics.inputValue(), "beUI lyric smoke", "native lyrics textarea should own the value and input events");
 
-    await page.keyboard.press("Control+k");
-    const commandPalette = page.locator("#kefeCommandPalette");
-    await commandPalette.waitFor({ state: "visible", timeout: 5000 });
-    assert.equal(await commandPalette.locator(".beui-command-dialog").count(), 1, "command palette should use the beUI Card shell");
-    await page.locator("#kefeCommandInput").fill("Open Lyric Effects");
-    const commandButton = page.locator(".beui-command-button-host button").filter({ hasText: "Open Lyric Effects" });
-    await commandButton.waitFor({ state: "visible", timeout: 5000 });
-    await commandButton.evaluate(button => button.click());
-    await commandPalette.waitFor({ state: "hidden", timeout: 5000 });
+    assert.equal(await page.locator("#kefeCommandPalette, [data-command-open]").count(), 0,
+      "the command overlay and its opener must not exist");
     await page.waitForFunction(() => document.querySelector(".kefe-editing")?.dataset.selectedSection === "effects", null, { timeout: 5000 });
     await openSection("effects");
     await assertSectionFits("effects");
