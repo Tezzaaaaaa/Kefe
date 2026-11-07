@@ -129,7 +129,7 @@
       }
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       if (selected.visualiserPreset) {
-        const preset = $('.kefe-visualiser-preset-set:not([hidden]) button').find(button =>
+        const preset = $$('.kefe-visualiser-preset-set:not([hidden]) button').find(button =>
           (button.dataset.preset || button.dataset.scene || button.dataset.value || button.textContent.trim()) === selected.visualiserPreset);
         preset?.click();
       }
