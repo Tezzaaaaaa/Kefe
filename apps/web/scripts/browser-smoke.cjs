@@ -332,7 +332,6 @@ async function captureEditorScreenState(page) {
         "the unchanged main-branch baseline must retain its toolbar beside Editor");
     }
 
-    const tidySectionMode = await page.evaluate(() => Boolean(document.querySelector(".kefe-advanced-controls")));
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
     // Mobile keeps all three workspace tabs visible and exposes one selected panel.
@@ -1105,7 +1104,7 @@ async function captureEditorScreenState(page) {
           panels: panels.map(panel => ({ id: panel.dataset.panelView, visible: getComputedStyle(panel).display !== 'none' && panel.getBoundingClientRect().height > 0 }))
         };
       });
-      assert.deepEqual(workspaceAudit.groups.map(group => [group.id, group.title]), [['content', 'Content'], ['design', 'Appearance'], ['audio-visuals', tidySectionMode ? 'Audio & Visualiser' : 'Audio & Visuals']], 'three named workspaces must appear in order: ' + JSON.stringify(workspaceAudit));
+      assert.deepEqual(workspaceAudit.groups.map(group => [group.id, group.title]), [['content', 'Content'], ['design', 'Appearance'], ['audio-visuals', 'Audio & Visualiser']], 'three named workspaces must appear in order: ' + JSON.stringify(workspaceAudit));
       assert.equal(workspaceAudit.groups.filter(group => !group.hidden).length, 1, 'exactly one workspace panel must be visible');
       assert.equal(workspaceAudit.sections.length, 6, 'all six editor sections must remain mounted');
       assert.equal(workspaceAudit.panels.length, 6, 'each native editor panel must be mounted exactly once');
