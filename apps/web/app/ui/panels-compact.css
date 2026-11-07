@@ -752,7 +752,8 @@
   overflow: hidden;
 }
 
-:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone .kefe-upload-card {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone .kefe-upload-card,
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeBgVideoZone .kefe-upload-card {
   box-sizing: border-box;
   min-width: 0;
   min-height: 0;
@@ -810,9 +811,23 @@
   border: 1px dashed var(--line) !important;
   box-shadow: none !important;
 }
-:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] #kefeBgVideoZone {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] #kefeBgVideoZone .kefe-upload-card {
   border: 1px dashed var(--line) !important;
   box-shadow: none !important;
+}
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] #kefeBgVideoZone {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+  align-items: stretch;
+}
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 /* Keep lyric-style sliders and colour controls on the same full-width grid. */
@@ -920,4 +935,39 @@
 @media (max-width: 420px) {
   :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-media-upload-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-song-details > .kefe-details-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Media uploads: audio and background-video cards are identical in size, and fill the row edge to edge (no padded shell). */
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+  grid-auto-rows: 96px;
+}
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap {
+  box-sizing: border-box;
+  width: 100% !important;
+  height: 96px !important;
+  min-height: 96px !important;
+  max-height: 96px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeBgVideoZone,
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeUploadZone {
+  padding: 0 !important;
+  height: 96px !important;
+  min-height: 96px !important;
+  max-height: 96px !important;
+}
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeUploadZone .kefe-upload-card,
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeBgVideoZone .kefe-upload-card {
+  width: 100% !important;
+  height: 96px !important;
+  min-height: 96px !important;
+  max-height: 96px !important;
 }

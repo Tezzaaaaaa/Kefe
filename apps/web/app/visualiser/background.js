@@ -253,11 +253,12 @@
     var zone=document.getElementById('kefeUploadZone');if(!zone||document.getElementById('kefeBgVideoZone'))return;
     var wrap=document.createElement('div');wrap.className='beui-upload-wrap';
     wrap.innerHTML='<label class="kefe-upload-zone beui-upload-dropzone" id="kefeBgVideoZone" for="bgVideoInput">'+
+      '<div class="kefe-upload-card">'+
       '<span class="beui-upload-symbol" aria-hidden="true"><span data-kefe-icon="file-audio" aria-hidden="true"></span></span>'+
       '<span class="kefe-upload-title">Optional background video</span><span class="kefe-upload-help">Use separate footage behind your lyrics.</span>'+
       '<span class="kefe-upload-name" id="bgVideoName">Drop file here or browse</span>'+
       '<span class="beui-upload-browse">Browse files</span>'+
-      '<input class="kefe-file" id="bgVideoInput" type="file" accept=".mp4,.mov,.m4v,.webm,video/*"></label>'+
+      '<input class="kefe-file" id="bgVideoInput" type="file" accept=".mp4,.mov,.m4v,.webm,video/*"></div></label>'+
       '<div class="beui-upload-file" id="bgVideoFileRow" hidden aria-live="polite"><span class="beui-upload-file-icon" aria-hidden="true"><span data-kefe-icon="folder" aria-hidden="true"></span></span><span class="beui-upload-file-copy"><span class="beui-upload-file-name" id="bgVideoFileName"></span><span class="beui-upload-file-meta">Background video</span></span><span class="beui-upload-file-status"><span class="beui-upload-status-dot"></span><span id="bgVideoFileStatus">Loading preview…</span></span><button class="kefe-btn" id="bgVideoRemove" type="button">Remove</button></div>';
     zone.parentNode.insertBefore(wrap,zone.nextSibling);
     var input=wrap.querySelector('#bgVideoInput'),name=wrap.querySelector('#bgVideoName'),rm=wrap.querySelector('#bgVideoRemove'),z=wrap.querySelector('#kefeBgVideoZone'),row=wrap.querySelector('#bgVideoFileRow'),rowName=wrap.querySelector('#bgVideoFileName'),rowStatus=wrap.querySelector('#bgVideoFileStatus');

@@ -703,3 +703,53 @@
   #kefe-settings-panel .kv-tab { flex-direction: column; }
   #kefe-settings-panel .kv-preview { flex: none; width: 100%; aspect-ratio: 16 / 9; }
 }
+
+/* Media panel: Audio/video and Background video cards are the same size, top-aligned, with no empty space around them. */
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: auto !important;
+  align-items: start !important;
+  gap: 10px !important;
+}
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-self: start !important;
+}
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeUploadZone,
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeBgVideoZone {
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 96px !important;
+  min-height: 96px !important;
+  max-height: 96px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  grid-column: auto !important;
+}
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .kefe-upload-card {
+  display: grid !important;
+  place-items: center;
+  box-sizing: border-box;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 5px 4px !important;
+}
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap > .beui-upload-file:not([hidden]) {
+  margin-top: 8px;
+}
+@media (max-width: 359px) {
+  :is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
