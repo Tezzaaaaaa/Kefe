@@ -35,9 +35,41 @@
       tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error);
     });
   }
+  async function resetWorkspace() {
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; }
+    saveQueued = false;
+    restoring = true;
+    localStorage.removeItem(SAVE_KEY);
+    if (dbPromise) {
+      try { (await dbPromise).close(); } catch (_) {}
+      dbPromise = null;
+    }
+    await new Promise(resolve => {
+      const request = indexedDB.deleteDatabase(DB_NAME);
+      request.onsuccess = request.onerror = request.onblocked = () => resolve();
+    });
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter(key => key.startsWith('kefe-')).map(key => caches.delete(key)));
+    }
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.filter(registration => {
+        try { return new URL(registration.scope).pathname.startsWith(new URL('./', location.href).pathname); }
+        catch (_) { return false; }
+      }).map(registration => registration.unregister()));
+    }
+    location.replace(location.pathname + '?kefe-reset=' + Date.now());
+  }
   function status(text, saved) {
     const launch = $('#kftStrip .kft-launch') || $('#kefeFloatingToolbar .kft-launch');
     if (launch) { launch.title = 'Editor toolbar · ' + text; launch.dataset.saveState = saved ? 'saved' : 'saving'; launch.setAttribute('aria-label', 'Editor toolbar. ' + text); }
+    const saveButton = $('#kefeSaveButton');
+    if (saveButton) {
+      saveButton.dataset.saveState = saved ? 'saved' : 'saving';
+      saveButton.title = saved ? 'Saved on this device' : text;
+      saveButton.setAttribute('aria-label', saved ? 'Project saved on this device' : text);
+    }
     window.dispatchEvent(new CustomEvent('kefe-autosave-status', { detail: { text, saved: !!saved } }));
   }
   function projectFields() {
@@ -366,6 +398,7 @@
   const autosaveReady = new Promise(resolve => { resolveAutosaveReady = resolve; });
   window.kefeProjectAutosave = Object.freeze({
     saveNow: saveProject,
+    resetWorkspace,
     queueSave,
     setToolbarContext: setContext,
     restore: restoreProject,
@@ -374,6 +407,30 @@
       const title = document.querySelector('#songTitle');
       const launcher = document.querySelector('#kefeFloatingToolbar .kft-launch');
       return { restoring, hasSnapshot: !!localStorage.getItem(SAVE_KEY), songTitleBound: !!title && boundControls.has(title), observedInputEvents, saveState: launcher?.dataset.saveState || '', launcherTitle: launcher?.title || '', error: autosaveError };
+    }
+  });
+  document.addEventListener('click', async event => {
+    const saveButton = event.target.closest?.('#kefeSaveButton');
+    if (saveButton) {
+      event.preventDefault();
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; }
+      saveQueued = false;
+      await saveProject();
+      return;
+    }
+    const resetButton = event.target.closest?.('#kefeResetButton');
+    if (resetButton) {
+      event.preventDefault();
+      if (!window.confirm('Reset KEFE? This clears the saved project and media on this device, removes KEFE app caches, and reloads the editor.')) return;
+      resetButton.disabled = true;
+      resetButton.setAttribute('aria-busy', 'true');
+      try { await resetWorkspace(); }
+      catch (error) {
+        resetButton.disabled = false;
+        resetButton.removeAttribute('aria-busy');
+        status('Reset failed. Your saved project has been retained.', false);
+        console.error('[KEFE reset]', error);
+      }
     }
   });
   const boundControls = new WeakSet();
