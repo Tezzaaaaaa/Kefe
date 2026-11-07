@@ -573,6 +573,7 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
     right: 8px;
     margin-inline: auto;
     transform: none;
+    animation: none;
     z-index: 10001;
     width: max-content;
     max-width: calc(100vw - 16px);
