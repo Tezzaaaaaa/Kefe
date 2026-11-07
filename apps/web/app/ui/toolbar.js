@@ -534,9 +534,6 @@
   syncStyleToggles();
   lyricPanel.append(sectionLabel('Colour'), presetsEl, hexRow, checkRow('Outline', outlineToggle), checkRow('Soft glow', glowToggle));
 
-  const lyricsToggle = cellBtn('eye', 'Lyrics on or off', 'kft-btn--toggle');
-  lyricsToggle.setAttribute('aria-pressed', 'true');
-
   /* Canvas panel: ratio, safe area, preview background, background + visualiser */
   const ratioBtn = h('button', 'kft-btn kft-cell kft-cell--ratio', { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
   const ratioLabel = h('span'); ratioLabel.textContent = '16:9';
@@ -638,7 +635,7 @@
   main.append(
     cluster('Layer', grip, moveBtn),
     cluster('History', undoBtn, redoBtn),
-    cluster('Lyrics', lyricStyleBtn, lyricsToggle),
+    cluster('Lyrics', lyricStyleBtn),
     cluster('Canvas', ratioBtn),
     cluster('Visualiser', visualiserBtn),
     cluster('Actions', actionsBtn)
@@ -668,8 +665,6 @@
     const s = styleScale(); sizeScrub.disable(!s); sizeScrub.set(s ? s.value : 100);
     const d = bgDarkness(); darkScrub.disable(!d); darkScrub.set(d ? d.value : 0, Number(d?.min) || 0, Number(d?.max) || 100);
     const on = lyricsSwitch()?.getAttribute('aria-checked') !== 'false';
-    lyricsToggle.setAttribute('aria-pressed', String(on));
-    lyricsToggle.dataset.tip = on ? 'Lyrics on · click to hide' : 'Lyrics off · click to show';
     syncLayer(); syncMove();
   }
   let syncQueued = 0;
@@ -683,15 +678,6 @@
   document.addEventListener('DOMContentLoaded', sync, { once: true });
   window.addEventListener('kefe-shell-ready', () => { sync(); queueMount(); });
   window.addEventListener('load', () => { sync(); queueMount(); });
-
-  lyricsToggle.addEventListener('click', () => {
-    const s = lyricsSwitch(); if (!s) return;
-    s.click();
-    const on = s.getAttribute('aria-checked') !== 'false';
-    lyricsToggle.setAttribute('aria-pressed', String(on));
-    lyricsToggle.dataset.tip = on ? 'Lyrics on · click to hide' : 'Lyrics off · click to show';
-    emit('lyrics', on);
-  });
 
   /* ───────── Docking, expanding, dragging ─────────
      Default home: inside the timeline, immediately after the volume control. The launcher is always there;
