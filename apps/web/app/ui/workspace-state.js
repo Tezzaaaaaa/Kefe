@@ -310,7 +310,7 @@
       if (!target) return;
       const next = contextForControl(target);
       if (next) {
-        queueMicrotask(() => setContext(next));
+        if (!restoring) queueMicrotask(() => setContext(next));
         if (target.id === 'bgVideoRemove') {
           const input = $('#bgVideoInput');
           if (input?.id) dbDelete(input.id).then(queueSave).catch(error => {
@@ -323,9 +323,10 @@
     }, true);
     ['input', 'change'].forEach(type => document.addEventListener(type, event => {
       const next = contextForControl(event.target);
-      if (next) setContext(next);
+      if (next && !restoring) setContext(next);
     }, true));
     window.addEventListener('kefe-toolbar-change', event => {
+      if (restoring) return;
       const action = event.detail?.action;
       if (action === 'effect' || ['lyric-mode', 'font', 'text-case', 'text-size', 'text-colour', 'outline', 'glow', 'lyrics'].includes(action)) setContext('lyric');
       else if (action === 'visualiser') setContext('visualiser');
@@ -334,10 +335,10 @@
     });
   const form = $('.kefe-visualiser-form');
     if (form) new MutationObserver(() => { if (context === 'visualiser' && contextPopover) renderContext(); })
-      .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled'] });
+      .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','hidden','aria-hidden','class','style'] });
     const backgroundForm = $('[data-panel-view="background-effects"] .kefe-form');
     if (backgroundForm) new MutationObserver(() => { if (context === 'background' && contextPopover) renderContext(); })
-      .observe(backgroundForm, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','aria-checked','class'] });
+      .observe(backgroundForm, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','aria-checked','hidden','aria-hidden','class','style'] });
     renderContext();
     if (!window.kefeIcon) window.addEventListener('load', () => renderContext(), { once: true });
   }
