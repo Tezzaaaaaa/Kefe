@@ -40,9 +40,12 @@
     if (launch) { launch.title = 'Editor toolbar · ' + text; launch.dataset.saveState = saved ? 'saved' : 'saving'; launch.setAttribute('aria-label', 'Editor toolbar. ' + text); }
     window.dispatchEvent(new CustomEvent('kefe-autosave-status', { detail: { text, saved: !!saved } }));
   }
+  function projectFields() {
+    return $('input:not([type="password"]), select, textarea').filter(el => !el.closest('#kefeFloatingToolbar, .kft-popover'));
+  }
   function controlSnapshot() {
     const values = {};
-    const fields = $$('input:not([type="file"]):not([type="password"]), select, textarea').filter(el => !el.closest('.kft-context-popover'));
+    const fields = projectFields().filter(el => el.type !== 'file');
     fields.forEach((el, index) => {
       if (!el.id && !el.name) el.dataset.kefeAutosaveKey = 'field-' + index;
       const key = el.id ? '#' + el.id : (el.name ? '[name="' + CSS.escape(el.name) + '"]' : '[data-kefe-autosave-key="' + CSS.escape(el.dataset.kefeAutosaveKey) + '"]');
@@ -99,7 +102,7 @@
     restoring = true;
     try {
       const restoreValues = () => {
-        $$('input:not([type="file"]):not([type="password"]), select, textarea').forEach((el, index) => {
+        projectFields().filter(el => el.type !== 'file').forEach((el, index) => {
           if (!el.id && !el.name) el.dataset.kefeAutosaveKey = 'field-' + index;
         });
         Object.entries(snapshot.values || {}).forEach(([selector, data]) => { try { setControlValue($(selector), data); } catch (_) {} });
@@ -123,9 +126,10 @@
   const config = {
     lyric: { title: 'Lyric effect settings', icon: 'effect', selectors: ['#kefeDisplayGroup', '#kefeStyleGroup', '#fontOverride', '#lyricCase'] },
     visualiser: { title: 'Visualiser settings', icon: 'audio-waveform', selectors: ['.kefe-visualiser-form', '#kefeVisualiserPresetRow'] },
-    background: { title: 'Background effect settings', icon: 'image', selectors: ['#kefeBackgroundEffectOptions', '.kefe-panel[data-panel-view="background-effects"] .kefe-form'] }
+    background: { title: 'Background effect settings', icon: 'image', selectors: ['#kefeBackgroundEffectToggle', '#kefeBgVideoZone', '#bgVideoInput', '#backgroundTransparency', '#kefeBackgroundEffectOptions', '.kefe-panel[data-panel-view="background-effects"] .kefe-form'] }
   };
   function labelFor(el) {
+    if (el.type === 'file') return el.closest('label')?.querySelector('.kefe-upload-title')?.textContent.trim() || 'Upload background media';
     const label = el.labels && el.labels[0];
     if (label?.textContent.trim()) return label.textContent.trim().replace(/\s+/g, ' ');
     const field = el.closest('.kefe-visualiser-field, .kefe-background-effect-control, .kefe-font-selector-control, .kefe-step');
@@ -134,8 +138,8 @@
   }
   function sourceControls() {
     const roots = config[context].selectors.flatMap(selector => $$(selector)), seen = new Set();
-    return roots.flatMap(root => root.matches?.('input,select,textarea') ? [root] : $$('input:not([type="file"]):not([type="hidden"]),select,textarea', root))
-      .filter(el => { if (seen.has(el) || el.disabled || el.hidden || ['submit','button','file','hidden'].includes(el.type)) return false; seen.add(el); return true; });
+    return roots.flatMap(root => root.matches?.('input,select,textarea,button[role="switch"]') ? [root] : $('input:not([type="hidden"]),select,textarea,button[role="switch"]', root))
+      .filter(el => { if (seen.has(el) || el.disabled || el.hidden || ['submit','button','hidden'].includes(el.type)) return false; seen.add(el); return true; });
   }
   function closeContext() { if (!contextPopover) return; contextPopover.remove(); contextPopover = null; contextButton?.setAttribute('aria-expanded', 'false'); }
   function positionContext(pop) {
@@ -185,13 +189,33 @@
       const title = document.createElement('span'); title.textContent = labelFor(source);
       const proxy = source.cloneNode(true); proxy.removeAttribute('id'); proxy.removeAttribute('name'); proxy.removeAttribute('form');
       proxy.disabled = source.disabled;
-      if (source.type === 'checkbox' || source.type === 'radio') proxy.checked = source.checked; else proxy.value = source.value;
-      const syncSource = type => {
-        if (source.type === 'checkbox' || source.type === 'radio') source.checked = proxy.checked; else source.value = proxy.value;
-        source.dispatchEvent(new Event(type, { bubbles: true }));
-      };
-      proxy.addEventListener('input', () => syncSource('input'));
-      proxy.addEventListener('change', () => syncSource('change'));
+      if (source.type === 'file') {
+        proxy.classList.remove('kefe-file'); proxy.value = '';
+        proxy.addEventListener('change', () => {
+          try {
+            const transfer = new DataTransfer();
+            Array.from(proxy.files || []).forEach(file => transfer.items.add(file));
+            source.files = transfer.files;
+            source.dispatchEvent(new Event('change', { bubbles: true }));
+          } catch (_) { status('Use the Background panel to upload this file', false); }
+        });
+      } else if (source.matches('button[role="switch"]')) {
+        proxy.addEventListener('click', () => {
+          source.click();
+          requestAnimationFrame(() => {
+            proxy.setAttribute('aria-checked', source.getAttribute('aria-checked') || 'false');
+            proxy.classList.toggle('is-on', source.classList.contains('is-on'));
+          });
+        });
+      } else {
+        if (source.type === 'checkbox' || source.type === 'radio') proxy.checked = source.checked; else proxy.value = source.value;
+        const syncSource = type => {
+          if (source.type === 'checkbox' || source.type === 'radio') source.checked = proxy.checked; else source.value = proxy.value;
+          source.dispatchEvent(new Event(type, { bubbles: true }));
+        };
+        proxy.addEventListener('input', () => syncSource('input'));
+        proxy.addEventListener('change', () => syncSource('change'));
+      }
       row.append(title, proxy); contextPopover.appendChild(row);
     });
   }
@@ -246,11 +270,14 @@
   const form = $('.kefe-visualiser-form');
     if (form) new MutationObserver(() => { if (context === 'visualiser' && contextPopover) renderContext(); })
       .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled'] });
+    const backgroundForm = $('[data-panel-view="background-effects"] .kefe-form');
+    if (backgroundForm) new MutationObserver(() => { if (context === 'background' && contextPopover) renderContext(); })
+      .observe(backgroundForm, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','aria-checked','class'] });
     renderContext();
     if (!window.kefeIcon) window.addEventListener('load', () => renderContext(), { once: true });
   }
   const css = document.createElement('style');
-  css.textContent = '.kft-context-popover{position:fixed;z-index:10005;display:grid;gap:9px;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:12px}.kft-context-field{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,1.15fr);align-items:center;gap:10px;min-width:0;color:var(--kt-text);font-size:11px}.kft-context-field>span{min-width:0;overflow-wrap:anywhere;color:var(--kt-muted)}.kft-context-field>:is(input,select,textarea){box-sizing:border-box;width:100%;min-width:0;max-width:100%}.kft-context-field input[type=range]{accent-color:var(--kt-accent)}.kft-context-field input[type=checkbox]{justify-self:end;width:18px;height:18px}.kft-context-field input[type=color]{height:30px;padding:2px}.kft-context-field select,.kft-context-field input:not([type=checkbox]):not([type=range]):not([type=color]),.kft-context-field textarea{min-height:30px;padding:5px 7px;border:1px solid var(--kt-border);border-radius:5px;background:var(--kt-input);color:var(--kt-text)}#kefeFloatingToolbar .kft-launch{position:relative}#kefeFloatingToolbar .kft-launch[data-save-state]::after{content:"";position:absolute;right:3px;top:3px;width:5px;height:5px;border-radius:50%;background:#36b37e;box-shadow:0 0 0 2px var(--kt-surface)}#kefeFloatingToolbar .kft-launch[data-save-state=saving]::after{background:#d6a23a}@media(max-width:640px){.kft-context-popover{max-width:calc(100vw - 16px)!important;max-height:min(54vh,380px)!important}.kft-context-field{grid-template-columns:minmax(0,1fr) minmax(100px,1fr)}}';
+  css.textContent = '.kft-context-popover{position:fixed;z-index:10005;display:grid;gap:9px;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:12px}.kft-context-field{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,1.15fr);align-items:center;gap:10px;min-width:0;color:var(--kt-text);font-size:11px}.kft-context-field>span{min-width:0;overflow-wrap:anywhere;color:var(--kt-muted)}.kft-context-field>:is(input,select,textarea,button){box-sizing:border-box;width:100%;min-width:0;max-width:100%}.kft-context-field input[type=file]{display:block;min-height:30px;font-size:11px}.kft-context-field input[type=range]{accent-color:var(--kt-accent)}.kft-context-field input[type=checkbox]{justify-self:end;width:18px;height:18px}.kft-context-field input[type=color]{height:30px;padding:2px}.kft-context-field select,.kft-context-field input:not([type=checkbox]):not([type=range]):not([type=color]):not([type=file]),.kft-context-field textarea,.kft-context-field button{min-height:30px;padding:5px 7px;border:1px solid var(--kt-border);border-radius:5px;background:var(--kt-input);color:var(--kt-text)}#kefeFloatingToolbar .kft-launch{position:relative}#kefeFloatingToolbar .kft-launch[data-save-state]::after{content:"";position:absolute;right:3px;top:3px;width:5px;height:5px;border-radius:50%;background:#36b37e;box-shadow:0 0 0 2px var(--kt-surface)}#kefeFloatingToolbar .kft-launch[data-save-state=saving]::after{background:#d6a23a}@media(max-width:640px){.kft-context-popover{max-width:calc(100vw - 16px)!important;max-height:min(54vh,380px)!important}.kft-context-field{grid-template-columns:minmax(0,1fr) minmax(100px,1fr)}}';
   document.head.appendChild(css);
 
   let observedInputEvents = 0;
