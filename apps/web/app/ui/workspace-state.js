@@ -42,7 +42,7 @@
   }
   function controlSnapshot() {
     const values = {};
-    const fields = $$('input:not([type="file"]):not([type="password"]), select, textarea');
+    const fields = $('input:not([type="file"]):not([type="password"]), select, textarea').filter(el => !el.closest('.kft-context-popover'));
     fields.forEach((el, index) => {
       if (!el.id && !el.name) el.dataset.kefeAutosaveKey = 'field-' + index;
       const key = el.id ? '#' + el.id : (el.name ? '[name="' + CSS.escape(el.name) + '"]' : '[data-kefe-autosave-key="' + CSS.escape(el.dataset.kefeAutosaveKey) + '"]');
@@ -263,7 +263,7 @@
   const boundControls = new WeakSet();
   const fieldSelector = 'input:not([type="password"]), select, textarea';
   function bindControl(input) {
-    if (boundControls.has(input)) return;
+    if (boundControls.has(input) || input.closest('.kft-context-popover')) return;
     boundControls.add(input);
     input.addEventListener('input', () => { observedInputEvents++; queueSave(); });
     input.addEventListener('change', () => {
