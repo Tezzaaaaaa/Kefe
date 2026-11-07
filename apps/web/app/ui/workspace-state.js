@@ -198,6 +198,7 @@
     context = next;
     if (changed) closeContext();
     renderContext();
+    if (changed) queueSave();
   }
   if (contextButton) {
     contextButton.addEventListener('click', event => {
