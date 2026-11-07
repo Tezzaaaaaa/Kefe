@@ -159,8 +159,8 @@
     const selected = config[context];
     contextButton.dataset.settingsContext = context;
     contextButton.dataset.settingsContext = context;
-    contextButton.setAttribute('aria-label', 'Lyric effect and text style');
     const title = contextTitle();
+    contextButton.setAttribute('aria-label', title);
     contextButton.setAttribute('aria-description', title);
     contextButton.title = title;
     if (!contextPopover) return;
