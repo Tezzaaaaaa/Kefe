@@ -102,10 +102,12 @@
     }
   }
   async function restoreProject() {
+    if (restoring) return;
     let snapshot;
     try { snapshot = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch (_) { return; }
     if (!snapshot || snapshot.version !== 1) return;
     restoring = true;
+    status('Restoring saved project…', false);
     try {
       const restoreValues = () => {
         projectFields().filter(el => el.type !== 'file').forEach((el, index) => {
@@ -335,11 +337,14 @@
   document.head.appendChild(css);
 
   let observedInputEvents = 0;
+  let resolveAutosaveReady;
+  const autosaveReady = new Promise(resolve => { resolveAutosaveReady = resolve; });
   window.kefeProjectAutosave = Object.freeze({
     saveNow: saveProject,
     queueSave,
     setToolbarContext: setContext,
     restore: restoreProject,
+    ready: autosaveReady,
     state: () => {
       const title = document.querySelector('#songTitle');
       const launcher = document.querySelector('#kefeFloatingToolbar .kft-launch');
@@ -380,6 +385,6 @@
   }, true);
   window.addEventListener('pagehide', () => { if (!restoring) try { localStorage.setItem(SAVE_KEY, JSON.stringify(controlSnapshot())); } catch (_) {} });
   window.addEventListener('beforeunload', () => { if (!restoring) try { localStorage.setItem(SAVE_KEY, JSON.stringify(controlSnapshot())); } catch (_) {} });
-  const boot = () => restoreProject().catch(error => { console.warn('[KEFE autosave restore]', error); status('Autosave restore needs attention', false); });
+  const boot = () => restoreProject().catch(error => { console.warn('[KEFE autosave restore]', error); status('Autosave restore needs attention', false); }).finally(() => resolveAutosaveReady());
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true }); else boot();
 })();
