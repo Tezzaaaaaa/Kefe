@@ -1090,7 +1090,7 @@ async function captureEditorScreenState(page) {
       const tab = page.locator('[role="tab"][data-workspace-tab="' + workspace + '"]');
       await tab.evaluate(node => node.click());
       await page.waitForFunction(expected => document.querySelector('[role="tab"][data-workspace-tab="' + expected + '"]')?.getAttribute("aria-selected") === "true", workspace, { timeout: 5000 });
-      const sectionId = ({ "background-effects": "background", visualiser: "visualisers" })[section] || section;
+      const sectionId = ({ lyrics: "lyric-sync", effects: "lyric-effects", "background-effects": "background", visualiser: "visualisers" })[section] || section;
       const sectionRoot = page.locator('.kefe-workspace-stack .section[data-section-id="' + sectionId + '"]').first();
       if (await sectionRoot.count()) {
         const expand = sectionRoot.locator(".expand-button").first();
