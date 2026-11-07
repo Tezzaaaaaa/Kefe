@@ -183,7 +183,10 @@
   }
   function setContext(next) { if (!config[next] || context === next) return; context = next; closeContext(); renderContext(); }
   if (contextButton) {
-    contextButton.addEventListener('click', event => { event.preventDefault(); event.stopImmediatePropagation(); openContext(); }, true);
+    contextButton.addEventListener('click', event => {
+      if (context === 'lyric') return;
+      event.preventDefault(); event.stopImmediatePropagation(); openContext();
+    }, true);
     document.addEventListener('click', event => { if (contextPopover && !contextPopover.contains(event.target) && !contextButton.contains(event.target)) closeContext(); }, true);
     document.addEventListener('keydown', event => { if (event.key === 'Escape' && contextPopover) { closeContext(); contextButton.focus({ preventScroll: true }); } });
     window.addEventListener('resize', closeContext);
