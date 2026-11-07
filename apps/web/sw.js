@@ -9,7 +9,7 @@
  * (song search, artwork and lyrics services) and Range requests (audio and
  * video seeking), which all go straight to the network.
  */
-const CACHE = 'kefe-shell-v5';
+const CACHE = 'kefe-shell-v6';
 
 const PRECACHE = [
   './editor.html',
