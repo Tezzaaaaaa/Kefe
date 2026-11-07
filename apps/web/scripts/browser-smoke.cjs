@@ -289,6 +289,8 @@ async function captureEditorScreenState(page) {
         node.click();
       });
       await page.waitForFunction(() => document.querySelector('#kefeFloatingToolbar [data-settings-context]')?.dataset.settingsContext === "visualiser");
+      assert.ok((await contextTrigger.locator("svg.lucide").getAttribute("class") || "").includes("lucide-audio-waveform"),
+        "the toolbar icon must change to the visualiser icon");
       assert.match(await contextTrigger.getAttribute("title"), /settings$/i,
         "choosing a visualiser must replace the toolbar settings context");
       await contextTrigger.click();
@@ -304,6 +306,8 @@ async function captureEditorScreenState(page) {
         node.click();
       });
       await page.waitForFunction(() => document.querySelector('#kefeFloatingToolbar [data-settings-context]')?.dataset.settingsContext === "background");
+      assert.ok((await contextTrigger.locator("svg.lucide").getAttribute("class") || "").includes("lucide-image"),
+        "the toolbar icon must change to the background icon");
       assert.match(await contextTrigger.getAttribute("title"), /settings$/i,
         "choosing a background effect must replace the toolbar settings context");
       await contextTrigger.click();
@@ -313,6 +317,8 @@ async function captureEditorScreenState(page) {
       await contextTrigger.click();
     }
     await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("lyric"));
+    assert.ok((await contextTrigger.locator("svg.lucide").getAttribute("class") || "").includes("lucide-effect"),
+      "the toolbar icon must return to the lyric effect icon");
     const autosaveField = page.locator("#songTitle");
     const originalTitle = await autosaveField.inputValue();
     await autosaveField.fill("__kefe_autosave_smoke__");
