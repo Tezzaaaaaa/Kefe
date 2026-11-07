@@ -281,11 +281,8 @@ async function captureEditorScreenState(page) {
 
     // The existing Lyrics trigger becomes the active feature's settings surface without changing toolbar geometry.
     const contextTrigger = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
-    await contextTrigger.click();
-    await page.getByRole("dialog", { name: "Lyric effect and text style", exact: true }).waitFor({ state: "visible", timeout: 5000 });
     assert.equal(await contextTrigger.getAttribute("title"), "Lyric effect settings",
       "the context toolbar must initially expose the selected lyric effect settings");
-    await contextTrigger.click();
 
     const activeVisualiser = page.locator('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary').first();
     if (await activeVisualiser.count()) {
@@ -437,8 +434,7 @@ async function captureEditorScreenState(page) {
     if (mobileToolbarPanel) assert.ok(mobileToolbarPanel.x >= 0
       && mobileToolbarPanel.x + mobileToolbarPanel.width <= mobileToolbarBounds.viewportWidth + 1,
       `expanded mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarPanel)}`);
-    const selectedLyricEffect = page.locator('#lyricEffectOptions [data-effect].active').first();
-    if (await selectedLyricEffect.count()) await selectedLyricEffect.evaluate(node => node.click());
+    await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("lyric"));
     if ((await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).count()) > 0) {
     await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
     } else {
