@@ -123,8 +123,8 @@
   }
   function sourceControls() {
     const roots = config[context].selectors.flatMap(selector => $$(selector)), seen = new Set();
-    return roots.flatMap(root => root.matches?.('input,select,textarea') ? [root] : $$('input:not([type="file"]):not([type="hidden"]),select,textarea', root))
-      .filter(el => { if (seen.has(el) || el.disabled || ['submit','button','file','hidden'].includes(el.type)) return false; seen.add(el); return true; });
+    return roots.flatMap(root => root.matches?.('input,select,textarea') ? [root] : $('input:not([type="file"]):not([type="hidden"]),select,textarea', root))
+      .filter(el => { if (seen.has(el) || el.disabled || el.closest('[hidden], [aria-hidden="true"]') || ['submit','button','file','hidden'].includes(el.type)) return false; seen.add(el); return true; });
   }
   function closeContext() { if (!contextPopover) return; contextPopover.remove(); contextPopover = null; contextButton?.setAttribute('aria-expanded', 'false'); }
   function positionContext(pop) {
@@ -138,8 +138,7 @@
     if (!contextButton) return;
     const selected = config[context];
     contextButton.innerHTML = window.kefeIcon ? window.kefeIcon(selected.icon) : '<span data-kefe-icon="' + selected.icon + '" aria-hidden="true"></span>';
-    contextButton.setAttribute('aria-label', selected.title); contextButton.title = selected.title;
-    contextButton.closest('.kft-cluster')?.setAttribute('aria-label', selected.title);
+    contextButton.setAttribute('aria-label', 'Lyric effect and text style'); contextButton.title = selected.title;
     if (!contextPopover) return;
     contextPopover.replaceChildren();
     const heading = document.createElement('div'); heading.className = 'kft-label'; heading.textContent = selected.title; contextPopover.appendChild(heading);
@@ -186,7 +185,7 @@
     renderContext();
   }
   const css = document.createElement('style');
-  css.textContent = '.kft-context-popover{position:fixed;z-index:10005;display:grid;gap:9px;overflow:auto;overscroll-behavior:contain;padding:12px}.kft-context-field{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,1.15fr);align-items:center;gap:10px;min-width:0;color:var(--kt-text);font-size:11px}.kft-context-field>span{min-width:0;overflow-wrap:anywhere;color:var(--kt-muted)}.kft-context-field>:is(input,select,textarea){box-sizing:border-box;width:100%;min-width:0;max-width:100%}.kft-context-field input[type=range]{accent-color:var(--kt-accent)}.kft-context-field input[type=checkbox]{justify-self:end;width:18px;height:18px}.kft-context-field input[type=color]{height:30px;padding:2px}.kft-context-field select,.kft-context-field input:not([type=checkbox]):not([type=range]):not([type=color]),.kft-context-field textarea{min-height:30px;padding:5px 7px;border:1px solid var(--kt-border);border-radius:5px;background:var(--kt-input);color:var(--kt-text)}@media(max-width:640px){.kft-context-popover{width:min(340px,calc(100vw - 16px))!important;max-height:min(54vh,380px)!important}.kft-context-field{grid-template-columns:minmax(0,1fr) minmax(100px,1fr)}}';
+  css.textContent = '.kft-context-popover{position:fixed;z-index:10005;display:grid;gap:9px;overflow:auto;overscroll-behavior:contain;padding:12px}.kft-context-field{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,1.15fr);align-items:center;gap:10px;min-width:0;color:var(--kt-text);font-size:11px}.kft-context-field>span{min-width:0;overflow-wrap:anywhere;color:var(--kt-muted)}.kft-context-field>:is(input,select,textarea){box-sizing:border-box;width:100%;min-width:0;max-width:100%}.kft-context-field input[type=range]{accent-color:var(--kt-accent)}.kft-context-field input[type=checkbox]{justify-self:end;width:18px;height:18px}.kft-context-field input[type=color]{height:30px;padding:2px}.kft-context-field select,.kft-context-field input:not([type=checkbox]):not([type=range]):not([type=color]),.kft-context-field textarea{min-height:30px;padding:5px 7px;border:1px solid var(--kt-border);border-radius:5px;background:var(--kt-input);color:var(--kt-text)}@media(max-width:640px){.kft-context-popover{max-height:min(54vh,380px)}.kft-context-field{grid-template-columns:minmax(0,1fr) minmax(100px,1fr)}}';
   document.head.appendChild(css);
 
   document.addEventListener('input', queueSave, true);
