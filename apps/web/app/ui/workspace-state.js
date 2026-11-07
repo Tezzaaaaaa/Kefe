@@ -35,9 +35,10 @@
   }
   function controlSnapshot() {
     const values = {};
-    $$('input:not([type="file"]):not([type="password"]), select, textarea').forEach(el => {
-      const key = el.id ? '#' + el.id : (el.name ? '[name="' + CSS.escape(el.name) + '"]' : '');
-      if (!key) return;
+    const fields = $('input:not([type="file"]):not([type="password"]), select, textarea');
+    fields.forEach((el, index) => {
+      if (!el.id && !el.name) el.dataset.kefeAutosaveKey = 'field-' + index;
+      const key = el.id ? '#' + el.id : (el.name ? '[name="' + CSS.escape(el.name) + '"]' : '[data-kefe-autosave-key="' + CSS.escape(el.dataset.kefeAutosaveKey) + '"]');
       values[key] = el.type === 'checkbox' || el.type === 'radio' ? { checked: !!el.checked, value: el.value } : { value: el.value };
     });
     const effect = $('[data-effect].active', $('#lyricEffectOptions') || document);
@@ -87,11 +88,14 @@
     if (!snapshot || snapshot.version !== 1) return;
     restoring = true;
     try {
-      Object.entries(snapshot.values || {}).forEach(([selector, data]) => { try { setControlValue($(selector), data); } catch (_) {} });
+      const restoreValues = () => Object.entries(snapshot.values || {}).forEach(([selector, data]) => { try { setControlValue($(selector), data); } catch (_) {} });
+      restoreValues();
       const selected = snapshot.selections || {};
       if (selected.lyricEffect) $('#lyricEffectOptions [data-effect="' + CSS.escape(selected.lyricEffect) + '"]')?.click();
       if (selected.visualiser) $('.kefe-vis-tabs [data-visualiser="' + CSS.escape(selected.visualiser) + '"]')?.click();
       if (selected.background) $('#kefeBackgroundEffectOptions [data-background-mode="' + CSS.escape(selected.background) + '"]')?.click();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      restoreValues();
       await restoreFiles();
       document.dispatchEvent(new Event('kefe-project-restored'));
     } finally { restoring = false; status('Project restored · autosave active', true); queueSave(); }
