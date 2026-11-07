@@ -58,8 +58,9 @@
     const visualiserPreset = $('.kefe-visualiser-preset-set:not([hidden]) button[aria-pressed="true"], .kefe-visualiser-preset-set:not([hidden]) button.primary');
     const background = $('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]');
     const backgroundToggle = $('#kefeBackgroundEffectToggle');
+    const lyricsToggle = $('#lyricsEnabledToggle');
     const presetKey = visualiserPreset?.dataset.preset || visualiserPreset?.dataset.scene || visualiserPreset?.dataset.value || visualiserPreset?.textContent.trim() || '';
-    return { version: 1, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', visualiser: visualiser?.dataset.visualiser || '', visualiserPreset: presetKey, visualiserPower: visualiserPower?.getAttribute('aria-checked') === 'true', background: background?.dataset.backgroundMode || '', backgroundEnabled: backgroundToggle?.getAttribute('aria-checked') === 'true', toolbarContext: context } };
+    return { version: 1, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', lyricsEnabled: lyricsToggle?.getAttribute('aria-checked') !== 'false', visualiser: visualiser?.dataset.visualiser || '', visualiserPreset: presetKey, visualiserPower: visualiserPower?.getAttribute('aria-checked') === 'true', background: background?.dataset.backgroundMode || '', backgroundEnabled: backgroundToggle?.getAttribute('aria-checked') === 'true', toolbarContext: context } };
   }
   async function saveProject() {
     if (restoring) return;
@@ -115,6 +116,10 @@
       restoreValues();
       await restoreFiles();
       const selected = snapshot.selections || {};
+      if (typeof selected.lyricsEnabled === 'boolean') {
+        const toggle = $('#lyricsEnabledToggle');
+        if (toggle && (toggle.getAttribute('aria-checked') !== 'false') !== selected.lyricsEnabled) toggle.click();
+      }
       if (selected.lyricEffect) $('#lyricEffectOptions [data-effect="' + CSS.escape(selected.lyricEffect) + '"]')?.click();
       if (selected.visualiser) $('.kefe-vis-tabs [data-visualiser="' + CSS.escape(selected.visualiser) + '"]')?.click();
       if (selected.background) $('#kefeBackgroundEffectOptions [data-background-mode="' + CSS.escape(selected.background) + '"]')?.click();
@@ -278,17 +283,26 @@
     document.addEventListener('click', event => { if (contextPopover && !contextPopover.contains(event.target) && !contextButton.contains(event.target)) closeContext(); }, true);
     document.addEventListener('keydown', event => { if (event.key === 'Escape' && contextPopover) { closeContext(); contextButton.focus({ preventScroll: true }); } });
     window.addEventListener('resize', closeContext);
+    function contextForControl(target) {
+      if (!target || !(target instanceof Element)) return '';
+      if (target.id === 'lyricsEnabledToggle' || target.closest('#lyricEffectOptions, #kefeDisplayGroup, #kefeStyleGroup, .kefe-font-selector-control')) return 'lyric';
+      if (target.closest('.kefe-vis-tabs, .kefe-visualiser-form, #kefeVisualiserPresetRow')) return 'visualiser';
+      if (target.id === 'kefeBackgroundEffectToggle' || target.matches('.kefe-background-effect-card, [data-background-mode]') || target.closest('#kefeBackgroundEffectOptions, [data-panel-view="background-effects"] .kefe-form')) return 'background';
+      return '';
+    }
     document.addEventListener('click', event => {
-      const target = event.target.closest?.('[data-effect], .kefe-vis-tabs [role="tab"], .kefe-vis-tabs button, .kefe-background-effect-card, [data-background-mode]');
+      const target = event.target.closest?.('button, [data-effect], [data-background-mode]');
       if (!target) return;
-      const next = target.closest('#lyricEffectOptions') ? 'lyric'
-        : target.closest('.kefe-vis-tabs') ? 'visualiser'
-        : target.matches('.kefe-background-effect-card, [data-background-mode]') ? 'background' : '';
-      if (next) queueMicrotask(() => setContext(next));
+      const next = contextForControl(target);
+      if (next) {
+        queueMicrotask(() => setContext(next));
+        queueSave();
+      }
     }, true);
-    document.addEventListener('input', event => {
-      if (event.target.closest?.('#kefeDisplayGroup, #kefeStyleGroup, .kefe-font-selector-control') || event.target.matches?.('#fontOverride, #lyricCase')) setContext('lyric');
-    }, true);
+    ['input', 'change'].forEach(type => document.addEventListener(type, event => {
+      const next = contextForControl(event.target);
+      if (next) setContext(next);
+    }, true));
     window.addEventListener('kefe-toolbar-change', event => {
       const action = event.detail?.action;
       if (action === 'effect' || ['lyric-mode', 'font', 'text-case', 'text-size', 'text-colour', 'outline', 'glow', 'lyrics'].includes(action)) setContext('lyric');
