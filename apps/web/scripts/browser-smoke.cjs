@@ -1106,7 +1106,7 @@ async function captureEditorScreenState(page) {
       await tab.evaluate(node => node.click());
       await page.waitForFunction(expected => document.querySelector('[role="tab"][data-workspace-tab="' + expected + '"]')?.getAttribute("aria-selected") === "true", workspace, { timeout: 5000 });
       const sectionTab = page.locator('.kefe-section[data-panel="' + section + '"]');
-      if (await sectionTab.count()) await sectionTab.click();
+      if (await sectionTab.count() && await sectionTab.first().isVisible()) await sectionTab.first().click();
       const sectionId = ({ lyrics: "lyric-sync", effects: "lyric-effects", "background-effects": "background", visualiser: "visualisers" })[section] || section;
       const sectionRoot = page.locator('.kefe-workspace-stack .section[data-section-id="' + sectionId + '"]').first();
       if (await sectionRoot.count()) {
