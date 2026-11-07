@@ -2,7 +2,7 @@
   'use strict';
   const SAVE_KEY = 'kefe.project.autosave.v1', DB_NAME = 'kefe-project-autosave', DB_STORE = 'media';
   const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  let restoring = false, saveTimer = 0, dbPromise, autosaveError = null;
+  let restoring = false, saveQueued = false, dbPromise, autosaveError = null;
   function openDb() {
     if (dbPromise) return dbPromise;
     dbPromise = new Promise((resolve, reject) => {
@@ -60,7 +60,13 @@
   }
   function queueSave() {
     if (restoring) return;
-    clearTimeout(saveTimer); status('Changes pending…', false); saveTimer = setTimeout(saveProject, 650);
+    status('Changes pending…', false);
+    if (saveQueued) return;
+    saveQueued = true;
+    queueMicrotask(() => {
+      saveQueued = false;
+      void saveProject();
+    });
   }
   function setControlValue(el, data) {
     if (!el || !data) return;
