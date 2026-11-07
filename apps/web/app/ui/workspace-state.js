@@ -53,9 +53,13 @@
     });
     const effect = $('[data-effect].active', $('#lyricEffectOptions') || document);
     const visualiser = $('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary');
+    const visualiserOption = visualiser?.closest('.kefe-vis-option');
+    const visualiserPower = visualiserOption?.querySelector('button[role="switch"]');
+    const visualiserPreset = $('.kefe-visualiser-preset-set:not([hidden]) button[aria-pressed="true"], .kefe-visualiser-preset-set:not([hidden]) button.primary');
     const background = $('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]');
     const backgroundToggle = $('#kefeBackgroundEffectToggle');
-    return { version: 1, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', visualiser: visualiser?.dataset.visualiser || '', background: background?.dataset.backgroundMode || '', backgroundEnabled: backgroundToggle?.getAttribute('aria-checked') === 'true', toolbarContext: context } };
+    const presetKey = visualiserPreset?.dataset.preset || visualiserPreset?.dataset.scene || visualiserPreset?.dataset.value || visualiserPreset?.textContent.trim() || '';
+    return { version: 1, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', visualiser: visualiser?.dataset.visualiser || '', visualiserPreset: presetKey, visualiserPower: visualiserPower?.getAttribute('aria-checked') === 'true', background: background?.dataset.backgroundMode || '', backgroundEnabled: backgroundToggle?.getAttribute('aria-checked') === 'true', toolbarContext: context } };
   }
   async function saveProject() {
     if (restoring) return;
@@ -119,6 +123,16 @@
         if (toggle && (toggle.getAttribute('aria-checked') === 'true') !== selected.backgroundEnabled) toggle.click();
       }
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      if (selected.visualiserPreset) {
+        const preset = $('.kefe-visualiser-preset-set:not([hidden]) button').find(button =>
+          (button.dataset.preset || button.dataset.scene || button.dataset.value || button.textContent.trim()) === selected.visualiserPreset);
+        preset?.click();
+      }
+      if (typeof selected.visualiserPower === 'boolean' && selected.visualiser) {
+        const visualiserTab = $('.kefe-vis-tabs [data-visualiser="' + CSS.escape(selected.visualiser) + '"]');
+        const power = visualiserTab?.closest('.kefe-vis-option')?.querySelector('button[role="switch"]');
+        if (power && (power.getAttribute('aria-checked') === 'true') !== selected.visualiserPower) power.click();
+      }
       if (snapshot.selections?.toolbarContext) setContext(snapshot.selections.toolbarContext);
       restoreValues();
       document.dispatchEvent(new Event('kefe-project-restored'));
