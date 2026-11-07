@@ -325,6 +325,7 @@ async function captureEditorScreenState(page) {
       "editing a project field must trigger autosave automatically: " + JSON.stringify(autosaveDebug));
     await songTitle.fill(originalSongTitle);
     await page.waitForTimeout(800);
+    await openSection("lyrics");
 
     const hasTimelineControlLayout = await page.locator(".kefe-stage > #previewFullscreen").count() === 1;
     if (hasTimelineControlLayout) {
