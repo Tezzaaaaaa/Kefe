@@ -748,8 +748,8 @@ async function captureEditorScreenState(page) {
       null, { timeout: 5000 });
     assert.equal(await page.locator(".kefe-sidebar > .kefe-sidebar-group").count(), 1,
       "the header must expose one navigation group");
-    assert.equal(await page.locator(".kefe-sidebar-group > .kefe-sidebar-link").count(), headerSearchMode ? 2 : 1,
-      "the header navigation group must hold the Editor entry, plus Settings on the newer header");
+    assert.equal(await page.locator(".kefe-sidebar-group > .kefe-sidebar-link").count(), 2,
+      "the header navigation group must hold Editor and Settings");
     assert.equal(await page.locator(".kefe-top-nav, .kefe-top-link").count(), 0,
       "the retired top navigation must not remain in the editor DOM");
     assert.equal(await page.locator(".kefe-sidebar-github").count(), 0, "GitHub must not remain in the header");
