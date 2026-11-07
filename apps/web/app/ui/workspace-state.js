@@ -54,7 +54,8 @@
     const effect = $('[data-effect].active', $('#lyricEffectOptions') || document);
     const visualiser = $('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary');
     const background = $('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]');
-    return { version: 1, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', visualiser: visualiser?.dataset.visualiser || '', background: background?.dataset.backgroundMode || '', toolbarContext: context } };
+    const backgroundToggle = $('#kefeBackgroundEffectToggle');
+    return { version: 1, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', visualiser: visualiser?.dataset.visualiser || '', background: background?.dataset.backgroundMode || '', backgroundEnabled: backgroundToggle?.getAttribute('aria-checked') === 'true', toolbarContext: context } };
   }
   async function saveProject() {
     if (restoring) return;
@@ -112,6 +113,10 @@
       if (selected.lyricEffect) $('#lyricEffectOptions [data-effect="' + CSS.escape(selected.lyricEffect) + '"]')?.click();
       if (selected.visualiser) $('.kefe-vis-tabs [data-visualiser="' + CSS.escape(selected.visualiser) + '"]')?.click();
       if (selected.background) $('#kefeBackgroundEffectOptions [data-background-mode="' + CSS.escape(selected.background) + '"]')?.click();
+      if (typeof selected.backgroundEnabled === 'boolean') {
+        const toggle = $('#kefeBackgroundEffectToggle');
+        if (toggle && (toggle.getAttribute('aria-checked') === 'true') !== selected.backgroundEnabled) toggle.click();
+      }
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       if (snapshot.selections?.toolbarContext) setContext(snapshot.selections.toolbarContext);
       restoreValues();
