@@ -88,7 +88,12 @@
     if (!snapshot || snapshot.version !== 1) return;
     restoring = true;
     try {
-      const restoreValues = () => Object.entries(snapshot.values || {}).forEach(([selector, data]) => { try { setControlValue($(selector), data); } catch (_) {} });
+      const restoreValues = () => {
+        $('input:not([type="file"]):not([type="password"]), select, textarea').forEach((el, index) => {
+          if (!el.id && !el.name) el.dataset.kefeAutosaveKey = 'field-' + index;
+        });
+        Object.entries(snapshot.values || {}).forEach(([selector, data]) => { try { setControlValue($(selector), data); } catch (_) {} });
+      };
       restoreValues();
       const selected = snapshot.selections || {};
       if (selected.lyricEffect) $('#lyricEffectOptions [data-effect="' + CSS.escape(selected.lyricEffect) + '"]')?.click();
