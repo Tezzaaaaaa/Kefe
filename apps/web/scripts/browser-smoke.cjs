@@ -282,8 +282,8 @@ async function captureEditorScreenState(page) {
     // The existing Lyrics trigger becomes the active feature's settings surface without changing toolbar geometry.
     const contextTrigger = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
     await contextTrigger.click();
-    await page.locator(".kft-context-popover").waitFor({ state: "visible", timeout: 5000 });
-    assert.equal(await page.locator(".kft-context-popover .kft-label").textContent(), "Lyric effect settings",
+    await page.getByRole("dialog", { name: "Lyric effect and text style", exact: true }).waitFor({ state: "visible", timeout: 5000 });
+    assert.equal(await contextTrigger.getAttribute("title"), "Lyric effect settings",
       "the context toolbar must initially expose the selected lyric effect settings");
     await contextTrigger.click();
 
