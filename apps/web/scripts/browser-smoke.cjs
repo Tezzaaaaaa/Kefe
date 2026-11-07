@@ -280,6 +280,11 @@ async function captureEditorScreenState(page) {
     ], "toolbar actions must appear once in their intended functional groups");
 
     const contextTrigger = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
+    await page.evaluate(() => {
+      const results = document.getElementById("kefeHeaderSearchResults");
+      if (results) results.hidden = true;
+      document.getElementById("kefeHeaderSearchInput")?.blur();
+    });
     assert.equal(await contextTrigger.getAttribute("data-settings-context"), "lyric",
       "the toolbar must start with lyric settings selected");
     const activeVisualiser = page.locator('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary').first();
