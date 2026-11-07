@@ -602,3 +602,23 @@ html .kefe-editor .kefe-timeline > #previewFullscreen { display: none !important
     width: max-content; max-width: 100%; flex-wrap: wrap; justify-content: flex-start;
   }
 }
+
+/* Header project actions: Reset and Save sit immediately before the theme switch. */
+html .kefe-editor .kefe-sidebar-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+html .kefe-editor .kefe-sidebar-bottom > .kefe-header-reset,
+html .kefe-editor .kefe-sidebar-bottom > .kefe-header-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 34px;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+}
+html .kefe-editor .kefe-sidebar-bottom > .kefe-header-save[data-save-state="saved"] { color: var(--accent-color, currentColor); }
+html .kefe-editor .kefe-sidebar-bottom > .kefe-header-reset[aria-busy="true"] { opacity: .55; cursor: wait; }
