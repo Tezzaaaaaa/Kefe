@@ -569,9 +569,10 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
   .kefe-sidebar-group-editor > .kefe-floating-toolbar.is-open .kft-bar {
     position: fixed;
     top: calc(env(safe-area-inset-top) + 56px);
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
+    left: 8px;
+    right: 8px;
+    margin-inline: auto;
+    transform: none;
     z-index: 10001;
     width: max-content;
     max-width: calc(100vw - 16px);
@@ -615,17 +616,18 @@ html .kefe-editor .kefe-timeline > #previewFullscreen { display: none !important
 
 /* Mobile toolbar: retain its natural desktop width, capped by the viewport, instead of stretching edge-to-edge. */
 @media (max-width: 520px) {
-  html .kefe-editor #kefeFloatingToolbar.is-open:not(.is-floating) .kft-bar {
+  html #kefeFloatingToolbar.is-open:not(.is-floating) .kft-bar {
     position: fixed;
     top: calc(env(safe-area-inset-top) + 56px);
-    left: 50%;
-    right: auto;
+    left: 8px;
+    right: 8px;
     bottom: auto;
-    transform: translateX(-50%);
+    margin-inline: auto;
+    transform: none;
     width: max-content;
     max-width: calc(100vw - 16px);
   }
-  html .kefe-editor #kefeFloatingToolbar.is-open:not(.is-floating) .kft-main {
+  html #kefeFloatingToolbar.is-open:not(.is-floating) .kft-main {
     width: max-content;
     max-width: 100%;
     flex-wrap: wrap;
