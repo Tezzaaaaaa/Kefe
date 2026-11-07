@@ -608,6 +608,8 @@ async function captureEditorScreenState(page) {
     /* Header capability probe: the main baseline may still ship the older header, so each
        header contract is asserted only against the shape the running build provides. */
     const headerSearchMode = await page.evaluate(() => Boolean(document.querySelector("[data-kefe-search]")));
+    assert.equal(headerSearchMode, false, "the header search and its section dropdown were removed and must not render");
+    assert.equal(await page.locator("#kefeHeaderSearchResults").count(), 0, "the header search results dropdown must not exist");
     /* The baseline build pairs the current shell script with main's stylesheet, so the
        search field exists there but carries no styles. Geometry checks need the CSS. */
     const headerSearchStyled = await page.evaluate(() => {
@@ -761,79 +763,6 @@ async function captureEditorScreenState(page) {
       "the day/night action must return to the night theme");
 
     if (headerSearchMode && headerSearchStyled) {
-      /* Header search unfolds in place: the icon grows into a fillable field, the field
-         takes focus ready for typing, and results come from the shared command list. */
-      const searchToggle = page.locator(".kefe-sidebar-bottom [data-search-expand]");
-      assert.equal(await searchToggle.count(), 1, "the header must own one search action");
-      assert.equal(await searchToggle.getAttribute("aria-expanded"), "false",
-        "the search action must report its collapsed state");
-      const collapsedField = await page.locator("[data-kefe-search-track]").evaluate(node => {
-        const style = getComputedStyle(node);
-        return { visibility: style.visibility, opacity: Number(style.opacity) };
-      });
-      assert.equal(collapsedField.visibility, "hidden",
-        `the search field must stay hidden while collapsed: ${JSON.stringify(collapsedField)}`);
-      assert.ok(collapsedField.opacity < 0.2,
-        `the collapsed search field must be transparent: ${JSON.stringify(collapsedField)}`);
-      await searchToggle.click();
-      await page.waitForFunction(() => {
-        const shell = document.querySelector("[data-kefe-search]");
-        const field = document.getElementById("kefeHeaderSearchInput");
-        const track = document.querySelector("[data-kefe-search-track]");
-        if (!shell || !field || !track) return false;
-        return shell.classList.contains("is-open")
-          && document.activeElement === field
-          && getComputedStyle(track).visibility === "visible";
-      }, null, { timeout: 5000 });
-      assert.equal(await searchToggle.getAttribute("aria-expanded"), "true",
-        "the search action must report its expanded state");
-      /* Measure only once the unfold has settled, so a slow runner cannot catch it mid-transition. */
-      await page.waitForFunction(() => {
-        const track = document.querySelector("[data-kefe-search-track]");
-        return !!track && getComputedStyle(track).visibility === "visible" && Number(getComputedStyle(track).opacity) > 0.99;
-      }, null, { timeout: 5000 });
-      const expandedGeometry = await page.evaluate(() => {
-        const track = document.querySelector("[data-kefe-search-track]");
-        const field = document.getElementById("kefeHeaderSearchInput");
-        const toggle = document.querySelector("[data-search-expand]");
-        const header = document.querySelector(".kefe-sidebar").getBoundingClientRect();
-        const trackRect = track.getBoundingClientRect();
-        const toggleRect = toggle.getBoundingClientRect();
-        return {
-          width: trackRect.width,
-          height: trackRect.height,
-          insideHeader: trackRect.left >= header.left - 1 && trackRect.top >= header.top - 1
-            && trackRect.bottom <= header.bottom + 1 && trackRect.right <= header.right + 1,
-          growsLeftOfToggle: trackRect.right <= toggleRect.left + 1,
-          editable: !field.disabled && !field.readOnly,
-          visibility: getComputedStyle(track).visibility,
-          opacity: Number(getComputedStyle(track).opacity),
-        };
-      });
-      assert.ok(expandedGeometry.width >= 200,
-        `the search field must unfold to a usable width: ${JSON.stringify(expandedGeometry)}`);
-      assert.ok(expandedGeometry.visibility === "visible" && expandedGeometry.opacity > 0.9,
-        `the unfolded search field must be fully drawn: ${JSON.stringify(expandedGeometry)}`);
-      assert.ok(expandedGeometry.height >= 30 && expandedGeometry.height <= 38,
-        `the unfolded field must keep header control height: ${JSON.stringify(expandedGeometry)}`);
-      assert.ok(expandedGeometry.insideHeader, `the unfolded field must stay inside the header: ${JSON.stringify(expandedGeometry)}`);
-      assert.ok(expandedGeometry.growsLeftOfToggle, "the field must unfold away from the search icon without shifting the corner actions");
-      assert.ok(expandedGeometry.editable, "the unfolded field must be fillable");
-      await page.locator("#kefeHeaderSearchInput").fill("Export");
-      await page.waitForFunction(() => document.querySelectorAll("#kefeHeaderSearchResults .kefe-search-result").length > 0,
-        null, { timeout: 5000 });
-      const searchHit = await page.locator("#kefeHeaderSearchResults .kefe-search-result").first().innerText();
-      assert.ok(/export/i.test(searchHit), `typing must filter workspace commands: ${JSON.stringify(searchHit)}`);
-      await page.keyboard.press("Escape");
-      await page.waitForFunction(() => {
-        const shell = document.querySelector("[data-kefe-search]");
-        return shell && !shell.classList.contains("is-open")
-          && document.getElementById("kefeHeaderSearchInput").value === "";
-      }, null, { timeout: 5000 });
-      assert.equal(await searchToggle.getAttribute("aria-expanded"), "false",
-        "Escape must collapse the search field");
-      assert.equal(await page.locator("#kefeHeaderSearchResults").isVisible(), false,
-        "collapsing the search must hide its results");
     }
     const previewSettingsLayout = await page.evaluate(() => {
       const workspace = document.querySelector(".kefe-work").getBoundingClientRect();
