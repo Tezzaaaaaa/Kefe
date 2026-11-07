@@ -135,10 +135,16 @@
   function closeContext() { if (!contextPopover) return; contextPopover.remove(); contextPopover = null; contextButton?.setAttribute('aria-expanded', 'false'); }
   function positionContext(pop) {
     const rect = contextButton.getBoundingClientRect(), width = Math.min(340, window.innerWidth - 16);
+    const belowTop = rect.bottom + 8, belowSpace = window.innerHeight - belowTop - 8, aboveSpace = rect.top - 16;
     pop.style.width = width + 'px';
     pop.style.left = Math.max(8, Math.min(window.innerWidth - width - 8, rect.left + rect.width / 2 - width / 2)) + 'px';
-    pop.style.top = 'auto'; pop.style.bottom = Math.max(8, window.innerHeight - rect.top + 8) + 'px';
-    pop.style.maxHeight = Math.max(140, Math.min(440, rect.top - 16)) + 'px';
+    if (belowSpace >= 180 || belowSpace >= aboveSpace) {
+      pop.style.top = belowTop + 'px'; pop.style.bottom = 'auto';
+      pop.style.maxHeight = Math.max(120, Math.min(440, belowSpace)) + 'px';
+    } else {
+      pop.style.top = 'auto'; pop.style.bottom = Math.max(8, window.innerHeight - rect.top + 8) + 'px';
+      pop.style.maxHeight = Math.max(120, Math.min(440, aboveSpace)) + 'px';
+    }
   }
   function renderContext() {
     if (!contextButton) return;
