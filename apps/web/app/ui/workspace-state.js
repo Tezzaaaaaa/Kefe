@@ -170,7 +170,8 @@
   function openContext() {
     if (contextPopover) { closeContext(); return; }
     contextPopover = document.createElement('div'); contextPopover.className = 'kft-popover kft-panel kft-context-popover';
-    contextPopover.setAttribute('role', 'dialog'); contextPopover.setAttribute('aria-label', config[context].title);
+    contextPopover.setAttribute('role', 'dialog');
+    contextPopover.setAttribute('aria-label', context === 'lyric' ? 'Lyric effect and text style' : config[context].title);
     document.body.appendChild(contextPopover); renderContext(); positionContext(contextPopover);
     contextButton.setAttribute('aria-expanded', 'true');
   }
