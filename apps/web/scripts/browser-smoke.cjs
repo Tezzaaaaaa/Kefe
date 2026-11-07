@@ -337,6 +337,8 @@ async function captureEditorScreenState(page) {
     await page.evaluate(() => window.kefeProjectAutosave.restore());
     assert.equal(await autosaveField.inputValue(), "__kefe_autosave_smoke__",
       "the autosaved project must restore its edited project field");
+    assert.equal(await contextTrigger.getAttribute("data-settings-context"), "lyric",
+      "autosave must restore the selected toolbar context after restoring native controls");
     await autosaveField.fill(originalTitle);
     await page.waitForTimeout(500);
 
