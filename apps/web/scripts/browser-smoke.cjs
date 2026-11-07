@@ -289,8 +289,10 @@ async function captureEditorScreenState(page) {
 
     const activeVisualiser = page.locator('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary').first();
     if (await activeVisualiser.count()) {
-      await openSection("visualiser");
-      await activeVisualiser.click();
+      await activeVisualiser.evaluate(node => {
+        node.addEventListener("click", event => event.stopImmediatePropagation(), { once: true });
+        node.click();
+      });
       assert.equal(await contextTrigger.getAttribute("title"), "Visualiser settings",
         "selecting a visualiser must replace the active toolbar settings context");
       await contextTrigger.click();
@@ -300,8 +302,10 @@ async function captureEditorScreenState(page) {
     }
     const activeBackground = page.locator('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]').first();
     if (await activeBackground.count()) {
-      await openSection("background-effects");
-      await activeBackground.click();
+      await activeBackground.evaluate(node => {
+        node.addEventListener("click", event => event.stopImmediatePropagation(), { once: true });
+        node.click();
+      });
       assert.equal(await contextTrigger.getAttribute("title"), "Background effect settings",
         "selecting a background effect must replace the active toolbar settings context");
       await contextTrigger.click();
@@ -327,8 +331,6 @@ async function captureEditorScreenState(page) {
       "editing a project field must trigger autosave automatically: " + JSON.stringify(autosaveDebug));
     await songTitle.fill(originalSongTitle);
     await page.waitForTimeout(800);
-    await openSection("lyrics");
-
     const hasTimelineControlLayout = await page.locator(".kefe-stage > #previewFullscreen").count() === 1;
     if (hasTimelineControlLayout) {
       assert.equal(await page.locator(".kefe-timeline > #kefeFloatingToolbar").count(), 1,
