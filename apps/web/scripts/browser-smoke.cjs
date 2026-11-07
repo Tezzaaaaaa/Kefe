@@ -821,6 +821,7 @@ async function captureEditorScreenState(page) {
         && previewSettingsLayout.workspaceRight <= previewSettingsLayout.rightLeft + 1,
         "the main-branch baseline settings columns must flank the preview");
     }
+    await openSection("lyrics");
     await page.waitForSelector("#lyricsInput", { state: "visible", timeout: 20000 });
     assert.equal(await page.locator('label[for="lyricsInput"]').count(), 1, "native lyrics label association must remain in the DOM");
     await page.waitForFunction(() => {
