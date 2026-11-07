@@ -140,7 +140,8 @@
   function closeContext() { if (!contextPopover) return; contextPopover.remove(); contextPopover = null; contextButton?.setAttribute('aria-expanded', 'false'); }
   function positionContext(pop) {
     const rect = contextButton.getBoundingClientRect();
-    const toolbarWidth = contextButton.closest('#kefeFloatingToolbar')?.getBoundingClientRect().width || 340;
+    const toolbar = contextButton.closest('#kefeFloatingToolbar');
+    const toolbarWidth = toolbar?.querySelector('.kft-bar')?.getBoundingClientRect().width || toolbar?.getBoundingClientRect().width || 340;
     const width = Math.min(window.innerWidth <= 640 ? toolbarWidth : 340, window.innerWidth - 16);
     const belowTop = rect.bottom + 8, belowSpace = window.innerHeight - belowTop - 8, aboveSpace = rect.top - 16;
     pop.style.width = width + 'px';
