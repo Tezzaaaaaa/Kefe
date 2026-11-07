@@ -11280,3 +11280,183 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
 .kefe-panel[data-panel-view="media"] .beui-upload-wrap{display:flex;flex-direction:column;gap:0;align-self:stretch}
 .kefe-panel[data-panel-view="media"] .beui-upload-wrap .beui-upload-file:not([hidden]){margin-top:9px}
 #kefeUploadZone.beui-upload-dropzone,#kefeBgVideoZone.beui-upload-dropzone{height:154px;min-height:154px;max-height:154px;margin:0}
+
+
+/* KEFE unified layout system: one spacing, sizing, type and alignment rhythm. */
+:root {
+  --kefe-space-1: 4px;
+  --kefe-space-2: 8px;
+  --kefe-space-3: 12px;
+  --kefe-space-4: 16px;
+  --kefe-space-5: 24px;
+  --kefe-space-6: 32px;
+  --kefe-layout-gap: var(--kefe-space-3);
+  --control-gap: var(--kefe-space-2);
+  --control-pad: var(--kefe-space-3);
+  --section-gap: var(--kefe-space-3);
+  --grid-gap: var(--kefe-space-2);
+  --control-h: 40px;
+  --tab-h: 40px;
+  --timeline-h: 64px;
+  --r1: 6px;
+  --r2: 8px;
+  --r3: 12px;
+  --font-xs: 12px;
+  --font-sm: 13px;
+  --font-base: 14px;
+  --font-lg: 16px;
+  --font-xl: 20px;
+  --line-tight: 1.3;
+  --line-normal: 1.5;
+  --kefe-border-width: 1px;
+}
+html, body {
+  font-family: var(--font-ui);
+  line-height: var(--line-normal);
+}
+.kefe-editor {
+  min-width: 0;
+  font-size: var(--font-base);
+  line-height: var(--line-normal);
+}
+.kefe-top {
+  min-height: 56px;
+  padding-inline: var(--kefe-space-4);
+  gap: var(--kefe-space-3);
+}
+.kefe-top-nav,
+.kefe-top-actions,
+.kefe-top-profile {
+  gap: var(--kefe-space-2);
+  align-items: center;
+}
+.kefe-brand,
+.kefe-top-link {
+  min-height: var(--control-h);
+  height: var(--control-h);
+}
+.kefe-preview {
+  min-width: 0;
+  gap: var(--kefe-space-2);
+  padding: var(--kefe-space-3);
+}
+.kefe-preview-dock {
+  min-height: 44px;
+  gap: var(--kefe-space-2);
+  padding: var(--kefe-space-1) var(--kefe-space-2);
+  border-radius: var(--r3);
+}
+.kefe-toolbar-workspace,
+.kefe-toolbar-format,
+.kefe-toolbar-actions {
+  gap: var(--kefe-space-2);
+  min-width: 0;
+}
+.kefe-toolbar-format {
+  border-radius: var(--r2);
+}
+.kefe-toolbar-format select {
+  min-height: 32px;
+  border-radius: var(--r1);
+}
+.kefe-editor .kefe-work,
+.kefe-editor .kefe-preview,
+.kefe-editor .kefe-stage,
+.kefe-editor .kefe-timeline,
+.kefe-editor .kefe-editing,
+.kefe-editor .kefe-panels,
+.kefe-editor .kefe-panel,
+.kefe-editor .kefe-form {
+  min-width: 0;
+}
+.kefe-editor .kefe-timeline {
+  gap: var(--kefe-space-2);
+  padding-inline: var(--kefe-space-3);
+}
+.kefe-tabs {
+  gap: var(--kefe-space-2);
+  min-width: 0;
+}
+.kefe-section {
+  min-height: 36px;
+  height: 36px;
+  padding-inline: var(--kefe-space-3);
+  border-radius: var(--r2);
+  line-height: var(--line-tight);
+}
+.kefe-panels {
+  gap: var(--kefe-space-3);
+  padding: var(--kefe-space-3);
+}
+.kefe-panel-head {
+  align-items: center;
+  gap: var(--kefe-space-3);
+}
+.kefe-panel-head h2 {
+  line-height: var(--line-tight);
+}
+.kefe-label {
+  margin-bottom: var(--kefe-space-1);
+  line-height: var(--line-normal);
+}
+.kefe-form {
+  gap: var(--kefe-space-3);
+  align-content: start;
+}
+.kefe-editor :where(.kefe-btn, .kefe-control, .kefe-top-link, .kefe-section, .kefe-toolbar-format select) {
+  box-sizing: border-box;
+  line-height: var(--line-tight);
+}
+.kefe-editor .kefe-form :where(.kefe-select, .kefe-input, input[type="text"], input[type="number"], input[type="search"], input[type="url"], select) {
+  min-height: 40px;
+  border-radius: var(--r2);
+  line-height: var(--line-normal);
+}
+.kefe-editor .kefe-form :where(textarea, .kefe-textarea) {
+  border-radius: var(--r2);
+  line-height: var(--line-normal);
+}
+.kefe-editor .kefe-form :where(button, .kefe-btn, .kefe-control) {
+  min-height: 36px;
+  border-radius: var(--r2);
+}
+.kefe-editor :where(button, input, select, textarea):focus-visible {
+  scroll-margin-block: var(--kefe-space-5);
+}
+@media (max-width: 520px) {
+  .kefe-top {
+    min-height: 48px;
+    padding-inline: var(--kefe-space-3);
+    gap: var(--kefe-space-2);
+  }
+  .kefe-top-nav,
+  .kefe-top-actions,
+  .kefe-top-profile {
+    gap: var(--kefe-space-1);
+  }
+  .kefe-brand,
+  .kefe-top-link {
+    min-height: 36px;
+    height: 36px;
+  }
+  .kefe-top-link {
+    padding-inline: 10px;
+  }
+  .kefe-preview {
+    gap: var(--kefe-space-2);
+    padding: var(--kefe-space-2);
+  }
+  .kefe-preview-dock {
+    gap: var(--kefe-space-1);
+    padding: var(--kefe-space-1) var(--kefe-space-2);
+    border-radius: 10px;
+  }
+  .kefe-panels {
+    padding: var(--kefe-space-2) var(--kefe-space-3);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kefe-editor :where(button, a, input, select, textarea) {
+    scroll-behavior: auto;
+  }
+}
