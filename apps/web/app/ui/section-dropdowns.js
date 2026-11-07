@@ -78,10 +78,13 @@
       const w = Math.max(r.width, 160);
       menu.style.width = w + 'px';
       menu.style.left = Math.max(8, Math.min(r.left, vw - w - 8)) + 'px';
-      const below = vh - r.bottom - 10, above = r.top - 10, h = Math.min(menu.scrollHeight + 2, 320);
-      const down = below >= Math.min(h, 180) || below >= above;
-      menu.style.maxHeight = Math.max(120, Math.min(320, down ? below : above)) + 'px';
-      menu.style[down ? 'top' : 'bottom'] = (down ? r.bottom + 6 : vh - r.top + 6) + 'px';
+      // Section controls live below the preview. Never flip their menus upward over the
+      // preview canvas: keep the menu anchored below its trigger and scroll its own list.
+      const below = Math.max(96, vh - r.bottom - 16);
+      const maxMenuHeight = Math.max(96, Math.min(320, below));
+      menu.style.maxHeight = maxMenuHeight + 'px';
+      menu.style.top = Math.min(vh - maxMenuHeight - 8, r.bottom + 6) + 'px';
+      menu.style.bottom = 'auto';
       const onDoc = e => { if (!menu.contains(e.target) && !trigger.contains(e.target)) close(false); };
       document.addEventListener('pointerdown', onDoc, true);
       open = { menu, trigger, onDoc };
