@@ -219,14 +219,12 @@
     if (!contextButton) return;
     const selected = config[context];
     contextButton.dataset.settingsContext = context;
+    const iconHost = document.createElement('span');
+    iconHost.setAttribute('data-kefe-icon', selected.icon);
+    iconHost.setAttribute('data-icon-class', 'kft-icon');
+    iconHost.setAttribute('data-icon-size', '16');
+    contextButton.replaceChildren(iconHost);
     if (window.kefeHydrateIcons) window.kefeHydrateIcons(contextButton);
-    const iconMarkup = window.kefeIcon?.(selected.icon, 'kft-icon', 16);
-    if (iconMarkup) {
-      const template = document.createElement('template');
-      template.innerHTML = iconMarkup;
-      const nextIcon = template.content.querySelector('svg.lucide') || template.content.firstElementChild;
-      if (nextIcon) contextButton.replaceChildren(nextIcon);
-    }
     const title = contextTitle();
     contextButton.setAttribute('aria-label', 'Lyric effect and text style');
     contextButton.setAttribute('aria-description', title);
@@ -352,10 +350,10 @@
     });
   const form = $('.kefe-visualiser-form');
     if (form) new MutationObserver(() => { if (context === 'visualiser' && contextPopover) renderContext(); })
-      .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled'] });
+      .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','hidden','aria-hidden','class','style'] });
     const backgroundForm = $('[data-panel-view="background-effects"] .kefe-form');
     if (backgroundForm) new MutationObserver(() => { if (context === 'background' && contextPopover) renderContext(); })
-      .observe(backgroundForm, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','aria-checked','class'] });
+      .observe(backgroundForm, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','aria-checked','hidden','aria-hidden','class','style'] });
     renderContext();
     if (!window.kefeIcon) window.addEventListener('load', () => renderContext(), { once: true });
   }

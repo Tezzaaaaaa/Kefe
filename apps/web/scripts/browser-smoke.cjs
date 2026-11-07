@@ -1133,6 +1133,11 @@ async function captureEditorScreenState(page) {
       const tab = page.locator('[role="tab"][data-workspace-tab="' + workspace + '"]');
       await tab.evaluate(node => node.click());
       await page.waitForFunction(expected => document.querySelector('[role="tab"][data-workspace-tab="' + expected + '"]')?.getAttribute("aria-selected") === "true", workspace, { timeout: 5000 });
+      const subtabId = ({ media: "media", lyrics: "lyric-sync", effects: "lyric-effects", "background-effects": "background", visualiser: "visualisers", export: "export" })[section];
+      if (subtabId) {
+        const subtab = page.locator("#kefe-subtab-" + subtabId);
+        if (await subtab.count() && await subtab.getAttribute("aria-selected") !== "true") await subtab.click();
+      }
       const sectionTab = page.locator('.kefe-section[data-panel="' + section + '"]:visible').first();
       if (await sectionTab.count()) await sectionTab.click();
       const sectionId = ({ lyrics: "lyric-sync", effects: "lyric-effects", "background-effects": "background", visualiser: "visualisers" })[section] || section;
@@ -1954,7 +1959,7 @@ async function captureEditorScreenState(page) {
       });
       assert.equal(mobileWorkspaceAudit.columnCount, 1,
         `the selected workspace must use one full-width column at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
-      assert.deepEqual(mobileWorkspaceAudit.groups.map(group => group.label), ["Content", "Appearance", tidySectionMode ? "Audio & Visualiser" : "Audio & Visuals"],
+      assert.deepEqual(mobileWorkspaceAudit.groups.map(group => group.label), ["Content", "Appearance", "Audio & Visualiser"],
         `the three workspace panels must remain in their defined order at ${width}px`);
       assert.equal(mobileWorkspaceAudit.visibleGroups, 1,
         `only the selected workspace may be visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
@@ -1962,8 +1967,8 @@ async function captureEditorScreenState(page) {
         `all three workspace tabs must remain visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
       assert.equal(mobileWorkspaceAudit.panels.length, 6,
         `all six native panels must remain mounted at ${width}px`);
-      assert.ok(mobileWorkspaceAudit.panels.filter(panel => panel.width > 0 && panel.height > 0).length >= 2,
-        `the selected workspace must show its native panels at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
+      assert.ok(mobileWorkspaceAudit.panels.filter(panel => panel.width > 0 && panel.height > 0).length >= 1,
+        `the selected workspace subtab must show its native panel at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
       assert.equal(mobileWorkspaceAudit.drawerCount, 0,
         `the retired mobile section drawer must not be created at ${width}px`);
       for (const section of ["media", "lyrics", "effects", "background-effects", "visualiser", "export"]) {
