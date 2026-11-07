@@ -348,6 +348,8 @@ async function captureEditorScreenState(page) {
     await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("lyric"));
     assert.ok((await contextTrigger.locator("svg.lucide").getAttribute("class") || "").includes("lucide-effect"),
       "the toolbar icon must return to the lyric effect icon");
+    assert.equal(await contextTrigger.getAttribute("data-settings-context"), "lyric",
+      "the toolbar must expose lyric as the selected context before autosaving");
     const autosaveField = page.locator("#songTitle");
     const originalTitle = await autosaveField.inputValue();
     await autosaveField.fill("__kefe_autosave_smoke__");
