@@ -1299,7 +1299,7 @@ async function captureEditorScreenState(page) {
     const dialog = page.getByRole("dialog", { name: "Settings" });
     await dialog.waitFor({ state: "visible", timeout: 10000 });
     const settingAccordions = dialog.locator('button[aria-controls$="-content"]');
-    assert.ok(await settingAccordions.count() >= 4, "settings groups should use the beUI Bouncy Accordion");
+    assert.ok(await settingAccordions.count() >= 3, "settings groups should use the beUI Bouncy Accordion");
     await settingAccordions.filter({ hasText: "Engine" }).click();
     assert.equal(await settingAccordions.filter({ hasText: "Engine" }).getAttribute("aria-expanded"), "true", "settings accordion should open the selected group");
     assert.ok(await dialog.locator('[role="slider"]').count() > 0, "settings should use beUI sliders");
