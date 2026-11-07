@@ -2,7 +2,7 @@
   'use strict';
   const SAVE_KEY = 'kefe.project.autosave.v1', DB_NAME = 'kefe-project-autosave', DB_STORE = 'media';
   const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  let restoring = false, saveQueued = false, dbPromise, autosaveError = null;
+  let restoring = false, saveQueued = false, dbPromise, autosaveError = null, context = 'lyric';
   function openDb() {
     if (dbPromise) return dbPromise;
     dbPromise = new Promise((resolve, reject) => {
@@ -44,7 +44,7 @@
     const effect = $('[data-effect].active', $('#lyricEffectOptions') || document);
     const visualiser = $('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary');
     const background = $('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]');
-    return { version: 1, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', visualiser: visualiser?.dataset.visualiser || '', background: background?.dataset.backgroundMode || '' } };
+    return { version: 1, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', visualiser: visualiser?.dataset.visualiser || '', background: background?.dataset.backgroundMode || '', toolbarContext: context } };
   }
   async function saveProject() {
     if (restoring) return;
@@ -106,6 +106,7 @@
       if (selected.visualiser) $('.kefe-vis-tabs [data-visualiser="' + CSS.escape(selected.visualiser) + '"]')?.click();
       if (selected.background) $('#kefeBackgroundEffectOptions [data-background-mode="' + CSS.escape(selected.background) + '"]')?.click();
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      if (snapshot.selections?.toolbarContext) setContext(snapshot.selections.toolbarContext);
       restoreValues();
       await restoreFiles();
       document.dispatchEvent(new Event('kefe-project-restored'));
@@ -114,7 +115,7 @@
 
   /* Reuses the editor's live controls as the source of truth; no additional toolbar width is introduced. */
   const contextButton = $('button[aria-label="Lyric effect and text style"]');
-  let context = 'lyric', contextPopover = null;
+  let contextPopover = null;
   const config = {
     lyric: { title: 'Lyric effect settings', icon: 'effect', selectors: ['#kefeDisplayGroup', '#kefeStyleGroup', '#fontOverride', '#lyricCase'] },
     visualiser: { title: 'Visualiser settings', icon: 'audio-waveform', selectors: ['.kefe-visualiser-form', '#kefeVisualiserPresetRow'] },
@@ -151,11 +152,12 @@
     const selected = config[context];
     contextButton.innerHTML = window.kefeIcon ? window.kefeIcon(selected.icon) : '<span data-kefe-icon="' + selected.icon + '" aria-hidden="true"></span>';
     contextButton.setAttribute('aria-label', 'Lyric effect and text style');
-    contextButton.setAttribute('aria-description', selected.title);
-    contextButton.title = selected.title;
+    const title = contextTitle();
+    contextButton.setAttribute('aria-description', title);
+    contextButton.title = title;
     if (!contextPopover) return;
     contextPopover.replaceChildren();
-    const heading = document.createElement('div'); heading.className = 'kft-label'; heading.textContent = selected.title; contextPopover.appendChild(heading);
+    const heading = document.createElement('div'); heading.className = 'kft-label'; heading.textContent = contextTitle(); contextPopover.appendChild(heading);
     const controls = sourceControls();
     if (!controls.length) { const empty = document.createElement('p'); empty.className = 'kft-hint'; empty.textContent = 'No adjustable settings are available for this selection yet.'; contextPopover.appendChild(empty); return; }
     controls.forEach(source => {
@@ -181,7 +183,22 @@
     document.body.appendChild(contextPopover); renderContext(); positionContext(contextPopover);
     contextButton.setAttribute('aria-expanded', 'true');
   }
-  function setContext(next) { if (!config[next] || context === next) return; context = next; closeContext(); renderContext(); }
+  function selectedFeatureName() {
+    let selected;
+    if (context === 'lyric') selected = $('#lyricEffectOptions [data-effect].active, #lyricEffectOptions [data-effect][aria-pressed="true"]');
+    else if (context === 'visualiser') selected = $('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary');
+    else selected = $('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]');
+    const label = selected?.querySelector('.kefe-lyric-effect-name, .kefe-background-effect-name, .kefe-vis-tab-label')?.textContent || selected?.getAttribute('aria-label') || selected?.textContent || '';
+    return label.trim().replace(/\\s+/g, ' ').slice(0, 48);
+  }
+  function contextTitle() { const name = selectedFeatureName(); return name ? name + ' settings' : config[context].title; }
+  function setContext(next) {
+    if (!config[next]) return;
+    const changed = context !== next;
+    context = next;
+    if (changed) closeContext();
+    renderContext();
+  }
   if (contextButton) {
     contextButton.addEventListener('click', event => {
       if (context === 'lyric') return;
@@ -197,7 +214,10 @@
       else if (target.closest('.kefe-vis-tabs')) setContext('visualiser');
       else if (target.matches('.kefe-background-effect-card, [data-background-mode]')) setContext('background');
     }, true);
-    const form = $('.kefe-visualiser-form');
+    window.addEventListener('kefe-toolbar-change', event => {
+    if (!['ready', 'position'].includes(event.detail?.action)) queueSave();
+  });
+  const form = $('.kefe-visualiser-form');
     if (form) new MutationObserver(() => { if (context === 'visualiser' && contextPopover) renderContext(); })
       .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled'] });
     renderContext();
