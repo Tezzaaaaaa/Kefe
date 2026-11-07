@@ -138,7 +138,7 @@
   function sourceControls() {
     const roots = config[context].selectors.flatMap(selector => $$(selector)), seen = new Set();
     return roots.flatMap(root => root.matches?.('input,select,textarea') ? [root] : $$('input:not([type="file"]):not([type="hidden"]),select,textarea', root))
-      .filter(el => { if (seen.has(el) || el.disabled || ['submit','button','file','hidden'].includes(el.type)) return false; seen.add(el); return true; });
+      .filter(el => { if (seen.has(el) || el.disabled || el.hidden || ['submit','button','file','hidden'].includes(el.type)) return false; seen.add(el); return true; });
   }
   function closeContext() { if (!contextPopover) return; contextPopover.remove(); contextPopover = null; contextButton?.setAttribute('aria-expanded', 'false'); }
   function positionContext(pop) {
