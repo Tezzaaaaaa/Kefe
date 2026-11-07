@@ -296,6 +296,13 @@
       const next = contextForControl(target);
       if (next) {
         queueMicrotask(() => setContext(next));
+        if (target.id === 'bgVideoRemove') {
+          const input = $('#bgVideoInput');
+          if (input?.id) dbDelete(input.id).then(queueSave).catch(error => {
+            console.warn('[KEFE autosave media]', error);
+            status('Removed media could not be cleared from autosave', false);
+          });
+        }
         queueSave();
       }
     }, true);
