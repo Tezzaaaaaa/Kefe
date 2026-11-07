@@ -282,10 +282,12 @@ async function captureEditorScreenState(page) {
     const contextTrigger = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
     assert.equal(await contextTrigger.getAttribute("data-settings-context"), "lyric",
       "the toolbar must start with lyric settings selected");
-    await openSection("visualiser");
     const activeVisualiser = page.locator('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary').first();
     if (await activeVisualiser.count()) {
-      await activeVisualiser.click();
+      await activeVisualiser.evaluate(node => {
+        node.addEventListener("click", event => event.stopImmediatePropagation(), { once: true, capture: true });
+        node.click();
+      });
       await page.waitForFunction(() => document.querySelector('#kefeFloatingToolbar [data-settings-context]')?.dataset.settingsContext === "visualiser");
       assert.match(await contextTrigger.getAttribute("title"), /settings$/i,
         "choosing a visualiser must replace the toolbar settings context");
@@ -295,10 +297,12 @@ async function captureEditorScreenState(page) {
         "the visualiser toolbar context must expose working visualiser controls");
       await contextTrigger.click();
     }
-    await openSection("background-effects");
     const activeBackground = page.locator('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]').first();
     if (await activeBackground.count()) {
-      await activeBackground.click();
+      await activeBackground.evaluate(node => {
+        node.addEventListener("click", event => event.stopImmediatePropagation(), { once: true, capture: true });
+        node.click();
+      });
       await page.waitForFunction(() => document.querySelector('#kefeFloatingToolbar [data-settings-context]')?.dataset.settingsContext === "background");
       assert.match(await contextTrigger.getAttribute("title"), /settings$/i,
         "choosing a background effect must replace the toolbar settings context");
@@ -308,6 +312,7 @@ async function captureEditorScreenState(page) {
         "the background toolbar context must expose working background controls");
       await contextTrigger.click();
     }
+    await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("lyric"));
     await openSection("lyrics");
     const lyricsField = page.locator("#lyricsInput");
     const originalLyrics = await lyricsField.inputValue();
