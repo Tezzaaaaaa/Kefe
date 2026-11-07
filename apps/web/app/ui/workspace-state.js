@@ -162,6 +162,15 @@
     const heading = field?.querySelector('label, b, strong, .kefe-label');
     return heading?.textContent.trim().replace(/\s+/g, ' ') || el.getAttribute('aria-label') || el.id || 'Setting';
   }
+  function hasHiddenFeatureAncestor(el) {
+    let node = el;
+    while (node && node !== document.body) {
+      if ((node.hidden || node.getAttribute('aria-hidden') === 'true')
+        && !node.matches('.kefe-panel[data-panel-view], .kefe-workspace, .kefe-workspace-stack')) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
   function sourceControls() {
     const roots = config[context].selectors.flatMap(selector => $$(selector)), seen = new Set();
     return roots.flatMap(root => {
@@ -170,7 +179,7 @@
       if (root.id === 'kefeVisualiserPresetRow') controls.push(...$$('button', root));
       return controls;
     }).filter(el => {
-      if (seen.has(el) || el.disabled || el.hidden || el.closest('.kefe-vis-view[hidden], .kefe-visualiser-preset-set[hidden]') || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
+      if (seen.has(el) || el.disabled || hasHiddenFeatureAncestor(el) || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
       seen.add(el); return true;
     });
   }
