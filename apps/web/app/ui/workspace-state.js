@@ -28,6 +28,13 @@
       request.onsuccess = () => resolve(request.result || null); request.onerror = () => reject(request.error);
     });
   }
+  async function dbDelete(key) {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, 'readwrite'); tx.objectStore(DB_STORE).delete(key);
+      tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error);
+    });
+  }
   function status(text, saved) {
     const launch = $('#kftStrip .kft-launch') || $('#kefeFloatingToolbar .kft-launch');
     if (launch) { launch.title = 'Editor toolbar · ' + text; launch.dataset.saveState = saved ? 'saved' : 'saving'; launch.setAttribute('aria-label', 'Editor toolbar. ' + text); }
@@ -249,7 +256,7 @@
     input.addEventListener('change', () => {
       if (input instanceof HTMLInputElement && input.type === 'file') {
         const file = input.files && input.files[0];
-        if (file && input.id) dbWrite(input.id, file).then(queueSave).catch(error => {
+        if (input.id) (file ? dbWrite(input.id, file) : dbDelete(input.id)).then(queueSave).catch(error => {
           console.warn('[KEFE autosave media]', error);
           status('Media could not be saved', false);
         });
