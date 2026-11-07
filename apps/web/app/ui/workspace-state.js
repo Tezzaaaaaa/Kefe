@@ -150,7 +150,7 @@
   function renderContext() {
     if (!contextButton) return;
     const selected = config[context];
-    contextButton.innerHTML = window.kefeIcon ? window.kefeIcon(selected.icon) : '<span data-kefe-icon="' + selected.icon + '" aria-hidden="true"></span>';
+    contextButton.dataset.settingsContext = context;
     contextButton.setAttribute('aria-label', 'Lyric effect and text style');
     const title = contextTitle();
     contextButton.setAttribute('aria-description', title);
