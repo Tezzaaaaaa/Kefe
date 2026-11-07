@@ -109,6 +109,7 @@
         Object.entries(snapshot.values || {}).forEach(([selector, data]) => { try { setControlValue($(selector), data); } catch (_) {} });
       };
       restoreValues();
+      await restoreFiles();
       const selected = snapshot.selections || {};
       if (selected.lyricEffect) $('#lyricEffectOptions [data-effect="' + CSS.escape(selected.lyricEffect) + '"]')?.click();
       if (selected.visualiser) $('.kefe-vis-tabs [data-visualiser="' + CSS.escape(selected.visualiser) + '"]')?.click();
@@ -120,7 +121,6 @@
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       if (snapshot.selections?.toolbarContext) setContext(snapshot.selections.toolbarContext);
       restoreValues();
-      await restoreFiles();
       document.dispatchEvent(new Event('kefe-project-restored'));
     } finally { restoring = false; status('Project restored · autosave active', true); queueSave(); }
   }
