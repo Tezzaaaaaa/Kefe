@@ -210,6 +210,7 @@
   window.kefeProjectAutosave = Object.freeze({
     saveNow: saveProject,
     queueSave,
+    setToolbarContext: setContext,
     restore: restoreProject,
     state: () => {
       const title = document.querySelector('#songTitle');
