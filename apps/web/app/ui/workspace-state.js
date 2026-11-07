@@ -149,7 +149,7 @@
       if (root.id === 'kefeVisualiserPresetRow') controls.push(...$$('button', root));
       return controls;
     }).filter(el => {
-      if (seen.has(el) || el.disabled || el.hidden || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
+      if (seen.has(el) || el.disabled || el.hidden || el.closest('.kefe-vis-view[hidden], .kefe-visualiser-preset-set[hidden]') || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
       seen.add(el); return true;
     });
   }
@@ -276,9 +276,12 @@
         : target.matches('.kefe-background-effect-card, [data-background-mode]') ? 'background' : '';
       if (next) queueMicrotask(() => setContext(next));
     }, true);
+    document.addEventListener('input', event => {
+      if (event.target.closest?.('#kefeDisplayGroup, #kefeStyleGroup, .kefe-font-selector-control') || event.target.matches?.('#fontOverride, #lyricCase')) setContext('lyric');
+    }, true);
     window.addEventListener('kefe-toolbar-change', event => {
       const action = event.detail?.action;
-      if (action === 'effect') setContext('lyric');
+      if (action === 'effect' || ['lyric-mode', 'font', 'text-case', 'text-size', 'text-colour', 'outline', 'glow', 'lyrics'].includes(action)) setContext('lyric');
       else if (action === 'visualiser') setContext('visualiser');
       else if (action === 'background' || action === 'background-darkness') setContext('background');
       if (!['ready', 'position'].includes(action)) queueSave();
