@@ -612,3 +612,23 @@ html .kefe-editor .kefe-timeline > #previewFullscreen { display: none !important
 @media (max-width: 700px) {
   html .kefe-editor .kefe-timeline { grid-template-columns: auto minmax(0, 1fr) auto 36px; gap: 6px; }
 }
+
+/* Mobile toolbar: retain its natural desktop width, capped by the viewport, instead of stretching edge-to-edge. */
+@media (max-width: 520px) {
+  html .kefe-editor #kefeFloatingToolbar.is-open:not(.is-floating) .kft-bar {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 56px);
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100vw - 16px);
+  }
+  html .kefe-editor #kefeFloatingToolbar.is-open:not(.is-floating) .kft-main {
+    width: max-content;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
