@@ -283,29 +283,25 @@ async function captureEditorScreenState(page) {
     assert.ok(lyricContextTitle && lyricContextTitle.endsWith("settings"),
       "the context toolbar must initially expose the selected lyric effect settings");
 
-    let visualiserContextTitle = lyricContextTitle;
-    const activeVisualiser = page.locator('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary').first();
-    if (await activeVisualiser.count()) {
-      await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("visualiser"));
-      visualiserContextTitle = await contextTrigger.getAttribute("title");
-      assert.ok(visualiserContextTitle.endsWith("settings") && visualiserContextTitle !== lyricContextTitle,
-        "selecting a visualiser must replace the active toolbar settings context");
-      await contextTrigger.click();
-      assert.equal(await page.locator(".kft-context-popover .kft-label").textContent(), visualiserContextTitle,
-        "the visualiser context must expose the selected visualiser's settings");
-      await contextTrigger.click();
-    }
-    const activeBackground = page.locator('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]').first();
-    if (await activeBackground.count()) {
-      await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("background"));
-      const backgroundContextTitle = await contextTrigger.getAttribute("title");
-      assert.ok(backgroundContextTitle.endsWith("settings") && backgroundContextTitle !== visualiserContextTitle,
-        "selecting a background effect must replace the active toolbar settings context");
-      await contextTrigger.click();
-      assert.equal(await page.locator(".kft-context-popover .kft-label").textContent(), backgroundContextTitle,
-        "the background context must expose the selected background's settings");
-      await contextTrigger.click();
-    }
+    await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("visualiser"));
+    const visualiserContextTitle = await contextTrigger.getAttribute("title");
+    assert.equal(await contextTrigger.getAttribute("data-settings-context"), "visualiser",
+      "the toolbar must switch to visualiser settings when a visualiser is selected");
+    assert.ok(visualiserContextTitle.endsWith("settings"), "the visualiser toolbar title must identify its settings");
+    await contextTrigger.click();
+    assert.equal(await page.locator(".kft-context-popover .kft-label").textContent(), visualiserContextTitle,
+      "the visualiser context must expose the selected visualiser's settings");
+    await contextTrigger.click();
+
+    await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("background"));
+    const backgroundContextTitle = await contextTrigger.getAttribute("title");
+    assert.equal(await contextTrigger.getAttribute("data-settings-context"), "background",
+      "the toolbar must switch to background settings when a background effect is selected");
+    assert.ok(backgroundContextTitle.endsWith("settings"), "the background toolbar title must identify its settings");
+    await contextTrigger.click();
+    assert.equal(await page.locator(".kft-context-popover .kft-label").textContent(), backgroundContextTitle,
+      "the background context must expose the selected background's settings");
+    await contextTrigger.click();
 
     // Autosave must persist edited project fields locally without requiring a manual save action.
     const songTitle = page.locator("#songTitle");
