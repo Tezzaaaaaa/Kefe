@@ -1247,3 +1247,60 @@
 .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-panel-head {
   border-bottom-color: color-mix(in srgb, var(--kefe-workspace-accent) 30%, var(--ksp-border));
 }
+
+
+/* Folder-tab connection: the selected workspace heading visually joins its
+   workspace body, while the feature subtabs sit inside that same folder. */
+.kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
+  gap: 4px;
+  padding: 7px 7px 0;
+  margin-bottom: 0;
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: var(--ksp-surface);
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace-tab[aria-selected="true"] {
+  position: relative;
+  z-index: 1;
+  margin-bottom: -1px;
+  border-bottom-color: transparent;
+  border-radius: 9px 9px 0 0;
+  box-shadow: inset 0 2px 0 var(--kefe-tab-accent);
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace:not([hidden]) {
+  position: relative;
+  margin-top: 0;
+  padding: 0 12px 12px;
+  border-top: 1px solid color-mix(in srgb, var(--kefe-workspace-accent) 48%, var(--ksp-border));
+  border-radius: 0 0 12px 12px;
+  background: color-mix(in srgb, var(--kefe-workspace-accent) 3%, var(--ksp-surface));
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtabs {
+  position: relative;
+  gap: 4px;
+  margin: 0 -12px 12px;
+  padding: 8px 12px 7px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--kefe-workspace-accent) 38%, var(--ksp-border));
+  border-radius: 0;
+  background: color-mix(in srgb, var(--kefe-workspace-accent) 8%, var(--ksp-surface));
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtab {
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-radius: 6px 6px 0 0;
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtab[aria-selected="true"] {
+  border-color: color-mix(in srgb, var(--kefe-workspace-accent) 30%, transparent);
+  border-bottom-color: var(--kefe-workspace-accent);
+  background: color-mix(in srgb, var(--kefe-workspace-accent) 14%, var(--ksp-surface));
+}
+@media (max-width: 760px) {
+  .kefe-editor #kefe-settings-panel .kefe-workspace:not([hidden]) {
+    padding: 0 10px 10px;
+  }
+  .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtabs {
+    margin-inline: -10px;
+    padding-inline: 10px;
+  }
+}
