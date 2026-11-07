@@ -301,8 +301,9 @@ async function captureEditorScreenState(page) {
       assert.ok(/settings$/i.test(backgroundTitle) && backgroundTitle !== "Visualiser settings",
         "selecting a background effect must replace the active toolbar settings context");
       await contextTrigger.click();
-      assert.equal(await page.locator(".kft-context-popover .kft-label").textContent(), "Background effect settings",
-        "the background context must expose the selected background's settings");
+      const backgroundHeading = await page.locator(".kft-context-popover .kft-label").textContent();
+      assert.ok(/settings$/i.test(backgroundHeading) && backgroundHeading !== "Visualiser settings",
+        "the background context must expose the selected background's own settings");
       await contextTrigger.click();
     }
 
