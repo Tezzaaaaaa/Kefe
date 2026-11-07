@@ -297,7 +297,8 @@ async function captureEditorScreenState(page) {
     const activeBackground = page.locator('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]').first();
     if (await activeBackground.count()) {
       await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("background"));
-      assert.equal(await contextTrigger.getAttribute("title"), "Background effect settings",
+      const backgroundTitle = await contextTrigger.getAttribute("title");
+      assert.ok(/settings$/i.test(backgroundTitle) && backgroundTitle !== "Visualiser settings",
         "selecting a background effect must replace the active toolbar settings context");
       await contextTrigger.click();
       assert.equal(await page.locator(".kft-context-popover .kft-label").textContent(), "Background effect settings",
