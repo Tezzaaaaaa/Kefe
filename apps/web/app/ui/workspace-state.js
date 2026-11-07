@@ -237,8 +237,12 @@
       if (next) queueMicrotask(() => setContext(next));
     }, true);
     window.addEventListener('kefe-toolbar-change', event => {
-    if (!['ready', 'position'].includes(event.detail?.action)) queueSave();
-  });
+      const action = event.detail?.action;
+      if (action === 'effect') setContext('lyric');
+      else if (action === 'visualiser') setContext('visualiser');
+      else if (action === 'background' || action === 'background-darkness') setContext('background');
+      if (!['ready', 'position'].includes(action)) queueSave();
+    });
   const form = $('.kefe-visualiser-form');
     if (form) new MutationObserver(() => { if (context === 'visualiser' && contextPopover) renderContext(); })
       .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled'] });
