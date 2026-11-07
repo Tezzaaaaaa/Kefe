@@ -158,6 +158,10 @@
     if (!contextButton) return;
     const selected = config[context];
     contextButton.dataset.settingsContext = context;
+    contextButton.innerHTML = window.kefeIcon
+      ? window.kefeIcon(selected.icon, 'kft-icon', 16)
+      : '<span data-kefe-icon="' + selected.icon + '" data-icon-class="kft-icon" aria-hidden="true"></span>';
+    window.kefeHydrateIcons?.(contextButton);
     contextButton.setAttribute('aria-label', 'Lyric effect and text style');
     const title = contextTitle();
     contextButton.setAttribute('aria-description', title);
