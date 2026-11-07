@@ -1809,8 +1809,11 @@ async function captureEditorScreenState(page) {
     await nativeLyrics.fill("beUI lyric smoke");
     assert.equal(await nativeLyrics.inputValue(), "beUI lyric smoke", "native lyrics textarea should own the value and input events");
 
-    assert.equal(await page.locator("#kefeCommandPalette, [data-command-open]").count(), 0,
-      "the command overlay and its opener must not exist");
+    assert.equal(await page.locator("#kefeCommandPalette, #kefeCommandList, [data-command-open]").count(), 0,
+      "the command overlay, hidden command menu, and opener must not exist");
+    for (const label of ["Open Media", "Open Lyric Sync", "Open Lyric Effects", "Open Background Effects", "Open Visualisers", "Open Export"]) {
+      assert.equal(await page.getByText(label, { exact: true }).count(), 0, `removed command label must not render: ${label}`);
+    }
     await page.waitForFunction(() => document.querySelector(".kefe-editing")?.dataset.selectedSection === "effects", null, { timeout: 5000 });
     await openSection("effects");
     await assertSectionFits("effects");
