@@ -1133,6 +1133,11 @@ async function captureEditorScreenState(page) {
       const tab = page.locator('[role="tab"][data-workspace-tab="' + workspace + '"]');
       await tab.evaluate(node => node.click());
       await page.waitForFunction(expected => document.querySelector('[role="tab"][data-workspace-tab="' + expected + '"]')?.getAttribute("aria-selected") === "true", workspace, { timeout: 5000 });
+      const subtabId = ({ media: "media", lyrics: "lyric-sync", effects: "lyric-effects", "background-effects": "background", visualiser: "visualisers", export: "export" })[section];
+      if (subtabId) {
+        const subtab = page.locator("#kefe-subtab-" + subtabId);
+        if (await subtab.count() && await subtab.getAttribute("aria-selected") !== "true") await subtab.click();
+      }
       const sectionTab = page.locator('.kefe-section[data-panel="' + section + '"]:visible').first();
       if (await sectionTab.count()) await sectionTab.click();
       const sectionId = ({ lyrics: "lyric-sync", effects: "lyric-effects", "background-effects": "background", visualiser: "visualisers" })[section] || section;
