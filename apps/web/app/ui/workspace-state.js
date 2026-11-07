@@ -2,7 +2,7 @@
   'use strict';
   const SAVE_KEY = 'kefe.project.autosave.v1', DB_NAME = 'kefe-project-autosave', DB_STORE = 'media';
   const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  let restoring = false, saveQueued = false, dbPromise, autosaveError = null, context = 'lyric';
+  let restoring = false, saveQueued = false, saveTimer = 0, dbPromise, autosaveError = null, context = 'lyric';
   function openDb() {
     if (dbPromise) return dbPromise;
     dbPromise = new Promise((resolve, reject) => {
@@ -58,22 +58,19 @@
     status('Saving project…', false);
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(controlSnapshot()));
-      await Promise.all($$('input[type="file"]').map(input => {
-        const file = input.files && input.files[0];
-        return input.id && file ? dbWrite(input.id, file) : Promise.resolve();
-      }));
       status('All changes saved on this device', true);
     } catch (error) { autosaveError = error?.message || String(error); status('Autosave storage is full or unavailable', false); console.warn('[KEFE autosave]', error); }
   }
   function queueSave() {
     if (restoring) return;
     status('Changes pending…', false);
-    if (saveQueued) return;
+    if (saveTimer) clearTimeout(saveTimer);
     saveQueued = true;
-    queueMicrotask(() => {
+    saveTimer = window.setTimeout(() => {
+      saveTimer = 0;
       saveQueued = false;
       void saveProject();
-    });
+    }, 350);
   }
   function setControlValue(el, data) {
     if (!el || !data) return;
