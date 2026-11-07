@@ -1088,7 +1088,14 @@ async function captureEditorScreenState(page) {
       const workspace = ["media", "lyrics"].includes(section) ? "content"
         : ["effects", "background-effects"].includes(section) ? "design" : "audio-visuals";
       const tab = page.locator('[role="tab"][data-workspace-tab="' + workspace + '"]');
-      if (await tab.getAttribute("aria-selected") !== "true") await tab.click();
+      await tab.evaluate(node => node.click());
+      await page.waitForFunction(expected => document.querySelector('[role="tab"][data-workspace-tab="' + expected + '"]')?.getAttribute("aria-selected") === "true", workspace, { timeout: 5000 });
+      const sectionId = ({ "background-effects": "background", visualiser: "visualisers" })[section] || section;
+      const sectionRoot = page.locator('.kefe-workspace-stack .section[data-section-id="' + sectionId + '"]').first();
+      if (await sectionRoot.count()) {
+        const expand = sectionRoot.locator(".expand-button").first();
+        if (await expand.count() && await expand.getAttribute("aria-expanded") !== "true") await expand.click();
+      }
       if (section === "export") {
         const advanced = page.locator(".kefe-advanced-controls");
         if (await advanced.count()) await advanced.evaluate(node => { node.open = true; });
