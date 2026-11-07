@@ -126,7 +126,7 @@
   }
 
   /* Reuses the editor's live controls as the source of truth; no additional toolbar width is introduced. */
-  const contextButton = $('button[aria-label="Lyric effect and text style"]');
+  const contextButton = $('#kefeFloatingToolbar button[aria-label="Lyric effect and text style"]');
   let contextPopover = null;
   const config = {
     lyric: { title: 'Lyric effect settings', icon: 'effect', selectors: ['#kefeDisplayGroup', '#kefeStyleGroup', '#fontOverride', '#lyricCase'] },
@@ -179,13 +179,8 @@
     if (iconMarkup) {
       const template = document.createElement('template');
       template.innerHTML = iconMarkup;
-      const nextIcon = template.content.firstElementChild;
-      const currentIcon = contextButton.querySelector('svg.lucide');
-      if (nextIcon && currentIcon) {
-        const wrapper = currentIcon.parentElement;
-        if (wrapper !== contextButton && wrapper.children.length === 1) wrapper.replaceWith(nextIcon);
-        else currentIcon.replaceWith(nextIcon);
-      } else if (nextIcon) contextButton.replaceChildren(nextIcon);
+      const nextIcon = template.content.querySelector('svg.lucide') || template.content.firstElementChild;
+      if (nextIcon) contextButton.replaceChildren(nextIcon);
     }
     const title = contextTitle();
     contextButton.setAttribute('aria-label', 'Lyric effect and text style');
