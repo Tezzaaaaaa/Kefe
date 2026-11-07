@@ -170,7 +170,7 @@
       if (root.id === 'kefeVisualiserPresetRow') controls.push(...$$('button', root));
       return controls;
     }).filter(el => {
-      if (seen.has(el) || el.disabled || el.hidden || el.closest('.kefe-vis-view[hidden], .kefe-visualiser-preset-set[hidden]') || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
+      if (seen.has(el) || el.disabled || el.hidden || el.closest('[hidden], [aria-hidden="true"]') || !el.getClientRects().length || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
       seen.add(el); return true;
     });
   }
@@ -325,10 +325,10 @@
     });
   const form = $('.kefe-visualiser-form');
     if (form) new MutationObserver(() => { if (context === 'visualiser' && contextPopover) renderContext(); })
-      .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled'] });
+      .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','hidden','aria-hidden','class','style'] });
     const backgroundForm = $('[data-panel-view="background-effects"] .kefe-form');
     if (backgroundForm) new MutationObserver(() => { if (context === 'background' && contextPopover) renderContext(); })
-      .observe(backgroundForm, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','aria-checked','class'] });
+      .observe(backgroundForm, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','aria-checked','hidden','aria-hidden','class','style'] });
     renderContext();
     if (!window.kefeIcon) window.addEventListener('load', () => renderContext(), { once: true });
   }
