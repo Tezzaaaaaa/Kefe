@@ -242,6 +242,11 @@ async function captureEditorScreenState(page) {
       throw new Error("Settings panel did not mount: " + JSON.stringify({ diagnostics, pageErrors, error: error.message }));
     }
 
+    // Wait for any saved project to finish restoring before exercising editor controls.
+    await page.evaluate(async () => {
+      if (!window.kefeProjectAutosave) throw new Error("Project autosave API did not initialise");
+      await window.kefeProjectAutosave.ready;
+    });
     // Exercise the editor toolbar against the real editor controls.
     const quickToolbar = page.locator("#kefeFloatingToolbar");
     assert.equal(await quickToolbar.count(), 1, "there must be exactly one editor toolbar");
