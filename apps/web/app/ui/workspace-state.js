@@ -306,6 +306,7 @@
       return '';
     }
     document.addEventListener('click', event => {
+      if (restoring) return;
       const target = event.target.closest?.('button, [data-effect], [data-background-mode]');
       if (!target) return;
       const next = contextForControl(target);
@@ -322,10 +323,12 @@
       }
     }, true);
     ['input', 'change'].forEach(type => document.addEventListener(type, event => {
+      if (restoring) return;
       const next = contextForControl(event.target);
       if (next) setContext(next);
     }, true));
     window.addEventListener('kefe-toolbar-change', event => {
+      if (restoring) return;
       const action = event.detail?.action;
       if (action === 'effect' || ['lyric-mode', 'font', 'text-case', 'text-size', 'text-colour', 'outline', 'glow', 'lyrics'].includes(action)) setContext('lyric');
       else if (action === 'visualiser') setContext('visualiser');
