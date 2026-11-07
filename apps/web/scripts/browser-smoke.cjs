@@ -285,10 +285,11 @@ async function captureEditorScreenState(page) {
     assert.ok(lyricContextTitle && lyricContextTitle.endsWith("settings"),
       "the context toolbar must initially expose the selected lyric effect settings");
 
+    let visualiserContextTitle = lyricContextTitle;
     const activeVisualiser = page.locator('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary').first();
     if (await activeVisualiser.count()) {
       await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("visualiser"));
-      const visualiserContextTitle = await contextTrigger.getAttribute("title");
+      visualiserContextTitle = await contextTrigger.getAttribute("title");
       assert.ok(visualiserContextTitle.endsWith("settings") && visualiserContextTitle !== lyricContextTitle,
         "selecting a visualiser must replace the active toolbar settings context");
       await contextTrigger.click();
