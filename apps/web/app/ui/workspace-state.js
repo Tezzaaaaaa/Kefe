@@ -68,7 +68,6 @@
     if (saveButton) {
       saveButton.dataset.saveState = saved ? 'saved' : 'saving';
       saveButton.title = saved ? 'Saved on this device' : text;
-      saveButton.setAttribute('aria-label', saved ? 'Project saved on this device' : text);
     }
     window.dispatchEvent(new CustomEvent('kefe-autosave-status', { detail: { text, saved: !!saved } }));
   }
