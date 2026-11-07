@@ -289,7 +289,7 @@ async function captureEditorScreenState(page) {
 
     const activeVisualiser = page.locator('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary').first();
     if (await activeVisualiser.count()) {
-      await activeVisualiser.click();
+      await activeVisualiser.evaluate(node => node.click());
       assert.equal(await contextTrigger.getAttribute("title"), "Visualiser settings",
         "selecting a visualiser must replace the active toolbar settings context");
       await contextTrigger.click();
@@ -299,7 +299,7 @@ async function captureEditorScreenState(page) {
     }
     const activeBackground = page.locator('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]').first();
     if (await activeBackground.count()) {
-      await activeBackground.click();
+      await activeBackground.evaluate(node => node.click());
       assert.equal(await contextTrigger.getAttribute("title"), "Background effect settings",
         "selecting a background effect must replace the active toolbar settings context");
       await contextTrigger.click();
