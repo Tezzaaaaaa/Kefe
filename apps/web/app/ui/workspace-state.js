@@ -149,7 +149,7 @@
       if (root.id === 'kefeVisualiserPresetRow') controls.push(...$$('button', root));
       return controls;
     }).filter(el => {
-      if (seen.has(el) || el.disabled || el.hidden || el.closest('[hidden]') || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
+      if (seen.has(el) || el.disabled || el.hidden || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
       seen.add(el); return true;
     });
   }
