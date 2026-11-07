@@ -278,6 +278,37 @@ async function captureEditorScreenState(page) {
       { label: "Visualiser", controls: ["Visualiser"] },
       { label: "Actions", controls: ["More actions"] }
     ], "toolbar actions must appear once in their intended functional groups");
+
+    // The existing Lyrics trigger becomes the active feature's settings surface without changing toolbar geometry.
+    const contextTrigger = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
+    assert.match(await contextTrigger.getAttribute("title"), /settings$/i,
+      "the context toolbar must initially identify the selected lyric effect's settings");
+
+    const activeVisualiser = page.locator('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary').first();
+    if (await activeVisualiser.count()) {
+      await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("visualiser"));
+      assert.equal(await contextTrigger.getAttribute("title"), "Visualiser settings",
+        "selecting a visualiser must replace the active toolbar settings context");
+      await contextTrigger.click();
+      assert.equal(await page.locator(".kft-context-popover .kft-label").textContent(), "Visualiser settings",
+        "the visualiser context must expose the selected visualiser's settings");
+      await contextTrigger.click();
+    }
+    const activeBackground = page.locator('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]').first();
+    if (await activeBackground.count()) {
+      await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("background"));
+      const backgroundTitle = await contextTrigger.getAttribute("title");
+      assert.ok(/settings$/i.test(backgroundTitle) && backgroundTitle !== "Visualiser settings",
+        "selecting a background effect must replace the active toolbar settings context");
+      await contextTrigger.click();
+      const backgroundHeading = await page.locator(".kft-context-popover .kft-label").textContent();
+      assert.ok(/settings$/i.test(backgroundHeading) && backgroundHeading !== "Visualiser settings",
+        "the background context must expose the selected background's own settings");
+      await contextTrigger.click();
+    }
+
+    await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("lyric"));
+
     const hasTimelineControlLayout = await page.locator(".kefe-stage > #previewFullscreen").count() === 1;
     if (hasTimelineControlLayout) {
       assert.equal(await page.locator(".kefe-timeline > #kefeFloatingToolbar").count(), 1,
@@ -361,7 +392,7 @@ async function captureEditorScreenState(page) {
     const mobileWorkspaceLabels = mobileWorkspaceLayout.groups.map(group => group.label);
     assert.equal(mobileWorkspaceLabels[0], "Content", "the first workspace must remain Content");
     assert.ok(["Design", "Appearance"].includes(mobileWorkspaceLabels[1]), "the second workspace must remain the appearance/design workspace");
-    assert.ok(["Audio & Visualiser", "Audio & Visuals"].includes(mobileWorkspaceLabels[2]), "the third workspace must remain the audio and visualiser workspace");
+    assert.equal(mobileWorkspaceLabels[2], tidySectionMode ? "Audio & Visualiser" : "Audio & Visualiser", "the third workspace must remain Audio & Visualiser");
     assert.equal(mobileWorkspaceLayout.groups.filter(group => !group.hidden && group.width > 0 && group.height > 0).length, 1,
       "only the selected workspace should be visible on mobile");
     assert.equal(mobileWorkspaceLayout.tabs.length, 3, "all three workspace tabs must remain available on mobile");
@@ -390,6 +421,8 @@ async function captureEditorScreenState(page) {
     if (mobileToolbarPanel) assert.ok(mobileToolbarPanel.x >= 0
       && mobileToolbarPanel.x + mobileToolbarPanel.width <= mobileToolbarBounds.viewportWidth + 1,
       `expanded mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarPanel)}`);
+    const selectedLyricEffect = page.locator('#lyricEffectOptions [data-effect].active').first();
+    if (await selectedLyricEffect.count()) await selectedLyricEffect.evaluate(node => node.click());
     if ((await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).count()) > 0) {
     await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
     } else {
@@ -833,6 +866,7 @@ async function captureEditorScreenState(page) {
           && panel.querySelector(":scope > .kefe-form")))
         && panels.every((panel) => !panel.querySelector(".beui-editor-panel-card"));
     }, null, { timeout: 20000 });
+    await openSection("media");
     await page.waitForSelector("#kefeUploadZone.beui-upload-dropzone", { state: "visible", timeout: 20000 });
     await page.waitForSelector("#kefeBgVideoZone", { state: "attached", timeout: 20000 });
     assert.equal(await page.locator("#kefeUploadZone").count(), 1, "there must be exactly one primary audio/video uploader");
@@ -1033,6 +1067,11 @@ async function captureEditorScreenState(page) {
         : ["effects", "background-effects"].includes(section) ? "design" : "audio-visuals";
       const tab = page.locator('[role="tab"][data-workspace-tab="' + workspace + '"]');
       if (await tab.getAttribute("aria-selected") !== "true") await tab.click();
+      const subtabId = ({ media: "media", lyrics: "lyric-sync", effects: "lyric-effects", "background-effects": "background", visualiser: "visualisers", export: "export" })[section];
+      if (subtabId) {
+        const subtab = page.locator("#kefe-subtab-" + subtabId);
+        if (await subtab.count()) await subtab.click();
+      }
       if (section === "export") {
         const advanced = page.locator(".kefe-advanced-controls");
         if (await advanced.count()) await advanced.evaluate(node => { node.open = true; });
@@ -1947,6 +1986,25 @@ async function captureEditorScreenState(page) {
       buffer: Buffer.from("[00:00.00]Smoke line one\n[00:02.00]Smoke line two\n", "utf8"),
     });
     await page.waitForFunction(() => document.getElementById("kefeLyricsStatus")?.textContent.includes("Loaded lyrics from beui-smoke.lrc"), null, { timeout: 10000 });
+
+    // Autosave must persist project fields locally without a manual save action.
+    await openSection("media");
+    const songTitle = page.locator("#songTitle");
+    const originalSongTitle = await songTitle.inputValue();
+    await songTitle.fill("__kefe_autosave_smoke__");
+    await page.waitForTimeout(900);
+    const autosaveDebug = await page.evaluate(() => {
+      const snapshot = JSON.parse(localStorage.getItem("kefe.project.autosave.v1") || "null");
+      return {
+        apiReady: !!window.kefeProjectAutosave,
+        state: window.kefeProjectAutosave?.state?.() || null,
+        savedTitle: snapshot?.values?.["#songTitle"]?.value ?? null
+      };
+    });
+    assert.equal(autosaveDebug.savedTitle, "__kefe_autosave_smoke__",
+      "editing a project field must trigger autosave automatically: " + JSON.stringify(autosaveDebug));
+    await songTitle.fill(originalSongTitle);
+    await page.waitForTimeout(800);
 
     assert.deepEqual(pageErrors, [], `browser runtime errors: ${JSON.stringify(pageErrors)}`);
     console.log("beUI browser smoke passed: component conversion, media loading/playback, and LRC upload.");
