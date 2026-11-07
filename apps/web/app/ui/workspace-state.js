@@ -223,6 +223,7 @@
       } else if (source.matches('button')) {
         proxy.addEventListener('click', () => {
           source.click();
+          queueSave();
           requestAnimationFrame(() => {
             ['aria-checked', 'aria-pressed'].forEach(name => {
               const value = source.getAttribute(name);
