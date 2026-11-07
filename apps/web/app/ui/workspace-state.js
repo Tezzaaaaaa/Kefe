@@ -60,7 +60,14 @@
     const backgroundToggle = $('#kefeBackgroundEffectToggle');
     const lyricsToggle = $('#lyricsEnabledToggle');
     const presetKey = visualiserPreset?.dataset.preset || visualiserPreset?.dataset.scene || visualiserPreset?.dataset.value || visualiserPreset?.textContent.trim() || '';
-    return { version: 1, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', lyricsEnabled: lyricsToggle?.getAttribute('aria-checked') !== 'false', visualiser: visualiser?.dataset.visualiser || '', visualiserPreset: presetKey, visualiserPower: visualiserPower?.getAttribute('aria-checked') === 'true', background: background?.dataset.backgroundMode || '', backgroundEnabled: backgroundToggle?.getAttribute('aria-checked') === 'true', toolbarContext: contextButton?.dataset.settingsContext || context } };
+    const activeVisualiserView = $('.kefe-visualiser-form .kefe-vis-view:not([hidden])');
+    const visualiserChoices = activeVisualiserView
+      ? $$('button[aria-pressed]', activeVisualiserView).reduce((selected, button, index) => {
+        if (button.getAttribute('aria-pressed') === 'true') selected.push(index);
+        return selected;
+      }, [])
+      : [];
+    return { version: 1, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', lyricsEnabled: lyricsToggle?.getAttribute('aria-checked') !== 'false', visualiser: visualiser?.dataset.visualiser || '', visualiserPreset: presetKey, visualiserChoices, visualiserPower: visualiserPower?.getAttribute('aria-checked') === 'true', background: background?.dataset.backgroundMode || '', backgroundEnabled: backgroundToggle?.getAttribute('aria-checked') === 'true', toolbarContext: contextButton?.dataset.settingsContext || context } };
   }
   async function saveProject() {
     if (restoring) return;
@@ -134,6 +141,14 @@
         const preset = $$('.kefe-visualiser-preset-set:not([hidden]) button').find(button =>
           (button.dataset.preset || button.dataset.scene || button.dataset.value || button.textContent.trim()) === selected.visualiserPreset);
         preset?.click();
+      }
+      if (Array.isArray(selected.visualiserChoices)) {
+        const activeView = $('.kefe-visualiser-form .kefe-vis-view:not([hidden])');
+        const choices = activeView ? $$('button[aria-pressed]', activeView) : [];
+        selected.visualiserChoices.forEach(index => {
+          const button = choices[index];
+          if (button && button.getAttribute('aria-pressed') !== 'true') button.click();
+        });
       }
       if (typeof selected.visualiserPower === 'boolean' && selected.visualiser) {
         const visualiserTab = $('.kefe-vis-tabs [data-visualiser="' + CSS.escape(selected.visualiser) + '"]');
