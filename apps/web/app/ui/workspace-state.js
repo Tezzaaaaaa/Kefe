@@ -41,7 +41,7 @@
     window.dispatchEvent(new CustomEvent('kefe-autosave-status', { detail: { text, saved: !!saved } }));
   }
   function projectFields() {
-    return $('input:not([type="password"]), select, textarea').filter(el => !el.closest('#kefeFloatingToolbar, .kft-popover'));
+    return $$('input:not([type="password"]), select, textarea').filter(el => !el.closest('#kefeFloatingToolbar, .kft-popover'));
   }
   function controlSnapshot() {
     const values = {};
