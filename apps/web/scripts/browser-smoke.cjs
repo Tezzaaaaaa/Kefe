@@ -1343,9 +1343,9 @@ async function captureEditorScreenState(page) {
       [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize)].join("|")
     )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
-    const sidebarCount = await page.locator('.kefe-sidebar [data-editor-tab], .kefe-sidebar [data-top-panel="settings"], .kefe-sidebar [data-search-expand], .kefe-sidebar [data-command-open], .kefe-sidebar .kefe-sidebar-github, .kefe-sidebar #kefeThemeToggle').count();
-    assert.equal(sidebarCount, 4,
-      `expected the Editor tab plus Settings, search and layout-mode actions, found ${sidebarCount}`);
+    const sidebarCount = await page.locator('.kefe-sidebar [data-editor-tab], .kefe-sidebar [data-top-panel="settings"], .kefe-sidebar [data-search-expand], .kefe-sidebar [data-command-open], .kefe-sidebar .kefe-sidebar-github, .kefe-sidebar #kefeResetButton, .kefe-sidebar #kefeSaveButton, .kefe-sidebar #kefeThemeToggle').count();
+    assert.equal(sidebarCount, 6,
+      `expected Editor, Settings, Reset, Save, search and day/night actions, found ${sidebarCount}`);
 
     await page.locator('[data-top-panel="settings"]').click();
     const dialog = page.getByRole("dialog", { name: "Settings" });
