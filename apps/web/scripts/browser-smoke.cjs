@@ -307,30 +307,6 @@ async function captureEditorScreenState(page) {
       await contextTrigger.click();
     }
 
-    // Return to the content workspace before exercising the lyrics autosave field.
-    await page.locator('[role="tab"][data-workspace-tab="content"]').evaluate(node => node.click());
-    await page.waitForFunction(() => {
-      const panel = document.querySelector('.kefe-panel[data-panel-view="lyrics"]');
-      return panel && getComputedStyle(panel).display !== "none" && panel.getBoundingClientRect().height > 0;
-    }, null, { timeout: 5000 });
-
-    // Autosave must persist edited project fields locally without requiring a manual save action.
-    const lyricsField = page.locator("#lyricsInput");
-    const originalLyrics = await lyricsField.inputValue();
-    await lyricsField.fill("__kefe_autosave_smoke__");
-    await page.waitForTimeout(900);
-    const autosaveDebug = await page.evaluate(() => {
-      const snapshot = JSON.parse(localStorage.getItem("kefe.project.autosave.v1") || "null");
-      return {
-        apiReady: !!window.kefeProjectAutosave,
-        state: window.kefeProjectAutosave?.state?.() || null,
-        savedLyrics: snapshot?.values?.["#lyricsInput"]?.value ?? null
-      };
-    });
-    assert.equal(autosaveDebug.savedLyrics, "__kefe_autosave_smoke__",
-      "editing a project field must trigger autosave automatically: " + JSON.stringify(autosaveDebug));
-    await lyricsField.fill(originalLyrics);
-    await page.waitForTimeout(800);
     const hasTimelineControlLayout = await page.locator(".kefe-stage > #previewFullscreen").count() === 1;
     if (hasTimelineControlLayout) {
       assert.equal(await page.locator(".kefe-timeline > #kefeFloatingToolbar").count(), 1,
@@ -2001,6 +1977,25 @@ async function captureEditorScreenState(page) {
       buffer: Buffer.from("[00:00.00]Smoke line one\n[00:02.00]Smoke line two\n", "utf8"),
     });
     await page.waitForFunction(() => document.getElementById("kefeLyricsStatus")?.textContent.includes("Loaded lyrics from beui-smoke.lrc"), null, { timeout: 10000 });
+
+    // Autosave must persist project fields locally without a manual save action.
+    await openSection("media");
+    const songTitle = page.locator("#songTitle");
+    const originalSongTitle = await songTitle.inputValue();
+    await songTitle.fill("__kefe_autosave_smoke__");
+    await page.waitForTimeout(900);
+    const autosaveDebug = await page.evaluate(() => {
+      const snapshot = JSON.parse(localStorage.getItem("kefe.project.autosave.v1") || "null");
+      return {
+        apiReady: !!window.kefeProjectAutosave,
+        state: window.kefeProjectAutosave?.state?.() || null,
+        savedTitle: snapshot?.values?.["#songTitle"]?.value ?? null
+      };
+    });
+    assert.equal(autosaveDebug.savedTitle, "__kefe_autosave_smoke__",
+      "editing a project field must trigger autosave automatically: " + JSON.stringify(autosaveDebug));
+    await songTitle.fill(originalSongTitle);
+    await page.waitForTimeout(800);
 
     assert.deepEqual(pageErrors, [], `browser runtime errors: ${JSON.stringify(pageErrors)}`);
     console.log("beUI browser smoke passed: component conversion, media loading/playback, and LRC upload.");
