@@ -252,6 +252,7 @@
   }
   function openContext() {
     if (contextPopover) { closeContext(); return; }
+    window.dispatchEvent(new Event('kefe-toolbar-close-popovers'));
     contextPopover = document.createElement('div'); contextPopover.className = 'kft-popover kft-panel kft-context-popover';
     contextPopover.setAttribute('role', 'dialog');
     contextPopover.setAttribute('aria-label', context === 'lyric' ? 'Lyric effect and text style' : config[context].title);
@@ -271,7 +272,10 @@
     if (!config[next]) return;
     const changed = context !== next;
     context = next;
-    if (changed) closeContext();
+    if (changed) {
+      closeContext();
+      window.dispatchEvent(new Event('kefe-toolbar-close-popovers'));
+    }
     renderContext();
     if (changed) queueSave();
   }
