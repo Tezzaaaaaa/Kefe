@@ -307,6 +307,8 @@ async function captureEditorScreenState(page) {
       await contextTrigger.click();
     }
 
+    await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("lyric"));
+
     const hasTimelineControlLayout = await page.locator(".kefe-stage > #previewFullscreen").count() === 1;
     if (hasTimelineControlLayout) {
       assert.equal(await page.locator(".kefe-timeline > #kefeFloatingToolbar").count(), 1,
