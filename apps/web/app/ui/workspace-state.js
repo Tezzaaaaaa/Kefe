@@ -186,7 +186,7 @@
   function selectedFeatureName() {
     let selected;
     if (context === 'lyric') selected = $('#lyricEffectOptions [data-effect].active, #lyricEffectOptions [data-effect][aria-pressed="true"]');
-    else if (context === 'visualiser') selected = $('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary');
+    else if (context === 'visualiser') selected = $('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs [data-visualiser].active, .kefe-vis-tabs [data-visualiser][aria-pressed="true"], .kefe-vis-tabs button.primary');
     else selected = $('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]');
     const label = selected?.querySelector('.kefe-lyric-effect-name, .kefe-background-effect-name, .kefe-vis-tab-label')?.textContent || selected?.getAttribute('aria-label') || selected?.textContent || '';
     return label.trim().replace(/\s+/g, ' ').slice(0, 48);
@@ -211,9 +211,10 @@
     document.addEventListener('click', event => {
       const target = event.target.closest?.('[data-effect], .kefe-vis-tabs [role="tab"], .kefe-vis-tabs button, .kefe-background-effect-card, [data-background-mode]');
       if (!target) return;
-      if (target.closest('#lyricEffectOptions')) setContext('lyric');
-      else if (target.closest('.kefe-vis-tabs')) setContext('visualiser');
-      else if (target.matches('.kefe-background-effect-card, [data-background-mode]')) setContext('background');
+      const next = target.closest('#lyricEffectOptions') ? 'lyric'
+        : target.closest('.kefe-vis-tabs') ? 'visualiser'
+        : target.matches('.kefe-background-effect-card, [data-background-mode]') ? 'background' : '';
+      if (next) queueMicrotask(() => setContext(next));
     }, true);
     window.addEventListener('kefe-toolbar-change', event => {
     if (!['ready', 'position'].includes(event.detail?.action)) queueSave();
