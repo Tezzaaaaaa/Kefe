@@ -821,8 +821,10 @@ async function captureEditorScreenState(page) {
         && previewSettingsLayout.workspaceRight <= previewSettingsLayout.rightLeft + 1,
         "the main-branch baseline settings columns must flank the preview");
     }
+    await page.locator("#kefe-subtab-lyric-sync").click();
     await page.waitForSelector("#lyricsInput", { state: "visible", timeout: 20000 });
     assert.equal(await page.locator('label[for="lyricsInput"]').count(), 1, "native lyrics label association must remain in the DOM");
+    await page.locator("#kefe-subtab-media").click();
     await page.waitForFunction(() => {
       const expected = ["media", "lyrics", "effects", "background-effects", "visualiser", "export"];
       const panels = [...document.querySelectorAll(".kefe-editor .kefe-panel[data-panel-view]")];
