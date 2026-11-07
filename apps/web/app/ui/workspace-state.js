@@ -301,7 +301,7 @@
       if (!target) return;
       const next = contextForControl(target);
       if (next) {
-        queueMicrotask(() => setContext(next));
+        if (!restoring) queueMicrotask(() => setContext(next));
         if (target.id === 'bgVideoRemove') {
           const input = $('#bgVideoInput');
           if (input?.id) dbDelete(input.id).then(queueSave).catch(error => {
@@ -314,9 +314,10 @@
     }, true);
     ['input', 'change'].forEach(type => document.addEventListener(type, event => {
       const next = contextForControl(event.target);
-      if (next) setContext(next);
+      if (next && !restoring) setContext(next);
     }, true));
     window.addEventListener('kefe-toolbar-change', event => {
+      if (restoring) return;
       const action = event.detail?.action;
       if (action === 'effect' || ['lyric-mode', 'font', 'text-case', 'text-size', 'text-colour', 'outline', 'glow', 'lyrics'].includes(action)) setContext('lyric');
       else if (action === 'visualiser') setContext('visualiser');
