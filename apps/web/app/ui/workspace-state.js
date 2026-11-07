@@ -295,7 +295,7 @@
   const boundControls = new WeakSet();
   const fieldSelector = 'input:not([type="password"]), select, textarea';
   function bindControl(input) {
-    if (boundControls.has(input) || input.closest('.kft-context-popover')) return;
+    if (boundControls.has(input) || input.closest('#kefeFloatingToolbar, .kft-popover')) return;
     boundControls.add(input);
     input.addEventListener('input', () => { observedInputEvents++; queueSave(); });
     input.addEventListener('change', () => {
