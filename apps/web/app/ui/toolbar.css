@@ -569,13 +569,19 @@ html .kefe-editor .kefe-timeline > .kefe-player-fullscreen { order: 5; }
   .kefe-sidebar-group-editor > .kefe-floating-toolbar.is-open .kft-bar {
     position: fixed;
     top: calc(env(safe-area-inset-top) + 56px);
-    left: 8px;
-    right: 8px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
     z-index: 10001;
-    width: auto;
+    width: max-content;
     max-width: calc(100vw - 16px);
   }
-  .kefe-sidebar-group-editor > .kefe-floating-toolbar.is-open .kft-main { width: 100%; }
+  .kefe-sidebar-group-editor > .kefe-floating-toolbar.is-open .kft-main {
+    width: max-content;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
 }
 
 
