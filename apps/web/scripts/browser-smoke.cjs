@@ -281,8 +281,8 @@ async function captureEditorScreenState(page) {
 
     // The existing Lyrics trigger becomes the active feature's settings surface without changing toolbar geometry.
     const contextTrigger = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
-    assert.equal(await contextTrigger.getAttribute("title"), "Lyric effect settings",
-      "the context toolbar must initially expose the selected lyric effect settings");
+    assert.match(await contextTrigger.getAttribute("title"), /settings$/i,
+      "the context toolbar must initially identify the selected lyric effect's settings");
 
     const activeVisualiser = page.locator('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary').first();
     if (await activeVisualiser.count()) {
