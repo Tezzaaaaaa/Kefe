@@ -107,6 +107,7 @@
     if (restoreFocus) trigger.focus({ preventScroll: true });
   }
   function closePopover(restoreFocus) { closeListbox(restoreFocus); closePanel(false); }
+  window.addEventListener('kefe-toolbar-close-popovers', () => closePopover(false));
   function placePopover(pop, trigger, width) {
     const r = trigger.getBoundingClientRect();
     const vw = window.innerWidth, vh = window.innerHeight;
