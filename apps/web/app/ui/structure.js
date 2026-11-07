@@ -231,8 +231,6 @@ document.addEventListener('pointerdown', event => {
 });
 window.addEventListener('resize', placeSearchResults);
 window.addEventListener('scroll', placeSearchResults, true);
-commandInput?.addEventListener('input', () => filterCommands(commandInput.value));
-commandOverlay?.addEventListener('click', event => { if (event.target === commandOverlay) closeCommandPalette(); });
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape') closeHeaderSearch(false);
 });
