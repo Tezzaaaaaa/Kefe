@@ -307,6 +307,13 @@ async function captureEditorScreenState(page) {
       await contextTrigger.click();
     }
 
+    // Return to the content workspace before exercising the lyrics autosave field.
+    await page.locator('[role="tab"][data-workspace-tab="content"]').evaluate(node => node.click());
+    await page.waitForFunction(() => {
+      const panel = document.querySelector('.kefe-panel[data-panel-view="lyrics"]');
+      return panel && getComputedStyle(panel).display !== "none" && panel.getBoundingClientRect().height > 0;
+    }, null, { timeout: 5000 });
+
     // Autosave must persist edited project fields locally without requiring a manual save action.
     const lyricsField = page.locator("#lyricsInput");
     const originalLyrics = await lyricsField.inputValue();
