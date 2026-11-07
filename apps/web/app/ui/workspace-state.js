@@ -175,7 +175,7 @@
     const roots = config[context].selectors.flatMap(selector => $$(selector)), seen = new Set();
     return roots.flatMap(root => {
       const controls = root.matches?.('input,select,textarea,button[role="switch"]') ? [root]
-        : $$('input:not([type="hidden"]),select,textarea,button[role="switch"]', root);
+        : $$('input:not([type="hidden"]),select,textarea,button[role="switch"],.kefe-vis-view:not([hidden]) button', root);
       if (root.id === 'kefeVisualiserPresetRow') controls.push(...$$('button', root));
       return controls;
     }).filter(el => {
