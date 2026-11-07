@@ -158,9 +158,21 @@
     if (!contextButton) return;
     const selected = config[context];
     contextButton.dataset.settingsContext = context;
-    contextButton.dataset.settingsContext = context;
+    if (window.kefeHydrateIcons) window.kefeHydrateIcons(contextButton);
+    const iconMarkup = window.kefeIcon?.(selected.icon, 'kft-icon', 16);
+    if (iconMarkup) {
+      const template = document.createElement('template');
+      template.innerHTML = iconMarkup;
+      const nextIcon = template.content.firstElementChild;
+      const currentIcon = contextButton.querySelector('svg.lucide');
+      if (nextIcon && currentIcon) {
+        const wrapper = currentIcon.parentElement;
+        if (wrapper !== contextButton && wrapper.children.length === 1) wrapper.replaceWith(nextIcon);
+        else currentIcon.replaceWith(nextIcon);
+      } else if (nextIcon) contextButton.replaceChildren(nextIcon);
+    }
     const title = contextTitle();
-    contextButton.setAttribute('aria-label', title);
+    contextButton.setAttribute('aria-label', 'Lyric effect and text style');
     contextButton.setAttribute('aria-description', title);
     contextButton.title = title;
     if (!contextPopover) return;
