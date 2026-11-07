@@ -354,10 +354,12 @@ async function captureEditorScreenState(page) {
     await page.waitForTimeout(650);
     const autosaveDebug = await page.evaluate(() => {
       const snapshot = JSON.parse(localStorage.getItem("kefe.project.autosave.v1") || "null");
-      return { apiReady: !!window.kefeProjectAutosave, savedTitle: snapshot?.values?.["#songTitle"]?.value ?? null };
+      return { apiReady: !!window.kefeProjectAutosave, savedTitle: snapshot?.values?.["#songTitle"]?.value ?? null, savedContext: snapshot?.selections?.toolbarContext ?? null };
     });
     assert.equal(autosaveDebug.savedTitle, "__kefe_autosave_smoke__",
       "editing a project field must automatically save the project locally: " + JSON.stringify(autosaveDebug));
+    assert.equal(autosaveDebug.savedContext, "lyric",
+      "autosave must persist the selected toolbar context: " + JSON.stringify(autosaveDebug));
     await page.evaluate(() => window.kefeProjectAutosave.restore());
     assert.equal(await autosaveField.inputValue(), "__kefe_autosave_smoke__",
       "the autosaved project must restore its edited project field");
