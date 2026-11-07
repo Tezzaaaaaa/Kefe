@@ -1033,6 +1033,9 @@ async function captureEditorScreenState(page) {
         : ["effects", "background-effects"].includes(section) ? "design" : "audio-visuals";
       const tab = page.locator('[role="tab"][data-workspace-tab="' + workspace + '"]');
       if (await tab.getAttribute("aria-selected") !== "true") await tab.click();
+      const subtabId = ({ media: "media", lyrics: "lyric-sync", effects: "lyric-effects", "background-effects": "background", visualiser: "visualisers", export: "export" })[section];
+      const subtab = page.locator("#kefe-subtab-" + subtabId);
+      if (await subtab.count() && await subtab.getAttribute("aria-selected") !== "true") await subtab.click();
       if (section === "export") {
         const advanced = page.locator(".kefe-advanced-controls");
         if (await advanced.count()) await advanced.evaluate(node => { node.open = true; });
