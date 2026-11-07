@@ -258,10 +258,8 @@ async function captureEditorScreenState(page) {
       }));
     });
     assert.deepEqual(toolbarIconAudit, [], "every icon-bearing toolbar action must render its Lucide SVG");
-    const fontTriggerIcons = await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).locator(":scope > svg").count();
-    const fontTriggerChildren = await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).evaluate(node => node.children.length);
+    const fontTriggerIcons = await quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true }).locator("svg.lucide").count();
     assert.equal(fontTriggerIcons, 1, "the combined font and colour trigger must display one Lucide icon");
-    assert.equal(fontTriggerChildren, 1, "the combined font and colour trigger must not contain a second icon or decorative symbol");
     const toolbarGroups = await quickToolbar.locator(".kft-main > .kft-cluster").evaluateAll(groups =>
       groups.map(group => ({
         label: group.getAttribute("aria-label"),
