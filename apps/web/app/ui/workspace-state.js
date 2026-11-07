@@ -352,10 +352,10 @@
     });
   const form = $('.kefe-visualiser-form');
     if (form) new MutationObserver(() => { if (context === 'visualiser' && contextPopover) renderContext(); })
-      .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled'] });
+      .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','hidden','aria-hidden','class','style'] });
     const backgroundForm = $('[data-panel-view="background-effects"] .kefe-form');
     if (backgroundForm) new MutationObserver(() => { if (context === 'background' && contextPopover) renderContext(); })
-      .observe(backgroundForm, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','aria-checked','class'] });
+      .observe(backgroundForm, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','aria-checked','hidden','aria-hidden','class','style'] });
     renderContext();
     if (!window.kefeIcon) window.addEventListener('load', () => renderContext(), { once: true });
   }
