@@ -733,13 +733,16 @@ async function captureEditorScreenState(page) {
     assert.ok(headerNavigation.linksWithinHeader, "desktop navigation links must not be clipped outside the header");
     const headerActions = await page.locator(".kefe-sidebar-bottom .kefe-sidebar-link").evaluateAll(nodes =>
       nodes.map(node => node.getAttribute("aria-label") || node.textContent.trim()));
-    if (headerSearchMode) {
-      assert.deepEqual(headerActions, ["Search KEFE", "Switch to day mode"],
-        `header actions must expose only search and layout mode: ${JSON.stringify(headerActions)}`);
-    } else {
-      assert.deepEqual(headerActions, ["Settings", "Switch to day mode", "Search KEFE"],
-        `older header actions must not include GitHub: ${JSON.stringify(headerActions)}`);
-    }
+    assert.ok(headerActions.indexOf("Reset KEFE and clear cached app data") >= 0,
+      `header must expose Reset before the theme switch: ${JSON.stringify(headerActions)}`);
+    assert.ok(headerActions.indexOf("Save project now") > headerActions.indexOf("Reset KEFE and clear cached app data")
+      && headerActions.indexOf("Save project now") < headerActions.indexOf("Switch to day mode"),
+      `Save must sit between Reset and day/night mode: ${JSON.stringify(headerActions)}`);
+    assert.equal(await page.locator("#kefeResetButton").count(), 1, "the header must contain one full reset action");
+    assert.equal(await page.locator("#kefeSaveButton").count(), 1, "the header must contain one manual save action");
+    await page.locator("#kefeSaveButton").click();
+    await page.waitForFunction(() => document.querySelector("#kefeSaveButton")?.dataset.saveState === "saved",
+      null, { timeout: 5000 });
     assert.equal(await page.locator(".kefe-sidebar > .kefe-sidebar-group").count(), 1,
       "the header must expose one navigation group");
     assert.equal(await page.locator(".kefe-sidebar-group > .kefe-sidebar-link").count(), headerSearchMode ? 2 : 1,
