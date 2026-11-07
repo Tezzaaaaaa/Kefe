@@ -634,8 +634,11 @@ async function captureEditorScreenState(page) {
         .then(values => values.map(value => value.trim())), ["Editor", "Settings"],
         "Settings must sit next to Editor and read as text, not an icon");
     } else {
-      assert.equal(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").count(), 1,
-        "the older header exposes only the Editor tab label");
+      assert.equal(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").count(), 2,
+        "the header must expose the Editor tab and Settings text labels");
+      assert.deepEqual(await page.locator(".kefe-sidebar-group .kefe-sidebar-link-label").allInnerTexts()
+        .then(values => values.map(value => value.trim())), ["Editor", "Settings"],
+        "Settings must remain a text action beside Editor");
     }
     assert.equal(await page.locator(".kefe-sidebar [data-shell-panel]").count(), 0,
       "the header must not repeat the editor sections as tabs");
