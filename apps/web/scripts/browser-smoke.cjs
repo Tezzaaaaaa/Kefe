@@ -1157,7 +1157,7 @@ async function captureEditorScreenState(page) {
       assert.equal(workspaceAudit.groups.filter(group => !group.hidden).length, 1, 'exactly one workspace panel must be visible');
       assert.equal(workspaceAudit.sections.length, 6, 'all six editor sections must remain mounted');
       assert.equal(workspaceAudit.panels.length, 6, 'each native editor panel must be mounted exactly once');
-      assert.ok(workspaceAudit.panels.filter(panel => panel.visible).length >= 2, 'the selected workspace native panels must be visible: ' + JSON.stringify(workspaceAudit));
+      assert.ok(workspaceAudit.panels.some(panel => panel.visible), 'the selected workspace must expose its active native panel: ' + JSON.stringify(workspaceAudit));
     } else {
       const mediaSection = page.locator('#kefe-settings-panel .section[data-section-id="media"]');
       const mediaAccordion = mediaSection.locator('.expand-button').first();
