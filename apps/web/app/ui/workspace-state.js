@@ -42,7 +42,7 @@
   }
   function controlSnapshot() {
     const values = {};
-    const fields = $('input:not([type="file"]):not([type="password"]), select, textarea').filter(el => !el.closest('.kft-context-popover'));
+    const fields = $$('input:not([type="file"]):not([type="password"]), select, textarea').filter(el => !el.closest('.kft-context-popover'));
     fields.forEach((el, index) => {
       if (!el.id && !el.name) el.dataset.kefeAutosaveKey = 'field-' + index;
       const key = el.id ? '#' + el.id : (el.name ? '[name="' + CSS.escape(el.name) + '"]' : '[data-kefe-autosave-key="' + CSS.escape(el.dataset.kefeAutosaveKey) + '"]');
@@ -99,7 +99,7 @@
     restoring = true;
     try {
       const restoreValues = () => {
-        $('input:not([type="file"]):not([type="password"]), select, textarea').forEach((el, index) => {
+        $$('input:not([type="file"]):not([type="password"]), select, textarea').forEach((el, index) => {
           if (!el.id && !el.name) el.dataset.kefeAutosaveKey = 'field-' + index;
         });
         Object.entries(snapshot.values || {}).forEach(([selector, data]) => { try { setControlValue($(selector), data); } catch (_) {} });
