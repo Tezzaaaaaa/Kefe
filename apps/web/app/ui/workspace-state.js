@@ -196,14 +196,37 @@
     restore: restoreProject,
     state: () => ({ restoring, hasSnapshot: !!localStorage.getItem(SAVE_KEY) })
   });
-  document.addEventListener('input', queueSave, true);
-  document.addEventListener('change', event => {
-    if (event.target instanceof HTMLInputElement && event.target.type === 'file') {
-      const input = event.target, file = input.files && input.files[0];
-      if (file && input.id) dbWrite(input.id, file).then(queueSave).catch(error => { console.warn('[KEFE autosave media]', error); status('Media could not be saved', false); });
-      return;
-    }
-    queueSave();
+  const boundControls = new WeakSet();
+  const fieldSelector = 'input:not([type="password"]), select, textarea';
+  function bindControl(input) {
+    if (boundControls.has(input)) return;
+    boundControls.add(input);
+    input.addEventListener('input', queueSave);
+    input.addEventListener('change', () => {
+      if (input instanceof HTMLInputElement && input.type === 'file') {
+        const file = input.files && input.files[0];
+        if (file && input.id) dbWrite(input.id, file).then(queueSave).catch(error => {
+          console.warn('[KEFE autosave media]', error);
+          status('Media could not be saved', false);
+        });
+        return;
+      }
+      queueSave();
+    });
+  }
+  function bindControls(root = document) {
+    if (root instanceof Element && root.matches(fieldSelector)) bindControl(root);
+    if (root.querySelectorAll) root.querySelectorAll(fieldSelector).forEach(bindControl);
+  }
+  bindControls();
+  const controlObserver = new MutationObserver(records => {
+    records.forEach(record => record.addedNodes.forEach(node => {
+      if (node.nodeType === Node.ELEMENT_NODE) bindControls(node);
+    }));
+  });
+  controlObserver.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('click', event => {
+    if (event.target.closest?.('[data-effect], .kefe-vis-tabs [role="tab"], .kefe-vis-tabs button, .kefe-background-effect-card, [data-background-mode]')) queueSave();
   }, true);
   window.addEventListener('pagehide', () => { if (!restoring) try { localStorage.setItem(SAVE_KEY, JSON.stringify(controlSnapshot())); } catch (_) {} });
   window.addEventListener('beforeunload', () => { if (!restoring) try { localStorage.setItem(SAVE_KEY, JSON.stringify(controlSnapshot())); } catch (_) {} });
