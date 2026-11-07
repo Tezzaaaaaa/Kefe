@@ -138,8 +138,8 @@
         const power = visualiserTab?.closest('.kefe-vis-option')?.querySelector('button[role="switch"]');
         if (power && (power.getAttribute('aria-checked') === 'true') !== selected.visualiserPower) power.click();
       }
-      if (snapshot.selections?.toolbarContext) setContext(snapshot.selections.toolbarContext);
       restoreValues();
+      if (snapshot.selections?.toolbarContext) setContext(snapshot.selections.toolbarContext);
       document.dispatchEvent(new Event('kefe-project-restored'));
     } finally { restoring = false; status('Project restored · autosave active', true); queueSave(); }
   }
