@@ -854,6 +854,7 @@ async function captureEditorScreenState(page) {
         && previewSettingsLayout.workspaceRight <= previewSettingsLayout.rightLeft + 1,
         "the main-branch baseline settings columns must flank the preview");
     }
+    await openSection("lyrics");
     await page.waitForSelector("#lyricsInput", { state: "visible", timeout: 20000 });
     assert.equal(await page.locator('label[for="lyricsInput"]').count(), 1, "native lyrics label association must remain in the DOM");
     await page.waitForFunction(() => {
@@ -1065,6 +1066,11 @@ async function captureEditorScreenState(page) {
         : ["effects", "background-effects"].includes(section) ? "design" : "audio-visuals";
       const tab = page.locator('[role="tab"][data-workspace-tab="' + workspace + '"]');
       if (await tab.getAttribute("aria-selected") !== "true") await tab.click();
+      const subtabId = ({ media: "media", lyrics: "lyric-sync", effects: "lyric-effects", "background-effects": "background", visualiser: "visualisers", export: "export" })[section];
+      if (subtabId) {
+        const subtab = page.locator("#kefe-subtab-" + subtabId);
+        if (await subtab.count()) await subtab.click();
+      }
       if (section === "export") {
         const advanced = page.locator(".kefe-advanced-controls");
         if (await advanced.count()) await advanced.evaluate(node => { node.open = true; });
