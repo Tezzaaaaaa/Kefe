@@ -459,6 +459,7 @@ async function captureEditorScreenState(page) {
       if (input) input.blur();
       document.querySelector("[data-search-expand]")?.setAttribute("aria-expanded", "false");
     });
+    await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("lyric"));
     if ((await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).count()) > 0) {
     await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
     } else {
