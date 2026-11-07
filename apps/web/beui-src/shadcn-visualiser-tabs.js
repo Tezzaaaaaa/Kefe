@@ -55,6 +55,16 @@ const VISUALISER_PRESENTATION = {
   },
 };
 
+/* After choosing an engine, bring its settings into view so the choice visibly does something. */
+function revealSettings() {
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const head = document.querySelector(".kefe-vis-settings-head");
+    if (!head) return;
+    const top = head.getBoundingClientRect().top;
+    if (top > window.innerHeight * 0.6 || top < 60) head.scrollIntoView({ behavior: "smooth", block: "start" });
+  }));
+}
+
 function cleanVisualiserLabel(button, fallback) {
   const raw =
     button.querySelector(".kefe-visualiser-tab-label")?.textContent ||
@@ -251,6 +261,7 @@ function mountVisualiserTabs() {
       if (power && power.getAttribute("aria-checked") !== "true") power.click();
       activating = false;
       syncAllStates();
+      revealSettings();
     });
 
     const foot = document.createElement("span");

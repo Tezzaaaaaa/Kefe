@@ -189,7 +189,7 @@
 }
 :is(#kefe-settings-panel, .kefe-ms-host) .kv-gallery {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
   gap: 10px;
   width: 100%;
   min-width: 0;
@@ -204,7 +204,7 @@
 }
 
 #kefe-settings-panel .kv-card .kv-preview {
-  aspect-ratio: 16 / 7;
+  aspect-ratio: 16 / 9;
 }
 
 /* Settings area under the gallery: a header that names the engine being edited. */
@@ -693,4 +693,13 @@
     min-height: 336px !important;
     max-height: 336px !important;
   }
+}
+
+/* Visualisers: the gallery stays compact so the chosen engine's settings sit right under it. */
+#kefe-settings-panel .kefe-vis-settings-head { scroll-margin-top: 76px; }
+#kefe-settings-panel .kefe-visualiser-panel-head { display: none; }
+@media (max-width: 420px) {
+  #kefe-settings-panel .kv-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #kefe-settings-panel .kv-tab { flex-direction: column; }
+  #kefe-settings-panel .kv-preview { flex: none; width: 100%; aspect-ratio: 16 / 9; }
 }
