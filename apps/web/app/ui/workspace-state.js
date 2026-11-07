@@ -285,7 +285,7 @@
     window.addEventListener('resize', closeContext);
     function contextForControl(target) {
       if (!target || !(target instanceof Element)) return '';
-      if (target.id === 'lyricsEnabledToggle' || target.closest('#lyricEffectOptions, #kefeDisplayGroup, #kefeStyleGroup, .kefe-font-selector-control')) return 'lyric';
+      if (target.id === 'lyricsEnabledToggle' || target.matches('#fontOverride, #lyricCase') || target.closest('#lyricEffectOptions, #kefeDisplayGroup, #kefeStyleGroup, .kefe-font-selector-control')) return 'lyric';
       if (target.closest('.kefe-vis-tabs, .kefe-visualiser-form, #kefeVisualiserPresetRow')) return 'visualiser';
       if (target.id === 'kefeBackgroundEffectToggle' || target.matches('.kefe-background-effect-card, [data-background-mode]') || target.closest('#kefeBackgroundEffectOptions, [data-panel-view="background-effects"] .kefe-form')) return 'background';
       return '';
