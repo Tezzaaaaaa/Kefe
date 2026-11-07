@@ -306,21 +306,21 @@ async function captureEditorScreenState(page) {
     }
 
     // Autosave must persist edited project fields locally without requiring a manual save action.
-    const songTitle = page.locator("#songTitle");
-    const originalSongTitle = await songTitle.inputValue();
-    await songTitle.fill("__kefe_autosave_smoke__");
+    const lyricsField = page.locator("#lyricsInput");
+    const originalLyrics = await lyricsField.inputValue();
+    await lyricsField.fill("__kefe_autosave_smoke__");
     await page.waitForTimeout(900);
     const autosaveDebug = await page.evaluate(() => {
       const snapshot = JSON.parse(localStorage.getItem("kefe.project.autosave.v1") || "null");
       return {
         apiReady: !!window.kefeProjectAutosave,
         state: window.kefeProjectAutosave?.state?.() || null,
-        savedTitle: snapshot?.values?.["#songTitle"]?.value ?? null
+        savedLyrics: snapshot?.values?.["#lyricsInput"]?.value ?? null
       };
     });
-    assert.equal(autosaveDebug.savedTitle, "__kefe_autosave_smoke__",
+    assert.equal(autosaveDebug.savedLyrics, "__kefe_autosave_smoke__",
       "editing a project field must trigger autosave automatically: " + JSON.stringify(autosaveDebug));
-    await songTitle.fill(originalSongTitle);
+    await lyricsField.fill(originalLyrics);
     await page.waitForTimeout(800);
     const hasTimelineControlLayout = await page.locator(".kefe-stage > #previewFullscreen").count() === 1;
     if (hasTimelineControlLayout) {
