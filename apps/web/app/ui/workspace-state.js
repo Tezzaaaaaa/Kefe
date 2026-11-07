@@ -138,8 +138,9 @@
     if (!contextButton) return;
     const selected = config[context];
     contextButton.innerHTML = window.kefeIcon ? window.kefeIcon(selected.icon) : '<span data-kefe-icon="' + selected.icon + '" aria-hidden="true"></span>';
-    contextButton.setAttribute('aria-label', selected.title); contextButton.title = selected.title;
-    contextButton.closest('.kft-cluster')?.setAttribute('aria-label', selected.title);
+    contextButton.setAttribute('aria-label', 'Lyric effect and text style');
+    contextButton.setAttribute('aria-description', selected.title);
+    contextButton.title = selected.title;
     if (!contextPopover) return;
     contextPopover.replaceChildren();
     const heading = document.createElement('div'); heading.className = 'kft-label'; heading.textContent = selected.title; contextPopover.appendChild(heading);
