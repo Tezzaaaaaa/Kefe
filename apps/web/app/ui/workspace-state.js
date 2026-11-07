@@ -35,7 +35,7 @@
   }
   function controlSnapshot() {
     const values = {};
-    const fields = $$('#input:not([type="file"]):not([type="password"]), select, textarea');
+    const fields = $$('input:not([type="file"]):not([type="password"]), select, textarea');
     fields.forEach((el, index) => {
       if (!el.id && !el.name) el.dataset.kefeAutosaveKey = 'field-' + index;
       const key = el.id ? '#' + el.id : (el.name ? '[name="' + CSS.escape(el.name) + '"]' : '[data-kefe-autosave-key="' + CSS.escape(el.dataset.kefeAutosaveKey) + '"]');
