@@ -41,7 +41,7 @@
     window.dispatchEvent(new CustomEvent('kefe-autosave-status', { detail: { text, saved: !!saved } }));
   }
   function projectFields() {
-    return $$('input:not([type="password"]), select, textarea').filter(el => !el.closest('#kefeFloatingToolbar, .kft-popover'));
+    return $$('input:not([type="password"]), select, textarea').filter(el => !el.closest('#kefeFloatingToolbar, .kft-popover, .kft-backing'));
   }
   function controlSnapshot() {
     const values = {};
@@ -143,8 +143,15 @@
   }
   function sourceControls() {
     const roots = config[context].selectors.flatMap(selector => $$(selector)), seen = new Set();
-    return roots.flatMap(root => root.matches?.('input,select,textarea,button[role="switch"]') ? [root] : $$('input:not([type="hidden"]),select,textarea,button[role="switch"]', root))
-      .filter(el => { if (seen.has(el) || el.disabled || el.hidden || ['submit','button','hidden'].includes(el.type)) return false; seen.add(el); return true; });
+    return roots.flatMap(root => {
+      const controls = root.matches?.('input,select,textarea,button[role="switch"]') ? [root]
+        : $$('input:not([type="hidden"]),select,textarea,button[role="switch"]', root);
+      if (root.id === 'kefeVisualiserPresetRow') controls.push(...$$('button', root));
+      return controls;
+    }).filter(el => {
+      if (seen.has(el) || el.disabled || el.hidden || el.closest('[hidden]') || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
+      seen.add(el); return true;
+    });
   }
   function closeContext() { if (!contextPopover) return; contextPopover.remove(); contextPopover = null; contextButton?.setAttribute('aria-expanded', 'false'); }
   function positionContext(pop) {
@@ -204,12 +211,16 @@
             source.dispatchEvent(new Event('change', { bubbles: true }));
           } catch (_) { status('Use the Background panel to upload this file', false); }
         });
-      } else if (source.matches('button[role="switch"]')) {
+      } else if (source.matches('button')) {
         proxy.addEventListener('click', () => {
           source.click();
           requestAnimationFrame(() => {
-            proxy.setAttribute('aria-checked', source.getAttribute('aria-checked') || 'false');
+            ['aria-checked', 'aria-pressed'].forEach(name => {
+              const value = source.getAttribute(name);
+              if (value == null) proxy.removeAttribute(name); else proxy.setAttribute(name, value);
+            });
             proxy.classList.toggle('is-on', source.classList.contains('is-on'));
+            proxy.classList.toggle('active', source.classList.contains('active'));
           });
         });
       } else {
