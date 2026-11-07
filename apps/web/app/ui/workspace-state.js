@@ -190,18 +190,22 @@
   css.textContent = '.kft-context-popover{position:fixed;z-index:10005;display:grid;gap:9px;overflow:auto;overscroll-behavior:contain;padding:12px}.kft-context-field{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,1.15fr);align-items:center;gap:10px;min-width:0;color:var(--kt-text);font-size:11px}.kft-context-field>span{min-width:0;overflow-wrap:anywhere;color:var(--kt-muted)}.kft-context-field>:is(input,select,textarea){box-sizing:border-box;width:100%;min-width:0;max-width:100%}.kft-context-field input[type=range]{accent-color:var(--kt-accent)}.kft-context-field input[type=checkbox]{justify-self:end;width:18px;height:18px}.kft-context-field input[type=color]{height:30px;padding:2px}.kft-context-field select,.kft-context-field input:not([type=checkbox]):not([type=range]):not([type=color]),.kft-context-field textarea{min-height:30px;padding:5px 7px;border:1px solid var(--kt-border);border-radius:5px;background:var(--kt-input);color:var(--kt-text)}#kefeFloatingToolbar .kft-launch{position:relative}#kefeFloatingToolbar .kft-launch[data-save-state]::after{content:"";position:absolute;right:3px;top:3px;width:5px;height:5px;border-radius:50%;background:#36b37e;box-shadow:0 0 0 2px var(--kt-surface)}#kefeFloatingToolbar .kft-launch[data-save-state=saving]::after{background:#d6a23a}@media(max-width:640px){.kft-context-popover{width:min(340px,calc(100vw - 16px))!important;max-height:min(54vh,380px)!important}.kft-context-field{grid-template-columns:minmax(0,1fr) minmax(100px,1fr)}}';
   document.head.appendChild(css);
 
+  let observedInputEvents = 0;
   window.kefeProjectAutosave = Object.freeze({
     saveNow: saveProject,
     queueSave,
     restore: restoreProject,
-    state: () => ({ restoring, hasSnapshot: !!localStorage.getItem(SAVE_KEY) })
+    state: () => {
+      const title = document.querySelector('#songTitle');
+      return { restoring, hasSnapshot: !!localStorage.getItem(SAVE_KEY), songTitleBound: !!title && boundControls.has(title), observedInputEvents };
+    }
   });
   const boundControls = new WeakSet();
   const fieldSelector = 'input:not([type="password"]), select, textarea';
   function bindControl(input) {
     if (boundControls.has(input)) return;
     boundControls.add(input);
-    input.addEventListener('input', queueSave);
+    input.addEventListener('input', () => { observedInputEvents++; queueSave(); });
     input.addEventListener('change', () => {
       if (input instanceof HTMLInputElement && input.type === 'file') {
         const file = input.files && input.files[0];
