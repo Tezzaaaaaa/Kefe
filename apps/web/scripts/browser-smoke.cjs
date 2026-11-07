@@ -434,7 +434,8 @@ async function captureEditorScreenState(page) {
     if (mobileToolbarPanel) assert.ok(mobileToolbarPanel.x >= 0
       && mobileToolbarPanel.x + mobileToolbarPanel.width <= mobileToolbarBounds.viewportWidth + 1,
       `expanded mobile toolbar must remain inside the viewport: ${JSON.stringify(mobileToolbarPanel)}`);
-    await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext("lyric"));
+    const selectedLyricEffect = page.locator('#lyricEffectOptions [data-effect].active').first();
+    if (await selectedLyricEffect.count()) await selectedLyricEffect.evaluate(node => node.click());
     if ((await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).count()) > 0) {
     await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();
     } else {
