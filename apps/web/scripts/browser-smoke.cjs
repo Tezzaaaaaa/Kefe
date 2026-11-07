@@ -278,6 +278,54 @@ async function captureEditorScreenState(page) {
       { label: "Visualiser", controls: ["Visualiser"] },
       { label: "Actions", controls: ["More actions"] }
     ], "toolbar actions must appear once in their intended functional groups");
+
+    // The existing Lyrics trigger becomes the active feature's settings surface without changing toolbar geometry.
+    const contextTrigger = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
+    await contextTrigger.click();
+    await page.locator(".kft-context-popover").waitFor({ state: "visible", timeout: 5000 });
+    assert.equal(await page.locator(".kft-context-popover .kft-label").textContent(), "Lyric effect settings",
+      "the context toolbar must initially expose the selected lyric effect settings");
+    await contextTrigger.click();
+
+    const activeVisualiser = page.locator('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary').first();
+    if (await activeVisualiser.count()) {
+      await activeVisualiser.evaluate(node => node.click());
+      assert.equal(await contextTrigger.getAttribute("title"), "Visualiser settings",
+        "selecting a visualiser must replace the active toolbar settings context");
+      await contextTrigger.click();
+      assert.equal(await page.locator(".kft-context-popover .kft-label").textContent(), "Visualiser settings",
+        "the visualiser context must expose the selected visualiser's settings");
+      await contextTrigger.click();
+    }
+    const activeBackground = page.locator('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]').first();
+    if (await activeBackground.count()) {
+      await activeBackground.evaluate(node => node.click());
+      assert.equal(await contextTrigger.getAttribute("title"), "Background effect settings",
+        "selecting a background effect must replace the active toolbar settings context");
+      await contextTrigger.click();
+      assert.equal(await page.locator(".kft-context-popover .kft-label").textContent(), "Background effect settings",
+        "the background context must expose the selected background's settings");
+      await contextTrigger.click();
+    }
+
+    // Autosave must persist edited project fields locally without requiring a manual save action.
+    const songTitle = page.locator("#songTitle");
+    const originalSongTitle = await songTitle.inputValue();
+    await songTitle.fill("__kefe_autosave_smoke__");
+    await page.waitForTimeout(900);
+    const autosaveDebug = await page.evaluate(() => {
+      const snapshot = JSON.parse(localStorage.getItem("kefe.project.autosave.v1") || "null");
+      return {
+        apiReady: !!window.kefeProjectAutosave,
+        state: window.kefeProjectAutosave?.state?.() || null,
+        savedTitle: snapshot?.values?.["#songTitle"]?.value ?? null
+      };
+    });
+    assert.equal(autosaveDebug.savedTitle, "__kefe_autosave_smoke__",
+      "editing a project field must trigger autosave automatically: " + JSON.stringify(autosaveDebug));
+    await songTitle.fill(originalSongTitle);
+    await page.waitForTimeout(800);
+
     const hasTimelineControlLayout = await page.locator(".kefe-stage > #previewFullscreen").count() === 1;
     if (hasTimelineControlLayout) {
       assert.equal(await page.locator(".kefe-timeline > #kefeFloatingToolbar").count(), 1,
