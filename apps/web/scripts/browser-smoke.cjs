@@ -278,12 +278,14 @@ async function captureEditorScreenState(page) {
     assert.deepEqual(toolbarGroups, [
       { label: "Layer", controls: ["Move toolbar. Drag, or use arrow keys to nudge. Double-click to re-dock.", "Move and scale layer"] },
       { label: "History", controls: ["Undo", "Redo"] },
-      { label: "Lyrics", controls: ["Lyric effect and text style", "Lyrics on or off"] },
+      { label: "Lyrics", controls: ["Lyric effect and text style"] },
       { label: "Canvas", controls: ["Canvas, background and visualiser"] },
       { label: "Visualiser", controls: ["Visualiser"] },
       { label: "Actions", controls: ["More actions"] }
     ], "toolbar actions must appear once in their intended functional groups");
 
+    assert.equal(await quickToolbar.getByRole("button", { name: "Lyrics on or off", exact: true }).count(), 0,
+      "the toolbar must not expose a lyrics visibility toggle");
     const contextTrigger = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
     await page.evaluate(() => {
       const results = document.getElementById("kefeHeaderSearchResults");
