@@ -307,6 +307,25 @@ async function captureEditorScreenState(page) {
       await page.locator(".kft-context-popover").waitFor({ state: "visible", timeout: 5000 });
       assert.ok(await page.locator(".kft-context-popover .kft-context-field").count() > 0,
         "the visualiser toolbar context must expose working visualiser controls");
+      const hiddenContextControls = await page.evaluate(() => {
+        const form = document.querySelector(".kefe-visualiser-form");
+        if (!form) return [];
+        const hidden = document.createElement("label");
+        hidden.hidden = true;
+        hidden.innerHTML = '<span>Inactive hidden visualiser setting</span><input type="range" min="0" max="1">';
+        const ariaHidden = document.createElement("div");
+        ariaHidden.setAttribute("aria-hidden", "true");
+        ariaHidden.innerHTML = '<label><span>Inactive aria-hidden visualiser setting</span><input type="range" min="0" max="1"></label>';
+        form.append(hidden, ariaHidden);
+        window.__kefeToolbarVisibilityFixtures = [hidden, ariaHidden];
+        return ["Inactive hidden visualiser setting", "Inactive aria-hidden visualiser setting"];
+      });
+      await page.waitForTimeout(60);
+      for (const label of hiddenContextControls) {
+        assert.equal(await page.locator(".kft-context-popover").getByText(label, { exact: true }).count(), 0,
+          "inactive or aria-hidden visualiser controls must not leak into the toolbar settings");
+      }
+      await page.evaluate(() => (window.__kefeToolbarVisibilityFixtures || []).forEach(node => node.remove()));
       await contextTrigger.click();
     }
     const activeBackground = page.locator('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]').first();
