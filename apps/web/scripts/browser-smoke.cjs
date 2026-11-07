@@ -866,6 +866,7 @@ async function captureEditorScreenState(page) {
           && panel.querySelector(":scope > .kefe-form")))
         && panels.every((panel) => !panel.querySelector(".beui-editor-panel-card"));
     }, null, { timeout: 20000 });
+    await openSection("media");
     await page.waitForSelector("#kefeUploadZone.beui-upload-dropzone", { state: "visible", timeout: 20000 });
     await page.waitForSelector("#kefeBgVideoZone", { state: "attached", timeout: 20000 });
     assert.equal(await page.locator("#kefeUploadZone").count(), 1, "there must be exactly one primary audio/video uploader");
