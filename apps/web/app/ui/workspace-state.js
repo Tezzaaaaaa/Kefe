@@ -189,7 +189,7 @@
     else if (context === 'visualiser') selected = $('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary');
     else selected = $('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]');
     const label = selected?.querySelector('.kefe-lyric-effect-name, .kefe-background-effect-name, .kefe-vis-tab-label')?.textContent || selected?.getAttribute('aria-label') || selected?.textContent || '';
-    return label.trim().replace(/\\s+/g, ' ').slice(0, 48);
+    return label.trim().replace(/\s+/g, ' ').slice(0, 48);
   }
   function contextTitle() { const name = selectedFeatureName(); return name ? name + ' settings' : config[context].title; }
   function setContext(next) {
