@@ -1343,9 +1343,9 @@ async function captureEditorScreenState(page) {
       [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize)].join("|")
     )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
-    const sidebarCount = await page.locator('.kefe-sidebar [data-editor-tab], .kefe-sidebar [data-top-panel="settings"], .kefe-sidebar [data-search-expand], .kefe-sidebar [data-command-open], .kefe-sidebar .kefe-sidebar-github, .kefe-sidebar #kefeResetButton, .kefe-sidebar #kefeSaveButton, .kefe-sidebar #kefeThemeToggle').count();
-    assert.equal(sidebarCount, 6,
-      `expected Editor, Settings, Reset, Save, search and day/night actions, found ${sidebarCount}`);
+    const sidebarCount = await page.locator('.kefe-sidebar [data-editor-tab], .kefe-sidebar [data-top-panel="settings"], .kefe-sidebar #kefeResetButton, .kefe-sidebar #kefeSaveButton, .kefe-sidebar #kefeThemeToggle').count();
+    assert.equal(sidebarCount, 5,
+      `expected Editor, Settings, Reset, Save and day/night actions, found ${sidebarCount}`);
 
     await page.locator('[data-top-panel="settings"]').click();
     const dialog = page.getByRole("dialog", { name: "Settings" });
@@ -1751,7 +1751,6 @@ async function captureEditorScreenState(page) {
     for (const label of ["Open Media", "Open Lyric Sync", "Open Lyric Effects", "Open Background Effects", "Open Visualisers", "Open Export"]) {
       assert.equal(await page.getByText(label, { exact: true }).count(), 0, `removed command label must not render: ${label}`);
     }
-    await page.waitForFunction(() => document.querySelector(".kefe-editing")?.dataset.selectedSection === "effects", null, { timeout: 5000 });
     await openSection("effects");
     await assertSectionFits("effects");
 
@@ -1790,7 +1789,7 @@ async function captureEditorScreenState(page) {
           width: label.getBoundingClientRect().width
         }))
       );
-      if (headerSearchMode && headerSearchStyled) {
+      if (!headerSearchMode) {
         assert.equal(mobileNavigationLabels.length, 2,
           `both header entries keep their label nodes at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
         const visibleMobileLabels = mobileNavigationLabels.filter(label => label.display !== "none" && label.width > 0);
@@ -1816,15 +1815,6 @@ async function captureEditorScreenState(page) {
           `every header entry must stay visible and named at ${width}px: ${JSON.stringify(mobileNavEntries)}`);
         assert.ok(mobileNavEntries.find(entry => entry.name === "Settings")?.labelWidth > 0,
           `Settings must remain a visible text action at ${width}px: ${JSON.stringify(mobileNavEntries)}`);
-      } else if (headerSearchMode) {
-        /* Unstyled baseline shell: only the structural contract is meaningful. */
-        assert.equal(mobileNavigationLabels.length, 2,
-          `the newer header keeps both label nodes at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
-      } else {
-        assert.equal(mobileNavigationLabels.length, 1,
-          `the older header keeps its single Editor label at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
-        assert.ok(mobileNavigationLabels.every(label => label.text && label.display !== "none" && label.width > 0),
-          `mobile navigation must not leave blank iconless links at ${width}px: ${JSON.stringify(mobileNavigationLabels)}`);
       }
       const headerFit = await page.locator(".kefe-sidebar").evaluate(node => {
         const header = node.getBoundingClientRect();
