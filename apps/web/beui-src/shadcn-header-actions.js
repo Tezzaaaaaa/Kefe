@@ -97,7 +97,7 @@ function mountHeaderActions() {
 }
 function mountEditorSectionTabs() {
   const nav = document.querySelector('.kefe-tabs');
-  if (!nav || nav.dataset.shadcnHydrated) return;
+  if (!nav || nav.dataset.shadcnRoot) return;
   nav.dataset.shadcnTabStatus = 'checking';
   const backingButtons = Array.from(nav.querySelectorAll(':scope > button.kefe-section[data-panel]'));
   if (backingButtons.length !== 6) {
@@ -111,7 +111,6 @@ function mountEditorSectionTabs() {
   backingButtons.forEach(button => backing.append(button));
   nav.after(backing);
   nav.dataset.slot = 'tabs';
-  nav.dataset.shadcnHydrated = 'true';
   function SectionTabs() {
     const [value, setValue] = React.useState(backingButtons.find(button => button.classList.contains('active'))?.dataset.panel || 'media');
     React.useEffect(() => {
