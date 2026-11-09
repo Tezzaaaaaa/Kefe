@@ -32,6 +32,17 @@ const server = http.createServer((req, res) => {
       await page.waitForSelector('.kefe-sidebar-bottom[data-shadcn-hydrated="true"]');
       await page.waitForFunction(() => window.kefeProjectAutosave);
       await page.waitForFunction(() => ['.kefe-header-settings', '#previewFullscreen'].every(selector => document.querySelector(selector)?.dataset.shadcnHydrated === 'true'));
+      await page.waitForSelector('.kefe-sidebar-group-editor [data-editor-tab][data-slot="button"]');
+      await page.waitForSelector('.kefe-workspace-dock[data-shadcn-hydrated="true"]');
+      const navigation = page.locator('.kefe-sidebar-editor-link');
+      assert.equal(await navigation.getAttribute('data-slot'), 'button', 'Editor navigation uses shadcn Button');
+      assert.equal(await navigation.getAttribute('data-variant'), 'ghost');
+      const dockButtons = page.locator('.kefe-workspace-dock > button');
+      assert.equal(await dockButtons.count(), 6, 'all five section shortcuts and export shortcut remain present');
+      for (let index = 0; index < await dockButtons.count(); index += 1) {
+        assert.equal(await dockButtons.nth(index).getAttribute('data-slot'), 'button', `workspace dock shortcut ${index + 1} is a shadcn Button`);
+        assert.equal(await dockButtons.nth(index).getAttribute('data-variant'), 'ghost');
+      }
       for (const selector of ['.kefe-header-settings', '#previewFullscreen']) {
         const control = page.locator(selector);
         assert.equal(await control.getAttribute('data-slot'), 'button', `${selector} is a shadcn Button`);
