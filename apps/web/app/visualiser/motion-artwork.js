@@ -24,7 +24,7 @@
     host.appendChild(root);
     const $ = id => root.querySelector('#' + id);
     const canvas = $('kmaPreview'), ctx = canvas.getContext('2d');
-    const image = new Image();
+    let image = new Image();
     let loaded = false, start = performance.now(), raf = 0, exporting = false;
     const values = () => ({style:$('kmaStyle').value,intensity:Number($('kmaIntensity').value)/100,softness:Number($('kmaSoftness').value)/100,lighting:Number($('kmaLighting').value)/100});
     function setAspect() {
@@ -64,10 +64,30 @@
     $('kmaImage').addEventListener('change',()=>{
       const file=$('kmaImage').files&&$('kmaImage').files[0];if(!file)return;
       if(!/^image\/(jpeg|png|webp)$/.test(file.type)){ $('kmaFoot').textContent='Choose a JPG, PNG or WebP image.';return; }
-      const url=URL.createObjectURL(file);
-      image.onload=()=>{loaded=true;URL.revokeObjectURL(url);$('kmaFileName').textContent=file.name;$('kmaExport').disabled=false;status('Artwork loaded');$('kmaFoot').textContent='Preview loops continuously. Export captures an 8-second seamless motion cycle.';};
-      image.onerror=()=>{URL.revokeObjectURL(url);$('kmaFoot').textContent='This image could not be opened.';};image.src=url;
+      const url=URL.createObjectURL(file),uploadedImage=new Image();
+      uploadedImage.onload=()=>{image=uploadedImage;loaded=true;URL.revokeObjectURL(url);$('kmaFileName').textContent=file.name;$('kmaExport').disabled=false;status('Artwork loaded');$('kmaFoot').textContent='Using your uploaded artwork. Selecting a song in Find Your Song will replace it with that track’s cover.';};
+      uploadedImage.onerror=()=>{URL.revokeObjectURL(url);$('kmaFoot').textContent='This image could not be opened.';};uploadedImage.src=url;
     });
+    function useTrackArtwork(detail){
+      const sourceImage=detail&&detail.image;
+      if(!sourceImage||!sourceImage.complete||!sourceImage.naturalWidth){
+        loaded=false;image=new Image();$('kmaExport').disabled=true;
+        $('kmaFileName').textContent='Waiting for song artwork';
+        status('No track artwork');$('kmaFoot').textContent='Upload artwork or choose a song with available album artwork.';
+        return;
+      }
+      image=sourceImage;loaded=true;$('kmaExport').disabled=false;
+      const title=[detail.title,detail.artist].filter(Boolean).join(' — ');
+      $('kmaFileName').textContent=title||'Current song artwork';
+      const labels={'uploaded-audio':'Embedded in uploaded audio','selected-song':'Selected from Find Your Song','track-metadata':'Current track artwork'};
+      status('Track artwork loaded');
+      $('kmaFoot').textContent='Using '+(labels[detail.source]||'current track artwork')+(title?' for '+title:'')+'. Upload a different cover to override it.';
+    }
+    window.addEventListener('kefe-album-artwork-changed',event=>useTrackArtwork(event.detail));
+    const currentArtwork=window.kefeGetAlbumArt&&window.kefeGetAlbumArt();
+    if(currentArtwork&&currentArtwork.complete&&currentArtwork.naturalWidth){
+      useTrackArtwork({image:currentArtwork,source:'track-metadata'});
+    }
     ['kmaStyle','kmaAspect'].forEach(id=>$(id).addEventListener('change',()=>{if(id==='kmaAspect')setAspect();}));
     ['kmaIntensity','kmaSoftness','kmaLighting'].forEach(id=>$(id).addEventListener('input',()=>{$(id+'Value').textContent=$(id).value+'%';}));
     $('kmaExport').addEventListener('click',async()=>{
