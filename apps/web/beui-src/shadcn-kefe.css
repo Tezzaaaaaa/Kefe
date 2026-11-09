@@ -1512,5 +1512,3 @@ html:root .kefe-alert .shad-btn.kefe-alert-close { min-width: 28px; min-height: 
 .kefe-tabs [data-slot="tabs-list"] { display: contents; }
 .kefe-tabs [data-slot="tabs-trigger"] { flex: 0 0 auto; }
 
-/* React-owned shadcn panel actions retain their original layout position. */
-.shad-panel-action-host { display: contents; }

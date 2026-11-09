@@ -56,8 +56,9 @@ the migrated components here are adapted from shadcn/ui and use Radix UI.
 - The editor shell, preview stage, timeline layout, panel containers and form
   grouping still use KEFE's existing DOM and styles rather than shadcn layout
   components. Toolbar popover shells and upload/dropzone surfaces remain custom.
-- Non-gallery media and lyric-studio cards, mobile navigation surfaces and the
-  standalone lyric demo's surrounding layout still need component migration.
+- Remaining panel action buttons, non-gallery media and lyric-studio cards,
+  mobile navigation surfaces and the standalone lyric demo's surrounding layout
+  still need component migration.
   The old command-palette and mobile-drawer modules are not loaded by the editor.
 - Desktop and mobile editor layouts, settings, lyric timing and export flows still
   rely on KEFE's existing rendering and state contracts; those behaviours must

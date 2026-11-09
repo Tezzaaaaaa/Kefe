@@ -49,12 +49,6 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => [...document.querySelectorAll('#kefeTimingEditor, #kefeMediaTrack, .kefe-upload-card')].every(card => card.dataset.shadcnHydrated === 'true'));
       assert.equal(await page.locator('#kefeUploadZone .kefe-upload-card').getAttribute('data-slot'), 'card', 'media upload surface uses shadcn Card');
       assert.equal(await page.locator('#kefeMediaTrack').getAttribute('data-slot'), 'card', 'identified media card uses shadcn Card');
-      const panelActions = page.locator('.kefe-panel button.kefe-panel-action');
-      await page.waitForFunction(() => [...document.querySelectorAll('.kefe-panel button.kefe-panel-action')].every(button => button.dataset.shadcnHydrated === 'true'));
-      assert.ok(await panelActions.count() > 0, 'editor panel actions are present');
-      for (let index = 0; index < await panelActions.count(); index += 1) {
-        assert.equal(await panelActions.nth(index).getAttribute('data-slot'), 'button', 'panel action is a shadcn Button');
-      }
       const dockButtons = page.locator('.kefe-workspace-dock > button');
       assert.equal(await dockButtons.count(), 6, 'all five section shortcuts and export shortcut remain present');
       for (let index = 0; index < await dockButtons.count(); index += 1) {

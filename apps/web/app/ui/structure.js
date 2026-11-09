@@ -22,7 +22,6 @@ function decoratePanelAction(button) {
       || button.closest(panelActionExclusions)) return;
   button.type = 'button';
   button.classList.add('kefe-panel-action');
-  window.kefeHydratePanelAction?.(button);
 }
 function scanPanelActions(root = document) {
   if (root instanceof HTMLButtonElement) decoratePanelAction(root);
