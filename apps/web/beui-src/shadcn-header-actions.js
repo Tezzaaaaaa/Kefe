@@ -1,10 +1,9 @@
 /* Hydrate the Settings action as a shadcn Button without inserting a wrapper.
    The original navigation children and fullscreen stage structure stay intact. */
 import * as React from 'react';
-import { createRoot, hydrateRoot } from 'react-dom/client';
+import { hydrateRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { Button } from '../components/ui/button.js';
-import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs.js';
 
 function mountHeaderActions() {
   const group = document.querySelector('.kefe-sidebar-bottom');
@@ -95,63 +94,6 @@ function mountHeaderActions() {
     fullscreen.dataset.shadcnHydrated = 'true';
   }
 }
-function mountEditorSectionTabs() {
-  const nav = document.querySelector('.kefe-tabs');
-  if (!nav || nav.dataset.shadcnRoot) return;
-  nav.dataset.shadcnTabStatus = 'checking';
-  const backingButtons = Array.from(nav.querySelectorAll(':scope > button.kefe-section[data-panel]'));
-  if (backingButtons.length !== 6) {
-    nav.dataset.shadcnTabStatus = `skipped:${backingButtons.length}:${Array.from(nav.children).map(node => node.tagName + '.' + node.className).join('|')}`;
-    return;
-  }
-  const backing = document.createElement('div');
-  backing.hidden = true;
-  backing.setAttribute('aria-hidden', 'true');
-  backing.dataset.kefeSectionBacking = 'true';
-  backingButtons.forEach(button => backing.append(button));
-  nav.after(backing);
-  nav.dataset.slot = 'tabs';
-  function SectionTabs() {
-    const [value, setValue] = React.useState(backingButtons.find(button => button.classList.contains('active'))?.dataset.panel || 'media');
-    React.useEffect(() => {
-      const listeners = backingButtons.map(button => {
-        const sync = () => setValue(button.dataset.panel);
-        button.addEventListener('click', sync);
-        return () => button.removeEventListener('click', sync);
-      });
-      return () => listeners.forEach(remove => remove());
-    }, []);
-    return React.createElement(Tabs, {
-      value,
-      onValueChange: next => {
-        setValue(next);
-        const target = backingButtons.find(button => button.dataset.panel === next);
-        if (target && !target.classList.contains('active')) target.click();
-      },
-      style: { display: 'contents' },
-    }, React.createElement(TabsList, {
-      className: 'kefe-tabs-list',
-      'aria-label': 'Editor sections',
-    }, backingButtons.map(button => React.createElement(TabsTrigger, {
-      key: button.dataset.panel,
-      value: button.dataset.panel,
-      className: 'kefe-section' + (value === button.dataset.panel ? ' active' : ''),
-      'data-panel': button.dataset.panel,
-      type: 'button',
-    }, button.textContent.trim()))));
-  }
-  const root = createRoot(nav);
-  try {
-    flushSync(() => root.render(React.createElement(SectionTabs)));
-    nav.dataset.shadcnRoot = 'true';
-    nav.dataset.shadcnTabStatus = 'mounted';
-  } catch (error) {
-    nav.dataset.shadcnTabStatus = 'error:' + String(error?.message || error);
-    throw error;
-  }
-  nav.dataset.shadcnTabStatus = 'mounted';
-}
-
 function mountWorkspaceDock() {
   const dock = document.querySelector('.kefe-workspace-dock');
   if (!dock || dock.dataset.shadcnHydrated) return;
@@ -187,5 +129,5 @@ function mountWorkspaceDock() {
   dock.dataset.shadcnHydrated = 'true';
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mountHeaderActions(); mountEditorSectionTabs(); mountWorkspaceDock(); }, { once: true });
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mountHeaderActions(); mountWorkspaceDock(); }, { once: true });
 else { mountHeaderActions(); mountEditorSectionTabs(); mountWorkspaceDock(); }

@@ -1507,10 +1507,6 @@ html:root .kefe-alert .shad-btn.kefe-alert-close { min-width: 28px; min-height: 
    mounted while its workspace was hidden and has not measured its width yet. */
 .kefe-panel .shad-slider-container { box-sizing: border-box; padding-inline: 8px; }
 
-/* The main editor section navigation is a Radix Tabs list; keep its existing KEFE layout. */
-.kefe-tabs [data-slot="tabs"],
-.kefe-tabs [data-slot="tabs-list"] { display: contents; }
-.kefe-tabs [data-slot="tabs-trigger"] { flex: 0 0 auto; }
 
 
 /* React-owned panel Card roots preserve the original editor panel geometry. */
