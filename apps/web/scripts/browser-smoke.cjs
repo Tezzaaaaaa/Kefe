@@ -1066,7 +1066,8 @@ async function captureEditorScreenState(page) {
 
     async function openSection(section) {
       const workspace = ["media", "lyrics"].includes(section) ? "content"
-        : ["effects", "background-effects"].includes(section) ? "design" : "audio-visuals";
+        : ["effects", "background-effects"].includes(section) ? "design"
+        : section === "export" ? "export" : "audio-visuals";
       const tab = page.locator('[role="tab"][data-workspace-tab="' + workspace + '"]');
       await tab.evaluate(node => node.click());
       await page.waitForFunction(expected => document.querySelector('[role="tab"][data-workspace-tab="' + expected + '"]')?.getAttribute("aria-selected") === "true", workspace, { timeout: 5000 });
