@@ -1,21 +1,25 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Synced lyrics</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="stylesheet" href="./app/ui/styles.css?v=visualiser-gallery-20261101-1"><script type="module" src="./app/ui/icons.js"></script></head><body class="kefe-standalone-lyrics">
+<link rel="stylesheet" href="./app/ui/styles.css?v=standalone-20261109" ><link rel="stylesheet" href="./app/ui/section-dropdowns.css?v=standalone-20261109" >  <script type="module" crossorigin src="./assets/standalone-B6JVJRG5.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/index-Cw2YJ3xJ.js">
+  <link rel="modulepreload" crossorigin href="./assets/accordion-DH0ILxaz.js">
+  <link rel="stylesheet" crossorigin href="./assets/style-Ccoq1W-F.css">
+</head><body class="kefe-standalone-lyrics">
 <div id="phone"><div id="bg"></div><div id="shade"></div>
-<div id="hdr"><div id="grab"></div><img id="art" alt=""><div id="ttl"></div><div id="art2"></div><div id="ctl"><div id="pb"><i id="pf"></i></div><div id="pts"><span id="p0">0:00</span><span id="p1">-0:00</span></div><div id="pcs"><span data-kefe-icon="play" aria-hidden="true"></span><span data-kefe-icon="pause" aria-hidden="true"></span><span data-kefe-icon="skip-forward" aria-hidden="true"></span></div></div></div>
+<div id="hdr"><div id="grab"></div><img id="art" alt=""><div id="ttl"></div><div id="art2"></div><div id="ctl"><div id="pb"><i id="pf"></i></div><div id="pts"><span id="p0">0:00</span><span id="p1">-0:00</span></div><div id="pcs"><button type="button" id="pcv" aria-label="Previous lyric"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h2v16H6zM19 4v16L9 12z"/></svg></button><button type="button" id="pcp" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15L19.5 12z"/></svg></button><button type="button" id="pcn" aria-label="Next lyric"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 4h2v16h-2zM5 4v16l10-8z"/></svg></button></div></div></div>
 <div id="vp"><div id="lyr"></div></div></div>
 <div id="tp"><button id="pp">Play</button><input type="range" id="sc" min="0" max="30" step="0.01" value="0" aria-label="Seek"><span id="tm">0:00</span></div>
 <div id="ui">
 <details open><summary>Lyric look</summary><div class="g2" id="c1"></div></details>
 <details><summary>Lyrics, song &amp; audio</summary>
-<div class="row"><input type="text" id="tin" placeholder="Title" style="flex:1"><input type="text" id="ain" placeholder="Artist" style="flex:1"></div>
+<div class="row"><input type="text" id="tin" aria-label="Title" placeholder="Title" style="flex:1"><input type="text" id="ain" aria-label="Artist" placeholder="Artist" style="flex:1"></div>
 <textarea id="tx" aria-label="Lyrics"></textarea>
 <div class="row" style="margin-top:8px"><button id="ap">Apply lyrics</button><label style="gap:6px">Audio <input type="file" id="af" accept="audio/*"></label><label style="gap:6px">LRC <input type="file" id="lf" accept=".lrc,.txt"></label><label style="gap:6px">Cover <input type="file" id="cf" accept="image/*"></label></div>
 <div style="font-size:12px;opacity:.7">Paste plain lines, LRC lines like [00:12.30] text, or word-timed lines like [00:12.30] &lt;00:12.30&gt;hello &lt;00:12.80&gt;world. Add an end time right after a word (hello&lt;00:12.60&gt;) and its fill finishes there and waits. Text in (brackets) becomes a small backing-vocal line.</div></details>
 <div class="row"><button id="rs">Reset look</button></div></div>
 <audio id="au" preload="auto"></audio>
 <script>
-const $=id=>document.getElementById(id),cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),sm=u=>u<=0?0:u>=1?1:u*u*(3-2*u),esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const $=id=>document.getElementById(id),cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),sm=u=>u<=0?0:u>=1?1:u*u*(3-2*u);
 const THM={mono:['Mono','#1e1e1e',['#6b6b6b','#3d3d3d','#8c8c8c','#2b2b2b','#555555']],warm:['Warm','#241410',['#c4573a','#7a2a1a','#e0a060','#3a1a10','#9c4a2a']],blue:['Blue','#0d1626',['#3a6fd8','#1c3a7a','#7fb2ff','#12244a','#2c55a8']],pink:['Pink','#1f0f1b',['#d8479a','#7a2257','#ff9bd0','#3b1030','#a8327a']],green:['Green','#0e1d17',['#2fa86a','#165a3a','#8affc0','#0d3324','#238a55']]};
 const DEF={ratio:'v',theme:'mono',size:1,lift:.1,pop:.04,glow:.8,gs:.38,soft:.35,fall:.28,stag:.01,dim:.32,blur:1,fade:1,anchor:.255,st:.55,ls:28,bgm:1,secs:3.4,rate:1,bgv:1,hdr:1,loop:1};
 const S={...DEF};
@@ -52,8 +56,10 @@ function parse(text,secs){
 let lines=[],phone=$('phone'),lyr=$('lyr'),u=5,act=-1,Y=[],P=[],V=[],T=[],G=[];
 function build(){lyr.innerHTML='';act=-1;P=[];V=[];
  lines.forEach(L=>{const el=document.createElement('div');el.className='ln future';
-  const html=L.words.map(w=>`<b class="w">${[...w.w].map(c=>`<i>${esc(c)}</i>`).join('')}</b>`).join(' ');
-  el.innerHTML=`<div class="lg">${html}</div><div class="lt">${html}</div>`+(L.bg?`<div class="bgv">${esc(L.bg)}</div>`:'');
+  for(const cls of ['lg','lt']){const line=document.createElement('div');line.className=cls;
+   L.words.forEach((word,index)=>{if(index)line.append(' ');const b=document.createElement('b');b.className='w';
+    for(const c of word.w){const i=document.createElement('i');i.textContent=c;b.append(i)}line.append(b)});el.append(line)}
+  if(L.bg){const bg=document.createElement('div');bg.className='bgv';bg.textContent=L.bg;el.append(bg)}
   el.onclick=()=>seek(L.t+.01);lyr.append(el);L.el=el;L.state='future';L._y=null;
   L.lt=[...el.querySelectorAll('.lt .w')].map(w=>[...w.querySelectorAll('i')]);
   L.lg=[...el.querySelectorAll('.lg .w')].map(w=>[...w.querySelectorAll('i')]);
@@ -91,12 +97,18 @@ const au=$('au');let hasAudio=false,t=0,playing=false,last=performance.now(),dra
 const total=()=>hasAudio&&isFinite(au.duration)?au.duration:(lines.length?lines[lines.length-1].e+2:10);
 function seek(x){t=cl(x,0,total());if(hasAudio){au.currentTime=t;ct0=-1}if(!playing)setPlay(true)}
 const IC_PLAY='<path d="M7 4.5v15L19.5 12z"/>',IC_PAUSE='<path d="M6 4h4.5v16H6zM13.5 4H18v16h-4.5z"/>';
-function setPlay(p){playing=p;$('pp').textContent=p?'Pause':'Play';$('pcp').innerHTML=p?IC_PAUSE:IC_PLAY;ct0=-1;if(hasAudio){p?au.play().catch(()=>{}):au.pause()}}
+function setPlay(p){playing=p;$('pp').textContent=p?'Pause':'Play';$('pcp').querySelector('svg').innerHTML=p?IC_PAUSE:IC_PLAY;$('pcp').setAttribute('aria-label',p?'Pause':'Play');ct0=-1;if(hasAudio){p?au.play().catch(()=>{}):au.pause()}}
 $('pp').onclick=()=>setPlay(!playing);$('pcp').onclick=()=>setPlay(!playing);
 $('pcv').onclick=()=>{if(!lines.length)return;const c=lines[Math.max(0,act)];seek(t-c.t>2?c.t+.01:(lines[Math.max(0,act-1)]).t+.01)};
 $('pcn').onclick=()=>{if(lines.length)seek(lines[Math.min(lines.length-1,act+1)].t+.01)};
 $('pb').onclick=e=>{const r=e.currentTarget.getBoundingClientRect();seek((e.clientX-r.left)/r.width*total())};
-$('sc').oninput=e=>{t=+e.target.value;if(hasAudio){au.currentTime=t;ct0=-1}drag=true};$('sc').onchange=()=>drag=false;
+$('sc').oninput=e=>{t=+e.target.value;if(hasAudio){au.currentTime=t;ct0=-1}};
+$('sc').onchange=()=>drag=false;
+// Radix commits keyboard changes before dispatching input. Track pointer drags
+// independently so keyboard seeking never leaves the clock stuck in drag mode.
+$('tp').addEventListener('pointerdown',e=>{if(e.target===$('sc')||e.target.closest('.shad-slider'))drag=true},true);
+window.addEventListener('pointerup',()=>{drag=false});
+window.addEventListener('pointercancel',()=>{drag=false});
 const fmt=x=>`${Math.floor(x/60)}:${String(Math.floor(x%60)).padStart(2,'0')}`;
 // audio.currentTime only updates in coarse steps; interpolate between them so the fill never stutters
 function tick(now,dt){if(!playing)return;
@@ -139,9 +151,11 @@ function apply(rebuild){setRatio();phone.style.setProperty('--sz',S.size);phone.
 $('rs').onclick=()=>{Object.assign(S,DEF);ui();apply(true)};
 $('ap').onclick=()=>{apply(true);t=0;if(hasAudio){au.currentTime=0;ct0=-1}};
 $('tin').oninput=e=>$('ttl').textContent=e.target.value;$('ain').oninput=e=>$('art2').textContent=e.target.value;
-$('af').onchange=e=>{const f=e.target.files[0];if(!f)return;au.src=URL.createObjectURL(f);hasAudio=true;au.onloadedmetadata=()=>{$('sc').max=au.duration};t=0;setPlay(false)};
+// Uploaded files may only be loaded through browser-created blob URLs, never an executable URL.
+function localMediaURL(file){const url=new URL(URL.createObjectURL(file),document.baseURI);if(url.protocol!=='blob:')throw new Error('Invalid local media URL');return url.href}
+$('af').onchange=e=>{const f=e.target.files[0];if(!f)return;au.src=localMediaURL(f);hasAudio=true;au.onloadedmetadata=()=>{$('sc').max=au.duration};t=0;setPlay(false)};
 $('lf').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(s=>{$('tx').value=s;apply(true);t=0;if(hasAudio){au.currentTime=0;ct0=-1}})};
-$('cf').onchange=e=>{const f=e.target.files[0];if(f)$('art').src=URL.createObjectURL(f)};
+$('cf').onchange=e=>{const f=e.target.files[0];if(f)$('art').src=localMediaURL(f)};
 function defaultArt(){const c=document.createElement('canvas');c.width=c.height=240;const x=c.getContext('2d');let g=x.createLinearGradient(0,0,240,240);g.addColorStop(0,'#d8d8d8');g.addColorStop(1,'#222');x.fillStyle=g;x.fillRect(0,0,240,240);x.fillStyle='rgba(0,0,0,.55)';x.beginPath();x.arc(120,120,84,0,7);x.fill();for(let r=70;r>10;r-=14){x.strokeStyle=`rgba(255,255,255,${r/260})`;x.lineWidth=2;x.beginPath();x.arc(120,120,r,0,7);x.stroke()}x.fillStyle='#ddd';x.beginPath();x.arc(120,120,8,0,7);x.fill();return c.toDataURL()}
 $('art').src=defaultArt();$('tin').value='Song title';$('ain').value='Artist';$('ttl').textContent='Song title';$('art2').textContent='Artist';$('tx').value=DEMO;
 ui();setRatio();
