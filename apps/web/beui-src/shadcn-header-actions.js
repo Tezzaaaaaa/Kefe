@@ -80,7 +80,6 @@ function mountHeaderActions() {
 
   const fullscreen = document.getElementById('previewFullscreen');
   if (fullscreen && !fullscreen.dataset.shadcnHydrated) {
-    fullscreen.classList.add('shad-btn', 'shad-btn--ghost');
     fullscreen.dataset.slot = 'button';
     fullscreen.dataset.variant = 'ghost';
     fullscreen.dataset.size = 'icon';
