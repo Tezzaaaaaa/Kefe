@@ -147,9 +147,11 @@ function apply(rebuild){setRatio();phone.style.setProperty('--sz',S.size);phone.
 $('rs').onclick=()=>{Object.assign(S,DEF);ui();apply(true)};
 $('ap').onclick=()=>{apply(true);t=0;if(hasAudio){au.currentTime=0;ct0=-1}};
 $('tin').oninput=e=>$('ttl').textContent=e.target.value;$('ain').oninput=e=>$('art2').textContent=e.target.value;
-$('af').onchange=e=>{const f=e.target.files[0];if(!f)return;au.src=URL.createObjectURL(f);hasAudio=true;au.onloadedmetadata=()=>{$('sc').max=au.duration};t=0;setPlay(false)};
+// Uploaded files may only be loaded through browser-created blob URLs, never an executable URL.
+function localMediaURL(file){const url=new URL(URL.createObjectURL(file),document.baseURI);if(url.protocol!=='blob:')throw new Error('Invalid local media URL');return url.href}
+$('af').onchange=e=>{const f=e.target.files[0];if(!f)return;au.src=localMediaURL(f);hasAudio=true;au.onloadedmetadata=()=>{$('sc').max=au.duration};t=0;setPlay(false)};
 $('lf').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(s=>{$('tx').value=s;apply(true);t=0;if(hasAudio){au.currentTime=0;ct0=-1}})};
-$('cf').onchange=e=>{const f=e.target.files[0];if(f)$('art').src=URL.createObjectURL(f)};
+$('cf').onchange=e=>{const f=e.target.files[0];if(f)$('art').src=localMediaURL(f)};
 function defaultArt(){const c=document.createElement('canvas');c.width=c.height=240;const x=c.getContext('2d');let g=x.createLinearGradient(0,0,240,240);g.addColorStop(0,'#d8d8d8');g.addColorStop(1,'#222');x.fillStyle=g;x.fillRect(0,0,240,240);x.fillStyle='rgba(0,0,0,.55)';x.beginPath();x.arc(120,120,84,0,7);x.fill();for(let r=70;r>10;r-=14){x.strokeStyle=`rgba(255,255,255,${r/260})`;x.lineWidth=2;x.beginPath();x.arc(120,120,r,0,7);x.stroke()}x.fillStyle='#ddd';x.beginPath();x.arc(120,120,8,0,7);x.fill();return c.toDataURL()}
 $('art').src=defaultArt();$('tin').value='Song title';$('ain').value='Artist';$('ttl').textContent='Song title';$('art2').textContent='Artist';$('tx').value=DEMO;
 ui();setRatio();

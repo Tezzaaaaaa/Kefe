@@ -118,6 +118,8 @@ function audioFixture() {
       assert.match(await page.locator('#lyr .lt').first().textContent(), /<img src=x onerror=alert\(1\)> & lyrics/);
       await page.locator('#lf').setInputFiles({ name: 'example.lrc', mimeType: 'text/plain', buffer: Buffer.from('[00:00.20] Uploaded first\n[00:02.00] Uploaded second') });
       await page.waitForFunction(() => document.querySelector('#tx').value.includes('Uploaded first') && document.querySelectorAll('#lyr .ln').length === 2);
+      await page.locator('#cf').setInputFiles({ name: 'cover.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/aZkAAAAASUVORK5CYII=', 'base64') });
+      assert.match(await page.locator('#art').getAttribute('src'), /^blob:/);
       await page.locator('#af').setInputFiles({ name: 'music.wav', mimeType: 'audio/wav', buffer: audioFixture() });
       await page.waitForFunction(() => document.querySelector('#au').duration === 10);
       await page.locator('#rs').click();
