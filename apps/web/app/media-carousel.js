@@ -478,7 +478,7 @@
     if(reset){
       S.items=[];S.artists=[];S.mode='matches';S.filter='song';S.index=0;el.CarBack.hidden=true;
     }else{
-      S.items=catalogue.concat(S.localUpload?[S.localUpload]:[]);
+      S.items=catalogue;
       if(S.index>=S.items.length)S.index=0;
     }
     render();
