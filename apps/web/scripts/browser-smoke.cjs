@@ -1494,8 +1494,15 @@ async function captureEditorScreenState(page) {
         fileName: "kefe-visual-regression-fixture.wav",
         durationSeconds: 5,
       };
-      await screenshotPage.waitForFunction(() => typeof window.kefeCarousel?.setLocalUpload === "function", null, { timeout: 10000 });
-      await screenshotPage.evaluate((item) => window.kefeCarousel.setLocalUpload(item, true), carouselFixture);
+      await screenshotPage.waitForFunction(() => typeof window.kefeCarousel?.showMatches === "function", null, { timeout: 10000 });
+      await screenshotPage.evaluate((item) => window.kefeCarousel.showMatches([{
+        trackName: item.trackName,
+        artistName: item.artistName,
+        collectionName: item.collectionName,
+        trackTimeMillis: item.durationSeconds * 1000,
+        trackId: 987654321,
+        wrapperType: "track",
+      }], "Confirm the song that matches your uploaded audio."), carouselFixture);
       await screenshotPage.locator("#kefeCarousel").scrollIntoViewIfNeeded();
       const fixtureCard = screenshotPage.locator('#kefeCarStack .ks-face.ks-cv:visible').first();
       await fixtureCard.waitFor({ state: "visible", timeout: 10000 });
