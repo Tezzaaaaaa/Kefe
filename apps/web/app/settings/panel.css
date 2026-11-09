@@ -830,13 +830,13 @@
 }
 
 
-/* Persistent workspace tabs: all three destinations remain visible and switch in place. */
+/* Persistent workspace tabs: all four destinations remain visible and switch in place. */
 .kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
   position: sticky;
   top: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
   width: 100%;
   padding: 7px;
