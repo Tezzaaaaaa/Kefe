@@ -1748,8 +1748,6 @@
     clearTitleArtwork();
     delete songAlbum.dataset.platformId;delete songAlbum.dataset.trackDuration;
     /* Invalidate pending work from the previous upload immediately. */
-    manualSearchSeq++;
-    clearTimeout(manualSearchTimer);
     lyricsRequest++;
     if(activeLyricsController){activeLyricsController.abort();activeLyricsController=null;}
     manuallyEditedTrackFields.clear();
