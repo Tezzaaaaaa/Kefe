@@ -116,7 +116,9 @@ document.querySelectorAll('[data-dock-panel]').forEach(button => button.addEvent
   document.querySelector('.kefe-editing')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }));
 document.querySelector('[data-dock-export]')?.addEventListener('click', () => {
-  document.querySelector('.kefe-section[data-panel="export"]')?.click();
+  const adapter = window.kefeSettingsPanelAdapter;
+  if (adapter && typeof adapter.activateSection === 'function') adapter.activateSection('export');
+  else document.querySelector('.kefe-section[data-panel="export"]')?.click();
   document.querySelector('.kefe-editing')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
