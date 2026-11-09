@@ -98,8 +98,8 @@ function mountHeaderActions() {
 function mountEditorSectionTabs() {
   const nav = document.querySelector('.kefe-tabs');
   if (!nav || nav.dataset.shadcnHydrated) return;
-  const backingButtons = Array.from(nav.children);
-  if (backingButtons.length !== 6 || backingButtons.some(button => !button.matches('button.kefe-section[data-panel]'))) return;
+  const backingButtons = Array.from(nav.querySelectorAll(':scope > button.kefe-section[data-panel]'));
+  if (backingButtons.length !== 6) return;
   const backing = document.createElement('div');
   backing.hidden = true;
   backing.setAttribute('aria-hidden', 'true');
