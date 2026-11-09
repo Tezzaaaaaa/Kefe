@@ -1,35 +1,9 @@
-/* Hydrate header actions as shadcn Buttons where a wrapper is structurally safe.
-   The stage fullscreen control stays in its canonical direct-child position. */
+/* Hydrate the Settings action as a shadcn Button without inserting a wrapper.
+   The original navigation children and fullscreen stage structure stay intact. */
 import * as React from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { Button } from '../components/ui/button.js';
-
-function mountStandaloneButton(button, variant = 'ghost', size = 'default') {
-  if (!button || button.dataset.shadcnHydrated || !button.parentNode) return;
-  const className = button.className;
-  const buttonVariant = variant === 'outline' ? 'outline' : variant === 'default' ? 'primary' : 'ghost';
-  button.className = `shad-btn shad-btn--${buttonVariant} ${className}`.trim();
-  button.dataset.slot = 'button';
-  button.dataset.variant = variant;
-  button.dataset.size = size;
-  const host = document.createElement('span');
-  host.className = 'shad-header-control-host';
-  host.style.display = 'contents';
-  button.parentNode.insertBefore(host, button);
-  host.appendChild(button);
-  const props = {};
-  for (const attribute of button.attributes) {
-    if (['class', 'data-slot', 'data-variant', 'data-size', 'data-shadcn-hydrated'].includes(attribute.name)) continue;
-    const name = attribute.name === 'tabindex' ? 'tabIndex' : attribute.name;
-    props[name] = ['disabled', 'hidden'].includes(name) ? true : attribute.value;
-  }
-  flushSync(() => hydrateRoot(host, React.createElement(Button, {
-    variant, size, className, ...props,
-    dangerouslySetInnerHTML: { __html: button.innerHTML },
-  })));
-  button.dataset.shadcnHydrated = 'true';
-}
 
 function mountHeaderActions() {
   const group = document.querySelector('.kefe-sidebar-bottom');
@@ -39,7 +13,7 @@ function mountHeaderActions() {
     if (buttons.length === ids.length && buttons.every((button, index) => button.id === ids[index])) {
       const elements = buttons.map(button => {
         const className = button.className;
-        button.className = `shad-btn shad-btn--ghost ${className}`;
+        button.className = 'shad-btn shad-btn--ghost ' + className;
         button.dataset.slot = 'button';
         button.dataset.variant = 'ghost';
         button.dataset.size = 'icon';
@@ -60,7 +34,50 @@ function mountHeaderActions() {
       group.dataset.shadcnHydrated = 'true';
     }
   }
-  mountStandaloneButton(document.querySelector('.kefe-header-settings[data-top-panel="settings"]'));
+
+  const nav = document.querySelector('.kefe-sidebar-group-editor');
+  if (nav && !nav.dataset.shadcnHydrated) {
+    const [editorLink, format, settings] = Array.from(nav.children);
+    if (editorLink?.matches('a[data-editor-tab]') &&
+        format?.matches('.kefe-toolbar-format') &&
+        settings?.matches('button.kefe-header-settings[data-top-panel="settings"]')) {
+      const linkProps = {};
+      for (const { name, value } of editorLink.attributes) {
+        linkProps[name === 'class' ? 'className' : name] = value;
+      }
+      linkProps.dangerouslySetInnerHTML = { __html: editorLink.innerHTML };
+      const formatProps = {
+        className: format.className,
+        hidden: format.hidden,
+        'aria-hidden': format.getAttribute('aria-hidden'),
+        dangerouslySetInnerHTML: { __html: format.innerHTML },
+      };
+      const className = settings.className;
+      settings.className = 'shad-btn shad-btn--ghost ' + className;
+      settings.dataset.slot = 'button';
+      settings.dataset.variant = 'ghost';
+      settings.dataset.size = 'default';
+      const buttonProps = {};
+      for (const { name, value } of settings.attributes) {
+        if (['class', 'data-slot', 'data-variant', 'data-size'].includes(name)) continue;
+        buttonProps[name] = ['disabled', 'hidden'].includes(name) ? true : value;
+      }
+      buttonProps.className = className;
+      buttonProps.variant = 'ghost';
+      buttonProps.size = 'default';
+      buttonProps.dangerouslySetInnerHTML = { __html: settings.innerHTML };
+      Array.from(nav.childNodes).forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) node.remove();
+      });
+      flushSync(() => hydrateRoot(nav, React.createElement(React.Fragment, null,
+        React.createElement('a', linkProps),
+        React.createElement('div', formatProps),
+        React.createElement(Button, buttonProps))));
+      nav.dataset.shadcnHydrated = 'true';
+      settings.dataset.shadcnHydrated = 'true';
+    }
+  }
+
   const fullscreen = document.getElementById('previewFullscreen');
   if (fullscreen && !fullscreen.dataset.shadcnHydrated) {
     fullscreen.classList.add('shad-btn', 'shad-btn--ghost');
