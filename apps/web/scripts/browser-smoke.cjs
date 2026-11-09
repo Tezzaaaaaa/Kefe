@@ -222,7 +222,7 @@ async function captureEditorScreenState(page) {
       "opening and closing the preview toolbar must not broadcast a global viewport resize");
     assert.ok(toolbarResizeEvents.preview >= 2,
       "toolbar visibility changes must request only preview-specific fits");
-    await page.waitForFunction(() => document.querySelectorAll("#kefe-settings-panel .kefe-workspace[data-group]").length === 3, null, { timeout: 10000 });
+    await page.waitForFunction(() => [3, 4].includes(document.querySelectorAll("#kefe-settings-panel .kefe-workspace[data-group]").length), null, { timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
     try {
       await page.waitForFunction(() => {
@@ -429,13 +429,13 @@ async function captureEditorScreenState(page) {
     const tidySectionMode = await page.evaluate(() => Boolean(document.querySelector(".kefe-advanced-controls")));
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
-    // Mobile keeps all three workspace tabs visible and exposes one selected panel.
+    // Mobile keeps every workspace tab visible and exposes one selected panel.
     await page.waitForFunction(() => {
       const root = document.querySelector("#kefe-settings-panel");
       const workspaces = [...(root?.querySelectorAll(".kefe-workspace[data-group]") || [])];
       const tabs = [...(root?.querySelectorAll('[role="tab"][data-workspace-tab]') || [])];
       const panels = [...(root?.querySelectorAll(".kefe-panel[data-panel-view]") || [])];
-      return workspaces.length === 3 && tabs.length === 3 && panels.length === 6 &&
+      return workspaces.length >= 3 && workspaces.length <= 4 && tabs.length === workspaces.length && panels.length === 6 &&
         workspaces.filter(node => !node.hidden && node.getBoundingClientRect().height > 0).length === 1;
     }, null, { timeout: 5000 });
     const mobileWorkspaceLayout = await page.locator("#kefe-settings-panel .kefe-settings-columns").evaluate(node => ({
@@ -458,8 +458,8 @@ async function captureEditorScreenState(page) {
     assert.ok(["Audio & Visualiser", "Audio & Visuals"].includes(mobileWorkspaceLabels[2]), "the third workspace must remain the audio and visualiser workspace");
     assert.equal(mobileWorkspaceLayout.groups.filter(group => !group.hidden && group.width > 0 && group.height > 0).length, 1,
       "only the selected workspace should be visible on mobile");
-    assert.equal(mobileWorkspaceLayout.tabs.length, 3, "all three workspace tabs must remain available on mobile");
-    assert.ok(mobileWorkspaceLayout.tabs.every(tab => tab.width > 0), "all three mobile workspace tabs must remain visible");
+    assert.equal(mobileWorkspaceLayout.tabs.length, mobileWorkspaceLayout.groups.length, "all workspace tabs must remain available on mobile");
+    assert.ok(mobileWorkspaceLayout.tabs.every(tab => tab.width > 0), "all mobile workspace tabs must remain visible");
     const mobileUploadLayout = await page.locator('.kefe-workspace[data-group="content"] .kefe-panel[data-panel-view="media"] .kefe-media-upload-row').evaluate(node => {
       const style = getComputedStyle(node);
       const boxes = [...node.children].map(child => {
@@ -605,8 +605,9 @@ async function captureEditorScreenState(page) {
       "the Editor tab must expose the current page to assistive technology");
     const singleSectionMode = await page.evaluate(() =>
       document.querySelector('meta[name="kefe-settings-tabs"]')?.content === "single");
-    const threeWorkspaceMode = await page.evaluate(() =>
-      document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]").length === 3);
+    const expectedWorkspaceCount = await page.evaluate(() =>
+      document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]").length);
+    const workspaceMode = expectedWorkspaceCount >= 3;
     /* Header capability probe: the main baseline may still ship the older header, so each
        header contract is asserted only against the shape the running build provides. */
     const headerSearchMode = await page.evaluate(() => Boolean(document.querySelector("[data-kefe-search]")));
@@ -777,7 +778,7 @@ async function captureEditorScreenState(page) {
       const settings = document.querySelector(".kefe-settings-mount").getBoundingClientRect();
       const columns = document.querySelector("#kefe-settings-panel > .kefe-settings-columns");
       const workspaceCards = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]")];
-      if (workspaceCards.length === 3) {
+      if (workspaceCards.length >= 3) {
         const bounds = workspaceCards.map(node => node.getBoundingClientRect());
         return {
           workspaceHeight: workspace.height,
@@ -813,11 +814,11 @@ async function captureEditorScreenState(page) {
         workspaceRight: workspace.right,
       };
     });
-    if (threeWorkspaceMode) {
+    if (workspaceMode) {
       assert.equal(previewSettingsLayout.visibleWorkspaceCount, 1,
         `exactly one workspace panel must be visible at a time: ${JSON.stringify(previewSettingsLayout)}`);
-      assert.equal(await page.locator('[role="tab"][data-workspace-tab]').count(), 3,
-        "all three workspace tabs must remain available");
+      assert.equal(await page.locator('[role="tab"][data-workspace-tab]').count(), expectedWorkspaceCount,
+        "all workspace tabs must remain available");
     } else if (singleSectionMode) {
       assert.ok(previewSettingsLayout.workspaceHeight >= previewSettingsLayout.viewportHeight * 0.48
         && previewSettingsLayout.workspaceHeight <= previewSettingsLayout.viewportHeight * 0.56,
@@ -1066,7 +1067,8 @@ async function captureEditorScreenState(page) {
 
     async function openSection(section) {
       const workspace = ["media", "lyrics"].includes(section) ? "content"
-        : ["effects", "background-effects"].includes(section) ? "design" : "audio-visuals";
+        : ["effects", "background-effects"].includes(section) ? "design"
+        : section === "export" && await page.locator('[data-workspace-tab="export"]').count() ? "export" : "audio-visuals";
       const tab = page.locator('[role="tab"][data-workspace-tab="' + workspace + '"]');
       await tab.evaluate(node => node.click());
       await page.waitForFunction(expected => document.querySelector('[role="tab"][data-workspace-tab="' + expected + '"]')?.getAttribute("aria-selected") === "true", workspace, { timeout: 5000 });
@@ -1143,7 +1145,7 @@ async function captureEditorScreenState(page) {
       "background darkness control must remain in Background Effects after cleanup");
     assert.equal(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option').count() > 0, true,
       "Effects must retain its lyric-effect gallery after background-treatment cleanup");
-    if (threeWorkspaceMode) {
+    if (workspaceMode) {
       const workspaceAudit = await page.evaluate(() => {
         const groups = [...document.querySelectorAll('#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]')];
         const sections = [...document.querySelectorAll('#kefe-settings-panel .kefe-workspace-stack .section[data-section-id]')];
@@ -1172,7 +1174,7 @@ async function captureEditorScreenState(page) {
       await mediaAccordion.click();
       assert.equal(await mediaAccordion.getAttribute('aria-expanded'), 'true', 'Media section should expand again');
     }
-    if (singleSectionMode && !threeWorkspaceMode) {
+    if (singleSectionMode && !workspaceMode) {
       const sectionSelectionAudit = await page.evaluate(() => {
         const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
         return {
@@ -1193,7 +1195,7 @@ async function captureEditorScreenState(page) {
     // compact shadcn Tabs that stay docked beside the preview. The feature marker
     // is compiled into the current editor template, so the main-branch baseline
     // (which lacks the bridge) can reuse this smoke script without failing here.
-    const groupedSettingsTabs = !threeWorkspaceMode && await page.evaluate(() =>
+    const groupedSettingsTabs = !workspaceMode && await page.evaluate(() =>
       document.querySelector('meta[name="kefe-settings-tabs"]')?.content === "grouped");
     const settingsTabsAudit = groupedSettingsTabs ? await page.evaluate(() => {
       const groups = [...document.querySelectorAll('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group]')];
@@ -1252,8 +1254,8 @@ async function captureEditorScreenState(page) {
 
     const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
     await openSection("visualiser");
-    if (!threeWorkspaceMode) await visualiserSection.locator(".expand-button").click();
-    if (singleSectionMode && !threeWorkspaceMode) {
+    if (!workspaceMode) await visualiserSection.locator(".expand-button").click();
+    if (singleSectionMode && !workspaceMode) {
       const settingsScrollState = await page.evaluate(() => {
         const mount = document.querySelector(".kefe-settings-mount");
         return { pageY: window.scrollY, clientHeight: mount.clientHeight, scrollHeight: mount.scrollHeight, scrollTop: mount.scrollTop };
@@ -1270,7 +1272,7 @@ async function captureEditorScreenState(page) {
     }, null, { timeout: 10000 });
     const fluidInkTab = page.locator('.kefe-vis-tabs .kv-tab[data-visualiser="gradient"]');
     await fluidInkTab.waitFor({ state: "visible", timeout: 10000 });
-    if (singleSectionMode && !threeWorkspaceMode) {
+    if (singleSectionMode && !workspaceMode) {
       await page.waitForFunction(() => {
         const panel = document.querySelector('#kefe-settings-panel .kefe-slot[data-kefe-slot="visualisers"] > .kefe-panel[data-panel-view="visualiser"]');
         return panel?.classList.contains("active")
@@ -1281,7 +1283,7 @@ async function captureEditorScreenState(page) {
         "selecting the Visualisers section must activate and reveal its existing native renderer panel");
     }
 
-    if (!threeWorkspaceMode) {
+    if (!workspaceMode) {
     const sectionHeaderAudit = await page.evaluate(() => {
       const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];
       return sections.map(section => {
@@ -1325,7 +1327,7 @@ async function captureEditorScreenState(page) {
     assert.ok(justifiedCopyAudit.every(item => item.align === "justify"),
       `section body copy must use true justification: ${JSON.stringify(justifiedCopyAudit)}`);
 
-    const uniformHeaderGeometry = threeWorkspaceMode ? [] : await page.evaluate(() => [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")].map(section => {
+    const uniformHeaderGeometry = workspaceMode ? [] : await page.evaluate(() => [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")].map(section => {
       const title = section.querySelector(".section-heading");
       const info = section.querySelector(".info-button");
       const accordion = section.querySelector(".expand-button");
@@ -1339,7 +1341,7 @@ async function captureEditorScreenState(page) {
         accordionHeight: accordion ? accordion.offsetHeight : null
       };
     }));
-    if (!threeWorkspaceMode) assert.equal(new Set(uniformHeaderGeometry.map(item =>
+    if (!workspaceMode) assert.equal(new Set(uniformHeaderGeometry.map(item =>
       [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize)].join("|")
     )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
@@ -1562,7 +1564,7 @@ async function captureEditorScreenState(page) {
             await screenshotVolumeTrigger.click();
             await screenshotVolumePopover.waitFor({ state: "hidden", timeout: 5000 });
           }
-          // The mobile capture keeps all three editor workspaces visible below the preview.
+          // The mobile capture keeps all editor workspaces available below the preview.
           await normalizeEditorScrollState(screenshotPage);
           const editorLayout = await captureEditorLayout(screenshotPage);
           fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
@@ -1618,7 +1620,7 @@ async function captureEditorScreenState(page) {
     await openSection("visualiser");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
       "visualiser tabs must reliably reappear when Visualisers is reopened");
-    if (!threeWorkspaceMode) {
+    if (!workspaceMode) {
       assert.equal(await page.locator(".kefe-visualiser-preset-row").isVisible(), true,
         "legacy visualiser preset row must follow the selected section visibility state");
     }
@@ -1889,12 +1891,14 @@ async function captureEditorScreenState(page) {
       });
       assert.equal(mobileWorkspaceAudit.columnCount, 1,
         `the selected workspace must use one full-width column at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
-      assert.deepEqual(mobileWorkspaceAudit.groups.map(group => group.label), ["Content", "Appearance", "Audio & Visualiser"],
-        `the three workspace panels must remain in their defined order at ${width}px`);
+      assert.deepEqual(mobileWorkspaceAudit.groups.map(group => group.label), mobileWorkspaceAudit.groups.length === 4
+        ? ["Content", "Appearance", "Audio & Visualiser", "Export"]
+        : ["Content", "Appearance", "Audio & Visualiser"],
+        `workspace panels must remain in their defined order at ${width}px`);
       assert.equal(mobileWorkspaceAudit.visibleGroups, 1,
         `only the selected workspace may be visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
-      assert.equal(mobileWorkspaceAudit.tabCount, 3,
-        `all three workspace tabs must remain visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
+      assert.equal(mobileWorkspaceAudit.tabCount, mobileWorkspaceAudit.groups.length,
+        `all workspace tabs must remain visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
       assert.equal(mobileWorkspaceAudit.panels.length, 6,
         `all six native panels must remain mounted at ${width}px`);
       assert.ok(mobileWorkspaceAudit.panels.filter(panel => panel.width > 0 && panel.height > 0).length >= 1,

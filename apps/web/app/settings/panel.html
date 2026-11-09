@@ -3,6 +3,7 @@
     <button class="kefe-workspace-tab" type="button" role="tab" id="kefe-tab-content" data-workspace-tab="content" aria-controls="kefe-workspace-content-panel" aria-selected="true" tabindex="0">Content</button>
     <button class="kefe-workspace-tab" type="button" role="tab" id="kefe-tab-appearance" data-workspace-tab="design" aria-controls="kefe-workspace-appearance-panel" aria-selected="false" tabindex="-1">Appearance</button>
     <button class="kefe-workspace-tab" type="button" role="tab" id="kefe-tab-audio-visuals" data-workspace-tab="audio-visuals" aria-controls="kefe-workspace-audio-visuals-panel" aria-selected="false" tabindex="-1">Audio &amp; Visualiser</button>
+    <button class="kefe-workspace-tab" type="button" role="tab" id="kefe-tab-export" data-workspace-tab="export" aria-controls="kefe-workspace-export-panel" aria-selected="false" tabindex="-1">Export</button>
   </div>
 
   <div class="kefe-settings-columns kefe-workspaces" data-accordion="multi">
@@ -46,6 +47,12 @@
             <div class="kefe-slot" data-kefe-slot="visualisers"></div>
           </div></div>
         </section>
+      </div>
+    </section>
+
+    <section class="kefe-panel kefe-workspace" id="kefe-workspace-export-panel" data-group="export" role="tabpanel" aria-labelledby="kefe-tab-export" tabindex="0" hidden aria-hidden="true">
+      <h2 class="kefe-workspace-title" id="kefe-workspace-export">Export</h2>
+      <div class="kefe-workspace-stack">
         <section class="section" data-expanded="true" data-section-id="export">
           <div class="section-content" id="settings-panel-export"><div class="content-inner">
             <div class="kefe-slot" data-kefe-slot="export"></div>
