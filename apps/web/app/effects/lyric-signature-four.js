@@ -118,7 +118,7 @@
   function mountBratControl(){
     const gallery=document.getElementById('lyricEffectOptions');
     if(!gallery||document.getElementById('kefeBratBackgroundSelect'))return;
-    const host=document.createElement('label');host.className='kefe-signature-settings';host.id='kefeBratBackgroundSettings';
+    const host=document.createElement('label');host.className='kefe-text-swap-settings';host.id='kefeBratBackgroundSettings';
     const title=document.createElement('span');title.textContent='Brat background';
     const select=document.createElement('select');select.className='kefe-select';select.id='kefeBratBackgroundSelect';select.setAttribute('aria-label','Brat background');
     [['green','Brat Green'],['white','Pure White']].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;select.appendChild(option);});
