@@ -27,6 +27,8 @@ function decoratePanelAction(button) {
 function scanPanelActions(root = document) {
   if (root instanceof HTMLButtonElement) decoratePanelAction(root);
   root.querySelectorAll?.('.kefe-panel button').forEach(decoratePanelAction);
+  if (root instanceof HTMLElement && root.matches('.kefe-upload-card, #kefeMediaTrack')) window.kefeHydratePanelCard?.(root);
+  root.querySelectorAll?.('.kefe-upload-card, #kefeMediaTrack').forEach(card => window.kefeHydratePanelCard?.(card));
 }
 scanPanelActions();
 const panelActionObserver = new MutationObserver(records => {

@@ -46,6 +46,9 @@ const server = http.createServer((req, res) => {
       const navigation = page.locator('.kefe-sidebar-editor-link');
       assert.equal(await navigation.getAttribute('data-slot'), 'button', 'Editor navigation uses shadcn Button');
       assert.equal(await navigation.getAttribute('data-variant'), 'ghost');
+      await page.waitForFunction(() => [...document.querySelectorAll('#kefeTimingEditor, #kefeMediaTrack, .kefe-upload-card')].every(card => card.dataset.shadcnHydrated === 'true'));
+      assert.equal(await page.locator('#kefeUploadZone .kefe-upload-card').getAttribute('data-slot'), 'card', 'media upload surface uses shadcn Card');
+      assert.equal(await page.locator('#kefeMediaTrack').getAttribute('data-slot'), 'card', 'identified media card uses shadcn Card');
       const panelActions = page.locator('.kefe-panel button.kefe-panel-action');
       await page.waitForFunction(() => [...document.querySelectorAll('.kefe-panel button.kefe-panel-action')].every(button => button.dataset.shadcnHydrated === 'true'));
       assert.ok(await panelActions.count() > 0, 'editor panel actions are present');
