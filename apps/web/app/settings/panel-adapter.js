@@ -3,7 +3,7 @@
 
   const scriptSrc = document.currentScript && document.currentScript.src;
   const MARKUP_URL = scriptSrc
-    ? new URL('./panel.html?v=subtabs-20261107-1', scriptSrc)
+    ? new URL('./panel.html?v=export-workspace-20261109-1', scriptSrc)
     : new URL('./app/settings/panel.html?v=subtabs-20261107-1', window.location.href);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
@@ -69,15 +69,16 @@
     const contentGroup = root.querySelector('.kefe-panel[data-group="content"]');
     const designGroup = root.querySelector('.kefe-panel[data-group="design"]');
     const audioVisualsGroup = root.querySelector('.kefe-panel[data-group="audio-visuals"]');
-    if (!contentGroup || !designGroup || !audioVisualsGroup) {
-      throw new Error('All three KEFE workspaces are required.');
+    const exportGroup = root.querySelector('.kefe-panel[data-group="export"]');
+    if (!contentGroup || !designGroup || !audioVisualsGroup || !exportGroup) {
+      throw new Error('All four KEFE workspaces are required.');
     }
 
     const tablist = root.querySelector('[data-workspace-tablist]');
     const tabs = Array.from(root.querySelectorAll('[role="tab"][data-workspace-tab]'));
     const workspaces = Array.from(root.querySelectorAll('.kefe-workspace[data-group]'));
-    if (!tablist || tabs.length !== 3 || workspaces.length !== 3) {
-      throw new Error('All three persistent workspace tabs and panels are required.');
+    if (!tablist || tabs.length !== 4 || workspaces.length !== 4) {
+      throw new Error('All four persistent workspace tabs and panels are required.');
     }
     function activateWorkspace(name, moveFocus) {
       const selectedTab = tabs.find(tab => tab.dataset.workspaceTab === name);
