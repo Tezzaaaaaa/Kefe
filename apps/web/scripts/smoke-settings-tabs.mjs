@@ -19,8 +19,8 @@ for (const slot of ["media", "lyric-sync", "lyric-effects", "background", "visua
 if ((panelHtml.match(/data-expanded="true"/g) || []).length !== 6) {
   failures.push("All six native control panels must retain their expanded content state.");
 }
-if (!panelHtml.includes("Audio &amp; Visualiser") || panelHtml.includes("kefe-advanced-controls") || !adapter.includes("kefe-subtabs")) {
-  failures.push("Audio & Visualiser must be clearly named, and every workspace must list its features as subtabs (no Advanced wrapper).");
+if (!panelHtml.includes("Visualiser") || panelHtml.includes("kefe-advanced-controls") || !adapter.includes("kefe-subtabs")) {
+  failures.push("Visualiser must be clearly named, and every workspace must list its features as subtabs (no Advanced wrapper).");
 }
 if (!bg.includes("effectsGroup.dataset.backgroundGroup='effects'") || !bg.includes("Background Effects")) {
   failures.push("Background and Background Effects must have distinct visible group structure.");
@@ -47,7 +47,7 @@ if (!panelHtml.includes('data-workspace-tab="export"') ||
 }
 const audioVisuals = panelHtml.split('data-group="audio-visuals"')[1]?.split('data-group="export"')[0] || "";
 if (audioVisuals.includes('data-section-id="export"')) {
-  failures.push("Export must not remain inside Audio & Visualiser.");
+  failures.push("Export must not remain inside Visualiser.");
 }
 if (!panelStyles.includes(".kefe-workspace-tabs") || !panelStyles.includes(".kefe-workspace[hidden]")) {
   failures.push("Persistent workspace tabs must control one visible workspace at a time.");
