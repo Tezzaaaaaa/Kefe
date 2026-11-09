@@ -49,7 +49,7 @@ assert.deepEqual(legacy, [], `legacy effects must be removed from the roster: ${
 
 /* ---- page wiring ------------------------------------------------- */
 const editor = read("editor.source.html");
-assert.match(editor, /<meta name="kefe-lyric-signature" content="52">/, "the editor must declare the Signature pack marker");
+assert.match(editor, /<meta name="kefe-lyric-signature" content="56">/, "the editor must declare the Signature pack marker");
 assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
 assert.match(editor, /lyric-karaoke\.js/, "the Karaoke and Bounce renderers must stay loaded");
 assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
@@ -70,7 +70,7 @@ assert.match(editorSource, /if\(state\.effect==='apple'\)\{\s*const u=Math\.min\
 const typography = read("app/ui/typography.js");
 assert.match(typography, /\n\s+textswap:\s*\{ family: families\./, "Text Swap needs a typography contract");
 assert.match(typography, /\n\s+lyricpull:\s*\{ family: families\./, "Lyric Pull needs a typography contract");
-for (const key of keys) {
+for (const key of [...keys, ...addedSignatureKeys]) {
   assert.match(typography, new RegExp(`\\n\\s+${key}: \\{ family: families\\.`), `${key} needs a typography contract`);
 }
 
@@ -121,7 +121,9 @@ vm.createContext(runtime);
 vm.runInContext(read("app/effects/core.js"), runtime, { filename: "core.js" });
 vm.runInContext(read("app/effects/lyric-premium-kit.js"), runtime, { filename: "lyric-premium-kit.js" });
 assert.equal(typeof runtime.kefeFx?.bloom, "function", "the premium kit must publish window.kefeFx");
-vm.runInContext(read("app/effects/lyric-signature-pack.js"), runtime, { filename: "lyric-signature-pack.js" });\nvm.runInContext(read("app/effects/lyric-signature-four.js"), runtime, { filename: "lyric-signature-four.js" });\nfor (const key of addedSignatureKeys) assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register`);
+vm.runInContext(read("app/effects/lyric-signature-pack.js"), runtime, { filename: "lyric-signature-pack.js" });
+vm.runInContext(read("app/effects/lyric-signature-four.js"), runtime, { filename: "lyric-signature-four.js" });
+for (const key of addedSignatureKeys) assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register`);\nvm.runInContext(read("app/effects/lyric-signature-four.js"), runtime, { filename: "lyric-signature-four.js" });\nfor (const key of addedSignatureKeys) assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register`);
 vm.runInContext(read("app/effects/lyric-text-swap.js"), runtime, { filename: "lyric-text-swap.js" });
 assert.equal(typeof runtime.kefeEffects.textswap, "function", "Text Swap renderer must register");
 vm.runInContext(read("app/effects/lyric-pull.js"), runtime, { filename: "lyric-pull.js" });
@@ -139,7 +141,7 @@ const pullMobile = makeContext();
 runtime.kefeEffects.lyricpull(pullMobile, 360, 640, { effect: "lyricpull", fontSize: 48 }, lines, 2.2);
 assert.ok(pullMobile.fills > 0, "Lyric Pull must paint on mobile canvas");
 const registered = Object.keys(runtime.kefeEffects || {}).filter(key => key.startsWith("sig"));
-assert.deepEqual(registered.sort(), [...keys].sort(), "renderer registrations must match the roster");
+assert.deepEqual(registered.sort(), [...keys, ...addedSignatureKeys].sort(), "renderer registrations must match the roster");
 assert.equal(typeof runtime.kefeEffects.apple, "undefined", "the Apple renderer is owned by lyric-apple.js");
 
 runtime.dispatchEvent = () => {};
