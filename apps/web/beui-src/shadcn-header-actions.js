@@ -41,10 +41,17 @@ function mountHeaderActions() {
     if (editorLink?.matches('a[data-editor-tab]') &&
         format?.matches('.kefe-toolbar-format') &&
         settings?.matches('button.kefe-header-settings[data-top-panel="settings"]')) {
+      const linkClass = editorLink.className;
+      editorLink.className = 'shad-btn shad-btn--ghost ' + linkClass;
+      editorLink.dataset.slot = 'button';
+      editorLink.dataset.variant = 'ghost';
+      editorLink.dataset.size = 'default';
       const linkProps = {};
       for (const { name, value } of editorLink.attributes) {
-        linkProps[name === 'class' ? 'className' : name] = value;
+        if (['class', 'data-slot', 'data-variant', 'data-size'].includes(name)) continue;
+        linkProps[name] = value;
       }
+      linkProps.className = linkClass;
       linkProps.dangerouslySetInnerHTML = { __html: editorLink.innerHTML };
       const formatProps = {
         className: format.className,
@@ -70,7 +77,8 @@ function mountHeaderActions() {
         if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) node.remove();
       });
       flushSync(() => hydrateRoot(nav, React.createElement(React.Fragment, null,
-        React.createElement('a', linkProps),
+        React.createElement(Button, { asChild: true, variant: 'ghost', size: 'default' },
+          React.createElement('a', linkProps)),
         React.createElement('div', formatProps),
         React.createElement(Button, buttonProps))));
       nav.dataset.shadcnHydrated = 'true';
@@ -86,5 +94,40 @@ function mountHeaderActions() {
     fullscreen.dataset.shadcnHydrated = 'true';
   }
 }
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountHeaderActions, { once: true });
-else mountHeaderActions();
+function mountWorkspaceDock() {
+  const dock = document.querySelector('.kefe-workspace-dock');
+  if (!dock || dock.dataset.shadcnHydrated) return;
+  const elements = Array.from(dock.children).map((element, index) => {
+    if (element.tagName !== 'BUTTON') {
+      const props = {};
+      for (const { name, value } of element.attributes) props[name === 'class' ? 'className' : name] = value;
+      return React.createElement('span', {
+        key: `dock-separator-${index}`, ...props,
+        dangerouslySetInnerHTML: { __html: element.innerHTML },
+      });
+    }
+    const className = element.className;
+    element.className = 'shad-btn shad-btn--ghost ' + className;
+    element.dataset.slot = 'button';
+    element.dataset.variant = 'ghost';
+    element.dataset.size = 'icon';
+    const props = {};
+    for (const { name, value } of element.attributes) {
+      if (['class', 'data-slot', 'data-variant', 'data-size'].includes(name)) continue;
+      props[name] = ['disabled', 'hidden'].includes(name) ? true : value;
+    }
+    return React.createElement(Button, {
+      key: element.dataset.dockPanel || 'dock-export',
+      variant: 'ghost', size: 'icon', className, ...props,
+      dangerouslySetInnerHTML: { __html: element.innerHTML },
+    });
+  });
+  Array.from(dock.childNodes).forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) node.remove();
+  });
+  flushSync(() => hydrateRoot(dock, React.createElement(React.Fragment, null, ...elements)));
+  dock.dataset.shadcnHydrated = 'true';
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mountHeaderActions(); mountWorkspaceDock(); }, { once: true });
+else { mountHeaderActions(); mountWorkspaceDock(); }
