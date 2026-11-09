@@ -33,7 +33,16 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => window.kefeProjectAutosave);
       await page.waitForFunction(() => ['.kefe-header-settings', '#previewFullscreen'].every(selector => document.querySelector(selector)?.dataset.shadcnHydrated === 'true'));
       await page.waitForSelector('.kefe-sidebar-group-editor [data-editor-tab][data-slot="button"]');
+      await page.waitForSelector('.kefe-tabs[data-shadcn-root="true"] [role="tablist"]');
       await page.waitForSelector('.kefe-workspace-dock[data-shadcn-hydrated="true"]');
+      const sectionTabs = page.locator('.kefe-tabs [role="tab"]');
+      assert.equal(await sectionTabs.count(), 6, 'all six editor sections are shadcn Tabs triggers');
+      assert.equal(await page.locator('.kefe-tabs [role="tablist"]').getAttribute('aria-label'), 'Editor sections');
+      await sectionTabs.filter({ hasText: 'Lyric Sync' }).click();
+      await page.waitForFunction(() => document.querySelector('.kefe-panel[data-panel-view="lyrics"]')?.classList.contains('active'));
+      assert.equal(await page.locator('.kefe-tabs [role="tab"][data-state="active"]').getAttribute('data-panel'), 'lyrics');
+      await page.locator('[data-kefe-section-backing] .kefe-section[data-panel="media"]').evaluate(button => button.click());
+      await page.waitForFunction(() => document.querySelector('.kefe-tabs [role="tab"][data-state="active"]')?.getAttribute('data-panel') === 'media');
       const navigation = page.locator('.kefe-sidebar-editor-link');
       assert.equal(await navigation.getAttribute('data-slot'), 'button', 'Editor navigation uses shadcn Button');
       assert.equal(await navigation.getAttribute('data-variant'), 'ghost');

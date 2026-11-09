@@ -4604,7 +4604,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   padding: 4px;
   box-sizing: border-box;
 }
-.kefe-tabs > .kefe-section {
+.kefe-tabs .kefe-section {
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -4634,7 +4634,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
     overflow-x: hidden;
     overflow-y: hidden;
   }
-  .kefe-tabs > .kefe-section {
+  .kefe-tabs .kefe-section {
     flex: 1 1 0;
     width: auto;
     min-width: 0;
@@ -4653,7 +4653,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
     gap: 2px;
     padding: 3px;
   }
-  .kefe-tabs > .kefe-section {
+  .kefe-tabs .kefe-section {
     padding-inline: 0;
     font-size: var(--font-sm);
 
