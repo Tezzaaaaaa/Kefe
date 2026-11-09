@@ -9809,7 +9809,7 @@ input.beui-native-range {
 /* Keep the visible beUI fullscreen action attached to the preview while fullscreen is active. */
 .kefe-stage:fullscreen #previewFullscreen,
 .kefe-stage.kefe-pseudo-fullscreen #previewFullscreen{
-  position:absolute;
+  position:fixed;
   inset:auto;
   top:max(12px,env(safe-area-inset-top));
   right:max(12px,env(safe-area-inset-right));
