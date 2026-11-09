@@ -2037,7 +2037,7 @@
         if(hint)hint.textContent='Selected layer reset';
       }else if(control.matches('[data-layout-nudge]')){
         const [dx,dy]=(control.dataset.layoutNudge||'0,0').split(',').map(Number);
-        const target=document.querySelector('[data-layout-target]')?.value||'lyrics',rect=previewStage.getBoundingClientRect();
+        const target=document.querySelector('[data-layout-target]')?.value||'lyrics',rect=canvas.getBoundingClientRect();
         if(appleLayout[target]&&(dx||dy)){appleLayout[target].x+=dx/Math.max(1,rect.width);appleLayout[target].y+=dy/Math.max(1,rect.height);saveAppleLayoutState();draw();}
       }else if(control.matches('[data-effect-default]')){
         if(hint)hint.textContent=saveCurrentEffectDefault()?'Locked: this look and behaviour will load whenever '+state.effect+' is selected.':'Could not save defaults in this browser.';
@@ -2056,7 +2056,7 @@
       const layoutMove=document.querySelector('[data-layout-move]');
       const layoutTarget=document.querySelector('[data-layout-target]');
       if(layoutMove?.getAttribute('aria-pressed')==='true'&&e.button===0){
-        const rect=previewStage.getBoundingClientRect(),target=layoutTarget?.value||'lyrics';
+        const rect=canvas.getBoundingClientRect(),target=layoutTarget?.value||'lyrics';
         layoutDrag={target,x:e.clientX,y:e.clientY,baseX:appleLayout[target].x,baseY:appleLayout[target].y,width:Math.max(1,rect.width),height:Math.max(1,rect.height)};
         previewStage.setPointerCapture(e.pointerId);e.preventDefault();return;
       }
