@@ -1,8 +1,13 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { PNG } = require("pngjs");
-const pixelmatch = require("pixelmatch");
+const { createRequire } = require("node:module");
+const toolsNodeModules = process.env.NODE_PATH?.split(path.delimiter).find(Boolean);
+const toolsRequire = toolsNodeModules
+  ? createRequire(path.join(path.dirname(toolsNodeModules), "_kefe-visual-compare.cjs"))
+  : require;
+const { PNG } = toolsRequire("pngjs");
+const pixelmatch = toolsRequire("pixelmatch");
 
 const [baselineDir, currentDir] = process.argv.slice(2);
 assert.ok(baselineDir && currentDir, "usage: compare-visual-screenshots.cjs <baseline-dir> <current-dir>");
