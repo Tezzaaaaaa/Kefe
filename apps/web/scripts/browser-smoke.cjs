@@ -1143,7 +1143,7 @@ async function captureEditorScreenState(page) {
       "background darkness control must remain in Background Effects after cleanup");
     assert.equal(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option').count() > 0, true,
       "Effects must retain its lyric-effect gallery after background-treatment cleanup");
-    if (threeWorkspaceMode) {
+    if (fourWorkspaceMode) {
       const workspaceAudit = await page.evaluate(() => {
         const groups = [...document.querySelectorAll('#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]')];
         const sections = [...document.querySelectorAll('#kefe-settings-panel .kefe-workspace-stack .section[data-section-id]')];
@@ -1172,7 +1172,7 @@ async function captureEditorScreenState(page) {
       await mediaAccordion.click();
       assert.equal(await mediaAccordion.getAttribute('aria-expanded'), 'true', 'Media section should expand again');
     }
-    if (singleSectionMode && !threeWorkspaceMode) {
+    if (singleSectionMode && !fourWorkspaceMode) {
       const sectionSelectionAudit = await page.evaluate(() => {
         const sections = [...document.querySelectorAll("#kefe-settings-panel .section[data-section-id]")];
         return {
@@ -1193,7 +1193,7 @@ async function captureEditorScreenState(page) {
     // compact shadcn Tabs that stay docked beside the preview. The feature marker
     // is compiled into the current editor template, so the main-branch baseline
     // (which lacks the bridge) can reuse this smoke script without failing here.
-    const groupedSettingsTabs = !threeWorkspaceMode && await page.evaluate(() =>
+    const groupedSettingsTabs = !fourWorkspaceMode && await page.evaluate(() =>
       document.querySelector('meta[name="kefe-settings-tabs"]')?.content === "grouped");
     const settingsTabsAudit = groupedSettingsTabs ? await page.evaluate(() => {
       const groups = [...document.querySelectorAll('#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group]')];
@@ -1252,8 +1252,8 @@ async function captureEditorScreenState(page) {
 
     const visualiserSection = page.locator('#kefe-settings-panel .section[data-section-id="visualisers"]');
     await openSection("visualiser");
-    if (!threeWorkspaceMode) await visualiserSection.locator(".expand-button").click();
-    if (singleSectionMode && !threeWorkspaceMode) {
+    if (!fourWorkspaceMode) await visualiserSection.locator(".expand-button").click();
+    if (singleSectionMode && !fourWorkspaceMode) {
       const settingsScrollState = await page.evaluate(() => {
         const mount = document.querySelector(".kefe-settings-mount");
         return { pageY: window.scrollY, clientHeight: mount.clientHeight, scrollHeight: mount.scrollHeight, scrollTop: mount.scrollTop };
@@ -1270,7 +1270,7 @@ async function captureEditorScreenState(page) {
     }, null, { timeout: 10000 });
     const fluidInkTab = page.locator('.kefe-vis-tabs .kv-tab[data-visualiser="gradient"]');
     await fluidInkTab.waitFor({ state: "visible", timeout: 10000 });
-    if (singleSectionMode && !threeWorkspaceMode) {
+    if (singleSectionMode && !fourWorkspaceMode) {
       await page.waitForFunction(() => {
         const panel = document.querySelector('#kefe-settings-panel .kefe-slot[data-kefe-slot="visualisers"] > .kefe-panel[data-panel-view="visualiser"]');
         return panel?.classList.contains("active")
@@ -1281,7 +1281,7 @@ async function captureEditorScreenState(page) {
         "selecting the Visualisers section must activate and reveal its existing native renderer panel");
     }
 
-    if (!threeWorkspaceMode) {
+    if (!fourWorkspaceMode) {
     const sectionHeaderAudit = await page.evaluate(() => {
       const sections = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")];
       return sections.map(section => {
@@ -1325,7 +1325,7 @@ async function captureEditorScreenState(page) {
     assert.ok(justifiedCopyAudit.every(item => item.align === "justify"),
       `section body copy must use true justification: ${JSON.stringify(justifiedCopyAudit)}`);
 
-    const uniformHeaderGeometry = threeWorkspaceMode ? [] : await page.evaluate(() => [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")].map(section => {
+    const uniformHeaderGeometry = fourWorkspaceMode ? [] : await page.evaluate(() => [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-panel[data-group] > .section[data-section-id]")].map(section => {
       const title = section.querySelector(".section-heading");
       const info = section.querySelector(".info-button");
       const accordion = section.querySelector(".expand-button");
@@ -1339,7 +1339,7 @@ async function captureEditorScreenState(page) {
         accordionHeight: accordion ? accordion.offsetHeight : null
       };
     }));
-    if (!threeWorkspaceMode) assert.equal(new Set(uniformHeaderGeometry.map(item =>
+    if (!fourWorkspaceMode) assert.equal(new Set(uniformHeaderGeometry.map(item =>
       [item.titleSize, item.titleWeight, item.titleLineHeight, JSON.stringify(item.infoSize)].join("|")
     )).size, 1, `settings section headings and controls must be consistent: ${JSON.stringify(uniformHeaderGeometry)}`);
 
@@ -1618,7 +1618,7 @@ async function captureEditorScreenState(page) {
     await openSection("visualiser");
     assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
       "visualiser tabs must reliably reappear when Visualisers is reopened");
-    if (!threeWorkspaceMode) {
+    if (!fourWorkspaceMode) {
       assert.equal(await page.locator(".kefe-visualiser-preset-row").isVisible(), true,
         "legacy visualiser preset row must follow the selected section visibility state");
     }
