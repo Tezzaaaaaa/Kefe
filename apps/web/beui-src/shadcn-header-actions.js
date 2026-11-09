@@ -178,4 +178,4 @@ function mountWorkspaceDock() {
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mountHeaderActions(); mountEditorSectionTabs(); mountWorkspaceDock(); }, { once: true });
-else { mountHeaderActions(); mountWorkspaceDock(); }
+else { mountHeaderActions(); mountEditorSectionTabs(); mountWorkspaceDock(); }
