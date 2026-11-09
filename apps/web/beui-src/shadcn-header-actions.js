@@ -98,8 +98,12 @@ function mountHeaderActions() {
 function mountEditorSectionTabs() {
   const nav = document.querySelector('.kefe-tabs');
   if (!nav || nav.dataset.shadcnHydrated) return;
+  nav.dataset.shadcnTabStatus = 'checking';
   const backingButtons = Array.from(nav.querySelectorAll(':scope > button.kefe-section[data-panel]'));
-  if (backingButtons.length !== 6) return;
+  if (backingButtons.length !== 6) {
+    nav.dataset.shadcnTabStatus = `skipped:${backingButtons.length}:${Array.from(nav.children).map(node => node.tagName + '.' + node.className).join('|')}`;
+    return;
+  }
   const backing = document.createElement('div');
   backing.hidden = true;
   backing.setAttribute('aria-hidden', 'true');
@@ -138,8 +142,15 @@ function mountEditorSectionTabs() {
     }, button.textContent.trim()))));
   }
   const root = createRoot(nav);
-  flushSync(() => root.render(React.createElement(SectionTabs)));
-  nav.dataset.shadcnRoot = 'true';
+  try {
+    flushSync(() => root.render(React.createElement(SectionTabs)));
+    nav.dataset.shadcnRoot = 'true';
+    nav.dataset.shadcnTabStatus = 'mounted';
+  } catch (error) {
+    nav.dataset.shadcnTabStatus = 'error:' + String(error?.message || error);
+    throw error;
+  }
+  nav.dataset.shadcnTabStatus = 'mounted';
 }
 
 function mountWorkspaceDock() {

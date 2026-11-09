@@ -33,7 +33,23 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => window.kefeProjectAutosave);
       await page.waitForFunction(() => ['.kefe-header-settings', '#previewFullscreen'].every(selector => document.querySelector(selector)?.dataset.shadcnHydrated === 'true'));
       await page.waitForSelector('.kefe-sidebar-group-editor [data-editor-tab][data-slot="button"]');
-      await page.waitForSelector('.kefe-tabs[data-shadcn-root="true"] [role="tablist"]');
+      try {
+        await page.waitForSelector('.kefe-tabs[data-shadcn-root="true"] [role="tablist"]', { timeout: 5000 });
+      } catch (error) {
+        const diagnostics = await page.evaluate(() => {
+          const nav = document.querySelector('.kefe-tabs');
+          return {
+            readyState: document.readyState,
+            navStatus: nav?.dataset.shadcnTabStatus || null,
+            navHydrated: nav?.dataset.shadcnHydrated || null,
+            navChildren: nav ? [...nav.children].map(node => ({ tag: node.tagName, className: node.className, panel: node.dataset.panel })) : [],
+            backingButtons: document.querySelectorAll('[data-kefe-section-backing] .kefe-section[data-panel]').length,
+            headerHydrated: document.querySelector('.kefe-sidebar-group-editor')?.dataset.shadcnHydrated || null,
+            dockHydrated: document.querySelector('.kefe-workspace-dock')?.dataset.shadcnHydrated || null,
+          };
+        });
+        throw new Error('Editor section Tabs did not mount: ' + JSON.stringify({ diagnostics, errors, cause: error.message }));
+      }
       await page.waitForSelector('.kefe-workspace-dock[data-shadcn-hydrated="true"]');
       const sectionTabs = page.locator('.kefe-tabs [role="tab"]');
       assert.equal(await sectionTabs.count(), 6, 'all six editor sections are shadcn Tabs triggers');
