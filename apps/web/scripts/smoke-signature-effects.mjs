@@ -65,6 +65,14 @@ for (const file of ["lyric-aurora", "lyric-pulse", "lyric-typewriter", "lyric-gl
 /* ---- editor picker + preview integration -------------------------- */
 const editorSource = read("app/editor.js");
 assert.match(editorSource, /effectDefinitions\.filter\(\(\[id\]\)=>id!=='karaoke'&&id!=='bounce'\)\.forEach\(\(\[id,label\]\)=>addLyricEffectOption\(id,label\)\)/, "the picker must be generated from the complete effect manifest");
+assert.match(editorSource, /function startEffectPreview\(entry\)/, "effect previews must animate on hover and keyboard focus");
+assert.match(editorSource, /button\.addEventListener\('pointerenter'/, "effect preview animation must start on pointer hover");
+assert.match(editorSource, /button\.addEventListener\('pointerleave'/, "effect preview animation must stop when the pointer leaves");
+assert.match(editorSource, /paintEffectPreview\(entry,time\)/, "previews must call the selected effect renderer at changing timestamps");
+const structure = read("app/ui/structure.js");
+assert.ok(structure.includes("The quick brown fox jumps over the lazy dog."), "the lyric input must use the all-alphabet pangram placeholder");
+const sectionLayout = read("app/ui/section-layout.css");
+assert.match(sectionLayout, /grid-auto-rows: 112px !important;/, "lyric effect cards must retain consistent row sizing across breakpoints");
 assert.doesNotMatch(editorSource, /window\.kefeEffects\[state\.effect\]\s*\|\|\s*window\.kefeEffects\.apple/, "a missing renderer must not silently substitute Apple");
 assert.match(editorSource, /if\(state\.effect==='apple'\)\{\s*const u=Math\.min\(W,H\)/, "the pinned-header mask must be scoped to Apple only");
 
