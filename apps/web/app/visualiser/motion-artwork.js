@@ -64,9 +64,9 @@
     $('kmaImage').addEventListener('change',()=>{
       const file=$('kmaImage').files&&$('kmaImage').files[0];if(!file)return;
       if(!/^image\/(jpeg|png|webp)$/.test(file.type)){ $('kmaFoot').textContent='Choose a JPG, PNG or WebP image.';return; }
-      const url=URL.createObjectURL(file),next=new Image();
-      next.onload=()=>{image.src=next.src;loaded=true;URL.revokeObjectURL(url);$('kmaFileName').textContent=file.name;$('kmaExport').disabled=false;status('Artwork loaded');$('kmaFoot').textContent='Preview loops continuously. Export captures an 8-second seamless motion cycle.';};
-      next.onerror=()=>{URL.revokeObjectURL(url);$('kmaFoot').textContent='This image could not be opened.';};next.src=url;
+      const url=URL.createObjectURL(file);
+      image.onload=()=>{loaded=true;URL.revokeObjectURL(url);$('kmaFileName').textContent=file.name;$('kmaExport').disabled=false;status('Artwork loaded');$('kmaFoot').textContent='Preview loops continuously. Export captures an 8-second seamless motion cycle.';};
+      image.onerror=()=>{URL.revokeObjectURL(url);$('kmaFoot').textContent='This image could not be opened.';};image.src=url;
     });
     ['kmaStyle','kmaAspect'].forEach(id=>$(id).addEventListener('change',()=>{if(id==='kmaAspect')setAspect();}));
     ['kmaIntensity','kmaSoftness','kmaLighting'].forEach(id=>$(id).addEventListener('input',()=>{$(id+'Value').textContent=$(id).value+'%';}));
