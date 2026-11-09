@@ -281,8 +281,6 @@
       status('Could not confirm this track identification.','error');
     }).finally(function(){el.CarUse.disabled=false;});
   }
-  function syncFilters(){[].forEach.call(el.FindFilters.children,function(b){b.classList.toggle('active',b.dataset.f===S.filter);});}
-
   /* ── events ── */
   function bind(){
     el.CarPrev.addEventListener('click',function(){go(S.index-1);});
