@@ -37,7 +37,7 @@ const server = http.createServer((req, res) => {
       const navigation = page.locator('.kefe-sidebar-editor-link');
       assert.equal(await navigation.getAttribute('data-slot'), 'button', 'Editor navigation uses shadcn Button');
       assert.equal(await navigation.getAttribute('data-variant'), 'ghost');
-      await page.waitForFunction(() => [...document.querySelectorAll('#kefeTimingEditor, #kefeMediaTrack, .kefe-upload-card')].every(card => card.dataset.shadcnHydrated === 'true'));
+      await page.waitForFunction(() => window.kefeSettingsPanelAdapter && [...document.querySelectorAll('#kefeTimingEditor, #kefeMediaTrack, .kefe-upload-card')].every(card => card.dataset.shadcnHydrated === 'true'));
       assert.equal(await page.locator('.kefe-panels > .shad-panel-card-host > .kefe-panel[data-panel-view]').count(), 6, 'all six editor panels are shadcn Cards');
       assert.equal(await page.locator('.kefe-panels .kefe-panel[data-panel-view]').evaluateAll(nodes => nodes.every(node => node.dataset.slot === 'card' && node.dataset.shadcnHydrated === 'true')), true, 'panel Card roots preserve their native sections');
       assert.equal(await page.locator('#kefeUploadZone .kefe-upload-card').getAttribute('data-slot'), 'card', 'media upload surface uses shadcn Card');

@@ -49,6 +49,8 @@ function scan(root = document) {
   if (root instanceof HTMLElement && root.matches('#kefeTimingEditor, #kefeMediaTrack, .kefe-upload-card')) candidates.push(root);
   root.querySelectorAll?.('#kefeTimingEditor, #kefeMediaTrack, .kefe-upload-card').forEach(card => candidates.push(card));
   candidates.forEach(mountCard);
+}
+function scanPanelCards(root = document) {
   const panels = [];
   if (root instanceof HTMLElement && root.matches('.kefe-panel[data-panel-view]')) panels.push(root);
   root.querySelectorAll?.('.kefe-panel[data-panel-view]').forEach(panel => panels.push(panel));
@@ -56,6 +58,7 @@ function scan(root = document) {
 }
 window.kefeHydratePanelCard = mountCard;
 window.kefeHydrateEditorPanelCard = mountPanelCard;
+document.addEventListener('kefe:settings-panel-mounted', () => scanPanelCards());
 function start() { scan(); }
 if (document.readyState === 'complete') start();
 else window.addEventListener('load', start, { once: true });

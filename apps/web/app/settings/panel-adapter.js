@@ -231,6 +231,7 @@ import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
       activateWorkspace,
       activateSection
     });
+    document.dispatchEvent(new CustomEvent('kefe:settings-panel-mounted', { detail: { root } }));
   }
 
   function start() {
