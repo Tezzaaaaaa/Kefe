@@ -31,6 +31,18 @@ const server = http.createServer((req, res) => {
       await page.goto(`http://127.0.0.1:${server.address().port}/editor.html`);
       await page.waitForSelector('.kefe-sidebar-bottom[data-shadcn-hydrated="true"]');
       await page.waitForFunction(() => window.kefeProjectAutosave);
+      await page.waitForFunction(() => ['.kefe-header-settings', '#previewFullscreen'].every(selector => document.querySelector(selector)?.dataset.shadcnHydrated === 'true'));
+      for (const selector of ['.kefe-header-settings', '#previewFullscreen']) {
+        const control = page.locator(selector);
+        assert.equal(await control.getAttribute('data-slot'), 'button', `${selector} is a shadcn Button`);
+        assert.equal(await control.getAttribute('data-variant'), 'ghost');
+      }
+      const settings = page.locator('.kefe-header-settings');
+      await settings.click();
+      await page.waitForSelector('.beui-settings-root[data-state="open"]');
+      await page.locator('.beui-settings-root .shad-dialog-close').click();
+      await page.waitForSelector('.beui-settings-root[data-state="closed"]');
+
       assert.equal(await page.evaluate(() => window.__headerButtons.every(button => document.getElementById(button.id) === button)), true, 'native button identities retained');
       for (const id of ['kefeResetButton', 'kefeSaveButton', 'kefeThemeToggle']) {
         const button = page.locator('#' + id);
