@@ -130,4 +130,4 @@ function mountWorkspaceDock() {
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mountHeaderActions(); mountWorkspaceDock(); }, { once: true });
-else { mountHeaderActions(); mountEditorSectionTabs(); mountWorkspaceDock(); }
+else { mountHeaderActions(); mountWorkspaceDock(); }
