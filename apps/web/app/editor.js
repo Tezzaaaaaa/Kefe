@@ -690,7 +690,7 @@
   function setEffect(id){
     state.effect=id;
     applyEffectDefault(id);
-    document.querySelectorAll('.kefe-lyric-effect-option').forEach(b=>{const active=b.dataset.effect===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
+    document.querySelectorAll('#lyricEffectOptions .kefe-lyric-effect-option').forEach(b=>{const active=b.dataset.effect===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
     document.getElementById('fontMeta').textContent=fontSelect.value ? 'Selected font · '+fontSelect.value : 'Effect font · '+(c.family||'System UI');
@@ -1946,7 +1946,7 @@
     updateTime();draw();
   });
   let exportTap=null,exporting=false;
-  let exportProgressModal=null,exportProgressFill=null,exportProgressValue=null,exportProgressStage=null;
+  let exportProgressModal=null,exportProgressFill=null,exportProgressValue=null,exportProgressStage=null,exportProgressUsesShadcn=false;
   function ensureExportProgressModal(){
     if(exportProgressModal)return;
     exportProgressModal=document.createElement('section');
@@ -1964,6 +1964,7 @@
     exportProgressModal.querySelector('#kefeExportClose').addEventListener('click',()=>{exportProgressModal.hidden=true;});
   }
   function setExportProgress(value,stage){
+    if(exportProgressUsesShadcn){window.kefeExportDialog.progress(value,stage);return;}
     ensureExportProgressModal();
     const percent=Math.max(1,Math.min(100,Math.round(Number(value)||1)));
     exportProgressFill.style.width=percent+'%';
@@ -1972,7 +1973,9 @@
     const bar=exportProgressModal.querySelector('[role="progressbar"]');
     bar.setAttribute('aria-valuenow',String(percent));
   }
-  function openExportProgress({title,artist,format,resolution,aspect,duration}){
+  function openExportProgress({title,artist,format,resolution,aspect,duration,fps}){
+    exportProgressUsesShadcn=!!window.kefeExportDialog;
+    if(exportProgressUsesShadcn){window.kefeExportDialog.open({title,artist,format,resolution,aspect,duration,fps});return;}
     ensureExportProgressModal();
     exportProgressModal.hidden=false;
     exportProgressModal.querySelector('#kefeExportTitle').textContent='Rendering your video';
@@ -1989,6 +1992,7 @@
     setExportProgress(1,'Preparing export');
   }
   function finishExportProgress(success,message){
+    if(exportProgressUsesShadcn){window.kefeExportDialog.finish(success,message);return;}
     if(!exportProgressModal)return;
     exportProgressModal.querySelector('#kefeExportTitle').textContent=success?'Export complete':'Export failed';
     exportProgressModal.querySelector('#kefeExportState').textContent=success?'Ready to download':'Needs attention';
@@ -2127,6 +2131,7 @@
     const formatNote=wantMp4&&ext!=='mp4'?' MP4 is not supported by this browser, so this is WebM.':'';
     const res=Number(document.getElementById('exportResolution').value)||720;
     const aspect=previewAspectRatio||'16:9';
+    const exportFps=Math.max(24,Math.min(60,Math.round(Number(window.kefeSettings?.get('fpsTarget')))||60));
     const even=n=>Math.round(n/2)*2;
     const long=even(res*16/9);
     const dims=aspect==='9:16'?[res,long]:aspect==='1:1'?[res,res]:[long,res];
@@ -2147,7 +2152,7 @@
     };
     exporting=true;window.kefeAppleCanvasExport=true;button.disabled=true;
     const projectTitle=songTitle.value.trim()||'Untitled project',projectArtist=songArtist.value.trim()||'Unknown artist';
-    openExportProgress({title:projectTitle,artist:projectArtist,format:ext,resolution:dims[0]+' × '+dims[1]+' px',aspect,duration:fmt(audio.duration)});
+    openExportProgress({title:projectTitle,artist:projectArtist,format:ext,resolution:dims[0]+' × '+dims[1]+' px',aspect,duration:fmt(audio.duration),fps:exportFps});
     let recorder=null,ticker=null,frameTicker=null;
     try{
       audio.pause();
@@ -2161,11 +2166,13 @@
       const tapCtx=window.kefeAudioGraph?.context()||exportTap?.ac;
       if(tapCtx&&tapCtx.state==='suspended')await tapCtx.resume();
       compositeFrame();
-      const exportFps=Math.max(24,Math.min(60,Math.round(Number(window.kefeSettings?.get('fpsTarget')))||60));
       const stream=compositeCanvas.captureStream(exportFps);
       frameTicker=setInterval(compositeFrame,1000/exportFps);
-      if(audioStream)audioStream.getAudioTracks().forEach(t=>stream.addTrack(t));
+      const audioTracks=audioStream?.getAudioTracks()||[];
+      if(audioTracks.length)audioTracks.forEach(t=>stream.addTrack(t));
       else status.textContent='Audio capture unavailable here; exporting video only…';
+      if(exportProgressUsesShadcn)window.kefeExportDialog.audio(audioTracks.length>0);
+      else if(exportProgressModal)exportProgressModal.querySelector('#kefeExportAudio').textContent=audioTracks.length?'Audio track included':'Video only';
       const chunks=[];
       recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:res>=2160?45000000:res>=1440?28000000:res>=1080?16000000:8000000});
       recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
@@ -2206,8 +2213,9 @@
     range.style.setProperty('--progress',p+'%');playhead.style.left=p+'%';window.kefeTimebarUpdate?.();
   }
 
-  /* Timeline bar: a flat seek field in the same language as the toolbar scrubbers. The native range input sits on
-     top (click, drag, arrow keys, Home/End all seek); this paints the fill, the spoken value and a hover time. */
+  /* Timeline bar: the range remains the seek state source. Its shadcn Slider
+     bridge supplies pointer and keyboard interaction; these labels and hover
+     hints also work as a native-range fallback if the bridge cannot load. */
   (function initTimebar(){
     const host=document.getElementById('waveform'),input=document.getElementById('kefeTime');
     if(!host||!input)return;
@@ -2228,8 +2236,8 @@
     });
     host.addEventListener('pointerleave',()=>{tip.hidden=true;});
     const scrub=on=>()=>host.classList.toggle('is-scrubbing',on);
-    input.addEventListener('pointerdown',scrub(true));
-    ['pointerup','pointercancel','blur'].forEach(t=>input.addEventListener(t,scrub(false)));
+    host.addEventListener('pointerdown',scrub(true));
+    ['pointerup','pointercancel','focusout'].forEach(t=>host.addEventListener(t,scrub(false)));
     paint();
   })();
 

@@ -32,6 +32,11 @@
     window.dispatchEvent(new CustomEvent('kefe-toolbar-change', { detail: { action, value, source: 'editor-toolbar' } }));
     if (!['ready', 'position', 'reset-position', 'lock', 'nudge', 'move-tool'].includes(action)) recordHistory();
   };
+  const forwardFromPanel = fn => {
+    const previous = window.kefeToolbarForwarding;
+    window.kefeToolbarForwarding = true;
+    try { return fn(); } finally { window.kefeToolbarForwarding = previous; }
+  };
   const fire = (node, ...types) => types.forEach(type => node.dispatchEvent(new Event(type, { bubbles: true })));
   const mirror = (node, fn, opts) => { if (!node) return; new MutationObserver(fn).observe(node, opts); fn(); };
 
@@ -100,6 +105,7 @@
     const { pop, trigger, onDoc } = panel;
     panel = null;
     closeListbox(false);
+    pop.dispatchEvent(new Event('kefe-panel-close'));
     pop.remove();
     trigger.setAttribute('aria-expanded', 'false');
     trigger.classList.remove('is-open');
@@ -129,19 +135,30 @@
     placePopover(pop, trigger, width);
     const onDoc = e => { if (!pop.contains(e.target) && !trigger.contains(e.target)) closeListbox(false); };
     document.addEventListener('pointerdown', onDoc, true);
-    current = { pop, trigger, onDoc };
+    current = { pop, trigger, onDoc, width };
     trigger.setAttribute('aria-expanded', 'true');
   }
   function openPanel(pop, trigger, width) {
     popHost().appendChild(pop);
     placePopover(pop, trigger, width);
-    const onDoc = e => { if (!e.target.closest('.kft-popover') && !trigger.contains(e.target) && !e.target.closest('.kft-tip')) closePanel(false); };
+    const onDoc = e => { if (!e.target.closest('.kft-popover, .kft-select-content') && !trigger.contains(e.target) && !e.target.closest('.kft-tip')) closePanel(false); };
     document.addEventListener('pointerdown', onDoc, true);
-    panel = { pop, trigger, onDoc };
+    panel = { pop, trigger, onDoc, width };
     trigger.setAttribute('aria-expanded', 'true');
     trigger.classList.add('is-open');
   }
-  window.addEventListener('resize', () => closePopover(false));
+  let lastViewport = [window.innerWidth, window.innerHeight];
+  window.addEventListener('resize', () => {
+    const changed = lastViewport[0] !== window.innerWidth || lastViewport[1] !== window.innerHeight;
+    lastViewport = [window.innerWidth, window.innerHeight];
+    if (changed) closePopover(false);
+    else {
+      // The editor emits resize after changing the canvas aspect ratio. Keep
+      // the active panel open and reposition it rather than dropping focus.
+      if (panel) placePopover(panel.pop, panel.trigger, panel.width);
+      if (current) placePopover(current.pop, current.trigger, current.width);
+    }
+  });
 
   let menuSeq = 0;
   function createMenu({ label, getOptions, getValue, onSelect, variant, fallback, width }) {
@@ -155,7 +172,10 @@
       const match = getOptions().find(o => o.value === getValue());
       text.textContent = match ? match.label : (fallback || label);
       trigger.setAttribute('aria-label', label + ': ' + text.textContent);
+      trigger.dispatchEvent(new Event('kefe-menu-refresh'));
     }
+    // The shadcn Select bridge uses the same live options and selection path.
+    trigger.kefeMenuBridge = { getOptions, getValue, choose(value) { forwardFromPanel(() => onSelect(value)); refresh(); } };
     function open() {
       const options = getOptions();
       const pop = h('div', 'kft-popover', { role: 'listbox', id: listId, 'aria-label': label, tabindex: '-1' });
@@ -183,7 +203,7 @@
       function choose(i) {
         const option = options[i];
         closeListbox(true);
-        if (option) { onSelect(option.value); refresh(); }
+        if (option) { forwardFromPanel(() => onSelect(option.value)); refresh(); }
       }
       pop._ctl = { setActive, choose, count: () => items.length, active: () => active, options };
       openPopover(pop, trigger, width);
@@ -213,7 +233,7 @@
 
   /* ───────── Scrub field (click or drag; arrow keys step) ───────── */
   function createScrubber({ label, min, max, step, onInput, format, bare }) {
-    const el = h('div', 'kft-scrub', { role: 'slider', tabindex: '0', 'aria-label': label });
+    const el = h('div', 'kft-scrub', { role: 'slider', tabindex: '0', 'aria-label': label, 'data-kft-step': String(step) });
     const fill = h('span', 'kft-scrub__fill');
     const name = h('span', 'kft-scrub__label'); name.textContent = label;
     const out = h('span', 'kft-scrub__value');
@@ -229,8 +249,11 @@
     function commit(v) {
       const snapped = clamp(Math.round(v / step) * step, lo, hi);
       if (snapped === value) return;
-      value = snapped; render(); onInput(value);
+      value = snapped; render(); forwardFromPanel(() => onInput(value));
     }
+    // The shadcn slider bridge forwards pointer and keyboard values to the
+    // same commit path used by the legacy scrubber.
+    el.addEventListener('kefe-scrub-set', e => { if (el.getAttribute('aria-disabled') !== 'true' && Number.isFinite(e.detail)) commit(e.detail); });
     const fromX = x => { const r = el.getBoundingClientRect(); return lo + clamp((x - r.left) / Math.max(1, r.width), 0, 1) * (hi - lo); };
     let dragging = false;
     el.addEventListener('pointerdown', e => {
@@ -257,7 +280,7 @@
         const n = Number(v);
         value = Number.isFinite(n) ? clamp(n, lo, hi) : lo; render();
       },
-      disable(b) { el.setAttribute('aria-disabled', String(!!b)); el.tabIndex = b ? -1 : 0; }
+      disable(b) { el.setAttribute('aria-disabled', String(!!b)); el.tabIndex = b || el.hasAttribute('data-shadcn-backing') ? -1 : 0; }
     };
   }
 
@@ -267,7 +290,7 @@
     const buttons = options.map(o => {
       const b = h('button', 'kft-seg__item', { type: 'button', role: 'radio', 'aria-checked': 'false', tabindex: '-1' });
       b.textContent = o.label; b.dataset.value = o.value;
-      b.addEventListener('click', () => { set(o.value); onChange(o.value); });
+      b.addEventListener('click', () => { set(o.value); forwardFromPanel(() => onChange(o.value)); });
       el.appendChild(b);
       return b;
     });
@@ -486,7 +509,7 @@
   const presetBtns = PRESETS.map(hex => {
     const b = h('button', 'kft-preset', { type: 'button', 'aria-label': hex.toUpperCase(), 'aria-pressed': 'false' });
     b.style.setProperty('--kt-p', hex); b.dataset.color = hex;
-    b.addEventListener('click', () => setColour(hex));
+    b.addEventListener('click', () => forwardFromPanel(() => setColour(hex)));
     presetsEl.appendChild(b);
     return b;
   });
@@ -508,10 +531,10 @@
     target.value = hex; fire(target, 'input', 'change');
     emit('text-colour', hex);
   }
-  nativePicker.addEventListener('input', () => setColour(nativePicker.value));
+  nativePicker.addEventListener('input', () => forwardFromPanel(() => setColour(nativePicker.value)));
   hexInput.addEventListener('input', () => {
     let v = hexInput.value.trim(); if (v && v[0] !== '#') v = '#' + v;
-    if (/^#[0-9a-f]{6}$/i.test(v)) setColour(v.toLowerCase());
+    if (/^#[0-9a-f]{6}$/i.test(v)) forwardFromPanel(() => setColour(v.toLowerCase()));
   });
   hexInput.addEventListener('blur', () => { hexInput.value = colourValue.toUpperCase(); });
   const outlineToggle = h('input', '', { type: 'checkbox', 'aria-label': 'Enable lyric outline' });
@@ -528,8 +551,8 @@
     api.applyState(style);
     syncStyleToggles(); emit(key, enabled);
   }
-  outlineToggle.addEventListener('change', () => setStyleToggle('outline', outlineToggle.checked));
-  glowToggle.addEventListener('change', () => setStyleToggle('glow', glowToggle.checked));
+  outlineToggle.addEventListener('change', () => forwardFromPanel(() => setStyleToggle('outline', outlineToggle.checked)));
+  glowToggle.addEventListener('change', () => forwardFromPanel(() => setStyleToggle('glow', glowToggle.checked)));
   window.addEventListener('kefe-style-change', syncStyleToggles);
   syncStyleToggles();
   lyricPanel.append(sectionLabel('Colour'), presetsEl, hexRow, checkRow('Outline', outlineToggle), checkRow('Soft glow', glowToggle));
@@ -782,9 +805,9 @@
   grip.addEventListener('keydown', e => {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home'].includes(e.key) || lockPos.getAttribute('aria-pressed') === 'true' || inFullscreen()) return;
     e.preventDefault();
-    if (e.key === 'Home') { redock(); return; }
+    if (e.key === 'Home') { redock(); grip.focus({ preventScroll: true }); return; }
     const step = e.shiftKey ? 24 : 6;
-    if (!floating) { const r = root.getBoundingClientRect(); pos = { x: r.left, y: r.top }; floating = true; mountRoot(); }
+    if (!floating) { const r = root.getBoundingClientRect(); pos = { x: r.left, y: r.top }; floating = true; mountRoot(); grip.focus({ preventScroll: true }); }
     pos = { x: pos.x + (e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0), y: pos.y + (e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0) };
     placeFloating(); emit('position', pos);
   });

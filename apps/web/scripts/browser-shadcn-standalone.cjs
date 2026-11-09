@@ -1,0 +1,138 @@
+const assert = require('node:assert/strict');
+const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
+const { chromium } = require('playwright');
+const root = path.resolve(__dirname, '../dist-beui');
+const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json' };
+const server = http.createServer((req, res) => {
+  const file = path.resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://localhost').pathname));
+  if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404).end(); return; }
+  res.writeHead(200, { 'content-type': mime[path.extname(file)] || 'application/octet-stream' });
+  fs.createReadStream(file).pipe(res);
+});
+function audioFixture() {
+  const sampleRate = 8000, samples = sampleRate * 10;
+  const buffer = Buffer.alloc(44 + samples * 2);
+  buffer.write('RIFF', 0); buffer.writeUInt32LE(36 + samples * 2, 4);
+  buffer.write('WAVEfmt ', 8); buffer.writeUInt32LE(16, 16); buffer.writeUInt16LE(1, 20); buffer.writeUInt16LE(1, 22);
+  buffer.writeUInt32LE(sampleRate, 24); buffer.writeUInt32LE(sampleRate * 2, 28); buffer.writeUInt16LE(2, 32); buffer.writeUInt16LE(16, 34);
+  buffer.write('data', 36); buffer.writeUInt32LE(samples * 2, 40);
+  return buffer;
+}
+(async () => {
+  let browser;
+  try {
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.CHROMIUM_EXECUTABLE_PATH } : {}) });
+    for (const width of [1440, 390, 320]) {
+      const context = await browser.newContext({ viewport: { width, height: 844 }, serviceWorkers: 'block' });
+      const page = await context.newPage(), errors = [];
+      await page.addInitScript(() => {
+        const observer = new MutationObserver(() => {
+          if (document.querySelector('#cf')) {
+            window.__standaloneOriginal = [...document.querySelectorAll('#pp,#sc,#pcp,#pcv,#pcn,#tx,#tin,#ain,#ap,#rs,#af,#lf,#cf')];
+            observer.disconnect();
+          }
+        });
+        observer.observe(document, { childList: true, subtree: true });
+      });
+      page.on('pageerror', error => errors.push(error.message));
+      page.on('console', message => { if (message.type() === 'error' && /hydrat|react error/i.test(message.text())) errors.push(message.text()); });
+      await page.goto(`http://127.0.0.1:${server.address().port}/apple-lyrics-standalone.html`);
+      await page.waitForSelector('#pp[data-shadcn-hydrated="true"]');
+      await page.waitForFunction(() => document.querySelectorAll('#c1 [role="slider"]').length === 17 && document.querySelectorAll('#c1 [role="checkbox"]').length === 3 && document.querySelectorAll('#c1 [role="combobox"]').length === 2);
+      assert.equal(await page.evaluate(() => window.__standaloneOriginal.length), 13);
+      assert.equal(await page.evaluate(() => window.__standaloneOriginal.every(node => node.isConnected && document.getElementById(node.id) === node)), true);
+      assert.equal(await page.locator('.standalone-control-host [data-slot="button"]').count(), 6);
+      assert.equal(await page.locator('.standalone-control-host [data-slot="input"]').count(), 5);
+      assert.equal(await page.locator('.standalone-control-host [data-slot="textarea"]').count(), 1);
+      await page.waitForFunction(() => document.querySelectorAll('#lyr .ln').length > 0 && document.querySelector('#pp').textContent === 'Pause');
+      await page.locator('#pp').click();
+      assert.equal(await page.locator('#pp').textContent(), 'Play');
+      const seek = page.getByRole('slider', { name: 'Seek' });
+      await seek.focus(); await page.keyboard.press('Home');
+      assert.equal(await seek.getAttribute('aria-valuenow'), '0');
+      await page.locator('#pp').click();
+      await page.waitForFunction(() => Number(document.querySelector('#sc').value) > 0.1);
+      await page.locator('#pp').click();
+      const seekRoot = page.locator('#tp .shad-slider');
+      await seekRoot.scrollIntoViewIfNeeded();
+      const seekBox = await seekRoot.boundingBox();
+      await page.mouse.move(seekBox.x + seekBox.width * .2, seekBox.y + seekBox.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(seekBox.x + seekBox.width * .7, seekBox.y + seekBox.height / 2, { steps: 4 });
+      await page.mouse.up();
+      await page.waitForFunction(() => Number(document.querySelector('#sc').value) > 10);
+      await page.locator('#pp').click();
+      const lastSeek = Number(await page.locator('#sc').inputValue());
+      await page.waitForFunction(value => Number(document.querySelector('#sc').value) > value + .1, lastSeek);
+      await page.locator('#pp').click();
+      const lookTrigger = page.getByRole('button', { name: 'Lyric look' });
+      const lyricsTrigger = page.getByRole('button', { name: 'Lyrics, song & audio' });
+      assert.equal(await page.locator('#ui [data-slot="accordion-item"]').count(), 2);
+      assert.equal(await lookTrigger.getAttribute('aria-expanded'), 'true');
+      assert.equal(await lyricsTrigger.getAttribute('aria-expanded'), 'false');
+      await lookTrigger.focus(); await page.keyboard.press('ArrowDown');
+      assert.equal(await lyricsTrigger.evaluate(n => document.activeElement === n), true, 'accordion arrows move focus');
+      await page.keyboard.press('Enter');
+      assert.equal(await lyricsTrigger.getAttribute('aria-expanded'), 'true');
+      assert.equal(await lookTrigger.getAttribute('aria-expanded'), 'true', 'multiple panels can stay open');
+      await lookTrigger.click();
+      assert.equal(await lookTrigger.getAttribute('aria-expanded'), 'false');
+      assert.equal(await page.locator('#c1').evaluate(n => n.isConnected), true, 'controls remain connected while closed');
+      assert.equal(await page.getByRole('slider', { name: 'Lyric size' }).count(), 0, 'closed controls are absent from the accessibility tree');
+      await lookTrigger.click();
+      await lyricsTrigger.click();
+      const size = page.getByRole('slider', { name: 'Lyric size' });
+      const sizeBox = await size.boundingBox();
+      assert.equal(sizeBox.width, 16); assert.equal(sizeBox.height, 16);
+      await size.focus(); await page.keyboard.press('End');
+      await page.waitForFunction(() => document.querySelector('#phone').style.getPropertyValue('--sz') === '1.4');
+      const bgv = page.getByRole('checkbox', { name: 'Backing vocals' });
+      assert.equal(await bgv.getAttribute('aria-checked'), 'true');
+      await bgv.click(); assert.equal(await bgv.getAttribute('aria-checked'), 'false');
+      assert.equal(await page.locator('#lyr .bgv').first().evaluate(n => n.style.display), 'none');
+      const ratio = page.getByRole('combobox', { name: 'Aspect ratio' });
+      await ratio.click(); await page.getByRole('option', { name: '16:9' }).click();
+      assert.equal(await page.locator('#phone').evaluate(n => n.classList.contains('hz')), true);
+      assert.equal(await page.locator('#pcp').getAttribute('aria-label'), 'Play');
+      await page.locator('#pcp').click(); assert.equal(await page.locator('#pp').textContent(), 'Pause');
+      await page.locator('#pcp').click(); assert.equal(await page.locator('#pp').textContent(), 'Play');
+      await page.locator('#pcn').click();
+      await page.waitForFunction(() => Number(document.querySelector('#sc').value) >= 3.9);
+      await page.locator('#pp').click();
+      await page.getByRole('button', { name: 'Lyrics, song & audio' }).click();
+      await page.locator('#tin').fill('Example track'); await page.locator('#ain').fill('Example artist');
+      assert.equal(await page.locator('#ttl').textContent(), 'Example track');
+      assert.equal(await page.locator('#art2').textContent(), 'Example artist');
+      await lyricsTrigger.click(); await lyricsTrigger.click();
+      assert.equal(await page.locator('#tin').inputValue(), 'Example track', 'editing survives closing the accordion');
+      assert.equal(await page.evaluate(() => window.__standaloneOriginal.every(node => node.isConnected && document.getElementById(node.id) === node)), true);
+      await page.locator('#tx').fill('[00:01.00] First line\n[00:03.00] Second line');
+      await page.locator('#ap').click();
+      assert.equal(await page.locator('#lyr .ln').count(), 2);
+      await page.locator('#lf').setInputFiles({ name: 'example.lrc', mimeType: 'text/plain', buffer: Buffer.from('[00:00.20] Uploaded first\n[00:02.00] Uploaded second') });
+      await page.waitForFunction(() => document.querySelector('#tx').value.includes('Uploaded first') && document.querySelectorAll('#lyr .ln').length === 2);
+      await page.locator('#af').setInputFiles({ name: 'music.wav', mimeType: 'audio/wav', buffer: audioFixture() });
+      await page.waitForFunction(() => document.querySelector('#au').duration === 10);
+      await page.locator('#rs').click();
+      await page.waitForFunction(() => document.querySelectorAll('#c1 [role="slider"]').length === 17 && document.querySelectorAll('#c1 [role="checkbox"]').length === 3 && document.querySelectorAll('#c1 [role="combobox"]').length === 2);
+      assert.equal(await page.locator('#phone').evaluate(n => n.classList.contains('hz')), false, 'reset restores aspect ratio');
+      assert.equal(await page.getByRole('slider', { name: 'Lyric size' }).getAttribute('aria-valuenow'), '1');
+      assert.equal(await page.getByRole('checkbox', { name: 'Backing vocals' }).getAttribute('aria-checked'), 'true');
+      await page.getByRole('checkbox', { name: 'Backing vocals' }).click();
+      assert.equal(await page.getByRole('checkbox', { name: 'Backing vocals' }).getAttribute('aria-checked'), 'false', 'rebuilt controls remain interactive');
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `no page overflow at ${width}px`);
+      assert.deepEqual(errors, [], `no page or hydration errors at ${width}px`);
+      await context.close();
+    }
+    const noJs = await browser.newContext({ javaScriptEnabled: false });
+    const fallback = await noJs.newPage();
+    await fallback.goto(`http://127.0.0.1:${server.address().port}/apple-lyrics-standalone.html`);
+    assert.equal(await fallback.locator('#ui > details').count(), 2, 'native disclosures remain as a no-JS fallback');
+    assert.equal(await fallback.locator('#ui > details').first().getAttribute('open'), '');
+    await noJs.close();
+    console.log('PASS: standalone shadcn controls, playback, uploads, reset and responsive layout');
+  } finally { if (browser) await browser.close(); server.close(); }
+})().catch(error => { console.error(error); process.exitCode = 1; });

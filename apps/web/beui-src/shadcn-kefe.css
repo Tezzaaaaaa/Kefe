@@ -1,5 +1,5 @@
 /* ==========================================================================
-   KEFE — shadcn.io Design System (Pure CSS + JavaScript)
+   KEFE — legacy shadcn-inspired design tokens and control styles
    Preserves KEFE's exact Night (#171719 / #202126) & Day (#f3f4f7 / #ffffff)
    palettes and #d92f33 brand crimson accent across every component.
    ========================================================================== */
@@ -85,8 +85,9 @@ html[data-theme="day"] {
   min-width: 84px;
 }
 
+.shad-slider-container { width: 100%; min-width: 0; }
+
 .shad-slider {
-  --shad-slider-pct: 0%;
   position: relative;
   display: flex;
   align-items: center;
@@ -101,7 +102,7 @@ html[data-theme="day"] {
   height: 2.5rem;
 }
 
-.shad-slider[data-disabled="true"] {
+.shad-slider[data-disabled] {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
@@ -119,36 +120,25 @@ html[data-theme="day"] {
 
 .shad-slider-range {
   position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--shad-slider-pct, 0%);
   height: 100%;
   background: var(--shad-primary);
   border-radius: inherit;
 }
 
 .shad-slider-thumb {
-  position: absolute;
-  top: 50%;
-  left: calc(8px + (100% - 16px) * var(--shad-slider-ratio, 0));
+  display: block;
   width: 16px;
   height: 16px;
   border-radius: 9999px;
   background: #ffffff;
   border: 2px solid var(--shad-primary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.32);
-  transform: translate(-50%, -50%);
-  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+  transition: box-shadow 120ms ease, border-color 120ms ease;
   outline: none;
 }
 
-.shad-slider:hover .shad-slider-thumb {
-  transform: translate(-50%, -50%) scale(1.05);
-}
-
-.shad-slider-thumb:focus-visible,
-.shad-slider[data-dragging="true"] .shad-slider-thumb {
+.shad-slider-thumb:focus-visible {
   box-shadow: 0 0 0 4px var(--shad-ring), 0 1px 3px rgba(0, 0, 0, 0.32);
-  transform: translate(-50%, -50%) scale(1.05);
 }
 
 /* --------------------------------------------------------------------------
@@ -1287,4 +1277,229 @@ html[data-theme="day"] {
 
 @media (max-width: 380px) {
   .kv-gallery { grid-template-columns: minmax(0, 1fr); }
+}
+
+.shad-select-listbox[data-slot="select-content"] {
+  position: relative;
+  top: auto;
+  right: auto;
+  min-width: var(--radix-select-trigger-width);
+  max-height: min(220px, var(--radix-select-content-available-height));
+}
+.shad-select-option[data-highlighted] { background: var(--shad-accent); color: var(--shad-accent-foreground); }
+
+/* shadcn/ui Checkbox bridge: the original input still owns editor state. */
+input.kefe-shad-checkbox-native {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.kefe-checkbox-host { display: inline-flex; flex: 0 0 auto; }
+.kefe-review-item .kefe-checkbox-host { margin-top: 1px; }
+.shad-checkbox {
+  display: inline-grid;
+  place-content: center;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  flex: 0 0 16px;
+  padding: 0;
+  border: 1px solid var(--shad-border-strong);
+  border-radius: 4px;
+  background: var(--shad-secondary);
+  color: var(--shad-primary-foreground);
+  box-shadow: var(--shad-shadow-xs);
+  cursor: pointer;
+}
+.shad-checkbox[data-state="checked"], .shad-checkbox[data-state="indeterminate"] {
+  background: var(--shad-primary);
+  border-color: var(--shad-primary);
+}
+.shad-checkbox:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--shad-ring); }
+.shad-checkbox:disabled { opacity: .5; cursor: not-allowed; }
+.shad-checkbox-indicator, .shad-checkbox-indicator span { display: grid; place-content: center; }
+
+/* Visible Radix switches backed by the existing KEFE toggle handlers. */
+button.kefe-shad-switch-native {
+  position: absolute !important;
+  width: 1px !important;
+  min-width: 1px !important;
+  max-width: 1px !important;
+  height: 1px !important;
+  min-height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+.kefe-switch-host { display: inline-flex; flex: 0 0 auto; align-items: center; }
+.kefe-checkbox-host[hidden], .kefe-switch-host[hidden] { display: none !important; }
+
+/* Export dialog and progress use the same shadcn tokens as settings. */
+.shad-export-dialog-host { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; padding: 16px; }
+.shad-export-dialog-host[hidden] { display: none !important; }
+.shad-export-content {
+  position: relative; z-index: 1; width: min(620px, calc(100vw - 32px)); max-height: calc(100dvh - 32px);
+  overflow: auto; padding: clamp(22px, 4vw, 36px); border: 1px solid var(--shad-border-strong);
+  border-radius: var(--shad-radius-xl); background: var(--shad-card); color: var(--shad-card-foreground); box-shadow: var(--shad-shadow-lg);
+}
+.shad-export-eyebrow { color: var(--shad-muted-foreground); font-size: 11px; font-weight: 700; letter-spacing: .16em; margin-bottom: 12px; }
+.shad-export-title { margin: 0 0 8px; font-size: clamp(24px, 4vw, 30px); letter-spacing: -.025em; }
+.shad-export-description, .shad-export-footnote { color: var(--shad-muted-foreground); font-size: 13px; line-height: 1.5; }
+.shad-export-description { margin: 0 0 22px; }
+.shad-export-summary { padding: 16px; margin-bottom: 20px; border: 1px solid var(--shad-border); border-radius: var(--shad-radius-lg); background: var(--shad-muted); }
+.shad-export-summary-head, .shad-export-progress-label { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.shad-export-summary-head { font-size: 11px; font-weight: 700; color: var(--shad-muted-foreground); text-transform: uppercase; }
+.shad-export-track { display: grid; gap: 4px; margin: 14px 0; overflow-wrap: anywhere; }
+.shad-export-track span { color: var(--shad-muted-foreground); font-size: 13px; }
+.shad-export-details { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 12px; }
+.shad-export-details > div { display: grid; gap: 5px; min-width: 0; overflow-wrap: anywhere; font-size: 12px; }
+.shad-export-details span { color: var(--shad-muted-foreground); text-transform: uppercase; font-size: 10px; letter-spacing: .08em; }
+.shad-export-progress-label { margin-bottom: 10px; font-size: 13px; }
+.shad-export-progress-label strong { font-size: 20px; font-variant-numeric: tabular-nums; }
+.shad-progress { position: relative; height: 8px; width: 100%; overflow: hidden; border-radius: 999px; background: var(--shad-accent-soft); }
+.shad-progress-indicator { width: 100%; height: 100%; background: var(--shad-primary); transition: transform 160ms ease; }
+.shad-export-footnote { margin: 14px 0 0; }
+.shad-export-close { display: flex; margin: 22px 0 0 auto; }
+@media (max-width: 480px) { .shad-export-details { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.kv-card[hidden] { display: none !important; }
+
+/* shadcn Textarea, applied only to the lyric editor (not song search). */
+.shad-lyrics-textarea-host { display: contents; }
+.kefe-editor .kefe-panel[data-panel-view="lyrics"] #lyricsInput.shad-textarea {
+  color: var(--shad-foreground); background: var(--shad-background); border: 1px solid var(--shad-border-strong);
+  border-radius: var(--shad-radius-md); box-shadow: var(--shad-shadow-xs); outline: none;
+}
+.kefe-editor .kefe-panel[data-panel-view="lyrics"] #lyricsInput.shad-textarea:focus-visible {
+  border-color: var(--shad-ring-solid); box-shadow: 0 0 0 3px var(--shad-ring);
+}
+
+/* shadcn ghost variant for the editor header's compact action buttons. */
+.shad-btn--ghost { background: transparent; color: var(--shad-foreground); box-shadow: none; }
+.shad-btn--ghost:hover { background: var(--shad-accent); }
+
+/* shadcn Input for the dynamically rebuilt lyric timing editor. */
+#kefeTimingEditor .shad-input {
+  color: var(--shad-foreground); background: var(--shad-background); border: 1px solid var(--shad-border-strong);
+  border-radius: var(--shad-radius-md); box-shadow: var(--shad-shadow-xs); outline: none;
+}
+#kefeTimingEditor .shad-input:focus-visible {
+  border-color: var(--shad-ring-solid); box-shadow: 0 0 0 3px var(--shad-ring);
+}
+
+/* shadcn RadioGroup for lyric display modes, backed by the lyric studio. */
+[data-shadcn-radio-mounted][hidden] { display: none !important; }
+.shad-lyric-display-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.shad-lyric-display-choice {
+  display: flex; align-items: center; justify-content: center; gap: 7px; min-width: 0; min-height: 36px;
+  padding: 5px 8px; border: 1px solid var(--shad-border-strong); border-radius: var(--shad-radius-md);
+  color: var(--shad-foreground); background: var(--shad-card); cursor: pointer; font-size: 13px;
+}
+.shad-lyric-display-choice:has([data-state="checked"]) { border-color: var(--shad-primary); background: var(--shad-accent-soft); }
+.shad-lyric-display-choice:has([data-disabled]) { opacity: .5; cursor: not-allowed; }
+.shad-radio {
+  display: inline-grid; place-items: center; flex: 0 0 16px; width: 16px; height: 16px; padding: 0;
+  border: 1px solid var(--shad-border-strong); border-radius: 50%; background: var(--shad-background); color: var(--shad-primary);
+}
+.shad-radio:focus-visible { outline: 2px solid var(--shad-ring-solid); outline-offset: 2px; }
+.shad-radio-indicator { display: grid; place-items: center; }
+.shad-radio-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+/* Override legacy blanket button sizing, not the labelled 36px hit target. */
+html .kefe-editor .shad-lyric-display-host .shad-radio { min-height: 16px; height: 16px; border-radius: 50%; }
+
+.shad-export-button-host { display: contents; }
+.kefe-editor .kefe-panel[data-panel-view="export"] .shad-export-button-host > #exportButton {
+  grid-column: 1 / -1; width: 100%; min-width: 0; max-width: 100%;
+  border-color: transparent; background: var(--shad-primary); color: var(--shad-primary-foreground);
+}
+.kefe-editor .kefe-panel[data-panel-view="export"] .shad-export-button-host > #exportButton:hover:not(:disabled) { background: var(--shad-primary-hover); }
+
+/* Stable lyric studio and export actions use the shadcn Button variants. */
+.shad-lyric-action-host { display: contents; }
+html .kefe-editor :is(#kefeAutoSync, #kefeTimingEditor, #kefeExportExtras) .shad-lyric-action-host > .shad-btn--outline {
+  border: 1px solid var(--shad-border-strong); background: transparent; color: var(--shad-foreground); box-shadow: var(--shad-shadow-xs);
+}
+html .kefe-editor :is(#kefeAutoSync, #kefeTimingEditor, #kefeExportExtras) .shad-lyric-action-host > .shad-btn--outline:hover:not(:disabled) { background: var(--shad-accent); }
+html .kefe-editor :is(#kefeAutoSync, #kefeTimingEditor, #kefeExportExtras) .shad-lyric-action-host > .shad-btn--primary {
+  border: 1px solid transparent; background: var(--shad-primary); color: var(--shad-primary-foreground); box-shadow: var(--shad-shadow-xs);
+}
+html .kefe-editor :is(#kefeAutoSync, #kefeTimingEditor, #kefeExportExtras) .shad-lyric-action-host > .shad-btn--primary:hover:not(:disabled) { background: var(--shad-primary-hover); }
+html .kefe-editor :is(#kefeAutoSync, #kefeTimingEditor, #kefeExportExtras) .shad-lyric-action-host > .shad-btn:focus-visible { outline: 2px solid var(--shad-ring-solid); outline-offset: 2px; }
+html .kefe-editor :is(#kefeAutoSync, #kefeTimingEditor, #kefeExportExtras) .shad-lyric-action-host > .shad-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Timing-row actions are shadcn Buttons; all native row nodes stay in place. */
+html .kefe-editor #kefeTimingEditor .kefe-line .shad-btn--outline {
+  border: 1px solid var(--shad-border-strong); background: transparent; color: var(--shad-foreground); box-shadow: var(--shad-shadow-xs);
+}
+html .kefe-editor #kefeTimingEditor .kefe-line .shad-btn--outline:hover:not(:disabled) { background: var(--shad-accent); }
+html .kefe-editor #kefeTimingEditor .kefe-line .shad-btn:focus-visible { outline: 2px solid var(--shad-ring-solid); outline-offset: 2px; }
+html .kefe-editor #kefeTimingEditor .kefe-line .shad-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.shad-lyric-card-host { display: contents; }
+html .kefe-editor #kefeTimingEditor.shad-lyric-card {
+  color: var(--shad-card-foreground); background: var(--shad-card); border: 1px solid var(--shad-border);
+  border-radius: var(--shad-radius-lg); box-shadow: var(--shad-shadow-xs);
+}
+
+/* shadcn Alert notifications retain KEFE's stacked announcement behavior. */
+.shad-alert-mount { display: contents; }
+html:root .kefe-alert.shad-alert {
+  border-color: var(--shad-border-strong); border-radius: var(--shad-radius-lg);
+  background: var(--shad-card); color: var(--shad-card-foreground); box-shadow: var(--shad-shadow-md);
+}
+html:root .kefe-alert .shad-alert-description { color: var(--shad-muted-foreground); }
+html:root .kefe-alert .shad-btn.kefe-alert-close { min-width: 28px; min-height: 28px; width: 28px; height: 28px; }
+
+/* Retain the preview arrows' inset depth after adopting Button. */
+.kefe-lyric-effect-preview-nav .shad-btn.kefe-lyric-effect-preview-button:not(:hover):not(:focus-visible) { box-shadow: var(--inner); }
+.kefe-lyric-effect-preview-nav .shad-btn.kefe-lyric-effect-preview-button:hover:not(:disabled) { box-shadow: var(--lift); }
+
+/* Toolbar buttons keep their compact native grid sizing after hydration. */
+#kefeFloatingToolbar .kft-main .shad-btn, #kefeFloatingToolbar .kft-launch.shad-btn { min-height: 0; }
+
+/* Keep the toolbar's panel-specific button and colour-control layout. */
+.kft-panel .kft-shad-control-host { display: contents; }
+.kft-panel .shad-btn:is(.kft-chip, .kft-padbtn, .kft-preset) { min-height: 0; }
+.kft-panel .shad-btn.kft-preset { background: var(--kt-p); }
+.kft-panel .kft-scrub[data-shadcn-backing] {
+  position: absolute !important; width: 1px !important; height: 1px !important;
+  padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important; clip-path: inset(50%) !important; border: 0 !important;
+}
+.kft-panel .kft-shad-scrub { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.kft-panel .kft-shad-scrub .shad-slider { flex: 1 1 auto; min-width: 0; }
+.kft-panel .kft-shad-scrub-value { min-width: 3.3em; color: var(--kt-text); font-size: 11px; font-variant-numeric: tabular-nums; text-align: right; }
+.kft-panel .kft-seg[data-shadcn-backing][hidden] { display: none !important; }
+.kft-panel .kft-shad-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.kft-panel button.kft-shad-seg-item {
+  width: auto; min-width: 0; height: 22px; min-height: 0; padding: 0;
+  border: 0; border-radius: 3px; background: transparent; color: var(--kt-muted);
+  box-shadow: none; font-size: 11px; font-weight: 600;
+}
+.kft-panel button.kft-shad-seg-item[data-state="checked"] { background: var(--kt-accent-bg); color: var(--kt-accent-fg); box-shadow: inset 0 0 0 1px var(--kt-accent); }
+.kft-panel button.kft-shad-seg-item:focus-visible { outline: 2px solid var(--kt-ring); outline-offset: 2px; }
+.kft-panel .kft-shad-seg-item .shad-radio-indicator { display: none; }
+.kft-panel .kft-trigger[data-shadcn-backing][hidden] { display: none !important; }
+.kft-panel .kft-shad-select-host { min-width: 0; }
+.kft-panel button.kft-shad-select-trigger {
+  width: 100%; min-width: 0; max-width: none; height: var(--kt-h); min-height: 0;
+  padding: 0 8px; border: 1px solid var(--kt-border); border-radius: 4px;
+  background: var(--kt-surface); color: var(--kt-text); font-size: 11px; font-weight: 500;
+}
+.kft-panel button.kft-shad-select-trigger:hover, .kft-panel button.kft-shad-select-trigger[aria-expanded="true"] { background: var(--kt-surface-hover); border-color: var(--kt-border-hover); }
+.kft-select-content[data-slot="select-content"] { z-index: 10004; }
+@media (pointer: coarse) {
+  .kft-panel button.kft-shad-seg-item { height: 28px; }
 }

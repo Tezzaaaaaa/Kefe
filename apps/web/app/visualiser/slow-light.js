@@ -165,7 +165,7 @@
     tabsList.addEventListener('click',e=>{const clicked=e.target.closest('[role="tab"]');if(clicked&&clicked!==tab){setActive(false);sceneSet.hidden=true;}});
     tab.addEventListener('click',()=>{
       form.querySelectorAll('.kefe-vis-view').forEach(v=>v.hidden=v!==view);
-      tabs.querySelectorAll('[role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
+      tabs.querySelectorAll('.kefe-vis-option [role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
       const presetRow=document.querySelector('.kefe-visualiser-preset-row');if(presetRow)presetRow.hidden=false;
       presetRow?.querySelectorAll('.kefe-visualiser-preset-set').forEach(set=>set.hidden=set!==sceneSet);
       const heading=document.getElementById('kefeVisualiserHeading'),description=document.getElementById('kefeVisualiserDescription');

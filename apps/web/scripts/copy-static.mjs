@@ -40,15 +40,27 @@ if (existsSync(assetsDir)) {
   }
 }
 
-for (const entry of ["app", "fonts", "legal"]) {
+for (const entry of ["app", "fonts"]) {
   const source = resolve(webRoot, entry);
   if (existsSync(source)) {
     cpSync(source, resolve(output, entry), { recursive: true, force: true });
   }
 }
 
+// The standalone demo is built from its source template at its public URL.
+const standaloneSource = resolve(output, "apple-lyrics-standalone.source.html");
+cpSync(standaloneSource, resolve(output, "apple-lyrics-standalone.html"), { force: true });
+unlinkSync(standaloneSource);
+
+// Legal pages are built from legal-src; publish them at their stable public URLs.
+const legalOutput = resolve(output, "legal");
+mkdirSync(legalOutput, { recursive: true });
+for (const page of ["privacy.html", "terms.html"]) {
+  cpSync(resolve(output, "legal-src", page), resolve(legalOutput, page), { force: true });
+  unlinkSync(resolve(output, "legal-src", page));
+}
+
 for (const file of [
-  "apple-lyrics-standalone.html",
   "workspace.html",
   "manifest.webmanifest",
   "sw.js",

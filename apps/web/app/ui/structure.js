@@ -10,7 +10,7 @@ const panelActionExclusions = [
   '[role="dialog"]', '.kefe-command-overlay', '#beui-settings-root',
   '.beui-button-host', '.kefe-section-info', '.beui-command-button-host',
   '.kefe-vis-tabs', '.kefe-visualiser-power-slot', '.beui-vis-tabs-host',
-  '.beui-range-host', '.beui-settings-root',
+  '.beui-range-host', '.beui-settings-root', '.kefe-checkbox-host', '.kefe-switch-host', '.shad-lyric-display-host',
   '.expand-button', '.info-button', '.toggle-switch', '.kefe-dd',
 ].join(',');
 function decoratePanelAction(button) {

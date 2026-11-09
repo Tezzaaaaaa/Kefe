@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderKefeIcon } from "../app/ui/icons.js";
@@ -20,26 +20,16 @@ for (const name of requiredIcons) {
   assert.match(svg, /^<svg\b[\s\S]*\bclass="lucide\b[\s\S]*<\/svg>$/, `Icon "${name}" must render a valid <svg class="lucide">`);
 }
 
-// 2. Verify zero .jsx or .tsx source files remain anywhere in apps/web/app or apps/web/beui-src.
-function walkFiles(dir, out = []) {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = resolve(dir, entry.name);
-    if (entry.isDirectory()) walkFiles(full, out);
-    else out.push(full);
-  }
-  return out;
+// 2. Migrated primitives must use Radix, not data-slot tags alone.
+const slider = read("components/ui/slider.js");
+const bridge = read("beui-src/shadcn-slider.js");
+assert.match(slider, /@radix-ui\/react-slider/);
+assert.match(slider, /SliderPrimitive\.Root/);
+assert.match(bridge, /createRoot/);
+assert.match(bridge, /input\.dispatchEvent/);
+for (const [component, primitive] of [["checkbox", "react-checkbox"], ["switch", "react-switch"], ["select", "react-select"], ["dialog", "react-dialog"], ["accordion", "react-accordion"], ["tabs", "react-tabs"], ["progress", "react-progress"]]) {
+  assert.ok(read(`components/ui/${component}.js`).includes(`@radix-ui/${primitive}`), `${component} must use its Radix primitive`);
 }
-
-const sourceFiles = [
-  ...walkFiles(resolve(root, "app")),
-  ...walkFiles(resolve(root, "beui-src")),
-];
-const remainingJsxTsx = sourceFiles.filter((f) => /\.(jsx|tsx|ts)$/.test(f));
-assert.deepEqual(
-  remainingJsxTsx,
-  [],
-  `All React/TSX bridges must be converted to pure JS + CSS; found: ${remainingJsxTsx.join(", ")}`,
-);
 
 // 3. Verify Settings panel HTML & CSS match KEFE's shadcn.io design tokens (#d92f33 accent, Lucide SVGs, no #4f9eff blue).
 const panelHtml = read("app/settings/panel.html");
@@ -70,18 +60,6 @@ for (const selector of [
   assert.ok(shadcnCss.includes(selector), `shadcn-kefe.css must define ${selector}`);
 }
 
-// 5. Verify built dist-beui bundle has zero React / Framer Motion / Radix runtime code.
-const distAssetsDir = resolve(root, "dist-beui/assets");
-if (existsSync(distAssetsDir)) {
-  const builtJsFiles = readdirSync(distAssetsDir).filter((f) => f.endsWith(".js"));
-  assert.ok(builtJsFiles.length >= 1, "dist-beui/assets must contain the built JS bundle");
-  for (const jsFile of builtJsFiles) {
-    const bundle = readFileSync(resolve(distAssetsDir, jsFile), "utf8");
-    assert.ok(!bundle.includes("__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED"),
-      `${jsFile} must not bundle React runtime`);
-    assert.ok(!bundle.includes("framer-motion"),
-      `${jsFile} must not bundle framer-motion`);
-  }
-}
-
-console.log("PASS: pure-JS + CSS shadcn.io design system verified (icons, primitives, tokens, zero React/TSX runtime).");
+// The rest of the UI is still legacy. This check deliberately does not claim
+// that adding shadcn-style classes makes those controls shadcn components.
+console.log("PASS: migrated shadcn/Radix primitives, icons and existing design tokens verified.");

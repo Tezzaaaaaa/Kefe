@@ -148,7 +148,7 @@
       tab.addEventListener('click', () => {
         window.dispatchEvent(new CustomEvent('kefe-visualiser-select', { detail: { id: def.id } }));
         form.querySelectorAll('.kefe-vis-view').forEach(v => { v.hidden = v !== view; });
-        tabs.querySelectorAll('[role="tab"]').forEach(b => { const sel = b === tab; b.classList.toggle('primary', sel); b.setAttribute('aria-selected', String(sel)); });
+        tabs.querySelectorAll('.kefe-vis-option [role="tab"]').forEach(b => { const sel = b === tab; b.classList.toggle('primary', sel); b.setAttribute('aria-selected', String(sel)); });
         if (presetRow) { presetRow.hidden = false; presetRow.querySelectorAll('.kefe-visualiser-preset-set').forEach(s => { s.hidden = s !== presetSet; }); }
         const heading = document.getElementById('kefeVisualiserHeading'), description = document.getElementById('kefeVisualiserDescription');
         if (heading) heading.textContent = def.name; if (description) description.textContent = '';

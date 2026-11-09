@@ -62,7 +62,7 @@ Effects provide different animation and typography treatments. Available control
 - A bottom section dock switches between Media, Lyric Sync, Lyric Effects, Background, Visualisers and Export in one tap.
 - An icon rail, grouped control tabs and collapsible control groups keep the active panel short, and the live native controls move with it.
 - An expanding Tools menu holds the editor-wide actions (day/night mode, search, fullscreen preview and reset).
-- Every slider in the sidebar uses the beUI range slider, and all edits stay in the same native controls as the desktop layout.
+- Editor sliders, checkboxes, panel selects and switches, workspace tabs, the visualiser gallery and the settings and export-progress dialogs use shadcn/ui components integrated with existing editor state. Many other controls and layouts remain legacy; see [migration status](docs/SHADCN-MIGRATION.md).
 
 ### Video formats and export
 

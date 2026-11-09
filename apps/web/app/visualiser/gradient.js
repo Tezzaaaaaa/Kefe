@@ -97,7 +97,7 @@
       form.querySelectorAll('.kefe-vis-view').forEach(item => {
         item.hidden = item !== view;
       });
-      tabs.querySelectorAll('[role="tab"]').forEach(item => {
+      tabs.querySelectorAll('.kefe-vis-option [role="tab"]').forEach(item => {
         const selected = item === tab;
         item.classList.toggle('primary', selected);
         item.setAttribute('aria-selected', String(selected));

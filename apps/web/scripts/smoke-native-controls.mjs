@@ -85,4 +85,4 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("PASS: editor inputs, selects, section tabs, shell navigation, transport, and panel actions remain directly KEFE-owned; retired mirrors and their source styles are absent.");
+console.log("PASS: canonical editor controls and panel actions remain present; retired beUI mirrors and their source styles are absent.");

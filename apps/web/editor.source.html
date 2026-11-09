@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="KEFE — a browser-based lyric visualiser for creating lyric videos and audio-reactive visuals.">
 <meta name="kefe-settings-tabs" content="single">
-<meta name="kefe-ui-system" content="shadcn-js">
+<meta name="kefe-ui-system" content="shadcn-migration">
 <meta name="kefe-lyric-signature" content="52">
 <title>KEFE — Lyric Visualiser</title>
 <script>
-/* Boot gate: the legacy shell is built synchronously and the beUI bridges swap its controls in afterwards.
+/* Boot gate: the legacy shell is built synchronously and the control bridges enhance it afterwards.
    Keep the page hidden until the DOM stops gaining elements, then reveal it once, so the old toolbar/nav
    is never painted. The saved theme is applied here so day mode never flashes night first. */
 (function () {
@@ -66,16 +66,16 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <link rel="stylesheet" href="./app/ui/styles.css?v=upload-even-20261108-1">
-<link rel="stylesheet" href="./app/ui/toolbar.css?v=header-save-reset-20261107-1">
+<link rel="stylesheet" href="./app/ui/toolbar.css?v=shadcn-timeline-20261108-1">
 <link rel="stylesheet" href="./app/ui/carousel-dots.css?v=carousel-dots-20261101-1">
-<link rel="stylesheet" href="./app/ui/section-dropdowns.css?v=section-dropdowns-20261101-1">
+<link rel="stylesheet" href="./app/ui/section-dropdowns.css?v=shadcn-select-20261108-2">
 <link rel="stylesheet" href="./app/ui/media-search.css?v=carousel-timeline-layout-20261106-1">
-<link rel="stylesheet" href="./app/settings/panel.css?v=subtabs-20261107-1">
+<link rel="stylesheet" href="./app/settings/panel.css?v=shadcn-tabs-20261108-1">
 <link rel="stylesheet" href="./app/ui/section-layout.css?v=upload-even-20261107-1">
 
 </head>
 <body>
-<script src="./app/ui/structure.js?v=header-reset-save-20261107-1"></script>
+<script src="./app/ui/structure.js?v=shadcn-controls-20261108-2"></script>
 <script src="./app/ui/typography.js?v=shared-fonts-20261018-1"></script>
 <script src="./app/effects/manifest.js?v=signature-lyricfx-20261031-1"></script>
 <script src="./app/effects/core.js?v=wrap-intact-words-20261017-1"></script>
@@ -89,10 +89,9 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
 
 <script src="./app/lyrics/lyric-model.js?v=enhanced-lrc-word-timing-20261017-1"></script>
 <script src="./app/settings.beui.js?v=subtabs-20261107-1"></script>
-<script src="./app/editor.js?v=subtabs-20261107-1"></script>
+<script src="./app/editor.js?v=shadcn-timeline-20261108-1"></script>
 <script src="./app/ui/toolbar.js?v=remove-lyrics-eye-20261107-1"></script>
 <script defer src="./app/ui/carousel-dots.js?v=carousel-dots-20261101-1"></script>
-<script defer src="./app/ui/section-dropdowns.js?v=section-dropdowns-20261101-1"></script>
 <script defer src="./app/ios-lockscreen.js?v=ios-lockscreen-mediasession-20261017-1"></script>
 <script defer src="./app/ui/style-layer.js?v=effect-defaults-20261022-1"></script>
 <script defer src="./app/lyrics/lyric-studio.js?v=subtabs-20261107-1"></script>
@@ -100,12 +99,12 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
 <script defer src="./app/visualiser/background.js?v=upload-even-20261107-1"></script>
 <script defer src="./app/visualiser/audio-overlay.js?v=audio-playback-routing-20261105-1"></script>
 <script defer src="./app/media-carousel.js?v=carousel-timeline-layout-20261106-1"></script>
-<script defer src="./app/visualiser/gradient.js?v=visualiser-gallery-visible-20261106-1"></script>
+<script defer src="./app/visualiser/gradient.js?v=shadcn-gallery-20261108-1"></script>
 <script defer src="./app/visualiser/liquid-flow.js?v=visualiser-title-toggle-20261022-1"></script>
-<script defer src="./app/visualiser/fluted-glass.js?v=visualiser-gallery-20261101-1"></script>
-<script type="module" defer src="./app/visualiser/liquid-glass.js?v=visualiser-gallery-20261101-1"></script>
-<script type="module" defer src="./app/visualiser/slow-light.js?v=visualiser-gallery-20261101-1"></script>
-<script defer src="./app/visualiser/shader-vis.js?v=shader-vis-20261029-1"></script>
+<script defer src="./app/visualiser/fluted-glass.js?v=shadcn-gallery-20261108-1"></script>
+<script type="module" defer src="./app/visualiser/liquid-glass.js?v=shadcn-gallery-20261108-1"></script>
+<script type="module" defer src="./app/visualiser/slow-light.js?v=shadcn-gallery-20261108-1"></script>
+<script defer src="./app/visualiser/shader-vis.js?v=shadcn-gallery-20261108-1"></script>
 <script defer src="./app/visualiser/silk-road.js?v=shader-vis-20261029-1"></script>
 <script defer src="./app/visualiser/apple-fx.js?v=apple-fx-20261101-1"></script>
 <script defer src="./app/visualiser/visuals-mix.js?v=shader-vis-20261029-1"></script>
@@ -212,12 +211,34 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 </script>
 <script type="module" src="./app/ui/icons.js"></script>
 <script type="module" src="./beui-src/shadcn-slider.js"></script>
+<script type="module" src="./beui-src/shadcn-transport-buttons.js"></script>
+<script type="module" src="./beui-src/shadcn-volume-button.js"></script>
+<script type="module" src="./beui-src/shadcn-header-actions.js"></script>
+<script type="module" src="./beui-src/shadcn-toolbar-buttons.js"></script>
+<script type="module" src="./beui-src/shadcn-toolbar-panel-controls.js"></script>
+<script type="module" src="./beui-src/shadcn-toolbar-sliders.js"></script>
+<script type="module" src="./beui-src/shadcn-toolbar-radio.js"></script>
+<script type="module" src="./beui-src/shadcn-toolbar-selects.js"></script>
+<script type="module" src="./beui-src/shadcn-lyrics-textarea.js"></script>
+<script type="module" src="./beui-src/shadcn-lyric-inputs.js"></script>
+<script type="module" src="./beui-src/shadcn-lyric-actions.js"></script>
+<script type="module" src="./beui-src/shadcn-lyric-card.js"></script>
+<script type="module" src="./beui-src/shadcn-lyric-display.js"></script>
 <script type="module" src="./beui-src/shadcn-settings-dialog.js"></script>
+<script type="module" src="./beui-src/shadcn-export-dialog.js"></script>
+<script type="module" src="./beui-src/shadcn-alerts.js"></script>
+<script type="module" src="./beui-src/shadcn-export-button.js"></script>
 <script type="module" src="./beui-src/shadcn-visualiser-tabs.js"></script>
+<script type="module" src="./beui-src/shadcn-effect-buttons.js"></script>
+<script type="module" src="./beui-src/shadcn-effect-navigation.js"></script>
+<script type="module" src="./beui-src/shadcn-style-colours.js"></script>
 <script type="module" src="./beui-src/shadcn-controls.js"></script>
+<script type="module" src="./beui-src/shadcn-select-bridge.js"></script>
+<script type="module" src="./beui-src/shadcn-checkbox-bridge.js"></script>
+<script type="module" src="./beui-src/shadcn-switch-bridge.js"></script>
 <script defer src="./app/settings/panel-component.js?v=settings-panel-replacement-20261025-2"></script>
-<script defer src="./app/settings/panel-adapter.js?v=subtabs-20261107-1"></script>
+<script type="module" src="./app/settings/panel-adapter.js?v=shadcn-tabs-20261108-1"></script>
 <script defer src="./app/ui/section-layout.js?v=section-layout-20261102-1"></script>
-<script defer src="./app/ui/workspace-state.js?v=header-save-reset-20261107-2"></script>
+<script defer src="./app/ui/workspace-state.js?v=shadcn-bridges-20261108-2"></script>
 </body>
 </html>

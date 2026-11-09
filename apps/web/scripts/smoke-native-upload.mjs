@@ -48,4 +48,4 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("PASS: native upload label/file input and KEFE picker/drop handlers own the upload surface; React Card wrapper source/styles are retired.");
+console.log("PASS: native upload label/file input and KEFE picker/drop handlers own the upload surface; the former upload Card wrapper source/styles are retired.");

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="../app/ui/styles.css?v=legal-20261109" vite-ignore>
+<script>document.documentElement.dataset.theme = "night";</script>
+<link rel="stylesheet" href="../beui-src/shadcn-legal.css">
+<script type="module" src="../beui-src/shadcn-legal.js"></script>
+<title>KEFE Privacy Policy (draft)</title>
+
+</head>
+<body class="kefe-legal-page">
+<main>
+<div class="kefe-legal-card">
+<h1>KEFE Privacy Policy</h1>
+<p class="meta">Last updated: [PLACEHOLDER: date]</p>
+<div class="kefe-legal-alert-mount"><div class="draft"><strong>Draft.</strong> Not yet reviewed by a lawyer. Replace every [PLACEHOLDER] before publishing.</div></div>
+
+<h2>Who we are</h2>
+<p>KEFE Visualiser ("KEFE") is a browser-based lyric video and music visualiser editor operated by [PLACEHOLDER: legal name or business name, ABN if any], Queensland, Australia. Contact: [PLACEHOLDER: email address].</p>
+
+<h2>The short version</h2>
+<p>KEFE runs in your browser. Your audio, video, lyrics and projects are processed on your device and are not uploaded to KEFE servers. The one exception is the optional song-recognition service described below, which a deployment operator can enable and which then receives a copy of an uploaded audio file. KEFE has no accounts, no advertising and no analytics. Some features send limited information to third-party services, listed below.</p>
+
+<h2>What stays on your device</h2>
+<p>Media files you load and the videos you export are handled locally in your browser. Auto-sync performs speech recognition locally after downloading a model file; your audio is not sent anywhere for that feature. KEFE saves editor settings (such as effect and style choices) in your browser's local storage. Clearing your browser data removes them. We do not receive them.</p>
+
+<h2>What is sent to third parties</h2>
+<div class="kefe-legal-table-mount" role="region" aria-label="Third-party services and data sent" tabindex="0">
+<table>
+<thead><tr><th scope="col">Service</th><th scope="col">When</th><th scope="col">What is sent</th></tr></thead>
+<tbody>
+<tr><td>Apple iTunes Search API</td><td>When you search for a song or album</td><td>Your search text and country code, plus your IP address</td></tr>
+<tr><td>LRCLIB (lyrics lookup)</td><td>When you ask KEFE to find lyrics</td><td>Track title, artist, album, duration, plus your IP address</td></tr>
+<tr><td>jsDelivr (code delivery)</td><td>Only when you press Auto-sync, to load the Transformers.js library</td><td>Your IP address and browser details</td></tr>
+<tr><td>Hugging Face (speech model download)</td><td>Only when you press Auto-sync and the speech model is not already cached</td><td>Your IP address and browser details; your audio stays in the browser</td></tr>
+<tr><td>GitHub Pages (hosting)</td><td>Whenever you open KEFE</td><td>Your IP address and browser details, logged by GitHub</td></tr>
+<tr><td>Song recognition (AudD)</td><td>Only if the operator of a particular KEFE deployment has configured a recognition endpoint, and only when you upload an audio file up to 10 MB</td><td>The audio file you chose, plus your IP address</td></tr>
+</tbody>
+</table>
+</div>
+<p>These services have their own privacy policies. We do not control what they do with the information. [PLACEHOLDER: remove rows for any service that is removed from the product before publishing.]</p>
+
+<h2>What we do not do</h2>
+<p>We do not sell personal information. We do not use cookies for tracking. We do not run advertising or analytics in the editor.</p>
+
+<h2>Children</h2>
+<p>KEFE is not directed at children under 13. If you believe a child has provided information through a third-party service via KEFE, contact us.</p>
+
+<h2>Your rights</h2>
+<p>We hold no personal information about you beyond what GitHub's hosting logs contain, and those are controlled by GitHub. If you want to ask us about privacy, or you are in Australia, the EU/UK or California and want to exercise a privacy right, contact us at the address above. Under Australian law you may also complain to the Office of the Australian Information Commissioner (oaic.gov.au).</p>
+
+<h2>Changes</h2>
+<p>If KEFE adds accounts, payments, cloud storage or sharing, this policy will be updated before those features launch.</p>
+</div>
+</main>
+</body>
+</html>

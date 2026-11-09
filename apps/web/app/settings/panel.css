@@ -1466,3 +1466,6 @@
     scroll-behavior: auto;
   }
 }
+
+/* Root wrappers preserve the editor's existing grid and sticky tab layout. */
+.kefe-workspace-tabs-mount, .kefe-subtabs-mount { display: contents; }

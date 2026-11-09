@@ -1,0 +1,30 @@
+/* shadcn Card, Alert and Table layout; text stays readable with JS disabled. */
+.kefe-legal-page main {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.kefe-legal-card {
+  box-sizing: border-box;
+  width: min(100% - 32px, 760px);
+  margin: clamp(24px, 6vh, 64px) auto;
+  padding: clamp(20px, 4vw, 36px);
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  background: var(--surface);
+  box-shadow: var(--lift);
+}
+.kefe-legal-table-mount { width: 100%; overflow-x: auto; }
+.shad-table-container { position: relative; width: 100%; overflow-x: auto; }
+.kefe-legal-page table { min-width: 32rem; }
+.kefe-legal-table-mount:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+@media (max-width: 520px) {
+  .kefe-legal-page main { width: auto; margin: 0; padding: 0; border-radius: 0; }
+  .kefe-legal-card { width: calc(100% - 20px); margin: 10px auto; padding: 16px; border-radius: var(--r2); }
+}
+/* The labelled, keyboard-focusable region owns horizontal scrolling. */
+.kefe-legal-table-mount .shad-table-container { overflow: visible; }

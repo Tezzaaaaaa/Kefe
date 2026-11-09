@@ -43,4 +43,4 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("PASS: all six editor sections remain native KEFE panels; the React Card wrapper is not loaded or required by native styles.");
+console.log("PASS: all six editor section panels retain their canonical KEFE markup.");

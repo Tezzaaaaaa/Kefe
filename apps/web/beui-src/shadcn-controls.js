@@ -1,7 +1,6 @@
-/* KEFE — Pure JavaScript + CSS shadcn.io primitive enhancer for editor controls.
-   Upgrades ToggleGroups (.kefe-seg-row, .ls-tabs, .kefe-align-group), Dropzones (.kefe-drop),
-   Checkboxes, NativeSelects, Cards, Dialogs, Progress bars, and Alert Toasts with shadcn
-   data-slot / data-state attributes and keyboard roving focus — without cloning DOM nodes. */
+/* Legacy DOM affordances retained while the editor is being migrated.
+   These attributes and keyboard helpers are not shadcn components; migrated
+   controls use the React/Radix bridges instead. */
 
 const TOGGLE_GROUP_SELECTOR = ".kefe-seg-row, .ls-tabs, .kefe-align-group";
 
@@ -122,9 +121,6 @@ function tagPrimitives(root = document) {
     if (!dlg.dataset.slot) dlg.dataset.slot = "dialog-content";
   });
 
-  root.querySelectorAll("#kefeAlertHost .kefe-alert").forEach((alertEl) => {
-    if (!alertEl.dataset.slot) alertEl.dataset.slot = "alert";
-  });
 }
 
 function bootShadcnControls() {
@@ -136,7 +132,6 @@ function bootShadcnControls() {
         if (!(node instanceof HTMLElement)) return;
         if (node.matches?.(TOGGLE_GROUP_SELECTOR)) enhanceToggleGroup(node);
         if (node.matches?.(".kefe-drop")) enhanceDropzone(node);
-        if (node.matches?.(".kefe-alert")) node.dataset.slot = "alert";
         tagPrimitives(node);
       });
     }

@@ -53,6 +53,7 @@
   function redraw() { if (API()) API().redraw(); }
 
   /* ---------- Effects panel: display mode + case ---------- */
+  var syncDisplayUi = function () {};
   function buildDisplayUi() {
     var host = document.querySelector('[data-panel-view="effects"] .kefe-form');
     var effectRow = document.querySelector('.kefe-lyric-effects-control');
@@ -81,7 +82,9 @@
       hint.textContent = MODES.filter(function (m) { return m[0] === S.mode; })[0][2];
       chunkBox.hidden = S.mode !== 'chunk';
       chunk.value = S.chunk; chunkOut.textContent = S.chunk;
+      if (caseSel) caseSel.value = S.caseMode;
     }
+    syncDisplayUi = sync;
     function setMode(mode) {
       S.mode = mode; persist(); sync();
       redraw();
@@ -450,6 +453,7 @@
       if (CASES.some(function (c) { return c[0] === value.caseMode; })) S.caseMode = value.caseMode;
       syncAlignmentUi();
       if (Number.isFinite(value.chunk)) S.chunk = Math.max(1, Math.min(12, Math.round(value.chunk)));
+      syncDisplayUi();
       memo = { src: null, key: '', out: null }; persist(); redraw(); return Object.assign({}, S);
     },
     download: function (kind) { downloadAs(kind); },

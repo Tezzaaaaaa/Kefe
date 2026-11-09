@@ -6,7 +6,10 @@ on:
     paths:
       - "apps/web/app/**"
       - "apps/web/beui-src/**"
+      - "apps/web/components/**"
+      - "apps/web/legal-src/**"
       - "apps/web/editor.source.html"
+      - "apps/web/apple-lyrics-standalone.source.html"
       - "apps/web/beui.vite.config.ts"
       - "apps/web/package.json"
       - "apps/web/scripts/**"
@@ -60,11 +63,14 @@ jobs:
       - name: Publish generated editor assets to Pages source
         run: |
           cp apps/web/dist-beui/editor.html apps/web/editor.html
+          cp apps/web/dist-beui/apple-lyrics-standalone.html apps/web/apple-lyrics-standalone.html
           rm -rf apps/web/assets
           cp -R apps/web/dist-beui/assets apps/web/assets
+          cp apps/web/dist-beui/legal/privacy.html apps/web/legal/privacy.html
+          cp apps/web/dist-beui/legal/terms.html apps/web/legal/terms.html
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/web/editor.html apps/web/assets
+          git add apps/web/editor.html apps/web/apple-lyrics-standalone.html apps/web/assets apps/web/legal/privacy.html apps/web/legal/terms.html
           if git diff --cached --quiet; then
             echo "Built editor assets are already current."
           else

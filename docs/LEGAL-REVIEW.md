@@ -10,7 +10,7 @@ Originally `apps/web/app/editor.js` auto-fetched lyrics from LRCLIB, BetterLyric
 
 **Still open:**
 - Lyrics are copyrighted (the words, separately from the music). Displaying and exporting them in videos without a licence is infringement risk. LRCLIB is community-contributed and, as far as I know, does not claim to hold licences for the lyrics; its terms need a written check.
-- Wording in the terms must put lyric rights on the user (drafted in `apps/web/legal/terms.html`).
+- Wording in the terms must put lyric rights on the user (drafted in `apps/web/legal-src/terms.html`).
 - Removing fetched word-level timing means Word and Karaoke modes use estimated timing for fetched lyrics.
 
 Further options if you want to go beyond LRCLIB, strongest first:
@@ -23,7 +23,7 @@ Do not build a KEFE-hosted lyric database: storing and serving lyrics makes KEFE
 ## 2. User media and exported videos
 
 Users load their own audio/video and export lyric videos. Copyright in the music and lyrics stays with the rightsholders, and posting an export to YouTube/Instagram/TikTok may need sync and master licences. KEFE is not the uploader, but:
-- Terms of Use must put responsibility for rights on the user (draft in `apps/web/legal/terms.html`).
+- Terms of Use must put responsibility for rights on the user (draft in `apps/web/legal-src/terms.html`).
 - Add a short notice at export: "Only export media you have the right to use."
 - If accounts, cloud storage or sharing are added, KEFE starts hosting user content: that needs a takedown process (Australian Copyright Act safe-harbour requirements for carriage service providers) and a designated contact.
 
@@ -76,8 +76,8 @@ When accounts and billing arrive (`apps/api`, `packages/db`, Stripe packages in 
 
 ## What is in this change
 
-- `apps/web/legal/privacy.html`: draft privacy policy matching today's behaviour.
-- `apps/web/legal/terms.html`: draft terms of use.
+- `apps/web/legal-src/privacy.html`: draft privacy policy matching today's behaviour.
+- `apps/web/legal-src/terms.html`: draft terms of use.
 - This review.
 
 Both pages have `[PLACEHOLDER]` fields and a draft banner. They are not linked from the editor yet.
