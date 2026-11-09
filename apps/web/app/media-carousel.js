@@ -4,7 +4,7 @@
 (function(){
   'use strict';
   var COUNTRIES=['AU','US'];
-  var S={items:[],artists:[],localUpload:null,filter:'all',index:0,mode:'search',albumTitle:'',token:0,timer:0};
+  var S={items:[],artists:[],localUpload:null,filter:'song',index:0,mode:'matches',albumTitle:'',token:0,timer:0};
   var el={};
 
   function $(id){return document.getElementById(id);}
@@ -53,7 +53,7 @@
       s.innerHTML='<header class="kefe-step-head"><div><h3>'+title+'</h3><p>'+hint+'</p></div></header>';
       var body=mk('div','kefe-step-body');s.appendChild(body);s.body=body;return s;
     }
-    var s2=step('Find your song','Upload audio or video, then search for the matching track.');
+    var s2=step('Find your song','Upload audio or video, then confirm KEFE’s identification of that file.');
     s2.classList.add('kefe-find-step');
 
     var details=mk('div','kefe-song-details');
