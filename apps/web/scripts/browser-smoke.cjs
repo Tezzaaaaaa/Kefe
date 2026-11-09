@@ -222,7 +222,7 @@ async function captureEditorScreenState(page) {
       "opening and closing the preview toolbar must not broadcast a global viewport resize");
     assert.ok(toolbarResizeEvents.preview >= 2,
       "toolbar visibility changes must request only preview-specific fits");
-    await page.waitForFunction(() => document.querySelectorAll("#kefe-settings-panel .kefe-workspace[data-group]").length === 3, null, { timeout: 10000 });
+    await page.waitForFunction(() => document.querySelectorAll("#kefe-settings-panel .kefe-workspace[data-group]").length === 4, null, { timeout: 10000 });
     await page.waitForSelector(".kefe-vis-tabs", { state: "attached", timeout: 10000 });
     try {
       await page.waitForFunction(() => {
@@ -605,8 +605,8 @@ async function captureEditorScreenState(page) {
       "the Editor tab must expose the current page to assistive technology");
     const singleSectionMode = await page.evaluate(() =>
       document.querySelector('meta[name="kefe-settings-tabs"]')?.content === "single");
-    const threeWorkspaceMode = await page.evaluate(() =>
-      document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]").length === 3);
+    const fourWorkspaceMode = await page.evaluate(() =>
+      document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]").length === 4);
     /* Header capability probe: the main baseline may still ship the older header, so each
        header contract is asserted only against the shape the running build provides. */
     const headerSearchMode = await page.evaluate(() => Boolean(document.querySelector("[data-kefe-search]")));
@@ -777,7 +777,7 @@ async function captureEditorScreenState(page) {
       const settings = document.querySelector(".kefe-settings-mount").getBoundingClientRect();
       const columns = document.querySelector("#kefe-settings-panel > .kefe-settings-columns");
       const workspaceCards = [...document.querySelectorAll("#kefe-settings-panel > .kefe-settings-columns > .kefe-workspace[data-group]")];
-      if (workspaceCards.length === 3) {
+      if (workspaceCards.length === 4) {
         const bounds = workspaceCards.map(node => node.getBoundingClientRect());
         return {
           workspaceHeight: workspace.height,
@@ -813,7 +813,7 @@ async function captureEditorScreenState(page) {
         workspaceRight: workspace.right,
       };
     });
-    if (threeWorkspaceMode) {
+    if (fourWorkspaceMode) {
       assert.equal(previewSettingsLayout.visibleWorkspaceCount, 1,
         `exactly one workspace panel must be visible at a time: ${JSON.stringify(previewSettingsLayout)}`);
       assert.equal(await page.locator('[role="tab"][data-workspace-tab]').count(), 4,
@@ -1562,7 +1562,7 @@ async function captureEditorScreenState(page) {
             await screenshotVolumeTrigger.click();
             await screenshotVolumePopover.waitFor({ state: "hidden", timeout: 5000 });
           }
-          // The mobile capture keeps all three editor workspaces visible below the preview.
+          // The mobile capture keeps all four editor workspaces available below the preview.
           await normalizeEditorScrollState(screenshotPage);
           const editorLayout = await captureEditorLayout(screenshotPage);
           fs.writeFileSync(path.join(screenshotDir, `editor-layout-${size}-${theme}.json`), JSON.stringify(editorLayout));
