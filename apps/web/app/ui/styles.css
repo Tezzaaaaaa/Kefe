@@ -158,6 +158,10 @@ button{border:0;cursor:pointer;
 .kefe-stage::backdrop{background:#000}
 
 /* Keep the existing transport controls inside the immersive preview instead of leaving them behind. */
+.kefe-stage:fullscreen > #previewFullscreen,
+.kefe-stage.kefe-pseudo-fullscreen > #previewFullscreen {
+  z-index: 2147483647;
+}
 .kefe-stage:fullscreen > .kefe-timeline,
 .kefe-stage.kefe-pseudo-fullscreen > .kefe-timeline {
   position: absolute;
