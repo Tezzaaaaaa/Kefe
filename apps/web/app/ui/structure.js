@@ -7,7 +7,7 @@ document.body.insertAdjacentHTML('beforeend',KEFE_STRUCTURE);
 // are decorated as they enter the panel tree; interaction and state stay on the
 // original button instead of being copied into a second control.
 const panelActionExclusions = [
-  '[role="dialog"]', '.kefe-command-overlay', '#beui-settings-root',
+  '[role="dialog"]', '[role="switch"]', '[role="tab"]', '.kefe-command-overlay', '#beui-settings-root', '#kefeTimingEditor', '#kefeAutoSync', '#kefeExportExtras',
   '.beui-button-host', '.kefe-section-info', '.beui-command-button-host',
   '.kefe-vis-tabs', '.kefe-visualiser-power-slot', '.beui-vis-tabs-host',
   '.beui-range-host', '.beui-settings-root', '.kefe-checkbox-host', '.kefe-switch-host', '.shad-lyric-display-host',
