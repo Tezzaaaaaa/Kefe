@@ -1,6 +1,5 @@
-/* Hydrate every visible header action with shadcn Button. The original
-   button nodes remain in place so delegated editor handlers, focus and state
-   continue to work. */
+/* Hydrate header actions as shadcn Buttons where a wrapper is structurally safe.
+   The stage fullscreen control stays in its canonical direct-child position. */
 import * as React from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
@@ -62,7 +61,14 @@ function mountHeaderActions() {
     }
   }
   mountStandaloneButton(document.querySelector('.kefe-header-settings[data-top-panel="settings"]'));
-  mountStandaloneButton(document.getElementById('previewFullscreen'), 'ghost', 'icon');
+  const fullscreen = document.getElementById('previewFullscreen');
+  if (fullscreen && !fullscreen.dataset.shadcnHydrated) {
+    fullscreen.classList.add('shad-btn', 'shad-btn--ghost');
+    fullscreen.dataset.slot = 'button';
+    fullscreen.dataset.variant = 'ghost';
+    fullscreen.dataset.size = 'icon';
+    fullscreen.dataset.shadcnHydrated = 'true';
+  }
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountHeaderActions, { once: true });
 else mountHeaderActions();
