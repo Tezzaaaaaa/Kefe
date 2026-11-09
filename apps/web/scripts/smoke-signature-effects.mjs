@@ -20,6 +20,7 @@ const EXPECTED = [
   ["Flagship", ["sigluminaire", "sigpresscycle"]],
 ];
 const keys = EXPECTED.flatMap(([, list]) => list);
+const addedSignatureKeys = ["sigfrost", "sigvoid", "sigscript", "sigbrat"];
 
 /* ---- manifest ---------------------------------------------------- */
 const sandbox = { window: {}, console, Math, Number, String, Array, Object, Map, Set, Intl };
@@ -28,7 +29,7 @@ vm.createContext(sandbox);
 vm.runInContext(read("app/effects/manifest.js"), sandbox, { filename: "manifest.js" });
 const manifest = sandbox.window.KEFE_EFFECTS;
 assert.ok(Array.isArray(manifest), "manifest must publish KEFE_EFFECTS");
-assert.equal(manifest.length, 55, `roster must be Apple + Text Swap + Lyric Pull + 52 Signature effects, found ${manifest.length}`);
+assert.equal(manifest.length, 59, `roster must be Apple + Text Swap + Lyric Pull + 56 Signature effects, found ${manifest.length}`);
 assert.equal(manifest[0].key, "apple", "Apple must stay first in the roster");
 assert.equal(manifest.filter(item => item.key === "apple").length, 1, "Apple must be listed exactly once");
 const manifestKeys = Array.from(manifest, item => item.key);
@@ -43,16 +44,17 @@ for (const [category, list] of EXPECTED) {
     assert.equal(entry.key.startsWith("sig"), true, `${entry.key} must use the sig prefix`);
   }
 }
-for (const key of keys) assert.ok(manifestKeys.includes(key), `${key} is missing from the manifest`);
+for (const key of [...keys, ...addedSignatureKeys]) assert.ok(manifestKeys.includes(key), `${key} is missing from the manifest`);
 const legacy = Array.from(manifestKeys).filter(key => key !== "apple" && key !== "textswap" && key !== "lyricpull" && !key.startsWith("sig"));
 assert.deepEqual(legacy, [], `legacy effects must be removed from the roster: ${legacy.join(", ")}`);
 
 /* ---- page wiring ------------------------------------------------- */
 const editor = read("editor.source.html");
-assert.match(editor, /<meta name="kefe-lyric-signature" content="52">/, "the editor must declare the Signature pack marker");
+assert.match(editor, /<meta name="kefe-lyric-signature" content="56">/, "the editor must declare the Signature pack marker");
 assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
 assert.match(editor, /lyric-karaoke\.js/, "the Karaoke and Bounce renderers must stay loaded");
 assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
+assert.match(editor, /lyric-signature-four\.js/, "the four new Signature treatments must be loaded by the editor");
 assert.match(editor, /lyric-text-swap\.js/, "Text Swap renderer must be loaded by the editor");
 assert.match(editor, /lyric-premium-kit\.js[^]*lyric-signature-pack\.js/, "the premium kit must load before the Signature pack");
 assert.match(editor, /effects\/manifest\.js/, "the manifest must be loaded");
@@ -70,7 +72,7 @@ assert.match(editorSource, /if\(state\.effect==='apple'\)\{\s*const u=Math\.min\
 const typography = read("app/ui/typography.js");
 assert.match(typography, /\n\s+textswap:\s*\{ family: families\./, "Text Swap needs a typography contract");
 assert.match(typography, /\n\s+lyricpull:\s*\{ family: families\./, "Lyric Pull needs a typography contract");
-for (const key of keys) {
+for (const key of [...keys, ...addedSignatureKeys]) {
   assert.match(typography, new RegExp(`\\n\\s+${key}: \\{ family: families\\.`), `${key} needs a typography contract`);
 }
 
@@ -122,6 +124,8 @@ vm.runInContext(read("app/effects/core.js"), runtime, { filename: "core.js" });
 vm.runInContext(read("app/effects/lyric-premium-kit.js"), runtime, { filename: "lyric-premium-kit.js" });
 assert.equal(typeof runtime.kefeFx?.bloom, "function", "the premium kit must publish window.kefeFx");
 vm.runInContext(read("app/effects/lyric-signature-pack.js"), runtime, { filename: "lyric-signature-pack.js" });
+vm.runInContext(read("app/effects/lyric-signature-four.js"), runtime, { filename: "lyric-signature-four.js" });
+for (const key of addedSignatureKeys) assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register`);
 vm.runInContext(read("app/effects/lyric-text-swap.js"), runtime, { filename: "lyric-text-swap.js" });
 assert.equal(typeof runtime.kefeEffects.textswap, "function", "Text Swap renderer must register");
 vm.runInContext(read("app/effects/lyric-pull.js"), runtime, { filename: "lyric-pull.js" });
@@ -139,7 +143,7 @@ const pullMobile = makeContext();
 runtime.kefeEffects.lyricpull(pullMobile, 360, 640, { effect: "lyricpull", fontSize: 48 }, lines, 2.2);
 assert.ok(pullMobile.fills > 0, "Lyric Pull must paint on mobile canvas");
 const registered = Object.keys(runtime.kefeEffects || {}).filter(key => key.startsWith("sig"));
-assert.deepEqual(registered.sort(), [...keys].sort(), "renderer registrations must match the roster");
+assert.deepEqual(registered.sort(), [...keys, ...addedSignatureKeys].sort(), "renderer registrations must match the roster");
 assert.equal(typeof runtime.kefeEffects.apple, "undefined", "the Apple renderer is owned by lyric-apple.js");
 
 runtime.dispatchEvent = () => {};
@@ -169,7 +173,7 @@ for (const preset of ["fly-through", "fade-through", "crossfade", "shared-axis-y
   runtime.kefeEffects.textswap(ctx, 360, 640, { effect: "textswap", fontSize: 48 }, plainLines, 4.2);
   assert.ok(ctx.fills > 0, `Text Swap ${preset} must paint after a transition on mobile`);
 }
-for (const key of keys) {
+for (const key of [...keys, ...addedSignatureKeys]) {
   const ctx = makeContext();
   const style = { effect: key, fontSize: 84, kefeMotionFont: "Open Sans" };
   for (const time of [-.4, 0, .6, 1.1, 1.6, 2.2, 2.8, 3.4, 4.8, 6.2]) {
@@ -182,4 +186,4 @@ for (const key of keys) {
   }
 }
 
-console.log(`Lyric effects verified: Apple + Text Swap (6 presets) + Lyric Pull + ${keys.length} Signature effects, Karaoke/Bounce renderers, unique keys/labels, contracts, wiring and canvas output.`);
+console.log(`Lyric effects verified: Apple + Text Swap (6 presets) + Lyric Pull + ${keys.length + addedSignatureKeys.length} Signature effects, Karaoke/Bounce renderers, unique keys/labels, contracts, wiring and canvas output.`);

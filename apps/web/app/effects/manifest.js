@@ -11,6 +11,10 @@ window.KEFE_EFFECTS = [
   { key: 'apple', label: 'Apple', description: 'Apple Music-style focus-line animation', category: 'Core' },
   { key: 'textswap', label: 'Text Swap', description: 'Cinematic line transitions with six selectable motion presets', category: 'Core' },
   { key: 'lyricpull', label: 'Lyric Pull', description: 'Cinematic word-by-word focus pull with motion blur and atmospheric colour', category: 'Core' },
+  { key: 'sigfrost', label: 'Frost', description: 'Translucent illuminated lettering with a soft moving highlight', category: 'Signature Treatments' },
+  { key: 'sigvoid', label: 'Void', description: 'Dimensional outlined lettering against a deep atmospheric field', category: 'Signature Treatments' },
+  { key: 'sigscript', label: 'Script', description: 'Warm calligraphic lettering with a graceful timed reveal', category: 'Signature Treatments' },
+  { key: 'sigbrat', label: 'Brat', description: 'Condensed lowercase typography with Brat Green or Pure White', category: 'Signature Treatments' },
 
   /* Kinetic Dynamics */
   { key: 'sigkineticpunch', label: 'Kinetic Punch', description: 'Beat-locked scale punch with tracking spread', category: 'Kinetic Dynamics' },
