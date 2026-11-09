@@ -71,7 +71,7 @@ function controlProps(element, multiline) {
   return props;
 }
 function mountTextControl(element, multiline) {
-  if (element.dataset.shadcnHydrated || !element.parentNode) return;
+  if (element.dataset.shadcnHydrated || !element.parentNode || element.closest('#kefeTimingEditor')) return;
   const originalClass = element.className;
   element.className = (multiline ? 'shad-textarea ' : 'shad-input ') + originalClass;
   element.dataset.slot = multiline ? 'textarea' : 'input';

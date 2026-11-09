@@ -25,7 +25,7 @@ function nodeTree(node, key) {
   if (node.nodeType !== Node.ELEMENT_NODE) return null;
   const props = propsFor(node);
   props.key = key;
-  if (node instanceof HTMLInputElement && (node.classList.contains('kefe-time-input') || node.classList.contains('kefe-line-text'))) {
+  if (node instanceof HTMLInputElement && !['checkbox', 'radio', 'file', 'range', 'color', 'hidden', 'button', 'submit', 'reset'].includes(node.type)) {
     const className = node.className;
     node.className = `shad-input ${className}`;
     node.dataset.slot = 'input';
