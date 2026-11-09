@@ -63,6 +63,9 @@ function controlProps(element, multiline) {
     const name = aliases[attribute.name] || attribute.name;
     props[name] = booleanAttributes.has(name) ? true : attribute.value;
   }
+  const style = {};
+  for (const property of element.style) style[property] = element.style.getPropertyValue(property);
+  if (Object.keys(style).length) props.style = style;
   if (!multiline) props.type = element.type;
   props.defaultValue = element.defaultValue;
   return props;

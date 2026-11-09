@@ -41,7 +41,7 @@ const server = http.createServer((req, res) => {
       await settings.click();
       await page.waitForSelector('.beui-settings-root[data-state="open"]');
       await page.locator('.beui-settings-root .shad-dialog-close').click();
-      await page.waitForSelector('.beui-settings-root[data-state="closed"]');
+      await page.waitForFunction(() => document.querySelector('.beui-settings-root')?.dataset.state === 'closed');
 
       assert.equal(await page.evaluate(() => window.__headerButtons.every(button => document.getElementById(button.id) === button)), true, 'native button identities retained');
       for (const id of ['kefeResetButton', 'kefeSaveButton', 'kefeThemeToggle']) {
