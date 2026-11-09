@@ -68,6 +68,16 @@
   top: max(10px, env(safe-area-inset-top));
   z-index: 2147483646;
 }
+
+/* Keep the launcher clear of the fullscreen exit control at the opposite corner. */
+.kefe-stage:fullscreen .kefe-floating-toolbar.is-fullscreen > .kft-launch,
+.kefe-stage.kefe-pseudo-fullscreen .kefe-floating-toolbar.is-fullscreen > .kft-launch {
+  position: fixed;
+  inset: auto;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 2147483645;
+}
 .kefe-floating-toolbar:not(.is-open) .kft-bar { display: none; }
 .kft-backing { display: none !important; }
 .kefe-floating-toolbar.is-dragging { cursor: grabbing; }
