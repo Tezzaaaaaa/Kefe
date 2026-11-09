@@ -2,6 +2,7 @@
 import "./legacy-bridge.css";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
+import { flushSync } from "react-dom";
 import { renderKefeIcon } from "../app/ui/icons.js";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../components/ui/accordion.js";
 import { Button } from "../components/ui/button.js";
@@ -65,7 +66,7 @@ function SettingsDialog({ api, host }) {
     const title = group.title || group.group || group.label || `Group ${index + 1}`;
     return { id: group.id || slugify(title), title, items: group.items || [] };
   });
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     // The legacy settings API has no unsubscribe; this app mounts only once.
     api.onChange?.(() => rerender());
     const onClick = event => {
@@ -118,7 +119,8 @@ function mountSettingsDialog() {
   host.className = "beui-settings-root shad-dialog-root";
   host.hidden = true;
   document.body.append(host);
-  createRoot(host).render(h(SettingsDialog, { api, host }));
+  const root = createRoot(host);
+  flushSync(() => root.render(h(SettingsDialog, { api, host })));
 }
 if (typeof window !== "undefined") {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountSettingsDialog, { once: true });
