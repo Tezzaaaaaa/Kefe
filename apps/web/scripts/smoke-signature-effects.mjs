@@ -65,6 +65,7 @@ for (const file of ["lyric-aurora", "lyric-pulse", "lyric-typewriter", "lyric-gl
 /* ---- editor picker + preview integration -------------------------- */
 const editorSource = read("app/editor.js");
 assert.match(editorSource, /effectDefinitions\.filter\(\(\[id\]\)=>id!=='karaoke'&&id!=='bounce'\)\.forEach\(\(\[id,label\]\)=>addLyricEffectOption\(id,label\)\)/, "the picker must be generated from the complete effect manifest");
+assert.ok(editorSource.includes("EFFECT_PREVIEW_PHRASE='The quick brown fox jumps over the lazy dog.'"), "effect cards must preview the pangram sample sentence");
 assert.match(editorSource, /function startEffectPreview\(entry\)/, "effect previews must animate on hover and keyboard focus");
 assert.match(editorSource, /button\.addEventListener\('pointerenter'/, "effect preview animation must start on pointer hover");
 assert.match(editorSource, /button\.addEventListener\('pointerleave'/, "effect preview animation must stop when the pointer leaves");
