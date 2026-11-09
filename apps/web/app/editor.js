@@ -224,9 +224,9 @@
     return loadAutomaticLyrics();
   }
   window.kefeConfirmTrackIdentification=item=>{
-    const meta={title:songTitle.value.trim(),artist:songArtist.value.trim(),album:songAlbum.value.trim()};
-    const duration=Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0;
-    if(!mediaObjectUrl||!item||!isConfidentMatch(item,meta,duration)){
+    const identification=uploadedTrackIdentification;
+    const key=item&&trackIdentityKey(item);
+    if(!mediaObjectUrl||!identification||identification.uploadId!==mediaObjectUrl||!item||!identification.candidateKeys.has(key)||!isConfidentMatch(item,identification.meta,identification.duration)){
       setLyricsStatus('This result does not confidently match the uploaded audio. No track details were changed.');
       return false;
     }
@@ -1337,6 +1337,7 @@
     }
     return score;
   }
+  function trackIdentityKey(item){return item.trackId!=null?'id:'+String(item.trackId):[normalizeSearchText(item.trackName),normalizeSearchText(item.artistName),normalizeSearchText(item.collectionName),String(item.trackTimeMillis||'')].join('|');}
   function isConfidentMatch(item,meta,duration){
     const title=normalizeSearchText(meta.title),artist=normalizeSearchText(meta.artist),album=normalizeSearchText(meta.album);
     const candidateTitle=normalizeSearchText(item.trackName),candidateArtist=normalizeSearchText(item.artistName),candidateAlbum=normalizeSearchText(item.collectionName);
@@ -1410,6 +1411,7 @@
   let lyricsRequest=0;
   let activeLyricsController=null;
   const manuallyEditedTrackFields=new Set();
+  let uploadedTrackIdentification=null;
   async function loadAutomaticLyrics(){
     const title=songTitle.value.trim(),artist=songArtist.value.trim(),album=songAlbum.value.trim();
     const duration=Math.round(Number(audio.duration)||Number(songAlbum.dataset.trackDuration)||0);
@@ -1543,6 +1545,7 @@
   }
   async function identifyAndLoadTrack(file){
     const uploadId=mediaObjectUrl;
+    uploadedTrackIdentification=null;
     const mediaTrack=document.getElementById('kefeMediaTrack');
     if(mediaTrack)mediaTrack.classList.remove('is-identified');
     songAlbum.dataset.platformId='';
@@ -1600,6 +1603,7 @@
         if(!uniqueConfident.has(key))uniqueConfident.set(key,item);
       });
       const confidentTracks=[...uniqueConfident.values()];
+      uploadedTrackIdentification={uploadId,meta:{...meta},duration,candidateKeys:new Set(confidentTracks.map(trackIdentityKey))};
       const availableIdentifiers=[meta.title,meta.artist,meta.album].filter(value=>String(value||'').trim()).length;
       const best=availableIdentifiers===1&&confidentTracks.length!==1?null:(confidentTracks[0]||null);
       if(meta.title||meta.artist||meta.album){
