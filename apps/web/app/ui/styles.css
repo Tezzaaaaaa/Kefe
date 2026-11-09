@@ -4564,7 +4564,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
     padding-right: 8px;
   }
 
-  .kefe-panels > .kefe-panel {
+  .kefe-panels .kefe-panel {
     width: 100%;
     margin-inline: 0;
   }
@@ -5254,7 +5254,7 @@ body {
   border-radius: var(--r2);
   background-clip: padding-box;
 }
-.kefe-panels > .kefe-panel {
+.kefe-panels .kefe-panel {
   width: min(100%, 1200px);
   margin-inline: auto;
 }
@@ -7822,12 +7822,12 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
 /* Accordion stack: panels keep their natural height and the column scrolls, so a
    collapsed section can never be squeezed (and its title clipped) by expanded ones. */
 @media (min-width: 1280px) {
-  .kefe-editor .kefe-editing .kefe-panels > .kefe-panel[data-panel-view] {
+  .kefe-editor .kefe-editing .kefe-panels .kefe-panel[data-panel-view] {
     flex: 0 0 auto;
     min-height: 0;
     height: auto;
   }
-  .kefe-editor .kefe-editing .kefe-panels > .kefe-panel[data-panel-view].beui-accordion-collapsed {
+  .kefe-editor .kefe-editing .kefe-panels .kefe-panel[data-panel-view].beui-accordion-collapsed {
     overflow: visible;
   }
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed .kefe-panel-head {

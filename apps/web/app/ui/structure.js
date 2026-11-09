@@ -28,6 +28,8 @@ function scanPanelActions(root = document) {
   root.querySelectorAll?.('.kefe-panel button').forEach(decoratePanelAction);
   if (root instanceof HTMLElement && root.matches('.kefe-upload-card, #kefeMediaTrack')) window.kefeHydratePanelCard?.(root);
   root.querySelectorAll?.('.kefe-upload-card, #kefeMediaTrack').forEach(card => window.kefeHydratePanelCard?.(card));
+  if (root instanceof HTMLElement && root.matches('.kefe-panel[data-panel-view]')) window.kefeHydrateEditorPanelCard?.(root);
+  root.querySelectorAll?.('.kefe-panel[data-panel-view]').forEach(panel => window.kefeHydrateEditorPanelCard?.(panel));
 }
 scanPanelActions();
 const panelActionObserver = new MutationObserver(records => {
