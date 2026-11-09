@@ -4,7 +4,7 @@
   const scriptSrc = document.currentScript && document.currentScript.src;
   const MARKUP_URL = scriptSrc
     ? new URL('./panel.html?v=export-workspace-20261109-1', scriptSrc)
-    : new URL('./app/settings/panel.html?v=subtabs-20261107-1', window.location.href);
+    : new URL('./app/settings/panel.html?v=export-workspace-20261109-1', window.location.href);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
     'lyric-sync': 'lyrics',
