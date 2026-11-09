@@ -19,8 +19,8 @@ for (const slot of ["media", "lyric-sync", "lyric-effects", "background", "visua
 if ((panelHtml.match(/data-expanded="true"/g) || []).length !== 6) {
   failures.push("All six native control panels must retain their expanded content state.");
 }
-if (!panelHtml.includes("Visualiser") || panelHtml.includes("kefe-advanced-controls") || !adapter.includes("kefe-subtabs")) {
-  failures.push("Visualiser must be clearly named, and every workspace must list its features as subtabs (no Advanced wrapper).");
+if (!panelHtml.includes("Visualiser") || (panelHtml.match(/>Effects</g) || []).length !== 2 || panelHtml.includes("kefe-advanced-controls") || !adapter.includes("kefe-subtabs")) {
+  failures.push("Effects and Visualiser must be clearly named, and every workspace must list its features as subtabs (no Advanced wrapper).");
 }
 if (!bg.includes("effectsGroup.dataset.backgroundGroup='effects'") || !bg.includes("Background Effects")) {
   failures.push("Background and Background Effects must have distinct visible group structure.");
