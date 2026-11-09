@@ -99,7 +99,7 @@ for (const size of ["desktop", "mobile"]) {
     // Workspace-tab visibility and active-panel behavior are asserted by browser-smoke.cjs;
     // the previous mobile dock selectors are not part of this editor layout.
     if (label === "current" && !mobileSidebar) {
-      assert.equal(details.ariaLabel, "Search results carousel: KEFE visual regression fixture by KEFE browser smoke, 1 of 1", `${size}/day carousel accessible identity differs from fixture`);
+      assert.equal(details.ariaLabel, "Uploaded audio match: KEFE visual regression fixture by KEFE browser smoke, 1 of 1", `${size}/day uploaded-audio confirmation identity differs from fixture`);
     }
   }
   for (const collection of ["keyBounds", "scrollables"]) {
