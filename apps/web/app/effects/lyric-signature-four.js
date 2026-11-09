@@ -58,7 +58,7 @@
     }
   }
   function drawLine(ctx, w, h, key, item, time) {
-    const text = String(item.line.text || '').replace(/\\s+/g,' ').trim();
+    const text = String(item.line.text || '').replace(/\s+/g,' ').trim();
     if (!text) return;
     const c=FONTS[key], words=U.wordsFor(item.line,item.next);
     const sizeBase=Number(window.KEFE_TYPE?.effects?.[key]?.max)||Math.min(w,h)*.15;
