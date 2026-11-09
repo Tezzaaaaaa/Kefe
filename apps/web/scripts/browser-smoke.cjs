@@ -429,13 +429,13 @@ async function captureEditorScreenState(page) {
     const tidySectionMode = await page.evaluate(() => Boolean(document.querySelector(".kefe-advanced-controls")));
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(150);
-    // Mobile keeps all three workspace tabs visible and exposes one selected panel.
+    // Mobile keeps all four workspace tabs visible and exposes one selected panel.
     await page.waitForFunction(() => {
       const root = document.querySelector("#kefe-settings-panel");
       const workspaces = [...(root?.querySelectorAll(".kefe-workspace[data-group]") || [])];
       const tabs = [...(root?.querySelectorAll('[role="tab"][data-workspace-tab]') || [])];
       const panels = [...(root?.querySelectorAll(".kefe-panel[data-panel-view]") || [])];
-      return workspaces.length === 3 && tabs.length === 3 && panels.length === 6 &&
+      return workspaces.length === 4 && tabs.length === 4 && panels.length === 6 &&
         workspaces.filter(node => !node.hidden && node.getBoundingClientRect().height > 0).length === 1;
     }, null, { timeout: 5000 });
     const mobileWorkspaceLayout = await page.locator("#kefe-settings-panel .kefe-settings-columns").evaluate(node => ({
@@ -458,8 +458,8 @@ async function captureEditorScreenState(page) {
     assert.ok(["Audio & Visualiser", "Audio & Visuals"].includes(mobileWorkspaceLabels[2]), "the third workspace must remain the audio and visualiser workspace");
     assert.equal(mobileWorkspaceLayout.groups.filter(group => !group.hidden && group.width > 0 && group.height > 0).length, 1,
       "only the selected workspace should be visible on mobile");
-    assert.equal(mobileWorkspaceLayout.tabs.length, 3, "all three workspace tabs must remain available on mobile");
-    assert.ok(mobileWorkspaceLayout.tabs.every(tab => tab.width > 0), "all three mobile workspace tabs must remain visible");
+    assert.equal(mobileWorkspaceLayout.tabs.length, 4, "all four workspace tabs must remain available on mobile");
+    assert.ok(mobileWorkspaceLayout.tabs.every(tab => tab.width > 0), "all four mobile workspace tabs must remain visible");
     const mobileUploadLayout = await page.locator('.kefe-workspace[data-group="content"] .kefe-panel[data-panel-view="media"] .kefe-media-upload-row').evaluate(node => {
       const style = getComputedStyle(node);
       const boxes = [...node.children].map(child => {
@@ -816,8 +816,8 @@ async function captureEditorScreenState(page) {
     if (threeWorkspaceMode) {
       assert.equal(previewSettingsLayout.visibleWorkspaceCount, 1,
         `exactly one workspace panel must be visible at a time: ${JSON.stringify(previewSettingsLayout)}`);
-      assert.equal(await page.locator('[role="tab"][data-workspace-tab]').count(), 3,
-        "all three workspace tabs must remain available");
+      assert.equal(await page.locator('[role="tab"][data-workspace-tab]').count(), 4,
+        "all four workspace tabs must remain available");
     } else if (singleSectionMode) {
       assert.ok(previewSettingsLayout.workspaceHeight >= previewSettingsLayout.viewportHeight * 0.48
         && previewSettingsLayout.workspaceHeight <= previewSettingsLayout.viewportHeight * 0.56,
@@ -1889,12 +1889,12 @@ async function captureEditorScreenState(page) {
       });
       assert.equal(mobileWorkspaceAudit.columnCount, 1,
         `the selected workspace must use one full-width column at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
-      assert.deepEqual(mobileWorkspaceAudit.groups.map(group => group.label), ["Content", "Appearance", "Audio & Visualiser"],
-        `the three workspace panels must remain in their defined order at ${width}px`);
+      assert.deepEqual(mobileWorkspaceAudit.groups.map(group => group.label), ["Content", "Appearance", "Audio & Visualiser", "Export"],
+        `the four workspace panels must remain in their defined order at ${width}px`);
       assert.equal(mobileWorkspaceAudit.visibleGroups, 1,
         `only the selected workspace may be visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
-      assert.equal(mobileWorkspaceAudit.tabCount, 3,
-        `all three workspace tabs must remain visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
+      assert.equal(mobileWorkspaceAudit.tabCount, 4,
+        `all four workspace tabs must remain visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
       assert.equal(mobileWorkspaceAudit.panels.length, 6,
         `all six native panels must remain mounted at ${width}px`);
       assert.ok(mobileWorkspaceAudit.panels.filter(panel => panel.width > 0 && panel.height > 0).length >= 1,
