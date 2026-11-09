@@ -748,12 +748,14 @@
     const text=String(phrase).replace(/\s+/g,' ').trim();
     /* Same timed fixture the signature-effect smoke renders, so every effect
        shows its active state rather than an empty first frame. */
-    const words=text==='BURN IT DOWN'
-      ? [{text:'BURN',time:1,endTime:1.5},{text:'IT',time:1.5,endTime:1.8},{text:'DOWN',time:1.8,endTime:2.6}]
-      : text.split(' ').filter(Boolean).map((word,i)=>({text:word,time:1+i*.35,endTime:1.5+i*.35}));
+    const words=text.split(' ').filter(Boolean).map((word,i)=>({
+      text:word,
+      time:1+i*.35,
+      endTime:1.5+i*.35
+    }));
     return {text,time:1,endTime:2.9,words};
   }
-  function paintEffectPreview(entry){
+  function paintEffectPreview(entry,time=1.6){
     const {canvas,id,sample}=entry;
     const ctx=canvas.getContext('2d');
     if(!ctx)return false;
@@ -775,14 +777,39 @@
     const style=styler?.style?styler.style(base):base;
     const lines=[effectPreviewLine(EFFECT_PREVIEW_PHRASE)];
     try{
-      if(styler?.post)styler.post(ctx,W,H,target=>fn(target,W,H,style,lines,2,null));
-      else fn(ctx,W,H,style,lines,2,null);
+      if(styler?.post)styler.post(ctx,W,H,target=>fn(target,W,H,style,lines,time,null));
+      else fn(ctx,W,H,style,lines,time,null);
       return true;
     }catch(error){
       sample.dataset.previewError='true';
       console.warn('[KEFE effect preview]',id,error);
       return false;
     }
+  }
+  let activeEffectPreview=null;
+  function stopEffectPreview(entry){
+    if(!entry)return;
+    entry.animating=false;
+    if(entry.animationFrame)cancelAnimationFrame(entry.animationFrame);
+    entry.animationFrame=0;
+    entry.animationStart=0;
+    if(activeEffectPreview===entry)activeEffectPreview=null;
+    paintEffectPreview(entry,1.6);
+  }
+  function startEffectPreview(entry){
+    if(!entry||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    if(activeEffectPreview&&activeEffectPreview!==entry)stopEffectPreview(activeEffectPreview);
+    if(activeEffectPreview===entry)return;
+    activeEffectPreview=entry;
+    entry.animating=true;
+    const tick=now=>{
+      if(activeEffectPreview!==entry||!entry.animating)return;
+      if(!entry.animationStart)entry.animationStart=now;
+      const time=1+(((now-entry.animationStart)/1000)%1.6);
+      paintEffectPreview(entry,time);
+      entry.animationFrame=requestAnimationFrame(tick);
+    };
+    entry.animationFrame=requestAnimationFrame(tick);
   }
   function queueEffectPreview(entry){
     effectPreviewQueue.push(entry);
@@ -827,9 +854,13 @@
     canvas.height=180;
     canvas.setAttribute('aria-hidden','true');
     sample.appendChild(canvas);
-    const entry={canvas,id,sample};
+    const entry={canvas,id,sample,button,animating:false,animationFrame:0,animationStart:0};
     effectPreviewCards.push(entry);
     queueEffectPreview(entry);
+    button.addEventListener('pointerenter',event=>{if(event.pointerType!=='touch')startEffectPreview(entry);});
+    button.addEventListener('pointerleave',()=>stopEffectPreview(entry));
+    button.addEventListener('focus',()=>startEffectPreview(entry));
+    button.addEventListener('blur',()=>stopEffectPreview(entry));
     const name=document.createElement('span');
     name.className='kefe-lyric-effect-name';
     name.textContent=label;
