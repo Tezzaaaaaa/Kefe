@@ -622,3 +622,21 @@ html .kefe-editor .kefe-sidebar-bottom > .kefe-header-save {
 }
 html .kefe-editor .kefe-sidebar-bottom > .kefe-header-save[data-save-state="saved"] { color: var(--accent-color, currentColor); }
 html .kefe-editor .kefe-sidebar-bottom > .kefe-header-reset[aria-busy="true"] { opacity: .55; cursor: wait; }
+
+/* The shadcn Slider occupies the complete seek bar; the native input is only
+   an off-screen backing control while the bridge is present. */
+html .kefe-editor .kefe-timeline .kefe-timebar:has(> .kefe-timebar-slider) .kefe-timebar__fill { display: none; }
+html .kefe-editor .kefe-timeline .kefe-timebar > .kefe-timebar-slider {
+  position: absolute; inset: 0; z-index: 2; height: 100%; min-width: 0;
+}
+html .kefe-editor .kefe-timeline .kefe-timebar > .kefe-timebar-slider .shad-slider-container,
+html .kefe-editor .kefe-timeline .kefe-timebar > .kefe-timebar-slider .shad-slider { height: 100%; }
+html .kefe-editor .kefe-timeline .kefe-timebar > .kefe-timebar-slider .shad-slider-track {
+  height: 100%; border-radius: 9px; background: transparent; box-shadow: none;
+}
+html .kefe-editor .kefe-timeline .kefe-timebar > .kefe-timebar-slider .shad-slider-range {
+  height: 100%; border-radius: 9px 0 0 9px; background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+html .kefe-editor .kefe-timeline .kefe-timebar > .kefe-timebar-slider .shad-slider-thumb {
+  width: 2px; height: 32px; border: 0; border-radius: 0; background: var(--accent); box-shadow: none;
+}

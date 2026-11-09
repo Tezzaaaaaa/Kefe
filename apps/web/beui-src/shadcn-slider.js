@@ -1,184 +1,50 @@
-/* KEFE — Pure JavaScript + CSS shadcn.io Slider primitive and range input enhancer.
-   Replaces the React/Framer-Motion beUI RangeSlider with an accessible WAI-ARIA slider. */
-
-import "./legacy-bridge.css";
+/* Bridge the editor's native range inputs to the shadcn/ui Radix Slider.
+   Native inputs remain the source of truth for the legacy editor. */
+import * as React from "react";
+import { createRoot } from "react-dom/client";
+import { flushSync } from "react-dom";
+import { Slider } from "../components/ui/slider.js";
 
 const MOUNT_ATTR = "data-beui-range-mounted";
 
-function stepDecimals(step) {
-  const text = String(step);
-  const dot = text.indexOf(".");
-  return dot === -1 ? 0 : Math.min(6, text.length - dot - 1);
-}
-
-function clampAndSnap(raw, min, max, step) {
-  const safeMin = Number.isFinite(min) ? min : 0;
-  const safeMax = Number.isFinite(max) && max > safeMin ? max : safeMin + 100;
-  const safeStep = Number.isFinite(step) && step > 0 ? step : 1;
-  const clamped = Math.min(safeMax, Math.max(safeMin, raw));
-  const steps = Math.round((clamped - safeMin) / safeStep);
-  const decimals = stepDecimals(safeStep);
-  const snapped = Number((safeMin + steps * safeStep).toFixed(decimals));
-  return Math.min(safeMax, Math.max(safeMin, snapped));
-}
-
-function percentOf(value, min, max) {
-  if (!Number.isFinite(max) || max <= min) return 0;
-  return Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
-}
-
 export function createShadcnSlider(options = {}) {
-  let min = Number.isFinite(Number(options.min)) ? Number(options.min) : 0;
-  let max = Number.isFinite(Number(options.max)) ? Number(options.max) : 100;
-  let step = Number.isFinite(Number(options.step)) && Number(options.step) > 0 ? Number(options.step) : 1;
-  let disabled = Boolean(options.disabled);
-  let value = clampAndSnap(Number.isFinite(Number(options.value)) ? Number(options.value) : min, min, max, step);
-
-  const root = document.createElement("div");
-  root.className = "shad-slider";
-  if (disabled) root.dataset.disabled = "true";
-
-  const track = document.createElement("span");
-  track.className = "shad-slider-track";
-  track.setAttribute("aria-hidden", "true");
-
-  const range = document.createElement("span");
-  range.className = "shad-slider-range";
-  track.appendChild(range);
-
-  const thumb = document.createElement("span");
-  thumb.className = "shad-slider-thumb";
-  thumb.setAttribute("role", "slider");
-  thumb.tabIndex = disabled ? -1 : 0;
-  if (options.ariaLabel) thumb.setAttribute("aria-label", options.ariaLabel);
-  if (options.ariaLabelledBy) thumb.setAttribute("aria-labelledby", options.ariaLabelledBy);
-
-  root.append(track, thumb);
+  const el = document.createElement("div");
+  el.className = "shad-slider-container";
+  const reactRoot = createRoot(el);
+  let state = { min: 0, max: 100, step: 1, value: 0, ...options };
+  let disposed = false;
 
   function render() {
-    const pct = percentOf(value, min, max);
-    root.style.setProperty("--shad-slider-pct", `${pct}%`);
-    root.style.setProperty("--shad-slider-ratio", String(pct / 100));
-    root.dataset.disabled = disabled ? "true" : "false";
-    thumb.tabIndex = disabled ? -1 : 0;
-    thumb.setAttribute("aria-valuemin", String(min));
-    thumb.setAttribute("aria-valuemax", String(max));
-    thumb.setAttribute("aria-valuenow", String(value));
-    if (disabled) thumb.setAttribute("aria-disabled", "true");
-    else thumb.removeAttribute("aria-disabled");
-  }
-
-  function commit(nextRaw, emitChange = false) {
-    const next = clampAndSnap(nextRaw, min, max, step);
-    const changed = next !== value;
-    value = next;
-    render();
-    if (changed) options.onInput?.(value);
-    if (emitChange) options.onChange?.(value);
-  }
-
-  function valueFromClientX(clientX) {
-    const rect = track.getBoundingClientRect();
-    if (!rect.width) return value;
-    const inset = Math.min(8, rect.width / 4);
-    const usable = Math.max(1, rect.width - inset * 2);
-    const ratio = Math.min(1, Math.max(0, (clientX - (rect.left + inset)) / usable));
-    return min + ratio * (max - min);
-  }
-
-  let activePointer = null;
-
-  root.addEventListener("pointerdown", (event) => {
-    if (disabled || (event.pointerType === "mouse" && event.button !== 0)) return;
-    event.preventDefault();
-    activePointer = event.pointerId;
-    root.dataset.dragging = "true";
-    try {
-      root.setPointerCapture(event.pointerId);
-    } catch (_) {}
-    thumb.focus({ preventScroll: true });
-    commit(valueFromClientX(event.clientX), false);
-  });
-
-  root.addEventListener("pointermove", (event) => {
-    if (activePointer === null || event.pointerId !== activePointer || disabled) return;
-    commit(valueFromClientX(event.clientX), false);
-  });
-
-  const endDrag = (event) => {
-    if (activePointer === null || (event && event.pointerId !== activePointer)) return;
-    activePointer = null;
-    delete root.dataset.dragging;
-    options.onChange?.(value);
-  };
-
-  root.addEventListener("pointerup", endDrag);
-  root.addEventListener("pointercancel", endDrag);
-  root.addEventListener("lostpointercapture", () => {
-    if (activePointer !== null) {
-      activePointer = null;
-      delete root.dataset.dragging;
-    }
-  });
-
-  thumb.addEventListener("keydown", (event) => {
-    if (disabled) return;
-    let next = null;
-    if (event.key === "ArrowRight" || event.key === "ArrowUp") next = value + step;
-    else if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = value - step;
-    else if (event.key === "PageUp") next = value + step * 10;
-    else if (event.key === "PageDown") next = value - step * 10;
-    else if (event.key === "Home") next = min;
-    else if (event.key === "End") next = max;
-    if (next === null) return;
-    event.preventDefault();
-    commit(next, true);
-  });
-
-  render();
-
-  return {
-    el: root,
-    root,
-    thumb,
-    setValue(nextVal) {
-      if (Number.isFinite(Number(nextVal))) {
-        value = clampAndSnap(Number(nextVal), min, max, step);
+    if (disposed) return;
+    reactRoot.render(React.createElement(Slider, {
+      min: state.min, max: state.max, step: state.step, value: state.value,
+      disabled: state.disabled, label: state.ariaLabel, labelledBy: state.ariaLabelledBy, valueText: state.ariaValueText,
+      onValueChange: ([value]) => {
+        state.value = value;
         render();
-      }
-    },
-    update(nextProps = {}) {
-      if (nextProps.min !== undefined && Number.isFinite(Number(nextProps.min))) min = Number(nextProps.min);
-      if (nextProps.max !== undefined && Number.isFinite(Number(nextProps.max))) max = Number(nextProps.max);
-      if (nextProps.step !== undefined && Number.isFinite(Number(nextProps.step)) && Number(nextProps.step) > 0) {
-        step = Number(nextProps.step);
-      }
-      if (nextProps.disabled !== undefined) disabled = Boolean(nextProps.disabled);
-      if (nextProps.ariaLabel !== undefined) {
-        if (nextProps.ariaLabel) thumb.setAttribute("aria-label", nextProps.ariaLabel);
-        else thumb.removeAttribute("aria-label");
-      }
-      if (nextProps.value !== undefined && Number.isFinite(Number(nextProps.value))) {
-        value = clampAndSnap(Number(nextProps.value), min, max, step);
-      } else {
-        value = clampAndSnap(value, min, max, step);
-      }
-      render();
-    },
-    getValue() {
-      return value;
-    },
+        options.onInput?.(value);
+      },
+      onValueCommit: ([value]) => options.onChange?.(value),
+    }));
+  }
+  // Initial DOM must be present synchronously for the existing editor boot gate.
+  flushSync(render);
+  return {
+    el,
+    update(next) { state = { ...state, ...next }; render(); },
+    setValue(value) { state.value = value; render(); },
+    getValue() { return state.value; },
+    destroy() { if (!disposed) { disposed = true; reactRoot.unmount(); } },
   };
 }
 
-const mountedInputs = new Set();
+const mountedInputs = new Map();
 
 function shouldConvert(input) {
   return (
     input instanceof HTMLInputElement &&
     input.isConnected &&
     input.type === "range" &&
-    input.id !== "kefeTime" &&
     !input.hasAttribute(MOUNT_ATTR)
   );
 }
@@ -214,10 +80,13 @@ function readInputState(input) {
     value: Number.isFinite(current) ? current : min,
     disabled: input.disabled,
     ariaLabel: resolveAriaLabel(input),
+    ariaValueText: input.getAttribute("aria-valuetext"),
   };
 }
 
 function mountSlider(input) {
+  const originalTabindex = input.getAttribute("tabindex");
+  const originalAriaHidden = input.getAttribute("aria-hidden");
   input.setAttribute(MOUNT_ATTR, "true");
   input.classList.add("beui-native-range");
   input.tabIndex = -1;
@@ -225,6 +94,7 @@ function mountSlider(input) {
 
   const host = document.createElement("div");
   host.className = "beui-range-host shad-slider-host";
+  if (input.id === "kefeTime") host.classList.add("kefe-timebar-slider");
   host.dataset.beuiRangeFor = input.id || input.getAttribute("aria-label") || "range";
   if (input.className) {
     input.className
@@ -233,7 +103,6 @@ function mountSlider(input) {
       .forEach((name) => host.classList.add(name));
   }
   input.insertAdjacentElement("afterend", host);
-  mountedInputs.add(input);
 
   let internalWrite = false;
   const initial = readInputState(input);
@@ -265,7 +134,8 @@ function mountSlider(input) {
   };
 
   const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
-  if (descriptor?.get && descriptor?.set && !Object.prototype.hasOwnProperty.call(input, "value")) {
+  const ownsValue = descriptor?.get && descriptor?.set && !Object.prototype.hasOwnProperty.call(input, "value");
+  if (ownsValue) {
     Object.defineProperty(input, "value", {
       configurable: true,
       enumerable: descriptor.enumerable,
@@ -284,12 +154,24 @@ function mountSlider(input) {
   input.addEventListener("beui-sync", syncFromInput);
 
   const attrObserver = new MutationObserver(syncFromInput);
-  attrObserver.observe(input, { attributes: true, attributeFilter: ["min", "max", "step", "disabled", "value", "aria-label"] });
+  attrObserver.observe(input, { attributes: true, attributeFilter: ["min", "max", "step", "disabled", "value", "aria-label", "aria-valuetext"] });
+  mountedInputs.set(input, { destroy() {
+    attrObserver.disconnect();
+    for (const event of ["input", "change", "beui-sync"]) input.removeEventListener(event, syncFromInput);
+    if (ownsValue) delete input.value;
+    input.removeAttribute(MOUNT_ATTR);
+    input.classList.remove("beui-native-range");
+    if (originalTabindex === null) input.removeAttribute("tabindex"); else input.setAttribute("tabindex", originalTabindex);
+    if (originalAriaHidden === null) input.removeAttribute("aria-hidden"); else input.setAttribute("aria-hidden", originalAriaHidden);
+    slider.destroy();
+    host.remove();
+  } });
 }
 
 function syncMountedValues() {
-  for (const input of [...mountedInputs]) {
+  for (const [input, mounted] of mountedInputs) {
     if (!input.isConnected) {
+      mounted.destroy();
       mountedInputs.delete(input);
       continue;
     }
@@ -314,6 +196,15 @@ if (typeof window !== "undefined") {
           if (node instanceof Element) scan(node);
         });
       }
+      // Moves between the desktop and mobile panels must not destroy a live slider.
+      queueMicrotask(() => {
+        for (const [input, mounted] of mountedInputs) {
+          if (!input.isConnected) {
+            mounted.destroy();
+            mountedInputs.delete(input);
+          }
+        }
+      });
     });
     if (document.body) {
       observer.observe(document.body, { childList: true, subtree: true });

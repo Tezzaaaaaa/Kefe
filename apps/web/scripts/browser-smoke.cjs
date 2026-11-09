@@ -187,7 +187,7 @@ async function captureEditorScreenState(page) {
   let pageErrors = [];
   try {
     await new Promise((resolve) => server.listen(4173, "127.0.0.1", resolve));
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.CHROMIUM_EXECUTABLE_PATH } : {}) });
     const context = await browser.newContext({ serviceWorkers: "block" });
     page = await context.newPage();
     const desktopViewport = page.viewportSize();
@@ -520,7 +520,7 @@ async function captureEditorScreenState(page) {
 
     const fontButton = quickToolbar.getByRole("button", { name: "Lyric effect and text style", exact: true });
     const fontPanel = mobileColourPopover;
-    const quickSize = fontPanel.locator('.kft-scrub[aria-label="Text size"]');
+    const quickSize = fontPanel.getByRole('slider', { name: 'Text size' });
     await quickSize.focus();
     await page.keyboard.press("End");
     assert.equal(await page.evaluate(() => window.kefeStyle.state().scale), 160,
@@ -533,7 +533,7 @@ async function captureEditorScreenState(page) {
     await quickToolbar.getByRole("button", { name: "Visualiser", exact: true }).click();
     const visualiserPanel = page.getByRole("dialog", { name: "Visualiser", exact: true });
     await visualiserPanel.waitFor({ state: "visible", timeout: 5000 });
-    assert.equal(await visualiserPanel.getByRole("button", { name: /Choose visualiser/ }).count(), 1,
+    assert.equal(await visualiserPanel.getByRole("combobox", { name: /Choose visualiser/ }).count(), 1,
       "visualiser selection must have its own toolbar panel");
     await page.keyboard.press("Escape");
     assert.equal(await page.locator("[data-layout-target]").count(), 1, "the editor must expose one canonical layer selector");
@@ -543,7 +543,7 @@ async function captureEditorScreenState(page) {
     await moveButton.click();
     const movePanel = page.getByRole("dialog", { name: "Move layer", exact: true });
     await movePanel.waitFor({ state: "visible", timeout: 5000 });
-    const layerScaleControl = movePanel.locator('.kft-scrub[aria-label="Layer scale"]');
+    const layerScaleControl = movePanel.getByRole('slider', { name: 'Layer scale' });
     await layerScaleControl.focus();
     await page.keyboard.press("End");
     assert.equal(await page.locator("[data-layout-scale]").inputValue(), await page.locator("[data-layout-scale]").getAttribute("max"),
@@ -569,8 +569,8 @@ async function captureEditorScreenState(page) {
     await effectButton.click();
     const effectPanel = page.getByRole("dialog", { name: "Lyric effect and text style", exact: true });
     await effectPanel.waitFor({ state: "visible", timeout: 5000 });
-    await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();
-    assert.ok(await page.locator('.kft-popover [role="option"]').count() > 1,
+    await effectPanel.getByRole("combobox", { name: /^Lyric effect:/ }).click();
+    assert.ok(await page.locator('.kft-select-content [role="option"]').count() > 1,
       "effect menu must be populated from the existing lyric effect gallery");
     // The Signature pack is declared in the current editor template, so the
     // main-branch baseline (which predates it) can reuse this script.
@@ -657,7 +657,7 @@ async function captureEditorScreenState(page) {
     assert.equal(await aspectSelect.inputValue(), "9:16", "the Canvas panel must stay synchronized with its native aspect backing control");
     if (!(await canvasPanel.isVisible())) await canvasButton.click();
     await canvasPanel.waitFor({ state: "visible", timeout: 5000 });
-    await canvasPanel.locator('[role="radio"][data-value="16:9"]').click();
+    await canvasPanel.getByRole('radio', { name: '16:9', exact: true }).click();
     await page.waitForFunction(() => document.querySelector(".kefe-stage")?.classList.contains("is-16x9"), null, { timeout: 5000 });
     await page.keyboard.press("Escape");
     if (hasStablePreviewGeometry) {
@@ -980,16 +980,16 @@ async function captureEditorScreenState(page) {
     assert.ok(aspectNative && !aspectNative.nextHost && aspectNative.tabIndex === -1
       && await page.locator(".kefe-sidebar-group-editor .kefe-toolbar-format").getAttribute("aria-hidden") === "true",
       `the native aspect backing select must stay out of the preview bar and tab order while the floating toolbar controls it: ${JSON.stringify(nativeSelectState)}`);
-    // The font and export selects are presented through the shadcn-style dropdown trigger that follows them
-    // (a real, focusable <button aria-haspopup="menu">); the native select stays as the value source.
+    // The font and export selects keep the native value source and a focusable trigger.
+    // Accept the baseline menu or the migrated shadcn/Radix listbox.
     const dropdownState = await page.evaluate(() => ["fontOverride", "exportFormat", "exportResolution"].map((id) => {
       const select = document.getElementById(id);
       const trigger = select?.nextElementSibling;
-      return { id, hidden: select?.hidden, ariaHidden: select?.getAttribute("aria-hidden"), trigger: trigger?.classList.contains("kefe-dd-trigger") === true && trigger.tabIndex !== -1 && trigger.getAttribute("aria-haspopup") === "menu" };
+      return { id, hidden: select?.hidden, ariaHidden: select?.getAttribute("aria-hidden"), trigger: trigger?.classList.contains("kefe-dd-trigger") === true && trigger.tabIndex !== -1 && ["menu", "listbox"].includes(trigger.getAttribute("aria-haspopup")) };
     }));
-    assert.ok(dropdownState.every((entry) => entry.hidden === false && entry.ariaHidden === null && entry.trigger),
+    assert.ok(dropdownState.every((entry) => entry.hidden === false && [null, "true"].includes(entry.ariaHidden) && entry.trigger),
       `font and export selects must be driven by a focusable dropdown trigger: ${JSON.stringify(dropdownState)}`);
-    assert.equal(nativeSelectState.bridgeHosts, 0, "editor selects must not have React Select mirrors");
+    assert.equal(nativeSelectState.bridgeHosts, 0, "editor selects must not have retired beUI select hosts");
     assert.ok(nativeSelectState.background?.hidden && nativeSelectState.background.ariaHidden === "true" && nativeSelectState.background.tabIndex === -1,
       `the KEFE background-mode select should remain a hidden native backing control for its accessible custom choices: ${JSON.stringify(nativeSelectState.background)}`);
     assert.deepEqual(nativeSelectState.background.options.map((option) => option.mode), ["apple", "gradient", "video"],
@@ -1687,13 +1687,13 @@ async function captureEditorScreenState(page) {
     const visualiserCards = page.locator(".beui-vis-tabs-host .kv-card");
     const visualiserCount = await visualiserCards.count();
     assert.ok(visualiserCount > 0, "the visualiser section must render its visualiser cards");
-    assert.equal(await page.locator(".beui-vis-tabs-host [role='switch']").count(), visualiserCount,
+    assert.equal(await page.locator(".beui-vis-tabs-host [role='switch']:not([aria-hidden='true'])").count(), visualiserCount,
       "each visualiser tab must have exactly one independent power toggle");
     for (let index = 0; index < visualiserCount; index += 1) {
       const card = visualiserCards.nth(index);
       const tab = card.locator("[role='tab']");
       const value = await tab.getAttribute("data-visualiser");
-      const toggle = card.locator("[role='switch']");
+      const toggle = card.locator("[role='switch']:not([aria-hidden='true'])");
       const nativePower = page.locator(`.beui-vis-backing-controls [data-visualiser="${value}"]`).locator("xpath=..").locator(".kefe-switch");
       assert.equal(await nativePower.count(), 1, `${value} must retain exactly one native power handler`);
       const initial = await nativePower.getAttribute("aria-checked");
@@ -1726,7 +1726,7 @@ async function captureEditorScreenState(page) {
       const shaderTab = page.locator(`.beui-vis-tabs-host [role='tab'][data-visualiser='${id}']`);
       assert.equal(await shaderTab.count(), 1, `${id} must register exactly one visualiser tab`);
       await shaderTab.click();
-      const shaderPower = page.locator(`.beui-vis-tabs-host [role='tab'][data-visualiser='${id}']`).locator("xpath=ancestor::*[contains(@class,'kv-card')][1]").locator("[role='switch']");
+      const shaderPower = page.locator(`.beui-vis-tabs-host [role='tab'][data-visualiser='${id}']`).locator("xpath=ancestor::*[contains(@class,'kv-card')][1]").locator("[role='switch']:not([aria-hidden='true'])");
       if (singleSectionMode) {
         await page.waitForFunction((value) => {
           const tab = document.querySelector(`.beui-vis-backing-controls [data-visualiser='${value}']`);
@@ -1923,11 +1923,18 @@ async function captureEditorScreenState(page) {
     const reviewCheckbox = page.locator("#kefeReview0");
     await reviewCheckbox.waitFor({ state: "visible", timeout: 10000 });
     assert.equal(await reviewCheckbox.getAttribute("type"), "checkbox", "review checklist must use the original native checkbox");
-    assert.equal(await reviewCheckbox.getAttribute("aria-hidden"), null, "native checklist checkbox must remain exposed to assistive technology");
-    assert.equal(await page.locator("#beui-kefeReview0[role=checkbox]").count(), 0, "review checklist must not have a mirrored React clone");
+    // The main-branch baseline uses the native checkbox. The migrated editor
+    // exposes the shadcn checkbox and keeps the input as its value source.
+    const migratedReview = page.locator('#kefeReview0 + .kefe-checkbox-host [role="checkbox"]');
+    if (await migratedReview.count()) {
+      assert.equal(await reviewCheckbox.getAttribute("aria-hidden"), "true");
+      assert.equal(await migratedReview.getAttribute("data-slot"), "checkbox");
+    } else {
+      assert.equal(await reviewCheckbox.getAttribute("aria-hidden"), null);
+    }
     await reviewCheckbox.focus();
     await page.keyboard.press("Space");
-    assert.equal(await reviewCheckbox.isChecked(), true, "native checkbox Space activation should update KEFE checklist state");
+    assert.equal(await reviewCheckbox.isChecked(), true, "checkbox Space activation should update KEFE checklist state");
 
     const firstCount = await page.locator(".kefe-panel-action").count();
     await page.waitForTimeout(300);

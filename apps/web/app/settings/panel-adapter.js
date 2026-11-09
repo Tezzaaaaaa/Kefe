@@ -1,10 +1,9 @@
+import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
+
 (() => {
   'use strict';
 
-  const scriptSrc = document.currentScript && document.currentScript.src;
-  const MARKUP_URL = scriptSrc
-    ? new URL('./panel.html?v=export-workspace-20261109-1', scriptSrc)
-    : new URL('./app/settings/panel.html?v=export-workspace-20261109-1', window.location.href);
+  const MARKUP_URL = new URL('./app/settings/panel.html?v=export-workspace-shadcn-20261109-1', document.baseURI);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
     'lyric-sync': 'lyrics',
@@ -75,26 +74,36 @@
     }
 
     const tablist = root.querySelector('[data-workspace-tablist]');
-    const tabs = Array.from(root.querySelectorAll('[role="tab"][data-workspace-tab]'));
+    const templateTabs = Array.from(root.querySelectorAll('[role="tab"][data-workspace-tab]'));
     const workspaces = Array.from(root.querySelectorAll('.kefe-workspace[data-group]'));
-    if (!tablist || tabs.length !== 4 || workspaces.length !== 4) {
+    if (!tablist || templateTabs.length !== 4 || workspaces.length !== 4) {
       throw new Error('All four persistent workspace tabs and panels are required.');
     }
+    const workspaceItems = templateTabs.map(tab => ({
+      value: tab.dataset.workspaceTab, id: tab.id, label: tab.textContent,
+      className: 'kefe-workspace-tab', controls: tab.getAttribute('aria-controls'),
+      dataset: { 'data-workspace-tab': tab.dataset.workspaceTab },
+    }));
+    const initialWorkspace = templateTabs.find(tab => tab.getAttribute('aria-selected') === 'true')?.dataset.workspaceTab || workspaceItems[0].value;
+    const tabsMount = document.createElement('div');
+    tabsMount.className = 'kefe-workspace-tabs-mount';
+    tablist.replaceWith(tabsMount);
+    const workspaceTabs = mountWorkspaceTabs(tabsMount, {
+      items: workspaceItems, value: initialWorkspace, listClass: 'kefe-workspace-tabs',
+      label: 'Editor workspace', dataset: { 'data-workspace-tablist': '' },
+      onValueChange: name => activateWorkspace(name, false),
+    });
     function activateWorkspace(name, moveFocus) {
-      const selectedTab = tabs.find(tab => tab.dataset.workspaceTab === name);
-      if (!selectedTab) return;
-      tabs.forEach(tab => {
-        const selected = tab === selectedTab;
-        tab.setAttribute('aria-selected', String(selected));
-        tab.tabIndex = selected ? 0 : -1;
-      });
+      const selected = workspaceItems.find(item => item.value === name);
+      if (!selected) return;
+      workspaceTabs.setValue(name);
       workspaces.forEach(workspace => {
-        const selected = workspace.dataset.group === name;
-        workspace.hidden = !selected;
-        workspace.setAttribute('aria-hidden', String(!selected));
+        const active = workspace.dataset.group === name;
+        workspace.hidden = !active;
+        workspace.setAttribute('aria-hidden', String(!active));
       });
       root.dataset.activeWorkspace = name;
-      if (moveFocus) selectedTab.focus();
+      if (moveFocus) root.querySelector('#' + selected.id)?.focus();
     }
     /* Subtabs: each workspace lists its features as a second row of tabs and shows one at a time. */
     const SUBTAB_LABELS = Object.freeze({
@@ -106,54 +115,38 @@
       const stack = workspace.querySelector('.kefe-workspace-stack');
       const sections = Array.from(workspace.querySelectorAll('.section[data-section-id]'));
       if (!stack || !sections.length) return;
-      const list = document.createElement('div');
-      list.className = 'kefe-subtabs';
-      list.setAttribute('role', 'tablist');
-      list.setAttribute('aria-label', (workspace.querySelector('.kefe-workspace-title')?.textContent || 'Workspace') + ' sections');
-      list.style.setProperty('--kefe-subtab-count', String(sections.length));
       const items = sections.map(section => {
         const id = section.dataset.sectionId;
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'kefe-subtab';
-        button.setAttribute('role', 'tab');
-        button.id = 'kefe-subtab-' + id;
-        button.setAttribute('aria-controls', section.querySelector('.section-content')?.id || '');
-        button.textContent = SUBTAB_LABELS[id] || id;
+        const tabId = 'kefe-subtab-' + id;
+        section.id = 'kefe-subpanel-' + id;
         section.setAttribute('role', 'tabpanel');
-        section.setAttribute('aria-labelledby', button.id);
-        list.appendChild(button);
-        return { id, section, button };
+        section.setAttribute('aria-labelledby', tabId);
+        return { id, section, tabId };
+      });
+      let saved = null;
+      try { saved = localStorage.getItem('kefe.subtab.' + workspace.dataset.group); } catch (e) { /* ignore */ }
+      const initial = items.find(item => item.id === saved) || items[0];
+      const mount = document.createElement('div');
+      mount.className = 'kefe-subtabs-mount';
+      stack.insertBefore(mount, stack.firstChild);
+      const subtabList = mountWorkspaceTabs(mount, {
+        items: items.map(item => ({
+          value: item.id, id: item.tabId, className: 'kefe-subtab', controls: item.section.id,
+          label: SUBTAB_LABELS[item.id] || item.id,
+        })),
+        value: initial.id, listClass: 'kefe-subtabs', count: sections.length,
+        label: (workspace.querySelector('.kefe-workspace-title')?.textContent || 'Workspace') + ' sections',
+        onValueChange: id => select(id, false),
       });
       function select(id, moveFocus) {
         const target = items.find(item => item.id === id) || items[0];
-        items.forEach(item => {
-          const on = item === target;
-          item.button.setAttribute('aria-selected', String(on));
-          item.button.tabIndex = on ? 0 : -1;
-          item.section.hidden = !on;
-        });
+        subtabList.setValue(target.id);
+        items.forEach(item => { item.section.hidden = item !== target; });
         workspace.dataset.activeSection = target.id;
         try { localStorage.setItem('kefe.subtab.' + workspace.dataset.group, target.id); } catch (e) { /* storage unavailable */ }
-        if (moveFocus) target.button.focus();
+        if (moveFocus) workspace.querySelector('#' + target.tabId)?.focus();
       }
-      items.forEach((item, index) => {
-        item.button.addEventListener('click', () => select(item.id, false));
-        item.button.addEventListener('keydown', event => {
-          let next = index;
-          if (event.key === 'ArrowRight') next = (index + 1) % items.length;
-          else if (event.key === 'ArrowLeft') next = (index - 1 + items.length) % items.length;
-          else if (event.key === 'Home') next = 0;
-          else if (event.key === 'End') next = items.length - 1;
-          else return;
-          event.preventDefault();
-          select(items[next].id, true);
-        });
-      });
-      stack.insertBefore(list, stack.firstChild);
-      let saved = null;
-      try { saved = localStorage.getItem('kefe.subtab.' + workspace.dataset.group); } catch (e) { /* ignore */ }
-      select(saved, false);
+      select(initial.id, false);
       subtabApis.set(workspace.dataset.group, select);
     });
     function activateSection(sectionId) {
@@ -165,21 +158,7 @@
         }
       }
     }
-    const initialTab = tabs.find(tab => tab.getAttribute('aria-selected') === 'true') || tabs[0];
-    activateWorkspace(initialTab.dataset.workspaceTab, false);
-    tabs.forEach((tab, index) => {
-      tab.addEventListener('click', () => activateWorkspace(tab.dataset.workspaceTab, false));
-      tab.addEventListener('keydown', event => {
-        let nextIndex = index;
-        if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
-        else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
-        else if (event.key === 'Home') nextIndex = 0;
-        else if (event.key === 'End') nextIndex = tabs.length - 1;
-        else return;
-        event.preventDefault();
-        activateWorkspace(tabs[nextIndex].dataset.workspaceTab, true);
-      });
-    });
+    activateWorkspace(initialWorkspace, false);
 
     const host = document.createElement('section');
     host.className = 'kefe-settings-mount';

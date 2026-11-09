@@ -1,7 +1,12 @@
-/* KEFE — pure JavaScript + CSS shadcn.io visualiser gallery (Tabs + Card).
-   The native visualiser buttons stay authoritative for rendering and power; this
-   module presents one consistent gallery for every engine, including engines that
-   register after the gallery has mounted. */
+/* The shadcn Tabs, Card and Switch gallery delegates to the original
+   visualiser engines, including engines that register after the gallery mounts. */
+import * as React from 'react';
+import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs.js';
+import { Card, CardFooter } from '../components/ui/card.js';
+import { Switch } from '../components/ui/switch.js';
+const h = React.createElement;
 
 const VISUALISER_PRESENTATION = {
   gradient: {
@@ -85,304 +90,166 @@ function findNativePowerSwitch(backingButton) {
 }
 
 function mountVisualiserTabs() {
-  const nav = document.querySelector(".kefe-vis-tabs");
-  if (!nav || nav.dataset.beuiMounted === "true") return;
-
+  const nav = document.querySelector('.kefe-vis-tabs');
+  if (!nav || nav.dataset.beuiMounted === 'true') return;
   const backingButtons = new Map();
-  nav.querySelectorAll('button[role="tab"][data-visualiser]').forEach((button) => {
-    if (button.classList.contains("kv-tab")) return;
-    const id = button.dataset.visualiser;
-    if (id) backingButtons.set(id, button);
+  nav.querySelectorAll('button[role="tab"][data-visualiser]').forEach(button => {
+    if (!button.classList.contains('kv-tab') && button.dataset.visualiser) backingButtons.set(button.dataset.visualiser, button);
   });
   if (!backingButtons.size) return;
+  nav.dataset.beuiMounted = 'true';
+  nav.removeAttribute('role');
 
-  nav.dataset.beuiMounted = "true";
-  /* The gallery owns the one tablist. The legacy container used to declare the
-     same role, which would nest two tablists around the same cards. */
-  nav.removeAttribute("role");
-
-  /* Selection and power are one user action: the native renderers require both
-     states before they paint. The hidden backing controls keep that contract. */
-  let activating = false;
-  document.addEventListener(
-    "click",
-    (event) => {
-      if (activating) return;
-      const target = event.target instanceof Element ? event.target : null;
-      if (!target || target.closest(".kv-tab")) return;
-
-      const backingTab = target.closest(
-        '.beui-vis-backing-controls [role="tab"][data-visualiser]',
-      );
-      if (backingTab) {
-        const value = backingTab.dataset.visualiser;
-        if (value) activeValue = value;
-        const power = findNativePowerSwitch(backingTab);
-        if (power && power.getAttribute("aria-checked") !== "true") {
-          queueMicrotask(() => {
-            if (power.isConnected && power.getAttribute("aria-checked") !== "true") {
-              activating = true;
-              power.click();
-              activating = false;
-            }
-          });
-        }
-        syncAllStates();
-        return;
-      }
-
-      const power = target.closest(".beui-vis-backing-controls .kefe-switch");
-      if (power && power.getAttribute("aria-checked") !== "true") {
-        const backingTabForPower = power
-          .closest(".kefe-vis-option")
-          ?.querySelector('[role="tab"][data-visualiser]');
-        if (backingTabForPower && backingTabForPower.getAttribute("aria-selected") !== "true") {
-          activating = true;
-          backingTabForPower.click();
-          activating = false;
-        }
-      }
-    },
-    true,
-  );
-
-  const backingHost = document.createElement("div");
-  backingHost.className = "beui-vis-backing-controls";
+  const backingHost = document.createElement('div');
+  backingHost.className = 'beui-vis-backing-controls';
   backingHost.hidden = true;
-  backingHost.setAttribute("aria-hidden", "true");
-  for (const button of backingButtons.values()) {
-    const option = button.closest(".kefe-vis-option");
-    backingHost.appendChild(option || button);
-  }
-
-  const host = document.createElement("div");
-  host.className = "beui-vis-tabs-host";
-
-  const grid = document.createElement("div");
-  grid.setAttribute("role", "tablist");
-  grid.setAttribute("aria-label", "Choose visualiser");
-  grid.className = "kv-grid kv-gallery";
-
-  /* Start unselected until the user explicitly clicks a visualiser card. */
-  let activeValue = "";
-  const cardsByValue = new Map();
-
-  function syncAllStates() {
-    const entries = [...cardsByValue.entries()];
-    entries.forEach(([value, parts], index) => {
-      const { card, tabBtn, switchBtn, switchState, status } = parts;
-      const backing = backingButtons.get(value);
-      const power = findNativePowerSwitch(backing);
-      const selected = activeValue === value;
-      const enabled = power?.getAttribute("aria-checked") === "true";
-
-      card.classList.toggle("is-active", selected);
-      card.dataset.state = selected ? "active" : "inactive";
-      tabBtn.setAttribute("aria-selected", String(selected));
-      tabBtn.dataset.state = selected ? "active" : "inactive";
-      tabBtn.tabIndex = selected || (!activeValue && index === 0) ? 0 : -1;
-
-      switchBtn.setAttribute("aria-checked", String(enabled));
-      switchBtn.dataset.state = enabled ? "checked" : "unchecked";
-      switchBtn.classList.toggle("is-on", enabled);
-      const switchAction = `Turn ${card.dataset.label} ${enabled ? "off" : "on"}`;
-      switchBtn.title = switchAction;
-      switchBtn.setAttribute("aria-label", switchAction);
-      if (switchState) switchState.textContent = enabled ? "On" : "Off";
-      if (status) status.textContent = selected ? "Selected" : "Preview";
-    });
-  }
+  backingHost.setAttribute('aria-hidden', 'true');
+  const host = document.createElement('div');
+  host.className = 'beui-vis-tabs-host';
+  const root = createRoot(host);
+  let activeValue = '', activating = false, pointerStartValue = null;
+  const cards = new Map();
 
   function registerCard(backing, value) {
-    if (!value || cardsByValue.has(value)) return;
+    if (!value || cards.has(value)) return false;
     backingButtons.set(value, backing);
-    const option = backing.closest(".kefe-vis-option");
-    if ((option || backing).parentNode !== backingHost) {
-      backingHost.appendChild(option || backing);
-    }
-
-    const fallback = cleanVisualiserLabel(backing, value);
+    const option = backing.closest('.kefe-vis-option');
+    if ((option || backing).parentNode !== backingHost) backingHost.appendChild(option || backing);
     const meta = VISUALISER_PRESENTATION[value] || {};
-    const label = meta.name || fallback;
-    const description = meta.description || `${label} visualiser`;
-    const icon = meta.icon || backing.dataset.icon || "";
-    const art = meta.art || "generic";
-
-    const card = document.createElement("article");
-    card.className = "kv-card";
-    card.dataset.slot = "card";
-    card.setAttribute("role", "presentation");
-    card.dataset.visualiser = value;
-    card.dataset.label = label;
-    card.style.order = String(meta.order ?? 99);
-
-    const tabBtn = document.createElement("button");
-    tabBtn.type = "button";
-    tabBtn.setAttribute("role", "tab");
-    tabBtn.dataset.visualiser = value;
-    tabBtn.setAttribute("aria-selected", "false");
-    tabBtn.className = "kv-tab";
-    tabBtn.title = `${label} visualiser`;
-    /* Keep the native backing tab's "… visualiser" aria-label unique. The visible
-       label already names this trigger; screen readers get the same clean name. */
-    tabBtn.setAttribute("aria-label", label);
-    const controls = backing.getAttribute("aria-controls");
-    if (controls) tabBtn.setAttribute("aria-controls", controls);
-
-    const preview = document.createElement("span");
-    preview.className = "kv-preview";
-    preview.dataset.art = art;
-    preview.setAttribute("aria-hidden", "true");
-
-    const iconEl = document.createElement("span");
-    iconEl.className = "kv-preview-icon";
-    iconEl.textContent = icon;
-    preview.appendChild(iconEl);
-
-    const labelSpan = document.createElement("span");
-    labelSpan.className = "kv-label";
-    labelSpan.textContent = label;
-
-    const descSpan = document.createElement("span");
-    descSpan.className = "kv-desc";
-    descSpan.textContent = description;
-
-    const body = document.createElement("span");
-    body.className = "kv-body";
-    body.append(labelSpan, descSpan);
-    tabBtn.append(preview, body);
-
-    tabBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      activeValue = value;
-      activating = true;
-      backing.click();
-      const power = findNativePowerSwitch(backing);
-      if (power && power.getAttribute("aria-checked") !== "true") power.click();
-      activating = false;
-      syncAllStates();
-      revealSettings();
+    const label = meta.name || cleanVisualiserLabel(backing, value);
+    cards.set(value, {
+      backing, label, description: meta.description || `${label} visualiser`,
+      icon: meta.icon || backing.dataset.icon || '', art: meta.art || 'generic', order: meta.order ?? 99,
     });
-
-    const foot = document.createElement("span");
-    foot.className = "kv-card-foot";
-
-    const status = document.createElement("span");
-    status.className = "kv-card-status";
-    status.textContent = "Preview";
-
-    const switchBtn = document.createElement("button");
-    switchBtn.type = "button";
-    switchBtn.setAttribute("role", "switch");
-    switchBtn.setAttribute("aria-checked", "false");
-    switchBtn.setAttribute("aria-label", `${label} visualiser`);
-    switchBtn.className = "kv-power-switch";
-
-    const switchState = document.createElement("span");
-    switchState.className = "kv-power-state";
-    switchState.textContent = "Off";
-
-    const track = document.createElement("span");
-    track.className = "kv-power-track";
-    track.setAttribute("aria-hidden", "true");
-    track.appendChild(document.createElement("span"));
-
-    switchBtn.append(switchState, track);
-
-    switchBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const power = findNativePowerSwitch(backing);
-      if (!power) return;
-      if (power.getAttribute("aria-checked") !== "true") {
-        activeValue = value;
-        activating = true;
-        const selected = backing.getAttribute("aria-selected") === "true";
-        if (!selected) backing.click();
-        power.click();
-        activating = false;
-      } else {
-        activating = true;
-        power.click();
-        activating = false;
-      }
-      syncAllStates();
-    });
-
-    foot.append(status, switchBtn);
-    card.append(tabBtn, foot);
-    grid.appendChild(card);
-    cardsByValue.set(value, { card, tabBtn, switchBtn, switchState, status });
+    return true;
   }
-
+  function activate(value) {
+    const entry = cards.get(value);
+    if (!entry) return;
+    activeValue = value;
+    activating = true;
+    try {
+      entry.backing.click();
+      const power = findNativePowerSwitch(entry.backing);
+      if (power && power.getAttribute('aria-checked') !== 'true') power.click();
+    } finally { activating = false; }
+    render();
+    revealSettings();
+  }
+  function togglePower(value) {
+    const entry = cards.get(value);
+    const power = entry && findNativePowerSwitch(entry.backing);
+    if (!power) return;
+    activating = true;
+    try {
+      if (power.getAttribute('aria-checked') !== 'true') {
+        activeValue = value;
+        if (entry.backing.getAttribute('aria-selected') !== 'true') entry.backing.click();
+      }
+      power.click();
+    } finally { activating = false; }
+    render();
+  }
+  function render() {
+    root.render(h(Tabs, { value: activeValue, activationMode: 'manual', onValueChange: activate, style: { display: 'contents' } },
+      h(TabsList, { className: 'kv-grid kv-gallery', 'aria-label': 'Choose visualiser',
+        onKeyDown: event => {
+          if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+          const buttons = [...host.querySelectorAll('.kv-tab')];
+          const index = buttons.indexOf(document.activeElement);
+          if (index < 0) return;
+          event.preventDefault();
+          buttons[Math.max(0, Math.min(buttons.length - 1, index + (event.key === 'ArrowUp' ? -1 : 1)))]?.focus();
+        },
+      }, [...cards.entries()].map(([value, entry]) => {
+        const selected = activeValue === value;
+        const power = findNativePowerSwitch(entry.backing);
+        const enabled = power?.getAttribute('aria-checked') === 'true';
+        const action = `Turn ${entry.label} ${enabled ? 'off' : 'on'}`;
+        return h(Card, { key: value, className: `kv-card${selected ? ' is-active' : ''}`, role: 'presentation',
+          'data-visualiser': value, 'data-label': entry.label, 'data-state': selected ? 'active' : 'inactive', hidden: entry.backing.hidden, style: { order: String(entry.order) } },
+          h(TabsTrigger, { value, className: 'kv-tab', disabled: entry.backing.disabled, 'data-visualiser': value, title: `${entry.label} visualiser`,
+            'aria-label': entry.label, 'aria-controls': entry.backing.getAttribute('aria-controls') || undefined,
+            onMouseDown: () => { pointerStartValue = activeValue; },
+            // A selected card may have its power switched off; selecting it
+            // again must turn it back on without double-activating a new card.
+            onClick: event => {
+              event.stopPropagation();
+              if (event.detail === 0 || pointerStartValue === value) activate(value);
+              pointerStartValue = null;
+            },
+          }, h('span', { className: 'kv-preview', 'data-art': entry.art, 'aria-hidden': 'true' }, h('span', { className: 'kv-preview-icon' }, entry.icon)),
+          h('span', { className: 'kv-body' }, h('span', { className: 'kv-label' }, entry.label), h('span', { className: 'kv-desc' }, entry.description))),
+          h(CardFooter, { className: 'kv-card-foot' },
+            h('span', { className: 'kv-card-status' }, selected ? 'Selected' : 'Preview'),
+            h(Switch, { checked: enabled, disabled: !power || power.disabled || entry.backing.disabled, 'aria-label': action, title: action, onCheckedChange: () => togglePower(value) })));
+      }))));
+  }
   backingButtons.forEach((backing, value) => registerCard(backing, value));
-
-  host.appendChild(grid);
+  flushSync(render);
   nav.prepend(host);
   nav.appendChild(backingHost);
 
-  syncAllStates();
-
-  function sweepLateBackingOptions() {
-    let added = false;
-    nav.querySelectorAll('button[role="tab"][data-visualiser]').forEach((button) => {
-      if (button.classList.contains("kv-tab")) return;
-      const value = button.dataset.visualiser;
-      if (!value) return;
-      const option = button.closest(".kefe-vis-option");
-      if (!cardsByValue.has(value)) {
-        registerCard(button, value);
-        added = true;
-      } else if (option && option.parentNode !== backingHost) {
-        backingHost.appendChild(option);
+  document.addEventListener('click', event => {
+    if (activating) return;
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target || target.closest('.kv-tab')) return;
+    const backingTab = target.closest('.beui-vis-backing-controls [role="tab"][data-visualiser]');
+    if (backingTab) {
+      if (backingTab.dataset.visualiser) activeValue = backingTab.dataset.visualiser;
+      const power = findNativePowerSwitch(backingTab);
+      if (power && power.getAttribute('aria-checked') !== 'true') queueMicrotask(() => {
+        if (power.isConnected && power.getAttribute('aria-checked') !== 'true') {
+          activating = true;
+          try { power.click(); } finally { activating = false; }
+        }
+      });
+      render();
+      return;
+    }
+    const power = target.closest('.beui-vis-backing-controls .kefe-switch');
+    if (power && power.getAttribute('aria-checked') !== 'true') {
+      const tab = power.closest('.kefe-vis-option')?.querySelector('[role="tab"][data-visualiser]');
+      if (tab && tab.getAttribute('aria-selected') !== 'true') {
+        activating = true;
+        try { tab.click(); } finally { activating = false; }
       }
+    }
+  }, true);
+
+  const lateObserver = new MutationObserver(() => {
+    let changed = false;
+    nav.querySelectorAll('button[role="tab"][data-visualiser]').forEach(button => {
+      if (button.classList.contains('kv-tab') || !button.dataset.visualiser) return;
+      const option = button.closest('.kefe-vis-option');
+      if (!cards.has(button.dataset.visualiser)) changed = registerCard(button, button.dataset.visualiser) || changed;
+      else if (option && option.parentNode !== backingHost) backingHost.appendChild(option);
     });
-    if (added) syncAllStates();
-  }
-
-  const lateObserver = new MutationObserver(sweepLateBackingOptions);
+    if (changed) render();
+  });
   lateObserver.observe(nav, { childList: true });
-  lateObserver.observe(grid, { childList: true });
-
-  const observer = new MutationObserver(() => {
-    const selectedEntry = [...backingButtons.entries()].find(
-      ([, button]) => button.getAttribute("aria-selected") === "true",
-    );
-    if (selectedEntry) activeValue = selectedEntry[0];
-    syncAllStates();
-  });
-
-  observer.observe(backingHost, {
-    subtree: true,
-    attributes: true,
-    attributeFilter: ["aria-selected", "aria-checked", "class"],
-  });
-
-  grid.addEventListener("keydown", (event) => {
-    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
-    const tabs = [...cardsByValue.values()].map((parts) => parts.tabBtn);
-    const current = tabs.indexOf(document.activeElement);
-    if (current < 0) return;
-    event.preventDefault();
-    let next = current;
-    if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = Math.max(0, current - 1);
-    if (event.key === "ArrowRight" || event.key === "ArrowDown") next = Math.min(tabs.length - 1, current + 1);
-    if (event.key === "Home") next = 0;
-    if (event.key === "End") next = tabs.length - 1;
-    tabs[next]?.focus();
+  const syncBacking = () => {
+    const selected = [...backingButtons.entries()].find(([, button]) => button.getAttribute('aria-selected') === 'true');
+    if (selected) activeValue = selected[0];
+    render();
+  };
+  new MutationObserver(syncBacking).observe(backingHost, { subtree: true, attributes: true, attributeFilter: ['aria-selected', 'aria-checked', 'class', 'disabled', 'hidden'] });
+  // Autosave can restore an engine before this gallery is mounted. Preserve
+  // the intentionally empty initial gallery when there is no saved project.
+  window.kefeProjectAutosave?.ready?.then(() => {
+    try {
+      const snapshot = JSON.parse(localStorage.getItem('kefe.project.autosave.v1') || 'null');
+      if (snapshot?.selections?.visualiser) syncBacking();
+    } catch (_) { /* Storage may be unavailable. */ }
   });
 }
 
-if (typeof window !== "undefined") {
-  window.addEventListener("load", mountVisualiserTabs, { once: true });
-  document.addEventListener("click", (event) => {
-    if (
-      event.target instanceof Element &&
-      event.target.closest('[data-shell-panel="visualiser"], .kefe-section[data-panel="visualiser"]')
-    ) {
+if (typeof window !== 'undefined') {
+  window.addEventListener('load', mountVisualiserTabs, { once: true });
+  document.addEventListener('click', event => {
+    if (event.target instanceof Element && event.target.closest('[data-shell-panel="visualiser"], .kefe-section[data-panel="visualiser"]')) {
       window.setTimeout(mountVisualiserTabs, 0);
     }
   });
-  if (document.readyState === "complete") {
-    mountVisualiserTabs();
-  }
+  if (document.readyState === 'complete') mountVisualiserTabs();
 }

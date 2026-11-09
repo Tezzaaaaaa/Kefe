@@ -1,0 +1,56 @@
+import assert from "node:assert/strict";
+import { JSDOM } from "jsdom";
+import { createServer } from "vite";
+const dom = new JSDOM('<!doctype html><html><body><div class="kefe-editor"><label><input type="checkbox" id="follow"> Follow playback</label></div></body></html>', { url: "http://localhost/", pretendToBeVisual: true });
+for (const key of ["window", "document", "HTMLElement", "HTMLInputElement", "Element", "Node", "MutationObserver", "Event", "KeyboardEvent", "MouseEvent", "getComputedStyle", "navigator"]) {
+  Object.defineProperty(globalThis, key, { configurable: true, value: dom.window[key] });
+}
+globalThis.requestAnimationFrame = dom.window.requestAnimationFrame.bind(dom.window);
+const server = await createServer({ configFile: false, server: { middlewareMode: true }, appType: "custom" });
+const tick = () => new Promise(resolve => setTimeout(resolve, 60));
+try {
+  await server.ssrLoadModule("/beui-src/shadcn-checkbox-bridge.js");
+  if (document.readyState === "loading") document.dispatchEvent(new Event("DOMContentLoaded"));
+  await tick();
+  const native = document.getElementById("follow");
+  let control = native.nextElementSibling.querySelector('[role="checkbox"]');
+  assert.equal(control.getAttribute("data-slot"), "checkbox");
+  assert.equal(control.getAttribute("aria-label"), "Follow playback");
+  assert.equal(control.getAttribute("aria-checked"), "false");
+  let clicks = 0, inputs = 0, changes = 0;
+  native.addEventListener("click", () => clicks++);
+  native.addEventListener("input", () => inputs++);
+  native.addEventListener("change", () => changes++);
+  control.click(); await tick();
+  assert.equal(native.checked, true);
+  assert.equal(control.getAttribute("aria-checked"), "true");
+  assert.deepEqual([clicks, inputs, changes], [1, 1, 1]);
+  native.parentElement.click(); await tick();
+  assert.equal(native.checked, false, "label activation toggles the native input once");
+  assert.deepEqual([clicks, inputs, changes], [2, 2, 2]);
+  native.checked = false; await tick();
+  assert.equal(control.getAttribute("aria-checked"), "false");
+  native.indeterminate = true; await tick();
+  assert.equal(control.getAttribute("aria-checked"), "mixed");
+  native.disabled = true; await tick();
+  assert.ok(control.disabled);
+  native.disabled = false; native.indeterminate = false; await tick();
+  native.hidden = true; await tick();
+  assert.equal(native.nextElementSibling.hidden, true);
+  native.hidden = false; await tick();
+  assert.equal(native.nextElementSibling.hidden, false);
+  native.focus(); assert.equal(document.activeElement, control);
+  const label = native.parentElement;
+  label.remove(); await tick();
+  document.querySelector('.kefe-editor').append(label); await tick();
+  control = native.nextElementSibling.querySelector('[role="checkbox"]');
+  assert.equal(control.getAttribute("aria-checked"), "false");
+  assert.equal(label.querySelectorAll('[role="checkbox"]').length, 1);
+  const later = document.createElement("input");
+  later.type = "checkbox"; later.id = "later"; later.hidden = true;
+  document.querySelector('.kefe-editor').append(later); await tick();
+  assert.equal(later.nextElementSibling, null);
+  later.hidden = false; await tick();
+  assert.ok(later.nextElementSibling?.querySelector('[role="checkbox"]'), "late-revealed input is mounted");
+  console.log("PASS: shadcn checkbox state, native events, labels, disabled state and remounts");
+} finally { await server.close(); dom.window.close(); }

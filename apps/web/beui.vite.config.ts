@@ -23,6 +23,9 @@ export default defineConfig({
       input: {
         index: resolve(here, "index.html"),
         editor: resolve(here, "editor.source.html"),
+        standalone: resolve(here, "apple-lyrics-standalone.source.html"),
+        privacy: resolve(here, "legal-src/privacy.html"),
+        terms: resolve(here, "legal-src/terms.html"),
       },
     },
   },

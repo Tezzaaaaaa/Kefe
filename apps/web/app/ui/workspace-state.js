@@ -71,10 +71,18 @@
     }
     window.dispatchEvent(new CustomEvent('kefe-autosave-status', { detail: { text, saved: !!saved } }));
   }
-  function projectFields() {
-    return $$('input:not([type="password"]), select, textarea').filter(el => !el.closest('#kefeFloatingToolbar, .kft-popover'));
+  function projectFields(legacy = false) {
+    return $$('input:not([type="password"]), select, textarea').filter(el =>
+      !el.closest('#kefeFloatingToolbar, .kft-popover') &&
+      (legacy || !el.closest('#kefeTimingEditor .kefe-line-list')));
+  }
+  function clearTimingRowKeys() {
+    $$('#kefeTimingEditor .kefe-line-list [data-kefe-autosave-key]').forEach(el => delete el.dataset.kefeAutosaveKey);
   }
   function controlSnapshot() {
+    // Legacy restores may have assigned keys to temporary rows. Don't let a
+    // stale key shadow an unrelated control in a new-format snapshot.
+    clearTimingRowKeys();
     const values = {};
     const fields = projectFields().filter(el => el.type !== 'file');
     fields.forEach((el, index) => {
@@ -83,7 +91,10 @@
       values[key] = el.type === 'checkbox' || el.type === 'radio' ? { checked: !!el.checked, value: el.value } : { value: el.value };
     });
     const effect = $('[data-effect].active', $('#lyricEffectOptions') || document);
-    const visualiser = $('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary');
+    // Gallery cards also carry data-visualiser, but the engine buttons own
+    // selection and power. Prefer the backing tab when the gallery is mounted.
+    const visualiser = $('.beui-vis-backing-controls [role="tab"][aria-selected="true"], .beui-vis-backing-controls button.primary') ||
+      $('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary');
     const visualiserOption = visualiser?.closest('.kefe-vis-option');
     const visualiserPower = visualiserOption?.querySelector('button[role="switch"]');
     const visualiserPreset = $('.kefe-visualiser-preset-set:not([hidden]) button[aria-pressed="true"], .kefe-visualiser-preset-set:not([hidden]) button.primary');
@@ -98,7 +109,7 @@
         return selected;
       }, [])
       : [];
-    return { version: 1, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', lyricsEnabled: lyricsToggle?.getAttribute('aria-checked') !== 'false', visualiser: visualiser?.dataset.visualiser || '', visualiserPreset: presetKey, visualiserChoices, visualiserPower: visualiserPower?.getAttribute('aria-checked') === 'true', background: background?.dataset.backgroundMode || '', backgroundEnabled: backgroundToggle?.getAttribute('aria-checked') === 'true', toolbarContext: contextButton?.dataset.settingsContext || context } };
+    return { version: 2, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', lyricsEnabled: lyricsToggle?.getAttribute('aria-checked') !== 'false', visualiser: visualiser?.dataset.visualiser || '', visualiserPreset: presetKey, visualiserChoices, visualiserPower: visualiserPower?.getAttribute('aria-checked') === 'true', background: background?.dataset.backgroundMode || '', backgroundEnabled: backgroundToggle?.getAttribute('aria-checked') === 'true', toolbarContext: contextButton?.dataset.settingsContext || context } };
   }
   async function saveProject() {
     if (restoring) return;
@@ -120,7 +131,7 @@
     }, 350);
   }
   function setControlValue(el, data) {
-    if (!el || !data) return;
+    if (!el || !data || el.closest('#kefeTimingEditor .kefe-line-list')) return;
     if (el.type === 'checkbox' || el.type === 'radio') { el.checked = !!data.checked; if (data.value != null) el.value = data.value; }
     else if (data.value != null) {
       if (el.tagName === 'SELECT' && !Array.from(el.options).some(option => option.value === data.value)) return;
@@ -143,12 +154,15 @@
     if (restoring) return;
     let snapshot;
     try { snapshot = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch (_) { return; }
-    if (!snapshot || snapshot.version !== 1) return;
+    if (!snapshot || ![1, 2].includes(snapshot.version)) return;
     restoring = true;
     status('Restoring saved project…', false);
     try {
       const restoreValues = () => {
-        projectFields().filter(el => el.type !== 'file').forEach((el, index) => {
+        if (snapshot.version === 2) clearTimingRowKeys();
+        // Version 1 counted temporary timing rows in its anonymous field keys.
+        // Preserve those indices for old projects; new saves omit those rows.
+        projectFields(snapshot.version === 1).filter(el => el.type !== 'file').forEach((el, index) => {
           if (!el.id && !el.name) el.dataset.kefeAutosaveKey = 'field-' + index;
         });
         Object.entries(snapshot.values || {}).forEach(([selector, data]) => { try { setControlValue($(selector), data); } catch (_) {} });
@@ -161,7 +175,10 @@
         if (toggle && (toggle.getAttribute('aria-checked') !== 'false') !== selected.lyricsEnabled) toggle.click();
       }
       if (selected.lyricEffect) $('#lyricEffectOptions [data-effect="' + CSS.escape(selected.lyricEffect) + '"]')?.click();
-      if (selected.visualiser) $('.kefe-vis-tabs [data-visualiser="' + CSS.escape(selected.visualiser) + '"]')?.click();
+      if (selected.visualiser) {
+        const selector = 'button[role="tab"][data-visualiser="' + CSS.escape(selected.visualiser) + '"]';
+        ($('.beui-vis-backing-controls ' + selector) || $('.kefe-vis-tabs ' + selector))?.click();
+      }
       if (selected.background) $('#kefeBackgroundEffectOptions [data-background-mode="' + CSS.escape(selected.background) + '"]')?.click();
       if (typeof selected.backgroundEnabled === 'boolean') {
         const toggle = $('#kefeBackgroundEffectToggle');
@@ -182,7 +199,8 @@
         });
       }
       if (typeof selected.visualiserPower === 'boolean' && selected.visualiser) {
-        const visualiserTab = $('.kefe-vis-tabs [data-visualiser="' + CSS.escape(selected.visualiser) + '"]');
+        const selector = 'button[role="tab"][data-visualiser="' + CSS.escape(selected.visualiser) + '"]';
+        const visualiserTab = $('.beui-vis-backing-controls ' + selector) || $('.kefe-vis-tabs ' + selector);
         const power = visualiserTab?.closest('.kefe-vis-option')?.querySelector('button[role="switch"]');
         if (power && (power.getAttribute('aria-checked') === 'true') !== selected.visualiserPower) power.click();
       }
@@ -194,7 +212,7 @@
 
   /* Reuses the editor's live controls as the source of truth; no additional toolbar width is introduced. */
   const contextButton = $('#kefeFloatingToolbar button[aria-label="Lyric effect and text style"]');
-  let contextPopover = null;
+  let contextPopover = null, forwardingContextClick = false;
   const config = {
     lyric: { title: 'Lyric effect settings', icon: 'effect', selectors: ['#kefeDisplayGroup', '#kefeStyleGroup', '#fontOverride', '#lyricCase'] },
     visualiser: { title: 'Visualiser settings', icon: 'audio-waveform', selectors: ['.kefe-visualiser-form', '#kefeVisualiserPresetRow'] },
@@ -211,7 +229,11 @@
   function hasHiddenFeatureAncestor(el) {
     let node = el;
     while (node && node !== document.body) {
-      if ((node.hidden || node.getAttribute('aria-hidden') === 'true')
+      // A shadcn bridge hides only the canonical control from the accessibility
+      // tree. It is still the source for toolbar proxies; hidden *ancestors*
+      // must continue to suppress controls from inactive feature panels.
+      const bridgedSource = node === el && node.matches('.beui-native-range, .kefe-dd-native, .kefe-shad-checkbox-native, .kefe-shad-switch-native');
+      if ((node.hidden || (node.getAttribute('aria-hidden') === 'true' && !bridgedSource))
         && !node.matches('.kefe-panel[data-panel-view], .kefe-workspace, .kefe-workspace-stack')) return true;
       node = node.parentElement;
     }
@@ -225,7 +247,8 @@
       if (root.id === 'kefeVisualiserPresetRow') controls.push(...$$('button', root));
       return controls;
     }).filter(el => {
-      if (seen.has(el) || el.disabled || hasHiddenFeatureAncestor(el) || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
+      // Do not clone a rendered bridge in addition to its original control.
+      if (seen.has(el) || el.disabled || el.closest('.beui-range-host, .kefe-checkbox-host, .kefe-switch-host') || hasHiddenFeatureAncestor(el) || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
       seen.add(el); return true;
     });
   }
@@ -266,9 +289,16 @@
     const controls = sourceControls();
     if (!controls.length) { const empty = document.createElement('p'); empty.className = 'kft-hint'; empty.textContent = 'No adjustable settings are available for this selection yet.'; contextPopover.appendChild(empty); return; }
     controls.forEach(source => {
-      const row = document.createElement('label'); row.className = 'kft-context-field';
+      const row = document.createElement('div'); row.className = 'kft-context-field';
       const title = document.createElement('span'); title.textContent = labelFor(source);
       const proxy = source.cloneNode(true); proxy.removeAttribute('id'); proxy.removeAttribute('name'); proxy.removeAttribute('form');
+      // Clones must be visible and focusable, not inherit the backing control's
+      // off-screen bridge markers. Range bridges can then enhance them normally.
+      if (source.matches('.beui-native-range, .kefe-dd-native, .kefe-shad-checkbox-native, .kefe-shad-switch-native')) {
+        proxy.classList.remove('beui-native-range', 'kefe-dd-native', 'kefe-shad-checkbox-native', 'kefe-shad-switch-native');
+        proxy.removeAttribute('aria-hidden'); proxy.removeAttribute('tabindex'); proxy.removeAttribute('data-beui-range-mounted');
+      }
+      if (!proxy.hasAttribute('aria-label') && !proxy.hasAttribute('aria-labelledby')) proxy.setAttribute('aria-label', title.textContent);
       proxy.disabled = source.disabled;
       if (source.type === 'file') {
         proxy.classList.remove('kefe-file'); proxy.value = '';
@@ -282,7 +312,11 @@
         });
       } else if (source.matches('button')) {
         proxy.addEventListener('click', () => {
-          source.click();
+          // The source button is outside the popover. Forwarding its click
+          // must not be mistaken for an outside click and remove the proxy
+          // while its own activation is still in progress.
+          forwardingContextClick = true;
+          try { source.click(); } finally { forwardingContextClick = false; }
           queueSave();
           requestAnimationFrame(() => {
             ['aria-checked', 'aria-pressed'].forEach(name => {
@@ -323,15 +357,17 @@
     return label.trim().replace(/\s+/g, ' ').slice(0, 48);
   }
   function contextTitle() { const name = selectedFeatureName(); return name ? name + ' settings' : config[context].title; }
-  function setContext(next) {
+  function setContext(next, keepToolbarPanel = false) {
     if (!config[next]) return;
     const changed = context !== next;
     context = next;
     if (changed) {
       closeContext();
-      window.dispatchEvent(new Event('kefe-toolbar-close-popovers'));
+      if (!keepToolbarPanel) window.dispatchEvent(new Event('kefe-toolbar-close-popovers'));
     }
-    renderContext();
+    // Forwarded proxy events also select their current context. Rebuilding the
+    // open popover here would discard focus and interrupt keyboard/drag input.
+    if (changed || !contextPopover) renderContext();
     if (changed) queueSave();
   }
   if (contextButton) {
@@ -339,9 +375,12 @@
       if (context === 'lyric') return;
       event.preventDefault(); event.stopImmediatePropagation(); openContext();
     }, true);
-    document.addEventListener('click', event => { if (contextPopover && !contextPopover.contains(event.target) && !contextButton.contains(event.target)) closeContext(); }, true);
+    document.addEventListener('click', event => { if (!forwardingContextClick && contextPopover && !contextPopover.contains(event.target) && !contextButton.contains(event.target)) closeContext(); }, true);
     document.addEventListener('keydown', event => { if (event.key === 'Escape' && contextPopover) { closeContext(); contextButton.focus({ preventScroll: true }); } });
     window.addEventListener('resize', closeContext);
+    // Only preserve the toolbar for events explicitly forwarded by one of its
+    // controls, not unrelated updates while a toolbar control happens to have focus.
+    const editingToolbarPanel = () => window.kefeToolbarForwarding === true;
     function contextForControl(target) {
       if (!target || !(target instanceof Element)) return '';
       if (target.id === 'lyricsEnabledToggle' || target.matches('#fontOverride, #lyricCase') || target.closest('#lyricEffectOptions, #kefeDisplayGroup, #kefeStyleGroup, .kefe-font-selector-control')) return 'lyric';
@@ -355,7 +394,8 @@
       if (!target) return;
       const next = contextForControl(target);
       if (next) {
-        queueMicrotask(() => setContext(next));
+        const keepToolbarPanel = editingToolbarPanel();
+        queueMicrotask(() => setContext(next, keepToolbarPanel));
         if (target.id === 'bgVideoRemove') {
           const input = $('#bgVideoInput');
           if (input?.id) dbDelete(input.id).then(queueSave).catch(error => {
@@ -369,21 +409,22 @@
     ['input', 'change'].forEach(type => document.addEventListener(type, event => {
       if (restoring) return;
       const next = contextForControl(event.target);
-      if (next) setContext(next);
+      if (next) setContext(next, editingToolbarPanel());
     }, true));
     window.addEventListener('kefe-toolbar-change', event => {
       if (restoring) return;
       const action = event.detail?.action;
-      if (action === 'effect' || ['lyric-mode', 'font', 'text-case', 'text-size', 'text-colour', 'outline', 'glow', 'lyrics'].includes(action)) setContext('lyric');
-      else if (action === 'visualiser') setContext('visualiser');
-      else if (action === 'background' || action === 'background-darkness') setContext('background');
+      const keepToolbarPanel = event.detail?.source === 'editor-toolbar' && editingToolbarPanel();
+      if (action === 'effect' || ['lyric-mode', 'font', 'text-case', 'text-size', 'text-colour', 'outline', 'glow', 'lyrics'].includes(action)) setContext('lyric', keepToolbarPanel);
+      else if (action === 'visualiser') setContext('visualiser', keepToolbarPanel);
+      else if (action === 'background' || action === 'background-darkness') setContext('background', keepToolbarPanel);
       if (!['ready', 'position'].includes(action)) queueSave();
     });
   const form = $('.kefe-visualiser-form');
-    if (form) new MutationObserver(() => { if (context === 'visualiser' && contextPopover) renderContext(); })
+    if (form) new MutationObserver(() => { if (context === 'visualiser' && contextPopover && !contextPopover.contains(document.activeElement)) renderContext(); })
       .observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','hidden','aria-hidden','class','style'] });
     const backgroundForm = $('[data-panel-view="background-effects"] .kefe-form');
-    if (backgroundForm) new MutationObserver(() => { if (context === 'background' && contextPopover) renderContext(); })
+    if (backgroundForm) new MutationObserver(() => { if (context === 'background' && contextPopover && !contextPopover.contains(document.activeElement)) renderContext(); })
       .observe(backgroundForm, { childList: true, subtree: true, attributes: true, attributeFilter: ['value','checked','disabled','aria-checked','hidden','aria-hidden','class','style'] });
     renderContext();
     if (!window.kefeIcon) window.addEventListener('load', () => renderContext(), { once: true });

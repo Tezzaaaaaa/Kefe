@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "dist-beui");
-const pages = ["index.html", "editor.html"];
+const pages = ["index.html", "editor.html", "legal/privacy.html", "legal/terms.html", "apple-lyrics-standalone.html"];
 const failures = [];
 
 function checkLocalRef(pagePath, page, ref) {

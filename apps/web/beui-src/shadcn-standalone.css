@@ -1,0 +1,34 @@
+/* Adapt shadcn controls to the standalone demo without changing its player. */
+body.kefe-standalone-lyrics { overflow: auto; }
+body.kefe-standalone-lyrics .standalone-control-host { display: contents; }
+body.kefe-standalone-lyrics #tp .shad-slider-host { flex: 1; }
+body.kefe-standalone-lyrics #c1 .shad-slider-host { flex: 1; }
+body.kefe-standalone-lyrics #c1 .kefe-dd { min-width: 120px; max-width: 150px; }
+body.kefe-standalone-lyrics #c1 .kefe-dd-trigger { width: 100%; }
+body.kefe-standalone-lyrics #pcs button {
+  display: grid; place-items: center; min-height: 0; padding: 0; border: 0;
+  background: transparent; color: #fff; box-shadow: none; cursor: pointer;
+}
+body.kefe-standalone-lyrics #pcs button:focus-visible { outline: 2px solid white; outline-offset: 4px; }
+body.kefe-standalone-lyrics #pcs #pcp svg { width: calc(var(--u)*14); height: calc(var(--u)*14); }
+/* The old label rule targeted every nested span, including Radix internals. */
+body.kefe-standalone-lyrics #c1 label span { min-width: 0; }
+body.kefe-standalone-lyrics #c1 > label > span:first-child { min-width: 96px; }
+body.kefe-standalone-lyrics #c1 button.shad-checkbox {
+  box-sizing: border-box; width: 16px; height: 16px; min-width: 16px; min-height: 16px;
+  padding: 0; border: 1px solid var(--shad-border-strong); border-radius: 4px;
+  background: var(--shad-secondary); color: var(--shad-primary-foreground);
+}
+body.kefe-standalone-lyrics #c1 button.shad-checkbox[data-state="checked"] { background: var(--shad-primary); border-color: var(--shad-primary); }
+body.kefe-standalone-lyrics #c1 button.kefe-dd-trigger {
+  height: 32px; padding: 0 10px; border: 1px solid var(--shad-border-strong);
+  background: var(--shad-card); color: var(--shad-foreground); font-size: 12px; font-weight: 500;
+}
+
+/* forceMount keeps the live editor controls connected while an item is closed. */
+body.kefe-standalone-lyrics #ui .shad-accordion-item { background: #161618; border: 0; border-radius: var(--r2); padding: 8px 12px; margin-bottom: 8px; }
+body.kefe-standalone-lyrics #ui button.shad-accordion-trigger { display: flex; width: 100%; padding: 0; border: 0; background: transparent; color: #fff; text-align: left; font-size: 14px; font-weight: 700; }
+body.kefe-standalone-lyrics #ui button.shad-accordion-trigger:focus-visible { outline: 2px solid var(--shad-ring-solid); outline-offset: 3px; }
+body.kefe-standalone-lyrics #ui .shad-accordion-content { padding: 0; }
+body.kefe-standalone-lyrics #ui .shad-accordion-content[data-state="closed"] { display: none; }
+body.kefe-standalone-lyrics #ui .shad-accordion-body { display: block; }

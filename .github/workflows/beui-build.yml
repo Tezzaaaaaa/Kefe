@@ -51,6 +51,11 @@ jobs:
           node apps/web/scripts/smoke-section-card-coverage.mjs
           node apps/web/scripts/smoke-settings-tabs.mjs
           node apps/web/scripts/smoke-shadcn-js.mjs
+          pnpm --filter @kefe/web test:slider
+          pnpm --filter @kefe/web test:settings
+          pnpm --filter @kefe/web test:select
+          pnpm --filter @kefe/web test:checkbox
+          pnpm --filter @kefe/web test:switch
           node apps/web/scripts/smoke-signature-effects.mjs
           node apps/web/scripts/smoke-native-controls.mjs
           node apps/web/scripts/smoke-native-upload.mjs
@@ -77,6 +82,27 @@ jobs:
           pnpm --filter @kefe/web build
       - name: Install Chromium
         run: /tmp/kefe-browser/node_modules/.bin/playwright install chromium
+      - name: Test migrated shadcn components in Chromium
+        env:
+          NODE_PATH: /tmp/kefe-browser/node_modules
+        run: |
+          node apps/web/scripts/browser-shadcn-settings.cjs
+          node apps/web/scripts/browser-shadcn-timeline.cjs
+          node apps/web/scripts/browser-shadcn-volume.cjs
+          node apps/web/scripts/browser-shadcn-tabs.cjs
+          node apps/web/scripts/browser-shadcn-gallery.cjs
+          node apps/web/scripts/browser-shadcn-effects.cjs
+          node apps/web/scripts/browser-shadcn-style.cjs
+          node apps/web/scripts/browser-shadcn-legal.cjs
+          node apps/web/scripts/browser-shadcn-standalone.cjs
+          node apps/web/scripts/browser-shadcn-toolbar.cjs
+          node apps/web/scripts/browser-shadcn-alerts.cjs
+          node apps/web/scripts/browser-shadcn-export.cjs
+          node apps/web/scripts/browser-shadcn-lyrics.cjs
+          node apps/web/scripts/browser-shadcn-lyric-inputs.cjs
+          node apps/web/scripts/browser-shadcn-lyric-actions.cjs
+          node apps/web/scripts/browser-shadcn-radio.cjs
+          node apps/web/scripts/browser-shadcn-header.cjs
       - name: Run built-editor browser smoke test
         timeout-minutes: 5
         env:
@@ -137,7 +163,7 @@ jobs:
           old_end = '    await toolbarPanel("Lyric effect").getByRole("button", { name: /^Lyric effect:/ }).click();'
           baseline_font_start = '    await quickToolbar.getByRole("button", { name: "Lyric text colour", exact: true }).click();'
           new_start = '    await quickToolbar.getByRole("button", { name: "Font and text colour", exact: true }).click();'
-          new_end = '    await effectPanel.getByRole("button", { name: /^Lyric effect:/ }).click();'
+          new_end = '    await effectPanel.getByRole("combobox", { name: /^Lyric effect:/ }).click();'
           if current_source.count(new_start) != 1 or current_source.count(new_end) != 1:
               raise SystemExit("Current smoke toolbar block is not uniquely selectable")
           if baseline_source.count(new_start) == 1 and baseline_source.count(new_end) == 1:
@@ -154,6 +180,13 @@ jobs:
               baseline_source = baseline_source[:start] + current_block + baseline_source[end:]
           else:
               raise SystemExit("Baseline toolbar block matches neither legacy nor previous semantic locators")
+          # The baseline has the original custom toolbar menus, whereas the
+          # candidate uses Radix Select. Test each through its accessible role.
+          baseline_source = baseline_source.replace('visualiserPanel.getByRole("combobox", { name: /Choose visualiser/ })',
+                                                    'visualiserPanel.getByRole("button", { name: /Choose visualiser/ })')
+          baseline_source = baseline_source.replace('effectPanel.getByRole("combobox", { name: /^Lyric effect:/ })',
+                                                    'effectPanel.getByRole("button", { name: /^Lyric effect:/ })')
+          baseline_source = baseline_source.replace('.kft-select-content [role="option"]', '.kft-popover [role="option"]')
           # The current toolbar docking change intentionally supersedes the old
           # baseline's stage-centering rule; do not let that stale assertion abort
           # baseline screenshots before the visual comparison can run.
