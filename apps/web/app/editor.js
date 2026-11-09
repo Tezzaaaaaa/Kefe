@@ -1497,18 +1497,13 @@
   }
   function clearManualNotice(){const n=document.getElementById('kefeManualNotice');if(n)n.hidden=true;}
   function setLyricsStatus(text){const el=document.getElementById('kefeLyricsStatus');if(el)el.textContent=text;}
-  function promptManualDetails(matches,searchFailed=false){
-    const list=Array.isArray(matches)?matches:[];
+  function promptManualDetails(searchFailed=false){
     const msg=searchFailed
-      ?'Track search failed. Your uploaded file is still available. Check your connection and try again.'
-      :list.length
-        ?'Track identification was inconclusive. Confirm the matching result below if it describes your uploaded audio.'
-        :'Track identification was unsuccessful. KEFE could not identify this uploaded audio.';
+      ?'Track identification could not be completed. Your uploaded file is still available.'
+      :'KEFE could not identify this uploaded audio. You can edit its metadata manually, but Find Your Song will only confirm matches identified from the uploaded file.';
     showManualNotice(msg);setLyricsStatus(msg);
     const mediaPanel=document.querySelector('.kefe-panel[data-panel-view="media"]');
-    const mediaWasActive=!!mediaPanel&&mediaPanel.classList.contains('active');
-    renderSongSuggestions(list,{excludeCurrent:false,statusMessage:searchFailed?msg:undefined});
-    if(mediaWasActive){
+    if(mediaPanel&&mediaPanel.classList.contains('active')){
       openEditorPanel('media');
       try{songTitle.focus();}catch(_){}
     }
@@ -1572,7 +1567,6 @@
       if(manuallyEditedTrackFields.has('artist'))meta.artist=songArtist.value.trim();
       if(manuallyEditedTrackFields.has('album'))meta.album=songAlbum.value.trim();
       if(manuallyEditedTrackFields.has('year'))meta.year=songYear.value.trim();
-      if(window.kefeCarousel?.setLocalUpload)window.kefeCarousel.setLocalUpload({trackName:meta.title||file.name,artistName:meta.artist,collectionName:meta.album,releaseDate:meta.year,fileName:file.name,durationSeconds:Number(audio.duration)||0},false);
       if(!manuallyEditedTrackFields.has('title'))songTitle.value=meta.title;
       if(!manuallyEditedTrackFields.has('artist'))songArtist.value=meta.artist;
       if(!manuallyEditedTrackFields.has('album'))songAlbum.value=meta.album;
@@ -1619,13 +1613,13 @@
               ?'Track details were read from your file, but catalogue matching failed.'
               :'No confident song identification was found for this upload.');
       }else{
-        promptManualDetails(matches,catalogueSearchFailed);
+        promptManualDetails(catalogueSearchFailed);
         updateMediaTrack();updateTitleCard();showTitleCard();
         if(file.size>10*1024*1024&&!recognized)setLyricsStatus('Audio recognition was skipped because this file exceeds the provider’s 10 MB limit. Enter the track title and artist or choose a matching result.');
       }
     }catch(error){
       console.warn('[KEFE track identification]',error);
-      if(mediaObjectUrl===uploadId){updateMediaTrack();updateTitleCard();showTitleCard();promptManualDetails([]);}
+      if(mediaObjectUrl===uploadId){updateMediaTrack();updateTitleCard();showTitleCard();promptManualDetails(true);}
     }
   }
   async function handleLrcFile(file){
