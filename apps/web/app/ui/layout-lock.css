@@ -1,0 +1,288 @@
+/* KEFE — layout lock.
+
+   The single, final authority for the editor's frame: gutters, vertical gaps, block edges and
+   control sizes. It loads after every other stylesheet and uses !important on the structural
+   properties on purpose, so no earlier override layer can nudge a block, add a stray margin
+   or change a gap. Change a token here and the whole editor moves together; never patch a
+   one-off margin elsewhere.
+
+   Rules the editor follows (verified by scripts/verify-layout-lock.cjs on every build):
+     1. Every top-level block (preview, toolbar strip, timeline, tab bar, workspace) has the
+        same left and right edge: the content frame.
+     2. Every gap between stacked blocks is --lk-gap, on every screen.
+     3. Nothing overlaps: the toolbar strip owns a reserved row above the timeline.
+     4. A control of one kind has one size on every screen. */
+
+:root {
+  --lk-gap: 12px;          /* between stacked blocks and between sibling cards */
+  --lk-gap-s: 8px;         /* between controls inside one block */
+  --lk-pad: 12px;          /* inner padding of every bar/card */
+  --lk-gutter: 12px;       /* space between the screen/container edge and the content frame */
+  --lk-header-h: 56px;
+  --lk-tab-h: 40px;        /* workspace tabs */
+  --lk-subtab-h: 36px;     /* section sub-tabs */
+  --lk-ctl: 36px;          /* transport, volume and toolbar launcher buttons */
+  --lk-timeline-h: 64px;
+  --lk-strip-h: 36px;      /* the open toolbar strip */
+  --lk-preview-h: clamp(200px, 32dvh, 440px); /* desktop preview box; fixed so changing aspect never moves anything */
+  --lk-radius: 12px;
+}
+
+/* ── Shell: header / work (preview + timeline) / settings ───────────────────────── */
+html:root .kefe-editor {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: var(--lk-header-h) auto minmax(0, 1fr) !important;
+  margin-block: 0 !important;
+  margin-inline: auto !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+html:root .kefe-editor > .kefe-sidebar { grid-column: 1 !important; grid-row: 1 !important; }
+html:root .kefe-editor > .kefe-work { grid-column: 1 !important; grid-row: 2 !important; }
+html:root .kefe-editor > .kefe-editing { grid-column: 1 !important; grid-row: 3 !important; }
+
+/* Desktop: the preview and timeline stay put; only the settings pane scrolls. */
+@media (min-width: 901px) {
+  html:root .kefe-editor { height: 100dvh !important; min-height: 0 !important; overflow: hidden !important; }
+  html:root .kefe-editor .kefe-preview { height: var(--lk-preview-h) !important; display: grid !important; place-items: center !important; overflow: hidden !important; }
+  html:root .kefe-editor .kefe-editing { display: flex !important; flex-direction: column !important; min-height: 0 !important; overflow: hidden !important; }
+  html:root .kefe-editor .kefe-settings-mount { flex: 1 1 auto !important; min-height: 0 !important; overflow-x: hidden !important; overflow-y: auto !important; }
+  html:root .kefe-editor #kefe-settings-panel > .kefe-workspace-tabs { top: 0 !important; }
+}
+/* Tablet and phone: the page scrolls; the preview hugs its stage. */
+@media (max-width: 900px) {
+  html:root .kefe-editor { height: auto !important; min-height: 100dvh !important; overflow: visible !important; }
+  html:root .kefe-editor .kefe-preview { height: auto !important; min-height: 180px !important; display: grid !important; place-items: center !important; overflow: visible !important; }
+  html:root .kefe-editor .kefe-preview > .kefe-stage { height: auto !important; }
+  html:root .kefe-editor .kefe-editing { display: block !important; overflow: visible !important; }
+  html:root .kefe-editor .kefe-settings-mount { overflow: visible !important; }
+  html:root .kefe-editor #kefe-settings-panel > .kefe-workspace-tabs { top: var(--lk-header-h) !important; }
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────────── */
+html:root .kefe-editor .kefe-sidebar {
+  box-sizing: border-box !important;
+  height: var(--lk-header-h) !important;
+  min-height: var(--lk-header-h) !important;
+  max-height: var(--lk-header-h) !important;
+  padding-block: 0 !important;
+  padding-inline: var(--lk-gutter) !important;
+  gap: var(--lk-gap-s) !important;
+}
+html:root .kefe-editor .kefe-sidebar-group,
+html:root .kefe-editor .kefe-sidebar-bottom { gap: 6px !important; }
+html:root .kefe-editor .kefe-sidebar-brand-row { padding-inline: 0 !important; }
+
+/* ── Frame: preview → toolbar strip → timeline → tabs → workspace ───────────────── */
+html:root .kefe-editor .kefe-work {
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto auto !important;
+  row-gap: var(--lk-gap) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  column-gap: 0 !important;
+  margin: 0 !important;
+  padding: var(--lk-gap) var(--lk-gutter) 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+html:root .kefe-editor .kefe-preview {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Timeline: one height, one grid, never wider than the frame. */
+html:root .kefe-editor .kefe-timeline {
+  box-sizing: border-box !important;
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) var(--lk-ctl) var(--lk-ctl) !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  align-items: center !important;
+  align-content: center !important;
+  column-gap: var(--lk-gap-s) !important;
+  row-gap: 0 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: var(--lk-timeline-h) !important;
+  min-height: var(--lk-timeline-h) !important;
+  max-height: var(--lk-timeline-h) !important;
+  margin: 0 !important;
+  padding: 0 var(--lk-pad) !important;
+  border-radius: var(--lk-radius) !important;
+}
+html:root .kefe-editor .kefe-timeline > .kefe-transport {
+  grid-column: 1 !important; grid-row: 1 !important;
+  display: flex !important; align-items: center !important; gap: var(--lk-gap-s) !important;
+  margin: 0 !important; padding: 0 !important;
+}
+html:root .kefe-editor .kefe-timeline > .kefe-transport > button {
+  box-sizing: border-box !important;
+  width: var(--lk-ctl) !important; min-width: var(--lk-ctl) !important;
+  height: var(--lk-ctl) !important; min-height: var(--lk-ctl) !important; max-height: var(--lk-ctl) !important;
+  margin: 0 !important;
+}
+html:root .kefe-editor .kefe-timeline > .kefe-timebar {
+  grid-column: 2 !important; grid-row: 1 !important;
+  min-width: 0 !important; height: 44px !important; margin: 0 !important;
+}
+html:root .kefe-editor .kefe-timeline > .kefe-volume-control {
+  grid-column: 3 !important; grid-row: 1 !important;
+  width: var(--lk-ctl) !important; height: var(--lk-ctl) !important;
+  margin: 0 !important; padding: 0 !important; justify-self: stretch !important;
+}
+html:root .kefe-editor .kefe-timeline > .kefe-volume-control > button {
+  width: var(--lk-ctl) !important; height: var(--lk-ctl) !important; min-height: var(--lk-ctl) !important; margin: 0 !important;
+}
+
+/* Toolbar: the launcher is a timeline cell; the open strip owns its own row above the timeline. */
+html:root .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) {
+  grid-column: 4 !important; grid-row: 1 !important;
+  position: static !important;
+  width: var(--lk-ctl) !important; min-width: var(--lk-ctl) !important; max-width: var(--lk-ctl) !important;
+  height: var(--lk-ctl) !important; margin: 0 !important; padding: 0 !important;
+  justify-self: stretch !important; align-self: center !important;
+}
+html:root .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) .kft-launch {
+  position: static !important;
+  width: var(--lk-ctl) !important; min-width: var(--lk-ctl) !important; max-width: var(--lk-ctl) !important;
+  height: var(--lk-ctl) !important; min-height: var(--lk-ctl) !important; margin: 0 !important;
+}
+html:root .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) .kft-bar {
+  position: absolute !important;
+  top: auto !important; left: auto !important; right: 0 !important;
+  bottom: calc(100% + var(--lk-gap)) !important;
+  box-sizing: border-box !important;
+  width: max-content !important; max-width: 100% !important;
+  height: var(--lk-strip-h) !important; min-height: var(--lk-strip-h) !important; max-height: var(--lk-strip-h) !important;
+  margin: 0 !important;
+  overflow-x: auto !important; overflow-y: hidden !important;
+  scrollbar-width: none !important;
+}
+html:root .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) .kft-bar::-webkit-scrollbar { display: none; }
+html:root .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) .kft-main {
+  flex-wrap: nowrap !important; width: max-content !important; max-width: none !important; height: 100% !important;
+}
+/* Reserve the strip's row so it can never sit on the preview or the timeline. */
+html:root .kefe-editor .kefe-work > .kefe-timeline:has(> #kefeFloatingToolbar.is-open:not(.is-floating)) {
+  margin-top: calc(var(--lk-strip-h) + var(--lk-gap)) !important;
+}
+
+/* ── Settings shell ─────────────────────────────────────────────────────────────── */
+html:root .kefe-editor .kefe-editing {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: var(--lk-gap) var(--lk-gutter) var(--lk-gutter) !important;
+  width: 100% !important;
+  max-width: none !important;
+  gap: 0 !important;
+}
+/* Legacy empty panel strip (the guided shell replaced it) — never takes space. */
+html:root .kefe-editor .kefe-editing > .kefe-panels { display: none !important; }
+html:root .kefe-editor .kefe-settings-mount,
+html:root .kefe-editor #kefe-settings-panel {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+html:root .kefe-editor #kefe-settings-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--lk-gap) !important;
+}
+
+/* Workspace tabs: three equal cells, one height, never clipped, never under the header. */
+html:root .kefe-editor #kefe-settings-panel > .kefe-workspace-tabs {
+  box-sizing: border-box !important;
+  position: sticky !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: var(--lk-gap-s) !important;
+  margin: 0 !important;
+  padding: var(--lk-gap-s) !important;
+  width: 100% !important;
+  height: auto !important;
+  border-radius: var(--lk-radius) !important;
+}
+html:root .kefe-editor .kefe-workspace-tabs > .kefe-workspace-tab {
+  box-sizing: border-box !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  height: var(--lk-tab-h) !important; min-height: var(--lk-tab-h) !important; max-height: var(--lk-tab-h) !important;
+  margin: 0 !important;
+  padding: 0 var(--lk-gap-s) !important;
+  line-height: 1.15 !important;
+  text-align: center !important;
+  white-space: normal !important;
+  transform: none !important;
+}
+
+html:root .kefe-editor #kefe-settings-panel > .kefe-settings-columns {
+  display: block !important;
+  margin: 0 !important; padding: 0 !important; width: 100% !important; gap: 0 !important;
+}
+html:root .kefe-editor .kefe-settings-columns > .kefe-workspace {
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--lk-gap) !important;
+  margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 0 !important;
+}
+html:root .kefe-editor .kefe-workspace > .kefe-workspace-title {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 0 var(--lk-gap-s) !important;
+  width: 100% !important;
+}
+html:root .kefe-editor .kefe-workspace > .kefe-workspace-stack {
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--lk-gap) !important;
+  margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 0 !important;
+}
+html:root .kefe-editor .kefe-workspace-stack > * { margin: 0 !important; min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; }
+
+/* Sub-tabs: full width, two equal cells, no negative margins or transforms. */
+html:root .kefe-editor .kefe-workspace-stack > .kefe-subtabs {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: var(--lk-gap-s) !important;
+  padding: var(--lk-gap-s) !important;
+  width: 100% !important;
+  transform: none !important;
+  left: auto !important; right: auto !important;
+}
+html:root .kefe-editor .kefe-subtabs > .kefe-subtab {
+  box-sizing: border-box !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  height: var(--lk-subtab-h) !important; min-height: var(--lk-subtab-h) !important; max-height: var(--lk-subtab-h) !important;
+  margin: 0 !important; padding: 0 var(--lk-gap-s) !important; width: auto !important;
+}
+
+/* Footer (GitHub + reset) sits on the same frame and gap. */
+html:root .kefe-editor #kefe-settings-panel > .kefe-reset-footer {
+  box-sizing: border-box !important;
+  margin: 0 !important; padding: 0 !important; width: 100% !important;
+  gap: var(--lk-gap) !important;
+}
+
+/* Card grids: equal inner space left and right, with or without a scrollbar. */
+html:root .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions.kefe-lyric-effect-grid { padding: 4px !important; gap: var(--lk-gap-s) !important; scrollbar-gutter: stable both-edges !important; }
+
+/* ── Narrow screens: keep every token, only shrink what must ────────────────────── */
+@media (max-width: 360px) {
+  html:root .kefe-editor .kefe-sidebar-link { padding-inline: 8px !important; }
+  html:root .kefe-editor .kefe-sidebar-group,
+  html:root .kefe-editor .kefe-sidebar-bottom { gap: 4px !important; }
+  html:root .kefe-editor .kefe-sidebar { gap: 4px !important; }
+}

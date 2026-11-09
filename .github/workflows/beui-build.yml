@@ -113,6 +113,11 @@ jobs:
           mkdir -p /tmp/kefe-screenshots
           set -o pipefail
           node apps/web/scripts/browser-smoke.cjs 2>&1 | tee /tmp/kefe-screenshots/browser-smoke.log
+      - name: Verify locked layout (spacing, edges, overlap, control sizes)
+        timeout-minutes: 5
+        env:
+          NODE_PATH: /tmp/kefe-browser/node_modules
+        run: node apps/web/scripts/verify-layout-lock.cjs
       - name: Publish browser failure details in check annotations
         if: failure()
         uses: actions/github-script@v7
