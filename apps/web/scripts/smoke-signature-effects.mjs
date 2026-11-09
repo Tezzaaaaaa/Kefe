@@ -81,7 +81,7 @@ const typography = read("app/ui/typography.js");
 assert.match(typography, /\n\s+textswap:\s*\{ family: families\./, "Text Swap needs a typography contract");
 assert.match(typography, /\n\s+lyricpull:\s*\{ family: families\./, "Lyric Pull needs a typography contract");
 for (const key of [...keys, ...addedSignatureKeys]) {
-  assert.match(typography, new RegExp(`\\n\\s+${key}: \\{ family: families\\.`), `${key} needs a typography contract`);
+  assert.match(typography, new RegExp(`\\n\\s+${key}:\\s+\\{ family: families\\.`), `${key} needs a typography contract`);
 }
 
 /* ---- renderer registration + execution --------------------------- */
