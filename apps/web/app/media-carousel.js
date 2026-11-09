@@ -1,16 +1,6 @@
-/* KEFE — Media panel: song search + 3D shelf carousel.
-   Re-organises the Media panel into clear steps and adds a curved, perspective cover shelf:
-     1. Upload  – audio/video file, identified track, optional background video
-     2. Find    – search songs, albums & artists (iTunes), browse as a 3D shelf of real album artwork, pick one
-                  (albums and artists open their track list)
-     3. Details – the editable song fields
-   Picking a song goes through the same path as the old suggestion list (window.kefeApplyTrack).
-
-   Public API kept for editor.js: window.kefeCarousel.{showMatches, setLocalUpload, search}.
-   Result types:
-     Songs   – title = song, artwork = its album cover
-     Albums  – title = album, artwork = album cover
-     Artists – title = artist, artwork = that artist's album covers (iTunes has no artist photos) */
+/* KEFE — Uploaded-audio identification confirmation carousel.
+   The carousel only displays catalogue matches returned by the uploaded-audio identification flow.
+   It does not provide independent song, album or artist search. */
 (function(){
   'use strict';
   var COUNTRIES=['AU','US'];
@@ -89,22 +79,18 @@
   function buildSearch(){
     var w=mk('div','kefe-find');
     w.innerHTML=
-      '<div class="kefe-find-bar">'+
-        '<div class="kefe-search" id="kefeFindBox"><input type="text" id="kefeFindInput" placeholder="Search songs, artists or albums…" autocomplete="off" spellcheck="false" aria-label="Search songs, artists and albums"><button type="button" class="kefe-search-clear" id="kefeFindClear" aria-label="Clear search">✕</button></div>'+
-        '<div class="kefe-chips" id="kefeFindFilters" role="group" aria-label="Filter results by type"><button type="button" class="kefe-chip active" data-f="all">All</button><button type="button" class="kefe-chip" data-f="song">Songs</button><button type="button" class="kefe-chip" data-f="album">Albums</button><button type="button" class="kefe-chip" data-f="artist">Artists</button></div>'+
-      '</div>'+
-      '<div class="kefe-find-status" id="kefeFindStatus" aria-live="polite">Enter a song, artist or album name.</div>'+
+      '<div class="kefe-find-status" id="kefeFindStatus" aria-live="polite">Upload audio to identify its song. Matching results will appear here for confirmation.</div>'+
       '<div class="kefe-result-card" id="kefeResultCard">'+
-        '<div class="kefe-carousel ks-shelf" id="kefeCarousel" tabindex="0" role="group" aria-roledescription="carousel" aria-label="Search results carousel">'+
-          '<div class="kefe-car-empty" id="kefeCarEmpty"><div class="kefe-car-empty-icon"><span data-kefe-icon="music" aria-hidden="true"></span></div><span>Search results will appear here</span></div>'+
+        '<div class="kefe-carousel ks-shelf" id="kefeCarousel" tabindex="0" role="group" aria-roledescription="carousel" aria-label="Uploaded audio identification matches">'+
+          '<div class="kefe-car-empty" id="kefeCarEmpty"><div class="kefe-car-empty-icon"><span data-kefe-icon="music" aria-hidden="true"></span></div><span>Upload audio to identify its song</span></div>'+
           '<div class="ks-stage" id="kefeCarStack"></div>'+
-          '<button type="button" class="kefe-car-nav prev" id="kefeCarPrev" aria-label="Previous result"><span data-kefe-icon="chevron-left" aria-hidden="true"></span></button>'+
-          '<button type="button" class="kefe-car-nav next" id="kefeCarNext" aria-label="Next result"><span data-kefe-icon="chevron-right" aria-hidden="true"></span></button>'+
+          '<button type="button" class="kefe-car-nav prev" id="kefeCarPrev" aria-label="Previous match"><span data-kefe-icon="chevron-left" aria-hidden="true"></span></button>'+
+          '<button type="button" class="kefe-car-nav next" id="kefeCarNext" aria-label="Next match"><span data-kefe-icon="chevron-right" aria-hidden="true"></span></button>'+
           '<div class="kefe-car-count" id="kefeCarCount"></div>'+
         '</div>'+
         '<div class="kefe-car-info" id="kefeCarInfo" hidden>'+
-          '<div class="kefe-car-info-copy"><span class="kefe-badge" id="kefeCarBadge">Song</span><h4 id="kefeCarTitle"></h4><p id="kefeCarArtist"></p><small id="kefeCarMeta"></small></div>'+
-          '<div class="kefe-car-actions"><button type="button" class="kefe-btn" id="kefeCarBack" hidden>← Results</button><button type="button" class="kefe-btn primary" id="kefeCarUse">Use this song</button></div>'+
+          '<div class="kefe-car-info-copy"><span class="kefe-badge" id="kefeCarBadge">Match</span><h4 id="kefeCarTitle"></h4><p id="kefeCarArtist"></p><small id="kefeCarMeta"></small></div>'+
+          '<div class="kefe-car-actions"><button type="button" class="kefe-btn" id="kefeCarBack" hidden>← Matches</button><button type="button" class="kefe-btn primary" id="kefeCarUse">Confirm identification</button></div>'+
         '</div>'+
       '</div>';
     return w;
@@ -121,7 +107,7 @@
     return S.items.filter(function(i){return S.filter==='song'?(kindOf(i)==='song'||kindOf(i)==='local'):kindOf(i)===S.filter;});
   }
   function status(msg,cls){el.FindStatus.textContent=msg;el.FindStatus.className='kefe-find-status'+(cls?' '+cls:'');}
-  function busy(on){el.FindBox.classList.toggle('busy',on);el.Carousel.classList.toggle('busy',on);}
+  function busy(on){el.Carousel.classList.toggle('busy',on);}
 
   function normalise(value){
     return String(value||'').normalize('NFKD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -388,10 +374,10 @@
     el.CarBadge.textContent=k==='local'?'Uploaded file':k==='song'?'Song':k==='artist'?'Artist':'Album';
     el.CarBadge.className='kefe-badge '+(k==='local'?'song':k==='artist'?'album':k);
     el.CarTitle.textContent=titleOf(it);
-    el.CarArtist.textContent=k==='artist'?(it.collectionName||''):(it.artistName||(k==='local'?'Uploaded file is ready to use':''));
-    var year=it.releaseDate?String(it.releaseDate).slice(0,4):'',bits=k==='local'?[it.fileName||'Uploaded audio or video']:[year,it.primaryGenreName,k==='song'?it.collectionName:(it.trackCount?it.trackCount+' tracks':'')].filter(Boolean);
+    el.CarArtist.textContent=it.artistName||'';
+    var year=it.releaseDate?String(it.releaseDate).slice(0,4):'',bits=[year,it.primaryGenreName,it.collectionName].filter(Boolean);
     el.CarMeta.textContent=bits.join(' · ');
-    el.CarUse.textContent=k==='local'?'Confirm track details':k==='song'?'Use this track':k==='artist'?'View album tracks':'View album tracks';
+    el.CarUse.textContent='Confirm identification';
     el.Carousel.setAttribute('aria-label','Search results carousel: '+titleOf(it)+(it.artistName&&k!=='artist'?' by '+it.artistName:'')+', '+(S.index+1)+' of '+list.length);
   }
   function go(i){
@@ -401,39 +387,20 @@
     S.index=next;V.dragging=false;info();kick();
   }
   function activate(){
-    var it=V.list[S.index];if(!it)return;
-    var k=kindOf(it);
-    if(k==='local'){
-      status('Your file is already loaded. Check the track details below or choose a matching track above.','');
-      return;
-    }
-    if(k==='album'||k==='artist'){openAlbum(it);return;}
-    if(window.kefeApplyTrack){
-      el.CarUse.disabled=true;
-      Promise.resolve(window.kefeApplyTrack(it)).finally(function(){el.CarUse.disabled=false;});
-      status('Selected “'+titleOf(it)+'”. Finding lyrics…','');
-    }
+    var it=V.list[S.index];if(!it||kindOf(it)!=='song')return;
+    if(typeof window.kefeConfirmTrackIdentification!=='function')return;
+    el.CarUse.disabled=true;
+    Promise.resolve(window.kefeConfirmTrackIdentification(it)).then(function(confirmed){
+      status(confirmed?'Uploaded audio identification confirmed.':'This result could not be confirmed against the uploaded audio.','');
+    }).catch(function(error){
+      console.warn('[KEFE track confirmation]',error);
+      status('Could not confirm this track identification.','error');
+    }).finally(function(){el.CarUse.disabled=false;});
   }
   function syncFilters(){[].forEach.call(el.FindFilters.children,function(b){b.classList.toggle('active',b.dataset.f===S.filter);});}
 
   /* ── events ── */
   function bind(){
-    el.FindInput.addEventListener('input',function(){
-      el.FindBox.classList.toggle('has-text',!!el.FindInput.value);
-      clearTimeout(S.timer);S.timer=setTimeout(function(){search(el.FindInput.value);},380);
-    });
-    el.FindInput.addEventListener('keydown',function(e){
-      if(e.key==='Enter'){clearTimeout(S.timer);search(el.FindInput.value);}
-      if(e.key==='Escape'){el.FindClear.click();}
-      if(e.key==='ArrowDown'){e.preventDefault();el.Carousel.focus();}
-    });
-    el.FindClear.addEventListener('click',function(){el.FindInput.value='';el.FindBox.classList.remove('has-text');clearTimeout(S.timer);search('');el.FindInput.focus();});
-    el.FindFilters.addEventListener('click',function(e){
-      var b=e.target.closest('[data-f]');if(!b)return;
-      S.filter=b.dataset.f;syncFilters();S.index=0;render();
-      var n=V.list.filter(function(i){return !i._kefeLocalUpload;}).length;
-      status((S.items.length||S.artists.length)?(n+' result'+(n===1?'':'s')):el.FindStatus.textContent,'');
-    });
     el.CarPrev.addEventListener('click',function(){go(S.index-1);});
     el.CarNext.addEventListener('click',function(){go(S.index+1);});
     el.CarUse.addEventListener('click',activate);
@@ -509,29 +476,25 @@
     if(!el.CarStack)return;
     var catalogue=S.items.filter(function(existing){return !existing._kefeLocalUpload;});
     if(reset){
-      S.items=S.localUpload?[S.localUpload]:[];S.artists=[];S.mode='search';S.filter='song';S.index=0;syncFilters();el.CarBack.hidden=true;
-      if(S.localUpload){el.FindInput.value='';el.FindBox.classList.remove('has-text');}
+      S.items=[];S.artists=[];S.mode='matches';S.filter='song';S.index=0;el.CarBack.hidden=true;
     }else{
       S.items=catalogue.concat(S.localUpload?[S.localUpload]:[]);
       if(S.index>=S.items.length)S.index=0;
     }
     render();
-    if(reset)status(S.localUpload?'Uploaded file ready. Search for a matching track.':'Enter a song, artist or album name.','');
+    if(reset)status(S.localUpload?'Audio uploaded. Identifying its song…':'Upload audio to identify its song.','');
   }
 
   /* Called by the editor when an uploaded file is identified (or the song fields are searched). */
-  function showMatches(items,msg,query){
+  function showMatches(items,msg){
     if(!el.CarStack)return;
-    /* Invalidate any older live search so late responses cannot overwrite the supplied matches. */
+    /* Only the upload identification pipeline may populate this confirmation carousel. */
     S.token++;
     clearTimeout(S.timer);
-    S.mode='search';S.filter='song';S.artists=[];syncFilters();el.CarBack.hidden=true;
-    if(query!=null){el.FindInput.value=query;el.FindBox.classList.toggle('has-text',!!query);}
-    var catalogue=(items||[]).filter(function(x){return !x._kefeLocalUpload;}).slice();
-    S.items=catalogue.concat(S.localUpload?[S.localUpload]:[]);S.index=0;render();
-    var displayMsg=msg;
-    if(S.localUpload&&!(items||[]).length&&(!displayMsg||/no (?:matches|matching [a-z, ]+) found/i.test(displayMsg)))displayMsg='No matching songs, artists or albums found. Your uploaded file is still available.';
-    status(displayMsg||(S.items.length?'Select a matching track':'No matching songs, artists or albums found'),'');
+    S.mode='matches';S.filter='song';S.artists=[];el.CarBack.hidden=true;
+    S.items=(items||[]).filter(function(item){return item&&!item._kefeLocalUpload&&kindOf(item)==='song';});
+    S.index=0;render();
+    status(msg||(S.items.length?'Confirm the song that matches your uploaded audio.':'No confident song matches were found for this upload.'),'');
     busy(false);
     if(S.items.length)el.Carousel.scrollIntoView({block:'nearest',behavior:'smooth'});
   }
@@ -539,7 +502,7 @@
   function init(){
     if(!restructure())return;
     refs();bind();
-    window.kefeCarousel={showMatches:showMatches,setLocalUpload:setLocalUpload,search:function(q){el.FindInput.value=q;el.FindBox.classList.toggle('has-text',!!q);return search(q);}};
+    window.kefeCarousel={showMatches:showMatches,setLocalUpload:setLocalUpload};
     if(S.localUpload)setLocalUpload(S.localUpload,true);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
