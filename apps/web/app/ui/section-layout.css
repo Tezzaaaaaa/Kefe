@@ -623,21 +623,10 @@
   #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
   .kefe-ms-host #lyricEffectOptions {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-auto-rows: 104px !important;
+    grid-auto-rows: 112px !important;
     height: 336px !important;
     min-height: 336px !important;
     max-height: 336px !important;
-  }
-  #kefe-settings-panel #lyricEffectOptions .kefe-lyric-effect-sample,
-  .kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-sample {
-    flex-basis: 56px !important;
-    height: 56px !important;
-    min-height: 56px !important;
-  }
-  #kefe-settings-panel #lyricEffectOptions > .kefe-lyric-effect-option,
-  .kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option {
-    gap: 5px !important;
-    padding: 5px !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -688,7 +677,7 @@
   .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-lyric-effect-carousel #lyricEffectOptions,
   .kefe-editor .kefe-ms-host #lyricEffectOptions {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-auto-rows: 104px !important;
+    grid-auto-rows: 112px !important;
     height: 336px !important;
     min-height: 336px !important;
     max-height: 336px !important;
