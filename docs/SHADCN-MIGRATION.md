@@ -34,8 +34,9 @@ the migrated components here are adapted from shadcn/ui and use Radix UI.
   inputs and swatches, plus the lyric textarea and timing inputs, are hydrated
   as shadcn/ui Button, Textarea and
   Input without replacing the original native elements or listeners. The timing
-  editor uses shadcn/ui Card; its dynamic rows are cleaned up and remounted when
-  the editor rebuilds them.
+  editor panels, media upload card, identified-track card and timing editor use
+  shadcn/ui Card while retaining the original section and dynamic content nodes;
+  timing rows are cleaned up and remounted when the editor rebuilds them.
 - The toolbar popovers use shadcn/ui Slider for layer, text size, background
   darkness and safe-area controls, RadioGroup for segmented choices, Select for
   option menus, Checkbox for preferences, and Button/Input for their action,
@@ -53,12 +54,11 @@ the migrated components here are adapted from shadcn/ui and use Radix UI.
 
 ## Remaining
 
-- The editor shell, preview stage, timeline layout, panel containers and form
-  grouping still use KEFE's existing DOM and styles rather than shadcn layout
-  components. Toolbar popover shells and upload/dropzone surfaces remain custom.
-- Remaining panel action buttons, non-gallery media and lyric-studio cards,
-  mobile navigation surfaces and the standalone lyric demo's surrounding layout
-  still need component migration.
+- The editor shell, preview stage, timeline layout, form grouping and upload/dropzone
+  interaction surface still use KEFE's existing DOM and styles rather than shadcn
+  layout components. Toolbar popover shells remain custom.
+- Remaining panel action buttons, other non-gallery media and lyric-studio cards,
+  and the standalone lyric demo's surrounding layout still need component migration.
   The old command-palette and mobile-drawer modules are not loaded by the editor.
 - Desktop and mobile editor layouts, settings, lyric timing and export flows still
   rely on KEFE's existing rendering and state contracts; those behaviours must
