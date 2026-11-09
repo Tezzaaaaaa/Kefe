@@ -204,12 +204,12 @@
     if(suggestions)suggestions.hidden=!song;
   }
   function applyPickedTrack(item){
-    const preferEmbeddedArtwork=!!document.getElementById('kefeUseEmbeddedArtwork')?.checked&&!!songAlbum.dataset.embeddedArtUrl;
     songTitle.value=item.trackName||'';
     songArtist.value=item.artistName||'';
     songAlbum.value=item.collectionName||'';
     songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
-    songAlbum.dataset.artUrl=preferEmbeddedArtwork?songAlbum.dataset.embeddedArtUrl:normalizeArtworkUrl(item.artworkUrl100);
+    /* An explicit carousel selection takes precedence over the uploaded file's embedded cover. */
+    songAlbum.dataset.artUrl=normalizeArtworkUrl(item.artworkUrl100);
     songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
     songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
     const mediaTrack=document.getElementById('kefeMediaTrack');
