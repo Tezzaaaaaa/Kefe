@@ -74,7 +74,7 @@ function mount(source) {
       value: button.dataset.value,
       className: 'kft-seg__item kft-shad-seg-item',
       disabled: button.disabled,
-    }, button.textContent.trim())));
+    }, button.textContent.trim()))));
   }
 
   flushSync(render);
