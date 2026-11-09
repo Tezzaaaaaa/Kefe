@@ -39,7 +39,7 @@
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-step-head { padding: 0 0 4px !important; min-height: 0; }
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-step-body { gap: var(--pc-gap) !important; padding: 0 !important; }
 /* The Media search step starts at the top of its embedded panel; remove stacked panel/form inset. */
-.kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel[data-panel-view="media"] { padding-top: 0 !important; }
+.kefe-settings-panel .kefe-slot .kefe-panel.kefe-settings-embedded-panel[data-panel-view="media"] { padding-top: 0 !important; }
 :is(.kefe-panels, .kefe-settings-columns, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-form { padding-top: 0 !important; }
 
 /* ---- Typography ---- */

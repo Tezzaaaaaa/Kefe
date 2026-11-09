@@ -492,7 +492,7 @@
 .kefe-editor .kefe-editing.kefe-settings-layout .kefe-resizer {
   display: none;
 }
-.kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel {
+.kefe-settings-panel .kefe-slot .kefe-panel.kefe-settings-embedded-panel {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1456,7 +1456,7 @@
   height: 36px;
   border-radius: var(--r2, 8px);
 }
-.kefe-settings-panel .kefe-slot > .kefe-panel.kefe-settings-embedded-panel {
+.kefe-settings-panel .kefe-slot .kefe-panel.kefe-settings-embedded-panel {
   padding-block: var(--kefe-space-2, 8px);
 }
 @media (max-width: 760px) {
