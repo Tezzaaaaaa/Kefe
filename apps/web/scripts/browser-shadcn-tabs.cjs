@@ -25,8 +25,8 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => document.documentElement.classList.contains('kefe-ready'));
       const list = page.locator('[data-workspace-tablist]');
       const tabs = list.getByRole('tab');
-      assert.equal(await tabs.count(), 3);
-      assert.equal(await list.locator('[data-slot="tabs-trigger"]').count(), 3);
+      assert.equal(await tabs.count(), 4);
+      assert.equal(await list.locator('[data-slot="tabs-trigger"]').count(), 4);
       for (const tab of await tabs.all()) {
         const relation = await tab.evaluate(node => {
           const panel = document.getElementById(node.getAttribute('aria-controls'));
@@ -37,9 +37,9 @@ const server = http.createServer((req, res) => {
       const listBox = await list.boundingBox();
       assert.ok(listBox.width <= width && listBox.x >= 0 && listBox.x + listBox.width <= width + 1, `tabs fit ${width}px`);
       await tabs.first().focus(); await page.keyboard.press('End');
-      await page.waitForFunction(() => document.querySelector('[data-workspace-tab="audio-visuals"]')?.getAttribute('aria-selected') === 'true');
-      assert.equal(await page.evaluate(() => document.activeElement?.dataset.workspaceTab), 'audio-visuals');
-      assert.equal(await page.locator('#kefe-workspace-audio-visuals-panel').isVisible(), true);
+      await page.waitForFunction(() => document.querySelector('[data-workspace-tab="export"]')?.getAttribute('aria-selected') === 'true');
+      assert.equal(await page.evaluate(() => document.activeElement?.dataset.workspaceTab), 'export');
+      assert.equal(await page.locator('#kefe-workspace-export-panel').isVisible(), true);
       await page.keyboard.press('Home');
       await page.waitForFunction(() => document.querySelector('[data-workspace-tab="content"]')?.getAttribute('aria-selected') === 'true');
       await page.keyboard.press('ArrowRight');
@@ -56,7 +56,7 @@ const server = http.createServer((req, res) => {
       });
       assert.deepEqual(backgroundRelation, ['tabpanel', 'kefe-subtab-background', false]);
       await page.evaluate(() => window.kefeSettingsPanelAdapter.activateSection('export'));
-      await page.waitForFunction(() => document.querySelector('#kefe-subtab-export')?.getAttribute('aria-selected') === 'true' && document.querySelector('[data-workspace-tab="audio-visuals"]')?.getAttribute('aria-selected') === 'true');
+      await page.waitForFunction(() => document.querySelector('#kefe-subtab-export')?.getAttribute('aria-selected') === 'true' && document.querySelector('[data-workspace-tab="export"]')?.getAttribute('aria-selected') === 'true');
       assert.equal(await page.locator('#kefe-subpanel-export').isVisible(), true);
       // Programmatic clicks were part of the editor's public navigation contract.
       await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());

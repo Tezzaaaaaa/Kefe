@@ -51,7 +51,7 @@ const server = http.createServer((req, res) => {
       await opener.click(); await dialog.waitFor({ state: 'visible' });
       await page.keyboard.press('Escape'); await dialog.waitFor({ state: 'hidden' });
       await page.waitForFunction(() => document.activeElement?.matches('[data-top-panel="settings"]'));
-      await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
+      await page.locator('[data-workspace-tab="export"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-export').evaluate(node => node.click());
       const format = page.locator('#exportFormat + [data-slot="select-trigger"]');
       await format.click();
@@ -117,7 +117,7 @@ const server = http.createServer((req, res) => {
       const contextBefore = await bgBacking.getAttribute('aria-checked');
       await contextSwitch.click();
       assert.notEqual(await bgBacking.getAttribute('aria-checked'), contextBefore, 'toolbar switch toggles its backing control once');
-      const darkness = toolbarContext.locator('[role="slider"]');
+      const darkness = toolbarContext.getByRole('slider', { name: /Background darkness/ });
       await darkness.waitFor({ state: 'visible' });
       await darkness.focus(); await page.keyboard.press('ArrowRight');
       await page.waitForTimeout(200); await page.keyboard.press('ArrowRight');

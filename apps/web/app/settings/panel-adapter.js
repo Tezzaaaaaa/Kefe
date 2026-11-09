@@ -3,7 +3,7 @@ import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
 (() => {
   'use strict';
 
-  const MARKUP_URL = new URL('./app/settings/panel.html?v=subtabs-20261107-1', document.baseURI);
+  const MARKUP_URL = new URL('./app/settings/panel.html?v=export-workspace-shadcn-20261109-1', document.baseURI);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
     'lyric-sync': 'lyrics',
@@ -68,15 +68,16 @@ import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
     const contentGroup = root.querySelector('.kefe-panel[data-group="content"]');
     const designGroup = root.querySelector('.kefe-panel[data-group="design"]');
     const audioVisualsGroup = root.querySelector('.kefe-panel[data-group="audio-visuals"]');
-    if (!contentGroup || !designGroup || !audioVisualsGroup) {
-      throw new Error('All three KEFE workspaces are required.');
+    const exportGroup = root.querySelector('.kefe-panel[data-group="export"]');
+    if (!contentGroup || !designGroup || !audioVisualsGroup || !exportGroup) {
+      throw new Error('All four KEFE workspaces are required.');
     }
 
     const tablist = root.querySelector('[data-workspace-tablist]');
     const templateTabs = Array.from(root.querySelectorAll('[role="tab"][data-workspace-tab]'));
     const workspaces = Array.from(root.querySelectorAll('.kefe-workspace[data-group]'));
-    if (!tablist || templateTabs.length !== 3 || workspaces.length !== 3) {
-      throw new Error('All three persistent workspace tabs and panels are required.');
+    if (!tablist || templateTabs.length !== 4 || workspaces.length !== 4) {
+      throw new Error('All four persistent workspace tabs and panels are required.');
     }
     const workspaceItems = templateTabs.map(tab => ({
       value: tab.dataset.workspaceTab, id: tab.id, label: tab.textContent,

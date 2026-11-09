@@ -675,7 +675,7 @@
 }
 .kefe-editor #kefe-settings-panel .kefe-settings-columns.kefe-workspaces {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: start;
   gap: 12px;
   width: 100%;
@@ -830,13 +830,13 @@
 }
 
 
-/* Persistent workspace tabs: all three destinations remain visible and switch in place. */
+/* Persistent workspace tabs: all four destinations remain visible and switch in place. */
 .kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
   position: sticky;
   top: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
   width: 100%;
   padding: 7px;
@@ -1202,6 +1202,7 @@
   --kefe-content-accent: #60a5fa;
   --kefe-appearance-accent: #a78bfa;
   --kefe-audio-accent: #2dd4bf;
+  --kefe-export-accent: #f59e0b;
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace[data-group="content"] {
   --kefe-workspace-accent: var(--kefe-content-accent);
@@ -1212,6 +1213,9 @@
 .kefe-editor #kefe-settings-panel .kefe-workspace[data-group="audio-visuals"] {
   --kefe-workspace-accent: var(--kefe-audio-accent);
 }
+.kefe-editor #kefe-settings-panel .kefe-workspace[data-group="export"] {
+  --kefe-workspace-accent: var(--kefe-export-accent);
+}
 .kefe-editor #kefe-settings-panel .kefe-workspace-tab[data-workspace-tab="content"] {
   --kefe-tab-accent: var(--kefe-content-accent);
 }
@@ -1220,6 +1224,9 @@
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace-tab[data-workspace-tab="audio-visuals"] {
   --kefe-tab-accent: var(--kefe-audio-accent);
+}
+.kefe-editor #kefe-settings-panel .kefe-workspace-tab[data-workspace-tab="export"] {
+  --kefe-tab-accent: var(--kefe-export-accent);
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace-tab[aria-selected="true"] {
   color: var(--kefe-tab-accent);

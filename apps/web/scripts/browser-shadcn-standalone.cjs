@@ -112,6 +112,10 @@ function audioFixture() {
       await page.locator('#tx').fill('[00:01.00] First line\n[00:03.00] Second line');
       await page.locator('#ap').click();
       assert.equal(await page.locator('#lyr .ln').count(), 2);
+      await page.locator('#tx').fill('[00:01.00] <img src=x onerror=alert(1)> & lyrics\n[00:03.00] (backing & <script>)');
+      await page.locator('#ap').click();
+      assert.equal(await page.locator('#lyr img, #lyr script').count(), 0, 'lyrics remain text, never executable markup');
+      assert.match(await page.locator('#lyr .lt').first().textContent(), /<img src=x onerror=alert\(1\)> & lyrics/);
       await page.locator('#lf').setInputFiles({ name: 'example.lrc', mimeType: 'text/plain', buffer: Buffer.from('[00:00.20] Uploaded first\n[00:02.00] Uploaded second') });
       await page.waitForFunction(() => document.querySelector('#tx').value.includes('Uploaded first') && document.querySelectorAll('#lyr .ln').length === 2);
       await page.locator('#af').setInputFiles({ name: 'music.wav', mimeType: 'audio/wav', buffer: audioFixture() });

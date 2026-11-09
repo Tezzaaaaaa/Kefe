@@ -64,7 +64,7 @@ const server = http.createServer((req, res) => {
       const download = await downloadPromise;
       assert.match(download.suggestedFilename(), /\.lrc$/);
       assert.match(fs.readFileSync(await download.path(), 'utf8'), /Original line/);
-      await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
+      await page.locator('[data-workspace-tab="export"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-export').evaluate(node => node.click());
       const phone = page.getByRole('button', { name: 'Shrink the preview to roughly phone size' });
       const bounds = await phone.boundingBox();

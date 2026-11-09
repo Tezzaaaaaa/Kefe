@@ -15,7 +15,7 @@
 <div class="row"><button id="rs">Reset look</button></div></div>
 <audio id="au" preload="auto"></audio>
 <script>
-const $=id=>document.getElementById(id),cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),sm=u=>u<=0?0:u>=1?1:u*u*(3-2*u),esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const $=id=>document.getElementById(id),cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),sm=u=>u<=0?0:u>=1?1:u*u*(3-2*u);
 const THM={mono:['Mono','#1e1e1e',['#6b6b6b','#3d3d3d','#8c8c8c','#2b2b2b','#555555']],warm:['Warm','#241410',['#c4573a','#7a2a1a','#e0a060','#3a1a10','#9c4a2a']],blue:['Blue','#0d1626',['#3a6fd8','#1c3a7a','#7fb2ff','#12244a','#2c55a8']],pink:['Pink','#1f0f1b',['#d8479a','#7a2257','#ff9bd0','#3b1030','#a8327a']],green:['Green','#0e1d17',['#2fa86a','#165a3a','#8affc0','#0d3324','#238a55']]};
 const DEF={ratio:'v',theme:'mono',size:1,lift:.1,pop:.04,glow:.8,gs:.38,soft:.35,fall:.28,stag:.01,dim:.32,blur:1,fade:1,anchor:.255,st:.55,ls:28,bgm:1,secs:3.4,rate:1,bgv:1,hdr:1,loop:1};
 const S={...DEF};
@@ -52,8 +52,10 @@ function parse(text,secs){
 let lines=[],phone=$('phone'),lyr=$('lyr'),u=5,act=-1,Y=[],P=[],V=[],T=[],G=[];
 function build(){lyr.innerHTML='';act=-1;P=[];V=[];
  lines.forEach(L=>{const el=document.createElement('div');el.className='ln future';
-  const html=L.words.map(w=>`<b class="w">${[...w.w].map(c=>`<i>${esc(c)}</i>`).join('')}</b>`).join(' ');
-  el.innerHTML=`<div class="lg">${html}</div><div class="lt">${html}</div>`+(L.bg?`<div class="bgv">${esc(L.bg)}</div>`:'');
+  for(const cls of ['lg','lt']){const line=document.createElement('div');line.className=cls;
+   L.words.forEach((word,index)=>{if(index)line.append(' ');const b=document.createElement('b');b.className='w';
+    for(const c of word.w){const i=document.createElement('i');i.textContent=c;b.append(i)}line.append(b)});el.append(line)}
+  if(L.bg){const bg=document.createElement('div');bg.className='bgv';bg.textContent=L.bg;el.append(bg)}
   el.onclick=()=>seek(L.t+.01);lyr.append(el);L.el=el;L.state='future';L._y=null;
   L.lt=[...el.querySelectorAll('.lt .w')].map(w=>[...w.querySelectorAll('i')]);
   L.lg=[...el.querySelectorAll('.lg .w')].map(w=>[...w.querySelectorAll('i')]);

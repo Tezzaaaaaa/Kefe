@@ -44,6 +44,7 @@ function audioFixture() {
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-visualisers').evaluate(node => node.click());
       await page.locator('.kv-tab[data-visualiser="gradient"]').click();
+      await page.locator('[data-workspace-tab="export"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-export').evaluate(node => node.click());
       await page.evaluate(() => { const select = document.getElementById('exportResolution'); select.value = '720'; select.dispatchEvent(new Event('change', { bubbles: true })); });
       const exportButton = page.locator('#exportButton');
