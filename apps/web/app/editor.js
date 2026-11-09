@@ -283,7 +283,7 @@
       album.textContent=item.collectionName||'';
       copy.append(name,artist,album);
       button.append(art,copy);
-      button.addEventListener('click',()=>applyPickedTrack(item));
+      button.addEventListener('click',()=>window.kefeConfirmTrackIdentification(item));
       list.appendChild(button);
     });
   }
@@ -1604,7 +1604,7 @@
       const best=availableIdentifiers===1&&confidentTracks.length!==1?null:(confidentTracks[0]||null);
       if(meta.title||meta.artist||meta.album){
         const searchMessage=catalogueSearchFailed?'Track search failed. Your uploaded file is still available. Check your connection and try again.':undefined;
-        renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist,meta.album].filter(Boolean).join(' '),statusMessage:searchMessage});
+        renderSongSuggestions(confidentTracks,{excludeCurrent:false,query:[meta.title,meta.artist,meta.album].filter(Boolean).join(' '),statusMessage:searchMessage});
         /* Catalogue results are suggestions only until the user confirms the uploaded audio's identity. */
         updateMediaTrack();updateTitleCard();showTitleCard();
         setLyricsStatus(best
