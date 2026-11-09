@@ -4,7 +4,7 @@
 (function(){
   'use strict';
   var COUNTRIES=['AU','US'];
-  var S={items:[],artists:[],localUpload:null,filter:'song',index:0,mode:'matches',albumTitle:'',token:0,timer:0};
+  var S={items:[],artists:[],filter:'song',index:0,mode:'matches',albumTitle:'',token:0,timer:0};
   var el={};
 
   function $(id){return document.getElementById(id);}
@@ -471,20 +471,6 @@
     }
   }
 
-  function setLocalUpload(item,reset){
-    S.localUpload=item?Object.assign({},item,{_kefeLocalUpload:true}):null;
-    if(!el.CarStack)return;
-    var catalogue=S.items.filter(function(existing){return !existing._kefeLocalUpload;});
-    if(reset){
-      S.items=[];S.artists=[];S.mode='matches';S.filter='song';S.index=0;el.CarBack.hidden=true;
-    }else{
-      S.items=catalogue;
-      if(S.index>=S.items.length)S.index=0;
-    }
-    render();
-    if(reset)status(S.localUpload?'Audio uploaded. Identifying its song…':'Upload audio to identify its song.','');
-  }
-
   /* Called by the editor when an uploaded file is identified (or the song fields are searched). */
   function showMatches(items,msg){
     if(!el.CarStack)return;
@@ -502,8 +488,7 @@
   function init(){
     if(!restructure())return;
     refs();bind();
-    window.kefeCarousel={showMatches:showMatches,setLocalUpload:setLocalUpload};
-    if(S.localUpload)setLocalUpload(S.localUpload,true);
+    window.kefeCarousel={showMatches:showMatches};
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
