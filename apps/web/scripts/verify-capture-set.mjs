@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 
 /**
  * Verify the baseline and current screenshot/DOM captures are complete.
@@ -36,7 +36,10 @@ for (const [label, dir] of [["baseline", baselineDir], ["current", currentDir]])
   }
 }
 
-if (reportPath) writeFileSync(reportPath, JSON.stringify(report, null, 2));
+if (reportPath) {
+  mkdirSync(dirname(reportPath), { recursive: true });
+  writeFileSync(reportPath, JSON.stringify(report, null, 2));
+}
 if (report.missing.length) {
   console.error(`INCOMPLETE baseline/current DOM and screen comparison; missing captures: ${JSON.stringify(report.missing.map(item => [item.label, item.name]))}`);
   process.exit(1);
