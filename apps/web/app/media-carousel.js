@@ -3,24 +3,13 @@
    It does not provide independent song, album or artist search. */
 (function(){
   'use strict';
-  var COUNTRIES=['AU','US'];
-  var S={items:[],artists:[],filter:'song',index:0,mode:'matches',albumTitle:'',token:0,timer:0};
+  var S={items:[],index:0};
   var el={};
 
   function $(id){return document.getElementById(id);}
   function mk(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
   function art(url,size){return String(url||'').replace(/\/\d+x\d+(bb)?\.(jpg|jpeg|png)$/i,'/'+(size||400)+'x'+(size||400)+'bb.$2');}
-  function kindOf(it){
-    if(!it)return 'song';
-    if(it._kefeLocalUpload)return 'local';
-    if(it._kefeArtist)return 'artist';
-    return it.wrapperType==='collection'||it.collectionType==='Album'&&!it.trackName?'album':'song';
-  }
-  function titleOf(it){
-    var k=kindOf(it);
-    if(k==='artist')return it.artistName||'Unknown artist';
-    return k==='album'?(it.collectionName||'Untitled album'):(it.trackName||it.fileName||'Untitled');
-  }
+  function titleOf(it){return it&&it.trackName||'Untitled track';}
 
   /* Generated cover for uploads and artwork that fails to load. */
   function hash(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
@@ -34,10 +23,7 @@
       '<path d="M222 120v108a30 30 0 1 1-14-25V146l-58 14v82a30 30 0 1 1-14-25V136z" fill="rgba(255,255,255,.82)" transform="translate(30 10) scale(.85)"/></svg>';
     return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   }
-  function coverFor(it){
-    if(it._kefeLocalUpload||!it.artworkUrl100)return fallbackArt(it.fileName||it.trackName||'upload',it.artistName);
-    return art(it.artworkUrl100,400);
-  }
+  function coverFor(it){return it&&it.artworkUrl100?art(it.artworkUrl100,400):fallbackArt(titleOf(it),it&&it.artistName);}
 
   /* ── layout ── */
   function restructure(){
@@ -90,121 +76,20 @@
         '</div>'+
         '<div class="kefe-car-info" id="kefeCarInfo" hidden>'+
           '<div class="kefe-car-info-copy"><span class="kefe-badge" id="kefeCarBadge">Match</span><h4 id="kefeCarTitle"></h4><p id="kefeCarArtist"></p><small id="kefeCarMeta"></small></div>'+
-          '<div class="kefe-car-actions"><button type="button" class="kefe-btn" id="kefeCarBack" hidden>← Matches</button><button type="button" class="kefe-btn primary" id="kefeCarUse">Confirm identification</button></div>'+
+          '<div class="kefe-car-actions"><button type="button" class="kefe-btn primary" id="kefeCarUse">Confirm identification</button></div>'+
         '</div>'+
       '</div>';
     return w;
   }
 
   function refs(){
-    ['FindInput','FindClear','FindBox','FindFilters','FindStatus','Carousel','CarEmpty','CarStack','CarPrev','CarNext','CarCount','CarInfo','CarBadge','CarTitle','CarArtist','CarMeta','CarBack','CarUse'].forEach(function(k){el[k]=$('kefe'+k);});
+    ['FindStatus','Carousel','CarEmpty','CarStack','CarPrev','CarNext','CarCount','CarInfo','CarBadge','CarTitle','CarArtist','CarMeta','CarUse'].forEach(function(k){el[k]=$('kefe'+k);});
   }
 
-  /* ── data ── */
-  function visible(){
-    if(S.filter==='artist')return S.artists;
-    if(S.filter==='all')return S.items;
-    return S.items.filter(function(i){return S.filter==='song'?(kindOf(i)==='song'||kindOf(i)==='local'):kindOf(i)===S.filter;});
-  }
+  /* ── confirmation data ── */
+  function visible(){return S.items;}
   function status(msg,cls){el.FindStatus.textContent=msg;el.FindStatus.className='kefe-find-status'+(cls?' '+cls:'');}
   function busy(on){el.Carousel.classList.toggle('busy',on);}
-
-  function normalise(value){
-    return String(value||'').normalize('NFKD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-  }
-  function relevance(item,query){
-    var q=normalise(query),title=normalise(titleOf(item)),artist=normalise(item.artistName),album=normalise(item.collectionName);
-    if(!q)return 0;
-    var score=0,terms=q.split(/\s+/).filter(Boolean);
-    if(title===q)score+=180;
-    else if(title&&q.indexOf(title+' ')===0)score+=145;
-    else if(title.indexOf(q)===0)score+=100;
-    else if(title.indexOf(q)>=0)score+=65;
-    if(artist===q)score+=65;
-    else if(artist&&q.indexOf(artist)>=0)score+=55;
-    else if(artist.indexOf(q)>=0)score+=25;
-    if(album===q)score+=45;
-    else if(album.indexOf(q)>=0)score+=20;
-    var titleWords=title.split(/\s+/).filter(Boolean),artistWords=artist.split(/\s+/).filter(Boolean),albumWords=album.split(/\s+/).filter(Boolean);
-    function coverage(words){return terms.length?terms.filter(function(term){return words.some(function(word){return word===term||word.indexOf(term)===0||term.indexOf(word)===0;});}).length/terms.length:0;}
-    score+=coverage(titleWords)*75+coverage(artistWords)*60+coverage(albumWords)*18;
-    if(kindOf(item)==='song')score+=12;
-    return score;
-  }
-  function artistScore(item,query){
-    var q=normalise(query),artist=normalise(item.artistName);
-    if(!q||!artist)return 0;
-    if(artist===q)return 100;
-    if(artist.indexOf(q)===0)return 80;
-    if(artist.indexOf(q)>=0)return 60;
-    var terms=q.split(/\s+/).filter(Boolean);
-    return terms.length?40*terms.filter(function(t){return artist.indexOf(t)>=0;}).length/terms.length:0;
-  }
-  async function itunes(query,entity,attribute,limit){
-    var requests=COUNTRIES.map(async function(country){
-      var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},12000);
-      try{
-        var url='https://itunes.apple.com/search?term='+encodeURIComponent(query)+'&entity='+entity+(attribute?'&attribute='+attribute:'')+'&limit='+(limit||200)+'&country='+country;
-        var response=await fetch(url,{signal:controller.signal,headers:{Accept:'application/json'}});
-        if(!response.ok)throw new Error('HTTP '+response.status);
-        var payload=await response.json();
-        return Array.isArray(payload.results)?payload.results:[];
-      }finally{clearTimeout(timer);}
-    });
-    var settled=await Promise.allSettled(requests),all=[],lastError=null;
-    settled.forEach(function(result){
-      if(result.status==='fulfilled')all=all.concat(result.value);else lastError=result.reason;
-    });
-    if(!all.length&&lastError)throw lastError;
-    return all;
-  }
-  function dedupe(list,keyOf){
-    var seen={},out=[];
-    list.forEach(function(it){var k=keyOf(it);if(k==null||seen[k])return;seen[k]=1;out.push(it);});
-    return out;
-  }
-  function pickCount(){
-    var list=visible().filter(function(item){return !item._kefeLocalUpload;});
-    return list.length;
-  }
-  async function search(q){
-    q=q.trim();var token=++S.token;
-    S.mode='search';el.CarBack.hidden=true;
-    if(!q){S.items=S.localUpload?[S.localUpload]:[];S.artists=[];S.index=0;render();status(S.localUpload?'Uploaded file ready. Search for a matching track.':'Enter a song, artist or album name.');busy(false);return;}
-    busy(true);status('Searching…','loading');
-    try{
-      var res=await Promise.allSettled([itunes(q,'song'),itunes(q,'album'),itunes(q,'album','artistTerm',60)]);
-      if(token!==S.token)return;
-      var songs=res[0].status==='fulfilled'?res[0].value:[],albums=res[1].status==='fulfilled'?res[1].value:[],byArtist=res[2].status==='fulfilled'?res[2].value:[];
-      if(res[0].status==='rejected'&&res[1].status==='rejected')throw res[0].reason;
-      var catalogue=songs.concat(albums).sort(function(a,b){return relevance(b,q)-relevance(a,q);});
-      S.items=catalogue.concat(S.localUpload?[S.localUpload]:[]);
-      S.artists=dedupe(byArtist.filter(function(a){return a.collectionName&&a.artworkUrl100&&artistScore(a,q)>0;}),function(a){return a.collectionId;})
-        .map(function(a){return Object.assign({},a,{_kefeArtist:true});})
-        .sort(function(a,b){return (artistScore(b,q)-artistScore(a,q))||String(b.releaseDate||'').localeCompare(String(a.releaseDate||''));});
-      S.index=0;render();
-      var count=pickCount();
-      status(count?(count+' result'+(count===1?'':'s')):S.localUpload&&S.filter!=='album'&&S.filter!=='artist'?'No matching songs, artists or albums found. Your uploaded file is still available.':'No matching songs, artists or albums found.','');
-    }catch(e){
-      if(token!==S.token)return;
-      S.items=S.localUpload?[S.localUpload]:[];S.artists=[];render();status('Search failed — check your connection.','error');
-    }finally{if(token===S.token)busy(false);}
-  }
-  async function openAlbum(it){
-    var token=++S.token;busy(true);status('Loading tracks…','loading');
-    try{
-      var r=await fetch('https://itunes.apple.com/lookup?id='+it.collectionId+'&entity=song&country=AU');
-      var j=await r.json();
-      if(token!==S.token)return;
-      var tracks=(j.results||[]).filter(function(x){return x.wrapperType==='track'&&x.trackName;});
-      if(!tracks.length)throw new Error('empty');
-      S.mode='album';S.albumTitle=it.collectionName;S.filter='song';syncFilters();
-      S.items=tracks;S.index=0;render();el.CarBack.hidden=false;
-      status(it.collectionName+' — '+tracks.length+' tracks','');
-    }catch(e){if(token===S.token)status('Couldn’t load that album.','error');}
-    finally{if(token===S.token)busy(false);}
-  }
-  function backToResults(){search(el.FindInput.value);}
 
   /* ═══════════════════════════════════════════════════════════
      3D SHELF
@@ -369,16 +254,15 @@
     el.CarInfo.hidden=!it;
     el.CarCount.textContent=it?(String(S.index+1).padStart(2,'0')+' / '+String(list.length).padStart(2,'0')):'';
     el.CarPrev.disabled=!it||S.index<=0;el.CarNext.disabled=!it||S.index>=list.length-1;
-    if(!it){el.Carousel.setAttribute('aria-label','Search results carousel');return;}
-    var k=kindOf(it);
-    el.CarBadge.textContent=k==='local'?'Uploaded file':k==='song'?'Song':k==='artist'?'Artist':'Album';
-    el.CarBadge.className='kefe-badge '+(k==='local'?'song':k==='artist'?'album':k);
+    if(!it){el.Carousel.setAttribute('aria-label','Uploaded audio identification matches');return;}
+    el.CarBadge.textContent='Match';
+    el.CarBadge.className='kefe-badge song';
     el.CarTitle.textContent=titleOf(it);
     el.CarArtist.textContent=it.artistName||'';
     var year=it.releaseDate?String(it.releaseDate).slice(0,4):'',bits=[year,it.primaryGenreName,it.collectionName].filter(Boolean);
     el.CarMeta.textContent=bits.join(' · ');
     el.CarUse.textContent='Confirm identification';
-    el.Carousel.setAttribute('aria-label','Search results carousel: '+titleOf(it)+(it.artistName&&k!=='artist'?' by '+it.artistName:'')+', '+(S.index+1)+' of '+list.length);
+    el.Carousel.setAttribute('aria-label','Uploaded audio match: '+titleOf(it)+(it.artistName?' by '+it.artistName:'')+', '+(S.index+1)+' of '+list.length);
   }
   function go(i){
     if(!V.list.length)return;
@@ -387,7 +271,7 @@
     S.index=next;V.dragging=false;info();kick();
   }
   function activate(){
-    var it=V.list[S.index];if(!it||kindOf(it)!=='song')return;
+    var it=V.list[S.index];if(!it)return;
     if(typeof window.kefeConfirmTrackIdentification!=='function')return;
     el.CarUse.disabled=true;
     Promise.resolve(window.kefeConfirmTrackIdentification(it)).then(function(confirmed){
@@ -404,7 +288,6 @@
     el.CarPrev.addEventListener('click',function(){go(S.index-1);});
     el.CarNext.addEventListener('click',function(){go(S.index+1);});
     el.CarUse.addEventListener('click',activate);
-    el.CarBack.addEventListener('click',backToResults);
     el.Carousel.addEventListener('keydown',function(e){
       if(e.key==='ArrowRight'){e.preventDefault();go(S.index+1);}
       else if(e.key==='ArrowLeft'){e.preventDefault();go(S.index-1);}
@@ -471,14 +354,11 @@
     }
   }
 
-  /* Called by the editor when an uploaded file is identified (or the song fields are searched). */
+  /* Called only by the uploaded-audio identification pipeline. */
   function showMatches(items,msg){
     if(!el.CarStack)return;
     /* Only the upload identification pipeline may populate this confirmation carousel. */
-    S.token++;
-    clearTimeout(S.timer);
-    S.mode='matches';S.filter='song';S.artists=[];el.CarBack.hidden=true;
-    S.items=(items||[]).filter(function(item){return item&&!item._kefeLocalUpload&&kindOf(item)==='song';});
+    S.items=(items||[]).filter(function(item){return item&&item.wrapperType==='track'&&item.trackName&&item.artistName;});
     S.index=0;render();
     status(msg||(S.items.length?'Confirm the song that matches your uploaded audio.':'No confident song matches were found for this upload.'),'');
     busy(false);
