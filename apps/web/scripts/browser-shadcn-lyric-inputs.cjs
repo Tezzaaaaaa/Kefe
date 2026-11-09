@@ -35,6 +35,12 @@ const server = http.createServer((req, res) => {
       page.on('console', message => { if (message.type() === 'error' && /hydrat|react error/i.test(message.text())) errors.push(message.text()); });
       await page.goto(`http://127.0.0.1:${server.address().port}/editor.html`);
       await page.locator('[data-workspace-tab="content"]').evaluate(node => node.click());
+      await page.locator('#kefe-subtab-media').evaluate(node => node.click());
+      await page.waitForSelector('#songTitle[data-slot="input"][data-shadcn-hydrated="true"]');
+      assert.equal(await page.locator('#songTitle').getAttribute('data-slot'), 'input', 'metadata field is a shadcn Input');
+      await page.locator('#kefe-subtab-lyric-sync').evaluate(node => node.click());
+      await page.waitForSelector('#lyricsInput[data-slot="textarea"][data-shadcn-hydrated="true"]');
+      assert.equal(await page.locator('#lyricsInput').getAttribute('data-slot'), 'textarea', 'lyrics editor is a shadcn Textarea');
       await page.locator('#kefe-subtab-lyric-sync').evaluate(node => node.click());
       await page.locator('#lyricsInput').fill('[00:01.00] First line\n[00:05.00] Second line');
       await page.waitForSelector('[aria-label="Line 1 text"][data-shadcn-hydrated="true"]');

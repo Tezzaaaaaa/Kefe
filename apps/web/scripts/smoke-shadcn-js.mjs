@@ -27,9 +27,14 @@ assert.match(slider, /@radix-ui\/react-slider/);
 assert.match(slider, /SliderPrimitive\.Root/);
 assert.match(bridge, /createRoot/);
 assert.match(bridge, /input\.dispatchEvent/);
-for (const [component, primitive] of [["checkbox", "react-checkbox"], ["switch", "react-switch"], ["select", "react-select"], ["dialog", "react-dialog"], ["accordion", "react-accordion"], ["tabs", "react-tabs"], ["progress", "react-progress"]]) {
-  assert.ok(read(`components/ui/${component}.js`).includes(`@radix-ui/${primitive}`), `${component} must use its Radix primitive`);
+for (const [component, primitive] of [["input", null], ["textarea", null], ["checkbox", "react-checkbox"], ["switch", "react-switch"], ["select", "react-select"], ["dialog", "react-dialog"], ["accordion", "react-accordion"], ["tabs", "react-tabs"], ["progress", "react-progress"]]) {
+  if (primitive) assert.ok(read(`components/ui/${component}.js`).includes(`@radix-ui/${primitive}`), `${component} must use its Radix primitive`);
 }
+
+const controlsBridge = read("beui-src/shadcn-controls.js");
+assert.match(controlsBridge, /hydrateRoot/);
+assert.match(controlsBridge, /components\/ui\/input\.js/);
+assert.match(controlsBridge, /components\/ui\/textarea\.js/);
 
 // 3. Verify Settings panel HTML & CSS match KEFE's shadcn.io design tokens (#d92f33 accent, Lucide SVGs, no #4f9eff blue).
 const panelHtml = read("app/settings/panel.html");

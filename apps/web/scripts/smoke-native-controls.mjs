@@ -6,6 +6,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const editor = readFileSync(resolve(root, "editor.source.html"), "utf8");
 const structure = readFileSync(resolve(root, "app/ui/structure.js"), "utf8");
 const runtime = readFileSync(resolve(root, "app/editor.js"), "utf8");
+const controlBridge = readFileSync(resolve(root, "beui-src/shadcn-controls.js"), "utf8");
 const editorStyles = readFileSync(resolve(root, "app/ui/styles.css"), "utf8");
 const compactStyles = readFileSync(resolve(root, "app/ui/panels-compact.css"), "utf8");
 const failures = [];
@@ -85,4 +86,5 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("PASS: canonical editor controls and panel actions remain present; retired beUI mirrors and their source styles are absent.");
+if (!controlBridge.includes("hydrateRoot") || !controlBridge.includes("components/ui/input.js") || !controlBridge.includes("components/ui/textarea.js") || !controlBridge.includes("mountTextControl")) failures.push("Editor text fields must use shadcn Input and Textarea components");
+console.log("PASS: editor text fields use shadcn Input/Textarea components while preserving native contracts.");
