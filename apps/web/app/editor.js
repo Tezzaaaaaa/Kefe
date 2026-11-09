@@ -277,6 +277,13 @@
       list.appendChild(button);
     });
   }
+  function publishMotionArtwork(image,cover){
+    const embedded=!!cover&&songAlbum.dataset.embeddedArtUrl===cover;
+    const source=embedded?'uploaded-audio':songAlbum.dataset.platformId?'selected-song':'track-metadata';
+    window.dispatchEvent(new CustomEvent('kefe-album-artwork-changed',{detail:{
+      image:image||null,source,title:songTitle.value.trim(),artist:songArtist.value.trim(),album:songAlbum.value.trim()
+    }}));
+  }
   function updateTitleCard(){
     updateMediaTrack();
     const cover=songAlbum.dataset.artUrl||'';
@@ -284,18 +291,26 @@
     if(cover){
       const image=new Image();
       image.crossOrigin='anonymous';
-      image.onload=()=>draw();
+      image.onload=()=>{
+        if(songAlbum.dataset.artUrl!==cover)return;
+        titleArtImage=image;
+        publishMotionArtwork(image,cover);
+        draw();
+      };
       image.onerror=()=>{
         if(songAlbum.dataset.artUrl===cover){
           failedTitleArtworkUrls.add(normalizeArtworkUrl(cover));
           delete songAlbum.dataset.artUrl;
           titleArtImage=null;
+          publishMotionArtwork(null,'');
           scheduleTitleArtworkLookup();
         }
         draw();
       };
       image.src=normalizeArtworkUrl(cover);
       titleArtImage=image;
+    }else{
+      publishMotionArtwork(null,'');
     }
     draw();
   }
