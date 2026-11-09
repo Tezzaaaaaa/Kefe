@@ -538,8 +538,12 @@
     const art=lerp(bigArt,hArt),ax=lerp((w-bigArt)/2,landscape?left+(comp-hArt)/2:left),ay=lerp(bigTop,hTop),r=art*.08;
     ctx.save();
     const cardLayout=appleLayout.card;
-    ctx.translate(cardLayout.x*w,cardLayout.y*h);
-    ctx.translate(ax,ay);ctx.scale(cardLayout.scale,cardLayout.scale);ctx.translate(-ax,-ay);
+    // Saved placement belongs to the pinned lyric-header state only.
+    // Keep the opening hold and closing return centred and at native scale.
+    const cardOffsetX=cardLayout.x*w*p,cardOffsetY=cardLayout.y*h*p;
+    const cardScale=1+(cardLayout.scale-1)*p;
+    ctx.translate(cardOffsetX,cardOffsetY);
+    ctx.translate(ax,ay);ctx.scale(cardScale,cardScale);ctx.translate(-ax,-ay);
     // Keep the opening title card geometrically centred at every aspect ratio.
     ctx.textBaseline='top';
     // artwork
