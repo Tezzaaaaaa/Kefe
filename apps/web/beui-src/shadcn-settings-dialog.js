@@ -72,6 +72,7 @@ function SettingsDialog({ api, host }) {
     const onClick = event => {
       const target = event.target instanceof Element ? event.target.closest('[data-top-panel="settings"]') : null;
       if (!target) return;
+      host.dataset.kefeSettingsClickSeen = 'true';
       event.preventDefault();
       previousFocus.current = document.activeElement;
       host.hidden = false;
@@ -117,6 +118,7 @@ function mountSettingsDialog() {
   if (!api || typeof api.schema !== "function" || document.querySelector(".beui-settings-root")) return;
   const host = document.createElement("div");
   host.className = "beui-settings-root shad-dialog-root";
+  host.dataset.kefeSettingsDialogMounted = "true";
   host.hidden = true;
   document.body.append(host);
   const root = createRoot(host);

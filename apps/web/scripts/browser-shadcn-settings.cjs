@@ -25,7 +25,25 @@ const server = http.createServer((req, res) => {
       const opener = page.locator('[data-top-panel="settings"]');
       await opener.click();
       const dialog = page.getByRole('dialog', { name: 'Settings' });
-      await dialog.waitFor({ state: 'visible' });
+      try {
+        await dialog.waitFor({ state: 'visible', timeout: 5000 });
+      } catch (error) {
+        const diagnostics = await page.evaluate(() => ({
+          settingsApi: typeof window.kefeSettings,
+          schema: typeof window.kefeSettings?.schema,
+          roots: [...document.querySelectorAll('.beui-settings-root')].map(node => ({
+            hidden: node.hidden,
+            mounted: node.dataset.kefeSettingsDialogMounted,
+            clickSeen: node.dataset.kefeSettingsClickSeen,
+            state: node.dataset.state,
+            childCount: node.children.length,
+          })),
+          opener: document.querySelector('[data-top-panel="settings"]')?.outerHTML,
+          openerCount: document.querySelectorAll('[data-top-panel="settings"]').length,
+          active: document.activeElement?.outerHTML?.slice(0, 500) || null,
+        }));
+        throw new Error('Settings dialog did not open: ' + JSON.stringify({ diagnostics, errors, cause: error.message }));
+      }
       const rect = await dialog.boundingBox();
       assert.ok(rect && rect.x >= 0 && rect.x + rect.width <= viewport.width, 'dialog fits the viewport');
       const accordion = dialog.locator('[data-slot="accordion-trigger"]');
