@@ -455,7 +455,7 @@ async function captureEditorScreenState(page) {
     const mobileWorkspaceLabels = mobileWorkspaceLayout.groups.map(group => group.label);
     assert.equal(mobileWorkspaceLabels[0], "Content", "the first workspace must remain Content");
     assert.ok(["Design", "Appearance"].includes(mobileWorkspaceLabels[1]), "the second workspace must remain the appearance/design workspace");
-    assert.ok(["Audio & Visualiser", "Audio & Visuals"].includes(mobileWorkspaceLabels[2]), "the third workspace must remain the audio and visualiser workspace");
+    assert.ok(["Visualiser"].includes(mobileWorkspaceLabels[2]), "the third workspace must be named Visualiser");
     assert.equal(mobileWorkspaceLayout.groups.filter(group => !group.hidden && group.width > 0 && group.height > 0).length, 1,
       "only the selected workspace should be visible on mobile");
     assert.equal(mobileWorkspaceLayout.tabs.length, mobileWorkspaceLayout.groups.length, "all workspace tabs must remain available on mobile");
@@ -1158,7 +1158,7 @@ async function captureEditorScreenState(page) {
       });
       assert.deepEqual(workspaceAudit.groups.slice(0, 2).map(group => [group.id, group.title]), [['content', 'Content'], ['design', 'Appearance']], 'the Content and Appearance workspaces must appear first: ' + JSON.stringify(workspaceAudit));
       assert.equal(workspaceAudit.groups[2]?.id, 'audio-visuals', 'the audio and visualiser workspace must appear third: ' + JSON.stringify(workspaceAudit));
-      assert.ok(['Audio & Visualiser', 'Audio & Visuals'].includes(workspaceAudit.groups[2]?.title), 'the third workspace must retain its audio and visualiser label: ' + JSON.stringify(workspaceAudit));
+      assert.ok(['Visualiser'].includes(workspaceAudit.groups[2]?.title), 'the third workspace must be named Visualiser: ' + JSON.stringify(workspaceAudit));
       assert.equal(workspaceAudit.groups.filter(group => !group.hidden).length, 1, 'exactly one workspace panel must be visible');
       assert.equal(workspaceAudit.sections.length, 6, 'all six editor sections must remain mounted');
       assert.equal(workspaceAudit.panels.length, 6, 'each native editor panel must be mounted exactly once');
@@ -1892,8 +1892,8 @@ async function captureEditorScreenState(page) {
       assert.equal(mobileWorkspaceAudit.columnCount, 1,
         `the selected workspace must use one full-width column at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
       assert.deepEqual(mobileWorkspaceAudit.groups.map(group => group.label), mobileWorkspaceAudit.groups.length === 4
-        ? ["Content", "Appearance", "Audio & Visualiser", "Export"]
-        : ["Content", "Appearance", "Audio & Visualiser"],
+        ? ["Content", "Appearance", "Visualiser", "Export"]
+        : ["Content", "Appearance", "Visualiser"],
         `workspace panels must remain in their defined order at ${width}px`);
       assert.equal(mobileWorkspaceAudit.visibleGroups, 1,
         `only the selected workspace may be visible at ${width}px: ${JSON.stringify(mobileWorkspaceAudit)}`);
