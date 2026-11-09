@@ -19,7 +19,8 @@ const EXPECTED = [
   ["Dimensional Depth", ["sigchromeextrusion", "sigletterflip", "sigcardstack", "sigrackfocus", "sigkaleidoscope", "sigorbitring", "sigtypewriter", "sigcinemabars"]],
   ["Flagship", ["sigluminaire", "sigpresscycle"]],
 ];
-const keys = EXPECTED.flatMap(([, list]) => list);\nconst addedSignatureKeys = ["sigfrost", "sigvoid", "sigscript", "sigbrat"];
+const keys = EXPECTED.flatMap(([, list]) => list);
+const addedSignatureKeys = ["sigfrost", "sigvoid", "sigscript", "sigbrat"];
 
 /* ---- manifest ---------------------------------------------------- */
 const sandbox = { window: {}, console, Math, Number, String, Array, Object, Map, Set, Intl };
@@ -171,7 +172,7 @@ for (const preset of ["fly-through", "fade-through", "crossfade", "shared-axis-y
   runtime.kefeEffects.textswap(ctx, 360, 640, { effect: "textswap", fontSize: 48 }, plainLines, 4.2);
   assert.ok(ctx.fills > 0, `Text Swap ${preset} must paint after a transition on mobile`);
 }
-for (const key of keys) {
+for (const key of [...keys, ...addedSignatureKeys]) {
   const ctx = makeContext();
   const style = { effect: key, fontSize: 84, kefeMotionFont: "Open Sans" };
   for (const time of [-.4, 0, .6, 1.1, 1.6, 2.2, 2.8, 3.4, 4.8, 6.2]) {
