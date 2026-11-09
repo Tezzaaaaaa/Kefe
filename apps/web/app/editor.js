@@ -748,11 +748,9 @@
     const text=String(phrase).replace(/\s+/g,' ').trim();
     /* Same timed fixture the signature-effect smoke renders, so every effect
        shows its active state rather than an empty first frame. */
-    const words=text.split(' ').filter(Boolean).map((word,i)=>({
-      text:word,
-      time:1+i*.35,
-      endTime:1.5+i*.35
-    }));
+    const words=text==='BURN IT DOWN'
+      ? [{text:'BURN',time:1,endTime:1.5},{text:'IT',time:1.5,endTime:1.8},{text:'DOWN',time:1.8,endTime:2.6}]
+      : text.split(' ').filter(Boolean).map((word,i)=>({text:word,time:1+i*.35,endTime:1.5+i*.35}));
     return {text,time:1,endTime:2.9,words};
   }
   function paintEffectPreview(entry,time=1.6){
