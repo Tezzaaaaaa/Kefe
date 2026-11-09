@@ -203,13 +203,13 @@
     const suggestions=document.getElementById('kefeSuggestions');
     if(suggestions)suggestions.hidden=!song;
   }
-  function applyPickedTrack(item){
+  function applyPickedTrack(item,{preferEmbeddedArtwork=false}={}){
     songTitle.value=item.trackName||'';
     songArtist.value=item.artistName||'';
     songAlbum.value=item.collectionName||'';
     songYear.value=item.releaseDate?String(item.releaseDate).slice(0,4):'';
-    /* An explicit carousel selection takes precedence over the uploaded file's embedded cover. */
-    songAlbum.dataset.artUrl=normalizeArtworkUrl(item.artworkUrl100);
+    /* Explicit carousel selection wins; automatic identification preserves embedded file artwork. */
+    songAlbum.dataset.artUrl=preferEmbeddedArtwork&&songAlbum.dataset.embeddedArtUrl? songAlbum.dataset.embeddedArtUrl:normalizeArtworkUrl(item.artworkUrl100);
     songAlbum.dataset.trackDuration=item.trackTimeMillis?String(Math.round(Number(item.trackTimeMillis)/1000)):'';
     songAlbum.dataset.platformId=item.trackId?String(item.trackId):'';
     const mediaTrack=document.getElementById('kefeMediaTrack');
@@ -1600,7 +1600,7 @@
         const searchMessage=catalogueSearchFailed?'Track search failed. Your uploaded file is still available. Check your connection and try again.':undefined;
         renderSongSuggestions(matches,{excludeCurrent:false,query:[meta.title,meta.artist,meta.album].filter(Boolean).join(' '),statusMessage:searchMessage});
         if(autoConfirmMatch){
-          applyPickedTrack(best);
+          applyPickedTrack(best,{preferEmbeddedArtwork:true});
           setLyricsStatus('Track identified automatically — the uploaded audio matches '+best.trackName+' by '+best.artistName+'.');
         }else{
           /* A catalogue match is optional: keep the uploaded file's own metadata in the preview. */
