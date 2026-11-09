@@ -1562,11 +1562,7 @@
         album:recognized?.album||embedded.album||'',
         year:(recognized?.release_date?String(recognized.release_date).slice(0,4):'')||embedded.year||''
       };
-      /* Manual edits made while lookup is in flight take precedence. */
-      if(manuallyEditedTrackFields.has('title'))meta.title=songTitle.value.trim();
-      if(manuallyEditedTrackFields.has('artist'))meta.artist=songArtist.value.trim();
-      if(manuallyEditedTrackFields.has('album'))meta.album=songAlbum.value.trim();
-      if(manuallyEditedTrackFields.has('year'))meta.year=songYear.value.trim();
+      /* User edits may change the display, but never seed or alter identification evidence. */
       if(!manuallyEditedTrackFields.has('title'))songTitle.value=meta.title;
       if(!manuallyEditedTrackFields.has('artist'))songArtist.value=meta.artist;
       if(!manuallyEditedTrackFields.has('album'))songAlbum.value=meta.album;
