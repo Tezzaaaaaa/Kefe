@@ -21,10 +21,11 @@
   function clearPanelError(target, id) {
     const host = resolveHost(target);
     if (!host) return;
-    const selector = id
-      ? '[data-kefe-err="' + String(id).replace(/"/g, '\\"') + '"]'
-      : '[data-kefe-err]';
-    host.querySelectorAll(selector).forEach(node => node.remove());
+    const hasId = id !== undefined && id !== null && id !== '';
+    const matchId = hasId ? String(id) : null;
+    host.querySelectorAll('[data-kefe-err]').forEach(node => {
+      if (!hasId || node.dataset.kefeErr === matchId) node.remove();
+    });
   }
 
   function panelError(target, opts) {

@@ -763,20 +763,20 @@
   }
   let lyricEffectPreviewPrevious=null,lyricEffectPreviewNext=null,lyricEffectPreviewStatus=null;
   const lyricEffectOptions=document.getElementById('lyricEffectOptions');
-  /* Every lyric-effect card paints a real frame of that effect. The phrase is one
-     of the example lines the renderer smoke tests already exercise, so every
-     renderer is guaranteed to produce visible output for it. */
-  const EFFECT_PREVIEW_PHRASE='BURN IT DOWN';
+  /* Every lyric-effect card paints a real frame of that effect. The default
+     sample is the same pangram as the lyrics placeholder, so the effect section
+     and the lyrics input always agree. */
+  const EFFECT_PREVIEW_PHRASE='The quick brown fox jumps over the lazy dog.';
   const effectPreviewCards=[];
   let effectPreviewQueue=[];
   let effectPreviewScheduled=false;
   function effectPreviewLine(phrase){
     const text=String(phrase).replace(/\s+/g,' ').trim();
-    /* Same timed fixture the signature-effect smoke renders, so every effect
-       shows its active state rather than an empty first frame. */
-    const words=text==='BURN IT DOWN'
-      ? [{text:'BURN',time:1,endTime:1.5},{text:'IT',time:1.5,endTime:1.8},{text:'DOWN',time:1.8,endTime:2.6}]
-      : text.split(' ').filter(Boolean).map((word,i)=>({text:word,time:1+i*.35,endTime:1.5+i*.35}));
+    /* Spread the words across the 1.0-2.6s window the preview loops through, so
+       every word reaches its active state instead of only the first few. */
+    const tokens=text.split(' ').filter(Boolean);
+    const step=1.6/Math.max(1,tokens.length);
+    const words=tokens.map((word,i)=>({text:word,time:1+i*step,endTime:1+(i+1)*step}));
     return {text,time:1,endTime:2.9,words};
   }
   function paintEffectPreview(entry,time=1.6){

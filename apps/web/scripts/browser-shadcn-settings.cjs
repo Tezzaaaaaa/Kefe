@@ -81,7 +81,12 @@ const server = http.createServer((req, res) => {
       await page.evaluate(() => { document.getElementById('kefeReview0').hidden = false; });
       await page.locator('[data-workspace-tab="content"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-sync').evaluate(node => node.click());
-      await page.locator('#kefeAutoSync details').evaluate(node => { node.open = true; });
+      const syncMoreTrigger = page.locator('#kefeAutoSync [data-slot="collapsible-trigger"]');
+      if (await syncMoreTrigger.count()) {
+        if (await syncMoreTrigger.getAttribute('aria-expanded') !== 'true') await syncMoreTrigger.click();
+      } else {
+        await page.locator('#kefeAutoSync details').evaluate(node => { node.open = true; });
+      }
       await page.getByRole('combobox', { name: 'Speech recognition model' }).click();
       await page.getByRole('option', { name: 'English · Balanced' }).click();
       assert.equal(await page.locator('select[aria-label="Speech recognition model"]').inputValue(), 'base.en');

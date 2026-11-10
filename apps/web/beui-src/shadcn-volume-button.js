@@ -61,13 +61,13 @@ function mount() {
       }
     }, []);
 
-    React.useEffect(() => {
+    React.useLayoutEffect(() => {
       popover.hidden = !open;
       button.setAttribute('aria-expanded', String(open));
     }, [open]);
 
     React.useEffect(() => {
-      const onClick = () => setOpen(prev => !prev);
+      const onClick = () => flushSync(() => setOpen(prev => !prev));
       button.addEventListener('click', onClick);
       return () => button.removeEventListener('click', onClick);
     }, []);

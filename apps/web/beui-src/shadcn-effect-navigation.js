@@ -12,7 +12,7 @@ function start() {
   if (!previous.matches('button.kefe-lyric-effect-preview-button') || !status.matches('span.kefe-lyric-effect-preview-count') || !next.matches('button.kefe-lyric-effect-preview-button')) return;
   const arrow = (button, key) => {
     const className = button.className;
-    button.className = `shad-btn shad-btn--ghost ${className}`;
+    button.className = `shad-btn shad-btn--ghost shad-btn--icon ${className}`.replace(/\s+/g, ' ').trim();
     button.dataset.slot = 'button'; button.dataset.variant = 'ghost'; button.dataset.size = 'icon';
     const props = {};
     for (const { name, value } of button.attributes) {
