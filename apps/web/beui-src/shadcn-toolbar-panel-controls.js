@@ -12,16 +12,27 @@ function attrs(node) {
   for (const { name, value } of node.attributes) {
     if (['class', 'style', 'value', 'data-slot', 'data-variant', 'data-size'].includes(name)) continue;
     result[{ tabindex: 'tabIndex', spellcheck: 'spellCheck', maxlength: 'maxLength' }[name] || name] =
-      ['disabled', 'hidden'].includes(name) ? true : name === 'spellcheck' ? node.spellcheck : value;
+      ['disabled', 'hidden'].includes(name) ? true : name === 'spellcheck' ? value !== 'false' : value;
   }
   return result;
 }
 function buttonTree(button, key) {
-  const name = button.className;
-  button.className = `shad-btn shad-btn--ghost ${name}`;
+  const name = button.className.replace(/\s+/g, ' ').trim();
+  button.className = `shad-btn shad-btn--ghost ${name}`.replace(/\s+/g, ' ').trim();
   button.dataset.slot = 'button'; button.dataset.variant = 'ghost'; button.dataset.size = 'default';
-  const style = button.style.length ? Object.fromEntries([...button.style].map(key => [key, button.style.getPropertyValue(key)])) : undefined;
-  if (style) button.setAttribute('style', Object.entries(style).map(([name, value]) => `${name}:${value}`).join(';'));
+  const styleEntries = button.style.length
+    ? Array.from({ length: button.style.length }, (_, i) => {
+        const key = button.style[i];
+        return [key, button.style.getPropertyValue(key)];
+      })
+    : [];
+  const style = styleEntries.length
+    ? Object.fromEntries(styleEntries.map(([key, val]) => [
+        key.startsWith('--') ? key : key.replace(/-([a-z])/g, (_, ch) => ch.toUpperCase()),
+        val,
+      ]))
+    : undefined;
+  if (styleEntries.length) button.setAttribute('style', styleEntries.map(([name, value]) => `${name}:${value}`).join(';'));
   return h(Button, { key, variant: 'ghost', className: name, ...attrs(button), style, dangerouslySetInnerHTML: { __html: button.innerHTML } });
 }
 function mountGroup(group) {
@@ -40,8 +51,8 @@ function mountSingle(node, kind) {
   let tree;
   if (kind === 'button') tree = buttonTree(node);
   else {
-    const name = node.className;
-    node.className = `shad-input ${name}`.trim(); node.dataset.slot = 'input';
+    const name = node.className.replace(/\s+/g, ' ').trim();
+    node.className = `shad-input ${name}`.replace(/\s+/g, ' ').trim(); node.dataset.slot = 'input';
     tree = h(Input, { className: name, ...attrs(node), defaultValue: node.value });
   }
   flushSync(() => hydrateRoot(host, tree));

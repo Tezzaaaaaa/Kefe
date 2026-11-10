@@ -19,7 +19,7 @@ function propsFor(node) {
     const name = attributeNames[attribute.name] || attribute.name;
     props[name] = booleanAttributes.has(name) ? true : attribute.value;
   }
-  if (node.hasAttribute('spellcheck')) props.spellCheck = node.spellcheck;
+  if (node.hasAttribute('spellcheck')) props.spellCheck = node.getAttribute('spellcheck') !== 'false';
   return props;
 }
 

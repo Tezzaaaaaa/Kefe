@@ -13,8 +13,8 @@ function mountTransport() {
   if (buttons[0].id !== 'playButton' || buttons[1].id !== 'restartButton') return;
   const elements = buttons.map((button, index) => {
     const variant = index === 0 ? 'default' : 'outline';
-    const className = button.className;
-    button.className = `shad-btn shad-btn--${variant === 'outline' ? 'outline' : 'primary'} ${className}`;
+    const className = button.className.replace(/\s+/g, ' ').trim();
+    button.className = `shad-btn shad-btn--${variant === 'outline' ? 'outline' : 'primary'} shad-btn--icon ${className}`.replace(/\s+/g, ' ').trim();
     button.dataset.slot = 'button';
     button.dataset.variant = variant;
     button.dataset.size = 'icon';

@@ -11,10 +11,11 @@ function mount() {
   host.className = 'shad-lyric-card-host';
   card.parentNode.insertBefore(host, card);
   host.appendChild(card);
-  card.classList.add('shad-lyric-card');
+  const className = `${card.className} shad-lyric-card`.replace(/\s+/g, ' ').trim();
+  card.className = `shad-card ${className}`.replace(/\s+/g, ' ').trim();
   card.dataset.slot = 'card';
   flushSync(() => hydrateRoot(host, React.createElement(Card, {
-    id: card.id, className: card.className,
+    id: card.id, className,
     dangerouslySetInnerHTML: { __html: card.innerHTML },
   })));
   card.dataset.shadcnHydrated = 'true';

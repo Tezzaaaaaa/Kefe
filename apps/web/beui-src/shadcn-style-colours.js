@@ -16,12 +16,23 @@ function attrs(node, ignored = []) {
   return props;
 }
 function buttonTree(button, key) {
-  const className = button.className;
-  button.className = `shad-btn shad-btn--outline ${className}`;
+  const className = button.className.replace(/\s+/g, ' ').trim();
+  button.className = `shad-btn shad-btn--outline ${className}`.replace(/\s+/g, ' ').trim();
   button.dataset.slot = 'button'; button.dataset.variant = 'outline'; button.dataset.size = 'default';
-  const style = button.style.length ? Object.fromEntries(Array.from(button.style, name => [name, button.style.getPropertyValue(name)])) : undefined;
+  const styleEntries = button.style.length
+    ? Array.from({ length: button.style.length }, (_, i) => {
+        const key = button.style[i];
+        return [key, button.style.getPropertyValue(key)];
+      })
+    : [];
+  const style = styleEntries.length
+    ? Object.fromEntries(styleEntries.map(([key, val]) => [
+        key.startsWith('--') ? key : key.replace(/-([a-z])/g, (_, ch) => ch.toUpperCase()),
+        val,
+      ]))
+    : undefined;
   // React's hydration style serialization omits spaces and the trailing semicolon.
-  if (style) button.setAttribute('style', Object.entries(style).map(([name, value]) => `${name}:${value}`).join(';'));
+  if (styleEntries.length) button.setAttribute('style', styleEntries.map(([name, value]) => `${name}:${value}`).join(';'));
   return h(Button, { key, variant: 'outline', className, ...attrs(button), style }, button.textContent || null);
 }
 function mount(row) {
@@ -29,8 +40,8 @@ function mount(row) {
   const palette = row.querySelector(':scope > .kefe-style-color-swatches');
   const input = wrap?.querySelector(':scope > input[type="color"]');
   if (!input || !palette || row.dataset.shadcnHydrated) return;
-  const className = input.className;
-  input.className = `shad-input ${className}`;
+  const className = input.className.replace(/\s+/g, ' ').trim();
+  input.className = `shad-input ${className}`.replace(/\s+/g, ' ').trim();
   input.dataset.slot = 'input';
   const controls = Array.from(wrap.children, (node, key) => node === input
     ? h(Input, { key, className, ...attrs(input, ['value']), defaultValue: input.value })

@@ -16,12 +16,12 @@ const selectors = [
 function mount(button) {
   if (button.dataset.shadcnHydrated || !button.parentNode) return;
   const variant = button.classList.contains('primary') ? 'default' : 'outline';
-  const className = button.className;
+  const className = button.className.replace(/\s+/g, ' ').trim();
   const host = document.createElement('span');
   host.className = 'shad-lyric-action-host';
   button.parentNode.insertBefore(host, button);
   host.appendChild(button);
-  button.className = `shad-btn shad-btn--${variant === 'outline' ? 'outline' : 'primary'} ${className}`;
+  button.className = `shad-btn shad-btn--${variant === 'outline' ? 'outline' : 'primary'} ${className}`.replace(/\s+/g, ' ').trim();
   button.dataset.slot = 'button'; button.dataset.variant = variant; button.dataset.size = 'default';
   const props = {};
   for (const attribute of button.attributes) {

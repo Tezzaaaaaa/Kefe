@@ -10,8 +10,8 @@ function mount(group) {
   const buttons = [...group.children];
   if (!buttons.length || buttons.some(button => !(button instanceof HTMLButtonElement) || !button.classList.contains('kefe-lyric-effect-option'))) return;
   const children = buttons.map(button => {
-    const className = button.className;
-    button.className = `shad-btn shad-btn--outline ${className}`;
+    const className = button.className.replace(/\s+/g, ' ').trim();
+    button.className = `shad-btn shad-btn--outline ${className}`.replace(/\s+/g, ' ').trim();
     button.dataset.slot = 'button'; button.dataset.variant = 'outline'; button.dataset.size = 'default';
     const attributes = {};
     for (const attr of button.attributes) {

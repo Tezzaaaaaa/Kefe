@@ -27,7 +27,7 @@ function readAttrs(node, skip = []) {
   for (const attr of node.attributes) {
     if (skip.includes(attr.name)) continue;
     const key = ATTR_MAP[attr.name] || attr.name;
-    props[key] = BOOL_ATTRS.has(key) ? true : attr.value;
+    props[key] = BOOL_ATTRS.has(key) ? true : key === 'spellCheck' ? attr.value !== 'false' : attr.value;
   }
   return props;
 }

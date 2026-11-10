@@ -19,18 +19,18 @@ function mount(element) {
   if (!element || element.dataset.shadcnHydrated || !element.parentNode) return;
   const isButton = element instanceof HTMLButtonElement;
   const isTextarea = element instanceof HTMLTextAreaElement;
-  const name = element.className;
+  const name = element.className.replace(/\s+/g, ' ').trim();
   const variant = element.closest('#pcs') ? 'ghost' : 'outline';
   const host = document.createElement('span'); host.className = 'standalone-control-host';
   element.parentNode.insertBefore(host, element); host.appendChild(element);
-  element.className = isButton ? `shad-btn shad-btn--${variant} ${name}`.trim() : `${isTextarea ? 'shad-textarea' : 'shad-input'} ${name}`.trim();
+  element.className = (isButton ? `shad-btn shad-btn--${variant} ${name}` : `${isTextarea ? 'shad-textarea' : 'shad-input'} ${name}`).replace(/\s+/g, ' ').trim();
   element.dataset.slot = isButton ? 'button' : isTextarea ? 'textarea' : 'input';
   if (isButton) { element.dataset.variant = variant; element.dataset.size = 'default'; }
   const props = { className: name };
   for (const { name: attr, value } of element.attributes) {
     if (['class','style','value','data-slot','data-variant','data-size'].includes(attr)) continue;
     const prop = { tabindex:'tabIndex', spellcheck:'spellCheck' }[attr] || attr;
-    props[prop] = ['disabled', 'hidden', 'multiple'].includes(prop) ? true : value;
+    props[prop] = ['disabled', 'hidden', 'multiple'].includes(prop) ? true : prop === 'spellCheck' ? value !== 'false' : value;
   }
   if (element.style.flex) { props.style = { flex: element.style.flex }; element.setAttribute('style', `flex:${element.style.flex}`); }
   if (isButton) { props.variant = variant; props.dangerouslySetInnerHTML = { __html: element.innerHTML }; }

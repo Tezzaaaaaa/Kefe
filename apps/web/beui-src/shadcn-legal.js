@@ -12,8 +12,10 @@ function mount() {
   const card = main?.querySelector(':scope > .kefe-legal-card');
   if (!card || card.dataset.hydrated) return;
   [...main.childNodes].forEach(node => { if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) node.remove(); });
+  const cardClass = card.className.replace(/\s+/g, ' ').trim();
+  card.className = `shad-card ${cardClass}`.replace(/\s+/g, ' ').trim();
   card.dataset.slot = 'card';
-  flushSync(() => hydrateRoot(main, h(Card, { className: card.className, dangerouslySetInnerHTML: { __html: card.innerHTML } })));
+  flushSync(() => hydrateRoot(main, h(Card, { className: cardClass, dangerouslySetInnerHTML: { __html: card.innerHTML } })));
   const alertHost = card.querySelector('.kefe-legal-alert-mount');
   const alert = alertHost?.querySelector(':scope > .draft');
   if (alert) {

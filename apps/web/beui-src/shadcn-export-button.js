@@ -7,12 +7,12 @@ import { Button } from '../components/ui/button.js';
 function mount() {
   const button = document.getElementById('exportButton');
   if (!button || !button.parentNode || button.dataset.shadcnHydrated) return;
-  const className = button.className;
+  const className = button.className.replace(/\s+/g, ' ').trim();
   const host = document.createElement('span');
   host.className = 'shad-export-button-host';
   button.parentNode.insertBefore(host, button);
   host.appendChild(button);
-  button.className = `shad-btn shad-btn--primary ${className}`;
+  button.className = `shad-btn shad-btn--primary ${className}`.replace(/\s+/g, ' ').trim();
   button.dataset.slot = 'button'; button.dataset.variant = 'default'; button.dataset.size = 'default';
   flushSync(() => hydrateRoot(host, React.createElement(Button, {
     id: button.id, type: button.type, className,

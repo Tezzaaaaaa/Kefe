@@ -9,8 +9,8 @@ function mount(group) {
   const buttons = [...group.children];
   if (!buttons.length || buttons.some(button => !(button instanceof HTMLButtonElement))) return;
   const elements = buttons.map((button, key) => {
-    const className = button.className;
-    button.className = `shad-btn shad-btn--ghost ${className}`;
+    const className = button.className.replace(/\s+/g, ' ').trim();
+    button.className = `shad-btn shad-btn--ghost shad-btn--icon ${className}`.replace(/\s+/g, ' ').trim();
     button.dataset.slot = 'button'; button.dataset.variant = 'ghost'; button.dataset.size = 'icon';
     const props = {};
     for (const { name, value } of button.attributes) {
@@ -29,8 +29,8 @@ function mountLauncher() {
   const bar = toolbar?.querySelector(':scope > .kft-bar');
   const launch = toolbar?.querySelector(':scope > button.kft-launch');
   if (!bar || !launch || toolbar.children.length !== 2 || toolbar.dataset.shadcnLauncher) return;
-  const className = launch.className;
-  launch.className = `shad-btn shad-btn--ghost ${className}`;
+  const className = launch.className.replace(/\s+/g, ' ').trim();
+  launch.className = `shad-btn shad-btn--ghost shad-btn--icon ${className}`.replace(/\s+/g, ' ').trim();
   launch.dataset.slot = 'button'; launch.dataset.variant = 'ghost'; launch.dataset.size = 'icon';
   const props = {};
   for (const { name, value } of launch.attributes) {
