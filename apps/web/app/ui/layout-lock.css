@@ -343,13 +343,12 @@ html:root .kefe-editor .kefe-workspace-stack > .kefe-subtabs-mount > * {
   max-width: 100% !important;
 }
 
-/* Sub-tabs: full width, dynamic equal cells matching tab count, no negative margins. */
-html:root .kefe-editor #kefe-settings-panel .kefe-subtabs {
+/* Sub-tabs: match the section content inset and use the actual tab count in each workspace. */
+html:root .kefe-editor .kefe-workspace-stack > .kefe-subtabs {
   display: grid !important;
   grid-template-columns: repeat(var(--kefe-subtab-count, 2), minmax(0, 1fr)) !important;
   gap: var(--lk-gap-s) !important;
-  margin: 0 !important;
-  padding: var(--lk-gap-s) !important;
+  padding: var(--lk-gap-s) var(--lk-pad) !important;
   width: 100% !important;
   min-width: 0 !important;
   border-radius: var(--lk-radius) !important;
