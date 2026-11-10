@@ -179,7 +179,8 @@
       reg(slider('Glow strength', function () { return S.glow.strength; }, function (v) { S.glow.strength = v; }, 10, 100, 1, function (v) { return v + '%'; }))
     );
 
-    var resetBtn = el('button', 'kefe-btn', 'Reset lyric style'); resetBtn.type = 'button';
+    var resetBtn = el('button', 'kefe-btn shad-btn shad-btn--outline', 'Reset lyric style'); resetBtn.type = 'button';
+    resetBtn.dataset.slot = 'button'; resetBtn.dataset.variant = 'outline'; resetBtn.dataset.size = 'default';
     resetBtn.addEventListener('click', function () {
       S = clone(DEFAULT);
       syncers.forEach(function (fn) { fn(); }); persist(); redraw();

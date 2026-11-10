@@ -3,7 +3,7 @@ import * as React from "react";
 import * as Primitive from "@radix-ui/react-dialog";
 const h = React.createElement;
 export const Dialog = Primitive.Root;
-export const DialogClose = Primitive.Close;
+export function DialogClose(props) { return h(Primitive.Close, { "data-slot": "dialog-close", ...props }); }
 export function DialogContent({ children, container, ...props }) {
   return h(Primitive.Portal, { container },
     h(Primitive.Overlay, { "data-slot": "dialog-overlay", className: "shad-dialog-backdrop" }),

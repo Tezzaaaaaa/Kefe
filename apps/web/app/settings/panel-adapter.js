@@ -33,7 +33,8 @@ import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
     }
     if (!settingsFooter.querySelector('.kefe-settings-github')) {
       const githubLink = document.createElement('a');
-      githubLink.className = 'kefe-settings-github';
+      githubLink.className = 'kefe-settings-github shad-btn shad-btn--ghost';
+      githubLink.dataset.slot = 'button'; githubLink.dataset.variant = 'ghost'; githubLink.dataset.size = 'default';
       githubLink.href = 'https://github.com/Tezzaaaaaa/Kefe';
       githubLink.target = '_blank';
       githubLink.rel = 'noopener noreferrer';
