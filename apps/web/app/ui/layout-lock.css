@@ -286,3 +286,94 @@ html:root .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions.
   html:root .kefe-editor .kefe-sidebar-bottom { gap: 4px !important; }
   html:root .kefe-editor .kefe-sidebar { gap: 4px !important; }
 }
+
+/* ── Content workspace (Media, Lyric Sync): inner padding and rhythm ─────────────────
+   The frame above (title, sub-tabs, section) keeps its shared edges. The breathing room lives
+   inside the section card so headings, labels and controls never sit flush against its border
+   or against each other. Spacing uses the same tokens: --lk-pad inside a card, --lk-gap-s
+   between controls, --lk-gap between blocks. */
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-settings-embedded-panel {
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--lk-gap) !important;
+  padding: var(--lk-pad) !important;
+  border-radius: var(--lk-radius) !important;
+}
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-settings-embedded-panel > * { min-width: 0 !important; margin: 0 !important; }
+
+/* Section heading: title left, hint right; wraps instead of colliding on narrow screens. */
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-settings-embedded-panel > .kefe-panel-head {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  gap: 4px var(--lk-gap) !important;
+  padding: 0 !important;
+}
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-panel-head > h2 { flex: 0 0 auto !important; margin: 0 !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-panel-head > .kefe-meta { flex: 1 1 12rem !important; margin: 0 !important; text-align: right !important; }
+@media (max-width: 600px) {
+  html:root .kefe-editor #kefe-workspace-content-panel .kefe-panel-head > .kefe-meta { flex-basis: 100% !important; text-align: left !important; }
+}
+
+/* Step blocks: a title and its description sit close together; blocks sit one gap apart. */
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-form,
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-step-body {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: var(--lk-gap-s) !important;
+  padding: 0 !important;
+}
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-form > *,
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-step-body > * { width: auto !important; max-width: 100% !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-find-step { gap: var(--lk-gap-s) !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-step-head { padding: 0 !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-step-head > div { display: flex !important; flex-direction: column !important; gap: 2px !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-step-head :is(h3, p) { margin: 0 !important; }
+
+/* Upload cards: room around the icon, title, hint and button. */
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-upload-card { padding: 10px var(--lk-gap-s) !important; gap: 4px !important; }
+
+/* Lyric Sync: label, step title, buttons, text box and alignment choices each get their own row gap. */
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-form > div:has(> .kefe-lyrics-tools) {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--lk-gap-s) !important;
+}
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-lyrics-tools { gap: var(--lk-gap-s) !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-step-label { margin: 0 !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-editor-panel-card { gap: var(--lk-gap-s) !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-meta:empty { display: none !important; }
+
+/* Fix timing: title block left, actions right; the checkbox stays a 16px box, not a stretched pill. */
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-timing-editor-head { flex-wrap: wrap !important; align-items: flex-start !important; gap: var(--lk-gap-s) var(--lk-gap) !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-timing-editor-actions { align-items: center !important; gap: var(--lk-gap-s) !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-follow { align-items: center !important; gap: var(--lk-gap-s) !important; height: auto !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-follow .kefe-checkbox-host { flex: 0 0 16px !important; align-self: center !important; width: 16px !important; height: 16px !important; }
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-follow .shad-checkbox { width: 16px !important; height: 16px !important; min-width: 16px !important; min-height: 16px !important; }
+
+/* Narrow widths: upload cards grow with their text instead of clipping the button, and action
+   rows wrap whole buttons onto the next line instead of breaking a label mid-word. */
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-media-upload-row {
+  align-items: stretch !important;
+  grid-template-rows: none !important;
+  grid-auto-rows: minmax(96px, auto) !important;
+  height: auto !important;
+}
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-media-upload-row :is(#kefeUploadZone, #kefeBgVideoZone, .beui-upload-wrap, .kefe-upload-card) {
+  height: auto !important;
+  min-height: 96px !important;
+  max-height: none !important;
+}
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-download-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: var(--lk-gap-s) !important;
+}
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-download-row > * {
+  flex: 1 1 8rem !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+}
